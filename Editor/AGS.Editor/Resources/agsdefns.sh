@@ -2325,6 +2325,8 @@ builtin struct Game {
   import static readonly attribute int BlockingWaitSkipped;
   /// Gets name of the currently active voice-over pack.
   readonly import static attribute String SpeechVoxFilename;
+  /// [exp] Sets a different ratio for the way direction is calculated (default 1.0)
+  import static void SetDirectionRatio(float ratio);
 #endif
 #ifdef SCRIPT_API_v361
   /// Resets all of the "DoOnceOnly" token states
