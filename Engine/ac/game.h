@@ -122,6 +122,8 @@ int Game_ChangeTranslation(const char *newFilename);
 const char* Game_GetSpeechVoxFilename();
 bool Game_ChangeSpeechVox(const char *newFilename);
 
+void Game_SetDirectionRatio(float ratio);
+
 //=============================================================================
 
 void set_debug_mode(bool on);
