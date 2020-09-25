@@ -2212,6 +2212,8 @@ builtin struct Game {
   import static readonly attribute int BlockingWaitSkipped;
   /// Gets name of the currently active translation.
   readonly import static attribute String SpeechVoxFilename;
+  /// [exp] Sets a different ratio for the way direction is calculated (default 1.0)
+  import static void SetDirectionRatio(float ratio);
 #endif
 };
 
