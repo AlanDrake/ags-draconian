@@ -125,6 +125,8 @@ int Game_GetNormalFont();
 const char* Game_GetTranslationFilename();
 int Game_ChangeTranslation(const char *newFilename);
 
+void Game_SetDirectionRatio(float ratio);
+
 //=============================================================================
 
 void set_debug_mode(bool on);

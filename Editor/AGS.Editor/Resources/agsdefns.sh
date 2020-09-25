@@ -2204,6 +2204,8 @@ builtin struct Game {
 #ifdef SCRIPT_API_v360
   /// Gets the code which describes how was the last blocking state skipped by a user (or autotimer).
   import static readonly attribute int BlockingWaitSkipped;
+  /// [exp] Sets a different ratio for the way direction is calculated (default 1.0)
+  import static void SetDirectionRatio(float ratio);
 #endif
 };
 
