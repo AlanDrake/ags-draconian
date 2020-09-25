@@ -106,6 +106,7 @@ int new_room_pos=0;
 int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;
 int new_room_loop = SCR_NO_VALUE;
 bool new_room_placeonwalkable = false;
+float direction_ratio = 1.0;
 int proper_exit=0,our_eip=0;
 
 AGS::Common::SpriteCache::Callbacks spritecallbacks = {
@@ -587,7 +588,7 @@ ScriptViewFrame* Game_GetViewFrame(int view, int loop, int frame) {
 int Game_DoOnceOnly(const char *token)
 {
     if (play.do_once_tokens.count(String::Wrapper(token)) > 0)
-        return 0;
+            return 0;
     play.do_once_tokens.insert(token);
     return 1;
 }
@@ -775,6 +776,10 @@ void Game_SimulateKeyPress(int key)
 int Game_BlockingWaitSkipped()
 {
     return play.GetWaitSkipResult();
+}
+void Game_SetDirectionRatio(float ratio)
+{
+    if (ratio > 0) direction_ratio = ratio;
 }
 
 void Game_PrecacheSprite(int sprnum)
@@ -1694,6 +1699,11 @@ RuntimeScriptValue Sc_Game_BlockingWaitSkipped(const RuntimeScriptValue *params,
     API_SCALL_INT(Game_BlockingWaitSkipped);
 }
 
+RuntimeScriptValue Sc_Game_SetDirectionRatio(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PFLOAT(Game_SetDirectionRatio);
+}
+
 RuntimeScriptValue Sc_Game_PrecacheSprite(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(Game_PrecacheSprite);
@@ -1761,6 +1771,7 @@ void RegisterGameAPI()
         { "Game::get_Camera",                             API_FN_PAIR(Game_GetCamera) },
         { "Game::get_CameraCount",                        API_FN_PAIR(Game_GetCameraCount) },
         { "Game::geti_Cameras",                           API_FN_PAIR(Game_GetAnyCamera) },
+        { "Game::SetDirectionRatio",                      API_FN_PAIR(Game_SetDirectionRatio) },
     };
 
     ccAddExternalFunctions(game_api);

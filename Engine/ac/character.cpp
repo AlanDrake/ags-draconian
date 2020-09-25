@@ -79,6 +79,7 @@ extern int said_text;
 extern int our_eip;
 extern CCCharacter ccDynamicCharacter;
 extern CCInventory ccDynamicInv;
+extern float direction_ratio;
 
 //--------------------------------
 
@@ -328,6 +329,8 @@ enum DirectionalLoop
 DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, float x_diff, float y_diff)
 {
     DirectionalLoop next_loop = kDirLoop_Left; // NOTE: default loop was Left for some reason
+
+    x_diff /= direction_ratio; // perspective adjustment by Game.SetDirectionRatio()
 
     const ViewStruct &chview  = views[chinfo->view];
     const bool has_down_loop  = ((chview.numLoops > kDirLoop_Down)  && (chview.loops[kDirLoop_Down].numFrames > 0));
