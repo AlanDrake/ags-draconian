@@ -2187,7 +2187,8 @@ void CheckViewFrameForCharacter(CharacterInfo *chi)
         frame_vol = frame_vol * zoom_level / 100;
     }
 
-    CheckViewFrame(chi->view, chi->loop, chi->frame, frame_vol);
+    int soundPanning = GetPanningFromPosition(chi->x);
+    CheckViewFrame(chi->view, chi->loop, chi->frame, frame_vol, soundPanning);
 }
 
 Bitmap *GetCharacterImage(int charid, int *isFlipped) 

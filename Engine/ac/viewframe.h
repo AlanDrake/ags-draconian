@@ -42,8 +42,10 @@ int  ViewFrame_GetFrame(ScriptViewFrame *svf);
 void precache_view(int view);
 // Handle the new animation frame (play linked sounds, etc);
 // sound_volume is an optional relative factor, -1 means not use
-void CheckViewFrame(int view, int loop, int frame, int sound_volume = -1);
+void CheckViewFrame(int view, int loop, int frame, int sound_volume = -1, int sound_panning = SCR_NO_VALUE);
 // draws a view frame, flipped if appropriate
 void DrawViewFrame(Common::Bitmap *ds, const ViewFrame *vframe, int x, int y, bool alpha_blend = false);
+
+int GetPanningFromPosition(int x);
 
 #endif // __AGS_EE_AC__VIEWFRAME_H
