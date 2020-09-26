@@ -544,6 +544,27 @@ int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxD
     return wantvol;
 }
 
+int get_panning_adjusted_for_distance(int sndX)
+{
+    // get the relative panning
+    PCamera viewport = play.GetRoomViewport(0)->GetCamera();
+    /*
+    // relative to player
+    int distx = (sndX - playerchar->x);
+    int panning = 128 + (distx * 128) / viewport->GetRect().GetWidth();
+    /*/
+    // relative to viewport
+    int panning = (play.RoomToScreenX(sndX) * 255) / viewport->GetRect().GetWidth();
+    //*/
+
+    if (panning < 0)
+        panning = 0;
+    if (panning > 255)
+        panning = 255;
+
+    return panning;
+}
+
 void update_directional_sound_vol()
 {
     for (int chnum = NUM_SPEECH_CHANS; chnum < game.numGameChannels; chnum++)
@@ -557,6 +578,7 @@ void update_directional_sound_vol()
                     ch->ySource,
                     ch->maximumPossibleDistanceAway) -
                 ch->get_volume255());
+            ch->set_panning(get_panning_adjusted_for_distance(ch->xSource));
         }
     }
 }
