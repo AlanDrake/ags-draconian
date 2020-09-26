@@ -144,7 +144,7 @@ int RoomObject::GetFrameSoundVolume() const
 void RoomObject::CheckViewFrame()
 {
     ObjectEvent objevt(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrObj[id], &ccDynamicObject));
-    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(), audio_panning, audio_speed,
+    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(), GetPanningFromPosition(x), audio_speed,
         objevt, &thisroom.Objects[id].GetEvents(), kRoomObjectEvent_OnFrameEvent);
 }
 
