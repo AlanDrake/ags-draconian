@@ -738,8 +738,7 @@ void render_to_screen()
     // Stage: engine overlay
     construct_engine_overlay();
 
-    // only vsync in full screen mode, it makes things worse in a window
-    gfxDriver->EnableVsyncBeforeRender((scsystem.vsync > 0) && (!scsystem.windowed));
+    gfxDriver->EnableVsyncBeforeRender(scsystem.vsync > 0);
 
     bool succeeded = false;
     while (!succeeded)
