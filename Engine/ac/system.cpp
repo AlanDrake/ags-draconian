@@ -133,8 +133,7 @@ int System_GetVsync() {
 }
 
 void System_SetVsync(int newValue) {
-    if(ags_stricmp(gfxDriver->GetDriverID(), "D3D9") != 0)
-        scsystem.vsync = newValue;
+    scsystem.vsync = newValue;
 }
 
 int System_GetWindowed() {
