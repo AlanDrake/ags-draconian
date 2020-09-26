@@ -604,6 +604,27 @@ int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxD
     return wantvol;
 }
 
+int get_panning_adjusted_for_distance(int sndX)
+{
+    // get the relative panning
+    PCamera viewport = play.GetRoomCamera(0);
+    /*
+    // relative to player
+    int distx = (sndX - playerchar->x);
+    int panning = 128 + (distx * 128) / viewport->GetRect().GetWidth();
+    /*/
+    // relative to viewport
+    int panning = (play.RoomToScreenX(sndX) * 255) / viewport->GetRect().GetWidth();
+    //*/
+
+    if (panning < 0)
+        panning = 0;
+    if (panning > 255)
+        panning = 255;
+
+    return panning;
+}
+
 void update_directional_sound_vol()
 {
     AudioChannelsLock lock;
@@ -619,6 +640,7 @@ void update_directional_sound_vol()
                     ch->ySource,
                     ch->maximumPossibleDistanceAway) -
                 ch->vol);
+            ch->set_panning(get_panning_adjusted_for_distance(ch->xSource));
         }
     }
 }
@@ -653,17 +675,22 @@ void update_ambient_sound_vol ()
         int ambientvol = (sourceVolume * play.sound_volume) / 255;
 
         int wantvol;
+        int wantpanning = -1;
 
         if ((thisSound->x == 0) && (thisSound->y == 0)) {
             wantvol = ambientvol;
         }
         else {
             wantvol = get_volume_adjusted_for_distance(ambientvol, thisSound->x, thisSound->y, thisSound->maxdist);
+            wantpanning = get_panning_adjusted_for_distance(thisSound->x);
         }
 
         auto *ch = lock.GetChannelIfPlaying(thisSound->channel);
         if (ch)
+        {
             ch->set_volume(wantvol);
+            if (wantpanning > -1) ch->set_panning(wantpanning);
+        }
     }
 }
 
