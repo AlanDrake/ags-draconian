@@ -19,9 +19,11 @@
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/draw.h"
+#include "ac/gamestate.h"
 #include "ac/game_version.h"
 #include "media/audio/audio_system.h"
 #include "util/math.h"
+#include "game/viewport.h"
 
 using namespace AGS::Common;
 
@@ -91,8 +93,21 @@ void precache_view(int view)
     }
 }
 
+int GetPanningFromPosition(int x) {
+    PCamera viewport = play.GetRoomViewport(0)->GetCamera();
+    if (!viewport) return 0;
+    int panning = (play.RoomToScreenX(x) * 200) / viewport->GetRect().GetWidth() - 100;
+
+    if (panning < -100)
+        panning = -100;
+    if (panning > 100)
+        panning = 100;
+
+    return panning;
+}
+
 // Handle the new animation frame (play linked sounds, etc)
-void CheckViewFrame(int view, int loop, int frame, int sound_volume)
+void CheckViewFrame(int view, int loop, int frame, int sound_volume, int sound_panning)
 {
     ScriptAudioChannel *channel = nullptr;
 
@@ -108,7 +123,13 @@ void CheckViewFrame(int view, int loop, int frame, int sound_volume)
         if (ch)
             ch->set_volume100(ch->get_volume100() * sound_volume / 100);
     }
-    
+
+    if (sound_panning != SCR_NO_VALUE && channel != nullptr) {
+        auto* ch = AudioChans::GetChannel(channel->id);
+        if (ch) {
+            ch->set_panning(sound_panning);
+        }
+    }
 }
 
 // Note: the following function is only used for speech views in update_sierra_speech() and _displayspeech()
