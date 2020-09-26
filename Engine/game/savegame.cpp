@@ -837,12 +837,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         on_background_frame_change();
     }
 
-    if ((select_cmp & kSaveCmp_Audio) != 0)
-    {
-        HSaveError err = RestoreAudio(r_data);
-        if (!err)
-            return err;
-    }
 
     RestoreShaders();
 
@@ -855,6 +849,17 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     prepare_gui_runtime(false /* not startup */);
 
     RestoreViewportsAndCameras(r_data);
+
+    if ((select_cmp & kSaveCmp_Audio) != 0)
+    {
+        int temp_vol = play.audio_master_volume;
+        play.audio_master_volume = -1; // reset to invalid state before re-applying
+        System_SetVolume(temp_vol);
+        HSaveError err = RestoreAudio(r_data); // depends on viewport for positional sounds, so must be after RestoreViewportsAndCameras
+        if (!err)
+            return err;
+    }
+
     set_game_speed(r_data.FPS);
 
     // Run fixups over managed objects if necessary
