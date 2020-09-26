@@ -40,8 +40,10 @@ int  ViewFrame_GetLoop(ScriptViewFrame *svf);
 int  ViewFrame_GetFrame(ScriptViewFrame *svf);
 
 void precache_view(int view);
-void CheckViewFrame (int view, int loop, int frame, int sound_volume=SCR_NO_VALUE);
+void CheckViewFrame (int view, int loop, int frame, int sound_volume=SCR_NO_VALUE, int sound_panning = SCR_NO_VALUE);
 // draws a view frame, flipped if appropriate
 void DrawViewFrame(Common::Bitmap *ds, const ViewFrame *vframe, int x, int y, bool alpha_blend = false);
+
+int GetPanningFromPosition(int x);
 
 #endif // __AGS_EE_AC__VIEWFRAME_H

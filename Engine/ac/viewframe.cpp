@@ -20,8 +20,10 @@
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/draw.h"
+#include "ac/gamestate.h"
 #include "ac/game_version.h"
 #include "media/audio/audio_system.h"
+#include "game/viewport.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
@@ -114,9 +116,21 @@ void precache_view(int view)
     }
 }
 
+int GetPanningFromPosition(int x) {
+    PCamera viewport = play.GetRoomCamera(0);
+    int panning = (play.RoomToScreenX(x) * 255) / viewport->GetRect().GetWidth();
+
+    if (panning < 0)
+        panning = 0;
+    if (panning > 255)
+        panning = 255;
+
+    return panning;
+}
+
 // the specified frame has just appeared, see if we need
 // to play a sound or whatever
-void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
+void CheckViewFrame (int view, int loop, int frame, int sound_volume, int sound_panning) {
     ScriptAudioChannel *channel = nullptr;
 
     if (views[view].loops[loop].frames[frame].sound >= 0) {
@@ -131,7 +145,15 @@ void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
         if (ch)
             ch->set_volume_percent(ch->get_volume() * sound_volume / 100);
     }
-    
+
+    if (sound_panning != SCR_NO_VALUE && channel != nullptr) {
+        AudioChannelsLock lock;
+        auto* ch = lock.GetChannel(channel->id);
+        if (ch) {
+            ch->set_panning(sound_panning);
+            ch->panningAsPercentage = (sound_panning / 255) * 200 - 100;
+        }
+    }
 }
 
 // draws a view frame, flipped if appropriate

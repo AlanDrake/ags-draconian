@@ -103,7 +103,8 @@ void RoomObject::UpdateCyclingView(int ref_id)
       return;
 
     wait=vfptr->speed+overall_speed;
-    CheckViewFrame (view, loop, frame);
+    int soundPanning = GetPanningFromPosition(x);
+    CheckViewFrame (view, loop, frame, SCR_NO_VALUE, soundPanning);
 }
 
 
