@@ -109,7 +109,7 @@ int RoomObject::GetFrameSoundVolume() const
 
 void RoomObject::CheckViewFrame()
 {
-    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume());
+    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(), GetPanningFromPosition(x));
 }
 
 void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
