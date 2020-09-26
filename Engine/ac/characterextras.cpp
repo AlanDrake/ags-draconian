@@ -41,7 +41,7 @@ int CharacterExtras::GetFrameSoundVolume(CharacterInfo *chi) const
 
 void CharacterExtras::CheckViewFrame(CharacterInfo *chi)
 {
-    ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi));
+    ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi), GetPanningFromPosition(chi->x));
 }
 
 void CharacterExtras::ReadFromSavegame(Stream *in, CharacterInfo &chinfo, int32_t cmp_ver)
