@@ -577,7 +577,7 @@ int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxD
 int get_panning_adjusted_for_distance(int sndX)
 {
     // get the relative panning
-    PCamera viewport = play.GetRoomCamera(0);
+    PCamera viewport = play.GetRoomViewport(0)->GetCamera();
     /*
     // relative to player
     int distx = (sndX - playerchar->x);
