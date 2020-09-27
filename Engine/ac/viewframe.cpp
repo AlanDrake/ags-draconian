@@ -117,7 +117,7 @@ void precache_view(int view)
 }
 
 int GetPanningFromPosition(int x) {
-    PCamera viewport = play.GetRoomCamera(0);
+    PCamera viewport = play.GetRoomViewport(0)->GetCamera();
     int panning = (play.RoomToScreenX(x) * 255) / viewport->GetRect().GetWidth();
 
     if (panning < 0)
