@@ -588,7 +588,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         if (r_data.DoAmbient[i])
             PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);
     }
-    update_directional_sound_vol();
 
     adjust_fonts_for_render_mode(game.options[OPT_ANTIALIASFONTS] != 0);
 
@@ -597,6 +596,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     GUI::MarkAllGUIForUpdate();
 
     RestoreViewportsAndCameras(r_data);
+
+    update_directional_sound_vol(); // depends on viewport, so must be after RestoreViewportsAndCameras
 
     play.ClearIgnoreInput(); // don't keep ignored input after save restore
     update_polled_stuff_if_runtime();
