@@ -578,6 +578,7 @@ int get_panning_adjusted_for_distance(int sndX)
 {
     // get the relative panning
     PCamera viewport = play.GetRoomViewport(0)->GetCamera();
+    if (!viewport) return 128;
     /*
     // relative to player
     int distx = (sndX - playerchar->x);
