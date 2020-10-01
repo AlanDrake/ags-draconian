@@ -229,7 +229,7 @@ namespace AGS.Editor
 
         public void GameNameUpdated()
         {
-            _mainForm.Text = _titleBarPrefix + _agsEditor.CurrentGame.Settings.GameName + " - AGS Editor";
+            _mainForm.Text = _titleBarPrefix + _agsEditor.CurrentGame.Settings.GameName + " - AGS Editor (Draconian Edition)";
         }
 
         public void SetTitleBarPrefix(string prefix)
