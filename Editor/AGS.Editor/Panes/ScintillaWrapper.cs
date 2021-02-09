@@ -2203,6 +2203,7 @@ namespace AGS.Editor
         /// <param name="t"></param>
         private void LoadColorTheme(ColorTheme t)
         {
+            if (!t.Has("script-editor/text-editor")) return;
             scintillaControl1.StyleSetBack(Cpp.GlobalDefault, t.GetColor("script-editor/text-editor/global-default/background"));
             scintillaControl1.StyleSetFore(Cpp.GlobalDefault, t.GetColor("script-editor/text-editor/global-default/foreground"));
             scintillaControl1.StyleSetBack(Cpp.Default, t.GetColor("script-editor/text-editor/default/background"));
@@ -2254,8 +2255,17 @@ namespace AGS.Editor
             scintillaControl1.MarkerSetBack(Scintilla.Constants.SC_MARKNUM_FOLDERMIDTAIL, t.GetColor("script-editor/text-editor/marknum-folder-mid-tail"));
             scintillaControl1.MarkerSetBack(Scintilla.Constants.SC_MARKNUM_FOLDERSUB, t.GetColor("script-editor/text-editor/marknum-folder-sub"));
             scintillaControl1.MarkerSetBack(Scintilla.Constants.SC_MARKNUM_FOLDERTAIL, t.GetColor("script-editor/text-editor/marknum-folder-tail"));
-            scintillaControl1.SetSelBack(true, t.GetColor("script-editor/text-editor/selected"));
+            scintillaControl1.SetSelBack(t.GetColor("script-editor/text-editor/selected/background") != Color.Transparent, t.GetColor("script-editor/text-editor/selected/background"));
+            scintillaControl1.SetSelFore(t.GetColor("script-editor/text-editor/selected/foreground") != Color.Transparent, t.GetColor("script-editor/text-editor/selected/foreground"));
             scintillaControl1.CaretFore = Scintilla.Utilities.ColorToRgb(t.GetColor("script-editor/text-editor/caret"));
+
+            scintillaControl1.MarkerSetBack(MARKER_TYPE_BREAKPOINT, t.GetColor("script-editor/text-editor/marker-breakpoint/background"));
+            scintillaControl1.MarkerSetFore(MARKER_TYPE_BREAKPOINT, t.GetColor("script-editor/text-editor/marker-breakpoint/foreground"));
+            scintillaControl1.MarkerSetBack(MARKER_TYPE_BREAKPOINT2, t.GetColor("script-editor/text-editor/marker-breakpoint2/background"));
+            scintillaControl1.MarkerSetFore(MARKER_TYPE_BREAKPOINT2, t.GetColor("script-editor/text-editor/marker-breakpoint2/foreground"));
+            scintillaControl1.MarkerSetBack(MARKER_TYPE_CURRENT_STATEMENT, t.GetColor("script-editor/text-editor/current-statement/background"));
+            scintillaControl1.MarkerSetFore(MARKER_TYPE_CURRENT_STATEMENT, t.GetColor("script-editor/text-editor/current-statement/foreground"));
+
         }
     }
 }

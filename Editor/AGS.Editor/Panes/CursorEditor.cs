@@ -89,10 +89,8 @@ namespace AGS.Editor
 
         private void LoadColorTheme(ColorTheme t)
         {
-            BackColor = t.GetColor("cursor-editor/background");
-            ForeColor = t.GetColor("cursor-editor/foreground");
-            currentItemGroupBox.BackColor = t.GetColor("cursor-editor/box/background");
-            currentItemGroupBox.ForeColor = t.GetColor("cursor-editor/box/foreground");
+            t.ControlHelper(this, "cursor-editor");
+            t.GroupBoxHelper(currentItemGroupBox, "cursor-editor/box");
         }
     }
 }

@@ -92,7 +92,7 @@ namespace AGS.Editor
             this.scintillaControl1.Name = "scintillaControl1";
             this.scintillaControl1.PrintMagnification = 0;
             this.scintillaControl1.PrintWrapMode = 1;
-            this.scintillaControl1.ScrollWidth = 2000;
+            this.scintillaControl1.ScrollWidth = 800;
             this.scintillaControl1.SearchFlags = 0;
             this.scintillaControl1.SelAlpha = 256;
             this.scintillaControl1.SelectionEnd = 0;

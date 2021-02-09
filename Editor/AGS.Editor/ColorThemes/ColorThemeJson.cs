@@ -19,8 +19,25 @@ namespace AGS.Editor
 
         public override void Init() => _json = JObject.Parse(File.ReadAllText(_dir));
 
+        public override bool Has(string id)
+        {
+            try
+            {
+                return DoTransform(id, t => t != null);
+            }
+            catch {
+                return false;
+            }
+        }
+
         public override Color GetColor(string id)
         {
+            try
+            {
+                return DoTransform(id, t => System.Drawing.ColorTranslator.FromHtml((string)t));
+            }
+            catch { }
+            // old style compatibility
             return DoTransform(id, t => Color.FromArgb((int)t["a"], (int)t["r"], (int)t["g"], (int)t["b"]));
         }
 
@@ -61,7 +78,16 @@ namespace AGS.Editor
                     {
                         if (b.GetPixel(x, y).A > 0)
                         {
-                            b.SetPixel(x, y, Color.FromArgb((int)t["a"], (int)t["r"], (int)t["g"], (int)t["b"]));
+                            Color color;
+                            try
+                            {
+                                color =  System.Drawing.ColorTranslator.FromHtml((string)t);
+                            }
+                            catch {
+                                // old style compatibility
+                                color = Color.FromArgb((int)t["a"], (int)t["r"], (int)t["g"], (int)t["b"]);
+                            }
+                            b.SetPixel(x, y, color);
                         }
                     }
                 }

@@ -47,6 +47,8 @@ namespace AGS.Editor
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.mainContainer = new WeifenLuo.WinFormsUI.Docking.DockPanel();
             this.mainContainer.Theme = new VS2015BlueTheme();
+            //this.mainContainer.Theme = new VS2015DarkTheme();
+            //this.mainContainer.Theme = new VS2005Theme();
             WeifenLuo.WinFormsUI.Docking.DockPanelSkin dockPanelSkin1 = this.mainContainer.Theme.Skin;
             this.tabbedDocumentContainer1 = new AGS.Editor.TabbedDocumentManager(mainContainer);
             this.pnlCallStack = new AGS.Editor.CallStackPanel();
