@@ -485,6 +485,11 @@ bool Object_SetTextProperty(ScriptObject *objj, const char *property, const char
     return set_text_property(croom->objProps[objj->id], property, value);
 }
 
+bool Object_GetUseRegionTint(ScriptObject *objj)
+{
+    return (croom->obj[objj->id].flags & OBJF_USEREGIONTINTS) != 0;
+}
+
 void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) {
     RoomObject *tehobj = &objs[objid];
     int cwidth, fromx;
@@ -1041,6 +1046,12 @@ RuntimeScriptValue Sc_Object_SetBlendMode(void *self, const RuntimeScriptValue *
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlendMode);
 }
 
+// bool (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetUseRegionTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptObject, Object_GetUseRegionTint);
+}
+
 RuntimeScriptValue Sc_Object_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_FLOAT(ScriptObject, Object_GetRotation);
@@ -1129,6 +1140,8 @@ void RegisterObjectAPI()
     ccAddExternalObjectFunction("Object::set_BlendMode",            Sc_Object_SetBlendMode);
     ccAddExternalObjectFunction("Object::get_GraphicRotation",      Sc_Object_GetRotation);
     ccAddExternalObjectFunction("Object::set_GraphicRotation",      Sc_Object_SetRotation);
+
+    ccAddExternalObjectFunction("Object::get_UseRegionTint",        Sc_Object_GetUseRegionTint);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

@@ -1847,6 +1847,8 @@ builtin managed struct Object {
   import attribute BlendMode BlendMode;
   /// Gets/sets the object's sprite rotation in degrees.
   import attribute float GraphicRotation;
+  /// Gets whether the object uses region tinting.
+  readonly import attribute bool UseRegionTint;
 #endif
   readonly int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
@@ -2074,6 +2076,8 @@ builtin managed struct Character {
   import attribute BlendMode BlendMode;
   /// Gets/sets the character's sprite rotation in degrees.
   import attribute float GraphicRotation;
+  /// Gets whether the character uses region tinting.
+  readonly import attribute bool UseRegionTint;
 #endif
   readonly int reserved_a[28];   // $AUTOCOMPLETEIGNORE$
   readonly short reserved_f[MAX_INV];  // $AUTOCOMPLETEIGNORE$
