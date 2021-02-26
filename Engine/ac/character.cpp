@@ -1658,6 +1658,11 @@ int Character_GetSpeakingFrame(CharacterInfo *chaa) {
     return -1;
 }
 
+bool Character_GetUseRegionTint(CharacterInfo *ch)
+{
+    return (ch->flags & OBJF_USEREGIONTINTS) != 0;
+}
+
 //=============================================================================
 
 // order of loops to turn character in circle from down to down
@@ -3809,6 +3814,12 @@ RuntimeScriptValue Sc_Character_SetBlendMode(void *self, const RuntimeScriptValu
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlendMode);
 }
 
+// bool (CharacterInfo *chaa)
+RuntimeScriptValue Sc_Character_GetUseRegionTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(CharacterInfo, Character_GetUseRegionTint);
+}
+
 RuntimeScriptValue Sc_Character_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_FLOAT(CharacterInfo, Character_GetRotation);
@@ -4003,6 +4014,7 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     ccAddExternalObjectFunction("Character::get_TintLuminance",         Sc_Character_GetTintLuminance);
     ccAddExternalObjectFunction("Character::get_BlendMode",             Sc_Character_GetBlendMode);
     ccAddExternalObjectFunction("Character::set_BlendMode",             Sc_Character_SetBlendMode);
+    ccAddExternalObjectFunction("Character::get_UseRegionTint",         Sc_Character_GetUseRegionTint);
     ccAddExternalObjectFunction("Character::get_GraphicRotation",       Sc_Character_GetRotation);
     ccAddExternalObjectFunction("Character::set_GraphicRotation",       Sc_Character_SetRotation);
 
