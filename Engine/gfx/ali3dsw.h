@@ -206,6 +206,8 @@ public:
 private:
     PSDLRenderFilter _filter;
 
+    int _gamma;
+
     bool _hasGamma = false;
     Uint16 _defaultGammaRed[256]{};
     Uint16 _defaultGammaGreen[256]{};

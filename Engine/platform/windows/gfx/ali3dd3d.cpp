@@ -194,6 +194,7 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _pixelRenderXOffset = 0;
   _pixelRenderYOffset = 0;
   _renderSprAtScreenRes = false;
+  _gamma = 100;
 
   // Shifts comply to D3DFMT_A8R8G8B8
   _vmem_a_shift_32 = 24;
@@ -495,17 +496,19 @@ bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 
 bool D3DGraphicsDriver::SupportsGammaControl() 
 {
+  /*
   if ((direct3ddevicecaps.Caps2 & D3DCAPS2_FULLSCREENGAMMA) == 0)
     return false;
 
   if (_mode.Windowed)
     return false;
-
+  */
   return true;
 }
 
 void D3DGraphicsDriver::SetGamma(int newGamma)
 {
+  /*
   for (int i = 0; i < 256; i++) 
   {
     int newValue = ((int)defaultgammaramp.red[i] * newGamma) / 100;
@@ -517,6 +520,8 @@ void D3DGraphicsDriver::SetGamma(int newGamma)
   }
 
   direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);
+  */
+    _gamma = newGamma;
 }
 
 /* wnd_set_video_mode:
@@ -695,6 +700,7 @@ void D3DGraphicsDriver::InitializeD3DState()
 
   // If we already have a render frame configured, then setup viewport immediately
   SetupViewport();
+  SetGamma(_gamma);
 }
 
 void D3DGraphicsDriver::SetupViewport()
@@ -1313,7 +1319,7 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
   }
 }
 
-void D3DGraphicsDriver::_renderFromTexture()
+void D3DGraphicsDriver::_renderFromTexture(IDirect3DTexture9 *texture)
 {
     if (direct3ddevice->SetStreamSource(0, vertexbuffer, 0, sizeof(CUSTOMVERTEX)) != D3D_OK)
     {
@@ -1335,7 +1341,7 @@ void D3DGraphicsDriver::_renderFromTexture()
 
     _filter->SetSamplerStateForStandardSprite(direct3ddevice);
 
-    direct3ddevice->SetTexture(0, pNativeTexture);
+    direct3ddevice->SetTexture(0, texture);
 
     if (direct3ddevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2) != D3D_OK)
     {
@@ -1382,12 +1388,41 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
       throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
     }
     direct3ddevice->SetViewport(&_d3dViewport);
-    _renderFromTexture();
+    _renderFromTexture(pNativeTexture);
   }
+
+  // Soft Gamma
+  D3DBitmap *d3db_gamma = NULL;
+  if (_gamma != 100) {
+      const int color = abs(_gamma - (_gamma>100 ? 100 : 0)) * 255 / 100;
+      Bitmap *bmp = BitmapHelper::CreateBitmap(16, 16, 32);
+      bmp->Clear(makecol32(color, color, color));
+      d3db_gamma = (D3DBitmap*) this->CreateDDBFromBitmap(bmp, false, true);
+      delete bmp;
+
+      if (_gamma > 100) {
+          // lighten
+          direct3ddevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_DESTCOLOR);
+          direct3ddevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+      }
+      else {
+          // darken
+          direct3ddevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_DESTCOLOR);
+          direct3ddevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ZERO);
+      }
+      _renderFromTexture(d3db_gamma->_tiles[0].texture);
+
+      direct3ddevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+      direct3ddevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+  }
+  // Soft Gamma - End
 
   direct3ddevice->EndScene();
 
   pBackBuffer->Release();
+
+  if (d3db_gamma != NULL)
+      this->DestroyDDB(d3db_gamma);
 
   if (clearDrawListAfterwards)
   {
