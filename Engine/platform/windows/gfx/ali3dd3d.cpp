@@ -46,6 +46,8 @@ namespace D3D
 
 using namespace Common;
 
+bool is_redrawing = false; // used to avoid reapplying gamma correction
+
 //
 // Direct3D helpers
 //
@@ -317,6 +319,7 @@ D3DGraphicsDriver::D3DGraphicsDriver(const D3DPtr &d3d)
 {
   direct3d = d3d;
   SetupDefaultVertices();
+  _gamma = 100;
 
   // Shifts comply to D3DFMT_A8R8G8B8
   _vmem_a_shift_32 = 24;
@@ -504,17 +507,19 @@ bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 
 bool D3DGraphicsDriver::SupportsGammaControl() 
 {
+  /*
   if ((direct3ddevicecaps.Caps2 & D3DCAPS2_FULLSCREENGAMMA) == 0)
     return false;
 
   if (!_mode.IsRealFullscreen())
     return false;
-
+  */
   return true;
 }
 
 void D3DGraphicsDriver::SetGamma(int newGamma)
 {
+  /*
   for (int i = 0; i < 256; i++) 
   {
     int newValue = ((int)defaultgammaramp.red[i] * newGamma) / 100;
@@ -526,28 +531,30 @@ void D3DGraphicsDriver::SetGamma(int newGamma)
   }
 
   direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);
+  */
+    _gamma = newGamma;
 }
 
 void D3DGraphicsDriver::ResetDeviceIfNecessary()
 {
-    HRESULT hr = direct3ddevice->TestCooperativeLevel();
-    if (hr == D3DERR_DEVICELOST)
-    {
-        throw Ali3DFullscreenLostException();
-    }
+  HRESULT hr = direct3ddevice->TestCooperativeLevel();
+  if (hr == D3DERR_DEVICELOST)
+  {
+    throw Ali3DFullscreenLostException();
+  }
 
-    if (hr == D3DERR_DEVICENOTRESET)
-    {
+  if (hr == D3DERR_DEVICENOTRESET)
+  {
         hr = ResetDeviceAndRestore();
-        if (hr != D3D_OK)
-        {
-            throw Ali3DException(String::FromFormat("IDirect3DDevice9::Reset: failed: error code: 0x%08X", hr));
-        }
-    }
-    else if (hr != D3D_OK)
+    if (hr != D3D_OK)
     {
-        throw Ali3DException(String::FromFormat("IDirect3DDevice9::TestCooperativeLevel: failed: error code: 0x%08X", hr));
+      throw Ali3DException(String::FromFormat("IDirect3DDevice9::Reset: failed: error code: 0x%08X", hr));
     }
+  }
+  else if (hr != D3D_OK)
+  {
+    throw Ali3DException(String::FromFormat("IDirect3DDevice9::TestCooperativeLevel: failed: error code: 0x%08X", hr));
+  }
 }
 
 HRESULT D3DGraphicsDriver::ResetDeviceAndRestore()
@@ -743,6 +750,7 @@ void D3DGraphicsDriver::InitializeD3DState()
 
   // If we already have a render frame configured, then setup viewport immediately
   SetupViewport();
+  SetGamma(_gamma);
 }
 
 void D3DGraphicsDriver::SetupViewport()
@@ -892,9 +900,9 @@ void D3DGraphicsDriver::ReleaseRenderTargetData()
         batch.RenderSurface = nullptr;
     }
     for (auto &batch : _backupBatches)
-    {
-        batch.RenderSurface = nullptr;
-    }
+        {
+            batch.RenderSurface = nullptr;
+        }
     // Release the RTs internal data
     for (auto &ddb : _renderTargets)
     {
@@ -931,7 +939,7 @@ void D3DGraphicsDriver::RecreateRenderTargets()
         {
             assert(!batch.RenderSurface);
             batch.RenderSurface = ((D3DBitmap*)batch.RenderTarget)->GetRenderSurface();
-        }
+}
     }
 }
 
@@ -1246,7 +1254,7 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
   }
   
   D3DSurfacePtr surface;
-  {
+  { 
     Rect viewport;
     if (at_native_res)
     {
@@ -1340,6 +1348,7 @@ void D3DGraphicsDriver::Render(IDriverDependantBitmap *target)
         RectWH(0, 0, surf_sz.Width, surf_sz.Height), glmex::ortho_d3d(surf_sz.Width, surf_sz.Height),
         PlaneScaling(), D3DTEXF_POINT);
     RenderToSurface(&backbuffer, true);
+    is_redrawing = false;
 }
 
 void D3DGraphicsDriver::RenderSprite(const D3DDrawListEntry *drawListEntry, const glm::mat4 &matGlobal,
@@ -1708,6 +1717,8 @@ void D3DGraphicsDriver::RenderToSurface(BackbufferState *state, bool clearDrawLi
     UpdateGlobalShaderArgValues();
     RenderSpriteBatches();
 
+    RenderSoftwareGamma();
+
     direct3ddevice->EndScene();
     PostRenderCleanup();
 
@@ -2070,6 +2081,7 @@ void D3DGraphicsDriver::FilterSpriteBatches(uint32_t skip_filter)
 
 void D3DGraphicsDriver::RedrawLastFrame(uint32_t skip_filter)
 {
+    is_redrawing = true;
     RestoreDrawLists();
     FilterSpriteBatches(skip_filter);
 }
@@ -2629,6 +2641,38 @@ bool D3DGraphicsFactory::Init()
     );
     Debug::Printf(kDbgMsg_Info, "Direct3D adapter info:\n%s", adapter_info.GetCStr());
     return true;
+}
+
+void D3DGraphicsDriver::RenderSoftwareGamma()
+{
+    // Soft Gamma
+    if (_gamma != 100 && !is_redrawing)
+    {
+        const Rect &_viewportRect = _currentBackbuffer->Viewport;
+        const Size &surface_sz = _currentBackbuffer->SurfSize;
+        const int color = abs(_gamma - (_gamma>100 ? 100 : 0)) * 255 / 100;
+
+        D3DBitmap *d3db_gamma = static_cast<D3DBitmap*>(MakeFx(color, color, color));
+        d3db_gamma->SetStretch(surface_sz.Width, surface_sz.Height, false);
+
+        if (_gamma > 100) {
+            // lighten
+            direct3ddevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_DESTCOLOR);
+            direct3ddevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+        }
+        else {
+            // darken
+            direct3ddevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_DESTCOLOR);
+            direct3ddevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ZERO);
+        }
+        RenderTexture(d3db_gamma, 0, 0, glmex::identity(), SpriteColorTransform(), _srcRect.GetSize());
+
+        direct3ddevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+        direct3ddevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+
+    }
+
+  // Soft Gamma - End
 }
 
 } // namespace D3D
