@@ -261,6 +261,7 @@ private:
     float _pixelRenderXOffset;
     float _pixelRenderYOffset;
     bool _renderSprAtScreenRes;
+    int _gamma;
 
     D3DSpriteBatches _spriteBatches;
     // TODO: these draw list backups are needed only for the fade-in/out effects
@@ -300,7 +301,7 @@ private:
     void RenderSpriteBatches();
     void RenderSpriteBatch(const D3DSpriteBatch &batch);
     void _renderSprite(const D3DDrawListEntry *entry, const D3DMATRIX &matGlobal);
-    void _renderFromTexture();
+    void _renderFromTexture(IDirect3DTexture9 *texture);
 };
 
 

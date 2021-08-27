@@ -257,6 +257,7 @@ public:
 private:
     POGLFilter _filter {};
 
+    int _gamma;
 
     bool _firstTimeInit;
     SDL_Window *_sdlWindow = nullptr;
