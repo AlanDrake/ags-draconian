@@ -268,6 +268,7 @@ private:
     float _pixelRenderXOffset;
     float _pixelRenderYOffset;
     bool _renderSprAtScreenRes;
+    int _gamma;
 
     // Sprite batches (parent scene nodes)
     D3DSpriteBatches _spriteBatches;
@@ -314,7 +315,7 @@ private:
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from);
     void _renderSprite(const D3DDrawListEntry *entry, const D3DMATRIX &matGlobal, const SpriteColorTransform &color);
-    void _renderFromTexture();
+    void _renderFromTexture(IDirect3DTexture9 *texture);
 };
 
 
