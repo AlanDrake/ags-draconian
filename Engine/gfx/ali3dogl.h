@@ -502,7 +502,9 @@ private:
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
 
-    ///////////////////////////////////////////////////////
+    int _gamma;
+
+///////////////////////////////////////////////////////
     // Texture management: implementation
     //
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
@@ -664,6 +666,7 @@ private:
     // Saved current blend settings exclusive for alpha channel; for convenience,
     // because GL does not have functions for setting ONLY RGB or ONLY alpha ops.
     BlendOpState _blendAlpha{};
+    void RenderSoftwareGamma();
 };
 
 

@@ -527,6 +527,7 @@ private:
     void ReleaseRenderTargetData();
     // For tracked render targets, recreates the internal texture data
     void RecreateRenderTargets();
+    int _gamma;
 
     ///////////////////////////////////////////////////////
     // Shader management: implementation
@@ -691,6 +692,7 @@ private:
 
     // Saved alpha channel blend settings for the current render target
     BlendOpState _rtBlendAlpha{};
+    void RenderSoftwareGamma();
 };
 
 

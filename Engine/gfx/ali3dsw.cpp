@@ -21,6 +21,8 @@
 #include "gfx/gfxfilter_sdl_renderer.h"
 #include "gfx/gfxfilter_aa_sdl_renderer.h"
 #include "gfx/gfx_util.h"
+#include "gfx/blender.h" // for blenders
+#include <allegro/internal/aintern.h> // for blenders
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "util/string_compat.h"
@@ -62,6 +64,7 @@ SDLRendererGraphicsDriver::SDLRendererGraphicsDriver()
   _origVirtualScreen = nullptr;
   virtualScreen = nullptr;
   _stageVirtualScreen = nullptr;
+  _gamma = 100;
 }
 
 bool SDLRendererGraphicsDriver::IsModeSupported(const DisplayMode &mode)
@@ -299,11 +302,13 @@ void SDLRendererGraphicsDriver::UnInit()
 
 bool SDLRendererGraphicsDriver::SupportsGammaControl() 
 {
-  return _hasGamma;
+  //return _hasGamma;
+  return true;
 }
 
 void SDLRendererGraphicsDriver::SetGamma(int newGamma)
 {
+  /*
   if (!_hasGamma) { return; }
 
   Uint16 gamma_red[256];
@@ -319,6 +324,8 @@ void SDLRendererGraphicsDriver::SetGamma(int newGamma)
   _gamma = newGamma;
 
   SDL_SetWindowGammaRamp(sys_get_window(), gamma_red, gamma_green, gamma_blue);
+  */
+  _gamma = newGamma;
 }
 
 int SDLRendererGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
@@ -610,6 +617,21 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
 
     _stageVirtualScreen = virtualScreen;
     _rendSpriteBatch = UINT32_MAX;
+
+    // Fake Gamma
+    if (_gamma != 100 && (_mode.ColorDepth >= 24))
+    {
+        const int color = abs(_gamma - (_gamma>100 ? 100 : 0)) * 255 / 100;
+
+        if (_gamma > 100)
+            set_blender_mode(nullptr, nullptr, _blender_add24, 255, 255, 255, color);
+        else
+            set_blender_mode(nullptr, nullptr, _my_blender_burn24, 0, 0, 0, 255 - color);
+            
+        virtualScreen->TransBlendBlt(virtualScreen, 0, 0);
+    }
+    // Fake Gamma - End
+
     ClearDrawLists();
 }
 
