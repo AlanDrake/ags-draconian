@@ -307,6 +307,7 @@ private:
     float _pixelRenderXOffset;
     float _pixelRenderYOffset;
     bool _renderSprAtScreenRes;
+    int _gamma;
 
     // Render target DDB references, for keeping track of them,
     // and resetting during device reset.
@@ -368,7 +369,7 @@ private:
     size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &surface_size);
     void _renderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,
         const SpriteColorTransform &color, const Size &surface_size);
-    void _renderFromTexture();
+    void _renderFromTexture(IDirect3DTexture9 *texture);
     // Helper method for setting blending parameters
     void SetBlendOp(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
     // Helper method for setting exclusive alpha blending parameters

@@ -299,6 +299,8 @@ protected:
 private:
     POGLFilter _filter {};
 
+    int _gamma;
+
     bool _firstTimeInit;
     SDL_Window *_sdlWindow = nullptr;
     SDL_GLContext _sdlGlContext = nullptr;
