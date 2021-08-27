@@ -69,6 +69,7 @@ namespace OGL
 
 using namespace AGS::Common;
 
+bool is_redrawing = false; // used to avoid reapplying gamma correction
 
 // Converts rectangle in top->down coordinates into OpenGL's native bottom->up coordinates
 Rect TopDownRect(const Rect &rect, int surface_height)
@@ -117,6 +118,7 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _legacyPixelShader = false;
   _canRenderToTexture = false;
   _doRenderToTexture = false;
+  _gamma = 100;
   SetupDefaultVertices();
 
   // Shifts comply to GL_RGBA
@@ -184,11 +186,12 @@ bool OGLGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 
 bool OGLGraphicsDriver::SupportsGammaControl()
 {
-  return false;
+  return true;
 }
 
-void OGLGraphicsDriver::SetGamma(int /*newGamma*/)
+void OGLGraphicsDriver::SetGamma(int newGamma)
 {
+  _gamma = newGamma;
 }
 
 void OGLGraphicsDriver::SetGraphicsFilter(POGLFilter filter)
@@ -996,6 +999,7 @@ void OGLGraphicsDriver::Render(IDriverDependantBitmap *target)
         glm::ortho(0.0f, (float)surf_sz.Width, 0.0f, (float)surf_sz.Height, 0.0f, 1.0f),
         PlaneScaling(), GL_NEAREST, GL_CLAMP);
     RenderToSurface(&backbuffer, true);
+    is_redrawing = false;
 }
 
 void OGLGraphicsDriver::RenderSprite(const OGLDrawListEntry *drawListEntry,
@@ -1280,6 +1284,7 @@ void OGLGraphicsDriver::RenderToSurface(BackbufferState *state, bool clearDrawLi
     // Save Projection
     _stageMatrixes.Projection = _currentBackbuffer->Projection;
     RenderSpriteBatches();
+    RenderSoftwareGamma();
     glFinish();
 
     if (clearDrawListAfterwards)
@@ -1617,6 +1622,7 @@ void OGLGraphicsDriver::FilterSpriteBatches(uint32_t skip_filter)
 
 void OGLGraphicsDriver::RedrawLastFrame(uint32_t skip_filter)
 {
+    is_redrawing = true;
     RestoreDrawLists();
     FilterSpriteBatches(skip_filter);
 }
@@ -2093,6 +2099,53 @@ OGLGfxFilter *OGLGraphicsFactory::CreateFilter(const String &id)
     else if (AAOGLGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
         return new AAOGLGfxFilter();
     return nullptr;
+}
+
+void OGLGraphicsDriver::RenderSoftwareGamma()
+{
+  // Soft Gamma
+  if (_gamma != 100 && !is_redrawing)
+  {
+    const Rect &_viewportRect = _currentBackbuffer->Viewport;
+    const Size &surface_sz = _currentBackbuffer->SurfSize;
+
+    const int color = abs(_gamma - (_gamma>100 ? 100 : 0)) * 255 / 100;
+
+    OGLBitmap *d3db_gamma = static_cast<OGLBitmap*>(MakeFx(color, color, color));
+
+    ShaderProgram program = _transparencyShader;
+    glUseProgram(_transparencyShader.Program);
+
+    glm::mat4 transform = _currentBackbuffer->Projection;
+    transform = glmex::translate(transform, _viewportRect.GetWidth() / 2.0f, _viewportRect.GetHeight() / 2.0f);
+    transform = transform * glmex::identity();
+    transform = glmex::transform2d(transform, -surface_sz.Width / 2, surface_sz.Height / 2,
+      _viewportRect.GetWidth(), _viewportRect.GetHeight(), 0, 0, 0);
+
+    glUniformMatrix4fv(program.MVPMatrix, 1, GL_FALSE, glm::value_ptr(transform));
+
+    glDisable(GL_BLEND);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+    glBindTexture(GL_TEXTURE_2D, d3db_gamma->_data->_tiles->texture);
+    glEnable(GL_BLEND);
+
+    if (_gamma > 100)
+    {
+      AGS_OGLBLENDOP(GL_FUNC_ADD, GL_DST_COLOR, GL_ONE);
+    }
+    else {
+      AGS_OGLBLENDOP(GL_FUNC_ADD, GL_DST_COLOR, GL_ZERO);
+    }
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    AGS_OGLBLENDOP(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glUseProgram(0);
+  }
+
+  // Soft Gamma - End
 }
 
 } // namespace OGL

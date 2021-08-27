@@ -303,6 +303,8 @@ protected:
 private:
     POGLFilter _filter {};
 
+    int _gamma;
+
     bool _firstTimeInit;
     SDL_Window *_sdlWindow = nullptr;
     SDL_GLContext _sdlGlContext = nullptr;
@@ -440,6 +442,7 @@ private:
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection,
         const Size &rend_sz);
+    void RenderSoftwareGamma();
 };
 
 

@@ -316,6 +316,7 @@ private:
     float _pixelRenderXOffset;
     float _pixelRenderYOffset;
     bool _renderAtScreenRes;
+    int _gamma;
 
     // TODO: find a way to merge this with Render Targets from sprite batches,
     // have a SINGLE STACK of "render target states", where backbuffer is at the bottom
@@ -423,6 +424,7 @@ private:
     void SetBlendOp(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
     // Helper method for setting exclusive alpha blending parameters
     void SetBlendOpAlpha(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
+    void RenderSoftwareGamma();
 };
 
 
