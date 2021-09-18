@@ -56,7 +56,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_PREVIEW_SIZE_3X = "PreviewSizeLarge";
         private const string MENU_ITEM_PREVIEW_SIZE_4X = "PreviewSizeExtraLarge";
         
-        private const int SPRITE_BASE_SIZE = 32;
+        private const int SPRITE_BASE_SIZE = 64;
 
         private static ImageList _spManagerIcons;
         private Dictionary<string, SpriteFolder> _folders;
@@ -240,7 +240,7 @@ namespace AGS.Editor
 
                 int newSize = Math.Min(Math.Max(Math.Max(sprite.Width, sprite.Height), SPRITE_BASE_SIZE), SPRITE_BASE_SIZE * _spriteSizeMultiplier);
 
-                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, newSize, newSize, false, true, Color.Pink);
+                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, newSize, newSize, false, false, Color.Pink);
 
                 // we are already indexing from 0 and this ImageList was cleared,
                 // so just adding the image doesn't need a modified index
