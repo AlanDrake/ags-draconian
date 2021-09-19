@@ -2257,7 +2257,7 @@ namespace AGS.Editor
             scintillaControl1.MarkerSetBack(Scintilla.Constants.SC_MARKNUM_FOLDERTAIL, t.GetColor("script-editor/text-editor/marknum-folder-tail"));
             scintillaControl1.SetSelBack(t.GetColor("script-editor/text-editor/selected/background") != Color.Transparent, t.GetColor("script-editor/text-editor/selected/background"));
             scintillaControl1.SetSelFore(t.GetColor("script-editor/text-editor/selected/foreground") != Color.Transparent, t.GetColor("script-editor/text-editor/selected/foreground"));
-            scintillaControl1.CaretFore = Scintilla.Utilities.ColorToRgb(t.GetColor("script-editor/text-editor/caret"));
+            
 
             scintillaControl1.MarkerSetBack(MARKER_TYPE_BREAKPOINT, t.GetColor("script-editor/text-editor/marker-breakpoint/background"));
             scintillaControl1.MarkerSetFore(MARKER_TYPE_BREAKPOINT, t.GetColor("script-editor/text-editor/marker-breakpoint/foreground"));
@@ -2265,6 +2265,13 @@ namespace AGS.Editor
             scintillaControl1.MarkerSetFore(MARKER_TYPE_BREAKPOINT2, t.GetColor("script-editor/text-editor/marker-breakpoint2/foreground"));
             scintillaControl1.MarkerSetBack(MARKER_TYPE_CURRENT_STATEMENT, t.GetColor("script-editor/text-editor/current-statement/background"));
             scintillaControl1.MarkerSetFore(MARKER_TYPE_CURRENT_STATEMENT, t.GetColor("script-editor/text-editor/current-statement/foreground"));
+            scintillaControl1.MarkerSetBack(MARKER_TYPE_CURRENT_STATEMENT2, t.GetColor("script-editor/text-editor/current-statement2/background"));
+            scintillaControl1.MarkerSetFore(MARKER_TYPE_CURRENT_STATEMENT2, t.GetColor("script-editor/text-editor/current-statement2/foreground"));
+
+            scintillaControl1.CaretFore = Scintilla.Utilities.ColorToRgb(t.GetColor("script-editor/text-editor/caret/caret-fore"));
+            scintillaControl1.IsCaretLineVisible = true;
+            scintillaControl1.CaretLineBack = Scintilla.Utilities.ColorToRgb(t.GetColor("script-editor/text-editor/caret/caret-line-back"));
+            scintillaControl1.CaretLineBackAlpha = t.GetInt("script-editor/text-editor/caret/caret-line-back-alpha");
 
         }
     }
