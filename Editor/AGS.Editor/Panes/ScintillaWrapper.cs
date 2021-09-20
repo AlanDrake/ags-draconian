@@ -2269,7 +2269,6 @@ namespace AGS.Editor
             scintillaControl1.MarkerSetFore(MARKER_TYPE_CURRENT_STATEMENT2, t.GetColor("script-editor/text-editor/current-statement2/foreground"));
 
             scintillaControl1.CaretFore = Scintilla.Utilities.ColorToRgb(t.GetColor("script-editor/text-editor/caret/caret-fore"));
-            scintillaControl1.IsCaretLineVisible = true;
             scintillaControl1.CaretLineBack = Scintilla.Utilities.ColorToRgb(t.GetColor("script-editor/text-editor/caret/caret-line-back"));
             scintillaControl1.CaretLineBackAlpha = t.GetInt("script-editor/text-editor/caret/caret-line-back-alpha");
 

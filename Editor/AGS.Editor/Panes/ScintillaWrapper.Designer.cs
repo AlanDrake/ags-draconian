@@ -43,8 +43,8 @@ namespace AGS.Editor
             this.scintillaControl1.AutoCSeparator = 32;
             this.scintillaControl1.AutoCTypeSeparator = 63;
             this.scintillaControl1.CaretFore = 0;
-            this.scintillaControl1.CaretLineBack = 65535;
-            this.scintillaControl1.CaretLineBackAlpha = 256;
+            this.scintillaControl1.CaretLineBack = 16748947;
+            this.scintillaControl1.CaretLineBackAlpha = 25;
             this.scintillaControl1.CaretPeriod = 500;
             this.scintillaControl1.CaretWidth = 1;
             this.scintillaControl1.CodePage = 0;
@@ -65,7 +65,7 @@ namespace AGS.Editor
             this.scintillaControl1.IsAutoCIgnoreCase = false;
             this.scintillaControl1.IsBackSpaceUnIndents = false;
             this.scintillaControl1.IsBufferedDraw = true;
-            this.scintillaControl1.IsCaretLineVisible = false;
+            this.scintillaControl1.IsCaretLineVisible = true;
             this.scintillaControl1.IsCaretSticky = false;
             this.scintillaControl1.IsEndAtLastLine = true;
             this.scintillaControl1.IsFocus = false;
