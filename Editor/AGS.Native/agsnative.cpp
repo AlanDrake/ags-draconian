@@ -2,8 +2,8 @@
 void ThrowManagedException(const char *message);
 #pragma unmanaged
 #pragma warning (disable: 4996 4312)  // disable deprecation warnings
-extern bool Scintilla_RegisterClasses(void *hInstance);
-extern int Scintilla_LinkLexers();
+extern "C" int Scintilla_RegisterClasses(void *hInstance);
+extern "C" int Scintilla_LinkLexers();
 
 #define NOMINMAX
 #include "agsnative.h"
