@@ -393,6 +393,8 @@ namespace Scintilla
         public const uint SCI_GETLAYOUTCACHE = 2273;
         public const uint SCI_SETSCROLLWIDTH = 2274;
         public const uint SCI_GETSCROLLWIDTH = 2275;
+        public const uint SCI_SETSCROLLWIDTHTRACKING = 2516;
+        public const uint SCI_GETSCROLLWIDTHTRACKING = 2517;
         public const uint SCI_TEXTWIDTH = 2276;
         public const uint SCI_SETENDATLASTLINE = 2277;
         public const uint SCI_GETENDATLASTLINE = 2278;

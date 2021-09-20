@@ -996,6 +996,21 @@ namespace Scintilla
             }
         }
         /// <summary>
+        /// Retrieve the document width assumed for scrolling. 
+        /// </summary>
+        [Browsable(false)]
+        public virtual bool ScrollWidthTracking
+        {
+            get
+            {
+                return this.SendMessageDirect(2517) == 1;
+            }
+            set
+            {
+                this.SendMessageDirect(2516, value);
+            }
+        }
+        /// <summary>
         /// Retrieve whether the maximum scroll position has the last line at the bottom of the view. 
         /// </summary>
         [Browsable(false)]
