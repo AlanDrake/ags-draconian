@@ -130,6 +130,18 @@
     <ClCompile Include="..\scintilla\src\XPM.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
+    <ClCompile Include="..\scintilla\src\RunStyles.cxx">
+      <Filter>Scintilla</Filter>
+    </ClCompile>
+    <ClCompile Include="..\scintilla\src\PerLine.cxx">
+      <Filter>Scintilla</Filter>
+    </ClCompile>
+    <ClCompile Include="..\scintilla\src\PositionCache.cxx">
+      <Filter>Scintilla</Filter>
+    </ClCompile>
+    <ClCompile Include="..\scintilla\src\Decoration.cxx">
+      <Filter>Scintilla</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="agsnative.h">

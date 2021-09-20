@@ -189,6 +189,7 @@
     <ClCompile Include="..\scintilla\src\CellBuffer.cxx" />
     <ClCompile Include="..\scintilla\src\CharClassify.cxx" />
     <ClCompile Include="..\scintilla\src\ContractionState.cxx" />
+    <ClCompile Include="..\scintilla\src\Decoration.cxx" />
     <ClCompile Include="..\scintilla\src\Document.cxx" />
     <ClCompile Include="..\scintilla\src\DocumentAccessor.cxx" />
     <ClCompile Include="..\scintilla\src\Editor.cxx" />
@@ -198,9 +199,12 @@
     <ClCompile Include="..\scintilla\src\KeyWords.cxx" />
     <ClCompile Include="..\scintilla\src\LexCPP.cxx" />
     <ClCompile Include="..\scintilla\src\LineMarker.cxx" />
+    <ClCompile Include="..\scintilla\src\PerLine.cxx" />
     <ClCompile Include="..\scintilla\src\PlatWin.cxx" />
+    <ClCompile Include="..\scintilla\src\PositionCache.cxx" />
     <ClCompile Include="..\scintilla\src\PropSet.cxx" />
     <ClCompile Include="..\scintilla\src\RESearch.cxx" />
+    <ClCompile Include="..\scintilla\src\RunStyles.cxx" />
     <ClCompile Include="..\scintilla\src\ScintillaBase.cxx" />
     <ClCompile Include="..\scintilla\src\ScintillaWin.cxx" />
     <ClCompile Include="..\scintilla\src\Style.cxx" />
