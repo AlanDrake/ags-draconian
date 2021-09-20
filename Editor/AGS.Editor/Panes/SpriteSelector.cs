@@ -1544,6 +1544,7 @@ namespace AGS.Editor
             t.SetColor("sprite-selector/tree/background", c => folderList.BackColor = c);
             t.SetColor("sprite-selector/tree/foreground", c => folderList.ForeColor = c);
             t.SetColor("sprite-selector/tree/line", c => folderList.LineColor = c);
+            t.ButtonHelper(button_importNew, "sprite-selector/btn-import-new");
         }
 
         private void sliderPreviewSize_ValueChanged(object sender, EventArgs e)
