@@ -53,6 +53,7 @@ namespace AGS.Editor
             this.lvwResults.TabIndex = 2;
             this.lvwResults.UseCompatibleStateImageBehavior = false;
             this.lvwResults.View = System.Windows.Forms.View.Details;
+            this.lvwResults.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.lvwResults.ItemActivate += new System.EventHandler(this.lvwResults_ItemActivate);
             this.lvwResults.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lvwResults_MouseUp);
             // 
@@ -79,7 +80,6 @@ namespace AGS.Editor
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "OutputPanel";
-            this.Padding = new System.Windows.Forms.Padding(1, 20, 1, 1);
             this.Load += new System.EventHandler(this.OutputPanel_Load);
             this.ResumeLayout(false);
 
