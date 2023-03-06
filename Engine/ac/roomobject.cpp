@@ -97,7 +97,8 @@ void RoomObject::UpdateCyclingView(int ref_id)
 
     wait=vfptr->speed+overall_speed;
     int soundPanning = GetPanningFromPosition(x);
-    CheckViewFrame(view, loop, frame, anim_volume, soundPanning);
+    //CheckViewFrame(view, loop, frame, anim_volume, soundPanning);
+    CheckViewFrameScript(view, loop, frame, anim_volume, soundPanning, 0 /*type object*/, ref_id);
 }
 
 void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)

@@ -2202,7 +2202,8 @@ void CheckViewFrameForCharacter(CharacterInfo *chi)
     }
 
     int soundPanning = GetPanningFromPosition(chi->x);
-    CheckViewFrame(chi->view, chi->loop, chi->frame, frame_vol, soundPanning);
+    //CheckViewFrame(chi->view, chi->loop, chi->frame, frame_vol, soundPanning);
+    CheckViewFrameScript(chi->view, chi->loop, chi->frame, frame_vol, soundPanning, 1 /*type character*/, chi->index_id);
 }
 
 Bitmap *GetCharacterImage(int charid, int *isFlipped) 

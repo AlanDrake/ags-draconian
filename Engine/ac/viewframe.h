@@ -41,6 +41,8 @@ void precache_view(int view);
 // Handle the new animation frame (play linked sounds, etc);
 // sound_volume is an optional relative factor, -1 means not use
 void CheckViewFrame(int view, int loop, int frame, int sound_volume = -1, int sound_panning = SCR_NO_VALUE);
+// alternate version that calls a custom function to handle frame-linked sounds
+void CheckViewFrameScript(int view, int loop, int frame, int sound_volume, int sound_panning, int entity_type, int entity_id);
 // draws a view frame, flipped if appropriate
 void DrawViewFrame(Common::Bitmap *ds, const ViewFrame *vframe, int x, int y);
 

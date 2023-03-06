@@ -196,7 +196,8 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     objs[obn].num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
         debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
-    CheckViewFrame(viw, objs[obn].loop, objs[obn].frame);
+    //CheckViewFrame(viw, objs[obn].loop, objs[obn].frame);
+    CheckViewFrameScript(viw, objs[obn].loop, objs[obn].frame, -1, SCR_NO_VALUE, 0 /*type object*/, obn);
 }
 
 // pass trans=0 for fully solid, trans=100 for fully transparent
