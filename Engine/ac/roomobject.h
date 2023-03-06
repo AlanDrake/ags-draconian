@@ -101,7 +101,7 @@ public:
     int  GetFrameSoundVolume() const;
     // Process the current animation frame for the room object:
     // play linked sounds, and so forth.
-    void CheckViewFrame();
+    void CheckViewFrame(int ref_id);
 
     void ReadFromSavegame(Common::Stream *in, int cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;

@@ -420,7 +420,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     if (pic > UINT16_MAX)
         debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
 
-    objs[obn].CheckViewFrame();
+    objs[obn].CheckViewFrame(obn);
 
     if (blocking)
         GameLoopUntilViewAnimEnd(&obj.anim);

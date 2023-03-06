@@ -80,7 +80,7 @@ int CharacterExtras::GetFrameSoundVolume(CharacterInfo *chi) const
 
 void CharacterExtras::CheckViewFrame(CharacterInfo *chi)
 {
-    ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi), GetPanningFromPosition(chi->x));
+    ::CheckViewFrameScript(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi), GetPanningFromPosition(chi->x), 1 /*type character*/, chi->index_id);
 }
 
 void CharacterExtras::SetFollowing(CharacterInfo *chi, int follow_who, int distance, int eagerness, bool sort_behind)
