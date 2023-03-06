@@ -153,7 +153,7 @@ bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
     if (lop < 0 || lop >= views[viw].numLoops)
     {
         debug_script_warn("SetObjectFrame: invalid loop number used for view %d (%d, range is 0 - %d)",
-            viw, lop, views[viw].numLoops - 1);
+        viw, lop, views[viw].numLoops - 1);
         lop = 0;
     }
     if (fra < 0 || fra >= views[viw].loops[lop].numFrames)
@@ -185,7 +185,7 @@ bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
 void SetObjectFrame(int obn, int viw, int lop, int fra) {
     if (!SetObjectFrameSimple(obn, viw, lop, fra))
         return;
-    objs[obn].CheckViewFrame();
+    objs[obn].CheckViewFrame(obn);
 }
 
 // pass trans=0 for fully solid, trans=100 for fully transparent
@@ -252,7 +252,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     obj.cur_anim_volume = Math::Clamp(volume, 0, 100);
 
 
-    objs[obn].CheckViewFrame();
+    objs[obn].CheckViewFrame(obn);
 
     if (blocking)
         GameLoopUntilValueIsZero(&obj.cycling);
@@ -424,9 +424,9 @@ void RunObjectInteraction (int aa, int mood) {
 
     // For USE verb: remember active inventory
     if (mood == MODE_USE)
-    {
+        {
         play.usedinv = playerchar->activeinv;
-    }
+        }
 
     const auto obj_evt = ObjectEvent("object%d", aa,
         RuntimeScriptValue().SetScriptObject(&scrObj[aa], &ccDynamicObject), mood);
