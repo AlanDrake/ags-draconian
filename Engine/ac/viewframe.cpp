@@ -21,6 +21,7 @@
 #include "debug/debug_log.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
+#include "script/script.h"
 #include "media/audio/audio_system.h"
 #include "util/math.h"
 #include "game/viewport.h"
@@ -138,6 +139,41 @@ void CheckViewFrame(int view, int loop, int frame, int sound_volume, int sound_p
         }
     }
 }
+
+/// Hack: Experimental viewframes with overridable behavior, entity_type: 0 - object, 1 - character
+void CheckViewFrameScript(int view, int loop, int frame, int sound_volume, int sound_panning, int entity_type, int entity_id)
+{
+
+    ScriptAudioChannel *channel = nullptr;
+
+    if (views[view].loops[loop].frames[frame].sound >= 0) {
+        // play this sound (eg. footstep)
+        channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
+    }
+
+    if (channel)
+    {
+        sound_volume = Math::Clamp(sound_volume, 0, 100);
+        auto* ch = AudioChans::GetChannel(channel->id);
+        if (ch)
+            ch->set_volume100(ch->get_volume100() * sound_volume / 100);
+    }
+
+    if (sound_panning != SCR_NO_VALUE && channel != nullptr) {
+        auto* ch = AudioChans::GetChannel(channel->id);
+        if (ch) {
+            ch->set_panning(sound_panning);
+        }
+    }
+
+    if (channel)
+    {
+        RuntimeScriptValue params[]{ entity_type , entity_id, channel != nullptr ? channel->id : -1 };
+        QueueScriptFunction(kScInstGame, "on_viewframe_sound", 3, params);
+    }
+
+}
+
 
 // Note: the following function is only used for speech views in update_sierra_speech() and _displayspeech()
 // draws a view frame, flipped if appropriate

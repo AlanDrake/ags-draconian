@@ -97,7 +97,7 @@ void RoomObject::UpdateCyclingView(int ref_id)
       return;
 
     wait=vfptr->speed+overall_speed;
-    CheckViewFrame();
+    CheckViewFrame(ref_id);
 }
 
 // Calculate wanted frame sound volume based on multiple factors
@@ -107,9 +107,10 @@ int RoomObject::GetFrameSoundVolume() const
     return ::CalcFrameSoundVolume(anim_volume, cur_anim_volume);
 }
 
-void RoomObject::CheckViewFrame()
+void RoomObject::CheckViewFrame(int ref_id)
 {
-    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(), GetPanningFromPosition(x));
+    //::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(), GetPanningFromPosition(x));
+    ::CheckViewFrameScript(view, loop, frame, GetFrameSoundVolume(), GetPanningFromPosition(x), 0 /*type object*/, ref_id);
 }
 
 void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
