@@ -311,6 +311,20 @@ void Button_SetTextAlignment(GUIButton *butt, int align)
     }
 }
 
+
+bool Button_GetFlipX(GUIButton *butt)
+{
+    return butt->FlipX;
+}
+
+void Button_SetFlipX(GUIButton *butt, bool flipx)
+{
+    if (butt->FlipX != flipx) {
+        butt->FlipX = flipx;
+        butt->MarkChanged();
+    }
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -469,6 +483,16 @@ RuntimeScriptValue Sc_Button_GetAnimView(void *self, const RuntimeScriptValue *p
     API_OBJCALL_INT(GUIButton, Button_GetAnimView);
 }
 
+RuntimeScriptValue Sc_Button_GetFlipX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(GUIButton, Button_GetFlipX);
+}
+
+RuntimeScriptValue Sc_Button_SetFlipX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(GUIButton, Button_SetFlipX);
+}
+
 void RegisterButtonAPI()
 {
     ScFnRegister button_api[] = {
@@ -499,6 +523,8 @@ void RegisterButtonAPI()
         { "Button::get_TextColor",        API_FN_PAIR(Button_GetTextColor) },
         { "Button::set_TextColor",        API_FN_PAIR(Button_SetTextColor) },
         { "Button::get_View",             API_FN_PAIR(Button_GetAnimView) },
+        { "Button::get_FlipX",            API_FN_PAIR(Button_GetFlipX) },
+        { "Button::set_FlipX",            API_FN_PAIR(Button_SetFlipX) },
     };
 
     ccAddExternalFunctions(button_api);

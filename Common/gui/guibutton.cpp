@@ -46,6 +46,7 @@ GUIButton::GUIButton()
 
     IsPushed = false;
     IsMouseOver = false;
+    FlipX = false;
     _placeholder = kButtonPlace_None;
     _unnamed = true;
 
@@ -377,6 +378,7 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     {
         _imageFlags = 0;
     }
+    FlipX = (svg_ver >= kGuiSvgVersion_400 ? in->ReadInt32() : false);
 
     // Update current state after reading
     IsPushed = false;
@@ -400,6 +402,8 @@ void GUIButton::WriteToSavegame(Stream *out) const
     out->WriteInt32(_currentImage);
     //since kGuiSvgVersion_3991
     out->WriteInt32(_imageFlags);
+    // custom
+    out->WriteInt32(FlipX);
 }
 
 void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
@@ -413,7 +417,7 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
         ds->SetClip(RectWH(x, y, _width, _height));
 
     if (spriteset.DoesSpriteExist(_currentImage))
-        draw_gui_sprite_flipped(ds, _currentImage, x, y, kBlend_Normal, _curImageFlags & VFLG_FLIPSPRITE);
+        draw_gui_sprite_flipped(ds, _currentImage, x, y, kBlend_Normal, _curImageFlags & VFLG_FLIPSPRITE ^ FlipX);
 
     // Draw active inventory item
     if (_placeholder != kButtonPlace_None && gui_inv_pic >= 0)
