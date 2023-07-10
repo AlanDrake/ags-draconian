@@ -1345,6 +1345,10 @@ builtin managed struct Button extends GUIControl {
   /// Gets/sets text alignment inside the button.
   import attribute Alignment TextAlignment;
 #endif
+#ifdef SCRIPT_API_v399
+  // Gets/sets whether to mirror the Graphic horizontally
+  import attribute bool FlipX;
+#endif
 };
 
 builtin managed struct Slider extends GUIControl {
