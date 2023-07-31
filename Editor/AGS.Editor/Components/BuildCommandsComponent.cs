@@ -93,7 +93,7 @@ namespace AGS.Editor.Components
 
         private void AnyEditor_AttemptToEditScript(ref bool allowEdit)
         {
-            if (_testGameInProgress)
+            if (_testGameInProgress && false)
             {
                 _guiController.ShowMessage("You cannot edit scripts while the game is being tested. Close the game first.", MessageBoxIcon.Warning);
                 allowEdit = false;
@@ -102,7 +102,7 @@ namespace AGS.Editor.Components
 
         private void _agsEditor_AttemptToSaveGame(ref bool allowSave)
         {
-            if (_testGameInProgress)
+            if (_testGameInProgress && false)
             {
                 _guiController.ShowMessage("You cannot save your changes while the game is being tested. Close the game first.", MessageBoxIcon.Warning);
                 allowSave = false;
