@@ -45,6 +45,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_COPY_TO_CLIPBOARD = "CopyToClipboard";
         private const string MENU_ITEM_EXPORT_SPRITE = "ExportSprite";
         private const string MENU_ITEM_REPLACE_FROM_FILE = "ReplaceFromFile";
+        private const string MENU_ITEM_REPLACE_FROM_FILE_MULTI = "ReplaceFromFileMulti";
         private const string MENU_ITEM_REPLACE_FROM_PREVIOUS = "ReplaceFromPreviousFiles";
         private const string MENU_ITEM_REPLACE_FROM_CLIPBOARD = "ReplaceFromClipboard";
         private const string MENU_ITEM_OPEN_FILE_EXPLORER = "OpenFileExplorer";
@@ -583,6 +584,19 @@ namespace AGS.Editor
             impWin.Dispose();
         }
 
+        private void ReplaceSprite(Sprite[] sprites, string filename)
+        {
+            _lastImportedFilenames = new string[] { filename };
+            SpriteImportWindow impWin = new SpriteImportWindow(new string[] { filename }, sprites);
+
+            if (impWin.ShowDialog() == DialogResult.OK)
+            {
+                RefreshSpriteDisplay();
+            }
+
+            impWin.Dispose();
+        }
+
         private void ReplaceSprite(Sprite sprite, Bitmap bmp)
         {
             SpriteImportWindow impWin = new SpriteImportWindow(bmp, sprite);
@@ -710,6 +724,19 @@ namespace AGS.Editor
                 {
                     Sprite sprite = FindSpriteByNumber(_spriteNumberOnMenuActivation);
                     ReplaceSpriteUsingImportWindow(fileName, sprite);
+                }
+            }
+            else if (item.Name == MENU_ITEM_REPLACE_FROM_FILE_MULTI)
+            {
+                string fileName = Factory.GUIController.ShowOpenFileDialog("Replace sprites...", Constants.IMAGE_FILE_FILTER);
+                if (fileName != null)
+                {
+                    Sprite[] selectedSprites = new Sprite[spriteList.SelectedItems.Count];
+                    for (int i = 0; i < selectedSprites.Length; i++)
+                    {
+                        selectedSprites[i] = GetSprite(spriteList.SelectedItems[i]);
+                    }
+                    ReplaceMultiSpriteUsingImportWindow(fileName, selectedSprites);
                 }
             }
             else if (item.Name == MENU_ITEM_REPLACE_FROM_PREVIOUS)
@@ -1336,6 +1363,18 @@ namespace AGS.Editor
             }
         }
 
+        private void ReplaceMultiSpriteUsingImportWindow(string fileName, Sprite[] sprites)
+        {
+            try
+            {
+                ReplaceSprite(sprites, fileName);
+            }
+            catch (Exception ex)
+            {
+                Factory.GUIController.ShowMessage("There was an error importing the file. The error message was: '" + ex.Message + "'. Please try again", MessageBoxIcon.Warning);
+            }
+        }
+
         private void ShowSpriteContextMenu(Point menuPosition)
         {
             _spriteNumberOnMenuActivation = -1;
@@ -1385,6 +1424,7 @@ namespace AGS.Editor
                         menuItem.Enabled = false;
                     }
                 }
+                menu.Items.Add(new ToolStripMenuItem("Replace sprites from file...", null, onClick, MENU_ITEM_REPLACE_FROM_FILE_MULTI));
                 menu.Items.Add(new ToolStripMenuItem("Replace sprite(s) from source...", null, onClick, MENU_ITEM_REPLACE_FROM_SOURCE));
                 menu.Items.Add(new ToolStripSeparator());
                 menu.Items.Add(new ToolStripMenuItem("Show usage...", null, onClick, MENU_ITEM_SHOW_USAGE));

@@ -486,6 +486,31 @@ namespace AGS.Editor.Utils
             bmp.Dispose();
         }
 
+        public static void ReplaceSprites(Sprite[] sprites, Bitmap bmp, SpriteImportOptions options, SpriteSheet spritesheet)
+        {
+            bool tiled = spritesheet != null;
+
+            if (tiled)
+            {
+                int replaceIndex = 0;
+                foreach (Rectangle selection in spritesheet.GetSpriteSelections(new Size(bmp.Width, bmp.Height)))
+                {
+                    // can only replace as many as selected
+                    if (replaceIndex >= sprites.Count() )
+                        break; 
+
+                    Bitmap replacement = bmp.Clone(selection, bmp.PixelFormat);
+                    ReplaceSprite(sprites[replaceIndex++], replacement, new SpriteImportOptions(options, selection, tiled));
+                    replacement.Dispose();
+                }
+            }
+            else
+            {
+                Rectangle selection = new Rectangle(0, 0, bmp.Width, bmp.Height);
+                ReplaceSprite(sprites[0], bmp, new SpriteImportOptions(options, selection, tiled));
+            }
+        }
+
         public static void ImportNewSprite(SpriteFolder folder, Bitmap bmp, SpriteImportOptions options, Color[] refPalette = null)
         {
             SpriteImportOptions finOptions = AdjustImportParams(bmp, options, refPalette);
