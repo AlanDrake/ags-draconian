@@ -12,7 +12,7 @@ namespace AGS.Editor
     public partial class SpriteImportWindow : Form
     {
         private SpriteFolder folder;
-        private Sprite replace;
+        private Sprite[] replace;
         private Bitmap image;
         private List<string> imageLookup;
         private int zoomLevel = 1;
@@ -231,7 +231,44 @@ namespace AGS.Editor
 
             // replace, not import
             folder = null;
-            this.replace = replace;
+            this.replace = new Sprite[] { replace };
+
+            // replacement can only use one image, but you can pick
+            // any one and make a selection from it
+            btnImportAll.Enabled = false;
+            cmbFilenames.Enabled = filenames.Length > 1;
+            cmbFilenames.Items.Clear();
+            imageLookup = new List<string>();
+
+            foreach (string filename in filenames)
+            {
+                imageLookup.Add(filename);
+                cmbFilenames.Items.Add(Path.GetFileName(filename));
+            }
+
+            cmbFilenames.SelectedIndex = 0;
+
+            OneTimeControlSetup();
+            PostImageLoad();
+        }
+
+        public SpriteImportWindow(string[] filenames, Sprite[] replaces)
+        {
+            InitializeComponent();
+            InitControls(); // extra init
+
+            // set defaults from the old sprite
+            Sprite previous = replaces[0];
+            SpriteImportMethod = previous.TransparentColour;
+            SelectionOffset = new Point(previous.OffsetX, previous.OffsetY);
+            SelectionSize = new Size(previous.Width, previous.Height);
+            ImportColorDepth = previous.ImportColorDepth;
+            RemapToGamePalette = previous.RemapToGamePalette;
+            UseBackgroundSlots = previous.RemapToRoomPalette;
+
+            // replace, not import
+            folder = null;
+            this.replace = replaces;
 
             // replacement can only use one image, but you can pick
             // any one and make a selection from it
@@ -268,7 +305,7 @@ namespace AGS.Editor
 
             // replace, not import
             folder = null;
-            this.replace = replace;
+            this.replace = new Sprite[] { replace };
 
             image = bmp;
             btnImportAll.Enabled = false;
@@ -476,8 +513,9 @@ namespace AGS.Editor
 
             try
             {
-                SpriteTools.ReplaceSprite(replace, image, new SpriteImportOptions(ImportColorDepth, RemapToGamePalette,
-                    UseBackgroundSlots, SpriteImportMethod, TransparentColourIndex, filename, 0), spritesheet, originalPalette);
+
+                SpriteTools.ReplaceSprites(replace, image, new SpriteImportOptions(ImportColorDepth, RemapToGamePalette,
+                    UseBackgroundSlots, SpriteImportMethod, TransparentColourIndex, filename, 0), spritesheet/*, originalPalette*/);
             }
             catch (AGSEditorException ex)
             {
