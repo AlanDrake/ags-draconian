@@ -323,6 +323,7 @@ namespace AGS.Editor
             if (!DesignMode)
             {
                 Hacks.SetRichTextBoxMargins(logTextBox, 12, 12);
+                Hacks.DarkThemeControl(logTextBox.Handle);
                 Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             }
         }

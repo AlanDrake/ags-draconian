@@ -1,4 +1,7 @@
-﻿namespace AGS.Editor
+﻿using System.Runtime.InteropServices;
+using System;
+
+namespace AGS.Editor
 {
     partial class ProjectPanel
     {
@@ -29,7 +32,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ProjectPanel));
-            this.projectTree = new System.Windows.Forms.TreeView();
+            this.projectTree = new Editor.Controls.TreeView();
             this.SuspendLayout();
             // 
             // projectTree
@@ -39,14 +42,14 @@
             this.projectTree.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.projectTree.HideSelection = false;
             this.projectTree.LabelEdit = true;
-            this.projectTree.Location = new System.Drawing.Point(1, 20);
+            this.projectTree.Location = new System.Drawing.Point(0, 0);
             this.projectTree.Name = "projectTree";
-            this.projectTree.Size = new System.Drawing.Size(290, 239);
+            this.projectTree.Size = new System.Drawing.Size(292, 260);
             this.projectTree.TabIndex = 2;
             // 
             // ProjectPanel
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(292, 260);
             this.Controls.Add(this.projectTree);
@@ -60,6 +63,6 @@
 
         #endregion
 
-        internal System.Windows.Forms.TreeView projectTree;
+        internal Editor.Controls.TreeView projectTree;
     }
 }

@@ -29,13 +29,13 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.splitWindow = new System.Windows.Forms.SplitContainer();
-            this.folderList = new System.Windows.Forms.TreeView();
+            this.folderList = new Editor.Controls.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.panel1 = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
             this.button_importNew = new System.Windows.Forms.Button();
             this.sliderPreviewSize = new System.Windows.Forms.TrackBar();
-            this.spriteList = new System.Windows.Forms.ListView();
+            this.spriteList = new Editor.Controls.ListView();
             this.asyncFileDropWorker = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.splitWindow)).BeginInit();
             this.splitWindow.Panel1.SuspendLayout();
@@ -209,9 +209,9 @@ namespace AGS.Editor
         #endregion
 
         private System.Windows.Forms.SplitContainer splitWindow;
-        private System.Windows.Forms.TreeView folderList;
+        private Editor.Controls.TreeView folderList;
         private System.Windows.Forms.SplitContainer splitContainer1;
-        private System.Windows.Forms.ListView spriteList;
+        private Editor.Controls.ListView spriteList;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.TrackBar sliderPreviewSize;
         private System.Windows.Forms.Button button_importNew;

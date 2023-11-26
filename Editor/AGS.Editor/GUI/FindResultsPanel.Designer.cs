@@ -1,4 +1,5 @@
 namespace AGS.Editor
+
 {
     partial class FindResultsPanel
     {
@@ -29,7 +30,7 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FindResultsPanel));
-            this.lvwResults = new System.Windows.Forms.ListView();
+            this.lvwResults = new Editor.Controls.ListView();
             this.fileColumnHeader = new System.Windows.Forms.ColumnHeader();
             this.lineNumberColumnHeader = new System.Windows.Forms.ColumnHeader();
             this.lineTextColumnHeader = new System.Windows.Forms.ColumnHeader();
@@ -89,7 +90,7 @@ namespace AGS.Editor
 
         #endregion
 
-        private System.Windows.Forms.ListView lvwResults;
+        private Editor.Controls.ListView lvwResults;
         private System.Windows.Forms.ColumnHeader fileColumnHeader;
         private System.Windows.Forms.ColumnHeader lineNumberColumnHeader;
         private System.Windows.Forms.ColumnHeader lineTextColumnHeader;

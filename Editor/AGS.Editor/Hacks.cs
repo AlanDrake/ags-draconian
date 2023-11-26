@@ -13,6 +13,7 @@ namespace AGS.Editor
         private const int WM_SETTEXT = 0xC;
         private const int WM_SETREDRAW = 0x0b;
         private const int WM_USER = 0x400;
+        private const int WM_THEMECHANGED = 0x31A;
         // RichTextBox messages
         private const int EM_SETSEL = 0x00B1;
         private const int EM_REPLACESEL = 0x00C2;
@@ -181,6 +182,107 @@ namespace AGS.Editor
             {
                 Marshal.FreeCoTaskMem(nativeFile);
             }
+        }
+
+        // Dark theme support
+        private const int DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19;
+        private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
+        [DllImport("dwmapi")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+
+
+        [DllImport("uxtheme.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
+        private static extern int SetWindowTheme(IntPtr hwnd, string pszSubAppName, string pszSubIdList);
+
+        [DllImport("uxtheme.dll", EntryPoint = "#133", SetLastError = true, ExactSpelling = true, CharSet = CharSet.Unicode)]
+        private static extern bool AllowDarkModeForWindow(IntPtr hWnd, bool allow);
+
+        // before 1903
+        [DllImport("uxtheme.dll", EntryPoint = "#135", SetLastError = true, ExactSpelling = true, CharSet = CharSet.Unicode)]
+        private static extern bool AllowDarkModeForApp(bool allow);
+
+        // after 1903
+        [DllImport("uxtheme.dll", EntryPoint = "#135", SetLastError = true, CharSet = CharSet.Unicode)]
+        private static extern int SetPreferredAppMode(int preferredAppMode);
+
+        [DllImport("uxtheme.dll", EntryPoint = "#136", SetLastError = true, CharSet = CharSet.Unicode)]
+        private static extern void FlushMenuThemes();
+
+        public static void AllowDarkModeForApp()
+        {
+            if (IsWindows10OrGreater(18985))
+                SetPreferredAppMode(2);
+            else if (IsWindows10OrGreater(17763))
+                AllowDarkModeForApp(true);
+
+        }
+
+
+        public static void DarkTheme(IntPtr hwnd)
+        {
+            AllowDarkModeForWindow(hwnd, true);
+        }
+
+        public static void DarkThemeControl(IntPtr hwnd)
+        {
+            SetWindowTheme(hwnd, "DarkMode_Explorer", null);
+            SendMessage(hwnd, WM_THEMECHANGED, 0, IntPtr.Zero);
+        }
+
+        public static void DarkThemeControl_CFD(IntPtr hwnd)
+        {
+            SetWindowTheme(hwnd, "DarkMode_CFD", null);
+            SendMessage(hwnd, WM_THEMECHANGED, 0, IntPtr.Zero);
+        }
+
+        // Hack to be able to dark the title bar of the main window
+        public static bool UseImmersiveDarkMode(IntPtr handle, bool enabled)
+        {
+            AllowDarkModeForWindow(handle, enabled);
+
+            if (IsWindows10OrGreater(17763))
+            {
+                var attribute = DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1;
+                if (IsWindows10OrGreater(18985))
+                {
+                    attribute = DWMWA_USE_IMMERSIVE_DARK_MODE;
+                }
+
+                int useImmersiveDarkMode = enabled ? 1 : 0;
+                return DwmSetWindowAttribute(handle, (int)attribute, ref useImmersiveDarkMode, sizeof(int)) == 0;
+            }
+
+            return false;
+        }
+
+        private static bool IsWindows10OrGreater(int build = -1)
+        {
+            return Environment.OSVersion.Version.Major >= 10 && Environment.OSVersion.Version.Build >= build;
+        }
+
+        public static ScrollBar GetPropertyGridScrollBar(PropertyGrid pg)
+        {
+            // Hack to get scrollbars from propertygrid
+            // https://stackoverflow.com/questions/1596100/how-can-i-catch-scroll-events-in-windows-forms-propertygrid
+            Control m_pgv = null;
+
+            // Loop through sub-controls and find PropertyGridView
+            foreach (Control c in pg.Controls)
+            {
+                if (c.Text == "PropertyGridView")
+                {
+                    m_pgv = (Control)c;
+                    break;
+                }
+            }
+
+            // Reflection trickery to get a private field,
+            // scrollBar in this case
+            Type t = m_pgv.GetType();
+            FieldInfo f = t.GetField("scrollBar", BindingFlags.Instance | BindingFlags.NonPublic);
+            ScrollBar sb = (ScrollBar)f.GetValue(m_pgv);
+            return sb;
         }
     }
 }

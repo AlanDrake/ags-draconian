@@ -19,6 +19,7 @@ namespace AGS.Editor
         [STAThread]
         static void Main(string[] args)
         {
+            Hacks.AllowDarkModeForApp();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             RunApplication(args);

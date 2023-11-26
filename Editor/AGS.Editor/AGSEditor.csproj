@@ -106,6 +106,12 @@
     <Compile Include="ColorThemes\ColorThemes.cs" />
     <Compile Include="ColorThemes\ColorThemeJson.cs" />
     <Compile Include="ColorThemes\ColorThemeStub.cs" />
+    <Compile Include="ColorThemes\Controls\ListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ColorThemes\Controls\TreeView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="ColorThemes\Controls\ComboBoxCustom.cs">
       <SubType>Component</SubType>
     </Compile>

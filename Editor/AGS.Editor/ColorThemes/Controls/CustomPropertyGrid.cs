@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -17,6 +18,18 @@ namespace AGS.Editor
         public void SetRenderer(ToolStripRenderer renderer)
         {
             ToolStripRenderer = renderer;
+        }
+
+        protected override void CreateHandle()
+        {
+            base.CreateHandle();
+            if (!this.DesignMode)
+            {
+                ScrollBar sb = Hacks.GetPropertyGridScrollBar(this);
+                Hacks.DarkThemeControl(sb.Handle);
+            }
+            //Hacks.DarkThemeControl(this.Handle); // only toolstrip is getting colored...
+
         }
     }
 }

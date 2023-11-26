@@ -380,6 +380,8 @@ namespace AGS.Editor
             this.scintillaControl1.IndentationGuides = IndentView.LookBoth;
 
             this.scintillaControl1.ReadOnly = true;
+            
+            Hacks.DarkThemeControl(this.scintillaControl1.Handle);
         }
 
         private void RegisterXPMImage(int type, string xpm)

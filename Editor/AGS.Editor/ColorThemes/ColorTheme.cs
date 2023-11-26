@@ -189,6 +189,8 @@ namespace AGS.Editor
 
         public void ListViewHelper(ListView lvw, string path)
         {
+            if (GetBool(new string[] { path + "/draw-item", "global/listview/draw-item", "global/dark-mode" }) )
+                Hacks.DarkThemeControl(lvw.Handle);
             SetColor(new string[] { path + "/background", "global/listview/background" }, c => lvw.BackColor = c);
             SetColor(new string[] { path + "/foreground", "global/listview/foreground" }, c => lvw.ForeColor = c);
             SetBool(new string[] { path + "/owner-draw", "global/listview/owner-draw" }, c => lvw.OwnerDraw = c);

@@ -47,6 +47,8 @@ namespace AGS.Editor
 			this.Load += new EventHandler(frmMain_Load);
             this.Activated += new EventHandler(frmMain_Activated);
             this.Deactivate += new EventHandler(frmMain_Deactivated);
+            Hacks.DarkTheme(this.Handle);
+            Hacks.UseImmersiveDarkMode(this.Handle, true);
         }
 
         private List<DockContent> GetStartupPanes()

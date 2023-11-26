@@ -18,6 +18,7 @@ namespace AGS.Editor
 
         public void LoadColorTheme(ColorTheme t)
         {
+            Hacks.DarkThemeControl(projectTree.Handle);
             t.SetColor("project-panel/background", c => BackColor = c);
             projectTree.BorderStyle = BorderStyle.None;
             t.SetColor("project-panel/project-tree/background", c => projectTree.BackColor = c);

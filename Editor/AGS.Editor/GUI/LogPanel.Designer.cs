@@ -29,6 +29,8 @@ namespace AGS.Editor
         /// </summary>
         private void InitializeComponent()
         {
+ 
+
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(LogPanel));
             this.logTextBox = new System.Windows.Forms.RichTextBox();
@@ -45,6 +47,12 @@ namespace AGS.Editor
             this.btnClear = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.btnProperties = new System.Windows.Forms.ToolStripButton();
+            Hacks.DarkTheme(this.Handle);
+            Hacks.DarkThemeControl(this.Handle);
+            Hacks.DarkThemeControl(logTextBox.Handle);
+            Hacks.DarkThemeControl(toolStrip.Handle);
+            Hacks.DarkThemeControl(splitContainer.Handle);
+            
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
             this.splitContainer.Panel2.SuspendLayout();

@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Reflection;
 using System.Windows.Forms;
@@ -46,6 +47,12 @@ namespace AGS.Editor
             var eventsField = typeof(System.ComponentModel.Component).GetField("events", BindingFlags.NonPublic | BindingFlags.Instance);
             var eventHandlerList = eventsField.GetValue(original);
             eventsField.SetValue(this, eventHandlerList);
+        }
+
+        protected override void CreateHandle()
+        {
+            base.CreateHandle();
+            Hacks.DarkThemeControl_CFD(this.Handle);
         }
 
         protected override void OnCreateControl()
@@ -112,7 +119,7 @@ namespace AGS.Editor
                     if (!Enabled) graphics.FillRectangle(new SolidBrush(_theme.GetColor(_root + "/background")), rectBorder);
                     ControlPaint.DrawBorder(graphics, rectBorder, _theme.GetColor(_root + "/border/background"),
                         ButtonBorderStyle.Solid);
-
+                    
                     if (DroppedDown)
                     {
                         graphics.FillRectangle(
