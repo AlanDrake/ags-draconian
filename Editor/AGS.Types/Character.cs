@@ -53,7 +53,7 @@ namespace AGS.Types
                 "$$02 character","$$03 character","Use inventory on character",
                 "Any click on character", "$$05 character","$$08 character", 
                 "$$09 character"}, 
-                new string[] { "Look", "Interact", "Talk", "UseInv", "AnyClick", "PickUp", "Mode8", "Mode9" },
+                new string[] { "Look", "Interact", "Talk", "UseInv", "AnyClick", "PickUp", "Evasion", "Mode9" },
                 "Character *c, CursorMode mode");
         }
 
