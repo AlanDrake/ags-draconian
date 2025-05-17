@@ -2109,6 +2109,8 @@ void start_character_turning(CharacterInfo *chinf, int useloop, int no_diagonal)
         go_anticlock = 1;
     if ((toidx < fromidx) && ((fromidx - toidx) < 4))
         go_anticlock = 1;
+    if (fromidx == 2 && toidx == 6) // Wretcher: prefer turn toward screen when right to left
+        go_anticlock = 1;
     if (go_anticlock == 0)
         go_anticlock = -1;
 
