@@ -18,6 +18,7 @@
 #include "platform/windows/gfx/ali3dd3d11.h"
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <stack>
 #include <SDL.h>
 #include <glm/ext.hpp>
@@ -109,31 +110,87 @@ cbuffer PSConstants : register(b0)
     float4 uParams;  // x: color op (0 - modulate, 1 - add, 2 - add smooth)
                      // y: 1 = alpha is modulated by factor, 0 = texture alpha
                      // z: 1 = alpha test on
+                     // w: blend mode computed in this shader (0 = none, the
+                     //    blending is left to the pipeline's blend state)
+    float4 uBlend;   // x: sprite alpha (0..1)
+                     // y: 1 = render target has a premultiplied alpha channel
+                     // z: 1 = sprite texture is premultiplied
 };
 
 Texture2D    uTex  : register(t0);
+Texture2D    uDst  : register(t4); // copy of the render target under the sprite
 SamplerState uSamp : register(s0);
 
+// NOTE: SV_Position is declared last, same as in the vertex shader's output
+// (see the comment on VSOutput).
 struct PSInput
 {
-    float2 uv : TEXCOORD0;
+    float2 uv  : TEXCOORD0;
+    float4 pos : SV_Position;
 };
+
+// Blend modes that cannot be expressed with a fixed blend state.
+// These follow the software renderer (Common/gfx/blender.cpp):
+//  - d is the destination color, s is the source color, n is the sprite alpha;
+//  - each result is lerp(d, op(s, d), n); Add is d + s * n instead;
+//  - the caller then weights the result by the texel's own alpha.
+float3 BlendColor(int mode, float3 d, float3 s, float n)
+{
+    float3 r;
+    if (mode == 1)      r = min(d + s * n, 1.0);                          // Add
+    else if (mode == 2) r = lerp(d, min(s, d), n);                        // Darken
+    else if (mode == 3) r = lerp(d, max(s, d), n);                        // Lighten
+    else if (mode == 4) r = lerp(d, s * d, n);                            // Multiply
+    else if (mode == 5) r = lerp(d, 1.0 - (1.0 - s) * (1.0 - d), n);      // Screen
+    else if (mode == 6) r = lerp(d, saturate(s + d - 1.0), n);            // Burn (linear)
+    else if (mode == 7) r = lerp(d, saturate(d - s), n);                  // Subtract
+    else if (mode == 8) r = lerp(d, s + d - 2.0 * s * d, n);              // Exclusion
+    else                r = lerp(d, saturate(d / max(1.0 - s, 1.0 / 255.0)), n); // Dodge
+    return r;
+}
 
 float4 main(PSInput i) : SV_Target
 {
     float4 t = uTex.Sample(uSamp, i.uv);
+    int mode = (int)(uParams.w + 0.5);
+
+    // A premultiplied sprite has to be converted back before it can be blended
+    if (mode > 0 && uBlend.z > 0.5 && t.a > 0.0)
+        t.rgb /= t.a;
 
     float3 c_mod    = t.rgb * uFactor.rgb;
     float3 c_add    = saturate(t.rgb + uFactor.rgb);
     float3 c_smooth = saturate(t.rgb + uFactor.rgb - t.rgb * uFactor.rgb);
     float3 c = (uParams.x < 0.5) ? c_mod : ((uParams.x < 1.5) ? c_add : c_smooth);
 
-    float a = (uParams.y > 0.5) ? (t.a * uFactor.a) : t.a;
+    if (mode == 0)
+    {
+        float a = (uParams.y > 0.5) ? (t.a * uFactor.a) : t.a;
 
-    // Emulates D3DRS_ALPHATEST (D3DCMP_GREATER, ref 0)
-    clip((uParams.z > 0.5) ? (a - 0.5 / 255.0) : 1.0);
+        // Emulates D3DRS_ALPHATEST (D3DCMP_GREATER, ref 0)
+        clip((uParams.z > 0.5) ? (a - 0.5 / 255.0) : 1.0);
 
-    return float4(c, a);
+        return float4(c, a);
+    }
+
+    // Shader-side blending: nothing to draw if the sprite is fully transparent
+    float sa = t.a;
+    float n = uBlend.x;
+    clip(sa * n - 0.5 / 255.0);
+
+    float4 d4 = uDst.Load(int3((int2)i.pos.xy, 0));
+    bool has_alpha = uBlend.y > 0.5;
+    // Render targets keep premultiplied colors, so convert the destination back
+    float3 d = d4.rgb;
+    if (has_alpha)
+        d = (d4.a > 0.0) ? saturate(d4.rgb / d4.a) : float3(0.0, 0.0, 0.0);
+
+    float3 r = BlendColor(mode, d, c, n);
+    // Same mask step as _blender_mask_alpha32: weight by the texel's alpha,
+    // the result stays premultiplied on targets that have alpha.
+    float3 rgb = r * sa + d * (1.0 - sa);
+    float a_out = has_alpha ? (1.0 - (1.0 - sa) * (1.0 - d4.a)) : d4.a;
+    return float4(rgb, a_out);
 }
 )HLSL";
 
@@ -217,6 +274,29 @@ static const int FilterValue_Linear = 2;
 static inline bool IsLinearFilterValue(int filter_value)
 {
     return filter_value == FilterValue_Linear;
+}
+
+// Texture slot used for the copy of the render target in shader-side blending;
+// follows the slots reserved for the user shader's samplers.
+static const UINT BlendDestSlot = D3D11Shader::SamplersCap;
+
+// Returns the mode's id for the blend code in StandardPixelShaderSrc, or 0 if the
+// mode is not blended there (Normal and the Copy modes use the blend state alone).
+static int ShaderBlendModeID(int blend_mode)
+{
+    switch (blend_mode)
+    {
+    case kBlend_Add:       return 1;
+    case kBlend_Darken:    return 2;
+    case kBlend_Lighten:   return 3;
+    case kBlend_Multiply:  return 4;
+    case kBlend_Screen:    return 5;
+    case kBlend_Burn:      return 6;
+    case kBlend_Subtract:  return 7;
+    case kBlend_Exclusion: return 8;
+    case kBlend_Dodge:     return 9;
+    default:               return 0;
+    }
 }
 
 // D3D11 does not allow color blend factors in the alpha blend settings
@@ -630,6 +710,8 @@ bool D3D11GraphicsDriver::CreateDeviceObjects()
 
 void D3D11GraphicsDriver::ReleaseDeviceObjects()
 {
+    _blendScratch.clear();
+    _curRTV = nullptr;
     _blendStates.clear();
     _rsScissor = nullptr;
     _rsNoScissor = nullptr;
@@ -1583,6 +1665,12 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
     light_lev = bmpToDraw->GetLightLevel();
     const bool do_tint = tint_sat > 0 && _tintShader && _tintShader->IsValid();
     const auto blend_mode = bmpToDraw->GetBlendMode();
+    // Blend modes that have to read the destination are computed by the standard
+    // pixel shader. Custom shaders and the tint shader cannot do this, so they keep
+    // using the (approximate) fixed blend states below.
+    const int shader_blend_id = (!bmpToDraw->GetShader() && !do_tint && _curRTV) ?
+        ShaderBlendModeID(blend_mode) : 0;
+    const bool shader_blend = shader_blend_id > 0;
 
     //-------------------------------------------------------------------------
     // Blend settings: computed for each draw, as D3D11 uses immutable state objects
@@ -1643,6 +1731,12 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
         alpha_test = false;
         break;
     default: break;
+    }
+    if (shader_blend)
+    {
+        // The pixel shader outputs the final color and alpha, so just replace the target's
+        blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_ONE, D3D11_BLEND_ZERO);
+        blend.Alpha = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_ONE, D3D11_BLEND_ZERO);
     }
     _context->OMSetBlendState(GetBlendState(blend), blend_factor, 0xFFFFFFFF);
 
@@ -1727,36 +1821,48 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
         ps_consts[2] = useTintBlue / 255.f;
         ps_consts[3] = alpha / 255.f;
 
-        // BLENDMODES WORKAROUNDS - BEGIN
-        // allow transparency with blending modes
-        // darken/lighten the base sprite so a higher transparency value makes it trasparent
-        switch (blend_mode)
+        if (shader_blend)
         {
-        case kBlend_Darken:
-        case kBlend_Multiply:
-        case kBlend_Burn:
-            // fade to white
-            // FIXME burn is imperfect due to blend mode, darker than normal even when transparent
-            color_op = 2.f; // add smooth
-            ps_consts[0] = ps_consts[1] = ps_consts[2] = ps_consts[3] = invalpha / 255.f;
-            break;
-        case kBlend_Lighten:
-        case kBlend_Screen:
-        case kBlend_Exclusion:
-        case kBlend_Dodge:
-            // fade to black
-            color_op = 0.f; // modulate
-            ps_consts[0] = ps_consts[1] = ps_consts[2] = ps_consts[3] = alpha / 255.f;
-            break;
-        default:
-            break;
+            // The pixel shader applies the sprite's alpha itself, as a part of the blend
+            ps_consts[3] = 1.f;
+            ps_consts[7] = (float)shader_blend_id;
+            ps_consts[8] = alpha / 255.f;
+            ps_consts[9] = _rtHasAlpha ? 1.f : 0.f;
+            ps_consts[10] = (bmpToDraw->GetRenderHint() == kTxHint_PremulAlpha) ? 1.f : 0.f;
         }
-        // BLENDMODES WORKAROUNDS - END
+        else
+        {
+            // BLENDMODES WORKAROUNDS - BEGIN (blend states can only approximate these)
+              // allow transparency with blending modes
+              // darken/lighten the base sprite so a higher transparency value makes it trasparent
+            switch (blend_mode)
+            {
+            case kBlend_Darken:
+            case kBlend_Multiply:
+            case kBlend_Burn:
+                // fade to white
+                // FIXME burn is imperfect due to blend mode, darker than normal even when transparent
+                color_op = 2.f; // add smooth
+                ps_consts[0] = ps_consts[1] = ps_consts[2] = ps_consts[3] = invalpha / 255.f;
+                break;
+            case kBlend_Lighten:
+            case kBlend_Screen:
+            case kBlend_Exclusion:
+            case kBlend_Dodge:
+                // fade to black
+                color_op = 0.f; // modulate
+                ps_consts[0] = ps_consts[1] = ps_consts[2] = ps_consts[3] = alpha / 255.f;
+                break;
+            default:
+                break;
+            }
+            // BLENDMODES WORKAROUNDS - END
+        }
 
         ps_consts[4] = color_op;
         // No transparency: use texture alpha component;
         // otherwise fixed transparency, use (TextureAlpha x FixedTranslucency)
-        ps_consts[5] = (alpha == 255) ? 0.f : 1.f;
+        ps_consts[5] = (alpha == 255 || shader_blend) ? 0.f : 1.f;
         ps_consts[6] = alpha_test ? 1.f : 0.f;
     }
 
@@ -1837,12 +1943,22 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
         // Global batch transform
         transform = matGlobal * transform;
 
-        UploadVSConstants(_curProjection * transform);
+        const glm::mat4 wvp = _curProjection * transform;
+        UploadVSConstants(wvp);
         ID3D11ShaderResourceView* srv = txdata->_tiles[ti].srv.get();
         _context->PSSetShaderResources(0, 1, &srv);
 
+        if (shader_blend)
+        {
+            // Give the pixel shader the current contents of the area it is about to replace
+            ID3D11ShaderResourceView* dst_srv = CopyBlendDestination(wvp);
+            if (!dst_srv)
+                continue; // this tile is completely off the render target
+            _context->PSSetShaderResources(BlendDestSlot, 1, &dst_srv);
+        }
+
         // workaround: extra render pass for the blend modes that cannot be achieved with one
-        if (blend_mode == kBlend_Dodge)
+        if (blend_mode == kBlend_Dodge && !shader_blend)
         {
             // since the dodge is only half strength we can get a closer approx by drawing it twice
             _context->Draw(4, 0);
@@ -1851,11 +1967,85 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
     }
 }
 
+ID3D11ShaderResourceView* D3D11GraphicsDriver::CopyBlendDestination(const glm::mat4& wvp)
+{
+    // Find the part of the render target covered by the quad, by transforming
+    // the quad's corners into the render target's pixel coordinates.
+    static const glm::vec4 corners[4] =
+    {
+        { 0.f,  0.f, 0.f, 1.f }, { 1.f,  0.f, 0.f, 1.f },
+        { 0.f, -1.f, 0.f, 1.f }, { 1.f, -1.f, 0.f, 1.f }
+    };
+    float min_x = std::numeric_limits<float>::max(), min_y = min_x;
+    float max_x = -min_x, max_y = -min_x;
+    for (const auto& corner : corners)
+    {
+        const glm::vec4 p = wvp * corner;
+        const float inv_w = (p.w != 0.f) ? 1.f / p.w : 1.f;
+        const float px = _curViewport.Left + (p.x * inv_w * 0.5f + 0.5f) * _curViewport.GetWidth();
+        const float py = _curViewport.Top + (0.5f - p.y * inv_w * 0.5f) * _curViewport.GetHeight();
+        min_x = std::min(min_x, px); max_x = std::max(max_x, px);
+        min_y = std::min(min_y, py); max_y = std::max(max_y, py);
+    }
+
+    ComPtr<ID3D11Resource> res;
+    ComPtr<ID3D11Texture2D> rt;
+    _curRTV->GetResource(res.Acquire());
+    if (!res || FAILED(res->QueryInterface(__uuidof(ID3D11Texture2D), reinterpret_cast<void**>(rt.Acquire()))))
+        throw Ali3DException("Failed to get the render target texture for blending");
+    D3D11_TEXTURE2D_DESC rt_desc = {};
+    rt->GetDesc(&rt_desc);
+
+    // Pad the area by a pixel to be safe from rounding; if the math went wrong
+    // somehow (non-finite values), fall back to copying the whole target.
+    int x1 = 0, y1 = 0, x2 = static_cast<int>(rt_desc.Width), y2 = static_cast<int>(rt_desc.Height);
+    if (std::isfinite(min_x) && std::isfinite(max_x) && std::isfinite(min_y) && std::isfinite(max_y))
+    {
+        x1 = std::max(x1, static_cast<int>(std::floor(min_x)) - 1);
+        y1 = std::max(y1, static_cast<int>(std::floor(min_y)) - 1);
+        x2 = std::min(x2, static_cast<int>(std::ceil(max_x)) + 1);
+        y2 = std::min(y2, static_cast<int>(std::ceil(max_y)) + 1);
+    }
+    if (x1 >= x2 || y1 >= y2)
+        return nullptr;
+
+    // The scratch texture keeps the target's coordinates, so the shader can read it
+    // using the same pixel position; it must match the target's format for copying.
+    BlendScratch& scratch = _blendScratch[static_cast<UINT>(rt_desc.Format)];
+    if (!scratch.Tex || scratch.Width < rt_desc.Width || scratch.Height < rt_desc.Height)
+    {
+        D3D11_TEXTURE2D_DESC td = {};
+        td.Width = std::max(scratch.Width, rt_desc.Width);
+        td.Height = std::max(scratch.Height, rt_desc.Height);
+        td.MipLevels = 1;
+        td.ArraySize = 1;
+        td.Format = rt_desc.Format;
+        td.SampleDesc.Count = 1;
+        td.Usage = D3D11_USAGE_DEFAULT;
+        td.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        scratch = BlendScratch();
+        HRESULT hr = _device->CreateTexture2D(&td, nullptr, scratch.Tex.Acquire());
+        if (FAILED(hr))
+            throw Ali3DException(String::FromFormat("Failed to create blend scratch texture: error code 0x%08X", (unsigned)hr));
+        hr = _device->CreateShaderResourceView(scratch.Tex.get(), nullptr, scratch.SRV.Acquire());
+        if (FAILED(hr))
+            throw Ali3DException(String::FromFormat("Failed to create blend scratch view: error code 0x%08X", (unsigned)hr));
+        scratch.Width = td.Width;
+        scratch.Height = td.Height;
+    }
+
+    D3D11_BOX box = {};
+    box.left = x1; box.top = y1; box.front = 0;
+    box.right = x2; box.bottom = y2; box.back = 1;
+    _context->CopySubresourceRegion(scratch.Tex.get(), 0, x1, y1, 0, rt.get(), 0, &box);
+    return scratch.SRV.get();
+}
+
 void D3D11GraphicsDriver::PostRenderCleanup()
 {
     // Reset textures in all slots which we use in shaders, etc
-    ID3D11ShaderResourceView* null_srv[D3D11Shader::SamplersCap] = {};
-    _context->PSSetShaderResources(0, D3D11Shader::SamplersCap, null_srv);
+    ID3D11ShaderResourceView* null_srv[BlendDestSlot + 1] = {};
+    _context->PSSetShaderResources(0, BlendDestSlot + 1, null_srv);
     _context->PSSetShader(nullptr, nullptr, 0);
 }
 
@@ -1948,6 +2138,8 @@ void D3D11GraphicsDriver::SetBackbufferState(BackbufferState* state, bool clear)
     SetD3DViewport(_currentBackbuffer->Viewport);
     _curProjection = _currentBackbuffer->Projection;
     _rtBlendAlpha = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA);
+    _curRTV = rtv;
+    _rtHasAlpha = false;
 
     if (clear)
     {
@@ -1966,6 +2158,7 @@ void D3D11GraphicsDriver::SetD3DViewport(const Rect& rc)
     view.MinDepth = 0.0f;
     view.MaxDepth = 1.0f;
     _context->RSSetViewports(1, &view);
+    _curViewport = rc;
 }
 
 void D3D11GraphicsDriver::SetScissor(const Rect& clip, bool render_on_texture)
@@ -2015,6 +2208,8 @@ void D3D11GraphicsDriver::SetRenderTarget(const D3D11SpriteBatch* batch, Size& r
         // Return back to default alpha merging rules
         _rtBlendAlpha = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA);
     }
+    _curRTV = rtv;
+    _rtHasAlpha = (batch && batch->RenderTarget);
 
     if (clear)
     {

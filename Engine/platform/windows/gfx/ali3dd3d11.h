@@ -683,6 +683,11 @@ private:
         const SpriteColorTransform& color, const Size& rend_sz);
     // Cleans up render state after rendering a scene
     void PostRenderCleanup();
+    // Copies the area of the current render target that the given quad (unit quad
+    // transformed by "wvp") is going to cover into a scratch texture, so that the
+    // pixel shader can read the destination colors for blend modes that need it.
+    // Returns the scratch texture's view, or null if the quad covers nothing.
+    ID3D11ShaderResourceView* CopyBlendDestination(const glm::mat4& wvp);
 
 
     PD3D11Filter _filter;
@@ -747,6 +752,25 @@ private:
 
     // Saved alpha channel blend settings for the current render target
     D3D11BlendFunc _rtBlendAlpha{};
+
+    // Render target that is currently set for drawing (non-owning), its viewport,
+    // and whether it stores a meaningful (premultiplied) alpha channel; the latter
+    // is only true for render target textures, not for the screen or native surface.
+    ID3D11RenderTargetView* _curRTV = nullptr;
+    Rect _curViewport;
+    bool _rtHasAlpha = false;
+
+    // Scratch copies of the render target contents, for shader-side blend modes.
+    // Kept per texture format and only ever grown, so that alternating between
+    // render targets of different sizes does not recreate them every time.
+    struct BlendScratch
+    {
+        D3D11Texture2DPtr Tex;
+        D3D11SRVPtr       SRV;
+        UINT              Width = 0u;
+        UINT              Height = 0u;
+    };
+    std::unordered_map<UINT, BlendScratch> _blendScratch;
 };
 
 
