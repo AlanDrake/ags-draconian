@@ -392,6 +392,15 @@ void GUIMain::Poll(int mx, int my, bool has_focus)
     Point pt = _gs.WorldToLocal(mx, my);
     mx = pt.X; my = pt.Y;
 
+    // If a control has mouse press lock, and the cursor simply left GUI's bounds
+    // (as opposed to GUI being covered by another GUI), then keep the focus,
+    // so that the control continues to receive mouse motion (e.g. dragged slider)
+    if (!has_focus && (_mouseOverCtrl == MOVER_MOUSEDOWNLOCKED))
+    {
+        const bool is_inside = (mx >= 0) && (my >= 0) && (mx < _width) && (my < _height);
+        has_focus = !is_inside;
+    }
+
     // If GUI just went out of focus then reset focus on any control that had it
     if (!has_focus && _wasFocused)
     {
@@ -422,7 +431,7 @@ void GUIMain::Poll(int mx, int my, bool has_focus)
         if (_mouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
         {
             // Mouse button is still held, report mouse motion;
-            // NOTE: do this even if no focus (held mouse button and moved cursor outside of GUI?)
+            // NOTE: this is done even if the cursor moved outside of GUI's bounds
             _controls[_mouseDownCtrl]->OnMouseMove(mx, my);
         }
         else if (ctrl_index != _mouseOverCtrl)
