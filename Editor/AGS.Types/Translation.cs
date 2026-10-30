@@ -47,6 +47,8 @@ namespace AGS.Types
         private string _language;
         private Dictionary<int, FontOverride> _fontOverrides = new Dictionary<int, FontOverride>();
         private Dictionary<string, TranslationEntry> _translatedEntries = new Dictionary<string, TranslationEntry>();
+        // PO header fields, in the order found in the source file; values are kept escaped
+        private List<KeyValuePair<string, string>> _headerFields = new List<KeyValuePair<string, string>>();
 
         public Translation(string name, string baseLanguage)
         {
@@ -270,14 +272,8 @@ namespace AGS.Types
             // PO metadata
             sw.WriteLine("msgid \"\"");
             sw.WriteLine("msgstr \"\"");
-            sw.WriteLine("\"Last-Translator: \\n\"");
-            sw.WriteLine("\"Language-Team: \\n\"");
-            sw.WriteLine("\"Language: " + Encode(_name) + "\\n\"");
-            sw.WriteLine("\"X-Source-Language: " + Encode(_baseLanguage) + "\\n\"");
-            sw.WriteLine("\"MIME-Version: 1.0\\n\"");
-            sw.WriteLine("\"Content-Type: text/plain; charset=" + ( _encodingHint == "ASCII" ? "ISO-8859-1" : _encodingHint) + "\\n\"");
-            sw.WriteLine("\"Content-Transfer-Encoding: 8bit\\n\"");
-            sw.WriteLine("\"X-Generator: AGS " + Version.AGS_EDITOR_VERSION + "\\n\"");
+            foreach (var field in MakeHeaderFields(encoding))
+                sw.WriteLine($"\"{field.Key}: {field.Value}\\n\"");
 
             foreach (string key in _translatedEntries.Keys)
             {
@@ -292,10 +288,54 @@ namespace AGS.Types
                 sw.WriteLine($"msgid \"{entry.Key}\"");
                 sw.WriteLine($"msgstr \"{entry.Value}\"");
             }
-            // note: if there's not an empty line at the end, the last record won't be stored
-            // CHECKME: double check that this complies to PO format!
             if (_translatedEntries.Count > 0)
                 sw.WriteLine("");
+        }
+
+        /// <summary>
+        /// Generates PO header fields: keeps the ones found in the loaded source file
+        /// (e.g. written by translator's tools), and updates the ones that AGS controls.
+        /// </summary>
+        private List<KeyValuePair<string, string>> MakeHeaderFields(string encoding)
+        {
+            var fields = new List<KeyValuePair<string, string>>(_headerFields);
+            if (fields.Count == 0)
+            {
+                fields.Add(new KeyValuePair<string, string>("Last-Translator", string.Empty));
+                fields.Add(new KeyValuePair<string, string>("Language-Team", string.Empty));
+            }
+            SetHeaderField(fields, "Language", EscapeText(_language != null ? _language.Replace('-', '_') : string.Empty));
+            SetHeaderField(fields, "X-Source-Language", EscapeText(_baseLanguage ?? string.Empty));
+            SetHeaderField(fields, "MIME-Version", "1.0");
+            SetHeaderField(fields, "Content-Type", "text/plain; charset=" + (encoding == "ASCII" ? "ISO-8859-1" : encoding));
+            SetHeaderField(fields, "Content-Transfer-Encoding", "8bit");
+            SetHeaderField(fields, "X-Generator", "AGS " + Version.AGS_EDITOR_VERSION);
+            return fields;
+        }
+
+        private static void SetHeaderField(List<KeyValuePair<string, string>> fields, string key, string value)
+        {
+            int index = fields.FindIndex(f => string.Compare(f.Key, key, true) == 0);
+            if (index >= 0)
+                fields[index] = new KeyValuePair<string, string>(key, value);
+            else
+                fields.Add(new KeyValuePair<string, string>(key, value));
+        }
+
+        /// <summary>
+        /// Parses PO header fields from the (escaped) msgstr of the header entry.
+        /// </summary>
+        private void ReadHeaderFields(string header)
+        {
+            _headerFields.Clear();
+            foreach (var line in header.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                int sep = line.IndexOf(':');
+                if (sep <= 0)
+                    continue;
+                _headerFields.Add(new KeyValuePair<string, string>(
+                    line.Substring(0, sep).Trim(), line.Substring(sep + 1).Trim()));
+            }
         }
 
         private enum ParseState
@@ -360,7 +400,7 @@ namespace AGS.Types
             }
             catch (Exception e)
             {
-                errors.Add(new CompileError(string.Format("Failed to load translation: \n{1}", e.Message)));
+                errors.Add(new CompileError(string.Format("Failed to load translation: \n{0}", e.Message)));
                 _translatedEntries.Clear(); // clear on failure
             }
             return errors;
@@ -373,15 +413,46 @@ namespace AGS.Types
         {
             _fontOverrides = new Dictionary<int, FontOverride>();
             _translatedEntries = new Dictionary<string, TranslationEntry>();
+            _headerFields.Clear();
             string old_encoding = _encodingHint;
 
             ParseState state = ParseState.NewEntry;
             TranslationEntry entry = new TranslationEntry();
+
+            // Stores the currently parsed entry, if it's complete
+            Action finishEntry = () =>
+            {
+                if (state == ParseState.ParsingString)
+                {
+                    if (!string.IsNullOrEmpty(entry.Key))
+                    {
+                        // Fix any unescaped quotes left by the older Editor versions
+                        entry.Key = EscapeUnescapedQuotes(entry.Key);
+                        entry.Value = EscapeUnescapedQuotes(entry.Value);
+                        _translatedEntries[entry.Key] = entry;
+                    }
+                    else
+                    {
+                        // an entry with an empty msgid is the PO header
+                        ReadHeaderFields(entry.Value);
+                    }
+                }
+                state = ParseState.NewEntry;
+                entry = new TranslationEntry();
+            };
+
             {
                 string line;
                 while ((line = sr.ReadLine()) != null)
                 {
                     string extracted_string = POExtractString(line);
+
+                    // Font overrides were mistakenly written in the legacy TRS format by some Editor versions
+                    if (line.StartsWith("//#" + FONT_OVERRIDE_TAG))
+                    {
+                        ReadSpecialTags(line.Substring(3));
+                        continue;
+                    }
 
                     // Case 1: encountered metadata
                     // TODO: track different types of metadata (flags, comments, etc)
@@ -454,25 +525,12 @@ namespace AGS.Types
                     // Case 3: we were processing an entry and encountered an empty line
                     if (state != ParseState.NewEntry && line.Trim().Length == 0)
                     {
-                        // note: a valid entry must have a non-empty msgid
-                        // the first empty hardcoded entry, which is metadata, is ignored and recreated
-                        if (entry.Key != null && entry.Key.Length > 0)
-                        {
-                            _translatedEntries.Add(entry.Key, entry);
-                        }
-                        state = ParseState.NewEntry;
-                        entry = new TranslationEntry();
+                        finishEntry();
                     }
-                    else if (state == ParseState.NewEntry && line.Trim().Length == 0)
-                    {
-                        continue; // ignore additional empty lines
-                    }
-
-
                 } // while
 
-                // note: if there's not an empty line at the end, the last record won't be stored
-                // CHECKME: double check that this complies to PO format!
+                // The last entry is not necessarily followed by an empty line
+                finishEntry();
             }
             return true;
         }
@@ -491,75 +549,134 @@ namespace AGS.Types
             return null;
         }
 
-        private static string Decode(string text)
+        /// <summary>
+        /// Converts escape sequences in the PO string into the actual characters.
+        /// Follows the same rules as the AGS script compiler, because the translation
+        /// keys must match the strings compiled into the game.
+        /// Unknown escape sequences are kept as-is.
+        /// </summary>
+        public static string UnescapeText(string text)
         {
-            StringBuilder builder = new StringBuilder("");
-            for (var i = 0; i < text.Length; i++)
+            if (string.IsNullOrEmpty(text) || text.IndexOf('\\') < 0)
+                return text;
+
+            StringBuilder builder = new StringBuilder(text.Length);
+            for (int i = 0; i < text.Length; i++)
             {
-                var c = text[i];
-                if (c != '\\')
+                char c = text[i];
+                if (c != '\\' || i + 1 >= text.Length)
                 {
                     builder.Append(c);
                     continue;
                 }
 
-                if (++i < text.Length)
+                c = text[++i];
+                switch (c)
                 {
-                    c = text[i];
-                    switch (c)
-                    {
-                        case '\\':
-                        case '"':
-                            builder.Append(c);
-                            continue;
-                        case 't':
-                            builder.Append('\t');
-                            continue;
-                        case 'r':
-                            var index = i;
-                            if (++index + 1 < text.Length && text[index] == '\\' && text[++index] == 'n')
-                                i = index;
-                            // "\r" and "\r\n" are both accepted as new line
-                            goto case 'n';
-                        case 'n':
-                            builder.Append("\n");
-                            continue;
-                    }
+                    case '\'':
+                    case '"':
+                    case '?':
+                    case '\\': builder.Append(c); continue;
+                    case 'a': builder.Append('\a'); continue;
+                    case 'b': builder.Append('\b'); continue;
+                    case 'e': builder.Append((char)27); continue;
+                    case 'f': builder.Append('\f'); continue;
+                    case 'n': builder.Append('\n'); continue;
+                    case 'r': builder.Append('\r'); continue;
+                    case 't': builder.Append('\t'); continue;
+                    case 'v': builder.Append('\v'); continue;
                 }
 
-                // invalid escape sequence
-                //return i - 1;
-            }
+                if (c >= '0' && c < '8')
+                {
+                    // up to 3 octal digits, max value 255
+                    int value = c - '0';
+                    for (int n = 0; n < 2 && i + 1 < text.Length; ++n)
+                    {
+                        int digit = text[i + 1] - '0';
+                        if (digit < 0 || digit >= 8 || value * 8 + digit > 255)
+                            break;
+                        value = value * 8 + digit;
+                        i++;
+                    }
+                    builder.Append((char)value);
+                    continue;
+                }
 
+                if (c == 'x' && i + 1 < text.Length && Uri.IsHexDigit(text[i + 1]))
+                {
+                    // up to 2 hex digits
+                    int value = 0;
+                    for (int n = 0; n < 2 && i + 1 < text.Length && Uri.IsHexDigit(text[i + 1]); ++n)
+                    {
+                        value = value * 16 + Uri.FromHex(text[i + 1]);
+                        i++;
+                    }
+                    builder.Append((char)value);
+                    continue;
+                }
+
+                // unknown escape sequence
+                builder.Append('\\').Append(c);
+            }
             return builder.ToString();
         }
 
-        private static string Encode(string text)
+        /// <summary>
+        /// Converts the text into a escaped form suitable for a PO string.
+        /// </summary>
+        public static string EscapeText(string text)
         {
-            StringBuilder builder = new StringBuilder("");
-            for (var i = 0; i < text.Length; i++)
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            StringBuilder builder = new StringBuilder(text.Length);
+            for (int i = 0; i < text.Length; i++)
             {
-                var c = text[i];
+                char c = text[i];
                 switch (c)
                 {
-                    case '\\':
-                    case '"':
-                        builder.Append('\\').Append(c);
-                        continue;
-                    case '\t':
-                        builder.Append('\\').Append('t');
-                        continue;
+                    case '\\': builder.Append("\\\\"); continue;
+                    case '"': builder.Append("\\\""); continue;
+                    case '\a': builder.Append("\\a"); continue;
+                    case '\b': builder.Append("\\b"); continue;
+                    case '\f': builder.Append("\\f"); continue;
+                    case '\n': builder.Append("\\n"); continue;
                     case '\r':
-                        var index = 0;
-                        if (++index < text.Length && text[index] == '\n')
-                            i = index;
-                        // "\r" and "\r\n" are encoded the same as "\n" to keep PO content platform-independent
-                        goto case '\n';
-                    case '\n':
-                        builder.Append('\\').Append('n');
+                        // The engine only uses "\n" for line breaks, so "\r\n" and "\r" are both
+                        // converted to "\n"; this also keeps PO content platform-independent
+                        if (i + 1 < text.Length && text[i + 1] == '\n')
+                            i++;
+                        builder.Append("\\n");
                         continue;
+                    case '\t': builder.Append("\\t"); continue;
+                    case '\v': builder.Append("\\v"); continue;
                 }
 
+                if (c < ' ')
+                    builder.Append('\\').Append(Convert.ToString(c, 8).PadLeft(3, '0'));
+                else
+                    builder.Append(c);
+            }
+            return builder.ToString();
+        }
+
+        /// <summary>
+        /// Escapes double quotes which are not escaped yet; this is meant for fixing up
+        /// strings which are supposed to be in the escaped form, but are not necessarily.
+        /// </summary>
+        public static string EscapeUnescapedQuotes(string text)
+        {
+            if (string.IsNullOrEmpty(text) || text.IndexOf('"') < 0)
+                return text;
+
+            StringBuilder builder = new StringBuilder(text.Length + 8);
+            int backslashes = 0;
+            foreach (char c in text)
+            {
+                if (c == '"' && (backslashes % 2) == 0)
+                    builder.Append('\\');
+                backslashes = (c == '\\') ? backslashes + 1 : 0;
                 builder.Append(c);
             }
             return builder.ToString();
@@ -642,7 +759,7 @@ namespace AGS.Types
                 int fontIndex = fontOverride.Key;
                 Font font = fontOverride.Value.Font;
                 FontFields fields = fontOverride.Value.Fields;
-                sb.Append($"//#Font{fontIndex}=");
+                sb.Append($"# ${FONT_OVERRIDE_TAG}{fontIndex}{OPTION_SEPARATOR}");
                 // The font override's source is defined either as another font's index, or font file
                 if (font.ID >= 0)
                     sb.Append($"Font{font.ID};");

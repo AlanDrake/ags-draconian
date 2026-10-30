@@ -46,6 +46,8 @@ namespace AGS.Types
             set
             {
                 _context = value;
+                _obsolete = false;
+                _parserWordID = -1;
                 if (!string.IsNullOrEmpty(_context))
                 {
                     if (_context == CONTEXT_OBSOLETE)
@@ -79,8 +81,16 @@ namespace AGS.Types
             get { return _obsolete; }
             set
             {
-                _obsolete = true;
-                _context = "OBSOLETE";
+                if (value)
+                {
+                    _context = CONTEXT_OBSOLETE;
+                    _parserWordID = -1;
+                }
+                else if (_obsolete)
+                {
+                    _context = null;
+                }
+                _obsolete = value;
             }
         }
 
@@ -101,8 +111,16 @@ namespace AGS.Types
             }
             set
             {
+                if (value >= 0)
+                {
+                    _context = $"{CONTEXT_PARSERWORD}:{value}";
+                    _obsolete = false;
+                }
+                else if (_parserWordID >= 0)
+                {
+                    _context = null;
+                }
                 _parserWordID = value;
-                _context = $"PARSERWORD:{_parserWordID}";
             }
         }
 

@@ -87,9 +87,11 @@ namespace AGS.Editor
 
                 if (include)
                 {
-                    if (!_linesProcessed.ContainsKey(text))
+                    string key = MakeTranslationKey(text, textType);
+                    if (!_linesProcessed.ContainsKey(key))
                     {
-                        _linesProcessed.Add(text, textLine);
+                        textLine.Text = key;
+                        _linesProcessed.Add(key, textLine);
                     }
                 }
             }

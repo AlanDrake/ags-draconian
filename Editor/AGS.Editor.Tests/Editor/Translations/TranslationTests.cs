@@ -42,7 +42,7 @@ msgid """"
 msgstr """"
 ""Last-Translator: \n""
 ""Language-Team: \n""
-""Language: NewLanguage\n""
+""Language: fr_FR\n""
 ""X-Source-Language: en_US\n""
 ""MIME-Version: 1.0\n""
 ""Content-Type: text/plain; charset=UTF-8\n""
@@ -538,6 +538,164 @@ msgstr """"
             var result = translation.Encoding.GetDecoder().GetAsString(ms.GetBuffer());
 
             Assert.AreEqual(UniformTestString(expectedResult), UniformTestString(result));
+        }
+
+        private Translation LoadTranslationFromString(string text, out CompileMessages errors)
+        {
+            Translation translation = new Translation("NewLanguage", "en_US");
+            using (StreamReader sr = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(text)), Encoding.UTF8))
+            {
+                errors = translation.TryLoadData(sr);
+            }
+            return translation;
+        }
+
+        private string SaveTranslationToString(Translation translation)
+        {
+            MemoryStream ms = new MemoryStream();
+            using (StreamWriter sw = new StreamWriter(ms, translation.Encoding))
+            {
+                translation.SaveData(sw);
+            }
+            return UniformTestString(translation.Encoding.GetDecoder().GetAsString(ms.GetBuffer()));
+        }
+
+        [Test]
+        public void LoadLastEntryWithoutTrailingEmptyLine_Test()
+        {
+            var text = "msgid \"\"\nmsgstr \"\"\n\"Language: fr\\n\"\n\nmsgid \"first\"\nmsgstr \"premier\"\n\nmsgid \"last\"\nmsgstr \"dernier\"";
+            CompileMessages errors;
+            Translation translation = LoadTranslationFromString(text, out errors);
+
+            Assert.That(!errors.HasErrors);
+            Assert.AreEqual(2, translation.TranslatedEntries.Count);
+            Assert.IsTrue(translation.TranslatedEntries.ContainsKey("last"));
+            Assert.AreEqual("dernier", translation.TranslatedEntries["last"].Value);
+        }
+
+        [Test]
+        public void KeepCustomHeaderFields_Test()
+        {
+            var text = @"# $Encoding=UTF-8
+# $Language=fr_FR
+msgid """"
+msgstr """"
+""Project-Id-Version: My Game\n""
+""Last-Translator: Jean <jean@example.com>\n""
+""Language-Team: French\n""
+""Language: fr\n""
+""Plural-Forms: nplurals=2; plural=(n > 1);\n""
+""X-Generator: Poedit 3.4\n""
+
+msgid ""first""
+msgstr ""premier""
+";
+            CompileMessages errors;
+            Translation translation = LoadTranslationFromString(text, out errors);
+            Assert.That(!errors.HasErrors);
+
+            var result = SaveTranslationToString(translation);
+            var expectedHeader = @"msgid """"
+msgstr """"
+""Project-Id-Version: My Game\n""
+""Last-Translator: Jean <jean@example.com>\n""
+""Language-Team: French\n""
+""Language: fr_FR\n""
+""Plural-Forms: nplurals=2; plural=(n > 1);\n""
+""X-Generator: AGS " + AGS.Types.Version.AGS_EDITOR_VERSION + @"\n""
+""X-Source-Language: en_US\n""
+""MIME-Version: 1.0\n""
+""Content-Type: text/plain; charset=UTF-8\n""
+""Content-Transfer-Encoding: 8bit\n""
+";
+            StringAssert.Contains(UniformTestString(expectedHeader), result);
+        }
+
+        [Test]
+        public void FontOverridesRoundTrip_Test()
+        {
+            Translation translation = CreateTranslationForTest();
+            var font = new AGS.Types.Font();
+            font.ID = 2;
+            font.PointSize = 14;
+            translation.FontOverrides.Add(0, new FontOverride(font, FontFields.Size));
+
+            CompileMessages errors;
+            translation = LoadTranslationFromString(SaveTranslationToString(translation), out errors);
+
+            Assert.That(!errors.HasErrors);
+            Assert.AreEqual(1, translation.FontOverrides.Count);
+            Assert.IsTrue(translation.FontOverrides.ContainsKey(0));
+            Assert.AreEqual(2, translation.FontOverrides[0].Font.ID);
+            Assert.AreEqual(14, translation.FontOverrides[0].Font.PointSize);
+            Assert.AreEqual(FontFields.Size, translation.FontOverrides[0].Fields);
+        }
+
+        [Test]
+        public void LoadLegacyFontOverrides_Test()
+        {
+            var text = "//#Font1=Font3;Size=10;\nmsgid \"\"\nmsgstr \"\"\n\nmsgid \"first\"\nmsgstr \"premier\"\n";
+            CompileMessages errors;
+            Translation translation = LoadTranslationFromString(text, out errors);
+
+            Assert.That(!errors.HasErrors);
+            Assert.IsTrue(translation.FontOverrides.ContainsKey(1));
+            Assert.AreEqual(3, translation.FontOverrides[1].Font.ID);
+            Assert.AreEqual(10, translation.FontOverrides[1].Font.PointSize);
+        }
+
+        [Test]
+        public void FixUnescapedQuotesOnLoad_Test()
+        {
+            var text = "msgid \"\"\nmsgstr \"\"\n\nmsgid \"He said \"hi\"\"\nmsgstr \"Il a dit \\\"salut\\\"\"\n";
+            CompileMessages errors;
+            Translation translation = LoadTranslationFromString(text, out errors);
+
+            Assert.That(!errors.HasErrors);
+            Assert.IsTrue(translation.TranslatedEntries.ContainsKey("He said \\\"hi\\\""));
+            Assert.AreEqual("Il a dit \\\"salut\\\"", translation.TranslatedEntries["He said \\\"hi\\\""].Value);
+        }
+
+        [Test]
+        public void EscapeUnescapeText_Test()
+        {
+            Assert.AreEqual("say \\\"hi\\\"\\n\\tC:\\\\dir", Translation.EscapeText("say \"hi\"\n\tC:\\dir"));
+            Assert.AreEqual("say \"hi\"\n\tC:\\dir", Translation.UnescapeText("say \\\"hi\\\"\\n\\tC:\\\\dir"));
+            Assert.AreEqual("a\\nb\\nc\\n\\n", Translation.EscapeText("a\r\nb\rc\n\r\n"));
+            Assert.AreEqual("A\u001bB?'", Translation.UnescapeText("\\x41\\eB\\?\\'"));
+            Assert.AreEqual("\x01" + "8\x7f", Translation.UnescapeText("\\0018\\177"));
+            Assert.AreEqual("\\q", Translation.UnescapeText("\\q")); // unknown escape is kept
+            Assert.AreEqual("a\\\"b\\\"", Translation.EscapeUnescapedQuotes("a\"b\\\""));
+            Assert.AreEqual("a\\\\\\\"", Translation.EscapeUnescapedQuotes("a\\\\\""));
+        }
+
+        [Test]
+        public void UpdateRevivesObsoleteEntry_Test()
+        {
+            Translation translation = CreateTranslationForTest();
+            translation.TranslatedEntries.Add("old line", CreateEntry("old line", "vieille réplique", "OBSOLETE"));
+            translation.TranslatedEntries.Add("word", CreateEntry("word", "mot", "PARSERWORD:5"));
+            Assert.IsTrue(translation.TranslatedEntries["old line"].IsObsolete);
+
+            var gameTexts = new GameTextLine[] {
+                new GameTextLine("old line"),
+                new GameTextLine("word"), // no longer a parser word
+            };
+            TranslationsComponent.UpdateTranslation(translation, gameTexts);
+
+            var oldLine = translation.TranslatedEntries["old line"];
+            Assert.IsFalse(oldLine.IsObsolete);
+            Assert.AreEqual(null, oldLine.Context);
+            var word = translation.TranslatedEntries["word"];
+            Assert.IsFalse(word.IsParserDictionary);
+            Assert.AreEqual(null, word.Context);
+
+            word.ParserWordID = 7;
+            Assert.AreEqual("PARSERWORD:7", word.Context);
+            word.IsObsolete = true;
+            Assert.AreEqual(-1, word.ParserWordID);
+            word.IsObsolete = false;
+            Assert.AreEqual(null, word.Context);
         }
     }
 }
