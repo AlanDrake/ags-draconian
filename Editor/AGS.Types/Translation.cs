@@ -279,8 +279,7 @@ namespace AGS.Types
             {
                 TranslationEntry entry = _translatedEntries[key];
                 sw.WriteLine("");
-                if (!string.IsNullOrEmpty(entry.SourceReference))
-                    sw.WriteLine($"#: {entry.SourceReference}");
+                WriteSourceReferences(sw, entry.SourceReferences);
                 foreach (string metadata in entry.Metadata)
                     sw.WriteLine(metadata);
                 if (entry.Context != null)
@@ -290,6 +289,26 @@ namespace AGS.Types
             }
             if (_translatedEntries.Count > 0)
                 sw.WriteLine("");
+        }
+
+        /// <summary>
+        /// Writes source references, wrapping them on multiple lines similar to gettext tools.
+        /// </summary>
+        private static void WriteSourceReferences(StreamWriter sw, List<string> references)
+        {
+            const int MaxLineWidth = 79;
+            StringBuilder sb = new StringBuilder();
+            foreach (var reference in references)
+            {
+                if (sb.Length > 0 && sb.Length + 1 + reference.Length > MaxLineWidth)
+                {
+                    sw.WriteLine(sb.ToString());
+                    sb.Clear();
+                }
+                sb.Append(sb.Length == 0 ? "#: " : " ").Append(reference);
+            }
+            if (sb.Length > 0)
+                sw.WriteLine(sb.ToString());
         }
 
         /// <summary>
@@ -469,7 +488,7 @@ namespace AGS.Types
                         }
                         else if (line.StartsWith("#:"))
                         {
-                            entry.SourceReference = line.Substring(2).Trim();
+                            entry.SourceReferences.AddRange(TranslationEntry.SplitReferences(line.Substring(2)));
                         }
                         else
                         {

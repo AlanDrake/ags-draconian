@@ -15,7 +15,7 @@ namespace AGS.Types
         private const string CONTEXT_PARSERWORD = "PARSERWORD";
 
         private string _context = null;
-        private string _sourceRef = null;
+        private List<string> _sourceRefs = new List<string>();
         private bool _obsolete = false;
         private int _parserWordID = -1;
 
@@ -70,10 +70,31 @@ namespace AGS.Types
 
         public string Value { get; set; }
 
+        /// <summary>
+        /// References to the locations in game where this text is used.
+        /// Following the PO format, references may not contain whitespace.
+        /// </summary>
+        public List<string> SourceReferences
+        {
+            get { return _sourceRefs; }
+            set { _sourceRefs = value ?? new List<string>(); }
+        }
+
+        /// <summary>
+        /// Source references as a single whitespace-separated string,
+        /// or null if there are none.
+        /// </summary>
         public string SourceReference
         {
-            get { return _sourceRef; }
-            set { _sourceRef = value; }
+            get { return _sourceRefs.Count > 0 ? string.Join(" ", _sourceRefs) : null; }
+            set { _sourceRefs = SplitReferences(value); }
+        }
+
+        public static List<string> SplitReferences(string references)
+        {
+            if (string.IsNullOrWhiteSpace(references))
+                return new List<string>();
+            return references.Split((char[])null, StringSplitOptions.RemoveEmptyEntries).ToList();
         }
 
         public bool IsObsolete

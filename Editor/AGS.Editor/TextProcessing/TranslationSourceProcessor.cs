@@ -8,6 +8,8 @@ namespace AGS.Editor
     public class TranslationSourceProcessor : GameSpeechProcessor
     {
         private Dictionary<string, GameTextLine> _linesProcessed;
+        // all the source references found for each text
+        private Dictionary<string, List<string>> _sourceRefs;
         private string _includeScriptPrefix;
         private string _excludeScriptPrefix;
         private string[] _excludeFunctionCalls;
@@ -25,6 +27,7 @@ namespace AGS.Editor
             LookupForFunctionCalls = _excludeFunctionCalls.Length > 0;
 
             _linesProcessed = new Dictionary<string, GameTextLine>();
+            _sourceRefs = new Dictionary<string, List<string>>();
         }
 
         public ICollection<GameTextLine> LinesForTranslation
@@ -88,10 +91,26 @@ namespace AGS.Editor
                 if (include)
                 {
                     string key = MakeTranslationKey(text, textType);
-                    if (!_linesProcessed.ContainsKey(key))
+                    string reference = textLine.MakeSourceReference();
+                    GameTextLine existingLine;
+                    if (_linesProcessed.TryGetValue(key, out existingLine))
+                    {
+                        // Same text found in another place: record all of its source references
+                        if (!string.IsNullOrEmpty(reference) && !_sourceRefs[key].Contains(reference))
+                        {
+                            _sourceRefs[key].Add(reference);
+                            existingLine.SourceRef = string.Join(" ", _sourceRefs[key]);
+                            _linesProcessed[key] = existingLine;
+                        }
+                    }
+                    else
                     {
                         textLine.Text = key;
+                        textLine.SourceRef = reference;
                         _linesProcessed.Add(key, textLine);
+                        _sourceRefs.Add(key, new List<string>());
+                        if (!string.IsNullOrEmpty(reference))
+                            _sourceRefs[key].Add(reference);
                     }
                 }
             }

@@ -71,5 +71,18 @@ namespace AGS.Editor
             line.ParserWordID = wordID;
             return line;
         }
+
+        /// <summary>
+        /// Makes a reference to the text's location: "file:line" for texts found in scripts,
+        /// otherwise the SourceRef. The result has no whitespace, as required by PO format.
+        /// </summary>
+        public string MakeSourceReference()
+        {
+            string reference = (!string.IsNullOrEmpty(ScriptFileName) && SrcLine > 0) ?
+                $"{ScriptFileName.Replace('\\', '/')}:{SrcLine}" : SourceRef;
+            if (string.IsNullOrEmpty(reference))
+                return string.Empty;
+            return string.Join("_", reference.Split((char[])null, StringSplitOptions.RemoveEmptyEntries));
+        }
     }
 }

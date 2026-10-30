@@ -11,19 +11,20 @@ namespace AGS.Editor
         public static void ProcessAllGameText(IGameTextProcessor processor, Game game, CompileMessages errors)
         {
             // Game info
-            game.Settings.GameName = processor.ProcessText(game.Settings.GameName, "Game info", GameTextType.ItemDescription);
-            game.Settings.Description = processor.ProcessText(game.Settings.Description, "Game info", GameTextType.ItemDescription);
-            game.Settings.DeveloperErrorText = processor.ProcessText(game.Settings.DeveloperErrorText, "Game info", GameTextType.ItemDescription);
-            game.Settings.DeveloperName = processor.ProcessText(game.Settings.DeveloperName, "Game info", GameTextType.ItemDescription);
-            game.Settings.DeveloperURL = processor.ProcessText(game.Settings.DeveloperURL, "Game info", GameTextType.ItemDescription);
-            game.Settings.Genre = processor.ProcessText(game.Settings.Genre, "Game info", GameTextType.ItemDescription);
+            // NOTE: source references are made in "Type:Owner/Member" form, as they may not contain whitespace
+            game.Settings.GameName = processor.ProcessText(game.Settings.GameName, "Game:GameName", GameTextType.ItemDescription);
+            game.Settings.Description = processor.ProcessText(game.Settings.Description, "Game:Description", GameTextType.ItemDescription);
+            game.Settings.DeveloperErrorText = processor.ProcessText(game.Settings.DeveloperErrorText, "Game:DeveloperErrorText", GameTextType.ItemDescription);
+            game.Settings.DeveloperName = processor.ProcessText(game.Settings.DeveloperName, "Game:DeveloperName", GameTextType.ItemDescription);
+            game.Settings.DeveloperURL = processor.ProcessText(game.Settings.DeveloperURL, "Game:DeveloperURL", GameTextType.ItemDescription);
+            game.Settings.Genre = processor.ProcessText(game.Settings.Genre, "Game:Genre", GameTextType.ItemDescription);
 
             foreach (Dialog dialog in game.Dialogs)
             {
-                string sourceRef = string.IsNullOrEmpty(dialog.ScriptName) ? $"Dialog {dialog.ID}" : $"Dialog {dialog.ID}; {dialog.ScriptName}";
+                string sourceRef = $"Dialog:{NameOrID(dialog.ScriptName, dialog.ID)}";
                 foreach (DialogOption option in dialog.Options)
                 {
-                    option.Text = processor.ProcessText(GameTextLine.MakeSpeechLine(game.PlayerCharacter.ID, option.Text, sourceRef), GameTextType.DialogOption);
+                    option.Text = processor.ProcessText(GameTextLine.MakeSpeechLine(game.PlayerCharacter.ID, option.Text, $"{sourceRef}/Option{option.ID}"), GameTextType.DialogOption);
                 }
 
                 dialog.Script.Text = processor.ProcessText(GameTextLine.MakeScript(dialog.Script.Text, dialog.ScriptFileName, sourceRef), GameTextType.DialogScript);
@@ -45,17 +46,18 @@ namespace AGS.Editor
             {
                 foreach (GUIControl control in gui.Controls)
                 {
+                    string sourceRef = $"GUI:{NameOrID(gui.ScriptName, gui.ID)}/{NameOrID(control.ScriptName, control.ID)}";
                     GUILabel label = control as GUILabel;
                     if (label != null)
                     {
-                        label.Text = processor.ProcessText(label.Text, "GUI", GameTextType.ItemDescription);
+                        label.Text = processor.ProcessText(label.Text, sourceRef, GameTextType.ItemDescription);
                     }
                     else
                     {
                         GUIButton button = control as GUIButton;
                         if (button != null)
                         {
-                            button.Text = processor.ProcessText(button.Text, "GUI", GameTextType.ItemDescription);
+                            button.Text = processor.ProcessText(button.Text, sourceRef, GameTextType.ItemDescription);
                         }
                     }
                 }
@@ -63,14 +65,16 @@ namespace AGS.Editor
 
             foreach (Character character in game.RootCharacterFolder.AllItemsFlat)
             {
-                character.DisplayName = processor.ProcessText(character.DisplayName, "Characters", GameTextType.ItemDescription);
-                ProcessProperties(processor, game.PropertySchema, character.Properties, "Characters", errors);
+                string sourceRef = $"Character:{NameOrID(character.ScriptName, character.ID)}";
+                character.DisplayName = processor.ProcessText(character.DisplayName, sourceRef, GameTextType.ItemDescription);
+                ProcessProperties(processor, game.PropertySchema, character.Properties, sourceRef, errors);
             }
 
             foreach (InventoryItem item in game.RootInventoryItemFolder.AllItemsFlat)
             {
-                item.DisplayName = processor.ProcessText(item.DisplayName, "Inventory items", GameTextType.ItemDescription);
-                ProcessProperties(processor, game.PropertySchema, item.Properties, "Inventory items", errors);
+                string sourceRef = $"InventoryItem:{NameOrID(item.ScriptName, item.ID)}";
+                item.DisplayName = processor.ProcessText(item.DisplayName, sourceRef, GameTextType.ItemDescription);
+                ProcessProperties(processor, game.PropertySchema, item.Properties, sourceRef, errors);
             }
 
             if (game.Settings.TranslateTextParser)
@@ -83,7 +87,7 @@ namespace AGS.Editor
                 foreach (var wordKey in parserWordLists.Keys)
                 {
                     string word = $",{parserWordLists[wordKey]}";
-                    processor.ProcessText(GameTextLine.MakeParserWord(wordKey, word, "Text Parser"), GameTextType.TextParserWord);
+                    processor.ProcessText(GameTextLine.MakeParserWord(wordKey, word, $"TextParser:{wordKey}"), GameTextType.TextParserWord);
                 }
             }
 
@@ -96,7 +100,7 @@ namespace AGS.Editor
             foreach (var def in schema.PropertyDefinitions.Where(
                 n => (n.Type == CustomPropertyType.Text) && n.Translated))
             {
-                def.DefaultValue = processor.ProcessText(def.DefaultValue, "Custom properties", GameTextType.ItemDescription);
+                def.DefaultValue = processor.ProcessText(def.DefaultValue, $"PropertySchema:{def.Name}", GameTextType.ItemDescription);
             }
         }
 
@@ -109,9 +113,17 @@ namespace AGS.Editor
                 CustomProperty prop;
                 if (props.PropertyValues.TryGetValue(def.Name, out prop))
                 {
-                    prop.Value = processor.ProcessText(new GameTextLine(prop.Value, sourceRef), GameTextType.ItemDescription);
+                    prop.Value = processor.ProcessText(new GameTextLine(prop.Value, $"{sourceRef}/{def.Name}"), GameTextType.ItemDescription);
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns the script name for use in a source reference, or the numeric ID if there's no name.
+        /// </summary>
+        public static string NameOrID(string scriptName, int id)
+        {
+            return string.IsNullOrEmpty(scriptName) ? id.ToString() : scriptName;
         }
 
         private static Dictionary<int, string> ConstructParserWordsList(TextParser parser)

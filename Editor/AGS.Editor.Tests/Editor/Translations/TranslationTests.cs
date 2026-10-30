@@ -670,6 +670,61 @@ msgstr """"
         }
 
         [Test]
+        public void SourceReferencesRoundTrip_Test()
+        {
+            Translation translation = CreateTranslationForTest();
+            var entry = CreateEntry("common line", "réplique commune");
+            for (int i = 1; i <= 8; ++i)
+                entry.SourceReferences.Add($"Rooms/{i}/room{i}.asc:{i * 100}");
+            translation.TranslatedEntries.Add(entry.Key, entry);
+
+            var result = SaveTranslationToString(translation);
+            var expectedEntry = @"
+#: Rooms/1/room1.asc:100 Rooms/2/room2.asc:200 Rooms/3/room3.asc:300
+#: Rooms/4/room4.asc:400 Rooms/5/room5.asc:500 Rooms/6/room6.asc:600
+#: Rooms/7/room7.asc:700 Rooms/8/room8.asc:800
+msgid ""common line""
+msgstr ""réplique commune""
+";
+            StringAssert.Contains(UniformTestString(expectedEntry), result);
+
+            CompileMessages errors;
+            translation = LoadTranslationFromString(result, out errors);
+            Assert.That(!errors.HasErrors);
+            CollectionAssert.AreEqual(entry.SourceReferences, translation.TranslatedEntries["common line"].SourceReferences);
+        }
+
+        [Test]
+        public void MakeSourceReference_Test()
+        {
+            var line = GameTextLine.MakeSpeechLine(0, "text", "Room:1", 12);
+            Assert.AreEqual("Room:1", line.MakeSourceReference());
+            line.ScriptFileName = "Rooms\\1\\room1.asc";
+            Assert.AreEqual("Rooms/1/room1.asc:12", line.MakeSourceReference());
+            Assert.AreEqual("My_Plugin_data", new GameTextLine("text", " My Plugin\tdata ").MakeSourceReference());
+            Assert.AreEqual(string.Empty, new GameTextLine("text").MakeSourceReference());
+        }
+
+        [Test]
+        public void GatherScriptSourceReferences_Test()
+        {
+            var script = "function a()\n{\n  Display(\"Hello\");\n  // \"Commented\"\n  Display(\"Bye\");\n}\nfunction b()\n{\n  Display(\"Hello\");\n}\n";
+            var processor = new TranslationSourceProcessor(new Game(), new CompileMessages());
+            processor.ProcessText(GameTextLine.MakeScript(script, "GlobalScript.asc"), GameTextType.Script);
+            processor.ProcessText(GameTextLine.MakeScript("Display(\"Hello\");", "Rooms\\2\\room2.asc", "Room:2"), GameTextType.Script);
+            processor.ProcessText(new GameTextLine("Say \"Hello\"", "GUI:gMain/lblTitle"), GameTextType.ItemDescription);
+
+            var lines = new Dictionary<string, GameTextLine>();
+            foreach (var l in processor.LinesForTranslation)
+                lines.Add(l.Text, l);
+
+            Assert.AreEqual(3, lines.Count);
+            Assert.AreEqual("GlobalScript.asc:3 GlobalScript.asc:9 Rooms/2/room2.asc:1", lines["Hello"].SourceRef);
+            Assert.AreEqual("GlobalScript.asc:5", lines["Bye"].SourceRef);
+            Assert.AreEqual("GUI:gMain/lblTitle", lines["Say \\\"Hello\\\""].SourceRef);
+        }
+
+        [Test]
         public void UpdateRevivesObsoleteEntry_Test()
         {
             Translation translation = CreateTranslationForTest();
