@@ -338,6 +338,12 @@ void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
         game.inv_hot_color = RemapFromLegacyColourNumber(game, game.inv_hot_color);
         game.inv_hot_cross_color = RemapFromLegacyColourNumber(game, game.inv_hot_cross_color);
     }
+    // NOTE: OPT_GAMEFPS appeared in 4.0.0.14 (3.6.2.12 on the 3.x branch);
+    // the older 4.x game data defaults to 40 fps
+    if (data_ver < kGameVersion_400_14)
+    {
+        game.options[OPT_GAMEFPS] = 40;
+    }
     if (game.GameInfo.count("text_lang") > 0)
     {
         game.GameTextLanguage = game.GameInfo["text_lang"];
