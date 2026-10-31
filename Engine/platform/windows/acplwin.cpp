@@ -110,35 +110,8 @@ void AGSWin32::PostBackendInit()
     Debug::Printf(kDbgMsg_Error, "Failed to set the timer resolution to %d ms", win32TimerPeriod);
 }
 
-typedef UINT (CALLBACK* Dynamic_SHGetKnownFolderPathType) (GUID& rfid, DWORD dwFlags, HANDLE hToken, PWSTR *ppszPath); 
-GUID FOLDERID_SAVEDGAMES = {0x4C5C32FF, 0xBB9D, 0x43b0, {0xB5, 0xB4, 0x2D, 0x72, 0xE5, 0x4E, 0xAA, 0xA4}}; 
-#define _WIN32_WINNT_VISTA              0x0600
-#define VER_MINORVERSION                0x0000001
-#define VER_MAJORVERSION                0x0000002
-#define VER_SERVICEPACKMAJOR            0x0000020
-#define VER_GREATER_EQUAL               3
-
-// These helpers copied from VersionHelpers.h in the Windows 8.1 SDK
-bool IsWindowsVersionOrGreater(WORD wMajorVersion, WORD wMinorVersion, WORD wServicePackMajor)
-{
-  OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0,{ 0 }, 0, 0 };
-  DWORDLONG        const dwlConditionMask = VerSetConditionMask(
-    VerSetConditionMask(
-      VerSetConditionMask(
-        0, VER_MAJORVERSION, VER_GREATER_EQUAL),
-      VER_MINORVERSION, VER_GREATER_EQUAL),
-    VER_SERVICEPACKMAJOR, VER_GREATER_EQUAL);
-
-  osvi.dwMajorVersion = wMajorVersion;
-  osvi.dwMinorVersion = wMinorVersion;
-  osvi.wServicePackMajor = wServicePackMajor;
-
-  return VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR, dwlConditionMask) != FALSE;
-}
-
-bool IsWindowsVistaOrGreater() {
-  return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 0);
-}
+// FOLDERID_SavedGames; defined locally so that we don't have to link uuid.lib for one GUID
+static const GUID FOLDERID_SAVEDGAMES = {0x4C5C32FF, 0xBB9D, 0x43b0, {0xB5, 0xB4, 0x2D, 0x72, 0xE5, 0x4E, 0xAA, 0xA4}};
 
 static void DetermineAppDataFolder()
 {
@@ -156,31 +129,11 @@ static void DetermineSavedGamesFolder()
     return; // already discovered
 
   String parentDir, agsDir;
-  if (IsWindowsVistaOrGreater())
-  {
-    HINSTANCE hShellDLL = LoadLibrary("shell32.dll");
-    Dynamic_SHGetKnownFolderPathType Dynamic_SHGetKnownFolderPath = (Dynamic_SHGetKnownFolderPathType)GetProcAddress(hShellDLL, "SHGetKnownFolderPath");
-
-    if (Dynamic_SHGetKnownFolderPath != NULL)
-    {
-      PWSTR path = NULL;
-      if (SUCCEEDED(Dynamic_SHGetKnownFolderPath(FOLDERID_SAVEDGAMES, 0, NULL, &path)))
-      {
-        parentDir = Path::WidePathToUTF8(path);
-        CoTaskMemFree(path);
-      }
-    }
-
-    FreeLibrary(hShellDLL);
-  }
-  else
-  {
-    WCHAR unicodeSaveGameDir[MAX_PATH_SZ] = L"";
-    // Windows XP didn't have a "My Saved Games" folder, so create one under "My Documents"
-    SHGetSpecialFolderPathW(NULL, unicodeSaveGameDir, CSIDL_PERSONAL, FALSE);
-    parentDir = Path::WidePathToUTF8(unicodeSaveGameDir);
-    parentDir = Path::ConcatPaths(parentDir, "My Saved Games");
-  }
+  PWSTR path = nullptr;
+  if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_SAVEDGAMES, 0, nullptr, &path)))
+    parentDir = Path::WidePathToUTF8(path);
+  // the caller must free the buffer even if the call failed
+  CoTaskMemFree(path);
 
   win32SavedGamesDirectory = FSLocation(parentDir, agsDir);
 }

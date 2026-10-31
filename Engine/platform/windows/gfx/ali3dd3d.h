@@ -24,21 +24,13 @@
 #error This file should only be included on the Windows build
 #endif
 
-#if defined (WIN_XP_COMPAT)
-#define DIRECT3D_USE_D3DCOMPILER (0)
-#else
-#define DIRECT3D_USE_D3DCOMPILER (1)
-#endif
-
 #define NOMINMAX
 #include <memory>
 #define NOMINMAX
 #define BITMAP WINDOWS_BITMAP
 #include <d3d9.h>
-#if (DIRECT3D_USE_D3DCOMPILER)
 #include <d3dcommon.h>
 #include <d3dcompiler.h>
-#endif
 #undef BITMAP
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
@@ -532,13 +524,11 @@ private:
     ///////////////////////////////////////////////////////
     // Shader management: implementation
     //
-#if (DIRECT3D_USE_D3DCOMPILER)
     // TODO: should we let configure syntax level and optimization level, entrypoint name?
     // TODO: move to the most modern compile target supported by Direct3D? ("ps_4_0_level_9_3")
     const char *DefaultShaderCompileTarget = "ps_2_b"; // same as "ps_2_0", but higher capabilities
     const UINT  DefaultShaderCompileFlags  = D3DCOMPILE_OPTIMIZATION_LEVEL3;
     const char *DefaultShaderEntryPoint    = "main";
-#endif
 
     // Creates shader program using provided compiled data
     bool CreateShaderProgram(D3DShader::ProgramData &prg, const String &name, const uint8_t *data_ptr);
@@ -546,9 +536,7 @@ private:
     bool CreateShaderProgramFromResource(D3DShader::ProgramData &prg, const String &name, const char *resource_name);
     void AssignBaseShaderArgs(D3DShader::ProgramData &prg, const ShaderDefinition *def);
     void UpdateGlobalShaderArgValues();
-#if (DIRECT3D_USE_D3DCOMPILER)
     void OutputShaderLog(ComPtr<ID3DBlob> &out_errors, const String &shader_name, bool as_error);
-#endif
 
     //
     // Specialized shaders

@@ -1091,7 +1091,6 @@ void D3DGraphicsDriver::UpdateGlobalShaderArgValues()
     // Their constants have to be set each time they are used.
 }
 
-#if (DIRECT3D_USE_D3DCOMPILER)
 void D3DGraphicsDriver::OutputShaderLog(ComPtr<ID3DBlob> &out_errors, const String &shader_name, bool as_error)
 {
     assert(out_errors);
@@ -1115,7 +1114,6 @@ void D3DGraphicsDriver::OutputShaderLog(ComPtr<ID3DBlob> &out_errors, const Stri
         Debug::Printf(mt, "Shader output log was empty.");
     }
 }
-#endif
 
 bool D3DGraphicsDriver::SetNativeResolution(const GraphicResolution &native_res)
 {
@@ -2416,7 +2414,6 @@ Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth
 
 IGraphicShader *D3DGraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def)
 {
-#if (DIRECT3D_USE_D3DCOMPILER)
     const char *compile_target = def && !def->CompileTarget.IsEmpty() ?
         def->CompileTarget.GetCStr() : DefaultShaderCompileTarget;
     const char *entry_point = def && !def->EntryPoint.IsEmpty() ?
@@ -2439,9 +2436,6 @@ IGraphicShader *D3DGraphicsDriver::CreateShaderProgram(const String &name, const
 
     AssignBaseShaderArgs(prg, def);
     return new D3DShader(name, std::move(prg));
-#else // !DIRECT3D_USE_D3DCOMPILER
-    return nullptr;
-#endif // DIRECT3D_USE_D3DCOMPILER
 }
 
 IGraphicShader *D3DGraphicsDriver::CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def)
