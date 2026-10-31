@@ -2003,14 +2003,14 @@ namespace AGS.Editor.Components
                 foreach (RoomHotspot hotspot in room.Hotspots)
                 {
                     string sourceRef = $"{roomContext}/{TextProcessingHelper.NameOrID(hotspot.ScriptName, hotspot.ID)}";
-                    hotspot.DisplayName = processor.ProcessText(new GameTextLine(hotspot.DisplayName, sourceRef), GameTextType.ItemDescription);
+                    hotspot.DisplayName = processor.ProcessText(TextProcessingHelper.MakeItemLine(hotspot.DisplayName, sourceRef, "Hotspot name"), GameTextType.ItemDescription);
                     TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, hotspot.Properties, sourceRef, errors);
                 }
 
                 foreach (RoomObject obj in room.Objects)
                 {
                     string sourceRef = $"{roomContext}/{TextProcessingHelper.NameOrID(obj.ScriptName, obj.ID)}";
-                    obj.DisplayName = processor.ProcessText(new GameTextLine(obj.DisplayName, sourceRef), GameTextType.ItemDescription);
+                    obj.DisplayName = processor.ProcessText(TextProcessingHelper.MakeItemLine(obj.DisplayName, sourceRef, "Object name"), GameTextType.ItemDescription);
                     TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, obj.Properties, sourceRef, errors);
                 }
 

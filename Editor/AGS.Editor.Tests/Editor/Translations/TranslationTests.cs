@@ -725,6 +725,84 @@ msgstr ""réplique commune""
         }
 
         [Test]
+        public void CommentKindsRoundTrip_Test()
+        {
+            // Comments are given in non-canonical order, and must be written in the gettext order
+            var text = @"msgid """"
+msgstr """"
+
+#, fuzzy, c-format
+#: GlobalScript.asc:10
+#| msgid ""Old text""
+# Translator's note
+#
+#. Speaker: cEgo
+#: GlobalScript.asc:20
+msgid ""Some text""
+msgstr ""Du texte""
+";
+            CompileMessages errors;
+            Translation translation = LoadTranslationFromString(text, out errors);
+            Assert.That(!errors.HasErrors);
+
+            var entry = translation.TranslatedEntries["Some text"];
+            CollectionAssert.AreEqual(new string[] { "Translator's note", "" }, entry.TranslatorComments);
+            CollectionAssert.AreEqual(new string[] { "Speaker: cEgo" }, entry.ExtractedComments);
+            CollectionAssert.AreEqual(new string[] { "GlobalScript.asc:10", "GlobalScript.asc:20" }, entry.SourceReferences);
+            CollectionAssert.AreEqual(new string[] { "fuzzy", "c-format" }, entry.Flags);
+            CollectionAssert.AreEqual(new string[] { "#| msgid \"Old text\"" }, entry.Metadata);
+            Assert.IsTrue(entry.IsFuzzy);
+
+            var expectedEntry = @"
+# Translator's note
+#
+#. Speaker: cEgo
+#: GlobalScript.asc:10 GlobalScript.asc:20
+#, fuzzy, c-format
+#| msgid ""Old text""
+msgid ""Some text""
+msgstr ""Du texte""
+";
+            StringAssert.Contains(UniformTestString(expectedEntry), SaveTranslationToString(translation));
+
+            entry.IsFuzzy = false;
+            CollectionAssert.AreEqual(new string[] { "c-format" }, entry.Flags);
+            entry.IsFuzzy = true;
+            CollectionAssert.AreEqual(new string[] { "fuzzy", "c-format" }, entry.Flags);
+        }
+
+        [Test]
+        public void UpdateRegeneratesExtractedComments_Test()
+        {
+            Translation translation = CreateTranslationForTest();
+            var entry = CreateEntry("first line", "première réplique");
+            entry.TranslatorComments.Add("keep this");
+            entry.ExtractedComments.Add("old hint");
+            translation.TranslatedEntries.Add(entry.Key, entry);
+
+            var line = new GameTextLine("first line", "Character:cEgo");
+            line.Comment = "Character name\nGUI label, 100 px wide";
+            TranslationsComponent.UpdateTranslation(translation, new GameTextLine[] { line });
+
+            CollectionAssert.AreEqual(new string[] { "keep this" }, entry.TranslatorComments);
+            CollectionAssert.AreEqual(new string[] { "Character name", "GUI label, 100 px wide" }, entry.ExtractedComments);
+        }
+
+        [Test]
+        public void GatherComments_Test()
+        {
+            var processor = new TranslationSourceProcessor(new Game(), new CompileMessages());
+            processor.ProcessText(TextProcessingHelper.MakeItemLine("Ego", "Character:cEgo", "Character name"), GameTextType.ItemDescription);
+            processor.ProcessText(TextProcessingHelper.MakeItemLine("Ego", "GUI:gMain/lblName", "GUI label, 80 px wide"), GameTextType.ItemDescription);
+            processor.ProcessText(TextProcessingHelper.MakeItemLine("Ego", "Character:cEgo2", "Character name"), GameTextType.ItemDescription);
+
+            var lines = new List<GameTextLine>(processor.LinesForTranslation);
+            Assert.AreEqual(1, lines.Count);
+            Assert.AreEqual("Character:cEgo GUI:gMain/lblName Character:cEgo2", lines[0].SourceRef);
+            Assert.AreEqual("Character name\nGUI label, 80 px wide", lines[0].Comment);
+        }
+
+        [Test]
         public void UpdateRevivesObsoleteEntry_Test()
         {
             Translation translation = CreateTranslationForTest();

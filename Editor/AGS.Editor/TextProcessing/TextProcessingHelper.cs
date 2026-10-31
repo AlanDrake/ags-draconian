@@ -24,7 +24,9 @@ namespace AGS.Editor
                 string sourceRef = $"Dialog:{NameOrID(dialog.ScriptName, dialog.ID)}";
                 foreach (DialogOption option in dialog.Options)
                 {
-                    option.Text = processor.ProcessText(GameTextLine.MakeSpeechLine(game.PlayerCharacter.ID, option.Text, $"{sourceRef}/Option{option.ID}"), GameTextType.DialogOption);
+                    var optionLine = GameTextLine.MakeSpeechLine(game.PlayerCharacter.ID, option.Text, $"{sourceRef}/Option{option.ID}");
+                    optionLine.Comment = "Dialog option";
+                    option.Text = processor.ProcessText(optionLine, GameTextType.DialogOption);
                 }
 
                 dialog.Script.Text = processor.ProcessText(GameTextLine.MakeScript(dialog.Script.Text, dialog.ScriptFileName, sourceRef), GameTextType.DialogScript);
@@ -50,14 +52,14 @@ namespace AGS.Editor
                     GUILabel label = control as GUILabel;
                     if (label != null)
                     {
-                        label.Text = processor.ProcessText(label.Text, sourceRef, GameTextType.ItemDescription);
+                        label.Text = processor.ProcessText(MakeItemLine(label.Text, sourceRef, $"GUI label, {label.Width} px wide"), GameTextType.ItemDescription);
                     }
                     else
                     {
                         GUIButton button = control as GUIButton;
                         if (button != null)
                         {
-                            button.Text = processor.ProcessText(button.Text, sourceRef, GameTextType.ItemDescription);
+                            button.Text = processor.ProcessText(MakeItemLine(button.Text, sourceRef, $"GUI button, {button.Width} px wide"), GameTextType.ItemDescription);
                         }
                     }
                 }
@@ -66,14 +68,14 @@ namespace AGS.Editor
             foreach (Character character in game.RootCharacterFolder.AllItemsFlat)
             {
                 string sourceRef = $"Character:{NameOrID(character.ScriptName, character.ID)}";
-                character.DisplayName = processor.ProcessText(character.DisplayName, sourceRef, GameTextType.ItemDescription);
+                character.DisplayName = processor.ProcessText(MakeItemLine(character.DisplayName, sourceRef, "Character name"), GameTextType.ItemDescription);
                 ProcessProperties(processor, game.PropertySchema, character.Properties, sourceRef, errors);
             }
 
             foreach (InventoryItem item in game.RootInventoryItemFolder.AllItemsFlat)
             {
                 string sourceRef = $"InventoryItem:{NameOrID(item.ScriptName, item.ID)}";
-                item.DisplayName = processor.ProcessText(item.DisplayName, sourceRef, GameTextType.ItemDescription);
+                item.DisplayName = processor.ProcessText(MakeItemLine(item.DisplayName, sourceRef, "Inventory item name"), GameTextType.ItemDescription);
                 ProcessProperties(processor, game.PropertySchema, item.Properties, sourceRef, errors);
             }
 
@@ -87,7 +89,9 @@ namespace AGS.Editor
                 foreach (var wordKey in parserWordLists.Keys)
                 {
                     string word = $",{parserWordLists[wordKey]}";
-                    processor.ProcessText(GameTextLine.MakeParserWord(wordKey, word, $"TextParser:{wordKey}"), GameTextType.TextParserWord);
+                    var wordLine = GameTextLine.MakeParserWord(wordKey, word, $"TextParser:{wordKey}");
+                    wordLine.Comment = "Text Parser synonyms: keep the leading comma, and separate words with commas";
+                    processor.ProcessText(wordLine, GameTextType.TextParserWord);
                 }
             }
 
@@ -100,7 +104,7 @@ namespace AGS.Editor
             foreach (var def in schema.PropertyDefinitions.Where(
                 n => (n.Type == CustomPropertyType.Text) && n.Translated))
             {
-                def.DefaultValue = processor.ProcessText(def.DefaultValue, $"PropertySchema:{def.Name}", GameTextType.ItemDescription);
+                def.DefaultValue = processor.ProcessText(MakeItemLine(def.DefaultValue, $"PropertySchema:{def.Name}", MakePropertyComment(def)), GameTextType.ItemDescription);
             }
         }
 
@@ -113,9 +117,25 @@ namespace AGS.Editor
                 CustomProperty prop;
                 if (props.PropertyValues.TryGetValue(def.Name, out prop))
                 {
-                    prop.Value = processor.ProcessText(new GameTextLine(prop.Value, $"{sourceRef}/{def.Name}"), GameTextType.ItemDescription);
+                    prop.Value = processor.ProcessText(MakeItemLine(prop.Value, $"{sourceRef}/{def.Name}", MakePropertyComment(def)), GameTextType.ItemDescription);
                 }
             }
+        }
+
+        /// <summary>
+        /// Makes a game text line for an item's property, with a hint for translators.
+        /// </summary>
+        public static GameTextLine MakeItemLine(string text, string sourceRef, string comment)
+        {
+            var line = new GameTextLine(text, sourceRef);
+            line.Comment = comment;
+            return line;
+        }
+
+        private static string MakePropertyComment(CustomPropertySchemaItem def)
+        {
+            return string.IsNullOrWhiteSpace(def.Description) ?
+                $"Custom property \"{def.Name}\"" : $"Custom property \"{def.Name}\": {def.Description}";
         }
 
         /// <summary>

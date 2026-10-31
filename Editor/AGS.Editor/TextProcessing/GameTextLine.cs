@@ -13,6 +13,10 @@ namespace AGS.Editor
         public int ParserWordID;
         public string SourceRef;
         public int SrcLine;
+        /// <summary>
+        /// A hint for translators about the text's purpose; may contain multiple lines.
+        /// </summary>
+        public string Comment;
 
         public GameTextLine(string text, int srcline = -1)
         {
@@ -22,6 +26,7 @@ namespace AGS.Editor
             ParserWordID = -1;
             SourceRef = string.Empty;
             SrcLine = srcline;
+            Comment = string.Empty;
         }
 
         public GameTextLine(string text, string sourceRef, int srcline = -1)
@@ -32,6 +37,7 @@ namespace AGS.Editor
             ParserWordID = -1;
             SourceRef = sourceRef;
             SrcLine = srcline;
+            Comment = string.Empty;
         }
 
         public static GameTextLine MakeScript(string text, string scriptName, int srcline = -1)

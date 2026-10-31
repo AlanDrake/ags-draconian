@@ -279,7 +279,14 @@ namespace AGS.Types
             {
                 TranslationEntry entry = _translatedEntries[key];
                 sw.WriteLine("");
+                // Comments are written in the order used by gettext tools
+                foreach (string comment in entry.TranslatorComments)
+                    sw.WriteLine(string.IsNullOrEmpty(comment) ? "#" : $"# {comment}");
+                foreach (string comment in entry.ExtractedComments)
+                    sw.WriteLine($"#. {comment}");
                 WriteSourceReferences(sw, entry.SourceReferences);
+                if (entry.Flags.Count > 0)
+                    sw.WriteLine($"#, {string.Join(", ", entry.Flags)}");
                 foreach (string metadata in entry.Metadata)
                     sw.WriteLine(metadata);
                 if (entry.Context != null)
@@ -490,6 +497,23 @@ namespace AGS.Types
                         {
                             entry.SourceReferences.AddRange(TranslationEntry.SplitReferences(line.Substring(2)));
                         }
+                        else if (line.StartsWith("#."))
+                        {
+                            entry.ExtractedComments.Add(StripCommentPrefix(line, 2));
+                        }
+                        else if (line.StartsWith("#,"))
+                        {
+                            foreach (var flag in line.Substring(2).Split(','))
+                            {
+                                string f = flag.Trim();
+                                if (f.Length > 0 && !entry.Flags.Contains(f))
+                                    entry.Flags.Add(f);
+                            }
+                        }
+                        else if (line.Length == 1 || line[1] == ' ' || line[1] == '\t')
+                        {
+                            entry.TranslatorComments.Add(StripCommentPrefix(line, 1));
+                        }
                         else
                         {
                             // Any other metadata, for which we do not have a explicit field yet
@@ -552,6 +576,13 @@ namespace AGS.Types
                 finishEntry();
             }
             return true;
+        }
+
+        // Returns the comment's text, without the comment mark and a single separating space
+        private static string StripCommentPrefix(string line, int prefixLength)
+        {
+            string text = line.Substring(prefixLength);
+            return text.StartsWith(" ") ? text.Substring(1) : text;
         }
 
         private readonly Regex POString = new Regex("^(?:msgctxt |msgid |msgstr |)+\"(.*)\"$", RegexOptions.Compiled | RegexOptions.IgnoreCase);

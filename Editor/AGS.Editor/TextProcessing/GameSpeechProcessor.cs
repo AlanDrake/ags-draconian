@@ -241,6 +241,7 @@ namespace AGS.Editor
                         string lineText = thisLine.Substring(thisLine.IndexOf(":") + 1).Trim();
                         var textLine = GameTextLine.MakeSpeechLine(charID, lineText, contextName, line);
                         textLine.ScriptFileName = scriptFileName;
+                        textLine.Comment = $"Speaker: {GetCharacterNameForComment(charID)}";
                         originalLine = string.Format("{0}: {1}", characterName,
                             CreateSpeechLine(textLine, GameTextType.DialogScript));
                     }
@@ -267,6 +268,18 @@ namespace AGS.Editor
                 }
             }
             return null;
+        }
+
+        private string GetCharacterNameForComment(int characterID)
+        {
+            if (characterID == Character.NARRATOR_CHARACTER_ID)
+                return NARRATOR_NAME;
+            foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
+            {
+                if (character.ID == characterID)
+                    return character.ScriptName;
+            }
+            return characterID.ToString();
         }
 
         protected int FindCharacterIDForCharacter(string characterName)

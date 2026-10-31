@@ -29,7 +29,7 @@ namespace AGS.Editor
             var text = textLine.Text;
             TranslationEntry entry;
             if (_translationToUse.TryGetValue(MakeTranslationKey(text, textType), out entry) &&
-                !string.IsNullOrEmpty(entry.Value) && !entry.IsObsolete)
+                !string.IsNullOrEmpty(entry.Value) && !entry.IsObsolete && !entry.IsFuzzy)
             {
                 return MakeTextFromTranslation(entry.Value, textType);
             }

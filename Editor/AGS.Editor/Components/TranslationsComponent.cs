@@ -259,8 +259,8 @@ namespace AGS.Editor.Components
                 string trsLine = entry.Value;
                 if (!string.IsNullOrEmpty(trsLine))
                 {
-                    // Skip obsolete entries
-                    if (entry.IsObsolete)
+                    // Skip obsolete entries, and those which translators marked for review
+                    if (entry.IsObsolete || entry.IsFuzzy)
                     {
                         continue;
                     }
@@ -346,6 +346,7 @@ namespace AGS.Editor.Components
                     // Entry already existed, but we may have to update meta data;
                     // this also revives the entry if it was marked obsolete earlier
                     existingEntry.SourceReference = line.SourceRef;
+                    existingEntry.ExtractedComments = SplitComment(line.Comment);
                     if (line.ParserWordID >= 0)
                         existingEntry.ParserWordID = line.ParserWordID;
                     else if (existingEntry.IsParserDictionary || existingEntry.IsObsolete)
@@ -357,6 +358,7 @@ namespace AGS.Editor.Components
                     // Add new entry
                     var entry = new TranslationEntry(line.Text);
                     entry.SourceReference = line.SourceRef;
+                    entry.ExtractedComments = SplitComment(line.Comment);
                     // For parser words, set respective context
                     // FIXME: this is not good, the PO format allows to have a combined key made of
                     // a msgid + msgctxt pair. Context could serve to distinguish parser words here.
@@ -367,6 +369,13 @@ namespace AGS.Editor.Components
                     translation.Modified = true;
                 }
             }
+        }
+
+        private static List<string> SplitComment(string comment)
+        {
+            if (string.IsNullOrEmpty(comment))
+                return new List<string>();
+            return comment.Split('\n').Select(c => c.Trim()).Where(c => c.Length > 0).ToList();
         }
 
         private void DoTranslationUpdate(IList<Translation> translations)
