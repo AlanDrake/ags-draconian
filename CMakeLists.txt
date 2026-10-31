@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13..3.14)
+cmake_minimum_required(VERSION 3.16)
 
 # keep fetch content working on CMake 3.X versions, but won't work in CMake 4.X
 if(POLICY CMP0169)
@@ -7,6 +7,9 @@ endif()
 
 set(CMAKE_USER_MAKE_RULES_OVERRIDE ${CMAKE_CURRENT_SOURCE_DIR}/CMake/c_flag_overrides.cmake)
 set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX ${CMAKE_CURRENT_SOURCE_DIR}/CMake/cxx_flag_overrides.cmake)
+# Static MSVC runtime for targets under policy CMP0091 (CMake 3.15+); targets of dependencies
+# with older policies get the same /MT, /MTd from the flag overrides above
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "Minimum OS X deployment version")
 
 project(AGS
@@ -220,6 +223,7 @@ add_compile_definitions("$<$<CONFIG:RELEASE>:NDEBUG>")
 
 if(MSVC)
     add_compile_options(/MP)    # Build with Multiple Processes
+    add_compile_options(/W3)    # CMake 3.15+ (CMP0092) no longer adds it by default
     add_compile_definitions(_CRT_SECURE_NO_DEPRECATE)
     add_compile_definitions(_CRT_NONSTDC_NO_DEPRECATE)
 else()
