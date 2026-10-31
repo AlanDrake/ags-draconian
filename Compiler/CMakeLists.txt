@@ -1,7 +1,7 @@
 add_library(compiler)
 
 set_target_properties(compiler PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_EXTENSIONS NO
         C_STANDARD 11
         C_EXTENSIONS YES
@@ -160,7 +160,7 @@ add_library(AGS::Compiler ALIAS compiler)
 
 add_executable(agscc main.cpp compiler.cpp compiler.h)
 set_target_properties(agscc PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_EXTENSIONS NO
         C_STANDARD 11
         C_EXTENSIONS NO
@@ -178,7 +178,7 @@ if(AGS_TESTS)
             ${COMPILER_TEST_SOURCES}
     )
     set_target_properties(compiler_test PROPERTIES
-            CXX_STANDARD 11
+            CXX_STANDARD 17
             CXX_EXTENSIONS NO
             C_STANDARD 11
             C_EXTENSIONS NO

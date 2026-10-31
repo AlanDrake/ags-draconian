@@ -35,4 +35,15 @@
     <AgsTestOutDir>$(AgsSolutionsDir).test\$(PlatformFolderName)\$(Configuration)\</AgsTestOutDir>
     <AgsObjDir>$(AgsSolutionsDir).obj\$(PlatformFolderName)\$(Configuration)\$(MSBuildProjectName)\</AgsObjDir>
   </PropertyGroup>
+
+  <!--
+    C++ language level for every native project, matching CXX_STANDARD in the CMake build
+    (docs/refactor/PLAN.md, task 0.4). Lives here because this is the one props file all
+    .vcxproj files import, after Microsoft.Cpp.props.
+  -->
+  <ItemDefinitionGroup Condition="'$(MSBuildProjectExtension)'=='.vcxproj'">
+    <ClCompile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
 </Project>

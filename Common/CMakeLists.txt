@@ -4,7 +4,7 @@ include(CheckFseeko)
 add_library(common STATIC EXCLUDE_FROM_ALL)
 
 set_target_properties(common PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 17
     CXX_EXTENSIONS NO
     C_STANDARD 11
     C_EXTENSIONS YES
@@ -276,7 +276,7 @@ if(AGS_TESTS)
         test/version_test.cpp
     )
     set_target_properties(common_test PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_EXTENSIONS NO
         C_STANDARD 11
         C_EXTENSIONS NO

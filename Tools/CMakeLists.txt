@@ -1,7 +1,7 @@
 add_library(libtools)
 
 set_target_properties(libtools PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_EXTENSIONS NO
         C_STANDARD 11
         C_EXTENSIONS YES
@@ -169,7 +169,7 @@ endif()
 #----- agf2dlgasc ---------------------------------------------
 add_executable(agf2dlgasc agf2dlgasc/main.cpp)
 set_target_properties(agf2dlgasc PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_EXTENSIONS NO
         )
 target_link_libraries(agf2dlgasc PUBLIC libtools)
@@ -177,7 +177,7 @@ target_link_libraries(agf2dlgasc PUBLIC libtools)
 #----- agf2dta ---------------------------------------------
 add_executable(agf2dta agf2dta/main.cpp)
 set_target_properties(agf2dta PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_EXTENSIONS NO
 )
 target_link_libraries(agf2dta PUBLIC libtools)
@@ -185,7 +185,7 @@ target_link_libraries(agf2dta PUBLIC libtools)
 #----- agfexport -----------------------------------------------
 add_executable(agfexport agfexport/main.cpp)
 set_target_properties(agfexport PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_EXTENSIONS NO
         )
 target_link_libraries(agfexport PUBLIC libtools)
@@ -198,7 +198,7 @@ add_executable(agsbuild agsbuild/main.cpp
         agsbuild/taskmanager.cpp
         )
 set_target_properties(agsbuild PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_EXTENSIONS NO
         )
 target_link_libraries(agsbuild PUBLIC libtools)
@@ -209,7 +209,7 @@ add_executable(agspak agspak/main.cpp
         agspak/commands.cpp
         )
 set_target_properties(agspak PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_EXTENSIONS NO
         )
 target_link_libraries(agspak PUBLIC libtools)
@@ -219,7 +219,7 @@ add_executable(crmpak crmpak/main.cpp
         crmpak/commands.h
         crmpak/commands.cpp)
 set_target_properties(crmpak PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_EXTENSIONS NO
         )
 target_link_libraries(crmpak PUBLIC libtools)
@@ -230,7 +230,7 @@ add_executable(spriteimport spriteimport/main.cpp
         spriteimport/commands.cpp
         )
 set_target_properties(spriteimport PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_EXTENSIONS NO
         )
 target_link_libraries(spriteimport PUBLIC libtools)
@@ -241,7 +241,7 @@ add_executable(spritepak spritepak/main.cpp
         spritepak/commands.cpp
         )
 set_target_properties(spritepak PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_EXTENSIONS NO
         )
 target_link_libraries(spritepak PUBLIC libtools)
@@ -249,7 +249,7 @@ target_link_libraries(spritepak PUBLIC libtools)
 #----- trac ---------------------------------------------------
 add_executable(trac trac/main.cpp)
 set_target_properties(trac PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_EXTENSIONS NO
         )
 target_link_libraries(trac PUBLIC libtools)
@@ -317,7 +317,7 @@ if(AGS_TESTS)
       test/gtest_main.cc # need to use our own, cannot link one from gtest
    )
    set_target_properties(tools_test PROPERTIES
-      CXX_STANDARD 11
+      CXX_STANDARD 17
       CXX_EXTENSIONS NO
       C_STANDARD 11
       C_EXTENSIONS NO

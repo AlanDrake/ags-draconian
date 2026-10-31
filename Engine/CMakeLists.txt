@@ -9,7 +9,7 @@ endif ()
 
 
 set_target_properties(engine PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 17
     CXX_EXTENSIONS NO
     C_STANDARD 11
     C_EXTENSIONS YES
@@ -581,7 +581,7 @@ if (AGS_DESKTOP)
 endif ()
 
 set_target_properties(ags PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 17
     CXX_EXTENSIONS NO
 )
 
@@ -630,7 +630,7 @@ if(AGS_TESTS)
         test/systemimports_test.cpp
     )
     set_target_properties(engine_test PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_EXTENSIONS NO
         C_STANDARD 11
         C_EXTENSIONS NO
@@ -657,7 +657,7 @@ if (MACOS)
     add_executable(ags-app)
 
     set_target_properties(ags-app PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_EXTENSIONS NO
     )
 

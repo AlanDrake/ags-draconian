@@ -13,7 +13,7 @@ CFLAGS := -O2 -g \
 	-D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
 	$(CFLAGS)
 
-CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
+CXXFLAGS := -std=c++17 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
 
 PREFIX ?= /usr/local
 CC ?= gcc

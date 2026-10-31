@@ -454,7 +454,7 @@ void JointRTTI::Join(const RTTI &rtti,
     std::unordered_map<uint32_t, uint32_t> &loc_l2g,
     std::unordered_map<uint32_t, uint32_t> &type_l2g)
 {
-    struct CompareLocs : public std::unary_function<const Location&, bool>
+    struct CompareLocs
     {
       explicit CompareLocs(const Location &loc) : _loc(loc) {}
       bool operator() (const Location &arg) const { return strcmp(arg.name, _loc.name) == 0; }

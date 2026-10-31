@@ -3,10 +3,11 @@
 There are two general ways to proceed: either use [**CMake**](../CMAKE.md) or install and build 
 everything yourself using Makefiles provided in the Engine's directory.
 
-Engine code demands at least partial C++11 support (uses std::shared_ptr, std::unique_ptr, etc).
-Known minimal versions of compilers that should work with AGS:
+Engine code requires a C++17 compiler.
+Minimal compiler versions with full C++17 support:
 
--   GCC 4.4
+-   GCC 7
+-   Clang 5
 
 ## Dependencies
 
