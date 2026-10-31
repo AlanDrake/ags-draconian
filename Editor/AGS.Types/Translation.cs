@@ -30,7 +30,7 @@ namespace AGS.Types
         private const string TAG_DIRECTION_RIGHT = "RIGHT";
         private const string TAG_ON = "ON";
         private const string TAG_OFF = "OFF";
-        private const string ANNOTATE_OBSOLETE = "OBSOLETE";
+        private const string OBSOLETE_ENTRY_PREFIX = "#~ ";
 
         private string _name;
         private string _fileName;
@@ -275,27 +275,33 @@ namespace AGS.Types
             foreach (var field in MakeHeaderFields(encoding))
                 sw.WriteLine($"\"{field.Key}: {field.Value}\\n\"");
 
-            foreach (string key in _translatedEntries.Keys)
-            {
-                TranslationEntry entry = _translatedEntries[key];
-                sw.WriteLine("");
-                // Comments are written in the order used by gettext tools
-                foreach (string comment in entry.TranslatorComments)
-                    sw.WriteLine(string.IsNullOrEmpty(comment) ? "#" : $"# {comment}");
-                foreach (string comment in entry.ExtractedComments)
-                    sw.WriteLine($"#. {comment}");
-                WriteSourceReferences(sw, entry.SourceReferences);
-                if (entry.Flags.Count > 0)
-                    sw.WriteLine($"#, {string.Join(", ", entry.Flags)}");
-                foreach (string metadata in entry.Metadata)
-                    sw.WriteLine(metadata);
-                if (entry.Context != null)
-                    sw.WriteLine($"msgctxt \"{entry.Context}\"");
-                sw.WriteLine($"msgid \"{entry.Key}\"");
-                sw.WriteLine($"msgstr \"{entry.Value}\"");
-            }
+            // Obsolete entries are written commented out at the end, like gettext tools do
+            foreach (var entry in _translatedEntries.Values.Where(e => !e.IsObsolete))
+                WriteEntry(sw, entry);
+            foreach (var entry in _translatedEntries.Values.Where(e => e.IsObsolete))
+                WriteEntry(sw, entry);
             if (_translatedEntries.Count > 0)
                 sw.WriteLine("");
+        }
+
+        private static void WriteEntry(StreamWriter sw, TranslationEntry entry)
+        {
+            sw.WriteLine("");
+            // Comments are written in the order used by gettext tools
+            foreach (string comment in entry.TranslatorComments)
+                sw.WriteLine(string.IsNullOrEmpty(comment) ? "#" : $"# {comment}");
+            foreach (string comment in entry.ExtractedComments)
+                sw.WriteLine($"#. {comment}");
+            WriteSourceReferences(sw, entry.SourceReferences);
+            if (entry.Flags.Count > 0)
+                sw.WriteLine($"#, {string.Join(", ", entry.Flags)}");
+            foreach (string metadata in entry.Metadata)
+                sw.WriteLine(metadata);
+            string prefix = entry.IsObsolete ? OBSOLETE_ENTRY_PREFIX : string.Empty;
+            if (entry.Context != null)
+                sw.WriteLine($"{prefix}msgctxt \"{entry.Context}\"");
+            sw.WriteLine($"{prefix}msgid \"{entry.Key}\"");
+            sw.WriteLine($"{prefix}msgstr \"{entry.Value}\"");
         }
 
         /// <summary>
@@ -471,6 +477,16 @@ namespace AGS.Types
                 string line;
                 while ((line = sr.ReadLine()) != null)
                 {
+                    // Obsolete entries are commented out with "#~", but otherwise have the regular syntax;
+                    // "#~|" is a previous msgid of an obsolete entry, which is kept as a metadata
+                    if (line.StartsWith("#~") && !line.StartsWith("#~|"))
+                    {
+                        line = line.Substring(2).TrimStart();
+                        if (line.Length == 0)
+                            continue;
+                        entry.IsObsolete = true;
+                    }
+
                     string extracted_string = POExtractString(line);
 
                     // Font overrides were mistakenly written in the legacy TRS format by some Editor versions

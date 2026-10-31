@@ -8,9 +8,8 @@ namespace AGS.Types
 {
     public class TranslationEntry
     {
-        // FIXME: we're abusing PO Context to mark obsolete entries,
-        // but that's a quick-port from 3.6.3, and must be reimplemented
-        // as a standard PO method of commenting entries out.
+        // Obsolete entries were formerly marked by this context;
+        // it's still recognized when loading older translation sources.
         private const string CONTEXT_OBSOLETE = "OBSOLETE";
         private const string CONTEXT_PARSERWORD = "PARSERWORD";
         public const string FLAG_FUZZY = "fuzzy";
@@ -46,12 +45,12 @@ namespace AGS.Types
             set
             {
                 _context = value;
-                _obsolete = false;
                 _parserWordID = -1;
                 if (!string.IsNullOrEmpty(_context))
                 {
                     if (_context == CONTEXT_OBSOLETE)
                     {
+                        _context = null;
                         _obsolete = true;
                     }
                     else if (_context.StartsWith(CONTEXT_PARSERWORD))
@@ -141,22 +140,14 @@ namespace AGS.Types
             }
         }
 
+        /// <summary>
+        /// Whether this text is no longer found in game. Obsolete entries are kept
+        /// in the translation source in case the text gets restored, but not used in game.
+        /// </summary>
         public bool IsObsolete
         {
             get { return _obsolete; }
-            set
-            {
-                if (value)
-                {
-                    _context = CONTEXT_OBSOLETE;
-                    _parserWordID = -1;
-                }
-                else if (_obsolete)
-                {
-                    _context = null;
-                }
-                _obsolete = value;
-            }
+            set { _obsolete = value; }
         }
 
         /// <summary>
@@ -179,7 +170,6 @@ namespace AGS.Types
                 if (value >= 0)
                 {
                     _context = $"{CONTEXT_PARSERWORD}:{value}";
-                    _obsolete = false;
                 }
                 else if (_parserWordID >= 0)
                 {

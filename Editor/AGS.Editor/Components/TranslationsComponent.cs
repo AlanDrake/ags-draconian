@@ -347,10 +347,11 @@ namespace AGS.Editor.Components
                     // this also revives the entry if it was marked obsolete earlier
                     existingEntry.SourceReference = line.SourceRef;
                     existingEntry.ExtractedComments = SplitComment(line.Comment);
+                    existingEntry.IsObsolete = false;
                     if (line.ParserWordID >= 0)
                         existingEntry.ParserWordID = line.ParserWordID;
-                    else if (existingEntry.IsParserDictionary || existingEntry.IsObsolete)
-                        existingEntry.Context = null;
+                    else if (existingEntry.IsParserDictionary)
+                        existingEntry.ParserWordID = -1;
                     translation.Modified = true;
                 }
                 else

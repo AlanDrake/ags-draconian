@@ -431,10 +431,6 @@ msgstr ""bonsoir""
 msgid ""first line""
 msgstr ""première réplique""
 
-msgctxt ""OBSOLETE""
-msgid ""second line""
-msgstr ""deuxième réplique""
-
 msgid ""This is a new line""
 msgstr """"
 
@@ -446,6 +442,9 @@ msgstr ""bonsoir""
 
 msgid ""This is another new line""
 msgstr """"
+
+#~ msgid ""second line""
+#~ msgstr ""deuxième réplique""
 
 ";
 
@@ -510,11 +509,6 @@ msgctxt ""context""
 msgid ""first line""
 msgstr ""première réplique""
 
-#: source.code: 20
-msgctxt ""OBSOLETE""
-msgid ""second line""
-msgstr ""deuxième réplique""
-
 #: source.code: 30
 msgid ""This is a new line""
 msgstr """"
@@ -532,6 +526,11 @@ msgstr ""bonsoir""
 #: source.code: 40
 msgid ""This is another new line""
 msgstr """"
+
+#: source.code: 20
+#~ msgctxt ""context""
+#~ msgid ""second line""
+#~ msgstr ""deuxième réplique""
 
 ";
 
@@ -803,6 +802,79 @@ msgstr ""Du texte""
         }
 
         [Test]
+        public void ObsoleteEntriesRoundTrip_Test()
+        {
+            // Both the standard "#~" form and the legacy "OBSOLETE" context are recognized
+            var text = @"msgid """"
+msgstr """"
+
+#~ msgid ""old line""
+#~ msgstr ""vieille réplique""
+
+msgctxt ""OBSOLETE""
+msgid ""legacy line""
+msgstr ""réplique ancienne""
+
+# translator note
+#: TextParser:5
+#~ msgctxt ""PARSERWORD:5""
+#~ msgid "",word,""
+#~ msgstr "",mot,""
+
+#~| msgid ""older""
+#~ msgid ""multi""
+#~ ""line""
+#~ msgstr """"
+#~ ""multi""
+#~ ""ligne""
+
+msgid ""active line""
+msgstr ""réplique active""
+";
+            CompileMessages errors;
+            Translation translation = LoadTranslationFromString(text, out errors);
+            Assert.That(!errors.HasErrors);
+            Assert.AreEqual(5, translation.TranslatedEntries.Count);
+
+            Assert.IsTrue(translation.TranslatedEntries["old line"].IsObsolete);
+            Assert.AreEqual("vieille réplique", translation.TranslatedEntries["old line"].Value);
+            var legacy = translation.TranslatedEntries["legacy line"];
+            Assert.IsTrue(legacy.IsObsolete);
+            Assert.AreEqual(null, legacy.Context);
+            var word = translation.TranslatedEntries[",word,"];
+            Assert.IsTrue(word.IsObsolete);
+            Assert.AreEqual(5, word.ParserWordID);
+            var multi = translation.TranslatedEntries["multiline"];
+            Assert.IsTrue(multi.IsObsolete);
+            Assert.AreEqual("multiligne", multi.Value);
+            CollectionAssert.AreEqual(new string[] { "#~| msgid \"older\"" }, multi.Metadata);
+            Assert.IsFalse(translation.TranslatedEntries["active line"].IsObsolete);
+
+            var expectedEntries = @"
+msgid ""active line""
+msgstr ""réplique active""
+
+#~ msgid ""old line""
+#~ msgstr ""vieille réplique""
+
+#~ msgid ""legacy line""
+#~ msgstr ""réplique ancienne""
+
+# translator note
+#: TextParser:5
+#~ msgctxt ""PARSERWORD:5""
+#~ msgid "",word,""
+#~ msgstr "",mot,""
+
+#~| msgid ""older""
+#~ msgid ""multiline""
+#~ msgstr ""multiligne""
+
+";
+            StringAssert.EndsWith(UniformTestString(expectedEntries), SaveTranslationToString(translation).TrimEnd(' '));
+        }
+
+        [Test]
         public void UpdateRevivesObsoleteEntry_Test()
         {
             Translation translation = CreateTranslationForTest();
@@ -823,12 +895,14 @@ msgstr ""Du texte""
             Assert.IsFalse(word.IsParserDictionary);
             Assert.AreEqual(null, word.Context);
 
+            // Obsolete state does not affect the context anymore
             word.ParserWordID = 7;
             Assert.AreEqual("PARSERWORD:7", word.Context);
             word.IsObsolete = true;
-            Assert.AreEqual(-1, word.ParserWordID);
+            Assert.AreEqual(7, word.ParserWordID);
+            Assert.AreEqual("PARSERWORD:7", word.Context);
             word.IsObsolete = false;
-            Assert.AreEqual(null, word.Context);
+            Assert.AreEqual("PARSERWORD:7", word.Context);
         }
     }
 }
