@@ -1,0 +1,55 @@
+# AGS Draconian C/C++ formatting rules. See docs/refactor/STYLE.md.
+# Pinned tool: clang-format 19.1.x (pip install clang-format==19.1.7).
+# Third-party directories carry their own .clang-format with DisableFormat: true.
+---
+Language: Cpp
+BasedOnStyle: LLVM
+Standard: c++17
+ColumnLimit: 120
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+AccessModifierOffset: -4
+IndentCaseLabels: false
+NamespaceIndentation: None
+FixNamespaceComments: true
+CompactNamespaces: false
+
+BreakBeforeBraces: Allman
+AllowShortBlocksOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortEnumsOnASingleLine: false
+AllowShortLambdasOnASingleLine: All
+AlwaysBreakTemplateDeclarations: Yes
+BreakConstructorInitializers: BeforeColon
+PackConstructorInitializers: CurrentLine
+
+PointerAlignment: Right
+ReferenceAlignment: Pointer
+DerivePointerAlignment: false
+SpaceAfterCStyleCast: false
+SpaceBeforeParens: ControlStatements
+Cpp11BracedListStyle: true
+
+AlignAfterOpenBracket: Align
+AlignTrailingComments: true
+AlignConsecutiveMacros: Consecutive
+AlignEscapedNewlines: Left
+BinPackArguments: true
+BinPackParameters: true
+
+MaxEmptyLinesToKeep: 2
+KeepEmptyLinesAtTheStartOfBlocks: false
+InsertNewlineAtEOF: true
+
+# Comments are rewritten by hand, never reflowed (reflow mangles ASCII tables and diagrams).
+ReflowComments: false
+# Include sorting stays off until headers are self-contained (PLAN.md, task 2.6).
+SortIncludes: Never
+IncludeBlocks: Preserve
+SortUsingDeclarations: false
+...
