@@ -56,6 +56,4 @@ bool RunViewFrameEvent(int view, int loop, int frame,
 // draws a view frame, flipped if appropriate
 void DrawViewFrame(Common::Bitmap *ds, const ViewFrame *vframe, int x, int y);
 
-int GetPanningFromPosition(int x);
-
 #endif // __AGS_EE_AC__VIEWFRAME_H

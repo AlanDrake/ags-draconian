@@ -14,7 +14,6 @@
 #include "ac/common.h" // quitprintf
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "ac/game_version.h"
 #include "ac/viewframe.h"
 #include "ac/spritecache.h"
@@ -27,7 +26,6 @@
 #include "script/script.h"
 #include "media/audio/audio_system.h"
 #include "util/math.h"
-#include "game/viewport.h"
 
 using namespace AGS::Common;
 
@@ -150,20 +148,6 @@ int CalcFrameSoundVolume(int obj_vol, int anim_vol, int scale)
     return frame_vol;
 }
 
-
-int GetPanningFromPosition(int x) {
-    PCamera viewport = play.GetRoomViewport(0)->GetCamera();
-    if (!viewport) return 0;
-    int panning = (play.RoomToScreenX(x) * 200) / viewport->GetRect().GetWidth() - 100;
-
-    if (panning < -100)
-        panning = -100;
-    if (panning > 100)
-        panning = 100;
-
-    return panning;
-}
-
 bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume, int sound_pan, int sound_speed)
 {
     if (views[view].loops[loop].frames[frame].sound < 0)
@@ -181,13 +165,6 @@ bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume, int sou
             ch->set_speed(sound_speed);
         }
         return true; // return positive if sound is linked, regardless of the playback success
-    }
-
-    if (sound_pan != 0 && channel != nullptr) {
-        auto* ch = AudioChans::GetChannel(channel->id);
-        if (ch) {
-            ch->set_panning(sound_pan);
-        }
     }
     return false;
 }

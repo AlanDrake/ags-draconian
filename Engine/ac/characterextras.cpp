@@ -111,7 +111,7 @@ void CharacterExtras::SetUnlockedView(CharacterInfo *chi)
 void CharacterExtras::CheckViewFrame(CharacterInfo *chi)
 {
     ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(chi, &ccDynamicCharacter));
-    ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi), GetPanningFromPosition(chi->x), audio_speed,
+    ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi), audio_panning, audio_speed,
         objevt, &chi->GetEvents(), kCharacterEvent_OnFrameEvent);
 }
 
