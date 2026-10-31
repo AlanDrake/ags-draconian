@@ -90,6 +90,41 @@ namespace AGS.Editor
             return textLine.Text;
         }
 
+        /// <summary>
+        /// Converts game text into the form used as a translation key, which is
+        /// the escaped string, same as found in the script string literals.
+        /// </summary>
+        protected static string MakeTranslationKey(string text, GameTextType textType)
+        {
+            switch (textType)
+            {
+                case GameTextType.Script:
+                    return text; // already escaped
+                case GameTextType.DialogScript:
+                    // Dialog speech is converted into script strings with only quotes escaped
+                    return Translation.EscapeUnescapedQuotes(text);
+                default:
+                    return Translation.EscapeText(text);
+            }
+        }
+
+        /// <summary>
+        /// Converts the translation text into the form suitable for the game text
+        /// of the given type; the opposite of MakeTranslationKey.
+        /// </summary>
+        protected static string MakeTextFromTranslation(string text, GameTextType textType)
+        {
+            switch (textType)
+            {
+                case GameTextType.Script:
+                    return text;
+                case GameTextType.DialogScript:
+                    return text.Replace("\\\"", "\"");
+                default:
+                    return Translation.UnescapeText(text);
+            }
+        }
+
         private bool DoesStringTerminateHere(ScriptParsing.ParserState state, char stringTerminator)
         {
             if (state.Char == stringTerminator)
@@ -107,8 +142,9 @@ namespace AGS.Editor
 
         private string ProcessScript(string script, string scriptName, string contextName, int originalLine = -1)
         {
-            // If originalLine is set, then this "script" is an excerpt from another bigger text
-            ScriptParsing.ParserState state = new ScriptParsing.ParserState(script, originalLine);
+            // If originalLine is set, then this "script" is an excerpt from another bigger text;
+            // otherwise lines are counted from 1
+            ScriptParsing.ParserState state = new ScriptParsing.ParserState(script, originalLine >= 0 ? originalLine : 1);
             ScriptParsing.FillLines(state);
             state.Reset();
 
@@ -149,7 +185,9 @@ namespace AGS.Editor
                         if (ParseFunctionCall(previousFuncCall, out charID))
                         {
                             string mainString = script.Substring(stringStartIndex + 1, (stringEndIndex - stringStartIndex) - 1);
-                            string modifiedString = CreateSpeechLine(GameTextLine.MakeSpeechLine(charID, mainString, contextName, state.Line), GameTextType.Script);
+                            var textLine = GameTextLine.MakeSpeechLine(charID, mainString, contextName, state.FindLineForCharIndex(stringStartIndex));
+                            textLine.ScriptFileName = scriptName;
+                            string modifiedString = CreateSpeechLine(textLine, GameTextType.Script);
                             if (_makesChanges)
                             {
                                 string scriptBeforeString = script.Substring(0, stringStartIndex + 1);
@@ -201,8 +239,11 @@ namespace AGS.Editor
                     if (charID >= 0)
                     {
                         string lineText = thisLine.Substring(thisLine.IndexOf(":") + 1).Trim();
+                        var textLine = GameTextLine.MakeSpeechLine(charID, lineText, contextName, line);
+                        textLine.ScriptFileName = scriptFileName;
+                        textLine.Comment = $"Speaker: {GetCharacterNameForComment(charID)}";
                         originalLine = string.Format("{0}: {1}", characterName,
-                            CreateSpeechLine(GameTextLine.MakeSpeechLine(charID, lineText, contextName, line), GameTextType.DialogScript));
+                            CreateSpeechLine(textLine, GameTextType.DialogScript));
                     }
                     else
                     {
@@ -227,6 +268,18 @@ namespace AGS.Editor
                 }
             }
             return null;
+        }
+
+        private string GetCharacterNameForComment(int characterID)
+        {
+            if (characterID == Character.NARRATOR_CHARACTER_ID)
+                return NARRATOR_NAME;
+            foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
+            {
+                if (character.ID == characterID)
+                    return character.ScriptName;
+            }
+            return characterID.ToString();
         }
 
         protected int FindCharacterIDForCharacter(string characterName)

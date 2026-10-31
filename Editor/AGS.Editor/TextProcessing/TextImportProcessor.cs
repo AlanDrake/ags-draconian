@@ -27,10 +27,11 @@ namespace AGS.Editor
         protected override string CreateSpeechLine(GameTextLine textLine, GameTextType textType)
         {
             var text = textLine.Text;
-            if ((_translationToUse.ContainsKey(text)) &&
-                (_translationToUse[text].Value.Length > 0))
+            TranslationEntry entry;
+            if (_translationToUse.TryGetValue(MakeTranslationKey(text, textType), out entry) &&
+                !string.IsNullOrEmpty(entry.Value) && !entry.IsObsolete && !entry.IsFuzzy)
             {
-                return _translationToUse[text].Value;
+                return MakeTextFromTranslation(entry.Value, textType);
             }
             return text;
         }

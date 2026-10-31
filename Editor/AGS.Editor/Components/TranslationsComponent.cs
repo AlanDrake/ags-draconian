@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using TypeUtils = AGS.Types.Utilities;
 
@@ -136,15 +135,10 @@ namespace AGS.Editor.Components
         private void WriteExtDictionary(BinaryWriter bw, Translation translation, List<Tuple<string, string>> translatedLines, CompileMessages error)
         {
             Encoding textEncoding = translation.Encoding;
-            foreach (var entry in translation.TranslatedEntries.Values)
+            foreach (var line in translatedLines)
             {
-                string srcLine = entry.Key;
-                string trsLine = entry.Value;
-                if (!string.IsNullOrEmpty(trsLine))
-                {
-                    WriteString(bw, Regex.Unescape(srcLine), textEncoding);
-                    WriteString(bw, Regex.Unescape(trsLine), textEncoding);
-                }
+                WriteString(bw, Translation.UnescapeText(line.Item1), textEncoding);
+                WriteString(bw, Translation.UnescapeText(line.Item2), textEncoding);
             }
             WriteString(bw, string.Empty, textEncoding);
             WriteString(bw, string.Empty, textEncoding);
@@ -265,15 +259,15 @@ namespace AGS.Editor.Components
                 string trsLine = entry.Value;
                 if (!string.IsNullOrEmpty(trsLine))
                 {
-                    // Skip obsolete entries
-                    if (entry.IsObsolete)
+                    // Skip obsolete entries, and those which translators marked for review
+                    if (entry.IsObsolete || entry.IsFuzzy)
                     {
                         continue;
                     }
                     // Words dictionary is written in a separate data section
                     if (entry.IsParserDictionary)
                     {
-                        wordsDictionary.Add(new Tuple<string, ushort>(trsLine, (ushort)entry.ParserWordID));
+                        wordsDictionary.Add(new Tuple<string, ushort>(Translation.UnescapeText(trsLine), (ushort)entry.ParserWordID));
                         continue;
                     }
 
@@ -349,12 +343,15 @@ namespace AGS.Editor.Components
                 TranslationEntry existingEntry;
                 if (translation.TranslatedEntries.TryGetValue(line.Text, out existingEntry))
                 {
-                    // Entry already existed, but we may have to update meta data
+                    // Entry already existed, but we may have to update meta data;
+                    // this also revives the entry if it was marked obsolete earlier
                     existingEntry.SourceReference = line.SourceRef;
+                    existingEntry.ExtractedComments = SplitComment(line.Comment);
+                    existingEntry.IsObsolete = false;
                     if (line.ParserWordID >= 0)
-                        existingEntry.Context = $"PARSERWORD:{line.ParserWordID}";
+                        existingEntry.ParserWordID = line.ParserWordID;
                     else if (existingEntry.IsParserDictionary)
-                        existingEntry.Context = null;
+                        existingEntry.ParserWordID = -1;
                     translation.Modified = true;
                 }
                 else
@@ -362,16 +359,24 @@ namespace AGS.Editor.Components
                     // Add new entry
                     var entry = new TranslationEntry(line.Text);
                     entry.SourceReference = line.SourceRef;
+                    entry.ExtractedComments = SplitComment(line.Comment);
                     // For parser words, set respective context
                     // FIXME: this is not good, the PO format allows to have a combined key made of
                     // a msgid + msgctxt pair. Context could serve to distinguish parser words here.
                     // but we'd need to change how translated entries are stored (the keys type?).
                     if (line.ParserWordID >= 0)
-                        entry.Context = $"PARSERWORD:{line.ParserWordID}";
+                        entry.ParserWordID = line.ParserWordID;
                     translation.TranslatedEntries.Add(line.Text, entry);
                     translation.Modified = true;
                 }
             }
+        }
+
+        private static List<string> SplitComment(string comment)
+        {
+            if (string.IsNullOrEmpty(comment))
+                return new List<string>();
+            return comment.Split('\n').Select(c => c.Trim()).Where(c => c.Length > 0).ToList();
         }
 
         private void DoTranslationUpdate(IList<Translation> translations)
@@ -837,12 +842,15 @@ namespace AGS.Editor.Components
                         }
                         continue;
                     }
-                    string originalText = line;
+                    // TRS lines are expected to be in the script-escaped form, but texts
+                    // that did not come from scripts could contain unescaped quotes
+                    string originalText = Translation.EscapeUnescapedQuotes(line);
                     string translatedText = sr.ReadLine();
                     if (translatedText == null)
                     {
                         break;
                     }
+                    translatedText = Translation.EscapeUnescapedQuotes(translatedText);
                     // Silently ignore any duplicates, as we can't report warnings here
                     if (!translation.TranslatedEntries.ContainsKey(originalText))
                     {

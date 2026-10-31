@@ -20,7 +20,7 @@ namespace AGS.Types
             Metadata = new List<string>();
         }
 
-        public bool IsObsolete { get { return _isObsolete; } set { _isObsolete = true; } }
+        public bool IsObsolete { get { return _isObsolete; } set { _isObsolete = value; } }
 
         /// <summary>
         /// Whether this translation item belongs to the Text Parser's words dictionary.

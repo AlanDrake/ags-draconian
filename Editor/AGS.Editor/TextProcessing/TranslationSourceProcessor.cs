@@ -8,6 +8,10 @@ namespace AGS.Editor
     public class TranslationSourceProcessor : GameSpeechProcessor
     {
         private Dictionary<string, GameTextLine> _linesProcessed;
+        // all the source references found for each text
+        private Dictionary<string, List<string>> _sourceRefs;
+        // all the translator hints made for each text
+        private Dictionary<string, List<string>> _comments;
         private string _includeScriptPrefix;
         private string _excludeScriptPrefix;
         private string[] _excludeFunctionCalls;
@@ -25,6 +29,8 @@ namespace AGS.Editor
             LookupForFunctionCalls = _excludeFunctionCalls.Length > 0;
 
             _linesProcessed = new Dictionary<string, GameTextLine>();
+            _sourceRefs = new Dictionary<string, List<string>>();
+            _comments = new Dictionary<string, List<string>>();
         }
 
         public ICollection<GameTextLine> LinesForTranslation
@@ -87,13 +93,36 @@ namespace AGS.Editor
 
                 if (include)
                 {
-                    if (!_linesProcessed.ContainsKey(text))
+                    string key = MakeTranslationKey(text, textType);
+                    GameTextLine line;
+                    if (!_linesProcessed.TryGetValue(key, out line))
                     {
-                        _linesProcessed.Add(text, textLine);
+                        line = textLine;
+                        line.Text = key;
+                        _sourceRefs.Add(key, new List<string>());
+                        _comments.Add(key, new List<string>());
                     }
+
+                    // Same text may be found in multiple places: record all of its
+                    // source references and comments
+                    AddDistinct(_sourceRefs[key], textLine.MakeSourceReference());
+                    if (!string.IsNullOrEmpty(textLine.Comment))
+                    {
+                        foreach (var comment in textLine.Comment.Split('\n'))
+                            AddDistinct(_comments[key], comment.Trim());
+                    }
+                    line.SourceRef = string.Join(" ", _sourceRefs[key]);
+                    line.Comment = string.Join("\n", _comments[key]);
+                    _linesProcessed[key] = line;
                 }
             }
             return text;
+        }
+
+        private static void AddDistinct(List<string> list, string item)
+        {
+            if (!string.IsNullOrEmpty(item) && !list.Contains(item))
+                list.Add(item);
         }
     }
 }

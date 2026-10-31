@@ -30,7 +30,7 @@ namespace AGS.Types
         private const string TAG_DIRECTION_RIGHT = "RIGHT";
         private const string TAG_ON = "ON";
         private const string TAG_OFF = "OFF";
-        private const string ANNOTATE_OBSOLETE = "OBSOLETE";
+        private const string OBSOLETE_ENTRY_PREFIX = "#~ ";
 
         private string _name;
         private string _fileName;
@@ -47,6 +47,8 @@ namespace AGS.Types
         private string _language;
         private Dictionary<int, FontOverride> _fontOverrides = new Dictionary<int, FontOverride>();
         private Dictionary<string, TranslationEntry> _translatedEntries = new Dictionary<string, TranslationEntry>();
+        // PO header fields, in the order found in the source file; values are kept escaped
+        private List<KeyValuePair<string, string>> _headerFields = new List<KeyValuePair<string, string>>();
 
         public Translation(string name, string baseLanguage)
         {
@@ -270,41 +272,111 @@ namespace AGS.Types
             // PO metadata
             sw.WriteLine("msgid \"\"");
             sw.WriteLine("msgstr \"\"");
-            sw.WriteLine("\"Last-Translator: \\n\"");
-            sw.WriteLine("\"Language-Team: \\n\"");
-            sw.WriteLine("\"Language: " + Encode(_name) + "\\n\"");
-            sw.WriteLine("\"X-Source-Language: " + Encode(_baseLanguage) + "\\n\"");
-            sw.WriteLine("\"MIME-Version: 1.0\\n\"");
-            sw.WriteLine("\"Content-Type: text/plain; charset=" + ( _encodingHint == "ASCII" ? "ISO-8859-1" : _encodingHint) + "\\n\"");
-            sw.WriteLine("\"Content-Transfer-Encoding: 8bit\\n\"");
-            sw.WriteLine("\"X-Generator: AGS " + Version.AGS_EDITOR_VERSION + "\\n\"");
+            foreach (var field in MakeHeaderFields(encoding))
+                sw.WriteLine($"\"{field.Key}: {field.Value}\\n\"");
 
-            foreach (string key in _translatedEntries.Keys)
-            {
-                TranslationEntry entry = _translatedEntries[key];
-                sw.WriteLine("");
-                if (!string.IsNullOrEmpty(entry.SourceReference))
-                    sw.WriteLine($"#: {entry.SourceReference}");
-                foreach (string metadata in entry.Metadata)
-                    sw.WriteLine(metadata);
-                if (entry.Context != null)
-                    sw.WriteLine($"msgctxt \"{entry.Context}\"");
-                sw.WriteLine($"msgid \"{entry.Key}\"");
-                sw.WriteLine($"msgstr \"{entry.Value}\"");
-            }
-            // note: if there's not an empty line at the end, the last record won't be stored
-            // CHECKME: double check that this complies to PO format!
+            // Obsolete entries are written commented out at the end, like gettext tools do
+            foreach (var entry in _translatedEntries.Values.Where(e => !e.IsObsolete))
+                WriteEntry(sw, entry);
+            foreach (var entry in _translatedEntries.Values.Where(e => e.IsObsolete))
+                WriteEntry(sw, entry);
             if (_translatedEntries.Count > 0)
                 sw.WriteLine("");
+        }
+
+        private static void WriteEntry(StreamWriter sw, TranslationEntry entry)
+        {
+            sw.WriteLine("");
+            // Comments are written in the order used by gettext tools
+            foreach (string comment in entry.TranslatorComments)
+                sw.WriteLine(string.IsNullOrEmpty(comment) ? "#" : $"# {comment}");
+            foreach (string comment in entry.ExtractedComments)
+                sw.WriteLine($"#. {comment}");
+            WriteSourceReferences(sw, entry.SourceReferences);
+            if (entry.Flags.Count > 0)
+                sw.WriteLine($"#, {string.Join(", ", entry.Flags)}");
+            foreach (string metadata in entry.Metadata)
+                sw.WriteLine(metadata);
+            string prefix = entry.IsObsolete ? OBSOLETE_ENTRY_PREFIX : string.Empty;
+            if (entry.Context != null)
+                sw.WriteLine($"{prefix}msgctxt \"{entry.Context}\"");
+            sw.WriteLine($"{prefix}msgid \"{entry.Key}\"");
+            sw.WriteLine($"{prefix}msgstr \"{entry.Value}\"");
+        }
+
+        /// <summary>
+        /// Writes source references, wrapping them on multiple lines similar to gettext tools.
+        /// </summary>
+        private static void WriteSourceReferences(StreamWriter sw, List<string> references)
+        {
+            const int MaxLineWidth = 79;
+            StringBuilder sb = new StringBuilder();
+            foreach (var reference in references)
+            {
+                if (sb.Length > 0 && sb.Length + 1 + reference.Length > MaxLineWidth)
+                {
+                    sw.WriteLine(sb.ToString());
+                    sb.Clear();
+                }
+                sb.Append(sb.Length == 0 ? "#: " : " ").Append(reference);
+            }
+            if (sb.Length > 0)
+                sw.WriteLine(sb.ToString());
+        }
+
+        /// <summary>
+        /// Generates PO header fields: keeps the ones found in the loaded source file
+        /// (e.g. written by translator's tools), and updates the ones that AGS controls.
+        /// </summary>
+        private List<KeyValuePair<string, string>> MakeHeaderFields(string encoding)
+        {
+            var fields = new List<KeyValuePair<string, string>>(_headerFields);
+            if (fields.Count == 0)
+            {
+                fields.Add(new KeyValuePair<string, string>("Last-Translator", string.Empty));
+                fields.Add(new KeyValuePair<string, string>("Language-Team", string.Empty));
+            }
+            SetHeaderField(fields, "Language", EscapeText(_language != null ? _language.Replace('-', '_') : string.Empty));
+            SetHeaderField(fields, "X-Source-Language", EscapeText(_baseLanguage ?? string.Empty));
+            SetHeaderField(fields, "MIME-Version", "1.0");
+            SetHeaderField(fields, "Content-Type", "text/plain; charset=" + (encoding == "ASCII" ? "ISO-8859-1" : encoding));
+            SetHeaderField(fields, "Content-Transfer-Encoding", "8bit");
+            SetHeaderField(fields, "X-Generator", "AGS " + Version.AGS_EDITOR_VERSION);
+            return fields;
+        }
+
+        private static void SetHeaderField(List<KeyValuePair<string, string>> fields, string key, string value)
+        {
+            int index = fields.FindIndex(f => string.Compare(f.Key, key, true) == 0);
+            if (index >= 0)
+                fields[index] = new KeyValuePair<string, string>(key, value);
+            else
+                fields.Add(new KeyValuePair<string, string>(key, value));
+        }
+
+        /// <summary>
+        /// Parses PO header fields from the (escaped) msgstr of the header entry.
+        /// </summary>
+        private void ReadHeaderFields(string header)
+        {
+            _headerFields.Clear();
+            foreach (var line in header.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                int sep = line.IndexOf(':');
+                if (sep <= 0)
+                    continue;
+                _headerFields.Add(new KeyValuePair<string, string>(
+                    line.Substring(0, sep).Trim(), line.Substring(sep + 1).Trim()));
+            }
         }
 
         private enum ParseState
         {
             NewEntry,
-            ParsingMeta,
             ParsingContext,
             ParsingId,
-            ParsingString
+            ParsingString,
+            Skipping // ignoring unsupported or malformed data until the next keyword
         }
 
         /// <summary>
@@ -360,7 +432,7 @@ namespace AGS.Types
             }
             catch (Exception e)
             {
-                errors.Add(new CompileError(string.Format("Failed to load translation: \n{1}", e.Message)));
+                errors.Add(new CompileError(string.Format("Failed to load translation: \n{0}", e.Message)));
                 _translatedEntries.Clear(); // clear on failure
             }
             return errors;
@@ -371,22 +443,99 @@ namespace AGS.Types
         // in a translation file parser/serializer.
         private bool LoadDataImpl(StreamReader sr, CompileMessages errors)
         {
+            const int MaxWarnings = 100;
+
             _fontOverrides = new Dictionary<int, FontOverride>();
             _translatedEntries = new Dictionary<string, TranslationEntry>();
+            _headerFields.Clear();
             string old_encoding = _encodingHint;
+            // Warnings are only reported if the parsing completes (and not restarted with another encoding)
+            CompileMessages warnings = new CompileMessages();
+            Action<string, int> warn = (message, lineNumber) =>
+            {
+                if (warnings.Count < MaxWarnings)
+                    warnings.Add(new CompileWarning(message, FileName, lineNumber));
+                else if (warnings.Count == MaxWarnings)
+                    warnings.Add(new CompileWarning("Too many problems found in the translation source, further warnings are not reported", FileName, lineNumber));
+            };
 
             ParseState state = ParseState.NewEntry;
             TranslationEntry entry = new TranslationEntry();
+            bool hasContext = false, hasMsgid = false, hasMsgstr = false, warnedPlural = false;
+            int entryLine = 0; // line where the entry's msgctxt or msgid begins
+
+            // Stores the currently parsed entry, if it's complete, and begins a new one
+            Action finishEntry = () =>
+            {
+                if (hasMsgid && hasMsgstr)
+                {
+                    if (!string.IsNullOrEmpty(entry.Key))
+                    {
+                        // Fix any unescaped quotes left by the older Editor versions
+                        entry.Key = EscapeUnescapedQuotes(entry.Key);
+                        entry.Value = EscapeUnescapedQuotes(entry.Value);
+                        if (_translatedEntries.ContainsKey(entry.Key))
+                            warn($"Duplicate entry for the text \"{entry.Key}\"; only the last one is used", entryLine);
+                        _translatedEntries[entry.Key] = entry;
+                    }
+                    else
+                    {
+                        // an entry with an empty msgid is the PO header
+                        ReadHeaderFields(entry.Value);
+                    }
+                }
+                else if (hasContext || hasMsgid)
+                {
+                    warn("Incomplete entry without msgstr is ignored", entryLine);
+                }
+                state = ParseState.NewEntry;
+                entry = new TranslationEntry();
+                hasContext = hasMsgid = hasMsgstr = warnedPlural = false;
+            };
+
             {
                 string line;
+                int lineNumber = 0;
                 while ((line = sr.ReadLine()) != null)
                 {
-                    string extracted_string = POExtractString(line);
+                    lineNumber++;
+                    line = line.Trim();
 
-                    // Case 1: encountered metadata
-                    // TODO: track different types of metadata (flags, comments, etc)
+                    // Obsolete entries are commented out with "#~", but otherwise have the regular syntax;
+                    // "#~|" is a previous msgid of an obsolete entry, which is kept as a metadata
+                    bool isObsoleteLine = false;
+                    if (line.StartsWith("#~") && !line.StartsWith("#~|"))
+                    {
+                        line = line.Substring(2).TrimStart();
+                        if (line.Length == 0)
+                            continue;
+                        isObsoleteLine = true;
+                    }
+
+                    // An empty line separates entries
+                    if (line.Length == 0)
+                    {
+                        if (state != ParseState.NewEntry)
+                            finishEntry();
+                        continue;
+                    }
+
+                    // Font overrides were mistakenly written in the legacy TRS format by some Editor versions
+                    if (line.StartsWith("//#" + FONT_OVERRIDE_TAG))
+                    {
+                        ReadSpecialTags(line.Substring(3));
+                        continue;
+                    }
+
+                    // Case 1: comments and annotations
                     if (line.StartsWith("#"))
                     {
+                        // Comments precede the entry, so this begins a new one
+                        if (hasMsgstr)
+                            finishEntry();
+                        else if (hasContext || hasMsgid)
+                            warn("Comment found in the middle of an entry", lineNumber);
+
                         if (line.StartsWith("# $"))
                         {
                             ReadSpecialTags(line.Substring(3));
@@ -398,7 +547,24 @@ namespace AGS.Types
                         }
                         else if (line.StartsWith("#:"))
                         {
-                            entry.SourceReference = line.Substring(2).Trim();
+                            entry.SourceReferences.AddRange(TranslationEntry.SplitReferences(line.Substring(2)));
+                        }
+                        else if (line.StartsWith("#."))
+                        {
+                            entry.ExtractedComments.Add(StripCommentPrefix(line, 2));
+                        }
+                        else if (line.StartsWith("#,"))
+                        {
+                            foreach (var flag in line.Substring(2).Split(','))
+                            {
+                                string f = flag.Trim();
+                                if (f.Length > 0 && !entry.Flags.Contains(f))
+                                    entry.Flags.Add(f);
+                            }
+                        }
+                        else if (line.Length == 1 || line[1] == ' ' || line[1] == '\t')
+                        {
+                            entry.TranslatorComments.Add(StripCommentPrefix(line, 1));
                         }
                         else
                         {
@@ -408,158 +574,252 @@ namespace AGS.Types
                         continue;
                     }
 
-                    // Case 2: we got a string, figure out what to do with it
-                    if (extracted_string != null)
+                    // Case 2: keywords and strings
+                    string keyword, text;
+                    int pluralIndex;
+                    if (!ParsePOLine(line, out keyword, out text, out pluralIndex))
                     {
-                        // start of a new type
-                        if (line.StartsWith("msgctxt")) // context
-                        {
-                            state = ParseState.ParsingContext;
-                            entry.Context = extracted_string;
-                            continue;
-                        }
-                        if (line.StartsWith("msgid")) // string id, untranslated
-                        {
-                            state = ParseState.ParsingId;
-                            entry.Key = extracted_string;
-                            continue;
-                        }
-                        if (line.StartsWith("msgstr")) // translated string
-                        {
-                            state = ParseState.ParsingString;
-                            entry.Value = extracted_string;
-                            continue;
-                        }
-
-                        // strings can be split on multiple lines, usually the first will be empty, but no guarantee
-                        // an external tool may have done that, so let's append
-                        switch (state)
-                        {
-                            case ParseState.ParsingContext:
-                                entry.Context += extracted_string;
-                                continue;
-
-                            case ParseState.ParsingId:
-                                entry.Key += extracted_string;
-                                continue;
-
-                            case ParseState.ParsingString:
-                                entry.Value += extracted_string;
-                                continue;
-
-                            default: continue; // ignore orphaned strings since we can't throw errors
-                        }
+                        warn($"Unrecognized line is ignored: {line}", lineNumber);
+                        continue;
                     }
 
-                    // Case 3: we were processing an entry and encountered an empty line
-                    if (state != ParseState.NewEntry && line.Trim().Length == 0)
+                    switch (keyword)
                     {
-                        // note: a valid entry must have a non-empty msgid
-                        // the first empty hardcoded entry, which is metadata, is ignored and recreated
-                        if (entry.Key != null && entry.Key.Length > 0)
-                        {
-                            _translatedEntries.Add(entry.Key, entry);
-                        }
-                        state = ParseState.NewEntry;
-                        entry = new TranslationEntry();
-                    }
-                    else if (state == ParseState.NewEntry && line.Trim().Length == 0)
-                    {
-                        continue; // ignore additional empty lines
+                        case "msgctxt":
+                        case "msgid":
+                            // Begins a new entry, unless msgid follows msgctxt
+                            if (hasMsgstr || hasMsgid || (keyword == "msgctxt" && hasContext))
+                                finishEntry();
+                            if (!hasContext)
+                                entryLine = lineNumber;
+                            if (keyword == "msgctxt")
+                            {
+                                state = ParseState.ParsingContext;
+                                hasContext = true;
+                                entry.Context = text;
+                            }
+                            else
+                            {
+                                state = ParseState.ParsingId;
+                                hasMsgid = true;
+                                entry.Key = text;
+                            }
+                            break;
+                        case "msgstr":
+                            if (!hasMsgid)
+                            {
+                                warn("msgstr without a preceding msgid is ignored", lineNumber);
+                                state = ParseState.Skipping;
+                            }
+                            else if (pluralIndex > 0)
+                            {
+                                state = ParseState.Skipping; // only the first plural form is used
+                            }
+                            else if (hasMsgstr)
+                            {
+                                warn("Duplicate msgstr in the entry is ignored", lineNumber);
+                                state = ParseState.Skipping;
+                            }
+                            else
+                            {
+                                state = ParseState.ParsingString;
+                                hasMsgstr = true;
+                                entry.Value = text;
+                            }
+                            break;
+                        case "msgid_plural":
+                            if (!warnedPlural)
+                                warn("Plural forms are not supported; only the first form (msgstr[0]) is used", lineNumber);
+                            warnedPlural = true;
+                            state = ParseState.Skipping;
+                            break;
+                        default:
+                            // Strings may be split on multiple lines, which are concatenated
+                            switch (state)
+                            {
+                                case ParseState.ParsingContext: entry.Context += text; break;
+                                case ParseState.ParsingId: entry.Key += text; break;
+                                case ParseState.ParsingString: entry.Value += text; break;
+                                case ParseState.Skipping: break;
+                                default: warn("A string outside of any entry is ignored", lineNumber); break;
+                            }
+                            continue; // continuation lines don't change the entry's obsolete state
                     }
 
-
+                    if (isObsoleteLine)
+                        entry.IsObsolete = true;
                 } // while
 
-                // note: if there's not an empty line at the end, the last record won't be stored
-                // CHECKME: double check that this complies to PO format!
+                // The last entry is not necessarily followed by an empty line
+                finishEntry();
+            }
+            errors.AddRange(warnings);
+            return true;
+        }
+
+        // Returns the comment's text, without the comment mark and a single separating space
+        private static string StripCommentPrefix(string line, int prefixLength)
+        {
+            string text = line.Substring(prefixLength);
+            return text.StartsWith(" ") ? text.Substring(1) : text;
+        }
+
+        private static readonly Regex POLine = new Regex(
+            "^(?:(?<keyword>msgctxt|msgid_plural|msgid|msgstr)(?:\\[(?<index>\\d+)\\])?\\s*)?\"(?<text>.*)\"$",
+            RegexOptions.Compiled);
+
+        /// <summary>
+        /// Parses a PO line which contains a keyword followed by a string, or a string alone
+        /// (which continues the previous one); keyword is returned empty in the latter case.
+        /// pluralIndex is set if the keyword had an index (like msgstr[N]), otherwise -1.
+        /// </summary>
+        private static bool ParsePOLine(string line, out string keyword, out string text, out int pluralIndex)
+        {
+            keyword = text = null;
+            pluralIndex = -1;
+            Match match = POLine.Match(line);
+            if (!match.Success)
+                return false;
+            keyword = match.Groups["keyword"].Value;
+            text = match.Groups["text"].Value;
+            if (match.Groups["index"].Success)
+            {
+                // only msgstr may have an index
+                if (keyword != "msgstr")
+                    return false;
+                pluralIndex = int.Parse(match.Groups["index"].Value);
             }
             return true;
         }
 
-        private readonly Regex POString = new Regex("^(?:msgctxt |msgid |msgstr |)+\"(.*)\"$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-        // utility to extract a string between quotes, but only if it meets the format
-        private string POExtractString(string line)
+        /// <summary>
+        /// Converts escape sequences in the PO string into the actual characters.
+        /// Follows the same rules as the AGS script compiler, because the translation
+        /// keys must match the strings compiled into the game.
+        /// Unknown escape sequences are kept as-is.
+        /// </summary>
+        public static string UnescapeText(string text)
         {
-            if (line == null) return null;
+            if (string.IsNullOrEmpty(text) || text.IndexOf('\\') < 0)
+                return text;
 
-            Match match = POString.Match(line);
-            if (match.Success)
-                return (match.Groups[1].Value);
-
-            return null;
-        }
-
-        private static string Decode(string text)
-        {
-            StringBuilder builder = new StringBuilder("");
-            for (var i = 0; i < text.Length; i++)
+            StringBuilder builder = new StringBuilder(text.Length);
+            for (int i = 0; i < text.Length; i++)
             {
-                var c = text[i];
-                if (c != '\\')
+                char c = text[i];
+                if (c != '\\' || i + 1 >= text.Length)
                 {
                     builder.Append(c);
                     continue;
                 }
 
-                if (++i < text.Length)
+                c = text[++i];
+                switch (c)
                 {
-                    c = text[i];
-                    switch (c)
-                    {
-                        case '\\':
-                        case '"':
-                            builder.Append(c);
-                            continue;
-                        case 't':
-                            builder.Append('\t');
-                            continue;
-                        case 'r':
-                            var index = i;
-                            if (++index + 1 < text.Length && text[index] == '\\' && text[++index] == 'n')
-                                i = index;
-                            // "\r" and "\r\n" are both accepted as new line
-                            goto case 'n';
-                        case 'n':
-                            builder.Append("\n");
-                            continue;
-                    }
+                    case '\'':
+                    case '"':
+                    case '?':
+                    case '\\': builder.Append(c); continue;
+                    case 'a': builder.Append('\a'); continue;
+                    case 'b': builder.Append('\b'); continue;
+                    case 'e': builder.Append((char)27); continue;
+                    case 'f': builder.Append('\f'); continue;
+                    case 'n': builder.Append('\n'); continue;
+                    case 'r': builder.Append('\r'); continue;
+                    case 't': builder.Append('\t'); continue;
+                    case 'v': builder.Append('\v'); continue;
                 }
 
-                // invalid escape sequence
-                //return i - 1;
-            }
+                if (c >= '0' && c < '8')
+                {
+                    // up to 3 octal digits, max value 255
+                    int value = c - '0';
+                    for (int n = 0; n < 2 && i + 1 < text.Length; ++n)
+                    {
+                        int digit = text[i + 1] - '0';
+                        if (digit < 0 || digit >= 8 || value * 8 + digit > 255)
+                            break;
+                        value = value * 8 + digit;
+                        i++;
+                    }
+                    builder.Append((char)value);
+                    continue;
+                }
 
+                if (c == 'x' && i + 1 < text.Length && Uri.IsHexDigit(text[i + 1]))
+                {
+                    // up to 2 hex digits
+                    int value = 0;
+                    for (int n = 0; n < 2 && i + 1 < text.Length && Uri.IsHexDigit(text[i + 1]); ++n)
+                    {
+                        value = value * 16 + Uri.FromHex(text[i + 1]);
+                        i++;
+                    }
+                    builder.Append((char)value);
+                    continue;
+                }
+
+                // unknown escape sequence
+                builder.Append('\\').Append(c);
+            }
             return builder.ToString();
         }
 
-        private static string Encode(string text)
+        /// <summary>
+        /// Converts the text into a escaped form suitable for a PO string.
+        /// </summary>
+        public static string EscapeText(string text)
         {
-            StringBuilder builder = new StringBuilder("");
-            for (var i = 0; i < text.Length; i++)
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            StringBuilder builder = new StringBuilder(text.Length);
+            for (int i = 0; i < text.Length; i++)
             {
-                var c = text[i];
+                char c = text[i];
                 switch (c)
                 {
-                    case '\\':
-                    case '"':
-                        builder.Append('\\').Append(c);
-                        continue;
-                    case '\t':
-                        builder.Append('\\').Append('t');
-                        continue;
+                    case '\\': builder.Append("\\\\"); continue;
+                    case '"': builder.Append("\\\""); continue;
+                    case '\a': builder.Append("\\a"); continue;
+                    case '\b': builder.Append("\\b"); continue;
+                    case '\f': builder.Append("\\f"); continue;
+                    case '\n': builder.Append("\\n"); continue;
                     case '\r':
-                        var index = 0;
-                        if (++index < text.Length && text[index] == '\n')
-                            i = index;
-                        // "\r" and "\r\n" are encoded the same as "\n" to keep PO content platform-independent
-                        goto case '\n';
-                    case '\n':
-                        builder.Append('\\').Append('n');
+                        // The engine only uses "\n" for line breaks, so "\r\n" and "\r" are both
+                        // converted to "\n"; this also keeps PO content platform-independent
+                        if (i + 1 < text.Length && text[i + 1] == '\n')
+                            i++;
+                        builder.Append("\\n");
                         continue;
+                    case '\t': builder.Append("\\t"); continue;
+                    case '\v': builder.Append("\\v"); continue;
                 }
 
+                if (c < ' ')
+                    builder.Append('\\').Append(Convert.ToString(c, 8).PadLeft(3, '0'));
+                else
+                    builder.Append(c);
+            }
+            return builder.ToString();
+        }
+
+        /// <summary>
+        /// Escapes double quotes which are not escaped yet; this is meant for fixing up
+        /// strings which are supposed to be in the escaped form, but are not necessarily.
+        /// </summary>
+        public static string EscapeUnescapedQuotes(string text)
+        {
+            if (string.IsNullOrEmpty(text) || text.IndexOf('"') < 0)
+                return text;
+
+            StringBuilder builder = new StringBuilder(text.Length + 8);
+            int backslashes = 0;
+            foreach (char c in text)
+            {
+                if (c == '"' && (backslashes % 2) == 0)
+                    builder.Append('\\');
+                backslashes = (c == '\\') ? backslashes + 1 : 0;
                 builder.Append(c);
             }
             return builder.ToString();
@@ -642,7 +902,7 @@ namespace AGS.Types
                 int fontIndex = fontOverride.Key;
                 Font font = fontOverride.Value.Font;
                 FontFields fields = fontOverride.Value.Fields;
-                sb.Append($"//#Font{fontIndex}=");
+                sb.Append($"# ${FONT_OVERRIDE_TAG}{fontIndex}{OPTION_SEPARATOR}");
                 // The font override's source is defined either as another font's index, or font file
                 if (font.ID >= 0)
                     sb.Append($"Font{font.ID};");

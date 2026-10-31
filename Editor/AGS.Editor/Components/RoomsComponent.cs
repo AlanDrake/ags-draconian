@@ -2005,7 +2005,7 @@ namespace AGS.Editor.Components
                     _loadedRoom
                   : LoadRoomAsTemporary(unloadedRoom, errors, doLoadScript: true);
 
-                string roomContext = string.IsNullOrEmpty(room.Description) ? $"Room {room.Number}" : $"Room {room.Number}; {room.Description}";
+                string roomContext = $"Room:{room.Number}";
 
                 room.Script.Text = processor.ProcessText(GameTextLine.MakeScript(room.Script.Text, room.ScriptFileName, roomContext), GameTextType.Script);
                 if (processor.MakesChanges)
@@ -2017,14 +2017,16 @@ namespace AGS.Editor.Components
 
                 foreach (RoomHotspot hotspot in room.Hotspots)
                 {
-                    hotspot.DisplayName = processor.ProcessText(new GameTextLine(hotspot.DisplayName, roomContext), GameTextType.ItemDescription);
-                    TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, hotspot.Properties, roomContext, errors);
+                    string sourceRef = $"{roomContext}/{TextProcessingHelper.NameOrID(hotspot.ScriptName, hotspot.ID)}";
+                    hotspot.DisplayName = processor.ProcessText(TextProcessingHelper.MakeItemLine(hotspot.DisplayName, sourceRef, "Hotspot name"), GameTextType.ItemDescription);
+                    TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, hotspot.Properties, sourceRef, errors);
                 }
 
                 foreach (RoomObject obj in room.Objects)
                 {
-                    obj.DisplayName = processor.ProcessText(new GameTextLine(obj.DisplayName, roomContext), GameTextType.ItemDescription);
-                    TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, obj.Properties, roomContext, errors);
+                    string sourceRef = $"{roomContext}/{TextProcessingHelper.NameOrID(obj.ScriptName, obj.ID)}";
+                    obj.DisplayName = processor.ProcessText(TextProcessingHelper.MakeItemLine(obj.DisplayName, sourceRef, "Object name"), GameTextType.ItemDescription);
+                    TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, obj.Properties, sourceRef, errors);
                 }
 
                 if (processor.MakesChanges)
