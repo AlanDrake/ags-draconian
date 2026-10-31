@@ -875,6 +875,79 @@ msgstr ""réplique active""
         }
 
         [Test]
+        public void LoadEntriesWithoutEmptyLines_Test()
+        {
+            // Entries are not separated by empty lines, and some lines have extra whitespace
+            var text = "msgid \"\"\nmsgstr \"\"\n" +
+                "msgid \"first\"\nmsgstr \"premier\"\n" +
+                "# translator note\n#: GlobalScript.asc:1\n" +
+                "  msgid   \"second\"  \nmsgstr \"deux\"\n\"ième\"\n" +
+                "msgctxt \"ctx\"\nmsgid \"third\"\nmsgstr \"troisième\"\n" +
+                "#~ msgid \"old\"\n#~ msgstr \"vieux\"\n" +
+                "msgid \"fourth\"\nmsgstr \"quatrième\"";
+            CompileMessages errors;
+            Translation translation = LoadTranslationFromString(text, out errors);
+
+            Assert.AreEqual(0, errors.Count);
+            Assert.AreEqual(5, translation.TranslatedEntries.Count);
+            Assert.AreEqual("premier", translation.TranslatedEntries["first"].Value);
+            Assert.AreEqual(0, translation.TranslatedEntries["first"].TranslatorComments.Count);
+            var second = translation.TranslatedEntries["second"];
+            Assert.AreEqual("deuxième", second.Value);
+            CollectionAssert.AreEqual(new string[] { "translator note" }, second.TranslatorComments);
+            CollectionAssert.AreEqual(new string[] { "GlobalScript.asc:1" }, second.SourceReferences);
+            Assert.AreEqual("ctx", translation.TranslatedEntries["third"].Context);
+            Assert.AreEqual(null, translation.TranslatedEntries["second"].Context);
+            Assert.IsTrue(translation.TranslatedEntries["old"].IsObsolete);
+            Assert.IsFalse(translation.TranslatedEntries["fourth"].IsObsolete);
+        }
+
+        [Test]
+        public void LoadMalformedEntriesWithWarnings_Test()
+        {
+            var lines = new string[] {
+                "msgid \"\"",                       // 1
+                "msgstr \"\"",                      // 2
+                "",                                 // 3
+                "\"orphaned string\"",              // 4: string outside of entry
+                "msgid \"no translation\"",         // 5: incomplete entry
+                "",                                 // 6
+                "msgid \"good\"",                   // 7
+                "msgstr \"bon\"",                   // 8
+                "msgstr \"bien\"",                  // 9: duplicate msgstr
+                "\"continued\"",                    // 10: skipped along with duplicate msgstr
+                "",                                 // 11
+                "msgid \"unterminated",             // 12: unrecognized line
+                "",                                 // 13
+                "msgid \"apple\"",                  // 14
+                "msgid_plural \"apples\"",          // 15: plural forms
+                "msgstr[0] \"pomme\"",              // 16
+                "msgstr[1] \"pommes\"",             // 17
+                "",                                 // 18
+                "msgid \"good\"",                   // 19: duplicate entry
+                "msgstr \"très bon\"",              // 20
+                "",                                 // 21
+                "msgstr \"lost\"",                  // 22: msgstr without msgid
+            };
+            CompileMessages errors;
+            Translation translation = LoadTranslationFromString(string.Join("\n", lines), out errors);
+
+            Assert.IsFalse(errors.HasErrors);
+            var warnings = new List<int>();
+            foreach (var msg in errors)
+            {
+                Assert.IsInstanceOf<CompileWarning>(msg);
+                Assert.AreEqual("NewLanguage.po", msg.ScriptName);
+                warnings.Add(msg.LineNumber);
+            }
+            CollectionAssert.AreEqual(new int[] { 4, 5, 9, 12, 15, 19, 22 }, warnings);
+
+            Assert.AreEqual(2, translation.TranslatedEntries.Count);
+            Assert.AreEqual("très bon", translation.TranslatedEntries["good"].Value);
+            Assert.AreEqual("pomme", translation.TranslatedEntries["apple"].Value);
+        }
+
+        [Test]
         public void UpdateRevivesObsoleteEntry_Test()
         {
             Translation translation = CreateTranslationForTest();

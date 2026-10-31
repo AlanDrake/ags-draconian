@@ -373,10 +373,10 @@ namespace AGS.Types
         private enum ParseState
         {
             NewEntry,
-            ParsingMeta,
             ParsingContext,
             ParsingId,
-            ParsingString
+            ParsingString,
+            Skipping // ignoring unsupported or malformed data until the next keyword
         }
 
         /// <summary>
@@ -443,24 +443,39 @@ namespace AGS.Types
         // in a translation file parser/serializer.
         private bool LoadDataImpl(StreamReader sr, CompileMessages errors)
         {
+            const int MaxWarnings = 100;
+
             _fontOverrides = new Dictionary<int, FontOverride>();
             _translatedEntries = new Dictionary<string, TranslationEntry>();
             _headerFields.Clear();
             string old_encoding = _encodingHint;
+            // Warnings are only reported if the parsing completes (and not restarted with another encoding)
+            CompileMessages warnings = new CompileMessages();
+            Action<string, int> warn = (message, lineNumber) =>
+            {
+                if (warnings.Count < MaxWarnings)
+                    warnings.Add(new CompileWarning(message, FileName, lineNumber));
+                else if (warnings.Count == MaxWarnings)
+                    warnings.Add(new CompileWarning("Too many problems found in the translation source, further warnings are not reported", FileName, lineNumber));
+            };
 
             ParseState state = ParseState.NewEntry;
             TranslationEntry entry = new TranslationEntry();
+            bool hasContext = false, hasMsgid = false, hasMsgstr = false, warnedPlural = false;
+            int entryLine = 0; // line where the entry's msgctxt or msgid begins
 
-            // Stores the currently parsed entry, if it's complete
+            // Stores the currently parsed entry, if it's complete, and begins a new one
             Action finishEntry = () =>
             {
-                if (state == ParseState.ParsingString)
+                if (hasMsgid && hasMsgstr)
                 {
                     if (!string.IsNullOrEmpty(entry.Key))
                     {
                         // Fix any unescaped quotes left by the older Editor versions
                         entry.Key = EscapeUnescapedQuotes(entry.Key);
                         entry.Value = EscapeUnescapedQuotes(entry.Value);
+                        if (_translatedEntries.ContainsKey(entry.Key))
+                            warn($"Duplicate entry for the text \"{entry.Key}\"; only the last one is used", entryLine);
                         _translatedEntries[entry.Key] = entry;
                     }
                     else
@@ -469,25 +484,41 @@ namespace AGS.Types
                         ReadHeaderFields(entry.Value);
                     }
                 }
+                else if (hasContext || hasMsgid)
+                {
+                    warn("Incomplete entry without msgstr is ignored", entryLine);
+                }
                 state = ParseState.NewEntry;
                 entry = new TranslationEntry();
+                hasContext = hasMsgid = hasMsgstr = warnedPlural = false;
             };
 
             {
                 string line;
+                int lineNumber = 0;
                 while ((line = sr.ReadLine()) != null)
                 {
+                    lineNumber++;
+                    line = line.Trim();
+
                     // Obsolete entries are commented out with "#~", but otherwise have the regular syntax;
                     // "#~|" is a previous msgid of an obsolete entry, which is kept as a metadata
+                    bool isObsoleteLine = false;
                     if (line.StartsWith("#~") && !line.StartsWith("#~|"))
                     {
                         line = line.Substring(2).TrimStart();
                         if (line.Length == 0)
                             continue;
-                        entry.IsObsolete = true;
+                        isObsoleteLine = true;
                     }
 
-                    string extracted_string = POExtractString(line);
+                    // An empty line separates entries
+                    if (line.Length == 0)
+                    {
+                        if (state != ParseState.NewEntry)
+                            finishEntry();
+                        continue;
+                    }
 
                     // Font overrides were mistakenly written in the legacy TRS format by some Editor versions
                     if (line.StartsWith("//#" + FONT_OVERRIDE_TAG))
@@ -496,10 +527,15 @@ namespace AGS.Types
                         continue;
                     }
 
-                    // Case 1: encountered metadata
-                    // TODO: track different types of metadata (flags, comments, etc)
+                    // Case 1: comments and annotations
                     if (line.StartsWith("#"))
                     {
+                        // Comments precede the entry, so this begins a new one
+                        if (hasMsgstr)
+                            finishEntry();
+                        else if (hasContext || hasMsgid)
+                            warn("Comment found in the middle of an entry", lineNumber);
+
                         if (line.StartsWith("# $"))
                         {
                             ReadSpecialTags(line.Substring(3));
@@ -538,59 +574,86 @@ namespace AGS.Types
                         continue;
                     }
 
-                    // Case 2: we got a string, figure out what to do with it
-                    if (extracted_string != null)
+                    // Case 2: keywords and strings
+                    string keyword, text;
+                    int pluralIndex;
+                    if (!ParsePOLine(line, out keyword, out text, out pluralIndex))
                     {
-                        // start of a new type
-                        if (line.StartsWith("msgctxt")) // context
-                        {
-                            state = ParseState.ParsingContext;
-                            entry.Context = extracted_string;
-                            continue;
-                        }
-                        if (line.StartsWith("msgid")) // string id, untranslated
-                        {
-                            state = ParseState.ParsingId;
-                            entry.Key = extracted_string;
-                            continue;
-                        }
-                        if (line.StartsWith("msgstr")) // translated string
-                        {
-                            state = ParseState.ParsingString;
-                            entry.Value = extracted_string;
-                            continue;
-                        }
-
-                        // strings can be split on multiple lines, usually the first will be empty, but no guarantee
-                        // an external tool may have done that, so let's append
-                        switch (state)
-                        {
-                            case ParseState.ParsingContext:
-                                entry.Context += extracted_string;
-                                continue;
-
-                            case ParseState.ParsingId:
-                                entry.Key += extracted_string;
-                                continue;
-
-                            case ParseState.ParsingString:
-                                entry.Value += extracted_string;
-                                continue;
-
-                            default: continue; // ignore orphaned strings since we can't throw errors
-                        }
+                        warn($"Unrecognized line is ignored: {line}", lineNumber);
+                        continue;
                     }
 
-                    // Case 3: we were processing an entry and encountered an empty line
-                    if (state != ParseState.NewEntry && line.Trim().Length == 0)
+                    switch (keyword)
                     {
-                        finishEntry();
+                        case "msgctxt":
+                        case "msgid":
+                            // Begins a new entry, unless msgid follows msgctxt
+                            if (hasMsgstr || hasMsgid || (keyword == "msgctxt" && hasContext))
+                                finishEntry();
+                            if (!hasContext)
+                                entryLine = lineNumber;
+                            if (keyword == "msgctxt")
+                            {
+                                state = ParseState.ParsingContext;
+                                hasContext = true;
+                                entry.Context = text;
+                            }
+                            else
+                            {
+                                state = ParseState.ParsingId;
+                                hasMsgid = true;
+                                entry.Key = text;
+                            }
+                            break;
+                        case "msgstr":
+                            if (!hasMsgid)
+                            {
+                                warn("msgstr without a preceding msgid is ignored", lineNumber);
+                                state = ParseState.Skipping;
+                            }
+                            else if (pluralIndex > 0)
+                            {
+                                state = ParseState.Skipping; // only the first plural form is used
+                            }
+                            else if (hasMsgstr)
+                            {
+                                warn("Duplicate msgstr in the entry is ignored", lineNumber);
+                                state = ParseState.Skipping;
+                            }
+                            else
+                            {
+                                state = ParseState.ParsingString;
+                                hasMsgstr = true;
+                                entry.Value = text;
+                            }
+                            break;
+                        case "msgid_plural":
+                            if (!warnedPlural)
+                                warn("Plural forms are not supported; only the first form (msgstr[0]) is used", lineNumber);
+                            warnedPlural = true;
+                            state = ParseState.Skipping;
+                            break;
+                        default:
+                            // Strings may be split on multiple lines, which are concatenated
+                            switch (state)
+                            {
+                                case ParseState.ParsingContext: entry.Context += text; break;
+                                case ParseState.ParsingId: entry.Key += text; break;
+                                case ParseState.ParsingString: entry.Value += text; break;
+                                case ParseState.Skipping: break;
+                                default: warn("A string outside of any entry is ignored", lineNumber); break;
+                            }
+                            continue; // continuation lines don't change the entry's obsolete state
                     }
+
+                    if (isObsoleteLine)
+                        entry.IsObsolete = true;
                 } // while
 
                 // The last entry is not necessarily followed by an empty line
                 finishEntry();
             }
+            errors.AddRange(warnings);
             return true;
         }
 
@@ -601,18 +664,32 @@ namespace AGS.Types
             return text.StartsWith(" ") ? text.Substring(1) : text;
         }
 
-        private readonly Regex POString = new Regex("^(?:msgctxt |msgid |msgstr |)+\"(.*)\"$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex POLine = new Regex(
+            "^(?:(?<keyword>msgctxt|msgid_plural|msgid|msgstr)(?:\\[(?<index>\\d+)\\])?\\s*)?\"(?<text>.*)\"$",
+            RegexOptions.Compiled);
 
-        // utility to extract a string between quotes, but only if it meets the format
-        private string POExtractString(string line)
+        /// <summary>
+        /// Parses a PO line which contains a keyword followed by a string, or a string alone
+        /// (which continues the previous one); keyword is returned empty in the latter case.
+        /// pluralIndex is set if the keyword had an index (like msgstr[N]), otherwise -1.
+        /// </summary>
+        private static bool ParsePOLine(string line, out string keyword, out string text, out int pluralIndex)
         {
-            if (line == null) return null;
-
-            Match match = POString.Match(line);
-            if (match.Success)
-                return (match.Groups[1].Value);
-
-            return null;
+            keyword = text = null;
+            pluralIndex = -1;
+            Match match = POLine.Match(line);
+            if (!match.Success)
+                return false;
+            keyword = match.Groups["keyword"].Value;
+            text = match.Groups["text"].Value;
+            if (match.Groups["index"].Success)
+            {
+                // only msgstr may have an index
+                if (keyword != "msgstr")
+                    return false;
+                pluralIndex = int.Parse(match.Groups["index"].Value);
+            }
+            return true;
         }
 
         /// <summary>
