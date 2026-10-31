@@ -303,7 +303,7 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild Compiler.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
+          msbuild Compiler.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
 
       - name: Run Legacy Compiler tests (x86)
         run: Solutions\.test\x86\Release\Compiler.Lib.Test.exe
@@ -312,7 +312,7 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild Compiler2.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
+          msbuild Compiler2.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
 
       - name: Run Compiler tests (x86)
         run: Solutions\.test\x86\Release\Compiler2.Lib.Test.exe
@@ -321,7 +321,7 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild Tests.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
+          msbuild Tests.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
 
       - name: Run Common tests (x86)
         run: Solutions\.test\x86\Release\Common.Lib.Test.exe
@@ -340,7 +340,7 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild Compiler.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
+          msbuild Compiler.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
 
       - name: Run Legacy Compiler tests (x64)
         run: Solutions\.test\x64\Release\Compiler.Lib.Test.exe
@@ -349,7 +349,7 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild Compiler2.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
+          msbuild Compiler2.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
 
       - name: Run Compiler tests (x64)
         run: Solutions\.test\x64\Release\Compiler2.Lib.Test.exe
@@ -358,7 +358,7 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild Tests.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
+          msbuild Tests.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
 
       - name: Run Common tests (x64)
         run: Solutions\.test\x64\Release\Common.Lib.Test.exe
@@ -399,13 +399,13 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
+          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
 
       - name: Build Engine (x86 Release)
         shell: cmd
         run: |
           cd Solutions
-          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
+          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
 
       - name: Upload x86 Engine PDBs
         uses: actions/upload-artifact@v7
@@ -435,7 +435,7 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
+          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
 
       - name: Upload x64 Engine PDBs
         uses: actions/upload-artifact@v7
@@ -482,25 +482,25 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo     
+          msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo     
 
       - name: Build Compiler (x86 Debug)
         shell: cmd
         run: |
           cd Solutions
-          msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
+          msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
 
       - name: Build Tools (x86 Release)
         shell: cmd
         run: |
           cd Solutions
-          msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
+          msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
 
       - name: Build Compiler (x86 Release)
         shell: cmd
         run: |
           cd Solutions
-          msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
+          msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
 
       - name: Upload x86 Tools PDBs
         uses: actions/upload-artifact@v7
@@ -530,13 +530,13 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
+          msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
 
       - name: Build Compiler (x64 Release)
         shell: cmd
         run: |
           cd Solutions
-          msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
+          msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
 
       - name: Upload x64 Tools PDBs
         uses: actions/upload-artifact@v7
@@ -607,7 +607,7 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
+          msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
 
       - name: Run NUnit tests (Debug)
         shell: cmd
@@ -621,7 +621,7 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
+          msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
 
       - name: Run NUnit tests (Release)
         shell: cmd

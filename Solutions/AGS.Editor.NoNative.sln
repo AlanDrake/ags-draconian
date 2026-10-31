@@ -1,7 +1,7 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37314.3 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGSEditor", "..\Editor\AGS.Editor\AGSEditor.csproj", "{6C0D2BF2-2F34-42FF-8356-79254CCF3131}"
 EndProject
