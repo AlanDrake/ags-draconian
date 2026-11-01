@@ -39,7 +39,7 @@ namespace Common
 {
 class Stream;
 }
-}                    // namespace AGS
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 struct CharacterInfo;

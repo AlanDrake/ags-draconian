@@ -31,7 +31,7 @@ namespace Common
 {
 class Stream;
 }
-}                    // namespace AGS
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 // register a memory handle for the object and allow script pointers to point to it

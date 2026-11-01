@@ -53,7 +53,7 @@ namespace Engine
 {
 class IDriverDependantBitmap;
 }
-}                    // namespace AGS
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 // Overlay behavior flags

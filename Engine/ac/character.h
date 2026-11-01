@@ -168,7 +168,7 @@ namespace Common
 {
 class Bitmap;
 }
-}                    // namespace AGS
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 // Configures and starts character animation.

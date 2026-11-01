@@ -3003,7 +3003,7 @@ static void construct_roomview_sw(const Viewport *viewport)
     gfxDriver->BeginSpriteBatch(view_p, view_trans, RENDER_BATCH_ROOM_LAYER);
 
     if (CameraDrawData[viewport->GetID()].Frame == nullptr && CameraDrawData[viewport->GetID()].IsOverlap)
-    {   // room background is prepended to the sprite stack
+    { // room background is prepended to the sprite stack
         // TODO: here's why we have blit whole piece of background now:
         // if we draw directly to the virtual screen overlapping another
         // viewport, then we'd have to also mark and repaint every our

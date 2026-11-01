@@ -29,10 +29,8 @@ namespace Engine
 // Clock is a high-resolution clock, used when we need max precision.
 // Use high resolution clock only if we know it is monotonic/steady.
 // refer to https://stackoverflow.com/a/38253266/84262
-using Clock = std::conditional<
-    std::chrono::high_resolution_clock::is_steady,
-    std::chrono::high_resolution_clock, std::chrono::steady_clock
->::type;
+using Clock = std::conditional<std::chrono::high_resolution_clock::is_steady, std::chrono::high_resolution_clock,
+                               std::chrono::steady_clock>::type;
 // FastClock is a higher performance clock, used when the speed is a priority,
 // but precision may be sacrificed.
 using FastClock = std::chrono::system_clock;
@@ -56,20 +54,11 @@ public:
     using Duration = typename TClock::duration;
     using TimePoint = typename TClock::time_point;
 
-    TStopwatch()
-    {
-        _start = TClock::now();
-    }
+    TStopwatch() { _start = TClock::now(); }
 
-    void Start()
-    {
-        _start = TClock::now();
-    }
+    void Start() { _start = TClock::now(); }
 
-    Duration Check() const
-    {
-        return TClock::now() - _start;
-    }
+    Duration Check() const { return TClock::now() - _start; }
 
 private:
     TimePoint _start;

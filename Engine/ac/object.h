@@ -31,7 +31,7 @@ namespace Common
 {
 class Bitmap;
 }
-}                    // namespace AGS
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 // Tells if the object ID is valid (in the current room)

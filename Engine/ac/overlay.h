@@ -30,7 +30,7 @@ namespace Common
 {
 class Bitmap;
 }
-}                    // namespace AGS
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 // Gets an actual ScreenOverlay object given its index;

@@ -61,15 +61,15 @@ extern std::vector<ViewStruct> views;
 extern SpriteCache spriteset;
 
 extern CCCharacter ccDynamicCharacter;
-extern CCHotspot   ccDynamicHotspot;
-extern CCRegion    ccDynamicRegion;
+extern CCHotspot ccDynamicHotspot;
+extern CCRegion ccDynamicRegion;
 extern CCWalkableArea ccDynamicWalkarea;
 extern CCWalkbehind ccDynamicWalkbehind;
 extern CCInventory ccDynamicInv;
-extern CCGUI       ccDynamicGUI;
+extern CCGUI ccDynamicGUI;
 extern CCTextWindowGUI ccDynamicTextWindowGUI;
-extern CCObject    ccDynamicObject;
-extern CCDialog    ccDynamicDialog;
+extern CCObject ccDynamicObject;
+extern CCDialog ccDynamicDialog;
 extern CCAudioChannel ccDynamicAudio;
 extern CCAudioClip ccDynamicAudioClip;
 extern CCGUIButton ccDynamicGUIButton;
@@ -117,18 +117,12 @@ String GetGameInitErrorText(GameInitErrorType err)
 {
     switch (err)
     {
-    case kGameInitErr_NoError:
-        return "No error.";
-    case kGameInitErr_UnknownDataVersion:
-        return "Unknown game data version";
-    case kGameInitErr_NoFonts:
-        return "No fonts specified to be used in this game.";
-    case kGameInitErr_EntityInitFail:
-        return "Failed to initialize game entities.";
-    case kGameInitErr_PluginNameInvalid:
-        return "Plugin name is invalid.";
-    case kGameInitErr_ScriptInitFailed:
-        return "Failed to initialize runtime scripts.";
+    case kGameInitErr_NoError: return "No error.";
+    case kGameInitErr_UnknownDataVersion: return "Unknown game data version";
+    case kGameInitErr_NoFonts: return "No fonts specified to be used in this game.";
+    case kGameInitErr_EntityInitFail: return "Failed to initialize game entities.";
+    case kGameInitErr_PluginNameInvalid: return "Plugin name is invalid.";
+    case kGameInitErr_ScriptInitFailed: return "Failed to initialize runtime scripts.";
     }
     return "Unknown error.";
 }
@@ -375,7 +369,7 @@ HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
 void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
     set_gamedata_version(data_ver);
-    for (int i = 0; i < game.numfonts; ++i) 
+    for (int i = 0; i < game.numfonts; ++i)
     {
         load_game_font(i, game.fonts[i], data_ver);
     }
@@ -426,13 +420,14 @@ void LoadLipsyncData()
 void InitGameResolution(GameSetupStruct &game, GameDataVersion data_ver)
 {
     const Size game_size = game.GetGameRes();
-    Debug::Printf(kDbgMsg_Info, "Game native resolution: %d x %d (%d bit)", game_size.Width, game_size.Height, game.color_depth * 8);
+    Debug::Printf(kDbgMsg_Info, "Game native resolution: %d x %d (%d bit)", game_size.Width, game_size.Height,
+                  game.color_depth * 8);
 
     // Assign general game viewports
     Rect viewport = RectWH(game_size);
     play.SetMainViewport(viewport);
     play.SetUIViewport(viewport);
-    
+
     // Assign ScriptSystem's resolution variables
     scsystem.width = game.GetGameRes().Width;
     scsystem.height = game.GetGameRes().Height;
@@ -449,12 +444,13 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     const char *base_api_name = GetScriptAPIName(base_api);
     const char *compat_api_name = GetScriptAPIName(compat_api);
     Debug::Printf(kDbgMsg_Info, "Requested script API: %s (%d), compat level: %s (%d)",
-                base_api >= 0 && base_api <= kScriptAPI_Current ? base_api_name : "unknown", base_api,
-                compat_api >= 0 && compat_api <= kScriptAPI_Current ? compat_api_name : "unknown", compat_api);
+                  base_api >= 0 && base_api <= kScriptAPI_Current ? base_api_name : "unknown", base_api,
+                  compat_api >= 0 && compat_api <= kScriptAPI_Current ? compat_api_name : "unknown", compat_api);
     // If the game was compiled using unsupported version of the script API,
     // we warn about potential incompatibilities but proceed further.
     if (game.options[OPT_BASESCRIPTAPI] > kScriptAPI_Current)
-        platform->DisplayAlert("Warning: this game requests a higher version of AGS script API, it may not run correctly or run at all.");
+        platform->DisplayAlert(
+            "Warning: this game requests a higher version of AGS script API, it may not run correctly or run at all.");
 
     //
     // 1. Check that the loaded data is valid and compatible with the current
@@ -505,7 +501,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // 4. Initialize certain runtime variables
     //
     // TODO: merge this with engine_init_game_settings()
-    game_paused = 0;  // reset the game paused flag
+    game_paused = 0; // reset the game paused flag
     ifacepopped = -1;
 
     String svg_suffix;
@@ -552,7 +548,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // script symbols too.
     //
 
-    std::vector<ccScript*> sc_modules;
+    std::vector<ccScript *> sc_modules;
     for (const auto &us : ents.ScriptModules)
         sc_modules.push_back(us.get());
     err = CreateRuntimeScripts(ents.GlobalScript.get(), sc_modules, ents.ScriptModuleNames, ents.DialogScript.get());
@@ -610,8 +606,8 @@ void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const Game
     std::array<bool, kNum_RBS> rbo = {0};
     rbo[kRBO_SmoothWalkTransition] = (loaded_game_file_version >= kGameVersion_361);
     rbo[kRBO_ApplyGUITextDirection] = (loaded_game_file_version >= kGameVersion_361);
-    rbo[kRBO_ApplyDialogOptionTextAlignment]= (loaded_game_file_version >= kGameVersion_363);
-    rbo[kRBO_NoTextPropertyAutoTranslate]= (loaded_game_file_version >= kGameVersion_363_14);
+    rbo[kRBO_ApplyDialogOptionTextAlignment] = (loaded_game_file_version >= kGameVersion_363);
+    rbo[kRBO_NoTextPropertyAutoTranslate] = (loaded_game_file_version >= kGameVersion_363_14);
 
     // Now apply overrides from config, *BUT* these only enable disabled options,
     // and never disable enabled ones (because that might break or "downgrade" modern games).

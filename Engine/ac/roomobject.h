@@ -30,7 +30,7 @@ namespace Common
 {
 class Stream;
 }
-}                    // namespace AGS
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 // RoomObject's legacy animation constants

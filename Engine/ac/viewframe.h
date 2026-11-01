@@ -30,7 +30,7 @@ namespace Common
 {
 struct InteractionEvents;
 }
-}                    // namespace AGS
+} // namespace AGS
 using namespace AGS; // FIXME later
 struct ObjectEvent;
 

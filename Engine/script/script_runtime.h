@@ -14,8 +14,8 @@
 #ifndef __AGS_EE_CC__SCRIPTRUNTIME_H
 #define __AGS_EE_CC__SCRIPTRUNTIME_H
 
-#include "util/memory_compat.h"    // std::size
-#include "script/cc_script.h"      // ccScript
+#include "util/memory_compat.h" // std::size
+#include "script/cc_script.h"   // ccScript
 #include "script/runtimescript.h"
 #include "script/runtimescriptvalue.h"
 
@@ -27,28 +27,36 @@ using AGS::Common::String;
 struct ScFnRegister
 {
     const char *Name = nullptr;
-    RuntimeScriptValue Fn; // for script VM calls
+    RuntimeScriptValue Fn;   // for script VM calls
     RuntimeScriptValue PlFn; // for plugins, direct unsafe call style
 
     ScFnRegister() = default;
     ScFnRegister(const char *name, ScriptAPIFunction *fn, void *plfn = nullptr)
-        : Name(name)
-        , Fn(RuntimeScriptValue().SetStaticFunction(fn))
-        , PlFn(RuntimeScriptValue().SetPluginFunction(plfn)) {}
+        : Name(name),
+          Fn(RuntimeScriptValue().SetStaticFunction(fn)),
+          PlFn(RuntimeScriptValue().SetPluginFunction(plfn))
+    {
+    }
     ScFnRegister(const char *name, ScriptAPIObjectFunction *fn, void *plfn = nullptr)
-        : Name(name)
-        , Fn(RuntimeScriptValue().SetObjectFunction(fn))
-        , PlFn(RuntimeScriptValue().SetPluginFunction(plfn)) {}
+        : Name(name),
+          Fn(RuntimeScriptValue().SetObjectFunction(fn)),
+          PlFn(RuntimeScriptValue().SetPluginFunction(plfn))
+    {
+    }
     template <typename TPlFn>
     ScFnRegister(const char *name, ScriptAPIFunction *fn, TPlFn plfn)
-        : Name(name)
-        , Fn(RuntimeScriptValue().SetStaticFunction(fn))
-        , PlFn(RuntimeScriptValue().SetPluginFunction(reinterpret_cast<void*>(plfn))) {}
+        : Name(name),
+          Fn(RuntimeScriptValue().SetStaticFunction(fn)),
+          PlFn(RuntimeScriptValue().SetPluginFunction(reinterpret_cast<void *>(plfn)))
+    {
+    }
     template <typename TPlFn>
     ScFnRegister(const char *name, ScriptAPIObjectFunction *fn, TPlFn plfn)
-        : Name(name)
-        , Fn(RuntimeScriptValue().SetObjectFunction(fn))
-        , PlFn(RuntimeScriptValue().SetPluginFunction(reinterpret_cast<void*>(plfn))) {}
+        : Name(name),
+          Fn(RuntimeScriptValue().SetObjectFunction(fn)),
+          PlFn(RuntimeScriptValue().SetPluginFunction(reinterpret_cast<void *>(plfn)))
+    {
+    }
 };
 
 // Following two functions register engine API symbols for script and plugins.
@@ -90,8 +98,14 @@ void *ccGetScriptObjectAddress(const String &name, const String &type);
 void *ccGetScriptObjectAddress(const String &name, const std::vector<String> &types);
 
 // Debugging instruments
-namespace AGS { namespace Engine { class ScriptExecutor; } }
-typedef void (*new_line_hook_type) (AGS::Engine::ScriptExecutor *, int);
+namespace AGS
+{
+namespace Engine
+{
+class ScriptExecutor;
+}
+} // namespace AGS
+typedef void (*new_line_hook_type)(AGS::Engine::ScriptExecutor *, int);
 void ccSetDebugHook(new_line_hook_type jibble);
 void ccSetDebugLogging(bool on);
 
