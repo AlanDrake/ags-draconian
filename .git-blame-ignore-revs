@@ -1,0 +1,15 @@
+# Commits that only reformat code; git blame skips them (git config blame.ignoreRevsFile .git-blame-ignore-revs)
+# Common: [format] clang-format the whole module
+ecfc493ba5612e8d66acb408e86f70c1cbb7915f
+# Compiler: [format] clang-format the whole module
+7a018a2d91496d65b1cc53d364067ea44828ff08
+# Tools: [format] clang-format the whole module
+f998ada19da87b72e0e62809f72308e06247f127
+# Engine: [format] clang-format ac/
+394978e52ec92ee9729d94e166ccfe1abf6daf7c
+# Engine: [format] clang-format the rest of the module
+9cd1dd5572616117d35285eb90849f0836c48361
+# Plugins: [format] clang-format first-party plugins
+26f20a53256770dba458f043f51225595d7e06e4
+# [format] second clang-format pass (trailing comment alignment)
+08f79682ebdb07dc2c8e5361da1880ab9e29e6e8

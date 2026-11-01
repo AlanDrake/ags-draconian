@@ -221,15 +221,25 @@ The configs are already in the repo: `/.clang-format`, `/.clang-tidy`, `/.editor
 lines (BASELINE.md). Most of it is real fixes: K&R braces → Allman, `if (x) y;` split onto two
 lines, tab-indented code.
 
-- [ ] **2.1 CI format gate.** A job that runs pinned `clang-format 19` via `git clang-format --diff`
+- [x] **2.1 CI format gate.** A job that runs pinned `clang-format 19` via `git clang-format --diff`
   against the PR base and fails if anything changes. Changed lines only, from day one.
   *Done when:* a PR with a badly formatted line fails CI.
-- [ ] **2.2 One-time reformat, module by module.** Commits like `Common: [format] whole module`,
+- [x] **2.2 One-time reformat, module by module.** Commits like `Common: [format] whole module`,
   then Compiler, Tools, Engine (split by subfolder), Plugins (first-party only), Editor/AGS.Native.
   Verify each with 1.6. Add every hash to `.git-blame-ignore-revs` and run
   `git config blame.ignoreRevsFile .git-blame-ignore-revs`.
   *Done when:* `clang-format --dry-run` reports nothing on first-party code, and CI switches to
   checking whole files.
+  *Status (2026-11-01):* done. Formatted Common, Compiler, Tools, Engine/ac, the rest of Engine and the
+  first-party Plugins (~58,000 changed lines in 7 commits, hashes in `.git-blame-ignore-revs`); every
+  commit checked with `Script/compare_objects.py`: all non-test objects identical. clang-format needed
+  two passes to become idempotent (trailing-comment alignment). `.github/workflows/format.yml` now
+  checks all tracked C/C++ files with clang-format 19.1.7. Not formatted by design (`DisableFormat`):
+  third-party code (FreeType's own `.clang-format` replaced by the stub), `Editor/AGS.Native` and
+  `Editor/Native` (C++/CLI, going away in 6.7), `PSP/` (removed in 3.1), `OSX/` (Objective-C). Only
+  Windows/MSVC objects are compared; code for other platforms is formatted but not compiled by that
+  check (formatting does not change tokens). Each developer should run
+  `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
 - [ ] **2.3 Mechanical modernisation** (each item is its own commit, using the clang-tidy `--fix`
   of the named check): `NULL` → `nullptr` (276), `modernize-use-override`,
   `modernize-deprecated-headers` (`<math.h>` → `<cmath>`), `modernize-use-using`,

@@ -1,7 +1,7 @@
 name: Format check
 
-# Checks only the lines a push or pull request changes (docs/refactor/PLAN.md, task 2.1).
-# Switches to whole files once the one-time reformat is done (task 2.2).
+# All first-party C/C++ files must be clang-format clean (docs/refactor/PLAN.md, tasks 2.1/2.2).
+# Third-party and unformatted directories carry a .clang-format with "DisableFormat: true".
 
 on: [push, pull_request]
 
@@ -15,32 +15,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0
           persist-credentials: false
 
       # Pinned: different clang-format versions format differently (docs/refactor/STYLE.md)
       - name: Install clang-format
         run: pip install clang-format==19.1.7
 
-      - name: Find base revision
-        id: base
+      - name: Check formatting
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BASE="${{ github.event.pull_request.base.sha }}"
-          else
-            BASE="${{ github.event.before }}"
-          fi
-          # New branches and force pushes have no usable "before"
-          if [ -z "$BASE" ] || echo "$BASE" | grep -q '^0*$' || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
-            BASE="$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)"
-          fi
-          echo "sha=$BASE" >> "$GITHUB_OUTPUT"
-
-      - name: Check formatting of changed lines
-        run: |
-          OUT=$(git clang-format --diff --extensions c,cc,cpp,cxx,h,hpp,inl "${{ steps.base.outputs.sha }}" || true)
-          if [ -n "$OUT" ] && ! echo "$OUT" | grep -q -E '^(no modified files to format|clang-format did not modify any files)$'; then
-            echo "$OUT"
-            echo "::error::Changed lines are not formatted. Run: git clang-format ${{ steps.base.outputs.sha }}"
-            exit 1
-          fi
+          git ls-files '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hpp' '*.inl' \
+            | xargs clang-format --dry-run -Werror
