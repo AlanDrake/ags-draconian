@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__SCRIPTFILE_H
-#define __AGS_EE_DYNOBJ__SCRIPTFILE_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "util/file.h"
@@ -47,5 +46,3 @@ public:
 
     sc_File();
 };
-
-#endif // __AGS_EE_DYNOBJ__SCRIPTFILE_H

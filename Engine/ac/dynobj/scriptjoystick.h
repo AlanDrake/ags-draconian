@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_SCRIPTJOYSTICK_H
-#define __AC_SCRIPTJOYSTICK_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "SDL_gamecontroller.h"
@@ -42,5 +41,3 @@ protected:
 private:
     int _id = -1;
 };
-
-#endif // __AC_SCRIPTJOYSTICK_H

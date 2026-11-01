@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_SERIALIZER_H
-#define __AC_SERIALIZER_H
+#pragma once
 
 #include "ac/dynobj/cc_scriptobject.h"
 #include "util/stream.h"
@@ -27,5 +26,3 @@ private:
     void UnserializeGUIControl(int index, AGS::Common::Stream *in, size_t data_sz);
     int RegisterGUIControl(int index, int guinum, int objnum);
 };
-
-#endif // __AC_SERIALIZER_H

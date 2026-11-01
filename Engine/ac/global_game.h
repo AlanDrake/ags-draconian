@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GLOBALGAME_H
-#define __AGS_EE_AC__GLOBALGAME_H
+#pragma once
 
 #include <locale>
 #include <stdexcept>
@@ -137,5 +136,3 @@ int WaitMouseKey(int nloops);
 int WaitInput(int input_flags, int nloops);
 void SkipWait0();
 void SkipWait(int result_value);
-
-#endif // __AGS_EE_AC__GLOBALGAME_H

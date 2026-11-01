@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_COMPILER_SCRIPT2_CC_SYMBOLTABLE_H
-#define __AGS_COMPILER_SCRIPT2_CC_SYMBOLTABLE_H
+#pragma once
 
 #include "cs_parser_common.h"
 #include "cs_compile_time.h"
@@ -664,4 +663,3 @@ public:
     inline int GetDeclared(int idx) { return entries[idx].Declared; };
 };
 } // namespace AGS
-#endif //__AGS_COMPILER_SCRIPT2_CC_SYMBOLTABLE_H

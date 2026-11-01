@@ -15,8 +15,7 @@
 // Page control implementation in WinAPI.
 //
 //=============================================================================
-#ifndef __AGS_EE_SETUP__WINPAGEDIALOG_H
-#define __AGS_EE_SETUP__WINPAGEDIALOG_H
+#pragma once
 
 #include "platform/platform.h"
 
@@ -79,5 +78,3 @@ private:
 } // namespace AGS
 
 #endif // AGS_PLATFORM_OS_WINDOWS
-
-#endif __AGS_EE_SETUP__WINPAGEDIALOG_H

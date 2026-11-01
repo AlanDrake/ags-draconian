@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__AUDIOCLIP_H
-#define __AGS_EE_AC__AUDIOCLIP_H
+#pragma once
 
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptobjects.h"
@@ -28,5 +27,3 @@ void AudioClip_Stop(ScriptAudioClip *clip);
 ScriptAudioChannel *AudioClip_Play(ScriptAudioClip *clip, int priority, int repeat);
 ScriptAudioChannel *AudioClip_PlayFrom(ScriptAudioClip *clip, int position, int priority, int repeat);
 ScriptAudioChannel *AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, int repeat);
-
-#endif // __AGS_EE_AC__AUDIOCLIP_H

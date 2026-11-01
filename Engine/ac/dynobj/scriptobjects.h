@@ -20,8 +20,7 @@
 // are not restricted now).
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__SCRIPTOBJECTS_H
-#define __AGS_EE_DYNOBJ__SCRIPTOBJECTS_H
+#pragma once
 
 struct ScriptSimpleRef
 {
@@ -60,5 +59,3 @@ struct ScriptWalkableArea : public ScriptSimpleRef
 struct ScriptWalkbehind : public ScriptSimpleRef
 {
 };
-
-#endif // __AGS_EE_DYNOBJ__SCRIPTOBJECTS_H

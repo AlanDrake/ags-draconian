@@ -15,8 +15,7 @@
 // FLIC video player implementation.
 //
 //=============================================================================
-#ifndef __AGS_EE_MEDIA__FLICPLAYER_H
-#define __AGS_EE_MEDIA__FLICPLAYER_H
+#pragma once
 
 #include "media/video/videoplayer.h"
 
@@ -51,5 +50,3 @@ private:
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_MEDIA__FLICPLAYER_H

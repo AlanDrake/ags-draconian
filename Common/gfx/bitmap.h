@@ -16,8 +16,7 @@
 // methods for blitting other bitmaps on it and drawing primitives.
 //
 //=============================================================================
-#ifndef __AGS_CN_GFX__BITMAP_H
-#define __AGS_CN_GFX__BITMAP_H
+#pragma once
 
 #include "gfx/gfx_def.h"
 #include "util/geometry.h"
@@ -177,5 +176,3 @@ void ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t s
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GFX__BITMAP_H

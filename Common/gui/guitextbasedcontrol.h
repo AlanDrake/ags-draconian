@@ -18,8 +18,7 @@
 // by a single text property (label, button, and alike).
 //
 //=============================================================================
-#ifndef __AGS_CN_GUI__GUITEXTBASEDCONTROL_H
-#define __AGS_CN_GUI__GUITEXTBASEDCONTROL_H
+#pragma once
 
 #include "gui/guicontrol.h"
 #include "util/string.h"
@@ -82,5 +81,3 @@ protected:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GUI__GUITEXTBASEDCONTROL_H

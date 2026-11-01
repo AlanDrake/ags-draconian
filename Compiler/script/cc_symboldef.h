@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CC_SYMBOLDEF_H
-#define __CC_SYMBOLDEF_H
+#pragma once
 
 #include "cs_parser_common.h" // macro definitions
 
@@ -44,5 +43,3 @@ struct SymbolDef
     // return value is at index 0, actual args begin with 1
     std::vector<FuncParamInfo> funcparams;
 };
-
-#endif // __CC_SYMBOLDEF_H

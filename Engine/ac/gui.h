@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GUI_H
-#define __AGS_EE_AC__GUI_H
+#pragma once
 
 #include "ac/dynobj/scriptobjects.h"
 #include "gui/guidefines.h"
@@ -114,5 +113,3 @@ void MarkDisabledGUIForUpdate();
 } // namespace GUIE
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_AC__GUI_H

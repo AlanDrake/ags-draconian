@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_UTIL__LIBRARY_POSIX_H
-#define __AGS_EE_UTIL__LIBRARY_POSIX_H
+#pragma once
 
 #include <dlfcn.h>
 #include <utility>
@@ -137,5 +136,3 @@ typedef PosixLibrary Library;
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_UTIL__LIBRARY_POSIX_H

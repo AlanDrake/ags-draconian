@@ -16,8 +16,7 @@
 // does the job.
 //
 //=============================================================================
-#ifndef __AGS_EE_GFX__SDLRENDERERAAFILTER_H
-#define __AGS_EE_GFX__SDLRENDERERAAFILTER_H
+#pragma once
 
 #include "gfx/gfxfilter_sdl_renderer.h"
 
@@ -42,5 +41,3 @@ public:
 } // namespace ALSW
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__SDLRENDERERAAFILTER_H

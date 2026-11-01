@@ -48,8 +48,7 @@ The result is:
 //  Should be used only internally by cs_compiler.cpp
 //-----------------------------------------------------------------------------
 
-#ifndef __CS_PARSER_H
-#define __CS_PARSER_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -1164,5 +1163,3 @@ extern int cc_compile(std::string const &source,    // preprocessed text to be c
                       AGS::SymbolTable &symt,       // store for the parsed symbols
                       AGS::SectionList &sections,   // store for the list of sections
                       AGS::MessageHandler &mh);     // warnings and the error
-
-#endif // __CS_PARSER_H

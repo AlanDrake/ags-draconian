@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EN_AC__MOVELIST_H
-#define __AGS_EN_AC__MOVELIST_H
+#pragma once
 
 #include "ac/runtime_defines.h" // RunPathParams
 #include "game/savegame.h"
@@ -154,5 +153,3 @@ private:
     // Handle reverting past the beginning of path, accounting to RunPathParams
     void OnPathRevertedBack();
 };
-
-#endif // __AGS_EN_AC__MOVELIST_H

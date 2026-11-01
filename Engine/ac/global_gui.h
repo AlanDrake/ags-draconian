@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GLOBALGUI_H
-#define __AGS_EE_AC__GLOBALGUI_H
+#pragma once
 
 // This is an internal script function, and is undocumented.
 // It is used by the editor's automatic macro generation.
@@ -32,5 +31,3 @@ void EnableInterfaceEx(bool update_cursor);
 // Returns 1 if user interface is enabled, 0 if disabled
 int IsInterfaceEnabled();
 void SetTextWindowGUI(int guinum);
-
-#endif // __AGS_EE_AC__GLOBALGUI_H

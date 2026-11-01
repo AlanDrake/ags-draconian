@@ -16,8 +16,7 @@
 // particular new C++ and STL functions.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__MEMORY_COMPAT_H
-#define __AGS_CN_UTIL__MEMORY_COMPAT_H
+#pragma once
 #include <memory>
 
 // C++14 features
@@ -49,5 +48,3 @@ constexpr std::size_t size(const T (&array)[N]) noexcept
 }
 } // namespace std
 #endif
-
-#endif // __AGS_CN_UTIL__MEMORY_COMPAT_H

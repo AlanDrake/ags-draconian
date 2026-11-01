@@ -20,8 +20,7 @@
 // "data" structs and runtime classes.
 //
 //=============================================================================
-#ifndef __AGS_CN_GFX__GRAPHICSPACE_H
-#define __AGS_CN_GFX__GRAPHICSPACE_H
+#pragma once
 
 #include <algorithm>
 #include <vector>
@@ -164,5 +163,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GFX__GRAPHICSPACE_H

@@ -15,8 +15,7 @@
 // ScriptUserObject is a dynamic (managed) struct manager.
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H
-#define __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "util/geometry.h"
@@ -99,5 +98,3 @@ bool ResolveArrayOfPoints(const void *arrobj, std::vector<Point> &points);
 // Creates a dynamic array of managed Point structs
 DynObjectRef CreateArrayOfPoints(const std::vector<Point> &points);
 }; // namespace ScriptStructHelpers
-
-#endif // __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H

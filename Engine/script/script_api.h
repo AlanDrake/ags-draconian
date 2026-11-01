@@ -16,8 +16,7 @@
 // values to real engine functions.
 //
 //=============================================================================
-#ifndef __AGS_EE_SCRIPT__SCRIPTAPI_H
-#define __AGS_EE_SCRIPT__SCRIPTAPI_H
+#pragma once
 
 #include <stdarg.h>
 #include "ac/runtime_defines.h"
@@ -838,5 +837,3 @@ inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va
     ASSERT_OBJ_PARAM_COUNT(METHOD, 1);                                    \
     RET_CLASS *ret_obj = METHOD((CLASS *)self, (P1CLASS *)params[0].Ptr); \
     return RuntimeScriptValue().SetScriptObject(ret_obj, ret_obj)
-
-#endif // __AGS_EE_SCRIPT__SCRIPTAPI_H

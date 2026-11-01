@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GLOBALSCREEN_H
-#define __AGS_EE_AC__GLOBALSCREEN_H
+#pragma once
 
 void FlipScreen(int direction);
 void ShakeScreen(int severe);
@@ -27,5 +26,3 @@ void SetNextScreenTransition(int newtrans);
 void SetFadeColor(int red, int green, int blue);
 void FadeIn(int sppd);
 void FadeOut(int sppd);
-
-#endif // __AGS_EE_AC__GLOBALSCREEN_H

@@ -16,8 +16,7 @@
 //
 //=============================================================================
 
-#ifndef __CC_COMPILER_H
-#define __CC_COMPILER_H
+#pragma once
 
 #define HIGHEST_SCRIPT_API "Highest"
 
@@ -66,5 +65,3 @@ public:
 
 int Compile(const CompilerOptions &comp_opts);
 std::vector<const char *> GetScriptAPIs();
-
-#endif //__CC_COMPILER_H

@@ -20,8 +20,7 @@
 // of the CLIB reader.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__MULTIFILELIB_H
-#define __AGS_CN_UTIL__MULTIFILELIB_H
+#pragma once
 
 #include "data/asset.h"
 #include "util/stream.h"
@@ -78,5 +77,3 @@ void OverwriteEnder(soff_t lib_offset, MFLVersion lib_version, Stream *out);
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__MULTIFILELIB_H

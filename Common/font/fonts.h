@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_CN_FONT__FONTS_H
-#define __AGS_CN_FONT__FONTS_H
+#pragma once
 
 #include <string>
 #include <utility>
@@ -189,5 +188,3 @@ namespace Common
 extern SplitLines Lines;
 }
 } // namespace AGS
-
-#endif // __AGS_CN_FONT__FONTS_H

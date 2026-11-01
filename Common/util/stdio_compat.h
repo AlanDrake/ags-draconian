@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__STDIOCOMPAT_H
-#define __AGS_CN_UTIL__STDIOCOMPAT_H
+#pragma once
 
 #include <stdio.h>
 #include <stdint.h>
@@ -51,5 +50,3 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
-#endif // __AGS_CN_UTIL__STDIOCOMPAT_H

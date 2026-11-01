@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_CCHOTSPOT_H
-#define __AC_CCHOTSPOT_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
@@ -32,5 +31,3 @@ protected:
     // Write object data into the provided stream
     void Serialize(const void *address, AGS::Common::Stream *out) override;
 };
-
-#endif // __AC_CCHOTSPOT_H

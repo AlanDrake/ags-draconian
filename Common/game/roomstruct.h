@@ -16,8 +16,7 @@
 // TODO: actually, should move this to the Engine side.
 //
 //=============================================================================
-#ifndef __AGS_CN_GAME__ROOMSTRUCT_H
-#define __AGS_CN_GAME__ROOMSTRUCT_H
+#pragma once
 
 #include "game/roomdata.h"
 #include "gfx/bitmap.h"
@@ -91,5 +90,3 @@ PBitmap FixBitmap(PBitmap bmp, int dst_width, int dst_height);
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GAME__ROOMSTRUCT_H

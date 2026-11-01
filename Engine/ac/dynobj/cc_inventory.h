@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_CCINVENTORY_H
-#define __AC_CCINVENTORY_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "ac/dynobj/scriptobjects.h"
@@ -32,5 +31,3 @@ private:
 
     static ScriptInvItem _dummy; // for registering invalid restored objects
 };
-
-#endif // __AC_CCINVENTORY_H

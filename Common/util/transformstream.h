@@ -37,8 +37,7 @@
 // on the working mode.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__TRANSFORMSTREAM_H
-#define __AGS_CN_UTIL__TRANSFORMSTREAM_H
+#pragma once
 
 #include <vector>
 #include "util/stream.h"
@@ -151,5 +150,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__TRANSFORMSTREAM_H

@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CS_MESSAGE_HANDLER_H
-#define __CS_MESSAGE_HANDLER_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -62,5 +61,3 @@ public:
 };
 
 } // namespace AGS
-
-#endif

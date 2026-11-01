@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__DATETIME_H
-#define __AGS_EE_AC__DATETIME_H
+#pragma once
 
 #include "ac/dynobj/scriptdatetime.h"
 
@@ -30,5 +29,3 @@ int DateTime_GetHour(ScriptDateTime *sdt);
 int DateTime_GetMinute(ScriptDateTime *sdt);
 int DateTime_GetSecond(ScriptDateTime *sdt);
 int DateTime_GetRawTime(ScriptDateTime *sdt);
-
-#endif // __AGS_EE_AC__DATETIME_H

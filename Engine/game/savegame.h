@@ -12,8 +12,7 @@
 //
 //=============================================================================
 
-#ifndef __AGS_EE_GAME__SAVEGAME_H
-#define __AGS_EE_GAME__SAVEGAME_H
+#pragma once
 
 #include <memory>
 #include "ac/game_version.h"
@@ -294,5 +293,3 @@ HSaveError SaveGame(const String &filename, const String &user_text, const Bitma
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GAME__SAVEGAME_H

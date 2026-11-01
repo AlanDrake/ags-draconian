@@ -15,8 +15,7 @@
 // Graphics driver exception class
 //
 //=============================================================================
-#ifndef __AGS_EE_GFX__ALI3DEXCEPTION_H
-#define __AGS_EE_GFX__ALI3DEXCEPTION_H
+#pragma once
 
 #include "util/string.h"
 
@@ -41,5 +40,3 @@ public:
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__ALI3DEXCEPTION_H

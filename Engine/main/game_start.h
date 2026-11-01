@@ -15,12 +15,9 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_MAIN__GAMESTART_H
-#define __AGS_EE_MAIN__GAMESTART_H
+#pragma once
 
 #include "util/string.h"
 
 void start_game();
 void initialize_start_and_play_game(int override_start_room, const AGS::Common::String &load_save);
-
-#endif // __AGS_EE_MAIN__GAMESTART_H

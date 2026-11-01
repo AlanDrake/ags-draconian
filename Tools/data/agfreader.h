@@ -30,8 +30,7 @@
 // by the user.
 //
 //=============================================================================
-#ifndef __AGS_TOOL_DATA__AGFREADER_H
-#define __AGS_TOOL_DATA__AGFREADER_H
+#pragma once
 
 #include <memory>
 #include "data/game_utils.h"
@@ -543,5 +542,3 @@ void ReadTranslationList(std::vector<String> &trs_list, DocElem root);
 
 } // namespace AGF
 } // namespace AGS
-
-#endif // __AGS_TOOL_DATA__AGFREADER_H

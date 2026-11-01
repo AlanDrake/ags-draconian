@@ -15,8 +15,7 @@
 // A Dialog Topic (a set of conversation options).
 //
 //=============================================================================
-#ifndef __AGS_CN_AC__DIALOGTOPIC_H
-#define __AGS_CN_AC__DIALOGTOPIC_H
+#pragma once
 
 #include "util/stream.h"
 #include "util/string.h"
@@ -85,5 +84,3 @@ struct DialogTopic
 private:
     void ReadOptionFromSavegame(DialogOption &opt, Common::Stream *in, DialogTopicSvgVersion svg_ver);
 };
-
-#endif // __AGS_CN_AC__DIALOGTOPIC_H

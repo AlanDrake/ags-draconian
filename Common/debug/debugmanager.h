@@ -45,8 +45,7 @@
 // parallel.
 //
 //=============================================================================
-#ifndef __AGS_CN_DEBUG__DEBUGMANAGER_H
-#define __AGS_CN_DEBUG__DEBUGMANAGER_H
+#pragma once
 
 #include <memory>
 #include <mutex>
@@ -207,5 +206,3 @@ extern DebugManager DbgMgr;
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_DEBUG__DEBUGMANAGER_H

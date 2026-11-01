@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__SCRIPTMOTIONPATH_H
-#define __AGS_EE_DYNOBJ__SCRIPTMOTIONPATH_H
+#pragma once
 
 #include <memory>
 #include "ac/dynobj/cc_agsdynamicobject.h"
@@ -43,5 +42,3 @@ private:
 
     uint32_t _moveListID = 0u;
 };
-
-#endif // __AGS_EE_DYNOBJ__SCRIPTMOTIONPATH_H

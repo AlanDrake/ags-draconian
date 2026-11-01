@@ -15,8 +15,7 @@
 // Game update timer control.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__TIMER_H
-#define __AGS_EE_AC__TIMER_H
+#pragma once
 
 #include "util/time_util.h"
 
@@ -29,5 +28,3 @@ extern int setTimerFps(int new_fps, bool max_fps_mode);
 extern bool isTimerFpsMaxed();
 // If more than N frames, just skip all, start a fresh.
 extern void skipMissedTicks();
-
-#endif // __AGS_EE_AC__TIMER_H

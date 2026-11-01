@@ -15,8 +15,7 @@
 // AssetInfo and AssetLibInfo - classes describing generic asset library.
 //
 //=============================================================================
-#ifndef __AGS_CN_CORE__ASSET_H
-#define __AGS_CN_CORE__ASSET_H
+#pragma once
 
 #include <vector>
 #include "util/string.h"
@@ -51,5 +50,3 @@ struct AssetLibInfo
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_CORE__ASSET_H

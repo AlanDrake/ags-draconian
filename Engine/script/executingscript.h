@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H
-#define __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H
+#pragma once
 
 #include <vector>
 #include "gfx/bitmap.h"
@@ -133,5 +132,3 @@ struct ExecutingScript
     ExecutingScript(const AGS::Engine::RuntimeScript *script) : Script(script) {}
     void QueueAction(PostScriptAction &&act);
 };
-
-#endif // __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H

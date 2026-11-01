@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_GUIINV_H
-#define __AC_GUIINV_H
+#pragma once
 
 #include <vector>
 #include "gui/guicontrol.h"
@@ -85,5 +84,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AC_GUIINV_H

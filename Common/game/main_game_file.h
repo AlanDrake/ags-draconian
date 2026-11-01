@@ -22,8 +22,7 @@
 // AssetManager-based functions should probably exist in the engine.
 //
 //=============================================================================
-#ifndef __AGS_CN_GAME__MAINGAMEFILE_H
-#define __AGS_CN_GAME__MAINGAMEFILE_H
+#pragma once
 
 #include <functional>
 #include <memory>
@@ -172,5 +171,3 @@ int RemapFromLegacyColourNumber(const GameSetupStruct &game, int color, bool is_
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GAME__MAINGAMEFILE_H

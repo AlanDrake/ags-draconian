@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_GUIDEFINES_H
-#define __AC_GUIDEFINES_H
+#pragma once
 
 #define GUIMAGIC                   0xcafebeef
 #define TEXTWINDOW_PADDING_DEFAULT 3
@@ -218,5 +217,3 @@ enum GuiDisableStyle
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AC_GUIDEFINES_H

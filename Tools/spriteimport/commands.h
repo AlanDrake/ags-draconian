@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_TOOL_SPRITEIMPORT__COMMANDS_H
-#define __AGS_TOOL_SPRITEIMPORT__COMMANDS_H
+#pragma once
 
 #include "data/sprite_utils.h"
 
@@ -35,5 +34,3 @@ struct CommandOptions
 void Init();
 int Command_Import(const String &src_agf, const String &dst_path, const CommandOptions &opts, bool verbose);
 } // namespace SpriteImport
-
-#endif // __AGS_TOOL_SPRITEIMPORT__COMMANDS_H

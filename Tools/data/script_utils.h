@@ -16,8 +16,7 @@
 // Perhaps could be merged and/or shared with AGS Compiler code later.
 //
 //=============================================================================
-#ifndef __AGS_TOOL_DATA__SCRIPTUTIL_H
-#define __AGS_TOOL_DATA__SCRIPTUTIL_H
+#pragma once
 
 #include <vector>
 #include "util/string.h"
@@ -54,5 +53,3 @@ typedef std::vector<CompileMessage> CompileMessages;
 
 } // namespace DataUtil
 } // namespace AGS
-
-#endif // __AGS_TOOL_DATA__SCRIPTUTIL_H

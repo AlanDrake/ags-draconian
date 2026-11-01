@@ -26,8 +26,7 @@
 // Direct3D 9 renderer.
 //
 //=============================================================================
-#ifndef __AGS_EE_GFX__ALI3DD3D11_H
-#define __AGS_EE_GFX__ALI3DD3D11_H
+#pragma once
 
 #include "platform/platform.h"
 
@@ -800,5 +799,3 @@ private:
 } // namespace D3D11
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__ALI3DD3D11_H

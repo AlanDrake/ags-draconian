@@ -17,8 +17,7 @@
 //
 //=============================================================================
 
-#ifndef __AGS_EE_GAME__GAMEINIT_H
-#define __AGS_EE_GAME__GAMEINIT_H
+#pragma once
 
 #include "game/main_game_file.h"
 #include "util/string.h"
@@ -63,5 +62,3 @@ void PrintBehaviorOptions(const GameSetupStruct &game, const GamePlayState &play
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GAME__GAMEINIT_H

@@ -15,8 +15,7 @@
 // C-style script compiler.
 //
 //=============================================================================
-#ifndef __CS_COMPILER_H
-#define __CS_COMPILER_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -45,5 +44,3 @@ extern void ccSetSoftwareVersion(const char *version);
 extern ccScript *ccCompileText(const char *script, const char *scriptName);
 
 extern const char *ccSoftwareVersion;
-
-#endif // __CS_COMPILER_H

@@ -15,8 +15,7 @@
 // Various time-related utilities
 //
 //=============================================================================
-#ifndef __AGS_EE_UTIL_TIMEUTIL_H
-#define __AGS_EE_UTIL_TIMEUTIL_H
+#pragma once
 
 #include <type_traits>
 #include <chrono>
@@ -69,5 +68,3 @@ typedef TStopwatch<FastClock> FastStopwatch;
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_UTIL_TIMEUTIL_H

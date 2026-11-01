@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__DYNAMICSPRITE_H
-#define __AGS_EE_AC__DYNAMICSPRITE_H
+#pragma once
 
 #include "ac/dynobj/scriptdynamicsprite.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
@@ -70,5 +69,3 @@ void attach_dynsprite_surface(int slot, int surface_handle);
 void detach_dynsprite_surface(int slot);
 // Notifies dynamic sprite that its drawing surface was released
 void on_dynsprite_surface_release(int slot, bool modified);
-
-#endif // __AGS_EE_AC__DYNAMICSPRITE_H

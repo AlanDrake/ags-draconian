@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_NAMEDPIPESAGSDEBUGGER_H
-#define __AC_NAMEDPIPESAGSDEBUGGER_H
+#pragma once
 
 #include <windows.h>
 #include "debug/agseditordebugger.h"
@@ -34,5 +33,3 @@ public:
     bool IsMessageAvailable() override;
     char *GetNextMessage() override;
 };
-
-#endif // __AC_NAMEDPIPESAGSDEBUGGER_H

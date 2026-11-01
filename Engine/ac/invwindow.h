@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__INVWINDOW_H
-#define __AGS_EE_AC__INVWINDOW_H
+#pragma once
 
 #include "ac/characterinfo.h"
 #include "ac/dynobj/scriptobjects.h"
@@ -41,6 +40,3 @@ ScriptInvItem *InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index);
 int InvWindow_GetItemAtXY(GUIInvWindow *inv, int at_x, int at_y);
 
 //=============================================================================
-
-
-#endif // __AGS_EE_AC__INVWINDOW_H

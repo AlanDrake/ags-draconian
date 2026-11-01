@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CS_SCANNER_H
-#define __CS_SCANNER_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -236,5 +235,3 @@ public:
 };
 
 } // namespace AGS
-
-#endif

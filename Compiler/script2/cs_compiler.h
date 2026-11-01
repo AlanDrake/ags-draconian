@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CS_COMPILER2_H
-#define __CS_COMPILER2_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -25,5 +24,3 @@ extern void ccGetExtensions2(std::vector<std::string> &exts);
 // All compiler's errors and warnings are returned as a MessageHandler collection.
 extern ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, uint64_t options,
                                 MessageHandler &mh);
-
-#endif // __CS_COMPILER2_H

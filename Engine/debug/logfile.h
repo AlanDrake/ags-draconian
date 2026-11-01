@@ -21,8 +21,7 @@
 // during reading configuration and/or parsing command line).
 //
 //=============================================================================
-#ifndef __AGS_EE_DEBUG__LOGFILE_H
-#define __AGS_EE_DEBUG__LOGFILE_H
+#pragma once
 
 #include <memory>
 #include "debug/outputhandler.h"
@@ -81,5 +80,3 @@ private:
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_DEBUG__LOGFILE_H

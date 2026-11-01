@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_SCRIPTVIDEOPLAYER_H
-#define __AC_SCRIPTVIDEOPLAYER_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
@@ -37,5 +36,3 @@ private:
 
     int _id = -1; // index of videoplayer in the video subsystem
 };
-
-#endif // __AC_SCRIPTVIDEOPLAYER_H

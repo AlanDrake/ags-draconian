@@ -15,8 +15,7 @@
 // Various compression utilities for pixel data.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__COMPRESS_H
-#define __AGS_CN_UTIL__COMPRESS_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -61,5 +60,3 @@ bool inflate_decompress(uint8_t *data, size_t data_sz, int image_bpp, Stream *in
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__COMPRESS_H

@@ -15,8 +15,7 @@
 // Base class for graphic filter which provides virtual screen scaling
 //
 //=============================================================================
-#ifndef __AGS_EE_GFX__SCALINGGFXFILTER_H
-#define __AGS_EE_GFX__SCALINGGFXFILTER_H
+#pragma once
 
 #include "gfx/gfxfilter.h"
 #include "util/scaling.h"
@@ -43,5 +42,3 @@ protected:
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__SCALINGGFXFILTER_H

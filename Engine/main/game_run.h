@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_MAIN__GAMERUN_H
-#define __AGS_EE_MAIN__GAMERUN_H
+#pragma once
 
 #include "ac/keycode.h"
 #include "ac/runtime_defines.h"
@@ -104,6 +103,3 @@ bool run_service_touch_controls(TouchInput &out_touch);
 // Polls few things (exit flag and debugger messages)
 // TODO: refactor this
 void update_polled_stuff();
-
-
-#endif // __AGS_EE_MAIN__GAMERUN_H

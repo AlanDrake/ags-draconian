@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__BUTTON_H
-#define __AGS_EE_AC__BUTTON_H
+#pragma once
 
 #include "gui/guibutton.h"
 
@@ -48,5 +47,3 @@ void StopButtonAnimation(int idxn);
 int FindButtonAnimation(int guin, int objn);
 void FindAndRemoveButtonAnimation(int guin, int objn);
 void RemoveAllButtonAnimations();
-
-#endif // __AGS_EE_AC__BUTTON_H

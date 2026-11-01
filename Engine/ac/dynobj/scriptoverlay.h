@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_SCRIPTOVERLAY_H
-#define __AC_SCRIPTOVERLAY_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
@@ -46,5 +45,3 @@ public:
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
 };
-
-#endif // __AC_SCRIPTOVERLAY_H

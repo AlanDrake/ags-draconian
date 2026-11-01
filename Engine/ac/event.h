@@ -15,8 +15,7 @@
 // AGS game events definitions.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__EVENT_H
-#define __AGS_EE_AC__EVENT_H
+#pragma once
 
 #include "ac/keycode.h" // eAGSMouseButton
 #include "ac/runtime_defines.h"
@@ -239,5 +238,3 @@ struct ScriptEventCallback
 };
 
 extern std::array<ScriptEventCallback, kTS_Num> ScriptEventCb;
-
-#endif // __AGS_EE_AC__EVENT_H

@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_MEDIA_AUDIO_SYSTEM_H
-#define __AC_MEDIA_AUDIO_SYSTEM_H
+#pragma once
 
 #include "media/audio/audiodefines.h"
 
@@ -22,5 +21,3 @@
 #include "media/audio/sound.h"
 
 #include "media/audio/queuedaudioitem.h"
-
-#endif

@@ -15,8 +15,7 @@
 // Helper math functions
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__MATH_H
-#define __AGS_CN_UTIL__MATH_H
+#pragma once
 
 // safeguards against min/max macros
 #undef min
@@ -104,5 +103,3 @@ inline double ClampAngle360(const double degrees)
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__MATH_H

@@ -18,8 +18,7 @@
 // Supports on the go audio resampling, which is activated when necessary.
 //
 //=============================================================================
-#ifndef __AGS_EE_MEDIA__OPENALSOURCE_H
-#define __AGS_EE_MEDIA__OPENALSOURCE_H
+#pragma once
 #include <deque>
 #include "media/audio/audiodefines.h"
 #include "media/audio/openal.h"
@@ -106,5 +105,3 @@ private:
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_MEDIA__OPENALSOURCE_H

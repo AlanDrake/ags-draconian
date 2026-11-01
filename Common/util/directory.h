@@ -15,8 +15,7 @@
 // Platform-independent Directory functions
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__DIRECTORY_H
-#define __AGS_CN_UTIL__DIRECTORY_H
+#pragma once
 
 #include <locale>
 #include <memory>
@@ -313,5 +312,3 @@ struct FileEntryCmpByTime
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__DIRECTORY_H

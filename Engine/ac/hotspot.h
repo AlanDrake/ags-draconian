@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__HOTSPOT_H
-#define __AGS_EE_AC__HOTSPOT_H
+#pragma once
 
 #include "ac/dynobj/scriptobjects.h"
 
@@ -41,5 +40,3 @@ const char *Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property);
 // Gets hotspot ID at the given room coordinates;
 // if hotspot is disabled or non-existing, returns 0 (no area)
 int GetHotspotIDAtRoom(int x, int y, int hit_options);
-
-#endif // __AGS_EE_AC__HOTSPOT_H

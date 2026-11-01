@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_SCRIPTRESTOREDSAVEINFO_H
-#define __AC_SCRIPTRESTOREDSAVEINFO_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "game/savegame.h"
@@ -57,5 +56,3 @@ private:
     bool _cancel = false;
     SaveCmpSelection _retryWithoutComponents = SaveCmpSelection::kSaveCmp_None;
 };
-
-#endif // __AC_SCRIPTRESTOREDSAVEINFO_H

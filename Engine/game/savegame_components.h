@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_GAME__SAVEGAMECOMPONENTS_H
-#define __AGS_EE_GAME__SAVEGAMECOMPONENTS_H
+#pragma once
 
 #include "game/savegame.h"
 #include "util/stream.h"
@@ -49,5 +48,3 @@ HSaveError WriteAllCommon(Stream *out, SaveCmpSelection select_cmp, bool compres
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GAME__SAVEGAMECOMPONENTS_H

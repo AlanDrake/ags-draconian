@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__WORDSDICTIONARY_H
-#define __AGS_CN_UTIL__WORDSDICTIONARY_H
+#pragma once
 
 #include <unordered_map>
 #include <vector>
@@ -52,5 +51,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__WORDSDICTIONARY_H

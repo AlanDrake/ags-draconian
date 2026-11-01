@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_TOOL_DATA__MFLUTIL_H
-#define __AGS_TOOL_DATA__MFLUTIL_H
+#pragma once
 
 #include <functional>
 #include <vector>
@@ -75,5 +74,3 @@ struct AssetInfoComparator
 
 } // namespace DataUtil
 } // namespace AGS
-
-#endif // __AGS_TOOL_DATA__MFLUTIL_H

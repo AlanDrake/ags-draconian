@@ -15,8 +15,7 @@
 // Sound decoder accompanied by various SDL-based sound utilities.
 //
 //=============================================================================
-#ifndef __AGS_EE_MEDIA__SDLDECODER_H
-#define __AGS_EE_MEDIA__SDLDECODER_H
+#pragma once
 #include <memory>
 #include <vector>
 #include <SDL_sound.h>
@@ -239,5 +238,3 @@ inline float MillisecondsFromBytes(size_t bytes, SDL_AudioFormat format, int cha
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_MEDIA__AUDIOUTILS_H

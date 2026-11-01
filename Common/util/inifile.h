@@ -19,8 +19,7 @@
 // create a proper map to store items, from IniFile contents.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__INIFILE_H
-#define __AGS_CN_UTIL__INIFILE_H
+#pragma once
 
 #include <list>
 #include <memory>
@@ -136,5 +135,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__INIFILE_H

@@ -15,8 +15,7 @@
 // Parent class for the WinAPI Dialog control.
 //
 //=============================================================================
-#ifndef __AGS_EE_SETUP__WINDIALOG_H
-#define __AGS_EE_SETUP__WINDIALOG_H
+#pragma once
 
 #include "platform/platform.h"
 
@@ -70,5 +69,3 @@ private:
 } // namespace AGS
 
 #endif // AGS_PLATFORM_OS_WINDOWS
-
-#endif // __AGS_EE_SETUP__WINDIALOG_H

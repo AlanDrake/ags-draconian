@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__SCRIPTPATHFINDER_H
-#define __AGS_EE_DYNOBJ__SCRIPTPATHFINDER_H
+#pragma once
 
 #include <memory>
 #include "ac/dynobj/cc_agsdynamicobject.h"
@@ -76,5 +75,3 @@ private:
 
     AGS::Engine::MaskRouteFinder *_finder = nullptr;
 };
-
-#endif // __AGS_EE_DYNOBJ__SCRIPTPATHFINDER_H

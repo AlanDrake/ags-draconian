@@ -21,8 +21,7 @@
 // any knowledge of higher-level engine types and objects.
 //
 //=============================================================================
-#ifndef __AGS_EE_GFX__GFXUTIL_H
-#define __AGS_EE_GFX__GFXUTIL_H
+#pragma once
 
 #include "ac/common_defines.h"
 #include "gfx/bitmap.h"
@@ -59,5 +58,3 @@ void DrawSpriteWithTransparency(Bitmap *ds, const Bitmap *sprite, int x, int y, 
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__GFXUTIL_H

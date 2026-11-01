@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_CN_DYNOBJ__SCRIPTAUDIOCLIP_H
-#define __AGS_CN_DYNOBJ__SCRIPTAUDIOCLIP_H
+#pragma once
 
 #include "ac/common_defines.h"
 #include "util/string.h"
@@ -72,5 +71,3 @@ public:
 
     void ReadFromFile(Common::Stream *in);
 };
-
-#endif // __AGS_CN_DYNOBJ__SCRIPTAUDIOCLIP_H

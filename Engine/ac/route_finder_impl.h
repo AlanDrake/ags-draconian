@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EN_AC__ROUTEFINDER_IMPL_H
-#define __AGS_EN_AC__ROUTEFINDER_IMPL_H
+#pragma once
 
 #include "ac/movelist.h"
 #include "ac/route_finder.h"
@@ -50,5 +49,3 @@ private:
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EN_AC__ROUTEFINDER_IMPL_H

@@ -12,8 +12,7 @@
 //
 //=============================================================================
 
-#ifndef __AC_MYLABEL_H
-#define __AC_MYLABEL_H
+#pragma once
 
 #include "gui/newcontrol.h"
 
@@ -30,5 +29,3 @@ struct MyLabel : public NewControl
 
     int processmessage(int mcode, int wParam, intptr_t ipParam) override;
 };
-
-#endif // __AC_MYLABEL_H

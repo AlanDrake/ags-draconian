@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_VIEW_H
-#define __AC_VIEW_H
+#pragma once
 
 #include <vector>
 #include "gfx/gfx_def.h"
@@ -83,5 +82,3 @@ struct ViewStruct
     void WriteToFile(Common::Stream *out) const;
     void ReadFromFile(Common::Stream *in);
 };
-
-#endif // __AC_VIEW_H

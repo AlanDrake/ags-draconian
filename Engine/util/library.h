@@ -15,8 +15,7 @@
 // BaseLibrary is a virtual parent class for a dynamic library loader.
 //
 //=============================================================================
-#ifndef __AGS_EE_UTIL__LIBRARY_H
-#define __AGS_EE_UTIL__LIBRARY_H
+#pragma once
 
 #include "platform/platform.h"
 #include "util/string.h"
@@ -76,6 +75,3 @@ protected:
 #include "library_dummy.h"
 
 #endif
-
-
-#endif // __AGS_EE_UTIL__MUTEX_H

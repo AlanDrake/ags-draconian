@@ -15,8 +15,7 @@
 // Script File API implementation.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__FILE_H
-#define __AGS_EE_AC__FILE_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -63,5 +62,3 @@ void close_file_stream(int32_t fhandle, const char *operation_name);
 AGS::Common::Stream *get_file_stream(int32_t fhandle, const char *operation_name);
 AGS::Common::IStreamBase *get_file_stream_iface(int32_t fhandle, const char *operation_name);
 void close_all_file_streams();
-
-#endif // __AGS_EE_AC__FILE_H

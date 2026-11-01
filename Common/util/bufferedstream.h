@@ -21,8 +21,7 @@
 // to an arbitrary offset range.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__BUFFEREDSTREAM_H
-#define __AGS_CN_UTIL__BUFFEREDSTREAM_H
+#pragma once
 
 #include <vector>
 #include "util/stream.h"
@@ -89,5 +88,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__BUFFEREDSTREAM_H

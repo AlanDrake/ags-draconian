@@ -16,8 +16,7 @@
 // file.
 //
 //=============================================================================
-#ifndef __AGS_CN_GAME_TRAFILE_H
-#define __AGS_CN_GAME_TRAFILE_H
+#pragma once
 
 #include "ac/gamestructdefines.h"
 #include "ac/wordsdictionary.h"
@@ -128,5 +127,3 @@ void WriteTraData(const Translation &tra, std::unique_ptr<Stream> &&out);
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GAME_TRAFILE_H

@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CC_SYSTEMIMPORTS_H
-#define __CC_SYSTEMIMPORTS_H
+#pragma once
 
 #include <map>
 #include "script/runtimescriptvalue.h"
@@ -122,5 +121,3 @@ private:
     std::vector<ScriptImport> _imports;
     ScriptSymbolsMap _lookup;
 };
-
-#endif // __CC_SYSTEMIMPORTS_H

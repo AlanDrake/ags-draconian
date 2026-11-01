@@ -17,8 +17,7 @@
 // #define THIS_IS_THE_PLUGIN beforehand if including from the plugin.
 //
 //=============================================================================
-#ifndef _AGS_PLUGIN_H
-#define _AGS_PLUGIN_H
+#pragma once
 
 #include <stddef.h> // for size_t
 #include <stdint.h>
@@ -680,5 +679,3 @@ DLLEXPORT void AGS_EngineInitGfx(const char *driverID, void *data);
 DLLEXPORT int AGS_PluginV2();
 
 #endif // THIS_IS_THE_PLUGIN
-
-#endif // _AGS_PLUGIN_H

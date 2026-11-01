@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CC_DYNAMICARRAY_H
-#define __CC_DYNAMICARRAY_H
+#pragma once
 
 #include <vector>
 #include <unordered_map>
@@ -119,5 +118,3 @@ bool ResolvePointerArray(const void *arrobj, std::vector<void *> &objects);
 // which define object address, manager and handle
 bool ResolvePointerArray(const void *arrobj, std::vector<DynObjectRef> &objects);
 }; // namespace DynamicArrayHelpers
-
-#endif

@@ -12,8 +12,7 @@
 //
 //=============================================================================
 
-#ifndef __AC_MYTEXTBOX_H
-#define __AC_MYTEXTBOX_H
+#pragma once
 
 #include "gui/newcontrol.h"
 
@@ -28,5 +27,3 @@ struct MyTextBox : public NewControl
     int pressedon(int mx, int my) override;
     int processmessage(int mcode, int wParam, intptr_t ipParam) override;
 };
-
-#endif // __AC_MYTEXTBOX_H

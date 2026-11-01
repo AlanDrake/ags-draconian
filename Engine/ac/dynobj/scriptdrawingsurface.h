@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_SCRIPTDRAWINGSURFACE_H
-#define __AC_SCRIPTDRAWINGSURFACE_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "game/roomstruct.h"
@@ -77,5 +76,3 @@ private:
     int _currentScriptColor = 0;
     BlendMode _currentBlendMode = AGS::Common::kBlend_Normal;
 };
-
-#endif // __AC_SCRIPTDRAWINGSURFACE_H

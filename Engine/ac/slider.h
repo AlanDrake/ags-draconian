@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__SLIDER_H
-#define __AGS_EE_AC__SLIDER_H
+#pragma once
 
 #include "gui/guislider.h"
 
@@ -34,5 +33,3 @@ int Slider_GetHandleGraphic(GUISlider *guisl);
 void Slider_SetHandleGraphic(GUISlider *guisl, int newImage);
 int Slider_GetHandleOffset(GUISlider *guisl);
 void Slider_SetHandleOffset(GUISlider *guisl, int newOffset);
-
-#endif // __AGS_EE_AC__SLIDER_H

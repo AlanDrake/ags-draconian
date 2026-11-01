@@ -15,8 +15,7 @@
 // Graphics driver interface
 //
 //=============================================================================
-#ifndef __AGS_EE_GFX__GRAPHICSDRIVER_H
-#define __AGS_EE_GFX__GRAPHICSDRIVER_H
+#pragma once
 #include <memory>
 #include <allegro.h> // RGB, PALETTE
 #include <glm/mat4x4.hpp>
@@ -437,5 +436,3 @@ public:
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__GRAPHICSDRIVER_H

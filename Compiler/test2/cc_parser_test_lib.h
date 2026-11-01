@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CS_PARSER_TEST_LIB_H
-#define __CS_PARSER_TEST_LIB_H
+#pragma once
 
 #include "script2/cc_internallist.h"
 #include "script2/cc_compiledscript.h"
@@ -21,5 +20,3 @@
 
 extern char kAgsHeaderString[];
 extern char kAgsHeaderBool[];
-
-#endif // __CS_PARSER_TEST_LIB_H

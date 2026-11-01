@@ -16,8 +16,7 @@
 // Based on utf8 code from https://c9x.me/git/irc.git/tree/irc.c
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__UTF8_H
-#define __AGS_CN_UTIL__UTF8_H
+#pragma once
 
 #include <algorithm>
 #include <cstring>
@@ -1012,5 +1011,3 @@ inline int StrCmpNoCase(const char *cstr1, const char *cstr2)
 }
 
 } // namespace Utf8
-
-#endif // __AGS_CN_UTIL__UTF8_H

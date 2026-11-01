@@ -19,8 +19,7 @@
 // for image compression.
 //
 //=============================================================================
-#ifndef __AGS_CN_GFX__SPRITE_DATA_FMT_H
-#define __AGS_CN_GFX__SPRITE_DATA_FMT_H
+#pragma once
 #include <allegro.h> // PALETTE
 #include "platform/types.h"
 #include "gfx/bitmapdata.h"
@@ -131,5 +130,3 @@ void WriteRawSpriteData_360(const SpriteDatHeader &hdr, Stream *out, const uint8
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GFX__SPRITE_DATA_FMT_H

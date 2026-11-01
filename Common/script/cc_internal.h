@@ -15,8 +15,7 @@
 // 'C'-style script compiler
 //
 //=============================================================================
-#ifndef __CC_INTERNAL_H
-#define __CC_INTERNAL_H
+#pragma once
 
 #define SCOM_VERSION_SECTIONS 83
 #define SCOM_VERSION_321      90
@@ -134,5 +133,3 @@
 // Script file signature
 extern const char scfilesig[5];
 #define ENDFILESIG 0xbeefcafe
-
-#endif // __CC_INTERNAL_H

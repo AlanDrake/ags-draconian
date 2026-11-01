@@ -15,8 +15,7 @@
 // Class for reading plain text from the stream
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__TEXTSTREAMREADER_H
-#define __AGS_CN_UTIL__TEXTSTREAMREADER_H
+#pragma once
 
 #include <memory>
 #include "util/stream.h"
@@ -55,5 +54,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__TEXTSTREAMREADER_H

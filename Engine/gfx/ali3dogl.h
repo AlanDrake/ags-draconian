@@ -15,8 +15,7 @@
 // OpenGL graphics factory
 //
 //=============================================================================
-#ifndef __AGS_EE_GFX__ALI3DOGL_H
-#define __AGS_EE_GFX__ALI3DOGL_H
+#pragma once
 
 #include <memory>
 #include "glm/glm.hpp"
@@ -696,5 +695,3 @@ private:
 } // namespace OGL
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__ALI3DOGL_H

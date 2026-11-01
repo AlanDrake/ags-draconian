@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_MAIN__GAMEFILE_H
-#define __AGS_EE_MAIN__GAMEFILE_H
+#pragma once
 
 #include "util/error.h"
 #include "util/string.h"
@@ -28,5 +27,3 @@ HError preload_game_data();
 // Loads game data and reinitializes the game state; assigns error message in case of failure
 HError load_game_file();
 void display_game_file_error(HError err);
-
-#endif // __AGS_EE_MAIN__GAMEFILE_H

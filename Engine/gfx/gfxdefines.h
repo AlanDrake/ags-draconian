@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_GFX__GFXDEFINES_H
-#define __AGS_EE_GFX__GFXDEFINES_H
+#pragma once
 
 #include "platform/types.h"
 #include "gfx/gfx_def.h"
@@ -56,5 +55,3 @@ struct DisplayMode : public AGS::Common::GraphicResolution
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__GFXDEFINES_H

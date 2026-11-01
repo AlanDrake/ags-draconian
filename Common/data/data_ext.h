@@ -44,8 +44,7 @@
 // the end of extension list. An EOF met earlier is considered an error.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__DATAEXT_H
-#define __AGS_CN_UTIL__DATAEXT_H
+#pragma once
 
 #include <functional>
 #include "util/error.h"
@@ -199,5 +198,3 @@ inline void WriteExtBlock(int block, const std::vector<uint8_t> &data, int flags
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__DATAEXT_H

@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_QUEUEDAUDIOITEM_H
-#define __AC_QUEUEDAUDIOITEM_H
+#pragma once
 #include <memory>
 #include "media/audio/soundclip.h"
 
@@ -35,5 +34,3 @@ struct QueuedAudioItem
     void ReadFromSavegame(Common::Stream *in);
     void WriteToSavegame(Common::Stream *out) const;
 };
-
-#endif // __AC_QUEUEDAUDIOITEM_H

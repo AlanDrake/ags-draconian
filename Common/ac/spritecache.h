@@ -33,8 +33,7 @@
 // into some kind of a "spritelist builder" and "runtime sprite manager".
 //
 //=============================================================================
-#ifndef __AGS_CN_AC__SPRCACHE_H
-#define __AGS_CN_AC__SPRCACHE_H
+#pragma once
 
 #include <functional>
 #include <list>
@@ -258,5 +257,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_AC__SPRCACHE_H

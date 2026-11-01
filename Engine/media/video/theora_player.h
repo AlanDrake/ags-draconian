@@ -20,8 +20,7 @@
 //       feature-complete library.
 //
 //=============================================================================
-#ifndef __AGS_EE_MEDIA__THEORAPLAYER_H
-#define __AGS_EE_MEDIA__THEORAPLAYER_H
+#pragma once
 
 #include <apeg.h>
 #include "media/video/videoplayer.h"
@@ -71,5 +70,3 @@ private:
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_MEDIA__THEORAPLAYER_H

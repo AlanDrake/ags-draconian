@@ -15,9 +15,6 @@
 // Registering symbols for the script system
 //
 //=============================================================================
-#ifndef __AGS_EE_SCRIPT__EXPORTS_H
-#define __AGS_EE_SCRIPT__EXPORTS_H
+#pragma once
 
 void setup_script_exports(ScriptAPIVersion base_api, ScriptAPIVersion compat_api);
-
-#endif // __AGS_EE_SCRIPT__EXPORTS_H

@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_DEBUG__AGSEDITORDEBUGGER_H
-#define __AGS_EE_DEBUG__AGSEDITORDEBUGGER_H
+#pragma once
 
 struct IAGSEditorDebugger
 {
@@ -30,5 +29,3 @@ public:
     // Message will be allocated on heap with malloc
     virtual char *GetNextMessage() = 0;
 };
-
-#endif // __AGS_EE_DEBUG__AGSEDITORDEBUGGER_H

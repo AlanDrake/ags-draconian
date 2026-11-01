@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_DEFINES_H
-#define __AC_DEFINES_H
+#pragma once
 
 // Some arbitrary return values, should be replaced with either
 // simple boolean, or HError
@@ -73,5 +72,3 @@
 #define AUDIOTYPE_LEGACY_AMBIENT_SOUND 1
 #define AUDIOTYPE_LEGACY_MUSIC         2
 #define AUDIOTYPE_LEGACY_SOUND         3
-
-#endif // __AC_DEFINES_H

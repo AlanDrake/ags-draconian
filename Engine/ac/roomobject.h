@@ -15,8 +15,7 @@
 // Runtime room object definition.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__ROOMOBJECT_H
-#define __AGS_EE_AC__ROOMOBJECT_H
+#pragma once
 
 #include "ac/common_defines.h"
 #include "ac/runtime_defines.h"
@@ -124,5 +123,3 @@ public:
 private:
     Common::GraphicSpace _gs;
 };
-
-#endif // __AGS_EE_AC__ROOMOBJECT_H

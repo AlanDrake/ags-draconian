@@ -15,8 +15,7 @@
 // GUIObject is a parent class for GUI and GUI controls.
 //
 //=============================================================================
-#ifndef __AGS_CN_GUI__GUIOBJECT_H
-#define __AGS_CN_GUI__GUIOBJECT_H
+#pragma once
 
 #include "game/scripteventtable.h"
 #include "gfx/gfx_def.h"
@@ -180,5 +179,3 @@ protected:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GUI__GUIOBJECT_H

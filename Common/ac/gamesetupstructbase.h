@@ -15,8 +15,7 @@
 // GameSetupStructBase is a base class for main game data.
 //
 //=============================================================================
-#ifndef __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
-#define __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
+#pragma once
 #include <array>
 #include <memory>
 #include <vector>
@@ -137,5 +136,3 @@ private:
     // Multiplier for various UI drawin sizes, meant to keep UI elements readable
     int _relativeUIMult = 1;
 };
-
-#endif // __AGS_CN_AC__GAMESETUPSTRUCTBASE_H

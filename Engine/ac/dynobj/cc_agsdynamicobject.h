@@ -27,8 +27,7 @@
 // a parent for built-in static object managers.
 //
 //=============================================================================
-#ifndef __AC_CCDYNAMICOBJECT_H
-#define __AC_CCDYNAMICOBJECT_H
+#pragma once
 
 #include "ac/dynobj/cc_scriptobject.h"
 
@@ -121,5 +120,3 @@ public:
 
 
 extern AGSCCStaticObject GlobalStaticManager;
-
-#endif // __AC_CCDYNAMICOBJECT_H

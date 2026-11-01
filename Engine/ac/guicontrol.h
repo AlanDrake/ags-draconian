@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GUICONTROL_H
-#define __AGS_EE_AC__GUICONTROL_H
+#pragma once
 
 #include "gui/guicontrol.h"
 #include "gui/guibutton.h"
@@ -64,5 +63,3 @@ void GUIControl_SetHeight(GUIControl *guio, int newhit);
 void GUIControl_SetSize(GUIControl *guio, int newwid, int newhit);
 void GUIControl_SendToBack(GUIControl *guio);
 void GUIControl_BringToFront(GUIControl *guio);
-
-#endif // __AGS_EE_AC__GUICONTROL_H

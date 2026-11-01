@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_SCRIPT__SCRIPT_H
-#define __AGS_EE_SCRIPT__SCRIPT_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -229,5 +228,3 @@ extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 extern size_t numScriptModules;
 
 extern std::unique_ptr<AGS::Engine::ScriptExecutor> scriptExecutor;
-
-#endif // __AGS_EE_SCRIPT__SCRIPT_H

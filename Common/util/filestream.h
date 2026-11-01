@@ -17,8 +17,7 @@
 // standard streams like stdin and stdout.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__FILESTREAM_H
-#define __AGS_CN_UTIL__FILESTREAM_H
+#pragma once
 
 #include <stdio.h>
 #include <functional>
@@ -119,5 +118,3 @@ public:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__FILESTREAM_H

@@ -15,8 +15,7 @@
 // Default built-in game dialogs.
 //
 //=============================================================================
-#ifndef __AGS_EE_GUI__GUIDIALOG_H
-#define __AGS_EE_GUI__GUIDIALOG_H
+#pragma once
 
 #include <map>
 #include <vector>
@@ -49,5 +48,3 @@ int quitdialog();
 
 // last string value in gui dialog.
 char *get_gui_dialog_buffer();
-
-#endif // __AGS_EE_GUI__GUIDIALOG_H

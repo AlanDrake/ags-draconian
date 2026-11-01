@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__SPEECH_H
-#define __AGS_EE_AC__SPEECH_H
+#pragma once
 
 #include "util/string.h"
 
@@ -56,5 +55,3 @@ bool init_voicepak(const AGS::Common::String &name = "");
 AGS::Common::String get_voicepak_name();
 // Gets an asset's parent path for voice-over clips and data files
 AGS::Common::String get_voice_assetpath();
-
-#endif // __AGS_EE_AC__SPEECH_H

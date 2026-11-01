@@ -16,8 +16,7 @@
 //
 //=============================================================================
 
-#ifndef __AGS_CN_UTIL__CMDLINEOPTS_H
-#define __AGS_CN_UTIL__CMDLINEOPTS_H
+#pragma once
 
 #include <vector>
 #include <set>
@@ -48,5 +47,3 @@ ParseResult Parse(int argc, const char *const argv[], const std::set<String> &op
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__CMDLINEOPTS_H

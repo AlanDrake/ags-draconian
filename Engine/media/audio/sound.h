@@ -15,8 +15,7 @@
 // SoundClip factory methods.
 //
 //=============================================================================
-#ifndef __AC_SOUND_H
-#define __AC_SOUND_H
+#pragma once
 
 #include <memory>
 #include "ac/asset_helper.h"
@@ -35,5 +34,3 @@ void soundcache_clear();
 void soundcache_precache(const AssetPath &apath);
 
 std::unique_ptr<SoundClip> load_sound_clip(const AssetPath &apath, const char *extension_hint, bool loop);
-
-#endif // __AC_SOUND_H

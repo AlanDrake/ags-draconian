@@ -16,8 +16,7 @@
 // registered as potential output for the debug log.
 //
 //=============================================================================
-#ifndef __AGS_CN_DEBUG__OUTPUTHANDLER_H
-#define __AGS_CN_DEBUG__OUTPUTHANDLER_H
+#pragma once
 
 #include "debug/out.h"
 #include "util/string.h"
@@ -61,5 +60,3 @@ public:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_DEBUG__OUTPUTHANDLER_H

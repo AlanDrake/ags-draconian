@@ -15,8 +15,7 @@
 // Shader script API.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__SHADERSCRIPT_H
-#define __AGS_EE_AC__SHADERSCRIPT_H
+#pragma once
 
 #include "ac/dynobj/scriptshader.h"
 
@@ -26,5 +25,3 @@ ScriptShaderProgram *CreateScriptShaderProgram(const char *filename);
 ScriptShaderInstance *ShaderProgram_CreateInstance(ScriptShaderProgram *sc_shader);
 // Restore shaders and shader instances after loading a save
 void RestoreShaders();
-
-#endif // __AGS_EE_AC__SHADERSCRIPT_H

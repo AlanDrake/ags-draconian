@@ -15,8 +15,7 @@
 // Helper matrix functions, to ease use of GLM in a simulated 2D space.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__MATRIX_H
-#define __AGS_CN_UTIL__MATRIX_H
+#pragma once
 
 #include <algorithm>
 #include <glm/ext/matrix_transform.hpp>
@@ -139,5 +138,3 @@ inline Rect full_transform(const Rect &r, const glm::mat4 &m)
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__MATRIX_H

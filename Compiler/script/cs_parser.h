@@ -45,8 +45,7 @@ start
 //  Should be used only internally by cs_compiler.cpp
 //-----------------------------------------------------------------------------
 
-#ifndef __CS_PARSER_H
-#define __CS_PARSER_H
+#pragma once
 
 #include "cc_compiledscript.h"
 #include <vector>
@@ -62,5 +61,3 @@ struct ccChunk
     int codeoffset;
     int fixupoffset;
 };
-
-#endif // __CS_PARSER_H

@@ -20,8 +20,7 @@
 //
 //=============================================================================
 
-#ifndef __AGS_EE_GFX__GFXDRIVERFACTORY_H
-#define __AGS_EE_GFX__GFXDRIVERFACTORY_H
+#pragma once
 
 #include <memory>
 #include "util/string.h"
@@ -73,5 +72,3 @@ IGfxDriverFactory *GetGfxDriverFactory(const String id);
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__GFXDRIVERFACTORY_H

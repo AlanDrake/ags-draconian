@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_SCRIPT__RUNTIMESCRIPT_H
-#define __AGS_EE_SCRIPT__RUNTIMESCRIPT_H
+#pragma once
 #include <memory>
 #include <vector>
 #include "script/cc_internal.h" // FIXME: should not be included into this header
@@ -249,5 +248,3 @@ typedef std::shared_ptr<RuntimeScript> PRuntimeScript;
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_SCRIPT__RUNTIMESCRIPT_H

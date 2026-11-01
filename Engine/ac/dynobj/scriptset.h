@@ -21,8 +21,7 @@
 // types as keys; need to research what performance impact that would make.
 //
 //=============================================================================
-#ifndef __AC_SCRIPTSET_H
-#define __AC_SCRIPTSET_H
+#pragma once
 
 #include <set>
 #include <unordered_set>
@@ -176,5 +175,3 @@ typedef ScriptSetStdImpl<String, LexographicalStrLessNoCase, kScCaseInsensitiveL
 typedef ScriptSetStdHashImpl<String, std::hash<String>, std::equal_to<String>, kScCaseSensitive> ScriptHashSet;
 typedef ScriptSetStdHashImpl<String, HashStrNoCase, StrEqNoCase, kScCaseInsensitive> ScriptHashSetCI;
 typedef ScriptSetStdHashImpl<String, HashStrUtf8NoCase, StrEqUtf8NoCase, kScCaseInsensitive> ScriptHashSetUtf8CI;
-
-#endif // __AC_SCRIPTSET_H

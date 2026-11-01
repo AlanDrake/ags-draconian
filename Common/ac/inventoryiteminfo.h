@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_INVENTORYITEMINFO_H
-#define __AC_INVENTORYITEMINFO_H
+#pragma once
 
 #include "ac/game_version.h"
 #include "game/scripteventtable.h"
@@ -69,5 +68,3 @@ private:
     // Common events
     AGS::Common::ScriptEventTable _events = AGS::Common::ScriptEventTable(&InventoryItemInfo::_eventSchema);
 };
-
-#endif // __AC_INVENTORYITEMINFO_H

@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__SCRIPTSHADER_H
-#define __AGS_EE_DYNOBJ__SCRIPTSHADER_H
+#pragma once
 
 #include <queue>
 #include <unordered_set>
@@ -141,5 +140,3 @@ private:
     std::vector<Constant> _constData;
     std::vector<int> _textures;
 };
-
-#endif // __AGS_EE_DYNOBJ__SCRIPTSHADER_H

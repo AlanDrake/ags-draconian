@@ -21,8 +21,7 @@
 // (e.g. with plugins).
 //
 //=============================================================================
-#ifndef __AGS_EE_MEDIA__AUDIOPLAYER_H
-#define __AGS_EE_MEDIA__AUDIOPLAYER_H
+#pragma once
 #include <memory>
 #include "media/audio/audiodefines.h" // PlaybackState etc
 #include "media/audio/sdldecoder.h"
@@ -84,5 +83,3 @@ private:
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_MEDIA__AUDIOPLAYER_H

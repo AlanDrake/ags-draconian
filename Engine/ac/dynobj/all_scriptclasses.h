@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__ALLSCRIPTCLASSES_H
-#define __AGS_EE_DYNOBJ__ALLSCRIPTCLASSES_H
+#pragma once
 
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptdatetime.h"
@@ -28,5 +27,3 @@
 #include "ac/dynobj/scriptstring.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "ac/dynobj/scriptviewframe.h"
-
-#endif // __AGS_EE_DYNOBJ__ALLSCRIPTOBJECTS_H

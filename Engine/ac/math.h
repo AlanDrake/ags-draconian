@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__MATH_H
-#define __AGS_EE_AC__MATH_H
+#pragma once
 
 enum RoundDirections
 {
@@ -51,5 +50,3 @@ float Math_Sqrt(float value);
 float Math_Round(float value, int roundDirection);
 // Returns a random number from 0 to upto *inclusive*
 int Random(int upto);
-
-#endif // __AGS_EE_AC__MATH_H

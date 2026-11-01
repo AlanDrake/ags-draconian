@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_AUDIODEFINES_H
-#define __AC_AUDIODEFINES_H
+#pragma once
 
 #define MUS_UNKNOWN 0
 // Media playback status
@@ -54,5 +53,3 @@ inline bool IsPlaybackDone(PlaybackState state)
 
 // Used in locational sounds (FIXME: rename)
 #define AMBIENCE_FULL_DIST 25
-
-#endif // __AC_AUDIODEFINES_H

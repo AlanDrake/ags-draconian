@@ -15,8 +15,7 @@
 // Utility helpers around STL containers.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__STLUTILS_H
-#define __AGS_CN_UTIL__STLUTILS_H
+#pragma once
 
 #include <queue>
 
@@ -53,5 +52,3 @@ void EraseFromQueue(std::queue<T> &q, const T &elem)
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__STLUTILS_H

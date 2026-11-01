@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__MOUSE_H
-#define __AGS_EE_AC__MOUSE_H
+#pragma once
 
 #include <memory>
 #include "ac/mousecursor.h"
@@ -125,5 +124,3 @@ extern int mousex, mousey;
 extern int ignore_bounds;
 extern int cur_mode;
 extern int cur_cursor;
-
-#endif // __AGS_EE_AC__MOUSE_H

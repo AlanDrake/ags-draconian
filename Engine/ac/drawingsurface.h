@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__DRAWINGSURFACE_H
-#define __AGS_EE_AC__DRAWINGSURFACE_H
+#pragma once
 
 #include "ac/dynobj/scriptdrawingsurface.h"
 
@@ -40,5 +39,3 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
 void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, int tox, int toy, int thickness);
 void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y);
 int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y);
-
-#endif // __AGS_EE_AC__DRAWINGSURFACE_H

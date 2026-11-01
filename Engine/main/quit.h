@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_MAIN__QUIT_H
-#define __AGS_EE_MAIN__QUIT_H
+#pragma once
 
 enum QuitReason
 {
@@ -47,5 +46,3 @@ enum QuitReason
     // any kind of a fatal engine error
     kQuit_FatalError = kQuitKind_EngineException
 };
-
-#endif // __AGS_EE_MAIN__QUIT_H

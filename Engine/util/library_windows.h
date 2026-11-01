@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_UTIL__LIBRARY_WINDOWS_H
-#define __AGS_EE_UTIL__LIBRARY_WINDOWS_H
+#pragma once
 
 #include <utility>
 #include "platform/platform.h"
@@ -158,5 +157,3 @@ typedef WindowsLibrary Library;
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_UTIL__LIBRARY_WINDOWS_H

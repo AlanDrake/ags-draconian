@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CC_INTERNALLIST_H
-#define __CC_INTERNALLIST_H
+#pragma once
 
 #include <cstdint>
 
@@ -44,5 +43,3 @@ struct ccInternalList
 private:
     bool isPosValid(int pos);
 };
-
-#endif // __CC_INTERNALLIST_H

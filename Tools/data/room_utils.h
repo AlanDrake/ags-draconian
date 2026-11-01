@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_TOOL_DATA__CRMUTIL_H
-#define __AGS_TOOL_DATA__CRMUTIL_H
+#pragma once
 
 #include <vector>
 #include "game/room_file.h"
@@ -36,5 +35,3 @@ String MakeRoomScriptHeader(const RoomScriptNames &data);
 
 } // namespace DataUtil
 } // namespace AGS
-
-#endif // __AGS_TOOL_DATA__CRMUTIL_H

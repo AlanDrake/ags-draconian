@@ -17,8 +17,7 @@
 // world of programming 'object' is usually a base class; should not we
 // rename this to RoomObject one day?
 //=============================================================================
-#ifndef __AGS_EE_AC__OBJECT_H
-#define __AGS_EE_AC__OBJECT_H
+#pragma once
 
 #include "ac/common_defines.h"
 #include "ac/dynobj/scriptobjects.h"
@@ -133,5 +132,3 @@ bool CycleViewAnim(int view, uint16_t &loop, uint16_t &frame, AnimFlowParams &an
 // Tests if the standard move/walk parameters are in valid range, if not then clamps them and
 // reports a script warning.
 void ValidateMoveParams(const char *apiname, const char *objname, int &blocking, int &ignwal);
-
-#endif // __AGS_EE_AC__OBJECT_H

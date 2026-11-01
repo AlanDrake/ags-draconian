@@ -15,8 +15,7 @@
 // Various string helpers.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__STRINGUTILS_H
-#define __AGS_CN_UTIL__STRINGUTILS_H
+#pragma once
 
 #include <memory>
 #include <utility>
@@ -252,6 +251,3 @@ String FindCompatibleUTF8LocaleName(const String &lang_name);
 } // namespace StrUtil
 } // namespace Common
 } // namespace AGS
-
-
-#endif // __AGS_CN_UTIL__STRINGUTILS_H

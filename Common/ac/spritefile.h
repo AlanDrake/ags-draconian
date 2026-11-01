@@ -18,8 +18,7 @@
 // of situations.
 //
 //=============================================================================
-#ifndef __AGS_CN_AC__SPRFILE_H
-#define __AGS_CN_AC__SPRFILE_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -213,5 +212,3 @@ HError SaveSpriteIndex(const String &filename, const SpriteFileIndex &index);
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_AC__SPRFILE_H

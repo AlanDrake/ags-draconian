@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_SCRIPTCAMERA_H
-#define __AC_SCRIPTCAMERA_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
@@ -44,5 +43,3 @@ private:
 
 // Unserialize camera from the memory stream
 ScriptCamera *Camera_Unserialize(int handle, AGS::Common::Stream *in, size_t data_sz);
-
-#endif // __AC_SCRIPTCAMERA_H

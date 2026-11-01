@@ -35,8 +35,7 @@
 // string.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__STRING_H
-#define __AGS_CN_UTIL__STRING_H
+#pragma once
 
 #include <stdarg.h>
 #include <vector>
@@ -478,5 +477,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__STRING_H

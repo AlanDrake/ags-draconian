@@ -15,8 +15,7 @@
 // Constants for built-in GUI dialogs.
 //
 //=============================================================================
-#ifndef __AGS_EE_GUI__GUIDIALOGDEFINES_H
-#define __AGS_EE_GUI__GUIDIALOGDEFINES_H
+#pragma once
 
 // These were GlobalMessages (984 - 995).
 #define MSG_RESTORE      0  // "Restore"
@@ -104,5 +103,3 @@ struct OnScreenWindow
 
     OnScreenWindow();
 };
-
-#endif // __AGS_EE_GUI__GUIDIALOGDEFINES_H

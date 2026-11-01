@@ -12,8 +12,7 @@
 //
 //=============================================================================
 
-#ifndef __AC_SCRIPTDIALOGOPTIONSRENDERING_H
-#define __AC_SCRIPTDIALOGOPTIONSRENDERING_H
+#pragma once
 
 #include "ac/dynobj/scriptdrawingsurface.h"
 
@@ -38,6 +37,3 @@ public:
     int Dispose(void *address, bool force) override;
     void Reset();
 };
-
-
-#endif // __AC_SCRIPTDIALOGOPTIONSRENDERING_H

@@ -16,8 +16,7 @@
 //
 //=============================================================================
 
-#ifndef __AGS_EE_GFX__OGLGFXFILTER_H
-#define __AGS_EE_GFX__OGLGFXFILTER_H
+#pragma once
 
 #include "gfx/gfxfilter_scaling.h"
 
@@ -43,5 +42,3 @@ public:
 } // namespace OGL
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__OGLGFXFILTER_H

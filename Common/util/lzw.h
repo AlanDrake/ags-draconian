@@ -15,8 +15,7 @@
 // LZW (un)compression functions.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__LZW_H
-#define __AGS_CN_UTIL__LZW_H
+#pragma once
 
 #include "util/stream.h"
 
@@ -24,5 +23,3 @@ bool lzwcompress(AGS::Common::Stream *lzw_in, AGS::Common::Stream *out);
 // Expands lzw-compressed data from src to dst.
 // the dst buffer should be large enough, or the uncompression will not be complete.
 bool lzwexpand(const uint8_t *src, size_t src_sz, uint8_t *dst, size_t dst_sz);
-
-#endif // __AGS_CN_UTIL__LZW_H

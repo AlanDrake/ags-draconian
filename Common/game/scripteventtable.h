@@ -25,8 +25,7 @@
 // theoretically, made of the list of cursors).
 //
 //=============================================================================
-#ifndef __AGS_CN_GAME__SCRIPTEVENTSTABLE_H
-#define __AGS_CN_GAME__SCRIPTEVENTSTABLE_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -291,5 +290,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GAME__SCRIPTEVENTSTABLE_H

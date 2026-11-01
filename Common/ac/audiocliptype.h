@@ -12,8 +12,7 @@
 //
 //=============================================================================
 
-#ifndef __AC_AUDIOCLIPTYPE_H
-#define __AC_AUDIOCLIPTYPE_H
+#pragma once
 
 // Forward declaration
 namespace AGS
@@ -37,5 +36,3 @@ struct AudioClipType
     void ReadFromSavegame(Common::Stream *in);
     void WriteToSavegame(Common::Stream *out) const;
 };
-
-#endif // __AC_AUDIOCLIPTYPE_H

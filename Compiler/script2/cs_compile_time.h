@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CS_COMPILE_TIME_H
-#define __CS_COMPILE_TIME_H
+#pragma once
 
 #include <functional>
 #include "cs_parser_common.h"
@@ -204,4 +203,3 @@ public:
 };
 
 } // namespace AGS
-#endif // __CS_COMPILE_TIME_H

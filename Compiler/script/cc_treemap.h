@@ -15,8 +15,7 @@
 // 'C'-style script compiler
 //
 //=============================================================================
-#ifndef __CC_TREEMAP_H
-#define __CC_TREEMAP_H
+#pragma once
 
 #include <map>
 #include <string>
@@ -32,5 +31,3 @@ struct ccTreeMap
 private:
     std::map<std::string, int> storage;
 };
-
-#endif // __CC_TREEMAP_H

@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CC_SYMBOLTABLE_H
-#define __CC_SYMBOLTABLE_H
+#pragma once
 
 #include <cstdint>
 #include <map>
@@ -102,5 +101,3 @@ private:
 
 
 extern symbolTable sym;
-
-#endif //__CC_SYMBOLTABLE_H

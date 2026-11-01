@@ -16,8 +16,7 @@
 //
 //=============================================================================
 
-#ifndef __AGS_EE_PLATFORM__AGSPLATFORM_UNIX_H
-#define __AGS_EE_PLATFORM__AGSPLATFORM_UNIX_H
+#pragma once
 
 #include "platform/platform.h"
 
@@ -38,5 +37,3 @@ struct AGSPlatformXDGUnix : AGSPlatformDriver
 };
 
 #endif // AGS_PLATFORM_IS_XDG_UNIX
-
-#endif // __AGS_EE_PLATFORM__AGSPLATFORM_UNIX_H

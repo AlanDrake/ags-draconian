@@ -15,8 +15,7 @@
 // Game version constants and information
 //
 //=============================================================================
-#ifndef __AGS_CN_AC__GAMEVERSION_H
-#define __AGS_CN_AC__GAMEVERSION_H
+#pragma once
 
 /*
 
@@ -224,5 +223,3 @@ enum GameDataVersion
     // by reading "Compiled With" field from the game file's header.
     kGameVersion_362_07 = 3060207
 };
-
-#endif // __AGS_CN_AC__GAMEVERSION_H

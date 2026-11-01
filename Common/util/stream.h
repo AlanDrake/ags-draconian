@@ -24,8 +24,7 @@
 // Most I/O devices should inherit DataStream instead.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__STREAM_H
-#define __AGS_CN_UTIL__STREAM_H
+#pragma once
 
 #include <memory>
 #include "util/bbop.h"
@@ -532,5 +531,3 @@ soff_t CopyStream(Stream *in, Stream *out, soff_t length);
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__STREAM_H

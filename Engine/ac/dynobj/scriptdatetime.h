@@ -15,8 +15,7 @@
 // ScriptDateTime is a script object that contains date/time definition.
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__SCRIPTDATETIME_H
-#define __AGS_EE_DYNOBJ__SCRIPTDATETIME_H
+#pragma once
 
 #include <chrono>
 #include "ac/dynobj/cc_agsdynamicobject.h"
@@ -65,5 +64,3 @@ private:
     // Write object data into the provided stream
     void Serialize(const void *address, AGS::Common::Stream *out) override;
 };
-
-#endif // __AGS_EE_DYNOBJ__SCRIPTDATETIME_H

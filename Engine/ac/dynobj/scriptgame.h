@@ -15,8 +15,7 @@
 // Wrapper around script "GameState" struct, managing access to its variables.
 //
 //=============================================================================
-#ifndef __AGS_EE_STATOBJ__SCRIPTGAME_H
-#define __AGS_EE_STATOBJ__SCRIPTGAME_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
@@ -28,5 +27,3 @@ public:
 };
 
 extern CCScriptGame GameStaticManager;
-
-#endif // __AGS_EE_STATOBJ__SCRIPTGAME_H

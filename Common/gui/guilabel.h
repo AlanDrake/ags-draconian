@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_GUILABEL_H
-#define __AC_GUILABEL_H
+#pragma once
 
 #include <vector>
 #include "gui/guitextbasedcontrol.h"
@@ -64,5 +63,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AC_GUILABEL_H

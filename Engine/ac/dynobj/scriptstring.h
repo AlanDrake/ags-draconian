@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_SCRIPTSTRING_H
-#define __AC_SCRIPTSTRING_H
+#pragma once
 
 #include <memory>
 #include "ac/dynobj/cc_agsdynamicobject.h"
@@ -98,5 +97,3 @@ private:
 };
 
 extern ScriptString myScriptStringImpl;
-
-#endif // __AC_SCRIPTSTRING_H

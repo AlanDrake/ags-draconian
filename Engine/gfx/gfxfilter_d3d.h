@@ -15,8 +15,7 @@
 // Standard 3D-accelerated filter
 //
 //=============================================================================
-#ifndef __AGS_EE_GFX__D3DGFXFILTER_H
-#define __AGS_EE_GFX__D3DGFXFILTER_H
+#pragma once
 
 #include "gfx/gfxfilter_scaling.h"
 
@@ -42,5 +41,3 @@ public:
 } // namespace D3D
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__D3DGFXFILTER_H

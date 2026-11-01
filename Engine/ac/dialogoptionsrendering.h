@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__DIALOGOPTIONSRENDERING_H
-#define __AGS_EE_AC__DIALOGOPTIONSRENDERING_H
+#pragma once
 
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
@@ -39,5 +38,3 @@ ScriptDialog *DialogOptionsRendering_GetDialogToRender(ScriptDialogOptionsRender
 ScriptDrawingSurface *DialogOptionsRendering_GetSurface(ScriptDialogOptionsRendering *dlgOptRender);
 int DialogOptionsRendering_GetActiveOptionID(ScriptDialogOptionsRendering *dlgOptRender);
 void DialogOptionsRendering_SetActiveOptionID(ScriptDialogOptionsRendering *dlgOptRender, int activeOptionID);
-
-#endif // __AGS_EE_AC__DIALOGOPTIONSRENDERING_H

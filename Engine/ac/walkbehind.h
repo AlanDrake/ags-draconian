@@ -15,8 +15,7 @@
 // Walk-behinds calculation logic.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__WALKBEHIND_H
-#define __AGS_EE_AC__WALKBEHIND_H
+#pragma once
 
 #include "util/geometry.h"
 
@@ -53,5 +52,3 @@ bool walkbehinds_cropout(Common::Bitmap *sprit, int sprx, int spry, int basel);
 extern bool noWalkBehindsAtAll;
 extern int walkBehindsCachedForBgNum;
 extern bool walk_behind_baselines_changed;
-
-#endif // __AGS_EE_AC__WALKBEHIND_H

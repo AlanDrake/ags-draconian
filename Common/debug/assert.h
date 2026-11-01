@@ -15,9 +15,6 @@
 // Debug assertion tools
 //
 //=============================================================================
-#ifndef __AGS_CN_DEBUG__ASSERT_H
-#define __AGS_CN_DEBUG__ASSERT_H
+#pragma once
 
 #include <assert.h>
-
-#endif // __AGS_CN_DEBUG__ASSERT_H

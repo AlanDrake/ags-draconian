@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GLOBALTRANSLATION_H
-#define __AGS_EE_AC__GLOBALTRANSLATION_H
+#pragma once
 
 // Use the provided text as a key and returns the mapped translation.
 // Returns the original text back if no matching translation found.
@@ -25,5 +24,3 @@
 // you use returned value immediately or save it in another buffer.
 const char *get_translation(const char *text);
 int IsTranslationAvailable();
-
-#endif // __AGS_EE_AC__GLOBALTRANSLATION_H

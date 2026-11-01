@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__OVERLAY_H
-#define __AGS_EE_AC__OVERLAY_H
+#pragma once
 #include <vector>
 #include "ac/display.h"
 #include "ac/screenoverlay.h"
@@ -85,4 +84,3 @@ void UpdateOverlayAnimations();
 void StopOverlayAnimation(int over_id);
 void RemoveAnimatedOverlay(int over_id);
 void RemoveAllAnimatedOverlays();
-#endif // __AGS_EE_AC__OVERLAY_H

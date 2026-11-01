@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_MAIN__MAIN_H
-#define __AGS_EE_MAIN__MAIN_H
+#pragma once
 
 #include "platform/platform.h"
 #include "util/version.h"
@@ -41,5 +40,3 @@ extern AGS::Common::String loadSaveGameOnStartup;
 void main_print_help();
 
 int ags_entry_point(int argc, char *argv[]);
-
-#endif // __AGS_EE_MAIN__MAIN_H

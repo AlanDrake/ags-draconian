@@ -15,8 +15,7 @@
 // DeflateStream implements data (un)compression using Deflate algorithm.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__DEFLATESTREAM_H
-#define __AGS_CN_UTIL__DEFLATESTREAM_H
+#pragma once
 
 #include "util/transformstream.h"
 
@@ -51,5 +50,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__DEFLATESTREAM_H

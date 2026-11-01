@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_WFNFONTRENDERER_H
-#define __AC_WFNFONTRENDERER_H
+#pragma once
 
 #include <map>
 #include "data/assetmanager.h"
@@ -67,5 +66,3 @@ private:
     AGS::Common::AssetManager *_amgr = nullptr;
     AGS::Common::BlendMode _blendMode = AGS::Common::kBlend_Normal;
 };
-
-#endif // __AC_WFNFONTRENDERER_H

@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_GUIMAIN_H
-#define __AC_GUIMAIN_H
+#pragma once
 
 #include <vector>
 #include "ac/common_defines.h" // TODO: split out gui drawing helpers
@@ -526,5 +525,3 @@ extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfon
 extern void set_our_eip(int eip);
 extern void set_eip_guiobj(int eip);
 extern int get_eip_guiobj();
-
-#endif // __AC_GUIMAIN_H

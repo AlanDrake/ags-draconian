@@ -16,8 +16,7 @@
 // FIXME: either get rid of these or tidy and reorganize them.
 //
 //=============================================================================
-#ifndef __WGT4_H
-#define __WGT4_H
+#pragma once
 
 #include <allegro.h> // RGB
 
@@ -37,6 +36,3 @@ extern Common::Bitmap *wnewblock(Common::Bitmap *src, int x1, int y1, int x2, in
 extern void wputblock(Common::Bitmap *ds, int xx, int yy, Common::Bitmap *bll, int xray);
 // CHECKME: temporary solution for plugin system
 extern void wputblock_raw(Common::Bitmap *ds, int xx, int yy, BITMAP *bll, int xray);
-
-
-#endif // __WGT4_H

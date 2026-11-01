@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__STRINGCOMPAT_H
-#define __AGS_CN_UTIL__STRINGCOMPAT_H
+#pragma once
 
 #include "platform/types.h"
 
@@ -32,5 +31,3 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
-#endif // __AGS_CN_UTIL__STRINGCOMPAT_H

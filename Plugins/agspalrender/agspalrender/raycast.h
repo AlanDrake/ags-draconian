@@ -1,5 +1,4 @@
-#ifndef __PALGORITHMS_RAYCAST_H
-#define __PALGORITHMS_RAYCAST_H
+#pragma once
 
 #include "palrender.h"
 
@@ -187,6 +186,4 @@ int Ray_HasSeenTile(int x, int y);
 
 #if defined(BUILTIN_PLUGINS)
 } // namespace agspalrender
-#endif
-
 #endif

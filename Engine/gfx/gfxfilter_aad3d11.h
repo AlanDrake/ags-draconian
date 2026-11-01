@@ -1,5 +1,4 @@
-#ifndef __AGS_EE_GFX__GFXFILTER_AAD3D11_H
-#define __AGS_EE_GFX__GFXFILTER_AAD3D11_H
+#pragma once
 
 #include "gfx/gfxfilter_d3d11.h"
 
@@ -24,5 +23,3 @@ public:
 } // namespace D3D11
 } // namespace Engine
 } // namespace AGS
-
-#endif

@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_TOOL_DATA__SPRITEFILEUTILS_H
-#define __AGS_TOOL_DATA__SPRITEFILEUTILS_H
+#pragma once
 
 #include <regex>
 #include <map>
@@ -70,5 +69,3 @@ HError ConvertSpriteForGame(PixelBuffer &image, const Palette *pal, PixelBuffer 
 
 } // namespace DataUtil
 } // namespace AGS
-
-#endif // __AGS_TOOL_DATA__SPRITEFILEUTILS_H

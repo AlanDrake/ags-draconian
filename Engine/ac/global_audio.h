@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GLOBALAUDIO_H
-#define __AGS_EE_AC__GLOBALAUDIO_H
+#pragma once
 
 #include "speech.h"
 
@@ -34,5 +33,3 @@ const ScriptAudioChannel *play_voice_clip_as_type(int charid, int sndid, int typ
 void stop_voice_speech();
 // Stop non-blocking voice-over and revert audio volumes if necessary
 void stop_voice_nonblocking();
-
-#endif // __AGS_EE_AC__GLOBALAUDIO_H

@@ -18,8 +18,7 @@
 // some other header, as it brings a bunch of matrix headers with itself.
 //
 //=============================================================================
-#ifndef __AGS_CN_GFX__GFXDEF_H
-#define __AGS_CN_GFX__GFXDEF_H
+#pragma once
 
 #include "util/geometry.h"
 
@@ -261,5 +260,3 @@ bool SetBlender(BlendMode blend_mode, int alpha);
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GFX__GFXDEF_H

@@ -45,8 +45,7 @@
 // principle.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__RESOURCECACHE_H
-#define __AGS_CN_UTIL__RESOURCECACHE_H
+#pragma once
 
 #include <list>
 #include <unordered_map>
@@ -412,5 +411,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__RESOURCECACHE_H

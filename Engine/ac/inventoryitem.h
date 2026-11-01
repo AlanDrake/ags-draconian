@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__INVENTORYITEM_H
-#define __AGS_EE_AC__INVENTORYITEM_H
+#pragma once
 
 #include "ac/dynobj/scriptobjects.h"
 
@@ -40,5 +39,3 @@ int GetInvAt(int scrx, int scry, int gui_hitoptions, int inv_hitoptions);
 void set_inv_item_cursorpic(int invItemId, int piccy);
 
 void InvItems_RegisterDynamicSpriteCallbacks();
-
-#endif // __AGS_EE_AC__INVENTORYITEM_H

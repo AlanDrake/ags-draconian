@@ -17,8 +17,7 @@
 // script in older versions of API (deprecated).
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__SCRIPTSYSTEM_H
-#define __AGS_EE_DYNOBJ__SCRIPTSYSTEM_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
@@ -36,5 +35,3 @@ struct ScriptSystem : public AGSCCStaticObject
     int32_t ReadInt32(const void *address, intptr_t offset) override;
     void WriteInt32(void *address, intptr_t offset, int32_t val) override;
 };
-
-#endif // __AGS_EE_DYNOBJ__SCRIPTSYSTEM_H

@@ -18,8 +18,7 @@
 // clear that AGS.Native does not need allegro for drawing.
 //
 //=============================================================================
-#ifndef __AGS_CN_GFX__ALLEGROBITMAP_H
-#define __AGS_CN_GFX__ALLEGROBITMAP_H
+#pragma once
 
 #include <memory>
 #include <allegro.h> // BITMAP
@@ -304,5 +303,3 @@ Bitmap *CreateRawBitmapWrapper(BITMAP *al_bmp);
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GFX__ALLEGROBITMAP_H

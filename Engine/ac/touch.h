@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC_TOUCH_H
-#define __AGS_EE_AC_TOUCH_H
+#pragma once
 
 #include "util/geometry.h"
 
@@ -39,5 +38,3 @@ void OnTouchPointerUp(int pointer_id, const Point &position);
 void ResetAllTouchPointers();
 // Removes all registered touch pointers, invalidate any script objects
 void RemoveAllTouchPointers();
-
-#endif //__AGS_EE_AC_TOUCH_H

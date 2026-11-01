@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__LABEL_H
-#define __AGS_EE_AC__LABEL_H
+#pragma once
 
 #include "gui/guilabel.h"
 
@@ -29,5 +28,3 @@ int Label_GetTextColor(GUILabel *labl);
 void Label_SetTextColor(GUILabel *labl, int colr);
 int Label_GetFont(GUILabel *labl);
 void Label_SetFont(GUILabel *guil, int fontnum);
-
-#endif // __AGS_EE_AC__LABEL_H

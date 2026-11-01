@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__KEYCODE_H
-#define __AGS_EE_AC__KEYCODE_H
+#pragma once
 
 #include "platform/platform.h"
 #include "platform/types.h"
@@ -335,4 +334,3 @@ eAGSKeyCode AGSKeyToScriptKey(eAGSKeyCode keycode);
 // Converts eAGSKeyCode to ASCII text representation with the range check; returns 0 on failure
 // Not unicode compatible.
 char AGSKeyToText(eAGSKeyCode keycode);
-#endif // __AGS_EE_AC__KEYCODE_H

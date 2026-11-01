@@ -22,8 +22,7 @@
 // too large.  Open with fmem_create for writing, or fmem_open for reading.
 //
 //=============================================================================
-#ifndef __FMEM_H
-#define __FMEM_H
+#pragma once
 
 struct FMEM
 {
@@ -44,5 +43,3 @@ extern int fmem_getc(FMEM *);
 extern int fmem_peekc(FMEM *);
 extern int fmem_eof(FMEM *);
 extern void fmem_gets(FMEM *, char *);
-
-#endif // __FMEM_H

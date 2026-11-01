@@ -11,10 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GLOBALVIDEO_H
-#define __AGS_EE_AC__GLOBALVIDEO_H
+#pragma once
 
 void PlayFlic(int numb, int flags);
 void PlayVideo(const char *name, int skip, int flags);
-
-#endif // __AGS_EE_AC__GLOBALVIDEO_H

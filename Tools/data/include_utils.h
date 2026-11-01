@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_TOOL_DATA__INCLUDEEUTILS_H
-#define __AGS_TOOL_DATA__INCLUDEEUTILS_H
+#pragma once
 
 #include <functional>
 #include <regex>
@@ -74,5 +73,3 @@ private:
 
 } // namespace DataUtil
 } // namespace AGS
-
-#endif // __AGS_TOOL_DATA__INCLUDEEUTILS_H

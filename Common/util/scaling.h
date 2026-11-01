@@ -18,8 +18,7 @@
 // Maybe implement as real matrix and/or floats if that is better/runs faster.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__SCALING_H
-#define __AGS_CN_UTIL__SCALING_H
+#pragma once
 
 #include "platform/types.h"
 #include "util/geometry.h"
@@ -130,5 +129,3 @@ struct PlaneScaling
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__SCALING_H

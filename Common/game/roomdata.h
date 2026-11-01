@@ -36,8 +36,7 @@
 // is loaded once again.
 //
 //=============================================================================
-#ifndef __AGS_CN_GAME__ROOMDATA_H
-#define __AGS_CN_GAME__ROOMDATA_H
+#pragma once
 
 #include <allegro.h>
 #include "game/scripteventtable.h"
@@ -461,5 +460,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GAME__ROOMDATA_H

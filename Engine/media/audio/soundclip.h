@@ -34,8 +34,7 @@
 // sound clip use, taking backwards-compatible audio system in account.
 //
 //=============================================================================
-#ifndef __AGS_EE_MEDIA__SOUNDCLIP_H__
-#define __AGS_EE_MEDIA__SOUNDCLIP_H__
+#pragma once
 #include "ac/dynobj/scriptaudioclip.h"
 #include "media/audio/audiodefines.h"
 #include "util/math.h"
@@ -206,5 +205,3 @@ private:
     // in properties, but not applied to playback itself
     bool muted;
 };
-
-#endif // __AGS_EE_MEDIA__SOUNDCLIP_H__

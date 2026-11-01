@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_TOOL_DATA__GAMEUTIL_H
-#define __AGS_TOOL_DATA__GAMEUTIL_H
+#pragma once
 
 #include <memory>
 #include <map>
@@ -744,5 +743,3 @@ void WriteConfig(const RuntimeSetup &setup, const GameSettings *settings, AGS::C
 
 } // namespace DataUtil
 } // namespace AGS
-
-#endif // __AGS_TOOL_DATA__GAMEUTIL_H

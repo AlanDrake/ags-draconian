@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_LIPSYNC_H
-#define __AC_LIPSYNC_H
+#pragma once
 
 #include <vector>
 #include "util/string.h"
@@ -24,5 +23,3 @@ struct SpeechLipSyncLine
     std::vector<short> frame;
     short numPhonemes;
 };
-
-#endif // __AC_LIPSYNC_H

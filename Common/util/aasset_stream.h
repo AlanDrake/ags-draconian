@@ -15,8 +15,7 @@
 //  Android Asset Stream to read from NDK AAssetManager in AGS
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__AASSET_STREAM_H
-#define __AGS_CN_UTIL__AASSET_STREAM_H
+#pragma once
 
 #include "platform/platform.h"
 
@@ -111,5 +110,3 @@ public:
 } // namespace AGS
 
 #endif // AGS_PLATFORM_OS_ANDROID
-
-#endif // __AGS_CN_UTIL__AASSET_STREAM_H

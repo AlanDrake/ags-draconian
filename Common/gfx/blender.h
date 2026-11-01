@@ -15,8 +15,7 @@
 // AGS specific color blending routines for transparency and tinting effects
 //
 //=============================================================================
-#ifndef __AC_BLENDER_H
-#define __AC_BLENDER_H
+#pragma once
 
 #include "platform/types.h"
 #include "gfx/gfx_def.h"
@@ -88,5 +87,3 @@ typedef uint32_t (*PfnBlenderCb)(uint32_t x, uint32_t y, uint32_t n);
 PfnBlenderCb GetBlenderFunc(BlendMode blend_mode);
 } // namespace Common
 } // namespace AGS
-
-#endif // __AC_BLENDER_H

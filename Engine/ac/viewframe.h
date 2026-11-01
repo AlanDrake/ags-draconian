@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__VIEWFRAME_H
-#define __AGS_EE_AC__VIEWFRAME_H
+#pragma once
 
 #include "ac/runtime_defines.h"
 #include "ac/view.h"
@@ -61,5 +60,3 @@ bool RunViewFrameEvent(int view, int loop, int frame, const ObjectEvent &obj_evt
                        int evnt);
 // draws a view frame, flipped if appropriate
 void DrawViewFrame(Common::Bitmap *ds, const ViewFrame *vframe, int x, int y);
-
-#endif // __AGS_EE_AC__VIEWFRAME_H

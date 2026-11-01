@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CC_MACROTABLE_H
-#define __CC_MACROTABLE_H
+#pragma once
 
 #include <map>
 #include "util/string.h"
@@ -32,5 +31,3 @@ public:
     void merge(MacroTable &macro_table);
     void clear();
 };
-
-#endif // __CC_MACROTABLE_H

@@ -15,8 +15,7 @@
 // Custom smart pointer types and helpers.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__SMARTPTR_H
-#define __AGS_CN_UTIL__SMARTPTR_H
+#pragma once
 
 #include <cstddef>
 
@@ -179,5 +178,3 @@ bool operator!=(const ComPtr<T1> &iptr1, const ComPtr<T2> &iptr2)
 {
     return iptr1.get() != iptr2.get();
 }
-
-#endif // __AGS_CN_UTIL__SMARTPTR_H

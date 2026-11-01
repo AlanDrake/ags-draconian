@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_MAIN__ENGINE_H
-#define __AGS_EE_MAIN__ENGINE_H
+#pragma once
 
 #include "util/ini_util.h"
 #include "util/error.h"
@@ -70,5 +69,3 @@ void engine_assign_assetpaths();
 // Used for apps to register their own plugins and other configuration
 typedef void (*t_engine_pre_init_callback)(void);
 extern void engine_set_pre_init_callback(t_engine_pre_init_callback callback);
-
-#endif // __AGS_EE_MAIN__ENGINE_H

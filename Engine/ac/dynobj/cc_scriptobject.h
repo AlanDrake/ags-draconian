@@ -19,8 +19,7 @@
 // dynamic objects allocated by the script command.
 //
 //=============================================================================
-#ifndef __CC_SCRIPTOBJECT_H
-#define __CC_SCRIPTOBJECT_H
+#pragma once
 
 #include <functional>
 #include <unordered_map>
@@ -146,5 +145,3 @@ struct ICCObjectReader
     // TODO: find a way to pass savegame format version?
     virtual void Unserialize(int32_t handle, const char *serializedData, int dataSize) = 0;
 };
-
-#endif // __CC_SCRIPTOBJECT_H

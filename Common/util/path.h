@@ -15,8 +15,7 @@
 // Platform-independent Path functions
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__PATH_H
-#define __AGS_CN_UTIL__PATH_H
+#pragma once
 
 #include "util/string.h"
 
@@ -129,5 +128,3 @@ String WidePathToUTF8(const wchar_t *ws);
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__PATH_H

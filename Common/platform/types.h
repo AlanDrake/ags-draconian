@@ -15,8 +15,7 @@
 // Basic types definition
 //
 //=============================================================================
-#ifndef __AGS_CN_CORE__TYPES_H
-#define __AGS_CN_CORE__TYPES_H
+#pragma once
 
 #include <stddef.h> // for size_t
 #include <stdint.h>
@@ -112,5 +111,3 @@ enum
     kShift = 16,
     kUnit = 1 << kShift
 };
-
-#endif // __AGS_CN_CORE__TYPES_H

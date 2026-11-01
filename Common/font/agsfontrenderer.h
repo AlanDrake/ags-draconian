@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_AGSFONTRENDERER_H
-#define __AC_AGSFONTRENDERER_H
+#pragma once
 
 #include "gfx/gfx_def.h"
 #include "util/geometry.h"
@@ -136,5 +135,3 @@ protected:
     IAGSFontRendererInternal() = default;
     ~IAGSFontRendererInternal() = default;
 };
-
-#endif // __AC_AGSFONTRENDERER_H

@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__DRAW_H
-#define __AGS_EE_AC__DRAW_H
+#pragma once
 
 #include <memory>
 #include "ac/common_defines.h"
@@ -255,5 +254,3 @@ Common::Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect
 // TODO: hide these behind some kind of an interface
 // Stores cloned surfaces (see DrawingSurface.CreateCopy)
 extern std::unique_ptr<Common::Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
-
-#endif // __AGS_EE_AC__DRAW_H

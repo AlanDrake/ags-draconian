@@ -15,8 +15,7 @@
 // Audio Core: an audio backend interface.
 //
 //=============================================================================
-#ifndef __AGS_EE_MEDIA__AUDIOCORE_H
-#define __AGS_EE_MEDIA__AUDIOCORE_H
+#pragma once
 #include <memory>
 #include <vector>
 #include "media/audio/audiodefines.h"
@@ -56,5 +55,3 @@ void audio_core_slot_stop(int slot_handle);
 // Polls the audio core if we have no threads, polled in WaitForNextFrame()
 void audio_core_entry_poll();
 #endif
-
-#endif // __AGS_EE_MEDIA__AUDIOCORE_H

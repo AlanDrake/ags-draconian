@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_MAIN__CONFIG_H
-#define __AGS_EE_MAIN__CONFIG_H
+#pragma once
 
 #include "ac/gamesetup.h"
 #include "ac/speech.h"
@@ -60,5 +59,3 @@ String make_speechskip_option(SkipSpeechStyle style);
 String make_speechmode_option(SpeechMode mode);
 uint32_t convert_scaling_to_fp(int scale_factor);
 int convert_fp_to_scaling(uint32_t scaling);
-
-#endif // __AGS_EE_MAIN__CONFIG_H

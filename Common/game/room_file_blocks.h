@@ -16,8 +16,7 @@
 // from and into the room file.
 //
 //=============================================================================
-#ifndef __AGS_CN_GAME_ROOMFILEBLOCKS_H
-#define __AGS_CN_GAME_ROOMFILEBLOCKS_H
+#pragma once
 
 #include <functional>
 #include "data/data_ext.h"
@@ -88,5 +87,3 @@ void WriteRoomBlock(RoomFileBlock block, const std::vector<uint8_t> &data, Strea
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GAME_ROOMFILEBLOCKS_H

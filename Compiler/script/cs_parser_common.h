@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CS_PARSER_COMMON_H
-#define __CS_PARSER_COMMON_H
+#pragma once
 
 #include <cctype>
 
@@ -140,5 +139,3 @@ inline char GetEscapedChar(char c)
     default: return c;
     }
 }
-
-#endif // __CS_PARSER_COMMON_H

@@ -15,8 +15,7 @@
 // A bridge between AGS engine and SDL events.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__SYS_EVENTS_H
-#define __AGS_EE_AC__SYS_EVENTS_H
+#pragma once
 #include <vector>
 #include <SDL_keyboard.h>
 #include <SDL_events.h>
@@ -209,5 +208,3 @@ void sys_evt_process_one(const SDL_Event &event);
 void sys_evt_process_pending(void);
 // Flushes system events following window initialization.
 void sys_flush_events(void);
-
-#endif // __AGS_EE_AC__SYS_EVENTS_H

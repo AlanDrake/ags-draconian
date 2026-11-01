@@ -12,8 +12,7 @@
 //
 //=============================================================================
 
-#ifndef __AC_MYLISTBOX_H
-#define __AC_MYLISTBOX_H
+#pragma once
 
 #include "gui/newcontrol.h"
 
@@ -35,5 +34,3 @@ struct MyListBox : public NewControl
     void additem(char *texx);
     int processmessage(int mcode, int wParam, intptr_t ipParam) override;
 };
-
-#endif // __AC_MYLISTBOX_H

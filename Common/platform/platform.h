@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_PLATFORM_H
-#define __AC_PLATFORM_H
+#pragma once
 
 // platform definitions. Not intended for replacing types or checking for libraries.
 
@@ -190,5 +189,3 @@
 #if !defined(DEBUG_SPRITECACHE)
 #define DEBUG_SPRITECACHE (0)
 #endif
-
-#endif // __AC_PLATFORM_H

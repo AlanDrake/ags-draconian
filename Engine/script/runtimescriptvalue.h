@@ -15,8 +15,7 @@
 // Runtime script value struct
 //
 //=============================================================================
-#ifndef __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H
-#define __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H
+#pragma once
 
 #include "ac/dynobj/cc_scriptobject.h"
 #include "ac/dynobj/cc_staticarray.h"
@@ -463,5 +462,3 @@ public:
     // Resolve and return direct pointer to the referenced data; non pointer types return IValue
     void *GetDirectPtr() const;
 };
-
-#endif // __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H

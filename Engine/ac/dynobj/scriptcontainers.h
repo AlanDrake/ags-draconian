@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_SCRIPTCONTAINERS_H
-#define __AC_SCRIPTCONTAINERS_H
+#pragma once
 
 class ScriptDictBase;
 class ScriptSetBase;
@@ -25,5 +24,3 @@ ScriptDictBase *Dict_Unserialize(int index, AGS::Common::Stream *in, size_t data
 ScriptSetBase *Set_Create(int sort_style, int compare_style);
 // Unserialize set from the memory stream
 ScriptSetBase *Set_Unserialize(int index, AGS::Common::Stream *in, size_t data_sz);
-
-#endif // __AC_SCRIPTCONTAINERS_H

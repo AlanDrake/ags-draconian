@@ -15,8 +15,7 @@
 // WinAPI interaction helpers.
 //
 //=============================================================================
-#ifndef __AGS_EE_SETUP__WINAPIHELPERS_H
-#define __AGS_EE_SETUP__WINAPIHELPERS_H
+#pragma once
 
 #include "platform/platform.h"
 
@@ -92,5 +91,3 @@ void MakeFullLongPath(const char *path, WCHAR *out_buf, int buf_len);
 } // namespace AGS
 
 #endif // AGS_PLATFORM_OS_WINDOWS
-
-#endif // __AGS_EE_SETUP__WINAPIHELPERS_H

@@ -15,8 +15,7 @@
 // Class for writing plain text to the stream
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__TEXTSTREAMWRITER_H
-#define __AGS_CN_UTIL__TEXTSTREAMWRITER_H
+#pragma once
 
 #include <memory>
 #include "util/stream.h"
@@ -63,5 +62,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__TEXTSTREAMWRITER_H

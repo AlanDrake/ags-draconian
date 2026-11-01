@@ -15,8 +15,7 @@
 // Plugin system functions.
 //
 //=============================================================================
-#ifndef __AGS_EE_PLUGIN__PLUGINENGINE_H
-#define __AGS_EE_PLUGIN__PLUGINENGINE_H
+#pragma once
 
 #include <vector>
 #include "ac/dynobj/cc_scriptobject.h"
@@ -58,4 +57,3 @@ bool pl_is_plugin_loaded(const char *pl_name);
 bool pl_any_want_hook(int event);
 
 bool RegisterPluginStubs(const char *name);
-#endif // __AGS_EE_PLUGIN__PLUGINENGINE_H

@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_TOOL_DATA__TRAUTILS_H
-#define __AGS_TOOL_DATA__TRAUTILS_H
+#pragma once
 
 #include <memory>
 #include "data/tra_file.h"
@@ -40,5 +39,3 @@ HError WriteTRA(const Translation &tra, std::unique_ptr<Stream> &&out);
 
 } // namespace DataUtil
 } // namespace AGS
-
-#endif // __AGS_TOOL_DATA__TRAUTILS_H

@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_TOOL_SPRITEPAK__COMMANDS_H
-#define __AGS_TOOL_SPRITEPAK__COMMANDS_H
+#pragma once
 
 #include "data/sprite_utils.h"
 
@@ -38,5 +37,3 @@ int Command_Info(const String &src_pak, const CommandOptions &opts);
 int Command_List(const String &src_pak, const CommandOptions &opts);
 int Command_Copy(const String &src_pak, const String &dst_pak, const CommandOptions &opts, bool verbose);
 } // namespace SpritePak
-
-#endif // __AGS_TOOL_SPRITEPAK__COMMANDS_H

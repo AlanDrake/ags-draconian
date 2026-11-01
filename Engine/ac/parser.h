@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__PARSER_H
-#define __AGS_EE_AC__PARSER_H
+#pragma once
 
 #include "ac/wordsdictionary.h"
 
@@ -62,5 +61,3 @@ ITextParser *GetTranslationTextParser();
 // Check if src_dict has any word groups that dst_dict does *not* have, and copies them over;
 // does not touch existing word groups in the dst_dict, even if they have different words.
 void MergeParserDictionary(AGS::Common::WordsDictionary *dst_dict, const AGS::Common::WordsDictionary *src_dict);
-
-#endif // __AGS_EE_AC__PARSER_H

@@ -16,8 +16,7 @@
 // Superceded by WalkableArea script type API.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GLOBALWALKABLEAREA_H
-#define __AGS_EE_AC__GLOBALWALKABLEAREA_H
+#pragma once
 
 int GetScalingAt(int x, int y);
 void SetAreaScaling(int area, int min, int max);
@@ -31,5 +30,3 @@ int GetWalkableAreaAtRoom(int x, int y);
 // NOTE: if there's no room viewport under screen coordinates,
 // then returns -1 (no area)
 int GetWalkableAreaAtScreen(int x, int y);
-
-#endif // __AGS_EE_AC__GLOBALWALKABLEAREA_H

@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GLOBALROOM_H
-#define __AGS_EE_AC__GLOBALROOM_H
+#pragma once
 
 void SetAmbientTint(int red, int green, int blue, int opacity, int luminance);
 void SetAmbientLightLevel(int light_level);
@@ -27,5 +26,3 @@ void CallRoomScript(int value);
 
 void SetBackgroundFrame(int frnum);
 int GetBackgroundFrame();
-
-#endif // __AGS_EE_AC__GLOBALROOM_H

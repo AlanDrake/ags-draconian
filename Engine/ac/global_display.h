@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GLOBALDISPLAY_H
-#define __AGS_EE_AC__GLOBALDISPLAY_H
+#pragma once
 
 #include "ac/speech.h"
 
@@ -24,5 +23,3 @@ void DisplayAtY(int ypos, const char *texx);
 void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const char *text);
 void DisplaySpeechAt(int xx, int yy, int wii, int aschar, const char *spch);
 int DisplaySpeechBackground(int charid, const char *speel); // [DEPRECATED] but still used by Character_SayBackground
-
-#endif // __AGS_EE_AC__GLOBALDISPLAY_H

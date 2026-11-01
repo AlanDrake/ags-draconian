@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_TTFFONTRENDERER_H
-#define __AC_TTFFONTRENDERER_H
+#pragma once
 
 #include <map>
 #include "data/assetmanager.h"
@@ -79,5 +78,3 @@ private:
     AGS::Common::AssetManager *_amgr = nullptr;
     AGS::Common::BlendMode _blendMode = AGS::Common::kBlend_Normal;
 };
-
-#endif // __AC_TTFFONTRENDERER_H

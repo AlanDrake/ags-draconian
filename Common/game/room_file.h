@@ -17,8 +17,7 @@
 // such as room scripts.
 //
 //=============================================================================
-#ifndef __AGS_CN_GAME_ROOMFILE_H
-#define __AGS_CN_GAME_ROOMFILE_H
+#pragma once
 
 #include <functional>
 #include <memory>
@@ -172,5 +171,3 @@ HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, R
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GAME_ROOMFILE_H

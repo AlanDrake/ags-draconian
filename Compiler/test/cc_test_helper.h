@@ -16,8 +16,7 @@
 //
 //=============================================================================
 
-#ifndef __CC_TEST_HELPER_H
-#define __CC_TEST_HELPER_H
+#pragma once
 
 #include "util/string.h"
 
@@ -27,4 +26,3 @@ extern std::pair<AGS::Common::String, AGS::Common::String> cc_error_at_line(cons
 extern AGS::Common::String cc_error_without_line(const char *error_msg);
 extern int currentline;
 extern std::string ccCurScriptName;
-#endif // __CC_TEST_HELPER_H

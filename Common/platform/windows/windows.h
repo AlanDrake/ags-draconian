@@ -15,8 +15,7 @@
 // Includes <windows.h> and deals with the potential macro conflicts.
 //
 //=============================================================================
-#ifndef __AGS_CN_PLATFORM__WINDOWS_H
-#define __AGS_CN_PLATFORM__WINDOWS_H
+#pragma once
 #include "platform/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
@@ -39,5 +38,3 @@
 
 #endif // _WINDOWS_
 #endif // AGS_PLATFORM_OS_WINDOWS
-
-#endif // __AGS_CN_PLATFORM__WINDOWS_H

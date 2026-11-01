@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_GAMESTATE_H
-#define __AC_GAMESTATE_H
+#pragma once
 
 #include <array>
 #include <memory>
@@ -529,5 +528,3 @@ private:
 
 extern GamePlayState play;
 extern std::vector<CharacterExtras> charextra;
-
-#endif // __AC_GAMESTATE_H

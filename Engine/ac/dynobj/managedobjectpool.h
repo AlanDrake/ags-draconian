@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CC_MANAGEDOBJECTPOOL_H
-#define __CC_MANAGEDOBJECTPOOL_H
+#pragma once
 
 #include <list>
 #include <vector>
@@ -146,5 +145,3 @@ extern ManagedObjectPool pool;
 #else
 #define ManagedObjectLog(...)
 #endif
-
-#endif // __CC_MANAGEDOBJECTPOOL_H

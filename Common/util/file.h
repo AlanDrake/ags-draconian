@@ -27,8 +27,7 @@
 //    in general use (?).
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__FILE_H
-#define __AGS_CN_UTIL__FILE_H
+#pragma once
 
 #include "platform/platform.h"
 #include "util/stream.h"
@@ -147,5 +146,3 @@ inline std::unique_ptr<Stream> OpenFileCI(const String &file_name, FileOpenMode 
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__FILE_H

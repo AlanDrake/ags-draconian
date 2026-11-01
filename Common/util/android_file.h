@@ -16,8 +16,7 @@
 //  mainly purposed to work with the NDK AAssetManager object.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__ANDROID_FILE_H
-#define __AGS_CN_UTIL__ANDROID_FILE_H
+#pragma once
 
 #include "platform/platform.h"
 #if AGS_PLATFORM_OS_ANDROID
@@ -67,5 +66,3 @@ private:
 } // namespace AGS
 
 #endif // AGS_PLATFORM_OS_ANDROID
-
-#endif // __AGS_CN_UTIL__ANDROID_FILE_H

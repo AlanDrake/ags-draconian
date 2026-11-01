@@ -15,8 +15,7 @@
 // AGS Runtime header
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GAME_H
-#define __AGS_EE_AC__GAME_H
+#pragma once
 
 #include <memory>
 #include "ac/game_version.h"
@@ -260,5 +259,3 @@ extern bool new_room_placeonwalkable;
 extern int displayed_room;
 extern int frames_per_second; // fixed game fps, set by script
 extern int game_paused;
-
-#endif // __AGS_EE_AC__GAME_H

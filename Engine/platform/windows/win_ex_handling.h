@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_PLATFORM__WIN_EXCEPTION_HANDLING_H
-#define __AGS_EE_PLATFORM__WIN_EXCEPTION_HANDLING_H
+#pragma once
 
 #include "util/ini_util.h"
 
@@ -21,5 +20,3 @@ void setup_malloc_handling();
 int initialize_engine_with_exception_handling(int(initialize_engine)(const AGS::Common::ConfigTree &startup_opts),
                                               const AGS::Common::ConfigTree &startup_opts);
 #endif
-
-#endif // __AGS_EE_PLATFORM__WIN_EXCEPTION_HANDLING_H

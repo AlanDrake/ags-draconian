@@ -15,8 +15,7 @@
 // Legacy built-in GUI dialogs and controls.
 //
 //=============================================================================
-#ifndef __AGS_EE_GUI__CSCIDIALOG_H
-#define __AGS_EE_GUI__CSCIDIALOG_H
+#pragma once
 
 #include "gui/guidialogdefines.h"
 #include "platform/types.h"
@@ -31,5 +30,3 @@ int CSCISendControlMessage(int haa, int mess, int wPar, intptr_t ipPar);
 int checkcontrols();
 int finddefaultcontrol(int flagmask);
 int GetBaseWidth();
-
-#endif // __AGS_EE_GUI__CSCIDIALOG_H

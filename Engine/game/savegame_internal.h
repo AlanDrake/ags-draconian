@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_GAME__SAVEGAMEINTERNAL_H
-#define __AGS_EE_GAME__SAVEGAMEINTERNAL_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -260,5 +259,3 @@ HSaveError WritePluginSaveData(Stream *out);
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GAME__SAVEGAMEINTERNAL_H

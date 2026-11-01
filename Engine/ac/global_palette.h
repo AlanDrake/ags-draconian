@@ -11,11 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GLOBALPALETTE_H
-#define __AGS_EE_AC__GLOBALPALETTE_H
+#pragma once
 
 void CyclePalette(int strt, int eend);
 void SetPalRGB(int inndx, int rr, int gg, int bb);
 void UpdatePalette();
-
-#endif // __AGS_EE_AC__GLOBALPALETTE_H

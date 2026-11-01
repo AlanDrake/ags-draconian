@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__ROOMSTATUS_H
-#define __AGS_EE_AC__ROOMSTATUS_H
+#pragma once
 
 #include "ac/roomobject.h"
 #include "game/scripteventtable.h"
@@ -137,5 +136,3 @@ bool IsRoomStateValid(int room);
 void ResetRoomState(int room);
 // Deletes all room runtime states.
 void ResetRoomStates();
-
-#endif // __AGS_EE_AC__ROOMSTATUS_H

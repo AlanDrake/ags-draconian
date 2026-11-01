@@ -15,8 +15,7 @@
 // Specialized interface for writing plain text to the underlying source
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__TEXTWRITER_H
-#define __AGS_CN_UTIL__TEXTWRITER_H
+#pragma once
 
 #include "util/string.h"
 
@@ -51,5 +50,3 @@ public:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__TEXTWRITER_H

@@ -15,8 +15,7 @@
 // Screen effects and script API
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__SCREEN_H
-#define __AGS_EE_AC__SCREEN_H
+#pragma once
 
 #include "gamestate.h"
 
@@ -43,5 +42,3 @@ void run_fade_out_effect(ScreenTransitionStyle style, int speed);
 void current_fade_in_effect();
 // Runs fade-out transition using default settings
 void current_fade_out_effect();
-
-#endif // __AGS_EE_AC__SCREEN_H

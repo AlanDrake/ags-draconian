@@ -26,8 +26,7 @@
 // a better kind of a sprite's ownership mechanic.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__SCREENOVERLAY_H
-#define __AGS_EE_AC__SCREENOVERLAY_H
+#pragma once
 
 #include <functional>
 #include <memory>
@@ -343,5 +342,3 @@ private:
     ViewAnimateParams _anim;
     int _wait = 0;
 };
-
-#endif // __AGS_EE_AC__SCREENOVERLAY_H

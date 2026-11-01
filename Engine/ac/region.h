@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__REGION_H
-#define __AGS_EE_AC__REGION_H
+#pragma once
 
 #include "ac/dynobj/scriptobjects.h"
 
@@ -40,5 +39,3 @@ void DisableGroundLevelAreas(int alsoEffects);
 void EnableGroundLevelAreas();
 
 void generate_light_table();
-
-#endif // __AGS_EE_AC__REGION_H

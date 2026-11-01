@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_MEDIA_OPENAL_H__
-#define __AGS_EE_MEDIA_OPENAL_H__
+#pragma once
 #include "platform/platform.h"
 
 #include <AL/al.h>
@@ -22,5 +21,3 @@
 
 // Prints any OpenAL errors to the log
 void dump_al_errors();
-
-#endif // __AGS_EE_MEDIA_OPENAL_H__

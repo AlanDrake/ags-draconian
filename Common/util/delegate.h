@@ -29,8 +29,7 @@
 // class methods as callbacks.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__DELEGATE_H
-#define __AGS_CN_UTIL__DELEGATE_H
+#pragma once
 
 #include <functional>
 #include <vector>
@@ -182,5 +181,3 @@ public:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__DELEGATE_H

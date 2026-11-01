@@ -15,8 +15,7 @@
 // Direct3D graphics factory
 //
 //=============================================================================
-#ifndef __AGS_EE_GFX__ALI3DD3D_H
-#define __AGS_EE_GFX__ALI3DD3D_H
+#pragma once
 
 #include "platform/platform.h"
 
@@ -721,5 +720,3 @@ private:
 } // namespace D3D
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__ALI3DD3D_H

@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_GAMESETUP_H
-#define __AC_GAMESETUP_H
+#pragma once
 
 #include <array>
 #include "ac/game_version.h"
@@ -188,5 +187,3 @@ struct GameSetup : public GameConfig
 // options before engine is initialized, and storing certain runtime variables.
 // Perhaps it makes sense to separate those two group of vars at some point.
 extern GameSetup usetup;
-
-#endif // __AC_GAMESETUP_H

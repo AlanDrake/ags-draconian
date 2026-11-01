@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_MAIN__ENGINESETUP_H
-#define __AGS_EE_MAIN__ENGINESETUP_H
+#pragma once
 
 #include "util/geometry.h"
 #include "gfx/gfxdefines.h"
@@ -27,5 +26,3 @@ void engine_pre_gfxsystem_shutdown();
 void on_coordinates_scaling_changed();
 // prepares game screen for rotation setting
 void engine_adjust_for_rotation_settings();
-
-#endif // __AGS_EE_MAIN__ENGINESETUP_H

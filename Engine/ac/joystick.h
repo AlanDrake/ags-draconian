@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__JOYSTICK_H
-#define __AGS_EE_AC__JOYSTICK_H
+#pragma once
 
 #include "ac/dynobj/scriptjoystick.h"
 #include "SDL_gamecontroller.h"
@@ -93,5 +92,3 @@ void init_joystick();
 SDL_GameControllerAxis Gamepad_Axis_AGStoSDL(eAGSGamepad_Axis ags_axis);
 SDL_GameControllerButton Gamepad_Button_AGStoSDL(eAGSGamepad_Button ags_button);
 eAGSGamepad_Button Gamepad_Button_SDLtoAGS(SDL_GameControllerButton sdl_button);
-
-#endif // __AGS_EE_AC__JOYSTICK_H

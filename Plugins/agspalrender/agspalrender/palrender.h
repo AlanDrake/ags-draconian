@@ -1,5 +1,4 @@
-#ifndef __PALGORITHMS_PALRENDER_H
-#define __PALGORITHMS_PALRENDER_H
+#pragma once
 
 #include "plugin/agsplugin.h"
 #include <stdint.h>  // for int32_t types, __int32 is just Windows
@@ -209,6 +208,4 @@ float FastCos(float x);
 
 #if defined(BUILTIN_PLUGINS)
 } // namespace agspalrender
-#endif
-
 #endif

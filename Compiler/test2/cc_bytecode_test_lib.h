@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef CC_BYTECODE_TEST_LIB
-#define CC_BYTECODE_TEST_LIB
+#pragma once
 
 #include <iostream>
 #include "script2/cc_compiledscript.h"
@@ -37,5 +36,3 @@ extern void CompareExports(AGS::ccCompiledScript *scrip, size_t exports_size, st
 extern void CompareStrings(AGS::ccCompiledScript *scrip, size_t strings_size, char strings[]);
 extern void CompareGlobalRuns(AGS::ccCompiledScript *scrip, struct CharRun global_runs[]);
 extern void CompareGlobalData(AGS::ccCompiledScript *scrip, size_t size, unsigned char gdata[]);
-
-#endif

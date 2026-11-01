@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_MEDIA__AUDIO_H__
-#define __AGS_EE_MEDIA__AUDIO_H__
+#pragma once
 
 #include <array>
 #include <memory>
@@ -107,5 +106,3 @@ void update_audio_system_on_game_loop();
 extern void cancel_scheduled_music_update();
 extern void schedule_music_update_at(AGS::Engine::Clock::time_point);
 extern void postpone_scheduled_music_update_by(std::chrono::milliseconds);
-
-#endif // __AGS_EE_MEDIA__AUDIO_H__

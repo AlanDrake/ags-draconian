@@ -16,8 +16,7 @@
 // between key-value tree and INI file.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__INIUTIL_H
-#define __AGS_CN_UTIL__INIUTIL_H
+#pragma once
 
 #include <map>
 #include <memory>
@@ -118,5 +117,3 @@ void Merge(IniFile &ini, const ConfigTree &tree);
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__INIUTIL_H

@@ -15,8 +15,7 @@
 // Class, depicting version of the AGS engine
 //
 //=============================================================================
-#ifndef __AGS_CN_MAIN__VERSION_H
-#define __AGS_CN_MAIN__VERSION_H
+#pragma once
 
 #include "util/string.h"
 
@@ -81,5 +80,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_MAIN__VERSION_H

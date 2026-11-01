@@ -15,8 +15,7 @@
 // Description of a button animation; stored separately from the GUI button.
 //
 //=============================================================================
-#ifndef __AGS_EE_GUI__ANIMATINGGUIBUTTON_H
-#define __AGS_EE_GUI__ANIMATINGGUIBUTTON_H
+#pragma once
 
 #include "ac/runtime_defines.h"
 #include "platform/types.h"
@@ -43,5 +42,3 @@ struct AnimatingGUIButton
     void ReadFromSavegame(Common::Stream *in, int cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;
 };
-
-#endif // __AGS_EE_GUI__ANIMATINGGUIBUTTON_H

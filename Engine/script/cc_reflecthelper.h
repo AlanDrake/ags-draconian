@@ -19,8 +19,7 @@
 // and methods for easier/faster use.
 //
 //=============================================================================
-#ifndef __AGS_EE_SCRIPT__REFLECTHELPER_H
-#define __AGS_EE_SCRIPT__REFLECTHELPER_H
+#pragma once
 
 #include "script/cc_reflect.h"
 
@@ -57,5 +56,3 @@ private:
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_SCRIPT__REFLECTHELPER_H

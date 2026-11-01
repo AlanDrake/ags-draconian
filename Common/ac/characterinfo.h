@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_CHARACTERINFO_H
-#define __AC_CHARACTERINFO_H
+#pragma once
 
 #include <algorithm>
 #include <unordered_map>
@@ -285,5 +284,3 @@ private:
     // Common events
     AGS::Common::ScriptEventTable _events = AGS::Common::ScriptEventTable(&CharacterInfo::_eventSchema);
 };
-
-#endif // __AC_CHARACTERINFO_H

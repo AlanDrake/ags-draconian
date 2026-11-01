@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_CN_GUI__GUICONTROL_H
-#define __AGS_CN_GUI__GUICONTROL_H
+#pragma once
 
 #include "gfx/bitmap.h"
 #include "gui/guidefines.h"
@@ -156,5 +155,3 @@ protected:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GUI__GUICONTROL_H

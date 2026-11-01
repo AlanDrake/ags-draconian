@@ -15,8 +15,7 @@
 // Memory utils and algorithms
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__MEMORY_H
-#define __AGS_CN_UTIL__MEMORY_H
+#pragma once
 
 #include <string.h>
 #include "util/bbop.h"
@@ -278,5 +277,3 @@ inline void BlockCopy(const uint8_t *src, const size_t src_pitch, const size_t s
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__MEMORY_H

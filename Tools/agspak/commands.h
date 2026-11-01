@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_TOOL_AGSPAK__COMMANDS_H
-#define __AGS_TOOL_AGSPAK__COMMANDS_H
+#pragma once
 
 #include <regex>
 #include "util/string.h"
@@ -37,5 +36,3 @@ int Command_Detach(const String &src_file, const String &dst_pak, bool verbose);
 int Command_Export(const String &src_pak, const String &dst_dir, const std::vector<String> &pattern_list);
 int Command_List(const String &src_pak);
 } // namespace AGSPak
-
-#endif // __AGS_TOOL_AGSPAK__COMMANDS_H

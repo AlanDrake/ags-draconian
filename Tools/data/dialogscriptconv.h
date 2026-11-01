@@ -16,8 +16,7 @@
 // AGS script which can be compiled by the AGS script compiler.
 //
 //=============================================================================
-#ifndef __AGS_TOOL_DATA__DIALOGSCRIPTCONV_H
-#define __AGS_TOOL_DATA__DIALOGSCRIPTCONV_H
+#pragma once
 
 #include "util/string.h"
 #include "data/game_utils.h"
@@ -72,5 +71,3 @@ private:
 
 } // namespace DataUtil
 } // namespace AGS
-
-#endif // __AGS_TOOL_DATA__DIALOGSCRIPTCONV_H

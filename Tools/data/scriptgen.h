@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_TOOL_DATA__SCRIPTGEN_H
-#define __AGS_TOOL_DATA__SCRIPTGEN_H
+#pragma once
 
 #include "data/game_utils.h"
 #include "util/string.h"
@@ -36,5 +35,3 @@ String MakeVariablesScriptBody(std::vector<Variable> &vars);
 
 } // namespace DataUtil
 } // namespace AGS
-
-#endif // __AGS_TOOL_DATA__SCRIPTGEN_H

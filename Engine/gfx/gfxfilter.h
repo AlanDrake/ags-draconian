@@ -16,8 +16,7 @@
 //
 //=============================================================================
 
-#ifndef __AGS_EE_GFX__GFXFILTER_H
-#define __AGS_EE_GFX__GFXFILTER_H
+#pragma once
 
 #include <memory>
 #include "util/geometry.h"
@@ -67,5 +66,3 @@ typedef std::shared_ptr<IGfxFilter> PGfxFilter;
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__GFXFILTER_H

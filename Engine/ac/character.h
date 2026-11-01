@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__CHARACTER_H
-#define __AGS_EE_AC__CHARACTER_H
+#pragma once
 
 #include <vector>
 #include "ac/characterinfo.h"
@@ -260,5 +259,3 @@ extern int32_t _sc_PlayerCharPtr;
 
 // order of loops to turn character in circle from down to down
 extern const int turnlooporder[8];
-
-#endif // __AGS_EE_AC__CHARACTER_H

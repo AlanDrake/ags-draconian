@@ -16,8 +16,7 @@
 //
 //=============================================================================
 
-#ifndef __AGS_CN_GAME__PLUGININFO_H
-#define __AGS_CN_GAME__PLUGININFO_H
+#pragma once
 
 #include <memory>
 #include "util/string.h"
@@ -42,5 +41,3 @@ struct PluginInfo
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GAME__PLUGININFO_H

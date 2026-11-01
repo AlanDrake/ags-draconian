@@ -16,8 +16,7 @@
 // Assumes object data contains CharacterInfo object.
 //
 //=============================================================================
-#ifndef __AC_CCCHARACTER_H
-#define __AC_CCCHARACTER_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
@@ -41,5 +40,3 @@ protected:
     // Write object data into the provided stream
     void Serialize(const void *address, AGS::Common::Stream *out) override;
 };
-
-#endif // __AC_CCCHARACTER_H

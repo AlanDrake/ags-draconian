@@ -16,8 +16,7 @@
 //
 //=============================================================================
 
-#ifndef __AGS_EE_GFX__AAD3DGFXFILTER_H
-#define __AGS_EE_GFX__AAD3DGFXFILTER_H
+#pragma once
 
 #include "gfx/gfxfilter_d3d.h"
 
@@ -43,5 +42,3 @@ public:
 } // namespace D3D
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__AAD3DGFXFILTER_H

@@ -17,8 +17,7 @@
 // cause naming conflicts with its dreaded heap of macros.
 //
 //=============================================================================
-#ifndef __AGS_EE_PLATFORM__WINAPI_EXCLUSIVE_H
-#define __AGS_EE_PLATFORM__WINAPI_EXCLUSIVE_H
+#pragma once
 
 #ifndef _WINDOWS_ // do not include if windows.h was included first
 #define _WINDOWS_ // there can be only one
@@ -51,5 +50,3 @@ typedef HANDLE HWND;
 typedef int(FAR WINAPI *FARPROC)();
 
 #endif // _WINDOWS_
-
-#endif // __AGS_EE_PLATFORM__WINAPI_EXCLUSIVE_H

@@ -47,8 +47,7 @@
 //    by a integer indexes.
 //
 //=============================================================================
-#ifndef __CC_REFLECT_H
-#define __CC_REFLECT_H
+#pragma once
 
 #include <map>
 #include <string>
@@ -611,5 +610,3 @@ AGS::Common::String PrintRTTI(const RTTI &rtti);
 AGS::Common::String PrintScriptTOC(const ScriptTOC &toc, const char *scriptname);
 
 } // namespace AGS
-
-#endif // __CC_REFLECT_H

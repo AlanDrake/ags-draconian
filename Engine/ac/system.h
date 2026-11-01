@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__SYSTEMAUDIO_H
-#define __AGS_EE_AC__SYSTEMAUDIO_H
+#pragma once
 
 #include "ac/dynobj/scriptobjects.h"
 
@@ -72,5 +71,3 @@ bool GetEngineInteger(int &value, EngineValueID value_id, int index = 0);
 bool GetEngineString(AGS::Common::String &value, EngineValueID value_id, int index = 0);
 // Returns a engine value's description
 AGS::Common::String GetEngineValueName(EngineValueID value_id);
-
-#endif // __AGS_EE_AC_SYSTEMAUDIO_H

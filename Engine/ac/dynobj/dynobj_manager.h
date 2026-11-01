@@ -17,8 +17,7 @@
 // use of ManagedPool class.
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__DYNOBJMANAGER_H
-#define __AGS_EE_DYNOBJ__DYNOBJMANAGER_H
+#pragma once
 
 #include "ac/dynobj/cc_scriptobject.h"
 #include "script/runtimescriptvalue.h"
@@ -88,5 +87,3 @@ int ccReplaceObjectHandle(int32_t old_handle, void *new_address);
 typedef std::function<void(int handle, IScriptObject *obj)> PfnProcessManagedObject;
 // Iterates all managed objects identified by their Type ID, and runs a callback for each of them
 void ccTraverseManagedObjects(const AGS::Common::String &type, PfnProcessManagedObject proc);
-
-#endif // __AGS_EE_DYNOBJ__DYNOBJMANAGER_H

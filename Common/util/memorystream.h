@@ -22,8 +22,7 @@
 // TODO: separate StringStream for reading & writing String object?
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__MEMORYSTREAM_H
-#define __AGS_CN_UTIL__MEMORYSTREAM_H
+#pragma once
 
 #include <vector>
 #include "util/stream.h"
@@ -100,5 +99,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__MEMORYSTREAM_H

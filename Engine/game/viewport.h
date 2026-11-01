@@ -15,8 +15,7 @@
 // Definition for the game viewports and cameras.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__VIEWPORT_H
-#define __AGS_EE_AC__VIEWPORT_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -223,5 +222,3 @@ private:
     bool _hasChangedSize = false;
     bool _hasChangedVisible = false;
 };
-
-#endif // __AGS_EE_AC__VIEWPORT_H

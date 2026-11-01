@@ -15,8 +15,7 @@
 // Implementation base for graphics driver
 //
 //=============================================================================
-#ifndef __AGS_EE_GFX__GFXDRIVERBASE_H
-#define __AGS_EE_GFX__GFXDRIVERBASE_H
+#pragma once
 
 #include <memory>
 #include <unordered_map>
@@ -543,5 +542,3 @@ private:
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__GFXDRIVERBASE_H

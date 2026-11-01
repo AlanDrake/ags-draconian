@@ -15,8 +15,7 @@
 // Threading utilities
 //
 //=============================================================================
-#ifndef __AGS_EE_UTIL__THREADING_H
-#define __AGS_EE_UTIL__THREADING_H
+#pragma once
 #include <condition_variable>
 #include <mutex>
 
@@ -64,5 +63,3 @@ private:
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_UTIL__THREADING_H

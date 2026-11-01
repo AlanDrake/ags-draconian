@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_COMMON_H
-#define __AC_COMMON_H
+#pragma once
 
 #include "util/string.h"
 
@@ -22,5 +21,3 @@ void quit(const char *);
 void quitprintf(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(1);
 void set_our_eip(int eip);
 int get_our_eip();
-
-#endif // __AC_COMMON_H

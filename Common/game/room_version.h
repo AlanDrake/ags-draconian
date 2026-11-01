@@ -16,8 +16,7 @@
 //
 //=============================================================================
 
-#ifndef __AGS_CN_AC__ROOMVERSION_H
-#define __AGS_CN_AC__ROOMVERSION_H
+#pragma once
 
 /* room file versions history
 8:  final v1.14 release
@@ -74,5 +73,3 @@ enum RoomFileVersion
     kRoomVersion_LowSupport = kRoomVersion_3508,
     kRoomVersion_Current = kRoomVersion_400_34
 };
-
-#endif // __AGS_CN_AC__ROOMVERSION_H

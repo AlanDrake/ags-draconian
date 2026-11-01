@@ -22,8 +22,7 @@
 // types as keys; need to research what performance impact that would make.
 //
 //=============================================================================
-#ifndef __AC_SCRIPTDICT_H
-#define __AC_SCRIPTDICT_H
+#pragma once
 
 #include <map>
 #include <unordered_map>
@@ -214,5 +213,3 @@ typedef ScriptDictStdHashImpl<String, String, std::hash<String>, std::equal_to<S
 typedef ScriptDictStdHashImpl<String, String, HashStrNoCase, StrEqNoCase, kScCaseInsensitive> ScriptHashDictCI;
 typedef ScriptDictStdHashImpl<String, String, HashStrUtf8NoCase, StrEqUtf8NoCase, kScCaseInsensitive>
     ScriptHashDictUtf8CI;
-
-#endif // __AC_SCRIPTDICT_H

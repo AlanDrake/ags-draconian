@@ -16,8 +16,7 @@
 //
 //=============================================================================
 
-#ifndef __AGS_EE_SETUP__WINSETUP_H
-#define __AGS_EE_SETUP__WINSETUP_H
+#pragma once
 
 #include "util/ini_util.h"
 
@@ -33,5 +32,3 @@ SetupReturnValue WinSetup(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_SETUP__WINSETUP_H

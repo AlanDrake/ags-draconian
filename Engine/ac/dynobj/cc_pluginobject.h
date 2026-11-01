@@ -21,8 +21,7 @@
 // and therefore this wrapper should have a small overhead.
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__PLUGINOBJECT_H
-#define __AGS_EE_DYNOBJ__PLUGINOBJECT_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
@@ -57,5 +56,3 @@ public:
         return _pluginMgr->Serialize(address, buffer, bufsize);
     }
 };
-
-#endif // __AGS_EE_DYNOBJ__PLUGINOBJECT_H

@@ -15,8 +15,7 @@
 // GameSetupStruct is a contemporary main game data.
 //
 //=============================================================================
-#ifndef __AGS_CN_AC__GAMESETUPSTRUCT_H
-#define __AGS_CN_AC__GAMESETUPSTRUCT_H
+#pragma once
 
 #include <vector>
 #include "ac/audiocliptype.h"
@@ -186,6 +185,3 @@ struct GameSetupStruct : public GameSetupStructBase
 private:
     std::array<int, kNumCursorRoles> _roleCursors = {{-1, -1, -1, -1, -1, -1, -1, -1}};
 };
-
-
-#endif // __AGS_CN_AC__GAMESETUPSTRUCT_H

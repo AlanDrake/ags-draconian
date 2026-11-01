@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_DUMMYAGSDEBUGGER_H
-#define __AC_DUMMYAGSDEBUGGER_H
+#pragma once
 
 #include "debug/debugger.h"
 
@@ -25,5 +24,3 @@ public:
     bool IsMessageAvailable() override { return false; }
     char *GetNextMessage() override { return NULL; }
 };
-
-#endif // __AC_DUMMYAGSDEBUGGER_H

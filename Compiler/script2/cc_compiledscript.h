@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CC_COMPILEDSCRIPT_H
-#define __CC_COMPILEDSCRIPT_H
+#pragma once
 
 #include <string>
 #include <unordered_map>
@@ -231,4 +230,3 @@ public:
 };
 
 } // namespace AGS
-#endif // __CC_COMPILEDSCRIPT_H

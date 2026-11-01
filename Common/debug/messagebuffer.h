@@ -17,8 +17,7 @@
 // while specifying how to actually print it.
 //
 //=============================================================================
-#ifndef __AGS_CN_DEBUG__MESSAGEBUFFER_H
-#define __AGS_CN_DEBUG__MESSAGEBUFFER_H
+#pragma once
 
 #include <vector>
 #include "debug/outputhandler.h"
@@ -61,5 +60,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_DEBUG__MESSAGEBUFFER_H

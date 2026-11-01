@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__CCAUDIOCHANNEL_H
-#define __AGS_EE_DYNOBJ__CCAUDIOCHANNEL_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
@@ -28,5 +27,3 @@ protected:
     // Write object data into the provided stream
     void Serialize(const void *address, AGS::Common::Stream *out) override;
 };
-
-#endif // __AGS_EE_DYNOBJ__CCAUDIOCHANNEL_H

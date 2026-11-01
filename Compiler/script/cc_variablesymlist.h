@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CC_VARIABLESYMLIST_H
-#define __CC_VARIABLESYMLIST_H
+#pragma once
 
 struct VariableSymlist
 {
@@ -31,5 +30,3 @@ struct VariableSymlist
     }
 };
 #define MAX_VARIABLE_PATH 10
-
-#endif // __CC_VARIABLESYMLIST_H

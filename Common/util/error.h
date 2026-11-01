@@ -16,8 +16,7 @@
 // thrown as an exception.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__ERROR_H
-#define __AGS_CN_UTIL__ERROR_H
+#pragma once
 
 #include <memory>
 #include "util/string.h"
@@ -212,5 +211,3 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_UTIL__ERROR_H

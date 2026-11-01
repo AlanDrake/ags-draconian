@@ -31,8 +31,7 @@
 // * provide barebones pool class if another storage method is used.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__INDEXEDOBJECTPOOL_H
-#define __AGS_CN_UTIL__INDEXEDOBJECTPOOL_H
+#pragma once
 
 #include <limits>
 #include <stack>
@@ -415,5 +414,3 @@ private:
 
     std::vector<TElem> _elems;
 };
-
-#endif // __AGS_CN_UTIL__INDEXEDOBJECTPOOL_H

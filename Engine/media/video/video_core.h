@@ -20,8 +20,7 @@
 //       the videoplayer is being synchronized with the game logic.
 //
 //=============================================================================
-#ifndef __AGS_EE_MEDIA__VIDEOCORE_H
-#define __AGS_EE_MEDIA__VIDEOCORE_H
+#pragma once
 #include <memory>
 #include "media/video/videoplayer.h"
 #include "util/string.h"
@@ -62,5 +61,3 @@ void video_core_slot_stop(int slot_handle);
 // Polls the video core if we have no threads, polled in WaitForNextFrame()
 void video_core_entry_poll();
 #endif
-
-#endif // __AGS_EE_MEDIA__VIDEOCORE_H

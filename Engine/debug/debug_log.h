@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_DEBUG_LOG_H
-#define __AC_DEBUG_LOG_H
+#pragma once
 
 #include <cstdarg>
 #include "ac/runtime_defines.h"
@@ -84,5 +83,3 @@ class ScriptExecutor;
 bool init_editor_debugging(const AGS::Common::ConfigTree &cfg);
 // allow LShift to single-step,  RShift to pause flow
 void scriptDebugHook(AGS::Engine::ScriptExecutor *exec, int linenum);
-
-#endif // __AC_DEBUG_LOG_H

@@ -63,8 +63,7 @@
 // component abortion is imminent.
 //
 //=============================================================================
-#ifndef __AGS_CN_DEBUG__OUT_H
-#define __AGS_CN_DEBUG__OUT_H
+#pragma once
 
 #include "util/string.h"
 
@@ -155,5 +154,3 @@ void Printf(MessageGroupHandle group_id, MessageType mt, AGS_FORMAT_STRING_ARG c
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_DEBUG__OUT_H

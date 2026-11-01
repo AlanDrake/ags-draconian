@@ -21,8 +21,7 @@
 // filter code works).
 //
 //=============================================================================
-#ifndef __AGS_EE_GFX__ALI3DSW_H
-#define __AGS_EE_GFX__ALI3DSW_H
+#pragma once
 #include <memory>
 #include <SDL.h>
 #include "platform/platform.h"
@@ -424,5 +423,3 @@ private:
 } // namespace ALSW
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__ALI3DSW_H

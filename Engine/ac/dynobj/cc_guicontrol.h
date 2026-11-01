@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_CCGUICONTROL_H
-#define __AC_CCGUICONTROL_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
@@ -69,5 +68,3 @@ struct CCGUITextBox final : public CCGUIControl
 public:
     const char *GetType() override { return "TextBox"; }
 };
-
-#endif // __AC_CCGUICONTROL_H

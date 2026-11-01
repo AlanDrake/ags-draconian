@@ -23,8 +23,7 @@
 // to load design-time data.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__CHARACTEREXTRAS_H
-#define __AGS_EE_AC__CHARACTEREXTRAS_H
+#pragma once
 
 #include <vector>
 #include "ac/characterinfo.h"
@@ -168,5 +167,3 @@ public:
 private:
     Common::GraphicSpace _gs;
 };
-
-#endif // __AGS_EE_AC__CHARACTEREXTRAS_H

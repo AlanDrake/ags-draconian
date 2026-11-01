@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CS_PARSER_COMMON_H
-#define __CS_PARSER_COMMON_H
+#pragma once
 #include <cstdint>
 #include <cstddef> // size_t
 #include <string>
@@ -66,4 +65,3 @@ enum ErrorType
 };
 
 } // namespace AGS
-#endif // __CS_PARSER_COMMON_H

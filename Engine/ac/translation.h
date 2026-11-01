@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__TRANSLATION_H
-#define __AGS_EE_AC__TRANSLATION_H
+#pragma once
 
 #include "util/string_types.h"
 
@@ -31,5 +30,3 @@ String get_translation_name();
 String get_translation_path();
 // Returns translation map for reading only
 const StringMap &get_translation_tree();
-
-#endif // __AGS_EE_AC__TRANSLATION_H

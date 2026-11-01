@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__ALLDYNAMICCLASSES_H
-#define __AGS_EE_DYNOBJ__ALLDYNAMICCLASSES_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "ac/dynobj/cc_audiochannel.h"
@@ -33,5 +32,3 @@
 #include "ac/dynobj/cc_walkbehind.h"
 
 #include "ac/dynobj/cc_serializer.h"
-
-#endif // __AGS_EE_DYNOBJ__ALLDYNAMICCLASSES_H

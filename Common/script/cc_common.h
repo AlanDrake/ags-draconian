@@ -15,8 +15,7 @@
 // Script options and error reporting.
 //
 //=============================================================================
-#ifndef __CC_COMMON_H
-#define __CC_COMMON_H
+#pragma once
 
 #include "util/string.h"
 
@@ -70,5 +69,3 @@ AGS::Common::String cc_format_error(const AGS::Common::String &message);
 extern int currentline;
 // name of currently compiling script or script section
 extern std::string ccCurScriptName;
-
-#endif // __CC_COMMON_H

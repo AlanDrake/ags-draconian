@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_CC__SCRIPTRUNTIME_H
-#define __AGS_EE_CC__SCRIPTRUNTIME_H
+#pragma once
 
 #include "util/memory_compat.h" // std::size
 #include "script/cc_script.h"   // ccScript
@@ -122,5 +121,3 @@ extern SystemImports simp;
 // This is to register symbols exclusively for plugins, to allow them
 // perform old style unsafe function calls
 extern SystemImports simp_for_plugin;
-
-#endif // __AGS_EE_CC__SCRIPTRUNTIME_H

@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__DIALOG_H
-#define __AGS_EE_AC__DIALOG_H
+#pragma once
 
 #include <vector>
 #include "ac/dialogtopic.h"
@@ -57,5 +56,3 @@ void shutdown_dialog_state();
 
 extern std::vector<ScriptDialog> scrDialog;
 extern std::vector<DialogTopic> dialog;
-
-#endif // __AGS_EE_AC__DIALOG_H

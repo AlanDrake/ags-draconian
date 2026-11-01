@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_RUNTIMEDEFINES_H
-#define __AC_RUNTIMEDEFINES_H
+#pragma once
 
 #include <array>
 #include "ac/common_defines.h"
@@ -380,5 +379,3 @@ extern std::array<const char *, kNum_RBS> RBSwitchNames;
 // Data format version of the loaded game
 // TODO: get rid of this global variable, use one from GameSetupStruct
 extern GameDataVersion loaded_game_file_version;
-
-#endif // __AC_RUNTIMEDEFINES_H

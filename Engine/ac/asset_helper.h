@@ -15,8 +15,7 @@
 // Functions related to finding and opening game assets.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__ASSETHELPER_H
-#define __AGS_EE_AC__ASSETHELPER_H
+#pragma once
 #include <memory>
 #include <utility>
 #include "data/assetmanager.h"
@@ -58,5 +57,3 @@ struct AGS_PACKFILE_OBJ
 // This function is supposed to be used only when you have to create Allegro
 // object, passing PACKFILE stream to constructor.
 PACKFILE *PackfileFromStream(std::unique_ptr<Stream> stream);
-
-#endif // __AGS_EE_AC__ASSETHELPER_H

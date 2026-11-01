@@ -15,8 +15,7 @@
 // Methods for inspecting game and script memory.
 //
 //=============================================================================
-#ifndef __AGS_EE_DEBUG__MEMORYINSPECT_H
-#define __AGS_EE_DEBUG__MEMORYINSPECT_H
+#pragma once
 
 #include "util/error.h"
 #include "util/string.h"
@@ -63,6 +62,3 @@ HError QueryScriptVariableInContext(const ScriptExecutor *exec, const String &va
 
 } // namespace Engine
 } // namespace AGS
-
-
-#endif // __AGS_EE_DEBUG__MEMORYINSPECT_H

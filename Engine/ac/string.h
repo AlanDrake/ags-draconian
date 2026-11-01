@@ -15,8 +15,7 @@
 // Script String API implementation.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__STRING_H
-#define __AGS_EE_AC__STRING_H
+#pragma once
 
 #include <stdarg.h>
 #include "ac/common.h" // quit
@@ -87,5 +86,3 @@ inline const char *skip_voiceover_token(const char *text)
 {
     return parse_voiceover_token(text, nullptr);
 }
-
-#endif // __AGS_EE_AC__STRING_H

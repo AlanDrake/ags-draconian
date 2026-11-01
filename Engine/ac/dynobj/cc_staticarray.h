@@ -42,8 +42,7 @@
 // separately. This is more an issue of engine data design.
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__CCSTATICARRAY_H
-#define __AGS_EE_DYNOBJ__CCSTATICARRAY_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
@@ -105,5 +104,3 @@ private:
     size_t _elemMemSize = 0u;
     size_t _elemCount = 0u;
 };
-
-#endif // __AGS_EE_DYNOBJ__CCSTATICARRAY_H

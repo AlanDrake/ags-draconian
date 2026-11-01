@@ -1,5 +1,4 @@
-#ifndef __COLORH
-#define __COLORH
+#pragma once
 
 #define MAX(a, b)              (((a) > (b)) ? (a) : (b))
 #define DEFAULT_RGB_R_SHIFT_32 16
@@ -17,5 +16,3 @@ int geta32(int c);
 int makeacol32(int r, int g, int b, int a);
 
 #pragma endregion
-
-#endif

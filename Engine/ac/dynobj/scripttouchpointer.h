@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__SCRIPTTOUCHPOINTER_H
-#define __AGS_EE_DYNOBJ__SCRIPTTOUCHPOINTER_H
+#pragma once
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
@@ -30,5 +29,3 @@ public:
 private:
     int _pointerID = -1;
 };
-
-#endif // __AGS_EE_DYNOBJ__SCRIPTTOUCHPOINTER_H

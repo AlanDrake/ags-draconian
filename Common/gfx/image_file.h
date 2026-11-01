@@ -15,8 +15,7 @@
 // Methods for loading and saving pixel data in various image formats.
 //
 //=============================================================================
-#ifndef __AGS_CN_GFX__IMAGE_FILE_H
-#define __AGS_CN_GFX__IMAGE_FILE_H
+#pragma once
 
 #include "gfx/bitmapdata.h"
 #include "util/string.h"
@@ -82,5 +81,3 @@ bool SavePNG(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GFX__IMAGE_FILE_H

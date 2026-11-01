@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EN_AC__ROUTEFINDER_H
-#define __AGS_EN_AC__ROUTEFINDER_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -123,5 +122,3 @@ bool FindNearestWalkablePoint(const AGS::Common::Bitmap *mask, const Point &from
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EN_AC__ROUTEFINDER_H

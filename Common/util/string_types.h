@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__STRINGTYPES_H
-#define __AGS_CN_UTIL__STRINGTYPES_H
+#pragma once
 
 #include <array>
 #include <cctype>
@@ -298,5 +297,3 @@ using CstrArr = std::array<const char *, SIZE>;
 
 } // namespace Common
 } // namespace AGS
-
-#endif //__AGS_CN_UTIL__STRINGTYPES_H

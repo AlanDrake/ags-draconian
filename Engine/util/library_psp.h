@@ -13,8 +13,7 @@
 //=============================================================================
 
 
-#ifndef __AGS_EE_UTIL__LIBRARY_PSP_H
-#define __AGS_EE_UTIL__LIBRARY_PSP_H
+#pragma once
 
 #include <pspsdk.h>
 #include "util/string.h"
@@ -146,6 +145,3 @@ typedef PSPLibrary Library;
 
 } // namespace Engine
 } // namespace AGS
-
-
-#endif // __AGS_EE_UTIL__LIBRARY_PSP_H

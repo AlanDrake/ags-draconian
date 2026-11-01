@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_SCRIPT__SCRIPTEXECUTOR_H
-#define __AGS_EE_SCRIPT__SCRIPTEXECUTOR_H
+#pragma once
 
 #include <deque>
 #include "ac/timer.h"
@@ -301,5 +300,3 @@ private:
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_SCRIPT__SCRIPTEXECUTOR_H

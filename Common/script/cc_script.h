@@ -16,8 +16,7 @@
 // loaded and run by the engine. A single game may have multiple scripts.
 //
 //=============================================================================
-#ifndef __CC_SCRIPT_H
-#define __CC_SCRIPT_H
+#pragma once
 
 #include <memory>
 #include <string>
@@ -81,5 +80,3 @@ public:
 };
 
 typedef std::unique_ptr<ccScript> UScript;
-
-#endif // __CC_SCRIPT_H

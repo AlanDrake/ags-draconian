@@ -41,8 +41,7 @@
 //       during next ready frame retrieval by the engine.
 //
 //=============================================================================
-#ifndef __AGS_EE_MEDIA__VIDEOPLAYER_H
-#define __AGS_EE_MEDIA__VIDEOPLAYER_H
+#pragma once
 
 #include <deque>
 #include <memory>
@@ -346,5 +345,3 @@ private:
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_MEDIA__VIDEOPLAYER_H

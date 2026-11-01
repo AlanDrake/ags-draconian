@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_TOOL_CRMPAK__COMMANDS_H
-#define __AGS_TOOL_CRMPAK__COMMANDS_H
+#pragma once
 
 #include <vector>
 #include "util/string.h"
@@ -59,5 +58,3 @@ int Command_Import(const String &src_room, const String &dst_room, const std::ve
                    const String &compiled_with, bool verbose);
 int Command_List(const String &src_room);
 } // namespace CRMPak
-
-#endif // __AGS_TOOL_CRMPAK__COMMANDS_H

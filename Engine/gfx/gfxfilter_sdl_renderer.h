@@ -16,8 +16,7 @@
 // does the job.
 //
 //=============================================================================
-#ifndef __AGS_EE_GFX__SDLRENDERERFILTER_H
-#define __AGS_EE_GFX__SDLRENDERERFILTER_H
+#pragma once
 
 #include <SDL_render.h>
 #include "gfx/gfxfilter_scaling.h"
@@ -43,5 +42,3 @@ public:
 } // namespace ALSW
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__SDLRENDERERFILTER_H

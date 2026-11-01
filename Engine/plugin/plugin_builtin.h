@@ -15,8 +15,7 @@
 // API for apps to register their own inbuilt plugins.
 //
 //=============================================================================
-#ifndef __AGS_EE_PLUGIN__PLUGINBUILTIN_H
-#define __AGS_EE_PLUGIN__PLUGINBUILTIN_H
+#pragma once
 
 class IAGSEngine;
 
@@ -39,5 +38,3 @@ struct InbuiltPluginDetails
 
 // Register a builtin plugin.
 int pl_register_builtin_plugin(InbuiltPluginDetails const &details);
-
-#endif // __AGS_EE_PLUGIN__PLUGINBUILTIN_H

@@ -39,8 +39,7 @@
 //
 //=============================================================================
 
-#ifndef __AGS_CN_FONT__WFNFONT_H
-#define __AGS_CN_FONT__WFNFONT_H
+#pragma once
 
 #include <vector>
 #include "platform/types.h"
@@ -108,5 +107,3 @@ private:
 
     static const WFNChar _emptyChar; // a dummy character to substitute bad symbols
 };
-
-#endif // __AGS_CN_FONT__WFNFONT_H

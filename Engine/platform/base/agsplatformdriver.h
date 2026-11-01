@@ -15,8 +15,7 @@
 // AGS Cross-Platform Header
 //
 //=============================================================================
-#ifndef __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H
-#define __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H
+#pragma once
 
 #include <errno.h>
 #include <memory>
@@ -167,5 +166,3 @@ private:
 // [IKM] What is a need to have this global var if you can get AGSPlatformDriver
 // instance by calling AGSPlatformDriver::GetDriver()?
 extern AGSPlatformDriver *platform;
-
-#endif // __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H

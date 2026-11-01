@@ -15,8 +15,7 @@
 // Custom SDL2 utilities, wrappers, reimplementations etc.
 //
 //=============================================================================
-#ifndef __AGS_EE_UTIL__SDL2UTIL_H
-#define __AGS_EE_UTIL__SDL2UTIL_H
+#pragma once
 
 #include <memory>
 #include <SDL.h>
@@ -33,5 +32,3 @@ SDL_RWops *OpenRWops(std::unique_ptr<Common::Stream> ags_stream);
 } // namespace SDL2Util
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_EE_UTIL__RWOPSUTIL_H

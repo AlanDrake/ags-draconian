@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_GUI__NEWCONTROL_H
-#define __AGS_EE_GUI__NEWCONTROL_H
+#pragma once
 
 #include "gfx/bitmap.h"
 
@@ -38,5 +37,3 @@ struct NewControl
     void drawifneeded();
     void drawandmouse();
 };
-
-#endif // __AGS_EE_GUI__NEWCONTROL_H

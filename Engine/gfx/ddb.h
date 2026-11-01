@@ -19,8 +19,7 @@
 // additional settings telling how to present the texture: transform, colorize,
 // and so on.
 //=============================================================================
-#ifndef __AGS_EE_GFX__DDB_H
-#define __AGS_EE_GFX__DDB_H
+#pragma once
 
 #include <memory>
 #include "gfx/bitmap.h"
@@ -134,5 +133,3 @@ protected:
 
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__DDB_H

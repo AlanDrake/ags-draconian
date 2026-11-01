@@ -15,8 +15,7 @@
 // Geometry data structures and helper functions
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__GEOMETRY_H
-#define __AGS_CN_UTIL__GEOMETRY_H
+#pragma once
 
 #include <cmath>
 #include "util/math.h"
@@ -468,5 +467,3 @@ Size RotateSize(Size sz, int degrees);
 
 //} // namespace Common
 //} // namespace AGS
-
-#endif // __AGS_CN_UTIL__GEOMETRY_H

@@ -22,8 +22,7 @@
 // actual property values only if ones are different from defaults.
 //
 //=============================================================================
-#ifndef __AGS_CN_GAME__CUSTOMPROPERTIES_H
-#define __AGS_CN_GAME__CUSTOMPROPERTIES_H
+#pragma once
 
 #include <unordered_map>
 #include "util/string.h"
@@ -93,5 +92,3 @@ void WriteValues(const StringIMap &map, Stream *out);
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GAME__CUSTOMPROPERTIES_H

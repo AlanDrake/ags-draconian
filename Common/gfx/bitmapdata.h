@@ -15,8 +15,7 @@
 // BitmapData is a raw array of pixels in the particular format.
 //
 //=============================================================================
-#ifndef __AGS_CN_GFX__BITMAPDATA_H
-#define __AGS_CN_GFX__BITMAPDATA_H
+#pragma once
 
 #include <array>
 #include <memory>
@@ -445,5 +444,3 @@ inline void Remap(BitmapData &bm_data, const Palette &src_pal, const Palette &ds
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_GFX__BITMAPDATA_H

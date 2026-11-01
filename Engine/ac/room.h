@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__ROOM_H
-#define __AGS_EE_AC__ROOM_H
+#pragma once
 
 #include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/characterinfo.h"
@@ -90,5 +89,3 @@ int mask_to_room_coord(int coord);
 
 // The single global "current room" instance
 extern AGS::Common::RoomStruct thisroom;
-
-#endif // __AGS_EE_AC__ROOM_H

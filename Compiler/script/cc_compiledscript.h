@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CC_COMPILEDSCRIPT_H
-#define __CC_COMPILEDSCRIPT_H
+#pragma once
 
 #include <cstdint>
 #include "script/cc_script.h" // ccScript
@@ -64,5 +63,3 @@ struct ccCompiledScript : public ccScript
     ccCompiledScript() = default;
     virtual ~ccCompiledScript() = default;
 };
-
-#endif // __CC_COMPILEDSCRIPT_H

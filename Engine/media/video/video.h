@@ -52,8 +52,7 @@
 //       specialized game object, e.g. VideoOverlay, a subclass of Overlay.
 //
 //=============================================================================
-#ifndef __AGS_EE_MEDIA__VIDEO_H
-#define __AGS_EE_MEDIA__VIDEO_H
+#pragma once
 
 #include "gfx/bitmap.h"
 #include "media/audio/audiodefines.h"
@@ -195,5 +194,3 @@ void sync_video_playback();
 void update_video_system_on_game_loop();
 // Stop all videos and video thread
 void video_shutdown();
-
-#endif // __AGS_EE_MEDIA__VIDEO_H

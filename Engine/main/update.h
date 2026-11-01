@@ -17,8 +17,7 @@
 // something else.
 //
 //=============================================================================
-#ifndef __AGS_EE_MAIN__UPDATE_H
-#define __AGS_EE_MAIN__UPDATE_H
+#pragma once
 
 enum MoveResult
 {
@@ -50,5 +49,3 @@ bool has_voice_lipsync();
 // Updates speech animation frame in accordance to a voice-based lipsync,
 // returns if there was any active voice-based lipsync running, or not
 int update_voice_lipsync(int frame);
-
-#endif // __AGS_EE_MAIN__UPDATE_H

@@ -33,8 +33,7 @@
 // Same changes could be done for File helpers (OpenFile etc).
 //
 //=============================================================================
-#ifndef __AGS_CN_CORE__ASSETMANAGER_H
-#define __AGS_CN_CORE__ASSETMANAGER_H
+#pragma once
 
 #include <functional>
 #include <memory>
@@ -186,5 +185,3 @@ String GetAssetErrorText(AssetError err);
 
 } // namespace Common
 } // namespace AGS
-
-#endif // __AGS_CN_CORE__ASSETMANAGER_H

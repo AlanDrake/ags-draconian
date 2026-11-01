@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_DEBUGGER_H
-#define __AC_DEBUGGER_H
+#pragma once
 
 #include "util/string.h"
 
@@ -69,5 +68,3 @@ enum FPSDisplayMode
 
 extern FPSDisplayMode display_fps;
 extern int debug_flags;
-
-#endif // __AC_DEBUGGER_H

@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_MOUSECURSOR_H
-#define __AC_MOUSECURSOR_H
+#pragma once
 
 #include "util/stream.h"
 #include "util/string.h"
@@ -64,5 +63,3 @@ struct MouseCursor
     void ReadFromSavegame(AGS::Common::Stream *in, int cmp_ver);
     void WriteToSavegame(AGS::Common::Stream *out) const;
 };
-
-#endif // __AC_MOUSECURSOR_H

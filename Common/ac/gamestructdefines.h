@@ -15,8 +15,7 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_CN_AC__GAMESTRUCTDEFINES_H
-#define __AGS_CN_AC__GAMESTRUCTDEFINES_H
+#pragma once
 
 #include "util/string.h"
 #include "util/geometry.h"
@@ -360,5 +359,3 @@ enum GameStateSvgVersion
     kGSSvgVersion_400_34 = 4000034, // full ranges for ambient tint, light level and screen tint
     kGSSvgVersion_Current = kGSSvgVersion_400_34
 };
-
-#endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H
