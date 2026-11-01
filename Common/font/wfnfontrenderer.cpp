@@ -35,7 +35,7 @@ void WFNFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 
 int WFNFontRenderer::GetTextWidth(const char *text, int fontNumber)
 {
-    const WFNFont* font = _fontData[fontNumber].Font;
+    const WFNFont *font = _fontData[fontNumber].Font;
     const FontRenderParams &params = _fontData[fontNumber].Params;
     const int char_spacing = _fontData[fontNumber].CharacterSpacing;
     int text_width = 0;
@@ -55,7 +55,7 @@ int WFNFontRenderer::GetTextWidth(const char *text, int fontNumber)
 
 int WFNFontRenderer::GetTextHeight(const char *text, int fontNumber)
 {
-    const WFNFont* font = _fontData[fontNumber].Font;
+    const WFNFont *font = _fontData[fontNumber].Font;
     const FontRenderParams &params = _fontData[fontNumber].Params;
     int max_height = 0;
 
@@ -67,20 +67,19 @@ int WFNFontRenderer::GetTextHeight(const char *text, int fontNumber)
     return max_height * params.SizeMultiplier;
 }
 
-static int RenderChar(Bitmap *ds, const int at_x, const int at_y, Rect clip,
-    const WFNChar &wfn_char, const int scale, const color_t text_color, bool alpha_blend);
+static int RenderChar(Bitmap *ds, const int at_x, const int at_y, Rect clip, const WFNChar &wfn_char, const int scale,
+                      const color_t text_color, bool alpha_blend);
 
 void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
-    const WFNFont* font = _fontData[fontNumber].Font;
+    const WFNFont *font = _fontData[fontNumber].Font;
     const FontRenderParams &params = _fontData[fontNumber].Params;
-  // NOTE: we do NOT scale global character spacing with SizeMultiplier
-  const int char_spacing = _fontData[fontNumber].CharacterSpacing;
+    // NOTE: we do NOT scale global character spacing with SizeMultiplier
+    const int char_spacing = _fontData[fontNumber].CharacterSpacing;
     Bitmap ds(destination, true);
 
     // Check if this is a alpha-blending case, and init corresponding draw mode
-    const bool alpha_blend = (ds.GetColorDepth() == 32) &&
-        ((geta32(colour) != 0xFF) || (_blendMode != kBlend_Normal));
+    const bool alpha_blend = (ds.GetColorDepth() == 32) && ((geta32(colour) != 0xFF) || (_blendMode != kBlend_Normal));
     if (alpha_blend)
     {
         drawing_mode(DRAW_MODE_TRANS, nullptr, 0, 0);
@@ -92,7 +91,8 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
     Rect clip = ds.GetClip();
     for (int code = ugetxc(&text); code; code = ugetxc(&text))
     {
-        x += char_spacing + RenderChar(&ds, x, y, clip, font->GetChar(code), params.SizeMultiplier, colour, alpha_blend);
+        x +=
+            char_spacing + RenderChar(&ds, x, y, clip, font->GetChar(code), params.SizeMultiplier, colour, alpha_blend);
     }
 
     if (alpha_blend)
@@ -101,46 +101,46 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
     }
 }
 
-static int RenderChar(Bitmap *ds, const int at_x, const int at_y, Rect clip,
-    const WFNChar &wfn_char, const int scale, const color_t text_color, bool alpha_blend)
+static int RenderChar(Bitmap *ds, const int at_x, const int at_y, Rect clip, const WFNChar &wfn_char, const int scale,
+                      const color_t text_color, bool alpha_blend)
 {
-  const int width = wfn_char.Width;
-  const int height = wfn_char.Height;
-  const unsigned char *actdata = wfn_char.Data;
-  const size_t bytewid = wfn_char.GetRowByteCount();
+    const int width = wfn_char.Width;
+    const int height = wfn_char.Height;
+    const unsigned char *actdata = wfn_char.Data;
+    const size_t bytewid = wfn_char.GetRowByteCount();
 
-  int sx = std::max(at_x, clip.Left), ex = clip.Right + 1;
-  int sy = std::max(at_y, clip.Top), ey = clip.Bottom + 1;
-  int sw = std::max(0, clip.Left - at_x);
-  int sh = std::max(0, clip.Top - at_y);
-  for (int h = sh, y = sy; h < height && y < ey; ++h, y += scale)
-  {
-    for (int w = sw, x = sx; w < width && x < ex; ++w, x += scale)
+    int sx = std::max(at_x, clip.Left), ex = clip.Right + 1;
+    int sy = std::max(at_y, clip.Top), ey = clip.Bottom + 1;
+    int sw = std::max(0, clip.Left - at_x);
+    int sh = std::max(0, clip.Top - at_y);
+    for (int h = sh, y = sy; h < height && y < ey; ++h, y += scale)
     {
-      if (((actdata[h * bytewid + (w / 8)] & (0x80 >> (w % 8))) != 0))
-      {
-        if (scale > 1)
+        for (int w = sw, x = sx; w < width && x < ex; ++w, x += scale)
         {
-          ds->FillRect(RectWH(x, y, scale, scale), text_color);
-        } 
-        else if (alpha_blend)
-        {
-          ds->BlendPixel(x, y, text_color);
+            if (((actdata[h * bytewid + (w / 8)] & (0x80 >> (w % 8))) != 0))
+            {
+                if (scale > 1)
+                {
+                    ds->FillRect(RectWH(x, y, scale, scale), text_color);
+                }
+                else if (alpha_blend)
+                {
+                    ds->BlendPixel(x, y, text_color);
+                }
+                else
+                {
+                    ds->PutPixel(x, y, text_color);
+                }
+            }
         }
-        else
-        {
-          ds->PutPixel(x, y, text_color);
-        }
-      }
     }
-  }
 
-  return width * scale;
+    return width * scale;
 }
 
 bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
-  return LoadFromDiskEx(fontNumber, fontSize, String::FromFormat("agsfnt%d.wfn", fontNumber), nullptr, nullptr);
+    return LoadFromDiskEx(fontNumber, fontSize, String::FromFormat("agsfnt%d.wfn", fontNumber), nullptr, nullptr);
 }
 
 bool WFNFontRenderer::IsBitmapFont()
@@ -154,29 +154,31 @@ int WFNFontRenderer::GetFontHeight(int fontNumber)
 }
 
 bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/, const String &filename,
-    const FontRenderParams *params, FontMetrics *metrics)
+                                     const FontRenderParams *params, FontMetrics *metrics)
 {
-  auto ffi = _amgr->OpenAsset(filename);
-  if (!ffi)
-     return false;
+    auto ffi = _amgr->OpenAsset(filename);
+    if (!ffi)
+        return false;
 
-  WFNFont *font = new WFNFont();
-  WFNError err = font->ReadFromFile(ffi.get());
-  if (err == kWFNErr_HasBadCharacters)
-  {
-    Debug::Printf(kDbgMsg_Warn, "WARNING: font '%s' has mistakes in data format, some characters may be displayed incorrectly", filename.GetCStr());
-  }
-  else if (err != kWFNErr_NoError)
-  {
-    delete font;
-    return false;
-  }
-  _fontData[fontNumber].Font = font;
-  _fontData[fontNumber].Params = params ? *params : FontRenderParams();
-  _fontData[fontNumber].CharacterSpacing = 0;
-  if (metrics)
-    GetFontMetrics(fontNumber, metrics);
-  return true;
+    WFNFont *font = new WFNFont();
+    WFNError err = font->ReadFromFile(ffi.get());
+    if (err == kWFNErr_HasBadCharacters)
+    {
+        Debug::Printf(kDbgMsg_Warn,
+                      "WARNING: font '%s' has mistakes in data format, some characters may be displayed incorrectly",
+                      filename.GetCStr());
+    }
+    else if (err != kWFNErr_NoError)
+    {
+        delete font;
+        return false;
+    }
+    _fontData[fontNumber].Font = font;
+    _fontData[fontNumber].Params = params ? *params : FontRenderParams();
+    _fontData[fontNumber].CharacterSpacing = 0;
+    if (metrics)
+        GetFontMetrics(fontNumber, metrics);
+    return true;
 }
 
 void WFNFontRenderer::SetBlendMode(BlendMode blend_mode)
@@ -209,8 +211,7 @@ void WFNFontRenderer::GetCharCodeRange(int fontNumber, std::pair<int, int> *char
     if (_fontData[fontNumber].Font->GetCharCount() == 0)
         *char_codes = std::make_pair(0, 0);
     else
-        *char_codes = std::make_pair(0,
-            static_cast<int>(_fontData[fontNumber].Font->GetCharCount() - 1));
+        *char_codes = std::make_pair(0, static_cast<int>(_fontData[fontNumber].Font->GetCharCount() - 1));
 }
 
 void WFNFontRenderer::GetValidCharCodes(int fontNumber, std::vector<int> &char_codes)
@@ -225,13 +226,13 @@ void WFNFontRenderer::GetValidCharCodes(int fontNumber, std::vector<int> &char_c
 
 void WFNFontRenderer::FreeMemory(int fontNumber)
 {
-  delete _fontData[fontNumber].Font;
-  _fontData.erase(fontNumber);
+    delete _fontData[fontNumber].Font;
+    _fontData.erase(fontNumber);
 }
 
 bool WFNFontRenderer::SupportsExtendedCharacters(int fontNumber)
 {
-  return _fontData[fontNumber].Font->GetCharCount() > 128;
+    return _fontData[fontNumber].Font->GetCharCount() > 128;
 }
 
 void WFNFontRenderer::SetCharacterSpacing(int fontNumber, int spacing)

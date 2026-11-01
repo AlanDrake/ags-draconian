@@ -36,7 +36,7 @@ int StrUtil::LexographicalCompare(const String &s1, const String &s2, const char
         const auto &fac_c = std::use_facet<std::collate<char>>(loc);
         return fac_c.compare(s1.GetCStr(), s1.GetCStr() + s1.GetLength(), s2.GetCStr(), s2.GetCStr() + s2.GetLength());
     }
-    catch (const std::runtime_error&)
+    catch (const std::runtime_error &)
     {
         return s1.Compare(s2);
     }
@@ -52,9 +52,10 @@ int StrUtil::LexographicalCompareNoCase(const String &s1, const String &s2, cons
         const String s2lower = s2.LowerUTF8();
         const auto loc = (locale_name && *locale_name) ? std::locale(locale_name) : std::locale();
         const auto &fac_c = std::use_facet<std::collate<char>>(loc);
-        return fac_c.compare(s1lower.GetCStr(), s1lower.GetCStr() + s1lower.GetLength(), s2lower.GetCStr(), s2lower.GetCStr() + s2lower.GetLength());
+        return fac_c.compare(s1lower.GetCStr(), s1lower.GetCStr() + s1lower.GetLength(), s2lower.GetCStr(),
+                             s2lower.GetCStr() + s2lower.GetLength());
     }
-    catch (const std::runtime_error&)
+    catch (const std::runtime_error &)
     {
         return Utf8::StrCmpNoCase(s1.GetCStr(), s2.GetCStr());
     }
@@ -67,13 +68,11 @@ std::unique_ptr<IStrCmp> StrUtil::GetStrCmpImplFor(bool unicode, bool nocase, co
     if (unicode)
     {
         if (nocase)
-            return std::unique_ptr<IStrCmp>(locale_aware ?
-                (IStrCmp*)new StrCmpLexographicalNoCase(locale_name)
-                : new StrCmpUtf8NoCase());
+            return std::unique_ptr<IStrCmp>(locale_aware ? (IStrCmp *)new StrCmpLexographicalNoCase(locale_name)
+                                                         : new StrCmpUtf8NoCase());
         else
-            return std::unique_ptr<IStrCmp>(locale_aware ?
-                (IStrCmp*)new StrCmpLexographical(locale_name)
-                : new StrCmpDirect());
+            return std::unique_ptr<IStrCmp>(locale_aware ? (IStrCmp *)new StrCmpLexographical(locale_name)
+                                                         : new StrCmpDirect());
     }
     else
     {
@@ -155,7 +154,7 @@ String StrUtil::WildcardToRegex(const String &wildcard)
 {
     // https://stackoverflow.com/questions/40195412/c11-regex-search-for-exact-string-escape
     // matches any characters that need to be escaped in RegEx
-    std::regex esc{ R"([-[\]{}()*+?.,\^$|#\s])" };
+    std::regex esc{R"([-[\]{}()*+?.,\^$|#\s])"};
     std::string sanitized = std::regex_replace(wildcard.GetCStr(), esc, R"(\$&)");
     // convert (now escaped) wildcard "\\*" and "\\?" into ".*" and "." respectively
     String pattern(sanitized.c_str());
@@ -183,13 +182,13 @@ String StrUtil::Unescape(const String &s)
         char next = *(++ptr);
         switch (next)
         {
-        case 'a':  *(pb++) = '\a'; break;
-        case 'b':  *(pb++) = '\b'; break;
-        case 'f':  *(pb++) = '\f'; break;
-        case 'n':  *(pb++) = '\n'; break;
-        case 'r':  *(pb++) = '\r'; break;
-        case 't':  *(pb++) = '\t'; break;
-        case 'v':  *(pb++) = '\v'; break;
+        case 'a': *(pb++) = '\a'; break;
+        case 'b': *(pb++) = '\b'; break;
+        case 'f': *(pb++) = '\f'; break;
+        case 'n': *(pb++) = '\n'; break;
+        case 'r': *(pb++) = '\r'; break;
+        case 't': *(pb++) = '\t'; break;
+        case 'v': *(pb++) = '\v'; break;
         case '\\': *(pb++) = '\\'; break;
         case '\'': *(pb++) = '\''; break;
         case '\"': *(pb++) = '\"'; break;
@@ -199,7 +198,7 @@ String StrUtil::Unescape(const String &s)
     }
     *pb = 0;
     String dst(buf);
-    delete [] buf;
+    delete[] buf;
     return dst;
 }
 
@@ -300,7 +299,8 @@ void StrUtil::ReadCStr(char *buf, Stream *in, size_t buf_limit)
 {
     if (buf_limit == 0)
     {
-        while (in->ReadByte() > 0);
+        while (in->ReadByte() > 0)
+            ;
         return;
     }
 
@@ -311,7 +311,8 @@ void StrUtil::ReadCStr(char *buf, Stream *in, size_t buf_limit)
         if (ptr >= last)
         {
             *ptr = 0;
-            while (in->ReadByte() > 0); // must still read until 0
+            while (in->ReadByte() > 0)
+                ; // must still read until 0
             break;
         }
 
@@ -348,7 +349,8 @@ std::string StrUtil::ReadCStrAsStdString(Stream *in)
 
 void StrUtil::SkipCStr(Stream *in)
 {
-    while (in->ReadByte() > 0);
+    while (in->ReadByte() > 0)
+        ;
 }
 
 void StrUtil::WriteCStr(const char *cstr, Stream *out)
@@ -458,8 +460,7 @@ size_t StrUtil::ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, std:
 size_t StrUtil::ConvertUtf8ToWstr(const char *mbstr, wchar_t *out_wcstr, size_t out_sz)
 {
     size_t len = 0;
-    for (size_t mb_sz = 1; *mbstr && (mb_sz > 0) && (len < out_sz);
-        mbstr += mb_sz, ++out_wcstr, ++len)
+    for (size_t mb_sz = 1; *mbstr && (mb_sz > 0) && (len < out_sz); mbstr += mb_sz, ++out_wcstr, ++len)
     {
         Utf8::Rune r;
         mb_sz = Utf8::GetChar(mbstr, Utf8::UtfSz, &r);
@@ -478,8 +479,7 @@ size_t StrUtil::ConvertUtf8ToWstr(const char *mbstr, std::vector<wchar_t> &out_w
 size_t StrUtil::ConvertWstrToUtf8(const wchar_t *wcstr, char *out_mbstr, size_t out_sz)
 {
     size_t len = 0;
-    for (size_t mb_sz = 1; *wcstr && (mb_sz > 0) && (len + mb_sz < out_sz);
-        ++wcstr, out_mbstr += mb_sz, len += mb_sz)
+    for (size_t mb_sz = 1; *wcstr && (mb_sz > 0) && (len + mb_sz < out_sz); ++wcstr, out_mbstr += mb_sz, len += mb_sz)
     {
         mb_sz = Utf8::SetChar(*wcstr, out_mbstr, out_sz - len);
     }
@@ -552,8 +552,7 @@ String StrUtil::ApplyTextDirection(const String &text, bool default_rtl)
                     size_t copy_len = copy_to - copy_from;
                     memcpy(dst_ptr, copy_from, copy_len);
                     dst_ptr += copy_len;
-                }
-                while (copy_from != sec_begin);
+                } while (copy_from != sec_begin);
                 is_rtl = false;
                 sec_begin = src_ptr + c_len;
             }
@@ -596,7 +595,7 @@ static bool TryUTF8LocaleName(const String &try_name, String &got_name)
         got_name = locale.name();
         return true;
     }
-    catch (const std::runtime_error&)
+    catch (const std::runtime_error &)
     {
     }
     return false;

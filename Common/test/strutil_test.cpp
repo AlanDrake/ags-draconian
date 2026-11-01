@@ -16,7 +16,8 @@
 
 using namespace AGS::Common;
 
-TEST(StrUtil, Unescape) {
+TEST(StrUtil, Unescape)
+{
     String s = "Text\\\\Text";
     ASSERT_TRUE(StrUtil::Unescape(s) == "Text\\Text");
 

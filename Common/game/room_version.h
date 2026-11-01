@@ -60,19 +60,19 @@ v4.0.0.34: object opacity instead of transparency, extended region light and tin
 */
 enum RoomFileVersion
 {
-    kRoomVersion_Undefined  = 0,
-    kRoomVersion_3508       = 33,
-    kRoomVersion_399        = 40, // was reserved for early 4.0 alpha
-    kRoomVersion_363_06     = 36306,
-    kRoomVersion_363_15     = 36315,
-    kRoomVersion_400        = 4000000,
-    kRoomVersion_400_17     = 4000017,
-    kRoomVersion_400_24     = 4000024,
-    kRoomVersion_400_26     = 4000026,
-    kRoomVersion_400_33     = 4000033,
-    kRoomVersion_400_34     = 4000034,
+    kRoomVersion_Undefined = 0,
+    kRoomVersion_3508 = 33,
+    kRoomVersion_399 = 40, // was reserved for early 4.0 alpha
+    kRoomVersion_363_06 = 36306,
+    kRoomVersion_363_15 = 36315,
+    kRoomVersion_400 = 4000000,
+    kRoomVersion_400_17 = 4000017,
+    kRoomVersion_400_24 = 4000024,
+    kRoomVersion_400_26 = 4000026,
+    kRoomVersion_400_33 = 4000033,
+    kRoomVersion_400_34 = 4000034,
     kRoomVersion_LowSupport = kRoomVersion_3508,
-    kRoomVersion_Current    = kRoomVersion_400_34
+    kRoomVersion_Current = kRoomVersion_400_34
 };
 
 #endif // __AGS_CN_AC__ROOMVERSION_H

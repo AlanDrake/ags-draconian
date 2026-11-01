@@ -31,8 +31,8 @@
 #include "util/string_utils.h"
 
 // default number of hotspots to read from the room file
-#define MIN_ROOM_HOTSPOTS  20
-#define LEGACY_ROOM_PASSWORD_LENGTH 11
+#define MIN_ROOM_HOTSPOTS             20
+#define LEGACY_ROOM_PASSWORD_LENGTH   11
 #define ROOM_MESSAGE_FLAG_DISPLAYNEXT 200
 // Reserved room options (each is a byte)
 #define ROOM_OPTIONS_RESERVED 4
@@ -47,32 +47,20 @@ String GetRoomFileErrorText(RoomFileErrorType err)
 {
     switch (err)
     {
-    case kRoomFileErr_NoError:
-        return "No error.";
-    case kRoomFileErr_FileOpenFailed:
-        return "Room file was not found or could not be opened.";
-    case kRoomFileErr_SignatureFailed:
-        return "Not an AGS room file or an unsupported format.";
-    case kRoomFileErr_FormatNotSupported:
-        return "Format version not supported.";
-    case kRoomFileErr_BlockListFailed:
-        return "There was error reading room data.";
-    case kRoomFileErr_UnknownBlockType:
-        return "Unknown block type.";
+    case kRoomFileErr_NoError: return "No error.";
+    case kRoomFileErr_FileOpenFailed: return "Room file was not found or could not be opened.";
+    case kRoomFileErr_SignatureFailed: return "Not an AGS room file or an unsupported format.";
+    case kRoomFileErr_FormatNotSupported: return "Format version not supported.";
+    case kRoomFileErr_BlockListFailed: return "There was error reading room data.";
+    case kRoomFileErr_UnknownBlockType: return "Unknown block type.";
     case kRoomFileErr_OldBlockNotSupported:
         return "Block type is too old and not supported by this version of the engine.";
-    case kRoomFileErr_IncompatibleEngine:
-        return "This engine cannot handle requested room content.";
-    case kRoomFileErr_ScriptLoadFailed:
-        return "Script load failed.";
-    case kRoomFileErr_InconsistentData:
-        return "Inconsistent room data, or file is corrupted.";
-    case kRoomFileErr_PropertiesBlockFormat:
-        return "Unknown format of the custom properties block.";
-    case kRoomFileErr_InvalidPropertyValues:
-        return "Errors encountered when reading custom properties.";
-    case kRoomFileErr_BlockNotFound:
-        return "Required block was not found.";
+    case kRoomFileErr_IncompatibleEngine: return "This engine cannot handle requested room content.";
+    case kRoomFileErr_ScriptLoadFailed: return "Script load failed.";
+    case kRoomFileErr_InconsistentData: return "Inconsistent room data, or file is corrupted.";
+    case kRoomFileErr_PropertiesBlockFormat: return "Unknown format of the custom properties block.";
+    case kRoomFileErr_InvalidPropertyValues: return "Errors encountered when reading custom properties.";
+    case kRoomFileErr_BlockNotFound: return "Required block was not found.";
     default: return "Unknown error.";
     }
 }
@@ -105,7 +93,7 @@ void ReadRoomObjectBase(RoomObjectInfo &obj, Stream *in)
     // Only treat "on" as a visible flag, otherwise it breaks game logic
     // when reading older rooms (i.e. to make object visible you must turn
     // both enabled and visible properties).
-    obj.Flags |= (OBJF_VISIBLE) * on;
+    obj.Flags |= (OBJF_VISIBLE)*on;
 }
 
 // Write base room object's fields
@@ -128,7 +116,8 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const
 
     room->WalkBehindCount = in->ReadInt16();
     if (room->WalkBehindCount > MAX_WALK_BEHINDS)
-        return new RoomFileError(kRoomFileErr_IncompatibleEngine, "Too many walk-behinds (in room: %d, max: %d).", room->WalkBehindCount, MAX_WALK_BEHINDS);
+        return new RoomFileError(kRoomFileErr_IncompatibleEngine, "Too many walk-behinds (in room: %d, max: %d).",
+                                 room->WalkBehindCount, MAX_WALK_BEHINDS);
 
     // Walk-behinds baselines
     for (uint32_t i = 0; i < room->WalkBehindCount; ++i)
@@ -136,7 +125,8 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const
 
     room->HotspotCount = in->ReadInt32();
     if (room->HotspotCount > MAX_ROOM_HOTSPOTS)
-        return new RoomFileError(kRoomFileErr_IncompatibleEngine, "Too many hotspots (in room: %d, max: %d).", room->HotspotCount, MAX_ROOM_HOTSPOTS);
+        return new RoomFileError(kRoomFileErr_IncompatibleEngine, "Too many hotspots (in room: %d, max: %d).",
+                                 room->HotspotCount, MAX_ROOM_HOTSPOTS);
 
     // Hotspots walk-to points
     for (uint32_t i = 0; i < room->HotspotCount; ++i)
@@ -169,8 +159,8 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const
     // Room objects
     uint16_t obj_count = in->ReadInt16();
     if (obj_count > MAX_ROOM_OBJECTS)
-        return new RoomFileError(kRoomFileErr_IncompatibleEngine,
-            "Too many objects (in room: %d, max: %d).", obj_count, MAX_ROOM_OBJECTS);
+        return new RoomFileError(kRoomFileErr_IncompatibleEngine, "Too many objects (in room: %d, max: %d).", obj_count,
+                                 MAX_ROOM_OBJECTS);
 
     room->Objects.resize(obj_count);
     for (auto &obj : room->Objects)
@@ -183,7 +173,9 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const
 
     room->RegionCount = in->ReadInt32();
     if (room->RegionCount > MAX_ROOM_REGIONS)
-        return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many regions (in room: %d, max: %d).", room->RegionCount, MAX_ROOM_REGIONS));
+        return new RoomFileError(
+            kRoomFileErr_IncompatibleEngine,
+            String::FromFormat("Too many regions (in room: %d, max: %d).", room->RegionCount, MAX_ROOM_REGIONS));
 
     // Interaction script links
     // NOTE: we keep pre-3.6.2 interaction format for now, room interactions don't need module selection
@@ -227,7 +219,8 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const
     room->MaskResolution = in->ReadInt16();
     room->WalkAreaCount = in->ReadInt32();
     if (room->WalkAreaCount > MAX_WALK_AREAS)
-        return new RoomFileError(kRoomFileErr_IncompatibleEngine, "Too many walkable areas (in room: %d, max: %d).", room->WalkAreaCount, MAX_WALK_AREAS);
+        return new RoomFileError(kRoomFileErr_IncompatibleEngine, "Too many walkable areas (in room: %d, max: %d).",
+                                 room->WalkAreaCount, MAX_WALK_AREAS);
 
     for (uint32_t i = 0; i < room->WalkAreaCount; ++i)
         room->WalkAreas[i].ScalingFar = in->ReadInt16();
@@ -241,14 +234,14 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const
         room->WalkAreas[i].Bottom = in->ReadInt16();
 
     in->Seek(LEGACY_ROOM_PASSWORD_LENGTH); // skip password
-    in->ReadInt8();// [DEPRECATED]
-    in->ReadInt8();// [DEPRECATED]
+    in->ReadInt8();                        // [DEPRECATED]
+    in->ReadInt8();                        // [DEPRECATED]
     room->Options.PlayerCharOff = in->ReadInt8() != 0;
     room->Options.PlayerView = in->ReadInt8();
-    in->ReadInt8();// [DEPRECATED]
+    in->ReadInt8(); // [DEPRECATED]
     room->Options.Flags = in->ReadInt8();
     in->Seek(ROOM_OPTIONS_RESERVED);
-    
+
     // 2.* format legacy room messages
     uint16_t legacy_msg_count = in->ReadInt16();
     if (legacy_msg_count > 0)
@@ -289,7 +282,7 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const
         room->HotspotMaskBuf = load_rle_bitmap8(in);
     }
     // NOTE: we can skip the rest if we're not reading images, because they are last in block
-    
+
     return HError::None();
 }
 
@@ -315,7 +308,8 @@ HError ReadObjNamesBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
     size_t name_count = static_cast<uint8_t>(in->ReadInt8());
     if (name_count != room->Objects.size())
         return new RoomFileError(kRoomFileErr_InconsistentData,
-            "In the object names block, expected name count: %zu, got %zu", room->Objects.size(), name_count);
+                                 "In the object names block, expected name count: %zu, got %zu", room->Objects.size(),
+                                 name_count);
 
     for (auto &obj : room->Objects)
     {
@@ -330,7 +324,8 @@ HError ReadObjScNamesBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
     size_t name_count = static_cast<uint8_t>(in->ReadInt8());
     if (name_count != room->Objects.size())
         return new RoomFileError(kRoomFileErr_InconsistentData,
-            "In the object script names block, expected name count: %zu, got %zu", room->Objects.size(), name_count);
+                                 "In the object script names block, expected name count: %zu, got %zu",
+                                 room->Objects.size(), name_count);
 
     for (auto &obj : room->Objects)
     {
@@ -394,7 +389,8 @@ HError ReadExt_363_Objects(RoomData *room, Stream *in, RoomFileVersion data_ver)
     uint32_t obj_count = static_cast<uint32_t>(in->ReadInt32());
     if (obj_count != room->Objects.size())
         return new RoomFileError(kRoomFileErr_InconsistentData,
-            "Mismatching number of room objects: expected %zu, got %u", room->Objects.size(), obj_count);
+                                 "Mismatching number of room objects: expected %zu, got %u", room->Objects.size(),
+                                 obj_count);
 
     for (auto &obj : room->Objects)
     {
@@ -523,7 +519,7 @@ HError ReadExt_400_ObjectOptions2(RoomData *room, Stream *in, RoomFileVersion da
     if (!ReadAndAssertCount(in, "objects", room->Objects.size(), err))
         return err;
 
-    for (auto& obj : room->Objects)
+    for (auto &obj : room->Objects)
     {
         obj.GraphicAnchor.X = in->ReadFloat32();
         obj.GraphicAnchor.Y = in->ReadFloat32();
@@ -575,15 +571,14 @@ HError ReadExt_400_AreaNames(RoomData *room, Stream *in, RoomFileVersion data_ve
 }
 
 HError ReadRoomBlock(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
-    soff_t block_len, RoomFileVersion data_ver, const RoomReadOptions &read_opts)
+                     soff_t block_len, RoomFileVersion data_ver, const RoomReadOptions &read_opts)
 {
     //
     // First check classic block types, identified with a numeric id
     //
     switch (block)
     {
-    case kRoomFblk_Main:
-        return ReadMainBlock(room, in, data_ver, read_opts);
+    case kRoomFblk_Main: return ReadMainBlock(room, in, data_ver, read_opts);
     case kRoomFblk_Script:
         // Only read if explicitly requested to by caller
         if (room_aux)
@@ -597,25 +592,17 @@ HError ReadRoomBlock(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFile
             in->Seek(block_len);
         }
         return HError::None();
-    case kRoomFblk_CompScript3:
-        return ReadCompSc3Block(room, in, data_ver);
-    case kRoomFblk_ObjectNames:
-        return ReadObjNamesBlock(room, in, data_ver);
-    case kRoomFblk_ObjectScNames:
-        return ReadObjScNamesBlock(room, in, data_ver);
-    case kRoomFblk_AnimBg:
-        return !read_opts.SkipImageData ? ReadAnimBgBlock(room, in, data_ver) : HError::None();
-    case kRoomFblk_Properties:
-        return ReadPropertiesBlock(room, in, data_ver);
+    case kRoomFblk_CompScript3: return ReadCompSc3Block(room, in, data_ver);
+    case kRoomFblk_ObjectNames: return ReadObjNamesBlock(room, in, data_ver);
+    case kRoomFblk_ObjectScNames: return ReadObjScNamesBlock(room, in, data_ver);
+    case kRoomFblk_AnimBg: return !read_opts.SkipImageData ? ReadAnimBgBlock(room, in, data_ver) : HError::None();
+    case kRoomFblk_Properties: return ReadPropertiesBlock(room, in, data_ver);
     case kRoomFblk_CompScript:
-    case kRoomFblk_CompScript2:
-        return new RoomFileError(kRoomFileErr_OldBlockNotSupported,
-            "Type: %d.", block);
-    case kRoomFblk_None:
-        break; // continue to string ids
+    case kRoomFblk_CompScript2: return new RoomFileError(kRoomFileErr_OldBlockNotSupported, "Type: %d.", block);
+    case kRoomFblk_None: break; // continue to string ids
     default:
-        return new RoomFileError(kRoomFileErr_UnknownBlockType,
-            "Type: %d, known range: %d - %d.", block, kRoomFblk_Main, kRoomFblk_ObjectScNames);
+        return new RoomFileError(kRoomFileErr_UnknownBlockType, "Type: %d, known range: %d - %d.", block,
+                                 kRoomFblk_Main, kRoomFblk_ObjectScNames);
     }
 
     // Add extensions here checking ext_id, which is an up to 16-chars name
@@ -658,8 +645,7 @@ HError ReadRoomBlock(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFile
         return ReadExt_400_AreaNames(room, in, data_ver);
     }
 
-    return new RoomFileError(kRoomFileErr_UnknownBlockType,
-        "Type: %s", ext_id.GetCStr());
+    return new RoomFileError(kRoomFileErr_UnknownBlockType, "Type: %s", ext_id.GetCStr());
 }
 
 const String RoomDataSource::Signature = "AGS Room File v2";
@@ -688,9 +674,11 @@ HRoomFileError ReadRoomHeader(RoomDataSource &src)
 
     if (src.DataVersion < kRoomVersion_LowSupport || src.DataVersion > kRoomVersion_Current)
     {
-        return new RoomFileError(kRoomFileErr_FormatNotSupported,
+        return new RoomFileError(
+            kRoomFileErr_FormatNotSupported,
             String::FromFormat("Room was compiled with %s. Required format version: %d, supported %d - %d",
-                !src.CompiledWith.IsEmpty() ? src.CompiledWith.GetCStr() : "(unknown)", src.DataVersion, kRoomVersion_LowSupport, kRoomVersion_Current));
+                               !src.CompiledWith.IsEmpty() ? src.CompiledWith.GetCStr() : "(unknown)", src.DataVersion,
+                               kRoomVersion_LowSupport, kRoomVersion_Current));
     }
     return HRoomFileError::None();
 }
@@ -727,7 +715,8 @@ HRoomFileError OpenRoomFile(RoomDataSource &src)
     return ReadRoomHeader(src);
 }
 
-HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
+HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in,
+                            RoomFileVersion data_ver)
 {
     room->DataVersion = data_ver;
     RoomBlockReader reader(room, room_aux, data_ver, std::move(in), {}, nullptr);
@@ -802,8 +791,7 @@ HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, const st
     return HRoomFileError::None();
 }
 
-HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in,
-    const std::vector<SpriteInfo> *sprinfos)
+HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in, const std::vector<SpriteInfo> *sprinfos)
 {
     room->Free();
     room->InitDefaults();
@@ -819,16 +807,20 @@ HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in,
     return err;
 }
 
-HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver,
-    const std::vector<std::pair<RoomFileBlock, String>> &blocks_to_read, const RoomReadOptions &read_opts)
+HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in,
+                            RoomFileVersion data_ver,
+                            const std::vector<std::pair<RoomFileBlock, String>> &blocks_to_read,
+                            const RoomReadOptions &read_opts)
 {
-    RoomBlockReader reader(room, room_aux, data_ver, std::move(in), read_opts,
+    RoomBlockReader reader(
+        room, room_aux, data_ver, std::move(in), read_opts,
         [blocks_to_read](RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
-            soff_t block_len, RoomFileVersion data_ver, const RoomReadOptions &read_opts)
+                         soff_t block_len, RoomFileVersion data_ver, const RoomReadOptions &read_opts)
         {
             const auto block_id = std::make_pair(block, block != kRoomFblk_None ? "" : ext_id);
             if (std::find(blocks_to_read.begin(), blocks_to_read.end(), block_id) != blocks_to_read.end())
-                return ReadRoomBlock(room, room_aux, in, block_id.first, block_id.second, block_len, data_ver, read_opts);
+                return ReadRoomBlock(room, room_aux, in, block_id.first, block_id.second, block_len, data_ver,
+                                     read_opts);
             in->Seek(block_len); // skip ignored block
             return HError::None();
         });
@@ -839,7 +831,7 @@ HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_p
 HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {
     RoomDataAux room_aux;
-    HRoomFileError err = ReadRoomData(nullptr, &room_aux, std::move(in), data_ver, {{ kRoomFblk_Script, "" }}, {});
+    HRoomFileError err = ReadRoomData(nullptr, &room_aux, std::move(in), data_ver, {{kRoomFblk_Script, ""}}, {});
     if (!err)
         return err;
     script = room_aux.ScriptText;
@@ -882,7 +874,7 @@ void WriteMainBlock(const RoomData *room, Stream *out)
         WriteRoomObjectBase(obj, out);
     }
 
-    out->WriteInt32(0); // legacy interaction vars
+    out->WriteInt32(0);                // legacy interaction vars
     out->WriteInt32(MAX_ROOM_REGIONS); // NOTE: always writes MAX_ROOM_REGIONS!
 
     // NOTE: we keep pre-3.6.2 interaction format for now, room interactions don't need module selection;
@@ -921,14 +913,14 @@ void WriteMainBlock(const RoomData *room, Stream *out)
         out->WriteInt16(room->WalkAreas[i].Bottom);
 
     out->WriteByteCount(0, LEGACY_ROOM_PASSWORD_LENGTH);
-    out->WriteInt8(0);// [DEPRECATED]
-    out->WriteInt8(0);// [DEPRECATED]
+    out->WriteInt8(0); // [DEPRECATED]
+    out->WriteInt8(0); // [DEPRECATED]
     out->WriteInt8(room->Options.PlayerCharOff ? 1 : 0);
     out->WriteInt8(room->Options.PlayerView);
-    out->WriteInt8(0);// [DEPRECATED]
+    out->WriteInt8(0); // [DEPRECATED]
     out->WriteInt8(room->Options.Flags);
     out->WriteByteCount(0, ROOM_OPTIONS_RESERVED);
-    out->WriteInt16(0);// [DEPRECATED]
+    out->WriteInt16(0); // [DEPRECATED]
     out->WriteInt32(room->GameID);
 
     out->WriteInt16(0); // legacy room animations
@@ -944,7 +936,7 @@ void WriteMainBlock(const RoomData *room, Stream *out)
     // NOTE: some compression algorithms cannot work properly if the image is less than 4x4
     PixelBuffer dummy_buf(4, 4, kPxFmt_Indexed8);
     SpriteDataUtils::WriteSprite_360(room->BgFrames[0].GraphicBuf ? room->BgFrames[0].GraphicBuf : dummy_buf, out,
-        kSprStore_OptimizeForSize, kSprCompress_Deflate, &room->Palette);
+                                     kSprStore_OptimizeForSize, kSprCompress_Deflate, &room->Palette);
     save_rle_bitmap8(out, room->RegionMaskBuf ? room->RegionMaskBuf : dummy_buf);
     save_rle_bitmap8(out, room->WalkAreaMaskBuf ? room->WalkAreaMaskBuf : dummy_buf);
     save_rle_bitmap8(out, room->WalkBehindMaskBuf ? room->WalkBehindMaskBuf : dummy_buf);
@@ -978,13 +970,13 @@ void WriteAnimBgBlock(const RoomData *room, Stream *out)
     for (size_t i = 0; i < room->BgFrameCount; ++i)
         out->WriteInt8(room->BgFrames[i].IsPaletteShared ? 1 : 0);
     for (size_t i = 1; i < room->BgFrameCount; ++i)
-        SpriteDataUtils::WriteSprite_360(room->BgFrames[i].GraphicBuf, out,
-            kSprStore_OptimizeForSize, kSprCompress_Deflate, &room->BgFrames[i].Palette);
+        SpriteDataUtils::WriteSprite_360(room->BgFrames[i].GraphicBuf, out, kSprStore_OptimizeForSize,
+                                         kSprCompress_Deflate, &room->BgFrames[i].Palette);
 }
 
 void WritePropertiesBlock(const RoomData *room, Stream *out)
 {
-    out->WriteInt32(1);  // Version 1 of properties block
+    out->WriteInt32(1); // Version 1 of properties block
     Properties::WriteValues(room->Properties, out);
     for (uint32_t i = 0; i < room->HotspotCount; ++i)
         Properties::WriteValues(room->Hotspots[i].Properties, out);
@@ -1094,10 +1086,10 @@ void WriteExt_400_EventTables(const RoomData *room, Stream *out)
     }
 }
 
-void WriteExt_400_ObjectOptions2(const RoomData* room, Stream* out)
+void WriteExt_400_ObjectOptions2(const RoomData *room, Stream *out)
 {
     out->WriteInt32(room->Objects.size());
-    for (const auto& obj : room->Objects)
+    for (const auto &obj : room->Objects)
     {
         out->WriteFloat32(obj.GraphicAnchor.X);
         out->WriteFloat32(obj.GraphicAnchor.Y);
@@ -1150,10 +1142,12 @@ void WriteAux_ScriptBlock(const RoomDataAux *room_aux, Stream *out)
     WriteRoomBlock(kRoomFblk_Script, data, out);
 }
 
-HRoomFileError WriteRoomData(const RoomData *room, const RoomDataAux *room_aux, Stream *out, RoomFileVersion data_ver, const String &compiled_with)
+HRoomFileError WriteRoomData(const RoomData *room, const RoomDataAux *room_aux, Stream *out, RoomFileVersion data_ver,
+                             const String &compiled_with)
 {
     if (data_ver < kRoomVersion_Current)
-        return new RoomFileError(kRoomFileErr_FormatNotSupported, "We no longer support saving room in the older format.");
+        return new RoomFileError(kRoomFileErr_FormatNotSupported,
+                                 "We no longer support saving room in the older format.");
 
     // Header
     WriteRoomHeader(out, data_ver, compiled_with);
@@ -1201,7 +1195,8 @@ HRoomFileError WriteRoomData(const RoomData *room, Stream *out, RoomFileVersion 
     return WriteRoomData(room, nullptr, out, data_ver, compiled_with);
 }
 
-HRoomFileError WriteRoomData(const RoomDataExt *room, Stream *out, RoomFileVersion data_ver, const String &compiled_with)
+HRoomFileError WriteRoomData(const RoomDataExt *room, Stream *out, RoomFileVersion data_ver,
+                             const String &compiled_with)
 {
     return WriteRoomData(room, room, out, data_ver, compiled_with);
 }

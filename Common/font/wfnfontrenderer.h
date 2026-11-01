@@ -20,52 +20,52 @@
 
 class WFNFont;
 
-class WFNFontRenderer : public IAGSFontRendererInternal {
+class WFNFontRenderer : public IAGSFontRendererInternal
+{
 public:
-  // IAGSFontRenderer implementation
-  bool LoadFromDisk(int fontNumber, int fontSize) override;
-  void FreeMemory(int fontNumber) override;
-  bool SupportsExtendedCharacters(int fontNumber) override;
-  int GetTextWidth(const char *text, int fontNumber) override;
-  int GetTextHeight(const char *text, int fontNumber) override;
-  void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) override;
-  void AdjustYCoordinateForFont(int *ycoord, int fontNumber) override;
-  void EnsureTextValidForFont(char *text, int fontNumber) override;
+    // IAGSFontRenderer implementation
+    bool LoadFromDisk(int fontNumber, int fontSize) override;
+    void FreeMemory(int fontNumber) override;
+    bool SupportsExtendedCharacters(int fontNumber) override;
+    int GetTextWidth(const char *text, int fontNumber) override;
+    int GetTextHeight(const char *text, int fontNumber) override;
+    void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) override;
+    void AdjustYCoordinateForFont(int *ycoord, int fontNumber) override;
+    void EnsureTextValidForFont(char *text, int fontNumber) override;
 
-  // IAGSFontRenderer2 implementation
-  int GetVersion() override { return 26; /* first compatible engine API version */ }
-  const char *GetRendererName() override { return "WFNFontRenderer"; }
-  const char *GetFontName(int /*fontNumber*/) override { return ""; }
-  int GetFontHeight(int fontNumber) override;
-  int GetLineSpacing(int fontNumber) override { return 0; /* no specific spacing */ }
+    // IAGSFontRenderer2 implementation
+    int GetVersion() override { return 26; /* first compatible engine API version */ }
+    const char *GetRendererName() override { return "WFNFontRenderer"; }
+    const char *GetFontName(int /*fontNumber*/) override { return ""; }
+    int GetFontHeight(int fontNumber) override;
+    int GetLineSpacing(int fontNumber) override { return 0; /* no specific spacing */ }
 
-  // IAGSFontRendererInternal implementation
-  bool IsBitmapFont() override;
-  bool LoadFromDiskEx(int fontNumber, int fontSize, const String &filename,
-      const FontRenderParams *params, FontMetrics *metrics) override;
-  void GetFontMetrics(int fontNumber, FontMetrics *metrics) override;
-  void AdjustFontForAntiAlias(int /*fontNumber*/, bool /*aa_mode*/) override { /* do nothing */}
-  void GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes) override;
-  void GetValidCharCodes(int fontNumber, std::vector<int> &char_codes) override;
-  void SetCharacterSpacing(int fontNumber, int spacing) override;
-  void SetBlendMode(AGS::Common::BlendMode blend_mode) override;
+    // IAGSFontRendererInternal implementation
+    bool IsBitmapFont() override;
+    bool LoadFromDiskEx(int fontNumber, int fontSize, const String &filename, const FontRenderParams *params,
+                        FontMetrics *metrics) override;
+    void GetFontMetrics(int fontNumber, FontMetrics *metrics) override;
+    void AdjustFontForAntiAlias(int /*fontNumber*/, bool /*aa_mode*/) override { /* do nothing */ }
+    void GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes) override;
+    void GetValidCharCodes(int fontNumber, std::vector<int> &char_codes) override;
+    void SetCharacterSpacing(int fontNumber, int spacing) override;
+    void SetBlendMode(AGS::Common::BlendMode blend_mode) override;
 
-  WFNFontRenderer(AGS::Common::AssetManager *mgr)
-      : _amgr(mgr) {}
-  virtual ~WFNFontRenderer() = default;
+    WFNFontRenderer(AGS::Common::AssetManager *mgr) : _amgr(mgr) {}
+    virtual ~WFNFontRenderer() = default;
 
 private:
-  void FillMetrics(const WFNFont *font, FontMetrics *metrics);
+    void FillMetrics(const WFNFont *font, FontMetrics *metrics);
 
-  struct FontData
-  {
-    WFNFont         *Font;
-    FontRenderParams Params;
-    int              CharacterSpacing;
-  };
-  std::map<int, FontData> _fontData;
-  AGS::Common::AssetManager *_amgr = nullptr;
-  AGS::Common::BlendMode _blendMode = AGS::Common::kBlend_Normal;
+    struct FontData
+    {
+        WFNFont *Font;
+        FontRenderParams Params;
+        int CharacterSpacing;
+    };
+    std::map<int, FontData> _fontData;
+    AGS::Common::AssetManager *_amgr = nullptr;
+    AGS::Common::BlendMode _blendMode = AGS::Common::kBlend_Normal;
 };
 
 #endif // __AC_WFNFONTRENDERER_H

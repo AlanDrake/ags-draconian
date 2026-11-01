@@ -19,16 +19,11 @@
 
 using namespace AGS::Common;
 
-static const char   *WFN_FILE_SIGNATURE  = "WGT Font File  ";
-static const size_t  WFN_FILE_SIG_LENGTH = 15;
-static const size_t  MinCharDataSize     = sizeof(uint16_t) * 2;
+static const char *WFN_FILE_SIGNATURE = "WGT Font File  ";
+static const size_t WFN_FILE_SIG_LENGTH = 15;
+static const size_t MinCharDataSize = sizeof(uint16_t) * 2;
 
-WFNChar::WFNChar()
-    : Width(0)
-    , Height(0)
-    , Data(nullptr)
-{
-}
+WFNChar::WFNChar() : Width(0), Height(0), Data(nullptr) {}
 
 void WFNChar::RestrictToBytes(size_t bytes)
 {
@@ -66,7 +61,8 @@ WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
     if (table_addr < WFN_FILE_SIG_LENGTH + sizeof(uint16_t) || table_addr >= used_data_size)
     {
         Debug::Printf(kDbgMsg_Error, "\tWFN: bad table address: %jd (%jd - %jd)", static_cast<intmax_t>(table_addr),
-            static_cast<intmax_t>(WFN_FILE_SIG_LENGTH + sizeof(uint16_t)), static_cast<intmax_t>(used_data_size));
+                      static_cast<intmax_t>(WFN_FILE_SIG_LENGTH + sizeof(uint16_t)),
+                      static_cast<intmax_t>(used_data_size));
         return kWFNErr_BadTableAddress; // bad table address
     }
 
@@ -93,7 +89,7 @@ WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
 
     // Read offset table
     std::vector<uint16_t> offset_table(char_count);
-    in->ReadArrayOfInt16(reinterpret_cast<int16_t*>(offset_table.data()), char_count);
+    in->ReadArrayOfInt16(reinterpret_cast<int16_t *>(offset_table.data()), char_count);
 
     // Read all referenced offsets in an unsorted vector
     std::vector<uint16_t> offs;
@@ -108,10 +104,10 @@ WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
         }
         else if (off < raw_data_offset || off + MinCharDataSize > table_addr)
         {
-            Debug::Printf("\tWFN: character %zu -- bad item offset: %d (%" PRId64 " - %" PRId64 ", +%zu)",
-                i, off, raw_data_offset, table_addr, MinCharDataSize);
+            Debug::Printf("\tWFN: character %zu -- bad item offset: %d (%" PRId64 " - %" PRId64 ", +%zu)", i, off,
+                          raw_data_offset, table_addr, MinCharDataSize);
             err = kWFNErr_HasBadCharacters; // warn about potentially corrupt format
-            continue; // bad character offset
+            continue;                       // bad character offset
         }
         offs.push_back(off);
     }
@@ -126,7 +122,7 @@ WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
     for (size_t i = 0; i < _items.size(); ++i)
     {
         const uint8_t *p_data = &raw_data[offs[i] - raw_data_offset];
-        init_ch.Width  = Memory::ReadInt16LE(p_data);
+        init_ch.Width = Memory::ReadInt16LE(p_data);
         init_ch.Height = Memory::ReadInt16LE(p_data + sizeof(uint16_t));
         total_pixel_size += init_ch.GetRequiredPixelSize();
         _items[i] = init_ch;
@@ -147,20 +143,20 @@ WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
         {
             continue; // just an empty character, this is allowed
         }
-        const uint16_t raw_off  = offs[i] - raw_data_offset + MinCharDataSize; // offset in raw array
+        const uint16_t raw_off = offs[i] - raw_data_offset + MinCharDataSize; // offset in raw array
         size_t src_size = pixel_data_size;
         if (i + 1 != _items.size() && raw_off + src_size > offs[i + 1] - raw_data_offset)
-        {   // character pixel data overlaps next character
-            Debug::Printf("\tWFN: item at off %d -- pixel data overlaps next known item (at %d, +%zu)",
-                        offs[i], offs[i + 1], MinCharDataSize + src_size);
+        { // character pixel data overlaps next character
+            Debug::Printf("\tWFN: item at off %d -- pixel data overlaps next known item (at %d, +%zu)", offs[i],
+                          offs[i + 1], MinCharDataSize + src_size);
             err = kWFNErr_HasBadCharacters; // warn about potentially corrupt format
             src_size = offs[i + 1] - offs[i] - MinCharDataSize;
         }
-        
+
         if (raw_off + src_size > total_char_data)
-        {   // character pixel data overflow buffer
-            Debug::Printf("\tWFN: item at off %d -- pixel data exceeds available data (at %" PRId64 ", +%zu)",
-                        offs[i], table_addr, MinCharDataSize + src_size);
+        { // character pixel data overflow buffer
+            Debug::Printf("\tWFN: item at off %d -- pixel data exceeds available data (at %" PRId64 ", +%zu)", offs[i],
+                          table_addr, MinCharDataSize + src_size);
             err = kWFNErr_HasBadCharacters; // warn about potentially corrupt format
             src_size = total_char_data - raw_off;
         }

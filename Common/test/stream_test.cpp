@@ -26,14 +26,14 @@
 
 using namespace AGS::Common;
 
-TEST(Stream, Common) {
+TEST(Stream, Common)
+{
     // Storage buffer
     std::vector<uint8_t> membuf;
 
     //-------------------------------------------------------------------------
     // Write data
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(membuf, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(membuf, kStream_Write));
 
     out->WriteInt16(10);
     out->WriteInt64(-20202);
@@ -46,8 +46,7 @@ TEST(Stream, Common) {
 
     //-------------------------------------------------------------------------
     // Read data back
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(membuf));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(membuf));
 
     int16_t int16val = in->ReadInt16();
     int64_t int64val = in->ReadInt64();
@@ -65,7 +64,8 @@ TEST(Stream, Common) {
     ASSERT_TRUE(strcmp(str2.GetCStr(), very_long_string.GetCStr()) == 0);
 }
 
-TEST(Stream, MemoryStream) {
+TEST(Stream, MemoryStream)
+{
     // Storage buffer
     std::array<uint8_t, 1024> membuf;
     const size_t fill_len = 10;
@@ -133,7 +133,8 @@ TEST(Stream, MemoryStream) {
     in2.Close();
 }
 
-TEST(Stream, MemoryStream2) {
+TEST(Stream, MemoryStream2)
+{
     // Storage buffer
     std::array<uint8_t, 1024> membuf;
     const size_t fill_len = 10;
@@ -171,7 +172,8 @@ TEST(Stream, MemoryStream2) {
     in.Close();
 }
 
-TEST(Stream, VectorStream) {
+TEST(Stream, VectorStream)
+{
     // Storage buffer
     std::vector<uint8_t> membuf;
     const size_t fill_len = 10;
@@ -210,7 +212,8 @@ TEST(Stream, VectorStream) {
     in.Close();
 }
 
-TEST(Stream, DataStreamSection) {
+TEST(Stream, DataStreamSection)
+{
     // Storage buffer
     std::vector<uint8_t> membuf;
     const size_t fill_len = 10;
@@ -274,8 +277,8 @@ void TestDeflateStream(const std::vector<uint8_t> src_buf)
     std::vector<uint8_t> unzip_buf;
 
     auto mem_src = std::make_unique<VectorStream>(src_buf);
-    auto deflate_s = std::make_unique<DeflateStream>(
-        std::make_unique<VectorStream>(zip_buf, kStream_Write), kStream_Write);
+    auto deflate_s =
+        std::make_unique<DeflateStream>(std::make_unique<VectorStream>(zip_buf, kStream_Write), kStream_Write);
     const soff_t deflated_bytes = CopyStream(mem_src.get(), deflate_s.get());
     deflate_s->Close(); // explicitly finalize and flush deflate stream
     mem_src = nullptr;
@@ -284,11 +287,10 @@ void TestDeflateStream(const std::vector<uint8_t> src_buf)
     ASSERT_EQ(deflated_bytes, src_buf.size());
     ASSERT_TRUE(zip_buf.size() > 0u);
 
-    auto inflate_s = std::make_unique<DeflateStream>(
-        std::make_unique<VectorStream>(zip_buf), kStream_Read);
+    auto inflate_s = std::make_unique<DeflateStream>(std::make_unique<VectorStream>(zip_buf), kStream_Read);
     auto mem_unzip = std::make_unique<VectorStream>(unzip_buf, kStream_Write);
     const soff_t inflated_bytes = CopyStream(inflate_s.get(), mem_unzip.get());
-    inflate_s->Close();  // explicitly finalize and flush inflate stream
+    inflate_s->Close(); // explicitly finalize and flush inflate stream
     inflate_s = nullptr;
     mem_unzip = nullptr;
 
@@ -327,24 +329,27 @@ void TestDeflateStream_RandomNumericSeq(size_t buffer_size)
     TestDeflateStream(src_buf);
 }
 
-TEST(Stream, DeflateStream) {
+TEST(Stream, DeflateStream)
+{
     // Input is smaller than the DeflateStream's internal buffer
     TestDeflateStream_RandomNumericSeq(DeflateStream::BufferSize / 4);
 }
 
-TEST(Stream, DeflateStream2) {
+TEST(Stream, DeflateStream2)
+{
     // Input is larger than the DeflateStream's internal buffer
     TestDeflateStream_RandomNumericSeq(DeflateStream::BufferSize * 4);
 }
 
 #if (AGS_PLATFORM_TEST_FILE_IO)
 
-class FileBasedTest : public ::testing::Test {
+class FileBasedTest : public ::testing::Test
+{
 protected:
-    void SetUp() override {
-    }
+    void SetUp() override {}
 
-    void TearDown() override {
+    void TearDown() override
+    {
         for (const auto &fn : _dummyFileNames)
         {
             if (!fn.IsEmpty())
@@ -363,8 +368,8 @@ private:
     std::vector<String> _dummyFileNames;
 };
 
-TEST_F(FileBasedTest, BufferedStreamRead) {
-
+TEST_F(FileBasedTest, BufferedStreamRead)
+{
     const String DummyFile = AcquireFileName("BufferedStreamRead");
 
     //-------------------------------------------------------------------------
@@ -390,8 +395,7 @@ TEST_F(FileBasedTest, BufferedStreamRead) {
 
     //-------------------------------------------------------------------------
     // Read data back
-    Stream in(std::make_unique<BufferedStream>(
-        std::make_unique<FileStream>(DummyFile, kFile_Open, kStream_Read)));
+    Stream in(std::make_unique<BufferedStream>(std::make_unique<FileStream>(DummyFile, kFile_Open, kStream_Read)));
     ASSERT_TRUE(in.CanRead());
     ASSERT_EQ(in.GetLength(), file_len);
     ASSERT_EQ(in.ReadInt32(), 0);
@@ -415,18 +419,20 @@ TEST_F(FileBasedTest, BufferedStreamRead) {
     in.Close();
 
     // Test seeks
-    Stream in2(std::make_unique<BufferedStream>(
-        std::make_unique<FileStream>(DummyFile, kFile_Open, kStream_Read)));
+    Stream in2(std::make_unique<BufferedStream>(std::make_unique<FileStream>(DummyFile, kFile_Open, kStream_Read)));
     ASSERT_TRUE(in2.CanRead());
     ASSERT_TRUE(in2.CanSeek());
     ASSERT_EQ(in2.GetLength(), file_len);
-    ASSERT_EQ(in2.Seek(4 * sizeof(int32_t) + BufferedStream::BufferSize, kSeekBegin), (4 * sizeof(int32_t) + BufferedStream::BufferSize));
+    ASSERT_EQ(in2.Seek(4 * sizeof(int32_t) + BufferedStream::BufferSize, kSeekBegin),
+              (4 * sizeof(int32_t) + BufferedStream::BufferSize));
     ASSERT_EQ(in2.ReadInt32(), 4);
     ASSERT_EQ(in2.Seek(2 * sizeof(int32_t), kSeekBegin), (2 * sizeof(int32_t)));
     ASSERT_EQ(in2.ReadInt32(), 2);
-    ASSERT_EQ(in2.Seek(8 * sizeof(int32_t) + BufferedStream::BufferSize * 2, kSeekBegin), (8 * sizeof(int32_t) + BufferedStream::BufferSize * 2));
+    ASSERT_EQ(in2.Seek(8 * sizeof(int32_t) + BufferedStream::BufferSize * 2, kSeekBegin),
+              (8 * sizeof(int32_t) + BufferedStream::BufferSize * 2));
     ASSERT_EQ(in2.ReadInt32(), 8);
-    ASSERT_EQ(in2.Seek(2 * sizeof(int32_t), kSeekCurrent), (8 * sizeof(int32_t) + BufferedStream::BufferSize * 2) + sizeof(int32_t) * 3);
+    ASSERT_EQ(in2.Seek(2 * sizeof(int32_t), kSeekCurrent),
+              (8 * sizeof(int32_t) + BufferedStream::BufferSize * 2) + sizeof(int32_t) * 3);
     ASSERT_EQ(in2.ReadInt32(), 11);
     ASSERT_EQ(in2.GetPosition(), file_len);
     ASSERT_TRUE(in2.EOS());
@@ -435,16 +441,16 @@ TEST_F(FileBasedTest, BufferedStreamRead) {
     File::DeleteFile(DummyFile);
 }
 
-TEST_F(FileBasedTest, BufferedStreamWrite1) {
-
+TEST_F(FileBasedTest, BufferedStreamWrite1)
+{
     const String DummyFile = AcquireFileName("BufferedStreamWrite1");
 
     // Test case 1: simple straight writing, within max buffer size
     //-------------------------------------------------------------------------
     // Write data
     const soff_t file_len = sizeof(int32_t) * 10;
-    Stream out(std::make_unique<BufferedStream>(
-        std::make_unique<FileStream>(DummyFile, kFile_CreateAlways, kStream_Write)));
+    Stream out(
+        std::make_unique<BufferedStream>(std::make_unique<FileStream>(DummyFile, kFile_CreateAlways, kStream_Write)));
     ASSERT_TRUE(out.CanWrite());
     out.WriteInt32(0);
     out.WriteInt32(1);
@@ -481,8 +487,8 @@ TEST_F(FileBasedTest, BufferedStreamWrite1) {
     File::DeleteFile(DummyFile);
 }
 
-TEST_F(FileBasedTest, BufferedStreamWrite2) {
-
+TEST_F(FileBasedTest, BufferedStreamWrite2)
+{
     const String DummyFile = AcquireFileName("BufferedStreamWrite2");
 
     // Test case 2: simple straight writing, exceeding max buffer size
@@ -492,8 +498,8 @@ TEST_F(FileBasedTest, BufferedStreamWrite2) {
     //-------------------------------------------------------------------------
     // Write data
     const soff_t file_len = sizeof(int32_t) * 10 + fill_len;
-    Stream out(std::make_unique<BufferedStream>(
-        std::make_unique<FileStream>(DummyFile, kFile_CreateAlways, kStream_Write)));
+    Stream out(
+        std::make_unique<BufferedStream>(std::make_unique<FileStream>(DummyFile, kFile_CreateAlways, kStream_Write)));
     ASSERT_TRUE(out.CanWrite());
     out.WriteInt32(0);
     out.WriteInt32(1);
@@ -532,16 +538,16 @@ TEST_F(FileBasedTest, BufferedStreamWrite2) {
     File::DeleteFile(DummyFile);
 }
 
-TEST_F(FileBasedTest, BufferedStreamWrite3) {
-
+TEST_F(FileBasedTest, BufferedStreamWrite3)
+{
     const String DummyFile = AcquireFileName("BufferedStreamWrite3");
 
     // Test case 3: seek within the max buffer size
     //-------------------------------------------------------------------------
     // Write data
     const soff_t file_len = sizeof(int32_t) * 10;
-    Stream out(std::make_unique<BufferedStream>(
-        std::make_unique<FileStream>(DummyFile, kFile_CreateAlways, kStream_Write)));
+    Stream out(
+        std::make_unique<BufferedStream>(std::make_unique<FileStream>(DummyFile, kFile_CreateAlways, kStream_Write)));
     ASSERT_TRUE(out.CanWrite());
     ASSERT_TRUE(out.CanSeek());
     out.WriteInt32(0);
@@ -583,8 +589,8 @@ TEST_F(FileBasedTest, BufferedStreamWrite3) {
     File::DeleteFile(DummyFile);
 }
 
-TEST_F(FileBasedTest, BufferedStreamWrite4) {
-
+TEST_F(FileBasedTest, BufferedStreamWrite4)
+{
     const String DummyFile = AcquireFileName("BufferedStreamWrite4");
 
     // Test case 4: seek outside the max buffer size
@@ -594,8 +600,8 @@ TEST_F(FileBasedTest, BufferedStreamWrite4) {
     //-------------------------------------------------------------------------
     // Write data
     const soff_t file_len = sizeof(int32_t) * 8 + fill_len;
-    Stream out(std::make_unique<BufferedStream>(
-        std::make_unique<FileStream>(DummyFile, kFile_CreateAlways, kStream_Write)));
+    Stream out(
+        std::make_unique<BufferedStream>(std::make_unique<FileStream>(DummyFile, kFile_CreateAlways, kStream_Write)));
     ASSERT_TRUE(out.CanWrite());
     out.WriteInt32(0);
     out.WriteInt32(1);
@@ -635,8 +641,8 @@ TEST_F(FileBasedTest, BufferedStreamWrite4) {
     File::DeleteFile(DummyFile);
 }
 
-TEST_F(FileBasedTest, BufferedStreamWrite5) {
-
+TEST_F(FileBasedTest, BufferedStreamWrite5)
+{
     const String DummyFile = AcquireFileName("BufferedStreamWrite5");
 
     // Test case 5: write provoking buffer flush, but seek within max buffer size
@@ -646,8 +652,8 @@ TEST_F(FileBasedTest, BufferedStreamWrite5) {
     //-------------------------------------------------------------------------
     // Write data
     const soff_t file_len = sizeof(int32_t) * 7 + fill_len;
-    Stream out(std::make_unique<BufferedStream>(
-        std::make_unique<FileStream>(DummyFile, kFile_CreateAlways, kStream_Write)));
+    Stream out(
+        std::make_unique<BufferedStream>(std::make_unique<FileStream>(DummyFile, kFile_CreateAlways, kStream_Write)));
     ASSERT_TRUE(out.CanWrite());
     out.WriteByteCount(0, fill_len); // fill to (nearly) force buffer flush
     out.WriteInt32(0);
@@ -685,8 +691,8 @@ TEST_F(FileBasedTest, BufferedStreamWrite5) {
     File::DeleteFile(DummyFile);
 }
 
-TEST_F(FileBasedTest, BufferedSectionStream) {
-
+TEST_F(FileBasedTest, BufferedSectionStream)
+{
     const String DummyFile = AcquireFileName("BufferedSectionStream");
 
     //-------------------------------------------------------------------------
@@ -714,8 +720,8 @@ TEST_F(FileBasedTest, BufferedSectionStream) {
 
     //-------------------------------------------------------------------------
     // Read data back from section 1 and test read limits
-    Stream in(std::make_unique<BufferedStream>(
-        std::make_unique<FileStream>(DummyFile, kFile_Open, kStream_Read), section1_start, section1_end));
+    Stream in(std::make_unique<BufferedStream>(std::make_unique<FileStream>(DummyFile, kFile_Open, kStream_Read),
+                                               section1_start, section1_end));
     ASSERT_TRUE(in.CanRead());
     ASSERT_EQ(in.GetPosition(), 0);
     ASSERT_EQ(in.GetLength(), section1_end - section1_start);
@@ -749,13 +755,14 @@ TEST_F(FileBasedTest, BufferedSectionStream) {
     in3.Close();
 
     // Test seeks limited to section 1
-    Stream in2(std::make_unique<BufferedStream>(
-        std::make_unique<FileStream>(DummyFile, kFile_Open, kStream_Read), section1_start, section2_end));
+    Stream in2(std::make_unique<BufferedStream>(std::make_unique<FileStream>(DummyFile, kFile_Open, kStream_Read),
+                                                section1_start, section2_end));
     ASSERT_TRUE(in2.CanRead());
     ASSERT_TRUE(in2.CanSeek());
     ASSERT_EQ(in2.GetPosition(), 0);
     ASSERT_EQ(in2.GetLength(), section2_end - section1_start);
-    ASSERT_EQ(in2.Seek(4 * sizeof(int32_t) + BufferedStream::BufferSize, kSeekBegin), (4 * sizeof(int32_t) + BufferedStream::BufferSize));
+    ASSERT_EQ(in2.Seek(4 * sizeof(int32_t) + BufferedStream::BufferSize, kSeekBegin),
+              (4 * sizeof(int32_t) + BufferedStream::BufferSize));
     ASSERT_EQ(in2.ReadInt32(), 8);
     ASSERT_EQ(in2.ReadInt32(), 9);
     ASSERT_EQ(in2.ReadInt32(), 10);
