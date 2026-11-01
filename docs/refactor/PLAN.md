@@ -240,11 +240,27 @@ lines, tab-indented code.
   Windows/MSVC objects are compared; code for other platforms is formatted but not compiled by that
   check (formatting does not change tokens). Each developer should run
   `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
-- [ ] **2.3 Mechanical modernisation** (each item is its own commit, using the clang-tidy `--fix`
+- [x] **2.3 Mechanical modernisation** (each item is its own commit, using the clang-tidy `--fix`
   of the named check): `NULL` → `nullptr` (276), `modernize-use-override`,
   `modernize-deprecated-headers` (`<math.h>` → `<cmath>`), `modernize-use-using`,
   `modernize-redundant-void-arg`.
   *Done when:* those checks are clean, so they move from "changed lines" to "whole tree" in CI.
+  *Status (2026-11-01):* done, with exceptions; four commits, each checked with
+  `Script/compare_objects.py` (all non-test objects identical). `Script/tidy_fix.py` runs a check over
+  all TUs in parallel and applies the merged fixes. Results:
+  - `modernize-use-nullptr`: 157 places. `NULL` still appears 147 times: comments, `sdl2_stubs.c`
+    (C code), and Android/iOS/Linux/macOS-only code that the MSVC compile database doesn't cover.
+    One `BROWSEINFO bi = {0}` stays, since `{nullptr}` compiles differently.
+  - `modernize-use-override`: 91 places.
+  - `modernize-deprecated-headers`: 122 includes in 89 files. **Seven files left on `<math.h>` /
+    `<stdlib.h>`** (`Common/gui/guiinv.cpp`, `Compiler/script2/cc_compiledscript.cpp`,
+    `Engine/ac/character.cpp`, `Engine/main/update.cpp`, three plugins): with `<cmath>`/`<cstdlib>` the
+    compiler picks different `abs`-family overloads, which can change behaviour. Review by hand.
+  - `modernize-redundant-void-arg`: 32 places. `Engine/main/engine.h` and `Engine/ac/sys_events.*`
+    left alone (they changed `game.cpp`'s object; cause not investigated).
+  - `modernize-use-using`: **skipped.** The fixer drops parameter names from function-type typedefs
+    and conflicts on nested ones, which broke the build. Purely cosmetic; do by hand if wanted.
+  - Moving these checks to "whole tree" in CI is task 2.4 (needs the Linux compile database).
 - [ ] **2.4 clang-tidy gate.** Generate `compile_commands.json` in the Linux CI job and run
   `clang-tidy-diff.py` on the PR diff with the root `.clang-tidy`. This enforces naming and
   function-size rules on new code without touching the old code.
