@@ -31,7 +31,7 @@ public:
     DeflateStream(std::unique_ptr<IStreamBase> &&base_stream, StreamMode mode);
     // Opens deflate stream in read mode, limiting amount of data it may read out
     DeflateStream(std::unique_ptr<IStreamBase> &&base_stream, soff_t begin_pos, soff_t end_pos);
-    ~DeflateStream();
+    ~DeflateStream() override;
 
 protected:
     void OpenTransform() override;

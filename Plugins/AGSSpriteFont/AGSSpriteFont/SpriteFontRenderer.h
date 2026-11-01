@@ -24,8 +24,8 @@ public:
     int GetVersion() override { return 26; /* compatible engine API ver */ }
     const char *GetRendererName() override { return "SpriteFontRenderer"; }
     const char *GetFontName(int fontNumber) override { return ""; /* not supported */ }
-    int GetFontHeight(int fontNumber);
-    int GetLineSpacing(int fontNumber) { return 0; /* not specified */ }
+    int GetFontHeight(int fontNumber) override;
+    int GetLineSpacing(int fontNumber) override { return 0; /* not specified */ }
 
 protected:
     SpriteFont *getFontFor(int fontNum);

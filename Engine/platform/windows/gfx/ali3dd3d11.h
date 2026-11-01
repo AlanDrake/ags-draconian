@@ -113,7 +113,7 @@ struct D3D11Texture : Texture
 
     D3D11Texture(const GraphicResolution &res, bool rt) : Texture(res, rt) {}
     D3D11Texture(uint32_t id, const GraphicResolution &res, bool rt) : Texture(id, res, rt) {}
-    ~D3D11Texture() = default;
+    ~D3D11Texture() override = default;
     size_t GetMemSize() const override;
 };
 
@@ -187,7 +187,7 @@ public:
     D3D11Shader(const String &name);
     D3D11Shader(const String &name, D3D11Shader::ProgramData &&data);
     D3D11Shader(const String &name, const D3D11Shader &copy_shader);
-    ~D3D11Shader() = default;
+    ~D3D11Shader() override = default;
 
     // Get a number of registered constants
     uint32_t GetConstantCount() override;
@@ -265,7 +265,7 @@ class D3D11ShaderInstance final : public BaseShaderInstance
 {
 public:
     D3D11ShaderInstance(D3D11Shader *shader, const String &name);
-    ~D3D11ShaderInstance() = default;
+    ~D3D11ShaderInstance() override = default;
 
     // Returns a IGraphicShader referenced by this shader instance
     IGraphicShader *GetShader() override { return _shader; }
@@ -313,7 +313,7 @@ class D3D11GfxModeList final : public IGfxModeList
 {
 public:
     D3D11GfxModeList(const DXGIFactoryPtr &factory, int display_index, DXGI_FORMAT format);
-    ~D3D11GfxModeList() = default;
+    ~D3D11GfxModeList() override = default;
 
     int GetModeCount() const override { return static_cast<int>(_modes.size()); }
 

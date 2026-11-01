@@ -101,7 +101,7 @@ private:
     class CompilingError : public std::exception
     {
         std::string _msg;
-        const char *what(void) const noexcept { return _msg.c_str(); }
+        const char *what(void) const noexcept override { return _msg.c_str(); }
 
     public:
         CompilingError() : _msg("Compiling error") {}

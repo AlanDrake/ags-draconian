@@ -60,7 +60,7 @@ public:
     // Script Events
     // Gets a events schema corresponding to this object's type
     static const ScriptEventSchema &GetEventSchema() { return GUISlider::_eventSchema; }
-    virtual const ScriptEventSchema *GetTypeEventSchema() const override { return &GUISlider::_eventSchema; }
+    const ScriptEventSchema *GetTypeEventSchema() const override { return &GUISlider::_eventSchema; }
 
     // Operations
     Rect CalcGraphicRect(bool clipped) override;

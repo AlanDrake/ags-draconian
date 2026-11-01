@@ -29,7 +29,7 @@ class FlicPlayer : public VideoPlayer
 {
 public:
     FlicPlayer() = default;
-    ~FlicPlayer();
+    ~FlicPlayer() override;
 
     bool IsValid() override { return _pf != nullptr; }
 

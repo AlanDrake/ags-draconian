@@ -30,7 +30,7 @@ namespace Common
 class GUIControl : public GUIObject
 {
 public:
-    virtual ~GUIControl() = default;
+    ~GUIControl() override = default;
 
     // Properties
     int GetParentID() const { return _parentID; }

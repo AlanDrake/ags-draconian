@@ -35,7 +35,7 @@ class RoomBlockParser : public DataExtParser
 public:
     RoomBlockParser(std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
 
-    virtual String GetOldBlockName(int block_id) const;
+    String GetOldBlockName(int block_id) const override;
 
 private:
     static int GetDataExtFlags(RoomFileVersion /*data_ver*/) { return kDataExt_NumID8 | kDataExt_File64; }

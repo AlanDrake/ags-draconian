@@ -33,7 +33,7 @@ class GUITextBasedControl : public GUIControl
 {
 public:
     GUITextBasedControl() = default;
-    virtual ~GUITextBasedControl() = default;
+    ~GUITextBasedControl() override = default;
 
     // Properties
     int GetFont() const { return _font; }

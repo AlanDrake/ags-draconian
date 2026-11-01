@@ -69,7 +69,7 @@ public:
     // Script Events
     // Gets a events schema corresponding to this object's type
     static const ScriptEventSchema &GetEventSchema() { return GUIListBox::_eventSchema; }
-    virtual const ScriptEventSchema *GetTypeEventSchema() const override { return &GUIListBox::_eventSchema; }
+    const ScriptEventSchema *GetTypeEventSchema() const override { return &GUIListBox::_eventSchema; }
 
     // Operations
     int AddItem(const String &text);

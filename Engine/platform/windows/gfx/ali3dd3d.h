@@ -74,7 +74,7 @@ struct D3DTexture : Texture
 
     D3DTexture(const GraphicResolution &res, bool rt) : Texture(res, rt) {}
     D3DTexture(uint32_t id, const GraphicResolution &res, bool rt) : Texture(id, res, rt) {}
-    ~D3DTexture() = default;
+    ~D3DTexture() override = default;
     size_t GetMemSize() const override;
 };
 
@@ -150,7 +150,7 @@ public:
     D3DShader(const String &name);
     D3DShader(const String &name, D3DShader::ProgramData &&data);
     D3DShader(const String &name, const D3DShader &copy_shader);
-    ~D3DShader() = default;
+    ~D3DShader() override = default;
 
     // Get a number of registered constants
     uint32_t GetConstantCount() override;
@@ -228,7 +228,7 @@ class D3DShaderInstance final : public BaseShaderInstance
 {
 public:
     D3DShaderInstance(D3DShader *shader, const String &name);
-    ~D3DShaderInstance() = default;
+    ~D3DShaderInstance() override = default;
 
     // Returns a IGraphicShader referenced by this shader instance
     IGraphicShader *GetShader() override { return _shader; }
@@ -276,7 +276,7 @@ class D3DGfxModeList final : public IGfxModeList
 {
 public:
     D3DGfxModeList(const D3DPtr &direct3d, int display_index, D3DFORMAT d3dformat);
-    ~D3DGfxModeList() = default;
+    ~D3DGfxModeList() override = default;
 
     int GetModeCount() const override { return _modeCount; }
 

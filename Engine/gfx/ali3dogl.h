@@ -67,7 +67,7 @@ struct OGLTexture : Texture
 
     OGLTexture(const GraphicResolution &res, bool rt) : Texture(res, rt) {}
     OGLTexture(uint32_t id, const GraphicResolution &res, bool rt) : Texture(id, res, rt) {}
-    ~OGLTexture();
+    ~OGLTexture() override;
     size_t GetMemSize() const override;
 };
 
@@ -197,7 +197,7 @@ public:
     OGLShader(const String &name);
     OGLShader(const String &name, OGLShader::ProgramData &&data);
     OGLShader(const String &name, const OGLShader &copy_shader);
-    ~OGLShader();
+    ~OGLShader() override;
 
     bool IsValid() const { return _data.Program != 0u; }
     const OGLShader::ProgramData &GetData() const { return _data; }
@@ -210,7 +210,7 @@ class OGLShaderInstance final : public BaseShaderInstance
 {
 public:
     OGLShaderInstance(OGLShader *shader, const String &name);
-    ~OGLShaderInstance() = default;
+    ~OGLShaderInstance() override = default;
 
     // Returns a IGraphicShader referenced by this shader instance
     IGraphicShader *GetShader() override { return _shader; }

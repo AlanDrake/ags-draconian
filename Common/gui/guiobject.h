@@ -46,7 +46,7 @@ protected:
 class GUIObject : public ISpriteUser
 {
 public:
-    virtual ~GUIObject() = default;
+    ~GUIObject() override = default;
 
     // Properties
     const String &GetName() const { return _name; }

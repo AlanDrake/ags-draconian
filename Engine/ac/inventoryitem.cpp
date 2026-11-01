@@ -47,7 +47,7 @@ extern CCInventory ccDynamicInv;
 class InvItemDynamicSpriteListener : public ISpriteUser
 {
 public:
-    virtual void OnSpriteUpdate(int sprite_num)
+    void OnSpriteUpdate(int sprite_num) override
     {
         // NOTE: we currently don't distinguish whether the item is displayed anywhere or not
         AGS::Engine::GUIE::MarkInventoryForUpdate(-1, false);

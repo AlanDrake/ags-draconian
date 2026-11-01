@@ -42,7 +42,7 @@ public:
     };
 
     ScriptUserObject() = default;
-    ~ScriptUserObject() = default;
+    ~ScriptUserObject() override = default;
 
     inline static const Header &GetHeader(const void *address)
     {

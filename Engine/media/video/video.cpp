@@ -59,7 +59,7 @@ class BlockingVideoPlayer : public GameState
 {
 public:
     BlockingVideoPlayer(int player_id, int video_flags, int state_flags, VideoSkipType skip);
-    ~BlockingVideoPlayer();
+    ~BlockingVideoPlayer() override;
 
     PlaybackState GetPlayState() const { return _playbackState; }
 

@@ -136,7 +136,7 @@ public:
     void ReplaceLabels();
 
     ccCompiledScript(bool emit_line_numbers = true);
-    virtual ~ccCompiledScript();
+    ~ccCompiledScript() override;
 };
 
 // A section of compiled code that needs to be moved or copied to a new location

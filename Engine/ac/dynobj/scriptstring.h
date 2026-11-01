@@ -54,7 +54,7 @@ public:
 
 
     ScriptString() = default;
-    ~ScriptString() = default;
+    ~ScriptString() override = default;
 
     inline static const Header &GetHeader(const void *address)
     {

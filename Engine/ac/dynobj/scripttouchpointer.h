@@ -25,7 +25,7 @@ public:
     void Invalidate() { _pointerID = -1; }
 
     const char *GetType() override;
-    int Dispose(void *address, bool force);
+    int Dispose(void *address, bool force) override;
 
 private:
     int _pointerID = -1;

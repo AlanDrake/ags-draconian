@@ -129,7 +129,7 @@ class StreamBase : public IStreamBase
 public:
     StreamBase() = default;
     StreamBase(const String &path) : _path(path) {}
-    virtual ~StreamBase() = default;
+    ~StreamBase() override = default;
 
     //-----------------------------------------------------
     // Helpers for learning the stream's state and capabilities
@@ -485,7 +485,7 @@ public:
     // Constructs a non-owning StreamSection over a base stream.
     // TODO: allow end < 0 in which case the end of base stream is used
     StreamSection(IStreamBase *base, soff_t start, soff_t end);
-    ~StreamSection();
+    ~StreamSection() override;
 
     StreamMode GetMode() const override { return _base->GetMode(); }
     const char *GetPath() const override { return _base->GetPath(); }

@@ -48,7 +48,7 @@ public:
     public:
         CompileTimeError(std::string const &msg) : _msg(msg) {}
 
-        const char *what() const noexcept { return _msg.c_str(); }
+        const char *what() const noexcept override { return _msg.c_str(); }
     };
 
     CompileTimeFunc(SymbolTable &sym) : _sym(sym) {}
@@ -71,7 +71,7 @@ public:
     {
     }
 
-    virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
+    void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };
 
 // '+' on integers
@@ -80,7 +80,7 @@ class CTF_IntPlus : public CTF_IntToInt
 public:
     CTF_IntPlus(SymbolTable &sym);
 
-    virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
+    void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };
 
 // '-' on integers
@@ -89,7 +89,7 @@ class CTF_IntMinus : public CTF_IntToInt
 public:
     CTF_IntMinus(SymbolTable &sym);
 
-    virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
+    void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };
 
 // '*' on integers
@@ -98,7 +98,7 @@ class CTF_IntMultiply : public CTF_IntToInt
 public:
     CTF_IntMultiply(SymbolTable &sym);
 
-    virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
+    void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };
 
 // '/' on integers
@@ -107,7 +107,7 @@ class CTF_IntDivide : public CTF_IntToInt
 public:
     CTF_IntDivide(SymbolTable &sym);
 
-    virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
+    void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };
 
 // '%' (modulo) on integers
@@ -116,7 +116,7 @@ class CTF_IntModulo : public CTF_IntToInt
 public:
     CTF_IntModulo(SymbolTable &sym);
 
-    virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
+    void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };
 
 // '<<' on (signed) integers
@@ -125,7 +125,7 @@ class CTF_IntShiftLeft : public CTF_IntToInt
 public:
     CTF_IntShiftLeft(SymbolTable &sym);
 
-    virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
+    void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };
 
 // '>>' on (signed) integers
@@ -134,7 +134,7 @@ class CTF_IntShiftRight : public CTF_IntToInt
 public:
     CTF_IntShiftRight(SymbolTable &sym);
 
-    virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
+    void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };
 
 // Encapsulates a function on integers that yields a bool
@@ -153,7 +153,7 @@ public:
     {
     }
 
-    virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
+    void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };
 
 // Encapsulate a function on floats that yields a float
@@ -172,7 +172,7 @@ public:
     {
     }
 
-    virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
+    void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };
 
 // '/' on floats
@@ -181,7 +181,7 @@ class CTF_FloatDivide : public CTF_FloatToFloat
 public:
     CTF_FloatDivide(SymbolTable &sym);
 
-    virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
+    void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };
 
 // Encapsulates a function on floats that yields a bool
@@ -200,7 +200,7 @@ public:
     {
     }
 
-    virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
+    void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };
 
 } // namespace AGS

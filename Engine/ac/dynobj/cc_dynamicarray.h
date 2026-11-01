@@ -42,7 +42,7 @@ public:
     };
 
     CCDynamicArray() = default;
-    ~CCDynamicArray() = default;
+    ~CCDynamicArray() override = default;
 
     inline static const Header &GetHeader(const void *address)
     {

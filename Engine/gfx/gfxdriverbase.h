@@ -238,7 +238,7 @@ public:
     int GetHeight() const override { return _size.Height; }
     int GetColorDepth() const override { return _colDepth; }
     bool IsOpaque() const override { return (_txFlags & kTxFlags_Opaque) != 0; }
-    bool MatchesFormat(AGS::Common::Bitmap *other) const
+    bool MatchesFormat(AGS::Common::Bitmap *other) const override
     {
         return _size == other->GetSize() && _colDepth == other->GetColorDepth();
     }
@@ -253,8 +253,8 @@ public:
     // Rotation input is in degrees clockwise, but the implementation may store it in radians internally
     float GetRotation() const override { return _rotation; }
     void SetRotation(float rotation) override { _rotation = rotation; }
-    virtual Pointf GetPivot() const { return _pivot; }
-    virtual void SetPivot(float pivotx, float pivoty) { _pivot = Pointf(pivotx, pivoty); }
+    Pointf GetPivot() const override { return _pivot; }
+    void SetPivot(float pivotx, float pivoty) override { _pivot = Pointf(pivotx, pivoty); }
     int GetAlpha() const override { return _alpha; }
     void SetAlpha(int alpha) override { _alpha = alpha; }
     int GetLightLevel() const override { return _lightLevel; }
@@ -273,7 +273,7 @@ public:
         _blue = blue;
         _tintSaturation = tintSaturation;
     }
-    Common::BlendMode GetBlendMode() const { return _blendMode; }
+    Common::BlendMode GetBlendMode() const override { return _blendMode; }
     void SetBlendMode(Common::BlendMode blendMode) override { _blendMode = blendMode; }
     IShaderInstance *GetShader() const override { return _shader; }
     void SetShader(IShaderInstance *shader_inst) override { _shader = shader_inst; }
@@ -286,7 +286,7 @@ public:
 
 protected:
     BaseDDB() = default;
-    virtual ~BaseDDB() = default;
+    ~BaseDDB() override = default;
 
 #if (AGS_PLATFORM_DEBUG)
     Common::String _tag;

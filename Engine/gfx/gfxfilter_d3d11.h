@@ -24,7 +24,7 @@ class D3D11GfxFilter : public ScalingGfxFilter
 public:
     static const GfxFilterInfo FilterInfo;
 
-    const GfxFilterInfo &GetInfo() const;
+    const GfxFilterInfo &GetInfo() const override;
     int GetSamplerStateForStandardSprite();
     void SetSamplerStateForStandardSprite(void *direct3dcontext);
     bool NeedToColourEdgeLines();

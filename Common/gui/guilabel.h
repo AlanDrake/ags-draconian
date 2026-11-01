@@ -34,7 +34,7 @@ public:
     // Script Events
     // Gets a events schema corresponding to this object's type
     static const ScriptEventSchema &GetEventSchema() { return ScriptEventTable::DefaultSchema(); }
-    virtual const ScriptEventSchema *GetTypeEventSchema() const override { return &ScriptEventTable::DefaultSchema(); }
+    const ScriptEventSchema *GetTypeEventSchema() const override { return &ScriptEventTable::DefaultSchema(); }
 
     // Operations
     Rect CalcGraphicRect(bool clipped) override;

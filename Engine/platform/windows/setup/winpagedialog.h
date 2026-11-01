@@ -48,7 +48,7 @@ public:
     GenericPageDialog(UINT template_id) : _templateID(template_id) {}
 
 protected:
-    virtual UINT GetTemplateID() const { return _templateID; }
+    UINT GetTemplateID() const override { return _templateID; }
 
     UINT _templateID;
 };

@@ -30,7 +30,7 @@ class JPSRouteFinder : public MaskRouteFinder
 {
 public:
     JPSRouteFinder();
-    ~JPSRouteFinder();
+    ~JPSRouteFinder() override;
 
 private:
     // Update the implementation after a new walkable area is set

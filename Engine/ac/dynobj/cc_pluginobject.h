@@ -30,7 +30,7 @@
 struct CCPluginObject final : CCBasicObject
 {
 private:
-    virtual ~CCPluginObject() = default;
+    ~CCPluginObject() override = default;
 
     IScriptObject *_pluginMgr = nullptr;
 

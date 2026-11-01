@@ -92,7 +92,7 @@ public:
 struct AGSCCDynamicObject : public CCBasicObject
 {
 public:
-    virtual ~AGSCCDynamicObject() = default;
+    ~AGSCCDynamicObject() override = default;
 
     // TODO: find a way to pass savegame format version?
     int Serialize(void *address, uint8_t *buffer, int bufsize) override;
@@ -114,7 +114,7 @@ protected:
 struct AGSCCStaticObject : public CCBasicObject
 {
 public:
-    virtual ~AGSCCStaticObject() = default;
+    ~AGSCCStaticObject() override = default;
 
     const char *GetType() override { return "StaticObject"; }
 };

@@ -43,7 +43,7 @@ public:
     {
         OpenSection(std::move(base_stream), start_pos, end_pos);
     }
-    ~BufferedStream();
+    ~BufferedStream() override;
 
     IStreamBase *GetStreamBase() { return _base.get(); }
     std::unique_ptr<IStreamBase> ReleaseStreamBase();

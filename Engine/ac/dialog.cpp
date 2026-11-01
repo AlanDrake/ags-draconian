@@ -707,7 +707,7 @@ class DialogOptions : public GameState
 {
 public:
     DialogOptions(DialogTopic *dtop, int dlgnum, bool runGameLoopsInBackground);
-    ~DialogOptions();
+    ~DialogOptions() override;
 
     // Shows and run the loop until it's over
     void Show();

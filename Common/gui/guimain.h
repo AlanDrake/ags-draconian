@@ -155,7 +155,7 @@ public:
     // Script Events
     // Gets a events schema corresponding to this object's type
     static const ScriptEventSchema &GetEventSchema() { return GUIMain::_eventSchema; }
-    virtual const ScriptEventSchema *GetTypeEventSchema() const override { return &GUIMain::_eventSchema; }
+    const ScriptEventSchema *GetTypeEventSchema() const override { return &GUIMain::_eventSchema; }
 
     // Notifies this object about a sprite being modified
     void OnSpriteUpdate(int sprite_num) override;

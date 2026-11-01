@@ -57,7 +57,7 @@ public:
     TransformStream(std::unique_ptr<IStreamBase> &&base_stream, StreamMode mode);
     // Opens a transform stream in read mode, limiting amount of data it may read out
     TransformStream(std::unique_ptr<IStreamBase> &&base_stream, soff_t begin_pos, soff_t end_pos);
-    ~TransformStream();
+    ~TransformStream() override;
 
     IStreamBase *GetStreamBase() { return _base.get(); }
     std::unique_ptr<IStreamBase> ReleaseStreamBase();

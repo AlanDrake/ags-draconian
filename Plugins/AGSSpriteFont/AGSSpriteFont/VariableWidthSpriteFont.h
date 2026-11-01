@@ -28,8 +28,8 @@ public:
     int GetVersion() override { return 26; /* compatible engine API ver */ }
     const char *GetRendererName() override { return "VariableWidthSpriteFontRenderer"; }
     const char *GetFontName(int fontNumber) override { return ""; /* not supported */ }
-    int GetFontHeight(int fontNumber);
-    int GetLineSpacing(int fontNumber);
+    int GetFontHeight(int fontNumber) override;
+    int GetLineSpacing(int fontNumber) override;
 
 protected:
     IAGSEngine *_engine;

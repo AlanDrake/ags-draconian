@@ -35,7 +35,7 @@ class TheoraPlayer : public VideoPlayer
 {
 public:
     TheoraPlayer() = default;
-    ~TheoraPlayer();
+    ~TheoraPlayer() override;
 
     bool IsValid() override { return _apegStream != nullptr; }
 

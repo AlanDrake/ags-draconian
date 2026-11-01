@@ -95,7 +95,7 @@ public:
         }
     }
 
-    virtual bool IsLoaded() const override { return _library != nullptr; }
+    bool IsLoaded() const override { return _library != nullptr; }
 
     void *GetFunctionAddress(const String &fn_name) override
     {

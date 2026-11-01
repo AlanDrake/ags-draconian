@@ -52,7 +52,7 @@ const unsigned int win32TimerPeriod = 1;
 struct AGSWin32 : AGSPlatformDriver
 {
     AGSWin32();
-    ~AGSWin32();
+    ~AGSWin32() override;
 
     void AttachToParentConsole() override;
     int GetLastSystemError() override;

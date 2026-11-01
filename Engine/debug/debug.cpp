@@ -110,7 +110,7 @@ class DebuggerLogOutputTarget : public AGS::Common::IOutputHandler
 {
 public:
     DebuggerLogOutputTarget(IAGSEditorDebugger *ide_debugger) : _ideDebugger(ide_debugger) {};
-    virtual ~DebuggerLogOutputTarget() {};
+    ~DebuggerLogOutputTarget() override {};
 
     void OnRegister() override
     {

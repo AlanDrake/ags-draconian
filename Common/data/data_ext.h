@@ -147,7 +147,7 @@ protected:
 class DataExtReader : protected DataExtParser
 {
 public:
-    virtual ~DataExtReader() = default;
+    ~DataExtReader() override = default;
 
     using DataExtParser::ReleaseStream;
 
