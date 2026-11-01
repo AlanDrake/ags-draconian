@@ -1,0 +1,3 @@
+# Not formatted: C++/CLI or code scheduled for removal. See docs/refactor/PLAN.md.
+DisableFormat: true
+SortIncludes: Never
