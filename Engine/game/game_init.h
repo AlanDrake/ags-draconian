@@ -31,7 +31,6 @@ namespace AGS
 namespace Engine
 {
 
-using namespace Common;
 
 // Error codes for initializing the game
 enum GameInitErrorType
@@ -47,11 +46,11 @@ enum GameInitErrorType
 
 String GetGameInitErrorText(GameInitErrorType err);
 
-typedef TypedCodeError<GameInitErrorType, GetGameInitErrorText> GameInitError;
-typedef ErrorHandle<GameInitError> HGameInitError;
+typedef Common::TypedCodeError<GameInitErrorType, GetGameInitErrorText> GameInitError;
+typedef Common::ErrorHandle<GameInitError> HGameInitError;
 
 // Sets up game state for play using preloaded data
-HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver);
+HGameInitError InitGameState(const Common::LoadedGameEntities &ents, GameDataVersion data_ver);
 // Applies accessibility options, some of them may override game settings
 void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup);
 // Applies configurable behavior options for this game, including option overrides,

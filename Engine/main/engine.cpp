@@ -79,6 +79,7 @@
 #include "util/string_utils.h"
 #include "ac/joystick.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 

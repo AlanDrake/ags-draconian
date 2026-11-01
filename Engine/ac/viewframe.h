@@ -30,7 +30,6 @@ namespace Common
 struct InteractionEvents;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 struct ObjectEvent;
 
 int ViewFrame_GetFlipped(ScriptViewFrame *svf);
@@ -51,12 +50,12 @@ int CalcFrameSoundVolume(int obj_vol, int anim_vol, int scale = 100);
 // sound_volume is an optional *relative* factor, 100 is default (unchanged)
 void CheckViewFrame(int view, int loop, int frame, int sound_volume = 100, int sound_pan = 0, int sound_speed = 1000);
 void CheckViewFrame(int view, int loop, int frame, int sound_volume, int sound_pan, int sound_speed,
-                    const ObjectEvent &obj_evt, Common::ScriptEventsBase *handlers, int evnt);
+                    const ObjectEvent &obj_evt, AGS::Common::ScriptEventsBase *handlers, int evnt);
 // Plays a linked sound of the given frame; returns if the sound is linked and played successfully
 bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume, int sound_pan, int sound_speed);
 // Triggers a object's frame event handler for the given frame;
 // returns if the frame has associated custom event and object has a handler
-bool RunViewFrameEvent(int view, int loop, int frame, const ObjectEvent &obj_evt, Common::ScriptEventsBase *handlers,
-                       int evnt);
+bool RunViewFrameEvent(int view, int loop, int frame, const ObjectEvent &obj_evt,
+                       AGS::Common::ScriptEventsBase *handlers, int evnt);
 // draws a view frame, flipped if appropriate
-void DrawViewFrame(Common::Bitmap *ds, const ViewFrame *vframe, int x, int y);
+void DrawViewFrame(AGS::Common::Bitmap *ds, const ViewFrame *vframe, int x, int y);

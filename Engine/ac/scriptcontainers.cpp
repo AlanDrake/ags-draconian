@@ -37,6 +37,9 @@
 // NOTE: locale_aware only makes sense in unicode mode, and it only makes
 // a difference for sorted containers, because the unsorted containers
 // calculate hash, which does not care about order of letters in alphabet.
+using namespace AGS;
+using namespace AGS::Common;
+
 ScriptDictBase *Dict_CreateImpl(ScriptSortStyle sort_style, ScriptStringComparison compare_style)
 {
     const bool sorted = sort_style == kScSorted;

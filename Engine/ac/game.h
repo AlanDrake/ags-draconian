@@ -35,7 +35,6 @@ class AssetManager;
 class Stream;
 } // namespace Common
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 #define RAGMODE_LOADNOW 0x8000000 // just to make sure it's non-zero
 
@@ -82,7 +81,7 @@ ScriptStringComparison ValidateStringComparison(const char *apiname, int compare
 // Save slot range validation; fixups min and max slots, returns if the resulting range is non-empty
 bool ValidateSaveSlotRange(const char *api_name, int &min_slot, int &max_slot);
 // Graphic parameter validation.
-Common::GraphicFlip ValidateFlip(const char *apiname, int flip);
+AGS::Common::GraphicFlip ValidateFlip(const char *apiname, int flip);
 
 // View, loop, frame parameter assertions.
 // WARNING: these functions assume that view is already in an internal 0-based range.
@@ -141,16 +140,16 @@ void set_game_speed(int new_fps);
 float get_game_speed();
 void setup_for_dialog(int use_font);
 void restore_after_dialog();
-Common::String get_save_game_directory();
-Common::String get_save_game_suffix();
-void set_save_game_suffix(const Common::String &suffix);
+AGS::Common::String get_save_game_directory();
+AGS::Common::String get_save_game_suffix();
+void set_save_game_suffix(const AGS::Common::String &suffix);
 // Returns full path to the save for the given slot number
-Common::String get_save_game_path(int slotNum);
+AGS::Common::String get_save_game_path(int slotNum);
 // Parses an input filepath and retrieves final path and respective save slot number, if possible.
 // * if input contains an absolute filepath, then uses it directly;
 // * if input contains a relative filename, then tests both cwd and game's save directory;
 // * if input contains a number, then creates a path to the save file with that number
-bool get_save_filepath_and_slot(const Common::String &input_savepath, Common::String &filepath, int &slot);
+bool get_save_filepath_and_slot(const AGS::Common::String &input_savepath, AGS::Common::String &filepath, int &slot);
 // Try calling built-in restore game dialog;
 // NOTE: this is a script command; may be aborted according to the game & room settings
 void restore_game_dialog();
@@ -168,15 +167,15 @@ void free_do_once_tokens();
 void shutdown_game_state();
 // Free all the memory associated with the game
 void unload_game();
-void save_game(int slotn, const Common::String &descript, std::unique_ptr<Common::Bitmap> &&image = nullptr);
-void schedule_save_game(int slotn, const Common::String &descript, int spritenum = -1);
-std::unique_ptr<Common::Bitmap> create_game_screenshot(int width, int height, int layers);
-bool read_savedgame_description(const Common::String &filename, Common::String &description);
-std::unique_ptr<Common::Bitmap> read_savedgame_screenshot(const Common::String &filename);
+void save_game(int slotn, const AGS::Common::String &descript, std::unique_ptr<AGS::Common::Bitmap> &&image = nullptr);
+void schedule_save_game(int slotn, const AGS::Common::String &descript, int spritenum = -1);
+std::unique_ptr<AGS::Common::Bitmap> create_game_screenshot(int width, int height, int layers);
+bool read_savedgame_description(const AGS::Common::String &filename, AGS::Common::String &description);
+std::unique_ptr<AGS::Common::Bitmap> read_savedgame_screenshot(const AGS::Common::String &filename);
 // Tries to restore saved game and displays an error on failure; if the error occured
 // too late, when the game data was already overwritten, shuts engine down.
 bool try_restore_save(int slot, bool startup = false);
-bool try_restore_save(const Common::String &path, int slot, bool startup = false);
+bool try_restore_save(const AGS::Common::String &path, int slot, bool startup = false);
 void prescan_save_slots(int dest_arr_handle, int min_slot, int max_slot, int file_sort, int sort_dir, int user_param);
 
 bool is_in_cutscene();

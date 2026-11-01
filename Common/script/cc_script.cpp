@@ -21,6 +21,7 @@
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 
 // script file format signature

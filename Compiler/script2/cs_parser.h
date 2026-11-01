@@ -281,8 +281,8 @@ private:
             kLOC_SymbolTable, // in the entry _sym[this->Symbol]
         } Location = kLOC_None;
 
-        ::Symbol Symbol = kKW_NoSymbol;
-        ::Vartype Vartype = kKW_NoSymbol;
+        AGS::Symbol Symbol = kKW_NoSymbol;
+        AGS::Vartype Vartype = kKW_NoSymbol;
         bool LocalNonParameter = true;
         bool SideEffects = false;
         bool Modifiable = false;

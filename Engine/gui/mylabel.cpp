@@ -19,7 +19,8 @@
 #include "font/fonts.h"
 #include "gui/guidialogdefines.h"
 
-using namespace Common;
+using namespace AGS;
+using namespace AGS::Common;
 
 extern int acdialog_font;
 

@@ -23,6 +23,9 @@
 #include "script/cc_internal.h"
 #include "script/cs_parser.h"
 
+using namespace AGS;
+using namespace AGS::Common;
+
 const char *ccSoftwareVersion = "1.0";
 
 std::vector<const char *> defaultheaders;

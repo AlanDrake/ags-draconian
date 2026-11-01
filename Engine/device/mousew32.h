@@ -22,7 +22,6 @@ namespace Common
 class Bitmap;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 namespace Mouse
 {

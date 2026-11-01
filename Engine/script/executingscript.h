@@ -76,15 +76,15 @@ struct PostScriptAction
     // TODO: refactor this into a union of structs!
     PostScriptActionType Type = ePSAUndefined;
     int Data[6]{};
-    Common::String Name;
-    Common::String Text;
-    std::unique_ptr<Common::Bitmap> Image;
+    AGS::Common::String Name;
+    AGS::Common::String Text;
+    std::unique_ptr<AGS::Common::Bitmap> Image;
     AGS::Engine::ScriptPosition Position;
 
     PostScriptAction() = default;
     PostScriptAction(PostScriptAction &&act) = default;
-    PostScriptAction(PostScriptActionType type, int data, const Common::String &name, const Common::String &text = {},
-                     std::unique_ptr<Common::Bitmap> &&image = {})
+    PostScriptAction(PostScriptActionType type, int data, const AGS::Common::String &name,
+                     const AGS::Common::String &text = {}, std::unique_ptr<AGS::Common::Bitmap> &&image = {})
         : Type(type),
           Name(name),
           Text(text),
@@ -92,14 +92,14 @@ struct PostScriptAction
     {
         Data[0] = data;
     }
-    PostScriptAction(PostScriptActionType type, int data1, int data2, const Common::String &name)
+    PostScriptAction(PostScriptActionType type, int data1, int data2, const AGS::Common::String &name)
         : Type(type),
           Name(name)
     {
         Data[0] = data1;
         Data[1] = data2;
     }
-    PostScriptAction(PostScriptActionType type, int data1, int data2, int data3, const Common::String &name)
+    PostScriptAction(PostScriptActionType type, int data1, int data2, int data3, const AGS::Common::String &name)
         : Type(type),
           Name(name)
     {
@@ -108,7 +108,7 @@ struct PostScriptAction
         Data[2] = data3;
     }
     PostScriptAction(PostScriptActionType type, int data1, int data2, int data3, int data4, int data5, int data6,
-                     const Common::String &name)
+                     const AGS::Common::String &name)
         : Type(type),
           Name(name)
     {

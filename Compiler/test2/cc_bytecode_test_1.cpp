@@ -29,6 +29,9 @@
 
 
 // The vars defined here are provided in each test that is in category "Bytecode1"
+using namespace AGS;
+using namespace AGS::Common;
+
 class Bytecode1 : public ::testing::Test
 {
 public:

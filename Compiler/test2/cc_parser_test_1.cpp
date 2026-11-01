@@ -25,6 +25,9 @@
 
 
 // The vars defined here are provided in each test that is in category "Compile1"
+using namespace AGS;
+using namespace AGS::Common;
+
 class Compile1 : public ::testing::Test
 {
 public:

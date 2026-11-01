@@ -25,6 +25,9 @@
 #include "util/path.h"
 #include "util/stdio_compat.h"
 
+using namespace AGS;
+using namespace AGS::Common;
+
 namespace AGS
 {
 namespace Engine

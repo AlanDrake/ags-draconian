@@ -31,7 +31,6 @@ namespace Common
 class Stream;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 struct ccScript
 {
@@ -54,11 +53,11 @@ public:
     // which "module" will this section's type declarations be related to
     std::vector<std::string> sectionModuleName;
     // Extended information (optional)
-    std::unique_ptr<RTTI> rtti;
-    std::unique_ptr<ScriptTOC> sctoc;
+    std::unique_ptr<AGS::RTTI> rtti;
+    std::unique_ptr<AGS::ScriptTOC> sctoc;
 
-    static ccScript *CreateFromStream(Common::Stream *in);
-    static ccScript *CreateFromStream(const std::string &name, Common::Stream *in);
+    static ccScript *CreateFromStream(AGS::Common::Stream *in);
+    static ccScript *CreateFromStream(const std::string &name, AGS::Common::Stream *in);
 
     ccScript() = default;
     ccScript(const std::string &name);
@@ -74,9 +73,9 @@ public:
     void SetScriptName(const std::string &name);
 
     // write the script to disk (after compiling)
-    void Write(Common::Stream *out) const;
+    void Write(AGS::Common::Stream *out) const;
     // read back a script written with Write
-    bool Read(Common::Stream *in);
+    bool Read(AGS::Common::Stream *in);
 };
 
 typedef std::unique_ptr<ccScript> UScript;

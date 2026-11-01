@@ -23,6 +23,7 @@
 #include "util/file.h"
 #include "util/path.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 
 // Default Allegro palette, to be used when exporting masks from non-8-bit rooms.

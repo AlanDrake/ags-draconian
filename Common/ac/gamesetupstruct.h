@@ -30,8 +30,8 @@
 #include "gui/guidefines.h"
 
 
-using Common::HGameFileError;
-using Common::HError;
+using AGS::Common::HGameFileError;
+using AGS::Common::HError;
 
 
 // TODO: split GameSetupStruct into struct used to hold loaded game data, and actual runtime object
@@ -44,9 +44,9 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<InventoryItemInfo> invinfo;
     std::vector<MouseCursor> mcurs;
     char lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{0}};
-    Common::PropertySchema propSchema;
-    std::vector<Common::StringIMap> charProps;
-    std::vector<Common::StringIMap> invProps;
+    AGS::Common::PropertySchema propSchema;
+    std::vector<AGS::Common::StringIMap> charProps;
+    std::vector<AGS::Common::StringIMap> invProps;
     std::vector<AGS::Common::StringIMap> audioclipProps;
     std::vector<AGS::Common::StringIMap> dialogProps;
     std::vector<AGS::Common::StringIMap> guiProps;
@@ -54,20 +54,20 @@ struct GameSetupStruct : public GameSetupStructBase
     // NOTE: although the view names are stored in game data, they are never
     // used, nor registered as script exports; numeric IDs are used to
     // reference views instead.
-    std::vector<Common::String> viewNames;
-    std::vector<Common::String> invScriptNames; // TODO: move to InventoryItemInfo
+    std::vector<AGS::Common::String> viewNames;
+    std::vector<AGS::Common::String> invScriptNames; // TODO: move to InventoryItemInfo
     // TODO: move this array out of Game struct, but need to read legacy data
     // into some sort of a temporary container for post-load upgrading.
-    std::vector<Common::String> dialogScriptNames;
+    std::vector<AGS::Common::String> dialogScriptNames;
     char guid[MAX_GUID_LENGTH] = {0};
     char saveGameFileExtension[MAX_SG_EXT_LENGTH] = {0};
     // NOTE: saveGameFolderName is generally used to create game subdirs in common user directories
-    Common::String saveGameFolderName;
+    AGS::Common::String saveGameFolderName;
     // Existing room numbers
     std::vector<int> roomNumbers;
     // Saved room names, known during the game compilation;
     // may be used to learn the total number of registered rooms
-    std::map<int, Common::String> roomNames;
+    std::map<int, AGS::Common::String> roomNames;
     std::vector<ScriptAudioClip> audioClips;
     std::vector<AudioClipType> audioClipTypes;
     // number of accessible game audio channels (the ones under direct user control)
@@ -90,9 +90,9 @@ struct GameSetupStruct : public GameSetupStructBase
     // - release_date - "dd.MM.yyyy" string;
     // - version - game's version (assumes X.X.X.X string, but may be anything);
     // - text_lang - 'en_US' format string which defines game language;
-    Common::StringMap GameInfo;
+    AGS::Common::StringMap GameInfo;
     // Game text language definition, in the form of locale name ('en', 'en_US' etc)
-    Common::String GameTextLanguage;
+    AGS::Common::String GameTextLanguage;
 
     // TODO: I converted original array of sprite infos to vector here, because
     // statistically in most games sprites go in long continious sequences with minimal
@@ -149,38 +149,38 @@ struct GameSetupStruct : public GameSetupStructBase
     // Do not call these directly
     //------------------------------
     // Part 1
-    void read_savegame_info(Common::Stream *in, GameDataVersion data_ver);
-    void read_font_infos(Common::Stream *in, GameDataVersion data_ver);
-    HGameFileError read_cursors(Common::Stream *in);
-    HError read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver);
-    void read_words_dictionary(Common::Stream *in);
+    void read_savegame_info(AGS::Common::Stream *in, GameDataVersion data_ver);
+    void read_font_infos(AGS::Common::Stream *in, GameDataVersion data_ver);
+    HGameFileError read_cursors(AGS::Common::Stream *in);
+    HError read_interaction_scripts(AGS::Common::Stream *in, GameDataVersion data_ver);
+    void read_words_dictionary(AGS::Common::Stream *in);
 
-    void ReadInvInfo(Common::Stream *in, GameDataVersion data_ver);
-    void WriteInvInfo(Common::Stream *out);
-    void ReadMouseCursors(Common::Stream *in);
-    void WriteMouseCursors(Common::Stream *out);
+    void ReadInvInfo(AGS::Common::Stream *in, GameDataVersion data_ver);
+    void WriteInvInfo(AGS::Common::Stream *out);
+    void ReadMouseCursors(AGS::Common::Stream *in);
+    void WriteMouseCursors(AGS::Common::Stream *out);
     //------------------------------
     // Part 2
-    void read_characters(Common::Stream *in, GameDataVersion data_ver);
-    void read_lipsync(Common::Stream *in, GameDataVersion data_ver);
+    void read_characters(AGS::Common::Stream *in, GameDataVersion data_ver);
+    void read_lipsync(AGS::Common::Stream *in, GameDataVersion data_ver);
     // NOTE: Global messages are cut out, but we still have to check them
     // so long as we keep support of loading an older game data
-    void skip_messages(Common::Stream *in, const std::array<int, NUM_LEGACY_GLOBALMES> &load_messages,
+    void skip_messages(AGS::Common::Stream *in, const std::array<int, NUM_LEGACY_GLOBALMES> &load_messages,
                        GameDataVersion data_ver);
 
-    void ReadCharacters(Common::Stream *in, GameDataVersion data_ver);
-    void WriteCharacters(Common::Stream *out);
+    void ReadCharacters(AGS::Common::Stream *in, GameDataVersion data_ver);
+    void WriteCharacters(AGS::Common::Stream *out);
     //------------------------------
     // Part 3
-    HGameFileError read_customprops(Common::Stream *in, GameDataVersion data_ver);
-    HGameFileError read_audio(Common::Stream *in, GameDataVersion data_ver);
-    void read_room_names(Common::Stream *in, GameDataVersion data_ver);
+    HGameFileError read_customprops(AGS::Common::Stream *in, GameDataVersion data_ver);
+    HGameFileError read_audio(AGS::Common::Stream *in, GameDataVersion data_ver);
+    void read_room_names(AGS::Common::Stream *in, GameDataVersion data_ver);
 
-    void ReadAudioClips(Common::Stream *in, size_t count);
+    void ReadAudioClips(AGS::Common::Stream *in, size_t count);
     //--------------------------------------------------------------------
 
-    void ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver);
-    void WriteForSavegame(Common::Stream *out);
+    void ReadFromSavegame(AGS::Common::Stream *in, GameStateSvgVersion svg_ver);
+    void WriteForSavegame(AGS::Common::Stream *out);
 
 private:
     std::array<int, kNumCursorRoles> _roleCursors = {{-1, -1, -1, -1, -1, -1, -1, -1}};

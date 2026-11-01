@@ -21,6 +21,7 @@
 #include "util/memorystream.h"
 #include "util/stream.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 
 const auto OBJECT_CACHE_MAGIC_NUMBER = 0xa30b;

@@ -18,6 +18,9 @@
 #include "debug/assert.h"
 #include "platform/windows/setup/winapihelpers.h"
 
+using namespace AGS;
+using namespace AGS::Common;
+
 namespace AGS
 {
 namespace Engine

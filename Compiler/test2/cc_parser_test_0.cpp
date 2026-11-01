@@ -26,6 +26,9 @@
 #include "util/string_compat.h"
 
 // The vars defined here are provided in each test that is in category "Compile0"
+using namespace AGS;
+using namespace AGS::Common;
+
 class Compile0 : public ::testing::Test
 {
 public:

@@ -29,6 +29,7 @@
 #include "util/string_utils.h"
 #include "util/stream.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 

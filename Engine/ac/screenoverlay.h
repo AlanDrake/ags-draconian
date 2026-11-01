@@ -53,7 +53,6 @@ namespace Engine
 class IDriverDependantBitmap;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 // Overlay behavior flags
 // NOTE: currently serialized as uint16
@@ -128,8 +127,8 @@ public:
     bool IsRoomLayer() const { return (_flags & kOver_RoomLayer) != 0; }
     bool IsVisible() const { return (_flags & kOver_Visible) != 0; }
     int GetOpacity() const { return _opacity; }
-    Common::BlendMode GetBlendMode() const { return _blendMode; }
-    Common::GraphicFlip GetFlip() const { return Common::GfxDef::GetFlipFromFlags(_spritetf); }
+    AGS::Common::BlendMode GetBlendMode() const { return _blendMode; }
+    AGS::Common::GraphicFlip GetFlip() const { return AGS::Common::GfxDef::GetFlipFromFlags(_spritetf); }
     bool HasTint() const { return (_flags & kOver_HasTint) != 0; }
     bool HasLightLevel() const { return (_flags & kOver_HasLightLevel) != 0; }
     int GetTintLevel() const { return _tintLevel; }
@@ -139,12 +138,12 @@ public:
     int GetTintLight() const { return _tintLight; }
     int GetZOrder() const { return _zorder; }
     // Gets actual overlay's image
-    Common::Bitmap *GetImage() const;
+    AGS::Common::Bitmap *GetImage() const;
     // Get this overlay's sprite id
     int GetSpriteNum() const { return _sprnum; }
     // Get this overlay's graphic's dimensions (unscaled)
     Size GetGraphicSize() const;
-    const Common::String &GetText() const { return _text; }
+    const AGS::Common::String &GetText() const { return _text; }
     // Gets shader id
     int GetShaderID() const { return _shaderID; }
     // Gets script shader's managed handle
@@ -175,19 +174,19 @@ public:
     void SetZOrder(int zorder);
     // Assigns an exclusive image to this overlay; the image will be stored as a dynamic sprite
     // in a sprite cache, but owned by this overlay and therefore disposed at its disposal
-    void SetImage(std::unique_ptr<Common::Bitmap> pic);
-    void SetImage(std::unique_ptr<Common::Bitmap> pic, int offx, int offy);
+    void SetImage(std::unique_ptr<AGS::Common::Bitmap> pic);
+    void SetImage(std::unique_ptr<AGS::Common::Bitmap> pic, int offx, int offy);
     // Assigns a shared sprite to this overlay
     void SetSpriteNum(int sprnum);
     void SetSpriteNum(int sprnum, int offx, int offy);
     // Sets this overlay's description
-    void SetText(const Common::String &text);
+    void SetText(const AGS::Common::String &text);
     // Assigns flip setting
-    void SetFlip(Common::GraphicFlip flip);
+    void SetFlip(AGS::Common::GraphicFlip flip);
     // Assigns overlay opacity (0 - 255)
     void SetOpacity(int alpha);
     // Assigns blend mode
-    void SetBlendMode(Common::BlendMode blend_mode);
+    void SetBlendMode(AGS::Common::BlendMode blend_mode);
     // Assigns tint settings
     void SetTint(int red, int green, int blue, int opacity, int luminance);
     // Assigns light level
@@ -221,7 +220,7 @@ public:
     int UpdateTimeout();
 
     // Returns Overlay's graphic space params
-    inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
+    inline const AGS::Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
 
     // Tells if Overlay has graphically changed recently
     bool HasChanged() const { return _hasChanged; }
@@ -232,8 +231,8 @@ public:
     // Marks that the overlay's image has changed and the texture has to be updated
     void MarkImageChanged();
 
-    void ReadFromSavegame(Common::Stream *in, bool &has_bitmap, int32_t cmp_ver);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromSavegame(AGS::Common::Stream *in, bool &has_bitmap, int32_t cmp_ver);
+    void WriteToSavegame(AGS::Common::Stream *out) const;
 
 private:
     void ResetImage(bool reset_size);
@@ -254,7 +253,7 @@ private:
     int _x = 0;
     int _y = 0;
     int _sprnum = 0;
-    Common::SpriteTransformFlags _spritetf = Common::kSprTf_None;
+    AGS::Common::SpriteTransformFlags _spritetf = AGS::Common::kSprTf_None;
     // Fixed sprite offset (translation);
     // also used as a border/padding offset for the tiled text windows
     Point _sprOffset;
@@ -279,14 +278,14 @@ private:
     uint8_t _tintB = 0u;
     uint8_t _tintLevel = 0u;
     int _tintLight = 0; // -255 to 255 (comply to objects and characters)
-    Common::BlendMode _blendMode = Common::kBlend_Normal;
+    AGS::Common::BlendMode _blendMode = AGS::Common::kBlend_Normal;
     // TODO: a RAII wrapper over managed handle, that auto releases the reference
     int _shaderID = 0;
     int _shaderHandle = 0;
     // Timeout for automatic removal, 0 means disabled
     int _timeout = 0;
     // Optional textual description
-    Common::String _text;
+    AGS::Common::String _text;
     // Index of a Character whose speech (blocking or bg) this overlay represents;
     // TODO: redesign this, store the overlay's reference in character instead,
     // overlay should not have such data as its member.
@@ -294,7 +293,7 @@ private:
     int _scriptHandle = 0;
     PfnOverlayRemoved _removeCb;
 
-    Common::GraphicSpace _gs;
+    AGS::Common::GraphicSpace _gs;
     bool _hasChanged = false;
 };
 
@@ -329,8 +328,8 @@ public:
     bool UpdateOnce();
     void Reset();
 
-    void ReadFromSavegame(Common::Stream *in, int cmp_ver);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromSavegame(AGS::Common::Stream *in, int cmp_ver);
+    void WriteToSavegame(AGS::Common::Stream *out) const;
 
 private:
     int _overid = -1;

@@ -34,7 +34,6 @@ namespace AGS
 namespace Engine
 {
 
-using namespace AGS::Common;
 
 class IGfxDriverFactory;
 class IGraphicsDriver;
@@ -47,18 +46,18 @@ class IGraphicsDriver;
 struct WinConfig : public GameConfig
 {
     // Meta properties
-    String Title;
-    String VersionString;
-    String DataDirectory;
+    Common::String Title;
+    Common::String VersionString;
+    Common::String DataDirectory;
     Size GameResolution;
     int GameColourDepth;
-    String DefaultLanguageName; // human-readable title for the "default language" selection
+    Common::String DefaultLanguageName; // human-readable title for the "default language" selection
 
     WinConfig();
     void SetDefaults();
-    void LoadMeta(const ConfigTree &cfg);
-    void LoadCommon(const ConfigTree &cfg);
-    void Save(ConfigTree &cfg) const;
+    void LoadMeta(const Common::ConfigTree &cfg);
+    void LoadCommon(const Common::ConfigTree &cfg);
+    void Save(Common::ConfigTree &cfg) const;
 };
 
 //=============================================================================
@@ -70,14 +69,14 @@ struct WinConfig : public GameConfig
 class WinSetupPageDialog : public WinPageDialog
 {
 public:
-    WinSetupPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in) : _winCfg(win_cfg), _cfgIn(cfg_in) {}
+    WinSetupPageDialog(WinConfig &win_cfg, const Common::ConfigTree &cfg_in) : _winCfg(win_cfg), _cfgIn(cfg_in) {}
 
-    virtual void ResetSetup(const ConfigTree &cfg_from) { /* do nothing */ };
+    virtual void ResetSetup(const Common::ConfigTree &cfg_from) { /* do nothing */ };
     virtual void SaveSetup() { /* do nothing */ };
 
 protected:
     WinConfig &_winCfg;
-    const ConfigTree &_cfgIn;
+    const Common::ConfigTree &_cfgIn;
     bool _isInit = false;
 };
 
@@ -89,11 +88,11 @@ protected:
 class BasicPageDialog : public WinSetupPageDialog
 {
 public:
-    BasicPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in) : WinSetupPageDialog(win_cfg, cfg_in) {}
+    BasicPageDialog(WinConfig &win_cfg, const Common::ConfigTree &cfg_in) : WinSetupPageDialog(win_cfg, cfg_in) {}
 
-    String GetTitle() const override { return "Basic"; }
+    Common::String GetTitle() const override { return "Basic"; }
 
-    void ResetSetup(const ConfigTree &cfg_from) override;
+    void ResetSetup(const Common::ConfigTree &cfg_from) override;
     void SaveSetup() override;
 
 protected:
@@ -140,11 +139,11 @@ private:
     {
         IGfxDriverFactory *Factory = nullptr;
         IGraphicsDriver *Driver = nullptr;
-        String Id;            // internal id
-        String UserName;      // human-friendly driver name
-        GfxModes GfxModeList; // list of supported modes
-        VFilters FilterList;  // list of supported filters
-        int UseColorDepth;    // recommended display depth
+        Common::String Id;       // internal id
+        Common::String UserName; // human-friendly driver name
+        GfxModes GfxModeList;    // list of supported modes
+        VFilters FilterList;     // list of supported filters
+        int UseColorDepth;       // recommended display depth
     };
 
     // Operations
@@ -157,7 +156,7 @@ private:
     void FillScalingList(HWND hlist, bool windowed);
     int GetRealDisplayIndex();
     void SetScalingSelection();
-    void InitDriverDescFromFactory(const String &id);
+    void InitDriverDescFromFactory(const Common::String &id);
     void UpdateDriverModesFromFactory();
     void UpdateDriverModes(DriverDesc *desc);
     void ReleaseDrivers();
@@ -166,7 +165,7 @@ private:
     // Dialog properties
     // Graphics driver descriptions
     typedef std::shared_ptr<DriverDesc> PDriverDesc;
-    typedef std::map<String, PDriverDesc> DriverDescMap;
+    typedef std::map<Common::String, PDriverDesc> DriverDescMap;
     DriverDescMap _drvDescMap;
     PDriverDesc _drvDesc;
     GfxFilterInfo _gfxFilterInfo;
@@ -175,7 +174,7 @@ private:
     Size _desktopSize;
     Size _maxWindowSize;
     // List of found translations
-    std::vector<String> _translations;
+    std::vector<Common::String> _translations;
 
     // Dialog controls
     HWND _hGameResolutionText = nullptr;

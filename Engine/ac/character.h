@@ -168,7 +168,6 @@ namespace Common
 class Bitmap;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 // Configures and starts character animation.
 void animate_character(CharacterInfo *chap, int loopn, int sppd, int rept, int direction = 0, int sframe = 0,
@@ -208,9 +207,9 @@ int GetCharacterWidth(int charid);
 int GetCharacterHeight(int charid);
 
 // Get current character's image; this may return either source image, or cached transformed image
-Common::Bitmap *GetCharacterImage(int charid, bool always_original = false, bool *is_original = nullptr);
+AGS::Common::Bitmap *GetCharacterImage(int charid, bool always_original = false, bool *is_original = nullptr);
 // Gets current source image (untransformed) for the character
-Common::Bitmap *GetCharacterSourceImage(int charid);
+AGS::Common::Bitmap *GetCharacterSourceImage(int charid);
 // Deduces room object's scale, accounting for both manual scaling and the room region effects;
 // calculates resulting sprite size.
 void update_character_scale(int charid);

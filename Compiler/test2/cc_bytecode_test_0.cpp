@@ -69,6 +69,9 @@ TEST_F(Bytecode0, P_r_o_t_o_t_y_p_e) {
 
 
 // The vars defined here are provided in each test that is in category "Bytecode0"
+using namespace AGS;
+using namespace AGS::Common;
+
 class Bytecode0 : public ::testing::Test
 {
 public:

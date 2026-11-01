@@ -69,6 +69,7 @@
 #include "plugin/agsplugin.h"
 
 
+using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 

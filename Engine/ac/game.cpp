@@ -83,6 +83,7 @@
 #include "util/path.h"
 #include "util/string_compat.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 

@@ -29,7 +29,7 @@ struct MyListBox : public NewControl
     void clearlist();
     ~MyListBox() override;
 
-    void draw(Common::Bitmap *ds) override;
+    void draw(AGS::Common::Bitmap *ds) override;
     int pressedon(int mx, int my) override;
     void additem(char *texx);
     int processmessage(int mcode, int wParam, intptr_t ipParam) override;

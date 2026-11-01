@@ -21,7 +21,6 @@
 #include "util/file.h"
 #include "util/stream.h"
 
-using namespace AGS; // FIXME later
 
 #define scFileRead   1
 #define scFileWrite  2
@@ -32,8 +31,8 @@ struct sc_File final : CCBasicObject
 public:
     int32_t handle;
 
-    static const Common::FileOpenMode fopenModes[];
-    static const Common::StreamMode fworkModes[];
+    static const AGS::Common::FileOpenMode fopenModes[];
+    static const AGS::Common::StreamMode fworkModes[];
 
     int Dispose(void *address, bool force) override;
 

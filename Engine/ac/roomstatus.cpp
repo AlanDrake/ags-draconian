@@ -21,6 +21,7 @@
 #include "game/savegame_components.h"
 #include "util/string_utils.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 

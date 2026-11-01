@@ -23,4 +23,4 @@ extern void ccGetExtensions2(std::vector<std::string> &exts);
 // Compile the script supplied, returns nullptr on failure.
 // All compiler's errors and warnings are returned as a MessageHandler collection.
 extern ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, uint64_t options,
-                                MessageHandler &mh);
+                                AGS::MessageHandler &mh);

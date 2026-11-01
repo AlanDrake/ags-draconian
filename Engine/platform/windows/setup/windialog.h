@@ -30,7 +30,6 @@ namespace AGS
 namespace Engine
 {
 
-using namespace AGS::Common;
 
 class WinDialog
 {
@@ -41,7 +40,7 @@ public:
     static INT_PTR ShowModal(WinDialog *dialog, HWND parent_hwnd);
     void CreateModeless(HWND parent_hwnd);
 
-    virtual String GetTitle() const { return ""; /* TODO? */ }
+    virtual Common::String GetTitle() const { return ""; /* TODO? */ }
 
     bool IsCreated() const { return _hwnd != nullptr; }
     HWND GetHandle() const { return _hwnd; }

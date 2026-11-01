@@ -66,6 +66,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 

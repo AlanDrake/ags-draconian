@@ -25,7 +25,6 @@ namespace Common
 class Stream;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 #define LEGACY_MAXMOVESTAGES 256
 enum MoveListStageFlags
@@ -126,8 +125,8 @@ public:
     // TODO: support smooth walk transition?
     bool Backward(bool do_step = true);
 
-    AGS::Engine::HSaveError ReadFromSavegame(Common::Stream *in, int32_t cmp_ver);
-    void WriteToSavegame(Common::Stream *out) const;
+    AGS::Engine::HSaveError ReadFromSavegame(AGS::Common::Stream *in, int32_t cmp_ver);
+    void WriteToSavegame(AGS::Common::Stream *out) const;
 
 private:
     // Set MoveList to the done state; note this does not free the path itself

@@ -25,10 +25,10 @@ namespace AGS
 namespace Engine
 {
 
-using namespace Common;
 
-SetupReturnValue WinSetup(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out,
-                          const String &game_data_dir, const String &version_str);
+SetupReturnValue WinSetup(const Common::ConfigTree &cfg_in, const Common::ConfigTree &def_cfg_in,
+                          Common::ConfigTree &cfg_out, const Common::String &game_data_dir,
+                          const Common::String &version_str);
 
 } // namespace Engine
 } // namespace AGS

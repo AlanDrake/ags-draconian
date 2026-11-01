@@ -46,6 +46,7 @@
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 

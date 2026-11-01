@@ -27,6 +27,9 @@
 #include "resource/resource.h"
 #include "util/directory.h"
 
+using namespace AGS;
+using namespace AGS::Common;
+
 namespace AGS
 {
 namespace Engine

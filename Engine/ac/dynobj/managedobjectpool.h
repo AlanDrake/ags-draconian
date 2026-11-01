@@ -31,7 +31,6 @@ namespace Common
 class Stream;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 struct ManagedObjectPool final
 {
@@ -97,7 +96,7 @@ private:
     int Add(int handle, void *address, IScriptObject *callback, ScriptValueType obj_type, bool persistent);
     int Remove(ManagedObject &o, bool force = false);
     void RunGarbageCollection();
-    void WriteImpl(Common::Stream *out) const;
+    void WriteImpl(AGS::Common::Stream *out) const;
 
 public:
     // Adds a reference count
@@ -119,8 +118,8 @@ public:
     int AddUnserializedObject(void *address, IScriptObject *callback, int handle, ScriptValueType obj_type,
                               bool persistent);
     // NOTE: WriteToDisk is not const, because it calls RunGarbageCollection() internally
-    void WriteToDisk(Common::Stream *out);
-    int ReadFromDisk(Common::Stream *in, ICCObjectCollectionReader *reader);
+    void WriteToDisk(AGS::Common::Stream *out);
+    int ReadFromDisk(AGS::Common::Stream *in, ICCObjectCollectionReader *reader);
     // De-allocate all objects
     void Reset();
     void PrintStats();

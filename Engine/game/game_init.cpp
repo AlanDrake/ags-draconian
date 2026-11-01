@@ -51,8 +51,9 @@
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 
-using namespace Common;
-using namespace Engine;
+using namespace AGS;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern bool logScriptRTTI;
 

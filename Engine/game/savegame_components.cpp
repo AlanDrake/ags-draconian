@@ -55,7 +55,8 @@
 #include "util/memory_compat.h"
 #include "util/string_utils.h"
 
-using namespace Common;
+using namespace AGS;
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern SpriteCache spriteset;

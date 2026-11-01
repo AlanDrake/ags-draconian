@@ -40,7 +40,6 @@ namespace Engine
 struct DisplayMode;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 enum SetupReturnValue
 {
@@ -73,7 +72,7 @@ public:
     // platform specific data file
     virtual const char *GetGameDataFile() { return nullptr; }
     // Optionally fill in config tree from the platform-specific config source
-    virtual void ReadConfiguration(Common::ConfigTree & /*cfg*/) {};
+    virtual void ReadConfiguration(AGS::Common::ConfigTree & /*cfg*/) {};
     // Get root directory for storing per-game shared data
     virtual FSLocation GetAllUsersDataDirectory() { return FSLocation("."); }
     // Get root directory for storing per-game saved games
@@ -92,11 +91,11 @@ public:
     virtual const char *GetIllegalFileChars() { return "\\/"; }
     virtual const char *GetDiskWriteAccessTroubleshootingText();
     virtual const char *GetGraphicsTroubleshootingText() { return ""; }
-    virtual uint64_t GetDiskFreeSpaceMB(const Common::String &path) = 0;
+    virtual uint64_t GetDiskFreeSpaceMB(const AGS::Common::String &path) = 0;
     virtual const char *GetBackendFailUserHint();
     virtual eScriptSystemOSID GetSystemOSID() = 0;
-    virtual SetupReturnValue RunSetup(const Common::ConfigTree &cfg_in, const Common::ConfigTree &def_cfg_in,
-                                      Common::ConfigTree &cfg_out);
+    virtual SetupReturnValue RunSetup(const AGS::Common::ConfigTree &cfg_in, const AGS::Common::ConfigTree &def_cfg_in,
+                                      AGS::Common::ConfigTree &cfg_out);
     // Formats message and writes to standard platform's output;
     // Always adds trailing '\n' after formatted string
     virtual void WriteStdOut(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING_OBJECT(1);
@@ -122,9 +121,9 @@ public:
 
     virtual bool FullscreenSupported() { return true; }
     // Returns command line argument in a UTF-8 format
-    virtual Common::String GetCommandArg(size_t arg_index);
+    virtual AGS::Common::String GetCommandArg(size_t arg_index);
     // Returns a IOutputHandler implementation that prints to this platform's stdout
-    virtual std::unique_ptr<Common::IOutputHandler> GetStdOut();
+    virtual std::unique_ptr<AGS::Common::IOutputHandler> GetStdOut();
 
     // Gets the only platform driver instance, creates one if necessary
     static AGSPlatformDriver *GetDriver();

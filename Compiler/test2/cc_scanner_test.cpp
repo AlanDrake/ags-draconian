@@ -22,6 +22,9 @@
 #include "script2/cs_scanner.h"
 
 // The vars defined here are provided in each test that is in category "Scan"
+using namespace AGS;
+using namespace AGS::Common;
+
 class Scan : public ::testing::Test
 {
 protected:

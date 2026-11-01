@@ -33,8 +33,9 @@
 #include "gfx/graphicsdriver.h"
 #include "script/runtimescriptvalue.h"
 
-using namespace Common;
-using namespace Engine;
+using namespace AGS;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern SpriteCache spriteset;

@@ -62,18 +62,18 @@ enum RoomStatSvgVersion
 struct HotspotState
 {
     bool Enabled = false;
-    Common::String Name;
+    AGS::Common::String Name;
 
-    void ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion save_ver);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromSavegame(AGS::Common::Stream *in, RoomStatSvgVersion save_ver);
+    void WriteToSavegame(AGS::Common::Stream *out) const;
 };
 
 struct WalkareaState
 {
     float FaceDirectionRatio = 0.f;
 
-    void ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion save_ver);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromSavegame(AGS::Common::Stream *in, RoomStatSvgVersion save_ver);
+    void WriteToSavegame(AGS::Common::Stream *out) const;
 };
 
 // RoomStatus contains everything about a room that could change at runtime.
@@ -93,11 +93,11 @@ public:
     float face_dir_ratio = 0.f;
     WalkareaState walkareas[MAX_WALK_AREAS];
 
-    Common::StringIMap roomProps;
-    std::vector<Common::StringIMap> objProps;
-    Common::StringIMap hsProps[MAX_ROOM_HOTSPOTS];
-    Common::StringIMap regProps[MAX_ROOM_REGIONS];
-    Common::StringIMap waProps[MAX_WALK_AREAS];
+    AGS::Common::StringIMap roomProps;
+    std::vector<AGS::Common::StringIMap> objProps;
+    AGS::Common::StringIMap hsProps[MAX_ROOM_HOTSPOTS];
+    AGS::Common::StringIMap regProps[MAX_ROOM_REGIONS];
+    AGS::Common::StringIMap waProps[MAX_WALK_AREAS];
 
     // A version of a save this RoomStatus was restored from.
     // This is used as a hint when merging RoomStatus with the loaded room file (upon room enter).
@@ -113,8 +113,8 @@ public:
     int GetBgShaderHandle() const { return _bgShaderHandle; }
     void SetBgShader(int shader_id, int shader_handle);
 
-    void ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion cmp_ver);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromSavegame(AGS::Common::Stream *in, RoomStatSvgVersion cmp_ver);
+    void WriteToSavegame(AGS::Common::Stream *out) const;
 
 private:
     void FreeScriptData();

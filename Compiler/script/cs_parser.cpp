@@ -28,6 +28,9 @@
 #include "util/string_utils.h"
 #include "util/utf8.h"
 
+using namespace AGS;
+using namespace AGS::Common;
+
 extern int currentline;
 
 char ccCopyright[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2026 others";

@@ -31,7 +31,6 @@ namespace Common
 class Stream;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 // register a memory handle for the object and allow script pointers to point to it
 int32_t ccRegisterManagedObject(void *object, IScriptObject *, ScriptValueType obj_type = kScValScriptObject);
@@ -54,9 +53,9 @@ int ccUnRegisterManagedObject(void *object);
 // remove all registered objects
 void ccUnregisterAllObjects();
 // serialize all objects to disk
-void ccSerializeAllObjects(Common::Stream *out);
+void ccSerializeAllObjects(AGS::Common::Stream *out);
 // un-serialise all objects (will remove all currently registered ones)
-int ccUnserializeAllObjects(Common::Stream *in, ICCObjectCollectionReader *callback);
+int ccUnserializeAllObjects(AGS::Common::Stream *in, ICCObjectCollectionReader *callback);
 // dispose the object if RefCount==0
 void ccAttemptDisposeObject(int32_t handle);
 // translate between object handles and memory addresses

@@ -27,7 +27,6 @@ namespace Common
 class Stream;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 enum AudioFileType
 {
@@ -57,8 +56,8 @@ struct ScriptAudioClip
 {
 public:
     int id = -1;
-    Common::String scriptName;
-    Common::String fileName;
+    AGS::Common::String scriptName;
+    AGS::Common::String fileName;
     uint8_t bundlingType = kAudioBundle_Undefined;
     uint8_t type = AUDIOTYPE_UNDEFINED;
     AudioFileType fileType = eAudioFileUndefined;
@@ -69,5 +68,5 @@ public:
     static AudioFileType GetAudioFileTypeFromExt(const char *ext);
     static const char *GetExtFromAudioFileType(AudioFileType filetype);
 
-    void ReadFromFile(Common::Stream *in);
+    void ReadFromFile(AGS::Common::Stream *in);
 };

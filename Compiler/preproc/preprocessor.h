@@ -16,7 +16,6 @@
 #include "util/string.h"
 #include "util/version.h"
 
-using namespace AGS::Common;
 
 namespace AGS
 {
@@ -43,7 +42,7 @@ enum class ErrorCode
 struct Error
 {
     ErrorCode Type = ErrorCode::None;
-    String Message = nullptr;
+    Common::String Message = nullptr;
 };
 
 class Preprocessor
@@ -52,8 +51,8 @@ private:
     bool _inMultiLineComment = false;
     MacroTable _macros = MacroTable();
     int _lineNumber = 0;
-    String _scriptName;
-    Version _applicationVersion;
+    Common::String _scriptName;
+    Common::Version _applicationVersion;
     // Conditional statement stack remembers the results of all the nested conditions
     // that we have entered.
     std::stack<bool> _conditionalStatements;
@@ -62,28 +61,28 @@ private:
     uint32_t _negativeCounter = 0u;
     std::vector<Error> _errors;
 
-    void LogError(ErrorCode error, const String &message = nullptr);
+    void LogError(ErrorCode error, const Common::String &message = nullptr);
 
-    void ProcessConditionalDirective(const String &directive, String &line);
+    void ProcessConditionalDirective(const Common::String &directive, Common::String &line);
 
     bool DeletingCurrentLine() const;
 
-    String GetNextWord(String &text, bool trimText = true, bool includeDots = false);
+    Common::String GetNextWord(Common::String &text, bool trimText = true, bool includeDots = false);
 
-    String RemoveComments(String text);
+    Common::String RemoveComments(Common::String text);
 
-    String PreProcessDirective(String &line);
+    Common::String PreProcessDirective(Common::String &line);
 
-    String PreProcessLine(const String &lineToProcess);
+    Common::String PreProcessLine(const Common::String &lineToProcess);
 
 public:
     static const Error NoError;
     Error GetLastError() const;
-    void SetAppVersion(const String &version);
+    void SetAppVersion(const Common::String &version);
     void MergeMacros(MacroTable &macros);
-    void DefineMacro(const String &name, const String &value);
+    void DefineMacro(const Common::String &name, const Common::String &value);
 
-    String Preprocess(const String &script, const String &scriptName);
+    Common::String Preprocess(const Common::String &script, const Common::String &scriptName);
 };
 
 } // namespace Preprocessor

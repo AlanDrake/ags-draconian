@@ -23,7 +23,7 @@ struct MyLabel : public NewControl
 
     MyLabel(int xx, int yy, int wii, const char *tee, int textheight);
 
-    void draw(Common::Bitmap *ds) override;
+    void draw(AGS::Common::Bitmap *ds) override;
 
     int pressedon(int mx, int my) override;
 

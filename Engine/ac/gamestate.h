@@ -49,7 +49,6 @@ namespace Engine
 struct RestoredData;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 struct ScriptViewport;
 struct ScriptCamera;
 struct ScriptOverlay;
@@ -216,7 +215,7 @@ struct GamePlayState
     int in_conversation = 0;
     int screen_tint = 0;
     std::vector<uint16_t> parsed_words;
-    String bad_parsed_word;
+    AGS::Common::String bad_parsed_word;
     // Tells which room background frames were modified by script drawing operations
     std::vector<bool> room_bg_modified;
     bool room_mask_modified[kNumRoomAreaTypes]{};
@@ -250,13 +249,13 @@ struct GamePlayState
     short new_music_queue_size = 0;
     QueuedAudioItem new_music_queue[MAX_QUEUED_MUSIC]{};
     char lastParserEntry[MAX_MAXSTRLEN]{};
-    String game_name;
+    AGS::Common::String game_name;
     int ground_level_areas_disabled = 0;
     int next_screen_transition = 0;
     int gamma_adjustment = 0;
     short temporarily_turned_off_character = 0; // Hide Player Charactr ticked
     std::vector<int> gui_draw_order;            // used only for hit detection now
-    std::unordered_set<String> do_once_tokens;
+    std::unordered_set<AGS::Common::String> do_once_tokens;
     int text_min_display_time_ms = 0;
     int ignore_user_input_after_text_timeout_ms = 0;
     std::vector<int> default_audio_type_volumes;
@@ -272,7 +271,7 @@ struct GamePlayState
     float face_dir_ratio = 1.f; // character face direction ratio, defines y/x relation
 
     // Dynamic custom property values for global game objects
-    std::vector<Common::StringIMap> charProps;
+    std::vector<AGS::Common::StringIMap> charProps;
     std::vector<AGS::Common::StringIMap> dialogProps;
     std::vector<AGS::Common::StringIMap> guiProps;
     std::vector<AGS::Common::StringIMap> guicontrolProps[AGS::Common::kGUIControlTypeNum];
@@ -316,14 +315,14 @@ struct GamePlayState
 
     // Current set game text language; this may be set either by the base game,
     // or by the loaded translation.
-    const String &GetTextLanguage() const { return _gameTextLanguage; }
+    const AGS::Common::String &GetTextLanguage() const { return _gameTextLanguage; }
     // Current game texts locale; used for lexographical string comparison.
-    const String &GetTextLocaleName() const { return _localeNameUTF8; }
+    const AGS::Common::String &GetTextLocaleName() const { return _localeNameUTF8; }
     // Custom error text, to use when displaying a quit message (may be translated)
-    const String &GetGameErrorText() const { return _gameErrorText; }
+    const AGS::Common::String &GetGameErrorText() const { return _gameErrorText; }
 
-    void SetGameTextLanguage(const String &language);
-    void SetGameErrorText(const String &text) { _gameErrorText = text; }
+    void SetGameTextLanguage(const AGS::Common::String &language);
+    void SetGameErrorText(const AGS::Common::String &text) { _gameErrorText = text; }
 
     // Runtime behavior switches: allow to configure engine behavior
     // for modern and backwards-compatibility mode on a per-operation basis.
@@ -470,9 +469,9 @@ struct GamePlayState
     //
     // Serialization
     //
-    void ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver,
+    void ReadFromSavegame(AGS::Common::Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver,
                           AGS::Engine::RestoredData &r_data);
-    void WriteForSavegame(Common::Stream *out) const;
+    void WriteForSavegame(AGS::Common::Stream *out) const;
     // This is required for freeing only particular parts when restoring the game;
     // FIXME: investigate and refactor to be able to simply reset whole object
     void FreeProperties();
@@ -482,10 +481,10 @@ private:
     VpPoint ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport);
     void UpdateRoomCamera(int index);
 
-    String _gameTextLanguage;
+    AGS::Common::String _gameTextLanguage;
     // Name of the current used locale for UTF8 text mode
-    String _localeNameUTF8;
-    String _gameErrorText;
+    AGS::Common::String _localeNameUTF8;
+    AGS::Common::String _gameErrorText;
 
     std::array<bool, kNum_RBS> _rbSwitches = {{0}};
 

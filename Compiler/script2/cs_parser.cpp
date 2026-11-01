@@ -253,6 +253,9 @@ Classic arrays and Dynarrays, pointers and managed structs:
 // Note: DO NOT USE this variable in any way except as helper info during debugging
 // When compilers run in parallel, they clobber it, this may happen at any time.
 // Use '_src.GetPosition()' to track at which point of the source the compiler is.
+using namespace AGS;
+using namespace AGS::Common;
+
 extern int currentline;
 
 char ccCopyright2[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2026 others";

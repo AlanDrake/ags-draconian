@@ -26,6 +26,9 @@
 #include "util/string_compat.h"
 
 
+using namespace AGS;
+using namespace AGS::Common;
+
 void ccGetExtensions2(std::vector<std::string> &exts)
 {
     // A generic "AGS 4.0" extension, for easier detection

@@ -39,6 +39,7 @@
 #include "gfx/gfxfilter.h"
 #include "platform/base/agsplatformdriver.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 

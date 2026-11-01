@@ -28,7 +28,6 @@ namespace Common
 class Stream;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 struct AnimatingGUIButton
 {
@@ -39,6 +38,6 @@ struct AnimatingGUIButton
     ViewAnimateParams anim;
     short wait = 0;
 
-    void ReadFromSavegame(Common::Stream *in, int cmp_ver);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromSavegame(AGS::Common::Stream *in, int cmp_ver);
+    void WriteToSavegame(AGS::Common::Stream *out) const;
 };

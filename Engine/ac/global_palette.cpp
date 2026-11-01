@@ -18,6 +18,9 @@
 #include "ac/global_palette.h"
 #include "util/wgt2allg.h"
 
+using namespace AGS;
+using namespace AGS::Common;
+
 extern GameSetupStruct game;
 extern RGB palette[256];
 

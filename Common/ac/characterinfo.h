@@ -31,7 +31,6 @@ namespace Common
 class Stream;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 // Character flags (32-bit)
 // Flags marked as "INTERNAL" are marking dynamic character state set by the engine
@@ -266,8 +265,8 @@ struct CharacterInfo
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
 
-    void ReadFromFile(Common::Stream *in, GameDataVersion data_ver);
-    void WriteToFile(Common::Stream *out) const;
+    void ReadFromFile(AGS::Common::Stream *in, GameDataVersion data_ver);
+    void WriteToFile(AGS::Common::Stream *out) const;
 
     // TODO: move to runtime-only class and merge with its respective Read/Write save methods
     struct LegacyFields
@@ -275,8 +274,8 @@ struct CharacterInfo
         Point view_offset;
     };
 
-    void ReadFromSavegame(Common::Stream *in, LegacyFields &old_fields, CharacterSvgVersion save_ver);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromSavegame(AGS::Common::Stream *in, LegacyFields &old_fields, CharacterSvgVersion save_ver);
+    void WriteToSavegame(AGS::Common::Stream *out) const;
 
 private:
     // Script events schema

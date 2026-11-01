@@ -30,10 +30,9 @@ namespace AGS
 namespace Engine
 {
 
-using namespace AGS::Common;
 
 // Cast AGS::Common::String to LPCSTR
-inline LPCSTR STR(const String &str)
+inline LPCSTR STR(const Common::String &str)
 {
     return str.GetCStr();
 }
@@ -41,7 +40,7 @@ inline LPCSTR STR(const String &str)
 //
 // Common controls
 //
-String GetText(HWND hwnd);
+Common::String GetText(HWND hwnd);
 void SetText(HWND hwnd, LPCSTR text);
 void SetText(HWND hwnd, LPCWSTR wtext);
 //
@@ -75,13 +74,13 @@ void SetSliderPos(HWND hwnd, int pos);
 // Tab controls
 //
 Rect GetTabControlDisplayRect(HWND hwnd);
-void InsertTabButton(HWND hwnd, int index, const String &text);
+void InsertTabButton(HWND hwnd, int index, const Common::String &text);
 int GetSelectedTab(HWND hwnd);
 //
 // Standard Dialogs
 //
 // Opens a "Browse for folder" standard dialog
-bool BrowseForFolder(String &dir_buf);
+bool BrowseForFolder(Common::String &dir_buf);
 //
 // Miscellaneous
 //

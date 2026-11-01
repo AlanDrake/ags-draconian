@@ -16,6 +16,9 @@
 #include <util/string_compat.h>
 #include "test/cc_test_helper.h"
 
+using namespace AGS;
+using namespace AGS::Common;
+
 typedef AGS::Common::String AGSString;
 
 namespace AGS

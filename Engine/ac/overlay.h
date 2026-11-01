@@ -30,7 +30,6 @@ namespace Common
 class Bitmap;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 // Gets an actual ScreenOverlay object given its index;
 // validate object, send an error to the logging system on failure
@@ -61,9 +60,9 @@ ScreenOverlay *get_overlay(int type);
 // Autopositions overlay, that is linked to a character
 void autoposition_overlay(ScreenOverlay &over);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, int sprnum);
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<Common::Bitmap> piccy);
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<Common::Bitmap> piccy, int pic_offx,
-                          int pic_offy);
+size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<AGS::Common::Bitmap> piccy);
+size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<AGS::Common::Bitmap> piccy,
+                          int pic_offx, int pic_offy);
 void remove_screen_overlay(int type);
 void remove_all_overlays();
 // Restores overlays, e.g. after restoring a game save

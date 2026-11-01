@@ -20,6 +20,7 @@
 #include "script/runtimescript.h"
 #include "util/memorystream.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 

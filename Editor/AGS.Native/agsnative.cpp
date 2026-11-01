@@ -55,6 +55,7 @@ extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 #include "data/assetmanager.h"
 #include "NativeUtils.h"
 
+using namespace AGS; // the Common headers used to provide this
 using AGS::Types::AGSEditorException;
 
 using AGS::Common::Stream;

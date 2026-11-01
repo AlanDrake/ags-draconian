@@ -47,6 +47,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "util/string_utils.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Common::BitmapHelper;
 

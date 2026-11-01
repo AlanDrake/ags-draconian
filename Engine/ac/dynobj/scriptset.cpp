@@ -15,6 +15,9 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
+using namespace AGS;
+using namespace AGS::Common;
+
 int ScriptSetBase::Dispose(void * /*address*/, bool /*force*/)
 {
     Clear();

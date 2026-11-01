@@ -27,7 +27,6 @@ namespace Common
 class Stream;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 // Dialog Topic flags
 #define DTFLG_SHOWPARSER 0x0001 // show parser in this topic
@@ -61,13 +60,13 @@ struct DialogTopic
     {
         // Storing original text in case we load a save without modified text.
         // NOTE: had no better idea how to prevent unnecessary text writing in the saves at this time.
-        Common::String OriginalText;
-        Common::String Text;
+        AGS::Common::String OriginalText;
+        AGS::Common::String Text;
         int Flags = 0;       // DFLG_* flags
         int EntryPoint = -1; // old-style dialog script entry point
     };
 
-    Common::String ScriptName;
+    AGS::Common::String ScriptName;
     int Flags = 0; // DialogTopic flags (DTFLG_*)
     std::vector<DialogOption> Options;
     int StartEntryPoint = -1; // old-style dialog script entry point
@@ -75,12 +74,12 @@ struct DialogTopic
 
     uint32_t GetOptionCount() const { return Options.size(); }
 
-    void ReadFromFile_v321(Common::Stream *in);
-    void ReadFromFile_v363(Common::Stream *in);
+    void ReadFromFile_v321(AGS::Common::Stream *in);
+    void ReadFromFile_v363(AGS::Common::Stream *in);
 
-    void ReadFromSavegame(Common::Stream *in, DialogTopicSvgVersion svg_ver, uint32_t *read_opt_count);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromSavegame(AGS::Common::Stream *in, DialogTopicSvgVersion svg_ver, uint32_t *read_opt_count);
+    void WriteToSavegame(AGS::Common::Stream *out) const;
 
 private:
-    void ReadOptionFromSavegame(DialogOption &opt, Common::Stream *in, DialogTopicSvgVersion svg_ver);
+    void ReadOptionFromSavegame(DialogOption &opt, AGS::Common::Stream *in, DialogTopicSvgVersion svg_ver);
 };

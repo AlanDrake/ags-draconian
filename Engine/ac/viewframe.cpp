@@ -27,6 +27,7 @@
 #include "media/audio/audio_system.h"
 #include "util/math.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 
 extern GameSetupStruct game;

@@ -24,7 +24,6 @@ namespace Common
 class Stream;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 struct ViewFrame
 {
@@ -32,15 +31,15 @@ struct ViewFrame
     int16_t xoffs = 0;
     int16_t yoffs = 0;
     int16_t speed = 0;
-    Common::SpriteTransformFlags flags = Common::kSprTf_None;
+    AGS::Common::SpriteTransformFlags flags = AGS::Common::kSprTf_None;
     int sound = -1;                   // play sound when this frame comes round
     int reserved_for_future[2] = {0}; // kept only for plugin api // CLNUP: may remove in ags4?
-    Common::String event_name;
+    AGS::Common::String event_name;
 
     ViewFrame() = default;
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out) const;
+    void ReadFromFile(AGS::Common::Stream *in);
+    void WriteToFile(AGS::Common::Stream *out) const;
 };
 
 #define LOOPFLAG_RUNNEXTLOOP 1
@@ -62,10 +61,10 @@ struct ViewLoopNew
     void Dispose();
     // Tells if this loop has a "Run next loop after this" flag
     bool RunNextLoop() const;
-    void WriteToFile(Common::Stream *out) const;
-    void ReadFromFile(Common::Stream *in);
-    void WriteFrames(Common::Stream *out) const;
-    void ReadFrames(Common::Stream *in);
+    void WriteToFile(AGS::Common::Stream *out) const;
+    void ReadFromFile(AGS::Common::Stream *in);
+    void WriteFrames(AGS::Common::Stream *out) const;
+    void ReadFrames(AGS::Common::Stream *in);
 };
 
 struct ViewStruct
@@ -79,6 +78,6 @@ struct ViewStruct
     ViewStruct();
     void Initialize(int loopCount);
     void Dispose();
-    void WriteToFile(Common::Stream *out) const;
-    void ReadFromFile(Common::Stream *in);
+    void WriteToFile(AGS::Common::Stream *out) const;
+    void ReadFromFile(AGS::Common::Stream *in);
 };

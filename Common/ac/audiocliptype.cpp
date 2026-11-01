@@ -15,6 +15,9 @@
 #include "ac/audiocliptype.h"
 #include "util/stream.h"
 
+using namespace AGS;
+using namespace AGS::Common;
+
 using AGS::Common::Stream;
 
 void AudioClipType::ReadFromFile(Stream *in)

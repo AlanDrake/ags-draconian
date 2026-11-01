@@ -29,7 +29,8 @@
 #include "debug/debugger.h"
 #include "script/script.h"
 
-using namespace Common;
+using namespace AGS;
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern RoomStatus *croom;

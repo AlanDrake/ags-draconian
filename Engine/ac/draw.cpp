@@ -63,6 +63,7 @@
 #include "util/delegate.h"
 #include "util/wgt2allg.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 

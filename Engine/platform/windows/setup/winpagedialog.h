@@ -32,7 +32,6 @@ namespace AGS
 namespace Engine
 {
 
-using namespace AGS::Common;
 
 class WinPageDialog : public WinDialog
 {
@@ -59,7 +58,7 @@ public:
     ~PageControl() = default;
 
     void AddPage(std::shared_ptr<WinPageDialog> dlg);
-    void AddPage(std::shared_ptr<WinPageDialog> dlg, const String &title);
+    void AddPage(std::shared_ptr<WinPageDialog> dlg, const Common::String &title);
     size_t GetPageCount() const { return _pages.size(); }
     std::shared_ptr<WinPageDialog> GetPage(size_t index) const
     {

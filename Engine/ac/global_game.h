@@ -19,15 +19,14 @@
 #include "ac/runtime_defines.h"
 #include "util/string.h"
 #include "util/string_types.h"
-using namespace AGS; // FIXME later
 
 struct SaveListItem
 {
     int Slot;
-    Common::String Description;
+    AGS::Common::String Description;
     time_t FileTime = 0;
 
-    SaveListItem(int slot, const Common::String &desc, time_t ft) : Slot(slot), Description(desc), FileTime(ft) {}
+    SaveListItem(int slot, const AGS::Common::String &desc, time_t ft) : Slot(slot), Description(desc), FileTime(ft) {}
 };
 
 //
@@ -85,7 +84,7 @@ int GetLastSaveSlot();
 void PauseGame();
 void UnPauseGame();
 int IsGamePaused();
-int RunAGSGame(const Common::String &newgame, unsigned int mode, int data);
+int RunAGSGame(const AGS::Common::String &newgame, unsigned int mode, int data);
 void QuitGame(int dialog);
 void SetRestartPoint();
 void SetGameSpeed(int newspd);

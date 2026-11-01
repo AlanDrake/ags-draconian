@@ -32,7 +32,6 @@
 #include "util/string.h"
 #include "util/string_types.h"
 
-using namespace AGS::Common;
 
 class ScriptSetBase : public AGSCCDynamicObject
 {
@@ -80,7 +79,7 @@ public:
     {
         if (!item)
             return false;
-        return TryAddItem(String(item));
+        return TryAddItem(AGS::Common::String(item));
     }
     void Clear() override
     {
@@ -88,10 +87,10 @@ public:
             DeleteItem(it);
         _set.clear();
     }
-    bool Contains(const char *item) const override { return _set.count(String::Wrapper(item)) != 0; }
+    bool Contains(const char *item) const override { return _set.count(AGS::Common::String::Wrapper(item)) != 0; }
     bool Remove(const char *item) override
     {
-        auto it = _set.find(String::Wrapper(item));
+        auto it = _set.find(AGS::Common::String::Wrapper(item));
         if (it == _set.end())
             return false;
         DeleteItem(it);
@@ -106,7 +105,7 @@ public:
     }
 
 private:
-    bool TryAddItem(const String &s) { return _set.insert(s).second; }
+    bool TryAddItem(const AGS::Common::String &s) { return _set.insert(s).second; }
     void DeleteItem(ConstIterator /*it*/) { /* do nothing */ }
 
     size_t CalcContainerSize() override
@@ -135,7 +134,7 @@ private:
         for (size_t i = 0; i < item_count; ++i)
         {
             size_t len = in->ReadInt32();
-            String item = String::FromStreamCount(in, len);
+            AGS::Common::String item = AGS::Common::String::FromStreamCount(in, len);
             TryAddItem(item);
         }
     }
@@ -167,11 +166,19 @@ public:
     }
 };
 
-typedef ScriptSetStdImpl<String, std::less<String>, kScCaseSensitive> ScriptSet;
-typedef ScriptSetStdImpl<String, StrLessNoCase, kScCaseInsensitive> ScriptSetCI;
-typedef ScriptSetStdImpl<String, StrLessUtf8NoCase, kScCaseInsensitive> ScriptSetUtf8CI;
-typedef ScriptSetStdImpl<String, LexographicalStrLess, kScCaseSensitiveLocaleAware> ScriptSetLocaleAware;
-typedef ScriptSetStdImpl<String, LexographicalStrLessNoCase, kScCaseInsensitiveLocaleAware> ScriptSetLocaleAwareCI;
-typedef ScriptSetStdHashImpl<String, std::hash<String>, std::equal_to<String>, kScCaseSensitive> ScriptHashSet;
-typedef ScriptSetStdHashImpl<String, HashStrNoCase, StrEqNoCase, kScCaseInsensitive> ScriptHashSetCI;
-typedef ScriptSetStdHashImpl<String, HashStrUtf8NoCase, StrEqUtf8NoCase, kScCaseInsensitive> ScriptHashSetUtf8CI;
+typedef ScriptSetStdImpl<AGS::Common::String, std::less<AGS::Common::String>, kScCaseSensitive> ScriptSet;
+typedef ScriptSetStdImpl<AGS::Common::String, AGS::Common::StrLessNoCase, kScCaseInsensitive> ScriptSetCI;
+typedef ScriptSetStdImpl<AGS::Common::String, AGS::Common::StrLessUtf8NoCase, kScCaseInsensitive> ScriptSetUtf8CI;
+typedef ScriptSetStdImpl<AGS::Common::String, AGS::Common::LexographicalStrLess, kScCaseSensitiveLocaleAware>
+    ScriptSetLocaleAware;
+typedef ScriptSetStdImpl<AGS::Common::String, AGS::Common::LexographicalStrLessNoCase, kScCaseInsensitiveLocaleAware>
+    ScriptSetLocaleAwareCI;
+typedef ScriptSetStdHashImpl<AGS::Common::String, std::hash<AGS::Common::String>, std::equal_to<AGS::Common::String>,
+                             kScCaseSensitive>
+    ScriptHashSet;
+typedef ScriptSetStdHashImpl<AGS::Common::String, AGS::Common::HashStrNoCase, AGS::Common::StrEqNoCase,
+                             kScCaseInsensitive>
+    ScriptHashSetCI;
+typedef ScriptSetStdHashImpl<AGS::Common::String, AGS::Common::HashStrUtf8NoCase, AGS::Common::StrEqUtf8NoCase,
+                             kScCaseInsensitive>
+    ScriptHashSetUtf8CI;

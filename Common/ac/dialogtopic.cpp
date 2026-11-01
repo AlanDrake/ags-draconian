@@ -16,6 +16,7 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 
 void DialogTopic::ReadFromFile_v321(Stream *in)

@@ -19,6 +19,9 @@
 #include "script/cc_common.h"
 #include "script/cc_internal.h"
 
+using namespace AGS;
+using namespace AGS::Common;
+
 void AGS::ccCompiledScript::WriteLineno(size_t lno)
 {
     if (EmitLineNumbers)

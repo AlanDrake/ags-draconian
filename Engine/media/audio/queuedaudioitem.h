@@ -22,7 +22,6 @@ namespace Common
 class Stream;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 struct QueuedAudioItem
 {
@@ -31,6 +30,6 @@ struct QueuedAudioItem
     bool repeat = false;
     std::unique_ptr<SoundClip> cachedClip;
 
-    void ReadFromSavegame(Common::Stream *in);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromSavegame(AGS::Common::Stream *in);
+    void WriteToSavegame(AGS::Common::Stream *out) const;
 };

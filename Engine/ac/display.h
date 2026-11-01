@@ -22,7 +22,6 @@
 #include "gui/guimain.h"
 #include "util/string.h"
 
-using namespace AGS; // FIXME later
 
 // The general type and behavior of the displayed text
 enum DisplayTextType
@@ -100,7 +99,7 @@ struct DisplayTextLooks
 
 struct TopBarSettings
 {
-    Common::String Text;
+    AGS::Common::String Text;
     int Font = 0;
     int Height = 0;
 
@@ -127,9 +126,10 @@ DisplayTextPosition get_textpos_from_scriptcoords(int x, int y, bool for_speech)
 // but this should not be done here at all.
 // FIXME: xx is allowed to be passed as OVR_AUTOPLACE, which has special meaning,
 // but that's a confusing use of this argument.
-std::unique_ptr<Common::Bitmap> create_textual_image(const char *text, const DisplayTextLooks &look, color_t text_color,
-                                                     int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii,
-                                                     int usingfont, const TopBarSettings *topbar);
+std::unique_ptr<AGS::Common::Bitmap> create_textual_image(const char *text, const DisplayTextLooks &look,
+                                                          color_t text_color, int &xx, int &yy, int &adjustedXX,
+                                                          int &adjustedYY, int wii, int usingfont,
+                                                          const TopBarSettings *topbar);
 // Creates a textual overlay using the given parameters;
 // * disp_type tells the wanted type of overlay and behavior (blocking, etc);
 // * over_id - OVER_CUSTOM for auto overlay, but allows to pass actual overlay id
@@ -158,23 +158,23 @@ int GetTextDisplayLength(const char *text);
 // Calculates number of game loops for displaying a text on screen
 int GetTextDisplayTime(const char *text, int canberel = 0);
 // Draw an (optionally) outlined text
-void wouttext_outline(Common::Bitmap *ds, int x, int y, int font, color_t text_color, color_t outline_color,
-                      Common::BlendMode blend_mode, const char *text);
+void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int font, color_t text_color, color_t outline_color,
+                      AGS::Common::BlendMode blend_mode, const char *text);
 // Draw an (optionally) outlined text, using default outline color
-void wouttext_outline(Common::Bitmap *ds, int x, int y, int font, color_t text_color, Common::BlendMode blend_mode,
-                      const char *text);
+void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int font, color_t text_color,
+                      AGS::Common::BlendMode blend_mode, const char *text);
 // Draw an (optionally) outlined text, using default outline color and normal blend mode
-void wouttext_outline(Common::Bitmap *ds, int x, int y, int font, color_t text_color, const char *text);
+void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int font, color_t text_color, const char *text);
 // Draw an (optionally) outlined text using a horizontal alignment
-void wouttext_aligned(Common::Bitmap *ds, int x, int y, int oriwid, int font, color_t text_color, int outline_color,
-                      const char *text, HorAlignment align);
+void wouttext_aligned(AGS::Common::Bitmap *ds, int x, int y, int oriwid, int font, color_t text_color,
+                      int outline_color, const char *text, HorAlignment align);
 // Draw an (optionally) outlined text using a horizontal alignment and default outline color
-void wouttext_aligned(Common::Bitmap *ds, int x, int y, int oriwid, int usingfont, color_t text_color, const char *text,
-                      HorAlignment align);
-void do_corner(Common::Bitmap *ds, int sprn, int xx1, int yy1, int typx, int typy);
+void wouttext_aligned(AGS::Common::Bitmap *ds, int x, int y, int oriwid, int usingfont, color_t text_color,
+                      const char *text, HorAlignment align);
+void do_corner(AGS::Common::Bitmap *ds, int sprn, int xx1, int yy1, int typx, int typy);
 // Returns the image of a button control on the GUI under given child index
-int get_but_pic(Common::GUIMain *guo, AGS::Common::GUITextWindowBorder indx);
-void draw_button_background(Common::Bitmap *ds, int xx1, int yy1, int xx2, int yy2, Common::GUIMain *iep);
+int get_but_pic(AGS::Common::GUIMain *guo, AGS::Common::GUITextWindowBorder indx);
+void draw_button_background(AGS::Common::Bitmap *ds, int xx1, int yy1, int xx2, int yy2, AGS::Common::GUIMain *iep);
 // Calculate the width that the left and right border of the textwindow
 // GUI take up
 int get_textwindow_border_width(int twgui);
@@ -183,12 +183,12 @@ int get_textwindow_top_border_height(int twgui);
 // draw_text_window: draws the normal or custom text window
 // creates and returns a new bitmap
 // assings text start x & y pos in parameters
-std::unique_ptr<Common::Bitmap> draw_text_window(int *xins, int *yins, int *xx, int *yy, int *wii,
-                                                 color_t *set_text_color, int ovrheight, int ifnum,
-                                                 const DisplayVars &disp);
-std::unique_ptr<Common::Bitmap> draw_text_window_and_bar(const TopBarSettings *topbar, const DisplayVars &disp,
-                                                         int *xins, int *yins, int *xx, int *yy, int *wii,
-                                                         color_t *set_text_color, int ifnum = -1);
+std::unique_ptr<AGS::Common::Bitmap> draw_text_window(int *xins, int *yins, int *xx, int *yy, int *wii,
+                                                      color_t *set_text_color, int ovrheight, int ifnum,
+                                                      const DisplayVars &disp);
+std::unique_ptr<AGS::Common::Bitmap> draw_text_window_and_bar(const TopBarSettings *topbar, const DisplayVars &disp,
+                                                              int *xins, int *yins, int *xx, int *yy, int *wii,
+                                                              color_t *set_text_color, int ifnum = -1);
 int get_textwindow_padding(int ifnum);
 
 // The efficient length of the last source text prepared for display

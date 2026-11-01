@@ -33,7 +33,6 @@ namespace Common
 class Stream;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 struct CharacterInfo;
 
@@ -46,9 +45,9 @@ struct GameSetupStructBase
     // TODO: this is left purely to load older format version, revise later
     static const int NUM_LEGACY_GLOBALMES = 500;
 
-    Common::String gamename;
+    AGS::Common::String gamename;
     GameDataVersion gamedataver = kGameVersion_Undefined;
-    Common::String compiled_with; // version of AGS this data was created by
+    AGS::Common::String compiled_with; // version of AGS this data was created by
     int options[MAX_OPTIONS] = {0};
     uint8_t paluses[256] = {0};
     RGB defpal[256] = {};
@@ -93,8 +92,8 @@ struct GameSetupStructBase
         uint32_t ExtensionOffset = 0u;
     };
 
-    void ReadFromFile(Common::Stream *in, GameDataVersion game_ver, SerializeInfo &info);
-    void WriteToFile(Common::Stream *out, const SerializeInfo &info) const;
+    void ReadFromFile(AGS::Common::Stream *in, GameDataVersion game_ver, SerializeInfo &info);
+    void WriteToFile(AGS::Common::Stream *out, const SerializeInfo &info) const;
 
     // Game resolution is a size of a native game screen in pixels.
     // This is the "game resolution" that developer sets up in AGS Editor.

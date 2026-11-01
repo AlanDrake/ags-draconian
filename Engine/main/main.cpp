@@ -48,6 +48,7 @@
 #define USE_CUSTOM_EXCEPTION_HANDLER
 #endif
 
+using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 

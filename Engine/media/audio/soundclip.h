@@ -40,7 +40,6 @@
 #include "util/math.h"
 #include "util/string.h"
 
-using namespace AGS::Common;
 
 class SoundClip final
 {
@@ -52,7 +51,7 @@ public:
     int sourceClipID;
     int sourceClipType;
     // Filename and bundling type, in case this is not a common audio clip
-    String fileName;
+    AGS::Common::String fileName;
     uint8_t bundlingType;
     // soundType is used for the reference, and when applying
     // format-dependent seek and position
@@ -107,7 +106,7 @@ public:
     // Sets the current volume property, as percentage (0 - 100).
     inline void set_volume100(int volume)
     {
-        volume = Math::Clamp(volume, 0, 100);
+        volume = AGS::Common::Math::Clamp(volume, 0, 100);
         vol100 = volume;
         vol255 = (volume * 255) / 100;
         paramsChanged = true;
@@ -115,7 +114,7 @@ public:
     // Sets the current volume property in units of 255
     inline void set_volume255(int volume)
     {
-        volume = Math::Clamp(volume, 0, 255);
+        volume = AGS::Common::Math::Clamp(volume, 0, 255);
         vol255 = volume;
         vol100 = (vol255 * 100) / 255;
         paramsChanged = true;
@@ -124,8 +123,8 @@ public:
     // without calculating it from given percentage.
     inline void set_volume_direct(int vol_percent, int vol_absolute)
     {
-        vol255 = Math::Clamp(vol_absolute, 0, 255);
-        vol100 = Math::Clamp(vol_percent, 0, 100);
+        vol255 = AGS::Common::Math::Clamp(vol_absolute, 0, 255);
+        vol100 = AGS::Common::Math::Clamp(vol_percent, 0, 100);
         paramsChanged = true;
     }
     // Mutes sound clip, while preserving current volume property
@@ -141,7 +140,7 @@ public:
     // (can be both positive and negative).
     inline void apply_volume_modifier(int mod)
     {
-        volModifier = Math::Clamp(mod, 0, 255);
+        volModifier = AGS::Common::Math::Clamp(mod, 0, 255);
         paramsChanged = true;
     }
     // Apply permanent directional volume modifier, in absolute units (0 - 255)
@@ -149,13 +148,13 @@ public:
     // (can be both positive and negative).
     inline void apply_directional_modifier(int mod)
     {
-        directionalVolModifier = Math::Clamp(mod, 0, 255);
+        directionalVolModifier = AGS::Common::Math::Clamp(mod, 0, 255);
         paramsChanged = true;
     }
 
     inline void set_panning(int newPanning)
     {
-        panning = Math::Clamp(newPanning, -100, 100);
+        panning = AGS::Common::Math::Clamp(newPanning, -100, 100);
         paramsChanged = true;
     }
 

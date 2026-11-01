@@ -26,7 +26,7 @@
 
 int File_Exists(const char *fnmm);
 int File_Delete(const char *fnmm);
-int32_t FileOpen(const char *fnmm, Common::FileOpenMode open_mode, Common::StreamMode work_mode);
+int32_t FileOpen(const char *fnmm, AGS::Common::FileOpenMode open_mode, AGS::Common::StreamMode work_mode);
 void FileClose(int32_t handle);
 void *sc_OpenFile(const char *fnmm, int mode);
 const char *File_ResolvePath(const char *fnmm);

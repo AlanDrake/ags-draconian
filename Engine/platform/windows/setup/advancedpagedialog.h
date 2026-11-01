@@ -24,7 +24,6 @@ namespace AGS
 namespace Engine
 {
 
-using namespace AGS::Common;
 
 //=============================================================================
 //
@@ -34,11 +33,11 @@ using namespace AGS::Common;
 class AdvancedPageDialog : public WinSetupPageDialog
 {
 public:
-    AdvancedPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in) : WinSetupPageDialog(win_cfg, cfg_in) {}
+    AdvancedPageDialog(WinConfig &win_cfg, const Common::ConfigTree &cfg_in) : WinSetupPageDialog(win_cfg, cfg_in) {}
 
-    String GetTitle() const override { return "Advanced"; }
+    Common::String GetTitle() const override { return "Advanced"; }
 
-    void ResetSetup(const ConfigTree &cfg_from) override;
+    void ResetSetup(const Common::ConfigTree &cfg_from) override;
     void SaveSetup() override;
 
 protected:
@@ -58,7 +57,7 @@ private:
 
     // Dialog properties
     // Audio driver descriptions
-    std::vector<std::pair<String, String>> _drvAudioList;
+    std::vector<std::pair<Common::String, Common::String>> _drvAudioList;
 
     // Dialog controls
     HWND _hSpriteCacheList = nullptr;
@@ -82,11 +81,11 @@ private:
 class GameFilesPageDialog : public WinSetupPageDialog
 {
 public:
-    GameFilesPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in) : WinSetupPageDialog(win_cfg, cfg_in) {}
+    GameFilesPageDialog(WinConfig &win_cfg, const Common::ConfigTree &cfg_in) : WinSetupPageDialog(win_cfg, cfg_in) {}
 
-    String GetTitle() const override { return "Game Files"; }
+    Common::String GetTitle() const override { return "Game Files"; }
 
-    void ResetSetup(const ConfigTree &cfg_from) override;
+    void ResetSetup(const Common::ConfigTree &cfg_from) override;
     void SaveSetup() override;
 
 protected:
@@ -121,17 +120,17 @@ private:
 class AccessibilityPageDialog : public WinSetupPageDialog
 {
 public:
-    AccessibilityPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in, ConfigTree &cfg_out)
+    AccessibilityPageDialog(WinConfig &win_cfg, const Common::ConfigTree &cfg_in, Common::ConfigTree &cfg_out)
         : WinSetupPageDialog(win_cfg, cfg_in),
           _cfgOut(cfg_out)
     {
     }
 
-    static bool ShouldDisplayPage(const ConfigTree &cfg_in);
+    static bool ShouldDisplayPage(const Common::ConfigTree &cfg_in);
 
-    String GetTitle() const override { return "Accessibility"; }
+    Common::String GetTitle() const override { return "Accessibility"; }
 
-    void ResetSetup(const ConfigTree &cfg_from) override;
+    void ResetSetup(const Common::ConfigTree &cfg_from) override;
     void SaveSetup() override;
 
 protected:
@@ -159,7 +158,7 @@ private:
     HWND _hSpeechMode = nullptr;
     HWND _hAlwaysWaitForText = nullptr;
 
-    ConfigTree &_cfgOut;
+    Common::ConfigTree &_cfgOut;
     bool _disabledSkipStyle = false;
 };
 

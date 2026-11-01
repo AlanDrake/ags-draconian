@@ -22,7 +22,6 @@ namespace Common
 class Stream;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 struct AudioClipType
 {
@@ -31,8 +30,8 @@ struct AudioClipType
     int volume_reduction_while_speech_playing = 0;
     int crossfadeSpeed = 0;
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out) const;
-    void ReadFromSavegame(Common::Stream *in);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromFile(AGS::Common::Stream *in);
+    void WriteToFile(AGS::Common::Stream *out) const;
+    void ReadFromSavegame(AGS::Common::Stream *in);
+    void WriteToSavegame(AGS::Common::Stream *out) const;
 };

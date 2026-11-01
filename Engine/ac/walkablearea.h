@@ -23,6 +23,6 @@ int get_area_scaling(int onarea, int xx, int yy);
 void scale_sprite_size(int sppic, int zoom_level, int *newwidth, int *newheight);
 void remove_walkable_areas_from_temp(const Rect &area);
 // IMPORTANT: this function returns *global pointer*, do not delete the returned bitmap! -- subject to future refactor
-Common::Bitmap *prepare_walkable_areas(int sourceChar);
+AGS::Common::Bitmap *prepare_walkable_areas(int sourceChar);
 int get_walkable_area_at_location(int xx, int yy);
 int get_walkable_area_at_character(int charnum);

@@ -39,7 +39,6 @@ namespace Common
 class Stream;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 struct CharacterInfo;
 
@@ -99,7 +98,7 @@ public:
     // Character's inventory, stores item IDs in the order in which items were added.
     // This may include item duplicates if OPT_DUPLICATEINV is enabled.
     std::vector<int> inventory;
-    Common::BlendMode blend_mode = Common::kBlend_Normal;
+    AGS::Common::BlendMode blend_mode = AGS::Common::kBlend_Normal;
     int shader_id = 0;
     int shader_handle = 0; // script shader handle
     float rotation = 0.f;
@@ -155,15 +154,15 @@ public:
     void SetFollowing(CharacterInfo *chi, int follow_who, int distance = 0, int eagerness = 0,
                       bool sort_behind = false);
 
-    inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
+    inline const AGS::Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
 
     void UpdateEffectiveValues(const CharacterInfo *chin);
     void UpdateGraphicSpace(const CharacterInfo *chin);
 
     // Read character extra data from saves.
-    void ReadFromSavegame(CharacterInfo *chin, Common::Stream *in, CharacterSvgVersion save_ver);
-    void WriteToSavegame(const CharacterInfo *chin, Common::Stream *out) const;
+    void ReadFromSavegame(CharacterInfo *chin, AGS::Common::Stream *in, CharacterSvgVersion save_ver);
+    void WriteToSavegame(const CharacterInfo *chin, AGS::Common::Stream *out) const;
 
 private:
-    Common::GraphicSpace _gs;
+    AGS::Common::GraphicSpace _gs;
 };

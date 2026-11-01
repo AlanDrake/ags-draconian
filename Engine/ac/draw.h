@@ -36,7 +36,6 @@ class IGraphicShader;
 class IShaderInstance;
 } // namespace Engine
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 // Render stage flags, for filtering out certain elements
 // during room transitions, capturing screenshots, etc.
@@ -122,16 +121,16 @@ std::shared_ptr<AGS::Engine::Texture> texturecache_precache(uint32_t sprite_id);
 
 // Adds a custom shader to the collection at the desired index;
 // if there's any shader on that index then it will get disposed of
-void add_custom_shader(Engine::IGraphicShader *shader, uint32_t at_index);
+void add_custom_shader(AGS::Engine::IGraphicShader *shader, uint32_t at_index);
 // Gets a custom shader by its index
-Engine::IGraphicShader *get_custom_shader(uint32_t sh_index);
+AGS::Engine::IGraphicShader *get_custom_shader(uint32_t sh_index);
 // Deletes a custom shader; this also deletes their instances
 void delete_custom_shader(uint32_t shader_id);
 // Adds a custom shader instance to the collection at the desired index;
 // if there's any shader instance on that index then it will get disposed of
-void add_shader_instance(Engine::IShaderInstance *shader_instance, uint32_t at_index);
+void add_shader_instance(AGS::Engine::IShaderInstance *shader_instance, uint32_t at_index);
 // Gets a shader instance by its index
-Engine::IShaderInstance *get_shader_instance(uint32_t shinst_index);
+AGS::Engine::IShaderInstance *get_shader_instance(uint32_t shinst_index);
 // Deletes a custom shader instance
 void delete_shader_instance(uint32_t shader_inst_id);
 // Deletes all custom shaders and their isntances
@@ -141,9 +140,9 @@ void dispose_all_custom_shaders();
 // Returns a resulting bitmap, which may be a new or old bitmap; or null on failure.
 // Original bitmap **gets deleted** if a new bitmap had to be created,
 // or if failed to properly initialize one.
-Common::Bitmap *initialize_sprite(Common::sprkey_t index, Common::Bitmap *image, uint32_t &sprite_flags);
+AGS::Common::Bitmap *initialize_sprite(AGS::Common::sprkey_t index, AGS::Common::Bitmap *image, uint32_t &sprite_flags);
 // Run after a sprite was loaded and adjusted for the game
-void post_init_sprite(Common::sprkey_t index);
+void post_init_sprite(AGS::Common::sprkey_t index);
 
 // marks whole screen as needing a redraw
 void invalidate_screen();
@@ -156,17 +155,19 @@ void invalidate_rect(int x1, int y1, int x2, int y2, bool in_room);
 void mark_current_background_dirty();
 
 // Avoid freeing and reallocating the memory if possible
-Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);
-void recycle_bitmap(std::unique_ptr<Common::Bitmap> &bimp, int coldep, int wid, int hit, bool make_transparent = false);
-Engine::IDriverDependantBitmap *recycle_ddb_bitmap(Engine::IDriverDependantBitmap *ddb, Common::Bitmap *source,
-                                                   bool opaque = false);
-Engine::IDriverDependantBitmap *recycle_ddb_sprite(Engine::IDriverDependantBitmap *ddb, uint32_t sprite_id,
-                                                   Common::Bitmap *source, bool opaque = false);
-Engine::IDriverDependantBitmap *recycle_render_target(Engine::IDriverDependantBitmap *ddb, int width, int height,
-                                                      int col_depth, bool opaque = false);
+AGS::Common::Bitmap *recycle_bitmap(AGS::Common::Bitmap *bimp, int coldep, int wid, int hit,
+                                    bool make_transparent = false);
+void recycle_bitmap(std::unique_ptr<AGS::Common::Bitmap> &bimp, int coldep, int wid, int hit,
+                    bool make_transparent = false);
+AGS::Engine::IDriverDependantBitmap *recycle_ddb_bitmap(AGS::Engine::IDriverDependantBitmap *ddb,
+                                                        AGS::Common::Bitmap *source, bool opaque = false);
+AGS::Engine::IDriverDependantBitmap *recycle_ddb_sprite(AGS::Engine::IDriverDependantBitmap *ddb, uint32_t sprite_id,
+                                                        AGS::Common::Bitmap *source, bool opaque = false);
+AGS::Engine::IDriverDependantBitmap *recycle_render_target(AGS::Engine::IDriverDependantBitmap *ddb, int width,
+                                                           int height, int col_depth, bool opaque = false);
 
 // Draw everything
-void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
+void render_graphics(AGS::Engine::IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
 // Construct game scene, scheduling drawing list for the renderer
 void construct_game_scene(bool full_redraw = false);
 // Construct final game screen elements; updates and draws mouse cursor
@@ -180,20 +181,20 @@ RoomAreaMask get_room_mask_debugmode();
 void debug_draw_room_mask(RoomAreaMask mask);
 void debug_draw_movelist(int charnum);
 void update_room_debug();
-void tint_image(Common::Bitmap *g, Common::Bitmap *source, int red, int grn, int blu, int light_level,
+void tint_image(AGS::Common::Bitmap *g, AGS::Common::Bitmap *source, int red, int grn, int blu, int light_level,
                 int luminance = 255);
-void draw_sprite_support_alpha(Common::Bitmap *ds, int xpos, int ypos, Common::Bitmap *image,
-                               Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);
-void draw_sprite_slot_support_alpha(Common::Bitmap *ds, int xpos, int ypos, int src_slot,
-                                    Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);
+void draw_sprite_support_alpha(AGS::Common::Bitmap *ds, int xpos, int ypos, AGS::Common::Bitmap *image,
+                               AGS::Common::BlendMode blend_mode = AGS::Common::kBlend_Normal, int alpha = 0xFF);
+void draw_sprite_slot_support_alpha(AGS::Common::Bitmap *ds, int xpos, int ypos, int src_slot,
+                                    AGS::Common::BlendMode blend_mode = AGS::Common::kBlend_Normal, int alpha = 0xFF);
 // CLNUP I'd like to put the default parameters to draw_gui_sprite, but the extern from guiman.h prevents it
-void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, Common::BlendMode blend_mode);
-void draw_gui_sprite(Common::Bitmap *ds, int xpos, int ypos, Common::Bitmap *image,
-                     Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);
-void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, Common::BlendMode blend_mode,
+void draw_gui_sprite(AGS::Common::Bitmap *ds, int pic, int x, int y, AGS::Common::BlendMode blend_mode);
+void draw_gui_sprite(AGS::Common::Bitmap *ds, int xpos, int ypos, AGS::Common::Bitmap *image,
+                     AGS::Common::BlendMode blend_mode = AGS::Common::kBlend_Normal, int alpha = 0xFF);
+void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int pic, int x, int y, AGS::Common::BlendMode blend_mode,
                              AGS::Common::GraphicFlip flip);
-void draw_gui_sprite_flipped(Common::Bitmap *ds, int xpos, int ypos, Common::Bitmap *image,
-                             Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF,
+void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int xpos, int ypos, AGS::Common::Bitmap *image,
+                             AGS::Common::BlendMode blend_mode = AGS::Common::kBlend_Normal, int alpha = 0xFF,
                              AGS::Common::GraphicFlip flip = AGS::Common::kFlip_None);
 
 // Render game on screen
@@ -213,22 +214,22 @@ bool GfxDriverSpriteEvtCallback(int evt, intptr_t data);
 bool construct_object_gfx(int objid, bool force_software);
 bool construct_char_gfx(int charid, bool force_software);
 // Returns a cached character image prepared for the render
-Common::Bitmap *get_cached_character_image(int charid);
+AGS::Common::Bitmap *get_cached_character_image(int charid);
 // Returns a cached object image prepared for the render
-Common::Bitmap *get_cached_object_image(int objid);
+AGS::Common::Bitmap *get_cached_object_image(int objid);
 // Adds a walk-behind sprite to the list for the given slot
 // (reuses existing texture if possible)
-void add_walkbehind_image(size_t index, Common::Bitmap *bmp, int x, int y);
+void add_walkbehind_image(size_t index, AGS::Common::Bitmap *bmp, int x, int y);
 // Clears black game borders in legacy letterbox mode (CLNUP?)
 void clear_letterbox_borders();
 
-void draw_and_invalidate_text(Common::Bitmap *ds, int x1, int y1, int font, color_t text_color, const char *text);
+void draw_and_invalidate_text(AGS::Common::Bitmap *ds, int x1, int y1, int font, color_t text_color, const char *text);
 
 void setpal();
 
 // Creates bitmap of a format compatible with the gfxdriver;
 // if col_depth is 0, uses game's native color depth.
-Common::Bitmap *CreateCompatBitmap(int width, int height, int col_depth = 0);
+AGS::Common::Bitmap *CreateCompatBitmap(int width, int height, int col_depth = 0);
 // Peforms any kind of conversions over bitmap if they are necessary for it
 // to be be used in AGS sprite operations. Returns either old or new bitmap.
 // Original bitmap **gets deleted** if a new bitmap had to be created.
@@ -240,17 +241,17 @@ Common::Bitmap *CreateCompatBitmap(int width, int height, int col_depth = 0);
 //   color depth. May be useful to disable mask when the source is a 8-bit
 //   palette-based image and the opaque sprite is intended.
 // TODO: think if it's logical to merge 'make_opaque' and 'keep_mask'.
-Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool conv_to_gamedepth, bool make_opaque = false,
-                                    bool keep_mask = true, const RGB *bm_palette = nullptr);
+AGS::Common::Bitmap *PrepareSpriteForUse(AGS::Common::Bitmap *bitmap, bool conv_to_gamedepth, bool make_opaque = false,
+                                         bool keep_mask = true, const RGB *bm_palette = nullptr);
 // Same as above, but compatible with std::shared_ptr.
-Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool conv_to_gamedepth, bool make_opaque = false,
-                                    bool keep_mask = true, const RGB *bm_palette = nullptr);
+AGS::Common::PBitmap PrepareSpriteForUse(AGS::Common::PBitmap bitmap, bool conv_to_gamedepth, bool make_opaque = false,
+                                         bool keep_mask = true, const RGB *bm_palette = nullptr);
 // Makes a screenshot corresponding to the last screen render and returns it as a bitmap
 // of the requested width and height and game's native color depth.
-Common::Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect = nullptr, bool at_native_res = false,
-                                     uint32_t batch_skip_filter = 0u);
+AGS::Common::Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect = nullptr,
+                                          bool at_native_res = false, uint32_t batch_skip_filter = 0u);
 
 
 // TODO: hide these behind some kind of an interface
 // Stores cloned surfaces (see DrawingSurface.CreateCopy)
-extern std::unique_ptr<Common::Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
+extern std::unique_ptr<AGS::Common::Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];

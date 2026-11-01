@@ -15,6 +15,9 @@
 #include "ac/file.h"
 
 // CHECKME: actually NULLs here will be equal to kFile_Open & kStream_Read
+using namespace AGS;
+using namespace AGS::Common;
+
 const Common::FileOpenMode sc_File::fopenModes[] = {Common::kFile_Open /*CHECKME, was undefined*/, Common::kFile_Open,
                                                     Common::kFile_CreateAlways, Common::kFile_Create};
 const Common::StreamMode sc_File::fworkModes[] = {Common::kStream_Read /*CHECKME, was undefined*/, Common::kStream_Read,

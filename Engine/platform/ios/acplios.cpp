@@ -30,6 +30,7 @@
 #include "util/string_utils.h"
 
 
+using namespace AGS;
 using namespace AGS::Common;
 
 #define IOS_CONFIG_FILENAME "ios.cfg"

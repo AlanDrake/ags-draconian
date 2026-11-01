@@ -31,6 +31,7 @@
 #include "gui/guitextbox.h"
 #include "util/string_utils.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 extern GameSetupStruct thisgame;
 

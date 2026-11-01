@@ -30,7 +30,6 @@ namespace Common
 class Stream;
 }
 } // namespace AGS
-using namespace AGS; // FIXME later
 
 // RoomObject's legacy animation constants
 #define LEGACY_OBJANIM_ONCE      (LEGACY_ANIM_ONCE + 1)
@@ -70,8 +69,8 @@ public:
     int audio_volume = 100; // default animation sounds volume (relative factor)
     int audio_panning = 0;  // animation sounds panning (-100 to +100)
     int audio_speed = 0;    // animation sounds speed, ms per second
-    Common::String name;
-    Common::BlendMode blend_mode;
+    AGS::Common::String name;
+    AGS::Common::BlendMode blend_mode;
     int shader_id = 0;
     int shader_handle = 0; // script shader handle
     float rotation;
@@ -104,7 +103,7 @@ public:
         anim = ViewAnimateParams(repeat, dir, delay, anim_volume);
     }
 
-    inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
+    inline const AGS::Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
     void UpdateGraphicSpace();
 
     void UpdateCyclingView(int ref_id);
@@ -117,9 +116,9 @@ public:
     // Run the arbitrary frame's event if one is associated and character has a handler
     bool RunFrameEvent(int view, int loop, int frame);
 
-    void ReadFromSavegame(Common::Stream *in, int cmp_ver);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromSavegame(AGS::Common::Stream *in, int cmp_ver);
+    void WriteToSavegame(AGS::Common::Stream *out) const;
 
 private:
-    Common::GraphicSpace _gs;
+    AGS::Common::GraphicSpace _gs;
 };

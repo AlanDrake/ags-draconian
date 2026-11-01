@@ -27,10 +27,10 @@
 //
 struct PluginObjectReader
 {
-    const Common::String Type;
+    const AGS::Common::String Type;
     ICCObjectReader *const Reader = nullptr;
 
-    PluginObjectReader(const Common::String &type, ICCObjectReader *reader) : Type(type), Reader(reader) {}
+    PluginObjectReader(const AGS::Common::String &type, ICCObjectReader *reader) : Type(type), Reader(reader) {}
 };
 
 

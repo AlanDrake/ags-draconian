@@ -33,7 +33,6 @@
 #include "util/string.h"
 #include "util/string_types.h"
 
-using namespace AGS::Common;
 
 class ScriptDictBase : public AGSCCDynamicObject
 {
@@ -85,17 +84,17 @@ public:
             DeleteItem(it);
         _dic.clear();
     }
-    bool Contains(const char *key) override { return _dic.count(String::Wrapper(key)) != 0; }
+    bool Contains(const char *key) override { return _dic.count(AGS::Common::String::Wrapper(key)) != 0; }
     const char *Get(const char *key) override
     {
-        auto it = _dic.find(String::Wrapper(key));
+        auto it = _dic.find(AGS::Common::String::Wrapper(key));
         if (it == _dic.end())
             return nullptr;
         return it->second.GetCStr();
     }
     bool Remove(const char *key) override
     {
-        auto it = _dic.find(String::Wrapper(key));
+        auto it = _dic.find(AGS::Common::String::Wrapper(key));
         if (it == _dic.end())
             return false;
         DeleteItem(it);
@@ -111,7 +110,7 @@ public:
             Remove(key);
             return true;
         }
-        return TryAddItem(String(key), String(value));
+        return TryAddItem(AGS::Common::String(key), AGS::Common::String(value));
     }
     int GetItemCount() override { return _dic.size(); }
     void GetKeys(std::vector<const char *> &buf) const override
@@ -126,7 +125,7 @@ public:
     }
 
 private:
-    bool TryAddItem(const String &key, const String &value)
+    bool TryAddItem(const AGS::Common::String &key, const AGS::Common::String &value)
     {
         _dic[key] = value;
         return true;
@@ -164,11 +163,11 @@ private:
         for (size_t i = 0; i < item_count; ++i)
         {
             size_t key_len = in->ReadInt32();
-            String key = String::FromStreamCount(in, key_len);
+            AGS::Common::String key = AGS::Common::String::FromStreamCount(in, key_len);
             size_t value_len = in->ReadInt32();
             if (value_len != (size_t)-1) // do not restore keys with null value (old format)
             {
-                String value = String::FromStreamCount(in, value_len);
+                AGS::Common::String value = AGS::Common::String::FromStreamCount(in, value_len);
                 TryAddItem(key, value);
             }
         }
@@ -202,14 +201,24 @@ public:
     }
 };
 
-typedef ScriptDictStdImpl<String, String, std::less<String>, kScCaseSensitive> ScriptDict;
-typedef ScriptDictStdImpl<String, String, StrLessNoCase, kScCaseInsensitive> ScriptDictCI;
-typedef ScriptDictStdImpl<String, String, StrLessUtf8NoCase, kScCaseInsensitive> ScriptDictUtf8CI;
-typedef ScriptDictStdImpl<String, String, LexographicalStrLess, kScCaseSensitiveLocaleAware> ScriptDictLocaleAware;
-typedef ScriptDictStdImpl<String, String, LexographicalStrLessNoCase, kScCaseInsensitiveLocaleAware>
+typedef ScriptDictStdImpl<AGS::Common::String, AGS::Common::String, std::less<AGS::Common::String>, kScCaseSensitive>
+    ScriptDict;
+typedef ScriptDictStdImpl<AGS::Common::String, AGS::Common::String, AGS::Common::StrLessNoCase, kScCaseInsensitive>
+    ScriptDictCI;
+typedef ScriptDictStdImpl<AGS::Common::String, AGS::Common::String, AGS::Common::StrLessUtf8NoCase, kScCaseInsensitive>
+    ScriptDictUtf8CI;
+typedef ScriptDictStdImpl<AGS::Common::String, AGS::Common::String, AGS::Common::LexographicalStrLess,
+                          kScCaseSensitiveLocaleAware>
+    ScriptDictLocaleAware;
+typedef ScriptDictStdImpl<AGS::Common::String, AGS::Common::String, AGS::Common::LexographicalStrLessNoCase,
+                          kScCaseInsensitiveLocaleAware>
     ScriptDictLocaleAwareCI;
-typedef ScriptDictStdHashImpl<String, String, std::hash<String>, std::equal_to<String>, kScCaseSensitive>
+typedef ScriptDictStdHashImpl<AGS::Common::String, AGS::Common::String, std::hash<AGS::Common::String>,
+                              std::equal_to<AGS::Common::String>, kScCaseSensitive>
     ScriptHashDict;
-typedef ScriptDictStdHashImpl<String, String, HashStrNoCase, StrEqNoCase, kScCaseInsensitive> ScriptHashDictCI;
-typedef ScriptDictStdHashImpl<String, String, HashStrUtf8NoCase, StrEqUtf8NoCase, kScCaseInsensitive>
+typedef ScriptDictStdHashImpl<AGS::Common::String, AGS::Common::String, AGS::Common::HashStrNoCase,
+                              AGS::Common::StrEqNoCase, kScCaseInsensitive>
+    ScriptHashDictCI;
+typedef ScriptDictStdHashImpl<AGS::Common::String, AGS::Common::String, AGS::Common::HashStrUtf8NoCase,
+                              AGS::Common::StrEqUtf8NoCase, kScCaseInsensitive>
     ScriptHashDictUtf8CI;
