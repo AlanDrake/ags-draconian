@@ -29,7 +29,7 @@ namespace DataUtil
 // TRS - original translation source a in text format
 //-----------------------------------------------------------------------------
 
-const char   OPTION_SEPARATOR = '=';
+const char OPTION_SEPARATOR = '=';
 const String GAMEID_TAG = "GameID";
 const String GAMENAME_TAG = "GameName";
 const String NORMAL_FONT_TAG = "NormalFont";
@@ -45,7 +45,7 @@ const String TAG_DIRECTION_LEFT = "LEFT";
 const String TAG_DIRECTION_RIGHT = "RIGHT";
 const String TAG_ON = "ON";
 const String TAG_OFF = "OFF";
-const char   ANNOTATE_SEPARATOR = ':';
+const char ANNOTATE_SEPARATOR = ':';
 const String ANNOTATE_PARSERWORD = "PARSERWORD";
 
 const String SECTION_TEXTPARSER = "Game Text Parser";
@@ -303,7 +303,7 @@ static void WriteFontOverrides(const Translation &tra, TextStreamWriter &sw)
             else if (finfo.Outline >= 0)
                 font_line.AppendFmt("Outline=Font%d;", finfo.Outline);
         }
-        
+
         if (fields & kFontField_AutoOutlineStyle)
         {
             if (finfo.AutoOutlineStyle == FontInfo::kSquared)
@@ -438,8 +438,7 @@ struct TranslationEntry
     std::vector<String> Annotations;
 
     TranslationEntry() = default;
-    TranslationEntry(const String &key, const String &value)
-        : Key(key), Value(value) {}
+    TranslationEntry(const String &key, const String &value) : Key(key), Value(value) {}
 };
 
 struct TranslationSection
@@ -449,8 +448,7 @@ struct TranslationSection
     std::vector<TranslationEntry> Entries;
 
     TranslationSection() = default;
-    TranslationSection(const String &name)
-        : Name(name) {}
+    TranslationSection(const String &name) : Name(name) {}
 };
 
 // Organizes translated lines by sections.
@@ -487,7 +485,8 @@ static void MakeSections(const Translation &translation, std::vector<Translation
     }
 }
 
-static HError WriteTRS(const Translation &tra, const std::vector<TranslationSection> &sectionLists, std::unique_ptr<Stream> &&out)
+static HError WriteTRS(const Translation &tra, const std::vector<TranslationSection> &sectionLists,
+                       std::unique_ptr<Stream> &&out)
 {
     TextStreamWriter sw(std::move(out));
 
@@ -509,7 +508,11 @@ static HError WriteTRS(const Translation &tra, const std::vector<TranslationSect
     sw.WriteLine("// The speech font to use - DEFAULT or font number");
     sw.WriteLineFormat("//#SpeechFont=%s", WriteOptionalInt(tra.SpeechFont).GetCStr());
     sw.WriteLine("// Text direction - DEFAULT, LEFT or RIGHT");
-    sw.WriteLineFormat("//#TextDirection=%s", ((tra.RightToLeft == kTextDirection_RTL) ? TAG_DIRECTION_RIGHT.GetCStr() : ((tra.RightToLeft == kTextDirection_Default) ? TAG_DEFAULT.GetCStr() : TAG_DIRECTION_LEFT.GetCStr())));
+    sw.WriteLineFormat(
+        "//#TextDirection=%s",
+        ((tra.RightToLeft == kTextDirection_RTL)
+             ? TAG_DIRECTION_RIGHT.GetCStr()
+             : ((tra.RightToLeft == kTextDirection_Default) ? TAG_DEFAULT.GetCStr() : TAG_DIRECTION_LEFT.GetCStr())));
     sw.WriteLine("// Text encoding hint - ASCII or UTF-8");
     sw.WriteLineFormat("//#Encoding=%s", (tra.EncodingHint.IsEmpty() ? "ASCII" : tra.EncodingHint.GetCStr()));
     sw.WriteLine("// Text language, use standard locale strings, like 'en', 'en_US', etc");
@@ -517,7 +520,8 @@ static HError WriteTRS(const Translation &tra, const std::vector<TranslationSect
     lang_hint.Replace('-', '_');
     sw.WriteLineFormat("//#Language=%s", lang_hint.GetCStr());
     sw.WriteLine("// Whether engine should translate Parser.Said strings automatically - ON or OFF");
-    sw.WriteLineFormat("//#AutoTranslateParserSaid=%s", ((tra.OptFlags & kTraOpt_AutoTranslateSaid) != 0) ? TAG_ON.GetCStr() : TAG_OFF.GetCStr());
+    sw.WriteLineFormat("//#AutoTranslateParserSaid=%s",
+                       ((tra.OptFlags & kTraOpt_AutoTranslateSaid) != 0) ? TAG_ON.GetCStr() : TAG_OFF.GetCStr());
     if (tra.FontOverrides.size() != 0)
     {
         WriteFontOverrides(tra, sw);

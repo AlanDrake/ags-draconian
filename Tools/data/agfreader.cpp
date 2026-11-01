@@ -24,7 +24,7 @@ const char *XML_ATTRIBUTE_VERSION = "Version";
 const char *XML_ATTRIBUTE_VERSION_INDEX = "VersionIndex";
 const char *XML_ATTRIBUTE_EDITOR_VERSION = "EditorVersion";
 const char *LATEST_XML_VERSION = "3.0.3.2";
-const int  LOWEST_SUPPORTED_FORMAT = 26; // AGS 3.5.0
+const int LOWEST_SUPPORTED_FORMAT = 26; // AGS 3.5.0
 
 using namespace AGS::Common;
 using namespace tinyxml2;
@@ -32,136 +32,73 @@ using namespace tinyxml2;
 namespace
 {
 
-static const CstrArr<3> kGameColorDepthNames = {{
-    "Palette", "HighColor", "TrueColor"
-}};
+static const CstrArr<3> kGameColorDepthNames = {{"Palette", "HighColor", "TrueColor"}};
 
-static const CstrArr<4> kCompressSpritesTypeNames = {{
-    "None", "RLE", "LZW", "Deflate"
-}};
+static const CstrArr<4> kCompressSpritesTypeNames = {{"None", "RLE", "LZW", "Deflate"}};
 
-static const CstrArr<3> kAndroidBuildFormatNames = {{
-    "ApkEmbedded", "AabEmbedded", "Aab"
-}};
+static const CstrArr<3> kAndroidBuildFormatNames = {{"ApkEmbedded", "AabEmbedded", "Aab"}};
 
-static const CstrArr<3> kGuiAlphaStyleNames = {{
-    "Classic", "AdditiveOpacity", "MultiplyTranslucenceSrcBlend"
-}};
+static const CstrArr<3> kGuiAlphaStyleNames = {{"Classic", "AdditiveOpacity", "MultiplyTranslucenceSrcBlend"}};
 
-static const CstrArr<2> kSpriteAlphaStyleNames = {{
-    "Classic", "Improved"
-}};
+static const CstrArr<2> kSpriteAlphaStyleNames = {{"Classic", "Improved"}};
 
-static const CstrArr<3> kRenderAtScreenResNames = {{
-    "UserDefined", "True", "False"
-}};
+static const CstrArr<3> kRenderAtScreenResNames = {{"UserDefined", "True", "False"}};
 
-static const CstrArr<5> kRoomTransitionNames = {{
-    "FadeOutAndIn", "Instant", "Dissolve", "BlackBoxOut", "CrossFade"
-}};
+static const CstrArr<5> kRoomTransitionNames = {{"FadeOutAndIn", "Instant", "Dissolve", "BlackBoxOut", "CrossFade"}};
 
-static const CstrArr<3> kNumberDialogOptionsNames = {{
-    "None", "KeyShortcutsOnly", "Normal"
-}};
+static const CstrArr<3> kNumberDialogOptionsNames = {{"None", "KeyShortcutsOnly", "Normal"}};
 
-static const CstrArr<7> kSkipSpeechNames = {{
-    "MouseOrKeyboardOrTimer", "KeyboardOnly", "TimerOnly",
-    "MouseOrKeyboard", "MouseOnly", "KeyboardOnlyStrict", "MouseOnlyStrict"
-}};
+static const CstrArr<7> kSkipSpeechNames = {{"MouseOrKeyboardOrTimer", "KeyboardOnly", "TimerOnly", "MouseOrKeyboard",
+                                             "MouseOnly", "KeyboardOnlyStrict", "MouseOnlyStrict"}};
 
-static const CstrArr<4> kSpeechPortraitSideNames = {{
-    "Left", "Right", "Alternate", "BasedOnCharacterPosition"
-}};
+static const CstrArr<4> kSpeechPortraitSideNames = {{"Left", "Right", "Alternate", "BasedOnCharacterPosition"}};
 
-static const CstrArr<4> kSpeechStyleNames = {{
-    "Lucasarts", "SierraTransparent", "SierraWithBackground", "WholeScreen"
-}};
+static const CstrArr<4> kSpeechStyleNames = {{"Lucasarts", "SierraTransparent", "SierraWithBackground", "WholeScreen"}};
 
-static const CstrArr<3> kFontHeightDefinitionNames = {{
-    "NominalHeight", "PixelHeight", "CustomValue"
-}};
+static const CstrArr<3> kFontHeightDefinitionNames = {{"NominalHeight", "PixelHeight", "CustomValue"}};
 
-static const CstrArr<2> kFontMetricsFixupNames = {{
-    "None", "SetAscenderToHeight"
-}};
+static const CstrArr<2> kFontMetricsFixupNames = {{"None", "SetAscenderToHeight"}};
 
-static const CstrArr<4> kInterfaceDisabledNames = {{
-    "GreyOut", "GoBlack", "Unchanged", "TurnOff"
-}};
+static const CstrArr<4> kInterfaceDisabledNames = {{"GreyOut", "GoBlack", "Unchanged", "TurnOff"}};
 
-static const CstrArr<4> kGuiPopupStyleNames = {{
-    "Normal", "MouseYPos", "PopupModal", "Persistent"
-}};
+static const CstrArr<4> kGuiPopupStyleNames = {{"Normal", "MouseYPos", "PopupModal", "Persistent"}};
 
-static const CstrArr<3> kInventoryHotspotMarkerNames = {{
-    "None", "Crosshair", "Sprite"
-}};
+static const CstrArr<3> kInventoryHotspotMarkerNames = {{"None", "Crosshair", "Sprite"}};
 
-static const CstrArr<3> kCustomPropertyTypeNames = {{
-    "Boolean", "Number", "Text"
-}};
+static const CstrArr<3> kCustomPropertyTypeNames = {{"Boolean", "Number", "Text"}};
 
-static const CstrArr<9> kFrameAlignmentNames = {{
-    "TopLeft", "TopCenter", "TopRight",
-    "MiddleLeft", "MiddleCenter", "MiddleRight",
-    "BottomLeft", "BottomCenter", "BottomRight"
-}};
+static const CstrArr<9> kFrameAlignmentNames = {{"TopLeft", "TopCenter", "TopRight", "MiddleLeft", "MiddleCenter",
+                                                 "MiddleRight", "BottomLeft", "BottomCenter", "BottomRight"}};
 
-static const CstrArr<3> kFontOutlineStyleNames = {{
-    "None", "Automatic", "UseOutlineFont"
-}};
+static const CstrArr<3> kFontOutlineStyleNames = {{"None", "Automatic", "UseOutlineFont"}};
 
-static const CstrArr<2> kFontAutoOutlineStyleNames = {{
-    "Squared", "Rounded"
-}};
+static const CstrArr<2> kFontAutoOutlineStyleNames = {{"Squared", "Rounded"}};
 
-static const CstrArr<3> kSpriteImportResolutionNames = {{
-    "Real", "LowRes", "HighRes"
-}};
+static const CstrArr<3> kSpriteImportResolutionNames = {{"Real", "LowRes", "HighRes"}};
 
-static const CstrArr<8> kSpriteImportTransparencyNames = {{
-    "PaletteIndex0", "TopLeft", "BottomLeft", "TopRight", "BottomRight", "LeaveAsIs", "NoTransparency", "PaletteIndex"
-}};
+static const CstrArr<8> kSpriteImportTransparencyNames = {{"PaletteIndex0", "TopLeft", "BottomLeft", "TopRight",
+                                                           "BottomRight", "LeaveAsIs", "NoTransparency",
+                                                           "PaletteIndex"}};
 
-static const CstrArr<2> kAudioBundlingTypeNames = {{
-    "InGameEXE", "InSeparateVOX"
-}};
+static const CstrArr<2> kAudioBundlingTypeNames = {{"InGameEXE", "InSeparateVOX"}};
 
-static const CstrArr<6> kAudioFileTypeNames = {{
-    "OGG", "MP3", "WAV", "VOC", "MIDI", "MOD"
-}};
+static const CstrArr<6> kAudioFileTypeNames = {{"OGG", "MP3", "WAV", "VOC", "MIDI", "MOD"}};
 
-static const CstrArr<5> kCrossfadeSpeedNames = {{
-    "No", "SlowFade", "SlowishFade", "MediumFade", "FastFade"
-}};
+static const CstrArr<5> kCrossfadeSpeedNames = {{"No", "SlowFade", "SlowishFade", "MediumFade", "FastFade"}};
 
-static const CstrArr<3> kButtonColorStyleNames = {{
-    "Default", "Dynamic", "DynamicFlat"
-}};
+static const CstrArr<3> kButtonColorStyleNames = {{"Default", "Dynamic", "DynamicFlat"}};
 
-static const CstrArr<3> kInheritableBoolNames = {{
-    "Inherit", "False", "True"
-}};
+static const CstrArr<3> kInheritableBoolNames = {{"Inherit", "False", "True"}};
 
-static const CstrArr<6> kAudioPriorityNames = {{
-    "Inherit", "VeryLow", "Low", "Normal", "High", "VeryHigh"
-}};
+static const CstrArr<6> kAudioPriorityNames = {{"Inherit", "VeryLow", "Low", "Normal", "High", "VeryHigh"}};
 
-static const CstrArr<3> kLipSyncTypeNames = {{
-    "None", "Text", "PamelaVoiceFiles"
-}};
+static const CstrArr<3> kLipSyncTypeNames = {{"None", "Text", "PamelaVoiceFiles"}};
 
-static const CstrArr<2> kPaletteTypeNames = {{
-    "Gamewide", "Background"
-}};
+static const CstrArr<2> kPaletteTypeNames = {{"Gamewide", "Background"}};
 
-static const CstrArr<4> kTurnOrderPriorityNames = {{
-    "Clockwise", "CounterClockwise", "Random", "FaceDown"
-}};
+static const CstrArr<4> kTurnOrderPriorityNames = {{"Clockwise", "CounterClockwise", "Random", "FaceDown"}};
 
-static const CstrArr<3> kTextBoxKeyClaimStyleNames = {{
-    "All", "Handled", "TextOnly"
-}};
+static const CstrArr<3> kTextBoxKeyClaimStyleNames = {{"All", "Handled", "TextOnly"}};
 
 } // namespace
 
@@ -170,14 +107,9 @@ namespace AGS
 namespace AGF
 {
 
-AGFReader::AGFReader()
-    : _gameRoot(nullptr)
-{
-}
+AGFReader::AGFReader() : _gameRoot(nullptr) {}
 
-AGFReader::~AGFReader()
-{
-}
+AGFReader::~AGFReader() {}
 
 // NOTE: When reading Game.agf files, it is possible they may have been authored by hand,
 // so they could potentially contain some mistakes when comparing with one authored by
@@ -202,8 +134,8 @@ HError AGFReader::Open(const char *filename)
     const int attr_format = _doc->RootElement()->IntAttribute(XML_ATTRIBUTE_VERSION_INDEX);
     const char *attr_editorver = _doc->RootElement()->Attribute(XML_ATTRIBUTE_EDITOR_VERSION);
     _editorVersion = attr_editorver ? attr_editorver : "";
-    Debug::Printf("AGFReader: opened %s,\n format tag: %s\n format index: %d\n saved by AGS %s",
-        filename, attr_filever, attr_format, attr_editorver ? attr_editorver : "unknown");
+    Debug::Printf("AGFReader: opened %s,\n format tag: %s\n format index: %d\n saved by AGS %s", filename, attr_filever,
+                  attr_format, attr_editorver ? attr_editorver : "unknown");
 
     if (attr_format < LOWEST_SUPPORTED_FORMAT)
         return new Error("Unsupported Game.agf format index: %d", attr_format);
@@ -226,8 +158,8 @@ void AGFReader::Close()
 // Entity list parsers
 //-----------------------------------------------------------------------------
 
-void EntityListParser::GetAllElems(DocElem game_root, std::vector<DocElem> &elems,
-    const char *folder_elem, const char *list_elem, const char *type_elem)
+void EntityListParser::GetAllElems(DocElem game_root, std::vector<DocElem> &elems, const char *folder_elem,
+                                   const char *list_elem, const char *type_elem)
 {
     DocElem list_root = game_root->FirstChildElement(list_elem);
     if (!list_root)
@@ -242,8 +174,8 @@ void EntityListParser::GetAllElems(DocElem game_root, std::vector<DocElem> &elem
     return GetElemsRecursive(node, elems, folder_elem, list_elem, type_elem);
 }
 
-void EntityListParser::GetAllElems(DocElem game_root, std::vector<DocElem> &elems,
-    const char *root_elem, const char *folder_elem, const char *list_elem, const char *type_elem)
+void EntityListParser::GetAllElems(DocElem game_root, std::vector<DocElem> &elems, const char *root_elem,
+                                   const char *folder_elem, const char *list_elem, const char *type_elem)
 {
     DocElem list_root = game_root->FirstChildElement(root_elem);
     if (!list_root)
@@ -258,8 +190,8 @@ void EntityListParser::GetAllElems(DocElem game_root, std::vector<DocElem> &elem
     return GetElemsRecursive(node, elems, folder_elem, list_elem, type_elem);
 }
 
-void EntityListParser::GetElemsRecursive(DocElem folder,  std::vector<DocElem> &elems,
-     const char *folder_elem, const char *list_elem, const char *type_elem)
+void EntityListParser::GetElemsRecursive(DocElem folder, std::vector<DocElem> &elems, const char *folder_elem,
+                                         const char *list_elem, const char *type_elem)
 {
     if (!folder)
         return;
@@ -270,8 +202,7 @@ void EntityListParser::GetElemsRecursive(DocElem folder,  std::vector<DocElem> &
         DocElem sub = folder->FirstChildElement("SubFolders");
         if (sub)
         {
-            for (DocElem node = sub->FirstChildElement(folder_elem);
-                node; node = node->NextSiblingElement(folder_elem))
+            for (DocElem node = sub->FirstChildElement(folder_elem); node; node = node->NextSiblingElement(folder_elem))
             {
                 GetElemsRecursive(node, elems, folder_elem, list_elem, type_elem);
             }
@@ -282,8 +213,7 @@ void EntityListParser::GetElemsRecursive(DocElem folder,  std::vector<DocElem> &
             return;
     }
     // Then pass elements themselves
-    for (DocElem node = list_node->FirstChildElement(type_elem);
-        node; node = node->NextSiblingElement(type_elem))
+    for (DocElem node = list_node->FirstChildElement(type_elem); node; node = node->NextSiblingElement(type_elem))
     {
         elems.push_back(node);
     }
@@ -293,7 +223,7 @@ void EntityListParser::GetElemsRecursive(DocElem folder,  std::vector<DocElem> &
 // Entity parsers
 //-----------------------------------------------------------------------------
 
-const char* ValueParser::ReadString(DocElem elem, const char *field, const char *def_value)
+const char *ValueParser::ReadString(DocElem elem, const char *field, const char *def_value)
 {
     if (!elem)
         return def_value;
@@ -331,7 +261,7 @@ bool ValueParser::ReadBool(DocElem elem, const char *field, bool def_value)
     return def_value;
 }
 
-const char* ValueParser::ReadAttributeString(DocElem elem, const char *field, const char *def_value)
+const char *ValueParser::ReadAttributeString(DocElem elem, const char *field, const char *def_value)
 {
     if (!elem)
         return def_value;
@@ -382,8 +312,8 @@ static ScreenTransitionStyle ReadRoomTransition(const String &value)
 
 static DialogOptionNumbering ReadDialogOptionsNumbering(const String &value)
 {
-    return StrUtil::ParseEnumWithBase(value, kNumberDialogOptionsNames,
-        static_cast<DialogOptionNumbering>(-1), kDlgOptNoNumbering);
+    return StrUtil::ParseEnumWithBase(value, kNumberDialogOptionsNames, static_cast<DialogOptionNumbering>(-1),
+                                      kDlgOptNoNumbering);
 }
 
 DataUtil::SkipSpeechStyle ReadSkipSpeech(const String &value)
@@ -435,8 +365,8 @@ static DataUtil::InventoryHotspotMarkerStyle ReadInventoryHotspotMarkerStyle(con
 
 static AGS::Common::PropertyType ReadCustomPropertyType(const String &value)
 {
-    return StrUtil::ParseEnumWithBase(value, kCustomPropertyTypeNames,
-        AGS::Common::kPropertyBoolean, AGS::Common::kPropertyUndefined);
+    return StrUtil::ParseEnumWithBase(value, kCustomPropertyTypeNames, AGS::Common::kPropertyBoolean,
+                                      AGS::Common::kPropertyUndefined);
 }
 
 
@@ -489,8 +419,8 @@ int Dialog::ReadOptionCount(DocElem elem)
     if (!elem)
         return 0;
     int count = 0;
-    for (elem = elem->FirstChildElement("DialogOption");
-        elem; elem = elem->NextSiblingElement("DialogOption"), count++);
+    for (elem = elem->FirstChildElement("DialogOption"); elem; elem = elem->NextSiblingElement("DialogOption"), count++)
+        ;
     return count;
 }
 
@@ -576,7 +506,7 @@ String GUIMain::ReadScriptName(DocElem elem)
     return ReadString(self, "Name");
 }
 
-void GUIMain::ReadAllData(DocElem elem, DataUtil::GUIData& gui_data)
+void GUIMain::ReadAllData(DocElem elem, DataUtil::GUIData &gui_data)
 {
     DocElem self = GetNormalGUI(elem);
     if (!self)
@@ -633,7 +563,7 @@ String GUIControl::ReadType(DocElem elem)
     return "GUIControl";
 }
 
-void GUIControl::ReadAllData(DocElem elem, DataUtil::GUIControlData& data)
+void GUIControl::ReadAllData(DocElem elem, DataUtil::GUIControlData &data)
 {
     data.Clickable = ReadBool(elem, "Clickable");
     data.Height = ReadInt(elem, "Height");
@@ -653,7 +583,7 @@ void GUIControl::ReadAllData(DocElem elem, DataUtil::GUIControlData& data)
     data.PaddingY = ReadInt(elem, "PaddingY");
 }
 
-void GUIControl::ReadButtonData(DocElem elem, DataUtil::GUIButtonData& data)
+void GUIControl::ReadButtonData(DocElem elem, DataUtil::GUIButtonData &data)
 {
     data.ClickAction = ReadString(elem, "ClickAction");
     data.ClipImage = ReadBool(elem, "ClipImage");
@@ -678,7 +608,7 @@ void GUIControl::ReadButtonData(DocElem elem, DataUtil::GUIButtonData& data)
     data.TextOutlineColor = ReadInt(elem, "TextOutlineColor");
 }
 
-void GUIControl::ReadLabelData(DocElem elem, DataUtil::GUILabelData& data)
+void GUIControl::ReadLabelData(DocElem elem, DataUtil::GUILabelData &data)
 {
     data.Font = ReadInt(elem, "Font");
     data.Text = ReadString(elem, "Text");
@@ -687,7 +617,7 @@ void GUIControl::ReadLabelData(DocElem elem, DataUtil::GUILabelData& data)
     data.TextOutlineColor = ReadInt(elem, "TextOutlineColor");
 }
 
-void GUIControl::ReadSliderData(DocElem elem, DataUtil::GUISliderData& data)
+void GUIControl::ReadSliderData(DocElem elem, DataUtil::GUISliderData &data)
 {
     data.BackgroundImage = ReadInt(elem, "BackgroundImage");
     data.HandleImage = ReadInt(elem, "HandleImage");
@@ -700,14 +630,14 @@ void GUIControl::ReadSliderData(DocElem elem, DataUtil::GUISliderData& data)
     data.BorderShadeColor = ReadInt(elem, "BorderShadeColor");
 }
 
-void GUIControl::ReadInventoryData(DocElem elem, DataUtil::GUIInventoryData& data)
+void GUIControl::ReadInventoryData(DocElem elem, DataUtil::GUIInventoryData &data)
 {
     data.CharacterID = ReadInt(elem, "CharacterID");
     data.ItemHeight = ReadInt(elem, "ItemHeight");
     data.ItemWidth = ReadInt(elem, "ItemWidth");
 }
 
-void GUIControl::ReadTextBoxData(DocElem elem, DataUtil::GUITextBoxData& data)
+void GUIControl::ReadTextBoxData(DocElem elem, DataUtil::GUITextBoxData &data)
 {
     data.Font = ReadInt(elem, "Font");
     data.OnActivate = ReadString(elem, "OnActivate");
@@ -718,7 +648,7 @@ void GUIControl::ReadTextBoxData(DocElem elem, DataUtil::GUITextBoxData& data)
     data.TextOutlineColor = ReadInt(elem, "TextOutlineColor");
 }
 
-void GUIControl::ReadListBoxData(DocElem elem, DataUtil::GUIListBoxData& data)
+void GUIControl::ReadListBoxData(DocElem elem, DataUtil::GUIListBoxData &data)
 {
     data.Font = ReadInt(elem, "Font");
     data.OnSelectionChanged = ReadString(elem, "OnSelectionChanged");
@@ -745,7 +675,7 @@ void CustomPropertySchemaItem::ReadAllData(DocElem elem, DataUtil::CustomPropert
     data.Translated = ReadBool(elem, "Translated");
 }
 
-void GameSettings::ReadAllData(DocElem elem, DataUtil::GameSettings& s)
+void GameSettings::ReadAllData(DocElem elem, DataUtil::GameSettings &s)
 {
     s.AllowRelativeAssetResolutions = ReadBool(elem, "AllowRelativeAssetResolutions");
     s.AlwaysDisplayTextAsSpeech = ReadBool(elem, "AlwaysDisplayTextAsSpeech");
@@ -846,8 +776,8 @@ void GlobalVariables::GetAll(DocElem root, std::vector<DocElem> &elems)
     list_node = list_node->FirstChildElement("Variables");
     if (!list_node)
         return;
-    for (DocElem node = list_node->FirstChildElement("GlobalVariable");
-        node; node = node->NextSiblingElement("GlobalVariable"))
+    for (DocElem node = list_node->FirstChildElement("GlobalVariable"); node;
+         node = node->NextSiblingElement("GlobalVariable"))
     {
         elems.push_back(node);
     }
@@ -858,8 +788,8 @@ void CustomPropertySchema::GetAll(DocElem root, std::vector<DocElem> &elems)
     DocElem list_node = root->FirstChildElement("PropertyDefinitions");
     if (!list_node)
         return;
-    for (DocElem node = list_node->FirstChildElement("CustomPropertySchemaItem");
-        node; node = node->NextSiblingElement("CustomPropertySchemaItem"))
+    for (DocElem node = list_node->FirstChildElement("CustomPropertySchemaItem"); node;
+         node = node->NextSiblingElement("CustomPropertySchemaItem"))
     {
         elems.push_back(node);
     }
@@ -942,8 +872,8 @@ void ReadEntityRef(DataUtil::EntityRef &ent, EntityParser &parser, DocElem elem)
     ent.ScriptName = name;
 }
 
-void ReadAllEntityRefs(std::vector<DataUtil::EntityRef> &ents, EntityListParser &list_parser,
-    EntityParser &parser, DocElem root)
+void ReadAllEntityRefs(std::vector<DataUtil::EntityRef> &ents, EntityListParser &list_parser, EntityParser &parser,
+                       DocElem root)
 {
     std::vector<DocElem> elems;
     list_parser.GetAll(root, elems);
@@ -955,7 +885,7 @@ void ReadAllEntityRefs(std::vector<DataUtil::EntityRef> &ents, EntityListParser 
     }
 }
 
-static void ReadGUI(DataUtil::GUIData& gui_data, AGF::DocElem elem)
+static void ReadGUI(DataUtil::GUIData &gui_data, AGF::DocElem elem)
 {
     AGF::GUIMain gui;
     AGF::GUIControls controls;
@@ -969,7 +899,7 @@ static void ReadGUI(DataUtil::GUIData& gui_data, AGF::DocElem elem)
     for (const auto &el : elems)
     {
         String type = control.ReadType(el);
-        if(type == "Button")
+        if (type == "Button")
         {
             auto data = std::make_shared<DataUtil::GUIButtonData>();
             ReadEntityRef(*data, control, el);
@@ -983,7 +913,7 @@ static void ReadGUI(DataUtil::GUIData& gui_data, AGF::DocElem elem)
             }
             gui_data.Controls.push_back(data);
         }
-        else if(type == "Label")
+        else if (type == "Label")
         {
             auto data = std::make_shared<DataUtil::GUILabelData>();
             ReadEntityRef(*data, control, el);
@@ -991,7 +921,7 @@ static void ReadGUI(DataUtil::GUIData& gui_data, AGF::DocElem elem)
             control.ReadLabelData(el, *data);
             gui_data.Controls.push_back(data);
         }
-        else if(type == "InvWindow")
+        else if (type == "InvWindow")
         {
             auto data = std::make_shared<DataUtil::GUIInventoryData>();
             ReadEntityRef(*data, control, el);
@@ -999,7 +929,7 @@ static void ReadGUI(DataUtil::GUIData& gui_data, AGF::DocElem elem)
             control.ReadInventoryData(el, *data);
             gui_data.Controls.push_back(data);
         }
-        else if(type == "ListBox")
+        else if (type == "ListBox")
         {
             auto data = std::make_shared<DataUtil::GUIListBoxData>();
             ReadEntityRef(*data, control, el);
@@ -1007,7 +937,7 @@ static void ReadGUI(DataUtil::GUIData& gui_data, AGF::DocElem elem)
             control.ReadListBoxData(el, *data);
             gui_data.Controls.push_back(data);
         }
-        else if(type == "Slider")
+        else if (type == "Slider")
         {
             auto data = std::make_shared<DataUtil::GUISliderData>();
             ReadEntityRef(*data, control, el);
@@ -1015,7 +945,7 @@ static void ReadGUI(DataUtil::GUIData& gui_data, AGF::DocElem elem)
             control.ReadSliderData(el, *data);
             gui_data.Controls.push_back(data);
         }
-        else if(type == "TextBox")
+        else if (type == "TextBox")
         {
             auto data = std::make_shared<DataUtil::GUITextBoxData>();
             ReadEntityRef(*data, control, el);
@@ -1033,8 +963,8 @@ static void ReadDialog(DataUtil::DialogRef &dialog, AGF::DocElem elem)
     dialog.ShowTextParser = ValueParser::ReadBool(elem, "ShowTextParser");
 
     DocElem options = elem->FirstChildElement("DialogOptions");
-    for (DocElem option = options ? options->FirstChildElement("DialogOption") : nullptr;
-         option; option = option->NextSiblingElement("DialogOption"))
+    for (DocElem option = options ? options->FirstChildElement("DialogOption") : nullptr; option;
+         option = option->NextSiblingElement("DialogOption"))
     {
         DataUtil::DialogOptionData data;
         data.Text = ValueParser::ReadString(option, "Text");
@@ -1101,26 +1031,26 @@ static DataUtil::FontAutoOutlineStyle ReadFontAutoOutlineStyle(const String &val
 
 static DataUtil::SpriteImportResolution ReadSpriteImportResolution(const String &value)
 {
-    return StrUtil::ParseEnumWithBase(value, kSpriteImportResolutionNames,
-        DataUtil::kSpriteImport_Real, DataUtil::kSpriteImport_Real);
+    return StrUtil::ParseEnumWithBase(value, kSpriteImportResolutionNames, DataUtil::kSpriteImport_Real,
+                                      DataUtil::kSpriteImport_Real);
 }
 
 static DataUtil::SpriteImportTransparency ReadSpriteImportTransparency(const String &value)
 {
-    return StrUtil::ParseEnumWithBase(value, kSpriteImportTransparencyNames,
-        DataUtil::kSpriteImport_PaletteIndex0, DataUtil::kSpriteImport_LeaveAsIs);
+    return StrUtil::ParseEnumWithBase(value, kSpriteImportTransparencyNames, DataUtil::kSpriteImport_PaletteIndex0,
+                                      DataUtil::kSpriteImport_LeaveAsIs);
 }
 
 static DataUtil::AudioFileBundlingType ReadAudioBundlingType(const String &value)
 {
-    return StrUtil::ParseEnumWithBase(value, kAudioBundlingTypeNames,
-        DataUtil::kAudioBundling_InMainData, DataUtil::kAudioBundling_InMainData);
+    return StrUtil::ParseEnumWithBase(value, kAudioBundlingTypeNames, DataUtil::kAudioBundling_InMainData,
+                                      DataUtil::kAudioBundling_InMainData);
 }
 
 static DataUtil::AudioClipFileType ReadAudioFileType(const String &value)
 {
-    return StrUtil::ParseEnumWithBase(value, kAudioFileTypeNames,
-        DataUtil::kAudioFile_OGG, DataUtil::kAudioFile_Undefined);
+    return StrUtil::ParseEnumWithBase(value, kAudioFileTypeNames, DataUtil::kAudioFile_OGG,
+                                      DataUtil::kAudioFile_Undefined);
 }
 
 static DataUtil::CrossfadeSpeed ReadCrossfadeSpeed(const String &value)
@@ -1180,8 +1110,8 @@ static DataUtil::PaletteColourType ReadColourType(const String &value)
 static void ReadProperties(DocElem elem, std::vector<DataUtil::CustomPropertyValue> &props)
 {
     DocElem list = elem ? elem->FirstChildElement("Properties") : nullptr;
-    for (DocElem prop = list ? list->FirstChildElement("CustomProperty") : nullptr;
-         prop; prop = prop->NextSiblingElement("CustomProperty"))
+    for (DocElem prop = list ? list->FirstChildElement("CustomProperty") : nullptr; prop;
+         prop = prop->NextSiblingElement("CustomProperty"))
     {
         DataUtil::CustomPropertyValue value;
         value.Name = ValueParser::ReadString(prop, "Name");
@@ -1196,13 +1126,13 @@ static void ReadInteractions(DocElem elem, String &script_module, std::vector<St
     if (!interactions)
         return;
     script_module = ValueParser::ReadString(interactions, "ScriptModule");
-    for (DocElem event = interactions->FirstChildElement("Event");
-         event; event = event->NextSiblingElement("Event"))
+    for (DocElem event = interactions->FirstChildElement("Event"); event; event = event->NextSiblingElement("Event"))
     {
         const int index = event->IntAttribute("Index", static_cast<int>(events.size()));
         if (index >= 0)
         {
-            if (events.size() <= static_cast<size_t>(index)) events.resize(index + 1);
+            if (events.size() <= static_cast<size_t>(index))
+                events.resize(index + 1);
             events[index] = event->GetText() ? event->GetText() : "";
         }
     }
@@ -1221,14 +1151,17 @@ void AudioClip::ReadAllData(DocElem elem, DataUtil::AudioClipData &data)
     int repeat = ReadInheritableBool(ReadString(elem, "DefaultRepeat", "Inherit"));
     int priority = ReadAudioPriority(ReadString(elem, "DefaultPriority", "Inherit"));
     int volume = ReadInt(elem, "DefaultVolume", -1);
-    for (XMLNode *node = elem->Parent(); node && (repeat < 0 || priority < 0 || volume < 0);
-         node = node->Parent())
+    for (XMLNode *node = elem->Parent(); node && (repeat < 0 || priority < 0 || volume < 0); node = node->Parent())
     {
         DocElem folder = node->ToElement();
-        if (!folder || strcmp(folder->Name(), "AudioClipFolder") != 0) continue;
-        if (repeat < 0) repeat = ReadInheritableBool(ReadString(folder, "DefaultRepeat", "Inherit"));
-        if (priority < 0) priority = ReadAudioPriority(ReadString(folder, "DefaultPriority", "Inherit"));
-        if (volume < 0) volume = ReadInt(folder, "DefaultVolume", -1);
+        if (!folder || strcmp(folder->Name(), "AudioClipFolder") != 0)
+            continue;
+        if (repeat < 0)
+            repeat = ReadInheritableBool(ReadString(folder, "DefaultRepeat", "Inherit"));
+        if (priority < 0)
+            priority = ReadAudioPriority(ReadString(folder, "DefaultPriority", "Inherit"));
+        if (volume < 0)
+            volume = ReadInt(folder, "DefaultVolume", -1);
     }
     data.Repeat = repeat > 0;
     data.Priority = priority < 0 ? 50 : priority;
@@ -1255,8 +1188,8 @@ void Character::ReadAllData(DocElem elem, DataUtil::CharacterData &data)
     data.AnimationDelay = ValueParser::ReadInt(elem, "AnimationDelay");
     data.Baseline = ValueParser::ReadInt(elem, "Baseline");
     data.BlinkingView = ValueParser::ReadInt(elem, "BlinkingView");
-    std::sscanf(ValueParser::ReadString(elem, "BlockingRectangle", "0,0,0,0"), "%d,%d,%d,%d",
-        &data.BlockingX, &data.BlockingY, &data.BlockingWidth, &data.BlockingHeight);
+    std::sscanf(ValueParser::ReadString(elem, "BlockingRectangle", "0,0,0,0"), "%d,%d,%d,%d", &data.BlockingX,
+                &data.BlockingY, &data.BlockingWidth, &data.BlockingHeight);
     data.Clickable = ValueParser::ReadBool(elem, "Clickable", true);
     data.DiagonalLoops = ValueParser::ReadBool(elem, "DiagonalLoops", true);
     data.IdleAnimationDelay = ValueParser::ReadInt(elem, "IdleAnimationDelay");
@@ -1289,14 +1222,14 @@ void Character::ReadAllData(DocElem elem, DataUtil::CharacterData &data)
 void View::ReadAllData(DocElem elem, DataUtil::ViewData &data)
 {
     DocElem loops = elem->FirstChildElement("Loops");
-    for (DocElem loop = loops ? loops->FirstChildElement("Loop") : nullptr;
-         loop; loop = loop->NextSiblingElement("Loop"))
+    for (DocElem loop = loops ? loops->FirstChildElement("Loop") : nullptr; loop;
+         loop = loop->NextSiblingElement("Loop"))
     {
         DataUtil::ViewLoopData loop_data;
         loop_data.RunNextLoop = ValueParser::ReadBool(loop, "RunNextLoop");
         DocElem frames = loop->FirstChildElement("Frames");
-        for (DocElem frame = frames ? frames->FirstChildElement("ViewFrame") : nullptr;
-             frame; frame = frame->NextSiblingElement("ViewFrame"))
+        for (DocElem frame = frames ? frames->FirstChildElement("ViewFrame") : nullptr; frame;
+             frame = frame->NextSiblingElement("ViewFrame"))
         {
             DataUtil::ViewFrameData frame_data;
             frame_data.Delay = ValueParser::ReadInt(frame, "Delay");
@@ -1333,10 +1266,12 @@ void Font::ReadAllData(DocElem elem, DataUtil::FontData &data)
 
 static void CollectElements(DocElem elem, const char *name, std::vector<DocElem> &result)
 {
-    if (!elem) return;
+    if (!elem)
+        return;
     for (DocElem child = elem->FirstChildElement(); child; child = child->NextSiblingElement())
     {
-        if (strcmp(child->Name(), name) == 0) result.push_back(child);
+        if (strcmp(child->Name(), name) == 0)
+            result.push_back(child);
         CollectElements(child, name, result);
     }
 }
@@ -1345,12 +1280,17 @@ static std::vector<uint8_t> DecodeBase64(const char *text)
 {
     std::vector<uint8_t> result;
     int value = 0, bits = -8;
-    for (const unsigned char *ptr = reinterpret_cast<const unsigned char*>(text ? text : ""); *ptr; ++ptr)
+    for (const unsigned char *ptr = reinterpret_cast<const unsigned char *>(text ? text : ""); *ptr; ++ptr)
     {
         const unsigned char ch = *ptr;
-        int digit = ch >= 'A' && ch <= 'Z' ? ch - 'A' : ch >= 'a' && ch <= 'z' ? ch - 'a' + 26 :
-            ch >= '0' && ch <= '9' ? ch - '0' + 52 : ch == '+' ? 62 : ch == '/' ? 63 : -1;
-        if (digit < 0) continue;
+        int digit = ch >= 'A' && ch <= 'Z'   ? ch - 'A'
+                    : ch >= 'a' && ch <= 'z' ? ch - 'a' + 26
+                    : ch >= '0' && ch <= '9' ? ch - '0' + 52
+                    : ch == '+'              ? 62
+                    : ch == '/'              ? 63
+                                             : -1;
+        if (digit < 0)
+            continue;
         value = (value << 6) | digit;
         bits += 6;
         if (bits >= 0)
@@ -1380,11 +1320,12 @@ static void ReadGameCommon(DataUtil::GameRef &game, DocElem root)
 void ReadGamePalette(std::vector<DataUtil::PaletteEntryData> &pal_data, DocElem root)
 {
     DocElem palette = root->FirstChildElement("Palette");
-    for (DocElem entry = palette ? palette->FirstChildElement("PaletteEntry") : nullptr;
-        entry; entry = entry->NextSiblingElement("PaletteEntry"))
+    for (DocElem entry = palette ? palette->FirstChildElement("PaletteEntry") : nullptr; entry;
+         entry = entry->NextSiblingElement("PaletteEntry"))
     {
         const int index = ValueParser::ReadAttributeInt(entry, "Index", -1);
-        if (index < 0 || index >= 256) continue;
+        if (index < 0 || index >= 256)
+            continue;
         if (pal_data.size() <= static_cast<uint8_t>(index))
             pal_data.resize(index + 1);
         auto &data = pal_data[index];
@@ -1418,7 +1359,8 @@ static void GetAllSprites(std::vector<DataUtil::SpriteData> &sprites, DocElem ro
             data.ImportFrame = ValueParser::ReadInt(source, "Frame");
             data.RemapToGamePalette = ValueParser::ReadBool(source, "RemapToGamePalette");
             data.RemapToRoomPalette = ValueParser::ReadBool(source, "RemapToRoomPalette");
-            data.TransparentColour = ReadSpriteImportTransparency(ValueParser::ReadString(source, "ImportMethod", "LeaveAsIs"));
+            data.TransparentColour =
+                ReadSpriteImportTransparency(ValueParser::ReadString(source, "ImportMethod", "LeaveAsIs"));
             data.ImportAlphaChannel = ValueParser::ReadBool(source, "ImportAlphaChannel");
             data.ImportWidth = ValueParser::ReadInt(source, "ImportWidth");
             data.ImportHeight = ValueParser::ReadInt(source, "ImportHeight");
@@ -1573,7 +1515,8 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
         }
         game.Views.resize(max_id);
         for (const auto &view : views)
-            if (view.ID > 0) game.Views[view.ID - 1] = view;
+            if (view.ID > 0)
+                game.Views[view.ID - 1] = view;
     }
 
     // Parser dictionary, lip-sync, global messages, palette and sprite flags.
@@ -1591,17 +1534,18 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
     game.LipSyncDefaultFrame = ValueParser::ReadInt(lipsync, "DefaultFrame");
     game.LipSync = ReadLipSyncType(ValueParser::ReadString(lipsync, "Type"));
     DocElem frames = lipsync ? lipsync->FirstChildElement("Frames") : nullptr;
-    for (DocElem frame = frames ? frames->FirstChildElement("CharsForFrame") : nullptr;
-         frame; frame = frame->NextSiblingElement("CharsForFrame"))
+    for (DocElem frame = frames ? frames->FirstChildElement("CharsForFrame") : nullptr; frame;
+         frame = frame->NextSiblingElement("CharsForFrame"))
         game.LipSyncFrames.push_back(frame->GetText() ? frame->GetText() : "");
 
     game.GlobalMessages.resize(500);
     DocElem messages = root->FirstChildElement("GlobalMessages");
-    for (DocElem msg = messages ? messages->FirstChildElement("Message") : nullptr;
-         msg; msg = msg->NextSiblingElement("Message"))
+    for (DocElem msg = messages ? messages->FirstChildElement("Message") : nullptr; msg;
+         msg = msg->NextSiblingElement("Message"))
     {
         const int id = msg->IntAttribute("ID", 500) - 500;
-        if (id >= 0 && id < 500) game.GlobalMessages[id] = msg->GetText() ? msg->GetText() : "";
+        if (id >= 0 && id < 500)
+            game.GlobalMessages[id] = msg->GetText() ? msg->GetText() : "";
     }
 
     game.Palette.resize(256);
@@ -1610,8 +1554,8 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
     GetAllSprites(game.Sprites, root);
 
     DocElem plugins = root->FirstChildElement("Plugins");
-    for (DocElem plugin = plugins ? plugins->FirstChildElement("Plugin") : nullptr;
-         plugin; plugin = plugin->NextSiblingElement("Plugin"))
+    for (DocElem plugin = plugins ? plugins->FirstChildElement("Plugin") : nullptr; plugin;
+         plugin = plugin->NextSiblingElement("Plugin"))
     {
         DataUtil::PluginData data;
         data.Name = ValueParser::ReadString(plugin, "FileName");
@@ -1716,7 +1660,8 @@ void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader)
         }
         game.Views.resize(max_id);
         for (const auto &view : views)
-            if (view.ID > 0) game.Views[view.ID - 1] = view;
+            if (view.ID > 0)
+                game.Views[view.ID - 1] = view;
     }
 }
 
@@ -1801,7 +1746,8 @@ void ReadScriptList(std::vector<String> &script_list, DocElem root)
     for (const auto &m : modules)
     {
         DocElem body = scmodule.GetBody(m);
-        if (!body) continue;
+        if (!body)
+            continue;
         script_list.push_back(scelem.ReadFilename(body));
     }
 }
@@ -1816,7 +1762,8 @@ void ReadScriptHeaderList(std::vector<String> &headers_list, DocElem root)
     for (const auto &m : modules)
     {
         DocElem header = scmodule.GetHeader(m);
-        if (!header) continue;
+        if (!header)
+            continue;
         headers_list.push_back(scelem.ReadFilename(header));
     }
 }

@@ -18,30 +18,20 @@ using namespace AGS;
 
 TEST(AGFReader, EnumReadSkipSpeech)
 {
-    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrKeyboardOrTimer,
-        AGF::ReadSkipSpeech("MouseOrKeyboardOrTimer"));
-    EXPECT_EQ(DataUtil::kSkipSpeech_KeyboardOrTimer,
-        AGF::ReadSkipSpeech("KeyboardOnly"));
-    EXPECT_EQ(DataUtil::kSkipSpeech_TimerOnly,
-        AGF::ReadSkipSpeech("TimerOnly"));
-    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrKeyboard,
-        AGF::ReadSkipSpeech("MouseOrKeyboard"));
-    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrTimer,
-        AGF::ReadSkipSpeech("MouseOnly"));
-    EXPECT_EQ(DataUtil::kSkipSpeech_KeyboardOnly,
-        AGF::ReadSkipSpeech("KeyboardOnlyStrict"));
-    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOnly,
-        AGF::ReadSkipSpeech("MouseOnlyStrict"));
-    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrKeyboardOrTimer,
-        AGF::ReadSkipSpeech("NotARealValue"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrKeyboardOrTimer, AGF::ReadSkipSpeech("MouseOrKeyboardOrTimer"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_KeyboardOrTimer, AGF::ReadSkipSpeech("KeyboardOnly"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_TimerOnly, AGF::ReadSkipSpeech("TimerOnly"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrKeyboard, AGF::ReadSkipSpeech("MouseOrKeyboard"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrTimer, AGF::ReadSkipSpeech("MouseOnly"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_KeyboardOnly, AGF::ReadSkipSpeech("KeyboardOnlyStrict"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOnly, AGF::ReadSkipSpeech("MouseOnlyStrict"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrKeyboardOrTimer, AGF::ReadSkipSpeech("NotARealValue"));
 }
 
 TEST(AGFReader, EnumReadLipSyncType)
 {
     EXPECT_EQ(DataUtil::kLipSync_None, AGF::ReadLipSyncType("None"));
     EXPECT_EQ(DataUtil::kLipSync_Text, AGF::ReadLipSyncType("Text"));
-    EXPECT_EQ(DataUtil::kLipSync_PamelaVoiceFiles,
-        AGF::ReadLipSyncType("PamelaVoiceFiles"));
-    EXPECT_EQ(DataUtil::kLipSync_None,
-        AGF::ReadLipSyncType("NotARealValue"));
+    EXPECT_EQ(DataUtil::kLipSync_PamelaVoiceFiles, AGF::ReadLipSyncType("PamelaVoiceFiles"));
+    EXPECT_EQ(DataUtil::kLipSync_None, AGF::ReadLipSyncType("NotARealValue"));
 }

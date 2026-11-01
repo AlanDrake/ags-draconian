@@ -29,16 +29,15 @@ namespace DataUtil
 // type_name defines the script name of the type.
 // If array_name is provided then also declares array of objects of that type.
 // If array_base is > 0, it will be added to the array size in declaration.
-static String DeclareEntities(const std::vector<EntityRef> &ents,
-    const char *type_name, const char *array_name = nullptr, const int array_base = 0)
+static String DeclareEntities(const std::vector<EntityRef> &ents, const char *type_name,
+                              const char *array_name = nullptr, const int array_base = 0)
 {
     if (ents.size() == 0)
         return "";
 
     String header;
     if (array_name)
-        header.AppendFmt("import %s %s[%zu];\n",
-            type_name, array_name, ents.size() + array_base);
+        header.AppendFmt("import %s %s[%zu];\n", type_name, array_name, ents.size() + array_base);
 
     for (const auto &ent : ents)
     {
@@ -56,15 +55,15 @@ static String DeclareEntities(const std::vector<EntityRef> &ents,
 // The macro name will be <script_name>, where "script_name" is read from the
 // object data, have check_prefix stripped and converted to uppercase.
 // The macro values are made equal to object's ID (numeric index).
-static String DeclareEntitiesAsMacros(const std::vector<EntityRef> &ents,
-    const char *check_prefix = nullptr)
+static String DeclareEntitiesAsMacros(const std::vector<EntityRef> &ents, const char *check_prefix = nullptr)
 {
     if (ents.size() == 0)
         return "";
 
     String header;
     size_t len_prefix = 0;
-    if(check_prefix) len_prefix = strlen(check_prefix);
+    if (check_prefix)
+        len_prefix = strlen(check_prefix);
     for (const auto &ent : ents)
     {
         String name = ent.ScriptName;
@@ -92,8 +91,8 @@ static String DeclareEntitiesAsMacros(const std::vector<EntityRef> &ents,
 // The actual constant name will be <const_prefix><script_name>, where
 // "script_name" is read from the object data. The constant values are made
 // equal to object's ID (numeric index).
-static String DeclareEntitiesAsEnum(const std::vector<EntityRef> &ents,
-    const char *enum_name, const char *const_prefix = nullptr)
+static String DeclareEntitiesAsEnum(const std::vector<EntityRef> &ents, const char *enum_name,
+                                    const char *const_prefix = nullptr)
 {
     if (ents.size() == 0)
     {

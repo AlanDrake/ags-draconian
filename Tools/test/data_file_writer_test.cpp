@@ -42,25 +42,21 @@ using namespace AGS::Common;
 namespace
 {
 
-using GameBlockWriter = void (*)(const DataUtil::GameData&, Stream*);
+using GameBlockWriter = void (*)(const DataUtil::GameData &, Stream *);
 
-std::vector<uint8_t> WriteGameBlock(const DataUtil::GameData &game,
-    GameBlockWriter writer)
+std::vector<uint8_t> WriteGameBlock(const DataUtil::GameData &game, GameBlockWriter writer)
 {
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     writer(game, out.get());
     out.reset();
     return buffer;
 }
 
-std::vector<uint8_t> WriteExtensionPayload(const DataUtil::GameData &game,
-    DataFileWriter::ExtensionWriter writer)
+std::vector<uint8_t> WriteExtensionPayload(const DataUtil::GameData &game, DataFileWriter::ExtensionWriter writer)
 {
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     writer(out.get(), game);
     out.reset();
     return buffer;
@@ -89,12 +85,10 @@ struct LoadedAudioBlock
 LoadedAudioBlock RoundTripAudioBlock(const DataUtil::GameData &game)
 {
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     DataFileWriter::WriteAudioBlock(game, out.get());
     out.reset();
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     LoadedAudioBlock loaded;
     loaded.Types.resize(in->ReadInt32());
@@ -135,14 +129,12 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     game.Cursors.resize(2);
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     soff_t extension_offset_pos = 0;
     DataFileWriter::WriteGameSetupStructBase(game, out.get(), extension_offset_pos);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
     GameSetupStructBase loaded;
     GameSetupStructBase::SerializeInfo info;
     loaded.ReadFromFile(in.get(), kGameVersion_Current, info);
@@ -203,13 +195,11 @@ TEST(DataFileWriter, RoundTripCharacter)
     character.AdjustSpeedWithScaling = true;
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     DataFileWriter::WriteCharacter(out.get(), game, character, 0);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
     CharacterInfo loaded;
     loaded.ReadFromFile(in.get(), kGameVersion_Current);
 
@@ -242,13 +232,11 @@ TEST(DataFileWriter, RoundTripInventoryItem)
     item.PlayerStartsWith = true;
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     DataFileWriter::WriteInventoryItem(out.get(), item);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
     InventoryItemInfo loaded{};
     loaded.ReadFromFile(in.get(), kGameVersion_Current);
 
@@ -269,15 +257,13 @@ TEST(DataFileWriter, RoundTripInventoryBlock)
     DataUtil::InventoryItemData coin;
     coin.Description = "Coin";
     coin.Image = 20;
-    game.Inventory = { key, coin };
+    game.Inventory = {key, coin};
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     DataFileWriter::WriteInventoryBlock(game, out.get());
     out.reset();
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     InventoryItemInfo loaded[3]{};
     for (auto &item : loaded)
@@ -305,13 +291,11 @@ TEST(DataFileWriter, RoundTripCursor)
     cursor.StandardMode = true;
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     DataFileWriter::WriteCursor(out.get(), cursor);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
     MouseCursor loaded;
     loaded.ReadFromFile(in.get());
 
@@ -334,15 +318,13 @@ TEST(DataFileWriter, RoundTripCursorBlock)
     DataUtil::CursorData look;
     look.Name = "Look";
     look.Image = 2;
-    game.Cursors = { walk, look };
+    game.Cursors = {walk, look};
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     DataFileWriter::WriteCursorBlock(game, out.get());
     out.reset();
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     MouseCursor loaded[2];
     for (auto &cursor : loaded)
@@ -357,17 +339,15 @@ TEST(DataFileWriter, RoundTripCursorBlock)
 TEST(DataFileWriter, RoundTripTextParserDictionary)
 {
     DataUtil::GameData game;
-    game.ParserWords.push_back({ "look, examine", 10 });
-    game.ParserWords.push_back({ "inventory", 20 });
+    game.ParserWords.push_back({"look, examine", 10});
+    game.ParserWords.push_back({"inventory", 20});
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     DataFileWriter::WriteTextParserDictionary(game, out.get());
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
     WordsDictionary loaded;
     loaded.ReadFromFile(in.get());
 
@@ -397,13 +377,11 @@ TEST(DataFileWriter, RoundTripView)
     view.Loops.push_back(loop);
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     DataFileWriter::WriteView(out.get(), game, view);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
     ViewStruct loaded;
     loaded.ReadFromFile(in.get());
 
@@ -422,21 +400,19 @@ TEST(DataFileWriter, RoundTripViewsBlock)
     DataUtil::GameData game;
     DataUtil::ViewData first;
     DataUtil::ViewLoopData first_loop;
-    first_loop.Frames.push_back({ 1, false, 10, 0 });
+    first_loop.Frames.push_back({1, false, 10, 0});
     first.Loops.push_back(first_loop);
     DataUtil::ViewData second;
     DataUtil::ViewLoopData second_loop;
-    second_loop.Frames.push_back({ 2, true, 20, 0 });
+    second_loop.Frames.push_back({2, true, 20, 0});
     second.Loops.push_back(second_loop);
-    game.Views = { first, second };
+    game.Views = {first, second};
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     DataFileWriter::WriteViewsBlock(game, out.get());
     out.reset();
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     ViewStruct loaded[2];
     for (auto &view : loaded)
@@ -458,15 +434,13 @@ TEST(DataFileWriter, RoundTripCharactersBlock)
     DataUtil::CharacterData second;
     second.RealName = "Second";
     second.ScriptName = "cSecond";
-    game.Characters = { first, second };
+    game.Characters = {first, second};
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     DataFileWriter::WriteCharactersBlock(game, out.get());
     out.reset();
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     CharacterInfo loaded[2];
     for (int i = 0; i < 2; ++i)
@@ -487,13 +461,11 @@ TEST(DataFileWriter, RoundTripAudioType)
     type.Crossfade = DataUtil::kCrossfade_Medium;
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     DataFileWriter::WriteAudioType(out.get(), type, 4);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
     AudioClipType loaded;
     loaded.ReadFromFile(in.get());
 
@@ -517,13 +489,11 @@ TEST(DataFileWriter, RoundTripAudioClip)
     clip.Volume = 80;
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     DataFileWriter::WriteAudioClip(out.get(), clip, 0);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
     ScriptAudioClip loaded;
     loaded.ReadFromFile(in.get());
 
@@ -547,7 +517,7 @@ TEST(DataFileWriter, RoundTripAudioBlock)
     DataUtil::AudioTypeData sound;
     sound.ID = 20;
     sound.MaxChannels = 4;
-    game.AudioTypes = { music, sound };
+    game.AudioTypes = {music, sound};
 
     DataUtil::AudioClipData theme;
     theme.ID = 101;
@@ -559,7 +529,7 @@ TEST(DataFileWriter, RoundTripAudioBlock)
     click.Index = 20;
     click.ScriptName = "aClick";
     click.CacheFileName = "click.wav";
-    game.AudioClips = { theme, click };
+    game.AudioClips = {theme, click};
     game.Settings.PlaySoundOnScore = 20;
 
     LoadedAudioBlock loaded = RoundTripAudioBlock(game);
@@ -589,19 +559,17 @@ TEST(DataFileWriter, RoundTripExt363Dialogs)
     DataUtil::DialogRef dialog;
     dialog.ScriptName = "dGreeting";
     dialog.ShowTextParser = true;
-    dialog.Options.push_back({ "Hello", true, true });
-    dialog.Options.push_back({ "Goodbye", false, false });
+    dialog.Options.push_back({"Hello", true, true});
+    dialog.Options.push_back({"Goodbye", false, false});
     DataUtil::GameData game;
     game.Dialogs.push_back(dialog);
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     DataFileWriter::WriteExt363Dialogs(out.get(), game);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
     ASSERT_EQ(1, in->ReadInt32());
     DialogTopic loaded;
     loaded.ReadFromFile_v363(in.get());
@@ -620,16 +588,12 @@ TEST(DataFileWriter, RoundTripExtensionFraming)
 {
     DataUtil::GameData game;
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
-    DataFileWriter::WriteExtension(out.get(), "small", game,
-        WriteSmallExtensionPayload);
-    DataFileWriter::WriteExtension(out.get(), "large", game,
-        WriteLargeExtensionPayload);
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
+    DataFileWriter::WriteExtension(out.get(), "small", game, WriteSmallExtensionPayload);
+    DataFileWriter::WriteExtension(out.get(), "large", game, WriteLargeExtensionPayload);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
     char id[17] = {};
     EXPECT_EQ(0, in->ReadInt8());
     in->Read(id, 16);
@@ -664,19 +628,16 @@ TEST(DataFileWriter, RoundTripCustomProperties)
     schema_item.Type = kPropertyInteger;
     schema_item.Description = "Character health";
     schema_item.DefaultValue = "100";
-    std::vector<DataUtil::CustomPropertySchemaItem> schema = { schema_item };
+    std::vector<DataUtil::CustomPropertySchemaItem> schema = {schema_item};
 
     std::vector<uint8_t> schema_buffer;
-    auto schema_out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(schema_buffer, kStream_Write));
+    auto schema_out = std::make_unique<Stream>(std::make_unique<VectorStream>(schema_buffer, kStream_Write));
     DataFileWriter::WritePropertySchemaBlock(schema_out.get(), schema);
     schema_out.reset();
 
-    auto schema_in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(schema_buffer));
+    auto schema_in = std::make_unique<Stream>(std::make_unique<VectorStream>(schema_buffer));
     PropertySchema loaded_schema;
-    ASSERT_EQ(kPropertyErr_NoError,
-        Properties::ReadSchema(loaded_schema, schema_in.get()));
+    ASSERT_EQ(kPropertyErr_NoError, Properties::ReadSchema(loaded_schema, schema_in.get()));
     ASSERT_EQ(1u, loaded_schema.size());
     const auto loaded_item_it = loaded_schema.find("Health");
     ASSERT_NE(loaded_schema.end(), loaded_item_it);
@@ -685,20 +646,15 @@ TEST(DataFileWriter, RoundTripCustomProperties)
     EXPECT_STREQ("Character health", loaded_item.Description.GetCStr());
     EXPECT_STREQ("100", loaded_item.DefaultValue.GetCStr());
 
-    std::vector<DataUtil::CustomPropertyValue> values = {
-        { "Health", "75" }, { "Mood", "Happy" }
-    };
+    std::vector<DataUtil::CustomPropertyValue> values = {{"Health", "75"}, {"Mood", "Happy"}};
     std::vector<uint8_t> values_buffer;
-    auto values_out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(values_buffer, kStream_Write));
+    auto values_out = std::make_unique<Stream>(std::make_unique<VectorStream>(values_buffer, kStream_Write));
     DataFileWriter::WritePropertyValues(values_out.get(), values);
     values_out.reset();
 
-    auto values_in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(values_buffer));
+    auto values_in = std::make_unique<Stream>(std::make_unique<VectorStream>(values_buffer));
     StringIMap loaded_values;
-    ASSERT_EQ(kPropertyErr_NoError,
-        Properties::ReadValues(loaded_values, values_in.get()));
+    ASSERT_EQ(kPropertyErr_NoError, Properties::ReadValues(loaded_values, values_in.get()));
     const auto health_it = loaded_values.find("Health");
     const auto mood_it = loaded_values.find("Mood");
     ASSERT_NE(loaded_values.end(), health_it);
@@ -717,39 +673,34 @@ TEST(DataFileWriter, RoundTripCustomPropertiesBlock)
     game.PropertySchema.push_back(schema_item);
 
     DataUtil::CharacterData first_character;
-    first_character.Properties.push_back({ "Value", "11" });
+    first_character.Properties.push_back({"Value", "11"});
     DataUtil::CharacterData second_character;
-    second_character.Properties.push_back({ "Value", "22" });
-    game.Characters = { first_character, second_character };
+    second_character.Properties.push_back({"Value", "22"});
+    game.Characters = {first_character, second_character};
 
     DataUtil::InventoryItemData first_item;
-    first_item.Properties.push_back({ "Value", "33" });
+    first_item.Properties.push_back({"Value", "33"});
     DataUtil::InventoryItemData second_item;
-    second_item.Properties.push_back({ "Value", "44" });
-    game.Inventory = { first_item, second_item };
+    second_item.Properties.push_back({"Value", "44"});
+    game.Inventory = {first_item, second_item};
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     DataFileWriter::WriteCustomPropertiesBlock(game, out.get());
     out.reset();
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     PropertySchema schema;
     ASSERT_EQ(kPropertyErr_NoError, Properties::ReadSchema(schema, in.get()));
     ASSERT_EQ(1u, schema.size());
     StringIMap character_properties[2];
     for (auto &properties : character_properties)
-        ASSERT_EQ(kPropertyErr_NoError,
-            Properties::ReadValues(properties, in.get()));
+        ASSERT_EQ(kPropertyErr_NoError, Properties::ReadValues(properties, in.get()));
     StringIMap unused_inventory_properties;
-    ASSERT_EQ(kPropertyErr_NoError,
-        Properties::ReadValues(unused_inventory_properties, in.get()));
+    ASSERT_EQ(kPropertyErr_NoError, Properties::ReadValues(unused_inventory_properties, in.get()));
     StringIMap inventory_properties[2];
     for (auto &properties : inventory_properties)
-        ASSERT_EQ(kPropertyErr_NoError,
-            Properties::ReadValues(properties, in.get()));
+        ASSERT_EQ(kPropertyErr_NoError, Properties::ReadValues(properties, in.get()));
 
     EXPECT_STREQ("11", character_properties[0]["Value"].GetCStr());
     EXPECT_STREQ("22", character_properties[1]["Value"].GetCStr());
@@ -776,12 +727,10 @@ TEST(DataFileWriter, RoundTripFontBlock)
     sized_font.HeightDefinedBy = DataUtil::kFontHeight_CustomValue;
     sized_font.OutlineStyle = DataUtil::kFontOutline_UseOutlineFont;
     sized_font.OutlineFont = 4;
-    game.Fonts = { multiplier_font, sized_font };
+    game.Fonts = {multiplier_font, sized_font};
 
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteFontBlock);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteFontBlock);
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     FontInfo loaded[2];
     for (int i = 0; i < 2; ++i)
@@ -814,15 +763,11 @@ TEST(DataFileWriter, RoundTripSpriteFlags)
     DataUtil::GameData game;
 
     // FIXME: proper AGS 4 test
-    game.Sprites = {
-        { 1, 0, 0, 0, DataUtil::kSpriteImport_Real, true },
-        { 3, 0, 0, 0, DataUtil::kSpriteImport_HighRes, false }
-    };
+    game.Sprites = {{1, 0, 0, 0, DataUtil::kSpriteImport_Real, true},
+                    {3, 0, 0, 0, DataUtil::kSpriteImport_HighRes, false}};
 
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteSpriteFlags);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteSpriteFlags);
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
     const int count = in->ReadInt32();
     ASSERT_EQ(4, count);
     std::vector<uint8_t> flags(count);
@@ -838,10 +783,8 @@ TEST(DataFileWriter, RoundTripInteractionScriptsBlock)
     DataUtil::GameData game;
     game.Characters.resize(2);
     game.Inventory.resize(2);
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteInteractionScriptsBlock);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteInteractionScriptsBlock);
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     // GameSetupStruct reads two characters, then inventory slots 1 and 2;
     // unused inventory slot 0 has no v361 record in this block.
@@ -858,13 +801,11 @@ TEST(DataFileWriter, RoundTripInteractionScriptsBlock)
 TEST(DataFileWriter, RoundTripLipSyncBlock)
 {
     DataUtil::GameData game;
-    game.LipSyncFrames = { "A", "BCD" };
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteLipSyncBlock);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    game.LipSyncFrames = {"A", "BCD"};
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteLipSyncBlock);
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
-    char frames[MAXLIPSYNCFRAMES][50] = {{ 0 }};
+    char frames[MAXLIPSYNCFRAMES][50] = {{0}};
     in->ReadArray(&frames[0][0], MAXLIPSYNCFRAMES, 50);
     EXPECT_STREQ("A", frames[0]);
     EXPECT_STREQ("BCD", frames[1]);
@@ -880,10 +821,8 @@ TEST(DataFileWriter, RoundTripSaveGameInfo)
     game.Settings.GUIDAsString = "01234567-89ab-cdef-0123-456789abcdef";
     game.Settings.SaveGameFileExtension = "sav";
     game.Settings.SaveGameFolderName = "Round Trip Saves";
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteSaveGameInfo);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteSaveGameInfo);
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     char guid[MAX_GUID_LENGTH] = {};
     char extension[MAX_SG_EXT_LENGTH] = {};
@@ -904,16 +843,14 @@ TEST(DataFileWriter, RoundTripLegacyScriptNamesBlock)
     first_view.ScriptName = "vFirst";
     DataUtil::ViewData second_view;
     second_view.TypeName = "SecondView";
-    game.Views = { first_view, second_view };
+    game.Views = {first_view, second_view};
     DataUtil::InventoryItemData key;
     key.ScriptName = "iKey";
     DataUtil::InventoryItemData coin;
     coin.TypeName = "CoinItem";
-    game.Inventory = { key, coin };
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteLegacyScriptNamesBlock);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    game.Inventory = {key, coin};
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteLegacyScriptNamesBlock);
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     EXPECT_STREQ("vFirst", String::FromStream(in.get()).GetCStr());
     EXPECT_STREQ("SecondView", String::FromStream(in.get()).GetCStr());
@@ -927,14 +864,9 @@ TEST(DataFileWriter, RoundTripLegacyScriptNamesBlock)
 TEST(DataFileWriter, RoundTripPluginsBlock)
 {
     DataUtil::GameData game;
-    game.Plugins = {
-        { "plugin-one", { 0, 1, 2, 255 } },
-        { "empty-plugin", {} }
-    };
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WritePluginsBlock);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    game.Plugins = {{"plugin-one", {0, 1, 2, 255}}, {"empty-plugin", {}}};
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WritePluginsBlock);
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     EXPECT_EQ(1, in->ReadInt32());
     ASSERT_EQ(2, in->ReadInt32());
@@ -953,11 +885,9 @@ TEST(DataFileWriter, RoundTripRoomNamesBlock)
 {
     DataUtil::GameData game;
     game.Settings.DebugMode = true;
-    game.Rooms = { { 1, "Hall" }, { 42, "Secret room" } };
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteRoomNamesBlock);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    game.Rooms = {{1, "Hall"}, {42, "Secret room"}};
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteRoomNamesBlock);
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     ASSERT_EQ(2, in->ReadInt32());
     EXPECT_EQ(1, in->ReadInt32());
@@ -983,11 +913,9 @@ TEST(DataFileWriter, RoundTripExt360Fonts)
     second.AutoOutlineThickness = 4;
     second.CharacterSpacing = 5;
     second.CustomHeightValue = 19;
-    game.Fonts = { first, second };
-    std::vector<uint8_t> buffer = WriteExtensionPayload(game,
-        DataFileWriter::WriteExt360Fonts);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    game.Fonts = {first, second};
+    std::vector<uint8_t> buffer = WriteExtensionPayload(game, DataFileWriter::WriteExt360Fonts);
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     for (const auto &font : game.Fonts)
     {
@@ -1008,11 +936,9 @@ TEST(DataFileWriter, RoundTripExt360Cursors)
     first.AnimationDelay = 6;
     DataUtil::CursorData second;
     second.AnimationDelay = 12;
-    game.Cursors = { first, second };
-    std::vector<uint8_t> buffer = WriteExtensionPayload(game,
-        DataFileWriter::WriteExt360Cursors);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    game.Cursors = {first, second};
+    std::vector<uint8_t> buffer = WriteExtensionPayload(game, DataFileWriter::WriteExt360Cursors);
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     for (const auto &cursor : game.Cursors)
     {
@@ -1043,10 +969,8 @@ TEST(DataFileWriter, RoundTripExt361ObjNames)
     clip.ScriptName = "aTheme";
     clip.CacheFileName = "theme.ogg";
     game.AudioClips.push_back(clip);
-    std::vector<uint8_t> buffer = WriteExtensionPayload(game,
-        DataFileWriter::WriteExt361ObjNames);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    std::vector<uint8_t> buffer = WriteExtensionPayload(game, DataFileWriter::WriteExt361ObjNames);
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     EXPECT_STREQ("Extended Game", StrUtil::ReadString(in.get()).GetCStr());
     EXPECT_STREQ("Extended Saves", StrUtil::ReadString(in.get()).GetCStr());
@@ -1070,26 +994,24 @@ TEST(DataFileWriter, RoundTripExt362Interactions)
     DataUtil::GameData game;
     DataUtil::CharacterData hero;
     hero.ScriptModule = "HeroModule";
-    hero.InteractionEvents = { "LookAtHero", "TalkToHero" };
+    hero.InteractionEvents = {"LookAtHero", "TalkToHero"};
     DataUtil::CharacterData npc;
     npc.ScriptModule = "NpcModule";
-    npc.InteractionEvents = { "LookAtNpc" };
-    game.Characters = { hero, npc };
+    npc.InteractionEvents = {"LookAtNpc"};
+    game.Characters = {hero, npc};
     DataUtil::InventoryItemData key;
     key.ScriptModule = "InventoryModule";
-    key.InteractionEvents = { "UseKey" };
+    key.InteractionEvents = {"UseKey"};
     game.Inventory.push_back(key);
     DataUtil::GUIData gui;
     gui.ScriptModule = "GuiModule";
     game.GUI.push_back(gui);
-    std::vector<uint8_t> buffer = WriteExtensionPayload(game,
-        DataFileWriter::WriteExt362Interactions);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    std::vector<uint8_t> buffer = WriteExtensionPayload(game, DataFileWriter::WriteExt362Interactions);
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     EXPECT_TRUE(StrUtil::ReadString(in.get()).IsEmpty()); // global script asset
     EXPECT_TRUE(StrUtil::ReadString(in.get()).IsEmpty()); // dialog script asset
-    EXPECT_EQ(0, in->ReadInt32()); // separately stored script modules
+    EXPECT_EQ(0, in->ReadInt32());                        // separately stored script modules
     ASSERT_EQ(2, in->ReadInt32());
     ScriptEventHandlers loaded_hero;
     HError error = loaded_hero.Read(in.get());
@@ -1131,10 +1053,8 @@ TEST(DataFileWriter, RoundTripExt363GameInfo)
     game.Settings.ReleaseDate = "2026-07-21";
     game.Settings.Version = "1.2.3";
     game.Settings.GameTextLanguage = "pt-BR";
-    std::vector<uint8_t> buffer = WriteExtensionPayload(game,
-        DataFileWriter::WriteExt363GameInfo);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    std::vector<uint8_t> buffer = WriteExtensionPayload(game, DataFileWriter::WriteExt363GameInfo);
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     StringMap info;
     StrUtil::ReadStringMap(info, in.get());
@@ -1168,15 +1088,12 @@ struct LoadedGuiBlock
 
 LoadedGuiBlock ReadGuiBlock(const DataUtil::GameData &game)
 {
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteGuiBlock);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteGuiBlock);
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     LoadedGuiBlock loaded;
     GUIRefCollection refs(loaded.Objects);
-    HError error = GUI::ReadGUI(loaded.Guis, kGameVersion_Current,
-        loaded.Version, refs, in.get());
+    HError error = GUI::ReadGUI(loaded.Guis, kGameVersion_Current, loaded.Version, refs, in.get());
     EXPECT_TRUE(error);
     loaded.StreamLength = in->GetLength();
     loaded.StreamPosition = in->GetPosition();
@@ -1223,8 +1140,7 @@ std::shared_ptr<T> MakeControl(const char *name)
     return control;
 }
 
-void ExpectControlBase(const DataUtil::GUIControlData &expected,
-    const GUIControl &actual)
+void ExpectControlBase(const DataUtil::GUIControlData &expected, const GUIControl &actual)
 {
     EXPECT_STREQ(expected.ScriptName.GetCStr(), actual.GetName().GetCStr());
     EXPECT_EQ(expected.Left, actual.GetX());
@@ -1249,8 +1165,7 @@ void SetControlLooks(DataUtil::GUIControlData &control, int base)
     control.PaddingY = base + 5;
 }
 
-void ExpectControlLooks(const DataUtil::GUIControlData &expected,
-    const GUIControl &actual)
+void ExpectControlLooks(const DataUtil::GUIControlData &expected, const GUIControl &actual)
 {
     EXPECT_EQ(expected.BackgroundColor, actual.GetBackColor());
     EXPECT_EQ(expected.BorderColor, actual.GetBorderColor());
@@ -1265,14 +1180,9 @@ TEST(DataFileWriter, RoundTripGuiMain)
 {
     DataUtil::GameData game;
     DataUtil::GUIData gui = MakeGui();
-    gui.Controls = {
-        MakeControl<DataUtil::GUIButtonData>("btn"),
-        MakeControl<DataUtil::GUILabelData>("lbl"),
-        MakeControl<DataUtil::GUIInventoryData>("inv"),
-        MakeControl<DataUtil::GUISliderData>("sld"),
-        MakeControl<DataUtil::GUITextBoxData>("txt"),
-        MakeControl<DataUtil::GUIListBoxData>("lst")
-    };
+    gui.Controls = {MakeControl<DataUtil::GUIButtonData>("btn"),    MakeControl<DataUtil::GUILabelData>("lbl"),
+                    MakeControl<DataUtil::GUIInventoryData>("inv"), MakeControl<DataUtil::GUISliderData>("sld"),
+                    MakeControl<DataUtil::GUITextBoxData>("txt"),   MakeControl<DataUtil::GUIListBoxData>("lst")};
     game.GUI.push_back(gui);
 
     LoadedGuiBlock loaded = ReadGuiBlock(game);
@@ -1471,10 +1381,8 @@ TEST(DataFileWriter, RoundTripGuiListBox)
     EXPECT_EQ(list_box->SelectedBackgroundColor, actual.GetSelectedBgColor());
     EXPECT_NE(0, actual.GetListBoxFlags() & kListBox_ShowBorder);
     EXPECT_NE(0, actual.GetListBoxFlags() & kListBox_ShowArrows);
-    EXPECT_EQ(static_cast<FrameAlignment>(list_box->TextAlignment),
-        actual.GetTextAlignment());
-    EXPECT_STREQ(list_box->OnSelectionChanged.GetCStr(),
-        actual.GetEventHandler(0).GetCStr());
+    EXPECT_EQ(static_cast<FrameAlignment>(list_box->TextAlignment), actual.GetTextAlignment());
+    EXPECT_STREQ(list_box->OnSelectionChanged.GetCStr(), actual.GetEventHandler(0).GetCStr());
     EXPECT_EQ(loaded.StreamLength, loaded.StreamPosition);
 }
 
@@ -1482,6 +1390,7 @@ class DummyGUIControl : public GUIControl
 {
 public:
     DummyGUIControl() : GUIControl(&_defaultSchema) {}
+
 private:
     static ScriptEventSchema _defaultSchema;
 };
@@ -1493,12 +1402,10 @@ TEST(DataFileWriter, RoundTripGuiControlLooks363)
     DataUtil::GUIControlData control;
     SetControlLooks(control, 60);
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     DataFileWriter::WriteGuiControlLooks363(out.get(), control);
     out.reset();
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     DummyGUIControl loaded;
     loaded.ReadFromFile_Ext363(in.get(), kGuiVersion_Current);
@@ -1541,12 +1448,10 @@ TEST(DataFileWriter, RoundTripExt363GuiControls)
     text_box->TextAlignment = kAlignBottomCenter;
     text_box->TextOutlineColor = 231;
     list_box->TextOutlineColor = 241;
-    gui.Controls = { button, label, inv, slider, text_box, list_box };
+    gui.Controls = {button, label, inv, slider, text_box, list_box};
     game.GUI.push_back(gui);
-    std::vector<uint8_t> buffer = WriteExtensionPayload(game,
-        DataFileWriter::WriteExt363GuiControls);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    std::vector<uint8_t> buffer = WriteExtensionPayload(game, DataFileWriter::WriteExt363GuiControls);
+    auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     ASSERT_EQ(1, in->ReadInt32());
     GUIButton loaded_button;
