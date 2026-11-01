@@ -85,3 +85,8 @@ We've got a Coding Convention for the engine, please check it before writing the
 
 [master-br]: https://github.com/adventuregamestudio/ags/tree/master
 [ags4-br]: https://github.com/adventuregamestudio/ags/tree/ags4
+
+## Fork note
+
+This repository is a hard fork and does not merge upstream. To take a change from the original
+project, cherry-pick it and record it as described in [docs/UPSTREAM.md](docs/UPSTREAM.md).

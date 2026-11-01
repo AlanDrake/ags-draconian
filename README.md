@@ -5,6 +5,8 @@
   
 # Adventure Game Studio
 
+> **AGS Draconian is a hard fork** of [adventuregamestudio/ags](https://github.com/adventuregamestudio/ags) (`ags4` branch), used to experiment with AI-assisted refactoring. It loads games made with AGS 3.99 and later and does not follow upstream merges. See [docs/refactor/PLAN.md](docs/refactor/PLAN.md) and [docs/UPSTREAM.md](docs/UPSTREAM.md).
+
 Adventure Game Studio (AGS) - is the IDE and the engine meant for creating and running videogames of adventure (aka "quest") genre. Created by Chris Jones back in 1999, AGS was open-sourced in 2011. Since then continues to be developed by contributors. Both Editor and Engine are licensed under the Artistic License 2.0; for more details see [License.txt](License.txt). 
 
 For community forums, games and more, go to the website: [www.adventuregamestudio.co.uk](https://www.adventuregamestudio.co.uk)

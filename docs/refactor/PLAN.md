@@ -91,10 +91,10 @@ Recorded 2026-10-31.
 
 ## Phase 0: Fork foundation
 
-- [ ] **0.1 Tag the fork point.** Tag `fork-point` at `4cd88beba` (the current merge base with
+- [x] **0.1 Tag the fork point.** Tag `fork-point` at `4cd88beba` (the current merge base with
   `upstream/ags4`). Keep the `upstream` remote for reference only.
   *Done when:* the tag exists and the README states the project is a hard fork.
-- [ ] **0.2 Cherry-pick ledger.** Create `docs/UPSTREAM.md`: a table of upstream commits that were
+- [x] **0.2 Cherry-pick ledger.** Create `docs/UPSTREAM.md`: a table of upstream commits that were
   picked, adapted or deliberately skipped. Every cherry-pick gets a line.
   *Done when:* the file exists and the cherry-pick process is described in CONTRIBUTING.md.
 - [x] **0.3 Record decisions D1–D6** in the table above.
@@ -120,7 +120,7 @@ Recorded 2026-10-31.
   - `CMAKE_OSX_DEPLOYMENT_TARGET` is 10.9. C++17 language features work there, but the library types
     `std::optional::value()`, `std::variant`, `std::any` need macOS 10.13 and `std::filesystem` 10.15.
     Raise the target before code starts using them.
-- [ ] **0.5 Repository hygiene.** Add the stray local artefacts (`Engine/resource/fxc*.exe`, `fxc.zip`,
+- [x] **0.5 Repository hygiene.** Add the stray local artefacts (`Engine/resource/fxc*.exe`, `fxc.zip`,
   `Editor/References/x64/`) to `.gitignore` or commit them deliberately. Add a `.gitattributes` with
   `* text=auto` and `eol=crlf` only for `*.sln`, `*.bat`, `*.cmd`, `*.vcxproj*` and `*.csproj`.
   *Done when:* `git status` is clean after a full Windows build.

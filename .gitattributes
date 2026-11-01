@@ -1,1 +1,19 @@
 Engine/libsrc/* linguist-vendored
+
+# Normalize line endings in the repository; existing files are converted by
+# a single renormalize commit later (docs/refactor/PLAN.md, task 2.7).
+* text=auto
+*.sln text eol=crlf
+*.vcxproj text eol=crlf
+*.vcxproj.filters text eol=crlf
+*.csproj text eol=crlf
+*.props text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.sh text eol=lf
+*.png binary
+*.ico binary
+*.bmp binary
+*.exe binary
+*.dll binary
+*.zip binary

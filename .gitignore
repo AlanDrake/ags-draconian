@@ -206,3 +206,9 @@ Editor/References/**/*.dll
 /Plugins/AGSSpriteFont/msvc/.temp/
 /Plugins/agstouch/msvc/.build/
 /Plugins/agstouch/msvc/.temp/
+
+# Local helper binaries and editor references (not part of the source tree)
+/Engine/resource/fxc*.exe
+/Engine/resource/fxc.zip
+/Engine/resource/CompileShader - Copia.bat
+/Editor/References/x64/
