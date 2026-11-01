@@ -98,7 +98,7 @@ Recorded 2026-10-31.
   picked, adapted or deliberately skipped. Every cherry-pick gets a line.
   *Done when:* the file exists and the cherry-pick process is described in CONTRIBUTING.md.
 - [x] **0.3 Record decisions D1–D6** in the table above.
-- [ ] **0.4 Raise the toolchain floor.** `CXX_STANDARD 17` in all `CMakeLists.txt` (currently 11 in
+- [x] **0.4 Raise the toolchain floor.** `CXX_STANDARD 17` in all `CMakeLists.txt` (currently 11 in
   `Engine/` and `Common/`), `LanguageStandard stdcpp17` in all `.vcxproj`, `cmake_minimum_required`
   3.16+. For D6 (Windows 7+): replace the `v141_xp` toolset in `Solutions/Common.Lib` and the other
   projects with `v143`, and raise `WINVER`/`_WIN32_WINNT` in `Editor/AGS.Native/stdafx.h` from
@@ -113,7 +113,14 @@ Recorded 2026-10-31.
   Buster image, glibc 2.28). Android and Emscripten failed because the fork's fake-gamma code
   (`f6119c4bb`) called `glColor4f`, which OpenGL ES2 doesn't have; fixed in `e19bc3310`. Verified
   locally with emsdk 3.1.74 (the pre-fix file fails with exactly that error, the fixed tree builds);
-  Android compiles the same GLES code path and is expected to pass in the next CI run.
+  Android compiles the same GLES code path; CI run 41291607424 (`8771bfdcb`) confirms it: all build
+  and test jobs pass on every platform.
+  Left over, not part of this task (need the job logs, so a GitHub token):
+  - **Windows Packaging** (`Run Inno Setup`) fails. It never ran before, because it was skipped while
+    earlier jobs failed. Versions (`version.json`, editor, engine), the redist checksum and the artifact
+    paths check out; the real error is only in the log.
+  - **CodeQL default setup** (repo settings, not a workflow file) fails to autobuild C/C++. Set C/C++
+    to build mode "none" in Settings > Code security, or disable it.
   Also done: the `Debug_XP`/`Release_XP` configurations and `WIN_XP_COMPAT` (which disabled D3D11 and
   the D3D shader compiler) are removed; the hand Makefiles and legacy macOS Xcode projects are at
   C++17 too. Left for phase 7: the standalone plugin projects (`Plugins/*/msvc`, `agspalrender/Makefile`)
