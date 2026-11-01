@@ -116,6 +116,8 @@ void CompilerOptions::PrintToStdout() const
         printf("EnforceNewAudio; ");
     if (Flags.UseOldCustomDialogOptionsAPI)
         printf("UseOldCustomDialogOptionsAPI; ");
+    if (Flags.UseOldKeyboardHandling)
+        printf("UseOldKeyboardHandling; ");
     printf("\n");
     if (DebugMode)
         printf("DebugMode\n");
@@ -167,6 +169,22 @@ int Compile(const CompilerOptions &comp_opts)
     {
         pp.DefineMacro("NEW_DIALOGOPTS_API", "1");
     }
+    if (!comp_opts.Flags.UseOldKeyboardHandling)
+    {
+        pp.DefineMacro("NEW_KEYINPUT_API", "1");
+    }
+    if (comp_opts.UnicodeMode)
+    {
+        pp.DefineMacro("UNICODE", "1");
+    }
+#ifndef LEGACY_COMPILER
+    // Tell the scripts which language extensions the compiler has, as the editor does
+    // (AGSEditor.DefineMacrosAccordingToGameSettings); agsdefns.sh tests these
+    std::vector<std::string> extensions;
+    ccGetExtensions2(extensions);
+    for (const auto &ext : extensions)
+        pp.DefineMacro(("SCRIPT_EXT_" + ext).c_str(), "1");
+#endif
     // Set Script API macros (starting from lowest and until the highest requested)
     for (int i = 0; i < ScriptAPIs.size() - 1; i++)
     {
@@ -218,7 +236,9 @@ int Compile(const CompilerOptions &comp_opts)
     uint64_t const cc_options = (comp_opts.Flags.ExportAll ? SCOPT_EXPORTALL : 0) |
                                 (comp_opts.Flags.LineNumbers ? SCOPT_LINENUMBERS : 0) |
                                 (comp_opts.Flags.EnforceNewStrings ? 0 : SCOPT_OLDSTRINGS) |
-                                (comp_opts.Flags.UnicodeMode ? SCOPT_UTF8 : 0) | SCOPT_RTTI | SCOPT_RTTIOPS | 0;
+                                (comp_opts.UnicodeMode ? SCOPT_UTF8 : 0) | SCOPT_RTTI | SCOPT_RTTIOPS |
+                                // the editor adds the script table of contents to debug builds
+                                (comp_opts.DebugMode ? SCOPT_SCRIPT_TOC : 0);
 #endif
 
     //-----------------------------------------------------------------------//
@@ -287,7 +307,8 @@ int Compile(const CompilerOptions &comp_opts)
     //-----------------------------------------------------------------------//
     String script_pp = nullptr;
     String filename = Path::GetFilename(comp_opts.InputScriptFile.c_str());
-    String script_name = filename; // with extension, like the AGS editor (see headername above)
+    // with extension, like the AGS editor (see headername above)
+    String script_name = comp_opts.ScriptName.empty() ? filename : String(comp_opts.ScriptName.c_str());
 
     script_pp = pp.Preprocess(script_input, script_name);
     if ((script_pp == nullptr) || (cc_has_error()))
