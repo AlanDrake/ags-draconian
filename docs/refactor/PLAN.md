@@ -265,15 +265,19 @@ lines, tab-indented code.
   `clang-tidy-diff.py` on the PR diff with the root `.clang-tidy`. This enforces naming and
   function-size rules on new code without touching the old code.
   *Done when:* a PR that introduces a `chaa`-style name or a 300-line function gets flagged.
-- [ ] **2.5 Header guards → `#pragma once`** (372 headers use `__AGS_...` guards, which are reserved
+- [x] **2.5 Header guards → `#pragma once`** (372 headers use `__AGS_...` guards, which are reserved
   identifiers) and **remove `using namespace` from headers** (54). The latter isn't purely mechanical:
   every `.cpp` that relied on it needs its own `using` or qualification. Do it one header at a time.
   *Done when:* both metrics are 0.
-  *Status (2026-11-01):* first half done: 380 headers converted to `#pragma once` (`52cba7906`,
-  all 589 objects identical). Ten headers without a real guard were left alone, since a guardless header
-  may be meant for repeated inclusion. Second half open: `using namespace` in headers (`AGS` x31,
-  `AGS::Common` x10, `Common` x2). Removing them means each .cpp that relied on them gets its own
-  `using` or qualified names, found by compile errors on every platform: Opus 5.5 `high`.
+  *Status (2026-11-01):* done. (1) 380 headers converted to `#pragma once` (`52cba7906`); ten
+  headers without a real guard left alone, since a guardless header may be meant for repeated
+  inclusion. (2) All 42 file/namespace-scope `using namespace` lines removed from first-party headers
+  (`5e6da0633`): headers now qualify names outside `namespace AGS`, and ~50 .cpp files got their own
+  using-directives after the includes. Verified with the CMake/MSVC build, all MSBuild solutions
+  (incl. `AGS.Native`), the Emscripten build, 828 unit tests and `Script/compare_objects.py`.
+  Android/iOS/Linux/macOS-only sources were checked by reading; CI is the real test for those.
+  The metric still shows 12: one function-local `using` in `characterinfo.h` (harmless) and 11 in
+  `Editor/AGS.Native` (C++/CLI, removed in 6.7).
 - [ ] **2.6 Self-contained headers, then sorted includes.** Add a CMake target that compiles each
   first-party header on its own (`header_check_<name>.cpp` that includes only that header). Fix
   failures with includes or forward declarations, then set `SortIncludes: CaseSensitive` with
