@@ -23,9 +23,7 @@ typedef AGS::Common::String AGSString;
 // ccScript class has calls to cc_error when reading/writing script.
 // These should be removed when we remove static error object
 // from the old compiler code.
-void clear_error()
-{
-}
+void clear_error() {}
 
 char const *last_seen_cc_error()
 {

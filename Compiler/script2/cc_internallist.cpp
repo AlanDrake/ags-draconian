@@ -18,21 +18,23 @@
 
 const AGS::Symbol AGS::SrcList::kEOF = 0;
 
-static int currentline;  
+static int currentline;
 
 AGS::LineHandler::LineHandler()
-    : _sections()
-    , _lineStartTable()
-    , _cacheLineStart(1)    // Invalidate the cache
-    , _cacheLineEnd(0)      // Invalidate the cache
-    , _cacheSectionLine({})
+    : _sections(),
+      _lineStartTable(),
+      _cacheLineStart(1) // Invalidate the cache
+      ,
+      _cacheLineEnd(0) // Invalidate the cache
+      ,
+      _cacheSectionLine({})
 {
     _sections.push_back("");
     _moduleNames.push_back("");
     // Add sentinels to the table for simpler lookup algorithms
     size_t const maxsize = std::numeric_limits<size_t>::max();
-    _lineStartTable[0] = SectionLine{ 0, 1 };
-    _lineStartTable[maxsize] = SectionLine{ 0, maxsize };
+    _lineStartTable[0] = SectionLine{0, 1};
+    _lineStartTable[maxsize] = SectionLine{0, maxsize};
 }
 
 void AGS::LineHandler::UpdateCacheIfNecessary(size_t pos) const
@@ -46,7 +48,7 @@ void AGS::LineHandler::UpdateCacheIfNecessary(size_t pos) const
     auto it = _lineStartTable.upper_bound(pos);
     _cacheLineEnd = it->first;
     _cacheLineStart = (--it)->first;
-    _cacheSectionLine = SectionLine{ it->second.SectionId, it->second.Lineno };
+    _cacheSectionLine = SectionLine{it->second.SectionId, it->second.Lineno};
 }
 
 void AGS::LineHandler::AddLineAt(size_t offset, size_t lineno)
@@ -69,19 +71,19 @@ AGS::SectionList AGS::LineHandler::CreateSectionList() const
 }
 
 AGS::SrcList::SrcList(std::vector<Symbol> &script, LineHandler &line_handler, size_t &cursor)
-    : _script(&script)
-    , _lineHandler(&line_handler)
-    , _begin(0u)
-    , _end(script.size())
-    , _cursor(&cursor)
+    : _script(&script),
+      _lineHandler(&line_handler),
+      _begin(0u),
+      _end(script.size()),
+      _cursor(&cursor)
 {
 }
 
 AGS::SrcList::SrcList(SrcList const &src_list, size_t const offset, size_t const len)
-    : _script(src_list._script)
-    , _lineHandler(src_list._lineHandler)
-    , _begin(offset + src_list._begin)
-    , _cursor(src_list._cursor)
+    : _script(src_list._script),
+      _lineHandler(src_list._lineHandler),
+      _begin(offset + src_list._begin),
+      _cursor(src_list._cursor)
 {
     size_t const script_size = _script->size();
 
@@ -96,11 +98,11 @@ AGS::SrcList::SrcList(SrcList const &src_list, size_t const offset, size_t const
 }
 
 AGS::SrcList::SrcList(SrcList const &src_list)
-    : _script(src_list._script)
-    , _lineHandler(src_list._lineHandler)
-    , _begin(src_list._begin)
-    , _end(src_list._end)
-    , _cursor(src_list._cursor)
+    : _script(src_list._script),
+      _lineHandler(src_list._lineHandler),
+      _begin(src_list._begin),
+      _end(src_list._end),
+      _cursor(src_list._cursor)
 {
 }
 
@@ -148,16 +150,14 @@ void AGS::SrcList::SkipTo(SymbolList const &stoplist)
     for (; !ReachedEOF(); GetNext())
     {
         // Note that the scanner/tokenizer has already verified
-        // that all opening symbols get closed and 
+        // that all opening symbols get closed and
         // that we don't have (...] or similar in the input
         Symbol const next_sym = PeekNext();
         switch (next_sym)
         {
         case kKW_OpenBrace:
         case kKW_OpenBracket:
-        case kKW_OpenParenthesis:
-            ++delimeter_nesting_depth;
-            continue;
+        case kKW_OpenParenthesis: ++delimeter_nesting_depth; continue;
 
         case kKW_CloseBrace:
         case kKW_CloseBracket:
@@ -165,7 +165,6 @@ void AGS::SrcList::SkipTo(SymbolList const &stoplist)
             if (--delimeter_nesting_depth < 0)
                 return;
             continue;
-
         }
         if (0 < delimeter_nesting_depth)
             continue;
