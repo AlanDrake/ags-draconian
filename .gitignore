@@ -216,3 +216,6 @@ Editor/References/**/*.dll
 # Script/compare_objects.py worktree and build directory
 /.compare/
 /.tidy/
+
+# Python bytecode from Script/ tools
+__pycache__/
