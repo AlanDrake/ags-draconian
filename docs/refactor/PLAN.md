@@ -108,7 +108,12 @@ Recorded 2026-10-31.
   *Status (2026-11-01):* implemented, not yet committed. Verified on Windows only: `Engine.sln`,
   `Tests.sln` and `AGS.Editor.Full.sln` (Release x86, MSBuild) and the CMake build (x64, tools + tests)
   build with 0 errors; unit tests pass (MSBuild: Common 96, Engine 3, Tools 76; CMake ctest: 739/739);
-  `ags.exe` still links the static runtime. Waiting for CI on MinGW, Linux, macOS, Android and Web.
+  `ags.exe` still links the static runtime. CI (run 41287882653 and the re-run of its failed jobs):
+  green on Windows, MinGW x64/arm64, Ubuntu x64/arm64, macOS, and the Linux packaging jobs (Debian
+  Buster image, glibc 2.28). **Known failures, cause not yet found:** Android (`Build debug APK`)
+  and Emscripten (`Configure and Build`). Both passed on 2026-10-30 (branch `ags4-voidreturnvoid`,
+  `c5b97977b`); they broke somewhere between that commit and `ff5c87184`, which includes the fork's
+  merged feature branches and the C++17 / CMake 3.16 commits.
   Also done: the `Debug_XP`/`Release_XP` configurations and `WIN_XP_COMPAT` (which disabled D3D11 and
   the D3D shader compiler) are removed; the hand Makefiles and legacy macOS Xcode projects are at
   C++17 too. Left for phase 7: the standalone plugin projects (`Plugins/*/msvc`, `agspalrender/Makefile`)
