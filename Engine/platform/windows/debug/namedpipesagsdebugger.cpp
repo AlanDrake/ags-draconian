@@ -21,14 +21,14 @@
 void NamedPipesAGSDebugger::SendAcknowledgement()
 {
     DWORD bytesWritten;
-    WriteFile(_hPipeSending, "MSGACK", 6, &bytesWritten, NULL);
+    WriteFile(_hPipeSending, "MSGACK", 6, &bytesWritten, nullptr);
 }
 
 
 NamedPipesAGSDebugger::NamedPipesAGSDebugger(const char *instanceToken)
 {
-    _hPipeSending = NULL;
-    _hPipeReading = NULL;
+    _hPipeSending = nullptr;
+    _hPipeReading = nullptr;
     _instanceToken = instanceToken;
 }
 
@@ -39,11 +39,11 @@ bool NamedPipesAGSDebugger::Initialize()
     WCHAR wpipeNameBuf[MAX_PATH_SZ];
     snprintf(pipeNameBuffer, MAX_PATH_SZ, "\\\\.\\pipe\\AGSEditorDebuggerGameToEd%s", _instanceToken);
     MultiByteToWideChar(CP_UTF8, 0, pipeNameBuffer, -1, wpipeNameBuf, MAX_PATH_SZ);
-    _hPipeSending = CreateFileW(wpipeNameBuf, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+    _hPipeSending = CreateFileW(wpipeNameBuf, GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
 
     snprintf(pipeNameBuffer, MAX_PATH_SZ, "\\\\.\\pipe\\AGSEditorDebuggerEdToGame%s", _instanceToken);
     MultiByteToWideChar(CP_UTF8, 0, pipeNameBuffer, -1, wpipeNameBuf, MAX_PATH_SZ);
-    _hPipeReading = CreateFileW(wpipeNameBuf, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
+    _hPipeReading = CreateFileW(wpipeNameBuf, GENERIC_READ, 0, nullptr, OPEN_EXISTING, 0, nullptr);
 
     if ((_hPipeReading == INVALID_HANDLE_VALUE) || (_hPipeSending == INVALID_HANDLE_VALUE))
         return false;
@@ -53,24 +53,24 @@ bool NamedPipesAGSDebugger::Initialize()
 
 void NamedPipesAGSDebugger::Shutdown()
 {
-    if (_hPipeReading != NULL)
+    if (_hPipeReading != nullptr)
     {
         CloseHandle(_hPipeReading);
         CloseHandle(_hPipeSending);
-        _hPipeReading = NULL;
+        _hPipeReading = nullptr;
     }
 }
 
 bool NamedPipesAGSDebugger::SendMessageToEditor(const char *message)
 {
     DWORD bytesWritten;
-    return (WriteFile(_hPipeSending, message, strlen(message), &bytesWritten, NULL) != 0);
+    return (WriteFile(_hPipeSending, message, strlen(message), &bytesWritten, nullptr) != 0);
 }
 
 bool NamedPipesAGSDebugger::IsMessageAvailable()
 {
     DWORD bytesAvailable = 0;
-    PeekNamedPipe(_hPipeReading, NULL, 0, NULL, &bytesAvailable, NULL);
+    PeekNamedPipe(_hPipeReading, nullptr, 0, nullptr, &bytesAvailable, nullptr);
 
     return (bytesAvailable > 0);
 }
@@ -78,13 +78,13 @@ bool NamedPipesAGSDebugger::IsMessageAvailable()
 char *NamedPipesAGSDebugger::GetNextMessage()
 {
     DWORD bytesAvailable = 0;
-    PeekNamedPipe(_hPipeReading, NULL, 0, NULL, &bytesAvailable, NULL);
+    PeekNamedPipe(_hPipeReading, nullptr, 0, nullptr, &bytesAvailable, nullptr);
 
     if (bytesAvailable > 0)
     {
         char *buffer = (char *)malloc(bytesAvailable + 1);
         DWORD bytesRead = 0;
-        ReadFile(_hPipeReading, buffer, bytesAvailable, &bytesRead, NULL);
+        ReadFile(_hPipeReading, buffer, bytesAvailable, &bytesRead, nullptr);
         buffer[bytesRead] = 0;
 
         SendAcknowledgement();
@@ -92,7 +92,7 @@ char *NamedPipesAGSDebugger::GetNextMessage()
     }
     else
     {
-        return NULL;
+        return nullptr;
     }
 }
 

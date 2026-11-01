@@ -424,7 +424,7 @@ AGSGameOptions *IAGSEngine::GetGameOptions()
 {
     // We should not return anything, because script functions do not require passing actual instance of GameState
     quit("!AGSEngine::GetGameOptions() is no longer supported. Use related script API instead.");
-    return NULL;
+    return nullptr;
 }
 AGSColor *IAGSEngine::GetPalette()
 {

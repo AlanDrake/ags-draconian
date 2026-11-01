@@ -31,9 +31,9 @@ WinDialog::~WinDialog()
 INT_PTR WinDialog::ShowModal(WinDialog *dialog, HWND parent_hwnd)
 {
     assert(dialog->_hwnd == NULL);
-    if (dialog->_hwnd != NULL)
+    if (dialog->_hwnd != nullptr)
         return FALSE;
-    return DialogBoxParamW(GetModuleHandleW(NULL), (LPCWSTR)dialog->GetTemplateID(), parent_hwnd,
+    return DialogBoxParamW(GetModuleHandleW(nullptr), (LPCWSTR)dialog->GetTemplateID(), parent_hwnd,
                            (DLGPROC)WinDialog::DialogProc, (LONG_PTR)dialog);
 }
 
@@ -42,7 +42,7 @@ INT_PTR WinDialog::ShowModal(WinDialog *dialog, HWND parent_hwnd)
 // lpszResName - name of the resource
 DLGTEMPLATE *DoLockDlgRes(HINSTANCE hinstance, LPCWSTR lpszResName)
 {
-    HRSRC hrsrc = FindResourceW(NULL, lpszResName, (LPCWSTR)RT_DIALOG);
+    HRSRC hrsrc = FindResourceW(nullptr, lpszResName, (LPCWSTR)RT_DIALOG);
     HGLOBAL hglb = LoadResource(hinstance, hrsrc);
     return (DLGTEMPLATE *)LockResource(hglb);
 }
@@ -50,10 +50,10 @@ DLGTEMPLATE *DoLockDlgRes(HINSTANCE hinstance, LPCWSTR lpszResName)
 void WinDialog::CreateModeless(HWND parent_hwnd)
 {
     assert(_hwnd == NULL);
-    if (_hwnd != NULL)
+    if (_hwnd != nullptr)
         return;
 
-    HINSTANCE hinst = GetModuleHandleW(NULL);
+    HINSTANCE hinst = GetModuleHandleW(nullptr);
     DLGTEMPLATE *dlgtempl = DoLockDlgRes(hinst, (LPCWSTR)GetTemplateID());
     CreateDialogIndirectParamW(hinst, dlgtempl, parent_hwnd, (DLGPROC)WinDialog::DialogProc, (LONG_PTR)this);
 }

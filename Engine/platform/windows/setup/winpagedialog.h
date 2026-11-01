@@ -69,7 +69,7 @@ public:
     void SelectPage(size_t index);
 
 private:
-    HWND _hwnd = NULL;
+    HWND _hwnd = nullptr;
     Rect _parentRect;
     std::vector<std::shared_ptr<WinPageDialog>> _pages;
     WinPageDialog *_curPage = nullptr;

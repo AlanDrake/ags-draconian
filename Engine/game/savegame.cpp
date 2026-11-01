@@ -1346,7 +1346,7 @@ const char *SaveInfo_GetScriptModuleNames(ScriptRestoredSaveInfo *info, int inde
     {
         debug_script_error("RestoredSaveInfo::ScriptModuleNames: index %d out of bounds (%d..%d)", index, 0,
                            info->GetCounts().ScriptModules);
-        return 0;
+        return nullptr;
     }
     return CreateNewScriptString(info->GetCounts().ScriptModuleNames[index]);
 }

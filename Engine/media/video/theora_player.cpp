@@ -126,7 +126,7 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
     _audioChannels = _apegStream->audio.channels;
     _audioFreq = _apegStream->audio.freq;
     _audioFormat = AUDIO_S16SYS;
-    apeg_set_error(_apegStream, NULL);
+    apeg_set_error(_apegStream, nullptr);
     _videoFramesDecodedTotal = 0u;
     _videoFramesDecoded = 0u;
     _nextFrameTs = 0.f;

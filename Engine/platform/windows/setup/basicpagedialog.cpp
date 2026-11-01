@@ -456,12 +456,12 @@ int BasicPageDialog::GetRealDisplayIndex()
 
 void BasicPageDialog::SetScalingSelection()
 {
-    SetCurSelToItemData(_hFsScalingList, _winCfg.Display.FsGameFrame, NULL, 0);
+    SetCurSelToItemData(_hFsScalingList, _winCfg.Display.FsGameFrame, nullptr, 0);
 
     if (_winCfg.Display.WinSetup.Scale > 0)
-        SetCurSelToItemData(_hWinScalingList, _winCfg.Display.WinSetup.Scale + kNumFrameScaleDef, NULL, 0);
+        SetCurSelToItemData(_hWinScalingList, _winCfg.Display.WinSetup.Scale + kNumFrameScaleDef, nullptr, 0);
     else
-        SetCurSelToItemData(_hWinScalingList, _winCfg.Display.WinGameFrame, NULL, 0);
+        SetCurSelToItemData(_hWinScalingList, _winCfg.Display.WinGameFrame, nullptr, 0);
 
     OnFullScalingUpdate();
     OnWinScalingUpdate();
@@ -579,7 +579,7 @@ void BasicPageDialog::SelectNearestGfxMode(const WindowSetup &ws)
         if (find_nearest_supported_mode(_drvDesc->GfxModeList, screen_size, _drvDesc->UseColorDepth, NULL, NULL, dm,
                                         &index))
         {
-            SetCurSelToItemData(_hGfxModeList, index, NULL, kGfxMode_Desktop);
+            SetCurSelToItemData(_hGfxModeList, index, nullptr, kGfxMode_Desktop);
         }
         else
         {

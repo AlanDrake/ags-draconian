@@ -66,7 +66,7 @@ TEST(ScSprintf, ScSprintf)
     result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "%d%%", params, 3);
     ASSERT_TRUE(strcmp(ScSfBuffer, "123%") == 0);
     ASSERT_EQ(result, 4);
-    result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "123%%", NULL, 0);
+    result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "123%%", nullptr, 0);
     ASSERT_TRUE(strcmp(ScSfBuffer, "123%") == 0);
     ASSERT_EQ(result, 4);
     result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "%%5d%%0.5f%%s", params, 3);
@@ -103,7 +103,7 @@ TEST(ScSprintf, ScSprintf)
     ASSERT_EQ(result, 10);
 
     // Test null string pointer
-    params[0].SetStringLiteral(NULL);
+    params[0].SetStringLiteral(nullptr);
     result = ScriptSprintf(ScSfBuffer, 10, "A%sB", params, 1);
     ASSERT_TRUE(strcmp(ScSfBuffer, "A(null)B") == 0);
     ASSERT_EQ(result, 8);

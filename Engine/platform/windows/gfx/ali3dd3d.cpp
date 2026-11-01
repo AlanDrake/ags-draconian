@@ -970,7 +970,7 @@ bool D3DGraphicsDriver::CreateShaderProgram(D3DShader::ProgramData &prg, const S
 bool D3DGraphicsDriver::CreateShaderProgramFromResource(D3DShader::ProgramData &prg, const String &name,
                                                         const char *resource_name)
 {
-    HMODULE exeHandle = GetModuleHandle(NULL);
+    HMODULE exeHandle = GetModuleHandle(nullptr);
     HRSRC hRes = FindResource(exeHandle, resource_name, "DATA");
     if (hRes)
     {

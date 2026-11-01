@@ -39,7 +39,7 @@ ScriptCamera *Camera_Create()
 {
     auto cam = play.CreateRoomCamera();
     if (!cam)
-        return NULL;
+        return nullptr;
     return play.RegisterRoomCamera(cam->GetID());
 }
 
@@ -290,7 +290,7 @@ ScriptShaderInstance *Camera_GetShader(ScriptCamera *scam)
     if (scam->GetID() < 0)
     {
         debug_script_warn("Camera.Shader: trying to use deleted camera");
-        return 0;
+        return nullptr;
     }
     return static_cast<ScriptShaderInstance *>(
         ccGetObjectAddressFromHandle(play.GetRoomCamera(scam->GetID())->GetShaderHandle()));
@@ -449,7 +449,7 @@ ScriptViewport *Viewport_Create()
 {
     auto view = play.CreateRoomViewport();
     if (!view)
-        return NULL;
+        return nullptr;
     return play.RegisterRoomViewport(view->GetID());
 }
 
@@ -632,7 +632,7 @@ ScriptShaderInstance *Viewport_GetShader(ScriptViewport *scv)
     if (scv->GetID() < 0)
     {
         debug_script_warn("Viewport.Shader: trying to use deleted viewport");
-        return 0;
+        return nullptr;
     }
     return static_cast<ScriptShaderInstance *>(
         ccGetObjectAddressFromHandle(play.GetRoomViewport(scv->GetID())->GetShaderHandle()));

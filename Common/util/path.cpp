@@ -370,9 +370,9 @@ String GetPathInForeignAsset(const String &filename)
 String WidePathToUTF8(const wchar_t *ws)
 {
     char buf[MAX_PATH_SZ];
-    int need_size = WideCharToMultiByte(CP_UTF8, 0, ws, -1, NULL, 0, NULL, NULL);
+    int need_size = WideCharToMultiByte(CP_UTF8, 0, ws, -1, nullptr, 0, nullptr, nullptr);
     char *pbuf = (need_size <= MAX_PATH_SZ) ? buf : new char[need_size];
-    WideCharToMultiByte(CP_UTF8, 0, ws, -1, pbuf, need_size, NULL, NULL);
+    WideCharToMultiByte(CP_UTF8, 0, ws, -1, pbuf, need_size, nullptr, nullptr);
     String s = pbuf;
     if (pbuf != buf)
         delete pbuf;

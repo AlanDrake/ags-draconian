@@ -201,7 +201,7 @@ protected:
         return IsDigit(ch) || (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z');
     }
     inline static bool IsAlpha(int ch) { return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'); }
-    inline static bool IsSpace(int ch) { return (std::strchr(" \t\n\v\f\r", ch) != 0); }
+    inline static bool IsSpace(int ch) { return (std::strchr(" \t\n\v\f\r", ch) != nullptr); }
 
     // Change 'where': replace the first occurrence of 'token' in 'where' by 'replacement'.
     inline static void ReplaceToken(std::string &where, std::string const &token, std::string const &replacement)

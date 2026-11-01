@@ -86,9 +86,9 @@ typedef int (*SCAPI_CHARACTER_GETX)(AGSCharacter *ch);
 typedef int (*SCAPI_CHARACTER_GETY)(AGSCharacter *ch);
 typedef int (*SCAPI_CHARACTER_GETLOOP)(AGSCharacter *ch);
 
-SCAPI_CHARACTER_GETX Character_GetX = NULL;
-SCAPI_CHARACTER_GETY Character_GetY = NULL;
-SCAPI_CHARACTER_GETLOOP Character_GetLoop = NULL;
+SCAPI_CHARACTER_GETX Character_GetX = nullptr;
+SCAPI_CHARACTER_GETY Character_GetY = nullptr;
+SCAPI_CHARACTER_GETLOOP Character_GetLoop = nullptr;
 
 // This function is from Allegro, split for more performance.
 

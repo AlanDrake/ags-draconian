@@ -268,7 +268,7 @@ int CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM /*lParam*/, LPARAM 
 bool BrowseForFolder(String &dir_buf)
 {
     bool res = false;
-    CoInitialize(NULL);
+    CoInitialize(nullptr);
 
     BROWSEINFO bi = {0};
     bi.lpszTitle = "Select location for game saves and custom data files";
@@ -301,7 +301,7 @@ void MakeFullLongPath(const char *path, WCHAR *out_buf, int buf_len)
 {
     WCHAR wbuf[MAX_PATH_SZ];
     MultiByteToWideChar(CP_UTF8, 0, path, -1, out_buf, buf_len);
-    GetFullPathNameW(out_buf, MAX_PATH_SZ, wbuf, NULL);
+    GetFullPathNameW(out_buf, MAX_PATH_SZ, wbuf, nullptr);
     GetLongPathNameW(wbuf, out_buf, buf_len);
 }
 

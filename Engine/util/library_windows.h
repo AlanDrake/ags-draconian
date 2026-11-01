@@ -59,7 +59,7 @@ public:
     WindowsLibrary(WindowsLibrary &&other)
     {
         _library = other._library;
-        other._library = NULL;
+        other._library = nullptr;
         _name = std::move(other._name);
         _filename = std::move(other._filename);
         _path = std::move(other._path);
@@ -74,7 +74,7 @@ public:
         String libfile = GetFilenameForLib(libname);
         String path; // save last tried path
         HMODULE lib = TryLoadAnywhere(libfile, lookup, path);
-        if (lib == NULL)
+        if (lib == nullptr)
             return false;
         _library = lib;
         _name = libname;
@@ -88,14 +88,14 @@ public:
         if (_library)
         {
             FreeLibrary(_library);
-            _library = NULL;
+            _library = nullptr;
             _name = "";
             _filename = "";
             _path = "";
         }
     }
 
-    virtual bool IsLoaded() const override { return _library != NULL; }
+    virtual bool IsLoaded() const override { return _library != nullptr; }
 
     void *GetFunctionAddress(const String &fn_name) override
     {
@@ -111,13 +111,13 @@ private:
         WCHAR wpath[MAX_PATH_SZ];
         MultiByteToWideChar(CP_UTF8, 0, path.GetCStr(), -1, wpath, MAX_PATH_SZ);
         HMODULE hmodule = LoadLibraryW(wpath);
-        if (hmodule == NULL)
+        if (hmodule == nullptr)
         {
             std::vector<WCHAR> wbuffer(1024);
             FormatMessageW(
-                FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, GetLastError(),
+                FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_MAX_WIDTH_MASK, nullptr, GetLastError(),
                 MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), // always en_US, because our logs are in English
-                wbuffer.data(), wbuffer.size(), NULL);
+                wbuffer.data(), wbuffer.size(), nullptr);
             std::vector<char> err_msg;
             Common::StrUtil::ConvertWstrToUtf8(wbuffer.data(), err_msg);
             Common::Debug::Printf("LoadLibrary error: %s", err_msg.data());
@@ -141,15 +141,15 @@ private:
             Common::StrUtil::ConvertUtf8ToWstr(p.GetCStr(), wpath, MAX_PATH_SZ);
             SetDllDirectoryW(wpath);
             lib = TryLoad(path);
-            SetDllDirectoryW(NULL);
+            SetDllDirectoryW(nullptr);
             if (lib)
                 return lib;
         }
 
-        return NULL;
+        return nullptr;
     }
 
-    HMODULE _library = NULL;
+    HMODULE _library = nullptr;
 };
 
 

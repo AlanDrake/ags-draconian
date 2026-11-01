@@ -61,14 +61,14 @@ MINIDUMPWRITEDUMP _MiniDumpWriteDump;
 void CreateMiniDump(EXCEPTION_POINTERS *pep)
 {
     HMODULE dllHandle = LoadLibrary(L"dbghelp.dll");
-    if (dllHandle == NULL)
+    if (dllHandle == nullptr)
     {
         miniDumpResultCode = 1;
         return;
     }
 
     _MiniDumpWriteDump = (MINIDUMPWRITEDUMP)GetProcAddress(dllHandle, "MiniDumpWriteDump");
-    if (_MiniDumpWriteDump == NULL)
+    if (_MiniDumpWriteDump == nullptr)
     {
         FreeLibrary(dllHandle);
         miniDumpResultCode = 2;
@@ -78,9 +78,9 @@ void CreateMiniDump(EXCEPTION_POINTERS *pep)
     char fileName[80];
     snprintf(fileName, sizeof(fileName), "CrashInfo.%s.dmp", EngineVersion.LongString.GetCStr());
     HANDLE hFile =
-        CreateFileA(fileName, GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+        CreateFileA(fileName, GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
-    if ((hFile != NULL) && (hFile != INVALID_HANDLE_VALUE))
+    if ((hFile != nullptr) && (hFile != INVALID_HANDLE_VALUE))
     {
         MINIDUMP_EXCEPTION_INFORMATION mdei;
 
@@ -90,8 +90,8 @@ void CreateMiniDump(EXCEPTION_POINTERS *pep)
 
         MINIDUMP_TYPE mdt = MiniDumpNormal; //MiniDumpWithPrivateReadWriteMemory;
 
-        BOOL rv = _MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, mdt, (pep != 0) ? &mdei : 0,
-                                     NULL, NULL);
+        BOOL rv = _MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, mdt,
+                                     (pep != nullptr) ? &mdei : nullptr, nullptr, nullptr);
 
         if (!rv)
             miniDumpResultCode = 4;

@@ -45,7 +45,7 @@ bool CreateDirectory(const String &path)
 #if AGS_PLATFORM_OS_WINDOWS
     WCHAR wstr[MAX_PATH_SZ];
     MultiByteToWideChar(CP_UTF8, 0, path.GetCStr(), -1, wstr, MAX_PATH_SZ);
-    return (CreateDirectoryW(wstr, NULL) != FALSE) || (GetLastError() == ERROR_ALREADY_EXISTS);
+    return (CreateDirectoryW(wstr, nullptr) != FALSE) || (GetLastError() == ERROR_ALREADY_EXISTS);
 #else
     return (mkdir(path.GetCStr(), 0755) == 0) || (errno == EEXIST);
 #endif

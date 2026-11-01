@@ -44,7 +44,7 @@ RuntimeScriptValue Sc_PluginStub_IntNeg1(const RuntimeScriptValue * /*params*/, 
 
 RuntimeScriptValue Sc_PluginStub_NullStr(const RuntimeScriptValue * /*params*/, int32_t /*param_count*/)
 {
-    return RuntimeScriptValue().SetStringLiteral(NULL);
+    return RuntimeScriptValue().SetStringLiteral(nullptr);
 }
 
 bool RegisterPluginStubs(const char *name)

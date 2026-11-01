@@ -96,7 +96,7 @@ int malloc_fail_handler(size_t amountwanted)
     const size_t MB = 1024 * 1024;
     const size_t KB = 1024;
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
-    CreateMiniDump(NULL);
+    CreateMiniDump(nullptr);
 #endif
     free(printfworkingspace);
 

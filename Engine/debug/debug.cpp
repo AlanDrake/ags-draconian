@@ -65,7 +65,7 @@ volatile int game_paused_in_debugger = 0;
 
 #include "platform/windows/debug/namedpipesagsdebugger.h"
 
-HWND editor_window_handle = 0;
+HWND editor_window_handle = nullptr;
 
 IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 {
@@ -605,7 +605,7 @@ bool send_exception_to_debugger(const char *qmsg)
 #if AGS_PLATFORM_OS_WINDOWS
     want_exit = false;
     // allow the editor to break with the error message
-    if (editor_window_handle != NULL)
+    if (editor_window_handle != nullptr)
         SetForegroundWindow(editor_window_handle);
 
     if (!send_state_to_debugger("ERROR", qmsg))
@@ -631,7 +631,7 @@ void break_into_debugger()
     if (!send_state_to_debugger("BREAK"))
         return;
 
-    if (editor_window_handle != NULL)
+    if (editor_window_handle != nullptr)
         SetForegroundWindow(editor_window_handle);
 
     game_paused_in_debugger = 1;

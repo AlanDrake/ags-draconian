@@ -233,7 +233,7 @@ ccScript *ccCompileText2(std::string const &script, std::string const &scriptNam
     if (mh.HasError())
     {
         delete compiled_script; // Note: delete calls the destructor
-        return NULL;
+        return nullptr;
     }
 
     // Construct RTTI

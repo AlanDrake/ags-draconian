@@ -44,7 +44,7 @@ public:
 
     virtual String GetTitle() const { return ""; /* TODO? */ }
 
-    bool IsCreated() const { return _hwnd != NULL; }
+    bool IsCreated() const { return _hwnd != nullptr; }
     HWND GetHandle() const { return _hwnd; }
     void Show();
     void Show(HWND insert_after, const Rect &pos);
@@ -60,7 +60,7 @@ protected:
     virtual INT_PTR OnCommand(WORD id) { return FALSE; /* do nothing */ }
     virtual INT_PTR OnListSelection(WORD id) { return FALSE; /* do nothing */ }
 
-    HWND _hwnd = NULL; // dialog handle; TODO: make private, but this will require to use getter
+    HWND _hwnd = nullptr; // dialog handle; TODO: make private, but this will require to use getter
 
 private:
     static INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);

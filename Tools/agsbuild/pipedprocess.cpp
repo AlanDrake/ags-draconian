@@ -63,12 +63,12 @@ HError PipedProcess::RunSync(std::vector<uint8_t> *stdout_data)
 HError PipedProcess::CreateProcess()
 {
 #if (AGS_PLATFORM_OS_WINDOWS)
-    STARTUPINFOW si = {sizeof(si), NULL, NULL, NULL, NULL, CREATE_NO_WINDOW, NULL};
+    STARTUPINFOW si = {sizeof(si), nullptr, nullptr, nullptr, NULL, CREATE_NO_WINDOW, NULL};
 
     SECURITY_ATTRIBUTES sa;
     sa.nLength = sizeof(SECURITY_ATTRIBUTES);
     sa.bInheritHandle = TRUE;
-    sa.lpSecurityDescriptor = NULL;
+    sa.lpSecurityDescriptor = nullptr;
     const bool stdout_pipe = CreatePipe(&_hStdOutPipeRead, &_hStdOutPipeWrite, &sa, 1024u) == TRUE;
     const bool stderr_pipe = CreatePipe(&_hStdErrPipeRead, &_hStdErrPipeWrite, &sa, 1024u) == TRUE;
     // NOTE: we only check the pipe result to know if we should dispose of it.
@@ -83,8 +83,8 @@ HError PipedProcess::CreateProcess()
 
     std::vector<wchar_t> cmd(_command.GetLength() + 1);
     StrUtil::ConvertUtf8ToWstr(_command.GetCStr(), cmd.data(), cmd.size());
-    if (CreateProcessW(NULL, cmd.data(), NULL, NULL, TRUE /* bInheritHandles */, CREATE_NO_WINDOW, NULL, NULL, &si,
-                       &_pi) != TRUE)
+    if (CreateProcessW(nullptr, cmd.data(), nullptr, nullptr, TRUE /* bInheritHandles */, CREATE_NO_WINDOW, nullptr,
+                       nullptr, &si, &_pi) != TRUE)
     {
         return new Error("Process failed with err code: %u\n", GetLastError());
     }
@@ -137,10 +137,10 @@ void PipedProcess::ReadFromPipe(HANDLE pipe, std::vector<uint8_t> *output_data, 
 {
     uint8_t buffer[1024];
     DWORD pipe_has_bytes = 0;
-    if ((PeekNamedPipe(pipe, NULL, 0, NULL, &pipe_has_bytes, NULL) == TRUE) && (pipe_has_bytes > 0))
+    if ((PeekNamedPipe(pipe, nullptr, 0, nullptr, &pipe_has_bytes, nullptr) == TRUE) && (pipe_has_bytes > 0))
     {
         DWORD bytes_read = 0;
-        while (pipe_has_bytes > 0 && ReadFile(pipe, buffer, sizeof(buffer) - 1, &bytes_read, NULL) == TRUE &&
+        while (pipe_has_bytes > 0 && ReadFile(pipe, buffer, sizeof(buffer) - 1, &bytes_read, nullptr) == TRUE &&
                bytes_read > 0 && bytes_read != MAXDWORD)
         {
             if (output_data)
@@ -183,7 +183,7 @@ void PipedProcess::ReadFromPipe(int pipe_fd, std::vector<uint8_t> *output_data, 
 HError PipedProcess::RunProcessSync(std::vector<uint8_t> *stdout_data)
 {
 #if (AGS_PLATFORM_OS_WINDOWS)
-    if (_pi.hProcess == NULL)
+    if (_pi.hProcess == nullptr)
         return new Error("Internal error: external process was not initialized");
 
     DWORD proc_result = 0;
@@ -279,7 +279,7 @@ void PipedProcess::CloseProcess()
 bool PipedProcess::IsPipeCreated() const
 {
 #if (AGS_PLATFORM_OS_WINDOWS)
-    return _hStdOutPipeRead != NULL && _hStdOutPipeWrite != NULL;
+    return _hStdOutPipeRead != nullptr && _hStdOutPipeWrite != nullptr;
 #else
     return _stdOutPipe[0] >= 0;
 #endif

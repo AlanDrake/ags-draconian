@@ -315,7 +315,7 @@ static String SaveCustomDirSetup(const String &def_dir, HWND dir_check, HWND dir
     WCHAR rel_dir[MAX_PATH_SZ] = {0};
     if (PathRelativePathToW(rel_dir, full_data_dir, FILE_ATTRIBUTE_DIRECTORY, full_custom_dir,
                             FILE_ATTRIBUTE_DIRECTORY) &&
-        wcsstr(rel_dir, L"..") == NULL)
+        wcsstr(rel_dir, L"..") == nullptr)
     {
         return Path::WidePathToUTF8(rel_dir);
     }

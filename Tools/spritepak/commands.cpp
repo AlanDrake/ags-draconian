@@ -57,7 +57,7 @@ static HError OpenSpriteFile(SpriteFile &reader, const String &sprite_file, cons
         err = reader.OpenFile(std::move(file_in), std::move(index_in));
     if (!err)
         return new Error(err, "Failed to initialize sprite file");
-    return 0;
+    return nullptr;
 }
 
 static void SaveIndexFile(const String &index_file, const SpriteFileIndex &index)

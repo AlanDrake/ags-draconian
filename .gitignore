@@ -215,3 +215,4 @@ Editor/References/**/*.dll
 
 # Script/compare_objects.py worktree and build directory
 /.compare/
+/.tidy/

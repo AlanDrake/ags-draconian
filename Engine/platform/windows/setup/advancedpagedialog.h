@@ -62,17 +62,17 @@ private:
     std::vector<std::pair<String, String>> _drvAudioList;
 
     // Dialog controls
-    HWND _hSpriteCacheList = NULL;
-    HWND _hTextureCacheList = NULL;
-    HWND _hAudioDriverList = NULL;
-    HWND _hSoundCacheList = NULL;
-    HWND _hVSync = NULL;
-    HWND _hRenderAtScreenRes = NULL;
-    HWND _hAntialiasSprites = NULL;
-    HWND _hUseVoicePack = NULL;
-    HWND _hMouseLock = NULL;
-    HWND _hMouseSpeed = NULL;
-    HWND _hMouseSpeedText = NULL;
+    HWND _hSpriteCacheList = nullptr;
+    HWND _hTextureCacheList = nullptr;
+    HWND _hAudioDriverList = nullptr;
+    HWND _hSoundCacheList = nullptr;
+    HWND _hVSync = nullptr;
+    HWND _hRenderAtScreenRes = nullptr;
+    HWND _hAntialiasSprites = nullptr;
+    HWND _hUseVoicePack = nullptr;
+    HWND _hMouseLock = nullptr;
+    HWND _hMouseSpeed = nullptr;
+    HWND _hMouseSpeedText = nullptr;
 };
 
 //=============================================================================
@@ -105,13 +105,13 @@ private:
     void OnCustomAppDataDirCheck();
 
     // Dialog controls
-    HWND _hCustomSaveDir = NULL;
-    HWND _hCustomSaveDirBtn = NULL;
-    HWND _hCustomSaveDirCheck = NULL;
-    HWND _hCustomAppDataDir = NULL;
-    HWND _hCustomAppDataDirBtn = NULL;
-    HWND _hCustomAppDataDirCheck = NULL;
-    HWND _hCompressSavesCheck = NULL;
+    HWND _hCustomSaveDir = nullptr;
+    HWND _hCustomSaveDirBtn = nullptr;
+    HWND _hCustomSaveDirCheck = nullptr;
+    HWND _hCustomAppDataDir = nullptr;
+    HWND _hCustomAppDataDirBtn = nullptr;
+    HWND _hCustomAppDataDirCheck = nullptr;
+    HWND _hCompressSavesCheck = nullptr;
 };
 
 //=============================================================================
@@ -152,13 +152,13 @@ private:
     void UpdateTextReadSpeed();
 
     // Dialog controls
-    HWND _hEnableAccess = NULL;
-    HWND _hSpeechSkipStyle = NULL;
-    HWND _hTextSkipStyle = NULL;
-    HWND _hTextReadSpeed = NULL;
-    HWND _hTextReadSpeedText = NULL;
-    HWND _hSpeechMode = NULL;
-    HWND _hAlwaysWaitForText = NULL;
+    HWND _hEnableAccess = nullptr;
+    HWND _hSpeechSkipStyle = nullptr;
+    HWND _hTextSkipStyle = nullptr;
+    HWND _hTextReadSpeed = nullptr;
+    HWND _hTextReadSpeedText = nullptr;
+    HWND _hSpeechMode = nullptr;
+    HWND _hAlwaysWaitForText = nullptr;
 
     ConfigTree &_cfgOut;
     bool _disabledSkipStyle = false;

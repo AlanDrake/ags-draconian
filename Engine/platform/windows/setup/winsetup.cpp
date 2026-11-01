@@ -77,8 +77,8 @@ private:
     ConfigTree &_cfgOut;
 
     // Dialog controls
-    HWND _hTabber = NULL;
-    HWND _hVersionText = NULL;
+    HWND _hTabber = nullptr;
+    HWND _hVersionText = nullptr;
     std::unique_ptr<PageControl> _pager;
     std::vector<std::shared_ptr<WinSetupPageDialog>> _pages;
 };

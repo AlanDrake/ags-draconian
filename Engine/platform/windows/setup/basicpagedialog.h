@@ -179,16 +179,16 @@ private:
     std::vector<String> _translations;
 
     // Dialog controls
-    HWND _hGameResolutionText = NULL;
-    HWND _hDisplayList = NULL;
-    HWND _hWindowed = NULL;
-    HWND _hGfxDriverList = NULL;
-    HWND _hGfxModeList = NULL;
-    HWND _hFullscreenDesktop = NULL;
-    HWND _hFsScalingList = NULL;
-    HWND _hWinScalingList = NULL;
-    HWND _hGfxFilterList = NULL;
-    HWND _hLanguageList = NULL;
+    HWND _hGameResolutionText = nullptr;
+    HWND _hDisplayList = nullptr;
+    HWND _hWindowed = nullptr;
+    HWND _hGfxDriverList = nullptr;
+    HWND _hGfxModeList = nullptr;
+    HWND _hFullscreenDesktop = nullptr;
+    HWND _hFsScalingList = nullptr;
+    HWND _hWinScalingList = nullptr;
+    HWND _hGfxFilterList = nullptr;
+    HWND _hLanguageList = nullptr;
 };
 
 } // namespace Engine

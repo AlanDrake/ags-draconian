@@ -42,8 +42,8 @@ namespace ags_snowrain
 typedef AGSViewFrame *(*SCAPI_GAME_GETVIEWFRAME)(int view, int loop, int frame);
 typedef int (*SCAPI_VIEWFRAME_GETGRAPHIC)(AGSViewFrame *ch);
 
-SCAPI_GAME_GETVIEWFRAME Game_GetViewFrame = NULL;
-SCAPI_VIEWFRAME_GETGRAPHIC ViewFrame_GetGraphic = NULL;
+SCAPI_GAME_GETVIEWFRAME Game_GetViewFrame = nullptr;
+SCAPI_VIEWFRAME_GETGRAPHIC ViewFrame_GetGraphic = nullptr;
 
 #define signum(x) ((x > 0) ? 1 : -1)
 

@@ -119,7 +119,7 @@ static void DetermineAppDataFolder()
     if (win32AppDataDirectory.IsValid())
         return; // already set
     WCHAR unicodePath[MAX_PATH_SZ];
-    SHGetSpecialFolderPathW(NULL, unicodePath, CSIDL_COMMON_APPDATA, FALSE);
+    SHGetSpecialFolderPathW(nullptr, unicodePath, CSIDL_COMMON_APPDATA, FALSE);
     win32AppDataDirectory = FSLocation(Path::WidePathToUTF8(unicodePath), "Adventure Game Studio");
 }
 
@@ -154,7 +154,7 @@ static void DetermineAppOutputDirectory()
     else
     {
         WCHAR theexename[MAX_PATH_SZ];
-        GetModuleFileNameW(NULL, theexename, MAX_PATH_SZ);
+        GetModuleFileNameW(nullptr, theexename, MAX_PATH_SZ);
         PathRemoveFileSpecW(theexename);
         win32OutputDirectory = FSLocation(Path::WidePathToUTF8(theexename));
     }
@@ -232,12 +232,12 @@ void AGSWin32::AttachToParentConsole()
             ::GetStdHandle(STD_ERROR_HANDLE) != INVALID_HANDLE_VALUE)
         {
             // Re-open STDOUT and STDERR to the parent's.
-            FILE *fp = NULL;
+            FILE *fp = nullptr;
             freopen_s(&fp, "CONOUT$", "w", stdout);
-            setvbuf(stdout, NULL, _IONBF, 0);
+            setvbuf(stdout, nullptr, _IONBF, 0);
 
             freopen_s(&fp, "CONOUT$", "w", stderr);
-            setvbuf(stderr, NULL, _IONBF, 0);
+            setvbuf(stderr, nullptr, _IONBF, 0);
         }
         else
         {
@@ -369,7 +369,7 @@ SDL_Surface *AGSWin32::CreateWindowIcon()
     // Don't mess with SDL surface, and set an icon simply using WinAPI
     SetClassLongPtr(
         (HWND)sys_win_get_window(), GCLP_HICON,
-        (LONG_PTR)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE));
+        (LONG_PTR)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDI_ICON), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE));
     return nullptr;
 }
 
