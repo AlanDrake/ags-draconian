@@ -197,7 +197,7 @@ void ReadSpriteHeader_360(SpriteDatHeader &hdr, Stream *in)
     {
         hdr = SpriteDatHeader();
         return;
-    }                                            // no sprite (this is not error)
+    } // no sprite (this is not error)
     int pal_count = (uint8_t)in->ReadInt8() + 1; // saved as (count - 1)
     SpriteCompression compress = (SpriteCompression)in->ReadInt8();
     int w = in->ReadInt16();
