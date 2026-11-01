@@ -2624,7 +2624,9 @@ void OGLGraphicsDriver::RenderSoftwareGamma()
     glUniformMatrix4fv(program->MVPMatrix, 1, GL_FALSE, glm::value_ptr(transform));
 
     glDisable(GL_BLEND);
+#if !AGS_OPENGL_ES2 // glColor4f is not available on OpenGL ES2
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+#endif
 
     glBindTexture(GL_TEXTURE_2D, d3db_gamma->GetTexture()->_tiles->texture);
     glEnable(GL_BLEND);
