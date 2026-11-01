@@ -99,8 +99,8 @@ of the fork").
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **7.1d + 7.1e:** table-driven XML reading, piloted by the AGS 4 room tool (`Rooms/<n>/` to `.crm`) | Rooms block packaging. The room tool is mostly a port of existing C++ (`convert_room_to_native`) onto the new tables, and the table layer is a small design decision that everything after it builds on. | Opus 5.5, `high` |
-| 2 | **7.1f:** work the parity table down to zero, moving `agfreader` onto the tables one entity at a time | Each step must keep `game28.dta` byte-identical, so it's checked mechanically by the harness | Sonnet 5.5 `medium` to `high`; Opus 5.5 for differences that need investigation |
+| 1 | **7.1f, first half:** `game28.dta`, `acsetup.cfg` and the fonts. The editor puts the compiled game scripts inside `game28.dta`; `agsbuild` packs them as `.o` files with `ScriptModules.lst`, and packs no fonts. | Rooms, sprites and audio already match (12 of 17 files); what's left needs investigation first, starting with the script layout | Opus 5.5, `high` |
+| 2 | **7.1f, second half:** move `agfreader` onto the 7.1d tables one entity at a time | Each move must keep `game28.dta` byte-identical, which the harness checks mechanically | Sonnet 5.5, `medium` |
 
 Other tracks that can run in between: 2.6 (self-contained headers, Sonnet 5.5 `medium`) and 1.3 (engine
 unit tests, Opus 5.5 `xhigh`).
@@ -670,7 +670,8 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     move the cases from `Editor/AGS.Editor.Tests/ScriptCompiler/PreprocessorTests.cs` into C++ tests.
     *Done when:* every auto-test script compiles with `agscc`, and the former C# preprocessor tests pass
     against the C++ preprocessor (prerequisite for deleting the C# one in 3.3).
-    *Status (2026-11-01):* done. `#module` was the only missing feature. As in the C# version, the
+    *Status (2026-11-01):* done. `#module` was the only missing directive (7.1e later found that
+    `agscc` also lacked three of the editor's predefined macros). As in the C# version, the
     first `#module <name>` turns the script's marker into `"__NEWSCRIPTSTART_<script>;<module>"`,
     which the new compiler's scanner already reads. All 21 C# preprocessor tests already had C++
     copies. `Compiler/test/preprocessor_test.cpp` (now 31 tests) used to build only with the legacy
@@ -724,7 +725,17 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     (7.1a), so the migration is mechanical and checked.
     *Done when:* the room tool and all of `agfreader` read through tables, and no hand-written
     `ValueParser::Read*` call remains.
-  - [ ] **7.1e AGS 4 room sources** (gap 2). Compile `Rooms/<n>/` to `.crm` in C++, following the same
+    *Status (2026-11-01):* the table layer and the pilot are done; moving `agfreader` over is left
+    for 7.1f. `Tools/data/xml_fields.h` has `XmlField<T>`, three row readers (`Read<&T::M>` picks the
+    parser from the member type, `ReadWith<&T::M, Parse>` for a custom parser,
+    `ReadElement<&T::M, Fn>` for nested elements), and `ReadFields` / `ReadList`. A row with a null
+    reader marks an element that is known but deliberately not read (obsolete properties). An unknown
+    element is an error, as in the editor's own deserializer; `UnknownElements::Skip` is for tables
+    that read part of an element on purpose (the cursors' interaction schema, read from `Game.agf`).
+    The parsers accept what `AGS.Types` writes, the way it reads it back: bools ignore case, enums
+    take the exact name or a number, floats are invariant. `CompareXmlVersions` moved there from
+    `agfreader`. Tests: `Tools/test/xml_fields_test.cpp`.
+  - [x] **7.1e AGS 4 room sources** (gap 2). Compile `Rooms/<n>/` to `.crm` in C++, following the same
     principle as `agf2dta`; room data is simpler than game data. Read `data.xml` through 7.1d tables,
     load the background and mask PNGs (`Common/gfx/image_png.cpp`), compile `room<n>.asc` with
     `agscc`, and write the room with `Common/game/room_file.cpp`, in `crmpak` or a new `crmbuild` tool
@@ -735,6 +746,47 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     that decide byte parity (mask colours to area numbers, background colour depth and compression)
     are in the same file.
     *Done when:* the rooms `agsbuild` produces are byte-identical to the editor's (7.1a).
+    *Status (2026-11-01):* done: all three auto-test rooms are byte-identical to the editor's.
+    - **Reading** (`Tools/data/room_xml.{h,cpp}`): mirror structs and tables for `Room`,
+      `RoomObject`, `RoomHotspot`, `RoomWalkableArea`, `RoomWalkBehind` and `RoomRegion`. Room files
+      are only upgraded when the editor saves the room, so unlike `Game.agf` the tool reads every
+      room format from 3.99.99.01 on. The test project's rooms are 4.0.0.27. It applies the editor's
+      load-time upgrades: `Name`/`Description` became `ScriptName`/`DisplayName`, `Transparency`
+      0–100 became `Opacity`, region light and tint moved to 0–255 below 4.0.0.34, and old indexed
+      interaction events are converted.
+    - **Building** (`Tools/data/room_build.{h,cpp}`): a port of `convert_room_to_native` and
+      `convert_room_interactions_to_native`, plus the editor's fixups. Properties are synced with the
+      schema and the GameID is fixed up. A room from another game with a different mask resolution is
+      an error ("open and save it in the editor"): resizing masks stays in the editor. Cursor
+      interactions become a table indexed by cursor ID, built from the game's interaction schema.
+      Text properties are unescaped and encoded as UTF-8 or Windows-1252. Backgrounds go through
+      `spriteimport`'s port of the editor's bitmap conversion (`ConvertRoomBackgroundForGame`). Masks
+      must be 8-bit, and out-of-range pixels are cleared with a warning. Walkable-area extents are
+      computed as `calculate_walkable_areas` does. 256-colour games are refused for now: their
+      backgrounds need the game palette.
+    - **`crmbuild`** (new tool, CMake only, D5): `crmbuild Game.agf <n> -o room<n>.crm --script
+      room<n>.o` builds the room. `--header` writes the room's declarations after the game's
+      `_AutoGenerated.ash`, as the editor does. For rooms with `Rooms/<n>/data.xml`, `agsbuild` runs
+      header, `agscc`, then room, and packs the room with its script inside. Older projects with
+      `room<n>.crm` files keep the old path.
+    - **Script parity** needed fixes outside the room tool, all of which also affect 7.1f:
+      - `scriptgen` now ports the editor's `RegenerateScriptHeader` (order, `import readonly X *`).
+        The old order and format changed the compiled scripts' type info and TOC.
+      - `agscc` now defines `SCRIPT_EXT_*`, `NEW_KEYINPUT_API` (with `-foldkeyinput`) and `UNICODE`,
+        as the editor does. Without `SCRIPT_EXT_MANAGEDBASE`, `agsdefns.sh` declared every managed
+        type without its base. It adds the script TOC with `-g`, takes `--name` for the script's
+        name (`Rooms\1\room1.asc`, as the Windows editor names it), and `--ascii` now reaches the
+        new compiler.
+      - `agsbuild` passes the editor's fixed values for the obsolete script settings (it used to
+        read `-fforce...=0` from elements the editor no longer saves), and `--ascii` for ANSI
+        games. It also names the API header `_BuiltInScriptHeader.ash`, the editor's name.
+    Tests: `Tools/test/room_build_test.cpp`. Found on the way, not fixed:
+    - `crmpak -e <room> script <file>` crashes (`ReadOnlyCompiledScript` passes a null room).
+    - `ImageFile::LoadPNG` copies only `width*height` bytes of an RGB(A) image when no channel swap
+      is needed.
+    - Possible `game28.dta` gaps for 7.1f: `agf2dta` indexes interaction events by the XML `Index`
+      instead of the cursor schema, doesn't unescape or re-encode text properties, and writes
+      `"4.00.00.34 "` (trailing space) as "compiled with", where the editor writes `"4.00.00.34"`.
   - [ ] **7.1f Content parity.** Work through the 7.1a table until every file matches: game data
     (`agf2dta`, including fork features such as Opacity 0–255), dialog scripts (`agf2dlgasc` against
     `DialogScriptConverter.cs`), script headers (`scriptgen`), sprites (`spriteimport`), the audio
@@ -807,7 +859,7 @@ values.
 | Engine C++ test files | 3 | ≥ 15 (P1) | | | |
 | C# catch-all handlers | 122 | | | | (P6) < 20 |
 | C++/CLI lines (`Editor/AGS.Native`) | ~6,800 | | | | (P6) 0 |
-| Build parity: files identical, `agsbuild` vs editor (7.1a) | 0 of 17 (all scripts compile; stops at room sources, 7.1e) | | | | (7.1) all |
+| Build parity: files identical, `agsbuild` vs editor (7.1a) | 12 of 17 (rooms, sprites, audio, custom data identical; `game28.dta`, `acsetup.cfg` and fonts left, 7.1f) | | | | (7.1) all |
 
 ## Definition of done for any refactor PR
 
