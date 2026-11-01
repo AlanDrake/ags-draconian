@@ -269,6 +269,11 @@ lines, tab-indented code.
   identifiers) and **remove `using namespace` from headers** (54). The latter isn't purely mechanical:
   every `.cpp` that relied on it needs its own `using` or qualification. Do it one header at a time.
   *Done when:* both metrics are 0.
+  *Status (2026-11-01):* first half done: 380 headers converted to `#pragma once` (`52cba7906`,
+  all 589 objects identical). Ten headers without a real guard were left alone, since a guardless header
+  may be meant for repeated inclusion. Second half open: `using namespace` in headers (`AGS` x31,
+  `AGS::Common` x10, `Common` x2). Removing them means each .cpp that relied on them gets its own
+  `using` or qualified names, found by compile errors on every platform: Opus 5.5 `high`.
 - [ ] **2.6 Self-contained headers, then sorted includes.** Add a CMake target that compiles each
   first-party header on its own (`header_check_<name>.cpp` that includes only that header). Fix
   failures with includes or forward declarations, then set `SortIncludes: CaseSensitive` with
