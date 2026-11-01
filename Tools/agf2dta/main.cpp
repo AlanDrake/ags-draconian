@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <stdio.h>
+#include <cstdio>
 #include "data/agfreader.h"
 #include "data/data_file_writer.h"
 #include "util/cmdlineopts.h"

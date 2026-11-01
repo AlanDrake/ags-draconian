@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include <map>
-#include <math.h>
+#include <cmath>
 #include "ac/dynamicsprite.h"
 #include "ac/common.h"
 #include "ac/draw.h"

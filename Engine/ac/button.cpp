@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include <algorithm>
-#include <stdio.h>
+#include <cstdio>
 #include "ac/button.h"
 #include "ac/common.h"
 #include "ac/draw.h"

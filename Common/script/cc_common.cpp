@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "script/cc_common.h"
-#include <stdio.h>
+#include <cstdio>
 #include <utility>
 #include "util/string.h"
 

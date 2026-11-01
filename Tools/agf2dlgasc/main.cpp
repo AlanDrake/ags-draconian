@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include "data/agfreader.h"
 #include "data/dialogscriptconv.h"

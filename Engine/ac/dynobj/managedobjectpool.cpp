@@ -13,7 +13,7 @@
 //=============================================================================
 #include <cinttypes>
 #include <vector>
-#include <string.h>
+#include <cstring>
 #include "ac/dynobj/managedobjectpool.h"
 #include "debug/out.h"
 #include "util/string_utils.h" // fputstring, etc

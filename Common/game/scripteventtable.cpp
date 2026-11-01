@@ -13,7 +13,7 @@
 //=============================================================================
 #include "game/scripteventtable.h"
 #include <algorithm>
-#include <string.h>
+#include <cstring>
 #include "util/stream.h"
 #include "util/string_utils.h"
 

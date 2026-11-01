@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "util/file.h"
-#include <errno.h>
+#include <cerrno>
 #include <stdexcept>
 #include "platform/platform.h"
 #include "util/bufferedstream.h"

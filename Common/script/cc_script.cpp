@@ -11,8 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "data/data_ext.h"
 #include "script/cc_common.h"
 #include "script/cc_internal.h"

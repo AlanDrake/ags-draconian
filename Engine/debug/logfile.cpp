@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include <string.h>
+#include <cstring>
 #include "debug/logfile.h"
 #include "util/file.h"
 #include "util/stream.h"

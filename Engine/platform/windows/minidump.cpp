@@ -19,7 +19,7 @@
 
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
 #define UNICODE
-#include <stdio.h> // sprintf
+#include <cstdio> // sprintf
 #include <windows.h>
 #include <crtdbg.h>
 #include "main/main.h"

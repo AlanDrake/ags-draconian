@@ -13,7 +13,7 @@
 //=============================================================================
 #include <limits>
 #include <memory>
-#include <stdio.h>
+#include <cstdio>
 #include "platform/platform.h"
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/windows.h"

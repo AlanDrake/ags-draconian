@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <stdio.h>
+#include <cstdio>
 #include <algorithm>
 #include <cmath>
 #include "aastr.h"

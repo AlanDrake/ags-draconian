@@ -13,8 +13,8 @@
 //=============================================================================
 #include "script/cc_reflect.h"
 #include <algorithm>
-#include <string>   // std::string
-#include <string.h> // memcpy etc
+#include <string>  // std::string
+#include <cstring> // memcpy etc
 #include "util/stream.h"
 
 namespace AGS

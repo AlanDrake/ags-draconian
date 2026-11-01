@@ -21,7 +21,7 @@
 #include <windows.h>
 #include <WinBase.h>
 #endif
-#include <string.h>
+#include <cstring>
 
 #if !defined(BUILTIN_PLUGINS)
 #define THIS_IS_THE_PLUGIN

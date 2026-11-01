@@ -19,7 +19,7 @@
 #include "ac/gui.h"
 #include "ac/system.h"
 #include "font/fonts.h"
-#include <ctype.h>
+#include <cctype>
 #include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
 #include "ac/string.h"

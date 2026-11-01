@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "script/runtimescriptvalue.h"
-#include <string.h> // for memcpy()
+#include <cstring> // for memcpy()
 #include "ac/dynobj/cc_scriptobject.h"
 #include "util/memory.h"
 

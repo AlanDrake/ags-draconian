@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "cc_dynamicarray.h"
-#include <string.h>
+#include <cstring>
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/scriptstring.h"

@@ -12,8 +12,8 @@
 //
 //=============================================================================
 #include "util/directory.h"
-#include <errno.h>
-#include <string.h>
+#include <cerrno>
+#include <cstring>
 #if AGS_PLATFORM_OS_WINDOWS
 #include <direct.h>
 #include "platform/windows/windows.h"

@@ -13,7 +13,7 @@
 //=============================================================================
 #include "util/inifile.h"
 #include <cctype>
-#include <string.h>
+#include <cstring>
 #include "util/textstreamreader.h"
 #include "util/textstreamwriter.h"
 

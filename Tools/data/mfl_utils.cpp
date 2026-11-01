@@ -13,7 +13,7 @@
 //=============================================================================
 #include "data/mfl_utils.h"
 #include <memory>
-#include <inttypes.h>
+#include <cinttypes>
 #include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"

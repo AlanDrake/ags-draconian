@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "data/tra_file.h"
-#include <string.h>
+#include <cstring>
 #include "ac/game_version.h"
 #include "data/data_ext.h"
 #include "data/data_helpers.h"

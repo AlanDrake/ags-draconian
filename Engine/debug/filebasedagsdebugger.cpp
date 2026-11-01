@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <limits>
-#include <string.h>
+#include <cstring>
 #include "debug/filebasedagsdebugger.h"
 #include "util/file.h"
 #include "util/path.h"

@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include <stack>
-#include <stdio.h>
+#include <cstdio>
 #include "ac/dialog.h"
 #include "ac/common.h"
 #include "ac/character.h"

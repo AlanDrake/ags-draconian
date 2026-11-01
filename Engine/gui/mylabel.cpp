@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "gui/mylabel.h"
-#include <string.h>
+#include <cstring>
 #include "ac/display.h"
 #include "ac/gamesetup.h"
 #include "ac/string.h"

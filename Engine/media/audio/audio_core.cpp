@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "media/audio/audio_core.h"
-#include <math.h>
+#include <cmath>
 #include <condition_variable>
 #include <mutex>
 #include <stdexcept>

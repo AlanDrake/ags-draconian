@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include <cstdio>
-#include <stdarg.h>
+#include <cstdarg>
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/display.h"

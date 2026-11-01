@@ -13,7 +13,7 @@
 //=============================================================================
 #include "util/memorystream.h"
 #include <algorithm>
-#include <string.h>
+#include <cstring>
 
 namespace AGS
 {

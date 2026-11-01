@@ -18,7 +18,7 @@
 
 #include "platform/platform.h"
 #include <set>
-#include <stdio.h>
+#include <cstdio>
 #include <allegro.h> // allegro_exit
 #include "ac/common.h"
 #include "ac/def_version.h"

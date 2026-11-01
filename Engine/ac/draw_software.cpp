@@ -36,7 +36,7 @@
 //
 //=============================================================================
 
-#include <string.h>
+#include <cstring>
 #include <vector>
 #include "ac/draw_software.h"
 #include "gfx/bitmap.h"

@@ -13,7 +13,7 @@
 //=============================================================================
 #include <memory>
 #include <stdexcept>
-#include <string.h> // memcpy
+#include <cstring> // memcpy
 #include <aastr.h>
 #include <SDL.h>
 #include "gfx/allegrobitmap.h"

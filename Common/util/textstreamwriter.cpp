@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <stdarg.h>
+#include <cstdarg>
 #include "platform/platform.h"
 #include "util/textstreamwriter.h"
 #include "util/stream.h"

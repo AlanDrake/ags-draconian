@@ -16,7 +16,7 @@
 //
 //=============================================================================
 #include "platform/base/agsplatformdriver.h"
-#include <stdio.h>
+#include <cstdio>
 #include <thread>
 #include <SDL.h>
 #include "ac/common.h"

@@ -22,9 +22,9 @@
 #include <windows.h>
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
 #include <algorithm>
 
 #if !defined(BUILTIN_PLUGINS)

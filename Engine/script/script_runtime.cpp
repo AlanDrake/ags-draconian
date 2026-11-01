@@ -12,9 +12,9 @@
 //
 //=============================================================================
 #include "script/script_runtime.h"
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstdarg>
+#include <cstring>
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "script/cc_common.h"

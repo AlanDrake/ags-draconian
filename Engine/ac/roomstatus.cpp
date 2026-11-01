@@ -11,8 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <string.h> // memset
-#include <stdlib.h> // free
+#include <cstring> // memset
+#include <cstdlib> // free
 #include "ac/common.h"
 #include "ac/game_version.h"
 #include "ac/roomstatus.h"

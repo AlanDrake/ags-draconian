@@ -12,8 +12,8 @@
 //
 //=============================================================================
 #include "ac/display.h"
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
 #include "ac/display.h"
 #include "ac/common.h"
 #include "ac/character.h"

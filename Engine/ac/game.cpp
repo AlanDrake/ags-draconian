@@ -13,7 +13,7 @@
 //=============================================================================
 #include "ac/game.h"
 #include <queue>
-#include <stdio.h>
+#include <cstdio>
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/audiochannel.h"

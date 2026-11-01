@@ -12,8 +12,8 @@
 //
 //=============================================================================
 #include "gui/mytextbox.h"
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "ac/keycode.h"
 #include "font/fonts.h"
 #include "gfx/bitmap.h"

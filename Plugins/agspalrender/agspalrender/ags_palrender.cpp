@@ -20,11 +20,11 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <math.h>
-#include <time.h>
-#include <stdlib.h>
+#include <cmath>
+#include <ctime>
+#include <cstdlib>
 #include <string>
-#include <stdio.h>
+#include <cstdio>
 
 
 #include "palrender.h"

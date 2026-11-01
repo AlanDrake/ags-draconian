@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <ctype.h> // for toupper
+#include <cctype> // for toupper
 #include "platform/platform.h"
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"

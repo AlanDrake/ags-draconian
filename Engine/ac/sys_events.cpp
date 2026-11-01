@@ -14,7 +14,7 @@
 #include "ac/sys_events.h"
 #include <chrono>
 #include <deque>
-#include <math.h>
+#include <cmath>
 #include <SDL.h>
 #include "platform/platform.h"
 #include "ac/common.h"

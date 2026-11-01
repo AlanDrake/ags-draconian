@@ -16,7 +16,7 @@
 
 #if AGS_PLATFORM_OS_WINDOWS
 #include <direct.h>
-#include <string.h>
+#include <cstring>
 #include "platform/windows/windows.h"
 #include <shlobj.h>
 #include <shlwapi.h>

@@ -11,8 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <stdio.h>
-#include <math.h>
+#include <cstdio>
+#include <cmath>
 #include "platform/platform.h"
 #include "media/audio/audio.h"
 #include "ac/audiocliptype.h"
@@ -33,7 +33,7 @@
 #include "ac/common.h"
 #include "ac/file.h"
 #include "ac/global_audio.h"
-#include <math.h>
+#include <cmath>
 #include "util/stream.h"
 #include "data/assetmanager.h"
 #include "ac/timer.h"

@@ -14,7 +14,7 @@
 //
 // Game configuration
 //
-#include <ctype.h> // toupper
+#include <cctype> // toupper
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"

@@ -12,8 +12,8 @@
 //
 //=============================================================================
 #include "util/compress.h"
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <vector>
 #include <miniz.h>
 #if AGS_PLATFORM_ENDIAN_BIG

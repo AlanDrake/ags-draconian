@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include <ctype.h>
+#include <cctype>
 #include "util/version.h"
 
 namespace AGS

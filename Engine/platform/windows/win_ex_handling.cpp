@@ -17,7 +17,7 @@
 #if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_WINDOWS_MINGW
 #include <new.h>
 #include <cinttypes>
-#include <stdio.h>
+#include <cstdio>
 #include "platform/windows/windows.h"
 #include <Psapi.h>
 #include "ac/common.h" // quit

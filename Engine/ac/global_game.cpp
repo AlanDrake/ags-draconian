@@ -13,8 +13,8 @@
 //=============================================================================
 #include "ac/global_game.h"
 #include <algorithm>
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
 #include "platform/platform.h"
 #include "ac/audiocliptype.h"
 #include "ac/common.h"

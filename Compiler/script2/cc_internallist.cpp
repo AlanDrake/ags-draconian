@@ -13,7 +13,7 @@
 //=============================================================================
 #include <string>
 #include <limits>
-#include <stdlib.h>
+#include <cstdlib>
 #include "cc_internallist.h"
 
 const AGS::Symbol AGS::SrcList::kEOF = 0;

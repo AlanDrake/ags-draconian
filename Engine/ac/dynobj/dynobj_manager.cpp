@@ -13,8 +13,8 @@
 //=============================================================================
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptshader.h"
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "ac/dynobj/managedobjectpool.h"
 #include "debug/out.h"
 #include "script/cc_common.h"

@@ -12,9 +12,9 @@
 //
 //=============================================================================
 #include "util/string_utils.h"
-#include <errno.h>
+#include <cerrno>
 #include <regex>
-#include <string.h>
+#include <cstring>
 #include "platform/platform.h"
 #include "util/math.h"
 #include "util/stream.h"

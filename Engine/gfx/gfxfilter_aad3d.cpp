@@ -16,7 +16,7 @@
 
 #if AGS_HAS_DIRECT3D
 
-#include "stdio.h"
+#include <cstdio>
 #include "gfx/gfxfilter_aad3d.h"
 #include <d3d9.h>
 
