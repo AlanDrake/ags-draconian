@@ -99,7 +99,7 @@ of the fork").
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **7.1a + 7.1b:** build-parity harness, then unblock `agsbuild` (project format version, AGS 4 script API levels, no hang when a task fails) | Everything else in 7.1 is measured with the harness. The three blockers are small, and the hang currently turns every failure into a manual kill. | Opus 5.5, `high` |
+| 1 | **2.7:** renormalise line endings | 427 of the 453 CRLF-stored files are C# editor sources; 7.1c moves C# test code, which would otherwise show as whole-file diffs | Sonnet 5.5, `low` |
 | 2 | **7.1c:** `#module` and any other C#-only preprocessor features, in the C++ preprocessor | No script compiles with `agscc` until this is done | Opus 5.5, `high` |
 | 3 | **7.1d + 7.1e:** table-driven XML reading, piloted by the AGS 4 room tool (`Rooms/<n>/` to `.crm`) | Rooms block packaging. The room tool is mostly a port of existing C++ (`convert_room_to_native`) onto the new tables, and the table layer is a small design decision that everything after it builds on. | Opus 5.5, `high` |
 | 4 | **7.1f:** work the parity table down to zero, moving `agfreader` onto the tables one entity at a time | Each step must keep `game28.dta` byte-identical, so it's checked mechanically by the harness | Sonnet 5.5 `medium` to `high`; Opus 5.5 for differences that need investigation |
@@ -624,7 +624,7 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
   `agf2dta` did write a `game28.dta`, but content parity can't be measured until scripts compile, so
   more gaps may show up in 7.1f. The steps, in order:
 
-  - [ ] **7.1a Build-parity harness** (`Script/compare_builds.py`). Copies a project twice, builds one
+  - [x] **7.1a Build-parity harness** (`Script/compare_builds.py`). Copies a project twice, builds one
     copy with the editor (`AGSEditor.exe /compile <absolute path>\Game.agf`; from Git Bash with
     `MSYS_NO_PATHCONV=1`) and the other with `agsbuild`, unpacks both packages with `agspak -e`, and
     compares them file by file: `game28.dta`, rooms, sprite file and index, audio, translations, fonts,
@@ -632,7 +632,12 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     auto-test on the `agsbuild` output. This is the measuring stick for the rest of 7.1, as
     `compare_objects.py` was for phase 2. It needs the editor, so it's Windows-only until 6.7d.
     *Done when:* one command prints the per-file table for the auto-test project.
-  - [ ] **7.1b Unblock the pipeline** (gaps 1, 3 and 5; small, separate commits):
+    *Status (2026-11-01):* done. `python Script/compare_builds.py <project> --editor <AGSEditor.exe>
+    [--engine <acwin.exe>]` collects the tools from `.tidy/build`, builds fresh copies both ways under
+    `.compare/builds/`, prints the distinct `agsbuild` errors and the per-file table, and exits 0 only
+    on full parity. First result on the auto-test project: the editor build gives 17 files; `agsbuild`
+    stops at 40 `#module` errors (7.1c) and the missing room sources (7.1e).
+  - [x] **7.1b Unblock the pipeline** (gaps 1, 3 and 5; small, separate commits):
     - `agfreader`: accept the version-string format, comparing versions rather than exact strings.
       **Project upgrades stay in the editor** (`UpgradeGameManager`): the tools read the current
       format, and older ones only where reading them needs no upgrade step (for example Transparency
@@ -646,6 +651,22 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
       exit non-zero instead of hanging. Add a test that runs a build with a failing task.
     *Done when:* `agsbuild` on the auto-test project gets past project loading and API checks and
     always terminates, on success and on failure.
+    *Status (2026-11-01):* done, with tests for each part:
+    - `agfreader` accepts project formats from 4.0.0.34 up to the newest it knows (also 4.0.0.34),
+      and tells the user to open and save older projects in the Editor first.
+    - The script API levels are now one table, `kScriptAPINames` next to the enum in
+      `Common/ac/gamestructdefines.h`, used by `agscc` and `agf2dta`. `agf2dta` had a third copy that
+      also stopped at `v363`, so it wrote the wrong API level into AGS 4 games: a content-parity bug
+      fixed early. `Common/test/scriptapi_test.cpp` fails if the enum gets a level the table lacks.
+    - The hang wasn't in the task manager but in `PipedProcess` on Windows: a read could ask for more
+      bytes than the pipe held (an unsigned underflow), and then blocked forever because `agsbuild` kept
+      its own copy of the pipe's write end, so the pipe never reported end-of-file. Fixed by bounded
+      reads, closing our write ends right after starting the process, non-inheritable read ends, and
+      starting processes under one lock. `Tools/test/pipedprocess_test.cpp` runs six chatty processes
+      in parallel; on the old code it aborts after 120 s. Left open: the POSIX branch reads stdout to
+      end-of-file before it reads stderr, so a child that fills the stderr pipe could still deadlock it.
+    Result: `agsbuild` loads the auto-test project and exits after 2 s, failing only on `#module` (7.1c)
+    and the room sources (7.1e).
   - [ ] **7.1c One preprocessor** (gap 4). Diff `Editor/AGS.CScript.Compiler/Preprocessor.cs`
     against `Compiler/preproc/preprocessor.cpp` (directives, predefined macros, the
     `"__NEWSCRIPTSTART_..."` markers), port everything the C++ side lacks, starting with `#module`, and
@@ -776,7 +797,7 @@ values.
 | Engine C++ test files | 3 | ≥ 15 (P1) | | | |
 | C# catch-all handlers | 122 | | | | (P6) < 20 |
 | C++/CLI lines (`Editor/AGS.Native`) | ~6,800 | | | | (P6) 0 |
-| Build parity: files identical, `agsbuild` vs editor (7.1a) | 0 (can't build AGS 4 projects) | | | | (7.1) all |
+| Build parity: files identical, `agsbuild` vs editor (7.1a) | 0 of 17 (stops at `#module`, 7.1c) | | | | (7.1) all |
 
 ## Definition of done for any refactor PR
 
