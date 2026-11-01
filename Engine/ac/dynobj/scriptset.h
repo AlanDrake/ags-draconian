@@ -50,7 +50,7 @@ public:
     virtual bool Contains(const char *item) const = 0;
     virtual bool Remove(const char *item) = 0;
     virtual int GetItemCount() const = 0;
-    virtual void GetItems(std::vector<const char*> &buf) const = 0;
+    virtual void GetItems(std::vector<const char *> &buf) const = 0;
 
 protected:
     // Calculate and return required space for serialization, in bytes
@@ -71,17 +71,16 @@ public:
     typedef typename TSet::const_iterator ConstIterator;
 
     ScriptSetBaseImpl() = default;
-    ScriptSetBaseImpl(const TSet &set)
-        : _set(set) { }
-    ScriptSetBaseImpl(TSet &&set)
-        : _set(std::move(set)) { }
+    ScriptSetBaseImpl(const TSet &set) : _set(set) {}
+    ScriptSetBaseImpl(TSet &&set) : _set(std::move(set)) {}
 
     ScriptSortStyle GetSortStyle() const override { return SortStyle; }
     ScriptStringComparison GetStringCompareStyle() const override { return CompareStyle; }
 
     bool Add(const char *item) override
     {
-        if (!item) return false;
+        if (!item)
+            return false;
         return TryAddItem(String(item));
     }
     void Clear() override
@@ -94,23 +93,21 @@ public:
     bool Remove(const char *item) override
     {
         auto it = _set.find(String::Wrapper(item));
-        if (it == _set.end()) return false;
+        if (it == _set.end())
+            return false;
         DeleteItem(it);
         _set.erase(it);
         return true;
     }
     int GetItemCount() const override { return _set.size(); }
-    void GetItems(std::vector<const char*> &buf) const override
+    void GetItems(std::vector<const char *> &buf) const override
     {
         for (auto it = _set.begin(); it != _set.end(); ++it)
             buf.push_back(it->GetCStr());
     }
 
 private:
-    bool TryAddItem(const String &s)
-    {
-        return _set.insert(s).second;
-    }
+    bool TryAddItem(const String &s) { return _set.insert(s).second; }
     void DeleteItem(ConstIterator /*it*/) { /* do nothing */ }
 
     size_t CalcContainerSize() override
@@ -148,38 +145,36 @@ private:
 };
 
 template <typename TKey, typename TLess, ScriptStringComparison CompareStyle>
-class ScriptSetStdImpl final : public ScriptSetBaseImpl<std::set<TKey, TLess>,
-    kScSorted, CompareStyle>
+class ScriptSetStdImpl final : public ScriptSetBaseImpl<std::set<TKey, TLess>, kScSorted, CompareStyle>
 {
 public:
     ScriptSetStdImpl() = default;
     ScriptSetStdImpl(const TLess &less)
-        : ScriptSetBaseImpl<std::set<TKey, TLess>, kScSorted, CompareStyle>
-        (std::move(std::set<TKey, TLess>(less)))
+        : ScriptSetBaseImpl<std::set<TKey, TLess>, kScSorted, CompareStyle>(std::move(std::set<TKey, TLess>(less)))
     {
     }
 };
 
 template <typename TKey, typename THash, typename TEqual, ScriptStringComparison CompareStyle>
-class ScriptSetStdHashImpl final : public ScriptSetBaseImpl<std::unordered_set<TKey, THash, TEqual>,
-    kScNotSorted, CompareStyle>
+class ScriptSetStdHashImpl final
+    : public ScriptSetBaseImpl<std::unordered_set<TKey, THash, TEqual>, kScNotSorted, CompareStyle>
 {
 public:
     ScriptSetStdHashImpl() = default;
     ScriptSetStdHashImpl(const THash &hash, const TEqual &equal)
-        : ScriptSetBaseImpl<std::unordered_set<TKey, THash, TEqual>, kScNotSorted, CompareStyle>
-        (std::move(std::unordered_set<TKey, THash, TEqual>(0, hash, equal)))
+        : ScriptSetBaseImpl<std::unordered_set<TKey, THash, TEqual>, kScNotSorted, CompareStyle>(
+              std::move(std::unordered_set<TKey, THash, TEqual>(0, hash, equal)))
     {
     }
 };
 
-typedef ScriptSetStdImpl< String, std::less<String>, kScCaseSensitive > ScriptSet;
-typedef ScriptSetStdImpl< String, StrLessNoCase, kScCaseInsensitive > ScriptSetCI;
-typedef ScriptSetStdImpl< String, StrLessUtf8NoCase, kScCaseInsensitive > ScriptSetUtf8CI;
-typedef ScriptSetStdImpl< String, LexographicalStrLess, kScCaseSensitiveLocaleAware > ScriptSetLocaleAware;
-typedef ScriptSetStdImpl< String, LexographicalStrLessNoCase, kScCaseInsensitiveLocaleAware > ScriptSetLocaleAwareCI;
-typedef ScriptSetStdHashImpl< String, std::hash<String>, std::equal_to<String>, kScCaseSensitive > ScriptHashSet;
-typedef ScriptSetStdHashImpl< String, HashStrNoCase, StrEqNoCase, kScCaseInsensitive > ScriptHashSetCI;
-typedef ScriptSetStdHashImpl< String, HashStrUtf8NoCase, StrEqUtf8NoCase, kScCaseInsensitive > ScriptHashSetUtf8CI;
+typedef ScriptSetStdImpl<String, std::less<String>, kScCaseSensitive> ScriptSet;
+typedef ScriptSetStdImpl<String, StrLessNoCase, kScCaseInsensitive> ScriptSetCI;
+typedef ScriptSetStdImpl<String, StrLessUtf8NoCase, kScCaseInsensitive> ScriptSetUtf8CI;
+typedef ScriptSetStdImpl<String, LexographicalStrLess, kScCaseSensitiveLocaleAware> ScriptSetLocaleAware;
+typedef ScriptSetStdImpl<String, LexographicalStrLessNoCase, kScCaseInsensitiveLocaleAware> ScriptSetLocaleAwareCI;
+typedef ScriptSetStdHashImpl<String, std::hash<String>, std::equal_to<String>, kScCaseSensitive> ScriptHashSet;
+typedef ScriptSetStdHashImpl<String, HashStrNoCase, StrEqNoCase, kScCaseInsensitive> ScriptHashSetCI;
+typedef ScriptSetStdHashImpl<String, HashStrUtf8NoCase, StrEqUtf8NoCase, kScCaseInsensitive> ScriptHashSetUtf8CI;
 
 #endif // __AC_SCRIPTSET_H

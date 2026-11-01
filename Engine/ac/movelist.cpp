@@ -46,12 +46,8 @@ void MoveList::Complete()
     switch (run_params.Flow)
     {
     case kAnimFlow_Once:
-    case kAnimFlow_OnceAndBack:
-        from = run_params.IsForward() ? pos[GetNumStages() - 1] : pos[0];
-        break;
-    case kAnimFlow_OnceAndReset:
-        from = run_params.IsForward() ? pos[0] : pos[GetNumStages() - 1];
-        break;
+    case kAnimFlow_OnceAndBack: from = run_params.IsForward() ? pos[GetNumStages() - 1] : pos[0]; break;
+    case kAnimFlow_OnceAndReset: from = run_params.IsForward() ? pos[0] : pos[GetNumStages() - 1]; break;
     }
 
     curpos = from;
@@ -98,7 +94,7 @@ bool MoveList::Forward(bool do_step)
 {
     // Safety fix, in case onpart became invalid
     if (std::isnan(onpart) || onpart < 0.f)
-       onpart = 0.f;
+        onpart = 0.f;
 
     if (do_step)
     {
@@ -141,8 +137,7 @@ bool MoveList::Backward(bool do_step)
 bool MoveList::NextStage()
 {
     run_params.IsForward() ? onstage++ : onstage--;
-    if (((onstage < 0) || (onstage >= GetNumStages() - 1))
-        && OnPathCompleted())
+    if (((onstage < 0) || (onstage >= GetNumStages() - 1)) && OnPathCompleted())
     {
         Complete();
         return false;
@@ -185,9 +180,7 @@ Pointf MoveList::CalcCurrentPos() const
     const float move_dir_factor = run_params.IsForward() ? 1.f : -1.f;
     const float xpermove = permove[onstage].X * move_dir_factor;
     const float ypermove = permove[onstage].Y * move_dir_factor;
-    return Pointf(
-        from.X + (xpermove * onpart),
-        from.Y + (ypermove * onpart));
+    return Pointf(from.X + (xpermove * onpart), from.Y + (ypermove * onpart));
 }
 
 float MoveList::CalcStagePartsNum(uint32_t stage) const
@@ -206,8 +199,10 @@ float MoveList::CalcPartsFromProgress(uint32_t stage, float progress) const
     const Point target = pos[tar_pos_stage];
 
     progress = Math::Clamp(progress, 0.f, 1.f);
-    const float xparts = (permove[stage].X != 0.f) ? std::fabs(((target.X - pos[stage].X) * progress) / permove[stage].X) : 0.f;
-    const float yparts = (permove[stage].Y != 0.f) ? std::fabs(((target.Y - pos[stage].Y) * progress) / permove[stage].Y) : 0.f;
+    const float xparts =
+        (permove[stage].X != 0.f) ? std::fabs(((target.X - pos[stage].X) * progress) / permove[stage].X) : 0.f;
+    const float yparts =
+        (permove[stage].Y != 0.f) ? std::fabs(((target.Y - pos[stage].Y) * progress) / permove[stage].Y) : 0.f;
     return std::max(xparts, yparts);
 }
 
@@ -300,9 +295,7 @@ void MoveList::OnPathRevertedBack()
     switch (run_params.Flow)
     {
     case kAnimFlow_Once:
-    case kAnimFlow_OnceAndReset:
-        ResetToBegin();
-        break;
+    case kAnimFlow_OnceAndReset: ResetToBegin(); break;
     case kAnimFlow_OnceAndBack:
         if (run_params.Direction == run_params.InitialDirection)
         {
@@ -314,9 +307,7 @@ void MoveList::OnPathRevertedBack()
             run_params.Direction = run_params.IsForward() ? kAnimDirBackward : kAnimDirForward;
         }
         break;
-    case kAnimFlow_Repeat:
-        ResetToEnd();
-        break;
+    case kAnimFlow_Repeat: ResetToEnd(); break;
     case kAnimFlow_RepeatAlternate:
         ResetToBegin();
         run_params.Direction = run_params.IsForward() ? kAnimDirBackward : kAnimDirForward;
@@ -360,8 +351,7 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     }
 
     // Stage flags
-    if ((cmp_ver >= kMoveSvgVersion_36208 && cmp_ver < kMoveSvgVersion_400) ||
-        cmp_ver >= kMoveSvgVersion_40016)
+    if ((cmp_ver >= kMoveSvgVersion_36208 && cmp_ver < kMoveSvgVersion_400) || cmp_ver >= kMoveSvgVersion_40016)
     {
         for (uint32_t i = 0; i < numstage; ++i)
         {

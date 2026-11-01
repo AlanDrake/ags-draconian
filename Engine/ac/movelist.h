@@ -19,7 +19,13 @@
 #include "util/geometry.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+}                    // namespace AGS
 using namespace AGS; // FIXME later
 
 #define LEGACY_MAXMOVESTAGES 256
@@ -31,14 +37,14 @@ enum MoveListStageFlags
 
 enum MoveListSvgVersion
 {
-    kMoveSvgVersion_Initial = 0, // [UNSUPPORTED] from 3.5.0 pre-alpha
-    kMoveSvgVersion_350     = 1, // new pathfinder, arbitrary number of stages
-    kMoveSvgVersion_36109   = 2, // skip empty lists, progress as float
-    kMoveSvgVersion_36208   = 3060208, // flags per stage
-    kMoveSvgVersion_400     = 4000000, // fixed->floats, positions are int32
-    kMoveSvgVersion_40006   = 4000006, // extra running params (repeat, dir)
-    kMoveSvgVersion_40016   = 4000016, // sync with kMoveSvgVersion_36208
-    kMoveSvgVersion_40020   = 4000020, // expanded animation flow params
+    kMoveSvgVersion_Initial = 0,     // [UNSUPPORTED] from 3.5.0 pre-alpha
+    kMoveSvgVersion_350 = 1,         // new pathfinder, arbitrary number of stages
+    kMoveSvgVersion_36109 = 2,       // skip empty lists, progress as float
+    kMoveSvgVersion_36208 = 3060208, // flags per stage
+    kMoveSvgVersion_400 = 4000000,   // fixed->floats, positions are int32
+    kMoveSvgVersion_40006 = 4000006, // extra running params (repeat, dir)
+    kMoveSvgVersion_40016 = 4000016, // sync with kMoveSvgVersion_36208
+    kMoveSvgVersion_40020 = 4000020, // expanded animation flow params
 };
 
 class MoveList
@@ -56,14 +62,14 @@ public:
     // Flags per stage (see MoveListStageFlags)
     std::vector<uint8_t> stageflags;
     uint32_t onstage = 0; // current path stage
-    Point   from; // current stage's starting position
+    Point from;           // current stage's starting position
     // Steps made during current stage;
     // distance passed is calculated as permove[onstage] * onpart;
     // made a fractional value to let recalculate movelist dynamically
-    float   onpart = 0.f;
+    float onpart = 0.f;
     uint8_t doneflag = 0u;
     RunPathParams run_params;
-    Point   curpos; // current would-be position of a moving object
+    Point curpos; // current would-be position of a moving object
 
     bool IsEmpty() const { return pos.empty(); }
     const RunPathParams &GetRunParams() const { return run_params; }
@@ -71,7 +77,7 @@ public:
     uint32_t GetStage() const { return onstage; }
     float GetStageDoneSteps() const { return onpart; }
     float GetStageProgress() const;
-    const Point& GetFirstPos() const { return pos.front(); }
+    const Point &GetFirstPos() const { return pos.front(); }
     const Point &GetLastPos() const { return pos.back(); }
     int GetCurrentStageFlags() const { return onstage < stageflags.size() ? stageflags[onstage] : 0; }
     bool IsStageDirect() const { return (GetCurrentStageFlags() & kMoveStage_Direct) != 0; }
@@ -96,7 +102,7 @@ public:
     // (normally the coord unit is a game pixel)
     float GetPixelUnitFraction() const;
     // Sets a step progress to this fraction of a coordinate unit
-    void  SetPixelUnitFraction(float frac);
+    void SetPixelUnitFraction(float frac);
 
     bool IsDone() const { return doneflag != 0; }
     // Reset MoveList to the beginning, account for RunPathParams
