@@ -131,7 +131,7 @@ Today: 35 C++ test files, but **only 3 for the engine** (~430 source files). The
 cover `AGS.Types` and a few editor utilities. The end-to-end coverage comes from the upstream
 auto-test game that CI downloads from `latest`.
 
-- [ ] **1.1 Own the auto-test game.** CI downloads `ags-test-games/releases/latest` from upstream.
+- [x] **1.1 Own the auto-test game.** CI downloads `ags-test-games/releases/latest` from upstream.
   After the fork this will start failing for reasons that have nothing to do with your code. Fork
   `ags-test-games`, pin a tag in `build.yml`, and add tests there for every Draconian-only feature
   (D3D11 driver, custom shaders, full ranges, dirty rects, ...).
@@ -145,7 +145,8 @@ auto-test game that CI downloads from `latest`.
   DrawingSurface primitives (32), void-returns-void in the compiler (2); local run 2414/2414 pass with
   the Software driver. Not covered yet: fake gamma, D3D11 pixel-shader blenders, slider focus outside
   GUI bounds (all need rendering or input checks), PO translations (belongs in editor tests, 6.6).
-  Remaining: push the test repo, publish release `draconian-auto-test-1`, then CI green.
+  Done: release `draconian-auto-test-1` published; CI run 41286020888 passes the auto-test on all six
+  platform jobs (Windows, MinGW x64/arm64, Ubuntu x64/arm64, macOS), hardware and Software drivers.
 - [ ] **1.2 Contract guard tests** (one per row of the compatibility contract):
   - C1: load fixture game files and rooms written by a 3.99 editor, the earliest 4.0 editor you can
     get, and the current one, and assert on counts and names (fixtures go in `Common/test/data/`, as
@@ -181,15 +182,15 @@ auto-test game that CI downloads from `latest`.
   translation units that differ. Format-only and rename-only commits must come out identical except
   for files that use `__LINE__`/`__FILE__`. This makes phases 2 and 4 nearly risk-free.
   *Done when:* the script exists and is documented in STYLE.md, "Commits".
-- [ ] **1.7 Build the editor in CI.** No CI builds the editor today: upstream's Cirrus config is
-  disabled (`.disabled.cirrus.yml`), and `ci/windows/Dockerfile` documents the dependencies (SDL2
-  devel, SDL_sound built from source, Xiph libraries, irrKlang, .NET Framework 4.7 developer pack).
-  Add a Windows job that builds `AGS.Editor.Full.sln` and runs `AGS.Editor.Tests`, then compiles the
-  auto-test game at a pinned commit of `AlanDrake/ags-test-games` with that editor and hands the
-  `.ags` to the platform jobs as an artifact. That replaces the hand-made releases from 1.1, and
-  keeps the test game in step with the editor and compiler on every PR.
-  *Done when:* CI builds the editor, runs its tests, and the platform jobs run a test game compiled
-  by it.
+- [ ] **1.7 Compile the auto-test game with the CI-built editor.** `build.yml` already builds the
+  editor (job `windows-msvc-editor`, Debug and Release, with NUnit tests, on dependencies from
+  `windows-deps`). Extend the Release half: put the engine's `acwin.exe` next to `AGSEditor.exe`,
+  check out `AlanDrake/ags-test-games` at a pinned commit, run
+  `AGSEditor.exe /compile <absolute path>\ags4\auto-test\Game.agf`, and upload `Compiled/Data` as an
+  artifact. The platform jobs then download that artifact (`needs: windows-msvc-editor`) instead of
+  the hand-made release from 1.1. Cost: the platform jobs start only after the editor is built.
+  Gain: the test game always matches this commit's editor and compiler, and no releases to maintain.
+  *Done when:* the platform jobs run a test game compiled by the editor of the same CI run.
 
 ## Phase 2: Mechanical normalisation
 

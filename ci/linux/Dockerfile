@@ -5,10 +5,12 @@ FROM --platform=$FROM_PLATFORM $FROM_DEBIAN
 # Take default debconf options
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Debian Jessie has been moved to archive
-RUN echo "deb [trusted=yes] http://archive.debian.org/debian jessie main non-free contrib" > /etc/apt/sources.list && \
-    echo 'deb-src [trusted=yes] http://archive.debian.org/debian/ jessie main non-free contrib'  >> /etc/apt/sources.list && \
-    echo 'deb [trusted=yes] http://archive.debian.org/debian-security/ jessie/updates main non-free contrib'  >> /etc/apt/sources.list
+# The base release (buster, needed for a C++17 compiler: GCC 8) has been moved to archive.
+# Its glibc (2.28) is the oldest the built Linux binaries will run on.
+ARG DEBIAN_RELEASE=buster
+RUN echo "deb [trusted=yes] http://archive.debian.org/debian ${DEBIAN_RELEASE} main non-free contrib" > /etc/apt/sources.list && \
+    echo "deb-src [trusted=yes] http://archive.debian.org/debian/ ${DEBIAN_RELEASE} main non-free contrib" >> /etc/apt/sources.list && \
+    echo "deb [trusted=yes] http://archive.debian.org/debian-security/ ${DEBIAN_RELEASE}/updates main non-free contrib" >> /etc/apt/sources.list
 
 # Configure apt defaults
 ARG APT_CONF_LOCAL=99local
