@@ -212,3 +212,6 @@ Editor/References/**/*.dll
 /Engine/resource/fxc.zip
 /Engine/resource/CompileShader - Copia.bat
 /Editor/References/x64/
+
+# Script/compare_objects.py worktree and build directory
+/.compare/

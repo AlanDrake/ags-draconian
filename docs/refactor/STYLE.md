@@ -213,7 +213,21 @@ These rules extend the existing ones in `CONTRIBUTING.md` (one program per commi
 2. Commit titles state the kind of change: `Engine: [rename] chaa -> ch in character.cpp`,
    `Common: [format] util/`, `Engine: [move] ac/route_finder -> navigation/`.
 3. Add the hash of every format-only commit to `.git-blame-ignore-revs`.
-4. Check rename-only and format-only commits by **comparing object code**: a Release build without
-   debug info should produce identical `.o`/`.obj` files before and after, except in translation
-   units that use `__LINE__` (asserts, logging macros). See PLAN.md 1.6.
+4. Check format-only and rename-only commits by **comparing object code** with
+   `Script/compare_objects.py`. It builds both revisions (optimized, no debug info, no LTO) in one
+   worktree and build directory under `.compare/`, then compares every object file:
+
+   ```sh
+   python Script/compare_objects.py HEAD          # uncommitted changes against HEAD
+   python Script/compare_objects.py HEAD~1 HEAD   # the last commit
+   ```
+
+   The result must be "mechanical change". The first run builds everything (about the time of a
+   full build); later runs only rebuild what the change touches. What to expect:
+   - formatting, comments, renaming locals or parameters, reordering includes that don't change
+     meaning: objects are **identical**;
+   - GoogleTest files (`*_test.cpp`) are reported separately and tolerated, because the test macros
+     record `__LINE__`; asserts don't matter, since the build defines `NDEBUG`;
+   - renaming a function, type or global, or changing a string literal, changes the objects **by
+     design**. Such a commit is not purely mechanical: review it as a code change.
 5. Every commit builds and passes the tests.

@@ -189,11 +189,21 @@ auto-test game that CI downloads from `latest`.
   errors **per directory** as each directory gets clean.
   *Done when:* the sanitizer job is green, the coverage report is published, and `Common/` builds with
   warnings as errors.
-- [ ] **1.6 Mechanical-change verifier.** `Script/compare_objects.py`: build Release without debug
+- [x] **1.6 Mechanical-change verifier.** `Script/compare_objects.py`: build Release without debug
   info into two trees (before and after a commit), strip the objects and hash them. Report
   translation units that differ. Format-only and rename-only commits must come out identical except
   for files that use `__LINE__`/`__FILE__`. This makes phases 2 and 4 nearly risk-free.
   *Done when:* the script exists and is documented in STYLE.md, "Commits".
+  *Status (2026-11-01):* done. Both revisions build in one worktree and build directory (`.compare/`,
+  ignored by git), so paths and `__FILE__` match and the second build is incremental. Build type
+  MinSizeRel: optimized, `NDEBUG`, no debug info, and no LTO (the `MATCHES Release` checks in
+  CMakeLists turn LTO on only for Release); MSVC also gets `/Brepro`. First-party code uses no
+  `__LINE__`/`__FILE__`/`__DATE__` directly and asserts compile away, so only GoogleTest files are
+  line-sensitive; they're reported and tolerated. Checked on Windows/MSVC: clang-format on 4 files
+  (1,600+ changed lines, incl. `character.cpp`) gives 588 identical objects plus the tolerated test
+  file; a parameter rename gives 589 identical; changing `return 1` to `return 2` is reported as a
+  code change (exit code 1). First run ~3.5 min, later runs seconds to a few minutes.
+  Not yet tried on Linux/macOS (the script uses `-g0` there; GCC and Clang objects carry no timestamps).
 - [ ] **1.7 Compile the auto-test game with the CI-built editor.** `build.yml` already builds the
   editor (job `windows-msvc-editor`, Debug and Release, with NUnit tests, on dependencies from
   `windows-deps`). Extend the Release half: put the engine's `acwin.exe` next to `AGSEditor.exe`,
