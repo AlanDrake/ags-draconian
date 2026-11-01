@@ -110,10 +110,10 @@ Recorded 2026-10-31.
   build with 0 errors; unit tests pass (MSBuild: Common 96, Engine 3, Tools 76; CMake ctest: 739/739);
   `ags.exe` still links the static runtime. CI (run 41287882653 and the re-run of its failed jobs):
   green on Windows, MinGW x64/arm64, Ubuntu x64/arm64, macOS, and the Linux packaging jobs (Debian
-  Buster image, glibc 2.28). **Known failures, cause not yet found:** Android (`Build debug APK`)
-  and Emscripten (`Configure and Build`). Both passed on 2026-10-30 (branch `ags4-voidreturnvoid`,
-  `c5b97977b`); they broke somewhere between that commit and `ff5c87184`, which includes the fork's
-  merged feature branches and the C++17 / CMake 3.16 commits.
+  Buster image, glibc 2.28). Android and Emscripten failed because the fork's fake-gamma code
+  (`f6119c4bb`) called `glColor4f`, which OpenGL ES2 doesn't have; fixed in `e19bc3310`. Verified
+  locally with emsdk 3.1.74 (the pre-fix file fails with exactly that error, the fixed tree builds);
+  Android compiles the same GLES code path and is expected to pass in the next CI run.
   Also done: the `Debug_XP`/`Release_XP` configurations and `WIN_XP_COMPAT` (which disabled D3D11 and
   the D3D shader compiler) are removed; the hand Makefiles and legacy macOS Xcode projects are at
   C++17 too. Left for phase 7: the standalone plugin projects (`Plugins/*/msvc`, `agspalrender/Makefile`)
