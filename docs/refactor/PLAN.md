@@ -24,8 +24,13 @@ graph LR
   P3 --> P5[5 Structure]
   P4 --> P5
   P2 --> P6[6 Editor]
-  P3 --> P7[7 Tools, plugins, ports]
+  P2 --> B[7.1 Build tools]
+  B --> P6
+  P3 --> P7[7.2-7.3 Plugins, ports]
 ```
+
+Task 7.1 (the C++ build tools, D7) doesn't depend on phases 3–5 and can start right after phase 2.
+The editor's switch to the tools (6.7d) waits for it.
 
 Rough sizing, for one developer part-time: phases 0–2 take weeks, phases 3–4 take a few months,
 and phases 5–6 are ongoing over a year or more. Each phase is useful on its own, so stopping
@@ -85,7 +90,24 @@ Recorded 2026-10-31.
 | D4 | Future of the Editor UI | **Avalonia is the main candidate.** The WinForms editor goes into maintenance mode. | Editor work concentrates on a UI-free core shared by both UIs, and on replacing the C++/CLI bridge, which Avalonia can't use (phase 6) | 6.x |
 | D5 | Single build system for native code | **CMake only.** MSBuild stays for the C# editor projects. | Hand-written Makefiles and the native `Solutions/*.vcxproj` go (3.2) | 3.2 |
 | D6 | Minimum Windows version | **Windows 7+** | Drop `v141_xp`; `AGS.Native` targets `0x0601` instead of XP's `0x0501`; no APIs newer than Windows 7 without a runtime check | 0.4, 3.1 |
-| D7 | How are games built, by the editor and headless? | **One C# build core (`AGS.Editor.Core`) used by both the GUI editor and a new C# command-line builder. Retire the C++ project pipeline in `Tools/`** (everything that reads `Game.agf`). Keep the thin C++ format tools. | The C++ pipeline is a second copy of the project model that always lags: since 2025, `AGS.Types` had 302 commits vs 23 for `agfreader.cpp`, and `DataFileWriter.cs` 81 vs 16 for `data_file_writer.cpp`. With the build in C#, `Game.agf` has exactly one reader. Formats the engine reads through `Common/` (rooms, sprites, translations, compiled scripts) are still written by the C++ code, through the C library from 6.7c. The command-line builder needs the .NET 8 runtime or a self-contained build (~70 MB); NativeAOT isn't realistic because `AGS.Types` uses reflection-based XML serialization. | 6.0, 6.7d, 7.1 |
+| D7 | How are games built, by the editor and headless? | **One build implementation, in C++: the tools in `Tools/`**, with `agsbuild` running `agf2dta`, `agscc`, `crmpak`, `trac`, `agspak` and the rest. The editor saves the project and runs `agsbuild`, or individual tools where it needs finer control. The C# build code (`DataFileWriter.cs`, `DialogScriptConverter.cs`, the C# script-header generation and translation writer, the C# preprocessor) is deleted once the tools reach parity. *Revised 2026-11-01 after maintainer review; replaces "one C# build core plus a C# command-line builder", which was argued from commit counts, a poor proxy for parity.* | Builds need only a C++ toolchain, so they run where .NET doesn't (Linux i386, which CI packages; FreeBSD, D2) and in CI without the editor. The game-data writer sits next to the engine's reader: same structs, testable with C++ round trips. Cost: `Game.agf` is read by both C# (editor) and C++ (`agfreader`), so a new project property needs a C++ change too; 7.1g makes a missed one fail tests instead of silently doing nothing. Starting point, measured 2026-11-01: the tools **can't build an AGS 4 project yet** (five gaps, listed in 7.1). | 1.7, 3.3, 6.3, 6.7d, 7.1 |
+
+## Next up
+
+Kept current as tasks land. Model and effort are recommendations for an AI session (see "Purpose
+of the fork").
+
+| # | Task | Why now | Model / effort |
+|---|---|---|---|
+| 1 | **7.1a + 7.1b:** build-parity harness, then unblock `agsbuild` (project format version, AGS 4 script API levels, no hang when a task fails) | Everything else in 7.1 is measured with the harness. The three blockers are small, and the hang currently turns every failure into a manual kill. | Opus 5.5, `high` |
+| 2 | **7.1c:** `#module` and any other C#-only preprocessor features, in the C++ preprocessor | No script compiles with `agscc` until this is done | Opus 5.5, `high` |
+| 3 | **7.1d + 7.1e:** table-driven XML reading, piloted by the AGS 4 room tool (`Rooms/<n>/` to `.crm`) | Rooms block packaging. The room tool is mostly a port of existing C++ (`convert_room_to_native`) onto the new tables, and the table layer is a small design decision that everything after it builds on. | Opus 5.5, `high` |
+| 4 | **7.1f:** work the parity table down to zero, moving `agfreader` onto the tables one entity at a time | Each step must keep `game28.dta` byte-identical, so it's checked mechanically by the harness | Sonnet 5.5 `medium` to `high`; Opus 5.5 for differences that need investigation |
+
+Other tracks that can run in between: 2.6 (self-contained headers, Sonnet 5.5 `medium`), 1.3 (engine
+unit tests, Opus 5.5 `xhigh`) and 2.7 (line endings, mechanical). `Solutions/Engine.sln` shows as
+modified in `git status` only because of 2.7: it's stored with CRLF, which `.gitattributes` now
+normalises.
 
 ---
 
@@ -168,7 +190,9 @@ auto-test game that CI downloads from `latest`.
   - C3: a test that dumps the exported API table (`--print-scripttoc` already exists) and compares it
     with a checked-in snapshot. Any change to the snapshot must be deliberate.
   - C4: a minimal test plugin that calls every `IAGSEngine` method.
-  - C5: Editor: open → save a sample `Game.agf` and compare the XML.
+  - C5: Editor: open → save a sample `Game.agf` and compare the XML. `Game.agf` has two readers
+    (D7), so the same sample is also loaded by `Tools/data/agfreader` with no unknown-element
+    warnings (7.1g).
   *Done when:* each contract has a test that fails if it's broken.
 - [ ] **1.3 Engine unit tests for the riskiest subsystems**, in this order: script VM
   (`ScriptExecutor` with bytecode produced by `script2`), route finder, overlay/GUI layout
@@ -204,15 +228,13 @@ auto-test game that CI downloads from `latest`.
   file; a parameter rename gives 589 identical; changing `return 1` to `return 2` is reported as a
   code change (exit code 1). First run ~3.5 min, later runs seconds to a few minutes.
   Not yet tried on Linux/macOS (the script uses `-g0` there; GCC and Clang objects carry no timestamps).
-- [ ] **1.7 Compile the auto-test game with the CI-built editor.** `build.yml` already builds the
-  editor (job `windows-msvc-editor`, Debug and Release, with NUnit tests, on dependencies from
-  `windows-deps`). Extend the Release half: put the engine's `acwin.exe` next to `AGSEditor.exe`,
-  check out `AlanDrake/ags-test-games` at a pinned commit, run
-  `AGSEditor.exe /compile <absolute path>\ags4\auto-test\Game.agf`, and upload `Compiled/Data` as an
-  artifact. The platform jobs then download that artifact (`needs: windows-msvc-editor`) instead of
-  the hand-made release from 1.1. Cost: the platform jobs start only after the editor is built.
-  Gain: the test game always matches this commit's editor and compiler, and no releases to maintain.
-  *Done when:* the platform jobs run a test game compiled by the editor of the same CI run.
+- [ ] **1.7 Build the auto-test game in CI, from source.** Done as part of 7.1j: once `agsbuild`
+  builds AGS 4 projects, a Linux job compiles `AlanDrake/ags-test-games` (pinned commit) with the tools
+  built in the same run and hands the result to the platform jobs. That replaces the hand-made
+  releases from 1.1, keeps the test game in step with this commit's compiler, and doesn't tie every
+  platform job to the Windows editor build (the earlier plan: compile with the CI-built editor).
+  Until then, keep publishing `draconian-auto-test-N` releases by hand.
+  *Done when:* the platform jobs run a test game compiled by tools of the same CI run.
 
 ## Phase 2: Mechanical normalisation
 
@@ -305,10 +327,16 @@ removal is a `[delete]` commit, verified by the full test suite and the corpus r
 - [ ] **3.3 Legacy compiler** (D3; run 1.4 once first): remove `Compiler/script/` (≈6.5k lines, including the
   1,477-line `__cc_compile_file`), `Compiler/test/` tests that only target it,
   `Solutions/Compiler.Lib`, `ccCompileText` in `AGS.Native/ScriptCompiler.cpp`, the
-  `ExtendedCompiler` setting and editor UI, and fold `test2/` into `test/`. Audit whether
-  `Editor/AGS.CScript.Compiler` (C# preprocessor, tokenizer and code-block compiler) duplicates
-  `Compiler/preproc`. Keep one preprocessor.
-  *Done when:* one compiler, one preprocessor, one test folder.
+  `ExtendedCompiler` setting and editor UI, and fold `test2/` into `test/`.
+  Then remove **`Editor/AGS.CScript.Compiler`**. Its compiler parts (tokenizer, code generator,
+  `ScriptCompiler.cs`, most of `Entities/`) were never finished and nothing uses them. Its
+  **preprocessor is used** by the editor's build today (`AGSEditor.cs`, `CompilerFactory.CreatePreprocessor`),
+  and it has drifted from the C++ one in `Compiler/preproc` (it knows `#module`, the C++ one doesn't).
+  So the order is: port its C#-only features to the C++ preprocessor (7.1c), switch the editor's
+  build to the tools (6.7d), move the few types the editor uses (`CompilerMessage`, `FastString` for
+  autocomplete, `ScriptAnnotations`) into the editor, move `PreprocessorTests.cs` cases to C++
+  tests, then delete the project.
+  *Done when:* one compiler, one preprocessor (C++), one test folder, and no `AGS.CScript.Compiler`.
 - [ ] **3.4 Legacy data-version paths** (D1: 3.99+ only). This is the largest single deletion in the
   plan. Work in this order, one commit per step:
   1. **Game files.** Set `kGameVersion_LowSupported = kGameVersion_399` in
@@ -440,8 +468,8 @@ big one.
   - `GamePlayState::ReadFromSavegame`/`WriteForSavegame` (303/215), `RoomObject`, `CharacterExtras`
     and `ScreenOverlay` serialisers: generate them from one field list (a serialisation helper or an
     X-macro) so reading and writing can't drift apart. Guarded by the C2 round-trip test.
-  - `engine_init_game_settings` (265), `DialogOptions::Begin/Run`. (`BuildWithTaskManager`, 535
-    lines, isn't split: it's deleted with `agsbuild` in 7.1.)
+  - `engine_init_game_settings` (265), `DialogOptions::Begin/Run`. (`BuildWithTaskManager` in
+    `agsbuild`, 535 lines, is split as part of 7.1i.)
   *Done when:* functions over 200 lines: 19 → 3 at most (with the interpreter loop as a documented
   exception), and nesting ≥ 6: 10 → 0.
 - [ ] **5.5 Confine Allegro.** The trimmed Allegro 4 fork (`libsrc/allegro`, ≈15k lines of C) is
@@ -491,9 +519,9 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
 - [ ] **6.1 SDK-style projects.** Convert the `.csproj` files to SDK style. Use `PackageReference`
   instead of `packages.config`. The WinForms application keeps targeting `net48` (still supported on
   Windows 7 SP1, D6), with `LangVersion` 7.3, the highest C# version officially supported on .NET
-  Framework. Libraries that hold no UI code (`AGS.Types`, `AGS.CScript.Compiler` if it survives 3.3,
-  and the new core from 6.3) **multi-target `netstandard2.0` and `net8.0`**, so both the WinForms
-  editor and a future Avalonia editor can reference them.
+  Framework. Libraries that hold no UI code (`AGS.Types` and the new core from 6.3; not
+  `AGS.CScript.Compiler`, which 3.3 deletes) **multi-target `netstandard2.0` and `net8.0`**, so both
+  the WinForms editor and a future Avalonia editor can reference them.
   *Done when:* `dotnet build` builds the C# projects, the existing tests pass, and `AGS.Types` builds
   for `net8.0` (needs 6.0 first).
 - [ ] **6.2 Format and analyzers.** Run `dotnet format` once per project (`[format]` commits,
@@ -504,24 +532,26 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
   `AGSEditor.cs` (1,920) mix UI with project logic. Move the non-UI parts into a new
   `AGS.Editor.Core` assembly (`netstandard2.0` + `net8.0`, no `System.Windows.Forms` or
   `System.Drawing` reference), which the Avalonia editor will build on, and test them there. Start
-  with the build pipeline (`Tasks.cs`, `BuildTargets/`, `DataFileWriter.cs`, script header generation,
-  `Utils/DialogScriptConverter.cs`), project load/save and upgrade, because those have no UI. Per D7
-  they become the only build implementation, shared by the editor and the command-line builder (6.7d).
-  *Done when:* building a game works from a headless test with no WinForms loaded.
+  with project load/save and upgrade (`UpgradeGameManager`), because those have no UI and are what an
+  Avalonia editor needs first. The build itself does **not** move here: per D7 the editor runs the
+  C++ tools (6.7d), so `Tasks.cs` and `BuildTargets/` shrink to "save, run `agsbuild`, show results".
+  *Done when:* loading, saving and upgrading a project works from a headless test with no WinForms
+  loaded.
 - [ ] **6.4 Dependency injection over `Factory`.** 965 references to the static `Factory` service
   locator. Introduce constructor parameters for new and refactored classes and keep `Factory` as the
   composition root only.
 - [ ] **6.5 Exceptions.** Triage the 122 catch-all handlers: narrow the exception type, log, or
   rethrow. An editor that silently swallows I/O errors can corrupt projects.
-- [ ] **6.6 Editor tests.** Extend `AGS.Editor.Tests`: `DataFileWriter` (2,551 lines, which writes C1
-  data, so compare its output with fixture files), project load/save round trip (C5), and the
-  upgrade path for old projects (`UpgradeGameManager`).
+- [ ] **6.6 Editor tests.** Extend `AGS.Editor.Tests`: project load/save round trip (C5) and the
+  upgrade path for old projects (`UpgradeGameManager`). `DataFileWriter` (2,551 lines) needs no new
+  unit tests: until 6.7d deletes it, the build-parity harness (7.1a) compares its output with the
+  tools' output file by file.
 - [ ] **6.7 Replace the C++/CLI bridge with C# plus a small C library.** `AGS.Native` (~6,800 lines
-  of C++/CLI) is **not** converted to C# wholesale. Three of its parts must stay native: the script
-  compiler (13.6k lines, shared with `agscc`), font and GUI rendering (previews must be
-  pixel-identical to the engine), and room/sprite file I/O (shared with the engine and Tools, and the
-  fork changes these formats, so a C# copy would need every change made twice). Everything else
-  either goes away or becomes C#. Current contents:
+  of C++/CLI) is **not** converted to C# wholesale. Two of its parts must stay native: font and GUI
+  rendering (previews must be pixel-identical to the engine), and room/sprite file I/O for editing
+  (shared with the engine and the tools; the fork changes these formats, so a C# copy would need
+  every change made twice). Compiling leaves the editor process entirely: scripts compile in `agscc`
+  as part of the build (D7). Everything else either goes away or becomes C#. Current contents:
 
   | Part | ~Lines | Fate |
   |---|---:|---|
@@ -529,8 +559,9 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
   | Import of old compiled games: `ImportOldGameFile`, `import_compiled_game_dta`, `load_dta_file_into_thisgame`, `init_game_after_import`, SCI font import | 650 | Deleted (D1) |
   | Editor-only utilities: template extraction, ini read/write, exe icon writing (`agsicons.cpp`), native constants | 550 | Ported to C# |
   | Room and sprite file I/O wrappers (over ~4k lines in `Common/`) | 1,100 | Stays native, behind the C library |
-  | Rendering wrappers: fonts, GUI, view loops (over ~8k lines in `Common/font`, `Common/gui`) | 650 | Stays native, behind the C library |
-  | Script compiler glue (`ScriptCompiler.cpp`) | 300 | Stays native, behind the C library |
+  | Font and GUI rendering wrappers (over ~8k lines in `Common/font`, `Common/gui`) | ~500 | Stays native, behind the C library |
+  | View loop and sprite drawing (`doDrawViewLoop`, `drawSprite*`) | ~150 | **Moves to the UI.** `doDrawViewLoop` redraws the whole loop into one surface on every paint, with no caching, which also keeps the view editor from redrawing one frame. Frames are plain sprites: the UI paints them frame by frame from cached sprite bitmaps and does scaling and flipping itself. |
+  | Script compiler glue (`ScriptCompiler.cpp`) | 300 | Goes away: the build compiles with `agscc` (D7). Add an in-process entry point to the C library only if an in-editor check turns out to need one. |
 
   Steps, each a separate PR, with the C++/CLI bridge kept working until the last one:
   - [ ] **6.7a Delete the old-game import** and the editor menu entries that use it.
@@ -541,26 +572,28 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
   - [ ] **6.7c Define the C library (`ags_editor_native`).** About 20–30 `extern "C"` functions in a
     new CMake target that links `Common` and `script2`, with opaque handles and caller-owned buffers.
     Rough groups: open/save room (backgrounds, masks, properties as plain structs), sprite file
-    open/read/write/replace/delete, render GUI, font text, sprite or view frame **into an RGBA buffer**
-    (instead of today's `drawGUIAt(HDC ...)` and `System::Drawing::Bitmap^` arguments, which tie it to
-    Windows), compile script, write a compiled translation (`Common/data/tra_file.cpp`), plus a
+    open/read/write/replace/delete, get a sprite **as an RGBA buffer** (the UI scales, flips and
+    composes it), render GUI and font text **into an RGBA buffer** (instead of today's
+    `drawGUIAt(HDC ...)` and `System::Drawing::Bitmap^` arguments, which tie it to Windows), plus a
     last-error string. A header comment documents ownership for every function. Unit-test it from C++
     in `Editor/native/test/`.
-  - [ ] **6.7d Command-line builder** (D7). A .NET 8 console app (`Editor/AGS.Editor.Cli`, output
-    `ags-build`) over `AGS.Editor.Core` and the C library: `ags-build <project dir> [--target
-    Windows|Linux|Web|Android] [--config Debug|Release] [--clean]`, with the editor's error and warning
-    output as text and an exit code. Port the two good ideas from `Tools/agsbuild`: parallel independent
-    tasks (rooms, scripts, translations) and incremental builds (skip outputs newer than their inputs).
-    Define how editor plugins that hook build events behave here (load them, or fail with a clear
-    message if a project needs one). Add a Linux CI job that builds the fixture project with `ags-build`
-    and runs it with the engine.
-    *Done when:* `ags-build` on Linux produces byte-identical output to the GUI editor's Build command
-    on Windows for the fixture project, and CI checks that on every PR.
+  - [ ] **6.7d The editor builds through the tools** (D7; needs 7.1f). The Build command saves the
+    project, runs `agsbuild` (or individual tools where it needs finer control), shows its progress,
+    and lists errors and warnings from the tools' machine-readable output (7.1h) with jump-to-line.
+    Cancelling the build stops `agsbuild`. Ship the tools with the editor (installer, 7.x packaging).
+    Define what editor plugins that hook build events see: the events still fire around the
+    `agsbuild` run, but no plugin can patch data in the middle of it. Then delete the C# build code:
+    `DataFileWriter.cs`, `Utils/DialogScriptConverter.cs`, the C# script-header generation, the binary
+    writer in `TranslationsComponent.cs` (`trac` writes `.tra` files), and, with 3.3, the C#
+    preprocessor.
+    *Done when:* the editor's Build output is byte-identical to what it produced before the switch
+    (7.1a harness, run once more against the last C# build), all tests pass, and the C# build code is
+    gone.
   - [ ] **6.7e Switch the editor to the C library** through a C# P/Invoke wrapper in `AGS.Editor.Core`
     (works from both `net48` and `net8.0`), one feature area at a time (sprites, rooms, fonts, GUI
-    previews, compiler, translations), each covered by the 6.6 tests before and after. For
-    translations, the C# binary writer in `TranslationsComponent.cs` is replaced by the C++ one, so
-    `.tra` files have one writer, the same one `trac` uses.
+    previews), each covered by the 6.6 tests before and after. In the same step, view and sprite
+    drawing move to the UI (see the table above): the view editor paints frame by frame from cached
+    sprite bitmaps instead of calling `DrawViewLoop`.
   - [ ] **6.7f Delete `AGS.Native`** once nothing references it.
 
   *Done when:* there's no C++/CLI left in the repo, the editor's native dependency is one plain C
@@ -571,20 +604,138 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
   this as its own document when the core is ready, because by then the shape of the core will
   decide most of the design.
 
-## Phase 7: Tools, plugins and ports
+## Phase 7: Build tools, plugins and ports
 
-- [ ] **7.1 Tools** (D7). Split them into two groups:
-  - **Retire, once `ags-build` (6.7d) passes its CI check:** everything that reads `Game.agf`, which is
-    `agsbuild`, `agf2dta`, `agf2dlgasc`, `agfexport` and `spriteimport`, plus their project-model code in
-    `Tools/data/` (`agfreader`, `data_file_writer`, `scriptgen`, `dialogscriptconv`, `game_utils`) and
-    the matching tests in `Tools/test/` (`agfreader_test`, `data_file_writer_test`, `spriteimport_test`).
-    About 7k lines that would otherwise need updating after every editor feature. Don't refactor
-    `BuildWithTaskManager` (535 lines); it's being deleted.
-  - **Keep:** `agscc`, `crmpak`, `spritepak`, `agspak` and `trac`. They sit directly on `Common/` plus
-    small helpers (`room_utils`, `sprite_utils`, `mfl_utils`, `include_utils`, `tra_utils`), so they
-    don't drift, and they're useful for engine CI and scripting. Reformat them (2.2) and add tests for
-    their command-line options (`Tools/test` exists).
-  *Done when:* no C++ code reads `Game.agf`, and each kept tool has command-line tests.
+- [ ] **7.1 Make the C++ tools the only build path** (D7). Can start right after phase 2.
+
+  **Starting point**, measured 2026-11-01 by building `AlanDrake/ags-test-games` (`ags4-draconian`)
+  with the fork editor and with `agsbuild`, using tools built from the current tree. The editor
+  build works; `agsbuild` can't build an AGS 4 project. Each gap was found by patching the previous
+  one in scratch only:
+
+  | # | Gap | Since |
+  |---|---|---|
+  | 1 | `Tools/data/agfreader.cpp` accepts only the old project tag `3.0.3.2` plus a version index, so it rejects every project saved since the editor switched to version strings (`Unsupported Game.agf format: 4.0.0.34`, then `format index: 0`) | July 2025, `ca79f81c5` |
+  | 2 | No AGS 4 room compiler: `agsbuild` expects `room<n>.crm` and `room<n>.asc` in the project root, but AGS 4 projects keep rooms as sources in `Rooms/<n>/` (`data.xml`, `background0.png`, mask PNGs, `room<n>.asc`). Only the editor turns them into `.crm` today, through `AGS.Native`. | AGS 4 room format |
+  | 3 | `agscc` lists script API levels only up to `v363` (`Compiler/compiler.cpp`); every AGS 4 level (`v399` … `v400_33`, which the engine and editor have) fails with `invalid API version` | AGS 4 |
+  | 4 | The C++ preprocessor doesn't know `#module`, which the script API header uses (`agsdefns.sh` line 14), so no script compiles. The C# preprocessor learned it in `48fb2ec66`. | Jan 2025 |
+  | 5 | `agsbuild` hung after its tasks failed: idle, no child process, until killed | bug |
+
+  `agf2dta` did write a `game28.dta`, but content parity can't be measured until scripts compile, so
+  more gaps may show up in 7.1f. The steps, in order:
+
+  - [ ] **7.1a Build-parity harness** (`Script/compare_builds.py`). Copies a project twice, builds one
+    copy with the editor (`AGSEditor.exe /compile <absolute path>\Game.agf`; from Git Bash with
+    `MSYS_NO_PATHCONV=1`) and the other with `agsbuild`, unpacks both packages with `agspak -e`, and
+    compares them file by file: `game28.dta`, rooms, sprite file and index, audio, translations, fonts,
+    custom data. It prints a table (identical / different / missing on one side) and can run the
+    auto-test on the `agsbuild` output. This is the measuring stick for the rest of 7.1, as
+    `compare_objects.py` was for phase 2. It needs the editor, so it's Windows-only until 6.7d.
+    *Done when:* one command prints the per-file table for the auto-test project.
+  - [ ] **7.1b Unblock the pipeline** (gaps 1, 3 and 5; small, separate commits):
+    - `agfreader`: accept the version-string format, comparing versions rather than exact strings.
+      **Project upgrades stay in the editor** (`UpgradeGameManager`): the tools read the current
+      format, and older ones only where reading them needs no upgrade step (for example Transparency
+      0–100 becoming Opacity 0–255 in 4.0.0.34 does need one). For anything older they say "open and
+      save this project in the editor first". A C++ copy of the upgrade code would be one more thing
+      to keep in sync.
+    - `agscc`: add the AGS 4 API and compatibility levels, plus a test that fails when the engine's
+      `kScriptAPI_*` list (`Common/ac/gamestructdefines.h`) has a level `agscc` doesn't, so they can't
+      drift apart again.
+    - `agsbuild`: when a task fails, cancel what depends on it, finish or stop the rest, report, and
+      exit non-zero instead of hanging. Add a test that runs a build with a failing task.
+    *Done when:* `agsbuild` on the auto-test project gets past project loading and API checks and
+    always terminates, on success and on failure.
+  - [ ] **7.1c One preprocessor** (gap 4). Diff `Editor/AGS.CScript.Compiler/Preprocessor.cs`
+    against `Compiler/preproc/preprocessor.cpp` (directives, predefined macros, the
+    `"__NEWSCRIPTSTART_..."` markers), port everything the C++ side lacks, starting with `#module`, and
+    move the cases from `Editor/AGS.Editor.Tests/ScriptCompiler/PreprocessorTests.cs` into C++ tests.
+    *Done when:* every auto-test script compiles with `agscc`, and the former C# preprocessor tests pass
+    against the C++ preprocessor (prerequisite for deleting the C# one in 3.3).
+  - [ ] **7.1d Table-driven XML reading** (maintainers' design). C++ has no reflection, so emulate it
+    with one table per data struct: each row names a member, its XML element and the function that
+    reads the value, and a single generic function fills a struct from an XML element using the
+    table:
+
+    ```cpp
+    const XmlField<GameSettingsData> kGameSettingsFields[] = {
+        {"GameName", Read<&GameSettingsData::GameName>},  // reader chosen from the member's type
+        {"GameFileName", Read<&GameSettingsData::GameFile>},
+        {"GameFPS", Read<&GameSettingsData::GameFPS>},
+    };
+    const XmlField<CharacterData> kCharacterFields[] = {
+        {"BlockingRectangle", Read<&CharacterData::Blocking, ReadRect>},  // custom reader where needed
+        // ...
+    };
+    template <typename T, size_t N>
+    HError ReadFields(const XMLElement *elem, T &obj, const XmlField<T> (&fields)[N], UnknownPolicy policy);
+    ```
+
+    How to build it:
+    - C++17 `auto` template parameters (`Read<&T::Member>`) turn each row into a plain function pointer
+      and pick the reader from the member's type: `int`, `bool` (`True`/`False`, as `AGS.Types` writes
+      it), `float`, `String`, enums through a name table each, rectangles.
+    - **Defaults live in the struct's member initializers** (`int Opacity = 255;`), and a missing
+      element leaves the member alone. That gives one source of truth instead of today's default
+      argument on every `ReadInt` call.
+    - The tables fill tool-side mirror structs that follow the XML (as `agf2dta` already does with
+      `DataUtil::*Data`). Meaning goes into separate conversion code: inverted flags, derived values,
+      nested engine structs such as `RoomStruct::Edges`.
+    - `ReadFields` walks the element's children and looks each one up in the table. **Unknown
+      elements fall out for free**, which is most of the drift guard (7.1g).
+    - Lists (`<Characters>` with `<Character>` items, editor folders) get one generic list reader
+      that takes the item table.
+    - What tables don't fit (order-dependent values, upgrades of old values) stays as code, after
+      `ReadFields`.
+
+    Pilot it on the room tool (7.1e, new code). Then move `agfreader` over one entity at a time
+    (`Character`, `InventoryItem`, `Cursor`, ...); each move must leave `game28.dta` byte-identical
+    (7.1a), so the migration is mechanical and checked.
+    *Done when:* the room tool and all of `agfreader` read through tables, and no hand-written
+    `ValueParser::Read*` call remains.
+  - [ ] **7.1e AGS 4 room sources** (gap 2). Compile `Rooms/<n>/` to `.crm` in C++, following the same
+    principle as `agf2dta`; room data is simpler than game data. Read `data.xml` through 7.1d tables,
+    load the background and mask PNGs (`Common/gfx/image_png.cpp`), compile `room<n>.asc` with
+    `agscc`, and write the room with `Common/game/room_file.cpp`, in `crmpak` or a new `crmbuild` tool
+    that `agsbuild` calls. Most of the logic already exists in C++: `convert_room_to_native` and
+    `convert_room_interactions_to_native` in `AGS.Native/agsnative.cpp` (~330 lines) map every room
+    property onto `RoomStruct`, only reading from the managed `Room^` object instead of XML. Port that
+    mapping to read from the 7.1d structs. That also takes it out of `AGS.Native` (6.7). The details
+    that decide byte parity (mask colours to area numbers, background colour depth and compression)
+    are in the same file.
+    *Done when:* the rooms `agsbuild` produces are byte-identical to the editor's (7.1a).
+  - [ ] **7.1f Content parity.** Work through the 7.1a table until every file matches: game data
+    (`agf2dta`, including fork features such as Opacity 0–255), dialog scripts (`agf2dlgasc` against
+    `DialogScriptConverter.cs`), script headers (`scriptgen`), sprites (`spriteimport`), the audio
+    cache, translations (`trac`), custom data and fonts. If a difference is harmless (ordering, for
+    example), make both sides agree anyway, so parity stays a plain byte comparison.
+    *Done when:* every file is identical and the auto-test passes on `agsbuild` output (2414 of 2414,
+    as with the editor).
+  - [ ] **7.1g Drift guard.** Two halves:
+    - **Unknown elements:** with the tables from 7.1d, `ReadFields` reports XML elements it doesn't
+      recognise: a warning in normal use, an error in tests. A test loads a project saved by the
+      current editor (the auto-test project) and expects none.
+    - **Properties no sample project uses:** a C# test reflects over the `AGS.Types` classes the
+      tools read, and writes the serialized property names per class to a checked-in list. A C++ test
+      checks that every name appears either in a table or in an explicit "editor-only, not needed for
+      building" list. This catches a new property even before any test project uses it, and turns
+      "the tools ignore this on purpose" into a reviewed decision.
+    *Done when:* adding a project property in `AGS.Types` without teaching the tools, or listing it
+    as editor-only, makes a test fail.
+  - [ ] **7.1h Diagnostics for the editor.** Behind a flag, `agsbuild` and the tools it runs print
+    errors, warnings and progress in a machine-readable form (one JSON object per line: severity,
+    tool, file, line, message), and `agsbuild` stops cleanly when cancelled.
+    *Done when:* the editor (6.7d) can list tool errors with jump-to-line and cancel a build.
+  - [ ] **7.1i Split `BuildWithTaskManager`** (535 lines, `Tools/agsbuild/main.cpp`) into one function
+    per build stage, while doing the steps above. It stays.
+  - [ ] **7.1j CI.** A Linux job builds the auto-test project with `agsbuild` from the tools of the same
+    run and hands it to the platform jobs (this is 1.7). A Windows job runs the parity harness against
+    the editor on every PR until 6.7d deletes the C# build code.
+  - **Thin format tools:** `agscc`, `crmpak`, `spritepak`, `agspak` and `trac` stay as they are, and
+    get tests for their command-line options (`Tools/test` exists).
+
+  *Done when:* games build through the tools on Windows, Linux and macOS, byte-identical to the
+  editor's former output; the editor builds through them (6.7d); and no C# build code remains.
 - [ ] **7.2 Bundled plugins.** `agslua` hasn't changed since 2013 and bundles its own Lua and zlib.
   Remove it unless a game you ship uses it. `agspalrender` has a 745-line `Raycast_Render`: refactor
   only if you keep maintaining it. Check that the remaining plugins build with CMake only (3.2).
@@ -625,6 +776,7 @@ values.
 | Engine C++ test files | 3 | ≥ 15 (P1) | | | |
 | C# catch-all handlers | 122 | | | | (P6) < 20 |
 | C++/CLI lines (`Editor/AGS.Native`) | ~6,800 | | | | (P6) 0 |
+| Build parity: files identical, `agsbuild` vs editor (7.1a) | 0 (can't build AGS 4 projects) | | | | (7.1) all |
 
 ## Definition of done for any refactor PR
 
