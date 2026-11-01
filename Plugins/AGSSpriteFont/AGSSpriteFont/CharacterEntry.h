@@ -2,8 +2,8 @@
 class CharacterEntry
 {
 public:
-    CharacterEntry(void);
-    ~CharacterEntry(void);
+    CharacterEntry();
+    ~CharacterEntry();
     int X;
     int Y;
     int Width;

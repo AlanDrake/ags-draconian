@@ -5,8 +5,8 @@
 class VariableWidthFont
 {
 public:
-    VariableWidthFont(void);
-    ~VariableWidthFont(void);
+    VariableWidthFont();
+    ~VariableWidthFont();
     void SetGlyph(int character, int x, int y, int width, int height);
     void SetLineHeightAdjust(int lineHeight, int spacingHeight, int spacingOverride);
     int SpriteNumber;

@@ -4,7 +4,7 @@ class SpriteFontRendererClifftopGames : public SpriteFontRenderer
 {
 public:
     SpriteFontRendererClifftopGames(IAGSEngine *engine);
-    ~SpriteFontRendererClifftopGames(void) override;
+    ~SpriteFontRendererClifftopGames() override;
 
     bool SupportsExtendedCharacters(int fontNumber) override;
     void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) override;

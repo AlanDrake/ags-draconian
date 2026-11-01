@@ -2,8 +2,8 @@
 class SpriteFont
 {
 public:
-    SpriteFont(void);
-    ~SpriteFont(void);
+    SpriteFont();
+    ~SpriteFont();
     int SpriteNumber;
     int MinChar;
     int MaxChar;

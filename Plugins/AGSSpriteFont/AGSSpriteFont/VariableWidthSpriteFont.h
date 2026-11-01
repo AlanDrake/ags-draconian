@@ -7,7 +7,7 @@ class VariableWidthSpriteFontRenderer : public IAGSFontRenderer2
 {
 public:
     VariableWidthSpriteFontRenderer(IAGSEngine *engine);
-    virtual ~VariableWidthSpriteFontRenderer(void);
+    virtual ~VariableWidthSpriteFontRenderer();
 
     void SetGlyph(int fontNum, int charNum, int x, int y, int width, int height);
     void SetSprite(int fontNum, int spriteNum);

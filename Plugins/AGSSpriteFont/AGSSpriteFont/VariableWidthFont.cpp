@@ -1,7 +1,7 @@
 #include "VariableWidthFont.h"
 
 
-VariableWidthFont::VariableWidthFont(void)
+VariableWidthFont::VariableWidthFont()
 {
     Spacing = 0;
     FontReplaced = 0;

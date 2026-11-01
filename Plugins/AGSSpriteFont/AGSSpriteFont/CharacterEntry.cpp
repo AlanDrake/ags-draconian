@@ -1,7 +1,7 @@
 #include "CharacterEntry.h"
 
 
-CharacterEntry::CharacterEntry(void)
+CharacterEntry::CharacterEntry()
 {
     X = 0;
     Y = 0;

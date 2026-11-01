@@ -55,7 +55,7 @@ private:
     class ScanningError : public std::exception
     {
         std::string _msg;
-        const char *what(void) const noexcept override { return _msg.c_str(); }
+        const char *what() const noexcept override { return _msg.c_str(); }
 
     public:
         ScanningError() : _msg("Compiling error") {}

@@ -101,7 +101,7 @@ private:
     class CompilingError : public std::exception
     {
         std::string _msg;
-        const char *what(void) const noexcept override { return _msg.c_str(); }
+        const char *what() const noexcept override { return _msg.c_str(); }
 
     public:
         CompilingError() : _msg("Compiling error") {}
@@ -313,7 +313,7 @@ private:
 
         // Track that the previous content of all registers is invalid (e.g., after a call)
         // Only consider SREG_AX .. SREG_DX and SREG_MAR
-        void SetAllRegisters(void);
+        void SetAllRegisters();
 
         inline TickT GetRegister(size_t reg) const { return _register[reg]; }
 
@@ -464,10 +464,10 @@ private:
     // Free the pointers of all locals at the end of a function. This function
     // returns a Dynarray or Dynpointer, so the result must be protected from
     // dropping its last reference, which could mean the pointer is released prematurely.
-    void FreeDynpointersOfAllLocals_DynResult(void);
+    void FreeDynpointersOfAllLocals_DynResult();
 
     // Free the pointers of all locals at the end of a function. Do not clobber AX.
-    void FreeDynpointersOfAllLocals_KeepAX(void);
+    void FreeDynpointersOfAllLocals_KeepAX();
 
     // Restore those definitions that have a nesting level of 'from_level' or higher
     // to what they were on the level 'from_level - 1'.

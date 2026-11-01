@@ -214,7 +214,7 @@ public:
     // Skim through the list, ignoring delimited content completely.
     // Stop whem a closing symbol is encountered that hasn't been opened.
     // Don't consume that symbol.
-    inline void SkipToCloser(void) { SkipTo(SymbolList{}); }
+    inline void SkipToCloser() { SkipTo(SymbolList{}); }
 
     // Get symbol at idx. Moves the cursor, too.
     // Note: Can't assign through this operator, this is intentional.

@@ -441,7 +441,7 @@ AGS::Parser::RegisterTracking::RegisterTracking(ccCompiledScript &scrip) : _scri
     return;
 }
 
-void AGS::Parser::RegisterTracking::SetAllRegisters(void)
+void AGS::Parser::RegisterTracking::SetAllRegisters()
 {
     for (auto it = _register_list.begin(); it != _register_list.end(); it++)
         SetRegister(*it);
@@ -679,7 +679,7 @@ void AGS::Parser::FreeDynpointersOfLocals(size_t from_level)
     }
 }
 
-void AGS::Parser::FreeDynpointersOfAllLocals_DynResult(void)
+void AGS::Parser::FreeDynpointersOfAllLocals_DynResult()
 {
     // The return value AX might point to a local dynamic object. So if we
     // now free the dynamic references and we don't take precautions,
@@ -718,7 +718,7 @@ void AGS::Parser::FreeDynpointersOfAllLocals_DynResult(void)
         rp_before_precautions.Restore();
 }
 
-void AGS::Parser::FreeDynpointersOfAllLocals_KeepAX(void)
+void AGS::Parser::FreeDynpointersOfAllLocals_KeepAX()
 {
     RestorePoint rp_before_free(_scrip);
     RegisterGuard(SREG_AX, [&] { return FreeDynpointersOfLocals(0u); });
