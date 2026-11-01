@@ -136,6 +136,16 @@ auto-test game that CI downloads from `latest`.
   `ags-test-games`, pin a tag in `build.yml`, and add tests there for every Draconian-only feature
   (D3D11 driver, custom shaders, full ranges, dirty rects, ...).
   *Done when:* CI pins a fork-owned test-game version that covers fork-specific features.
+  *Status (2026-11-01):* fork is `AlanDrake/ags-test-games`, branch `ags4-draconian`. `build.yml` now
+  downloads `AUTO_TEST_REPO`/`AUTO_TEST_TAG` (`draconian-auto-test-1`) instead of upstream `latest`.
+  The game must be built with the **Draconian editor** (fork-only script API), so the test repo's
+  `build-ags4` job is disabled and releases are uploaded by hand until 1.7 exists. Headless build:
+  `AGSEditor.exe /compile <absolute path>\Game.agf` (from Git Bash set `MSYS_NO_PATHCONV=1`, or it
+  rewrites `/compile` into a path). Covered fork features: Opacity/Tint ranges (34 checks), the new
+  DrawingSurface primitives (32), void-returns-void in the compiler (2); local run 2414/2414 pass with
+  the Software driver. Not covered yet: fake gamma, D3D11 pixel-shader blenders, slider focus outside
+  GUI bounds (all need rendering or input checks), PO translations (belongs in editor tests, 6.6).
+  Remaining: push the test repo, publish release `draconian-auto-test-1`, then CI green.
 - [ ] **1.2 Contract guard tests** (one per row of the compatibility contract):
   - C1: load fixture game files and rooms written by a 3.99 editor, the earliest 4.0 editor you can
     get, and the current one, and assert on counts and names (fixtures go in `Common/test/data/`, as
@@ -171,6 +181,15 @@ auto-test game that CI downloads from `latest`.
   translation units that differ. Format-only and rename-only commits must come out identical except
   for files that use `__LINE__`/`__FILE__`. This makes phases 2 and 4 nearly risk-free.
   *Done when:* the script exists and is documented in STYLE.md, "Commits".
+- [ ] **1.7 Build the editor in CI.** No CI builds the editor today: upstream's Cirrus config is
+  disabled (`.disabled.cirrus.yml`), and `ci/windows/Dockerfile` documents the dependencies (SDL2
+  devel, SDL_sound built from source, Xiph libraries, irrKlang, .NET Framework 4.7 developer pack).
+  Add a Windows job that builds `AGS.Editor.Full.sln` and runs `AGS.Editor.Tests`, then compiles the
+  auto-test game at a pinned commit of `AlanDrake/ags-test-games` with that editor and hands the
+  `.ags` to the platform jobs as an artifact. That replaces the hand-made releases from 1.1, and
+  keeps the test game in step with the editor and compiler on every PR.
+  *Done when:* CI builds the editor, runs its tests, and the platform jobs run a test game compiled
+  by it.
 
 ## Phase 2: Mechanical normalisation
 

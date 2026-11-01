@@ -9,6 +9,10 @@ permissions:
 env:
   BASE_BRANCH: ags4
   MANUAL_ASSET: ags4-help.chm
+  # Fork-owned auto-test game, built with this fork's editor (docs/refactor/PLAN.md, task 1.1).
+  # Pinned to a release tag: bump AUTO_TEST_TAG deliberately when the test game changes.
+  AUTO_TEST_REPO: AlanDrake/ags-test-games
+  AUTO_TEST_TAG: draconian-auto-test-1
   AUTO_TEST_ASSET_BASENAME: ags4-auto-test
   BUILD_TYPE: Release
 
@@ -95,7 +99,7 @@ jobs:
     - name: Download auto-test
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
-        curl --fail -sSLo auto-test.zip https://github.com/adventuregamestudio/ags-test-games/releases/latest/download/${{env.AUTO_TEST_ASSET_BASENAME}}.zip
+        curl --fail -sSLo auto-test.zip https://github.com/${{env.AUTO_TEST_REPO}}/releases/download/${{env.AUTO_TEST_TAG}}/${{env.AUTO_TEST_ASSET_BASENAME}}.zip
 
     - name: Unzip auto-test
       if: matrix.platform.shell == 'cmd'
