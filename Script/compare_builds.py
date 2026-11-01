@@ -31,7 +31,7 @@ import sys
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 API_HEADER = os.path.join(REPO, 'Editor', 'AGS.Editor', 'Resources', 'agsdefns.sh')
 EXE = '.exe' if os.name == 'nt' else ''
-TOOLS = ['agsbuild', 'agf2dta', 'agf2dlgasc', 'agfexport', 'agspak', 'crmpak', 'spriteimport', 'spritepak',
+TOOLS = ['agsbuild', 'agf2dta', 'agf2dlgasc', 'agfexport', 'agspak', 'crmbuild', 'crmpak', 'spriteimport', 'spritepak',
          'trac']
 
 
