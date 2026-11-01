@@ -13,3 +13,5 @@ f998ada19da87b72e0e62809f72308e06247f127
 26f20a53256770dba458f043f51225595d7e06e4
 # [format] second clang-format pass (trailing comment alignment)
 08f79682ebdb07dc2c8e5361da1880ab9e29e6e8
+# Normalize line endings in the repository
+e7958f11663a74f6e0475a23abeab7846f1294ff

@@ -99,15 +99,12 @@ of the fork").
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **2.7:** renormalise line endings | 427 of the 453 CRLF-stored files are C# editor sources; 7.1c moves C# test code, which would otherwise show as whole-file diffs | Sonnet 5.5, `low` |
-| 2 | **7.1c:** `#module` and any other C#-only preprocessor features, in the C++ preprocessor | No script compiles with `agscc` until this is done | Opus 5.5, `high` |
-| 3 | **7.1d + 7.1e:** table-driven XML reading, piloted by the AGS 4 room tool (`Rooms/<n>/` to `.crm`) | Rooms block packaging. The room tool is mostly a port of existing C++ (`convert_room_to_native`) onto the new tables, and the table layer is a small design decision that everything after it builds on. | Opus 5.5, `high` |
-| 4 | **7.1f:** work the parity table down to zero, moving `agfreader` onto the tables one entity at a time | Each step must keep `game28.dta` byte-identical, so it's checked mechanically by the harness | Sonnet 5.5 `medium` to `high`; Opus 5.5 for differences that need investigation |
+| 1 | **7.1c:** `#module` and any other C#-only preprocessor features, in the C++ preprocessor | No script compiles with `agscc` until this is done | Opus 5.5, `high` |
+| 2 | **7.1d + 7.1e:** table-driven XML reading, piloted by the AGS 4 room tool (`Rooms/<n>/` to `.crm`) | Rooms block packaging. The room tool is mostly a port of existing C++ (`convert_room_to_native`) onto the new tables, and the table layer is a small design decision that everything after it builds on. | Opus 5.5, `high` |
+| 3 | **7.1f:** work the parity table down to zero, moving `agfreader` onto the tables one entity at a time | Each step must keep `game28.dta` byte-identical, so it's checked mechanically by the harness | Sonnet 5.5 `medium` to `high`; Opus 5.5 for differences that need investigation |
 
-Other tracks that can run in between: 2.6 (self-contained headers, Sonnet 5.5 `medium`), 1.3 (engine
-unit tests, Opus 5.5 `xhigh`) and 2.7 (line endings, mechanical). `Solutions/Engine.sln` shows as
-modified in `git status` only because of 2.7: it's stored with CRLF, which `.gitattributes` now
-normalises.
+Other tracks that can run in between: 2.6 (self-contained headers, Sonnet 5.5 `medium`) and 1.3 (engine
+unit tests, Opus 5.5 `xhigh`).
 
 ---
 
@@ -306,8 +303,9 @@ lines, tab-indented code.
   `IncludeCategories` matching STYLE.md and reformat once more.
   *Done when:* the header-check target builds and include order is enforced. This also helps
   compile times: `character.cpp` includes 57 headers and `game.cpp` 74.
-- [ ] **2.7 Line endings.** Renormalise with the `.gitattributes` from 0.5 (`git add --renormalize .`)
+- [x] **2.7 Line endings.** Renormalise with the `.gitattributes` from 0.5 (`git add --renormalize .`)
   in one commit, listed in `.git-blame-ignore-revs`.
+  *Status (2026-11-01):* done: 457 files (mostly C# editor sources), content identical ignoring CR.
 
 ## Phase 3: Dead code removal
 
