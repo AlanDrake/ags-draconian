@@ -99,10 +99,9 @@ of the fork").
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **7.1j, the rest:** get the new `Windows Build Parity` job green (written, never run); then it's done | Keeps parity from regressing on every PR until 6.7d | Sonnet 5.5, `medium` |
-| 2 | **1.7:** hand the game that the Linux job builds to the platform jobs, in place of the downloaded release | Keeps the test game in step with the compiler; wait until the Linux job has stayed green for a few runs | Sonnet 5.5, `medium` |
-| 3 | **7.1h:** machine-readable diagnostics and clean cancel for `agsbuild` | The editor (6.7d) needs them to list tool errors | Sonnet 5.5, `high` |
-| 4 | **7.1i:** split `BuildWithTaskManager` into one function per stage | Easier to change while 7.1h touches it | Sonnet 5.5, `medium` |
+| 1 | **1.7:** hand the game that the Linux job builds to the platform jobs, in place of the downloaded release | Keeps the test game in step with the compiler; wait until the Linux job has stayed green for a few runs | Sonnet 5.5, `medium` |
+| 2 | **7.1h:** machine-readable diagnostics and clean cancel for `agsbuild` | The editor (6.7d) needs them to list tool errors | Sonnet 5.5, `high` |
+| 3 | **7.1i:** split `BuildWithTaskManager` into one function per stage | Easier to change while 7.1h touches it | Sonnet 5.5, `medium` |
 
 Other tracks that can run in between: 2.6 (self-contained headers, Sonnet 5.5 `medium`) and 1.3 (engine
 unit tests, Opus 5.5 `xhigh`).
@@ -897,12 +896,11 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     checks out the test game at `AUTO_TEST_TAG` and runs it after the downloaded auto-test. Still to do:
     handing the built game to the platform jobs in place of the downloaded one (1.7), once this job
     has been green for a while.
-    *Status (2026-11-02, later):* the Windows half is written, **not yet run in CI**. The `Windows`
+    *Status (2026-11-02, later):* the Windows half is done and green in CI (commit 2a43f3092). The `Windows`
     matrix job uploads its tools and `ags.exe` as `parity-tools-windows`; the new `Windows Build
     Parity` job downloads them with the editor, the x86 engine and SDL2.dll, puts `acwin.exe` next to
     `AGSEditor.exe`, and runs `Script/compare_builds.py` on the auto-test at `AUTO_TEST_TAG`
-    (with `--engine`). Logs upload as `parity-logs`. First run may need fixes (headless editor on the
-    runner, extra files in the editor output).
+    (with `--engine`). Logs upload as `parity-logs`. Only 1.7 is left of 7.1j.
     Getting CI green on the way (2026-11-02):
     - `Engine/util/library_posix.h` still used `Path` unqualified after the using-directives left the
       headers; it broke every POSIX build (Linux, macOS, Android).
