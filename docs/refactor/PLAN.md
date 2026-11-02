@@ -97,7 +97,7 @@ Recorded 2026-10-31.
 Kept current as tasks land. Model and effort are recommendations for an AI session (see "Purpose
 of the fork").
 
-Phases 0, 2 and 7.1a–j are done, and so are U.1 and U.2 (branches for upstream, not pushed); phase 1
+Phases 0, 2 and 7.1a–j are done, and so are U.1 (merged upstream, #3181) and U.2 (open, #3182); phase 1
 is half done. Ground rule 3 applies from here: no deletion
 (3.3, 3.4) or restructuring (phase 5) before the safety net that guards it (1.2, 1.3, 1.4). Duplicate
 build systems caused most of the breakage seen in 2.6 and 7.1h, which moves 3.2 up.
@@ -864,14 +864,21 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     example), make both sides agree anyway, so parity stays a plain byte comparison.
     *Done when:* every file is identical and the auto-test passes on `agsbuild` output (2414 of 2414,
     as with the editor).
-    *Status (2026-11-02):* done for the auto-test project. All 17 files `agsbuild` produces are
-    byte-identical to the editor's, and the auto-test passes on them (2414 of 2414). What it took:
-    - **Layout:** `agf2dta --script-dir` embeds the compiled scripts in `game28.dta`, as the editor
-      does (global, dialog, then the modules in compile order). `agsbuild` now runs it after every
-      compile and no longer packs `.o` files or `ScriptModules.lst`. Every game script is compiled
-      against all module headers: the editor's compile tasks share one header list, which keeps
-      growing. Fonts come from the `Fonts` folder (`<FontFiles>` in `Game.agf`), packed without the
-      folder.
+    *Status (2026-11-02):* done for the auto-test project. The 17 files the editor builds are
+    identical in the `agsbuild` output, except that the compiled scripts are separate files (40 `.o`
+    files and `ScriptModules.lst`) instead of being embedded in `game28.dta`; each matches the script
+    the editor embeds. The auto-test passes on the `agsbuild` output (2414 of 2414). What it took:
+    - **Layout:** the editor embeds the compiled scripts in `game28.dta` (global, dialog, then the
+      modules in compile order). `agsbuild` packs them as separate files (`GlobalScript.o`,
+      `__DialogScripts.o`, the modules listed in `ScriptModules.lst`), which the engine loads since
+      3.6.1 (upstream `4de348c79`). For a while `agf2dta --script-dir` embedded them as well, for byte
+      parity; it was removed after maintainer review, because the build doesn't need it and it made the
+      game data wait for every compile. `compare_builds.py` instead takes the scripts out of the
+      editor's `game28.dta` (the scripts, the `HasCCScript` flag, the extension offset and the script
+      names in `v362_interevent2`) and compares the rest byte for byte. Every game script is compiled
+      against all module headers, as the editor does: in AGS 4 a module may use what the modules after
+      it declare, and the engine links imports in any module order (upstream PR #1408). Fonts come
+      from the `Fonts` folder (`<FontFiles>` in `Game.agf`), packed without the folder.
     - **AGS 4 project format** that `agfreader` didn't know:
       - dialogs live in `Dialogs/<name>.xml` and `.dasc` (`AGFReader::GetDialogData`,
         `ReadDialogScript`);
@@ -1002,6 +1009,38 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     - Windows Packaging: see 1.1 (`ikpFlac.dll`).
     The failures on `ags4-fullranges` are Docker image names that must be lowercase (fixed on this
     branch) and the auto-test calling `Character.Transparency`, which that branch no longer has.
+  - [ ] **7.1k Intermediate directory.** Builds leave temporary files where they don't belong, and
+    leave them behind when they fail. Measured 2026-11-02:
+    - `agsbuild` puts them in `--temp-dir`, by default `<output dir>/_temp`, and deletes that only after a
+      successful build (`Tools/agsbuild/main.cpp`, end of `main`), so a failed build leaves `_temp`
+      inside the output folder.
+    - The editor writes `game28.dta` into the project folder and deletes it after packing
+      (`BuildTargetDataFile.cs`, `BuildTargetDebug.cs`); a build that fails in between, or an editor
+      crash, leaves it there.
+
+    Give every project one directory for intermediate files, `_obj/` (as MSBuild's `obj\`, next to
+    `Compiled/` and `_Debug/`). The temporary files a build generates go there: compiled scripts,
+    generated headers, `game28.dta`, the `agspak` file lists. A failed build leaves the directory as it
+    is, for inspection; the next build clears it first; a Clean command deletes it; one `.gitignore`
+    line covers it. `agsbuild` uses `<project>/_obj` as its default `--temp-dir`, so the output folder
+    holds only output. It is also where incremental builds could keep what they reuse later (only
+    recompile what changed), as `obj\` does.
+    The compiled rooms stay where they are: `room<n>.crm` in the project root, built from
+    `Rooms/<n>/`, with the room script inside.
+    *Done when:* a build that fails halfway leaves nothing new outside `_obj/` and the output folder,
+    for both `agsbuild` and the editor; the next build succeeds from that state; and the parity
+    harness and the auto-test still pass.
+  - [ ] **7.1l Scripts out of `game28.dta` in the editor too** (after 7.1k). `agsbuild` packs the
+    compiled scripts as separate files (`GlobalScript.o`, `__DialogScripts.o`, `ScriptModules.lst`;
+    7.1f, "Layout"); the editor still embeds them. Make the editor's `DataFileWriter.cs` do the same:
+    clear `HasCCScript`, write no script names in `v362_interevent2`, write the compiled scripts to
+    `_obj/` and pack them, and include them in the debug run (`CreateDebugMiniEXE` packs only
+    `game28.dta` today). Room scripts stay inside their `.crm`. Both builds then have one layout, `compare_builds.py` goes back to a plain
+    byte comparison (`unembed_scripts` goes), and 6.7d can check its output byte for byte against the
+    last C# build. The engine keeps reading embedded scripts: games built by 3.99 and 4.x editors
+    have them (C1).
+    *Done when:* the editor's output has no scripts in `game28.dta`, `compare_builds.py` reports
+    every file identical without `unembed_scripts`, and the auto-test passes on both builds.
   - **Thin format tools:** `agscc`, `crmpak`, `spritepak`, `agspak` and `trac` stay as they are, and
     get tests for their command-line options (`Tools/test` exists).
 
@@ -1035,7 +1074,8 @@ into `.compare/up-build`. Each PR is recorded in `docs/UPSTREAM.md`.
   the slider focus fix (upstream fixed it its own way) and the version bump (follows Opacity) don't
   apply. Fixes already in upstream `master` are left to upstream's usual master-to-ags4 merge.
   *Done when:* the branch builds (CMake tools + tests) and its tests pass.
-  *Status (2026-11-02):* done, 9 commits on `upstream/ags4` (`e70c7c95d`), not pushed:
+  *Status (2026-11-02):* done, 9 commits on `upstream/ags4` (`e70c7c95d`), merged upstream as #3181
+  (`a83208d33`, with the two U.2 additions below):
   - Editor: `Dialog(id, scriptName)` crash, invariant culture in project files, `ikpFlac.dll` missing
     from the AnyCPU build (upstream's Windows Packaging fails on it today: `ags.iss` line 103), stale
     character after `ParserState.Reset()` (false "unterminated literal" in translations). Picked
@@ -1077,7 +1117,9 @@ into `.compare/up-build`. Each PR is recorded in `docs/UPSTREAM.md`.
   *Done when:* `compare_builds.py` reports every file identical between `agsbuild` and an upstream
   editor (MSBuild, `PlatformToolset=v142`) on the upstream test game (`ags-test-games` `main`,
   `ags4/auto-test`, 4.0.0.33), and the upstream engine passes the auto-test on `agsbuild` output.
-  *Status (2026-11-02):* done, 24 commits on `ags4-bugfixes`, not pushed:
+  *Status (2026-11-02):* done, 24 commits on `ags4-bugfixes`, open as #3182. To change after
+  maintainer review: drop `agf2dta --script-dir` and pack the scripts separately, as the fork now does
+  (7.1f, "Layout"), with the `compare_builds.py` comparison that goes with it.
   - The four `master` commits with `-x`; `0ddc44b1a` needed `dst_depth` renamed to ags4's
     `res_depth` (noted in its message). Then every 7.1 commit, one upstream commit each, except
     the CI wiring and the fork-only ones (Opacity, formatting); plus "build crmbuild with MSBuild
@@ -1139,7 +1181,7 @@ values.
 | Engine C++ test files | 3 | ≥ 15 (P1) | | | |
 | C# catch-all handlers | 122 | | | | (P6) < 20 |
 | C++/CLI lines (`Editor/AGS.Native`) | ~6,800 | | | | (P6) 0 |
-| Build parity: files identical, `agsbuild` vs editor (7.1a) | 17 of 17; auto-test 2414 of 2414 on `agsbuild` output (7.1f) | | | | (7.1) all |
+| Build parity: files identical, `agsbuild` vs editor (7.1a) | 17 of 17, with the scripts as separate files matched to the editor's embedded ones; auto-test 2414 of 2414 on `agsbuild` output (7.1f) | | | | (7.1) all |
 
 ## Definition of done for any refactor PR
 
