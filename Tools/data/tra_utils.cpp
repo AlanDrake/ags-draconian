@@ -13,9 +13,14 @@
 //=============================================================================
 #include "data/tra_utils.h"
 
+#include <cctype>
 #include <map>
+#include <unordered_map>
 
+#include "ac/game_version.h"
 #include "ac/wordsdictionary.h"
+#include "data/data_ext.h"
+#include "data/data_helpers.h"
 #include "util/string_utils.h"
 #include "util/textstreamreader.h"
 #include "util/textstreamwriter.h"
@@ -28,7 +33,7 @@ namespace DataUtil
 {
 
 //-----------------------------------------------------------------------------
-// TRS - original translation source a in text format
+// The special tags of translation sources, read from PO and written to the TRS that trac -u makes
 //-----------------------------------------------------------------------------
 
 const char OPTION_SEPARATOR = '=';
@@ -201,8 +206,9 @@ static bool ParseFontOverride(const String &line, FontOverride &fover)
     return true;
 }
 
-static void ReadSpecialTags(Translation &tra, const String &line)
+static void ReadSpecialTags(TranslationSource &src, const String &line)
 {
+    Translation &tra = src.Options;
     const auto key_value = StrUtil::GetKeyValue(line, OPTION_SEPARATOR);
     const String key = key_value.first;
     const String value = key_value.second;
@@ -240,7 +246,10 @@ static void ReadSpecialTags(Translation &tra, const String &line)
     }
     else if (key == AUTO_PARSERSAID_TAG)
     {
-        tra.OptFlags |= kTraOpt_AutoTranslateSaid;
+        if (value == TAG_ON)
+            tra.OptFlags |= kTraOpt_AutoTranslateSaid;
+        else
+            tra.OptFlags &= ~kTraOpt_AutoTranslateSaid;
     }
     else if (key == ENCODING_TAG)
     {
@@ -266,6 +275,7 @@ static void ReadSpecialTags(Translation &tra, const String &line)
             if (ParseFontOverride(value, fover))
             {
                 tra.FontOverrides[font_id] = fover;
+                src.FontOverrideOrder.push_back(font_id);
             }
         }
     }
@@ -343,93 +353,250 @@ static void WriteFontOverrides(const Translation &tra, TextStreamWriter &sw)
     }
 }
 
-// This is a result of parsing translation item annotations,
-// contains only known item options, no custom annotations are saved
-struct TraItemOptions
-{
-    // Text Parser's word ID, which this translation item corresponds to.
-    // -1 if does not correspond to any.
-    int ParserWordID = -1;
-};
+//-----------------------------------------------------------------------------
+// PO - the translation source of AGS 4 projects (gettext format); the editor converts the legacy
+// TRS sources to PO when it upgrades a project
+//-----------------------------------------------------------------------------
 
-TraItemOptions ParseItemOptions(const std::vector<String> &annotations)
+// Adds a translated text; a text found again keeps its place and takes the later entry, as the
+// editor's dictionary of entries does
+static void AddEntry(TranslationSource &src, std::unordered_map<String, size_t> &index, TranslationSourceEntry &&entry)
 {
-    TraItemOptions options;
-
-    // Parse for known annotations
-    for (const auto &annotation : annotations)
+    const auto it = index.find(entry.Key);
+    if (it != index.end())
     {
-        const auto key_value = StrUtil::GetKeyValue(annotation, ANNOTATE_SEPARATOR);
-        const String key = key_value.first;
-        const String value = key_value.second;
+        src.Entries[it->second] = std::move(entry);
+        return;
+    }
+    index[entry.Key] = src.Entries.size();
+    src.Entries.push_back(std::move(entry));
+}
 
-        if (key == ANNOTATE_PARSERWORD)
+const String PO_CONTEXT_OBSOLETE = "OBSOLETE";
+const String PO_FLAG_FUZZY = "fuzzy";
+
+// Parses a PO line: a keyword followed by a string, or a string alone, which continues the previous
+// one (keyword is then empty); plural_index is set for msgstr[N], otherwise -1 (Translation.ParsePOLine)
+static bool ParsePOLine(const String &line, String &keyword, String &text, int &plural_index)
+{
+    static const char *const kKeywords[] = {"msgctxt", "msgid_plural", "msgid", "msgstr"};
+    keyword = "";
+    plural_index = -1;
+    size_t at = 0;
+    for (const char *kw : kKeywords)
+    {
+        if (line.StartsWith(kw))
         {
-            options.ParserWordID = StrUtil::StringToInt(value, -1);
+            keyword = kw;
+            at = keyword.GetLength();
+            break;
         }
     }
-
-    return options;
-}
-
-void AddParserWords(WordsDictionary &dict, const String &line, uint16_t word_id)
-{
-    const auto words = line.Split(',');
-    for (const auto &word : words)
+    if (!keyword.IsEmpty() && at < line.GetLength() && line[at] == '[')
     {
-        String word_fixed = word;
-        word_fixed.Trim();
-        if (!word_fixed.IsNullOrSpace())
-            dict.GetWords().insert(std::make_pair(word_fixed, word_id));
+        // only msgstr may have an index
+        const size_t end = line.FindChar(']', at);
+        if (end == String::NoIndex || end == at + 1 || keyword != "msgstr")
+            return false;
+        for (size_t i = at + 1; i < end; ++i)
+        {
+            if (line[i] < '0' || line[i] > '9')
+                return false;
+        }
+        plural_index = StrUtil::StringToInt(line.Mid(at + 1, end - at - 1));
+        at = end + 1;
     }
+    if (!keyword.IsEmpty())
+    {
+        while (at < line.GetLength() && isspace(static_cast<unsigned char>(line[at])))
+            ++at;
+    }
+    if (line.GetLength() < at + 2 || line[at] != '"' || line.GetLast() != '"')
+        return false;
+    text = line.Mid(at + 1, line.GetLength() - at - 2);
+    return true;
 }
 
-HError ReadTRS(Translation &tra, std::unique_ptr<Stream> &&in)
+// Older editors left quotes unescaped in the texts (Translation.EscapeUnescapedQuotes)
+static String EscapeUnescapedQuotes(const String &text)
 {
-    // TODO: We meed a separate struct for representing TRS contents, including
-    // list of annotations per trs item, user comments, etc. This would allow
-    // to save TRS back as-is.
+    if (text.FindChar('"') == String::NoIndex)
+        return text;
+    String result;
+    int backslashes = 0;
+    for (size_t i = 0; i < text.GetLength(); ++i)
+    {
+        const char c = text[i];
+        if (c == '"' && (backslashes % 2) == 0)
+            result.AppendChar('\\');
+        backslashes = (c == '\\') ? backslashes + 1 : 0;
+        result.AppendChar(c);
+    }
+    return result;
+}
+
+// A PO entry as it is parsed
+struct POEntry
+{
+    String Context;
+    TranslationSourceEntry Entry;
+};
+
+HError ReadPO(TranslationSource &src, std::unique_ptr<Stream> &&in)
+{
+    enum ParseState
+    {
+        kNewEntry,
+        kParsingContext,
+        kParsingId,
+        kParsingString,
+        kSkipping // ignoring unsupported or malformed data until the next keyword
+    };
 
     TextStreamReader sr(std::move(in));
-    std::vector<String> annotate_next_line;
+    std::unordered_map<String, size_t> index;
+    ParseState state = kNewEntry;
+    POEntry po;
+    bool has_context = false, has_msgid = false, has_msgstr = false;
 
-    for (String line = sr.ReadLine(); !sr.EOS(); line = sr.ReadLine())
+    // Stores the entry being parsed, if it's complete, and begins a new one
+    auto finish_entry = [&]()
     {
-        if (line.StartsWith("//"))
+        // an entry with an empty msgid is the PO header
+        if (has_msgid && has_msgstr && !po.Entry.Key.IsEmpty())
         {
-            if (line.GetLength() > 2 && line[2] == '#')
+            TranslationSourceEntry &entry = po.Entry;
+            entry.Key = EscapeUnescapedQuotes(entry.Key);
+            entry.Value = EscapeUnescapedQuotes(entry.Value);
+            // The context marks obsolete entries and the Text Parser's words (TranslationEntry.Context)
+            if (po.Context == PO_CONTEXT_OBSOLETE)
             {
-                ReadSpecialTags(tra, line.Mid(3));
+                entry.Obsolete = true;
             }
-            else if (line.GetLength() > 2 && line[2] == '$')
+            else if (po.Context.StartsWith(ANNOTATE_PARSERWORD))
             {
-                annotate_next_line.push_back(line.Mid(3));
+                const auto key_value = StrUtil::GetKeyValue(po.Context, ANNOTATE_SEPARATOR);
+                if (key_value.first == ANNOTATE_PARSERWORD)
+                    entry.ParserWordID = StrUtil::StringToInt(key_value.second, -1);
+            }
+            AddEntry(src, index, std::move(entry));
+        }
+        state = kNewEntry;
+        po = POEntry();
+        has_context = has_msgid = has_msgstr = false;
+    };
+
+    while (!sr.EOS())
+    {
+        String line = sr.ReadLine();
+        line.Trim();
+
+        // Obsolete entries are commented out with "#~", but otherwise have the regular syntax;
+        // "#~|" is a previous msgid of an obsolete entry, which is kept as a metadata
+        bool is_obsolete_line = false;
+        if (line.StartsWith("#~") && !line.StartsWith("#~|"))
+        {
+            line = line.Mid(2);
+            line.TrimLeft();
+            if (line.IsEmpty())
+                continue;
+            is_obsolete_line = true;
+        }
+
+        // An empty line separates entries
+        if (line.IsEmpty())
+        {
+            if (state != kNewEntry)
+                finish_entry();
+            continue;
+        }
+
+        // Font overrides were mistakenly written in the legacy TRS format by some Editor versions
+        if (line.StartsWith(String::FromFormat("//#%s", FONT_OVERRIDE_TAG.GetCStr())))
+        {
+            ReadSpecialTags(src, line.Mid(3));
+            continue;
+        }
+
+        // Comments and annotations precede the entry, so they begin a new one
+        if (line.StartsWith("#"))
+        {
+            if (has_msgstr)
+                finish_entry();
+            if (line.StartsWith("# $"))
+            {
+                ReadSpecialTags(src, line.Mid(3));
+            }
+            else if (line.StartsWith("#,"))
+            {
+                for (String flag : line.Mid(2).Split(','))
+                {
+                    flag.Trim();
+                    if (flag == PO_FLAG_FUZZY)
+                        po.Entry.Fuzzy = true;
+                }
             }
             continue;
         }
 
-        String src = line;
-        String dst = sr.ReadLine();
-        if (!src.IsEmpty() && !dst.IsEmpty())
+        String keyword, text;
+        int plural_index;
+        if (!ParsePOLine(line, keyword, text, plural_index))
+            continue; // the editor warns about it
+
+        if (keyword == "msgctxt" || keyword == "msgid")
         {
-            // Currently doing item split into categories in-place
-            // TODO: save all items + annotations in a TRS contents struct, and split them up
-            // as a conversion between this TRS struct and Translation struct.
-            TraItemOptions options;
-            if (annotate_next_line.size() > 0)
+            // Begins a new entry, unless msgid follows msgctxt
+            if (has_msgstr || has_msgid || (keyword == "msgctxt" && has_context))
+                finish_entry();
+            if (keyword == "msgctxt")
             {
-                options = ParseItemOptions(annotate_next_line);
-                annotate_next_line.clear();
+                state = kParsingContext;
+                has_context = true;
+                po.Context = text;
             }
-
-            if (options.ParserWordID >= 0)
-                AddParserWords(tra.ParserDict, dst, options.ParserWordID);
-            // TODO: warn about duplicates
-            else if (tra.Dict.count(src) == 0)
-                tra.Dict.insert(std::make_pair(src, dst));
+            else
+            {
+                state = kParsingId;
+                has_msgid = true;
+                po.Entry.Key = text;
+            }
         }
-    }
+        else if (keyword == "msgstr")
+        {
+            if (!has_msgid || plural_index > 0 || has_msgstr)
+            {
+                state = kSkipping; // only the first plural form is used
+            }
+            else
+            {
+                state = kParsingString;
+                has_msgstr = true;
+                po.Entry.Value = text;
+            }
+        }
+        else if (keyword == "msgid_plural")
+        {
+            state = kSkipping;
+        }
+        else
+        {
+            // Strings may be split on multiple lines, which are concatenated
+            switch (state)
+            {
+            case kParsingContext: po.Context.Append(text); break;
+            case kParsingId: po.Entry.Key.Append(text); break;
+            case kParsingString: po.Entry.Value.Append(text); break;
+            default: break;
+            }
+            continue; // continuation lines don't change the entry's obsolete state
+        }
 
+        if (is_obsolete_line)
+            po.Entry.Obsolete = true;
+    }
+    // The last entry is not necessarily followed by an empty line
+    finish_entry();
     return HError::None();
 }
 
@@ -573,19 +740,233 @@ HError WriteTRS(const Translation &tra, std::unique_ptr<Stream> &&out)
 // TRA - compiled translation in a binary format
 //-----------------------------------------------------------------------------
 
-HError WriteTRA(const Translation &tra, std::unique_ptr<Stream> &&out)
+//-----------------------------------------------------------------------------
+// TRA - the compiled translation, written as the editor writes it
+//-----------------------------------------------------------------------------
+
+// Appends a character code given by a numeric escape, in the translation's encoding
+static void AppendCharCode(String &s, int code, bool utf8)
 {
-    // Check if translation object is meaningful
-    bool has_translation = false;
-    for (const auto &kv : tra.Dict)
+    if (utf8 && code >= 0x80)
     {
-        has_translation |= !kv.first.IsEmpty() && !kv.second.IsEmpty();
+        s.AppendChar(static_cast<char>(0xC0 | (code >> 6)));
+        s.AppendChar(static_cast<char>(0x80 | (code & 0x3F)));
     }
-    if (!has_translation)
+    else
+    {
+        s.AppendChar(static_cast<char>(code));
+    }
+}
+
+// Resolves the escapes of a translated text, as the script compiler does, because the translation's
+// keys must match the game's texts; unknown escapes are kept as they are (Translation.UnescapeText)
+static String UnescapeText(const String &text, bool utf8)
+{
+    if (text.FindChar('\\') == String::NoIndex)
+        return text;
+    String result;
+    const size_t len = text.GetLength();
+    for (size_t i = 0; i < len; ++i)
+    {
+        char c = text[i];
+        if (c != '\\' || i + 1 >= len)
+        {
+            result.AppendChar(c);
+            continue;
+        }
+        c = text[++i];
+        switch (c)
+        {
+        case '\'':
+        case '"':
+        case '?':
+        case '\\': result.AppendChar(c); continue;
+        case 'a': result.AppendChar('\a'); continue;
+        case 'b': result.AppendChar('\b'); continue;
+        case 'e': result.AppendChar(27); continue;
+        case 'f': result.AppendChar('\f'); continue;
+        case 'n': result.AppendChar('\n'); continue;
+        case 'r': result.AppendChar('\r'); continue;
+        case 't': result.AppendChar('\t'); continue;
+        case 'v': result.AppendChar('\v'); continue;
+        default: break;
+        }
+        if (c >= '0' && c < '8')
+        {
+            // up to 3 octal digits, max value 255
+            int value = c - '0';
+            for (int n = 0; n < 2 && i + 1 < len; ++n)
+            {
+                const int digit = text[i + 1] - '0';
+                if (digit < 0 || digit >= 8 || value * 8 + digit > 255)
+                    break;
+                value = value * 8 + digit;
+                i++;
+            }
+            AppendCharCode(result, value, utf8);
+            continue;
+        }
+        if (c == 'x' && i + 1 < len && isxdigit(static_cast<unsigned char>(text[i + 1])))
+        {
+            // up to 2 hex digits
+            int value = 0;
+            for (int n = 0; n < 2 && i + 1 < len && isxdigit(static_cast<unsigned char>(text[i + 1])); ++n)
+            {
+                const char h = static_cast<char>(tolower(static_cast<unsigned char>(text[++i])));
+                value = value * 16 + (h <= '9' ? h - '0' : h - 'a' + 10);
+            }
+            AppendCharCode(result, value, utf8);
+            continue;
+        }
+        // unknown escape sequence
+        result.AppendChar('\\');
+        result.AppendChar(c);
+    }
+    return result;
+}
+
+// A text of the translation's dictionary or the game name: its length, and the encrypted text
+// without a terminator
+static void WriteEncryptedText(const String &text, Stream *out)
+{
+    std::vector<char> buf(text.GetCStr(), text.GetCStr() + text.GetLength());
+    EncryptText(buf.data(), buf.size());
+    out->WriteInt32(static_cast<int32_t>(buf.size()));
+    if (!buf.empty())
+        out->Write(buf.data(), buf.size());
+}
+
+HError WriteTRA(const TranslationSource &src, std::unique_ptr<Stream> &&out)
+{
+    const Translation &tra = src.Options;
+    const bool utf8 = tra.EncodingHint.CompareNoCase("UTF-8") == 0;
+
+    // Translated texts and Text Parser words, skipping the obsolete entries and those which
+    // translators marked for review (TranslationsComponent.SplitTranslationItemsIntoSections)
+    std::vector<std::pair<String, String>> lines;
+    std::vector<std::pair<String, uint16_t>> parser_words;
+    for (const auto &entry : src.Entries)
+    {
+        if (entry.Value.IsEmpty() || entry.Obsolete || entry.Fuzzy)
+            continue;
+        if (entry.ParserWordID >= 0)
+            parser_words.push_back(std::make_pair(UnescapeText(entry.Value, utf8), entry.ParserWordID));
+        else
+            lines.push_back(std::make_pair(UnescapeText(entry.Key, utf8), UnescapeText(entry.Value, utf8)));
+    }
+    if (lines.empty())
         printf("WARNING: input translation did not appear to have any translated lines.\n");
 
-    // Write translation
-    WriteTraData(tra, std::move(out));
+    Stream *s = out.get();
+    s->Write("AGSTranslation", sizeof("AGSTranslation")); // with the terminator
+    const int flags = kDataExt_NumID32 | kDataExt_File32;
+    WriteExtBlock(
+        kTraFblk_GameID, "",
+        [&](Stream *out)
+        {
+            out->WriteInt32(tra.GameUid);
+            WriteEncryptedText(tra.GameName, out);
+        },
+        flags, s);
+    WriteExtBlock(
+        kTraFblk_Dict, "",
+        [&](Stream *out)
+        {
+            for (const auto &line : lines)
+            {
+                WriteEncryptedText(line.first, out);
+                WriteEncryptedText(line.second, out);
+            }
+            WriteEncryptedText("", out);
+            WriteEncryptedText("", out);
+        },
+        flags, s);
+    if (!parser_words.empty())
+    {
+        // In the format of the game data's words dictionary; an entry may list several words
+        WriteExtBlock(
+            "ext_parserdict",
+            [&](Stream *out)
+            {
+                std::vector<std::pair<String, uint16_t>> words;
+                for (const auto &entry : parser_words)
+                {
+                    for (String word : entry.first.Split(','))
+                    {
+                        word.Trim();
+                        if (!word.IsEmpty())
+                            words.push_back(std::make_pair(word, entry.second));
+                    }
+                }
+                out->WriteInt32(static_cast<int32_t>(words.size()));
+                for (const auto &word : words)
+                {
+                    WriteStringEncrypt(out, word.first.GetCStr());
+                    out->WriteInt16(word.second);
+                }
+            },
+            flags, s);
+    }
+    WriteExtBlock(
+        kTraFblk_TextOpts, "",
+        [&](Stream *out)
+        {
+            out->WriteInt32(tra.NormalFont);
+            out->WriteInt32(tra.SpeechFont);
+            out->WriteInt32(tra.RightToLeft);
+            out->WriteInt32(tra.OptFlags);
+        },
+        flags, s);
+    WriteExtBlock(
+        "ext_sopts",
+        [&](Stream *out)
+        {
+            out->WriteInt32(2);
+            StrUtil::WriteString("encoding", out);
+            StrUtil::WriteString(tra.EncodingHint, out);
+            StrUtil::WriteString("language", out);
+            StrUtil::WriteString(tra.LanguageHint, out);
+        },
+        flags, s);
+    if (!src.FontOverrideOrder.empty())
+    {
+        WriteExtBlock(
+            "ext_fonts",
+            [&](Stream *out)
+            {
+                out->WriteInt32(static_cast<int32_t>(src.FontOverrideOrder.size()));
+                // data version (matches current game data); determines which font info extensions are written
+                out->WriteInt32(kGameVersion_Current);
+                for (const int font_id : src.FontOverrideOrder)
+                {
+                    const FontOverride &fover = tra.FontOverrides.at(font_id);
+                    const FontInfo &finfo = fover.Finfo;
+                    out->WriteInt32(font_id);      // font to override
+                    out->WriteInt32(finfo.FontID); // replacement font ID (or -1 if determined by its filename)
+                    out->WriteInt32(static_cast<uint32_t>(fover.Fields)); // which font fields are valid
+                    out->WriteInt32(0);                                   // reserved
+                    // The font info format of the game data, as in Common/data/tra_file.cpp
+                    out->WriteInt32(finfo.Flags);
+                    if ((finfo.Flags & FFLG_SIZEMULTIPLIER) == 0)
+                        out->WriteInt32(finfo.Size * finfo.SizeMultiplier);
+                    else
+                        out->WriteInt32(finfo.SizeMultiplier);
+                    out->WriteInt32(finfo.Outline);
+                    out->WriteInt32(finfo.YOffset);
+                    out->WriteInt32(finfo.LineSpacing);
+                    out->WriteInt32(finfo.AutoOutlineThickness);
+                    out->WriteInt32(finfo.AutoOutlineStyle);
+                    out->WriteInt32(finfo.CharacterSpacing);
+                    out->WriteInt32(finfo.CustomHeight);
+                    out->WriteInt32(0); // reserved
+                    out->WriteInt32(0);
+                    StrUtil::WriteString(finfo.FileName, out);
+                }
+            },
+            flags, s);
+    }
+    s->WriteInt32(kTraFile_EOF);
+    s->WriteInt32(0);
     return HError::None();
 }
 

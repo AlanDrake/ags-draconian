@@ -13,7 +13,7 @@ using namespace AGS::DataUtil;
 
 //------------------------------------------------------------------------------|
 static const char *HELP_STRING = "Usage:\n"
-                                 "  trac <input.trs> [<output.tra>] [--gamename <name>][--uniqueid <idnum>]\n"
+                                 "  trac <input.po> [<output.tra>] [--gamename <name>][--uniqueid <idnum>]\n"
                                  "  trac -u <input.tra> [<output.trs>]\n";
 
 static int Command_Compile(const String &src, const String &dst, const String *game_name, const int *game_uid)
@@ -26,28 +26,28 @@ static int Command_Compile(const String &src, const String &dst, const String *g
         printf("Game uniqueid: %d\n", *game_uid);
 
     //-----------------------------------------------------------------------//
-    // Read TRS
+    // Read PO
     //-----------------------------------------------------------------------//
     auto in = File::OpenFileRead(src);
     if (!in)
     {
-        printf("Error: failed to open source TRS for reading.\n");
+        printf("Error: failed to open source PO for reading.\n");
         return -1;
     }
 
-    Translation tra;
-    HError err = ReadTRS(tra, std::move(in));
+    TranslationSource tra;
+    HError err = ReadPO(tra, std::move(in));
     if (!err)
     {
-        printf("Error: failed to read source TRS:\n");
+        printf("Error: failed to read source PO:\n");
         printf("%s\n", err->FullMessage().GetCStr());
         return -1;
     }
 
     if (game_uid)
-        tra.GameUid = *game_uid;
+        tra.Options.GameUid = *game_uid;
     if (game_name)
-        tra.GameName = *game_name;
+        tra.Options.GameName = *game_name;
 
     //-----------------------------------------------------------------------//
     // Write TRA
@@ -116,7 +116,7 @@ static int Command_Decompile(const String &src, const String &dst)
 
 int main(int argc, char *argv[])
 {
-    printf("trac v0.9.6 - AGS translation compiler and decompiler (TRS <-> TRA)\n"
+    printf("trac v0.9.7 - AGS translation compiler (PO -> TRA) and decompiler (TRA -> TRS)\n"
            "Copyright (c) 2021-2026 AGS Team and contributors\n");
 
     ParseResult cmdargs = Parse(argc, argv, {"--gamename", "--uniqueid"});

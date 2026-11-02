@@ -337,6 +337,7 @@ if(AGS_TESTS)
       test/mfl_utils_test.cpp
       test/pipedprocess_test.cpp
       test/room_build_test.cpp
+      test/tra_utils_test.cpp
       test/xml_fields_test.cpp
       test/spriteimport_test.cpp
       test/taskmanager_test.cpp

@@ -541,7 +541,7 @@ static void AddTranslationTasks(BuildContext &c)
         c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
             task_name, &c.taskmgr,
             PipedProcessParams(tool_trac,
-                               String::FromFormat("\"%s/%s.trs\" \"%s/%s\" --gamename \"%s\" --uniqueid %d %s",
+                               String::FromFormat("\"%s/%s.po\" \"%s/%s\" --gamename \"%s\" --uniqueid %d %s",
                                                   c.src_dir.GetCStr(), tra.GetCStr(), c.temp_dir.GetCStr(),
                                                   out_trafile.GetCStr(), c.project.game_opts.Name.GetCStr(),
                                                   c.project.game_opts.UniqueID, c.verbose)))));
