@@ -66,7 +66,7 @@ public:
             return false;
         _library = lib;
         _name = libname;
-        _filename = Path::GetFilename(path);
+        _filename = AGS::Common::Path::GetFilename(path);
         _path = path;
         return true;
     }
