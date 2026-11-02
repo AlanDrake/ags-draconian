@@ -131,7 +131,7 @@ jobs:
     # Every header must compile on its own (docs/refactor/PLAN.md, 2.6); MSVC and GCC (macOS is already the slowest job)
     - name: Check that headers are self-contained
       if: matrix.platform.name == 'Windows' || matrix.platform.name == 'Ubuntu-x86_64'
-      run: cmake --build "${{github.workspace}}/build" --config ${{env.BUILD_TYPE}} --target header_check --parallel 8
+      run: cmake --build "${{github.workspace}}/build" --config ${{env.BUILD_TYPE}} --target header_check --parallel 8 ${{ matrix.platform.sys == 'Ubuntu' && '-- -k' || '' }}
 
     - name: Test
       working-directory: ${{github.workspace}}/build
