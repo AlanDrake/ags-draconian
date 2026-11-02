@@ -149,7 +149,7 @@
     </ResourceCompile>
     <Link>
       <RegisterOutput>false</RegisterOutput>
-      <AdditionalDependencies>Common_md_d.lib;Compiler_md_d.lib;Compiler2_md_d.lib;SDL2.lib;winmm.lib;imm32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Common_md_d.lib;Compiler2_md_d.lib;SDL2.lib;winmm.lib;imm32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMTD.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -201,7 +201,7 @@ copy "$(AGS_SDL_DLL)" "$(SolutionDir)..\Editor\References"</Command>
     </ResourceCompile>
     <Link>
       <RegisterOutput>false</RegisterOutput>
-      <AdditionalDependencies>Common_md_d.lib;Compiler_md_d.lib;Compiler2_md_d.lib;SDL2.lib;winmm.lib;imm32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Common_md_d.lib;Compiler2_md_d.lib;SDL2.lib;winmm.lib;imm32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMTD.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -252,7 +252,7 @@ copy "$(AGS_SDL_DLL)" "$(SolutionDir)..\Editor\References\x64"</Command>
     </ResourceCompile>
     <Link>
       <RegisterOutput>false</RegisterOutput>
-      <AdditionalDependencies>Common_md.lib;Compiler_md.lib;Compiler2_md.lib;SDL2.lib;winmm.lib;imm32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Common_md.lib;Compiler2_md.lib;SDL2.lib;winmm.lib;imm32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -304,7 +304,7 @@ copy "$(AGS_SDL_DLL)" "$(SolutionDir)..\Editor\References"</Command>
     </ResourceCompile>
     <Link>
       <RegisterOutput>false</RegisterOutput>
-      <AdditionalDependencies>Common_md.lib;Compiler_md.lib;Compiler2_md.lib;SDL2.lib;winmm.lib;imm32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Common_md.lib;Compiler2_md.lib;SDL2.lib;winmm.lib;imm32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>

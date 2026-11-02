@@ -24,7 +24,6 @@
 #include "NativeUtils.h"
 #include "CompiledScript.h"
 #include "IScriptCompiler.h"
-#include "script/cs_compiler.h"
 #include "script2/cs_compiler.h"
 #include "script/cc_common.h"
 #include "util/path.h"
@@ -40,103 +39,6 @@ namespace AGS
 {
 namespace Native
 {
-
-//
-// IScriptCompiler implementation for legacy AGS3 compiler
-//
-public ref class AGS3ScriptCompiler : public IScriptCompiler
-{
-public:
-    AGS3ScriptCompiler()
-    {
-    }
-
-    // Gets this compiler's identifying name
-    virtual String^ GetName()
-    {
-        return "AGS SCOM 3 EXT";
-    }
-    // Gets this compiler's human-readable name
-    virtual String^ GetDescription()
-    {
-        return "AGS v3-ext Script Compiler";
-    }
-    // Gets this compiler's list of supported extensions
-    virtual List<String^>^ GetExtensions()
-    {
-        std::vector<std::string> cc_exts;
-        ccGetExtensions(cc_exts);
-        List<String^>^ exts = gcnew List<String^>();
-        for (const auto &s : cc_exts)
-            exts->Add(gcnew String(s.c_str()));
-        return exts;
-    }
-    // Gets if this compiler supports building several scripts in parallel
-    virtual bool DoesSupportParallelBuilds()
-    {
-        return false; // still relies on global data, so - no
-    }
-    // Compiles the given script.
-    // Returns a CompiledScript object, fills collection of compilation messages.
-    virtual CompiledScript^ CompileScript(String^ scriptName, String^ scriptText, ScriptCompilerOptions options, CompileMessages^ messages)
-    {
-        cli::array<String^>^ scriptTexts = gcnew cli::array<String^>(1);
-        scriptTexts[0] = scriptText;
-        return CompileScript(scriptName, scriptTexts, options, messages);
-    }
-    // Compile the given script texts.
-    // Returns a CompiledScript object, fills collection of compilation messages.
-    virtual CompiledScript^ CompileScript(String^ scriptName, cli::array<String^>^ scriptTexts, ScriptCompilerOptions options, CompileMessages^ messages)
-    {
-        // Prepare to convert script texts to native strings, in UTF-8 format
-        TextConverter^ tcv = NativeMethods::GetGameTextConverter();
-        // Set up compiler options
-        uint64_t const cc_options = (UInt64)options;
-
-        ccRemoveDefaultHeaders();
-
-        std::vector<AGSString> scriptHeaders;
-        scriptHeaders.resize(scriptTexts->Length - 1);
-        AGSString mainScript;
-        AGSString mainScriptName;
-        int headerCount = 0;
-
-        // FIXME: compiler should scan for NEW_SCRIPT_MARKER in a merged script text instead,
-        // then we won't have to receive an array of texts, but a single merged text
-        for each (String^ header in scriptTexts)
-        {
-            if (headerCount < scriptTexts->Length - 1)
-            {
-                scriptHeaders[headerCount] = tcv->Convert(header);
-
-                if (ccAddDefaultHeader(scriptHeaders[headerCount].GetCStr(), "Header")) 
-                {
-                    messages->Add(gcnew CompileError("Too many scripts in game"));
-                    return nullptr;
-                }
-                headerCount++;
-            }
-        }
-
-        ccSetSoftwareVersion(editorVersionNumber.GetCStr());
-        for (uint64_t opt_bit = 1; opt_bit <= SCOPT_HIGHEST; opt_bit <<= 1)
-            ccSetOption(opt_bit, (cc_options & opt_bit) != 0);
-
-        mainScript = tcv->Convert(scriptTexts[scriptTexts->Length - 1]);
-        mainScriptName = TextHelper::ConvertASCII(scriptName);
-        std::unique_ptr<ccScript> cc_script(
-            ccCompileText(mainScript.GetCStr(), mainScriptName.GetCStr()));
-        if (!cc_script || cc_has_error())
-        {
-            auto &error = cc_get_error();
-            messages->Add(gcnew CompileError(tcv->Convert(error.ErrorString), TextHelper::ConvertASCII(ccCurScriptName), error.Line));
-            return nullptr;
-        }
-
-        // Success, create new CompiledData
-        return gcnew CompiledScript(std::move(cc_script));
-    }
-};
 
 //
 // IScriptCompiler implementation for AGS4 compiler
@@ -233,7 +135,6 @@ List<IScriptCompiler^>^ NativeMethods::GetEmbeddedScriptCompilers()
     // Gather compilers in order of priority
     List<IScriptCompiler^>^ compilers = gcnew List<IScriptCompiler^>();
     compilers->Add(gcnew AGS4ScriptCompiler());
-    compilers->Add(gcnew AGS3ScriptCompiler());
     return compilers;
 }
 

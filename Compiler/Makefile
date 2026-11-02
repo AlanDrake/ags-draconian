@@ -8,7 +8,6 @@ CFLAGS := -O2 -g \
 	-Wunused-result \
 	-Wno-unused-value  \
 	-Werror=write-strings -Werror=format -Werror=format-security \
-	-DLEGACY_COMPILER \
 	-DNDEBUG \
 	-D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
 	$(CFLAGS)
@@ -51,13 +50,14 @@ COMMON_OBJS = \
 
 COMPILER_OBJS = \
 	compiler.cpp \
-	fmem.cpp \
-	script/cc_compiledscript.cpp \
-	script/cc_internallist.cpp \
-	script/cc_symboltable.cpp \
-	script/cc_treemap.cpp \
-	script/cs_compiler.cpp \
-	script/cs_parser.cpp \
+	script2/cc_compiledscript.cpp \
+	script2/cc_internallist.cpp \
+	script2/cc_symboltable.cpp \
+	script2/cs_compile_time.cpp \
+	script2/cs_compiler.cpp \
+	script2/cs_message_handler.cpp \
+	script2/cs_parser.cpp \
+	script2/cs_scanner.cpp \
 	preproc/cc_macrotable.cpp \
 	preproc/preprocessor.cpp
 

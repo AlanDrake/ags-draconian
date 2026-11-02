@@ -245,7 +245,6 @@ namespace AGS.Editor
         public const string SETUP_PROGRAM_SOURCE_FILE = "setup.dat";
         public const string COMPILED_SETUP_FILE_NAME = "winsetup.exe";
         public const string DEFAULT_SCRIPT_COMPILER = "AGS SCOM 4";
-        public const string DEFAULT_LEGACY_SCRIPT_COMPILER = "AGS SCOM 3 EXT";
 
         public readonly string[] RestrictedGameDirectories = new string[]
         {

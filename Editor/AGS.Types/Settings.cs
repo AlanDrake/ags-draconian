@@ -341,7 +341,7 @@ namespace AGS.Types
         [Browsable(false)]
         public bool ExtendedCompiler
         {
-            get; set; // need setter to load old value and upgrade the older projects
+            get; set; // not used; kept so that the older projects, which have it, still load
         }
 
         [DisplayName("Script compiler")]

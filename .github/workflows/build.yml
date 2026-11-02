@@ -375,15 +375,6 @@ jobs:
           name: WinDevDependenciesVS.zip
           path: C:\Lib
 
-      - name: Build Legacy Compiler test runner (x86)
-        shell: cmd
-        run: |
-          cd Solutions
-          msbuild Compiler.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
-
-      - name: Run Legacy Compiler tests (x86)
-        run: Solutions\.test\x86\Release\Compiler.Lib.Test.exe
-
       - name: Build Compiler test runner (x86)
         shell: cmd
         run: |
@@ -411,15 +402,6 @@ jobs:
       - name: Clean up
         shell: cmd
         run: cd Solutions && rd /s /q .test
-
-      - name: Build Legacy Compiler test runner (x64)
-        shell: cmd
-        run: |
-          cd Solutions
-          msbuild Compiler.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
-
-      - name: Run Legacy Compiler tests (x64)
-        run: Solutions\.test\x64\Release\Compiler.Lib.Test.exe
 
       - name: Build Compiler test runner (x64)
         shell: cmd

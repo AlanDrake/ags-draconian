@@ -375,19 +375,11 @@ namespace AGS.Editor
             // v4.0 updates
             //-----------------------------------------------------------------
 
-            // Update ScriptCompiler selection
-            if (xmlVersionIndex < 3999900)
-            {
-                game.Settings.ScriptCompiler = AGSEditor.DEFAULT_LEGACY_SCRIPT_COMPILER;
-            }
+            // The ScriptCompiler selection is checked at the end: there's one compiler since the
+            // legacy one was removed, whatever an older project selected
             if (xmlVersionIndex < 3999901)
             {
                 ConvertLinebreakInTextProperties(game);
-            }
-            else if (xmlVersionIndex < 4000010)
-            {
-                game.Settings.ScriptCompiler = game.Settings.ExtendedCompiler ?
-                    AGSEditor.DEFAULT_SCRIPT_COMPILER : AGSEditor.DEFAULT_LEGACY_SCRIPT_COMPILER;
             }
 
             // Update all the ColourNumber property values in game
@@ -472,9 +464,18 @@ namespace AGS.Editor
                 game.InventoryItems.Insert(0, dummy);
             }
 
-            if (string.IsNullOrEmpty(game.Settings.ScriptCompiler))
+            // Select an available script compiler, if the project has none or one that is gone
+            // (the legacy "AGS SCOM 3 EXT", which older projects select)
+            var compilers = Factory.NativeProxy.GetEmbeddedScriptCompilers();
+            if (!compilers.Any(c => c.GetName() == game.Settings.ScriptCompiler))
             {
-                var compiler = Factory.NativeProxy.GetEmbeddedScriptCompilers().FirstOrDefault();
+                var compiler = compilers.FirstOrDefault();
+                if (!string.IsNullOrEmpty(game.Settings.ScriptCompiler) && compiler != null)
+                {
+                    errors.Add(new CompileWarning($"The project selected the script compiler \"{game.Settings.ScriptCompiler}\", " +
+                        $"which this Editor no longer has; it now uses \"{compiler.GetName()}\". " +
+                        "Scripts that only the old compiler accepted may need changes."));
+                }
                 game.Settings.ScriptCompiler = compiler != null ? compiler.GetName() : string.Empty;
             }
 

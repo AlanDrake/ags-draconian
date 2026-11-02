@@ -486,11 +486,6 @@ ags_windows_tests_task:
   env:
     BUILD_CONFIG: Release
   get_submodule_script: git submodule update --init Common/libsrc/googletest
-  build_legacy_compiler_test_runner_x86_script: >
-    "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/VsDevCmd.bat" &&
-    cd Solutions &&
-    msbuild Compiler.Lib.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
-  run_legacy_compiler_tests_x86_script: Solutions\.test\Release\Compiler.Lib.Test.exe
   build_new_compiler_test_runner_x86_script: >
     "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/VsDevCmd.bat" &&
     cd Solutions &&
@@ -506,11 +501,6 @@ ags_windows_tests_task:
   cleanup_script: >
     cd Solutions/ &&
     rd /s /q .test 
-  build_legacy_compiler_test_runner_x64_script: >
-    "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/VsDevCmd.bat" &&
-    cd Solutions &&
-    msbuild Compiler.Lib.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
-  run_legacy_compiler_tests_x64_script: Solutions\.test\Release\Compiler.Lib.Test.exe
   build_new_compiler_test_runner_x64_script: >
     "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/VsDevCmd.bat" &&
     cd Solutions &&

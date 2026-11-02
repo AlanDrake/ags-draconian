@@ -36,36 +36,7 @@ set(PREPROCESSOR_SOURCES
         preproc/preprocessor.h
 )
 
-set(LEGACY_COMPILER_SOURCES
-        fmem.cpp
-        fmem.h
-        script/cc_compiledscript.cpp
-        script/cc_compiledscript.h
-        script/cc_internallist.cpp
-        script/cc_internallist.h
-        script/cc_symboltable.cpp
-        script/cc_symboltable.h
-        script/cc_symboldef.h
-        script/cc_treemap.cpp
-        script/cc_treemap.h
-        script/cc_variablesymlist.h
-        script/cs_compiler.cpp
-        script/cs_compiler.h
-        script/cs_parser.cpp
-        script/cs_parser.h
-        script/cs_parser_common.h
-        ${PREPROCESSOR_SOURCES})
-
-set(LEGACY_COMPILER_TEST_SOURCES
-        test/cc_internallist_test.cpp
-        test/cc_symboltable_test.cpp
-        test/cc_treemap_test.cpp
-        test/cs_parser_test.cpp
-        test/preprocessor_test.cpp
-        test/cc_test_helper.cpp
-        test/cc_test_helper.h)
-
-set(NEW_COMPILER_SOURCES
+set(COMPILER_SOURCES
         script2/cc_compiledscript.cpp
         script2/cc_compiledscript.h
         script2/cc_internallist.cpp
@@ -85,7 +56,7 @@ set(NEW_COMPILER_SOURCES
         script2/cs_scanner.h
         ${PREPROCESSOR_SOURCES})
 
-set(NEW_COMPILER_TEST_SOURCES
+set(COMPILER_TEST_SOURCES
         test2/cc_bytecode_test_0.cpp
         test2/cc_bytecode_test_1.cpp
         test2/cc_bytecode_test_lib.cpp
@@ -98,18 +69,7 @@ set(NEW_COMPILER_TEST_SOURCES
         test2/cc_parser_test_lib.h
         test2/cc_scanner_test.cpp
         test2/cc_symboltable_test.cpp
-        test/preprocessor_test.cpp) # the preprocessor is shared by both compilers
-
-if(AGS_BUILD_LEGACY_COMPILER)
-    target_compile_definitions(compiler PRIVATE
-            LEGACY_COMPILER=1
-    )
-    set(COMPILER_SOURCES ${LEGACY_COMPILER_SOURCES})
-    set(COMPILER_TEST_SOURCES ${LEGACY_COMPILER_TEST_SOURCES})
-else ()
-    set(COMPILER_SOURCES ${NEW_COMPILER_SOURCES})
-    set(COMPILER_TEST_SOURCES ${NEW_COMPILER_TEST_SOURCES})
-endif ()
+        test/preprocessor_test.cpp)
 
 #-----------------------------------------------------------------------------#
 # Minimal Allegro config

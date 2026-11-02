@@ -16,17 +16,11 @@
 #include <iostream>
 #include <utility>
 
-#ifdef LEGACY_COMPILER
-#include "script/cc_common.h"
-#include "script/cc_internal.h"
-#include "script/cs_compiler.h"
-#else
-#include "script/cc_common.h"
-#include "script2/cs_compiler.h"
-#endif
 #include "ac/gamestructdefines.h"
 #include "compiler.h"
 #include "preproc/preprocessor.h"
+#include "script/cc_common.h"
+#include "script2/cs_compiler.h"
 #include "util/file.h"
 #include "util/filestream.h"
 #include "util/path.h"
@@ -177,14 +171,12 @@ int Compile(const CompilerOptions &comp_opts)
     {
         pp.DefineMacro("UNICODE", "1");
     }
-#ifndef LEGACY_COMPILER
     // Tell the scripts which language extensions the compiler has, as the editor does
     // (AGSEditor.DefineMacrosAccordingToGameSettings); agsdefns.sh tests these
     std::vector<std::string> extensions;
     ccGetExtensions2(extensions);
     for (const auto &ext : extensions)
         pp.DefineMacro(("SCRIPT_EXT_" + ext).c_str(), "1");
-#endif
     // Set Script API macros (starting from lowest and until the highest requested)
     for (int i = 0; i < ScriptAPIs.size() - 1; i++)
     {
@@ -219,27 +211,12 @@ int Compile(const CompilerOptions &comp_opts)
     //-----------------------------------------------------------------------//
     // Configure compiler
     //-----------------------------------------------------------------------//
-#ifdef LEGACY_COMPILER
-    ccSetSoftwareVersion(comp_opts.Version.c_str());
-
-    ccSetOption(SCOPT_EXPORTALL, comp_opts.Flags.ExportAll);
-    ccSetOption(SCOPT_LINENUMBERS, comp_opts.Flags.LineNumbers);
-    // now deprecated, was used to prevent override imports in the room script
-    ccSetOption(SCOPT_NOIMPORTOVERRIDE, comp_opts.Flags.NoImportOverride);
-
-    ccSetOption(SCOPT_OLDSTRINGS, !comp_opts.Flags.EnforceNewStrings);
-
-    ccSetOption(SCOPT_UTF8, comp_opts.UnicodeMode);
-
-    ccRemoveDefaultHeaders();
-#else
     uint64_t const cc_options = (comp_opts.Flags.ExportAll ? SCOPT_EXPORTALL : 0) |
                                 (comp_opts.Flags.LineNumbers ? SCOPT_LINENUMBERS : 0) |
                                 (comp_opts.Flags.EnforceNewStrings ? 0 : SCOPT_OLDSTRINGS) |
                                 (comp_opts.UnicodeMode ? SCOPT_UTF8 : 0) | SCOPT_RTTI | SCOPT_RTTIOPS |
                                 // the editor adds the script table of contents to debug builds
                                 (comp_opts.DebugMode ? SCOPT_SCRIPT_TOC : 0);
-#endif
 
     //-----------------------------------------------------------------------//
     // Read input files
@@ -295,10 +272,6 @@ int Compile(const CompilerOptions &comp_opts)
     {
         String preprocessed_header = pp.Preprocess(head.first, head.second);
         preprocessed_heads.emplace_back(preprocessed_header.GetCStr(), head.second);
-#ifdef LEGACY_COMPILER
-        ccAddDefaultHeader((char *)preprocessed_heads.back().first.GetCStr(),
-                           (char *)preprocessed_heads.back().second.GetCStr());
-#endif
     }
     heads.clear();
 
@@ -334,18 +307,8 @@ int Compile(const CompilerOptions &comp_opts)
     //-----------------------------------------------------------------------//
     // Compile script
     //-----------------------------------------------------------------------//
-#ifdef LEGACY_COMPILER
-    ccScript *script = ccCompileText(script_pp.GetCStr(), script_name.GetCStr());
-    if ((script == nullptr) || (cc_has_error()))
-    {
-        const auto &error = cc_get_error();
-        std::cerr << "Error: compile failed at " << ccCurScriptName << ", line " << error.Line << " : "
-                  << error.ErrorString.GetCStr() << std::endl;
-        return -1;
-    }
-#else
-    // The new compiler has no default headers: like the Editor, it is given the headers and
-    // the script as one text, each part starting with its new-script marker
+    // The compiler has no default headers: like the Editor, it is given the headers and the
+    // script as one text, each part starting with its new-script marker
     String all_the_script;
     for (const auto &head : preprocessed_heads)
         all_the_script.Append(head.first);
@@ -366,7 +329,6 @@ int Compile(const CompilerOptions &comp_opts)
     }
     if (error)
         return -1;
-#endif
 
     //-----------------------------------------------------------------------//
     // Write script object

@@ -67,7 +67,6 @@ def main():
     # -----------------------------------------------------------------------------
     # Script compiler's copyright string
 
-    replace_parser_copyright("../Compiler/script/cs_parser.cpp", "utf-8", version)
     replace_parser_copyright("../Compiler/script2/cs_parser.cpp", "utf-8", version)
 
     # -----------------------------------------------------------------------------
