@@ -83,6 +83,8 @@ def hash_file(path):
 def flatten_output(out_dir, unpack_dir, agspak):
     """Returns {name: (path, size)} for the deployed files, with *.ags packages unpacked in place."""
     files = {}
+    if os.path.isdir(unpack_dir):
+        shutil.rmtree(unpack_dir)  # files of an earlier run would show up as this run's output
     if not os.path.isdir(out_dir):
         return files
     for name in sorted(os.listdir(out_dir)):
