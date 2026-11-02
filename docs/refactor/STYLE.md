@@ -1,7 +1,7 @@
 # AGS Draconian code style
 
 This guide applies to all first-party code. It formalises the style that the newer upstream code
-(`Common/util`, `Common/game`, `Engine/game`, `Compiler/script2`) already follows, so that most of
+(`Common/util`, `Common/game`, `Engine/game`, `Compiler/script`) already follows, so that most of
 the work is bringing the old code in line rather than inventing something new.
 
 Rules marked **[enforced]** are checked by a tool. The others are checked in review.

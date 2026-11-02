@@ -13,10 +13,10 @@
 //=============================================================================
 #pragma once
 
-#include "script2/cc_compiledscript.h"
-#include "script2/cc_internallist.h"
-#include "script2/cc_symboltable.h"
-#include "script2/cs_parser_common.h"
+#include "script/cc_compiledscript.h"
+#include "script/cc_internallist.h"
+#include "script/cc_symboltable.h"
+#include "script/cs_parser_common.h"
 
 extern char kAgsHeaderString[];
 extern char kAgsHeaderBool[];

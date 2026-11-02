@@ -10,22 +10,22 @@
     <ClCompile Include="..\..\Common\util\string_compat.c">
       <Filter>Source Files\cs</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\script2\cc_compiledscript.cpp">
+    <ClCompile Include="..\..\Compiler\script\cc_compiledscript.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\script2\cc_internallist.cpp">
+    <ClCompile Include="..\..\Compiler\script\cc_internallist.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\script2\cc_symboltable.cpp">
+    <ClCompile Include="..\..\Compiler\script\cc_symboltable.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\script2\cs_compiler.cpp">
+    <ClCompile Include="..\..\Compiler\script\cs_compiler.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\script2\cs_parser.cpp">
+    <ClCompile Include="..\..\Compiler\script\cs_parser.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\script2\cs_scanner.cpp">
+    <ClCompile Include="..\..\Compiler\script\cs_scanner.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\version.cpp">
@@ -37,10 +37,10 @@
     <ClCompile Include="..\..\Compiler\preproc\preprocessor.cpp">
       <Filter>Source Files\preproc</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\script2\cs_compile_time.cpp">
+    <ClCompile Include="..\..\Compiler\script\cs_compile_time.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\script2\cs_message_handler.cpp">
+    <ClCompile Include="..\..\Compiler\script\cs_message_handler.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\script\cc_common.cpp">
@@ -60,22 +60,22 @@
     <ClInclude Include="..\..\Common\util\string_compat.h">
       <Filter>Header Files\cs</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Compiler\script2\cc_compiledscript.h">
+    <ClInclude Include="..\..\Compiler\script\cc_compiledscript.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Compiler\script2\cc_internallist.h">
+    <ClInclude Include="..\..\Compiler\script\cc_internallist.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Compiler\script2\cc_symboltable.h">
+    <ClInclude Include="..\..\Compiler\script\cc_symboltable.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Compiler\script2\cs_compiler.h">
+    <ClInclude Include="..\..\Compiler\script\cs_compiler.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Compiler\script2\cs_parser.h">
+    <ClInclude Include="..\..\Compiler\script\cs_parser.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Compiler\script2\cs_scanner.h">
+    <ClInclude Include="..\..\Compiler\script\cs_scanner.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\version.h">
@@ -87,13 +87,13 @@
     <ClInclude Include="..\..\Compiler\preproc\preprocessor.h">
       <Filter>Header Files\preproc</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Compiler\script2\cs_parser_common.h">
+    <ClInclude Include="..\..\Compiler\script\cs_parser_common.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Compiler\script2\cs_compile_time.h">
+    <ClInclude Include="..\..\Compiler\script\cs_compile_time.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Compiler\script2\cs_message_handler.h">
+    <ClInclude Include="..\..\Compiler\script\cs_message_handler.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_reflect.h">

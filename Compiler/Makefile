@@ -50,14 +50,14 @@ COMMON_OBJS = \
 
 COMPILER_OBJS = \
 	compiler.cpp \
-	script2/cc_compiledscript.cpp \
-	script2/cc_internallist.cpp \
-	script2/cc_symboltable.cpp \
-	script2/cs_compile_time.cpp \
-	script2/cs_compiler.cpp \
-	script2/cs_message_handler.cpp \
-	script2/cs_parser.cpp \
-	script2/cs_scanner.cpp \
+	script/cc_compiledscript.cpp \
+	script/cc_internallist.cpp \
+	script/cc_symboltable.cpp \
+	script/cs_compile_time.cpp \
+	script/cs_compiler.cpp \
+	script/cs_message_handler.cpp \
+	script/cs_parser.cpp \
+	script/cs_scanner.cpp \
 	preproc/cc_macrotable.cpp \
 	preproc/preprocessor.cpp
 

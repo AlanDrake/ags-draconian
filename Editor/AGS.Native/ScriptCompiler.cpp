@@ -24,7 +24,7 @@
 #include "NativeUtils.h"
 #include "CompiledScript.h"
 #include "IScriptCompiler.h"
-#include "script2/cs_compiler.h"
+#include "script/cs_compiler.h"
 #include "script/cc_common.h"
 #include "util/path.h"
 #include "util/stdio_compat.h"

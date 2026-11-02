@@ -20,7 +20,7 @@
 #include <string>
 
 #include "gtest/gtest.h"
-#include "script2/cc_compiledscript.h"
+#include "script/cc_compiledscript.h"
 
 static std::string Esc(char const ch)
 {

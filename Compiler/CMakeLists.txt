@@ -37,23 +37,23 @@ set(PREPROCESSOR_SOURCES
 )
 
 set(COMPILER_SOURCES
-        script2/cc_compiledscript.cpp
-        script2/cc_compiledscript.h
-        script2/cc_internallist.cpp
-        script2/cc_internallist.h
-        script2/cc_symboltable.cpp
-        script2/cc_symboltable.h
-        script2/cs_compile_time.cpp
-        script2/cs_compile_time.h
-        script2/cs_compiler.cpp
-        script2/cs_compiler.h
-        script2/cs_message_handler.cpp
-        script2/cs_message_handler.h
-        script2/cs_parser.cpp
-        script2/cs_parser.h
-        script2/cs_parser_common.h
-        script2/cs_scanner.cpp
-        script2/cs_scanner.h
+        script/cc_compiledscript.cpp
+        script/cc_compiledscript.h
+        script/cc_internallist.cpp
+        script/cc_internallist.h
+        script/cc_symboltable.cpp
+        script/cc_symboltable.h
+        script/cs_compile_time.cpp
+        script/cs_compile_time.h
+        script/cs_compiler.cpp
+        script/cs_compiler.h
+        script/cs_message_handler.cpp
+        script/cs_message_handler.h
+        script/cs_parser.cpp
+        script/cs_parser.h
+        script/cs_parser_common.h
+        script/cs_scanner.cpp
+        script/cs_scanner.h
         ${PREPROCESSOR_SOURCES})
 
 set(COMPILER_TEST_SOURCES

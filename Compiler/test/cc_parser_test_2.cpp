@@ -16,9 +16,9 @@
 #include "cc_parser_test_lib.h"
 #include "gtest/gtest.h"
 #include "script/cc_common.h"
-#include "script2/cc_internallist.h"
-#include "script2/cc_symboltable.h"
-#include "script2/cs_parser.h"
+#include "script/cc_internallist.h"
+#include "script/cc_symboltable.h"
+#include "script/cs_parser.h"
 
 
 // The vars defined here are provided in each test that is in category "Compile1"

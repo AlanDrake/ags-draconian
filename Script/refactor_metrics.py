@@ -172,7 +172,7 @@ def collect(files):
 
 def dead_candidates(raw, cpp):
     """Function definitions whose name never appears outside their own definition/declaration."""
-    def_roots = ('Engine/', 'Common/', 'Compiler/script2/', 'Compiler/preproc/', 'Tools/')
+    def_roots = ('Engine/', 'Common/', 'Compiler/script/', 'Compiler/preproc/', 'Tools/')
     tokens = collections.Counter()
     header_tokens = collections.Counter()
     defs = []

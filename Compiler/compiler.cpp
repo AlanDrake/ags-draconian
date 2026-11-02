@@ -20,7 +20,7 @@
 #include "compiler.h"
 #include "preproc/preprocessor.h"
 #include "script/cc_common.h"
-#include "script2/cs_compiler.h"
+#include "script/cs_compiler.h"
 #include "util/file.h"
 #include "util/filestream.h"
 #include "util/path.h"

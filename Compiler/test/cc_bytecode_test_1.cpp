@@ -18,7 +18,7 @@
 #include "cc_parser_test_lib.h"
 #include "gtest/gtest.h"
 #include "script/cc_common.h"
-#include "script2/cs_parser.h"
+#include "script/cs_parser.h"
 
 
 /* This file is for Bytecode tests ONLY.

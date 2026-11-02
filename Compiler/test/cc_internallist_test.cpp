@@ -14,8 +14,8 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "script2/cc_internallist.h"
-#include "script2/cs_parser_common.h"
+#include "script/cc_internallist.h"
+#include "script/cs_parser_common.h"
 
 // defined in script_common, modified by getnext
 extern int currentline;

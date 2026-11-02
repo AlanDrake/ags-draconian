@@ -309,14 +309,14 @@
     <ClCompile Include="..\..\Common\util\version.cpp" />
     <ClCompile Include="..\..\Compiler\preproc\cc_macrotable.cpp" />
     <ClCompile Include="..\..\Compiler\preproc\preprocessor.cpp" />
-    <ClCompile Include="..\..\Compiler\script2\cc_compiledscript.cpp" />
-    <ClCompile Include="..\..\Compiler\script2\cc_internallist.cpp" />
-    <ClCompile Include="..\..\Compiler\script2\cc_symboltable.cpp" />
-    <ClCompile Include="..\..\Compiler\script2\cs_compiler.cpp" />
-    <ClCompile Include="..\..\Compiler\script2\cs_compile_time.cpp" />
-    <ClCompile Include="..\..\Compiler\script2\cs_parser.cpp" />
-    <ClCompile Include="..\..\Compiler\script2\cs_message_handler.cpp" />
-    <ClCompile Include="..\..\Compiler\script2\cs_scanner.cpp" />
+    <ClCompile Include="..\..\Compiler\script\cc_compiledscript.cpp" />
+    <ClCompile Include="..\..\Compiler\script\cc_internallist.cpp" />
+    <ClCompile Include="..\..\Compiler\script\cc_symboltable.cpp" />
+    <ClCompile Include="..\..\Compiler\script\cs_compiler.cpp" />
+    <ClCompile Include="..\..\Compiler\script\cs_compile_time.cpp" />
+    <ClCompile Include="..\..\Compiler\script\cs_parser.cpp" />
+    <ClCompile Include="..\..\Compiler\script\cs_message_handler.cpp" />
+    <ClCompile Include="..\..\Compiler\script\cs_scanner.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\script\cc_reflect.h" />
@@ -326,15 +326,15 @@
     <ClInclude Include="..\..\Common\util\version.h" />
     <ClInclude Include="..\..\Compiler\preproc\cc_macrotable.h" />
     <ClInclude Include="..\..\Compiler\preproc\preprocessor.h" />
-    <ClInclude Include="..\..\Compiler\script2\cc_compiledscript.h" />
-    <ClInclude Include="..\..\Compiler\script2\cc_internallist.h" />
-    <ClInclude Include="..\..\Compiler\script2\cc_symboltable.h" />
-    <ClInclude Include="..\..\Compiler\script2\cs_compile_time.h" />
-    <ClInclude Include="..\..\Compiler\script2\cs_compiler.h" />
-    <ClInclude Include="..\..\Compiler\script2\cs_message_handler.h" />
-    <ClInclude Include="..\..\Compiler\script2\cs_parser.h" />
-    <ClInclude Include="..\..\Compiler\script2\cs_parser_common.h" />
-    <ClInclude Include="..\..\Compiler\script2\cs_scanner.h" />
+    <ClInclude Include="..\..\Compiler\script\cc_compiledscript.h" />
+    <ClInclude Include="..\..\Compiler\script\cc_internallist.h" />
+    <ClInclude Include="..\..\Compiler\script\cc_symboltable.h" />
+    <ClInclude Include="..\..\Compiler\script\cs_compile_time.h" />
+    <ClInclude Include="..\..\Compiler\script\cs_compiler.h" />
+    <ClInclude Include="..\..\Compiler\script\cs_message_handler.h" />
+    <ClInclude Include="..\..\Compiler\script\cs_parser.h" />
+    <ClInclude Include="..\..\Compiler\script\cs_parser_common.h" />
+    <ClInclude Include="..\..\Compiler\script\cs_scanner.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

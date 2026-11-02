@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "gtest/gtest.h"
-#include "script2/cc_symboltable.h"
+#include "script/cc_symboltable.h"
 
 class SymbolTable : public ::testing::Test
 {
