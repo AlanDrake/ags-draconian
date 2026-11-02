@@ -113,7 +113,7 @@ build systems caused most of the breakage seen in 2.6 and 7.1h, which moves 3.2 
 | 7 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
 
 3.2c (native `.vcxproj` to CMake) waits for 6.7: the C++/CLI bridge links against those libraries.
-1.4 is done, so 3.3 can go ahead once 1.2's guards are in. The next big step after the safety net is
+The legacy compiler is gone (3.3); the rest of 3.3 (`AGS.CScript.Compiler`) waits for 6.7d. The next big step after the safety net is
 6.7d (the editor builds through the tools).
 
 ---
@@ -421,6 +421,26 @@ removal is a `[delete]` commit, verified by the full test suite and the corpus r
   autocomplete, `ScriptAnnotations`) into the editor, move `PreprocessorTests.cs` cases to C++
   tests, then delete the project.
   *Done when:* one compiler, one preprocessor (C++), one test folder, and no `AGS.CScript.Compiler`.
+  *Status (2026-11-03):* the legacy compiler is gone; `AGS.CScript.Compiler` waits for 6.7d.
+  - Checked first that nothing needs it: the CMake build compiled none of its sources, and linking
+    MSBuild's `agscc` and `AGS.Native` without its library left only the preprocessor and
+    `version.cpp` (compiled into its project, not part of it) and the five functions of the editor's
+    "AGS SCOM 3 EXT" wrapper. The preprocessor took one macro from its header.
+  - Removed: `Compiler/script` (the AGS 3 compiler), `fmem`, their tests, `Solutions/Compiler.Lib`,
+    `LEGACY_COMPILER` and CMake's `AGS_BUILD_LEGACY_COMPILER`, the editor's "AGS SCOM 3 EXT", and
+    the legacy test steps in CI. `Compiler/Makefile` still built `agscc` with the legacy compiler,
+    so the Makefile Build workflow's Linux binaries had it; it now builds `script2`.
+  - The editor gives a project that selects "AGS SCOM 3 EXT" (or no compiler) the available one
+    when it loads, with a warning; `ExtendedCompiler` stays, unused, because the project loader
+    rejects unknown elements.
+  - Renamed, move-only: `Compiler/script2` to `Compiler/script`, `Compiler/test2` into
+    `Compiler/test`, `Solutions/Compiler2.Lib` (and `Compiler2*.lib`) to `Compiler.Lib`. The
+    compiler's functions keep their `2` (`ccCompileText2`, `ccGetExtensions2`).
+  - Verified: CMake (compiler 594, tools 116, all tests), MSBuild `Compiler.Lib.sln` (594),
+    `Compiler.App.sln`, `AGS.Editor.Full.sln` with the editor's NUnit tests (391); the parity
+    harness on the auto-test (59 of 59, 2414 of 2414); a project selecting the removed compiler
+    loads with the warning, compiles and is saved with "AGS SCOM 4"; the Makefile's source list
+    links into a working `agscc` (MSVC objects, no GCC here).
 - [ ] **3.4 Legacy data-version paths** (D1: 3.99+ only). This is the largest single deletion in the
   plan. Work in this order, one commit per step:
   1. **Game files.** Set `kGameVersion_LowSupported = kGameVersion_399` in
@@ -450,7 +470,7 @@ removal is a `[delete]` commit, verified by the full test suite and the corpus r
   `-ffunction-sections -fdata-sections -Wl,--gc-sections,--print-gc-sections` and `-Wunused-function`,
   then delete in batches per directory.
   *Done when:* the candidate list contains only documented intentional exceptions.
-- [ ] **3.6 Comment debris.** Delete commented-out code (83 lines, mostly in `Compiler/test2`).
+- [ ] **3.6 Comment debris.** Delete commented-out code (83 lines, mostly in the compiler tests, `Compiler/test`).
   Triage the 735 `TODO` / 332 `FIXME` / 80 `CHECKME` markers: either resolve, reclassify as
   `FIXME` / `TODO` per STYLE.md, or delete if stale. Do this per directory alongside phase 4.
   *Done when:* no `CHECKME` / `HACK` remain in a cleaned directory, and every `FIXME` says what
@@ -655,7 +675,7 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     `BeginUpdateResource`/`UpdateResource` API through P/Invoke. It only matters for Windows builds of
     the game and can stay Windows-only.
   - [ ] **6.7c Define the C library (`ags_editor_native`).** About 20–30 `extern "C"` functions in a
-    new CMake target that links `Common` and `script2`, with opaque handles and caller-owned buffers.
+    new CMake target that links `Common` and the compiler (`Compiler/script`), with opaque handles and caller-owned buffers.
     Rough groups: open/save room (backgrounds, masks, properties as plain structs), sprite file
     open/read/write/replace/delete, get a sprite **as an RGBA buffer** (the UI scales, flips and
     composes it), render GUI and font text **into an RGBA buffer** (instead of today's
