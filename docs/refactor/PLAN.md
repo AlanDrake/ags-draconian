@@ -99,9 +99,10 @@ of the fork").
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **7.1j, the rest:** see that the Linux job is green after the push, then the Windows parity-harness job, then 1.7 | Keeps parity and the drift guard from regressing; needs the `gh` token you mentioned | Sonnet 5.5, `medium` |
-| 2 | **7.1h:** machine-readable diagnostics and clean cancel for `agsbuild` | The editor (6.7d) needs them to list tool errors | Sonnet 5.5, `high` |
-| 3 | **7.1i:** split `BuildWithTaskManager` into one function per stage | Easier to change while 7.1h touches it | Sonnet 5.5, `medium` |
+| 1 | **7.1j, the rest:** a Windows job that runs the parity harness (CI-built editor against `agsbuild`) | Keeps parity from regressing on every PR until 6.7d; the Linux `agsbuild` job is already green | Sonnet 5.5, `medium` |
+| 2 | **1.7:** hand the game that the Linux job builds to the platform jobs, in place of the downloaded release | Keeps the test game in step with the compiler; wait until the Linux job has stayed green for a few runs | Sonnet 5.5, `medium` |
+| 3 | **7.1h:** machine-readable diagnostics and clean cancel for `agsbuild` | The editor (6.7d) needs them to list tool errors | Sonnet 5.5, `high` |
+| 4 | **7.1i:** split `BuildWithTaskManager` into one function per stage | Easier to change while 7.1h touches it | Sonnet 5.5, `medium` |
 
 Other tracks that can run in between: 2.6 (self-contained headers, Sonnet 5.5 `medium`) and 1.3 (engine
 unit tests, Opus 5.5 `xhigh`).
@@ -135,9 +136,10 @@ unit tests, Opus 5.5 `xhigh`).
   Android compiles the same GLES code path; CI run 41291607424 (`8771bfdcb`) confirms it: all build
   and test jobs pass on every platform.
   Left over, not part of this task (need the job logs, so a GitHub token):
-  - **Windows Packaging** (`Run Inno Setup`) fails. It never ran before, because it was skipped while
-    earlier jobs failed. Versions (`version.json`, editor, engine), the redist checksum and the artifact
-    paths check out; the real error is only in the log.
+  - **Windows Packaging** (`Run Inno Setup`) failed. *Fixed (2026-11-02):* `ags.iss` installs
+    `ikpFlac.dll`, which the editor never copied to its output: `AGSEditor.csproj` copied it only for
+    `Platform` x86, but the editor builds as AnyCPU (upstream has the same condition). It was the only
+    file of `ags.iss` missing from the `windows-editor-binaries` artifact.
   - **CodeQL default setup** (repo settings, not a workflow file) fails to autobuild C/C++. Set C/C++
     to build mode "none" in Settings > Code security, or disable it.
   Also done: the `Debug_XP`/`Release_XP` configurations and `WIN_XP_COMPAT` (which disabled D3D11 and
@@ -888,7 +890,7 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
   - [ ] **7.1j CI.** A Linux job builds the auto-test project with `agsbuild` from the tools of the same
     run and hands it to the platform jobs (this is 1.7). A Windows job runs the parity harness against
     the editor on every PR until 6.7d deletes the C# build code.
-    *Status (2026-11-02):* the Linux half is written, not yet seen green in CI. `agsbuild` takes
+    *Status (2026-11-02):* the Linux half is done and green in CI (run 41432710133). `agsbuild` takes
     `--strict` (passed on to `agf2dta`). `Script/agsbuild_autotest.sh <build-dir> <project> <work-dir>`
     collects the tools from a CMake build, builds the project in strict mode, and runs the engine on the
     result (checked with `tappy`); locally it gives 2414 of 2414. The `Ubuntu-x86_64` job in `build.yml`
@@ -896,9 +898,19 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     the Windows job with the parity harness (needs the editor build in the same workflow, and the
     Windows Dependencies job's artifacts), and handing the built game to the platform jobs in place of
     the downloaded one (1.7), once this job has been green for a while.
-    CI on this branch today: only `Windows Packaging` (Inno Setup) fails. The failures on
-    `ags4-fullranges` are Docker image names that must be lowercase (fixed on this branch) and the
-    auto-test calling `Character.Transparency`, which that branch no longer has.
+    Getting CI green on the way (2026-11-02):
+    - `Engine/util/library_posix.h` still used `Path` unqualified after the using-directives left the
+      headers; it broke every POSIX build (Linux, macOS, Android).
+    - The MSBuild `Tools.Test` project did not compile `scriptgen.cpp`, which the 7.1g tests use.
+    - Android: Gradle configures CMake eight times (four ABIs, two configs), and each configure
+      downloaded the five dependencies from github.com; a few minutes of DNS failure on the runner
+      failed the job. `Script/fetch_deps.sh` now downloads them once, with retries, into a cached
+      directory, and the `Fetch*.cmake` scripts take them from `AGS_FETCH_MIRROR_DIR` (hashes still
+      checked). `CMAKE_WARN_DEPRECATED=OFF` for Android hides the ~2200 warnings that NDK r25's
+      toolchain file causes under CMake 3.31; the other platforms still show deprecation warnings.
+    - Windows Packaging: see 1.1 (`ikpFlac.dll`).
+    The failures on `ags4-fullranges` are Docker image names that must be lowercase (fixed on this
+    branch) and the auto-test calling `Character.Transparency`, which that branch no longer has.
   - **Thin format tools:** `agscc`, `crmpak`, `spritepak`, `agspak` and `trac` stay as they are, and
     get tests for their command-line options (`Tools/test` exists).
 
