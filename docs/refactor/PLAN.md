@@ -99,8 +99,9 @@ of the fork").
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **7.1f, first half:** `game28.dta`, `acsetup.cfg` and the fonts. The editor puts the compiled game scripts inside `game28.dta`; `agsbuild` packs them as `.o` files with `ScriptModules.lst`, and packs no fonts. | Rooms, sprites and audio already match (12 of 17 files); what's left needs investigation first, starting with the script layout | Opus 5.5, `high` |
-| 2 | **7.1f, second half:** move `agfreader` onto the 7.1d tables one entity at a time | Each move must keep `game28.dta` byte-identical, which the harness checks mechanically | Sonnet 5.5, `medium` |
+| 1 | **7.1d, the rest:** move `agfreader` onto the tables one entity at a time, and let its readers return errors so the tables can fail on unknown elements (view frames use `UnknownElements::Skip` until then) | Parity is reached (17 of 17), so every move is checked mechanically: the harness must stay at 17 of 17 | Sonnet 5.5, `medium` |
+| 2 | **7.1g:** drift guard, on top of the error-returning tables | Without it, a new project property silently goes missing from builds | Sonnet 5.5, `high` |
+| 3 | **7.1j:** CI jobs for `agsbuild` (Linux) and the parity harness (Windows) | Keeps parity from regressing; needs the `gh` token you mentioned | Sonnet 5.5, `medium` |
 
 Other tracks that can run in between: 2.6 (self-contained headers, Sonnet 5.5 `medium`) and 1.3 (engine
 unit tests, Opus 5.5 `xhigh`).
@@ -787,13 +788,55 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     - Possible `game28.dta` gaps for 7.1f: `agf2dta` indexes interaction events by the XML `Index`
       instead of the cursor schema, doesn't unescape or re-encode text properties, and writes
       `"4.00.00.34 "` (trailing space) as "compiled with", where the editor writes `"4.00.00.34"`.
-  - [ ] **7.1f Content parity.** Work through the 7.1a table until every file matches: game data
+      (7.1f fixed the last two.)
+  - [x] **7.1f Content parity.** Work through the 7.1a table until every file matches: game data
     (`agf2dta`, including fork features such as Opacity 0–255), dialog scripts (`agf2dlgasc` against
     `DialogScriptConverter.cs`), script headers (`scriptgen`), sprites (`spriteimport`), the audio
     cache, translations (`trac`), custom data and fonts. If a difference is harmless (ordering, for
     example), make both sides agree anyway, so parity stays a plain byte comparison.
     *Done when:* every file is identical and the auto-test passes on `agsbuild` output (2414 of 2414,
     as with the editor).
+    *Status (2026-11-02):* done for the auto-test project. All 17 files `agsbuild` produces are
+    byte-identical to the editor's, and the auto-test passes on them (2414 of 2414). What it took:
+    - **Layout:** `agf2dta --script-dir` embeds the compiled scripts in `game28.dta`, as the editor
+      does (global, dialog, then the modules in compile order). `agsbuild` now runs it after every
+      compile and no longer packs `.o` files or `ScriptModules.lst`. Every game script is compiled
+      against all module headers: the editor's compile tasks share one header list, which keeps
+      growing. Fonts come from the `Fonts` folder (`<FontFiles>` in `Game.agf`), packed without the
+      folder.
+    - **AGS 4 project format** that `agfreader` didn't know:
+      - dialogs live in `Dialogs/<name>.xml` and `.dasc` (`AGFReader::GetDialogData`,
+        `ReadDialogScript`);
+      - characters and items use `DisplayName`, and their own `ScriptModule` (default
+        `GlobalScript.asc`) sets the interactions' module;
+      - frames have `Flip` (four values), offsets and event names (now read through a 7.1d table);
+      - items have a hotspot alignment;
+      - cursors have `CreateEvent` and `StandardRole`;
+      - colours are 32-bit hex. `StringToInt`'s `strtol` saturated them to `0x7FFFFFFF` on Windows;
+        `ParseXmlValue` now reads them as the editor's `Convert.ToInt32(s, 16)`.
+    - **The nine AGS 4 extension blocks** were missing from `data_file_writer`: `ext_ags399` and
+      `v400_gameopts`, `customprops`, `fontfiles`, `guictrlgfx`, `eventtables`, `viewevents`,
+      `charopts2` and `charinv`. All are ported from `DataFileWriter.cs`. The event tables follow the
+      editor's reflection order. The GUI controls' legacy event tables are now empty, as the editor
+      writes them.
+    - **Values written differently:**
+      - inventory item 0 was added twice (the editor's list already has it);
+      - views are by ID with empty slots;
+      - the palette is 8-bit, not 6-bit;
+      - text properties are unescaped;
+      - the deprecated score sound and maximum score fields are 0;
+      - the dot colour is written only with a marker style;
+      - "compiled with" lost its trailing space;
+      - `dev_error_text` was missing from the game info.
+    - **Dialog scripts:** the converter dropped every dialog's last line.
+    - **`acsetup.cfg`:** written with `IniUtil::Merge` into a fresh file, as the editor does. The
+      `show_fps` condition was inverted.
+    - **Harness:** `compare_builds.py` now clears its unpack folders, which had shown files left by
+      earlier runs.
+    Left open: one test project measures parity. Translations (`trac`), 8-bit games and old-format
+    indexed interactions aren't exercised by it, and `agf2dta` still takes interaction slots from the
+    XML `Index` instead of the cursor schema (the same here). Another sample project would widen
+    the check.
   - [ ] **7.1g Drift guard.** Two halves:
     - **Unknown elements:** with the tables from 7.1d, `ReadFields` reports XML elements it doesn't
       recognise: a warning in normal use, an error in tests. A test loads a project saved by the
@@ -859,7 +902,7 @@ values.
 | Engine C++ test files | 3 | ≥ 15 (P1) | | | |
 | C# catch-all handlers | 122 | | | | (P6) < 20 |
 | C++/CLI lines (`Editor/AGS.Native`) | ~6,800 | | | | (P6) 0 |
-| Build parity: files identical, `agsbuild` vs editor (7.1a) | 12 of 17 (rooms, sprites, audio, custom data identical; `game28.dta`, `acsetup.cfg` and fonts left, 7.1f) | | | | (7.1) all |
+| Build parity: files identical, `agsbuild` vs editor (7.1a) | 17 of 17; auto-test 2414 of 2414 on `agsbuild` output (7.1f) | | | | (7.1) all |
 
 ## Definition of done for any refactor PR
 
