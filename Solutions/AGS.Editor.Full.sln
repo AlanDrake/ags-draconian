@@ -24,7 +24,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common.Lib", "Common.Lib\Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGS.Editor.Tests", "..\Editor\AGS.Editor.Tests\AGS.Editor.Tests.csproj", "{6D85D3E7-5D23-405F-BEF4-6F09A93ABCCC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Compiler2.Lib", "Compiler2.Lib\Compiler2.Lib.vcxproj", "{66F3C65A-214F-4486-9583-8C91DC57745A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Compiler.Lib", "Compiler.Lib\Compiler.Lib.vcxproj", "{66F3C65A-214F-4486-9583-8C91DC57745A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

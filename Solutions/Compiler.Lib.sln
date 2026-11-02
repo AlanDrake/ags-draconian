@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.37314.3 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F83CC172-93A0-4CCD-8487-B3D287CE6A36}") = "Compiler2.Lib", "Compiler2.Lib\Compiler2.Lib.vcxproj", "{66F3C65A-214F-4486-9583-8C91DC57745A}"
+Project("{F83CC172-93A0-4CCD-8487-B3D287CE6A36}") = "Compiler.Lib", "Compiler.Lib\Compiler.Lib.vcxproj", "{66F3C65A-214F-4486-9583-8C91DC57745A}"
 EndProject
-Project("{F83CC172-93A0-4CCD-8487-B3D287CE6A36}") = "Compiler2.Lib.Test", "Compiler2.Lib\Compiler2.Lib.Test.vcxproj", "{94678FF5-1F20-4419-B1D3-937AD64BEAE9}"
+Project("{F83CC172-93A0-4CCD-8487-B3D287CE6A36}") = "Compiler.Lib.Test", "Compiler.Lib\Compiler.Lib.Test.vcxproj", "{94678FF5-1F20-4419-B1D3-937AD64BEAE9}"
 	ProjectSection(ProjectDependencies) = postProject
 		{66F3C65A-214F-4486-9583-8C91DC57745A} = {66F3C65A-214F-4486-9583-8C91DC57745A}
 	EndProjectSection
