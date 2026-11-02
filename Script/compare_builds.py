@@ -78,6 +78,13 @@ def copy_project(src, dst):
     if os.path.isdir(dst):
         shutil.rmtree(dst)
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns('Compiled', '_Debug', '*.lock', '.git'))
+    # The editor packs a compiled room that is newer than its sources as it is; both builds must
+    # compile AGS 4 rooms (Rooms/<n>/) from their sources, so the copy has none
+    rooms_dir = os.path.join(dst, 'Rooms')
+    for n in os.listdir(rooms_dir) if os.path.isdir(rooms_dir) else []:
+        crm = os.path.join(dst, f'room{n}.crm')
+        if os.path.isfile(os.path.join(rooms_dir, n, 'data.xml')) and os.path.isfile(crm):
+            os.remove(crm)
 
 
 def hash_file(path):
