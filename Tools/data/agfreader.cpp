@@ -831,99 +831,106 @@ void CustomPropertySchemaItem::ReadAllData(DocElem elem, DataUtil::CustomPropert
     data.Translated = ReadBool(elem, "Translated");
 }
 
+static const XmlField<DataUtil::GameSettings> kGameSettingsFields[] = {
+    {"AllowRelativeAssetResolutions", Read<&DataUtil::GameSettings::AllowRelativeAssetResolutions>},
+    {"AlwaysDisplayTextAsSpeech", Read<&DataUtil::GameSettings::AlwaysDisplayTextAsSpeech>},
+    {"AndroidAppVersionCode", Read<&DataUtil::GameSettings::AndroidAppVersionCode>},
+    {"AndroidAppVersionName", Read<&DataUtil::GameSettings::AndroidAppVersionName>},
+    {"AndroidApplicationId", Read<&DataUtil::GameSettings::AndroidApplicationId>},
+    {"AndroidBuildFormat", ReadConverted<&DataUtil::GameSettings::AndroidBuildFormat, ReadAndroidBuildFormat>},
+    {"AntiAliasFonts", Read<&DataUtil::GameSettings::AntiAliasFonts>},
+    {"AntiGlideMode", Read<&DataUtil::GameSettings::AntiGlideMode>},
+    {"AttachDataToExe", Read<&DataUtil::GameSettings::AttachDataToExe>},
+    {"AudioIndexer", Read<&DataUtil::GameSettings::AudioIndexer>},
+    {"AutoMoveInWalkMode", Read<&DataUtil::GameSettings::AutoMoveInWalkMode>},
+    {"BackwardsText", Read<&DataUtil::GameSettings::BackwardsText>},
+    {"BuildTargets", Read<&DataUtil::GameSettings::BuildTargets>},
+    {"ClipGUIControls", Read<&DataUtil::GameSettings::ClipGUIControls>},
+    {"ColorDepth", ReadConverted<&DataUtil::GameSettings::ColorDepth, ReadGameColorDepth>},
+    {"CompressSpritesType", ReadConverted<&DataUtil::GameSettings::CompressSpritesType, ReadSpriteCompression>},
+    {"CustomDataDir", Read<&DataUtil::GameSettings::CustomDataDir>},
+    {"CustomResolution", Read<&DataUtil::GameSettings::CustomResolution>},
+    {"DebugMode", Read<&DataUtil::GameSettings::DebugMode>},
+    {"DefaultRoomMaskResolution", Read<&DataUtil::GameSettings::DefaultRoomMaskResolution>},
+    {"Description", Read<&DataUtil::GameSettings::Description>},
+    {"DeveloperErrorText", Read<&DataUtil::GameSettings::DeveloperErrorText>},
+    {"DeveloperName", Read<&DataUtil::GameSettings::DeveloperName>},
+    {"DeveloperURL", Read<&DataUtil::GameSettings::DeveloperURL>},
+    {"DialogOptionsBackwards", Read<&DataUtil::GameSettings::DialogOptionsBackwards>},
+    {"DialogOptionsBullet", Read<&DataUtil::GameSettings::DialogOptionsBullet>},
+    {"DialogOptionsGUI", Read<&DataUtil::GameSettings::DialogOptionsGUI>},
+    {"DialogOptionsGap", Read<&DataUtil::GameSettings::DialogOptionsGap>},
+    {"DialogScriptNarrateFunction", Read<&DataUtil::GameSettings::DialogScriptNarrateFunction>},
+    {"DialogScriptSayFunction", Read<&DataUtil::GameSettings::DialogScriptSayFunction>},
+    {"DisplayMultipleInventory", Read<&DataUtil::GameSettings::DisplayMultipleInventory>},
+    {"DisplaySingleDialogOption", Read<&DataUtil::GameSettings::DisplaySingleDialogOption>},
+    {"EnforceNewAudio", Read<&DataUtil::GameSettings::EnforceNewAudio>},
+    {"EnforceNewStrings", Read<&DataUtil::GameSettings::EnforceNewStrings>},
+    {"EnforceObjectBasedScript", Read<&DataUtil::GameSettings::EnforceObjectBasedScript>},
+    {"FaceDirectionRatio", Read<&DataUtil::GameSettings::FaceDirectionRatio>},
+    {"GUIDAsString", Read<&DataUtil::GameSettings::GUIDAsString>},
+    {"GUIHandleOnlyLeftMouseButton", Read<&DataUtil::GameSettings::GUIHandleOnlyLeftMouseButton>},
+    {"GameFPS", Read<&DataUtil::GameSettings::GameFPS>},
+    {"GameFileName", Read<&DataUtil::GameSettings::GameFileName>},
+    {"GameName", Read<&DataUtil::GameSettings::GameName>},
+    {"GameTextEncoding", Read<&DataUtil::GameSettings::GameTextEncoding>},
+    {"GameTextLanguage", Read<&DataUtil::GameSettings::GameTextLanguage>},
+    {"Genre", Read<&DataUtil::GameSettings::Genre>},
+    {"GlobalSpeechAnimationDelay", Read<&DataUtil::GameSettings::GlobalSpeechAnimationDelay>},
+    {"HandleInvClicksInScript", Read<&DataUtil::GameSettings::HandleInvClicksInScript>},
+    {"InventoryCursors", Read<&DataUtil::GameSettings::InventoryCursors>},
+    {"InventoryHotspotMarkerCrosshairColor", Read<&DataUtil::GameSettings::InventoryHotspotMarkerCrosshairColor>},
+    {"InventoryHotspotMarkerDotColor", Read<&DataUtil::GameSettings::InventoryHotspotMarkerDotColor>},
+    {"InventoryHotspotMarkerSprite", Read<&DataUtil::GameSettings::InventoryHotspotMarkerSprite>},
+    {"InventoryHotspotMarkerStyle",
+     ReadConverted<&DataUtil::GameSettings::InventoryHotspotMarkerStyle, ReadInventoryHotspotMarkerStyle>},
+    {"LeftToRightPrecedence", Read<&DataUtil::GameSettings::LeftToRightPrecedence>},
+    {"LetterboxMode", Read<&DataUtil::GameSettings::LetterboxMode>},
+    {"MaximumScore", Read<&DataUtil::GameSettings::MaximumScore>},
+    {"MouseWheelEnabled", Read<&DataUtil::GameSettings::MouseWheelEnabled>},
+    {"NumberDialogOptions", ReadConverted<&DataUtil::GameSettings::NumberDialogOptions, ReadDialogOptionsNumbering>},
+    {"OptimizeSpriteStorage", Read<&DataUtil::GameSettings::OptimizeSpriteStorage>},
+    {"PixelPerfect", Read<&DataUtil::GameSettings::PixelPerfect>},
+    {"PlaySoundOnScore", Read<&DataUtil::GameSettings::PlaySoundOnScore>},
+    {"ReleaseDate", Read<&DataUtil::GameSettings::ReleaseDate>},
+    {"RenderAtScreenResolution",
+     ReadConverted<&DataUtil::GameSettings::RenderAtScreenResolution, ReadRenderAtScreenResolution>},
+    {"RoomTransition", ReadConverted<&DataUtil::GameSettings::RoomTransition, ReadRoomTransition>},
+    {"RunGameLoopsWhileDialogOptionsDisplayed", Read<&DataUtil::GameSettings::RunGameLoopsWhileDialogOptionsDisplayed>},
+    {"SaveGameFileExtension", Read<&DataUtil::GameSettings::SaveGameFileExtension>},
+    {"SaveGameFolderName", Read<&DataUtil::GameSettings::SaveGameFolderName>},
+    {"SaveScreenshots", Read<&DataUtil::GameSettings::SaveScreenshots>},
+    {"ScaleCharacterSpriteOffsets", Read<&DataUtil::GameSettings::ScaleCharacterSpriteOffsets>},
+    {"ScaleMovementSpeedWithMaskResolution", Read<&DataUtil::GameSettings::ScaleMovementSpeedWithMaskResolution>},
+    {"ScriptAPIVersion", Read<&DataUtil::GameSettings::ScriptAPIVersion>},
+    {"ScriptCompatLevel", Read<&DataUtil::GameSettings::ScriptCompatLevel>},
+    {"SkipSpeech", ReadConverted<&DataUtil::GameSettings::SkipSpeech, ReadSkipSpeech>},
+    {"SpeechPortraitSide", ReadConverted<&DataUtil::GameSettings::SpeechPortraitSide, ReadSpeechPortraitSide>},
+    {"SpeechStyle", ReadConverted<&DataUtil::GameSettings::SpeechStyle, ReadSpeechStyle>},
+    {"SplitResources", Read<&DataUtil::GameSettings::SplitResources>},
+    {"TTFHeightDefinedBy", ReadConverted<&DataUtil::GameSettings::TTFHeightDefinedBy, ReadFontHeightDefinition>},
+    {"TTFMetricsFixup", ReadConverted<&DataUtil::GameSettings::TTFMetricsFixup, ReadFontMetricsFixup>},
+    {"TextBoxKeyClaimStyle", ReadConverted<&DataUtil::GameSettings::TextBoxKeyClaimStyle, ReadTextBoxKeyClaimStyle>},
+    {"TextWindowGUI", Read<&DataUtil::GameSettings::TextWindowGUI>},
+    {"ThoughtGUI", Read<&DataUtil::GameSettings::ThoughtGUI>},
+    {"TurnBeforeFacing", Read<&DataUtil::GameSettings::TurnBeforeFacing>},
+    {"TurnBeforeWalking", Read<&DataUtil::GameSettings::TurnBeforeWalking>},
+    {"TurnOrderPriority", ReadConverted<&DataUtil::GameSettings::TurnOrderPriority, ReadTurnOrderPriority>},
+    {"UniqueID", Read<&DataUtil::GameSettings::UniqueID>},
+    {"UseGlobalSpeechAnimationDelay", Read<&DataUtil::GameSettings::UseGlobalSpeechAnimationDelay>},
+    {"UseLowResCoordinatesInScript", Read<&DataUtil::GameSettings::UseLowResCoordinatesInScript>},
+    {"UseOldCustomDialogOptionsAPI", Read<&DataUtil::GameSettings::UseOldCustomDialogOptionsAPI>},
+    {"UseOldKeyboardHandling", Read<&DataUtil::GameSettings::UseOldKeyboardHandling>},
+    {"UseOldVoiceClipNaming", Read<&DataUtil::GameSettings::UseOldVoiceClipNaming>},
+    {"Version", Read<&DataUtil::GameSettings::Version>},
+    {"WalkInLookMode", Read<&DataUtil::GameSettings::WalkInLookMode>},
+    {"WhenInterfaceDisabled", ReadConverted<&DataUtil::GameSettings::WhenInterfaceDisabled, ReadGuiDisableStyle>},
+};
+
 void GameSettings::ReadAllData(DocElem elem, DataUtil::GameSettings &s)
 {
-    s.AllowRelativeAssetResolutions = ReadBool(elem, "AllowRelativeAssetResolutions");
-    s.AlwaysDisplayTextAsSpeech = ReadBool(elem, "AlwaysDisplayTextAsSpeech");
-    s.AndroidAppVersionCode = ReadInt(elem, "AndroidAppVersionCode");
-    s.AndroidAppVersionName = ReadString(elem, "AndroidAppVersionName");
-    s.AndroidApplicationId = ReadString(elem, "AndroidApplicationId");
-    s.AndroidBuildFormat = ReadAndroidBuildFormat(ReadString(elem, "AndroidBuildFormat"));
-    s.AntiAliasFonts = ReadBool(elem, "AntiAliasFonts");
-    s.AntiGlideMode = ReadBool(elem, "AntiGlideMode");
-    s.AttachDataToExe = ReadBool(elem, "AttachDataToExe");
-    s.AudioIndexer = ReadInt(elem, "AudioIndexer");
-    s.AutoMoveInWalkMode = ReadBool(elem, "AutoMoveInWalkMode");
-    s.BackwardsText = ReadBool(elem, "BackwardsText");
-    s.BuildTargets = ReadString(elem, "BuildTargets");
-    s.ClipGUIControls = ReadBool(elem, "ClipGUIControls");
-    s.ColorDepth = ReadGameColorDepth(ReadString(elem, "ColorDepth"));
-    s.CompressSpritesType = ReadSpriteCompression(ReadString(elem, "CompressSpritesType"));
-    s.CustomDataDir = ReadString(elem, "CustomDataDir");
-    s.CustomResolution = ReadString(elem, "CustomResolution");
-    s.DebugMode = ReadBool(elem, "DebugMode");
-    s.DefaultRoomMaskResolution = ReadInt(elem, "DefaultRoomMaskResolution");
-    s.Description = ReadString(elem, "Description");
-    s.DeveloperErrorText = ReadString(elem, "DeveloperErrorText");
-    ParseXmlValue(ReadString(elem, "FaceDirectionRatio", "0"), s.FaceDirectionRatio);
-    s.DeveloperName = ReadString(elem, "DeveloperName");
-    s.DeveloperURL = ReadString(elem, "DeveloperURL");
-    s.DialogOptionsBackwards = ReadBool(elem, "DialogOptionsBackwards");
-    s.DialogOptionsBullet = ReadInt(elem, "DialogOptionsBullet");
-    s.DialogOptionsGUI = ReadInt(elem, "DialogOptionsGUI");
-    s.DialogOptionsGap = ReadInt(elem, "DialogOptionsGap");
-    s.DialogScriptNarrateFunction = ReadString(elem, "DialogScriptNarrateFunction");
-    s.DialogScriptSayFunction = ReadString(elem, "DialogScriptSayFunction");
-    s.DisplayMultipleInventory = ReadBool(elem, "DisplayMultipleInventory");
-    s.DisplaySingleDialogOption = ReadBool(elem, "DisplaySingleDialogOption");
-    s.EnforceNewAudio = ReadBool(elem, "EnforceNewAudio");
-    s.EnforceNewStrings = ReadBool(elem, "EnforceNewStrings");
-    s.EnforceObjectBasedScript = ReadBool(elem, "EnforceObjectBasedScript");
-    s.GUIHandleOnlyLeftMouseButton = ReadBool(elem, "GUIHandleOnlyLeftMouseButton");
-    s.GUIDAsString = ReadString(elem, "GUIDAsString");
-    s.GameFileName = ReadString(elem, "GameFileName");
-    s.GameName = ReadString(elem, "GameName");
-    s.GameFPS = ReadInt(elem, "GameFPS", 40);
-    s.GameTextEncoding = ReadString(elem, "GameTextEncoding");
-    s.GameTextLanguage = ReadString(elem, "GameTextLanguage");
-    s.Genre = ReadString(elem, "Genre");
-    s.GlobalSpeechAnimationDelay = ReadInt(elem, "GlobalSpeechAnimationDelay");
-    s.HandleInvClicksInScript = ReadBool(elem, "HandleInvClicksInScript");
-    s.InventoryCursors = ReadBool(elem, "InventoryCursors");
-    s.InventoryHotspotMarkerCrosshairColor = ReadInt(elem, "InventoryHotspotMarkerCrosshairColor");
-    s.InventoryHotspotMarkerDotColor = ReadInt(elem, "InventoryHotspotMarkerDotColor");
-    s.InventoryHotspotMarkerSprite = ReadInt(elem, "InventoryHotspotMarkerSprite");
-    s.InventoryHotspotMarkerStyle = ReadInventoryHotspotMarkerStyle(ReadString(elem, "InventoryHotspotMarkerStyle"));
-    s.LeftToRightPrecedence = ReadBool(elem, "LeftToRightPrecedence");
-    s.LetterboxMode = ReadBool(elem, "LetterboxMode");
-    s.MaximumScore = ReadInt(elem, "MaximumScore");
-    s.MouseWheelEnabled = ReadBool(elem, "MouseWheelEnabled");
-    s.NumberDialogOptions = ReadDialogOptionsNumbering(ReadString(elem, "NumberDialogOptions"));
-    s.OptimizeSpriteStorage = ReadBool(elem, "OptimizeSpriteStorage");
-    s.PixelPerfect = ReadBool(elem, "PixelPerfect");
-    s.PlaySoundOnScore = ReadInt(elem, "PlaySoundOnScore");
-    s.ReleaseDate = ReadString(elem, "ReleaseDate");
-    s.RenderAtScreenResolution = ReadRenderAtScreenResolution(ReadString(elem, "RenderAtScreenResolution"));
-    s.RoomTransition = ReadRoomTransition(ReadString(elem, "RoomTransition"));
-    s.RunGameLoopsWhileDialogOptionsDisplayed = ReadBool(elem, "RunGameLoopsWhileDialogOptionsDisplayed");
-    s.SaveGameFileExtension = ReadString(elem, "SaveGameFileExtension");
-    s.SaveGameFolderName = ReadString(elem, "SaveGameFolderName");
-    s.SaveScreenshots = ReadBool(elem, "SaveScreenshots");
-    s.ScaleCharacterSpriteOffsets = ReadBool(elem, "ScaleCharacterSpriteOffsets");
-    s.ScaleMovementSpeedWithMaskResolution = ReadBool(elem, "ScaleMovementSpeedWithMaskResolution");
-    s.ScriptAPIVersion = ReadString(elem, "ScriptAPIVersion");
-    s.ScriptCompatLevel = ReadString(elem, "ScriptCompatLevel");
-    s.SkipSpeech = ReadSkipSpeech(ReadString(elem, "SkipSpeech"));
-    s.SpeechPortraitSide = ReadSpeechPortraitSide(ReadString(elem, "SpeechPortraitSide"));
-    s.SpeechStyle = ReadSpeechStyle(ReadString(elem, "SpeechStyle"));
-    s.SplitResources = ReadString(elem, "SplitResources");
-    s.TTFHeightDefinedBy = ReadFontHeightDefinition(ReadString(elem, "TTFHeightDefinedBy"));
-    s.TTFMetricsFixup = ReadFontMetricsFixup(ReadString(elem, "TTFMetricsFixup"));
-    s.TextWindowGUI = ReadInt(elem, "TextWindowGUI");
-    s.ThoughtGUI = ReadInt(elem, "ThoughtGUI");
-    s.TurnBeforeFacing = ReadBool(elem, "TurnBeforeFacing");
-    s.TurnBeforeWalking = ReadBool(elem, "TurnBeforeWalking");
-    s.UniqueID = ReadInt(elem, "UniqueID");
-    s.UseGlobalSpeechAnimationDelay = ReadBool(elem, "UseGlobalSpeechAnimationDelay");
-    s.UseLowResCoordinatesInScript = ReadBool(elem, "UseLowResCoordinatesInScript");
-    s.UseOldCustomDialogOptionsAPI = ReadBool(elem, "UseOldCustomDialogOptionsAPI");
-    s.UseOldKeyboardHandling = ReadBool(elem, "UseOldKeyboardHandling");
-    s.UseOldVoiceClipNaming = ReadBool(elem, "UseOldVoiceClipNaming");
-    s.TurnOrderPriority = ReadTurnOrderPriority(ReadString(elem, "TurnOrderPriority"));
-    s.TextBoxKeyClaimStyle = ReadTextBoxKeyClaimStyle(ReadString(elem, "TextBoxKeyClaimStyle"));
-    s.Version = ReadString(elem, "Version");
-    s.WalkInLookMode = ReadBool(elem, "WalkInLookMode");
-    s.WhenInterfaceDisabled = ReadGuiDisableStyle(ReadString(elem, "WhenInterfaceDisabled"));
+    // TODO: fail on unknown elements once the readers return errors (7.1g)
+    ReadFields(elem, s, kGameSettingsFields, UnknownElements::Skip);
 }
 
 void GlobalVariables::GetAll(DocElem root, std::vector<DocElem> &elems)
