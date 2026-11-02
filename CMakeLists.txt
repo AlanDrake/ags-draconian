@@ -78,6 +78,21 @@ endif ()
 include(FetchContent)
 set(FETCHCONTENT_UPDATES_DISCONNECTED on)
 
+# A directory with the dependency archives already downloaded (named as at the end of their URLs).
+# With it, the Fetch*.cmake scripts take the archives from there instead of the network; their hashes
+# are still checked. CI uses it for builds that configure many times (Android: four ABIs, two configs).
+set(AGS_FETCH_MIRROR_DIR "$ENV{AGS_FETCH_MIRROR_DIR}" CACHE PATH "Directory with pre-downloaded dependency archives")
+
+# Sets var to the archive in AGS_FETCH_MIRROR_DIR if it is there, otherwise to the url
+function(ags_fetch_url var url)
+    get_filename_component(archive "${url}" NAME)
+    if(AGS_FETCH_MIRROR_DIR AND EXISTS "${AGS_FETCH_MIRROR_DIR}/${archive}")
+        set(${var} "${AGS_FETCH_MIRROR_DIR}/${archive}" PARENT_SCOPE)
+    else()
+        set(${var} "${url}" PARENT_SCOPE)
+    endif()
+endfunction()
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     # WIN32 is set by CMake for any Windows platform
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

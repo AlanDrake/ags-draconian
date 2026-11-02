@@ -1,7 +1,8 @@
+ags_fetch_url(SDL2_URL https://github.com/libsdl-org/SDL/archive/refs/tags/release-2.30.11.tar.gz)
 FetchContent_Declare(
     sdl2_content
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-    URL https://github.com/libsdl-org/SDL/archive/refs/tags/release-2.30.11.tar.gz
+    URL ${SDL2_URL}
     URL_HASH SHA1=db4ae1d7a477854d44a468f19661794b59721267
 )
 

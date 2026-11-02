@@ -226,6 +226,19 @@ jobs:
             ~/.gradle/wrapper
           key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
+      # Gradle configures CMake eight times (four ABIs, debug and release), and each configure would
+      # download every dependency: download them once, with retries, and keep them in the cache
+      - name: Cache CMake dependency archives
+        uses: actions/cache@v5
+        with:
+          path: ${{ runner.temp }}/ags-deps
+          key: ags-deps-${{ hashFiles('CMake/Fetch*.cmake') }}
+
+      - name: Download CMake dependency archives
+        run: |
+          Script/fetch_deps.sh "$RUNNER_TEMP/ags-deps"
+          echo "AGS_FETCH_MIRROR_DIR=$RUNNER_TEMP/ags-deps" >> "$GITHUB_ENV"
+
       - name: Prepare Android build
         run: cd Android && ./and-build.sh prepare
 

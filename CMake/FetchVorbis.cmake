@@ -1,8 +1,9 @@
+ags_fetch_url(VORBIS_URL https://github.com/xiph/vorbis/releases/download/v1.3.7/libvorbis-1.3.7.tar.xz)
 FetchContent_GetProperties(vorbis_content)
 if(NOT vorbis_content_POPULATED)
   FetchContent_Populate(vorbis_content
           DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-          URL https://github.com/xiph/vorbis/releases/download/v1.3.7/libvorbis-1.3.7.tar.xz
+          URL ${VORBIS_URL}
           URL_HASH MD5=50902641d358135f06a8392e61c9ac77
   )
   file(COPY Engine/libsrc/vorbis/CMakeLists.txt DESTINATION ${vorbis_content_SOURCE_DIR})
