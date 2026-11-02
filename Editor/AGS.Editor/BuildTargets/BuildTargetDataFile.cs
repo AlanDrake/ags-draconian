@@ -154,7 +154,9 @@ namespace AGS.Editor
 
             if ((rebuildVox) && (fileListForVox.Count > 0))
             {
-                DataFileWriter.MakeFlatDataFile(fileListForVox.ToArray(), 0, audioVox);
+                // the library records its own file name, without the path it is written to
+                DataFileWriter.MakeFlatDataFile(fileListForVox.ToArray(), 0, Path.GetFileName(audioVox),
+                    Path.GetDirectoryName(audioVox));
             }
         }
 

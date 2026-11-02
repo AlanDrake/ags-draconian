@@ -480,7 +480,8 @@ namespace AGS.Editor.Components
                 //      Speech/French/cEgo1.ogg => French/cEgo1.ogg;
                 var assets = filesOnDisk.Select(
                     f => new Tuple<string, string>(f.Substring(SPEECH_DIRECTORY.Length + 1), f)).ToArray();
-                DataFileWriter.MakeDataFile(assets, 0, voxFileName);
+                // the library records its own file name, without the path it is written to
+                DataFileWriter.MakeDataFile(assets, 0, Path.GetFileName(voxFileName), Path.GetDirectoryName(voxFileName));
             }
         }
 

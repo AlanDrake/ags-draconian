@@ -311,6 +311,12 @@ namespace AGS.Editor
             int currentDataFile = 0;
             long sizeSoFar = 0;
             bool doSplitting = false;
+            if (splitSize <= 0)
+            {
+                // A single file lists the assets by name, as the build tools do (agspak, compared
+                // as lowercase); a split library keeps the given order, which decides the parts
+                assets = assets.OrderBy(a => a.Item1.Replace('\\', '/').ToLowerInvariant(), StringComparer.Ordinal).ToArray();
+            }
             foreach (var asset in assets)
             {
                 // Bring resource name slashes to the uniform style, as required by the AGS engine
