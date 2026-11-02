@@ -17,15 +17,15 @@ but a workalike plugin created by JJS for the AGS engine PSP port.
 #define THIS_IS_THE_PLUGIN
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #if defined(PSP_VERSION)
-#include <pspsdk.h>
-#include <pspmath.h>
 #include <pspdisplay.h>
+#include <pspmath.h>
+#include <pspsdk.h>
 #define sin(x) vfpu_sinf(x)
 #endif
 

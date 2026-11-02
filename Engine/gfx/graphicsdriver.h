@@ -17,8 +17,10 @@
 //=============================================================================
 #pragma once
 #include <memory>
+
 #include <allegro.h> // RGB, PALETTE
 #include <glm/mat4x4.hpp>
+
 #include "gfx/ddb.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfxdefines.h"

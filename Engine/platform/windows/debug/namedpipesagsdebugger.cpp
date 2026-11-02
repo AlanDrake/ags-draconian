@@ -15,6 +15,7 @@
 
 #if AGS_PLATFORM_OS_WINDOWS
 #include <cstdio> // sprintf
+
 #include "platform/windows/debug/namedpipesagsdebugger.h"
 #include "util/stdio_compat.h"
 

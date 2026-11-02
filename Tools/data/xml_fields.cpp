@@ -12,11 +12,12 @@
 //
 //=============================================================================
 #include "data/xml_fields.h"
+
+#include <algorithm>
 #include <cerrno>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
-#include <algorithm>
 #include <iterator>
 
 using namespace AGS::Common;

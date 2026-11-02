@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "ac/movelist.h"
+
 #include <cmath>
+
 #include "ac/common.h"
 #include "util/stream.h"
 

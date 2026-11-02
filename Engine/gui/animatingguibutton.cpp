@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "gui/animatingguibutton.h"
+
 #include "gui/guidefines.h"
 #include "util/stream.h"
 

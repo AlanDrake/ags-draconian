@@ -18,7 +18,9 @@
 #pragma once
 
 #include <algorithm>
+
 #include <glm/ext/matrix_transform.hpp>
+
 #include "util/geometry.h"
 
 namespace AGS

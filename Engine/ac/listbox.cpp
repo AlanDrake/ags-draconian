@@ -12,10 +12,14 @@
 //
 //=============================================================================
 #include "ac/listbox.h"
+
 #include <algorithm>
 #include <vector>
+
 #include <allegro.h> // find files
+
 #include "ac/common.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
@@ -25,7 +29,6 @@
 #include "ac/gui.h"
 #include "ac/path_helper.h"
 #include "ac/string.h"
-#include "ac/dynobj/cc_dynamicarray.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "util/directory.h"
@@ -394,10 +397,10 @@ GUIListBox *is_valid_listbox(int guin, int objn)
 //
 //=============================================================================
 
+#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
-#include "ac/dynobj/scriptstring.h"
 
 // int (GUIListBox *lbb, const char *text)
 RuntimeScriptValue Sc_ListBox_AddItem(void *self, const RuntimeScriptValue *params, int32_t param_count)

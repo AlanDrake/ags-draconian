@@ -14,6 +14,7 @@
 #pragma once
 
 #include <vector>
+
 #include "util/string.h"
 
 struct SpeechLipSyncLine

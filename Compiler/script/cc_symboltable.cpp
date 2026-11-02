@@ -11,10 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "script/cc_symboltable.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "script/cc_symboltable.h"
+
 #include "script/cc_internal.h"  // macro definitions
 #include "script/cc_symboldef.h" // macro definitions
 

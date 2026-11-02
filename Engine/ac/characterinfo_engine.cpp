@@ -11,14 +11,14 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/characterinfo.h"
-#include "ac/common.h"
-#include "ac/gamesetupstruct.h"
-#include "ac/global_game.h" // GetGameSpeed
 #include "ac/character.h"
 #include "ac/characterextras.h"
+#include "ac/characterinfo.h"
+#include "ac/common.h"
 #include "ac/game.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
+#include "ac/global_game.h" // GetGameSpeed
 #include "ac/math.h"
 #include "ac/object.h"
 #include "ac/viewframe.h"

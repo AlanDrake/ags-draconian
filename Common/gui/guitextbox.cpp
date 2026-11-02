@@ -11,10 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "gui/guitextbox.h"
+
 #include "ac/keycode.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
-#include "gui/guitextbox.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 #include "util/utf8.h"

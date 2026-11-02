@@ -14,6 +14,7 @@
 #pragma once
 
 #include <vector>
+
 #include "ac/dialogtopic.h"
 #include "ac/dynobj/scriptobjects.h"
 

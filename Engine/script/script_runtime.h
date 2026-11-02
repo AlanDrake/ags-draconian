@@ -13,10 +13,10 @@
 //=============================================================================
 #pragma once
 
-#include "util/memory_compat.h" // std::size
-#include "script/cc_script.h"   // ccScript
+#include "script/cc_script.h" // ccScript
 #include "script/runtimescript.h"
 #include "script/runtimescriptvalue.h"
+#include "util/memory_compat.h" // std::size
 
 struct IScriptObject;
 

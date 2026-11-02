@@ -24,10 +24,11 @@
 #pragma once
 
 #include <set>
-#include <unordered_set>
 #include <string.h>
-#include "ac/runtime_defines.h"
+#include <unordered_set>
+
 #include "ac/dynobj/cc_agsdynamicobject.h"
+#include "ac/runtime_defines.h"
 #include "util/stream.h"
 #include "util/string.h"
 #include "util/string_types.h"

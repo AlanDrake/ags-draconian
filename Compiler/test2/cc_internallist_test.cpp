@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <vector>
+
 #include "gtest/gtest.h"
 #include "script2/cc_internallist.h"
 #include "script2/cs_parser_common.h"

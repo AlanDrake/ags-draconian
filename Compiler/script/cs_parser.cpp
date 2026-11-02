@@ -11,20 +11,22 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "script/cs_parser.h"
+
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <string>
 #include <vector>
-#include "script/cs_parser.h"
-#include "script/cc_internallist.h"
-#include "script/cs_parser_common.h"
-#include "script/cc_symboltable.h"
-#include "script/cc_common.h"
-#include "script/cc_internal.h"
+
 #include "cc_variablesymlist.h"
 #include "fmem.h"
+#include "script/cc_common.h"
+#include "script/cc_internal.h"
+#include "script/cc_internallist.h"
+#include "script/cc_symboltable.h"
+#include "script/cs_parser_common.h"
 #include "util/string_utils.h"
 #include "util/utf8.h"
 

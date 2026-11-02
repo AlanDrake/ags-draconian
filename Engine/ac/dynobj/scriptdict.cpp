@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptdict.h"
+
 #include "ac/dynobj/dynobj_manager.h"
 
 using namespace AGS;

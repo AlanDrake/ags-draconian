@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include "ac/dynobj/scriptaudioclip.h"
+
 #include "util/stream.h"
 #include "util/string_compat.h"
 

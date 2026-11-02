@@ -8,6 +8,7 @@
 
 #define NOMINMAX
 #include <d3d11.h>
+
 #include "gfx/gfxfilter.h"
 #include "gfx/gfxfilter_scaling.h"
 

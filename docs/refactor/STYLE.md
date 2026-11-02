@@ -123,9 +123,13 @@ Rules for picking names:
 - `#pragma once` instead of include guards (PLAN.md 2.5). Identifiers like `__AGS_CN_UTIL__STRING_H`
   are reserved by the C++ standard.
 - **Every header compiles on its own** (include what you use, forward-declare where it's enough).
-- Include order: the file's own header, a blank line, C/C++ standard headers, a blank line,
-  third-party headers, a blank line, AGS headers. Sorting is manual until PLAN.md 2.6 turns on
-  `SortIncludes`.
+- Include order, enforced by clang-format (`SortIncludes: CaseSensitive`, `IncludeBlocks: Regroup`):
+  the file's own header, a blank line, `platform/windows/windows.h` if the file needs it (it must come
+  before any other Windows header), C/C++ standard headers, other system and third-party headers
+  (`<SDL.h>`, `<shlwapi.h>`), then AGS headers (`"..."`), a blank line between the groups, each
+  sorted. Preprocessor lines (`#if`) split a group, so conditional includes stay where they are.
+- **Every header compiles on its own**, and CI checks it: configure with `-DAGS_HEADER_CHECK=1` and
+  build the `header_check` target (`CMake/HeaderCheck.cmake`).
 - **Never put `using namespace` in a header.** In `.cpp` files it's allowed after all includes.
 - Don't write `extern` declarations in `.cpp` files. A global belongs in the header of the module
   that owns it.

@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "game/room_file.h"
+
 #include "ac/common_defines.h"
 #include "ac/gamestructdefines.h"
 #include "data/data_ext.h"

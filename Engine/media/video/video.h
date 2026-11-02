@@ -56,9 +56,9 @@
 
 #include "gfx/bitmap.h"
 #include "media/audio/audiodefines.h"
+#include "util/error.h"
 #include "util/geometry.h"
 #include "util/string.h"
-#include "util/error.h"
 
 namespace AGS
 {

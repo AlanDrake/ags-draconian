@@ -11,8 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gtest/gtest.h"
 #include "data/sprite_utils.h"
+#include "gtest/gtest.h"
 #include "util/memory_compat.h"
 
 using namespace AGS::Common;

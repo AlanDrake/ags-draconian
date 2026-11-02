@@ -13,8 +13,8 @@
 //=============================================================================
 #pragma once
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <time.h>
 
 typedef int64_t file_off_t;

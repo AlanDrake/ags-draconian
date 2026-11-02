@@ -16,10 +16,13 @@
 // Entry point of the application.
 //
 
-#include "platform/platform.h"
-#include <set>
+#include "main/main.h"
+
 #include <cstdio>
+#include <set>
+
 #include <allegro.h> // allegro_exit
+
 #include "ac/common.h"
 #include "ac/def_version.h"
 #include "ac/game.h"
@@ -27,14 +30,14 @@
 #include "ac/gamestate.h"
 #include "ac/route_finder.h"
 #include "data/assetmanager.h"
-#include "debug/debugger.h"
 #include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "debug/out.h"
 #include "main/config.h"
 #include "main/engine.h"
-#include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
+#include "platform/platform.h"
 #include "util/directory.h"
 #include "util/path.h"
 #include "util/string_compat.h"

@@ -12,16 +12,17 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptdrawingsurface.h"
+
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/drawingsurface.h"
 #include "ac/dynamicsprite.h"
-#include "ac/gamestate.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
+#include "ac/gamestate.h"
 #include "ac/room.h"
 #include "ac/runtime_defines.h"
-#include "ac/dynobj/dynobj_manager.h"
+#include "ac/spritecache.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"

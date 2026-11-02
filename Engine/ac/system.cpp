@@ -11,10 +11,14 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/system.h"
+
 #include <SDL.h>
+
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/dynobj/cc_audiochannel.h"
+#include "ac/dynobj/scriptsystem.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -24,18 +28,15 @@
 #include "ac/mouse.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
-#include "ac/system.h"
-#include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
-#include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
+#include "gfx/graphicsdriver.h"
 #include "main/config.h"
+#include "main/engine.h"
 #include "main/game_run.h"
 #include "main/graphics_mode.h"
-#include "main/engine.h"
-#include "ac/global_translation.h"
 #include "main/main.h"
 #include "media/audio/audio_core.h"
 #include "media/audio/audio_system.h"
@@ -340,10 +341,10 @@ void System_SetDisplayFPS(bool show_fps)
 //
 //=============================================================================
 
+#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
-#include "ac/dynobj/scriptstring.h"
 
 // int ()
 RuntimeScriptValue Sc_System_GetAudioChannelCount(const RuntimeScriptValue *params, int32_t param_count)

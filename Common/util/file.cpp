@@ -12,8 +12,10 @@
 //
 //=============================================================================
 #include "util/file.h"
+
 #include <cerrno>
 #include <stdexcept>
+
 #include "platform/platform.h"
 #include "util/bufferedstream.h"
 #include "util/filestream.h"
@@ -36,8 +38,8 @@
 #elif AGS_PLATFORM_OS_LINUX
 #include <unistd.h>
 #elif AGS_PLATFORM_OS_FREEBSD
-#include <sys/types.h>
 #include <sys/sysctl.h>
+#include <sys/types.h>
 #endif
 
 namespace AGS

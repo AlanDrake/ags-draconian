@@ -11,15 +11,24 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/gui.h"
+
 #include <algorithm>
 #include <cstdio>
 #include <numeric>
 #include <vector>
-#include "ac/gui.h"
-#include "ac/common.h"
+
 #include "ac/character.h"
+#include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
+#include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/cc_gui.h"
+#include "ac/dynobj/cc_guicontrol.h"
+#include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptobjects.h"
+#include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "ac/event.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -36,23 +45,16 @@
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/system.h"
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/cc_gui.h"
-#include "ac/dynobj/cc_guicontrol.h"
-#include "ac/dynobj/scriptshader.h"
-#include "ac/dynobj/scriptobjects.h"
-#include "ac/dynobj/scriptuserobject.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
+#include "gfx/bitmap.h"
 #include "gfx/gfxfilter.h"
+#include "gfx/graphicsdriver.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
+#include "script/runtimescriptvalue.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
-#include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
-#include "script/runtimescriptvalue.h"
 #include "util/geometry.h"
 #include "util/string_compat.h"
 

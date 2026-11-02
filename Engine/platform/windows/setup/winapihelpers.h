@@ -22,6 +22,7 @@
 #if AGS_PLATFORM_OS_WINDOWS
 
 #include "platform/windows/windows.h"
+
 #include "util/geometry.h"
 #include "util/string.h"
 

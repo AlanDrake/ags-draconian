@@ -19,7 +19,9 @@
 #include <array>
 #include <memory>
 #include <vector>
+
 #include <allegro.h> // RGB
+
 #include "ac/game_version.h"
 #include "ac/gamestructdefines.h"
 #include "ac/wordsdictionary.h"

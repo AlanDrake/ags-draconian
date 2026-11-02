@@ -11,10 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "gui/guilabel.h"
+
 #include <algorithm>
+
 #include "ac/game_version.h"
 #include "font/fonts.h"
-#include "gui/guilabel.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
 #include "util/string_utils.h"

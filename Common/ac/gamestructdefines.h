@@ -17,7 +17,6 @@
 //=============================================================================
 #pragma once
 
-#include "util/string.h"
 #include "util/geometry.h"
 #include "util/string.h"
 

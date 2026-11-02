@@ -16,9 +16,12 @@
 //
 //=============================================================================
 #include "platform/base/agsplatformdriver.h"
+
 #include <cstdio>
 #include <thread>
+
 #include <SDL.h>
+
 #include "ac/common.h"
 #include "ac/runtime_defines.h"
 #include "ac/timer.h"
@@ -26,8 +29,8 @@
 #include "media/audio/audio_system.h"
 #include "platform/base/sys_main.h"
 #include "util/memory_compat.h"
-#include "util/string_utils.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
 using namespace AGS;
 using namespace AGS::Common;

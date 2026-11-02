@@ -12,11 +12,12 @@
 //
 //=============================================================================
 #include "gfx/gfxdriverbase.h"
+
 #include "debug/out.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/bitmap.h"
-#include "gfx/gfxfilter.h"
 #include "gfx/gfx_util.h"
+#include "gfx/gfxfilter.h"
 
 using namespace AGS::Common;
 

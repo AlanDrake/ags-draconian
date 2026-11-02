@@ -11,8 +11,9 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <stdlib.h>
 #include "cc_internallist.h"
+
+#include <stdlib.h>
 
 extern int currentline; // in script_common
 

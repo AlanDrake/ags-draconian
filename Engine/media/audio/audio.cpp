@@ -11,36 +11,37 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <cstdio>
-#include <cmath>
-#include "platform/platform.h"
 #include "media/audio/audio.h"
-#include "ac/audiocliptype.h"
-#include "ac/gamesetupstruct.h"
-#include "ac/dynobj/cc_audioclip.h"
-#include "ac/dynobj/cc_audiochannel.h"
-#include "ac/gamestate.h"
-#include "script/script_runtime.h"
+
+#include <cmath>
+#include <cstdio>
+
 #include "ac/audiochannel.h"
 #include "ac/audioclip.h"
+#include "ac/audiocliptype.h"
+#include "ac/common.h"
+#include "ac/dynobj/cc_audiochannel.h"
+#include "ac/dynobj/cc_audioclip.h"
+#include "ac/dynobj/dynobj_manager.h"
+#include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
+#include "ac/global_audio.h"
 #include "ac/path_helper.h"
+#include "ac/timer.h"
 #include "ac/view.h"
-#include "media/audio/sound.h"
+#include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
-#include "ac/common.h"
-#include "ac/file.h"
-#include "ac/global_audio.h"
-#include <cmath>
-#include "util/stream.h"
-#include "data/assetmanager.h"
-#include "ac/timer.h"
 #include "main/game_run.h"
 #include "media/audio/audio_core.h"
+#include "media/audio/sound.h"
 #include "platform/base/sys_main.h"
-#include "ac/dynobj/dynobj_manager.h"
+#include "platform/platform.h"
+#include "script/script_runtime.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

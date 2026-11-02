@@ -14,6 +14,7 @@
 #pragma once
 
 #include <deque>
+
 #include "ac/timer.h"
 #include "script/runtimescript.h"
 

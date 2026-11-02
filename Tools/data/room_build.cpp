@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "data/room_build.h"
+
 #include <algorithm>
+
 #include "ac/common_defines.h"
 #include "data/agfreader.h"
 #include "data/data_file_writer.h"

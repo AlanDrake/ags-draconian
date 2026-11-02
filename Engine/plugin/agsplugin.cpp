@@ -12,8 +12,10 @@
 //
 //=============================================================================
 #include <vector>
-#include "platform/platform.h"
+
 #include <allegro.h>
+
+#include "platform/platform.h"
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/windows.h"
 #endif
@@ -21,10 +23,16 @@
 #include "ac/common.h" // quit
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
+#include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/cc_pluginobject.h"
+#include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptobjects.h"
+#include "ac/dynobj/scriptstring.h"
+#include "ac/dynobj/scriptsystem.h"
 #include "ac/file.h"
 #include "ac/game.h"
-#include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_walkablearea.h"
 #include "ac/gui.h"
@@ -35,12 +43,6 @@
 #include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/sys_events.h"
-#include "ac/dynobj/cc_pluginobject.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/scriptobjects.h"
-#include "ac/dynobj/scriptstring.h"
-#include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/debugmanager.h"
@@ -75,12 +77,12 @@ using namespace AGS::Engine;
 
 
 #if defined(BUILTIN_PLUGINS)
-#include "../Plugins/agsflashlight/agsflashlight/agsflashlight.h"
-#include "../Plugins/agsblend/agsblend/agsblend.h"
-#include "../Plugins/ags_snowrain/ags_snowrain/ags_snowrain.h"
-#include "../Plugins/ags_parallax/ags_parallax/ags_parallax.h"
-#include "../Plugins/agspalrender/agspalrender/agspalrender.h"
 #include "../Plugins/AGSSpriteFont/AGSSpriteFont/AGSSpriteFont.h"
+#include "../Plugins/ags_parallax/ags_parallax/ags_parallax.h"
+#include "../Plugins/ags_snowrain/ags_snowrain/ags_snowrain.h"
+#include "../Plugins/agsblend/agsblend/agsblend.h"
+#include "../Plugins/agsflashlight/agsflashlight/agsflashlight.h"
+#include "../Plugins/agspalrender/agspalrender/agspalrender.h"
 #if AGS_PLATFORM_OS_IOS
 #include "../Plugins/agstouch/agstouch/agstouch.h"
 #endif // AGS_PLATFORM_OS_IOS

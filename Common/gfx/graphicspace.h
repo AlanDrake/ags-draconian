@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <vector>
+
 #include "util/geometry.h"
 #include "util/matrix.h"
 

@@ -13,13 +13,14 @@
 //=============================================================================
 #include <cstdio>
 #include <iostream>
-#include <vector>
-#include <string>
 #include <map>
+#include <string>
+#include <vector>
+
 #include "ac/def_version.h"
-#include "util/path.h"
-#include "util/cmdlineopts.h"
 #include "compiler.h"
+#include "util/cmdlineopts.h"
+#include "util/path.h"
 
 using namespace AGS::Common;
 using namespace AGS::Common::CmdLineOpts;

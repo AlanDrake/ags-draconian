@@ -11,8 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <algorithm>
 #include "gui/guilistbox.h"
+
+#include <algorithm>
+
 #include "ac/game_version.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"

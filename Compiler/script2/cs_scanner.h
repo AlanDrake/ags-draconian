@@ -13,15 +13,15 @@
 //=============================================================================
 #pragma once
 
-#include <vector>
-#include <string>
-#include <sstream>
 #include <cstring>
 #include <map>
+#include <sstream>
+#include <string>
+#include <vector>
 
+#include "cc_compiledscript.h"
 #include "cc_internallist.h"
 #include "cc_symboltable.h"
-#include "cc_compiledscript.h"
 
 namespace AGS
 {

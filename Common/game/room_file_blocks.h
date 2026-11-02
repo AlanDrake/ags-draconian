@@ -19,9 +19,10 @@
 #pragma once
 
 #include <functional>
+
 #include "data/data_ext.h"
-#include "game/roomdata.h"
 #include "game/room_file.h"
+#include "game/roomdata.h"
 
 namespace AGS
 {

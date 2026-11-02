@@ -22,6 +22,7 @@
 
 #include <memory>
 #include <vector>
+
 #include "gfx/bitmapdata.h"
 #include "gfx/gfx_def.h"
 #include "gfx/sprite_data_fmt.h"

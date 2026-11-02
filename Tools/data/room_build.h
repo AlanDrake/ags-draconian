@@ -22,6 +22,7 @@
 
 #include <utility>
 #include <vector>
+
 #include "data/room_utils.h"
 #include "data/room_xml.h"
 #include "game/roomdata.h"

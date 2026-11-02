@@ -15,37 +15,40 @@
 //
 // Quit game procedure
 //
+#include "main/quit.h"
+
 #include <cstdio>
-#include "platform/platform.h"
+
 #include <allegro.h> // find files, allegro_exit
+
 #include "ac/common.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/roomstatus.h"
 #include "ac/route_finder.h"
+#include "ac/spritecache.h"
 #include "ac/translation.h"
-#include "ac/dynobj/dynobj_manager.h"
+#include "data/assetmanager.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "font/fonts.h"
+#include "gfx/bitmap.h"
+#include "gfx/graphicsdriver.h"
 #include "main/config.h"
 #include "main/engine.h"
 #include "main/main.h"
-#include "main/quit.h"
-#include "ac/spritecache.h"
-#include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
-#include "data/assetmanager.h"
-#include "platform/base/agsplatformdriver.h"
-#include "platform/base/sys_main.h"
-#include "plugin/plugin_engine.h"
-#include "script/cc_common.h"
 #include "media/audio/audio_system.h"
 #include "media/video/video.h"
+#include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
+#include "platform/platform.h"
+#include "plugin/plugin_engine.h"
+#include "script/cc_common.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

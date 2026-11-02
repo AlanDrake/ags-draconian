@@ -23,11 +23,11 @@
 
 #if (0)
 
-#include <string.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <wchar.h>
-#include <ctype.h>
 
 // This is a pure mbstowcs placeholder that copies src to dest,
 // not a real implementation

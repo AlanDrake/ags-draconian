@@ -17,9 +17,10 @@
 // TODO: split up later if it gets filled with functions in all categories.
 //
 //=============================================================================
-#include "platform/platform.h"
 #include <vector>
+
 #include "gfx/gfxdefines.h"
+#include "platform/platform.h"
 #include "util/string.h"
 
 using AGS::Common::String;

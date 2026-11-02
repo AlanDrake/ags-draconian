@@ -12,8 +12,9 @@
 //
 //=============================================================================
 #include <cstring>
-#include "gtest/gtest.h"
+
 #include "gfx/bitmapdata.h"
+#include "gtest/gtest.h"
 
 using namespace AGS::Common;
 

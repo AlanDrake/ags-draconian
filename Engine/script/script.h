@@ -15,6 +15,7 @@
 
 #include <memory>
 #include <vector>
+
 #include "ac/dynobj/scriptsystem.h"
 #include "game/scripteventtable.h"
 #include "script/executingscript.h"

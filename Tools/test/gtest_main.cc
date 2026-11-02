@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <stdio.h>
+
 #include "gtest/gtest.h"
 #include "test/spriteimport_env.h"
 

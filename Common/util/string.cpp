@@ -11,15 +11,16 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "util/string.h"
+
+#include <cctype>
 #include <cstdio>
 #include <cstring>
-#include <cctype>
-#include <cctype>
+
+#include "utf8.h"
 #include "util/math.h"
 #include "util/stream.h"
-#include "util/string.h"
 #include "util/string_compat.h"
-#include "utf8.h"
 
 namespace AGS
 {

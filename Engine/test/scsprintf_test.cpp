@@ -11,10 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gtest/gtest.h"
 #include "ac/game_version.h"
-#include "script/script_api.h"
+#include "gtest/gtest.h"
 #include "script/runtimescriptvalue.h"
+#include "script/script_api.h"
 
 using namespace AGS::Common;
 

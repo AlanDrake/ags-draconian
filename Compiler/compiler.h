@@ -20,8 +20,8 @@
 
 #define HIGHEST_SCRIPT_API "Highest"
 
-#include <utility>
 #include <string>
+#include <utility>
 #include <vector>
 
 class CompilerOptions

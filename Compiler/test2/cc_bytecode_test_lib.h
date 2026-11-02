@@ -14,6 +14,7 @@
 #pragma once
 
 #include <iostream>
+
 #include "script2/cc_compiledscript.h"
 
 // Should contain a path to which the tests can write copies of their checking code

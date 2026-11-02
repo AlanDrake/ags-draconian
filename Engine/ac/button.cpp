@@ -11,24 +11,26 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/button.h"
+
 #include <algorithm>
 #include <cstdio>
-#include "ac/button.h"
+
 #include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/gui.h"
+#include "ac/dynobj/cc_guicontrol.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
+#include "ac/gui.h"
 #include "ac/object.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
-#include "ac/dynobj/cc_guicontrol.h"
 #include "debug/debug_log.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guimain.h"
-#include "script/script.h"
 #include "main/game_run.h"
+#include "script/script.h"
 
 using namespace AGS::Common;
 
@@ -541,10 +543,10 @@ void Button_SetWrapText(GUIButton *butt, bool wrap)
 //
 //=============================================================================
 
+#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
-#include "ac/dynobj/scriptstring.h"
 
 // void | GUIButton *butt, int view, int loop, int speed, int repeat
 RuntimeScriptValue Sc_Button_Animate4(void *self, const RuntimeScriptValue *params, int32_t param_count)

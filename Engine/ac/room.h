@@ -13,11 +13,11 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/characterinfo.h"
+#include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/route_finder.h"
-#include "script/runtimescriptvalue.h"
 #include "game/roomstruct.h"
+#include "script/runtimescriptvalue.h"
 
 ScriptDrawingSurface *Room_GetDrawingSurfaceForBackground(int backgroundNumber);
 ScriptDrawingSurface *Room_GetDrawingSurfaceForMask(RoomAreaMask mask);

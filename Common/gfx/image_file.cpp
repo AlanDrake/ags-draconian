@@ -11,8 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <allegro.h>
 #include "gfx/image_file.h"
+
+#include <allegro.h>
+
 #include "util/file.h"
 #include "util/path.h"
 #include "util/stream.h"

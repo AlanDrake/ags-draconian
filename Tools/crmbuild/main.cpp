@@ -16,6 +16,7 @@
 //
 //=============================================================================
 #include <allegro.h>
+
 #include "ac/def_version.h"
 #include "data/agfreader.h"
 #include "data/room_build.h"

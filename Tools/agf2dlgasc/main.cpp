@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <vector>
+
 #include "data/agfreader.h"
 #include "data/dialogscriptconv.h"
 #include "util/cmdlineopts.h"

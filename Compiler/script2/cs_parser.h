@@ -50,10 +50,10 @@ The result is:
 
 #pragma once
 
-#include <vector>
-#include <string>
-#include <map>
 #include <cstdarg>
+#include <map>
+#include <string>
+#include <vector>
 
 #include "cc_compiledscript.h"
 #include "cc_internallist.h"

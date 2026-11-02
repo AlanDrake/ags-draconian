@@ -12,11 +12,13 @@
 //
 //=============================================================================
 #include "ac/sys_events.h"
+
 #include <chrono>
-#include <deque>
 #include <cmath>
+#include <deque>
+
 #include <SDL.h>
-#include "platform/platform.h"
+
 #include "ac/common.h"
 #include "ac/joystick.h"
 #include "ac/keycode.h"
@@ -24,9 +26,10 @@
 #include "ac/timer.h"
 #include "ac/touch.h"
 #include "device/mousew32.h"
+#include "main/engine.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
-#include "main/engine.h"
+#include "platform/platform.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 #include "util/utf8.h"

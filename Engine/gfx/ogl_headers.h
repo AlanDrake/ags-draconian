@@ -25,11 +25,14 @@
 #endif
 #include "glad/glad.h"
 #elif AGS_PLATFORM_OS_WINDOWS
-#include <SDL.h>
 #include "platform/windows/windows.h"
+
+#include <SDL.h>
+
 #include "glad/glad.h"
 #elif AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_FREEBSD || AGS_PLATFORM_OS_MACOS
 #include <SDL.h>
+
 #include "glad/glad.h"
 #else
 #error "opengl: unsupported platform"

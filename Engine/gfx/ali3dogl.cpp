@@ -14,26 +14,28 @@
 #include "gfx/ogl_headers.h"
 
 #if AGS_HAS_OPENGL
-#include "gfx/ali3dogl.h"
 #include <algorithm>
 #include <cmath>
 #include <stack>
+
 #include <SDL.h>
+
 #include "ac/sys_events.h"
 #include "ac/timer.h"
 #include "debug/out.h"
 #include "gfx/ali3dexception.h"
+#include "gfx/ali3dogl.h"
 #include "gfx/gfx_def.h"
-#include "gfx/gfxfilter_ogl.h"
 #include "gfx/gfxfilter_aaogl.h"
+#include "gfx/gfxfilter_ogl.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "util/matrix.h"
 
 // OpenGL Mathematics Library. We could include only the features we need to decrease compilation time.
-#include "glm/glm.hpp"
-#include "glm/ext.hpp"
 #include "glad/glad.h"
+#include "glm/ext.hpp"
+#include "glm/glm.hpp"
 
 #if AGS_OPENGL_ES2
 float get_device_scale();

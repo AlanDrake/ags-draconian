@@ -16,7 +16,9 @@
 #if AGS_PLATFORM_OS_WINDOWS
 
 #include <array>
+
 #include <shlwapi.h>
+
 #include "ac/speech.h"
 #include "platform/windows/setup/advancedpagedialog.h"
 #include "platform/windows/setup/winapihelpers.h"

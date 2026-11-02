@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+
 #include "platform/types.h"
 
 #ifndef M_PI

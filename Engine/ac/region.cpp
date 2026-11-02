@@ -12,17 +12,18 @@
 //
 //=============================================================================
 #include "ac/region.h"
+
 #include "ac/common.h"
 #include "ac/common_defines.h"
+#include "ac/dynobj/cc_region.h"
+#include "ac/dynobj/scriptdrawingsurface.h"
+#include "ac/dynobj/scriptstring.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/properties.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
-#include "ac/dynobj/cc_region.h"
-#include "ac/dynobj/scriptdrawingsurface.h"
-#include "ac/dynobj/scriptstring.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
 #include "script/runtimescriptvalue.h"

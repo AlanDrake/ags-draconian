@@ -12,9 +12,10 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptgame.h"
-#include "ac/gamesetupstruct.h"
+
 #include "ac/game.h"
 #include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/gui.h"
 #include "debug/debug_log.h"

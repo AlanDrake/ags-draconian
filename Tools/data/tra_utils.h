@@ -14,6 +14,7 @@
 #pragma once
 
 #include <memory>
+
 #include "data/tra_file.h"
 #include "util/stream.h"
 

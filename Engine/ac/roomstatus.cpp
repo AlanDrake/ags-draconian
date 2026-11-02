@@ -11,12 +11,14 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <cstring> // memset
-#include <cstdlib> // free
-#include "ac/common.h"
-#include "ac/game_version.h"
 #include "ac/roomstatus.h"
+
+#include <cstdlib> // free
+#include <cstring> // memset
+
+#include "ac/common.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/game_version.h"
 #include "game/customproperties.h"
 #include "game/savegame_components.h"
 #include "util/string_utils.h"

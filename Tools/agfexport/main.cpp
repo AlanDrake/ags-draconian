@@ -1,10 +1,12 @@
-#include <memory>
-#include <set>
-#include <vector>
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <memory>
+#include <set>
+#include <vector>
+
 #include <util/cmdlineopts.h>
+
 #include "data/agfreader.h"
 #include "data/scriptgen.h"
 #include "util/file.h"

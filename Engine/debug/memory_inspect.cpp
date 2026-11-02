@@ -32,7 +32,9 @@
 //
 //=============================================================================
 #include "debug/memory_inspect.h"
+
 #include <algorithm>
+
 #include "ac/dynobj/dynobj_manager.h"
 #include "script/cc_common.h"
 #include "script/runtimescript.h"

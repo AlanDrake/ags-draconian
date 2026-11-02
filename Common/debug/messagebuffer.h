@@ -20,6 +20,7 @@
 #pragma once
 
 #include <vector>
+
 #include "debug/outputhandler.h"
 
 namespace AGS

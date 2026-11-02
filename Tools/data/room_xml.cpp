@@ -12,8 +12,10 @@
 //
 //=============================================================================
 #include "data/room_xml.h"
+
 #include <algorithm>
 #include <cctype>
+
 #include "util/math.h"
 #include "util/string_types.h"
 #include "util/string_utils.h"

@@ -11,13 +11,15 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "script/cc_compiledscript.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "script/cc_compiledscript.h"
+
+#include "script/cc_common.h"      // ccGetOption
 #include "script/cc_internal.h"    // macro definitions
 #include "script/cc_symboltable.h" // symbolTable
-#include "script/cc_common.h"      // ccGetOption
 
 void ccCompiledScript::write_cmd(int cmdd)
 {

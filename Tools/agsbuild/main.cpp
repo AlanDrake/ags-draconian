@@ -18,12 +18,16 @@
 //
 //=============================================================================
 #include <cstdio>
+
 #include "platform/platform.h"
 #if (AGS_PLATFORM_OS_WINDOWS)
 #include "platform/windows/windows.h"
 #endif
 #include "ac/def_version.h"
 #include "data/agfreader.h"
+#include "diagnostics.h"
+#include "pipedprocess.h"
+#include "taskmanager.h"
 #include "util/cmdlineopts.h"
 #include "util/directory.h"
 #include "util/file.h"
@@ -32,9 +36,6 @@
 #include "util/string_utils.h"
 #include "util/textstreamreader.h"
 #include "util/textstreamwriter.h"
-#include "diagnostics.h"
-#include "pipedprocess.h"
-#include "taskmanager.h"
 
 using namespace AGS;
 using namespace AGS::Common;

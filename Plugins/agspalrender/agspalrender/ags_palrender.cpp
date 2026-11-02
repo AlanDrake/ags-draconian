@@ -17,15 +17,12 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <cmath>
-#include <ctime>
-#include <cstdlib>
-#include <string>
-#include <cstdio>
-
 
 #include "palrender.h"
 #include "raycast.h"

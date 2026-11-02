@@ -21,7 +21,9 @@
 #pragma once
 
 #include <memory>
+
 #include <allegro.h> // BITMAP
+
 #include "gfx/bitmap.h"
 #include "gfx/bitmapdata.h"
 #include "util/string.h"

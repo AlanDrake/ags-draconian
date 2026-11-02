@@ -12,14 +12,16 @@
 //
 //=============================================================================
 #include "ac/walkbehind.h"
+
 #include <algorithm>
+
 #include "ac/draw.h"
+#include "ac/dynobj/cc_walkbehind.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "ac/gamestate.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
-#include "ac/dynobj/scriptobjects.h"
-#include "ac/dynobj/cc_walkbehind.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "script/script_runtime.h"
@@ -234,10 +236,10 @@ const char *Walkbehind_GetScriptName(ScriptWalkbehind *wb)
 //
 //=============================================================================
 
+#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
-#include "ac/dynobj/scriptstring.h"
 
 
 extern RuntimeScriptValue Sc_GetDrawingSurfaceForWalkbehind(const RuntimeScriptValue *params, int32_t param_count);

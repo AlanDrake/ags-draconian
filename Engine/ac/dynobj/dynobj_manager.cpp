@@ -12,10 +12,12 @@
 //
 //=============================================================================
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptshader.h"
+
 #include <cstdlib>
 #include <cstring>
+
 #include "ac/dynobj/managedobjectpool.h"
+#include "ac/dynobj/scriptshader.h"
 #include "debug/out.h"
 #include "script/cc_common.h"
 #include "util/stream.h"

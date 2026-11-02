@@ -13,8 +13,8 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/scriptdynamicsprite.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
+#include "ac/dynobj/scriptdynamicsprite.h"
 
 enum ScriptColorFormat
 {

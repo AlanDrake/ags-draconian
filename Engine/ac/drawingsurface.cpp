@@ -12,10 +12,13 @@
 //
 //=============================================================================
 #include "ac/drawingsurface.h"
+
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
+#include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -26,8 +29,6 @@
 #include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/walkbehind.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/cc_dynamicarray.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "gfx/gfx_def.h"

@@ -11,13 +11,15 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "font/fonts.h"
+
 #include <algorithm>
 #include <cstdio>
 #include <vector>
+
 #include "ac/common.h" // set_our_eip
 #include "ac/gamestructdefines.h"
 #include "debug/out.h"
-#include "font/fonts.h"
 #include "font/ttffontrenderer.h"
 #include "font/wfnfontrenderer.h"
 #include "gfx/bitmap.h"

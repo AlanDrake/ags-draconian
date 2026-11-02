@@ -12,8 +12,9 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_audioclip.h"
-#include "ac/dynobj/scriptaudioclip.h"
+
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptaudioclip.h"
 #include "ac/gamesetupstruct.h"
 #include "util/stream.h"
 

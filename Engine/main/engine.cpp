@@ -16,39 +16,40 @@
 // Engine initialization
 //
 
-#include "platform/platform.h"
-
 #include <cerrno>
 #include <cstdio>
 #include <stdexcept>
+
+#include "platform/platform.h"
 #if AGS_PLATFORM_OS_WINDOWS
 #include <process.h> // _spawnl
 #endif
 #include <allegro.h> // allegro_install and _exit
 
 #include "ac/asset_helper.h"
-#include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
+#include "ac/common.h"
 #include "ac/draw.h"
+#include "ac/dynobj/scriptobjects.h"
+#include "ac/dynobj/scriptsystem.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/gui.h"
+#include "ac/joystick.h"
 #include "ac/lipsync.h"
 #include "ac/path_helper.h"
-#include "ac/route_finder.h"
-#include "ac/sys_events.h"
 #include "ac/roomstatus.h"
+#include "ac/route_finder.h"
 #include "ac/speech.h"
 #include "ac/spritecache.h"
+#include "ac/sys_events.h"
 #include "ac/translation.h"
 #include "ac/viewframe.h"
-#include "ac/dynobj/scriptobjects.h"
-#include "ac/dynobj/scriptsystem.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -58,26 +59,25 @@
 #include "font/fonts.h"
 #include "game/game_init.h"
 #include "gfx/ddb.h"
-#include "gfx/graphicsdriver.h"
 #include "gfx/gfxdriverfactory.h"
+#include "gfx/graphicsdriver.h"
 #include "gfx/image_file.h"
-#include "media/audio/sound.h"
 #include "main/config.h"
-#include "main/game_file.h"
-#include "main/game_start.h"
 #include "main/engine.h"
 #include "main/engine_setup.h"
+#include "main/game_file.h"
+#include "main/game_start.h"
 #include "main/graphics_mode.h"
 #include "main/main.h"
 #include "media/audio/audio_core.h"
-#include "platform/base/sys_main.h"
+#include "media/audio/sound.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "script/script_runtime.h"
 #include "util/directory.h"
 #include "util/error.h"
 #include "util/path.h"
 #include "util/string_utils.h"
-#include "ac/joystick.h"
 
 using namespace AGS;
 using namespace AGS::Common;

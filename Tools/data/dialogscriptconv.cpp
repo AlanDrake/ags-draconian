@@ -12,8 +12,10 @@
 //
 //=============================================================================
 #include "data/dialogscriptconv.h"
+
 #include <cctype>
 #include <regex>
+
 #include "util/memory_compat.h"
 #include "util/memorystream.h"
 #include "util/string_utils.h"

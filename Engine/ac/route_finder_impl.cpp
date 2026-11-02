@@ -15,8 +15,10 @@
 // Jump point search (JPS) A* pathfinder implementation by Martin Sedlak.
 //
 //=============================================================================
-#include <algorithm>
 #include "ac/route_finder_impl.h"
+
+#include <algorithm>
+
 #include "ac/route_finder_jps.inl"
 #include "gfx/bitmap.h"
 

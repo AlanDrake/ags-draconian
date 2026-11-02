@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "data/sprite_utils.h"
+
 #include "util/directory.h"
 #include "util/path.h"
 #include "util/string_types.h"

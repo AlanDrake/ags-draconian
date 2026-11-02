@@ -48,8 +48,22 @@ InsertNewlineAtEOF: true
 
 # Comments are rewritten by hand, never reflowed (reflow mangles ASCII tables and diagrams).
 ReflowComments: false
-# Include sorting stays off until headers are self-contained (PLAN.md, task 2.6).
-SortIncludes: Never
-IncludeBlocks: Preserve
+# Include order (docs/refactor/STYLE.md): the file's own header, C/C++ standard headers, other
+# system and third-party headers, then AGS headers; one blank line between the groups.
+SortIncludes: CaseSensitive
+IncludeBlocks: Regroup
+IncludeCategories:
+  # The <windows.h> wrapper has to come before any other Windows header (<shlwapi.h>, <Psapi.h>, ...)
+  - Regex: '^"platform/windows/windows\.h"$'
+    Priority: 1
+  # C++ standard library (<vector>, <cstdio>) and C standard headers (<stdio.h>)
+  - Regex: '^<([a-z_0-9]+|(assert|ctype|errno|float|inttypes|limits|locale|math|setjmp|signal|stdarg|stddef|stdint|stdio|stdlib|string|time|wchar)\.h)>$'
+    Priority: 2
+  # everything else in angle brackets: platform, SDL, Allegro, ...
+  - Regex: '^<.*>$'
+    Priority: 3
+  # AGS headers
+  - Regex: '^".*"$'
+    Priority: 4
 SortUsingDeclarations: false
 ...

@@ -16,8 +16,9 @@
 #pragma once
 
 #include <pspsdk.h>
-#include "util/string.h"
+
 #include "debug/out.h"
+#include "util/string.h"
 
 namespace AGS
 {

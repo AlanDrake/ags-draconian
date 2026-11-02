@@ -17,10 +17,10 @@ but a workalike plugin created by JJS for the AGS engine ports.
 #define THIS_IS_THE_PLUGIN
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "plugin/agsplugin.h"
 

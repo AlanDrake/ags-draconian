@@ -18,7 +18,9 @@
 #pragma once
 
 #include <memory>
+
 #include <SDL.h>
+
 #include "util/stream.h"
 
 namespace AGS

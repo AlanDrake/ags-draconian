@@ -14,6 +14,7 @@
 #pragma once
 
 #include <cstdio>
+
 #include "util/string.h"
 
 AGS::Common::String GetRuntimeInfo();

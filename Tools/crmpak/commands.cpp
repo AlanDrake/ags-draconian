@@ -12,12 +12,14 @@
 //
 //=============================================================================
 #include "commands.h"
+
 #include <cinttypes>
+
 #include "data/data_ext.h"
 #include "data/room_utils.h"
-#include "game/roomdata.h"
 #include "game/room_file.h"
 #include "game/room_file_blocks.h"
+#include "game/roomdata.h"
 #include "gfx/image_file.h"
 #include "script/cc_script.h"
 #include "util/file.h"

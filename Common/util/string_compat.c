@@ -12,10 +12,12 @@
 //
 //=============================================================================
 #include "util/string_compat.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "platform/platform.h"
 #if !AGS_PLATFORM_OS_WINDOWS
 #include <strings.h>

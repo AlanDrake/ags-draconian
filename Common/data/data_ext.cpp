@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "data/data_ext.h"
+
 #include "debug/out.h"
 #include "util/stream.h"
 

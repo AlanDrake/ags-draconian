@@ -16,9 +16,9 @@
 #include <string>
 #include <unordered_map>
 
-#include "script/cc_script.h"
-#include "cs_parser_common.h" // macro definitions and typedefs
 #include "cc_symboltable.h"   // ScopeType
+#include "cs_parser_common.h" // macro definitions and typedefs
+#include "script/cc_script.h"
 
 namespace AGS
 {

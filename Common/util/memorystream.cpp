@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "util/memorystream.h"
+
 #include <algorithm>
 #include <cstring>
 

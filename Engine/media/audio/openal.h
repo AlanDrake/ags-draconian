@@ -12,10 +12,10 @@
 //
 //=============================================================================
 #pragma once
-#include "platform/platform.h"
-
 #include <AL/al.h>
 #include <AL/alc.h>
+
+#include "platform/platform.h"
 // [sonneveld] disabled until I add extension detection
 // #include "alext.h"
 

@@ -15,13 +15,13 @@
 // Script API Functions
 //
 //=============================================================================
-#include "debug/out.h"
-#include "script/script_api.h"
-#include "script/script_runtime.h"
 #include "ac/character.h"
 #include "ac/dialog.h"
 #include "ac/display.h"
 #include "ac/dynamicsprite.h"
+#include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptstring.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamestructdefines.h"
@@ -43,14 +43,14 @@
 #include "ac/object.h"
 #include "ac/parser.h"
 #include "ac/region.h"
-#include "ac/string.h"
 #include "ac/room.h"
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptstring.h"
-#include "media/video/video.h"
+#include "ac/string.h"
+#include "debug/out.h"
 #include "media/audio/audio_system.h"
+#include "media/video/video.h"
 #include "script/runtimescript.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
 #include "util/string_compat.h"
 
 using namespace AGS::Engine;

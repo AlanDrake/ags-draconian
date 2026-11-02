@@ -11,11 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/global_palette.h"
+
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_palette.h"
 #include "util/wgt2allg.h"
 
 using namespace AGS;

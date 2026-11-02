@@ -28,6 +28,7 @@
 #include <memory>
 #include <set>
 #include <vector>
+
 #include "ac/game_version.h"
 #include "game/plugininfo.h"
 #include "gfx/gfx_def.h"

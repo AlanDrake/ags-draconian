@@ -11,11 +11,13 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/label.h"
+
 #include <cstdio>
+
 #include "ac/common.h" // quit
 #include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
-#include "ac/label.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 
@@ -91,10 +93,10 @@ void Label_SetFont(GUILabel *guil, int fontnum)
 //
 //=============================================================================
 
+#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
-#include "ac/dynobj/scriptstring.h"
 
 // void (GUILabel *labl, char *buffer)
 RuntimeScriptValue Sc_Label_GetText(void *self, const RuntimeScriptValue *params, int32_t param_count)

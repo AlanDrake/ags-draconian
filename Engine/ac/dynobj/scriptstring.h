@@ -14,6 +14,7 @@
 #pragma once
 
 #include <memory>
+
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
 struct ScriptString final : AGSCCDynamicObject

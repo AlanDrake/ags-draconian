@@ -11,8 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gtest/gtest.h"
 #include "data/xml_fields.h"
+#include "gtest/gtest.h"
 #include "util/string_types.h"
 
 using namespace AGS;

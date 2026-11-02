@@ -19,6 +19,7 @@
 
 #include <string>
 #include <vector>
+
 #include "script/cc_script.h" // ccScript
 
 // ********* SCRIPT COMPILATION FUNCTIONS **************

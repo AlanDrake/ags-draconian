@@ -11,12 +11,14 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <cinttypes>
 #include "commands.h"
-#include "data/mfl_utils.h"
+
+#include <cinttypes>
+
 #include "data/include_utils.h"
-#include "util/file.h"
+#include "data/mfl_utils.h"
 #include "util/directory.h"
+#include "util/file.h"
 #include "util/path.h"
 
 using namespace AGS::Common;

@@ -20,8 +20,10 @@
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
 #define UNICODE
 #include <cstdio> // sprintf
-#include <windows.h>
+
 #include <crtdbg.h>
+#include <windows.h>
+
 #include "main/main.h"
 
 CONTEXT cpustate;

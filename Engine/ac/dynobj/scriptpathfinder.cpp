@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptpathfinder.h"
+
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/room.h"
 #include "ac/spritecache.h"

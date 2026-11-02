@@ -49,6 +49,7 @@
 
 #include <list>
 #include <unordered_map>
+
 #include "util/string.h"
 
 namespace AGS

@@ -11,13 +11,15 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/parser.h"
+
 #include <cstdio>
 #include <locale>
+
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
-#include "ac/parser.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "util/string.h"
@@ -506,10 +508,10 @@ void MergeParserDictionary(WordsDictionary *dst_dict, const WordsDictionary *src
 //
 //=============================================================================
 
+#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
-#include "ac/dynobj/scriptstring.h"
 
 // int (const char *wordToFind)
 RuntimeScriptValue Sc_Parser_FindWordID(const RuntimeScriptValue *params, int32_t param_count)

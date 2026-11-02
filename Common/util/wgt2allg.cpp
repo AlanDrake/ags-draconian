@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "util/wgt2allg.h"
+
 #include "gfx/bitmap.h"
 
 using namespace AGS::Common;

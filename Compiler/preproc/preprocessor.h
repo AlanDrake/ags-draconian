@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <stack>
+
 #include "preproc/cc_macrotable.h"
 #include "util/string.h"
 #include "util/version.h"

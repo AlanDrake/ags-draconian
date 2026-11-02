@@ -12,9 +12,10 @@
 //
 //=============================================================================
 
+#include "util/cmdlineopts.h"
+
 #include "platform/platform.h"
 #include "util/string_compat.h"
-#include "util/cmdlineopts.h"
 
 namespace AGS
 {

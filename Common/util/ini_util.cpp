@@ -11,10 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "util/ini_util.h"
+
 #include <cstdio>
 #include <memory>
+
 #include "util/file.h"
-#include "util/ini_util.h"
 #include "util/inifile.h"
 #include "util/stream.h"
 #include "util/string_utils.h"

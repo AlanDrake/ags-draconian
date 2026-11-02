@@ -14,6 +14,7 @@
 #pragma once
 
 #include <map>
+
 #include "data/assetmanager.h"
 #include "font/agsfontrenderer.h"
 

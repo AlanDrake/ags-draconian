@@ -14,15 +14,17 @@
 #include "platform/platform.h"
 
 #if AGS_PLATFORM_OS_IOS
-#include <stdio.h>
 #include <ctype.h>
+#include <stdio.h>
+
 #include <SDL.h>
 #include <allegro.h>
-#include "platform/base/agsplatformdriver.h"
-#include "platform/base/mobile_base.h"
+
 #include "ac/gamesetup.h"
 #include "ac/runtime_defines.h"
 #include "main/config.h"
+#include "platform/base/agsplatformdriver.h"
+#include "platform/base/mobile_base.h"
 #include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"

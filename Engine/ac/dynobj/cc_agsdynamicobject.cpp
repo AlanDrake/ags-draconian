@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_agsdynamicobject.h"
+
 #include <cstring> // memcpy
+
 #include "util/memory_compat.h"
 #include "util/memorystream.h"
 

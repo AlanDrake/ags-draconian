@@ -11,13 +11,15 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "gfx/bitmap.h"
+
 #include <array>
 #include <memory>
-#include "gfx/bitmap.h"
+
 #include "gfx/image_file.h"
+#include "util/file.h"
 #include "util/memory.h"
 #include "util/memorystream.h"
-#include "util/file.h"
 #include "util/path.h"
 #include "util/string_utils.h"
 

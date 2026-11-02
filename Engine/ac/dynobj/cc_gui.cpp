@@ -12,9 +12,11 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_gui.h"
+
 #include <vector>
-#include "ac/dynobj/scriptobjects.h"
+
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

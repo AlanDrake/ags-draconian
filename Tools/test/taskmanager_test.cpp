@@ -16,10 +16,11 @@
 #include <chrono>
 #include <future>
 #include <thread>
-#include "gtest/gtest.h"
+
 #include "agsbuild/diagnostics.h"
 #include "agsbuild/pipedprocess.h"
 #include "agsbuild/taskmanager.h"
+#include "gtest/gtest.h"
 
 using namespace AGS::Common;
 using namespace AGSBuild;

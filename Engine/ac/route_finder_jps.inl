@@ -17,13 +17,13 @@
 //
 //=============================================================================
 #pragma once
-#include <queue>
-#include <vector>
 #include <algorithm>
-#include <functional>
 #include <assert.h>
-#include <stddef.h>
+#include <functional>
 #include <math.h>
+#include <queue>
+#include <stddef.h>
+#include <vector>
 
 namespace AGS
 {

@@ -11,14 +11,17 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "gfx/allegrobitmap.h"
+
+#include <cstring> // memcpy
 #include <memory>
 #include <stdexcept>
-#include <cstring> // memcpy
-#include <aastr.h>
+
 #include <SDL.h>
-#include "gfx/allegrobitmap.h"
-#include "util/filestream.h"
+#include <aastr.h>
+
 #include "debug/assert.h"
+#include "util/filestream.h"
 
 namespace AGS
 {

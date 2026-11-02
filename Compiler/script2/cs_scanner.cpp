@@ -11,16 +11,16 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <string>
-#include <sstream>
+#include "cs_scanner.h"
+
+#include <cstdarg>
 #include <iomanip>
 #include <limits>
-#include <cstdarg>
+#include <sstream>
+#include <string>
 
 #include "cc_internallist.h" // SrcList
 #include "cs_parser_common.h"
-
-#include "cs_scanner.h"
 
 //                                                      123456789a1234567
 std::string const AGS::Scanner::kNewSectionLitPrefix = "__NEWSCRIPTSTART_";

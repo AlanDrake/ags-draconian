@@ -12,13 +12,15 @@
 //
 //=============================================================================
 #include "pipedprocess.h"
+
 #include <algorithm>
 #include <mutex>
 #if (AGS_PLATFORM_OS_WINDOWS)
 #else
 #include <errno.h>
-#include <fcntl.h>
 #include <signal.h>
+
+#include <fcntl.h>
 #include <sys/wait.h>
 #endif
 #include "util/memorystream.h"

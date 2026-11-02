@@ -19,18 +19,17 @@
 #if (AGS_PLATFORM_OS_WINDOWS)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <WinBase.h>
 #endif
 #include <cstring>
 
 #if !defined(BUILTIN_PLUGINS)
 #define THIS_IS_THE_PLUGIN
 #endif
-#include "plugin/agsplugin.h"
 #include "SpriteFontRenderer.h"
-#include "VariableWidthSpriteFont.h"
 #include "SpriteFontRendererClifftopGames.h"
+#include "VariableWidthSpriteFont.h"
 #include "VariableWidthSpriteFontClifftopGames.h"
+#include "plugin/agsplugin.h"
 
 
 #define DEFAULT_RGB_R_SHIFT_32 16

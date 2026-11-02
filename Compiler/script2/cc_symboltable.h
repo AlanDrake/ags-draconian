@@ -13,15 +13,15 @@
 //=============================================================================
 #pragma once
 
-#include "cs_parser_common.h"
-#include "cs_compile_time.h"
-
-#include <climits>
-#include <unordered_map>
-#include <map>
 #include <bitset>
+#include <climits>
+#include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
+
+#include "cs_compile_time.h"
+#include "cs_parser_common.h"
 
 namespace AGS
 {

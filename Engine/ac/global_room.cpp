@@ -12,9 +12,10 @@
 //
 //=============================================================================
 #include "ac/global_room.h"
-#include "ac/common.h"
+
 #include "ac/character.h"
 #include "ac/characterinfo.h"
+#include "ac/common.h"
 #include "ac/dialog.h"
 #include "ac/draw.h"
 #include "ac/event.h"

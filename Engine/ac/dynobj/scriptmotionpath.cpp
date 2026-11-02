@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptmotionpath.h"
+
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/route_finder.h"

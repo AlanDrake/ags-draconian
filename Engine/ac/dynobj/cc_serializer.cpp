@@ -11,27 +11,29 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <cstring>
 #include "ac/dynobj/cc_serializer.h"
+
+#include <cstring>
+
+#include "ac/common.h" // quitprintf
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/scriptuserobject.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptcontainers.h"
 #include "ac/dynobj/scriptfile.h"
 #include "ac/dynobj/scriptmotionpath.h"
 #include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/scriptviewport.h"
-#include "ac/common.h" // quitprintf
 #include "ac/game.h"
 #include "ac/gui.h"
 #include "debug/debug_log.h"
 #include "plugin/plugin_engine.h"
+#include "scriptjoystick.h"
 #include "util/memory_compat.h"
 #include "util/memorystream.h"
-#include "scriptjoystick.h"
 
 using namespace AGS::Common;
 

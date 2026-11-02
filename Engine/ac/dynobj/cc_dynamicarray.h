@@ -13,8 +13,9 @@
 //=============================================================================
 #pragma once
 
-#include <vector>
 #include <unordered_map>
+#include <vector>
+
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "scriptstring.h"
 #include "util/string.h"

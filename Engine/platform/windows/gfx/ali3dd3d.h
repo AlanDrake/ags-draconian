@@ -33,8 +33,8 @@
 #undef BITMAP
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
-#include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxdriverbase.h"
+#include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxfilter_d3d.h"
 #include "util/library.h"
 #include "util/math.h"

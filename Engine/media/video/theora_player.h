@@ -23,6 +23,7 @@
 #pragma once
 
 #include <apeg.h>
+
 #include "media/video/videoplayer.h"
 
 namespace AGS

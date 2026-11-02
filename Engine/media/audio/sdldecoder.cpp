@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "media/audio/sdldecoder.h"
+
 #include "util/sdl2_util.h"
 
 using namespace AGS::Common;

@@ -19,8 +19,9 @@
 //=============================================================================
 #pragma once
 
-#include <stdio.h>
 #include <functional>
+#include <stdio.h>
+
 #include "util/bufferedstream.h"
 #include "util/file.h" // TODO: extract filestream mode constants
 #include "util/memory_compat.h"

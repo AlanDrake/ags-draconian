@@ -17,8 +17,9 @@
 #include <future>
 #include <memory>
 #include <vector>
-#include "gtest/gtest.h"
+
 #include "agsbuild/pipedprocess.h"
+#include "gtest/gtest.h"
 #include "util/memorystream.h"
 
 using namespace AGS::Common;

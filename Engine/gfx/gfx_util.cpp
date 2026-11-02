@@ -12,10 +12,12 @@
 //
 //=============================================================================
 
-#include "platform/platform.h"
 #include "gfx/gfx_util.h"
-#include "gfx/blender.h"
+
 #include <allegro/internal/aintern.h> // for blenders
+
+#include "gfx/blender.h"
+#include "platform/platform.h"
 
 namespace AGS
 {

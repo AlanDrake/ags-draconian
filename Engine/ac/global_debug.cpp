@@ -12,9 +12,10 @@
 //
 //=============================================================================
 #include "ac/global_debug.h"
-#include "ac/common.h"
+
 #include "ac/character.h"
 #include "ac/characterinfo.h"
+#include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
@@ -23,20 +24,20 @@
 #include "ac/global_display.h"
 #include "ac/global_room.h"
 #include "ac/properties.h"
+#include "ac/spritecache.h"
 #include "ac/sys_events.h"
 #include "ac/translation.h"
 #include "ac/walkablearea.h"
-#include "gfx/gfxfilter.h"
-#include "gui/guidialog.h"
-#include "script/cc_common.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
-#include "main/engine.h"
-#include "main/main.h"
-#include "ac/spritecache.h"
 #include "gfx/bitmap.h"
+#include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"
+#include "gui/guidialog.h"
+#include "main/engine.h"
 #include "main/graphics_mode.h"
+#include "main/main.h"
+#include "script/cc_common.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

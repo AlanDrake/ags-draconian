@@ -11,12 +11,14 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <cstdio>
-#include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/properties.h"
-#include "ac/string.h"
+
+#include <cstdio>
+
+#include "ac/common.h"
 #include "ac/dynobj/scriptstring.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/string.h"
 #include "script/runtimescriptvalue.h"
 #include "util/string_utils.h"
 

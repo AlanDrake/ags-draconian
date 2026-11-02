@@ -23,9 +23,10 @@
 //=============================================================================
 #pragma once
 #include <memory>
+
 #include "media/audio/audiodefines.h" // PlaybackState etc
-#include "media/audio/sdldecoder.h"
 #include "media/audio/openalsource.h"
+#include "media/audio/sdldecoder.h"
 
 namespace AGS
 {

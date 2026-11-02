@@ -12,9 +12,11 @@
 //
 //=============================================================================
 #include "util/compress.h"
-#include <cstdlib>
+
 #include <cstdio>
+#include <cstdlib>
 #include <vector>
+
 #include <miniz.h>
 #if AGS_PLATFORM_ENDIAN_BIG
 #include "util/bbop.h"

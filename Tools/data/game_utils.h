@@ -13,9 +13,10 @@
 //=============================================================================
 #pragma once
 
-#include <memory>
 #include <map>
+#include <memory>
 #include <vector>
+
 #include "ac/gamestructdefines.h"
 #include "ac/spritefile.h"
 #include "game/customproperties.h"

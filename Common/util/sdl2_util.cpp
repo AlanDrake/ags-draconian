@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "util/sdl2_util.h"
+
 #include "debug/assert.h"
 
 namespace AGS

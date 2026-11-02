@@ -11,16 +11,18 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <algorithm>
-#include "ac/draw.h"
-#include "ac/game_version.h"
 #include "ac/gamestate.h"
-#include "ac/gamesetupstruct.h"
-#include "ac/timer.h"
+
+#include <algorithm>
+
+#include "ac/draw.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "ac/dynobj/scriptviewport.h"
-#include "ac/dynobj/dynobj_manager.h"
+#include "ac/game_version.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/timer.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/customproperties.h"

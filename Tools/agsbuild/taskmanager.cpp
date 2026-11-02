@@ -12,9 +12,11 @@
 //
 //=============================================================================
 #include "taskmanager.h"
+
+#include <algorithm>
+
 #include "diagnostics.h"
 #include "pipedprocess.h"
-#include <algorithm>
 #include "util/file.h"
 #include "util/memory_compat.h"
 #include "util/memorystream.h"

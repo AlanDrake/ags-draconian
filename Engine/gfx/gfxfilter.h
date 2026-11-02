@@ -19,6 +19,7 @@
 #pragma once
 
 #include <memory>
+
 #include "util/geometry.h"
 #include "util/string.h"
 

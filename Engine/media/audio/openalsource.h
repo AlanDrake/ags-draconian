@@ -20,6 +20,7 @@
 //=============================================================================
 #pragma once
 #include <deque>
+
 #include "media/audio/audiodefines.h"
 #include "media/audio/openal.h"
 #include "media/audio/sdldecoder.h"

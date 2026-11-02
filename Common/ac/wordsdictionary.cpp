@@ -12,8 +12,10 @@
 //
 //=============================================================================
 #include "ac/wordsdictionary.h"
+
 #include <algorithm>
 #include <map>
+
 #include "data/data_helpers.h"
 #include "util/stream.h"
 

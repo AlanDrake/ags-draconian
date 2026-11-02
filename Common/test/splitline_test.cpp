@@ -11,8 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gtest/gtest.h"
 #include "font/fonts.h"
+#include "gtest/gtest.h"
 
 using namespace AGS::Common;
 

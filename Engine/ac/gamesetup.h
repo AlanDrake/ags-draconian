@@ -14,6 +14,7 @@
 #pragma once
 
 #include <array>
+
 #include "ac/game_version.h"
 #include "ac/runtime_defines.h"
 #include "ac/speech.h"

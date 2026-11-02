@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "ac/math.h"
+
 #include <cmath>
+
 #include "ac/common.h" // quit
 #include "debug/debug_log.h"
 #include "util/math.h"

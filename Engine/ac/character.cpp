@@ -15,15 +15,24 @@
 // AGS Character functions
 //
 //=============================================================================
+#include "ac/character.h"
+
 #include <cstdio>
 #include <math.h>
-#include "ac/character.h"
+
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/display.h"
 #include "ac/draw.h"
+#include "ac/dynobj/cc_character.h"
+#include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/cc_inventory.h"
+#include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptmotionpath.h"
+#include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "ac/event.h"
 #include "ac/game.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_display.h"
@@ -50,17 +59,10 @@
 #include "ac/view.h"
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
-#include "ac/dynobj/cc_character.h"
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/cc_inventory.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptmotionpath.h"
-#include "ac/dynobj/scriptshader.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "debug/debug_log.h"
-#include "gui/guimain.h"
 #include "gfx/gfx_def.h"
 #include "gfx/graphicsdriver.h"
+#include "gui/guimain.h"
 #include "main/game_run.h"
 #include "main/update.h"
 #include "media/audio/audio_system.h"
@@ -3843,10 +3845,10 @@ void UpdateInventory()
 //
 //=============================================================================
 
+#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
-#include "ac/dynobj/scriptstring.h"
 
 CharacterInfo *Character_GetByName(const char *name)
 {

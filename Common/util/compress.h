@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <vector>
+
 #include "gfx/bitmapdata.h"
 #include "util/stream.h"
 

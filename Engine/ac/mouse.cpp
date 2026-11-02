@@ -12,13 +12,15 @@
 //
 //=============================================================================
 #include "ac/mouse.h"
-#include "ac/common.h"
+
 #include "ac/characterinfo.h"
+#include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/dynobj/scriptmouse.h"
-#include "ac/dynobj/scriptsystem.h"
-#include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptmouse.h"
+#include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/scriptsystem.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -26,17 +28,16 @@
 #include "ac/global_game.h"
 #include "ac/global_screen.h"
 #include "ac/gui.h"
+#include "ac/spritecache.h"
 #include "ac/sys_events.h"
 #include "ac/system.h"
 #include "ac/viewframe.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "debug/debug_log.h"
+#include "device/mousew32.h"
+#include "gfx/gfxfilter.h"
+#include "gfx/graphicsdriver.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
-#include "device/mousew32.h"
-#include "ac/spritecache.h"
-#include "gfx/graphicsdriver.h"
-#include "gfx/gfxfilter.h"
 #include "platform/base/agsplatformdriver.h"
 
 using namespace AGS;
@@ -665,10 +666,10 @@ int find_previous_enabled_cursor(int startwith)
 //
 //=============================================================================
 
+#include "ac/global_game.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
-#include "ac/global_game.h"
 
 // void  (int curs, int newslot)
 RuntimeScriptValue Sc_Mouse_ChangeCursorGraphic(const RuntimeScriptValue *params, int32_t param_count)

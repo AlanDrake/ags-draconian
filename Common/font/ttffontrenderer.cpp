@@ -12,14 +12,16 @@
 //
 //=============================================================================
 #include "font/ttffontrenderer.h"
+
 #include <SDL_ttf.h>
+
 #include "ac/game_version.h"
-#include "platform/platform.h"
 #include "data/assetmanager.h"
 #include "font/fonts.h"
 #include "gfx/blender.h"
-#include "util/stream.h"
+#include "platform/platform.h"
 #include "util/sdl2_util.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 

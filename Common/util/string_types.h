@@ -19,8 +19,9 @@
 #include <locale>
 #include <memory>
 #include <stdexcept>
-#include <vector>
 #include <unordered_map>
+#include <vector>
+
 #include "util/string.h"
 #include "util/utf8.h"
 

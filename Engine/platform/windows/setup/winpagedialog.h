@@ -23,6 +23,7 @@
 
 #include <memory>
 #include <vector>
+
 #include "platform/windows/setup/windialog.h"
 #include "util/geometry.h"
 #include "util/string.h"

@@ -11,11 +11,13 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <memory.h>
 #include "scriptuserobject.h"
+
+#include <memory.h>
+
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/managedobjectpool.h"
-#include "ac/dynobj/cc_dynamicarray.h"
 #include "script/cc_script.h"
 #include "script/runtimescript.h"
 #include "util/memorystream.h"

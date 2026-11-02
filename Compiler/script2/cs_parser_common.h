@@ -12,8 +12,8 @@
 //
 //=============================================================================
 #pragma once
-#include <cstdint>
 #include <cstddef> // size_t
+#include <cstdint>
 #include <string>
 #include <vector>
 

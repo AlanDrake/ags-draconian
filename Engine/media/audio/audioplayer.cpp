@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "media/audio/audioplayer.h"
+
 #include "util/memory_compat.h"
 
 namespace AGS

@@ -14,9 +14,9 @@
 #pragma once
 
 #include <list>
-#include <vector>
 #include <queue>
 #include <unordered_map>
+#include <vector>
 
 #include "ac/dynobj/cc_scriptobject.h" // IScriptObject
 #include "platform/platform.h"

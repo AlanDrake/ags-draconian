@@ -11,14 +11,13 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gtest/gtest.h"
-
-#include <string>
 #include <iostream>
-#include "script2/cs_parser.h"
-#include "script2/cc_symboltable.h"
-#include "script2/cc_internallist.h"
+#include <string>
 
+#include "gtest/gtest.h"
+#include "script2/cc_internallist.h"
+#include "script2/cc_symboltable.h"
+#include "script2/cs_parser.h"
 #include "script2/cs_scanner.h"
 
 // The vars defined here are provided in each test that is in category "Scan"

@@ -11,14 +11,16 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "script/script.h"
+
 #include <cstdio>
 #include <cstring>
 #include <memory>
 #include <stack>
 #include <vector>
-#include "script/script.h"
-#include "ac/common.h"
+
 #include "ac/character.h"
+#include "ac/common.h"
 #include "ac/dialog.h"
 #include "ac/event.h"
 #include "ac/game.h"
@@ -34,13 +36,13 @@
 #include "ac/mouse.h"
 #include "ac/room.h"
 #include "ac/roomobject.h"
-#include "script/cc_common.h"
-#include "debug/debugger.h"
 #include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "debug/out.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "plugin/plugin_engine.h"
+#include "script/cc_common.h"
 #include "script/script_runtime.h"
 #include "util/memory_compat.h"
 #include "util/string_compat.h"

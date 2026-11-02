@@ -19,6 +19,7 @@
 #pragma once
 
 #include <SDL_render.h>
+
 #include "gfx/gfxfilter_scaling.h"
 
 namespace AGS

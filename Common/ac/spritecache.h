@@ -39,6 +39,7 @@
 #include <list>
 #include <memory>
 #include <vector>
+
 #include "ac/spritefile.h"
 #include "gfx/bitmap.h"
 #include "platform/platform.h"

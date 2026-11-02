@@ -13,9 +13,10 @@
 //=============================================================================
 
 #include "ac/dynobj/scriptjoystick.h"
+
 #include "ac/joystick.h"
-#include "util/stream.h"
 #include "dynobj_manager.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 

@@ -12,12 +12,14 @@
 //
 //=============================================================================
 #include <string>
+
 #include <util/string_compat.h>
+
 #include "gtest/gtest.h"
-#include "test/cc_test_helper.h"
-#include "script/cs_parser.h"
-#include "script/cc_symboltable.h"
 #include "script/cc_internallist.h"
+#include "script/cc_symboltable.h"
+#include "script/cs_parser.h"
+#include "test/cc_test_helper.h"
 #include "util/string.h"
 
 extern int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip);

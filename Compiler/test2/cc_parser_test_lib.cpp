@@ -11,11 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "cc_parser_test_lib.h"
+
 #include <string>
-#include "util/string.h"
 
 #include "script/cc_common.h"
-#include "cc_parser_test_lib.h"
+#include "util/string.h"
 
 typedef AGS::Common::String AGSString;
 

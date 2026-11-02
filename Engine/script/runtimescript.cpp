@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "script/runtimescript.h"
+
 #include "script/cc_common.h"
 #include "script/script_runtime.h"
 #include "util/memory_compat.h"

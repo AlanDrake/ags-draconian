@@ -15,23 +15,25 @@
 #include "platform/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
-#include <direct.h>
-#include <cstring>
 #include "platform/windows/windows.h"
+
+#include <cstring>
+
+#include <direct.h>
 #include <shlobj.h>
 #include <shlwapi.h>
 
-#include "platform/base/agsplatformdriver.h"
 #include "ac/common.h" // quit
 #include "ac/gamesetup.h"
 #include "main/engine.h"
+#include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "platform/windows/setup/winsetup.h"
 struct BITMAP; // we need it only as a placeholder here
 #include "plugin/agsplugin.h"
 #include "resource/resource.h"
-#include "util/string_utils.h"
 #include "util/stdio_compat.h"
+#include "util/string_utils.h"
 
 
 using namespace AGS::Common;

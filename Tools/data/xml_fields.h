@@ -37,7 +37,9 @@
 #include <cstdint>
 #include <cstring>
 #include <vector>
+
 #include <tinyxml2.h>
+
 #include "util/error.h"
 #include "util/geometry.h"
 #include "util/string.h"

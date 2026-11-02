@@ -14,11 +14,12 @@
 #pragma once
 
 #include <vector>
+
 #include "ac/common_defines.h" // TODO: split out gui drawing helpers
 #include "ac/game_version.h"
 #include "gfx/gfx_def.h" // TODO: split out gui drawing helpers
-#include "gui/guidefines.h"
 #include "gui/guibutton.h"
+#include "gui/guidefines.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"
 #include "gui/guilistbox.h"

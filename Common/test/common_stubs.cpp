@@ -16,11 +16,11 @@
 //
 //=============================================================================
 #include "ac/game_version.h"
-#include "gui/guiobject.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"
 #include "gui/guilistbox.h"
+#include "gui/guiobject.h"
 #include "gui/guitextbox.h"
 #include "util/version.h"
 

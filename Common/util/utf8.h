@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <cstring>
+
 #include "platform/types.h"
 
 namespace Utf8

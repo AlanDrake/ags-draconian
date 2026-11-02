@@ -15,21 +15,23 @@
 
 #if AGS_HAS_DIRECT3D
 #define NOMINMAX
-#include "platform/windows/gfx/ali3dd3d.h"
 #include <algorithm>
 #include <cmath>
 #include <stack>
+
 #include <SDL.h>
 #include <glm/ext.hpp>
+
 #include "ac/sys_events.h"
 #include "ac/timer.h"
 #include "debug/out.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/gfx_def.h"
-#include "gfx/gfxfilter_d3d.h"
 #include "gfx/gfxfilter_aad3d.h"
+#include "gfx/gfxfilter_d3d.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
+#include "platform/windows/gfx/ali3dd3d.h"
 #include "util/matrix.h"
 
 

@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "gui/guiobject.h"
+
 #include "gui/guimain.h"
 
 namespace AGS

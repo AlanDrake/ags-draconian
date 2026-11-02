@@ -11,27 +11,27 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <utility>
-#include <iostream>
-
 #include "compiler.h"
+
+#include <iostream>
+#include <utility>
 
 #ifdef LEGACY_COMPILER
-#include "script/cs_compiler.h"
 #include "script/cc_common.h"
 #include "script/cc_internal.h"
+#include "script/cs_compiler.h"
 #else
-#include "script2/cs_compiler.h"
 #include "script/cc_common.h"
+#include "script2/cs_compiler.h"
 #endif
-#include "util/filestream.h"
-#include "util/file.h"
-#include "util/path.h"
-#include "util/textstreamreader.h"
-#include "util/string_compat.h"
 #include "ac/gamestructdefines.h"
-#include "preproc/preprocessor.h"
 #include "compiler.h"
+#include "preproc/preprocessor.h"
+#include "util/file.h"
+#include "util/filestream.h"
+#include "util/path.h"
+#include "util/string_compat.h"
+#include "util/textstreamreader.h"
 
 using namespace AGS::Common;
 

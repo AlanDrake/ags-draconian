@@ -23,6 +23,7 @@
 #pragma once
 
 #include <memory>
+
 #include "util/string.h"
 #include "util/string_types.h"
 

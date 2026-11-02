@@ -15,9 +15,9 @@
 // Shader script API.
 //
 //=============================================================================
+#include "ac/draw.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptshader.h"
-#include "ac/draw.h"
 #include "ac/path_helper.h"
 #include "debug/debug_log.h"
 #include "gfx/graphicsdriver.h"

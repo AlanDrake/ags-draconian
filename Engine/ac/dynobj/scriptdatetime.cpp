@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptdatetime.h"
+
 #include <ctime>
+
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "util/stream.h"

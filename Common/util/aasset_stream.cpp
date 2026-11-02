@@ -13,12 +13,14 @@
 //=============================================================================
 #include "platform/platform.h"
 #if AGS_PLATFORM_OS_ANDROID
-#include "util/aasset_stream.h"
 #include <algorithm>
 #include <stdexcept>
-#include <jni.h>
+
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
+#include <jni.h>
+
+#include "util/aasset_stream.h"
 #include "util/android_file.h"
 #include "util/path.h"
 #include "util/string.h"

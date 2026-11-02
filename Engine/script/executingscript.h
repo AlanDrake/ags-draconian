@@ -18,6 +18,7 @@
 #pragma once
 
 #include <vector>
+
 #include "gfx/bitmap.h"
 #include "script/runtimescript.h"
 #include "script/runtimescriptvalue.h"

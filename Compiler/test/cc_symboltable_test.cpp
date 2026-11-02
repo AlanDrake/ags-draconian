@@ -12,9 +12,8 @@
 //
 //=============================================================================
 #include "gtest/gtest.h"
-
-#include "script/cc_symboltable.h"
 #include "script/cc_symboldef.h"
+#include "script/cc_symboltable.h"
 
 TEST(SymbolTable, GetNameNonExistent)
 {

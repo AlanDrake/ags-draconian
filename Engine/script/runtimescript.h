@@ -14,6 +14,7 @@
 #pragma once
 #include <memory>
 #include <vector>
+
 #include "script/cc_internal.h" // FIXME: should not be included into this header
 #include "script/cc_reflecthelper.h"
 #include "script/cc_script.h"

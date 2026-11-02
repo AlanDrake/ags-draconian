@@ -11,11 +11,13 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/global_translation.h"
+
 #include <cstdio>
+
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/gamestate.h"
-#include "ac/global_translation.h"
 #include "ac/string.h"
 #include "ac/translation.h"
 #include "platform/base/agsplatformdriver.h"

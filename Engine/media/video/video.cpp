@@ -15,10 +15,11 @@
 
 #ifndef AGS_NO_VIDEO_PLAYER
 #include <cinttypes>
-#include "data/assetmanager.h"
+
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
-#include "ac/game.h"
+#include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptvideoplayer.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -26,8 +27,7 @@
 #include "ac/joystick.h"
 #include "ac/spritecache.h"
 #include "ac/sys_events.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptvideoplayer.h"
+#include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"

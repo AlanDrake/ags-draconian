@@ -12,9 +12,10 @@
 //
 //=============================================================================
 #include "ac/global_timer.h"
-#include "ac/runtime_defines.h"
+
 #include "ac/common.h"
 #include "ac/gamestate.h"
+#include "ac/runtime_defines.h"
 #include "debug/debug_log.h"
 
 bool AssertTimerID(const char *api_name, int tnum)

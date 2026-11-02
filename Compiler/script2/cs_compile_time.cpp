@@ -11,13 +11,14 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "cs_compile_time.h"
+
 #include <cassert>
 #include <cmath>
 #include <cstdarg>
 #include <limits>
 
 #include "cc_symboltable.h"
-#include "cs_compile_time.h"
 
 // For printf rendering of floats.
 // 8 decimal digits don't lose precision in 32 bit IEEE 754 floats

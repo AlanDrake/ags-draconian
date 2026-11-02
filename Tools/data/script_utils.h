@@ -19,6 +19,7 @@
 #pragma once
 
 #include <vector>
+
 #include "util/string.h"
 
 namespace AGS

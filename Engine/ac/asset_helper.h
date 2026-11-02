@@ -18,6 +18,7 @@
 #pragma once
 #include <memory>
 #include <utility>
+
 #include "data/assetmanager.h"
 
 namespace AGS

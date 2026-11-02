@@ -17,6 +17,7 @@
 #if AGS_HAS_DIRECT3D
 
 #include <d3d9.h>
+
 #include "gfx/gfxfilter_d3d.h"
 
 namespace AGS

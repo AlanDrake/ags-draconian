@@ -24,6 +24,7 @@
 #pragma once
 
 #include <memory>
+
 #include "debug/outputhandler.h"
 
 namespace AGS

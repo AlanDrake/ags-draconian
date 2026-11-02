@@ -12,9 +12,10 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_walkbehind.h"
-#include "ac/dynobj/scriptobjects.h"
-#include "ac/dynobj/dynobj_manager.h"
+
 #include "ac/common_defines.h"
+#include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "game/roomstruct.h"
 #include "util/stream.h"
 

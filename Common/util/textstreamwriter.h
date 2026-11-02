@@ -18,6 +18,7 @@
 #pragma once
 
 #include <memory>
+
 #include "util/stream.h"
 #include "util/textwriter.h"
 

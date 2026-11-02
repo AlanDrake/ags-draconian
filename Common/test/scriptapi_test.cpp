@@ -13,8 +13,9 @@
 //=============================================================================
 #include <cstring>
 #include <iterator>
-#include "gtest/gtest.h"
+
 #include "ac/gamestructdefines.h"
+#include "gtest/gtest.h"
 
 // kScriptAPINames is the one list the script compiler and the build tools use to understand
 // the API levels written in game projects. It used to be copied into each tool, and the copies

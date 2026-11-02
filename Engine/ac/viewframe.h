@@ -17,10 +17,10 @@
 //=============================================================================
 #pragma once
 
-#include "ac/runtime_defines.h"
-#include "ac/view.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptviewframe.h"
+#include "ac/runtime_defines.h"
+#include "ac/view.h"
 #include "gfx/bitmap.h"
 
 namespace AGS

@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "diagnostics.h"
+
 #include <algorithm>
 #include <atomic>
 #include <csignal>

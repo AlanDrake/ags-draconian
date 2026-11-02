@@ -12,8 +12,9 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_guicontrol.h"
-#include "ac/gui.h"
+
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/gui.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

@@ -11,16 +11,18 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "debug/filebasedagsdebugger.h"
+
 #include <algorithm>
 #include <cstdio>
-#include <limits>
 #include <cstring>
-#include "debug/filebasedagsdebugger.h"
+#include <limits>
+
+#include "platform/base/agsplatformdriver.h"
 #include "util/file.h"
 #include "util/path.h"
 #include "util/stream.h"
 #include "util/textstreamwriter.h"
-#include "platform/base/agsplatformdriver.h"
 
 using namespace AGS::Common;
 

@@ -12,9 +12,11 @@
 //
 //=============================================================================
 #include "gfx/sprite_data_fmt.h"
+
 #include <array>
 #include <memory>
 #include <vector>
+
 #include "debug/assert.h"
 #include "util/compress.h"
 #include "util/memory_compat.h"

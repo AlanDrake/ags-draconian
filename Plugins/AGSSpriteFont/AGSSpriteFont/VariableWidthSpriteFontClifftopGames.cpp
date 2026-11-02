@@ -1,7 +1,9 @@
 #include "VariableWidthSpriteFontClifftopGames.h"
-#include <string>
-#include <cstring>
+
 #include <cstdint>
+#include <cstring>
+#include <string>
+
 #include "color.h"
 
 

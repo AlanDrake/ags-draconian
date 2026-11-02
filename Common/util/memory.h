@@ -18,6 +18,7 @@
 #pragma once
 
 #include <string.h>
+
 #include "util/bbop.h"
 #include "util/math.h"
 

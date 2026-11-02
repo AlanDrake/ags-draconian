@@ -11,10 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "cc_symboltable.h"
+
 #include <algorithm>
 #include <string>
 
-#include "cc_symboltable.h"
 #include "script/cc_internal.h"
 
 const size_t AGS::SymbolTableConstant::kParameterScope = 1u;

@@ -13,8 +13,8 @@
 //=============================================================================
 #pragma once
 
-#include "script2/cc_internallist.h"
 #include "script2/cc_compiledscript.h"
+#include "script2/cc_internallist.h"
 #include "script2/cc_symboltable.h"
 #include "script2/cs_parser_common.h"
 

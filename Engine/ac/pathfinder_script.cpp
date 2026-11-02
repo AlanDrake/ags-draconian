@@ -15,8 +15,8 @@
 // Pathfinder script API.
 //
 //=============================================================================
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptmotionpath.h"
 #include "ac/dynobj/scriptpathfinder.h"
 #include "ac/dynobj/scriptuserobject.h"

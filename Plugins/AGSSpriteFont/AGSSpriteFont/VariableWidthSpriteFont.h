@@ -1,7 +1,8 @@
 #pragma once
-#include "plugin/agsplugin.h"
-#include "VariableWidthFont.h"
 #include <vector>
+
+#include "VariableWidthFont.h"
+#include "plugin/agsplugin.h"
 
 class VariableWidthSpriteFontRenderer : public IAGSFontRenderer2
 {

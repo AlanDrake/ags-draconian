@@ -11,8 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <algorithm>
 #include "font/wfnfont.h"
+
+#include <algorithm>
+
 #include "debug/out.h"
 #include "util/memory.h"
 #include "util/stream.h"

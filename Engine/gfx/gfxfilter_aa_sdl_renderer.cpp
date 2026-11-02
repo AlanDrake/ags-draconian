@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "gfx/gfxfilter_aa_sdl_renderer.h"
+
 #include <SDL.h>
 
 namespace AGS

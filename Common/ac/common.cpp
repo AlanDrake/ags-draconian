@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/common.h"
+
 #include "util/string.h"
 
 using namespace AGS::Common;

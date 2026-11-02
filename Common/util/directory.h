@@ -23,6 +23,7 @@
 #include <stack>
 #include <stdexcept>
 #include <vector>
+
 #include "platform/platform.h"
 #include "util/string.h"
 #include "util/string_utils.h"

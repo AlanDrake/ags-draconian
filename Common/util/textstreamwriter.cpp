@@ -11,9 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <cstdarg>
-#include "platform/platform.h"
 #include "util/textstreamwriter.h"
+
+#include <cstdarg>
+
+#include "platform/platform.h"
 #include "util/stream.h"
 
 namespace AGS

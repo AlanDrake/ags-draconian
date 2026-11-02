@@ -12,13 +12,14 @@
 //
 //=============================================================================
 #include "ac/screenoverlay.h"
+
 #include "ac/dynamicsprite.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/object.h"
 #include "ac/spritecache.h"
 #include "ac/viewframe.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "gfx/bitmap.h"
 #include "util/stream.h"
 #include "util/string_utils.h"

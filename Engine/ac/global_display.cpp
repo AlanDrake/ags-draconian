@@ -11,17 +11,19 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <cstdio>
+#include "ac/global_display.h"
+
 #include <cstdarg>
-#include "ac/common.h"
+#include <cstdio>
+
 #include "ac/character.h"
+#include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_display.h"
 #include "ac/global_screen.h"
 #include "ac/global_translation.h"
 #include "ac/overlay.h"

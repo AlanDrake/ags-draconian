@@ -14,8 +14,9 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 #include <unordered_map>
+#include <vector>
+
 #include "ac/common_defines.h"
 #include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/scriptaudioclip.h"

@@ -18,6 +18,7 @@
 #pragma once
 
 #include <vector>
+
 #include "ac/dynobj/cc_scriptobject.h"
 #include "game/game_init.h"
 #include "game/plugininfo.h"

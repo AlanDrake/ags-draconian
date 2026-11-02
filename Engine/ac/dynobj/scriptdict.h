@@ -25,10 +25,11 @@
 #pragma once
 
 #include <map>
-#include <unordered_map>
 #include <string.h>
-#include "ac/runtime_defines.h"
+#include <unordered_map>
+
 #include "ac/dynobj/cc_agsdynamicobject.h"
+#include "ac/runtime_defines.h"
 #include "util/stream.h"
 #include "util/string.h"
 #include "util/string_types.h"

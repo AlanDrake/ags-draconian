@@ -12,8 +12,10 @@
 //
 //=============================================================================
 #ifndef AGS_NO_VIDEO_PLAYER
-#include <cinttypes>
 #include "media/video/videoplayer.h"
+
+#include <cinttypes>
+
 #include "debug/out.h"
 #include "util/memory_compat.h"
 

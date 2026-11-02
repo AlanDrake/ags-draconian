@@ -99,8 +99,8 @@ of the fork").
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **CI check:** the `Auto-test game` job (1.7) and the new tests on Linux/macOS/MinGW (7.1h `Terminate` on POSIX) | Neither has run in CI yet; 1.7 closes when the platform jobs pass with the tool-built game | (you) |
-| 2 | **2.6:** self-contained headers, then sorted includes | Next mechanical task; 7.1 is done apart from 1.7's CI run | Sonnet 5.5, `medium` |
+| 1 | **CI check of 2.6:** the `header_check` step on the Ubuntu (GCC) job, and the sorted includes on Linux/macOS/Android/Emscripten | Only MSVC was built locally; GCC may find headers that are not self-contained | (you) |
+| 2 | **2.4:** clang-tidy gate | Next of phase 2 | Sonnet 5.5, `medium` |
 
 Other tracks that can run in between: 1.3 (engine unit tests, Opus 5.5 `xhigh`). Phase 7.1 is complete
 once CI confirms 1.7; the next big step is 6.7d (the editor builds through the tools).
@@ -299,12 +299,31 @@ lines, tab-indented code.
   Android/iOS/Linux/macOS-only sources were checked by reading; CI is the real test for those.
   The metric still shows 12: one function-local `using` in `characterinfo.h` (harmless) and 11 in
   `Editor/AGS.Native` (C++/CLI, removed in 6.7).
-- [ ] **2.6 Self-contained headers, then sorted includes.** Add a CMake target that compiles each
+- [x] **2.6 Self-contained headers, then sorted includes.** Add a CMake target that compiles each
   first-party header on its own (`header_check_<name>.cpp` that includes only that header). Fix
   failures with includes or forward declarations, then set `SortIncludes: CaseSensitive` with
   `IncludeCategories` matching STYLE.md and reformat once more.
   *Done when:* the header-check target builds and include order is enforced. This also helps
   compile times: `character.cpp` includes 57 headers and `game.cpp` 74.
+  *Status (2026-11-02):* done, in two commits.
+  - **Self-contained headers.** `CMake/HeaderCheck.cmake` adds the `header_check` target
+    (`-DAGS_HEADER_CHECK=1`): one generated source per header of `Common/`, `Engine/`, `Tools/` and
+    `Compiler/` that includes only that header, with the flags of the owning target; platform
+    headers are checked on their platform only. 28 of 366 headers failed on MSVC (missing includes
+    or forward declarations: `Stream`, `String`, `Rect`, the gfx filter classes in `ali3d*.h`,
+    `SavegameDescription`, ...); all fixed. Left out on purpose: `Compiler/script/` (the legacy compiler,
+    gone in 3.3) and `util/library_*.h` (parts of `library.h`, chosen by platform). CI runs the target on
+    the Windows (MSVC) and Ubuntu (GCC) jobs; it fails when a header is broken (tried).
+  - **Sorted includes.** `.clang-format` now has `SortIncludes: CaseSensitive`, `IncludeBlocks: Regroup`
+    and four categories: own header, `platform/windows/windows.h` (must precede other Windows
+    headers: `<shlwapi.h>` and `<Psapi.h>` broke without it), C/C++ standard, other `<...>`, then
+    `"..."`. One mechanical commit over 570 files. Measured: the whole tree builds on MSVC, 806 unit
+    tests pass, and `compare_objects.py` finds identical code in every non-test object (354 byte-identical;
+    229 differ only in the debug-info section or function order, which include order changes; the
+    21 test objects differ as always). Not built here: the Linux/macOS/Android/Emscripten-only sources,
+    where CI is the test. One manual edit: `AGSSpriteFont.cpp` included `<WinBase.h>` before
+    `<windows.h>`, which sorting reversed; `windows.h` includes it anyway.
+  - `Script/compare_objects.py` learned to tell "bytes differ" from "code differs" (needs `dumpbin`).
 - [x] **2.7 Line endings.** Renormalise with the `.gitattributes` from 0.5 (`git add --renormalize .`)
   in one commit, listed in `.git-blame-ignore-revs`.
   *Status (2026-11-01):* done: 457 files (mostly C# editor sources), content identical ignoring CR.

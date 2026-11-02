@@ -11,23 +11,25 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/guicontrol.h"
+
 #include <vector>
+
 #include "ac/common.h"
+#include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/cc_gui.h"
+#include "ac/dynobj/cc_guicontrol.h"
+#include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_gui.h"
 #include "ac/gui.h"
-#include "ac/guicontrol.h"
 #include "ac/mouse.h"
 #include "ac/object.h"
 #include "ac/properties.h"
 #include "ac/string.h"
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/cc_gui.h"
-#include "ac/dynobj/cc_guicontrol.h"
-#include "ac/dynobj/scriptshader.h"
-#include "ac/dynobj/scriptuserobject.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "script/runtimescriptvalue.h"
 

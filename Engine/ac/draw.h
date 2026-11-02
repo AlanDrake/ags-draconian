@@ -14,12 +14,13 @@
 #pragma once
 
 #include <memory>
+
 #include "ac/common_defines.h"
 #include "ac/runtime_defines.h"
 #include "ac/spritecache.h"
+#include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
-#include "game/roomstruct.h"
 
 namespace AGS
 {

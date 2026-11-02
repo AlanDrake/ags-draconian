@@ -14,7 +14,10 @@
 //
 // Game configuration
 //
+#include "main/config.h"
+
 #include <cctype> // toupper
+
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -22,18 +25,17 @@
 #include "ac/path_helper.h"
 #include "ac/spritecache.h"
 #include "ac/system.h"
-#include "platform/platform.h"
-#include "debug/debugger.h"
 #include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "device/mousew32.h"
-#include "main/config.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/platform.h"
 #include "util/directory.h"
 #include "util/ini_util.h"
-#include "util/textstreamreader.h"
 #include "util/path.h"
 #include "util/string_utils.h"
+#include "util/textstreamreader.h"
 
 
 using namespace AGS::Common;

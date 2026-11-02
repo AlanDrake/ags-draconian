@@ -11,14 +11,15 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/dialogoptionsrendering.h"
+
 #include "ac/common.h" // quitprintf
 #include "ac/dialog.h"
 #include "ac/dialogtopic.h"
-#include "ac/dialogoptionsrendering.h"
+#include "ac/dynobj/cc_dialog.h"
 #include "ac/gamestructdefines.h"
 #include "debug/debug_log.h"
 #include "script/runtimescriptvalue.h"
-#include "ac/dynobj/cc_dialog.h"
 
 extern CCDialog ccDynamicDialog;
 

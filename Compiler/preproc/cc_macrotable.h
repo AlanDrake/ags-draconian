@@ -14,6 +14,7 @@
 #pragma once
 
 #include <map>
+
 #include "util/string.h"
 
 typedef AGS::Common::String AGString;

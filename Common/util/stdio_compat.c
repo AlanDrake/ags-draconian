@@ -13,17 +13,21 @@
 //=============================================================================
 #include "util/stdio_compat.h"
 
-#include "platform/platform.h"
 #include <stdio.h>
-#include <sys/types.h>
+
 #include <sys/stat.h>
+#include <sys/types.h>
+
+#include "platform/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/windows.h"
+
 #include <io.h>
 #include <shlwapi.h>
 #else // POSIX
 #include <errno.h>
+
 #include <fcntl.h>
 #include <unistd.h>
 #endif // POSIX

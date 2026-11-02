@@ -11,15 +11,17 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <cinttypes>
-#include <vector>
-#include <cstring>
 #include "ac/dynobj/managedobjectpool.h"
+
+#include <cinttypes>
+#include <cstring>
+#include <vector>
+
 #include "debug/out.h"
-#include "util/string_utils.h" // fputstring, etc
 #include "script/cc_common.h"
 #include "util/memorystream.h"
 #include "util/stream.h"
+#include "util/string_utils.h" // fputstring, etc
 
 using namespace AGS;
 using namespace AGS::Common;

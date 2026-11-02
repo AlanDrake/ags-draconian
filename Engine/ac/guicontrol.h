@@ -17,14 +17,14 @@
 //=============================================================================
 #pragma once
 
-#include "gui/guicontrol.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "gui/guibutton.h"
+#include "gui/guicontrol.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"
 #include "gui/guilistbox.h"
 #include "gui/guislider.h"
 #include "gui/guitextbox.h"
-#include "ac/dynobj/scriptobjects.h"
 
 using AGS::Common::GUIControl;
 using AGS::Common::GUIButton;

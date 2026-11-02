@@ -38,9 +38,10 @@
 #pragma once
 
 #include <stdarg.h>
-#include <vector>
-#include <string> // for converting from and to std::string
 #include <string.h>
+#include <string> // for converting from and to std::string
+#include <vector>
+
 #include "debug/assert.h"
 #include "platform/platform.h"
 #include "platform/types.h"

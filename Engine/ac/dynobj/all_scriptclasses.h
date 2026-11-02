@@ -17,12 +17,12 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptdatetime.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/dynobj/scriptdynamicsprite.h"
 #include "ac/dynobj/scriptmouse.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptoverlay.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/dynobj/scriptsystem.h"

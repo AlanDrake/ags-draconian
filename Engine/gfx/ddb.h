@@ -22,6 +22,7 @@
 #pragma once
 
 #include <memory>
+
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfxdefines.h"

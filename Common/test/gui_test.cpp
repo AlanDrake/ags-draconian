@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <array>
+
 #include "gtest/gtest.h"
 #include "gui/guimain.h"
 

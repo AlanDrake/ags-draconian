@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "commands.h"
+
 #include <allegro.h>
+
 #include "ac/spritefile.h"
 #include "data/sprite_utils.h"
 #include "gfx/image_file.h"

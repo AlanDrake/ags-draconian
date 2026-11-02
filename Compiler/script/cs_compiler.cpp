@@ -11,16 +11,18 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "script/cs_compiler.h"
+
 #include <algorithm>
 #include <set>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "script/cs_compiler.h"
-#include "script/cc_compiledscript.h"
-#include "script/cc_symboltable.h"
+
 #include "script/cc_common.h"
+#include "script/cc_compiledscript.h"
 #include "script/cc_internal.h"
+#include "script/cc_symboltable.h"
 #include "script/cs_parser.h"
 
 using namespace AGS;

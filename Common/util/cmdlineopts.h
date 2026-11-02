@@ -18,8 +18,9 @@
 
 #pragma once
 
-#include <vector>
 #include <set>
+#include <vector>
+
 #include "util/string.h"
 
 namespace AGS

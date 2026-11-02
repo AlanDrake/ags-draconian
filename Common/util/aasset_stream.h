@@ -21,6 +21,7 @@
 
 #if AGS_PLATFORM_OS_ANDROID
 #include <android/asset_manager.h>
+
 #include "util/bufferedstream.h"
 #include "util/memory_compat.h"
 

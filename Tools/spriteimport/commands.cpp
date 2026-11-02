@@ -12,9 +12,12 @@
 //
 //=============================================================================
 #include "commands.h"
-#include <allegro.h>
-#include <vector>
+
 #include <map>
+#include <vector>
+
+#include <allegro.h>
+
 #include "data/agfreader.h"
 #include "data/game_utils.h"
 #include "data/sprite_utils.h"

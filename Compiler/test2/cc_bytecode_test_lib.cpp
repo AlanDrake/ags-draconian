@@ -11,16 +11,16 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <string>
-#include <fstream>
-#include <sstream>
+#include "cc_bytecode_test_lib.h"
+
 #include <algorithm>
+#include <fstream>
 #include <iomanip>
+#include <sstream>
+#include <string>
 
 #include "gtest/gtest.h"
 #include "script2/cc_compiledscript.h"
-
-#include "cc_bytecode_test_lib.h"
 
 static std::string Esc(char const ch)
 {

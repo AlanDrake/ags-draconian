@@ -11,15 +11,13 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <string>
 #include <cstdint>
+#include <string>
 
-#include "gtest/gtest.h"
 #include "cc_bytecode_test_lib.h"
 #include "cc_parser_test_lib.h"
-
+#include "gtest/gtest.h"
 #include "script/cc_common.h"
-
 #include "script2/cs_parser.h"
 
 

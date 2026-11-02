@@ -1,5 +1,6 @@
 #pragma once
 #include <map>
+
 #include "CharacterEntry.h"
 #include "plugin/agsplugin.h"
 class VariableWidthFont

@@ -14,10 +14,9 @@
 #define NOMINMAX
 #include "gfx/gfxdriverfactory.h"
 
-#include "platform/platform.h"
-
 #include "gfx/ali3dsw.h"
 #include "gfx/gfxfilter_sdl_renderer.h"
+#include "platform/platform.h"
 
 #if AGS_HAS_OPENGL
 #include "gfx/ali3dogl.h"
@@ -25,10 +24,10 @@
 #endif
 
 #if AGS_HAS_DIRECT3D
-#include "platform/windows/gfx/ali3dd3d.h"
-#include "platform/windows/gfx/ali3dd3d11.h"
 #include "gfx/gfxfilter_d3d.h"
 #include "gfx/gfxfilter_d3d11.h"
+#include "platform/windows/gfx/ali3dd3d.h"
+#include "platform/windows/gfx/ali3dd3d11.h"
 #endif
 
 namespace AGS

@@ -11,14 +11,16 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/global_gui.h"
+
 #include <vector>
+
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
-#include "ac/global_gui.h"
 #include "ac/gui.h"
 #include "ac/guicontrol.h"
 #include "ac/mouse.h"

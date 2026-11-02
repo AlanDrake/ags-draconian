@@ -11,14 +11,16 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <cstdio>
 #include <limits>
 #include <memory>
-#include <cstdio>
+
 #include "platform/platform.h"
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/windows.h"
 #endif
 #include <SDL.h>
+
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -27,18 +29,18 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/debugmanager.h"
-#include "debug/memory_inspect.h"
-#include "debug/out.h"
 #include "debug/logfile.h"
+#include "debug/memory_inspect.h"
 #include "debug/messagebuffer.h"
+#include "debug/out.h"
 #include "main/config.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "plugin/plugin_engine.h"
-#include "script/script.h"
 #include "script/cc_common.h"
+#include "script/script.h"
 #include "util/memory_compat.h"
 #include "util/path.h"
 #include "util/string_utils.h"

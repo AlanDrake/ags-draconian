@@ -11,13 +11,15 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/global_audio.h"
+
 #include <cstdio>
+
 #include "ac/common.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_audio.h"
 #include "ac/lipsync.h"
 #include "ac/path_helper.h"
 #include "debug/debug_log.h"

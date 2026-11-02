@@ -14,6 +14,7 @@
 #pragma once
 
 #include <functional>
+
 #include "cs_parser_common.h"
 
 namespace AGS

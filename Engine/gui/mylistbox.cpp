@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "gui/mylistbox.h"
+
 #include <cstring>
+
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/keycode.h"

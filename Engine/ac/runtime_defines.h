@@ -14,6 +14,7 @@
 #pragma once
 
 #include <array>
+
 #include "ac/common_defines.h"
 #include "ac/game_version.h"
 

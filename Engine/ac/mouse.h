@@ -14,8 +14,9 @@
 #pragma once
 
 #include <memory>
-#include "ac/mousecursor.h"
+
 #include "ac/dynobj/scriptmouse.h"
+#include "ac/mousecursor.h"
 
 void Mouse_SetVisible(int isOn);
 int Mouse_GetVisible();

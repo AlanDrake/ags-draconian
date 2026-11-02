@@ -20,13 +20,14 @@
 #include <map>
 #include <memory>
 #include <vector>
-#include "ac/gamestructdefines.h"
+
 #include "ac/gamesetup.h"
+#include "ac/gamestructdefines.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/gfxmodelist.h"
 #include "main/graphics_mode.h"
-#include "resource/resource.h"
 #include "platform/windows/setup/winpagedialog.h"
+#include "resource/resource.h"
 #include "util/ini_util.h"
 
 namespace AGS

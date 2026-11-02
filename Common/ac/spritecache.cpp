@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/spritecache.h"
+
 #include "ac/gamestructdefines.h"
 #include "debug/out.h"
 #include "gfx/bitmap.h"

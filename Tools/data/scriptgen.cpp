@@ -12,9 +12,10 @@
 //
 //=============================================================================
 #include "data/scriptgen.h"
-#include <iterator>
+
 #include <cctype>
 #include <cstring>
+#include <iterator>
 
 namespace AGS
 {

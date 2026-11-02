@@ -13,6 +13,7 @@
 //=============================================================================
 #pragma once
 #include <memory>
+
 #include "media/audio/soundclip.h"
 
 namespace AGS

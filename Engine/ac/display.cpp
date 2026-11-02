@@ -12,11 +12,13 @@
 //
 //=============================================================================
 #include "ac/display.h"
+
 #include <cmath>
 #include <cstdio>
-#include "ac/display.h"
-#include "ac/common.h"
+
 #include "ac/character.h"
+#include "ac/common.h"
+#include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
@@ -27,11 +29,11 @@
 #include "ac/joystick.h"
 #include "ac/mouse.h"
 #include "ac/overlay.h"
-#include "ac/sys_events.h"
 #include "ac/screenoverlay.h"
 #include "ac/speech.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
+#include "ac/sys_events.h"
 #include "ac/system.h"
 #include "ac/timer.h"
 #include "ac/touch.h"

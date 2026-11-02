@@ -39,6 +39,7 @@
 #pragma once
 
 #include <allegro.h>
+
 #include "game/scripteventtable.h"
 #include "gfx/bitmapdata.h"
 #include "gfx/gfx_def.h"

@@ -12,15 +12,16 @@
 //
 //=============================================================================
 #include "ac/audiochannel.h"
+
 #include "ac/common.h" // quitprintf
+#include "ac/dynobj/cc_audioclip.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
-#include "ac/dynobj/cc_audioclip.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
-#include "script/runtimescriptvalue.h"
 #include "media/audio/audio_system.h"
+#include "script/runtimescriptvalue.h"
 
 using namespace AGS::Common;
 

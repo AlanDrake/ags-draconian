@@ -15,15 +15,16 @@
 #include "platform/platform.h"
 
 #if AGS_PLATFORM_IS_XDG_UNIX
-#include "platform/base/agsplatform_xdg_unix.h"
-
 #include <cstdio>
-#include <unistd.h>
+
 #include <allegro.h>
-#include "gfx/gfxdefines.h"
-#include "util/string.h"
 #include <pwd.h>
 #include <sys/stat.h>
+#include <unistd.h>
+
+#include "gfx/gfxdefines.h"
+#include "platform/base/agsplatform_xdg_unix.h"
+#include "util/string.h"
 
 using AGS::Common::String;
 

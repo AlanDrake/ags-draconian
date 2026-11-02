@@ -12,13 +12,14 @@
 //
 //=============================================================================
 #include "gui/guiinv.h"
-#include "gui/guimain.h"
+
+#include "ac/characterextras.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/characterextras.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
+#include "gui/guimain.h"
 
 
 extern GameSetupStruct game;

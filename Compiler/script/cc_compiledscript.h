@@ -14,9 +14,10 @@
 #pragma once
 
 #include <cstdint>
-#include "script/cc_script.h" // ccScript
-#include "cs_parser_common.h" // macro definitions
+
 #include "cc_symboldef.h"     // SymbolDef
+#include "cs_parser_common.h" // macro definitions
+#include "script/cc_script.h" // ccScript
 
 
 struct ccCompiledScript : public ccScript

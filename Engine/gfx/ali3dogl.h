@@ -18,13 +18,14 @@
 #pragma once
 
 #include <memory>
-#include "glm/glm.hpp"
+
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
-#include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxdriverbase.h"
+#include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxfilter_ogl.h"
 #include "gfx/ogl_headers.h"
+#include "glm/glm.hpp"
 #include "util/string.h"
 #include "util/version.h"
 

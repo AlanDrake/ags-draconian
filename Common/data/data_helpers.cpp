@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "data/data_helpers.h"
+
 #include <vector>
 
 namespace AGS

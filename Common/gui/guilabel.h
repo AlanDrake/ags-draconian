@@ -14,6 +14,7 @@
 #pragma once
 
 #include <vector>
+
 #include "gui/guitextbasedcontrol.h"
 
 namespace AGS

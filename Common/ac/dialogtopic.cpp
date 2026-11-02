@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "ac/dialogtopic.h"
+
 #include <algorithm>
+
 #include "util/stream.h"
 #include "util/string_utils.h"
 

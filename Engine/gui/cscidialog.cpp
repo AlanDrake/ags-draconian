@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "gui/cscidialog.h"
+
 #include <cctype>
+
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
@@ -20,18 +22,18 @@
 #include "ac/gui.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
-#include "ac/sys_events.h"
 #include "ac/runtime_defines.h"
+#include "ac/sys_events.h"
+#include "ac/timer.h"
 #include "font/fonts.h"
+#include "gfx/bitmap.h"
+#include "gfx/graphicsdriver.h"
 #include "gui/guidialog.h"
 #include "gui/guimain.h"
 #include "gui/mycontrols.h"
 #include "main/game_run.h"
-#include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
-#include "ac/timer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

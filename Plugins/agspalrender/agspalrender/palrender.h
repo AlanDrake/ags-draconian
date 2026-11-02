@@ -1,9 +1,10 @@
 #pragma once
 
-#include "plugin/agsplugin.h"
-#include <stdint.h>  // for int32_t types, __int32 is just Windows
 #include <algorithm> // for std::max and std::min
 #include <cstring>   // for memcpy
+#include <stdint.h>  // for int32_t types, __int32 is just Windows
+
+#include "plugin/agsplugin.h"
 
 #undef min
 #undef max

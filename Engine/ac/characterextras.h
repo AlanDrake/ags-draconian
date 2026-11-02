@@ -26,6 +26,7 @@
 #pragma once
 
 #include <vector>
+
 #include "ac/characterinfo.h"
 #include "ac/runtime_defines.h"
 #include "gfx/gfx_def.h"

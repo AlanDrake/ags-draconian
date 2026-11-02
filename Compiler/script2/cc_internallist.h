@@ -13,11 +13,12 @@
 //=============================================================================
 #pragma once
 
+#include <algorithm>
 #include <map>
 #include <vector>
-#include <algorithm>
-#include "cs_parser_common.h"
+
 #include "cc_symboltable.h"
+#include "cs_parser_common.h"
 
 namespace AGS
 {

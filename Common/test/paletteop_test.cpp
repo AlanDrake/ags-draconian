@@ -11,8 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gtest/gtest.h"
 #include "gfx/bitmapdata.h"
+#include "gtest/gtest.h"
 
 using namespace AGS::Common;
 

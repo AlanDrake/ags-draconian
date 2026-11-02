@@ -13,8 +13,8 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/cc_agsdynamicobject.h"
 #include "SDL_gamecontroller.h"
+#include "ac/dynobj/cc_agsdynamicobject.h"
 
 struct ScriptJoystick final : AGSCCDynamicObject
 {

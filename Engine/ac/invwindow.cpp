@@ -12,13 +12,16 @@
 //
 //=============================================================================
 #include "ac/invwindow.h"
-#include "ac/common.h"
+
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
+#include "ac/common.h"
 #include "ac/draw.h"
+#include "ac/dynobj/cc_character.h"
+#include "ac/dynobj/cc_inventory.h"
 #include "ac/event.h"
-#include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_display.h"
 #include "ac/global_room.h"
 #include "ac/gui.h"
@@ -26,8 +29,6 @@
 #include "ac/spritecache.h"
 #include "ac/sys_events.h"
 #include "ac/timer.h"
-#include "ac/dynobj/cc_character.h"
-#include "ac/dynobj/cc_inventory.h"
 #include "debug/debug_log.h"
 #include "gui/guidialog.h"
 #include "gui/guimain.h"

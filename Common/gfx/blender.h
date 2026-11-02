@@ -17,8 +17,8 @@
 //=============================================================================
 #pragma once
 
-#include "platform/types.h"
 #include "gfx/gfx_def.h"
+#include "platform/types.h"
 
 //
 // Allegro's standard alpha blenders result in:

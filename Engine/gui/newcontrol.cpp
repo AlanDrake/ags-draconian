@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "gui/newcontrol.h"
+
 #include "gui/guidialog.h"
 #include "gui/guidialogdefines.h"
 

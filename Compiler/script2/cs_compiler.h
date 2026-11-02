@@ -15,8 +15,9 @@
 
 #include <string>
 #include <vector>
-#include "script/cc_script.h"
+
 #include "cs_message_handler.h"
+#include "script/cc_script.h"
 
 // Get a list of compiler extensions.
 extern void ccGetExtensions2(std::vector<std::string> &exts);

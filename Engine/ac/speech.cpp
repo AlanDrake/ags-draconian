@@ -12,13 +12,14 @@
 //
 //=============================================================================
 #include "ac/speech.h"
+
 #include "ac/asset_helper.h"
 #include "ac/common.h"
+#include "ac/dynobj/scriptoverlay.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
-#include "ac/dynobj/scriptoverlay.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "main/engine.h"
@@ -164,13 +165,13 @@ String get_voice_assetpath()
 //
 //=============================================================================
 
+#include "ac/dynobj/cc_character.h"
+#include "ac/dynobj/cc_scriptobject.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_display.h"
-#include "ac/dynobj/cc_character.h"
-#include "ac/dynobj/cc_scriptobject.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

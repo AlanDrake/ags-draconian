@@ -11,8 +11,9 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "util/math.h"
 #include "util/textstreamreader.h"
+
+#include "util/math.h"
 
 namespace AGS
 {

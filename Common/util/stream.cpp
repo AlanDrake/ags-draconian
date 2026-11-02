@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "util/stream.h"
+
 #include <algorithm>
 #include <limits>
 #include <stdexcept>

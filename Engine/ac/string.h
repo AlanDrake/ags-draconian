@@ -18,6 +18,7 @@
 #pragma once
 
 #include <stdarg.h>
+
 #include "ac/common.h" // quit
 #include "ac/dynobj/scriptstring.h"
 #include "util/string.h"

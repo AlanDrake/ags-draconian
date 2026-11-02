@@ -18,6 +18,7 @@
 //
 //=============================================================================
 #include <cstring>
+
 #include <allegro.h>
 // TODO: may create a separate header for including stb_image.h
 // with these predeclared flags
@@ -26,8 +27,9 @@
 #define STBI_NO_HDR
 #define STBI_ONLY_PNG
 #define STBI_NO_FAILURE_STRINGS
-#include <stb_image.h>
 #include <miniz.h>
+#include <stb_image.h>
+
 #include "gfx/bitmapdata.h"
 #include "util/stream.h"
 

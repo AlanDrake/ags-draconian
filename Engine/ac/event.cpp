@@ -13,8 +13,12 @@
 //=============================================================================
 
 #include "event.h"
+
 #include "ac/common.h"
 #include "ac/draw.h"
+#include "ac/dynobj/cc_hotspot.h"
+#include "ac/dynobj/cc_region.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
@@ -23,20 +27,17 @@
 #include "ac/gui.h"
 #include "ac/roomstatus.h"
 #include "ac/screen.h"
-#include "ac/dynobj/scriptobjects.h"
-#include "ac/dynobj/cc_hotspot.h"
-#include "ac/dynobj/cc_region.h"
+#include "ac/timer.h"
 #include "debug/debug_log.h"
-#include "main/game_run.h"
-#include "script/cc_common.h"
-#include "platform/base/agsplatformdriver.h"
-#include "plugin/plugin_engine.h"
-#include "script/script.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
+#include "main/game_run.h"
 #include "media/audio/audio_system.h"
-#include "ac/timer.h"
+#include "platform/base/agsplatformdriver.h"
+#include "plugin/plugin_engine.h"
+#include "script/cc_common.h"
+#include "script/script.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

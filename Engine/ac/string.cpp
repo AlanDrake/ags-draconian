@@ -11,26 +11,29 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/string.h"
+
 #include <algorithm>
 #include <cctype>
+
 #include <allegro.h>
-#include "ac/string.h"
+
 #include "ac/common.h"
 #include "ac/display.h"
+#include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptstring.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
-#include "ac/dynobj/scriptstring.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "font/fonts.h"
 #include "debug/debug_log.h"
+#include "font/fonts.h"
 #include "script/runtimescriptvalue.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 #include "util/utf8.h"
-#include "ac/dynobj/cc_dynamicarray.h"
 
 using namespace AGS::Common;
 
@@ -623,10 +626,10 @@ const char *parse_voiceover_token(const char *text, int *voice_num)
 //
 //=============================================================================
 
+#include "ac/math.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
-#include "ac/math.h"
 
 // int (const char *thisString)
 RuntimeScriptValue Sc_String_IsNullOrEmpty(const RuntimeScriptValue *params, int32_t param_count)

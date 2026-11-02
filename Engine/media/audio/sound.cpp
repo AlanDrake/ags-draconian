@@ -12,8 +12,10 @@
 //
 //=============================================================================
 #include "media/audio/sound.h"
+
 #include <list>
 #include <unordered_map>
+
 #include "ac/game.h"
 #include "data/assetmanager.h"
 #include "debug/out.h"
@@ -22,8 +24,8 @@
 #include "util/path.h"
 #include "util/resourcecache.h"
 #include "util/stream.h"
-#include "util/string_types.h"
 #include "util/string_compat.h"
+#include "util/string_types.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

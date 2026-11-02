@@ -24,6 +24,7 @@
 /// https://git-scm.com/docs/gitignore
 //=============================================================================
 #include "data/include_utils.h"
+
 #include "util/file.h"
 #include "util/path.h"
 #include "util/textstreamreader.h"

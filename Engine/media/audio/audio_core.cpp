@@ -12,16 +12,18 @@
 //
 //=============================================================================
 #include "media/audio/audio_core.h"
+
 #include <cmath>
 #include <condition_variable>
 #include <mutex>
 #include <stdexcept>
 #include <thread>
 #include <unordered_map>
+
 #include "debug/out.h"
 #include "media/audio/audioplayer.h"
-#include "media/audio/sdldecoder.h"
 #include "media/audio/openalsource.h"
+#include "media/audio/sdldecoder.h"
 #include "util/memory_compat.h"
 
 using namespace AGS::Common;

@@ -12,8 +12,10 @@
 //
 //=============================================================================
 
-#include <cstring>
 #include "debug/logfile.h"
+
+#include <cstring>
+
 #include "util/file.h"
 #include "util/stream.h"
 

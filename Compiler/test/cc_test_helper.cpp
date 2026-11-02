@@ -12,8 +12,9 @@
 //
 //=============================================================================
 #include <string>
-#include "util/string_compat.h"
+
 #include "util/string.h"
+#include "util/string_compat.h"
 
 typedef AGS::Common::String AGSString;
 

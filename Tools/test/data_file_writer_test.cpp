@@ -13,9 +13,9 @@
 //=============================================================================
 #include <memory>
 #include <vector>
-#include "gtest/gtest.h"
-#include "ac/characterinfo.h"
+
 #include "ac/audiocliptype.h"
+#include "ac/characterinfo.h"
 #include "ac/dialogtopic.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/game_version.h"
@@ -26,6 +26,7 @@
 #include "data/data_file_writer.h"
 #include "data/data_helpers.h"
 #include "game/customproperties.h"
+#include "gtest/gtest.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"

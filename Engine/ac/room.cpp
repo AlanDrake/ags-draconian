@@ -11,13 +11,21 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/room.h"
+
 #include <cctype> // for toupper
-#include "platform/platform.h"
-#include "util/string_utils.h" //strlwr()
-#include "ac/common.h"
+
 #include "ac/character.h"
 #include "ac/characterextras.h"
+#include "ac/common.h"
 #include "ac/draw.h"
+#include "ac/dynobj/all_dynamicclasses.h"
+#include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/managedobjectpool.h"
+#include "ac/dynobj/scriptobjects.h"
+#include "ac/dynobj/scriptpathfinder.h"
+#include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
@@ -28,46 +36,40 @@
 #include "ac/global_gui.h"
 #include "ac/global_translation.h"
 #include "ac/gui.h"
-#include "ac/movelist.h"
 #include "ac/mouse.h"
+#include "ac/movelist.h"
 #include "ac/overlay.h"
 #include "ac/properties.h"
 #include "ac/region.h"
-#include "ac/sys_events.h"
-#include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/screen.h"
+#include "ac/spritecache.h"
 #include "ac/string.h"
+#include "ac/sys_events.h"
 #include "ac/system.h"
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
-#include "ac/dynobj/scriptobjects.h"
-#include "ac/dynobj/scriptshader.h"
-#include "ac/dynobj/scriptuserobject.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/all_dynamicclasses.h"
-#include "ac/dynobj/managedobjectpool.h"
-#include "ac/dynobj/scriptpathfinder.h"
-#include "gui/guimain.h"
+#include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "game/room_file.h"
 #include "game/room_version.h"
+#include "gfx/bitmap.h"
+#include "gfx/gfxfilter.h"
+#include "gfx/graphicsdriver.h"
+#include "gui/guimain.h"
+#include "main/game_run.h"
+#include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/platform.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
-#include "ac/spritecache.h"
 #include "util/stream.h"
-#include "gfx/graphicsdriver.h"
-#include "data/assetmanager.h"
-#include "gfx/bitmap.h"
-#include "gfx/gfxfilter.h"
-#include "media/audio/audio_system.h"
-#include "main/game_run.h"
+#include "util/string_utils.h" //strlwr()
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -1345,10 +1347,10 @@ int mask_to_room_coord(int coord)
 //
 //=============================================================================
 
+#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
-#include "ac/dynobj/scriptstring.h"
 
 // ScriptDrawingSurface* (int backgroundNumber)
 RuntimeScriptValue Sc_Room_GetDrawingSurfaceForBackground(const RuntimeScriptValue *params, int32_t param_count)

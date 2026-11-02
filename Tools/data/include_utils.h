@@ -16,8 +16,9 @@
 #include <functional>
 #include <regex>
 #include <vector>
-#include "util/string.h"
+
 #include "util/error.h"
+#include "util/string.h"
 
 namespace AGS
 {

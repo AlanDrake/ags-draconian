@@ -12,8 +12,10 @@
 //
 //=============================================================================
 #include "util/deflatestream.h"
-#include <miniz.h>
+
 #include <stdexcept>
+
+#include <miniz.h>
 
 namespace AGS
 {

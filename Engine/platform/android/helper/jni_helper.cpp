@@ -14,8 +14,9 @@
 #include "platform/platform.h"
 
 #if AGS_PLATFORM_OS_ANDROID
-#include <jni.h>
 #include <allegro.h>
+#include <jni.h>
+
 #include "game/main_game_file.h"
 
 using namespace AGS::Common;

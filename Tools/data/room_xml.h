@@ -23,6 +23,7 @@
 
 #include <map>
 #include <vector>
+
 #include "data/game_utils.h"
 #include "data/xml_fields.h"
 #include "util/error.h"

@@ -11,15 +11,17 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "preproc/preprocessor.h"
+
 #include <algorithm>
 #include <cctype>
 #include <cstring>
-#include "script/cs_parser_common.h"
-#include "preproc/preprocessor.h"
+
 #include "script/cc_common.h"
+#include "script/cs_parser_common.h"
 #include "util/string_utils.h"
-#include "util/textstreamwriter.h"
 #include "util/textreader.h"
+#include "util/textstreamwriter.h"
 
 #define STRINGIFY2(X) #X
 #define STRINGIFY(X)  STRINGIFY2(X)

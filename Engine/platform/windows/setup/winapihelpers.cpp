@@ -18,6 +18,7 @@
 #include <commctrl.h>
 #include <shlobj.h>
 #include <shlwapi.h>
+
 #include "util/path.h"
 #include "util/stdio_compat.h"
 

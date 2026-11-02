@@ -11,21 +11,23 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "game/main_game_file.h"
+
 #include <cstdio>
+
 #include "ac/audiocliptype.h"
 #include "ac/dialogtopic.h"
+#include "ac/dynobj/scriptaudioclip.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/keycode.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
-#include "ac/dynobj/scriptaudioclip.h"
 #include "data/asset.h"
 #include "data/assetmanager.h"
 #include "data/data_ext.h"
 #include "data/data_helpers.h"
 #include "debug/out.h"
 #include "font/fonts.h"
-#include "game/main_game_file.h"
 #include "gfx/gfx_def.h"
 #include "gui/guibutton.h"
 #include "gui/guilabel.h"

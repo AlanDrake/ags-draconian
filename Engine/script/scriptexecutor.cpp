@@ -12,12 +12,14 @@
 //
 //=============================================================================
 #include "script/scriptexecutor.h"
+
 #include <vector>
-#include "ac/sys_events.h"
+
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/scriptuserobject.h"
+#include "ac/sys_events.h"
 #include "script/cc_common.h"
 #include "script/script_runtime.h"
 #include "util/memory.h"

@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "gui/guislider.h"
+
 #include <algorithm>
+
 #include "ac/spritecache.h"
 #include "gui/guimain.h"
 #include "util/stream.h"

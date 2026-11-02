@@ -17,8 +17,8 @@
 //=============================================================================
 #pragma once
 
-#include <type_traits>
 #include <chrono>
+#include <type_traits>
 
 namespace AGS
 {

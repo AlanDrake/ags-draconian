@@ -12,15 +12,17 @@
 //
 //=============================================================================
 #include "util/directory.h"
+
 #include <cerrno>
 #include <cstring>
 #if AGS_PLATFORM_OS_WINDOWS
-#include <direct.h>
 #include "platform/windows/windows.h"
+
+#include <direct.h>
 #else
+#include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <dirent.h>
 #include <unistd.h>
 #endif
 #if AGS_PLATFORM_OS_ANDROID

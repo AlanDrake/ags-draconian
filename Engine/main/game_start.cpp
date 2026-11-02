@@ -16,9 +16,12 @@
 // Game initialization
 //
 
+#include "main/game_start.h"
+
 #include <cstdio>
-#include "ac/common.h"
+
 #include "ac/characterinfo.h"
+#include "ac/common.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -34,7 +37,6 @@
 #include "device/mousew32.h"
 #include "gfx/ali3dexception.h"
 #include "main/game_run.h"
-#include "main/game_start.h"
 #include "media/audio/audio_system.h"
 #include "script/script.h"
 

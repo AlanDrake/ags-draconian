@@ -14,11 +14,12 @@
 #pragma once
 
 #include <vector>
-#include "ac/characterinfo.h"
+
 #include "ac/characterextras.h"
-#include "ac/runtime_defines.h"
+#include "ac/characterinfo.h"
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptoverlay.h"
+#include "ac/runtime_defines.h"
 #include "game/viewport.h"
 #include "util/geometry.h"
 

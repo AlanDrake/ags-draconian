@@ -1,7 +1,8 @@
 #pragma once
-#include "plugin/agsplugin.h"
-#include "SpriteFont.h"
 #include <vector>
+
+#include "SpriteFont.h"
+#include "plugin/agsplugin.h"
 class SpriteFontRenderer : public IAGSFontRenderer2
 {
 public:

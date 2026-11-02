@@ -12,8 +12,10 @@
 //
 //=============================================================================
 #include "ac/inventoryitem.h"
+
 #include "ac/characterinfo.h"
 #include "ac/draw.h"
+#include "ac/dynobj/cc_inventory.h"
 #include "ac/event.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -24,7 +26,6 @@
 #include "ac/properties.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
-#include "ac/dynobj/cc_inventory.h"
 #include "debug/debug_log.h"
 #include "gui/guidefines.h"
 #include "script/runtimescriptvalue.h"
@@ -317,10 +318,10 @@ bool InventoryItem_SetTextProperty(ScriptInvItem *scii, const char *property, co
 //
 //=============================================================================
 
+#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
-#include "ac/dynobj/scriptstring.h"
 
 
 ScriptInvItem *InventoryItem_GetByName(const char *name)

@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "ac/characterinfo.h"
+
 #include <cstring>
+
 #include "ac/game_version.h"
 #include "util/stream.h"
 #include "util/string_utils.h"

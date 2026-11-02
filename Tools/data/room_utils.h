@@ -14,6 +14,7 @@
 #pragma once
 
 #include <vector>
+
 #include "game/room_file.h"
 
 namespace AGS

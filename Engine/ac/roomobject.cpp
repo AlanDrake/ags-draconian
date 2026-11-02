@@ -12,8 +12,10 @@
 //
 //=============================================================================
 #include "ac/roomobject.h"
+
 #include "ac/common.h"
 #include "ac/common_defines.h"
+#include "ac/dynobj/cc_object.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -21,7 +23,6 @@
 #include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
 #include "ac/viewframe.h"
-#include "ac/dynobj/cc_object.h"
 #include "debug/debug_log.h"
 #include "gfx/gfx_def.h"
 #include "main/update.h"

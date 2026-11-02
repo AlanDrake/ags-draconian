@@ -11,9 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <util/string_compat.h>
+
 #include "gtest/gtest.h"
 #include "preproc/preprocessor.h"
-#include <util/string_compat.h>
 #include "test/cc_test_helper.h"
 
 using namespace AGS;

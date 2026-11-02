@@ -11,14 +11,17 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "script/script_api.h"
+
 #include <cstdio>
 #include <cstring>
+
 #include <allegro.h>
+
 #include "ac/game_version.h"
 #include "debug/debug_log.h"
 #include "script/cc_common.h"
 #include "script/runtimescriptvalue.h"
-#include "script/script_api.h"
 
 using namespace AGS::Common;
 

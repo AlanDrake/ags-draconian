@@ -12,9 +12,11 @@
 //
 //=============================================================================
 #include "ac/spritefile.h"
+
 #include <algorithm>
 #include <array>
 #include <ctime>
+
 #include "data/assetmanager.h"
 #include "gfx/sprite_data_fmt.h"
 #include "util/compress.h"

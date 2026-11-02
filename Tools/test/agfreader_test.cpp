@@ -16,11 +16,13 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+
 #include <tinyxml2.h>
-#include "gtest/gtest.h"
+
 #include "data/agfreader.h"
 #include "data/scriptgen.h"
 #include "data/xml_fields.h"
+#include "gtest/gtest.h"
 
 using namespace AGS;
 

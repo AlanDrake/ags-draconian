@@ -23,13 +23,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "raycast.h"
 
+#include <algorithm>
 #include <cmath>
+#include <cstdio>
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <algorithm>
-#include <cstdio>
-#include <cmath>
 
 #if defined(BUILTIN_PLUGINS)
 namespace agspalrender

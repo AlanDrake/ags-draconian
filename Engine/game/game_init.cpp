@@ -11,11 +11,17 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "game/game_init.h"
+
 #include <vector>
+
 #include "ac/character.h"
 #include "ac/dialog.h"
 #include "ac/display.h"
 #include "ac/draw.h"
+#include "ac/dynobj/all_dynamicclasses.h"
+#include "ac/dynobj/all_scriptclasses.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
@@ -27,19 +33,15 @@
 #include "ac/parser.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
-#include "ac/dynobj/all_dynamicclasses.h"
-#include "ac/dynobj/all_scriptclasses.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
-#include "game/game_init.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
-#include "gui/guilabel.h"
 #include "gui/guiinv.h"
+#include "gui/guilabel.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"

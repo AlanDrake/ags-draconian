@@ -11,31 +11,33 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "platform/platform.h"
+#include "main/engine_setup.h"
+
 #include <SDL.h>
+
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
+#include "ac/dynobj/scriptsystem.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/mouse.h"
 #include "ac/runtime_defines.h"
 #include "ac/walkbehind.h"
-#include "ac/dynobj/scriptsystem.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "font/fonts.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/graphicsdriver.h"
-#include "gui/guimain.h"
 #include "gui/guiinv.h"
+#include "gui/guimain.h"
 #include "main/game_run.h"
 #include "main/graphics_mode.h"
-#include "main/engine_setup.h"
 #include "media/video/video.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
+#include "platform/platform.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

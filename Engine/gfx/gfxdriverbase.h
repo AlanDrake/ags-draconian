@@ -20,11 +20,12 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+
 #include "gfx/ddb.h"
 #include "gfx/gfx_def.h"
 #include "gfx/graphicsdriver.h"
-#include "util/scaling.h"
 #include "util/resourcecache.h"
+#include "util/scaling.h"
 
 
 namespace AGS

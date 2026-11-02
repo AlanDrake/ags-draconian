@@ -11,11 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/dynobj/cc_hotspot.h"
+#include "ac/hotspot.h"
+
 #include "ac/character.h"
 #include "ac/common.h"
+#include "ac/dynobj/cc_hotspot.h"
 #include "ac/event.h"
-#include "ac/hotspot.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"

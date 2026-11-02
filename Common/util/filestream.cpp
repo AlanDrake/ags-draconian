@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "util/filestream.h"
+
 #include <stdexcept>
+
 #include "util/stdio_compat.h"
 
 namespace AGS

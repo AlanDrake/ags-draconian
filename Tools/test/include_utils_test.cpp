@@ -11,11 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <vector>
 #include <algorithm>
+#include <vector>
+
+#include "data/include_utils.h"
 #include "gtest/gtest.h"
 #include "util/string.h"
-#include "data/include_utils.h"
 
 using namespace AGS;
 using namespace AGS::Common;

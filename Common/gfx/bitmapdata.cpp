@@ -14,8 +14,10 @@
 // TODO: we only need color.h/color.c for this code unit;
 // consider porting necessary tables / shifts from Allegro right here
 // if this dependency will cause trouble (e.g. for tools).
-#include <allegro.h>
 #include "gfx/bitmapdata.h"
+
+#include <allegro.h>
+
 #include "util/memory.h"
 
 namespace AGS

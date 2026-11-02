@@ -11,18 +11,17 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "cs_compiler.h"
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
-#include "cs_compiler.h"
 #include "cc_compiledscript.h"
 #include "cc_symboltable.h"
-
+#include "cs_parser.h"
 #include "script/cc_common.h"
 #include "script/cc_internal.h"
-
-#include "cs_parser.h"
 #include "util/string_compat.h"
 
 

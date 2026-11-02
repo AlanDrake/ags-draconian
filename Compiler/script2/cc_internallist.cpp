@@ -11,10 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <string>
-#include <limits>
-#include <cstdlib>
 #include "cc_internallist.h"
+
+#include <cstdlib>
+#include <limits>
+#include <string>
 
 const AGS::Symbol AGS::SrcList::kEOF = 0;
 

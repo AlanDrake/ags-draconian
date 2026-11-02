@@ -16,14 +16,18 @@
 // Game loop
 //
 
-#include <limits>
+#include "main/game_run.h"
+
 #include <chrono>
+#include <limits>
+
 #include <SDL.h>
+
 #include "ac/button.h"
-#include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
+#include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/game.h"
@@ -36,6 +40,7 @@
 #include "ac/global_gui.h"
 #include "ac/gui.h"
 #include "ac/hotspot.h"
+#include "ac/joystick.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/object.h"
@@ -50,15 +55,14 @@
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
-#include "debug/debugger.h"
 #include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "device/mousew32.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
 #include "gui/guitextbox.h"
 #include "main/engine.h"
-#include "main/game_run.h"
 #include "main/update.h"
 #include "media/audio/audio_system.h"
 #include "media/video/video.h"
@@ -66,7 +70,6 @@
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
-#include "ac/joystick.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

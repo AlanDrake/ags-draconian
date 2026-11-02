@@ -38,6 +38,7 @@
 #include <functional>
 #include <memory>
 #include <unordered_map>
+
 #include "data/asset.h"
 #include "util/directory.h"
 #include "util/stream.h"

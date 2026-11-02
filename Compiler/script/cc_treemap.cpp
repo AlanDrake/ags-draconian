@@ -11,8 +11,9 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <cstring>
 #include "cc_treemap.h"
+
+#include <cstring>
 
 int ccTreeMap::findValue(const char *key)
 {

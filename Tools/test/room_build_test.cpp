@@ -12,10 +12,11 @@
 //
 //=============================================================================
 #include <cstring>
-#include "gtest/gtest.h"
+
 #include "data/room_build.h"
 #include "data/room_xml.h"
 #include "gfx/image_file.h"
+#include "gtest/gtest.h"
 #include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"

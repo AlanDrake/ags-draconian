@@ -12,14 +12,16 @@
 //
 //=============================================================================
 #include "media/video/video_core.h"
+
 #include <condition_variable>
 #include <mutex>
 #include <thread>
 #include <unordered_map>
+
 #include "debug/out.h"
-#include "media/video/videoplayer.h"
 #include "media/video/flic_player.h"
 #include "media/video/theora_player.h"
+#include "media/video/videoplayer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

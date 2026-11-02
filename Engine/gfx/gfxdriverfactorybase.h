@@ -23,6 +23,7 @@
 #pragma once
 
 #include <vector>
+
 #include "gfx/gfxdriverfactory.h"
 #include "gfx/gfxfilter.h"
 

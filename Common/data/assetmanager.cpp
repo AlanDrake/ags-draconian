@@ -12,8 +12,10 @@
 //
 //=============================================================================
 #include "data/assetmanager.h"
+
 #include <algorithm>
 #include <regex>
+
 #include "data/multifilelib.h"
 #include "util/file.h"
 #include "util/path.h"

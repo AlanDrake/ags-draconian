@@ -11,10 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "media/audio/soundclip.h"
+
 #include <cmath>
+
 #include "ac/common_defines.h"
 #include "ac/dynobj/scriptaudioclip.h"
-#include "media/audio/soundclip.h"
 #include "media/audio/audio_core.h"
 
 SoundClip::SoundClip(int slot, AudioFileType snd_type, bool loop) : slot_(slot), soundType(snd_type), repeat(loop)

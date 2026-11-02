@@ -17,9 +17,10 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "script/cs_parser_common.h" // macro definitions
-#include "script/cc_treemap.h"
+
 #include "script/cc_symboldef.h"
+#include "script/cc_treemap.h"
+#include "script/cs_parser_common.h" // macro definitions
 
 // So there's another symbol definition in cc_symboldef.h
 struct SymbolTableEntry

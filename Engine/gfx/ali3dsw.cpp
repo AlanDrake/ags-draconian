@@ -13,16 +13,19 @@
 //=============================================================================
 #define NOMINMAX
 #include "gfx/ali3dsw.h"
+
 #include <algorithm>
 #include <array>
 #include <stack>
+
+#include <allegro/internal/aintern.h> // for blenders
+
 #include "ac/sys_events.h"
 #include "gfx/ali3dexception.h"
-#include "gfx/gfxfilter_sdl_renderer.h"
-#include "gfx/gfxfilter_aa_sdl_renderer.h"
+#include "gfx/blender.h" // for blenders
 #include "gfx/gfx_util.h"
-#include "gfx/blender.h"              // for blenders
-#include <allegro/internal/aintern.h> // for blenders
+#include "gfx/gfxfilter_aa_sdl_renderer.h"
+#include "gfx/gfxfilter_sdl_renderer.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "util/string_compat.h"

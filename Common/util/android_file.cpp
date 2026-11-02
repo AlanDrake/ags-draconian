@@ -13,10 +13,11 @@
 //=============================================================================
 #include "util/android_file.h"
 #if AGS_PLATFORM_OS_ANDROID
-#include <jni.h>
+#include <SDL.h>
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
-#include <SDL.h>
+#include <jni.h>
+
 #include "util/path.h"
 
 namespace AGS

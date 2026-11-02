@@ -18,8 +18,8 @@
 
 // *************** FREEBSD DRIVER ***************
 
-#include "platform/base/agsplatformdriver.h"
 #include "platform/base/agsplatform_xdg_unix.h"
+#include "platform/base/agsplatformdriver.h"
 
 struct AGSFreeBSD : AGSPlatformXDGUnix
 {

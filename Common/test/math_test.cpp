@@ -12,8 +12,8 @@
 //
 //=============================================================================
 #include "gtest/gtest.h"
-#include "util/scaling.h"
 #include "util/math.h"
+#include "util/scaling.h"
 
 using namespace AGS::Common;
 

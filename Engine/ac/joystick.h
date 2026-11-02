@@ -17,9 +17,9 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/scriptjoystick.h"
-#include "SDL_gamecontroller.h"
 #include "SDL_events.h"
+#include "SDL_gamecontroller.h"
+#include "ac/dynobj/scriptjoystick.h"
 
 enum eAGSJoystick_Hat
 {

@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/route_finder.h"
+
 #include "ac/route_finder_impl.h"
 #include "gfx/bitmap.h"
 #include "util/memory_compat.h"

@@ -11,10 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "util/bufferedstream.h"
+
 #include <algorithm>
 #include <cstring>
 #include <stdexcept>
-#include "util/bufferedstream.h"
+
 #include "util/stdio_compat.h"
 #include "util/string.h"
 

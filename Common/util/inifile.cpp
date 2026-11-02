@@ -12,8 +12,10 @@
 //
 //=============================================================================
 #include "util/inifile.h"
+
 #include <cctype>
 #include <cstring>
+
 #include "util/textstreamreader.h"
 #include "util/textstreamwriter.h"
 

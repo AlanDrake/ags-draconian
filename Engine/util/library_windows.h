@@ -13,10 +13,12 @@
 //=============================================================================
 #pragma once
 
-#include <utility>
-#include "platform/platform.h"
-#include "debug/out.h"
 #include "platform/windows/windows.h"
+
+#include <utility>
+
+#include "debug/out.h"
+#include "platform/platform.h"
 #include "util/path.h"
 #include "util/stdio_compat.h"
 #include "util/string.h"

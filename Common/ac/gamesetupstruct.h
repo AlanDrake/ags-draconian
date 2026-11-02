@@ -18,15 +18,16 @@
 #pragma once
 
 #include <vector>
+
 #include "ac/audiocliptype.h"
 #include "ac/characterinfo.h" // TODO: constants to separate header
+#include "ac/dynobj/scriptaudioclip.h"
 #include "ac/gamesetupstructbase.h"
 #include "ac/inventoryiteminfo.h"
 #include "ac/mousecursor.h"
-#include "ac/dynobj/scriptaudioclip.h"
 #include "game/customproperties.h"
-#include "game/scripteventtable.h"
 #include "game/main_game_file.h" // TODO: constants to separate header or split out reading functions
+#include "game/scripteventtable.h"
 #include "gui/guidefines.h"
 
 

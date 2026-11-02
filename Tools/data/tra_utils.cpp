@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "data/tra_utils.h"
+
 #include <map>
+
 #include "ac/wordsdictionary.h"
 #include "util/string_utils.h"
 #include "util/textstreamreader.h"

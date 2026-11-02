@@ -14,6 +14,7 @@
 #pragma once
 
 #include <vector>
+
 #include "gfx/gfx_def.h"
 #include "util/string.h"
 

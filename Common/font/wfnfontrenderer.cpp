@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "font/wfnfontrenderer.h"
+
 #include <algorithm>
+
 #include "ac/common.h" // our_eip
 #include "data/assetmanager.h"
 #include "debug/out.h"

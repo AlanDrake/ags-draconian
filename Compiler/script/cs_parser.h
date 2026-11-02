@@ -47,8 +47,9 @@ start
 
 #pragma once
 
-#include "cc_compiledscript.h"
 #include <vector>
+
+#include "cc_compiledscript.h"
 
 extern int cc_compile(const char *inpl, ccCompiledScript *scrip);
 

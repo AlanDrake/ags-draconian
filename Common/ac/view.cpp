@@ -11,8 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <cstring>
 #include "ac/view.h"
+
+#include <cstring>
+
 #include "util/stream.h"
 
 using namespace AGS::Common;

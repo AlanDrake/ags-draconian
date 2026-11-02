@@ -11,8 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <map>
 #include "game/savegame_components.h"
+
+#include <map>
+
 #include "ac/audiocliptype.h"
 #include "ac/button.h"
 #include "ac/character.h"
@@ -20,6 +22,8 @@
 #include "ac/dialog.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
+#include "ac/dynobj/cc_serializer.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -30,10 +34,8 @@
 #include "ac/roomstatus.h"
 #include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
-#include "ac/view.h"
 #include "ac/system.h"
-#include "ac/dynobj/cc_serializer.h"
-#include "ac/dynobj/dynobj_manager.h"
+#include "ac/view.h"
 #include "debug/out.h"
 #include "game/savegame_internal.h"
 #include "gfx/bitmap.h"

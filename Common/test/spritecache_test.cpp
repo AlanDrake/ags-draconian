@@ -11,9 +11,9 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gtest/gtest.h"
 #include "ac/gamestructdefines.h"
 #include "ac/spritecache.h"
+#include "gtest/gtest.h"
 #include "util/memory_compat.h"
 #include "util/memorystream.h"
 

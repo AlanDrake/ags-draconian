@@ -15,6 +15,7 @@
 
 #include <functional>
 #include <vector>
+
 #include "data/asset.h"
 #include "data/multifilelib.h"
 #include "util/error.h"

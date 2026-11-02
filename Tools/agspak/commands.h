@@ -14,6 +14,7 @@
 #pragma once
 
 #include <regex>
+
 #include "util/string.h"
 
 namespace AGSPak

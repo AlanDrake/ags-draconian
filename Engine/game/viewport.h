@@ -19,9 +19,10 @@
 
 #include <memory>
 #include <vector>
+
 #include "util/geometry.h"
-#include "util/scaling.h"
 #include "util/matrix.h"
+#include "util/scaling.h"
 
 class Camera;
 class Viewport;

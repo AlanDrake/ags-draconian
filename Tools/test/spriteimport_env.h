@@ -11,8 +11,9 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gtest/gtest.h"
 #include <allegro.h>
+
+#include "gtest/gtest.h"
 
 class SpriteImportEnv : public ::testing::Environment
 {

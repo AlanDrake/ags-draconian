@@ -22,6 +22,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
+
 #include "game/room_version.h"
 #include "game/roomdata.h"
 #include "util/error.h"

@@ -11,29 +11,30 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/file.h"
+
 #include "ac/asset_helper.h"
 #include "ac/audiocliptype.h"
-#include "ac/file.h"
 #include "ac/common.h"
+#include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
-#include "ac/gamestate.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/path_helper.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/dynobj_manager.h"
+#include "data/asset.h"
+#include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
-#include "platform/base/agsplatformdriver.h"
-#include "util/stream.h"
-#include "data/assetmanager.h"
-#include "data/asset.h"
 #include "main/engine.h"
 #include "main/game_file.h"
+#include "platform/base/agsplatformdriver.h"
 #include "util/directory.h"
 #include "util/path.h"
+#include "util/stream.h"
 #include "util/string.h"
 #include "util/string_utils.h"
 
@@ -1089,10 +1090,10 @@ void close_all_file_streams()
 //
 //=============================================================================
 
+#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
-#include "ac/dynobj/scriptstring.h"
 
 
 RuntimeScriptValue Sc_File_Copy(const RuntimeScriptValue *params, int32_t param_count)

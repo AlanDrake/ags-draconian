@@ -16,6 +16,7 @@
 #if AGS_PLATFORM_OS_WINDOWS
 
 #include <set>
+
 #include "gfx/gfxdriverfactory.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"

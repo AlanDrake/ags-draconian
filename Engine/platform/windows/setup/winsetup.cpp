@@ -14,18 +14,21 @@
 #include "platform/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
-#include <memory>
+#include "platform/windows/windows.h"
+
 #include <algorithm>
 #include <array>
+#include <memory>
 #include <set>
 #include <vector>
-#include "platform/windows/windows.h"
+
 #include <commctrl.h>
+
 #include "main/config.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
-#include "platform/windows/setup/basicpagedialog.h"
 #include "platform/windows/setup/advancedpagedialog.h"
+#include "platform/windows/setup/basicpagedialog.h"
 #include "platform/windows/setup/winapihelpers.h"
 #include "platform/windows/setup/windialog.h"
 #include "platform/windows/setup/winpagedialog.h"

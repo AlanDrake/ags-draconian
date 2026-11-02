@@ -13,8 +13,8 @@
 //=============================================================================
 #pragma once
 
-#include "util/geometry.h"
 #include "gfx/gfxdefines.h"
+#include "util/geometry.h"
 
 // Setup engine after the graphics mode has changed
 void engine_post_gfxmode_setup(const Size &init_desktop, const AGS::Engine::DisplayMode &old_dm);

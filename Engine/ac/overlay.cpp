@@ -12,14 +12,19 @@
 //
 //=============================================================================
 #include "ac/overlay.h"
+
 #include <algorithm>
 #include <queue>
-#include "ac/common.h"
-#include "ac/view.h"
+
 #include "ac/character.h"
 #include "ac/characterextras.h"
+#include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
+#include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -30,13 +35,10 @@
 #include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptshader.h"
-#include "ac/dynobj/scriptuserobject.h"
+#include "ac/view.h"
 #include "debug/debug_log.h"
-#include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
 #include "script/runtimescriptvalue.h"
 

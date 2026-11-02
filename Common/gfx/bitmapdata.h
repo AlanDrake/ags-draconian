@@ -19,7 +19,9 @@
 
 #include <array>
 #include <memory>
+
 #include <allegro.h> // RGB and PALETTE types, MASK_COLOR constants
+
 #include "debug/assert.h"
 #include "platform/types.h"
 #include "util/stream.h"

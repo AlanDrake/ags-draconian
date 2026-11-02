@@ -11,9 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "util/string.h"
-#include "script/cc_common.h"
 #include "preproc/cc_macrotable.h"
+
+#include "script/cc_common.h"
+#include "util/string.h"
 
 using namespace AGS::Common;
 

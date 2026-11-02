@@ -13,6 +13,7 @@
 //=============================================================================
 #include <memory>
 #include <vector>
+
 #include "gtest/gtest.h"
 #include "util/indexedobjectpool.h"
 

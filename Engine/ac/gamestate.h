@@ -15,11 +15,12 @@
 
 #include <array>
 #include <memory>
-#include <vector>
 #include <unordered_map>
 #include <unordered_set>
-#include "ac/characterinfo.h"
+#include <vector>
+
 #include "ac/characterextras.h"
+#include "ac/characterinfo.h"
 #include "ac/gamestructdefines.h"
 #include "ac/keycode.h"
 #include "ac/movelist.h"
@@ -32,8 +33,8 @@
 #include "gui/guidefines.h"
 #include "media/audio/queuedaudioitem.h"
 #include "util/geometry.h"
-#include "util/string_types.h"
 #include "util/string.h"
+#include "util/string_types.h"
 
 // Forward declaration
 namespace AGS

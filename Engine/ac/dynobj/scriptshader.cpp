@@ -12,12 +12,13 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptshader.h"
-#include "ac/dynobj/dynobj_manager.h"
+
 #include "ac/draw.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "gfx/graphicsdriver.h"
 #include "util/path.h"
-#include "util/stream.h"
 #include "util/stl_utils.h"
+#include "util/stream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;

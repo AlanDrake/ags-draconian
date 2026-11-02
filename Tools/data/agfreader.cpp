@@ -12,10 +12,13 @@
 //
 //=============================================================================
 #include "data/agfreader.h"
+
 #include <algorithm>
-#include <iterator>
 #include <cstdio>
+#include <iterator>
+
 #include <tinyxml2.h>
+
 #include "data/xml_fields.h"
 #include "debug/out.h"
 #include "util/file.h"

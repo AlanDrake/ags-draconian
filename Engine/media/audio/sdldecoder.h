@@ -18,7 +18,9 @@
 #pragma once
 #include <memory>
 #include <vector>
+
 #include <SDL_sound.h>
+
 #include "util/stream.h"
 #include "util/string.h"
 #ifdef AUDIO_CORE_DEBUG

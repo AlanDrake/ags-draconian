@@ -1,7 +1,9 @@
 #include "SpriteFontRenderer.h"
+
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <cstdint>
+
 #include "color.h"
 
 

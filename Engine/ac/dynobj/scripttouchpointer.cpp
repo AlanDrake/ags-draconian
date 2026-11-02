@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scripttouchpointer.h"
+
 #include "ac/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 

@@ -15,19 +15,22 @@
 
 // TODO: port exception handling to mingw
 #if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_WINDOWS_MINGW
-#include <new.h>
+#include "platform/windows/windows.h"
+
 #include <cinttypes>
 #include <cstdio>
-#include "platform/windows/windows.h"
+
 #include <Psapi.h>
+#include <new.h>
+
 #include "ac/common.h" // quit
 #include "ac/common_defines.h"
+#include "ac/spritecache.h"
 #include "debug/out.h"
-#include "util/ini_util.h"
 #include "main/main.h"
 #include "platform/base/sys_main.h"
 #include "script/cc_common.h"
-#include "ac/spritecache.h"
+#include "util/ini_util.h"
 
 #if !AGS_PLATFORM_DEBUG
 #define USE_CUSTOM_EXCEPTION_HANDLER

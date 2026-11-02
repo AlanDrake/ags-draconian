@@ -11,8 +11,9 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/audiocliptype.h"
 #include "ac/gamesetupstruct.h"
+
+#include "ac/audiocliptype.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "data/data_helpers.h"
 #include "util/string_utils.h"

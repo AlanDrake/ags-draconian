@@ -18,10 +18,11 @@
 #pragma once
 
 #include <memory>
+
+#include "ac/dynobj/scriptviewframe.h"
 #include "ac/game_version.h"
 #include "ac/gamestructdefines.h"
 #include "ac/runtime_defines.h"
-#include "ac/dynobj/scriptviewframe.h"
 #include "gfx/bitmap.h"
 #include "main/game_file.h"
 #include "util/string.h"

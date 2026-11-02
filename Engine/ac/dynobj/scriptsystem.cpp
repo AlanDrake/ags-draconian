@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptsystem.h"
+
 #include "debug/debug_log.h"
 #include "script/cc_common.h"
 

@@ -15,6 +15,7 @@
 
 #include <array>
 #include <memory>
+
 #include "ac/common_defines.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptobjects.h"

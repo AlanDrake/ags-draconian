@@ -18,9 +18,9 @@
 //=============================================================================
 #pragma once
 
-#include "util/string.h"
 #include "data/game_utils.h"
 #include "data/script_utils.h"
+#include "util/string.h"
 
 namespace AGS
 {

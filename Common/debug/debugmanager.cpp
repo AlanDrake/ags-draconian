@@ -11,8 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <cstdarg>
 #include "debug/debugmanager.h"
+
+#include <cstdarg>
+
 #include "debug/messagebuffer.h"
 #include "util/memory_compat.h"
 #include "util/string_types.h"

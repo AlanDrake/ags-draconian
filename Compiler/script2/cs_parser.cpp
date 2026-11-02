@@ -230,23 +230,21 @@ Classic arrays and Dynarrays, pointers and managed structs:
 */
 
 
-#include <string>
-#include <fstream>
+#include "cs_parser.h"
+
+#include <algorithm>
 #include <cmath>
+#include <fstream>
 #include <limits>
 #include <memory>
-#include <algorithm>
-
-#include "util/string.h"
-
-#include "script/cc_common.h"
+#include <string>
 
 #include "cc_internallist.h"
 #include "cc_symboltable.h"
-
 #include "cs_parser_common.h"
 #include "cs_scanner.h"
-#include "cs_parser.h"
+#include "script/cc_common.h"
+#include "util/string.h"
 
 // Declared in Common/script/cc_common.h
 // Defined in Common/script/cc_common.cpp

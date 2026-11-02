@@ -22,10 +22,10 @@
 #include <windows.h>
 #endif
 
-#include <cstdlib>
-#include <cstdio>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 
 #if !defined(BUILTIN_PLUGINS)
 #define THIS_IS_THE_PLUGIN

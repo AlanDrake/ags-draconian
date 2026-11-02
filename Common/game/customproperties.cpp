@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include "game/customproperties.h"
+
 #include "util/stream.h"
 #include "util/string_utils.h"
 

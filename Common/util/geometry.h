@@ -18,6 +18,7 @@
 #pragma once
 
 #include <cmath>
+
 #include "util/math.h"
 
 namespace AGSMath = AGS::Common::Math;

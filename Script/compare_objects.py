@@ -21,6 +21,9 @@ How it works (see docs/refactor/STYLE.md, "Commits"):
 
 Exit code 0 means no unexpected difference. A differing object in a GoogleTest file
 (*_test.cpp) is reported but tolerated, because the test macros record __LINE__.
+An object that differs only in its debug-info section or in the order of its functions (which is what
+reordering includes does) is told apart by comparing the disassembly, function by function (needs
+dumpbin, so MSVC only); it is reported as "code identical" and tolerated.
 Expected, by design, to differ: renamed functions, types or globals (their symbol names are in
 the objects), and changed string literals.
 """
@@ -28,6 +31,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -111,8 +115,9 @@ def build(src, bdir, env):
     run([cmake, '--build', bdir], env=env, capture=True)
 
 
-def hash_objects(src, bdir):
-    """Returns {object path: (sha256, source path relative to the worktree)}."""
+def hash_objects(src, bdir, keep_dir=None):
+    """Returns {object path: (sha256, source path relative to the worktree)}.
+    With keep_dir, also copies each object there (for the disassembly comparison)."""
     with open(os.path.join(bdir, 'compile_commands.json'), encoding='utf-8') as fh:
         entries = json.load(fh)
     result = {}
@@ -128,8 +133,39 @@ def hash_objects(src, bdir):
             continue  # generated or external source
         rel = source[len(src_norm) + 1:].replace('\\', '/')
         with open(obj_path, 'rb') as fh:
-            result[os.path.normcase(obj)] = (hashlib.sha256(fh.read()).hexdigest(), rel)
+            data = fh.read()
+        result[os.path.normcase(obj)] = (hashlib.sha256(data).hexdigest(), rel)
+        if keep_dir:
+            os.makedirs(keep_dir, exist_ok=True)
+            with open(os.path.join(keep_dir, hashlib.sha1(os.path.normcase(obj).encode()).hexdigest()), 'wb') as out:
+                out.write(data)
     return result
+
+
+def disassembly_blocks(dumpbin, env, obj_path):
+    """The code of an object as {function label: instructions}, without addresses, so that the order of
+    the functions and the debug-info section do not matter."""
+    text = subprocess.run([dumpbin, '/nologo', '/disasm:nobytes', obj_path], env=env, capture_output=True,
+                          text=True, errors='replace').stdout
+    blocks, label = {}, '<start>'
+    for line in text.splitlines():
+        if line.startswith('Dump of file') or not line.strip():
+            continue
+        line = line.strip()
+        if re.match(r'^[^\s:]+:$', line) or re.match(r'^\S+ \(.*\):$', line):  # a symbol's label
+            label = line
+            blocks.setdefault(label, [])
+            continue
+        if re.match(r'^[0-9A-F]+ \.[\w$]+$', line):  # the section sizes of the summary: layout, not code
+            continue
+        line = re.sub(r'^[0-9A-F]{8}:\s*', '', line)
+        line = re.sub(r'\b[0-9A-F]{8}\b', 'ADDR', line)  # jump targets and offsets inside the object
+        blocks.setdefault(label, []).append(line)
+    return blocks
+
+
+def same_code(dumpbin, env, old_path, new_path):
+    return disassembly_blocks(dumpbin, env, old_path) == disassembly_blocks(dumpbin, env, new_path)
 
 
 def is_third_party(path):
@@ -165,23 +201,38 @@ def main():
     print('building base...', flush=True)
     checkout(worktree, base)
     build(worktree, bdir, env)
-    before = hash_objects(worktree, bdir)
+    kept = os.path.join(args.work_dir, 'base-objects')
+    if os.path.isdir(kept):
+        shutil.rmtree(kept)
+    before = hash_objects(worktree, bdir, kept)
 
     print('building new...', flush=True)
     checkout(worktree, new)
     build(worktree, bdir, env)
     after = hash_objects(worktree, bdir)
 
-    differ = sorted(after[o][1] for o in after if o in before and before[o][0] != after[o][0])
+    differ_objs = [o for o in after if o in before and before[o][0] != after[o][0]]
+    # Objects that differ in bytes but not in code (debug-info section, function order)
+    dumpbin = shutil.which('dumpbin', path=env.get('PATH') or env.get('Path'))
+    code_identical = []
+    if dumpbin:
+        for o in differ_objs:
+            old_obj = os.path.join(kept, hashlib.sha1(o.encode()).hexdigest())
+            if same_code(dumpbin, env, old_obj, os.path.join(bdir, o)):
+                code_identical.append(o)
+    differ = sorted(after[o][1] for o in differ_objs if o not in code_identical)
     added = sorted(after[o][1] for o in after if o not in before)
     removed = sorted(before[o][1] for o in before if o not in after)
     same = sum(1 for o in after if o in before and before[o][0] == after[o][0])
+    same_code_list = sorted(after[o][1] for o in code_identical)
 
     unexpected = [s for s in differ if not is_line_sensitive(s)]
     tolerated = [s for s in differ if is_line_sensitive(s)]
 
-    print(f'\n{same} object(s) identical, {len(differ)} differ, '
-          f'{len(added)} added, {len(removed)} removed')
+    print(f'\n{same} object(s) identical, {len(code_identical)} differ in bytes but not in code, '
+          f'{len(differ)} differ, {len(added)} added, {len(removed)} removed')
+    if same_code_list:
+        print(f'\ncode identical (debug info or function order differs): {len(same_code_list)} object(s)')
     for title, items in (('DIFFER (code generation changed)', unexpected),
                          ('differ in test files (expected: test macros record __LINE__)', tolerated),
                          ('added', added), ('removed', removed)):

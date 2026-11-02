@@ -12,14 +12,16 @@
 //
 //=============================================================================
 #include "platform/base/sys_main.h"
+
 #include <SDL.h>
 #include <SDL_syswm.h>
+
 #include "ac/sys_events.h"
 #include "debug/out.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/geometry.h"
-#include "util/string_compat.h"
 #include "util/string.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

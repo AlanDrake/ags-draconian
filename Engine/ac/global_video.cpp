@@ -11,12 +11,13 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/global_video.h"
+
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
-#include "ac/global_video.h"
-#include "debug/debugger.h"
 #include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "media/video/video.h"
 #include "media/video/videoplayer.h" // for flags
 #include "util/path.h"

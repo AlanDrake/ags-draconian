@@ -12,9 +12,10 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_inventory.h"
-#include "ac/dynobj/scriptobjects.h"
-#include "ac/dynobj/dynobj_manager.h"
+
 #include "ac/characterinfo.h"
+#include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

@@ -40,6 +40,7 @@
 #pragma once
 
 #include <vector>
+
 #include "util/stream.h"
 
 namespace AGS

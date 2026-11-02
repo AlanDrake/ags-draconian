@@ -16,8 +16,9 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "ac/gamestructdefines.h"
+
 #include "ac/game_version.h"
+#include "ac/gamestructdefines.h"
 #include "data/assetmanager.h"
 #include "gfx/bitmap.h"
 #include "util/string.h"

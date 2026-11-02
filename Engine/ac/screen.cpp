@@ -11,26 +11,28 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/screen.h"
+
 #include <algorithm>
+
 #include "ac/common.h"
 #include "ac/draw.h"
+#include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/scriptuserobject.h"
+#include "ac/dynobj/scriptviewport.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_screen.h"
-#include "ac/screen.h"
 #include "ac/sys_events.h"
-#include "ac/dynobj/scriptshader.h"
-#include "ac/dynobj/scriptviewport.h"
-#include "ac/dynobj/scriptuserobject.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
-#include "main/game_run.h"
-#include "script/script_runtime.h"
-#include "platform/base/agsplatformdriver.h"
-#include "plugin/plugin_engine.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
+#include "main/game_run.h"
+#include "platform/base/agsplatformdriver.h"
+#include "plugin/plugin_engine.h"
+#include "script/script_runtime.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

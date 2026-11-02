@@ -12,10 +12,12 @@
 //
 //=============================================================================
 #include "ac/timer.h"
-#include "platform/platform.h"
+
 #include <thread>
+
 #include "ac/sys_events.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/platform.h"
 #if defined(AGS_DISABLE_THREADS)
 #include "media/audio/audio_core.h"
 #include "media/video/video_core.h"

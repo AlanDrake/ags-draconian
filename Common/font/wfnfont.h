@@ -42,6 +42,7 @@
 #pragma once
 
 #include <vector>
+
 #include "platform/types.h"
 #include "util/geometry.h"
 

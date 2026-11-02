@@ -21,6 +21,7 @@
 #include "platform/platform.h"
 #if AGS_PLATFORM_OS_ANDROID
 #include <regex>
+
 #include "platform/types.h"
 #include "util/string.h"
 

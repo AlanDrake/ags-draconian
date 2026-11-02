@@ -21,8 +21,9 @@
 //=============================================================================
 #pragma once
 #include <allegro.h> // PALETTE
-#include "platform/types.h"
+
 #include "gfx/bitmapdata.h"
+#include "platform/types.h"
 #include "util/error.h"
 #include "util/stream.h"
 

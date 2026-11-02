@@ -15,15 +15,16 @@
 // Implementation from acgui.h and acgui.cpp specific to Engine runtime
 //
 //=============================================================================
-#include "ac/game_version.h"
-#include "ac/gui.h"
-#include "ac/system.h"
-#include "font/fonts.h"
 #include <cctype>
+
+#include "ac/game_version.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
-#include "ac/string.h"
+#include "ac/gui.h"
 #include "ac/spritecache.h"
+#include "ac/string.h"
+#include "ac/system.h"
+#include "font/fonts.h"
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"
 

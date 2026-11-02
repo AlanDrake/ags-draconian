@@ -18,15 +18,17 @@
 
 // ********* EMSCRIPTEN PLACEHOLDER DRIVER *********
 
-#include <emscripten.h>
-#include <stdio.h>
 #include <chrono>
+#include <stdio.h>
+
 #include <allegro.h>
+#include <emscripten.h>
+
 #include "SDL.h"
-#include "main/graphics_mode.h"
-#include "main/engine.h"
 #include "ac/system.h"
 #include "gfx/graphicsdriver.h"
+#include "main/engine.h"
+#include "main/graphics_mode.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/filestream.h"
 #include "util/time_util.h"

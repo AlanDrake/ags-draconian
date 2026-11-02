@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include "media/audio/queuedaudioitem.h"
+
 #include "ac/common_defines.h"
 #include "util/stream.h"
 

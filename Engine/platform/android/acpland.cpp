@@ -16,16 +16,18 @@
 #if AGS_PLATFORM_OS_ANDROID
 #include <ctype.h>
 #include <stdio.h>
-#include <unistd.h>
+
 #include <SDL.h>
 #include <allegro.h>
-#include <jni.h>
-#include <android/log.h>
 #include <android/asset_manager_jni.h>
-#include "platform/base/agsplatformdriver.h"
-#include "platform/base/mobile_base.h"
+#include <android/log.h>
+#include <jni.h>
+#include <unistd.h>
+
 #include "ac/runtime_defines.h"
 #include "game/main_game_file.h"
+#include "platform/base/agsplatformdriver.h"
+#include "platform/base/mobile_base.h"
 #include "util/android_file.h"
 #include "util/directory.h"
 #include "util/file.h"

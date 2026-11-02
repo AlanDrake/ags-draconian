@@ -16,9 +16,12 @@
 // Graphics initialization
 //
 
+#include "main/graphics_mode.h"
+
 #include <algorithm>
+
 #include <SDL.h>
-#include "platform/platform.h"
+
 #include "ac/draw.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
@@ -29,9 +32,9 @@
 #include "gfx/graphicsdriver.h"
 #include "main/config.h"
 #include "main/engine_setup.h"
-#include "main/graphics_mode.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
+#include "platform/platform.h"
 
 // Don't try to figure out the window size on the these ports because the port resizes itself.
 #if AGS_PLATFORM_MOBILE

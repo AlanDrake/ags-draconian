@@ -11,9 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/common.h"
 #include "gui/guimain.h"
+
 #include <algorithm>
+
+#include "ac/common.h"
 #include "ac/game_version.h"
 #include "ac/spritecache.h"
 #include "data/data_helpers.h"
@@ -27,8 +29,8 @@
 #include "gui/guislider.h"
 #include "gui/guitextbox.h"
 #include "util/stream.h"
-#include "util/string_utils.h"
 #include "util/string_compat.h"
+#include "util/string_utils.h"
 
 #define MOVER_MOUSEDOWNLOCKED -4000
 

@@ -23,13 +23,15 @@
 //=============================================================================
 #pragma once
 #include <memory>
+
 #include <SDL.h>
-#include "platform/platform.h"
+
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
-#include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxdriverbase.h"
+#include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxfilter_sdl_renderer.h"
+#include "platform/platform.h"
 #include "util/math.h"
 
 namespace AGS

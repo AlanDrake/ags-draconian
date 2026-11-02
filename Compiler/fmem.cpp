@@ -11,11 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <cstdio>
-#include <cstdarg>
-#include <cstring>
-#include <cstdlib>
 #include "fmem.h"
+
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 const char *fmemcopyr = "FMEM v1.00 (c) 2000 Chris Jones";
 #define FMEM_MAGIC 0xcddebeef

@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "util/path.h"
+
 #include <allegro/file.h>
+
 #include "platform/platform.h"
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/windows.h"

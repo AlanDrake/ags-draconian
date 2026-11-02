@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <vector>
+
 #include "ac/common_defines.h" // constants
 #include "ac/game_version.h"
 #include "game/scripteventtable.h"

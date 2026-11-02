@@ -14,6 +14,7 @@
 #pragma once
 
 #include <map>
+
 #include "script/runtimescriptvalue.h"
 #include "util/string.h"
 

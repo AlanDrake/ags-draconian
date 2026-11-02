@@ -13,10 +13,12 @@
 //=============================================================================
 #pragma once
 
-#include <regex>
 #include <map>
+#include <regex>
 #include <vector>
+
 #include <allegro.h>
+
 #include "ac/spritefile.h"
 #include "data/game_utils.h"
 #include "gfx/bitmapdata.h"

@@ -15,9 +15,10 @@
 
 #include <memory>
 #include <vector>
+
+#include "data/game_utils.h"
 #include "util/error.h"
 #include "util/stream.h"
-#include "data/game_utils.h"
 
 namespace AGS
 {

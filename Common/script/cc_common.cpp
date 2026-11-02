@@ -12,8 +12,10 @@
 //
 //=============================================================================
 #include "script/cc_common.h"
+
 #include <cstdio>
 #include <utility>
+
 #include "util/string.h"
 
 using namespace AGS::Common;

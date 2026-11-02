@@ -11,20 +11,21 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/viewframe.h"
+
 #include "ac/common.h" // quitprintf
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
-#include "ac/game_version.h"
-#include "ac/viewframe.h"
-#include "ac/spritecache.h"
-#include "ac/string.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/scriptstring.h"
+#include "ac/game_version.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/spritecache.h"
+#include "ac/string.h"
 #include "debug/debug_log.h"
 #include "gfx/bitmap.h"
+#include "media/audio/audio_system.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
-#include "media/audio/audio_system.h"
 #include "util/math.h"
 
 using namespace AGS;

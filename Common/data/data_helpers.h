@@ -17,6 +17,7 @@
 //=============================================================================
 #include <functional>
 #include <vector>
+
 #include "game/scripteventtable.h"
 #include "util/error.h"
 #include "util/stream.h"
