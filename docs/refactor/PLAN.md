@@ -99,8 +99,9 @@ of the fork").
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **CI check of 2.6:** the `header_check` step on the Ubuntu (GCC) job, and the sorted includes on Linux/macOS/Android/Emscripten | Only MSVC was built locally; GCC may find headers that are not self-contained | (you) |
+| 1 | **CI check of 2.6:** one more run, expected green (GCC's header check passed everything but `indexedobjectpool.h`, now fixed) | Confirms 2.6 | (you) |
 | 2 | **2.4:** clang-tidy gate | Next of phase 2 | Sonnet 5.5, `medium` |
+| 3 | **3.2, first part:** build the Linux/macOS tool jobs with CMake | Six tools are silently missing from the Linux/macOS tool archives (see 3.2) | Sonnet 5.5, `medium` |
 
 Other tracks that can run in between: 1.3 (engine unit tests, Opus 5.5 `xhigh`). Phase 7.1 is complete
 once CI confirms 1.7; the next big step is 6.7d (the editor builds through the tools).
@@ -324,6 +325,19 @@ lines, tab-indented code.
     where CI is the test. One manual edit: `AGSSpriteFont.cpp` included `<WinBase.h>` before
     `<windows.h>`, which sorting reversed; `windows.h` includes it anyway.
   - `Script/compare_objects.py` learned to tell "bytes differ" from "code differs" (needs `dumpbin`).
+  - **What CI found after the push** (fixed in three follow-up commits), and why the local MSVC check
+    missed it: `Compiler/fmem.h` used `size_t` with no include (MSVC declares `size_t` implicitly);
+    the legacy `Compiler/script/cc_symboldef.h` and `cc_variablesymlist.h` lacked `<string>`,
+    `<vector>`, `<cstdint>` (only the MSBuild `Compiler.Lib.sln` builds them, not the CMake build that
+    was checked); `delegate.h` and `indexedobjectpool.h` used `assert`, `std::find_if`, `uint32_t` and
+    `SIZE_MAX` without their headers (GCC's libstdc++ pulls in less than MSVC's library, and checks
+    template bodies). The Direct3D filter headers (`gfxfilter_d3d*.h`, which `#error` off Windows) are
+    now skipped outside Windows. Final count: MSVC 366/366, GCC 350/350 (run 41457809129 plus
+    `indexedobjectpool.h`), clang with libc++ 350/350.
+  - Lesson for repo-wide changes: build the MSBuild solutions too, and check headers with a strict
+    standard library before pushing. Locally, emsdk's clang with libc++ (POSIX target,
+    `-D_LIBCPP_REMOVE_TRANSITIVE_INCLUDES`) reproduced GCC's findings; MSVC, even with
+    `/permissive-`, did not.
 - [x] **2.7 Line endings.** Renormalise with the `.gitattributes` from 0.5 (`git add --renormalize .`)
   in one commit, listed in `.git-blame-ignore-revs`.
   *Status (2026-11-01):* done: 457 files (mostly C# editor sources), content identical ignoring CR.
@@ -342,6 +356,13 @@ removal is a `[delete]` commit, verified by the full test suite and the corpus r
   covers what `debian/` packaging needs. Move the native `Solutions/*.vcxproj` to CMake-generated VS
   solutions (CMake's VS generator, or CMake presets) so a source file is listed in exactly one place.
   The C# and C++/CLI editor projects stay in MSBuild.
+  Found 2026-11-02, older than phase 2: the `Linux Tools` and `macOS Tools` jobs build with the tool
+  Makefiles through `find Tools -name Makefile -execdir make ... \;`, which exits 0 whatever `make`
+  returns. Six tools fail and are silently missing from the archives: `agf2dlgasc`, `agfexport`,
+  `agsbuild` (no `xml_fields.cpp` in their Makefiles), `agf2dta` (no `libsrc/glm` include path),
+  `crmpak`, `spriteimport` (list `Common/game/interactions.cpp`, which no longer exists). Build these
+  jobs with CMake (`-DAGS_BUILD_TOOLS=1 -DAGS_BUILD_ENGINE=0`, as the `Auto-test game` job does)
+  when the tool Makefiles go.
   *Done when:* adding a `.cpp` file to the engine means editing one file.
 - [ ] **3.3 Legacy compiler** (D3; run 1.4 once first): remove `Compiler/script/` (≈6.5k lines, including the
   1,477-line `__cc_compile_file`), `Compiler/test/` tests that only target it,
