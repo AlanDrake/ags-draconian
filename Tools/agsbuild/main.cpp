@@ -331,7 +331,8 @@ static void AddExportTasks(BuildContext &c)
 }
 
 // Compile game scripts. Like the editor, every script gets all the headers: the API, the
-// auto-generated and global variable headers, then every script module's header.
+// auto-generated and global variable headers, then every script module's header. In AGS 4 a
+// module may use what the modules after it declare; the engine links imports in any module order.
 static HError AddScriptTasks(BuildContext &c)
 {
     // The compiled scripts name their headers after the header files, and the editor calls the
@@ -371,22 +372,32 @@ static HError AddScriptTasks(BuildContext &c)
         add_compile_task(c.src_dir, script, {{"autoash"}, {"glvar"}});
     add_compile_task(c.temp_dir, ScriptDialogScript, {{"autoash"}, {"glvar"}, {"dlgasc"}});
 
-    // The scripts go into game28.dta, so the objects are not packed
-    std::copy(c.scom_obj.begin(), c.scom_obj.end(), std::back_inserter(c.clnup_temp_files));
+    // The engine loads the compiled scripts as separate files: the global and dialog scripts by
+    // their names, the other modules from ScriptModules.lst, in compile order
+    std::copy(c.scom_obj.begin(), c.scom_obj.end(), std::back_inserter(c.pak_temp_files));
+    std::copy(c.scom_tasks.begin(), c.scom_tasks.end(), std::back_inserter(c.pre_pack_tasks));
+    std::vector<String> scom_modules_list;
+    for (const auto &scom : c.scom_obj)
+    {
+        if (scom != "GlobalScript.o" && scom != ScriptDialogScom)
+            scom_modules_list.push_back(scom);
+    }
+    c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskWriteStringList(
+        "write-script-list", &c.taskmgr, Path::ConcatPaths(c.temp_dir, "ScriptModules.lst"), scom_modules_list)));
+    c.pak_temp_files.push_back("ScriptModules.lst");
+    c.pre_pack_tasks.push_back({"write-script-list"});
     return HError::None();
 }
 
-// Build game28.dta, with the compiled scripts inside as the editor does
+// Build game28.dta
 static void AddGameDataTask(BuildContext &c)
 {
     const String tool_agf2dta = Path::MakeEscapedExePath(c.sys_dir, ToolAgf2Dta);
     c.taskmgr.AddTask(std::make_unique<TaskPipedProcess>(
         "agf2dta", &c.taskmgr,
         PipedProcessParams(tool_agf2dta,
-                           String::FromFormat("\"%s\" \"%s/game28.dta\" --script-dir \"%s\" %s %s", c.src_agf.GetCStr(),
-                                              c.temp_dir.GetCStr(), c.temp_dir.GetCStr(),
-                                              c.bopts.Strict ? "--strict" : "", c.verbose)),
-        std::vector<TaskInput>(c.scom_tasks)));
+                           String::FromFormat("\"%s\" \"%s/game28.dta\" %s %s", c.src_agf.GetCStr(),
+                                              c.temp_dir.GetCStr(), c.bopts.Strict ? "--strict" : "", c.verbose))));
     c.pak_temp_files.push_back("game28.dta");
     c.pre_pack_tasks.push_back({"agf2dta"});
 }

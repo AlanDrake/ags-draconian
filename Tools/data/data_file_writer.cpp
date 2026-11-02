@@ -18,12 +18,12 @@
 // global messages, plugins and custom properties, audio metadata, palette and
 // game options, GUI appearance data, and the complete extension list.
 //
-// Compiled global/dialog scripts and script modules are embedded as the Editor
-// does it when GameData has them (GameData::EmbedScripts); otherwise the
-// HasCCScript flag is clear and AGS 3.6.1+ loads them from separate files.
-//
 // Deliberate differences from the Editor writer:
 //
+//  * compiled global/dialog scripts and script modules are not embedded. The
+//    legacy HasCCScript flag is clear, and the engine loads them as separate
+//    files (GlobalScript.o, __DialogScripts.o, ScriptModules.lst) since 3.6.1,
+//    so v362_interevent2 names no embedded scripts either;
 //  * settings that are absent from Game.agf/GameData (notably the legacy
 //    letterbox-resolution value) still use the modern/default representation.
 
@@ -674,18 +674,7 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
     out->WriteInt32(1);                         // dict != null
     out->WriteInt32(0);                         // globalscript != null
     out->WriteInt32(0);                         // chars != null
-    out->WriteInt32(game.EmbedScripts ? 1 : 0); // compiled scripts, or loaded from separate files since 3.6.1
-}
-
-// Read by ReadGameData() (TryReadScript, ReadScriptModules) in Common/game/main_game_file.cpp
-// when HasCCScript is set: each script as its compiled object file
-void WriteCompiledScripts(const DataUtil::GameData &game, Stream *out)
-{
-    out->Write(game.GlobalScript.Data.data(), game.GlobalScript.Data.size());
-    out->Write(game.DialogScript.Data.data(), game.DialogScript.Data.size());
-    out->WriteInt32(static_cast<int32_t>(game.ScriptModules.size()));
-    for (const auto &module : game.ScriptModules)
-        out->Write(module.Data.data(), module.Data.size());
+    out->WriteInt32(0);                         // compiled scripts are loaded from separate files since 3.6.1
 }
 
 // Read by GameSetupStruct::read_savegame_info() in
@@ -1057,15 +1046,10 @@ void WriteExt361ObjNames(Stream *out, const DataUtil::GameData &game)
 // ReadInteractionScriptModules(), in Common/game/main_game_file.cpp.
 void WriteExt362Interactions(Stream *out, const DataUtil::GameData &game)
 {
-    // Names of the embedded scripts
-    StrUtil::WriteString(game.EmbedScripts ? game.GlobalScript.FileName : String(), out);
-    StrUtil::WriteString(game.EmbedScripts ? game.DialogScript.FileName : String(), out);
-    out->WriteInt32(game.EmbedScripts ? static_cast<int32_t>(game.ScriptModules.size()) : 0);
-    if (game.EmbedScripts)
-    {
-        for (const auto &module : game.ScriptModules)
-            StrUtil::WriteString(module.FileName, out);
-    }
+    // Names of the embedded scripts: none, the engine names the separate script files itself
+    StrUtil::WriteString("", out);
+    StrUtil::WriteString("", out);
+    out->WriteInt32(0); // script module name count
     out->WriteInt32(static_cast<int32_t>(game.Characters.size()));
     for (const auto &character : game.Characters)
         WriteInteractionEvents(out, character.ScriptModule, character.InteractionEvents);
@@ -1568,8 +1552,6 @@ HError WriteGameData28(const GameData &game, std::unique_ptr<Stream> &&out)
     WriteCursorBlock(game, stream);
     WriteInteractionScriptsBlock(game, stream);
     WriteTextParserDictionary(game, stream);
-    if (game.EmbedScripts)
-        WriteCompiledScripts(game, stream);
     WriteViewsBlock(game, stream);
     WriteCharactersBlock(game, stream);
     WriteLipSyncBlock(game, stream);

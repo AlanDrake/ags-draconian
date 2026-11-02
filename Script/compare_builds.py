@@ -9,6 +9,12 @@ Both builds start from fresh copies of the project (Compiled/ and _Debug/ are le
 packages (*.ags) are unpacked with agspak, so the table shows each packed file: game28.dta, rooms,
 sprite file and index, audio, fonts, custom data. Exit code 0 means every file is identical.
 
+The one layout difference allowed: the editor embeds the compiled scripts in game28.dta, while agsbuild
+packs them as separate files (GlobalScript.o, __DialogScripts.o and the modules in ScriptModules.lst),
+which the engine loads since 3.6.1. The comparison takes the scripts out of the editor's game28.dta
+(see unembed_scripts), so each separate file must match the script the editor embedded, and the rest
+of game28.dta must match byte for byte.
+
 Options:
   --build-dir DIR   CMake build with tools (default: .tidy/build); agsbuild, agscc and the other tools
                     are collected from it into one tools directory next to the script API header
@@ -25,6 +31,7 @@ import hashlib
 import os
 import re
 import shutil
+import struct
 import subprocess
 import sys
 
@@ -105,6 +112,79 @@ def flatten_output(out_dir, unpack_dir, agspak):
     return files
 
 
+def ext_block_header(name):
+    """An extension block's id, as Tools/data/data_file_writer.cpp WriteExtension writes it."""
+    return b'\x00' + name.encode('ascii').ljust(16, b'\x00')
+
+
+def separate_scripts(files, package):
+    """agsbuild's compiled scripts in the order the editor embeds them (global, dialog, then
+    ScriptModules.lst), as [(packed name, bytes)], or None if the package has no global script."""
+    names = ['GlobalScript.o', '__DialogScripts.o']
+    lst = files.get(package + 'ScriptModules.lst')
+    if lst:
+        names += [line.strip() for line in open(lst[0], encoding='utf-8').read().splitlines() if line.strip()]
+    scripts = []
+    for n in names:
+        if package + n not in files:
+            return None
+        scripts.append((n, open(files[package + n][0], 'rb').read()))
+    return scripts
+
+
+def unembed_scripts(ed_dta, scripts):
+    """Rewrites the editor's game28.dta as it is with the scripts left out, as agsbuild writes it.
+    Returns (data, None), or (None, reason) if the editor's file doesn't hold exactly these scripts.
+
+    The editor writes the scripts after the text parser dictionary (Common/game/main_game_file.cpp,
+    ReadGameData), so three other places depend on them: the HasCCScript flag and the offset of the
+    extension list, both in the GameSetupStructBase block before the scripts, and the script names at
+    the start of the v362_interevent2 extension."""
+    modules = scripts[2:]
+    section = scripts[0][1] + scripts[1][1] + struct.pack('<i', len(modules)) + b''.join(m[1] for m in modules)
+    pos = ed_dta.find(section)
+    if pos < 0 or ed_dta.find(section, pos + 1) >= 0:
+        return None, 'scripts differ'
+    ext_start = ed_dta.find(ext_block_header('v360_fonts'), pos + len(section))
+    field = ed_dta.find(struct.pack('<i', ext_start), 0, pos)
+    if ext_start < 0 or field < 0 or ed_dta.find(struct.pack('<i', ext_start), field + 1, pos) >= 0:
+        return None, 'extension offset not found'
+    # GameSetupStructBase: the extension offset, then the dict, globalscript, chars and HasCCScript flags
+    flag = field + 16
+    if struct.unpack_from('<i', ed_dta, flag)[0] != 1:
+        return None, 'HasCCScript flag not found'
+    data = bytearray(ed_dta[:pos] + ed_dta[pos + len(section):])
+    struct.pack_into('<i', data, field, ext_start - len(section))
+    struct.pack_into('<i', data, flag, 0)
+
+    # v362_interevent2: the global and dialog script names, the module count and names
+    block = data.find(ext_block_header('v362_interevent2'), ext_start - len(section))
+    if block < 0:
+        return None, 'v362_interevent2 not found'
+    length_at = block + 17
+    names_at = length_at + 8
+
+    def read_string(at):
+        size = struct.unpack_from('<i', data, at)[0]
+        return data[at + 4:at + 4 + size].decode('utf-8', 'replace'), at + 4 + size
+
+    global_name, at = read_string(names_at)
+    dialog_name, at = read_string(at)
+    names = [global_name, dialog_name]
+    count = struct.unpack_from('<i', data, at)[0]
+    at += 4
+    for _ in range(count):
+        name, at = read_string(at)
+        names.append(name)
+    expected = [os.path.splitext(n)[0] + '.asc' for n, _ in scripts]
+    if names != expected:
+        return None, f'script names {names} instead of {expected}'
+    data[names_at:at] = struct.pack('<iii', 0, 0, 0)
+    length = struct.unpack_from('<q', data, length_at)[0]
+    struct.pack_into('<q', data, length_at, length - (at - names_at - 12))
+    return bytes(data), None
+
+
 def run_autotest(engine, files_dir, work_dir, timeout):
     run_dir = os.path.join(work_dir, 'run')
     if os.path.isdir(run_dir):
@@ -182,17 +262,39 @@ def main():
         if len(errors) > 12:
             print(f'  ... {len(errors) - 12} more distinct errors')
 
+    # The scripts agsbuild packs separately are compared with those the editor embeds in game28.dta
+    unembedded = {}  # game28.dta -> (the editor's file without the scripts, or None; the reason)
+    embedded = set()  # separate script files found in the editor's game28.dta
+    for n in tool_files:
+        if not n.endswith('/game28.dta') or n not in ed_files:
+            continue
+        package = n[:-len('game28.dta')]
+        scripts = separate_scripts(tool_files, package)
+        if scripts is None:
+            continue
+        unembedded[n] = unembed_scripts(open(ed_files[n][0], 'rb').read(), scripts)
+        if unembedded[n][0] is not None:
+            embedded.update(package + s for s, _ in scripts)
+            embedded.add(package + 'ScriptModules.lst')
+
     names = sorted(set(ed_files) | set(tool_files))
     counts = {'identical': 0, 'different': 0, 'only editor': 0, 'only agsbuild': 0}
     print(f'\n| file | result | editor bytes | agsbuild bytes |\n|---|---|---:|---:|')
     for n in names:
         e, t = ed_files.get(n), tool_files.get(n)
-        if e and t:
+        note = ''
+        if e and t and n in unembedded:
+            data, reason = unembedded[n]
+            result = 'identical' if data is not None and data == open(t[0], 'rb').read() else 'different'
+            note = f' ({reason})' if reason else ' (scripts separate)'
+        elif e and t:
             result = 'identical' if e[1] == t[1] and hash_file(e[0]) == hash_file(t[0]) else 'different'
+        elif t and n in embedded:
+            result, note = 'identical', ' (embedded in the editor\'s game28.dta)'
         else:
             result = 'only editor' if e else 'only agsbuild'
         counts[result] += 1
-        print(f'| {n} | {result} | {e[1] if e else ""} | {t[1] if t else ""} |')
+        print(f'| {n} | {result}{note} | {e[1] if e else ""} | {t[1] if t else ""} |')
     print('\n' + ', '.join(f'{v} {k}' for k, v in counts.items()))
 
     if args.engine:

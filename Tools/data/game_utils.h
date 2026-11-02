@@ -754,13 +754,6 @@ struct GameRef
 
 // Full game data required for serializing a compiled game. The base GameRef
 // remains the lightweight representation used by the other data tools.
-// A compiled script embedded into the game data: its name and the compiled object file
-struct CompiledScriptData
-{
-    String FileName; // like "GlobalScript.asc"
-    std::vector<uint8_t> Data;
-};
-
 struct GameData : GameRef
 {
     std::vector<AudioClipData> AudioClips;
@@ -780,12 +773,6 @@ struct GameData : GameRef
     std::vector<String> GlobalMessages;
     std::vector<PluginData> Plugins;
     String EditorVersion;
-    // Compiled scripts, embedded as the editor does it; when not embedded, the engine loads
-    // them from separate files listed in ScriptModules.lst
-    bool EmbedScripts = false;
-    CompiledScriptData GlobalScript;
-    CompiledScriptData DialogScript;
-    std::vector<CompiledScriptData> ScriptModules; // in the order the editor compiles them
 };
 
 // Fills ConfigTree with contents of RuntimeSetup, in accordance to the AGS config format.
