@@ -111,6 +111,7 @@
     <Compile Include="Types\AgfElementsTests.cs" />
     <Compile Include="Types\GameXmlRoundTripTests.cs" />
     <Compile Include="Types\RuntimeSetupTests.cs" />
+    <Compile Include="Types\InteractionsScriptModuleTests.cs" />
     <Compile Include="Types\RoomHotspotTests.cs" />
     <Compile Include="Types\RoomObjectTests.cs" />
     <Compile Include="Types\RoomRegionTests.cs" />
