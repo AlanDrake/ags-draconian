@@ -108,6 +108,7 @@
     <Compile Include="Editor\Utilities\TextUtilsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScriptCompiler\PreprocessorTests.cs" />
+    <Compile Include="Types\AgfElementsTests.cs" />
     <Compile Include="Types\RuntimeSetupTests.cs" />
     <Compile Include="Types\RoomHotspotTests.cs" />
     <Compile Include="Types\RoomObjectTests.cs" />

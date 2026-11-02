@@ -372,11 +372,13 @@ public:
 class GlobalVariable : public EntityParser
 {
 public:
-    String ReadType(DocElem elem) override { return ReadString(elem, "Type"); }
+    String ReadType(DocElem elem) override;
     int ReadID(DocElem elem) override { return -1; }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override;
 
-    String ReadDefaultValue(DocElem elem) { return ReadString(elem, "DefaultValue"); }
+    String ReadDefaultValue(DocElem elem);
+    DataUtil::VariableArrayType ReadArrayType(DocElem elem);
+    int ReadArraySize(DocElem elem);
 };
 
 class GlobalVariables : public EntityListParser
@@ -430,8 +432,8 @@ public:
 class ScriptElem : public ValueParser
 {
 public:
-    bool IsHeader(DocElem elem) { return ReadBool(elem, "IsHeader"); }
-    String ReadFilename(DocElem elem) { return ReadString(elem, "FileName"); }
+    bool IsHeader(DocElem elem);
+    String ReadFilename(DocElem elem);
 };
 
 // Parses a description of a script module with header
@@ -456,7 +458,8 @@ public:
 class Plugin : public ValueParser
 {
 public:
-    String ReadFileName(DocElem elem) { return ReadString(elem, "FileName"); }
+    String ReadFileName(DocElem elem);
+    String ReadData(DocElem elem);
 };
 
 // Parses a list of game plugins
@@ -473,8 +476,8 @@ public:
 class Room : public ValueParser
 {
 public:
-    int ReadNumber(DocElem elem) { return ReadInt(elem, "Number", -1); }
-    String ReadDescription(DocElem elem) { return ReadString(elem, "Description"); }
+    int ReadNumber(DocElem elem);
+    String ReadDescription(DocElem elem);
 };
 
 // Parses a list of rooms
@@ -491,7 +494,7 @@ public:
 class Translation : public ValueParser
 {
 public:
-    String ReadName(DocElem elem) { return ReadString(elem, "Name"); }
+    String ReadName(DocElem elem);
 };
 
 // Parses a list of translations
@@ -504,6 +507,22 @@ public:
     }
 };
 
+
+//
+// Drift guard
+//
+
+// The XML elements that the tables of this reader know, for one class of AGS.Types
+struct KnownElements
+{
+    const char *ClassName;
+    std::vector<const char *> Elements;
+};
+// Lists the tables by the name of the AGS.Types class that the editor serializes them from.
+// Tools/data/agf_elements.txt lists what the editor writes; a test checks that every element
+// there is in a table here (7.1g). A table row without a reader means that the tools do not
+// need the element to build a game.
+const std::vector<KnownElements> &GetKnownElements();
 
 //
 // Helper functions

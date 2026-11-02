@@ -99,9 +99,9 @@ of the fork").
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **7.1d, the rest:** move `agfreader` onto the tables one entity at a time, and let its readers return errors so the tables can fail on unknown elements (view frames use `UnknownElements::Skip` until then) | Parity is reached (17 of 17), so every move is checked mechanically: the harness must stay at 17 of 17 | Sonnet 5.5, `medium` |
-| 2 | **7.1g:** drift guard, on top of the error-returning tables | Without it, a new project property silently goes missing from builds | Sonnet 5.5, `high` |
-| 3 | **7.1j:** CI jobs for `agsbuild` (Linux) and the parity harness (Windows) | Keeps parity from regressing; needs the `gh` token you mentioned | Sonnet 5.5, `medium` |
+| 1 | **7.1j:** CI jobs for `agsbuild` (Linux) and the parity harness (Windows), building with `--strict` | Keeps parity and the drift guard from regressing; needs the `gh` token you mentioned | Sonnet 5.5, `medium` |
+| 2 | **7.1h:** machine-readable diagnostics and clean cancel for `agsbuild` | The editor (6.7d) needs them to list tool errors | Sonnet 5.5, `high` |
+| 3 | **7.1i:** split `BuildWithTaskManager` into one function per stage | Easier to change while 7.1h touches it | Sonnet 5.5, `medium` |
 
 Other tracks that can run in between: 2.6 (self-contained headers, Sonnet 5.5 `medium`) and 1.3 (engine
 unit tests, Opus 5.5 `xhigh`).
@@ -686,7 +686,7 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
       early, with a test.
     Result: all 40 auto-test scripts compile with `agscc`; `agsbuild` now stops only on the room
     sources (7.1e).
-  - [ ] **7.1d Table-driven XML reading** (maintainers' design). C++ has no reflection, so emulate it
+  - [x] **7.1d Table-driven XML reading** (maintainers' design). C++ has no reflection, so emulate it
     with one table per data struct: each row names a member, its XML element and the function that
     reads the value, and a single generic function fills a struct from an XML element using the
     table:
@@ -737,10 +737,16 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     The parsers accept what `AGS.Types` writes, the way it reads it back: bools ignore case, enums
     take the exact name or a number, floats are invariant. `CompareXmlVersions` moved there from
     `agfreader`. Tests: `Tools/test/xml_fields_test.cpp`.
-    *Migration of `agfreader` (2026-11-02):* view frames, cursors and characters read through tables
-    (characters' defaults moved into `CharacterData`'s initializers). About 300 hand-written reads
-    remain: inventory items, audio, fonts, views, GUIs and controls, game settings, runtime setup,
-    and the list readers. Each step is checked by the harness staying at 17 of 17.
+    *Migration of `agfreader` (2026-11-02):* done. Every entity and list of `Game.agf` is read through
+    a table: characters, items, cursors, views, fonts, audio clips and types, GUIs and their controls,
+    dialogs, the game settings and runtime setup, custom property schemas, global variables, scripts,
+    plugins, translations, sprites, parser words and lip sync, and the root `<Game>` element. Each
+    step was checked by the harness staying at 17 of 17. What stays as code, after `ReadFields`:
+    entity references (`ID`, `ScriptName`), the interaction events, the audio folders' inherited
+    defaults, the palette and the sprites' attributes (attributes, not elements), and the dialog
+    files' lookup. The readers take `UnknownElements::Report`, not `Fail`: they cannot return errors
+    yet (`ReadAllData` is `void`), so unknown elements and bad values go to `XmlProblems` and the
+    caller decides (7.1g).
   - [x] **7.1e AGS 4 room sources** (gap 2). Compile `Rooms/<n>/` to `.crm` in C++, following the same
     principle as `agf2dta`; room data is simpler than game data. Read `data.xml` through 7.1d tables,
     load the background and mask PNGs (`Common/gfx/image_png.cpp`), compile `room<n>.asc` with
@@ -842,7 +848,7 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     indexed interactions aren't exercised by it, and `agf2dta` still takes interaction slots from the
     XML `Index` instead of the cursor schema (the same here). Another sample project would widen
     the check.
-  - [ ] **7.1g Drift guard.** Two halves:
+  - [x] **7.1g Drift guard.** Two halves:
     - **Unknown elements:** with the tables from 7.1d, `ReadFields` reports XML elements it doesn't
       recognise: a warning in normal use, an error in tests. A test loads a project saved by the
       current editor (the auto-test project) and expects none.
@@ -853,6 +859,26 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
       "the tools ignore this on purpose" into a reviewed decision.
     *Done when:* adding a project property in `AGS.Types` without teaching the tools, or listing it
     as editor-only, makes a test fail.
+    *Status (2026-11-02):* done.
+    - **Unknown elements:** `UnknownElements::Report` records unknown elements and bad values in
+      `XmlProblems` and goes on. `agf2dta` prints them as warnings, and as errors with `--strict`
+      (`agsbuild` runs `agf2dta`, so it shows them too). The auto-test project loads with none, and
+      `--strict` passes. `Fail` stays for the room tool, which returns errors.
+    - **Properties no sample uses:** `AgfElementsTests` (C#, `Editor/AGS.Editor.Tests/Types`)
+      serializes a default object of every class that the tools read and checks the child element
+      names against `Tools/data/agf_elements.txt`; run it with `AGS_UPDATE_AGF_ELEMENTS=1` to
+      regenerate the list. The C++ test `AgfElements` (`Tools/test/agfreader_test.cpp`) checks that every
+      element on the list has a row in a table (`GetKnownElements()` maps class names to tables). A
+      row without a reader means "the build does not need it" (editor-only), with the reason in a
+      comment, so that decision is now reviewed. 37 classes are covered.
+    - **What it found at once** (all fixed): characters' `Enabled` and `Visible` were never read, and
+      the writer set both flags always; the sprites' `ImportColorDepth` (which sets `SPF_KEEPDEPTH`) was
+      not read or written; global variables' `ArrayType` and `ArraySize` were ignored, and default
+      values were not lower-cased as the editor does (`bool b = True;`).
+    - **Left open:** `spriteimport` does not re-import a sprite as 8-bit for `ImportColorDepth` 8
+      (only the flag is written, which is all a build from `acsprset.spr` needs). The classes outside
+      `Game.agf` (rooms, translations) are not on the list: rooms are read by the room tool, which
+      fails on unknown elements. CI should build with `--strict` (7.1j).
   - [ ] **7.1h Diagnostics for the editor.** Behind a flag, `agsbuild` and the tools it runs print
     errors, warnings and progress in a machine-readable form (one JSON object per line: severity,
     tool, file, line, message), and `agsbuild` stops cleanly when cancelled.
