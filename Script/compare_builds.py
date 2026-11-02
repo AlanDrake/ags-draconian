@@ -7,7 +7,8 @@ and with the C++ tools (agsbuild), then compares the results file by file.
 
 Both builds start from fresh copies of the project (Compiled/ and _Debug/ are left out). The game
 packages (*.ags) are unpacked with agspak, so the table shows each packed file: game28.dta, rooms,
-sprite file and index, audio, fonts, custom data. Exit code 0 means every file is identical.
+sprite file and index, audio, fonts, custom data; a "(package)" row compares each .ags package
+itself (part names, asset order, ender). Exit code 0 means every file is identical.
 
 The one layout difference allowed: the editor embeds the compiled scripts in game28.dta, while agsbuild
 packs them as separate files (GlobalScript.o, __DialogScripts.o and the modules in ScriptModules.lst),
@@ -185,6 +186,52 @@ def unembed_scripts(ed_dta, scripts):
     return bytes(data), None
 
 
+def package_layout(path):
+    """What an asset library holds besides its assets (Common/data/multifilelib.cpp, format 30): the
+    file names of its parts, the asset names in order, and whether it ends with an ender."""
+    with open(path, 'rb') as f:
+        head = f.read(1 << 20)
+        f.seek(-12, os.SEEK_END)
+        has_ender = f.read(12) == b'CLIB\x01\x02\x03\x04SIGE'
+    if head[:5] != b'CLIB\x1a' or head[5] < 30:
+        return None
+    at = 7 + 4  # signature, version, part index; reserved options
+
+    def cstr(at):
+        end = head.index(b'\0', at)
+        return head[at:end].decode('utf-8', 'replace'), end + 1
+
+    count = struct.unpack_from('<i', head, at)[0]
+    at += 4
+    parts = []
+    for _ in range(count):
+        name, at = cstr(at)
+        parts.append(name)
+    count = struct.unpack_from('<i', head, at)[0]
+    at += 4
+    assets = []
+    for _ in range(count):
+        name, at = cstr(at)
+        assets.append(name)
+        at += 1 + 8 + 8  # part, offset, size
+    return parts, assets, has_ender
+
+
+def compare_packages(ed_path, tool_path):
+    """Compares the layout of two packages; returns None if it matches, or what differs."""
+    e, t = package_layout(ed_path), package_layout(tool_path)
+    if e is None or t is None:
+        return 'not a package of format 30'
+    if e[0] != t[0]:
+        return f'part names {e[0]} and {t[0]}'
+    if e[2] != t[2]:
+        return 'ender only in the ' + ('editor\'s' if e[2] else 'agsbuild\'s')
+    shared = set(e[1]) & set(t[1])
+    if [a for a in e[1] if a in shared] != [a for a in t[1] if a in shared]:
+        return 'assets in another order'
+    return None
+
+
 def run_autotest(engine, files_dir, work_dir, timeout):
     run_dir = os.path.join(work_dir, 'run')
     if os.path.isdir(run_dir):
@@ -295,6 +342,16 @@ def main():
             result = 'only editor' if e else 'only agsbuild'
         counts[result] += 1
         print(f'| {n} | {result}{note} | {e[1] if e else ""} | {t[1] if t else ""} |')
+    # The packages themselves, besides the files in them: part names, asset order, ender
+    for n in sorted(os.listdir(ed_out) if os.path.isdir(ed_out) else []):
+        ed_pkg, tool_pkg = os.path.join(ed_out, n), os.path.join(tool_out, n)
+        if not n.lower().endswith('.ags') or not os.path.isfile(tool_pkg):
+            continue
+        reason = compare_packages(ed_pkg, tool_pkg)
+        result = 'different' if reason else 'identical'
+        names.append(n + ' (package)')
+        counts[result] += 1
+        print(f'| {n} (package) | {result}{f" ({reason})" if reason else ""} | | |')
     print('\n' + ', '.join(f'{v} {k}' for k, v in counts.items()))
 
     if args.engine:
