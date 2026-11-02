@@ -13,6 +13,10 @@
 //=============================================================================
 #pragma once
 
+#include <cstdint>
+#include <string>
+#include <vector>
+
 #include "cs_parser_common.h" // macro definitions
 
 #define STYPE_DYNARRAY (0x10000000)

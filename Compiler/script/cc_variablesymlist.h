@@ -13,6 +13,9 @@
 //=============================================================================
 #pragma once
 
+#include <cstdint>
+#include <cstdlib>
+
 struct VariableSymlist
 {
     int len;
