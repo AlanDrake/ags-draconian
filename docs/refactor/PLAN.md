@@ -104,17 +104,17 @@ build systems caused most of the breakage seen in 2.6 and 7.1h, which moves 3.2 
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **1.4:** corpus run on the private AGS 4 game (54 rooms; path in a git-ignored local file): `agsbuild --strict` and the parity harness against the editor, then the engine through every room | The strongest safety net available; also the first parity measurement on a real game (7.1 measured one test project) | Sonnet 5.5, `high` |
-| 2 | **1.2, first part:** C3 script-API snapshot, C2 savegame round trip, C5 `Game.agf` round trip | Cheap contract guards; 3.4 needs them | Sonnet 5.5, `high` |
-| 3 | **3.1:** remove PSP | Small, safe, measurable | Sonnet 5.5, `medium` |
-| 4 | **3.2a:** build the Linux/macOS tool jobs with CMake, delete the tool Makefiles | Six tools are silently missing from the Linux/macOS tool archives (see 3.2) | Sonnet 5.5, `medium` |
-| 5 | **Pre-push check script:** clang-format, MSVC build + tests, MSBuild solutions, header check with MSVC and libc++ | CI should confirm, not discover (2.6 needed four pushes) | Sonnet 5.5, `medium` |
-| 6 | **3.2b:** Debian packaging and `Engine/Makefile` to CMake, drop `makefile-build.yml` | `debian/rules` builds through `Engine/Makefile` today | Sonnet 5.5, `high` |
-| 7 | **1.3:** engine unit tests | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` |
-| 8 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
+| 1 | **1.2, first part:** C3 script-API snapshot, C2 savegame round trip, C5 `Game.agf` round trip | Cheap contract guards; 3.4 needs them | Sonnet 5.5, `high` |
+| 2 | **3.1:** remove PSP | Small, safe, measurable | Sonnet 5.5, `medium` |
+| 3 | **3.2a:** build the Linux/macOS tool jobs with CMake, delete the tool Makefiles | Six tools are silently missing from the Linux/macOS tool archives (see 3.2) | Sonnet 5.5, `medium` |
+| 4 | **Pre-push check script:** clang-format, MSVC build + tests, MSBuild solutions, header check with MSVC and libc++ | CI should confirm, not discover (2.6 needed four pushes) | Sonnet 5.5, `medium` |
+| 5 | **3.2b:** Debian packaging and `Engine/Makefile` to CMake, drop `makefile-build.yml` | `debian/rules` builds through `Engine/Makefile` today | Sonnet 5.5, `high` |
+| 6 | **1.3:** engine unit tests | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` |
+| 7 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
 
 3.2c (native `.vcxproj` to CMake) waits for 6.7: the C++/CLI bridge links against those libraries.
-3.3 waits for 1.4. The next big step after the safety net is 6.7d (the editor builds through the tools).
+1.4 is done, so 3.3 can go ahead once 1.2's guards are in. The next big step after the safety net is
+6.7d (the editor builds through the tools).
 
 ---
 
@@ -208,7 +208,7 @@ auto-test game that CI downloads from `latest`.
   eviction. Where a subsystem reads globals, add a test fixture that sets them up. That fixture is
   the first step towards phase 5's context object.
   *Done when:* each listed subsystem has a test file. Engine test files ≥ 15.
-- [ ] **1.4 Game corpus regression.** A script (`ci/corpus/run.py`) that, for each game you own the
+- [x] **1.4 Game corpus regression.** A script (`ci/corpus/run.py`) that, for each game you own the
   sources to: compiles all scripts with `script2` (before 3.3 removes the legacy compiler, run it
   once with both and confirm every game builds with `script2`); runs the engine with
   `--gfxdriver Software --no-message-box --log-stdout` through `--startr N` for every room;
@@ -216,14 +216,25 @@ auto-test game that CI downloads from `latest`.
   data can live in a private repo.
   *Done when:* one command runs the whole corpus and reports pass/fail per room.
   *Corpus (2026-11-02):* one private AGS 4 game built on this branch (project format 4.0.0.34,
-  54 rooms, 36 scripts, 1.6 GB); another can be prepared on request. Game paths are personal: the
+  53 rooms, 36 scripts, 1.6 GB); another can be prepared on request. Game paths are personal: the
   script takes them from its arguments or a git-ignored file under `.compare/`, never from the repo,
   and works on a copy (the editor's `/compile` writes into the project). For AGS 4 projects the
   `script2`-vs-legacy step is likely moot (the legacy compiler predates AGS 4 syntax); confirm once.
-  *Status (2026-11-02):* build parity done, the engine run through every room and the corpus script
-  are not. The game path is in the git-ignored `.compare/corpus.txt`. `compare_builds.py` on the
-  game now reports 114 of 114 files identical (with the scripts as separate files, 7.1f) and its
-  translation; the auto-test project stays at 59 of 59 and 2414 of 2414. The first run found:
+  *Status (2026-11-02):* done. `python ci/corpus/run.py --engine <ags.exe>` builds each game of the
+  corpus (arguments, or the git-ignored `.compare/corpus.txt`) from a fresh copy with
+  `agsbuild --strict`, then runs every room in its own engine process (`--startr N`, Software
+  driver, no sound, full log) for 10 seconds, four at a time, and prints pass or fail per room. A
+  room fails if the engine exits before the time is up, if the log has no `Loading room N`, or if
+  it has an `[ERROR]` or `[FATAL]` message; warnings are listed, and fail the room only with
+  `--fail-on-warnings`, because the private game logs one by design in every room (its script
+  looks for a data file in the save folder before the package). Result: 53 of 53 rooms pass; a room that doesn't exist is reported as a failure. The game builds with
+  `script2` (`agscc` uses it unless built with `LEGACY_COMPILER`), which is what 3.3 needs; the
+  legacy compiler was not tried on AGS 4 syntax. Found on the way: the engine exits with code 0
+  after a fatal error with `--no-message-box` ("Unable to load the room file"), so only the early
+  exit tells it apart from a normal quit.
+  Build parity with the editor: `compare_builds.py` on the game reports 114 of 114 files identical
+  (with the scripts as separate files, 7.1f) and its translation; the auto-test project stays at
+  59 of 59 and 2414 of 2414. The first parity run found:
   - Runtime bugs in `agsbuild` builds: a clip folder's settings were not read (they are in a child
     element of the folder), so clips lost their inherited repeat, volume and priority; GUIs were
     written in folder order instead of by ID, so `gui[N]` could be the wrong GUI; FLAC clips had no
