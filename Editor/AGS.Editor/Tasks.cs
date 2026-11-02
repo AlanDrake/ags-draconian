@@ -1035,7 +1035,8 @@ namespace AGS.Editor
 
         private void AppendAudioClipsToHeader(StringBuilder sb, AudioClipFolder clips)
         {
-            foreach (AudioClip clip in clips.AllItemsFlat)
+            // by ID, as the build tools declare them, rather than in folder order
+            foreach (AudioClip clip in clips.AllItemsFlat.OrderBy(c => c.ID))
             {
                 sb.AppendLine("import AudioClip *" + clip.ScriptName + ";");
             }
