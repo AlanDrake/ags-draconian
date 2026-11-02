@@ -99,7 +99,7 @@ of the fork").
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **7.1j:** CI jobs for `agsbuild` (Linux) and the parity harness (Windows), building with `--strict` | Keeps parity and the drift guard from regressing; needs the `gh` token you mentioned | Sonnet 5.5, `medium` |
+| 1 | **7.1j, the rest:** see that the Linux job is green after the push, then the Windows parity-harness job, then 1.7 | Keeps parity and the drift guard from regressing; needs the `gh` token you mentioned | Sonnet 5.5, `medium` |
 | 2 | **7.1h:** machine-readable diagnostics and clean cancel for `agsbuild` | The editor (6.7d) needs them to list tool errors | Sonnet 5.5, `high` |
 | 3 | **7.1i:** split `BuildWithTaskManager` into one function per stage | Easier to change while 7.1h touches it | Sonnet 5.5, `medium` |
 
@@ -888,6 +888,17 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
   - [ ] **7.1j CI.** A Linux job builds the auto-test project with `agsbuild` from the tools of the same
     run and hands it to the platform jobs (this is 1.7). A Windows job runs the parity harness against
     the editor on every PR until 6.7d deletes the C# build code.
+    *Status (2026-11-02):* the Linux half is written, not yet seen green in CI. `agsbuild` takes
+    `--strict` (passed on to `agf2dta`). `Script/agsbuild_autotest.sh <build-dir> <project> <work-dir>`
+    collects the tools from a CMake build, builds the project in strict mode, and runs the engine on the
+    result (checked with `tappy`); locally it gives 2414 of 2414. The `Ubuntu-x86_64` job in `build.yml`
+    checks out the test game at `AUTO_TEST_TAG` and runs it after the downloaded auto-test. Still to do:
+    the Windows job with the parity harness (needs the editor build in the same workflow, and the
+    Windows Dependencies job's artifacts), and handing the built game to the platform jobs in place of
+    the downloaded one (1.7), once this job has been green for a while.
+    CI on this branch today: only `Windows Packaging` (Inno Setup) fails. The failures on
+    `ags4-fullranges` are Docker image names that must be lowercase (fixed on this branch) and the
+    auto-test calling `Character.Transparency`, which that branch no longer has.
   - **Thin format tools:** `agscc`, `crmpak`, `spritepak`, `agspak` and `trac` stay as they are, and
     get tests for their command-line options (`Tools/test` exists).
 

@@ -137,6 +137,22 @@ jobs:
       run: |
         tappy agstest_software.tap
 
+    # The auto-test again, built from its source by the C++ tools instead of the editor (7.1j).
+    # The project is checked out at the same tag as the downloaded game.
+    - name: Check out the auto-test project
+      if: matrix.platform.name == 'Ubuntu-x86_64'
+      uses: actions/checkout@v6
+      with:
+        repository: ${{env.AUTO_TEST_REPO}}
+        ref: ${{env.AUTO_TEST_TAG}}
+        path: auto-test-source
+        persist-credentials: false
+
+    - name: Build the auto-test with agsbuild and run it
+      if: matrix.platform.name == 'Ubuntu-x86_64'
+      run: |
+        Script/agsbuild_autotest.sh build auto-test-source/ags4/auto-test ${{runner.temp}}/agsbuild-autotest
+
   build-emscripten-bundle:
     name: Emscripten
     runs-on: ubuntu-latest
