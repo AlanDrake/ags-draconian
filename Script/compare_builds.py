@@ -76,7 +76,7 @@ def collect_tools(build_dir, sys_dir):
 def copy_project(src, dst):
     if os.path.isdir(dst):
         shutil.rmtree(dst)
-    shutil.copytree(src, dst, ignore=shutil.ignore_patterns('Compiled', '_Debug', '*.lock'))
+    shutil.copytree(src, dst, ignore=shutil.ignore_patterns('Compiled', '_Debug', '*.lock', '.git'))
 
 
 def hash_file(path):
