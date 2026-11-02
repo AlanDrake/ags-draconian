@@ -960,36 +960,41 @@ void CustomPropertySchema::GetAll(DocElem root, std::vector<DocElem> &elems)
     }
 }
 
+static const XmlField<DataUtil::RuntimeSetup> kRuntimeSetupFields[] = {
+    {"AAScaledSprites", Read<&DataUtil::RuntimeSetup::AAScaledSprites>},
+    {"AutoLockMouse", Read<&DataUtil::RuntimeSetup::AutoLockMouse>},
+    {"CompressSaves", Read<&DataUtil::RuntimeSetup::CompressSaves>},
+    {"CustomAppDataPath", Read<&DataUtil::RuntimeSetup::CustomAppDataPath>},
+    {"CustomSavePath", Read<&DataUtil::RuntimeSetup::CustomSavePath>},
+    {"DigitalSound", Read<&DataUtil::RuntimeSetup::AudioDriver>},
+    {"FullscreenDesktop", Read<&DataUtil::RuntimeSetup::FullscreenDesktop>},
+    {"FullscreenGameScaling", Read<&DataUtil::RuntimeSetup::FullscreenGameScaling>},
+    {"GameScaling", Read<&DataUtil::RuntimeSetup::WindowGameScaling>},
+    {"GameScalingMultiplier", Read<&DataUtil::RuntimeSetup::GameScalingMultiplier>},
+    {"GraphicsDriver", Read<&DataUtil::RuntimeSetup::GraphicsDriver>},
+    {"GraphicsFilter", Read<&DataUtil::RuntimeSetup::GraphicsFilter>},
+    {"MouseSpeed", Read<&DataUtil::RuntimeSetup::MouseSpeed>},
+    {"RenderAtScreenResolution", Read<&DataUtil::RuntimeSetup::RenderAtScreenResolution>},
+    {"Rotation", Read<&DataUtil::RuntimeSetup::Rotation>},
+    {"ShowFPS", Read<&DataUtil::RuntimeSetup::ShowFPS>},
+    {"SoundCacheSize", Read<&DataUtil::RuntimeSetup::SoundCacheSize>},
+    {"SpriteCacheSize", Read<&DataUtil::RuntimeSetup::SpriteCacheSize>},
+    {"TextureCacheSize", Read<&DataUtil::RuntimeSetup::TextureCacheSize>},
+    {"TitleText", Read<&DataUtil::RuntimeSetup::TitleText>},
+    {"TouchToMouseEmulation", Read<&DataUtil::RuntimeSetup::TouchToMouseEmulation>},
+    {"TouchToMouseMotionMode", Read<&DataUtil::RuntimeSetup::TouchToMouseMotionMode>},
+    {"Translation", Read<&DataUtil::RuntimeSetup::Translation>},
+    {"UseCustomAppDataPath", Read<&DataUtil::RuntimeSetup::UseCustomAppDataPath>},
+    {"UseCustomSavePath", Read<&DataUtil::RuntimeSetup::UseCustomSavePath>},
+    {"UseVoicePack", Read<&DataUtil::RuntimeSetup::UseVoicePack>},
+    {"VSync", Read<&DataUtil::RuntimeSetup::VSync>},
+    {"Windowed", Read<&DataUtil::RuntimeSetup::Windowed>},
+};
+
 void RuntimeSetup::ReadAllData(DocElem elem, DataUtil::RuntimeSetup &setup)
 {
-    setup.AAScaledSprites = ReadBool(elem, "AAScaledSprites");
-    setup.AutoLockMouse = ReadBool(elem, "AutoLockMouse");
-    setup.CompressSaves = ReadBool(elem, "CompressSaves");
-    setup.CustomAppDataPath = ReadString(elem, "CustomAppDataPath");
-    setup.CustomSavePath = ReadString(elem, "CustomSavePath");
-    setup.AudioDriver = ReadString(elem, "DigitalSound");
-    setup.FullscreenDesktop = ReadBool(elem, "FullscreenDesktop");
-    setup.FullscreenGameScaling = ReadString(elem, "FullscreenGameScaling");
-    setup.WindowGameScaling = ReadString(elem, "GameScaling");
-    setup.GameScalingMultiplier = ReadInt(elem, "GameScalingMultiplier");
-    setup.GraphicsDriver = ReadString(elem, "GraphicsDriver");
-    setup.GraphicsFilter = ReadString(elem, "GraphicsFilter");
-    setup.MouseSpeed = ReadFloat(elem, "MouseSpeed");
-    setup.RenderAtScreenResolution = ReadBool(elem, "RenderAtScreenResolution");
-    setup.Rotation = ReadString(elem, "Rotation");
-    setup.ShowFPS = ReadBool(elem, "ShowFPS");
-    setup.SoundCacheSize = ReadInt(elem, "SoundCacheSize");
-    setup.SpriteCacheSize = ReadInt(elem, "SpriteCacheSize");
-    setup.TextureCacheSize = ReadInt(elem, "TextureCacheSize");
-    setup.TitleText = ReadString(elem, "TitleText");
-    setup.TouchToMouseEmulation = ReadString(elem, "TouchToMouseEmulation");
-    setup.TouchToMouseMotionMode = ReadString(elem, "TouchToMouseMotionMode");
-    setup.Translation = ReadString(elem, "Translation");
-    setup.UseCustomAppDataPath = ReadBool(elem, "UseCustomAppDataPath");
-    setup.UseCustomSavePath = ReadBool(elem, "UseCustomSavePath");
-    setup.UseVoicePack = ReadBool(elem, "UseVoicePack");
-    setup.VSync = ReadBool(elem, "VSync");
-    setup.Windowed = ReadBool(elem, "Windowed");
+    // TODO: fail on unknown elements once the readers return errors (7.1g)
+    ReadFields(elem, setup, kRuntimeSetupFields, UnknownElements::Skip);
 }
 
 DocElem Game::GetSettings(DocElem elem)
@@ -1461,25 +1466,31 @@ static const XmlField<DataUtil::ViewFrameData> kViewFrameFields[] = {
     {"YOffset", Read<&DataUtil::ViewFrameData::YOffset>},
 };
 
+static HError ReadViewFrames(const tinyxml2::XMLElement *frames, std::vector<DataUtil::ViewFrameData> &list)
+{
+    // TODO: fail on unknown elements once the readers return errors (7.1g)
+    return ReadList(frames, "ViewFrame", list, kViewFrameFields, SIZE_MAX, UnknownElements::Skip);
+}
+
+static const XmlField<DataUtil::ViewLoopData> kViewLoopFields[] = {
+    {"Frames", ReadElement<&DataUtil::ViewLoopData::Frames, ReadViewFrames>},
+    {"ID", nullptr}, // the loop's index in its view
+    {"RunNextLoop", Read<&DataUtil::ViewLoopData::RunNextLoop>},
+};
+
+static HError ReadViewLoops(const tinyxml2::XMLElement *loops, std::vector<DataUtil::ViewLoopData> &list)
+{
+    return ReadList(loops, "Loop", list, kViewLoopFields, SIZE_MAX, UnknownElements::Skip);
+}
+
+static const XmlField<DataUtil::ViewData> kViewFields[] = {
+    {"Loops", ReadElement<&DataUtil::ViewData::Loops, ReadViewLoops>},
+};
+
 void View::ReadAllData(DocElem elem, DataUtil::ViewData &data)
 {
-    DocElem loops = elem->FirstChildElement("Loops");
-    for (DocElem loop = loops ? loops->FirstChildElement("Loop") : nullptr; loop;
-         loop = loop->NextSiblingElement("Loop"))
-    {
-        DataUtil::ViewLoopData loop_data;
-        loop_data.RunNextLoop = ValueParser::ReadBool(loop, "RunNextLoop");
-        DocElem frames = loop->FirstChildElement("Frames");
-        for (DocElem frame = frames ? frames->FirstChildElement("ViewFrame") : nullptr; frame;
-             frame = frame->NextSiblingElement("ViewFrame"))
-        {
-            DataUtil::ViewFrameData frame_data;
-            // TODO: fail on unknown elements once the agfreader functions return errors (7.1g)
-            ReadFields(frame, frame_data, kViewFrameFields, UnknownElements::Skip);
-            loop_data.Frames.push_back(frame_data);
-        }
-        data.Loops.push_back(loop_data);
-    }
+    // TODO: fail on unknown elements once the readers return errors (7.1g)
+    ReadFields(elem, data, kViewFields, UnknownElements::Skip);
 }
 
 String Font::ReadScriptName(DocElem elem)
