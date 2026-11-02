@@ -99,12 +99,23 @@ of the fork").
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **CI check of 2.6:** one more run, expected green (GCC's header check passed everything but `indexedobjectpool.h`, now fixed) | Confirms 2.6 | (you) |
-| 2 | **2.4:** clang-tidy gate | Next of phase 2 | Sonnet 5.5, `medium` |
-| 3 | **3.2, first part:** build the Linux/macOS tool jobs with CMake | Six tools are silently missing from the Linux/macOS tool archives (see 3.2) | Sonnet 5.5, `medium` |
+Phases 0, 2 and 7.1a–j are done; phase 1 is half done. Ground rule 3 applies from here: no deletion
+(3.3, 3.4) or restructuring (phase 5) before the safety net that guards it (1.2, 1.3, 1.4). Duplicate
+build systems caused most of the breakage seen in 2.6 and 7.1h, which moves 3.2 up.
 
-Other tracks that can run in between: 1.3 (engine unit tests, Opus 5.5 `xhigh`). Phase 7.1 is complete
-once CI confirms 1.7; the next big step is 6.7d (the editor builds through the tools).
+| # | Task | Why now | Model / effort |
+|---|---|---|---|
+| 1 | **1.4:** corpus run on the private AGS 4 game (54 rooms; path in a git-ignored local file): `agsbuild --strict` and the parity harness against the editor, then the engine through every room | The strongest safety net available; also the first parity measurement on a real game (7.1 measured one test project) | Sonnet 5.5, `high` |
+| 2 | **1.2, first part:** C3 script-API snapshot, C2 savegame round trip, C5 `Game.agf` round trip | Cheap contract guards; 3.4 needs them | Sonnet 5.5, `high` |
+| 3 | **3.1:** remove PSP | Small, safe, measurable | Sonnet 5.5, `medium` |
+| 4 | **3.2a:** build the Linux/macOS tool jobs with CMake, delete the tool Makefiles | Six tools are silently missing from the Linux/macOS tool archives (see 3.2) | Sonnet 5.5, `medium` |
+| 5 | **Pre-push check script:** clang-format, MSVC build + tests, MSBuild solutions, header check with MSVC and libc++ | CI should confirm, not discover (2.6 needed four pushes) | Sonnet 5.5, `medium` |
+| 6 | **3.2b:** Debian packaging and `Engine/Makefile` to CMake, drop `makefile-build.yml` | `debian/rules` builds through `Engine/Makefile` today | Sonnet 5.5, `high` |
+| 7 | **1.3:** engine unit tests | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` |
+| 8 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
+
+3.2c (native `.vcxproj` to CMake) waits for 6.7: the C++/CLI bridge links against those libraries.
+3.3 waits for 1.4. The next big step after the safety net is 6.7d (the editor builds through the tools).
 
 ---
 
@@ -205,6 +216,11 @@ auto-test game that CI downloads from `latest`.
   and fails on warnings or crashes. Run it locally before risky merges and in CI nightly if the game
   data can live in a private repo.
   *Done when:* one command runs the whole corpus and reports pass/fail per room.
+  *Corpus (2026-11-02):* one private AGS 4 game built on this branch (project format 4.0.0.34,
+  54 rooms, 36 scripts, 1.6 GB); another can be prepared on request. Game paths are personal: the
+  script takes them from its arguments or a git-ignored file under `.compare/`, never from the repo,
+  and works on a copy (the editor's `/compile` writes into the project). For AGS 4 projects the
+  `script2`-vs-legacy step is likely moot (the legacy compiler predates AGS 4 syntax); confirm once.
 - [ ] **1.5 Coverage, sanitizers and warnings.** Add a Linux CI job with `-fsanitize=address,undefined`
   running all unit tests and the auto-test game, and a coverage job (`llvm-cov`) that publishes
   per-directory numbers. Raise first-party warning levels to `/W4` and `-Wall -Wextra`, warnings as
@@ -954,7 +970,7 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     `AddTranslationTasks`, `AddSpriteTasks`, `AddAudioTasks`, `AddProjectFileTasks`, `AddGamePackTask`,
     `AddAudioVoxTask`, `AddSpeechVoxTasks`, `AddDeployTask`, `AddCleanupTask`. The order is the old order
     (it decides the order of files in the package); measured: still 17 of 17 identical.
-  - [ ] **7.1j CI.** A Linux job builds the auto-test project with `agsbuild` from the tools of the same
+  - [x] **7.1j CI.** A Linux job builds the auto-test project with `agsbuild` from the tools of the same
     run and hands it to the platform jobs (this is 1.7). A Windows job runs the parity harness against
     the editor on every PR until 6.7d deletes the C# build code.
     *Status (2026-11-02):* the Linux half is done and green in CI (run 41432710133). `agsbuild` takes
@@ -972,6 +988,8 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     Parity` job downloads them with the editor, the x86 engine and SDL2.dll, puts `acwin.exe` next to
     `AGSEditor.exe`, and runs `Script/compare_builds.py` on the auto-test at `AUTO_TEST_TAG`
     (with `--engine`). Logs upload as `parity-logs`. Only 1.7 is left of 7.1j.
+    *Status (2026-11-02, final):* done. 1.7 is green too (run 41442221520), and both halves stayed
+    green through 2.6 (run 41461852760).
     Getting CI green on the way (2026-11-02):
     - `Engine/util/library_posix.h` still used `Path` unqualified after the using-directives left the
       headers; it broke every POSIX build (Linux, macOS, Android).
