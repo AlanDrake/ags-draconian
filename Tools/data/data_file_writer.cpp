@@ -148,7 +148,7 @@ void WritePropertyValues(Stream *out, const std::vector<DataUtil::CustomProperty
     for (const auto &property : properties)
     {
         StrUtil::WriteString(property.Name, out);
-        StrUtil::WriteString(property.Value, out);
+        StrUtil::WriteString(TextProperty(property.Value), out);
     }
 }
 
@@ -394,7 +394,7 @@ void WriteGuiButton(Stream *out, const DataUtil::GUIButtonData &button)
     out->WriteInt32(0);
     out->WriteInt32(button.NewModeNumber);
     out->WriteInt32(0);
-    StrUtil::WriteString(button.Text, out);
+    StrUtil::WriteString(TextProperty(button.Text), out);
     out->WriteInt32(button.TextAlignment);
 }
 
@@ -402,7 +402,7 @@ void WriteGuiButton(Stream *out, const DataUtil::GUIButtonData &button)
 void WriteGuiLabel(Stream *out, const DataUtil::GUILabelData &label)
 {
     WriteGuiControl(out, label, 0);
-    StrUtil::WriteString(label.Text, out);
+    StrUtil::WriteString(TextProperty(label.Text), out);
     out->WriteInt32(label.Font);
     out->WriteInt32(label.TextColor);
     out->WriteInt32(label.TextAlignment);
@@ -433,7 +433,7 @@ void WriteGuiSlider(Stream *out, const DataUtil::GUISliderData &slider)
 void WriteGuiTextBox(Stream *out, const DataUtil::GUITextBoxData &text_box)
 {
     WriteGuiControl(out, text_box, text_box.ShowBorder ? kGUICtrl_ShowBorder : 0);
-    StrUtil::WriteString(text_box.Text, out);
+    StrUtil::WriteString(TextProperty(text_box.Text), out);
     out->WriteInt32(text_box.Font);
     out->WriteInt32(text_box.TextColor);
     out->WriteInt32(text_box.ShowBorder ? kTextBox_ShowBorder : 0);
@@ -587,7 +587,7 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
     String game_name = game.Settings.GameName;
     if (game_name.IsEmpty())
         game_name = game.Settings.GameFileName;
-    StrUtil::WriteFixedString(game_name, GameSetupStructBase::LEGACY_GAME_NAME_LENGTH, out);
+    StrUtil::WriteFixedString(TextProperty(game_name), GameSetupStructBase::LEGACY_GAME_NAME_LENGTH, out);
     out->WriteInt16(0); // alignment padding to int32
 
     const std::vector<int32_t> options = BuildGameOptions(game);

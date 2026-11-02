@@ -108,7 +108,7 @@ LoadedAudioBlock RoundTripAudioBlock(const DataUtil::GameData &game)
 TEST(DataFileWriter, RoundTripGameSetupStructBase)
 {
     DataUtil::GameData game;
-    game.Settings.GameName = "Round-trip game";
+    game.Settings.GameName = "Round-trip \\\"game\\\""; // escapes as the editor stores them
     game.Settings.MaximumScore = 42;
     game.Settings.ColorDepth = DataUtil::kGameColorDepth_TrueColor;
     game.Settings.DialogOptionsBullet = 17;
@@ -142,7 +142,7 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     GameSetupStructBase::SerializeInfo info;
     loaded.ReadFromFile(in.get(), kGameVersion_Current, info);
 
-    EXPECT_STREQ("Round-trip game", loaded.gamename.GetCStr());
+    EXPECT_STREQ("Round-trip \"game\"", loaded.gamename.GetCStr());
     EXPECT_EQ(2, loaded.numviews);
     EXPECT_EQ(2, loaded.numcharacters);
     EXPECT_EQ(1, loaded.playercharacter);
@@ -645,7 +645,7 @@ TEST(DataFileWriter, RoundTripCustomProperties)
     EXPECT_STREQ("Character health", loaded_item.Description.GetCStr());
     EXPECT_STREQ("100", loaded_item.DefaultValue.GetCStr());
 
-    std::vector<DataUtil::CustomPropertyValue> values = {{"Health", "75"}, {"Mood", "Happy"}};
+    std::vector<DataUtil::CustomPropertyValue> values = {{"Health", "75"}, {"Mood", "Happy\\nand calm"}};
     std::vector<uint8_t> values_buffer;
     auto values_out = std::make_unique<Stream>(std::make_unique<VectorStream>(values_buffer, kStream_Write));
     DataFileWriter::WritePropertyValues(values_out.get(), values);
@@ -659,7 +659,7 @@ TEST(DataFileWriter, RoundTripCustomProperties)
     ASSERT_NE(loaded_values.end(), health_it);
     ASSERT_NE(loaded_values.end(), mood_it);
     EXPECT_STREQ("75", health_it->second.GetCStr());
-    EXPECT_STREQ("Happy", mood_it->second.GetCStr());
+    EXPECT_STREQ("Happy\nand calm", mood_it->second.GetCStr());
 }
 
 TEST(DataFileWriter, RoundTripCustomPropertiesBlock)
@@ -1226,7 +1226,7 @@ TEST(DataFileWriter, RoundTripGuiButton)
     button->PushedImage = 43;
     button->NewModeNumber = 7;
     button->OnClick = "btnPlay_OnClick";
-    button->Text = "Play";
+    button->Text = "Play\\nnow";
     button->TextAlignment = kAlignBottomRight;
     button->TextColor = 15;
     gui.Controls.push_back(button);
@@ -1245,7 +1245,7 @@ TEST(DataFileWriter, RoundTripGuiButton)
     EXPECT_EQ(button->TextColor, actual.GetTextColor());
     EXPECT_EQ(kGUIAction_RunScript, actual.GetClickAction(kGUIClickLeft));
     EXPECT_EQ(button->NewModeNumber, actual.GetClickData(kGUIClickLeft));
-    EXPECT_STREQ(button->Text.GetCStr(), actual.GetText().GetCStr());
+    EXPECT_STREQ("Play\nnow", actual.GetText().GetCStr());
     EXPECT_EQ(button->TextAlignment, actual.GetTextAlignment());
     EXPECT_TRUE(actual.GetEventHandler(0).IsEmpty()); // events are in "v400_eventtables"
     EXPECT_EQ(loaded.StreamLength, loaded.StreamPosition);
@@ -1256,7 +1256,7 @@ TEST(DataFileWriter, RoundTripGuiLabel)
     DataUtil::GameData game;
     DataUtil::GUIData gui = MakeGui();
     auto label = MakeControl<DataUtil::GUILabelData>("lblScore");
-    label->Text = "Score: @score@";
+    label->Text = "Score:\\n@score@";
     label->Font = 3;
     label->TextColor = 16;
     label->TextAlignment = kAlignMiddleCenter;
@@ -1267,7 +1267,7 @@ TEST(DataFileWriter, RoundTripGuiLabel)
     ASSERT_EQ(1u, loaded.Objects.Labels.size());
     const GUILabel &actual = loaded.Objects.Labels[0];
     ExpectControlBase(*label, actual);
-    EXPECT_STREQ(label->Text.GetCStr(), actual.GetText().GetCStr());
+    EXPECT_STREQ("Score:\n@score@", actual.GetText().GetCStr());
     EXPECT_EQ(label->Font, actual.GetFont());
     EXPECT_EQ(label->TextColor, actual.GetTextColor());
     EXPECT_EQ(label->TextAlignment, actual.GetTextAlignment());
@@ -1328,7 +1328,7 @@ TEST(DataFileWriter, RoundTripGuiTextBox)
     DataUtil::GameData game;
     DataUtil::GUIData gui = MakeGui();
     auto text_box = MakeControl<DataUtil::GUITextBoxData>("txtName");
-    text_box->Text = "Arthur";
+    text_box->Text = "Arthur\\tPendragon";
     text_box->Font = 4;
     text_box->TextColor = 17;
     text_box->ShowBorder = true;
@@ -1340,7 +1340,7 @@ TEST(DataFileWriter, RoundTripGuiTextBox)
     ASSERT_EQ(1u, loaded.Objects.TextBoxes.size());
     const GUITextBox &actual = loaded.Objects.TextBoxes[0];
     ExpectControlBase(*text_box, actual);
-    EXPECT_STREQ(text_box->Text.GetCStr(), actual.GetText().GetCStr());
+    EXPECT_STREQ("Arthur\tPendragon", actual.GetText().GetCStr());
     EXPECT_EQ(text_box->Font, actual.GetFont());
     EXPECT_EQ(text_box->TextColor, actual.GetTextColor());
     EXPECT_NE(0, actual.GetTextBoxFlags() & kTextBox_ShowBorder);
