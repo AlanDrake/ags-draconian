@@ -1041,6 +1041,21 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     have them (C1).
     *Done when:* the editor's output has no scripts in `game28.dta`, `compare_builds.py` reports
     every file identical without `unembed_scripts`, and the auto-test passes on both builds.
+  - [ ] **7.1m PO translation sources** (found by 1.4). AGS 4 projects keep their translations as
+    `<Name>.po` (`Translation.TRANSLATION_SOURCE_FILE_EXTENSION`), with `.trs` only as the legacy
+    format; `agsbuild` asks `trac` for `<Name>.trs` and the whole build fails on a project with a PO
+    translation. The editor still compiles a PO file into the same `.tra` as a TRS one. Add `ReadPO`
+    next to `ReadTRS` (`Tools/data/tra_utils.*`), following the editor's parser (`Translation.cs`,
+    `LoadDataImpl`): multi-line strings, `msgctxt`, the `# $` special tags (encoding, font overrides),
+    obsolete (`#~`) and fuzzy entries left out, only `msgstr[0]` of plural forms, parser words by
+    their `PARSERWORD:<id>` context, and the editor's unescaping (`UnescapeText`, with octal and hex
+    escapes). `trac` reads either format by extension; `agsbuild` uses the `.po` when there is one.
+    *Done when:* `trac` compiles a PO translation into the same `.tra` as the editor (tests for each
+    rule above, and the parity harness on a project with a PO translation).
+  - [ ] **7.1n MO files** (future, low priority). Instead of converting PO sources into the AGS
+    `.tra` format, generate standard gettext `.mo` files, and teach the engine to read them, so
+    translations go through the usual gettext tools from source to game. Keep reading `.tra`
+    (games built by 3.99 and 4.x editors, C1).
   - **Thin format tools:** `agscc`, `crmpak`, `spritepak`, `agspak` and `trac` stay as they are, and
     get tests for their command-line options (`Tools/test` exists).
 
