@@ -96,6 +96,27 @@ jobs:
           ${{github.workspace}}/build/ags
           ${{github.workspace}}/build/ags.exe
 
+    # The tools and the engine of this build, for the parity job (7.1j)
+    - name: Stage tools for the parity harness
+      if: matrix.platform.name == 'Windows'
+      shell: pwsh
+      run: |
+        New-Item -ItemType Directory -Path parity-tools | Out-Null
+        $names = 'agsbuild','agscc','agf2dta','agf2dlgasc','agfexport','agspak','crmbuild','crmpak','spriteimport','spritepak','trac','ags'
+        foreach ($n in $names) {
+          $f = Get-ChildItem build -Recurse -Filter "$n.exe" | Where-Object { $_.FullName -notmatch '[\\/]_deps[\\/]' } | Select-Object -First 1
+          if (-not $f) { throw "Not found in build: $n.exe" }
+          Copy-Item $f.FullName parity-tools
+        }
+        Copy-Item build\Release\*.dll parity-tools -ErrorAction SilentlyContinue
+
+    - name: Upload tools for the parity harness
+      if: matrix.platform.name == 'Windows'
+      uses: actions/upload-artifact@v7
+      with:
+        name: parity-tools-windows
+        path: parity-tools
+
     - name: Download auto-test
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
@@ -691,6 +712,77 @@ jobs:
           name: windows-editor-binaries
           include-hidden-files: true
           path: Solutions/.build/x86/Release/*
+
+  # Builds the auto-test project with the editor and with agsbuild, and fails unless the packages
+  # match file by file (docs/refactor/PLAN.md, 7.1j). Goes away with the C# build code (6.7d).
+  windows-parity:
+    name: Windows Build Parity
+    runs-on: windows-2022
+    needs:
+      - build
+      - windows-deps
+      - windows-msvc-engine
+      - windows-msvc-editor
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Check out the auto-test project
+        uses: actions/checkout@v6
+        with:
+          repository: ${{env.AUTO_TEST_REPO}}
+          ref: ${{env.AUTO_TEST_TAG}}
+          path: auto-test-source
+          persist-credentials: false
+
+      - name: Download Windows dependencies
+        uses: actions/download-artifact@v8
+        with:
+          name: WinDevDependenciesVS.zip
+          path: C:\Lib
+
+      - name: Download Editor binaries
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-editor-binaries
+          path: parity-editor
+
+      - name: Download Engine x86 binary
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-engine-binaries-x86
+          path: parity-engine
+
+      - name: Download tools
+        uses: actions/download-artifact@v8
+        with:
+          name: parity-tools-windows
+          path: parity-tools
+
+      # The editor copies the engine into the game's output, so it sits next to AGSEditor.exe
+      - name: Put the engine next to the editor
+        shell: cmd
+        run: |
+          copy parity-engine\x86\Release\acwin.exe parity-editor\acwin.exe
+          copy C:\Lib\SDL2\lib\x86\SDL2.dll parity-editor\SDL2.dll
+
+      - name: Compare the editor build with agsbuild
+        run: >
+          python Script/compare_builds.py auto-test-source/ags4/auto-test
+          --editor parity-editor/AGSEditor.exe
+          --build-dir parity-tools
+          --engine parity-tools/ags.exe
+          --work-dir ${{runner.temp}}/parity
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: parity-logs
+          path: |
+            ${{runner.temp}}/parity/*.log
 
   package-pdbs:
     name: PDB Packaging
