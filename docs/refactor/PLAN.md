@@ -220,6 +220,24 @@ auto-test game that CI downloads from `latest`.
   script takes them from its arguments or a git-ignored file under `.compare/`, never from the repo,
   and works on a copy (the editor's `/compile` writes into the project). For AGS 4 projects the
   `script2`-vs-legacy step is likely moot (the legacy compiler predates AGS 4 syntax); confirm once.
+  *Status (2026-11-02):* build parity done, the engine run through every room and the corpus script
+  are not. The game path is in the git-ignored `.compare/corpus.txt`. `compare_builds.py` on the
+  game now reports 114 of 114 files identical (with the scripts as separate files, 7.1f) and its
+  translation; the auto-test project stays at 59 of 59 and 2414 of 2414. The first run found:
+  - Runtime bugs in `agsbuild` builds: a clip folder's settings were not read (they are in a child
+    element of the folder), so clips lost their inherited repeat, volume and priority; GUIs were
+    written in folder order instead of by ID, so `gui[N]` could be the wrong GUI; FLAC clips had no
+    file type; `\n` and other escapes in GUI texts, property values and the game name were not
+    resolved.
+  - The PO translation gap (7.1m).
+  - Byte differences, made to match: the editor declared audio clips in folder order (now by ID,
+    in the editor), interaction tables, two deprecated hotspot colours, room order, the packages'
+    asset order, part name and ender (`audio.vox` named itself `Compiled\Data\audio.vox`).
+  - The harness had to change: copies leave out `.git`, AGS 4 rooms are compiled from their sources
+    on both sides (the editor packs a newer `room<n>.crm` as it is), and the `.ags` packages are
+    compared themselves, not only the files in them.
+  - Found, not fixed: `agfreader` crashes on a `Game.agf` without `<Settings>`;
+    `StrUtil::Unescape` reads past the end of a text ending in a single `\`.
 - [ ] **1.5 Coverage, sanitizers and warnings.** Add a Linux CI job with `-fsanitize=address,undefined`
   running all unit tests and the auto-test game, and a coverage job (`llvm-cov`) that publishes
   per-directory numbers. Raise first-party warning levels to `/W4` and `-Wall -Wextra`, warnings as
@@ -1041,17 +1059,31 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     have them (C1).
     *Done when:* the editor's output has no scripts in `game28.dta`, `compare_builds.py` reports
     every file identical without `unembed_scripts`, and the auto-test passes on both builds.
-  - [ ] **7.1m PO translation sources** (found by 1.4). AGS 4 projects keep their translations as
-    `<Name>.po` (`Translation.TRANSLATION_SOURCE_FILE_EXTENSION`), with `.trs` only as the legacy
-    format; `agsbuild` asks `trac` for `<Name>.trs` and the whole build fails on a project with a PO
-    translation. The editor still compiles a PO file into the same `.tra` as a TRS one. Add `ReadPO`
-    next to `ReadTRS` (`Tools/data/tra_utils.*`), following the editor's parser (`Translation.cs`,
-    `LoadDataImpl`): multi-line strings, `msgctxt`, the `# $` special tags (encoding, font overrides),
-    obsolete (`#~`) and fuzzy entries left out, only `msgstr[0]` of plural forms, parser words by
-    their `PARSERWORD:<id>` context, and the editor's unescaping (`UnescapeText`, with octal and hex
-    escapes). `trac` reads either format by extension; `agsbuild` uses the `.po` when there is one.
+  - [x] **7.1m PO translation sources** (found by 1.4). AGS 4 projects keep their translations as
+    `<Name>.po` (`Translation.TRANSLATION_SOURCE_FILE_EXTENSION`); the editor converts the legacy
+    `.trs` when it upgrades a project. `agsbuild` asked `trac` for `<Name>.trs`, so the whole build
+    failed on a project with a translation.
     *Done when:* `trac` compiles a PO translation into the same `.tra` as the editor (tests for each
-    rule above, and the parity harness on a project with a PO translation).
+    rule, and the parity harness on a project with a PO translation).
+    *Status (2026-11-02):* done. `trac` compiles PO only (`trac -u` still decompiles to TRS), and
+    `agsbuild` passes it `<Name>.po`.
+    - `ReadPO` (`Tools/data/tra_utils.*`) follows the editor's parser (`Translation.LoadDataImpl`):
+      multi-line strings, `msgctxt`, the `# $` special tags, obsolete (`#~`) and fuzzy entries, only
+      `msgstr[0]` of plural forms, parser words by their `PARSERWORD:<id>` context, and a text found
+      twice keeping its first place with the later translation. It fills a `TranslationSource`,
+      which keeps the file's order (the engine's `Translation` holds the texts in hash maps).
+    - `WriteTRA` writes the `.tra` as the editor does (`TranslationsComponent.CompileTranslation`),
+      not through Common's `WriteTraData`: texts in the file's order and without a terminator,
+      resolved with the editor's `UnescapeText` (octal and hex escapes in the translation's
+      encoding), obsolete, fuzzy and untranslated entries left out, always the two string options
+      (encoding and language), font overrides in the file's order, and the editor's ending. Only an
+      `AutoTranslateParserSaid` of `ON` sets the option, as in the editor.
+    - `StrUtil::GetKeyValue` ignored its separator and split on `=`; TRS annotations and PO contexts
+      (`PARSERWORD:5`) were never read.
+    - Measured: the private AGS 4 game's `Italian.tra` is byte-identical to the editor's. Not
+      covered by that game: font overrides in a `.tra` (the writer follows Common's font block),
+      and translations in a non-UTF-8 encoding with numeric escapes above 127 (written as one byte;
+      the editor uses the system code page).
   - [ ] **7.1n MO files** (future, low priority). Instead of converting PO sources into the AGS
     `.tra` format, generate standard gettext `.mo` files, and teach the engine to read them, so
     translations go through the usual gettext tools from source to game. Keep reading `.tra`
