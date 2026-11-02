@@ -544,17 +544,37 @@ void Cursor::ReadAllData(DocElem elem, DataUtil::CursorData &data)
     ReadFields(elem, data, kCursorFields, UnknownElements::Skip);
 }
 
+// Row reader for an enum member, using one of the string-to-enum readers above
+template <auto Member, auto Convert>
+static HError ReadConverted(const tinyxml2::XMLElement *elem,
+                            typename XmlDetail::MemberPtr<decltype(Member)>::Class &obj)
+{
+    obj.*Member = Convert(String(XmlDetail::ElementText(elem)));
+    return HError::None();
+}
+
+static FrameAlignment ReadHotspotAlignment(const String &value)
+{
+    return ReadFrameAlignment(value, kAlignNone);
+}
+
+static const XmlField<DataUtil::InventoryItemData> kInventoryItemFields[] = {
+    {"CursorImage", Read<&DataUtil::InventoryItemData::CursorImage>},
+    {"DisplayName", Read<&DataUtil::InventoryItemData::Description>}, // "Description" before 4.0.0.34
+    {"HotspotAlignment", ReadConverted<&DataUtil::InventoryItemData::HotspotAlignment, ReadHotspotAlignment>},
+    {"HotspotX", Read<&DataUtil::InventoryItemData::HotspotX>},
+    {"HotspotY", Read<&DataUtil::InventoryItemData::HotspotY>},
+    {"Image", Read<&DataUtil::InventoryItemData::Image>},
+    {"OnAnyClick", Read<&DataUtil::InventoryItemData::OnAnyClick>},
+    {"PlayerStartsWithItem", Read<&DataUtil::InventoryItemData::PlayerStartsWith>},
+};
+
 void InventoryItem::ReadAllData(DocElem elem, DataUtil::InventoryItemData &data)
 {
-    data.Description = ReadString(elem, "DisplayName"); // "Description" before 4.0.0.34
-    data.Image = ReadInt(elem, "Image");
-    data.CursorImage = ReadInt(elem, "CursorImage");
-    data.HotspotX = ReadInt(elem, "HotspotX");
-    data.HotspotY = ReadInt(elem, "HotspotY");
-    data.HotspotAlignment = ReadFrameAlignment(ReadString(elem, "HotspotAlignment"), kAlignNone);
-    data.PlayerStartsWith = ReadBool(elem, "PlayerStartsWithItem");
-    data.OnAnyClick = ReadString(elem, "OnAnyClick");
+    // TODO: fail on unknown elements once the readers return errors (7.1g)
+    ReadFields(elem, data, kInventoryItemFields, UnknownElements::Skip);
 }
+
 
 int GUIMain::ReadID(DocElem elem)
 {
@@ -644,106 +664,157 @@ String GUIControl::ReadType(DocElem elem)
     return "GUIControl";
 }
 
+static HError ReadPropertyList(const tinyxml2::XMLElement *list, std::vector<DataUtil::CustomPropertyValue> &props);
+
+static FrameAlignment ReadTopCenterAlignment(const String &value)
+{
+    return ReadFrameAlignment(value, kAlignTopCenter);
+}
+
+static FrameAlignment ReadTopLeftAlignment(const String &value)
+{
+    return ReadFrameAlignment(value, kAlignTopLeft);
+}
+
+static HorAlignment ReadLeftHorAlignment(const String &value)
+{
+    return ReadHorizontalAlignment(value, kHAlignLeft);
+}
+
+static int ReadBlendModeName(const String &value)
+{
+    int mode = 0;
+    ParseBlendMode(value.GetCStr(), mode);
+    return mode;
+}
+
+static const XmlField<DataUtil::GUIControlData> kGuiControlFields[] = {
+    {"BackgroundColor", Read<&DataUtil::GUIControlData::BackgroundColor>},
+    {"BorderColor", Read<&DataUtil::GUIControlData::BorderColor>},
+    {"BorderWidth", Read<&DataUtil::GUIControlData::BorderWidth>},
+    {"BlendMode", ReadConverted<&DataUtil::GUIControlData::BlendMode, ReadBlendModeName>},
+    {"Clickable", Read<&DataUtil::GUIControlData::Clickable>},
+    {"Enabled", Read<&DataUtil::GUIControlData::Enabled>},
+    {"Height", Read<&DataUtil::GUIControlData::Height>},
+    {"Left", Read<&DataUtil::GUIControlData::Left>},
+    {"Opacity", Read<&DataUtil::GUIControlData::Opacity>},
+    {"PaddingX", Read<&DataUtil::GUIControlData::PaddingX>},
+    {"PaddingY", Read<&DataUtil::GUIControlData::PaddingY>},
+    {"Properties", ReadElement<&DataUtil::GUIControlData::Properties, ReadPropertyList>},
+    {"ShowBorder", Read<&DataUtil::GUIControlData::ShowBorder>},
+    {"SolidBackground", Read<&DataUtil::GUIControlData::SolidBackground>},
+    {"Top", Read<&DataUtil::GUIControlData::Top>},
+    {"Translated", Read<&DataUtil::GUIControlData::Translated>},
+    {"Visible", Read<&DataUtil::GUIControlData::Visible>},
+    {"Width", Read<&DataUtil::GUIControlData::Width>},
+    {"ZOrder", Read<&DataUtil::GUIControlData::ZOrder>},
+};
+
 void GUIControl::ReadAllData(DocElem elem, DataUtil::GUIControlData &data)
 {
-    data.Clickable = ReadBool(elem, "Clickable");
-    data.Height = ReadInt(elem, "Height");
-    data.Left = ReadInt(elem, "Left");
-    data.Top = ReadInt(elem, "Top");
-    data.Width = ReadInt(elem, "Width");
-    data.Enabled = ReadBool(elem, "Enabled");
-    data.Visible = ReadBool(elem, "Visible");
-    data.Translated = ReadBool(elem, "Translated", true);
-    data.ShowBorder = ReadBool(elem, "ShowBorder");
-    data.SolidBackground = ReadBool(elem, "SolidBackground");
-    data.ZOrder = ReadInt(elem, "ZOrder");
-    data.BackgroundColor = ReadInt(elem, "BackgroundColor");
-    data.BorderColor = ReadInt(elem, "BorderColor");
-    data.BorderWidth = ReadInt(elem, "BorderWidth");
-    data.PaddingX = ReadInt(elem, "PaddingX");
-    data.PaddingY = ReadInt(elem, "PaddingY");
-    data.Opacity = ReadInt(elem, "Opacity", 255);
-    data.BlendMode = ReadBlendMode(elem);
-    ReadProperties(elem, data.Properties);
+    // TODO: fail on unknown elements once the readers return errors (7.1g)
+    ReadFields(elem, data, kGuiControlFields, UnknownElements::Skip);
 }
+
+static const XmlField<DataUtil::GUIButtonData> kGuiButtonFields[] = {
+    {"BorderShadeColor", Read<&DataUtil::GUIButtonData::BorderShadeColor>},
+    {"ClickAction", Read<&DataUtil::GUIButtonData::ClickAction>},
+    {"ClipImage", Read<&DataUtil::GUIButtonData::ClipImage>},
+    {"ColorStyle", ReadConverted<&DataUtil::GUIButtonData::ColorStyle, ReadButtonColorStyle>},
+    {"Font", Read<&DataUtil::GUIButtonData::Font>},
+    {"Image", Read<&DataUtil::GUIButtonData::Image>},
+    {"MouseOverBackgroundColor", Read<&DataUtil::GUIButtonData::MouseOverBackgroundColor>},
+    {"MouseOverBorderColor", Read<&DataUtil::GUIButtonData::MouseOverBorderColor>},
+    {"MouseOverTextColor", Read<&DataUtil::GUIButtonData::MouseOverTextColor>},
+    {"MouseoverImage", Read<&DataUtil::GUIButtonData::MouseoverImage>},
+    {"NewModeNumber", Read<&DataUtil::GUIButtonData::NewModeNumber>},
+    {"OnClick", Read<&DataUtil::GUIButtonData::OnClick>},
+    {"OnFrameEvent", Read<&DataUtil::GUIButtonData::OnFrameEvent>},
+    {"PushedBackgroundColor", Read<&DataUtil::GUIButtonData::PushedBackgroundColor>},
+    {"PushedBorderColor", Read<&DataUtil::GUIButtonData::PushedBorderColor>},
+    {"PushedImage", Read<&DataUtil::GUIButtonData::PushedImage>},
+    {"PushedTextColor", Read<&DataUtil::GUIButtonData::PushedTextColor>},
+    {"Text", Read<&DataUtil::GUIButtonData::Text>},
+    {"TextAlignment", ReadConverted<&DataUtil::GUIButtonData::TextAlignment, ReadTopCenterAlignment>},
+    {"TextColor", Read<&DataUtil::GUIButtonData::TextColor>},
+    {"TextOutlineColor", Read<&DataUtil::GUIButtonData::TextOutlineColor>},
+    {"WrapText", Read<&DataUtil::GUIButtonData::WrapText>},
+};
 
 void GUIControl::ReadButtonData(DocElem elem, DataUtil::GUIButtonData &data)
 {
-    data.ClickAction = ReadString(elem, "ClickAction");
-    data.ClipImage = ReadBool(elem, "ClipImage");
-    data.WrapText = ReadBool(elem, "WrapText");
-    data.Font = ReadInt(elem, "Font");
-    data.Image = ReadInt(elem, "Image");
-    data.MouseoverImage = ReadInt(elem, "MouseoverImage");
-    data.NewModeNumber = ReadInt(elem, "NewModeNumber");
-    data.OnClick = ReadString(elem, "OnClick");
-    data.OnFrameEvent = ReadString(elem, "OnFrameEvent");
-    data.PushedImage = ReadInt(elem, "PushedImage");
-    data.Text = ReadString(elem, "Text");
-    data.TextAlignment = ReadFrameAlignment(ReadString(elem, "TextAlignment"), kAlignTopCenter);
-    data.TextColor = ReadInt(elem, "TextColor");
-    data.ColorStyle = ReadButtonColorStyle(ReadString(elem, "ColorStyle"));
-    data.BorderShadeColor = ReadInt(elem, "BorderShadeColor");
-    data.MouseOverBackgroundColor = ReadInt(elem, "MouseOverBackgroundColor");
-    data.PushedBackgroundColor = ReadInt(elem, "PushedBackgroundColor");
-    data.MouseOverBorderColor = ReadInt(elem, "MouseOverBorderColor");
-    data.PushedBorderColor = ReadInt(elem, "PushedBorderColor");
-    data.MouseOverTextColor = ReadInt(elem, "MouseOverTextColor");
-    data.PushedTextColor = ReadInt(elem, "PushedTextColor");
-    data.TextOutlineColor = ReadInt(elem, "TextOutlineColor");
+    ReadFields(elem, data, kGuiButtonFields, UnknownElements::Skip);
 }
+
+static const XmlField<DataUtil::GUILabelData> kGuiLabelFields[] = {
+    {"Font", Read<&DataUtil::GUILabelData::Font>},
+    {"Text", Read<&DataUtil::GUILabelData::Text>},
+    {"TextAlignment", ReadConverted<&DataUtil::GUILabelData::TextAlignment, ReadTopLeftAlignment>},
+    {"TextColor", Read<&DataUtil::GUILabelData::TextColor>},
+    {"TextOutlineColor", Read<&DataUtil::GUILabelData::TextOutlineColor>},
+};
 
 void GUIControl::ReadLabelData(DocElem elem, DataUtil::GUILabelData &data)
 {
-    data.Font = ReadInt(elem, "Font");
-    data.Text = ReadString(elem, "Text");
-    data.TextAlignment = ReadFrameAlignment(ReadString(elem, "TextAlignment"), kAlignTopLeft);
-    data.TextColor = ReadInt(elem, "TextColor");
-    data.TextOutlineColor = ReadInt(elem, "TextOutlineColor");
+    ReadFields(elem, data, kGuiLabelFields, UnknownElements::Skip);
 }
+
+static const XmlField<DataUtil::GUISliderData> kGuiSliderFields[] = {
+    {"BackgroundImage", Read<&DataUtil::GUISliderData::BackgroundImage>},
+    {"BorderShadeColor", Read<&DataUtil::GUISliderData::BorderShadeColor>},
+    {"HandleColor", Read<&DataUtil::GUISliderData::HandleColor>},
+    {"HandleImage", Read<&DataUtil::GUISliderData::HandleImage>},
+    {"HandleOffset", Read<&DataUtil::GUISliderData::HandleOffset>},
+    {"MaxValue", Read<&DataUtil::GUISliderData::MaxValue>},
+    {"MinValue", Read<&DataUtil::GUISliderData::MinValue>},
+    {"OnChange", Read<&DataUtil::GUISliderData::OnChange>},
+    {"Value", Read<&DataUtil::GUISliderData::Value>},
+};
 
 void GUIControl::ReadSliderData(DocElem elem, DataUtil::GUISliderData &data)
 {
-    data.BackgroundImage = ReadInt(elem, "BackgroundImage");
-    data.HandleImage = ReadInt(elem, "HandleImage");
-    data.HandleOffset = ReadInt(elem, "HandleOffset");
-    data.MaxValue = ReadInt(elem, "MaxValue");
-    data.MinValue = ReadInt(elem, "MinValue");
-    data.OnChange = ReadString(elem, "OnChange");
-    data.Value = ReadInt(elem, "Value");
-    data.HandleColor = ReadInt(elem, "HandleColor");
-    data.BorderShadeColor = ReadInt(elem, "BorderShadeColor");
+    ReadFields(elem, data, kGuiSliderFields, UnknownElements::Skip);
 }
+
+static const XmlField<DataUtil::GUIInventoryData> kGuiInventoryFields[] = {
+    {"CharacterID", Read<&DataUtil::GUIInventoryData::CharacterID>},
+    {"ItemHeight", Read<&DataUtil::GUIInventoryData::ItemHeight>},
+    {"ItemWidth", Read<&DataUtil::GUIInventoryData::ItemWidth>},
+};
 
 void GUIControl::ReadInventoryData(DocElem elem, DataUtil::GUIInventoryData &data)
 {
-    data.CharacterID = ReadInt(elem, "CharacterID");
-    data.ItemHeight = ReadInt(elem, "ItemHeight");
-    data.ItemWidth = ReadInt(elem, "ItemWidth");
+    ReadFields(elem, data, kGuiInventoryFields, UnknownElements::Skip);
 }
+
+static const XmlField<DataUtil::GUITextBoxData> kGuiTextBoxFields[] = {
+    {"Font", Read<&DataUtil::GUITextBoxData::Font>},
+    {"OnActivate", Read<&DataUtil::GUITextBoxData::OnActivate>},
+    {"Text", Read<&DataUtil::GUITextBoxData::Text>},
+    {"TextAlignment", ReadConverted<&DataUtil::GUITextBoxData::TextAlignment, ReadTopLeftAlignment>},
+    {"TextColor", Read<&DataUtil::GUITextBoxData::TextColor>},
+    {"TextOutlineColor", Read<&DataUtil::GUITextBoxData::TextOutlineColor>},
+};
 
 void GUIControl::ReadTextBoxData(DocElem elem, DataUtil::GUITextBoxData &data)
 {
-    data.Font = ReadInt(elem, "Font");
-    data.OnActivate = ReadString(elem, "OnActivate");
-    data.ShowBorder = ReadBool(elem, "ShowBorder");
-    data.Text = ReadString(elem, "Text");
-    data.TextAlignment = ReadFrameAlignment(ReadString(elem, "TextAlignment"), kAlignTopLeft);
-    data.TextColor = ReadInt(elem, "TextColor");
-    data.TextOutlineColor = ReadInt(elem, "TextOutlineColor");
+    ReadFields(elem, data, kGuiTextBoxFields, UnknownElements::Skip);
 }
+
+static const XmlField<DataUtil::GUIListBoxData> kGuiListBoxFields[] = {
+    {"Font", Read<&DataUtil::GUIListBoxData::Font>},
+    {"OnSelectionChanged", Read<&DataUtil::GUIListBoxData::OnSelectionChanged>},
+    {"SelectedBackgroundColor", Read<&DataUtil::GUIListBoxData::SelectedBackgroundColor>},
+    {"SelectedTextColor", Read<&DataUtil::GUIListBoxData::SelectedTextColor>},
+    {"ShowScrollArrows", Read<&DataUtil::GUIListBoxData::ShowScrollArrows>},
+    {"TextAlignment", ReadConverted<&DataUtil::GUIListBoxData::TextAlignment, ReadLeftHorAlignment>},
+    {"TextColor", Read<&DataUtil::GUIListBoxData::TextColor>},
+    {"TextOutlineColor", Read<&DataUtil::GUIListBoxData::TextOutlineColor>},
+};
 
 void GUIControl::ReadListBoxData(DocElem elem, DataUtil::GUIListBoxData &data)
 {
-    data.Font = ReadInt(elem, "Font");
-    data.OnSelectionChanged = ReadString(elem, "OnSelectionChanged");
-    data.SelectedBackgroundColor = ReadInt(elem, "SelectedBackgroundColor");
-    data.SelectedTextColor = ReadInt(elem, "SelectedTextColor");
-    data.ShowBorder = ReadBool(elem, "ShowBorder");
-    data.ShowScrollArrows = ReadBool(elem, "ShowScrollArrows");
-    data.TextAlignment = ReadHorizontalAlignment(ReadString(elem, "TextAlignment"), kHAlignLeft);
-    data.TextColor = ReadInt(elem, "TextColor");
-    data.TextOutlineColor = ReadInt(elem, "TextOutlineColor");
+    ReadFields(elem, data, kGuiListBoxFields, UnknownElements::Skip);
 }
 
 void CustomPropertySchemaItem::ReadAllData(DocElem elem, DataUtil::CustomPropertySchemaItem &data)
@@ -1269,12 +1340,17 @@ String AudioType::ReadScriptName(DocElem elem)
     return BuildAudioTypePrefixedScriptID(ReadString(elem, "Name"));
 }
 
+static const XmlField<DataUtil::AudioTypeData> kAudioTypeFields[] = {
+    {"CrossfadeClips", ReadConverted<&DataUtil::AudioTypeData::Crossfade, ReadCrossfadeSpeed>},
+    {"MaxChannels", Read<&DataUtil::AudioTypeData::MaxChannels>},
+    {"Name", Read<&DataUtil::AudioTypeData::Name>}, // the AudioClipType name
+    {"VolumeReductionWhileSpeechPlaying", Read<&DataUtil::AudioTypeData::VolumeReductionWhileSpeechPlaying>},
+};
+
 void AudioType::ReadAllData(DocElem elem, DataUtil::AudioTypeData &data)
 {
-    data.Name = ReadString(elem, "Name"); // This is AudioCliptType Name
-    data.MaxChannels = ReadInt(elem, "MaxChannels");
-    data.VolumeReductionWhileSpeechPlaying = ReadInt(elem, "VolumeReductionWhileSpeechPlaying");
-    data.Crossfade = ReadCrossfadeSpeed(ReadString(elem, "CrossfadeClips"));
+    // TODO: fail on unknown elements once the readers return errors (7.1g)
+    ReadFields(elem, data, kAudioTypeFields, UnknownElements::Skip);
 }
 
 // <Properties> element into a list of name/value pairs
@@ -1404,22 +1480,27 @@ String Font::ReadScriptName(DocElem elem)
     return BuildFontPrefixedScriptID(ReadString(elem, "Name"));
 }
 
+static const XmlField<DataUtil::FontData> kFontFields[] = {
+    {"AutoOutlineStyle", ReadConverted<&DataUtil::FontData::AutoOutlineStyle, ReadFontAutoOutlineStyle>},
+    {"AutoOutlineThickness", Read<&DataUtil::FontData::AutoOutlineThickness>},
+    {"CharacterSpacing", Read<&DataUtil::FontData::CharacterSpacing>},
+    {"CustomHeightValue", Read<&DataUtil::FontData::CustomHeightValue>},
+    {"FontFileName", Read<&DataUtil::FontData::FontFileName>},
+    {"HeightDefinedBy", ReadConverted<&DataUtil::FontData::HeightDefinedBy, ReadFontHeightDefinition>},
+    {"LineSpacing", Read<&DataUtil::FontData::LineSpacing>},
+    {"Name", Read<&DataUtil::FontData::Name>}, // the Font name
+    {"OutlineFont", Read<&DataUtil::FontData::OutlineFont>},
+    {"OutlineStyle", ReadConverted<&DataUtil::FontData::OutlineStyle, ReadFontOutlineStyle>},
+    {"PointSize", Read<&DataUtil::FontData::PointSize>},
+    {"SizeMultiplier", Read<&DataUtil::FontData::SizeMultiplier>},
+    {"TTFMetricsFixup", ReadConverted<&DataUtil::FontData::MetricsFixup, ReadFontMetricsFixup>},
+    {"VerticalOffset", Read<&DataUtil::FontData::VerticalOffset>},
+};
+
 void Font::ReadAllData(DocElem elem, DataUtil::FontData &data)
 {
-    data.Name = ReadString(elem, "Name"); // This is Font Name
-    data.AutoOutlineThickness = ValueParser::ReadInt(elem, "AutoOutlineThickness");
-    data.AutoOutlineStyle = ReadFontAutoOutlineStyle(ValueParser::ReadString(elem, "AutoOutlineStyle"));
-    data.CharacterSpacing = ValueParser::ReadInt(elem, "CharacterSpacing");
-    data.CustomHeightValue = ValueParser::ReadInt(elem, "CustomHeightValue");
-    data.HeightDefinedBy = ReadFontHeightDefinition(ValueParser::ReadString(elem, "HeightDefinedBy"));
-    data.LineSpacing = ValueParser::ReadInt(elem, "LineSpacing");
-    data.OutlineFont = ValueParser::ReadInt(elem, "OutlineFont");
-    data.OutlineStyle = ReadFontOutlineStyle(ValueParser::ReadString(elem, "OutlineStyle"));
-    data.PointSize = ValueParser::ReadInt(elem, "PointSize");
-    data.SizeMultiplier = ValueParser::ReadInt(elem, "SizeMultiplier", 1);
-    data.MetricsFixup = ReadFontMetricsFixup(ValueParser::ReadString(elem, "TTFMetricsFixup"));
-    data.VerticalOffset = ValueParser::ReadInt(elem, "VerticalOffset");
-    data.FontFileName = ValueParser::ReadString(elem, "FontFileName");
+    // TODO: fail on unknown elements once the readers return errors (7.1g)
+    ReadFields(elem, data, kFontFields, UnknownElements::Skip);
 }
 
 static void CollectElements(DocElem elem, const char *name, std::vector<DocElem> &result)
