@@ -736,6 +736,10 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     The parsers accept what `AGS.Types` writes, the way it reads it back: bools ignore case, enums
     take the exact name or a number, floats are invariant. `CompareXmlVersions` moved there from
     `agfreader`. Tests: `Tools/test/xml_fields_test.cpp`.
+    *Migration of `agfreader` (2026-11-02):* view frames, cursors and characters read through tables
+    (characters' defaults moved into `CharacterData`'s initializers). About 300 hand-written reads
+    remain: inventory items, audio, fonts, views, GUIs and controls, game settings, runtime setup,
+    and the list readers. Each step is checked by the harness staying at 17 of 17.
   - [x] **7.1e AGS 4 room sources** (gap 2). Compile `Rooms/<n>/` to `.crm` in C++, following the same
     principle as `agf2dta`; room data is simpler than game data. Read `data.xml` through 7.1d tables,
     load the background and mask PNGs (`Common/gfx/image_png.cpp`), compile `room<n>.asc` with
