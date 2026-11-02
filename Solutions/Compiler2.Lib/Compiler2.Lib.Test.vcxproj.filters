@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Compiler\test2\cc_internallist_test.cpp">
+    <ClCompile Include="..\..\Compiler\test\cc_internallist_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\test2\cc_symboltable_test.cpp">
+    <ClCompile Include="..\..\Compiler\test\cc_symboltable_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest-all.cc">
@@ -36,25 +36,25 @@
     <ClCompile Include="..\..\Common\util\string_compat.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\test2\cc_bytecode_test_lib.cpp">
+    <ClCompile Include="..\..\Compiler\test\cc_bytecode_test_lib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\test2\cc_bytecode_test_0.cpp">
+    <ClCompile Include="..\..\Compiler\test\cc_bytecode_test_0.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\test2\cc_parser_test_0.cpp">
+    <ClCompile Include="..\..\Compiler\test\cc_parser_test_0.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\test2\cc_parser_test_1.cpp">
+    <ClCompile Include="..\..\Compiler\test\cc_parser_test_1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\test2\cc_parser_test_lib.cpp">
+    <ClCompile Include="..\..\Compiler\test\cc_parser_test_lib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\test2\cc_scanner_test.cpp">
+    <ClCompile Include="..\..\Compiler\test\cc_scanner_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\test2\cc_bytecode_test_1.cpp">
+    <ClCompile Include="..\..\Compiler\test\cc_bytecode_test_1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\string_utils.cpp">
@@ -63,7 +63,7 @@
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\test2\cc_parser_test_2.cpp">
+    <ClCompile Include="..\..\Compiler\test\cc_parser_test_2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\data\data_ext.cpp">
@@ -71,10 +71,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Compiler\test2\cc_bytecode_test_lib.h">
+    <ClInclude Include="..\..\Compiler\test\cc_bytecode_test_lib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Compiler\test2\cc_parser_test_lib.h">
+    <ClInclude Include="..\..\Compiler\test\cc_parser_test_lib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

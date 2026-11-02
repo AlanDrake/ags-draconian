@@ -163,7 +163,7 @@ def collect(files):
     m['cryptic_names']['(total)'] = sum(tokens[n] for n in CRYPTIC_WATCHLIST)
 
     m['tests'] = {
-        'C++ test files': sum(1 for f in cpp if re.search(r'/test2?/.*_test\.cpp$', f)),
+        'C++ test files': sum(1 for f in cpp if re.search(r'/test/.*_test\.cpp$', f)),
         'Engine C++ test files': sum(1 for f in cpp if f.startswith('Engine/test/') and f.endswith('_test.cpp')),
         'C# test files': sum(1 for f in cs if '.Tests/' in f),
     }

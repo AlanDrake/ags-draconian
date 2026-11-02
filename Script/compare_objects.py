@@ -173,7 +173,7 @@ def is_third_party(path):
 
 
 def is_line_sensitive(path):
-    return path.endswith('_test.cpp') or '/test/' in path or '/test2/' in path
+    return path.endswith('_test.cpp') or '/test/' in path
 
 
 def main():
