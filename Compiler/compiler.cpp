@@ -174,7 +174,7 @@ int Compile(const CompilerOptions &comp_opts)
     // Tell the scripts which language extensions the compiler has, as the editor does
     // (AGSEditor.DefineMacrosAccordingToGameSettings); agsdefns.sh tests these
     std::vector<std::string> extensions;
-    ccGetExtensions2(extensions);
+    ccGetExtensions(extensions);
     for (const auto &ext : extensions)
         pp.DefineMacro(("SCRIPT_EXT_" + ext).c_str(), "1");
     // Set Script API macros (starting from lowest and until the highest requested)
@@ -314,7 +314,7 @@ int Compile(const CompilerOptions &comp_opts)
         all_the_script.Append(head.first);
     all_the_script.Append(script_pp);
     AGS::MessageHandler mh;
-    ccScript *script = ccCompileText2(all_the_script.GetCStr(), script_name.GetCStr(), cc_options, mh);
+    ccScript *script = ccCompileText(all_the_script.GetCStr(), script_name.GetCStr(), cc_options, mh);
     auto compiler_messages = mh.GetMessages();
     bool error = false;
     for (const auto &msg : compiler_messages)

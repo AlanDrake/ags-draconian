@@ -28,7 +28,7 @@
 using namespace AGS;
 using namespace AGS::Common;
 
-void ccGetExtensions2(std::vector<std::string> &exts)
+void ccGetExtensions(std::vector<std::string> &exts)
 {
     // A generic "AGS 4.0" extension, for easier detection
     // of a new compiler. Feel free to add more, specifying each
@@ -223,8 +223,8 @@ static std::unique_ptr<ScriptTOC> ccCompileDataTOC(const SymbolTable &symt, cons
     return std::unique_ptr<ScriptTOC>(new ScriptTOC(std::move(tocb.Finalize(rtti))));
 }
 
-ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, uint64_t const options,
-                         MessageHandler &mh)
+ccScript *ccCompileText(std::string const &script, std::string const &scriptName, uint64_t const options,
+                        MessageHandler &mh)
 {
     ccCompiledScript *compiled_script = new ccCompiledScript(FlagIsSet(options, SCOPT_LINENUMBERS));
     SymbolTable symt; // for gathering rtti

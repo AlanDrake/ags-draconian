@@ -434,8 +434,8 @@ removal is a `[delete]` commit, verified by the full test suite and the corpus r
     when it loads, with a warning; `ExtendedCompiler` stays, unused, because the project loader
     rejects unknown elements.
   - Renamed, move-only: `Compiler/script2` to `Compiler/script`, `Compiler/test2` into
-    `Compiler/test`, `Solutions/Compiler2.Lib` (and `Compiler2*.lib`) to `Compiler.Lib`. The
-    compiler's functions keep their `2` (`ccCompileText2`, `ccGetExtensions2`).
+    `Compiler/test`, `Solutions/Compiler2.Lib` (and `Compiler2*.lib`) to `Compiler.Lib`; and the
+    functions `ccCompileText2` and `ccGetExtensions2` to `ccCompileText` and `ccGetExtensions`.
   - Verified: CMake (compiler 594, tools 116, all tests), MSBuild `Compiler.Lib.sln` (594),
     `Compiler.App.sln`, `AGS.Editor.Full.sln` with the editor's NUnit tests (391); the parity
     harness on the auto-test (59 of 59, 2414 of 2414); a project selecting the removed compiler

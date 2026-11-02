@@ -64,7 +64,7 @@ public:
     virtual List<String^>^ GetExtensions()
     {
         std::vector<std::string> cc_exts;
-        ccGetExtensions2(cc_exts);
+        ccGetExtensions(cc_exts);
         List<String^>^ exts = gcnew List<String^>();
         for (const auto &s : cc_exts)
             exts->Add(gcnew String(s.c_str()));
@@ -101,7 +101,7 @@ public:
         std::string mainScript = tcv->ConvertToStd(scriptText);
         std::string mainScriptName = TextHelper::ConvertASCIIToStd(scriptName);
         std::unique_ptr<ccScript> cc_script(
-            ccCompileText2(mainScript, mainScriptName, cc_options, mh));
+            ccCompileText(mainScript, mainScriptName, cc_options, mh));
 
         auto compiler_messages = mh.GetMessages();
         int message_index = 0;

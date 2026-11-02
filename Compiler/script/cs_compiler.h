@@ -20,8 +20,8 @@
 #include "script/cc_script.h"
 
 // Get a list of compiler extensions.
-extern void ccGetExtensions2(std::vector<std::string> &exts);
+extern void ccGetExtensions(std::vector<std::string> &exts);
 // Compile the script supplied, returns nullptr on failure.
 // All compiler's errors and warnings are returned as a MessageHandler collection.
-extern ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, uint64_t options,
-                                AGS::MessageHandler &mh);
+extern ccScript *ccCompileText(std::string const &script, std::string const &scriptName, uint64_t options,
+                               AGS::MessageHandler &mh);
