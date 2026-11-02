@@ -2,10 +2,11 @@
 # Builds a game project with the C++ tools (agsbuild, in strict mode) and runs the auto-test
 # on the result with the engine from the same CMake build.
 #
-# Usage: Script/agsbuild_autotest.sh <cmake-build-dir> <project-dir> <work-dir>
+# Usage: Script/agsbuild_autotest.sh <cmake-build-dir> <project-dir> <work-dir> [--build-only]
 #
 # The build dir needs the tools and the engine (cmake -DAGS_BUILD_TOOLS=1). The project dir is the
 # one that holds Game.agf. The tap.py module must be installed (pip install tap.py).
+# --build-only stops after the build: the game is in <work-dir>/out, and the engine is not needed.
 set -eu
 
 build=$(cd "$1" && pwd)
@@ -32,6 +33,10 @@ echo "::group::agsbuild"
 # --strict: a project element the tools do not know is an error, not a warning
 "$sys/agsbuild" "$project/Game.agf" "$out" --sys-dir "$sys" --strict
 echo "::endgroup::"
+
+if [ "${4:-}" = "--build-only" ]; then
+    exit 0
+fi
 
 engine=$(find "$build" -type f \( -name ags -o -name ags.exe \) -perm -u+x -not -path '*/_deps/*' | head -n 1)
 if [ -z "$engine" ]; then

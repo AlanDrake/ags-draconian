@@ -99,9 +99,8 @@ of the fork").
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **1.7:** hand the game that the Linux job builds to the platform jobs, in place of the downloaded release | Keeps the test game in step with the compiler; wait until the Linux job has stayed green for a few runs | Sonnet 5.5, `medium` |
-| 2 | **7.1h:** machine-readable diagnostics and clean cancel for `agsbuild` | The editor (6.7d) needs them to list tool errors | Sonnet 5.5, `high` |
-| 3 | **7.1i:** split `BuildWithTaskManager` into one function per stage | Easier to change while 7.1h touches it | Sonnet 5.5, `medium` |
+| 1 | **7.1h:** machine-readable diagnostics and clean cancel for `agsbuild` | The editor (6.7d) needs them to list tool errors | Sonnet 5.5, `high` |
+| 2 | **7.1i:** split `BuildWithTaskManager` into one function per stage | Easier to change while 7.1h touches it | Sonnet 5.5, `medium` |
 
 Other tracks that can run in between: 2.6 (self-contained headers, Sonnet 5.5 `medium`) and 1.3 (engine
 unit tests, Opus 5.5 `xhigh`).
@@ -893,9 +892,12 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     `--strict` (passed on to `agf2dta`). `Script/agsbuild_autotest.sh <build-dir> <project> <work-dir>`
     collects the tools from a CMake build, builds the project in strict mode, and runs the engine on the
     result (checked with `tappy`); locally it gives 2414 of 2414. The `Ubuntu-x86_64` job in `build.yml`
-    checks out the test game at `AUTO_TEST_TAG` and runs it after the downloaded auto-test. Still to do:
-    handing the built game to the platform jobs in place of the downloaded one (1.7), once this job
-    has been green for a while.
+    checks out the test game at `AUTO_TEST_TAG` and runs it after the downloaded auto-test.
+    *Status (2026-11-02, 1.7):* handed over, **not yet run in CI**. A new `Auto-test game` job builds
+    only the tools (`-DAGS_BUILD_ENGINE=0`), runs `agsbuild_autotest.sh ... --build-only`, and uploads
+    `ags4-auto-test.ags` + `acsetup.cfg` as `auto-test-game`; every `build` matrix job needs it and
+    downloads that instead of the release zip. The Ubuntu-only step is gone: every platform now runs
+    the tool-built game.
     *Status (2026-11-02, later):* the Windows half is done and green in CI (commit 2a43f3092). The `Windows`
     matrix job uploads its tools and `ags.exe` as `parity-tools-windows`; the new `Windows Build
     Parity` job downloads them with the editor, the x86 engine and SDL2.dll, puts `acwin.exe` next to

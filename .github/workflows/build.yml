@@ -17,8 +17,53 @@ env:
   BUILD_TYPE: Release
 
 jobs:
+  # Builds the auto-test game from its source with the C++ tools of this run, in strict mode, for the
+  # platform jobs to run (docs/refactor/PLAN.md, 7.1j and 1.7). The project is checked out at the same
+  # tag the hand-made release had.
+  auto-test-game:
+    name: Auto-test game
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+
+    - name: Check out the auto-test project
+      uses: actions/checkout@v6
+      with:
+        repository: ${{env.AUTO_TEST_REPO}}
+        ref: ${{env.AUTO_TEST_TAG}}
+        path: auto-test-source
+        persist-credentials: false
+
+    - name: Cache CMake FetchContent dependencies
+      uses: actions/cache@v5
+      with:
+        path: ${{github.workspace}}/build/_deps
+        key: fetchcontent-${{ runner.os }}-tools-${{ hashFiles('CMakeLists.txt', 'CMake/Fetch*.cmake') }}
+
+    - name: Build the tools
+      run: |
+        cmake -S . -B build -DAGS_BUILD_TOOLS=1 -DAGS_BUILD_ENGINE=0 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        cmake --build build --parallel 8
+
+    - name: Build the auto-test with agsbuild
+      run: |
+        Script/agsbuild_autotest.sh build auto-test-source/ags4/auto-test ${{runner.temp}}/agsbuild-autotest --build-only
+
+    - name: Upload the game
+      uses: actions/upload-artifact@v7
+      with:
+        name: auto-test-game
+        if-no-files-found: error
+        path: |
+          ${{runner.temp}}/agsbuild-autotest/out/${{env.AUTO_TEST_ASSET_BASENAME}}.ags
+          ${{runner.temp}}/agsbuild-autotest/out/acsetup.cfg
+
   build:
     name: ${{ matrix.platform.name }}
+    needs: auto-test-game
     runs-on: ${{ matrix.platform.os }}
     timeout-minutes: 20
     defaults:
@@ -117,24 +162,12 @@ jobs:
         name: parity-tools-windows
         path: parity-tools
 
+    # The game built by auto-test-game from its source
     - name: Download auto-test
-      working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
-      run: |
-        curl --fail -sSLo auto-test.zip https://github.com/${{env.AUTO_TEST_REPO}}/releases/download/${{env.AUTO_TEST_TAG}}/${{env.AUTO_TEST_ASSET_BASENAME}}.zip
-
-    - name: Unzip auto-test
-      if: matrix.platform.shell == 'cmd'
-      working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
-      run: |
-        tar -f auto-test.zip -xvzC .
-        del auto-test.
-
-    - name: Unzip auto-test
-      if: matrix.platform.shell != 'cmd'
-      working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
-      run: |
-        unzip auto-test.zip
-        rm auto-test.zip
+      uses: actions/download-artifact@v8
+      with:
+        name: auto-test-game
+        path: ${{github.workspace}}/build/${{matrix.platform.bindir}}
 
     - name: Run auto-test (Hardware GFX)
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
@@ -157,22 +190,6 @@ jobs:
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
         tappy agstest_software.tap
-
-    # The auto-test again, built from its source by the C++ tools instead of the editor (7.1j).
-    # The project is checked out at the same tag as the downloaded game.
-    - name: Check out the auto-test project
-      if: matrix.platform.name == 'Ubuntu-x86_64'
-      uses: actions/checkout@v6
-      with:
-        repository: ${{env.AUTO_TEST_REPO}}
-        ref: ${{env.AUTO_TEST_TAG}}
-        path: auto-test-source
-        persist-credentials: false
-
-    - name: Build the auto-test with agsbuild and run it
-      if: matrix.platform.name == 'Ubuntu-x86_64'
-      run: |
-        Script/agsbuild_autotest.sh build auto-test-source/ags4/auto-test ${{runner.temp}}/agsbuild-autotest
 
   build-emscripten-bundle:
     name: Emscripten
