@@ -41,8 +41,12 @@ android {
         
         externalNativeBuild {
             cmake {
-                 // AGS_FETCH_MIRROR_DIR: pre-downloaded dependency archives (Script/fetch_deps.sh), if any
+                 // AGS_FETCH_MIRROR_DIR: pre-downloaded dependency archives (Script/fetch_deps.sh), if any.
+                 // CMAKE_WARN_DEPRECATED=OFF: the NDK's own toolchain file asks for CMake 3.6, which
+                 // CMake 3.31 warns about in every try_compile, over a thousand times per build; the
+                 // other platforms still show deprecation warnings for our CMake files.
                  arguments "-DANDROID_APP_PLATFORM=android-16", "-DANDROID_STL=c++_static",
+                         "-DCMAKE_WARN_DEPRECATED=OFF",
                          "-DAGS_FETCH_MIRROR_DIR=" + (System.getenv("AGS_FETCH_MIRROR_DIR") ?: "")
                 abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
                 //   abiFilters'arm64-v8a'
