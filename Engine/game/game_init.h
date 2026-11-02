@@ -20,6 +20,7 @@
 #pragma once
 
 #include "game/main_game_file.h"
+#include "util/error.h"
 #include "util/string.h"
 
 struct GameSetupStruct;
@@ -44,7 +45,7 @@ enum GameInitErrorType
     kGameInitErr_ScriptInitFailed
 };
 
-String GetGameInitErrorText(GameInitErrorType err);
+Common::String GetGameInitErrorText(GameInitErrorType err);
 
 typedef Common::TypedCodeError<GameInitErrorType, GetGameInitErrorText> GameInitError;
 typedef Common::ErrorHandle<GameInitError> HGameInitError;

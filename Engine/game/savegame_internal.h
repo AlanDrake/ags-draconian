@@ -18,9 +18,13 @@
 #include <unordered_map>
 #include "ac/common_defines.h"
 #include "ac/dynobj/cc_serializer.h"
+#include "ac/dynobj/scriptaudioclip.h"
+#include "ac/gamesetupstructbase.h"
 #include "game/roomstruct.h"
+#include "game/savegame.h"
 #include "gfx/bitmap.h"
 #include "media/audio/audiodefines.h"
+#include "util/string.h"
 
 
 namespace AGS

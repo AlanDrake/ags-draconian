@@ -35,6 +35,7 @@
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxdriverbase.h"
+#include "gfx/gfxfilter_d3d.h"
 #include "util/library.h"
 #include "util/math.h"
 #include "util/smart_ptr.h"
@@ -49,7 +50,6 @@ namespace D3D
 
 using AGS::Common::Bitmap;
 using AGS::Common::String;
-class D3DGfxFilter;
 
 // Declare smart ptr for common IDirect3D interfaces
 typedef ComPtr<IDirect3D9> D3DPtr;

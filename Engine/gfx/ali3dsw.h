@@ -29,6 +29,7 @@
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxdriverbase.h"
+#include "gfx/gfxfilter_sdl_renderer.h"
 #include "util/math.h"
 
 namespace AGS
@@ -38,7 +39,6 @@ namespace Engine
 namespace ALSW
 {
 
-class SDLRendererGfxFilter;
 using AGS::Common::Bitmap;
 
 class ALSoftwareBitmap final : public BaseDDB

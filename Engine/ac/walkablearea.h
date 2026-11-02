@@ -17,6 +17,16 @@
 //=============================================================================
 #pragma once
 
+#include "util/geometry.h"
+
+namespace AGS
+{
+namespace Common
+{
+class Bitmap;
+}
+} // namespace AGS
+
 void redo_walkable_areas();
 int get_walkable_area_pixel(int x, int y);
 int get_area_scaling(int onarea, int xx, int yy);

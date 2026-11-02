@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include "platform/base/agsplatformdriver.h"
 #include "util/ini_util.h"
 
 namespace AGS

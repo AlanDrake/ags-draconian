@@ -17,4 +17,6 @@
 //=============================================================================
 #pragma once
 
+#include "ac/gamestructdefines.h"
+
 void setup_script_exports(ScriptAPIVersion base_api, ScriptAPIVersion compat_api);

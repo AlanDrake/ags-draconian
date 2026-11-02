@@ -31,6 +31,7 @@ option(AGS_USE_LOCAL_VORBIS "Use a locally installed Vorbis" ${AGS_USE_LOCAL_ALL
 option(AGS_USE_LOCAL_GTEST "Use a locally installed GTest" ${AGS_USE_LOCAL_ALL_LIBRARIES})
 
 option(AGS_TESTS "Build tests" OFF)
+option(AGS_HEADER_CHECK "Add the header_check target, which compiles every header on its own" OFF)
 option(AGS_BUILD_ENGINE "Build Engine" ON)
 option(AGS_BUILD_TOOLS "Build Tools" OFF)
 option(AGS_BUILD_COMPILER "Build compiler" ${AGS_BUILD_TOOLS})
@@ -391,4 +392,9 @@ endif()
 if(AGS_BUILD_ENGINE)
     add_subdirectory(Engine)
     set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ags)
+endif()
+
+if(AGS_HEADER_CHECK)
+    include(HeaderCheck)
+    ags_add_header_checks()
 endif()

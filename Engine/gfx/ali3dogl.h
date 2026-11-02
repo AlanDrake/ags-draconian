@@ -23,6 +23,7 @@
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxdriverbase.h"
+#include "gfx/gfxfilter_ogl.h"
 #include "gfx/ogl_headers.h"
 #include "util/string.h"
 #include "util/version.h"
@@ -317,8 +318,6 @@ public:
 private:
     std::vector<DisplayMode> _modes;
 };
-
-class OGLGfxFilter;
 
 class OGLGraphicsDriver : public VideoMemoryGraphicsDriver
 {

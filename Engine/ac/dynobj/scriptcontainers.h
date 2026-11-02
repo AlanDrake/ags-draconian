@@ -13,6 +13,16 @@
 //=============================================================================
 #pragma once
 
+#include <cstddef>
+
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
+
 class ScriptDictBase;
 class ScriptSetBase;
 

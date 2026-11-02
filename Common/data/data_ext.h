@@ -48,6 +48,7 @@
 
 #include <functional>
 #include "util/error.h"
+#include "util/stream.h"
 #include "util/string.h"
 
 namespace AGS

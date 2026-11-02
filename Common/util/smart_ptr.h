@@ -17,7 +17,10 @@
 //=============================================================================
 #pragma once
 
+#include <cassert>
 #include <cstddef>
+#include <cstdint>
+#include <unknwn.h>
 
 //-----------------------------------------------------------------------------
 // ComPtr is the RAII wrapper over a IUnknown* and deriatives

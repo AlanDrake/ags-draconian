@@ -13,6 +13,7 @@
 //=============================================================================
 #pragma once
 
+#include "debug/agseditordebugger.h"
 #include "debug/debugger.h"
 
 struct DummyAGSDebugger : IAGSEditorDebugger

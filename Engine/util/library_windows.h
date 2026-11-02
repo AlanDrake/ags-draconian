@@ -16,7 +16,7 @@
 #include <utility>
 #include "platform/platform.h"
 #include "debug/out.h"
-#include "platform/windows/winapi_exclusive.h"
+#include "platform/windows/windows.h"
 #include "util/path.h"
 #include "util/stdio_compat.h"
 #include "util/string.h"

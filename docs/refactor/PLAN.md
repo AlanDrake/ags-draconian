@@ -225,13 +225,15 @@ auto-test game that CI downloads from `latest`.
   file; a parameter rename gives 589 identical; changing `return 1` to `return 2` is reported as a
   code change (exit code 1). First run ~3.5 min, later runs seconds to a few minutes.
   Not yet tried on Linux/macOS (the script uses `-g0` there; GCC and Clang objects carry no timestamps).
-- [ ] **1.7 Build the auto-test game in CI, from source.** Done as part of 7.1j: once `agsbuild`
+- [x] **1.7 Build the auto-test game in CI, from source.** Done as part of 7.1j: once `agsbuild`
   builds AGS 4 projects, a Linux job compiles `AlanDrake/ags-test-games` (pinned commit) with the tools
   built in the same run and hands the result to the platform jobs. That replaces the hand-made
   releases from 1.1, keeps the test game in step with this commit's compiler, and doesn't tie every
   platform job to the Windows editor build (the earlier plan: compile with the CI-built editor).
   Until then, keep publishing `draconian-auto-test-N` releases by hand.
   *Done when:* the platform jobs run a test game compiled by tools of the same CI run.
+  *Status (2026-11-02):* done, green in CI (run 41442221520): the `Auto-test game` job builds it with
+  `agsbuild --strict` and every platform job runs it. Hand-made releases are no longer needed.
 
 ## Phase 2: Mechanical normalisation
 

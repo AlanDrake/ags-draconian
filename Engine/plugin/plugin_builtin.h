@@ -17,15 +17,11 @@
 //=============================================================================
 #pragma once
 
+#include <cstdint>
+#include "util/string.h"
+
 class IAGSEngine;
 
-namespace AGS
-{
-namespace Common
-{
-class String;
-}
-} // namespace AGS
 struct InbuiltPluginDetails
 {
     AGS::Common::String filename;

@@ -15,6 +15,7 @@
 
 #include "util/ini_util.h"
 #include "util/error.h"
+#include "util/geometry.h"
 
 const char *get_engine_name();
 const char *get_engine_version();

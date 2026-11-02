@@ -123,10 +123,15 @@ jobs:
     - name: Configure CMake
       run: |
         cmake --version
-        ${{ matrix.platform.cmakecmd }} -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        ${{ matrix.platform.cmakecmd }} -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
       run: cmake --build "${{github.workspace}}/build" --config ${{env.BUILD_TYPE}} --parallel 8
+
+    # Every header must compile on its own (docs/refactor/PLAN.md, 2.6); MSVC and GCC (macOS is already the slowest job)
+    - name: Check that headers are self-contained
+      if: matrix.platform.name == 'Windows' || matrix.platform.name == 'Ubuntu-x86_64'
+      run: cmake --build "${{github.workspace}}/build" --config ${{env.BUILD_TYPE}} --target header_check --parallel 8
 
     - name: Test
       working-directory: ${{github.workspace}}/build

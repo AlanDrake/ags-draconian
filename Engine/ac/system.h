@@ -18,6 +18,7 @@
 #pragma once
 
 #include "ac/dynobj/scriptobjects.h"
+#include "util/string.h"
 
 int System_GetColorDepth();
 int System_GetOS();

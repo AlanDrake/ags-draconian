@@ -28,7 +28,8 @@ namespace AGS
 namespace Common
 {
 struct InteractionEvents;
-}
+class ScriptEventsBase;
+} // namespace Common
 } // namespace AGS
 struct ObjectEvent;
 

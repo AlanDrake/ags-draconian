@@ -50,6 +50,7 @@
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxdriverbase.h"
+#include "gfx/gfxfilter_d3d.h"
 #include "util/library.h"
 #include "util/math.h"
 #include "util/smart_ptr.h"
@@ -63,7 +64,6 @@ namespace Engine
 // The scaling filters are shared with the Direct3D 9 renderer
 namespace D3D
 {
-class D3DGfxFilter;
 }
 
 namespace D3D11
