@@ -164,8 +164,12 @@ Rules for picking names:
 - **No commented-out code.** Delete it. Git keeps the history.
 - No changelogs, author initials or dates in comments ("CJ: fixed for 2.61"). That's what
   `git blame` is for.
-- `TODO` is the only marker: `// TODO(#123): what is missing and why`, with an issue number.
-  `FIXME`, `CHECKME` and `HACK` are converted to `TODO` or resolved during PLAN.md 3.6.
+- Two markers, by severity:
+  - `// FIXME: ...` means the code is wrong or unreliable in some case. Say which case.
+  - `// TODO: ...` means the code works but could be improved. Say what and why.
+
+  `HACK` becomes `FIXME`. A `CHECKME` is answered during PLAN.md 3.6 and replaced with a comment
+  explaining why, or becomes a `TODO` if it can't be answered yet.
 - **A comment that no longer matches the code is a bug.** Fix or delete it in the same commit that
   makes it stale.
 - Keep the standard license header block at the top of every file.

@@ -365,9 +365,10 @@ removal is a `[delete]` commit, verified by the full test suite and the corpus r
   then delete in batches per directory.
   *Done when:* the candidate list contains only documented intentional exceptions.
 - [ ] **3.6 Comment debris.** Delete commented-out code (83 lines, mostly in `Compiler/test2`).
-  Triage the 735 `TODO` / 332 `FIXME` / 80 `CHECKME` markers: either resolve, open an issue and
-  rewrite as `TODO(#n)`, or delete if stale. Do this per directory alongside phase 4.
-  *Done when:* every marker in a cleaned directory has an issue number.
+  Triage the 735 `TODO` / 332 `FIXME` / 80 `CHECKME` markers: either resolve, reclassify as
+  `FIXME` / `TODO` per STYLE.md, or delete if stale. Do this per directory alongside phase 4.
+  *Done when:* no `CHECKME` / `HACK` remain in a cleaned directory, and every `FIXME` says what
+  case is wrong.
 - [ ] **3.7 Obsolete API stubs.** `Engine/plugin/plugin_stubs.cpp` (223-line `RegisterPluginStubs`)
   keeps games that reference long-dead plugins (snow/rain, etc.) running. Keep the stubs your games
   need and drop the rest. `Common/util/wgt2allg.*` (the DOS WGT graphics shim, 6 includes) should be
@@ -895,7 +896,7 @@ values.
 | AGS_PLATFORM_OS_PSP refs | 8 | | 0 | | |
 | legacy version checks (pre-3.99) | 62 | | 0 | | |
 | dead-code candidates | 154 | | < 20 | | |
-| TODO + FIXME + CHECKME | 1,147 | | issue-linked only | | |
+| TODO + FIXME + CHECKME | 1,147 | | no CHECKME / HACK | | |
 | commented-out code lines | 83 | | 0 | | |
 | cryptic names (total) | 4,855 | | | ~0 (globals excluded) | 0 |
 | extern decls in Engine .cpp files | 596 | | | | 0 |
