@@ -99,11 +99,11 @@ of the fork").
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **7.1h:** machine-readable diagnostics and clean cancel for `agsbuild` | The editor (6.7d) needs them to list tool errors | Sonnet 5.5, `high` |
-| 2 | **7.1i:** split `BuildWithTaskManager` into one function per stage | Easier to change while 7.1h touches it | Sonnet 5.5, `medium` |
+| 1 | **CI check:** the `Auto-test game` job (1.7) and the new tests on Linux/macOS/MinGW (7.1h `Terminate` on POSIX) | Neither has run in CI yet; 1.7 closes when the platform jobs pass with the tool-built game | (you) |
+| 2 | **2.6:** self-contained headers, then sorted includes | Next mechanical task; 7.1 is done apart from 1.7's CI run | Sonnet 5.5, `medium` |
 
-Other tracks that can run in between: 2.6 (self-contained headers, Sonnet 5.5 `medium`) and 1.3 (engine
-unit tests, Opus 5.5 `xhigh`).
+Other tracks that can run in between: 1.3 (engine unit tests, Opus 5.5 `xhigh`). Phase 7.1 is complete
+once CI confirms 1.7; the next big step is 6.7d (the editor builds through the tools).
 
 ---
 
@@ -879,12 +879,39 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
       (only the flag is written, which is all a build from `acsprset.spr` needs). The classes outside
       `Game.agf` (rooms, translations) are not on the list: rooms are read by the room tool, which
       fails on unknown elements. CI should build with `--strict` (7.1j).
-  - [ ] **7.1h Diagnostics for the editor.** Behind a flag, `agsbuild` and the tools it runs print
+  - [x] **7.1h Diagnostics for the editor.** Behind a flag, `agsbuild` and the tools it runs print
     errors, warnings and progress in a machine-readable form (one JSON object per line: severity,
     tool, file, line, message), and `agsbuild` stops cleanly when cancelled.
     *Done when:* the editor (6.7d) can list tool errors with jump-to-line and cancel a build.
-  - [ ] **7.1i Split `BuildWithTaskManager`** (535 lines, `Tools/agsbuild/main.cpp`) into one function
+    *Status (2026-11-02):* done, with one change to the plan: **`agsbuild` reads the diagnostics from
+    the tools' output** instead of every tool printing JSON. The tools already print `Error: ...` /
+    `Warning: ...` lines, and `agscc` adds `at <file>, line <N> : <message>`; one tested parser
+    (`Tools/agsbuild/diagnostics.cpp`) is cheaper than ten tools each learning a flag, and the
+    format is still one JSON object per line. Moving it into the tools stays possible later.
+    - `agsbuild --json`: stdout carries only JSON lines (`start`, `task` with its state, `diagnostic`
+      with severity/tool/task/file/line/message, `progress`, `end`); the usual log goes to stderr.
+      The format is documented in `Tools/agsbuild/diagnostics.h`. On the auto-test project it gives
+      the three real "Code execution cannot reach this point" warnings of the dialog scripts, with
+      their `Dialog N` section and line; a script with a syntax error gives
+      `{"severity":"error","tool":"agscc","file":"helpers.asc","line":68,...}`.
+    - Cancel: SIGINT/SIGTERM (Ctrl+C on Windows), or the line `cancel` on stdin in `--json` mode (the
+      editor can't signal a hidden console process). Waiting tasks don't start, running tools are
+      killed (`PipedProcess::Terminate`, which on POSIX kills the whole process group), `end` says
+      `cancelled`, exit code 2. Measured: cancel 0.5 s into the auto-test build leaves no tool
+      processes behind.
+    - Tests (`tools_test`, 109 pass): the line parser and JSON escaping (`diagnostics_test.cpp`), a failed
+      task cancelling only its dependents and being reported, and cancelling a build of sleeping tools
+      in under a second (`taskmanager_test.cpp`, the failing-task test 7.1b asked for).
+    - The parity harness is unchanged: 17 of 17 identical, auto-test 2414 of 2414.
+    - Not checked locally: the POSIX side of `Terminate` (CI's Linux jobs run the new tests).
+  - [x] **7.1i Split `BuildWithTaskManager`** (535 lines, `Tools/agsbuild/main.cpp`) into one function
     per build stage, while doing the steps above. It stays.
+    *Status (2026-11-02):* done. `BuildWithTaskManager` is 45 lines now: it reads the project
+    (`ReadProject`), then calls one function per stage on a `BuildContext` (the lists the stages share):
+    `AddExportTasks`, `AddScriptTasks`, `AddGameDataTask`, `AddRoomSourceTasks`, `AddCompiledRoomTasks`,
+    `AddTranslationTasks`, `AddSpriteTasks`, `AddAudioTasks`, `AddProjectFileTasks`, `AddGamePackTask`,
+    `AddAudioVoxTask`, `AddSpeechVoxTasks`, `AddDeployTask`, `AddCleanupTask`. The order is the old order
+    (it decides the order of files in the package); measured: still 17 of 17 identical.
   - [ ] **7.1j CI.** A Linux job builds the auto-test project with `agsbuild` from the tools of the same
     run and hands it to the platform jobs (this is 1.7). A Windows job runs the parity harness against
     the editor on every PR until 6.7d deletes the C# build code.
