@@ -27,3 +27,15 @@ These came in as merges up to `fork-point`, and are not ledger entries:
 - Upstream PR #3166 (Editor: replace font file command)
 - Upstream PR #3118 (DrawingSurface primitive drawing functions)
 - Local branches `ags4-poenhancements`, `ags4-fullranges`, `ags-fixantialiaseditor`, `ags4-voidreturnvoid`
+
+## Changes sent upstream
+
+Fixes and features from this fork offered to `adventuregamestudio/ags`, on branches based on
+`upstream/ags4` and written in upstream's style (see "Upstream contributions" in
+`docs/refactor/PLAN.md`). Status values: `branch` (prepared, not yet a PR), `open`, `merged`,
+`closed`.
+
+| Branch | Status | PR | Contents |
+|---|---|---|---|
+| `ags4-bugfixes` | branch | | Dialog(id, scriptName) crash; invariant culture in project files; `ikpFlac.dll` missing from the AnyCPU editor (fails upstream's Windows Packaging); stale character after `ParserState.Reset()` (false "unterminated literal" in translations); agsbuild Windows pipe hang; `agf2dlgasc` dropping the last line; inverted `show_fps`; `ImageFile::LoadPNG` partial copy; `crmpak -e ... script` crash; character and item interactions losing their script module (upstream `6148cb840`); agf2dta, crmpak and spriteimport Makefiles (since `63f2b8996`) |
+| `ags4-buildtools` | branch | | Task 7.1 in upstream's formats and C++11 (24 commits, the four `master` tool commits first); stacked on `ags4-bugfixes`; parity 17 of 17 with the upstream editor on `ags4/auto-test` |

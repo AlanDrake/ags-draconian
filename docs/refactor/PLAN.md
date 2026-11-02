@@ -97,9 +97,8 @@ Recorded 2026-10-31.
 Kept current as tasks land. Model and effort are recommendations for an AI session (see "Purpose
 of the fork").
 
-| # | Task | Why now | Model / effort |
-|---|---|---|---|
-Phases 0, 2 and 7.1a–j are done; phase 1 is half done. Ground rule 3 applies from here: no deletion
+Phases 0, 2 and 7.1a–j are done, and so are U.1 and U.2 (branches for upstream, not pushed); phase 1
+is half done. Ground rule 3 applies from here: no deletion
 (3.3, 3.4) or restructuring (phase 5) before the safety net that guards it (1.2, 1.3, 1.4). Duplicate
 build systems caused most of the breakage seen in 2.6 and 7.1h, which moves 3.2 up.
 
@@ -850,7 +849,7 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
       - `agsbuild` passes the editor's fixed values for the obsolete script settings (it used to
         read `-fforce...=0` from elements the editor no longer saves), and `--ascii` for ANSI
         games. It also names the API header `_BuiltInScriptHeader.ash`, the editor's name.
-    Tests: `Tools/test/room_build_test.cpp`. Found on the way, not fixed:
+    Tests: `Tools/test/room_build_test.cpp`. Found on the way, fixed later (U.1):
     - `crmpak -e <room> script <file>` crashes (`ReadOnlyCompiledScript` passes a null room).
     - `ImageFile::LoadPNG` copies only `width*height` bytes of an RGB(A) image when no channel swap
       is needed.
@@ -1020,6 +1019,98 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     `macos-latest` runner that builds the simulator target without code signing. That job is the
     only automated iOS check, so treat a red iOS build as blocking.
   *Done when:* every kept port is built by CI from CMake, iOS included.
+
+---
+
+## Upstream contributions
+
+Work that upstream `adventuregamestudio/ags` (`ags4`) can use goes back as pull requests, prepared
+on branches based on `upstream/ags4` in upstream's own style (no fork formatting, no fork-only
+features such as Opacity 0–255). The branches are built in a separate worktree
+(`E:\Projects\ags\ags4-upstream`), with `.compare/helpers/upstream_build.py` (CMake, Ninja, MSVC)
+into `.compare/up-build`. Each PR is recorded in `docs/UPSTREAM.md`.
+
+- [x] **U.1 `ags4-bugfixes`:** fixes to existing upstream behaviour that the fork found, one commit
+  each. Checked one by one against `upstream/ags4`: the fork's OGL ES2 fix (fake gamma is fork-only),
+  the slider focus fix (upstream fixed it its own way) and the version bump (follows Opacity) don't
+  apply. Fixes already in upstream `master` are left to upstream's usual master-to-ags4 merge.
+  *Done when:* the branch builds (CMake tools + tests) and its tests pass.
+  *Status (2026-11-02):* done, 9 commits on `upstream/ags4` (`e70c7c95d`), not pushed:
+  - Editor: `Dialog(id, scriptName)` crash, invariant culture in project files, `ikpFlac.dll` missing
+    from the AnyCPU build (upstream's Windows Packaging fails on it today: `ags.iss` line 103), stale
+    character after `ParserState.Reset()` (false "unterminated literal" in translations). Picked
+    from the fork and `avalonia` with `-x` lines and trailers removed.
+  - Tools: the agsbuild pipe hang, `agf2dlgasc` dropping the last line, inverted `show_fps`. The
+    fork's patches only applied in part (`git apply --ignore-whitespace --reject`); the rest was
+    rewritten in upstream's style.
+  - New, also fixed in the fork: `ImageFile::LoadPNG` copied `width * height` bytes of RGB(A) images
+    when no component swap is needed (test: `Common/test/imagefile_test.cpp`, a PNG round trip in
+    PNG byte order), and `crmpak -e <room> script` passed a null `RoomData` (7.1e found both).
+  - Checked against the unfixed code: both new tests fail, `crmpak` segfaults, the pipe test aborts
+    after 120 s, and 5 of the 7 dialogs of `ags3/auto-test` lose their final `stop`.
+  - Verified: CMake Ninja (Common 94, Compiler 561, Engine 3, Tools 76 tests) and MSBuild as
+    upstream CI builds it (`Tests.sln` and `AGS.Editor.Full.sln`, Release x86, v142; NUnit 370 of
+    370). The worktree needs `git submodule update --init Common/libsrc/googletest` and the ignored
+    `Editor/References` DLLs and `Solutions/packages` copied in.
+  - Found, not fixed: `ags3/auto-test/room1.crm` (room version 40, `kRoomVersion_399`) fails to load
+    in both upstream and the fork ("Block data overlapping" in the Main block). D1 says 3.99 rooms
+    must load, so this belongs to 1.2/1.4.
+  *Status (2026-11-02, U.2):* 11 commits now; U.2 found two more upstream bugs, neither in the fork:
+  - `AGS.Types`: since `6148cb840` (2026-11-01) characters and inventory items load their
+    interactions into a new object and lose the script module, so the game data gets an empty
+    module (the engine then looks only in the global script). Two NUnit tests, which fail on the
+    unfixed code; NUnit 372 of 372.
+  - The `agf2dta`, `crmpak` and `spriteimport` Makefiles have not built since `63f2b8996`
+    (`interactions.cpp` gone, `scripteventtable.cpp` and `cc_reflect.cpp` missing). The Makefile
+    Build workflow does not notice: `find -execdir make` drops make's exit code. Checked without
+    make or GCC by linking exactly the listed sources' MSVC objects
+    (`.compare/helpers/mk_linktest.py`): they fail before and link after.
+- [x] **U.2 `ags4-buildtools`:** the 7.1 work (AGS 4 support in the C++ tools: project format,
+  script API levels, `#module`, `crmbuild`, game data parity, table-driven XML, drift guard,
+  `--json`), stacked on U.1, with `Script/compare_builds.py` and `Script/agsbuild_autotest.sh` but no
+  CI wiring. Starts by cherry-picking the four `master` tool commits that `ags4` lacks and that the
+  fork's agsbuild changes build on (`e5f9eab3a`, `0ddc44b1a`, `89a48f169`, `81f0a2cfd`). Each fork
+  commit is ported by hand: the fork's code is reformatted, so patches only apply with
+  `git apply --ignore-whitespace --reject` and the rejected hunks are rewritten. The tools must
+  write **upstream's** formats: project 4.0.0.33, `Transparency` 0–100 converted as upstream's
+  `DataFileWriter.cs` does (`Trans100ToLegacyTrans255`), upstream tint ranges and room versions.
+  *Done when:* `compare_builds.py` reports every file identical between `agsbuild` and an upstream
+  editor (MSBuild, `PlatformToolset=v142`) on the upstream test game (`ags-test-games` `main`,
+  `ags4/auto-test`, 4.0.0.33), and the upstream engine passes the auto-test on `agsbuild` output.
+  *Status (2026-11-02):* done, 24 commits on `ags4-bugfixes`, not pushed:
+  - The four `master` commits with `-x`; `0ddc44b1a` needed `dst_depth` renamed to ags4's
+    `res_depth` (noted in its message). Then every 7.1 commit, one upstream commit each, except
+    the CI wiring and the fork-only ones (Opacity, formatting); plus "build crmbuild with MSBuild
+    and make too", since upstream builds every tool with `Tools.sln` and a Makefile as well.
+  - Porting: `.compare/helpers/port.py` matches each fork hunk token by token (whitespace, `NULL`
+    vs `nullptr`, `Common::` qualifiers ignored), keeps upstream's own context lines and re-indents
+    the new ones; `check` compares each port with its fork commit after clang-format, so only the
+    intended adaptations remain. That replaced most of the hand-rewriting of rejected hunks.
+  - **Upstream stays C++11** for Common, Compiler and Tools, on purpose (`CXX_STANDARD 11`,
+    `-std=c++11`, compat `std::make_unique` and `std::size` in `util/memory_compat.h`, a recent
+    "remove use of c++17 insert_or_assign"). So the 7.1d rows are `XML_READ(&T::Member)`,
+    `XML_READ_WITH`, `XML_READ_ELEMENT` and `XML_READ_CONVERTED` macros over
+    `template <typename MP, MP Member, ...>` instead of `Read<&T::Member>`; `inline constexpr`,
+    generic lambdas and the fork's `CXX_STANDARD 17` for `crmbuild` went too.
+    `.compare/helpers/cxx11.py` checks the changed sources with emsdk clang in `-std=c++11` (MSVC
+    has no C++11 mode); tests compile as C++17, which googletest asks for.
+  - Upstream formats: project format 4.0.0.33 only (the oldest without an upgrade step: it moved the
+    dialogs into their own files); room formats 3.99.99.01 to 4.0.0.27, with the `Name` and
+    `Description` of rooms saved by older editors; `Transparency` 0-100 everywhere, converted with
+    `Trans100ToLegacyTrans255` for characters, GUIs and room objects and written as a percentage
+    for GUI controls, as `DataFileWriter.cs` does; region light level and tint in the editor's
+    ranges (`LightLevel - 100`, `TintLuminance * 25 / 10`). `agf_elements.txt` regenerated from
+    upstream's `AGS.Types`.
+  - Verified on the final branch: `compare_builds.py` 17 of 17 identical against the upstream editor
+    (MSBuild v142 x86, with U.1), with the tools from CMake and from MSBuild (`Tools.sln`,
+    `Compiler.App.sln`); the upstream engine (CMake) passes the auto-test on the `agsbuild` output,
+    2380 of 2380, also through `agsbuild_autotest.sh` (which passes `--strict`). CMake tests: Common
+    97, Compiler 592, Tools 110. MSBuild as upstream CI: `Tests.sln`, `Compiler.Lib.sln` (91),
+    `Compiler2.Lib.sln` (592), NUnit 373 of 373. Every one of the 24 commits builds and passes on
+    its own (`git rebase --exec .compare/helpers/verify_strict.sh`).
+  - Not checked: POSIX builds and the Makefiles under real make/GCC (no GCC here; the Makefiles' source
+    lists link with MSVC, `mk_linktest.py`); `tappy` isn't installed locally, so the TAP file was
+    counted by hand.
 
 ---
 
