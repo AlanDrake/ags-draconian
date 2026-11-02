@@ -20,3 +20,7 @@
 
 extern char kAgsHeaderString[];
 extern char kAgsHeaderBool[];
+
+// The last error reported through cc_error, and clearing it
+void clear_error();
+char const *last_seen_cc_error();

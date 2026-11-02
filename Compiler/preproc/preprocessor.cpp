@@ -18,13 +18,16 @@
 #include <cstring>
 
 #include "script/cc_common.h"
-#include "script/cs_parser_common.h"
 #include "util/string_utils.h"
 #include "util/textreader.h"
 #include "util/textstreamwriter.h"
 
 #define STRINGIFY2(X) #X
 #define STRINGIFY(X)  STRINGIFY2(X)
+
+// The string literal that starts a new script section, with the section's name; the compiler's
+// scanner reads it (Scanner::kNewSectionLitPrefix)
+#define NEW_SCRIPT_TOKEN_PREFIX "\"__NEWSCRIPTSTART_"
 
 using namespace AGS::Common;
 

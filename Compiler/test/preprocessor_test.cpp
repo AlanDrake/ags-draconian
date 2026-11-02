@@ -15,7 +15,8 @@
 
 #include "gtest/gtest.h"
 #include "preproc/preprocessor.h"
-#include "test/cc_test_helper.h"
+#include "script/cc_common.h"
+#include "test2/cc_parser_test_lib.h"
 
 using namespace AGS;
 using namespace AGS::Common;

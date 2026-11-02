@@ -306,6 +306,9 @@
     <ClCompile Include="..\..\Common\script\cc_script.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />
     <ClCompile Include="..\..\Common\util\string_compat.c" />
+    <ClCompile Include="..\..\Common\util\version.cpp" />
+    <ClCompile Include="..\..\Compiler\preproc\cc_macrotable.cpp" />
+    <ClCompile Include="..\..\Compiler\preproc\preprocessor.cpp" />
     <ClCompile Include="..\..\Compiler\script2\cc_compiledscript.cpp" />
     <ClCompile Include="..\..\Compiler\script2\cc_internallist.cpp" />
     <ClCompile Include="..\..\Compiler\script2\cc_symboltable.cpp" />
@@ -320,6 +323,9 @@
     <ClInclude Include="..\..\Common\script\cc_script.h" />
     <ClInclude Include="..\..\Common\util\string.h" />
     <ClInclude Include="..\..\Common\util\string_compat.h" />
+    <ClInclude Include="..\..\Common\util\version.h" />
+    <ClInclude Include="..\..\Compiler\preproc\cc_macrotable.h" />
+    <ClInclude Include="..\..\Compiler\preproc\preprocessor.h" />
     <ClInclude Include="..\..\Compiler\script2\cc_compiledscript.h" />
     <ClInclude Include="..\..\Compiler\script2\cc_internallist.h" />
     <ClInclude Include="..\..\Compiler\script2\cc_symboltable.h" />
