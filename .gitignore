@@ -173,7 +173,7 @@ Tools/agspak/agspak
 Tools/crm2ash/crm2ash
 Tools/crmpak/crmpak
 Tools/spritepak/spritepak
-Tools/po2tra/trac
+Tools/po2tra/po2tra
 
 # ignore lib sources fetch with download.sh
 libsrc/SDL/

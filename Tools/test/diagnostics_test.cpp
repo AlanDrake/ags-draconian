@@ -121,10 +121,10 @@ TEST(Diagnostics, DiagnosticJson)
 
     Diagnostic w;
     w.Level = Severity::Warning;
-    w.Tool = "trac";
-    w.Task = "trac:fr";
+    w.Tool = "po2tra";
+    w.Task = "po2tra:fr";
     w.Message = "m";
-    EXPECT_EQ("{\"event\":\"diagnostic\",\"severity\":\"warning\",\"tool\":\"trac\",\"task\":\"trac:fr\","
+    EXPECT_EQ("{\"event\":\"diagnostic\",\"severity\":\"warning\",\"tool\":\"po2tra\",\"task\":\"po2tra:fr\","
               "\"message\":\"m\"}",
               ToJson(w));
 }

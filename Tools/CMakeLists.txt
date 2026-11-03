@@ -262,13 +262,13 @@ set_target_properties(spritepak PROPERTIES
         )
 target_link_libraries(spritepak PUBLIC libtools)
 
-#----- trac ---------------------------------------------------
-add_executable(trac po2tra/main.cpp)
-set_target_properties(trac PROPERTIES
+#----- po2tra -------------------------------------------------
+add_executable(po2tra po2tra/main.cpp)
+set_target_properties(po2tra PROPERTIES
         CXX_STANDARD 17
         CXX_EXTENSIONS NO
         )
-target_link_libraries(trac PUBLIC libtools)
+target_link_libraries(po2tra PUBLIC libtools)
 
 list(APPEND TOOLS_TARGETS
         agf2dlgasc
@@ -278,9 +278,9 @@ list(APPEND TOOLS_TARGETS
         agspak
         crmbuild
         crmpak
+        po2tra
         spriteimport
         spritepak
-        trac
         )
 
 # Bundle-like target to build all tools

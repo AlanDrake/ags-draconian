@@ -71,16 +71,16 @@ DEPFILES = $(OBJS:.o=.d)
 
 .PHONY: printflags clean install uninstall rebuild
 
-all: printflags trac
+all: printflags po2tra
 
-trac: $(OBJS) 
+po2tra: $(OBJS) 
 	@echo "Linking..."
 	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDFLAGS) $(LIBS)
 
 debug: CXXFLAGS += -UNDEBUG -D_DEBUG -Og -g -pg
 debug: CFLAGS   += -UNDEBUG -D_DEBUG -Og -g -pg
 debug: LDFLAGS  += -pg
-debug: printflags trac
+debug: printflags po2tra
 
 -include $(DEPFILES)
 
@@ -102,11 +102,11 @@ rebuild: clean all
 
 clean:
 	@echo "Cleaning..."
-	$(CMD_PREFIX) rm -f trac $(OBJS) $(DEPFILES)
+	$(CMD_PREFIX) rm -f po2tra $(OBJS) $(DEPFILES)
 
-install: trac
+install: po2tra
 	mkdir -p $(PREFIX)/bin
-	cp trac $(PREFIX)/bin
+	cp po2tra $(PREFIX)/bin
 
 uninstall:
-	rm -f $(PREFIX)/bin/trac
+	rm -f $(PREFIX)/bin/po2tra

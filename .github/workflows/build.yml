@@ -152,7 +152,7 @@ jobs:
       shell: pwsh
       run: |
         New-Item -ItemType Directory -Path parity-tools | Out-Null
-        $names = 'agsbuild','agscc','agf2dta','agf2dlgasc','agfexport','agspak','crmbuild','crmpak','spriteimport','spritepak','trac','ags'
+        $names = 'agsbuild','agscc','agf2dta','agf2dlgasc','agfexport','agspak','crmbuild','crmpak','po2tra','spriteimport','spritepak','ags'
         foreach ($n in $names) {
           $f = Get-ChildItem build -Recurse -Filter "$n.exe" | Where-Object { $_.FullName -notmatch '[\\/]_deps[\\/]' } | Select-Object -First 1
           if (-not $f) { throw "Not found in build: $n.exe" }

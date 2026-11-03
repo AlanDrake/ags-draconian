@@ -46,7 +46,7 @@ Entry points, in reading order:
   fork features the upstream auto-test does not cover. The fork's test game is
   `AlanDrake/ags-test-games` branch `ags4-draconian`; CI builds it from source with `agsbuild`.
 - Games build through the C++ tools (D7): `agsbuild` → `agf2dta`, `agscc`, `crmbuild` (rooms from
-  `Rooms/<n>/`), `trac` (PO), `agspak`; `agsbuild --json` gives machine-readable diagnostics;
+  `Rooms/<n>/`), `po2tra`, `agspak`; `agsbuild --json` gives machine-readable diagnostics;
   `Script/compare_builds.py` proves byte parity with the Editor's build; `ci/corpus/run.py` runs
   a private game through every room. The Editor still builds with its C# code until task 6.7d.
 - Windows 7+ only; PSP removal and CMake-only native builds are planned (D2, D5), not done.

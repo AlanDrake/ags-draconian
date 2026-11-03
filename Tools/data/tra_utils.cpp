@@ -33,7 +33,7 @@ namespace DataUtil
 {
 
 //-----------------------------------------------------------------------------
-// The special tags of translation sources, read from PO and written to the TRS that trac -u makes
+// The special tags of translation sources, read from PO and written to the TRS that po2tra -u makes
 //-----------------------------------------------------------------------------
 
 const char OPTION_SEPARATOR = '=';

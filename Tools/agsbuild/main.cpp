@@ -46,7 +46,7 @@ const char *ToolDlgAsc = "agf2dlgasc";
 const char *ToolAgsPak = "agspak";
 const char *ToolCrmBuild = "crmbuild";
 const char *ToolCrmPak = "crmpak";
-const char *ToolTrac = "trac";
+const char *ToolPo2Tra = "po2tra";
 const char *ToolSpriteImport = "spriteimport";
 const char *ScriptCompiler = "agscc";
 const char *ScriptAPIHeader = "agsdefns.sh";
@@ -533,14 +533,14 @@ static void AddCompiledRoomTasks(BuildContext &c)
 // Compile translations
 static void AddTranslationTasks(BuildContext &c)
 {
-    const String tool_trac = Path::MakeEscapedExePath(c.sys_dir, ToolTrac);
+    const String tool_po2tra = Path::MakeEscapedExePath(c.sys_dir, ToolPo2Tra);
     for (const auto &tra : c.project.tra_list)
     {
-        const String task_name = String::FromFormat("trac:%s", tra.GetCStr());
+        const String task_name = String::FromFormat("po2tra:%s", tra.GetCStr());
         const String out_trafile = String::FromFormat("%s.tra", tra.GetCStr());
         c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
             task_name, &c.taskmgr,
-            PipedProcessParams(tool_trac,
+            PipedProcessParams(tool_po2tra,
                                String::FromFormat("\"%s/%s.po\" \"%s/%s\" --gamename \"%s\" --uniqueid %d %s",
                                                   c.src_dir.GetCStr(), tra.GetCStr(), c.temp_dir.GetCStr(),
                                                   out_trafile.GetCStr(), c.project.game_opts.Name.GetCStr(),
