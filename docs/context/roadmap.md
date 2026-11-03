@@ -56,7 +56,6 @@ D3D11 testing #3115 · colour conversion tests #3167
 
 | PR | Base | What |
 |---|---|---|
-| #3025 edmundito | master | AI policy, `AGENTS.md`, PR template (ready to merge) |
 | #3182 AlanDrake | ags4 | AGS 4 support in the tools (`crmbuild`, table-driven `agfreader`, PO `trac`, `agsbuild --json`), 24 commits |
 | #3176 #3175 #3119 AlanDrake | ags4 | void-returns-void compiler; Editor antialiased fonts; 8-bit alpha + ranges |
 | #3162 a-riddle-fan | master | engine debugger on non-Windows (`--debugger-comm pipe\|file`) |

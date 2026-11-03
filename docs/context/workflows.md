@@ -84,9 +84,9 @@ Engine options for testing: `--no-message-box`, `--log-stdout=<group>:<level>,..
 
 - branch from `master` (3.x; `release-3.6.3` for RC fixes) or `ags4` (4.0); fixes and small
   improvements straight to a PR; features and larger changes: issue first (CONTRIBUTING.md
-  "Issues"; PR template from #3025: Summary / Related issues / Testing / Notes / AI tooling)
+  "Issues"; `.github/pull_request_template.md`: Summary / Related issues / Testing / Notes / AI tooling)
 - commit titles `Engine:` `Editor:` `Script API:` `Compiler:` `Tool:` `Plugin:` `CMake` `Makefile`
   `ci:` or library name; 72 chars; one concern, one program per commit
-- no `Co-Authored-By`/tool trailers; AI use disclosed in the PR description (CONTRIBUTING "Use of
-  AI Tooling" via #3025; ericoporto 2026-10-29)
+- no `Co-Authored-By`/tool trailers; AI use disclosed in the PR description (CONTRIBUTING.md "Use of
+  AI Tooling")
 - Artistic License 2.0; no GPL/LGPL code copied in; linking a separate library is fine (#2990)

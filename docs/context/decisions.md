@@ -14,7 +14,7 @@ Names: `sources.md`.
 | P4 | 3.x after 3.6.3: fixes, cleanup, old-game compatibility; a 3.6.4 may exist only to ship the build tools | position; #2316 comments 2026 |
 | P5 | Issue first for features, refactors, cross-tree edits; proposal guidelines stay informal ("align with existing code, don't break existing stuff, common sense") | decided; CONTRIBUTING.md; #2786 ivan-mogilko 2025-07-28 |
 | P6 | Cross-platform Editor: not planned; a whole new editor will not be adopted (C++/ImGui AI-made one was asked not to be submitted). Welcome in small PRs: `AGS.Types` without WinForms/`System.Drawing` (#1092), `AGS.Native` platform-neutral or removed, build via the tools. Editor must keep Windows 8. UI framework undecided | position; ivan-mogilko forum 2026-05-21; #3177 2026-10-30/11-01 |
-| P7 | AI tooling: code accepted if a person authors, understands and discloses it (PR description, no trailers); no generated art/audio/UI design/user-facing text/manual prose; no bot PRs/issues/comments; fork experiments rewritten before submission | decided in substance; PR #3025 ("good to merge" 2026-11-02); #2990 |
+| P7 | AI tooling: code accepted if a person authors, understands and discloses it (PR description, no trailers); no generated art/audio/UI design/user-facing text/manual prose; no bot PRs/issues/comments; fork experiments rewritten before submission | decided; CONTRIBUTING.md "Use of AI Tooling" (PR #3025, merged 2026-11-03); #2990 |
 | P8 | Artistic License 2.0; no GPL/LGPL code absorbed; linking separately is fine | decided; License.txt; #2990 |
 
 ## Formats

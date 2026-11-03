@@ -67,7 +67,7 @@ on 2026-11-02; references are issue/PR numbers there.
 - Upstream now expects **issue first** for anything beyond a fix (P5) and dislikes large PRs
   (#3182 is 24 commits; ivan-mogilko already asked for `--script-dir` to go). Offer one #2316 item
   per PR, each behind its ticket.
-- The AI policy (PR #3025, merging) forbids generated **documentation prose** and user-facing text
+- The AI policy (PR #3025, merged 2026-11-03) forbids generated **documentation prose** and user-facing text
   in upstream. The agent-facing files (`AGENTS.md`, `docs/context/`) are contributor tooling, but a
   maintainer may read them as documentation: when offering them, say they were AI-assisted and
   human-reviewed, as #3025 itself was (edmundito disclosed Claude use). The script-API reference
