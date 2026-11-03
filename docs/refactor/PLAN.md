@@ -51,6 +51,13 @@ after any of them still leaves the code better than before.
 6. **Boy-scout rule, with limits.** When you touch a function for a fix, you may rename its locals
    and fix its comments in a *separate* preceding commit. Don't refactor the surroundings in the
    same PR as the fix.
+7. **Check upstream before designing.** Before a task that adds structure or an API, read
+   `docs/context/decisions.md` and `roadmap.md`: if upstream has a design for the same thing, use
+   its names and shape unless there is a stated reason not to, so the work stays portable
+   (ALIGNMENT.md). Work meant for upstream is written in upstream's style and C++11 from the start.
+8. **Lessons go into the docs, not the chat.** When a task fails, misleads or needs a trick, the
+   fix goes into `AGENTS.md`, `STYLE.md` or `docs/context/` in the same session, so no later
+   session repeats it.
 
 ## Compatibility contract
 
@@ -75,8 +82,10 @@ renaming or reordering the C++ fields is safe as long as that table stays correc
 This fork is a testbed for **AI-assisted refactoring**. That affects how the tasks are written:
 each one should fit in a single session, have a "done when" line a machine can check, and be
 backed by an automatic verifier (tests, the contract snapshots from 1.2, the object-code comparison
-from 1.6, the metrics script). When a session starts a task, it should read this file, STYLE.md and
-the task's section, and finish by updating the checkbox and the progress table.
+from 1.6, the metrics script). When a session starts a task, it should read `AGENTS.md`, "Next up"
+and the task's section (not this whole file), STYLE.md, and finish by updating the checkbox and
+"Next up". Upstream's intent lives in `docs/context/` (shared with upstream PR #3185); the fork's
+plan against it is `ALIGNMENT.md` (2026-11-03).
 
 ## Decisions
 
@@ -87,7 +96,7 @@ Recorded 2026-10-31.
 | D1 | Oldest game version the fork must load (C1) | **3.99 and later** (`kGameVersion_399`) | All 3.x upgrade paths can go (task 3.4). Room versions need care, see 3.4. | 3.4 |
 | D2 | Which platforms to ship on | **Windows, Linux, macOS, Android, Web, iOS.** Drop PSP. FreeBSD stays for now (small, shares the POSIX code). | iOS can't be tested locally (no Mac), so it gets a compile-only CI job (7.3) | 3.1, 7.3 |
 | D3 | Keep the legacy script compiler? | **Remove `Compiler/script`** | `script2` becomes the only compiler (3.3) | 3.3 |
-| D4 | Future of the Editor UI | **Avalonia is the main candidate.** The WinForms editor goes into maintenance mode. | Editor work concentrates on a UI-free core shared by both UIs, and on replacing the C++/CLI bridge, which Avalonia can't use (phase 6) | 6.x |
+| D4 | Future of the Editor UI | **Avalonia is the main candidate.** The WinForms editor goes into maintenance mode. *Note 2026-11-03:* upstream plans no cross-platform editor and will not adopt one whole, but welcomes the core split (#1092, #3177); a-riddle-fan's `ags-for-mac` (3.6.x, .NET 10 + Avalonia, `AGS.Native` replaced by a CMake C library) exists and is studied before 6.7c (ALIGNMENT.md). | Editor work concentrates on a UI-free core shared by both UIs, and on replacing the C++/CLI bridge, which Avalonia can't use (phase 6) | 6.x |
 | D5 | Single build system for native code | **CMake only.** MSBuild stays for the C# editor projects. | Hand-written Makefiles and the native `Solutions/*.vcxproj` go (3.2) | 3.2 |
 | D6 | Minimum Windows version | **Windows 7+** | Drop `v141_xp`; `AGS.Native` targets `0x0601` instead of XP's `0x0501`; no APIs newer than Windows 7 without a runtime check | 0.4, 3.1 |
 | D7 | How are games built, by the editor and headless? | **One build implementation, in C++: the tools in `Tools/`**, with `agsbuild` running `agf2dta`, `agscc`, `crmpak`, `trac`, `agspak` and the rest. The editor saves the project and runs `agsbuild`, or individual tools where it needs finer control. The C# build code (`DataFileWriter.cs`, `DialogScriptConverter.cs`, the C# script-header generation and translation writer, the C# preprocessor) is deleted once the tools reach parity. *Revised 2026-11-01 after maintainer review; replaces "one C# build core plus a C# command-line builder", which was argued from commit counts, a poor proxy for parity.* | Builds need only a C++ toolchain, so they run where .NET doesn't (Linux i386, which CI packages; FreeBSD, D2) and in CI without the editor. The game-data writer sits next to the engine's reader: same structs, testable with C++ round trips. Cost: `Game.agf` is read by both C# (editor) and C++ (`agfreader`), so a new project property needs a C++ change too; 7.1g makes a missed one fail tests instead of silently doing nothing. Starting point, measured 2026-11-01: the tools **can't build an AGS 4 project yet** (five gaps, listed in 7.1). | 1.7, 3.3, 6.3, 6.7d, 7.1 |
@@ -97,24 +106,28 @@ Recorded 2026-10-31.
 Kept current as tasks land. Model and effort are recommendations for an AI session (see "Purpose
 of the fork").
 
-Phases 0, 2 and 7.1a–j are done, and so are U.1 (merged upstream, #3181) and U.2 (open, #3182); phase 1
-is half done. Ground rule 3 applies from here: no deletion
-(3.3, 3.4) or restructuring (phase 5) before the safety net that guards it (1.2, 1.3, 1.4). Duplicate
-build systems caused most of the breakage seen in 2.6 and 7.1h, which moves 3.2 up.
+Done: phases 0 and 2, 7.1a–m, 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (open, #3182), the
+agent docs (0.6, upstream PR #3185). Phase 1 is half done. Ground rule 3 applies from here: no
+deletion (3.4) or restructuring (phase 5) before the safety net that guards it (1.2, 1.3). Reordered
+2026-11-03 after reading upstream's plans (ALIGNMENT.md): upstream review latency is weeks, so the
+offers (U.3) go out first and the fork-only divergence (3.2, 3.4, 5.3) comes after they are closed.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **1.2, first part:** C3 script-API snapshot, C2 savegame round trip, C5 `Game.agf` round trip | Cheap contract guards; 3.4 needs them | Sonnet 5.5, `high` |
-| 2 | **3.1:** remove PSP | Small, safe, measurable | Sonnet 5.5, `medium` |
-| 3 | **3.2a:** build the Linux/macOS tool jobs with CMake, delete the tool Makefiles | Six tools are silently missing from the Linux/macOS tool archives (see 3.2) | Sonnet 5.5, `medium` |
-| 4 | **Pre-push check script:** clang-format, MSVC build + tests, MSBuild solutions, header check with MSVC and libc++ | CI should confirm, not discover (2.6 needed four pushes) | Sonnet 5.5, `medium` |
-| 5 | **3.2b:** Debian packaging and `Engine/Makefile` to CMake, drop `makefile-build.yml` | `debian/rules` builds through `Engine/Makefile` today | Sonnet 5.5, `high` |
-| 6 | **1.3:** engine unit tests | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` |
-| 7 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
+| 1 | **U.3:** file the two "ticket TBD" items of #2316 (4.0 room compiler, PO `trac`), move `agsbuild` diagnostics onto the Common log system (#2530), offer #3182 in pieces if asked | Review takes weeks; the fork's tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `high` |
+| 2 | **1.2, first part:** C5 `Game.agf` round trip and the AGFReader tests in upstream style (= #3147), C2 savegame round trip (= #2814), C3 script-API snapshot | Contract guards, two of them portable upstream as-is | Sonnet 5.5, `high` |
+| 3 | **0.7:** split finished-task status logs out of this file into `LOG.md` | ~20k tokens read per session for history nobody needs | Sonnet 5.5, `low` |
+| 4 | **3.1:** remove PSP; delete the superseded `ags4-framescript` branch (upstream has `ViewFrame.EventName`/`OnFrameEvent`) | Small, safe, measurable | Sonnet 5.5, `medium` |
+| 5 | **Pre-push check script:** clang-format, MSVC build + tests, MSBuild solutions, header check with MSVC and libc++ | CI should confirm, not discover (2.6 needed four pushes) | Sonnet 5.5, `medium` |
+| 6 | **6.0 study:** read a-riddle-fan's `ags-for-mac` (`AGS.Types` diff, the C library that replaced `AGS.Native`) and #1092; decide which 6.0 steps are offered upstream and whether 6.7c reuses that library's surface | Two implementations of the same split would be waste; upstream welcomes exactly this | Opus 5.5, `high` |
+| 7 | **1.3:** engine unit tests, starting with what needs no globals (route finder, `scsprintf`, sprite cache, VM with `script2` bytecode) | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` |
+| 8 | **3.2a/b:** tool and engine Makefiles to CMake, Debian packaging | Fork-only; after U.3, because every port must re-add Makefile entries while the Makefiles exist upstream | Sonnet 5.5, `medium` |
+| 9 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
 
 3.2c (native `.vcxproj` to CMake) waits for 6.7: the C++/CLI bridge links against those libraries.
-The legacy compiler is gone (3.3); the rest of 3.3 (`AGS.CScript.Compiler`) waits for 6.7d. The next big step after the safety net is
-6.7d (the editor builds through the tools).
+The rest of 3.3 (`AGS.CScript.Compiler`) waits for 6.7d. 5.3 (moving `Engine/ac` files) waits
+until U.3 is closed and then uses upstream's draft directory names. The next big step after the
+safety net is 6.7d (the editor builds through the tools).
 
 ---
 
@@ -166,8 +179,19 @@ The legacy compiler is gone (3.3); the rest of 3.3 (`AGS.CScript.Compiler`) wait
   `Editor/References/x64/`) to `.gitignore` or commit them deliberately. Add a `.gitattributes` with
   `* text=auto` and `eol=crlf` only for `*.sln`, `*.bat`, `*.cmd`, `*.vcxproj*` and `*.csproj`.
   *Done when:* `git status` is clean after a full Windows build.
-
-## Phase 1: Safety net
+- [x] **0.6 Agent context docs.** `AGENTS.md` (fork rules and facts) and `docs/context/`
+  (upstream's repository map, workflows, decisions, roadmap, sources; every claim dated and
+  sourced), written for tools, ≤3k tokens per file. The same `docs/context/` is offered upstream
+  (PR #3185, 2026-11-03) and is kept identical to it; fork-specific knowledge goes into
+  `AGENTS.md` and `ALIGNMENT.md`, never into `docs/context/`.
+  *Done when:* a session can answer "what does upstream intend here" from the docs without
+  searching issues. *Refresh:* `roadmap.md` at each upstream milestone change, `decisions.md`
+  when a maintainer settles something (rules in `docs/context/README.md`).
+- [ ] **0.7 Move status logs out of this file.** The "*Status*" paragraphs of finished tasks go to
+  `LOG.md` (one dated entry per task, same text), leaving each task here as description,
+  "done when" and a one-line result. Keep the "Found on the way" bugs and lessons: they are the
+  useful part, move them with the entry.
+  *Done when:* this file is under 8k tokens and `LOG.md` holds every removed paragraph verbatim.
 
 Today: 35 C++ test files, but **only 3 for the engine** (~430 source files). The 22 C# test files
 cover `AGS.Types` and a few editor utilities. The end-to-end coverage comes from the upstream
@@ -202,6 +226,10 @@ auto-test game that CI downloads from `latest`.
     (D7), so the same sample is also loaded by `Tools/data/agfreader` with no unknown-element
     warnings (7.1g).
   *Done when:* each contract has a test that fails if it's broken.
+  *Upstream (2026-11-03):* C5 and the AGFReader tests are what #3147 asks for, C2 is #2814's
+  5-step plan (generate data, save, restore into a second instance, compare). Write those two in
+  upstream style (C++11, existing test targets) in the `ags4-upstream` worktree first and port
+  them here, not the other way round.
 - [ ] **1.3 Engine unit tests for the riskiest subsystems**, in this order: script VM
   (`ScriptExecutor` with bytecode produced by `script2`), route finder, overlay/GUI layout
   arithmetic, savegame components, string formatting (`scsprintf` already started), sprite cache
@@ -523,9 +551,12 @@ big one.
   `palette` (15), `platform` (13), `scsystem` (10) and `objs` (10). Steps:
   1. Every global is declared in exactly one header owned by its module. `extern` in `.cpp` files
      → 0.
-  2. Group them into a few context structs (`GameData` for static loaded data, `GameState` for
-     runtime state, `RoomContext` for the current room, `EngineServices` for the gfx driver, audio,
-     platform and sprite cache), each with a single accessor.
+  2. Group them into a few context structs, named as upstream's #2058 names them so the two
+     trees stay recognisable: `GameData` (loaded, static data: `GameSetupStruct` plus the lists of
+     data structs), runtime `Game` (`GameData` + `GameState` + the runtime object lists, e.g.
+     `Character` = `CharacterInfo` + `CharacterExtras`), the current room, and an `EngineServices`
+     struct for the gfx driver, audio, platform and sprite cache (no upstream name yet), each
+     with a single accessor.
   3. New and refactored functions take the context they need as a parameter. The phase 1 fixtures
      construct these contexts directly, which is what makes engine code unit-testable.
   *Done when:* `extern decls in Engine .cpp files` = 0 and the top 12 globals are reached only
@@ -561,6 +592,11 @@ big one.
   The 14 `global_*.cpp` files are the old flat script API (`Display()`, `SetGlobalInt()` and friends).
   Fold whatever is still used into its domain folder and delete the rest. `Common/ac/` gets the
   same treatment (`Common/game/`, `Common/assets/`).
+  *Upstream (2026-11-03):* the wiki draft "AGS 4 Draft: major engine refactor" proposes
+  `system/main/script/data/game/gfx/audio/video/util`; nothing is decided there. File moves are
+  what hurts `port.py` most, so this task waits until U.3 is closed and then prefers upstream's
+  names where the two layouts overlap (`game/` for the world folder, `script/` for the VM,
+  `gfx/`, `audio/`, `util/`); the finer split (`navigation/`, `dialog/`, `ui/`) stays fork-only.
   *Done when:* `Engine/ac/` no longer exists.
 - [ ] **5.4 Split the longest functions** (top of the BASELINE.md list), each with tests first:
   - `display_speech` (489 lines, nesting 8): split into text layout, portrait/bubble placement,
@@ -674,7 +710,11 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     the C# reader needs tests against templates written by the C++ code. Icon writing uses the Win32
     `BeginUpdateResource`/`UpdateResource` API through P/Invoke. It only matters for Windows builds of
     the game and can stay Windows-only.
-  - [ ] **6.7c Define the C library (`ags_editor_native`).** About 20–30 `extern "C"` functions in a
+  - [ ] **6.7c Define the C library (`ags_editor_native`).** *Prerequisite (2026-11-03):* the
+    6.0 study in "Next up": `ags-for-mac` already replaced `AGS.Native` with a C library built by
+    CMake from `Common/` and `Engine/` on 3.6.x; reuse its surface where it fits so that one
+    library can serve both editors, and so the split can be offered upstream (#1092, #3177).
+    About 20–30 `extern "C"` functions in a
     new CMake target that links `Common` and the compiler (`Compiler/script`), with opaque handles and caller-owned buffers.
     Rough groups: open/save room (backgrounds, masks, properties as plain structs), sprite file
     open/read/write/replace/delete, get a sprite **as an RGBA buffer** (the UI scales, flips and
@@ -1115,10 +1155,10 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
       covered by that game: font overrides in a `.tra` (the writer follows Common's font block),
       and translations in a non-UTF-8 encoding with numeric escapes above 127 (written as one byte;
       the editor uses the system code page).
-  - [ ] **7.1n MO files** (future, low priority). Instead of converting PO sources into the AGS
-    `.tra` format, generate standard gettext `.mo` files, and teach the engine to read them, so
-    translations go through the usual gettext tools from source to game. Keep reading `.tra`
-    (games built by 3.99 and 4.x editors, C1).
+  - [ ] **7.1n MO files** (dropped 2026-11-03 unless upstream asks). Upstream's PO plan keeps
+    `.tra` as the compiled format and left contexts/plurals open (#1780); a second compiled format
+    would be contested and brings nothing the `.tra` writer in `trac` doesn't already do. If it
+    comes back: propose it on #1780 first.
   - **Thin format tools:** `agscc`, `crmpak`, `spritepak`, `agspak` and `trac` stay as they are, and
     get tests for their command-line options (`Tools/test` exists).
 
@@ -1231,6 +1271,19 @@ into `.compare/up-build`. Each PR is recorded in `docs/UPSTREAM.md`.
   - Not checked: POSIX builds and the Makefiles under real make/GCC (no GCC here; the Makefiles' source
     lists link with MSVC, `mk_linktest.py`); `tappy` isn't installed locally, so the TAP file was
     counted by hand.
+- [ ] **U.3 Tickets and pieces for #2316.** Upstream's master ticket lists the 4.0 room compiler
+  and the PO translation compiler as "ticket TBD"; both exist in U.2. File the two tickets
+  (what the tool reads and writes, the parity check against the Editor, a link to #3182), and be
+  ready to split #3182 along them. Move `agsbuild`'s diagnostics onto the Common log system
+  (`debug::out`, #2530, ivan-mogilko's stated preference) so the `--json` output is a log sink,
+  not a parallel channel. Small follow-ups that fit the same milestone: `--version` (#3068),
+  `agscc -I` (#3070).
+  *Done when:* the two tickets exist and #3182 (or its pieces) has no open review comments
+  about structure.
+- [x] **U.4 Agent docs upstream** (PR #3185, 2026-11-03, base `master`, one commit `066cb1152`):
+  `AGENTS.md` and `docs/context/`, superseding the `AGENTS.md` of #3025. The fork's
+  `docs/context/` is a copy; changes requested in review are applied in the worktree and copied
+  here, never edited here first.
 
 ---
 
