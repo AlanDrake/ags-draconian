@@ -671,10 +671,10 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
 
     // skip NUM_LEGACY_GLOBALMES int32s since kGameVersion_400_33
 
-    out->WriteInt32(1);                         // dict != null
-    out->WriteInt32(0);                         // globalscript != null
-    out->WriteInt32(0);                         // chars != null
-    out->WriteInt32(0);                         // compiled scripts are loaded from separate files since 3.6.1
+    out->WriteInt32(1); // dict != null
+    out->WriteInt32(0); // globalscript != null
+    out->WriteInt32(0); // chars != null
+    out->WriteInt32(0); // compiled scripts are loaded from separate files since 3.6.1
 }
 
 // Read by GameSetupStruct::read_savegame_info() in
