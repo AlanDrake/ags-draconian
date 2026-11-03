@@ -220,16 +220,17 @@ TEST(TraUtils, WritePOAsTheEditor)
         if (c != '\r')
             po.AppendChar(static_cast<char>(c));
     }
-    EXPECT_NE(String::NoIndex, po.FindString("# $NormalFont=2\n"));
-    EXPECT_NE(String::NoIndex, po.FindString("# $TextDirection=RIGHT\n"));
-    EXPECT_NE(String::NoIndex, po.FindString("# $Font0=File=x.ttf;SizeMultiplier=2;\n"));
-    EXPECT_NE(String::NoIndex, po.FindString("\"Content-Type: text/plain; charset=UTF-8\\n\"\n"));
+    // compared with "!=", as EXPECT_NE takes a reference to the undefined String::NoIndex
+    EXPECT_TRUE(po.FindString("# $NormalFont=2\n") != String::NoIndex);
+    EXPECT_TRUE(po.FindString("# $TextDirection=RIGHT\n") != String::NoIndex);
+    EXPECT_TRUE(po.FindString("# $Font0=File=x.ttf;SizeMultiplier=2;\n") != String::NoIndex);
+    EXPECT_TRUE(po.FindString("\"Content-Type: text/plain; charset=UTF-8\\n\"\n") != String::NoIndex);
     // the texts are escaped, and a "\r" is kept
-    EXPECT_NE(String::NoIndex,
-              po.FindString("\nmsgid \"Back\\\\slash \\\"quoted\\\"\\r\\n\\001 end\"\nmsgstr \"Tab\\there\"\n"));
+    EXPECT_TRUE(po.FindString("\nmsgid \"Back\\\\slash \\\"quoted\\\"\\r\\n\\001 end\"\nmsgstr \"Tab\\there\"\n") !=
+                String::NoIndex);
     // one entry per parser word ID, with a placeholder text the PO reader keeps apart
-    EXPECT_NE(String::NoIndex,
-              po.FindString("\nmsgctxt \"PARSERWORD:5\"\nmsgid \"??? (word 5)\"\nmsgstr \"guarda, osserva\"\n"));
+    EXPECT_TRUE(po.FindString("\nmsgctxt \"PARSERWORD:5\"\nmsgid \"??? (word 5)\"\nmsgstr \"guarda, osserva\"\n") !=
+                String::NoIndex);
 }
 
 TEST(TraUtils, WritePOCompilesToTheSameTranslation)
