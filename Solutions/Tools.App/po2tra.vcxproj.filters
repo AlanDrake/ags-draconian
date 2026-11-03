@@ -55,7 +55,7 @@
     <ClCompile Include="..\..\Common\util\textstreamreader.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Tools\trac\main.cpp">
+    <ClCompile Include="..\..\Tools\po2tra\main.cpp">
       <Filter>trac</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp">

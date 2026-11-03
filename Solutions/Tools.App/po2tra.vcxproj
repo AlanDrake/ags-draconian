@@ -46,7 +46,7 @@
     <ClCompile Include="..\..\libsrc\allegro\src\unicode.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c" />
     <ClCompile Include="..\..\Tools\data\tra_utils.cpp" />
-    <ClCompile Include="..\..\Tools\trac\main.cpp" />
+    <ClCompile Include="..\..\Tools\po2tra\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\wordsdictionary.h" />

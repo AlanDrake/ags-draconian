@@ -263,7 +263,7 @@ set_target_properties(spritepak PROPERTIES
 target_link_libraries(spritepak PUBLIC libtools)
 
 #----- trac ---------------------------------------------------
-add_executable(trac trac/main.cpp)
+add_executable(trac po2tra/main.cpp)
 set_target_properties(trac PROPERTIES
         CXX_STANDARD 17
         CXX_EXTENSIONS NO
