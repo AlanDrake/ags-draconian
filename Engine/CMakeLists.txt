@@ -646,8 +646,35 @@ if(AGS_TESTS)
         target_link_libraries(engine_test gtest)
     endif()
 
+    # Tests that need the whole engine with its real globals (the script API table, savegame components):
+    # engine_test replaces some engine symbols with stubs, so they cannot be linked there
+    add_executable(
+        engine_full_test
+        test/script_exports_test.cpp
+        test/savegame_test.cpp
+    )
+    set_target_properties(engine_full_test PROPERTIES
+        CXX_STANDARD 17
+        CXX_EXTENSIONS NO
+        C_STANDARD 11
+        C_EXTENSIONS NO
+        INTERPROCEDURAL_OPTIMIZATION FALSE
+        )
+    target_compile_definitions(engine_full_test PRIVATE
+        SCRIPT_EXPORTS_SNAPSHOT="${CMAKE_CURRENT_SOURCE_DIR}/test/data/script_exports.txt")
+    target_link_libraries(
+        engine_full_test
+        engine
+        common
+        gtest_main
+    )
+    if(AGS_USE_LOCAL_GTEST)
+        target_link_libraries(engine_full_test gtest)
+    endif()
+
     include(GoogleTest)
     gtest_add_tests(TARGET engine_test)
+    gtest_add_tests(TARGET engine_full_test)
 endif()
 
 # macOS App Bundle

@@ -361,7 +361,10 @@ if(AGS_TESTS)
        target_link_libraries(tools_test gtest)
    endif()
 
-   target_compile_definitions(tools_test PRIVATE AGF_ELEMENTS_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/agf_elements.txt")
+   target_compile_definitions(tools_test PRIVATE
+      AGF_ELEMENTS_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/agf_elements.txt"
+      AGF_SAMPLE_FILE="${CMAKE_CURRENT_SOURCE_DIR}/test/data/Game.agf"
+   )
    include(GoogleTest)
    gtest_add_tests(TARGET tools_test)
 endif()
