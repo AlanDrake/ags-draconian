@@ -114,7 +114,7 @@ offers (U.3) go out first and the fork-only divergence (3.2, 3.4, 5.3) comes aft
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **U.3:** file the two "ticket TBD" items of #2316 (4.0 room compiler, PO `trac`), move `agsbuild` diagnostics onto the Common log system (#2530), offer #3182 in pieces if asked | Review takes weeks; the fork's tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `high` |
+| 1 | **U.3:** file the two "ticket TBD" items of #2316 (4.0 room compiler, PO translations as `po2tra`), move `agsbuild` diagnostics onto the Common log system (#2530), offer #3182 in pieces if asked | Review takes weeks; the fork's tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `high` |
 | 2 | **1.2, first part:** C5 `Game.agf` round trip and the AGFReader tests in upstream style (= #3147), C2 savegame round trip (= #2814), C3 script-API snapshot | Contract guards, two of them portable upstream as-is | Sonnet 5.5, `high` |
 | 3 | **0.7:** split finished-task status logs out of this file into `LOG.md` | ~20k tokens read per session for history nobody needs | Sonnet 5.5, `low` |
 | 4 | **3.1:** remove PSP; delete the superseded `ags4-framescript` branch (upstream has `ViewFrame.EventName`/`OnFrameEvent`) | Small, safe, measurable | Sonnet 5.5, `medium` |
@@ -1174,7 +1174,9 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
       (texts, parser words, options, font overrides); on a copy of the private game's PO with
       every text translated (783 texts, 79 with escapes), decompiling both compiled files gives
       identical POs. The two `.tra` files differ only in the order of the texts.
-    - Upstream still has `trac` (TRS); U.3's PO ticket should say which name upstream wants.
+    - Upstream gets `po2tra` as a new tool for PO sources, next to its own `trac` (TRS), which
+      stays as it is (decided 2026-11-03, until further notice). U.3's PO ticket and any port of
+      7.1m/7.1o add `po2tra`; removing `trac` upstream needs the maintainers' agreement.
   - **Thin format tools:** `agscc`, `crmpak`, `spritepak`, `agspak` and `po2tra` stay as they are, and
     get tests for their command-line options (`Tools/test` exists).
 
@@ -1290,7 +1292,10 @@ into `.compare/up-build`. Each PR is recorded in `docs/UPSTREAM.md`.
 - [ ] **U.3 Tickets and pieces for #2316.** Upstream's master ticket lists the 4.0 room compiler
   and the PO translation compiler as "ticket TBD"; both exist in U.2. File the two tickets
   (what the tool reads and writes, the parity check against the Editor, a link to #3182), and be
-  ready to split #3182 along them. Move `agsbuild`'s diagnostics onto the Common log system
+  ready to split #3182 along them. The PO translation compiler goes upstream as a new tool,
+  `po2tra` (7.1o; decided 2026-11-03, until further notice), and upstream's `trac` keeps
+  compiling TRS: #3182's PO changes to `trac` move into `po2tra` on their branch, and `trac` is
+  removed only if the maintainers agree. Move `agsbuild`'s diagnostics onto the Common log system
   (`debug::out`, #2530, ivan-mogilko's stated preference) so the `--json` output is a log sink,
   not a parallel channel. Small follow-ups that fit the same milestone: `--version` (#3068),
   `agscc -I` (#3070).
