@@ -36,6 +36,9 @@ Rough sizing, for one developer part-time: phases 0–2 take weeks, phases 3–4
 and phases 5–6 are ongoing over a year or more. Each phase is useful on its own, so stopping
 after any of them still leaves the code better than before.
 
+Finished tasks keep their definition and a one-line result here; how they went (dated status,
+measurements, bugs found on the way) is in [LOG.md](LOG.md).
+
 ## Ground rules
 
 1. **It's a hard fork.** Upstream `adventuregamestudio/ags` is no longer merged wholesale. Fixes
@@ -106,23 +109,28 @@ Recorded 2026-10-31.
 Kept current as tasks land. Model and effort are recommendations for an AI session (see "Purpose
 of the fork").
 
-Done: phases 0 and 2, 7.1a–m and o, 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (open, #3182), the
-agent docs (0.6, upstream PR #3185). Phase 1 is half done. Ground rule 3 applies from here: no
+Done: phases 0 and 2, 7.1a–m and o, 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (#3182, re-cut
+into five branches by U.3), the agent docs (0.6, upstream PR #3185). Phase 1 is half done. Ground rule 3 applies from here: no
 deletion (3.4) or restructuring (phase 5) before the safety net that guards it (1.2, 1.3). Reordered
 2026-11-03 after reading upstream's plans (ALIGNMENT.md): upstream review latency is weeks, so the
 offers (U.3) go out first and the fork-only divergence (3.2, 3.4, 5.3) comes after they are closed.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **U.3:** file the two "ticket TBD" items of #2316 (4.0 room compiler, PO translations as `po2tra`), move `agsbuild` diagnostics onto the Common log system (#2530), offer #3182 in pieces if asked | Review takes weeks; the fork's tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `high` |
-| 2 | **1.2, first part:** C5 `Game.agf` round trip and the AGFReader tests in upstream style (= #3147), C2 savegame round trip (= #2814), C3 script-API snapshot | Contract guards, two of them portable upstream as-is | Sonnet 5.5, `high` |
-| 3 | **0.7:** split finished-task status logs out of this file into `LOG.md` | ~20k tokens read per session for history nobody needs | Sonnet 5.5, `low` |
-| 4 | **3.1:** remove PSP; delete the superseded `ags4-framescript` branch (upstream has `ViewFrame.EventName`/`OnFrameEvent`) | Small, safe, measurable | Sonnet 5.5, `medium` |
-| 5 | **Pre-push check script:** clang-format, MSVC build + tests, MSBuild solutions, header check with MSVC and libc++ | CI should confirm, not discover (2.6 needed four pushes) | Sonnet 5.5, `medium` |
-| 6 | **6.0 study:** read a-riddle-fan's `ags-for-mac` (`AGS.Types` diff, the C library that replaced `AGS.Native`) and #1092; decide which 6.0 steps are offered upstream and whether 6.7c reuses that library's surface | Two implementations of the same split would be waste; upstream welcomes exactly this | Opus 5.5, `high` |
-| 7 | **1.3:** engine unit tests, starting with what needs no globals (route finder, `scsprintf`, sprite cache, VM with `script2` bytecode) | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` |
-| 8 | **3.2a/b:** tool and engine Makefiles to CMake, Debian packaging | Fork-only; after U.3, because every port must re-add Makefile entries while the Makefiles exist upstream | Sonnet 5.5, `medium` |
-| 9 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
+| 1 | **U.3, remaining:** post ticket A (room compiler) and B (`po2tra`) and open PR 1 and PR 5 from the prepared branches (drafts in the session's scratchpad, see U.3 status); then PRs 2–4 as each base merges. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the fork's tool work is only valuable upstream while #2316 is active | the user posts; Sonnet 5.5, `medium` for the follow-up rounds |
+| 2 | **Commit 0.7 and 1.2's first part** (C2, C3, C5, the AGFReader tests; see 1.2 status), after the GCC-style check of the new tests (emsdk clang, see `ags-build-env`), the header check and a CI run; then **1.2, second part:** C1 fixtures, C4 test plugin, real 3.99/4.0 save fixtures | The safety net for 3.4 and phase 5 is half built and uncommitted | Sonnet 5.5, `medium` |
+| 3 | **3.1:** remove PSP; delete the superseded `ags4-framescript` branch (upstream has `ViewFrame.EventName`/`OnFrameEvent`) | Small, safe, measurable | Sonnet 5.5, `medium` |
+| 4 | **Pre-push check script:** clang-format, MSVC build + tests, MSBuild solutions, header check with MSVC and libc++ | CI should confirm, not discover (2.6 needed four pushes) | Sonnet 5.5, `medium` |
+| 5 | **6.0 study:** read a-riddle-fan's `ags-for-mac` (`AGS.Types` diff, the C library that replaced `AGS.Native`) and #1092; decide which 6.0 steps are offered upstream and whether 6.7c reuses that library's surface | Two implementations of the same split would be waste; upstream welcomes exactly this | Opus 5.5, `high` |
+| 6 | **1.3:** engine unit tests, starting with what needs no globals (route finder, `scsprintf`, sprite cache, VM with `script2` bytecode) | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` |
+| 7 | **3.2a/b:** tool and engine Makefiles to CMake, Debian packaging | Fork-only; after U.3, because every port must re-add Makefile entries while the Makefiles exist upstream | Sonnet 5.5, `medium` |
+| 8 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
+
+Open items found while doing finished tasks (their details are in LOG.md): 0.4's CodeQL setting,
+the `D3DCOMPILER_47`/Windows 7 question and the macOS 10.9 deployment target; 1.4's unfixed
+`agfreader` crash on a project without `<Settings>` and `StrUtil::Unescape` reading past the end;
+7.1f's "left open" notes (one test project measures parity; 8-bit games and old indexed
+interactions unexercised).
 
 3.2c (native `.vcxproj` to CMake) waits for 6.7: the C++/CLI bridge links against those libraries.
 The rest of 3.3 (`AGS.CScript.Compiler`) waits for 6.7d. 5.3 (moving `Engine/ac` files) waits
@@ -147,34 +155,7 @@ safety net is 6.7d (the editor builds through the tools).
   `0x0501` (XP) to `0x0601` (Windows 7). The Vista check in `Engine/platform/windows/acplwin.cpp`
   becomes always true and can go.
   *Done when:* CI is green on every platform with C++17, and no XP toolset or define remains.
-  *Status (2026-11-01):* implemented, not yet committed. Verified on Windows only: `Engine.sln`,
-  `Tests.sln` and `AGS.Editor.Full.sln` (Release x86, MSBuild) and the CMake build (x64, tools + tests)
-  build with 0 errors; unit tests pass (MSBuild: Common 96, Engine 3, Tools 76; CMake ctest: 739/739);
-  `ags.exe` still links the static runtime. CI (run 41287882653 and the re-run of its failed jobs):
-  green on Windows, MinGW x64/arm64, Ubuntu x64/arm64, macOS, and the Linux packaging jobs (Debian
-  Buster image, glibc 2.28). Android and Emscripten failed because the fork's fake-gamma code
-  (`f6119c4bb`) called `glColor4f`, which OpenGL ES2 doesn't have; fixed in `e19bc3310`. Verified
-  locally with emsdk 3.1.74 (the pre-fix file fails with exactly that error, the fixed tree builds);
-  Android compiles the same GLES code path; CI run 41291607424 (`8771bfdcb`) confirms it: all build
-  and test jobs pass on every platform.
-  Left over, not part of this task (need the job logs, so a GitHub token):
-  - **Windows Packaging** (`Run Inno Setup`) failed. *Fixed (2026-11-02):* `ags.iss` installs
-    `ikpFlac.dll`, which the editor never copied to its output: `AGSEditor.csproj` copied it only for
-    `Platform` x86, but the editor builds as AnyCPU (upstream has the same condition). It was the only
-    file of `ags.iss` missing from the `windows-editor-binaries` artifact.
-  - **CodeQL default setup** (repo settings, not a workflow file) fails to autobuild C/C++. Set C/C++
-    to build mode "none" in Settings > Code security, or disable it.
-  Also done: the `Debug_XP`/`Release_XP` configurations and `WIN_XP_COMPAT` (which disabled D3D11 and
-  the D3D shader compiler) are removed; the hand Makefiles and legacy macOS Xcode projects are at
-  C++17 too. Left for phase 7: the standalone plugin projects (`Plugins/*/msvc`, `agspalrender/Makefile`)
-  are still C++11.
-  Follow-ups found:
-  - The engine imports `D3DCOMPILER_47.dll` directly, so it won't start on a Windows 7 without update
-    KB4019990 unless the game ships that DLL. This was already true before; D6 makes it worth deciding
-    (ship the DLL, or load it lazily and fall back to the precompiled shaders).
-  - `CMAKE_OSX_DEPLOYMENT_TARGET` is 10.9. C++17 language features work there, but the library types
-    `std::optional::value()`, `std::variant`, `std::any` need macOS 10.13 and `std::filesystem` 10.15.
-    Raise the target before code starts using them.
+  *Status:* done (2026-11-01) — see LOG.md.
 - [x] **0.5 Repository hygiene.** Add the stray local artefacts (`Engine/resource/fxc*.exe`, `fxc.zip`,
   `Editor/References/x64/`) to `.gitignore` or commit them deliberately. Add a `.gitattributes` with
   `* text=auto` and `eol=crlf` only for `*.sln`, `*.bat`, `*.cmd`, `*.vcxproj*` and `*.csproj`.
@@ -187,11 +168,12 @@ safety net is 6.7d (the editor builds through the tools).
   *Done when:* a session can answer "what does upstream intend here" from the docs without
   searching issues. *Refresh:* `roadmap.md` at each upstream milestone change, `decisions.md`
   when a maintainer settles something (rules in `docs/context/README.md`).
-- [ ] **0.7 Move status logs out of this file.** The "*Status*" paragraphs of finished tasks go to
+- [x] **0.7 Move status logs out of this file.** The "*Status*" paragraphs of finished tasks go to
   `LOG.md` (one dated entry per task, same text), leaving each task here as description,
   "done when" and a one-line result. Keep the "Found on the way" bugs and lessons: they are the
   useful part, move them with the entry.
   *Done when:* this file is under 8k tokens and `LOG.md` holds every removed paragraph verbatim.
+  *Status (2026-11-03):* done; 1372 lines, 114240 bytes (~28.6k tokens) -> 910 lines, 72.1k bytes (~18.0k tokens); LOG.md holds the removed paragraphs (574 lines).
 
 Today: 35 C++ test files, but **only 3 for the engine** (~430 source files). The 22 C# test files
 cover `AGS.Types` and a few editor utilities. The end-to-end coverage comes from the upstream
@@ -202,17 +184,7 @@ auto-test game that CI downloads from `latest`.
   `ags-test-games`, pin a tag in `build.yml`, and add tests there for every Draconian-only feature
   (D3D11 driver, custom shaders, full ranges, dirty rects, ...).
   *Done when:* CI pins a fork-owned test-game version that covers fork-specific features.
-  *Status (2026-11-01):* fork is `AlanDrake/ags-test-games`, branch `ags4-draconian`. `build.yml` now
-  downloads `AUTO_TEST_REPO`/`AUTO_TEST_TAG` (`draconian-auto-test-1`) instead of upstream `latest`.
-  The game must be built with the **Draconian editor** (fork-only script API), so the test repo's
-  `build-ags4` job is disabled and releases are uploaded by hand until 1.7 exists. Headless build:
-  `AGSEditor.exe /compile <absolute path>\Game.agf` (from Git Bash set `MSYS_NO_PATHCONV=1`, or it
-  rewrites `/compile` into a path). Covered fork features: Opacity/Tint ranges (34 checks), the new
-  DrawingSurface primitives (32), void-returns-void in the compiler (2); local run 2414/2414 pass with
-  the Software driver. Not covered yet: fake gamma, D3D11 pixel-shader blenders, slider focus outside
-  GUI bounds (all need rendering or input checks), PO translations (belongs in editor tests, 6.6).
-  Done: release `draconian-auto-test-1` published; CI run 41286020888 passes the auto-test on all six
-  platform jobs (Windows, MinGW x64/arm64, Ubuntu x64/arm64, macOS), hardware and Software drivers.
+  *Status:* done (2026-11-01) — see LOG.md.
 - [ ] **1.2 Contract guard tests** (one per row of the compatibility contract):
   - C1: load fixture game files and rooms written by a 3.99 editor, the earliest 4.0 editor you can
     get, and the current one, and assert on counts and names (fixtures go in `Common/test/data/`, as
@@ -230,6 +202,41 @@ auto-test game that CI downloads from `latest`.
   5-step plan (generate data, save, restore into a second instance, compare). Write those two in
   upstream style (C++11, existing test targets) in the `ags4-upstream` worktree first and port
   them here, not the other way round.
+  *Status (2026-11-03):* C2, C3 and C5 done; C1 and C4 open. Nothing committed yet.
+  - **C3:** `Engine/test/script_exports_test.cpp` (new CMake target `engine_full_test`, since
+    `engine_test` stubs `cc_error`/`debug_script_event` and can't link the whole engine) registers the
+    current API with `setup_script_exports` and compares every exported symbol (`name kind plugin|-`,
+    1635 lines: 518 functions, 1114 methods, 3 objects) with `Engine/test/data/script_exports.txt`;
+    regenerate with `AGS_UPDATE_SNAPSHOTS=1`. `--print-scripttoc` dumps a compiled script, not the
+    API, so it wasn't reused. Not covered: `game.*`/`system.*` field offsets, signatures beyond the
+    `^N` argument count.
+  - **AGFReader per-block tests** (= #3147): written upstream-first on worktree branch
+    `ags4-agfreader-tests` (`26db161ed`, 47 tests, C++11, XML string → parser, no files; upstream
+    `tools_test` 124 of 124), checked on `ags4-tools-2-agfreader` too (139 of 139), then ported to
+    `Tools/test/agfreader_test.cpp` (AGS 4 element names, `Opacity`). They document the upstream
+    reader's drift from the editor (`Name`/`ScriptName`, `Description`/`DisplayName`, `RealName`,
+    `Flipped`/`Flip`, interactions' `ScriptModule`, audio folder defaults, `LATEST_XML_VERSION`
+    3.0.3.2), all fixed on `ags4-tools-2-agfreader`.
+  - **C5:** `Editor/AGS.Editor.Tests/Types/GameXmlRoundTripTests.cs` loads `Tools/test/data/Game.agf`
+    (the auto-test project trimmed to ~80 KB, plus properties, a plugin, array variables; nothing
+    private), saves it and compares the `<Game>` XML (only `<BuildTargets>` normalised: the editor
+    filters it by registered targets); regenerate with `AGS_UPDATE_GAME_SAMPLE=1`. The same sample is
+    read by `AGFReaderSample.*` in `tools_test` with `XmlProblems` empty (`agf2dta --strict`'s
+    check) and entity counts. Mutations (a deleted element, an injected `<Unknown>`) fail both sides.
+  - **C2:** upstream-first on worktree branch `ags4-save-roundtrip` (`196a0fadb`, target
+    `savegame_test`, 6 tests), ported to `Engine/test/savegame_test.cpp` (`engine_full_test`): ~16
+    `play` fields written with `SavegameComponents::WriteAllCommon`, cleared, restored with `ReadAll`,
+    written again: state restored and the two saves byte-identical; plain and compressed agree; each
+    of the 14 components round-trips alone; a truncated save is refused. **Gaps:** the script
+    component is skipped (`gamescript` is null without a loaded game: access violation), rooms,
+    characters, GUIs and views only in their default state, `DoBeforeRestore`/`DoAfterRestore` not
+    exercised; no real 3.99/4.0 save fixtures exist yet. `savegame_internal.h` isn't self-contained.
+  - Measured: fork ctest 874 of 874 (`tools_test` 167, `engine_full_test` 7), NUnit 394 of 394.
+    Not verified: GCC/Clang builds and the header check for the new tests, MSBuild `Tests.sln` (the
+    new C++ tests are CMake-only), CI, macOS/Linux.
+  - Left for the second part: C1 (fixtures from a 3.99 and an early 4.0 editor), C4 (the test
+    plugin), real save fixtures for C2, and sending `ags4-agfreader-tests` (#3147) and
+    `ags4-save-roundtrip` (#2814) upstream after the `ags4-tools-*` PRs.
 - [ ] **1.3 Engine unit tests for the riskiest subsystems**, in this order: script VM
   (`ScriptExecutor` with bytecode produced by `script2`), route finder, overlay/GUI layout
   arithmetic, savegame components, string formatting (`scsprintf` already started), sprite cache
@@ -248,35 +255,7 @@ auto-test game that CI downloads from `latest`.
   script takes them from its arguments or a git-ignored file under `.compare/`, never from the repo,
   and works on a copy (the editor's `/compile` writes into the project). For AGS 4 projects the
   `script2`-vs-legacy step is likely moot (the legacy compiler predates AGS 4 syntax); confirm once.
-  *Status (2026-11-02):* done. `python ci/corpus/run.py --engine <ags.exe>` builds each game of the
-  corpus (arguments, or the git-ignored `.compare/corpus.txt`) from a fresh copy with
-  `agsbuild --strict`, then runs every room in its own engine process (`--startr N`, Software
-  driver, no sound, full log) for 10 seconds, four at a time, and prints pass or fail per room. A
-  room fails if the engine exits before the time is up, if the log has no `Loading room N`, or if
-  it has an `[ERROR]` or `[FATAL]` message; warnings are listed, and fail the room only with
-  `--fail-on-warnings`, because the private game logs one by design in every room (its script
-  looks for a data file in the save folder before the package). Result: 53 of 53 rooms pass; a room that doesn't exist is reported as a failure. The game builds with
-  `script2` (`agscc` uses it unless built with `LEGACY_COMPILER`), which is what 3.3 needs; the
-  legacy compiler was not tried on AGS 4 syntax. Found on the way: the engine exits with code 0
-  after a fatal error with `--no-message-box` ("Unable to load the room file"), so only the early
-  exit tells it apart from a normal quit.
-  Build parity with the editor: `compare_builds.py` on the game reports 114 of 114 files identical
-  (with the scripts as separate files, 7.1f) and its translation; the auto-test project stays at
-  59 of 59 and 2414 of 2414. The first parity run found:
-  - Runtime bugs in `agsbuild` builds: a clip folder's settings were not read (they are in a child
-    element of the folder), so clips lost their inherited repeat, volume and priority; GUIs were
-    written in folder order instead of by ID, so `gui[N]` could be the wrong GUI; FLAC clips had no
-    file type; `\n` and other escapes in GUI texts, property values and the game name were not
-    resolved.
-  - The PO translation gap (7.1m).
-  - Byte differences, made to match: the editor declared audio clips in folder order (now by ID,
-    in the editor), interaction tables, two deprecated hotspot colours, room order, the packages'
-    asset order, part name and ender (`audio.vox` named itself `Compiled\Data\audio.vox`).
-  - The harness had to change: copies leave out `.git`, AGS 4 rooms are compiled from their sources
-    on both sides (the editor packs a newer `room<n>.crm` as it is), and the `.ags` packages are
-    compared themselves, not only the files in them.
-  - Found, not fixed: `agfreader` crashes on a `Game.agf` without `<Settings>`;
-    `StrUtil::Unescape` reads past the end of a text ending in a single `\`.
+  *Status:* done (2026-11-02) — see LOG.md.
 - [ ] **1.5 Coverage, sanitizers and warnings.** Add a Linux CI job with `-fsanitize=address,undefined`
   running all unit tests and the auto-test game, and a coverage job (`llvm-cov`) that publishes
   per-directory numbers. Raise first-party warning levels to `/W4` and `-Wall -Wextra`, warnings as
@@ -288,16 +267,7 @@ auto-test game that CI downloads from `latest`.
   translation units that differ. Format-only and rename-only commits must come out identical except
   for files that use `__LINE__`/`__FILE__`. This makes phases 2 and 4 nearly risk-free.
   *Done when:* the script exists and is documented in STYLE.md, "Commits".
-  *Status (2026-11-01):* done. Both revisions build in one worktree and build directory (`.compare/`,
-  ignored by git), so paths and `__FILE__` match and the second build is incremental. Build type
-  MinSizeRel: optimized, `NDEBUG`, no debug info, and no LTO (the `MATCHES Release` checks in
-  CMakeLists turn LTO on only for Release); MSVC also gets `/Brepro`. First-party code uses no
-  `__LINE__`/`__FILE__`/`__DATE__` directly and asserts compile away, so only GoogleTest files are
-  line-sensitive; they're reported and tolerated. Checked on Windows/MSVC: clang-format on 4 files
-  (1,600+ changed lines, incl. `character.cpp`) gives 588 identical objects plus the tolerated test
-  file; a parameter rename gives 589 identical; changing `return 1` to `return 2` is reported as a
-  code change (exit code 1). First run ~3.5 min, later runs seconds to a few minutes.
-  Not yet tried on Linux/macOS (the script uses `-g0` there; GCC and Clang objects carry no timestamps).
+  *Status:* done (2026-11-01) — see LOG.md.
 - [x] **1.7 Build the auto-test game in CI, from source.** Done as part of 7.1j: once `agsbuild`
   builds AGS 4 projects, a Linux job compiles `AlanDrake/ags-test-games` (pinned commit) with the tools
   built in the same run and hands the result to the platform jobs. That replaces the hand-made
@@ -305,8 +275,7 @@ auto-test game that CI downloads from `latest`.
   platform job to the Windows editor build (the earlier plan: compile with the CI-built editor).
   Until then, keep publishing `draconian-auto-test-N` releases by hand.
   *Done when:* the platform jobs run a test game compiled by tools of the same CI run.
-  *Status (2026-11-02):* done, green in CI (run 41442221520): the `Auto-test game` job builds it with
-  `agsbuild --strict` and every platform job runs it. Hand-made releases are no longer needed.
+  *Status:* done (2026-11-02) — see LOG.md.
 
 ## Phase 2: Mechanical normalisation
 
@@ -324,37 +293,13 @@ lines, tab-indented code.
   `git config blame.ignoreRevsFile .git-blame-ignore-revs`.
   *Done when:* `clang-format --dry-run` reports nothing on first-party code, and CI switches to
   checking whole files.
-  *Status (2026-11-01):* done. Formatted Common, Compiler, Tools, Engine/ac, the rest of Engine and the
-  first-party Plugins (~58,000 changed lines in 7 commits, hashes in `.git-blame-ignore-revs`); every
-  commit checked with `Script/compare_objects.py`: all non-test objects identical. clang-format needed
-  two passes to become idempotent (trailing-comment alignment). `.github/workflows/format.yml` now
-  checks all tracked C/C++ files with clang-format 19.1.7. Not formatted by design (`DisableFormat`):
-  third-party code (FreeType's own `.clang-format` replaced by the stub), `Editor/AGS.Native` and
-  `Editor/Native` (C++/CLI, going away in 6.7), `PSP/` (removed in 3.1), `OSX/` (Objective-C). Only
-  Windows/MSVC objects are compared; code for other platforms is formatted but not compiled by that
-  check (formatting does not change tokens). Each developer should run
-  `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
+  *Status:* done (2026-11-01) — see LOG.md.
 - [x] **2.3 Mechanical modernisation** (each item is its own commit, using the clang-tidy `--fix`
   of the named check): `NULL` → `nullptr` (276), `modernize-use-override`,
   `modernize-deprecated-headers` (`<math.h>` → `<cmath>`), `modernize-use-using`,
   `modernize-redundant-void-arg`.
   *Done when:* those checks are clean, so they move from "changed lines" to "whole tree" in CI.
-  *Status (2026-11-01):* done, with exceptions; four commits, each checked with
-  `Script/compare_objects.py` (all non-test objects identical). `Script/tidy_fix.py` runs a check over
-  all TUs in parallel and applies the merged fixes. Results:
-  - `modernize-use-nullptr`: 157 places. `NULL` still appears 147 times: comments, `sdl2_stubs.c`
-    (C code), and Android/iOS/Linux/macOS-only code that the MSVC compile database doesn't cover.
-    One `BROWSEINFO bi = {0}` stays, since `{nullptr}` compiles differently.
-  - `modernize-use-override`: 91 places.
-  - `modernize-deprecated-headers`: 122 includes in 89 files. **Seven files left on `<math.h>` /
-    `<stdlib.h>`** (`Common/gui/guiinv.cpp`, `Compiler/script2/cc_compiledscript.cpp`,
-    `Engine/ac/character.cpp`, `Engine/main/update.cpp`, three plugins): with `<cmath>`/`<cstdlib>` the
-    compiler picks different `abs`-family overloads, which can change behaviour. Review by hand.
-  - `modernize-redundant-void-arg`: 32 places. `Engine/main/engine.h` and `Engine/ac/sys_events.*`
-    left alone (they changed `game.cpp`'s object; cause not investigated).
-  - `modernize-use-using`: **skipped.** The fixer drops parameter names from function-type typedefs
-    and conflicts on nested ones, which broke the build. Purely cosmetic; do by hand if wanted.
-  - Moving these checks to "whole tree" in CI is task 2.4 (needs the Linux compile database).
+  *Status:* done (2026-11-01) — see LOG.md.
 - [ ] **2.4 clang-tidy gate.** Generate `compile_commands.json` in the Linux CI job and run
   `clang-tidy-diff.py` on the PR diff with the root `.clang-tidy`. This enforces naming and
   function-size rules on new code without touching the old code.
@@ -363,56 +308,17 @@ lines, tab-indented code.
   identifiers) and **remove `using namespace` from headers** (54). The latter isn't purely mechanical:
   every `.cpp` that relied on it needs its own `using` or qualification. Do it one header at a time.
   *Done when:* both metrics are 0.
-  *Status (2026-11-01):* done. (1) 380 headers converted to `#pragma once` (`52cba7906`); ten
-  headers without a real guard left alone, since a guardless header may be meant for repeated
-  inclusion. (2) All 42 file/namespace-scope `using namespace` lines removed from first-party headers
-  (`5e6da0633`): headers now qualify names outside `namespace AGS`, and ~50 .cpp files got their own
-  using-directives after the includes. Verified with the CMake/MSVC build, all MSBuild solutions
-  (incl. `AGS.Native`), the Emscripten build, 828 unit tests and `Script/compare_objects.py`.
-  Android/iOS/Linux/macOS-only sources were checked by reading; CI is the real test for those.
-  The metric still shows 12: one function-local `using` in `characterinfo.h` (harmless) and 11 in
-  `Editor/AGS.Native` (C++/CLI, removed in 6.7).
+  *Status:* done (2026-11-01) — see LOG.md.
 - [x] **2.6 Self-contained headers, then sorted includes.** Add a CMake target that compiles each
   first-party header on its own (`header_check_<name>.cpp` that includes only that header). Fix
   failures with includes or forward declarations, then set `SortIncludes: CaseSensitive` with
   `IncludeCategories` matching STYLE.md and reformat once more.
   *Done when:* the header-check target builds and include order is enforced. This also helps
   compile times: `character.cpp` includes 57 headers and `game.cpp` 74.
-  *Status (2026-11-02):* done, in two commits.
-  - **Self-contained headers.** `CMake/HeaderCheck.cmake` adds the `header_check` target
-    (`-DAGS_HEADER_CHECK=1`): one generated source per header of `Common/`, `Engine/`, `Tools/` and
-    `Compiler/` that includes only that header, with the flags of the owning target; platform
-    headers are checked on their platform only. 28 of 366 headers failed on MSVC (missing includes
-    or forward declarations: `Stream`, `String`, `Rect`, the gfx filter classes in `ali3d*.h`,
-    `SavegameDescription`, ...); all fixed. Left out on purpose: `Compiler/script/` (the legacy compiler,
-    gone in 3.3) and `util/library_*.h` (parts of `library.h`, chosen by platform). CI runs the target on
-    the Windows (MSVC) and Ubuntu (GCC) jobs; it fails when a header is broken (tried).
-  - **Sorted includes.** `.clang-format` now has `SortIncludes: CaseSensitive`, `IncludeBlocks: Regroup`
-    and four categories: own header, `platform/windows/windows.h` (must precede other Windows
-    headers: `<shlwapi.h>` and `<Psapi.h>` broke without it), C/C++ standard, other `<...>`, then
-    `"..."`. One mechanical commit over 570 files. Measured: the whole tree builds on MSVC, 806 unit
-    tests pass, and `compare_objects.py` finds identical code in every non-test object (354 byte-identical;
-    229 differ only in the debug-info section or function order, which include order changes; the
-    21 test objects differ as always). Not built here: the Linux/macOS/Android/Emscripten-only sources,
-    where CI is the test. One manual edit: `AGSSpriteFont.cpp` included `<WinBase.h>` before
-    `<windows.h>`, which sorting reversed; `windows.h` includes it anyway.
-  - `Script/compare_objects.py` learned to tell "bytes differ" from "code differs" (needs `dumpbin`).
-  - **What CI found after the push** (fixed in three follow-up commits), and why the local MSVC check
-    missed it: `Compiler/fmem.h` used `size_t` with no include (MSVC declares `size_t` implicitly);
-    the legacy `Compiler/script/cc_symboldef.h` and `cc_variablesymlist.h` lacked `<string>`,
-    `<vector>`, `<cstdint>` (only the MSBuild `Compiler.Lib.sln` builds them, not the CMake build that
-    was checked); `delegate.h` and `indexedobjectpool.h` used `assert`, `std::find_if`, `uint32_t` and
-    `SIZE_MAX` without their headers (GCC's libstdc++ pulls in less than MSVC's library, and checks
-    template bodies). The Direct3D filter headers (`gfxfilter_d3d*.h`, which `#error` off Windows) are
-    now skipped outside Windows. Final count: MSVC 366/366, GCC 350/350 (run 41457809129 plus
-    `indexedobjectpool.h`), clang with libc++ 350/350.
-  - Lesson for repo-wide changes: build the MSBuild solutions too, and check headers with a strict
-    standard library before pushing. Locally, emsdk's clang with libc++ (POSIX target,
-    `-D_LIBCPP_REMOVE_TRANSITIVE_INCLUDES`) reproduced GCC's findings; MSVC, even with
-    `/permissive-`, did not.
+  *Status:* done (2026-11-02) — see LOG.md.
 - [x] **2.7 Line endings.** Renormalise with the `.gitattributes` from 0.5 (`git add --renormalize .`)
   in one commit, listed in `.git-blame-ignore-revs`.
-  *Status (2026-11-01):* done: 457 files (mostly C# editor sources), content identical ignoring CR.
+  *Status:* done (2026-11-01) — see LOG.md.
 
 ## Phase 3: Dead code removal
 
@@ -450,25 +356,7 @@ removal is a `[delete]` commit, verified by the full test suite and the corpus r
   tests, then delete the project.
   *Done when:* one compiler, one preprocessor (C++), one test folder, and no `AGS.CScript.Compiler`.
   *Status (2026-11-03):* the legacy compiler is gone; `AGS.CScript.Compiler` waits for 6.7d.
-  - Checked first that nothing needs it: the CMake build compiled none of its sources, and linking
-    MSBuild's `agscc` and `AGS.Native` without its library left only the preprocessor and
-    `version.cpp` (compiled into its project, not part of it) and the five functions of the editor's
-    "AGS SCOM 3 EXT" wrapper. The preprocessor took one macro from its header.
-  - Removed: `Compiler/script` (the AGS 3 compiler), `fmem`, their tests, `Solutions/Compiler.Lib`,
-    `LEGACY_COMPILER` and CMake's `AGS_BUILD_LEGACY_COMPILER`, the editor's "AGS SCOM 3 EXT", and
-    the legacy test steps in CI. `Compiler/Makefile` still built `agscc` with the legacy compiler,
-    so the Makefile Build workflow's Linux binaries had it; it now builds `script2`.
-  - The editor gives a project that selects "AGS SCOM 3 EXT" (or no compiler) the available one
-    when it loads, with a warning; `ExtendedCompiler` stays, unused, because the project loader
-    rejects unknown elements.
-  - Renamed, move-only: `Compiler/script2` to `Compiler/script`, `Compiler/test2` into
-    `Compiler/test`, `Solutions/Compiler2.Lib` (and `Compiler2*.lib`) to `Compiler.Lib`; and the
-    functions `ccCompileText2` and `ccGetExtensions2` to `ccCompileText` and `ccGetExtensions`.
-  - Verified: CMake (compiler 594, tools 116, all tests), MSBuild `Compiler.Lib.sln` (594),
-    `Compiler.App.sln`, `AGS.Editor.Full.sln` with the editor's NUnit tests (391); the parity
-    harness on the auto-test (59 of 59, 2414 of 2414); a project selecting the removed compiler
-    loads with the warning, compiles and is saved with "AGS SCOM 4"; the Makefile's source list
-    links into a working `agscc` (MSVC objects, no GCC here).
+  See LOG.md for the details of the removal and its verification.
 - [ ] **3.4 Legacy data-version paths** (D1: 3.99+ only). This is the largest single deletion in the
   plan. Work in this order, one commit per step:
   1. **Game files.** Set `kGameVersion_LowSupported = kGameVersion_399` in
@@ -777,11 +665,7 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     auto-test on the `agsbuild` output. This is the measuring stick for the rest of 7.1, as
     `compare_objects.py` was for phase 2. It needs the editor, so it's Windows-only until 6.7d.
     *Done when:* one command prints the per-file table for the auto-test project.
-    *Status (2026-11-01):* done. `python Script/compare_builds.py <project> --editor <AGSEditor.exe>
-    [--engine <acwin.exe>]` collects the tools from `.tidy/build`, builds fresh copies both ways under
-    `.compare/builds/`, prints the distinct `agsbuild` errors and the per-file table, and exits 0 only
-    on full parity. First result on the auto-test project: the editor build gives 17 files; `agsbuild`
-    stops at 40 `#module` errors (7.1c) and the missing room sources (7.1e).
+    *Status:* done (2026-11-01) — see LOG.md.
   - [x] **7.1b Unblock the pipeline** (gaps 1, 3 and 5; small, separate commits):
     - `agfreader`: accept the version-string format, comparing versions rather than exact strings.
       **Project upgrades stay in the editor** (`UpgradeGameManager`): the tools read the current
@@ -796,42 +680,14 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
       exit non-zero instead of hanging. Add a test that runs a build with a failing task.
     *Done when:* `agsbuild` on the auto-test project gets past project loading and API checks and
     always terminates, on success and on failure.
-    *Status (2026-11-01):* done, with tests for each part:
-    - `agfreader` accepts project formats from 4.0.0.34 up to the newest it knows (also 4.0.0.34),
-      and tells the user to open and save older projects in the Editor first.
-    - The script API levels are now one table, `kScriptAPINames` next to the enum in
-      `Common/ac/gamestructdefines.h`, used by `agscc` and `agf2dta`. `agf2dta` had a third copy that
-      also stopped at `v363`, so it wrote the wrong API level into AGS 4 games: a content-parity bug
-      fixed early. `Common/test/scriptapi_test.cpp` fails if the enum gets a level the table lacks.
-    - The hang wasn't in the task manager but in `PipedProcess` on Windows: a read could ask for more
-      bytes than the pipe held (an unsigned underflow), and then blocked forever because `agsbuild` kept
-      its own copy of the pipe's write end, so the pipe never reported end-of-file. Fixed by bounded
-      reads, closing our write ends right after starting the process, non-inheritable read ends, and
-      starting processes under one lock. `Tools/test/pipedprocess_test.cpp` runs six chatty processes
-      in parallel; on the old code it aborts after 120 s. Left open: the POSIX branch reads stdout to
-      end-of-file before it reads stderr, so a child that fills the stderr pipe could still deadlock it.
-    Result: `agsbuild` loads the auto-test project and exits after 2 s, failing only on `#module` (7.1c)
-    and the room sources (7.1e).
+    *Status:* done (2026-11-01) — see LOG.md.
   - [x] **7.1c One preprocessor** (gap 4). Diff `Editor/AGS.CScript.Compiler/Preprocessor.cs`
     against `Compiler/preproc/preprocessor.cpp` (directives, predefined macros, the
     `"__NEWSCRIPTSTART_..."` markers), port everything the C++ side lacks, starting with `#module`, and
     move the cases from `Editor/AGS.Editor.Tests/ScriptCompiler/PreprocessorTests.cs` into C++ tests.
     *Done when:* every auto-test script compiles with `agscc`, and the former C# preprocessor tests pass
     against the C++ preprocessor (prerequisite for deleting the C# one in 3.3).
-    *Status (2026-11-01):* done. `#module` was the only missing directive (7.1e later found that
-    `agscc` also lacked three of the editor's predefined macros). As in the C# version, the
-    first `#module <name>` turns the script's marker into `"__NEWSCRIPTSTART_<script>;<module>"`,
-    which the new compiler's scanner already reads. All 21 C# preprocessor tests already had C++
-    copies. `Compiler/test/preprocessor_test.cpp` (now 31 tests) used to build only with the legacy
-    compiler; it now also runs in the default `compiler_test`, in CMake and MSBuild. Two more bugs
-    surfaced once scripts got past the preprocessor:
-    - `agscc` dropped the headers with the new compiler, so no script saw `agsdefns.sh`. It now
-      joins the headers and the script into one text, as the editor does.
-    - `agfreader` read `<Name>` for dialogs, inventory items, views and GUI controls, which AGS 4
-      saves as `<ScriptName>`, so `_AutoGenerated.ash` left them out. A content-parity bug fixed
-      early, with a test.
-    Result: all 40 auto-test scripts compile with `agscc`; `agsbuild` now stops only on the room
-    sources (7.1e).
+    *Status:* done (2026-11-01) — see LOG.md.
   - [x] **7.1d Table-driven XML reading** (maintainers' design). C++ has no reflection, so emulate it
     with one table per data struct: each row names a member, its XML element and the function that
     reads the value, and a single generic function fills a struct from an XML element using the
@@ -873,26 +729,7 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     (7.1a), so the migration is mechanical and checked.
     *Done when:* the room tool and all of `agfreader` read through tables, and no hand-written
     `ValueParser::Read*` call remains.
-    *Status (2026-11-01):* the table layer and the pilot are done; moving `agfreader` over is left
-    for 7.1f. `Tools/data/xml_fields.h` has `XmlField<T>`, three row readers (`Read<&T::M>` picks the
-    parser from the member type, `ReadWith<&T::M, Parse>` for a custom parser,
-    `ReadElement<&T::M, Fn>` for nested elements), and `ReadFields` / `ReadList`. A row with a null
-    reader marks an element that is known but deliberately not read (obsolete properties). An unknown
-    element is an error, as in the editor's own deserializer; `UnknownElements::Skip` is for tables
-    that read part of an element on purpose (the cursors' interaction schema, read from `Game.agf`).
-    The parsers accept what `AGS.Types` writes, the way it reads it back: bools ignore case, enums
-    take the exact name or a number, floats are invariant. `CompareXmlVersions` moved there from
-    `agfreader`. Tests: `Tools/test/xml_fields_test.cpp`.
-    *Migration of `agfreader` (2026-11-02):* done. Every entity and list of `Game.agf` is read through
-    a table: characters, items, cursors, views, fonts, audio clips and types, GUIs and their controls,
-    dialogs, the game settings and runtime setup, custom property schemas, global variables, scripts,
-    plugins, translations, sprites, parser words and lip sync, and the root `<Game>` element. Each
-    step was checked by the harness staying at 17 of 17. What stays as code, after `ReadFields`:
-    entity references (`ID`, `ScriptName`), the interaction events, the audio folders' inherited
-    defaults, the palette and the sprites' attributes (attributes, not elements), and the dialog
-    files' lookup. The readers take `UnknownElements::Report`, not `Fail`: they cannot return errors
-    yet (`ReadAllData` is `void`), so unknown elements and bad values go to `XmlProblems` and the
-    caller decides (7.1g).
+    *Status:* done (2026-11-02) — see LOG.md.
   - [x] **7.1e AGS 4 room sources** (gap 2). Compile `Rooms/<n>/` to `.crm` in C++, following the same
     principle as `agf2dta`; room data is simpler than game data. Read `data.xml` through 7.1d tables,
     load the background and mask PNGs (`Common/gfx/image_png.cpp`), compile `room<n>.asc` with
@@ -904,48 +741,7 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     that decide byte parity (mask colours to area numbers, background colour depth and compression)
     are in the same file.
     *Done when:* the rooms `agsbuild` produces are byte-identical to the editor's (7.1a).
-    *Status (2026-11-01):* done: all three auto-test rooms are byte-identical to the editor's.
-    - **Reading** (`Tools/data/room_xml.{h,cpp}`): mirror structs and tables for `Room`,
-      `RoomObject`, `RoomHotspot`, `RoomWalkableArea`, `RoomWalkBehind` and `RoomRegion`. Room files
-      are only upgraded when the editor saves the room, so unlike `Game.agf` the tool reads every
-      room format from 3.99.99.01 on. The test project's rooms are 4.0.0.27. It applies the editor's
-      load-time upgrades: `Name`/`Description` became `ScriptName`/`DisplayName`, `Transparency`
-      0–100 became `Opacity`, region light and tint moved to 0–255 below 4.0.0.34, and old indexed
-      interaction events are converted.
-    - **Building** (`Tools/data/room_build.{h,cpp}`): a port of `convert_room_to_native` and
-      `convert_room_interactions_to_native`, plus the editor's fixups. Properties are synced with the
-      schema and the GameID is fixed up. A room from another game with a different mask resolution is
-      an error ("open and save it in the editor"): resizing masks stays in the editor. Cursor
-      interactions become a table indexed by cursor ID, built from the game's interaction schema.
-      Text properties are unescaped and encoded as UTF-8 or Windows-1252. Backgrounds go through
-      `spriteimport`'s port of the editor's bitmap conversion (`ConvertRoomBackgroundForGame`). Masks
-      must be 8-bit, and out-of-range pixels are cleared with a warning. Walkable-area extents are
-      computed as `calculate_walkable_areas` does. 256-colour games are refused for now: their
-      backgrounds need the game palette.
-    - **`crmbuild`** (new tool, CMake only, D5): `crmbuild Game.agf <n> -o room<n>.crm --script
-      room<n>.o` builds the room. `--header` writes the room's declarations after the game's
-      `_AutoGenerated.ash`, as the editor does. For rooms with `Rooms/<n>/data.xml`, `agsbuild` runs
-      header, `agscc`, then room, and packs the room with its script inside. Older projects with
-      `room<n>.crm` files keep the old path.
-    - **Script parity** needed fixes outside the room tool, all of which also affect 7.1f:
-      - `scriptgen` now ports the editor's `RegenerateScriptHeader` (order, `import readonly X *`).
-        The old order and format changed the compiled scripts' type info and TOC.
-      - `agscc` now defines `SCRIPT_EXT_*`, `NEW_KEYINPUT_API` (with `-foldkeyinput`) and `UNICODE`,
-        as the editor does. Without `SCRIPT_EXT_MANAGEDBASE`, `agsdefns.sh` declared every managed
-        type without its base. It adds the script TOC with `-g`, takes `--name` for the script's
-        name (`Rooms\1\room1.asc`, as the Windows editor names it), and `--ascii` now reaches the
-        new compiler.
-      - `agsbuild` passes the editor's fixed values for the obsolete script settings (it used to
-        read `-fforce...=0` from elements the editor no longer saves), and `--ascii` for ANSI
-        games. It also names the API header `_BuiltInScriptHeader.ash`, the editor's name.
-    Tests: `Tools/test/room_build_test.cpp`. Found on the way, fixed later (U.1):
-    - `crmpak -e <room> script <file>` crashes (`ReadOnlyCompiledScript` passes a null room).
-    - `ImageFile::LoadPNG` copies only `width*height` bytes of an RGB(A) image when no channel swap
-      is needed.
-    - Possible `game28.dta` gaps for 7.1f: `agf2dta` indexes interaction events by the XML `Index`
-      instead of the cursor schema, doesn't unescape or re-encode text properties, and writes
-      `"4.00.00.34 "` (trailing space) as "compiled with", where the editor writes `"4.00.00.34"`.
-      (7.1f fixed the last two.)
+    *Status:* done (2026-11-01) — see LOG.md.
   - [x] **7.1f Content parity.** Work through the 7.1a table until every file matches: game data
     (`agf2dta`, including fork features such as Opacity 0–255), dialog scripts (`agf2dlgasc` against
     `DialogScriptConverter.cs`), script headers (`scriptgen`), sprites (`spriteimport`), the audio
@@ -953,54 +749,7 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     example), make both sides agree anyway, so parity stays a plain byte comparison.
     *Done when:* every file is identical and the auto-test passes on `agsbuild` output (2414 of 2414,
     as with the editor).
-    *Status (2026-11-02):* done for the auto-test project. The 17 files the editor builds are
-    identical in the `agsbuild` output, except that the compiled scripts are separate files (40 `.o`
-    files and `ScriptModules.lst`) instead of being embedded in `game28.dta`; each matches the script
-    the editor embeds. The auto-test passes on the `agsbuild` output (2414 of 2414). What it took:
-    - **Layout:** the editor embeds the compiled scripts in `game28.dta` (global, dialog, then the
-      modules in compile order). `agsbuild` packs them as separate files (`GlobalScript.o`,
-      `__DialogScripts.o`, the modules listed in `ScriptModules.lst`), which the engine loads since
-      3.6.1 (upstream `4de348c79`). For a while `agf2dta --script-dir` embedded them as well, for byte
-      parity; it was removed after maintainer review, because the build doesn't need it and it made the
-      game data wait for every compile. `compare_builds.py` instead takes the scripts out of the
-      editor's `game28.dta` (the scripts, the `HasCCScript` flag, the extension offset and the script
-      names in `v362_interevent2`) and compares the rest byte for byte. Every game script is compiled
-      against all module headers, as the editor does: in AGS 4 a module may use what the modules after
-      it declare, and the engine links imports in any module order (upstream PR #1408). Fonts come
-      from the `Fonts` folder (`<FontFiles>` in `Game.agf`), packed without the folder.
-    - **AGS 4 project format** that `agfreader` didn't know:
-      - dialogs live in `Dialogs/<name>.xml` and `.dasc` (`AGFReader::GetDialogData`,
-        `ReadDialogScript`);
-      - characters and items use `DisplayName`, and their own `ScriptModule` (default
-        `GlobalScript.asc`) sets the interactions' module;
-      - frames have `Flip` (four values), offsets and event names (now read through a 7.1d table);
-      - items have a hotspot alignment;
-      - cursors have `CreateEvent` and `StandardRole`;
-      - colours are 32-bit hex. `StringToInt`'s `strtol` saturated them to `0x7FFFFFFF` on Windows;
-        `ParseXmlValue` now reads them as the editor's `Convert.ToInt32(s, 16)`.
-    - **The nine AGS 4 extension blocks** were missing from `data_file_writer`: `ext_ags399` and
-      `v400_gameopts`, `customprops`, `fontfiles`, `guictrlgfx`, `eventtables`, `viewevents`,
-      `charopts2` and `charinv`. All are ported from `DataFileWriter.cs`. The event tables follow the
-      editor's reflection order. The GUI controls' legacy event tables are now empty, as the editor
-      writes them.
-    - **Values written differently:**
-      - inventory item 0 was added twice (the editor's list already has it);
-      - views are by ID with empty slots;
-      - the palette is 8-bit, not 6-bit;
-      - text properties are unescaped;
-      - the deprecated score sound and maximum score fields are 0;
-      - the dot colour is written only with a marker style;
-      - "compiled with" lost its trailing space;
-      - `dev_error_text` was missing from the game info.
-    - **Dialog scripts:** the converter dropped every dialog's last line.
-    - **`acsetup.cfg`:** written with `IniUtil::Merge` into a fresh file, as the editor does. The
-      `show_fps` condition was inverted.
-    - **Harness:** `compare_builds.py` now clears its unpack folders, which had shown files left by
-      earlier runs.
-    Left open: one test project measures parity. Translations (`trac`), 8-bit games and old-format
-    indexed interactions aren't exercised by it, and `agf2dta` still takes interaction slots from the
-    XML `Index` instead of the cursor schema (the same here). Another sample project would widen
-    the check.
+    *Status:* done (2026-11-02) — see LOG.md.
   - [x] **7.1g Drift guard.** Two halves:
     - **Unknown elements:** with the tables from 7.1d, `ReadFields` reports XML elements it doesn't
       recognise: a warning in normal use, an error in tests. A test loads a project saved by the
@@ -1012,92 +761,19 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
       "the tools ignore this on purpose" into a reviewed decision.
     *Done when:* adding a project property in `AGS.Types` without teaching the tools, or listing it
     as editor-only, makes a test fail.
-    *Status (2026-11-02):* done.
-    - **Unknown elements:** `UnknownElements::Report` records unknown elements and bad values in
-      `XmlProblems` and goes on. `agf2dta` prints them as warnings, and as errors with `--strict`
-      (`agsbuild` runs `agf2dta`, so it shows them too). The auto-test project loads with none, and
-      `--strict` passes. `Fail` stays for the room tool, which returns errors.
-    - **Properties no sample uses:** `AgfElementsTests` (C#, `Editor/AGS.Editor.Tests/Types`)
-      serializes a default object of every class that the tools read and checks the child element
-      names against `Tools/data/agf_elements.txt`; run it with `AGS_UPDATE_AGF_ELEMENTS=1` to
-      regenerate the list. The C++ test `AgfElements` (`Tools/test/agfreader_test.cpp`) checks that every
-      element on the list has a row in a table (`GetKnownElements()` maps class names to tables). A
-      row without a reader means "the build does not need it" (editor-only), with the reason in a
-      comment, so that decision is now reviewed. 37 classes are covered.
-    - **What it found at once** (all fixed): characters' `Enabled` and `Visible` were never read, and
-      the writer set both flags always; the sprites' `ImportColorDepth` (which sets `SPF_KEEPDEPTH`) was
-      not read or written; global variables' `ArrayType` and `ArraySize` were ignored, and default
-      values were not lower-cased as the editor does (`bool b = True;`).
-    - **Left open:** `spriteimport` does not re-import a sprite as 8-bit for `ImportColorDepth` 8
-      (only the flag is written, which is all a build from `acsprset.spr` needs). The classes outside
-      `Game.agf` (rooms, translations) are not on the list: rooms are read by the room tool, which
-      fails on unknown elements. CI should build with `--strict` (7.1j).
+    *Status:* done (2026-11-02) — see LOG.md.
   - [x] **7.1h Diagnostics for the editor.** Behind a flag, `agsbuild` and the tools it runs print
     errors, warnings and progress in a machine-readable form (one JSON object per line: severity,
     tool, file, line, message), and `agsbuild` stops cleanly when cancelled.
     *Done when:* the editor (6.7d) can list tool errors with jump-to-line and cancel a build.
-    *Status (2026-11-02):* done, with one change to the plan: **`agsbuild` reads the diagnostics from
-    the tools' output** instead of every tool printing JSON. The tools already print `Error: ...` /
-    `Warning: ...` lines, and `agscc` adds `at <file>, line <N> : <message>`; one tested parser
-    (`Tools/agsbuild/diagnostics.cpp`) is cheaper than ten tools each learning a flag, and the
-    format is still one JSON object per line. Moving it into the tools stays possible later.
-    - `agsbuild --json`: stdout carries only JSON lines (`start`, `task` with its state, `diagnostic`
-      with severity/tool/task/file/line/message, `progress`, `end`); the usual log goes to stderr.
-      The format is documented in `Tools/agsbuild/diagnostics.h`. On the auto-test project it gives
-      the three real "Code execution cannot reach this point" warnings of the dialog scripts, with
-      their `Dialog N` section and line; a script with a syntax error gives
-      `{"severity":"error","tool":"agscc","file":"helpers.asc","line":68,...}`.
-    - Cancel: SIGINT/SIGTERM (Ctrl+C on Windows), or the line `cancel` on stdin in `--json` mode (the
-      editor can't signal a hidden console process). Waiting tasks don't start, running tools are
-      killed (`PipedProcess::Terminate`, which on POSIX kills the whole process group), `end` says
-      `cancelled`, exit code 2. Measured: cancel 0.5 s into the auto-test build leaves no tool
-      processes behind.
-    - Tests (`tools_test`, 109 pass): the line parser and JSON escaping (`diagnostics_test.cpp`), a failed
-      task cancelling only its dependents and being reported, and cancelling a build of sleeping tools
-      in under a second (`taskmanager_test.cpp`, the failing-task test 7.1b asked for).
-    - The parity harness is unchanged: 17 of 17 identical, auto-test 2414 of 2414.
-    - Not checked locally: the POSIX side of `Terminate` (CI's Linux jobs run the new tests).
+    *Status:* done (2026-11-02) — see LOG.md.
   - [x] **7.1i Split `BuildWithTaskManager`** (535 lines, `Tools/agsbuild/main.cpp`) into one function
     per build stage, while doing the steps above. It stays.
-    *Status (2026-11-02):* done. `BuildWithTaskManager` is 45 lines now: it reads the project
-    (`ReadProject`), then calls one function per stage on a `BuildContext` (the lists the stages share):
-    `AddExportTasks`, `AddScriptTasks`, `AddGameDataTask`, `AddRoomSourceTasks`, `AddCompiledRoomTasks`,
-    `AddTranslationTasks`, `AddSpriteTasks`, `AddAudioTasks`, `AddProjectFileTasks`, `AddGamePackTask`,
-    `AddAudioVoxTask`, `AddSpeechVoxTasks`, `AddDeployTask`, `AddCleanupTask`. The order is the old order
-    (it decides the order of files in the package); measured: still 17 of 17 identical.
+    *Status:* done (2026-11-02) — see LOG.md.
   - [x] **7.1j CI.** A Linux job builds the auto-test project with `agsbuild` from the tools of the same
     run and hands it to the platform jobs (this is 1.7). A Windows job runs the parity harness against
     the editor on every PR until 6.7d deletes the C# build code.
-    *Status (2026-11-02):* the Linux half is done and green in CI (run 41432710133). `agsbuild` takes
-    `--strict` (passed on to `agf2dta`). `Script/agsbuild_autotest.sh <build-dir> <project> <work-dir>`
-    collects the tools from a CMake build, builds the project in strict mode, and runs the engine on the
-    result (checked with `tappy`); locally it gives 2414 of 2414. The `Ubuntu-x86_64` job in `build.yml`
-    checks out the test game at `AUTO_TEST_TAG` and runs it after the downloaded auto-test.
-    *Status (2026-11-02, 1.7):* handed over, **not yet run in CI**. A new `Auto-test game` job builds
-    only the tools (`-DAGS_BUILD_ENGINE=0`), runs `agsbuild_autotest.sh ... --build-only`, and uploads
-    `ags4-auto-test.ags` + `acsetup.cfg` as `auto-test-game`; every `build` matrix job needs it and
-    downloads that instead of the release zip. The Ubuntu-only step is gone: every platform now runs
-    the tool-built game.
-    *Status (2026-11-02, later):* the Windows half is done and green in CI (commit 2a43f3092). The `Windows`
-    matrix job uploads its tools and `ags.exe` as `parity-tools-windows`; the new `Windows Build
-    Parity` job downloads them with the editor, the x86 engine and SDL2.dll, puts `acwin.exe` next to
-    `AGSEditor.exe`, and runs `Script/compare_builds.py` on the auto-test at `AUTO_TEST_TAG`
-    (with `--engine`). Logs upload as `parity-logs`. Only 1.7 is left of 7.1j.
-    *Status (2026-11-02, final):* done. 1.7 is green too (run 41442221520), and both halves stayed
-    green through 2.6 (run 41461852760).
-    Getting CI green on the way (2026-11-02):
-    - `Engine/util/library_posix.h` still used `Path` unqualified after the using-directives left the
-      headers; it broke every POSIX build (Linux, macOS, Android).
-    - The MSBuild `Tools.Test` project did not compile `scriptgen.cpp`, which the 7.1g tests use.
-    - Android: Gradle configures CMake eight times (four ABIs, two configs), and each configure
-      downloaded the five dependencies from github.com; a few minutes of DNS failure on the runner
-      failed the job. `Script/fetch_deps.sh` now downloads them once, with retries, into a cached
-      directory, and the `Fetch*.cmake` scripts take them from `AGS_FETCH_MIRROR_DIR` (hashes still
-      checked). `CMAKE_WARN_DEPRECATED=OFF` for Android hides the ~2200 warnings that NDK r25's
-      toolchain file causes under CMake 3.31; the other platforms still show deprecation warnings.
-    - Windows Packaging: see 1.1 (`ikpFlac.dll`).
-    The failures on `ags4-fullranges` are Docker image names that must be lowercase (fixed on this
-    branch) and the auto-test calling `Character.Transparency`, which that branch no longer has.
+    *Status:* done (2026-11-02) — see LOG.md.
   - [ ] **7.1k Intermediate directory.** Builds leave temporary files where they don't belong, and
     leave them behind when they fail. Measured 2026-11-02:
     - `agsbuild` puts them in `--temp-dir`, by default `<output dir>/_temp`, and deletes that only after a
@@ -1136,25 +812,7 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     failed on a project with a translation.
     *Done when:* `trac` compiles a PO translation into the same `.tra` as the editor (tests for each
     rule, and the parity harness on a project with a PO translation).
-    *Status (2026-11-02):* done. `trac` compiles PO only (`trac -u` still decompiles to TRS), and
-    `agsbuild` passes it `<Name>.po`.
-    - `ReadPO` (`Tools/data/tra_utils.*`) follows the editor's parser (`Translation.LoadDataImpl`):
-      multi-line strings, `msgctxt`, the `# $` special tags, obsolete (`#~`) and fuzzy entries, only
-      `msgstr[0]` of plural forms, parser words by their `PARSERWORD:<id>` context, and a text found
-      twice keeping its first place with the later translation. It fills a `TranslationSource`,
-      which keeps the file's order (the engine's `Translation` holds the texts in hash maps).
-    - `WriteTRA` writes the `.tra` as the editor does (`TranslationsComponent.CompileTranslation`),
-      not through Common's `WriteTraData`: texts in the file's order and without a terminator,
-      resolved with the editor's `UnescapeText` (octal and hex escapes in the translation's
-      encoding), obsolete, fuzzy and untranslated entries left out, always the two string options
-      (encoding and language), font overrides in the file's order, and the editor's ending. Only an
-      `AutoTranslateParserSaid` of `ON` sets the option, as in the editor.
-    - `StrUtil::GetKeyValue` ignored its separator and split on `=`; TRS annotations and PO contexts
-      (`PARSERWORD:5`) were never read.
-    - Measured: the private AGS 4 game's `Italian.tra` is byte-identical to the editor's. Not
-      covered by that game: font overrides in a `.tra` (the writer follows Common's font block),
-      and translations in a non-UTF-8 encoding with numeric escapes above 127 (written as one byte;
-      the editor uses the system code page).
+    *Status:* done (2026-11-02) — see LOG.md.
   - [ ] **7.1n MO files** (dropped 2026-11-03 unless upstream asks). Upstream's PO plan keeps
     `.tra` as the compiled format and left contexts/plurals open (#1780); a second compiled format
     would be contested and brings nothing the `.tra` writer in `po2tra` doesn't already do. If it
@@ -1164,19 +822,7 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     AGS 4 projects no longer use.
     *Done when:* the tool, its target and every reference are `po2tra`, and `po2tra -u` writes a PO
     that compiles back to the same translation.
-    *Status (2026-11-03):* done. `WritePO` (`Tools/data/tra_utils.*`) replaces `WriteTRS`: the
-    editor's PO layout (`Translation.SaveDataImpl`), texts escaped as `EscapeText` does but with
-    `\r` kept (the texts come from the game and must still match it), entries and font overrides
-    sorted (the engine's `Translation` holds them in hash maps). A TRA has no Text Parser source
-    words, so each word ID gets one entry with the placeholder `??? (word <id>)`, unique because a
-    PO reader keeps one entry per text.
-    - Measured: tests for the PO text and for PO → TRA → PO → TRA giving the same translation
-      (texts, parser words, options, font overrides); on a copy of the private game's PO with
-      every text translated (783 texts, 79 with escapes), decompiling both compiled files gives
-      identical POs. The two `.tra` files differ only in the order of the texts.
-    - Upstream gets `po2tra` as a new tool for PO sources, next to its own `trac` (TRS), which
-      stays as it is (decided 2026-11-03, until further notice). U.3's PO ticket and any port of
-      7.1m/7.1o add `po2tra`; removing `trac` upstream needs the maintainers' agreement.
+    *Status:* done (2026-11-03) — see LOG.md.
   - **Thin format tools:** `agscc`, `crmpak`, `spritepak`, `agspak` and `po2tra` stay as they are, and
     get tests for their command-line options (`Tools/test` exists).
 
@@ -1210,37 +856,7 @@ into `.compare/up-build`. Each PR is recorded in `docs/UPSTREAM.md`.
   the slider focus fix (upstream fixed it its own way) and the version bump (follows Opacity) don't
   apply. Fixes already in upstream `master` are left to upstream's usual master-to-ags4 merge.
   *Done when:* the branch builds (CMake tools + tests) and its tests pass.
-  *Status (2026-11-02):* done, 9 commits on `upstream/ags4` (`e70c7c95d`), merged upstream as #3181
-  (`a83208d33`, with the two U.2 additions below):
-  - Editor: `Dialog(id, scriptName)` crash, invariant culture in project files, `ikpFlac.dll` missing
-    from the AnyCPU build (upstream's Windows Packaging fails on it today: `ags.iss` line 103), stale
-    character after `ParserState.Reset()` (false "unterminated literal" in translations). Picked
-    from the fork and `avalonia` with `-x` lines and trailers removed.
-  - Tools: the agsbuild pipe hang, `agf2dlgasc` dropping the last line, inverted `show_fps`. The
-    fork's patches only applied in part (`git apply --ignore-whitespace --reject`); the rest was
-    rewritten in upstream's style.
-  - New, also fixed in the fork: `ImageFile::LoadPNG` copied `width * height` bytes of RGB(A) images
-    when no component swap is needed (test: `Common/test/imagefile_test.cpp`, a PNG round trip in
-    PNG byte order), and `crmpak -e <room> script` passed a null `RoomData` (7.1e found both).
-  - Checked against the unfixed code: both new tests fail, `crmpak` segfaults, the pipe test aborts
-    after 120 s, and 5 of the 7 dialogs of `ags3/auto-test` lose their final `stop`.
-  - Verified: CMake Ninja (Common 94, Compiler 561, Engine 3, Tools 76 tests) and MSBuild as
-    upstream CI builds it (`Tests.sln` and `AGS.Editor.Full.sln`, Release x86, v142; NUnit 370 of
-    370). The worktree needs `git submodule update --init Common/libsrc/googletest` and the ignored
-    `Editor/References` DLLs and `Solutions/packages` copied in.
-  - Found, not fixed: `ags3/auto-test/room1.crm` (room version 40, `kRoomVersion_399`) fails to load
-    in both upstream and the fork ("Block data overlapping" in the Main block). D1 says 3.99 rooms
-    must load, so this belongs to 1.2/1.4.
-  *Status (2026-11-02, U.2):* 11 commits now; U.2 found two more upstream bugs, neither in the fork:
-  - `AGS.Types`: since `6148cb840` (2026-11-01) characters and inventory items load their
-    interactions into a new object and lose the script module, so the game data gets an empty
-    module (the engine then looks only in the global script). Two NUnit tests, which fail on the
-    unfixed code; NUnit 372 of 372.
-  - The `agf2dta`, `crmpak` and `spriteimport` Makefiles have not built since `63f2b8996`
-    (`interactions.cpp` gone, `scripteventtable.cpp` and `cc_reflect.cpp` missing). The Makefile
-    Build workflow does not notice: `find -execdir make` drops make's exit code. Checked without
-    make or GCC by linking exactly the listed sources' MSVC objects
-    (`.compare/helpers/mk_linktest.py`): they fail before and link after.
+  *Status:* done (2026-11-02) — see LOG.md.
 - [x] **U.2 `ags4-buildtools`:** the 7.1 work (AGS 4 support in the C++ tools: project format,
   script API levels, `#module`, `crmbuild`, game data parity, table-driven XML, drift guard,
   `--json`), stacked on U.1, with `Script/compare_builds.py` and `Script/agsbuild_autotest.sh` but no
@@ -1253,42 +869,7 @@ into `.compare/up-build`. Each PR is recorded in `docs/UPSTREAM.md`.
   *Done when:* `compare_builds.py` reports every file identical between `agsbuild` and an upstream
   editor (MSBuild, `PlatformToolset=v142`) on the upstream test game (`ags-test-games` `main`,
   `ags4/auto-test`, 4.0.0.33), and the upstream engine passes the auto-test on `agsbuild` output.
-  *Status (2026-11-02):* done, 24 commits on `ags4-bugfixes`, open as #3182. To change after
-  maintainer review: drop `agf2dta --script-dir` and pack the scripts separately, as the fork now does
-  (7.1f, "Layout"), with the `compare_builds.py` comparison that goes with it.
-  - The four `master` commits with `-x`; `0ddc44b1a` needed `dst_depth` renamed to ags4's
-    `res_depth` (noted in its message). Then every 7.1 commit, one upstream commit each, except
-    the CI wiring and the fork-only ones (Opacity, formatting); plus "build crmbuild with MSBuild
-    and make too", since upstream builds every tool with `Tools.sln` and a Makefile as well.
-  - Porting: `.compare/helpers/port.py` matches each fork hunk token by token (whitespace, `NULL`
-    vs `nullptr`, `Common::` qualifiers ignored), keeps upstream's own context lines and re-indents
-    the new ones; `check` compares each port with its fork commit after clang-format, so only the
-    intended adaptations remain. That replaced most of the hand-rewriting of rejected hunks.
-  - **Upstream stays C++11** for Common, Compiler and Tools, on purpose (`CXX_STANDARD 11`,
-    `-std=c++11`, compat `std::make_unique` and `std::size` in `util/memory_compat.h`, a recent
-    "remove use of c++17 insert_or_assign"). So the 7.1d rows are `XML_READ(&T::Member)`,
-    `XML_READ_WITH`, `XML_READ_ELEMENT` and `XML_READ_CONVERTED` macros over
-    `template <typename MP, MP Member, ...>` instead of `Read<&T::Member>`; `inline constexpr`,
-    generic lambdas and the fork's `CXX_STANDARD 17` for `crmbuild` went too.
-    `.compare/helpers/cxx11.py` checks the changed sources with emsdk clang in `-std=c++11` (MSVC
-    has no C++11 mode); tests compile as C++17, which googletest asks for.
-  - Upstream formats: project format 4.0.0.33 only (the oldest without an upgrade step: it moved the
-    dialogs into their own files); room formats 3.99.99.01 to 4.0.0.27, with the `Name` and
-    `Description` of rooms saved by older editors; `Transparency` 0-100 everywhere, converted with
-    `Trans100ToLegacyTrans255` for characters, GUIs and room objects and written as a percentage
-    for GUI controls, as `DataFileWriter.cs` does; region light level and tint in the editor's
-    ranges (`LightLevel - 100`, `TintLuminance * 25 / 10`). `agf_elements.txt` regenerated from
-    upstream's `AGS.Types`.
-  - Verified on the final branch: `compare_builds.py` 17 of 17 identical against the upstream editor
-    (MSBuild v142 x86, with U.1), with the tools from CMake and from MSBuild (`Tools.sln`,
-    `Compiler.App.sln`); the upstream engine (CMake) passes the auto-test on the `agsbuild` output,
-    2380 of 2380, also through `agsbuild_autotest.sh` (which passes `--strict`). CMake tests: Common
-    97, Compiler 592, Tools 110. MSBuild as upstream CI: `Tests.sln`, `Compiler.Lib.sln` (91),
-    `Compiler2.Lib.sln` (592), NUnit 373 of 373. Every one of the 24 commits builds and passes on
-    its own (`git rebase --exec .compare/helpers/verify_strict.sh`).
-  - Not checked: POSIX builds and the Makefiles under real make/GCC (no GCC here; the Makefiles' source
-    lists link with MSVC, `mk_linktest.py`); `tappy` isn't installed locally, so the TAP file was
-    counted by hand.
+  *Status:* done (2026-11-03) — see LOG.md.
 - [ ] **U.3 Tickets and pieces for #2316.** Upstream's master ticket lists the 4.0 room compiler
   and the PO translation compiler as "ticket TBD"; both exist in U.2. File the two tickets
   (what the tool reads and writes, the parity check against the Editor, a link to #3182), and be
@@ -1301,6 +882,29 @@ into `.compare/up-build`. Each PR is recorded in `docs/UPSTREAM.md`.
   `agscc -I` (#3070).
   *Done when:* the two tickets exist and #3182 (or its pieces) has no open review comments
   about structure.
+  *Status (2026-11-03):* the branches are cut, nothing posted yet. #3182 was not ready: it still
+  had `agf2dta --script-dir` (the fork dropped it in `461e41138`, after the branch was cut) and
+  `agsbuild --json`, both objected to by the maintainers, and no PO compiler at all (`agsbuild`
+  still ran `trac` on `.trs`); five later fork fixes were missing too. Re-cut as five branches in
+  the worktree, on `upstream/ags4` (ledger in `docs/UPSTREAM.md`): 1 fixes (9 commits), 2
+  table-driven `agfreader` + drift guard (8), 3 `agf2dta` parity (4), 4 `crmbuild` (2), each on the
+  previous; 5 `po2tra` (2) on `upstream/ags4`. Rebased 2026-11-03 after `master` was merged into
+  `ags4` (`e709f84a0`): the six `master` picks dropped out, the fork's unescape commit too (upstream's
+  `ad38522e2` covers it; the game info stays unescaped, as the 4.0 editor's `WriteExt_363GameInfo`
+  writes it, where `ad38522e2` applied `TextProperty`). #3182 is closed. Dropped: `--json`, cancel and the stage split (fork-only until
+  #2530 lands). `po2tra` is a new tool next to `trac`: `tra_utils` keeps the TRS code and gains
+  `ReadPO`, `WritePO` and `WriteTRA(TranslationSource)`; the two shared helpers got a parameter.
+  Verified at each tip (CMake MSVC build, C++11 check, Common/Compiler/Tools tests: 97/592/83,
+  92, 94, 104; PR 5: 95/561/81); PR 4 against the upstream editor on `ags4/auto-test`: 58 of 58
+  files identical, auto-test 2380 of 2380; the package lists its assets by name where the editor
+  uses its build order (the fork's editor fix `e69119490` is fork-only). `po2tra` on the private
+  game's PO gives the same `.tra` and PO as the fork's. Makefile source lists of `po2tra`, `trac`
+  and `crmbuild` link (`mk_linktest.py`). Every commit of the pre-rebase stack passed `rebase --exec verify_strict.sh` (31 of 31); after
+  the rebase only the tips were verified (4: 102/592/104, parity 58 of 58, auto-test 2380 of 2380;
+  5: 99/561/82). Not done: MSBuild (`Tools.sln`, `Tests.sln`) and NUnit on the new branches. Drafts for the user to review and post: `.compare/u3-drafts/` (ticket A room
+  compiler, ticket B `po2tra`, the five PR descriptions). Found on the way: `verify_strict.sh`
+  reported "ok" with a failed test (fixed: it fails on any `FAILED`), and a stale
+  `mk_linktest/agspak.exe` in the build directory made the harness report a wrong ender.
 - [x] **U.4 Agent docs upstream** (PR #3185, 2026-11-03, base `master`, one commit `066cb1152`):
   `AGENTS.md` and `docs/context/`, superseding the `AGENTS.md` of #3025. The fork's
   `docs/context/` is a copy; changes requested in review are applied in the worktree and copied

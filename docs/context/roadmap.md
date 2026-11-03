@@ -56,7 +56,7 @@ D3D11 testing #3115 · colour conversion tests #3167
 
 | PR | Base | What |
 |---|---|---|
-| #3182 AlanDrake | ags4 | AGS 4 support in the tools (`crmbuild`, table-driven `agfreader`, PO `trac`, `agsbuild --json`), 24 commits |
+| #3182 AlanDrake | ags4 | AGS 4 support in the tools, 24 commits; maintainers asked for a rebase after #3181, smaller PRs, no `agf2dta --script-dir`, no `agsbuild --json`; being re-sent as five PRs (fixes, table-driven `agfreader`, `agf2dta` parity, `crmbuild`, `po2tra`) |
 | #3176 #3175 #3119 AlanDrake | ags4 | void-returns-void compiler; Editor antialiased fonts; 8-bit alpha + ranges |
 | #3162 a-riddle-fan | master | engine debugger on non-Windows (`--debugger-comm pipe\|file`) |
 | #3183 #3184 PacketLauncher | master | TTF outline preview; 4-bit WFN fonts |
