@@ -15,6 +15,7 @@
 
 #include <cctype>
 #include <map>
+#include <set>
 #include <unordered_map>
 
 #include "ac/game_version.h"
@@ -33,7 +34,7 @@ namespace DataUtil
 {
 
 //-----------------------------------------------------------------------------
-// The special tags of translation sources, read from PO and written to the TRS that po2tra -u makes
+// The special tags of translation sources, read from PO and written to the PO that po2tra -u makes
 //-----------------------------------------------------------------------------
 
 const char OPTION_SEPARATOR = '=';
@@ -54,8 +55,6 @@ const String TAG_ON = "ON";
 const String TAG_OFF = "OFF";
 const char ANNOTATE_SEPARATOR = ':';
 const String ANNOTATE_PARSERWORD = "PARSERWORD";
-
-const String SECTION_TEXTPARSER = "Game Text Parser";
 
 
 static int ReadOptionalInt(const String &text)
@@ -283,14 +282,16 @@ static void ReadSpecialTags(TranslationSource &src, const String &line)
 
 static void WriteFontOverrides(const Translation &tra, TextStreamWriter &sw)
 {
-    for (const auto &font_over : tra.FontOverrides)
+    // in the order of the fonts, the translation keeps them in a hash map
+    const std::map<int, FontOverride> sorted_overrides(tra.FontOverrides.begin(), tra.FontOverrides.end());
+    for (const auto &font_over : sorted_overrides)
     {
         String font_line;
         int fontIndex = font_over.first;
         const FontOverride &fover = font_over.second;
         const FontInfo &finfo = fover.Finfo;
         const int fields = fover.Fields;
-        font_line.AppendFmt("//#Font%d=", fontIndex);
+        font_line.AppendFmt("# $Font%d=", fontIndex);
         // The font override's source is defined either as another font's index, or font file
         if (finfo.FontID >= 0)
             font_line.AppendFmt("Font%d;", finfo.FontID);
@@ -600,139 +601,124 @@ HError ReadPO(TranslationSource &src, std::unique_ptr<Stream> &&in)
     return HError::None();
 }
 
-struct TranslationEntry
+//-----------------------------------------------------------------------------
+// PO, decompiled from a TRA
+//-----------------------------------------------------------------------------
+
+// Escapes a text for a PO string (Translation.EscapeText). Unlike the editor, a "\r" stays "\r":
+// the texts come from the game, and must still match it once compiled again
+static String EscapeText(const String &text)
 {
-    String Key;
-    String Value;
-    std::vector<String> Annotations;
-
-    TranslationEntry() = default;
-    TranslationEntry(const String &key, const String &value) : Key(key), Value(value) {}
-};
-
-struct TranslationSection
-{
-    String Name;
-    String Comment;
-    std::vector<TranslationEntry> Entries;
-
-    TranslationSection() = default;
-    TranslationSection(const String &name) : Name(name) {}
-};
-
-// Organizes translated lines by sections.
-// There's not much to do if we have a runtime Translation object;
-// there's enough data to make only 2 sections:
-// - general
-// - parser words
-static void MakeSections(const Translation &translation, std::vector<TranslationSection> &sectionLists)
-{
-    TranslationSection general_section;
-    for (const auto &entry : translation.Dict)
-        general_section.Entries.push_back(TranslationEntry(entry.first, entry.second));
-    sectionLists.push_back(std::move(general_section));
-
-    if (translation.ParserDict.GetWords().size() > 0)
+    String result;
+    for (size_t i = 0; i < text.GetLength(); ++i)
     {
-        TranslationSection parser_section(SECTION_TEXTPARSER);
-        std::multimap<uint16_t, String> words_by_id;
-        for (const auto &word : translation.ParserDict.GetWords())
-            words_by_id.insert(std::make_pair(word.second, word.first));
-
-        for (const auto &word : words_by_id)
+        const char c = text[i];
+        switch (c)
         {
-            // FIXME: it appears that there's no way to fully reverse the parser word translation entry,
-            // the keys in base game language are not stored within the translation!
-            // probably add another TRA extension, for the reference. But then, it should not be read
-            // into existing Translation struct, because that struct is meant for runtime use,
-            // where such reference will be redundant, excess data.
-            TranslationEntry entry("???", word.second);
-            entry.Annotations.push_back(String::FromFormat("%s:%d", ANNOTATE_PARSERWORD.GetCStr(), word.first));
-            parser_section.Entries.push_back(entry);
+        case '\\': result.Append("\\\\"); continue;
+        case '"': result.Append("\\\""); continue;
+        case '\a': result.Append("\\a"); continue;
+        case '\b': result.Append("\\b"); continue;
+        case '\f': result.Append("\\f"); continue;
+        case '\n': result.Append("\\n"); continue;
+        case '\r': result.Append("\\r"); continue;
+        case '\t': result.Append("\\t"); continue;
+        case '\v': result.Append("\\v"); continue;
+        default: break;
         }
-        sectionLists.push_back(std::move(parser_section));
+        if (static_cast<unsigned char>(c) < ' ')
+            result.AppendFmt("\\%03o", static_cast<unsigned char>(c));
+        else
+            result.AppendChar(c);
     }
+    return result;
 }
 
-static HError WriteTRS(const Translation &tra, const std::vector<TranslationSection> &sectionLists,
-                       std::unique_ptr<Stream> &&out)
+static void WritePOEntry(TextStreamWriter &sw, const String &context, const String &key, const String &value)
+{
+    sw.WriteLine("");
+    if (!context.IsEmpty())
+        sw.WriteLineFormat("msgctxt \"%s\"", context.GetCStr());
+    sw.WriteLineFormat("msgid \"%s\"", EscapeText(key).GetCStr());
+    sw.WriteLineFormat("msgstr \"%s\"", EscapeText(value).GetCStr());
+}
+
+HError WritePO(const Translation &tra, std::unique_ptr<Stream> &&out)
 {
     TextStreamWriter sw(std::move(out));
 
-    sw.WriteLine("// AGS TRANSLATION SOURCE FILE");
-    sw.WriteLine("// Format is alternating lines with original game text and replacement");
-    sw.WriteLine("// text. If you don't want to translate a line, just leave the following");
-    sw.WriteLine("// line blank. Lines starting with '//' are comments - DO NOT translate");
-    sw.WriteLine("// them. Special characters such as [ and %%s symbolise things within the");
-    sw.WriteLine("// game, so should be left in an appropriate place in the message.");
-    sw.WriteLine("// ");
-    sw.WriteLine("// Game identification: this lets game to detect a translation meant");
-    sw.WriteLine("// for another game. These may be left blank too.");
-    sw.WriteLineFormat("//#GameID=%s", (tra.GameUid != 0 ? String::FromFormat("%d", tra.GameUid).GetCStr() : ""));
-    sw.WriteLineFormat("//#GameName=%s", tra.GameName.GetCStr());
-    sw.WriteLine("// ** Translation settings are below");
-    sw.WriteLine("// ** Leave them as \"DEFAULT\" to use the game settings");
-    sw.WriteLine("// The normal font to use - DEFAULT or font number");
-    sw.WriteLineFormat("//#NormalFont=%s", WriteOptionalInt(tra.NormalFont).GetCStr());
-    sw.WriteLine("// The speech font to use - DEFAULT or font number");
-    sw.WriteLineFormat("//#SpeechFont=%s", WriteOptionalInt(tra.SpeechFont).GetCStr());
-    sw.WriteLine("// Text direction - DEFAULT, LEFT or RIGHT");
+    // The header of the editor's PO (Translation.SaveDataImpl)
+    const String encoding = tra.EncodingHint.IsEmpty() ? "ASCII" : tra.EncodingHint;
+    String lang_hint = tra.LanguageHint;
+    lang_hint.Replace('-', '_');
+    sw.WriteLine("# AGS TRANSLATION SOURCE FILE");
+    sw.WriteLine("# This is a PO file generated according to the gettext specifications.");
+    sw.WriteLine("# Special characters such as %%s symbolise things within the game,");
+    sw.WriteLine("# so should be left in an appropriate place in the message.");
+    sw.WriteLine("# ");
+    sw.WriteLine("# Game identification: this lets game to detect a translation meant");
+    sw.WriteLine("# for another game. These may be left blank too.");
+    sw.WriteLineFormat("# $GameID=%s", (tra.GameUid != 0 ? String::FromFormat("%d", tra.GameUid).GetCStr() : ""));
+    sw.WriteLineFormat("# $GameName=%s", tra.GameName.GetCStr());
+    sw.WriteLine("# ** Translation settings are below");
+    sw.WriteLine("# ** Leave them as \"DEFAULT\" to use the game settings");
+    sw.WriteLine("# The normal font to use - DEFAULT or font number");
+    sw.WriteLineFormat("# $NormalFont=%s", WriteOptionalInt(tra.NormalFont).GetCStr());
+    sw.WriteLine("# The speech font to use - DEFAULT or font number");
+    sw.WriteLineFormat("# $SpeechFont=%s", WriteOptionalInt(tra.SpeechFont).GetCStr());
+    sw.WriteLine("# Text direction - DEFAULT, LEFT or RIGHT");
     sw.WriteLineFormat(
-        "//#TextDirection=%s",
+        "# $TextDirection=%s",
         ((tra.RightToLeft == kTextDirection_RTL)
              ? TAG_DIRECTION_RIGHT.GetCStr()
              : ((tra.RightToLeft == kTextDirection_Default) ? TAG_DEFAULT.GetCStr() : TAG_DIRECTION_LEFT.GetCStr())));
-    sw.WriteLine("// Text encoding hint - ASCII or UTF-8");
-    sw.WriteLineFormat("//#Encoding=%s", (tra.EncodingHint.IsEmpty() ? "ASCII" : tra.EncodingHint.GetCStr()));
-    sw.WriteLine("// Text language, use standard locale strings, like 'en', 'en_US', etc");
-    String lang_hint = tra.LanguageHint;
-    lang_hint.Replace('-', '_');
-    sw.WriteLineFormat("//#Language=%s", lang_hint.GetCStr());
-    sw.WriteLine("// Whether engine should translate Parser.Said strings automatically - ON or OFF");
-    sw.WriteLineFormat("//#AutoTranslateParserSaid=%s",
+    sw.WriteLine("# Text encoding hint - ASCII or UTF-8");
+    sw.WriteLineFormat("# $Encoding=%s", encoding.GetCStr());
+    sw.WriteLine("# Text language, use standard locale strings, like 'en', 'en_US', etc");
+    sw.WriteLineFormat("# $Language=%s", lang_hint.GetCStr());
+    sw.WriteLine("# Whether engine should translate Parser.Said strings automatically - ON or OFF");
+    sw.WriteLineFormat("# $AutoTranslateParserSaid=%s",
                        ((tra.OptFlags & kTraOpt_AutoTranslateSaid) != 0) ? TAG_ON.GetCStr() : TAG_OFF.GetCStr());
-    if (tra.FontOverrides.size() != 0)
-    {
-        WriteFontOverrides(tra, sw);
-    }
-    sw.WriteLine("//  ");
-    sw.WriteLine("// ** REMEMBER, WRITE YOUR TRANSLATION IN THE EMPTY LINES, DO");
-    sw.WriteLine("// ** NOT CHANGE THE EXISTING TEXT.");
+    WriteFontOverrides(tra, sw);
+    sw.WriteLine("#  ");
+    sw.WriteLine("# ** IT IS SUGGESTED TO USE A THIRD-PARTY TOOL TO EDIT THIS FILE");
+    // The source language is not in the TRA
+    sw.WriteLine("msgid \"\"");
+    sw.WriteLine("msgstr \"\"");
+    sw.WriteLine("\"Last-Translator: \\n\"");
+    sw.WriteLine("\"Language-Team: \\n\"");
+    sw.WriteLineFormat("\"Language: %s\\n\"", EscapeText(lang_hint).GetCStr());
+    sw.WriteLine("\"MIME-Version: 1.0\\n\"");
+    sw.WriteLineFormat("\"Content-Type: text/plain; charset=%s\\n\"",
+                       (encoding == "ASCII" ? "ISO-8859-1" : encoding.GetCStr()));
+    sw.WriteLine("\"Content-Transfer-Encoding: 8bit\\n\"");
+    sw.WriteLine("\"X-Generator: po2tra\\n\"");
 
-    for (const auto &section : sectionLists)
-    {
-        const auto &entries = section.Entries;
-        if (entries.size() == 0)
-            continue;
+    // The texts in their order, the translation keeps them in a hash map
+    const std::map<String, String> sorted_dict(tra.Dict.begin(), tra.Dict.end());
+    for (const auto &entry : sorted_dict)
+        WritePOEntry(sw, "", entry.first, entry.second);
 
-        sw.WriteLine("//-----------------------------------------------------------------------------");
-        if (section.Name.IsNullOrSpace())
-            sw.WriteLine("//$SECTION:");
-        else if (section.Comment.IsNullOrSpace())
-            sw.WriteLineFormat("//$SECTION: %s", section.Name.GetCStr());
-        else
-            sw.WriteLineFormat("//$SECTION: %s; %s", section.Name.GetCStr(), section.Comment.GetCStr());
-        sw.WriteLine("//-----------------------------------------------------------------------------");
-        for (const auto &entry : entries)
+    // The Text Parser's words, one entry per word ID with its translations separated by commas, as the
+    // editor reads them. The TRA has no game words: each entry gets a placeholder unique to its ID,
+    // because a PO reader keeps one entry per text
+    std::map<int, std::set<String>> words_by_id;
+    for (const auto &word : tra.ParserDict.GetWords())
+        words_by_id[word.second].insert(word.first);
+    for (const auto &words : words_by_id)
+    {
+        String value;
+        for (const auto &word : words.second)
         {
-            if (entry.Annotations.size() > 0)
-            {
-                for (const auto &annotation : entry.Annotations)
-                    sw.WriteLineFormat("//$%s", annotation.GetCStr());
-            }
-
-            sw.WriteLine(entry.Key);
-            sw.WriteLine(entry.Value);
+            if (!value.IsEmpty())
+                value.Append(", ");
+            value.Append(word);
         }
+        WritePOEntry(sw, String::FromFormat("%s%c%d", ANNOTATE_PARSERWORD.GetCStr(), ANNOTATE_SEPARATOR, words.first),
+                     String::FromFormat("??? (word %d)", words.first), value);
     }
-    return HError::None();
-}
-
-HError WriteTRS(const Translation &tra, std::unique_ptr<Stream> &&out)
-{
-    std::vector<TranslationSection> sectionLists;
-    MakeSections(tra, sectionLists);
-    WriteTRS(tra, sectionLists, std::move(out));
+    if (!sorted_dict.empty() || !words_by_id.empty())
+        sw.WriteLine("");
     return HError::None();
 }
 

@@ -14,7 +14,7 @@ using namespace AGS::DataUtil;
 //------------------------------------------------------------------------------|
 static const char *HELP_STRING = "Usage:\n"
                                  "  po2tra <input.po> [<output.tra>] [--gamename <name>][--uniqueid <idnum>]\n"
-                                 "  po2tra -u <input.tra> [<output.trs>]\n";
+                                 "  po2tra -u <input.tra> [<output.po>]\n";
 
 static int Command_Compile(const String &src, const String &dst, const String *game_name, const int *game_uid)
 {
@@ -94,18 +94,18 @@ static int Command_Decompile(const String &src, const String &dst)
     }
 
     //-----------------------------------------------------------------------//
-    // Write TRS
+    // Write PO
     //-----------------------------------------------------------------------//
     auto out = File::CreateFile(dst);
     if (!out)
     {
-        printf("Error: failed to open output TRS for writing.\n");
+        printf("Error: failed to open output PO for writing.\n");
         return -1;
     }
-    err = WriteTRS(tra, std::move(out));
+    err = WritePO(tra, std::move(out));
     if (!err)
     {
-        printf("Error: failed to write TRS:\n");
+        printf("Error: failed to write PO:\n");
         printf("%s\n", err->FullMessage().GetCStr());
         return -1;
     }
@@ -116,7 +116,7 @@ static int Command_Decompile(const String &src, const String &dst)
 
 int main(int argc, char *argv[])
 {
-    printf("po2tra v0.9.7 - AGS translation compiler (PO -> TRA) and decompiler (TRA -> TRS)\n"
+    printf("po2tra v0.9.7 - AGS translation compiler (PO -> TRA) and decompiler (TRA -> PO)\n"
            "Copyright (c) 2021-2026 AGS Team and contributors\n");
 
     ParseResult cmdargs = Parse(argc, argv, {"--gamename", "--uniqueid"});
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
     if (cmdargs.Opt.count("-u") > 0)
     {
         if (dst.IsEmpty())
-            dst = Path::ReplaceExtension(src, "trs");
+            dst = Path::ReplaceExtension(src, "po");
         return Command_Decompile(src, dst);
     }
 

@@ -34,6 +34,8 @@ const char *kPO = R"PO(# AGS TRANSLATION SOURCE FILE
 # $Encoding=UTF-8
 # $Language=it
 # $AutoTranslateParserSaid=ON
+# $Font1=Font3;Size=12;Outline=AUTO;AutoOutline=ROUND;AutoOutlineThickness=2;HeightDefinition=CUSTOM;CustomHeight=9;VerticalOffset=1;LineSpacing=4;CharacterSpacing=1;
+# $Font0=File=x.ttf;SizeMultiplier=2;
 msgid ""
 msgstr ""
 "Language: it\n"
@@ -178,4 +180,93 @@ TEST(TraUtils, WriteTRAAsTheEditor)
     // the end of the block list, followed by a zero
     EXPECT_EQ(kTraFile_EOF, int_at(data.size() - 8));
     EXPECT_EQ(0, int_at(data.size() - 4));
+}
+
+namespace
+{
+
+Translation ReadTRA(const std::vector<uint8_t> &data)
+{
+    Translation tra;
+    HError err = ReadTraData(tra, MakeReadStream(data));
+    EXPECT_TRUE(err) << err->FullMessage().GetCStr();
+    return tra;
+}
+
+// A compiled translation of the test PO, with texts that need escaping in a PO
+Translation MakeTestTranslation()
+{
+    TranslationSource src = ReadTestPO();
+    Translation tra = ReadTRA(WriteTestTRA(src));
+    tra.Dict["Back\\slash \"quoted\"\r\n\x01 end"] = "Tab\there";
+    return tra;
+}
+
+std::vector<uint8_t> WriteTestPO(const Translation &tra)
+{
+    std::vector<uint8_t> data;
+    EXPECT_TRUE(WritePO(tra, std::make_unique<Stream>(std::make_unique<VectorStream>(data, kStream_Write))));
+    return data;
+}
+
+} // namespace
+
+TEST(TraUtils, WritePOAsTheEditor)
+{
+    // the lines end in "\r\n" on Windows
+    String po;
+    for (const uint8_t c : WriteTestPO(MakeTestTranslation()))
+    {
+        if (c != '\r')
+            po.AppendChar(static_cast<char>(c));
+    }
+    EXPECT_NE(String::NoIndex, po.FindString("# $NormalFont=2\n"));
+    EXPECT_NE(String::NoIndex, po.FindString("# $TextDirection=RIGHT\n"));
+    EXPECT_NE(String::NoIndex, po.FindString("# $Font0=File=x.ttf;SizeMultiplier=2;\n"));
+    EXPECT_NE(String::NoIndex, po.FindString("\"Content-Type: text/plain; charset=UTF-8\\n\"\n"));
+    // the texts are escaped, and a "\r" is kept
+    EXPECT_NE(String::NoIndex,
+              po.FindString("\nmsgid \"Back\\\\slash \\\"quoted\\\"\\r\\n\\001 end\"\nmsgstr \"Tab\\there\"\n"));
+    // one entry per parser word ID, with a placeholder text the PO reader keeps apart
+    EXPECT_NE(String::NoIndex,
+              po.FindString("\nmsgctxt \"PARSERWORD:5\"\nmsgid \"??? (word 5)\"\nmsgstr \"guarda, osserva\"\n"));
+}
+
+TEST(TraUtils, WritePOCompilesToTheSameTranslation)
+{
+    const Translation tra = MakeTestTranslation();
+    TranslationSource src;
+    ASSERT_TRUE(ReadPO(src, MakeReadStream(WriteTestPO(tra))));
+    std::vector<uint8_t> tra_data;
+    ASSERT_TRUE(WriteTRA(src, std::make_unique<Stream>(std::make_unique<VectorStream>(tra_data, kStream_Write))));
+    const Translation again = ReadTRA(tra_data);
+
+    EXPECT_EQ(tra.GameUid, again.GameUid);
+    EXPECT_STREQ(tra.GameName.GetCStr(), again.GameName.GetCStr());
+    EXPECT_EQ(tra.Dict, again.Dict);
+    EXPECT_EQ(tra.ParserDict.GetWords(), again.ParserDict.GetWords());
+    EXPECT_EQ(tra.NormalFont, again.NormalFont);
+    EXPECT_EQ(tra.SpeechFont, again.SpeechFont);
+    EXPECT_EQ(tra.RightToLeft, again.RightToLeft);
+    EXPECT_EQ(tra.OptFlags, again.OptFlags);
+    EXPECT_EQ(tra.StrOptions, again.StrOptions);
+    ASSERT_EQ(2u, again.FontOverrides.size());
+    for (const auto &fover : tra.FontOverrides)
+    {
+        const FontOverride &a = fover.second;
+        const FontOverride &b = again.FontOverrides.at(fover.first);
+        EXPECT_EQ(a.Fields, b.Fields);
+        EXPECT_EQ(a.Finfo.FontID, b.Finfo.FontID);
+        EXPECT_STREQ(a.Finfo.FileName.GetCStr(), b.Finfo.FileName.GetCStr());
+        EXPECT_EQ(a.Finfo.Flags, b.Finfo.Flags);
+        EXPECT_EQ(a.Finfo.Size, b.Finfo.Size);
+        EXPECT_EQ(a.Finfo.SizeMultiplier, b.Finfo.SizeMultiplier);
+        EXPECT_EQ(a.Finfo.Outline, b.Finfo.Outline);
+        EXPECT_EQ(a.Finfo.AutoOutlineStyle, b.Finfo.AutoOutlineStyle);
+        EXPECT_EQ(a.Finfo.AutoOutlineThickness, b.Finfo.AutoOutlineThickness);
+        EXPECT_EQ(a.Finfo.CustomHeight, b.Finfo.CustomHeight);
+        EXPECT_EQ(a.Finfo.YOffset, b.Finfo.YOffset);
+        EXPECT_EQ(a.Finfo.LineSpacing, b.Finfo.LineSpacing);
+        EXPECT_EQ(a.Finfo.CharacterSpacing, b.Finfo.CharacterSpacing);
+    }
 }

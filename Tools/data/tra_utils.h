@@ -53,8 +53,9 @@ struct TranslationSource
 
 // Parses a PO translation source, as the editor does (Translation.LoadDataImpl)
 HError ReadPO(TranslationSource &src, std::unique_ptr<Stream> &&in);
-// Generates a translation source file based on compiled Translation object.
-HError WriteTRS(const Translation &tra, std::unique_ptr<Stream> &&out);
+// Writes a PO translation source from a compiled translation, in the layout of the editor's PO
+// (Translation.SaveDataImpl); the Text Parser's words get placeholder texts, the TRA has no game words
+HError WritePO(const Translation &tra, std::unique_ptr<Stream> &&out);
 // Writes a compiled translation, as the editor does (TranslationsComponent.CompileTranslation)
 HError WriteTRA(const TranslationSource &src, std::unique_ptr<Stream> &&out);
 
