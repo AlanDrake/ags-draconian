@@ -99,14 +99,14 @@ Recorded 2026-10-31.
 | D4 | Future of the Editor UI | **Avalonia is the main candidate.** The WinForms editor goes into maintenance mode. *Note 2026-11-03:* upstream plans no cross-platform editor and will not adopt one whole, but welcomes the core split (#1092, #3177); a-riddle-fan's `ags-for-mac` (3.6.x, .NET 10 + Avalonia, `AGS.Native` replaced by a CMake C library) exists and is studied before 6.7c (ALIGNMENT.md). | Editor work concentrates on a UI-free core shared by both UIs, and on replacing the C++/CLI bridge, which Avalonia can't use (phase 6) | 6.x |
 | D5 | Single build system for native code | **CMake only.** MSBuild stays for the C# editor projects. | Hand-written Makefiles and the native `Solutions/*.vcxproj` go (3.2) | 3.2 |
 | D6 | Minimum Windows version | **Windows 7+** | Drop `v141_xp`; `AGS.Native` targets `0x0601` instead of XP's `0x0501`; no APIs newer than Windows 7 without a runtime check | 0.4, 3.1 |
-| D7 | How are games built, by the editor and headless? | **One build implementation, in C++: the tools in `Tools/`**, with `agsbuild` running `agf2dta`, `agscc`, `crmpak`, `trac`, `agspak` and the rest. The editor saves the project and runs `agsbuild`, or individual tools where it needs finer control. The C# build code (`DataFileWriter.cs`, `DialogScriptConverter.cs`, the C# script-header generation and translation writer, the C# preprocessor) is deleted once the tools reach parity. *Revised 2026-11-01 after maintainer review; replaces "one C# build core plus a C# command-line builder", which was argued from commit counts, a poor proxy for parity.* | Builds need only a C++ toolchain, so they run where .NET doesn't (Linux i386, which CI packages; FreeBSD, D2) and in CI without the editor. The game-data writer sits next to the engine's reader: same structs, testable with C++ round trips. Cost: `Game.agf` is read by both C# (editor) and C++ (`agfreader`), so a new project property needs a C++ change too; 7.1g makes a missed one fail tests instead of silently doing nothing. Starting point, measured 2026-11-01: the tools **can't build an AGS 4 project yet** (five gaps, listed in 7.1). | 1.7, 3.3, 6.3, 6.7d, 7.1 |
+| D7 | How are games built, by the editor and headless? | **One build implementation, in C++: the tools in `Tools/`**, with `agsbuild` running `agf2dta`, `agscc`, `crmpak`, `po2tra`, `agspak` and the rest. The editor saves the project and runs `agsbuild`, or individual tools where it needs finer control. The C# build code (`DataFileWriter.cs`, `DialogScriptConverter.cs`, the C# script-header generation and translation writer, the C# preprocessor) is deleted once the tools reach parity. *Revised 2026-11-01 after maintainer review; replaces "one C# build core plus a C# command-line builder", which was argued from commit counts, a poor proxy for parity.* | Builds need only a C++ toolchain, so they run where .NET doesn't (Linux i386, which CI packages; FreeBSD, D2) and in CI without the editor. The game-data writer sits next to the engine's reader: same structs, testable with C++ round trips. Cost: `Game.agf` is read by both C# (editor) and C++ (`agfreader`), so a new project property needs a C++ change too; 7.1g makes a missed one fail tests instead of silently doing nothing. Starting point, measured 2026-11-01: the tools **can't build an AGS 4 project yet** (five gaps, listed in 7.1). | 1.7, 3.3, 6.3, 6.7d, 7.1 |
 
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session (see "Purpose
 of the fork").
 
-Done: phases 0 and 2, 7.1a–m, 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (open, #3182), the
+Done: phases 0 and 2, 7.1a–m and o, 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (open, #3182), the
 agent docs (0.6, upstream PR #3185). Phase 1 is half done. Ground rule 3 applies from here: no
 deletion (3.4) or restructuring (phase 5) before the safety net that guards it (1.2, 1.3). Reordered
 2026-11-03 after reading upstream's plans (ALIGNMENT.md): upstream review latency is weeks, so the
@@ -729,7 +729,7 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
     Define what editor plugins that hook build events see: the events still fire around the
     `agsbuild` run, but no plugin can patch data in the middle of it. Then delete the C# build code:
     `DataFileWriter.cs`, `Utils/DialogScriptConverter.cs`, the C# script-header generation, the binary
-    writer in `TranslationsComponent.cs` (`trac` writes `.tra` files), and, with 3.3, the C#
+    writer in `TranslationsComponent.cs` (`po2tra` writes `.tra` files), and, with 3.3, the C#
     preprocessor.
     *Done when:* the editor's Build output is byte-identical to what it produced before the switch
     (7.1a harness, run once more against the last C# build), all tests pass, and the C# build code is
@@ -1157,9 +1157,25 @@ Tasks 6.0, 6.1, 6.3 and 6.7 remove those two blockers. The remaining tasks impro
       the editor uses the system code page).
   - [ ] **7.1n MO files** (dropped 2026-11-03 unless upstream asks). Upstream's PO plan keeps
     `.tra` as the compiled format and left contexts/plurals open (#1780); a second compiled format
-    would be contested and brings nothing the `.tra` writer in `trac` doesn't already do. If it
+    would be contested and brings nothing the `.tra` writer in `po2tra` doesn't already do. If it
     comes back: propose it on #1780 first.
-  - **Thin format tools:** `agscc`, `crmpak`, `spritepak`, `agspak` and `trac` stay as they are, and
+  - [x] **7.1o `trac` → `po2tra`, decompiling to PO** (asked 2026-11-03). After 7.1m the tool kept
+    upstream's name but no longer read upstream's input (TRS), and `-u` still wrote TRS, a format
+    AGS 4 projects no longer use.
+    *Done when:* the tool, its target and every reference are `po2tra`, and `po2tra -u` writes a PO
+    that compiles back to the same translation.
+    *Status (2026-11-03):* done. `WritePO` (`Tools/data/tra_utils.*`) replaces `WriteTRS`: the
+    editor's PO layout (`Translation.SaveDataImpl`), texts escaped as `EscapeText` does but with
+    `\r` kept (the texts come from the game and must still match it), entries and font overrides
+    sorted (the engine's `Translation` holds them in hash maps). A TRA has no Text Parser source
+    words, so each word ID gets one entry with the placeholder `??? (word <id>)`, unique because a
+    PO reader keeps one entry per text.
+    - Measured: tests for the PO text and for PO → TRA → PO → TRA giving the same translation
+      (texts, parser words, options, font overrides); on a copy of the private game's PO with
+      every text translated (783 texts, 79 with escapes), decompiling both compiled files gives
+      identical POs. The two `.tra` files differ only in the order of the texts.
+    - Upstream still has `trac` (TRS); U.3's PO ticket should say which name upstream wants.
+  - **Thin format tools:** `agscc`, `crmpak`, `spritepak`, `agspak` and `po2tra` stay as they are, and
     get tests for their command-line options (`Tools/test` exists).
 
   *Done when:* games build through the tools on Windows, Linux and macOS, byte-identical to the
