@@ -27,6 +27,10 @@ on:
         description: 'Run every platform, the packages and the release job'
         type: boolean
         default: true
+      macos:
+        description: 'Also run the macOS jobs (hosted macOS runners are often not available: they are left out otherwise)'
+        type: boolean
+        default: false
 
 # A newer push to the same ref replaces the running one; a release tag is never cancelled
 concurrency:
@@ -59,10 +63,14 @@ jobs:
     outputs:
       full: ${{ steps.plan.outputs.full }}
       platforms: ${{ steps.plan.outputs.platforms }}
+      macos: ${{ steps.plan.outputs.macos }}
     steps:
     - name: Decide
       id: plan
       env:
+        # macOS only on request: the hosted runners are often unavailable, and a job that is never
+        # acquired would fail the run and skip the parity job that needs the whole build matrix
+        MACOS: ${{ github.event_name == 'workflow_dispatch' && inputs.macos == true }}
         FULL: ${{ (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.full == true) }}
       run: |
         cat > platforms.json <<'EOF'
@@ -76,12 +84,13 @@ jobs:
         ]
         EOF
         if [ "$FULL" = "true" ]; then
-          filter='.'
+          filter='map(select(.sys != "macOS" or $mac == "true"))'
         else
           filter='map(select(.light))'
         fi
         echo "full=$FULL" >> "$GITHUB_OUTPUT"
-        echo "platforms=$(jq -c "{platform: ($filter)}" platforms.json)" >> "$GITHUB_OUTPUT"
+        echo "macos=$MACOS" >> "$GITHUB_OUTPUT"
+        echo "platforms=$(jq -c --arg mac "$MACOS" "{platform: ($filter)}" platforms.json)" >> "$GITHUB_OUTPUT"
         cat "$GITHUB_OUTPUT"
 
   # Builds the auto-test game from its source with the C++ tools of this run, in strict mode, for the
@@ -998,7 +1007,7 @@ jobs:
   macos-tools-builds:
     name: macOS Tools (arm64)
     needs: plan
-    if: needs.plan.outputs.full == 'true'
+    if: needs.plan.outputs.full == 'true' && needs.plan.outputs.macos == 'true'
     runs-on: macos-15
     timeout-minutes: 20
 

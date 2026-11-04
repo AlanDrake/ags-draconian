@@ -479,6 +479,10 @@ with 340 header stubs compiled by clang + libc++ 21 on Ubuntu and the heavy jobs
   JSON; `fromJSON` in the strategy). Heavy jobs (Emscripten, Android, Linux binaries and bundle, macOS
   and Linux make tools, PDB, tools and Windows packaging, release) have `if: needs.plan.outputs.full ==
   'true'`; their dependants skip by themselves. The mingw, Arm64 and macOS `build` entries are heavy.
+  **macOS is left out of every automatic run** (2026-11-04: the first full run's two macOS jobs were
+  never given a hosted runner, ran 15 minutes to a "cancelled", and so skipped the parity job that
+  needs the whole `build` matrix). It runs only on `gh workflow run ci.yml -f macos=true`; nothing
+  downstream uses its output, but nothing else checks macOS either (no push, tag or weekly run).
   **A `schedule` runs only on the default branch**, which is still `draconian` (unused): it needs the
   workflow there or a new default branch before the weekly run does anything.
 - **`concurrency`** per workflow and ref cancels a superseded run (never for a release tag).
