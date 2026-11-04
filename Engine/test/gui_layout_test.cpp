@@ -220,3 +220,16 @@ TEST_F(GuiLayout, ScaledControlCoversMore)
     EXPECT_EQ(0, guis[0].FindControlAt(10 + 10 + 58, 20 + 12));
     EXPECT_EQ(-1, guis[0].FindControlAt(10 + 10 + 62, 20 + 12));
 }
+
+TEST_F(GuiLayout, ScaledGuiIsFoundByAnyHit)
+{
+    // the scaled GUI 0 covers (10,20)-(208,118); (200,110) is outside its unscaled rectangle
+    guis[0].SetScale(2.f, 2.f);
+    EXPECT_EQ(0, GetGUIAt(200, 110, kHit_Interactable));
+    EXPECT_EQ(0, GetGUIAt(200, 110, kHit_Any));
+    EXPECT_EQ(-1, GetGUIAt(215, 110, kHit_Any));
+    // a GUI scaled down is found only in its smaller area
+    guis[0].SetScale(0.5f, 0.5f);
+    EXPECT_EQ(0, GetGUIAt(55, 40, kHit_Any));
+    EXPECT_EQ(-1, GetGUIAt(30, 60, kHit_Any));
+}
