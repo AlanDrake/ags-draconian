@@ -77,7 +77,7 @@ function(ags_add_header_checks)
 
     ags_header_check_platform_excludes(platform_excludes)
     # Third-party code, tests, and the pieces of util/library.h, which that header selects by platform
-    set(common_excludes "^libsrc/" "^libinclude/" "^test[0-9]*/" "^util/library_(windows|posix|psp|dummy)\\.h$")
+    set(common_excludes "^libsrc/" "^libinclude/" "^test[0-9]*/" "^util/library_(windows|posix|dummy)\\.h$")
     if(NOT WIN32)
         list(APPEND common_excludes "^util/smart_ptr\\.h$") # COM helper
         list(APPEND common_excludes "^gfx/gfxfilter_(aa)?d3d") # Direct3D filters, which #error elsewhere

@@ -36,7 +36,7 @@ DROP_DEFINES = ('WIN32', '_WINDOWS', '_CRT_NONSTDC_NO_DEPRECATE', '_CRT_SECURE_N
 # What CMake/HeaderCheck.cmake leaves out, as seen from a POSIX platform (emscripten)
 EXCLUDE = re.compile(r'^(Common|Engine|Tools|Compiler)/(libsrc/|libinclude/|test[0-9]*/)'
                      r'|^Compiler/script/'
-                     r'|/util/library_(windows|posix|psp|dummy)\.h$'
+                     r'|/util/library_(windows|posix|dummy)\.h$'
                      r'|^Common/util/smart_ptr\.h$'
                      r'|^Engine/gfx/gfxfilter_(aa)?d3d'
                      r'|^Engine/platform/(android|bsd|ios|linux|osx|windows)/')

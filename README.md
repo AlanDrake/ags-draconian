@@ -48,9 +48,6 @@ To get started building the AGS engine, see the platform-specific instructions o
 - [Windows](Windows/README.md)
 - [Emscripten Web port](Emscripten/README.md) ([Forum thread](https://www.adventuregamestudio.co.uk/forums/index.php?topic=59164.0))
 
-No longer actively supported, but may work with older code revisions:
--    [PSP](PSP/README.md) ([Forum thread](https://www.adventuregamestudio.co.uk/forums/index.php?topic=43998.0))
-
 On desktop systems launching a game is done by either placing an engine executable in the same directory where the game data is and starting the engine up or passing game location as a command-line argument.
 
 For Android, we have a game launcher app that may run any game, but it's also possible to make a signed APK for your own game (see instructions linked above).

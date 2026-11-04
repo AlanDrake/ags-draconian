@@ -19,7 +19,7 @@ env = c.msvc_env(); env.pop('CFLAGS', None); env.pop('CXXFLAGS', None)
 T = os.environ.get('CLANG_TIDY', 'clang-tidy')
 check = sys.argv[1]; extra = sys.argv[2:]
 root = os.getcwd().replace(chr(92), '/') + '/'
-BAD = r'/(libsrc|libinclude|_deps|agslua|\.tidy|\.compare|Editor|PSP)/'
+BAD = r'/(libsrc|libinclude|_deps|agslua|\.tidy|\.compare|Editor)/'
 db = json.load(open('.tidy/build/compile_commands.json'))
 tus = sorted({e['file'].replace(chr(92), '/') for e in db})
 tus = [f for f in tus if f.startswith(root) and not re.search(BAD, f) and f.endswith('.cpp')]

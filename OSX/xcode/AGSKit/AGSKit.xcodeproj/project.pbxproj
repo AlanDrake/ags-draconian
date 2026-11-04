@@ -922,7 +922,6 @@
 		526F28DA1D3B5CC300EF4E1F /* library.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F26881D3B5CC300EF4E1F /* library.h */; };
 		526F28DB1D3B5CC300EF4E1F /* library_dummy.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F26891D3B5CC300EF4E1F /* library_dummy.h */; };
 		526F28DC1D3B5CC300EF4E1F /* library_posix.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F268A1D3B5CC300EF4E1F /* library_posix.h */; };
-		526F28DD1D3B5CC300EF4E1F /* library_psp.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F268B1D3B5CC300EF4E1F /* library_psp.h */; };
 		526F28DE1D3B5CC300EF4E1F /* library_windows.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F268C1D3B5CC300EF4E1F /* library_windows.h */; };
 		52D12C1F1D61C0950077B784 /* savegame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 52D12C1C1D61C0950077B784 /* savegame.cpp */; };
 		52D12C201D61C0950077B784 /* savegame.h in Headers */ = {isa = PBXBuildFile; fileRef = 52D12C1D1D61C0950077B784 /* savegame.h */; };
@@ -1875,7 +1874,6 @@
 		526F26881D3B5CC300EF4E1F /* library.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = library.h; sourceTree = "<group>"; };
 		526F26891D3B5CC300EF4E1F /* library_dummy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = library_dummy.h; sourceTree = "<group>"; };
 		526F268A1D3B5CC300EF4E1F /* library_posix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = library_posix.h; sourceTree = "<group>"; };
-		526F268B1D3B5CC300EF4E1F /* library_psp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = library_psp.h; sourceTree = "<group>"; };
 		526F268C1D3B5CC300EF4E1F /* library_windows.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = library_windows.h; sourceTree = "<group>"; };
 		52D12C1C1D61C0950077B784 /* savegame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = savegame.cpp; sourceTree = "<group>"; };
 		52D12C1D1D61C0950077B784 /* savegame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = savegame.h; sourceTree = "<group>"; };
@@ -3535,7 +3533,6 @@
 				526F26881D3B5CC300EF4E1F /* library.h */,
 				526F26891D3B5CC300EF4E1F /* library_dummy.h */,
 				526F268A1D3B5CC300EF4E1F /* library_posix.h */,
-				526F268B1D3B5CC300EF4E1F /* library_psp.h */,
 				526F268C1D3B5CC300EF4E1F /* library_windows.h */,
 			);
 			path = util;
@@ -3972,7 +3969,6 @@
 				526F26F91D3B5CC300EF4E1F /* gamesetup.h in Headers */,
 				526F22AD1D3B5C4900EF4E1F /* gamestructdefines.h in Headers */,
 				20E6852628F2219A00B95C00 /* VariableWidthSpriteFont.h in Headers */,
-				526F28DD1D3B5CC300EF4E1F /* library_psp.h in Headers */,
 				20E684BA28F20CC700B95C00 /* apiwrapper.h in Headers */,
 				526F27DD1D3B5CC300EF4E1F /* mylistbox.h in Headers */,
 				526F22B51D3B5C4900EF4E1F /* oldgamesetupstruct.h in Headers */,
