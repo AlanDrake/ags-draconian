@@ -167,6 +167,79 @@ platform jobs (Windows, MinGW x64/arm64, Ubuntu x64/arm64, macOS), hardware and 
   plugin), real save fixtures for C2, and sending `ags4-agfreader-tests` (#3147) and
   `ags4-save-roundtrip` (#2814) upstream after the `ags4-tools-*` PRs.
 
+*Status (2026-11-04):* second part done; 1.2 is closed.
+- **Fixtures:** `Common/test/data/compat/<release>/game.ags` and `agssave.001` for the 4.0.0.27
+  (Alpha 31, the earliest AGS 4 release at hand) and 4.0.0.30 releases, ~320 KB each. Built by
+  `make_fixtures.py` from each release's own Sierra-style template (flat room background, so the
+  room stays small; `fixture.asc` added to the global script) with the release's editor
+  (`AGSEditor.exe /compile`, headless) and saved by the release's engine. The script, with no
+  save, sets known state (a global int, an inventory item, the player's position, a `String`, a
+  dynamic array, a disabled hotspot), saves to slot 1 and quits; with a save, it restores it,
+  compares the state and writes `PASS` or `FAIL <what>` to `c1result.txt`. Each release restores
+  its own save with `PASS`.
+- **C1:** `Common/test/game_compat_test.cpp` (`common_test`) opens each package, reads the game
+  data (data version, editor version string, names of the character, inventory items, GUIs, script
+  module; counts of views, fonts, cursors) and `room1.crm` (size, hotspot name, compiled script).
+  Room format of both releases: `kRoomVersion_400_26` (task 3.4 must keep loading it); game data
+  `kGameVersion_400_27` and `_400_29`. The `compat_restore_<release>` ctest cases
+  (`Engine/test/compat_restore.cmake`) run the fork's engine (Software driver, `--nosound`,
+  `--user-data-dir` with the save) and fail without `PASS`. They run in every CI job that runs
+  ctest; not on Android/Emscripten.
+- **Bug found (C2), fixed:** `CharacterExtras::ReadFromSavegame` read the inventory of every 4.x
+  save in the new format; 4.0 saves before `kCharSvgVersion_400_28` have the legacy one ("Characters,
+  version 4000026 ... Component data size mismatch. Expected: 1894, actual: 46235"), so no save of
+  4.0.0.27 or earlier loads. Cause: upstream `6ec11f244` (master's 3.6.3 change merged into ags4)
+  gates on `kCharSvgVersion_36310` only, where the audio-speed block below it already has the
+  ags4 range. Upstream ags4 has the same bug (not reported yet). With the fix reverted the
+  4.0.0.27 case fails, with it both pass.
+- **3.99 not covered** (user's decision, 2026-11-04: 3.99 was a transition phase before 4.0). A
+  3.99.102 build loads its data, but its scripts don't link in the fork or in upstream ags4
+  (`unresolved imports: IsVoxAvailable`): upstream removed deprecated exports in `5e852ea37`
+  (2025-02); 186 of the 3.99.102 engine's non-plugin exports don't resolve.
+- **Fork-only script-API breaks for 4.0 games (C3), fixed the same day (see the next status):** comparing
+  the exports registered at the v4.0.0.30 tag with the fork's snapshot (by the fork's lookup rules,
+  `systemimports.cpp`), these don't resolve: `get_/set_Transparency` of Character, GUI,
+  GUIControl, Object, Overlay (the fork's Opacity). (`GUI::GetByName` and `Game::SimulateKeyPress`
+  looked missing only because the release registered them without `^N`; the fork has the `^N`
+  names that compiled scripts import.) The fixture game uses none, so the tests pass; a C3 test
+  against the release's export list would catch them.
+- **C4:** `Engine/test/plugin_api_test.cpp` (`engine_test`) dumps `Engine/plugin/agsplugin.h` with
+  comments removed, one declaration per line in order, plus the `AGS_*` names that
+  `agsplugin.cpp` looks up, and compares with `Engine/test/data/plugin_api.txt` (324 lines;
+  `AGS_UPDATE_SNAPSHOTS=1`). Swapping two `IAGSEngine` methods fails at the right declaration. Not
+  done: a plugin that calls every method (the layout, not the behaviour, is the contract).
+- Measured: ctest 879 of 879 (5 new); MSBuild `Tests.sln` x86 Release: Common 102, Tools 167,
+  Compiler 594, Engine 3, all pass (the new C++ tests are CMake-only); clang-format clean on all
+  tracked files; the new files compile with the emsdk clang/libc++ check. `cc_format_error` and
+  `cc_get_callstack` stubs live in `game_compat_test.cpp`: in `common_stubs.cpp` they collide with
+  `Tools/data/cc_script_stubs.cpp` in MSBuild `Tools.Test`. Not verified: GCC, macOS, Linux runs of
+  the engine cases (CI will be the first).
+
+*Status (2026-11-04, later): the 4.0 Transparency compat exports.* The user chose engine exports
+over script shims: compiled 4.0 games import `Character::get_Transparency^0` and friends by name, so
+only the engine can satisfy them, and recompiled projects need just declarations.
+- **Engine:** `[OBSOLETE] Transparency => Opacity` registrations of `get_/set_Transparency` on
+  Character, GUI, GUIControl, Object and Overlay (file-local functions over the opacity field), with
+  4.0's range checks and messages. Conversions `GfxDef::Trans100ToOpacity`/`OpacityToTrans100` in
+  `gfx_def.h` compose 4.0's own legacy-255 helpers, so values equal 4.0's, including its drift
+  (37 reads back as 38); opacity 251-254, which 4.0 could not store, clamps to 0 instead of -1.
+- **Script header:** `import attribute int Transparency;` on the five types under
+  `SCRIPT_COMPAT_v400_24` (4.0.0.30's API level): `agscc -C v400_24` compiles all five, the default
+  level rejects them.
+- **Tests:** `ScriptExports.ReleaseExportsResolve` checks every name of
+  `Engine/test/data/script_exports_4.0.0.30.txt` (1552 names from tag v4.0.0.30, no plugin stubs,
+  no `game_init.cpp` entity arrays) against the fork's table; names the release registered without
+  `^N` count when any overload exists. Without the new exports it lists exactly the 10. The fixture
+  script sets `player.Transparency = 37` before saving and expects 38 after the restore: both
+  releases pass on their own engines, the fork passes, and without the exports the fork engine
+  refuses the game (`unresolved import 'Character::get_Transparency^0'`); fixtures regenerated.
+  `GfxDef.Trans100OverOpacity` compares the conversions with 4.0's for 0-100 and checks the range
+  for every opacity. The export snapshot gained the 10 lines.
+- Measured: ctest 881 of 881; MSBuild `Tests.sln` (Common 103, Tools 167, Compiler 594, Engine 3)
+  and `AGS.Editor.Full.sln` build; clang-format clean. Not run: NUnit, GCC/macOS/Linux.
+- Upstream: ags4 still has Transparency natively, so these exports only belong in an upstream PR
+  that offers the fork's Opacity, in the same `[OBSOLETE]` + `SCRIPT_COMPAT` form.
+
 ### 1.4 Game corpus regression
 
 *Definition, moved from PLAN.md on 2026-11-04:*

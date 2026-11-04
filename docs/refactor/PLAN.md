@@ -76,8 +76,8 @@ Recorded 2026-10-31.
 Kept current as tasks land. Model and effort are recommendations for an AI session.
 
 Done: phases 0 and 2, 7.1a–m and o, 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (#3182, closed
-and re-cut by U.3 as #3186–#3190), the agent docs (0.6, upstream PR #3185), 1.2's first part (C2,
-C3, C5 and the AGFReader tests, `70c1a58e1`). Phase 1 is half done. Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
+and re-cut by U.3 as #3186–#3190), the agent docs (0.6, upstream PR #3185), 1.2 (contract guard
+tests, 2026-11-04). Phase 1 is half done. Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
 guards it (1.2, 1.3). Reordered 2026-11-03 after reading upstream's plans (ALIGNMENT.md): upstream
 review takes weeks, so the offers (U.3) go out first and the fork-only divergence (3.2, 3.4, 5.3)
 comes after they are closed.
@@ -85,7 +85,7 @@ comes after they are closed.
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
 | 1 | **U.3, remaining:** post ticket A (room compiler) and B (`po2tra`) from `.compare/u3-drafts/` and link them from #3189 and #3190; answer the reviews of #3186–#3190 (open since 2026-11-03, none yet) and #3185. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | the user posts; Sonnet 5.5, `medium` for the follow-up rounds |
-| 2 | **Land the CI fix and the docs compaction** (uncommitted 2026-11-04): `PixelPerfect` defaults to `true`, which `AGFReaderBlocks.GameSettingsDefaults` failed on MSVC Tests, macOS and MinGW arm64 (run 41732639569); CI green. Then **1.2, second part:** C1 fixtures, C4 test plugin, real 3.99/4.0 save fixtures | The safety net for 3.4 and phase 5 is half built; CI is red on `ags4draconianr21` | Sonnet 5.5, `medium` |
+| 2 | **Offer the save fix upstream** (`CharacterExtras::ReadFromSavegame`, 4.0 saves before 4.0.0.28; LOG.md 1.2) as a `U.x` branch off `upstream/ags4`, with the 4.0.0.27 fixture as evidence; the Transparency compat exports go with any upstream offer of Opacity | Every pre-4.0.0.28 save fails to load in upstream ags4 too | the user posts; Sonnet 5.5, `medium` |
 | 3 | **3.1:** remove PSP; delete the superseded `ags4-framescript` branch (upstream has `ViewFrame.EventName`/`OnFrameEvent`) | Small, safe, measurable | Sonnet 5.5, `medium` |
 | 4 | **Pre-push check script:** clang-format, MSVC build + tests, MSBuild solutions, header check with MSVC and libc++ | CI should confirm, not discover (2.6 needed four pushes) | Sonnet 5.5, `medium` |
 | 5 | **6.0 study:** read `ags-for-mac` (`AGS.Types` diff, the C library that replaced `AGS.Native`) and #1092; decide which 6.0 steps go upstream and whether 6.7c reuses that library's surface | Two implementations of the same split would be waste; upstream welcomes this | Opus 5.5, `high` |
@@ -131,7 +131,7 @@ Today: 35 C++ test files, **only 3 for the engine** (~430 source files); 22 C# t
 
 - [x] **1.1 Own the auto-test game:** fork `ags-test-games` with tests for fork-only features
   (2026-11-01; since 1.7 built from source).
-- [ ] **1.2 Contract guard tests**, one per contract row:
+- [x] **1.2 Contract guard tests**, one per contract row:
   - C1: load fixture games and rooms written by a 3.99 editor, the earliest 4.0 editor available and
     the current one; assert on counts and names (small fixtures in `Common/test/data/`). Record each
     fixture's room-file version: 3.4 needs it.
@@ -145,12 +145,17 @@ Today: 35 C++ test files, **only 3 for the engine** (~430 source files); 22 C# t
   *Done when:* each contract has a test that fails if it's broken. *Upstream:* C5 and the AGFReader
   tests are #3147, C2 is #2814's 5-step plan; written upstream-style first in `ags4-upstream`, then
   ported here.
-  *Status (2026-11-03, details in LOG.md):* C2 (`Engine/test/savegame_test.cpp`; script component,
-  real 3.99/4.0 saves not covered), C3 (`Engine/test/script_exports_test.cpp` against
-  `Engine/test/data/script_exports.txt`, `AGS_UPDATE_SNAPSHOTS=1`; field offsets not covered) and
-  C5 (`GameXmlRoundTripTests.cs` and `AGFReaderSample.*` on `Tools/test/data/Game.agf`,
-  `AGS_UPDATE_GAME_SAMPLE=1`) done, plus the per-block AGFReader tests. Open: C1, C4, real save fixtures, sending `ags4-agfreader-tests` (#3147) and
-  `ags4-save-roundtrip` (#2814) upstream after the `ags4-tools-*` PRs.
+  *Status (2026-11-04, details in LOG.md):* done. C1: `Common/test/game_compat_test.cpp` and the
+  `compat_restore_*` ctest cases on the 4.0.0.27 and 4.0.0.30 releases' builds of the Sierra-style
+  template (`Common/test/data/compat/`, `make_fixtures.py`; room files `kRoomVersion_400_26`); 3.99
+  alphas are not covered, by the user's decision. C2: `savegame_test.cpp` plus the releases' own
+  saves, restored by the fork's engine and checked by the game's script. C3: the export snapshot.
+  C4: `Engine/test/plugin_api_test.cpp`, `agsplugin.h` declarations in order and the `AGS_*` entry
+  points against `Engine/test/data/plugin_api.txt` (no plugin that calls every method). C5 as
+  before. Found: a save bug (fixed) and the fork's missing 4.0 `Transparency` exports (restored as
+  `[OBSOLETE]` exports; `ScriptExports.ReleaseExportsResolve` checks every 4.0.0.30 export). Left: sending
+  `ags4-agfreader-tests` (#3147) and `ags4-save-roundtrip` (#2814) upstream after the
+  `ags4-tools-*` PRs.
 - [ ] **1.3 Engine unit tests for the riskiest subsystems**, in order: script VM (`ScriptExecutor` on
   `script2` bytecode), route finder, overlay/GUI layout arithmetic, savegame components, string
   formatting (`scsprintf`), sprite cache eviction. A subsystem that reads globals gets a fixture
