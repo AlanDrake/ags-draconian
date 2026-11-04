@@ -616,7 +616,7 @@ struct GameSettings
     bool MouseWheelEnabled;
     DialogOptionNumbering NumberDialogOptions = ::kDlgOptKeysOnly;
     bool OptimizeSpriteStorage;
-    bool PixelPerfect;
+    bool PixelPerfect = true;
     int PlaySoundOnScore;
     String ReleaseDate;
     RenderAtScreenRes RenderAtScreenResolution = ::kRenderAtScreenRes_UserDefined;

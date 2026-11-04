@@ -507,7 +507,7 @@ TEST_F(AGFReaderBlocks, GameSettingsDefaults)
     DataUtil::GameSettings s;
     AGF::ReadGameSettings(s, game);
 
-    EXPECT_FALSE(s.PixelPerfect);
+    EXPECT_TRUE(s.PixelPerfect);
     EXPECT_STREQ("", s.GameName.GetCStr());
     EXPECT_EQ(40, s.GameFPS);
     EXPECT_EQ(DataUtil::kAndroidBuild_ApkEmbedded, s.AndroidBuildFormat);
