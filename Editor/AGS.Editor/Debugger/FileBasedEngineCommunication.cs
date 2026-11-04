@@ -33,8 +33,7 @@ namespace AGS.Editor
 		{
 			get
 			{
-				// The FileSystemWatcher doesn't work on Win9x
-				return (System.Environment.OSVersion.Platform == PlatformID.Win32NT);
+				return true;
 			}
 		}
 

@@ -57,19 +57,7 @@ namespace AGS.Editor
             string osName = Environment.OSVersion.VersionString;
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
-                osName = "Windows 2000";
-                if (Environment.OSVersion.Version.Major == 5)
-                {
-                    if (Environment.OSVersion.Version.Minor == 1)
-                    {
-                        osName = "Windows XP";
-                    }
-                    else if (Environment.OSVersion.Version.Minor > 1)
-                    {
-                        osName = "Windows Server 2003";
-                    }
-                }
-                else if (Environment.OSVersion.Version.Major == 6)
+                if (Environment.OSVersion.Version.Major == 6)
                 {
                     switch (Environment.OSVersion.Version.Minor)
                     {
@@ -79,11 +67,8 @@ namespace AGS.Editor
                         case 2:
                             osName = "Windows 8";
                             break;
-                        case 1:
-                            osName = "Windows 7";
-                            break;
                         default:
-                            osName = "Windows Vista";
+                            osName = "Windows 7";
                             break;
                     }
                 }
