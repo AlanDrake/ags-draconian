@@ -20,8 +20,9 @@
 // written to a temporary directory.
 //
 //=============================================================================
+#include <chrono>
 #include <cstdio>
-#include <filesystem>
+#include <cstdlib>
 #include <memory>
 #include <string>
 #include <vector>
@@ -35,7 +36,9 @@
 #include "gtest/gtest.h"
 #include "main/engine.h"
 #include "main/main.h"
+#include "util/directory.h"
 #include "util/file.h"
+#include "util/path.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -88,9 +91,13 @@ class SavegameFile : public ::testing::Test
 protected:
     void SetUp() override
     {
-        _dir = std::filesystem::temp_directory_path() /
-               ("ags_savegame_file_test_" + std::to_string(reinterpret_cast<uintptr_t>(this)));
-        std::filesystem::create_directories(_dir);
+        // a name of its own, also when ctest runs the tests in parallel processes
+        const auto *test = ::testing::UnitTest::GetInstance()->current_test_info();
+        _dir = Path::ConcatPaths(TempRoot(),
+                                 String::FromFormat("ags_savegame_file_test_%s_%llu", test->name(),
+                                                    static_cast<unsigned long long>(
+                                                        std::chrono::steady_clock::now().time_since_epoch().count())));
+        ASSERT_TRUE(Directory::CreateDirectory(_dir)) << _dir.GetCStr();
         snprintf(game.guid, sizeof(game.guid), "%s", "{01234567-89AB-CDEF-0123-456789ABCDEF}");
         game.gamename = "Savegame Test";
         game.uniqueid = 0x5A5A1234;
@@ -101,8 +108,9 @@ protected:
 
     void TearDown() override
     {
-        std::error_code ec;
-        std::filesystem::remove_all(_dir, ec);
+        for (const String &file : _files)
+            File::DeleteFile(file);
+        Directory::DeleteDirectory(_dir);
         game.guid[0] = 0;
         game.gamename = {};
         game.uniqueid = 0;
@@ -112,14 +120,32 @@ protected:
         play.messagetime = 0;
     }
 
-    String Path(const char *name) const { return String((_dir / name).u8string().c_str()); }
+    // The system's temporary directory
+    static String TempRoot()
+    {
+        for (const char *var : {"TMPDIR", "TEMP", "TMP"})
+        {
+            const char *value = getenv(var);
+            if (value && *value)
+                return value;
+        }
+        return "/tmp";
+    }
 
-    std::filesystem::path _dir;
+    // A file in the test's directory, deleted at the end of the test
+    String FilePath(const char *name)
+    {
+        _files.push_back(Path::ConcatPaths(_dir, name));
+        return _files.back();
+    }
+
+    String _dir;
+    std::vector<String> _files;
 };
 
 TEST_F(SavegameFile, DescriptionIsReadBack)
 {
-    const String path = Path("agssave.001");
+    const String path = FilePath("agssave.001");
     const auto screenshot = MakeScreenshot();
     HSaveError err = SaveGame(path, "Before the boss", screenshot.get(), kSaveCmp_GameState, false);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
@@ -156,7 +182,7 @@ TEST_F(SavegameFile, DescriptionIsReadBack)
 
 TEST_F(SavegameFile, ComponentsFollowTheDescription)
 {
-    const String path = Path("agssave.002");
+    const String path = FilePath("agssave.002");
     for (bool compress : {false, true})
     {
         play.messagetime = 4321;
@@ -183,7 +209,7 @@ TEST_F(SavegameFile, ComponentsFollowTheDescription)
 
 TEST_F(SavegameFile, DescriptionPartsCanBeLeftOut)
 {
-    const String path = Path("agssave.003");
+    const String path = FilePath("agssave.003");
     const auto screenshot = MakeScreenshot();
     ASSERT_TRUE(SaveGame(path, "only the text", screenshot.get(), kSaveCmp_GameState, false));
 
@@ -204,7 +230,7 @@ TEST_F(SavegameFile, DescriptionPartsCanBeLeftOut)
 
 TEST_F(SavegameFile, MissingFileIsReported)
 {
-    const String path = Path("no_such_save.999");
+    const String path = FilePath("no_such_save.999");
     EXPECT_FALSE(DoesSavegameExist(path));
     SavegameDescription desc;
     HSaveError err = OpenSavegame(path, desc);
@@ -214,7 +240,7 @@ TEST_F(SavegameFile, MissingFileIsReported)
 
 TEST_F(SavegameFile, FileThatIsNotASaveIsRefused)
 {
-    const String path = Path("not_a_save.txt");
+    const String path = FilePath("not_a_save.txt");
     const std::string text = "This is a text file, long enough to look like it has a header of some sort.";
     WriteAllBytes(path, std::vector<uint8_t>(text.begin(), text.end()));
     SavegameDescription desc;
@@ -225,7 +251,7 @@ TEST_F(SavegameFile, FileThatIsNotASaveIsRefused)
 
 TEST_F(SavegameFile, UnsupportedFormatVersionsAreRefused)
 {
-    const String path = Path("agssave.004");
+    const String path = FilePath("agssave.004");
     ASSERT_TRUE(SaveGame(path, "text", nullptr, kSaveCmp_GameState, false));
     std::vector<uint8_t> bytes = ReadAllBytes(path);
     const size_t version_pos = SavegameSource::Signature.GetLength();
@@ -248,7 +274,7 @@ TEST_F(SavegameFile, OlderDescriptionFormatIsRead)
 {
     // a 3.6.2 save has no file format block after the format version, so its description is
     // found by sizes rather than offsets; make one from a current save by taking the block out
-    const String path = Path("agssave.005");
+    const String path = FilePath("agssave.005");
     ASSERT_TRUE(SaveGame(path, "an older save", nullptr, kSaveCmp_GameState, false));
     const std::vector<uint8_t> save = ReadAllBytes(path);
     const size_t version_pos = SavegameSource::Signature.GetLength();
@@ -280,7 +306,7 @@ TEST_F(SavegameFile, OlderDescriptionFormatIsRead)
 
 TEST_F(SavegameFile, SaveInAMissingDirectoryFails)
 {
-    HSaveError err = SaveGame(Path("no_such_dir/agssave.001"), "text", nullptr, kSaveCmp_GameState, false);
+    HSaveError err = SaveGame(FilePath("no_such_dir/agssave.001"), "text", nullptr, kSaveCmp_GameState, false);
     ASSERT_FALSE(err);
     EXPECT_EQ(kSvgErr_FileOpenFailed, err->Code());
 }

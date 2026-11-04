@@ -130,17 +130,21 @@ TEST(MoveList, SpeedsPerStage)
     EXPECT_FLOAT_EQ(3.f, mls.GetStageSpeed(0).X);
     EXPECT_FLOAT_EQ(1.f, mls.GetStageSpeed(1).Y);
     EXPECT_EQ(2u + 6u, WalkToEnd(mls).size());
-    // fewer speeds than stages is refused
-    EXPECT_FALSE(
-        Pathfinding::CalculateMoveList(mls, {{0, 0}, {6, 0}, {6, 6}}, {{3.f, 3.f}}, 0, RunPathParams::DefaultOnce()));
 }
 
 TEST(MoveList, InvalidInputIsRefused)
 {
+#ifdef NDEBUG
     MoveList mls;
     EXPECT_FALSE(Pathfinding::CalculateMoveList(mls, {}, 1.f, 1.f, 0, RunPathParams::DefaultOnce()));
     // both speeds zero: no movement possible
     EXPECT_FALSE(Pathfinding::CalculateMoveList(mls, {{0, 0}, {1, 1}}, 0.f, 0.f, 0, RunPathParams::DefaultOnce()));
+    // fewer speeds than stages
+    EXPECT_FALSE(
+        Pathfinding::CalculateMoveList(mls, {{0, 0}, {6, 0}, {6, 6}}, {{3.f, 3.f}}, 0, RunPathParams::DefaultOnce()));
+#else
+    GTEST_SKIP() << "debug builds assert on this input";
+#endif
 }
 
 TEST(MoveList, SinglePointPathIsDoneAfterOneStep)

@@ -232,9 +232,13 @@ TEST_F(EngineSpriteCache, DynamicSpritesAreNotEvicted)
 
 TEST_F(EngineSpriteCache, DynamicSpriteReplacingAGameSpriteIsRefused)
 {
+#ifdef NDEBUG
     // a dynamic sprite may not take a slot of the game's own sprites
     EXPECT_EQ(0, add_dynamic_sprite(3, std::make_unique<Bitmap>(8, 8, 32)));
     EXPECT_TRUE(spriteset.IsAssetSprite(3));
+#else
+    GTEST_SKIP() << "debug builds assert on this input";
+#endif
 }
 
 TEST_F(EngineSpriteCache, ClearingTheCacheKeepsLockedSprites)
