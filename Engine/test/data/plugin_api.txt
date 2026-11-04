@@ -1,0 +1,324 @@
+#pragma once
+#include <stddef.h>
+#include <stdint.h>
+#ifndef DIRECTDRAW_VERSION
+typedef void *LPDIRECTDRAW2;
+typedef void *LPDIRECTDRAWSURFACE2;
+#endif
+#ifndef DIRECTSOUND_VERSION
+typedef void *LPDIRECTSOUND;
+#endif
+#ifndef DIRECTINPUT_VERSION
+typedef void *LPDIRECTINPUTDEVICE;
+#endif
+#if !defined(ALLEGRO_H) && !defined(_WINGDI_) && !defined(BITMAP_DEFINED)
+typedef void BITMAP;
+#endif
+#if !defined(_WINDOWS_)
+typedef void *HWND;
+#endif
+#if defined(_WIN32)
+#undef WINDOWS_VERSION
+#define WINDOWS_VERSION
+#endif
+#if !defined(_WIN32)
+#define __stdcall
+#endif
+#ifndef int32
+typedef int int32;
+#endif
+#define AGSIFUNC(type) virtual type __stdcall
+#define MASK_WALKABLE 1
+#define MASK_WALKBEHIND 2
+#define MASK_HOTSPOT 3
+#define MASK_REGIONS 4
+struct AGSColor {
+unsigned char r, g, b;
+unsigned char padding;
+}
+;
+struct AGSGameOptions;
+struct AGSCharacter;
+struct AGSObject;
+struct AGSViewFrame;
+struct AGSMouseCursor;
+#define FNT_INVALID 0
+#define FNT_SCI 1
+#define FNT_TTF 2
+#define PSND_WAVE 1
+#define PSND_MP3STREAM 2
+#define PSND_MP3STATIC 3
+#define PSND_OGGSTREAM 4
+#define PSND_OGGSTATIC 5
+#define PSND_MIDI 6
+#define PSND_MOD 7
+#define PSND_FLAC 8
+class IAGSScriptManagedObject {
+public: virtual int Dispose(void *address, bool force) = 0;
+virtual const char *GetType() = 0;
+virtual int Serialize(void *address, char *buffer, int bufsize) = 0;
+protected: IAGSScriptManagedObject() {
+}
+;
+~IAGSScriptManagedObject() {
+}
+;
+}
+;
+class IAGSManagedObjectReader {
+public: virtual void Unserialize(int key, const char *serializedData, int dataSize) = 0;
+protected: IAGSManagedObjectReader() {
+}
+;
+~IAGSManagedObjectReader() {
+}
+;
+}
+;
+class IAGSFontRenderer {
+public: virtual bool LoadFromDisk(int fontNumber, int fontSize) = 0;
+virtual void FreeMemory(int fontNumber) = 0;
+virtual bool SupportsExtendedCharacters(int fontNumber) = 0;
+virtual int GetTextWidth(const char *text, int fontNumber) = 0;
+virtual int GetTextHeight(const char *text, int fontNumber) = 0;
+virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) = 0;
+virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) = 0;
+virtual void EnsureTextValidForFont(char *text, int fontNumber) = 0;
+protected: IAGSFontRenderer() = default;
+~IAGSFontRenderer() = default;
+}
+;
+class IAGSFontRenderer2 : public IAGSFontRenderer {
+virtual int GetVersion() = 0;
+virtual const char *GetRendererName() = 0;
+virtual const char *GetFontName(int fontNumber) = 0;
+virtual int GetFontHeight(int fontNumber) = 0;
+virtual int GetLineSpacing(int fontNumber) = 0;
+protected: IAGSFontRenderer2() = default;
+~IAGSFontRenderer2() = default;
+}
+;
+struct AGSRenderMatrixes {
+float WorldMatrix[16];
+float ViewMatrix[16];
+float ProjMatrix[16];
+}
+;
+struct AGSRenderStageDesc {
+int Version;
+AGSRenderMatrixes Matrixes;
+}
+;
+struct AGSGameInfo {
+int Version;
+char GameName[50];
+char Guid[40];
+int UniqueId;
+}
+;
+#define AGSSTREAM_FILE_OPEN 1
+#define AGSSTREAM_FILE_CREATE 2
+#define AGSSTREAM_FILE_CREATEALWAYS 3
+#define AGSSTREAM_MODE_READ 0x01
+#define AGSSTREAM_MODE_WRITE 0x02
+#define AGSSTREAM_MODE_READWRITE (AGSSTREAM_MODE_READ | AGSSTREAM_MODE_WRITE)
+#define AGSSTREAM_MODE_SEEK 0x04
+#define AGSSTREAM_SEEK_SET 0
+#define AGSSTREAM_SEEK_CUR 1
+#define AGSSTREAM_SEEK_END 2
+class IAGSStream {
+public: virtual int GetMode() const = 0;
+virtual const char *GetPath() const = 0;
+virtual bool EOS() const = 0;
+virtual bool GetError() const = 0;
+virtual int64_t GetLength() const = 0;
+virtual int64_t GetPosition() const = 0;
+virtual size_t Read(void *buffer, size_t len) = 0;
+virtual int32_t ReadByte() = 0;
+virtual size_t Write(const void *buffer, size_t len) = 0;
+virtual int32_t WriteByte(uint8_t b) = 0;
+virtual int64_t Seek(int64_t offset, int origin) = 0;
+virtual bool Flush() = 0;
+virtual void Close() = 0;
+virtual void Dispose() = 0;
+protected: IAGSStream() = default;
+~IAGSStream() = default;
+}
+;
+#define AGSE_KEYPRESS 0x01
+#define AGSE_MOUSECLICK 0x02
+#define AGSE_POSTSCREENDRAW 0x04
+#define AGSE_PRESCREENDRAW 0x08
+#define AGSE_SAVEGAME 0x10
+#define AGSE_RESTOREGAME 0x20
+#define AGSE_PREGUIDRAW 0x40
+#define AGSE_LEAVEROOM 0x80
+#define AGSE_ENTERROOM 0x100
+#define AGSE_TRANSITIONIN 0x200
+#define AGSE_TRANSITIONOUT 0x400
+#define AGSE_FINALSCREENDRAW 0x800
+#define AGSE_TRANSLATETEXT 0x1000
+#define AGSE_SCRIPTDEBUG 0x2000
+#define AGSE_AUDIODECODE 0x4000
+#define AGSE_SPRITELOAD 0x8000
+#define AGSE_PRERENDER 0x10000
+#define AGSE_PRESAVEGAME 0x20000
+#define AGSE_POSTRESTOREGAME 0x40000
+#define AGSE_POSTROOMDRAW 0x80000
+#define AGSE_TOOHIGH 0x100000
+#define AGSLOG_LEVEL_NONE 0
+#define AGSLOG_LEVEL_ALERT 1
+#define AGSLOG_LEVEL_FATAL 2
+#define AGSLOG_LEVEL_ERROR 3
+#define AGSLOG_LEVEL_WARN 4
+#define AGSLOG_LEVEL_INFO 5
+#define AGSLOG_LEVEL_DEBUG 6
+class IAGSEngine {
+public: int32 version;
+int32 pluginId;
+public: AGSIFUNC(void) AbortGame(const char *reason);
+AGSIFUNC(const char *) GetEngineVersion();
+AGSIFUNC(void) RegisterScriptFunction(const char *name, void *address);
+#ifdef WINDOWS_VERSION
+AGSIFUNC(HWND) GetWindowHandle();
+AGSIFUNC(LPDIRECTDRAW2) GetDirectDraw2();
+AGSIFUNC(LPDIRECTDRAWSURFACE2) GetBitmapSurface(BITMAP *);
+#endif
+AGSIFUNC(BITMAP *) GetScreen();
+AGSIFUNC(void) RequestEventHook(int32 event);
+AGSIFUNC(int) GetSavedData(char *buffer, int32 bufsize);
+AGSIFUNC(BITMAP *) GetVirtualScreen();
+AGSIFUNC(void) DrawText(int32 x, int32 y, int32 font, int32 color, char *text);
+AGSIFUNC(void) GetScreenDimensions(int32 *width, int32 *height, int32 *coldepth);
+AGSIFUNC(unsigned char **) GetRawBitmapSurface(BITMAP *);
+AGSIFUNC(void) ReleaseBitmapSurface(BITMAP *);
+AGSIFUNC(void) GetMousePosition(int32 *x, int32 *y);
+AGSIFUNC(int) GetCurrentRoom();
+AGSIFUNC(int) GetNumBackgrounds();
+AGSIFUNC(int) GetCurrentBackground();
+AGSIFUNC(BITMAP *) GetBackgroundScene(int32);
+AGSIFUNC(void) GetBitmapDimensions(BITMAP *bmp, int32 *width, int32 *height, int32 *coldepth);
+AGSIFUNC(int) FWrite(void *out_buf, int32 len, int32 fhandle);
+AGSIFUNC(int) FRead(void *in_buf, int32 len, int32 fhandle);
+AGSIFUNC(void) DrawTextWrapped(int32 x, int32 y, int32 width, int32 font, int32 color, const char *text);
+AGSIFUNC(void) SetVirtualScreen(BITMAP *);
+AGSIFUNC(int) LookupParserWord(const char *word);
+AGSIFUNC(void) BlitBitmap(int32 x, int32 y, BITMAP *, int32 masked);
+AGSIFUNC(void) PollSystem();
+AGSIFUNC(int) GetNumCharacters();
+AGSIFUNC(AGSCharacter *) GetCharacter(int32);
+AGSIFUNC(AGSGameOptions *) GetGameOptions();
+AGSIFUNC(AGSColor *) GetPalette();
+AGSIFUNC(void) SetPalette(int32 start, int32 finish, AGSColor *);
+AGSIFUNC(int) GetPlayerCharacter();
+AGSIFUNC(void) RoomToViewport(int32 *x, int32 *y);
+AGSIFUNC(void) ViewportToRoom(int32 *x, int32 *y);
+AGSIFUNC(int) GetNumObjects();
+AGSIFUNC(AGSObject *) GetObject(int32);
+AGSIFUNC(BITMAP *) GetSpriteGraphic(int32);
+AGSIFUNC(BITMAP *) CreateBlankBitmap(int32 width, int32 height, int32 coldep);
+AGSIFUNC(void) FreeBitmap(BITMAP *);
+AGSIFUNC(BITMAP *) GetRoomMask(int32);
+AGSIFUNC(AGSViewFrame *) GetViewFrame(int32 view, int32 loop, int32 frame);
+AGSIFUNC(int) GetWalkbehindBaseline(int32 walkbehind);
+AGSIFUNC(void *) GetScriptFunctionAddress(const char *funcName);
+AGSIFUNC(int) GetBitmapTransparentColor(BITMAP *);
+AGSIFUNC(int) GetAreaScaling(int32 x, int32 y);
+AGSIFUNC(int) IsGamePaused();
+AGSIFUNC(int) GetRawPixelColor(int32 color);
+AGSIFUNC(int) GetSpriteWidth(int32);
+AGSIFUNC(int) GetSpriteHeight(int32);
+AGSIFUNC(void) GetTextExtent(int32 font, const char *text, int32 *width, int32 *height);
+AGSIFUNC(void) PrintDebugConsole(const char *text);
+AGSIFUNC(void) PlaySoundChannel(int32 channel, int32 soundType, int32 volume, int32 loop, const char *filename);
+AGSIFUNC(int) IsChannelPlaying(int32 channel);
+AGSIFUNC(void) MarkRegionDirty(int32 left, int32 top, int32 right, int32 bottom);
+AGSIFUNC(AGSMouseCursor *) GetMouseCursor(int32 cursor);
+AGSIFUNC(void) GetRawColorComponents(int32 coldepth, int32 color, int32 *red, int32 *green, int32 *blue, int32 *alpha);
+AGSIFUNC(int) MakeRawColorPixel(int32 coldepth, int32 red, int32 green, int32 blue, int32 alpha);
+AGSIFUNC(int) GetFontType(int32 fontNum);
+AGSIFUNC(int) CreateDynamicSprite(int32 coldepth, int32 width, int32 height);
+AGSIFUNC(void) DeleteDynamicSprite(int32 slot);
+AGSIFUNC(int) IsSpriteAlphaBlended(int32 slot);
+AGSIFUNC(void) UnrequestEventHook(int32 event);
+AGSIFUNC(void) BlitSpriteTranslucent(int32 x, int32 y, BITMAP *, int32 trans);
+AGSIFUNC(void) BlitSpriteRotated(int32 x, int32 y, BITMAP *, int32 angle);
+#ifdef WINDOWS_VERSION
+AGSIFUNC(LPDIRECTSOUND) GetDirectSound();
+#endif
+AGSIFUNC(void) DisableSound();
+AGSIFUNC(int) CanRunScriptFunctionNow();
+AGSIFUNC(int) CallGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, intptr_t arg1 = 0, intptr_t arg2 = 0, intptr_t arg3 = 0);
+AGSIFUNC(void) NotifySpriteUpdated(int32 slot);
+AGSIFUNC(void) SetSpriteAlphaBlended(int32 slot, int32 isAlphaBlended);
+AGSIFUNC(void) QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, intptr_t arg1 = 0, intptr_t arg2 = 0);
+AGSIFUNC(int) RegisterManagedObject(void *object, IAGSScriptManagedObject *callback);
+AGSIFUNC(void) AddManagedObjectReader(const char *typeName, IAGSManagedObjectReader *reader);
+AGSIFUNC(void) RegisterUnserializedObject(int key, void *object, IAGSScriptManagedObject *callback);
+AGSIFUNC(void *) GetManagedObjectAddressByKey(int key);
+AGSIFUNC(int) GetManagedObjectKeyByAddress(void *address);
+AGSIFUNC(const char *) CreateScriptString(const char *fromText);
+AGSIFUNC(int) IncrementManagedObjectRefCount(void *address);
+AGSIFUNC(int) DecrementManagedObjectRefCount(void *address);
+AGSIFUNC(void) SetMousePosition(int32 x, int32 y);
+AGSIFUNC(void) SimulateMouseClick(int32 button);
+AGSIFUNC(int) GetMovementPathWaypointCount(int32 pathId);
+AGSIFUNC(int) GetMovementPathLastWaypoint(int32 pathId);
+AGSIFUNC(void) GetMovementPathWaypointLocation(int32 pathId, int32 waypoint, int32 *x, int32 *y);
+AGSIFUNC(void) GetMovementPathWaypointSpeed(int32 pathId, int32 waypoint, int32 *xSpeed, int32 *ySpeed);
+AGSIFUNC(const char *) GetGraphicsDriverID();
+AGSIFUNC(int) IsRunningUnderDebugger();
+AGSIFUNC(void) BreakIntoDebugger();
+AGSIFUNC(void) GetPathToFileInCompiledFolder(const char *fileName, char *buffer);
+#ifdef WINDOWS_VERSION
+AGSIFUNC(LPDIRECTINPUTDEVICE) GetDirectInputKeyboard();
+AGSIFUNC(LPDIRECTINPUTDEVICE) GetDirectInputMouse();
+#endif
+AGSIFUNC(IAGSFontRenderer *) ReplaceFontRenderer(int fontNumber, IAGSFontRenderer *newRenderer);
+AGSIFUNC(void) GetRenderStageDesc(AGSRenderStageDesc *desc);
+AGSIFUNC(void) GetGameInfo(AGSGameInfo *ginfo);
+AGSIFUNC(IAGSFontRenderer *) ReplaceFontRenderer2(int fontNumber, IAGSFontRenderer2 *newRenderer);
+AGSIFUNC(void) NotifyFontUpdated(int fontNumber);
+AGSIFUNC(size_t) ResolveFilePath(const char *script_path, char *buf, size_t buf_len);
+AGSIFUNC(IAGSStream *) OpenFileStream(const char *script_path, int file_mode, int work_mode);
+AGSIFUNC(IAGSStream *) GetFileStreamByHandle(int32 fhandle);
+AGSIFUNC(void) Log(int level, const char *fmt, ...);
+AGSIFUNC(void *) CreateDynamicArray(size_t elem_count, size_t elem_size, bool is_managed_type);
+AGSIFUNC(size_t) GetDynamicArrayLength(const void *arr);
+AGSIFUNC(size_t) GetDynamicArraySize(const void *arr);
+}
+;
+class IAGSEditor {
+public: int32 version;
+int32 pluginId;
+public: AGSIFUNC(HWND) GetEditorHandle();
+AGSIFUNC(HWND) GetWindowHandle();
+AGSIFUNC(void) RegisterScriptHeader(const char *header);
+AGSIFUNC(void) UnregisterScriptHeader(const char *header);
+}
+;
+#ifdef THIS_IS_THE_PLUGIN
+#ifdef WINDOWS_VERSION
+#define DLLEXPORT extern "C" __declspec(dllexport)
+#else
+#define DLLEXPORT extern "C" __attribute__((visibility("default")))
+#endif
+DLLEXPORT const char *AGS_GetPluginName(void);
+DLLEXPORT int AGS_EditorStartup(IAGSEditor *);
+DLLEXPORT void AGS_EditorShutdown(void);
+DLLEXPORT void AGS_EditorProperties(HWND);
+DLLEXPORT int AGS_EditorSaveGame(char *, int);
+DLLEXPORT void AGS_EditorLoadGame(char *, int);
+DLLEXPORT void AGS_EngineStartup(IAGSEngine *);
+DLLEXPORT void AGS_EngineShutdown(void);
+DLLEXPORT intptr_t AGS_EngineOnEvent(int, intptr_t);
+DLLEXPORT int AGS_EngineDebugHook(const char *, int, int);
+DLLEXPORT void AGS_EngineInitGfx(const char *driverID, void *data);
+DLLEXPORT int AGS_PluginV2();
+#endif
+entry AGS_EngineDebugHook
+entry AGS_EngineInitGfx
+entry AGS_EngineOnEvent
+entry AGS_EngineShutdown
+entry AGS_EngineStartup
+entry AGS_PluginV2

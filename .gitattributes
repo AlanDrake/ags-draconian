@@ -17,3 +17,5 @@ Engine/libsrc/* linguist-vendored
 *.exe binary
 *.dll binary
 *.zip binary
+*.ags binary
+agssave.* binary

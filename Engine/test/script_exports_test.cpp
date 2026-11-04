@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iterator>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -138,4 +139,40 @@ TEST(ScriptExports, MatchSnapshot)
     for (const std::string &line : added)
         report += "  + " + line + "\n";
     ADD_FAILURE() << report;
+}
+
+// Every name the AGS 4.0.0.30 release exported must still resolve, by the same lookup the engine
+// uses when it links a compiled script (an exact match or a simpler variant of the name). The
+// release registered some names without their "^N" argument count; a compiled script imports
+// those as "name^N", which the fork resolves if it has any overload of the name.
+TEST(ScriptExports, ReleaseExportsResolve)
+{
+    simp.Clear();
+    simp_for_plugin.Clear();
+    setup_script_exports(kScriptAPI_v400_24, kScriptAPI_v400_24);
+
+    const std::string path = RELEASE_EXPORTS_4_0_0_30;
+    std::vector<std::string> names;
+    for (const std::string &line : SplitLines(ReadFile(path)))
+        if (!line.empty() && line[0] != '#')
+            names.push_back(line);
+    ASSERT_GT(names.size(), 1000u) << "missing list " << path;
+
+    std::set<std::string> fork_names; // without the "^N"
+    for (uint32_t i = 0; const ScriptImport *imp = simp.GetByIndex(i); ++i)
+    {
+        const std::string full = imp->Name.GetCStr();
+        fork_names.insert(full.substr(0, full.find('^')));
+    }
+
+    std::string missing;
+    for (const std::string &name : names)
+    {
+        const bool resolves = (name.find('^') == std::string::npos) ? fork_names.count(name) > 0
+                                                                    : simp.GetIndexOfAny(name.c_str()) != UINT32_MAX;
+        if (!resolves)
+            missing += "  " + name + "\n";
+    }
+    EXPECT_TRUE(missing.empty()) << "Exports of the 4.0.0.30 release that compiled games can no longer link:\n"
+                                 << missing;
 }

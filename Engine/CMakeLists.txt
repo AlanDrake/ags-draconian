@@ -626,9 +626,14 @@ if(AGS_TESTS)
     add_executable(
         engine_test
         test/game_test.cpp
+        test/plugin_api_test.cpp
         test/scsprintf_test.cpp
         test/systemimports_test.cpp
     )
+    target_compile_definitions(engine_test PRIVATE
+        PLUGIN_API_HEADER="${CMAKE_CURRENT_SOURCE_DIR}/plugin/agsplugin.h"
+        PLUGIN_ENGINE_SOURCE="${CMAKE_CURRENT_SOURCE_DIR}/plugin/agsplugin.cpp"
+        PLUGIN_API_SNAPSHOT="${CMAKE_CURRENT_SOURCE_DIR}/test/data/plugin_api.txt")
     set_target_properties(engine_test PROPERTIES
         CXX_STANDARD 17
         CXX_EXTENSIONS NO
@@ -661,7 +666,8 @@ if(AGS_TESTS)
         INTERPROCEDURAL_OPTIMIZATION FALSE
         )
     target_compile_definitions(engine_full_test PRIVATE
-        SCRIPT_EXPORTS_SNAPSHOT="${CMAKE_CURRENT_SOURCE_DIR}/test/data/script_exports.txt")
+        SCRIPT_EXPORTS_SNAPSHOT="${CMAKE_CURRENT_SOURCE_DIR}/test/data/script_exports.txt"
+        RELEASE_EXPORTS_4_0_0_30="${CMAKE_CURRENT_SOURCE_DIR}/test/data/script_exports_4.0.0.30.txt")
     target_link_libraries(
         engine_full_test
         engine
@@ -675,6 +681,18 @@ if(AGS_TESTS)
     include(GoogleTest)
     gtest_add_tests(TARGET engine_test)
     gtest_add_tests(TARGET engine_full_test)
+
+    # Games and saves made by released AGS 4 versions (Common/test/data/compat/make_fixtures.py)
+    if(NOT ANDROID AND NOT EMSCRIPTEN)
+        foreach(release 4.0.0.27 4.0.0.30)
+            add_test(NAME compat_restore_${release}
+                COMMAND ${CMAKE_COMMAND}
+                    -DENGINE=$<TARGET_FILE:ags>
+                    -DFIXTURE=${CMAKE_SOURCE_DIR}/Common/test/data/compat/${release}
+                    -DWORK=${CMAKE_CURRENT_BINARY_DIR}/compat/${release}
+                    -P ${CMAKE_CURRENT_SOURCE_DIR}/test/compat_restore.cmake)
+        endforeach()
+    endif()
 endif()
 
 # macOS App Bundle

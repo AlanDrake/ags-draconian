@@ -258,6 +258,7 @@ if(AGS_TESTS)
         test/common_stubs.cpp
         test/datahelpers_test.cpp
         test/error_test.cpp
+        test/game_compat_test.cpp
         test/gfxdef_test.cpp
         test/gui_test.cpp
         test/imagefile_test.cpp
@@ -288,6 +289,8 @@ if(AGS_TESTS)
         common
         gtest_main
     )
+    target_compile_definitions(common_test PRIVATE
+        COMPAT_FIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test/data/compat")
     if(AGS_USE_LOCAL_GTEST)
         target_link_libraries(common_test gtest)
     endif()
