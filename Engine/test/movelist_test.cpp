@@ -280,3 +280,16 @@ TEST(MoveList, ResetToStageAndProgress)
     mls.ResetToStage(5, 0.f);
     EXPECT_EQ(1u, mls.GetStage());
 }
+
+TEST(MoveList, ProgressOfABackwardRun)
+{
+    MoveList mls = MakeMoveList({{0, 0}, {10, 0}}, 1.f, 1.f, RunPathParams(kAnimFlow_Once, kAnimDirBackward));
+    for (int i = 0; i < 3; ++i)
+        mls.Forward();
+    EXPECT_EQ(Point(7, 0), mls.GetCurrentPos());
+    EXPECT_NEAR(0.3f, mls.GetStageProgress(), 1e-4);
+    Pathfinding::RecalculateMoveSpeeds(mls, 1.f, 1.f, 2.f, 2.f);
+    EXPECT_EQ(Point(7, 0), mls.GetCurrentPos());
+    mls.Forward();
+    EXPECT_EQ(Point(5, 0), mls.GetCurrentPos());
+}
