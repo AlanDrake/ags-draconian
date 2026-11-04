@@ -236,3 +236,32 @@ TEST_F(EngineSpriteCache, DynamicSpriteReplacingAGameSpriteIsRefused)
     EXPECT_EQ(0, add_dynamic_sprite(3, std::make_unique<Bitmap>(8, 8, 32)));
     EXPECT_TRUE(spriteset.IsAssetSprite(3));
 }
+
+TEST_F(EngineSpriteCache, ClearingTheCacheKeepsLockedSprites)
+{
+    // what the engine does on a room change, with clear_cache_on_room_change in the config
+    Use(0); // sprite 0 is always locked
+    Use(1);
+    Use(2);
+    Use(3);
+    spriteset.LockSprite(4);
+    spriteset.DisposeAllFreeCached();
+    EXPECT_TRUE(spriteset.IsSpriteLoaded(0));
+    EXPECT_TRUE(spriteset.IsSpriteLoaded(4));
+    EXPECT_FALSE(spriteset.IsSpriteLoaded(1));
+    EXPECT_FALSE(spriteset.IsSpriteLoaded(2));
+    EXPECT_FALSE(spriteset.IsSpriteLoaded(3));
+    EXPECT_EQ(2 * _oneSprite, spriteset.GetCacheSize());
+    EXPECT_EQ(2 * _oneSprite, spriteset.GetLockedSize());
+    // the cache goes on working: sprites load, lock and unlock again
+    Use(1);
+    spriteset.LockSprite(5);
+    spriteset.UnlockSprite(4);
+    EXPECT_EQ(4 * _oneSprite, spriteset.GetCacheSize());
+    EXPECT_EQ(2 * _oneSprite, spriteset.GetLockedSize());
+    // with nothing locked but sprite 0, everything else goes
+    spriteset.UnlockSprite(5);
+    spriteset.DisposeAllFreeCached();
+    EXPECT_EQ(_oneSprite, spriteset.GetCacheSize());
+    EXPECT_TRUE(spriteset.IsSpriteLoaded(0));
+}
