@@ -22,13 +22,6 @@ but a workalike plugin created by JJS for the AGS engine PSP port.
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(PSP_VERSION)
-#include <pspdisplay.h>
-#include <pspmath.h>
-#include <pspsdk.h>
-#define sin(x) vfpu_sinf(x)
-#endif
-
 #include "plugin/agsplugin.h"
 
 #if defined(BUILTIN_PLUGINS)

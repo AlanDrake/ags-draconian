@@ -56,14 +56,6 @@ typedef struct
 #define MAX_SPRITES 100
 sprite_t sprites[MAX_SPRITES];
 
-// workaround to fix this error:
-//   psp-fixup-imports ags_parallax.elf
-//   Error, no .lib.stub section found
-void dummy()
-{
-    void *tmp = new int;
-}
-
 static size_t engineFileRead(void *ptr, size_t size, size_t count, long fileHandle)
 {
     auto totalBytes = engine->FRead(ptr, size * count, fileHandle);
