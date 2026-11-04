@@ -165,7 +165,7 @@ std::unique_ptr<RTTIHelper> RuntimeScript::_rttiHelper;
     {
         if (_linkedScripts[i] == nullptr)
         {
-            run_script->_linkIndex = static_cast<uint8_t>(i);
+            run_script->_linkIndex = i;
             _linkedScripts[i] = run_script.get();
             break;
         }

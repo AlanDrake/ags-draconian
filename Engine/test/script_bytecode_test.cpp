@@ -289,3 +289,17 @@ TEST_F(ScriptBytecode, DestroyedScriptFreesItsLinkSlot)
     ASSERT_TRUE(second);
     EXPECT_EQ(slot, second->GetLinkIndex());
 }
+
+TEST_F(ScriptBytecode, EveryLinkSlotIsAddressable)
+{
+    // the instance id in a CALLAS instruction has 10 bits, so 1024 scripts can be linked at once
+    const auto compiled = Assemble({SCMD_RET});
+    std::vector<std::unique_ptr<RuntimeScript>> scripts;
+    for (int i = 0; i < 300; ++i)
+    {
+        scripts.push_back(RuntimeScript::Create(compiled.get()));
+        ASSERT_TRUE(scripts.back());
+        ASSERT_EQ(scripts.back().get(), RuntimeScript::GetLinkedScript(scripts.back()->GetLinkIndex())) << i;
+    }
+    EXPECT_EQ(299, scripts.back()->GetLinkIndex());
+}
