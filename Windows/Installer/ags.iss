@@ -204,7 +204,7 @@ end;
 [Code]
 const
   // Platform check
-  PLATFORM_CHECK_ERROR_MESSAGE = 'This program is only supported on Windows Vista or newer.';
+  PLATFORM_CHECK_ERROR_MESSAGE = 'This program is only supported on Windows 7 or newer.';
 
   // Visual C++ runtime 14.42
   // https://download.visualstudio.microsoft.com/download/pr/5319f718-2a84-4aff-86be-8dbdefd92ca1/DD1A8BE03398367745A87A5E35BEBDAB00FDAD080CF42AF0C3F20802D08C25D4/VC_redist.x86.exe
@@ -254,16 +254,16 @@ begin
     ((Version.Major = Major) AND (Version.Minor >= Minor));
 end;
 
-function IsWindowsVistaOrNewer: Boolean;
+function IsWindows7OrNewer: Boolean;
 begin
-  Result := IsWindowsVersionOrNewer(6, 0);
+  Result := IsWindowsVersionOrNewer(6, 1);
 end;
 
 function InitializeSetup(): Boolean;
 var
   ErrorCode: Integer;
 begin
-  if (NOT IsWindowsVistaOrNewer) AND (NOT WizardSilent) then
+  if (NOT IsWindows7OrNewer) AND (NOT WizardSilent) then
   begin
     MsgBox(PLATFORM_CHECK_ERROR_MESSAGE, mbCriticalError, MB_OK);
   end;
