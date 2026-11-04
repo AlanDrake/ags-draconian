@@ -31,6 +31,7 @@
 #include "ac/properties.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
+#include "gfx/gfx_def.h"
 #include "script/runtimescriptvalue.h"
 
 using namespace AGS::Common;
@@ -393,6 +394,19 @@ void GUIControl_SetOpacity(GUIControl *guio, int alpha)
     guio->SetOpacity(alpha);
 }
 
+// [OBSOLETE] the AGS 4.0 Transparency, for compiled 4.0 games
+static int GUIControl_GetTransparency(GUIControl *guio)
+{
+    return GfxDef::OpacityToTrans100(guio->GetOpacity());
+}
+
+static void GUIControl_SetTransparency(GUIControl *guio, int trans)
+{
+    if ((trans < 0) || (trans > 100))
+        quit("!SetGUITransparency: transparency value must be between 0 and 100");
+    guio->SetOpacity(GfxDef::Trans100ToOpacity(trans));
+}
+
 int GUIControl_GetBlendMode(GUIControl *guio)
 {
     return guio->GetBlendMode();
@@ -717,6 +731,16 @@ RuntimeScriptValue Sc_GUIControl_SetOpacity(void *self, const RuntimeScriptValue
     API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetOpacity);
 }
 
+RuntimeScriptValue Sc_GUIControl_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIControl, GUIControl_GetTransparency);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetTransparency);
+}
+
 RuntimeScriptValue Sc_GUIControl_GetBackgroundColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIControl, GUIControl_GetBackgroundColor);
@@ -884,6 +908,9 @@ void RegisterGUIControlAPI()
         {"GUIControl::set_Translated", API_FN_PAIR(GUIControl_SetTranslated)},
         {"GUIControl::get_Opacity", API_FN_PAIR(GUIControl_GetOpacity)},
         {"GUIControl::set_Opacity", API_FN_PAIR(GUIControl_SetOpacity)},
+        // [OBSOLETE] Transparency => Opacity
+        {"GUIControl::get_Transparency", API_FN_PAIR(GUIControl_GetTransparency)},
+        {"GUIControl::set_Transparency", API_FN_PAIR(GUIControl_SetTransparency)},
 
         {"GUIControl::get_BackgroundColor", API_FN_PAIR(GUIControl_GetBackgroundColor)},
         {"GUIControl::set_BackgroundColor", API_FN_PAIR(GUIControl_SetBackgroundColor)},

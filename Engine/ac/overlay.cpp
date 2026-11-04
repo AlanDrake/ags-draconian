@@ -38,6 +38,7 @@
 #include "ac/view.h"
 #include "debug/debug_log.h"
 #include "gfx/bitmap.h"
+#include "gfx/gfx_def.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
 #include "script/runtimescriptvalue.h"
@@ -497,6 +498,23 @@ void Overlay_SetOpacity(ScriptOverlay *scover, int alpha)
 
     if (over)
         over->SetOpacity(alpha);
+}
+
+// [OBSOLETE] the AGS 4.0 Transparency, for compiled 4.0 games
+static int Overlay_GetTransparency(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.Transparency", scover);
+    return over ? GfxDef::OpacityToTrans100(over->GetOpacity()) : 0;
+}
+
+static void Overlay_SetTransparency(ScriptOverlay *scover, int trans)
+{
+    auto *over = GetOverlayValidate("Overlay.Transparency", scover);
+    if ((trans < 0) || (trans > 100))
+        quit("!SetTransparency: transparency value must be between 0 and 100");
+
+    if (over)
+        over->SetOpacity(GfxDef::Trans100ToOpacity(trans));
 }
 
 bool Overlay_GetVisible(ScriptOverlay *scover)
@@ -1463,6 +1481,16 @@ RuntimeScriptValue Sc_Overlay_SetOpacity(void *self, const RuntimeScriptValue *p
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetOpacity);
 }
 
+RuntimeScriptValue Sc_Overlay_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetTransparency);
+}
+
+RuntimeScriptValue Sc_Overlay_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetTransparency);
+}
+
 RuntimeScriptValue Sc_Overlay_GetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_BOOL(ScriptOverlay, Overlay_GetVisible);
@@ -1661,6 +1689,9 @@ void RegisterOverlayAPI()
         {"Overlay::set_Text", API_FN_PAIR(Overlay_SetTextProperty)},
         {"Overlay::get_Opacity", API_FN_PAIR(Overlay_GetOpacity)},
         {"Overlay::set_Opacity", API_FN_PAIR(Overlay_SetOpacity)},
+        // [OBSOLETE] Transparency => Opacity
+        {"Overlay::get_Transparency", API_FN_PAIR(Overlay_GetTransparency)},
+        {"Overlay::set_Transparency", API_FN_PAIR(Overlay_SetTransparency)},
         {"Overlay::get_Visible", API_FN_PAIR(Overlay_GetVisible)},
         {"Overlay::set_Visible", API_FN_PAIR(Overlay_SetVisible)},
         {"Overlay::get_ZOrder", API_FN_PAIR(Overlay_GetZOrder)},

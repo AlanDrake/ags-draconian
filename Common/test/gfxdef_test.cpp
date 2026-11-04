@@ -32,3 +32,27 @@ TEST(GfxDef, LegacyTransparency)
         ASSERT_TRUE(trans100[i] == trans100_back[i]);
     }
 }
+
+// The 4.0 Transparency script property over opacity reads back what AGS 4.0 read back, which kept
+// the legacy 255-ranged transparency
+TEST(GfxDef, Trans100OverOpacity)
+{
+    EXPECT_EQ(GfxDef::Trans100ToOpacity(0), 255);
+    EXPECT_EQ(GfxDef::Trans100ToOpacity(100), 0);
+    EXPECT_EQ(GfxDef::OpacityToTrans100(255), 0);
+    EXPECT_EQ(GfxDef::OpacityToTrans100(0), 100);
+    for (int t = 0; t <= 100; ++t)
+    {
+        const int legacy = GfxDef::Trans100ToLegacyTrans255(t);
+        EXPECT_EQ(GfxDef::Trans100ToOpacity(t), GfxDef::LegacyTrans255ToAlpha255(legacy)) << t;
+        EXPECT_EQ(GfxDef::OpacityToTrans100(GfxDef::Trans100ToOpacity(t)), GfxDef::LegacyTrans255ToTrans100(legacy))
+            << t;
+    }
+    EXPECT_EQ(GfxDef::OpacityToTrans100(GfxDef::Trans100ToOpacity(37)), 38); // as in 4.0
+    EXPECT_EQ(GfxDef::OpacityToTrans100(GfxDef::Trans100ToOpacity(50)), 50);
+    for (int a = 0; a <= 255; ++a)
+    {
+        const int t = GfxDef::OpacityToTrans100(a);
+        EXPECT_TRUE(t >= 0 && t <= 100) << a;
+    }
+}

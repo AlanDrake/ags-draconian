@@ -387,6 +387,22 @@ int Object_GetOpacity(ScriptObject *objj)
     return objs[objj->id].opacity;
 }
 
+// [OBSOLETE] the AGS 4.0 Transparency, for compiled 4.0 games
+static void Object_SetTransparency(ScriptObject *objj, int trans)
+{
+    if ((trans < 0) || (trans > 100))
+        quit("!SetObjectTransparency: transparency value must be between 0 and 100");
+    SetObjectAlpha(objj->id, GfxDef::Trans100ToOpacity(trans));
+}
+
+static int Object_GetTransparency(ScriptObject *objj)
+{
+    if (!AssertObject("Object.Transparency", objj->id))
+        return 0;
+
+    return GfxDef::OpacityToTrans100(objs[objj->id].opacity);
+}
+
 int Object_GetAudioPanning(ScriptObject *objj)
 {
     if (!AssertObject("Object.AudioPanning", objj->id))
@@ -2129,6 +2145,18 @@ RuntimeScriptValue Sc_Object_SetOpacity(void *self, const RuntimeScriptValue *pa
 }
 
 // int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetTransparency);
+}
+
+// void (ScriptObject *objj, int trans)
+RuntimeScriptValue Sc_Object_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetTransparency);
+}
+
+// int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetView);
@@ -2380,6 +2408,9 @@ void RegisterObjectAPI()
         {"Object::set_Solid", API_FN_PAIR(Object_SetSolid)},
         {"Object::get_Opacity", API_FN_PAIR(Object_GetOpacity)},
         {"Object::set_Opacity", API_FN_PAIR(Object_SetOpacity)},
+        // [OBSOLETE] Transparency => Opacity
+        {"Object::get_Transparency", API_FN_PAIR(Object_GetTransparency)},
+        {"Object::set_Transparency", API_FN_PAIR(Object_SetTransparency)},
         {"Object::get_View", API_FN_PAIR(Object_GetView)},
         {"Object::get_Visible", API_FN_PAIR(Object_GetVisible)},
         {"Object::set_Visible", API_FN_PAIR(Object_SetVisible)},

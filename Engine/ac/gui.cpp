@@ -48,6 +48,7 @@
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "gfx/bitmap.h"
+#include "gfx/gfx_def.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"
 #include "gui/guibutton.h"
@@ -413,6 +414,20 @@ void GUI_SetOpacity(ScriptGUI *tehgui, int alpha)
 int GUI_GetOpacity(ScriptGUI *tehgui)
 {
     return guis[tehgui->id].GetOpacity();
+}
+
+// [OBSOLETE] the AGS 4.0 Transparency, for compiled 4.0 games
+static void GUI_SetTransparency(ScriptGUI *tehgui, int trans)
+{
+    if ((trans < 0) || (trans > 100))
+        quit("!SetGUITransparency: transparency value must be between 0 and 100");
+
+    guis[tehgui->id].SetOpacity(GfxDef::Trans100ToOpacity(trans));
+}
+
+static int GUI_GetTransparency(ScriptGUI *tehgui)
+{
+    return GfxDef::OpacityToTrans100(guis[tehgui->id].GetOpacity());
 }
 
 void GUI_Centre(ScriptGUI *sgui)
@@ -1295,6 +1310,18 @@ RuntimeScriptValue Sc_GUI_SetOpacity(void *self, const RuntimeScriptValue *param
 }
 
 // int (ScriptGUI *tehgui)
+RuntimeScriptValue Sc_GUI_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetTransparency);
+}
+
+// void (ScriptGUI *tehgui, int trans)
+RuntimeScriptValue Sc_GUI_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetTransparency);
+}
+
+// int (ScriptGUI *tehgui)
 RuntimeScriptValue Sc_GUI_GetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptGUI, GUI_GetVisible);
@@ -1566,6 +1593,9 @@ void RegisterGUIAPI()
         {"GUI::get_ScriptName", API_FN_PAIR(GUI_GetScriptName)},
         {"GUI::get_Opacity", API_FN_PAIR(GUI_GetOpacity)},
         {"GUI::set_Opacity", API_FN_PAIR(GUI_SetOpacity)},
+        // [OBSOLETE] Transparency => Opacity
+        {"GUI::get_Transparency", API_FN_PAIR(GUI_GetTransparency)},
+        {"GUI::set_Transparency", API_FN_PAIR(GUI_SetTransparency)},
         {"GUI::get_Visible", API_FN_PAIR(GUI_GetVisible)},
         {"GUI::set_Visible", API_FN_PAIR(GUI_SetVisible)},
         {"GUI::get_Width", API_FN_PAIR(GUI_GetWidth)},

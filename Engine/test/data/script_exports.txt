@@ -270,6 +270,7 @@ Character::get_TintGreen method plugin
 Character::get_TintLuminance method plugin
 Character::get_TintRed method plugin
 Character::get_TintSaturation method plugin
+Character::get_Transparency method plugin
 Character::get_TurnBeforeWalking method plugin
 Character::get_TurnWhenFacing method plugin
 Character::get_Turning method plugin
@@ -336,6 +337,7 @@ Character::set_SpeechAnimationDelay method plugin
 Character::set_SpeechColor method plugin
 Character::set_SpeechView method plugin
 Character::set_ThinkView method plugin
+Character::set_Transparency method plugin
 Character::set_TurnBeforeWalking method plugin
 Character::set_TurnWhenFacing method plugin
 Character::set_UseRegionTint method plugin
@@ -601,6 +603,7 @@ GUI::get_ScaleY method plugin
 GUI::get_ScriptName method plugin
 GUI::get_Shader method plugin
 GUI::get_Shown method plugin
+GUI::get_Transparency method plugin
 GUI::get_Visible method plugin
 GUI::get_Width method plugin
 GUI::get_X method plugin
@@ -620,6 +623,7 @@ GUI::set_Rotation method plugin
 GUI::set_ScaleX method plugin
 GUI::set_ScaleY method plugin
 GUI::set_Shader method plugin
+GUI::set_Transparency method plugin
 GUI::set_Visible method plugin
 GUI::set_Width method plugin
 GUI::set_X method plugin
@@ -666,6 +670,7 @@ GUIControl::get_Shader method plugin
 GUIControl::get_ShowBorder method plugin
 GUIControl::get_SolidBackground method plugin
 GUIControl::get_Translated method plugin
+GUIControl::get_Transparency method plugin
 GUIControl::get_Visible method plugin
 GUIControl::get_Width method plugin
 GUIControl::get_X method plugin
@@ -688,6 +693,7 @@ GUIControl::set_Shader method plugin
 GUIControl::set_ShowBorder method plugin
 GUIControl::set_SolidBackground method plugin
 GUIControl::set_Translated method plugin
+GUIControl::set_Transparency method plugin
 GUIControl::set_Visible method plugin
 GUIControl::set_Width method plugin
 GUIControl::set_X method plugin
@@ -1115,6 +1121,7 @@ Object::get_TintGreen method plugin
 Object::get_TintLuminance method plugin
 Object::get_TintRed method plugin
 Object::get_TintSaturation method plugin
+Object::get_Transparency method plugin
 Object::get_UseRegionTint method plugin
 Object::get_View method plugin
 Object::get_Visible method plugin
@@ -1150,6 +1157,7 @@ Object::set_Opacity method plugin
 Object::set_Scaling method plugin
 Object::set_Shader method plugin
 Object::set_Solid method plugin
+Object::set_Transparency method plugin
 Object::set_UseRegionTint method plugin
 Object::set_Visible method plugin
 Object::set_X method plugin
@@ -1200,6 +1208,7 @@ Overlay::get_TintGreen method plugin
 Overlay::get_TintLuminance method plugin
 Overlay::get_TintRed method plugin
 Overlay::get_TintSaturation method plugin
+Overlay::get_Transparency method plugin
 Overlay::get_Valid method plugin
 Overlay::get_Visible method plugin
 Overlay::get_Width method plugin
@@ -1225,6 +1234,7 @@ Overlay::set_ScaleX method plugin
 Overlay::set_ScaleY method plugin
 Overlay::set_Shader method plugin
 Overlay::set_Text method plugin
+Overlay::set_Transparency method plugin
 Overlay::set_Visible method plugin
 Overlay::set_Width method plugin
 Overlay::set_X method plugin
