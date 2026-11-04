@@ -86,11 +86,10 @@ comes after they are closed.
 |---|---|---|---|
 | 1 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
 | 2 | **3.1:** remove PSP; delete the superseded `ags4-framescript` branch (upstream has `ViewFrame.EventName`/`OnFrameEvent`) | Small, safe, measurable | Sonnet 5.5, `medium` |
-| 3 | **2.8 open item (user's call, no task):** the weekly `schedule` in `ci.yml` only fires on the repository's default branch, still the unused `draconian`; it does nothing until the default branch is changed or the workflow is on `draconian` | Weekly full runs were the point of the schedule | by the user |
-| 4 | **6.0 study:** read `ags-for-mac` (`AGS.Types` diff, the C library that replaced `AGS.Native`) and #1092; decide which 6.0 steps go upstream and whether 6.7c reuses that library's surface | Two implementations of the same split would be waste; upstream welcomes this | Opus 5.5, `high` |
-| 5 | **1.3:** engine unit tests, starting with what needs no globals (route finder, `scsprintf`, sprite cache, VM with `script2` bytecode) | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` |
-| 6 | **3.2a/b:** tool and engine Makefiles to CMake, Debian packaging | Fork-only; after U.3, because every port re-adds Makefile entries while upstream has them | Sonnet 5.5, `medium` |
-| 7 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
+| 3 | **6.0 study:** read `ags-for-mac` (`AGS.Types` diff, the C library that replaced `AGS.Native`) and #1092; decide which 6.0 steps go upstream and whether 6.7c reuses that library's surface | Two implementations of the same split would be waste; upstream welcomes this | Opus 5.5, `high` |
+| 4 | **1.3:** engine unit tests, starting with what needs no globals (route finder, `scsprintf`, sprite cache, VM with `script2` bytecode) | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` |
+| 5 | **3.2a/b:** tool and engine Makefiles to CMake, Debian packaging | Fork-only; after U.3, because every port re-adds Makefile entries while upstream has them | Sonnet 5.5, `medium` |
+| 6 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
 
 Open items found while doing finished tasks (details in LOG.md): 0.4's CodeQL setting, the
 `D3DCOMPILER_47`/Windows 7 question and the macOS 10.9 deployment target; 1.4's unfixed `agfreader`

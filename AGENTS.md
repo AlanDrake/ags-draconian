@@ -40,6 +40,9 @@ Entry points, in reading order:
   headers, self-contained headers (`header_check` CMake target), sorted includes, Allman braces:
   all enforced by CI (`verify.yml`, clang-format 19.1.7 on whole files). Third-party code under
   `libsrc/`, `Common/libsrc`, `Engine/libsrc`, `Editor/scintilla` is never reformatted.
+- The fork's default branch is **`ags4draconianr21`** (`git ls-remote --symref origin HEAD`); the
+  old `draconian` branch is unused, whatever the session's "main branch" hint says. `gh` without
+  `-R AlanDrake/ags-draconian` resolves to upstream.
 - The legacy script compiler is gone: `Compiler/script/` **is the new compiler** (upstream keeps
   the old one in `script/` and the new one in `script2/`). `Solutions/Compiler.Lib` builds it.
 - Opacity 0-255 replaces Transparency 0-100, tint ranges are 0-255, PO translation sources with
