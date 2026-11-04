@@ -656,8 +656,22 @@ if(AGS_TESTS)
     add_executable(
         engine_full_test
         test/script_exports_test.cpp
+        test/script_bytecode_test.cpp
+        test/script_vm_test.cpp
         test/savegame_test.cpp
     )
+    # The script VM tests compile their scripts in memory: the script compiler's own sources are
+    # built in, without the compiler library's copies of Common, which the engine already links
+    target_sources(engine_full_test PRIVATE
+        ${CMAKE_SOURCE_DIR}/Compiler/script/cc_compiledscript.cpp
+        ${CMAKE_SOURCE_DIR}/Compiler/script/cc_internallist.cpp
+        ${CMAKE_SOURCE_DIR}/Compiler/script/cc_symboltable.cpp
+        ${CMAKE_SOURCE_DIR}/Compiler/script/cs_compile_time.cpp
+        ${CMAKE_SOURCE_DIR}/Compiler/script/cs_compiler.cpp
+        ${CMAKE_SOURCE_DIR}/Compiler/script/cs_message_handler.cpp
+        ${CMAKE_SOURCE_DIR}/Compiler/script/cs_parser.cpp
+        ${CMAKE_SOURCE_DIR}/Compiler/script/cs_scanner.cpp)
+    target_include_directories(engine_full_test PRIVATE ${CMAKE_SOURCE_DIR}/Compiler)
     set_target_properties(engine_full_test PROPERTIES
         CXX_STANDARD 17
         CXX_EXTENSIONS NO
