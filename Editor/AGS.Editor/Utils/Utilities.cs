@@ -906,20 +906,6 @@ namespace AGS.Editor
             return icon;
         }
 
-        public static bool IsWindowsXPOrHigher()
-        {
-            OperatingSystem os = Environment.OSVersion;
-            // Windows XP reports platform as Win32NT and version number >= 5.1
-            return ((os.Platform == PlatformID.Win32NT) && ((os.Version.Major > 5) || ((os.Version.Major == 5) && (os.Version.Minor == 1))));
-        }
-
-        public static bool IsWindowsVistaOrHigher()
-        {
-            OperatingSystem os = Environment.OSVersion;
-            // Windows Vista reports platform as Win32NT and version number >= 6
-            return ((os.Platform == PlatformID.Win32NT) && (os.Version.Major >= 6));
-        }
-
         /// <summary>
         /// Creates hardlink, if failed then creates file's copy.
         /// </summary>
