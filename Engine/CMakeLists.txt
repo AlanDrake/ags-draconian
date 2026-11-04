@@ -662,6 +662,8 @@ if(AGS_TESTS)
         test/script_exports_test.cpp
         test/script_bytecode_test.cpp
         test/script_vm_test.cpp
+        test/savegame_components_test.cpp
+        test/savegame_file_test.cpp
         test/savegame_test.cpp
     )
     # The script VM tests compile their scripts in memory: the script compiler's own sources are
