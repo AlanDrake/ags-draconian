@@ -271,3 +271,21 @@ TEST_F(ScriptBytecode, StringFixupPointsIntoTheStrings)
         << cc_get_error().ErrorString.GetCStr();
     EXPECT_EQ('a', scriptExecutor->GetReturnValue());
 }
+
+TEST_F(ScriptBytecode, DestroyedScriptFreesItsLinkSlot)
+{
+    // no script outlives a test, so every link slot is free, the first one too
+    ASSERT_EQ(nullptr, RuntimeScript::GetLinkedScript(0));
+    const auto compiled = Assemble({SCMD_RET});
+    std::unique_ptr<RuntimeScript> first = RuntimeScript::Create(compiled.get());
+    ASSERT_TRUE(first);
+    const int slot = first->GetLinkIndex();
+    EXPECT_EQ(0, slot);
+    EXPECT_EQ(first.get(), RuntimeScript::GetLinkedScript(slot));
+    first.reset();
+    EXPECT_EQ(nullptr, RuntimeScript::GetLinkedScript(slot));
+    // the next script takes the lowest free slot, which is the same one
+    std::unique_ptr<RuntimeScript> second = RuntimeScript::Create(compiled.get());
+    ASSERT_TRUE(second);
+    EXPECT_EQ(slot, second->GetLinkIndex());
+}
