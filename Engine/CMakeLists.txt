@@ -658,6 +658,7 @@ if(AGS_TESTS)
     add_executable(
         engine_full_test
         test/gui_layout_test.cpp
+        test/managed_pool_test.cpp
         test/overlay_test.cpp
         test/script_exports_test.cpp
         test/script_bytecode_test.cpp

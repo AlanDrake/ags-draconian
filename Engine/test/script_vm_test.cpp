@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include "ac/dynobj/managedobjectpool.h"
 #include "gtest/gtest.h"
 #include "script/cc_common.h"
 #include "script/cs_compiler.h"
@@ -78,7 +79,19 @@ RuntimeScriptValue TestRunNested(const RuntimeScriptValue *params, int32_t param
     return RuntimeScriptValue().SetInt32(err == kScExecErr_None ? scriptExecutor->GetReturnValue() : -1000);
 }
 
-const char *const kTestImports[] = {"TestTwice^1", "TestAbort^0", "TestUpdate^0", "TestRunNested^1"};
+// Records the pool handle of a managed object passed by the script
+std::vector<int> KeptHandles;
+
+RuntimeScriptValue TestKeepHandle(const RuntimeScriptValue *params, int32_t param_count)
+{
+    ++ImportCalls;
+    if (param_count > 0)
+        KeptHandles.push_back(pool.AddressToHandle(params[0].Ptr));
+    return RuntimeScriptValue().SetInt32(0);
+}
+
+const char *const kTestImports[] = {"TestTwice^1", "TestAbort^0", "TestUpdate^0", "TestRunNested^1",
+                                    "TestKeepHandle^1"};
 
 } // namespace
 
@@ -87,9 +100,10 @@ const char *const kTestImports[] = {"TestTwice^1", "TestAbort^0", "TestUpdate^0"
 // - simp: the test imports above and the exports of the loaded scripts are registered, then removed
 // - ccCompOptions: SCOPT_AUTOIMPORT is on while scripts are linked, as at game start
 // - the script error state (cc_get_error), cleared before and after each test
+// - pool: the managed objects that scripts create; scripts release them, garbage collection runs
+//   when the pool decides (after 1024 new objects, at the end of a run)
 // - RuntimeScript's link slots: each loaded script takes one until the test ends
-// Not restored: RuntimeScript's joint RTTI (no reset exists; types only accumulate) and the
-// managed object pool (objects created by scripts are released when their last reference goes).
+// Not restored: RuntimeScript's joint RTTI (no reset exists; types only accumulate).
 class ScriptVM : public ::testing::Test
 {
 protected:
@@ -104,6 +118,8 @@ protected:
         ccAddExternalStaticFunction("TestAbort^0", TestAbort);
         ccAddExternalStaticFunction("TestUpdate^0", TestUpdate);
         ccAddExternalStaticFunction("TestRunNested^1", TestRunNested);
+        ccAddExternalStaticFunction("TestKeepHandle^1", TestKeepHandle);
+        KeptHandles.clear();
         NestedThread = &_nestedThread;
     }
 
@@ -120,11 +136,16 @@ protected:
         cc_clear_error();
     }
 
-    // Compiles a script and links it with the test imports and the previously loaded scripts
+    // Compiles a script and links it with the test imports and the previously loaded scripts.
+    // Each script gets a section name of its own, as the game build's preprocessor gives one to
+    // every script: the joint RTTI, which outlives the tests, tells types apart by section and name.
     const RuntimeScript *Load(const std::string &source, const std::string &name = "test")
     {
+        static int loaded_count = 0;
+        const std::string section = name + std::to_string(++loaded_count);
         AGS::MessageHandler mh;
-        std::unique_ptr<ccScript> compiled(ccCompileText(source, name, kCompileOptions, mh));
+        std::unique_ptr<ccScript> compiled(
+            ccCompileText("\"__NEWSCRIPTSTART_" + section + "\"\n" + source, section, kCompileOptions, mh));
         if (!compiled)
         {
             ADD_FAILURE() << "compile error: " << mh.GetError().Message;
@@ -666,4 +687,41 @@ int Outer(int x)
     EXPECT_FALSE(_thread.IsBusy());
     EXPECT_FALSE(_nestedThread.IsBusy());
     EXPECT_FALSE(scriptExecutor->IsRunning());
+}
+
+TEST_F(ScriptVM, ReferenceCycleIsCollected)
+{
+    const auto *script = Load(R"(
+managed struct Node
+{
+    Node *Other;
+};
+import void TestKeepHandle(Node *n);
+void MakeCycle()
+{
+    Node *a = new Node;
+    Node *b = new Node;
+    a.Other = b;
+    b.Other = a;
+    TestKeepHandle(a);
+    TestKeepHandle(b);
+}
+void MakeGarbage(int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        Node *temp = new Node;
+    }
+}
+)");
+    ASSERT_NE(nullptr, script);
+    Call(script, "MakeCycle");
+    ASSERT_EQ(2u, KeptHandles.size());
+    // the two nodes hold each other: no reference count drops to zero
+    EXPECT_NE(nullptr, pool.HandleToAddress(KeptHandles[0]));
+    EXPECT_NE(nullptr, pool.HandleToAddress(KeptHandles[1]));
+    // enough new objects for the pool to run the garbage collection after the run
+    Call(script, "MakeGarbage", {1100});
+    EXPECT_EQ(nullptr, pool.HandleToAddress(KeptHandles[0]));
+    EXPECT_EQ(nullptr, pool.HandleToAddress(KeptHandles[1]));
 }
