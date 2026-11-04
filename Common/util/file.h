@@ -29,6 +29,8 @@
 //=============================================================================
 #pragma once
 
+#include <ctime>
+
 #include "platform/platform.h"
 #include "util/stream.h"
 #include "util/string.h"

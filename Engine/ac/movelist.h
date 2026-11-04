@@ -14,6 +14,7 @@
 #pragma once
 
 #include "ac/runtime_defines.h" // RunPathParams
+#include "debug/assert.h"
 #include "game/savegame.h"
 #include "util/geometry.h"
 

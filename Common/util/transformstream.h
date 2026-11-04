@@ -41,6 +41,7 @@
 
 #include <vector>
 
+#include "debug/assert.h"
 #include "util/stream.h"
 
 namespace AGS

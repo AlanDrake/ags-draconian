@@ -35,6 +35,7 @@
 //=============================================================================
 #pragma once
 
+#include <ctime>
 #include <functional>
 #include <memory>
 #include <unordered_map>

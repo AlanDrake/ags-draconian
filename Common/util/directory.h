@@ -17,6 +17,7 @@
 //=============================================================================
 #pragma once
 
+#include <ctime>
 #include <locale>
 #include <memory>
 #include <regex>

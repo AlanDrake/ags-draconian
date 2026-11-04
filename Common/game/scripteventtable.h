@@ -30,6 +30,7 @@
 #include <memory>
 #include <vector>
 
+#include "debug/assert.h"
 #include "util/error.h"
 #include "util/string_types.h"
 
