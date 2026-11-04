@@ -501,21 +501,9 @@ namespace AGS.Editor.Components
                 FontFileTypeConverter.SetFontFileList(game.FontFiles);
             }
 
-            // If there are any open preview panes, these must be updated.
+            // Notify components about updated font(s).
             // Do this even if failed to replace, because we have unloaded font data earlier.
-            foreach (var font in game.Fonts)
-            {
-                if (font.FontFile == fontFile)
-                {
-                    Factory.NativeProxy.OnFontUpdated(game, font.ID, true);
-                    ContentDocument document;
-                    if (_documents.TryGetValue(font, out document))
-                    {
-                        var editor = document.Control as FontEditor;
-                        editor.OnFontUpdated(true, true);
-                    }
-                }
-            }
+            UpdateAllFontsForFile(fontFile.FileName);
         }
 
         private void UpdateFontFile(FontFile fontFile)
@@ -739,11 +727,13 @@ namespace AGS.Editor.Components
             errors.Add(new CompileInformation($"Converted {fontCount} fonts into font file / font pairs"));
         }
 
-        private void ReloadFontAfterFileChanged(AGS.Types.Font font)
+        private void ReloadFontAfterFileChanged(Game game, Font font)
         {
             try
             {
-                NativeProxy.Instance.ReloadFont(font.ID);
+                // OnFontUpdated must be called in case font's filename has changed.
+                // It both updates the font properties on native side, and reloads the font.
+                NativeProxy.Instance.OnFontUpdated(game, font.ID, true);
             }
             catch (Exception ex)
             {
@@ -752,29 +742,33 @@ namespace AGS.Editor.Components
             Factory.Events.OnFontChanged(font);
         }
 
-        private void OnFontFileChanged(object sender, FileSystemEventArgs e)
+        private void UpdateAllFontsForFile(string fontFileName)
         {
-            string fileName = e.Name;
-            // Remember that multiple fonts can reference same font file, so update all linked fonts
             foreach (var font in _agsEditor.CurrentGame.Fonts)
             {
-                if (string.Compare(font.FontFileName, fileName, true) == 0)
+                if (string.Compare(font.FontFileName, fontFileName, true) == 0)
                 {
+                    // Remember that multiple fonts can reference same font file, so update all linked fonts
                     if (!_fontUpdaters.ContainsKey(font))
                         _fontUpdaters[font] = new Debouncer();
                     var updater = _fontUpdaters[font];
                     // Invoke inside Debounce inside Invoke... sadly Debouncer implementation requires to be run from GUI thread.
                     if (_guiController.InvokeRequired)
                     {
-                        Action debounceTrigger = () => { updater.Debounce(() => { ReloadFontAfterFileChanged(font); }); };
+                        Action debounceTrigger = () => { updater.Debounce(() => { ReloadFontAfterFileChanged(_agsEditor.CurrentGame, font); }); };
                         _guiController.Invoke(debounceTrigger);
                     }
                     else
                     {
-                        updater.Debounce(() => { ReloadFontAfterFileChanged(font); });
+                        updater.Debounce(() => { ReloadFontAfterFileChanged(_agsEditor.CurrentGame, font); });
                     }
                 }
             }
+        }
+
+        private void OnFontFileChanged(object sender, FileSystemEventArgs e)
+        {
+            UpdateAllFontsForFile(e.Name);
         }
 
         private void Events_FontChanged(Types.Font font)
