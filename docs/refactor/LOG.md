@@ -463,7 +463,8 @@ in one commit, listed in `.git-blame-ignore-revs`.
 
 *Added 2026-11-04 (not in the original plan): "CI should confirm, not discover" (2.6 needed four pushes).*
 
-*Status (2026-11-04):* done locally, **not pushed**, so no workflow has run yet.
+*Status (2026-11-04):* done and pushed; the second run (`7afe0be15`) is green in all four workflows,
+with 340 header stubs compiled by clang + libc++ 21 on Ubuntu and the heavy jobs skipped.
 - **Workflows renamed:** `build.yml` → `ci.yml` ("CI"), `format.yml` → `verify.yml` ("Verify"),
   `makefile-build.yml` → `make.yml`, `build-linux-docker.yml` → `linux-docker.yml`. Cost: an upstream
   change to `build.yml` no longer cherry-picks onto it; port it by hand.
