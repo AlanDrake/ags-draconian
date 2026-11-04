@@ -404,7 +404,7 @@ void DrawingSurface_DrawTriangleOutline(ScriptDrawingSurface *sds, int x1, int y
     if (ds)
     {
         ds->DrawTriangle(Triangle(x1, y1, x2, y2, x3, y3), sds->GetRealDrawingColor());
-        sds->FinishedDrawing();
+        sds->FinishedDrawingWithBrush();
     }
 }
 
