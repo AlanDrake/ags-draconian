@@ -496,6 +496,13 @@ in one commit, listed in `.git-blame-ignore-revs`.
   push (otherwise the next push would start the old files' runs too): 368431699 (Build Linux Docker
   Image), 68872654 (GitHub Actions Build), 404365706 (Format check), 368431697 (Makefile Build).
   CodeQL (93435167) is left alone (see 0.4).
+- **First run (12:41 UTC, 2026-11-04):** every job passed except `Headers (clang, libc++)`. It set
+  the libc++ flags for the whole build, so `common` failed to compile (Ubuntu's libc++ 21 is stricter
+  than emsdk 3.1.74's: `file.h` used `time_t`, `string.cpp` `atoi`, without their headers) and no header
+  stub ran. Fix: `AGS_HEADER_CHECK_FLAGS` applies the flags to the stubs only; the missing includes were
+  added to `file.h`, `directory.h`, `assetmanager.h`, `scriptdatetime.h`, `sdldecoder.h`,
+  `graphicspace.h`, `scripteventtable.h`, `transformstream.h`, `movelist.h`, `string.cpp`, found with a
+  text scan for C library names used without their header. Not verifiable without libc++ 21 on glibc.
 - **First push:** expect problems in the Linux and clang jobs; read all of them, fix in one batch, push once.
 
 ### 3.3 Legacy compiler

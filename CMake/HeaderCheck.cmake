@@ -37,6 +37,12 @@ function(ags_add_header_check name target directory)
     target_include_directories(${name} PRIVATE "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>")
     target_compile_definitions(${name} PRIVATE "$<TARGET_PROPERTY:${target},COMPILE_DEFINITIONS>")
     target_compile_options(${name} PRIVATE "$<TARGET_PROPERTY:${target},COMPILE_OPTIONS>")
+    # Flags for the stubs only (e.g. "-stdlib=libc++ -D_LIBCPP_REMOVE_TRANSITIVE_INCLUDES"), so that the
+    # libraries the stubs depend on still build with the default standard library
+    if(AGS_HEADER_CHECK_FLAGS)
+        separate_arguments(header_check_flags UNIX_COMMAND "${AGS_HEADER_CHECK_FLAGS}")
+        target_compile_options(${name} PRIVATE ${header_check_flags})
+    endif()
     target_link_libraries(${name} PRIVATE "$<TARGET_PROPERTY:${target},LINK_LIBRARIES>")
     add_dependencies(header_check ${name})
 endfunction()

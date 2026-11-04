@@ -32,6 +32,7 @@ option(AGS_USE_LOCAL_GTEST "Use a locally installed GTest" ${AGS_USE_LOCAL_ALL_L
 
 option(AGS_TESTS "Build tests" OFF)
 option(AGS_HEADER_CHECK "Add the header_check target, which compiles every header on its own" OFF)
+set(AGS_HEADER_CHECK_FLAGS "" CACHE STRING "Extra compiler flags for the header_check target only")
 option(AGS_BUILD_ENGINE "Build Engine" ON)
 option(AGS_BUILD_TOOLS "Build Tools" OFF)
 option(AGS_BUILD_COMPILER "Build compiler" ${AGS_BUILD_TOOLS})

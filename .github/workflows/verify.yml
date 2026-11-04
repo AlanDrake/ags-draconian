@@ -113,7 +113,8 @@ jobs:
         run: |
           cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-            -DCMAKE_CXX_FLAGS="-stdlib=libc++ -D_LIBCPP_REMOVE_TRANSITIVE_INCLUDES"
+            "-DAGS_HEADER_CHECK_FLAGS=-stdlib=libc++ -D_LIBCPP_REMOVE_TRANSITIVE_INCLUDES"
 
+      # The libraries build with the default standard library; only the header stubs use libc++
       - name: Check that headers are self-contained (clang, libc++)
         run: cmake --build "${{github.workspace}}/build" --target header_check --parallel 8 -- -k
