@@ -282,3 +282,24 @@ TEST_F(SavegameContent, PrescanCountsWithoutRestoring)
     EXPECT_EQ(0, game.chars[0].x);
     EXPECT_TRUE(game.invinfo[0].name.IsEmpty());
 }
+
+TEST_F(SavegameContent, UnselectedComponentsAreSkipped)
+{
+    // a save holds components that the restore leaves out (ignored components, a retry without some)
+    SetCounts(2, 2);
+    SetState();
+    play.messagetime = 4321;
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(static_cast<SaveCmpSelection>(kSaveCmp_GameState | kCharactersAndItems), saved, error)) << error;
+
+    SetCounts(2, 2);
+    play.messagetime = 0;
+    RestoredData r_data;
+    HSaveError err = Restore(saved, kSaveCmp_GameState, r_data);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    EXPECT_EQ(4321, play.messagetime);
+    EXPECT_EQ(0, game.chars[0].x);
+    EXPECT_TRUE(game.invinfo[0].name.IsEmpty());
+    play.messagetime = 0;
+}
