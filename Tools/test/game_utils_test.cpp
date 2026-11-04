@@ -35,6 +35,8 @@ TEST(GameUtils, ConfigGraphicsDriver)
     EXPECT_STREQ("Software", ConfigValue(setup, "graphics", "driver").GetCStr());
     setup.GraphicsDriver = "D3D9";
     EXPECT_STREQ("D3D9", ConfigValue(setup, "graphics", "driver").GetCStr());
+    setup.GraphicsDriver = "D3D11";
+    EXPECT_STREQ("D3D11", ConfigValue(setup, "graphics", "driver").GetCStr());
     setup.GraphicsDriver = "OpenGL";
     EXPECT_STREQ("OGL", ConfigValue(setup, "graphics", "driver").GetCStr());
     setup.GraphicsDriver = "Unknown";

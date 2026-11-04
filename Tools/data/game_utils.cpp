@@ -70,7 +70,7 @@ String CustomPathForConfig(bool use_custom_path, const String &custom_path)
 // OpenGL driver as "OGL"
 String MakeGfxDriverConfig(const String &driver)
 {
-    if (driver == "Software" || driver == "D3D9")
+    if (driver == "Software" || driver == "D3D9" || driver == "D3D11")
     {
         return driver;
     }
