@@ -75,7 +75,7 @@ Recorded 2026-10-31.
 
 Kept current as tasks land. Model and effort are recommendations for an AI session.
 
-Done: phases 0 and 2 (with 2.8 and the pre-push script, unpushed), 7.1a–m and o, 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (#3182, closed
+Done: phases 0 and 2 (with 2.8 and the pre-push script, unpushed), 7.1a–m and o, 3.1 (PSP, pre-Windows 7; 2026-11-04, unpushed), 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (#3182, closed
 and re-cut by U.3 as #3186–#3190), the agent docs (0.6, upstream PR #3185), 1.2 (contract guard
 tests, 2026-11-04), U.5 (the save fix found by 1.2, upstream PR #3191). Phase 1 is half done. Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
 guards it (1.2, 1.3). Reordered 2026-11-03 after reading upstream's plans (ALIGNMENT.md): upstream
@@ -85,11 +85,10 @@ comes after they are closed.
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
 | 1 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
-| 2 | **3.1:** remove PSP; delete the superseded `ags4-framescript` branch (upstream has `ViewFrame.EventName`/`OnFrameEvent`) | Small, safe, measurable | Sonnet 5.5, `medium` |
-| 3 | **6.0 study:** read `ags-for-mac` (`AGS.Types` diff, the C library that replaced `AGS.Native`) and #1092; decide which 6.0 steps go upstream and whether 6.7c reuses that library's surface | Two implementations of the same split would be waste; upstream welcomes this | Opus 5.5, `high` |
-| 4 | **1.3:** engine unit tests, starting with what needs no globals (route finder, `scsprintf`, sprite cache, VM with `script2` bytecode) | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` |
-| 5 | **3.2a/b:** tool and engine Makefiles to CMake, Debian packaging | Fork-only; after U.3, because every port re-adds Makefile entries while upstream has them | Sonnet 5.5, `medium` |
-| 6 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
+| 2 | **6.0 study:** read `ags-for-mac` (`AGS.Types` diff, the C library that replaced `AGS.Native`) and #1092; decide which 6.0 steps go upstream and whether 6.7c reuses that library's surface | Two implementations of the same split would be waste; upstream welcomes this | Opus 5.5, `high` |
+| 3 | **1.3:** engine unit tests, starting with what needs no globals (route finder, `scsprintf`, sprite cache, VM with `script2` bytecode) | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` |
+| 4 | **3.2a/b:** tool and engine Makefiles to CMake, Debian packaging | Fork-only; after U.3, because every port re-adds Makefile entries while upstream has them | Sonnet 5.5, `medium` |
+| 5 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
 
 Open items found while doing finished tasks (details in LOG.md): 0.4's CodeQL setting, the
 `D3DCOMPILER_47`/Windows 7 question and the macOS 10.9 deployment target; 1.4's unfixed `agfreader`
@@ -100,7 +99,7 @@ element that is absent (an older Editor's project) leaves garbage in `agsbuild` 
 `true`, so `{}` is not the fix); only `PixelPerfect` got its default, after CI failed on it, and
 the worktree branch `ags4-agfreader-tests` (#3147) still has the test's wrong `EXPECT_FALSE`; 7.1f's
 "left open" notes (one test project measures parity; 8-bit games and old indexed interactions
-unexercised).
+unexercised); 3.1's unchecked `GetDiskFreeSpaceExW` result in `AGSWin32::GetDiskFreeSpaceMB`.
 
 Waiting: 3.2c (native `.vcxproj` to CMake) on 6.7, since the C++/CLI bridge links those libraries;
 the rest of 3.3 (`AGS.CScript.Compiler`) on 6.7d; 5.3 until U.3 is closed, then with upstream's
@@ -195,10 +194,9 @@ folders.
 Delete first, restructure after. Each removal is a `[delete]` commit verified by the test suite and
 the corpus run (1.4).
 
-- [ ] **3.1 Dead platforms** (D2, D6): `PSP/`, `Engine/Makefile.psp`, plugin `Makefile.psp` and
-  `psp.c`, `Engine/util/library_psp.h`, the 8 `AGS_PLATFORM_OS_PSP` branches, pre-Windows 7 code
-  paths and toolsets. iOS and FreeBSD stay.
-  *Done when:* `AGS_PLATFORM_OS_PSP refs` = 0 and the folders are gone.
+- [x] **3.1 Dead platforms** (2026-11-04): PSP port, plugin PSP builds and branches,
+  `AGS_PLATFORM_OS_PSP` (0 refs), pre-Windows 7 checks in the Editor, engine and installer; the
+  script enum value and config name stay (LOG.md).
 - [ ] **3.2 Duplicate build systems** (D5): delete `Engine/Makefile*`, `Compiler/Makefile`, plugin
   `Makefile`/`Makefile-objs` and `.github/workflows/make.yml`, after checking CMake covers `debian/`
   packaging. Native `Solutions/*.vcxproj` become CMake-generated VS solutions (generator or presets);
@@ -533,7 +531,7 @@ and without fork-only features, built in the worktree `E:\Projects\ags\ags4-upst
 | old-style include guards | 372 | 0 | | | |
 | using namespace in headers | 54 | 0 | | | |
 | tab-indented lines | 5,511 | 0 | | | |
-| AGS_PLATFORM_OS_PSP refs | 8 | | 0 | | |
+| AGS_PLATFORM_OS_PSP refs | 8 | | 0 (done, 3.1) | | |
 | legacy version checks (pre-3.99) | 62 | | 0 | | |
 | dead-code candidates | 154 | | < 20 | | |
 | TODO + FIXME + CHECKME | 1,147 | | no CHECKME / HACK | | |

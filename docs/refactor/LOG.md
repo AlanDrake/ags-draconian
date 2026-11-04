@@ -514,6 +514,49 @@ with 340 header stubs compiled by clang + libc++ 21 on Ubuntu and the heavy jobs
   text scan for C library names used without their header. Not verifiable without libc++ 21 on glibc.
 - **First push:** expect problems in the Linux and clang jobs; read all of them, fix in one batch, push once.
 
+### 3.1 Dead platforms
+
+*Definition, moved from PLAN.md on 2026-11-04:*
+
+**3.1 Dead platforms** (D2, D6): `PSP/`, `Engine/Makefile.psp`, plugin `Makefile.psp` and
+`psp.c`, `Engine/util/library_psp.h`, the 8 `AGS_PLATFORM_OS_PSP` branches, pre-Windows 7 code
+paths and toolsets. iOS and FreeBSD stay. Also: delete the superseded `ags4-framescript` branch
+(upstream has `ViewFrame.EventName`/`OnFrameEvent`).
+*Done when:* `AGS_PLATFORM_OS_PSP refs` = 0 and the folders are gone.
+
+*Status (2026-11-04):* done, tag `pre-3.1` (local) marks the commit before it.
+- Removed: `PSP/` (the port, its prebuilt libraries and patches), `Engine/Makefile.psp`,
+  `Engine/util/library_psp.h` (never included: `library.h` selects windows, posix or dummy), each
+  plugin's `Makefile.psp`, `psp.c`, `exports.exp` (PRX exports, PSP only), `Plugins/Makefile.psp`,
+  the `PSP_VERSION` blocks in snowrain and flashlight, parallax's `dummy()` (a PSP linker
+  workaround), the 8 `AGS_PLATFORM_OS_PSP` defines (always 0, never tested), and the references:
+  README, Xcode project, header-check and clang-tidy excludes, Debian orig-tarball filter.
+- **Kept, by the contract:** `eOS_PSP`/`eOSPSP` in the script enum (C3: removing it renumbers
+  `eOSWeb`, `eOSFreeBSD`) and `"psp"` in the `override_os` names (C6, and the array is indexed by
+  the enum). Credits in `Copyright.txt`, `Changes.txt` and the agsblend readme stay as history.
+- Pre-Windows 7: no toolset to remove (all 124 `PlatformToolset` entries are `v143`, `AGS.Native`
+  already targets `0x0601`, the editor manifest lists Windows 7 and later only). Removed: the
+  editor's unused `IsWindowsXPOrHigher`/`IsWindowsVistaOrHigher`, the About box's names for
+  Windows 2000 to Vista, the file-based debugger channel's Win9x check, the Win9x out-parameter
+  workaround in `AGSWin32::GetDiskFreeSpaceMB`; the installer now warns below Windows 7. Kept: the
+  savegame reader's skip of the Vista rich-media header (C2: older saves have it).
+- **Open:** `GetDiskFreeSpaceMB` ignores the `GetDiskFreeSpaceExW` result, so a failed call returns
+  an uninitialised value (a TODO marks it). Returning 0 is not the fix: both callers read it as "disk
+  full" and would refuse saves if the call fails on a save directory that does not exist yet.
+- Not done: `ags4-framescript` (local only, one experiment commit `5fb51ad7d`) is not deleted; the
+  agent's `git branch -D` was refused as irreversible, so it is left to the user.
+- Verified: `compare_objects.py` on the plugin and `platform.h` changes, 610 objects identical and
+  only `ags_parallax.cpp` differing (the removed `dummy()`); `prepush.py` all stages (format 1969
+  files, CMake build + ctest, header check, libc++ 340 headers, 6 MSBuild solutions with the Editor's
+  NUnit tests); `AGS_PLATFORM_OS_PSP refs` 0 (`refactor_metrics.py`); the corpus run (1.4) with the
+  new engine, 53 of 53 rooms pass (the engine's startup write check calls `GetDiskFreeSpaceMB`; no
+  save is made, so the save-time call is not exercised). Not verified: the installer (not built
+  locally), the Xcode project (no Mac).
+- Found on the way, in the corpus runner (1.4): `--startr` only sets the player's start room of a
+  new game, so a room's own script can send the player on (in the private game two of 54 rooms do,
+  25 → 503 and 500 → 502), and `run.py` charges the rest of the run, errors included, to the start
+  room, because it only checks that `Loading room <n>` appears. It should report the rooms loaded.
+
 ### 3.3 Legacy compiler
 
 *Definition, moved from PLAN.md on 2026-11-04:*
