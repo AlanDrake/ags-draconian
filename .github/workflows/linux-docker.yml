@@ -1,4 +1,4 @@
-name: Build Linux Docker Image
+name: Linux image
 
 on:
   push:
@@ -6,7 +6,12 @@ on:
       - '**'
     paths:
       - 'ci/linux/Dockerfile'
-      - '.github/workflows/build-linux-docker.yml'
+      - '.github/workflows/linux-docker.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

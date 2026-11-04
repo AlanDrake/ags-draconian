@@ -1,17 +1,33 @@
-name: Format check
+name: Verify
 
-# All first-party C/C++ files must be clang-format clean (docs/refactor/PLAN.md, tasks 2.1/2.2).
-# Third-party and unformatted directories carry a .clang-format with "DisableFormat: true".
+# The fast gate, on every push to any branch (docs/refactor/PLAN.md, 2.1, 2.6, 2.8): formatting, one
+# Linux build with tests and the GCC and clang+libc++ header checks. ci.yml is the full build.
+# Script/prepush.py runs the same checks (and the MSVC ones) locally, so this should only confirm.
 
-on: [push, pull_request]
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.git-blame-ignore-revs'
+      - '.github/ISSUE_TEMPLATE/**'
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BUILD_TYPE: Release
 
 jobs:
   clang-format:
     name: clang-format
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
         with:
@@ -21,7 +37,83 @@ jobs:
       - name: Install clang-format
         run: pip install clang-format==19.1.7
 
+      # Third-party and unformatted directories carry a .clang-format with "DisableFormat: true"
       - name: Check formatting
         run: |
           git ls-files '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hpp' '*.inl' \
             | xargs clang-format --dry-run -Werror
+
+  linux:
+    name: Linux (GCC)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up SDL dependencies on Linux (ensures OpenGL)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            gnome-desktop-testing libasound2-dev libpulse-dev libaudio-dev libjack-dev libsndio-dev \
+            libusb-1.0-0-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
+            libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+            libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
+
+      - name: Cache CMake FetchContent dependencies
+        uses: actions/cache@v5
+        with:
+          path: ${{github.workspace}}/build/_deps
+          key: fetchcontent-verify-gcc-${{ hashFiles('CMakeLists.txt', 'CMake/Fetch*.cmake') }}
+
+      - name: Configure CMake
+        run: cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+      - name: Build
+        run: cmake --build "${{github.workspace}}/build" --parallel 8
+
+      - name: Check that headers are self-contained (GCC)
+        run: cmake --build "${{github.workspace}}/build" --target header_check --parallel 8 -- -k
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest --output-on-failure
+
+  # libc++ without its transitive includes is the strictest standard library the platforms use: it finds
+  # what GCC finds, and what MSVC hides (Script/header_check_libcxx.py does the same locally)
+  headers-clang:
+    name: Headers (clang, libc++)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up clang, libc++ and SDL dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y clang libc++-dev libc++abi-dev \
+            gnome-desktop-testing libasound2-dev libpulse-dev libaudio-dev libjack-dev libsndio-dev \
+            libusb-1.0-0-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
+            libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+            libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
+
+      - name: Cache CMake FetchContent dependencies
+        uses: actions/cache@v5
+        with:
+          path: ${{github.workspace}}/build/_deps
+          key: fetchcontent-verify-clang-${{ hashFiles('CMakeLists.txt', 'CMake/Fetch*.cmake') }}
+
+      - name: Configure CMake
+        run: |
+          cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_CXX_FLAGS="-stdlib=libc++ -D_LIBCPP_REMOVE_TRANSITIVE_INCLUDES"
+
+      - name: Check that headers are self-contained (clang, libc++)
+        run: cmake --build "${{github.workspace}}/build" --target header_check --parallel 8 -- -k

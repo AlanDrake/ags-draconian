@@ -1,6 +1,25 @@
-name: Makefile Build
+name: Makefile build
 
-on: [push, pull_request]
+# The Makefiles go in task 3.2. Until then it runs with the full build (see ci.yml).
+on:
+  push:
+    branches: ['ags4draconian*']
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.git-blame-ignore-revs'
+      - '.github/ISSUE_TEMPLATE/**'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.git-blame-ignore-revs'
+      - '.github/ISSUE_TEMPLATE/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

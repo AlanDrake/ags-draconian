@@ -1,6 +1,37 @@
-name: GitHub Actions Build
+name: CI
 
-on: [push, pull_request]
+# The full build (docs/refactor/PLAN.md, 2.8). It runs on the ags4draconian* branches, release tags,
+# pull requests, weekly and on demand; verify.yml (the fast gate) runs on every push. Only a tag, the
+# schedule and a manual run with full=true build every platform and the packages; the rest build the
+# light set (see the plan job). Run Script/prepush.py before pushing, so that these only confirm.
+on:
+  push:
+    branches: ['ags4draconian*']
+    tags: ['v*']
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.git-blame-ignore-revs'
+      - '.github/ISSUE_TEMPLATE/**'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.git-blame-ignore-revs'
+      - '.github/ISSUE_TEMPLATE/**'
+  schedule:
+    - cron: '0 4 * * 1'   # Mondays 04:00 UTC; GitHub runs it on the default branch only
+  workflow_dispatch:
+    inputs:
+      full:
+        description: 'Run every platform, the packages and the release job'
+        type: boolean
+        default: true
+
+# A newer push to the same ref replaces the running one; a release tag is never cancelled
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 permissions:
   contents: read
@@ -17,6 +48,42 @@ env:
   BUILD_TYPE: Release
 
 jobs:
+  # The one place that decides what runs. A full run is a tag push, the weekly schedule, or a manual
+  # run with full=true (the default): `gh workflow run ci.yml --ref <branch> -f full=true`. Any other
+  # push or pull request builds the light platforms only (Windows MSVC and Ubuntu x86_64, which also
+  # run the auto-test game) plus the Windows MSVC jobs. Heavy jobs say `if: needs.plan.outputs.full == 'true'`.
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      full: ${{ steps.plan.outputs.full }}
+      platforms: ${{ steps.plan.outputs.platforms }}
+    steps:
+    - name: Decide
+      id: plan
+      env:
+        FULL: ${{ (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.full == true) }}
+      run: |
+        cat > platforms.json <<'EOF'
+        [
+          { "light": false, "name": "Win-mingw-x86_64", "os": "windows-2022",     "sys": "Windows", "gfx": "D3D9", "artifact": "ags-mingw-x86_64", "shell": "msys2 {0}", "runbin": "./ags",      "bindir": "",        "cmakecmd": "cmake", "msystem": "mingw64", "msys-env": "mingw-w64-x86_64" },
+          { "light": false, "name": "Win-mingw-arm64",  "os": "windows-11-arm",   "sys": "Windows", "gfx": "D3D9", "artifact": "ags-mingw-arm64",  "shell": "msys2 {0}", "runbin": "./ags",      "bindir": "",        "cmakecmd": "cmake", "msystem": "clangarm64", "msys-env": "mingw-w64-clang-aarch64" },
+          { "light": true,  "name": "Windows",          "os": "windows-2022",     "sys": "Windows", "gfx": "D3D9", "artifact": "ags-windows",      "shell": "cmd",       "runbin": ".\\ags.exe", "bindir": "Release", "cmakecmd": "cmake" },
+          { "light": true,  "name": "Ubuntu-x86_64",    "os": "ubuntu-latest",    "sys": "Ubuntu",  "gfx": "OGL",  "artifact": "ags-linux-x86_64", "shell": "sh",        "runbin": "./ags",      "bindir": "",        "cmakecmd": "cmake" },
+          { "light": false, "name": "Ubuntu-Arm64",     "os": "ubuntu-22.04-arm", "sys": "Ubuntu",  "gfx": "OGL",  "artifact": "ags-linux-Arm64",  "shell": "sh",        "runbin": "./ags",      "bindir": "",        "cmakecmd": "cmake" },
+          { "light": false, "name": "macOS",            "os": "macos-latest",     "sys": "macOS",   "gfx": "OGL",  "artifact": "ags-macos",        "shell": "sh",        "runbin": "./ags",      "bindir": "",        "cmakecmd": "cmake" }
+        ]
+        EOF
+        if [ "$FULL" = "true" ]; then
+          filter='.'
+        else
+          filter='map(select(.light))'
+        fi
+        echo "full=$FULL" >> "$GITHUB_OUTPUT"
+        echo "platforms=$(jq -c "{platform: ($filter)}" platforms.json)" >> "$GITHUB_OUTPUT"
+        cat "$GITHUB_OUTPUT"
+
   # Builds the auto-test game from its source with the C++ tools of this run, in strict mode, for the
   # platform jobs to run (docs/refactor/PLAN.md, 7.1j and 1.7). The project is checked out at the same
   # tag the hand-made release had.
@@ -63,7 +130,7 @@ jobs:
 
   build:
     name: ${{ matrix.platform.name }}
-    needs: auto-test-game
+    needs: [plan, auto-test-game]
     runs-on: ${{ matrix.platform.os }}
     timeout-minutes: 20
     defaults:
@@ -72,14 +139,8 @@ jobs:
 
     strategy:
       fail-fast: false
-      matrix:
-        platform:
-        - { name: Win-mingw-x86_64, os: windows-2022,   sys: Windows, gfx: D3D9, artifact: 'ags-mingw-x86_64', shell: 'msys2 {0}', runbin: "./ags",      bindir: "",        cmakecmd: "cmake", msystem: mingw64, msys-env: mingw-w64-x86_64 }
-        - { name: Win-mingw-arm64,  os: windows-11-arm,   sys: Windows, gfx: D3D9, artifact: 'ags-mingw-arm64',  shell: 'msys2 {0}', runbin: "./ags",      bindir: "",        cmakecmd: "cmake", msystem: clangarm64, msys-env: mingw-w64-clang-aarch64 }
-        - { name: Windows,              os: windows-2022,   sys: Windows, gfx: D3D9, artifact: 'ags-windows',      shell: cmd,         runbin: ".\\ags.exe", bindir: "Release", cmakecmd: "cmake" }
-        - { name: Ubuntu-x86_64,        os: ubuntu-latest,    sys: Ubuntu,  gfx: OGL,  artifact: 'ags-linux-x86_64', shell: sh,          runbin: "./ags",      bindir: "",        cmakecmd: "cmake" }
-        - { name: Ubuntu-Arm64,         os: ubuntu-22.04-arm, sys: Ubuntu,  gfx: OGL,  artifact: 'ags-linux-Arm64',  shell: sh,          runbin: "./ags",      bindir: "",        cmakecmd: "cmake" }
-        - { name: macOS,                os: macos-latest,     sys: macOS,   gfx: OGL,  artifact: 'ags-macos',        shell: sh,          runbin: "./ags",      bindir: "",        cmakecmd: "cmake" }
+      # {"platform": [...]} from the plan job: the light entries, or all six on a full run
+      matrix: ${{ fromJSON(needs.plan.outputs.platforms) }}
 
     steps:
     - name: Set up MSYS2
@@ -128,10 +189,10 @@ jobs:
     - name: Build
       run: cmake --build "${{github.workspace}}/build" --config ${{env.BUILD_TYPE}} --parallel 8
 
-    # Every header must compile on its own (docs/refactor/PLAN.md, 2.6); MSVC and GCC (macOS is already the slowest job)
+    # Every header must compile on its own (docs/refactor/PLAN.md, 2.6); MSVC here, GCC and clang+libc++ in verify.yml
     - name: Check that headers are self-contained
-      if: matrix.platform.name == 'Windows' || matrix.platform.name == 'Ubuntu-x86_64'
-      run: cmake --build "${{github.workspace}}/build" --config ${{env.BUILD_TYPE}} --target header_check --parallel 8 ${{ matrix.platform.sys == 'Ubuntu' && '-- -k' || '' }}
+      if: matrix.platform.name == 'Windows'
+      run: cmake --build "${{github.workspace}}/build" --config ${{env.BUILD_TYPE}} --target header_check --parallel 8
 
     - name: Test
       working-directory: ${{github.workspace}}/build
@@ -198,6 +259,8 @@ jobs:
 
   build-emscripten-bundle:
     name: Emscripten
+    needs: plan
+    if: needs.plan.outputs.full == 'true'
     runs-on: ubuntu-latest
     env:
       EM_VERSION: 3.1.74
@@ -235,6 +298,8 @@ jobs:
 
   build-android-bundle:
     name: Android
+    needs: plan
+    if: needs.plan.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -791,7 +856,9 @@ jobs:
   package-pdbs:
     name: PDB Packaging
     runs-on: ubuntu-latest
+    if: needs.plan.outputs.full == 'true'
     needs:
+      - plan
       - windows-msvc-engine
       - windows-msvc-editor
     steps:
@@ -834,6 +901,8 @@ jobs:
 
   linux-binaries-builds:
     name: Linux (${{ matrix.platform.arch }}, ${{ matrix.platform.rpath && 'Tar.gz' || 'Deb PKG' }})
+    needs: plan
+    if: needs.plan.outputs.full == 'true'
     runs-on: ${{ matrix.platform.os }}
     timeout-minutes: 90
 
@@ -884,7 +953,8 @@ jobs:
 
   build-linux-bundle:
     name: Linux Bundle
-    needs: linux-binaries-builds
+    needs: [plan, linux-binaries-builds]
+    if: needs.plan.outputs.full == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -927,6 +997,8 @@ jobs:
 
   macos-tools-builds:
     name: macOS Tools (arm64)
+    needs: plan
+    if: needs.plan.outputs.full == 'true'
     runs-on: macos-15
     timeout-minutes: 20
 
@@ -958,6 +1030,8 @@ jobs:
 
   linux-make-tools:
     name: Linux Tools (${{ matrix.platform.archname }})
+    needs: plan
+    if: needs.plan.outputs.full == 'true'
     runs-on: ${{ matrix.platform.os }}
     timeout-minutes: 20
 
@@ -1008,7 +1082,9 @@ jobs:
   package-tools-archives:
     name: Tools Packaging
     runs-on: ubuntu-latest
+    if: needs.plan.outputs.full == 'true'
     needs:
+      - plan
       - windows-msvc-tools
       - linux-make-tools
     steps:
@@ -1083,7 +1159,9 @@ jobs:
     name: Windows Packaging
     runs-on: windows-2022
     timeout-minutes: 60
+    if: needs.plan.outputs.full == 'true'
     needs:
+      - plan
       - build-emscripten-bundle
       - build-android-bundle
       - build-linux-bundle
@@ -1229,7 +1307,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    if: needs.plan.outputs.full == 'true'
     needs:
+      - plan
       - build-emscripten-bundle
       - build-android-bundle
       - build-linux-bundle
