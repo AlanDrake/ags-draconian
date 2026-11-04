@@ -15,7 +15,7 @@ on 2026-11-02; references are issue/PR numbers there.
 | D4 Avalonia editor; WinForms in maintenance | No cross-platform editor is planned; UI framework undecided; the team will not adopt a whole new editor. Welcome in small PRs: `AGS.Types` without WinForms (#1092), `AGS.Native` platform-neutral or gone, building through the tools (P6). a-riddle-fan's `ags-for-mac` (3.6.x, .NET 10 + Avalonia, `AGS.Native` replaced by a CMake C library, ~60 `AGS.Types` files adapted) already exists, AI-assisted, not offered upstream as is. | Tasks 6.0, 6.3, 6.7 are exactly what upstream welcomes; 6.8 (Avalonia front end) is fork-only. **Before 6.7c, read `ags-for-mac`'s C library and its `AGS.Types` diff**: it is a second implementation of the same split, on 3.6.x, and shows which 60 files need touching. Coordinate on #1092/#3177 rather than inventing the split twice. |
 | D5 CMake only for native code | Upstream keeps CMake, MSBuild and the hand Makefiles; CI depends on all three; `debian/` packaging uses `Engine/Makefile` | Fork-only. Fine, but it is the single biggest source of port friction: every `U.x` port must re-add Makefile and `.vcxproj` entries (already learned with `mk_linktest.py`). 3.2 stays low priority until the tool work is upstreamed. |
 | D6 Windows 7+ | Editor must support Windows 8 at least (edmundito, #3177) | Compatible. |
-| D7 build through the C++ tools, delete the C# build code | #2316 is the master ticket; ivan-mogilko 2026-10-30: "compilation and translation should use the command-line tools"; the Editor switch is "a separate task" | Aligned; the fork is ahead. Two of #2316's open items ("Room file compiler", "PO translation compiler", both "ticket TBD") are done in the fork and sit in PR #3182. **File the two upstream tickets** (referencing #2316 and #3182) so the work has a home; split #3182 along them if review stalls. Upstream review will ask for C++11, Makefile/MSBuild entries, and logging through the Common log system (#2530, ivan-mogilko) rather than ad-hoc output: `agsbuild --json` (7.1h) may need to become a log sink. |
+| D7 build through the C++ tools, delete the C# build code | #2316 is the master ticket; ivan-mogilko 2026-10-30: "compilation and translation should use the command-line tools"; the Editor switch is "a separate task" | Aligned; the fork is ahead. Two of #2316's open items ("Room file compiler", "PO translation compiler", both "ticket TBD") are done in the fork; #3182 was split along them (U.3: #3186–#3190). Upstream review will ask for C++11, Makefile/MSBuild entries, and logging through the Common log system (#2530, ivan-mogilko) rather than ad-hoc output: `agsbuild --json` (7.1h) may need to become a log sink. |
 
 ## Phases 1-7 against upstream tickets
 
@@ -85,8 +85,7 @@ Applied to PLAN.md on 2026-11-03 (ground rules 7-8, tasks 0.6, 0.7, U.3, U.4, no
 5.3, 6.7c, 7.1n, D4, and the reordered "Next up"). Kept here as the reasoning.
 
 1. Keep 1.2 first, written in upstream style; add "offer C5/AGFReader tests as #3147" to it.
-2. Add a task **U.3**: file the "room compiler" and "PO compiler" tickets under #2316, split
-   #3182 along them if asked, and adapt `agsbuild` diagnostics to the Common log system (#2530).
+2. Add a task **U.3**: split #3182 along #2316's "room compiler" and "PO compiler" items, and adapt `agsbuild` diagnostics to the Common log system (#2530).
 3. Before 6.7c: a short study task on `ags-for-mac` (C library surface, `AGS.Types` diff) and
    #1092; decide whether 6.0 steps 1-3 can be offered upstream as the #1092 fix.
 4. Postpone 3.2 and 5.3 until U.3 is closed; when 5.3 starts, use upstream's draft directory

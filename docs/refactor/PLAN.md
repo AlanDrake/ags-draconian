@@ -77,21 +77,20 @@ Kept current as tasks land. Model and effort are recommendations for an AI sessi
 
 Done: phases 0 and 2, 7.1a–m and o, 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (#3182, closed
 and re-cut by U.3 as #3186–#3190), the agent docs (0.6, upstream PR #3185), 1.2 (contract guard
-tests, 2026-11-04). Phase 1 is half done. Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
+tests, 2026-11-04), U.5 (the save fix found by 1.2, upstream PR #3191). Phase 1 is half done. Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
 guards it (1.2, 1.3). Reordered 2026-11-03 after reading upstream's plans (ALIGNMENT.md): upstream
 review takes weeks, so the offers (U.3) go out first and the fork-only divergence (3.2, 3.4, 5.3)
 comes after they are closed.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **U.3, remaining:** post ticket A (room compiler) and B (`po2tra`) from `.compare/u3-drafts/` and link them from #3189 and #3190; answer the reviews of #3186–#3190 (open since 2026-11-03, none yet) and #3185. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | the user posts; Sonnet 5.5, `medium` for the follow-up rounds |
-| 2 | **Offer the save fix upstream** (`CharacterExtras::ReadFromSavegame`, 4.0 saves before 4.0.0.28; LOG.md 1.2) as a `U.x` branch off `upstream/ags4`, with the 4.0.0.27 fixture as evidence; the Transparency compat exports go with any upstream offer of Opacity | Every pre-4.0.0.28 save fails to load in upstream ags4 too | the user posts; Sonnet 5.5, `medium` |
-| 3 | **3.1:** remove PSP; delete the superseded `ags4-framescript` branch (upstream has `ViewFrame.EventName`/`OnFrameEvent`) | Small, safe, measurable | Sonnet 5.5, `medium` |
-| 4 | **Pre-push check script:** clang-format, MSVC build + tests, MSBuild solutions, header check with MSVC and libc++ | CI should confirm, not discover (2.6 needed four pushes) | Sonnet 5.5, `medium` |
-| 5 | **6.0 study:** read `ags-for-mac` (`AGS.Types` diff, the C library that replaced `AGS.Native`) and #1092; decide which 6.0 steps go upstream and whether 6.7c reuses that library's surface | Two implementations of the same split would be waste; upstream welcomes this | Opus 5.5, `high` |
-| 6 | **1.3:** engine unit tests, starting with what needs no globals (route finder, `scsprintf`, sprite cache, VM with `script2` bytecode) | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` |
-| 7 | **3.2a/b:** tool and engine Makefiles to CMake, Debian packaging | Fork-only; after U.3, because every port re-adds Makefile entries while upstream has them | Sonnet 5.5, `medium` |
-| 8 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
+| 1 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
+| 2 | **3.1:** remove PSP; delete the superseded `ags4-framescript` branch (upstream has `ViewFrame.EventName`/`OnFrameEvent`) | Small, safe, measurable | Sonnet 5.5, `medium` |
+| 3 | **Pre-push check script:** clang-format, MSVC build + tests, MSBuild solutions, header check with MSVC and libc++ | CI should confirm, not discover (2.6 needed four pushes) | Sonnet 5.5, `medium` |
+| 4 | **6.0 study:** read `ags-for-mac` (`AGS.Types` diff, the C library that replaced `AGS.Native`) and #1092; decide which 6.0 steps go upstream and whether 6.7c reuses that library's surface | Two implementations of the same split would be waste; upstream welcomes this | Opus 5.5, `high` |
+| 5 | **1.3:** engine unit tests, starting with what needs no globals (route finder, `scsprintf`, sprite cache, VM with `script2` bytecode) | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` |
+| 6 | **3.2a/b:** tool and engine Makefiles to CMake, Debian packaging | Fork-only; after U.3, because every port re-adds Makefile entries while upstream has them | Sonnet 5.5, `medium` |
+| 7 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
 
 Open items found while doing finished tasks (details in LOG.md): 0.4's CodeQL setting, the
 `D3DCOMPILER_47`/Windows 7 question and the macOS 10.9 deployment target; 1.4's unfixed `agfreader`
@@ -501,22 +500,23 @@ and without fork-only features, built in the worktree `E:\Projects\ags\ags4-upst
 - [x] **U.1 `ags4-bugfixes`** merged as #3181 (2026-11-02).
 - [x] **U.2 `ags4-buildtools`** (#3182, 2026-11-03): the 7.1 work in upstream's formats, parity with
   the upstream editor; superseded by U.3's five branches.
-- [ ] **U.3 Tickets and pieces for #2316.** File the two tickets upstream's master ticket lists as
-  "TBD" (4.0 room compiler, PO translation compiler: what the tool reads and writes, the parity
-  check, a link to #3182) and split the work along them. The PO compiler goes upstream as the new
+- [ ] **U.3 Pieces for #2316.** Split #3182 along two of #2316's open items (4.0 room compiler,
+  PO translation compiler) into PRs of reviewable size. The PO compiler goes upstream as the new
   tool `po2tra` (decided 2026-11-03); upstream's `trac` keeps compiling TRS and is removed only if
   the maintainers agree. `agsbuild`'s diagnostics move onto the Common log system (`debug::out`,
   #2530, ivan-mogilko's preference), so `--json` is a log sink. Follow-ups for the same milestone:
   `--version` (#3068), `agscc -I` (#3070).
-  *Done when:* both tickets exist and the pieces have no open review comments about structure.
+  *Done when:* the pieces have no open review comments about structure.
   *Status (2026-11-03, details in LOG.md):* #3182 closed; re-cut as five branches on
   `upstream/ags4` (1 fixes, 2 table-driven `agfreader` + drift guard, 3 `agf2dta` parity, 4
   `crmbuild`, each on the previous; 5 `po2tra`), rebased after the `master` → `ags4` merge
-  `e709f84a0`, tips verified. Opened as #3186–#3190 (2026-11-03; no reviews by 2026-11-04);
-  tickets A and B not posted. Dropped until #2530: `--json`, cancel, the
-  stage split. Not done: MSBuild and NUnit on the new branches. Drafts: `.compare/u3-drafts/`.
+  `e709f84a0`, tips verified. Opened as #3186–#3190 (2026-11-03; no reviews by 2026-11-04).
+  Dropped until #2530: `--json`, cancel, the
+  stage split. Not done: MSBuild and NUnit on the new branches.
 - [x] **U.4 Agent docs upstream** (PR #3185, base `master`). Review changes are made in the
   worktree first and carried over here; the fork's copy leaves out AGS 3 (`master`, 3.x).
+- [x] **U.5 Save fix** (PR #3191, 2026-11-04, `ags4-fixcharinvsave`): 4.0 saves before 4.0.0.28
+  load again (LOG.md 1.2, U.5).
 
 ---
 

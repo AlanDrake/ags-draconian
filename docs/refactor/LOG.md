@@ -961,7 +961,7 @@ PO reader keeps one entry per text.
   every text translated (783 texts, 79 with escapes), decompiling both compiled files gives
   identical POs. The two `.tra` files differ only in the order of the texts.
 - Upstream gets `po2tra` as a new tool for PO sources, next to its own `trac` (TRS), which
-  stays as it is (decided 2026-11-03, until further notice). U.3's PO ticket and any port of
+  stays as it is (decided 2026-11-03, until further notice). U.3's `po2tra` PR and any port of
   7.1m/7.1o add `po2tra`; removing `trac` upstream needs the maintainers' agreement.
 
 ### U.1 `ags4-bugfixes`
@@ -1062,7 +1062,7 @@ maintainer review: drop `agf2dta --script-dir` and pack the scripts separately, 
   lists link with MSVC, `mk_linktest.py`); `tappy` isn't installed locally, so the TAP file was
   counted by hand.
 
-### U.3 Tickets and pieces for #2316
+### U.3 Pieces for #2316
 
 *Status of 2026-11-03, moved from PLAN.md on 2026-11-04:*
 
@@ -1085,8 +1085,7 @@ uses its build order (the fork's editor fix `e69119490` is fork-only). `po2tra` 
 game's PO gives the same `.tra` and PO as the fork's. Makefile source lists of `po2tra`, `trac`
 and `crmbuild` link (`mk_linktest.py`). Every commit of the pre-rebase stack passed `rebase --exec verify_strict.sh` (31 of 31); after
 the rebase only the tips were verified (4: 102/592/104, parity 58 of 58, auto-test 2380 of 2380;
-5: 99/561/82). Not done: MSBuild (`Tools.sln`, `Tests.sln`) and NUnit on the new branches. Drafts for the user to review and post: `.compare/u3-drafts/` (ticket A room
-compiler, ticket B `po2tra`, the five PR descriptions). Found on the way: `verify_strict.sh`
+5: 99/561/82). Not done: MSBuild (`Tools.sln`, `Tests.sln`) and NUnit on the new branches. Found on the way: `verify_strict.sh`
 reported "ok" with a failed test (fixed: it fails on any `FAILED`), and a stale
 `mk_linktest/agspak.exe` in the build directory made the harness report a wrong ender.
 
@@ -1098,3 +1097,15 @@ reported "ok" with a failed test (fixed: it fails on any `FAILED`), and a stale
 `AGENTS.md` and `docs/context/`, superseding the `AGENTS.md` of #3025. The fork's
 `docs/context/` is a copy; changes requested in review are applied in the worktree and copied
 here, never edited here first.
+
+### U.5 Save fix upstream
+
+*Definition and status, 2026-11-04:*
+
+**U.5 Save fix** (PR #3191, branch `ags4-fixcharinvsave` off `upstream/ags4` `e709f84a0`, one
+commit `5ca3e45ce`): the fix of `CharacterExtras::ReadFromSavegame` found by 1.2 (fork
+`d403d7236`), so 4.0 saves before 4.0.0.28 read the legacy inventory. Upstream had the same bug.
+Verified on the upstream engine build with the fork's compat fixtures (not committed upstream):
+without the fix the 4.0.0.27 save fails with "Component data size mismatch" and 4.0.0.30 passes;
+with it both pass. `engine_test` 3/3, `savegame_test` 6/6, `common_test` 99/99. The Transparency
+compat exports (fork `587403037`) are not part of it: they belong to the Opacity offer (#3119).
