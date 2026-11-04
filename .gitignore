@@ -219,3 +219,32 @@ Editor/References/**/*.dll
 
 # Python bytecode from Script/ tools
 __pycache__/
+
+# AI coding assistant per-tool instructions and local configuration.
+#
+# AGENTS.md is committed and is deliberately NOT ignored here. Everything
+# below is per-developer setup for whichever tool you happen to use. It is
+# yours, it stays out of the repository, and nothing in it overrides
+# AGENTS.md.
+# Claude Code
+CLAUDE.md
+CLAUDE.local.md
+**/.claude/
+# Cursor
+.cursorrules
+.cursorignore
+.cursorindexingignore
+**/.cursor/
+# Codex
+**/.codex/
+# Gemini CLI
+GEMINI.md
+**/.gemini/
+# GitHub Copilot
+.github/copilot-instructions.md
+.github/instructions/
+.github/prompts/
+# OpenCode
+opencode.json
+opencode.jsonc
+**/.opencode/
