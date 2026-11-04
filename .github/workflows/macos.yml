@@ -1,0 +1,164 @@
+name: macOS
+
+# The macOS engine and tools builds, on their own (docs/refactor/PLAN.md, 2.8): hosted macOS runners
+# are often unavailable for a long time, and a job that waits for one must not hold up ci.yml's parity
+# or release jobs. Same occasions as a full ci.yml run: release tags, weekly, on demand. Nothing in
+# ci.yml consumes what this workflow uploads.
+
+on:
+  push:
+    tags: ['v*']
+  schedule:
+    - cron: '0 5 * * 1'   # Mondays 05:00 UTC, an hour after ci.yml; runs on the default branch only
+  workflow_dispatch:
+
+# A newer run on the same ref replaces one still waiting for a runner; a release tag is never cancelled
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+permissions:
+  contents: read
+
+env:
+  # The same auto-test game as ci.yml, built here by the tools of this run (1.7)
+  AUTO_TEST_REPO: AlanDrake/ags-test-games
+  AUTO_TEST_TAG: draconian-auto-test-1
+  AUTO_TEST_ASSET_BASENAME: ags4-auto-test
+  BUILD_TYPE: Release
+
+jobs:
+  auto-test-game:
+    name: Auto-test game
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+
+    - name: Check out the auto-test project
+      uses: actions/checkout@v6
+      with:
+        repository: ${{env.AUTO_TEST_REPO}}
+        ref: ${{env.AUTO_TEST_TAG}}
+        path: auto-test-source
+        persist-credentials: false
+
+    - name: Cache CMake FetchContent dependencies
+      uses: actions/cache@v5
+      with:
+        path: ${{github.workspace}}/build/_deps
+        key: fetchcontent-${{ runner.os }}-tools-${{ hashFiles('CMakeLists.txt', 'CMake/Fetch*.cmake') }}
+
+    - name: Build the tools
+      run: |
+        cmake -S . -B build -DAGS_BUILD_TOOLS=1 -DAGS_BUILD_ENGINE=0 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        cmake --build build --parallel 8
+
+    - name: Build the auto-test with agsbuild
+      run: |
+        Script/agsbuild_autotest.sh build auto-test-source/ags4/auto-test ${{runner.temp}}/agsbuild-autotest --build-only
+
+    - name: Upload the game
+      uses: actions/upload-artifact@v7
+      with:
+        name: auto-test-game
+        if-no-files-found: error
+        path: |
+          ${{runner.temp}}/agsbuild-autotest/out/${{env.AUTO_TEST_ASSET_BASENAME}}.ags
+          ${{runner.temp}}/agsbuild-autotest/out/acsetup.cfg
+
+  # The macOS entry of ci.yml's build matrix, step for step
+  build:
+    name: macOS
+    needs: auto-test-game
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+    - name: Set up Tappy
+      run: pip install tap.py
+
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+
+    - name: Cache CMake FetchContent dependencies
+      uses: actions/cache@v5
+      with:
+        path: ${{github.workspace}}/build/_deps
+        key: fetchcontent-${{ runner.os }}-macOS-${{ hashFiles('CMakeLists.txt', 'CMake/Fetch*.cmake') }}
+
+    - name: Configure CMake
+      run: |
+        cmake --version
+        cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build
+      run: cmake --build "${{github.workspace}}/build" --config ${{env.BUILD_TYPE}} --parallel 8
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+
+    - name: Upload runtime artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        name: runtime-ags-macos-cmake
+        path: ${{github.workspace}}/build/ags
+
+    - name: Download auto-test
+      uses: actions/download-artifact@v8
+      with:
+        name: auto-test-game
+        path: ${{github.workspace}}/build
+
+    - name: Run auto-test (Hardware GFX)
+      working-directory: ${{github.workspace}}/build
+      run: |
+        ./ags --gfxdriver OGL --no-message-box --log-stdout=script:info,main:debug,game:warn --user-data-dir . ${{env.AUTO_TEST_ASSET_BASENAME}}.ags
+        mv agstest.tap agstest_hardware.tap
+
+    - name: Check auto-test (Hardware GFX) # tap.py fails the job when a test fails
+      working-directory: ${{github.workspace}}/build
+      run: tappy agstest_hardware.tap
+
+    - name: Run auto-test (Software GFX)
+      working-directory: ${{github.workspace}}/build
+      run: |
+        ./ags --gfxdriver Software --no-message-box --log-stdout=script:info,main:debug,game:warn --user-data-dir . ${{env.AUTO_TEST_ASSET_BASENAME}}.ags
+        mv agstest.tap agstest_software.tap
+
+    - name: Check auto-test (Software GFX)
+      working-directory: ${{github.workspace}}/build
+      run: tappy agstest_software.tap
+
+  tools:
+    name: macOS Tools (arm64)
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Build Tools on macOS
+        run: |
+          set -e
+          PREFIX="$PWD/dist-tools/usr/local"
+          find Tools -name Makefile -execdir make -j4 PREFIX="$PREFIX" install \;
+          make -j4 --directory=Compiler PREFIX="$PREFIX" install
+
+      - name: Create macOS Tools archive
+        run: |
+          set -e
+          version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/ac/def_version.h)
+          mkdir -p MacOS/Tools/arm64
+          cp -v dist-tools/usr/local/bin/* MacOS/Tools/arm64/
+          bsdtar -f "AGS-Tools-${version}-macos.tar.gz" -cvzC MacOS/Tools arm64
+
+      - name: Upload macOS Tools artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: tools-macos-archive
+          path: AGS-Tools-*-macos.tar.gz

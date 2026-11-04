@@ -67,7 +67,8 @@ Entry points, in reading order:
 Before a push run `python Script/prepush.py` (clang-format, CMake build + `ctest`, header check with
 MSVC and clang+libc++, the MSBuild solutions; `--list`, `--only`, `--skip`): CI confirms, it does not
 discover. Workflows: `verify.yml` (fast gate, every push), `ci.yml` (`ags4draconian*` branches, PRs: light set;
-tags, weekly, `gh workflow run ci.yml -f full=true`: everything except macOS, which needs `-f macos=true`).
+tags, weekly, `gh workflow run ci.yml -f full=true`: every platform), `macos.yml` (tags, weekly, on demand;
+standalone because hosted macOS runners are often unavailable).
 
 CMake build + `ctest`; MSBuild `Tests.sln` and `AGS.Editor.Full.sln` when `Common/` or the
 Editor changed; `clang-format --dry-run -Werror` on all tracked C/C++ files; the auto-test game;

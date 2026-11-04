@@ -478,14 +478,18 @@ with 340 header stubs compiled by clang + libc++ 21 on Ubuntu and the heavy jobs
   game, and the `build` matrix reduced to Windows and Ubuntu-x86_64 (the plan job emits the matrix as
   JSON; `fromJSON` in the strategy). Heavy jobs (Emscripten, Android, Linux binaries and bundle, macOS
   and Linux make tools, PDB, tools and Windows packaging, release) have `if: needs.plan.outputs.full ==
-  'true'`; their dependants skip by themselves. The mingw, Arm64 and macOS `build` entries are heavy.
-  **macOS is left out of every automatic run** (2026-11-04: the first full run's two macOS jobs were
-  never given a hosted runner, ran 15 minutes to a "cancelled", and so skipped the parity job that
-  needs the whole `build` matrix). It runs only on `gh workflow run ci.yml -f macos=true`; nothing
-  downstream uses its output, but nothing else checks macOS either (no push, tag or weekly run).
-  **A `schedule` runs only on the default branch**, which is still `draconian` (unused): it needs the
-  workflow there or a new default branch before the weekly run does anything.
-- **`concurrency`** per workflow and ref cancels a superseded run (never for a release tag).
+  'true'`; their dependants skip by themselves. The mingw and Arm64 `build` entries are heavy.
+  **macOS is its own workflow, `macos.yml`** (decided 2026-11-04, after a day as a `-f macos=true`
+  opt-in in `ci.yml`): hosted macOS runners are often unavailable for long stretches (the 2026-11-04
+  13:45 run waited 18 min for one before a newer run replaced it), and inside `ci.yml` a waiting macOS
+  entry held up the parity job, which needs the whole `build` matrix. `macos.yml` runs on `v*` tags,
+  Mondays 05:00 UTC and on demand, with its own auto-test-game job, the macOS engine build and
+  auto-test (step for step the former matrix entry) and the macOS tools archive; `cancel-in-progress`
+  lets next week's run replace one still queued. Nothing in `ci.yml` consumes its artifacts, so a
+  release completes without it. The `schedule` runs on the default branch, which is
+  `ags4draconianr21`, so the weekly runs work as is.
+- **`concurrency`** per workflow, event and ref cancels a superseded run (never for a release tag);
+  the event in the group keeps a manual or weekly full run alive through the pushes that follow it.
   **`paths-ignore`** `docs/**`, `**.md`, `.git-blame-ignore-revs`, issue templates (nothing in the
   builds reads them; tag pushes are not filtered by GitHub).
 - **`Script/prepush.py`** stages `format`, `build` (CMake/Ninja/MSVC + `ctest`), `headers` (MSVC),

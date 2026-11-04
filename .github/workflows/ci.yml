@@ -3,7 +3,8 @@ name: CI
 # The full build (docs/refactor/PLAN.md, 2.8). It runs on the ags4draconian* branches, release tags,
 # pull requests, weekly and on demand; verify.yml (the fast gate) runs on every push. Only a tag, the
 # schedule and a manual run with full=true build every platform and the packages; the rest build the
-# light set (see the plan job). Run Script/prepush.py before pushing, so that these only confirm.
+# light set (see the plan job). macOS is macos.yml: hosted macOS runners are often unavailable, and
+# nothing here may wait on them. Run Script/prepush.py before pushing, so that these only confirm.
 on:
   push:
     branches: ['ags4draconian*']
@@ -27,14 +28,11 @@ on:
         description: 'Run every platform, the packages and the release job'
         type: boolean
         default: true
-      macos:
-        description: 'Also run the macOS jobs (hosted macOS runners are often not available: they are left out otherwise)'
-        type: boolean
-        default: false
 
-# A newer push to the same ref replaces the running one; a release tag is never cancelled
+# A newer push to the same ref replaces the running one; a release tag is never cancelled. The event is
+# part of the group so that a manual or weekly full run survives the pushes that follow it.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 permissions:
@@ -63,14 +61,10 @@ jobs:
     outputs:
       full: ${{ steps.plan.outputs.full }}
       platforms: ${{ steps.plan.outputs.platforms }}
-      macos: ${{ steps.plan.outputs.macos }}
     steps:
     - name: Decide
       id: plan
       env:
-        # macOS only on request: the hosted runners are often unavailable, and a job that is never
-        # acquired would fail the run and skip the parity job that needs the whole build matrix
-        MACOS: ${{ github.event_name == 'workflow_dispatch' && inputs.macos == true }}
         FULL: ${{ (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.full == true) }}
       run: |
         cat > platforms.json <<'EOF'
@@ -79,18 +73,16 @@ jobs:
           { "light": false, "name": "Win-mingw-arm64",  "os": "windows-11-arm",   "sys": "Windows", "gfx": "D3D9", "artifact": "ags-mingw-arm64",  "shell": "msys2 {0}", "runbin": "./ags",      "bindir": "",        "cmakecmd": "cmake", "msystem": "clangarm64", "msys-env": "mingw-w64-clang-aarch64" },
           { "light": true,  "name": "Windows",          "os": "windows-2022",     "sys": "Windows", "gfx": "D3D9", "artifact": "ags-windows",      "shell": "cmd",       "runbin": ".\\ags.exe", "bindir": "Release", "cmakecmd": "cmake" },
           { "light": true,  "name": "Ubuntu-x86_64",    "os": "ubuntu-latest",    "sys": "Ubuntu",  "gfx": "OGL",  "artifact": "ags-linux-x86_64", "shell": "sh",        "runbin": "./ags",      "bindir": "",        "cmakecmd": "cmake" },
-          { "light": false, "name": "Ubuntu-Arm64",     "os": "ubuntu-22.04-arm", "sys": "Ubuntu",  "gfx": "OGL",  "artifact": "ags-linux-Arm64",  "shell": "sh",        "runbin": "./ags",      "bindir": "",        "cmakecmd": "cmake" },
-          { "light": false, "name": "macOS",            "os": "macos-latest",     "sys": "macOS",   "gfx": "OGL",  "artifact": "ags-macos",        "shell": "sh",        "runbin": "./ags",      "bindir": "",        "cmakecmd": "cmake" }
+          { "light": false, "name": "Ubuntu-Arm64",     "os": "ubuntu-22.04-arm", "sys": "Ubuntu",  "gfx": "OGL",  "artifact": "ags-linux-Arm64",  "shell": "sh",        "runbin": "./ags",      "bindir": "",        "cmakecmd": "cmake" }
         ]
         EOF
         if [ "$FULL" = "true" ]; then
-          filter='map(select(.sys != "macOS" or $mac == "true"))'
+          filter='.'
         else
           filter='map(select(.light))'
         fi
         echo "full=$FULL" >> "$GITHUB_OUTPUT"
-        echo "macos=$MACOS" >> "$GITHUB_OUTPUT"
-        echo "platforms=$(jq -c --arg mac "$MACOS" "{platform: ($filter)}" platforms.json)" >> "$GITHUB_OUTPUT"
+        echo "platforms=$(jq -c "{platform: ($filter)}" platforms.json)" >> "$GITHUB_OUTPUT"
         cat "$GITHUB_OUTPUT"
 
   # Builds the auto-test game from its source with the C++ tools of this run, in strict mode, for the
@@ -148,7 +140,7 @@ jobs:
 
     strategy:
       fail-fast: false
-      # {"platform": [...]} from the plan job: the light entries, or all six on a full run
+      # {"platform": [...]} from the plan job: the light entries, or all five on a full run (macOS: macos.yml)
       matrix: ${{ fromJSON(needs.plan.outputs.platforms) }}
 
     steps:
@@ -1003,39 +995,6 @@ jobs:
         with:
           name: ags-bundle-linux
           path: ags_*_linux.tar.gz
-
-  macos-tools-builds:
-    name: macOS Tools (arm64)
-    needs: plan
-    if: needs.plan.outputs.full == 'true' && needs.plan.outputs.macos == 'true'
-    runs-on: macos-15
-    timeout-minutes: 20
-
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-
-      - name: Build Tools on macOS
-        run: |
-          set -e
-          PREFIX="$PWD/dist-tools/usr/local"
-          find Tools -name Makefile -execdir make -j4 PREFIX="$PREFIX" install \;
-          make -j4 --directory=Compiler PREFIX="$PREFIX" install
-
-      - name: Create macOS Tools archive
-        run: |
-          set -e
-          version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/ac/def_version.h)
-          mkdir -p MacOS/Tools/arm64
-          cp -v dist-tools/usr/local/bin/* MacOS/Tools/arm64/
-          bsdtar -f "AGS-Tools-${version}-macos.tar.gz" -cvzC MacOS/Tools arm64
-
-      - name: Upload macOS Tools artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: tools-macos-archive
-          path: AGS-Tools-*-macos.tar.gz
 
   linux-make-tools:
     name: Linux Tools (${{ matrix.platform.archname }})
