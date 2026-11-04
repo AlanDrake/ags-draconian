@@ -178,7 +178,7 @@ TEST(DataFileWriter, RoundTripCharacter)
     DataUtil::CharacterData character;
     character.ID = 7;
     character.ScriptName = "cHero";
-    character.RealName = "Hero";
+    character.RealName = "Hero of \\\"Fairy land\\\""; // escaped quotes, as the editor stores them
     character.NormalView = 3;
     character.SpeechView = 5;
     character.StartingRoom = 6;
@@ -218,7 +218,7 @@ TEST(DataFileWriter, RoundTripCharacter)
     // TODO: expand this test to be able to check character inventory;
     // in 4.x it's now written in "v400_charinv" extension
     //EXPECT_EQ(1, loaded.invq[2]);
-    EXPECT_STREQ("Hero", loaded.name.GetCStr());
+    EXPECT_STREQ("Hero of \"Fairy land\"", loaded.name.GetCStr());
     EXPECT_STREQ("cHero", loaded.scrname.GetCStr());
     EXPECT_EQ(-4, loaded.blocking_x);
     EXPECT_EQ(8, loaded.blocking_y);
@@ -227,7 +227,7 @@ TEST(DataFileWriter, RoundTripCharacter)
 TEST(DataFileWriter, RoundTripInventoryItem)
 {
     DataUtil::InventoryItemData item;
-    item.Description = "Key";
+    item.Description = "Key that unlocks the \\\"door\\\""; // escaped quotes
     item.Image = 10;
     item.CursorImage = 11;
     item.HotspotX = 3;
@@ -243,7 +243,7 @@ TEST(DataFileWriter, RoundTripInventoryItem)
     InventoryItemInfo loaded{};
     loaded.ReadFromFile(in.get(), kGameVersion_Current);
 
-    EXPECT_STREQ("Key", loaded.name.GetCStr());
+    EXPECT_STREQ("Key that unlocks the \"doo", loaded.name.GetCStr()); // limited by LEGACY_MAX_INVENTORY_NAME_LENGTH
     EXPECT_EQ(10, loaded.pic);
     EXPECT_EQ(11, loaded.cursorPic);
     EXPECT_EQ(3, loaded.hotx);
@@ -645,7 +645,10 @@ TEST(DataFileWriter, RoundTripCustomProperties)
     EXPECT_STREQ("Character health", loaded_item.Description.GetCStr());
     EXPECT_STREQ("100", loaded_item.DefaultValue.GetCStr());
 
-    std::vector<DataUtil::CustomPropertyValue> values = {{"Health", "75"}, {"Mood", "Happy\\nand calm"}};
+    std::vector<DataUtil::CustomPropertyValue> values = {{"Health", "75"},
+                                                         {"Mood", "Happy\\nand calm"},
+                                                         {"String1", "Test \\\"escaped\\\" string"},
+                                                         {"String2", "Test escaped \\[ square bracket"}};
     std::vector<uint8_t> values_buffer;
     auto values_out = std::make_unique<Stream>(std::make_unique<VectorStream>(values_buffer, kStream_Write));
     DataFileWriter::WritePropertyValues(values_out.get(), values);
@@ -660,6 +663,12 @@ TEST(DataFileWriter, RoundTripCustomProperties)
     ASSERT_NE(loaded_values.end(), mood_it);
     EXPECT_STREQ("75", health_it->second.GetCStr());
     EXPECT_STREQ("Happy\nand calm", mood_it->second.GetCStr());
+    const auto string1_it = loaded_values.find("String1");
+    const auto string2_it = loaded_values.find("String2");
+    ASSERT_NE(loaded_values.end(), string1_it);
+    ASSERT_NE(loaded_values.end(), string2_it);
+    EXPECT_STREQ("Test \"escaped\" string", string1_it->second.GetCStr());
+    EXPECT_STREQ("Test escaped [ square bracket", string2_it->second.GetCStr()); // no old-style linebreaks in 4.x
 }
 
 TEST(DataFileWriter, RoundTripCustomPropertiesBlock)
