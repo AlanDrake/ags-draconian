@@ -79,13 +79,9 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
 
     // Check if this is a alpha-blending case, and init corresponding draw mode
     const bool is_indexed_dst = (bitmap_color_depth(destination) == 8);
+    const bool alpha_blend =
+        (bitmap_color_depth(destination) == 32) && ((geta32(color) != 0xFF) || (_blendMode != kBlend_Normal));
     const bool text_smooth = (ShouldAntiAliasText()) && (!is_indexed_dst);
-    // NOTE: smooth text is rendered by SDL_ttf as a 32-bit ARGB surface, where
-    // all the "empty" pixels have text's RGB with zero alpha, and glyph edges
-    // have partial alpha. It must always be alpha-blended, or these pixels
-    // will be plain copied over the destination as a solid colored box.
-    const bool alpha_blend = text_smooth || ((bitmap_color_depth(destination) == 32) &&
-                                             ((geta32(color) != 0xFF) || (_blendMode != kBlend_Normal)));
 
     SDL_Color fg;
     if (is_indexed_dst)
@@ -125,10 +121,7 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
 
     if (alpha_blend)
     {
-        if (bitmap_color_depth(destination) == 32)
-            SetBlender(_blendMode, 255);
-        else
-            set_alpha_blender(); // ARGB source onto a 15/16/24-bit destination
+        SetBlender(_blendMode, 255);
         dest.TransBlendBlt(&helper, x, y);
     }
     else
