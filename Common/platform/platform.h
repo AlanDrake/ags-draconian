@@ -22,7 +22,6 @@
 #define AGS_PLATFORM_OS_MACOS      (0)
 #define AGS_PLATFORM_OS_ANDROID    (1)
 #define AGS_PLATFORM_OS_IOS        (0)
-#define AGS_PLATFORM_OS_PSP        (0)
 #define AGS_PLATFORM_OS_EMSCRIPTEN (0)
 #define AGS_PLATFORM_OS_FREEBSD    (0)
 #elif defined(_WIN32)
@@ -32,7 +31,6 @@
 #define AGS_PLATFORM_OS_MACOS      (0)
 #define AGS_PLATFORM_OS_ANDROID    (0)
 #define AGS_PLATFORM_OS_IOS        (0)
-#define AGS_PLATFORM_OS_PSP        (0)
 #define AGS_PLATFORM_OS_EMSCRIPTEN (0)
 #define AGS_PLATFORM_OS_FREEBSD    (0)
 #elif defined(__APPLE__)
@@ -53,7 +51,6 @@
 #define AGS_PLATFORM_OS_MACOS      (0)
 #define AGS_PLATFORM_OS_ANDROID    (0)
 #define AGS_PLATFORM_OS_IOS        (1)
-#define AGS_PLATFORM_OS_PSP        (0)
 #define AGS_PLATFORM_OS_EMSCRIPTEN (0)
 #define AGS_PLATFORM_OS_FREEBSD    (0)
 #elif TARGET_OS_IOS || TARGET_OS_IPHONE
@@ -62,7 +59,6 @@
 #define AGS_PLATFORM_OS_MACOS      (0)
 #define AGS_PLATFORM_OS_ANDROID    (0)
 #define AGS_PLATFORM_OS_IOS        (1)
-#define AGS_PLATFORM_OS_PSP        (0)
 #define AGS_PLATFORM_OS_EMSCRIPTEN (0)
 #define AGS_PLATFORM_OS_FREEBSD    (0)
 #elif TARGET_OS_OSX || TARGET_OS_MAC
@@ -71,7 +67,6 @@
 #define AGS_PLATFORM_OS_MACOS      (1)
 #define AGS_PLATFORM_OS_ANDROID    (0)
 #define AGS_PLATFORM_OS_IOS        (0)
-#define AGS_PLATFORM_OS_PSP        (0)
 #define AGS_PLATFORM_OS_EMSCRIPTEN (0)
 #define AGS_PLATFORM_OS_FREEBSD    (0)
 #else
@@ -83,7 +78,6 @@
 #define AGS_PLATFORM_OS_MACOS      (0)
 #define AGS_PLATFORM_OS_ANDROID    (0)
 #define AGS_PLATFORM_OS_IOS        (0)
-#define AGS_PLATFORM_OS_PSP        (0)
 #define AGS_PLATFORM_OS_EMSCRIPTEN (0)
 #define AGS_PLATFORM_OS_FREEBSD    (0)
 #elif defined(__EMSCRIPTEN__)
@@ -92,7 +86,6 @@
 #define AGS_PLATFORM_OS_MACOS      (0)
 #define AGS_PLATFORM_OS_ANDROID    (0)
 #define AGS_PLATFORM_OS_IOS        (0)
-#define AGS_PLATFORM_OS_PSP        (0)
 #define AGS_PLATFORM_OS_EMSCRIPTEN (1)
 #define AGS_PLATFORM_OS_FREEBSD    (0)
 #elif defined(__FreeBSD__)
@@ -101,7 +94,6 @@
 #define AGS_PLATFORM_OS_MACOS      (0)
 #define AGS_PLATFORM_OS_ANDROID    (0)
 #define AGS_PLATFORM_OS_IOS        (0)
-#define AGS_PLATFORM_OS_PSP        (0)
 #define AGS_PLATFORM_OS_EMSCRIPTEN (0)
 #define AGS_PLATFORM_OS_FREEBSD    (1)
 #else
