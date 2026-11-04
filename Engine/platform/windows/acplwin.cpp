@@ -256,19 +256,12 @@ int AGSWin32::GetLastSystemError()
 
 uint64_t AGSWin32::GetDiskFreeSpaceMB(const String &path)
 {
-    // On Win9x, the last 3 params cannot be null, so need to supply values for all
-    __int64 i64FreeBytesToCaller, i64Unused1, i64Unused2;
-
-    // Win95 OSR2 or higher - use GetDiskFreeSpaceEx, since the
-    // normal GetDiskFreeSpace returns erroneous values if the
-    // free space is > 2 GB
     WCHAR wstr[MAX_PATH_SZ] = L"";
     StrUtil::ConvertUtf8ToWstr(path.GetCStr(), wstr, MAX_PATH_SZ);
-    BOOL fResult = GetDiskFreeSpaceExW(wstr, (PULARGE_INTEGER)&i64FreeBytesToCaller, (PULARGE_INTEGER)&i64Unused1,
-                                       (PULARGE_INTEGER)&i64Unused2);
-
-    i64FreeBytesToCaller /= 1000000;
-    return static_cast<uint64_t>(i64FreeBytesToCaller);
+    // TODO: the result is not checked, a failed call returns an uninitialised value
+    ULARGE_INTEGER free_bytes_to_caller;
+    GetDiskFreeSpaceExW(wstr, &free_bytes_to_caller, nullptr, nullptr);
+    return free_bytes_to_caller.QuadPart / 1000000;
 }
 
 const char *AGSWin32::GetBackendFailUserHint()
