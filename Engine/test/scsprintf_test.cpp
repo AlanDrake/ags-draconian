@@ -11,6 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <cstdint>
+#include <cstring>
+#include <string>
+#include <vector>
+
 #include "ac/game_version.h"
 #include "gtest/gtest.h"
 #include "script/runtimescriptvalue.h"
@@ -156,4 +161,115 @@ TEST(ScSprintf, ScSprintf)
     result = ScriptVSprintf__(ScSfBuffer, 10, "A%sB", NULL);
     ASSERT_TRUE(strcmp(ScSfBuffer, "A(null)B") == 0);
     ASSERT_EQ(result, 8);
+}
+
+// Formats with script arguments into a std::string, through a buffer of the given size
+std::string ScFormat(const char *format, const std::vector<RuntimeScriptValue> &args, size_t buf_size = STD_BUFFER_SIZE)
+{
+    std::vector<char> buf(buf_size);
+    ScriptSprintf(buf.data(), buf.size(), format, args.data(), static_cast<int32_t>(args.size()));
+    return buf.data();
+}
+
+RuntimeScriptValue Int(int value)
+{
+    return RuntimeScriptValue().SetInt32(value);
+}
+
+RuntimeScriptValue Float(float value)
+{
+    return RuntimeScriptValue().SetFloat(value);
+}
+
+RuntimeScriptValue Str(const char *value)
+{
+    return RuntimeScriptValue().SetStringLiteral(value);
+}
+
+TEST(ScSprintf, IntegerConversionsAndFlags)
+{
+    EXPECT_EQ("42 -42 42", ScFormat("%d %i %u", {Int(42), Int(-42), Int(42)}));
+    EXPECT_EQ("4294967295", ScFormat("%u", {Int(-1)}));
+    EXPECT_EQ("ff FF 0xff 377", ScFormat("%x %X %#x %o", {Int(255), Int(255), Int(255), Int(255)}));
+    EXPECT_EQ("[   42][42   ][00042][+42][ 42]",
+              ScFormat("[%5d][%-5d][%05d][%+d][% d]", {Int(42), Int(42), Int(42), Int(42), Int(42)}));
+    EXPECT_EQ("[  007]", ScFormat("[%5.3d]", {Int(7)}));
+    EXPECT_EQ("-2147483648 2147483647", ScFormat("%d %d", {Int(INT32_MIN), Int(INT32_MAX)}));
+}
+
+TEST(ScSprintf, FloatConversions)
+{
+    EXPECT_EQ("1.500000 -0.25", ScFormat("%f %.2f", {Float(1.5f), Float(-0.25f)}));
+    EXPECT_EQ("1.25e+02 1.25E+02", ScFormat("%.2e %.2E", {Float(125.f), Float(125.f)}));
+    EXPECT_EQ("0.0001 1e+10", ScFormat("%g %g", {Float(0.0001f), Float(1e10f)}));
+    EXPECT_EQ("[   3.1]", ScFormat("[%6.1f]", {Float(3.14159f)}));
+}
+
+TEST(ScSprintf, Characters)
+{
+    EXPECT_EQ("[A]", ScFormat("[%c]", {Int('A')}));
+    // characters above ASCII are written in UTF-8 (the engine's text mode in a Unicode game)
+    EXPECT_EQ("[\xC3\xA9]", ScFormat("[%c]", {Int(0xE9)}));
+    EXPECT_EQ("[\xE2\x98\xBA]", ScFormat("[%c]", {Int(0x263A)}));
+}
+
+TEST(ScSprintf, StringsWithWidthAndPrecision)
+{
+    EXPECT_EQ("[  abc][abc  ][ab]", ScFormat("[%5s][%-5s][%.2s]", {Str("abc"), Str("abc"), Str("abc")}));
+    // UTF-8 text is copied as bytes
+    EXPECT_EQ("[\xC3\xA9t\xC3\xA9]", ScFormat("[%s]", {Str("\xC3\xA9t\xC3\xA9")}));
+}
+
+TEST(ScSprintf, ExtraArgumentsAreIgnored)
+{
+    EXPECT_EQ("1 2", ScFormat("%d %d", {Int(1), Int(2), Int(3), Str("unused")}));
+}
+
+TEST(ScSprintf, CountingPassGivesThePrintedLength)
+{
+    const RuntimeScriptValue args[] = {Int(12345), Float(2.5f), Str("text")};
+    const char *format = "value %d, %.3f and '%s' %%";
+    const size_t counted = ScriptSprintf(nullptr, 0u, format, args, 3);
+    char buf[STD_BUFFER_SIZE];
+    const size_t printed = ScriptSprintf(buf, STD_BUFFER_SIZE, format, args, 3);
+    EXPECT_EQ(counted, printed);
+    EXPECT_EQ(strlen(buf), printed);
+    EXPECT_STREQ("value 12345, 2.500 and 'text' %", buf);
+}
+
+TEST(ScSprintf, VectorVariantGrowsToTheResult)
+{
+    // longer than any fixed buffer used by the engine for formatting
+    const std::string long_text(5000, 'x');
+    const RuntimeScriptValue args[] = {Str(long_text.c_str()), Int(7)};
+    std::vector<char> buf;
+    const char *result = ScriptSprintf(buf, "<%s|%d>", args, 2);
+    EXPECT_EQ("<" + long_text + "|7>", std::string(result));
+}
+
+TEST(ScSprintf, OverlongPlaceholderIsCopiedAsText)
+{
+    // the placeholder does not fit the parser's buffer: it is printed as it is, and the argument
+    // is left for the next placeholder
+    const std::string zeros(40, '0');
+    const std::string format = "%" + zeros + "d %d";
+    EXPECT_EQ(format.substr(0, format.size() - 2) + "5", ScFormat(format.c_str(), {Int(5)}));
+}
+
+TEST(ScSprintf, ArgumentPointingToTheOutputBufferIsRefused)
+{
+    char buf[64] = "previous";
+    const RuntimeScriptValue args[] = {RuntimeScriptValue().SetStringLiteral(buf)};
+    EXPECT_EQ(0u, ScriptSprintf(buf, sizeof(buf), "%s", args, 1));
+}
+
+TEST(ScSprintf, TruncatedOutputIsTerminated)
+{
+    char buf[6];
+    const RuntimeScriptValue args[] = {Str("abcdefgh")};
+    // the result length is the full one, the buffer gets what fits
+    EXPECT_EQ(10u, ScriptSprintf(buf, sizeof(buf), "[%s]", args, 1));
+    EXPECT_STREQ("[abcd", buf);
+    EXPECT_EQ(8u, ScriptSprintf(buf, 1, "%s", args, 1));
+    EXPECT_STREQ("", buf);
 }
