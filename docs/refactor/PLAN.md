@@ -75,7 +75,7 @@ Recorded 2026-10-31.
 
 Kept current as tasks land. Model and effort are recommendations for an AI session.
 
-Done: phases 0 and 2, 7.1a–m and o, 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (#3182, closed
+Done: phases 0 and 2 (with 2.8 and the pre-push script, unpushed), 7.1a–m and o, 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (#3182, closed
 and re-cut by U.3 as #3186–#3190), the agent docs (0.6, upstream PR #3185), 1.2 (contract guard
 tests, 2026-11-04), U.5 (the save fix found by 1.2, upstream PR #3191). Phase 1 is half done. Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
 guards it (1.2, 1.3). Reordered 2026-11-03 after reading upstream's plans (ALIGNMENT.md): upstream
@@ -86,7 +86,7 @@ comes after they are closed.
 |---|---|---|---|
 | 1 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
 | 2 | **3.1:** remove PSP; delete the superseded `ags4-framescript` branch (upstream has `ViewFrame.EventName`/`OnFrameEvent`) | Small, safe, measurable | Sonnet 5.5, `medium` |
-| 3 | **Pre-push check script:** clang-format, MSVC build + tests, MSBuild solutions, header check with MSVC and libc++ | CI should confirm, not discover (2.6 needed four pushes) | Sonnet 5.5, `medium` |
+| 3 | **2.8 follow-up, after the first push:** read the first `verify.yml`/`ci.yml` runs (the Linux jobs and the clang+libc++ job were written without a Linux machine) and fix everything they show in one batch, one push | The Linux jobs were written without a Linux machine; the old workflow registrations are already disabled | Sonnet 5.5, `low` |
 | 4 | **6.0 study:** read `ags-for-mac` (`AGS.Types` diff, the C library that replaced `AGS.Native`) and #1092; decide which 6.0 steps go upstream and whether 6.7c reuses that library's surface | Two implementations of the same split would be waste; upstream welcomes this | Opus 5.5, `high` |
 | 5 | **1.3:** engine unit tests, starting with what needs no globals (route finder, `scsprintf`, sprite cache, VM with `script2` bytecode) | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` |
 | 6 | **3.2a/b:** tool and engine Makefiles to CMake, Debian packaging | Fork-only; after U.3, because every port re-adds Makefile entries while upstream has them | Sonnet 5.5, `medium` |
@@ -186,6 +186,10 @@ folders.
 - [x] **2.5 `#pragma once`, no `using namespace` in headers** (2026-11-01).
 - [x] **2.6 Self-contained headers (`header_check`), sorted includes** (2026-11-02).
 - [x] **2.7 Line endings renormalised** (2026-11-01).
+- [x] **2.8 CI shape and the pre-push check** (2026-11-04, pushed state unconfirmed: see LOG.md):
+  workflows renamed (`ci.yml`, `verify.yml`, `make.yml`, `linux-docker.yml`), concurrency, `paths-ignore`,
+  `verify.yml` (fast gate on every push) split from `ci.yml` (full build), clang+libc++ header job,
+  `Script/prepush.py`.
 
 ## Phase 3: Dead code removal
 
@@ -197,7 +201,7 @@ the corpus run (1.4).
   paths and toolsets. iOS and FreeBSD stay.
   *Done when:* `AGS_PLATFORM_OS_PSP refs` = 0 and the folders are gone.
 - [ ] **3.2 Duplicate build systems** (D5): delete `Engine/Makefile*`, `Compiler/Makefile`, plugin
-  `Makefile`/`Makefile-objs` and `.github/workflows/makefile-build.yml`, after checking CMake covers `debian/`
+  `Makefile`/`Makefile-objs` and `.github/workflows/make.yml`, after checking CMake covers `debian/`
   packaging. Native `Solutions/*.vcxproj` become CMake-generated VS solutions (generator or presets);
   C# and C++/CLI projects stay in MSBuild. Also (found 2026-11-02): the `Linux Tools` and `macOS
   Tools` jobs run the tool Makefiles through `find ... -execdir make`, which exits 0 whatever `make`

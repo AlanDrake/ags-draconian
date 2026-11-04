@@ -25,7 +25,7 @@ in `THIRD_PARTY` in `Script/refactor_metrics.py`.
 
 | Tool | Version | Config | Used for |
 |---|---|---|---|
-| clang-format | 19.1.7 (`pip install clang-format==19.1.7`) | `/.clang-format` | C/C++ layout, whole files **[enforced]** (`format.yml`) |
+| clang-format | 19.1.7 (`pip install clang-format==19.1.7`) | `/.clang-format` | C/C++ layout, whole files **[enforced]** (`verify.yml`) |
 | clang-tidy | 19.1.0 (`pip install clang-tidy==19.1.0`) | `/.clang-tidy` | C/C++ naming and bug-prone patterns, changed lines (CI gate: PLAN.md 2.4) |
 | dotnet format / IDE analyzers | .NET SDK 8+ | `/.editorconfig` | C# layout and naming (suggestions until PLAN.md 6.2) |
 | `Script/refactor_metrics.py` | Python 3.8+ | — | progress tracking, `BASELINE.md` |

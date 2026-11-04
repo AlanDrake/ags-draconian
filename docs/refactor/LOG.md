@@ -459,6 +459,45 @@ in one commit, listed in `.git-blame-ignore-revs`.
 
 *Status (2026-11-01):* done: 457 files (mostly C# editor sources), content identical ignoring CR.
 
+### 2.8 CI shape and the pre-push check
+
+*Added 2026-11-04 (not in the original plan): "CI should confirm, not discover" (2.6 needed four pushes).*
+
+*Status (2026-11-04):* done locally, **not pushed**, so no workflow has run yet.
+- **Workflows renamed:** `build.yml` → `ci.yml` ("CI"), `format.yml` → `verify.yml` ("Verify"),
+  `makefile-build.yml` → `make.yml`, `build-linux-docker.yml` → `linux-docker.yml`. Cost: an upstream
+  change to `build.yml` no longer cherry-picks onto it; port it by hand.
+- **Split:** `verify.yml` runs on every push (clang-format; Linux GCC build + `ctest` + header check;
+  clang + libc++ header check with `-D_LIBCPP_REMOVE_TRANSITIVE_INCLUDES`). `ci.yml` (full) and
+  `make.yml` run on pushes to `ags4draconian*` branches (the old `draconian` branch is unused), `v*` tags (`ci.yml` only), pull requests and on demand. The
+  GCC header check moved from `ci.yml` to `verify.yml`; MSVC's stays in `ci.yml`.
+- **Full or light (`ci.yml`):** a first `plan` job outputs `full` = tag push, or `schedule` (Mondays
+  04:00 UTC), or `workflow_dispatch` with input `full` true (default): `gh workflow run ci.yml --ref
+  <branch> -f full=true`. Other runs build only the light set: the Windows MSVC jobs, the auto-test
+  game, and the `build` matrix reduced to Windows and Ubuntu-x86_64 (the plan job emits the matrix as
+  JSON; `fromJSON` in the strategy). Heavy jobs (Emscripten, Android, Linux binaries and bundle, macOS
+  and Linux make tools, PDB, tools and Windows packaging, release) have `if: needs.plan.outputs.full ==
+  'true'`; their dependants skip by themselves. The mingw, Arm64 and macOS `build` entries are heavy.
+  **A `schedule` runs only on the default branch**, which is still `draconian` (unused): it needs the
+  workflow there or a new default branch before the weekly run does anything.
+- **`concurrency`** per workflow and ref cancels a superseded run (never for a release tag).
+  **`paths-ignore`** `docs/**`, `**.md`, `.git-blame-ignore-revs`, issue templates (nothing in the
+  builds reads them; tag pushes are not filtered by GitHub).
+- **`Script/prepush.py`** stages `format`, `build` (CMake/Ninja/MSVC + `ctest`), `headers` (MSVC),
+  `libcxx` (`Script/header_check_libcxx.py`, emsdk clang + libc++, 340 headers), `msbuild` (the six CI
+  solutions, x86 Release, test runners and the editor's NUnit, into `.tidy/prepush/msb`). A missing tool
+  is `NOT RUN` and fails the script. Measured here: format 1988 files 14 s, build + ctest 327 s (cold),
+  headers 36 s, libcxx 54 s, msbuild 293 s, all pass; the libcxx stage failed on a planted header
+  without `<string>`.
+- **Not verified:** the YAML parses, but the Linux jobs, including the new clang job (apt packages,
+  configure with libc++), were written without a Linux machine. Debug configurations of the solutions and
+  macOS/Android/Emscripten are not in the script.
+- **Old workflow registrations** disabled with `gh workflow disable` on 2026-11-04, before the first
+  push (otherwise the next push would start the old files' runs too): 368431699 (Build Linux Docker
+  Image), 68872654 (GitHub Actions Build), 404365706 (Format check), 368431697 (Makefile Build).
+  CodeQL (93435167) is left alone (see 0.4).
+- **First push:** expect problems in the Linux and clang jobs; read all of them, fix in one batch, push once.
+
 ### 3.3 Legacy compiler
 
 *Definition, moved from PLAN.md on 2026-11-04:*
