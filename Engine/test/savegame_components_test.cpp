@@ -303,3 +303,19 @@ TEST_F(SavegameContent, UnselectedComponentsAreSkipped)
     EXPECT_TRUE(game.invinfo[0].name.IsEmpty());
     play.messagetime = 0;
 }
+
+TEST_F(SavegameContent, RestoredCharactersSaveTheSameBytes)
+{
+    SetCounts(3, 2);
+    SetState();
+    std::vector<uint8_t> first, second;
+    std::string error;
+    ASSERT_TRUE(Save(kCharactersAndItems, first, error)) << error;
+    SetCounts(3, 2);
+    RestoredData r_data;
+    HSaveError err = Restore(first, kCharactersAndItems, r_data);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    ASSERT_TRUE(Save(kCharactersAndItems, second, error)) << error;
+    EXPECT_EQ(first.size(), second.size());
+    EXPECT_TRUE(first == second);
+}
