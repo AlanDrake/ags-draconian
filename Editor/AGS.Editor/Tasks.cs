@@ -824,11 +824,11 @@ namespace AGS.Editor
             //
             parameter += " --runfromide" +
                 " \"" + runDirectory + "\" " +
-                "\"" + Path.Combine(runDirectory, AGSEditor.DEBUG_ROOMS_DIRECTORY) + "\":\"\"" + "," +
-                "\"" + Factory.AGSEditor.GameDirectory + "\":\"\"" + "," +
-                "\"" + Path.Combine(Factory.AGSEditor.GameDirectory, FontsComponent.FONT_FILES_DIRECTORY) + "\":\"\"" + "," +
-                "\"" + AudioComponent.AUDIO_CACHE_DIRECTORY + "\":\"audio\"" + "," +
-                "\"" + SpeechComponent.SPEECH_DIRECTORY + "\":\"voice\"";
+                "\"\\\"" + Path.Combine(runDirectory, AGSEditor.DEBUG_ROOMS_DIRECTORY) + "\\\"\":\"\"" + "," +
+                "\"\\\"" + Factory.AGSEditor.GameDirectory + "\\\"\":\"\"" + "," +
+                "\"\\\"" + Path.Combine(Factory.AGSEditor.GameDirectory, FontsComponent.FONT_FILES_DIRECTORY) + "\\\"\":\"\"" + "," +
+                "\"\\\"" + AudioComponent.AUDIO_CACHE_DIRECTORY + "\\\"\":\"audio\"" + "," +
+                "\"\\\"" + SpeechComponent.SPEECH_DIRECTORY + "\\\"\":\"voice\"";
 
             // Explicit path to the file containing main game data,
             // this is to ensure that the engine won't try to scan other places
