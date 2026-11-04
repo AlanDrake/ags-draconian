@@ -1207,3 +1207,93 @@ Verified on the upstream engine build with the fork's compat fixtures (not commi
 without the fix the 4.0.0.27 save fails with "Component data size mismatch" and 4.0.0.30 passes;
 with it both pass. `engine_test` 3/3, `savegame_test` 6/6, `common_test` 99/99. The Transparency
 compat exports (fork `587403037`) are not part of it: they belong to the Opacity offer (#3119).
+
+### 6.0 study: ags-for-mac, #1092, #3177
+
+*Definition (PLAN.md "Next up" item 2 of 2026-11-03):* read `ags-for-mac` (`AGS.Types` diff, the C
+library that replaced `AGS.Native`) and #1092; decide which 6.0 steps go upstream and whether 6.7c
+reuses that library's surface.
+
+*Status (2026-11-04):* done; the evidence is in `EDITOR-SPLIT.md`, the decisions in PLAN.md (6.0
+re-scoped, 6.1 note, 6.7c, U.6, "Next up"). Read: the repository at `4c3f45c` (3.6.4 dev, .NET 10,
+Avalonia; upstream sources linked in place, 18 `AGS.Types` files forked, 6 shims, 1 regex rewrite;
+`libagsnative` 3,072 lines, 72 C functions, 38 of them rooms; 89 test methods), its
+`FORKED_FILES.md`, `PHASE1_ISOLATION_PLAN.md`, patches README, the C header and interop; #1092,
+#3177 (7 comments to 2026-11-03), #2432. Measured on the fork: 17 `AGS.Types` files use WinForms
+(same set as upstream `ags4`; `master` has 19), 5 of them only through an unused `using`; 112
+`[Editor]` attributes on 10 `UITypeEditor` classes, 11 `[PropertyTab]`, 91 portable
+`[TypeConverter]`; no `System.Drawing.Font` or `Bitmap` in the model (the plan's "55 Font / 15
+Bitmap" were AGS's own `Font` class), `Icon`/`Graphics`/`Bitmap` only in the plugin-facing
+interfaces and templates; 9 static GUI delegates set in `GUIController.cs` and `FontsComponent.cs`;
+`.crm` is read by the editor only in the 3.99 upgrade (`ConvertAllRoomsFromCrmToOpenFormat`) and
+written only by the room compile step (`SaveCrm`). Decided: 6.0 step 1 (property grid out) is
+upstream-ready as U.6 with no plugin API change; step 2 (interfaces, `EditorContentPanel`,
+`MenuCommand`) versions C5's editor plugin API and waits for the user; 6.7c reuses the library's
+conventions and the image, sprite-file, font and GUI entry points, not the room half, the
+CMake-generated constants or the 3.6 structs, and adds a sprite conversion function instead of
+ags-for-mac's `spriteimport` subprocess. Its three bug patches (#3144, #3163, #3164) are already in
+`ags4` and the fork; its unpatched `LoadPNG` note does not apply to the fork's code. Not verified:
+nothing was built; the string-form attribute resolution on .NET Framework is asserted from the
+`EditorAttribute`/`PropertyTabAttribute` string constructors and must be proven by U.6's guard test.
+The user decided the same day: breaking editor plugins is acceptable, the editor plugin API leaves C5,
+and 6.0 step 2 needs no further gate (better design over backward compatibility).
+
+### U.6 AGS.Types property grid out
+
+*Definition (PLAN.md, 2026-11-04):* 6.0 step 1 on `upstream/ags4` as the #1092 fix: string-form
+`[Editor]`/`[PropertyTab]` attributes, the UI editor classes and `PropertyTabEvents` into `AGS.Editor`,
+direct calls instead of the static GUI delegates, unused usings removed, a guard test that resolves
+every attribute string.
+
+*Status (2026-11-04):* done as a branch, not pushed. A Sonnet 5.5 subagent (medium effort, ~11 min
+plus a 1 min follow-up, supervised through a progress log) cut `ags4-types-propertygrid` from
+`de5508362`: `25604a72d` move (16 files, 94-97 % rename similarity, `git log --follow` works) +
+`EditorTypeNames` constants, `b57689b77` direct calls (nine `GUIController` methods and
+`FontsComponent.FontImportSize` become `internal`), `9161145dc` eight unused usings and the
+`System.Design` reference, `c6c69ab1e` six NUnit tests. 67 files, +438/-313. Measured: NUnit 376 of
+376 before, 382 of 382 after; breaking the assembly name on purpose failed 4 of the 6 new tests.
+Found on the way: the editor assembly is `AGSEditor`, not `AGS.Editor` (PLAN.md corrected); the
+`UITypeEditor` base name must be fully qualified or `ReflectTypeDescriptionProvider` drops the
+editor silently; `BuildTargetUIEditor` derives from `StringListUIEditor`, so both moved and
+`Settings.cs` got `Utilities.StringListSeparators`; `AGS.Editor.NoNative.sln` still builds the
+C++/CLI project and fails to link `Common_md_d.lib` here, `AGS.Editor.Full.sln` builds;
+`AGS.Types/Utilities.cs` has LF endings in a CRLF tree. Supervision: one false alarm from me (a
+rename check with the wrong flags), cancelled before the agent acted. The user ran the editor built
+from the branch the same day: the property grid works in the properties panel and in Settings. Not
+verified: the Debug configuration, a clean checkout without `Editor/References`.
+
+*Review round 1 (2026-11-04):* the user pushed v1 and opened the PR; ivan-mogilko asked for the
+classes in `AGS.Controls` (where the custom controls already are) and objected to the "direct calls"
+commit: controls must not know `GUIController` or editor components, and hardcoding that behaviour in
+control classes is bad design. Both accepted: `AGS.Controls` depends on `AGS.Types` and WinForms and
+not on `AGS.Editor`, so it enforces the decoupling; the static delegates upstream already had were the
+right seam and removing them was our regression. The same subagent reworked the branch in ~2 min:
+`backup/ags4-types-propertygrid-v1` keeps v1; v2 is 3 commits on `de5508362` (`2a97d0fad` move to
+`AGS.Controls/PropertyGridExtras`, 16 renames, `EditorTypeNames` with `, AGS.Controls`,
+`PaintColorBlock` as a static on `ColorUIEditor` because an `AGS.Controls.Utilities` would shadow
+`AGS.Types.Utilities`; `a816df141` usings; `59fe1aab6` tests, `AGS.Editor.Tests` now references
+`AGS.Controls`). `GUIController`/`FontsComponent` differ from upstream only by `using AGS.Controls;`;
+nothing `internal`; `AGS.Controls.csproj` gains `System.Design` for `FileNameEditor`. Verified by the
+supervisor: 69 files, +413/-219, no `Factory`/`GUIController` reference under
+`AGS.Controls/PropertyGridExtras`, NUnit 382 of 382 (agent's run). Not verified: the running editor
+on v2, the Debug build. Lesson for the fork's 6.0 step 1: the same layout (editors in
+`AGS.Controls`, delegates kept).
+
+*Design review of v2 (2026-11-04):* the user built and tried v2 (no issue), then asked for a second
+design pass. Remaining smell, left for #1092 as the next step rather than this PR: the model still
+names its UI editors (`EditorTypeNames`, 112 `[Editor]`, 11 `[PropertyTab]`); the cleaner split is
+semantic attributes in the model and a host-side `TypeDescriptionProvider` mapping them to
+`UITypeEditor`s, which also removes the `System.Drawing 4.0.0.0` pin in the base-type string. Applied
+to the move commit: the constant `EditorAssembly` renamed `ControlsAssembly`; `PaintColorBlock` first
+went into its own `AGS.Controls.ColorSwatch` class, then the user asked for it to **stay in
+`AGS.Types.Utilities`** as upstream has it (a one-method class is not worth a reviewer's question),
+so `Utilities.cs` and `PaletteEditor.cs` are back to upstream's text plus the `StringListSeparators`
+property, and `ColorUIEditor` calls `Utilities.PaintColorBlock`. Not done on purpose (pre-existing,
+not part of this change): the `MultilineStringUIEditor.cs` file name vs the `MultiLineStringUIEditor`
+class. Final commits `b622391cd` move, `553a83a4a` usings, `11936b3ef` tests; 68 files,
++373/-180, 16 renames. Found on the way: upstream's `Utilities.cs` is LF with 14 CRLF lines, and
+the worktree has `core.autocrlf=true`, so both the Edit tool (normalising to CRLF) and `git add`
+(stripping CRLF) produce a spurious 14-line diff; the file was rebuilt from upstream's bytes with a
+script and staged with `git -c core.autocrlf=false add`. The agent's `build.sh` passes a POSIX path
+to the NUnit runner under `MSYS_NO_PATHCONV=1` ("Invalid argument"): run `nunit3-console` with a
+Windows path separately.

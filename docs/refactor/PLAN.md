@@ -18,7 +18,7 @@ script). A session reads `AGENTS.md`, "Next up" and the task's section (not this
 STYLE.md. It ends a task by ticking the box, moving the task's definition and a dated status to
 LOG.md, leaving a one-line result here, and updating "Next up". Commits and PRs name the task ID (`3.2`). Upstream's intent is in
 `docs/context/` (on par with upstream PR #3185, AGS 4 only); the fork's plan against it is
-`ALIGNMENT.md`.
+`ALIGNMENT.md`; the evidence behind the editor split (6.0, 6.7c, U.6) is `EDITOR-SPLIT.md`.
 
 ## Ground rules
 
@@ -50,7 +50,7 @@ Frozen unless a task explicitly versions it; each row gets a guard test in phase
 | C2 | Savegames written by 3.99+ engines | `Engine/game/savegame*.cpp` | Players' saves |
 | C3 | Script ABI: exported API names and signatures, `game.*`/`system.*` field offsets, bytecode | `Register*API()`, `Engine/ac/dynobj/scriptgame.cpp` and friends, `Engine/script/scriptexecutor.cpp`, `Editor/AGS.Editor/Resources/agsdefns.sh` | Compiled scripts link by name and offset |
 | C4 | Plugin API: `IAGSEngine` vtable order, `AGS_Engine*` exports | `Engine/plugin/agsplugin.h` | Binary plugins |
-| C5 | Editor project format (`Game.agf`, `.user`, room sources) and editor plugin API | `Editor/AGS.Types` | Existing projects and editor plugins |
+| C5 | Editor project format (`Game.agf`, `.user`, room sources) | `Editor/AGS.Types` | Existing projects. *The editor plugin API left this row on 2026-11-04:* a new editor is a big step and the plugin surface (`EditorContentPanel`, `MenuCommand`, `IGUIController`, `IRoomController`, `IAGSEditor`) follows the better design; plugins recompile against the new `AGS.Types` (6.0 step 2, EDITOR-SPLIT.md §3) |
 | C6 | Engine command line and `acsetup.cfg` keys | `Engine/main/main.cpp`, `Engine/main/config.cpp` | Launchers, store builds, players' configs |
 
 C3 is defined by offsets and names, **not** C++ layout: `GamePlayState` fields are read through the
@@ -77,7 +77,8 @@ Kept current as tasks land. Model and effort are recommendations for an AI sessi
 
 Done: phases 0 and 2 (with 2.8 and the pre-push script, unpushed), 7.1a–m and o, 3.1 (PSP, pre-Windows 7; 2026-11-04, unpushed), 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (#3182, closed
 and re-cut by U.3 as #3186–#3190), the agent docs (0.6, upstream PR #3185), 1.2 (contract guard
-tests, 2026-11-04), U.5 (the save fix found by 1.2, upstream PR #3191). Phase 1 is half done. Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
+tests, 2026-11-04), U.5 (the save fix found by 1.2, upstream PR #3191), the 6.0 study (2026-11-04,
+EDITOR-SPLIT.md: 6.0 re-scoped, 6.7c decided, U.6 defined). Phase 1 is half done. Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
 guards it (1.2, 1.3). Reordered 2026-11-03 after reading upstream's plans (ALIGNMENT.md): upstream
 review takes weeks, so the offers (U.3) go out first and the fork-only divergence (3.2, 3.4, 5.3)
 comes after they are closed.
@@ -85,9 +86,8 @@ comes after they are closed.
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
 | 1 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
-| 2 | **6.0 study:** read `ags-for-mac` (`AGS.Types` diff, the C library that replaced `AGS.Native`) and #1092; decide which 6.0 steps go upstream and whether 6.7c reuses that library's surface | Two implementations of the same split would be waste; upstream welcomes this | Opus 5.5, `high` |
-| 3 | **1.3:** engine unit tests, starting with what needs no globals (route finder, `scsprintf`, sprite cache, VM with `script2` bytecode) | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` |
-| 4 | **3.2a/b:** tool and engine Makefiles to CMake, Debian packaging | Fork-only; after U.3, because every port re-adds Makefile entries while upstream has them | Sonnet 5.5, `medium` |
+| 2 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
+| 3 | **1.3:** engine unit tests, starting with what needs no globals (route finder, `scsprintf`, sprite cache, VM with `script2` bytecode) | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` || 4 | **3.2a/b:** tool and engine Makefiles to CMake, Debian packaging | Fork-only; after U.3, because every port re-adds Makefile entries while upstream has them | Sonnet 5.5, `medium` |
 | 5 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
 
 Open items found while doing finished tasks (details in LOG.md): 0.4's CodeQL setting, the
@@ -353,22 +353,46 @@ future Avalonia front end. Two blockers, removed by 6.0, 6.1, 6.3 and 6.7: `AGS.
 editor logic target .NET Framework (Avalonia needs modern .NET), and C++/CLI is Windows- and
 Framework-only.
 
-- [ ] **6.0 `AGS.Types` UI-free.** 17 files use `System.Windows.Forms`, 121 `[Editor(typeof(...))]` /
-  `[TypeConverter(typeof(...))]` attributes reference WinForms classes, the model stores
-  `System.Drawing` `Font` (55) and `Bitmap` (15), Windows-only on .NET 6+ (`Color`, `Point`, `Size`,
-  `Rectangle` are fine).
-  1. Property-grid attributes to their string constructors
-     (`[Editor("AGS.Editor.SpriteSelectUIEditor, AGS.Editor", "System.Drawing.Design.UITypeEditor")]`);
-     the editor classes move into the WinForms assembly.
-  2. `Font`/`Bitmap` fields → plain data (font file + size + style, sprite number, image path); the UI
-     layer creates the `System.Drawing` objects.
-  3. Anything else needing WinForms moves out.
+- [ ] **6.0 `AGS.Types` UI-free.** *Re-scoped 2026-11-04 by the 6.0 study (EDITOR-SPLIT.md):* 17 files
+  use `System.Windows.Forms` (5 only through an unused `using`), 112 `[Editor(typeof(...))]` attributes
+  name 10 `UITypeEditor` classes and 11 `[PropertyTab(typeof(PropertyTabEvents))]` a WinForms
+  `PropertyTab`; the 91 `[TypeConverter]` attributes are portable `System.ComponentModel`. The model
+  stores **no** `System.Drawing.Font` or `Bitmap` (the earlier counts were AGS's own `Font` class); the
+  GDI types that remain (`Icon` 5, `Graphics` 6, `Bitmap` 6) sit in the plugin-facing interfaces and
+  the templates. `Color`, `Point`, `Size`, `Rectangle` are fine.
+  1. **Property grid out** (also U.6): attributes to their string constructors
+     (`[Editor("AGS.Editor.ColorUIEditor, AGSEditor", "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]`:
+     the editor assembly is named `AGSEditor`, and the base type name must be fully qualified or the
+     grid drops the editor silently; `[PropertyTab("AGS.Editor.PropertyTabEvents, AGSEditor", PropertyTabScope.Component)]`); the 10
+     editor classes, `StringListUIEditorControl`, `PropertyTabEvents` + `event.bmp` and
+     `Utilities.PaintColorBlock` move to `AGS.Editor`, where the 9 static GUI delegates
+     (`GUIController.cs`, `FontsComponent.cs`) become direct calls; the 5 unused usings go. A test in
+     `AGS.Editor.Tests` resolves every attribute string with `Type.GetType` (a wrong string makes the
+     property grid silently drop the editor). No plugin API change. On the fork this is a re-run of
+     the U.6 scripts (`.compare/helpers/u6/`), not a cherry-pick: 14 of the 68 files conflict because
+     the fork's Editor files differ from upstream's in every line. Do it once the #1092 PR is stable.
+     *Open design note, to evaluate when step 2 is done and before 6.8, not earlier:* the string
+     attributes still let the model name its WinForms editors; semantic attributes plus a host-side
+     `TypeDescriptionProvider` would remove that (EDITOR-SPLIT.md §5).
+  2. **Plugin-facing surface** (`EditorContentPanel : UserControl`, `ContentDocument`, `MenuCommand`'s
+     `Keys`, `IDockingContainer`, `IScriptEditorControl`, `IGUIController`, `IRoomController`,
+     `IAGSEditor`, the templates' `Icon`), with ags-for-mac's replacements as the template: a plain
+     panel class with `View`/`HasFocus`, an `AGS.Types.Keys` with WinForms values, `IImage` and
+     `IDrawingContext` abstractions. Breaks the editor plugin API (plugins recompile against the new
+     `AGS.Types`; source changes are the type names): *accepted 2026-11-04*, the plugin API is no longer
+     part of C5; design the interfaces for the new editor, not for the old plugins.
+  3. **.NET Core differences** (shared with 6.1): `Encoding.Default` in `Utilities.cs` and
+     `Translation.cs` is UTF-8 on .NET Core (Windows-1252 via the code-pages provider), the XML
+     encoding name casing, `Path.GetInvalidFileNameChars()` off Windows, `Environment.NewLine`; the C5
+     round-trip test covers each.
 
   Same `Game.agf` as before (C5). *Done when:* no reference to `System.Windows.Forms`,
   `System.Drawing.Common` or `System.Drawing.Design`, tests pass on Linux.
 - [ ] **6.1 SDK-style projects** with `PackageReference` instead of `packages.config`. The WinForms app stays `net48` (Windows 7
   SP1, D6), `LangVersion` 7.3; UI-free libraries (`AGS.Types`, 6.3's core) multi-target
-  `netstandard2.0` and `net8.0`.
+  `netstandard2.0` and `net8.0`. The .NET Core differences 6.0 step 3 lists (`Encoding.Default`,
+  encoding-name casing, invalid path characters, line breaks) are the known traps; ags-for-mac's
+  compatibility rules (EDITOR-SPLIT.md §3) are the checklist.
   *Done when:* `dotnet build` builds them, tests pass, `AGS.Types` builds for `net8.0` (after 6.0).
 - [ ] **6.2 Format and analyzers.** `dotnet format` once per project (`[format]`,
   `.git-blame-ignore-revs`), `.editorconfig` severities from `suggestion` to `warning`,
@@ -379,7 +403,11 @@ Framework-only.
   Start with project load/save/upgrade (`UpgradeGameManager`). The build does **not** move there: the
   editor runs the tools (D7, 6.7d), so `Tasks.cs` and `BuildTargets/` shrink to "save, run
   `agsbuild`, show results".
-  *Done when:* load, save and upgrade work from a headless test with no WinForms loaded.
+  *Done when:* load, save and upgrade work from a headless test with no WinForms loaded, and the
+  dependency direction is enforced, not assumed: `AGS.Types` and `AGS.Editor.Core` reference no UI
+  assembly, `AGS.Controls` references no editor assembly (upstream's rule from the U.6 review:
+  controls must not know `GUIController` or editor components), checked by a test over the project
+  references.
 - [ ] **6.4 Constructor injection over `Factory`** (965 references); `Factory` stays as the
   composition root only.
 - [ ] **6.5 Exceptions.** Triage the 122 catch-all handlers: narrow, log or rethrow (silently
@@ -406,14 +434,23 @@ Framework-only.
   - [ ] **6.7b Editor-only utilities to C#.** Templates are AGS multi-file libraries: test the C#
     reader against templates the C++ code wrote. Icons via `BeginUpdateResource`/`UpdateResource`
     P/Invoke, Windows-only.
-  - [ ] **6.7c The C library `ags_editor_native`.** *Prerequisite:* the 6.0 study ("Next up"); reuse
-    `ags-for-mac`'s surface where it fits, so one library serves both editors and can go upstream
-    (#1092, #3177). About 20–30 `extern "C"` functions in a CMake target linking `Common` and
-    `Compiler/script`, opaque handles, caller-owned buffers: room open/save (backgrounds, masks,
-    properties as plain structs), sprite file open/read/write/replace/delete, a sprite **as RGBA**,
-    GUI and font text rendered **into RGBA** (not today's `drawGUIAt(HDC ...)` and
-    `System::Drawing::Bitmap^`), a last-error string. Ownership documented per function; C++ tests
-    in `Editor/native/test/`.
+  - [ ] **6.7c The C library `ags_editor_native`.** *Decided 2026-11-04 (EDITOR-SPLIT.md §4):* reuse
+    `ags-for-mac`'s `libagsnative` **conventions** (UTF-8, `int` results with a thread-local last-error
+    string, opaque handles with matching free, caller-owned buffers with stride, an API version, hidden
+    symbols, one process-wide recursive mutex because `Common` is not thread-safe) and its **image,
+    sprite-file, font and GUI entry points** with the `agsn_` names where the semantics match, so a later
+    merge on `ags4` is mechanical; say so on #3177 when the branch is cut. Not reused: its 38 room
+    functions (`ags4` rooms are XML + PNG; only the 3.99 upgrade reads `.crm`, so a read-only loader with
+    fork-defined structs), its CMake-generated constants (6.7b ports them to C#), its templates (6.7b), its
+    3.6 struct layouts (the fork's GUI model has Opacity and `ags4` fields). About 30–40 `extern "C"`
+    functions in a CMake `SHARED` target linking `Common` and `Tools/data`: images (BMP/PCX/PNG with
+    palettes), sprite file slot info/read **as RGBA** and a slot-by-slot writer with raw copy (the sprite
+    set lives in C#, not in a native cache), `agsn_sprite_convert` from `sprite_utils` (ags-for-mac runs
+    `spriteimport` as a subprocess instead), fonts (set, metrics, draw text, TTF size, SCI import), GUI
+    preview from host-flattened descriptions **into RGBA** (not today's `drawGUIAt(HDC ...)` and
+    `System::Drawing::Bitmap^`), `.crm` read for the upgrade. Ownership documented per function; C++
+    tests in `Editor/native/test/`, plus a pixel comparison of the GUI and font output against the
+    C++/CLI bridge before 6.7e switches (ags-for-mac's GUI test checks only sizes).
   - [ ] **6.7d The editor builds through the tools** (D7; needs 7.1f). Build saves the project, runs
     `agsbuild` (or single tools), shows progress, lists errors from `--json` (7.1h) with
     jump-to-line, cancels by stopping `agsbuild`; tools ship with the editor. Plugin build events
@@ -518,6 +555,19 @@ and without fork-only features, built in the worktree `E:\Projects\ags\ags4-upst
   worktree first and carried over here; the fork's copy leaves out AGS 3 (`master`, 3.x).
 - [x] **U.5 Save fix** (PR #3191, 2026-11-04, `ags4-fixcharinvsave`): 4.0 saves before 4.0.0.28
   load again (LOG.md 1.2, U.5).
+- [ ] **U.6 `AGS.Types` property grid out (#1092, part 1).** 6.0 step 1 on `upstream/ags4`, in C# 7.3
+  / .NET Framework 4.7 as upstream builds: string-form `[Editor]`/`[PropertyTab]` attributes, the UI
+  editor classes and `PropertyTabEvents` into `AGS.Editor`, direct calls instead of the static GUI
+  delegates, unused usings removed, the attribute-resolution guard test. No behaviour change in the
+  editor and no plugin API change, which is what ericoporto asked for in #1092 and ivan-mogilko
+  confirmed in #3177. Step 2 (the plugin-facing interfaces) is posted on #1092 as a design question,
+  not as a PR. *Decided 2026-11-04 (EDITOR-SPLIT.md §5).*
+  *Status (2026-11-04, details in LOG.md):* branch `ags4-types-propertygrid` cut by a Sonnet 5.5
+  subagent, Release x86 builds, NUnit 382 of 382; the user checked the property grid in the running
+  editor (properties panel and Settings) and opened the PR. First review the same day: the classes go
+  to `AGS.Controls`, not `AGS.Editor`, and controls must not call `GUIController` directly (upstream's
+  static delegates stay). Reworked as 3 commits on `de5508362` with the editors in
+  `AGS.Controls/PropertyGridExtras`; awaiting the force-push and a re-check of the grid.
 
 ---
 

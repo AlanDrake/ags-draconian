@@ -25,7 +25,8 @@ Entry points, in reading order:
   titles `Program: [kind] what (task id)`; mechanical commits are verified with
   `python Script/compare_objects.py` (STYLE.md "Commits").
 - **The compatibility contract C1-C6 in PLAN.md is frozen** (3.99+ game data, 3.99+ saves,
-  script ABI, plugin API, project format, engine config). Everything else may change.
+  script ABI, engine plugin API, project format, engine config). Everything else may change, the
+  editor plugin API included (2026-11-04): better design wins over backward compatibility.
 - **Safety net before surgery:** no deletion or restructuring of a subsystem before the tests
   that would catch a regression exist (PLAN.md ground rule 3).
 - **Measure, don't guess:** build both ways and compare; run the tests; say what was not verified.
