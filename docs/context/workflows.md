@@ -1,7 +1,6 @@
 # Workflows
 
-Commands are CI's (`.github/workflows/build.yml`), checked 2026-11-02 on `ags4`; `master` same
-unless noted.
+Commands are CI's (`.github/workflows/build.yml`), checked 2026-11-02 on `ags4`.
 
 ## Build
 
@@ -40,10 +39,9 @@ cd build && ctest -C Release --output-on-failure     # common_test engine_test c
 Solutions\packages\NUnit.ConsoleRunner.3.*\tools\nunit3-console.exe Solutions\.test\x86\Release\AGS.Editor.Tests.dll
 ```
 
-Auto-test game (the only end-to-end engine test). Source: `adventuregamestudio/ags-test-games`,
-`ags4/auto-test` and `ags3/auto-test`, `auto-test-3.6.1`, `auto-test-3.6.2`; scripts
-`run-tests.asc`, `test-*.asc`, `tap.asc` (TAP), `gfx-compare.asc` (render compare). CI downloads
-that repo's latest release zip (`ags4-auto-test.zip` / `ags3-auto-test.zip`) and runs:
+Auto-test game (the only end-to-end engine test). Source: `adventuregamestudio/ags-test-games`
+`ags4/auto-test`; scripts `run-tests.asc`, `test-*.asc`, `tap.asc` (TAP), `gfx-compare.asc` (render
+compare). CI downloads that repo's latest release zip (`ags4-auto-test.zip`) and runs:
 
 ```sh
 ./ags --gfxdriver Software --no-message-box --log-stdout=script:info,main:debug,game:warn --user-data-dir . ags4-auto-test.ags
@@ -72,8 +70,8 @@ Engine options for testing: `--no-message-box`, `--log-stdout=<group>:<level>,..
 
 ## Documentation duties
 
-- script API change ⇒ manual page: `adventuregamestudio/ags-manual-source` (`master` 3.x,
-  `ags4` 4.0; one `.md` per type, e.g. `Character.md`; `StandardEnums.md`, `Globalfunctions_*.md`,
+- script API change ⇒ manual page: `adventuregamestudio/ags-manual-source` branch `ags4` (one
+  `.md` per type, e.g. `Character.md`; `StandardEnums.md`, `Globalfunctions_*.md`,
   `UpgradeTo40.md`); build = `ags-manual` (pandoc + Lua filters → CHM for F1 help, HTML for site)
 - `Changes.txt`: one line per user-visible change under the version's section and heading
   (Common / Editor / Compiler / Scripting / Script API / Engine / ports); internals not listed
@@ -82,8 +80,8 @@ Engine options for testing: `--no-message-box`, `--log-stdout=<group>:<level>,..
 
 ## Submit
 
-- branch from `master` (3.x; `release-3.6.3` for RC fixes) or `ags4` (4.0); fixes and small
-  improvements straight to a PR; features and larger changes: issue first (CONTRIBUTING.md
+- branch from `ags4` (a fix that also applies to 3.x goes to `master`, which is merged into
+  `ags4`); fixes and small improvements straight to a PR; features and larger changes: issue first (CONTRIBUTING.md
   "Issues"; `.github/pull_request_template.md`: Summary / Related issues / Testing / Notes / AI tooling)
 - commit titles `Engine:` `Editor:` `Script API:` `Compiler:` `Tool:` `Plugin:` `CMake` `Makefile`
   `ci:` or library name; 72 chars; one concern, one program per commit

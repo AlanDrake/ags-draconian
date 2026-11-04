@@ -1,17 +1,13 @@
 # Repository map
 
-Checked on `ags4` `a83208d33` and `master` `10994b4d6` (2026-11-02). Paths repo-relative.
+Checked on `ags4` `a83208d33` (2026-11-02). Paths repo-relative.
 
-## Branches
+## Branch
 
-| Branch | Is | `version.json` |
-|---|---|---|
-| `master` | AGS 3.x; runs every game since 2.50; fixes, performance, backend, tooling only; format and script-API changes "kept to a strict minimum" | 3.6.4.0 dev |
-| `release-3.6.3` | current 3.x release line (RC); patches here, merged to `master` | 3.6.3 |
-| `ags4` | AGS 4.0 Beta; breaking changes; imports projects saved by 3.6.0+; pre-4.0 compiled games not guaranteed | 4.00.00.33 |
-
-`master` is merged into `ags4` by the maintainers (33 `master` commits not yet in `ags4` on
-2026-11-02). Plan since 2020: `ags4` becomes `master`, 3.x continues as `ags3`; date undecided.
+`ags4` = AGS 4.0 Beta (`version.json` 4.00.00.33): breaking changes; imports projects saved by
+3.6.0+; pre-4.0 compiled games not guaranteed. The maintainers merge `master` (AGS 3.x) into
+`ags4`, so fixes that apply to both land through `master` (last merge `e709f84a0`, 2026-11-03).
+Plan since 2020: `ags4` becomes `master`; date undecided.
 
 ## Map
 
@@ -30,8 +26,7 @@ Engine/        C++11 runtime: Windows, Linux, macOS, Android, iOS, Web (Emscript
   media/ platform/ plugin/   audio (OpenAL via mojoAL), video; per-OS; agsplugin.h (IAGSEngine), plugin_stubs.cpp
   test/          engine_test: 3 files only
 Compiler/      agscc. compiler.cpp, main.cpp; preproc/ (C++ preprocessor; the Editor has a C# one)
-               ags4: script/ = old compiler, script2/ = new (default for new projects); test/, test2/
-               master: script/ only
+               script/ = old compiler, script2/ = new (default for new projects); test/, test2/
 Tools/         agf2dta agfexport agf2dlgasc agsbuild agspak crmpak spriteimport spritepak trac
                data/: agfreader (Game.agf), data_file_writer (game28.dta), scriptgen, tra_utils; test/: tools_test
 Editor/        C# 6, .NET Framework 4.7, WinForms, Windows only (runs under Wine)
@@ -43,7 +38,7 @@ Editor/        C# 6, .NET Framework 4.7, WinForms, Windows only (runs under Wine
   AGS.Controls/ scintilla/ AGS.Editor.Tests/ (NUnit, 26 files)
 Plugins/       first-party engine plugins kept for old games (AGSSpriteFont, snowrain, flashlight, agslua, ...)
 libsrc/        allegro (trimmed 4.x), freetype, glm, miniz, mojoAL, sdl_ttf, stb, tinyxml2
-Solutions/     MSBuild: Engine.sln Tests.sln Tools.sln Compiler.App.sln Compiler.Lib.sln Compiler2.Lib.sln (ags4)
+Solutions/     MSBuild: Engine.sln Tests.sln Tools.sln Compiler.App.sln Compiler.Lib.sln Compiler2.Lib.sln
                AGS.Editor.Full.sln AGS.Editor.NoNative.sln
 CMake/ ci/ Script/      CMake modules; CI Dockerfiles; push_version.py, build_packages.py
 Android/ iOS/ OSX/ Emscripten/ debian/ Windows/   platform builds + READMEs
@@ -69,7 +64,7 @@ CI = GitHub Actions since 2026 (`.disabled.cirrus.yml` is the old Cirrus config)
 |---|---|---|
 | GoogleTest | `common_test` `engine_test` `compiler_test` `tools_test` (CMake `-DAGS_TESTS=ON`; MSBuild `Tests.sln`) | `ctest` in the build dir |
 | NUnit | `Editor/AGS.Editor.Tests` | `nunit3-console` after `AGS.Editor.Full.sln` |
-| auto-test game | `ags-test-games`: `ags4/auto-test`, `ags3/auto-test*`; scripts emit TAP | engine `--gfxdriver Software --no-message-box ...`, then `tappy agstest.tap` (workflows.md) |
+| auto-test game | `ags-test-games`: `ags4/auto-test`; scripts emit TAP | engine `--gfxdriver Software --no-message-box ...`, then `tappy agstest.tap` (workflows.md) |
 
 Engine coverage ≈ the auto-test game; `engine_test` is 3 files.
 
@@ -77,13 +72,13 @@ Engine coverage ≈ the auto-test game; `engine_test` is 3 files.
 
 | Thing | Where | Rule |
 |---|---|---|
-| game data `game28.dta` (in `game.ags`) | read `Common/game/main_game_file.cpp`; written by Editor `DataFileWriter.cs` **and** `Tools/data/data_file_writer.cpp` (keep equal) | versions `Common/ac/game_version.h`: `ags4` reads `kGameVersion_360_21`+, `master` 2.50+; new data = **extension block** appended after main data (1-byte or 16-char id + 8-byte length), never inserted (wiki "Extending game and room data format", #828, PR #1183) |
-| rooms `room<n>.crm` | `Common/game/room_file.cpp`, `room_version.h` | same block scheme; `ags4` reads `kRoomVersion_3508`+; versions not monotonic across branches; `ags4` Editor keeps rooms as sources `Rooms/<n>/` (`data.xml`, PNGs, `room<n>.asc`) and compiles them |
-| saves | `Engine/game/savegame.h` (`kSvgVersion_*`), `savegame_components.cpp` | full state dump; readable back to `kSvgVersion_Components`; `ags4` reads 3.5.0+ saves; component content change = new version |
+| game data `game28.dta` (in `game.ags`) | read `Common/game/main_game_file.cpp`; written by Editor `DataFileWriter.cs` **and** `Tools/data/data_file_writer.cpp` (keep equal) | versions `Common/ac/game_version.h`: reads `kGameVersion_360_21`+; new data = **extension block** appended after main data (1-byte or 16-char id + 8-byte length), never inserted (wiki "Extending game and room data format", #828, PR #1183) |
+| rooms `room<n>.crm` | `Common/game/room_file.cpp`, `room_version.h` | same block scheme; reads `kRoomVersion_3508`+; versions not monotonic (`kRoomVersion_399` = 40 sorts below 3.6.x's `36306`); the Editor keeps rooms as sources `Rooms/<n>/` (`data.xml`, PNGs, `room<n>.asc`) and compiles them |
+| saves | `Engine/game/savegame.h` (`kSvgVersion_*`), `savegame_components.cpp` | full state dump; readable back to `kSvgVersion_Components` (3.5.0+ saves); component content change = new version |
 | script API | decl `Editor/AGS.Editor/Resources/agsdefns.sh`; impl `Engine/ac/<type>.cpp` with `Register<Type>API()` (40 files) collected by `setup_script_exports()` in `Engine/script/exports.cpp` | compiled scripts link by **name** (`"Character::Walk^4"`, `^N` = arg count, `^10N` variadic) and read fields by **offset** (switches in `Engine/ac/dynobj/`); new API under `#ifdef SCRIPT_API_vXXX`, deprecations under `SCRIPT_COMPAT_vXXX`, versions in `kScriptAPI_*` + `ScriptAPIVersion.cs`; each function also exported to plugins via `ccAddExternalFunctionForPlugin` (wiki "A quick guide to Script API") |
 | plugin API | `Engine/plugin/agsplugin.h` | `IAGSEngine` vtable order and `AGS_Engine*` exports frozen (binary plugins nobody can rebuild) |
 | engine config / command line | `OPTIONS.md`, `Engine/main/config.cpp`, `main.cpp` | keys live in players' `acsetup.cfg` and launchers |
-| project files `Game.agf`, `Rooms/`, `Dialogs/*.dasc` (ags4) | `Editor/AGS.Types`; `UpgradeGameManager.cs` upgrades on load | tools (`Tools/data/agfreader.cpp`) read the current format: teach them every new property |
+| project files `Game.agf`, `Rooms/`, `Dialogs/*.dasc` | `Editor/AGS.Types`; `UpgradeGameManager.cs` upgrades on load | tools (`Tools/data/agfreader.cpp`) read the current format: teach them every new property |
 
 Serialize field by field through `Stream` (`Common/util/stream.h`); `AlignedStream` exists only to
 read old raw-memory formats (wiki "Engine data structure restrictions").

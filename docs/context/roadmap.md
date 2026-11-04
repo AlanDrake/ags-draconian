@@ -6,13 +6,9 @@ Snapshot 2026-11-02. Numbers = adventuregamestudio/ags issues/PRs. Status: **don
 
 ## State
 
-| Line | Version | State |
-|---|---|---|
-| AGS 3 | 3.6.3 RC (`release-3.6.3`); `master` = 3.6.4 dev | maintenance: milestones `3.6.2 maintenance` (9 open), `3.6.3` (8 open), old-game compat reports (#3106 #3125 #3133 #3134 #3138); 3.6.4 maybe only to ship the tools (#2316) |
-| AGS 4 | 4.0.0.33 Beta (`ags4`) | finishing: `4.0 Beta` 19 open, `4.0 final` 25 open; 294 open issues total, 93 `ags 4` |
-
-Last 12 months: 115 PRs merged (70 `master`, 25 `ags4`, 20 release branches; 72 ivan-mogilko,
-22 ericoporto, 9 a-riddle-fan); 123 issues closed.
+AGS 4 is 4.0.0.33 Beta (`ags4`), finishing: `4.0 Beta` 19 open, `4.0 final` 25 open; 93 open
+issues labelled `ags 4` (294 open in all). Last 12 months, all branches: 115 PRs merged (72
+ivan-mogilko, 22 ericoporto, 9 a-riddle-fan); 123 issues closed.
 
 ## 4.0 Beta checklist (#3019, ivan-mogilko 2026-07)
 
@@ -47,20 +43,22 @@ D3D11 testing #3115 · colour conversion tests #3167
 |---|---|
 | `agf2dta` `agfexport` `agf2dlgasc` `agscc` `agspak` `crmpak` `spriteimport` `spritepak` `trac` `agsbuild` | done; `spritepak` fixes #3083 |
 | plugin script-header extraction (#2771) | open: tool vs `<plugin>.ash` files |
-| 4.0 room compiler (`Rooms/<n>/` → `.crm`) | "ticket TBD"; implemented in the AGS Draconian fork (`crmbuild`), offered in PR #3182 |
-| PO translation compiler | "ticket TBD"; also in PR #3182 |
+| 4.0 room compiler (`Rooms/<n>/` → `.crm`) | "ticket TBD"; PR #3189 (`crmbuild`) |
+| PO translation compiler | "ticket TBD"; PR #3190 (`po2tra`) |
 | lipsync compiler #3065 · `--version` #3068 · `agscc -I` #3070 · tool logging #2530 · AGFReader tests #3147 · packaging (TBD) | proposed |
 | prerequisites: Common without external impls #1833 (proposed), without globals #1834 (mostly done), data/runtime split #2058 (proposed) | |
 
 ## Open PRs
 
+States checked 2026-11-04; `master` PRs reach `ags4` through the maintainers' merge.
+
 | PR | Base | What |
 |---|---|---|
-| #3182 AlanDrake | ags4 | AGS 4 support in the tools, 24 commits; maintainers asked for a rebase after #3181, smaller PRs, no `agf2dta --script-dir`, no `agsbuild --json`; being re-sent as five PRs (fixes, table-driven `agfreader`, `agf2dta` parity, `crmbuild`, `po2tra`) |
-| #3176 #3175 #3119 AlanDrake | ags4 | void-returns-void compiler; Editor antialiased fonts; 8-bit alpha + ranges |
+| #3186–#3190 AlanDrake (2026-11-03) | ags4 | AGS 4 support in the tools, replacing the closed #3182 (maintainers asked for smaller PRs, no `agf2dta --script-dir`, no `agsbuild --json`): fixes, table-driven `agfreader`, `agf2dta` parity, `crmbuild` (each on the previous), `po2tra`; no reviews yet (2026-11-04) |
+| #3185 AlanDrake | master | `AGENTS.md` and `docs/context/` |
+| #3176 #3119 AlanDrake | ags4 | void-returns-void compiler; 8-bit alpha + ranges (#3175 Editor antialiased fonts: closed) |
 | #3162 a-riddle-fan | master | engine debugger on non-Windows (`--debugger-comm pipe\|file`) |
-| #3183 #3184 PacketLauncher | master | TTF outline preview; 4-bit WFN fonts |
-| #3173 ivan-mogilko | release-3.6.3 | CMake: system miniz |
+| #3184 PacketLauncher | master | 4-bit WFN fonts (#3183 TTF outline preview: merged) |
 | #2782 ivan-mogilko | ags4 | `ShaderProgram` from string |
 | #2770 ericoporto | master | SKETCH: build generator for the tools |
 | #2256 ivan-mogilko | master | DRAFT: `IAGSAudioPlayer` plugin API |
@@ -83,4 +81,3 @@ D3D11 testing #3115 · colour conversion tests #3167
 - vector walk-boxes: needs another pathfinder; script-side via `WalkPath`, ivan-mogilko 2024-06-03
 - start/stop/turn animation sections: postponed past 4.0, ivan-mogilko 2025-10-29
 - `f` prefix for flag enums: breaks scripts/habits, 2024-12-16
-- forward-compatible save format on 3.x: deferred to 4.0, ivan-mogilko #1400

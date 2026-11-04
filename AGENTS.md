@@ -10,10 +10,10 @@ Entry points, in reading order:
 | File | What | Read when |
 |---|---|---|
 | this file | rules, facts, verification | always |
-| [docs/refactor/PLAN.md](docs/refactor/PLAN.md) "Next up" and the task's section | the refactor plan: phases, decisions D1-D7, task status | starting a plan task (read only the task, not the whole file: it is ~18k tokens) |
-| [docs/refactor/STYLE.md](docs/refactor/STYLE.md) | fork code style (enforced) and commit rules | writing or formatting code |
-| [docs/refactor/LOG.md](docs/refactor/LOG.md) | dated status of finished tasks: measurements, bugs found on the way | looking up how a finished task went |
-| [docs/context/](docs/context/README.md) | upstream project knowledge: repository map, workflows, decisions, roadmap, sources | changing engine/editor/tools code, designing, or preparing an upstream PR |
+| [docs/refactor/PLAN.md](docs/refactor/PLAN.md) "Next up" and the task's section | the refactor plan: phases, decisions D1-D7, task status | starting a plan task (read only the task, not the whole file: it is ~10k tokens) |
+| [docs/refactor/STYLE.md](docs/refactor/STYLE.md) | fork code style and commit rules | writing or formatting code |
+| [docs/refactor/LOG.md](docs/refactor/LOG.md) | finished tasks' definitions and dated status: measurements, bugs found on the way | looking up how a task went |
+| [docs/context/](docs/context/README.md) | upstream knowledge about `ags4` (AGS 3 left out): repository map, workflows, decisions, roadmap, sources | changing engine/editor/tools code, designing, or preparing an upstream PR |
 | [docs/UPSTREAM.md](docs/UPSTREAM.md) | cherry-pick ledger and the branches sent upstream | taking or sending upstream changes |
 
 ## Rules

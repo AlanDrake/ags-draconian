@@ -19,13 +19,13 @@ A maintainer's statement is the strongest signal short of merged code; still "pr
 
 ## Places
 
-- GitHub issues (294 open): labels `type:` (bug/enhancement/question) · `what:` (editor/engine/tools/engine plugin) · `context:` (script api, script compiler, bw-compat, game building, …) · `ags 4` / `ags3` · `res: in consideration`; milestones `4.0 Beta`, `4.0 final`, `3.6.3`, `3.6.2 maintenance`, `AGS 3: Minimal standalone tool set`; 224 open issues have no milestone
+- GitHub issues (294 open): labels `type:` (bug/enhancement/question) · `what:` (editor/engine/tools/engine plugin) · `context:` (script api, script compiler, bw-compat, game building, …) · `ags 4` · `res: in consideration`; milestones `4.0 Beta`, `4.0 final`, `AGS 3: Minimal standalone tool set` (the build tools, #2316); 224 open issues have no milestone
 - GitHub wiki (23 pages, last edit 2026-10-15): clone `https://github.com/adventuregamestudio/ags.wiki.git` (one page name contains `:`; on Windows read it with `git show`)
 - forum boards "Editor Development", "Engine Development": maintainers' proposals and user requests (~480 threads; list below); thread URL + `?all` = whole thread, browser User-Agent required
 - AGS Discord: quick polls (e.g. #2605 naming 2026-04); not archived
 - `Changes.txt`: what shipped, per version
 
-Repos: `ags-manual-source` (`master` 3.x, `ags4` 4.0; user manual, one `.md` per script type) ·
+Repos: `ags-manual-source` (branch `ags4`; user manual, one `.md` per script type) ·
 `ags-manual` (pandoc build, CHM/HTML) · `ags-test-games` (auto-test games, built with `atbx`,
 released as zips CI downloads) · `ags-template-source` · `ivan-mogilko/ags-refactoring`
 (experiment branches: `draft--upgradesaves`, `ags4--draft-memwatch`,
@@ -59,7 +59,7 @@ game saves into updated game: Attempt 2" (2024→2025) · "[EXPERIMENT] AGS 4: C
 support" (2025) · "Why isn't AGS script much, much faster?" (2021→2024; VM facts, 3.6.1 perf work) ·
 "Planning base classes in AGS script", "Coroutines in AGS", "AGS 4: Touch input API" (2025) ·
 "[4.0] Allow unlimited nested script callbacks" (2025-12) · "Suggestions to 3.6" (translations,
-2026) · "Running old games with 3.6.2 engine" (2024→2025) · "AGS High-Priority Improvement Needs"
+2026) · "AGS High-Priority Improvement Needs"
 (2021) · "AGS Project Goal" (2020) · "Porting engine to ScummVM" (2020→21)
 
 Forum, editor board: "AGS 4.+ Roadmap discussion" (2024) · "GUI Controls update proposal"
