@@ -209,7 +209,8 @@ set_target_properties(agsbuild PROPERTIES
         CXX_STANDARD 17
         CXX_EXTENSIONS NO
         )
-target_link_libraries(agsbuild PUBLIC libtools)
+# std::thread: libpthread is a library of its own before glibc 2.34
+target_link_libraries(agsbuild PUBLIC libtools Threads::Threads)
 
 #----- agspak -------------------------------------------------
 add_executable(agspak agspak/main.cpp
@@ -356,6 +357,7 @@ if(AGS_TESTS)
       libtools
       AAStr::AAStr
       gtest
+      Threads::Threads
    )
    if(AGS_USE_LOCAL_GTEST)
        target_link_libraries(tools_test gtest)
