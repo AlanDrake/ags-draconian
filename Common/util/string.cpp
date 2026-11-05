@@ -998,7 +998,18 @@ void String::SetString(const char *cstr, size_t length)
 {
     if (cstr && length > 0u)
     {
-        SetStringImpl(cstr, std::min(length, strlen(cstr)));
+        // Stop at the terminator or at 'length', whichever comes first, and never read past
+        // 'length': the buffer may be a part of a larger text or have no terminator at all
+        size_t copy_len = length;
+        if (length == NoIndex)
+        {
+            copy_len = strlen(cstr);
+        }
+        else if (const void *end = memchr(cstr, 0, length))
+        {
+            copy_len = static_cast<const char *>(end) - cstr;
+        }
+        SetStringImpl(cstr, copy_len);
     }
     else
     {

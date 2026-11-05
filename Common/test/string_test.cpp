@@ -11,6 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <memory>
+
 #include "gtest/gtest.h"
 #include "util/string.h"
 
@@ -319,6 +321,28 @@ TEST(String, FactoryMethods)
     ASSERT_TRUE(strcmp(s1.GetCStr(), "some string") == 0);
     s1.SetString("some string", 4);
     ASSERT_TRUE(strcmp(s1.GetCStr(), "some") == 0);
+}
+
+TEST(String, FromBufferWithLength)
+{
+    // exactly 3 bytes, no terminator and nothing known after them: reading past the
+    // length is a heap overflow that a sanitizer reports
+    const std::unique_ptr<char[]> unterminated(new char[3]{'a', 'b', 'c'});
+    String s1(unterminated.get(), 3);
+    ASSERT_EQ(3u, s1.GetLength());
+    ASSERT_STREQ("abc", s1.GetCStr());
+    s1.SetString(unterminated.get(), 2);
+    ASSERT_STREQ("ab", s1.GetCStr());
+
+    // stops at the terminator when it comes before the length
+    const char terminated[] = {'x', 'y', 0, 'z'};
+    String s2(terminated, 4);
+    ASSERT_EQ(2u, s2.GetLength());
+    ASSERT_STREQ("xy", s2.GetCStr());
+
+    // no characters, null pointer
+    ASSERT_TRUE(String(unterminated.get(), 0).IsEmpty());
+    ASSERT_TRUE(String(nullptr, 4).IsEmpty());
 }
 
 TEST(String, LowerUpperCase)

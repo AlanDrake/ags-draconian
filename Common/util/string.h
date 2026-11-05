@@ -69,7 +69,8 @@ public:
     String(const std::string &str);
     // Initialize with C-string
     String(const char *cstr);
-    // Initialize by copying up to N chars from C-string
+    // Initialize by copying up to N chars from C-string, or up to the first null-terminator,
+    // whichever comes first; never reads past N chars (the buffer may be unterminated)
     String(const char *cstr, size_t length);
     // Initialize by filling N chars with certain value
     String(char c, size_t count);
@@ -382,7 +383,9 @@ public:
     void ReverseUTF8();
     // Overwrite the Nth character of the string; does not change string's length
     void SetAt(size_t index, char c);
-    // Makes a new string by copying up to N chars from C-string
+    // Makes a new string by copying up to N chars from C-string, or up to the first
+    // null-terminator, whichever comes first; never reads past N chars, so the buffer
+    // does not have to be null-terminated if it has at least N chars
     void SetString(const char *cstr, size_t length = NoIndex);
     // For all Trim functions, if given character value is 0, all whitespace
     // characters (space, tabs, CRLF) are removed.
