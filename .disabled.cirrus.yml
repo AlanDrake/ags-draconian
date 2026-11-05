@@ -159,27 +159,6 @@ build_linux_debian_task:
   data_files_artifacts:
     path: data_*.tar.gz
 
-build_linux_make_task:
-  only_if: $CIRRUS_RELEASE == ''
-  container:
-    dockerfile: ci/linux/Dockerfile
-    docker_arguments:
-      matrix:
-        - FROM_PLATFORM: linux/amd64
-      FROM_DEBIAN: debian/eol:jessie
-  setup_destdir_script: |
-    mkdir destdir
-    arch=$(dpkg --print-architecture)
-    ln -s destdir/usr/local/bin bin_$arch
-  build_script: |
-    make -j2 PREFIX="$(cd destdir && pwd)/usr/local" --directory=Engine install
-  build_compiler_script: |
-    make -j2 PREFIX="$(cd destdir && pwd)/usr/local" --directory=Compiler install
-  build_tools_script: |
-    find Tools -name Makefile -execdir make -j2 PREFIX="$(cd destdir && pwd)/usr/local" install \;
-  binaries_artifacts:
-    path: bin_*/*
-
 build_macos_task:
   skip: "!changesInclude('OSX/**')"
   only_if: $CIRRUS_RELEASE == ''
