@@ -10,6 +10,8 @@ Runs locally what the CI would otherwise discover after a push (docs/refactor/PL
 Stages, in the order they run (a failed stage does not stop the later ones; the summary lists all):
   format   clang-format 19.1.7 --dry-run -Werror over every tracked C/C++ file, as format.yml does
   build    CMake + Ninja (MSVC) Release build with tools and tests, then ctest
+  tidy     clang-tidy 19.1 on the lines that differ from the upstream branch (Script/tidy_diff.py, 2.4):
+           naming and size rules for new code only; the build's compile_commands.json is the input
   headers  the header_check target with MSVC (the CI's Windows job)
   libcxx   the headers again with clang + libc++ from emsdk, POSIX target, no transitive includes:
            the stand-in for the CI's GCC and clang jobs (Script/header_check_libcxx.py)
@@ -18,7 +20,8 @@ Stages, in the order they run (a failed stage does not stop the later ones; the 
            regular Solutions/.build are not overwritten
 
 Needs: Visual Studio 2022 with the C++ workload, Python, and for the optional parts clang-format
-(--clang-format, $AGS_CLANG_FORMAT, .compare/cfenv or PATH; the version is checked), emsdk ($EMSDK or
+(--clang-format, $AGS_CLANG_FORMAT, .compare/cfenv or PATH; the version is checked), clang-tidy
+(--clang-tidy, $CLANG_TIDY, .compare/cfenv or PATH; pip install clang-tidy==19.1.0), emsdk ($EMSDK or
 --emsdk) and C:\\Lib (Windows\\setup_ags_build_deps.bat). A stage whose tool is missing is reported
 as NOT RUN and makes the exit code non-zero: "not verified" is not "passed". Build trees live in
 the git-ignored .tidy/prepush. Stages that do not apply to the platform are skipped silently.
@@ -35,6 +38,7 @@ import time
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.dirname(__file__))
+import tidy_diff  # noqa: E402
 
 CLANG_FORMAT_VERSION = '19.1.7'
 WORK = os.path.join(REPO, '.tidy', 'prepush')
@@ -43,7 +47,7 @@ MSB = os.path.join(WORK, 'msb')
 SOURCE_GLOBS = ['*.c', '*.cc', '*.cpp', '*.cxx', '*.h', '*.hpp', '*.inl']
 SOLUTIONS = ['Compiler.Lib', 'Tests', 'Engine', 'Tools', 'Compiler.App', 'AGS.Editor.Full']
 TEST_RUNNERS = ['Compiler.Lib.Test.exe', 'Common.Lib.Test.exe', 'Engine.App.Test.exe', 'Tools.Test.exe']
-STAGES = ['format', 'build', 'headers', 'libcxx', 'msbuild']
+STAGES = ['format', 'build', 'tidy', 'headers', 'libcxx', 'msbuild']
 
 args = None
 _msvc = None
@@ -129,6 +133,19 @@ def tool_of(name, env):
     return msvc()[1](name, env)
 
 
+def stage_tidy():
+    exe = tidy_diff.find_clang_tidy(args.clang_tidy)
+    if exe is None:
+        raise NotRun('clang-tidy %s not found: pip install clang-tidy==19.1.0 into a venv and pass '
+                     '--clang-tidy or set CLANG_TIDY' % tidy_diff.CLANG_TIDY_VERSION)
+    env, _ = cmake_configure()
+    # The compile database of the build tree; the diff is the unpushed commits and the working tree
+    run('tidy', [sys.executable, os.path.join(REPO, 'Script', 'tidy_diff.py'), '--build', BUILD, '--clang-tidy', exe],
+        env=env)
+    with open(log_path('tidy'), encoding='utf-8', errors='replace') as log:
+        return log.read().strip().splitlines()[-1]
+
+
 def stage_headers():
     env, cmake = cmake_configure()
     run('headers', [cmake, '--build', BUILD, '--target', 'header_check', '--', '-k', '0'], env=env)
@@ -188,7 +205,7 @@ def stage_msbuild():
     return '%d solutions (Editor NUnit runner not restored: not run)' % len(built)
 
 
-RUNNERS = {'format': stage_format, 'build': stage_build, 'headers': stage_headers,
+RUNNERS = {'format': stage_format, 'build': stage_build, 'tidy': stage_tidy, 'headers': stage_headers,
            'libcxx': stage_libcxx, 'msbuild': stage_msbuild}
 
 
@@ -199,6 +216,7 @@ def main():
     ap.add_argument('--skip', help='comma-separated stages to leave out')
     ap.add_argument('--list', action='store_true', help='list the stages')
     ap.add_argument('--clang-format', help='path of clang-format %s' % CLANG_FORMAT_VERSION)
+    ap.add_argument('--clang-tidy', help='path of clang-tidy %s' % tidy_diff.CLANG_TIDY_VERSION)
     ap.add_argument('--emsdk', help='emsdk directory (default: $EMSDK)')
     ap.add_argument('--clean-logs', action='store_true', help='delete the old logs first')
     args = ap.parse_args()

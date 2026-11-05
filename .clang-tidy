@@ -2,7 +2,7 @@
 # Pinned tool: clang-tidy 19.1.x. Needs compile_commands.json (cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON).
 #
 # The legacy code violates most of these, so CI runs clang-tidy on *changed lines only*
-# (clang-tidy-diff.py) until a module is cleaned up; see docs/refactor/PLAN.md, task 2.4.
+# (Script/tidy_diff.py) until a module is cleaned up; see docs/refactor/PLAN.md, task 2.4.
 # Third-party code is excluded by HeaderFilterRegex and by only passing first-party sources.
 ---
 Checks: >
@@ -89,4 +89,16 @@ CheckOptions:
   readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
   # Include guards are being replaced by #pragma once (PLAN.md, task 2.5)
   readability-identifier-naming.MacroDefinitionIgnoredRegexp: '^__.*_H(PP)?$'
+
+  # Not a length rule, and not in Checks: Script/tidy_diff.py turns this check on to hear of every
+  # variable and parameter declared on a changed line, and reports the ones on the watchlist of
+  # banned abbreviations (CRYPTIC_WATCHLIST in Script/refactor_metrics.py; STYLE.md "Naming").
+  readability-identifier-length.MinimumVariableNameLength: 99
+  readability-identifier-length.MinimumParameterNameLength: 99
+  readability-identifier-length.MinimumLoopCounterNameLength: 99
+  readability-identifier-length.MinimumExceptionNameLength: 99
+  readability-identifier-length.IgnoredVariableNames: ''
+  readability-identifier-length.IgnoredParameterNames: ''
+  readability-identifier-length.IgnoredLoopCounterNames: ''
+  readability-identifier-length.IgnoredExceptionVariableNames: ''
 ...

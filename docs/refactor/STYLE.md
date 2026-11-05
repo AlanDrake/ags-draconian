@@ -36,9 +36,9 @@ Use the pinned versions: other clang-format versions format differently, and old
 ```sh
 # CI's format check (whole files); clang-format -i to fix
 git ls-files '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hpp' '*.inl' | xargs clang-format --dry-run -Werror
-# lint changed lines (needs build/compile_commands.json; clang-tidy-diff.py is not in the pip
-# package: take it from llvm-project/clang-tools-extra/clang-tidy/tool/ at the same version)
-git diff -U0 origin/draconian -- '*.cpp' '*.h' | python clang-tidy-diff.py -p1 -path build
+# lint changed lines (CI gate, PLAN.md 2.4; needs build/compile_commands.json; the diff is against
+# the merge base with the upstream branch unless --base is given, and includes uncommitted edits)
+python Script/tidy_diff.py --build build
 ```
 
 ## C++
@@ -95,7 +95,9 @@ private:
 
 - **No abbreviations except well-known ones** (`id`, `idx`, `num`, `pos`, `src`, `dst`, `bmp`, `gfx`,
   `cfg`, `str`, `x`/`y`/`w`/`h`). `chaa`, `objj`, `butt`, `guio`, `sds`, `tqs`, `eres`, `scam`,
-  `texx`, `widd`, `iit`, `vii` are on the `refactor_metrics.py` watchlist and banned in new code.
+  `texx`, `widd`, `iit`, `vii` are on the `refactor_metrics.py` watchlist and banned in new code
+  **[enforced on changed lines]**: `tidy_diff.py` flags a new variable or parameter with such a name
+  (`ags-cryptic-name`); a line that only uses a legacy one passes.
 - **One concept, one name:** a `CharacterInfo*` is `ch` (or `character`) everywhere, not `chaa`,
   `chap`, `chin`, `chinfo`, `char1` or `chi`.
 - Booleans are predicates (`is_visible`, `HasAlpha()`, `_needsRedraw`); functions are verbs, types

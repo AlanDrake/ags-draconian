@@ -68,13 +68,13 @@ Entry points, in reading order:
 `docs/context/repository.md` applies, with these differences: `Compiler/script` (new compiler),
 `Tools/crmbuild`, `Tools/data/xml_fields.h` (table-driven `Game.agf` reading, drift guard
 `Tools/data/agf_elements.txt`), `Script/compare_objects.py`, `Script/compare_builds.py`,
-`Script/refactor_metrics.py` (BASELINE.md numbers), `Script/tidy_fix.py`, `ci/corpus/`,
+`Script/refactor_metrics.py` (BASELINE.md numbers), `Script/tidy_fix.py`, `Script/tidy_diff.py` (clang-tidy on changed lines), `ci/corpus/`,
 `.github/workflows/verify.yml`, `Script/prepush.py`. Local-only helpers and build trees live in the git-ignored
 `.compare/` and `.tidy/`.
 
 ## Verify before you report done
 
-Before a push run `python Script/prepush.py` (clang-format, CMake build + `ctest`, header check with
+Before a push run `python Script/prepush.py` (clang-format, CMake build + `ctest`, clang-tidy on the changed lines, header check with
 MSVC and clang+libc++, the MSBuild solutions; `--list`, `--only`, `--skip`): CI confirms, it does not
 discover. Workflows: `verify.yml` (fast gate, every push), `ci.yml` (`ags4draconian*` branches, PRs: light set;
 tags, weekly, `gh workflow run ci.yml -f full=true`: every platform), `macos.yml` (tags, weekly, on demand;

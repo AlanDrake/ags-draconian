@@ -80,7 +80,7 @@ and re-cut by U.3 as #3186–#3190), the agent docs (0.6, upstream PR #3185), 1.
 tests, 2026-11-04), U.5 (the save fix found by 1.2, upstream PR #3191), the 6.0 study (2026-11-04,
 EDITOR-SPLIT.md: 6.0 re-scoped, 6.7c decided, U.6 defined), 1.3 (engine unit tests, 2026-11-05,
 on its branch), 3.2a/b (Makefiles, `make.yml` and `dh --buildsystem makefile` replaced by CMake;
-2026-11-05, green in a full CI run). Phase 1: 1.5
+2026-11-05, green in a full CI run), 2.4 (clang-tidy gate on changed lines, 2026-11-05, unpushed). Phase 1: 1.5
 is the only open task. Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
 guards it (1.2, 1.3). Reordered 2026-11-03 after reading upstream's plans (ALIGNMENT.md): upstream
 review takes weeks, so the offers (U.3) go out first and the fork-only divergence (3.2, 3.4, 5.3)
@@ -91,7 +91,7 @@ comes after they are closed.
 | 1 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
 | 2 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
 | 3 | **1.3 to merge:** `1.3-engine-tests` (15 commits on `5aaa1e65c`) was tested by the user in a game through the editor and engine built from it (`.compare/msb-13`); merge and push when ready. **U.7 waiting:** PR #3193 open since 2026-11-05 | The branch is the safety net phases 3 to 5 wait for | user |
-| 4 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
+| 4 | **1.5** sanitizers. After the first CI run with the 2.4 gate: read its result (the Linux clang-tidy step is untested on CI) | Useful, not urgent; adds CI time | Sonnet 5.5, `medium` |
 
 Open items found while doing finished tasks (details in LOG.md): 0.4's CodeQL setting, the
 `D3DCOMPILER_47`/Windows 7 question and the macOS 10.9 deployment target; 1.4's unfixed `agfreader`
@@ -180,9 +180,12 @@ folders.
 - [x] **2.2 One-time reformat**, module by module, hashes in `.git-blame-ignore-revs` (2026-11-01).
 - [x] **2.3 Mechanical modernisation:** `nullptr`, `override`, `<cmath>`-style headers, `using`,
   redundant `void` (2026-11-01).
-- [ ] **2.4 clang-tidy gate.** `compile_commands.json` in the Linux CI job and `clang-tidy-diff.py`
+- [x] **2.4 clang-tidy gate** (2026-11-05, not yet run on CI: see LOG.md). `compile_commands.json` in the Linux CI job and `clang-tidy-diff.py`
   on the PR diff with the root `.clang-tidy`: naming and function-size rules for new code only.
   *Done when:* a PR that adds a `chaa`-style name or a 300-line function is flagged.
+  *Result:* `Script/tidy_diff.py` (in place of `clang-tidy-diff.py`) is a step of `verify.yml`'s Linux job and the `tidy` stage of
+  `prepush.py`; locally a new variable or parameter named `chaa` (any name on the `refactor_metrics.py` watchlist), a wrong case
+  style and a 306-line function are flagged; a clean edit in a file with 34 old findings and a line using a legacy `chaa` pass.
 - [x] **2.5 `#pragma once`, no `using namespace` in headers** (2026-11-01).
 - [x] **2.6 Self-contained headers (`header_check`), sorted includes** (2026-11-02).
 - [x] **2.7 Line endings renormalised** (2026-11-01).

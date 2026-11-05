@@ -385,7 +385,73 @@ all TUs in parallel and applies the merged fixes. Results:
   left alone (they changed `game.cpp`'s object; cause not investigated).
 - `modernize-use-using`: **skipped.** The fixer drops parameter names from function-type typedefs
   and conflicts on nested ones, which broke the build. Purely cosmetic; do by hand if wanted.
-- Moving these checks to "whole tree" in CI is task 2.4 (needs the Linux compile database).
+- Moving these checks to "whole tree" in CI is task 2.4 (needs the Linux compile database). *Superseded:*
+  2.4 gates changed lines only; the whole tree stays as it is until a module is cleaned up.
+
+### 2.4 clang-tidy gate
+
+*Definition, moved from PLAN.md on 2026-11-05:*
+
+**2.4 clang-tidy gate.** `compile_commands.json` in the Linux CI job and `clang-tidy-diff.py` on the PR
+diff with the root `.clang-tidy`: naming and function-size rules for new code only. *Done when:* a PR that
+adds a `chaa`-style name or a 300-line function is flagged.
+
+*Status (2026-11-05):* done and verified locally; **the CI step has not run** (nothing pushed).
+- **`Script/tidy_diff.py`** replaces `clang-tidy-diff.py`: the pip `clang-tidy==19.1.0` wheel does not
+  contain the script (only the binary and its resource headers), the copy on this machine's PATH belongs to
+  LLVM 7, and the distribution packages name it per version. The script is the same idea in ~200 lines
+  with the pieces CI and the local run share: `git diff -U0` of a base revision against the working tree
+  (so uncommitted edits and untracked files count) gives the changed line ranges, which go to clang-tidy as
+  one `--line-filter`; every diagnostic outside them is dropped. It runs the whole root `.clang-tidy`, not
+  only naming and size, since the config is the project's rule set. Files: first-party `.cpp` in the
+  compile database, and headers (run alone, clang-tidy takes the flags of a neighbour; skipped when the
+  same-named `.cpp` is in the diff). `libsrc/`, `libinclude/`, `_deps/` and everything outside `Common`,
+  `Engine`, `Compiler`, `Tools`, `Plugins` are never handed to it. Exit 0 clean, 1 diagnostics, 2 cannot
+  analyse (no clang-tidy, no database, a file that did not compile): a broken analysis must not read as a pass.
+- **Where it runs:** a step of the Linux job of `verify.yml` (every push), after `Test`: it reuses that
+  job's configure (`-DCMAKE_EXPORT_COMPILE_COMMANDS=ON` added), build tree and downloaded dependencies, so
+  it costs the `pip install` and the analysis only, no second apt install and configure. The base is the
+  push's `before` commit; a new branch, a force push or a manual run (no usable `before`) compares with the
+  merge base with `origin/ags4draconianr21`. The checkout of that job is now `fetch-depth: 0` for it.
+  Not `ci.yml`: it does not run on every push, and the point is feedback in the same run as the format check.
+- **`Script/prepush.py` stage `tidy`** (after `build`; needs only the configure of the build tree): the same
+  script, base the merge base with the upstream branch, so unpushed commits and the working tree are checked.
+  `NOT RUN` when clang-tidy 19.1 is missing (`--clang-tidy`, `$CLANG_TIDY`, `.compare/cfenv`, PATH).
+- **Verified** (Windows, MSVC compile database of `.tidy/build`, clang-tidy 19.1.0, throwaway edit to
+  `Common/util/path.cpp`, reverted): (a) a new `int chaa_count(int Value)` with a local `LocalThing` gave
+  three `readability-identifier-naming` diagnostics, exit 1; (b) a new 300-line function gave
+  `readability-function-size`, exit 1; (c) a clean new function gave `clean`, exit 0, although the file has 34
+  clang-tidy findings of its own (d); a new `inline int chaa_h(int Value)` in `path.h` was flagged too.
+  `prepush.py --only tidy` failed on (a) and passed on a clean tree.
+- **The banned abbreviations were not covered by that:** (a) was flagged for its case styles (function not
+  `CamelCase`, parameter and local not `snake_case`). `readability-identifier-naming` knows case styles,
+  not words, and `chaa` is valid `snake_case`: a new `int chaa = count;` gave `clean`, exit 0 (tried).
+  Fixed the same day: `.clang-tidy` sets `readability-identifier-length` to a minimum of 99 (the check is
+  not in `Checks`), `tidy_diff.py` turns it on, so clang-tidy names every variable and parameter declared
+  on a changed line, and the script reports the ones in `CRYPTIC_WATCHLIST` (`Script/refactor_metrics.py`,
+  the one copy of the list) as `[ags-cryptic-name]` and drops the rest. Declarations only, found by the
+  parser: a changed line that uses a legacy `chaa` is not flagged, so a behaviour commit is not forced to
+  rename. Not covered: functions and data members (the check reports variables and parameters).
+  Verified: a new function with parameter `objj`, local `chaa` and loop counter `xx` gave three
+  `ags-cryptic-name` diagnostics, exit 1; the same function well named (`count`, `total`, `i`) `clean`;
+  a new `if (chaa == nullptr)` in `Character_AddWaypoint(CharacterInfo *chaa, ...)` `clean`.
+- **Measured:** one `.cpp` 31 s, one header 6 s, a 30-file, 4210-line diff (`HEAD~60`) 74 s, on 8 cores
+  (the 8 processes parse the system headers each; the Linux runner has 4 cores, expect two to three times
+  that on a big diff and under a minute on the usual few-file push). The run time is why it is a step
+  and not a job of its own: the build in front of it takes much longer.
+- **Found on the way:** (1) on Windows clang-tidy matches the `--line-filter` name as a suffix of the path it
+  prints, with backslashes: a name with `/` selects nothing and the gate passes everything. The first version
+  had that bug and reported `clean` for the planted `chaa_count`; the script now uses the platform separator.
+  (2) The `HEAD~60` diff, made of this fork's own recent commits, has 36 findings: `readability-braces-around-statements`
+  (Engine/ac, Engine/test), `cppcoreguidelines-pro-type-cstyle-cast` (Engine/ac/character, gui, guicontrol,
+  object, overlay), and naming in `Common/test/game_compat_test.cpp`. The gate is not toothless, and the next
+  push that touches these lines will be told. (3) `.tidy/build` is stale for the 1.3 engine tests (not in
+  its database): the script prints "not in the compile database, not checked" for such files instead of
+  silently skipping them.
+- **Not verified:** the CI step. Untested: `pip install clang-tidy==19.1.0` on the runner (same pattern as
+  the clang-format job), `clang-tidy` finding GCC's libstdc++ headers from GCC-flavoured compile commands,
+  and the `clang-tidy` on PATH being the pip one rather than the runner's own (the script checks the version
+  and tries `clang-tidy-19` too). If the first run reports "could not analyse", read it before touching the rules.
 
 ### 2.5 Header guards → `#pragma once`
 
