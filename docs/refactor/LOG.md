@@ -587,6 +587,26 @@ with 340 header stubs compiled by clang + libc++ 21 on Ubuntu and the heavy jobs
   `graphicspace.h`, `scripteventtable.h`, `transformstream.h`, `movelist.h`, `string.cpp`, found with a
   text scan for C library names used without their header. Not verifiable without libc++ 21 on glibc.
 - **First push:** expect problems in the Linux and clang jobs; read all of them, fix in one batch, push once.
+- **Stage `emscripten` added (2026-11-05)**, after a count of what had broken CI (AGENTS.md "What has
+  broken CI so far"): 7 of the 13 breaks of our own making were code that MSVC accepts and another compiler does not, and the
+  script only caught the missing includes among them. The stage builds the engine with emcc from emsdk
+  into `.tidy/prepush/ems`, as `Emscripten/build.sh` and the CI's Emscripten job do (toolchain file,
+  Ninja, Release, no tools, no tests): Clang and libc++ compile and link the OpenGL ES 2 renderer and the
+  generic non-Windows branches. That build includes `library_dummy.h`, not `library_posix.h`, and
+  compiles the Linux platform files to nothing, so a second step syntax-checks the Linux branches: the
+  engine and common sources whose dependencies (`ninja -t deps`) contain `AGS_PLATFORM_OS_LINUX`,
+  `AGS_PLATFORM_IS_XDG_UNIX` or `__linux__`, with the build's own flags plus `-fsyntax-only
+  -U__EMSCRIPTEN__ -D__linux__` (emsdk's sysroot is musl, a Linux C library; SDL is the Emscripten port).
+  Sources that reach `ogl_headers.h` are left out: on Linux it wants the desktop OpenGL headers, which
+  this build does not have, and MSVC compiles that code. Today that is 4 files: `acpllnx.cpp`,
+  `agsplatform_xdg_unix.cpp`, `agsplugin.cpp` (for `library_posix.h`) and `Common/util/file.cpp`.
+  Measured: configure 73 s and build 234 s cold (481 steps); 2 s when nothing changed, about 80 s after
+  an engine change (the `-flto=full` link); the syntax check 7 s. Verified by putting two old breaks
+  back: `glColor4f` outside its `#if !AGS_OPENGL_ES2` (0.4) fails the build step, an unqualified `Path`
+  in `library_posix.h` (2.5) fails the syntax check; both pass again when reverted. `NOT RUN` without
+  an emsdk. Not covered: macOS, iOS, Android and FreeBSD code, linking anything for Linux (the 7.1o
+  and 3.2 breaks were link errors in `tools_test` and `agsbuild`, which this build does not make), GCC
+  itself, and the tools.
 
 ### 3.1 Dead platforms
 

@@ -75,7 +75,7 @@ Entry points, in reading order:
 ## Verify before you report done
 
 Before a push run `python Script/prepush.py` (clang-format, CMake build + `ctest`, clang-tidy on the changed lines, header check with
-MSVC and clang+libc++, the MSBuild solutions; `--list`, `--only`, `--skip`): CI confirms, it does not
+MSVC and clang+libc++, the Emscripten engine build with a syntax check of the Linux-only code, the MSBuild solutions; `--list`, `--only`, `--skip`): CI confirms, it does not
 discover. Workflows: `verify.yml` (fast gate, every push), `ci.yml` (`ags4draconian*` branches, PRs: light set;
 tags, weekly, `gh workflow run ci.yml -f full=true`: every platform), `macos.yml` (tags, weekly, on demand;
 standalone because hosted macOS runners are often unavailable).
@@ -91,9 +91,10 @@ confirm, not discover).
 - **MSVC accepts what GCC, Clang, libc++, GLES2 or an old glibc reject** (7 breaks). A green local
   build covers Windows only; STYLE.md "Portability" lists the traps. When a change touches code
   Windows does not compile (`platform/` other than `windows`, `*_posix.*`, non-Windows `#if`
-  branches, OpenGL code shared with GLES2), mechanical repo-wide changes included, build the engine
-  with emsdk, and name in the report what no local build compiled (the Linux-, macOS- and
-  Android-only files).
+  branches, OpenGL code shared with GLES2), mechanical repo-wide changes included, run the
+  `emscripten` stage of `prepush.py` (emcc builds the engine as GLES2, then the Linux-only code is
+  syntax-checked), and name in the report what no local build compiled (macOS, iOS, Android and
+  FreeBSD code; nothing is linked for Linux).
 - **A source file or setting in one build description only** (3 breaks). A new, moved or deleted
   `.cpp`, tests included, goes in the `CMakeLists.txt` and in the `Solutions/` `.vcxproj` and
   `.vcxproj.filters` (until 3.2c); the `msbuild` stage of `prepush.py` finds a miss, so run it.

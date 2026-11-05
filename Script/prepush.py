@@ -15,6 +15,11 @@ Stages, in the order they run (a failed stage does not stop the later ones; the 
   headers  the header_check target with MSVC (the CI's Windows job)
   libcxx   the headers again with clang + libc++ from emsdk, POSIX target, no transitive includes:
            the stand-in for the CI's GCC and clang jobs (Script/header_check_libcxx.py)
+  emscripten  the engine built with emcc from emsdk, as Emscripten/build.sh does (the CI's Emscripten job):
+           Clang and libc++ compile and link the OpenGL ES 2 renderer and the non-Windows branches that
+           MSVC never sees; then the sources with Linux-only branches (acpllnx.cpp, library_posix.h, ...)
+           are syntax-checked by the same compiler told that it is Linux. Not covered: macOS, iOS,
+           Android and FreeBSD code, and linking anything for Linux
   msbuild  the solutions the CI builds (Compiler.Lib, Tests, Engine, Tools, Compiler.App, Editor.Full;
            x86 Release) with their test runners, into .tidy/prepush/msb so that the PDBs of the
            regular Solutions/.build are not overwritten
@@ -31,10 +36,12 @@ Exit code 0 only if every selected stage passed.
 import argparse
 import glob
 import os
+import re
 import shutil
 import subprocess
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.dirname(__file__))
@@ -43,11 +50,21 @@ import tidy_diff  # noqa: E402
 CLANG_FORMAT_VERSION = '19.1.7'
 WORK = os.path.join(REPO, '.tidy', 'prepush')
 BUILD = os.path.join(WORK, 'build')
+EMS = os.path.join(WORK, 'ems')
+# The targets marked ags_warning_free() fail on a warning (PLAN.md 1.5), as in the CI
+WERROR = '-DAGS_WARNINGS_AS_ERRORS=ON'
 MSB = os.path.join(WORK, 'msb')
 SOURCE_GLOBS = ['*.c', '*.cc', '*.cpp', '*.cxx', '*.h', '*.hpp', '*.inl']
 SOLUTIONS = ['Compiler.Lib', 'Tests', 'Engine', 'Tools', 'Compiler.App', 'AGS.Editor.Full']
 TEST_RUNNERS = ['Compiler.Lib.Test.exe', 'Common.Lib.Test.exe', 'Engine.App.Test.exe', 'Tools.Test.exe']
-STAGES = ['format', 'build', 'tidy', 'headers', 'libcxx', 'msbuild']
+STAGES = ['format', 'build', 'tidy', 'headers', 'libcxx', 'emscripten', 'msbuild']
+# The emscripten stage's syntax check of the Linux branches: what marks a file as having one (platform.h
+# only defines the macros), a compile statement of build.ninja, and the header that needs desktop OpenGL
+LINUX_BRANCH = re.compile(r'AGS_PLATFORM_OS_LINUX|AGS_PLATFORM_IS_XDG_UNIX|__linux__')
+LINUX_SKIP = 'Common/platform/platform.h'
+COMPILE_BLOCK = re.compile(r'^build (\S+): CXX_COMPILER__(?:engine|common)_\S+ (\S+)[^\n]*\n((?:  [^\n]*\n)+)', re.M)
+VARIABLE = re.compile(r'^  (\w+) = (.*)$', re.M)
+DESKTOP_GL_HEADER = 'ogl_headers.h'
 
 args = None
 _msvc = None
@@ -113,12 +130,21 @@ def stage_format():
     return '%d files' % len(files)
 
 
+def is_configured(build_dir):
+    """True if the tree was configured with the options of this script (WERROR was added later, 1.5)."""
+    try:
+        with open(os.path.join(build_dir, 'CMakeCache.txt'), encoding='utf-8', errors='replace') as f:
+            return WERROR[2:].replace('=', ':BOOL=') in f.read() and os.path.isfile(os.path.join(build_dir, 'build.ninja'))
+    except OSError:
+        return False
+
+
 def cmake_configure():
     env, tool = msvc()
     cmake = tool('cmake', env)
-    if not os.path.isfile(os.path.join(BUILD, 'build.ninja')):
+    if not is_configured(BUILD):
         run('build', [cmake, '-S', REPO, '-B', BUILD, '-G', 'Ninja', '-DCMAKE_BUILD_TYPE=Release', '-DAGS_BUILD_TOOLS=1',
-                      '-DAGS_TESTS=1', '-DAGS_HEADER_CHECK=1', '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON'], env=env)
+                      '-DAGS_TESTS=1', '-DAGS_HEADER_CHECK=1', '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON', WERROR], env=env)
     return env, cmake
 
 
@@ -166,6 +192,110 @@ def stage_libcxx():
         return log.read().strip().splitlines()[-1]
 
 
+def find_emsdk():
+    for d in (args.emsdk, os.environ.get('EMSDK')):
+        if d and os.path.isfile(os.path.join(d, 'upstream', 'emscripten', 'cmake', 'Modules', 'Platform',
+                                             'Emscripten.cmake')):
+            return os.path.abspath(d)
+    raise NotRun('emsdk not found: pass --emsdk or set EMSDK (the CI uses 3.1.74)')
+
+
+def stage_emscripten():
+    emsdk = find_emsdk()
+    if os.name == 'nt':
+        # cmake and ninja come with Visual Studio; the build itself must not see the MSVC environment
+        msvc_environ, tool = msvc()
+        cmake, ninja = tool('cmake', msvc_environ), tool('ninja', msvc_environ)
+    else:
+        cmake, ninja = shutil.which('cmake'), shutil.which('ninja')
+        if not cmake or not ninja:
+            raise NotRun('cmake and ninja are needed on PATH')
+    # What emsdk_env sets: emcc finds its configuration, node and python through these
+    env = dict(os.environ)
+    env['EMSDK'] = emsdk
+    env['EM_CONFIG'] = os.path.join(emsdk, '.emscripten')
+    tools = [os.path.join(emsdk, 'upstream', 'emscripten')]
+    for sub in (('node', '*', 'bin'), ('node', '*'), ('python', '*')):
+        tools += sorted(glob.glob(os.path.join(emsdk, *sub)))
+    env['PATH'] = os.pathsep.join(tools + [env.get('PATH', '')])
+    if not is_configured(EMS):
+        toolchain = os.path.join(emsdk, 'upstream', 'emscripten', 'cmake', 'Modules', 'Platform', 'Emscripten.cmake')
+        run('emscripten', [cmake, '-S', REPO, '-B', EMS, '-G', 'Ninja', '-DCMAKE_TOOLCHAIN_FILE=' + toolchain,
+                           '-DCMAKE_MAKE_PROGRAM=' + ninja, '-DCMAKE_BUILD_TYPE=Release', '-DAGS_BUILD_TOOLS=0',
+                           '-DAGS_TESTS=0', WERROR], env=env)
+    run('emscripten', [cmake, '--build', EMS], env=env)
+    checked = linux_syntax_check(emsdk, ninja, env)
+    return 'ags.wasm linked, %d files with Linux branches pass a syntax check' % checked
+
+
+def linux_branch_files():
+    """First-party Common and Engine files with code for Linux only, which neither MSVC nor emcc compiles."""
+    names = subprocess.run(['git', 'ls-files', 'Common', 'Engine'], cwd=REPO, capture_output=True, text=True,
+                           check=True).stdout.split()
+    result = set()
+    for name in names:
+        if 'libsrc/' in name or not name.endswith(('.h', '.cpp', '.c', '.inl')) or name == LINUX_SKIP:
+            continue
+        with open(os.path.join(REPO, name), encoding='utf-8', errors='replace') as f:
+            if LINUX_BRANCH.search(f.read()):
+                result.add(os.path.normcase(os.path.join(REPO, name)))
+    return result
+
+
+def linux_syntax_check(emsdk, ninja, env):
+    """
+    The Emscripten build leaves out the Linux branches (acpllnx.cpp, library_posix.h, the XDG paths). They are
+    syntax-checked here by the same compiler told that it is Linux: emsdk's sysroot is musl, a Linux C library,
+    and SDL comes from the Emscripten port. Sources that reach the desktop OpenGL headers are left out (the
+    build has the OpenGL ES ones; MSVC compiles that code). macOS, iOS, Android and FreeBSD code stays unchecked.
+    """
+    def norm(path):
+        return os.path.normcase(os.path.normpath(os.path.join(EMS, path.replace('$:', ':'))))
+
+    linux_files = linux_branch_files()
+    # {object: [dependency, ...]} as ninja recorded them in the build
+    deps, current = {}, None
+    out = subprocess.run([ninja, '-C', EMS, '-t', 'deps'], capture_output=True, text=True, check=True).stdout
+    for line in out.splitlines():
+        if line and not line.startswith(' '):
+            current = deps.setdefault(line.split(':')[0], [])
+        elif line.strip() and current is not None:
+            current.append(norm(line.strip()))
+    with open(os.path.join(EMS, 'build.ninja'), encoding='utf-8') as f:
+        text = f.read()
+    jobs = []
+    for m in COMPILE_BLOCK.finditer(text):
+        obj, src = m.group(1), os.path.normpath(os.path.join(EMS, m.group(2).replace('$:', ':')))
+        files = set(deps.get(obj, [])) | {os.path.normcase(src)}
+        if not files & linux_files or any(os.path.basename(p) == DESKTOP_GL_HEADER for p in files):
+            continue
+        block = dict(VARIABLE.findall(m.group(3)))
+        flags = ' '.join(block.get(k, '') for k in ('DEFINES', 'INCLUDES', 'FLAGS')).replace('$:', ':').split()
+        flags = [a for a in flags if not a.startswith('-W') or a.startswith(('-Werror=', '-Wno-'))]
+        jobs.append((src, flags))
+    if not jobs:
+        raise subprocess.CalledProcessError(1, 'no source with Linux branches found in the Emscripten build')
+    compiler = os.path.join(emsdk, 'upstream', 'emscripten', 'em++.bat' if os.name == 'nt' else 'em++')
+
+    def check(job):
+        src, flags = job
+        r = subprocess.run([compiler, '-fsyntax-only', '-U__EMSCRIPTEN__', '-D__linux__', *flags, src], env=env,
+                           capture_output=True, text=True, encoding='utf-8', errors='replace')
+        return src, r.returncode, r.stdout + r.stderr
+
+    failed = 0
+    with ThreadPoolExecutor(max_workers=os.cpu_count() or 4) as pool, \
+            open(log_path('emscripten'), 'a', encoding='utf-8', errors='replace') as log:
+        for src, code, output in pool.map(check, jobs):
+            log.write('$ syntax check as Linux: %s: %s\n' % (os.path.relpath(src, REPO), 'ok' if code == 0 else 'FAILED'))
+            if code != 0:
+                log.write(output + '\n')
+                failed += 1
+    if failed:
+        raise subprocess.CalledProcessError(1, 'syntax check as Linux')
+    return len(jobs)
+
+
 def find_msbuild():
     vswhere = os.path.join(os.environ.get('ProgramFiles(x86)', r'C:\Program Files (x86)'),
                            'Microsoft Visual Studio', 'Installer', 'vswhere.exe')
@@ -206,7 +336,7 @@ def stage_msbuild():
 
 
 RUNNERS = {'format': stage_format, 'build': stage_build, 'tidy': stage_tidy, 'headers': stage_headers,
-           'libcxx': stage_libcxx, 'msbuild': stage_msbuild}
+           'libcxx': stage_libcxx, 'emscripten': stage_emscripten, 'msbuild': stage_msbuild}
 
 
 def main():
@@ -252,7 +382,7 @@ def main():
 
     print('\nprepush summary:')
     for s, status, note, secs in results:
-        print('  %-8s %-8s %5.0fs  %s' % (s, status, secs, note))
+        print('  %-10s %-8s %5.0fs  %s' % (s, status, secs, note))
     left_out = [s for s in STAGES if s not in chosen]
     if left_out:
         print('  not selected: ' + ', '.join(left_out))

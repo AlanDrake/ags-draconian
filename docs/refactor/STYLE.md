@@ -156,8 +156,9 @@ MSVC let through (LOG.md task in brackets).
 - OpenGL code that Android and Emscripten build as GLES2 (`Engine/gfx/ali3dogl.cpp`) calls no
   fixed-function API (`glColor4f`) outside a desktop-only `#if` [0.4].
 - A repo-wide edit (a removed `using`, a rename) reaches files Windows does not compile
-  (`platform/` other than `windows`, `*_posix.*`, non-Windows `#if` branches): search them by
-  hand, the local build won't [2.5].
+  (`platform/` other than `windows`, `*_posix.*`, non-Windows `#if` branches) [2.5]. The
+  `emscripten` stage of `prepush.py` compiles the generic and the Linux ones; search the macOS,
+  iOS, Android and FreeBSD code by hand.
 
 ### Comments
 
