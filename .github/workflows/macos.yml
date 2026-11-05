@@ -146,8 +146,9 @@ jobs:
         run: |
           set -e
           PREFIX="$PWD/dist-tools/usr/local"
-          find Tools -name Makefile -execdir make -j4 PREFIX="$PREFIX" install \;
-          make -j4 --directory=Compiler PREFIX="$PREFIX" install
+          cmake -S . -B build-tools -DAGS_BUILD_TOOLS=1 -DAGS_BUILD_ENGINE=0 -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-tools --parallel 4
+          cmake --install build-tools --prefix "$PREFIX"
 
       - name: Create macOS Tools archive
         run: |

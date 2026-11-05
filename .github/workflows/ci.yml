@@ -996,7 +996,7 @@ jobs:
           name: ags-bundle-linux
           path: ags_*_linux.tar.gz
 
-  linux-make-tools:
+  linux-tools:
     name: Linux Tools (${{ matrix.platform.archname }})
     needs: plan
     if: needs.plan.outputs.full == 'true'
@@ -1031,11 +1031,16 @@ jobs:
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           IMAGE="ghcr.io/$OWNER/ags-linux-builder-image:$TAG_NAME"
 
+          # RelWithDebInfo is -O2 -g without LTO, as the Makefiles built these. A failed step fails the job.
           docker run --rm \
             -v "$PWD:/workspace" \
             -w /workspace \
             "$IMAGE" \
-            bash -c 'find Tools -name Makefile -execdir make -j4 PREFIX=/workspace/dist-tools/usr/local install \; && make -j4 --directory=Compiler PREFIX=/workspace/dist-tools/usr/local install'
+            bash -euc '
+              cmake -S . -B build-tools -DAGS_BUILD_TOOLS=1 -DAGS_BUILD_ENGINE=0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
+              cmake --build build-tools --parallel 4
+              cmake --install build-tools --prefix /workspace/dist-tools/usr/local
+            '
 
       - name: Create Linux Tools archive ${{ matrix.platform.archname }}
         run: |
@@ -1054,7 +1059,7 @@ jobs:
     needs:
       - plan
       - windows-msvc-tools
-      - linux-make-tools
+      - linux-tools
     steps:
       - uses: actions/checkout@v6
         with:
