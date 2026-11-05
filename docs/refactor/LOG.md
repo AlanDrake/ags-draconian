@@ -396,7 +396,7 @@ all TUs in parallel and applies the merged fixes. Results:
 diff with the root `.clang-tidy`: naming and function-size rules for new code only. *Done when:* a PR that
 adds a `chaa`-style name or a 300-line function is flagged.
 
-*Status (2026-11-05):* done and verified locally; **the CI step has not run** (nothing pushed).
+*Status (2026-11-05):* done, verified locally and on CI through a probe branch (see "On CI" below).
 - **`Script/tidy_diff.py`** replaces `clang-tidy-diff.py`: the pip `clang-tidy==19.1.0` wheel does not
   contain the script (only the binary and its resource headers), the copy on this machine's PATH belongs to
   LLVM 7, and the distribution packages name it per version. The script is the same idea in ~200 lines
@@ -448,10 +448,18 @@ adds a `chaa`-style name or a 300-line function is flagged.
   push that touches these lines will be told. (3) `.tidy/build` is stale for the 1.3 engine tests (not in
   its database): the script prints "not in the compile database, not checked" for such files instead of
   silently skipping them.
-- **Not verified:** the CI step. Untested: `pip install clang-tidy==19.1.0` on the runner (same pattern as
-  the clang-format job), `clang-tidy` finding GCC's libstdc++ headers from GCC-flavoured compile commands,
-  and the `clang-tidy` on PATH being the pip one rather than the runner's own (the script checks the version
-  and tries `clang-tidy-19` too). If the first run reports "could not analyse", read it before touching the rules.
+- **On CI** (2026-11-05, a probe branch outside `ags4draconian*`, so only `verify.yml` ran; two throwaway
+  commits, branch deleted after): the step worked on the first try, with the output of the local runs.
+  Run 42032914043, a new branch (base: the merge base with `origin/ags4draconianr21`), a well-named new
+  function in `Common/util/path.cpp` and a new line using the legacy `chaa` in `Engine/ac/character.cpp`:
+  `tidy_diff: 2 files, 20 changed lines`, `clean`, job green. Run 42034663373, a second push (base: the
+  push's `before` commit), planted violations: the job failed at "clang-tidy on changed lines" with the 7
+  expected diagnostics (`objj`, `chaa`, `xx` as `ags-cryptic-name`; function, parameter and local case
+  styles; `readability-function-size` on a 300-line function), every other step and job green. So the
+  pip clang-tidy installs on the runner and reads the GCC compile commands and libstdc++ headers. The
+  step took 5 to 6 s for one or two files (35 s locally with the MSVC database), the install 2 to 4 s.
+- **Not verified:** a pull request event (`verify.yml` has no `pull_request` trigger; a PR's commits are
+  checked by their pushes), and a large diff on the runner.
 
 ### 2.5 Header guards → `#pragma once`
 
