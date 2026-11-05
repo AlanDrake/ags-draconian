@@ -1,0 +1,201 @@
+name: Analysis
+
+# Sanitizers and coverage (docs/refactor/PLAN.md, 1.5). Both jobs build the tools, the engine and the
+# unit tests, run the tests, then build the auto-test game from its source with those tools and run it
+# in the engine, so the tools and the engine are exercised too.
+#   sanitizers  ASan (with leak detection) and UBSan; pushes to the ags4draconian* branches, weekly,
+#               on demand. Every finding is logged and the run goes on, so that one run lists them
+#               all; the last step fails the job if there is any.
+#   coverage    clang source-based coverage, line coverage per directory in the job summary; weekly and
+#               on demand only: it is a number to read, not a gate.
+on:
+  push:
+    branches: ['ags4draconian*']
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.git-blame-ignore-revs'
+      - '.github/ISSUE_TEMPLATE/**'
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC; GitHub runs it on the default branch only
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The auto-test project, at the tag ci.yml builds
+  AUTO_TEST_REPO: AlanDrake/ags-test-games
+  AUTO_TEST_TAG: draconian-auto-test-1
+
+jobs:
+  sanitizers:
+    name: Sanitizers (ASan, UBSan)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      # -fsanitize-recover=address lets ASan go on after a finding (halt_on_error=0 below)
+      SAN_FLAGS: -fsanitize=address,undefined -fsanitize-recover=address -fno-omit-frame-pointer -g
+      ASAN_OPTIONS: halt_on_error=0:detect_leaks=1:log_path=${{github.workspace}}/sanitizer-logs/san
+      UBSAN_OPTIONS: print_stacktrace=1:log_path=${{github.workspace}}/sanitizer-logs/san
+      # A leak is a finding in the log like the others, not an exit code that hides the next ones
+      LSAN_OPTIONS: exitcode=0
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Check out the auto-test project
+        uses: actions/checkout@v6
+        with:
+          repository: ${{env.AUTO_TEST_REPO}}
+          ref: ${{env.AUTO_TEST_TAG}}
+          path: auto-test-source
+          persist-credentials: false
+
+      - name: Set up SDL dependencies on Linux (ensures OpenGL)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            gnome-desktop-testing libasound2-dev libpulse-dev libaudio-dev libjack-dev libsndio-dev \
+            libusb-1.0-0-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
+            libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+            libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
+
+      - name: Set up Tappy
+        run: pip install tap.py
+
+      - name: Cache CMake FetchContent dependencies
+        uses: actions/cache@v5
+        with:
+          path: ${{github.workspace}}/build/_deps
+          key: fetchcontent-analysis-sanitizers-${{ hashFiles('CMakeLists.txt', 'CMake/Fetch*.cmake') }}
+
+      # RelWithDebInfo: optimized, so the auto-test game runs in reasonable time, with the line numbers
+      # the reports need. The sanitizer run-time must not report while CMake probes the compiler.
+      - name: Configure CMake
+        env:
+          ASAN_OPTIONS: detect_leaks=0
+        run: |
+          mkdir -p sanitizer-logs
+          cmake -S . -B build -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            "-DCMAKE_C_FLAGS=$SAN_FLAGS" "-DCMAKE_CXX_FLAGS=$SAN_FLAGS" \
+            "-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address,undefined"
+
+      - name: Build
+        run: cmake --build build --parallel 8
+
+      - name: Unit tests
+        working-directory: build
+        run: ctest --output-on-failure -j 4
+
+      - name: Build the auto-test game with the tools and run it in the engine
+        if: ${{ !cancelled() }}
+        run: Script/agsbuild_autotest.sh build auto-test-source/ags4/auto-test "${{runner.temp}}/autotest"
+
+      - name: Sanitizer findings
+        if: ${{ !cancelled() }}
+        run: |
+          python3 Script/sanitizer_summary.py sanitizer-logs > findings.md && status=0 || status=$?
+          cat findings.md
+          cat findings.md >> "$GITHUB_STEP_SUMMARY"
+          exit $status
+
+      - name: Upload the sanitizer logs
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: sanitizer-logs
+          if-no-files-found: ignore
+          path: |
+            sanitizer-logs
+            findings.md
+
+  coverage:
+    name: Coverage
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CC: clang
+      CXX: clang++
+      COV_FLAGS: -fprofile-instr-generate -fcoverage-mapping
+      # %m: one file per binary, merged in place by every process that runs it
+      LLVM_PROFILE_FILE: ${{github.workspace}}/profiles/%m.profraw
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Check out the auto-test project
+        uses: actions/checkout@v6
+        with:
+          repository: ${{env.AUTO_TEST_REPO}}
+          ref: ${{env.AUTO_TEST_TAG}}
+          path: auto-test-source
+          persist-credentials: false
+
+      - name: Set up clang, the LLVM tools and SDL dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y clang llvm \
+            gnome-desktop-testing libasound2-dev libpulse-dev libaudio-dev libjack-dev libsndio-dev \
+            libusb-1.0-0-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
+            libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+            libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
+
+      - name: Set up Tappy
+        run: pip install tap.py
+
+      - name: Cache CMake FetchContent dependencies
+        uses: actions/cache@v5
+        with:
+          path: ${{github.workspace}}/build/_deps
+          key: fetchcontent-analysis-coverage-${{ hashFiles('CMakeLists.txt', 'CMake/Fetch*.cmake') }}
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_BUILD_TYPE=Release \
+            "-DCMAKE_C_FLAGS=$COV_FLAGS" "-DCMAKE_CXX_FLAGS=$COV_FLAGS" \
+            "-DCMAKE_EXE_LINKER_FLAGS=-fprofile-instr-generate"
+
+      - name: Build
+        run: cmake --build build --parallel 8
+
+      - name: Unit tests
+        working-directory: build
+        run: ctest --output-on-failure -j 4
+
+      - name: Build the auto-test game with the tools and run it in the engine
+        run: Script/agsbuild_autotest.sh build auto-test-source/ags4/auto-test "${{runner.temp}}/autotest"
+
+      # The tools of the clang that compiled the code: a newer or older llvm-cov cannot read its profiles
+      - name: Coverage per directory
+        run: |
+          version=$(clang -dumpversion | cut -d. -f1)
+          profdata=$(command -v "llvm-profdata-$version" || command -v llvm-profdata)
+          cov=$(command -v "llvm-cov-$version" || command -v llvm-cov)
+          "$profdata" merge -sparse profiles/*.profraw -o coverage.profdata
+          objects=""
+          for name in ags agsbuild agscc agf2dta agf2dlgasc agfexport agspak crmbuild crmpak po2tra spriteimport \
+              spritepak common_test engine_test engine_full_test compiler_test tools_test; do
+            path=$(find build -type f -name "$name" -perm -u+x -not -path '*/_deps/*' | head -n 1)
+            if [ -n "$path" ]; then objects="$objects -object $path"; fi
+          done
+          # the first binary is given without -object
+          "$cov" export -summary-only -instr-profile coverage.profdata ${objects#" -object "} > coverage.json
+          python3 Script/coverage_summary.py coverage.json > coverage.md
+          cat coverage.md
+          cat coverage.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the coverage report
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: |
+            coverage.md
+            coverage.json
