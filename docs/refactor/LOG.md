@@ -295,8 +295,8 @@ per-directory numbers; first-party warnings at `/W4` and `-Wall -Wextra`, as err
 gets clean. *Done when:* the sanitizer job is green, coverage is published, `Common/` builds with warnings
 as errors.
 
-*Status (2026-11-05):* 1.5a done locally (MSVC and Clang; GCC from a CI log, not yet built with the
-fixes); 1.5b and 1.5c written, **never run**: `analysis.yml` has not been on a runner.
+*Status (2026-11-05):* 1.5a and 1.5c done and confirmed by a CI probe run; 1.5b: the job works and
+reports 47 findings, which are open ("First CI run" below).
 
 **1.5a Warnings.**
 - Measured before, first-party code, distinct sites: GCC 15.2 (the `verify.yml` log of run 42032914043)
@@ -360,16 +360,53 @@ fixes); 1.5b and 1.5c written, **never run**: `analysis.yml` has not been on a r
   `halt_on_error=0`, leaks on, `LSAN_OPTIONS=exitcode=0`, every report to a log file, so that one run
   lists all findings instead of stopping at the first (the CI rule: collect, then fix in one batch).
   `sanitizer_summary.py` prints the distinct findings (a UBSan line, or an ASan error or direct leak
-  named by its first frame in our code) to the job summary and fails the job if there are any. Runs on
-  pushes to `ags4draconian*`, weekly and on demand.
+  named by its first frame in our code) to the job summary and fails the job if there are any.
 - Coverage: clang, `-fprofile-instr-generate -fcoverage-mapping`, one profile per binary (`%m`), `llvm-cov
   export -summary-only` over the engine, the tools and the test programs, and `coverage_summary.py` for
   a table of line coverage per module and directory (third-party code and the tests left out) in the job
-  summary and as an artifact. Weekly and on demand only: a number to read, not a gate.
-- Verified: `actionlint`; both scripts on made-up logs and JSON. **Not verified: everything else.** No
-  Linux here, so neither job has run: expect the first sanitizer run to list findings (leaks at exit at
-  least), and the coverage step to need a second look at the tool names (`llvm-cov-<version>`). Use a
-  probe branch (AGENTS.md).
+  summary and as an artifact: a number to read, not a gate.
+- When they run: written for pushes to `ags4draconian*` and weekly (sanitizers) and weekly (coverage);
+  **on demand only since the first run** (user's decision, 2026-11-05: 27 and 14 minutes), each job
+  switchable: `gh workflow run analysis.yml --ref <branch> [-f sanitizers=false] [-f coverage=false]`.
+  A workflow can be started by hand only once its file is on the default branch.
+- Verified before the first run: `actionlint`; both scripts on made-up logs and JSON.
+
+**First CI run** (2026-11-05, probe branch `probe-1.5-analysis`, a throwaway commit letting `analysis.yml`
+run both jobs there; runs 42050934970 Verify, 42050935242 Analysis).
+- **1.5a confirmed:** Verify is green with `-DAGS_WARNINGS_AS_ERRORS=ON`: GCC 15.2 builds `common` with
+  `-Werror`, 1031 of 1031 tests, and `tidy_diff.py` is clean on the 30 changed files (125 lines) on
+  Linux. GCC's count for `Common` is 4, all `-Wfloat-equal`. Left for the other directories: `Engine`
+  144, `Compiler` 33, `Tools` 28, `Plugins` 48, `Compiler/test` 755, `Tools/test` 61.
+- **1.5c works, first numbers** (line coverage of the unit tests plus the auto-test game built and run):
+  total 53.7% of 101,506 lines; `Common` 61.6%, `Engine` 47.8% (`Engine/ac` 49.3%, `Engine/gfx` 18.6%,
+  `Engine/gui` 8.9%, `Engine/plugin` 3.4%), `Compiler` 89.9%, `Tools` 68.2% (`crmpak`, `spriteimport`,
+  `spritepak` under 3%, `po2tra` 0%), `Plugins` 0%. The job took 14 minutes.
+- **1.5b works and has findings.** The job ran to its last step (27 minutes, 21 of them the build with
+  both sanitizers) and failed there on 45 distinct findings; with the two UBSan ones below, 47:
+  - ASan, three memory errors, each in a unit test:
+    `Tools/data/room_build.cpp:156` (`Utf8ToCp1252` hands `String` a buffer without a terminator, and
+    `String::SetString` runs `strlen` on it: heap overflow, in `RoomBuild.TextProperties`);
+    `Engine/script/runtimescript.cpp:452` (`CreateGlobalVars` reads `_code[_fixups[i]]` before anything
+    checks the fixup: heap overflow on a script whose fixup points outside the code, in
+    `ScriptBytecode.FixupOutsideTheCodeIsRefused`);
+    `Common/script/cc_reflect.cpp:459` (`JointRTTI::Join` compares location names through pointers
+    into a string table that the same loop has since reallocated: use after free when a second script's
+    RTTI is joined, in `ScriptVM.CallsFunctionsOfAnotherScript`; the code is upstream's).
+  - UBSan, two places: `Common/util/memory.h:67` (an `int16_t` read through a misaligned pointer),
+    `Common/util/memorystream.cpp:185` (`memcpy` with a null pointer).
+  - LSan, 42 places: 27 `new` in `SymbolTable::SymbolTable()` and 8 more in the script compiler (622 of
+    the 627 logs: every compiler test), and 7 in the engine at exit (the software renderer, the audio
+    driver and core, managed objects).
+- **Fixed in the job after this run, not run again:** UBSan wrote to stderr, not to `log_path`, and ctest
+  hides the output of passing tests, so the summary had no UBSan row (the two above were read from the
+  raw log of the game step). The tests now run with `ctest -V` into a file beside the sanitizer logs, the
+  game step is captured with `tee`, and `sanitizer_summary.py` reads those too (addresses normalised):
+  47 findings on the downloaded logs.
+- **Open:** the findings themselves, planned as 1.5b-1 to 1.5b-5 (PLAN.md "Next up"). To work on them
+  without a 27-minute wait per try: MSVC has ASan (`/fsanitize=address`), which covers the three memory
+  errors; UBSan and `llvm-cov` need a current LLVM for Windows (this machine has LLVM 7, and emsdk's
+  clang 20 builds wasm only); leak detection has no Windows implementation, and there is no Linux here
+  (no virtualization).
 
 ### 1.6 Mechanical-change verifier
 

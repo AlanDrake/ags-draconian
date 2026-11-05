@@ -91,7 +91,11 @@ comes after they are closed.
 | 1 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
 | 2 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
 | 3 | **1.3 to merge:** `1.3-engine-tests` (15 commits on `5aaa1e65c`) was tested by the user in a game through the editor and engine built from it (`.compare/msb-13`); merge and push when ready. **U.7 waiting:** PR #3193 open since 2026-11-05 | The branch is the safety net phases 3 to 5 wait for | user |
-| 4 | **1.5, first CI run:** push the unpushed work to a probe branch (`verify.yml` confirms GCC for 1.5a; a throwaway commit there lets `analysis.yml` run both jobs on that branch's pushes, since a workflow that is not on the default branch cannot be started by hand), read every finding of the sanitizer job, fix or justify them in one batch | The three jobs were written without a Linux machine; the sanitizer findings are the point of the task | user for the pushes, Sonnet 5.5, `high` for the findings |
+| 4 | **1.5b-1, sanitizers on this machine:** an `asan` stage in `prepush.py` (MSVC `/fsanitize=address`: the unit tests and the auto-test game), which must show the three memory errors of the CI run before any is fixed. The user decides on installing a current LLVM for Windows (clang-cl with compiler-rt), which adds UBSan and `llvm-cov` locally; leak detection does not exist on Windows (the CRT debug heap in the test programs is the nearest thing) | `analysis.yml` is on demand and takes 27 minutes; a fix needs a check that takes one | Sonnet 5.5, `medium` |
+| 5 | **1.5b-2, the three memory errors** (LOG.md 1.5, "First CI run"), one commit each, the existing unit test as the proof under ASan: `Utf8ToCp1252` in `room_build.cpp` (and the other callers that give `String(ptr, length)` a buffer without a terminator); the fixup read in `RuntimeScript::CreateGlobalVars`, checked before use; the stale name pointers in `JointRTTI::Join`. The last two are upstream's code: offer them (U.8) | Real defects; the `Join` one is on the path that loads a second script with RTTI | Sonnet 5.5, `high`; Opus 5.5, `high` if the `Join` fix needs the names kept as offsets (a change of the RTTI structures, next to the script ABI, C3) |
+| 6 | **1.5b-3, the two UBSan places:** the misaligned `int16_t` read in `Common/util/memory.h` (`memcpy`, and measure the script VM, which reads through it), `memcpy` from a null pointer in `MemoryStream::Write` | Small; needs UBSan to confirm (the local LLVM of row 4, or one on-demand run) | Sonnet 5.5, `medium` |
+| 7 | **1.5b-4, the script compiler's leaks** (35 sites, 622 of 627 logs): the `CTF_*` objects that `SymbolTable::SymbolTable()` creates with `new`, the entries of `MakeEntryVariable`/`Literal`/`Constant`, `Scanner::SymstringToSym`, `SymbolTableEntry::operator=`: give each an owner (`std::unique_ptr`) | One cause, many sites; the compiler tests (755 cases) are the net | Sonnet 5.5, `high` |
+| 8 | **1.5b-5, the engine's leaks at exit** (7 sites: software renderer, audio driver and core, managed objects) and the end of 1.5b: free what has an owner, list the rest in an LSan suppression file with the reason for each; one on-demand `analysis.yml` run that is green; tick 1.5b | The job is a gate only once it is green | Sonnet 5.5, `medium`; the user decides what may be suppressed |
 
 Open items found while doing finished tasks (details in LOG.md): 0.4's CodeQL setting, the
 `D3DCOMPILER_47`/Windows 7 question and the macOS 10.9 deployment target; 1.4's unfixed `agfreader`
@@ -169,14 +173,17 @@ Today: 35 C++ test files, **only 3 for the engine** (~430 source files); 22 C# t
   first-party warnings at `/W4` and `-Wall -Wextra`, as errors **per directory** as each gets clean.
   *Done when:* the sanitizer job is green, coverage is published, `Common/` builds with warnings as
   errors. Split 2026-11-05 (LOG.md):
-  - [ ] **1.5a Warnings:** done locally 2026-11-05, GCC to be confirmed by the first `verify.yml` run.
+  - [x] **1.5a Warnings** (2026-11-05, GCC confirmed by a CI probe run).
     `Common/` has no warning on MSVC `/W4` and Clang and builds with `-DAGS_WARNINGS_AS_ERRORS=ON`
     (`ags_warning_free(common)`; set by `verify.yml` and `prepush.py`); three bugs the warnings pointed at are
     fixed. Open: the 87 narrowing conversions MSVC reports in `Common/` (switched off there), and the other
     directories (GCC: `Engine` 164, `Compiler` 71, `Tools` 69, `Plugins` 48 sites).
-  - [ ] **1.5b Sanitizers:** `analysis.yml` job written 2026-11-05, never run. The first run lists every
-    finding; fix or justify each, then the job is the gate.
-  - [ ] **1.5c Coverage:** `analysis.yml` job written 2026-11-05, never run. First numbers go to BASELINE.md.
+  - [ ] **1.5b Sanitizers:** the `analysis.yml` job works (CI probe run, 2026-11-05) and reports 47 findings:
+    three memory errors (`room_build.cpp`, `runtimescript.cpp`, `cc_reflect.cpp`), two UBSan places, 42 leak
+    sites (35 in the script compiler). Fix or justify each, then the job is the gate: steps 1.5b-1 to
+    1.5b-5 in "Next up". `analysis.yml` runs on demand only (27 minutes a run; decided 2026-11-05).
+  - [x] **1.5c Coverage** (2026-11-05, CI probe run; on demand): line coverage per directory in the job summary; first
+    numbers total 53.7%, `Common` 61.6%, `Engine` 47.8%, `Compiler` 89.9%, `Tools` 68.2% (LOG.md).
 - [x] **1.6 Mechanical-change verifier** `Script/compare_objects.py` (2026-11-01; STYLE.md "Commits").
 - [x] **1.7 Auto-test game built in CI from source** by the tools of the same run (2026-11-02, with 7.1j).
 
