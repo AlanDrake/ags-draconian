@@ -1032,12 +1032,16 @@ jobs:
           IMAGE="ghcr.io/$OWNER/ags-linux-builder-image:$TAG_NAME"
 
           # RelWithDebInfo is -O2 -g without LTO, as the Makefiles built these. A failed step fails the job.
+          # The image's libraries, as debian/rules: the tools need none of them, but the configure step
+          # downloads what is not local, and the i386 container failed to resolve github.com.
           docker run --rm \
             -v "$PWD:/workspace" \
             -w /workspace \
             "$IMAGE" \
             bash -euc '
-              cmake -S . -B build-tools -DAGS_BUILD_TOOLS=1 -DAGS_BUILD_ENGINE=0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
+              cmake -S . -B build-tools -DAGS_BUILD_TOOLS=1 -DAGS_BUILD_ENGINE=0 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+                -DAGS_USE_LOCAL_SDL2=ON -DAGS_USE_LOCAL_SDL2_SOUND=ON -DAGS_USE_LOCAL_OGG=ON \
+                -DAGS_USE_LOCAL_THEORA=ON -DAGS_USE_LOCAL_VORBIS=ON -DFETCHCONTENT_FULLY_DISCONNECTED=ON
               cmake --build build-tools --parallel 4
               cmake --install build-tools --prefix /workspace/dist-tools/usr/local
             '
