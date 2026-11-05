@@ -1,13 +1,15 @@
 #!/bin/sh
 set -e
 
-# This script uses Debian 8 (jessie) chroots to build ags
+# This script uses Debian 10 (buster) chroots to build ags
 # on Debian or Ubuntu.
-# That is because Debian 8 uses glibc 2.19, while
+# That is because Debian 10 uses glibc 2.28, while
 # most other major Linux distributions (including Ubuntu)
 # use higher versions. Building ags
-# on a distribution with glibc > 2.19 will likely result in
-# something that does not work on Debian 8.
+# on a distribution with glibc > 2.28 will likely result in
+# something that does not work on Debian 10. Debian 10 is also the
+# oldest release with a C++17 compiler (GCC 8), and the one the CI
+# image builds on (ci/linux/Dockerfile).
 
 # Preliminaries for running this script:
 # This script is intended for use on Debian or Ubuntu
@@ -17,8 +19,13 @@ set -e
 
 # Create the (chroot) environments that will be used for building ags:
 
-# pbuilder-dist jessie i386 --security-only create
-# pbuilder-dist jessie amd64 --security-only create
+# pbuilder-dist buster i386 --security-only create
+# pbuilder-dist buster amd64 --security-only create
+
+# Debian 10 is archived (archive.debian.org) and does not package two
+# things the build needs: CMake 3.16 or newer (it has 3.13) and SDL_sound
+# for SDL2. Both have to be installed in the chroots first;
+# ci/linux/Dockerfile builds them from source.
 
 # The only other thing you should take care of is that your ags
 # source tree is git clean. That means: check 'git status', commit any
@@ -27,8 +34,8 @@ set -e
 # The chroots can later be updated, which becomes necessary if
 # this script fails because some Debian package cannot be downloaded:
 
-# pbuilder-dist jessie i386 --security-only update
-# pbuilder-dist jessie amd64 --security-only update
+# pbuilder-dist buster i386 --security-only update
+# pbuilder-dist buster amd64 --security-only update
 
 BASEPATH=$(dirname $(dirname $(readlink -f $0)))
 
@@ -60,7 +67,7 @@ debuild -us -uc -d -S
 
 # Build ags binary package in i386 chroot, also use a hook script to copy libraries and licenses
 # from the chroot to a folder that is mounted into the chroot via --bindmounts.
-DEB_BUILD_OPTIONS="rpath=lib32" pbuilder-dist jessie i386 build \
+DEB_BUILD_OPTIONS="rpath=lib32" pbuilder-dist buster i386 build \
   --buildresult $BASEPATH/ags+libraries \
   --hookdir $BASEPATH/debian/ags+libraries/hooks \
   --bindmounts "$BASEPATH/ags+libraries" \
@@ -74,7 +81,7 @@ rm -rf $BASEPATH/ags+libraries/ags_* $BASEPATH/ags+libraries/ags-dbg_* $BASEPATH
 
 # Repeat for amd64.
 sed -i -r "5s/.*/BIT=64/" $BASEPATH/debian/ags+libraries/hooks/B00_copy_libs.sh
-DEB_BUILD_OPTIONS="rpath=lib64" pbuilder-dist jessie amd64 build \
+DEB_BUILD_OPTIONS="rpath=lib64" pbuilder-dist buster amd64 build \
   --buildresult $BASEPATH/ags+libraries \
   --hookdir $BASEPATH/debian/ags+libraries/hooks \
   --bindmounts "$BASEPATH/ags+libraries" \
