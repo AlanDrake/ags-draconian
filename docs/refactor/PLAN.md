@@ -91,7 +91,7 @@ comes after they are closed.
 | 1 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
 | 2 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
 | 3 | **1.3 to merge:** `1.3-engine-tests` (15 commits on `5aaa1e65c`) was tested by the user in a game through the editor and engine built from it (`.compare/msb-13`); merge and push when ready. **U.7 waiting:** PR #3193 open since 2026-11-05 | The branch is the safety net phases 3 to 5 wait for | user |
-| 4 | **1.5** sanitizers | Useful, not urgent; adds CI time | Sonnet 5.5, `medium` |
+| 4 | **1.5, first CI run:** push the unpushed work to a probe branch (`verify.yml` confirms GCC for 1.5a; a throwaway commit there lets `analysis.yml` run both jobs on that branch's pushes, since a workflow that is not on the default branch cannot be started by hand), read every finding of the sanitizer job, fix or justify them in one batch | The three jobs were written without a Linux machine; the sanitizer findings are the point of the task | user for the pushes, Sonnet 5.5, `high` for the findings |
 
 Open items found while doing finished tasks (details in LOG.md): 0.4's CodeQL setting, the
 `D3DCOMPILER_47`/Windows 7 question and the macOS 10.9 deployment target; 1.4's unfixed `agfreader`
@@ -102,7 +102,8 @@ element that is absent (an older Editor's project) leaves garbage in `agsbuild` 
 `true`, so `{}` is not the fix); only `PixelPerfect` got its default, after CI failed on it, and
 the worktree branch `ags4-agfreader-tests` (#3147) still has the test's wrong `EXPECT_FALSE`; 7.1f's
 "left open" notes (one test project measures parity; 8-bit games and old indexed interactions
-unexercised); 3.1's unchecked `GetDiskFreeSpaceExW` result in `AGSWin32::GetDiskFreeSpaceMB`.
+unexercised); 3.1's unchecked `GetDiskFreeSpaceExW` result in `AGSWin32::GetDiskFreeSpaceMB`; 1.5a's
+4-bit pixel write in `Common/gfx/bitmapdata.cpp` (wrong mask and shift, untested).
 
 Waiting: 3.2c (native `.vcxproj` to CMake) on 6.7, since the C++/CLI bridge links those libraries;
 the rest of 3.3 (`AGS.CScript.Compiler`) on 6.7d; 5.3 until U.3 is closed, then with upstream's
@@ -167,7 +168,15 @@ Today: 35 C++ test files, **only 3 for the engine** (~430 source files); 22 C# t
   running the unit tests and the auto-test game; an `llvm-cov` job publishing per-directory numbers;
   first-party warnings at `/W4` and `-Wall -Wextra`, as errors **per directory** as each gets clean.
   *Done when:* the sanitizer job is green, coverage is published, `Common/` builds with warnings as
-  errors.
+  errors. Split 2026-11-05 (LOG.md):
+  - [ ] **1.5a Warnings:** done locally 2026-11-05, GCC to be confirmed by the first `verify.yml` run.
+    `Common/` has no warning on MSVC `/W4` and Clang and builds with `-DAGS_WARNINGS_AS_ERRORS=ON`
+    (`ags_warning_free(common)`; set by `verify.yml` and `prepush.py`); three bugs the warnings pointed at are
+    fixed. Open: the 87 narrowing conversions MSVC reports in `Common/` (switched off there), and the other
+    directories (GCC: `Engine` 164, `Compiler` 71, `Tools` 69, `Plugins` 48 sites).
+  - [ ] **1.5b Sanitizers:** `analysis.yml` job written 2026-11-05, never run. The first run lists every
+    finding; fix or justify each, then the job is the gate.
+  - [ ] **1.5c Coverage:** `analysis.yml` job written 2026-11-05, never run. First numbers go to BASELINE.md.
 - [x] **1.6 Mechanical-change verifier** `Script/compare_objects.py` (2026-11-01; STYLE.md "Commits").
 - [x] **1.7 Auto-test game built in CI from source** by the tools of the same run (2026-11-02, with 7.1j).
 

@@ -287,6 +287,90 @@ Build parity with the editor: `compare_builds.py` on the game reports 114 of 114
 - Found, not fixed: `agfreader` crashes on a `Game.agf` without `<Settings>`;
   `StrUtil::Unescape` reads past the end of a text ending in a single `\`.
 
+### 1.5 Coverage, sanitizers and warnings
+
+*Definition (still in PLAN.md, split into 1.5a to 1.5c on 2026-11-05):* a Linux CI job with
+`-fsanitize=address,undefined` running the unit tests and the auto-test game; an `llvm-cov` job publishing
+per-directory numbers; first-party warnings at `/W4` and `-Wall -Wextra`, as errors per directory as each
+gets clean. *Done when:* the sanitizer job is green, coverage is published, `Common/` builds with warnings
+as errors.
+
+*Status (2026-11-05):* 1.5a done locally (MSVC and Clang; GCC from a CI log, not yet built with the
+fixes); 1.5b and 1.5c written, **never run**: `analysis.yml` has not been on a runner.
+
+**1.5a Warnings.**
+- Measured before, first-party code, distinct sites: GCC 15.2 (the `verify.yml` log of run 42032914043)
+  `Common` 122, `Engine` 164, `Compiler` 71, `Tools` 69, `Plugins` 48, `Compiler/test` 755 (747
+  `-Wunused-variable`), `Tools/test` 61; Clang (emcc 3.1.74, engine build) `Common` 68, `Engine` 77; MSVC
+  `/W4` `Common` 174, of which 87 narrowing conversions (C4244, C4267: reported at today's `/W3` too),
+  46 unused parameters and 14 signed with unsigned.
+- The warning set, decided here: `-Winline` is gone from the GCC and Clang set (122 of GCC's first-party sites; it
+  reports the optimizer's choices, not the code). `-Wfloat-equal` stays a warning but is never an error
+  (`-Wno-error=float-equal`): GCC reports every exact comparison, the ones with 0 and 1 too. MSVC's
+  first-party level is `/W4` less what the GCC set leaves out: unused parameters (C4100), signed with
+  unsigned (C4018, C4245, C4389), **and the narrowing conversions (C4244, C4267), which GCC only reports
+  with `-Wconversion`: 87 sites in `Common`, open.**
+- CMake: `option(AGS_WARNINGS_AS_ERRORS)` (off: a packager's newer compiler must not fail the build),
+  and `ags_warning_free(<target>)` in the root file, which gives the target `/W4` on MSVC (one level
+  flag per target through the `AGS_WARNING_FREE` property, so no D9025) and `/WX` or `-Werror` when the
+  option is on. `common` is marked. `verify.yml` (GCC job, now built with `-k`) and `prepush.py` (the
+  `build` and `emscripten` stages) set the option; `prepush.py` reconfigures a tree made without it.
+- `Common/`: 95 sites reported over the three compilers, 39 files changed; 4 `-Wfloat-equal` sites stay
+  (`Pt::operator==`, a rotation compared with 0). Mechanical: parentheses around `&&` in `||` and `&` in
+  `|` (16), `[[maybe_unused]]` on values read to advance a stream or used by an `assert` only (13), unused
+  locals, one unused function and one unused table removed, shadowed names renamed (lambda parameters,
+  `err`), `std::move` taken off returned locals and temporaries (15), a constructor's initializer order, two
+  defaulted default constructors that were implicitly deleted, a copy constructor's base, a C90
+  declaration order, `catch` by reference. In the tests: a `%ld` given an `int`, two unused results.
+- **Bugs the warnings pointed at, fixed** (all present upstream):
+  - `room_file.cpp`, twice: `data_ver >= kRoomVersion_363_15 && data_ver < kRoomVersion_399` is never
+    true (36315 against 40: the 3.6.3 versions are numbered after 3.99), so a room saved by 3.6.3.15 or
+    later had its backgrounds read as LZW instead of the sprite format. Now `< kRoomVersion_400`. No
+    test: there is no 3.6.3.15 room in the repository and no writer for that version.
+  - `guimain.cpp`: `GameGuiVersion < GameGuiVersion` in the range check of `ReadGUI`, so a GUI format
+    older than `kGuiVersion_LowSupported` was never refused. Now compared with the constant.
+  - `directory.cpp` (non-Windows): `GetCurrentDirectory` used the buffer after a failed `getcwd`; it
+    returns an empty string now. `SetCurrentDirectory` ignores a failed `chdir` as before, visibly.
+  - `room_file.cpp`: the block filter of `ReadRoomData` captured the block list by copy; by reference now.
+- **Seen, not fixed:** `BitmapData` pixel writing for 4-bit bitmaps (`bitmapdata.cpp`, `case 4`) masks
+  with `4` and shifts by 0 or 1 where a nibble needs `0xF` and 0 or 4: no warning, no test, left.
+- Verified: all seven `prepush.py` stages pass on the result (format, build, tidy, headers, libcxx,
+  emscripten, msbuild with the six solutions and the Editor's NUnit). MSVC, `common` at `/W4 /WX`: no
+  warning (the build stage, 1031 of 1031 tests). Clang: the 79 sources of `common` with `-Werror` in the Emscripten build. `tidy_diff.py` on the
+  change: clean, after it found nine things in the first version of these edits (missing braces on touched
+  lines, `make_unique`, a copy constructor calling the base's default constructor, the copied capture).
+  `compare_objects.py HEAD`: 591 objects identical, 38 differ, all in the sources or through the headers
+  named above; the sources with only a renamed lambda parameter differ too, because MSVC names a closure
+  type by a hash of its text (listings of equal length that differ in that name only: `room_file_blocks.cpp`,
+  `tra_file.cpp`).
+- Found on the way: **with `/WX` or `-Werror` in the compile database clang-tidy failed on every `common`
+  source** (its own "argument unused during compilation: /GL, /MP" became errors; the gate reported
+  "could not analyse", exit 2). `tidy_diff.py` now passes `-Wno-error`. The Linux job would have hit the
+  same with GCC's flags.
+- **Not verified:** GCC. Its 89 sites (without `-Winline`) are all among the 95 and were fixed from the
+  log, but no GCC has compiled the result; the first `verify.yml` run will. Clang on Linux and Apple Clang
+  see `-Werror` only if someone sets the option.
+
+**1.5b Sanitizers, 1.5c Coverage** (`.github/workflows/analysis.yml`, new; `Script/sanitizer_summary.py`,
+`Script/coverage_summary.py`).
+- Both jobs build tools, engine and tests, run `ctest`, then `Script/agsbuild_autotest.sh`: the auto-test
+  game is built from its source by the instrumented tools and run in the instrumented engine (Software
+  driver), so `agsbuild` and the other tools are covered as well as the engine.
+- Sanitizers: GCC, `-fsanitize=address,undefined -fsanitize-recover=address`, RelWithDebInfo;
+  `halt_on_error=0`, leaks on, `LSAN_OPTIONS=exitcode=0`, every report to a log file, so that one run
+  lists all findings instead of stopping at the first (the CI rule: collect, then fix in one batch).
+  `sanitizer_summary.py` prints the distinct findings (a UBSan line, or an ASan error or direct leak
+  named by its first frame in our code) to the job summary and fails the job if there are any. Runs on
+  pushes to `ags4draconian*`, weekly and on demand.
+- Coverage: clang, `-fprofile-instr-generate -fcoverage-mapping`, one profile per binary (`%m`), `llvm-cov
+  export -summary-only` over the engine, the tools and the test programs, and `coverage_summary.py` for
+  a table of line coverage per module and directory (third-party code and the tests left out) in the job
+  summary and as an artifact. Weekly and on demand only: a number to read, not a gate.
+- Verified: `actionlint`; both scripts on made-up logs and JSON. **Not verified: everything else.** No
+  Linux here, so neither job has run: expect the first sanitizer run to list findings (leaks at exit at
+  least), and the coverage step to need a second look at the tool names (`llvm-cov-<version>`). Use a
+  probe branch (AGENTS.md).
+
 ### 1.6 Mechanical-change verifier
 
 *Definition, moved from PLAN.md on 2026-11-04:*
