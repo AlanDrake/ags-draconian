@@ -118,8 +118,10 @@ String GetCurrentDirectory()
     str = Path::WidePathToUTF8(wstr);
 #else
     char buf[MAX_PATH_SZ];
-    if (getcwd(buf, sizeof(buf)) != nullptr)
-        str = buf; // on failure the buffer is undefined: the result stays empty
+    if (getcwd(buf, sizeof(buf)) != nullptr) // on failure the buffer is undefined: the result stays empty
+    {
+        str = buf;
+    }
 #endif
     Path::FixupPath(str);
     return str;
