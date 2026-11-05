@@ -103,7 +103,7 @@ const char *const kTestImports[] = {"TestTwice^1", "TestAbort^0", "TestUpdate^0"
 // - ccCompOptions: SCOPT_AUTOIMPORT is on while scripts are linked, as at game start
 // - the script error state (cc_get_error), cleared before and after each test
 // - pool: the managed objects that scripts create; scripts release them, garbage collection runs
-//   when the pool decides (after 1024 new objects, at the end of a run)
+//   when the pool decides (after 1024 new objects, at the end of a run); what is left is removed in TearDown
 // - RuntimeScript's link slots: each loaded script takes one until the test ends
 // Not restored: RuntimeScript's joint RTTI (no reset exists; types only accumulate).
 class ScriptVM : public ::testing::Test
@@ -135,6 +135,8 @@ protected:
         NestedScript = nullptr;
         NestedThread = nullptr;
         scriptExecutor.reset();
+        // what the scripts left alive (a run that ends with an error, a test that keeps its objects)
+        pool.Reset();
         cc_clear_error();
     }
 
