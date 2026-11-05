@@ -2,9 +2,10 @@
 """
 Runs locally what the CI would otherwise discover after a push (docs/refactor/PLAN.md, 2.8).
 
-    python Script/prepush.py                  # every stage
+    python Script/prepush.py                  # every stage but the on-demand ones
     python Script/prepush.py --only format,build
     python Script/prepush.py --skip msbuild   # the long one
+    python Script/prepush.py --only sanitizers
     python Script/prepush.py --list
 
 Stages, in the order they run (a failed stage does not stop the later ones; the summary lists all):
@@ -14,15 +15,22 @@ Stages, in the order they run (a failed stage does not stop the later ones; the 
            naming and size rules for new code only; the build's compile_commands.json is the input
   headers  the header_check target with MSVC (the CI's Windows job)
   libcxx   the headers again with clang + libc++ from emsdk, POSIX target, no transitive includes:
-           the stand-in for the CI's GCC and clang jobs (Script/header_check_libcxx.py)
+           the stand-in for the CI's clang job (Script/header_check_libcxx.py)
   emscripten  the engine built with emcc from emsdk, as Emscripten/build.sh does (the CI's Emscripten job):
            Clang and libc++ compile and link the OpenGL ES 2 renderer and the non-Windows branches that
            MSVC never sees; then the sources with Linux-only branches (acpllnx.cpp, library_posix.h, ...)
            are syntax-checked by the same compiler told that it is Linux. Not covered: macOS, iOS,
-           Android and FreeBSD code, and linking anything for Linux
+           Android and FreeBSD code
+  linux    the CI's "Linux (GCC)" job (Script/linux_jobs.sh gcc): GCC build with warnings as errors,
+           header check and ctest. On Windows it runs in a WSL 2 distro, on a copy of the working tree
   msbuild  the solutions the CI builds (Compiler.Lib, Tests, Engine, Tools, Compiler.App, Editor.Full;
            x86 Release) with their test runners, into .tidy/prepush/msb so that the PDBs of the
            regular Solutions/.build are not overwritten
+
+On demand, with --only (analysis.yml; PLAN.md 1.5b):
+  sanitizers  the ASan + UBSan build of tools, engine and tests, the unit tests and the auto-test game
+           (Script/linux_jobs.sh sanitizers); fails on any finding, leaks included
+  coverage    the clang coverage build and the same runs; prints the table per directory
 
 Needs: Visual Studio 2022 with the C++ workload, Python, and for the optional parts clang-format
 (--clang-format, $AGS_CLANG_FORMAT, .compare/cfenv or PATH; the version is checked), clang-tidy
@@ -30,6 +38,12 @@ Needs: Visual Studio 2022 with the C++ workload, Python, and for the optional pa
 --emsdk) and C:\\Lib (Windows\\setup_ags_build_deps.bat). A stage whose tool is missing is reported
 as NOT RUN and makes the exit code non-zero: "not verified" is not "passed". Build trees live in
 the git-ignored .tidy/prepush. Stages that do not apply to the platform are skipped silently.
+
+The Linux stages need a WSL 2 distro (--wsl-distro, $AGS_WSL_DISTRO, default Ubuntu-24.04, the CI's
+ubuntu-latest) with what Script/linux_jobs.sh lists. The working tree, uncommitted and untracked
+files included, goes there as a commit under refs/prepush/worktree (no branch or index changes),
+checked out in ~/ags-draconian; the build trees are in ~/build. On Linux the stages run in place,
+with the build trees in .tidy/prepush/linux.
 
 Exit code 0 only if every selected stage passed.
 """
@@ -57,7 +71,15 @@ MSB = os.path.join(WORK, 'msb')
 SOURCE_GLOBS = ['*.c', '*.cc', '*.cpp', '*.cxx', '*.h', '*.hpp', '*.inl']
 SOLUTIONS = ['Compiler.Lib', 'Tests', 'Engine', 'Tools', 'Compiler.App', 'AGS.Editor.Full']
 TEST_RUNNERS = ['Compiler.Lib.Test.exe', 'Common.Lib.Test.exe', 'Engine.App.Test.exe', 'Tools.Test.exe']
-STAGES = ['format', 'build', 'tidy', 'headers', 'libcxx', 'emscripten', 'msbuild']
+STAGES = ['format', 'build', 'tidy', 'headers', 'libcxx', 'emscripten', 'linux', 'msbuild']
+# Run only when named in --only: long, and a report more than a gate (analysis.yml is on demand too)
+ON_DEMAND = ['sanitizers', 'coverage']
+# The Linux stages on Windows: the distro, the clone in its home directory, the snapshot of the working tree
+WSL_DISTRO = 'Ubuntu-24.04'
+WSL_CLONE = 'ags-draconian'
+WSL_REF = 'refs/prepush/worktree'
+# The row of Script/coverage_summary.py with the number for the whole tree
+COVERAGE_TOTAL = '| **Total** |'
 # The emscripten stage's syntax check of the Linux branches: what marks a file as having one (platform.h
 # only defines the macros), a compile statement of build.ninja, and the header that needs desktop OpenGL
 LINUX_BRANCH = re.compile(r'AGS_PLATFORM_OS_LINUX|AGS_PLATFORM_IS_XDG_UNIX|__linux__')
@@ -68,6 +90,7 @@ DESKTOP_GL_HEADER = 'ogl_headers.h'
 
 args = None
 _msvc = None
+_wsl = None
 
 
 class NotRun(Exception):
@@ -296,6 +319,106 @@ def linux_syntax_check(emsdk, ninja, env):
     return len(jobs)
 
 
+def git_output(stage, *cmd, env=None):
+    """The output of a git command in the repository; a failure goes to the stage's log."""
+    r = subprocess.run(['git', *cmd], cwd=REPO, env=env, capture_output=True, text=True)
+    if r.returncode != 0:
+        with open(log_path(stage), 'a', encoding='utf-8', errors='replace') as log:
+            log.write('$ git %s\n%s%s\n' % (' '.join(cmd), r.stdout, r.stderr))
+        raise subprocess.CalledProcessError(r.returncode, 'git ' + cmd[0])
+    return r.stdout.strip()
+
+
+def worktree_snapshot(stage):
+    """
+    The working tree as a commit under WSL_REF: HEAD, or a child of it with the uncommitted and the
+    untracked files (ignored ones excluded). Made through a copy of the index: nothing the user sees changes.
+    """
+    git_dir = git_output(stage, 'rev-parse', '--absolute-git-dir')
+    index = os.path.join(git_dir, 'prepush-index')
+    shutil.copyfile(os.path.join(git_dir, 'index'), index)
+    env = dict(os.environ, GIT_INDEX_FILE=index)
+    try:
+        git_output(stage, 'add', '-A', env=env)
+        tree = git_output(stage, 'write-tree', env=env)
+    finally:
+        os.remove(index)
+    commit = git_output(stage, 'rev-parse', 'HEAD')
+    if tree != git_output(stage, 'rev-parse', 'HEAD^{tree}'):
+        commit = git_output(stage, 'commit-tree', tree, '-p', 'HEAD', '-m', 'prepush: the working tree')
+    git_output(stage, 'update-ref', WSL_REF, commit)
+    return commit
+
+
+def wsl(stage):
+    """
+    The prefix of a command run in the home directory of the WSL distro, without a shell in between.
+    The first call of a run copies the working tree into the distro's clone: building on the Windows
+    drive through /mnt is slow, and the files there have CRLF line ends.
+    """
+    global _wsl
+    if _wsl is not None:
+        return _wsl
+    distro = args.wsl_distro or os.environ.get('AGS_WSL_DISTRO') or WSL_DISTRO
+    exe = shutil.which('wsl')
+    if not exe or subprocess.run([exe, '-d', distro, '--exec', 'true'], capture_output=True).returncode != 0:
+        raise NotRun('WSL 2 distro %s not found (wsl --install -d %s, then what Script/linux_jobs.sh needs); '
+                     'pass --wsl-distro or set AGS_WSL_DISTRO for another one' % (distro, distro))
+    drive, path = os.path.splitdrive(REPO)
+    if len(drive) != 2:
+        raise NotRun('the repository must be on a drive with a letter for WSL to read it')
+    source = '/mnt/%s%s' % (drive[0].lower(), path.replace('\\', '/'))
+    prefix = [exe, '-d', distro, '--cd', '~', '--exec']
+    commit = worktree_snapshot(stage)
+    if subprocess.run(prefix + ['test', '-d', WSL_CLONE + '/.git']).returncode != 0:
+        run(stage, prefix + ['git', 'clone', '-q', '--no-checkout', source, WSL_CLONE])
+    run(stage, prefix + ['git', '-C', WSL_CLONE, 'fetch', '-q', source, '+%s:%s' % (WSL_REF, WSL_REF)])
+    run(stage, prefix + ['git', '-C', WSL_CLONE, '-c', 'advice.detachedHead=false', 'checkout', '-q', '-f',
+                         '--detach', commit])
+    _wsl = prefix
+    return _wsl
+
+
+def linux_job(stage, job):
+    """Runs a job of Script/linux_jobs.sh: in the WSL distro on Windows, in place on Linux."""
+    script = 'Script/linux_jobs.sh'
+    if os.name == 'nt':
+        run(stage, wsl(stage) + ['bash', '%s/%s' % (WSL_CLONE, script), job])
+    elif sys.platform.startswith('linux'):
+        run(stage, ['bash', os.path.join(REPO, script), job],
+            env=dict(os.environ, AGS_JOBS_WORK=os.path.join(WORK, 'linux')))
+    else:
+        raise NotRun('the Linux stages need Linux, or Windows with a WSL 2 distro')
+
+
+def last_match(stage, pattern):
+    """The last line of the stage's log that has the pattern, or ''."""
+    with open(log_path(stage), encoding='utf-8', errors='replace') as log:
+        found = [line.strip() for line in log if pattern in line]
+    return found[-1] if found else ''
+
+
+def stage_linux():
+    linux_job('linux', 'gcc')
+    return last_match('linux', 'tests passed')
+
+
+def stage_sanitizers():
+    try:
+        linux_job('sanitizers', 'sanitizers')
+    except subprocess.CalledProcessError as e:
+        found = last_match('sanitizers', 'distinct sanitizer findings')
+        if found:
+            e.note = '%s see %s' % (found, os.path.relpath(log_path('sanitizers'), REPO))
+        raise
+    return last_match('sanitizers', 'No sanitizer findings')
+
+
+def stage_coverage():
+    linux_job('coverage', 'coverage')
+    return last_match('coverage', COVERAGE_TOTAL)
+
+
 def find_msbuild():
     vswhere = os.path.join(os.environ.get('ProgramFiles(x86)', r'C:\Program Files (x86)'),
                            'Microsoft Visual Studio', 'Installer', 'vswhere.exe')
@@ -336,7 +459,8 @@ def stage_msbuild():
 
 
 RUNNERS = {'format': stage_format, 'build': stage_build, 'tidy': stage_tidy, 'headers': stage_headers,
-           'libcxx': stage_libcxx, 'emscripten': stage_emscripten, 'msbuild': stage_msbuild}
+           'libcxx': stage_libcxx, 'emscripten': stage_emscripten, 'linux': stage_linux, 'msbuild': stage_msbuild,
+           'sanitizers': stage_sanitizers, 'coverage': stage_coverage}
 
 
 def main():
@@ -348,18 +472,19 @@ def main():
     ap.add_argument('--clang-format', help='path of clang-format %s' % CLANG_FORMAT_VERSION)
     ap.add_argument('--clang-tidy', help='path of clang-tidy %s' % tidy_diff.CLANG_TIDY_VERSION)
     ap.add_argument('--emsdk', help='emsdk directory (default: $EMSDK)')
+    ap.add_argument('--wsl-distro', help='WSL distro of the Linux stages (default: $AGS_WSL_DISTRO, %s)' % WSL_DISTRO)
     ap.add_argument('--clean-logs', action='store_true', help='delete the old logs first')
     args = ap.parse_args()
 
     if args.list:
-        print('\n'.join(STAGES))
+        print('\n'.join(STAGES + ['%s (on demand: --only)' % s for s in ON_DEMAND]))
         return 0
     chosen = args.only.split(',') if args.only else list(STAGES)
     chosen = [s for s in chosen if s not in (args.skip.split(',') if args.skip else [])]
     for s in chosen:
         if s not in RUNNERS:
-            sys.exit('unknown stage %s (stages: %s)' % (s, ', '.join(STAGES)))
-    chosen.sort(key=STAGES.index)
+            sys.exit('unknown stage %s (stages: %s)' % (s, ', '.join(STAGES + ON_DEMAND)))
+    chosen.sort(key=(STAGES + ON_DEMAND).index)
     if args.clean_logs:
         shutil.rmtree(WORK, ignore_errors=True)
     for s in chosen:
@@ -376,7 +501,7 @@ def main():
         except NotRun as e:
             status, note = 'NOT RUN', str(e)
         except subprocess.CalledProcessError as e:
-            status, note = 'FAIL', 'see %s' % os.path.relpath(log_path(s), REPO)
+            status, note = 'FAIL', getattr(e, 'note', None) or 'see %s' % os.path.relpath(log_path(s), REPO)
         results.append((s, status, note, time.time() - t0))
         print('   %s (%.0fs) %s' % (status, results[-1][3], note), flush=True)
 
