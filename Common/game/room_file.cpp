@@ -267,14 +267,20 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const
     room->BgFrames.resize(room->BgFrameCount);
     if (!read_opts.SkipImageData)
     {
-        HError err;
+        HError bg_err;
         // Primary background (Deflate, LZW or RLE compressed depending on data version)
-        if ((data_ver >= kRoomVersion_363_15 && data_ver < kRoomVersion_399) || (data_ver >= kRoomVersion_400_33))
-            room->BgFrames[0].GraphicBuf = SpriteDataUtils::ReadSprite_360(in, err, &room->Palette);
+        if ((data_ver >= kRoomVersion_363_15 && data_ver < kRoomVersion_400) || (data_ver >= kRoomVersion_400_33))
+        {
+            room->BgFrames[0].GraphicBuf = SpriteDataUtils::ReadSprite_360(in, bg_err, &room->Palette);
+        }
         else
+        {
             room->BgFrames[0].GraphicBuf = load_lzw(in, room->BackgroundBPP, &room->Palette);
-        if (!err)
-            return err;
+        }
+        if (!bg_err)
+        {
+            return bg_err;
+        }
 
         // Area masks
         room->RegionMaskBuf = load_rle_bitmap8(in);
@@ -347,7 +353,7 @@ HError ReadAnimBgBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
 
     HError err;
     // Secondary backgrounds (Deflate or LZW compressed depending on data version)
-    if ((data_ver >= kRoomVersion_363_15 && data_ver < kRoomVersion_399) || (data_ver >= kRoomVersion_400_33))
+    if ((data_ver >= kRoomVersion_363_15 && data_ver < kRoomVersion_400) || (data_ver >= kRoomVersion_400_33))
     {
         for (size_t i = 1; i < room->BgFrameCount; ++i)
         {
@@ -813,18 +819,22 @@ HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_p
                             const std::vector<std::pair<RoomFileBlock, String>> &blocks_to_read,
                             const RoomReadOptions &read_opts)
 {
-    RoomBlockReader reader(
-        room, room_aux, data_ver, std::move(in), read_opts,
-        [blocks_to_read](RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
-                         soff_t block_len, RoomFileVersion data_ver, const RoomReadOptions &read_opts)
+    // Reads the listed blocks and skips the rest; the reader passes its own room, stream and options.
+    // The list is captured by reference: it outlives the reader.
+    const auto read_listed = [&blocks_to_read](RoomData *block_room, RoomDataAux *block_aux, Stream *block_in,
+                                               RoomFileBlock block, const String &ext_id, soff_t block_len,
+                                               RoomFileVersion block_ver, const RoomReadOptions &block_opts)
+    {
+        const auto block_id = std::make_pair(block, block != kRoomFblk_None ? "" : ext_id);
+        if (std::find(blocks_to_read.begin(), blocks_to_read.end(), block_id) != blocks_to_read.end())
         {
-            const auto block_id = std::make_pair(block, block != kRoomFblk_None ? "" : ext_id);
-            if (std::find(blocks_to_read.begin(), blocks_to_read.end(), block_id) != blocks_to_read.end())
-                return ReadRoomBlock(room, room_aux, in, block_id.first, block_id.second, block_len, data_ver,
-                                     read_opts);
-            in->Seek(block_len); // skip ignored block
-            return HError::None();
-        });
+            return ReadRoomBlock(block_room, block_aux, block_in, block_id.first, block_id.second, block_len, block_ver,
+                                 block_opts);
+        }
+        block_in->Seek(block_len); // skip ignored block
+        return HError::None();
+    };
+    RoomBlockReader reader(room, room_aux, data_ver, std::move(in), read_opts, read_listed);
     HError err = reader.Read();
     return err ? HRoomFileError::None() : new RoomFileError(err, kRoomFileErr_BlockListFailed);
 }

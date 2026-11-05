@@ -1128,9 +1128,11 @@ HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVe
     DataVersion = data_ver;
     GameGuiVersion = (GuiVersion)in->ReadInt32();
     Debug::Printf(kDbgMsg_Info, "Game GUI version: %d", GameGuiVersion);
-    if (GameGuiVersion < GameGuiVersion || GameGuiVersion > kGuiVersion_Current)
+    if (GameGuiVersion < kGuiVersion_LowSupported || GameGuiVersion > kGuiVersion_Current)
+    {
         return new Error("ReadGUI: format version not supported (required %d, supported %d - %d)", GameGuiVersion,
                          kGuiVersion_LowSupported, kGuiVersion_Current);
+    }
 
     size_t gui_count = in->ReadInt32();
     guis.resize(gui_count);

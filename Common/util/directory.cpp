@@ -101,7 +101,10 @@ String SetCurrentDirectory(const String &path)
     MultiByteToWideChar(CP_UTF8, 0, path.GetCStr(), -1, wstr, MAX_PATH_SZ);
     SetCurrentDirectoryW(wstr);
 #else
-    chdir(path.GetCStr());
+    if (chdir(path.GetCStr()) != 0)
+    {
+        // not reported here: the directory returned below tells the caller where it is
+    }
 #endif
     return GetCurrentDirectory();
 }
@@ -115,8 +118,8 @@ String GetCurrentDirectory()
     str = Path::WidePathToUTF8(wstr);
 #else
     char buf[MAX_PATH_SZ];
-    getcwd(buf, sizeof(buf));
-    str = buf;
+    if (getcwd(buf, sizeof(buf)) != nullptr)
+        str = buf; // on failure the buffer is undefined: the result stays empty
 #endif
     Path::FixupPath(str);
     return str;
