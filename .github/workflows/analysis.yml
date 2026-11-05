@@ -43,9 +43,10 @@ jobs:
       # -fsanitize-recover=address lets ASan go on after a finding (halt_on_error=0 below)
       SAN_FLAGS: -fsanitize=address,undefined -fsanitize-recover=address -fno-omit-frame-pointer -g
       ASAN_OPTIONS: halt_on_error=0:detect_leaks=1:log_path=${{github.workspace}}/sanitizer-logs/san
-      UBSAN_OPTIONS: print_stacktrace=1:log_path=${{github.workspace}}/sanitizer-logs/san
+      # The suppressions list the reports whose cause is in third-party code, each with its reason
+      UBSAN_OPTIONS: print_stacktrace=1:log_path=${{github.workspace}}/sanitizer-logs/san:suppressions=${{github.workspace}}/ci/sanitizers/ubsan.supp
       # A leak is a finding in the log like the others, not an exit code that hides the next ones
-      LSAN_OPTIONS: exitcode=0
+      LSAN_OPTIONS: exitcode=0:suppressions=${{github.workspace}}/ci/sanitizers/lsan.supp
     steps:
       - uses: actions/checkout@v6
         with:

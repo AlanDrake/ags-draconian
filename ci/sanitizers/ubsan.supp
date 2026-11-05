@@ -1,0 +1,17 @@
+# UBSan suppressions of the sanitizer job (Script/linux_jobs.sh sanitizers and the "sanitizers" job of
+# .github/workflows/analysis.yml; docs/refactor/PLAN.md, 1.5b-5).
+#
+# Only reports whose cause is inside third-party code are listed here, each with its reason. A report in
+# our own code is fixed, not suppressed.
+#
+# Format: <check>:<file name pattern>. UBSan matches the file of the place where the check failed.
+
+# mojoAL (libsrc/mojoAL/mojoal.c, _alcCreateContext) copies the attribute list of alcCreateContext with
+# SDL_memcpy(retval->attributes, attrlist, attrcount * sizeof (ALCint)); the engine passes no list
+# (audio_core_init, alcCreateContext(device, nullptr)), which OpenAL allows, so the call is a copy of
+# zero bytes from a null pointer. SDL's SDL_memcpy is memcpy, declared with a non-null argument.
+#   src/stdlib/SDL_stdlib.c:527:12: runtime error: null pointer passed as argument 2, which is declared
+#   to never be null
+#     #0 SDL_memcpy_REAL  #1 _alcCreateContext  libsrc/mojoAL/mojoal.c:2163  #2 alcCreateContext
+#     #3 audio_core_init  Engine/media/audio/audio_core.cpp:88
+nonnull-attribute:SDL_stdlib.c

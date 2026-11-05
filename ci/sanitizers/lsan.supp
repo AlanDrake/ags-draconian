@@ -1,0 +1,43 @@
+# LeakSanitizer suppressions of the sanitizer job (Script/linux_jobs.sh sanitizers and the "sanitizers"
+# job of .github/workflows/analysis.yml; docs/refactor/PLAN.md, 1.5b-5).
+#
+# Only leaks whose cause is inside third-party code are listed, each with its reason. A leak in our own
+# code is fixed, not suppressed; so is an SDL or OpenAL object that we created and never destroyed. A new
+# third-party report goes here with the stack it stands for.
+#
+# Format: leak:<name of a function that is in the leak's stack>. A suppression hides every leak (and
+# everything it points to) whose stack passes through that function, so the entry names the SDL function
+# that calls into the library: the frames inside Mesa and ALSA stay "<unknown module>" in a report,
+# because SDL loads them with dlopen and unloads them again before the leak check.
+#
+# Each entry was shown to be needed (the row returns without it) and to be a library's doing: a plain SDL
+# program (window and renderer, a texture copy and present, an audio device opened and closed, then
+# destroyed, SDL_Quit) leaks the same blocks with the same stacks. The run prints which entries it used
+# ("Suppressions used:" at the end of the log of a process).
+
+# SDL's offscreen video driver (what SDL picks without a display, as on CI) initialises EGL for the
+# OpenGL renderer; Mesa's libEGL allocates the EGL display and does not free it.
+#   Direct leak of 2680 byte(s) in 1 object(s) allocated from:
+#     #0 calloc  #1..#3 <unknown module> (libEGL)
+#     #4 SDL_EGL_InitializeOffscreen  #5 OFFSCREEN_GLES_LoadLibrary  #6 SDL_GL_LoadLibrary
+#     #7 SDL_RecreateWindow  #8 GL_CreateRenderer  #9 SDL_CreateRenderer
+#     #10 SDLRendererGraphicsDriver::SetDisplayMode  Engine/gfx/ali3dsw.cpp:146
+leak:SDL_EGL_InitializeOffscreen
+
+# The first draw call through that OpenGL renderer makes Mesa's software rasteriser allocate two blocks of
+# 56 bytes that it does not free; they point to each other, so LSan reports them as indirect leaks only.
+#   Indirect leak of 56 byte(s) in 1 object(s) allocated from:    (twice)
+#     #0 calloc  #1..#16 <unknown module> (Mesa)
+#     #17 GL_RunCommandQueue  #18 FlushRenderCommands  #19 FlushRenderCommandsIfNotBatching
+#     #20 SDL_RenderCopyF  ...  SDLRendererGraphicsDriver::Present  Engine/gfx/ali3dsw.cpp:762
+leak:GL_RunCommandQueue
+
+# Opening an audio device with SDL's ALSA driver: libasound allocates its configuration (2049 blocks,
+# 66666 bytes in one run, 16 bytes of them direct) and does not free it when the device is closed. The
+# engine opens the device and closes it at once (try_init_audio_driver, SDL_CloseAudioDevice) and calls
+# SDL_QuitSubSystem(SDL_INIT_AUDIO).
+#   Direct leak of 16 byte(s) in 1 object(s) allocated from:
+#     #0 calloc  #1..#3 <unknown module> (libasound)
+#     #4 ALSA_OpenDevice  #5 open_audio_device  #6 try_init_audio_driver
+#     Engine/platform/base/sys_main.cpp:194
+leak:ALSA_OpenDevice

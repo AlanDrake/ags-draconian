@@ -112,9 +112,10 @@ job_sanitizers() {
     step build cmake --build "$build" --parallel "$JOBS" || return 1
 
     export ASAN_OPTIONS="halt_on_error=0:detect_leaks=1:log_path=$logs/san"
-    export UBSAN_OPTIONS="print_stacktrace=1:log_path=$logs/san"
+    # The suppressions list the reports whose cause is in third-party code, each with its reason
+    export UBSAN_OPTIONS="print_stacktrace=1:log_path=$logs/san:suppressions=$SRC/ci/sanitizers/ubsan.supp"
     # A leak is a finding in the log like the others, not an exit code that hides the next ones
-    export LSAN_OPTIONS="exitcode=0"
+    export LSAN_OPTIONS="exitcode=0:suppressions=$SRC/ci/sanitizers/lsan.supp"
     step "unit tests" sanitizers_unit_tests "$build" "$logs" || result=1
     step "auto-test game" sanitizers_auto_test "$build" "$logs" || result=1
     step findings sanitizers_findings "$logs" || result=1
