@@ -292,7 +292,7 @@ Build parity with the editor: `compare_builds.py` on the game reports 114 of 114
 *Definition: in PLAN.md; split into 1.5a to 1.5c on 2026-11-05.*
 
 *Status (2026-11-05):* 1.5a and 1.5c done, confirmed by a CI probe run (42050934970 Verify, 42050935242
-Analysis); 1.5b: the job works and reports 47 findings, open.
+Analysis); 1.5b: the job works and reports 47 findings, open; 1.5b-1 done, the job runs locally.
 
 **1.5a Warnings**
 - Before, distinct first-party sites: GCC 15.2 `Common` 122, `Engine` 164, `Compiler` 71, `Tools` 69,
@@ -350,10 +350,33 @@ Analysis); 1.5b: the job works and reports 47 findings, open.
 - Fixed after the run, not re-run: UBSan writes to stderr, not to `log_path`, and ctest hides the output
   of passing tests, so the summary had no UBSan row. The tests now run with `ctest -V` into a file, the
   game step through `tee`, and the summary reads both (47 findings on the downloaded logs, 45 before).
-- **Local tools:** Visual Studio's LLVM component (clang-cl 19.1.5, `VC/Tools/Llvm/x64`) has ASan, UBSan,
-  the profile run-time and `llvm-cov`; all three work on a small program. Untried on the tree (fallback
-  for ASan: MSVC `/fsanitize=address`). No leak detection on Windows, no Linux here.
-- **Open:** the findings, steps 1.5b-1 to 1.5b-5 in PLAN.md "Next up".
+- **1.5b-1 Local runs (2026-11-05), through WSL 2 instead of clang-cl:** Visual Studio's clang-cl 19.1.5
+  has ASan, UBSan and `llvm-cov` but no leak detection, and 42 of the 47 findings are leaks; the variant
+  was dropped untried once the user enabled Hyper-V.
+  - `Script/linux_jobs.sh gcc|sanitizers|coverage` holds the commands of `verify.yml` "Linux (GCC)" and of
+    the two `analysis.yml` jobs (a copy: keep in step). `prepush.py` has the stage `linux` (every run) and
+    the on-demand stages `sanitizers` and `coverage` (`--only`). On Windows they run in the distro
+    `Ubuntu-24.04` (GCC 13.3, clang 18.1, CMake 3.28: the CI's `ubuntu-latest`; `--wsl-distro`): the
+    working tree, uncommitted and untracked files included, is committed under `refs/prepush/worktree`
+    through a copy of the index and checked out in the distro's `~/ags-draconian`. On Linux they run in
+    place.
+  - Measured (i7-4790K, 8 threads), clean tree and rerun: `linux` 7 min and 17 s (1031 tests);
+    `sanitizers` 18 min and 3 min (CI: 27 min); `coverage` 7.5 min (CI: 14 min), total 53.4%.
+  - `sanitizers` reports 49 rows: the 3 memory errors, 42 leak sites and 2 UBSan places above, the
+    `memorystream.cpp:185` report twice (argument 1 and 2), and one not in the CI list: mojoAL's `_alcCreateContext`
+    (`libsrc/mojoAL/mojoal.c:2163`) calls `SDL_memcpy` with a null pointer. The stage fails on findings,
+    which is why it is on demand until 1.5b-5.
+  - Checked: an uncommitted `#error` in `Common/util/directory.cpp` fails `linux`; `prepush.py --only
+    linux` started inside the distro passes too (the in-place path). WSLg gives the distro a
+    display and a sound server, so the first game run opened a fullscreen window on the Windows desktop
+    and stopped at test 801 of 2345 when it was closed; the script unsets `DISPLAY`, `WAYLAND_DISPLAY`,
+    `XDG_RUNTIME_DIR` and `PULSE_SERVER` (SDL finds Wayland through `XDG_RUNTIME_DIR` alone).
+    `sanitizer_summary.py` and `coverage_summary.py` need `--repo` when not run from the checkout: without
+    it the leaks collapsed into 4 allocator frames.
+  - Not done: Docker runs in the distro and the builder images `ags4-amd64` and `ags4-i386` are public,
+    but `debian/build.sh` was not run in them; no Android, MinGW or clang + libc++ header job locally.
+    The workflows do not call `linux_jobs.sh`.
+- **Open:** the findings, steps 1.5b-2 to 1.5b-5 in PLAN.md "Next up".
 
 ### 1.6 Mechanical-change verifier
 

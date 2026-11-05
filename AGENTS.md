@@ -69,15 +69,20 @@ Entry points, in reading order:
 `Tools/crmbuild`, `Tools/data/xml_fields.h` (table-driven `Game.agf` reading, drift guard
 `Tools/data/agf_elements.txt`), `Script/compare_objects.py`, `Script/compare_builds.py`,
 `Script/refactor_metrics.py` (BASELINE.md numbers), `Script/tidy_fix.py`, `Script/tidy_diff.py` (clang-tidy on changed lines), `ci/corpus/`,
-`.github/workflows/verify.yml`, `Script/prepush.py`. Local-only helpers and build trees live in the git-ignored
+`.github/workflows/verify.yml`, `Script/prepush.py`, `Script/linux_jobs.sh` (the Linux CI jobs, run by
+`prepush.py`). Local-only helpers and build trees live in the git-ignored
 `.compare/` and `.tidy/`.
 
 ## Verify before you report done
 
 `python Script/prepush.py` before a push (`--list`, `--only`, `--skip`, `--emsdk <dir>`): `format`, `build`
 (+ `ctest`), `tidy` (clang-tidy on changed lines), `headers`, `libcxx`, `emscripten` (engine as GLES2, then
-a syntax check of the Linux-only code), `msbuild`. CI confirms, it does not discover. Also: the auto-test
-game; `compare_objects.py` for mechanical commits; `compare_builds.py` for tool or `agfreader` changes.
+a syntax check of the Linux-only code), `linux` (the CI's GCC job: build, header check, `ctest`), `msbuild`.
+On demand with `--only`: `sanitizers` (ASan, UBSan and leaks on the unit tests and the auto-test game),
+`coverage`. The Linux stages run `Script/linux_jobs.sh` in a WSL 2 distro (`Ubuntu-24.04`, as CI's
+`ubuntu-latest`) on a copy of the working tree, uncommitted files included. CI confirms, it does not
+discover. Also: the auto-test game; `compare_objects.py` for mechanical commits; `compare_builds.py` for
+tool or `agfreader` changes.
 
 Workflows: `verify.yml` (every push: format, GCC build + tests + tidy gate, header checks), `ci.yml`
 (`ags4draconian*`, PRs: light set; tags, weekly, `gh workflow run ci.yml -f full=true`: every platform),
@@ -92,8 +97,8 @@ ASan + UBSan 27 min, coverage per directory 14 min).
 - **MSVC-only verification** (7): GCC, Clang, libc++, GLES2 and old glibc reject what MSVC accepts
   (STYLE.md "Portability"). A change to code Windows does not compile (`platform/` other than `windows`,
   `*_posix.*`, non-Windows `#if` branches, GL code shared with GLES2), repo-wide edits included, needs
-  the `emscripten` stage; report what no local build compiled (macOS, iOS, Android, FreeBSD; nothing
-  links for Linux).
+  the `emscripten` and `linux` stages; report what no local build compiled (macOS, iOS, Android,
+  FreeBSD, the Debian 10 builder image).
 - **One build description only** (3): a new, moved or deleted `.cpp`, tests included, goes in
   `CMakeLists.txt` and in the `Solutions/` `.vcxproj` + `.filters` (until 3.2c); the `msbuild` stage
   finds a miss.
