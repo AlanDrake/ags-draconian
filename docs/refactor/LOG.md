@@ -1297,3 +1297,75 @@ the worktree has `core.autocrlf=true`, so both the Edit tool (normalising to CRL
 script and staged with `git -c core.autocrlf=false add`. The agent's `build.sh` passes a POSIX path
 to the NUnit runner under `MSYS_NO_PATHCONV=1` ("Invalid argument"): run `nunit3-console` with a
 Windows path separately.
+
+### 1.3 Engine unit tests for the riskiest subsystems
+
+*Definition, moved from PLAN.md on 2026-11-05:*
+
+**1.3 Engine unit tests for the riskiest subsystems**, in order: script VM (`ScriptExecutor` on
+`script2` bytecode), route finder, overlay/GUI layout arithmetic, savegame components, string
+formatting (`scsprintf`), sprite cache eviction. A subsystem that reads globals gets a fixture
+that sets them up: the first step towards phase 5's context object.
+*Done when:* each has a test file; engine test files >= 15.
+
+*Status (2026-11-05):* done on branch `1.3-engine-tests` (15 commits on `5aaa1e65c`), not merged,
+not pushed. An Opus 5.5 subagent (xhigh, 2 h 30 min, supervised every 20 minutes through a progress
+log kept in `.compare/helpers/t13/`) did it in the plan's order, one tests commit per subsystem:
+`script_vm_test.cpp` (25 cases, scripts compiled in memory: `engine_full_test` now builds
+`Compiler/script/*.cpp`), `script_bytecode_test.cpp` (19, hand-assembled bytecode; 2 only with
+`DEBUG_CC_EXEC`), `managed_pool_test.cpp` (9), `route_finder_test.cpp` (18 + 1 disabled, paths
+checked against a test-side Dijkstra), `movelist_test.cpp` (19), `overlay_test.cpp` (14),
+`gui_layout_test.cpp` (12), `savegame_components_test.cpp` (7), `savegame_file_test.cpp` (8),
+`sprite_cache_test.cpp` (9), `scsprintf_test.cpp` extended 1 → 11. Every suite that reads engine
+globals has a fixture named after the subsystem, listing the globals it touches in one place and
+resetting them in `TearDown`. Measured: `Engine/test/*.cpp` 6 → 16 (15 with tests), `engine_test`
+4 → 51 (+1 disabled), `engine_full_test` 8 → 111 (2 skipped in Release), ctest 881 → 1031 of 1031;
+mutation checks (SUBREG as add and the div-zero check off: 5 VM tests fail; diagonal steps allowed:
+the corner test fails). Final `prepush.py`, all stages with emsdk: format 1979 files, build + ctest,
+headers, libc++ 340 headers, MSBuild 6 solutions + NUnit, all pass; `compare_objects.py
+ags4draconianr21 HEAD`: 602 objects identical, only the fixed files' objects differ. Seven engine
+bugs fixed, each its own commit with a test that fails without it, all present in upstream `ags4`
+(U.7 candidates): `RuntimeScript` destructor compared the signed link index with `0u` (slot 0 never
+freed, `_linkedScripts[-1]` read on a failed creation); link index stored as `uint8_t` (257th script
+got index 0); `CalcPartsFromProgress` gave a backward run 0 steps (progress inf/NaN, speed change
+jumped the walker back); `GetGUIAt(kHit_Any)` used the unscaled rect; `ReadComponent` read through a
+null handler for an unselected component (crash via `OPT_SAVECOMPONENTSIGNORE` or a retry);
+character inventory quantities saved in `unordered_map` order (save-restore-save bytes differed);
+`ResourceCache::DisposeFreeItems` disposed the locked section and kept the free items, erasing nodes
+while iterating (`clear_cache_on_room_change` freed nothing). Reported, not fixed: the 3.6.2
+`FindNearestWalkablePoint` skips the bottom row near the top edge (disabled test; changes where
+existing games place characters); `ccCompileText` section-name condition inverted (compiler,
+upstream too, hidden by the preprocessor's section markers); `String.Format("%*d", ...)` passes `*`
+to `snprintf` (UB); `kSaveRestore_AllowMismatchExtra` would write past `game.chars` (never set);
+no opcode-range or code-end check in Release; joint RTTI matches types by section + name without a
+layout check and never resets (a `RunAGSGame` edge case); `GUIControl::IsOverControlImpl` margin
+only left/top (callers pass 0); the one-argument `SpriteCache` constructor leaves the callbacks
+empty (unused); scaled-graphic AABB spans corner pixel origins; `WorldToLocal` truncates toward
+zero; the Repeat flow never shows the last point (pinned as current behaviour). Portability: no
+`std::filesystem` (macOS 10.9 target), assert-tripping cases guarded with `NDEBUG`, new files compile
+with emsdk clang + libc++. Not verified: GCC/Linux/macOS runs and CI, a Debug build, ASan, the
+auto-test game, the private corpus; the new tests are CMake-only like 1.2's (`Tests.sln` unchanged).
+Supervision: no correction was needed in seven checks; the agent added `managed_pool_test.cpp`
+beyond the six subsystems on its own.
+
+### U.7 The 1.3 engine fixes upstream
+
+*Definition and status, 2026-11-05:* the seven engine bugs fixed by task 1.3 offered on
+`upstream/ags4` as branch `ags4-fixes-1.3` (7 commits on `6ba515a06`, ledger in `docs/UPSTREAM.md`),
+done by a Sonnet 5.5 subagent (medium, 7 min). None of the fixed files had changed upstream since
+the fork's base. Three ports needed hand-application (`movelist.cpp`, `gui.cpp`, `characterinfo.cpp`:
+whitespace and include differences); the supervisor compared the branch's and the fork's hunks
+ignoring whitespace: identical logic in all six files. Tests: upstream's `engine_test` links a few
+engine sources and has no `engine_full_test`, so only the two Common-level tests were ported, written
+fresh against upstream's API (`CharacterInfo::WriteToSavegame` into a `VectorStream`; a
+`ResourceCache<int,int>` subclass for `DisposeFreeItems`), both checked to fail without the fix; the
+five engine-side fixes cite their reproduction in the commit body and keep their tests in the fork.
+Verified at the tip only (MSVC Ninja, `AGS_TESTS`): `common_test` 104, `compiler_test` 563,
+`tools_test` 77, `engine_test` 3, `savegame_test` 6, run directly, not through `ctest`; `cxx11.py`
+clean on every changed file. Not verified: each commit alone, GCC/clang/macOS, a game, clang-format
+(upstream does not enforce it). Open question for the PR: whether upstream wants an
+`engine_full_test` target (offered as a separate PR in the notes).
+Opened as PR #3193 on 2026-11-05 after the user ran a game through the fork's editor and engine built
+from `1.3-engine-tests` (`.compare/msb-13`, Release x86, and the CMake `ags.exe` in `.compare/build-13`;
+the fresh worktree needed the NuGet `Solutions/packages` folder and the irrKlang DLLs copied from the
+main checkout): no evident issue.

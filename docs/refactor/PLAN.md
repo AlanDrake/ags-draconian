@@ -78,7 +78,8 @@ Kept current as tasks land. Model and effort are recommendations for an AI sessi
 Done: phases 0 and 2 (with 2.8 and the pre-push script, unpushed), 7.1a–m and o, 3.1 (PSP, pre-Windows 7; 2026-11-04, unpushed), 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (#3182, closed
 and re-cut by U.3 as #3186–#3190), the agent docs (0.6, upstream PR #3185), 1.2 (contract guard
 tests, 2026-11-04), U.5 (the save fix found by 1.2, upstream PR #3191), the 6.0 study (2026-11-04,
-EDITOR-SPLIT.md: 6.0 re-scoped, 6.7c decided, U.6 defined). Phase 1 is half done. Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
+EDITOR-SPLIT.md: 6.0 re-scoped, 6.7c decided, U.6 defined), 1.3 (engine unit tests, 2026-11-05,
+on its branch). Phase 1: 1.5 is the only open task. Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
 guards it (1.2, 1.3). Reordered 2026-11-03 after reading upstream's plans (ALIGNMENT.md): upstream
 review takes weeks, so the offers (U.3) go out first and the fork-only divergence (3.2, 3.4, 5.3)
 comes after they are closed.
@@ -87,7 +88,7 @@ comes after they are closed.
 |---|---|---|---|
 | 1 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
 | 2 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
-| 3 | **1.3:** engine unit tests, starting with what needs no globals (route finder, `scsprintf`, sprite cache, VM with `script2` bytecode) | Needed before phase 5 and the savegame step of 3.4 | Opus 5.5, `xhigh` || 4 | **3.2a/b:** tool and engine Makefiles to CMake, Debian packaging | Fork-only; after U.3, because every port re-adds Makefile entries while upstream has them | Sonnet 5.5, `medium` |
+| 3 | **1.3 to merge:** `1.3-engine-tests` (15 commits on `5aaa1e65c`) was tested by the user in a game through the editor and engine built from it (`.compare/msb-13`); merge and push when ready. **U.7 waiting:** PR #3193 open since 2026-11-05 | The branch is the safety net phases 3 to 5 wait for | user || 4 | **3.2a/b:** tool and engine Makefiles to CMake, Debian packaging | Fork-only; after U.3, because every port re-adds Makefile entries while upstream has them | Sonnet 5.5, `medium` |
 | 5 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
 
 Open items found while doing finished tasks (details in LOG.md): 0.4's CodeQL setting, the
@@ -153,11 +154,10 @@ Today: 35 C++ test files, **only 3 for the engine** (~430 source files); 22 C# t
   `[OBSOLETE]` exports; `ScriptExports.ReleaseExportsResolve` checks every 4.0.0.30 export). Left: sending
   `ags4-agfreader-tests` (#3147) and `ags4-save-roundtrip` (#2814) upstream after the
   `ags4-tools-*` PRs.
-- [ ] **1.3 Engine unit tests for the riskiest subsystems**, in order: script VM (`ScriptExecutor` on
-  `script2` bytecode), route finder, overlay/GUI layout arithmetic, savegame components, string
-  formatting (`scsprintf`), sprite cache eviction. A subsystem that reads globals gets a fixture
-  that sets them up: the first step towards phase 5's context object.
-  *Done when:* each has a test file; engine test files ≥ 15.
+- [x] **1.3 Engine unit tests for the riskiest subsystems** (2026-11-05, branch `1.3-engine-tests`,
+  15 commits, **not yet merged**): 6 → 16 test files, 12 → 162 engine test cases, ctest 1031 of
+  1031; seven engine bugs fixed on the way, each with a failing-then-passing test, all present
+  upstream too (LOG.md).
 - [x] **1.4 Game corpus regression:** `ci/corpus/run.py` builds a private game and runs every room
   (2026-11-02). Game paths come from arguments or a git-ignored file under `.compare/`, never the
   repo; the script works on a copy.
@@ -562,6 +562,9 @@ and without fork-only features, built in the worktree `E:\Projects\ags\ags4-upst
   editor and no plugin API change, which is what ericoporto asked for in #1092 and ivan-mogilko
   confirmed in #3177. Step 2 (the plugin-facing interfaces) is posted on #1092 as a design question,
   not as a PR. *Decided 2026-11-04 (EDITOR-SPLIT.md §5).*
+- [ ] **U.7 The 1.3 engine fixes** (PR #3193, branch `ags4-fixes-1.3`, 2026-11-05): the seven bugs
+  the fork's engine tests found, one commit each, two tests ported into `common_test`; the five
+  engine-side tests stay in the fork until upstream has a full-engine test target (LOG.md U.7).
   *Status (2026-11-04, details in LOG.md):* branch `ags4-types-propertygrid` cut by a Sonnet 5.5
   subagent, Release x86 builds, NUnit 382 of 382; the user checked the property grid in the running
   editor (properties panel and Settings) and opened the PR. First review the same day: the classes go
