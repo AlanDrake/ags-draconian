@@ -292,7 +292,8 @@ Build parity with the editor: `compare_builds.py` on the game reports 114 of 114
 *Definition: in PLAN.md; split into 1.5a to 1.5c on 2026-11-05.*
 
 *Status (2026-11-05):* 1.5a and 1.5c done, confirmed by a CI probe run (42050934970 Verify, 42050935242
-Analysis); 1.5b: the job works and reports 47 findings, open; 1.5b-1 done, the job runs locally.
+Analysis); 1.5b: the job works and reports 47 findings, open; 1.5b-1 done, the job runs locally; 1.5b-2 done, the
+memory errors are fixed.
 
 **1.5a Warnings**
 - Before, distinct first-party sites: GCC 15.2 `Common` 122, `Engine` 164, `Compiler` 71, `Tools` 69,
@@ -376,7 +377,41 @@ Analysis); 1.5b: the job works and reports 47 findings, open; 1.5b-1 done, the j
   - Not done: Docker runs in the distro and the builder images `ags4-amd64` and `ags4-i386` are public,
     but `debian/build.sh` was not run in them; no Android, MinGW or clang + libc++ header job locally.
     The workflows do not call `linux_jobs.sh`.
-- **Open:** the findings, steps 1.5b-2 to 1.5b-5 in PLAN.md "Next up".
+- **1.5b-2 Memory errors (2026-11-05):** the three ASan rows are gone
+  (`sanitizers` on the final tree, 22 min: 49 rows to 46, the 42 leak sites and 4 UBSan rows, no new row, no
+  `ERROR: AddressSanitizer` in the 628 logs, the three named tests and the three new ones pass in the
+  instrumented run), each fix has a test.
+  - `String(const char *, size_t)` and `SetString(ptr, length)` took `strlen` of the buffer and then the
+    smaller number, so they read past `length`; the callers `Utf8ToCp1252`, the text conversion in
+    `data_helpers.cpp` (a `std::vector` without a terminator), `file.cpp` (`readlink`, Linux), `DialogTopic`
+    (a 150-byte field of game data) and the Editor's template description pass buffers without one. Fixed in
+    `String`: it scans with `memchr(cstr, 0, length)` (still stops at a terminator; `NoIndex` keeps
+    `strlen`). Cost, measured with a micro-benchmark (g++ -O2, glibc): +1 ns on short texts (2.9 to 3.9 ns),
+    equal at 200 characters, and `Left`/`Mid`/`Right` of a long text no longer scan to its end (20000
+    characters: 400 ns to 4 ns); the one-argument path is unchanged. Test `String.FromBufferWithLength`.
+  - `CreateGlobalVars` read `_code[_fixups[i]]` for GLOBALDATA fixups before `CreateRuntimeCodeFixups`
+    checked the position; the check is now `RuntimeScript::CheckFixupInCode`, used by both, same message.
+    `FixupOutsideTheCodeIsRefused` passed before only because the second pass reported the error; new
+    `FixupBeforeTheCodeIsRefused` (negative position).
+  - `JointRTTI::Join` compared names through `Location::name`, quick-ref pointers into `_strings`, which
+    `JoinLocation` grows inside the loop; it compares through `name_stri` now. Local to `Join`: no RTTI
+    structure or serialized data changed. Test `JointRTTI.FindsExistingLocationAfterTheStringTableGrew`.
+  - Checked: `format`, `build` (1034 tests), `tidy`, `linux` (1034 tests), `sanitizers` (above). With
+    the fixes reverted and the new tests kept, `sanitizers` gives 49 rows again, each of the three ASan
+    rows in 2 logs (the old test and the new one); `JointRTTI.FindsExistingLocationAfterTheStringTableGrew`
+    fails there, the other two new tests pass (ASan runs with recovery, so a report does not fail a test).
+    Not verified: macOS, iOS, Android, FreeBSD, Debian 10 image; the stages `headers`, `libcxx`,
+    `emscripten` and `msbuild` were not run (no new file, `string.h` changed in comments only); the
+    micro-benchmark was not run on MSVC.
+  - Found by reading, not touched and not reproduced: `FIXUP_DATADATA` in `CreateGlobalVars` reads
+    `globaldata[_fixups[i]]` unchecked; `JoinLocation` and `JoinType` start with `if (uid <= size)
+    resize(uid + 1)`, which shrinks the table when a "generated" entry that is not the last one is replaced
+    (the same in upstream; no test reaches either).
+  - Commits, one each: `Common: String(ptr, length) never reads past length (1.5b-2)` (`util/string.*`,
+    `test/string_test.cpp`); `Engine: CreateGlobalVars checks the fixup position (1.5b-2)`
+    (`script/runtimescript.*`, `test/script_bytecode_test.cpp`); `Common: JointRTTI::Join compares locations
+    by name offsets (1.5b-2)` (`script/cc_reflect.cpp`, its test is in `Engine/test/script_vm_test.cpp`).
+- **Open:** the findings, steps 1.5b-3 to 1.5b-5 in PLAN.md "Next up".
 
 ### 1.6 Mechanical-change verifier
 

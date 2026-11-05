@@ -91,7 +91,7 @@ comes after they are closed.
 | 1 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
 | 2 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
 | 3 | **1.3 to merge:** `1.3-engine-tests` (15 commits on `5aaa1e65c`) was tested by the user in a game through the editor and engine built from it (`.compare/msb-13`); merge and push when ready. **U.7 waiting:** PR #3193 open since 2026-11-05 | The branch is the safety net phases 3 to 5 wait for | user |
-| 4 | **1.5b-2 Memory errors** (LOG.md 1.5), one commit each, proven by the existing test under ASan (`prepush.py --only sanitizers`): `Utf8ToCp1252` (and other `String(ptr, length)` callers without a terminator); the unchecked fixup in `RuntimeScript::CreateGlobalVars`; the stale name pointers in `JointRTTI::Join`. Offer the last two upstream (U.8) | Real defects | Sonnet 5.5, `high`; Opus 5.5, `high` if `Join` needs the RTTI structures changed (C3) |
+| 4 | **1.5b-2 Memory errors, done 2026-11-05** (LOG.md 1.5): the three ASan rows are gone from `prepush.py --only sanitizers` (49 rows to 46), each fix with a test and in its own commit: `String(ptr, length)` never reads past `length` (fixes `Utf8ToCp1252` and four more callers), `RuntimeScript::CheckFixupInCode` in `CreateGlobalVars`, name offsets instead of stale pointers in `JointRTTI::Join` (local, no RTTI structure changed). **U.8 open:** offer the `CreateGlobalVars` and `Join` fixes upstream (the same code there); the `String` change alters a Common contract, so it is a separate offer if at all | Real defects | Sonnet 5.5, `medium` for U.8 |
 | 5 | **1.5b-3 UBSan:** the misaligned `int16_t` read in `Common/util/memory.h` (`memcpy`; measure the script VM), `memcpy` from null in `MemoryStream::Write` | Small | Sonnet 5.5, `medium` |
 | 6 | **1.5b-4 Script compiler leaks** (35 sites): give the `new`ed symbol-table objects an owner | One cause; the compiler tests are the net | Sonnet 5.5, `high` |
 | 7 | **1.5b-5 Engine leaks at exit** (7 sites): free them or list them in an LSan suppression file with reasons; the same for the UBSan report in third-party code (mojoAL calls `SDL_memcpy` with a null pointer); one green on-demand run; tick 1.5b | The job is a gate once green | Sonnet 5.5, `medium`; the user decides the suppressions |
@@ -177,8 +177,9 @@ Today: 35 C++ test files, **only 3 for the engine** (~430 source files); 22 C# t
     narrowing conversions (MSVC, switched off), the other directories.
   - [ ] **1.5b Sanitizers:** `analysis.yml` (on demand) works and reports 47 findings: 3 memory errors, 2
     UBSan places, 42 leak sites. 1.5b-1 done (2026-11-05): the job runs locally in a WSL 2 distro,
-    `prepush.py --only sanitizers` (also `linux` in every run, `coverage` on demand). Steps 1.5b-2 to
-    1.5b-5 in "Next up".
+    `prepush.py --only sanitizers` (also `linux` in every run, `coverage` on demand). 1.5b-2 done
+    (2026-11-05): the 3 memory errors are fixed, 46 rows remain; U.8
+    (offer the fixes upstream) is open. Steps 1.5b-3 to 1.5b-5 in "Next up".
   - [x] **1.5c Coverage** (2026-11-05, on demand): total 53.7%, `Common` 61.6%, `Engine` 47.8%, `Compiler`
     89.9%, `Tools` 68.2%.
 - [x] **1.6 Mechanical-change verifier** `Script/compare_objects.py` (2026-11-01; STYLE.md "Commits").
