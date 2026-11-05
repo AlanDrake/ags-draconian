@@ -10,7 +10,7 @@ name: Analysis
 #               on demand only: it is a number to read, not a gate.
 on:
   push:
-    branches: ['ags4draconian*']
+    branches: ['ags4draconian*', 'probe-*']   # PROBE: never merge
     paths-ignore:
       - 'docs/**'
       - '**.md'
@@ -117,7 +117,7 @@ jobs:
 
   coverage:
     name: Coverage
-    if: github.event_name != 'push'
+    if: true   # PROBE: never merge (the real condition: github.event_name != 'push')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
