@@ -92,6 +92,11 @@ ASan + UBSan 27 min, coverage per directory 14 min).
 `ags_warning_free(<target>)` marks a target without warnings (`common` so far); with
 `-DAGS_WARNINGS_AS_ERRORS=ON` (`verify.yml`, `prepush.py`; off by default) a warning there is an error.
 
+A sanitizer report in first-party code is fixed, not suppressed (that includes an SDL or OpenAL object we
+created and did not destroy); a report whose cause is inside third-party code goes into
+`ci/sanitizers/lsan.supp` or `ubsan.supp` with its stack and reason, as narrow as possible. The files are
+read by `Script/linux_jobs.sh` and `analysis.yml`, which are kept in step.
+
 **What has broken CI** (13 times; LOG.md 0.4, 2.6, 2.8, 3.2):
 
 - **MSVC-only verification** (7): GCC, Clang, libc++, GLES2 and old glibc reject what MSVC accepts

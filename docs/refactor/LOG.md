@@ -292,8 +292,10 @@ Build parity with the editor: `compare_builds.py` on the game reports 114 of 114
 *Definition: in PLAN.md; split into 1.5a to 1.5c on 2026-11-05.*
 
 *Status (2026-11-05):* 1.5a and 1.5c done, confirmed by a CI probe run (42050934970 Verify, 42050935242
-Analysis); 1.5b: the job works and reports 47 findings, open; 1.5b-1 done, the job runs locally; 1.5b-2 done, the
-memory errors are fixed; 1.5b-3 done, the first-party UBSan rows are fixed; 1.5b-4 done, the compiler leaks are fixed.
+Analysis); 1.5b: the job works and reported 47 findings; 1.5b-1 done, the job runs locally; 1.5b-2 done, the
+memory errors are fixed; 1.5b-3 done, the first-party UBSan rows are fixed; 1.5b-4 done, the compiler leaks are fixed;
+1.5b-5 done (2026-11-06), the engine leaks are fixed or suppressed, `sanitizers` is green locally; open: one green
+on-demand CI run, then the tick.
 
 **1.5a Warnings**
 - Before, distinct first-party sites: GCC 15.2 `Common` 122, `Engine` 164, `Compiler` 71, `Tools` 69,
@@ -478,7 +480,79 @@ memory errors are fixed; 1.5b-3 done, the first-party UBSan rows are fixed; 1.5b
     `Compiler: the symbol table owns its compile time functions (1.5b-4)`, `Compiler: the scanner reuses an
     existing literal description (1.5b-4)`. The stages ran on the final tree; the two intermediate commits
     were not built on their own.
-- **Open:** the 8 remaining findings (7 engine leaks, 1 third-party UBSan row), step 1.5b-5 in PLAN.md "Next up".
+- **1.5b-5 Engine leaks at exit (2026-11-06, by a subagent, reviewed by the overseeing session):** `sanitizers` is green
+  locally: "No sanitizer findings", exit 0 (8 rows in 52 log files before; after, 6 log files, 1041 unit tests,
+  the auto-test game 2345 passed; no `ERROR: AddressSanitizer`, no `runtime error`; 92 s incremental). The rows
+  by cause:
+  - The 4 managed-object rows. `cc_serializer.cpp:91` is the engine (the auto-test game restores a save):
+    `AGSDeSerializer::Unserialize` did `new ScriptUserObject()` for every restored script struct and made that
+    object the pool's manager, but the manager is stateless and the created structs use `globalDynamicStruct`;
+    the 40-byte objects were never freed. Fixed: `globalDynamicStruct.Unserialize(...)`, as the dynamic array case
+    next to it does. The other three (`CCDynamicArray::CreateImpl`, `ScriptString::CreateBuffer`,
+    `ScriptUserObject::Create`) are the test's own fault: `ScriptVM` tests (`engine_full_test`) leave objects in
+    the pool; its `TearDown` calls `pool.Reset()` now. Not one cause, as the task guessed: two.
+  - `audio_core.cpp:82` (80 bytes, mojoAL's `ALCdevice`), the one run that plays sound: `alcCloseDevice` refuses
+    to close a device while AL buffers exist, and `OpenAlSource` keeps the buffers it generated in a free list
+    (`g_oalint.freeBuffers`) for reuse and never deleted them. Fixed: `OpenAlSource::ReleaseBuffers()`, called by
+    `audio_core_shutdown` after the slots are destroyed and with the context still current (`alDeleteBuffers`
+    needs it). It also stops a second `audio_core_init` in the same process from reusing buffer names of the
+    closed device.
+  - `ali3dsw.cpp:146` and `sys_main.cpp:194`: third party, suppressed (`ci/sanitizers/lsan.supp`, the stacks and
+    reasons are in the file). A plain SDL program built against the same SDL (window and OpenGL renderer, a texture
+    copy, audio device opened and closed, destroyed, `SDL_Quit`) leaks the same blocks. `SDL_EGL_InitializeOffscreen`:
+    Mesa's EGL display (2680 bytes) on SDL's offscreen video driver, which SDL picks without a display. `ALSA_OpenDevice`:
+    libasound's configuration (2049 blocks, 66666 bytes) after `snd_pcm_open`. With the display hidden, two
+    56-byte blocks from the first draw call of that renderer (Mesa, they point to each other, so LSan reports them
+    as indirect only) showed as a new row: `GL_RunCommandQueue`. The engine destroys the renderer and the window and
+    calls `SDL_Quit`, as the plain program does.
+  - The UBSan row (`SDL_stdlib.c:527`, mojoAL's `_alcCreateContext` copies a null attribute list of size 0 with
+    `SDL_memcpy`; `alcCreateContext(device, nullptr)` is legal): `ci/sanitizers/ubsan.supp`, `nonnull-attribute:SDL_stdlib.c`
+    (UBSan matches the file of the failing place, nothing narrower exists). GCC 13's UBSan run-time honours the
+    file: measured with a call to `SDL_memcpy(buf, NULL, 0)`, the report is gone, and a suppression for another file
+    leaves it.
+  - Found on the way, not in the table: **an `agscc` leak that the summary could not show.** 43 of the 52 logs were
+    `agscc` runs of the auto-test build whose leaked blocks (the whole compiled script) only point to each other, so
+    LSan reports them as indirect leaks without any direct one, and `sanitizer_summary.py` read only direct leaks. They
+    were there before 1.5b-4 too (that task's 46 to 11 counts rows, not these). Cause: `Compile()` in
+    `Compiler/compiler.cpp` never deleted the `ccScript` that `ccCompileText` returned. Fixed with a
+    `std::unique_ptr`; and the summary now reports a log with indirect leaks and no direct one as one finding, named by
+    the outermost frame in our code (the 43 logs showed as "under main at Compiler/main.cpp:324"; the GL pair above as
+    "under ags_entry_point"). Other tools of `agsbuild` ran the same way and showed no such logs.
+  - Wiring: `Script/linux_jobs.sh` sets `LSAN_OPTIONS`/`UBSAN_OPTIONS` `suppressions=` (the path in the checkout);
+    `.github/workflows/analysis.yml` the same two variables with `${{github.workspace}}/ci/sanitizers/...`
+    (**not run**: the workflow is on demand and only the user pushes). LSan prints "Suppressions used" at the end of
+    each log, and every entry is used (`ALSA_OpenDevice` 2049, `SDL_EGL_InitializeOffscreen` 1,
+    `GL_RunCommandQueue` 2). Needed: the auto-test game rerun with one entry removed at a time returns exactly its
+    row (no LSan file: the `SetDisplayMode` and `try_init_audio_driver` rows; without `GL_RunCommandQueue`: the
+    indirect-only row; without `ALSA_OpenDevice`: `try_init_audio_driver`; without the EGL entry: `SetDisplayMode`;
+    without the UBSan file: `SDL_stdlib.c:527`).
+  - Shutdown order read, not changed: `quit()` runs `video_shutdown`, `shutdown_sound` (`audio_core_shutdown`),
+    `unload_game` (`ccUnregisterAllObjects`), `engine_shutdown_gfxmode`, `sys_main_shutdown`. The change in
+    `audio_core_shutdown` is between "slots destroyed" and "context destroyed", inside the audio core, which is
+    driver independent (the graphics drivers are not involved: Direct3D 9/11, OpenGL and GLES2 do not touch the AL
+    buffers). The restore fix is the pool's own data, on every platform.
+  - Tests: `ManagedPool.RestoredStructKeepsItsDataAndTheSharedManager` (a struct through `ccSerializeAllObjects`,
+    `ccUnregisterAllObjects`, `ccUnserializeAllObjects`: data and `globalDynamicStruct` as manager; fails without
+    the fix); 1041 tests. The audio and compiler fixes show only in `sanitizers`.
+  - Checked: `sanitizers` (above; a first run with the GL entry missing failed on exactly that row), `format`, `build`
+    (MSVC, 1041 tests), `tidy` (asked for braces in `ReleaseBuffers`, done), `headers`, `linux` (GCC 13, warnings as
+    errors, 1041 tests). The Windows engine from the `build` stage ran the auto-test project (a local export, 2414
+    tests, 0 failed) and exited with code 0 after "AudioCore: shutdown"; `tappy` was not on the PATH of that shell,
+    so the TAP verdict itself was not run.
+  - Not verified: macOS, iOS, Android, FreeBSD, Debian 10 image; `analysis.yml` was not run (on the CI runner the
+    SDL libraries differ from the distro's: a new third-party row there goes into the suppression files with its
+    stack); Direct3D and OpenGL drivers at exit (no run exercised them; the change does not touch them); a game with
+    video playback at exit.
+  - Seen, not touched: a plain SDL video program also leaks `SDL_DBus_Init` blocks (SDL's D-Bus support) in this
+    distro; the engine's logs have none. Whether `sanitizers` moves to the every-run stages of `prepush.py` is the
+    user's decision.
+  - Commits, one per cause: `Engine: restored script structs use the shared manager (1.5b-5)`, `Engine: the script VM
+    tests remove the managed objects they leave (1.5b-5)`, `Engine: the audio core deletes its AL buffers before it
+    closes the device (1.5b-5)`, `Compiler: agscc deletes the script it compiled (1.5b-5)`, `Script: the sanitizer
+    summary reports leaks that only point to each other (1.5b-5)`, `CI: suppressions for the third-party sanitizer
+    reports (1.5b-5)`.
+- **Open:** 1.5b: one green on-demand CI run of `analysis.yml` with the suppression files (push, then `gh workflow
+  run analysis.yml -R AlanDrake/ags-draconian --ref <branch> -f coverage=false`), then tick 1.5b in PLAN.md.
 
 ### 1.6 Mechanical-change verifier
 
