@@ -289,124 +289,71 @@ Build parity with the editor: `compare_builds.py` on the game reports 114 of 114
 
 ### 1.5 Coverage, sanitizers and warnings
 
-*Definition (still in PLAN.md, split into 1.5a to 1.5c on 2026-11-05):* a Linux CI job with
-`-fsanitize=address,undefined` running the unit tests and the auto-test game; an `llvm-cov` job publishing
-per-directory numbers; first-party warnings at `/W4` and `-Wall -Wextra`, as errors per directory as each
-gets clean. *Done when:* the sanitizer job is green, coverage is published, `Common/` builds with warnings
-as errors.
+*Definition: in PLAN.md; split into 1.5a to 1.5c on 2026-11-05.*
 
-*Status (2026-11-05):* 1.5a and 1.5c done and confirmed by a CI probe run; 1.5b: the job works and
-reports 47 findings, which are open ("First CI run" below).
+*Status (2026-11-05):* 1.5a and 1.5c done, confirmed by a CI probe run (42050934970 Verify, 42050935242
+Analysis); 1.5b: the job works and reports 47 findings, open.
 
-**1.5a Warnings.**
-- Measured before, first-party code, distinct sites: GCC 15.2 (the `verify.yml` log of run 42032914043)
-  `Common` 122, `Engine` 164, `Compiler` 71, `Tools` 69, `Plugins` 48, `Compiler/test` 755 (747
-  `-Wunused-variable`), `Tools/test` 61; Clang (emcc 3.1.74, engine build) `Common` 68, `Engine` 77; MSVC
-  `/W4` `Common` 174, of which 87 narrowing conversions (C4244, C4267: reported at today's `/W3` too),
-  46 unused parameters and 14 signed with unsigned.
-- The warning set, decided here: `-Winline` is gone from the GCC and Clang set (122 of GCC's first-party sites; it
-  reports the optimizer's choices, not the code). `-Wfloat-equal` stays a warning but is never an error
-  (`-Wno-error=float-equal`): GCC reports every exact comparison, the ones with 0 and 1 too. MSVC's
-  first-party level is `/W4` less what the GCC set leaves out: unused parameters (C4100), signed with
-  unsigned (C4018, C4245, C4389), **and the narrowing conversions (C4244, C4267), which GCC only reports
-  with `-Wconversion`: 87 sites in `Common`, open.**
-- CMake: `option(AGS_WARNINGS_AS_ERRORS)` (off: a packager's newer compiler must not fail the build),
-  and `ags_warning_free(<target>)` in the root file, which gives the target `/W4` on MSVC (one level
-  flag per target through the `AGS_WARNING_FREE` property, so no D9025) and `/WX` or `-Werror` when the
-  option is on. `common` is marked. `verify.yml` (GCC job, now built with `-k`) and `prepush.py` (the
-  `build` and `emscripten` stages) set the option; `prepush.py` reconfigures a tree made without it.
-- `Common/`: 95 sites reported over the three compilers, 39 files changed; 4 `-Wfloat-equal` sites stay
-  (`Pt::operator==`, a rotation compared with 0). Mechanical: parentheses around `&&` in `||` and `&` in
-  `|` (16), `[[maybe_unused]]` on values read to advance a stream or used by an `assert` only (13), unused
-  locals, one unused function and one unused table removed, shadowed names renamed (lambda parameters,
-  `err`), `std::move` taken off returned locals and temporaries (15), a constructor's initializer order, two
-  defaulted default constructors that were implicitly deleted, a copy constructor's base, a C90
-  declaration order, `catch` by reference. In the tests: a `%ld` given an `int`, two unused results.
-- **Bugs the warnings pointed at, fixed** (all present upstream):
+**1.5a Warnings**
+- Before, distinct first-party sites: GCC 15.2 `Common` 122, `Engine` 164, `Compiler` 71, `Tools` 69,
+  `Plugins` 48, `Compiler/test` 755 (747 unused variables), `Tools/test` 61; Clang (emcc) `Common` 68,
+  `Engine` 77; MSVC `/W4` `Common` 174 (87 narrowing conversions, 46 unused parameters, 14 signed with
+  unsigned).
+- Warning set: `-Winline` removed (122 GCC sites; it reports optimizer choices). `-Wfloat-equal` stays
+  but is never an error. MSVC first-party level: `/W4` without C4100, C4018, C4245, C4389 (off on GCC
+  too) **and without C4244, C4267 (narrowing; GCC needs `-Wconversion`): 87 sites in `Common`, open.**
+- CMake: `ags_warning_free(<target>)` (`/W4` on MSVC through the `AGS_WARNING_FREE` property) and
+  `option(AGS_WARNINGS_AS_ERRORS)`, off by default, set by `verify.yml` and `prepush.py`. `common` is
+  marked.
+- `Common/`: 95 sites, 39 files, mechanical (parentheses, `[[maybe_unused]]` on stream reads, unused
+  code, shadowed names, `std::move` on returns, initializer order). 4 `-Wfloat-equal` sites stay.
+- **Bugs found by the warnings, fixed** (upstream's code):
   - `room_file.cpp`, twice: `data_ver >= kRoomVersion_363_15 && data_ver < kRoomVersion_399` is never
-    true (36315 against 40: the 3.6.3 versions are numbered after 3.99), so a room saved by 3.6.3.15 or
-    later had its backgrounds read as LZW instead of the sprite format. Now `< kRoomVersion_400`. No
-    test: there is no 3.6.3.15 room in the repository and no writer for that version.
-  - `guimain.cpp`: `GameGuiVersion < GameGuiVersion` in the range check of `ReadGUI`, so a GUI format
-    older than `kGuiVersion_LowSupported` was never refused. Now compared with the constant.
-  - `directory.cpp` (non-Windows): `GetCurrentDirectory` used the buffer after a failed `getcwd`; it
-    returns an empty string now. `SetCurrentDirectory` ignores a failed `chdir` as before, visibly.
-  - `room_file.cpp`: the block filter of `ReadRoomData` captured the block list by copy; by reference now.
-- **Seen, not fixed:** `BitmapData` pixel writing for 4-bit bitmaps (`bitmapdata.cpp`, `case 4`) masks
-  with `4` and shifts by 0 or 1 where a nibble needs `0xF` and 0 or 4: no warning, no test, left.
-- Verified: all seven `prepush.py` stages pass on the result (format, build, tidy, headers, libcxx,
-  emscripten, msbuild with the six solutions and the Editor's NUnit). MSVC, `common` at `/W4 /WX`: no
-  warning (the build stage, 1031 of 1031 tests). Clang: the 79 sources of `common` with `-Werror` in the Emscripten build. `tidy_diff.py` on the
-  change: clean, after it found nine things in the first version of these edits (missing braces on touched
-  lines, `make_unique`, a copy constructor calling the base's default constructor, the copied capture).
-  `compare_objects.py HEAD`: 591 objects identical, 38 differ, all in the sources or through the headers
-  named above; the sources with only a renamed lambda parameter differ too, because MSVC names a closure
-  type by a hash of its text (listings of equal length that differ in that name only: `room_file_blocks.cpp`,
-  `tra_file.cpp`).
-- Found on the way: **with `/WX` or `-Werror` in the compile database clang-tidy failed on every `common`
-  source** (its own "argument unused during compilation: /GL, /MP" became errors; the gate reported
-  "could not analyse", exit 2). `tidy_diff.py` now passes `-Wno-error`. The Linux job would have hit the
-  same with GCC's flags.
-- **Not verified:** GCC. Its 89 sites (without `-Winline`) are all among the 95 and were fixed from the
-  log, but no GCC has compiled the result; the first `verify.yml` run will. Clang on Linux and Apple Clang
-  see `-Werror` only if someone sets the option.
+    true (36315 against 40), so the backgrounds of 3.6.3.15+ rooms were read as LZW. Now
+    `< kRoomVersion_400`. No test: no such room in the repository.
+  - `guimain.cpp`: `GameGuiVersion < GameGuiVersion` in `ReadGUI`; now `< kGuiVersion_LowSupported`.
+  - `directory.cpp`: `GetCurrentDirectory` used the buffer after a failed `getcwd`.
+- **Seen, not fixed:** the 4-bit case of `BitmapData` pixel writing (`bitmapdata.cpp`): mask `4` and
+  shift 0 or 1 where a nibble needs `0xF` and 0 or 4.
+- Verified: all seven `prepush.py` stages (1031 tests); `common` warning-free with `/W4 /WX` (MSVC) and
+  `-Werror` (Clang through emcc; GCC 15.2 on CI). GCC now: `Common` 4 (`-Wfloat-equal`), `Engine` 144,
+  `Compiler` 33, `Tools` 28, `Plugins` 48. `compare_objects.py HEAD`: 591 identical, 38 differ, all
+  explained (MSVC names a closure by a hash of its text, so a renamed lambda parameter changes the
+  object).
+- Found: with `/WX` or `-Werror` in the compile database clang-tidy failed on every `common` source
+  (its "argument unused" warnings became errors); `tidy_diff.py` passes `-Wno-error`.
 
-**1.5b Sanitizers, 1.5c Coverage** (`.github/workflows/analysis.yml`, new; `Script/sanitizer_summary.py`,
-`Script/coverage_summary.py`).
-- Both jobs build tools, engine and tests, run `ctest`, then `Script/agsbuild_autotest.sh`: the auto-test
-  game is built from its source by the instrumented tools and run in the instrumented engine (Software
-  driver), so `agsbuild` and the other tools are covered as well as the engine.
-- Sanitizers: GCC, `-fsanitize=address,undefined -fsanitize-recover=address`, RelWithDebInfo;
-  `halt_on_error=0`, leaks on, `LSAN_OPTIONS=exitcode=0`, every report to a log file, so that one run
-  lists all findings instead of stopping at the first (the CI rule: collect, then fix in one batch).
-  `sanitizer_summary.py` prints the distinct findings (a UBSan line, or an ASan error or direct leak
-  named by its first frame in our code) to the job summary and fails the job if there are any.
-- Coverage: clang, `-fprofile-instr-generate -fcoverage-mapping`, one profile per binary (`%m`), `llvm-cov
-  export -summary-only` over the engine, the tools and the test programs, and `coverage_summary.py` for
-  a table of line coverage per module and directory (third-party code and the tests left out) in the job
-  summary and as an artifact: a number to read, not a gate.
-- When they run: written for pushes to `ags4draconian*` and weekly (sanitizers) and weekly (coverage);
-  **on demand only since the first run** (user's decision, 2026-11-05: 27 and 14 minutes), each job
-  switchable: `gh workflow run analysis.yml --ref <branch> [-f sanitizers=false] [-f coverage=false]`.
-  A workflow can be started by hand only once its file is on the default branch.
-- Verified before the first run: `actionlint`; both scripts on made-up logs and JSON.
-
-**First CI run** (2026-11-05, probe branch `probe-1.5-analysis`, a throwaway commit letting `analysis.yml`
-run both jobs there; runs 42050934970 Verify, 42050935242 Analysis).
-- **1.5a confirmed:** Verify is green with `-DAGS_WARNINGS_AS_ERRORS=ON`: GCC 15.2 builds `common` with
-  `-Werror`, 1031 of 1031 tests, and `tidy_diff.py` is clean on the 30 changed files (125 lines) on
-  Linux. GCC's count for `Common` is 4, all `-Wfloat-equal`. Left for the other directories: `Engine`
-  144, `Compiler` 33, `Tools` 28, `Plugins` 48, `Compiler/test` 755, `Tools/test` 61.
-- **1.5c works, first numbers** (line coverage of the unit tests plus the auto-test game built and run):
-  total 53.7% of 101,506 lines; `Common` 61.6%, `Engine` 47.8% (`Engine/ac` 49.3%, `Engine/gfx` 18.6%,
-  `Engine/gui` 8.9%, `Engine/plugin` 3.4%), `Compiler` 89.9%, `Tools` 68.2% (`crmpak`, `spriteimport`,
-  `spritepak` under 3%, `po2tra` 0%), `Plugins` 0%. The job took 14 minutes.
-- **1.5b works and has findings.** The job ran to its last step (27 minutes, 21 of them the build with
-  both sanitizers) and failed there on 45 distinct findings; with the two UBSan ones below, 47:
-  - ASan, three memory errors, each in a unit test:
-    `Tools/data/room_build.cpp:156` (`Utf8ToCp1252` hands `String` a buffer without a terminator, and
-    `String::SetString` runs `strlen` on it: heap overflow, in `RoomBuild.TextProperties`);
-    `Engine/script/runtimescript.cpp:452` (`CreateGlobalVars` reads `_code[_fixups[i]]` before anything
-    checks the fixup: heap overflow on a script whose fixup points outside the code, in
-    `ScriptBytecode.FixupOutsideTheCodeIsRefused`);
-    `Common/script/cc_reflect.cpp:459` (`JointRTTI::Join` compares location names through pointers
-    into a string table that the same loop has since reallocated: use after free when a second script's
-    RTTI is joined, in `ScriptVM.CallsFunctionsOfAnotherScript`; the code is upstream's).
-  - UBSan, two places: `Common/util/memory.h:67` (an `int16_t` read through a misaligned pointer),
-    `Common/util/memorystream.cpp:185` (`memcpy` with a null pointer).
-  - LSan, 42 places: 27 `new` in `SymbolTable::SymbolTable()` and 8 more in the script compiler (622 of
-    the 627 logs: every compiler test), and 7 in the engine at exit (the software renderer, the audio
-    driver and core, managed objects).
-- **Fixed in the job after this run, not run again:** UBSan wrote to stderr, not to `log_path`, and ctest
-  hides the output of passing tests, so the summary had no UBSan row (the two above were read from the
-  raw log of the game step). The tests now run with `ctest -V` into a file beside the sanitizer logs, the
-  game step is captured with `tee`, and `sanitizer_summary.py` reads those too (addresses normalised):
-  47 findings on the downloaded logs.
-- **Open:** the findings themselves, planned as 1.5b-1 to 1.5b-5 (PLAN.md "Next up"). To work on them
-  without a 27-minute wait per try: MSVC has ASan (`/fsanitize=address`), which covers the three memory
-  errors; UBSan and `llvm-cov` need a current LLVM for Windows (this machine has LLVM 7, and emsdk's
-  clang 20 builds wasm only); leak detection has no Windows implementation, and there is no Linux here
-  (no virtualization).
+**1.5b Sanitizers, 1.5c Coverage** (`analysis.yml`, `Script/sanitizer_summary.py`,
+`Script/coverage_summary.py`)
+- Both jobs build tools, engine and tests, run `ctest`, then `Script/agsbuild_autotest.sh`: the game is
+  built by the instrumented tools and run in the instrumented engine (Software driver).
+- Sanitizers: GCC, `-fsanitize=address,undefined -fsanitize-recover=address`, RelWithDebInfo,
+  `halt_on_error=0`, leaks on, `LSAN_OPTIONS=exitcode=0`: one run lists every finding, and the summary
+  script fails the job if there is any. Coverage: clang source-based, `%m` profiles, `llvm-cov export
+  -summary-only`, a table per module and directory.
+- **On demand only** (user, 2026-11-05: 27 and 14 minutes): `gh workflow run analysis.yml --ref <branch>
+  [-f sanitizers=false] [-f coverage=false]`, possible only once the file is on the default branch.
+- **Coverage, first numbers:** total 53.7% of 101,506 lines; `Common` 61.6%, `Engine` 47.8% (`ac` 49.3%,
+  `gfx` 18.6%, `gui` 8.9%, `plugin` 3.4%), `Compiler` 89.9%, `Tools` 68.2% (`crmpak`, `spriteimport`,
+  `spritepak` under 3%, `po2tra` 0%), `Plugins` 0%.
+- **Sanitizer findings, 47** (the run: 27 minutes, 21 of them the build):
+  - ASan, each in a unit test: `Tools/data/room_build.cpp:156` (`Utf8ToCp1252` gives `String` an
+    unterminated buffer and `String::SetString` calls `strlen`; `RoomBuild.TextProperties`);
+    `Engine/script/runtimescript.cpp:452` (`CreateGlobalVars` reads `_code[_fixups[i]]` unchecked;
+    `ScriptBytecode.FixupOutsideTheCodeIsRefused`); `Common/script/cc_reflect.cpp:459` (`JointRTTI::Join`
+    compares names through pointers into a string table the loop has reallocated;
+    `ScriptVM.CallsFunctionsOfAnotherScript`; upstream's code).
+  - UBSan: `Common/util/memory.h:67` (misaligned `int16_t` read), `Common/util/memorystream.cpp:185`
+    (`memcpy` from null).
+  - LSan, 42 sites: 35 in the script compiler (27 `new` in `SymbolTable::SymbolTable()`; every compiler
+    test), 7 in the engine at exit (software renderer, audio driver and core, managed objects).
+- Fixed after the run, not re-run: UBSan writes to stderr, not to `log_path`, and ctest hides the output
+  of passing tests, so the summary had no UBSan row. The tests now run with `ctest -V` into a file, the
+  game step through `tee`, and the summary reads both (47 findings on the downloaded logs, 45 before).
+- **Local tools:** Visual Studio's LLVM component (clang-cl 19.1.5, `VC/Tools/Llvm/x64`) has ASan, UBSan,
+  the profile run-time and `llvm-cov`; all three work on a small program. Untried on the tree (fallback
+  for ASan: MSVC `/fsanitize=address`). No leak detection on Windows, no Linux here.
+- **Open:** the findings, steps 1.5b-1 to 1.5b-5 in PLAN.md "Next up".
 
 ### 1.6 Mechanical-change verifier
 
@@ -511,76 +458,34 @@ all TUs in parallel and applies the merged fixes. Results:
 
 ### 2.4 clang-tidy gate
 
-*Definition, moved from PLAN.md on 2026-11-05:*
+*Definition, moved from PLAN.md on 2026-11-05:* `compile_commands.json` in the Linux CI job and
+`clang-tidy-diff.py` on the PR diff with the root `.clang-tidy`: naming and function-size rules for new
+code only. *Done when:* a PR that adds a `chaa`-style name or a 300-line function is flagged.
 
-**2.4 clang-tidy gate.** `compile_commands.json` in the Linux CI job and `clang-tidy-diff.py` on the PR
-diff with the root `.clang-tidy`: naming and function-size rules for new code only. *Done when:* a PR that
-adds a `chaa`-style name or a 300-line function is flagged.
-
-*Status (2026-11-05):* done, verified locally and on CI through a probe branch (see "On CI" below).
-- **`Script/tidy_diff.py`** replaces `clang-tidy-diff.py`: the pip `clang-tidy==19.1.0` wheel does not
-  contain the script (only the binary and its resource headers), the copy on this machine's PATH belongs to
-  LLVM 7, and the distribution packages name it per version. The script is the same idea in ~200 lines
-  with the pieces CI and the local run share: `git diff -U0` of a base revision against the working tree
-  (so uncommitted edits and untracked files count) gives the changed line ranges, which go to clang-tidy as
-  one `--line-filter`; every diagnostic outside them is dropped. It runs the whole root `.clang-tidy`, not
-  only naming and size, since the config is the project's rule set. Files: first-party `.cpp` in the
-  compile database, and headers (run alone, clang-tidy takes the flags of a neighbour; skipped when the
-  same-named `.cpp` is in the diff). `libsrc/`, `libinclude/`, `_deps/` and everything outside `Common`,
-  `Engine`, `Compiler`, `Tools`, `Plugins` are never handed to it. Exit 0 clean, 1 diagnostics, 2 cannot
-  analyse (no clang-tidy, no database, a file that did not compile): a broken analysis must not read as a pass.
-- **Where it runs:** a step of the Linux job of `verify.yml` (every push), after `Test`: it reuses that
-  job's configure (`-DCMAKE_EXPORT_COMPILE_COMMANDS=ON` added), build tree and downloaded dependencies, so
-  it costs the `pip install` and the analysis only, no second apt install and configure. The base is the
-  push's `before` commit; a new branch, a force push or a manual run (no usable `before`) compares with the
-  merge base with `origin/ags4draconianr21`. The checkout of that job is now `fetch-depth: 0` for it.
-  Not `ci.yml`: it does not run on every push, and the point is feedback in the same run as the format check.
-- **`Script/prepush.py` stage `tidy`** (after `build`; needs only the configure of the build tree): the same
-  script, base the merge base with the upstream branch, so unpushed commits and the working tree are checked.
-  `NOT RUN` when clang-tidy 19.1 is missing (`--clang-tidy`, `$CLANG_TIDY`, `.compare/cfenv`, PATH).
-- **Verified** (Windows, MSVC compile database of `.tidy/build`, clang-tidy 19.1.0, throwaway edit to
-  `Common/util/path.cpp`, reverted): (a) a new `int chaa_count(int Value)` with a local `LocalThing` gave
-  three `readability-identifier-naming` diagnostics, exit 1; (b) a new 300-line function gave
-  `readability-function-size`, exit 1; (c) a clean new function gave `clean`, exit 0, although the file has 34
-  clang-tidy findings of its own (d); a new `inline int chaa_h(int Value)` in `path.h` was flagged too.
-  `prepush.py --only tidy` failed on (a) and passed on a clean tree.
-- **The banned abbreviations were not covered by that:** (a) was flagged for its case styles (function not
-  `CamelCase`, parameter and local not `snake_case`). `readability-identifier-naming` knows case styles,
-  not words, and `chaa` is valid `snake_case`: a new `int chaa = count;` gave `clean`, exit 0 (tried).
-  Fixed the same day: `.clang-tidy` sets `readability-identifier-length` to a minimum of 99 (the check is
-  not in `Checks`), `tidy_diff.py` turns it on, so clang-tidy names every variable and parameter declared
-  on a changed line, and the script reports the ones in `CRYPTIC_WATCHLIST` (`Script/refactor_metrics.py`,
-  the one copy of the list) as `[ags-cryptic-name]` and drops the rest. Declarations only, found by the
-  parser: a changed line that uses a legacy `chaa` is not flagged, so a behaviour commit is not forced to
-  rename. Not covered: functions and data members (the check reports variables and parameters).
-  Verified: a new function with parameter `objj`, local `chaa` and loop counter `xx` gave three
-  `ags-cryptic-name` diagnostics, exit 1; the same function well named (`count`, `total`, `i`) `clean`;
-  a new `if (chaa == nullptr)` in `Character_AddWaypoint(CharacterInfo *chaa, ...)` `clean`.
-- **Measured:** one `.cpp` 31 s, one header 6 s, a 30-file, 4210-line diff (`HEAD~60`) 74 s, on 8 cores
-  (the 8 processes parse the system headers each; the Linux runner has 4 cores, expect two to three times
-  that on a big diff and under a minute on the usual few-file push). The run time is why it is a step
-  and not a job of its own: the build in front of it takes much longer.
-- **Found on the way:** (1) on Windows clang-tidy matches the `--line-filter` name as a suffix of the path it
-  prints, with backslashes: a name with `/` selects nothing and the gate passes everything. The first version
-  had that bug and reported `clean` for the planted `chaa_count`; the script now uses the platform separator.
-  (2) The `HEAD~60` diff, made of this fork's own recent commits, has 36 findings: `readability-braces-around-statements`
-  (Engine/ac, Engine/test), `cppcoreguidelines-pro-type-cstyle-cast` (Engine/ac/character, gui, guicontrol,
-  object, overlay), and naming in `Common/test/game_compat_test.cpp`. The gate is not toothless, and the next
-  push that touches these lines will be told. (3) `.tidy/build` is stale for the 1.3 engine tests (not in
-  its database): the script prints "not in the compile database, not checked" for such files instead of
-  silently skipping them.
-- **On CI** (2026-11-05, a probe branch outside `ags4draconian*`, so only `verify.yml` ran; two throwaway
-  commits, branch deleted after): the step worked on the first try, with the output of the local runs.
-  Run 42032914043, a new branch (base: the merge base with `origin/ags4draconianr21`), a well-named new
-  function in `Common/util/path.cpp` and a new line using the legacy `chaa` in `Engine/ac/character.cpp`:
-  `tidy_diff: 2 files, 20 changed lines`, `clean`, job green. Run 42034663373, a second push (base: the
-  push's `before` commit), planted violations: the job failed at "clang-tidy on changed lines" with the 7
-  expected diagnostics (`objj`, `chaa`, `xx` as `ags-cryptic-name`; function, parameter and local case
-  styles; `readability-function-size` on a 300-line function), every other step and job green. So the
-  pip clang-tidy installs on the runner and reads the GCC compile commands and libstdc++ headers. The
-  step took 5 to 6 s for one or two files (35 s locally with the MSVC database), the install 2 to 4 s.
-- **Not verified:** a pull request event (`verify.yml` has no `pull_request` trigger; a PR's commits are
-  checked by their pushes), and a large diff on the runner.
+*Status (2026-11-05):* done; confirmed on CI by a probe branch.
+- **`Script/tidy_diff.py`** stands in for `clang-tidy-diff.py` (not in the pip `clang-tidy==19.1.0` wheel).
+  `git diff -U0 <base>` against the working tree gives the changed lines, passed as one `--line-filter`;
+  the whole root `.clang-tidy` runs. Checked: first-party `.cpp` in the compile database, and headers
+  unless their `.cpp` is in the diff; never `libsrc/`, `libinclude/`, `_deps/`. Exit 0 clean, 1 findings,
+  2 could not analyse. Size and naming findings sit on the declaration line, so an edit inside an old
+  long function is not flagged.
+- **Banned abbreviations:** the naming check knows case styles only (a new `int chaa` passed). `.clang-tidy`
+  sets `readability-identifier-length` to 99 (not in `Checks`); the script turns it on to learn every
+  variable and parameter declared on a changed line and reports those in `CRYPTIC_WATCHLIST`
+  (`refactor_metrics.py`) as `ags-cryptic-name`. A line that only uses a legacy name passes. Functions
+  and data members are not covered.
+- **Runs** as a step of `verify.yml`'s Linux job (base: the push's `before`, else the merge base with
+  `origin/ags4draconianr21`; `fetch-depth: 0`) and as `prepush.py` stage `tidy` (base: merge base with
+  upstream).
+- **Verified:** locally a parameter `objj`, a local `chaa`, a loop counter `xx`, wrong case styles and a
+  306-line function are flagged; clean code in a file with 34 old findings and a new line using a legacy
+  `chaa` pass. On CI (runs 42032914043 green, 42034663373 red with the 7 planted findings): same output,
+  both base choices, 5 to 6 s for one or two files. Local: 31 s per `.cpp` (MSVC database), 74 s for
+  30 files.
+- **Found:** on Windows the `--line-filter` name needs backslashes (with `/` nothing matched and the gate
+  passed everything). The fork's last 60 commits hold 36 findings (braces, C-style casts, test names),
+  reported when those lines are next touched.
+- **Not verified:** a large diff on the runner.
 
 ### 2.5 Header guards → `#pragma once`
 
@@ -708,26 +613,16 @@ with 340 header stubs compiled by clang + libc++ 21 on Ubuntu and the heavy jobs
   `graphicspace.h`, `scripteventtable.h`, `transformstream.h`, `movelist.h`, `string.cpp`, found with a
   text scan for C library names used without their header. Not verifiable without libc++ 21 on glibc.
 - **First push:** expect problems in the Linux and clang jobs; read all of them, fix in one batch, push once.
-- **Stage `emscripten` added (2026-11-05)**, after a count of what had broken CI (AGENTS.md "What has
-  broken CI so far"): 7 of the 13 breaks of our own making were code that MSVC accepts and another compiler does not, and the
-  script only caught the missing includes among them. The stage builds the engine with emcc from emsdk
-  into `.tidy/prepush/ems`, as `Emscripten/build.sh` and the CI's Emscripten job do (toolchain file,
-  Ninja, Release, no tools, no tests): Clang and libc++ compile and link the OpenGL ES 2 renderer and the
-  generic non-Windows branches. That build includes `library_dummy.h`, not `library_posix.h`, and
-  compiles the Linux platform files to nothing, so a second step syntax-checks the Linux branches: the
-  engine and common sources whose dependencies (`ninja -t deps`) contain `AGS_PLATFORM_OS_LINUX`,
-  `AGS_PLATFORM_IS_XDG_UNIX` or `__linux__`, with the build's own flags plus `-fsyntax-only
-  -U__EMSCRIPTEN__ -D__linux__` (emsdk's sysroot is musl, a Linux C library; SDL is the Emscripten port).
-  Sources that reach `ogl_headers.h` are left out: on Linux it wants the desktop OpenGL headers, which
-  this build does not have, and MSVC compiles that code. Today that is 4 files: `acpllnx.cpp`,
-  `agsplatform_xdg_unix.cpp`, `agsplugin.cpp` (for `library_posix.h`) and `Common/util/file.cpp`.
-  Measured: configure 73 s and build 234 s cold (481 steps); 2 s when nothing changed, about 80 s after
-  an engine change (the `-flto=full` link); the syntax check 7 s. Verified by putting two old breaks
-  back: `glColor4f` outside its `#if !AGS_OPENGL_ES2` (0.4) fails the build step, an unqualified `Path`
-  in `library_posix.h` (2.5) fails the syntax check; both pass again when reverted. `NOT RUN` without
-  an emsdk. Not covered: macOS, iOS, Android and FreeBSD code, linking anything for Linux (the 7.1o
-  and 3.2 breaks were link errors in `tools_test` and `agsbuild`, which this build does not make), GCC
-  itself, and the tools.
+- **Stage `emscripten` (2026-11-05):** 7 of our 13 CI breaks were code MSVC accepts and others do not.
+  The stage builds the engine with emcc as `Emscripten/build.sh` does (`.tidy/prepush/ems`), which covers
+  the GLES2 renderer and the generic non-Windows branches, then syntax-checks the sources with Linux
+  branches (found through `ninja -t deps`; 4 files today) with `-fsyntax-only -U__EMSCRIPTEN__
+  -D__linux__`, since that build uses `library_dummy.h` and compiles `acpllnx.cpp` to nothing. Sources
+  reaching `ogl_headers.h` are skipped (desktop GL headers). Measured: 73 s configure + 234 s build cold,
+  2 s unchanged, about 80 s after an engine change (LTO link), 7 s syntax check. Verified by restoring
+  two old breaks: `glColor4f` in GLES2 code (0.4) and an unqualified `Path` in `library_posix.h` (2.5)
+  both fail. Not covered: macOS, iOS, Android, FreeBSD code; linking for Linux (the 7.1o and 3.2
+  breaks); GCC; the tools.
 
 ### 3.1 Dead platforms
 

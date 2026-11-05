@@ -74,39 +74,30 @@ Entry points, in reading order:
 
 ## Verify before you report done
 
-Before a push run `python Script/prepush.py` (clang-format, CMake build + `ctest`, clang-tidy on the changed lines, header check with
-MSVC and clang+libc++, the Emscripten engine build with a syntax check of the Linux-only code, the MSBuild solutions; `--list`, `--only`, `--skip`): CI confirms, it does not
-discover. Workflows: `verify.yml` (fast gate, every push), `ci.yml` (`ags4draconian*` branches, PRs: light set;
-tags, weekly, `gh workflow run ci.yml -f full=true`: every platform), `macos.yml` (tags, weekly, on demand;
-standalone because hosted macOS runners are often unavailable), `analysis.yml` (on demand only,
-`gh workflow run analysis.yml --ref <branch>`: ASan + UBSan on the unit tests, the tools and the auto-test
-game, 27 minutes; line coverage per directory, 14 minutes).
+`python Script/prepush.py` before a push (`--list`, `--only`, `--skip`, `--emsdk <dir>`): `format`, `build`
+(+ `ctest`), `tidy` (clang-tidy on changed lines), `headers`, `libcxx`, `emscripten` (engine as GLES2, then
+a syntax check of the Linux-only code), `msbuild`. CI confirms, it does not discover. Also: the auto-test
+game; `compare_objects.py` for mechanical commits; `compare_builds.py` for tool or `agfreader` changes.
 
-`Common/` builds without warnings and is marked `ags_warning_free(common)` in CMake: with
-`-DAGS_WARNINGS_AS_ERRORS=ON` (set by `verify.yml` and `prepush.py`, off by default) a new warning there
-fails the build on GCC, Clang and MSVC (`/W4`). Mark a target the same way once it is clean (1.5).
+Workflows: `verify.yml` (every push: format, GCC build + tests + tidy gate, header checks), `ci.yml`
+(`ags4draconian*`, PRs: light set; tags, weekly, `gh workflow run ci.yml -f full=true`: every platform),
+`macos.yml` (tags, weekly, on demand; macOS runners are often unavailable), `analysis.yml` (on demand:
+ASan + UBSan 27 min, coverage per directory 14 min).
 
-CMake build + `ctest`; MSBuild `Tests.sln` and `AGS.Editor.Full.sln` when `Common/` or the
-Editor changed; `clang-format --dry-run -Werror` on all tracked C/C++ files; the auto-test game;
-`compare_objects.py` for mechanical commits; `compare_builds.py` for tool or `agfreader`
-changes; the header check with a strict standard library before repo-wide pushes (CI should
-confirm, not discover).
+`ags_warning_free(<target>)` marks a target without warnings (`common` so far); with
+`-DAGS_WARNINGS_AS_ERRORS=ON` (`verify.yml`, `prepush.py`; off by default) a warning there is an error.
 
-**What has broken CI so far**, most frequent first (LOG.md 0.4, 2.6, 2.8, 3.2; each is a rule now):
+**What has broken CI** (13 times; LOG.md 0.4, 2.6, 2.8, 3.2):
 
-- **MSVC accepts what GCC, Clang, libc++, GLES2 or an old glibc reject** (7 breaks). A green local
-  build covers Windows only; STYLE.md "Portability" lists the traps. When a change touches code
-  Windows does not compile (`platform/` other than `windows`, `*_posix.*`, non-Windows `#if`
-  branches, OpenGL code shared with GLES2), mechanical repo-wide changes included, run the
-  `emscripten` stage of `prepush.py` (emcc builds the engine as GLES2, then the Linux-only code is
-  syntax-checked), and name in the report what no local build compiled (macOS, iOS, Android and
-  FreeBSD code; nothing is linked for Linux).
-- **A source file or setting in one build description only** (3 breaks). A new, moved or deleted
-  `.cpp`, tests included, goes in the `CMakeLists.txt` and in the `Solutions/` `.vcxproj` and
-  `.vcxproj.filters` (until 3.2c); the `msbuild` stage of `prepush.py` finds a miss, so run it.
-- **Workflow, Docker or CMake changes for jobs with no local equivalent** (3 breaks: the Linux
-  builder image with Debian 10, GCC 8, glibc 2.28 and no downloads on i386; the clang job; Android;
-  macOS). Do not send them through the full matrix: ask the user for a probe branch (a name outside
-  `ags4draconian*`, a workflow with only the affected jobs, `MAKEFLAGS=-k`), then one full run.
-- **On a red run** read every failed job, reproduce what can be reproduced, fix in one batch, push
-  once. One speculative fix per run is how 2.6 took four pushes.
+- **MSVC-only verification** (7): GCC, Clang, libc++, GLES2 and old glibc reject what MSVC accepts
+  (STYLE.md "Portability"). A change to code Windows does not compile (`platform/` other than `windows`,
+  `*_posix.*`, non-Windows `#if` branches, GL code shared with GLES2), repo-wide edits included, needs
+  the `emscripten` stage; report what no local build compiled (macOS, iOS, Android, FreeBSD; nothing
+  links for Linux).
+- **One build description only** (3): a new, moved or deleted `.cpp`, tests included, goes in
+  `CMakeLists.txt` and in the `Solutions/` `.vcxproj` + `.filters` (until 3.2c); the `msbuild` stage
+  finds a miss.
+- **CI-only jobs changed blind** (3): the Linux builder image (Debian 10, GCC 8, glibc 2.28, no downloads
+  on i386), Android, macOS, new workflows. Ask the user for a probe branch (a name outside
+  `ags4draconian*`, only the affected jobs), then one full run.
+- **Red run:** read every failed job, fix in one batch, push once.

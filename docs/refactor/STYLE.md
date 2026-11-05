@@ -36,8 +36,7 @@ Use the pinned versions: other clang-format versions format differently, and old
 ```sh
 # CI's format check (whole files); clang-format -i to fix
 git ls-files '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hpp' '*.inl' | xargs clang-format --dry-run -Werror
-# lint changed lines (CI gate, PLAN.md 2.4; needs build/compile_commands.json; the diff is against
-# the merge base with the upstream branch unless --base is given, and includes uncommitted edits)
+# clang-tidy on changed lines, as the CI gate does (needs build/compile_commands.json)
 python Script/tidy_diff.py --build build
 ```
 
@@ -96,8 +95,7 @@ private:
 - **No abbreviations except well-known ones** (`id`, `idx`, `num`, `pos`, `src`, `dst`, `bmp`, `gfx`,
   `cfg`, `str`, `x`/`y`/`w`/`h`). `chaa`, `objj`, `butt`, `guio`, `sds`, `tqs`, `eres`, `scam`,
   `texx`, `widd`, `iit`, `vii` are on the `refactor_metrics.py` watchlist and banned in new code
-  **[enforced on changed lines]**: `tidy_diff.py` flags a new variable or parameter with such a name
-  (`ags-cryptic-name`); a line that only uses a legacy one passes.
+  **[enforced]**: `tidy_diff.py` flags a new variable or parameter so named.
 - **One concept, one name:** a `CharacterInfo*` is `ch` (or `character`) everywhere, not `chaa`,
   `chap`, `chin`, `chinfo`, `char1` or `chi`.
 - Booleans are predicates (`is_visible`, `HasAlpha()`, `_needsRedraw`); functions are verbs, types
@@ -140,25 +138,18 @@ private:
 
 ### Portability
 
-The local build is MSVC; CI also builds with GCC (8 in the Linux image), Clang with libc++,
-Emscripten, the Android NDK and Apple Clang (macOS 10.9 target). Each rule is a CI break that
-MSVC let through (LOG.md task in brackets).
+MSVC is the local compiler; each rule is a CI break it let through (LOG.md task in brackets).
 
-- Include the header of every name used, C library names too (`size_t`, `time_t`, `atoi`,
-  `assert`, `SIZE_MAX`, `uint32_t`): MSVC's library includes them transitively, libstdc++ and
-  libc++ do not [2.6, 2.8]. The header checks compile headers, not `.cpp` files.
-- No `std::filesystem`: Apple's libc++ has none below macOS 10.15. Use `Directory`, `File` and
-  `Path` [1.3].
-- A CMake target whose code uses `std::thread` links `Threads::Threads`: before glibc 2.34 threads
-  are in libpthread [3.2].
-- Don't bind an in-class `static const` member (`String::NoIndex`) to a reference: without an
-  out-of-class definition MSVC folds it, GCC and Clang fail to link [7.1o]. See "Tests".
-- OpenGL code that Android and Emscripten build as GLES2 (`Engine/gfx/ali3dogl.cpp`) calls no
-  fixed-function API (`glColor4f`) outside a desktop-only `#if` [0.4].
-- A repo-wide edit (a removed `using`, a rename) reaches files Windows does not compile
-  (`platform/` other than `windows`, `*_posix.*`, non-Windows `#if` branches) [2.5]. The
-  `emscripten` stage of `prepush.py` compiles the generic and the Linux ones; search the macOS,
-  iOS, Android and FreeBSD code by hand.
+- Include what you use, C library names too (`size_t`, `time_t`, `assert`): libstdc++ and libc++ have
+  fewer transitive includes [2.6, 2.8].
+- No `std::filesystem` (macOS 10.9 target); use `Directory`, `File`, `Path` [1.3].
+- A target using `std::thread` links `Threads::Threads` (glibc before 2.34) [3.2].
+- No reference to an in-class `static const` without a definition (`EXPECT_EQ(String::NoIndex, x)`):
+  GCC and Clang fail to link; write `EXPECT_TRUE(x == String::NoIndex)` [7.1o].
+- No fixed-function GL (`glColor4f`) in code built as GLES2 (`ali3dogl.cpp`) outside a desktop `#if` [0.4].
+- Repo-wide edits reach code Windows does not compile (`platform/` other than `windows`, `*_posix.*`,
+  `#if` branches) [2.5]: run `prepush.py`'s `emscripten` stage; check macOS, iOS, Android and FreeBSD
+  code by hand.
 
 ### Comments
 
@@ -176,10 +167,8 @@ MSVC let through (LOG.md task in brackets).
 - GoogleTest, in the module's `test/` folder, as `<unit>_test.cpp`; names
   `TEST(Unit, BehaviourUnderCondition)` (`TEST(SpriteFile, ReadsCompressedLzwSprite)`).
 - A bug fix comes with a test that fails without it, or the commit message says why it can't.
-- `EXPECT_EQ`/`EXPECT_NE` take references: compare an in-class constant with `==`/`!=` inside
-  `EXPECT_TRUE`, as `string_test.cpp` does ("Portability").
-- A case that passes invalid input on purpose runs only without asserts: `#ifdef NDEBUG` around
-  the body, `GTEST_SKIP()` otherwise (`sprite_cache_test.cpp`): debug builds assert on that input [1.3].
+- A case with deliberately invalid input runs only under `NDEBUG` (`GTEST_SKIP()` otherwise): debug
+  builds assert on it [1.3].
 
 ## C# (Editor)
 
