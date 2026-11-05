@@ -85,3 +85,25 @@ TEST(Memory, ReadWrite)
     ASSERT_TRUE(dst_i32 == (int32_t)0x12EFCDAB);
     ASSERT_TRUE(dst_i64 == (int64_t)0x9078563412EFCDAB);
 }
+
+// Reading and writing at addresses that are not aligned for the type
+TEST(Memory, ReadWriteMisaligned)
+{
+    alignas(8) uint8_t buf[24] = {};
+    for (size_t off = 1; off < 8; ++off)
+    {
+        memset(buf, 0, sizeof(buf));
+        Memory::WriteInt16LE(buf + off, (int16_t)0xABCD);
+        ASSERT_EQ(Memory::ReadInt16LE(buf + off), (int16_t)0xABCD);
+        ASSERT_EQ(buf[off], 0xCD);
+        ASSERT_EQ(buf[off + 1], 0xAB);
+        Memory::WriteInt32BE(buf + off + 2, (int32_t)0xABCDEF12);
+        ASSERT_EQ(Memory::ReadInt32BE(buf + off + 2), (int32_t)0xABCDEF12);
+        ASSERT_EQ(buf[off + 2], 0xAB);
+        ASSERT_EQ(buf[off + 5], 0x12);
+        Memory::WriteInt64LE(buf + off + 8, (int64_t)0x1234567890ABCDEF);
+        ASSERT_EQ(Memory::ReadInt64LE(buf + off + 8), (int64_t)0x1234567890ABCDEF);
+        ASSERT_EQ(buf[off + 8], 0xEF);
+        ASSERT_EQ(buf[off + 15], 0x12);
+    }
+}

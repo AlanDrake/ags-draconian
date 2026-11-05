@@ -52,7 +52,9 @@ inline T *Int32ToPtr(int32_t value)
 //-------------------------------------------------------------------------
 // Functions for reading and writing basic types from/to the memory.
 // Implement safety workaround for CPUs with alignment restrictions
-// (e.g. MIPS).
+// (e.g. MIPS). Without it, memcpy of a fixed size is used instead of
+// dereferencing a cast pointer, which is undefined for a misaligned address;
+// compilers turn it into a single load or store.
 //-------------------------------------------------------------------------
 inline int16_t ReadInt16(const void *ptr)
 {
@@ -64,7 +66,9 @@ inline int16_t ReadInt16(const void *ptr)
     return (b[1] << 8) | b[0];
 #endif
 #else
-    return *(int16_t *)ptr;
+    int16_t v;
+    memcpy(&v, ptr, sizeof(v));
+    return v;
 #endif
 }
 
@@ -89,7 +93,9 @@ inline int32_t ReadInt32(const void *ptr)
     return (b[3] << 24) | (b[2] << 16) | (b[1] << 8) | b[0];
 #endif
 #else
-    return *(int32_t *)ptr;
+    int32_t v;
+    memcpy(&v, ptr, sizeof(v));
+    return v;
 #endif
 }
 
@@ -105,7 +111,9 @@ inline int64_t ReadInt64(const void *ptr)
            (b[3] << 24) | (b[2] << 16) | (b[1] << 8) | b[0];
 #endif
 #else
-    return *(int64_t *)ptr;
+    int64_t v;
+    memcpy(&v, ptr, sizeof(v));
+    return v;
 #endif
 }
 
@@ -121,7 +129,7 @@ inline void WriteInt16(void *ptr, int16_t value)
     b[0] = (uint8_t)(value);
 #endif
 #else
-    *(int16_t *)ptr = value;
+    memcpy(ptr, &value, sizeof(value));
 #endif
 }
 
@@ -156,7 +164,7 @@ inline void WriteInt32(void *ptr, int32_t value)
     b[0] = (uint8_t)(value);
 #endif
 #else
-    *(int32_t *)ptr = value;
+    memcpy(ptr, &value, sizeof(value));
 #endif
 }
 
@@ -184,7 +192,7 @@ inline void WriteInt64(void *ptr, int64_t value)
     b[0] = (uint8_t)(value);
 #endif
 #else
-    *(int64_t *)ptr = value;
+    memcpy(ptr, &value, sizeof(value));
 #endif
 }
 
