@@ -453,11 +453,22 @@ uint32_t JointRTTI::JoinType(const Type &type, uint32_t uid, const char *name, c
 void JointRTTI::Join(const RTTI &rtti, std::unordered_map<uint32_t, uint32_t> &loc_l2g,
                      std::unordered_map<uint32_t, uint32_t> &type_l2g)
 {
-    struct CompareLocs
+    // Compares by the names' offsets in our string table: the quick ref pointers (Location::name)
+    // point into the table's buffer, and become dangling when merging new locations makes it grow
+    // (they are recreated in the end by CreateQuickRefs)
+    class CompareLocs
     {
-        explicit CompareLocs(const Location &loc) : _loc(loc) {}
-        bool operator()(const Location &arg) const { return strcmp(arg.name, _loc.name) == 0; }
-        const Location &_loc;
+    public:
+        CompareLocs(const std::vector<char> &strings, const char *name) : _strings(strings), _name(name) {}
+        bool operator()(const Location &arg) const
+        {
+            const char *arg_name = arg.name_stri < _strings.size() ? &_strings[arg.name_stri] : "";
+            return strcmp(arg_name, _name) == 0;
+        }
+
+    private:
+        const std::vector<char> &_strings;
+        const char *_name;
     };
 
     // Will gather new entries for the cross-references post-resolution
@@ -467,7 +478,7 @@ void JointRTTI::Join(const RTTI &rtti, std::unordered_map<uint32_t, uint32_t> &l
     for (const auto &local_loc : rtti._locs)
     {
         // TODO: refactor adding new and replacing old entries
-        auto global_it = std::find_if(_locs.begin(), _locs.end(), CompareLocs(local_loc));
+        auto global_it = std::find_if(_locs.begin(), _locs.end(), CompareLocs(_strings, local_loc.name));
         if (global_it != _locs.end())
         { // only override if the existing loc was marked as "generated"
             if ((global_it->flags & kLoc_Generated) == 0)

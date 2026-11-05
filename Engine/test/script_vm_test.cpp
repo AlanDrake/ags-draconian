@@ -21,11 +21,13 @@
 //=============================================================================
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "ac/dynobj/managedobjectpool.h"
 #include "gtest/gtest.h"
 #include "script/cc_common.h"
+#include "script/cc_reflect.h"
 #include "script/cs_compiler.h"
 #include "script/runtimescript.h"
 #include "script/script_runtime.h"
@@ -412,6 +414,35 @@ int UseTriple(int v)
                             "user");
     ASSERT_NE(nullptr, user);
     EXPECT_EQ(33, Call(user, "UseTriple", {10}));
+}
+
+// Joining adds new locations, which grows the joint string table, and then looks the next ones
+// up among the existing locations: their names must not be read through pointers into the
+// table's old buffer (a sanitizer reports it as a use after free)
+TEST(JointRTTI, FindsExistingLocationAfterTheStringTableGrew)
+{
+    AGS::JointRTTI joint;
+    std::unordered_map<uint32_t, uint32_t> loc_l2g, type_l2g;
+    AGS::RTTIBuilder first;
+    first.AddLocation("shared", 0u, 0u);
+    first.AddLocation("only_in_first", 1u, 0u);
+    joint.Join(first.Finalize(), loc_l2g, type_l2g);
+    ASSERT_EQ(2u, joint.GetLocations().size());
+
+    loc_l2g.clear();
+    AGS::RTTIBuilder second;
+    const uint32_t new_locs = 8u;
+    for (uint32_t i = 0; i < new_locs; ++i)
+    {
+        second.AddLocation("a_new_location_with_a_long_name_" + std::to_string(i) + std::string(64u, 'x'), i, 0u);
+    }
+    second.AddLocation("shared", new_locs, 0u);
+    second.AddLocation("only_in_first", new_locs + 1u, 0u);
+    joint.Join(second.Finalize(), loc_l2g, type_l2g);
+
+    EXPECT_EQ(2u + new_locs, joint.GetLocations().size());
+    EXPECT_EQ(0u, loc_l2g[new_locs]);
+    EXPECT_EQ(1u, loc_l2g[new_locs + 1u]);
 }
 
 TEST_F(ScriptVM, UnresolvedImportIsRefusedAtLink)
