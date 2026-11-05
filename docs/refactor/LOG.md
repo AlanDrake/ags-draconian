@@ -565,7 +565,7 @@ and install with CMake. **3.2b, engine and Debian:** `Engine/Makefile*`, the plu
 `Makefile-objs`, `make.yml` go; `debian/` builds through CMake. 3.2c (the native `.vcxproj`) is not
 part of it.
 
-*Status (2026-11-05):* done, unpushed; the Linux, macOS and Debian jobs have not run.
+*Status (2026-11-05):* done and pushed; the full CI run and the macOS run are green on `32a687432`.
 - Removed: 9 tool Makefiles, `Compiler/Makefile`, `Engine/Makefile`, `Makefile-defs.{linux,osx,allegro,freetype}`,
   `Makefile-objs`, `Makefile` and `Makefile-objs` of `AGSSpriteFont`, `ags_parallax`, `ags_snowrain`,
   `agsblend`, `agsflashlight`, and `.github/workflows/make.yml` (its artifact `ubuntu-make-binaries-*` had no
@@ -596,9 +596,9 @@ part of it.
   `BASE_subdirs` listed `ac/statobj`, `font`, `setup`, which have no sources. Tools: every Makefile-only
   file is `miniz`, `stb` or `tinyxml2`, which CMake links as libraries; each tool's CMake target compiles 23
   to 44 files its Makefile did not (`xml_fields.cpp`, `data_file_writer.cpp`, ...).
-- Measured, defines and flags: all carried but one. `ALLEGRO_STATICLINK`, `AL_LIBTYPE_STATIC`,
+- Measured, defines and flags: all carried but one, and one is new. `ALLEGRO_STATICLINK`, `AL_LIBTYPE_STATIC`,
   `FT2_BUILD_LIBRARY`, `HAVE_UNISTD_H`/`HAVE_FCNTL_H`, `BUILTIN_PLUGINS`, `HAVE_FSEEKO`, `AGS_HAS_CD_AUDIO`,
-  `_FILE_OFFSET_BITS=64`, `DISABLE_MPEG_AUDIO`, `BUILD_STR`, `-fsigned-char -fno-strict-aliasing -fwrapv`,
+  `DISABLE_MPEG_AUDIO`, `BUILD_STR`, `-fsigned-char -fno-strict-aliasing -fwrapv`,
   `-Werror=write-strings`, `-Werror=delete-non-virtual-dtor` are set by CMake on the same targets.
   **Missing: `AGS_CASE_SENSITIVE_FILESYSTEM` for `Engine/ac/file.cpp`** (CMake set it for `common` only; the
   Linux Makefile for every file, so the shipped Debian engine had the case-sensitive branch and the CMake
@@ -606,21 +606,40 @@ part of it.
   `LINUX_VERSION`, `MAC_VERSION`, `RTLD_NEXT` (no use anywhere), the `USE_TREMOR` switch (apeg only,
   off), `-rdynamic` and `--as-needed` (engine uses `dlsym` on plugin handles only), `-Werror=format`,
   `-Werror=format-security`, `-Werror=implicit-function-declaration`, `-Wno-unused-value`. Android and
-  FreeBSD do not get the case-sensitive define either, as before.
+  FreeBSD do not get the case-sensitive define either, as before. **New in the package:
+  `_FILE_OFFSET_BITS=64`**, which CMake defines for everything and the engine Makefiles never set: the
+  i386 engine gets 64-bit file offsets, and the package's `libc6` dependency goes from `>= 2.14` to
+  `>= 2.28`, the image's glibc and the floor `ci/linux/Dockerfile` states (most likely FreeType's
+  `fcntl` binding `fcntl64`; read from the sources, the symbol was not looked up in the binary).
 - Measured, install (`cmake --install` on Windows, Ninja Release, a scratch prefix): `bin/` holds
   `ags`, `agscc` and the 10 tools, nothing else (no library from the `EXCLUDE_FROM_ALL` subprojects).
   The rules were already there; names and `bin/` are the Makefiles'. Also on Windows: full build and
   `ctest` (1031 tests passed). `AGS_USE_LOCAL_SDL2=ON` with a real SDL2 install configures and links
   `SDL2.lib` (the installed config sets `SDL2_LIBRARIES`, not `SDL2_LIBRARY`; SDL2 reaches the link
   through SDL2_sound's static target either way).
-- Not verified (no GCC, `make`, Docker or dpkg here; CI only): the three CMake jobs above in the buster
-  images (GCC 8, i386); `debian/rules` as a whole (`make` was not run on it) including the install into
-  `debian/tmp`, `dh_install` taking `usr/bin/ags`, `dh_strip`/`ags-dbg` and the rpath build used by
-  `debian/build.sh`; `AGS_USE_LOCAL_OGG/THEORA/VORBIS/SDL2_SOUND` with pkg-config and the image's
-  SDL_sound (pin `474dbf7`, newer than the fetched `3a41c3d`). Unchanged by reading, not by a run:
-  no dpkg-buildflags (hardening) in either build (the old rules ran `make` directly and the Makefile
-  set `CFLAGS :=`; the new ones run `cmake` directly). The Debian job
-  runs only in a full CI run now that `make.yml` (every push) is gone.
+- CI, first full run (`672e584a7`): everything green but the six jobs in the Linux builder image
+  (Debian 10, GCC 8, glibc 2.28), which nothing local could run. Three causes: SDL_sound's CMake
+  package names the shared library the image deletes, so `find_package(SDL2_sound)` is a configure
+  error (the four package jobs); `agsbuild` uses `std::thread` and did not link libpthread, a library
+  of its own before glibc 2.34, which Ubuntu hides (Linux Tools x64); the configure step downloads
+  SDL2 and the i386 container did not resolve `github.com` (Linux Tools x86). Fixed: an installed
+  SDL_sound is taken through pkg-config first, as the Makefile build did, and an installed SDL2 sets
+  `SDL2_LIBRARY`; `agsbuild` and `tools_test` link `Threads::Threads`; the Linux tools job uses the
+  image's libraries with downloads off, as `debian/rules`.
+- The fixes were tried on a temporary branch whose workflow ran only those six jobs (with
+  `MAKEFLAGS=-k` and steps printing the results), not through the whole matrix: green on the first
+  push, then one full run on `32a687432` (26 jobs) and the macOS run, both green. Branch and workflow
+  are deleted.
+- Measured in the image: both tools archives hold the 11 programs; the `.deb` holds `usr/bin/ags`,
+  stripped, the bundles `ags64`/`ags32` with `RPATH $ORIGIN/lib64`/`lib32` and the libraries. Against
+  the last Makefile-built amd64 package (`e22c990b0`): the same ten `NEEDED` libraries; the binary is
+  5,418,616 bytes instead of 6,562,432, of which about 1 MB is the `.dynsym`/`.dynstr` that
+  `-rdynamic` exported (nothing reads them: no `backtrace`, `dlsym` on plugin handles only); `libc6`
+  as above. Read, not run: no dpkg-buildflags (hardening) in either build (the old rules ran `make`
+  directly and the Makefile set `CFLAGS :=`; the new ones run `cmake` directly).
+- Left: the Debian and Linux tools jobs run only in a full CI run now that `make.yml` (every push)
+  is gone, so a break there shows late; the engine was not started from the new package (the
+  auto-test game runs the Ubuntu CMake build, not the Debian one).
 - Stale leftovers fixed with it: the `.gitignore` block for tools built in their folders,
   `build_linux_make_task` in `.disabled.cirrus.yml`, `libfreetype6-dev` in `debian/control` (FreeType
   is built from `libsrc`, as the Makefile did), and `debian/make_ags+libraries.sh` reading the version
