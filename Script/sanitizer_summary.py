@@ -6,10 +6,11 @@ Markdown list of the distinct findings, most frequent first (docs/refactor/PLAN.
     python Script/sanitizer_summary.py <directory with the logs> [--repo <checkout root>]
 
 The directory also holds the captured output of the test and game runs: UBSan reports to stderr, not to
-the log files. A finding is a UBSan "runtime error" line, or an ASan error or a direct leak named by the first frame
-of its stack that is in this repository's own code. The same finding in many processes (ctest runs
-every test case in its own) counts once, with the number of logs it is in. Exit code 0: no findings;
-1: findings, listed on stdout.
+the log files. A finding is a UBSan "runtime error" line, or an ASan error or a direct leak named by the
+first frame of its stack that is in this repository's own code; a log with indirect leaks and no direct
+one (leaked blocks that point to each other) is one finding, named by the outermost frame in our code of
+their stacks. The same finding in many processes (ctest runs every test case in its own) counts once,
+with the number of logs it is in. Exit code 0: no findings; 1: findings, listed on stdout.
 """
 import argparse
 import collections
@@ -22,6 +23,7 @@ RUNTIME_ERROR = re.compile(r'(\S+?):(\d+):(?:\d+:)? runtime error: (.*)$')
 ADDRESS = re.compile(r'0x[0-9a-f]+')
 ASAN_ERROR = re.compile(r'ERROR: AddressSanitizer: ([\w-]+)')
 LEAK = re.compile(r'^Direct leak of \d+ byte')
+INDIRECT_LEAK = re.compile(r'^Indirect leak of \d+ byte')
 FRAME = re.compile(r'^#\d+ 0x[0-9a-f]+ in (.+?) (\S+?):(\d+)(?::\d+)?$')
 THIRD_PARTY = re.compile(r'(^|/)(libsrc|libinclude|_deps)/')
 
@@ -31,8 +33,20 @@ def findings_of(lines, root):
     seen = set()
     pending = None  # (sanitizer, kind) of a report whose stack is being read
     fallback = None
+    direct = False
+    in_indirect = False  # the lines being read are the stack of an indirect leak
+    outermost = None  # the last frame in our code of the stacks of indirect leaks: the program's way in
     for raw in lines:
         line = raw.strip()
+        if INDIRECT_LEAK.match(line):
+            in_indirect = True
+        elif not line:
+            in_indirect = False
+        elif in_indirect:
+            m = FRAME.match(line)
+            if m and m.group(2).startswith(root) and not THIRD_PARTY.search(m.group(2)[len(root):]):
+                outermost = '%s at %s:%s' % (m.group(1), m.group(2).replace(root, ''), m.group(3))
+        direct = direct or bool(LEAK.match(line))
         m = RUNTIME_ERROR.search(line)
         if m:
             # one finding per place, whatever the addresses were
@@ -59,6 +73,10 @@ def findings_of(lines, root):
             pending = None
     if pending is not None:
         seen.add((pending[0], '%s: %s' % (pending[1], fallback or 'no stack')))
+    if outermost is not None and not direct:
+        # Blocks that point to each other (a cycle, or a block that points to itself) are leaked with no
+        # direct leak to name them: LSan lists them all as indirect, with nothing to say which is the root
+        seen.add(('LSan', 'leaked blocks that point to each other, no direct leak, under %s' % outermost))
     return seen
 
 
