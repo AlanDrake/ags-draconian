@@ -213,6 +213,29 @@ TEST(Stream, VectorStream)
     in.Close();
 }
 
+// Writing and reading an empty array, which has a null pointer
+TEST(Stream, ZeroSizeIo)
+{
+    std::vector<uint8_t> empty;
+    VectorStream out(empty, kStream_Write);
+    ASSERT_EQ(out.Write(empty.data(), 0), 0u);
+    ASSERT_EQ(out.GetLength(), 0);
+    out.WriteByte(5);
+    ASSERT_EQ(out.Write(nullptr, 0), 0u);
+    ASSERT_EQ(out.GetLength(), 1);
+    out.Close();
+
+    VectorStream in(empty, kStream_Read);
+    ASSERT_EQ(in.Read(nullptr, 0), 0u);
+    ASSERT_EQ(in.GetPosition(), 0);
+    in.Close();
+
+    uint8_t fixed[4] = {};
+    MemoryStream mem(fixed, sizeof(fixed), kStream_Write);
+    ASSERT_EQ(mem.Write(nullptr, 0), 0u);
+    ASSERT_EQ(mem.GetPosition(), 0);
+}
+
 TEST(Stream, DataStreamSection)
 {
     // Storage buffer

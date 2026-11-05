@@ -87,9 +87,9 @@ soff_t MemoryStream::GetPosition() const
 
 size_t MemoryStream::Read(void *buffer, size_t size)
 {
-    if (EOS())
+    if (EOS() || size == 0)
     {
-        return 0;
+        return 0; // also keeps memcpy away from a null buffer
     }
     assert(_len > _pos);
     size_t remain = _len - _pos;
@@ -126,9 +126,9 @@ soff_t MemoryStream::Seek(soff_t offset, StreamSeek origin)
 
 size_t MemoryStream::Write(const void *buffer, size_t size)
 {
-    if (!_buf || (_pos >= _buf_sz))
+    if (!_buf || (_pos >= _buf_sz) || size == 0)
     {
-        return 0;
+        return 0; // also keeps memcpy away from a null buffer
     }
     size = std::min(size, _buf_sz - _pos);
     memcpy(_buf + _pos, buffer, size);
@@ -174,8 +174,10 @@ void VectorStream::Close()
 size_t VectorStream::Write(const void *buffer, size_t size)
 {
     assert(_vec);
-    if (!_vec)
-        return 0u;
+    if (!_vec || size == 0)
+    {
+        return 0u; // an empty array has a null buffer, and memcpy requires a valid one
+    }
 
     if (_pos + size > _len)
     {
