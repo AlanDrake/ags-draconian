@@ -166,15 +166,6 @@ Windows/Installer/Source/*
 Emscripten/emscripten/
 Emscripten/build*/
 
-# ignore tools built from their makefiles
-Tools/agf2dlgasc/agf2dlgasc
-Tools/agfexport/agfexport
-Tools/agspak/agspak
-Tools/crm2ash/crm2ash
-Tools/crmpak/crmpak
-Tools/spritepak/spritepak
-Tools/po2tra/po2tra
-
 # ignore lib sources fetch with download.sh
 libsrc/SDL/
 libsrc/SDL2.framework/
