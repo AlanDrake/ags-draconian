@@ -52,6 +52,8 @@ public:
     };
 
     CompileTimeFunc(SymbolTable &sym) : _sym(sym) {}
+    // The SymbolTable owns the functions through 'unique_ptr<CompileTimeFunc>'
+    virtual ~CompileTimeFunc() = default;
 
     virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) = 0;
 };

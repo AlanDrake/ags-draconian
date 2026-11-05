@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <string>
+#include <utility>
 
 #include "script/cc_internal.h"
 
@@ -221,87 +222,100 @@ AGS::SymbolTable::SymbolTable()
     AddOperator(kKW_As, "as", 130, kNoPrio, false, kNoOpcode);
     // No compile time functions defined here; those are done with special logic.
     AddOperator(kKW_BitAnd, "&", 109, kNoPrio, false, SCMD_BITAND);
-    OperatorCtFunctions(kKW_BitAnd,
-                        new CTF_IntToInt(*this, kKW_BitAnd, [](CodeCell i1, CodeCell i2) { return i1 & i2; }), nullptr);
+    OperatorCtFunctions(
+        kKW_BitAnd, std::make_unique<CTF_IntToInt>(*this, kKW_BitAnd, [](CodeCell i1, CodeCell i2) { return i1 & i2; }),
+        nullptr);
 
     AddOperator(kKW_BitNeg, "~", kNoPrio, 101, false, kSpecialLogic); // bitwise NOT
-    OperatorCtFunctions(kKW_BitNeg, new CTF_IntToInt(*this, kKW_BitNeg, [](CodeCell i1, CodeCell i2) { return ~i2; }),
+    OperatorCtFunctions(kKW_BitNeg,
+                        std::make_unique<CTF_IntToInt>(*this, kKW_BitNeg, [](CodeCell, CodeCell i2) { return ~i2; }),
                         nullptr);
 
     AddOperator(kKW_BitOr, "|", 110, kNoPrio, false, SCMD_BITOR);
-    OperatorCtFunctions(kKW_BitOr, new CTF_IntToInt(*this, kKW_BitOr, [](CodeCell i1, CodeCell i2) { return i1 | i2; }),
-                        nullptr);
+    OperatorCtFunctions(
+        kKW_BitOr, std::make_unique<CTF_IntToInt>(*this, kKW_BitOr, [](CodeCell i1, CodeCell i2) { return i1 | i2; }),
+        nullptr);
 
     AddOperator(kKW_BitXor, "^", 110, kNoPrio, false, SCMD_XORREG);
-    OperatorCtFunctions(kKW_BitXor,
-                        new CTF_IntToInt(*this, kKW_BitXor, [](CodeCell i1, CodeCell i2) { return i1 ^ i2; }), nullptr);
+    OperatorCtFunctions(
+        kKW_BitXor, std::make_unique<CTF_IntToInt>(*this, kKW_BitXor, [](CodeCell i1, CodeCell i2) { return i1 ^ i2; }),
+        nullptr);
 
     AddOperator(kKW_Decrement, "--", 101, 101, false, SCMD_SUB);
     // No compile time functions defined here; those are done with special logic.
 
     AddOperator(kKW_Divide, "/", 103, kNoPrio, false, SCMD_DIVREG, SCMD_FDIVREG);
-    OperatorCtFunctions(kKW_Divide, new CTF_IntDivide(*this), new CTF_FloatDivide(*this));
+    OperatorCtFunctions(kKW_Divide, std::make_unique<CTF_IntDivide>(*this), std::make_unique<CTF_FloatDivide>(*this));
 
     AddOperator(kKW_Equal, "==", 112, kNoPrio, true, SCMD_ISEQUAL, SCMD_ISEQUAL, SCMD_ISEQUAL, SCMD_STRINGSEQUAL);
-    OperatorCtFunctions(kKW_Equal,
-                        new CTF_IntToBool(*this, kKW_Equal, [](CodeCell i1, CodeCell i2) { return i1 == i2; }),
-                        new CTF_FloatToBool(*this, kKW_Equal, [](float f1, float f2) { return f1 == f2; }));
+    OperatorCtFunctions(
+        kKW_Equal, std::make_unique<CTF_IntToBool>(*this, kKW_Equal, [](CodeCell i1, CodeCell i2) { return i1 == i2; }),
+        std::make_unique<CTF_FloatToBool>(*this, kKW_Equal, [](float f1, float f2) { return f1 == f2; }));
 
     AddOperator(kKW_Greater, ">", 112, kNoPrio, true, SCMD_GREATER, SCMD_FGREATER);
-    OperatorCtFunctions(kKW_Greater,
-                        new CTF_IntToBool(*this, kKW_Greater, [](CodeCell i1, CodeCell i2) { return i1 > i2; }),
-                        new CTF_FloatToBool(*this, kKW_Greater, [](float f1, float f2) { return f1 > f2; }));
+    OperatorCtFunctions(
+        kKW_Greater,
+        std::make_unique<CTF_IntToBool>(*this, kKW_Greater, [](CodeCell i1, CodeCell i2) { return i1 > i2; }),
+        std::make_unique<CTF_FloatToBool>(*this, kKW_Greater, [](float f1, float f2) { return f1 > f2; }));
 
     AddOperator(kKW_GreaterEqual, ">=", 112, kNoPrio, true, SCMD_GTE, SCMD_FGTE);
-    OperatorCtFunctions(kKW_GreaterEqual,
-                        new CTF_IntToBool(*this, kKW_GreaterEqual, [](CodeCell i1, CodeCell i2) { return i1 >= i2; }),
-                        new CTF_FloatToBool(*this, kKW_GreaterEqual, [](float f1, float f2) { return f1 >= f2; }));
+    OperatorCtFunctions(
+        kKW_GreaterEqual,
+        std::make_unique<CTF_IntToBool>(*this, kKW_GreaterEqual, [](CodeCell i1, CodeCell i2) { return i1 >= i2; }),
+        std::make_unique<CTF_FloatToBool>(*this, kKW_GreaterEqual, [](float f1, float f2) { return f1 >= f2; }));
 
     AddOperator(kKW_Increment, "++", 101, 101, false, SCMD_ADD);
     // No compile time functions defined here; those are done with special logic.
 
     AddOperator(kKW_Less, "<", 112, kNoPrio, true, SCMD_LESSTHAN, SCMD_FLESSTHAN);
-    OperatorCtFunctions(kKW_Less, new CTF_IntToBool(*this, kKW_Less, [](CodeCell i1, CodeCell i2) { return i1 < i2; }),
-                        new CTF_FloatToBool(*this, kKW_Less, [](float f1, float f2) { return f1 < f2; }));
+    OperatorCtFunctions(
+        kKW_Less, std::make_unique<CTF_IntToBool>(*this, kKW_Less, [](CodeCell i1, CodeCell i2) { return i1 < i2; }),
+        std::make_unique<CTF_FloatToBool>(*this, kKW_Less, [](float f1, float f2) { return f1 < f2; }));
 
     AddOperator(kKW_LessEqual, "<=", 112, kNoPrio, true, SCMD_LTE, SCMD_FLTE);
-    OperatorCtFunctions(kKW_LessEqual,
-                        new CTF_IntToBool(*this, kKW_LessEqual, [](CodeCell i1, CodeCell i2) { return i1 <= i2; }),
-                        new CTF_FloatToBool(*this, kKW_LessEqual, [](float f1, float f2) { return f1 <= f2; }));
+    OperatorCtFunctions(
+        kKW_LessEqual,
+        std::make_unique<CTF_IntToBool>(*this, kKW_LessEqual, [](CodeCell i1, CodeCell i2) { return i1 <= i2; }),
+        std::make_unique<CTF_FloatToBool>(*this, kKW_LessEqual, [](float f1, float f2) { return f1 <= f2; }));
 
     AddOperator(kKW_Minus, "-", 105, 101, false, SCMD_SUBREG, SCMD_FSUBREG);
-    OperatorCtFunctions(kKW_Minus, new CTF_IntMinus(*this),
-                        new CTF_FloatToFloat(*this, kKW_Minus, [](float f1, float f2) { return f1 - f2; }));
+    OperatorCtFunctions(
+        kKW_Minus, std::make_unique<CTF_IntMinus>(*this),
+        std::make_unique<CTF_FloatToFloat>(*this, kKW_Minus, [](float f1, float f2) { return f1 - f2; }));
 
     AddOperator(kKW_Modulo, "%", 103, kNoPrio, false, SCMD_MODREG);
-    OperatorCtFunctions(kKW_Modulo, new CTF_IntModulo(*this), nullptr);
+    OperatorCtFunctions(kKW_Modulo, std::make_unique<CTF_IntModulo>(*this), nullptr);
 
     AddOperator(kKW_Multiply, "*", 103, kNoPrio, false, SCMD_MULREG, SCMD_FMULREG);
-    OperatorCtFunctions(kKW_Multiply, new CTF_IntMultiply(*this),
-                        new CTF_FloatToFloat(*this, kKW_Multiply, [](float f1, float f2) { return f1 * f2; }));
+    OperatorCtFunctions(
+        kKW_Multiply, std::make_unique<CTF_IntMultiply>(*this),
+        std::make_unique<CTF_FloatToFloat>(*this, kKW_Multiply, [](float f1, float f2) { return f1 * f2; }));
 
     AddOperator(kKW_Not, "!", kNoPrio, 101, true, SCMD_NOTREG); // boolean NOT
-    OperatorCtFunctions(kKW_Not, new CTF_IntToBool(*this, kKW_Not, [](int i1, int i2) { return !i2; }), nullptr);
+    OperatorCtFunctions(kKW_Not, std::make_unique<CTF_IntToBool>(*this, kKW_Not, [](int, int i2) { return !i2; }),
+                        nullptr);
 
     AddOperator(kKW_New, "new", kNoPrio, 101, false, kSpecialLogic);
     // No compile time functions defined here, will be handled by special logic
 
     AddOperator(kKW_NotEqual, "!=", 112, kNoPrio, true, SCMD_NOTEQUAL, SCMD_NOTEQUAL, SCMD_NOTEQUAL, SCMD_STRINGSNOTEQ);
-    OperatorCtFunctions(kKW_NotEqual, new CTF_IntToBool(*this, kKW_NotEqual, [](int i1, int i2) { return i1 != i2; }),
-                        new CTF_FloatToBool(*this, kKW_NotEqual, [](float f1, float f2) { return f1 != f2; }));
+    OperatorCtFunctions(
+        kKW_NotEqual, std::make_unique<CTF_IntToBool>(*this, kKW_NotEqual, [](int i1, int i2) { return i1 != i2; }),
+        std::make_unique<CTF_FloatToBool>(*this, kKW_NotEqual, [](float f1, float f2) { return f1 != f2; }));
 
     AddOperator(kKW_Or, "||", 119, kNoPrio, true, SCMD_OR);
     // No compile time functions defined here; those are handled with special logic.
 
     AddOperator(kKW_Plus, "+", 105, 101, false, SCMD_ADDREG, SCMD_FADDREG);
-    OperatorCtFunctions(kKW_Plus, new CTF_IntPlus(*this),
-                        new CTF_FloatToFloat(*this, kKW_Plus, [](float f1, float f2) { return f1 + f2; }));
+    OperatorCtFunctions(
+        kKW_Plus, std::make_unique<CTF_IntPlus>(*this),
+        std::make_unique<CTF_FloatToFloat>(*this, kKW_Plus, [](float f1, float f2) { return f1 + f2; }));
 
     AddOperator(kKW_ShiftLeft, "<<", 107, kNoPrio, false, SCMD_SHIFTLEFT);
-    OperatorCtFunctions(kKW_ShiftLeft, new CTF_IntShiftLeft(*this), nullptr);
+    OperatorCtFunctions(kKW_ShiftLeft, std::make_unique<CTF_IntShiftLeft>(*this), nullptr);
 
     AddOperator(kKW_ShiftRight, ">>", 107, kNoPrio, false, SCMD_SHIFTRIGHT);
-    OperatorCtFunctions(kKW_ShiftRight, new CTF_IntShiftRight(*this), nullptr);
+    OperatorCtFunctions(kKW_ShiftRight, std::make_unique<CTF_IntShiftRight>(*this), nullptr);
 
     AddOperator(kKW_Tern, "?", 120, kNoPrio, false, kSpecialLogic); // note, operator and keyword
     // No compile time functions defined here; those are handled with special logic.
@@ -945,11 +959,20 @@ AGS::Symbol AGS::SymbolTable::AddOperator(Predefined kw, std::string const &name
     return kw;
 }
 
-void AGS::SymbolTable::OperatorCtFunctions(Predefined kw, CompileTimeFunc *int_ct_func, CompileTimeFunc *float_ct_func)
+void AGS::SymbolTable::OperatorCtFunctions(Predefined kw, std::unique_ptr<CompileTimeFunc> int_ct_func,
+                                           std::unique_ptr<CompileTimeFunc> float_ct_func)
 {
     SymbolTableEntry &entry = entries.at(kw);
-    entry.OperatorD->IntCTFunc = int_ct_func;
-    entry.OperatorD->FloatCTFunc = float_ct_func;
+    entry.OperatorD->IntCTFunc = int_ct_func.get();
+    entry.OperatorD->FloatCTFunc = float_ct_func.get();
+    if (int_ct_func)
+    {
+        _compileTimeFuncs.push_back(std::move(int_ct_func));
+    }
+    if (float_ct_func)
+    {
+        _compileTimeFuncs.push_back(std::move(float_ct_func));
+    }
 }
 
 AGS::Symbol AGS::SymbolTable::AddVartype(Predefined kw, std::string const &name, size_t size, bool is_integer_vartype)

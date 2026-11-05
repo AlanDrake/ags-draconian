@@ -324,3 +324,22 @@ TEST_F(SymbolTable, EntryAssignSelfKeepsDescriptions)
     ASSERT_NE(nullptr, entry.LiteralD);
     EXPECT_EQ(5, entry.LiteralD->Value);
 }
+
+TEST_F(SymbolTable, OperatorCompileTimeFuncsAreOwnedByTable)
+{
+    // '+' has functions for ints and floats, '%' only for ints, 'as' has none
+    ASSERT_TRUE(symt.IsOperator(AGS::kKW_Plus));
+    EXPECT_NE(nullptr, symt[AGS::kKW_Plus].OperatorD->IntCTFunc);
+    EXPECT_NE(nullptr, symt[AGS::kKW_Plus].OperatorD->FloatCTFunc);
+    EXPECT_NE(nullptr, symt[AGS::kKW_Modulo].OperatorD->IntCTFunc);
+    EXPECT_EQ(nullptr, symt[AGS::kKW_Modulo].OperatorD->FloatCTFunc);
+    EXPECT_EQ(nullptr, symt[AGS::kKW_As].OperatorD->IntCTFunc);
+
+    // The function works on the table that owns it
+    AGS::Symbol const three = symt.FindOrMakeLiteral("3", AGS::kKW_Int, 3);
+    AGS::Symbol const four = symt.FindOrMakeLiteral("4", AGS::kKW_Int, 4);
+    AGS::Symbol result = AGS::kKW_NoSymbol;
+    symt[AGS::kKW_Plus].OperatorD->IntCTFunc->Evaluate(three, four, result);
+    ASSERT_TRUE(symt.IsLiteral(result));
+    EXPECT_EQ(7, symt[result].LiteralD->Value);
+}

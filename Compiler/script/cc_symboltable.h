@@ -16,6 +16,7 @@
 #include <bitset>
 #include <climits>
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -331,9 +332,9 @@ struct SymbolTableEntry : public SymbolTableConstant
     struct OperatorDesc
     {
         CodeCell IntOpcode = kNoOpcode;
-        CompileTimeFunc *IntCTFunc = nullptr;
+        CompileTimeFunc *IntCTFunc = nullptr; // not owned, the SymbolTable owns it (see OperatorCtFunctions())
         CodeCell FloatOpcode = kNoOpcode;
-        CompileTimeFunc *FloatCTFunc = nullptr;
+        CompileTimeFunc *FloatCTFunc = nullptr; // not owned, the SymbolTable owns it
         CodeCell DynOpcode = kNoOpcode;
         CodeCell StringOpcode = kNoOpcode;
         bool Boolean = false;
@@ -397,6 +398,10 @@ private:
     mutable std::unordered_map<std::string, int> _findCache;
     mutable std::unordered_map<std::pair<Vartype, VartypeType>, Vartype, VVTTHash> _vartypesCache;
 
+    // Owns the compile time functions that the operator entries point to.
+    // Declared before 'entries' so that it is destroyed after them
+    std::vector<std::unique_ptr<CompileTimeFunc>> _compileTimeFuncs;
+
     // add the "No Symbol" symbol to the symbol table at [kw].
     Symbol AddNoSymbol(Predefined kw, std::string const &name);
 
@@ -418,8 +423,9 @@ private:
                        CodeCell int_opcode, CodeCell float_opcode = kNoOpcode, CodeCell dyn_opcode = kNoOpcode,
                        CodeCell string_opcode = kNoOpcode);
 
-    // Augment the operator symbol with compile time functions
-    void OperatorCtFunctions(Predefined kw, CompileTimeFunc *int_ct_func, CompileTimeFunc *float_ct_func);
+    // Augment the operator symbol with compile time functions; the symbol table takes ownership of them
+    void OperatorCtFunctions(Predefined kw, std::unique_ptr<CompileTimeFunc> int_ct_func,
+                             std::unique_ptr<CompileTimeFunc> float_ct_func);
 
     // Add the vartype symbol to the symbol table at [kw].
     Symbol AddVartype(Predefined kw, std::string const &name, size_t size, bool is_integer_vartype = false);
@@ -440,6 +446,9 @@ public:
     std::vector<SymbolTableEntry> localEntries;
 
     SymbolTable();
+    // The compile time functions refer to the table that created them, so it is neither copied nor moved
+    SymbolTable(SymbolTable const &) = delete;
+    SymbolTable &operator=(SymbolTable const &) = delete;
 
     // Don't reset _findCache: It isn't rebuilt automatically; Find() and FindOrAdd() will no longer work.
     inline void ResetCaches() const { _vartypesCache.clear(); };
