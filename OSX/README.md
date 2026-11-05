@@ -86,21 +86,15 @@ The project also requires sources of library dependencies, either using the `lib
 After this, load the `OSX/xcode/ags.xcworkspace` file in Xcode, it will enable building AGSKit, which is a self-contained framework like build of AGS Engine, and the `ags` app target, which you can customize with your own game, using the `Resources/` directory, in the same way the CMake build works.
 
 
-## Using the Makefile
+## Using SDL2 and SDL_sound installed on your system
 
-You should prefer using the CMake or Xcode project, as the Makefile build is not intended for porting your own game, but for running AGS locally. 
+The CMake build above fetches and builds its libraries. There is no Makefile build any more: to build with
+the SDL2 and SDL_sound you have installed (for example to run AGS locally), tell CMake to use them. The xiph
+libraries (ogg, theora, vorbis) always come from `OSX/lib` on macOS.
 
-You will need to install the necessary xiph libraries (theora, ogg and vorbis):
-
-    brew install theora
-    brew install libogg
-    brew install libvorbis
-    
-Additionally, you also need SDL2
+Install SDL2, at least 2.24.1. If you have problems updating sdl2 with brew from a previous version, you can force it using `brew link --overwrite sdl2`.
 
     brew install sdl2
-    
-Make sure you have at least SDL 2.24.1 installed, if you have problems updating sdl2 with brew from a previous version, you can force it using `brew link --overwrite sdl2`.
 
 The SDL_sound available in brew is not really well updated and it's a bit different from what's in the repository, using a different timidity and libmodplug. It's best to build it and install it from source. You will need CMake for this.
 
@@ -112,9 +106,10 @@ The SDL_sound available in brew is not really well updated and it's a bit differ
     cd /tmp/SDL_sound
     mkdir /tmp/SDL_sound/build
     cd /tmp/SDL_sound/build
-    cmake -DSDL2_DIR=/usr/local/lib/cmake/SDL2 -DSDL_SOUND  -DSDLSOUND_DECODER_MIDI=1 ..  
+    cmake -DSDL2_DIR=/usr/local/lib/cmake/SDL2 -DSDL_SOUND  -DSDLSOUND_DECODER_MIDI=1 ..
     make && make install
 
-Now you can go to the `Engine/` directory the cloned ags repository, and build it.
+Now configure and build AGS from its root directory:
 
-    make
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DAGS_USE_LOCAL_SDL2=ON -DAGS_USE_LOCAL_SDL2_SOUND=ON
+    cmake --build build

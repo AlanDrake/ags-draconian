@@ -63,7 +63,6 @@ Regarding commit title, we suggest to start it with a name of a program you are 
   * "Plugin:" (or name of the particular engine plugin)
   * (Name of a third party library) - changes to the library code which we have embedded in project
   * "ci: " - changes to continuous intergration scripts
-  * "Makefile" - changes to Makefiles
   * "CMake" - changes to CMake scripts
   * "Readme", etc - changes to doc files (readme, changelog, and so forth)
 

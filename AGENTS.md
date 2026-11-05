@@ -55,7 +55,12 @@ Entry points, in reading order:
   `Script/compare_builds.py` proves byte parity with the Editor's build; `ci/corpus/run.py` runs
   a private game through every room. The Editor still builds with its C# code until task 6.7d.
 - Windows 7+ only; PSP is gone (3.1; `eOS_PSP` and the `"psp"` config name stay for the script ABI
-  and engine config); CMake-only native builds are planned (D5), not done.
+  and engine config).
+- CMake is the only build system for the engine, `agscc` and the tools (D5; 3.2a/b, 2026-11-05): the
+  Makefiles, `make.yml` and `dh --buildsystem makefile` are gone, `debian/rules` calls CMake, CI installs
+  the tools with `cmake --install`. Adding an engine `.cpp` means editing `Engine/CMakeLists.txt` (and
+  the native `Solutions/*.vcxproj` until 3.2c). Two standalone plugin Makefiles stay
+  (`Plugins/agslua`, `Plugins/agspalrender`, phase 7).
 - Upstream is read-only: `git fetch upstream`, cherry-pick with `-x`, record in `docs/UPSTREAM.md`.
 
 ## Where things are (fork)

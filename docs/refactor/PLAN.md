@@ -79,7 +79,9 @@ Done: phases 0 and 2 (with 2.8 and the pre-push script, unpushed), 7.1a–m and 
 and re-cut by U.3 as #3186–#3190), the agent docs (0.6, upstream PR #3185), 1.2 (contract guard
 tests, 2026-11-04), U.5 (the save fix found by 1.2, upstream PR #3191), the 6.0 study (2026-11-04,
 EDITOR-SPLIT.md: 6.0 re-scoped, 6.7c decided, U.6 defined), 1.3 (engine unit tests, 2026-11-05,
-on its branch). Phase 1: 1.5 is the only open task. Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
+on its branch), 3.2a/b (Makefiles, `make.yml` and `dh --buildsystem makefile` replaced by CMake;
+2026-11-05, unpushed, the Linux, macOS and Debian jobs are unconfirmed until CI runs). Phase 1: 1.5
+is the only open task. Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
 guards it (1.2, 1.3). Reordered 2026-11-03 after reading upstream's plans (ALIGNMENT.md): upstream
 review takes weeks, so the offers (U.3) go out first and the fork-only divergence (3.2, 3.4, 5.3)
 comes after they are closed.
@@ -88,8 +90,8 @@ comes after they are closed.
 |---|---|---|---|
 | 1 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
 | 2 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
-| 3 | **1.3 to merge:** `1.3-engine-tests` (15 commits on `5aaa1e65c`) was tested by the user in a game through the editor and engine built from it (`.compare/msb-13`); merge and push when ready. **U.7 waiting:** PR #3193 open since 2026-11-05 | The branch is the safety net phases 3 to 5 wait for | user || 4 | **3.2a/b:** tool and engine Makefiles to CMake, Debian packaging | Fork-only; after U.3, because every port re-adds Makefile entries while upstream has them | Sonnet 5.5, `medium` |
-| 5 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
+| 3 | **1.3 to merge:** `1.3-engine-tests` (15 commits on `5aaa1e65c`) was tested by the user in a game through the editor and engine built from it (`.compare/msb-13`); merge and push when ready. **U.7 waiting:** PR #3193 open since 2026-11-05 | The branch is the safety net phases 3 to 5 wait for | user |
+| 4 | **2.4** clang-tidy gate, **1.5** sanitizers | Useful, not urgent; each adds CI time | Sonnet 5.5, `medium` |
 
 Open items found while doing finished tasks (details in LOG.md): 0.4's CodeQL setting, the
 `D3DCOMPILER_47`/Windows 7 question and the macOS 10.9 deployment target; 1.4's unfixed `agfreader`
@@ -207,6 +209,10 @@ the corpus run (1.4).
   removed `Common/game/interactions.cpp`). Build those jobs with CMake (`-DAGS_BUILD_TOOLS=1
   -DAGS_BUILD_ENGINE=0`, as the auto-test job does).
   *Done when:* adding an engine `.cpp` means editing one file.
+  *Status (2026-11-05):* 3.2a (tools, `agscc`) and 3.2b (engine, plugins, `debian/`, `make.yml`) are
+  done and unpushed; what remains is 3.2c, and what only CI can confirm: the Linux Tools, macOS
+  Tools and Debian jobs, and `-DAGS_USE_LOCAL_*` with the installed libraries (LOG.md). Kept:
+  `Plugins/agslua/Makefile*`, its only build file; the user decides after the refactor.
 - [ ] **3.3 Legacy compiler** (D3). The legacy compiler is gone (2026-11-03, LOG.md).
   Left: **`Editor/AGS.CScript.Compiler`**. Its compiler parts were never finished and are unused;
   its **preprocessor is used** by the editor's build (`AGSEditor.cs`,

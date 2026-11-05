@@ -91,7 +91,7 @@ are fixing a bug in such dependency or any other reason really.
 
 As an example, if you are building on Windows and want to link to your local SDL2.dll, you can do so by using:
 
-    cmake -DCMAKE_BUILD_TYPE=Debug -DSDL2_DIR="C:\\Lib\\SDL2" -DAGS_USE_LOCAL_SDL=1
+    cmake -DCMAKE_BUILD_TYPE=Debug -DSDL2_DIR="C:\\Lib\\SDL2" -DAGS_USE_LOCAL_SDL2=1
 
 The available flags are:
 
@@ -108,6 +108,17 @@ The available flags are:
 
 While default fetching scripts static link AGS to required libraries, when using local libraries AGS should dynamic link
 when possible.
+
+
+## Installing
+
+CMake is the only build system for the native code (there are no Makefiles). `cmake --install <build dir>`
+copies the built programs to `<prefix>/bin`: `ags` (the engine), and with `AGS_BUILD_TOOLS` also `agscc` and
+the tools (`agf2dlgasc`, `agf2dta`, `agfexport`, `agsbuild`, `agspak`, `crmbuild`, `crmpak`, `po2tra`,
+`spriteimport`, `spritepak`). The prefix is `CMAKE_INSTALL_PREFIX` (`/usr/local` on Linux and macOS), or
+`--prefix <dir>` on the command line.
+
+On Linux the Debian package is built with CMake as well, see `debian/rules`.
 
 
 ### AGS specific configuration options

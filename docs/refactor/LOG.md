@@ -557,6 +557,77 @@ paths and toolsets. iOS and FreeBSD stay. Also: delete the superseded `ags4-fram
   25 → 503 and 500 → 502), and `run.py` charges the rest of the run, errors included, to the start
   room, because it only checks that `Loading room <n>` appears. It should report the rooms loaded.
 
+### 3.2a/b Makefiles to CMake
+
+*Definition:* split of 3.2 (D5) chosen when the task was done. **3.2a, tools:** `Tools/*/Makefile` and
+`Compiler/Makefile` go; the `Linux Tools` job (`ci.yml`) and the macOS tools job (`macos.yml`) build
+and install with CMake. **3.2b, engine and Debian:** `Engine/Makefile*`, the plugins' `Makefile` and
+`Makefile-objs`, `make.yml` go; `debian/` builds through CMake. 3.2c (the native `.vcxproj`) is not
+part of it.
+
+*Status (2026-11-05):* done, unpushed; the Linux, macOS and Debian jobs have not run.
+- Removed: 9 tool Makefiles, `Compiler/Makefile`, `Engine/Makefile`, `Makefile-defs.{linux,osx,allegro,freetype}`,
+  `Makefile-objs`, `Makefile` and `Makefile-objs` of `AGSSpriteFont`, `ags_parallax`, `ags_snowrain`,
+  `agsblend`, `agsflashlight`, and `.github/workflows/make.yml` (its artifact `ubuntu-make-binaries-*` had no
+  consumer). **Kept:** `Plugins/agslua/Makefile*` (its only build file: no `msvc/` project, not in the
+  engine) and `Plugins/agspalrender/Makefile` (above): standalone plugin builds, phase 7. The five
+  deleted plugin Makefiles built standalone `.so` files; the plugins are built into the engine by CMake
+  and the standalone Windows projects remain.
+- Changed: `linux-make-tools` is `linux-tools` and runs `cmake` configure, build, `--install` in the builder
+  image (`RelWithDebInfo` = the Makefiles' `-O2 -g`, no LTO), so a failed tool fails the job; the macOS job
+  does the same with `Release`. Archive names and the layout inside (`bin/` contents) are unchanged. The
+  archives now hold 11 programs instead of the 4 that built (`agscc`, `agspak`, `po2tra`, `spritepak`): new
+  are `agf2dlgasc`, `agf2dta`, `agfexport`, `agsbuild`, `crmpak`, `spriteimport` (their Makefiles failed,
+  silently with the earlier `find -execdir make`) and `crmbuild` (it never had one). `debian/rules` configures, builds and installs with
+  `cmake` (`RelWithDebInfo`, `AGS_USE_LOCAL_{SDL2,SDL2_SOUND,OGG,THEORA,VORBIS}=ON`,
+  `FETCHCONTENT_FULLY_DISCONNECTED=ON`, `DEB_BUILD_OPTIONS=rpath=` becomes `CMAKE_INSTALL_RPATH=$ORIGIN/<rpath>`),
+  `debian/ags.install` takes `usr/bin/ags` from `debian/tmp`, `debian/control` needs `cmake (>= 3.16)`.
+  `Engine/CMakeLists.txt` defines `AGS_CASE_SENSITIVE_FILESYSTEM` for the engine target on Linux (below).
+  READMEs (`CMAKE.md`, `debian/`, `OSX/`), `CONTRIBUTING.md` and `AGENTS.md` follow.
+- Measured, source lists (read statically from both sides, `.compare/helpers/srcdiff.py`; the CMake
+  configure for a Linux target cannot run on Windows): `agscc` 34 files in both. Engine, Linux and
+  macOS (Windows-only files left out on both sides): the Makefile compiles 396 files, CMake 390; the
+  Makefile-only 13 are the 11 `apeg` MPEG audio files (each is `#ifndef DISABLE_MPEG_AUDIO`,
+  defined for `apeg` by CMake, so empty), FreeType's generic `src/base/ftsystem.c` (a second
+  `FT_Stream_Open` next to `builds/unix/ftsystem.c`, which `ar` never pulled in) and `psnames.c`
+  (`#include "psmodule.c"`, which CMake compiles directly). CMake-only 7: `psmodule.c`, the other systems'
+  platform files (`acpland`, `acplbsd`, `acplios`, `acplmac` or `acpllnx`, `acpemscripten`; each
+  guarded) and `agstouch` (iOS code, a no-op elsewhere). The Makefile's
+  `BASE_subdirs` listed `ac/statobj`, `font`, `setup`, which have no sources. Tools: every Makefile-only
+  file is `miniz`, `stb` or `tinyxml2`, which CMake links as libraries; each tool's CMake target compiles 23
+  to 44 files its Makefile did not (`xml_fields.cpp`, `data_file_writer.cpp`, ...).
+- Measured, defines and flags: all carried but one. `ALLEGRO_STATICLINK`, `AL_LIBTYPE_STATIC`,
+  `FT2_BUILD_LIBRARY`, `HAVE_UNISTD_H`/`HAVE_FCNTL_H`, `BUILTIN_PLUGINS`, `HAVE_FSEEKO`, `AGS_HAS_CD_AUDIO`,
+  `_FILE_OFFSET_BITS=64`, `DISABLE_MPEG_AUDIO`, `BUILD_STR`, `-fsigned-char -fno-strict-aliasing -fwrapv`,
+  `-Werror=write-strings`, `-Werror=delete-non-virtual-dtor` are set by CMake on the same targets.
+  **Missing: `AGS_CASE_SENSITIVE_FILESYSTEM` for `Engine/ac/file.cpp`** (CMake set it for `common` only; the
+  Linux Makefile for every file, so the shipped Debian engine had the case-sensitive branch and the CMake
+  Linux builds did not): added for the engine on Linux. Not carried, no reader or only a diagnostic:
+  `LINUX_VERSION`, `MAC_VERSION`, `RTLD_NEXT` (no use anywhere), the `USE_TREMOR` switch (apeg only,
+  off), `-rdynamic` and `--as-needed` (engine uses `dlsym` on plugin handles only), `-Werror=format`,
+  `-Werror=format-security`, `-Werror=implicit-function-declaration`, `-Wno-unused-value`. Android and
+  FreeBSD do not get the case-sensitive define either, as before.
+- Measured, install (`cmake --install` on Windows, Ninja Release, a scratch prefix): `bin/` holds
+  `ags`, `agscc` and the 10 tools, nothing else (no library from the `EXCLUDE_FROM_ALL` subprojects).
+  The rules were already there; names and `bin/` are the Makefiles'. Also on Windows: full build and
+  `ctest` (1031 tests passed). `AGS_USE_LOCAL_SDL2=ON` with a real SDL2 install configures and links
+  `SDL2.lib` (the installed config sets `SDL2_LIBRARIES`, not `SDL2_LIBRARY`; SDL2 reaches the link
+  through SDL2_sound's static target either way).
+- Not verified (no GCC, `make`, Docker or dpkg here; CI only): the three CMake jobs above in the buster
+  images (GCC 8, i386); `debian/rules` as a whole (`make` was not run on it) including the install into
+  `debian/tmp`, `dh_install` taking `usr/bin/ags`, `dh_strip`/`ags-dbg` and the rpath build used by
+  `debian/build.sh`; `AGS_USE_LOCAL_OGG/THEORA/VORBIS/SDL2_SOUND` with pkg-config and the image's
+  SDL_sound (pin `474dbf7`, newer than the fetched `3a41c3d`). Unchanged by reading, not by a run:
+  no dpkg-buildflags (hardening) in either build (the old rules ran `make` directly and the Makefile
+  set `CFLAGS :=`; the new ones run `cmake` directly). The Debian job
+  runs only in a full CI run now that `make.yml` (every push) is gone.
+- Stale leftovers fixed with it: the `.gitignore` block for tools built in their folders,
+  `build_linux_make_task` in `.disabled.cirrus.yml`, `libfreetype6-dev` in `debian/control` (FreeType
+  is built from `libsrc`, as the Makefile did), and `debian/make_ags+libraries.sh` reading the version
+  from `Common/core/def_version.h` (now `Common/ac/`). That script still builds in Debian 8 chroots
+  (GCC 4.9, CMake 3.0), which cannot build C++17 code: not run, most likely dead since the fork went
+  to C++17. `Plugins/agslua/Makefile*`: the user decides after the refactor.
+
 ### 3.3 Legacy compiler
 
 *Definition, moved from PLAN.md on 2026-11-04:*
