@@ -19,10 +19,13 @@ change was already in the fork: own work sent upstream, a PR branch taken before
 it, or a `master` commit that came in with a local branch), `skipped`. Merge commits get no row.
 
 Reviewed through `e709f84a0` (`master` merged into `ags4`, 2026-11-04). Start the next review
-at `git log e709f84a0..upstream/ags4`.
+at `git log e709f84a0..upstream/ags4`. The two dialog fixes in the first rows were taken ahead of
+that review (2026-11-05); the other commits up to `2c15ef187` are not reviewed yet.
 
 | Upstream commit | Status | Local commit | Notes |
 |---|---|---|---|
+| `6ba515a06` | picked | `07bf2fa82` | dialogs as separate files, broken since `6674e9b39` and `2e99ab58c`: files created, deleted and renamed with the dialog, XML saved from the Dialog editor, copy and paste, dialog files in game templates; dialog scripts are converted on every build for now (upstream TODO: file timestamps). `DialogEditor.cs`, `DialogScriptConverter.cs` and `Utilities.cs` conflicted as whole files, hunks re-applied with `git apply`, diff identical to upstream |
+| `b9e8aeb0c` | picked | `06be6a1f0` | Dialog editor marked as modified; `DialogEditor.cs` as above |
 | `d84e0aa54`, `2efc93ede` | adapted | `0e2937af5` | PR #3183, GUI previews composited with alpha before GDI draws them; replaces the fork's `ags-fixantialiaseditor` (reverted in `72e1af39b`); ags4's blender API as the merge `e709f84a0` resolved it |
 | `35ad81db0` | present | `bef3b8dfc` | fork work sent upstream (`GetKeyValue`) |
 | `ad38522e2` | adapted | `e0f775fed` | tests only: the writer change is the fork's `161d22ed9`; the expectations are the merge's (25-character item name, no old-style `\[`) |
