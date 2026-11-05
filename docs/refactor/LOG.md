@@ -624,9 +624,11 @@ part of it.
 - Stale leftovers fixed with it: the `.gitignore` block for tools built in their folders,
   `build_linux_make_task` in `.disabled.cirrus.yml`, `libfreetype6-dev` in `debian/control` (FreeType
   is built from `libsrc`, as the Makefile did), and `debian/make_ags+libraries.sh` reading the version
-  from `Common/core/def_version.h` (now `Common/ac/`). That script still builds in Debian 8 chroots
-  (GCC 4.9, CMake 3.0), which cannot build C++17 code: not run, most likely dead since the fork went
-  to C++17. `Plugins/agslua/Makefile*`: the user decides after the refactor.
+  from `Common/core/def_version.h` (now `Common/ac/`) and building in Debian 8 chroots (GCC 4.9, no
+  C++17), now Debian 10 as the CI image. Not run, and not enough by itself: Debian 10 packages
+  CMake 3.13 (3.16 needed) and no SDL_sound for SDL2 (the Makefile build needed that too), so the
+  chroots need both installed, as `ci/linux/Dockerfile` does. CI builds the bundle with
+  `debian/build.sh` in that image. `Plugins/agslua/Makefile*`: the user decides after the refactor.
 
 ### 3.3 Legacy compiler
 
