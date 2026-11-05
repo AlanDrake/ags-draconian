@@ -138,6 +138,27 @@ private:
 - `Sc_*` wrappers only marshal arguments; logic goes in the `Type_Member` function, or better a
   member of the engine object.
 
+### Portability
+
+The local build is MSVC; CI also builds with GCC (8 in the Linux image), Clang with libc++,
+Emscripten, the Android NDK and Apple Clang (macOS 10.9 target). Each rule is a CI break that
+MSVC let through (LOG.md task in brackets).
+
+- Include the header of every name used, C library names too (`size_t`, `time_t`, `atoi`,
+  `assert`, `SIZE_MAX`, `uint32_t`): MSVC's library includes them transitively, libstdc++ and
+  libc++ do not [2.6, 2.8]. The header checks compile headers, not `.cpp` files.
+- No `std::filesystem`: Apple's libc++ has none below macOS 10.15. Use `Directory`, `File` and
+  `Path` [1.3].
+- A CMake target whose code uses `std::thread` links `Threads::Threads`: before glibc 2.34 threads
+  are in libpthread [3.2].
+- Don't bind an in-class `static const` member (`String::NoIndex`) to a reference: without an
+  out-of-class definition MSVC folds it, GCC and Clang fail to link [7.1o]. See "Tests".
+- OpenGL code that Android and Emscripten build as GLES2 (`Engine/gfx/ali3dogl.cpp`) calls no
+  fixed-function API (`glColor4f`) outside a desktop-only `#if` [0.4].
+- A repo-wide edit (a removed `using`, a rename) reaches files Windows does not compile
+  (`platform/` other than `windows`, `*_posix.*`, non-Windows `#if` branches): search them by
+  hand, the local build won't [2.5].
+
 ### Comments
 
 - Say **why**, or what isn't obvious; don't repeat the code. Every public function and class gets a
@@ -154,6 +175,10 @@ private:
 - GoogleTest, in the module's `test/` folder, as `<unit>_test.cpp`; names
   `TEST(Unit, BehaviourUnderCondition)` (`TEST(SpriteFile, ReadsCompressedLzwSprite)`).
 - A bug fix comes with a test that fails without it, or the commit message says why it can't.
+- `EXPECT_EQ`/`EXPECT_NE` take references: compare an in-class constant with `==`/`!=` inside
+  `EXPECT_TRUE`, as `string_test.cpp` does ("Portability").
+- A case that passes invalid input on purpose runs only without asserts: `#ifdef NDEBUG` around
+  the body, `GTEST_SKIP()` otherwise (`sprite_cache_test.cpp`): debug builds assert on that input [1.3].
 
 ## C# (Editor)
 

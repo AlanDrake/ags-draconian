@@ -85,3 +85,21 @@ Editor changed; `clang-format --dry-run -Werror` on all tracked C/C++ files; the
 `compare_objects.py` for mechanical commits; `compare_builds.py` for tool or `agfreader`
 changes; the header check with a strict standard library before repo-wide pushes (CI should
 confirm, not discover).
+
+**What has broken CI so far**, most frequent first (LOG.md 0.4, 2.6, 2.8, 3.2; each is a rule now):
+
+- **MSVC accepts what GCC, Clang, libc++, GLES2 or an old glibc reject** (7 breaks). A green local
+  build covers Windows only; STYLE.md "Portability" lists the traps. When a change touches code
+  Windows does not compile (`platform/` other than `windows`, `*_posix.*`, non-Windows `#if`
+  branches, OpenGL code shared with GLES2), mechanical repo-wide changes included, build the engine
+  with emsdk, and name in the report what no local build compiled (the Linux-, macOS- and
+  Android-only files).
+- **A source file or setting in one build description only** (3 breaks). A new, moved or deleted
+  `.cpp`, tests included, goes in the `CMakeLists.txt` and in the `Solutions/` `.vcxproj` and
+  `.vcxproj.filters` (until 3.2c); the `msbuild` stage of `prepush.py` finds a miss, so run it.
+- **Workflow, Docker or CMake changes for jobs with no local equivalent** (3 breaks: the Linux
+  builder image with Debian 10, GCC 8, glibc 2.28 and no downloads on i386; the clang job; Android;
+  macOS). Do not send them through the full matrix: ask the user for a probe branch (a name outside
+  `ags4draconian*`, a workflow with only the affected jobs, `MAKEFLAGS=-k`), then one full run.
+- **On a red run** read every failed job, reproduce what can be reproduced, fix in one batch, push
+  once. One speculative fix per run is how 2.6 took four pushes.
