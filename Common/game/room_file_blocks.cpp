@@ -80,7 +80,8 @@ HError RoomBlockReader::ReadBlock(Stream *in, int block_id, const String &ext_id
 
 void WriteRoomBlock(const RoomData *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out)
 {
-    WriteExtBlock(ext_id, [room, writer](Stream *out) { writer(room, out); }, kDataExt_NumID8 | kDataExt_File64, out);
+    WriteExtBlock(
+        ext_id, [room, writer](Stream *block_out) { writer(room, block_out); }, kDataExt_NumID8 | kDataExt_File64, out);
 }
 
 void WriteRoomBlock(const String &ext_id, const std::vector<uint8_t> &data, Stream *out)
@@ -90,7 +91,8 @@ void WriteRoomBlock(const String &ext_id, const std::vector<uint8_t> &data, Stre
 
 void WriteRoomBlock(const RoomData *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out)
 {
-    WriteExtBlock(block, [room, writer](Stream *out) { writer(room, out); }, kDataExt_NumID8 | kDataExt_File64, out);
+    WriteExtBlock(
+        block, [room, writer](Stream *block_out) { writer(room, block_out); }, kDataExt_NumID8 | kDataExt_File64, out);
 }
 
 void WriteRoomBlock(RoomFileBlock block, const std::vector<uint8_t> &data, Stream *out)

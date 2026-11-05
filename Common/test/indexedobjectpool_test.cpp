@@ -213,8 +213,8 @@ TEST(IndexedObjectPool, InvalidIndexIsMax)
     ASSERT_EQ(pool.IsInUse(1), false);
 
 
-    const int index3 = pool.Add(40);
-    const int index4 = pool.Add(50);
+    pool.Add(40);
+    pool.Add(50);
     ASSERT_EQ(pool.GetCount(), 4u);
     ASSERT_EQ(pool.IsFree(0), false);
     ASSERT_EQ(pool.IsFree(1), false);

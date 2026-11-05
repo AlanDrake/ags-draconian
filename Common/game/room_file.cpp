@@ -686,7 +686,7 @@ HRoomFileError ReadRoomHeader(RoomDataSource &src)
 
 void WriteRoomHeader(Stream *out, RoomFileVersion data_ver, const String &compiled_with)
 {
-    out->WriteInt16(0xFFFF); // old 16-bit version field, mark as extended version
+    out->WriteInt16(-1); // 0xFFFF: old 16-bit version field, mark as extended version
     out->Write(RoomDataSource::Signature.GetCStr(), RoomDataSource::Signature.GetLength());
     out->WriteInt32(data_ver);
     StrUtil::WriteString(compiled_with, out);

@@ -71,7 +71,7 @@ static HError ReadFontOverrides(Translation &tra, Stream *in)
     const uint32_t override_count = static_cast<uint32_t>(in->ReadInt32());
     // The following font data corresponds to particular game data version;
     // this value may be used to know how many font info extensions to read
-    const GameDataVersion data_ver = static_cast<GameDataVersion>(in->ReadInt32());
+    [[maybe_unused]] const GameDataVersion data_ver = static_cast<GameDataVersion>(in->ReadInt32());
 
     for (uint32_t i = 0; i < override_count; ++i)
     {
@@ -310,7 +310,7 @@ void WriteFontOverrides(const Translation &tra, Stream *out)
         out->WriteInt32(finfo.LineSpacing);
         // This corresponds to the "v360_fonts" extension in game data
         out->WriteInt32(finfo.AutoOutlineThickness);
-        static_cast<enum FontInfo::AutoOutlineStyle>(out->WriteInt32(finfo.AutoOutlineStyle));
+        out->WriteInt32(finfo.AutoOutlineStyle);
         out->WriteInt32(finfo.CharacterSpacing);
         out->WriteInt32(finfo.CustomHeight);
         out->WriteInt32(0); // reserved
@@ -323,13 +323,15 @@ void WriteFontOverrides(const Translation &tra, Stream *out)
 inline void WriteTraBlock(const Translation &tra, TraFileBlock block,
                           void (*writer)(const Translation &tra, Stream *out), Stream *out)
 {
-    WriteExtBlock(block, [&tra, writer](Stream *out) { writer(tra, out); }, kDataExt_NumID32 | kDataExt_File32, out);
+    WriteExtBlock(
+        block, [&tra, writer](Stream *block_out) { writer(tra, block_out); }, kDataExt_NumID32 | kDataExt_File32, out);
 }
 
 inline void WriteTraBlock(const Translation &tra, const String &ext_id,
                           void (*writer)(const Translation &tra, Stream *out), Stream *out)
 {
-    WriteExtBlock(ext_id, [&tra, writer](Stream *out) { writer(tra, out); }, kDataExt_NumID32 | kDataExt_File32, out);
+    WriteExtBlock(
+        ext_id, [&tra, writer](Stream *block_out) { writer(tra, block_out); }, kDataExt_NumID32 | kDataExt_File32, out);
 }
 
 void WriteTraData(const Translation &tra, std::unique_ptr<Stream> &&out)

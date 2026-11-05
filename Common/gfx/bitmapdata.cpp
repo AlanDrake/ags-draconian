@@ -47,8 +47,8 @@ void BitmapData::SetPixel(int x, int y, uint32_t value)
     switch (_bitsPerPixel)
     {
     // for 1-bit and 4-bit: clear the bit(s) position to zero and then write new value
-    case 1: line[x / 8] = line[x / 8] & ~(1 << (7 - x % 8)) | ((value & 1) << (7 - x % 8)); break;
-    case 4: line[x / 2] = line[x / 2] & ~(4 << (1 - x % 2)) | ((value & 4) << (1 - x % 2)); break;
+    case 1: line[x / 8] = (line[x / 8] & ~(1 << (7 - x % 8))) | ((value & 1) << (7 - x % 8)); break;
+    case 4: line[x / 2] = (line[x / 2] & ~(4 << (1 - x % 2))) | ((value & 4) << (1 - x % 2)); break;
     case 8: line[x] = static_cast<uint8_t>(value & 0xFF); break;
     case 15: /* same as 16 */
     case 16: *reinterpret_cast<uint16_t *>(&line[x * 2]) = value; break;

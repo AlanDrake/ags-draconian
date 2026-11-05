@@ -214,7 +214,7 @@ DebugManager::CreateOutputImpl(const String &id, std::unique_ptr<IOutputHandler>
     // Delegate buffered messages to this new output
     if (_messageBuf)
         SendBufferedMessages(out);
-    return std::move(out);
+    return out;
 }
 
 void DebugManager::SendBufferedMessages(DebugOutput &out)

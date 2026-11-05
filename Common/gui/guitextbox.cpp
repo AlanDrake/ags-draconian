@@ -132,7 +132,7 @@ void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     if (svg_ver >= kGuiSvgVersion_350)
         _textBoxFlags = in->ReadInt32();
 
-    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) || (svg_ver >= kGuiSvgVersion_40026))
+    if (((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400)) || (svg_ver >= kGuiSvgVersion_40026))
     {
         _textAlignment = static_cast<FrameAlignment>(in->ReadInt32());
         // valid since kGuiSvgVersion_36308

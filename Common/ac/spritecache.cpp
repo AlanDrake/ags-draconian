@@ -460,7 +460,7 @@ std::vector<std::pair<bool, BitmapData>> SpriteCache::PrepareSpriteData()
             sprites.push_back(std::make_pair(_spriteData[i].IsAssetSprite(), BitmapData()));
         }
     }
-    return std::move(sprites);
+    return sprites;
 }
 
 sprkey_t SpriteCache::TraceTopmostSpriteBack(sprkey_t start_with)

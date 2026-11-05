@@ -313,7 +313,7 @@ TEST(String, FactoryMethods)
     ASSERT_TRUE(strcmp(s1.GetCStr(), "zzzzzzzzzz") == 0);
     s1.FillString('a', 0);
     ASSERT_TRUE(strcmp(s1.GetCStr(), "") == 0);
-    s1.Format("this %d is %9ld a %x formatted %0.2f string %s", 1, 2, 100, 22.55F, "abcd");
+    s1.Format("this %d is %9ld a %x formatted %0.2f string %s", 1, 2L, 100, 22.55F, "abcd");
     ASSERT_TRUE(strcmp(s1.GetCStr(), "this 1 is         2 a 64 formatted 22.55 string abcd") == 0);
     s1.SetString("some string");
     ASSERT_TRUE(strcmp(s1.GetCStr(), "some string") == 0);

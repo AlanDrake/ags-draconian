@@ -275,7 +275,8 @@ void CharacterInfo::ReadFromSavegame(Stream *in, LegacyFields &old_fields, Chara
         flags |= CHF_ENABLED | (CHF_VISIBLE)*on;
     }
 
-    if ((save_ver >= kCharSvgVersion_36304) && (save_ver < kCharSvgVersion_400) || (save_ver >= kCharSvgVersion_400_26))
+    if (((save_ver >= kCharSvgVersion_36304) && (save_ver < kCharSvgVersion_400)) ||
+        (save_ver >= kCharSvgVersion_400_26))
     {
         blocking_x = in->ReadInt16();
         blocking_y = in->ReadInt16();

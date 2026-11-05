@@ -145,9 +145,9 @@ TEST_P(GameCompat, Room)
 }
 
 INSTANTIATE_TEST_SUITE_P(Releases, GameCompat, ::testing::ValuesIn(CompatFixtures),
-                         [](const ::testing::TestParamInfo<CompatFixture> &info)
+                         [](const ::testing::TestParamInfo<CompatFixture> &fixture)
                          {
-                             std::string name = std::string("v") + info.param.Version;
+                             std::string name = std::string("v") + fixture.param.Version;
                              for (char &c : name)
                                  if (c == '.')
                                      c = '_';

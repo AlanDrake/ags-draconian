@@ -75,6 +75,10 @@ int ags_strncpy_s(char *dest, size_t dest_sz, const char *src, size_t count)
 {
     // NOTE: implementation approximately mimics explanation for "strncpy_s":
     // https://en.cppreference.com/w/c/string/byte/strncpy
+    size_t copy_len;
+    const char *psrc;
+    const char *src_end;
+    char *pdst;
     assert(dest && dest_sz > 0 && ((dest + dest_sz - 1 < src) || (dest > src + count)));
     if (!dest || dest_sz == 0 || ((dest <= src) && (dest + dest_sz - 1 >= src)) ||
         ((src <= dest) && (src + count - 1 >= dest)))
@@ -85,10 +89,10 @@ int ags_strncpy_s(char *dest, size_t dest_sz, const char *src, size_t count)
         return EINVAL;
     }
 
-    const size_t copy_len = (count < dest_sz - 1) ? count : dest_sz - 1; // reserve null-terminator
-    const char *psrc = src;
-    const char *src_end = src + copy_len;
-    char *pdst = dest;
+    copy_len = (count < dest_sz - 1) ? count : dest_sz - 1; // reserve null-terminator
+    psrc = src;
+    src_end = src + copy_len;
+    pdst = dest;
     for (; *psrc && (psrc != src_end); ++psrc, ++pdst)
         *pdst = *psrc;
     *pdst = 0;                                       // ensure null terminator

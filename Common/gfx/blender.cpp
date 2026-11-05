@@ -192,13 +192,13 @@ uint32_t blender_src_copy(uint32_t x, uint32_t /*y*/, uint32_t /*n*/)
 // Copy RGB blender: mix source RGB with dest alpha
 uint32_t blender_src_copyrgb(uint32_t x, uint32_t y, uint32_t /*n*/)
 {
-    return x & 0xFFFFFF | y & 0xFF000000;
+    return (x & 0xFFFFFF) | (y & 0xFF000000);
 }
 
 // Copy alpha blender: mix source alpha with dest RGB
 uint32_t blender_src_copyalpha(uint32_t x, uint32_t y, uint32_t /*n*/)
 {
-    return x & 0xFF000000 | y & 0xFFFFFF;
+    return (x & 0xFF000000) | (y & 0xFFFFFF);
 }
 
 // ===============================

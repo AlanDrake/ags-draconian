@@ -841,7 +841,7 @@ PixelBuffer LoadBMP(Stream *in, PixelFormat *src_fmt, RGB *pal)
         *src_fmt = ColorDepthToPixelFormat(hdr.bpp);
     }
 
-    return std::move(pxdata);
+    return pxdata;
 }
 
 } // namespace ImageFile

@@ -31,7 +31,6 @@ namespace Common
 class GUITextBasedControl : public GUIControl
 {
 public:
-    GUITextBasedControl() = default;
     ~GUITextBasedControl() override = default;
 
     // Properties
@@ -64,8 +63,6 @@ protected:
 class GUITextFieldControl : public GUITextBasedControl
 {
 public:
-    GUITextFieldControl() = default;
-
     // Gets control's text property
     const String &GetText() const { return _text; }
     void SetText(const String &text);

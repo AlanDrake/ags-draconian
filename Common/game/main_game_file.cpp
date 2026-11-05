@@ -869,7 +869,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     }
     else if (ext_id.CompareNoCase("v362_interevents") == 0)
     {
-        HError err = ReadInteractionScriptModules(in, _ents);
+        err = ReadInteractionScriptModules(in, _ents);
         if (!err)
             return err;
     }
@@ -895,7 +895,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
                 _ents.ScriptModules[i]->SetScriptName(script_name.ToStdString());
         }
 
-        HError err = ReadInteractionScriptModules(in, _ents);
+        err = ReadInteractionScriptModules(in, _ents);
         if (!err)
             return err;
     }
@@ -1007,7 +1007,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         game.dialogProps.resize(game.numdialog);
         game.guiProps.resize(game.numgui);
 
-        HError err = ReadCustomProperties(in, "audio clips", _ents.Game.audioClips.size(), game.audioclipProps);
+        err = ReadCustomProperties(in, "audio clips", _ents.Game.audioClips.size(), game.audioclipProps);
         if (!err)
             return err;
         err = ReadCustomProperties(in, "dialogs", game.numdialog, game.dialogProps);
@@ -1044,13 +1044,13 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     }
     else if (ext_id.CompareNoCase("v400_guictrlgfx") == 0)
     {
-        HError err = ReadExtGUIControlGraphicProperties(in, _ents);
+        err = ReadExtGUIControlGraphicProperties(in, _ents);
         if (!err)
             return err;
     }
     else if (ext_id.CompareNoCase("v400_eventtables") == 0)
     {
-        HError err = ReadNewScriptEventTables(in, _ents);
+        err = ReadNewScriptEventTables(in, _ents);
         if (!err)
             return err;
     }
@@ -1097,7 +1097,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     }
     else if (ext_id.CompareNoCase("v400_charinv") == 0)
     {
-        HError err = ReadCharacterInventories(in, _ents);
+        err = ReadCharacterInventories(in, _ents);
         if (!err)
             return err;
     }

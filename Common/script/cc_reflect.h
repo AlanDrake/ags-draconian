@@ -529,7 +529,7 @@ public:
         bool operator()(const ScriptTOC::Variable &first, const ScriptTOC::Variable &second) const
         {
             return (first.scope_begin < second.scope_begin) ||
-                   (first.scope_begin == second.scope_begin) && (first.offset < second.offset);
+                   ((first.scope_begin == second.scope_begin) && (first.offset < second.offset));
         }
     };
     // Predicate used to find whether a scoped variable lies inside particular parent scope

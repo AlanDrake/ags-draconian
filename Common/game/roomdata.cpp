@@ -122,7 +122,7 @@ RoomData::RoomData() : RoomObjectBase(&RoomData::_eventSchema)
     InitDefaults();
 }
 
-RoomData::RoomData(const RoomData &src)
+RoomData::RoomData(const RoomData &src) : RoomObjectBase(src)
 {
     *this = src;
 }

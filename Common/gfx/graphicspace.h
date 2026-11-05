@@ -68,8 +68,8 @@ public:
     {
         const int src_w = src_size.Width;
         const int src_h = src_size.Height;
-        const float sx = src_w != 0.f ? static_cast<float>(dst_size.Width) / src_w : 1.f;
-        const float sy = src_h != 0.f ? static_cast<float>(dst_size.Height) / src_h : 1.f;
+        const float sx = src_w != 0 ? static_cast<float>(dst_size.Width) / src_w : 1.f;
+        const float sy = src_h != 0 ? static_cast<float>(dst_size.Height) / src_h : 1.f;
         Init(ox, oy, origin, src_size, dst_size, g_aabb, sx, sy, rot, pivot, pivot_off);
     }
 
@@ -139,8 +139,6 @@ private:
               const Rect &g_aabb, const float sx, const float sy, const float rot, const Pointf pivot,
               const Point pivot_off)
     {
-        const int local_srcx = -static_cast<int>((src_size.Width - 1) * origin.X);
-        const int local_srcy = -static_cast<int>((src_size.Height - 1) * origin.Y);
         const float world_x = static_cast<float>(ox) - (std::abs(dst_size.Width) - 1) * origin.X;
         const float world_y = static_cast<float>(oy) - (std::abs(dst_size.Height) - 1) * origin.Y;
         const float sx_inv = std::fabs(sx) < std::numeric_limits<float>::epsilon() ? 0.f : 1.f / sx;

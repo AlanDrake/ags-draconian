@@ -302,7 +302,7 @@ std::unique_ptr<IStreamBase> OpenFileStream(const String &filename, FileOpenMode
         if (fs != nullptr && !fs->IsValid())
             fs = nullptr;
     }
-    catch (std::runtime_error)
+    catch (const std::runtime_error &)
     {
         fs = nullptr;
 #if AGS_PLATFORM_OS_ANDROID
@@ -314,13 +314,13 @@ std::unique_ptr<IStreamBase> OpenFileStream(const String &filename, FileOpenMode
             if (fs != nullptr && !fs->IsValid())
                 fs = nullptr;
         }
-        catch (std::runtime_error)
+        catch (const std::runtime_error &)
         {
             fs = nullptr;
         }
 #endif
     }
-    return std::move(fs);
+    return fs;
 }
 
 std::unique_ptr<Stream> File::OpenFile(const String &filename, FileOpenMode open_mode, StreamMode work_mode)

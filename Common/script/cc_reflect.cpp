@@ -111,15 +111,15 @@ RTTI RTTISerializer::Read(Stream *in)
     // RTTI Header
     const soff_t rtti_soff = in->GetPosition();
     const uint32_t format = in->ReadInt32();
-    const size_t head_sz = (uint32_t)in->ReadInt32();
+    [[maybe_unused]] const size_t head_sz = (uint32_t)in->ReadInt32();
     const size_t full_sz = (uint32_t)in->ReadInt32();
-    const size_t loc_sz = (uint32_t)in->ReadInt32();
+    [[maybe_unused]] const size_t loc_sz = (uint32_t)in->ReadInt32();
     const uint32_t loc_table_off = (uint32_t)in->ReadInt32();
     const uint32_t loc_table_len = (uint32_t)in->ReadInt32();
-    const size_t typei_sz = (uint32_t)in->ReadInt32();
+    [[maybe_unused]] const size_t typei_sz = (uint32_t)in->ReadInt32();
     const uint32_t typei_table_off = (uint32_t)in->ReadInt32();
     const uint32_t typei_table_len = (uint32_t)in->ReadInt32();
-    const size_t fieldi_sz = (uint32_t)in->ReadInt32();
+    [[maybe_unused]] const size_t fieldi_sz = (uint32_t)in->ReadInt32();
     const uint32_t fieldi_table_off = (uint32_t)in->ReadInt32();
     const uint32_t fieldi_table_len = (uint32_t)in->ReadInt32();
     const uint32_t str_table_off = (uint32_t)in->ReadInt32();
@@ -190,7 +190,7 @@ RTTI RTTISerializer::Read(Stream *in)
     in->Seek(end_soff, kSeekBegin);
 
     rtti.CreateQuickRefs();
-    return std::move(rtti);
+    return rtti;
 }
 
 void RTTISerializer::Write(const RTTI &rtti, Stream *out)
@@ -626,19 +626,19 @@ ScriptTOC ScriptTOCSerializer::Read(Stream *in, const RTTI *rtti)
 
     // TOC Header
     const soff_t toc_soff = in->GetPosition();
-    const uint32_t format = in->ReadInt32();
-    const size_t head_sz = (uint32_t)in->ReadInt32();
+    [[maybe_unused]] const uint32_t format = in->ReadInt32();
+    [[maybe_unused]] const size_t head_sz = (uint32_t)in->ReadInt32();
     const size_t full_sz = (uint32_t)in->ReadInt32();
-    const uint32_t glvar_sz = (uint32_t)in->ReadInt32();
+    [[maybe_unused]] const uint32_t glvar_sz = (uint32_t)in->ReadInt32();
     const uint32_t glvar_table_off = (uint32_t)in->ReadInt32();
     const uint32_t glvar_table_len = (uint32_t)in->ReadInt32();
-    const size_t func_sz = (uint32_t)in->ReadInt32();
+    [[maybe_unused]] const size_t func_sz = (uint32_t)in->ReadInt32();
     const uint32_t func_table_off = (uint32_t)in->ReadInt32();
     const uint32_t func_table_len = (uint32_t)in->ReadInt32();
-    const size_t func_param_sz = (uint32_t)in->ReadInt32();
+    [[maybe_unused]] const size_t func_param_sz = (uint32_t)in->ReadInt32();
     const uint32_t func_param_table_off = (uint32_t)in->ReadInt32();
     const uint32_t func_param_table_len = (uint32_t)in->ReadInt32();
-    const size_t locvar_sz = (uint32_t)in->ReadInt32();
+    [[maybe_unused]] const size_t locvar_sz = (uint32_t)in->ReadInt32();
     const uint32_t locvar_table_off = (uint32_t)in->ReadInt32();
     const uint32_t locvar_table_len = (uint32_t)in->ReadInt32();
     const uint32_t str_table_off = (uint32_t)in->ReadInt32();
@@ -732,7 +732,7 @@ ScriptTOC ScriptTOCSerializer::Read(Stream *in, const RTTI *rtti)
     in->Seek(end_soff, kSeekBegin);
 
     toc.CreateQuickRefs(rtti);
-    return std::move(toc);
+    return toc;
 }
 
 void ScriptTOCSerializer::Write(const ScriptTOC &toc, Stream *out)
@@ -1054,7 +1054,6 @@ ScriptTOC ScriptTOCBuilder::Finalize(const RTTI *rtti)
 
 String PrintRTTI(const RTTI &rtti)
 {
-    const auto &locs = rtti.GetLocations();
     const auto &types = rtti.GetTypes();
 
     const char *hr = "-------------------------------------------------------------------------------";

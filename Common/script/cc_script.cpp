@@ -47,13 +47,13 @@ protected:
         read_next = true;
         if (ext_id.CompareNoCase("rtti") == 0)
         {
-            _script.rtti.reset(new RTTI(std::move(RTTISerializer::Read(in))));
+            _script.rtti = std::make_unique<RTTI>(RTTISerializer::Read(in));
             return HError::None();
         }
         else if (ext_id.CompareNoCase("sctoc") == 0)
         {
-            _script.sctoc.reset(
-                new ScriptTOC(std::move(ScriptTOCSerializer::Read(in, _script.rtti.get() /* may be null */))));
+            _script.sctoc =
+                std::make_unique<ScriptTOC>(ScriptTOCSerializer::Read(in, _script.rtti.get() /* may be null */));
             return HError::None();
         }
         return new Error(String::FromFormat("Unknown script extension: %s (%d)", ext_id.GetCStr(), block_id));
@@ -157,17 +157,18 @@ void ccScript::Write(Stream *out) const
     //-------------------------------------------------------------------------
     // Extended data
     //-------------------------------------------------------------------------
-    const auto *rtti = ccScript::rtti.get();
-    if (rtti && !rtti->IsEmpty())
+    const auto *rtti_data = ccScript::rtti.get();
+    if (rtti_data && !rtti_data->IsEmpty())
     {
         WriteExtBlock(
-            "rtti", [rtti](Stream *out) { RTTISerializer::Write(*rtti, out); }, kDataExt_NumID8 | kDataExt_File64, out);
+            "rtti", [rtti_data](Stream *block_out) { RTTISerializer::Write(*rtti_data, block_out); },
+            kDataExt_NumID8 | kDataExt_File64, out);
     }
-    const auto *sctoc = ccScript::sctoc.get();
-    if (sctoc && !sctoc->IsEmpty())
+    const auto *toc_data = ccScript::sctoc.get();
+    if (toc_data && !toc_data->IsEmpty())
     {
         WriteExtBlock(
-            "sctoc", [sctoc](Stream *out) { ScriptTOCSerializer::Write(*sctoc, out); },
+            "sctoc", [toc_data](Stream *block_out) { ScriptTOCSerializer::Write(*toc_data, block_out); },
             kDataExt_NumID8 | kDataExt_File64, out);
     }
     // Write ending

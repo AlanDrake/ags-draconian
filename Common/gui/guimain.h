@@ -384,9 +384,9 @@ inline bool IsGUIVisible(const GUIControl *g)
            (IsExcludedFromDisabled(g) ||
             // Control is also not shown if...
             // If interface is globally disabled and all controls should be hidden
-            !(GUI::Context.DisabledState == kGuiDis_Blackout) &&
-                // If control is individually disabled AND controls should be hidden when disabled
-                !(!g->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)));
+            (!(GUI::Context.DisabledState == kGuiDis_Blackout) &&
+             // If control is individually disabled AND controls should be hidden when disabled
+             !(!g->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout))));
 }
 
 // Tells if the gui control should be drawn with disabled effect

@@ -480,7 +480,7 @@ void skip_lzw(Stream *in)
 {
     // NOTE: this format saves full RGB struct here (4 bytes, including the filler)
     in->Seek(sizeof(RGB) * 256);
-    const size_t uncomp_sz = in->ReadInt32();
+    [[maybe_unused]] const size_t uncomp_sz = in->ReadInt32();
     const size_t comp_sz = in->ReadInt32();
     in->Seek(comp_sz);
 }
@@ -612,7 +612,7 @@ static void base64_init_decode()
 {
     memset(Base64DecodeTable, -1, sizeof(Base64DecodeTable));
     for (int i = 0; i < 64; ++i)
-        Base64DecodeTable[Base64Alphabet[i]] = i;
+        Base64DecodeTable[static_cast<uint8_t>(Base64Alphabet[i])] = i;
     Base64DecodeInit = true;
 }
 

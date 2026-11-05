@@ -404,7 +404,7 @@ void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _maxValue = in->ReadInt32();
     _value = in->ReadInt32();
 
-    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) || (svg_ver >= kGuiSvgVersion_40026))
+    if (((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400)) || (svg_ver >= kGuiSvgVersion_40026))
     {
         _handleColor = in->ReadInt32();
         _borderShadeColor = in->ReadInt32();

@@ -279,7 +279,7 @@ void GUIControl::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         _borderColor = in->ReadInt32();
         _borderWidth = in->ReadInt32();
     }
-    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) || (svg_ver >= kGuiSvgVersion_40026))
+    if (((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400)) || (svg_ver >= kGuiSvgVersion_40026))
     {
         _paddingX = in->ReadInt32();
         _paddingY = in->ReadInt32();

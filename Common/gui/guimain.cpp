@@ -724,7 +724,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver, std::v
         }
     }
 
-    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) || (svg_ver >= kGuiSvgVersion_40026))
+    if (((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400)) || (svg_ver >= kGuiSvgVersion_40026))
     {
         _popupStyle = static_cast<GUIPopupStyle>(in->ReadInt32());
         in->ReadInt32(); // reserved
@@ -803,7 +803,7 @@ void GUIMain::SkipSavestate(Stream *in, GuiSvgVersion svg_version, std::vector<C
         }
     }
 
-    if ((svg_version >= kGuiSvgVersion_36304) && (svg_version < kGuiSvgVersion_400) ||
+    if (((svg_version >= kGuiSvgVersion_36304) && (svg_version < kGuiSvgVersion_400)) ||
         (svg_version >= kGuiSvgVersion_40026))
     {
         in->Seek(4 * sizeof(int32_t));

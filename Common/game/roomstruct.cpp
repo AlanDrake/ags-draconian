@@ -76,15 +76,15 @@ void RoomStruct::PrepareForWriteToFile()
     BgFrames.resize(BgImages.size());
     for (size_t i = 0; i < BgFrames.size(); ++i)
         if (BgImages[i])
-            BgFrames[i].GraphicBuf = std::move(BgImages[i]->ReleasePixelData());
+            BgFrames[i].GraphicBuf = BgImages[i]->ReleasePixelData();
     if (HotspotMask)
-        HotspotMaskBuf = std::move(HotspotMask->ReleasePixelData());
+        HotspotMaskBuf = HotspotMask->ReleasePixelData();
     if (RegionMask)
-        RegionMaskBuf = std::move(RegionMask->ReleasePixelData());
+        RegionMaskBuf = RegionMask->ReleasePixelData();
     if (WalkAreaMask)
-        WalkAreaMaskBuf = std::move(WalkAreaMask->ReleasePixelData());
+        WalkAreaMaskBuf = WalkAreaMask->ReleasePixelData();
     if (WalkBehindMask)
-        WalkBehindMaskBuf = std::move(WalkBehindMask->ReleasePixelData());
+        WalkBehindMaskBuf = WalkBehindMask->ReleasePixelData();
 }
 
 void RoomStruct::Free()

@@ -61,7 +61,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, Ser
     uniqueid = in->ReadInt32();
     numgui = in->ReadInt32();
     numcursors = in->ReadInt32();
-    GameResolutionType resolution_type = (GameResolutionType)in->ReadInt32();
+    [[maybe_unused]] GameResolutionType resolution_type = (GameResolutionType)in->ReadInt32();
     assert(resolution_type == kGameResolution_Custom);
     Size game_size;
     game_size.Width = in->ReadInt32();

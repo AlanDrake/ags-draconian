@@ -270,7 +270,7 @@ public:
         _buf = _data.get();
         _cbuf = _data.get();
     }
-    PixelBuffer(const PixelBuffer &src) { *this = src; }
+    PixelBuffer(const PixelBuffer &src) : BitmapData(src) { *this = src; }
     PixelBuffer(PixelBuffer &&src) { *this = std::move(src); }
 
     inline std::unique_ptr<uint8_t[]> ReleaseData()

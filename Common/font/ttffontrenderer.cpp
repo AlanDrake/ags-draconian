@@ -169,7 +169,6 @@ static void FillMetrics(TTF_Font *font, int nominal_size, FontMetrics *metrics)
         int real_face_extent_asc = (int)maxy;
         int real_face_extent_desc = -(int)miny;
         int face_ascender = TTF_FontAscent(font);
-        int face_descender = TTF_FontDescent(font);
         int top = face_ascender - real_face_extent_asc; // may be negative
         int bottom = face_ascender + real_face_extent_desc;
         vextent = std::make_pair(top, bottom);

@@ -101,8 +101,10 @@ int GUIListBox::GetItemAt(int x, int y) const
         return -1;
 
     uint32_t index = y / _rowHeight + _topItem;
-    if (index < 0 || index >= _items.size())
+    if (index >= _items.size()) // a negative y wraps around to a large index
+    {
         return -1;
+    }
     return index;
 }
 
@@ -495,7 +497,7 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _topItem = in->ReadInt32();
     _selectedItem = in->ReadInt32();
 
-    if ((svg_ver >= kGuiSvgVersion_36308) && (svg_ver < kGuiSvgVersion_400) || (svg_ver >= kGuiSvgVersion_40027))
+    if (((svg_ver >= kGuiSvgVersion_36308) && (svg_ver < kGuiSvgVersion_400)) || (svg_ver >= kGuiSvgVersion_40027))
     {
         _textOutlineColor = in->ReadInt32();
         in->ReadInt32(); // reserved

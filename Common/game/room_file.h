@@ -105,8 +105,8 @@ struct RoomDataSource
     RoomDataSource() = default;
     RoomDataSource(const String &filename, UStream &&stream, RoomFileVersion data_ver = kRoomVersion_Undefined)
         : Filename(filename),
-          InputStream(std::move(stream)),
-          DataVersion(data_ver)
+          DataVersion(data_ver),
+          InputStream(std::move(stream))
     {
     }
 };
