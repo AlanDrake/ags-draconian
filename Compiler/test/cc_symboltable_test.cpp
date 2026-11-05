@@ -254,3 +254,73 @@ TEST_F(SymbolTable, ArrayWithoutFirstDim)
     AGS::Vartype vartype0 = symt.ArrayVartypeWithoutFirstDim(vartype);
     EXPECT_STREQ("short", symt.GetName(vartype0).c_str());
 }
+
+TEST_F(SymbolTable, EntryCopyOwnsItsDescriptions)
+{
+    AGS::SymbolTableEntry orig(7, "orig");
+    orig.VariableD = new AGS::SymbolTableEntry::VariableDesc;
+    orig.VariableD->Offset = 12u;
+    orig.FunctionD = new AGS::SymbolTableEntry::FunctionDesc;
+    orig.FunctionD->Parameters.resize(3u);
+
+    AGS::SymbolTableEntry copy(orig);
+
+    // The copy has descriptions of its own, with the contents of the original ...
+    ASSERT_NE(nullptr, copy.VariableD);
+    ASSERT_NE(nullptr, copy.FunctionD);
+    EXPECT_NE(orig.VariableD, copy.VariableD);
+    EXPECT_NE(orig.FunctionD, copy.FunctionD);
+    EXPECT_EQ(12u, copy.VariableD->Offset);
+    EXPECT_EQ(3u, copy.FunctionD->Parameters.size());
+    EXPECT_EQ(nullptr, copy.LiteralD);
+
+    // ... and nothing is shared
+    orig.VariableD->Offset = 99u;
+    orig.FunctionD->Parameters.clear();
+    EXPECT_EQ(12u, copy.VariableD->Offset);
+    EXPECT_EQ(3u, copy.FunctionD->Parameters.size());
+}
+
+TEST_F(SymbolTable, EntryAssignReplacesOwnedDescriptions)
+{
+    AGS::SymbolTableEntry dest(1, "dest");
+    dest.VariableD = new AGS::SymbolTableEntry::VariableDesc;
+    dest.VariableD->Offset = 4u;
+    dest.VartypeD = new AGS::SymbolTableEntry::VartypeDesc;
+
+    AGS::SymbolTableEntry src(2, "src");
+    src.LiteralD = new AGS::SymbolTableEntry::LiteralDesc;
+    src.LiteralD->Value = 42;
+    src.VartypeD = new AGS::SymbolTableEntry::VartypeDesc;
+    src.VartypeD->Size = 8u;
+
+    // What the destination owned is gone (the leak checker finds it if it is not freed),
+    // and what the source has is copied, not shared
+    dest = src;
+    EXPECT_EQ(2, dest.Sym);
+    EXPECT_STREQ("src", dest.Name.c_str());
+    EXPECT_EQ(nullptr, dest.VariableD);
+    ASSERT_NE(nullptr, dest.LiteralD);
+    ASSERT_NE(nullptr, dest.VartypeD);
+    EXPECT_NE(src.LiteralD, dest.LiteralD);
+    EXPECT_NE(src.VartypeD, dest.VartypeD);
+    EXPECT_EQ(42, dest.LiteralD->Value);
+    EXPECT_EQ(8u, dest.VartypeD->Size);
+
+    src.LiteralD->Value = 43;
+    src.VartypeD->Size = 16u;
+    EXPECT_EQ(42, dest.LiteralD->Value);
+    EXPECT_EQ(8u, dest.VartypeD->Size);
+}
+
+TEST_F(SymbolTable, EntryAssignSelfKeepsDescriptions)
+{
+    AGS::SymbolTableEntry entry(3, "entry");
+    entry.LiteralD = new AGS::SymbolTableEntry::LiteralDesc;
+    entry.LiteralD->Value = 5;
+
+    AGS::SymbolTableEntry &alias = entry;
+    entry = alias;
+    ASSERT_NE(nullptr, entry.LiteralD);
+    EXPECT_EQ(5, entry.LiteralD->Value);
+}

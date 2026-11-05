@@ -365,10 +365,11 @@ struct SymbolTableEntry : public SymbolTableConstant
 
     SymbolTableEntry() = default;
     SymbolTableEntry(Symbol const sym, const std::string &name);
+    // The entry owns the objects that its '...D' pointers point to.
     // Deep copy semantics for the pointers
     SymbolTableEntry(SymbolTableEntry const &orig);
     ~SymbolTableEntry();
-    // Deep copy semantics for the pointers
+    // Deep copy semantics for the pointers; the objects that the entry owned before are deleted
     SymbolTableEntry &operator=(const SymbolTableEntry &);
     // Note, does not clear the Name field
     void Clear();

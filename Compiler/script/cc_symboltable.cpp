@@ -48,8 +48,22 @@ AGS::SymbolTableEntry::~SymbolTableEntry()
     this->VartypeD = nullptr;
 }
 
+// Replace what 'dest' owns with a copy of what 'src' points to; 'dest' may own something already
+template <typename T>
+static void DeepCopyDesc(T *&dest, T const *src)
+{
+    T *const copy = (src) ? new T(*src) : nullptr;
+    delete dest;
+    dest = copy;
+}
+
 AGS::SymbolTableEntry &AGS::SymbolTableEntry::operator=(const SymbolTableEntry &orig)
 {
+    if (this == &orig)
+    {
+        return *this;
+    }
+
     this->Sym = orig.Sym;
     this->Name = orig.Name;
     this->Declared = orig.Declared;
@@ -58,15 +72,15 @@ AGS::SymbolTableEntry &AGS::SymbolTableEntry::operator=(const SymbolTableEntry &
     this->Accessed = orig.Accessed;
 
     // Deep copy semantics.
-    this->AttributeD = (orig.AttributeD) ? new SymbolTableEntry::AttributeDesc{*(orig.AttributeD)} : nullptr;
-    this->ConstantD = (orig.ConstantD) ? new SymbolTableEntry::ConstantDesc{*(orig.ConstantD)} : nullptr;
-    this->DelimeterD = (orig.DelimeterD) ? new SymbolTableEntry::DelimeterDesc{*(orig.DelimeterD)} : nullptr;
-    this->FunctionD = (orig.FunctionD) ? new SymbolTableEntry::FunctionDesc{*(orig.FunctionD)} : nullptr;
-    this->LiteralD = (orig.LiteralD) ? new SymbolTableEntry::LiteralDesc{*(orig.LiteralD)} : nullptr;
-    this->OperatorD = (orig.OperatorD) ? new SymbolTableEntry::OperatorDesc{*(orig.OperatorD)} : nullptr;
-    this->ComponentD = (orig.ComponentD) ? new SymbolTableEntry::ComponentDesc{*(orig.ComponentD)} : nullptr;
-    this->VariableD = (orig.VariableD) ? new SymbolTableEntry::VariableDesc{*(orig.VariableD)} : nullptr;
-    this->VartypeD = (orig.VartypeD) ? new SymbolTableEntry::VartypeDesc{*(orig.VartypeD)} : nullptr;
+    DeepCopyDesc(this->AttributeD, orig.AttributeD);
+    DeepCopyDesc(this->ConstantD, orig.ConstantD);
+    DeepCopyDesc(this->DelimeterD, orig.DelimeterD);
+    DeepCopyDesc(this->FunctionD, orig.FunctionD);
+    DeepCopyDesc(this->LiteralD, orig.LiteralD);
+    DeepCopyDesc(this->OperatorD, orig.OperatorD);
+    DeepCopyDesc(this->ComponentD, orig.ComponentD);
+    DeepCopyDesc(this->VariableD, orig.VariableD);
+    DeepCopyDesc(this->VartypeD, orig.VartypeD);
 
     return *this;
 }
