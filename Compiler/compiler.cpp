@@ -14,6 +14,7 @@
 #include "compiler.h"
 
 #include <iostream>
+#include <memory>
 #include <utility>
 
 #include "ac/gamestructdefines.h"
@@ -314,7 +315,7 @@ int Compile(const CompilerOptions &comp_opts)
         all_the_script.Append(head.first);
     all_the_script.Append(script_pp);
     AGS::MessageHandler mh;
-    ccScript *script = ccCompileText(all_the_script.GetCStr(), script_name.GetCStr(), cc_options, mh);
+    std::unique_ptr<ccScript> script(ccCompileText(all_the_script.GetCStr(), script_name.GetCStr(), cc_options, mh));
     auto compiler_messages = mh.GetMessages();
     bool error = false;
     for (const auto &msg : compiler_messages)
