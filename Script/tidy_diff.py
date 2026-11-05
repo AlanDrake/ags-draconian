@@ -129,8 +129,11 @@ def plan(changed, build):
 
 
 def run_one(tidy, build, path, line_filter):
+    # -Wno-error: a build with warnings as errors (AGS_WARNINGS_AS_ERRORS) must not turn clang's own
+    # warnings, such as an MSVC or GCC flag it does not use, into errors that stop the analysis
     cmd = [tidy, '-p', build, '--quiet', '--line-filter=' + line_filter, '--checks=' + DECLARED_CHECK,
-           '--extra-arg=-Wno-unknown-warning-option', '--extra-arg=-fno-color-diagnostics', path]
+           '--extra-arg=-Wno-unknown-warning-option', '--extra-arg=-Wno-error', '--extra-arg=-fno-color-diagnostics',
+           path]
     r = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True, encoding='utf-8', errors='replace')
     return path, r.stdout, r.stderr, r.returncode
 

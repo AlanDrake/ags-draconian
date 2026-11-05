@@ -68,11 +68,13 @@ jobs:
           path: ${{github.workspace}}/build/_deps
           key: fetchcontent-verify-gcc-${{ hashFiles('CMakeLists.txt', 'CMake/Fetch*.cmake') }}
 
+      # AGS_WARNINGS_AS_ERRORS: a warning in a target that builds without any (Common) fails the build (PLAN.md, 1.5)
       - name: Configure CMake
-        run: cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DAGS_WARNINGS_AS_ERRORS=ON -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
+      # -k: a warning that became an error should not hide the next ones
       - name: Build
-        run: cmake --build "${{github.workspace}}/build" --parallel 8
+        run: cmake --build "${{github.workspace}}/build" --parallel 8 -- -k
 
       - name: Check that headers are self-contained (GCC)
         run: cmake --build "${{github.workspace}}/build" --target header_check --parallel 8 -- -k

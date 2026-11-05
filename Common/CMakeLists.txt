@@ -238,6 +238,8 @@ if(NOT MSVC)
     target_compile_options(common PUBLIC -Werror=undef)
 endif()
 
+ags_warning_free(common)
+
 if(AGS_DEBUG_MANAGED_OBJECTS)
     target_compile_definitions(common PUBLIC "DEBUG_MANAGED_OBJECTS=1")
 endif()

@@ -33,6 +33,7 @@ option(AGS_USE_LOCAL_GTEST "Use a locally installed GTest" ${AGS_USE_LOCAL_ALL_L
 option(AGS_TESTS "Build tests" OFF)
 option(AGS_HEADER_CHECK "Add the header_check target, which compiles every header on its own" OFF)
 set(AGS_HEADER_CHECK_FLAGS "" CACHE STRING "Extra compiler flags for the header_check target only")
+option(AGS_WARNINGS_AS_ERRORS "Warnings are errors in the targets that build without any (CI and Script/prepush.py set it)" OFF)
 option(AGS_BUILD_ENGINE "Build Engine" ON)
 option(AGS_BUILD_TOOLS "Build Tools" OFF)
 option(AGS_BUILD_COMPILER "Build compiler" ${AGS_BUILD_TOOLS})
@@ -242,7 +243,8 @@ add_compile_definitions("$<$<CONFIG:RELEASE>:NDEBUG>")
 
 if(MSVC)
     add_compile_options(/MP)    # Build with Multiple Processes
-    add_compile_options(/W3)    # CMake 3.15+ (CMP0092) no longer adds it by default
+    # CMake 3.15+ (CMP0092) no longer adds a level by default; /W4 for the targets of ags_warning_free()
+    add_compile_options($<IF:$<BOOL:$<TARGET_PROPERTY:AGS_WARNING_FREE>>,/W4,/W3>)
     add_compile_definitions(_CRT_SECURE_NO_DEPRECATE)
     add_compile_definitions(_CRT_NONSTDC_NO_DEPRECATE)
 else()
@@ -259,7 +261,6 @@ else()
         -Wformat
         -Wformat-security
         -Winit-self
-        -Winline
         -Wmissing-noreturn
         -Wpointer-arith
         -Wshadow
@@ -294,6 +295,26 @@ else()
     add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wstrict-prototypes>)
 
 endif()
+
+# Marks a first-party target that builds without warnings (docs/refactor/PLAN.md, 1.5), so that it stays
+# so: with AGS_WARNINGS_AS_ERRORS a new warning fails the build. GCC and Clang use the set above; MSVC
+# uses /W4 less what that set leaves out too.
+function(ags_warning_free target)
+    if(MSVC)
+        set_target_properties(${target} PROPERTIES AGS_WARNING_FREE ON)
+        target_compile_options(${target} PRIVATE
+            /wd4100                 # unused parameter (-Wno-unused-parameter)
+            /wd4018 /wd4245 /wd4389 # signed with unsigned (-Wno-sign-compare)
+            /wd4244 /wd4267         # narrowing conversion, which GCC reports only with -Wconversion: open
+        )
+        if(AGS_WARNINGS_AS_ERRORS)
+            target_compile_options(${target} PRIVATE /WX)
+        endif()
+    elseif(AGS_WARNINGS_AS_ERRORS)
+        # -Wfloat-equal stays a warning: GCC reports every exact comparison, also the ones with 0 and 1
+        target_compile_options(${target} PRIVATE -Werror -Wno-error=float-equal)
+    endif()
+endfunction()
 
 find_package(PkgConfig)
 find_package(Threads)
