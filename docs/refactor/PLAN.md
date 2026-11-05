@@ -93,7 +93,7 @@ comes after they are closed.
 | 3 | **1.3 to merge:** `1.3-engine-tests` (15 commits on `5aaa1e65c`) was tested by the user in a game through the editor and engine built from it (`.compare/msb-13`); merge and push when ready. **U.7 waiting:** PR #3193 open since 2026-11-05 | The branch is the safety net phases 3 to 5 wait for | user |
 | 4 | **1.5b-2 Memory errors, done 2026-11-05** (LOG.md 1.5): the three ASan rows are gone from `prepush.py --only sanitizers` (49 rows to 46), each fix with a test and in its own commit: `String(ptr, length)` never reads past `length` (fixes `Utf8ToCp1252` and four more callers), `RuntimeScript::CheckFixupInCode` in `CreateGlobalVars`, name offsets instead of stale pointers in `JointRTTI::Join` (local, no RTTI structure changed). **U.8 open:** offer the `CreateGlobalVars` and `Join` fixes upstream (the same code there); the `String` change alters a Common contract, so it is a separate offer if at all | Real defects | Sonnet 5.5, `medium` for U.8 |
 | 5 | **1.5b-3 UBSan:** the misaligned `int16_t` read in `Common/util/memory.h` (`memcpy`; measure the script VM), `memcpy` from null in `MemoryStream::Write` | Small | Sonnet 5.5, `medium` |
-| 6 | **1.5b-4 Script compiler leaks** (35 sites): give the `new`ed symbol-table objects an owner | One cause; the compiler tests are the net | Sonnet 5.5, `high` |
+| 6 | **1.5b-4 Script compiler leaks, done 2026-11-05** (LOG.md 1.5; unpushed): the 35 rows are gone from `prepush.py --only sanitizers` (46 rows to 11: the 7 engine leaks and 4 UBSan rows); `SymbolTableEntry::operator=` deletes what the entry owned, the symbol table owns its compile time functions (`unique_ptr`), the scanner reuses `MakeEntryLiteral`; 4 new tests, 1038 tests, byte parity of the auto-test game build. Upstream has the same code (`script2/`); offering it is the user's decision | One cause; the compiler tests are the net | Sonnet 5.5, `high` |
 | 7 | **1.5b-5 Engine leaks at exit** (7 sites): free them or list them in an LSan suppression file with reasons; the same for the UBSan report in third-party code (mojoAL calls `SDL_memcpy` with a null pointer); one green on-demand run; tick 1.5b | The job is a gate once green | Sonnet 5.5, `medium`; the user decides the suppressions |
 
 Open items found while doing finished tasks (details in LOG.md): 0.4's CodeQL setting, the
@@ -179,7 +179,8 @@ Today: 35 C++ test files, **only 3 for the engine** (~430 source files); 22 C# t
     UBSan places, 42 leak sites. 1.5b-1 done (2026-11-05): the job runs locally in a WSL 2 distro,
     `prepush.py --only sanitizers` (also `linux` in every run, `coverage` on demand). 1.5b-2 done
     (2026-11-05): the 3 memory errors are fixed, 46 rows remain; U.8
-    (offer the fixes upstream) is open. Steps 1.5b-3 to 1.5b-5 in "Next up".
+    (offer the fixes upstream) is open. 1.5b-4 done (2026-11-05): the 35 compiler leaks are fixed, 11
+    rows remain. Steps 1.5b-3 and 1.5b-5 in "Next up".
   - [x] **1.5c Coverage** (2026-11-05, on demand): total 53.7%, `Common` 61.6%, `Engine` 47.8%, `Compiler`
     89.9%, `Tools` 68.2%.
 - [x] **1.6 Mechanical-change verifier** `Script/compare_objects.py` (2026-11-01; STYLE.md "Commits").

@@ -293,7 +293,7 @@ Build parity with the editor: `compare_builds.py` on the game reports 114 of 114
 
 *Status (2026-11-05):* 1.5a and 1.5c done, confirmed by a CI probe run (42050934970 Verify, 42050935242
 Analysis); 1.5b: the job works and reports 47 findings, open; 1.5b-1 done, the job runs locally; 1.5b-2 done, the
-memory errors are fixed.
+memory errors are fixed; 1.5b-4 done, the compiler leaks are fixed.
 
 **1.5a Warnings**
 - Before, distinct first-party sites: GCC 15.2 `Common` 122, `Engine` 164, `Compiler` 71, `Tools` 69,
@@ -411,7 +411,45 @@ memory errors are fixed.
     `test/string_test.cpp`); `Engine: CreateGlobalVars checks the fixup position (1.5b-2)`
     (`script/runtimescript.*`, `test/script_bytecode_test.cpp`); `Common: JointRTTI::Join compares locations
     by name offsets (1.5b-2)` (`script/cc_reflect.cpp`, its test is in `Engine/test/script_vm_test.cpp`).
-- **Open:** the findings, steps 1.5b-3 to 1.5b-5 in PLAN.md "Next up".
+- **1.5b-4 Script compiler leaks (2026-11-05, by a subagent, reviewed by the overseeing session):** the 35 compiler rows are gone
+  (`sanitizers`: 46 rows to 11, exactly the 7 engine leaks and 4 UBSan rows of 1.5b-3 and 1.5b-5; no
+  `ERROR: AddressSanitizer`; the 11 rows are in 52 log files, the 46 were in 628). Three causes, no suppression:
+  - The 27 rows of `SymbolTable::SymbolTable()`: `new CTF_...` handed to `OperatorCtFunctions`, which stored raw
+    pointers in `OperatorDesc`; nobody freed them. The table now owns them (`std::vector<std::unique_ptr<
+    CompileTimeFunc>>`, `OperatorCtFunctions` takes `unique_ptr`; the entries' pointers stay, not owning).
+    `CompileTimeFunc` had virtual functions and no virtual destructor: it has one now (deleting through the base
+    was undefined). The compile time functions hold a reference to their table, so `SymbolTable` is no longer
+    copyable (nothing copied it; the implicit copy would have shared functions bound to the original).
+  - The rows of `MakeEntryVariable`, `MakeEntryLiteral`, `MakeEntryConstant` and `SymbolTableEntry::operator=`:
+    `operator=` overwrote the nine `...D` pointers without deleting the old ones. The parser uses it to restore
+    the symbol of an outer scope when a block ends (`RestoreLocalsFromSymtable`), so every local variable's
+    description leaked there. It now deletes what the entry owned (copy first, then delete; self-assignment
+    returns early).
+  - The 3 rows of `Scanner::SymstringToSym`: `new LiteralDesc` over a literal that was already in the table (the
+    same number or string scanned twice); it calls `MakeEntryLiteral` now, which keeps the existing one.
+  - Raw pointers stay (no `unique_ptr` members): the parser steals `FunctionD` into a `unique_ptr` and the
+    `...D` pointers are passed to functions in many places; the entry already owned them, only the assignment
+    broke the rule.
+  - Tests (`Compiler/test/cc_symboltable_test.cpp`): `EntryCopyOwnsItsDescriptions`,
+    `EntryAssignReplacesOwnedDescriptions`, `EntryAssignSelfKeepsDescriptions`,
+    `OperatorCompileTimeFuncsAreOwnedByTable` (4 new, 1038 in all). The leak itself shows only in `sanitizers`.
+  - Checked: `format`, `build` (1038 tests), `tidy` (it asked for braces and for unnamed unused lambda
+    parameters on the changed lines), `headers`, `libcxx`, `msbuild` (the Editor links the compiler), `linux`
+    (GCC 13, warnings as errors, 1038 tests), `sanitizers` (above, unit tests and the auto-test game ok).
+    `compare_builds.py` on the auto-test game (test games repository, branch `ags4-draconian`), the Editor from
+    before the change against `agsbuild` with the change: 59 identical, PARITY. The bytecode of all compiler tests
+    is compared by the tests themselves.
+  - Not verified: macOS, iOS, Android, FreeBSD, Debian 10 image (the change is plain C++17: `make_unique`,
+    `unique_ptr`); `emscripten` was not run; no private game corpus.
+  - Seen, not touched: `SymbolTableEntry` has a copy constructor and no move, so `entries` growth copies
+    every description (deep) instead of moving them; a move constructor would speed up the compiler.
+    `cc_symboltable.cpp` assigns `entry.VartypeD = new ...` (and `OperatorD`, `DelimeterD`) in the `Add...` and
+    `VartypeWith...` functions without a check that none exists; they only run on fresh entries today.
+  - Commits, one per cause: `Compiler: SymbolTableEntry assignment deletes what it owned (1.5b-4)`,
+    `Compiler: the symbol table owns its compile time functions (1.5b-4)`, `Compiler: the scanner reuses an
+    existing literal description (1.5b-4)`. The stages ran on the final tree; the two intermediate commits
+    were not built on their own.
+- **Open:** the findings, steps 1.5b-3 and 1.5b-5 in PLAN.md "Next up".
 
 ### 1.6 Mechanical-change verifier
 
