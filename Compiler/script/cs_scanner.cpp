@@ -819,13 +819,13 @@ void AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType scan_ty
     default: return;
 
     case Scanner::kSct_StringLiteral:
-        _sym[symb].LiteralD = new SymbolTableEntry::LiteralDesc;
+        _sym.MakeEntryLiteral(symb);
         _sym[symb].LiteralD->Vartype = const_string_vartype;
         _sym[symb].LiteralD->Value = value;
         return;
 
     case Scanner::kSct_IntLiteral:
-        _sym[symb].LiteralD = new SymbolTableEntry::LiteralDesc;
+        _sym.MakeEntryLiteral(symb);
         _sym[symb].LiteralD->Vartype = kKW_Int;
         _sym[symb].LiteralD->Value = value;
         return;
@@ -835,7 +835,7 @@ void AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType scan_ty
         return;
 
     case Scanner::kSct_FloatLiteral:
-        _sym[symb].LiteralD = new SymbolTableEntry::LiteralDesc;
+        _sym.MakeEntryLiteral(symb);
         _sym[symb].LiteralD->Vartype = kKW_Float;
         _sym[symb].LiteralD->Value = value;
         return;
