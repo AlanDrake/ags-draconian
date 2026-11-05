@@ -5,7 +5,8 @@ Markdown list of the distinct findings, most frequent first (docs/refactor/PLAN.
 
     python Script/sanitizer_summary.py <directory with the logs> [--repo <checkout root>]
 
-A finding is a UBSan "runtime error" line, or an ASan error or a direct leak named by the first frame
+The directory also holds the captured output of the test and game runs: UBSan reports to stderr, not to
+the log files. A finding is a UBSan "runtime error" line, or an ASan error or a direct leak named by the first frame
 of its stack that is in this repository's own code. The same finding in many processes (ctest runs
 every test case in its own) counts once, with the number of logs it is in. Exit code 0: no findings;
 1: findings, listed on stdout.
@@ -16,7 +17,9 @@ import os
 import re
 import sys
 
-RUNTIME_ERROR = re.compile(r'^(\S+?):(\d+):(?:\d+:)? runtime error: (.*)$')
+# Not anchored: UBSan writes to stderr, which reaches us through "ctest -V" with a test number in front
+RUNTIME_ERROR = re.compile(r'(\S+?):(\d+):(?:\d+:)? runtime error: (.*)$')
+ADDRESS = re.compile(r'0x[0-9a-f]+')
 ASAN_ERROR = re.compile(r'ERROR: AddressSanitizer: ([\w-]+)')
 LEAK = re.compile(r'^Direct leak of \d+ byte')
 FRAME = re.compile(r'^#\d+ 0x[0-9a-f]+ in (.+?) (\S+?):(\d+)(?::\d+)?$')
@@ -30,9 +33,11 @@ def findings_of(lines, root):
     fallback = None
     for raw in lines:
         line = raw.strip()
-        m = RUNTIME_ERROR.match(line)
+        m = RUNTIME_ERROR.search(line)
         if m:
-            seen.add(('UBSan', '%s:%s: %s' % (m.group(1).replace(root, ''), m.group(2), m.group(3))))
+            # one finding per place, whatever the addresses were
+            text = ADDRESS.sub('0x...', m.group(3))
+            seen.add(('UBSan', '%s:%s: %s' % (m.group(1).replace(root, ''), m.group(2), text)))
             continue
         m = ASAN_ERROR.search(line)
         if m or LEAK.match(line):

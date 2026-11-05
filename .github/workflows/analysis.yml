@@ -3,22 +3,23 @@ name: Analysis
 # Sanitizers and coverage (docs/refactor/PLAN.md, 1.5). Both jobs build the tools, the engine and the
 # unit tests, run the tests, then build the auto-test game from its source with those tools and run it
 # in the engine, so the tools and the engine are exercised too.
-#   sanitizers  ASan (with leak detection) and UBSan; pushes to the ags4draconian* branches, weekly,
-#               on demand. Every finding is logged and the run goes on, so that one run lists them
-#               all; the last step fails the job if there is any.
-#   coverage    clang source-based coverage, line coverage per directory in the job summary; weekly and
-#               on demand only: it is a number to read, not a gate.
+#   sanitizers  ASan (with leak detection) and UBSan. Every finding is logged and the run goes on, so
+#               that one run lists them all; the last step fails the job if there is any.
+#   coverage    clang source-based coverage, line coverage per directory in the job summary: a number
+#               to read, not a gate.
+# On demand only (decided 2026-11-05: the sanitizer job takes 27 minutes, 21 of them its build):
+#   gh workflow run analysis.yml -R AlanDrake/ags-draconian --ref <branch> [-f sanitizers=false] [-f coverage=false]
 on:
-  push:
-    branches: ['ags4draconian*']
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
-      - '.git-blame-ignore-revs'
-      - '.github/ISSUE_TEMPLATE/**'
-  schedule:
-    - cron: '0 6 * * 1'   # Mondays 06:00 UTC; GitHub runs it on the default branch only
   workflow_dispatch:
+    inputs:
+      sanitizers:
+        description: 'Run the sanitizer job'
+        type: boolean
+        default: true
+      coverage:
+        description: 'Run the coverage job'
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -35,6 +36,7 @@ env:
 jobs:
   sanitizers:
     name: Sanitizers (ASan, UBSan)
+    if: inputs.sanitizers
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -89,13 +91,23 @@ jobs:
       - name: Build
         run: cmake --build build --parallel 8
 
+      # UBSan reports to stderr whatever log_path says, and ctest shows the output of failed tests only:
+      # -V keeps all of it, in a file next to the sanitizer logs for the summary to read
       - name: Unit tests
         working-directory: build
-        run: ctest --output-on-failure -j 4
+        run: |
+          ctest -V -j 4 > ../sanitizer-logs/ctest-output.txt 2>&1 || {
+            grep -E "^[0-9]+/[0-9]+ Test|tests failed|\*\*\*Failed" ../sanitizer-logs/ctest-output.txt | grep -v Passed | tail -n 60
+            exit 1
+          }
+          tail -n 3 ../sanitizer-logs/ctest-output.txt
 
       - name: Build the auto-test game with the tools and run it in the engine
         if: ${{ !cancelled() }}
-        run: Script/agsbuild_autotest.sh build auto-test-source/ags4/auto-test "${{runner.temp}}/autotest"
+        shell: bash   # with pipefail
+        run: |
+          Script/agsbuild_autotest.sh build auto-test-source/ags4/auto-test "${{runner.temp}}/autotest" 2>&1 \
+            | tee sanitizer-logs/autotest-output.txt
 
       - name: Sanitizer findings
         if: ${{ !cancelled() }}
@@ -117,7 +129,7 @@ jobs:
 
   coverage:
     name: Coverage
-    if: github.event_name != 'push'
+    if: inputs.coverage
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:

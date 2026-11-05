@@ -78,9 +78,9 @@ Before a push run `python Script/prepush.py` (clang-format, CMake build + `ctest
 MSVC and clang+libc++, the Emscripten engine build with a syntax check of the Linux-only code, the MSBuild solutions; `--list`, `--only`, `--skip`): CI confirms, it does not
 discover. Workflows: `verify.yml` (fast gate, every push), `ci.yml` (`ags4draconian*` branches, PRs: light set;
 tags, weekly, `gh workflow run ci.yml -f full=true`: every platform), `macos.yml` (tags, weekly, on demand;
-standalone because hosted macOS runners are often unavailable), `analysis.yml` (ASan + UBSan on the unit
-tests, the tools and the auto-test game: `ags4draconian*` branches, weekly, on demand; coverage per
-directory: weekly, on demand).
+standalone because hosted macOS runners are often unavailable), `analysis.yml` (on demand only,
+`gh workflow run analysis.yml --ref <branch>`: ASan + UBSan on the unit tests, the tools and the auto-test
+game, 27 minutes; line coverage per directory, 14 minutes).
 
 `Common/` builds without warnings and is marked `ags_warning_free(common)` in CMake: with
 `-DAGS_WARNINGS_AS_ERRORS=ON` (set by `verify.yml` and `prepush.py`, off by default) a new warning there
