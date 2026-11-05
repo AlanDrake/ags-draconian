@@ -123,6 +123,17 @@ OpenAlSource::~OpenAlSource()
     }
 }
 
+/* static */ void OpenAlSource::ReleaseBuffers()
+{
+    if (g_oalint.freeBuffers.empty())
+    {
+        return;
+    }
+    alDeleteBuffers(static_cast<ALsizei>(g_oalint.freeBuffers.size()), g_oalint.freeBuffers.data());
+    dump_al_errors();
+    g_oalint.freeBuffers.clear();
+}
+
 float OpenAlSource::GetPositionMs() const
 {
     if (_bufferRecords.size() == 0)

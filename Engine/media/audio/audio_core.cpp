@@ -134,6 +134,8 @@ void audio_core_shutdown()
 
     // dispose all the active slots
     g_acore.slots_.clear();
+    // delete the AL buffers the slots have used: a device with buffers cannot be closed
+    OpenAlSource::ReleaseBuffers();
 
     // SDL_Sound
     Sound_Quit();

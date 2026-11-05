@@ -42,6 +42,10 @@ public:
     OpenAlSource(OpenAlSource &&src);
     ~OpenAlSource();
 
+    // Deletes the AL buffers that sources have used and returned; they are kept for reuse until then.
+    // Call it when no source exists any more, with the AL context still current.
+    static void ReleaseBuffers();
+
     // Tells if the al source is valid and usable
     bool IsValid() const { return _source > 0; }
     // Gets current playback state
