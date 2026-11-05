@@ -293,7 +293,7 @@ Build parity with the editor: `compare_builds.py` on the game reports 114 of 114
 
 *Status (2026-11-05):* 1.5a and 1.5c done, confirmed by a CI probe run (42050934970 Verify, 42050935242
 Analysis); 1.5b: the job works and reports 47 findings, open; 1.5b-1 done, the job runs locally; 1.5b-2 done, the
-memory errors are fixed; 1.5b-4 done, the compiler leaks are fixed.
+memory errors are fixed; 1.5b-3 done, the first-party UBSan rows are fixed; 1.5b-4 done, the compiler leaks are fixed.
 
 **1.5a Warnings**
 - Before, distinct first-party sites: GCC 15.2 `Common` 122, `Engine` 164, `Compiler` 71, `Tools` 69,
@@ -411,6 +411,35 @@ memory errors are fixed; 1.5b-4 done, the compiler leaks are fixed.
     `test/string_test.cpp`); `Engine: CreateGlobalVars checks the fixup position (1.5b-2)`
     (`script/runtimescript.*`, `test/script_bytecode_test.cpp`); `Common: JointRTTI::Join compares locations
     by name offsets (1.5b-2)` (`script/cc_reflect.cpp`, its test is in `Engine/test/script_vm_test.cpp`).
+- **1.5b-3 UBSan (2026-11-05, by a subagent, reviewed by the overseeing session):** the two first-party UBSan rows are gone (`sanitizers` on the final tree, 5 min
+  incremental: 11 rows to 8, exactly the 7 engine leaks and the SDL_stdlib.c row; no new row).
+  - `Memory::ReadInt16` (and its `Int32`/`Int64` siblings and the three `Write` functions) dereferenced a cast
+    pointer, undefined for an address not aligned for the type; UBSan caught the 16-bit read in
+    `WFNFont::ReadFromFile` (the glyph table of a WFN font sits at odd offsets in the loaded buffer). Chose the
+    whole family: same construction, same defect, a fixed-size `memcpy` keeps the native byte order and the
+    `MEMORY_STRICT_ALIGNMENT` and big-endian branches are untouched (the byte-wise branch is now redundant
+    next to the `memcpy` one on every target: dropping it would be a separate `[delete]`, not done).
+  - `VectorStream::Write` called `memcpy(vec.data() + pos, null, 0)`: `GamePlayState::WriteForSavegame` writes
+    `parsed_words` with `WriteArrayOfInt16`, and the vector is empty in every test and in a fresh game, so
+    the array is null with a count of 0 (legitimate). `Write` of 0 bytes now returns 0 before the resize and
+    the copy; `MemoryStream::Write` and `MemoryStream::Read` got the same `size == 0` guard (they had the same
+    memcpy with a possible null buffer).
+  - Script VM cost, measured: MSVC `/O2` (what the Release projects use: `MaxSpeed`, intrinsics) gives
+    identical disassembly for `scriptexecutor.cpp`, `runtimescriptvalue.cpp`, `wfnfont.cpp` and `lzw.cpp`
+    (the objects that changed through the header). `compare_objects.py` (MinSizeRel, `/O1`) reports 618 objects
+    identical, 11 different: `memorystream.cpp` (intended), the four above, tests; at `/O1` MSVC does not
+    expand `memcpy` and calls it (`ReadInt32` becomes a call). GCC 13 `-O1/-O2/-O3`: byte-identical code for
+    all six functions against the dereference (`movzwl/movl/movq (%rdi)`). A Debug engine calls `memcpy` in
+    each read; nobody ships or profiles one, so no workaround.
+  - Tests: `Memory.ReadWriteMisaligned` (odd offsets 1 to 7, all widths, LE and BE), `Stream.ZeroSizeIo`
+    (`Write(nullptr, 0)` on an empty vector, `Read(nullptr, 0)`, `MemoryStream::Write(nullptr, 0)`); they
+    pass without the fix too (UBSan recovers), they put the path under the sanitizer. 1040 tests.
+  - Not verified: macOS, iOS, Android, FreeBSD, Debian 10 image (the `memcpy` branch is compiled by
+    every target but only the ones built locally ran). `sanitizers` ran before a last edit that only added
+    braces in `VectorStream::Write`; the other stages ran after it. `MemoryStream::Seek` clamps the position
+    to the length, so the early return of a zero-byte `VectorStream::Write` skips no resize.
+  - Commits: `Common: Memory read and write functions use memcpy, not a cast pointer (1.5b-3)`, `Common:
+    zero-byte reads and writes of memory streams skip memcpy (1.5b-3)`.
 - **1.5b-4 Script compiler leaks (2026-11-05, by a subagent, reviewed by the overseeing session):** the 35 compiler rows are gone
   (`sanitizers`: 46 rows to 11, exactly the 7 engine leaks and 4 UBSan rows of 1.5b-3 and 1.5b-5; no
   `ERROR: AddressSanitizer`; the 11 rows are in 52 log files, the 46 were in 628). Three causes, no suppression:
@@ -449,7 +478,7 @@ memory errors are fixed; 1.5b-4 done, the compiler leaks are fixed.
     `Compiler: the symbol table owns its compile time functions (1.5b-4)`, `Compiler: the scanner reuses an
     existing literal description (1.5b-4)`. The stages ran on the final tree; the two intermediate commits
     were not built on their own.
-- **Open:** the findings, steps 1.5b-3 and 1.5b-5 in PLAN.md "Next up".
+- **Open:** the 8 remaining findings (7 engine leaks, 1 third-party UBSan row), step 1.5b-5 in PLAN.md "Next up".
 
 ### 1.6 Mechanical-change verifier
 
