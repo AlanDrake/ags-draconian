@@ -53,7 +53,7 @@ sed -i -r "5s/.*/BIT=32/" $BASEPATH/debian/ags+libraries/hooks/B00_copy_libs.sh
 # Build the source package:
 cd $BASEPATH
 CHANGELOG_VERSION=$(head -1 debian/changelog | sed 's/.*(\(.*\)).*/\1/')
-VERSION=$(grep '#define ACI_VERSION_STR' Common/core/def_version.h | sed 's/.*"\(.*\)".*/\1/')
+VERSION=$(grep '#define ACI_VERSION_STR' Common/ac/def_version.h | sed 's/.*"\(.*\)".*/\1/')
 sed -i -- "s/$CHANGELOG_VERSION/$VERSION/" debian/changelog
 debian/rules get-orig-source
 debuild -us -uc -d -S

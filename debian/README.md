@@ -1,7 +1,6 @@
 # Building the engine on any Linux
 
-There are two general ways to proceed: either use [**CMake**](../CMAKE.md) or install and build 
-everything yourself using Makefiles provided in the Engine's directory.
+The engine is built with [**CMake**](../CMAKE.md) (the Makefiles that used to be in the Engine's directory are gone).
 
 Engine code requires a C++17 compiler.
 Minimal compiler versions with full C++17 support:
@@ -21,8 +20,9 @@ probably work.
 -   libtheora (1.1.1-1.2.0)
 -   libvorbis (1.3.2)
 
-If you are building using CMake, you have the option to let the CMake build system fetch and build the dependencies,
+You have the option to let the CMake build system fetch and build the dependencies,
 or use locally installed libraries. This can be configured, and is [explained in CMake own readme](../CMAKE.md#using-locally-installed-libraries).
+The Debian package (below) uses the installed SDL2, SDL_Sound, ogg, theora and vorbis, and never downloads anything.
 
 ### Fedora package installation
 
@@ -53,26 +53,19 @@ Download the source with git and change into the **ags** directory:
     
 ## Building AGS
 
-Compile the engine:
-
-    make --directory=Engine
-
-The **ags** executable can now be found in the **Engine** folder and
-can be installed with
-
-    sudo make --directory=Engine install
-    
-In case you are using CMake there are different ways you can do, and it's better to read in 
-[**CMake README**](../CMAKE.md), following is an example of the default cmake release build.
+There are different ways to configure the build, read about them in the
+[**CMake README**](../CMAKE.md). Following is an example of the default release build.
 
     mkdir build-release
     cd build-release
     cmake -S .. -B . -DCMAKE_BUILD_TYPE=Release
     cmake --build .
-    
-The CMake way to install would be
 
-    cmake --install .
+The **ags** executable is in the build directory. To install it:
+
+    sudo cmake --install .
+
+To install somewhere else, add `--prefix /path` (the default is `/usr/local`).
 
 
 # Building a Debian/Ubuntu package of AGS

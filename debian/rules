@@ -4,28 +4,54 @@
 # orig syncronized with the one in debian/source/local-options!
 ORIG_CONTENT := $(shell git ls-tree --name-only HEAD | grep -Ev '^(Android|Editor|iOS|OSX|Windows|debian|\.git.*)')
 VERSION := $(shell head -1 debian/changelog | sed 's/.*(\(.*\)).*/\1/')
-MAKE = make --directory=Engine
 GENCONTROL_SUBSTVARS = -Vbuildinfo:Date="$(shell date -R)" -Vbuildinfo:Git-Object="$(shell git show HEAD | head -n1)"
 
+# The engine is built with CMake, out of the source tree. SDL2, SDL_sound, ogg, theora and vorbis are the
+# installed ones (what the Makefile build took through pkg-config and sdl2-config); the rest comes from the
+# sources in the repository. FETCHCONTENT_FULLY_DISCONNECTED makes a library that was missed an error
+# instead of a download. RelWithDebInfo is -O2 -g -DNDEBUG, without LTO: the flags of the Makefile build,
+# and the -g that ags-dbg is made from.
+BUILD_DIR = build-debian
+JOBS = $(or $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS))),$(shell nproc))
+CMAKE_ARGS = \
+	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+	-DCMAKE_INSTALL_PREFIX=/usr \
+	-DAGS_USE_LOCAL_SDL2=ON \
+	-DAGS_USE_LOCAL_SDL2_SOUND=ON \
+	-DAGS_USE_LOCAL_OGG=ON \
+	-DAGS_USE_LOCAL_THEORA=ON \
+	-DAGS_USE_LOCAL_VORBIS=ON \
+	-DFETCHCONTENT_FULLY_DISCONNECTED=ON
+
+# DEB_BUILD_OPTIONS=rpath=lib64: the binary looks for its libraries in $ORIGIN/lib64 (see debian/build.sh)
 ifneq (,$(filter rpath=%,$(DEB_BUILD_OPTIONS)))
   RPATH = $(patsubst rpath=%,%,$(filter rpath=%,$(DEB_BUILD_OPTIONS)))
-  export RPATH
+  CMAKE_ARGS += -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON '-DCMAKE_INSTALL_RPATH=$$ORIGIN/$(RPATH)'
+endif
+
+ifneq (,$(BUILD_STR))
+  CMAKE_ARGS += '-DAGS_BUILD_STR=$(BUILD_STR)'
 endif
 
 %:
-	dh $@ --parallel --buildsystem makefile
+	dh $@ --parallel
 
 override_dh_shlibdeps:
 	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
 
 override_dh_auto_clean:
-	$(MAKE) clean
+	rm -rf $(BUILD_DIR)
+
+override_dh_auto_configure:
+	cmake -S . -B $(BUILD_DIR) $(CMAKE_ARGS)
 
 override_dh_auto_build:
-	$(MAKE)
+	cmake --build $(BUILD_DIR) --parallel $(JOBS)
+
+override_dh_auto_test:
 
 override_dh_auto_install:
-	$(MAKE) install PREFIX=$(CURDIR)/debian/tmp/usr
+	cmake --install $(BUILD_DIR) --prefix $(CURDIR)/debian/tmp/usr
 
 override_dh_clean:
 	dh_clean --exclude=Editor/*
