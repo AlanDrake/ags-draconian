@@ -548,6 +548,12 @@ if (WIN32 OR LINUX)
     target_compile_definitions(engine PRIVATE AGS_HAS_CD_AUDIO)
 endif ()
 
+# Common sets this for itself; ac/file.cpp in the engine needs it too (the Linux Makefile build had it
+# for every file)
+if (LINUX)
+    target_compile_definitions(engine PRIVATE AGS_CASE_SENSITIVE_FILESYSTEM)
+endif ()
+
 if (AGS_NO_VIDEO_PLAYER)
     target_compile_definitions(engine PRIVATE AGS_NO_VIDEO_PLAYER)
 else()
