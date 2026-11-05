@@ -182,6 +182,8 @@ private:
     bool CreateGlobalVars();
     bool AddGlobalVar(const ScriptVariable &glvar);
     ScriptVariable *FindGlobalVar(int32_t var_addr);
+    // Tests that the fixup's position is inside the code; reports an error if it is not
+    bool CheckFixupInCode(size_t fixup_idx) const;
     bool CreateRuntimeCodeFixups();
     bool ResolveExports();
 

@@ -449,6 +449,10 @@ bool RuntimeScript::CreateGlobalVars()
         case FIXUP_GLOBALDATA:
             // GLOBALDATA fixup takes relative address of global data element from code array;
             // this is the address of actual data
+            if (!CheckFixupInCode(i))
+            {
+                return false;
+            }
             glvar.ScAddress = (int32_t)_code[_fixups[i]];
             glvar.RValue.SetData(globaldata + glvar.ScAddress, 0);
             break;
@@ -530,6 +534,18 @@ ScriptVariable *RuntimeScript::FindGlobalVar(const int32_t var_addr)
     return it != _globalvars.end() ? &it->second : nullptr;
 }
 
+bool RuntimeScript::CheckFixupInCode(size_t fixup_idx) const
+{
+    const int32_t fixup = _fixups[fixup_idx];
+    if (fixup < 0 || static_cast<size_t>(fixup) >= _code.size())
+    {
+        cc_error_fixups(this, INT32_MAX, "bad fixup at %zu (fixup type %d, bytecode pos %d, bytecode range is 0..%d)",
+                        fixup_idx, _fixupTypes[fixup_idx], fixup, static_cast<int32_t>(_code.size()));
+        return false;
+    }
+    return true;
+}
+
 bool RuntimeScript::CreateRuntimeCodeFixups()
 {
     for (size_t i = 0; i < _fixups.size(); ++i)
@@ -539,15 +555,12 @@ bool RuntimeScript::CreateRuntimeCodeFixups()
             continue;
         }
 
-        const int32_t fixup = _fixups[i];
-        if (fixup < 0 || static_cast<size_t>(fixup) >= _code.size())
+        if (!CheckFixupInCode(i))
         {
-            cc_error_fixups(this, INT32_MAX,
-                            "bad fixup at %zu (fixup type %d, bytecode pos %d, bytecode range is 0..%d)", i,
-                            _fixupTypes[i], fixup, static_cast<int32_t>(_code.size()));
             return false;
         }
 
+        const int32_t fixup = _fixups[i];
         const int32_t fixup_value = static_cast<int32_t>(_code[fixup]);
         const uint8_t fixup_type = _fixupTypes[i];
         _fixupValues[i] = fixup_value;   // save original code value for this fixup

@@ -253,6 +253,14 @@ TEST_F(ScriptBytecode, FixupOutsideTheCodeIsRefused)
         << cc_get_error().ErrorString.GetCStr();
 }
 
+TEST_F(ScriptBytecode, FixupBeforeTheCodeIsRefused)
+{
+    const auto compiled = Assemble({SCMD_LITTOREG, SREG_AX, 0, SCMD_RET}, {{-1, FIXUP_GLOBALDATA}}, {0, 0, 0, 0});
+    EXPECT_EQ(nullptr, Create(*compiled));
+    EXPECT_TRUE(Contains(cc_get_error().ErrorString, "bad fixup at 0 (fixup type 1, bytecode pos -1"))
+        << cc_get_error().ErrorString.GetCStr();
+}
+
 TEST_F(ScriptBytecode, UnknownFixupTypeIsRefused)
 {
     const auto compiled = Assemble({SCMD_LITTOREG, SREG_AX, 0, SCMD_RET}, {{2, 42}});
