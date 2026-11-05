@@ -21,10 +21,12 @@
 //
 //=============================================================================
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/scriptuserobject.h"
@@ -32,6 +34,8 @@
 #include "script/cc_common.h"
 #include "script/cc_reflect.h"
 #include "util/memory.h"
+#include "util/memorystream.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 
@@ -189,4 +193,29 @@ TEST_F(ManagedPool, ArrayHeaderHasCountAndSize)
     const auto &hdr = CCDynamicArray::GetHeader(array.Obj());
     EXPECT_EQ(5u, hdr.ElemCount);
     EXPECT_EQ(60u, hdr.TotalSize);
+}
+
+TEST_F(ManagedPool, RestoredStructKeepsItsDataAndTheSharedManager)
+{
+    const DynObjectRef ref = NewObject(2 * sizeof(int32_t));
+    ref.Mgr()->WriteInt32(ref.Obj(), 0, 17);
+    ref.Mgr()->WriteInt32(ref.Obj(), sizeof(int32_t), 29);
+    ccAddObjectReference(ref.Handle());
+    std::vector<uint8_t> saved;
+    {
+        Stream out(std::make_unique<VectorStream>(saved, kStream_Write));
+        ccSerializeAllObjects(&out);
+    }
+    ccUnregisterAllObjects();
+    ASSERT_EQ(nullptr, pool.HandleToAddress(ref.Handle()));
+
+    AGSDeSerializer reader;
+    Stream in(std::make_unique<VectorStream>(saved));
+    ASSERT_EQ(0, ccUnserializeAllObjects(&in, &reader));
+    void *restored = pool.HandleToAddress(ref.Handle());
+    ASSERT_NE(nullptr, restored);
+    // the manager of all structs is one global object, not one allocated for each restored struct
+    EXPECT_EQ(&globalDynamicStruct, pool.AddressToManager(restored));
+    EXPECT_EQ(17, globalDynamicStruct.ReadInt32(restored, 0));
+    EXPECT_EQ(29, globalDynamicStruct.ReadInt32(restored, sizeof(int32_t)));
 }
