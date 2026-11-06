@@ -1,9 +1,11 @@
 name: Verify
 
-# The fast gate, on every push to any branch (docs/refactor/PLAN.md, 2.1, 2.4, 2.6, 2.8): formatting, one
-# Linux build with tests, the GCC and clang+libc++ header checks, and clang-tidy on the changed lines.
-# ci.yml is the full build.
+# The fast gate, on every push to any branch (docs/refactor/PLAN.md, 2.1, 2.4, 2.6, 2.8, 2.9): formatting,
+# one Linux build with the unit tests and the auto-test game, the GCC and clang+libc++ header checks, and
+# clang-tidy on the changed lines. ci.yml is the full build; on a push it leaves the Linux x86_64 build
+# to this workflow.
 # Script/prepush.py runs the same checks (and the MSVC ones) locally, so this should only confirm.
+# The compiler jobs keep a ccache between runs (2.9): a push that changes a few files compiles those.
 
 on:
   push:
@@ -23,6 +25,14 @@ concurrency:
 
 env:
   BUILD_TYPE: Release
+  # The auto-test project, at the tag ci.yml builds
+  AUTO_TEST_REPO: AlanDrake/ags-test-games
+  AUTO_TEST_TAG: draconian-auto-test-1
+  # CMake reads the launcher from the environment (3.17+), so every configure step below uses ccache,
+  # the downloaded dependencies included
+  CMAKE_C_COMPILER_LAUNCHER: ccache
+  CMAKE_CXX_COMPILER_LAUNCHER: ccache
+  CCACHE_MAXSIZE: 500M
 
 jobs:
   clang-format:
@@ -48,19 +58,33 @@ jobs:
     name: Linux (GCC)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
           fetch-depth: 0    # the clang-tidy step diffs against the push's previous commit
+
+      - name: Check out the auto-test project
+        uses: actions/checkout@v6
+        with:
+          repository: ${{env.AUTO_TEST_REPO}}
+          ref: ${{env.AUTO_TEST_TAG}}
+          path: auto-test-source
+          persist-credentials: false
+
       - name: Set up SDL dependencies on Linux (ensures OpenGL)
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y \
+          sudo apt-get install -y ccache \
             gnome-desktop-testing libasound2-dev libpulse-dev libaudio-dev libjack-dev libsndio-dev \
             libusb-1.0-0-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
             libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
             libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
+
+      - name: Set up Tappy
+        run: pip install tap.py
 
       - name: Cache CMake FetchContent dependencies
         uses: actions/cache@v5
@@ -68,9 +92,19 @@ jobs:
           path: ${{github.workspace}}/build/_deps
           key: fetchcontent-verify-gcc-${{ hashFiles('CMakeLists.txt', 'CMake/Fetch*.cmake') }}
 
+      # A cache is never overwritten, so every commit saves its own and the next one starts from the newest
+      - name: Compiler cache
+        uses: actions/cache@v5
+        with:
+          path: ${{github.workspace}}/.ccache
+          key: ccache-verify-gcc-${{ github.sha }}
+          restore-keys: ccache-verify-gcc-
+
       # AGS_WARNINGS_AS_ERRORS: a warning in a target that builds without any (Common) fails the build (PLAN.md, 1.5)
       - name: Configure CMake
-        run: cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DAGS_WARNINGS_AS_ERRORS=ON -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: |
+          ccache --zero-stats
+          cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DAGS_WARNINGS_AS_ERRORS=ON -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       # -k: a warning that became an error should not hide the next ones
       - name: Build
@@ -79,9 +113,33 @@ jobs:
       - name: Check that headers are self-contained (GCC)
         run: cmake --build "${{github.workspace}}/build" --target header_check --parallel 8 -- -k
 
+      - name: Compiler cache statistics
+        if: ${{ !cancelled() }}
+        run: ccache --show-stats --verbose
+
       - name: Test
         working-directory: ${{github.workspace}}/build
         run: ctest --output-on-failure
+
+      # The game is built from its source by the tools of this build, in strict mode, and run in the engine
+      # of this build with both renderers. ci.yml does the same on the other platforms, and on this one
+      # only when the event is not a push (its plan job).
+      - name: Build the auto-test game
+        run: Script/agsbuild_autotest.sh "${{github.workspace}}/build" auto-test-source/ags4/auto-test "${{runner.temp}}/autotest" --build-only
+
+      - name: Run auto-test (Hardware GFX)
+        working-directory: ${{runner.temp}}/autotest/out
+        run: |
+          "${{github.workspace}}/build/ags" --gfxdriver OGL --no-message-box --log-stdout=script:info,main:debug,game:warn --user-data-dir . "$(basename "$(ls ./*.ags | head -n 1)")"
+          mv agstest.tap agstest_hardware.tap
+          tappy agstest_hardware.tap
+
+      - name: Run auto-test (Software GFX)
+        working-directory: ${{runner.temp}}/autotest/out
+        run: |
+          "${{github.workspace}}/build/ags" --gfxdriver Software --no-message-box --log-stdout=script:info,main:debug,game:warn --user-data-dir . "$(basename "$(ls ./*.ags | head -n 1)")"
+          mv agstest.tap agstest_software.tap
+          tappy agstest_software.tap
 
       # Naming and size rules of the root .clang-tidy for the lines this push changed; the legacy code
       # is not checked (docs/refactor/PLAN.md, 2.4). A new branch or a force push, whose previous commit
@@ -109,6 +167,7 @@ jobs:
     env:
       CC: clang
       CXX: clang++
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
     steps:
       - uses: actions/checkout@v6
         with:
@@ -117,7 +176,7 @@ jobs:
       - name: Set up clang, libc++ and SDL dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y clang libc++-dev libc++abi-dev \
+          sudo apt-get install -y ccache clang libc++-dev libc++abi-dev \
             gnome-desktop-testing libasound2-dev libpulse-dev libaudio-dev libjack-dev libsndio-dev \
             libusb-1.0-0-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
             libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
@@ -129,8 +188,16 @@ jobs:
           path: ${{github.workspace}}/build/_deps
           key: fetchcontent-verify-clang-${{ hashFiles('CMakeLists.txt', 'CMake/Fetch*.cmake') }}
 
+      - name: Compiler cache
+        uses: actions/cache@v5
+        with:
+          path: ${{github.workspace}}/.ccache
+          key: ccache-verify-clang-${{ github.sha }}
+          restore-keys: ccache-verify-clang-
+
       - name: Configure CMake
         run: |
+          ccache --zero-stats
           cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             "-DAGS_HEADER_CHECK_FLAGS=-stdlib=libc++ -D_LIBCPP_REMOVE_TRANSITIVE_INCLUDES"
@@ -138,3 +205,7 @@ jobs:
       # The libraries build with the default standard library; only the header stubs use libc++
       - name: Check that headers are self-contained (clang, libc++)
         run: cmake --build "${{github.workspace}}/build" --target header_check --parallel 8 -- -k
+
+      - name: Compiler cache statistics
+        if: ${{ !cancelled() }}
+        run: ccache --show-stats --verbose

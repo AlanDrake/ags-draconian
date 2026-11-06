@@ -3,7 +3,9 @@
 # sanitizers and coverage of Script/prepush.py; docs/refactor/PLAN.md, 1.5b):
 #
 #   Script/linux_jobs.sh gcc          verify.yml "Linux (GCC)": build with warnings as errors, header
-#                                     check, ctest (clang-tidy is prepush's tidy stage)
+#                                     check, ctest (clang-tidy is prepush's tidy stage; the auto-test
+#                                     game, which the workflow runs too, is left to it and to the
+#                                     sanitizers job below: it would add two minutes to every run)
 #   Script/linux_jobs.sh sanitizers   analysis.yml "Sanitizers (ASan, UBSan)": unit tests and the
 #                                     auto-test game; exit code 1 if there is any finding
 #   Script/linux_jobs.sh coverage     analysis.yml "Coverage": the same runs, a table per directory
