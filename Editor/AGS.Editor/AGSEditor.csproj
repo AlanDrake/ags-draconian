@@ -994,6 +994,11 @@
     <None Include="acsprset.spr">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <!-- The script API header as a file next to the tools, where agsbuild looks for it (6.7d-7) -->
+    <None Include="Resources\agsdefns.sh">
+      <Link>agsdefns.sh</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <EmbeddedResource Include="Resources\AGSFNT0.WFN" />
     <None Include="Resources\error.ico" />
     <EmbeddedResource Include="Resources\eventlogError.ico" />
