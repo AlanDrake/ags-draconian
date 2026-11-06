@@ -63,6 +63,7 @@ int main(int argc, char *argv[])
     //-----------------------------------------------------------------------//
     // There's a bunch of standard functions that are always prepended to the script
     String body = DialogScriptDefault;
+    bool has_errors = false;
     // Now load dialogs one by one, convert and append
     for (size_t i = 0; i < game_obj.Dialogs.size(); ++i)
     {
@@ -74,23 +75,21 @@ int main(int argc, char *argv[])
         String script = conv.Convert();
 
         body.Append(String::FromFormat("%sDialog %d\"\n", NEW_SCRIPT_MARKER, dialog_obj.ID));
-        if (conv.GetErrors().empty())
+        // The messages name the dialog as the compiler names its script ("Dialog 3"), with the line
+        // of the dialog script
+        for (const auto &e : conv.GetErrors())
         {
-            printf("%s compilation output:\n", dialog_obj.ScriptName.GetCStr());
-            printf("----------------------------------------\n");
-            for (const auto &e : conv.GetErrors())
-                printf("%s: Line %zu: %s\n", e.Error ? "Error" : "Warning", e.LineNumber, e.Message.GetCStr());
-            printf("----------------------------------------\n");
-            for (const auto &e : conv.GetErrors())
-            {
-                if (e.Error)
-                {
-                    printf("There were conversion errors.\nStop.\n");
-                    return -1;
-                }
-            }
+            printf("%s: at %s, line %zu : %s\n", e.Error ? "Error" : "Warning", e.ScriptName.GetCStr(), e.LineNumber,
+                   e.Message.GetCStr());
+            has_errors |= e.Error;
         }
         body.Append(script);
+    }
+    // Every dialog is converted, so that one run reports the errors of all of them
+    if (has_errors)
+    {
+        printf("There were conversion errors.\nStop.\n");
+        return -1;
     }
 
     //-----------------------------------------------------------------------//

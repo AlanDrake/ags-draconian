@@ -211,6 +211,7 @@
     <ClCompile Include="..\..\libsrc\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="..\..\Tools\data\agfreader.cpp" />
     <ClCompile Include="..\..\Tools\data\cc_script_stubs.cpp" />
+    <ClCompile Include="..\..\Tools\data\dialogscriptconv.cpp" />
     <ClCompile Include="..\..\Tools\data\room_build.cpp" />
     <ClCompile Include="..\..\Tools\data\room_utils.cpp" />
     <ClCompile Include="..\..\Tools\data\room_xml.cpp" />
@@ -230,6 +231,7 @@
     <ClCompile Include="..\..\Tools\test\agfreader_test.cpp" />
     <ClCompile Include="..\..\Tools\test\data_file_writer_test.cpp" />
     <ClCompile Include="..\..\Tools\test\commandline_test.cpp" />
+    <ClCompile Include="..\..\Tools\test\dialogscriptconv_test.cpp" />
     <ClCompile Include="..\..\Tools\test\diagnostics_test.cpp" />
     <ClCompile Include="..\..\Tools\test\gtest_main.cc" />
     <ClCompile Include="..\..\Tools\test\game_utils_test.cpp" />

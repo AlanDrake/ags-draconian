@@ -49,6 +49,12 @@ TEST(Diagnostics, PreprocessorErrorAndWarning)
     EXPECT_EQ(Severity::Info, d.Level);
     EXPECT_EQ("a.asc", d.File);
     EXPECT_EQ(1, d.Line);
+
+    // A dialog is named as the compiler names its script, as agf2dlgasc reports it
+    ASSERT_TRUE(ParseDiagnosticLine("Error: at Dialog 3, line 12 : Unknown character: alice", d));
+    EXPECT_EQ("Dialog 3", d.File);
+    EXPECT_EQ(12, d.Line);
+    EXPECT_EQ("Unknown character: alice", d.Message);
 }
 
 TEST(Diagnostics, MessagesWithoutLocation)

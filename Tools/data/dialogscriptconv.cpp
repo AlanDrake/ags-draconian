@@ -13,7 +13,7 @@
 //=============================================================================
 #include "data/dialogscriptconv.h"
 
-#include <cctype>
+#include <algorithm>
 #include <regex>
 
 #include "util/memory_compat.h"
@@ -59,19 +59,19 @@ String DialogScriptConverter::Convert()
         std::make_unique<MemoryStream>((uint8_t *)_dlgScript.GetCStr(), _dlgScript.GetLength()));
     TextStreamReader sr(std::move(mems));
 
-    String ags_script = String::FromFormat("function _run_dialog%d(int entryPoint) { \n", _dialog.ID);
+    // The function's opening shares the line with the first line of the dialog script, and every
+    // line of the dialog script gives one line, an empty one too: a line of the result has the
+    // number it has in the dialog script, which is what the compiler reports and puts into the
+    // compiled script, as the editor does.
+    String ags_script = String::FromFormat("function _run_dialog%d(int entryPoint) { ", _dialog.ID);
 
     // every line, the last one too, as C# StringReader.ReadLine() gives them
     while (!sr.EOS())
     {
         const String thisLine = sr.ReadLine();
         _lineNumber++;
-        String s = ConvertLine(thisLine);
-        if (!s.IsNullOrSpace())
-        {
-            ags_script.Append(s);
-            ags_script.Append("\n");
-        }
+        ags_script.Append(ConvertLine(thisLine));
+        ags_script.Append("\n");
     }
     if (_currentlyInsideCodeArea)
     {
@@ -111,6 +111,12 @@ String DialogScriptConverter::ConvertLine(const String &line)
     return ConvertDialogScript(line);
 }
 
+// A character of a script word: ASCII letters, digits and '_' (the bytes of UTF-8 text are not)
+static bool IsScriptWordChar(char c)
+{
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || (c == '_');
+}
+
 // NOTE: original CJ's comment:
 // We need this hideously complicated function because we don't
 // want to replace it if "this" appears inside a string, hence
@@ -121,11 +127,11 @@ String DialogScriptConverter::ConvertRealScript(const String &src_line)
 
     for (size_t at = line.FindString("this", 0); at != -1; at = line.FindString("this", at + 1))
     {
-        if (std::isalnum(line[at - 1]) || (line[at - 1] == '_'))
+        if (IsScriptWordChar(line[at - 1]))
         {
             continue;
         }
-        if ((at < line.GetLength() - 4) && ((std::isalnum(line[at + 4]) || (line[at + 4] == '_'))))
+        if ((at < line.GetLength() - 4) && IsScriptWordChar(line[at + 4]))
         {
             continue;
         }
@@ -315,9 +321,14 @@ String DialogScriptConverter::ProcessCharacterSpeech(const String &line)
     String say_text = line.Mid(colon_at + 1);
     say_text.Trim();
     if (say_text.IsEmpty())
+    {
         say_text = "...";
+    }
     else
-        ; // say_text.Replace("\"", "\\\""); // TODO: Replace strings
+    {
+        // The text goes into a string literal: its double quotes are escaped, as the editor does
+        say_text.Replace("\"", "\\\"");
+    }
     say_text = String::FromFormat("\"%s\"", say_text.GetCStr());
     return MakeCharacterSpeech(char_name, say_text);
 }
@@ -330,8 +341,9 @@ const CharacterRef *DialogScriptConverter::FindCharacterByScriptName(const Strin
     for (const auto &c : _game.Characters)
     {
         if (c.ScriptName.CompareNoCase(name) == 0 ||
-            // also compare to a c-prefixed name
-            (c.ScriptName.GetAt(0) == 'c' && c.ScriptName.CompareMidNoCase(name, 1) == 0))
+            // also compare to a c-prefixed name, in either case as the rest of it
+            ((c.ScriptName.GetAt(0) == 'c' || c.ScriptName.GetAt(0) == 'C') &&
+             c.ScriptName.CompareMidNoCase(name, 1) == 0))
         {
             return &c;
         }
