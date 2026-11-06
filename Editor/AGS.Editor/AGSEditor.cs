@@ -1121,7 +1121,7 @@ namespace AGS.Editor
                 // The user data may have been amended by the building process
                 SaveUserDataFile();
             }
-            Factory.GUIController.PostOutputAndReportErrors(messages, "The game compiled", allowMessageOnSuccess: true);
+            Factory.GUIController.PostOutputAndReportErrors(messages, "The game compiled", allowPopupOnSuccess: !forRun);
             return messages;
         }
 
