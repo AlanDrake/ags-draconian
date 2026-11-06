@@ -204,6 +204,8 @@ add_executable(agsbuild agsbuild/main.cpp
         agsbuild/taskmanager.cpp
         agsbuild/diagnostics.h
         agsbuild/diagnostics.cpp
+        agsbuild/package_files.h
+        agsbuild/package_files.cpp
         )
 set_target_properties(agsbuild PROPERTIES
         CXX_STANDARD 17
@@ -331,12 +333,14 @@ if(AGS_TESTS)
       test/agfreader_test.cpp
       test/data_file_writer_test.cpp
       agsbuild/diagnostics.cpp
+      agsbuild/package_files.cpp
       agsbuild/pipedprocess.cpp
       agsbuild/taskmanager.cpp
       test/diagnostics_test.cpp
       test/game_utils_test.cpp
       test/include_utils_test.cpp
       test/mfl_utils_test.cpp
+      test/package_files_test.cpp
       test/pipedprocess_test.cpp
       test/room_build_test.cpp
       test/tra_utils_test.cpp

@@ -17,6 +17,7 @@
 // package, using AGS game project and miscelaneous project files as input.
 //
 //=============================================================================
+#include <algorithm>
 #include <cstdio>
 
 #include "platform/platform.h"
@@ -26,6 +27,7 @@
 #include "ac/def_version.h"
 #include "data/agfreader.h"
 #include "diagnostics.h"
+#include "package_files.h"
 #include "pipedprocess.h"
 #include "taskmanager.h"
 #include "util/cmdlineopts.h"
@@ -194,6 +196,8 @@ struct ProjectData
     std::vector<String> scm_header_list;
     std::vector<String> tra_list;
     bool has_globalvar_script = false;
+    // Largest size of a part of the main package in MB, 0 for a package in one file
+    int PartSizeMB = 0;
 };
 
 // The build in progress: what the stages share. Each stage adds its tasks to the task manager,
@@ -218,13 +222,22 @@ struct BuildContext
     std::vector<String> pak_temp_files;
     std::vector<String> pak_src_audio_files;
     std::vector<String> pak_temp_audio_files;
+    // Files of the custom data folders, by their paths in the project folder, which are their
+    // names in the package
+    std::vector<String> CustomFiles;
     std::vector<String> avox_src_files;
     std::vector<String> avox_temp_files;
     // Extra files that may be created as output, but not packed nor deployed
     std::vector<String> clnup_temp_files;
     std::vector<String> clnup_avox_temp_files;
+    // Files in the folders where files are staged for packing (full paths)
+    std::vector<String> StagedFiles;
     // files that should be not packed but copied along with the game.ags
     std::vector<String> deploy_temp_files;
+    // File name of the main package; it may come in parts, which are deployed with it
+    String GamePackName;
+    // Files of an earlier build in the output folder which this build does not make
+    std::vector<String> StaleOutputFiles;
     // tasks to complete before packaging game files
     std::vector<TaskInput> pre_pack_tasks;
     // tasks to complete before packaging audio vox
@@ -267,7 +280,7 @@ struct BuildContext
 
 // Currently it's more convenient to read AGF lists and compilation-related options directly,
 // rather than trying to use agfexport for this.
-// TODO: support more compile options, such as script options, package splitting, attach to exe etc
+// TODO: support more compile options, such as script options, attach to exe etc
 static HError ReadProject(const BuildOptions &bopts, ProjectData &project)
 {
     AGF::AGFReader reader;
@@ -302,6 +315,7 @@ static HError ReadProject(const BuildOptions &bopts, ProjectData &project)
 
     AGF::ReadAudioClips(project.aclip_list, reader.GetGameRoot());
     AGF::ReadCustomDataDirectories(project.custom_dirs, reader.GetGameRoot());
+    project.PartSizeMB = std::max(0, StrUtil::StringToInt(opts.SplitResources, 0));
     AGF::ReadFontList(project.font_list, reader.GetGameRoot());
     AGF::ReadFontFileList(project.font_files, reader.GetGameRoot());
     AGF::ReadPluginList(project.plugin_list, reader.GetGameRoot());
@@ -320,6 +334,17 @@ static HError ReadProject(const BuildOptions &bopts, ProjectData &project)
     AGF::ReadGlobalVariables(vars, reader.GetGameRoot());
     project.has_globalvar_script = !vars.empty();
     return HError::None();
+}
+
+// Reports something that agsbuild itself found, in the log and as a diagnostic
+static void Report(Diag::Severity level, const String &message)
+{
+    Diag::Log("%s: %s\n", level == Diag::Severity::Error ? "Error" : "Warning", message.GetCStr());
+    Diag::Diagnostic diag;
+    diag.Level = level;
+    diag.Tool = "agsbuild";
+    diag.Message = message.GetCStr();
+    Diag::EmitDiagnostic(diag);
 }
 
 // Export all the necessary information
@@ -619,33 +644,59 @@ static HError AddAudioTasks(BuildContext &c)
     if (!Directory::CreateDirectory(temp_audio_dir))
         return new Error("Error: failed to create temporary audio cache directory '%s'", temp_audio_dir.GetCStr());
 
+    // A clip is packed from the audio cache, or imported from its source file if the cache does
+    // not have it (or always, when asked to reimport: then the cache serves a clip without a source)
     std::vector<DataUtil::AudioClipData> src_clips;
     std::vector<DataUtil::AudioClipData> temp_clips;
+    std::vector<std::pair<String, String>> copy_aclips;
+    size_t missing_clips = 0;
     for (const auto &aclip : c.project.aclip_list)
     {
         // TODO: check file times here! even if reimport audio is on, dont copy to temp if can take up-to-date file from src
-        if (c.bopts.ReimportAudio || !File::IsFile(Path::ConcatPaths(c.audiocache_dir, aclip.CacheFileName)))
+        const String source_fn = Path::IsRelativePath(aclip.SourceFileName)
+                                     ? Path::ConcatPaths(c.src_dir, aclip.SourceFileName)
+                                     : aclip.SourceFileName;
+        const bool has_source = !aclip.SourceFileName.IsEmpty() && File::IsFile(source_fn);
+        const bool has_cache = File::IsFile(Path::ConcatPaths(c.audiocache_dir, aclip.CacheFileName));
+        if (!has_source && !has_cache)
+        {
+            // The editor's message, from its check before a build, which reports every such clip;
+            // the editor needs the cache file, agsbuild either file
+            String message = String::FromFormat("Audio file missing for %s: AudioCache/%s", aclip.ScriptName.GetCStr(),
+                                                aclip.CacheFileName.GetCStr());
+            if (!aclip.SourceFileName.IsEmpty())
+            {
+                message.AppendFmt(" (the source file %s is missing too)", aclip.SourceFileName.GetCStr());
+            }
+            Report(Diag::Severity::Error, message);
+            missing_clips++;
+        }
+        else if (has_source && (c.bopts.ReimportAudio || !has_cache))
+        {
             temp_clips.push_back(aclip);
+            copy_aclips.emplace_back(source_fn, Path::ConcatPaths(temp_audio_dir, aclip.CacheFileName));
+        }
         else
+        {
             src_clips.push_back(aclip);
+        }
+    }
+    if (missing_clips > 0)
+    {
+        return new Error("%zu audio clip(s) have no audio file", missing_clips);
     }
 
     if (temp_clips.size() > 0)
     {
-        std::vector<std::pair<String, String>> copy_aclips;
         for (const auto &aclip : temp_clips)
         {
-            const String source_fn = Path::IsRelativePath(aclip.SourceFileName)
-                                         ? Path::ConcatPaths(c.src_dir, aclip.SourceFileName)
-                                         : aclip.SourceFileName;
-            copy_aclips.push_back(std::make_pair(source_fn, Path::ConcatPaths(temp_audio_dir, aclip.CacheFileName)));
             if (aclip.BundlingType == DataUtil::kAudioBundling_InMainData)
                 c.pak_temp_audio_files.push_back(aclip.CacheFileName);
             else
                 c.avox_temp_files.push_back(aclip.CacheFileName);
         }
-        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles(
-            "import-audio", &c.taskmgr, copy_aclips, FileMoveOp::Hardlink, true /* skip non-existing */, {})));
+        c.taskmgr.AddTask(std::unique_ptr<Task>(
+            new TaskMoveFiles("import-audio", &c.taskmgr, copy_aclips, FileMoveOp::Hardlink, false /* no skip */, {})));
         c.pre_pack_tasks.push_back({"import-audio"});
         c.pre_avox_tasks.push_back({"import-audio"});
     }
@@ -692,38 +743,44 @@ static HError AddProjectFileTasks(BuildContext &c)
             c.pak_src_files.push_back(wfn_file);
     }
 
-    // Gather list of valid custom directories
-    for (const auto &cd : c.project.custom_dirs)
+    // The files which the editor packs because of their names: a preload image, videos
+    std::vector<String> project_files;
+    Directory::GetFiles(c.src_dir, project_files);
+    for (const auto &file : SelectPackedProjectFiles(project_files))
     {
-        // Don't allow absolute paths
-        if (!Path::IsRelativePath(cd))
-            continue;
+        c.pak_src_files.push_back(file);
+    }
 
+    // Everything in the custom data folders, under the paths in the project folder
+    const CustomDataDirs custom_dirs = SelectCustomDataDirs(c.project.custom_dirs);
+    for (const auto &warning : custom_dirs.Warnings)
+    {
+        Report(Diag::Severity::Warning, warning);
+    }
+    for (const auto &cd : custom_dirs.Dirs)
+    {
         const String full_cd = Path::ConcatPaths(c.src_dir, cd);
-        // Don't let a custom path equal to the source dir
-        if (Path::ComparePaths(c.src_dir, full_cd) == 0)
-            continue;
-
-        // Don't allow paths to outside of the source dir
-        if (!Path::IsSameOrSubDir(c.src_dir, full_cd))
-            continue;
-
-        // TODO: // don't allow paths that match or inside restricted folders,
-        // or folders that were already used to make a list of assets
-
-        // Create same custom directory inside temporary dir
-        const String temp_cd = Path::ConcatPaths(c.temp_dir, cd);
-        if (!Directory::CreateDirectory(temp_cd))
-            return new Error("Error: failed to create temporary custom data directory '%s'", temp_cd.GetCStr());
-
-        for (FindFile ff = FindFile::Open(full_cd, "*", true, false); !ff.AtEnd(); ff.Next())
-            c.pak_src_files.push_back(Path::ConcatPaths(cd, ff.Current()));
+        for (FindFile ff = FindFile::OpenFilesRecursive(full_cd); !ff.AtEnd(); ff.Next())
+        {
+            c.CustomFiles.push_back(Path::ConcatPaths(cd, ff.Current()));
+        }
     }
     return HError::None();
 }
 
+// The lines of agspak's pattern file which choose exactly these files of an input folder
+static std::vector<String> MakeIncludePatterns(const std::vector<String> &files)
+{
+    std::vector<String> patterns;
+    for (const auto &f : files)
+    {
+        patterns.push_back(MakeIncludePattern(f));
+    }
+    return patterns;
+}
+
 // Pack selected files into game.ags
-static void AddGamePackTask(BuildContext &c)
+static HError AddGamePackTask(BuildContext &c)
 {
     const String tool_agspak = Path::MakeExePath(c.sys_dir, ToolAgsPak);
     const String audio_cache_dir = Path::ConcatPaths(c.src_dir, "AudioCache");
@@ -745,51 +802,83 @@ static void AddGamePackTask(BuildContext &c)
     std::copy(c.pak_src_audio_files.begin(), c.pak_src_audio_files.end(), std::back_inserter(c.pak_temp_audio_files));
     final_pre_pack_tasks.push_back({"hardlink-src"});
 
+    // agspak packs the files of its input folders which the pattern file of each folder chooses.
     // Write patterns file for main data packed into game.ags
-    std::vector<String> file_pat;
-    for (const auto &f : c.pak_temp_files)
-        file_pat.push_back(f);
+    std::vector<String> file_pat = MakeIncludePatterns(c.pak_temp_files);
     const String include_file = "agspak-include.files";
     c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskWriteStringList("write-agspak-includefile:root", &c.taskmgr,
                                                                     Path::ConcatPaths(c.temp_dir, include_file),
                                                                     file_pat, c.pre_pack_tasks)));
     c.clnup_temp_files.push_back(include_file);
     final_pre_pack_tasks.push_back({"write-agspak-includefile:root"});
+    ProcessArgs input_dirs{c.temp_dir};
 
     // Write patterns file for the audio packed into game.ags (if necessary)
     if (c.pak_temp_audio_files.size())
     {
-        file_pat.clear();
-        for (const auto &f : c.pak_temp_audio_files)
-            file_pat.push_back(f);
+        file_pat = MakeIncludePatterns(c.pak_temp_audio_files);
         c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskWriteStringList(
             "write-agspak-includefile:audiocache", &c.taskmgr, Path::ConcatPaths(audio_cache_temp_dir, include_file),
             file_pat, c.pre_pack_tasks)));
         c.clnup_avox_temp_files.push_back(include_file);
         final_pre_pack_tasks.push_back({"write-agspak-includefile:audiocache"});
+        input_dirs.Add("-D").Add(audio_cache_temp_dir);
     }
 
-    const String game_pack_name = String::FromFormat("%s.ags", c.project.game_opts.FileName.GetCStr());
-    c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
-        "agspak:game.ags", &c.taskmgr,
-        PipedProcessParams(tool_agspak, ProcessArgs{"-c", InDir(c.temp_dir, game_pack_name), // output game.ags
-                                                    c.temp_dir,                              // temp output dir
-                                                    "-r", "-D",
-                                                    audio_cache_temp_dir, // for audio clips embedded into game.ags
-                                                    "-f", include_file,   // patterns file
-                                                    "--replace-dup"}
-                                            .Add(c.VerboseArgs())),
-        final_pre_pack_tasks)));
+    // The files of the custom data folders keep their paths in the package: they are packed from
+    // a folder of their own, which holds them under these paths, and nothing else
+    if (!c.CustomFiles.empty())
+    {
+        const String custom_dir_name = "_custom";
+        const String custom_temp_dir = Path::ConcatPaths(c.temp_dir, custom_dir_name);
+        if (!Directory::CreateAllDirectories(c.temp_dir, custom_dir_name))
+        {
+            return new Error("Failed to create temporary custom data directory '%s'", custom_temp_dir.GetCStr());
+        }
+        std::vector<std::pair<String, String>> stage_files;
+        for (const auto &f : c.CustomFiles)
+        {
+            stage_files.emplace_back(Path::ConcatPaths(c.src_dir, f), f);
+            c.StagedFiles.push_back(Path::ConcatPaths(custom_temp_dir, f));
+        }
+        c.taskmgr.AddTask(std::unique_ptr<Task>(
+            new TaskStageFiles("stage-custom-data", &c.taskmgr, custom_temp_dir, stage_files, {})));
+        // Everything in the folder but the patterns file, which is written after the folder is staged
+        file_pat = {"*", String::FromFormat("!%s", MakeIncludePattern(include_file).GetCStr())};
+        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskWriteStringList(
+            "write-agspak-includefile:custom", &c.taskmgr, Path::ConcatPaths(custom_temp_dir, include_file), file_pat,
+            {{"stage-custom-data"}})));
+        c.StagedFiles.push_back(Path::ConcatPaths(custom_temp_dir, include_file));
+        final_pre_pack_tasks.emplace_back("write-agspak-includefile:custom");
+        input_dirs.Add("-R").Add(custom_temp_dir);
+    }
 
-    c.deploy_temp_files.push_back(game_pack_name);
+    // The package, its input folders, and the name of the patterns file in each of them
+    c.GamePackName = String::FromFormat("%s.ags", c.project.game_opts.FileName.GetCStr());
+    ProcessArgs pack_args{"-c", InDir(c.temp_dir, c.GamePackName)};
+    pack_args.Add(input_dirs).Add("-f").Add(include_file).Add("--replace-dup");
+    // A package in parts is split by agspak, which names the parts game.001, game.002...
+    if (c.project.PartSizeMB > 0)
+    {
+        pack_args.Add("-p").Add(String::FromFormat("%d", c.project.PartSizeMB));
+    }
+    c.taskmgr.AddTask(std::unique_ptr<Task>(
+        new TaskPipedProcess("agspak:game.ags", &c.taskmgr,
+                             PipedProcessParams(tool_agspak, pack_args.Add(c.VerboseArgs())), final_pre_pack_tasks)));
+
     c.pre_deploy_tasks.push_back({"agspak:game.ags"});
+    return HError::None();
 }
 
 // Pack selected files into audio.vox
 static void AddAudioVoxTask(BuildContext &c)
 {
     if (c.avox_src_files.empty() && c.avox_temp_files.empty())
+    {
+        // No clip is in audio.vox: like the editor, delete the one an earlier build made
+        c.StaleOutputFiles.emplace_back("audio.vox");
         return;
+    }
 
     const String tool_agspak = Path::MakeExePath(c.sys_dir, ToolAgsPak);
     const String audio_cache_dir = Path::ConcatPaths(c.src_dir, "AudioCache");
@@ -809,9 +898,7 @@ static void AddAudioVoxTask(BuildContext &c)
     final_pre_avox_tasks.push_back({"hardlink-avox-src"});
 
     // Write patterns file
-    std::vector<String> file_pat;
-    for (const auto &f : c.avox_temp_files)
-        file_pat.push_back(f);
+    std::vector<String> file_pat = MakeIncludePatterns(c.avox_temp_files);
 
     const String include_file = "avox-include.files";
     c.taskmgr.AddTask(std::unique_ptr<Task>(
@@ -834,40 +921,80 @@ static void AddAudioVoxTask(BuildContext &c)
     c.pre_deploy_tasks.push_back({"agspak:audio.vox"});
 }
 
-// Pack selected files into speech.vox
+// Pack the voice files: speech.vox from the Speech folder, sp_<name>.vox from each folder in it.
+// A folder without voice files makes no pack. A voice pack of an earlier build which this one does
+// not make is deleted from the output folder (the editor keeps one, as its check for changed files
+// finds nothing to rebuild), so that the engine finds no voice the project no longer has.
 // TODO: compile lipsync data from Pamela/Papagayo sources, would need a separate tool for that!
 // TODO: restrict voice files to the naming format (`NNNNXXXX.ext` old format and `name.X.ext` new format).
-// FIXME: use speech_file_filter in HasAnyFiles, but must make it support multi-pattern
-static void AddSpeechVoxTasks(BuildContext &c)
+static HError AddSpeechVoxTasks(BuildContext &c)
 {
     const String tool_agspak = Path::MakeExePath(c.sys_dir, ToolAgsPak);
-    const String speech_file_filter = "*.mp3,*.ogg,*.wav" // default voice-over formats
-                                      ",syncdata.dat";    // compiled lipsync output
-    std::vector<String> sub_dirs = {{} /* placeholder for parent dir */};
+    std::vector<String> sub_dirs;
     Directory::GetDirs(c.speech_dir, sub_dirs);
-    for (const auto &sp_dir : sub_dirs)
+    std::vector<String> warnings;
+    const std::vector<VoicePack> packs = PlanVoicePacks(sub_dirs, warnings);
+    for (const auto &warning : warnings)
     {
-        const String dir_path = Path::ConcatPaths(c.speech_dir, sp_dir);
-        if (Directory::HasAnyFiles(dir_path))
-        {
-            const String pak_name = sp_dir.IsEmpty() ? "speech.vox" : String::FromFormat("sp_%s.vox", sp_dir.GetCStr());
-            const String task_name = String::FromFormat("agspak:%s", pak_name.GetCStr());
-            c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
-                task_name, &c.taskmgr,
-                PipedProcessParams(tool_agspak, ProcessArgs{"-c", InDir(c.temp_dir, pak_name), // output pak
-                                                            dir_path,                          // speech input dir
-                                                            speech_file_filter,                // file match filter
-                                                            "--replace-dup"}
-                                                    .Add(c.VerboseArgs())),
-                c.pre_svox_tasks)));
-
-            c.deploy_temp_files.push_back(pak_name);
-            c.pre_deploy_tasks.push_back({task_name});
-        }
+        Report(Diag::Severity::Warning, warning);
     }
+
+    std::vector<String> made_packs;
+    for (const auto &pack : packs)
+    {
+        const String dir_path = Path::ConcatPaths(c.speech_dir, pack.SubDir);
+        std::vector<String> dir_files;
+        Directory::GetFiles(dir_path, dir_files);
+        // The files are packed under their paths inside Speech, from a folder which holds them so
+        std::vector<std::pair<String, String>> stage_files;
+        const String stage_dir_name = String::FromFormat("_voice/%s", pack.PackName.GetCStr());
+        const String stage_dir = Path::ConcatPaths(c.temp_dir, stage_dir_name);
+        for (const auto &f : dir_files)
+        {
+            if (!IsVoicePackFile(f))
+            {
+                continue;
+            }
+            const String asset_name = GetVoiceAssetName(pack, f);
+            stage_files.emplace_back(Path::ConcatPaths(dir_path, f), asset_name);
+            c.StagedFiles.push_back(Path::ConcatPaths(stage_dir, asset_name));
+        }
+        if (stage_files.empty())
+        {
+            continue;
+        }
+        if (!Directory::CreateAllDirectories(c.temp_dir, stage_dir_name))
+        {
+            return new Error("Failed to create temporary voice pack directory '%s'", stage_dir.GetCStr());
+        }
+
+        const String stage_task_name = String::FromFormat("stage-voice:%s", pack.PackName.GetCStr());
+        c.taskmgr.AddTask(std::unique_ptr<Task>(
+            new TaskStageFiles(stage_task_name, &c.taskmgr, stage_dir, stage_files, c.pre_svox_tasks)));
+        const String task_name = String::FromFormat("agspak:%s", pack.PackName.GetCStr());
+        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
+            task_name, &c.taskmgr,
+            PipedProcessParams(tool_agspak, ProcessArgs{"-c", InDir(c.temp_dir, pack.PackName), // output pak
+                                                        stage_dir,                              // staged speech files
+                                                        "-r"}
+                                                .Add(c.VerboseArgs())),
+            {{stage_task_name}})));
+
+        c.deploy_temp_files.push_back(pack.PackName);
+        c.pre_deploy_tasks.emplace_back(task_name);
+        made_packs.push_back(pack.PackName);
+    }
+
+    std::vector<String> out_files;
+    Directory::GetFiles(c.out_dir, out_files);
+    for (const auto &stale : FindStaleVoicePacks(made_packs, out_files))
+    {
+        c.StaleOutputFiles.push_back(stale);
+    }
+    return HError::None();
 }
 
-// Move final files to the destination dir
+// Move final files to the destination dir, when everything is built
 static void AddDeployTask(BuildContext &c)
 {
     std::vector<std::pair<String, String>> deploy_data;
@@ -875,6 +1002,23 @@ static void AddDeployTask(BuildContext &c)
         deploy_data.push_back(std::make_pair(Path::ConcatPaths(c.temp_dir, f), Path::ConcatPaths(c.out_dir, f)));
     c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles("deploy-data", &c.taskmgr, deploy_data, FileMoveOp::Move,
                                                               false /* no skip */, c.pre_deploy_tasks)));
+    // The main package may be in parts, which are known when it is written
+    c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskDeployPackage("deploy-package", &c.taskmgr, c.temp_dir, c.out_dir,
+                                                                  c.GamePackName, c.pre_deploy_tasks)));
+    // What an earlier build made, and this one does not
+    std::vector<String> stale_files;
+    for (const auto &f : c.StaleOutputFiles)
+    {
+        if (File::IsFile(Path::ConcatPaths(c.out_dir, f)))
+        {
+            stale_files.push_back(Path::ConcatPaths(c.out_dir, f));
+        }
+    }
+    if (!stale_files.empty())
+    {
+        c.taskmgr.AddTask(std::unique_ptr<Task>(
+            new TaskDeleteFiles("delete-stale-output", &c.taskmgr, stale_files, c.pre_deploy_tasks)));
+    }
 }
 
 // Cleanup on success
@@ -894,8 +1038,9 @@ static void AddCleanupTask(BuildContext &c)
         cleanup_files.push_back(Path::ConcatPaths(temp_audio_dir, f));
     for (const auto &f : c.clnup_avox_temp_files)
         cleanup_files.push_back(Path::ConcatPaths(temp_audio_dir, f));
-    c.taskmgr.AddTask(
-        std::unique_ptr<Task>(new TaskDeleteFiles("cleanup-temp", &c.taskmgr, cleanup_files, {{"deploy-data"}})));
+    std::copy(c.StagedFiles.begin(), c.StagedFiles.end(), std::back_inserter(cleanup_files));
+    c.taskmgr.AddTask(std::unique_ptr<Task>(
+        new TaskDeleteFiles("cleanup-temp", &c.taskmgr, cleanup_files, {{"deploy-data"}, {"deploy-package"}})));
 }
 
 HError BuildWithTaskManager(const BuildOptions &bopts)
@@ -927,9 +1072,17 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
         return err;
     if (!(err = AddProjectFileTasks(ctx)))
         return err;
-    AddGamePackTask(ctx);
+    err = AddGamePackTask(ctx);
+    if (!err)
+    {
+        return err;
+    }
     AddAudioVoxTask(ctx);
-    AddSpeechVoxTasks(ctx);
+    err = AddSpeechVoxTasks(ctx);
+    if (!err)
+    {
+        return err;
+    }
     AddDeployTask(ctx);
     if (bopts.Cleanup)
         AddCleanupTask(ctx);

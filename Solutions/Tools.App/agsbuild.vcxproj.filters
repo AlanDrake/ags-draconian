@@ -75,8 +75,14 @@
     <ClCompile Include="..\..\Tools\agsbuild\diagnostics.cpp">
       <Filter>agsbuild</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Tools\agsbuild\package_files.cpp">
+      <Filter>agsbuild</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Tools\agsbuild\pipedprocess.cpp">
       <Filter>agsbuild</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\multifilelib.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Tools\agsbuild\taskmanager.cpp">
       <Filter>agsbuild</Filter>
@@ -96,6 +102,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Tools\agsbuild\diagnostics.h">
+      <Filter>agsbuild</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\agsbuild\package_files.h">
       <Filter>agsbuild</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Tools\agsbuild\pipedprocess.h">

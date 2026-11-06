@@ -2264,6 +2264,7 @@ void ReadAudioClips(std::vector<DataUtil::AudioClipData> &clips, DocElem root)
     for (const auto &a_el : aclip_els)
     {
         DataUtil::AudioClipData adata;
+        ReadEntityRef(adata, aclip, a_el);
         aclip.ReadAllData(a_el, adata);
         clips.push_back(adata);
     }

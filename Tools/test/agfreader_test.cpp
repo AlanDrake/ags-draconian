@@ -2074,6 +2074,9 @@ TEST_F(AGFReaderBlocks, AudioClipList)
     AGF::ReadAudioClips(clips, game);
     ASSERT_EQ(2u, clips.size());
     EXPECT_EQ(1, clips[0].Index);
+    EXPECT_EQ(0, clips[0].ID);
+    EXPECT_STREQ("aOne", clips[0].ScriptName.GetCStr());
+    EXPECT_STREQ("aTwo", clips[1].ScriptName.GetCStr());
     EXPECT_STREQ("Sounds/one.ogg", clips[0].SourceFileName.GetCStr());
     EXPECT_STREQ("au000001.ogg", clips[0].CacheFileName.GetCStr());
     EXPECT_EQ(DataUtil::kAudioFile_OGG, clips[0].FileType);
