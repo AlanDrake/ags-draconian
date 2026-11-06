@@ -30,6 +30,11 @@ Entry points, in reading order:
 - **Safety net before surgery:** no deletion or restructuring of a subsystem before the tests
   that would catch a regression exist (PLAN.md ground rule 3).
 - **Measure, don't guess:** build both ways and compare; run the tests; say what was not verified.
+- **No silent performance loss:** a change that is not meant to make something faster must not make it
+  slower in the builds given to users, the Release ones (Debug builds are internal and do not count).
+  On a hot path (script VM, pixel loops, `Common/util`), compare the code of the objects that changed
+  or benchmark, before and after, with MSVC and GCC, and put the result in the commit message; a cost
+  is reported with its numbers and the user decides (STYLE.md "Performance").
 - Private game projects used as a corpus never appear in the repo (paths, names, content).
 - Upstream work (`U.x` tasks) is done in the worktree `../ags4-upstream` on branches off
   `upstream/ags4`, in **upstream's style and C++11**, without fork-only features
@@ -82,7 +87,8 @@ On demand with `--only`: `sanitizers` (ASan, UBSan and leaks on the unit tests a
 `coverage`. The Linux stages run `Script/linux_jobs.sh` in a WSL 2 distro (`Ubuntu-24.04`, as CI's
 `ubuntu-latest`) on a copy of the working tree, uncommitted files included. CI confirms, it does not
 discover. Also: the auto-test game; `compare_objects.py` for mechanical commits; `compare_builds.py` for
-tool or `agfreader` changes.
+tool or `agfreader` changes; the generated code or a benchmark for a change on a hot path (STYLE.md
+"Performance").
 
 Workflows: `verify.yml` (every push: format, GCC build + tests + tidy gate, header checks), `ci.yml`
 (`ags4draconian*`, PRs: light set; tags, weekly, `gh workflow run ci.yml -f full=true`: every platform),

@@ -442,6 +442,54 @@ in the on-demand CI run 42174071706.
     to the length, so the early return of a zero-byte `VectorStream::Write` skips no resize.
   - Commits: `Common: Memory read and write functions use memcpy, not a cast pointer (1.5b-3)`, `Common:
     zero-byte reads and writes of memory streams skip memcpy (1.5b-3)`.
+  - **Reviewed 2026-11-06**, after the `memcpy` was called slower than the strict-alignment branch. Measured
+    on the 28 objects that see `memory.h` and with a micro-benchmark through `ReadInt32LE` and
+    `WriteInt32LE` (MSVC 19.44, GCC 13.3, clang 18.1; i7-4790K; ns per call, read / write):
+
+    | Build | cast (before) | `memcpy` (now) | from bytes | unaligned type |
+    |---|---|---|---|---|
+    | MSVC x64 Debug (`/Od /Ob0 /RTC1`) | 4.0 / 3.9 | 13.6 / 4.8 | 5.8 / 5.6 | 4.0 / 3.9 |
+    | MSVC x86 Debug | 7.3 / 4.6 | 13.3 / 7.2 | 8.9 / 6.4 | 7.1 / 4.6 |
+    | MSVC x64 MinSizeRel (`/O1`) | 0.9 / 0.4 | 2.1 / 1.8 | 1.0 / 1.0 | 0.9 / 0.4 |
+    | MSVC x64 Release (`/O2`) | 0.9 / 0.4 | 0.9 / 0.4 | 0.9 / 1.0 | 0.9 / 0.4 |
+
+    - MSVC Release (x64, `/GL` off to have code to read): all 28 objects are the code of before, as stated
+      above. MSVC Debug: 4 objects differ, `ReadInt16/32` go from 6 to 21 instructions and call `memcpy`
+      and `_RTC_CheckStackVars` (the local `v`), `WriteInt16/32` from 8 to 12 with the call. The user, the
+      same day: Debug builds are internal, never given to users, and do not count. What a running Debug
+      game loses was not measured. With `/Oi` MSVC expands the `memcpy` at `/Od` too (a read is 4.4 ns).
+    - GCC `-O3` (the flags of the `linux` stage, `-fno-lto` to have code to read): 26 objects are the code
+      of before; `scriptexecutor.cpp` is not (`Run` 3154 to 3169 instructions, `PushValueToStack` 61 to 64:
+      other registers and block order, no call), nor `wfnfont.cpp` (one compare, operands swapped).
+      "Byte-identical" above was the six helpers alone. The speed of the VM was not measured. GCC and
+      clang expand the `memcpy` at `-O0` (a read is 5.9 instead of 5.3 ns with GCC: the stack protector
+      for `v`). With Ubuntu's `_FORTIFY_SOURCE=3` a `memcpy` into a buffer of known size is a
+      `__memcpy_chk` call (0.3 to 3.1 ns in the benchmark's write loop over a global array); the engine
+      objects have none.
+    - From bytes, as the strict-alignment branch does: MSVC does not merge them (`/O2`: 10 instructions
+      for a 32-bit read or write, 24 for a 64-bit read), so it is slower than the `memcpy` in Release (a
+      32-bit write 1.0 instead of 0.4 ns), faster in Debug, and slower than the cast in both. The
+      branch's `ReadInt64` is wrong when bit 31 is set: `b[3] << 24` is an `int` and sign-extends, so
+      `0x80000000` reads as `0xFFFFFFFF80000000`. No build defines `AGS_STRICT_ALIGNMENT` or
+      `TEST_STRICT_ALIGNMENT`: nothing compiles the branch, tests included.
+    - **Applied the same day, by the user's decision:** the access goes through an unaligned integer type,
+      not `memcpy`. `UnalignedInt16/32/64` in `platform/types.h` (C++ only: the header is compiled as C
+      too): `__unaligned` with MSVC, the plain type for MSVC x86 (the keyword is error C4235 there and
+      the target needs no alignment, as the Windows SDK's `UNALIGNED`), an alias with
+      `__attribute__((aligned(1), may_alias))` with GCC and Clang and a `static_assert` on `alignof`. In
+      a Windows Release build it is the code the `memcpy` gave; the gain is the code of before 1.5b-3 in
+      every build looked at, with nothing left to the optimizer. The strict-alignment branch is untouched.
+    - Checked on the final tree: all 28 objects are the code of before a50cf4f7a with MSVC x64 and x86,
+      Release and Debug, and with GCC `-O3`; `compare_objects.py` against the tree with the cast pointer:
+      638 objects identical; a program using every helper at odd addresses is clean under UBSan with GCC
+      13 and clang 18 and gets 6 reports with the cast pointer; `sanitizers`: no findings (unit tests and
+      the 2345 tests of the auto-test game); `prepush.py`: the eight stages pass (1106 tests in `linux`;
+      `tidy` wanted `using`, not `typedef`). Not verified: macOS, iOS, Android, FreeBSD, the Debian 10
+      image (GCC 8), clang-cl. For ARMv7 clang reads 64 bits with two `ldr` where the cast got `ldrd`,
+      which needs a word-aligned address (generated code only, not run).
+    - Commit: `Common: Memory reads and writes go through unaligned types (1.5b-3)`.
+    - The lesson is STYLE.md "Performance" and the rule in AGENTS.md: the builds that count are the
+      Release ones.
 - **1.5b-4 Script compiler leaks (2026-11-05, by a subagent, reviewed by the overseeing session):** the 35 compiler rows are gone
   (`sanitizers`: 46 rows to 11, exactly the 7 engine leaks and 4 UBSan rows of 1.5b-3 and 1.5b-5; no
   `ERROR: AddressSanitizer`; the 11 rows are in 52 log files, the 46 were in 628). Three causes, no suppression:

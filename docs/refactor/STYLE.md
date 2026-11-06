@@ -151,6 +151,35 @@ MSVC is the local compiler; each rule is a CI break it let through (LOG.md task 
   `#if` branches) [2.5]: run `prepush.py`'s `emscripten` stage; check macOS, iOS, Android and FreeBSD
   code by hand.
 
+### Performance
+
+A change that is not meant to make something faster must not make it slower in the builds given to
+users: MSVC Release (`/O2`), GCC and Clang Release (`-O3`, LTO). Debug builds are used internally only
+and do not count (2026-11-06). A fix for a sanitizer report, a warning or a lint finding is such a
+change. What the first case taught is marked [1.5b-3] (LOG.md).
+
+- **Hot paths:** the script VM (`Engine/script/`) and what it calls per instruction; the loops over
+  pixels (`Common/gfx/`, `Engine/gfx/`, `Engine/ac/draw*`); `Common/util/` (memory, streams, `String`,
+  the decompressors); the sprite cache; audio decoding and mixing (`Engine/media/audio/`). The commit
+  message of a change there says what it costs in the Release builds and how that was measured.
+- **Measure the objects that use the code, not the code on its own.** `compare_objects.py` names the
+  objects whose code changed (it builds MinSizeRel, which nobody runs: it shows where to look, not the
+  cost); compare their disassembly built as Release, or benchmark before and after. The
+  `Memory::Read/Write` helpers compiled to the same code on their own with GCC `-O3` and to a different
+  `ScriptExecutor::Run` once inlined [1.5b-3].
+- **A cost is the user's decision:** report the numbers (which build, ns or percent, which path) and
+  stop there.
+- **Optimizers differ** [1.5b-3]: MSVC does not merge a value composed from bytes into one load
+  (`(b[3] << 24) | ...` is ten instructions at `/O2`, one with GCC and Clang at `-O2`); a `memcpy` of
+  constant size is one load or store at `/O2` and `-O1`, but a call with MSVC at `/O1`, and a checked
+  call with GCC's `_FORTIFY_SOURCE=3` (Ubuntu's default) when the size of the destination is known.
+- **An integer at an address that may be misaligned** is read and written with `Memory::ReadInt32` and
+  its siblings (`util/memory.h`): they go through the unaligned types of `platform/types.h`, which are
+  defined behaviour and the same load or store as the cast pointer they replace [1.5b-3].
+- A new allocation, `String` or container copy, virtual or `std::function` call, lock or log line
+  inside a loop over pixels, script instructions, samples or bytes is a behaviour change to measure,
+  not a detail of a refactoring.
+
 ### Comments
 
 - Say **why**, or what isn't obvious; don't repeat the code. Every public function and class gets a
