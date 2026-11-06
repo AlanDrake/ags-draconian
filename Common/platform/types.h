@@ -105,6 +105,32 @@ typedef int32_t fixed_t; // fixed point type
 // a new distinct type for another case.
 typedef int32_t color_t; // AGS color number type (meaning depends on game's setting)
 
+#if defined(__cplusplus) // this header is compiled as C too
+// Integers that may be stored at any address. Reading or writing one through a pointer is defined
+// where a pointer to int16_t, int32_t or int64_t needs an aligned address, and is the same plain
+// load or store.
+#if defined(_MSC_VER) && !defined(__clang__)
+#if defined(_M_IX86)
+// x86 has no alignment requirement and MSVC rejects __unaligned for it (C4235),
+// as UNALIGNED of the Windows SDK is empty there
+using UnalignedInt16 = int16_t;
+using UnalignedInt32 = int32_t;
+using UnalignedInt64 = int64_t;
+#else
+using UnalignedInt16 = __unaligned int16_t;
+using UnalignedInt32 = __unaligned int32_t;
+using UnalignedInt64 = __unaligned int64_t;
+#endif
+#else
+// GCC and Clang; may_alias because they are read from buffers of other types
+using UnalignedInt16 __attribute__((aligned(1), may_alias)) = int16_t;
+using UnalignedInt32 __attribute__((aligned(1), may_alias)) = int32_t;
+using UnalignedInt64 __attribute__((aligned(1), may_alias)) = int64_t;
+static_assert(alignof(UnalignedInt16) == 1 && alignof(UnalignedInt32) == 1 && alignof(UnalignedInt64) == 1,
+              "the compiler ignored __attribute__((aligned(1)))");
+#endif
+#endif // __cplusplus
+
 // TODO: use distinct fixed point class
 enum
 {

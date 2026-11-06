@@ -19,6 +19,7 @@
 
 #include <string.h>
 
+#include "platform/types.h"
 #include "util/bbop.h"
 #include "util/math.h"
 
@@ -52,9 +53,10 @@ inline T *Int32ToPtr(int32_t value)
 //-------------------------------------------------------------------------
 // Functions for reading and writing basic types from/to the memory.
 // Implement safety workaround for CPUs with alignment restrictions
-// (e.g. MIPS). Without it, memcpy of a fixed size is used instead of
-// dereferencing a cast pointer, which is undefined for a misaligned address;
-// compilers turn it into a single load or store.
+// (e.g. MIPS). Without it, the access goes through an unaligned integer type
+// (platform/types.h): a pointer to int16_t, int32_t or int64_t is undefined
+// for a misaligned address, and a fixed-size memcpy, which is defined too,
+// is a load or store only where the compiler expands it.
 //-------------------------------------------------------------------------
 inline int16_t ReadInt16(const void *ptr)
 {
@@ -66,9 +68,7 @@ inline int16_t ReadInt16(const void *ptr)
     return (b[1] << 8) | b[0];
 #endif
 #else
-    int16_t v;
-    memcpy(&v, ptr, sizeof(v));
-    return v;
+    return *static_cast<const UnalignedInt16 *>(ptr);
 #endif
 }
 
@@ -93,9 +93,7 @@ inline int32_t ReadInt32(const void *ptr)
     return (b[3] << 24) | (b[2] << 16) | (b[1] << 8) | b[0];
 #endif
 #else
-    int32_t v;
-    memcpy(&v, ptr, sizeof(v));
-    return v;
+    return *static_cast<const UnalignedInt32 *>(ptr);
 #endif
 }
 
@@ -111,9 +109,7 @@ inline int64_t ReadInt64(const void *ptr)
            (b[3] << 24) | (b[2] << 16) | (b[1] << 8) | b[0];
 #endif
 #else
-    int64_t v;
-    memcpy(&v, ptr, sizeof(v));
-    return v;
+    return *static_cast<const UnalignedInt64 *>(ptr);
 #endif
 }
 
@@ -129,7 +125,7 @@ inline void WriteInt16(void *ptr, int16_t value)
     b[0] = (uint8_t)(value);
 #endif
 #else
-    memcpy(ptr, &value, sizeof(value));
+    *static_cast<UnalignedInt16 *>(ptr) = value;
 #endif
 }
 
@@ -164,7 +160,7 @@ inline void WriteInt32(void *ptr, int32_t value)
     b[0] = (uint8_t)(value);
 #endif
 #else
-    memcpy(ptr, &value, sizeof(value));
+    *static_cast<UnalignedInt32 *>(ptr) = value;
 #endif
 }
 
@@ -192,7 +188,7 @@ inline void WriteInt64(void *ptr, int64_t value)
     b[0] = (uint8_t)(value);
 #endif
 #else
-    memcpy(ptr, &value, sizeof(value));
+    *static_cast<UnalignedInt64 *>(ptr) = value;
 #endif
 }
 
