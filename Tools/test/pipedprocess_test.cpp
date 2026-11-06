@@ -145,6 +145,35 @@ TEST(PipedProcess, WindowsArgsReadBackAsGiven)
 }
 #endif
 
+#if AGS_PLATFORM_OS_WINDOWS
+// A tool inherits its own pipes only, not the other inheritable handles of agsbuild: when the
+// editor runs agsbuild, those are the editor's pipes, which a tool would keep open while it runs.
+// The child, this test program with "--print-handle-path" (gtest_main.cc), tells which file the
+// value of an inheritable handle of the test is open to in the child: none.
+TEST(PipedProcess, ChildInheritsOnlyItsPipes)
+{
+    const char *file_name = "inherit_probe.txt";
+    SECURITY_ATTRIBUTES sa = {sizeof(sa), nullptr, TRUE};
+    HANDLE file = CreateFileW(L"inherit_probe.txt", GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, &sa,
+                              CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    ASSERT_NE(INVALID_HANDLE_VALUE, file);
+
+    const String handle_value =
+        String::FromFormat("%llx", static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(file)));
+    std::vector<uint8_t> log_buf;
+    TextStreamWriter log(std::make_unique<Stream>(std::make_unique<VectorStream>(log_buf, kStream_Write)));
+    std::vector<uint8_t> out;
+    PipedProcess proc(File::GetThisExePath(), ProcessArgs{"--print-handle-path", handle_value}.GetParams(), &log);
+    const bool ran = static_cast<bool>(proc.RunSync(&out));
+    CloseHandle(file);
+    File::DeleteFile(file_name);
+
+    ASSERT_TRUE(ran);
+    const String text(reinterpret_cast<const char *>(out.data()), out.size());
+    EXPECT_TRUE(text.StartsWith("path:none")) << "the child has the test's handle: " << text.GetCStr();
+}
+#endif
+
 // A child process gets the arguments as they were given, by the way the tools read them: this
 // test program, with "--print-args" (gtest_main.cc), started as agsbuild starts the tools
 TEST(PipedProcess, ChildGetsArgsAsGiven)

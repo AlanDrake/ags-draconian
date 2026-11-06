@@ -160,18 +160,69 @@ HError PipedProcess::RunSync(std::vector<uint8_t> *stdout_data)
 }
 
 #if (AGS_PLATFORM_OS_WINDOWS)
-// Processes are started from several task threads at once. A child inherits every inheritable
-// handle that exists at the moment it is created, so pipe creation, process creation and closing
-// our copies of the pipe's write ends happen under one lock: then each child inherits only its
-// own pipe, and a pipe reports end-of-file as soon as its process exits.
+// Processes are started from several task threads at once. Pipe creation, process creation and
+// closing our copies of the pipe's write ends happen under one lock: no other child can then
+// get a copy of a pipe's write end, and a pipe reports end-of-file as soon as its process exits.
 static std::mutex CreateProcessMutex;
+
+// The handles a child process inherits: only those in the list, not every inheritable handle
+// agsbuild has (such as its own standard handles, which are the editor's pipes when the editor
+// runs it: a tool that outlived agsbuild would keep them open)
+class InheritedHandles
+{
+public:
+    explicit InheritedHandles(const std::vector<HANDLE> &handles) : _handles(handles)
+    {
+        if (_handles.empty())
+        {
+            return;
+        }
+        SIZE_T size = 0;
+        InitializeProcThreadAttributeList(nullptr, 1, 0, &size);
+        _buffer.resize(size);
+        auto *list = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(_buffer.data());
+        if (size == 0 || !InitializeProcThreadAttributeList(list, 1, 0, &size))
+        {
+            return;
+        }
+        _list = list;
+        if (!UpdateProcThreadAttribute(_list, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
+                                       static_cast<void *>(_handles.data()), _handles.size() * sizeof(HANDLE), nullptr,
+                                       nullptr))
+        {
+            DeleteProcThreadAttributeList(_list);
+            _list = nullptr;
+        }
+    }
+    ~InheritedHandles()
+    {
+        if (_list)
+        {
+            DeleteProcThreadAttributeList(_list);
+        }
+    }
+    InheritedHandles(const InheritedHandles &) = delete;
+    InheritedHandles &operator=(const InheritedHandles &) = delete;
+
+    // The attribute list for STARTUPINFOEX, or nullptr if there are no handles, or the list could
+    // not be made (then the child inherits every inheritable handle, as it would without a list)
+    LPPROC_THREAD_ATTRIBUTE_LIST GetList() const { return _list; }
+    bool HasHandles() const { return !_handles.empty(); }
+
+private:
+    std::vector<HANDLE> _handles;
+    std::vector<uint8_t> _buffer;
+    LPPROC_THREAD_ATTRIBUTE_LIST _list = nullptr;
+};
 #endif
 
 HError PipedProcess::CreateProcess()
 {
 #if (AGS_PLATFORM_OS_WINDOWS)
     std::lock_guard<std::mutex> lk(CreateProcessMutex);
-    STARTUPINFOW si = {sizeof(si), nullptr, nullptr, nullptr, NULL, CREATE_NO_WINDOW, NULL};
+    STARTUPINFOEXW six = {};
+    STARTUPINFOW &si = six.StartupInfo;
+    si.cb = sizeof(six);
 
     SECURITY_ATTRIBUTES sa;
     sa.nLength = sizeof(SECURITY_ATTRIBUTES);
@@ -194,10 +245,25 @@ HError PipedProcess::CreateProcess()
         si.hStdError = _hStdErrPipeWrite;
     }
 
+    std::vector<HANDLE> inherit;
+    if (stdout_pipe)
+    {
+        inherit.push_back(_hStdOutPipeWrite);
+    }
+    if (stderr_pipe)
+    {
+        inherit.push_back(_hStdErrPipeWrite);
+    }
+    const InheritedHandles inherited(inherit);
+    six.lpAttributeList = inherited.GetList();
+    // The extended structure only with its flag, as CreateProcess documents it
+    si.cb = six.lpAttributeList ? sizeof(six) : sizeof(si);
+    const DWORD flags = CREATE_NO_WINDOW | (six.lpAttributeList ? EXTENDED_STARTUPINFO_PRESENT : 0);
+
     std::vector<wchar_t> cmd(_command.GetLength() + 1);
     StrUtil::ConvertUtf8ToWstr(_command.GetCStr(), cmd.data(), cmd.size());
-    const bool created = CreateProcessW(nullptr, cmd.data(), nullptr, nullptr, TRUE /* bInheritHandles */,
-                                        CREATE_NO_WINDOW, nullptr, nullptr, &si, &_pi) == TRUE;
+    const bool created = CreateProcessW(nullptr, cmd.data(), nullptr, nullptr, inherited.HasHandles() ? TRUE : FALSE,
+                                        flags, nullptr, nullptr, &si, &_pi) == TRUE;
     const DWORD create_error = created ? 0 : GetLastError();
     // The child has its own copies of the write ends now. Keeping ours open would keep the pipes
     // from ever reporting end-of-file, and would leak them into the next process we start.
