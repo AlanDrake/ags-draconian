@@ -104,12 +104,6 @@ jobs:
     name: Auto-test game
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      # CMake reads the launcher from the environment (3.17+)
-      CMAKE_C_COMPILER_LAUNCHER: ccache
-      CMAKE_CXX_COMPILER_LAUNCHER: ccache
-      CCACHE_DIR: ${{ github.workspace }}/.ccache
-      CCACHE_MAXSIZE: 200M
     steps:
     - uses: actions/checkout@v6
       with:
@@ -123,29 +117,18 @@ jobs:
         path: auto-test-source
         persist-credentials: false
 
-    - name: Install ccache
-      run: sudo apt-get update -y && sudo apt-get install -y ccache
-
     - name: Cache CMake FetchContent dependencies
       uses: actions/cache@v5
       with:
         path: ${{github.workspace}}/build/_deps
         key: fetchcontent-${{ runner.os }}-tools-${{ hashFiles('CMakeLists.txt', 'CMake/Fetch*.cmake') }}
 
-    # A cache is never overwritten, so every commit saves its own and the next one starts from the newest
-    - name: Compiler cache
-      uses: actions/cache@v5
-      with:
-        path: ${{github.workspace}}/.ccache
-        key: ccache-tools-${{ github.sha }}
-        restore-keys: ccache-tools-
-
+    # No compiler cache here (measured, 2.9): the 120 objects come back in seconds, but installing ccache
+    # costs as much, and the rest of the step is the configure and the eleven links
     - name: Build the tools
       run: |
-        ccache --zero-stats
         cmake -S . -B build -DAGS_BUILD_TOOLS=1 -DAGS_BUILD_ENGINE=0 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         cmake --build build --parallel 8
-        ccache --show-stats
 
     - name: Build the auto-test with agsbuild
       run: |
@@ -270,11 +253,14 @@ jobs:
     - name: Configure CMake
       run: |
         cmake --version
-        ccache --zero-stats
         ${{ matrix.platform.cmakecmd }} -S "${{github.workspace}}" -B "${{github.workspace}}/build" ${{ matrix.platform.cmakeargs }} -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
+    # The statistics start here: the configure step's compiler checks are in scratch directories with
+    # random names, some 200 calls that never hit
     - name: Build
-      run: cmake --build "${{github.workspace}}/build" --config ${{env.BUILD_TYPE}} --parallel 8
+      run: |
+        ccache --zero-stats
+        cmake --build "${{github.workspace}}/build" --config ${{env.BUILD_TYPE}} --parallel 8
 
     # Every header must compile on its own (docs/refactor/PLAN.md, 2.6); MSVC here, GCC and clang+libc++ in verify.yml
     - name: Check that headers are self-contained
