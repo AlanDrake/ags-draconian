@@ -15,6 +15,8 @@
 
 #include <cerrno>
 #include <cstring>
+#include <cwchar>
+#include <vector>
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/windows.h"
 
@@ -92,6 +94,158 @@ bool DeleteDirectory(const String &path)
 #else
     return rmdir(path.GetCStr()) == 0;
 #endif
+}
+
+namespace
+{
+
+// What an entry of a directory tree is, as far as deleting it goes
+enum class TreeEntryKind
+{
+    None,    // nothing there
+    File,    // a file, or a link which is deleted as a file
+    Dir,     // a directory, deleted with its contents
+    DirLink, // a link to a directory which is deleted as a directory, without its contents (Windows)
+};
+
+struct TreeEntry
+{
+    String Name;
+    TreeEntryKind Kind = TreeEntryKind::None;
+};
+
+#if AGS_PLATFORM_OS_WINDOWS
+std::vector<wchar_t> ToWidePath(const String &path)
+{
+    std::vector<wchar_t> wpath;
+    StrUtil::ConvertUtf8ToWstr(path.GetCStr(), wpath);
+    return wpath;
+}
+
+TreeEntryKind KindFromAttributes(DWORD attributes)
+{
+    if ((attributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+    {
+        return TreeEntryKind::File;
+    }
+    // A junction or a symbolic link to a directory
+    return (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0 ? TreeEntryKind::DirLink : TreeEntryKind::Dir;
+}
+#endif
+
+// What is at the path, without following a link
+TreeEntryKind GetTreeEntryKind(const String &path)
+{
+#if AGS_PLATFORM_OS_WINDOWS
+    const DWORD attributes = GetFileAttributesW(ToWidePath(path).data());
+    return attributes == INVALID_FILE_ATTRIBUTES ? TreeEntryKind::None : KindFromAttributes(attributes);
+#else
+    struct stat st{};
+    if (lstat(path.GetCStr(), &st) != 0)
+    {
+        return TreeEntryKind::None;
+    }
+    return S_ISDIR(st.st_mode) ? TreeEntryKind::Dir : TreeEntryKind::File;
+#endif
+}
+
+// The entries of a directory, without "." and ".."; read in full before anything is deleted
+std::vector<TreeEntry> ListTreeEntries(const String &dir)
+{
+    std::vector<TreeEntry> entries;
+#if AGS_PLATFORM_OS_WINDOWS
+    WIN32_FIND_DATAW fdata{};
+    HANDLE ff = FindFirstFileW(ToWidePath(String::FromFormat("%s/*", dir.GetCStr())).data(), &fdata);
+    if (ff == INVALID_HANDLE_VALUE)
+    {
+        return entries;
+    }
+    do
+    {
+        if (wcscmp(fdata.cFileName, L".") == 0 || wcscmp(fdata.cFileName, L"..") == 0)
+        {
+            continue;
+        }
+        std::vector<char> name;
+        StrUtil::ConvertWstrToUtf8(fdata.cFileName, name);
+        entries.push_back({String(name.data()), KindFromAttributes(fdata.dwFileAttributes)});
+    } while (FindNextFileW(ff, &fdata));
+    FindClose(ff);
+#else
+    DIR *dir_handle = opendir(dir.GetCStr());
+    if (!dir_handle)
+    {
+        return entries;
+    }
+    for (struct dirent *ent = readdir(dir_handle); ent; ent = readdir(dir_handle))
+    {
+        if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
+        {
+            continue;
+        }
+        entries.push_back({String(ent->d_name), GetTreeEntryKind(Path::ConcatPaths(dir, ent->d_name))});
+    }
+    closedir(dir_handle);
+#endif
+    return entries;
+}
+
+// Deletes a file, or a link as the link it is
+bool DeleteTreeLeaf(const String &path, [[maybe_unused]] TreeEntryKind kind)
+{
+#if AGS_PLATFORM_OS_WINDOWS
+    const std::vector<wchar_t> wpath = ToWidePath(path);
+    return kind == TreeEntryKind::DirLink ? RemoveDirectoryW(wpath.data()) != FALSE
+                                          : DeleteFileW(wpath.data()) != FALSE;
+#else
+    return unlink(path.GetCStr()) == 0;
+#endif
+}
+
+void SetFailedPath(String *failed_path, const String &path)
+{
+    if (failed_path && failed_path->IsEmpty())
+    {
+        *failed_path = path;
+    }
+}
+
+bool DeleteTreeContents(const String &dir, String *failed_path)
+{
+    for (const auto &entry : ListTreeEntries(dir))
+    {
+        const String path = Path::ConcatPaths(dir, entry.Name);
+        if (entry.Kind == TreeEntryKind::Dir)
+        {
+            if (!DeleteTreeContents(path, failed_path))
+            {
+                return false;
+            }
+        }
+        else if (!DeleteTreeLeaf(path, entry.Kind))
+        {
+            SetFailedPath(failed_path, path);
+            return false;
+        }
+    }
+    if (!DeleteDirectory(dir))
+    {
+        SetFailedPath(failed_path, dir);
+        return false;
+    }
+    return true;
+}
+
+} // namespace
+
+bool DeleteDirectoryTree(const String &path, String *failed_path)
+{
+    switch (GetTreeEntryKind(path))
+    {
+    case TreeEntryKind::None: return true;
+    case TreeEntryKind::Dir: return DeleteTreeContents(path, failed_path);
+    default: SetFailedPath(failed_path, path); return false;
+    }
 }
 
 String SetCurrentDirectory(const String &path)

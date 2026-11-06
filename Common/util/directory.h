@@ -63,7 +63,13 @@ bool CreateDirectory(const String &path);
 // not touched, and function must fail if parent path is not accessible.
 bool CreateAllDirectories(const String &parent, const String &sub_dirs);
 // Deletes a directory, returns result. If no such directory existed then returns positive result.
+// The directory must be empty: see DeleteDirectoryTree for one with contents.
 bool DeleteDirectory(const String &path);
+// Deletes a directory with everything in it. A link to a directory (a symbolic link, a junction)
+// is deleted as a link: what it points to is left alone. Returns true when the directory is gone,
+// also when there was none. On failure stops at the first entry that could not be deleted, and
+// gives its path in failed_path, if asked. A path to a file is not deleted, and is a failure.
+bool DeleteDirectoryTree(const String &path, String *failed_path = nullptr);
 // Sets current working directory, returns the resulting path
 String SetCurrentDirectory(const String &path);
 // Gets current working directory
