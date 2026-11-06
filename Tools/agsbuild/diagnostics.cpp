@@ -19,10 +19,16 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
-#include <iostream>
 #include <mutex>
 #include <string>
 #include <thread>
+
+#include "platform/platform.h"
+#if (AGS_PLATFORM_OS_WINDOWS)
+#include "platform/windows/windows.h"
+#else
+#include <unistd.h>
+#endif
 
 namespace AGSBuild
 {
@@ -328,6 +334,46 @@ static void OnSignal(int)
     CancelFlag = true; // a lock-free atomic is safe to set here
 }
 
+// Reads stdin until it ends, or until the line "cancel", which requests a cancel.
+// It reads with the system's calls, not through the C runtime: a thread waiting in std::cin holds
+// the stream's lock, and the runtime takes the locks of its streams when the process exits, so
+// agsbuild did not exit while its stdin stayed open (and crashed when "cancel" came during the exit).
+static void ReadCancelFromStdin()
+{
+    std::string line;
+    char buf[256];
+    for (;;)
+    {
+#if (AGS_PLATFORM_OS_WINDOWS)
+        DWORD got = 0;
+        if (!ReadFile(GetStdHandle(STD_INPUT_HANDLE), buf, sizeof(buf), &got, nullptr) || got == 0)
+        {
+            return;
+        }
+#else
+        const ssize_t got = read(STDIN_FILENO, buf, sizeof(buf));
+        if (got <= 0)
+        {
+            return;
+        }
+#endif
+        for (size_t i = 0; i < static_cast<size_t>(got); ++i)
+        {
+            if (buf[i] != '\n')
+            {
+                line += buf[i];
+                continue;
+            }
+            if (line == "cancel" || line == "cancel\r")
+            {
+                RequestCancel();
+                return;
+            }
+            line.clear();
+        }
+    }
+}
+
 void InstallCancelHandlers()
 {
     std::signal(SIGINT, OnSignal);
@@ -339,20 +385,7 @@ void InstallCancelHandlers()
     {
         // The editor has no signal to send to a hidden console process: it writes "cancel" instead.
         // The thread may sit in the read until the process exits.
-        std::thread(
-            []()
-            {
-                std::string line;
-                while (std::getline(std::cin, line))
-                {
-                    if (line == "cancel" || line == "cancel\r")
-                    {
-                        RequestCancel();
-                        break;
-                    }
-                }
-            })
-            .detach();
+        std::thread(ReadCancelFromStdin).detach();
     }
 }
 
