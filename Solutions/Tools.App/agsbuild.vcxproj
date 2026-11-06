@@ -46,6 +46,7 @@
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c" />
     <ClCompile Include="..\..\libsrc\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="..\..\Tools\agsbuild\diagnostics.cpp" />
+    <ClCompile Include="..\..\Tools\agsbuild\commandline.cpp" />
     <ClCompile Include="..\..\Tools\agsbuild\main.cpp" />
     <ClCompile Include="..\..\Tools\agsbuild\package_files.cpp" />
     <ClCompile Include="..\..\Tools\agsbuild\pipedprocess.cpp" />
@@ -59,6 +60,7 @@
     <ClInclude Include="..\..\Common\util\string_utils.h" />
     <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h" />
     <ClInclude Include="..\..\Tools\agsbuild\diagnostics.h" />
+    <ClInclude Include="..\..\Tools\agsbuild\commandline.h" />
     <ClInclude Include="..\..\Tools\agsbuild\package_files.h" />
     <ClInclude Include="..\..\Tools\agsbuild\pipedprocess.h" />
     <ClInclude Include="..\..\Tools\agsbuild\taskmanager.h" />

@@ -370,23 +370,51 @@ bool IsVoicePackName(const String &filename)
            (lower.size() > prefix_len + ext_len && lower.compare(0, prefix_len, "sp_") == 0 && EndsWith(lower, ".vox"));
 }
 
-std::vector<String> FindStaleVoicePacks(const std::vector<String> &made_packs, const std::vector<String> &dir_files)
+// The files of a folder of the kind which a build makes there, but which this build does not make
+static std::vector<String> FindStaleFiles(const std::vector<String> &made_files, const std::vector<String> &dir_files,
+                                          bool (*is_made_kind)(const String &))
 {
     std::vector<String> stale;
     for (const String &file : dir_files)
     {
-        if (!IsVoicePackName(file))
+        if (!is_made_kind(file))
         {
             continue;
         }
-        if (std::none_of(made_packs.begin(), made_packs.end(),
-                         [&](const String &pack) { return pack.CompareNoCase(file) == 0; }))
+        if (std::none_of(made_files.begin(), made_files.end(),
+                         [&](const String &made) { return made.CompareNoCase(file) == 0; }))
         {
             stale.push_back(file);
         }
     }
     std::sort(stale.begin(), stale.end());
     return stale;
+}
+
+std::vector<String> FindStaleVoicePacks(const std::vector<String> &made_packs, const std::vector<String> &dir_files)
+{
+    return FindStaleFiles(made_packs, dir_files, IsVoicePackName);
+}
+
+//-----------------------------------------------------------------------------
+// Rooms of the run layout
+//-----------------------------------------------------------------------------
+
+bool IsRoomFileName(const String &filename)
+{
+    const std::string lower = LowerName(filename);
+    const size_t prefix_len = 4; // "room"
+    if (lower.compare(0, prefix_len, "room") != 0)
+    {
+        return false;
+    }
+    return (lower.size() >= prefix_len + 4 && EndsWith(lower, ".crm")) ||
+           (lower.size() >= prefix_len + 2 && EndsWith(lower, ".o"));
+}
+
+std::vector<String> FindStaleRoomFiles(const std::vector<String> &made_files, const std::vector<String> &dir_files)
+{
+    return FindStaleFiles(made_files, dir_files, IsRoomFileName);
 }
 
 //-----------------------------------------------------------------------------

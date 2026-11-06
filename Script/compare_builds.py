@@ -83,7 +83,8 @@ def collect_tools(build_dir, sys_dir):
 def copy_project(src, dst):
     if os.path.isdir(dst):
         shutil.rmtree(dst)
-    shutil.copytree(src, dst, ignore=shutil.ignore_patterns('Compiled', '_Debug', '*.lock', '.git'))
+    # Build products stay behind: the output folders, and agsbuild's intermediate folder
+    shutil.copytree(src, dst, ignore=shutil.ignore_patterns('Compiled', '_Debug', '_obj', '*.lock', '.git'))
     # The editor packs a compiled room that is newer than its sources as it is; both builds must
     # compile AGS 4 rooms (Rooms/<n>/) from their sources, so the copy has none
     rooms_dir = os.path.join(dst, 'Rooms')

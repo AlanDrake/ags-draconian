@@ -96,6 +96,21 @@ bool IsVoicePackName(const String &filename);
 std::vector<String> FindStaleVoicePacks(const std::vector<String> &made_packs, const std::vector<String> &dir_files);
 
 //-----------------------------------------------------------------------------
+// Rooms of the run layout
+//-----------------------------------------------------------------------------
+
+// The folder of the run layout (--data-only) for the compiled rooms, in the output folder. The
+// engine is run with it as the first data folder, so that its rooms come before stale room<n>.crm
+// files in the project folder (folders are searched before packages, the install folder last).
+constexpr const char *kRunLayoutRoomsDir = "Rooms";
+// Tells if this is the file name of a compiled room or of a room's script, as "room*.crm" or
+// "room*.o" match it, in any letter case
+bool IsRoomFileName(const String &filename);
+// The room files of an earlier build in the run layout's room folder which this build does not
+// make (made_files: the file names of the rooms and room scripts it makes); nothing else
+std::vector<String> FindStaleRoomFiles(const std::vector<String> &made_files, const std::vector<String> &dir_files);
+
+//-----------------------------------------------------------------------------
 // Patterns and package parts
 //-----------------------------------------------------------------------------
 

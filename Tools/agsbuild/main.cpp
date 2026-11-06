@@ -19,12 +19,15 @@
 //=============================================================================
 #include <algorithm>
 #include <cstdio>
+#include <exception>
+#include <vector>
 
 #include "platform/platform.h"
 #if (AGS_PLATFORM_OS_WINDOWS)
 #include "platform/windows/windows.h"
 #endif
 #include "ac/def_version.h"
+#include "commandline.h"
 #include "data/agfreader.h"
 #include "diagnostics.h"
 #include "package_files.h"
@@ -60,12 +63,18 @@ const char *ScriptGlvarScom = "_GlobalVariables.o";
 const char *ScriptDialogScript = "__DialogScripts.asc";
 const char *ScriptDialogScom = "__DialogScripts.o";
 
+// The project's folder for intermediate files, the default --temp-dir
+const char *DefaultTempDirName = "_obj";
+
 // Separator character for AGSCC's header list
 #if (AGS_PLATFORM_OS_WINDOWS)
 #define AGSCC_H_SEP ";"
 #else
 #define AGSCC_H_SEP ":"
 #endif
+// What agscc splits its header list at (it takes ';' on any platform), so a header's path cannot
+// have it
+#define AGSCC_H_BREAKS AGSCC_H_SEP ";"
 
 
 using namespace AGSBuild;
@@ -84,7 +93,10 @@ struct BuildOptions
     String SrcDir;
     // Game project's document file (Game.agf by default)
     String SrcAgf;
-    // If agsbuild owns temporary output directory (must delete on cleanup)
+    // Script headers from outside the project (the editor's plugins), in the order given
+    std::vector<String> ExtraHeaders;
+    // If the temporary directory is the default one, <project>/_obj, which agsbuild clears before
+    // the build and leaves after it; a directory given with --temp-dir is never cleared
     bool OwnTempDir = false;
     // Temporary directory for any intermediate output
     String TempDir;
@@ -105,6 +117,10 @@ struct BuildOptions
     bool BuildRelease = false;
     // Treat what the tools cannot read from the project as errors
     bool Strict = false;
+    // Build the run layout (the editor's Run command): a package of the game data and the scripts,
+    // next to it the translations and the config, and the rooms in <out>/Rooms; the engine takes
+    // everything else from the project's folders (--runfromide <out> <out>/Rooms:"",<project>:"",...)
+    bool DataOnly = false;
 };
 
 struct GameOptions
@@ -234,6 +250,8 @@ struct BuildContext
     std::vector<String> StagedFiles;
     // files that should be not packed but copied along with the game.ags
     std::vector<String> deploy_temp_files;
+    // The run layout's compiled rooms (and old-layout room scripts), which go to <out>/Rooms
+    std::vector<String> RoomDeployFiles;
     // File name of the main package; it may come in parts, which are deployed with it
     String GamePackName;
     // Files of an earlier build in the output folder which this build does not make
@@ -249,9 +267,11 @@ struct BuildContext
 
     // The script API header under the name the compiled scripts expect
     String builtin_ash;
-    // Headers for every script: the API, the auto-generated and variable headers, then every
-    // script module's header; and the module headers alone
+    // Headers for every script: the API, the auto-generated and variable headers, the headers
+    // from outside the project, then every script module's header; and the last two parts alone,
+    // each starting with a separator
     String all_script_headers;
+    String ExtraScriptHeaders;
     String module_script_headers;
     // Compiled game scripts, and the tasks which compile them
     std::vector<String> scom_obj;
@@ -276,6 +296,18 @@ struct BuildContext
 
     // The tools' option for verbose output, if agsbuild has it
     ProcessArgs VerboseArgs() const { return bopts.Verbose ? ProcessArgs{"-v"} : ProcessArgs(); }
+
+    // A compiled room's file in the temporary folder, made by the task: it is packed, or in the
+    // run layout deployed to the Rooms folder of the output folder, where the engine looks it up
+    void AddRoomFile(const String &file, const String &task)
+    {
+        (bopts.DataOnly ? RoomDeployFiles : pak_temp_files).push_back(file);
+        std::vector<TaskInput> &tasks = bopts.DataOnly ? pre_deploy_tasks : pre_pack_tasks;
+        if (tasks.empty() || tasks.back().OutputTask != task)
+        {
+            tasks.emplace_back(task);
+        }
+    }
 };
 
 // Currently it's more convenient to read AGF lists and compilation-related options directly,
@@ -388,8 +420,10 @@ static void AddExportTasks(BuildContext &c)
 }
 
 // Compile game scripts. Like the editor, every script gets all the headers: the API, the
-// auto-generated and global variable headers, then every script module's header. In AGS 4 a
-// module may use what the modules after it declare; the engine links imports in any module order.
+// auto-generated and global variable headers, the headers of the editor's plugins (--header),
+// then every script module's header (AGSEditor.GetAllScriptHeaders). In AGS 4 a module may use
+// what the modules after it declare; the engine links imports in any module order.
+// agscc names each header's section after its file name, as the editor names the scripts.
 static HError AddScriptTasks(BuildContext &c)
 {
     // The compiled scripts name their headers after the header files, and the editor calls the
@@ -404,8 +438,13 @@ static HError AddScriptTasks(BuildContext &c)
         String::FromFormat("%s" AGSCC_H_SEP "%s/%s", c.builtin_ash.GetCStr(), c.temp_dir.GetCStr(), ScriptAutoHeader);
     if (c.project.has_globalvar_script)
         c.all_script_headers.AppendFmt(AGSCC_H_SEP "%s/%s", c.temp_dir.GetCStr(), ScriptGlvarHeader);
+    for (const auto &header : c.bopts.ExtraHeaders)
+    {
+        c.ExtraScriptHeaders.AppendFmt(AGSCC_H_SEP "%s", header.GetCStr());
+    }
     for (const auto &header : c.project.scm_header_list)
         c.module_script_headers.AppendFmt(AGSCC_H_SEP "%s/%s", c.src_dir.GetCStr(), header.GetCStr());
+    c.all_script_headers.Append(c.ExtraScriptHeaders);
     c.all_script_headers.Append(c.module_script_headers);
 
     auto add_compile_task = [&](const String &script_dir, const String &script, std::vector<TaskInput> &&deps)
@@ -507,6 +546,7 @@ static HError AddRoomSourceTasks(BuildContext &c)
                                                  c.temp_dir.GetCStr(), room_autoash.GetCStr());
         if (c.project.has_globalvar_script)
             room_headers.AppendFmt(AGSCC_H_SEP "%s/%s", c.temp_dir.GetCStr(), ScriptGlvarHeader);
+        room_headers.Append(c.ExtraScriptHeaders);
         room_headers.Append(c.module_script_headers);
         c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
             task_agscc, &c.taskmgr,
@@ -522,10 +562,9 @@ static HError AddRoomSourceTasks(BuildContext &c)
                                                   .Add(c.VerboseArgs())),
             {{task_agscc}})));
 
-        c.pak_temp_files.push_back(room_crm);
+        c.AddRoomFile(room_crm, task_crm);
         c.clnup_temp_files.push_back(room_autoash);
         c.clnup_temp_files.push_back(room_scom);
-        c.pre_pack_tasks.push_back(task_crm);
     }
     return HError::None();
 }
@@ -577,10 +616,10 @@ static void AddCompiledRoomTasks(BuildContext &c)
                                                .Add(MakeAGSCCFlags(c.project.agscc_opts))),
             {{"autoash"}, {"glvar"}, {task_cut_script}, {task_ash}})));
 
-        c.pak_temp_files.push_back(r);
-        c.pak_temp_files.push_back(room_scom);
+        // The script is not in the room file: the engine loads room<n>.o as an asset of its own
+        c.AddRoomFile(r, room_agscc_task);
+        c.AddRoomFile(room_scom, room_agscc_task);
         c.clnup_temp_files.push_back(room_ash);
-        c.pre_pack_tasks.push_back(room_agscc_task);
     }
 }
 
@@ -857,8 +896,9 @@ static HError AddGamePackTask(BuildContext &c)
     c.GamePackName = String::FromFormat("%s.ags", c.project.game_opts.FileName.GetCStr());
     ProcessArgs pack_args{"-c", InDir(c.temp_dir, c.GamePackName)};
     pack_args.Add(input_dirs).Add("-f").Add(include_file).Add("--replace-dup");
-    // A package in parts is split by agspak, which names the parts game.001, game.002...
-    if (c.project.PartSizeMB > 0)
+    // A package in parts is split by agspak, which names the parts game.001, game.002...; the run
+    // layout's package, which has only the game data and the scripts, is never split
+    if (c.project.PartSizeMB > 0 && !c.bopts.DataOnly)
     {
         pack_args.Add("-p").Add(String::FromFormat("%d", c.project.PartSizeMB));
     }
@@ -1021,6 +1061,39 @@ static void AddDeployTask(BuildContext &c)
     }
 }
 
+// The run layout's rooms go to <out>/Rooms, which the engine is given as its first data folder.
+// After the deploy, the room files of an earlier build which this one does not make are deleted
+// from that folder (a room removed from the project), and nothing else.
+static HError AddRoomDeployTasks(BuildContext &c)
+{
+    const String rooms_dir = Path::ConcatPaths(c.out_dir, kRunLayoutRoomsDir);
+    if (!Directory::CreateAllDirectories(c.out_dir, kRunLayoutRoomsDir))
+    {
+        return new Error("Failed to create the folder %s", rooms_dir.GetCStr());
+    }
+    std::vector<std::pair<String, String>> deploy_rooms;
+    for (const auto &f : c.RoomDeployFiles)
+    {
+        deploy_rooms.emplace_back(Path::ConcatPaths(c.temp_dir, f), Path::ConcatPaths(rooms_dir, f));
+    }
+    c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles(
+        "deploy-rooms", &c.taskmgr, deploy_rooms, FileMoveOp::Move, false /* no skip */, c.pre_deploy_tasks)));
+
+    std::vector<String> dir_files;
+    Directory::GetFiles(rooms_dir, dir_files);
+    std::vector<String> stale_rooms;
+    for (const auto &f : FindStaleRoomFiles(c.RoomDeployFiles, dir_files))
+    {
+        stale_rooms.push_back(Path::ConcatPaths(rooms_dir, f));
+    }
+    if (!stale_rooms.empty())
+    {
+        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskDeleteFiles(
+            "delete-stale-rooms", &c.taskmgr, stale_rooms, {{"deploy-rooms"}, {"deploy-data"}, {"deploy-package"}})));
+    }
+    return HError::None();
+}
+
 // Cleanup on success
 static void AddCleanupTask(BuildContext &c)
 {
@@ -1067,25 +1140,49 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
         return err;
     AddCompiledRoomTasks(ctx);
     AddTranslationTasks(ctx);
-    AddSpriteTasks(ctx);
-    if (!(err = AddAudioTasks(ctx)))
-        return err;
-    if (!(err = AddProjectFileTasks(ctx)))
-        return err;
+    // The run layout leaves out what the engine reads from the project's folders when it is run
+    // from the editor (--runfromide): sprites, audio, voice, fonts, the other files
+    if (!bopts.DataOnly)
+    {
+        AddSpriteTasks(ctx);
+        err = AddAudioTasks(ctx);
+        if (err)
+        {
+            err = AddProjectFileTasks(ctx);
+        }
+        if (!err)
+        {
+            return err;
+        }
+    }
     err = AddGamePackTask(ctx);
     if (!err)
     {
         return err;
     }
-    AddAudioVoxTask(ctx);
-    err = AddSpeechVoxTasks(ctx);
-    if (!err)
+    if (!bopts.DataOnly)
     {
-        return err;
+        AddAudioVoxTask(ctx);
+        err = AddSpeechVoxTasks(ctx);
+        if (!err)
+        {
+            return err;
+        }
     }
     AddDeployTask(ctx);
-    if (bopts.Cleanup)
+    if (bopts.DataOnly)
+    {
+        err = AddRoomDeployTasks(ctx);
+        if (!err)
+        {
+            return err;
+        }
+    }
+    // The default folder is deleted as a whole after the build
+    if (bopts.Cleanup && !bopts.OwnTempDir)
+    {
         AddCleanupTask(ctx);
+    }
 
     err = taskmgr.RunAll();
     if (err)
@@ -1101,17 +1198,32 @@ const char *HELP_STRING = ""
                           "Copyright (c) 2026 AGS Team and contributors\n"
                           "Usage: agsbuild <input-game.agf> <out-dir> [<OPTIONS>]\n"
                           "\n"
-                          "Options:\n"
+                          "Options, each written in full and apart from its value (an option agsbuild\n"
+                          "does not know is an error):\n"
                           "  --api-ash <path>       a path to the script API header. If not provided,\n"
                           "                         agsbuild will look for the 'agsdefns.sh' file inside the\n"
                           "                         system (tools) directory.\n"
                           "  --build-debug          builds the project in debug mode (override).\n"
                           "  --build-release        builds the project in release mode (override).\n"
+                          "  --data-only            builds what the editor's Run command needs: a package\n"
+                          "                         <name>.ags with the game data and the scripts only,\n"
+                          "                         next to it the translations and acsetup.cfg, and the\n"
+                          "                         rooms in the folder Rooms (where room files that this\n"
+                          "                         build does not make are deleted). Sprites, fonts,\n"
+                          "                         audio, voice and custom data stay in the project, where\n"
+                          "                         the engine finds them when run with --runfromide <out>\n"
+                          "                         and <out>/Rooms as the first data folder.\n"
+                          "  --header <path>        compiles every script with this header too, after the\n"
+                          "                         generated headers and before those of the script\n"
+                          "                         modules; once for each header, in the order given. For\n"
+                          "                         headers from outside the project (editor plugins).\n"
                           "  --strict               fail if the project has something the tools cannot read.\n"
                           "  --json                 write progress, errors and warnings to stdout as JSON\n"
                           "                         lines, and the usual log to stderr (see diagnostics.h);\n"
-                          "                         the line \"cancel\" on stdin cancels the build.\n"
-                          "  -c, --cleanup          deletes intermediate output on successful completion.\n"
+                          "                         the line \"cancel\" on stdin cancels the build. Also\n"
+                          "                         for an error in the command line.\n"
+                          "  -c, --cleanup          deletes intermediate output on successful completion\n"
+                          "                         (the whole '_obj' folder, if it is the one used).\n"
                           "  --import-audio         generate a new audio cache, importing audio files from\n"
                           "                         the source files, according to game.agf specs.\n"
                           "  --import-sprites       create a new sprite pack, importing sprites from the\n"
@@ -1120,12 +1232,14 @@ const char *HELP_STRING = ""
                           "  -s, --sys-dir <path>   a path to the system directory, where all the tools are\n"
                           "                         located. If not provided, agsbuild will assume it is\n"
                           "                         the same directory where it's located.\n"
-                          "  -t, --temp-dir <path>  a path to the intermediate (temporary) outout directory.\n"
-                          "                         If not provided, agsbuild will try creating one as a\n"
-                          "                         subdirectory inside output directory.\n"
-                          "  -p, --threads <N>      limit task threads to this number (default: 8);\n"
-                          "                         note that tasks may spawn new processes, executing other\n"
-                          "                         tools.\n"
+                          "  -t, --temp-dir <path>  a folder for the intermediate files, created if it does\n"
+                          "                         not exist, and never cleared. If not provided: '_obj'\n"
+                          "                         in the project folder, which is cleared when a build\n"
+                          "                         starts and kept after it (a failed build's files can\n"
+                          "                         be looked into).\n"
+                          "  -p, --threads <N>      limit task threads to this number (default: 8, at most\n"
+                          "                         32, at least 1); note that tasks may spawn new\n"
+                          "                         processes, executing other tools.\n"
                           "  -v, --verbose          print operation details (also affects spawned processes)\n"
                           "\n"
                           "Ctrl+C (SIGINT, SIGTERM) cancels the build: the running tools are stopped, the\n"
@@ -1144,96 +1258,195 @@ static int Fail(const String &message)
     return -1;
 }
 
-int main(int argc, char *argv[])
+// The build's options from the command line, with every path made absolute
+static BuildOptions MakeBuildOptions(const CommandLine &cmd)
 {
-    CmdLineOpts::ParseResult cmdargs =
-        CmdLineOpts::Parse(CmdLineOpts::InitProgramArgs(argc, argv),
-                           {"--api-ash", "-s", "--sys-dir", "-t", "--temp-dir", "-p", "--threads"});
-    if (cmdargs.HelpRequested)
+    BuildOptions bopts;
+    bopts.SrcAgf = Path::MakeAbsolutePath(cmd.ProjectFile);
+    bopts.OutDir = Path::MakeAbsolutePath(cmd.OutputDir);
+    bopts.SrcDir = Path::GetParent(bopts.SrcAgf);
+    bopts.ReimportAudio = cmd.ImportAudio;
+    bopts.ReimportSprites = cmd.ImportSprites;
+    bopts.Cleanup = cmd.Cleanup;
+    bopts.Verbose = cmd.Verbose;
+    bopts.BuildDebug = cmd.BuildDebug;
+    bopts.BuildRelease = cmd.BuildRelease;
+    bopts.Strict = cmd.Strict;
+    bopts.DataOnly = cmd.DataOnly;
+    if (cmd.Threads > 0)
+    {
+        bopts.TaskThreads = static_cast<uint32_t>(cmd.Threads);
+    }
+    for (const auto &header : cmd.Headers)
+    {
+        bopts.ExtraHeaders.push_back(Path::MakeAbsolutePath(header));
+    }
+    bopts.SysDir = cmd.SysDir.IsEmpty() ? Path::GetParent(File::GetThisExePath()) : Path::MakeAbsolutePath(cmd.SysDir);
+    bopts.ApiAshPath = cmd.ApiHeader.IsEmpty() ? Path::ConcatPaths(bopts.SysDir, ScriptAPIHeader)
+                                               : Path::MakeAbsolutePath(cmd.ApiHeader);
+    if (cmd.TempDir.IsEmpty())
+    {
+        // One folder for each project, as MSBuild's obj: next to its sources, not in the output
+        bopts.TempDir = Path::ConcatPaths(bopts.SrcDir, DefaultTempDirName);
+        bopts.OwnTempDir = true;
+    }
+    else
+    {
+        bopts.TempDir = Path::MakeAbsolutePath(cmd.TempDir);
+    }
+    return bopts;
+}
+
+// Whether the path is the folder or anything in it, by the file system's rules for letter case.
+// (Path::IsSameOrSubDir takes a parent without a trailing slash for a file, and its folder.)
+static bool IsInFolder(const String &folder, const String &path)
+{
+    for (String p = path; !p.IsEmpty();)
+    {
+        if (Path::ComparePaths(p, folder) == 0)
+        {
+            return true;
+        }
+        const String parent = Path::GetParent(p);
+        if (parent.GetLength() >= p.GetLength() || parent == ".")
+        {
+            break;
+        }
+        p = parent;
+    }
+    return false;
+}
+
+// What makes the build impossible before it starts; an empty string if nothing does
+static String CheckBuildOptions(const BuildOptions &bopts)
+{
+    if (!File::IsFile(bopts.SrcAgf))
+    {
+        return String::FromFormat("input project file '%s' not found or not a valid file", bopts.SrcAgf.GetCStr());
+    }
+    if (!File::IsDirectory(bopts.SrcDir))
+    {
+        return String::FromFormat("input project directory '%s' not found or not a valid directory",
+                                  bopts.SrcDir.GetCStr());
+    }
+    if (!File::IsDirectory(bopts.OutDir))
+    {
+        return String::FromFormat("output directory '%s' not found or not a valid directory", bopts.OutDir.GetCStr());
+    }
+    if (!File::IsFile(bopts.ApiAshPath))
+    {
+        return String::FromFormat("script API header '%s' not found", bopts.ApiAshPath.GetCStr());
+    }
+    for (const auto &header : bopts.ExtraHeaders)
+    {
+        if (!File::IsFile(header))
+        {
+            return String::FromFormat("script header '%s' (--header) not found", header.GetCStr());
+        }
+    }
+    // The folders and files that go into agscc's list of headers
+    std::vector<String> header_paths = {bopts.SrcDir, bopts.TempDir};
+    header_paths.insert(header_paths.end(), bopts.ExtraHeaders.begin(), bopts.ExtraHeaders.end());
+    for (const auto &path : header_paths)
+    {
+        if (path.FindAnyChar(AGSCC_H_BREAKS) != String::NoIndex)
+        {
+            return String::FromFormat("the path '%s' has a character which separates the script compiler's "
+                                      "headers ('%s'): the scripts cannot be compiled",
+                                      path.GetCStr(), AGSCC_H_BREAKS);
+        }
+    }
+    if (!bopts.OwnTempDir)
+    {
+        return String();
+    }
+    // Nothing that the build needs may be in the folder which it clears first
+    std::vector<String> inputs = {bopts.OutDir, bopts.ApiAshPath};
+    inputs.insert(inputs.end(), bopts.ExtraHeaders.begin(), bopts.ExtraHeaders.end());
+    for (const auto &path : inputs)
+    {
+        if (IsInFolder(bopts.TempDir, path))
+        {
+            return String::FromFormat("'%s' is in the folder '%s', which agsbuild clears before a build",
+                                      path.GetCStr(), bopts.TempDir.GetCStr());
+        }
+    }
+    return String();
+}
+
+// Readies the folder for the intermediate files: the default one is cleared, so that a build
+// never finds the files of an earlier one; returns the error, or an empty string
+static String PrepareTempDir(const BuildOptions &bopts)
+{
+    String failed_path;
+    if (bopts.OwnTempDir && !Directory::DeleteDirectoryTree(bopts.TempDir, &failed_path))
+    {
+        return String::FromFormat("failed to clear the intermediate folder '%s': could not delete '%s'",
+                                  bopts.TempDir.GetCStr(), failed_path.GetCStr());
+    }
+    if (!Directory::CreateDirectory(bopts.TempDir))
+    {
+        return String::FromFormat("failed to create intermediate output directory '%s'", bopts.TempDir.GetCStr());
+    }
+    return String();
+}
+
+// Builds what the arguments ask for; returns the exit code
+static int RunBuild(const std::vector<String> &args)
+{
+    const CommandLine cmd = ParseCommandLine(args);
+    if (cmd.Help)
     {
         printf("%s\n", HELP_STRING);
         return 0; // display help and bail out
     }
-
-    if (cmdargs.PosArgs.size() < 2)
+    // The JSON mode is on before anything is reported, a bad command line included
+    Diag::SetJsonOutput(cmd.Json);
+    if (!cmd.Error.IsEmpty())
     {
-        printf("Error: not enough arguments\n");
-        printf("%s\n", HELP_STRING);
-        return -1;
+        const int code = Fail(cmd.Error);
+        if (!cmd.Json)
+        {
+            printf("%s\n", HELP_STRING);
+        }
+        return code;
     }
-
-    Diag::SetJsonOutput(cmdargs.Opt.count("--json") > 0);
     Diag::InstallCancelHandlers();
 
-    BuildOptions bopts;
-    bopts.SrcAgf = Path::MakeAbsolutePath(cmdargs.PosArgs[0]);
-    bopts.OutDir = Path::MakeAbsolutePath(cmdargs.PosArgs[1]);
-    bopts.SrcDir = Path::GetParent(Path::MakeAbsolutePath(bopts.SrcAgf));
-    bopts.ReimportAudio = cmdargs.Opt.count("--import-audio") > 0;
-    bopts.ReimportSprites = cmdargs.Opt.count("--import-sprites") > 0;
-    bopts.Cleanup = cmdargs.Opt.count("-c") > 0 || cmdargs.Opt.count("--cleanup") > 0;
-    bopts.Verbose = cmdargs.Opt.count("-v") > 0 || cmdargs.Opt.count("--verbose") > 0;
-    bopts.BuildDebug = cmdargs.Opt.count("--build-debug") > 0;
-    bopts.BuildRelease = cmdargs.Opt.count("--build-release") > 0;
-    bopts.Strict = cmdargs.Opt.count("--strict") > 0;
-    for (const auto &opt : cmdargs.OptWithValue)
-    {
-        if (opt.first == "--api-ash")
-            bopts.ApiAshPath = Path::MakeAbsolutePath(opt.second);
-        if (opt.first == "-s" || opt.first == "--sys-dir")
-            bopts.SysDir = Path::MakeAbsolutePath(opt.second);
-        if (opt.first == "-t" || opt.first == "--temp-dir")
-        {
-            bopts.OwnTempDir = false;
-            bopts.TempDir = Path::MakeAbsolutePath(opt.second);
-        }
-        if (opt.first == "-p" || opt.first == "--threads")
-            bopts.TaskThreads = StrUtil::StringToInt(opt.second);
-    }
-
-    if (bopts.SysDir.IsEmpty())
-        bopts.SysDir = Path::GetParent(File::GetThisExePath());
-    if (bopts.ApiAshPath.IsEmpty())
-        bopts.ApiAshPath = Path::ConcatPaths(bopts.SysDir, ScriptAPIHeader);
-    if (bopts.TempDir.IsEmpty())
-    {
-        bopts.TempDir = Path::ConcatPaths(bopts.OutDir, "_temp");
-        bopts.OwnTempDir = true;
-    }
-
+    const BuildOptions bopts = MakeBuildOptions(cmd);
     Diag::Log("System dir: %s\n", bopts.SysDir.GetCStr());
     Diag::Log("Script API header: %s\n", bopts.ApiAshPath.GetCStr());
+    for (const auto &header : bopts.ExtraHeaders)
+    {
+        Diag::Log("Script header: %s\n", header.GetCStr());
+    }
     Diag::Log("Project file: %s\n", bopts.SrcAgf.GetCStr());
     Diag::Log("Project dir: %s\n", bopts.SrcDir.GetCStr());
     Diag::Log("Output dir: %s\n", bopts.OutDir.GetCStr());
     Diag::Log("Temp dir: %s\n\n", bopts.TempDir.GetCStr());
 
-    //-------------------------------------------------------------------------
-    // Preliminary checks
-    //-------------------------------------------------------------------------
-    if (!File::IsFile(bopts.SrcAgf))
-        return Fail(
-            String::FromFormat("input project file '%s' not found or not a valid file", bopts.SrcAgf.GetCStr()));
-    if (!File::IsDirectory(bopts.SrcDir))
-        return Fail(String::FromFormat("input project directory '%s' not found or not a valid directory",
-                                       bopts.SrcDir.GetCStr()));
-    if (!File::IsDirectory(bopts.OutDir))
-        return Fail(
-            String::FromFormat("output directory '%s' not found or not a valid directory", bopts.OutDir.GetCStr()));
-
-    //-------------------------------------------------------------------------
-    // Prepare
-    //-------------------------------------------------------------------------
-    if (bopts.OwnTempDir && !Directory::CreateDirectory(bopts.TempDir))
-        return Fail(String::FromFormat("failed to create intermediate output directory '%s'", bopts.TempDir.GetCStr()));
+    String problem = CheckBuildOptions(bopts);
+    if (problem.IsEmpty())
+    {
+        problem = PrepareTempDir(bopts);
+    }
+    if (!problem.IsEmpty())
+    {
+        return Fail(problem);
+    }
 
     HError err = BuildWithTaskManager(bopts);
 
     //-------------------------------------------------------------------------
-    // Cleanup
+    // Cleanup: the default folder stays after a build unless asked, a failed one's always
     //-------------------------------------------------------------------------
-    if (err && bopts.OwnTempDir)
-        Directory::DeleteDirectory(bopts.TempDir);
+    String failed_path;
+    if (err && bopts.Cleanup && bopts.OwnTempDir && !Directory::DeleteDirectoryTree(bopts.TempDir, &failed_path))
+    {
+        Report(Diag::Severity::Warning,
+               String::FromFormat("could not delete the intermediate folder '%s': '%s' is still there",
+                                  bopts.TempDir.GetCStr(), failed_path.GetCStr()));
+    }
 
     if (err)
     {
@@ -1258,4 +1471,35 @@ int main(int argc, char *argv[])
     }
     Diag::EmitEnd("failed");
     return -1;
+}
+
+// Ends the build after an exception, which is a bug, as a failure that the editor can report.
+// Writes fixed text only: nothing here may throw again.
+static int FailOnException(const char *what) noexcept
+{
+    fprintf(stderr, "Error: internal error: %s\n", what);
+    if (Diag::IsJsonOutput())
+    {
+        fputs("{\"event\":\"diagnostic\",\"severity\":\"error\",\"tool\":\"agsbuild\",\"task\":\"\","
+              "\"message\":\"internal error (an exception), see the log\"}\n",
+              stdout);
+        fputs("{\"event\":\"end\",\"result\":\"failed\",\"errors\":1,\"warnings\":0}\n", stdout);
+    }
+    return -1;
+}
+
+int main(int argc, char *argv[])
+{
+    try
+    {
+        return RunBuild(CmdLineOpts::InitProgramArgs(argc, argv));
+    }
+    catch (const std::exception &e)
+    {
+        return FailOnException(e.what());
+    }
+    catch (...)
+    {
+        return FailOnException("an exception of an unknown type");
+    }
 }

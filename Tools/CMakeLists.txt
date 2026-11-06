@@ -200,6 +200,8 @@ target_link_libraries(agfexport PUBLIC libtools)
 add_executable(agsbuild agsbuild/main.cpp
         agsbuild/pipedprocess.h
         agsbuild/pipedprocess.cpp
+        agsbuild/commandline.h
+        agsbuild/commandline.cpp
         agsbuild/taskmanager.h
         agsbuild/taskmanager.cpp
         agsbuild/diagnostics.h
@@ -332,7 +334,9 @@ if(AGS_TESTS)
       ../Common/test/sdl2_stubs.c
       test/agfreader_test.cpp
       test/data_file_writer_test.cpp
+      test/commandline_test.cpp
       agsbuild/diagnostics.cpp
+      agsbuild/commandline.cpp
       agsbuild/package_files.cpp
       agsbuild/pipedprocess.cpp
       agsbuild/taskmanager.cpp

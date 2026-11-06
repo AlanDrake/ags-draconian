@@ -24,8 +24,8 @@ namespace AGS.Editor.Build
         public string ToolsDirectory { get; set; }
 
         /// <summary>
-        /// The folder for intermediate files (--temp-dir). If null, agsbuild makes one in the
-        /// output folder.
+        /// The folder for intermediate files (--temp-dir), which agsbuild never clears. If null,
+        /// agsbuild uses _obj in the project folder, which it clears when a build starts.
         /// </summary>
         public string TempDirectory { get; set; }
 
@@ -35,14 +35,19 @@ namespace AGS.Editor.Build
         public string ApiHeader { get; set; }
 
         /// <summary>
-        /// Script headers to compile every script with (--header, once for each, in this order).
-        /// agsbuild does not have the option yet: today it takes each file for one more positional
-        /// argument and ignores it.
+        /// Script headers to compile every script with (--header, once for each, in this order),
+        /// after the generated headers and before those of the script modules. agscc names a
+        /// header's section by its file name, so each must have the name the editor gives the
+        /// header (__Plugin_&lt;dll&gt;.ash). They must exist, and not be in the project's _obj
+        /// folder, which agsbuild clears before the build.
         /// </summary>
         public List<string> ScriptHeaders { get; } = new List<string>();
 
         /// <summary>
-        /// Builds the game data only (--data-only). agsbuild does not have the option yet, and ignores it.
+        /// Builds the run layout for the Run command (--data-only): a package with the game data
+        /// and the scripts, next to it the translations and acsetup.cfg, and the rooms in the
+        /// folder Rooms. The engine takes the rest from the project's folders: --runfromide with
+        /// the output folder as the install folder and its Rooms folder as the first data folder.
         /// </summary>
         public bool DataOnly { get; set; }
 

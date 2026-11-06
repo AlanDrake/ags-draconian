@@ -75,6 +75,9 @@
     <ClCompile Include="..\..\Tools\agsbuild\diagnostics.cpp">
       <Filter>agsbuild</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Tools\agsbuild\commandline.cpp">
+      <Filter>agsbuild</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Tools\agsbuild\package_files.cpp">
       <Filter>agsbuild</Filter>
     </ClCompile>
@@ -102,6 +105,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Tools\agsbuild\diagnostics.h">
+      <Filter>agsbuild</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\agsbuild\commandline.h">
       <Filter>agsbuild</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Tools\agsbuild\package_files.h">

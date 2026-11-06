@@ -334,6 +334,31 @@ TEST(PackageFiles, FindsVoicePacksOfAnEarlierBuild)
     EXPECT_TRUE(FindStaleVoicePacks({"SP_GERMAN.VOX", "sp_french.vox", "speech.vox"}, dir_files).empty());
 }
 
+TEST(PackageFiles, RoomFileNames)
+{
+    for (const char *name : {"room1.crm", "ROOM12.CRM", "room3.o", "Room301.O", "room.crm", "roomx.crm"})
+    {
+        EXPECT_TRUE(IsRoomFileName(name)) << name;
+    }
+    for (const char *name : {"room1.crm.bak", "myroom1.crm", "room1.ash", "room1.asc", "rooms.txt", "room", "1.crm",
+                             "room1.oo", "acsetup.cfg"})
+    {
+        EXPECT_FALSE(IsRoomFileName(name)) << name;
+    }
+}
+
+// In the run layout's room folder: the rooms and room scripts of an earlier build, nothing else
+TEST(PackageFiles, FindsRoomsOfAnEarlierBuild)
+{
+    const std::vector<String> dir_files = {"room1.crm", "room2.crm", "ROOM3.CRM",  "room3.o",
+                                           "notes.txt", "room2.bak", "agstest.tap"};
+    EXPECT_EQ(Strs(FindStaleRoomFiles({"room1.crm", "room2.crm"}, dir_files)),
+              (std::vector<std::string>{"ROOM3.CRM", "room3.o"}));
+    EXPECT_EQ(Strs(FindStaleRoomFiles({}, dir_files)),
+              (std::vector<std::string>{"ROOM3.CRM", "room1.crm", "room2.crm", "room3.o"}));
+    EXPECT_TRUE(FindStaleRoomFiles({"Room1.crm", "room2.crm", "room3.crm", "room3.o"}, dir_files).empty());
+}
+
 //-----------------------------------------------------------------------------
 // Patterns and package parts
 //-----------------------------------------------------------------------------
