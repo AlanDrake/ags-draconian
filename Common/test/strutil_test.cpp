@@ -11,6 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <cstring>
+#include <string>
+#include <vector>
+
 #include "gtest/gtest.h"
 #include "util/string_utils.h"
 
@@ -43,4 +47,34 @@ TEST(StrUtil, GetKeyValue)
     kv = StrUtil::GetKeyValue("NoSeparator");
     EXPECT_STREQ("NoSeparator", kv.first.GetCStr());
     EXPECT_TRUE(kv.second.IsEmpty());
+}
+
+// A wide string is UTF-16 where wchar_t has 16 bits (Windows): a character above U+FFFF is a pair
+// of surrogates there, and one wchar elsewhere; the compiler encodes the wide literal the same way
+TEST(StrUtil, ConvertsUtf8ToWideStringAndBack)
+{
+    const char *utf8 = "proj\xC3\xA9 \xD0\xB6\xD0\xB4 \xF0\x9F\x98\x80.ogg";
+    const std::wstring wide = L"proj\u00E9 \u0436\u0434 \U0001F600.ogg";
+
+    std::vector<wchar_t> wide_buf;
+    EXPECT_EQ(StrUtil::ConvertUtf8ToWstr(utf8, wide_buf), wide.size());
+    EXPECT_TRUE(wide == wide_buf.data());
+
+    std::vector<char> utf8_buf;
+    EXPECT_EQ(StrUtil::ConvertWstrToUtf8(wide.c_str(), utf8_buf), strlen(utf8));
+    EXPECT_STREQ(utf8_buf.data(), utf8);
+}
+
+// The buffer's size includes the terminator; a character that does not fit is left out whole
+TEST(StrUtil, WideStringConversionsStayInsideTheBuffer)
+{
+    wchar_t wide_buf[4] = {L'x', L'x', L'x', L'x'};
+    EXPECT_EQ(StrUtil::ConvertUtf8ToWstr("abcdef", wide_buf, 3), 2u);
+    EXPECT_TRUE(std::wstring(L"ab") == wide_buf);
+    EXPECT_EQ(wide_buf[3], L'x');
+
+    char utf8_buf[4] = {'x', 'x', 'x', 'x'};
+    EXPECT_EQ(StrUtil::ConvertWstrToUtf8(L"a\u0436\u0436", utf8_buf, 3), 1u);
+    EXPECT_STREQ(utf8_buf, "a");
+    EXPECT_EQ(utf8_buf[3], 'x');
 }

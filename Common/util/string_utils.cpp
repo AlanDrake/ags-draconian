@@ -15,6 +15,7 @@
 
 #include <cerrno>
 #include <cstring>
+#include <cwchar>
 #include <regex>
 
 #include "platform/platform.h"
@@ -459,33 +460,78 @@ size_t StrUtil::ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, std:
     return ConvertUtf8ToAscii(mbstr, loc_name, out_cstr.data(), out_cstr.size());
 }
 
+// Where wchar_t has 16 bits (Windows) wide strings are UTF-16: a character above U+FFFF is a pair
+// of surrogates there, while UTF-8 has it as one sequence of four bytes.
+#if WCHAR_MAX <= 0xFFFF
+#define AGS_WCHAR_IS_UTF16 (1)
+#else
+#define AGS_WCHAR_IS_UTF16 (0)
+#endif
+
 size_t StrUtil::ConvertUtf8ToWstr(const char *mbstr, wchar_t *out_wcstr, size_t out_sz)
 {
+    if (out_sz == 0)
+    {
+        return 0; // no output space
+    }
     size_t len = 0;
-    for (size_t mb_sz = 1; *mbstr && (mb_sz > 0) && (len < out_sz); mbstr += mb_sz, ++out_wcstr, ++len)
+    while (*mbstr && (len + 1 < out_sz))
     {
         Utf8::Rune r;
-        mb_sz = Utf8::GetChar(mbstr, Utf8::UtfSz, &r);
-        *out_wcstr = static_cast<wchar_t>(r);
+        const size_t mb_sz = Utf8::GetChar(mbstr, Utf8::UtfSz, &r);
+        if (mb_sz == 0)
+        {
+            break;
+        }
+#if AGS_WCHAR_IS_UTF16
+        if (r > 0xFFFF)
+        {
+            if (len + 2 >= out_sz)
+            {
+                break; // no space for the pair
+            }
+            out_wcstr[len++] = static_cast<wchar_t>(0xD800 + ((r - 0x10000) >> 10));
+            r = 0xDC00 + ((r - 0x10000) & 0x3FF);
+        }
+#endif
+        out_wcstr[len++] = static_cast<wchar_t>(r);
+        mbstr += mb_sz;
     }
-    *out_wcstr = 0;
+    out_wcstr[len] = 0;
     return len;
 }
 
 size_t StrUtil::ConvertUtf8ToWstr(const char *mbstr, std::vector<wchar_t> &out_wcstr)
 {
-    out_wcstr.resize(Utf8::GetLength(mbstr) + 1);
+    // No more wchars than bytes: a sequence of four bytes makes a pair in UTF-16
+    out_wcstr.resize(strlen(mbstr) + 1);
     return ConvertUtf8ToWstr(mbstr, out_wcstr.data(), out_wcstr.size());
 }
 
 size_t StrUtil::ConvertWstrToUtf8(const wchar_t *wcstr, char *out_mbstr, size_t out_sz)
 {
-    size_t len = 0;
-    for (size_t mb_sz = 1; *wcstr && (mb_sz > 0) && (len + mb_sz < out_sz); ++wcstr, out_mbstr += mb_sz, len += mb_sz)
+    if (out_sz == 0)
     {
-        mb_sz = Utf8::SetChar(*wcstr, out_mbstr, out_sz - len);
+        return 0; // no output space
     }
-    *out_mbstr = 0;
+    size_t len = 0;
+    while (*wcstr)
+    {
+        Utf8::Rune r = static_cast<Utf8::Rune>(*wcstr++);
+#if AGS_WCHAR_IS_UTF16
+        if ((r >= 0xD800) && (r <= 0xDBFF) && (*wcstr >= 0xDC00) && (*wcstr <= 0xDFFF))
+        {
+            r = 0x10000 + ((r - 0xD800) << 10) + (static_cast<Utf8::Rune>(*wcstr++) - 0xDC00);
+        }
+#endif
+        const size_t mb_sz = Utf8::SetChar(r, out_mbstr + len, out_sz - len - 1);
+        if (mb_sz == 0)
+        {
+            break; // no space left
+        }
+        len += mb_sz;
+    }
+    out_mbstr[len] = 0;
     return len;
 }
 

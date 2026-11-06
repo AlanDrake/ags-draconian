@@ -377,7 +377,7 @@ String WidePathToUTF8(const wchar_t *ws)
     WideCharToMultiByte(CP_UTF8, 0, ws, -1, pbuf, need_size, nullptr, nullptr);
     String s = pbuf;
     if (pbuf != buf)
-        delete pbuf;
+        delete[] pbuf;
     return s;
 }
 #endif
