@@ -51,8 +51,14 @@ static String translate_to_regex_string(const String &pattern)
     int n = (int)pattern.GetLength();
     String result;
 
-    // The pattern must match the path section either at the beginning or right after the path separator
-    if (!pattern.StartsWith("/"))
+    // The pattern must match the path section either at the beginning or right after the path separator;
+    // a pattern which starts with a separator matches at the beginning only (the paths have no leading one)
+    if (pattern.StartsWith("/"))
+    {
+        result.Append("^");
+        i = 1;
+    }
+    else
     {
         result.Append("(^|/)");
     }
@@ -95,8 +101,7 @@ static String translate_to_regex_string(const String &pattern)
             }
             else
             {
-                String stuff = pattern;
-                stuff.ClipMid(i, j - i);
+                String stuff = pattern.Mid(i, j - i);
                 stuff.Replace("\\", " \\\\");
                 char first_char = pattern.GetAt(i);
                 i = j + 1;

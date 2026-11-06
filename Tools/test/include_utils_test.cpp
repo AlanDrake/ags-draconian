@@ -114,6 +114,42 @@ TEST(IncludeUtils, MatchAnySectionOfThePath)
     ASSERT_TRUE(contains(matches, "dir/name/file5.dat"));
 }
 
+TEST(IncludeUtils, LeadingSlashMatchesFromTheRootOnly)
+{
+    const std::vector<String> files = {"name",         "name/file1.dat", "name.dat", "dir/name", "dir/name/file5.dat",
+                                       "dir/sub/name", "#name",          "dir/#name"};
+
+    const std::vector<String> patterns = {"/name", "/dir/sub/name", "/#name"};
+
+    std::vector<String> matches{};
+
+    DataUtil::MatchPatternPaths(files, matches, patterns);
+
+    ASSERT_EQ(matches.size(), 4u);
+    ASSERT_TRUE(contains(matches, "name"));
+    ASSERT_TRUE(contains(matches, "name/file1.dat"));
+    ASSERT_TRUE(contains(matches, "dir/sub/name"));
+    ASSERT_TRUE(contains(matches, "#name"));
+}
+
+TEST(IncludeUtils, CharacterSetMatchesOneOfItsCharacters)
+{
+    const std::vector<String> files = {"file1.txt",  "file2.txt",    "file3.txt", "file12.txt",
+                                       "fileA1.txt", "take [1].txt", "take 1.txt"};
+
+    const std::vector<String> patterns = {"file[12].txt", "file[!1-3]*.txt", "take [[]1].txt"};
+
+    std::vector<String> matches{};
+
+    DataUtil::MatchPatternPaths(files, matches, patterns);
+
+    ASSERT_EQ(matches.size(), 4u);
+    ASSERT_TRUE(contains(matches, "file1.txt"));
+    ASSERT_TRUE(contains(matches, "file2.txt"));
+    ASSERT_TRUE(contains(matches, "fileA1.txt"));
+    ASSERT_TRUE(contains(matches, "take [1].txt"));
+}
+
 TEST(IncludeUtils, SpacesInPathsAndPatterns)
 {
     const std::vector<String> files = {"file with space.txt",          "another file.txt",  "some dir/file.txt",
