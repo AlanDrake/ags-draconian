@@ -880,7 +880,10 @@ with 340 header stubs compiled by clang + libc++ 21 on Ubuntu and the heavy jobs
 
 *Added 2026-11-06 (not in the original plan): the user named testing and CI as the bottleneck.*
 
-*Status (2026-11-06):* 2.9a–c are written on the branch `probe-2.9` and have not run on CI.
+*Status (2026-11-07):* 2.9a–c are on the branch `probe-2.9` (six commits), green in Verify, a light and a
+full run there ("The probe" below); not on the main branch yet. The "done when" is not reached: a push
+should now be confirmed in about 12.5 minutes (estimated from the job times; the light run on a push has
+not happened yet), not 10, and the time left is the link-time code generation (2.9e).
 
 - **Where the time went, before the change.** Sources: the light CI run 42281919227 and the Verify run
   42281919108 of 2026-11-06, the logs of that day in `.tidy/prepush`, the stage times above (2.8).
@@ -903,9 +906,12 @@ with 340 header stubs compiled by clang + libc++ 21 on Ubuntu and the heavy jobs
   (`.ccache` in the workspace, at most 500 MB) is kept by `actions/cache` under a key with the commit
   hash and restored by prefix: a cache is never overwritten, so each commit saves its own and GitHub
   drops the oldest when the repository's 10 GB are used. A step prints the statistics, with the reason
-  for whatever could not be cached. Jobs: Verify's GCC and clang header jobs, and in `ci.yml` the
-  auto-test game job and the five `build` platforms (ccache from apt, from MSYS2, and for MSVC the
-  release archive 4.14.2 checked against the SHA-256 that GitHub publishes for it). Left out:
+  for whatever could not be cached, counted from the build step on (the configure step's compiler
+  checks live in scratch directories with random names: some 200 calls per job that never hit). Jobs:
+  Verify's GCC and clang header jobs, and in `ci.yml` the five `build` platforms (ccache from apt,
+  from MSYS2, and for MSVC the release archive 4.14.2 checked against the SHA-256 that GitHub publishes
+  for it). Left out: the auto-test game job (tried: 90 s with the cache, 81 s without; its 120 objects
+  come back in seconds, installing ccache costs as much, the rest is configure and eleven links),
   Emscripten, Android, the Linux image jobs, `macos.yml`, `analysis.yml`.
   - **The Windows CMake job builds with Ninja**, as `prepush.py` always did: the Visual Studio
     generators take no compiler launcher. A step writes what `vcvars64.bat` changes into the job's
@@ -914,11 +920,12 @@ with 340 header stubs compiled by clang + libc++ 21 on Ubuntu and the heavy jobs
   - **`/MP` only for the Visual Studio generators** (root `CMakeLists.txt`): Ninja hands one source
     to each compiler call, where the option does nothing, and a cache has to treat it somehow. SDL2's
     own `CMakeLists.txt` still adds it to its 196 sources (third-party, left alone).
-  - **Unproven: ccache with MSVC's `/GL` (the Release builds use it) and `/Fd` with `/FS` (CMake's
-    Ninja rule adds them).** The manual says nothing about them. A local trial was not possible in the
-    session (downloading and running the binary was not permitted). If the statistics of the probe show
-    these as uncacheable, the choices are sccache for that job, or no cache there: the move to Ninja
-    stays either way.
+  - **ccache with MSVC works** with `/GL`, `/Fd` and `/FS`, which the manual does not mention and
+    which could not be tried locally (downloading and running the binary was not permitted in the
+    session): 1276 of the 1318 compiler calls of the cold run were cacheable (37 "unsupported compiler
+    option", 5 "unsupported source encoding", in the dependencies), and the warm run hit 1275 of 1276.
+    One MSVC build is 0.41 GB of cache (the `/GL` objects), a GCC build 0.13 GB: the `build` jobs'
+    limit is 1 GB.
   - `compile_commands.json` now starts each command with `ccache`. clang's tooling drops known
     wrappers and `tidy_diff.py` reads only the file names: checked in WSL with clang-tidy 19.1.0 on the
     GCC tree's database, with and without the prefix (`Common/util/string.cpp`, 260 diagnostics and no
@@ -968,8 +975,36 @@ with 340 header stubs compiled by clang + libc++ 21 on Ubuntu and the heavy jobs
   ```
 
   The caches a probe branch saves are visible to that branch only (`gh cache list`, `gh cache delete`).
-  Expected, not measured: build steps of 244 to 466 s under two minutes on a warm cache, and a light
-  run of 7 to 8 minutes instead of 18, the MSBuild chain (Tools, Editor, Parity) being the longest.
+- **Probe results (2026-11-06, 22:00 to 23:10 UTC).**
+  - *Cold* (d0420e98b): Verify 42301637833 green, GCC job 848 s with 192 s of apt (a slow mirror that
+    evening). Light run 42301639300: Windows green on Ninja and ccache (801 s), the MSBuild jobs
+    146 to 183 s; Ubuntu-x86_64 was cancelled at its 20-minute limit inside `apt-get install`, the
+    mirror serving at about 40 KB/s, before any step of ours, so the parity job was skipped.
+  - *Warm* (ac4ab0650, only `ci.yml` changed): Verify 42304899184, 6.9 min: GCC 408 s (configure 87,
+    build 159, header check under 20, the game 86), clang headers 151 s (was 289). Light run
+    42304898565, 16 min only because Ubuntu-x86_64 was cold (766 s): Windows 569 s (configure 88,
+    build 271, header check 4, tests 30, game 132; was 907), MSBuild Engine 156 (was 474), Tests 190
+    (456), Tools 104 (418), Editor 134 (212), Parity 101.
+  - *Full* (8a17b00d0): 42307397759, all 26 jobs green in 20.7 min (Android 689 s is the longest);
+    Win-mingw-x86_64 1068 s and Win-mingw-arm64 1006 s cold with 923 cacheable calls each,
+    Ubuntu-Arm64 634 s cold (its auto-test passed this time), Ubuntu-x86_64 warm 482 s (build 204 s,
+    672 of 673 hits; was 659), Windows 571 s, the Debug and x64 MSBuild steps ran. Verify 42307398238
+    7.3 min.
+  - *A push to the main branch*, estimated from these jobs: game 69 to 90 s, Windows 570 s, Parity
+    100 s, about 12.5 min instead of 18, and about 22 runner-minutes instead of 56; Verify 7 min instead
+    of 8 with the game added. The warm case is the best case: a commit that changes a Common header
+    recompiles what includes it.
+  - **What is left is linking.** Warm Windows build step, from the log's timestamps: the 924 objects
+    are back in 15 s, then the 40 links take 255 s (`tools_test` 66, `ags` 36, `agf2dlgasc` 33,
+    `crmpak` 32, `engine_test` 25): `/GL` moves the code generation into every link. GCC the same with
+    `-flto`: `ags` 112 s, `engine_full_test` 109, `tools_test` 81, `common_test` 67, in parallel from
+    +79 to +236 s. The test targets set `INTERPROCEDURAL_OPTIMIZATION FALSE`, but they link libraries
+    whose objects are LTO objects. That is 2.9e, a decision: the binaries of these jobs are not
+    shipped, so LTO off there (an option, on by default, off in Verify, the light CMake jobs and the
+    `build` and `linux` stages of `prepush.py`) would take most of the 270 and 159 s away, at the price
+    that an LTO-only error waits for a full run.
+  - Also seen: the apt step varies between 31 and 192 s and once ran 20 minutes; a package cache is
+    a possible follow-up.
 
 ### 3.1 Dead platforms
 
