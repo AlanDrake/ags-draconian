@@ -75,26 +75,24 @@ Recorded 2026-10-31.
 
 Kept current as tasks land. Model and effort are recommendations for an AI session.
 
-Done: phases 0 and 2 (with 2.8 and the pre-push script, unpushed), 7.1a–m and o, 3.1 (PSP, pre-Windows 7; 2026-11-04, unpushed), 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (#3182, closed
+Done: phases 0, 1 and 2, 7.1a–m and o, 3.1 (PSP, pre-Windows 7; 2026-11-04), 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (#3182, closed
 and re-cut by U.3 as #3186–#3190), the agent docs (0.6, upstream PR #3185), 1.2 (contract guard
 tests, 2026-11-04), U.5 (the save fix found by 1.2, upstream PR #3191), the 6.0 study (2026-11-04,
 EDITOR-SPLIT.md: 6.0 re-scoped, 6.7c decided, U.6 defined), 1.3 (engine unit tests, 2026-11-05,
-on its branch), 3.2a/b (Makefiles, `make.yml` and `dh --buildsystem makefile` replaced by CMake;
-2026-11-05, green in a full CI run), 2.4 (clang-tidy gate, 2026-11-05), 1.5 (warnings, sanitizers, coverage; 2026-11-06). Phase 1
-has no open task (1.3 waits for its merge). Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
+merged), 3.2a/b (Makefiles, `make.yml` and `dh --buildsystem makefile` replaced by CMake;
+2026-11-05, green in a full CI run), 2.4 (clang-tidy gate, 2026-11-05), 1.5 (warnings, sanitizers, coverage; 2026-11-06). The safety net
+(1.2, 1.3) is in place. Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
 guards it (1.2, 1.3). Reordered 2026-11-03 after reading upstream's plans (ALIGNMENT.md): upstream
 review takes weeks, so the offers (U.3) go out first and the fork-only divergence (3.2, 3.4, 5.3)
 comes after they are closed.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
-| 2 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
-| 3 | **1.3 to merge:** `1.3-engine-tests` (15 commits on `5aaa1e65c`) was tested by the user in a game through the editor and engine built from it (`.compare/msb-13`); merge and push when ready. **U.7 waiting:** PR #3193 open since 2026-11-05 | The branch is the safety net phases 3 to 5 wait for | user |
-| 4 | **1.5b-2 Memory errors, done 2026-11-05** (LOG.md 1.5): the three ASan rows are gone from `prepush.py --only sanitizers` (49 rows to 46), each fix with a test and in its own commit: `String(ptr, length)` never reads past `length` (fixes `Utf8ToCp1252` and four more callers), `RuntimeScript::CheckFixupInCode` in `CreateGlobalVars`, name offsets instead of stale pointers in `JointRTTI::Join` (local, no RTTI structure changed). **U.8 open:** offer the `CreateGlobalVars` and `Join` fixes upstream (the same code there); the `String` change alters a Common contract, so it is a separate offer if at all | Real defects | Sonnet 5.5, `medium` for U.8 |
-| 5 | **1.5b-3 UBSan, done 2026-11-05** (LOG.md 1.5; unpushed): the two first-party rows are gone (11 rows to 8); `Memory::Read/WriteInt16/32/64` use a fixed-size `memcpy` (identical code with MSVC `/O2` and GCC `-O1..-O3`), zero-byte `Write`/`Read` of the memory streams return early; 2 new tests | Small | Sonnet 5.5, `medium` |
-| 6 | **1.5b-4 Script compiler leaks, done 2026-11-05** (LOG.md 1.5; unpushed): the 35 rows are gone from `prepush.py --only sanitizers` (46 rows to 11: the 7 engine leaks and 4 UBSan rows); `SymbolTableEntry::operator=` deletes what the entry owned, the symbol table owns its compile time functions (`unique_ptr`), the scanner reuses `MakeEntryLiteral`; 4 new tests, 1038 tests, byte parity of the auto-test game build. Upstream has the same code (`script2/`); an offer waits for the user's confirmation (2026-11-06) | One cause; the compiler tests are the net | Sonnet 5.5, `high` |
-| 7 | **1.5b-5 Engine leaks at exit, done 2026-11-06** (LOG.md 1.5; unpushed): `prepush.py --only sanitizers` is green ("No sanitizer findings"). Fixed: restored script structs use `globalDynamicStruct` (not a new manager each), the `ScriptVM` tests reset the pool, the audio core deletes its AL buffers so `alcCloseDevice` can close the device, `agscc` deletes its compiled script (a leak the summary could not show: LSan reports blocks that only point to each other as indirect; `sanitizer_summary.py` reports them now). Suppressed, third party, in `ci/sanitizers/` with stacks and reasons: Mesa's EGL display and draw-call blocks, libasound's configuration, mojoAL's null `SDL_memcpy` (UBSan `nonnull-attribute:SDL_stdlib.c`). Pushed 2026-11-06 and confirmed by the on-demand CI run 42174071706 ("No sanitizer findings"); 1.5b ticked. Decided (user, 2026-11-06): `sanitizers` stays on demand, in `prepush.py` and on CI (slow, and rarely something to act on) | The job is a gate once green | user |
+| 1 | **6.7d The editor builds through the tools** (phase 6), split into 13 steps on 2026-11-06 (the task's section). Done 2026-11-06, uncommitted: 6.7d-1 to 6.7d-4 (all ten variants have parity), 6.7d-8 (`BuildToolRunner`), the `crmbuild` project of 6.7d-7. **Next: 6.7d-6** (`agsbuild --header`, `--data-only`, `_obj/`, the `--json` defects 6.7d-8 found), the rest of 6.7d-7 (`agsdefns.sh` as a file, installer, CI artifact: probe branch), then 6.7d-9. 6.7d-5 waits for the user: 256-colour games (an 8-bit test project, or drop them). The state before it is the tag `pre-6.7d`; the reference editor is built from it | The tools must match the editor before its build code goes; the rest of 3.3 waits for it | Opus 5.5 or Fable 5.1, `high` (design, the switch, the deletions) |
+| 2 | **U.8, open:** offer the 1.5b-2 fixes in `CreateGlobalVars` (`RuntimeScript::CheckFixupInCode`) and `JointRTTI::Join` upstream (the same code there); the `String(ptr, length)` change alters a Common contract, so it is a separate offer if at all. The 1.5b-4 compiler leak fixes (the same code in `script2/`) are offered only when the user confirms | Real defects, small | Sonnet 5.5, `medium` |
+| 3 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
+| 4 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
+| 5 | **U.7, waiting:** PR #3193 open since 2026-11-05; answer the review when it comes | Review takes weeks | Sonnet 5.5, `medium` |
 
 Open items found while doing finished tasks (details in LOG.md): 0.4's CodeQL setting, the
 `D3DCOMPILER_47`/Windows 7 question and the macOS 10.9 deployment target; 1.4's unfixed `agfreader`
@@ -161,7 +159,7 @@ Today: 35 C++ test files, **only 3 for the engine** (~430 source files); 22 C# t
   `ags4-agfreader-tests` (#3147) and `ags4-save-roundtrip` (#2814) upstream after the
   `ags4-tools-*` PRs.
 - [x] **1.3 Engine unit tests for the riskiest subsystems** (2026-11-05, branch `1.3-engine-tests`,
-  15 commits, **not yet merged**): 6 → 16 test files, 12 → 162 engine test cases, ctest 1031 of
+  15 commits, merged): 6 → 16 test files, 12 → 162 engine test cases, ctest 1031 of
   1031; seven engine bugs fixed on the way, each with a failing-then-passing test, all present
   upstream too (LOG.md).
 - [x] **1.4 Game corpus regression:** `ci/corpus/run.py` builds a private game and runs every room
@@ -479,10 +477,96 @@ Framework-only.
     `agsbuild` (or single tools), shows progress, lists errors from `--json` (7.1h) with
     jump-to-line, cancels by stopping `agsbuild`; tools ship with the editor. Plugin build events
     still fire around the run, but nothing patches data mid-build. Then delete `DataFileWriter.cs`,
-    `Utils/DialogScriptConverter.cs`, the C# script-header generation, the `.tra` writer in
-    `TranslationsComponent.cs` (`po2tra` writes them) and, with 3.3, the C# preprocessor.
-    *Done when:* Build output is byte-identical to the last C# build (7.1a), tests pass, the C# build
-    code is gone.
+    `Utils/DialogScriptConverter.cs`, the `.tra` writer in `TranslationsComponent.cs` (`po2tra` writes
+    them), the in-process script and room compile and, with 3.3, the C# preprocessor.
+    *Done when:* Build output is byte-identical to the last C# build (7.1a) on the two test projects
+    and on every variant of 6.7d-1, tests pass, the C# build code is gone.
+
+    *Split 2026-11-06* (LOG.md 6.7d: three inventories, a measured baseline). The tools match the
+    editor on both test projects (59 of 59 and 114 of 114 files; `agsbuild` takes 3 s where the
+    editor takes 12 s on the private game), but both projects are debug-mode games without voice,
+    split packages or extra files: **9 of 10 variants of the auto-test project that use such things
+    lose parity, and 256-colour games do not build at all.** So the tools' gaps close first (ground
+    rule 3), then the editor switches, then the code goes. The reference for parity is the editor
+    built from the tag `pre-6.7d`.
+    - [x] **6.7d-1 Parity matrix** (2026-11-06). `compare_builds.py --variants all` builds ten
+      variants of a project both ways (`--list-variants`); only `audiovox` has parity today.
+    - [x] **6.7d-2 Tool gaps: game data and configuration** (2026-11-06). `agf2dta` left the room names
+      out of a release-mode `game28.dta` (the editor always writes them, the engine always reads them:
+      such a game did not start); `agfexport game-cfg` ignored an `acsetup.cfg` in the project folder
+      (now `--base <file>`, passed by `agsbuild`), wrote `OpenGL` where the engine knows `OGL`, and
+      rounded the mouse speed; an empty `GameFileName` gave `.ags` instead of the folder's name. The
+      variants `release`, `opengl`, `customcfg`, `noname` have parity; a release build runs the
+      auto-test (2414 of 2414).
+    - [x] **6.7d-3 Tool gaps: what is packed** (2026-11-06, LOG.md 6.7d; all ten variants have parity
+      now)**.** `preload.*`, `flic*.fl?` and `*.ogv` were not packed;
+      custom data folders fail when nested or with sub-folders, and lack the editor's checks
+      (restricted folders, `.`/`..`, duplicates; warnings); `SplitResources` is ignored (`agspak -p`);
+      voice packs lose the sub-folder prefix the engine looks up, keep the folder's letter case, leave
+      out FLAC, and fail on a folder without voice files; an `audio.vox` no clip needs stays in the
+      output. Split packages are compared by their assets only: the editor names the parts `.1D3`,
+      `.2D3` (a format-string bug, `.001` was meant) and fills them by another rule.
+      *Done when:* the variants `packed`, `customdirs`, `split`, `speech` have parity.
+    - [x] **6.7d-4 UTF-8 command lines on Windows** (2026-11-06, LOG.md 6.7d)**.** The tools took a narrow `main(argv)`: a project
+      path or game name outside the ANSI code page does not arrive (`agsbuild` fails at "project file
+      not found"; the harness cannot unpack either, as it uses `agspak`). Users' folders are often not
+      ASCII, so this blocks the switch. One shared entry point for every tool, with a test.
+      `ags4` has no ASCII mode any more (user, 2026-11-06): arguments, paths and game text are UTF-8,
+      and the legacy-encoding paths (`agscc --ascii`, `$Encoding=ASCII` translations) get no parity work.
+      *Done when:* the variant `unicode` has parity.
+    - [ ] **6.7d-5 256-colour rooms in `crmbuild`** (it refuses them: the backgrounds need the game
+      palette), with an 8-bit test project, which does not exist yet; or the user drops 8-bit games.
+    - [ ] **6.7d-6 Script headers from outside the project, run layout, `_obj/`.** `agsbuild --header
+      <file>` for the headers of editor plugins (they exist only inside the plugin, so the editor
+      writes them out; the C# build passes them between the generated and the module headers).
+      A run layout for F5, `agsbuild --data-only`: only export, scripts, game data and rooms, a package
+      with `game28.dta` and the scripts, the rooms left on disk for `--runfromide`; nothing else is
+      packed, as today.
+      `--temp-dir` defaults to `<project>/_obj` (this is 7.1k; `_temp` was never removed after a
+      successful build either: `DeleteDirectory` removes empty folders only). Found by 6.7d-8, for the
+      editor to rely on `--json`: unknown options are accepted silently (so `--header` would become a
+      third positional argument today), bad arguments give no JSON, a task that succeeds turns its
+      `Error:` lines into errors (`spriteimport`: a build can end in success with errors), a failed
+      task without an error line gives an empty message, and the tools inherit every handle
+      `agsbuild` may inherit (`bInheritHandles`).
+      *Done when:* the engine runs the auto-test from the run layout (2414 of 2414), and a failed
+      build leaves nothing outside `_obj/` and the output folder.
+    - [ ] **6.7d-7 Tools next to the editor.** `crmbuild` had no MSBuild project (`Tools.sln` builds the
+      others into the editor's output folder; done 2026-11-06); `agsdefns.sh` exists only as an embedded resource and
+      must ship as a file (decision T2); the installer's file list and CI's `windows-editor-binaries`
+      have no tool. CI and installer changes need a probe branch.
+    - [x] **6.7d-8 `BuildToolRunner`** (2026-11-06, LOG.md 6.7d) in the editor, without UI types (it moves to `AGS.Editor.Core`
+      in 6.3): starts a tool, turns the `--json` lines into progress and `CompileMessages` (file and
+      line as the editor names scripts, duplicate warnings dropped), cancels through stdin and kills
+      after a timeout. NUnit tests against the real `agsbuild` and against canned lines.
+    - [ ] **6.7d-9 Build through `agsbuild`:** Build EXE, Rebuild all, `/compile`, the new-game
+      wizard. Order: repair object IDs, save, `PreCompileGame` (open dialogs flushed, `AudioCache`
+      refreshed, lip sync compiled into `Speech/`: these prepare sources and stay), the editor's
+      checks, `agsbuild` into `Compiled/Data`, then the other targets, which only copy from there.
+      Progress and a Cancel button in the busy dialog.
+      *Done when:* this editor's `Compiled/Data` equals the reference editor's on both projects and
+      every variant; an error in a module, a room and a dialog script jumps to its line.
+    - [ ] **6.7d-10 Run through `agsbuild`:** F5 and Ctrl+F5 use the run layout; breakpoints, call
+      stack and watch variables checked by hand in a game (the user), the auto-test run by script.
+    - [ ] **6.7d-11 The other users of the build code:** saving a room no longer compiles its script or
+      writes `room<n>.crm` (errors come from the build; the same for speech numbering, which
+      recompiles every room today); templates are packed by `agspak`; "Compile translation" runs
+      `po2tra`; the lip-sync writer keeps its one helper.
+    - [ ] **6.7d-12 Deletions, one commit each:** `DataFileWriter.cs`; `DialogScriptConverter.cs`
+      (`IsRealScriptLineInDialog` moves to its one caller); the `.tra` writer; the in-process compile
+      (`AGSEditor.CompileScript*`, `IScriptCompiler`, `ScriptCompiler.cpp` in `AGS.Native`, the
+      compiler setting's list, `Script.CompiledData`, `Game.ScriptsToCompile`,
+      `ExtraCompilationStep`, `GetScriptModuleList`, `_GlobalVariables.asc`); the room writer in
+      `AGS.Native`; the C# preprocessor and its tests (`FastString` stays for autocomplete).
+      **Kept, against the first plan:** `Tasks.RegenerateScriptHeader` and the `_GlobalVariables.ash`
+      generator, which feed autocomplete, go-to-definition and the plugin API; a test compares them
+      with `agfexport`'s output so the two cannot drift.
+    - [ ] **6.7d-13 Harness, CI, docs.** `compare_builds.py` compares the editor's output with a plain
+      `agsbuild` run (no script un-embedding); the CI parity job follows; AGENTS.md, `docs/context`.
+
+    Stays in the editor after 6.7d, as open items for 7.1: the pre-build checks
+    (`RunPreCompilationChecks`, missing event handlers), so a command-line build does not get them;
+    the lip-sync compiler (Pamela, Papagayo); `AudioCache` upkeep.
   - [ ] **6.7e Switch to the C library** via a C# P/Invoke wrapper in `AGS.Editor.Core` (`net48` and
     `net8.0`), one area at a time (sprites, rooms, fonts, GUI previews), each covered by 6.6 tests;
     view and sprite drawing move to the UI at the same time.
@@ -514,7 +598,8 @@ Framework-only.
   - [x] **7.1i `BuildWithTaskManager` split** per build stage (2026-11-02).
   - [x] **7.1j CI:** Linux job builds the auto-test with `agsbuild` for the platform jobs; a Windows
     job runs the parity harness (2026-11-02).
-  - [ ] **7.1k Intermediate directory.** Failed builds leave files behind (measured 2026-11-02):
+  - [ ] **7.1k Intermediate directory** (done with 6.7d-6; the editor's half goes away with its build
+    code)**.** Failed builds leave files behind (measured 2026-11-02):
     `agsbuild`'s `--temp-dir` defaults to `<output dir>/_temp` and is deleted only on success (end of
     `main` in `Tools/agsbuild/main.cpp`); the editor writes `game28.dta` into the project folder and
     deletes it after packing (`BuildTargetDataFile.cs`, `BuildTargetDebug.cs`). Give every project
@@ -525,7 +610,8 @@ Framework-only.
     `room<n>.crm` in the project root.
     *Done when:* a build failing halfway leaves nothing new outside `_obj/` and the output folder
     (`agsbuild` and editor), the next build succeeds, parity and auto-test still pass.
-  - [ ] **7.1l Scripts out of `game28.dta` in the editor too** (after 7.1k). `agsbuild` packs
+  - [ ] **7.1l Scripts out of `game28.dta` in the editor too** (after 7.1k; 6.7d-9 and 6.7d-10 do
+    it, since the editor's `game28.dta` is then `agf2dta`'s). `agsbuild` packs
     `GlobalScript.o`, `__DialogScripts.o`, `ScriptModules.lst` separately (7.1f); `DataFileWriter.cs`
     still embeds them. Clear `HasCCScript`, write no script names in `v362_interevent2`, write the
     scripts to `_obj/` and pack them, include them in the debug run (`CreateDebugMiniEXE` packs only

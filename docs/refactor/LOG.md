@@ -1775,3 +1775,190 @@ Opened as PR #3193 on 2026-11-05 after the user ran a game through the fork's ed
 from `1.3-engine-tests` (`.compare/msb-13`, Release x86, and the CMake `ags.exe` in `.compare/build-13`;
 the fresh worktree needed the NuGet `Solutions/packages` folder and the irrKlang DLLs copied from the
 main checkout): no evident issue.
+
+### 6.7d The editor builds through the tools
+
+The definition and the 13 steps are in PLAN.md (the task is open).
+
+*Status (2026-11-06): split into steps, 6.7d-1 done.* Three read-only subagents took inventory (the
+editor's build flow and every subscriber of its build events; what the editor's build does that
+`agsbuild` does not; how the tools are built, shipped and run in CI), the supervisor measured.
+
+**Baseline.** The reference editor is the tag `pre-6.7d` built with MSBuild (Release x86; locally
+`.compare/msb-pre67d`, with `acwin.exe` next to it).
+
+| Project | Files | Result | Editor | `agsbuild` |
+|---|---:|---|---:|---:|
+| auto-test (`ags4-draconian`) | 59 | all identical, auto-test 2414 of 2414 | 4 s | 1 s |
+| a private AGS 4 game (53 rooms, 36 scripts, a translation) | 114 | all identical | 12 s | 3 s |
+
+A full `agsbuild` run is faster than the editor's build, so the switch needs no incremental build.
+
+**6.7d-1 Parity matrix.** Both projects are debug-mode games without voice files, split packages or
+loose files to pack, so `compare_builds.py` got variants: copies of a project that use such things
+(`--variants all`, `--list-variants`; a variant can also build in a folder whose name is not ASCII).
+It unpacks `*.vox` as well now, and a build that fails is no parity. The auto-test project against
+the reference editor:
+
+| Variant | Result | What differs |
+|---|---|---|
+| `release` (DebugMode off) | no parity | `game28.dta`: `agf2dta` writes the room names only in debug mode, the editor always |
+| `split` (SplitResources 1) | no parity | `agsbuild` does not split; the editor's second part is named `.1D3` (`i.ToString(".D3")`, a bug) |
+| `opengl` (default driver) | no parity | `acsetup.cfg`: `OpenGL` instead of `OGL`, which is what the engine accepts |
+| `customcfg` (`acsetup.cfg` in the project) | no parity | the project's file is not merged |
+| `packed` (`preload.pcx`, `flic*`, `*.ogv`) | no parity | the four files are not packed |
+| `speech` (voice files, a sub-folder) | `agsbuild` fails | "failed to prepare asset library": a folder without voice files |
+| `customdirs` (nested, with sub-folders) | `agsbuild` fails | cannot create the nested temporary folder |
+| `audiovox` (a clip in `audio.vox`) | parity | |
+| `noname` (empty GameFileName) | no parity | `.ags` instead of `<folder name>.ags` |
+| `unicode` (game name and path outside ASCII) | `agsbuild` fails | project file not found: narrow `argv` on Windows; `agspak` cannot unpack the editor's package for the same reason |
+
+**Gaps read from the code, not yet measured** (each belongs to the step named):
+- Voice packs (6.7d-3): assets lose the `<sub-folder>/` prefix the engine looks up, pack names keep
+  the folder's letter case (`sp_French.vox`, the editor writes `sp_french.vox`), `*.flac` is not in
+  the filter.
+- Custom data folders (6.7d-3): no check for restricted folders, `.`/`..` or duplicates, no warnings;
+  the include file's patterns are `.gitignore`-style, so a file name with `#`, `!` or `[...]` is
+  misread.
+- `audio.vox` (6.7d-3): one that no clip needs any more stays in the output folder; a clip with
+  neither source nor cache file is skipped without a message.
+- `agfexport game-cfg` (6.7d-2): the mouse speed is written with `%.f`.
+- Script headers of editor plugins (6.7d-6): `__Plugin_<dll>.ash` and the headers C# plugins add
+  through `GetScriptHeaderList` are not passed to `agscc`.
+- 256-colour games (6.7d-5): `crmbuild` refuses them (`room_build.cpp`, `LoadRoomImages`).
+- `--build-debug`/`--build-release` reach only `agscc`, not `agf2dta` or `agfexport`; the editor uses
+  the project's setting alone, so the switch does not need them (open, 7.1).
+- `NEW_KEYINPUT_API`: `agsbuild` never passes `-foldkeyinput`. Not a gap in practice:
+  `Settings.UseOldKeyboardHandling` is `[Obsolete]` and not saved, so it is false in every project
+  the tools read.
+- Legacy text encodings: no work (the user, 2026-11-06: `ags4` has no ASCII mode, everything is UTF-8).
+
+**What the inventories changed in the plan:**
+- `Tasks.RegenerateScriptHeader` cannot be deleted: besides the build it feeds autocomplete,
+  go-to-definition and `IAGSEditor.GetAllScriptHeaders`. It stays, with a drift test against
+  `agfexport autoash`. `Utils/ScriptGeneration.cs` is not header generation at all (it inserts event
+  handlers).
+- `DataFileWriter` has users outside the build: templates (`Tasks.CreateTemplateFile`), the `.tra`
+  writer and its two menu commands, the lip-sync writer (one helper), `speech.vox`, the end signature
+  `BuildTargetWindows` appends.
+- Rooms are compiled in-process on every room save, on `PreSaveGame` and `PreCompileGame`, and by text
+  processing that makes changes (speech numbering recompiles every room). `Script.CompiledData` and
+  `Game.ScriptsToCompile` have no reader outside `DataFileWriter` and the room writer; the debugger
+  reads nothing from compiled scripts and matches breakpoints by the script names `agsbuild` already
+  uses (`Rooms\<n>\room<n>.asc`, `Dialog <id>`).
+- `ExtraCompilationStep` has one subscriber (lip sync), `ExtraOutputCreationStep` one (voice packs);
+  no editor plugin API exposes a build event except `GetScriptHeaderList`.
+- The F5 run starts `_Debug/<name>.exe` (the engine with only `game28.dta` attached) with
+  `--runfromide`: rooms, sprites, fonts, audio and voice come from the project's folders. The engine
+  needs a package for the game data (`FindGameData` tests libraries only), and loads scripts as
+  separate assets from any registered folder: hence the run layout of 6.7d-6.
+- The other build targets (Windows, Linux, Web, Android) only copy from `Compiled/Data`; they stay.
+- `AGS.CScript.Compiler` stays for `FastString` (autocomplete); only the preprocessor and its 21
+  tests go.
+- Shipping: `crmbuild` has no MSBuild project in the fork; `agsdefns.sh` is only an embedded resource;
+  the installer lists files one by one and CI's editor artifact holds no tool. `/compile` needs a
+  desktop session (splash, main form, busy dialog) and exits 0 when the project path does not exist.
+
+**6.7d-2 Game data and configuration** (2026-11-06, supervisor):
+- `agf2dta` wrote the room names block only in debug mode, as 3.x did; the engine reads it from every
+  game of data version 4.00.00.13 or later (`GameSetupStruct::read_room_names`), so a release-mode
+  `game28.dta` from the tools was misread. The block is now always written; the test that expected
+  an empty block in release mode was wrong and now expects the same bytes in both modes. A
+  release-mode build runs the auto-test, 2414 of 2414, as the editor's does.
+- `agfexport game-cfg --base <file>`: the config starts from a copy of that file and the project's
+  settings are merged over it (`IniUtil::Merge`), as `BuildTargetBase.GenerateConfigFile` does with an
+  `acsetup.cfg` in the project folder; `agsbuild` passes it when the file exists.
+- The graphics driver is written as the engine names it (`OGL` for OpenGL, `MakeGfxDriverConfig`);
+  the mouse speed with up to 7 significant digits (`%.7g`, as .NET's `float.ToString()`), not rounded.
+- An empty or blank `GameFileName` names the package after the project folder, as
+  `AGSEditor.BaseGameFileName` does. The harness builds this variant in a folder of a fixed name on
+  both sides, since the name is part of the output.
+- Tests: `game_utils_test.cpp` (driver name, mouse speed, `show_fps` only in debug mode); 170 tools
+  tests, with CMake and with `Tools.Test.vcxproj` (which did not compile `game_utils.cpp` before).
+
+**6.7d-7, first part** (2026-11-06): `crmbuild` builds with MSBuild. The project is the one of the
+upstream port branch (`4b17e4b9c`) with the fork's toolset (v143), added to `Tools.sln`. The MSBuild
+tool set (Release x86) gives 59 of 59 identical on the auto-test project and runs it, 2414 of 2414.
+
+**6.7d-4 UTF-8 command lines** (2026-11-06; an Opus 5.5 subagent finished what a Fable 5.1 one began
+before a usage limit stopped it; the supervisor reviewed the core and merged it):
+- `CmdLineOpts::InitProgramArgs(argc, argv)`, called first by all eleven programs: on Windows the
+  arguments come from `CommandLineToArgvW(GetCommandLineW())` as UTF-8 (as the engine's
+  `GetCommandArg`), and Allegro's file names are set to Unicode (`set_filename_encoding`, as the
+  engine and `AGS.Native` do; without it a relative path from a non-ASCII current folder broke in
+  `Path::MakeAbsolutePath`). Elsewhere `argv` as it is. `Parse` takes the resulting list.
+- `StrUtil::ConvertUtf8ToWstr`/`ConvertWstrToUtf8` wrote the terminator one past the buffer and
+  handled no UTF-16 surrogate pairs: a folder named with an emoji reached the child tools mangled.
+  `Path::WidePathToUTF8` freed an array with `delete` (above 1024 bytes; the `agscc -H` list is longer).
+- The XML files (`Game.agf`, dialogs, rooms) are opened through `ags_fopen` (`AGF::LoadXmlFile`):
+  tinyxml2's narrow `fopen` did not find a project in a non-ASCII folder.
+- `agsbuild` builds every command line with `ProcessArgs`, which quotes each value by the platform's
+  rules (`QuoteWindowsArg`, the C runtime's and `CommandLineToArgvW`'s; `QuotePosixShellArg`, as the
+  children run through `/bin/sh -c`): a game name with quotes (`--gamename` of `po2tra`) broke the
+  command line before. `PipedProcess` quotes the program's path itself; `MakeEscapedExePath` and
+  `EscapePath` are unused now.
+- Measured: the variant `unicode` (a folder `projé жд`, a game `Parité жд "ø"`, a translation) has
+  parity; `--json` from a non-ASCII project gives valid UTF-8 with the right script names; tools in a
+  non-ASCII folder work. Tests: `common_test` 110 → 113, `tools_test` +4 (quoting round trips, an
+  end-to-end child process that prints its arguments, `tools_test --print-args`).
+- Not compiled locally at the time: the POSIX branches (the Linux stages run before the push).
+- Left as it was: a cmd window not on a UTF-8 code page shows the tools' UTF-8 output as mojibake
+  (pipes get the right bytes).
+
+**6.7d-3 What is packed** (2026-11-06; an Opus 5.5 subagent finished what a Fable 5.1 one began, then
+ported it onto 6.7d-4's command lines in the main checkout; reviewed by the supervisor):
+- `Tools/agsbuild/package_files.{h,cpp}` holds the decisions, tested in `package_files_test.cpp`
+  (22 tests): the loose files the editor packs (`preload.*`, `flic*.fl?`, `*.ogv`); custom data
+  folders checked as `BuildTargetDataFile` does (absolute, `.`/`..`, restricted folders: the editor's
+  warning texts, as `--json` warnings; nested or repeated folders skipped; `Array.Sort`'s order,
+  emulated for ASCII names), staged into `_temp/_custom` and packed with their paths; voice packs as
+  `SpeechComponent` makes them (`speech.vox` from the top level of `Speech/`, `sp_<lower case>.vox` per
+  sub-folder with `<folder>/` in the asset names, which is what the engine looks up; `*.flac` too; a
+  folder without voice files makes no pack); split packages with `agspak -p` (MiB parts named `.001`,
+  decided above), deployed by reading the part names from the package (`TaskDeployPackage`).
+- Stale output is deleted after a successful pack: parts beyond the new count, an `audio.vox` no clip
+  needs, voice packs the project no longer has. The editor keeps old voice packs (its changed-file
+  check finds nothing to rebuild); deleting them was the subagent's decision, accepted by the
+  supervisor, so the engine plays no voice the project does not have.
+- A clip with neither source nor cache file fails the build with the editor's message
+  (`AGF::ReadAudioClips` did not read the clip's name: one line).
+- Two older tool bugs fixed on the way: `agspak -p` wrote broken split packages (the first part's table
+  was written before the later parts' offsets were known, and the later parts were checked as if they
+  had one); the include patterns had no root anchor (`file1.txt` also matched `CustomData/file1.txt`)
+  and `ClipMid` stood for `Mid`, which broke every `[...]` class.
+- Measured: `packed`, `customdirs`, `split`, `speech` have parity (63, 62, 61, 67 files); the split
+  build runs the auto-test (2414 of 2414; a room and most modules sit in later parts); three builds
+  into one folder remove the stale parts and packs. `tools_test` 174 → 199.
+- Not reproduced: the editor's incremental checks for the packs (`agsbuild` always rebuilds them, 3 s
+  for the private game), its 8.3-name wildcard matches, culture-specific lower case for `sp_` names.
+
+**6.7d-8 `BuildToolRunner`** (2026-11-06; an Opus 5.5 subagent, after a Fable 5.1 one stopped at a
+usage limit with two files written): `Editor/AGS.Editor/Build/`, namespace `AGS.Editor.Build`, C# 6,
+no WinForms, `System.Drawing` or editor singletons. `BuildToolEvent.Parse` (one `--json` line, null for
+anything else, never throws); `BuildToolOptions.ToArguments` (one `QuoteArgument` by the
+`CommandLineToArgvW` rules, `--header` and `--data-only` for 6.7d-6); `BuildToolRunner.Run`: stdout
+and stderr read on their own threads, the progress callback called on the caller's thread in order,
+diagnostics into `CompileMessages` (duplicate warnings by file, line and text dropped), outcome
+Success/Failed/Cancelled from the `end` event and Crashed/ToolNotFound otherwise, each with an error
+message. Cancel writes `cancel`, then after a grace period (5 s) ends the whole Windows job object the
+tool was put in at start (kill-on-close, so the tools die with the editor too; `taskkill /T` if
+Windows refuses the job). Tests: 396 → 522 editor tests (126 new: events 58, options 49, runner 16
+against batch-file processes, 3 against the real `agsbuild` when `AGS_TEST_PROJECT` names a project);
+the kill tests were checked to fail with the job and `taskkill` disabled. The repository's
+`**/build` ignore line (for Xcode) hid the new folders on Windows (`core.ignorecase`): two negations.
+Found in `agsbuild`:
+- With `--json` it did not exit after the build while its stdin stayed open: the thread waiting in
+  `std::getline(std::cin)` held the stream's lock, which the C runtime takes at exit; `cancel` after
+  the end crashed it. Fixed by the supervisor: the thread reads with `ReadFile`/`read`. Measured with
+  stdin held open (`.compare/helpers/stdin_open_check.py`): exit 0 after the build, 3 of 3; `cancel`
+  still gives exit 2, 3 of 3. The runner's workaround (closing stdin when the last task is done) can go.
+- The rest goes to 6.7d-6 (unknown options, no JSON for bad arguments, errors from succeeded tasks,
+  empty error messages, inherited handles, `_temp` never removed).
+
+**Bugs found on the way, not fixed:** `BuildTargetBase.DeleteCommonGameFiles` deletes `filename`
+instead of the loop's `fileName`, so old split parts are never removed; the split part names above;
+`AGSEditor.CreateAudioVOXFile` is an unused copy of the one in `BuildTargetDataFile`;
+`Tasks.HandleObjectIDErrors` repairs IDs after the project was saved.
+
+Not verified: the gaps listed as read from the code; anything on Linux or macOS (the harness needs
+the editor).
