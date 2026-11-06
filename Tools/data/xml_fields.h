@@ -49,6 +49,12 @@ namespace AGS
 namespace AGF
 {
 
+// Loads an XML file by its UTF-8 path. To be used instead of XMLDocument::LoadFile(const char*),
+// which opens the file with fopen: on Windows that takes the path in the ANSI code page.
+// Returns XML_ERROR_FILE_NOT_FOUND if the file cannot be opened; the document does not record
+// that error, as it does the errors of reading and parsing.
+tinyxml2::XMLError LoadXmlFile(tinyxml2::XMLDocument &doc, const Common::String &filename);
+
 // Reads one XML element into the object
 template <typename T>
 using XmlFieldReader = Common::HError (*)(const tinyxml2::XMLElement *elem, T &obj);

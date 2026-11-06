@@ -313,13 +313,15 @@ int main(int argc, char *argv[])
 Copyright (c) 2026 AGS Team and contributors
 )EOS");
 
-    ParseResult parseResult = Parse(
-        argc, argv, {"-D", "-H", "--Headers", "-A", "-C", "-f", "-o", "--output", "--override-version", "--name"});
-    ParsedOptions parsedOptions = parser_to_compiler_opts(parseResult);
+    ParseResult parse_result = Parse(InitProgramArgs(argc, argv), {"-D", "-H", "--Headers", "-A", "-C", "-f", "-o",
+                                                                   "--output", "--override-version", "--name"});
+    ParsedOptions parsed_options = parser_to_compiler_opts(parse_result);
 
-    if (parsedOptions.Exit)
-        return parsedOptions.ErrorCode;
+    if (parsed_options.Exit)
+    {
+        return parsed_options.ErrorCode;
+    }
 
-    compilerOptions = parsedOptions.Options;
+    compilerOptions = parsed_options.Options;
     return Compile(compilerOptions);
 }

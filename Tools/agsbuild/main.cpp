@@ -969,7 +969,8 @@ static int Fail(const String &message)
 int main(int argc, char *argv[])
 {
     CmdLineOpts::ParseResult cmdargs =
-        CmdLineOpts::Parse(argc, argv, {"--api-ash", "-s", "--sys-dir", "-t", "--temp-dir", "-p", "--threads"});
+        CmdLineOpts::Parse(CmdLineOpts::InitProgramArgs(argc, argv),
+                           {"--api-ash", "-s", "--sys-dir", "-t", "--temp-dir", "-p", "--threads"});
     if (cmdargs.HelpRequested)
     {
         printf("%s\n", HELP_STRING);

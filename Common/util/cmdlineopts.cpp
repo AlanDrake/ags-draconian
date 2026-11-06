@@ -15,6 +15,15 @@
 #include "util/cmdlineopts.h"
 
 #include "platform/platform.h"
+#if AGS_PLATFORM_OS_WINDOWS
+#include "platform/windows/windows.h"
+
+#include <allegro/file.h>
+#include <allegro/unicode.h>
+#include <shellapi.h>
+
+#include "util/path.h"
+#endif
 #include "util/string_compat.h"
 
 namespace AGS
@@ -24,6 +33,51 @@ namespace Common
 
 namespace CmdLineOpts
 {
+
+#if AGS_PLATFORM_OS_WINDOWS
+std::vector<String> SplitWindowsCommandLine(const wchar_t *command_line)
+{
+    std::vector<String> args;
+    int wargc = 0;
+    LPWSTR *wargv = CommandLineToArgvW(command_line, &wargc);
+    if (!wargv)
+    {
+        return args;
+    }
+    for (int i = 0; i < wargc; ++i)
+    {
+        args.push_back(Path::WidePathToUTF8(wargv[i]));
+    }
+    LocalFree(static_cast<HLOCAL>(wargv));
+    return args;
+}
+#endif
+
+std::vector<String> InitProgramArgs(int argc, const char *const argv[])
+{
+#if AGS_PLATFORM_OS_WINDOWS
+    // As the engine and the editor do: otherwise Allegro's canonicalize_filename, behind
+    // Path::MakeAbsolutePath, reads the current directory in the ANSI code page
+    set_filename_encoding(U_UNICODE);
+    std::vector<String> args = SplitWindowsCommandLine(GetCommandLineW());
+    if (!args.empty())
+    {
+        args.erase(args.begin());
+        return args;
+    }
+#endif
+    return std::vector<String>(argv + 1, argv + argc);
+}
+
+ParseResult Parse(const std::vector<String> &args, const std::set<String> &opt_params_with_values)
+{
+    std::vector<const char *> argv = {""}; // the program's name, which Parse skips
+    for (const auto &arg : args)
+    {
+        argv.push_back(arg.GetCStr());
+    }
+    return Parse(static_cast<int>(argv.size()), argv.data(), opt_params_with_values);
+}
 
 ParseResult Parse(int argc, const char *const argv[], const std::set<String> &opt_params_with_values)
 {

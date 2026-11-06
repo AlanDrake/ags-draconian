@@ -199,7 +199,8 @@ int main(int argc, char *argv[])
     printf("%s\n", BIN_STRING);
 
     CmdLineOpts::ParseResult cmdargs = CmdLineOpts::Parse(
-        argc, argv, {"-n", "--index", "-p", "--pattern", "-s", "--storage-flags", "-z", "--compress", "--out-index"});
+        CmdLineOpts::InitProgramArgs(argc, argv),
+        {"-n", "--index", "-p", "--pattern", "-s", "--storage-flags", "-z", "--compress", "--out-index"});
     if (cmdargs.HelpRequested)
     {
         printf("%s\n", HELP_STRING);

@@ -29,21 +29,21 @@ int main(int argc, char *argv[])
 {
     printf("agf2dta v0.1.0 - AGS game main data file build tool\n"
            "Copyright (c) 2026 AGS Team and contributors\n");
-    ParseResult parseResult = Parse(argc, argv, {});
-    if (parseResult.HelpRequested)
+    ParseResult parse_result = Parse(InitProgramArgs(argc, argv), {});
+    if (parse_result.HelpRequested)
     {
         printf("%s\n", HELP_STRING);
         return 0; // display help and bail out
     }
-    if (parseResult.PosArgs.size() < 2)
+    if (parse_result.PosArgs.size() < 2)
     {
         printf("Error: not enough arguments\n");
         printf("%s\n", HELP_STRING);
         return -1;
     }
 
-    const String &src_agf = parseResult.PosArgs[0];
-    const String &out_file = parseResult.PosArgs[1];
+    const String &src_agf = parse_result.PosArgs[0];
+    const String &out_file = parse_result.PosArgs[1];
 
     printf("Input game AGF: %s\n", src_agf.GetCStr());
     printf("Output dat file: %s\n", out_file.GetCStr());
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     DataUtil::GameData game{};
     AGF::XmlProblems::Clear();
     AGF::ReadGameData(game, reader);
-    const bool strict = parseResult.Opt.count("--strict") > 0;
+    const bool strict = parse_result.Opt.count("--strict") > 0;
     for (const String &problem : AGF::XmlProblems::Get())
         printf("%s: %s\n", strict ? "Error" : "Warning", problem.GetCStr());
     if (strict && !AGF::XmlProblems::Get().empty())

@@ -126,7 +126,8 @@ int main(int argc, char *argv[])
 {
     printf("%s\n", BIN_STRING);
 
-    CmdLineOpts::ParseResult cmdargs = CmdLineOpts::Parse(argc, argv, {"-o", "--script", "--header", "--prepend"});
+    CmdLineOpts::ParseResult cmdargs =
+        CmdLineOpts::Parse(CmdLineOpts::InitProgramArgs(argc, argv), {"-o", "--script", "--header", "--prepend"});
     if (cmdargs.HelpRequested)
     {
         printf("%s\n", HELP_STRING);

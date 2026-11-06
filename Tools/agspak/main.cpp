@@ -246,7 +246,8 @@ int main(int argc, char *argv[])
     printf("%s\n", BIN_STRING);
 
     CmdLineOpts::ParseResult cmdargs =
-        CmdLineOpts::Parse(argc, argv, {"-p", "-f", "--pattern-file", "-D", "--dir", "-R", "--recursive-dir"});
+        CmdLineOpts::Parse(CmdLineOpts::InitProgramArgs(argc, argv),
+                           {"-p", "-f", "--pattern-file", "-D", "--dir", "-R", "--recursive-dir"});
     if (cmdargs.HelpRequested)
     {
         printf("%s\n", HELP_STRING);

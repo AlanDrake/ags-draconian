@@ -20,12 +20,27 @@
 #include <cstdlib>
 #include <iterator>
 
+#include "util/stdio_compat.h"
+
 using namespace AGS::Common;
 
 namespace AGS
 {
 namespace AGF
 {
+
+tinyxml2::XMLError LoadXmlFile(tinyxml2::XMLDocument &doc, const String &filename)
+{
+    doc.Clear();
+    FILE *file = ags_fopen(filename.GetCStr(), "rb");
+    if (!file)
+    {
+        return tinyxml2::XML_ERROR_FILE_NOT_FOUND;
+    }
+    const tinyxml2::XMLError result = doc.LoadFile(file);
+    fclose(file);
+    return result;
+}
 
 // Returns the text without leading and trailing whitespace
 static String Trimmed(const char *text)

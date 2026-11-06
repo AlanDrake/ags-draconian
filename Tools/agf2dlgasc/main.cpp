@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     printf("agf2dlgasc v0.1.0 - AGS game's dialog script generator\n"
            "Copyright (c) 2021 AGS Team and contributors\n");
 
-    ParseResult cmdargs = Parse(argc, argv, {});
+    ParseResult cmdargs = Parse(InitProgramArgs(argc, argv), {});
     if (cmdargs.HelpRequested)
     {
         printf("%s\n", HELP_STRING);

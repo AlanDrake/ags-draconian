@@ -369,7 +369,7 @@ int main(int argc, char *argv[])
 {
     std::set<String> options_with_values;
 
-    auto result = CmdLineOpts::Parse(argc, argv, options_with_values);
+    auto result = CmdLineOpts::Parse(CmdLineOpts::InitProgramArgs(argc, argv), options_with_values);
 
     if (result.PosArgs.empty())
     {

@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
 {
     printf("%s\n", BIN_STRING);
 
-    CmdLineOpts::ParseResult cmdargs = CmdLineOpts::Parse(argc, argv, {"--ibpp", "-w"});
+    CmdLineOpts::ParseResult cmdargs = CmdLineOpts::Parse(CmdLineOpts::InitProgramArgs(argc, argv), {"--ibpp", "-w"});
     if (cmdargs.HelpRequested)
     {
         printf("%s\n", HELP_STRING);

@@ -134,8 +134,11 @@ HError AGFReader::Open(const char *filename)
     Close();
 
     _doc.reset(new Document());
-    if (_doc->LoadFile(filename) != XML_SUCCESS)
-        return new Error("Failed to open XML: %s", _doc->ErrorIDToName(_doc->ErrorID()));
+    const XMLError load_result = LoadXmlFile(*_doc, filename);
+    if (load_result != XML_SUCCESS)
+    {
+        return new Error("Failed to open XML: %s", Document::ErrorIDToName(load_result));
+    }
     if (!_doc->RootElement() || strcmp(_doc->RootElement()->Name(), XML_ROOT_NODE_NAME))
         return new Error("Not a valid AGS game project");
 
@@ -191,8 +194,10 @@ DocElem AGFReader::GetDialogData(DocElem dialog_ref)
     {
         auto doc = std::make_unique<Document>();
         const String filename = Path::ConcatPaths(_projectDir, String::FromFormat("Dialogs/%s.xml", base.GetCStr()));
-        if (doc->LoadFile(filename.GetCStr()) != XML_SUCCESS)
+        if (LoadXmlFile(*doc, filename) != XML_SUCCESS)
+        {
             doc.reset();
+        }
         it = _dialogDocs.emplace(base, std::move(doc)).first;
     }
     return it->second ? it->second->FirstChildElement("Dialog") : nullptr;

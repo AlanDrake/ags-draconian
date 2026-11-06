@@ -207,3 +207,22 @@ TEST(CmdLineOpts, ParserOptWithValuesMissingLast)
     ASSERT_STREQ(parseResult.OptWithMissingValue.GetCStr(), "-c");
     ASSERT_EQ(parseResult.PosArgs.size(), 0);
 }
+
+#if AGS_PLATFORM_OS_WINDOWS
+// Where the tools take their arguments from on Windows (InitProgramArgs): the wide command line,
+// split by the rules of the C runtime, into UTF-8
+TEST(CmdLineOpts, SplitsWindowsCommandLineIntoUtf8)
+{
+    const std::vector<String> args =
+        SplitWindowsCommandLine(L"C:\\tools\\po2tra.exe \"E:\\proj\u00E9 \u0436\u0434\\Parity.po\" out\\ --gamename "
+                                L"\"Parit\u00E9 \\\"\u00F8\\\" \U0001F600\" \"\" \"a\\\\\"");
+    ASSERT_EQ(args.size(), 7u);
+    EXPECT_STREQ(args[0].GetCStr(), "C:\\tools\\po2tra.exe");
+    EXPECT_STREQ(args[1].GetCStr(), "E:\\proj\xC3\xA9 \xD0\xB6\xD0\xB4\\Parity.po");
+    EXPECT_STREQ(args[2].GetCStr(), "out\\");
+    EXPECT_STREQ(args[3].GetCStr(), "--gamename");
+    EXPECT_STREQ(args[4].GetCStr(), "Parit\xC3\xA9 \"\xC3\xB8\" \xF0\x9F\x98\x80");
+    EXPECT_STREQ(args[5].GetCStr(), "");
+    EXPECT_STREQ(args[6].GetCStr(), "a\\");
+}
+#endif

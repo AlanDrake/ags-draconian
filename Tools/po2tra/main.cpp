@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
     printf("po2tra v0.9.7 - AGS translation compiler (PO -> TRA) and decompiler (TRA -> PO)\n"
            "Copyright (c) 2021-2026 AGS Team and contributors\n");
 
-    ParseResult cmdargs = Parse(argc, argv, {"--gamename", "--uniqueid"});
+    ParseResult cmdargs = Parse(InitProgramArgs(argc, argv), {"--gamename", "--uniqueid"});
     if (cmdargs.HelpRequested)
     {
         printf("%s\n", HELP_STRING);

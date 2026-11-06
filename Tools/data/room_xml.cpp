@@ -422,8 +422,13 @@ HError ReadRoomXml(const tinyxml2::XMLDocument &doc, RoomXml &room)
 HError ReadRoomXmlFile(const String &filename, RoomXml &room)
 {
     tinyxml2::XMLDocument doc;
-    if (doc.LoadFile(filename.GetCStr()) != tinyxml2::XML_SUCCESS)
-        return new Error(String::FromFormat("Failed to read %s: %s", filename.GetCStr(), doc.ErrorStr()));
+    const tinyxml2::XMLError load_result = LoadXmlFile(doc, filename);
+    if (load_result != tinyxml2::XML_SUCCESS)
+    {
+        return new Error(
+            String::FromFormat("Failed to read %s: %s", filename.GetCStr(),
+                               doc.Error() ? doc.ErrorStr() : tinyxml2::XMLDocument::ErrorIDToName(load_result)));
+    }
     HError err = ReadRoomXml(doc, room);
     if (!err)
         return new Error(err, String::FromFormat("Failed to read %s", filename.GetCStr()));
