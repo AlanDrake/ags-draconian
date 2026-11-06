@@ -685,7 +685,7 @@ jobs:
   windows-msvc-editor:
     name: Windows MSVC Editor
     runs-on: windows-2022
-    needs: windows-deps
+    needs: [windows-deps, windows-msvc-tools]
     timeout-minutes: 40
     env:
       AGS_LIBOGG_LIB:        C:\Lib\Xiph\x86
@@ -775,6 +775,24 @@ jobs:
         run: |
           cd Solutions\.build
           del /s /q *.pdb *.xml
+
+      # The editor builds games with agsbuild and the tools it runs, which ship next to it with the
+      # script API header (docs/refactor/PLAN.md, 6.7d-7); the header is copied by the editor's build
+      - name: Download x86 Tools binaries
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-tools-binaries-x86
+          path: tmp_win_tools
+
+      - name: Put the tools next to the editor
+        shell: pwsh
+        run: |
+          Copy-Item tmp_win_tools\x86\Release\*.exe Solutions\.build\x86\Release\
+          Remove-Item -Recurse -Force tmp_win_tools
+          foreach ($tool in 'agsbuild','agf2dta','agf2dlgasc','agfexport','agscc','agspak','crmbuild','crmpak','po2tra','spriteimport') {
+            if (-not (Test-Path "Solutions\.build\x86\Release\$tool.exe")) { throw "$tool.exe is missing" }
+          }
+          if (-not (Test-Path Solutions\.build\x86\Release\agsdefns.sh)) { throw "agsdefns.sh is missing" }
 
       - name: Upload Editor Release binaries
         uses: actions/upload-artifact@v7

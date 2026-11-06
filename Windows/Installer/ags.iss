@@ -107,6 +107,18 @@ Source: "Source\Editor\Magick.NET-Q8-x86.Native.dll"; DestDir: "{app}"; Flags: i
 Source: "Source\Editor\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\WeifenLuo.WinFormsUI.Docking.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\WeifenLuo.WinFormsUI.Docking.ThemeVS2015.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+; The tools the editor builds games with, and the script API header they read
+Source: "Source\Editor\agsdefns.sh"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\agsbuild.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\agf2dlgasc.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\agf2dta.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\agfexport.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\agscc.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\agspak.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\crmbuild.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\crmpak.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\po2tra.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\spriteimport.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 ; Documentation
 Source: "Source\Docs\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Docs\Changes.txt"; DestDir: "{app}"; Flags: ignoreversion; Components: main
