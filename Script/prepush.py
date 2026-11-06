@@ -3,6 +3,8 @@
 Runs locally what the CI would otherwise discover after a push (docs/refactor/PLAN.md, 2.8).
 
     python Script/prepush.py                  # every stage but the on-demand ones
+    python Script/prepush.py --auto           # the stages that the changed files need
+    python Script/prepush.py --auto --dry-run # which those are, and why, without running them
     python Script/prepush.py --only format,build
     python Script/prepush.py --skip msbuild   # the long one
     python Script/prepush.py --only sanitizers
@@ -26,6 +28,14 @@ Stages, in the order they run (a failed stage does not stop the later ones; the 
   msbuild  the solutions the CI builds (Compiler.Lib, Tests, Engine, Tools, Compiler.App, Editor.Full;
            x86 Release) with their test runners, into .tidy/prepush/msb so that the PDBs of the
            regular Solutions/.build are not overwritten
+
+--auto (PLAN.md 2.9) runs only the stages that the changed files need: the paths that differ between
+the base revision and the working tree (the unpushed commits, the uncommitted and the untracked files;
+--base names another revision) are matched against AUTO_RULES below. A change to the editor's C# code
+needs `msbuild` alone, one to the tools everything but `emscripten`, one to Common or Engine every
+stage; a path no rule knows needs every stage. It prints the choice with a path that caused it, and
+the changed files that no stage verifies (workflows, packaging, most scripts). Without --auto nothing
+is left out: use that after a repository-wide change, or when the rules may not fit.
 
 On demand, with --only (analysis.yml; PLAN.md 1.5b):
   sanitizers  the ASan + UBSan build of tools, engine and tests, the unit tests and the auto-test game
@@ -74,6 +84,36 @@ TEST_RUNNERS = ['Compiler.Lib.Test.exe', 'Common.Lib.Test.exe', 'Engine.App.Test
 STAGES = ['format', 'build', 'tidy', 'headers', 'libcxx', 'emscripten', 'linux', 'msbuild']
 # Run only when named in --only: long, and a report more than a gate (analysis.yml is on demand too)
 ON_DEMAND = ['sanitizers', 'coverage']
+# --auto: (pattern of a repository path, the stages a change there needs, what no stage verifies or None).
+# The first pattern found in a path decides. Added to what the rule says: `format` for a C or C++ file,
+# `tidy` for one that clang-tidy checks (tidy_diff.is_checked). The stage lists rest on what each build
+# reads: the Emscripten build reads Common, Engine, Plugins and the libraries, nothing under Compiler or
+# Tools (`ninja -t deps`); MSBuild reads no CMake file; only MSBuild builds the editor; the tests of the
+# compiler and the tools read the script API header.
+SOURCE_EXTENSIONS = tuple(g[1:] for g in SOURCE_GLOBS)
+COMPILED = ['build', 'headers', 'libcxx', 'emscripten', 'linux', 'msbuild']
+CMAKE_BUILDS = ['build', 'headers', 'libcxx', 'emscripten', 'linux']
+NOT_IN_THE_WEB_BUILD = ['build', 'headers', 'libcxx', 'linux', 'msbuild']
+AUTO_RULES = [
+    (r'^docs/|\.md$|^\.git-blame-ignore-revs$|^\.github/ISSUE_TEMPLATE/|^(License|Copyright|Changes)\.txt$', [], None),
+    (r'^\.github/', [], 'workflows: actionlint, and a probe branch for the jobs only CI runs'),
+    (r'(^|/)CMakeLists\.txt$|^CMake/', CMAKE_BUILDS, None),
+    (r'(^|/)(libsrc|libinclude)/', ['build', 'emscripten', 'linux', 'msbuild'], None),
+    (r'^Editor/AGS\.Editor/Resources/agsdefns\.sh$', NOT_IN_THE_WEB_BUILD, None),
+    (r'^(Editor|Solutions)/', ['msbuild'], None),
+    (r'^(Common|Engine|Plugins)/', COMPILED, None),
+    (r'^(Compiler|Tools)/', NOT_IN_THE_WEB_BUILD, None),
+    (r'^Emscripten/', ['emscripten'], None),
+    (r'^Script/linux_jobs\.sh$', ['linux'], None),
+    (r'^Script/(tidy_diff|refactor_metrics)\.py$', ['tidy'], None),
+    (r'^Script/header_check_libcxx\.py$', ['libcxx'], None),
+    (r'^Script/', [], 'scripts: no stage runs this one'),
+    (r'^ci/', [], 'CI support files: the on-demand stages, or a CI run'),
+    (r'^(Android|iOS|OSX|Windows|debian)/', [], 'platform packaging: a full CI run (ci.yml, macos.yml)'),
+    (r'^\.clang-format$', ['format'], None),
+    (r'^\.clang-tidy$', ['tidy'], None),
+    (r'^\.(gitignore|editorconfig)$', [], None),
+]
 # The Linux stages on Windows: the distro, the clone in its home directory, the snapshot of the working tree
 WSL_DISTRO = 'Ubuntu-24.04'
 WSL_CLONE = 'ags-draconian'
@@ -458,6 +498,56 @@ def stage_msbuild():
     return '%d solutions (Editor NUnit runner not restored: not run)' % len(built)
 
 
+def changed_paths(base):
+    """
+    The repository paths that differ between the base revision and the working tree: committed, staged,
+    unstaged and untracked files, deleted ones included; a rename gives both names.
+    """
+    paths = tidy_diff.git('diff', '--name-only', '--no-renames', base).splitlines()
+    paths += tidy_diff.git('ls-files', '--others', '--exclude-standard').splitlines()
+    return sorted(set(p for p in paths if p))
+
+
+def auto_plan(paths):
+    """({stage: [the paths that need it]}, [(path, what no stage verifies)]) by AUTO_RULES."""
+    needed = {stage: [] for stage in STAGES}
+    uncovered = []
+    for path in paths:
+        stages, note = list(STAGES), None  # a path no rule knows: every stage
+        for pattern, rule_stages, rule_note in AUTO_RULES:
+            if re.search(pattern, path):
+                stages, note = list(rule_stages), rule_note
+                break
+        # A deleted file is neither formatted nor analysed, but what compiled it must still build
+        if os.path.isfile(os.path.join(REPO, path)):
+            if path.endswith(SOURCE_EXTENSIONS) and 'format' not in stages:
+                stages.append('format')
+            if tidy_diff.is_checked(path) and 'tidy' not in stages:
+                stages.append('tidy')
+        for stage in stages:
+            needed[stage].append(path)
+        if note:
+            uncovered.append((path, note))
+    return needed, uncovered
+
+
+def print_auto_plan(base, paths, needed, uncovered):
+    print('prepush --auto: %d path(s) differ from %s (the unpushed commits and the working tree)' % (len(paths), base[:12]))
+    for stage in STAGES:
+        because = needed[stage]
+        if because:
+            more = ' and %d more' % (len(because) - 1) if len(because) > 1 else ''
+            print('  %-10s run   %s%s' % (stage, because[0], more))
+        else:
+            print('  %-10s skip' % stage)
+    notes = {}
+    for path, note in uncovered:
+        notes.setdefault(note, []).append(path)
+    for note, group in notes.items():
+        more = ' and %d more' % (len(group) - 3) if len(group) > 3 else ''
+        print('  no stage verifies %s%s (%s)' % (', '.join(group[:3]), more, note))
+
+
 RUNNERS = {'format': stage_format, 'build': stage_build, 'tidy': stage_tidy, 'headers': stage_headers,
            'libcxx': stage_libcxx, 'emscripten': stage_emscripten, 'linux': stage_linux, 'msbuild': stage_msbuild,
            'sanitizers': stage_sanitizers, 'coverage': stage_coverage}
@@ -469,6 +559,10 @@ def main():
     ap.add_argument('--only', help='comma-separated stages to run')
     ap.add_argument('--skip', help='comma-separated stages to leave out')
     ap.add_argument('--list', action='store_true', help='list the stages')
+    ap.add_argument('--auto', action='store_true', help='run the stages that the changed files need (AUTO_RULES)')
+    ap.add_argument('--base', help='with --auto: the revision to compare the working tree with\n'
+                                   '(default: the merge base with the upstream branch)')
+    ap.add_argument('--dry-run', action='store_true', help='print the stages that would run, and stop')
     ap.add_argument('--clang-format', help='path of clang-format %s' % CLANG_FORMAT_VERSION)
     ap.add_argument('--clang-tidy', help='path of clang-tidy %s' % tidy_diff.CLANG_TIDY_VERSION)
     ap.add_argument('--emsdk', help='emsdk directory (default: $EMSDK)')
@@ -479,12 +573,29 @@ def main():
     if args.list:
         print('\n'.join(STAGES + ['%s (on demand: --only)' % s for s in ON_DEMAND]))
         return 0
-    chosen = args.only.split(',') if args.only else list(STAGES)
+    if args.auto and args.only:
+        sys.exit('--auto chooses the stages itself: leave out --only (--skip still applies)')
+    if args.base and not args.auto:
+        sys.exit('--base goes with --auto')
+    if args.auto:
+        base = args.base or tidy_diff.default_base()
+        paths = changed_paths(base)
+        needed, uncovered = auto_plan(paths)
+        print_auto_plan(base, paths, needed, uncovered)
+        chosen = [s for s in STAGES if needed[s]]
+    else:
+        chosen = args.only.split(',') if args.only else list(STAGES)
     chosen = [s for s in chosen if s not in (args.skip.split(',') if args.skip else [])]
     for s in chosen:
         if s not in RUNNERS:
             sys.exit('unknown stage %s (stages: %s)' % (s, ', '.join(STAGES + ON_DEMAND)))
     chosen.sort(key=(STAGES + ON_DEMAND).index)
+    if args.dry_run:
+        print('would run: ' + (', '.join(chosen) or 'no stage'))
+        return 0
+    if not chosen:
+        print('prepush: no stage to run')
+        return 0
     if args.clean_logs:
         shutil.rmtree(WORK, ignore_errors=True)
     for s in chosen:
