@@ -288,6 +288,13 @@ HError TaskWriteStringList::RunImpl()
 // TaskPipedProcess
 //-----------------------------------------------------------------------------
 
+PipedProcessParams::PipedProcessParams(const String &exe_path, const ProcessArgs &args, bool out_to_std)
+    : ExePath(exe_path),
+      Params(args.GetParams()),
+      OutputToStdOut(out_to_std)
+{
+}
+
 TaskPipedProcess::TaskPipedProcess(const String &name, ITaskManager *mgr, const PipedProcessParams &params)
     : Task(name, mgr),
       _params(params.Clone())
@@ -323,10 +330,9 @@ void TaskPipedProcess::OnAbort()
 
 HError TaskPipedProcess::RunImpl()
 {
-    _logWriter->WriteFormat("Running: %s %s\n", _params.ExePath.GetCStr(), _params.Params.GetCStr());
-
     std::vector<uint8_t> data;
     PipedProcess pp(_params.ExePath, _params.Params, _logWriter.get());
+    _logWriter->WriteFormat("Running: %s\n", pp.GetCommand().GetCStr());
     {
         std::lock_guard<std::mutex> lk(_processMutex);
         _process = &pp;

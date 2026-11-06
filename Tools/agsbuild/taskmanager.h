@@ -39,6 +39,7 @@ enum class TaskState
 
 class Task;
 class PipedProcess;
+class ProcessArgs;
 
 class ITaskManager
 {
@@ -211,8 +212,8 @@ private:
 
 struct PipedProcessParams
 {
-    String ExePath;
-    String Params;
+    String ExePath; // the program's path or name, as it is
+    String Params;  // the text of the command line after the program
     bool OutputToStdOut = false;
 
     PipedProcessParams() = default;
@@ -222,6 +223,8 @@ struct PipedProcessParams
           OutputToStdOut(out_to_std)
     {
     }
+    // The command line made of separate arguments, each quoted as it needs
+    PipedProcessParams(const String &exe_path, const ProcessArgs &args, bool out_to_std = false);
 
     // Does deep-copy of PipedProcessParams, used because String's reference count is not thread-safe
     PipedProcessParams Clone() const { return PipedProcessParams(ExePath.Clone(), Params.Clone(), OutputToStdOut); }

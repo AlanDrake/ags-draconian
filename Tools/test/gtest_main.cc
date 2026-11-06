@@ -11,13 +11,36 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <cstring>
 #include <stdio.h>
 
 #include "gtest/gtest.h"
 #include "test/spriteimport_env.h"
+#include "util/cmdlineopts.h"
+
+// The child process of the PipedProcess tests (pipedprocess_test.cpp): prints the arguments after
+// "--print-args" as the tools get them (CmdLineOpts::InitProgramArgs), one per line, in hex
+static int PrintArgs(int argc, char **argv)
+{
+    const auto args = AGS::Common::CmdLineOpts::InitProgramArgs(argc, argv);
+    for (size_t i = 1; i < args.size(); ++i)
+    {
+        printf("arg:");
+        for (const char *ch = args[i].GetCStr(); *ch; ++ch)
+        {
+            printf("%02x", static_cast<unsigned char>(*ch));
+        }
+        printf("\n");
+    }
+    return 0;
+}
 
 GTEST_API_ int main(int argc, char **argv)
 {
+    if (argc > 1 && strcmp(argv[1], "--print-args") == 0)
+    {
+        return PrintArgs(argc, argv);
+    }
     printf("Running main() from %s\n", __FILE__);
     testing::InitGoogleTest(&argc, argv);
     testing::AddGlobalTestEnvironment(new SpriteImportEnv());

@@ -14,7 +14,9 @@
 #include "pipedprocess.h"
 
 #include <algorithm>
+#include <cstring>
 #include <mutex>
+#include <string>
 #if (AGS_PLATFORM_OS_WINDOWS)
 #else
 #include <errno.h>
@@ -31,12 +33,104 @@ using namespace AGS::Common;
 namespace AGSBuild
 {
 
+String QuoteWindowsArg(const String &arg)
+{
+    const char *const text = arg.GetCStr();
+    if (!arg.IsEmpty() && strpbrk(text, " \t\n\v\"") == nullptr)
+    {
+        return arg;
+    }
+
+    std::string quoted = "\"";
+    for (const char *ch = text;; ++ch)
+    {
+        size_t backslashes = 0;
+        for (; *ch == '\\'; ++ch)
+        {
+            ++backslashes;
+        }
+        if (*ch == 0)
+        {
+            // Before the closing quote every backslash is doubled, or the last one would escape it
+            quoted.append(backslashes * 2, '\\');
+            break;
+        }
+        // Doubled before a quote too, and one more to escape the quote; literal anywhere else
+        quoted.append(*ch == '"' ? backslashes * 2 + 1 : backslashes, '\\');
+        quoted += *ch;
+    }
+    quoted += '"';
+    return quoted.c_str();
+}
+
+String QuotePosixShellArg(const String &arg)
+{
+    const char *const text = arg.GetCStr();
+    const char *const plain_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-+=.,:/@%";
+    if (!arg.IsEmpty() && text[strspn(text, plain_chars)] == 0)
+    {
+        return arg;
+    }
+
+    std::string quoted = "'";
+    for (const char *ch = text; *ch; ++ch)
+    {
+        if (*ch == '\'')
+        {
+            quoted += "'\\''"; // there is no escape inside single quotes: close them, escape, reopen
+        }
+        else
+        {
+            quoted += *ch;
+        }
+    }
+    quoted += '\'';
+    return quoted.c_str();
+}
+
+String QuoteProcessArg(const String &arg)
+{
+#if (AGS_PLATFORM_OS_WINDOWS)
+    return QuoteWindowsArg(arg);
+#else
+    return QuotePosixShellArg(arg); // the command is run by /bin/sh
+#endif
+}
+
+ProcessArgs::ProcessArgs(std::initializer_list<String> args)
+{
+    for (const auto &arg : args)
+    {
+        Add(arg);
+    }
+}
+
+ProcessArgs &ProcessArgs::Add(const String &arg)
+{
+    if (!_params.IsEmpty())
+    {
+        _params.AppendChar(' ');
+    }
+    _params.Append(QuoteProcessArg(arg));
+    return *this;
+}
+
+ProcessArgs &ProcessArgs::Add(const ProcessArgs &args)
+{
+    if (!_params.IsEmpty() && !args._params.IsEmpty())
+    {
+        _params.AppendChar(' ');
+    }
+    _params.Append(args._params);
+    return *this;
+}
+
 PipedProcess::PipedProcess(const String &exe_path, const String &params, TextStreamWriter *log_writer)
     : _exePath(exe_path),
       _params(params),
       _logWriter(log_writer)
 {
-    _command = String::FromFormat("%s %s", exe_path.GetCStr(), params.GetCStr());
+    _command = String::FromFormat("%s %s", QuoteProcessArg(exe_path).GetCStr(), params.GetCStr());
 #if (AGS_PLATFORM_OS_WINDOWS)
     memset(&_pi, 0, sizeof(_pi));
 #endif

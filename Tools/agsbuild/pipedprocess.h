@@ -18,7 +18,10 @@
 #include <unistd.h>
 #endif
 #include <atomic>
+#include <cstdint>
+#include <initializer_list>
 #include <mutex>
+#include <vector>
 
 #include "util/error.h"
 #include "util/string.h"
@@ -30,10 +33,44 @@ namespace AGSBuild
 using String = AGS::Common::String;
 using HError = AGS::Common::HError;
 
+// Writes an argument the way a command line needs it, so that the program receives it as it is
+// given here, whatever characters it has: in quotes and escaped where necessary.
+// For Windows, by the rules that the C runtime and CommandLineToArgvW share: a quote is escaped
+// with a backslash, and backslashes are doubled only where a quote follows them.
+String QuoteWindowsArg(const String &arg);
+// For a POSIX shell: in single quotes, where only the single quote itself needs care.
+String QuotePosixShellArg(const String &arg);
+// For the command line that PipedProcess runs on this platform.
+String QuoteProcessArg(const String &arg);
+
+// The arguments of a command line for PipedProcess. Each one reaches the program as it is given
+// here: a path with spaces or a text with quotes is still one argument.
+class ProcessArgs
+{
+public:
+    ProcessArgs() = default;
+    ProcessArgs(std::initializer_list<String> args);
+
+    // Adds one argument
+    ProcessArgs &Add(const String &arg);
+    // Adds all arguments of another list
+    ProcessArgs &Add(const ProcessArgs &args);
+    // The text of the command line after the program
+    const String &GetParams() const { return _params; }
+
+private:
+    String _params;
+};
+
 class PipedProcess
 {
 public:
+    // exe_path is the program's path or name as it is, params is the text of the command line
+    // after the program (see ProcessArgs)
     PipedProcess(const String &exe_path, const String &params, AGS::Common::TextStreamWriter *log_writer = nullptr);
+
+    // The command line that is run
+    const String &GetCommand() const { return _command; }
 
     HError RunSync(std::vector<uint8_t> *stdout_data = nullptr);
 

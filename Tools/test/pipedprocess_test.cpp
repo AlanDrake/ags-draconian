@@ -16,17 +16,41 @@
 #include <cstdlib>
 #include <future>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "agsbuild/pipedprocess.h"
 #include "gtest/gtest.h"
+#include "util/cmdlineopts.h"
+#include "util/file.h"
 #include "util/memorystream.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 using namespace AGSBuild;
 
 namespace
 {
+
+// Arguments which a command line must quote or escape: spaces, quotes, backslashes before a quote
+// and at the end, the characters of a POSIX shell, and text outside ASCII (UTF-8)
+const std::vector<String> &TrickyArgs()
+{
+    static const std::vector<String> args = {
+        "plain",
+        "",
+        "with space",
+        "Parit\xC3\xA9 \xD0\xB6\xD0\xB4 \"\xC3\xB8\"",
+        "E:\\proj\xC3\xA9 \xD0\xB6\xD0\xB4\\",
+        "E:\\dir\\",
+        "back\\\\\"slash \\\\",
+        "tab\there",
+        "it's $HOME `id` *.ogg; a|b & c",
+        "emoji \xF0\x9F\x98\x80",
+        "%PATH% ^",
+    };
+    return args;
+}
 
 // A command that prints `lines` lines of 40+ characters each, so the output is much larger
 // than the pipe buffer (1 KB)
@@ -76,5 +100,89 @@ TEST(PipedProcess, ParallelLargeOutputCompletes)
             std::abort();
         }
         EXPECT_GE(run.get(), static_cast<size_t>(line_count) * 40u) << "process output was cut short";
+    }
+}
+
+// Quoted only where needed; backslashes are doubled only before a quote, the closing one included
+TEST(PipedProcess, QuotesWindowsArg)
+{
+    EXPECT_STREQ(QuoteWindowsArg("plain-1.0/x.y").GetCStr(), "plain-1.0/x.y");
+    EXPECT_STREQ(QuoteWindowsArg("E:\\dir\\").GetCStr(), "E:\\dir\\");
+    EXPECT_STREQ(QuoteWindowsArg("").GetCStr(), "\"\"");
+    EXPECT_STREQ(QuoteWindowsArg("my dir\\").GetCStr(), "\"my dir\\\\\"");
+    EXPECT_STREQ(QuoteWindowsArg("say \"hi\"").GetCStr(), "\"say \\\"hi\\\"\"");
+    EXPECT_STREQ(QuoteWindowsArg("a\\\\\"b").GetCStr(), "\"a\\\\\\\\\\\"b\"");
+    EXPECT_STREQ(QuoteWindowsArg("a\\\\b c").GetCStr(), "\"a\\\\b c\"");
+}
+
+// In single quotes where needed, a single quote closes them, is escaped and opens them again
+TEST(PipedProcess, QuotesPosixShellArg)
+{
+    EXPECT_STREQ(QuotePosixShellArg("plain-1.0/x.y").GetCStr(), "plain-1.0/x.y");
+    EXPECT_STREQ(QuotePosixShellArg("").GetCStr(), "''");
+    EXPECT_STREQ(QuotePosixShellArg("$HOME `id` \"x\" \\").GetCStr(), "'$HOME `id` \"x\" \\'");
+    EXPECT_STREQ(QuotePosixShellArg("it's").GetCStr(), "'it'\\''s'");
+}
+
+#if AGS_PLATFORM_OS_WINDOWS
+// The command line agsbuild makes, read back as the tools read it (CmdLineOpts::InitProgramArgs)
+TEST(PipedProcess, WindowsArgsReadBackAsGiven)
+{
+    ProcessArgs args;
+    for (const auto &arg : TrickyArgs())
+    {
+        args.Add(arg);
+    }
+    std::vector<wchar_t> command_line;
+    StrUtil::ConvertUtf8ToWstr(String::FromFormat("tool.exe %s", args.GetParams().GetCStr()).GetCStr(), command_line);
+
+    const std::vector<String> read_args = CmdLineOpts::SplitWindowsCommandLine(command_line.data());
+    ASSERT_EQ(read_args.size(), TrickyArgs().size() + 1);
+    for (size_t i = 0; i < TrickyArgs().size(); ++i)
+    {
+        EXPECT_STREQ(read_args[i + 1].GetCStr(), TrickyArgs()[i].GetCStr());
+    }
+}
+#endif
+
+// A child process gets the arguments as they were given, by the way the tools read them: this
+// test program, with "--print-args" (gtest_main.cc), started as agsbuild starts the tools
+TEST(PipedProcess, ChildGetsArgsAsGiven)
+{
+    const String exe = File::GetThisExePath();
+    ASSERT_FALSE(exe.IsEmpty());
+    ProcessArgs args{"--print-args"};
+    for (const auto &arg : TrickyArgs())
+    {
+        args.Add(arg);
+    }
+    std::vector<uint8_t> log_buf;
+    TextStreamWriter log(std::make_unique<Stream>(std::make_unique<VectorStream>(log_buf, kStream_Write)));
+    std::vector<uint8_t> out;
+    PipedProcess proc(exe, args.GetParams(), &log);
+    ASSERT_TRUE(proc.RunSync(&out));
+    EXPECT_EQ(proc.GetExitCode(), 0);
+
+    // Lines of "arg:<hex>"
+    std::vector<String> read_args;
+    const String text(reinterpret_cast<const char *>(out.data()), out.size());
+    for (String line : text.Split('\n'))
+    {
+        line.TrimRight('\r');
+        if (!line.StartsWith("arg:"))
+        {
+            continue;
+        }
+        std::string arg;
+        for (size_t i = 4; i + 1 < line.GetLength(); i += 2)
+        {
+            arg += static_cast<char>(strtol(line.Mid(i, 2).GetCStr(), nullptr, 16));
+        }
+        read_args.emplace_back(arg.c_str());
+    }
+    ASSERT_EQ(read_args.size(), TrickyArgs().size()) << text.GetCStr();
+    for (size_t i = 0; i < TrickyArgs().size(); ++i)
+    {
+        EXPECT_STREQ(read_args[i].GetCStr(), TrickyArgs()[i].GetCStr());
     }
 }
