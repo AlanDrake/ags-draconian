@@ -291,11 +291,11 @@ Build parity with the editor: `compare_builds.py` on the game reports 114 of 114
 
 *Definition: in PLAN.md; split into 1.5a to 1.5c on 2026-11-05.*
 
-*Status (2026-11-05):* 1.5a and 1.5c done, confirmed by a CI probe run (42050934970 Verify, 42050935242
+*Status (2026-11-06):* done. 1.5a and 1.5c done (2026-11-05), confirmed by a CI probe run (42050934970 Verify, 42050935242
 Analysis); 1.5b: the job works and reported 47 findings; 1.5b-1 done, the job runs locally; 1.5b-2 done, the
 memory errors are fixed; 1.5b-3 done, the first-party UBSan rows are fixed; 1.5b-4 done, the compiler leaks are fixed;
-1.5b-5 done (2026-11-06), the engine leaks are fixed or suppressed, `sanitizers` is green locally; open: one green
-on-demand CI run, then the tick.
+1.5b-5 done (2026-11-06), the engine leaks are fixed or suppressed, `sanitizers` is green locally and
+in the on-demand CI run 42174071706.
 
 **1.5a Warnings**
 - Before, distinct first-party sites: GCC 15.2 `Common` 122, `Engine` 164, `Compiler` 71, `Tools` 69,
@@ -552,8 +552,12 @@ on-demand CI run, then the tick.
     closes the device (1.5b-5)`, `Compiler: agscc deletes the script it compiled (1.5b-5)`, `Script: the sanitizer
     summary reports leaks that only point to each other (1.5b-5)`, `CI: suppressions for the third-party sanitizer
     reports (1.5b-5)`.
-- **Open:** 1.5b: one green on-demand CI run of `analysis.yml` with the suppression files (push, then `gh workflow
-  run analysis.yml -R AlanDrake/ags-draconian --ref <branch> -f coverage=false`), then tick 1.5b in PLAN.md.
+- **1.5b confirmed on CI (2026-11-06):** pushed after a full `prepush.py` run (8 stages, 1041 tests); `gh workflow
+  run analysis.yml -R AlanDrake/ags-draconian --ref ags4draconianr21 -f coverage=false`, run 42174071706, 21 minutes:
+  "No sanitizer findings (5 log files)", the auto-test game 2414 passed, 0 failed. The suppression files as
+  written for the local distro were enough on the runner: no new third-party row. Verify and CI of the same
+  push are green. Seen, not looked into: the game reports 2414 tests on CI and 2345 in the local distro, from
+  the same tag of the test project, 0 failed in both.
 
 ### 1.6 Mechanical-change verifier
 

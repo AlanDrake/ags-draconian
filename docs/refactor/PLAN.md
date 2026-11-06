@@ -80,8 +80,8 @@ and re-cut by U.3 as #3186–#3190), the agent docs (0.6, upstream PR #3185), 1.
 tests, 2026-11-04), U.5 (the save fix found by 1.2, upstream PR #3191), the 6.0 study (2026-11-04,
 EDITOR-SPLIT.md: 6.0 re-scoped, 6.7c decided, U.6 defined), 1.3 (engine unit tests, 2026-11-05,
 on its branch), 3.2a/b (Makefiles, `make.yml` and `dh --buildsystem makefile` replaced by CMake;
-2026-11-05, green in a full CI run), 2.4 (clang-tidy gate, 2026-11-05), 1.5a and 1.5c (warnings, coverage; 2026-11-05). Phase 1: 1.5b
-is the only open task. Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
+2026-11-05, green in a full CI run), 2.4 (clang-tidy gate, 2026-11-05), 1.5 (warnings, sanitizers, coverage; 2026-11-06). Phase 1
+has no open task (1.3 waits for its merge). Ground rule 3 applies from here: no deletion (3.4) or restructuring (phase 5) before the safety net that
 guards it (1.2, 1.3). Reordered 2026-11-03 after reading upstream's plans (ALIGNMENT.md): upstream
 review takes weeks, so the offers (U.3) go out first and the fork-only divergence (3.2, 3.4, 5.3)
 comes after they are closed.
@@ -94,7 +94,7 @@ comes after they are closed.
 | 4 | **1.5b-2 Memory errors, done 2026-11-05** (LOG.md 1.5): the three ASan rows are gone from `prepush.py --only sanitizers` (49 rows to 46), each fix with a test and in its own commit: `String(ptr, length)` never reads past `length` (fixes `Utf8ToCp1252` and four more callers), `RuntimeScript::CheckFixupInCode` in `CreateGlobalVars`, name offsets instead of stale pointers in `JointRTTI::Join` (local, no RTTI structure changed). **U.8 open:** offer the `CreateGlobalVars` and `Join` fixes upstream (the same code there); the `String` change alters a Common contract, so it is a separate offer if at all | Real defects | Sonnet 5.5, `medium` for U.8 |
 | 5 | **1.5b-3 UBSan, done 2026-11-05** (LOG.md 1.5; unpushed): the two first-party rows are gone (11 rows to 8); `Memory::Read/WriteInt16/32/64` use a fixed-size `memcpy` (identical code with MSVC `/O2` and GCC `-O1..-O3`), zero-byte `Write`/`Read` of the memory streams return early; 2 new tests | Small | Sonnet 5.5, `medium` |
 | 6 | **1.5b-4 Script compiler leaks, done 2026-11-05** (LOG.md 1.5; unpushed): the 35 rows are gone from `prepush.py --only sanitizers` (46 rows to 11: the 7 engine leaks and 4 UBSan rows); `SymbolTableEntry::operator=` deletes what the entry owned, the symbol table owns its compile time functions (`unique_ptr`), the scanner reuses `MakeEntryLiteral`; 4 new tests, 1038 tests, byte parity of the auto-test game build. Upstream has the same code (`script2/`); an offer waits for the user's confirmation (2026-11-06) | One cause; the compiler tests are the net | Sonnet 5.5, `high` |
-| 7 | **1.5b-5 Engine leaks at exit, done 2026-11-06** (LOG.md 1.5; unpushed): `prepush.py --only sanitizers` is green ("No sanitizer findings"). Fixed: restored script structs use `globalDynamicStruct` (not a new manager each), the `ScriptVM` tests reset the pool, the audio core deletes its AL buffers so `alcCloseDevice` can close the device, `agscc` deletes its compiled script (a leak the summary could not show: LSan reports blocks that only point to each other as indirect; `sanitizer_summary.py` reports them now). Suppressed, third party, in `ci/sanitizers/` with stacks and reasons: Mesa's EGL display and draw-call blocks, libasound's configuration, mojoAL's null `SDL_memcpy` (UBSan `nonnull-attribute:SDL_stdlib.c`). **Left for the user:** push, `gh workflow run analysis.yml` (the workflow change is untested), one green run, tick 1.5b. Decided (user, 2026-11-06): `sanitizers` stays on demand, in `prepush.py` and on CI (slow, and rarely something to act on) | The job is a gate once green | user |
+| 7 | **1.5b-5 Engine leaks at exit, done 2026-11-06** (LOG.md 1.5; unpushed): `prepush.py --only sanitizers` is green ("No sanitizer findings"). Fixed: restored script structs use `globalDynamicStruct` (not a new manager each), the `ScriptVM` tests reset the pool, the audio core deletes its AL buffers so `alcCloseDevice` can close the device, `agscc` deletes its compiled script (a leak the summary could not show: LSan reports blocks that only point to each other as indirect; `sanitizer_summary.py` reports them now). Suppressed, third party, in `ci/sanitizers/` with stacks and reasons: Mesa's EGL display and draw-call blocks, libasound's configuration, mojoAL's null `SDL_memcpy` (UBSan `nonnull-attribute:SDL_stdlib.c`). Pushed 2026-11-06 and confirmed by the on-demand CI run 42174071706 ("No sanitizer findings"); 1.5b ticked. Decided (user, 2026-11-06): `sanitizers` stays on demand, in `prepush.py` and on CI (slow, and rarely something to act on) | The job is a gate once green | user |
 
 Open items found while doing finished tasks (details in LOG.md): 0.4's CodeQL setting, the
 `D3DCOMPILER_47`/Windows 7 question and the macOS 10.9 deployment target; 1.4's unfixed `agfreader`
@@ -167,7 +167,7 @@ Today: 35 C++ test files, **only 3 for the engine** (~430 source files); 22 C# t
 - [x] **1.4 Game corpus regression:** `ci/corpus/run.py` builds a private game and runs every room
   (2026-11-02). Game paths come from arguments or a git-ignored file under `.compare/`, never the
   repo; the script works on a copy.
-- [ ] **1.5 Coverage, sanitizers and warnings.** A Linux CI job with `-fsanitize=address,undefined`
+- [x] **1.5 Coverage, sanitizers and warnings** (2026-11-06)**.** A Linux CI job with `-fsanitize=address,undefined`
   running the unit tests and the auto-test game; an `llvm-cov` job publishing per-directory numbers;
   first-party warnings at `/W4` and `-Wall -Wextra`, as errors **per directory** as each gets clean.
   *Done when:* the sanitizer job is green, coverage is published, `Common/` builds with warnings as
@@ -175,15 +175,15 @@ Today: 35 C++ test files, **only 3 for the engine** (~430 source files); 22 C# t
   - [x] **1.5a Warnings** (2026-11-05): `Common/` is warning-free on MSVC `/W4`, Clang and GCC and marked
     `ags_warning_free(common)`; `-DAGS_WARNINGS_AS_ERRORS=ON` in `verify.yml` and `prepush.py`. Open: 87
     narrowing conversions (MSVC, switched off), the other directories.
-  - [ ] **1.5b Sanitizers:** `analysis.yml` (on demand) works and reports 47 findings: 3 memory errors, 2
+  - [x] **1.5b Sanitizers** (2026-11-06, green on CI, on demand by the user's decision)**:** `analysis.yml` worked and reported 47 findings: 3 memory errors, 2
     UBSan places, 42 leak sites. 1.5b-1 done (2026-11-05): the job runs locally in a WSL 2 distro,
     `prepush.py --only sanitizers` (also `linux` in every run, `coverage` on demand). 1.5b-2 done
     (2026-11-05): the 3 memory errors are fixed, 46 rows remain; U.8
     (offer the fixes upstream) is open. 1.5b-4 done (2026-11-05): the 35 compiler leaks are fixed, 11
     rows remain. 1.5b-3 done (2026-11-05): the misaligned `memory.h` accesses and the zero-byte stream
     writes are fixed, 8 rows remain. 1.5b-5 done (2026-11-06): the engine leaks are fixed, the third-party
-    reports are in `ci/sanitizers/*.supp`, `sanitizers` is green locally. Left: one green on-demand CI run
-    (push, `gh workflow run analysis.yml`), then tick 1.5b.
+    reports are in `ci/sanitizers/*.supp`, `sanitizers` is green locally and in the
+    on-demand CI run 42174071706 (2026-11-06).
   - [x] **1.5c Coverage** (2026-11-05, on demand): total 53.7%, `Common` 61.6%, `Engine` 47.8%, `Compiler`
     89.9%, `Tools` 68.2%.
 - [x] **1.6 Mechanical-change verifier** `Script/compare_objects.py` (2026-11-01; STYLE.md "Commits").
