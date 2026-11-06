@@ -80,7 +80,12 @@ Entry points, in reading order:
 
 ## Verify before you report done
 
-`python Script/prepush.py` before a push (`--list`, `--only`, `--skip`, `--emsdk <dir>`): `format`, `build`
+`python Script/prepush.py --auto` before a push runs the stages that the changed files need, by the
+`AUTO_RULES` table in the script (the editor's C# code: `msbuild` alone; the tools and the compiler: all
+but `emscripten`; Common, Engine, Plugins: every stage; an unknown path: every stage), and lists the
+changed files that no stage verifies (workflows, packaging, most scripts). `--dry-run` shows the choice.
+Without `--auto` every stage runs, which a repository-wide change needs (`--list`, `--only`, `--skip`,
+`--base`, `--emsdk <dir>`): `format`, `build`
 (+ `ctest`), `tidy` (clang-tidy on changed lines), `headers`, `libcxx`, `emscripten` (engine as GLES2, then
 a syntax check of the Linux-only code), `linux` (the CI's GCC job: build, header check, `ctest`), `msbuild`.
 On demand with `--only`: `sanitizers` (ASan, UBSan and leaks on the unit tests and the auto-test game),
@@ -90,8 +95,10 @@ discover. Also: the auto-test game; `compare_objects.py` for mechanical commits;
 tool or `agfreader` changes; the generated code or a benchmark for a change on a hot path (STYLE.md
 "Performance").
 
-Workflows: `verify.yml` (every push: format, GCC build + tests + tidy gate, header checks), `ci.yml`
-(`ags4draconian*`, PRs: light set; tags, weekly, `gh workflow run ci.yml -f full=true`: every platform),
+Workflows: `verify.yml` (every push: format, GCC build + tests + auto-test game + tidy gate, header
+checks), `ci.yml` (`ags4draconian*`, PRs: light set, which is the Windows CMake build with Ninja and the
+auto-test game plus the MSBuild jobs as x86 Release; tags, weekly, `gh workflow run ci.yml -f full=true`:
+every platform, Debug and x64). The CMake jobs keep a ccache between runs (PLAN.md 2.9).
 `macos.yml` (tags, weekly, on demand; macOS runners are often unavailable), `analysis.yml` (on demand:
 ASan + UBSan 27 min, coverage per directory 14 min).
 

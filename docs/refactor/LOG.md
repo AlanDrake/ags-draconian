@@ -876,6 +876,101 @@ with 340 header stubs compiled by clang + libc++ 21 on Ubuntu and the heavy jobs
   both fail. Not covered: macOS, iOS, Android, FreeBSD code; linking for Linux (the 7.1o and 3.2
   breaks); GCC; the tools.
 
+### 2.9 CI and pre-push time
+
+*Added 2026-11-06 (not in the original plan): the user named testing and CI as the bottleneck.*
+
+*Status (2026-11-06):* 2.9a–c are written on the branch `probe-2.9` and have not run on CI.
+
+- **Where the time went, before the change.** Sources: the light CI run 42281919227 and the Verify run
+  42281919108 of 2026-11-06, the logs of that day in `.tidy/prepush`, the stage times above (2.8).
+  - The tests are not it: `ctest` runs 1106 tests in 8 s, the auto-test game takes about a minute per
+    renderer on a runner.
+  - A push costs Verify 8 min and light CI 18 min of waiting, about 70 runner-minutes. The longest
+    chain: Auto-test game 81 s, then Windows 907 s (configure 176, build 466, header check 65, tests 31,
+    auto-test 132), then Parity 100 s. Ubuntu-x86_64 659 s (packages 79, configure 83, build 376);
+    Verify's GCC job 472 s (build 244); MSBuild Tests 456 s, Tools 418 s, Engine 474 s, Editor 212 s.
+  - Nothing was cached but the downloaded sources. 403 of the 945 compile steps of the CMake build
+    (header stubs not counted) are SDL2, SDL_sound, freetype, allegro, vorbis, theora and gtest.
+  - The engine was compiled 8 times per push: Verify GCC, Ubuntu-x86_64 (the same compiler and
+    options), Windows CMake, MSBuild x86 Debug, x86 Release, x64 Release, the test runners x86 and x64.
+  - Locally a full `prepush.py` run after a change to a Common header is 20 to 25 minutes (the sum of
+    the stage times, not one timed run), and `sanitizers` 13 minutes. 19 different Common headers
+    changed in the three days before.
+- **2.9a, the compiler cache.** ccache, through the environment variables
+  `CMAKE_C_COMPILER_LAUNCHER` and `CMAKE_CXX_COMPILER_LAUNCHER` (CMake 3.17+), so the configure
+  commands stay as they are and the downloaded dependencies are cached too. The cache directory
+  (`.ccache` in the workspace, at most 500 MB) is kept by `actions/cache` under a key with the commit
+  hash and restored by prefix: a cache is never overwritten, so each commit saves its own and GitHub
+  drops the oldest when the repository's 10 GB are used. A step prints the statistics, with the reason
+  for whatever could not be cached. Jobs: Verify's GCC and clang header jobs, and in `ci.yml` the
+  auto-test game job and the five `build` platforms (ccache from apt, from MSYS2, and for MSVC the
+  release archive 4.14.2 checked against the SHA-256 that GitHub publishes for it). Left out:
+  Emscripten, Android, the Linux image jobs, `macos.yml`, `analysis.yml`.
+  - **The Windows CMake job builds with Ninja**, as `prepush.py` always did: the Visual Studio
+    generators take no compiler launcher. A step writes what `vcvars64.bat` changes into the job's
+    environment, with `CC` and `CXX` set to `cl` (CMake would otherwise take the first compiler on
+    `PATH`, a MinGW gcc on the runner). The binaries are in `build/`, no longer in `build/Release/`.
+  - **`/MP` only for the Visual Studio generators** (root `CMakeLists.txt`): Ninja hands one source
+    to each compiler call, where the option does nothing, and a cache has to treat it somehow. SDL2's
+    own `CMakeLists.txt` still adds it to its 196 sources (third-party, left alone).
+  - **Unproven: ccache with MSVC's `/GL` (the Release builds use it) and `/Fd` with `/FS` (CMake's
+    Ninja rule adds them).** The manual says nothing about them. A local trial was not possible in the
+    session (downloading and running the binary was not permitted). If the statistics of the probe show
+    these as uncacheable, the choices are sccache for that job, or no cache there: the move to Ninja
+    stays either way.
+  - `compile_commands.json` now starts each command with `ccache`. clang's tooling drops known
+    wrappers and `tidy_diff.py` reads only the file names: checked in WSL with clang-tidy 19.1.0 on the
+    GCC tree's database, with and without the prefix (`Common/util/string.cpp`, 260 diagnostics and no
+    error both ways). The probe does not show it: its diff has no C++ line.
+  - The key of the `build` jobs' FetchContent cache has a version now (`fetchcontent-2-`): the cache
+    holds the dependencies' build trees as well, and one that the Visual Studio generator configured
+    stops a Ninja configure ("does not match the generator used previously").
+- **2.9b, the light run.** The MSBuild jobs build x86 Release only: it is what the editor ships with,
+  what the parity job compares and what `prepush.py`'s `msbuild` stage builds, so a light run confirms
+  exactly what was verified locally. The Debug builds (Engine, Tools, Compiler, Editor with its NUnit
+  run) and everything x64 are steps with `if: needs.plan.outputs.full == 'true'`. Cost: an error only
+  a Debug or an x64 MSBuild build has is found by the weekly or a manual full run, not by the push.
+  On a push the `build` matrix is Windows alone: Verify's "Linux (GCC)" job is the same build as
+  Ubuntu-x86_64, so it now builds the auto-test game with its own tools and runs it with both
+  renderers, as that entry did. Pull requests and manual light runs keep Ubuntu-x86_64 (`"verify":
+  true` in the plan job's list; the filter is `map(select(.light and (.verify | not)))`).
+  `Script/linux_jobs.sh gcc` does not run the game: it would add two minutes to every local run.
+- **2.9c, `prepush.py --auto`.** The paths that differ between the merge base with the upstream branch
+  and the working tree (`--base` for another revision) are matched against `AUTO_RULES`; the first
+  rule decides, and a path no rule knows needs every stage. The lists rest on what each build reads:
+  `ninja -t deps` of the Emscripten tree has 0 files under `Compiler/` and `Tools/` (54 under
+  `Plugins/`, which the engine builds in); MSBuild reads no CMake file; only MSBuild builds the
+  editor; the compiler's and the tools' tests read `agsdefns.sh`. `format` is added for a C or C++
+  file and `tidy` for one `tidy_diff.py` checks, unless the file is deleted. Changed files that no
+  stage verifies are listed with what does (workflows: actionlint and a probe; packaging: a full
+  run). `--dry-run` prints the choice and stops. Without `--auto` nothing changed.
+- **Checked locally:** `actionlint` on both workflows; the platform list is valid JSON and selects
+  Windows on a push, Windows and Ubuntu-x86_64 on other light runs, all five on a full run (the three
+  filters restated in Python: there is no `jq` on this machine); the MSVC environment step in
+  PowerShell 5.1 writes 46 variables, with `cl` and `ninja` on the new `Path`; `auto_plan` on 34 paths,
+  one per rule and kind of file, and on a mixed change. The `/MP` change: `prepush.py --only
+  build,headers` on the branch passes (a new tree: 492 s with the configure step and the downloads,
+  1106 tests, header check 48 s; our targets compile without `/MP`). The other stages were not run:
+  the change is inside `if(MSVC)`, and MSBuild does not read it.
+- **Not verified:** everything the workflows do on a runner. The first push to the main branch is also
+  the first run of the push filter (the plan job prints the matrix it chose).
+- **The probe.** `ci.yml` does not run on a branch outside `ags4draconian*`, but it can be started
+  there by hand, so no probe workflow is needed:
+
+  ```sh
+  git push origin probe-2.9        # Verify runs by itself: cold caches
+  gh workflow run ci.yml -R AlanDrake/ags-draconian --ref probe-2.9 -f full=false
+  # when both are green, again for the warm numbers, then the full set once
+  gh workflow run verify.yml -R AlanDrake/ags-draconian --ref probe-2.9
+  gh workflow run ci.yml -R AlanDrake/ags-draconian --ref probe-2.9 -f full=false
+  gh workflow run ci.yml -R AlanDrake/ags-draconian --ref probe-2.9 -f full=true
+  ```
+
+  The caches a probe branch saves are visible to that branch only (`gh cache list`, `gh cache delete`).
+  Expected, not measured: build steps of 244 to 466 s under two minutes on a warm cache, and a light
+  run of 7 to 8 minutes instead of 18, the MSBuild chain (Tools, Editor, Parity) being the longest.
+
 ### 3.1 Dead platforms
 
 *Definition, moved from PLAN.md on 2026-11-04:*

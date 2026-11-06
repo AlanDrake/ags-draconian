@@ -93,6 +93,7 @@ comes after they are closed.
 | 3 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
 | 4 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
 | 5 | **U.7, waiting:** PR #3193 open since 2026-11-05; answer the review when it comes | Review takes weeks | Sonnet 5.5, `medium` |
+| 6 | **2.9 CI and pre-push time, the probe:** push `probe-2.9`, run `ci.yml` light twice and full once on it (LOG.md 2.9 has the commands), read the ccache statistics of every job, fix in one batch, then cherry-pick to the main branch | Every push waits 18 minutes for a confirmation; the change is written and only CI can run it | Opus 5.5 or Fable 5.1, `medium` |
 
 Open items found while doing finished tasks (details in LOG.md): 0.4's CodeQL setting, the
 `D3DCOMPILER_47`/Windows 7 question and the macOS 10.9 deployment target; 1.4's unfixed `agfreader`
@@ -206,6 +207,23 @@ folders.
   workflows renamed (`ci.yml`, `verify.yml`, `make.yml`, `linux-docker.yml`), concurrency, `paths-ignore`,
   `verify.yml` (fast gate on every push) split from `ci.yml` (full build), clang+libc++ header job,
   `Script/prepush.py`.
+- [ ] **2.9 CI and pre-push time** (added 2026-11-06). The tests take seconds (`ctest` 8 s, the
+  auto-test game a minute); the builds around them take 20 minutes locally and 18 on CI, the same
+  code compiled from nothing in every job (measurements in LOG.md).
+  **2.9a** a compiler cache (ccache) in the CMake jobs of `verify.yml` and `ci.yml`; the Windows
+  CMake job builds with Ninja, as `prepush.py` does. **2.9b** a light run builds x86 Release only in
+  the MSBuild jobs (Debug and x64 wait for a full run) and, on a push, leaves Ubuntu x86_64 to
+  `verify.yml`, which runs the auto-test game there. **2.9c** `prepush.py --auto` runs the stages
+  that the changed files need.
+  Open after these: **2.9d** x64 only on CI except what exists only as 32-bit (the user,
+  2026-11-06), which needs decisions on the Windows engine the installer ships, the Linux i386
+  packages and the editor; a retry for the ARM64 auto-test abort; upstream's workflows, which fail
+  on the port branches; the laptop for the WSL stages.
+  *Done when:* CI confirms a push that changes a few files in under 10 minutes, and a session that
+  changed only the editor runs one stage.
+  *Status (2026-11-06):* 2.9a–c are written on the branch `probe-2.9` (worktree `.compare/wt-2.9`)
+  and wait for the probe run: nothing here has run on CI, and the cache with MSVC is unproven
+  (LOG.md). The state before it is the tag `pre-2.9`.
 
 ## Phase 3: Dead code removal
 
