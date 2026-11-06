@@ -174,7 +174,8 @@ jobs:
       CMAKE_C_COMPILER_LAUNCHER: ccache
       CMAKE_CXX_COMPILER_LAUNCHER: ccache
       CCACHE_DIR: ${{ github.workspace }}/.ccache
-      CCACHE_MAXSIZE: 500M
+      # One build with MSVC fills 0.41 GB (the /GL objects), with GCC 0.13 GB
+      CCACHE_MAXSIZE: 1G
 
     strategy:
       fail-fast: false
