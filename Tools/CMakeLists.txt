@@ -334,6 +334,7 @@ if(AGS_TESTS)
       agsbuild/pipedprocess.cpp
       agsbuild/taskmanager.cpp
       test/diagnostics_test.cpp
+      test/game_utils_test.cpp
       test/include_utils_test.cpp
       test/mfl_utils_test.cpp
       test/pipedprocess_test.cpp

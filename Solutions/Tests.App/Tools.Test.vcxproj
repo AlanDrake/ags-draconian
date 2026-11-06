@@ -216,6 +216,7 @@
     <ClCompile Include="..\..\Tools\data\room_xml.cpp" />
     <ClCompile Include="..\..\Tools\data\xml_fields.cpp" />
     <ClCompile Include="..\..\Tools\data\data_file_writer.cpp" />
+    <ClCompile Include="..\..\Tools\data\game_utils.cpp" />
     <ClCompile Include="..\..\Tools\data\scriptgen.cpp" />
     <ClCompile Include="..\..\Tools\data\include_utils.cpp" />
     <ClCompile Include="..\..\Tools\data\mfl_utils.cpp" />
@@ -228,6 +229,7 @@
     <ClCompile Include="..\..\Tools\test\data_file_writer_test.cpp" />
     <ClCompile Include="..\..\Tools\test\diagnostics_test.cpp" />
     <ClCompile Include="..\..\Tools\test\gtest_main.cc" />
+    <ClCompile Include="..\..\Tools\test\game_utils_test.cpp" />
     <ClCompile Include="..\..\Tools\test\include_utils_test.cpp" />
     <ClCompile Include="..\..\Tools\test\mfl_utils_test.cpp" />
     <ClCompile Include="..\..\Tools\test\pipedprocess_test.cpp" />

@@ -66,9 +66,24 @@ String CustomPathForConfig(bool use_custom_path, const String &custom_path)
     return path_value;
 }
 
+// The driver's name in the engine's config, as AGSEditor.GetGfxDriverConfigID: the engine knows the
+// OpenGL driver as "OGL"
+String MakeGfxDriverConfig(const String &driver)
+{
+    if (driver == "Software" || driver == "D3D9")
+    {
+        return driver;
+    }
+    if (driver == "OpenGL")
+    {
+        return "OGL";
+    }
+    return "";
+}
+
 void WriteConfig(const RuntimeSetup &setup, const GameSettings *settings, ConfigTree &cfg)
 {
-    cfg["graphics"]["driver"] = setup.GraphicsDriver;
+    cfg["graphics"]["driver"] = MakeGfxDriverConfig(setup.GraphicsDriver);
     cfg["graphics"]["windowed"] = setup.Windowed ? "1" : "0";
     cfg["graphics"]["fullscreen"] = setup.FullscreenDesktop ? "full_window" : "desktop";
     if (setup.WindowGameScaling == "Integer")
@@ -98,7 +113,8 @@ void WriteConfig(const RuntimeSetup &setup, const GameSettings *settings, Config
 
     cfg["language"]["translation"] = setup.Translation;
     cfg["mouse"]["auto_lock"] = setup.AutoLockMouse ? "1" : "0";
-    cfg["mouse"]["speed"] = String::FromFormat("%.f", setup.MouseSpeed);
+    // As the editor's float.ToString(): up to 7 significant digits, no trailing zeros
+    cfg["mouse"]["speed"] = String::FromFormat("%.7g", setup.MouseSpeed);
 
     // Touch input
     cfg["touch"]["emul_mouse_mode"] = MakeTouchMouseEmulModeConfig(setup.TouchToMouseEmulation);

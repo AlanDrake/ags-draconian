@@ -277,7 +277,10 @@ static HError ReadProject(const BuildOptions &bopts, ProjectData &project)
 
     DataUtil::GameSettings opts;
     AGF::ReadGameSettings(opts, reader.GetGameRoot());
-    project.game_opts.FileName = opts.GameFileName;
+    // A project without a file name is named after its folder, as in the editor
+    String file_name = opts.GameFileName;
+    file_name.Trim();
+    project.game_opts.FileName = file_name.IsEmpty() ? Path::GetFilename(bopts.SrcDir) : opts.GameFileName;
     project.game_opts.Name = opts.GameName;
     project.game_opts.UniqueID = opts.UniqueID;
 
@@ -329,10 +332,16 @@ static void AddExportTasks(BuildContext &c)
         "autoash", &c.taskmgr,
         PipedProcessParams(tool_agfexport, ProcessArgs{"autoash", c.src_agf, InDir(c.temp_dir, ScriptAutoHeader)}.Add(
                                                c.VerboseArgs()))));
+    // An acsetup.cfg in the project folder is the base of the game's config: the project's
+    // settings go over it, the other entries stay
+    ProcessArgs gamecfg_args{"game-cfg", c.src_agf, InDir(c.temp_dir, "acsetup.cfg")};
+    const String custom_cfg = Path::ConcatPaths(c.src_dir, "acsetup.cfg");
+    if (File::IsFile(custom_cfg))
+    {
+        gamecfg_args.Add("--base").Add(custom_cfg);
+    }
     c.taskmgr.AddTask(std::make_unique<TaskPipedProcess>(
-        "game-cfg", &c.taskmgr,
-        PipedProcessParams(tool_agfexport,
-                           ProcessArgs{"game-cfg", c.src_agf, InDir(c.temp_dir, "acsetup.cfg")}.Add(c.VerboseArgs()))));
+        "game-cfg", &c.taskmgr, PipedProcessParams(tool_agfexport, gamecfg_args.Add(c.VerboseArgs()))));
     // Always run "glvar" task, even if game has no global variables (no glvar scripts will be created in such case),
     // as there are other tasks down the line that have "glvar" in prerequisites, so it must complete with success.
     c.taskmgr.AddTask(std::make_unique<TaskPipedProcess>(

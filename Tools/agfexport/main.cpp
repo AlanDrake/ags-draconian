@@ -83,6 +83,8 @@ const char *HELP_GAMECFG = ""
                            "Writes <OUT-FILE.CFG>, default game config.\n"
                            "Config's contents are based on DefaultSetup node of the AGF file.\n"
                            "Commands:\n"
+                           "  --base <FILE.CFG>      Start from this config file: its entries stay, unless\n"
+                           "                         the project has a setting for them\n"
                            "  -h, --help             Show this help message\n";
 
 const char *HELP_GLVAR = ""
@@ -342,7 +344,7 @@ HError GlVarCommand(AGF::AGFReader &reader, const String &header_file, const Str
     return HError::None();
 }
 
-HError GameCfgCommand(AGF::AGFReader &reader, const String &dst, bool no_empty_files)
+HError GameCfgCommand(AGF::AGFReader &reader, const String &dst, const String &base_cfg)
 {
     fprintf(StdFile, "Output config file: %s\n", dst.GetCStr());
 
@@ -355,10 +357,15 @@ HError GameCfgCommand(AGF::AGFReader &reader, const String &dst, bool no_empty_f
     ConfigTree cfg;
     WriteConfig(setup, &settings, cfg);
 
-    // Write the config tree as the editor does (AGSEditor.WriteConfigFile): into a new file,
-    // with IniUtil::Merge, which formats it as an ini file of its own
+    // Write the config tree as the editor does (BuildTargetBase.GenerateConfigFile): into a new
+    // file, or into a copy of the base file, with IniUtil::Merge, which keeps the lines it does not
+    // set and formats the rest as an ini file of its own
     if (File::IsFile(dst))
         File::DeleteFile(dst);
+    if (!base_cfg.IsEmpty() && !File::CopyFile(base_cfg, dst))
+    {
+        return new Error(String::FromFormat("Failed to copy %s to %s", base_cfg.GetCStr(), dst.GetCStr()));
+    }
     IniUtil::Merge(dst, cfg);
     if (!File::IsFile(dst))
         return new Error(String::FromFormat("Failed to write %s", dst.GetCStr()));
@@ -367,7 +374,7 @@ HError GameCfgCommand(AGF::AGFReader &reader, const String &dst, bool no_empty_f
 
 int main(int argc, char *argv[])
 {
-    std::set<String> options_with_values;
+    std::set<String> options_with_values = {"--base"};
 
     auto result = CmdLineOpts::Parse(CmdLineOpts::InitProgramArgs(argc, argv), options_with_values);
 
@@ -379,6 +386,14 @@ int main(int argc, char *argv[])
 
     const bool stdout_list_print = result.Opt.count("-s") || result.Opt.count("--stdout");
     const bool no_empty_files = result.Opt.count("-n") || result.Opt.count("--no-empty");
+    String base_cfg;
+    for (const auto &opt : result.OptWithValue)
+    {
+        if (opt.first == "--base")
+        {
+            base_cfg = opt.second;
+        }
+    }
     if (stdout_list_print)
     {
         StdFile = stderr;
@@ -459,7 +474,7 @@ int main(int argc, char *argv[])
     case kCmdTraList: err = ListCommand(reader, command, out_file, stdout_list_print, no_empty_files); break;
     case kCmdAutoAsh: err = AutoAshCommand(reader, out_file, no_empty_files); break;
     case kCmdGlVar: err = GlVarCommand(reader, out_file, result.PosArgs[3], no_empty_files); break;
-    case kCmdGameCfg: err = GameCfgCommand(reader, out_file, no_empty_files); break;
+    case kCmdGameCfg: err = GameCfgCommand(reader, out_file, base_cfg); break;
     case kCmdMAX:
     default:
         // should never happen but handle just in case
