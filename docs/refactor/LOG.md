@@ -544,8 +544,9 @@ on-demand CI run, then the tick.
     stack); Direct3D and OpenGL drivers at exit (no run exercised them; the change does not touch them); a game with
     video playback at exit.
   - Seen, not touched: a plain SDL video program also leaks `SDL_DBus_Init` blocks (SDL's D-Bus support) in this
-    distro; the engine's logs have none. Whether `sanitizers` moves to the every-run stages of `prepush.py` is the
-    user's decision.
+    distro; the engine's logs have none.
+  - Decided (user, 2026-11-06): `sanitizers` stays on demand in `prepush.py` and on CI: it is slow and rarely
+    gives something to act on.
   - Commits, one per cause: `Engine: restored script structs use the shared manager (1.5b-5)`, `Engine: the script VM
     tests remove the managed objects they leave (1.5b-5)`, `Engine: the audio core deletes its AL buffers before it
     closes the device (1.5b-5)`, `Compiler: agscc deletes the script it compiled (1.5b-5)`, `Script: the sanitizer
