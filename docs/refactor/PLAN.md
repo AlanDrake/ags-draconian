@@ -93,7 +93,7 @@ comes after they are closed.
 | 3 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
 | 4 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
 | 5 | **U.7, waiting:** PR #3193 open since 2026-11-05; answer the review when it comes | Review takes weeks | Sonnet 5.5, `medium` |
-| 6 | **2.9 CI and pre-push time:** the probe is green (LOG.md); with the user's go-ahead, cherry-pick the six commits of `probe-2.9` onto the main branch, delete the branch and its caches (`gh cache list -R AlanDrake/ags-draconian --ref refs/heads/probe-2.9`), watch the first push (the push filter of the plan job runs there for the first time), then decide 2.9e (LTO in the verification builds) | Every push waits 18 minutes for a confirmation, 12.5 after this | Sonnet 5.5, `medium` for the cherry-pick; the user for 2.9e |
+| 6 | **2.9 CI and pre-push time:** the probe is green (LOG.md); with the user's go-ahead, cherry-pick the commits of `probe-2.9` (`git log origin/ags4draconianr21..probe-2.9`) onto the main branch, delete the branch and its caches (`gh cache list -R AlanDrake/ags-draconian --ref refs/heads/probe-2.9`), watch the first push (the push filter of the plan job runs there for the first time), then decide 2.9e (LTO in the verification builds) | Every push waits 18 minutes for a confirmation, 12.5 after this | Sonnet 5.5, `medium` for the cherry-pick; the user for 2.9e |
 
 Open items found while doing finished tasks (details in LOG.md): 0.4's CodeQL setting, the
 `D3DCOMPILER_47`/Windows 7 question and the macOS 10.9 deployment target; 1.4's unfixed `agfreader`
@@ -225,7 +225,7 @@ folders.
   upstream's workflows, which fail on the port branches; the laptop for the WSL stages.
   *Done when:* CI confirms a push that changes a few files in under 10 minutes, and a session that
   changed only the editor runs one stage.
-  *Status (2026-11-07):* 2.9a–c are on the branch `probe-2.9` (six commits, worktree
+  *Status (2026-11-07):* 2.9a–c are on the branch `probe-2.9` (seven commits with this one, worktree
   `.compare/wt-2.9`), green there in Verify, a light and a full run (LOG.md: the probe results);
   waiting for the cherry-pick to the main branch. A push should be confirmed in about 12.5 minutes
   instead of 18 (estimated from the probe's jobs), Verify in 7 instead of 8 with the auto-test game

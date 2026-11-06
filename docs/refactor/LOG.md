@@ -880,7 +880,7 @@ with 340 header stubs compiled by clang + libc++ 21 on Ubuntu and the heavy jobs
 
 *Added 2026-11-06 (not in the original plan): the user named testing and CI as the bottleneck.*
 
-*Status (2026-11-07):* 2.9a–c are on the branch `probe-2.9` (six commits), green in Verify, a light and a
+*Status (2026-11-07):* 2.9a–c are on the branch `probe-2.9` (seven commits with this one), green in Verify, a light and a
 full run there ("The probe" below); not on the main branch yet. The "done when" is not reached: a push
 should now be confirmed in about 12.5 minutes (estimated from the job times; the light run on a push has
 not happened yet), not 10, and the time left is the link-time code generation (2.9e).
