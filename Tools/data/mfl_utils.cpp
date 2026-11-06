@@ -250,11 +250,39 @@ HError WriteLibraryFile(AssetLibInfo &lib, const StringIMap &asset_map, const St
     return HError::None();
 }
 
+// Tests that the file is the part of a library with this index. Only the first part has a table
+// of contents; the others begin with the signature, the version and their index.
+static HError TestLibraryPartFile(const String &lib_file, size_t lib_index)
+{
+    std::unique_ptr<Stream> in(File::OpenFileRead(lib_file));
+    if (!in)
+    {
+        return new Error("Failed to open pack file for reading.");
+    }
+
+    MFLUtil::MFLVersion lib_version = MFLUtil::kMFLVersion_Undefined;
+    soff_t lib_offset = 0;
+    MFLUtil::MFLError mfl_err = MFLUtil::ReadOffsetAndVersion(in.get(), lib_version, lib_offset);
+    if (mfl_err != MFLUtil::kMFLNoError)
+    {
+        return new Error("Failed to parse pack file: %s", MFLUtil::GetMFLErrorText(mfl_err).GetCStr());
+    }
+    const size_t index_in_file = static_cast<uint8_t>(in->ReadInt8());
+    if (index_in_file != lib_index)
+    {
+        return new Error("Pack file part index does not match: %zu vs %zu", index_in_file, lib_index);
+    }
+    return HError::None();
+}
+
 HError WriteLibrary(AssetLibInfo &lib, const StringIMap &asset_map, const String &dst_dir,
                     MFLUtil::MFLVersion lib_version, bool append_first, bool verbose)
 {
-    for (size_t id = 0; id < lib.LibFileNames.size(); ++id)
+    // The first file has the table of contents, with the offsets of the assets in every part.
+    // These are known when the parts are written, so the first file is written last.
+    for (size_t count = lib.LibFileNames.size(); count > 0; --count)
     {
+        const size_t id = count - 1;
         String dst_file = Path::ConcatPaths(dst_dir, lib.LibFileNames[id]);
         if (verbose)
             printf("Info: writing pack file '%s' ...\n", dst_file.GetCStr());
@@ -268,7 +296,7 @@ HError WriteLibrary(AssetLibInfo &lib, const StringIMap &asset_map, const String
         }
 
         // Post-check
-        err = TestLibraryFile(dst_file, &lib);
+        err = (id == 0) ? TestLibraryFile(dst_file, &lib) : TestLibraryPartFile(dst_file, id);
         if (!err)
         {
             if (verbose)

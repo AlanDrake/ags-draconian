@@ -13,6 +13,7 @@
 //=============================================================================
 #include <cstring>
 #include <memory>
+#include <string>
 
 #include "data/mfl_utils.h"
 #include "data/multifilelib.h"
@@ -80,4 +81,56 @@ TEST(MflUtils, AppendedLibraryHasEnder)
     EXPECT_EQ(static_cast<soff_t>(strlen("an executable")), lib_offset);
     in.reset();
     File::DeleteFile(lib_file);
+}
+
+TEST(MflUtils, LibraryInPartsRecordsWhereEveryAssetIs)
+{
+    // Three assets in parts of at most eight bytes: one asset in each part, the first part being
+    // the library file itself. The table of contents in the first part locates all of them.
+    const char *names[] = {"a.txt", "b.txt", "c.txt"};
+    const char *texts[] = {"first", "second", "the third"};
+    StringIMap asset_map;
+    for (int i = 0; i < 3; ++i)
+    {
+        const String file = String::FromFormat("mfl_test_split_%s", names[i]);
+        WriteTextFile(file, texts[i]);
+        asset_map[names[i]] = file;
+    }
+    AssetLibInfo lib;
+    ASSERT_TRUE(MakeAssetLib(lib, "mfl_test_split.ags", asset_map, 8));
+    HError err = WriteLibrary(lib, asset_map, ".", MFLUtil::kMFLVersion_MultiV30, false, false);
+    EXPECT_TRUE(err) << (err ? "" : err->FullMessage().GetCStr());
+
+    AssetLibInfo read_lib;
+    {
+        std::unique_ptr<Stream> in(File::OpenFileRead("mfl_test_split.ags"));
+        ASSERT_TRUE(in != nullptr);
+        ASSERT_EQ(MFLUtil::kMFLNoError, MFLUtil::ReadHeader(read_lib, in.get()));
+    }
+    ASSERT_EQ(3u, read_lib.LibFileNames.size());
+    EXPECT_STREQ("mfl_test_split.ags", read_lib.LibFileNames[0].GetCStr());
+    EXPECT_STREQ("mfl_test_split.001", read_lib.LibFileNames[1].GetCStr());
+    EXPECT_STREQ("mfl_test_split.002", read_lib.LibFileNames[2].GetCStr());
+    ASSERT_EQ(3u, read_lib.AssetInfos.size());
+    for (int i = 0; i < 3; ++i)
+    {
+        const AssetInfo &asset = read_lib.AssetInfos[i];
+        EXPECT_STREQ(names[i], asset.FileName.GetCStr());
+        EXPECT_EQ(i, asset.LibUid);
+        std::unique_ptr<Stream> in(File::OpenFileRead(read_lib.LibFileNames[asset.LibUid]));
+        ASSERT_TRUE(in != nullptr);
+        std::string data(static_cast<size_t>(asset.Size), '\0');
+        in->Seek(asset.Offset, kSeekBegin);
+        in->Read(&data[0], data.size());
+        EXPECT_EQ(texts[i], data);
+    }
+
+    for (const auto &asset : asset_map)
+    {
+        File::DeleteFile(asset.second);
+    }
+    for (const String &part : read_lib.LibFileNames)
+    {
+        File::DeleteFile(part);
+    }
 }
