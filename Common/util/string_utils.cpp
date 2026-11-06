@@ -17,6 +17,7 @@
 #include <cstring>
 #include <cwchar>
 #include <regex>
+#include <type_traits>
 
 #include "platform/platform.h"
 #include "util/math.h"
@@ -517,7 +518,8 @@ size_t StrUtil::ConvertWstrToUtf8(const wchar_t *wcstr, char *out_mbstr, size_t 
     size_t len = 0;
     while (*wcstr)
     {
-        Utf8::Rune r = static_cast<Utf8::Rune>(*wcstr++);
+        // A code unit as the unsigned number it is: wchar_t is signed where it has 32 bits
+        Utf8::Rune r = static_cast<Utf8::Rune>(static_cast<std::make_unsigned<wchar_t>::type>(*wcstr++));
 #if AGS_WCHAR_IS_UTF16
         if ((r >= 0xD800) && (r <= 0xDBFF) && (*wcstr >= 0xDC00) && (*wcstr <= 0xDFFF))
         {
