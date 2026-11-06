@@ -1932,6 +1932,47 @@ ported it onto 6.7d-4's command lines in the main checkout; reviewed by the supe
 - Not reproduced: the editor's incremental checks for the packs (`agsbuild` always rebuilds them, 3 s
   for the private game), its 8.3-name wildcard matches, culture-specific lower case for `sp_` names.
 
+**6.7d-6 Headers from outside, run layout, `_obj/`** (2026-11-06; an Opus 5.5 subagent in its own
+worktree, reviewed and merged by the supervisor):
+- `--header <file>`, repeatable: after the built-in, auto-generated and global variables headers,
+  before the module headers, for game and room scripts, as the editor orders them; a section is named
+  by the file's name, so `__Plugin_<dll>.ash` gives the editor's names. Checked end to end with a fake
+  plugin header (undeclared without it; the sections in the editor's order).
+- `--data-only`, for the editor's Run: exports, scripts, `game28.dta`, rooms, translations and
+  `acsetup.cfg`; a package with only `game28.dta` and the scripts; the rooms in `<out>/Rooms/`
+  (stale room files there deleted). Measured with the reference engine: folders always win over
+  packages (`kAssetPriorityDir`), and the `--runfromide` folders are searched in their order, then the
+  install folder. With `Compiled/Windows` as the install folder (as today) a fresh project fails 2 tests
+  (`FillDirList` finds no config there) and a stale `room<n>.crm` in the project folder would be loaded;
+  so the install folder is `_Debug` and `_Debug/Rooms` comes first (decided by the supervisor:
+  the run needs no earlier full build, and a game writing to `$INSTALLDIR$` writes into `_Debug`, not
+  into the distribution folder). 2414 of 2414 on a fresh copy with a broken stale `room1.crm`. The
+  editor's command line (run in the project folder):
+  `<engine> [--windowed|--fullscreen|<log groups> --enabledebugger <id>] --runfromide "<proj>\_Debug"
+  "<proj>\_Debug\Rooms":"","<proj>":"","<proj>\Fonts":"","AudioCache":"audio","Speech":"voice"
+  "<proj>\_Debug\<name>.ags"`.
+- `--temp-dir` defaults to `<project>/_obj`, cleared at the start of a build (only that default, never
+  a given `--temp-dir`) and left afterwards; `-c` deletes it after a success. The build refuses to
+  start when the output folder or a header lies inside it. `Directory::DeleteDirectoryTree` (new,
+  Common): links and junctions are deleted as links, never followed. A build failing halfway leaves
+  nothing new outside `_obj/` and the output folder (measured).
+- The `--json` defects 6.7d-8 found: agsbuild has its own parser of a table of known options
+  (`commandline.cpp`; the other tools keep `CmdLineOpts`), an unknown option, a value glued to an
+  option or a missing value is an error naming the argument, as JSON when `--json` is anywhere;
+  a task that succeeds reports its `Error:` lines as warnings (`spriteimport`'s non-fatal messages are
+  `Warning:` now, with the reason on the line); a message ending in `:` takes the next line; a failed
+  task always has a message (`Task::Run` never stored its result); the tools inherit only their two
+  pipe ends (`PROC_THREAD_ATTRIBUTE_HANDLE_LIST`). Each with a test that fails without its fix.
+- Tests: `common_test` 113 → 117, `tools_test` 199 → 218. All ten variants have parity, the auto-test
+  2414 of 2414, the private game 208 of 208 (the harness unpacks the voice packs now).
+- Found, not fixed: `File::DeleteFile` on Windows tests `errno` after `DeleteFileW`, which does not set
+  it, so most failures look like success; `String::FindAnyChar(const String &)` searches for the whole
+  string; `Path::IsSameOrSubDir` takes a parent without a trailing slash for a file; on POSIX the tools
+  still inherit every descriptor.
+- For the editor (6.7d-9 to 6.7d-11): write plugin headers outside `_obj`, pass no `--temp-dir`, keep
+  `AudioCache` refreshed before a run, exclude `_obj` from templates and the upgrade backup
+  (`GetPatternsForStandardGameFiles`), let Clean delete it.
+
 **6.7d-8 `BuildToolRunner`** (2026-11-06; an Opus 5.5 subagent, after a Fable 5.1 one stopped at a
 usage limit with two files written): `Editor/AGS.Editor/Build/`, namespace `AGS.Editor.Build`, C# 6,
 no WinForms, `System.Drawing` or editor singletons. `BuildToolEvent.Parse` (one `--json` line, null for
@@ -1955,8 +1996,68 @@ Found in `agsbuild`:
 - The rest goes to 6.7d-6 (unknown options, no JSON for bad arguments, errors from succeeded tasks,
   empty error messages, inherited handles, `_temp` never removed).
 
+**6.7d-7, CI and installer** (2026-11-06): the editor's build copies `agsdefns.sh` next to it; the
+editor job takes the x86 tools from `windows-msvc-tools` and fails if one is missing; `ags.iss` lists
+them. Confirmed on the probe branch `probe-67d7` (run 42213937471: tools, editor, and a job checking
+that every editor file the installer lists is in the editor artifact). The probe's Verify run first
+timed out in `apt-get` (Ubuntu 26's mirror at a few KB/s), then failed the Linux clang-tidy gate on one
+6.7d-4 line (`wchar_t` is signed on Linux: `bugprone-signed-char-misuse`), which the Windows tidy stage
+of `prepush.py` cannot see; fixed, and the gate run in WSL against the CI's base is clean
+(`~/venv` has clang-tidy 19.1.0 now). Open: `prepush.py` could run that Linux gate in its `linux`
+stage. The installer itself was not built (it needs the full run's artifacts).
+
+**6.7d-5 256-colour rooms, and what the first real dialogs showed** (2026-11-06, supervisor; the
+corpus is a private 8-bit game: 9 rooms, two with several backgrounds, 6 dialogs, 2 modules):
+- `crmbuild` built no room of an 8-bit game. `LoadRoomImages` now does what the editor does when it
+  loads a background (`RoomsComponent.LoadBackground`, `PaletteUtilities.RemapBackground` with the
+  exact palette): in a room saved as 8-bit (`ColorDepth` 8 in `data.xml`) an indexed image's palette
+  takes the game palette's game-wide colours, and only in the slots the image's palette has (a PNG
+  with 20 colours leaves the game-wide slots 20 to 41 black; the PNG reader gives no palette length, so
+  `room_build.cpp` reads the `PLTE` chunk's). An 8-bit background keeps its palette in its frame, and
+  the first frame's is the room's (`AGS.Native SetNativeRoomBackground`, `PrepareForWriteToFile`).
+  The rule does not depend on the game: a true-colour game converts such a room with those colours.
+- The editor reads PNGs with its own loader (`BitmapHelper.LoadBitmap`: GDI+ gives an 8-bit PNG with a
+  `tRNS` chunk as 32-bit, so the chunk is taken out and put back as palette alpha); room files hold
+  no alpha, so nothing follows from it.
+- Dialogs: the auto-test's are bare entry points and the other private game has none, so
+  `dialogscriptconv.cpp` had never met a real one. (1) Double quotes in speech were not escaped
+  (a `TODO` since the port): `agscc` failed on the line. (2) The editor writes the function's
+  opening on the first line and one line per line of the dialog script, empty ones too, so the
+  compiled script and the compiler's messages carry the dialog script's line numbers; the tool put
+  the opening on its own line and dropped empty lines (the first statement was line 2 instead of 25).
+  (3) `agf2dlgasc` printed messages only when there were none (`if (errors.empty())`), so a line with
+  an unknown character was dropped and the build went on; it now prints
+  `Error: at Dialog <id>, line <n> : <text>` (the editor's script name for a dialog), converts every
+  dialog, and fails. (4) `this` next to a non-ASCII byte went through `std::isalnum` with a negative
+  value; a character named `CAnn` was not found as `ann`.
+- `<ScriptModule />` on a character or an inventory item (the game has it on all 33): the editor
+  reads an empty name, the tool kept its default `GlobalScript.asc`. Now an empty element is an empty
+  name and only a missing one leaves the default; a GUI's default is `GlobalScript.asc` too, as in
+  the editor.
+- The harness: `set_element` did not match an element with attributes (`<CustomDataDir
+  IsNull="True" />`, a null string), so `customdirs` stopped on this project.
+- Measured against the reference editor: the 8-bit game, 53 of 53 files identical, and parity in all
+  ten variants; a copy whose room 0 has a 20-colour palette, 53 of 53 (slots 20 to 255 black in both
+  room files); the auto-test game, ten variants and the run (2414 of 2414); the other private game,
+  208 of 208. `tools_test` 218 → 225 (`dialogscriptconv_test.cpp` is new).
+- Not the same as the editor, and left so:
+  - The game palette's background slots in `game28.dta`. The editor's room palette is a shallow copy
+    of the game's (`CopyGamePalette`), so loading a background overwrites the game's background
+    colours with that image's: the editor writes the colours of the room it loaded last, and saves
+    them into `Game.agf` with the next save. The tools write what `Game.agf` holds. Measured on a copy
+    of the auto-test game with an 8-bit background: the room files are identical, `game28.dta` differs
+    in those 214 slots and nowhere else. The 8-bit game has parity because its `Game.agf` was saved
+    after a full rebuild.
+  - A character or item without any `<ScriptModule>` element (a hand-edited file; formats before
+    4.0.0.24 have it inside `<Interactions>`, which is read): the editor writes an empty module name
+    for its cursor events and `GlobalScript.asc` for the others, the tool `GlobalScript.asc` for
+    both. The engine takes an empty name for the global script (`GetScriptInstance`).
+- Helpers, local: `.compare/helpers/mk_8bit_cases.py` (the derived projects), `cmpdta2.py` (the two
+  `game28.dta` block by block, scripts taken out), `which_script.py`.
+
 **Bugs found on the way, not fixed:** `BuildTargetBase.DeleteCommonGameFiles` deletes `filename`
 instead of the loop's `fileName`, so old split parts are never removed; the split part names above;
+`RoomsComponent.CopyGamePalette` copies references, so opening a room changes the game palette (6.7d-5);
 `AGSEditor.CreateAudioVOXFile` is an unused copy of the one in `BuildTargetDataFile`;
 `Tasks.HandleObjectIDErrors` repairs IDs after the project was saved.
 

@@ -88,7 +88,7 @@ comes after they are closed.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **6.7d The editor builds through the tools** (phase 6), split into 13 steps on 2026-11-06 (the task's section). Done 2026-11-06, uncommitted: 6.7d-1 to 6.7d-4 (all ten variants have parity), 6.7d-8 (`BuildToolRunner`), the `crmbuild` project of 6.7d-7. **Next: 6.7d-6** (`agsbuild --header`, `--data-only`, `_obj/`, the `--json` defects 6.7d-8 found), the rest of 6.7d-7 (`agsdefns.sh` as a file, installer, CI artifact: probe branch), then 6.7d-9. 6.7d-5 waits for the user: 256-colour games (an 8-bit test project, or drop them). The state before it is the tag `pre-6.7d`; the reference editor is built from it | The tools must match the editor before its build code goes; the rest of 3.3 waits for it | Opus 5.5 or Fable 5.1, `high` (design, the switch, the deletions) |
+| 1 | **6.7d The editor builds through the tools** (phase 6), split into 13 steps on 2026-11-06 (the task's section). Done 2026-11-06: 6.7d-1 to 6.7d-4 (all ten variants have parity), 6.7d-5 (256-colour rooms; a private 8-bit game has parity in every variant, and its dialogs found three defects), 6.7d-6 (`--header`, `--data-only`, `_obj/`), 6.7d-7 (tools and `agsdefns.sh` next to the editor, installer, CI; probe-confirmed), 6.7d-8 (`BuildToolRunner`). **Next: 6.7d-9**, the switch of Build, Rebuild, `/compile` and the new-game wizard to `agsbuild`, then 6.7d-10 (Run) and 6.7d-11. The state before it is the tag `pre-6.7d`; the reference editor is built from it | The tools must match the editor before its build code goes; the rest of 3.3 waits for it | Opus 5.5 or Fable 5.1, `high` (design, the switch, the deletions) |
 | 2 | **U.8, open:** offer the 1.5b-2 fixes in `CreateGlobalVars` (`RuntimeScript::CheckFixupInCode`) and `JointRTTI::Join` upstream (the same code there); the `String(ptr, length)` change alters a Common contract, so it is a separate offer if at all. The 1.5b-4 compiler leak fixes (the same code in `script2/`) are offered only when the user confirms | Real defects, small | Sonnet 5.5, `medium` |
 | 3 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
 | 4 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
@@ -514,9 +514,17 @@ Framework-only.
       `ags4` has no ASCII mode any more (user, 2026-11-06): arguments, paths and game text are UTF-8,
       and the legacy-encoding paths (`agscc --ascii`, `$Encoding=ASCII` translations) get no parity work.
       *Done when:* the variant `unicode` has parity.
-    - [ ] **6.7d-5 256-colour rooms in `crmbuild`** (it refuses them: the backgrounds need the game
-      palette), with an 8-bit test project, which does not exist yet; or the user drops 8-bit games.
-    - [ ] **6.7d-6 Script headers from outside the project, run layout, `_obj/`.** `agsbuild --header
+    - [x] **6.7d-5 256-colour rooms in `crmbuild`** (2026-11-06, LOG.md 6.7d)**.** It refused them.
+      The background of a room saved as 8-bit takes the game-wide colours of the game palette, up to
+      the length of the image's own palette, and keeps its palette in the room file, as the editor
+      does. Checked on a private 8-bit game (ten rooms, two with several backgrounds), which was
+      also the first project with real dialogs and found three defects outside 8-bit: the dialog
+      converter did not escape quotes in speech and renumbered the lines (the editor keeps the
+      dialog script's line numbers), `agf2dlgasc` never reported a conversion error, and an empty
+      `<ScriptModule />` of a character or an item became `GlobalScript.asc`.
+      *Done when:* the 8-bit game has parity in every variant.
+    - [x] **6.7d-6 Script headers from outside the project, run layout, `_obj/`** (2026-11-06, LOG.md
+      6.7d; the F5 command line is there)**.** `agsbuild --header
       <file>` for the headers of editor plugins (they exist only inside the plugin, so the editor
       writes them out; the C# build passes them between the generated and the module headers).
       A run layout for F5, `agsbuild --data-only`: only export, scripts, game data and rooms, a package
@@ -531,10 +539,13 @@ Framework-only.
       `agsbuild` may inherit (`bInheritHandles`).
       *Done when:* the engine runs the auto-test from the run layout (2414 of 2414), and a failed
       build leaves nothing outside `_obj/` and the output folder.
-    - [ ] **6.7d-7 Tools next to the editor.** `crmbuild` had no MSBuild project (`Tools.sln` builds the
-      others into the editor's output folder; done 2026-11-06); `agsdefns.sh` exists only as an embedded resource and
-      must ship as a file (decision T2); the installer's file list and CI's `windows-editor-binaries`
-      have no tool. CI and installer changes need a probe branch.
+    - [x] **6.7d-7 Tools next to the editor** (2026-11-06, probe-confirmed; the installer itself is
+      built only by a full run)**.** `crmbuild` had no MSBuild project (`Tools.sln` builds the
+      others into the editor's output folder; done 2026-11-06); `agsdefns.sh` existed only as an embedded resource and
+      must ship as a file (decision T2; the editor's build copies it next to `AGSEditor.exe` now, where
+      `agsbuild` finds it without options, measured 2026-11-06); the installer's file list and CI's
+      `windows-editor-binaries` had no tool (both changed 2026-11-06: the editor job takes the x86
+      tools from `windows-msvc-tools`; not run yet). CI and installer changes need a probe branch.
     - [x] **6.7d-8 `BuildToolRunner`** (2026-11-06, LOG.md 6.7d) in the editor, without UI types (it moves to `AGS.Editor.Core`
       in 6.3): starts a tool, turns the `--json` lines into progress and `CompileMessages` (file and
       line as the editor names scripts, duplicate warnings dropped), cancels through stdin and kills
