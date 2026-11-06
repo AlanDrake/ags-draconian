@@ -773,6 +773,30 @@ TEST_F(AGFReaderBlocks, InventoryItemDefaults)
     EXPECT_FALSE(item.PlayerStartsWith);
 }
 
+TEST_F(AGFReaderBlocks, EmptyScriptModuleIsNoModule)
+{
+    // Without the element the events are in the global script; an empty element names no module
+    DataUtil::CharacterData missing;
+    AGF::Character().ReadAllData(Parse("<Character><ID>0</ID></Character>"), missing);
+    EXPECT_STREQ("GlobalScript.asc", missing.ScriptModule.GetCStr());
+
+    DataUtil::CharacterData empty;
+    AGF::Character().ReadAllData(Parse("<Character><ID>0</ID><ScriptModule /><Interactions Version=\"4.0.0.24\">"
+                                       "<Event Index=\"1\" UID=\"Curs0002\">cEgo_Look</Event></Interactions>"
+                                       "</Character>"),
+                                 empty);
+    EXPECT_STREQ("", empty.ScriptModule.GetCStr());
+    ASSERT_EQ(2u, empty.InteractionEvents.size());
+    EXPECT_STREQ("cEgo_Look", empty.InteractionEvents[1].GetCStr());
+
+    // An older format kept the module inside the interactions: that one wins
+    DataUtil::CharacterData older;
+    AGF::Character().ReadAllData(Parse("<Character><ID>0</ID><ScriptModule /><Interactions>"
+                                       "<ScriptModule>Other.asc</ScriptModule></Interactions></Character>"),
+                                 older);
+    EXPECT_STREQ("Other.asc", older.ScriptModule.GetCStr());
+}
+
 TEST_F(AGFReaderBlocks, Cursor)
 {
     AGF::DocElem elem = Parse(R"xml(<MouseCursor>

@@ -524,7 +524,7 @@ struct GUIData : EntityRef
     int Left{};
     String Name;
     String OnClick;
-    String ScriptModule;
+    String ScriptModule = "GlobalScript.asc"; // the editor's default
     GUIPopupStyle PopupStyle = kGUIPopupStyle_Normal;
     int PopupYPos{};
     int Top{};

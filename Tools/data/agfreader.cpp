@@ -1514,15 +1514,26 @@ static DataUtil::PaletteColourType ReadColourType(const String &value)
     }
 }
 
+// Reads the <ScriptModule> of an element. An empty one is an empty name, as the editor reads it;
+// only a missing one leaves the value as it is (the default).
+static void ReadScriptModule(DocElem elem, String &script_module)
+{
+    DocElem module = elem ? elem->FirstChildElement("ScriptModule") : nullptr;
+    if (module)
+    {
+        script_module = module->GetText() ? module->GetText() : "";
+    }
+}
+
 static void ReadInteractions(DocElem elem, String &script_module, std::vector<String> &events)
 {
     // The entity's own ScriptModule (Character.ScriptModule, InventoryItem.ScriptModule) sets the
     // interactions' module; older formats kept one inside <Interactions>, which then wins
-    script_module = ValueParser::ReadString(elem, "ScriptModule", script_module.GetCStr());
+    ReadScriptModule(elem, script_module);
     DocElem interactions = elem ? elem->FirstChildElement("Interactions") : nullptr;
     if (!interactions)
         return;
-    script_module = ValueParser::ReadString(interactions, "ScriptModule", script_module.GetCStr());
+    ReadScriptModule(interactions, script_module);
     for (DocElem event = interactions->FirstChildElement("Event"); event; event = event->NextSiblingElement("Event"))
     {
         const int index = event->IntAttribute("Index", static_cast<int>(events.size()));
