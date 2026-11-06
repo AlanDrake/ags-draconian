@@ -286,8 +286,9 @@ def run_autotest(engine, files_dir, work_dir, timeout):
 
 
 def set_element(agf_text, name, value, nth=0):
-    """Game.agf with the text of the nth <name> element replaced."""
-    found = list(re.finditer('<%s>[^<]*</%s>|<%s ?/>' % (name, name, name), agf_text))
+    """Game.agf with the text of the nth <name> element replaced. The element may have attributes,
+    which go: the editor writes a null string as <Name IsNull="True" />."""
+    found = list(re.finditer('<%s(?: [^<>]*?)?(?:/>|>[^<]*</%s>)' % (name, name), agf_text))
     if len(found) <= nth:
         sys.exit(f'No <{name}> element number {nth} in Game.agf')
     m = found[nth]
