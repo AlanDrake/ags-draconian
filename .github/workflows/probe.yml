@@ -1,0 +1,292 @@
+# Temporary: the branch probe-67d7 only (docs/refactor/PLAN.md, 6.7d-7). Never merged.
+name: Probe 6.7d-7
+'on':
+  push:
+    branches:
+    - probe-67d7
+permissions:
+  contents: read
+jobs:
+  windows-deps:
+    name: Windows Dependencies
+    runs-on: windows-2022
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+    - uses: microsoft/setup-msbuild@v3
+    - name: Restore cached deps
+      id: cache-win-deps
+      uses: actions/cache@v5
+      with:
+        path: C:\Lib
+        key: win-deps-${{ hashFiles('Windows/setup_ags_build_deps.bat') }}
+    - name: Build dependencies
+      if: steps.cache-win-deps.outputs.cache-hit != 'true'
+      shell: cmd
+      run: Windows\setup_ags_build_deps.bat
+    - name: Build WinDevDependenciesVS archive
+      shell: cmd
+      run: 'pushd "C:\Lib\SDL_sound"
+
+        if exist build_x86 del /Q /S build_x86\* && rd /Q /S build_x86
+
+        if exist build_x64 del /Q /S build_x64\* && rd /Q /S build_x64
+
+        popd
+
+        tar -f WinDevDependenciesVS.zip -acv --strip-components 2 C:\Lib
+
+        dir WinDevDependenciesVS.zip
+
+        '
+    - name: Upload WinDevDependenciesVS
+      uses: actions/upload-artifact@v7
+      with:
+        if-no-files-found: error
+        archive: false
+        path: WinDevDependenciesVS.zip
+  windows-msvc-tools:
+    name: Windows MSVC Tools
+    runs-on: windows-2022
+    needs:
+    - windows-deps
+    timeout-minutes: 40
+    env:
+      AGS_SDL_INCLUDE: C:\Lib\SDL2\include
+      AGS_SDL_LIB: C:\Lib\SDL2\lib\x86
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+    - uses: microsoft/setup-msbuild@v3
+    - name: Download Windows dependencies
+      uses: actions/download-artifact@v8
+      with:
+        name: WinDevDependenciesVS.zip
+        path: C:\Lib
+    - name: Build Tools (x86 Debug)
+      shell: cmd
+      run: "cd Solutions\nmsbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Debug\
+        \ /p:Platform=x86 /maxcpucount /nologo     \n"
+    - name: Build Compiler (x86 Debug)
+      shell: cmd
+      run: 'cd Solutions
+
+        msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Debug /p:Platform=x86
+        /maxcpucount /nologo
+
+        '
+    - name: Build Tools (x86 Release)
+      shell: cmd
+      run: 'cd Solutions
+
+        msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86
+        /maxcpucount /nologo
+
+        '
+    - name: Build Compiler (x86 Release)
+      shell: cmd
+      run: 'cd Solutions
+
+        msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86
+        /maxcpucount /nologo
+
+        '
+    - name: Upload x86 Tools PDBs
+      uses: actions/upload-artifact@v7
+      with:
+        name: windows-tools-pdb-x86
+        include-hidden-files: true
+        path: Solutions/.build/*/*/*.pdb
+    - name: Delete x86 PDB / intermediate files
+      shell: cmd
+      run: 'cd Solutions\.build
+
+        del /s /q *.pdb *.map *.ilk *.iobj *.ipdb
+
+        '
+    - name: Upload x86 Tools binaries
+      uses: actions/upload-artifact@v7
+      with:
+        name: windows-tools-binaries-x86
+        include-hidden-files: true
+        path: Solutions/.build/*/*
+    - name: Delete x86 build output
+      shell: cmd
+      run: cd Solutions && rd /s /q .build
+    - name: Build Tools (x64 Release)
+      shell: cmd
+      run: 'cd Solutions
+
+        msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64
+        /maxcpucount /nologo
+
+        '
+    - name: Build Compiler (x64 Release)
+      shell: cmd
+      run: 'cd Solutions
+
+        msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64
+        /maxcpucount /nologo
+
+        '
+    - name: Upload x64 Tools PDBs
+      uses: actions/upload-artifact@v7
+      with:
+        name: windows-tools-pdb-x64
+        include-hidden-files: true
+        path: Solutions/.build/*/*/*.pdb
+    - name: Delete x64 PDB / intermediate files
+      shell: cmd
+      run: 'cd Solutions\.build
+
+        del /s /q *.pdb *.map *.ilk *.iobj *.ipdb
+
+        '
+    - name: Upload x64 Tools binaries
+      uses: actions/upload-artifact@v7
+      with:
+        name: windows-tools-binaries-x64
+        include-hidden-files: true
+        path: Solutions/.build/*/*
+  windows-msvc-editor:
+    name: Windows MSVC Editor
+    runs-on: windows-2022
+    needs:
+    - windows-deps
+    - windows-msvc-tools
+    timeout-minutes: 40
+    env:
+      AGS_LIBOGG_LIB: C:\Lib\Xiph\x86
+      AGS_LIBTHEORA_LIB: C:\Lib\Xiph\x86
+      AGS_LIBVORBIS_LIB: C:\Lib\Xiph\x86
+      AGS_SDL_INCLUDE: C:\Lib\SDL2\include
+      AGS_SDL_LIB: C:\Lib\SDL2\lib\x86
+      AGS_SDL_SOUND_INCLUDE: C:\Lib\SDL_sound\src
+      AGS_SDL_SOUND_LIB: C:\Lib\SDL_sound\lib\x86
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+    - uses: microsoft/setup-msbuild@v3
+    - name: Download Windows dependencies
+      uses: actions/download-artifact@v8
+      with:
+        name: WinDevDependenciesVS.zip
+        path: C:\Lib
+    - name: Copy irrKlang DLLs to Editor\References
+      shell: pwsh
+      run: 'Copy-Item C:\Lib\irrKlang\x86\*.dll Editor\References\
+
+        New-Item -ItemType Directory -Path Editor\References\x64 -Force
+
+        Copy-Item C:\Lib\irrKlang\x64\*.dll Editor\References\x64
+
+        '
+    - name: Cache NuGet packages
+      id: cache-nuget
+      uses: actions/cache@v5
+      with:
+        path: Solutions\packages
+        key: nuget-${{ hashFiles('Editor/AGS.Editor/packages.config', 'Editor/AGS.Types/packages.config', 'Editor/AGS.Editor.Tests/packages.config')
+          }}
+    - name: Restore NuGet packages
+      if: steps.cache-nuget.outputs.cache-hit != 'true'
+      shell: cmd
+      run: nuget restore Solutions\AGS.Editor.Full.sln
+    - name: Build Editor (Debug)
+      shell: cmd
+      run: 'cd Solutions
+
+        msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Debug /p:Platform=x86
+        /maxcpucount /nologo
+
+        '
+    - name: Run NUnit tests (Debug)
+      shell: cmd
+      run: 'pushd Solutions\packages\NUnit.ConsoleRunner.3.*
+
+        set RUNNER="%CD%\tools\nunit3-console.exe"
+
+        popd
+
+        cmd /v:on /c "!RUNNER! Solutions\.test\x86\Debug\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=Editor\AGS.Editor.Tests\nunit3-junit.xslt"
+
+        '
+    - name: Build Editor (Release)
+      shell: cmd
+      run: 'cd Solutions
+
+        msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release
+        /p:Platform=x86 /maxcpucount /nologo
+
+        '
+    - name: Run NUnit tests (Release)
+      shell: cmd
+      run: 'pushd Solutions\packages\NUnit.ConsoleRunner.3.*
+
+        set RUNNER="%CD%\tools\nunit3-console.exe"
+
+        popd
+
+        cmd /v:on /c "!RUNNER! Solutions\.test\x86\Release\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=Editor\AGS.Editor.Tests\nunit3-junit.xslt"
+
+        '
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: editor-test-results
+        include-hidden-files: true
+        path: TestResult-junit.xml
+    - name: Upload Editor PDBs
+      uses: actions/upload-artifact@v7
+      with:
+        name: windows-editor-pdb
+        include-hidden-files: true
+        path: Solutions/.build/*/*/*.pdb
+    - name: Delete Editor PDBs and XML docs
+      shell: cmd
+      run: 'cd Solutions\.build
+
+        del /s /q *.pdb *.xml
+
+        '
+    - name: Download x86 Tools binaries
+      uses: actions/download-artifact@v8
+      with:
+        name: windows-tools-binaries-x86
+        path: tmp_win_tools
+    - name: Put the tools next to the editor
+      shell: pwsh
+      run: "Copy-Item tmp_win_tools\\x86\\Release\\*.exe Solutions\\.build\\x86\\Release\\\nRemove-Item -Recurse -Force tmp_win_tools\n\
+        foreach ($tool in 'agsbuild','agf2dta','agf2dlgasc','agfexport','agscc','agspak','crmbuild','crmpak','po2tra','spriteimport')\
+        \ {\n  if (-not (Test-Path \"Solutions\\.build\\x86\\Release\\$tool.exe\")) { throw \"$tool.exe is missing\" }\n}\n\
+        if (-not (Test-Path Solutions\\.build\\x86\\Release\\agsdefns.sh)) { throw \"agsdefns.sh is missing\" }\n"
+    - name: Upload Editor Release binaries
+      uses: actions/upload-artifact@v7
+      with:
+        name: windows-editor-binaries
+        include-hidden-files: true
+        path: Solutions/.build/x86/Release/*
+  installer-list:
+    name: Installer file list
+    runs-on: windows-2022
+    needs: windows-msvc-editor
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+    - name: Download Editor Release binaries
+      uses: actions/download-artifact@v8
+      with:
+        name: windows-editor-binaries
+        path: editor
+    - name: Every editor file the installer lists is there
+      shell: pwsh
+      run: "$listed = Select-String -Path Windows\\Installer\\ags.iss -Pattern '^Source: \"Source\\\\Editor\\\\([^\"*]+)\"\
+        ' |\n  ForEach-Object { $_.Matches[0].Groups[1].Value } | Sort-Object -Unique\n$missing = $listed | Where-Object {\
+        \ -not (Test-Path (Join-Path editor $_)) }\n\"listed: $($listed.Count), missing: $($missing.Count)\"\n$missing | ForEach-Object\
+        \ { \"MISSING: $_\" }\nif ($missing) { exit 1 }\n"
