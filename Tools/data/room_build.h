@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "data/game_utils.h"
 #include "data/room_utils.h"
 #include "data/room_xml.h"
 #include "game/roomdata.h"
@@ -46,6 +47,8 @@ struct RoomBuildGame
     int DefaultRoomMaskResolution = 1;
     int ColorDepth = 32;      // in bits
     int TextCodePage = 65001; // the game text encoding
+    // The game palette: the backgrounds of 8-bit rooms take its game-wide colours
+    std::vector<PaletteEntryData> Palette;
     // Cursor interaction events (the editor's InteractionSchema): cursor ID and event UID,
     // for every cursor that creates an event, in cursor order
     std::vector<std::pair<int, String>> InteractionEvents;

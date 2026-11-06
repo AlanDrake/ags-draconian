@@ -242,3 +242,143 @@ TEST(RoomBuild, LoadsImages)
         File::DeleteFile(Path::ConcatPaths(dir, String::FromFormat("%s.png", name)));
     Directory::DeleteDirectory(dir);
 }
+
+namespace
+{
+
+const char *const kRoomImageNames[] = {"background0", "background1",   "hotspots",
+                                       "walkbehinds", "walkableareas", "regions"};
+
+// A room directory with the four masks; the tests add the backgrounds
+String MakeRoomDir(const char *name)
+{
+    const String dir = Path::ConcatPaths(Directory::GetCurrentDirectory(), name);
+    Directory::CreateDirectory(dir);
+    RGB pal[256] = {};
+    const PixelBuffer mask = ClearBuffer(2, 2, kPxFmt_Indexed8);
+    for (const char *mask_name : {"hotspots", "walkbehinds", "walkableareas", "regions"})
+    {
+        ImageFile::SaveImage(mask, false, pal, Path::ConcatPaths(dir, String::FromFormat("%s.png", mask_name)));
+    }
+    return dir;
+}
+
+void DeleteRoomDir(const String &dir)
+{
+    for (const char *name : kRoomImageNames)
+    {
+        File::DeleteFile(Path::ConcatPaths(dir, String::FromFormat("%s.png", name)));
+    }
+    Directory::DeleteDirectory(dir);
+}
+
+// The game palette: slots 0 and 1 are game-wide, slot 2 belongs to the backgrounds
+std::vector<PaletteEntryData> MakeGamePalette()
+{
+    std::vector<PaletteEntryData> pal(3);
+    pal[0] = {kPaletteColourType_Gamewide, 0, 0, 0};
+    pal[1] = {kPaletteColourType_Gamewide, 10, 20, 30};
+    pal[2] = {kPaletteColourType_Background, 1, 1, 1};
+    return pal;
+}
+
+void ExpectColour(const RGB &colour, int r, int g, int b)
+{
+    EXPECT_EQ(r, colour.r);
+    EXPECT_EQ(g, colour.g);
+    EXPECT_EQ(b, colour.b);
+}
+
+} // namespace
+
+TEST(RoomBuild, EightBitBackgroundsTakeTheGamewideColours)
+{
+    const String dir = MakeRoomDir("room_build_test_8bit");
+    RGB pal[256] = {};
+    pal[1] = {100, 110, 120, 255};
+    pal[2] = {200, 210, 220, 255};
+    PixelBuffer bg = ClearBuffer(2, 2, kPxFmt_Indexed8);
+    bg.GetLine(0)[0] = 1;
+    bg.GetLine(0)[1] = 2;
+    ASSERT_TRUE(ImageFile::SaveImage(bg, false, pal, Path::ConcatPaths(dir, "background0.png")));
+    pal[2] = {50, 60, 70, 255};
+    ASSERT_TRUE(ImageFile::SaveImage(bg, false, pal, Path::ConcatPaths(dir, "background1.png")));
+
+    RoomXml room;
+    room.ColorDepth = 8;
+    room.BackgroundCount = 2;
+    RoomBuildGame game = MakeGame();
+    game.ColorDepth = 8;
+    game.Palette = MakeGamePalette();
+    RoomData data;
+    std::vector<String> warnings;
+    HError err = LoadRoomImages(dir, room, game, data, warnings);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    // The pixels stay; the game-wide slots have the game's colours, the others the image's
+    EXPECT_EQ(1, data.BackgroundBPP);
+    EXPECT_EQ(2u, data.BgFrameCount);
+    EXPECT_EQ(1, data.BgFrames[0].GraphicBuf.GetLine(0)[0]);
+    EXPECT_EQ(2, data.BgFrames[0].GraphicBuf.GetLine(0)[1]);
+    ExpectColour(data.Palette[1], 10, 20, 30);
+    ExpectColour(data.Palette[2], 200, 210, 220);
+    // each frame has its palette
+    ExpectColour(data.BgFrames[0].Palette[2], 200, 210, 220);
+    ExpectColour(data.BgFrames[1].Palette[1], 10, 20, 30);
+    ExpectColour(data.BgFrames[1].Palette[2], 50, 60, 70);
+
+    // In a 32-bit game the editor does the same to a room saved as 8-bit, then converts it
+    game.ColorDepth = 32;
+    ASSERT_TRUE(LoadRoomImages(dir, room, game, data, warnings));
+    EXPECT_EQ(4, data.BackgroundBPP);
+    const uint32_t *line = reinterpret_cast<const uint32_t *>(data.BgFrames[0].GraphicBuf.GetLine(0));
+    EXPECT_EQ(0xFF0A141Eu, line[0]); // game-wide: 10, 20, 30
+    EXPECT_EQ(0xFFC8D2DCu, line[1]); // the image's: 200, 210, 220
+    // and not to a room saved as 32-bit
+    room.ColorDepth = 32;
+    ASSERT_TRUE(LoadRoomImages(dir, room, game, data, warnings));
+    EXPECT_EQ(0xFF646E78u, reinterpret_cast<const uint32_t *>(data.BgFrames[0].GraphicBuf.GetLine(0))[0]);
+
+    // A true-colour background cannot go into an 8-bit game
+    ASSERT_TRUE(ImageFile::SaveImage(ClearBuffer(2, 2, kPxFmt_A8R8G8B8), false, nullptr,
+                                     Path::ConcatPaths(dir, "background0.png")));
+    game.ColorDepth = 8;
+    EXPECT_FALSE(LoadRoomImages(dir, room, game, data, warnings));
+    DeleteRoomDir(dir);
+}
+
+TEST(RoomBuild, GamewideColoursStopAtTheImagePalette)
+{
+    // An 8-bit PNG, 2x2, pixels 0 1 / 1 0, with a palette of two colours: 10 20 30 and 40 50 60
+    static const uint8_t png[] = {
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, 0x00, 0x00,
+        0x00, 0x02, 0x00, 0x00, 0x00, 0x02, 0x08, 0x03, 0x00, 0x00, 0x00, 0x45, 0x68, 0xFD, 0x16, 0x00, 0x00, 0x00,
+        0x06, 0x50, 0x4C, 0x54, 0x45, 0x0A, 0x14, 0x1E, 0x28, 0x32, 0x3C, 0xD5, 0x1B, 0xB4, 0xE9, 0x00, 0x00, 0x00,
+        0x0C, 0x49, 0x44, 0x41, 0x54, 0x78, 0xDA, 0x63, 0x60, 0x60, 0x04, 0x42, 0x00, 0x00, 0x0C, 0x00, 0x03, 0x15,
+        0x9E, 0x18, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+    };
+    const String dir = MakeRoomDir("room_build_test_pal");
+    {
+        auto out = File::CreateFile(Path::ConcatPaths(dir, "background0.png"));
+        ASSERT_TRUE(out != nullptr);
+        out->Write(png, sizeof(png));
+    }
+
+    RoomXml room;
+    room.ColorDepth = 8;
+    room.BackgroundCount = 1;
+    RoomBuildGame game = MakeGame();
+    game.ColorDepth = 8;
+    game.Palette.resize(4);
+    game.Palette[1] = {kPaletteColourType_Gamewide, 1, 2, 3};
+    game.Palette[3] = {kPaletteColourType_Gamewide, 7, 8, 9};
+    game.Palette[0].ColourType = kPaletteColourType_Background;
+    RoomData data;
+    std::vector<String> warnings;
+    HError err = LoadRoomImages(dir, room, game, data, warnings);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    EXPECT_EQ(1, data.BgFrames[0].GraphicBuf.GetLine(0)[1]);
+    ExpectColour(data.Palette[0], 10, 20, 30); // the image's
+    ExpectColour(data.Palette[1], 1, 2, 3);    // game-wide
+    ExpectColour(data.Palette[3], 0, 0, 0);    // game-wide, but past the image's palette: left black
+    DeleteRoomDir(dir);
+}

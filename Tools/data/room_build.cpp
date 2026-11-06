@@ -60,6 +60,7 @@ HError ReadRoomBuildGame(AGFReader &reader, RoomBuildGame &game)
     game.DefaultRoomMaskResolution = opts.DefaultRoomMaskResolution;
     game.ColorDepth = static_cast<int>(opts.ColorDepth) * 8;
     game.TextCodePage = DataFileWriter::ParseGameTextEncodingCodePage(opts.GameTextEncoding);
+    ReadGamePalette(game.Palette, reader.GetGameRoot());
     ReadCustomPropertySchema(game.PropertySchema, reader.GetGameRoot());
 
     // Tasks.SyncCursorsWithInteractionSchema
@@ -455,38 +456,95 @@ static HError LoadMask(const String &room_dir, const char *name, int max_areas, 
     return HError::None();
 }
 
+// The number of colours in a PNG file's palette; 0 if it has none or is not a PNG file
+static size_t ReadPngPaletteLength(const String &filename)
+{
+    static const uint8_t png_signature[8] = {0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A};
+    auto in = File::OpenFileRead(filename);
+    uint8_t signature[8];
+    if (!in || in->Read(signature, sizeof(signature)) != sizeof(signature) ||
+        !std::equal(std::begin(signature), std::end(signature), std::begin(png_signature)))
+    {
+        return 0;
+    }
+    // Chunks: length, type, data, CRC; the palette comes before the image data
+    for (;;)
+    {
+        const uint32_t length = static_cast<uint32_t>(in->ReadInt32BE());
+        char type[4];
+        if (in->Read(type, sizeof(type)) != sizeof(type))
+        {
+            return 0;
+        }
+        if (std::equal(std::begin(type), std::end(type), "PLTE"))
+        {
+            return std::min<size_t>(length / 3, PAL_SIZE);
+        }
+        // The image data, or the end: no palette, or a file cut short
+        if (std::equal(std::begin(type), std::end(type), "IDAT") ||
+            std::equal(std::begin(type), std::end(type), "IEND") ||
+            in->Seek(static_cast<soff_t>(length) + 4, kSeekCurrent) < 0)
+        {
+            return 0;
+        }
+    }
+}
+
+// Gives the background of an 8-bit room the game-wide colours of the game palette, as the editor
+// does when it loads one (RoomsComponent.LoadBackground, PaletteUtilities.RemapBackground with the
+// exact palette); the other slots keep the image's colours. Only the slots the image's palette has
+// are set: the ones past it stay black.
+static void SetGamewideColours(Palette &pal, size_t pal_length, const std::vector<PaletteEntryData> &game_pal)
+{
+    const size_t count = std::min({pal_length, game_pal.size(), pal.size()});
+    for (size_t i = 0; i < count; ++i)
+    {
+        if (game_pal[i].ColourType == kPaletteColourType_Gamewide)
+        {
+            pal[i].r = static_cast<uint8_t>(game_pal[i].Red);
+            pal[i].g = static_cast<uint8_t>(game_pal[i].Green);
+            pal[i].b = static_cast<uint8_t>(game_pal[i].Blue);
+            pal[i].a = 255;
+        }
+    }
+}
+
 HError LoadRoomImages(const String &room_dir, const RoomXml &room, const RoomBuildGame &game, RoomData &data,
                       std::vector<String> &warnings)
 {
-    if (game.ColorDepth == 8)
-        return new Error("Building rooms of 256-colour games is not supported by the tools yet (the backgrounds "
-                         "need the game palette); build the game in the editor.");
-
     // Backgrounds: the editor uses the ones it finds (RoomsComponent.LoadImageCache)
-    std::vector<PixelBuffer> backgrounds;
+    std::vector<RoomBgFrame> backgrounds;
     for (int i = 0; i < room.BackgroundCount; ++i)
     {
         const String filename = Path::ConcatPaths(room_dir, String::FromFormat("background%d.png", i));
         if (i > 0 && !File::IsFile(filename))
             continue;
-        PixelBuffer image, converted;
-        Palette pal, game_pal;
+        PixelBuffer image;
+        Palette pal, converted_pal;
         HError err = LoadImageFile(filename, image, pal);
         if (!err)
             return err;
-        err = ConvertRoomBackgroundForGame(image, &pal, converted, game_pal, game.ColorDepth);
+        if (room.ColorDepth == 8 && PixelFormatIndexed(image.GetFormat()))
+        {
+            SetGamewideColours(pal, ReadPngPaletteLength(filename), game.Palette);
+        }
+        RoomBgFrame frame;
+        err = ConvertRoomBackgroundForGame(image, &pal, frame.GraphicBuf, converted_pal, game.ColorDepth);
         if (!err)
             return new Error(err, String::FromFormat("Failed to convert %s", filename.GetCStr()));
-        backgrounds.push_back(std::move(converted));
+        // An 8-bit background keeps its palette (AGS.Native SetNativeRoomBackground)
+        if (frame.GraphicBuf.GetColorDepth() == 8)
+        {
+            std::copy(converted_pal.begin(), converted_pal.end(), std::begin(frame.Palette));
+        }
+        backgrounds.push_back(std::move(frame));
     }
     if (backgrounds.empty())
         return new Error(
             String::FromFormat("File not found: %s", Path::ConcatPaths(room_dir, "background0.png").GetCStr()));
 
     data.BgFrameCount = static_cast<uint32_t>(backgrounds.size());
-    data.BgFrames.resize(data.BgFrameCount);
-    for (size_t i = 0; i < backgrounds.size(); ++i)
-        data.BgFrames[i].GraphicBuf = std::move(backgrounds[i]);
+    data.BgFrames = std::move(backgrounds);
     // RoomStruct.PrepareForWriteToFile
     data.BackgroundBPP = data.BgFrames[0].GraphicBuf.GetBytesPerPixel();
     std::copy(std::begin(data.BgFrames[0].Palette), std::end(data.BgFrames[0].Palette), std::begin(data.Palette));
