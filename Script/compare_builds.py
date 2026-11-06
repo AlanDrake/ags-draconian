@@ -9,6 +9,7 @@ Both builds start from fresh copies of the project (Compiled/ and _Debug/ are le
 packages (*.ags) are unpacked with agspak, so the table shows each packed file: game28.dta, rooms,
 sprite file and index, audio, fonts, custom data; a "(package)" row compares each .ags package
 itself (part names, asset order, ender). Exit code 0 means every file is identical.
+A package split into parts (SplitResources) is compared by its assets only.
 
 The one layout difference allowed: the editor embeds the compiled scripts in game28.dta, while agsbuild
 packs them as separate files (GlobalScript.o, __DialogScripts.o and the modules in ScriptModules.lst),
@@ -17,6 +18,11 @@ which the engine loads since 3.6.1. The comparison takes the scripts out of the 
 of game28.dta must match byte for byte.
 
 Options:
+  --variants LIST   instead of the project as it is, compare copies of it that use what the project
+                    does not (PLAN.md 6.7d-1): a comma-separated list of variant names, or "all";
+                    --list-variants prints them. Each variant prints its rows that are not identical,
+                    and a summary table follows
+  --all-rows        with --variants, print every row
   --build-dir DIR   CMake build with tools (default: .tidy/build); agsbuild, agscc and the other tools
                     are collected from it into one tools directory next to the script API header
   --engine PATH     also run the auto-test on the agsbuild output with this engine (Software driver)
@@ -95,18 +101,30 @@ def hash_file(path):
     return h.hexdigest()
 
 
+# The parts of a split package after the first: <name>.001, .002 as agspak names them, and <name>.1D3,
+# .2D3 as the editor did (a format-string slip in DataFileWriter.cs; the engine opens whatever names
+# the first part lists)
+PART_EXTENSION = re.compile(r'^\.(\d{3}|\d+D3)$')
+
+
 def flatten_output(out_dir, unpack_dir, agspak):
-    """Returns {name: (path, size)} for the deployed files, with *.ags packages unpacked in place."""
+    """Returns {name: (path, size)} for the deployed files, with *.ags and *.vox packages unpacked in
+    place."""
     files = {}
     if os.path.isdir(unpack_dir):
         shutil.rmtree(unpack_dir)  # files of an earlier run would show up as this run's output
     if not os.path.isdir(out_dir):
         return files
-    for name in sorted(os.listdir(out_dir)):
+    names = sorted(os.listdir(out_dir))
+    packages = {os.path.splitext(n)[0].lower() for n in names if n.lower().endswith('.ags')}
+    for name in names:
         path = os.path.join(out_dir, name)
         if not os.path.isfile(path):
             continue
-        if name.lower().endswith('.ags'):
+        base, ext = os.path.splitext(name)
+        if base.lower() in packages and PART_EXTENSION.match(ext):
+            continue  # a further part of a split package: its assets are unpacked with the first part
+        if name.lower().endswith(('.ags', '.vox')):
             dest = os.path.join(unpack_dir, name)
             os.makedirs(dest, exist_ok=True)
             subprocess.run([agspak, '-e', path, dest], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -229,6 +247,10 @@ def compare_packages(ed_path, tool_path):
     e, t = package_layout(ed_path), package_layout(tool_path)
     if e is None or t is None:
         return 'not a package of format 30'
+    if len(e[0]) > 1 and len(t[0]) > 1:
+        # Split packages are compared by their assets only (PLAN.md 6.7d-3): the editor named the parts
+        # .1D3, .2D3, listed the assets unsorted and filled the parts by another rule than agspak
+        return None
     if e[0] != t[0]:
         return f'part names {e[0]} and {t[0]}'
     if e[2] != t[2]:
@@ -262,34 +284,128 @@ def run_autotest(engine, files_dir, work_dir, timeout):
     return f'{ok} ok, {not_ok} not ok, of {plan.group(1) if plan else "?"} planned (engine exit {code})'
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    ap.add_argument('project', help='game project directory (containing Game.agf)')
-    ap.add_argument('--editor', required=True, help='path to AGSEditor.exe')
-    ap.add_argument('--build-dir', default=os.path.join(REPO, '.tidy', 'build'))
-    ap.add_argument('--engine', help='engine executable for the auto-test run')
-    ap.add_argument('--work-dir', default=os.path.join(REPO, '.compare', 'builds'))
-    ap.add_argument('--timeout', type=int, default=900)
-    args = ap.parse_args()
+def set_element(agf_text, name, value, nth=0):
+    """Game.agf with the text of the nth <name> element replaced."""
+    found = list(re.finditer('<%s>[^<]*</%s>|<%s ?/>' % (name, name, name), agf_text))
+    if len(found) <= nth:
+        sys.exit(f'No <{name}> element number {nth} in Game.agf')
+    m = found[nth]
+    return agf_text[:m.start()] + f'<{name}>{value}</{name}>' + agf_text[m.end():]
 
-    project = os.path.abspath(args.project)
-    if not os.path.isfile(os.path.join(project, 'Game.agf')):
-        sys.exit(f'No Game.agf in {project}')
-    work = os.path.abspath(args.work_dir)
+
+def put_file(project, rel, data=b'parity'):
+    full = os.path.join(project, *rel.split('/'))
+    os.makedirs(os.path.dirname(full), exist_ok=True)
+    with open(full, 'wb') as f:
+        f.write(data)
+
+
+def variant_release(project, agf):
+    return set_element(agf, 'DebugMode', 'False')
+
+
+def variant_split(project, agf):
+    # Parts of 1 MB; the padding makes the package large enough for three of them
+    put_file(project, 'CustomData/padding1.bin', bytes(range(256)) * 3000)
+    put_file(project, 'CustomData/padding2.bin', bytes(range(255, -1, -1)) * 3000)
+    return set_element(agf, 'SplitResources', '1')
+
+
+def variant_opengl(project, agf):
+    return set_element(agf, 'GraphicsDriver', 'OpenGL')
+
+
+def variant_customcfg(project, agf):
+    put_file(project, 'acsetup.cfg', b'[misc]\r\nparity_key=1\r\n[graphics]\r\nvsync=1\r\n[mouse]\r\nspeed=1.5\r\n')
+    return agf
+
+
+def variant_packed(project, agf):
+    for name in ('preload.pcx', 'flic1.flc', 'flic2.fli', 'intro.ogv'):
+        put_file(project, name)
+    return agf
+
+
+def variant_speech(project, agf):
+    for name in ('Speech/ego1.ogg', 'Speech/ego2.flac', 'Speech/ego3.wav', 'Speech/ego4.mp3', 'Speech/notes.txt',
+                 'Speech/French/ego1.ogg', 'Speech/French/ego2.flac', 'Speech/Notes/readme.txt'):
+        put_file(project, name)
+    return agf
+
+
+def variant_customdirs(project, agf):
+    for name in ('Extra/Deep/a.txt', 'Extra/Deep/Sub/b.txt', 'CustomData/Nested/c.txt', 'Speech/Loose/d.txt'):
+        put_file(project, name)
+    return set_element(agf, 'CustomDataDir', 'Extra/Deep,CustomData,CustomData/Nested,Speech/Loose,../outside,.')
+
+
+def variant_audiovox(project, agf):
+    return set_element(agf, 'BundlingType', 'InSeparateVOX')
+
+
+def variant_noname(project, agf):
+    return set_element(agf, 'GameFileName', '')
+
+
+def variant_unicode(project, agf):
+    # A game name and a project folder (see VARIANT_DIRS) outside ASCII and outside the ANSI code pages,
+    # and a translation, which gets the game name on po2tra's command line
+    put_file(project, 'Parity.po', ('msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n\n'
+                                    'msgid "Hello"\nmsgstr "Ciao"\n').encode('utf-8'))
+    agf = set_element(agf, 'GameName', 'Parit\u00e9 \u0436\u0434 "\u00f8"')
+    return set_element(agf, 'Translations', '<Translation><Name>Parity</Name></Translation>')
+
+
+VARIANTS = {
+    'release': (variant_release, 'release mode (DebugMode off)'),
+    'split': (variant_split, 'SplitResources: a package in parts'),
+    'opengl': (variant_opengl, 'OpenGL as the default graphics driver'),
+    'customcfg': (variant_customcfg, 'an acsetup.cfg in the project folder'),
+    'packed': (variant_packed, 'preload.pcx, flic and ogv files in the project folder'),
+    'speech': (variant_speech, 'a Speech folder with a sub-folder: voice packs'),
+    'customdirs': (variant_customdirs, 'custom data folders: nested, with sub-folders, restricted, outside'),
+    'audiovox': (variant_audiovox, 'an audio clip in audio.vox'),
+    'noname': (variant_noname, 'an empty GameFileName'),
+    'unicode': (variant_unicode, 'a game name and a project path outside ASCII, with a translation'),
+}
+# Variants whose project copies are built in a folder of this name: both builds in one of the same
+# name, where the name counts
+VARIANT_DIRS = {'noname': 'folder-name', 'unicode': 'proj\u00e9 \u0436\u0434'}
+
+
+def make_variant(project, dst, name):
+    if os.path.isdir(dst):
+        shutil.rmtree(dst)
+    shutil.copytree(project, dst, ignore=shutil.ignore_patterns('Compiled', '_Debug', '*.lock', '.git'))
+    agf_path = os.path.join(dst, 'Game.agf')
+    with open(agf_path, encoding='utf-8', newline='') as f:
+        agf = f.read()
+    agf = VARIANTS[name][0](dst, agf)
+    with open(agf_path, 'w', encoding='utf-8', newline='') as f:
+        f.write(agf)
+
+
+def status(code):
+    if code is None:
+        return 'timed out (killed)'
+    return f'exit {code - (1 << 32) if code >= (1 << 31) else code}'  # Windows reports -1 as 4294967295
+
+
+def compare(project, work, sys_dir, args, all_rows=True, engine=None, dir_name=None):
+    """Builds the project both ways under the work folder and prints the comparison. Returns
+    (parity, one-line summary)."""
     os.makedirs(work, exist_ok=True)
-    sys_dir = os.path.join(work, 'tools')
-    collect_tools(os.path.abspath(args.build_dir), sys_dir)
     agspak = os.path.join(sys_dir, 'agspak' + EXE)
 
     # Editor build
-    ed_proj = os.path.join(work, 'editor-project')
+    ed_proj = os.path.join(work, 'editor-project', dir_name) if dir_name else os.path.join(work, 'editor-project')
     copy_project(project, ed_proj)
     ed_code, ed_time = run([os.path.abspath(args.editor), '/compile', os.path.join(ed_proj, 'Game.agf')],
                            os.path.join(work, 'editor.log'), args.timeout)
     ed_out = os.path.join(ed_proj, 'Compiled', 'Data')
 
     # agsbuild
-    tool_proj = os.path.join(work, 'tools-project')
+    tool_proj = os.path.join(work, 'tools-project', dir_name) if dir_name else os.path.join(work, 'tools-project')
     copy_project(project, tool_proj)
     tool_out = os.path.join(work, 'tools-output')
     if os.path.isdir(tool_out):
@@ -300,11 +416,6 @@ def main():
 
     ed_files = flatten_output(ed_out, os.path.join(work, 'unpacked-editor'), agspak)
     tool_files = flatten_output(tool_out, os.path.join(work, 'unpacked-tools'), agspak)
-
-    def status(code):
-        if code is None:
-            return 'timed out (killed)'
-        return f'exit {code - (1 << 32) if code >= (1 << 31) else code}'  # Windows reports -1 as 4294967295
 
     print(f'editor:   {status(ed_code)} in {ed_time:.0f}s, {len(ed_files)} files  (log: {work}/editor.log)')
     print(f'agsbuild: {status(tool_code)} in {tool_time:.0f}s, {len(tool_files)} files  (log: {work}/agsbuild.log)')
@@ -333,7 +444,7 @@ def main():
 
     names = sorted(set(ed_files) | set(tool_files))
     counts = {'identical': 0, 'different': 0, 'only editor': 0, 'only agsbuild': 0}
-    print(f'\n| file | result | editor bytes | agsbuild bytes |\n|---|---|---:|---:|')
+    rows = []
     for n in names:
         e, t = ed_files.get(n), tool_files.get(n)
         note = ''
@@ -348,25 +459,81 @@ def main():
         else:
             result = 'only editor' if e else 'only agsbuild'
         counts[result] += 1
-        print(f'| {n} | {result}{note} | {e[1] if e else ""} | {t[1] if t else ""} |')
+        rows.append((result, f'| {n} | {result}{note} | {e[1] if e else ""} | {t[1] if t else ""} |'))
     # The packages themselves, besides the files in them: part names, asset order, ender
     for n in sorted(os.listdir(ed_out) if os.path.isdir(ed_out) else []):
         ed_pkg, tool_pkg = os.path.join(ed_out, n), os.path.join(tool_out, n)
-        if not n.lower().endswith('.ags') or not os.path.isfile(tool_pkg):
+        if not n.lower().endswith(('.ags', '.vox')) or not os.path.isfile(tool_pkg):
             continue
         reason = compare_packages(ed_pkg, tool_pkg)
         result = 'different' if reason else 'identical'
         names.append(n + ' (package)')
         counts[result] += 1
-        print(f'| {n} (package) | {result}{f" ({reason})" if reason else ""} | | |')
-    print('\n' + ', '.join(f'{v} {k}' for k, v in counts.items()))
+        rows.append((result, f'| {n} (package) | {result}{f" ({reason})" if reason else ""} | | |'))
+    shown = [row for result, row in rows if all_rows or result != 'identical']
+    if shown:
+        print('\n| file | result | editor bytes | agsbuild bytes |\n|---|---|---:|---:|')
+        print('\n'.join(shown))
+    summary = ', '.join(f'{v} {k}' for k, v in counts.items())
+    print('\n' + summary)
 
-    if args.engine:
-        print('auto-test on agsbuild output:', run_autotest(args.engine, tool_out, work, args.timeout))
+    if engine:
+        print('auto-test on agsbuild output:', run_autotest(engine, tool_out, work, args.timeout))
 
-    ok = names and counts['identical'] == len(names)
+    ok = bool(names) and counts['identical'] == len(names) and ed_code == 0 and tool_code == 0
+    if ed_code != 0 or tool_code != 0:
+        summary += f'; editor {status(ed_code)}, agsbuild {status(tool_code)}'
     print('RESULT:', 'PARITY' if ok else 'NO PARITY')
-    return 0 if ok else 1
+    return ok, summary
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
+    ap.add_argument('project', nargs='?', help='game project directory (containing Game.agf)')
+    ap.add_argument('--editor', help='path to AGSEditor.exe')
+    ap.add_argument('--variants', help='comma-separated variant names, or "all"')
+    ap.add_argument('--list-variants', action='store_true')
+    ap.add_argument('--all-rows', action='store_true')
+    ap.add_argument('--build-dir', default=os.path.join(REPO, '.tidy', 'build'))
+    ap.add_argument('--engine', help='engine executable for the auto-test run')
+    ap.add_argument('--work-dir', default=os.path.join(REPO, '.compare', 'builds'))
+    ap.add_argument('--timeout', type=int, default=900)
+    args = ap.parse_args()
+    sys.stdout.reconfigure(errors='replace')  # paths outside the console's code page
+
+    if args.list_variants:
+        for name, (_, what) in VARIANTS.items():
+            print(f'{name:12}{what}')
+        return 0
+    if not args.project or not args.editor:
+        ap.error('the project and --editor are required')
+    project = os.path.abspath(args.project)
+    if not os.path.isfile(os.path.join(project, 'Game.agf')):
+        sys.exit(f'No Game.agf in {project}')
+    work = os.path.abspath(args.work_dir)
+    os.makedirs(work, exist_ok=True)
+    sys_dir = os.path.join(work, 'tools')
+    collect_tools(os.path.abspath(args.build_dir), sys_dir)
+
+    if not args.variants:
+        return 0 if compare(project, work, sys_dir, args, engine=args.engine)[0] else 1
+
+    chosen = list(VARIANTS) if args.variants == 'all' else args.variants.split(',')
+    unknown = [v for v in chosen if v not in VARIANTS]
+    if unknown:
+        sys.exit(f'Unknown variants: {", ".join(unknown)} (see --list-variants)')
+    results = []
+    for name in chosen:
+        print(f'\n== {name}: {VARIANTS[name][1]}')
+        variant_work = os.path.join(work, 'variants', name)
+        source = os.path.join(variant_work, 'source')
+        make_variant(project, source, name)
+        results.append((name,) + compare(source, variant_work, sys_dir, args, all_rows=args.all_rows,
+                                         dir_name=VARIANT_DIRS.get(name)))
+    print('\n| variant | what | result | files |\n|---|---|---|---|')
+    for name, ok, summary in results:
+        print(f'| {name} | {VARIANTS[name][1]} | {"parity" if ok else "NO PARITY"} | {summary} |')
+    return 0 if all(ok for _, ok, _ in results) else 1
 
 
 if __name__ == '__main__':
