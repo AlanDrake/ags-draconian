@@ -242,7 +242,12 @@ add_compile_definitions("$<$<CONFIG:DEBUG>:_DEBUG>")
 add_compile_definitions("$<$<CONFIG:RELEASE>:NDEBUG>")
 
 if(MSVC)
-    add_compile_options(/MP)    # Build with Multiple Processes
+    # Several compiler processes per project. Only MSBuild hands a project's sources to one compiler
+    # call; Ninja starts one call per source, where the option does nothing and gets in the way of a
+    # compiler cache (docs/refactor/PLAN.md, 2.9)
+    if(CMAKE_GENERATOR MATCHES "Visual Studio")
+        add_compile_options(/MP)
+    endif()
     # CMake 3.15+ (CMP0092) no longer adds a level by default; /W4 for the targets of ags_warning_free()
     add_compile_options($<IF:$<BOOL:$<TARGET_PROPERTY:AGS_WARNING_FREE>>,/W4,/W3>)
     add_compile_definitions(_CRT_SECURE_NO_DEPRECATE)
