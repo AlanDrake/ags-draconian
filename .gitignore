@@ -60,6 +60,9 @@ Android/library/runtime/libs/
 ## Xcode Build generated
 **/build
 **/DerivedData
+# ... but not the editor's build code (core.ignorecase makes the line above match "Build" on Windows)
+!Editor/AGS.Editor/Build/
+!Editor/AGS.Editor.Tests/Editor/Build/
 
 ## Xcode Various settings
 *.pbxuser

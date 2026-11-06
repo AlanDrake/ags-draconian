@@ -1109,6 +1109,12 @@
     <Compile Include="Audio\IAudioPreviewer.cs" />
     <Compile Include="Audio\IrrklangPlayer.cs" />
     <Compile Include="AutoComplete.cs" />
+    <Compile Include="Build\BuildToolEvent.cs" />
+    <Compile Include="Build\BuildToolOptions.cs" />
+    <Compile Include="Build\BuildToolProgress.cs" />
+    <Compile Include="Build\BuildToolResult.cs" />
+    <Compile Include="Build\BuildToolRunner.cs" />
+    <Compile Include="Build\ProcessJob.cs" />
     <Compile Include="BuildTargets\BuildTargetBase.cs" />
     <Compile Include="BuildTargets\BuildTargetDataFile.cs" />
     <Compile Include="BuildTargets\BuildTargetDebug.cs" />
