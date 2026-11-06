@@ -176,11 +176,12 @@ void CacheRoomPalettes(RoomPaletteCache &room_cache, const String &room_dir,
     {
         const String filepath = Path::ConcatPaths(room_dir, String::FromFormat("room%d.crm", room_ref.first));
         RoomDataSource src;
+        // A palette that cannot be read is a warning: the sprites are imported with what there is
         HRoomFileError err = OpenRoomFile(filepath, src);
         if (!err)
         {
-            printf("Error: failed to open room file '%s' for reading:\n", filepath.GetCStr());
-            printf("%s\n", err->FullMessage().GetCStr());
+            printf("Warning: failed to open room file '%s' for reading: %s\n", filepath.GetCStr(),
+                   err->FullMessage().GetCStr());
             continue;
         }
 
@@ -190,8 +191,7 @@ void CacheRoomPalettes(RoomPaletteCache &room_cache, const String &room_dir,
         err = ReadRoomData(&room, nullptr, std::move(src.InputStream), src.DataVersion, {{kRoomFblk_Main, ""}}, {});
         if (!err)
         {
-            printf("Error: failed to read room file '%s':\n", filepath.GetCStr());
-            printf("%s\n", err->FullMessage().GetCStr());
+            printf("Warning: failed to read room file '%s': %s\n", filepath.GetCStr(), err->FullMessage().GetCStr());
             continue;
         }
 
@@ -239,15 +239,16 @@ HError CutSpritesAndWrite(const String &src_file, const std::vector<SpriteData> 
             }
             else
             {
+                // A sprite that cannot be imported is left empty, and the import goes on: a warning
                 writer.WriteSprite({}, sprite.Slot); // write empty slot to spritefile
-                printf("Error: failed to convert the sprite %d for the game:\n", sprite.Slot);
-                printf("%s\n", err->FullMessage().GetCStr());
+                printf("Warning: failed to convert the sprite %d for the game: %s\n", sprite.Slot,
+                       err->FullMessage().GetCStr());
             }
         }
         else
         {
             writer.WriteSprite({}, sprite.Slot); // write empty slot to spritefile
-            printf("Error: failed to cut the sprite's %d tile (%d,%d,%d,%d)\n", sprite.Slot, sprite.ImportOffsetX,
+            printf("Warning: failed to cut the sprite's %d tile (%d,%d,%d,%d)\n", sprite.Slot, sprite.ImportOffsetX,
                    sprite.ImportOffsetY, sprite.ImportWidth, sprite.ImportHeight);
         }
     }
@@ -277,11 +278,12 @@ HError ImportSpritesImpl(const std::multimap<String, SpriteData> &source_to_spri
                 (*out_sprite_order)[s.Slot] = out_index++;
         }
 
+        // The sprites of a source that cannot be read are left empty, and the import goes on: a warning
         HError err = CutSpritesAndWrite(this_source, sprite_group, game_color_opts, room_cache, writer, verbose);
         if (!err)
         {
-            printf("Error: failed to import sprite(s) from source file '%s':\n", this_source.GetCStr());
-            printf("%s\n", err->FullMessage().GetCStr());
+            printf("Warning: failed to import sprite(s) from source file '%s': %s\n", this_source.GetCStr(),
+                   err->FullMessage().GetCStr());
         }
     }
     writer.End();
@@ -359,8 +361,8 @@ HError ImportToSpritePak(const std::multimap<String, SpriteData> &source_to_spri
         }
         else
         {
-            printf("Error: failed to write index file (%s):\n", opts.IndexFile.GetCStr());
-            printf("%s\n", err->FullMessage().GetCStr());
+            printf("Warning: failed to write index file (%s): %s\n", opts.IndexFile.GetCStr(),
+                   err->FullMessage().GetCStr());
         }
     }
     return HError::None();
