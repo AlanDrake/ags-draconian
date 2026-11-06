@@ -12,10 +12,14 @@
 //
 //=============================================================================
 // Tests of the agsbuild task manager: a failing task, and cancelling a build
-// (docs/refactor/PLAN.md, 7.1b and 7.1h).
+// (docs/refactor/PLAN.md, 7.1b and 7.1h); what a finished task reports (6.7d-6).
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
 #include <future>
 #include <thread>
+#include <utility>
+#include <vector>
 
 #include "agsbuild/diagnostics.h"
 #include "agsbuild/pipedprocess.h"
@@ -57,6 +61,42 @@ PipedProcessParams QuickCommand()
 #endif
 }
 
+// A command that prints an error, and succeeds anyway (as spriteimport did for a missing image)
+PipedProcessParams SucceedingCommandWithError()
+{
+#if AGS_PLATFORM_OS_WINDOWS
+    return PipedProcessParams("cmd", "/c echo Error: failed to import a sprite, left it empty& exit 0");
+#else
+    return PipedProcessParams("sh", "-c 'echo \"Error: failed to import a sprite, left it empty\"; exit 0'");
+#endif
+}
+
+// A command that fails without a word
+PipedProcessParams SilentFailingCommand()
+{
+#if AGS_PLATFORM_OS_WINDOWS
+    return PipedProcessParams("cmd", "/c exit 3");
+#else
+    return PipedProcessParams("sh", "-c 'exit 3'");
+#endif
+}
+
+// Runs the tasks, and returns the diagnostics they gave
+std::vector<Diag::Diagnostic> RunAndCollect(TaskManager &mgr, const char *what)
+{
+    std::vector<Diag::Diagnostic> seen;
+    Diag::SetDiagnosticObserver([&seen](const Diag::Diagnostic &d) { seen.push_back(d); });
+    auto run = std::async(std::launch::async, [&mgr]() { return mgr.RunAll(); });
+    if (run.wait_for(std::chrono::seconds(60)) != std::future_status::ready)
+    {
+        std::fprintf(stderr, "%s: did not finish in time\n", what);
+        std::abort();
+    }
+    run.get();
+    Diag::SetDiagnosticObserver(nullptr);
+    return seen;
+}
+
 template <class T>
 T WaitOrAbort(std::future<T> &f, int seconds, const char *what)
 {
@@ -86,6 +126,57 @@ TEST(TaskManager, FailedTaskCancelsDependentsOnly)
     EXPECT_FALSE(err);
     // The error the tool printed was read from its output
     EXPECT_EQ(errors_before + 1, Diag::ErrorCount());
+}
+
+// The exit code tells whether a task failed: the errors a succeeding tool prints are warnings, so
+// that a build which succeeds has no errors
+TEST(TaskManager, SucceededTaskReportsErrorsAsWarnings)
+{
+    EXPECT_EQ(Diag::Severity::Warning, SeverityForTaskState(Diag::Severity::Error, TaskState::Success));
+    EXPECT_EQ(Diag::Severity::Error, SeverityForTaskState(Diag::Severity::Error, TaskState::Failure));
+    EXPECT_EQ(Diag::Severity::Warning, SeverityForTaskState(Diag::Severity::Warning, TaskState::Failure));
+    EXPECT_EQ(Diag::Severity::Info, SeverityForTaskState(Diag::Severity::Info, TaskState::Success));
+
+    const int errors_before = Diag::ErrorCount();
+    const int warnings_before = Diag::WarningCount();
+    TaskManager mgr(1);
+    mgr.AddTask(std::make_unique<TaskPipedProcess>("spriteimport", &mgr, SucceedingCommandWithError()));
+    const auto seen = RunAndCollect(mgr, "SucceededTaskReportsErrorsAsWarnings");
+    EXPECT_EQ(errors_before, Diag::ErrorCount());
+    EXPECT_EQ(warnings_before + 1, Diag::WarningCount());
+    ASSERT_EQ(1u, seen.size());
+    EXPECT_EQ(Diag::Severity::Warning, seen[0].Level);
+    EXPECT_EQ("failed to import a sprite, left it empty", seen[0].Message);
+}
+
+// A task that fails without an error line of its own is reported with its result: which file,
+// what failed (the copy of a missing room gave an empty message)
+TEST(TaskManager, FailedTaskWithoutErrorLineHasAMessage)
+{
+    TaskManager mgr(1);
+    const std::vector<std::pair<String, String>> files = {{"no_such_dir/room7.crm", "no_such_dir/copy.crm"}};
+    auto copy = std::make_unique<TaskMoveFiles>("copy-rooms", &mgr, files, FileMoveOp::Copy, false);
+    const Task *copy_task = copy.get();
+    mgr.AddTask(std::move(copy));
+    mgr.AddTask(std::make_unique<TaskPipedProcess>("silent", &mgr, SilentFailingCommand()));
+    const auto seen = RunAndCollect(mgr, "FailedTaskWithoutErrorLineHasAMessage");
+
+    EXPECT_TRUE(copy_task->GetResult().HasError());
+    ASSERT_EQ(2u, seen.size());
+    for (const auto &d : seen)
+    {
+        EXPECT_EQ(Diag::Severity::Error, d.Level);
+        if (d.Task == "copy-rooms")
+        {
+            EXPECT_EQ("agsbuild", d.Tool);
+            EXPECT_EQ("Source file no_such_dir/room7.crm does not exist", d.Message);
+        }
+        else
+        {
+            EXPECT_EQ("silent", d.Task);
+            EXPECT_EQ("Process exited with error code 3", d.Message);
+        }
+    }
 }
 
 // The running tools are killed and the waiting tasks do not start: RunAll returns long before

@@ -182,6 +182,7 @@ HError Task::Run()
             return new Error("Cancelled");
         }
         _state = err ? TaskState::Success : TaskState::Failure;
+        _result = err; // what the task manager reports for a failure the task's output does not tell
         if (_state == TaskState::Success)
             _logWriter->WriteFormat("Success");
         else
@@ -258,7 +259,7 @@ HError TaskMoveFiles::RunImpl()
 
 HError TaskDeleteFiles::RunImpl()
 {
-    bool success = true;
+    std::vector<String> failed;
     for (const auto file : _files)
     {
         if (File::DeleteFile(file))
@@ -267,12 +268,18 @@ HError TaskDeleteFiles::RunImpl()
         }
         else
         {
-            success = false;
+            failed.push_back(file);
             _logWriter->WriteFormat("Failed to delete file %s\n", file.GetCStr());
         }
     }
 
-    return success ? HError::None() : new Error("Failed to delete all of the requested files");
+    if (failed.empty())
+    {
+        return HError::None();
+    }
+    return failed.size() == 1
+               ? new Error("Failed to delete %s", failed[0].GetCStr())
+               : new Error("Failed to delete %s and %zu more files", failed[0].GetCStr(), failed.size() - 1);
 }
 
 //-----------------------------------------------------------------------------
@@ -715,6 +722,7 @@ void TaskManager::ReportFinishedTask(Task *task, TaskState state)
     {
         diag.Tool = tool;
         diag.Task = task->GetName().GetCStr();
+        diag.Level = SeverityForTaskState(diag.Level, state);
         has_error |= diag.Level == Diag::Severity::Error;
         Diag::EmitDiagnostic(diag);
     }
@@ -723,9 +731,22 @@ void TaskManager::ReportFinishedTask(Task *task, TaskState state)
         Diag::Diagnostic diag;
         diag.Tool = tool;
         diag.Task = task->GetName().GetCStr();
-        diag.Message = task->GetResult()->FullMessage().GetCStr();
+        const HError result = task->GetResult();
+        if (result.HasError())
+        {
+            diag.Message = result->FullMessage().GetCStr();
+        }
+        if (diag.Message.empty())
+        {
+            diag.Message = String::FromFormat("task %s failed", task->GetName().GetCStr()).GetCStr();
+        }
         Diag::EmitDiagnostic(diag);
     }
+}
+
+Diag::Severity SeverityForTaskState(Diag::Severity level, TaskState state)
+{
+    return (state == TaskState::Success && level == Diag::Severity::Error) ? Diag::Severity::Warning : level;
 }
 
 void TaskManager::MoveTasks(std::vector<String> &tasks, std::unordered_map<String, Task *> &from,

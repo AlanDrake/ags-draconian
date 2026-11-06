@@ -11,6 +11,9 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <string>
+#include <vector>
+
 #include "agsbuild/diagnostics.h"
 #include "gtest/gtest.h"
 
@@ -92,6 +95,51 @@ TEST(Diagnostics, ExtractFromLog)
     EXPECT_EQ(Severity::Error, list[1].Level);
     EXPECT_EQ(7, list[1].Line);
     EXPECT_EQ("e", list[1].Message);
+}
+
+// The tools print "Error: failed to X:" and the reason on the next line (spriteimport, agspak, ...)
+TEST(Diagnostics, ReasonOnTheNextLine)
+{
+    const std::string log = "Error: failed to import sprite(s) from source file 'a.png':\r\n"
+                            "Failed to load image file a.png\r\n"
+                            "Error: failed to write pack file:\n"
+                            "\tExit code: 255\n"
+                            "Error:\n"
+                            "the reason alone\n"
+                            "Error: failed to gather list of files:\n"
+                            "Error: no such folder\n";
+    const auto list = ExtractDiagnostics(log);
+    ASSERT_EQ(5u, list.size());
+    EXPECT_EQ("failed to import sprite(s) from source file 'a.png': Failed to load image file a.png", list[0].Message);
+    // An indented line is agsbuild's, not the reason
+    EXPECT_EQ("failed to write pack file:", list[1].Message);
+    EXPECT_EQ("the reason alone", list[2].Message);
+    // A diagnostic is no reason of the one before
+    EXPECT_EQ("failed to gather list of files:", list[3].Message);
+    EXPECT_EQ("no such folder", list[4].Message);
+}
+
+TEST(Diagnostics, BlankLineEndsTheMessage)
+{
+    const auto list = ExtractDiagnostics("Warning: a warning ends here:\n\nnot its reason\n");
+    ASSERT_EQ(1u, list.size());
+    EXPECT_EQ("a warning ends here:", list[0].Message);
+}
+
+// The editor shows the message: there always is one
+TEST(Diagnostics, EmittedDiagnosticHasAMessage)
+{
+    std::vector<Diagnostic> seen;
+    SetDiagnosticObserver([&seen](const Diagnostic &d) { seen.push_back(d); });
+    Diagnostic d;
+    d.Task = "copy-rooms";
+    EmitDiagnostic(d);
+    d.Task.clear();
+    EmitDiagnostic(d);
+    SetDiagnosticObserver(nullptr);
+    ASSERT_EQ(2u, seen.size());
+    EXPECT_EQ("(no message from the task copy-rooms)", seen[0].Message);
+    EXPECT_EQ("(no message)", seen[1].Message);
 }
 
 TEST(Diagnostics, JsonStrings)

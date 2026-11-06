@@ -19,9 +19,11 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include <functional>
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
 
 #include "platform/platform.h"
 #if (AGS_PLATFORM_OS_WINDOWS)
@@ -129,19 +131,41 @@ bool ParseDiagnosticLine(const std::string &line, Diagnostic &diag)
     return true;
 }
 
+// Whether a diagnostic's message is only its first half, the reason following on the next line
+static bool AwaitsReason(const Diagnostic &diag)
+{
+    return diag.Message.empty() || diag.Message.back() == ':';
+}
+
 std::vector<Diagnostic> ExtractDiagnostics(const std::string &text)
 {
     std::vector<Diagnostic> list;
+    bool awaits_reason = false;
     size_t pos = 0;
     while (pos < text.size())
     {
         size_t eol = text.find('\n', pos);
         if (eol == std::string::npos)
+        {
             eol = text.size();
-        Diagnostic diag;
-        if (ParseDiagnosticLine(text.substr(pos, eol - pos), diag))
-            list.push_back(std::move(diag));
+        }
+        const std::string line = text.substr(pos, eol - pos);
         pos = eol + 1;
+        Diagnostic diag;
+        if (ParseDiagnosticLine(line, diag))
+        {
+            list.push_back(std::move(diag));
+            awaits_reason = AwaitsReason(list.back());
+            continue;
+        }
+        // "Error: failed to read X:" and then the reason, as the tools print an error they got
+        const size_t end = line.find_last_not_of(" \t\r");
+        if (awaits_reason && end != std::string::npos && line[0] != ' ' && line[0] != '\t')
+        {
+            std::string &message = list.back().Message;
+            message += (message.empty() ? "" : " ") + line.substr(0, end + 1);
+        }
+        awaits_reason = false;
     }
     return list;
 }
@@ -245,6 +269,7 @@ static std::mutex OutputMutex;
 static std::atomic<int> Errors{0};
 static std::atomic<int> Warnings{0};
 static std::atomic<bool> CancelFlag{false};
+static std::function<void(const Diagnostic &)> Observer;
 
 void SetJsonOutput(bool on)
 {
@@ -295,7 +320,22 @@ void EmitDiagnostic(const Diagnostic &diag)
         Errors++;
     else if (diag.Level == Severity::Warning)
         Warnings++;
-    EmitEvent(ToJson(diag));
+    Diagnostic emitted = diag;
+    if (emitted.Message.empty())
+    {
+        // Something went wrong without a word; at least say where
+        emitted.Message = diag.Task.empty() ? "(no message)" : "(no message from the task " + diag.Task + ")";
+    }
+    EmitEvent(ToJson(emitted));
+    if (Observer)
+    {
+        Observer(emitted);
+    }
+}
+
+void SetDiagnosticObserver(std::function<void(const Diagnostic &)> observer)
+{
+    Observer = std::move(observer);
 }
 
 void EmitEnd(const char *result)

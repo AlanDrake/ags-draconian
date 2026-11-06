@@ -19,6 +19,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "diagnostics.h"
 #include "util/error.h"
 #include "util/string.h"
 #include "util/string_types.h"
@@ -293,6 +294,11 @@ private:
     bool _verbose = false;
     std::mutex _mutex;
 };
+
+// How a diagnostic in the output of a finished task is reported. The exit code tells whether a
+// task failed, so the errors of a task that succeeded are warnings: a build that succeeds has no
+// errors (spriteimport printed errors for the sprites it could not import, and went on).
+Diag::Severity SeverityForTaskState(Diag::Severity level, TaskState state);
 
 void ReadStringListFromStdOut(const String &input_s, std::vector<String> &list);
 HError ReadStringListFromTextFile(const String &filename, std::vector<String> &list);

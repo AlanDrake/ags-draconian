@@ -27,7 +27,11 @@
 //   Error: <message>
 //   Warning: <message>
 //   Error: <what> at <file>, line <N> : <message>        (agscc, also "Warning: issue at ...")
-// A line starting with "error:", "warning:" or "info:" in any letter case counts.
+// A line starting with "error:", "warning:" or "info:" in any letter case counts. A message that
+// ends with ':' (or is empty) gets the next line too, if that is not a diagnostic, not blank and
+// not indented: the tools print "Error: failed to read X:" and the reason on the next line.
+// The errors of a tool that exits with 0 are reported as warnings (taskmanager.h). A diagnostic
+// always has a message.
 //
 // A build is cancelled by SIGINT / SIGTERM (Ctrl+C on Windows), or in --json mode by the line
 // "cancel" on stdin. Running tools are killed, waiting tasks do not start.
@@ -36,6 +40,7 @@
 #ifndef __AGSBUILD_DIAGNOSTICS_H
 #define __AGSBUILD_DIAGNOSTICS_H
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -82,8 +87,12 @@ void EmitEvent(const std::string &json_line);
 void EmitStart(size_t tasks);
 void EmitTask(const std::string &task, const char *state);
 void EmitProgress(size_t done, size_t total);
+// Counts the diagnostic and writes it; one without a message gets one that says so
 void EmitDiagnostic(const Diagnostic &diag);
 void EmitEnd(const char *result);
+// Calls the function with every diagnostic as it is emitted, in either mode; nullptr stops it.
+// For tests, which check what is reported.
+void SetDiagnosticObserver(std::function<void(const Diagnostic &)> observer);
 
 // Number of errors and warnings emitted so far
 int ErrorCount();
