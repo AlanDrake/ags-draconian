@@ -904,9 +904,10 @@ TEST(DataFileWriter, RoundTripRoomNamesBlock)
     EXPECT_STREQ("Secret room", String::FromStream(in.get()).GetCStr());
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 
+    // The engine reads the block from every game of data version 4.00.00.13 or later, in release
+    // mode too
     game.Settings.DebugMode = false;
-    buffer = WriteGameBlock(game, DataFileWriter::WriteRoomNamesBlock);
-    EXPECT_TRUE(buffer.empty());
+    EXPECT_EQ(buffer, WriteGameBlock(game, DataFileWriter::WriteRoomNamesBlock));
 }
 
 TEST(DataFileWriter, RoundTripExt360Fonts)

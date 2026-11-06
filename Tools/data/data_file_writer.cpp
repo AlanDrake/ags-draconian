@@ -947,12 +947,9 @@ void WriteAudioBlock(const DataUtil::GameData &game, Stream *out)
 }
 
 // Read by GameSetupStruct::read_room_names() in
-// Common/ac/gamesetupstruct.cpp.
+// Common/ac/gamesetupstruct.cpp, in release mode too since data version 4.00.00.13.
 void WriteRoomNamesBlock(const DataUtil::GameData &game, Stream *out)
 {
-    if (!game.Settings.DebugMode)
-        return;
-
     out->WriteInt32(static_cast<int32_t>(game.Rooms.size()));
     for (const auto &room : game.Rooms)
         WriteRoomName(out, room.first, room.second);
