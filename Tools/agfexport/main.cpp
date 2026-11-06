@@ -200,8 +200,8 @@ HError write_to_file_if(const String &content, const String &file, bool skip_if_
     return HError::None();
 }
 
-HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String &file, bool to_stdout,
-                    bool no_empty_files)
+HError ListCommand(const AGF::AGFReader &reader, CommandType cmd, const String &file, bool to_stdout,
+                   bool no_empty_files)
 {
     if (!to_stdout)
         fprintf(StdFile, "Output list file: %s\n", file.GetCStr());
@@ -300,7 +300,7 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
     }
 }
 
-HError autoash_command(AGF::AGFReader &reader, const String &dst, bool no_empty_files)
+HError AutoAshCommand(AGF::AGFReader &reader, const String &dst, bool no_empty_files)
 {
     const char *dst_autoash = dst.GetCStr();
     fprintf(StdFile, "Output script header: %s\n", dst_autoash);
@@ -311,7 +311,7 @@ HError autoash_command(AGF::AGFReader &reader, const String &dst, bool no_empty_
     return write_to_file_if(header, dst_autoash, no_empty_files, "Script header");
 }
 
-HError glvar_command(AGF::AGFReader &reader, const String &header_file, const String &body_file, bool no_empty_files)
+HError GlVarCommand(AGF::AGFReader &reader, const String &header_file, const String &body_file, bool no_empty_files)
 {
     fprintf(StdFile, "Output script header: %s\n", header_file.GetCStr());
     fprintf(StdFile, "Output script body: %s\n", body_file.GetCStr());
@@ -342,7 +342,7 @@ HError glvar_command(AGF::AGFReader &reader, const String &header_file, const St
     return HError::None();
 }
 
-HError gamecfg_command(AGF::AGFReader &reader, const String &dst, bool no_empty_files)
+HError GameCfgCommand(AGF::AGFReader &reader, const String &dst, bool no_empty_files)
 {
     fprintf(StdFile, "Output config file: %s\n", dst.GetCStr());
 
@@ -456,10 +456,10 @@ int main(int argc, char *argv[])
     case kCmdPluginList:
     case kCmdRoomList:
     case kCmdScriptList:
-    case kCmdTraList: err = list_command(reader, command, out_file, stdout_list_print, no_empty_files); break;
-    case kCmdAutoAsh: err = autoash_command(reader, out_file, no_empty_files); break;
-    case kCmdGlVar: err = glvar_command(reader, out_file, result.PosArgs[3], no_empty_files); break;
-    case kCmdGameCfg: err = gamecfg_command(reader, out_file, no_empty_files); break;
+    case kCmdTraList: err = ListCommand(reader, command, out_file, stdout_list_print, no_empty_files); break;
+    case kCmdAutoAsh: err = AutoAshCommand(reader, out_file, no_empty_files); break;
+    case kCmdGlVar: err = GlVarCommand(reader, out_file, result.PosArgs[3], no_empty_files); break;
+    case kCmdGameCfg: err = GameCfgCommand(reader, out_file, no_empty_files); break;
     case kCmdMAX:
     default:
         // should never happen but handle just in case
