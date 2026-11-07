@@ -949,6 +949,30 @@ namespace AGS.Editor
             return new Script(AUTO_GENERATED_HEADER_NAME, sb.ToString(), true);
         }
 
+        /// <summary>
+        /// The text of the global variables header (_GlobalVariables.ash): an import of each variable.
+        /// </summary>
+        public static string MakeGlobalVariablesHeader(IList<GlobalVariable> variables)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (GlobalVariable variable in variables)
+            {
+                switch (variable.ArrayType)
+                {
+                    case GlobalVariableArrayType.None:
+                        sb.AppendLine($"import {variable.Type} {variable.Name};");
+                        break;
+                    case GlobalVariableArrayType.Array:
+                        sb.AppendLine($"import {variable.Type} {variable.Name}[{variable.ArraySize}];");
+                        break;
+                    case GlobalVariableArrayType.DynamicArray:
+                        sb.AppendLine($"import {variable.Type} {variable.Name}[];");
+                        break;
+                }
+            }
+            return sb.ToString();
+        }
+
         private void AppendRoomContentsToHeader(StringBuilder sb, Room room)
         {
             foreach (RoomObject obj in room.Objects)

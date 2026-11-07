@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 using AGS.Types;
@@ -42,23 +41,7 @@ namespace AGS.Editor.Components
 
         private void UpdateScriptHeader()
         {
-            StringBuilder sb = new StringBuilder();
-            foreach (GlobalVariable variable in _agsEditor.CurrentGame.GlobalVariables.ToList())
-            {
-                switch (variable.ArrayType)
-                {
-                    case GlobalVariableArrayType.None:
-                        sb.AppendLine($"import {variable.Type} {variable.Name};");
-                        break;
-                    case GlobalVariableArrayType.Array:
-                        sb.AppendLine($"import {variable.Type} {variable.Name}[{variable.ArraySize}];");
-                        break;
-                    case GlobalVariableArrayType.DynamicArray:
-                        sb.AppendLine($"import {variable.Type} {variable.Name}[];");
-                        break;
-                }
-            }
-            _scriptHeader.Text = sb.ToString();
+            _scriptHeader.Text = Tasks.MakeGlobalVariablesHeader(_agsEditor.CurrentGame.GlobalVariables.ToList());
             AutoComplete.ConstructCache(_scriptHeader, null);
         }
 
