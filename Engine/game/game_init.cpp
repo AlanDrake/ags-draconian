@@ -605,12 +605,12 @@ void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const Game
 {
     // CLNUP: remove in AGS 4 (all of the below relate to running pre-3.6.3 versions)
 
-    // First designate the default behavior settings, depending on game data version
+    // First designate the default behavior settings: games older than 3.6.3 had them off, 3.99+ data has them on
     std::array<bool, kNum_RBS> rbo = {0};
-    rbo[kRBO_SmoothWalkTransition] = (loaded_game_file_version >= kGameVersion_361);
-    rbo[kRBO_ApplyGUITextDirection] = (loaded_game_file_version >= kGameVersion_361);
-    rbo[kRBO_ApplyDialogOptionTextAlignment] = (loaded_game_file_version >= kGameVersion_363);
-    rbo[kRBO_NoTextPropertyAutoTranslate] = (loaded_game_file_version >= kGameVersion_363_14);
+    rbo[kRBO_SmoothWalkTransition] = true;
+    rbo[kRBO_ApplyGUITextDirection] = true;
+    rbo[kRBO_ApplyDialogOptionTextAlignment] = true;
+    rbo[kRBO_NoTextPropertyAutoTranslate] = true;
 
     // Now apply overrides from config, *BUT* these only enable disabled options,
     // and never disable enabled ones (because that might break or "downgrade" modern games).

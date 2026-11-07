@@ -313,9 +313,6 @@ int ListBox_GetTextColor(GUIListBox *listbox)
 void ListBox_SetTextColor(GUIListBox *listbox, int color)
 {
     listbox->SetTextColor(color);
-    // Prior to 3.6.3 text color was also used for border
-    if (loaded_game_file_version < kGameVersion_363_04)
-        listbox->SetBorderColor(color);
 }
 
 int ListBox_GetTextOutlineColor(GUIListBox *listbox)

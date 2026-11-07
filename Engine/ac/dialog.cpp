@@ -920,10 +920,7 @@ void DialogOptions::Begin()
         numdisp++;
     }
 
-    if (loaded_game_file_version >= kGameVersion_363)
-        usingfont = (play.dialog_options_font == FONT_UNDEFINED) ? FONT_NORMAL : play.dialog_options_font;
-    else
-        usingfont = FONT_NORMAL;
+    usingfont = (play.dialog_options_font == FONT_UNDEFINED) ? FONT_NORMAL : play.dialog_options_font;
 
     lineheight = get_font_height_outlined(usingfont);
     linespacing = get_font_linespacing(usingfont);
@@ -938,21 +935,7 @@ void DialogOptions::Begin()
     // need to strictly define the terms and rules of this arrangement,
     // with defined text area and general padding, and any additional shifts,
     // and make sure that it's consistent.
-
-    // Historically dialog options alignment calculation had pretty
-    // inconsistent rules. We keep some of these strictly for backwards
-    // compatible mode. Should remove these variables if we drop compatibility.
-    if (loaded_game_file_version < kGameVersion_363)
-    {
-        line_x_off = 1;                    // extra X offset for option lines
-        normal_area_counter_align_pad = 5; // extra padding opposite to alignment (normal gui)
-        tw_area_width_mod = +4;            // extra increment for the options text (textwindow)
-        fixed_padding = TEXTWINDOW_PADDING_DEFAULT;
-    }
-    else
-    {
-        tw_area_width_mod = +1; // a fix vs split_lines mistake
-    }
+    tw_area_width_mod = +1; // a fix vs split_lines mistake
 
     if (game.dialog_bullet > 0)
     {
@@ -1091,8 +1074,7 @@ void DialogOptions::Begin()
     }
 
     newCustomRender = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
-    // Pre-3.6.1 engines always forced redraw on mouse move, even if it's custom rendering
-    redrawOnMouseMove = !usingCustomRendering || loaded_game_file_version < kGameVersion_361;
+    redrawOnMouseMove = !usingCustomRendering;
     needRedraw = false;
     mouseison = INT32_MIN; // this "hack" forces a redraw at a first update even if mouse cursor did not move yet
 

@@ -294,7 +294,7 @@ static void GameUpdateCheckGroundInteractions()
     // engine, but result was more or less same by accident, as the number
     // of scheduled callbacks was limited to a very small number.
     // (That was pretty unreliable though.)
-    if (IsInBlockingAction() && (loaded_game_file_version >= kGameVersion_362))
+    if (IsInBlockingAction())
     {
         // NOTE: if we do update play.player_on_region here, then player might
         // trigger "walk on/off region" after finishing blocking walk if
@@ -1147,7 +1147,7 @@ static void UpdateSavedCursorOverLocation()
 
 // Assign GUI context parameters, read from the game state.
 // This will be required for GUI labels render.
-static void UpdateGUIContext(int mwasatx, int mwasaty)
+static void UpdateGUIContext()
 {
     if (play.fast_forward)
         return;
@@ -1170,9 +1170,6 @@ static void UpdateGUIContext(int mwasatx, int mwasaty)
     // While game is in Wait mode, or in room transition: set empty overhotspot text.
     if (!IsInterfaceEnabled() || in_room_transition || !play.mouse_input_enabled)
         GUI::Context.Overhotspot = "";
-    // Games prior to 3.6.0 had a slightly different order of updates, so use old cursor pos for them
-    else if (loaded_game_file_version < kGameVersion_360_21)
-        GUI::Context.Overhotspot = GetLocationName(mwasatx, mwasaty, kHit_Interactable);
     else
         GUI::Context.Overhotspot = GetLocationName(mousex, mousey, kHit_Interactable);
 }
@@ -1249,14 +1246,9 @@ static void GameUpdateProcessEvents()
     // then queue the Enters Screen scripts run after the room is faded in.
     if ((new_room_was != kEnterRoom_None) && (in_new_room == kEnterRoom_None))
     {
-        // In 3.6.3+ games After-Fade-in event is run immediately at the same
+        // After-Fade-in event is run immediately at the same
         // game update right after the Fade-in (transition) event was run (transition).
         // This ensures that there's no extra updates or redraws in between.
-        // In pre-3.6.3 games this event is scheduled to run on the next update,
-        // which will actually cause some script callbacks to trigger *prior*
-        // "After-Fade-in" (rep-exec-always, ground interactions).
-        const bool run_event_now = (loaded_game_file_version >= kGameVersion_363);
-
         switch (new_room_was)
         {
         case kEnterRoom_FirstTime: // first time enters screen
@@ -1270,10 +1262,7 @@ static void GameUpdateProcessEvents()
             break;
         }
 
-        if (run_event_now)
-        {
-            processallevents();
-        }
+        processallevents();
     }
 }
 
@@ -1446,7 +1435,7 @@ void UpdateGameOnce(bool do_controls, AGS::Engine::IDriverDependantBitmap *extra
     set_our_eip(1008);
 
     // Record necessary values for the GUI rendering
-    UpdateGUIContext(mwasatx, mwasaty);
+    UpdateGUIContext();
     // Only render if we are not skipping a cutscene
     if (!play.fast_forward)
     {

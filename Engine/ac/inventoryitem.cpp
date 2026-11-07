@@ -100,12 +100,6 @@ void set_inv_item_cursorhotspot(int inv_item, int hx, int hy, FrameAlignment ali
     item.hoty = hy;
     item.hotAlign = align;
 
-    // Pre-3.6.3 games used hotspot 0,0 as "centered"
-    if (loaded_game_file_version < kGameVersion_363_10)
-    {
-        item.hotAlign = ((hx == 0) && (hy == 0)) ? kAlignMiddleCenter : kAlignTopLeft;
-    }
-
     // The cursor image may include hotspot marker, therefore update cursor image
     if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv == inv_item))
     {

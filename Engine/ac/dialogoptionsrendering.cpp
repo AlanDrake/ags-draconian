@@ -113,9 +113,8 @@ ScriptDialog *DialogOptionsRendering_GetDialogToRender(ScriptDialogOptionsRender
 
 ScriptDrawingSurface *DialogOptionsRendering_GetSurface(ScriptDialogOptionsRendering *dlgOptRender)
 {
-    // Enforce that we only return a drawing surface inside "draw" callback;
-    // but still let it in older games (even though it's pointless)
-    if (dlgOptRender->isInDraw || (loaded_game_file_version < kGameVersion_363_04))
+    // Enforce that we only return a drawing surface inside "draw" callback
+    if (dlgOptRender->isInDraw)
     {
         if (dlgOptRender->surfaceToRenderTo)
             dlgOptRender->surfaceAccessed = true;

@@ -786,19 +786,6 @@ void prepare_gui_runtime(bool startup)
         }
     }
 
-    // Reset particular states after loading game data
-    if (startup)
-    {
-        // Labels are not supposed to be clickable by default
-        // (done in the editor since 3.6.3)
-        if (loaded_game_file_version < kGameVersion_363_10)
-        {
-            for (auto &label : guilabels)
-            {
-                label.SetClickable(false);
-            }
-        }
-    }
     play.gui_draw_order.resize(guis.size());
     std::iota(play.gui_draw_order.begin(), play.gui_draw_order.end(), 0);
     update_gui_zorder();

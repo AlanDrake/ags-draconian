@@ -1672,8 +1672,10 @@ void Character_SetIInventoryQuantity(CharacterInfo *chi, int index, int quant)
     }
 
     const int old_quant = chi->get_item_quantity(index);
-    if ((quant == old_quant) || (loaded_game_file_version < kGameVersion_363_10))
+    if (quant == old_quant)
+    {
         return;
+    }
 
     chi->set_item_quantity(index, quant);
     auto &chex = charextra[chi->index_id];
@@ -2741,29 +2743,9 @@ bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
     if (at_pt.Y >= bottom_edge)
         bottom_edge = limits.Bottom;
 
-    // Ancient hack, where the scan area is restricted by 14 topmost pixels;
-    // this is *likely* the historical size of a Sierra-style Statusbar GUI.
-    if (loaded_game_file_version < kGameVersion_362_07)
+    if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), at_pt, dst, limits, 0, 1))
     {
-        limits.Top = std::max(limits.Top, 14);
-    }
-
-    if (loaded_game_file_version >= kGameVersion_362_07)
-    {
-        if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), at_pt, dst, limits, 0, 1))
-            return false;
-    }
-    else
-    {
-        // First, check every 2 pixels within immediate area
-        if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), at_pt, dst, limits, 20, 2,
-                                                   false /* old method */))
-        {
-            // If not, check whole screen at 5 pixel intervals
-            if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), at_pt, dst, limits, 0, 5,
-                                                       false /* old method */))
-                return false;
-        }
+        return false;
     }
 
     dst = Point(mask_to_room_coord(dst.X), mask_to_room_coord(dst.Y));

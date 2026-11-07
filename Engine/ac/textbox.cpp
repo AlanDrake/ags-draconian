@@ -58,9 +58,6 @@ int TextBox_GetTextColor(GUITextBox *guit)
 void TextBox_SetTextColor(GUITextBox *guit, int color)
 {
     guit->SetTextColor(color);
-    // Prior to 3.6.3 text color was also used for border
-    if (loaded_game_file_version < kGameVersion_363_04)
-        guit->SetBorderColor(color);
 }
 
 int TextBox_GetTextOutlineColor(GUITextBox *guit)

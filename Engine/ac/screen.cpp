@@ -690,19 +690,10 @@ void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)
                                                              play.fade_to_blue));
         break;
     case kScrTran_Boxout:
-        // Pre-3.6.2 games always used a fixed black color
-        if (loaded_game_file_version >= kGameVersion_362)
-        {
-            scrtr.reset(software_mode ? (ScreenTransition *)new ScreenBoxOutSoftware(
-                                            fade_in, speed, play.fade_to_red, play.fade_to_green, play.fade_to_blue)
-                                      : (ScreenTransition *)new ScreenBoxOut(fade_in, speed, play.fade_to_red,
-                                                                             play.fade_to_green, play.fade_to_blue));
-        }
-        else
-        {
-            scrtr.reset(software_mode ? (ScreenTransition *)new ScreenBoxOutSoftware(fade_in, speed)
-                                      : (ScreenTransition *)new ScreenBoxOut(fade_in, speed));
-        }
+        scrtr.reset(software_mode ? (ScreenTransition *)new ScreenBoxOutSoftware(fade_in, speed, play.fade_to_red,
+                                                                                 play.fade_to_green, play.fade_to_blue)
+                                  : (ScreenTransition *)new ScreenBoxOut(fade_in, speed, play.fade_to_red,
+                                                                         play.fade_to_green, play.fade_to_blue));
         break;
     case kScrTran_Crossfade: scrtr.reset(new ScreenCrossfade(fade_in, speed)); break;
     case kScrTran_Dissolve: scrtr.reset(new ScreenDissolve(fade_in, speed)); break;

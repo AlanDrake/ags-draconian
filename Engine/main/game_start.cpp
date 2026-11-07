@@ -83,11 +83,6 @@ void start_game()
 
     set_our_eip(-43);
 
-    // Only auto-set first restart point in < 3.6.1 games,
-    // since 3.6.1+ users are suggested to set one manually in script.
-    if (loaded_game_file_version < kGameVersion_361_10)
-        SetRestartPoint();
-
     set_our_eip(-3);
 
     if (displayed_room < 0)

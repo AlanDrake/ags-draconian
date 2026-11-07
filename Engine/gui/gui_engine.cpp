@@ -17,7 +17,6 @@
 //=============================================================================
 #include <cctype>
 
-#include "ac/game_version.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
 #include "ac/gui.h"
@@ -132,17 +131,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
         reverse = game.options[OPT_RIGHTLEFTWRITE] != 0;
     }
 
-    FrameAlignment text_align = kAlignTopLeft;
-    // 3.6.1 -> 3.6.2 applied text alignment based on text direction
-    if ((GUI::Options.ApplyTextDirection) && (GUI::DataVersion < kGameVersion_363_04))
-    {
-        text_align = reverse ? kAlignTopRight : kAlignTopLeft;
-    }
-    // 3.6.3+ have explicit text alignment property
-    else if (GUI::DataVersion >= kGameVersion_363_04)
-    {
-        text_align = _textAlignment;
-    }
+    const FrameAlignment text_align = _textAlignment;
 
     // Cursor is drawn only if textbox is currently enabled
     const bool draw_cursor = GUI::IsGUIEnabled(this);
