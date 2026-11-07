@@ -34,6 +34,8 @@ namespace AGS.Editor
         {
             this.btnImage = new System.Windows.Forms.Button();
             this.lblMessage = new System.Windows.Forms.Label();
+            this.progressBar = new System.Windows.Forms.ProgressBar();
+            this.btnCancel = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnImage
@@ -61,12 +63,33 @@ namespace AGS.Editor
             this.lblMessage.TabIndex = 1;
             this.lblMessage.Text = "PLease awin fdkh khd lkfgh dlkfhg ldkfhg dlkfhgd lkfgdhlkfgd lfkggghfk ghf kg";
             // 
+            // progressBar
+            // 
+            this.progressBar.Location = new System.Drawing.Point(116, 102);
+            this.progressBar.Name = "progressBar";
+            this.progressBar.Size = new System.Drawing.Size(220, 14);
+            this.progressBar.TabIndex = 2;
+            this.progressBar.Visible = false;
+            // 
+            // btnCancel
+            // 
+            this.btnCancel.Location = new System.Drawing.Point(261, 126);
+            this.btnCancel.Name = "btnCancel";
+            this.btnCancel.Size = new System.Drawing.Size(75, 23);
+            this.btnCancel.TabIndex = 3;
+            this.btnCancel.Text = "Cancel";
+            this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Visible = false;
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
+            // 
             // BusyDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(359, 139);
             this.ControlBox = false;
+            this.Controls.Add(this.btnCancel);
+            this.Controls.Add(this.progressBar);
             this.Controls.Add(this.lblMessage);
             this.Controls.Add(this.btnImage);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
@@ -87,5 +110,7 @@ namespace AGS.Editor
 
         private System.Windows.Forms.Button btnImage;
         private System.Windows.Forms.Label lblMessage;
+        private System.Windows.Forms.ProgressBar progressBar;
+        private System.Windows.Forms.Button btnCancel;
     }
 }

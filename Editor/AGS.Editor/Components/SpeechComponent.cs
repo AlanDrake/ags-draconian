@@ -41,7 +41,7 @@ namespace AGS.Editor.Components
         public SpeechComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
         {
-            _agsEditor.ExtraCompilationStep += _agsEditor_ExtraCompilationStep;
+            _agsEditor.PreCompileGame += _agsEditor_PreCompileGame;
             _agsEditor.ExtraOutputCreationStep += _agsEditor_ExtraOutputCreationStep;
             Factory.Events.GamePrepareUpgrade += Events_GamePrepareUpgrade;
         }
@@ -51,9 +51,10 @@ namespace AGS.Editor.Components
             args.Tasks.Add(new UpgradeGameVoiceClipsTask(ConvertVoiceClipsToNewNamingStyle));
         }
 
-        private void _agsEditor_ExtraCompilationStep(CompilationStepArgs args)
+        // The lip-sync data is packed with the voice files, so it is made before the build packs them
+        private void _agsEditor_PreCompileGame(PreCompileGameEventArgs args)
         {
-            var errors = args.Messages;
+            var errors = args.Errors;
             MakeOneLipSyncDat(SPEECH_DIRECTORY, LIP_SYNC_DATA_OUTPUT, errors);
             // Also try compile corresponding lipsync dat for each top-level subfolder
             // inside the main Speech folder.

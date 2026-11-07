@@ -250,13 +250,7 @@ namespace AGS.Editor.Components
 		private void CompileGame(bool forceRebuild)
 		{
             _agsEditor.CurrentGame.WorkspaceState.RequiredRebuildTime = DateTime.Now;
-            if (_agsEditor.SaveGameFiles())
-			{
-                var messages = _agsEditor.CompileGame(forceRebuild, false);
-                // The user data may have been amended by the building process
-                if (!messages.HasErrors)
-                    _agsEditor.SaveUserDataFile();
-			}
+            _agsEditor.BuildGame(forceRebuild);
 		}
 
 		private bool guiController_QueryEditorShutdown()

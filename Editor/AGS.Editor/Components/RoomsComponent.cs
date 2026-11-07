@@ -1789,7 +1789,12 @@ namespace AGS.Editor.Components
 			return false;
 		}
 
-        private bool RecompileAnyRoomsWhereTheScriptHasChanged(CompileMessages errors, bool rebuildAll, DateTime? mustRebuildSince)
+        /// <summary>
+        /// Checks that the source files of every room exist and, if compileRooms is set, compiles the
+        /// rooms whose compiled file is out of date. agsbuild compiles the rooms itself, so for its
+        /// build only the check is done.
+        /// </summary>
+        private bool RecompileAnyRoomsWhereTheScriptHasChanged(CompileMessages errors, bool compileRooms, bool rebuildAll, DateTime? mustRebuildSince)
         {
 			List<UnloadedRoom> roomsToRebuild = new List<UnloadedRoom>();
 			List<string> roomFileNamesToRebuild = new List<string>();
@@ -1824,6 +1829,10 @@ namespace AGS.Editor.Components
                 {
                     errors.AddRange(missingMasks.Select(f => new CompileError("File not found: " + f + "; If you deleted this file, delete the room from the Project Explorer using a context menu.")));
                     success = false;
+                }
+                else if (!compileRooms)
+                {
+                    continue;
                 }
                 // If we're told to rebuild all, and no time is provided, then rebuild regardless of the room file's time.
                 // If we're told to rebuild all, and provided with a time anchor, then test if the room's compiled file
@@ -1908,7 +1917,46 @@ namespace AGS.Editor.Components
 
             if (evArgs.AllowCompilation)
             {
-				evArgs.AllowCompilation = RecompileAnyRoomsWhereTheScriptHasChanged(evArgs.Errors, evArgs.ForceRebuild, evArgs.ForceRebuildTime);
+				evArgs.AllowCompilation = RecompileAnyRoomsWhereTheScriptHasChanged(evArgs.Errors, !evArgs.BuildsWithTools,
+                    evArgs.ForceRebuild, evArgs.ForceRebuildTime);
+            }
+
+            if (evArgs.AllowCompilation && evArgs.BuildsWithTools)
+            {
+                ScanAllRoomsForMissingEventHandlers(evArgs.Errors);
+            }
+        }
+
+        /// <summary>
+        /// Reports the event handlers of every room that are missing or not linked. The editor's own
+        /// build does it for each room it compiles; agsbuild compiles them, so they are checked here.
+        /// </summary>
+        private void ScanAllRoomsForMissingEventHandlers(CompileMessages errors)
+        {
+            foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
+            {
+                Room room;
+                try
+                {
+                    room = (_loadedRoom != null && unloadedRoom.Number == _loadedRoom.Number) ?
+                        _loadedRoom
+                      : LoadRoomAsTemporary(unloadedRoom, errors, doLoadScript: true);
+                }
+                catch (Exception ex) when (ex is IOException || ex is System.Xml.XmlException)
+                {
+                    // agsbuild reports what is wrong with the room's files
+                    errors.Add(new CompileWarning($"Could not check the event handlers of room {unloadedRoom.Number}: {ex.Message}"));
+                    continue;
+                }
+                if (!room.Script.AutoCompleteData.Populated)
+                {
+                    AutoComplete.ConstructCache(room.Script, null);
+                }
+                ScanAndReportMissingEventHandlers(room, errors);
+                if (room != _loadedRoom)
+                {
+                    UnloadRoom(room);
+                }
             }
         }
 

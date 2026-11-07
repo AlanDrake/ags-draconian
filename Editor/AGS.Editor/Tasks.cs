@@ -59,7 +59,8 @@ namespace AGS.Editor
                 "*.trs",
                 // Exclude patterns
                 "!_Debug/*",
-                "!Compiled/*"
+                "!Compiled/*",
+                $"!{AGSEditor.BUILD_TEMP_DIRECTORY}/*"
             };
 
             string[] mediaRes;

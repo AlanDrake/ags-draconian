@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using AGS.CScript.Compiler;
 using AGS.Types;
 using AGS.Types.Interfaces;
+using AGS.Editor.Build;
 using AGS.Editor.Preferences;
 using AGS.Editor.Utils;
 using System.Net;
@@ -45,6 +46,7 @@ namespace AGS.Editor
         public const string OUTPUT_DIRECTORY = "Compiled";
         public const string DATA_OUTPUT_DIRECTORY = "Data"; // subfolder in OUTPUT_DIRECTORY for data file outputs
         public const string DEBUG_OUTPUT_DIRECTORY = "_Debug";
+        public const string BUILD_TEMP_DIRECTORY = "_obj"; // agsbuild's intermediate files, cleared by each build
         public const string GAME_FILE_NAME = "Game.agf";
 		public const string BACKUP_EXTENSION = "bak";
         public const string TEMPLATE_INCLUDE_FILE = "template.files";
@@ -1498,6 +1500,184 @@ namespace AGS.Editor
             }
             Factory.GUIController.PostOutputAndReportErrors(messages, "The game compiled", allowMessageOnSuccess: true);
             return messages;
+        }
+
+        /// <summary>
+        /// Builds the game with agsbuild (Build EXE, Rebuild all, /compile, a new game): repairs the
+        /// object IDs, saves the project, which is what agsbuild reads, lets the components prepare
+        /// the sources (PreCompileGame), runs the editor's checks, builds Compiled/Data with agsbuild
+        /// and deploys the other build targets from there. Saves the user data after a successful
+        /// build. Reports the messages in the output panel and returns them.
+        /// </summary>
+        public CompileMessages BuildGame(bool forceRebuild)
+        {
+            Factory.GUIController.ClearOutputPanel();
+            CompileMessages messages = new CompileMessages();
+
+            Utilities.EnsureStandardSubFoldersExist();
+            // In case something went wrong during the editing session (plugins can also edit the
+            // game data); before the save, which agsbuild reads
+            _tasks.HandleObjectIDErrors(_game);
+            if (!SaveGameFiles())
+            {
+                messages.Add(new CompileError("The game was not built, because the project could not be saved."));
+            }
+            else
+            {
+                BuildSavedGame(forceRebuild, messages);
+            }
+
+            if (!messages.HasErrors)
+            {
+                _game.WorkspaceState.RequiresRebuild = false;
+                // The user data may have been amended by the building process
+                SaveUserDataFile();
+            }
+            Factory.GUIController.PostOutputAndReportErrors(messages, "The game compiled", allowMessageOnSuccess: true);
+            return messages;
+        }
+
+        private void BuildSavedGame(bool forceRebuild, CompileMessages messages)
+        {
+            forceRebuild |= NeedsRebuildForDebugMode();
+            forceRebuild |= _game.WorkspaceState.RequiresRebuild;
+            DateTime? requiredRebuildTime = forceRebuild ? (DateTime?)_game.WorkspaceState.RequiredRebuildTime : null;
+
+            PreCompileGameEventArgs evArgs = new PreCompileGameEventArgs(forceRebuild, requiredRebuildTime, buildsWithTools: true);
+            evArgs.Errors = messages;
+            PreCompileGame?.Invoke(evArgs);
+            if (!evArgs.AllowCompilation)
+            {
+                return;
+            }
+            RunPreCompilationChecks(messages);
+            if (messages.HasErrors)
+            {
+                return;
+            }
+            RunGameScriptChecks(messages);
+
+            // On this thread: the event's handlers belong to the components and plugins
+            List<Script> pluginHeaders = GetPluginScriptHeaders();
+            try
+            {
+                using (ScriptHeaderFiles headerFiles = new ScriptHeaderFiles(pluginHeaders))
+                using (System.Threading.CancellationTokenSource cancel = new System.Threading.CancellationTokenSource())
+                {
+                    BusyDialog.Show("Building the game",
+                        (progress, parameter) => BuildWithToolsAndDeploy(progress, messages, forceRebuild,
+                            headerFiles.Paths, cancel.Token),
+                        null, 0, cancel);
+                    headerFiles.Dispose();
+                    if (headerFiles.DeleteError != null)
+                    {
+                        messages.Add(new CompileWarning(headerFiles.DeleteError));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                messages.Add(new CompileError("Unexpected error: " + ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// The headers that plugins add to every script (GetScriptHeaderList), without the global
+        /// variables header, which agsbuild makes itself.
+        /// </summary>
+        private List<Script> GetPluginScriptHeaders()
+        {
+            List<Script> headers = new List<Script>();
+            GetScriptHeaderList?.Invoke(new GetScriptHeaderListEventArgs(headers));
+            headers.RemoveAll(h => h.FileName == Components.GlobalVariablesComponent.GLOBAL_VARS_HEADER_FILE_NAME);
+            return headers;
+        }
+
+        /// <summary>
+        /// Runs agsbuild into Compiled/Data, then the other selected build targets, which copy
+        /// from there. Runs on the busy dialog's thread.
+        /// </summary>
+        private object BuildWithToolsAndDeploy(IWorkProgress progress, CompileMessages errors, bool forceRebuild,
+            IList<string> pluginHeaders, System.Threading.CancellationToken cancel)
+        {
+            // Old game files are deleted from every target, also those of an earlier game file name
+            IList<IBuildTarget> targets = BuildTargetsInfo.GetSelectedBuildTargets();
+            Dictionary<string, string> buildNames = _game.WorkspaceState.GetLastBuildGameFiles();
+            foreach (IBuildTarget target in targets)
+            {
+                target.DeleteMainGameData(BaseGameFileName, errors);
+                string oldName;
+                if (buildNames.TryGetValue(target.Name, out oldName) && !string.IsNullOrWhiteSpace(oldName) &&
+                    oldName != BaseGameFileName)
+                {
+                    target.DeleteMainGameData(oldName, errors);
+                }
+            }
+
+            if (!RunBuildTool(progress, errors, pluginHeaders, cancel))
+            {
+                return null;
+            }
+
+            IBuildTarget dataTarget = BuildTargetsInfo.FindBuildTargetByName(BuildTargetsInfo.DATAFILE_TARGET_NAME);
+            foreach (IBuildTarget target in targets)
+            {
+                if (target != dataTarget)
+                {
+                    if (cancel.IsCancellationRequested)
+                    {
+                        errors.Add(new CompileError("The build was cancelled before the game was deployed for " + target.Name + "."));
+                        break;
+                    }
+                    progress.SetProgress(0, 0, "Deploying the game for " + target.Name, false);
+                    target.Build(errors, forceRebuild);
+                }
+                buildNames[target.Name] = BaseGameFileName;
+            }
+            _game.WorkspaceState.SetLastBuildGameFiles(buildNames);
+            return null;
+        }
+
+        /// <summary>
+        /// Builds Compiled/Data with agsbuild from the editor's folder; true if the build succeeded.
+        /// </summary>
+        private bool RunBuildTool(IWorkProgress progress, CompileMessages errors, IList<string> pluginHeaders,
+            System.Threading.CancellationToken cancel)
+        {
+            string outputDirectory = Path.Combine(_game.DirectoryPath, OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY);
+            Directory.CreateDirectory(outputDirectory);
+            BuildToolOptions options = new BuildToolOptions
+            {
+                ProjectFile = Path.Combine(_game.DirectoryPath, GAME_FILE_NAME),
+                OutputDirectory = outputDirectory,
+                ToolsDirectory = EditorDirectory,
+            };
+            options.ScriptHeaders.AddRange(pluginHeaders);
+
+            BuildToolResult result = new BuildToolRunner().Run(options, p =>
+            {
+                string message = p.Task == null ? "Building the game" : "Building the game" + Environment.NewLine + p.Task;
+                progress.SetProgress(p.Total, p.Done, message, p.Total > 0);
+            }, cancel);
+
+            // The tools' information lines tell about their own workings (agspak: "found pattern file"
+            // for the lists agsbuild writes); the editor showed none from its own build either
+            errors.AddRange(result.Messages.Where(m => m is CompileError || m is CompileWarning));
+            switch (result.Outcome)
+            {
+                case BuildToolOutcome.Success:
+                    return true;
+                case BuildToolOutcome.Cancelled:
+                    errors.Add(new CompileError("The build was cancelled."));
+                    return false;
+                default:
+                    if (!result.Messages.HasErrors)
+                    {
+                        errors.Add(new CompileError(string.Format("{0} failed ({1}, exit code {2}) without saying why.",
+                            BuildToolRunner.ToolFileName, result.Outcome, result.ExitCode)));
+                    }
+                    return false;
+            }
         }
 
         /// <summary>

@@ -40,6 +40,7 @@ namespace AGS.Editor
         private int? _progressCurrent;
         private string _message;
         private bool _autoFormatProgress = true;
+        private readonly CancellationTokenSource _cancel;
 
         private static Bitmap[] _icons = null;
 
@@ -49,8 +50,24 @@ namespace AGS.Editor
         }
 
         public BusyDialog(string message, ProcessingHandler handler, object parameter, int timeoutMs)
+            : this(message, handler, parameter, timeoutMs, null)
+        {
+        }
+
+        /// <param name="cancel">If not null, the dialog has a Cancel button (and Esc) that cancels
+        /// this source; the handler decides how soon it stops.</param>
+        public BusyDialog(string message, ProcessingHandler handler, object parameter, int timeoutMs,
+            CancellationTokenSource cancel)
         {
             InitializeComponent();
+            _cancel = cancel;
+            if (cancel != null)
+            {
+                btnCancel.Visible = true;
+                ClientSize = new Size(ClientSize.Width, btnCancel.Bottom + 12);
+                CancelButton = btnCancel;
+                btnCancel.DialogResult = DialogResult.None; // the dialog closes when the handler returns
+            }
             _message = message;
             UpdateMessageLabel();
             _handler = handler;
@@ -80,8 +97,18 @@ namespace AGS.Editor
 
         public static object Show(string message, ProcessingHandler handler, object parameter, int timeoutMs)
         {
+            return Show(message, handler, parameter, timeoutMs, null);
+        }
+
+        /// <summary>
+        /// Runs the handler on another thread while the dialog is shown, with a Cancel button if
+        /// cancel is not null; returns what the handler returns, and rethrows what it throws.
+        /// </summary>
+        public static object Show(string message, ProcessingHandler handler, object parameter, int timeoutMs,
+            CancellationTokenSource cancel)
+        {
             object resultToReturn = null;
-            BusyDialog dialog = new BusyDialog(message, handler, parameter, timeoutMs);
+            BusyDialog dialog = new BusyDialog(message, handler, parameter, timeoutMs, cancel);
             try
             {
                 dialog.ShowDialog();
@@ -142,6 +169,22 @@ namespace AGS.Editor
             }
             sb.Append(Environment.NewLine);
             lblMessage.Text = sb.ToString();
+
+            // A bar for the progress that has a total
+            int barTotal = _progressTotal ?? 0;
+            progressBar.Visible = barTotal > 0;
+            if (barTotal > 0)
+            {
+                progressBar.Maximum = barTotal;
+                progressBar.Value = Math.Max(0, Math.Min(barTotal, _progressCurrent ?? 0));
+            }
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+            btnCancel.Enabled = false;
+            btnCancel.Text = "Cancelling...";
+            _cancel.Cancel();
         }
 
         public string Message

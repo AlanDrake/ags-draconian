@@ -80,6 +80,11 @@ namespace AGS.Editor.Components
 
         private void AGSEditor_PreCompileGame(PreCompileGameEventArgs evArgs)
         {
+            if (evArgs.BuildsWithTools)
+            {
+                return; // po2tra compiles them
+            }
+
             foreach (Translation translation in _agsEditor.CurrentGame.Translations)
             {
                 if (File.Exists(translation.FileName))

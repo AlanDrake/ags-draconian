@@ -1138,27 +1138,9 @@ namespace AGS.Editor
         {
             if (_interactiveTasks.LoadGameFromDisk(projectPath))
             {
-                // Here's an important issue: in AGS 3.x projects the room files (*.crm)
-                // are at the same time project source and compilation output, therefore
-                // they *will* be resaved and possibly modified during game compilation.
-                // If the game is being upgraded from an older version, these rooms will get
-                // upgraded. For that reason we must save the game files, so that all
-                // project files are in sync (version-wise).
-                // We save the files prior to compiling, as that's safer in case of
-                // partial compilation: it's okay to have an upgraded project but partially
-                // un-upgraded rooms (they may be upgraded later), but not vice-versa!
-                // This probably does not have to be done in AGS 4.x, where room sources
-                // are separate from compilation output.
-                _agsEditor.SaveGameFiles();
-
-                var messages = _agsEditor.CompileGame(false, false);
-                if (!messages.HasErrors)
-                {
-                    // The user data may have been amended by the building process
-                    _agsEditor.SaveUserDataFile();
-                }
-
-                return !messages.HasErrors;
+                // The build saves the project first, so a project upgraded on loading is built as
+                // upgraded: agsbuild reads the files
+                return !_agsEditor.BuildGame(false).HasErrors;
             }
             return false;
         }
@@ -1353,25 +1335,17 @@ namespace AGS.Editor
                     _agsEditor.CurrentGame.DefaultSetup.TitleText = _agsEditor.CurrentGame.Settings.GameName + " Setup";
                     Factory.GUIController.GameNameUpdated();
                     _agsEditor.CurrentGame.WorkspaceState.LastBuildConfiguration = _agsEditor.CurrentGame.Settings.DebugMode ? BuildConfiguration.Debug : BuildConfiguration.Release;
-                    if (_agsEditor.SaveGameFiles())
+                    // The build saves the new game, and builds it with the new game ID, which the
+                    // compiled rooms carry. No message is displayed if the build fails (which it
+                    // will for the Empty Game template)
+                    MessageBoxOnCompile oldMessageBoxSetting = Factory.AGSEditor.Settings.MessageBoxOnCompile;
+                    Factory.AGSEditor.Settings.MessageBoxOnCompile = MessageBoxOnCompile.Never;
+                    try
                     {
-                        // TODO: seriously, running whole game compilation is
-                        // not a good solution for updating room files......
-                        // change this to do exactly what's necessary and not
-                        // building all default build targets!
-
-                        // Force a rebuild to remove the key in the room
-                        // files that links them to the old game ID
-                        // Force no message to be displayed if the build fails
-                        // (which it will for the Empty Game template)
-                        MessageBoxOnCompile oldMessageBoxSetting = Factory.AGSEditor.Settings.MessageBoxOnCompile;
-                        Factory.AGSEditor.Settings.MessageBoxOnCompile = MessageBoxOnCompile.Never;
-
-                        var messages = _agsEditor.CompileGame(true, false);
-                        // The user data may have been amended by the building process
-                        if (!messages.HasErrors)
-                            _agsEditor.SaveUserDataFile();
-
+                        _agsEditor.BuildGame(true);
+                    }
+                    finally
+                    {
                         Factory.AGSEditor.Settings.MessageBoxOnCompile = oldMessageBoxSetting;
                     }
                     createdSuccessfully = true;
