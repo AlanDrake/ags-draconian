@@ -98,6 +98,7 @@
     <Compile Include="Editor\AutoComplete\AutoCompleteTests.cs" />
     <Compile Include="Editor\ColorThemes\ColorThemesTests.cs" />
     <Compile Include="Editor\ColorThemes\Controls\ComboBoxCustomTests.cs" />
+    <Compile Include="Editor\Build\AgfexportHeaderTests.cs" />
     <Compile Include="Editor\Build\AgsbuildRunTests.cs" />
     <Compile Include="Editor\Build\BuildToolEventTests.cs" />
     <Compile Include="Editor\Build\BuildToolOptionsTests.cs" />
