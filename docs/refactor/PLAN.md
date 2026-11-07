@@ -89,7 +89,7 @@ comes after they are closed.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **3.2c, decided 2026-11-07** (the decisions in 3.2's status; the evidence in LOG.md "3.2c investigation"): the partial option, in steps: the `CMakePresets.json` VS 2022 presets first (the user tests them), then the Engine/Tools/Tests/Compiler projects and solutions go with the CI MSBuild jobs becoming CMake x86 jobs, then `Common.Lib.vcxproj` cut to `_MD` with the file-list guard, the engine's output name, PDB, manifest, ASLR and plugins matched to today's `acwin.exe`, the installer and `Windows/README.md`. After it: **3.4-2** (room files: the explicit check for the room versions 3.99+ data has, then the older `ReadExt_*` and upgrade code; 1.2's fixtures record `kRoomVersion_400_26`), **2.9d** (x86/x64 in CI, the user's decisions, together with 3.2c's CI jobs) | The investigation removed 3.2c's waiting condition; the `.vcxproj` drift it found cost two defects already | Opus 5.5, `high` for the implementation under supervision |
+| 1 | **3.2c, re-decided 2026-11-07** (3.2's status): the hand-written solutions stay; in steps: the drift guard between the `.vcxproj` and the CMake targets in `prepush.py` and CI, the editor's dead `Compiler.Lib` dependency removed, SDL2 statically linked into `acwin.exe` with the static library built by the CI dependencies job (installer, parity job, `Windows/README.md`). After it: **3.4-2** (room files: the explicit check for the room versions 3.99+ data has, then the older `ReadExt_*` and upgrade code; 1.2's fixtures record `kRoomVersion_400_26`), **2.9d** (x86/x64 in CI, the user's decisions, together with 3.2c's CI jobs) | The investigation removed 3.2c's waiting condition; the `.vcxproj` drift it found cost two defects already | Opus 5.5, `high` for the implementation under supervision |
 | 2 | **U.8, open:** offer the 1.5b-2 fixes in `CreateGlobalVars` (`RuntimeScript::CheckFixupInCode`) and `JointRTTI::Join` upstream (the same code there); the `String(ptr, length)` change alters a Common contract, so it is a separate offer if at all. The 1.5b-4 compiler leak fixes (the same code in `script2/`) are offered only when the user confirms | Real defects, small | Sonnet 5.5, `medium` |
 | 2b | **U.9, open:** offer upstream the `Convert8BitARGBTo32` fix (`Tools/data/sprite_utils.cpp`: a `uint32_t` row pointer stepped by a byte stride, an assert that compares bytes per pixel with 32; upstream's copy came in with 2a7b4f1f7) with its test, and `NDEBUG` for upstream's `spriteimport.vcxproj`, which has none in any configuration so the tool stops at that assert there (LOG.md 3.2, 2026-11-07) | A real overrun in a shipped tool, two lines and a test | Sonnet 5.5, `medium` |
 | 3 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
@@ -117,8 +117,7 @@ worktree lacks; `Tools/test/directory_test.cpp`'s comment on the MSBuild googlet
 `FetchGoogleTest.cmake` still pins 1.8.1 for GCC older than 5, which no builder uses.
 
 Waiting: 5.3 until U.3 is closed, then with upstream's draft directory names. (3.2c no longer waits on
-6.7: the 2026-11-07 investigation showed the C++/CLI bridge links a CMake-built Common, and the partial
-option keeps `Common.Lib.vcxproj` for it until 6.7f; the decisions are in 3.2's status.)
+6.7: re-decided on 2026-11-07, the hand-written solutions stay and get a drift guard; 3.2's status.)
 
 ---
 
@@ -266,18 +265,28 @@ the corpus run (1.4).
   projects (CI's only x86 tests) and no `NDEBUG` in the tools' Release builds; both fixed (LOG.md), and the
   `NDEBUG` fix uncovered the `Convert8BitARGBTo32` overrun in `Tools/data/sprite_utils.cpp` (fixed, LOG.md;
   upstream has the same code: U.9).
-  *3.2c decided (the user, 2026-11-07; evidence in LOG.md "3.2c investigation"):* the **partial option**. The
-  Engine, Tools, Tests, `Compiler.App`, `Compiler.Lib` and `Compiler.Lib.Test` projects, their `.filters`, their
-  five solutions and the Xiph props go; `Common.Lib.vcxproj` stays, cut to its `_MD` configurations, for the
-  C++/CLI bridge until 6.7f, with a file-list guard against CMake's `common` target (the bridge no longer needs
-  `Compiler_md.lib`). CI's three native MSBuild jobs become CMake x86 jobs (Ninja + vcvars32, ccache); the
-  editor job stays. A `CMakePresets.json` preset (`vs2022-x86`, `vs2022-x64`) runs the Visual Studio 17 2022
-  generator into a build folder: that generated solution is what VS 2022 opens, tested by the user before the
-  old projects go. The shipped engine stays **`acwin.exe`**; **SDL2 statically linked** into it, as the fetched
-  SDL2 already is (no `SDL2.dll` for the engine; the editor keeps shipping `SDL2.dll` for the bridge until 6.7f,
-  so the installer line moves to the editor component). CMake's engine must match today's `acwin.exe` on the
-  Release PDB, the DPI-aware manifest, ASLR and the builtin plugins unless the user says otherwise;
-  `AGS_PLATFORM_TEST` only on test targets. Still to decide with 2.9d: x86 and x64 in the CI matrix.
+  *3.2c re-decided (the user, 2026-11-07, after seeing a CMake-generated solution; evidence in LOG.md "3.2c
+  investigation"):* **the hand-written solutions stay.** The generated one has 46 projects, four configurations,
+  builds SDL2, SDL_sound and the codecs from source where ours link the prebuilt libraries, and cannot hold the
+  C# editor anyway; our MSBuild jobs are CI's only x86 coverage. So 3.2c is no longer "the native `.vcxproj`
+  become CMake-generated" but **"two build descriptions that cannot drift"**, in four pieces: (1) a drift guard,
+  a script that compares every `.vcxproj`'s source list with its CMake target (from the CMake build's
+  `compile_commands.json` or File API), with a short checked-in list of deliberate differences (the builtin
+  plugins and other platforms' files `acwin.exe` never built, `sdl2_stubs.c`), run by `prepush.py` and CI; (2)
+  the dead compiler dependency of the editor goes: `AGS.Native` links `Compiler_md.lib` and `AGS.Editor.Full.sln`
+  builds `Compiler.Lib` for it, but nothing in the bridge uses the compiler since 6.7d-12 (the `_MD`
+  configurations of `Compiler.Lib.vcxproj` go with it); (3) `Engine.Full.Test`'s wildcard over Engine.App's
+  objects stays as it is while it builds (no Engine.Lib split now); (4) **SDL2 statically linked into
+  `acwin.exe`**: `Engine.App.vcxproj` links a static SDL2 (2.30.11, `/MT`, `SDL_FORCE_STATIC_VCRT`) built by
+  the CI dependencies job that already builds SDL_sound into `WinDevDependenciesVS.zip`, plus the system
+  libraries a static SDL2 needs; the engine's `SDL2.dll` leaves the installer, the parity job and the artefacts;
+  the editor keeps shipping `SDL2.dll` for the C++/CLI bridge until 6.7f, so the installer line moves to the
+  editor component; `Windows/README.md` explains the static build for developers. Kept from the first decision:
+  `acwin.exe` stays the shipped engine. Dropped: CMake presets for VS solutions (the user opens ours), CMake x86
+  CI jobs (the MSBuild jobs stay), matching CMake's `ags` to `acwin.exe` (CMake's engine is CI's auto-test
+  engine, not the shipped one).
+  *Done when (rewritten):* a source file in one build description and not the other fails `prepush.py` and CI;
+  the editor builds without `Compiler.Lib`; `acwin.exe` runs without `SDL2.dll`.
 - [x] **3.3 Legacy compiler** (D3). Done 2026-11-07: the legacy compiler went on 2026-11-03,
   `Editor/AGS.CScript.Compiler` on 2026-11-07 (`FastString` lives in `Editor/AGS.Editor/Utils/`; LOG.md).
   What was left: **`Editor/AGS.CScript.Compiler`**. Its compiler parts were never finished and are unused;
