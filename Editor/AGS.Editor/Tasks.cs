@@ -57,8 +57,12 @@ namespace AGS.Editor
                 "*.asc",
                 "*.ash",
                 "*.txt",
-                "*.trs",
-                // Exclude patterns
+                "*.trs"
+            };
+            // A later pattern overrides an earlier one, so these come last: an include pattern
+            // matches at any depth ("AudioCache/*" matches the build's _obj/AudioCache/*)
+            string[] excludedFolders = new string[]
+            {
                 "!_Debug/*",
                 "!Compiled/*",
                 $"!{AGSEditor.BUILD_TEMP_DIRECTORY}/*"
@@ -135,6 +139,7 @@ namespace AGS.Editor
                 allFiles.AddRange(fontFiles);
             if (dialogFiles != null)
                 allFiles.AddRange(dialogFiles);
+            allFiles.AddRange(excludedFolders);
             return allFiles.ToArray();
         }
 
