@@ -40,7 +40,9 @@ class AGFReader;
 namespace DataUtil
 {
 
-// What building a room needs from the game project
+// What building a room needs from the game project. agsbuild keeps a built room while its
+// MakeRoomBuildGameKey is the same, so every member must go into that key (its structured
+// bindings make a new member a compile error until it does)
 struct RoomBuildGame
 {
     int UniqueID = 0;
@@ -57,6 +59,10 @@ struct RoomBuildGame
 
 // Reads the game settings that building a room needs from Game.agf
 Common::HError ReadRoomBuildGame(AGF::AGFReader &reader, RoomBuildGame &game);
+
+// A text made of every value of the settings, which differs whenever a setting differs: rooms
+// built with settings of the same key are the same
+String MakeRoomBuildGameKey(const RoomBuildGame &game);
 
 // Collects the names that the room script header declares
 RoomScriptNames GetRoomScriptNames(const RoomXml &room);

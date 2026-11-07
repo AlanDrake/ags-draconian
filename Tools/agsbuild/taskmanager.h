@@ -13,6 +13,7 @@
 //=============================================================================
 #pragma once
 
+#include <functional>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -102,6 +103,9 @@ public:
     void Abort();
     bool IsAborted() const;
     void SetInputData(uint32_t in_index, const String &data);
+    // Makes the task succeed without doing its work when the condition, asked as the task starts
+    // (after the tasks it depends on), is true: for the work of an earlier build that is up to date
+    void SetSkipCondition(std::function<bool()> skip) { _skip = std::move(skip); }
 
     HError Run();
 
@@ -116,6 +120,7 @@ protected:
     bool _aborted = false;
     HError _result = HError::None();
     const std::vector<TaskInput> _inputs;
+    std::function<bool()> _skip;
     std::vector<String> _inputData;
     std::vector<String> _outputData;
     std::unique_ptr<AGS::Common::TextStreamWriter> _logWriter;

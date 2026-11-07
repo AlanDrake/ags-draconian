@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <cstring>
+#include <vector>
 
 #include "data/room_build.h"
 #include "data/room_xml.h"
@@ -381,4 +382,44 @@ TEST(RoomBuild, GamewideColoursStopAtTheImagePalette)
     ExpectColour(data.Palette[1], 1, 2, 3);    // game-wide
     ExpectColour(data.Palette[3], 0, 0, 0);    // game-wide, but past the image's palette: left black
     DeleteRoomDir(dir);
+}
+
+// agsbuild keeps a built room while the key of the settings it was built with is the same: every
+// setting changes the key
+TEST(RoomBuild, EverySettingChangesTheGameKey)
+{
+    RoomBuildGame base = MakeGame();
+    base.Palette.resize(1);
+    const String base_key = MakeRoomBuildGameKey(base);
+    EXPECT_EQ(base_key, MakeRoomBuildGameKey(base));
+
+    std::vector<RoomBuildGame> changed(17, base);
+    changed[0].UniqueID++;
+    changed[1].DefaultRoomMaskResolution = 2;
+    changed[2].ColorDepth = 8;
+    changed[3].TextCodePage = 1252;
+    changed[4].Palette.resize(2);
+    changed[5].InteractionEvents[0].first = 3;
+    changed[6].InteractionEvents[0].second = "Curs0004";
+    changed[7].InteractionEvents.pop_back();
+    changed[8].PropertySchema[0].Name = "Height";
+    changed[9].PropertySchema[0].Description = "How heavy";
+    changed[10].PropertySchema[0].DefaultValue = "1";
+    changed[11].PropertySchema[0].Type = AGS::Common::kPropertyInteger;
+    changed[12].PropertySchema[0].AppliesToHotspots = false;
+    changed[13].PropertySchema[0].Translated = true;
+    changed[14].PropertySchema.emplace_back();
+    changed[15].Palette[0].ColourType = kPaletteColourType_Locked;
+    changed[16].Palette[0].Blue = 1;
+    for (size_t i = 0; i < changed.size(); ++i)
+    {
+        EXPECT_NE(base_key, MakeRoomBuildGameKey(changed[i])) << "change " << i;
+    }
+    // Values are told apart where they end: "1", "23" is not "12", "3"
+    RoomBuildGame a = base, b = base;
+    a.PropertySchema[0].Name = "1";
+    a.PropertySchema[0].Description = "23";
+    b.PropertySchema[0].Name = "12";
+    b.PropertySchema[0].Description = "3";
+    EXPECT_NE(MakeRoomBuildGameKey(a), MakeRoomBuildGameKey(b));
 }

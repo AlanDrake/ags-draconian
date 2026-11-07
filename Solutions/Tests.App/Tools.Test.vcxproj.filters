@@ -47,6 +47,7 @@
     <ClCompile Include="..\..\Tools\test\include_utils_test.cpp" />
     <ClCompile Include="..\..\Tools\test\spriteimport_test.cpp" />
     <ClCompile Include="..\..\Tools\test\package_files_test.cpp" />
+    <ClCompile Include="..\..\Tools\test\room_cache_test.cpp" />
     <ClCompile Include="..\..\Common\game\scripteventtable.cpp" />
     <ClCompile Include="..\..\Common\test\sdl2_stubs.c" />
   </ItemGroup>

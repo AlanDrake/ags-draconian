@@ -214,3 +214,29 @@ TEST(TaskManager, CancelBeforeStart)
     Diag::ResetCancel();
     EXPECT_FALSE(err);
 }
+
+// A task whose skip condition holds when it starts succeeds without doing its work; the condition
+// is asked after the tasks it depends on have run
+TEST(TaskManager, SkippedTaskSucceedsWithoutRunning)
+{
+    bool up_to_date = false;
+    TaskManager mgr(2);
+    auto decide = std::make_unique<TaskPipedProcess>("decide", &mgr, QuickCommand());
+    decide->SetSkipCondition(
+        [&up_to_date]()
+        {
+            up_to_date = true; // what a check task finds
+            return false;
+        });
+    mgr.AddTask(std::move(decide));
+    // It would fail if it ran
+    auto skipped =
+        std::make_unique<TaskPipedProcess>("skipped", &mgr, FailingCommand(), std::vector<TaskInput>{{"decide"}});
+    skipped->SetSkipCondition([&up_to_date]() { return up_to_date; });
+    mgr.AddTask(std::move(skipped));
+    const int errors_before = Diag::ErrorCount();
+    auto run = std::async(std::launch::async, [&mgr]() { return mgr.RunAll(); });
+    HError err = WaitOrAbort(run, 60, "SkippedTaskSucceedsWithoutRunning");
+    EXPECT_TRUE(err);
+    EXPECT_EQ(errors_before, Diag::ErrorCount());
+}

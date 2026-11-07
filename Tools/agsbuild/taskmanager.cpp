@@ -172,7 +172,15 @@ HError Task::Run()
         _state = TaskState::Running;
     }
     _logWriter->WriteFormat("Task: %s\n", _name.GetCStr());
-    HError err = RunImpl();
+    HError err = HError::None();
+    if (_skip && _skip())
+    {
+        _logWriter->WriteFormat("Up to date\n");
+    }
+    else
+    {
+        err = RunImpl();
+    }
     {
         std::lock_guard<std::mutex> lk(_mutex);
         if (_aborted)

@@ -48,7 +48,7 @@ TEST(CommandLine, ReadsWhatTheEditorPasses)
 {
     const CommandLine cmd = Parse({"E:/game/Game.agf", "E:/game/_Debug", "--json", "--sys-dir", "E:/ags", "--temp-dir",
                                    "E:/tmp", "--api-ash", "E:/ags/agsdefns.sh", "--header", "E:/h/__Plugin_a.ash",
-                                   "--header", "E:/h/b.ash", "--data-only", "--strict", "--threads", "3"});
+                                   "--header", "E:/h/b.ash", "--data-only", "--strict", "--threads", "3", "--rebuild"});
     EXPECT_TRUE(cmd.Error.IsEmpty()) << cmd.Error.GetCStr();
     EXPECT_FALSE(cmd.Help);
     EXPECT_TRUE(cmd.Json);
@@ -63,6 +63,7 @@ TEST(CommandLine, ReadsWhatTheEditorPasses)
     EXPECT_TRUE(cmd.DataOnly);
     EXPECT_TRUE(cmd.Strict);
     EXPECT_EQ(cmd.Threads, 3);
+    EXPECT_TRUE(cmd.Rebuild);
     EXPECT_FALSE(cmd.Cleanup);
 }
 
@@ -82,6 +83,7 @@ TEST(CommandLine, ReadsShortOptionsAndFlags)
     EXPECT_TRUE(cmd.ImportSprites);
     EXPECT_TRUE(cmd.BuildDebug);
     EXPECT_TRUE(cmd.BuildRelease);
+    EXPECT_FALSE(cmd.Rebuild);
     EXPECT_FALSE(cmd.Json);
     EXPECT_TRUE(cmd.Headers.empty());
 }

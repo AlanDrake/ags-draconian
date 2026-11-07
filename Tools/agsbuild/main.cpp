@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <exception>
+#include <memory>
 #include <vector>
 
 #include "platform/platform.h"
@@ -32,6 +33,7 @@
 #include "diagnostics.h"
 #include "package_files.h"
 #include "pipedprocess.h"
+#include "room_cache.h"
 #include "taskmanager.h"
 #include "util/cmdlineopts.h"
 #include "util/directory.h"
@@ -63,6 +65,8 @@ const char *ScriptGlvarScript = "_GlobalVariables.asc";
 const char *ScriptGlvarScom = "_GlobalVariables.o";
 const char *ScriptDialogScript = "__DialogScripts.asc";
 const char *ScriptDialogScom = "__DialogScripts.o";
+// What crmbuild --game-key writes: the game's settings that rooms are built with
+const char *RoomGameKeyFile = "_RoomGame.key";
 
 // The project's folder for intermediate files, the default --temp-dir
 const char *DefaultTempDirName = "_obj";
@@ -97,8 +101,11 @@ struct BuildOptions
     // Script headers from outside the project (the editor's plugins), in the order given
     std::vector<String> ExtraHeaders;
     // If the temporary directory is the default one, <project>/_obj, which agsbuild clears before
-    // the build and leaves after it; a directory given with --temp-dir is never cleared
+    // the build but for the rooms it keeps, and leaves after it; a directory given with --temp-dir
+    // is never cleared
     bool OwnTempDir = false;
+    // Build every room, not only those whose inputs changed; clears all of <project>/_obj first
+    bool Rebuild = false;
     // Temporary directory for any intermediate output
     String TempDir;
     // Final output directory for deploying game build
@@ -512,11 +519,52 @@ static void SortRoomsByLayout(BuildContext &c)
     }
 }
 
-// Build rooms from their sources, with the compiled room scripts inside, as the editor does
+// The files that every room's build reads besides its own: the headers its script is compiled
+// with, in their order (the room's own header is made of the auto-generated one and the room's data)
+static std::vector<String> GetRoomHeaderFiles(const BuildContext &c)
+{
+    std::vector<String> headers = {c.builtin_ash, InDir(c.temp_dir, ScriptAutoHeader)};
+    if (c.project.has_globalvar_script)
+    {
+        headers.push_back(InDir(c.temp_dir, ScriptGlvarHeader));
+    }
+    headers.insert(headers.end(), c.bopts.ExtraHeaders.begin(), c.bopts.ExtraHeaders.end());
+    for (const auto &header : c.project.scm_header_list)
+    {
+        headers.push_back(InDir(c.src_dir, header));
+    }
+    return headers;
+}
+
+// Adds a task that does nothing when the room is up to date
+static void AddRoomTask(BuildContext &c, std::unique_ptr<Task> &&task, const std::shared_ptr<CachedRoom> &room)
+{
+    task->SetSkipCondition([room]() { return room->Entry.UpToDate; });
+    c.taskmgr.AddTask(std::move(task));
+}
+
+// Build rooms from their sources, with the compiled room scripts inside, as the editor does.
+// A room whose inputs are those of the room kept in the intermediate folder is not built again:
+// the task "check-rooms" decides it, after the generated headers are made (room_cache.h).
 static HError AddRoomSourceTasks(BuildContext &c)
 {
+    if (c.room_sources_list.empty())
+    {
+        return HError::None();
+    }
+
     const String tool_crmbuild = Path::MakeExePath(c.sys_dir, ToolCrmBuild);
     const String tool_agscc = Path::MakeExePath(c.sys_dir, ScriptCompiler);
+    const std::vector<String> header_files = GetRoomHeaderFiles(c);
+    const String task_check = "check-rooms";
+    // What crmbuild reads from Game.agf, as crmbuild itself finds it; a failure is the room build's
+    const String task_game_key = "crmbuild:game-key";
+    const String game_key_file = InDir(c.temp_dir, RoomGameKeyFile);
+    c.taskmgr.AddTask(std::make_unique<TaskPipedProcess>(
+        task_game_key, &c.taskmgr,
+        PipedProcessParams(tool_crmbuild, ProcessArgs{c.src_agf, "--game-key", game_key_file}.Add(c.VerboseArgs()))));
+    c.clnup_temp_files.emplace_back(RoomGameKeyFile);
+    std::vector<std::shared_ptr<CachedRoom>> rooms;
     for (const int r : c.room_sources_list)
     {
         const String room_number = String::FromFormat("%d", r);
@@ -524,24 +572,18 @@ static HError AddRoomSourceTasks(BuildContext &c)
         const String room_asc = String::FromFormat("Rooms/%d/room%d.asc", r, r);
         // The script's name as the Windows editor gives it: shown in messages, used by the debugger
         const String room_script_name = String::FromFormat("Rooms\\%d\\room%d.asc", r, r);
-        const String room_scom = String::FromFormat("room%d.o", r);
         // The editor declares the room's objects and areas in its copy of the auto-generated header,
-        // which keeps the header's name
+        // which keeps the header's name. The room's folder holds what is kept with room<n>.crm.
         const String room_dir = String::FromFormat("room%d", r);
         const String room_autoash = String::FromFormat("%s/%s", room_dir.GetCStr(), ScriptAutoHeader);
+        const String room_scom = String::FromFormat("%s/room%d.o", room_dir.GetCStr(), r);
+        const String room_manifest = String::FromFormat("%s/%s", room_dir.GetCStr(), kRoomManifestFileName);
         if (!Directory::CreateAllDirectories(c.temp_dir, room_dir))
             return new Error("Failed to create %s/%s", c.temp_dir.GetCStr(), room_dir.GetCStr());
         const String task_ash = String::FromFormat("crmbuild:%s:ash", room_crm.GetCStr());
         const String task_agscc = String::FromFormat("agscc:room%d.asc", r);
         const String task_crm = String::FromFormat("crmbuild:%s", room_crm.GetCStr());
-
-        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
-            task_ash, &c.taskmgr,
-            PipedProcessParams(tool_crmbuild,
-                               ProcessArgs{c.src_agf, room_number, "--header", InDir(c.temp_dir, room_autoash),
-                                           "--prepend", InDir(c.temp_dir, ScriptAutoHeader)}
-                                   .Add(c.VerboseArgs())),
-            {{"autoash"}})));
+        const String task_manifest = String::FromFormat("manifest:%s", room_crm.GetCStr());
 
         String room_headers = String::FromFormat("%s" AGSCC_H_SEP "%s/%s", c.builtin_ash.GetCStr(),
                                                  c.temp_dir.GetCStr(), room_autoash.GetCStr());
@@ -549,24 +591,56 @@ static HError AddRoomSourceTasks(BuildContext &c)
             room_headers.AppendFmt(AGSCC_H_SEP "%s/%s", c.temp_dir.GetCStr(), ScriptGlvarHeader);
         room_headers.Append(c.ExtraScriptHeaders);
         room_headers.Append(c.module_script_headers);
-        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
-            task_agscc, &c.taskmgr,
-            PipedProcessParams(tool_agscc, ProcessArgs{InDir(c.src_dir, room_asc), "--name", room_script_name, "-H",
-                                                       room_headers, "-o", InDir(c.temp_dir, room_scom)}
-                                               .Add(MakeAGSCCFlags(c.project.agscc_opts))),
-            {{"glvar"}, {task_ash}})));
+        const ProcessArgs ash_args{c.src_agf,   room_number,
+                                   "--header",  InDir(c.temp_dir, room_autoash),
+                                   "--prepend", InDir(c.temp_dir, ScriptAutoHeader)};
+        const ProcessArgs agscc_args =
+            ProcessArgs{InDir(c.src_dir, room_asc),  "--name", room_script_name, "-H", room_headers, "-o",
+                        InDir(c.temp_dir, room_scom)}
+                .Add(MakeAGSCCFlags(c.project.agscc_opts));
+        const ProcessArgs crm_args{
+            c.src_agf, room_number, "-o", InDir(c.temp_dir, room_crm), "--script", InDir(c.temp_dir, room_scom)};
 
-        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
-            task_crm, &c.taskmgr,
-            PipedProcessParams(tool_crmbuild, ProcessArgs{c.src_agf, room_number, "-o", InDir(c.temp_dir, room_crm),
-                                                          "--script", InDir(c.temp_dir, room_scom)}
-                                                  .Add(c.VerboseArgs())),
-            {{task_agscc}})));
+        // What the room's build reads: the command lines name every file but the tools and the
+        // room's folder, the -v option aside, which changes nothing in the room
+        auto room = std::make_shared<CachedRoom>();
+        room->Inputs.Tools = {File::GetThisExePath(), tool_agscc, tool_crmbuild};
+        room->Inputs.GameKeyFile = game_key_file;
+        room->Inputs.Commands = {ash_args.GetParams(), agscc_args.GetParams(), crm_args.GetParams()};
+        room->Inputs.Headers = header_files;
+        room->Inputs.SourceDir = Path::ConcatPaths(c.src_dir, String::FromFormat("Rooms/%d", r));
+        room->Entry.CrmFile = InDir(c.temp_dir, room_crm);
+        room->Entry.ManifestFile = InDir(c.temp_dir, room_manifest);
+        rooms.push_back(room);
 
-        c.AddRoomFile(room_crm, task_crm);
+        AddRoomTask(c,
+                    std::make_unique<TaskPipedProcess>(
+                        task_ash, &c.taskmgr,
+                        PipedProcessParams(tool_crmbuild, ProcessArgs(ash_args).Add(c.VerboseArgs())),
+                        std::vector<TaskInput>{{task_check}}),
+                    room);
+        AddRoomTask(c,
+                    std::make_unique<TaskPipedProcess>(task_agscc, &c.taskmgr,
+                                                       PipedProcessParams(tool_agscc, agscc_args),
+                                                       std::vector<TaskInput>{{"glvar"}, {task_ash}}),
+                    room);
+        AddRoomTask(c,
+                    std::make_unique<TaskPipedProcess>(
+                        task_crm, &c.taskmgr,
+                        PipedProcessParams(tool_crmbuild, ProcessArgs(crm_args).Add(c.VerboseArgs())),
+                        std::vector<TaskInput>{{task_agscc}}),
+                    room);
+        c.taskmgr.AddTask(std::make_unique<TaskWriteRoomManifest>(task_manifest, &c.taskmgr, room,
+                                                                  std::vector<TaskInput>{{task_crm}}));
+
+        c.AddRoomFile(room_crm, task_manifest);
         c.clnup_temp_files.push_back(room_autoash);
         c.clnup_temp_files.push_back(room_scom);
+        c.clnup_temp_files.push_back(room_manifest);
     }
+    c.taskmgr.AddTask(
+        std::make_unique<TaskCheckRooms>(task_check, &c.taskmgr, rooms, c.bopts.Rebuild,
+                                         std::vector<TaskInput>{{"autoash"}, {"glvar"}, {task_game_key}}));
     return HError::None();
 }
 
@@ -1077,8 +1151,9 @@ static HError AddRoomDeployTasks(BuildContext &c)
     {
         deploy_rooms.emplace_back(Path::ConcatPaths(c.temp_dir, f), Path::ConcatPaths(rooms_dir, f));
     }
+    // Copied: the intermediate folder keeps the rooms for the next build
     c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles(
-        "deploy-rooms", &c.taskmgr, deploy_rooms, FileMoveOp::Move, false /* no skip */, c.pre_deploy_tasks)));
+        "deploy-rooms", &c.taskmgr, deploy_rooms, FileMoveOp::Copy, false /* no skip */, c.pre_deploy_tasks)));
 
     std::vector<String> dir_files;
     Directory::GetFiles(rooms_dir, dir_files);
@@ -1113,8 +1188,17 @@ static void AddCleanupTask(BuildContext &c)
     for (const auto &f : c.clnup_avox_temp_files)
         cleanup_files.push_back(Path::ConcatPaths(temp_audio_dir, f));
     std::copy(c.StagedFiles.begin(), c.StagedFiles.end(), std::back_inserter(cleanup_files));
-    c.taskmgr.AddTask(std::unique_ptr<Task>(
-        new TaskDeleteFiles("cleanup-temp", &c.taskmgr, cleanup_files, {{"deploy-data"}, {"deploy-package"}})));
+    std::vector<TaskInput> after = {{"deploy-data"}, {"deploy-package"}};
+    // The run layout's rooms are copied to the output folder
+    for (const auto &f : c.RoomDeployFiles)
+    {
+        cleanup_files.push_back(Path::ConcatPaths(c.temp_dir, f));
+    }
+    if (c.bopts.DataOnly)
+    {
+        after.emplace_back("deploy-rooms");
+    }
+    c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskDeleteFiles("cleanup-temp", &c.taskmgr, cleanup_files, after)));
 }
 
 HError BuildWithTaskManager(const BuildOptions &bopts)
@@ -1230,14 +1314,20 @@ const char *HELP_STRING = ""
                           "  --import-sprites       create a new sprite pack, importing sprites from the\n"
                           "                         source image files, according to game.agf specs.\n"
                           "                         Requires a presence of spriteimport tool.\n"
+                          "  --rebuild              builds every room. Without it a room built from\n"
+                          "                         Rooms/<n>/ is kept in the intermediate folder, and not\n"
+                          "                         built again while nothing it is built from changes (its\n"
+                          "                         files, the headers, Game.agf's settings for rooms, the\n"
+                          "                         tools). Clears all of '_obj' first, if it is the one used.\n"
                           "  -s, --sys-dir <path>   a path to the system directory, where all the tools are\n"
                           "                         located. If not provided, agsbuild will assume it is\n"
                           "                         the same directory where it's located.\n"
                           "  -t, --temp-dir <path>  a folder for the intermediate files, created if it does\n"
                           "                         not exist, and never cleared. If not provided: '_obj'\n"
                           "                         in the project folder, which is cleared when a build\n"
-                          "                         starts and kept after it (a failed build's files can\n"
-                          "                         be looked into).\n"
+                          "                         starts, but for the rooms kept (see --rebuild), and\n"
+                          "                         kept after it (a failed build's files can be looked\n"
+                          "                         into).\n"
                           "  -p, --threads <N>      limit task threads to this number (default: 8, at most\n"
                           "                         32, at least 1); note that tasks may spawn new\n"
                           "                         processes, executing other tools.\n"
@@ -1274,6 +1364,7 @@ static BuildOptions MakeBuildOptions(const CommandLine &cmd)
     bopts.BuildRelease = cmd.BuildRelease;
     bopts.Strict = cmd.Strict;
     bopts.DataOnly = cmd.DataOnly;
+    bopts.Rebuild = cmd.Rebuild;
     if (cmd.Threads > 0)
     {
         bopts.TaskThreads = static_cast<uint32_t>(cmd.Threads);
@@ -1397,14 +1488,27 @@ static String CheckBuildOptions(const BuildOptions &bopts)
 }
 
 // Readies the folder for the intermediate files: the default one is cleared, so that a build
-// never finds the files of an earlier one; returns the error, or an empty string
+// never finds the files of an earlier one, but for the rooms it may keep (all of it with
+// --rebuild); returns the error, or an empty string
 static String PrepareTempDir(const BuildOptions &bopts)
 {
-    String failed_path;
-    if (bopts.OwnTempDir && !Directory::DeleteDirectoryTree(bopts.TempDir, &failed_path))
+    if (bopts.OwnTempDir)
     {
-        return String::FromFormat("failed to clear the intermediate folder '%s': could not delete '%s'",
-                                  bopts.TempDir.GetCStr(), failed_path.GetCStr());
+        String failed_path;
+        HError err = HError::None();
+        if (bopts.Rebuild && !Directory::DeleteDirectoryTree(bopts.TempDir, &failed_path))
+        {
+            err = new Error(String::FromFormat("could not delete '%s'", failed_path.GetCStr()));
+        }
+        else if (!bopts.Rebuild)
+        {
+            err = ClearTempDirKeepingRooms(bopts.TempDir);
+        }
+        if (!err)
+        {
+            return String::FromFormat("failed to clear the intermediate folder '%s': %s", bopts.TempDir.GetCStr(),
+                                      err->FullMessage().GetCStr());
+        }
     }
     if (!Directory::CreateDirectory(bopts.TempDir))
     {

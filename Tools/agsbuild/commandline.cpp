@@ -38,6 +38,7 @@ enum class Option
     Json,
     DataOnly,
     Cleanup,
+    Rebuild,
     ImportAudio,
     ImportSprites,
     BuildDebug,
@@ -67,6 +68,7 @@ const OptionSpec kKnownOptions[] = {
     {"--data-only", Option::DataOnly, false},
     {"-c", Option::Cleanup, false},
     {"--cleanup", Option::Cleanup, false},
+    {"--rebuild", Option::Rebuild, false},
     {"--import-audio", Option::ImportAudio, false},
     {"--import-sprites", Option::ImportSprites, false},
     {"--build-debug", Option::BuildDebug, false},
@@ -99,6 +101,7 @@ void SetFlag(CommandLine &cmd, Option id)
     case Option::Json: cmd.Json = true; break;
     case Option::DataOnly: cmd.DataOnly = true; break;
     case Option::Cleanup: cmd.Cleanup = true; break;
+    case Option::Rebuild: cmd.Rebuild = true; break;
     case Option::ImportAudio: cmd.ImportAudio = true; break;
     case Option::ImportSprites: cmd.ImportSprites = true; break;
     case Option::BuildDebug: cmd.BuildDebug = true; break;

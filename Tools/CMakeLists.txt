@@ -208,6 +208,8 @@ add_executable(agsbuild agsbuild/main.cpp
         agsbuild/diagnostics.cpp
         agsbuild/package_files.h
         agsbuild/package_files.cpp
+        agsbuild/room_cache.h
+        agsbuild/room_cache.cpp
         )
 set_target_properties(agsbuild PROPERTIES
         CXX_STANDARD 17
@@ -339,6 +341,7 @@ if(AGS_TESTS)
       agsbuild/commandline.cpp
       agsbuild/package_files.cpp
       agsbuild/pipedprocess.cpp
+      agsbuild/room_cache.cpp
       agsbuild/taskmanager.cpp
       test/diagnostics_test.cpp
       test/dialogscriptconv_test.cpp
@@ -348,6 +351,7 @@ if(AGS_TESTS)
       test/package_files_test.cpp
       test/pipedprocess_test.cpp
       test/room_build_test.cpp
+      test/room_cache_test.cpp
       test/tra_utils_test.cpp
       test/xml_fields_test.cpp
       test/spriteimport_test.cpp

@@ -79,6 +79,58 @@ HError ReadRoomBuildGame(AGFReader &reader, RoomBuildGame &game)
     return HError::None();
 }
 
+// Appends a value to the key: a string with its length first, so no two lists of values make the
+// same text
+static void AppendKey(String &key, const String &value)
+{
+    key.AppendFmt("%zu:%s;", value.GetLength(), value.GetCStr());
+}
+
+static void AppendKey(String &key, int value)
+{
+    key.AppendFmt("%d;", value);
+}
+
+String MakeRoomBuildGameKey(const RoomBuildGame &game)
+{
+    // Structured bindings name every member: a member added to these structs fails to compile
+    // here until it is written into the key, or a room build that depends on it would be kept
+    const auto &[unique_id, mask_resolution, color_depth, code_page, palette, events, schema] = game;
+    String key;
+    AppendKey(key, unique_id);
+    AppendKey(key, mask_resolution);
+    AppendKey(key, color_depth);
+    AppendKey(key, code_page);
+    AppendKey(key, static_cast<int>(palette.size()));
+    for (const auto &entry : palette)
+    {
+        const auto &[colour_type, red, green, blue] = entry;
+        AppendKey(key, static_cast<int>(colour_type));
+        AppendKey(key, red);
+        AppendKey(key, green);
+        AppendKey(key, blue);
+    }
+    AppendKey(key, static_cast<int>(events.size()));
+    for (const auto &evt : events)
+    {
+        AppendKey(key, evt.first);
+        AppendKey(key, evt.second);
+    }
+    AppendKey(key, static_cast<int>(schema.size()));
+    for (const auto &item : schema)
+    {
+        const auto &[name, description, default_value, type, for_characters, for_hotspots, for_objects, for_inventory,
+                     for_rooms, translated] = item;
+        AppendKey(key, name);
+        AppendKey(key, description);
+        AppendKey(key, default_value);
+        AppendKey(key, static_cast<int>(type));
+        AppendKey(key, (for_characters ? 1 : 0) | (for_hotspots ? 2 : 0) | (for_objects ? 4 : 0) |
+                           (for_inventory ? 8 : 0) | (for_rooms ? 16 : 0) | (translated ? 32 : 0));
+    }
+    return key;
+}
+
 //-----------------------------------------------------------------------------
 // Script names
 //-----------------------------------------------------------------------------

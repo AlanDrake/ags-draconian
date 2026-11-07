@@ -44,6 +44,7 @@ struct CommandLine
     int Threads = 0;
     bool DataOnly = false;
     bool Cleanup = false;
+    bool Rebuild = false;
     bool ImportAudio = false;
     bool ImportSprites = false;
     bool BuildDebug = false;
