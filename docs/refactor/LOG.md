@@ -2332,6 +2332,18 @@ from `1.3-engine-tests` (`.compare/msb-13`, Release x86, and the CMake `ags.exe`
 the fresh worktree needed the NuGet `Solutions/packages` folder and the irrKlang DLLs copied from the
 main checkout): no evident issue.
 
+### U.9 Sprite import overrun upstream
+
+*Definition:* offer upstream the `Convert8BitARGBTo32` fix found in 3.2c (the fork's `NDEBUG` fix for
+the tools' Release builds exposed it), with its test, and `NDEBUG` for upstream's `spriteimport.vcxproj`.
+*Status, 2026-11-07:* done. Branch `master-fixspritealpha` off `upstream/master` (the code is the same in
+`master` and `ags4`), 2 commits (`497450361` the fix, `b9911c7ac` the test; ledger in `docs/UPSTREAM.md`),
+merged as #3196 (`3f39d095f`) the same day; it reaches `ags4` with upstream's next master merge. The
+`NDEBUG` half was dropped (the user, 2026-11-07): none of upstream's nine `Solutions/Tools.App` projects
+defines it in Release and `build.yml` ships those builds, but asserts left on are not a defect (they
+found this overrun), upstream's ags4 editor does not run the tools, and the fork already has the fix
+(3.2). If raised at all, a sentence in a later tools PR.
+
 ### 6.7d The editor builds through the tools
 
 The definition and the 13 steps are in PLAN.md (the task is open).

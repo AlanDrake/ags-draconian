@@ -74,7 +74,7 @@ Recorded 2026-10-31.
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
-0–2, 3.1, 3.3, 3.4-1, 6.7d, 7.1 (but 7.1n), U.1, U.2, U.4, U.5 (LOG.md). Upstream review takes weeks,
+0–2, 3.1, 3.3, 3.4-1, 6.7d, 7.1 (but 7.1n), U.1, U.2, U.4, U.5, U.9 (LOG.md). Upstream review takes weeks,
 so the offers go out first and fork-only moves that would conflict with them (5.3) wait.
 
 | # | Task | Why now | Model / effort |
@@ -82,9 +82,8 @@ so the offers go out first and fork-only moves that would conflict with them (5.
 | 1 | **3.2c, done locally:** push it and read the Windows build job's new drift-guard step (its first run) | CI confirms the guard | Sonnet 5.5, `medium` |
 | 1b | **3.4-2** room files: an explicit check for the room versions 3.99+ data has, then the older `ReadExt_*` and upgrade code; then **2.9d** (x64-only CI, the user's decisions) | Next deletion; 1.2's fixtures guard it | Opus 5.5, `high` |
 | 2 | **U.8:** offer upstream the 1.5b-2 fixes (`RuntimeScript::CheckFixupInCode`, `JointRTTI::Join`); the `String(ptr, length)` change separately if at all; the 1.5b-4 compiler leak fixes only if the user confirms | Real defects, small | Sonnet 5.5, `medium` |
-| 3 | **U.9:** offer upstream the `Convert8BitARGBTo32` fix with its test, and `NDEBUG` for upstream's `spriteimport.vcxproj` (LOG.md 3.2) | A real overrun in a shipped tool | Sonnet 5.5, `medium` |
-| 4 | **2.9 follow-up:** read the first push's runs after 2.9 (the plan job's push filter, cold ccache); the apt package cache, the ARM64 retry | The first push finds what the probe could not | Sonnet 5.5, `medium` |
-| 5 | **Waiting on review:** U.3 (#3186–#3190, #3185, #3191), U.6 (the fork port once the PR is stable), U.7 (#3193) | Upstream review takes weeks | Sonnet 5.5, `medium` (U.6: the user first) |
+| 3 | **2.9 follow-up:** read the first push's runs after 2.9 (the plan job's push filter, cold ccache); the apt package cache, the ARM64 retry | The first push finds what the probe could not | Sonnet 5.5, `medium` |
+| 4 | **Waiting on review:** U.3 (#3186–#3190, #3185, #3191), U.6 (the fork port once the PR is stable), U.7 (#3193) | Upstream review takes weeks | Sonnet 5.5, `medium` (U.6: the user first) |
 
 Open items from finished tasks (details in LOG.md "Open items"):
 - 0.4: the CodeQL setting, `D3DCOMPILER_47` on Windows 7, the macOS 10.9 deployment target.
@@ -477,6 +476,8 @@ and without fork-only features, built in the worktree `E:\Projects\ags\ags4-upst
 - [ ] **U.7 The 1.3 engine fixes** (PR #3193, branch `ags4-fixes-1.3`, 2026-11-05): the seven bugs
   the fork's engine tests found, one commit each, two tests ported into `common_test`; the five
   engine-side tests stay in the fork until upstream has a full-engine test target (LOG.md U.7).
+- [x] **U.9 Sprite import overrun** merged as #3196 into `master` (2026-11-07); `NDEBUG` for upstream's
+  tool projects dropped (LOG.md U.9).
 
 ---
 
