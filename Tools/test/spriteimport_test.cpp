@@ -354,6 +354,52 @@ TEST(SpriteImport, DirectImportConvert8To32)
     TestPixelData4x4<uint32_t>(image2, dest);
 }
 
+// An 8-bit image whose palette has alpha, imported with its alpha channel into a 32-bit game: every
+// pixel takes the ARGB of its palette entry, row by row. A write past the last row shows as a heap
+// corruption (the CRT's check, ASan), not as a failed expectation.
+TEST(SpriteImport, DirectImportConvert8WithAlphaTo32)
+{
+    Palette pal;
+    std::fill(pal.begin(), pal.end(), RGB{0, 0, 0, 0});
+    pal[1] = {255, 0, 0, 255};
+    pal[2] = {0, 255, 0, 128};
+    pal[3] = {0, 0, 255, 64};
+    pal[4] = {255, 255, 255, 255};
+    pal[5] = {128, 128, 0, 200};
+    pal[6] = {16, 32, 48, 32};
+    constexpr int kWidth = 3;
+    constexpr int kHeight = 4;
+    const uint8_t indices[kHeight][kWidth] = {{1, 2, 3}, {4, 5, 6}, {0, 6, 1}, {3, 0, 5}};
+    PixelBuffer image(kWidth, kHeight, kPxFmt_Indexed8);
+    for (int y = 0; y < kHeight; ++y)
+    {
+        for (int x = 0; x < kWidth; ++x)
+        {
+            image.GetLine(y)[x] = indices[y][x];
+        }
+    }
+
+    SpriteData sprite = GetDefImport(kWidth, kHeight, 8);
+    sprite.ImportAlphaChannel = true;
+    PixelBuffer dest;
+    HError err = ConvertSpriteForGame(image, &pal, dest, GetDefColorSet32(), nullptr, sprite);
+    ASSERT_TRUE(err);
+    ASSERT_EQ(kPxFmt_A8R8G8B8, dest.GetFormat());
+    ASSERT_EQ(kWidth * 4u, dest.GetStride());
+    ASSERT_EQ(kWidth * kHeight * 4u, dest.GetDataSize());
+
+    // 0xAARRGGBB by the shifts SpriteImportEnv sets; the entry with zero alpha becomes the mask color
+    const uint32_t argb[] = {MASK_COLOR_32, 0xFFFF0000, 0x8000FF00, 0x400000FF, 0xFFFFFFFF, 0xC8808000, 0x20102030};
+    for (int y = 0; y < kHeight; ++y)
+    {
+        const uint32_t *line = reinterpret_cast<const uint32_t *>(dest.GetLine(y));
+        for (int x = 0; x < kWidth; ++x)
+        {
+            EXPECT_EQ(argb[indices[y][x]], line[x]) << "pixel (" << x << ", " << y << ")";
+        }
+    }
+}
+
 TEST(SpriteImport, DirectImportConvert16To32)
 {
     auto dest = ImportDefault16Sprite(kGameColorDepth_TrueColor);
