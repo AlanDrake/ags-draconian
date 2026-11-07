@@ -701,24 +701,11 @@ jobs:
           cd Solutions
           msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
 
-      - name: Build Compiler (x86 Debug)
-        if: needs.plan.outputs.full == 'true'
-        shell: cmd
-        run: |
-          cd Solutions
-          msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
-
       - name: Build Tools (x86 Release)
         shell: cmd
         run: |
           cd Solutions
           msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
-
-      - name: Build Compiler (x86 Release)
-        shell: cmd
-        run: |
-          cd Solutions
-          msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
 
       - name: Upload x86 Tools PDBs
         uses: actions/upload-artifact@v7
@@ -751,13 +738,6 @@ jobs:
         run: |
           cd Solutions
           msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
-
-      - name: Build Compiler (x64 Release)
-        if: needs.plan.outputs.full == 'true'
-        shell: cmd
-        run: |
-          cd Solutions
-          msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
 
       - name: Upload x64 Tools PDBs
         if: needs.plan.outputs.full == 'true'
