@@ -145,7 +145,16 @@ static HGameFileError OpenMainGameFileBase(MainGameSource &src)
     // Read data format version and requested engine version
     src.DataVersion = (GameDataVersion)in->ReadInt32();
     src.CompiledWith = StrUtil::ReadString(in);
-    if (src.DataVersion < kGameVersion_LowSupported || src.DataVersion > kGameVersion_Current)
+    if (src.DataVersion < kGameVersion_LowSupported)
+    {
+        return new MainGameFileError(
+            kMGFErr_FormatVersionNotSupported,
+            String::FromFormat("Game was compiled with %s (data format %d). This engine loads games made with AGS 3.99 "
+                               "or later (data formats %d - %d).",
+                               !src.CompiledWith.IsEmpty() ? src.CompiledWith.GetCStr() : "(unknown)", src.DataVersion,
+                               kGameVersion_LowSupported, kGameVersion_Current));
+    }
+    if (src.DataVersion > kGameVersion_Current)
     {
         return new MainGameFileError(
             kMGFErr_FormatVersionNotSupported,

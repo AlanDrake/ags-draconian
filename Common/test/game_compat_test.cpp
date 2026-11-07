@@ -15,9 +15,11 @@
 // Compatibility contract C1 (docs/refactor/PLAN.md): game data built by released AGS 4 editors
 // keeps loading. The fixtures in data/compat/<version>/ are the Sierra-style template built by
 // each release (data/compat/make_fixtures.py); the engine runs them in the compat_* ctest cases.
+// Game data older than 3.99 (decision D1) is refused when its header is read.
 //
 //=============================================================================
 #include <memory>
+#include <utility>
 
 #include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
@@ -29,7 +31,10 @@
 #include "gtest/gtest.h"
 #include "gui/guimain.h"
 #include "script/cc_common.h"
+#include "util/file.h"
 #include "util/path.h"
+#include "util/stream.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
@@ -153,3 +158,68 @@ INSTANTIATE_TEST_SUITE_P(Releases, GameCompat, ::testing::ValuesIn(CompatFixture
                                      c = '_';
                              return name;
                          });
+
+namespace
+{
+
+// Writes a main game file header as the tools do (WriteHeaderBlock in Tools/data/data_file_writer.cpp)
+// and opens it: signature, data format version, the editor's version string, no required engine caps.
+HGameFileError OpenGameHeader(int data_version, const char *compiled_with, MainGameSource &src)
+{
+    const String filename = String::FromFormat("GameHeader_%d.dta", data_version);
+    {
+        std::unique_ptr<Stream> out = File::CreateFile(filename);
+        if (!out)
+        {
+            return new MainGameFileError(kMGFErr_FileOpenFailed, "Could not create %s", filename.GetCStr());
+        }
+        out->Write(MainGameSource::Signature.GetCStr(), MainGameSource::Signature.GetLength());
+        out->WriteInt32(data_version);
+        StrUtil::WriteString(compiled_with, out.get());
+        out->WriteInt32(0);
+    }
+    HGameFileError err = OpenMainGameFile(filename, src);
+    src.InputStream.reset(); // close the file before deleting it
+    File::DeleteFile(filename);
+    return err;
+}
+
+} // namespace
+
+// D1: game data older than 3.99 is refused when the header is read, with an error that names the
+// file's format version and the oldest supported one
+TEST(GameDataVersion, OlderThan399IsRefused)
+{
+    // The first and the last 3.6 data formats
+    const std::pair<int, const char *> versions[] = {{3060021, "3.6.0.21"}, {3060316, "3.6.3.16"}};
+    for (const auto &version : versions)
+    {
+        MainGameSource src;
+        HGameFileError err = OpenGameHeader(version.first, version.second, src);
+        ASSERT_FALSE(err) << version.first;
+        EXPECT_EQ(err->Code(), kMGFErr_FormatVersionNotSupported);
+        const String message = err->FullMessage();
+        EXPECT_TRUE(message.FindString(version.second) != String::NoIndex) << message.GetCStr();
+        EXPECT_TRUE(message.FindString(String::FromFormat("%d", version.first)) != String::NoIndex)
+            << message.GetCStr();
+        EXPECT_TRUE(message.FindString(String::FromFormat("%d", kGameVersion_399)) != String::NoIndex)
+            << message.GetCStr();
+    }
+}
+
+TEST(GameDataVersion, From399IsOpened)
+{
+    MainGameSource src;
+    HGameFileError err = OpenGameHeader(kGameVersion_399, "3.99.0.0", src);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    EXPECT_EQ(src.DataVersion, kGameVersion_399);
+    EXPECT_STREQ(src.CompiledWith.GetCStr(), "3.99.0.0");
+}
+
+TEST(GameDataVersion, NewerThanEngineIsRefused)
+{
+    MainGameSource src;
+    HGameFileError err = OpenGameHeader(kGameVersion_Current + 1, "9.0.0.0", src);
+    ASSERT_FALSE(err);
+    EXPECT_EQ(err->Code(), kMGFErr_FormatVersionNotSupported);
+}

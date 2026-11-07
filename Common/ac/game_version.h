@@ -215,7 +215,7 @@ enum GameDataVersion
     kGameVersion_400_29 = 4000029,
     kGameVersion_400_33 = 4000033,
     kGameVersion_400_34 = 4000034,
-    kGameVersion_LowSupported = kGameVersion_360_21,
+    kGameVersion_LowSupported = kGameVersion_399,
     kGameVersion_Current = kGameVersion_400_34,
 
     //-------------------------------------------------------------------------
