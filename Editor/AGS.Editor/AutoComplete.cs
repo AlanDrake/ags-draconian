@@ -1,4 +1,3 @@
-using AGS.CScript.Compiler;
 using AGS.Types;
 using AGS.Types.AutoComplete;
 using System;

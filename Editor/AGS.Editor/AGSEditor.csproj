@@ -534,6 +534,7 @@
     <Compile Include="Utils\Debounce.cs" />
     <Compile Include="Utils\DirectoryInfoExtensions.cs" />
     <Compile Include="Utils\DragUtils.cs" />
+    <Compile Include="Utils\FastString.cs" />
     <Compile Include="Utils\FileWatcher.cs" />
     <Compile Include="Utils\IncludeUtils.cs" />
     <Compile Include="Utils\MathExtra.cs" />
