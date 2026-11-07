@@ -1971,6 +1971,9 @@ namespace AGS.Editor.Components
 
                 if (processor.MakesChanges)
                 {
+                    // The names and properties set above do not mark the room modified, and only a
+                    // modified room is written (its images are on disk: the game was saved first)
+                    room.Modified = true;
                     CompileMessages roomErrors = new CompileMessages();
 					SaveRoomButDoNotShowAnyErrors(room, roomErrors, "Saving updates to room " + room.Number + "...");
 
