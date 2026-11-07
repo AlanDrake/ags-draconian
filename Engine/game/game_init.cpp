@@ -325,7 +325,9 @@ static void RegisterMissingGUIControls(GameSetupStruct &game)
             }
 
             if (mgr)
+            {
                 StaticGUIControlsHandles[i][j] = ccRegisterPersistentObjectIfMissing(guio, mgr); // add ref for engine
+            }
         }
     }
 }
@@ -337,17 +339,29 @@ static void RegisterMissingGUIControls(GameSetupStruct &game)
 void RegisterMissingManagedObjects(GameSetupStruct &game)
 {
     for (int i = 0; i < game.numCompatGameChannels; ++i)
+    {
         ccRegisterPersistentObjectIfMissing(&scrAudioChannel[i], &ccDynamicAudio);
+    }
     for (size_t i = 0; i < game.audioClips.size(); ++i)
+    {
         StaticAudioClipArray[i] = ccRegisterPersistentObjectIfMissing(&game.audioClips[i], &ccDynamicAudioClip);
+    }
     for (int i = 0; i < game.numcharacters; ++i)
+    {
         StaticCharacterArray[i] = ccRegisterPersistentObjectIfMissing(&game.chars[i], &ccDynamicCharacter);
+    }
     for (int i = 0; i < game.numdialog; ++i)
+    {
         StaticDialogArray[i] = ccRegisterPersistentObjectIfMissing(&scrDialog[i], &ccDynamicDialog);
+    }
     for (int i = 0; i < game.numinvitems; ++i)
+    {
         StaticInventoryArray[i] = ccRegisterPersistentObjectIfMissing(&scrInv[i], &ccDynamicInv);
+    }
     for (int i = 0; i < game.numgui; ++i)
+    {
         StaticGUIArray[i] = ccRegisterPersistentObjectIfMissing(&scrGui[i], &ccDynamicGUI);
+    }
     RegisterMissingGUIControls(game);
 }
 

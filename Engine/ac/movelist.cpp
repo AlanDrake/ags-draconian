@@ -445,9 +445,13 @@ namespace MoveListOp
 inline float InputSpeedToVelocity(float speed_val)
 {
     if (speed_val < 0.f)
+    {
         return 1.f / (-speed_val);
+    }
     else
+    {
         return speed_val;
+    }
 }
 
 // Calculates velocity vector length from x/y speed components
@@ -459,11 +463,7 @@ inline float CalcMoveSpeedAtAngle(float speed_x, float speed_y, float xdist, flo
     {
         useMoveSpeed = speed_y;
     }
-    else if (ydist == 0.f || speed_y == 0.f)
-    {
-        useMoveSpeed = speed_x;
-    }
-    else if (speed_x == speed_y)
+    else if (ydist == 0.f || speed_y == 0.f || speed_x == speed_y)
     {
         useMoveSpeed = speed_x;
     }
@@ -499,7 +499,9 @@ static void CalculateMoveStage(MoveList &mls, uint32_t index, float move_speed_x
 {
     assert(index < mls.pos.size() && index < mls.permove.size() && index < mls.stageflags.size());
     if (index >= mls.pos.size())
+    {
         return;
+    }
 
     // work out the x & y per move. First, opp/adj=tan, so work out the angle
     if (mls.pos[index] == mls.pos[index + 1])
@@ -520,7 +522,9 @@ static void CalculateMoveStage(MoveList &mls, uint32_t index, float move_speed_x
         mls.permove[index].X = 0.f;
         mls.permove[index].Y = move_speed_y;
         if (desty < oury)
+        {
             mls.permove[index].Y = -mls.permove[index].Y;
+        }
         return;
     }
 
@@ -529,7 +533,9 @@ static void CalculateMoveStage(MoveList &mls, uint32_t index, float move_speed_x
         mls.permove[index].X = move_speed_x;
         mls.permove[index].Y = 0.f;
         if (destx < ourx)
+        {
             mls.permove[index].X = -mls.permove[index].X;
+        }
         return;
     }
 
@@ -549,9 +555,13 @@ static void CalculateMoveStage(MoveList &mls, uint32_t index, float move_speed_x
     assert(newxmove <= move_speed_x && newymove <= move_speed_y);
 
     if (destx < ourx)
+    {
         newxmove = -newxmove;
+    }
     if (desty < oury)
+    {
         newymove = -newymove;
+    }
 
     mls.permove[index].X = newxmove;
     mls.permove[index].Y = newymove;
@@ -565,7 +575,9 @@ static bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path, flo
     mlist.pos = path;
     // Ensure there are at least 2 pos elements (required for the further algorithms)
     if (mlist.pos.size() == 1)
+    {
         mlist.pos.push_back(mlist.pos[0]);
+    }
     mlist.permove.resize(path.size());
     mlist.stageflags.resize(path.size(), stage_flag);
 
@@ -574,7 +586,9 @@ static bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path, flo
         const float fspeed_x = InputSpeedToVelocity(move_speed_x);
         const float fspeed_y = InputSpeedToVelocity(move_speed_y);
         for (uint32_t i = 0; i < mlist.GetNumStages() - 1; i++)
+        {
             CalculateMoveStage(mlist, i, fspeed_x, fspeed_y);
+        }
     }
     else
     {
@@ -598,7 +612,9 @@ bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path, float move
     assert(!path.empty());
     assert(move_speed_x != 0.f || move_speed_y != 0.f);
     if (path.empty() || (move_speed_x == 0.f) && (move_speed_y == 0.f))
+    {
         return false;
+    }
 
     return CalculateMoveList(mls, path, move_speed_x, move_speed_y, std::vector<Pointf>(), stage_flag, run_params);
 }
@@ -609,7 +625,9 @@ bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path, const std:
     assert(!path.empty());
     assert(move_speeds.size() >= path.size() - 1);
     if (path.empty() || (move_speeds.size() < path.size() - 1))
+    {
         return false;
+    }
 
     return CalculateMoveList(mls, path, 0.f, 0.f, move_speeds, stage_flag, run_params);
 }
@@ -678,11 +696,17 @@ void RecalculateMoveSpeeds(MoveList &mls, float old_speed_x, float old_speed_y, 
     {
         const auto &new_stage_permove = mls.permove[mls.onstage];
         if ((old_stage_permove.X != 0.f) && (new_stage_permove.X != 0.f))
+        {
             mls.SetStageDoneSteps((mls.onpart * old_stage_permove.X) / mls.permove[mls.onstage].X);
+        }
         else if ((old_stage_permove.Y != 0.f) && (new_stage_permove.Y != 0.f))
+        {
             mls.SetStageDoneSteps((mls.onpart * old_stage_permove.Y) / mls.permove[mls.onstage].Y);
+        }
         else
+        {
             assert(false); // should never happen
+        }
     }
 }
 

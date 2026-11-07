@@ -144,9 +144,11 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
                   static_cast<float>(apeg_stream->frame_rate), _audioFreq, _audioChannels);
     // TODO: warn about anything but YUV 420, because APEG library does not handle it properly
     if (apeg_stream->pixel_format_info != APEG_STREAM::APEG_420)
+    {
         Debug::Printf(kDbgMsg_Warn,
                       "TheoraPlayer: underlying decoding library is unable to properly decode this pixel format. "
                       "Color mistakes expected.");
+    }
 
     return HError::None();
 }

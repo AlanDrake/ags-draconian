@@ -1708,13 +1708,19 @@ HSaveError ReadRoomStates(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
         if (id != -1)
         {
             if (!AssertCompatRange(err, id, 0, MAX_ROOMS - 1, "room index"))
+            {
                 return err;
+            }
             if (!AssertFormatTagStrict(in, err, "RoomState", String::FromFormat("Room %d", id), true))
+            {
                 return err;
+            }
             RoomStatus *roomstat = GetRoomState(id);
             roomstat->ReadFromSavegame(in, (RoomStatSvgVersion)cmp_ver);
             if (!AssertFormatTagStrict(in, err, "RoomState", String::FromFormat("Room %d", id), false))
+            {
                 return err;
+            }
         }
     }
     return HSaveError::None();
