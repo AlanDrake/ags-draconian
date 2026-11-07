@@ -6,7 +6,6 @@ using System.Text;
 namespace AGS.Types
 {
 	public delegate void GetScriptHeaderListHandler(GetScriptHeaderListEventArgs evArgs);
-    public delegate void GetScriptModuleListHandler(GetScriptModuleListEventArgs evArgs);
 
 	public interface IAGSEditor
 	{

@@ -1425,7 +1425,6 @@ using namespace System::Collections::Generic;
 using namespace System::Drawing;
 using namespace System::Drawing::Imaging;
 using namespace System::Runtime::InteropServices;
-#include "CompiledScript.h"
 
 void ThrowManagedException(const char *message) 
 {
@@ -3389,8 +3388,6 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 
     // Prepare script links
     convert_room_interactions_to_native(room, rs);
-    if (room->Script && room->Script->CompiledData)
-	    rs.CompiledScript = std::move(((AGS::Native::CompiledScript^)room->Script->CompiledData)->Data);
 
     // Encoding hint
     rs.StrOptions["textencoding"].Format("%d", tcv->GetEncoding()->CodePage);

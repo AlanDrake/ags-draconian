@@ -354,12 +354,12 @@ namespace AGS
 			drawSprite((HDC)hDC, x, y, spriteNum, flipImage);
 		}
 
-        Native::FontMetrics ^NativeMethods::GetFontMetrics(int fontNum)
+        AGS::Types::FontMetrics ^NativeMethods::GetFontMetrics(int fontNum)
         {
             int last_char;
             Rect bbox;
             ::GetFontMetrics(fontNum, last_char, bbox);
-            return gcnew Native::FontMetrics(0, last_char,
+            return gcnew AGS::Types::FontMetrics(0, last_char,
                 System::Drawing::Rectangle(bbox.Left, bbox.Top, bbox.GetWidth(), bbox.GetHeight()));
         }
 

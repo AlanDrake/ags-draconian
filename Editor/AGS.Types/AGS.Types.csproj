@@ -158,7 +158,6 @@
     </Compile>
     <Compile Include="EditorFeatures\GetAboutDialogTextEventArgs.cs" />
     <Compile Include="EditorFeatures\GetScriptHeaderListEventArgs.cs" />
-    <Compile Include="EditorFeatures\GetScriptModuleListEventArgs.cs" />
     <Compile Include="EditorFeatures\MenuCommand.cs" />
     <Compile Include="EditorFeatures\MenuCommands.cs" />
     <Compile Include="EditorFeatures\MessageBoxIconType.cs" />
@@ -226,7 +225,6 @@
     <Compile Include="Interfaces\IRePopulatableComponent.cs" />
     <Compile Include="Interfaces\ILoadedRoom.cs" />
     <Compile Include="Interfaces\IChangeNotification.cs" />
-    <Compile Include="Interfaces\ICompiledScript.cs" />
     <Compile Include="Interfaces\IEditorComponent.cs" />
     <Compile Include="Interfaces\IGame.cs" />
     <Compile Include="Interfaces\IGUIController.cs" />

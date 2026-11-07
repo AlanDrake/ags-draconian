@@ -14,7 +14,6 @@
 #pragma once
 #include <string.h>
 #include "NativeUtils.h"
-#include "IScriptCompiler.h"
 
 using namespace AGS::Types;
 using namespace System;
@@ -53,7 +52,8 @@ namespace Native
 			void DrawGUI(int hDC, int x, int y, GUI^ gui, int resolutionFactor, float scale, int controlTransparency, int selectedControl);
 			void DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum, bool flipImage);
 			void DrawSprite(int hDC, int x, int y, int spriteNum, bool flipImage);
-            FontMetrics ^GetFontMetrics(int fontNum);
+            // Qualified: the native font code has a FontMetrics too (Common/font/agsfontrenderer.h)
+            AGS::Types::FontMetrics ^GetFontMetrics(int fontNum);
             cli::array<int> ^GetFontValidCharacters(int fontNum);
             // Draws font char sheet on the provided context
             void DrawFont(int hDC, int fontNum, bool only_valid_chars,
@@ -94,8 +94,6 @@ namespace Native
 			void LoadNewSpriteFile();
             void ReplaceSpriteFile(String ^srcFileName, String ^srcIndexFileName);
 			String ^LoadRoomScript(String ^roomFileName);
-            // Returns a list of IScriptCompiler implementations embedded in AGS.Native
-            List<IScriptCompiler^>^ GetEmbeddedScriptCompilers();
 			GameTemplate^ LoadTemplateFile(String ^fileName);
       RoomTemplate^ LoadRoomTemplateFile(String ^fileName);
 			void ExtractTemplateFiles(String ^templateFileName);

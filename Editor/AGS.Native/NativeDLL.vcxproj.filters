@@ -49,9 +49,6 @@
     <ClCompile Include="NativeMethods.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptCompiler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\scintilla\src\AutoComplete.cxx">
       <Filter>Scintilla\src</Filter>
     </ClCompile>
@@ -217,18 +214,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NativeRoom.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CompiledScript.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="IScriptCompiler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="IScriptCompiler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CompiledScript.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\scintilla\include\Compat.h">

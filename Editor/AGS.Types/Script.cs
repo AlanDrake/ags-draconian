@@ -24,7 +24,6 @@ namespace AGS.Types
         private bool _isHeader = false;
         private int _uniqueKey = 0;
         private ScriptAutoCompleteData _autoCompleteData = new ScriptAutoCompleteData();
-        private ICompiledScript _compiledData = null;
         private bool _modified = false;
         private bool _isBeingSaved = false;
         private int[] _breakpointedLines = new int[0];
@@ -156,13 +155,6 @@ namespace AGS.Types
         public int UniqueKey
         {
             get { return _uniqueKey; }
-        }
-
-        [Browsable(false)]
-        public ICompiledScript CompiledData
-        {
-            get { return _compiledData; }
-            set { _compiledData = value; }
         }
 
         [Browsable(false)]

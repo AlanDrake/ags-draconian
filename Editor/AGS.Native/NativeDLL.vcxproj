@@ -392,7 +392,6 @@ copy "$(AGS_SDL_DLL)" "$(SolutionDir)..\Editor\References\x64"</Command>
     <ClCompile Include="agsnative.cpp" />
     <ClCompile Include="NativeMethods.cpp" />
     <ClCompile Include="NativeRoom.cpp" />
-    <ClCompile Include="ScriptCompiler.cpp" />
     <ClCompile Include="SpriteFileReader_NET.cpp" />
     <ClCompile Include="SpriteFileWriter_NET.cpp" />
   </ItemGroup>
@@ -406,11 +405,9 @@ copy "$(AGS_SDL_DLL)" "$(SolutionDir)..\Editor\References\x64"</Command>
     <ClInclude Include="..\scintilla\include\ScintillaWidget.h" />
     <ClInclude Include="..\scintilla\include\Sci_Position.h" />
     <ClInclude Include="agsnative.h" />
-    <ClInclude Include="IScriptCompiler.h" />
     <ClInclude Include="NativeMethods.h" />
     <ClInclude Include="NativeRoom.h" />
     <ClInclude Include="NativeUtils.h" />
-    <ClInclude Include="CompiledScript.h" />
     <ClInclude Include="SpriteFileReader_NET.h" />
     <ClInclude Include="SpriteFileWriter_NET.h" />
   </ItemGroup>

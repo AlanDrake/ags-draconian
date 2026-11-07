@@ -8,8 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
-using System.Threading.Tasks;
-using AGS.CScript.Compiler;
 using AGS.Types;
 using AGS.Types.Interfaces;
 using AGS.Editor.Build;
@@ -19,12 +17,9 @@ using System.Net;
 
 namespace AGS.Editor
 {
-    using ScriptCompilerOptions = AGS.Native.ScriptCompilerOptions;
-
     public class AGSEditor : IAGSEditorDirectories
     {
         public event GetScriptHeaderListHandler GetScriptHeaderList;
-        public event GetScriptModuleListHandler GetScriptModuleList;
         public delegate void PreCompileGameHandler(PreCompileGameEventArgs evArgs);
         public event PreCompileGameHandler PreCompileGame;
         public delegate void AttemptToSaveGameHandler(ref bool allowSave);
@@ -35,8 +30,6 @@ namespace AGS.Editor
 		public event PreDeleteSpriteHandler PreDeleteSprite;
 		public delegate void ProcessAllGameTextsHandler(IGameTextProcessor processor, CompileMessages errors);
         public event ProcessAllGameTextsHandler ProcessAllGameTexts;
-        public delegate void ExtraCompilationStepHandler(CompilationStepArgs args);
-        public event ExtraCompilationStepHandler ExtraCompilationStep;
         public delegate void CheckGameScriptsHandler(GenericMessagesArgs args);
         public event CheckGameScriptsHandler CheckGameScripts;
 
@@ -266,11 +259,6 @@ namespace AGS.Editor
 		private bool _applicationStarted = false;
         private FileStream _lockFile = null;
 
-        private static readonly IDictionary<ScriptAPIVersion, string> _scriptAPIVersionMacros =
-            new SortedDictionary<ScriptAPIVersion, string>();
-        private static readonly IDictionary<ScriptAPIVersion, string> _scriptCompatLevelMacros =
-            new SortedDictionary<ScriptAPIVersion, string>();
-
         private static AGSEditor _instance;
 
         public static AGSEditor Instance
@@ -299,19 +287,6 @@ namespace AGS.Editor
             // input fields and script editor (where data representation is strict).
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-
-            foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
-            {
-                if (v == ScriptAPIVersion.Highest)
-                    continue; // don't enlist "Highest" constant
-                _scriptAPIVersionMacros[v] = "SCRIPT_API_" + v.ToString();
-            }
-            foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
-            {
-                if (v == ScriptAPIVersion.Highest)
-                    continue; // don't enlist "Highest" constant
-                _scriptCompatLevelMacros[v] = "SCRIPT_COMPAT_" + v.ToString();
-            }
 
             // Fill the list of build targets
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDataFile());
@@ -550,22 +525,6 @@ namespace AGS.Editor
             if (GetScriptHeaderList != null)
             {
                 GetScriptHeaderList(new GetScriptHeaderListEventArgs(scripts));
-            }
-
-            return scripts;
-        }
-
-        /// <summary>
-        /// Gets a list of all built-in and plugin modules that the
-        /// user cannot change
-        /// </summary>
-        private List<Script> GetInternalScriptModules()
-        {
-            List<Script> scripts = new List<Script>();
-
-            if (GetScriptModuleList != null)
-            {
-                GetScriptModuleList(new GetScriptModuleListEventArgs(scripts));
             }
 
             return scripts;
@@ -972,271 +931,6 @@ namespace AGS.Editor
             }
         }
 
-		private void DefineMacrosAccordingToGameSettings(IPreprocessor preprocessor)
-		{
-			preprocessor.DefineMacro("AGS_NEW_STRINGS", "1");
-			preprocessor.DefineMacro("AGS_SUPPORTS_IFVER", "1");
-			if (_game.Settings.DebugMode)
-			{
-				preprocessor.DefineMacro("DEBUG", "1");
-			}
-            // Some settings have become obsolete and now have default values
-            // EnforceObjectBasedScript => true
-            preprocessor.DefineMacro("STRICT", "1");
-            // EnforceNewStrings => true
-            preprocessor.DefineMacro("STRICT_STRINGS", "1");
-            // EnforceNewAudio => true
-            preprocessor.DefineMacro("STRICT_AUDIO", "1");
-            // UseOldCustomDialogOptionsAPI => false
-            preprocessor.DefineMacro("NEW_DIALOGOPTS_API", "1");
-            if (!_game.Settings.UseOldKeyboardHandling)
-            {
-                preprocessor.DefineMacro("NEW_KEYINPUT_API", "1");
-            }
-            if (_game.UnicodeMode)
-            {
-                preprocessor.DefineMacro("UNICODE", "1");
-            }
-            // Define Script API level macros
-            foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
-            {
-                if (v == ScriptAPIVersion.Highest)
-                    continue; // skip Highest constant
-                if (v > _game.Settings.ScriptAPIVersionReal)
-                    continue;
-                preprocessor.DefineMacro(_scriptAPIVersionMacros[v], "1");
-            }
-            foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
-            {
-                if (v == ScriptAPIVersion.Highest)
-                    continue; // skip Highest constant
-                if (v < _game.Settings.ScriptCompatLevelReal)
-                    continue;
-                preprocessor.DefineMacro(_scriptCompatLevelMacros[v], "1");
-            }
-        }
-
-        AGS.Native.IScriptCompiler GetScriptCompilerByName(string name)
-        {
-            return Factory.NativeProxy.GetEmbeddedScriptCompilers()
-                .FirstOrDefault(c => c.GetName() == name);
-        }
-
-        private void DefineMacrosFromCompiler(IPreprocessor preprocessor)
-        {
-            var compiler = GetScriptCompilerByName(_game.Settings.ScriptCompiler);
-            if (compiler == null)
-                return;
-
-            var exts = compiler.GetExtensions();
-            foreach (var ext in exts)
-            {
-                preprocessor.DefineMacro("SCRIPT_EXT_" + ext, "1");
-            }
-        }
-
-        private ScriptCompilerOptions GetScriptCompileOptions(Game game)
-        {
-            // Set up compiler options
-            ScriptCompilerOptions options =
-                ScriptCompilerOptions.AutoExportFunctions |
-                ScriptCompilerOptions.LineNumbers |
-                ScriptCompilerOptions.RTTI |
-                ScriptCompilerOptions.RTTIOps;
-
-            if ((!game.Settings.EnforceNewStrings))
-                options = options | ScriptCompilerOptions.OldStrings;
-            if (game.UnicodeMode)
-                options = options | ScriptCompilerOptions.UTF8;
-            if (game.Settings.DebugMode)
-                options = options | ScriptCompilerOptions.ScriptTOC;
-
-            return options;
-        }
-
-        /// <summary>
-        /// Preprocesses and then compiles the script prepended with the supplied headers.
-        /// Warnings and errors are collected in 'messages'.
-        /// Will _not_ throw whenever compiling results in an error.
-        /// </summary>
-        public void CompileScript(AGS.Native.IScriptCompiler compiler, Script script, List<Script> headers, CompileMessages messages)
-        {
-            // Clear up previous data, if present
-            if (script.CompiledData != null)
-            {
-                script.CompiledData.Dispose();
-                script.CompiledData = null;
-            }
-
-            messages = messages ?? new CompileMessages();
-
-            List<string> preProcessedCode;
-            CompileMessages preProcessingResults;
-            PreprocessScript(script, headers, out preProcessedCode, out preProcessingResults);
-            messages.AddRange(preProcessingResults);
-
-            // If the preprocessor has found any errors then don't attempt compiling proper
-            if (preProcessingResults.HasErrors)
-                return;
-
-            script.CompiledData =
-                compiler.CompileScript(script.FileName, preProcessedCode.ToArray(), GetScriptCompileOptions(_game), messages);
-        }
-
-        /// <summary>
-        /// Preprocesses and then compiles the script prepended the supplied headers.
-        /// Retrieves script compiler using current game settings. If compiler is not found,
-        /// reports error and bails out early.
-        /// Warnings and errors are collected in 'messages'.
-        /// Will _not_ throw whenever compiling results in an error.
-        /// </summary>
-        public void CompileScript(Script script, List<Script> headers, CompileMessages messages)
-        {
-            var compiler = GetScriptCompilerByName(_game.Settings.ScriptCompiler);
-            if (compiler == null)
-            {
-                messages.Add(new CompileError($"Script compiler \"{_game.Settings.ScriptCompiler}\" is not available. Please check the compiler selection in General Settings."));
-                return;
-            }
-
-            CompileScript(compiler, script, headers, messages);
-        }
-
-        private void PreprocessScript(Script script, List<Script> headers, out List<string> preProcessedCode, out CompileMessages results)
-        {
-            IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
-            DefineMacrosAccordingToGameSettings(preprocessor);
-            DefineMacrosFromCompiler(preprocessor);
-
-            preProcessedCode = new List<string>();
-            foreach (Script header in headers)
-                preProcessedCode.Add(preprocessor.Preprocess(header.Text, header.FileName));
-
-            preProcessedCode.Add(preprocessor.Preprocess(script.Text, script.FileName));
-
-            // Note that preProcessingResults is a list of CompilerMessage, 
-            // which is completely different to  a list of CompileMessage.
-            // So rewrite each CompilerMessage into a CompileMessage.
-            // Currently, the preprocessor can only issue errors, no warnings,
-            // so specifically, rewrite each CompilerMessage into a CompileError.
-            results = new CompileMessages();
-            foreach (CompilerMessage msg in preprocessor.Results)
-                results.Add(new CompileError(msg.Message, msg.ScriptName, msg.LineNumber));
-        }
-
-        private Script CompileDialogs(CompileMessages errors, bool rebuildAll)
-        {
-            DialogScriptConverter dialogConverter = new DialogScriptConverter();
-            string dialogScriptsText = dialogConverter.ConvertGameDialogScripts(_game, errors, rebuildAll);
-            Script dialogScripts = new Script(Script.DIALOG_SCRIPTS_FILE_NAME, dialogScriptsText, false);
-            return dialogScripts;
-        }
-
-        private struct CompileTask
-        {
-            public Script Script;
-            public List<Script> Headers;
-            public CompileTask(Script script, List<Script> headers)
-            {
-                Script = script;
-                Headers = headers;
-            }
-        };
-
-        private object CompileScripts(IWorkProgress progress, object parameter)
-        {
-            CompileMessages messagesToReturn = new CompileMessages();
-            var compiler = GetScriptCompilerByName(_game.Settings.ScriptCompiler);
-            if (compiler == null)
-            {
-                messagesToReturn.Add(new CompileError($"Script compiler \"{_game.Settings.ScriptCompiler}\" is not available. Please check the compiler selection in General Settings."));
-                return messagesToReturn;
-            }
-
-            CompileScriptsParameters parameters = (CompileScriptsParameters)parameter;
-            CompileMessages errors = parameters.Errors;
-            RegenerateScriptHeader(null);
-            List<Script> headers = GetInternalScriptHeaders();
-
-                // Reload scripts from their files on disk, in case these were modified externally.
-                // Do this prior to any further operations, because some of them may introduce
-                // temporary in-memory modifications to the script texts.
-                foreach (ScriptAndHeader scripts in _game.RootScriptFolder.AllItemsFlat)
-                {
-                    scripts.Header.LoadFromDisk();
-                    scripts.Script.LoadFromDisk();
-                }
-
-            Script dialogScripts = CompileDialogs(errors, parameters.RebuildAll);
-
-            // Collect the scripts that need to be compiled
-            _game.ScriptsToCompile = new ScriptsAndHeaders();
-            List<CompileTask> compileTasks = new List<CompileTask>();
-            foreach (Script script in GetInternalScriptModules())
-            {
-                compileTasks.Add(new CompileTask(script, headers));
-                _game.ScriptsToCompile.Add(new ScriptAndHeader(null, script));
-            }
-            foreach (ScriptAndHeader scripts in _game.RootScriptFolder.AllItemsFlat)
-            {
-                headers.Add(scripts.Header);
-                compileTasks.Add(new CompileTask(scripts.Script, headers));
-                _game.ScriptsToCompile.Add(scripts);
-            }
-            compileTasks.Add(new CompileTask(dialogScripts, headers));
-            _game.ScriptsToCompile.Add(new ScriptAndHeader(null, dialogScripts));
-
-
-            bool compileParallel = compiler.DoesSupportParallelBuilds()
-                // && false // uncomment if debugging script compiler; TODO: add Editor preference?
-                ;
-
-            // Compile the scripts
-            if (compileParallel)
-            {
-                Parallel.ForEach(compileTasks, (ct, state) =>
-                {
-                    CompileMessages messages = new CompileMessages();
-
-                    CompileScript(compiler, ct.Script, ct.Headers, messages);
-                    lock (messagesToReturn)
-                    {
-                        if (!messagesToReturn.HasErrors)
-                            messagesToReturn.AddRange(messages);
-                    }
-                    if (messages.HasErrors)
-                        state.Stop();
-                });
-            }
-            else
-            {
-                foreach (CompileTask ct in compileTasks)
-                {
-                    CompileMessages messages = new CompileMessages();
-                    CompileScript(compiler, ct.Script, ct.Headers, messages);
-                    messagesToReturn.AddRange(messages);
-                    if (messages.HasErrors)
-                        break;
-                }
-            }
-
-            // Copy the messages, but deduplicate the warnings
-            // (duplicate warnings can show up if they are for a header
-            // that is included in several source assemblies)
-            {
-                var alreadyIncluded = new HashSet<Tuple<string, int, string>>();
-                foreach (CompileMessage mes in messagesToReturn)
-                    if (mes is CompileError ||
-                        alreadyIncluded.Add(Tuple.Create(mes.ScriptName, mes.LineNumber, mes.Message)))
-                        errors.Add(mes);
-            }
-            ExtraCompilationStep?.Invoke(new CompilationStepArgs(_game.ScriptsToCompile, errors));
-            
-            RunGameScriptChecks(errors);
-
-            return messagesToReturn;
-        }
-        
         /// <summary>
         /// Runs few optional script checks.
         /// </summary>
@@ -1959,18 +1653,6 @@ namespace AGS.Editor
             if (ProcessAllGameTexts != null)
             {
                 ProcessAllGameTexts(processor, errors);
-            }
-        }
-
-        private class CompileScriptsParameters
-        {
-            internal CompileMessages Errors { get; set; }
-            internal bool RebuildAll { get; set; }
-
-            internal CompileScriptsParameters(CompileMessages errors, bool rebuildAll)
-            {
-                this.Errors = errors;
-                this.RebuildAll = rebuildAll;
             }
         }
     }

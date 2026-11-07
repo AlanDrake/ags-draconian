@@ -340,11 +340,6 @@ namespace AGS.Editor
             return _native.LoadRoomScript(roomFileName);
         }
 
-        public List<IScriptCompiler> GetEmbeddedScriptCompilers()
-        {
-            return _native.GetEmbeddedScriptCompilers();
-        }
-
         public GameTemplate LoadTemplateFile(string fileName)
         {
             return _native.LoadTemplateFile(fileName);

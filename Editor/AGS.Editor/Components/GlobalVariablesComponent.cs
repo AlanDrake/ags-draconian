@@ -12,12 +12,10 @@ namespace AGS.Editor.Components
     {
         private const string TOP_LEVEL_COMMAND_ID = "GlobalVariables";
         public const string GLOBAL_VARS_HEADER_FILE_NAME = "_GlobalVariables.ash";
-        private const string GLOBAL_VARS_SCRIPT_FILE_NAME = "_GlobalVariables.asc";
         private const string ICON_KEY = "GlobalVarsIcon";
         
         private GlobalVariablesEditor _editor;
         private ContentDocument _document;
-        private Script _scriptModule;
         private Script _scriptHeader;
 
         public GlobalVariablesComponent(GUIController guiController, AGSEditor agsEditor)
@@ -25,12 +23,10 @@ namespace AGS.Editor.Components
         {
             RecreateDocument();
             _scriptHeader = new Script(GLOBAL_VARS_HEADER_FILE_NAME, string.Empty, true);
-            _scriptModule = new Script(GLOBAL_VARS_SCRIPT_FILE_NAME, string.Empty, false);
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("globalvars.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Global variables", ICON_KEY);
             _editor.GlobalVariableChanged += _editor_GlobalVariableChanged;
             _agsEditor.GetScriptHeaderList += _agsEditor_GetScriptHeaderList;
-            _agsEditor.GetScriptModuleList += _agsEditor_GetScriptModuleList;
         }
 
         public void SelectGlobalVariable(string variableName)
@@ -42,62 +38,6 @@ namespace AGS.Editor.Components
         private void _editor_GlobalVariableChanged()
         {
             UpdateScriptHeader();
-        }
-
-        private void _agsEditor_GetScriptModuleList(GetScriptModuleListEventArgs evArgs)
-        {
-            IList<GlobalVariable> variables = _agsEditor.CurrentGame.GlobalVariables.ToList();
-            if (variables.Count > 0)
-            {
-                _scriptModule.Text = GenerateGlobalVariablesScriptModule(variables);
-                evArgs.Scripts.Add(_scriptModule);
-            }
-        }
-
-        private string GenerateGlobalVariablesScriptModule(IList<GlobalVariable> variables)
-        {
-            StringBuilder sb = new StringBuilder();
-
-            foreach (GlobalVariable variable in variables)
-            {
-                string declaration = $"{variable.Type} {variable.Name}";
-                switch (variable.ArrayType)
-                {
-                    case GlobalVariableArrayType.Array:
-                        declaration = declaration + $"[{variable.ArraySize}]";
-                        break;
-                    case GlobalVariableArrayType.DynamicArray:
-                        declaration = declaration + $"[]";
-                        break;
-                }
-
-                if (((variable.Type == "int") ||
-                     (variable.Type == "bool") || 
-                     (variable.Type == "float")) &&
-                    (!string.IsNullOrEmpty(variable.DefaultValue)))
-                {
-                    declaration += " = " + variable.DefaultValue.ToLower();
-                }
-                sb.AppendLine(declaration + ";");
-                sb.AppendLine("export " + variable.Name + ";");
-            }
-
-            sb.AppendLine("function game_start() {");
-            foreach (GlobalVariable variable in variables)
-            {
-                // We do not support array initialization from GlobalVariables pane at the moment
-                if (variable.ArrayType != GlobalVariableArrayType.None)
-                    continue;
-
-                if (variable.Type == "String")
-                {
-                    string varValue = variable.DefaultValue.Replace("\\", "\\\\").Replace("\"", "\\\"");
-                    sb.AppendLine(variable.Name + " = \"" + varValue + "\";");
-                }
-            }
-            sb.AppendLine("}");
-
-            return sb.ToString();
         }
 
         private void UpdateScriptHeader()
