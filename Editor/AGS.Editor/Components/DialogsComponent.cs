@@ -231,8 +231,6 @@ namespace AGS.Editor.Components
                 if (item.ID > dialog.ID)
                 {
                     item.ID--; // this also adjusts linked Dialog's ID
-                    // Force a refresh since ID's have changed
-                    item.Dialog.CachedConvertedScript = null;
                 }
             }
 
@@ -267,12 +265,6 @@ namespace AGS.Editor.Components
                 var docItem = ((DialogEditor)doc.Control).ItemToEdit;
                 doc.Name = docItem.WindowTitle;
                 _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(docItem), doc, docItem);
-            }
-
-            // Force re-build of dialog scripts since names/ids have changed
-            foreach (Dialog dlg in _agsEditor.CurrentGame.Dialogs)
-            {
-                dlg.CachedConvertedScript = null;
             }
 
             // If any Dialog had its script name changed, then only its files need to be renamed,

@@ -33,9 +33,6 @@ namespace AGS.Types
         private string _scriptName = string.Empty;
         private bool _showTextParser;
         private DialogScript _script = new DialogScript();
-        // TODO: move cached converted script to DialogScript?
-        [NonSerialized]
-        private string _cachedConvertedScript = null;
         private List<DialogOption> _options = new List<DialogOption>();
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Dialogs);
 
@@ -135,14 +132,6 @@ namespace AGS.Types
         {
             get { return _script; }
             set { _script = value; }
-        }
-
-        // TODO: perhaps move to DialogScript?
-        [Browsable(false)]
-        public string CachedConvertedScript
-        {
-            get { return _cachedConvertedScript; }
-            set { _cachedConvertedScript = value; }
         }
 
         [Browsable(false)]

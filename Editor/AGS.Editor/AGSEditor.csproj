@@ -1200,7 +1200,6 @@
     </Compile>
     <Compile Include="Panes\Room\VisibleLayerRadioGroup.cs" />
     <Compile Include="Utils\ColorMapper.cs" />
-    <Compile Include="Utils\DialogScriptConverter.cs" />
     <Compile Include="EditorEvents.cs" />
     <Compile Include="Debugger\FileBasedEngineCommunication.cs" />
     <Compile Include="Entities\AutoCompleteParserState.cs" />

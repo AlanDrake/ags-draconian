@@ -207,6 +207,12 @@ namespace AGS.Editor
             return script;
         }
 
+        private static bool IsRealScriptLineInDialog(string theLine)
+        {
+            return ((theLine.StartsWith(" ") || theLine.StartsWith("\t")) &&
+                   (theLine.Trim().Length > 0));
+        }
+
         private string ProcessDialogScript(string script, string scriptFileName, string contextName)
         {
             StringBuilder sb = new StringBuilder(script.Length);
@@ -219,7 +225,7 @@ namespace AGS.Editor
                 originalLine = thisLine;
 				thisLine = thisLine.Trim();
 
-                if (DialogScriptConverter.IsRealScriptLineInDialog(originalLine))
+                if (IsRealScriptLineInDialog(originalLine))
                 {
                     originalLine = ProcessScript(originalLine, scriptFileName, contextName, line);
                 }
