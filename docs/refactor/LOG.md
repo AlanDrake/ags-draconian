@@ -1172,10 +1172,31 @@ part of it.
   `Tools/` or `Common/` has a side effect (scanned). That `spriteimport` assert is always false (bytes, not bits)
   and guards `Convert8BitARGBTo32` in `Tools/data/sprite_utils.cpp`, which also steps its `uint32_t` row
   pointer by a byte stride: with asserts on, the old x86 tools stopped there; now they write past the buffer, as
-  the CMake tools already did. Open, not fixed here.
+  the CMake tools already did. Open, not fixed here (fixed since, below).
 - Also built and run: `Tests.sln` Release x64 (the same counts), Debug x86 (all pass; the two `NDEBUG`-only
   cases skip there and the two Release skips run; `Compiler.Lib.sln` not built in Debug), `Tools.sln` Release x64 (builds). Not verified: Debug x64,
   the tools in Debug, the editor with the new tools, a CI run.
+
+*Fixed after the 3.2c defects (2026-11-07):* the `spriteimport` overrun found above.
+- **What:** `Convert8BitARGBTo32` (`Tools/data/sprite_utils.cpp`) converts an 8-bit image whose palette has alpha
+  into a 32-bit sprite that keeps it (`ImportAlphaChannel`, a 32-bit game; `spriteimport`, which `agsbuild` runs
+  when the sprite file is rebuilt). It stepped its `uint32_t` row pointer by the destination's stride in bytes,
+  four rows per row, so any image taller than one row was written past its buffer; its
+  `assert(dst.GetBytesPerPixel() == 32)` could never hold (4 bytes). The code is upstream's port of the
+  `AGS.Native` conversion (`2a7b4f1f7`) and is the same in `upstream/ags4` (`4d4b2c9cd`, 2026-11-07).
+- **Fixed:** the row pointer is a byte pointer cast per row, as in the other conversions of the file, and the
+  assert checks `GetColorDepth() == 32` (bits). The neighbours were checked and are correct:
+  `Convert8BitToHiColorImpl` (both overloads), `FixMaskColorImpl` and `ConvertAndFixMaskColor` walk byte pointers
+  by byte strides, and their asserts compare bits.
+- **Test:** `SpriteImport.DirectImportConvert8WithAlphaTo32` (3x4, palette alphas 255, 128, 64, 200, 32 and a
+  zero-alpha entry, through `ConvertSpriteForGame`) compares every pixel row by row. Before the fix (CMake, MSVC
+  x64) Release crashed with `STATUS_HEAP_CORRUPTION` (`0xC0000374`) before any result, 3 runs of 3, and Debug
+  stopped on the assert; after it, it passes in both, and in the MSBuild `Tools.Test` and GCC (`linux_jobs.sh gcc`).
+- **Measured:** the auto-test project's build does not reach the conversion (it keeps its sprite file, and its only
+  8-bit sprite is 1x1 without a source): `compare_builds.py` gives parity, 59 identical rows, with the old and the
+  new tools, and the two packages are byte-identical. With `agsbuild --import-sprites` the two sprite files differ
+  only in `SpriteFileIDCheck` (`time()`, one second apart), in the sprite file, the index and the package. Not a hot
+  path (a build tool), so no benchmark.
 
 ### 3.3 Legacy compiler
 
