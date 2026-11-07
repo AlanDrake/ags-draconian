@@ -44,8 +44,6 @@ public:
     void SetBackground(int bgnum, System::Drawing::Bitmap ^bmp);
     // Sets/replaces area mask, converting from .NET Bitmap
     void SetAreaMask(AGS::Types::RoomAreaMaskType maskType, System::Drawing::Bitmap ^bmp);
-    // Saves current room object to the file (CRM)
-    void SaveToFile(System::String ^filename);
 
 private:
     AGS::Common::RoomStruct *_rs = nullptr;

@@ -86,8 +86,6 @@ typedef AGS::Common::PBitmap PBitmap;
 typedef AGS::Common::Error AGSError;
 typedef AGS::Common::HError HAGSError;
 
-void save_room_file(RoomStruct &rs, const AGSString &path);
-
 AGSBitmap *initialize_sprite(AGS::Common::sprkey_t, AGSBitmap*, uint32_t &sprite_flags);
 
 
@@ -1418,27 +1416,6 @@ AGSString load_room_file(RoomStruct &rs, const AGSString &filename)
   return AGSString();
 }
 
-void calculate_walkable_areas (RoomStruct &rs) {
-  int ww, thispix;
-
-  for (ww = 0; ww < MAX_WALK_AREAS; ww++) {
-    rs.WalkAreas[ww].Top = rs.Height;
-    rs.WalkAreas[ww].Bottom = 0;
-  }
-  for (ww = 0; ww < rs.WalkAreaMask->GetWidth(); ww++) {
-    for (int qq = 0; qq < rs.WalkAreaMask->GetHeight(); qq++) {
-      thispix = rs.WalkAreaMask->GetPixel (ww, qq);
-      if (thispix >= MAX_WALK_AREAS)
-        continue;
-      if (rs.WalkAreas[thispix].Top > qq)
-        rs.WalkAreas[thispix].Top = qq;
-      if (rs.WalkAreas[thispix].Bottom < qq)
-        rs.WalkAreas[thispix].Bottom= qq;
-    }
-  }
-
-}
-
 // **** MANAGED CODE ****
 
 #pragma managed
@@ -1453,11 +1430,6 @@ using namespace System::Runtime::InteropServices;
 void ThrowManagedException(const char *message) 
 {
 	throw gcnew AGS::Types::AGSEditorException(gcnew String(message));
-}
-
-AGSString GetEditorVersionAsNativeString()
-{
-    return TextHelper::ConvertASCII(AGS::Types::Version::AGS_EDITOR_VERSION);
 }
 
 void UpdateNativeSprites(SpriteFolder ^folder, std::vector<int> &missing)
@@ -3424,22 +3396,6 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
     rs.StrOptions["textencoding"].Format("%d", tcv->GetEncoding()->CodePage);
 }
 
-void save_default_crm_file(Room ^room)
-{
-    RoomStruct rs;
-    convert_room_to_native(room, rs);
-    // Insert default backgrounds and masks
-    for (size_t i = 0; i < room->BackgroundCount; ++i) // FIXME use of thisgame.color_depth
-        rs.SetBackgroundImage(i, std::unique_ptr<AGSBitmap>(BitmapHelper::CreateClearBitmap(rs.Width, rs.Height, thisgame.color_depth * 8, makeacol32(0, 0, 0, 255))));
-    rs.WalkAreaMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
-    rs.HotspotMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
-    rs.RegionMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
-    rs.WalkBehindMask.reset(BitmapHelper::CreateClearBitmap(rs.Width, rs.Height, 8));
-    // Now save the resulting CRM
-    AGSString roomFileName = TextHelper::ConvertUTF8(room->FileName);
-    save_room_file(rs, roomFileName);
-}
-
 void convert_interaction_scripts_to_native(Interactions ^interactions, ScriptEventHandlers &native_inter)
 {
     native_inter.SetScriptModule(TextHelper::ConvertASCII(interactions->ScriptModule));
@@ -3614,29 +3570,6 @@ void convert_room_interactions_from_native(const RoomStruct &rs, Room ^room, Tex
 
 
 #pragma unmanaged
-
-// Fixups and saves the native room struct into the file
-void save_room_file(RoomStruct &rs, const AGSString &path)
-{
-    rs.DataVersion = kRoomVersion_Current;
-    calculate_walkable_areas(rs);
-    std::unique_ptr<Stream> out(AGSFile::CreateFile(path));
-    if (out == NULL)
-        quit("save_room: unable to open room file for writing.");
-
-    // FIXME: this is quite ugly, but this is the most straightforward way
-    // to save RoomData's pixelbuffers that I could figure out at the time;
-    // need to find another way!
-    // Temporarily move data to RoomData, write RoomData to the file, and then move them back.
-    rs.PrepareForWriteToFile();
-    // NOTE: the "compiled with" field value should match the one written into the main game data file
-    AGSString compiled_with = GetEditorVersionAsNativeString();
-    AGS::Common::HRoomFileError err = AGS::Common::WriteRoomData(&rs, nullptr, out.get(), kRoomVersion_Current, compiled_with);
-    if (!err)
-        quit(AGSString::FromFormat("save_room: unable to write room data, error was:\r\n%s", err->FullMessage()));
-    rs.InitBitmaps();
-}
-
 
 // Reimplementation of project-dependent functions from Common
 #include "script/cc_common.h"

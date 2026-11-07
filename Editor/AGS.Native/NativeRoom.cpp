@@ -31,7 +31,6 @@ AGSBitmap *CreateOpaqueNativeBitmap(SysBitmap ^bmp, RGB *imgpal, bool fixColourD
 extern void convert_room_from_native(const RoomStruct &rs, AGS::Types::Room ^room, System::Text::Encoding ^defEncoding);
 extern void convert_room_to_native(Room ^room, RoomStruct &rs);
 extern AGSString load_room_file(RoomStruct &rs, const AGSString &filename);
-extern void save_room_file(RoomStruct &rs, const AGSString &path);
 extern void SetNativeRoomBackground(RoomStruct &room, int backgroundNumber, SysBitmap ^bmp);
 extern void validate_mask(AGSBitmap *toValidate, const char *name, int maxColour);
 
@@ -132,12 +131,6 @@ void NativeRoom::SetAreaMask(AGS::Types::RoomAreaMaskType maskType, SysBitmap ^b
     std::unique_ptr<AGSBitmap> newMask(CreateOpaqueNativeBitmap(bmp, pal, false, false, nullptr));
     validate_mask(newMask.get(), "imported", (nativeType == kRoomAreaHotspot) ? MAX_ROOM_HOTSPOTS : MAX_WALK_AREAS);
     _rs->SetMask(nativeType, std::move(newMask));
-}
-
-void NativeRoom::SaveToFile(System::String ^filename)
-{
-    AGSString roomFileName = TextHelper::ConvertUTF8(filename);
-    save_room_file(*_rs, roomFileName);
 }
 
 } // namespace Native
