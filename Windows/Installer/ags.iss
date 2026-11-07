@@ -94,7 +94,6 @@ Source: "Source\Engine\SDL2.dll"; DestDir: "{app}"; Flags: ignoreversion; Compon
 Source: "Source\Editor\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\acsprset.spr"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\AGS.Controls.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
-Source: "Source\Editor\AGS.CScript.Compiler.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\AGS.Native.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\AGS.Types.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main

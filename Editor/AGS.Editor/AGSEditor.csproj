@@ -663,10 +663,6 @@
     <Compile Include="Utils\Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AGS.CScript.Compiler\AGS.CScript.Compiler.csproj">
-      <Project>{4771753A-641D-49B1-8096-0B431EAC413E}</Project>
-      <Name>AGS.CScript.Compiler</Name>
-    </ProjectReference>
     <ProjectReference Include="..\AGS.Types\AGS.Types.csproj">
       <Project>{3EBBEDAB-214C-4201-BB5A-5152D56908DD}</Project>
       <Name>AGS.Types</Name>

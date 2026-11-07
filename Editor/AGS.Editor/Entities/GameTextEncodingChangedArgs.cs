@@ -1,5 +1,4 @@
-﻿using AGS.CScript.Compiler;
-using AGS.Types;
+﻿using AGS.Types;
 using System;
 using System.Text;
 

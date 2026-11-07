@@ -117,7 +117,6 @@ namespace AGS.Editor
                 switch(assembly.Name)
                 {
                     case "AGS.Controls":
-                    case "AGS.CScript.Compiler":
                     case "AGS.Native":
                     case "AGS.Types":
                         // UnsafeLoadFrom prevents the assembly being blocked

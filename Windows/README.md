@@ -146,7 +146,6 @@ In any case, there is a number of files that have to be prepared for installer t
 - Editor\
   - AGSEditor.exe
   - AGS.Controls.dll
-  - AGS.CScript.Compiler.dll
   - AGS.Native.dll
   - AGS.Types.dll
   - ikpMP3.dll
