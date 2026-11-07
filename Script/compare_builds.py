@@ -25,6 +25,10 @@ Options:
   --all-rows        with --variants, print every row
   --build-dir DIR   CMake build with tools (default: .tidy/build); agsbuild, agscc and the other tools
                     are collected from it into one tools directory next to the script API header
+  --tools-editor PATH
+                    build the agsbuild side with this editor's /compile (an editor that builds through
+                    agsbuild, PLAN.md 6.7d-9) instead of a plain agsbuild run: compares that editor's
+                    Compiled/Data with the one of --editor (the reference editor, built from pre-6.7d)
   --engine PATH     also run the auto-test on the agsbuild output with this engine (Software driver)
   --work-dir DIR    where copies and outputs go (default: .compare/builds)
   --timeout SEC     per build (default: 900); a build that takes longer is killed and reported
@@ -355,7 +359,10 @@ def variant_unicode(project, agf):
     put_file(project, 'Parity.po', ('msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n\n'
                                     'msgid "Hello"\nmsgstr "Ciao"\n').encode('utf-8'))
     agf = set_element(agf, 'GameName', 'Parit\u00e9 \u0436\u0434 "\u00f8"')
-    return set_element(agf, 'Translations', '<Translation><Name>Parity</Name></Translation>')
+    parity = '<Translation><Name>Parity</Name></Translation>'
+    if re.search(r'<Translations>\s*<Translation>', agf):  # the project's own translations stay
+        return agf.replace('<Translations>', '<Translations>' + parity, 1)
+    return set_element(agf, 'Translations', parity)
 
 
 VARIANTS = {
@@ -409,12 +416,18 @@ def compare(project, work, sys_dir, args, all_rows=True, engine=None, dir_name=N
     # agsbuild
     tool_proj = os.path.join(work, 'tools-project', dir_name) if dir_name else os.path.join(work, 'tools-project')
     copy_project(project, tool_proj)
-    tool_out = os.path.join(work, 'tools-output')
-    if os.path.isdir(tool_out):
-        shutil.rmtree(tool_out)
-    os.makedirs(tool_out)
-    tool_code, tool_time = run([os.path.join(sys_dir, 'agsbuild' + EXE), os.path.join(tool_proj, 'Game.agf'),
-                                tool_out, '--sys-dir', sys_dir], os.path.join(work, 'agsbuild.log'), args.timeout)
+    if args.tools_editor:
+        # An editor that builds through agsbuild, with its own tools: its Compiled/Data
+        tool_out = os.path.join(tool_proj, 'Compiled', 'Data')
+        tool_code, tool_time = run([os.path.abspath(args.tools_editor), '/compile', os.path.join(tool_proj, 'Game.agf')],
+                                   os.path.join(work, 'agsbuild.log'), args.timeout)
+    else:
+        tool_out = os.path.join(work, 'tools-output')
+        if os.path.isdir(tool_out):
+            shutil.rmtree(tool_out)
+        os.makedirs(tool_out)
+        tool_code, tool_time = run([os.path.join(sys_dir, 'agsbuild' + EXE), os.path.join(tool_proj, 'Game.agf'),
+                                    tool_out, '--sys-dir', sys_dir], os.path.join(work, 'agsbuild.log'), args.timeout)
 
     ed_files = flatten_output(ed_out, os.path.join(work, 'unpacked-editor'), agspak)
     tool_files = flatten_output(tool_out, os.path.join(work, 'unpacked-tools'), agspak)
@@ -497,6 +510,7 @@ def main():
     ap.add_argument('--list-variants', action='store_true')
     ap.add_argument('--all-rows', action='store_true')
     ap.add_argument('--build-dir', default=os.path.join(REPO, '.tidy', 'build'))
+    ap.add_argument('--tools-editor', help='an AGSEditor.exe that builds through agsbuild, for the agsbuild side')
     ap.add_argument('--engine', help='engine executable for the auto-test run')
     ap.add_argument('--work-dir', default=os.path.join(REPO, '.compare', 'builds'))
     ap.add_argument('--timeout', type=int, default=900)
