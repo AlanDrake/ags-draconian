@@ -75,7 +75,7 @@ Recorded 2026-10-31.
 
 Kept current as tasks land. Model and effort are recommendations for an AI session.
 
-Done: phases 0, 1 and 2, 7.1a–k, m, o and p (7.1k and 7.1p: incremental room builds and script compiles, 2026-11-07), 3.1 (PSP, pre-Windows 7; 2026-11-04), 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (#3182, closed
+Done: phases 0, 1 and 2, 7.1a–m, o and p (7.1k and 7.1p: incremental room builds and script compiles, 2026-11-07; 7.1l with 6.7d), 6.7d (the editor builds through the tools, 2026-11-07), 3.1 (PSP, pre-Windows 7; 2026-11-04), 3.3's legacy compiler (the `AGS.CScript.Compiler` project remains), U.1 (merged, #3181), U.2 (#3182, closed
 and re-cut by U.3 as #3186–#3190), the agent docs (0.6, upstream PR #3185), 1.2 (contract guard
 tests, 2026-11-04), U.5 (the save fix found by 1.2, upstream PR #3191), the 6.0 study (2026-11-04,
 EDITOR-SPLIT.md: 6.0 re-scoped, 6.7c decided, U.6 defined), 1.3 (engine unit tests, 2026-11-05,
@@ -88,7 +88,7 @@ comes after they are closed.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **6.7d The editor builds through the tools** (phase 6), split into 13 steps on 2026-11-06 (the task's section). Done 2026-11-06: 6.7d-1 to 6.7d-4 (all ten variants have parity), 6.7d-5 (256-colour rooms; a private 8-bit game has parity in every variant, and its dialogs found three defects), 6.7d-6 (`--header`, `--data-only`, `_obj/`), 6.7d-7 (tools and `agsdefns.sh` next to the editor, installer, CI; probe-confirmed), 6.7d-8 (`BuildToolRunner`). Done 2026-11-07: 6.7d-9 (Build, Rebuild, `/compile` and the new-game wizard build through `agsbuild`; the reference editor's `Compiled/Data` on three projects and every variant, Cancel and progress in the busy dialog), 6.7d-10 (F5 and Ctrl+F5 through `agsbuild --data-only`, the engine started from the editor's folder; the auto-test 2414 of 2414 through both; the user's by-hand checks passed, 2026-11-07: breakpoints, step, call stack, watches, Ctrl+F5, the renamed game file; every Run rebuilt every room, the build before a Run of a private AGS 4 game took 8.6 s instead of 1.9 s), 7.1k (incremental room builds in `agsbuild`, 2026-11-07: that Run is 2.7 to 3.1 s, the rest is the 38 script compiles), 7.1p (incremental script compiles and a task manager that wakes on a finished task, 2026-11-07: `agsbuild --data-only` with nothing changed 0.34 s, the Run 1.5 to 2.1 s against the reference editor's 1.3 to 1.7 s; the rest is the editor's work before `agsbuild` starts, 1.0 to 1.1 s). 6.7d-11 (the other users of the build code, 2026-11-07: a room save writes the sources only, templates through `agspak` and `crmbuild`, "Compile translation" through `po2tra`; the auto-test template byte-identical to the reference editor's, build parity kept). 6.7d-12 (the deletions, 2026-11-07: the editor's build, the `.tra` writer, `DataFileWriter`, the room writer, the in-process compile, `DialogScriptConverter`, the C# preprocessor, about 5,900 lines; a test compares the generated headers with `agfexport`'s). **Next: 6.7d-13**, harness, CI and docs. The state before 6.7d is the tag `pre-6.7d`; the reference editor is built from it | The tools must match the editor before its build code goes; the rest of 3.3 waits for it | Opus 5.5 or Fable 5.1, `high` (design, the switch, the deletions) |
+| 1 | **6.7d The editor builds through the tools** (phase 6), split into 13 steps on 2026-11-06 (the task's section). Done 2026-11-06: 6.7d-1 to 6.7d-4 (all ten variants have parity), 6.7d-5 (256-colour rooms; a private 8-bit game has parity in every variant, and its dialogs found three defects), 6.7d-6 (`--header`, `--data-only`, `_obj/`), 6.7d-7 (tools and `agsdefns.sh` next to the editor, installer, CI; probe-confirmed), 6.7d-8 (`BuildToolRunner`). Done 2026-11-07: 6.7d-9 (Build, Rebuild, `/compile` and the new-game wizard build through `agsbuild`; the reference editor's `Compiled/Data` on three projects and every variant, Cancel and progress in the busy dialog), 6.7d-10 (F5 and Ctrl+F5 through `agsbuild --data-only`, the engine started from the editor's folder; the auto-test 2414 of 2414 through both; the user's by-hand checks passed, 2026-11-07: breakpoints, step, call stack, watches, Ctrl+F5, the renamed game file; every Run rebuilt every room, the build before a Run of a private AGS 4 game took 8.6 s instead of 1.9 s), 7.1k (incremental room builds in `agsbuild`, 2026-11-07: that Run is 2.7 to 3.1 s, the rest is the 38 script compiles), 7.1p (incremental script compiles and a task manager that wakes on a finished task, 2026-11-07: `agsbuild --data-only` with nothing changed 0.34 s, the Run 1.5 to 2.1 s against the reference editor's 1.3 to 1.7 s; the rest is the editor's work before `agsbuild` starts, 1.0 to 1.1 s). 6.7d-11 (the other users of the build code, 2026-11-07: a room save writes the sources only, templates through `agspak` and `crmbuild`, "Compile translation" through `po2tra`; the auto-test template byte-identical to the reference editor's, build parity kept). 6.7d-12 (the deletions, 2026-11-07: the editor's build, the `.tra` writer, `DataFileWriter`, the room writer, the in-process compile, `DialogScriptConverter`, the C# preprocessor, about 5,900 lines; a test compares the generated headers with `agfexport`'s). 6.7d-13 (2026-11-07: the harness compares the editor's output with a plain `agsbuild` run without un-embedding, which is what CI's parity job runs; AGENTS.md). **6.7d is done.** The state before it is the tag `pre-6.7d`; the reference editor is built from it. **Next: 3.3**, what is left of it: delete `Editor/AGS.CScript.Compiler` (only `FastString` has a user outside the project, autocomplete; it moves into the editor), with the three open questions of 6.7d-12 (LOG.md: the hidden compiler setting, `<SpeechVoxFiles>` in `Game.agf`, the plugin-visible types removed) for the user | The editor's build code is gone, so the dead C# compiler project has no reason left | Sonnet 5.5, `medium` |
 | 2 | **U.8, open:** offer the 1.5b-2 fixes in `CreateGlobalVars` (`RuntimeScript::CheckFixupInCode`) and `JointRTTI::Join` upstream (the same code there); the `String(ptr, length)` change alters a Common contract, so it is a separate offer if at all. The 1.5b-4 compiler leak fixes (the same code in `script2/`) are offered only when the user confirms | Real defects, small | Sonnet 5.5, `medium` |
 | 3 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
 | 4 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
@@ -255,10 +255,10 @@ the corpus run (1.4).
   `Plugins/agslua/Makefile*`, its only build file; the user decides after the refactor.
 - [ ] **3.3 Legacy compiler** (D3). The legacy compiler is gone (2026-11-03, LOG.md).
   Left: **`Editor/AGS.CScript.Compiler`**. Its compiler parts were never finished and are unused;
-  its **preprocessor is used** by the editor's build (`AGSEditor.cs`,
-  `CompilerFactory.CreatePreprocessor`). Order: switch the editor's build to the tools (6.7d), move
-  the types the editor uses (`CompilerMessage`, `FastString`, `ScriptAnnotations`) into the editor,
-  move `PreprocessorTests.cs` cases to C++ tests (7.1c ported the features), delete the project.
+  its preprocessor and the `PreprocessorTests.cs` cases went with the editor's build (6.7d-12,
+  2026-11-07; 7.1c had ported the cases to the C++ tests). Only `FastString` has a user outside the
+  project (autocomplete), plus an assembly-resolve entry in `Program.cs`. Order: move `FastString`
+  into the editor, delete the project from the solutions, the installer's file list and CI.
   *Done when:* one compiler, one preprocessor (C++), one test folder, no `AGS.CScript.Compiler`.
 - [ ] **3.4 Legacy data-version paths** (D1). The largest deletion; one commit per step:
   1. **Game files.** `kGameVersion_LowSupported = kGameVersion_399` (`Common/ac/game_version.h`),
@@ -497,7 +497,7 @@ Framework-only.
     `System::Drawing::Bitmap^`), `.crm` read for the upgrade. Ownership documented per function; C++
     tests in `Editor/native/test/`, plus a pixel comparison of the GUI and font output against the
     C++/CLI bridge before 6.7e switches (ags-for-mac's GUI test checks only sizes).
-  - [ ] **6.7d The editor builds through the tools** (D7; needs 7.1f). Build saves the project, runs
+  - [x] **6.7d The editor builds through the tools** (done 2026-11-07, 13 steps below; D7; needs 7.1f). Build saves the project, runs
     `agsbuild` (or single tools), shows progress, lists errors from `--json` (7.1h) with
     jump-to-line, cancels by stopping `agsbuild`; tools ship with the editor. Plugin build events
     still fire around the run, but nothing patches data mid-build. Then delete `DataFileWriter.cs`,
@@ -608,8 +608,12 @@ Framework-only.
       **Kept, against the first plan:** `Tasks.RegenerateScriptHeader` and the `_GlobalVariables.ash`
       generator, which feed autocomplete, go-to-definition and the plugin API; a test compares them
       with `agfexport`'s output so the two cannot drift.
-    - [ ] **6.7d-13 Harness, CI, docs.** `compare_builds.py` compares the editor's output with a plain
-      `agsbuild` run (no script un-embedding); the CI parity job follows; AGENTS.md, `docs/context`.
+    - [x] **6.7d-13 Harness, CI, docs** (2026-11-07, LOG.md 6.7d)**.** `compare_builds.py` compares the editor's
+      output with a plain `agsbuild` run byte for byte when the editor's package has the scripts as
+      separate files (every editor since 6.7d-9); the un-embedding stays for the reference editor
+      (`--tools-editor`). CI's parity job, which had failed since the 6.7d-9 push for that reason, runs
+      unchanged. AGENTS.md says how the editor builds; `docs/context` is upstream knowledge and keeps
+      `DataFileWriter.cs`, which upstream still has.
 
     Stays in the editor after 6.7d, as open items for 7.1: the pre-build checks
     (`RunPreCompilationChecks`, missing event handlers), so a command-line build does not get them;
@@ -700,8 +704,8 @@ Framework-only.
     profile, the task manager wakes on a finished task instead of every 8 ms. `agsbuild --data-only` with nothing
     changed 0.34 s against 1.74 s; the Run 1.5 to 2.1 s against the reference editor's 1.3 to 1.7 s, the rest of
     the gap being the editor's work before `agsbuild` starts (1.0 to 1.1 s).
-  - [ ] **7.1l Scripts out of `game28.dta` in the editor too** (after 7.1k; 6.7d-9 and 6.7d-10 do
-    it, since the editor's `game28.dta` is then `agf2dta`'s). `agsbuild` packs
+  - [x] **7.1l Scripts out of `game28.dta` in the editor too** (done by 6.7d-9 and 6.7d-10, 2026-11-07:
+    the editor's `game28.dta` is `agf2dta`'s; 6.7d-13 made the harness compare without `unembed_scripts`). `agsbuild` packs
     `GlobalScript.o`, `__DialogScripts.o`, `ScriptModules.lst` separately (7.1f); `DataFileWriter.cs`
     still embeds them. Clear `HasCCScript`, write no script names in `v362_interevent2`, write the
     scripts to `_obj/` and pack them, include them in the debug run (`CreateDebugMiniEXE` packs only

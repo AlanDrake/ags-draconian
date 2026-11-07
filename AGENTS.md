@@ -57,8 +57,14 @@ Entry points, in reading order:
   `AlanDrake/ags-test-games` branch `ags4-draconian`; CI builds it from source with `agsbuild`.
 - Games build through the C++ tools (D7): `agsbuild` → `agf2dta`, `agscc`, `crmbuild` (rooms from
   `Rooms/<n>/`), `po2tra`, `agspak`; `agsbuild --json` gives machine-readable diagnostics;
-  `Script/compare_builds.py` proves byte parity with the Editor's build; `ci/corpus/run.py` runs
-  a private game through every room. The Editor still builds with its C# code until task 6.7d.
+  `ci/corpus/run.py` runs a private game through every room. The Editor builds through them too
+  (6.7d, 2026-11-07): Build, Run, templates and translations run `agsbuild`, `agspak`, `crmbuild` and
+  `po2tra` from `Editor/AGS.Editor/Build/`; the C# data writer, the in-process compile and the C#
+  preprocessor are gone, so `docs/context/repository.md`'s `DataFileWriter.cs` steps do not apply: a
+  project property the engine needs goes to `Tools/data/agfreader.cpp` and `data_file_writer.cpp` only.
+  `Script/compare_builds.py` proves byte parity between the Editor's build and a plain `agsbuild` run
+  (CI's `Windows Build Parity` job), and with `--tools-editor` against the reference editor from the
+  tag `pre-6.7d`, the last one with the C# build.
 - Windows 7+ only; PSP is gone (3.1; `eOS_PSP` and the `"psp"` config name stay for the script ABI
   and engine config).
 - CMake is the only build system for the engine, `agscc` and the tools (D5; 3.2a/b, 2026-11-05): the
@@ -71,6 +77,9 @@ Entry points, in reading order:
 ## Where things are (fork)
 
 `docs/context/repository.md` applies, with these differences: `Compiler/script` (new compiler),
+`Editor/AGS.Editor/Build/` (the editor's tool runners: `BuildToolRunner` for `agsbuild --json`,
+`ToolProcess` for the others, `TemplatePackage`, `TranslationCompiler`; no `DataFileWriter.cs`, no
+`ScriptCompiler.cpp` in `AGS.Native`),
 `Tools/crmbuild`, `Tools/data/xml_fields.h` (table-driven `Game.agf` reading, drift guard
 `Tools/data/agf_elements.txt`), `Script/compare_objects.py`, `Script/compare_builds.py`,
 `Script/refactor_metrics.py` (BASELINE.md numbers), `Script/tidy_fix.py`, `Script/tidy_diff.py` (clang-tidy on changed lines), `ci/corpus/`,

@@ -1959,7 +1959,8 @@ main checkout): no evident issue.
 
 The definition and the 13 steps are in PLAN.md (the task is open).
 
-*Status (2026-11-06): split into steps, 6.7d-1 done.* Three read-only subagents took inventory (the
+*Status (2026-11-07): done, 13 steps in two days (6.7d-1 to 6.7d-8 on 2026-11-06, 6.7d-9 to 6.7d-13 on
+2026-11-07).* Split 2026-11-06: three read-only subagents took inventory (the
 editor's build flow and every subscriber of its build events; what the editor's build does that
 `agsbuild` does not; how the tools are built, shipped and run in CI), the supervisor measured.
 
@@ -2452,6 +2453,26 @@ and passes the tests (the in-process compile goes after `DataFileWriter`, which 
 - Not verified: the intermediate states were built and tested before the `<SpeechVoxFiles>` fix (three lines
   that only keep the element; the final state is); a plugin that used the removed events or types; Linux and
   macOS (the editor is Windows only).
+
+**6.7d-13 Harness, CI, docs** (2026-11-07; the Fable 5.1 supervisor):
+- CI's `Windows Build Parity` job had been red since the push of 6.7d-9 to 6.7d-11 (run 42381421451 on
+  f4fd487a4: 58 identical, `game28.dta` "different (scripts differ)", both sides 29,203 bytes). The harness's
+  plain mode took the scripts out of the editor's `game28.dta` before comparing, and since 6.7d-9 the editor's
+  package has them as separate files already, so the search for the embedded section failed and the file was
+  reported as different although it was identical. Locally only `--tools-editor` had been run, where the
+  reference editor is the embedded side.
+- `compare_builds.py`: the un-embedding happens only when the editor's package lacks the separate script files;
+  an editor that packs them separately gets the plain byte comparison. The docstring says which editors are
+  which. The CI job is unchanged but for its comment: it is the guard that the editor's command line and
+  pre-build steps add and lose nothing against a plain `agsbuild` run.
+- Measured (the 6.7d-12 editor, `.tidy/build` tools): CI's mode on the auto-test project 59 of 59 identical,
+  auto-test 2414 of 2414 on the agsbuild output, parity; every one of the 10 variants parity (`split` 61 files,
+  `packed` 63, `speech` 67, `customdirs` 62, `audiovox` 60, `unicode` 60); the old mode against the reference
+  editor still 59 of 59, un-embedding as before.
+- Docs: AGENTS.md says how the editor builds now and what `docs/context/repository.md`'s `DataFileWriter.cs`
+  steps mean for the fork; `docs/context` itself is upstream knowledge and stays. PLAN.md: 6.7d and 7.1l
+  done, 3.3 rewritten for what is left (`AGS.CScript.Compiler`).
+- Not verified: the CI job itself (the next push confirms it; `actionlint` passed on the edited workflow).
 
 **Bugs found on the way, not fixed:** `BuildTargetBase.DeleteCommonGameFiles` deletes `filename`
 instead of the loop's `fileName`, so old split parts are never removed (still so for `Compiled/Windows`;
