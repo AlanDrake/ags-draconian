@@ -75,7 +75,7 @@ Recorded 2026-10-31.
 
 Kept current as tasks land. Model and effort are recommendations for an AI session.
 
-Done: phases 0, 1 and 2, 7.1a–k, m and o (7.1k: incremental room builds, 2026-11-07), 3.1 (PSP, pre-Windows 7; 2026-11-04), 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (#3182, closed
+Done: phases 0, 1 and 2, 7.1a–k, m, o and p (7.1k and 7.1p: incremental room builds and script compiles, 2026-11-07), 3.1 (PSP, pre-Windows 7; 2026-11-04), 3.3 (legacy compiler), U.1 (merged, #3181), U.2 (#3182, closed
 and re-cut by U.3 as #3186–#3190), the agent docs (0.6, upstream PR #3185), 1.2 (contract guard
 tests, 2026-11-04), U.5 (the save fix found by 1.2, upstream PR #3191), the 6.0 study (2026-11-04,
 EDITOR-SPLIT.md: 6.0 re-scoped, 6.7c decided, U.6 defined), 1.3 (engine unit tests, 2026-11-05,
@@ -88,7 +88,7 @@ comes after they are closed.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **6.7d The editor builds through the tools** (phase 6), split into 13 steps on 2026-11-06 (the task's section). Done 2026-11-06: 6.7d-1 to 6.7d-4 (all ten variants have parity), 6.7d-5 (256-colour rooms; a private 8-bit game has parity in every variant, and its dialogs found three defects), 6.7d-6 (`--header`, `--data-only`, `_obj/`), 6.7d-7 (tools and `agsdefns.sh` next to the editor, installer, CI; probe-confirmed), 6.7d-8 (`BuildToolRunner`). Done 2026-11-07: 6.7d-9 (Build, Rebuild, `/compile` and the new-game wizard build through `agsbuild`; the reference editor's `Compiled/Data` on three projects and every variant, Cancel and progress in the busy dialog), 6.7d-10 (F5 and Ctrl+F5 through `agsbuild --data-only`, the engine started from the editor's folder; the auto-test 2414 of 2414 through both; the user's by-hand checks passed, 2026-11-07: breakpoints, step, call stack, watches, Ctrl+F5, the renamed game file; every Run rebuilt every room, the build before a Run of a private AGS 4 game took 8.6 s instead of 1.9 s), 7.1k (incremental room builds in `agsbuild`, 2026-11-07: that Run is 2.7 to 3.1 s, the rest is the 38 script compiles). **Next: 6.7d-11**, the other users of the build code (room save, speech numbering, templates, "Compile translation"), then 6.7d-12. The state before it is the tag `pre-6.7d`; the reference editor is built from it | The tools must match the editor before its build code goes; the rest of 3.3 waits for it | Opus 5.5 or Fable 5.1, `high` (design, the switch, the deletions) |
+| 1 | **6.7d The editor builds through the tools** (phase 6), split into 13 steps on 2026-11-06 (the task's section). Done 2026-11-06: 6.7d-1 to 6.7d-4 (all ten variants have parity), 6.7d-5 (256-colour rooms; a private 8-bit game has parity in every variant, and its dialogs found three defects), 6.7d-6 (`--header`, `--data-only`, `_obj/`), 6.7d-7 (tools and `agsdefns.sh` next to the editor, installer, CI; probe-confirmed), 6.7d-8 (`BuildToolRunner`). Done 2026-11-07: 6.7d-9 (Build, Rebuild, `/compile` and the new-game wizard build through `agsbuild`; the reference editor's `Compiled/Data` on three projects and every variant, Cancel and progress in the busy dialog), 6.7d-10 (F5 and Ctrl+F5 through `agsbuild --data-only`, the engine started from the editor's folder; the auto-test 2414 of 2414 through both; the user's by-hand checks passed, 2026-11-07: breakpoints, step, call stack, watches, Ctrl+F5, the renamed game file; every Run rebuilt every room, the build before a Run of a private AGS 4 game took 8.6 s instead of 1.9 s), 7.1k (incremental room builds in `agsbuild`, 2026-11-07: that Run is 2.7 to 3.1 s, the rest is the 38 script compiles), 7.1p (incremental script compiles and a task manager that wakes on a finished task, 2026-11-07: `agsbuild --data-only` with nothing changed 0.34 s, the Run 1.5 to 2.1 s against the reference editor's 1.3 to 1.7 s; the rest is the editor's work before `agsbuild` starts, 1.0 to 1.1 s). **Next: 6.7d-11**, the other users of the build code (room save, speech numbering, templates, "Compile translation"), then 6.7d-12. The state before it is the tag `pre-6.7d`; the reference editor is built from it | The tools must match the editor before its build code goes; the rest of 3.3 waits for it | Opus 5.5 or Fable 5.1, `high` (design, the switch, the deletions) |
 | 2 | **U.8, open:** offer the 1.5b-2 fixes in `CreateGlobalVars` (`RuntimeScript::CheckFixupInCode`) and `JointRTTI::Join` upstream (the same code there); the `String(ptr, length)` change alters a Common contract, so it is a separate offer if at all. The 1.5b-4 compiler leak fixes (the same code in `script2/`) are offered only when the user confirms | Real defects, small | Sonnet 5.5, `medium` |
 | 3 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
 | 4 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
@@ -666,6 +666,35 @@ Framework-only.
     editor marks as needing a full rebuild); the rest of `_obj/` is still cleared. The Run with nothing
     changed takes 2.7 to 3.1 s against the reference editor's 1.6 to 1.7 s (8.4 to 8.8 s before): the
     rooms now cost nothing, the gap is the 38 script compiles, which stay full builds by this task's scope.
+  - [x] **7.1p Incremental script compiles in `agsbuild`** (added 2026-11-07: 7.1k left the Run with
+    nothing changed at 2.7 to 3.1 s against the reference editor's 1.6 to 1.7 s on a private AGS 4 game,
+    and the 38 script compiles, about 0.28 s each, 8 at a time, are the whole gap; the user's criterion
+    is the old editor's speed). As 7.1k for the scripts: a module whose inputs did not change keeps its
+    `.o` in `_obj/` with a manifest of content hashes. The inputs are the script source (`<Module>.asc`
+    in the project, or the generated `_GlobalVariables.asc` and `__DialogScripts.asc`, hashed as
+    generated, so `Game.agf`'s time stamp plays no part), every header agscc gets in the order it
+    gets them (API, `_AutoGenerated.ash`, `_GlobalVariables.ash`, `--header` files, module headers),
+    the agscc flags and the agscc binary. Modules compile independently of one another's `.o`, so a
+    changed module recompiles itself alone; a changed header recompiles every script. `--rebuild`
+    clears them with the rooms; a failed compile leaves no `.o` recorded as up to date;
+    `ScriptModules.lst`, `game28.dta` and the packs stay full builds. First measure where the time of a
+    build with nothing changed goes (the export tasks, `agf2dta`, `check-rooms`, the pack, process
+    start-up) and put the profile in LOG.md; if something other than the script compiles is a large
+    share, report it rather than widen the task.
+    *Done when:* on the private AGS 4 game the Run with nothing changed is as fast as the reference
+    editor's (1.6 to 1.7 s from the key to the "compiled" box, same method, several runs; if agsbuild's
+    remaining tasks make that impossible, the profile says what stands in the way) and a one-module
+    change recompiles that module only; a change to each input kind recompiles what depends on it
+    (a test per kind); the output is byte-identical to a clean build's on all three projects and every
+    variant (`compare_builds.py --incremental`, extended with a script change); the auto-test passes on
+    an incremental build; a build failing halfway leaves nothing new outside `_obj/` and the output
+    folder, and the next build succeeds.
+    *Landed 2026-11-07* (LOG.md 7.1p): a kept script is `_obj/<script>.o` with `_obj/scripts/<script>.o.manifest`,
+    which also records the compiler's output, so a kept script's warnings are reported again; the compile task
+    checks itself (`TaskCompileScript`); `room_cache` generalised as `build_cache`; and, asked for after the
+    profile, the task manager wakes on a finished task instead of every 8 ms. `agsbuild --data-only` with nothing
+    changed 0.34 s against 1.74 s; the Run 1.5 to 2.1 s against the reference editor's 1.3 to 1.7 s, the rest of
+    the gap being the editor's work before `agsbuild` starts (1.0 to 1.1 s).
   - [ ] **7.1l Scripts out of `game28.dta` in the editor too** (after 7.1k; 6.7d-9 and 6.7d-10 do
     it, since the editor's `game28.dta` is then `agf2dta`'s). `agsbuild` packs
     `GlobalScript.o`, `__DialogScripts.o`, `ScriptModules.lst` separately (7.1f); `DataFileWriter.cs`
