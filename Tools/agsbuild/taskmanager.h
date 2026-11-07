@@ -13,6 +13,7 @@
 //=============================================================================
 #pragma once
 
+#include <condition_variable>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -271,6 +272,8 @@ public:
 
 private:
     void RunReadyTasks();
+    // Runs the task on a thread of its own, then wakes RunAll
+    void RunTaskOnThread(Task *task);
     bool UpdateTaskState(bool &has_any_task_succeed);
     void CancelTask(Task *task, const String &parent_task, std::vector<String> &cancel_tasks);
     void CancelTaskDependents(const String &task_name, std::vector<String> &cancel_tasks);
@@ -303,6 +306,10 @@ private:
     bool _cancelHandled = false;
     bool _verbose = false;
     std::mutex _mutex;
+    // Set by a task's thread when the task has finished, for RunAll, which waits on _wake
+    bool _taskFinished = false;
+    std::condition_variable _wake;
+    std::mutex _wakeMutex;
 };
 
 // How a diagnostic in the output of a finished task is reported. The exit code tells whether a

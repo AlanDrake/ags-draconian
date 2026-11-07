@@ -441,8 +441,15 @@ HError TaskManager::RunAll()
         want_stop = !UpdateTaskState(has_any_task_finished);
         if (has_any_task_finished)
             RunReadyTasks();
-        std::this_thread::sleep_for(std::chrono::milliseconds(8));
-    };
+        if (!want_stop)
+        {
+            // Until a task finishes; the time limit is for a cancel request, which a signal
+            // handler makes, and which cannot wake the wait
+            std::unique_lock<std::mutex> lk(_wakeMutex);
+            _wake.wait_for(lk, std::chrono::milliseconds(8), [this]() { return _taskFinished; });
+            _taskFinished = false;
+        }
+    }
 
     uint32_t total_tasks = _allTasks.size(), success_tasks = 0u, failed_tasks = 0u, cancelled_tasks = 0u;
     std::vector<String> failed_task_names, cancelled_task_names;
@@ -485,11 +492,16 @@ HError TaskManager::RunAll()
                : new Error("%d task(s) failed to complete", failed_tasks + cancelled_tasks);
 }
 
-static void RunTaskOnThread(Task *task)
+void TaskManager::RunTaskOnThread(Task *task)
 {
     assert(task);
     if (task)
         task->Run();
+    {
+        std::lock_guard<std::mutex> lk(_wakeMutex);
+        _taskFinished = true;
+    }
+    _wake.notify_one();
 }
 
 void TaskManager::RunReadyTasks()
@@ -569,7 +581,7 @@ void TaskManager::RunReadyTasks()
                     Diag::EmitTask(task.first.GetCStr(), "running");
                     _freeThreads--;
                     slot.Task = task.second;
-                    slot.Thread = std::thread(RunTaskOnThread, slot.Task);
+                    slot.Thread = std::thread(&TaskManager::RunTaskOnThread, this, slot.Task);
                     start_tasks.push_back(task.first);
                     break;
                 }
