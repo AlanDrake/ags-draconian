@@ -116,6 +116,7 @@ namespace AGS.Editor.Build
                 TempDirectory = @"D:\temp\build",
                 ApiHeader = @"C:\Program Files\AGS\agsdefns.sh",
                 DataOnly = true,
+                Rebuild = true,
                 Strict = true,
                 Threads = 4,
             };
@@ -135,6 +136,7 @@ namespace AGS.Editor.Build
                 "--header", @"C:\Games\Game\First.ash",
                 "--header", @"C:\Games\Game\Second header.ash",
                 "--data-only",
+                "--rebuild",
                 "--strict",
                 "--threads", "4",
             }));

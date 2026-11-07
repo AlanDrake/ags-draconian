@@ -25,7 +25,8 @@ namespace AGS.Editor.Build
 
         /// <summary>
         /// The folder for intermediate files (--temp-dir), which agsbuild never clears. If null,
-        /// agsbuild uses _obj in the project folder, which it clears when a build starts.
+        /// agsbuild uses _obj in the project folder, which it clears when a build starts, but for
+        /// the rooms it keeps from earlier builds.
         /// </summary>
         public string TempDirectory { get; set; }
 
@@ -50,6 +51,12 @@ namespace AGS.Editor.Build
         /// the output folder as the install folder and its Rooms folder as the first data folder.
         /// </summary>
         public bool DataOnly { get; set; }
+
+        /// <summary>
+        /// Builds every room (--rebuild); without it agsbuild keeps a room built earlier while
+        /// nothing it is built from has changed. Clears all of _obj first, if that is the folder used.
+        /// </summary>
+        public bool Rebuild { get; set; }
 
         /// <summary>Fails the build if the project has something the tools cannot read (--strict).</summary>
         public bool Strict { get; set; }
@@ -97,6 +104,10 @@ namespace AGS.Editor.Build
             if (DataOnly)
             {
                 arguments.Add("--data-only");
+            }
+            if (Rebuild)
+            {
+                arguments.Add("--rebuild");
             }
             if (Strict)
             {

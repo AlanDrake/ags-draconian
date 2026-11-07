@@ -1590,7 +1590,8 @@ namespace AGS.Editor
                     BusyDialog.ProcessingHandler build;
                     if (forRun)
                     {
-                        build = (progress, parameter) => BuildRunLayout(progress, messages, headerFiles.Paths, cancel.Token);
+                        build = (progress, parameter) => BuildRunLayout(progress, messages, forceRebuild,
+                            headerFiles.Paths, cancel.Token);
                     }
                     else
                     {
@@ -1645,7 +1646,7 @@ namespace AGS.Editor
             }
 
             string outputDirectory = Path.Combine(_game.DirectoryPath, OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY);
-            if (!RunBuildTool(progress, errors, outputDirectory, false, pluginHeaders, cancel))
+            if (!RunBuildTool(progress, errors, outputDirectory, false, forceRebuild, pluginHeaders, cancel))
             {
                 return null;
             }
@@ -1674,8 +1675,8 @@ namespace AGS.Editor
         /// also one of an earlier game file name, and the game EXE that editors before agsbuild made
         /// there. Runs on the busy dialog's thread.
         /// </summary>
-        private object BuildRunLayout(IWorkProgress progress, CompileMessages errors, IList<string> pluginHeaders,
-            System.Threading.CancellationToken cancel)
+        private object BuildRunLayout(IWorkProgress progress, CompileMessages errors, bool forceRebuild,
+            IList<string> pluginHeaders, System.Threading.CancellationToken cancel)
         {
             IBuildTarget target = BuildTargetsInfo.FindBuildTargetByName(BuildTargetDebug.DEBUG_TARGET_NAME);
             Dictionary<string, string> buildNames = _game.WorkspaceState.GetLastBuildGameFiles();
@@ -1688,7 +1689,7 @@ namespace AGS.Editor
             }
 
             string outputDirectory = Path.Combine(_game.DirectoryPath, DEBUG_OUTPUT_DIRECTORY);
-            if (RunBuildTool(progress, errors, outputDirectory, true, pluginHeaders, cancel))
+            if (RunBuildTool(progress, errors, outputDirectory, true, forceRebuild, pluginHeaders, cancel))
             {
                 buildNames[target.Name] = BaseGameFileName;
                 _game.WorkspaceState.SetLastBuildGameFiles(buildNames);
@@ -1698,10 +1699,11 @@ namespace AGS.Editor
 
         /// <summary>
         /// Builds the game with agsbuild from the editor's folder into the given folder, the run
-        /// layout if dataOnly; true if the build succeeded.
+        /// layout if dataOnly; every room if forceRebuild, else only those whose sources changed.
+        /// True if the build succeeded.
         /// </summary>
         private bool RunBuildTool(IWorkProgress progress, CompileMessages errors, string outputDirectory, bool dataOnly,
-            IList<string> pluginHeaders, System.Threading.CancellationToken cancel)
+            bool forceRebuild, IList<string> pluginHeaders, System.Threading.CancellationToken cancel)
         {
             Directory.CreateDirectory(outputDirectory);
             BuildToolOptions options = new BuildToolOptions
@@ -1710,6 +1712,7 @@ namespace AGS.Editor
                 OutputDirectory = outputDirectory,
                 ToolsDirectory = EditorDirectory,
                 DataOnly = dataOnly,
+                Rebuild = forceRebuild,
             };
             options.ScriptHeaders.AddRange(pluginHeaders);
 
