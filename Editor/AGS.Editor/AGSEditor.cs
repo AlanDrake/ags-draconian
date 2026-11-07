@@ -238,7 +238,6 @@ namespace AGS.Editor
         public const string SETUP_ICON_FILE_NAME = "setup.ico";
         public const string SETUP_PROGRAM_SOURCE_FILE = "setup.dat";
         public const string COMPILED_SETUP_FILE_NAME = "winsetup.exe";
-        public const string DEFAULT_SCRIPT_COMPILER = "AGS SCOM 4";
 
         public readonly string[] RestrictedGameDirectories = new string[]
         {

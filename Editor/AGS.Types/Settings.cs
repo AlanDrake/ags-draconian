@@ -69,7 +69,6 @@ namespace AGS.Types
         private bool _saveScreenshots = false;
         private SpriteCompression _compressSprites = SpriteCompression.None;
         private bool _optimizeSpriteStorage = true;
-        private string _scriptCompiler = string.Empty;
         private bool _inventoryCursors = true;
         private bool _handleInvInScript = true;
         private bool _displayMultipleInv = false;
@@ -344,12 +343,11 @@ namespace AGS.Types
             get; set; // not used; kept so that the older projects, which have it, still load
         }
 
+        [Obsolete]
         [Browsable(false)]
         public string ScriptCompiler
         {
-            // There is one compiler, agscc (D3), which does not read this; the project format has it
-            get { return _scriptCompiler; }
-            set { _scriptCompiler = value; }
+            get; set; // not used: there is one compiler, agscc (D3); kept so that the older projects, which have it, still load
         }
 
         [DisplayName("Save screenshots in save games")]
