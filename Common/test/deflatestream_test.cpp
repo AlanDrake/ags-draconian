@@ -75,8 +75,8 @@ void TestDeflateStream(const std::vector<uint8_t> src_buf)
 void TestDeflateStream_OneValue(size_t buffer_size)
 {
     std::vector<uint8_t> src_buf;
-    const size_t InputBufferLength = buffer_size;
-    src_buf.resize(InputBufferLength);
+    const size_t input_length = buffer_size;
+    src_buf.resize(input_length);
 
     std::fill(src_buf.begin(), src_buf.end(), 5u);
 
@@ -86,8 +86,8 @@ void TestDeflateStream_OneValue(size_t buffer_size)
 void TestDeflateStream_RepeatSeqs(size_t buffer_size)
 {
     std::vector<uint8_t> src_buf;
-    const size_t InputBufferLength = buffer_size;
-    src_buf.resize(InputBufferLength);
+    const size_t input_length = buffer_size;
+    src_buf.resize(input_length);
 
     std::array<std::array<uint8_t, 12>, 12> seqs = {{
         {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
@@ -106,10 +106,10 @@ void TestDeflateStream_RepeatSeqs(size_t buffer_size)
 
     // Always use same seed in this test to make it determenistic
     std::srand(UINT32_MAX);
-    for (size_t at = 0; at < InputBufferLength;)
+    for (size_t at = 0; at < input_length;)
     {
         std::array<uint8_t, 12> &seq = seqs[std::rand() % 12];
-        for (size_t ichar = 0; at < InputBufferLength && ichar < seq.size() && seq[ichar] != 0; ++ichar, ++at)
+        for (size_t ichar = 0; at < input_length && ichar < seq.size() && seq[ichar] != 0; ++ichar, ++at)
         {
             src_buf[at] = seq[ichar];
         }
@@ -121,12 +121,12 @@ void TestDeflateStream_RepeatSeqs(size_t buffer_size)
 void TestDeflateStream_SemiUniqueSeq(size_t buffer_size)
 {
     std::vector<uint8_t> src_buf;
-    const size_t InputBufferLength = buffer_size;
-    src_buf.resize(InputBufferLength);
+    const size_t input_length = buffer_size;
+    src_buf.resize(input_length);
 
     // Fill the buffer with numbers using some rule which prevents equal sequences
     uint8_t k = 0, l = 0, m = 0, n = 0;
-    for (size_t seq = 0; seq < InputBufferLength % 4; ++seq)
+    for (size_t seq = 0; seq < input_length % 4; ++seq)
     {
         size_t i = seq * 4;
         src_buf[i + 0] = k;
