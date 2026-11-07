@@ -79,7 +79,7 @@ so the offers go out first and fork-only moves that would conflict with them (5.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **3.2c, done locally:** push it and read the Windows build job's new drift-guard step (its first run). Open for the user: the unused `_MD` configurations of `Compiler.Lib` and `Compiler.App` (nothing builds them since the editor stopped linking `Compiler_md.lib`) | CI confirms the guard | Sonnet 5.5, `medium` |
+| 1 | **3.2c, done locally:** push it and read the Windows build job's new drift-guard step (its first run) | CI confirms the guard | Sonnet 5.5, `medium` |
 | 1b | **3.4-2** room files: an explicit check for the room versions 3.99+ data has, then the older `ReadExt_*` and upgrade code; then **2.9d** (x64-only CI, the user's decisions) | Next deletion; 1.2's fixtures guard it | Opus 5.5, `high` |
 | 2 | **U.8:** offer upstream the 1.5b-2 fixes (`RuntimeScript::CheckFixupInCode`, `JointRTTI::Join`); the `String(ptr, length)` change separately if at all; the 1.5b-4 compiler leak fixes only if the user confirms | Real defects, small | Sonnet 5.5, `medium` |
 | 3 | **U.9:** offer upstream the `Convert8BitARGBTo32` fix with its test, and `NDEBUG` for upstream's `spriteimport.vcxproj` (LOG.md 3.2) | A real overrun in a shipped tool | Sonnet 5.5, `medium` |

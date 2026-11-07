@@ -1334,7 +1334,9 @@ part of it.
   `compare_builds.py` with the editor before and after (same tools and engine): 59 identical, parity.
   Found: `agscc` links the `/MT` `Compiler.lib` in every configuration a solution builds; the `Release_MD` and
   `Debug_MD` configurations of `Compiler.Lib` and `Compiler.App` are built by nothing now (ci.yml, scripts,
-  props and docs searched). Left for the user: remove them.
+  props and docs searched). Removed at the user's request (358 lines out of the two `.vcxproj` and
+  `Compiler.App.sln`, `Compiler.Lib.sln`; `Common.Lib`'s `_MD` configurations stay for `AGS.Native`): both
+  solutions build Release and Debug, x86 and x64; `buildlists` and `msbuild` pass.
 - **The drift guard** `Script/check_build_lists.py` (stdlib only): the compiled sources of each CMake target from
   the File API (codemodel-v2) against the `ClCompile`/`ResourceCompile` items of each `.vcxproj`, with a table
   of which targets a project builds (`own`), may take files from (`library`: the tools from `libtools`), and
