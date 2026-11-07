@@ -255,7 +255,9 @@ the corpus run (1.4).
   *Status (2026-11-05):* 3.2a (tools, `agscc`) and 3.2b (engine, plugins, `debian/`, `make.yml`) are
   done, pushed and green in a full CI run (three fixes for the Linux builder image on the way,
   LOG.md); what remains is 3.2c. The Debian and Linux tools jobs run only in a full run. Kept:
-  `Plugins/agslua/Makefile*`, its only build file; the user decides after the refactor.
+  `Plugins/agslua/Makefile*`, its only build file; the user decides after the refactor. The 3.2c
+  investigation (2026-11-07) found the `.vcxproj` drifted: the 1.2/1.3 tests missing from the MSBuild test
+  projects (CI's only x86 tests) and no `NDEBUG` in the tools' Release builds; both fixed (LOG.md).
 - [x] **3.3 Legacy compiler** (D3). Done 2026-11-07: the legacy compiler went on 2026-11-03,
   `Editor/AGS.CScript.Compiler` on 2026-11-07 (`FastString` lives in `Editor/AGS.Editor/Utils/`; LOG.md).
   What was left: **`Editor/AGS.CScript.Compiler`**. Its compiler parts were never finished and are unused;

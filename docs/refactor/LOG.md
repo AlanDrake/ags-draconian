@@ -1142,6 +1142,41 @@ part of it.
   chroots need both installed, as `ci/linux/Dockerfile` does. CI builds the bundle with
   `debian/build.sh` in that image. `Plugins/agslua/Makefile*`: the user decides after the refactor.
 
+*Found by the 3.2c investigation (2026-11-07), fixed before 3.2c:* two places where the hand-made
+`Solutions/*.vcxproj` had drifted from CMake ("one build description only").
+- **The 1.2 and 1.3 tests never reached the MSBuild test projects**, and those are CI's only x86 tests
+  (the CMake Windows job is x64). Missing: `Common/test/game_compat_test.cpp` (1.2), `Engine/test/movelist_test`,
+  `plugin_api_test`, `route_finder_test` (1.3) and the whole `engine_full_test` target (ten files). Fixed: the
+  four files are in `Common.Lib.Test` and `Engine.App.Test`, with their path defines (`COMPAT_FIXTURES_DIR`,
+  `PLUGIN_API_*`) made absolute from `$(MSBuildProjectDirectory)`, so a runner works from any directory (CI runs
+  them from the repository root); `Engine.App.Test` links `Common.lib`, as CMake's `engine_test` links
+  `common`, instead of its seven inlined Common and Allegro copies. New `Tests.App/Engine.Full.Test.vcxproj`:
+  the ten test files and the eight compiler sources CMake builds in, linked with the object files of
+  `Engine.App` (all but `main_sdl2.obj`; the MSBuild engine is no library), `Common.lib` and Engine.App's
+  libraries, SDL2.dll copied next to it; `Tests.sln` now builds `Engine.App` first; `ci.yml`'s Tests jobs and
+  `prepush.py` run it. The new tests use `GTEST_SKIP` and `INSTANTIATE_TEST_SUITE_P`, which the googletest
+  submodule (release 1.8.1, 2018) lacks: the submodule is now at `52204f78`, the commit `FetchGoogleTest.cmake`
+  takes, so both builds use one googletest.
+  Measured, Release x86 from `Solutions\` and from the root: before 990 tests (Compiler 598, Common 113, Engine
+  13, Tools 266); after 1146 run, all pass but 2 skipped as in CMake's Release (Compiler 598, Common 117, Engine
+  51, Engine.Full 112 + 2 skipped, Tools 266) and 1 disabled (`route_finder_test`). The test names
+  (`--gtest_list_tests`, disabled included: 1147) are identical to those of the CMake test executables of the
+  same commit. Still CMake-only: the two `compat_restore_*` ctest cases (the engine restores the 1.2 fixtures'
+  saves; a CMake script, not a gtest). No other test source is in a CMakeLists.txt and no `.vcxproj`.
+- **The shipped x86 tools ran with asserts on:** no `Tools.App/*.vcxproj` defined `NDEBUG` in Release
+  (`Compiler.App`, `agscc`, does). Fixed for Release Win32 and x64. Measured, Release x86: every tool but
+  `agscc` is 20-46 KB smaller (`agsbuild` 776,704 -> 730,624 bytes), and assert texts are gone from the binaries
+  (`max_threads > 0` from `agsbuild.exe`, `dst.GetBytesPerPixel() == 32` from `spriteimport.exe`); `agscc.exe`
+  is byte-identical. The auto-test project built by the MSBuild `agsbuild` before and after: the package and
+  `acsetup.cfg` are byte-identical (and identical between two runs of the old tools). No first-party assert in
+  `Tools/` or `Common/` has a side effect (scanned). That `spriteimport` assert is always false (bytes, not bits)
+  and guards `Convert8BitARGBTo32` in `Tools/data/sprite_utils.cpp`, which also steps its `uint32_t` row
+  pointer by a byte stride: with asserts on, the old x86 tools stopped there; now they write past the buffer, as
+  the CMake tools already did. Open, not fixed here.
+- Also built and run: `Tests.sln` Release x64 (the same counts), Debug x86 (all pass; the two `NDEBUG`-only
+  cases skip there and the two Release skips run; `Compiler.Lib.sln` not built in Debug), `Tools.sln` Release x64 (builds). Not verified: Debug x64,
+  the tools in Debug, the editor with the new tools, a CI run.
+
 ### 3.3 Legacy compiler
 
 *Definition, moved from PLAN.md on 2026-11-04:*

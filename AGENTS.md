@@ -133,7 +133,8 @@ read by `Script/linux_jobs.sh` and `analysis.yml`, which are kept in step.
   FreeBSD, the Debian 10 builder image).
 - **One build description only** (3): a new, moved or deleted `.cpp`, tests included, goes in
   `CMakeLists.txt` and in the `Solutions/` `.vcxproj` + `.filters` (until 3.2c); the `msbuild` stage
-  finds a miss.
+  finds a missing source, not a missing test file, whose tests then never run on x86 (LOG.md 3.2,
+  2026-11-07). A new test target also needs a `Tests.App` project, `ci.yml` and `prepush.py` `TEST_RUNNERS`.
 - **CI-only jobs changed blind** (3): the Linux builder image (Debian 10, GCC 8, glibc 2.28, no downloads
   on i386), Android, macOS, new workflows. Ask the user for a probe branch (a name outside
   `ags4draconian*`, only the affected jobs), then one full run.
