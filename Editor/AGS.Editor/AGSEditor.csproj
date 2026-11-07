@@ -189,7 +189,6 @@
     <Compile Include="Config\ObjectConfigJson.cs" />
     <Compile Include="Entities\LogBufferEventArgs.cs" />
     <Compile Include="Entities\MultiSelectAction.cs" />
-    <Compile Include="Entities\OutputCreationStepArgs.cs" />
     <Compile Include="Entities\ScriptModuleDef.cs" />
     <Compile Include="Entities\GenericMessagesArgs.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameCommonTask.cs" />

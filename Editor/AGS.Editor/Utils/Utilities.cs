@@ -443,39 +443,6 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Returns whether the sourceFile is newer than the destinationFile or
-        /// if the destinationFile doesn't exist.
-        /// 
-        /// Exceptions:
-        ///  - ArgumentException: if source file does not exist
-        /// </summary>
-        public static bool DoesFileNeedRecompile(string sourceFile, string destinationFile)
-        {
-            if (!File.Exists(sourceFile))
-            {
-                throw new ArgumentException("Source file does not exist: " + sourceFile);
-            }
-            if (!File.Exists(destinationFile))
-            {
-                return true;
-            }
-            return (File.GetLastWriteTime(sourceFile) >= File.GetLastWriteTime(destinationFile));
-        }
-
-        /// <summary>
-        /// Returns whether the destinationFile is older than the anchorTime,
-        /// or if the destinationFile doesn't exist.
-        /// </summary>
-        public static bool DoesFileNeedRecompile(DateTime anchorTime, string destinationFile)
-        {
-            if (!File.Exists(destinationFile))
-            {
-                return true;
-            }
-            return (anchorTime >= File.GetLastWriteTime(destinationFile));
-        }
-
-        /// <summary>
         /// Attempts to delete file, handling few common exception cases.
         /// 
         /// Exceptions:

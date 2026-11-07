@@ -37,8 +37,6 @@ namespace AGS.Editor
         public event ProcessAllGameTextsHandler ProcessAllGameTexts;
         public delegate void ExtraCompilationStepHandler(CompilationStepArgs args);
         public event ExtraCompilationStepHandler ExtraCompilationStep;
-        public delegate void ExtraOutputCreationStepHandler(OutputCreationStepArgs args);
-        public event ExtraOutputCreationStepHandler ExtraOutputCreationStep;
         public delegate void CheckGameScriptsHandler(GenericMessagesArgs args);
         public event CheckGameScriptsHandler CheckGameScripts;
 
@@ -1296,52 +1294,6 @@ namespace AGS.Editor
             }
         }
 
-        private object CreateCompiledFiles(IWorkProgress progress, object parameter)
-        {
-            CompileScriptsParameters parameters = (CompileScriptsParameters)parameter;
-            CompileMessages errors = parameters.Errors;
-            bool forceRebuild = parameters.RebuildAll;
-
-            // TODO: This is also awkward, we call Cleanup for active targets to make sure
-            // that in case they changed the game binary name an old one gets removed.
-            // Also please see the comment about build steps below.
-            var buildNames = Factory.AGSEditor.CurrentGame.WorkspaceState.GetLastBuildGameFiles();
-            foreach (IBuildTarget target in BuildTargetsInfo.GetSelectedBuildTargets())
-            {
-                // Primary cleanup
-                target.DeleteMainGameData(Factory.AGSEditor.BaseGameFileName, errors);
-
-                // Old files cleanup (if necessary)
-                string oldName;
-                if (!buildNames.TryGetValue(target.Name, out oldName)) continue;
-                if (!string.IsNullOrWhiteSpace(oldName) && oldName != Factory.AGSEditor.BaseGameFileName)
-                    target.DeleteMainGameData(oldName, errors);
-            }
-
-            IBuildTarget targetDataFile = BuildTargetsInfo.FindBuildTargetByName(BuildTargetsInfo.DATAFILE_TARGET_NAME);
-            targetDataFile.Build(errors, forceRebuild); // ensure that data file is built first
-            if (ExtraOutputCreationStep != null)
-            {
-                ExtraOutputCreationStep(new OutputCreationStepArgs(false, errors));
-            }
-
-            // TODO: As of now the build targets other than DataFile and Debug do DEPLOYMENT rather than BUILDING
-            // (BuildTargetDebug, - which is never used right here, - seem to combine both operations:
-            // building and preparing game to run under Windows).
-            // This is why the BuildTargetDataFile is called explicitly at the start.
-            // And that is why the rest must be called AFTER the ExtraOutputCreationStep.
-            //
-            // Possible solution that could improve situation could be to develop some kind of a BuildStep interface,
-            // having BuildTargets providing their build steps of corresponding type and execution order.
-            foreach (IBuildTarget target in BuildTargetsInfo.GetSelectedBuildTargets())
-            {
-                if (target != targetDataFile) target.Build(errors, forceRebuild);
-                buildNames[target.Name] = Factory.AGSEditor.BaseGameFileName;
-            }
-            Factory.AGSEditor.CurrentGame.WorkspaceState.SetLastBuildGameFiles(buildNames);
-            return null;
-        }
-
         private void RunPreCompilationChecks(CompileMessages errors)
         {
             if (_game.PlayerCharacter == null)
@@ -1450,59 +1402,6 @@ namespace AGS.Editor
 			return result;
 		}
 
-		public CompileMessages CompileGame(bool forceRebuild, bool createMiniExeForDebug)
-        {
-            Factory.GUIController.ClearOutputPanel();
-            CompileMessages messages = new CompileMessages();
-
-            Utilities.EnsureStandardSubFoldersExist();
-            // Test Object IDs being a valid sequence just in case prior to compiling the game,
-            // in case something went wrong during editing session (keep in mind that plugins
-            // can also edit the game data).
-            _tasks.HandleObjectIDErrors(_game);
-
-            forceRebuild |= NeedsRebuildForDebugMode();
-            forceRebuild |= _game.WorkspaceState.RequiresRebuild;
-            DateTime? requiredRebuildTime = forceRebuild ? (DateTime?)_game.WorkspaceState.RequiredRebuildTime : null;
-
-            if (PreCompileGame != null)
-            {
-				PreCompileGameEventArgs evArgs = new PreCompileGameEventArgs(forceRebuild, requiredRebuildTime);
-				evArgs.Errors = messages;
-
-                PreCompileGame(evArgs);
-
-                if (!evArgs.AllowCompilation)
-                {
-                    Factory.GUIController.PostOutputAndReportErrors(messages, "The game compiled", allowMessageOnSuccess: true);
-                    return messages;
-                }
-            }
-
-            RunPreCompilationChecks(messages);
-
-			if (!messages.HasErrors)
-				BusyDialog.Show(
-                    "Please wait while your scripts are compiled...",
-                    new BusyDialog.ProcessingHandler(CompileScripts),
-                    new CompileScriptsParameters(messages, forceRebuild));
-
-            if (!messages.HasErrors)
-			{
-				if (createMiniExeForDebug)
-				{
-					CreateMiniEXEForDebugging(messages);
-				}
-				else
-				{
-					CreateCompiledFiles(messages, forceRebuild);
-				}
-                _game.WorkspaceState.RequiresRebuild = false;
-            }
-            Factory.GUIController.PostOutputAndReportErrors(messages, "The game compiled", allowMessageOnSuccess: true);
-            return messages;
-        }
-
         /// <summary>
         /// Builds the game with agsbuild (Build EXE, Rebuild all, /compile, a new game): repairs the
         /// object IDs, saves the project, which is what agsbuild reads, lets the components prepare
@@ -1564,9 +1463,8 @@ namespace AGS.Editor
         {
             forceRebuild |= NeedsRebuildForDebugMode();
             forceRebuild |= _game.WorkspaceState.RequiresRebuild;
-            DateTime? requiredRebuildTime = forceRebuild ? (DateTime?)_game.WorkspaceState.RequiredRebuildTime : null;
 
-            PreCompileGameEventArgs evArgs = new PreCompileGameEventArgs(forceRebuild, requiredRebuildTime, buildsWithTools: true);
+            PreCompileGameEventArgs evArgs = new PreCompileGameEventArgs(forceRebuild);
             evArgs.Errors = messages;
             PreCompileGame?.Invoke(evArgs);
             if (!evArgs.AllowCompilation)
@@ -1739,48 +1637,6 @@ namespace AGS.Editor
                             BuildToolRunner.ToolFileName, result.Outcome, result.ExitCode)));
                     }
                     return false;
-            }
-        }
-
-        /// <summary>
-        /// Creates a mini-exe that only contains the GAME.DTA file,
-        /// in order to improve compile speed.
-        /// All other files will be sourced from the game folder.
-        /// </summary>
-        private void CreateMiniEXEForDebugging(CompileMessages errors)
-        {
-            IBuildTarget target = BuildTargetsInfo.FindBuildTargetByName(BuildTargetDebug.DEBUG_TARGET_NAME);
-
-            var buildNames = Factory.AGSEditor.CurrentGame.WorkspaceState.GetLastBuildGameFiles();
-            string oldName;
-            if (buildNames.TryGetValue(target.Name, out oldName))
-            {
-                // Primary cleanup
-                target.DeleteMainGameData(Factory.AGSEditor.BaseGameFileName, errors);
-                // Old files cleanup (if necessary)
-                if (!string.IsNullOrWhiteSpace(oldName) && oldName != Factory.AGSEditor.BaseGameFileName)
-                    target.DeleteMainGameData(oldName, errors);
-            }
-
-            target.Build(errors, false);
-            if (ExtraOutputCreationStep != null)
-            {
-                ExtraOutputCreationStep(new OutputCreationStepArgs(true, errors));
-            }
-
-            buildNames[target.Name] = Factory.AGSEditor.BaseGameFileName;
-            Factory.AGSEditor.CurrentGame.WorkspaceState.SetLastBuildGameFiles(buildNames);
-        }
-
-        private void CreateCompiledFiles(CompileMessages errors, bool forceRebuild)
-        {
-            try
-            {
-                BusyDialog.Show("Please wait while your game is created...", new BusyDialog.ProcessingHandler(CreateCompiledFiles), new CompileScriptsParameters(errors, forceRebuild));
-            }
-            catch (Exception ex)
-            {
-                errors.Add(new CompileError("Unexpected error: " + ex.Message));
             }
         }
 

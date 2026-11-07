@@ -44,7 +44,6 @@ namespace AGS.Editor.Components
             : base(guiController, agsEditor)
         {
             _guiController.ProjectTree.OnAfterLabelEdit += ProjectTree_OnAfterLabelEdit;
-            _agsEditor.PreCompileGame += AGSEditor_PreCompileGame;
             _timer.Interval = 20;
             _timer.Tick += _timer_Tick;
 
@@ -77,37 +76,6 @@ namespace AGS.Editor.Components
         private void StartRename(Translation itemToRename, string nodeID)
         {
             _guiController.ProjectTree.BeginLabelEdit(this, nodeID);
-        }
-
-        private void AGSEditor_PreCompileGame(PreCompileGameEventArgs evArgs)
-        {
-            if (evArgs.BuildsWithTools)
-            {
-                return; // po2tra compiles them
-            }
-
-            foreach (Translation translation in _agsEditor.CurrentGame.Translations)
-            {
-                if (File.Exists(translation.FileName))
-                {
-                    string compiledPath = Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
-                        Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, translation.CompiledFileName));
-
-                    if ((evArgs.ForceRebuild) ||
-						(Utilities.DoesFileNeedRecompile(translation.FileName, compiledPath)))
-                    {
-                        try
-                        {
-                            CompileTranslation(translation, evArgs.Errors);
-                        }
-                        catch (Exception e)
-                        {
-                            evArgs.Errors.Add(new CompileError(string.Format("Translation '{0}' compiled with errors: \n{1}",
-                                translation.FileName, e.Message)));
-                        }
-                    }
-                }
-            }
         }
 
         // "Avis Durgan" in ASCII

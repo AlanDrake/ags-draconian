@@ -28,7 +28,6 @@ namespace AGS.Editor.Components
         private const string FLAC_FILE_FILTER = "*.flac";
         private const string WAVEFORM_FILE_FILTER = "*.wav";
         private const string LIP_SYNC_DATA_OUTPUT = "syncdata.dat";
-        private const string SPEECH_VOX_FILE_NAME = "speech.vox";
 
         // Current lipsync data format version
         private const int LIP_SYNC_DATA_VERSION = 3060200;
@@ -42,7 +41,6 @@ namespace AGS.Editor.Components
             : base(guiController, agsEditor)
         {
             _agsEditor.PreCompileGame += _agsEditor_PreCompileGame;
-            _agsEditor.ExtraOutputCreationStep += _agsEditor_ExtraOutputCreationStep;
             Factory.Events.GamePrepareUpgrade += Events_GamePrepareUpgrade;
         }
 
@@ -61,24 +59,6 @@ namespace AGS.Editor.Components
             foreach (string dir in Directory.GetDirectories(SPEECH_DIRECTORY))
             {
                 MakeOneLipSyncDat(dir, LIP_SYNC_DATA_OUTPUT, errors);
-            }
-        }
-
-        private void _agsEditor_ExtraOutputCreationStep(OutputCreationStepArgs args)
-        {
-            CheckSpeechFilesForConsistency(args.Messages);
-
-            if (args.MiniExeForDebug)
-                return;
-
-            MakeOneVOX(SPEECH_DIRECTORY, SPEECH_VOX_FILE_NAME);
-            // For each top-level subfolder inside the main Speech folder,
-            // make a VOX called "sp_[name].vox", where [name] is the lowercase subfolder name.
-            var subdirs = Directory.GetDirectories(SPEECH_DIRECTORY);
-            foreach (string dir in subdirs)
-            {
-                string outFileName = string.Format("sp_{0}.vox", dir.Substring(SPEECH_DIRECTORY.Length + 1).ToLower());
-                MakeOneVOX(dir, outFileName);
             }
         }
 
@@ -104,49 +84,6 @@ namespace AGS.Editor.Components
                 CompileLipSyncFiles(datFileName, pamFileList, errors);
                 UpdateVOXFileStatusWithCurrentFileTimes(pamFileList, fileTimes);
             }
-        }
-
-        /// <summary>
-        /// Compiles one VOX file from the collection of voice-over clips and lipsync dat files.
-        /// </summary>
-        private void MakeOneVOX(string sourceDir, string outputName)
-        {
-            string[] speechFileList = ConstructFileListForSpeechVOX(sourceDir);
-            string key = sourceDir.ToLower();
-            if (!_speechVoxStatus.ContainsKey(key))
-                _speechVoxStatus.Add(key, new Dictionary<string, DateTime>());
-            Dictionary<string, DateTime> fileTimes = _speechVoxStatus[key];
-
-            string voxFileName = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, outputName));
-            if (DoesTargetFileNeedRebuild(voxFileName, speechFileList, fileTimes))
-            {
-                RebuildVOXFile(voxFileName, speechFileList);
-                UpdateVOXFileStatusWithCurrentFileTimes(speechFileList, fileTimes);
-            }
-        }
-
-        /// <summary>
-        /// Scan the Speech folder and first-level subfolders, and check if
-        /// there are any potential issues with the files in it.
-        /// </summary>
-        private void CheckSpeechFilesForConsistency(CompileMessages messages)
-        {
-            CheckSpeechFilesForConsistency(SPEECH_DIRECTORY, messages);
-            var subdirs = Directory.GetDirectories(SPEECH_DIRECTORY);
-            foreach (string dir in subdirs)
-            {
-                CheckSpeechFilesForConsistency(dir, messages);
-            }
-        }
-
-        /// <summary>
-        /// Scan the given speech directory, and check if there are any
-        /// potential issues with the files in it.
-        /// </summary>
-        private void CheckSpeechFilesForConsistency(string dir, CompileMessages messages)
-        {
-            // TODO: perhaps test if there are any files not matching supported format / naming convention?
-            //string[] audioClipList = ConstructFileListForSpeechVOX(dir, true);
         }
 
         private void ConvertVoiceClipsToNewNamingStyle(Game game, IWorkProgress progress, CompileMessages messages)
@@ -478,21 +415,6 @@ namespace AGS.Editor.Components
             foreach (string file in filesOnDisk)
             {
                 fileStatuses.Add(file.ToLower(), File.GetLastWriteTimeUtc(file));
-            }
-        }
-
-		private void RebuildVOXFile(string voxFileName, string[] filesOnDisk)
-		{
-            Utilities.TryDeleteFile(voxFileName);
-            if (filesOnDisk.Length > 0)
-            {
-                // Register speech assets under names = relative paths inside a Speech folder;
-                // e.g. Speech/cEgo1.ogg => cEgo1.ogg;
-                //      Speech/French/cEgo1.ogg => French/cEgo1.ogg;
-                var assets = filesOnDisk.Select(
-                    f => new Tuple<string, string>(f.Substring(SPEECH_DIRECTORY.Length + 1), f)).ToArray();
-                // the library records its own file name, without the path it is written to
-                DataFileWriter.MakeDataFile(assets, 0, Path.GetFileName(voxFileName), Path.GetDirectoryName(voxFileName));
             }
         }
 
