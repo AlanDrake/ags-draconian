@@ -1263,37 +1263,6 @@ namespace AGS.Editor
             CheckGameScripts.Invoke(new GenericMessagesArgs(errors));
         }
 
-        private void CreateAudioVOXFile(bool forceRebuild)
-        {
-            List<string> fileListForVox = new List<string>();
-            string audioVox = Path.Combine(OUTPUT_DIRECTORY, Path.Combine(DATA_OUTPUT_DIRECTORY, AUDIO_VOX_FILE_NAME));
-            bool rebuildVox = (!File.Exists(audioVox)) || (forceRebuild);
-
-            foreach (AudioClip clip in _game.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
-            {
-                if (clip.BundlingType == AudioFileBundlingType.InSeparateVOX)
-                {
-                    string thisFileName = clip.CacheFileName;
-                    if (File.GetLastWriteTimeUtc(thisFileName) != clip.FileLastModifiedDate)
-                    {
-                        rebuildVox = true;
-                        clip.FileLastModifiedDate = File.GetLastWriteTimeUtc(thisFileName);
-                    }
-                    fileListForVox.Add(thisFileName);
-                }
-            }
-
-            if ((fileListForVox.Count == 0) || (rebuildVox))
-            {
-                Utilities.TryDeleteFile(audioVox);
-            }
-
-            if ((rebuildVox) && (fileListForVox.Count > 0))
-            {
-                DataFileWriter.MakeFlatDataFile(fileListForVox.ToArray(), 0, audioVox);
-            }
-        }
-
         private void RunPreCompilationChecks(CompileMessages errors)
         {
             if (_game.PlayerCharacter == null)

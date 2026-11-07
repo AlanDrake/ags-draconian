@@ -11,6 +11,8 @@ namespace AGS.Editor
     public class BuildTargetWindows : BuildTargetBase
     {
         public const string WINDOWS_DIRECTORY = "Windows";
+        // Ends a game EXE with the game data attached, after the data's offset (TailSig in Common/data/multifilelib.cpp)
+        private const string CLIB_END_SIGNATURE = "CLIB\x1\x2\x3\x4SIGE";
 
         public override IDictionary<string, string> GetRequiredLibraryPaths()
         {
@@ -160,12 +162,11 @@ namespace AGS.Editor
                         ostream.Write(buffer, 0, count);
                     }
                 }
-                // TODO: use functions shared with DataFileWriter
                 // write the offset into the EXE where the first data file resides
                 ostream.Write(BitConverter.GetBytes(startPosition), 0, 8);
                 // write the CLIB end signature so the engine knows this is a valid EXE
-                ostream.Write(Encoding.ASCII.GetBytes(DataFileWriter.CLIB_END_SIGNATURE.ToCharArray()), 0,
-                    DataFileWriter.CLIB_END_SIGNATURE.Length);
+                ostream.Write(Encoding.ASCII.GetBytes(CLIB_END_SIGNATURE.ToCharArray()), 0,
+                    CLIB_END_SIGNATURE.Length);
             }
         }
 

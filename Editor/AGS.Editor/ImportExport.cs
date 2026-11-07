@@ -389,7 +389,6 @@ namespace AGS.Editor
 			return bytes.ToArray();
 		}
 
-        // TODO: merge with the similar methods in DataFileWriter, maybe make a class with Encoder
         /// Writes a null-terminated string using given encoding
         private static void WriteStringTerminated(string text, Encoding enc, BinaryWriter writer)
         {

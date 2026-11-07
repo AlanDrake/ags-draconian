@@ -1143,7 +1143,6 @@
     <Compile Include="Components\StatisticsSenderComponent.cs" />
     <Compile Include="Components\TranslationsComponent.cs" />
     <Compile Include="Components\WelcomeComponent.cs" />
-    <Compile Include="DataFileWriter.cs" />
     <Compile Include="Debugger\DebugController.cs" />
     <Compile Include="Debugger\IEngineCommunication.cs" />
     <Compile Include="Debugger\NamedPipesEngineCommunication.cs" />
