@@ -135,16 +135,17 @@ void TestDeflateStream_SemiUniqueSeq(size_t buffer_size)
         src_buf[i + 3] = n;
 
         k++;
-        if (k == 0)
+        if (k != 0)
         {
-            l += 2;
-            if (l < 2)
+            continue;
+        }
+        l += 2;
+        if (l < 2)
+        {
+            m += 3;
+            if (m < 3)
             {
-                m += 3;
-                if (m < 3)
-                {
-                    n += 4;
-                }
+                n += 4;
             }
         }
     }
