@@ -457,15 +457,15 @@ inline float InputSpeedToVelocity(float speed_val)
 // Calculates velocity vector length from x/y speed components
 inline float CalcMoveSpeedAtAngle(float speed_x, float speed_y, float xdist, float ydist)
 {
-    float useMoveSpeed;
+    float use_move_speed;
     // short circuit degenerate "simple" cases
     if (xdist == 0.f || speed_x == 0.f)
     {
-        useMoveSpeed = speed_y;
+        use_move_speed = speed_y;
     }
     else if (ydist == 0.f || speed_y == 0.f || speed_x == speed_y)
     {
-        useMoveSpeed = speed_x;
+        use_move_speed = speed_x;
     }
     else
     {
@@ -487,11 +487,11 @@ inline float CalcMoveSpeedAtAngle(float speed_x, float speed_y, float xdist, flo
         float b_squared = speed_y * speed_y;
         float m_squared = (ydist * ydist) / (xdist * xdist);
         float v_squared = (a_squared * b_squared * (1.f + m_squared)) / (b_squared + a_squared * m_squared);
-        useMoveSpeed = sqrtf(v_squared);
+        use_move_speed = sqrtf(v_squared);
     }
     // validate that the computed speed is in a valid range
-    assert(useMoveSpeed >= std::min(speed_x, speed_y) && useMoveSpeed <= std::max(speed_x, speed_y));
-    return useMoveSpeed;
+    assert(use_move_speed >= std::min(speed_x, speed_y) && use_move_speed <= std::max(speed_x, speed_y));
+    return use_move_speed;
 }
 
 // Calculates the X and Y per game loop, for this stage of the movelist
@@ -542,14 +542,14 @@ static void CalculateMoveStage(MoveList &mls, uint32_t index, float move_speed_x
     float xdist = abs(ourx - destx);
     float ydist = abs(oury - desty);
 
-    float useMoveSpeed = CalcMoveSpeedAtAngle(move_speed_x, move_speed_y, xdist, ydist);
+    float use_move_speed = CalcMoveSpeedAtAngle(move_speed_x, move_speed_y, xdist, ydist);
     float angl = atan(ydist / xdist);
 
     // now, since new opp=hyp*sin, work out the Y step size
-    float newymove = useMoveSpeed * sin(angl);
+    float newymove = use_move_speed * sin(angl);
 
     // since adj=hyp*cos, work out X step size
-    float newxmove = useMoveSpeed * cos(angl);
+    float newxmove = use_move_speed * cos(angl);
 
     // validate that the computed movement isn't larger than the set maxima
     assert(newxmove <= move_speed_x && newymove <= move_speed_y);

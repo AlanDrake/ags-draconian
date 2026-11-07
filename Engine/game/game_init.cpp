@@ -311,7 +311,7 @@ static void RegisterMissingGUIControls(GameSetupStruct &game)
         auto const &gui = guis[i];
         for (int j = 0; j < gui.GetControlCount(); j++)
         {
-            GUIControl *guio = gui.GetControl(j);
+            GUIControl *control = gui.GetControl(j);
             IScriptObject *mgr;
             switch (gui.GetControlType(j))
             {
@@ -326,7 +326,8 @@ static void RegisterMissingGUIControls(GameSetupStruct &game)
 
             if (mgr)
             {
-                StaticGUIControlsHandles[i][j] = ccRegisterPersistentObjectIfMissing(guio, mgr); // add ref for engine
+                StaticGUIControlsHandles[i][j] =
+                    ccRegisterPersistentObjectIfMissing(control, mgr); // add ref for engine
             }
         }
     }
