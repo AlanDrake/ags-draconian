@@ -32,9 +32,8 @@ namespace AGS.Editor.Components
         // Current lipsync data format version
         private const int LIP_SYNC_DATA_VERSION = 3060200;
 
-        // Source file timestamp records: keep timestamps of the source files used in speech.vox compilation;
+        // Source file timestamp records: keep timestamps of the source files used in lip sync compilation;
         // used to test whether recompilation is necessary or may be skipped.
-        private Dictionary<string, Dictionary<string, DateTime>> _speechVoxStatus = new Dictionary<string, Dictionary<string, DateTime>>();
         private Dictionary<string, Dictionary<string, DateTime>> _pamFileStatus = new Dictionary<string, Dictionary<string, DateTime>>();
 
         public SpeechComponent(GUIController guiController, AGSEditor agsEditor)
@@ -422,14 +421,12 @@ namespace AGS.Editor.Components
         {
             if (node != null)
             {
-                ReadFileTimes(node, "SpeechVoxFiles", _speechVoxStatus);
 				ReadFileTimes(node, "PamFiles", _pamFileStatus);
             }
         }
 
         public override void ToXml(XmlTextWriter writer)
         {
-            WriteFileTimes(writer, "SpeechVoxFiles", _speechVoxStatus);
 			WriteFileTimes(writer, "PamFiles", _pamFileStatus);
         }
 
