@@ -884,8 +884,9 @@ jobs:
           include-hidden-files: true
           path: Solutions/.build/x86/Release/*
 
-  # Builds the auto-test project with the editor and with agsbuild, and fails unless the packages
-  # match file by file (docs/refactor/PLAN.md, 7.1j). Goes away with the C# build code (6.7d).
+  # Builds the auto-test project with the editor (which runs the agsbuild next to it, 6.7d-9) and with a
+  # plain agsbuild run, and fails unless the packages match file by file (docs/refactor/PLAN.md, 7.1j and
+  # 6.7d-13): the guard that the editor's command line and pre-build steps add nothing and lose nothing.
   windows-parity:
     name: Windows Build Parity
     runs-on: windows-2022

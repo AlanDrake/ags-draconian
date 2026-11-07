@@ -11,11 +11,13 @@ sprite file and index, audio, fonts, custom data; a "(package)" row compares eac
 itself (part names, asset order, ender). Exit code 0 means every file is identical.
 A package split into parts (SplitResources) is compared by its assets only.
 
-The one layout difference allowed: the editor embeds the compiled scripts in game28.dta, while agsbuild
-packs them as separate files (GlobalScript.o, __DialogScripts.o and the modules in ScriptModules.lst),
-which the engine loads since 3.6.1. The comparison takes the scripts out of the editor's game28.dta
-(see unembed_scripts), so each separate file must match the script the editor embedded, and the rest
-of game28.dta must match byte for byte.
+The editor builds through agsbuild since 6.7d-9, so both sides pack the compiled scripts as separate
+files (GlobalScript.o, __DialogScripts.o and the modules in ScriptModules.lst), which the engine loads
+since 3.6.1, and every file is compared byte for byte. The one layout difference allowed is for an
+editor from before that (the reference editor built from the tag pre-6.7d), which embeds the scripts
+in game28.dta: when the editor's package has no separate script files, the comparison takes the
+scripts out of its game28.dta (see unembed_scripts), so each separate file must match the script the
+editor embedded, and the rest of game28.dta must match byte for byte.
 
 Options:
   --variants LIST   instead of the project as it is, compare copies of it that use what the project
@@ -450,7 +452,8 @@ def build_with_tools(tool_proj, tool_out, sys_dir, args, log_path):
 
 def compare_outputs(ed_out, ed_files, tool_out, tool_files, all_rows):
     """Prints the comparison of the two builds' files; returns (names compared, counts, summary)."""
-    # The scripts agsbuild packs separately are compared with those the editor embeds in game28.dta
+    # An editor from before 6.7d-9 embeds the scripts in game28.dta: they are compared with the ones
+    # agsbuild packs separately. An editor that packs them separately too gets the plain comparison.
     unembedded = {}  # game28.dta -> (the editor's file without the scripts, or None; the reason)
     embedded = set()  # separate script files found in the editor's game28.dta
     for n in tool_files:
@@ -458,7 +461,7 @@ def compare_outputs(ed_out, ed_files, tool_out, tool_files, all_rows):
             continue
         package = n[:-len('game28.dta')]
         scripts = separate_scripts(tool_files, package)
-        if scripts is None:
+        if scripts is None or all(package + s in ed_files for s, _ in scripts):
             continue
         unembedded[n] = unembed_scripts(open(ed_files[n][0], 'rb').read(), scripts)
         if unembedded[n][0] is not None:
