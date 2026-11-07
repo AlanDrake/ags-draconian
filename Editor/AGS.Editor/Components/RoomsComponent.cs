@@ -730,27 +730,22 @@ namespace AGS.Editor.Components
         }
 
         /// <summary>
-        /// Save the given room into its file.
-        /// Do not recompile room scripts.
+        /// Save the given room into its files.
         /// Do only minimal required pre-save checks and corrections.
         /// </summary>
-        private void SaveRoomDirectly(Room room, bool compileRoom, CompileMessages errors)
+        private void SaveRoomDirectly(Room room, CompileMessages errors)
         {
             // Do any automatic fixups that do not raise errors
             PerformPreSaveChecks(room);
 
-            if (!_agsEditor.AttemptToGetWriteAccess(room.FileName))
+            if (!_agsEditor.AttemptToGetWriteAccess(room.DataFileName))
             {
-                errors.Add(new CompileError("Unable to open file " + room.FileName + " for writing"));
+                errors.Add(new CompileError("Unable to open file " + room.DataFileName + " for writing"));
                 return;
             }
 
             // Save room data
             SaveRoomData(room);
-            if (compileRoom)
-            {
-                SaveCrm(room);
-            }
         }
 
         /// <summary>
@@ -777,15 +772,6 @@ namespace AGS.Editor.Components
             });
         }
 
-        /// <summary>
-        /// Save Room data, and then compile to CRM file.
-        /// </summary>
-        private void SaveRoomDataAndCompile(Room room)
-        {
-            SaveRoomData(room);
-            SaveCrm(room);
-        }
-
         private void SaveRoomButDoNotShowAnyErrors(Room room, CompileMessages errors, string pleaseWaitText)
         {
 			lock (_roomLoadingOrSavingLock)
@@ -798,9 +784,9 @@ namespace AGS.Editor.Components
                 // TODO: perhaps a wrong place to do so, find another time and place for this?
                 room.Modified |= (PerformPreSaveChecks(room) > 0);
 
-				if (!_agsEditor.AttemptToGetWriteAccess(room.FileName))
+				if (!_agsEditor.AttemptToGetWriteAccess(room.DataFileName))
 				{
-					errors.Add(new CompileError("Unable to open file " + room.FileName + " for writing"));
+					errors.Add(new CompileError("Unable to open file " + room.DataFileName + " for writing"));
 					return;
 				}
 
@@ -942,16 +928,9 @@ namespace AGS.Editor.Components
             CompileRoomParameters par = (CompileRoomParameters)parameter;
             Room room = par.Room;
 
-            // Compile script and report errors
-            _agsEditor.RegenerateScriptHeader(room);
-            List<Script> headers = (List<Script>)_agsEditor.GetAllScriptHeaders();
-            CompileMessages messages = new CompileMessages();
-            _agsEditor.CompileScript(room.Script, headers, messages);
-            if (messages.HasErrors)
-                throw messages.Errors[0];
-
-            // Save room data and compile CRM
-            SaveRoomDataAndCompile(room);
+            // Save the room sources only: the room script is compiled, and room<n>.crm
+            // built, by the game build (agsbuild), which reports the script's errors.
+            SaveRoomData(room);
 
             // Scan after saving, because saving a room here is a more critical task,
             // and scanning is rather a extra aid.
@@ -1438,7 +1417,7 @@ namespace AGS.Editor.Components
             if (isModified)
             {
                 // Prompt it to check out if necessary
-                _agsEditor.AttemptToGetWriteAccess(_loadedRoom.FileName);
+                _agsEditor.AttemptToGetWriteAccess(_loadedRoom.DataFileName);
             }
             _roomSettings.Name = GetRoomSettingsTabName();
             _guiController.DocumentTitlesChanged();
@@ -1766,41 +1745,13 @@ namespace AGS.Editor.Components
             }
         }
 
-		/// <summary>
-		/// Determines whether any script headers are newer than the room.
-		/// This is important because changes to any function declarations or #defines
-		/// in the header files need to be reflected in the script compilation.
-		/// </summary>
-		/// <param name="roomFileName">Room .CRM file name</param>
-		private bool HaveScriptHeadersBeenUpdatedSinceRoomWasCompiled(string roomFileName)
-		{
-			foreach (ScriptAndHeader script in _agsEditor.CurrentGame.RootScriptFolder.AllItemsFlat)
-			{
-                if (!File.Exists(script.Header.FileName))
-                {
-                    continue; // project file is missing, undefined behavior
-                }
-
-				if ((Utilities.DoesFileNeedRecompile(script.Header.FileName, roomFileName)))
-				{
-					return true;
-				}
-			}
-			return false;
-		}
-
         /// <summary>
-        /// Checks that the source files of every room exist and, if compileRooms is set, compiles the
-        /// rooms whose compiled file is out of date. agsbuild compiles the rooms itself, so for its
-        /// build only the check is done.
+        /// Checks that the source files of every room exist (script, data, first background
+        /// and masks), which the build reads.
         /// </summary>
-        private bool RecompileAnyRoomsWhereTheScriptHasChanged(CompileMessages errors, bool compileRooms, bool rebuildAll, DateTime? mustRebuildSince)
+        private bool CheckRoomFilesExist(CompileMessages errors)
         {
-			List<UnloadedRoom> roomsToRebuild = new List<UnloadedRoom>();
-			List<string> roomFileNamesToRebuild = new List<string>();
             bool success = true;
-
-            // First of all test all rooms for validity of data on disk
             foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
             {
                 IEnumerable<string> missingMasks = Enum
@@ -1830,65 +1781,7 @@ namespace AGS.Editor.Components
                     errors.AddRange(missingMasks.Select(f => new CompileError("File not found: " + f + "; If you deleted this file, delete the room from the Project Explorer using a context menu.")));
                     success = false;
                 }
-                else if (!compileRooms)
-                {
-                    continue;
-                }
-                // If we're told to rebuild all, and no time is provided, then rebuild regardless of the room file's time.
-                // If we're told to rebuild all, and provided with a time anchor, then test if the room's compiled file
-                // does not exist, or is too old.
-                // If we're not told to rebuild all, then test if any relevant scripts have changed since the last build.
-                else if ((rebuildAll && mustRebuildSince == null) ||
-                    (rebuildAll && mustRebuildSince != null && Utilities.DoesFileNeedRecompile(mustRebuildSince.Value, unloadedRoom.FileName)) ||
-                    (Utilities.DoesFileNeedRecompile(unloadedRoom.ScriptFileName, unloadedRoom.FileName)) ||
-					(HaveScriptHeadersBeenUpdatedSinceRoomWasCompiled(unloadedRoom.FileName)))
-                {
-					roomsToRebuild.Add(unloadedRoom);
-					roomFileNamesToRebuild.Add(unloadedRoom.FileName);
-                }
             }
-
-            // Try to ensure write access to all gathered output files
-			if (!_agsEditor.AttemptToGetWriteAccess(roomFileNamesToRebuild))
-			{
-				errors.Add(new CompileError("Failed to open files for writing"));
-				return false;
-			}
-
-            string rebuildReason = rebuildAll ? "because the full rebuild was ordered" : "because a script has changed";
-
-            foreach (UnloadedRoom unloadedRoom in roomsToRebuild)
-			{
-				Room room = (_loadedRoom != null && unloadedRoom.Number == _loadedRoom.Number) ?
-                    _loadedRoom
-                  : LoadRoomAsTemporary(unloadedRoom, errors, doLoadScript: true);
-                // Ensure that the script is saved, in case it was modified on a room upgrade, for instance
-                room.Script.SaveToDisk();
-
-                CompileMessages roomErrors = new CompileMessages();
-                // We have to load room's images to the cache before compiling the room
-                LoadImageCache(room, roomErrors, silent: true);
-                SaveRoomButDoNotShowAnyErrors(room, roomErrors, $"Rebuilding room {room.Number} {rebuildReason}...");
-
-				if (roomErrors.HasErrors)
-				{
-					errors.Add(new CompileError($"Failed to save room {room.FileName}; details below"));
-					errors.AddRange(roomErrors);
-					success = false;
-				}
-                else if (roomErrors.Count > 0)
-                {
-                    errors.Add(new CompileWarning($"Room {room.FileName} was saved, but there were warnings; details below"));
-                    errors.AddRange(roomErrors);
-                }
-
-                if (room != _loadedRoom)
-                    UnloadRoom(room);
-
-                if (!success)
-                    break;
-            }
-
             return success;
         }
 
@@ -1917,19 +1810,18 @@ namespace AGS.Editor.Components
 
             if (evArgs.AllowCompilation)
             {
-				evArgs.AllowCompilation = RecompileAnyRoomsWhereTheScriptHasChanged(evArgs.Errors, !evArgs.BuildsWithTools,
-                    evArgs.ForceRebuild, evArgs.ForceRebuildTime);
+                evArgs.AllowCompilation = CheckRoomFilesExist(evArgs.Errors);
             }
 
-            if (evArgs.AllowCompilation && evArgs.BuildsWithTools)
+            if (evArgs.AllowCompilation)
             {
                 ScanAllRoomsForMissingEventHandlers(evArgs.Errors);
             }
         }
 
         /// <summary>
-        /// Reports the event handlers of every room that are missing or not linked. The editor's own
-        /// build does it for each room it compiles; agsbuild compiles them, so they are checked here.
+        /// Reports the event handlers of every room that are missing or not linked, before the
+        /// build; agsbuild compiles the rooms and does not check them.
         /// </summary>
         private void ScanAllRoomsForMissingEventHandlers(CompileMessages errors)
         {
@@ -1993,9 +1885,9 @@ namespace AGS.Editor.Components
             // as the project is not saved immediately after load, and if we modify rooms
             // then it may enter an inconsistent state.
             //
-            // Instead we mark the project as requiring a full rebuild. This will
-            // trigger all rooms recompilation, forcing them to load and upgrade
-            // whenever user compiles the game.
+            // Instead we mark the project as requiring a full rebuild. A room is
+            // upgraded when the editor opens and saves it; the build (crmbuild) reads
+            // the older room formats itself.
             if (IsRoomUpgradeNecessary(game))
             {
                 game.WorkspaceState.RequiresRebuild = true;
@@ -2029,7 +1921,7 @@ namespace AGS.Editor.Components
 			List<string> roomFileNamesToRebuild = new List<string>();
             foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
 			{
-				roomFileNamesToRebuild.Add(unloadedRoom.FileName);
+				roomFileNamesToRebuild.Add(unloadedRoom.DataFileName);
 				roomFileNamesToRebuild.Add(unloadedRoom.ScriptFileName);
 			}
 
@@ -2084,7 +1976,7 @@ namespace AGS.Editor.Components
 
                     if (roomErrors.Count > 0)
                     {
-                        errors.Add(new CompileError("Failed to save room " + room.FileName + "; details below"));
+                        errors.Add(new CompileError("Failed to save room " + room.DataFileName + "; details below"));
                         errors.Add(roomErrors[0]);
                     }
                 }
@@ -2147,7 +2039,7 @@ namespace AGS.Editor.Components
                 throw new InvalidOperationException("No room is currently loaded");
             }
 
-            SaveRoomDataAndCompile(_loadedRoom);
+            SaveRoomData(_loadedRoom);
         }
 
         Bitmap IRoomController.GetBackground(int background)
@@ -3042,38 +2934,6 @@ namespace AGS.Editor.Components
                 bmp.Save(filename, ImageFormat.Png);
             }
         });
-
-        /// <summary>
-        /// Saves .crm file from open format
-        /// </summary>
-        private void SaveCrm(Room room)
-        {
-            // Sync native palette before writing
-            if ((room.ColorDepth == 8) && (room.BackgroundCount > 0))
-            {
-                CopyGamePalette(); // in case they had changes to game colors in the meantime
-                _backgroundCache[0].Image.CopyToAGSBackgroundPalette(_roomPalette); // update current room palette
-                Factory.NativeProxy.ApplyPalette(_roomPalette); // sync native palette
-            }
-
-            using (var nativeRoom = new Native.NativeRoom(room))
-            {
-                for (int i = 0; i < room.BackgroundCount; i++)
-                {
-                    nativeRoom.SetBackground(i, _backgroundCache[i].Image);
-                }
-
-                foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
-                {
-                    if (mask == RoomAreaMaskType.None)
-                        continue;
-
-                    nativeRoom.SetAreaMask(mask, _maskCache[mask].Image);
-                }
-
-                nativeRoom.SaveToFile(room.FileName);
-            }
-        }
         #endregion // Upgrade Crm Format To Open Format
 
         private struct ModifyRoomParameters
@@ -3145,7 +3005,7 @@ namespace AGS.Editor.Components
                         // Save room script too, in case it was modified on a room upgrade, for instance
                         if (modifyRoom.ModifyScript)
                             room.Script.SaveToDisk();
-                        SaveRoomDirectly(room, compileRoom: false, errors: roomErrors);
+                        SaveRoomDirectly(room, roomErrors);
                         room.Modified = false;
                     }
                     UnloadRoom(room);
