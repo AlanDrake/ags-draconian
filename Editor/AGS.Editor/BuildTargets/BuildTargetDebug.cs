@@ -34,10 +34,16 @@ namespace AGS.Editor
             return GetCompiledPath(parts);
         }
 
+        /// <summary>
+        /// Deletes the game package of the run layout (agsbuild --data-only) and the game EXE that
+        /// editors before agsbuild made in its place.
+        /// </summary>
         public override void DeleteMainGameData(string name, CompileMessages errors)
         {
-            string filename = Path.Combine(Path.Combine(OutputDirectoryFullPath, DEBUG_DIRECTORY), name + ".exe");
+            string dir = Path.Combine(OutputDirectoryFullPath, DEBUG_DIRECTORY);
+            string filename = Path.Combine(dir, name + ".exe");
             Utilities.ExecuteOrError(() => { Utilities.TryDeleteFile(filename); }, $"Failed to delete an old file {filename}.", errors);
+            DeleteCommonGameFiles(dir, name, errors);
         }
 
         private object CreateDebugFiles(IWorkProgress progress, object parameter)

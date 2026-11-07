@@ -45,7 +45,8 @@ namespace AGS.Editor
 		public const string BUILT_IN_HEADER_FILE_NAME = "_BuiltInScriptHeader.ash";
         public const string OUTPUT_DIRECTORY = "Compiled";
         public const string DATA_OUTPUT_DIRECTORY = "Data"; // subfolder in OUTPUT_DIRECTORY for data file outputs
-        public const string DEBUG_OUTPUT_DIRECTORY = "_Debug";
+        public const string DEBUG_OUTPUT_DIRECTORY = "_Debug"; // the run layout of the Run commands (agsbuild --data-only)
+        public const string DEBUG_ROOMS_DIRECTORY = "Rooms"; // subfolder in DEBUG_OUTPUT_DIRECTORY for the compiled rooms
         public const string BUILD_TEMP_DIRECTORY = "_obj"; // agsbuild's intermediate files, cleared by each build
         public const string GAME_FILE_NAME = "Game.agf";
 		public const string BACKUP_EXTENSION = "bak";
@@ -1511,6 +1512,22 @@ namespace AGS.Editor
         /// </summary>
         public CompileMessages BuildGame(bool forceRebuild)
         {
+            return BuildGame(forceRebuild, false);
+        }
+
+        /// <summary>
+        /// Builds what the Run commands (F5, Ctrl+F5) start the engine on, with agsbuild --data-only
+        /// into _Debug: the game data, scripts, translations and acsetup.cfg, the rooms in
+        /// _Debug/Rooms; the engine reads the rest from the project's folders (Tasks.TestGame). The
+        /// same steps as BuildGame before agsbuild runs; no build target is touched.
+        /// </summary>
+        public CompileMessages BuildGameForRun()
+        {
+            return BuildGame(false, true);
+        }
+
+        private CompileMessages BuildGame(bool forceRebuild, bool forRun)
+        {
             Factory.GUIController.ClearOutputPanel();
             CompileMessages messages = new CompileMessages();
 
@@ -1518,13 +1535,19 @@ namespace AGS.Editor
             // In case something went wrong during the editing session (plugins can also edit the
             // game data); before the save, which agsbuild reads
             _tasks.HandleObjectIDErrors(_game);
-            if (!SaveGameFiles())
+            string enginePath = Path.Combine(EditorDirectory, ENGINE_EXE_FILE_NAME);
+            if (forRun && !File.Exists(enginePath))
+            {
+                messages.Add(new CompileError("The game cannot be run, because the engine '" + enginePath +
+                    "' is missing. Your AGS installation may be incomplete."));
+            }
+            else if (!SaveGameFiles())
             {
                 messages.Add(new CompileError("The game was not built, because the project could not be saved."));
             }
             else
             {
-                BuildSavedGame(forceRebuild, messages);
+                BuildSavedGame(forceRebuild, forRun, messages);
             }
 
             if (!messages.HasErrors)
@@ -1537,7 +1560,7 @@ namespace AGS.Editor
             return messages;
         }
 
-        private void BuildSavedGame(bool forceRebuild, CompileMessages messages)
+        private void BuildSavedGame(bool forceRebuild, bool forRun, CompileMessages messages)
         {
             forceRebuild |= NeedsRebuildForDebugMode();
             forceRebuild |= _game.WorkspaceState.RequiresRebuild;
@@ -1564,10 +1587,17 @@ namespace AGS.Editor
                 using (ScriptHeaderFiles headerFiles = new ScriptHeaderFiles(pluginHeaders))
                 using (System.Threading.CancellationTokenSource cancel = new System.Threading.CancellationTokenSource())
                 {
-                    BusyDialog.Show("Building the game",
-                        (progress, parameter) => BuildWithToolsAndDeploy(progress, messages, forceRebuild,
-                            headerFiles.Paths, cancel.Token),
-                        null, 0, cancel);
+                    BusyDialog.ProcessingHandler build;
+                    if (forRun)
+                    {
+                        build = (progress, parameter) => BuildRunLayout(progress, messages, headerFiles.Paths, cancel.Token);
+                    }
+                    else
+                    {
+                        build = (progress, parameter) => BuildWithToolsAndDeploy(progress, messages, forceRebuild,
+                            headerFiles.Paths, cancel.Token);
+                    }
+                    BusyDialog.Show("Building the game", build, null, 0, cancel);
                     headerFiles.Dispose();
                     if (headerFiles.DeleteError != null)
                     {
@@ -1614,7 +1644,8 @@ namespace AGS.Editor
                 }
             }
 
-            if (!RunBuildTool(progress, errors, pluginHeaders, cancel))
+            string outputDirectory = Path.Combine(_game.DirectoryPath, OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY);
+            if (!RunBuildTool(progress, errors, outputDirectory, false, pluginHeaders, cancel))
             {
                 return null;
             }
@@ -1639,18 +1670,46 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Builds Compiled/Data with agsbuild from the editor's folder; true if the build succeeded.
+        /// Runs agsbuild --data-only into _Debug, after deleting the game package of the last run,
+        /// also one of an earlier game file name, and the game EXE that editors before agsbuild made
+        /// there. Runs on the busy dialog's thread.
         /// </summary>
-        private bool RunBuildTool(IWorkProgress progress, CompileMessages errors, IList<string> pluginHeaders,
+        private object BuildRunLayout(IWorkProgress progress, CompileMessages errors, IList<string> pluginHeaders,
             System.Threading.CancellationToken cancel)
         {
-            string outputDirectory = Path.Combine(_game.DirectoryPath, OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY);
+            IBuildTarget target = BuildTargetsInfo.FindBuildTargetByName(BuildTargetDebug.DEBUG_TARGET_NAME);
+            Dictionary<string, string> buildNames = _game.WorkspaceState.GetLastBuildGameFiles();
+            target.DeleteMainGameData(BaseGameFileName, errors);
+            string oldName;
+            if (buildNames.TryGetValue(target.Name, out oldName) && !string.IsNullOrWhiteSpace(oldName) &&
+                oldName != BaseGameFileName)
+            {
+                target.DeleteMainGameData(oldName, errors);
+            }
+
+            string outputDirectory = Path.Combine(_game.DirectoryPath, DEBUG_OUTPUT_DIRECTORY);
+            if (RunBuildTool(progress, errors, outputDirectory, true, pluginHeaders, cancel))
+            {
+                buildNames[target.Name] = BaseGameFileName;
+                _game.WorkspaceState.SetLastBuildGameFiles(buildNames);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Builds the game with agsbuild from the editor's folder into the given folder, the run
+        /// layout if dataOnly; true if the build succeeded.
+        /// </summary>
+        private bool RunBuildTool(IWorkProgress progress, CompileMessages errors, string outputDirectory, bool dataOnly,
+            IList<string> pluginHeaders, System.Threading.CancellationToken cancel)
+        {
             Directory.CreateDirectory(outputDirectory);
             BuildToolOptions options = new BuildToolOptions
             {
                 ProjectFile = Path.Combine(_game.DirectoryPath, GAME_FILE_NAME),
                 OutputDirectory = outputDirectory,
                 ToolsDirectory = EditorDirectory,
+                DataOnly = dataOnly,
             };
             options.ScriptHeaders.AddRange(pluginHeaders);
 

@@ -25,8 +25,9 @@ namespace AGS.Editor
 
 		/// <summary>
 		/// True when agsbuild builds the game after the event: it compiles the scripts, rooms and
-		/// translations from the saved project, so a handler only prepares sources. False for the
-		/// editor's own build, which the Run command still uses (PLAN.md 6.7d-10).
+		/// translations from the saved project, so a handler only prepares sources. False only for
+		/// the editor's own build (AGSEditor.CompileGame), which nothing calls any more and which
+		/// goes with this flag (PLAN.md 6.7d-12).
 		/// </summary>
 		public bool BuildsWithTools { get; }
 

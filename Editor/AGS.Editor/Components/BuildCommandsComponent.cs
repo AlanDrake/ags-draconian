@@ -168,19 +168,14 @@ namespace AGS.Editor.Components
 
         private void TestGame(bool withDebugger)
         {
-            if (_agsEditor.SaveGameFiles())
+            var messages = _agsEditor.BuildGameForRun();
+            if (!messages.HasErrors)
             {
-                var messages = _agsEditor.CompileGame(false, true);
-                if (!messages.HasErrors)
-                {
-                    // The user data may have been amended by the building process
-                    _agsEditor.SaveUserDataFile();
-                    _testGameInProgress = true;
-                    _guiController.InteractiveTasks.TestGame(withDebugger);
-                    // Depending on which panels are enabled, one of them may end up being shown on top
-                    _guiController.ShowWatchVariablesPanel(true);
-                    _guiController.ShowLogPanel(true);
-                }
+                _testGameInProgress = true;
+                _guiController.InteractiveTasks.TestGame(withDebugger);
+                // Depending on which panels are enabled, one of them may end up being shown on top
+                _guiController.ShowWatchVariablesPanel(true);
+                _guiController.ShowLogPanel(true);
             }
         }
 

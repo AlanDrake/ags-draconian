@@ -755,9 +755,15 @@ namespace AGS.Editor
             RunGameEXE("--setup", false);
         }
 
+        /// <summary>
+        /// Starts the engine of the editor's folder on the run layout that AGSEditor.BuildGameForRun
+        /// made in _Debug, in the project folder.
+        /// </summary>
         public void TestGame(bool withDebugger)
         {
-            string exePath = Path.Combine(AGSEditor.DEBUG_OUTPUT_DIRECTORY, Factory.AGSEditor.BaseGameFileName + ".exe");
+            string exePath = Path.Combine(Factory.AGSEditor.EditorDirectory, AGSEditor.ENGINE_EXE_FILE_NAME);
+            string runDirectory = Path.Combine(Factory.AGSEditor.GameDirectory, AGSEditor.DEBUG_OUTPUT_DIRECTORY);
+            string gameDataPath = Path.Combine(runDirectory, Factory.AGSEditor.BaseGameFileName + ".ags");
             string parameter = string.Empty;
                         
             if (withDebugger)
@@ -775,14 +781,17 @@ namespace AGS.Editor
                 parameter = "--fullscreen";
             }
             _runningGameWithDebugger = withDebugger;
-            // Pass both compiled dir and custom game data directories (point to where all supplemental data files are);
+            // The run layout is the install folder (the config, the translations) and its rooms folder
+            // the first data folder, so that a room file left in the project folder is never loaded;
+            // the other data folders are where the project keeps what the run layout leaves out.
             // Command syntax is:
             //    --runfromide <INSTALLDIR> [OPT_PATH1:FILTER[,OPT_PATH2:FILTER[, ...]]]
             //
             // NOTE: OPT_PATHs and FILTERs must be encased in doublequotes, and separated by a single comma (no spaces).
             //
             parameter += " --runfromide" +
-                " \"" + Path.Combine(AGSEditor.OUTPUT_DIRECTORY, BuildTargetWindows.WINDOWS_DIRECTORY) + "\" " +
+                " \"" + runDirectory + "\" " +
+                "\"" + Path.Combine(runDirectory, AGSEditor.DEBUG_ROOMS_DIRECTORY) + "\":\"\"" + "," +
                 "\"" + Factory.AGSEditor.GameDirectory + "\":\"\"" + "," +
                 "\"" + Path.Combine(Factory.AGSEditor.GameDirectory, FontsComponent.FONT_FILES_DIRECTORY) + "\":\"\"" + "," +
                 "\"" + AudioComponent.AUDIO_CACHE_DIRECTORY + "\":\"audio\"" + "," +
@@ -790,7 +799,7 @@ namespace AGS.Editor
 
             // Explicit path to the file containing main game data,
             // this is to ensure that the engine won't try to scan other places
-            parameter += " \"" + exePath + "\"";
+            parameter += " \"" + gameDataPath + "\"";
 
             Factory.GUIController.ClearEngineLogMessages();
 
