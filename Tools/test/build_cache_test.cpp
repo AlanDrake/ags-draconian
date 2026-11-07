@@ -23,7 +23,7 @@
 #include <utility>
 #include <vector>
 
-#include "agsbuild/room_cache.h"
+#include "agsbuild/build_cache.h"
 #include "gtest/gtest.h"
 #include "util/directory.h"
 #include "util/file.h"

@@ -50,7 +50,7 @@
     <ClCompile Include="..\..\Tools\agsbuild\main.cpp" />
     <ClCompile Include="..\..\Tools\agsbuild\package_files.cpp" />
     <ClCompile Include="..\..\Tools\agsbuild\pipedprocess.cpp" />
-    <ClCompile Include="..\..\Tools\agsbuild\room_cache.cpp" />
+    <ClCompile Include="..\..\Tools\agsbuild\build_cache.cpp" />
     <ClCompile Include="..\..\Tools\agsbuild\taskmanager.cpp" />
     <ClCompile Include="..\..\Tools\data\agfreader.cpp" />
     <ClCompile Include="..\..\Tools\data\xml_fields.cpp" />
@@ -64,7 +64,7 @@
     <ClInclude Include="..\..\Tools\agsbuild\commandline.h" />
     <ClInclude Include="..\..\Tools\agsbuild\package_files.h" />
     <ClInclude Include="..\..\Tools\agsbuild\pipedprocess.h" />
-    <ClInclude Include="..\..\Tools\agsbuild\room_cache.h" />
+    <ClInclude Include="..\..\Tools\agsbuild\build_cache.h" />
     <ClInclude Include="..\..\Tools\agsbuild\taskmanager.h" />
     <ClInclude Include="..\..\Tools\data\agfreader.h" />
     <ClInclude Include="..\..\Tools\data\game_utils.h" />

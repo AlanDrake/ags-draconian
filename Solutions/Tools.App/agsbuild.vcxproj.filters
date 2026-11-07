@@ -84,7 +84,7 @@
     <ClCompile Include="..\..\Tools\agsbuild\pipedprocess.cpp">
       <Filter>agsbuild</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Tools\agsbuild\room_cache.cpp">
+    <ClCompile Include="..\..\Tools\agsbuild\build_cache.cpp">
       <Filter>agsbuild</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\data\multifilelib.cpp">
@@ -119,7 +119,7 @@
     <ClInclude Include="..\..\Tools\agsbuild\pipedprocess.h">
       <Filter>agsbuild</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Tools\agsbuild\room_cache.h">
+    <ClInclude Include="..\..\Tools\agsbuild\build_cache.h">
       <Filter>agsbuild</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Tools\agsbuild\taskmanager.h">

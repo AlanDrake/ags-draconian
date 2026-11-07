@@ -33,7 +33,7 @@
 #include "diagnostics.h"
 #include "package_files.h"
 #include "pipedprocess.h"
-#include "room_cache.h"
+#include "build_cache.h"
 #include "taskmanager.h"
 #include "util/cmdlineopts.h"
 #include "util/directory.h"
@@ -545,7 +545,7 @@ static void AddRoomTask(BuildContext &c, std::unique_ptr<Task> &&task, const std
 
 // Build rooms from their sources, with the compiled room scripts inside, as the editor does.
 // A room whose inputs are those of the room kept in the intermediate folder is not built again:
-// the task "check-rooms" decides it, after the generated headers are made (room_cache.h).
+// the task "check-rooms" decides it, after the generated headers are made (build_cache.h).
 static HError AddRoomSourceTasks(BuildContext &c)
 {
     if (c.room_sources_list.empty())

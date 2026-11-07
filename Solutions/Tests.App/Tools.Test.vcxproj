@@ -227,7 +227,7 @@
     <ClCompile Include="..\..\Tools\agsbuild\commandline.cpp" />
     <ClCompile Include="..\..\Tools\agsbuild\package_files.cpp" />
     <ClCompile Include="..\..\Tools\agsbuild\pipedprocess.cpp" />
-    <ClCompile Include="..\..\Tools\agsbuild\room_cache.cpp" />
+    <ClCompile Include="..\..\Tools\agsbuild\build_cache.cpp" />
     <ClCompile Include="..\..\Tools\agsbuild\taskmanager.cpp" />
     <ClCompile Include="..\..\Tools\test\agfreader_test.cpp" />
     <ClCompile Include="..\..\Tools\test\data_file_writer_test.cpp" />
@@ -241,7 +241,7 @@
     <ClCompile Include="..\..\Tools\test\package_files_test.cpp" />
     <ClCompile Include="..\..\Tools\test\pipedprocess_test.cpp" />
     <ClCompile Include="..\..\Tools\test\room_build_test.cpp" />
-    <ClCompile Include="..\..\Tools\test\room_cache_test.cpp" />
+    <ClCompile Include="..\..\Tools\test\build_cache_test.cpp" />
     <ClCompile Include="..\..\Tools\test\tra_utils_test.cpp" />
     <ClCompile Include="..\..\Tools\test\xml_fields_test.cpp" />
     <ClCompile Include="..\..\Tools\test\spriteimport_test.cpp" />
