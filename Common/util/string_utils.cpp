@@ -423,9 +423,13 @@ std::pair<String, String> StrUtil::GetKeyValue(const String &s, char key_val_sep
 std::vector<String> StrUtil::SplitPreservingDoublequoted(const String &s, char separator)
 {
     if (s.IsEmpty())
+    {
         return std::vector<String>{""};
+    }
     if (separator == '\"')
+    {
         return s.Split(separator);
+    }
 
     std::vector<String> result;
     bool inside_quotes = false;

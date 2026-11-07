@@ -23,7 +23,11 @@
 #include "util/memory_compat.h"
 #include "util/memorystream.h"
 
-using namespace AGS::Common;
+using AGS::Common::CopyStream;
+using AGS::Common::DeflateStream;
+using AGS::Common::kStream_Read;
+using AGS::Common::kStream_Write;
+using AGS::Common::VectorStream;
 
 void WriteDeflatedData(const std::vector<uint8_t> *src_buf, size_t src_size_bytes, std::vector<uint8_t> &zip_buf,
                        size_t &deflated_bytes)
@@ -33,7 +37,9 @@ void WriteDeflatedData(const std::vector<uint8_t> *src_buf, size_t src_size_byte
     {
         auto fill_src = std::make_unique<VectorStream>(src_buf_temp, kStream_Write);
         for (size_t i = 0; i < src_size_bytes; ++i)
+        {
             fill_src->WriteByte(0);
+        }
         src_buf = &src_buf_temp;
     }
 
@@ -54,7 +60,7 @@ void TestDeflateStream(const std::vector<uint8_t> src_buf)
     WriteDeflatedData(&src_buf, 0, zip_buf, deflated_bytes);
 
     ASSERT_EQ(deflated_bytes, src_buf.size());
-    ASSERT_TRUE(zip_buf.size() > 0u);
+    ASSERT_FALSE(zip_buf.empty());
 
     auto inflate_s = std::make_unique<DeflateStream>(std::make_unique<VectorStream>(zip_buf), kStream_Read);
     auto mem_unzip = std::make_unique<VectorStream>(unzip_buf, kStream_Write);
@@ -104,7 +110,9 @@ void TestDeflateStream_RepeatSeqs(size_t buffer_size)
     {
         std::array<uint8_t, 12> &seq = seqs[std::rand() % 12];
         for (size_t ichar = 0; at < InputBufferLength && ichar < seq.size() && seq[ichar] != 0; ++ichar, ++at)
+        {
             src_buf[at] = seq[ichar];
+        }
     }
 
     TestDeflateStream(src_buf);
@@ -134,7 +142,9 @@ void TestDeflateStream_SemiUniqueSeq(size_t buffer_size)
             {
                 m += 3;
                 if (m < 3)
+                {
                     n += 4;
+                }
             }
         }
     }
@@ -208,7 +218,8 @@ void TestDeflateStreamEOS(size_t data_size)
 
     size_t read_count = 0u;
     for (; !inflate_s->EOS(); inflate_s->ReadByte(), ++read_count)
-        ;
+    {
+    }
     ASSERT_EQ(data_size, read_count);
 }
 
