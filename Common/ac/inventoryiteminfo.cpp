@@ -50,7 +50,7 @@ void InventoryItemInfo::ReadFromFile(Stream *in, GameDataVersion game_ver)
     cursorPic = in->ReadInt32();
     hotx = in->ReadInt32();
     hoty = in->ReadInt32();
-    hotAlign = static_cast<FrameAlignment>(in->ReadInt32()); // since kGameVersion_363_14
+    hotAlign = static_cast<FrameAlignment>(in->ReadInt32()); // since 3.6.3.14
     in->Seek(sizeof(int32_t) * 4);                           // reserved
     flags = in->ReadInt8();
     in->Seek(3); // alignment padding to int32
@@ -64,7 +64,7 @@ void InventoryItemInfo::WriteToFile(Stream *out) const
     out->WriteInt32(cursorPic);
     out->WriteInt32(hotx);
     out->WriteInt32(hoty);
-    out->WriteInt32(hotAlign);                   // since kGameVersion_363_14
+    out->WriteInt32(hotAlign);                   // since 3.6.3.14
     out->WriteByteCount(0, sizeof(int32_t) * 4); // reserved
     out->WriteInt8(flags);
     out->WriteByteCount(0, 3); // alignment padding to int32

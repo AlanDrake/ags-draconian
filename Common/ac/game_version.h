@@ -183,22 +183,8 @@ enum GameDataVersion
 {
     kGameVersion_Undefined = 0,
     //-------------------------------------------------------------------------
-    // Since 3.6.0 the format values are synced with engine version
-    kGameVersion_360_21 = 3060021,
-    kGameVersion_361 = 3060100,
-    kGameVersion_361_10 = 3060110,
-    kGameVersion_361_14 = 3060114,
-    kGameVersion_362 = 3060200,
-    kGameVersion_362_03 = 3060203,
-    kGameVersion_362_12 = 3060212,
-    kGameVersion_363 = 3060300,
-    kGameVersion_363_04 = 3060304,
-    kGameVersion_363_06 = 3060306,
-    kGameVersion_363_08 = 3060308,
-    kGameVersion_363_10 = 3060310,
-    kGameVersion_363_14 = 3060314,
-    kGameVersion_363_15 = 3060315,
-    kGameVersion_363_16 = 3060316,
+    // Since 3.6.0 the format values are synced with engine version;
+    // data older than 3.99 is not loaded (docs/refactor/PLAN.md, decision D1)
     kGameVersion_399 = 3999999,
     kGameVersion_400 = 4000000,
     kGameVersion_400_08 = 4000008,
@@ -217,9 +203,4 @@ enum GameDataVersion
     kGameVersion_400_34 = 4000034,
     kGameVersion_LowSupported = kGameVersion_399,
     kGameVersion_Current = kGameVersion_400_34,
-
-    //-------------------------------------------------------------------------
-    // Following version numbers were not saved in data, but are generated
-    // by reading "Compiled With" field from the game file's header.
-    kGameVersion_362_07 = 3060207
 };
