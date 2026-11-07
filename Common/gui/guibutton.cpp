@@ -264,10 +264,13 @@ void GUIButton::Draw(Bitmap *ds, int x, int y)
 
     // No need to check Image after the assignment directly above
     if (_currentImage > 0)
+    {
         DrawImageButton(ds, x, y, draw_disabled);
-    // For old versions: do not draw the button frame at all if there's no text
-    else if ((GUI::DataVersion >= kGameVersion_363_04) || !_text.IsEmpty())
+    }
+    else
+    {
         DrawTextButton(ds, x, y, draw_disabled);
+    }
 }
 
 void GUIButton::SetClipImage(bool on)

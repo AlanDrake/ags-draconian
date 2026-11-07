@@ -166,11 +166,6 @@ static HGameFileError OpenMainGameFileBase(MainGameSource &src)
     size_t count = in->ReadInt32();
     for (size_t i = 0; i < count; ++i)
         src.Caps.insert(StrUtil::ReadString(in));
-    // Generate data version for certain game versions that did not have dedicated index;
-    // rely on CompiledWith field. This lets distinguish some behavior differences.
-    Version compiled_version(src.CompiledWith);
-    if ((compiled_version.AsLongNumber() >= 306020007) && (src.DataVersion < kGameVersion_362_12))
-        src.DataVersion = kGameVersion_362_07;
     return HGameFileError::None();
 }
 
@@ -337,15 +332,6 @@ int RemapFromLegacyColourNumber(const GameSetupStruct &game, int color, bool is_
 
 void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
 {
-    if (data_ver < kGameVersion_362)
-    {
-        game.options[OPT_SAVESCREENSHOTLAYER] = UINT32_MAX; // all possible layers
-    }
-    // NOTE: OPT_GAMEFPS added in 3.6.2.6, but 3.6.2.12 was the first version which incremented the data format
-    if (data_ver < kGameVersion_362_12)
-    {
-        game.options[OPT_GAMEFPS] = 40; // default to 40 fps in the older games
-    }
     // 32-bit color properties
     if (data_ver < kGameVersion_400_09)
     {
@@ -360,7 +346,7 @@ void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
 
 void UpgradeDialogs(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
 {
-    if ((data_ver < kGameVersion_363_04) || (data_ver >= kGameVersion_399 && data_ver < kGameVersion_400_26))
+    if (data_ver < kGameVersion_400_26)
     {
         for (int i = 0; i < game.numdialog; ++i)
         {
@@ -394,16 +380,6 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
 {
     const int char_count = game.numcharacters;
     auto &chars = game.chars;
-    // < 3.6.2 characters always followed OPT_CHARTURNWHENFACE,
-    // so they have to have TURNWHENFACE enabled
-    if (data_ver < kGameVersion_362)
-    {
-        for (int i = 0; i < char_count; i++)
-        {
-            chars[i].flags |= CHF_TURNWHENFACE;
-        }
-    }
-
     // For characters loaded from an older game, mark everything as
     // Enabled, because there's no good way to distinct if it was
     // disabled or only made invisible by setting "on" property.
@@ -458,16 +434,7 @@ void UpgradeInventoryItems(GameSetupStruct &game, GameDataVersion data_ver)
 
 void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
 {
-    // Previously, Buttons and Labels had a fixed Translated behavior
-    if (data_ver < kGameVersion_361)
-    {
-        for (auto &btn : ents.GuiControls.Buttons)
-            btn.SetTranslated(true); // always translated
-        for (auto &lbl : ents.GuiControls.Labels)
-            lbl.SetTranslated(true); // always translated
-    }
-
-    if ((data_ver < kGameVersion_363_04) || (data_ver >= kGameVersion_399 && data_ver < kGameVersion_400_26))
+    if (data_ver < kGameVersion_400_26)
     {
         // Set default color styles for gui controls
         for (auto &btn : ents.GuiControls.Buttons)

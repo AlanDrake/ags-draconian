@@ -54,11 +54,6 @@ void InventoryItemInfo::ReadFromFile(Stream *in, GameDataVersion game_ver)
     in->Seek(sizeof(int32_t) * 4);                           // reserved
     flags = in->ReadInt8();
     in->Seek(3); // alignment padding to int32
-
-    if (game_ver < kGameVersion_363_10)
-    {
-        hotAlign = ((hotx == 0) && (hoty == 0)) ? kAlignMiddleCenter : kAlignTopLeft;
-    }
 }
 
 void InventoryItemInfo::WriteToFile(Stream *out) const

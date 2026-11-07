@@ -15,7 +15,6 @@
 
 #include <algorithm>
 
-#include "ac/game_version.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
@@ -181,9 +180,7 @@ void GUIListBox::Clear()
     _items.clear();
     _savedGameIndex.clear();
     _topItem = 0;
-    // NOTE: backwards compatible behavior is to keep selection at index 0,
-    // so that the first item appears selected when added
-    _selectedItem = (GUI::DataVersion >= kGameVersion_363) ? -1 : 0;
+    _selectedItem = -1;
     MarkChanged();
 }
 
@@ -455,9 +452,7 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     _itemTextPaddingY = 0;
     _visibleItemCount = 0;
     _topItem = 0;
-    // NOTE: backwards compatible behavior is to keep selection at index 0,
-    // so that the first item appears selected when added
-    _selectedItem = (GUI::DataVersion >= kGameVersion_363) ? -1 : 0;
+    _selectedItem = -1;
 }
 
 void GUIListBox::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
