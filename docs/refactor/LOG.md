@@ -1202,6 +1202,50 @@ See LOG.md for the details of the removal and its verification.
   and `AGS.Editor.NoNative.sln` (its native project fails to link `Common_md_d.lib` in a fresh output
   directory, in a project this change does not touch; not compared against the parent commit, and the log shows no C# error).
 
+### 3.4 Legacy data-version paths
+
+*Definition:* PLAN.md 3.4 (D1), five steps: game files, room files, savegames, the script API, savegame-only fields.
+
+*Status (2026-11-07): step 1, game files, done.* Four commits:
+- **Behaviour:** `kGameVersion_LowSupported = kGameVersion_399`. Data older than that gets its own message, with
+  the editor's version string, the data format and the supported range; the engine shows it in its "Loading game
+  failed" box: "Game was compiled with 3.6.0.21 (data format 3060021). This engine loads games made with AGS 3.99
+  or later (data formats 3999999 - 4000034)." The error code is still `kMGFErr_FormatVersionNotSupported`.
+  `GameDataVersion.*` in `game_compat_test.cpp` write a header as the tools do and open it: 3.6.0.21 and 3.6.3.16
+  are refused with that message, 3.99 opens, a version newer than the engine is refused. With the old minimum the
+  first test fails.
+- **Deleted, Common** (57 lines): the `kGameVersion_362_07` value derived from the "compiled with" string; the
+  pre-3.99 branches of `UpgradeGame`, `UpgradeCharacters`, `UpgradeGUI` (no `Upgrade*()` function went: each
+  still converts 3.99 and early 4.0 data); the "< 3.6.3.4 or 3.99 to 4.0.0.26" conditions became "< 4.0.0.26",
+  the same set for 3.99+ data; the inventory hotspot alignment, button frame, list box selection and slider handle
+  rules of 3.6.x data.
+- **Deleted, Engine** (158 lines, 17 files): the 29 checks of 3.6.x versions in `Engine/ac`, `Engine/game`,
+  `Engine/gui`, `Engine/main` (dialog option layout and fonts, text padding and border colours, crop clamping,
+  restart point, room event order, the old nearest-walkable-point scan, ...). `Overlay`'s
+  `PreserveTextColor` had a 3.6.3.16..3.99 range: `>= 4.0.0.33` alone gives the same for 3.99+ data.
+- **Deleted, the enum values** `kGameVersion_360_21` to `kGameVersion_363_16` and `_362_07`: nothing in the tree
+  names them (Editor, Tools, Plugins, Compiler, tests and scripts included). Kept: the format history comment in
+  `game_version.h`; three field comments now say "since 3.6.3.14" instead of naming a value.
+- Comparisons with `kGameVersion_399` itself, which the metric does not count: 4 (`main_game_file.cpp` 2,
+  `overlay.cpp` 2), all gone.
+- Measured: `legacy version checks` 62 → 0 (files 22 → 0); Engine C/C++ lines 125744 → 125616. `prepush.py`
+  every stage (format 1988 files, CMake build with warnings as errors and ctest 1150 of 1150, tidy on changed
+  lines clean, headers, libc++ 343 headers, emscripten, the Linux GCC job 1150 of 1150, the five MSBuild solutions with their tests, `AGS.Native` included, and
+  the editor's NUnit 541 of 547 with 6 skipped); no recompiled
+  file has more MSVC warnings than before; the auto-test game 2414 of 2414 after the Common and the Engine
+  steps; the corpus run (1.4) 53 of 53 rooms pass, with a per-room table identical to that of an engine built
+  before the change.
+- Left, constant now but more than a deleted branch: `GUI::DataVersion` has no reader (written by `ReadGUI`,
+  the engine, `AGS.Native` and `gui_test.cpp`: three programs); the four runtime behaviour switches are always
+  on, so their config overrides (C6 keys) change nothing; `DialogOptions`' `line_x_off`,
+  `normal_area_counter_align_pad` and `fixed_padding` are always 0; `FindNearestWalkablePoint`'s old method is
+  called by `route_finder_test` only; `InventoryItemInfo::ReadFromFile`'s version parameter is unused. GUI versions
+  are not pre-3.99-only (3.99 data carries `kGuiVersion_350`), so their checks stay.
+- Not verified: macOS, iOS, Android, FreeBSD and the Debian 10 builder image (no local build); a real 3.6 game
+  (the refusal was checked with a package holding a 3.6.0.21 header). `compare_objects.py` does not apply: the
+  deletions change what older data does, by design. The editor's `ImportOldGame` (`AGS.Native`) shares the
+  reader, so it refuses compiled games older than 3.99 too; 6.7 deletes it.
+
 ### 7.1 Make the C++ tools the only build path
 
 *Starting point, moved from PLAN.md on 2026-11-04:*

@@ -67,6 +67,10 @@ Entry points, in reading order:
   tag `pre-6.7d`, the last one with the C# build.
 - Windows 7+ only; PSP is gone (3.1; `eOS_PSP` and the `"psp"` config name stay for the script ABI
   and engine config).
+- Game data from 3.99 on (D1; 3.4-1, 2026-11-07; upstream loads 3.6.0.21+): `kGameVersion_LowSupported =
+  kGameVersion_399`, the pre-3.99 upgrade paths and version values are gone, an older game gets a "compiled
+  with ... this engine loads games made with AGS 3.99 or later" error. Rooms, saves and the script API are
+  still at upstream's minimums (3.4 steps 2 to 4).
 - CMake is the only build system for the engine, `agscc` and the tools (D5; 3.2a/b, 2026-11-05): the
   Makefiles, `make.yml` and `dh --buildsystem makefile` are gone, `debian/rules` calls CMake, CI installs
   the tools with `cmake --install`. Adding an engine `.cpp` means editing `Engine/CMakeLists.txt` (and

@@ -75,7 +75,8 @@ Recorded 2026-10-31.
 
 Kept current as tasks land. Model and effort are recommendations for an AI session.
 
-Done: phases 0, 1 and 2, 7.1a–m, o and p (7.1k and 7.1p: incremental room builds and script compiles, 2026-11-07; 7.1l with 6.7d), 6.7d (the editor builds through the tools, 2026-11-07), 3.1 (PSP, pre-Windows 7; 2026-11-04), 3.3 (the legacy compiler and `AGS.CScript.Compiler`; 2026-11-07), U.1 (merged, #3181), U.2 (#3182, closed
+Done: phases 0, 1 and 2, 7.1a–m, o and p (7.1k and 7.1p: incremental room builds and script compiles, 2026-11-07; 7.1l with 6.7d), 6.7d (the editor builds through the tools, 2026-11-07), 3.1 (PSP, pre-Windows 7; 2026-11-04), 3.3 (the legacy compiler and `AGS.CScript.Compiler`; 2026-11-07), 3.4-1 (game data older than 3.99 refused, its
+code paths deleted; 2026-11-07), U.1 (merged, #3181), U.2 (#3182, closed
 and re-cut by U.3 as #3186–#3190), the agent docs (0.6, upstream PR #3185), 1.2 (contract guard
 tests, 2026-11-04), U.5 (the save fix found by 1.2, upstream PR #3191), the 6.0 study (2026-11-04,
 EDITOR-SPLIT.md: 6.0 re-scoped, 6.7c decided, U.6 defined), 1.3 (engine unit tests, 2026-11-05,
@@ -88,7 +89,7 @@ comes after they are closed.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **Nothing is named after 3.3: the user picks.** Candidates in the plan: **3.4-1** (game files: `kGameVersion_LowSupported = kGameVersion_399`, then the `Upgrade*()` functions and the 62 legacy version checks; the safety net, 1.2 and 1.3, is in place), **3.2c** (the native `.vcxproj` to CMake-generated solutions; it waited on 6.7, whose C++/CLI bridge still links those libraries, so check that first), **2.9d** (x64-only CI, the user's decisions) | 6.7d and 3.3 are done, so what is left of phase 3 and the open CI questions are what the plan has without a waiting condition | user, then Sonnet 5.5, `medium` |
+| 1 | **Nothing is named after 3.4-1: the user picks.** Candidates in the plan: **3.4-2** (room files: the explicit check for the room versions 3.99+ data has, then the older `ReadExt_*` and upgrade code; 1.2's fixtures record `kRoomVersion_400_26`), **3.2c** (the native `.vcxproj` to CMake-generated solutions; it waited on 6.7, whose C++/CLI bridge still links those libraries, so check that first), **2.9d** (x64-only CI, the user's decisions) | 6.7d, 3.3 and 3.4-1 are done, so what is left of phase 3 and the open CI questions are what the plan has without a waiting condition | user, then Sonnet 5.5, `medium` |
 | 2 | **U.8, open:** offer the 1.5b-2 fixes in `CreateGlobalVars` (`RuntimeScript::CheckFixupInCode`) and `JointRTTI::Join` upstream (the same code there); the `String(ptr, length)` change alters a Common contract, so it is a separate offer if at all. The 1.5b-4 compiler leak fixes (the same code in `script2/`) are offered only when the user confirms | Real defects, small | Sonnet 5.5, `medium` |
 | 3 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
 | 4 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
@@ -105,7 +106,9 @@ element that is absent (an older Editor's project) leaves garbage in `agsbuild` 
 the worktree branch `ags4-agfreader-tests` (#3147) still has the test's wrong `EXPECT_FALSE`; 7.1f's
 "left open" notes (one test project measures parity; 8-bit games and old indexed interactions
 unexercised); 3.1's unchecked `GetDiskFreeSpaceExW` result in `AGSWin32::GetDiskFreeSpaceMB`; 1.5a's
-4-bit pixel write in `Common/gfx/bitmapdata.cpp` (wrong mask and shift, untested).
+4-bit pixel write in `Common/gfx/bitmapdata.cpp` (wrong mask and shift, untested); 3.4-1's leftovers that
+are constant now (the write-only `GUI::DataVersion`, the always-on runtime behaviour switches, three dialog
+option offsets that are always 0, `FindNearestWalkablePoint`'s old method used by tests only).
 
 Waiting: 3.2c (native `.vcxproj` to CMake) on 6.7, since the C++/CLI bridge links those libraries;
 5.3 until U.3 is closed, then with upstream's
@@ -262,11 +265,10 @@ the corpus run (1.4).
   into the editor, delete the project from the solutions, the installer's file list and CI.
   *Done when:* one compiler, one preprocessor (C++), one test folder, no `AGS.CScript.Compiler`.
 - [ ] **3.4 Legacy data-version paths** (D1). The largest deletion; one commit per step:
-  1. **Game files.** `kGameVersion_LowSupported = kGameVersion_399` (`Common/ac/game_version.h`),
-     then delete what only runs for older data: the `Upgrade*()` functions in
-     `Common/game/main_game_file.cpp`, comparisons with `kGameVersion_3xx` older than 399 (62
-     `legacy version checks`, 22 `.cpp` files in `Common/gui`, `Engine/ac`, `Engine/game`,
-     `Engine/main`) and the `loaded_game_file_version` checks they guard; then the enum values.
+  1. **Game files.** *Done 2026-11-07 (LOG.md):* `kGameVersion_LowSupported = kGameVersion_399`, a
+     3.6 game gets "Game was compiled with 3.6.0.21 (data format 3060021). This engine loads games made
+     with AGS 3.99 or later", the pre-3.99 branches of the `Upgrade*()` functions, Common/gui and
+     Engine and the enum values are gone: `legacy version checks` 62 → 0 (22 files → 0).
   2. **Room files: careful.** Room versions are not monotonic: `kRoomVersion_399 = 40` sorts *below*
      `kRoomVersion_363_06 = 36306`, so raising `kRoomVersion_LowSupport` to 399 would make 3.6.x
      rooms look newer. Use the versions recorded by 1.2's fixtures, replace the minimum with an
