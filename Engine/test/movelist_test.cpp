@@ -13,7 +13,7 @@
 //=============================================================================
 //
 // Move lists: the route finder's path turned into per-step movement
-// (Pathfinding::CalculateMoveList and friends), and MoveList stepping along it
+// (MoveListOp::CalculateMoveList and friends), and MoveList stepping along it
 // the way characters and objects walk: speeds per axis and per stage, the
 // fraction carried over between stages, speed changes in the middle of a walk,
 // and the run flows (once, repeat, there and back, backwards).
@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "ac/movelist.h"
-#include "ac/route_finder.h"
 #include "gtest/gtest.h"
 
 using namespace AGS::Common;
@@ -36,7 +35,7 @@ MoveList MakeMoveList(const std::vector<Point> &path, float speed_x, float speed
                       const RunPathParams &params = RunPathParams::DefaultOnce())
 {
     MoveList mls;
-    EXPECT_TRUE(Pathfinding::CalculateMoveList(mls, path, speed_x, speed_y, 0, params));
+    EXPECT_TRUE(MoveListOp::CalculateMoveList(mls, path, speed_x, speed_y, 0, params));
     return mls;
 }
 
@@ -125,8 +124,8 @@ TEST(MoveList, LeftoverStepCarriesIntoTheNextStage)
 TEST(MoveList, SpeedsPerStage)
 {
     MoveList mls;
-    ASSERT_TRUE(Pathfinding::CalculateMoveList(mls, {{0, 0}, {6, 0}, {6, 6}}, {{3.f, 3.f}, {1.f, 1.f}}, 0,
-                                               RunPathParams::DefaultOnce()));
+    ASSERT_TRUE(MoveListOp::CalculateMoveList(mls, {{0, 0}, {6, 0}, {6, 6}}, {{3.f, 3.f}, {1.f, 1.f}}, 0,
+                                              RunPathParams::DefaultOnce()));
     EXPECT_FLOAT_EQ(3.f, mls.GetStageSpeed(0).X);
     EXPECT_FLOAT_EQ(1.f, mls.GetStageSpeed(1).Y);
     EXPECT_EQ(2u + 6u, WalkToEnd(mls).size());
@@ -136,12 +135,12 @@ TEST(MoveList, InvalidInputIsRefused)
 {
 #ifdef NDEBUG
     MoveList mls;
-    EXPECT_FALSE(Pathfinding::CalculateMoveList(mls, {}, 1.f, 1.f, 0, RunPathParams::DefaultOnce()));
+    EXPECT_FALSE(MoveListOp::CalculateMoveList(mls, {}, 1.f, 1.f, 0, RunPathParams::DefaultOnce()));
     // both speeds zero: no movement possible
-    EXPECT_FALSE(Pathfinding::CalculateMoveList(mls, {{0, 0}, {1, 1}}, 0.f, 0.f, 0, RunPathParams::DefaultOnce()));
+    EXPECT_FALSE(MoveListOp::CalculateMoveList(mls, {{0, 0}, {1, 1}}, 0.f, 0.f, 0, RunPathParams::DefaultOnce()));
     // fewer speeds than stages
     EXPECT_FALSE(
-        Pathfinding::CalculateMoveList(mls, {{0, 0}, {6, 0}, {6, 6}}, {{3.f, 3.f}}, 0, RunPathParams::DefaultOnce()));
+        MoveListOp::CalculateMoveList(mls, {{0, 0}, {6, 0}, {6, 6}}, {{3.f, 3.f}}, 0, RunPathParams::DefaultOnce()));
 #else
     GTEST_SKIP() << "debug builds assert on this input";
 #endif
@@ -159,10 +158,10 @@ TEST(MoveList, SinglePointPathIsDoneAfterOneStep)
 TEST(MoveList, StageFlagsMarkDirectMovement)
 {
     MoveList mls;
-    ASSERT_TRUE(Pathfinding::CalculateMoveList(mls, {{0, 0}, {4, 0}}, 1.f, 1.f, kMoveStage_Direct,
-                                               RunPathParams::DefaultOnce()));
+    ASSERT_TRUE(MoveListOp::CalculateMoveList(mls, {{0, 0}, {4, 0}}, 1.f, 1.f, kMoveStage_Direct,
+                                              RunPathParams::DefaultOnce()));
     EXPECT_TRUE(mls.IsStageDirect());
-    ASSERT_TRUE(Pathfinding::AddWaypointDirect(mls, 4, 4, 2.f, 2.f, 0));
+    ASSERT_TRUE(MoveListOp::AddWaypointDirect(mls, 4, 4, 2.f, 2.f, 0));
     ASSERT_EQ(3u, mls.GetNumStages());
     EXPECT_FLOAT_EQ(2.f, mls.GetStageSpeed(1).Y);
     WalkToEnd(mls);
@@ -172,7 +171,7 @@ TEST(MoveList, StageFlagsMarkDirectMovement)
 TEST(MoveList, AddWaypointToAnEmptyList)
 {
     MoveList mls;
-    ASSERT_TRUE(Pathfinding::AddWaypointDirect(mls, 3, 0, 1.f, 1.f, kMoveStage_Direct));
+    ASSERT_TRUE(MoveListOp::AddWaypointDirect(mls, 3, 0, 1.f, 1.f, kMoveStage_Direct));
     ASSERT_EQ(2u, mls.GetNumStages());
     EXPECT_EQ(Point(3, 0), mls.GetStagePos(0));
     EXPECT_EQ(Point(3, 0), mls.GetStagePos(1));
@@ -185,7 +184,7 @@ TEST(MoveList, SpeedChangeKeepsThePosition)
         mls.Forward();
     EXPECT_EQ(Point(6, 0), mls.GetCurrentPos());
     EXPECT_NEAR(0.3f, mls.GetStageProgress(), 1e-4);
-    Pathfinding::RecalculateMoveSpeeds(mls, 1.f, 1.f, 2.f, 2.f);
+    MoveListOp::RecalculateMoveSpeeds(mls, 1.f, 1.f, 2.f, 2.f);
     EXPECT_FLOAT_EQ(2.f, mls.GetStageSpeed(0).X);
     EXPECT_EQ(Point(6, 0), mls.GetCurrentPos());
     EXPECT_NEAR(0.3f, mls.GetStageProgress(), 1e-4);
@@ -200,7 +199,7 @@ TEST(MoveList, SpeedChangeOnADiagonalWithDifferentSpeeds)
         mls.Forward();
     const Point before = mls.GetCurrentPos();
     const float progress = mls.GetStageProgress();
-    Pathfinding::RecalculateMoveSpeeds(mls, 4.f, 1.f, 8.f, 2.f);
+    MoveListOp::RecalculateMoveSpeeds(mls, 4.f, 1.f, 8.f, 2.f);
     EXPECT_EQ(before, mls.GetCurrentPos());
     EXPECT_NEAR(progress, mls.GetStageProgress(), 1e-4);
     // the new speed is on the ellipse with axes 8 and 2
@@ -292,7 +291,7 @@ TEST(MoveList, ProgressOfABackwardRun)
         mls.Forward();
     EXPECT_EQ(Point(7, 0), mls.GetCurrentPos());
     EXPECT_NEAR(0.3f, mls.GetStageProgress(), 1e-4);
-    Pathfinding::RecalculateMoveSpeeds(mls, 1.f, 1.f, 2.f, 2.f);
+    MoveListOp::RecalculateMoveSpeeds(mls, 1.f, 1.f, 2.f, 2.f);
     EXPECT_EQ(Point(7, 0), mls.GetCurrentPos());
     mls.Forward();
     EXPECT_EQ(Point(5, 0), mls.GetCurrentPos());
