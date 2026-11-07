@@ -30,6 +30,10 @@ Options:
                     agsbuild, PLAN.md 6.7d-9) instead of a plain agsbuild run: compares that editor's
                     Compiled/Data with the one of --editor (the reference editor, built from pre-6.7d)
   --engine PATH     also run the auto-test on the agsbuild output with this engine (Software driver)
+  --incremental     on the agsbuild side, build the copy with one room's script changed, change it
+                    back, then compare the build that follows (agsbuild builds that room again and
+                    keeps the others, PLAN.md 7.1k) and one more with nothing changed; parity means
+                    both are identical to the editor's build. With --tools-editor too
   --work-dir DIR    where copies and outputs go (default: .compare/builds)
   --timeout SEC     per build (default: 900); a build that takes longer is killed and reported
 
@@ -400,48 +404,35 @@ def status(code):
     return f'exit {code - (1 << 32) if code >= (1 << 31) else code}'  # Windows reports -1 as 4294967295
 
 
-def compare(project, work, sys_dir, args, all_rows=True, engine=None, dir_name=None):
-    """Builds the project both ways under the work folder and prints the comparison. Returns
-    (parity, one-line summary)."""
-    os.makedirs(work, exist_ok=True)
-    agspak = os.path.join(sys_dir, 'agspak' + EXE)
+def change_one_room(project):
+    """For --incremental: adds a variable to the script of the project's first AGS 4 room, which
+    changes its compiled script; returns a function that puts the script back, or None if the
+    project has no such room."""
+    rooms_dir = os.path.join(project, 'Rooms')
+    numbers = sorted(int(n) for n in os.listdir(rooms_dir) if n.isdigit()) if os.path.isdir(rooms_dir) else []
+    for n in numbers:
+        script = os.path.join(rooms_dir, str(n), f'room{n}.asc')
+        if os.path.isfile(os.path.join(rooms_dir, str(n), 'data.xml')) and os.path.isfile(script):
+            original = open(script, 'rb').read()
+            open(script, 'wb').write(original + b'\r\nint compare_builds_incremental_probe;\r\n')
+            return lambda: open(script, 'wb').write(original)
+    return None
 
-    # Editor build
-    ed_proj = os.path.join(work, 'editor-project', dir_name) if dir_name else os.path.join(work, 'editor-project')
-    copy_project(project, ed_proj)
-    ed_code, ed_time = run([os.path.abspath(args.editor), '/compile', os.path.join(ed_proj, 'Game.agf')],
-                           os.path.join(work, 'editor.log'), args.timeout)
-    ed_out = os.path.join(ed_proj, 'Compiled', 'Data')
 
-    # agsbuild
-    tool_proj = os.path.join(work, 'tools-project', dir_name) if dir_name else os.path.join(work, 'tools-project')
-    copy_project(project, tool_proj)
+def build_with_tools(tool_proj, tool_out, sys_dir, args, log_path):
+    """Builds the agsbuild side once into its project's own _obj, keeping what earlier builds left
+    there and in the output folder; returns (exit code or None, seconds)."""
     if args.tools_editor:
         # An editor that builds through agsbuild, with its own tools: its Compiled/Data
-        tool_out = os.path.join(tool_proj, 'Compiled', 'Data')
-        tool_code, tool_time = run([os.path.abspath(args.tools_editor), '/compile', os.path.join(tool_proj, 'Game.agf')],
-                                   os.path.join(work, 'agsbuild.log'), args.timeout)
-    else:
-        tool_out = os.path.join(work, 'tools-output')
-        if os.path.isdir(tool_out):
-            shutil.rmtree(tool_out)
-        os.makedirs(tool_out)
-        tool_code, tool_time = run([os.path.join(sys_dir, 'agsbuild' + EXE), os.path.join(tool_proj, 'Game.agf'),
-                                    tool_out, '--sys-dir', sys_dir], os.path.join(work, 'agsbuild.log'), args.timeout)
+        return run([os.path.abspath(args.tools_editor), '/compile', os.path.join(tool_proj, 'Game.agf')], log_path,
+                   args.timeout)
+    os.makedirs(tool_out, exist_ok=True)
+    return run([os.path.join(sys_dir, 'agsbuild' + EXE), os.path.join(tool_proj, 'Game.agf'), tool_out, '--sys-dir',
+                sys_dir], log_path, args.timeout)
 
-    ed_files = flatten_output(ed_out, os.path.join(work, 'unpacked-editor'), agspak)
-    tool_files = flatten_output(tool_out, os.path.join(work, 'unpacked-tools'), agspak)
 
-    print(f'editor:   {status(ed_code)} in {ed_time:.0f}s, {len(ed_files)} files  (log: {work}/editor.log)')
-    print(f'agsbuild: {status(tool_code)} in {tool_time:.0f}s, {len(tool_files)} files  (log: {work}/agsbuild.log)')
-    if tool_code not in (0, None):  # print the distinct errors
-        log = open(os.path.join(work, 'agsbuild.log'), encoding='utf-8', errors='replace').read()
-        errors = sorted(set(re.findall(r'^(?:Error|Failure): .*$', log, re.M)))
-        for e in errors[:12]:
-            print(f'  {e[:160]}')
-        if len(errors) > 12:
-            print(f'  ... {len(errors) - 12} more distinct errors')
-
+def compare_outputs(ed_out, ed_files, tool_out, tool_files, all_rows):
+    """Prints the comparison of the two builds' files; returns (names compared, counts, summary)."""
     # The scripts agsbuild packs separately are compared with those the editor embeds in game28.dta
     unembedded = {}  # game28.dta -> (the editor's file without the scripts, or None; the reason)
     embedded = set()  # separate script files found in the editor's game28.dta
@@ -491,15 +482,73 @@ def compare(project, work, sys_dir, args, all_rows=True, engine=None, dir_name=N
         print('\n'.join(shown))
     summary = ', '.join(f'{v} {k}' for k, v in counts.items())
     print('\n' + summary)
+    return names, counts, summary
+
+
+def compare(project, work, sys_dir, args, all_rows=True, engine=None, dir_name=None):
+    """Builds the project both ways under the work folder and prints the comparison. Returns
+    (parity, one-line summary)."""
+    os.makedirs(work, exist_ok=True)
+    agspak = os.path.join(sys_dir, 'agspak' + EXE)
+
+    # Editor build
+    ed_proj = os.path.join(work, 'editor-project', dir_name) if dir_name else os.path.join(work, 'editor-project')
+    copy_project(project, ed_proj)
+    ed_code, ed_time = run([os.path.abspath(args.editor), '/compile', os.path.join(ed_proj, 'Game.agf')],
+                           os.path.join(work, 'editor.log'), args.timeout)
+    ed_out = os.path.join(ed_proj, 'Compiled', 'Data')
+    ed_files = flatten_output(ed_out, os.path.join(work, 'unpacked-editor'), agspak)
+    print(f'editor:   {status(ed_code)} in {ed_time:.0f}s, {len(ed_files)} files  (log: {work}/editor.log)')
+
+    # agsbuild: once from a fresh copy; with --incremental, a build of the copy with one room's script
+    # changed first, then the compared build after the change is undone (that room is built again,
+    # the others are kept), then one more with nothing changed, compared too
+    tool_proj = os.path.join(work, 'tools-project', dir_name) if dir_name else os.path.join(work, 'tools-project')
+    copy_project(project, tool_proj)
+    tool_out = os.path.join(tool_proj, 'Compiled', 'Data') if args.tools_editor else os.path.join(work, 'tools-output')
+    if os.path.isdir(tool_out):
+        shutil.rmtree(tool_out)
+    steps = [('agsbuild', 'agsbuild.log')]
+    if args.incremental:
+        restore = change_one_room(tool_proj)
+        if restore is None:
+            print('--incremental: the project has no AGS 4 room with a script')
+        else:
+            code, seconds = build_with_tools(tool_proj, tool_out, sys_dir, args,
+                                             os.path.join(work, 'agsbuild-changed.log'))
+            print(f'agsbuild, one room changed: {status(code)} in {seconds:.1f}s')
+            restore()
+            steps = [('agsbuild, the room changed back', 'agsbuild.log'),
+                     ('agsbuild, nothing changed', 'agsbuild-again.log')]
+
+    ok = True
+    summaries = []
+    for what, log_name in steps:
+        log_path = os.path.join(work, log_name)
+        tool_code, tool_time = build_with_tools(tool_proj, tool_out, sys_dir, args, log_path)
+        tool_files = flatten_output(tool_out, os.path.join(work, 'unpacked-tools'), agspak)
+        print(f'{what}: {status(tool_code)} in {tool_time:.1f}s, {len(tool_files)} files  (log: {log_path})')
+        log = open(log_path, encoding='utf-8', errors='replace').read() if os.path.isfile(log_path) else ''
+        for line in re.findall(r'^Rooms up to date: .*$', log, re.M):
+            print(f'  {line}')
+        if tool_code not in (0, None):  # print the distinct errors
+            errors = sorted(set(re.findall(r'^(?:Error|Failure): .*$', log, re.M)))
+            for e in errors[:12]:
+                print(f'  {e[:160]}')
+            if len(errors) > 12:
+                print(f'  ... {len(errors) - 12} more distinct errors')
+        names, counts, summary = compare_outputs(ed_out, ed_files, tool_out, tool_files, all_rows)
+        step_ok = bool(names) and counts['identical'] == len(names) and ed_code == 0 and tool_code == 0
+        if ed_code != 0 or tool_code != 0:
+            summary += f'; editor {status(ed_code)}, agsbuild {status(tool_code)}'
+        ok = ok and step_ok
+        summaries.append(summary)
 
     if engine:
         print('auto-test on agsbuild output:', run_autotest(engine, tool_out, work, args.timeout))
 
-    ok = bool(names) and counts['identical'] == len(names) and ed_code == 0 and tool_code == 0
-    if ed_code != 0 or tool_code != 0:
-        summary += f'; editor {status(ed_code)}, agsbuild {status(tool_code)}'
     print('RESULT:', 'PARITY' if ok else 'NO PARITY')
-    return ok, summary
+    return ok, ' / '.join(summaries)
 
 
 def main():
@@ -512,6 +561,8 @@ def main():
     ap.add_argument('--build-dir', default=os.path.join(REPO, '.tidy', 'build'))
     ap.add_argument('--tools-editor', help='an AGSEditor.exe that builds through agsbuild, for the agsbuild side')
     ap.add_argument('--engine', help='engine executable for the auto-test run')
+    ap.add_argument('--incremental', action='store_true',
+                    help='compare agsbuild\'s incremental builds (a room changed and back, then nothing)')
     ap.add_argument('--work-dir', default=os.path.join(REPO, '.compare', 'builds'))
     ap.add_argument('--timeout', type=int, default=900)
     args = ap.parse_args()
