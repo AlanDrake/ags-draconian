@@ -1,3 +1,4 @@
+using AGS.Editor.Build;
 using AGS.Types;
 using System;
 using System.Collections.Generic;
@@ -538,19 +539,23 @@ namespace AGS.Editor.Components
             return messages;
         }
 
+        // Compiles the sources as they are on disk with po2tra, into Compiled/Data
         private void CompileTranslations(IList<Translation> translations)
         {
             var errors = new CompileMessages();
+            string projectDirectory = _agsEditor.CurrentGame.DirectoryPath;
+            string dataDirectory = Path.Combine(projectDirectory, AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY);
             foreach (var translation in translations)
             {
-                try
+                string poFile = Path.Combine(projectDirectory, translation.FileName);
+                if (!File.Exists(poFile))
                 {
-                    CompileTranslation(translation, errors);
+                    errors.Add(new CompileError("Translation source " + translation.FileName + " not found"));
+                    continue;
                 }
-                catch (Exception e)
-                {
-                    errors.Add(new CompileError(e.Message));
-                }
+                errors.AddRange(TranslationCompiler.Compile(_agsEditor.EditorDirectory, poFile,
+                    Path.Combine(dataDirectory, translation.CompiledFileName),
+                    _agsEditor.CurrentGame.Settings.GameName, _agsEditor.CurrentGame.Settings.UniqueID));
             }
 
             if (!errors.HasErrors)

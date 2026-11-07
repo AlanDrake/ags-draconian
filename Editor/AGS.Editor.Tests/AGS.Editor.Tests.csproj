@@ -105,6 +105,7 @@
     <Compile Include="Editor\Build\ProcessSnapshot.cs" />
     <Compile Include="Editor\Build\ScriptHeaderFilesTests.cs" />
     <Compile Include="Editor\Build\ToolProcessTests.cs" />
+    <Compile Include="Editor\Build\TranslationCompilerTests.cs" />
     <Compile Include="Editor\BuildTargets\BuildTargetBaseTests.cs" />
     <Compile Include="Editor\ConvertToNative\NativeRoomTests.cs" />
     <Compile Include="Editor\Panes\FreePanControlTests.cs" />
