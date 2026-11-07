@@ -2354,6 +2354,57 @@ corpus is a private 8-bit game: 9 rooms, two with several backgrounds, 6 dialogs
   work.* The Run's cost was decided the same day: 7.1k, redefined as incremental room builds in `agsbuild`,
   goes before 6.7d-11, so the Run is as fast as the editor's before 6.7d-12 deletes the C# Run.
 
+**6.7d-11 The other users of the build code** (2026-11-07; a Fable 5.1 supervisor, four Opus 5.5 subagents and a
+Sonnet 5.5 one, each on its own files):
+- `Build/ToolProcess` runs one tool that writes text, not agsbuild's JSON (po2tra, agspak, crmbuild): hidden
+  process in a job object, stdin closed at once, both streams read on their own threads, the `Error:` /
+  `Warning:` / `Info:` lines parsed by agsbuild's own rules (`diagnostics.cpp`: a message ending in `:` takes the
+  next line, "`<what> at <file>, line <N> : <msg>`" gives a file and line), a non-zero exit without an error
+  line reported with the last ten lines of output. 18 NUnit tests with batch files as the tool.
+- Rooms (`RoomsComponent`): a save writes `data.xml` and the modified images only (`SaveRoomOnThread` no
+  longer regenerates the header, compiles the script or writes `room<n>.crm`; `SaveCrm`, `SaveRoomDataAndCompile`
+  and `HaveScriptHeadersBeenUpdatedSinceRoomWasCompiled` are gone); the autocomplete cache and the event-handler
+  scan on save stay. `PreCompileGame` saves the open room, checks that every room's sources exist
+  (`CheckRoomFilesExist`, what was left of `RecompileAnyRoomsWhereTheScriptHasChanged`) and scans the event
+  handlers; `BuildsWithTools` is not read any more. Write-access checks name `data.xml` instead of the `.crm`.
+  `IRoomController.Save` (plugin API) saves the sources, as its doc always said. Visible changes: a room script's
+  errors no longer show on Ctrl+R or when a room closes, they come from the build; a room that did not change
+  writes nothing.
+- Translations: "Compile translation" and "Compile all translations" run `po2tra <po> Compiled/Data/<name>.tra
+  --gamename --uniqueid` (`Build/TranslationCompiler`, 5 tests against the real tool, a game name with quotes
+  and a path outside ASCII among them); the first error names the source, as po2tra's do not. The C# `.tra`
+  writer is now called only by the dead `PreCompileGame` branch (6.7d-12).
+- Templates (`Build/TemplatePackage`, 15 tests): the files are copied under their stored names into
+  `_obj/template/<random>/` and packed with `agspak -c <pkg> <folder> -r` (asset names with `/`, sorted as the
+  editor sorted them); a room template's `room<n>.crm` is built by `crmbuild` from the saved sources into
+  `_obj/template-room/` (the game is saved first), `rtemplate.dat` is written there too, nothing is written
+  into the project folder any more; a plugin's template files are packed from where they are instead of being
+  copied into the project folder (the FIXME, which could overwrite a project file of the same name). The
+  auto-test project's template (`/maketemplate`) is byte-identical to the reference editor's: 119 assets.
+- The lip-sync writer (`SpeechComponent.CompileLipSyncFiles`) has its own `WriteNullTerminatedString`
+  instead of `DataFileWriter.FilePutNullTerminatedString`.
+- Measured: the editor's NUnit suite 567 of 567 (563 without the test project, which `AGS_TEST_PROJECT` names);
+  `compare_builds.py --tools-editor` on the auto-test project, reference editor against this one: 59 of 59
+  identical, and the `unicode` (a translation) and `speech` variants have parity.
+- Found and fixed on the way: "Import text" (Make default language) set hotspot and object names and text
+  properties without marking the room modified, so since 6.7d-9, when the build stopped reading the
+  `room<n>.crm` the save wrote, those changes never reached disk (`AGSEditor_ProcessAllGameTexts` marks the room
+  modified; the game is saved before, so the image cache is clean); `GetPatternsForStandardGameFiles` listed
+  its excludes (`!_Debug/*`, `!Compiled/*`, `!_obj/*`) before `AudioCache/*`, and a later include wins and
+  matches at any depth, so a template and the upgrade backup took `_obj/AudioCache/*` (the first template
+  had 124 assets).
+- Found, not fixed: `po2tra` accepts any text as a `.po` (`ReadPO` never returns an error; an unterminated
+  string gives "did not appear to have any translated lines" and exit code 0), where the editor's writer
+  refused what `TryLoadData` could not read; `SaveCrm` wrote every temporary room's `.crm` with the open
+  room's images (the single image cache), gone with it. Unused now, for 6.7d-12: `PreCompileGameEventArgs.
+  ForceRebuildTime`, `Utilities.DoesFileNeedRecompile(DateTime, string)`, `NativeRoom.SaveToFile`.
+- Not verified (the user, by hand): Ctrl+R and closing a room in the GUI; "Save room as template" and a new
+  room from that template (a `.crm` without a compiled script through `ConvertRoomFromCrmToOpenFormat`);
+  the "Compile translation" menu in the real editor; a plugin that adds template files. *The user checked
+  the first three by hand on 2026-11-07: all good.* Only the `msbuild`
+  stage applies to this change (Editor only); `prepush.py --auto` also lists the stages of the earlier
+  unpushed commits.
+
 **Bugs found on the way, not fixed:** `BuildTargetBase.DeleteCommonGameFiles` deletes `filename`
 instead of the loop's `fileName`, so old split parts are never removed (still so for `Compiled/Windows`;
 in `Compiled/Data` agsbuild removes them); the split part names above;
