@@ -880,8 +880,9 @@ with 340 header stubs compiled by clang + libc++ 21 on Ubuntu and the heavy jobs
 
 *Added 2026-11-06 (not in the original plan): the user named testing and CI as the bottleneck.*
 
-*Status (2026-11-07):* 2.9a–c are on the branch `probe-2.9` (seven commits with this one), green in Verify, a light and a
-full run there ("The probe" below); not on the main branch yet. The "done when" is not reached: a push
+*Status (2026-11-07):* 2.9a–c are on the main branch: the eight commits of `probe-2.9`, green in Verify, a light
+and a full run there ("The probe" below), fast-forwarded onto `ags4draconianr21`; the branch and its caches are
+deleted. LTO stays in the verification builds (the user, 2026-11-07; 2.9e below). The "done when" is not reached: a push
 should now be confirmed in about 12.5 minutes (estimated from the job times; the light run on a push has
 not happened yet), not 10, and the time left is the link-time code generation (2.9e).
 
@@ -1002,7 +1003,7 @@ not happened yet), not 10, and the time left is the link-time code generation (2
     whose objects are LTO objects. That is 2.9e, a decision: the binaries of these jobs are not
     shipped, so LTO off there (an option, on by default, off in Verify, the light CMake jobs and the
     `build` and `linux` stages of `prepush.py`) would take most of the 270 and 159 s away, at the price
-    that an LTO-only error waits for a full run.
+    that an LTO-only error waits for a full run. Decided 2026-11-07 (the user): LTO stays.
   - Also seen: the apt step varies between 31 and 192 s and once ran 20 minutes; a package cache is
     a possible follow-up.
 

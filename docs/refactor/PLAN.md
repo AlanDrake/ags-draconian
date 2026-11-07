@@ -93,7 +93,7 @@ comes after they are closed.
 | 3 | **U.3, waiting:** answer the reviews of #3186–#3190 (open since 2026-11-03, none yet), #3185 and #3191 when they come; nothing to do until then. `agsbuild` diagnostics on the Common log system (#2530) wait for ericoporto's logging change | Review takes weeks; the tool work is only valuable upstream while #2316 is active | Sonnet 5.5, `medium` for the follow-up rounds |
 | 4 | **U.6, waiting:** v2 force-pushed 2026-11-04 (3 commits, editors in `AGS.Controls`, delegates kept); answer further review. The fork port (6.0 step 1, re-run of the scripts) waits until the PR is merged or stable (6.0 step 1; the fork's `AGS.Types` differs from upstream's by Opacity and formatting, so expect conflicts in the attribute lines) | Upstream review takes weeks, so the offer goes out first | user, then Sonnet 5.5, `medium` for the fork port |
 | 5 | **U.7, waiting:** PR #3193 open since 2026-11-05; answer the review when it comes | Review takes weeks | Sonnet 5.5, `medium` |
-| 6 | **2.9 CI and pre-push time:** the probe is green (LOG.md); with the user's go-ahead, cherry-pick the commits of `probe-2.9` (`git log origin/ags4draconianr21..probe-2.9`) onto the main branch, delete the branch and its caches (`gh cache list -R AlanDrake/ags-draconian --ref refs/heads/probe-2.9`), watch the first push (the push filter of the plan job runs there for the first time), then decide 2.9e (LTO in the verification builds) | Every push waits 18 minutes for a confirmation, 12.5 after this | Sonnet 5.5, `medium` for the cherry-pick; the user for 2.9e |
+| 6 | **2.9 CI and pre-push time, landed 2026-11-07:** read the first push's runs (the plan job's push filter, which builds Windows alone, runs there for the first time; the ccache of every job starts cold on the main branch). Open: 2.9d x64-only CI (the user's decisions), the apt package cache, the ARM64 retry | The first push after a CI change is the one that finds what the probe could not | Sonnet 5.5, `medium` |
 
 Open items found while doing finished tasks (details in LOG.md): 0.4's CodeQL setting, the
 `D3DCOMPILER_47`/Windows 7 question and the macOS 10.9 deployment target; 1.4's unfixed `agfreader`
@@ -217,17 +217,17 @@ folders.
   that the changed files need.
   Open after these: **2.9d** x64 only on CI except what exists only as 32-bit (the user,
   2026-11-06), which needs decisions on the Windows engine the installer ships, the Linux i386
-  packages and the editor; **2.9e** LTO off in the verification builds (Verify, the light CMake jobs,
-  `prepush.py`'s `build` and `linux`): with a warm cache the Windows build step is 15 s of objects
-  and 255 s of `/GL` links, GCC's engine link alone 112 s (LOG.md), and nothing those jobs build is
-  shipped; the price is that an LTO-only error waits for a full run (a decision for the user); a
+  packages and the editor; **2.9e** LTO stays in the verification builds (the user, 2026-11-07):
+  with a warm cache the Windows build step is 15 s of objects and 255 s of `/GL` links, GCC's engine
+  link alone 112 s (LOG.md), and turning it off in Verify, the light CMake jobs and `prepush.py`
+  would have taken most of that away, at the price that an LTO-only error waits for a full run; a
   retry for the ARM64 auto-test abort; a cache for the apt packages (31 to 192 s, once 20 minutes);
   upstream's workflows, which fail on the port branches; the laptop for the WSL stages.
   *Done when:* CI confirms a push that changes a few files in under 10 minutes, and a session that
   changed only the editor runs one stage.
-  *Status (2026-11-07):* 2.9a–c are on the branch `probe-2.9` (seven commits with this one, worktree
-  `.compare/wt-2.9`), green there in Verify, a light and a full run (LOG.md: the probe results);
-  waiting for the cherry-pick to the main branch. A push should be confirmed in about 12.5 minutes
+  *Status (2026-11-07):* 2.9a–c are on the main branch: the eight commits of the probe branch
+  `probe-2.9`, fast-forwarded (the branch started at the branch head), green there in Verify, a
+  light and a full run (LOG.md: the probe results). A push should be confirmed in about 12.5 minutes
   instead of 18 (estimated from the probe's jobs), Verify in 7 instead of 8 with the auto-test game
   added; the second half of the "done when" holds. The state before it is the tag `pre-2.9`.
 
