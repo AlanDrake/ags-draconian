@@ -30,10 +30,11 @@ Options:
                     agsbuild, PLAN.md 6.7d-9) instead of a plain agsbuild run: compares that editor's
                     Compiled/Data with the one of --editor (the reference editor, built from pre-6.7d)
   --engine PATH     also run the auto-test on the agsbuild output with this engine (Software driver)
-  --incremental     on the agsbuild side, build the copy with one room's script changed, change it
-                    back, then compare the build that follows (agsbuild builds that room again and
-                    keeps the others, PLAN.md 7.1k) and one more with nothing changed; parity means
-                    both are identical to the editor's build. With --tools-editor too
+  --incremental     on the agsbuild side, build the copy with one room's script and one script
+                    module changed, change them back, then compare the build that follows (agsbuild
+                    builds that room and compiles that module again and keeps the others, PLAN.md
+                    7.1k and 7.1p) and one more with nothing changed; parity means both are
+                    identical to the editor's build. With --tools-editor too
   --work-dir DIR    where copies and outputs go (default: .compare/builds)
   --timeout SEC     per build (default: 900); a build that takes longer is killed and reported
 
@@ -404,19 +405,35 @@ def status(code):
     return f'exit {code - (1 << 32) if code >= (1 << 31) else code}'  # Windows reports -1 as 4294967295
 
 
-def change_one_room(project):
-    """For --incremental: adds a variable to the script of the project's first AGS 4 room, which
-    changes its compiled script; returns a function that puts the script back, or None if the
-    project has no such room."""
+def add_probe_variable(script):
+    """Adds a variable to the script, which changes its compiled script; returns a function that
+    puts the script back."""
+    original = open(script, 'rb').read()
+    open(script, 'wb').write(original + b'\r\nint compare_builds_incremental_probe;\r\n')
+    return lambda: open(script, 'wb').write(original)
+
+
+def change_room_and_module(project):
+    """For --incremental: changes the script of the project's first AGS 4 room and its first script
+    module other than the global script; returns the names of the scripts changed and a function
+    that puts them back."""
+    changed, restores = [], []
     rooms_dir = os.path.join(project, 'Rooms')
     numbers = sorted(int(n) for n in os.listdir(rooms_dir) if n.isdigit()) if os.path.isdir(rooms_dir) else []
     for n in numbers:
         script = os.path.join(rooms_dir, str(n), f'room{n}.asc')
         if os.path.isfile(os.path.join(rooms_dir, str(n), 'data.xml')) and os.path.isfile(script):
-            original = open(script, 'rb').read()
-            open(script, 'wb').write(original + b'\r\nint compare_builds_incremental_probe;\r\n')
-            return lambda: open(script, 'wb').write(original)
-    return None
+            restores.append(add_probe_variable(script))
+            changed.append(f'room{n}.asc')
+            break
+    agf_text = open(os.path.join(project, 'Game.agf'), encoding='utf-8', errors='replace').read()
+    for name in re.findall(r'<FileName>([^<]+[.]asc)</FileName>', agf_text):
+        script = os.path.join(project, name)
+        if name.lower() != 'globalscript.asc' and os.path.isfile(script):
+            restores.append(add_probe_variable(script))
+            changed.append(name)
+            break
+    return changed, lambda: [restore() for restore in restores]
 
 
 def build_with_tools(tool_proj, tool_out, sys_dir, args, log_path):
@@ -501,8 +518,9 @@ def compare(project, work, sys_dir, args, all_rows=True, engine=None, dir_name=N
     print(f'editor:   {status(ed_code)} in {ed_time:.0f}s, {len(ed_files)} files  (log: {work}/editor.log)')
 
     # agsbuild: once from a fresh copy; with --incremental, a build of the copy with one room's script
-    # changed first, then the compared build after the change is undone (that room is built again,
-    # the others are kept), then one more with nothing changed, compared too
+    # and one module changed first, then the compared build after the change is undone (that room is
+    # built and that module compiled again, the others are kept), then one more with nothing
+    # changed, compared too
     tool_proj = os.path.join(work, 'tools-project', dir_name) if dir_name else os.path.join(work, 'tools-project')
     copy_project(project, tool_proj)
     tool_out = os.path.join(tool_proj, 'Compiled', 'Data') if args.tools_editor else os.path.join(work, 'tools-output')
@@ -510,16 +528,15 @@ def compare(project, work, sys_dir, args, all_rows=True, engine=None, dir_name=N
         shutil.rmtree(tool_out)
     steps = [('agsbuild', 'agsbuild.log')]
     if args.incremental:
-        restore = change_one_room(tool_proj)
-        if restore is None:
-            print('--incremental: the project has no AGS 4 room with a script')
+        changed, restore = change_room_and_module(tool_proj)
+        if not changed:
+            print('--incremental: the project has no AGS 4 room with a script, and no script module')
         else:
             code, seconds = build_with_tools(tool_proj, tool_out, sys_dir, args,
                                              os.path.join(work, 'agsbuild-changed.log'))
-            print(f'agsbuild, one room changed: {status(code)} in {seconds:.1f}s')
+            print(f'agsbuild, {" and ".join(changed)} changed: {status(code)} in {seconds:.1f}s')
             restore()
-            steps = [('agsbuild, the room changed back', 'agsbuild.log'),
-                     ('agsbuild, nothing changed', 'agsbuild-again.log')]
+            steps = [('agsbuild, changed back', 'agsbuild.log'), ('agsbuild, nothing changed', 'agsbuild-again.log')]
 
     ok = True
     summaries = []
@@ -531,6 +548,12 @@ def compare(project, work, sys_dir, args, all_rows=True, engine=None, dir_name=N
         log = open(log_path, encoding='utf-8', errors='replace').read() if os.path.isfile(log_path) else ''
         for line in re.findall(r'^Rooms up to date: .*$', log, re.M):
             print(f'  {line}')
+        scripts = [(name, state) for name, state in re.findall(r'^Task: agscc:(.+)\n(Up to date|Running)', log, re.M)
+                   if not re.match(r'room[0-9]+[.]asc$', name)]
+        if scripts:
+            compiled = [name for name, state in scripts if state == 'Running']
+            listed = f' ({", ".join(compiled)})' if 0 < len(compiled) <= 3 else ''
+            print(f'  Scripts up to date: {len(scripts) - len(compiled)} of {len(scripts)}{listed}')
         if tool_code not in (0, None):  # print the distinct errors
             errors = sorted(set(re.findall(r'^(?:Error|Failure): .*$', log, re.M)))
             for e in errors[:12]:
@@ -562,7 +585,8 @@ def main():
     ap.add_argument('--tools-editor', help='an AGSEditor.exe that builds through agsbuild, for the agsbuild side')
     ap.add_argument('--engine', help='engine executable for the auto-test run')
     ap.add_argument('--incremental', action='store_true',
-                    help='compare agsbuild\'s incremental builds (a room changed and back, then nothing)')
+                    help='compare agsbuild\'s incremental builds (a room and a module changed and back, '
+                    'then nothing)')
     ap.add_argument('--work-dir', default=os.path.join(REPO, '.compare', 'builds'))
     ap.add_argument('--timeout', type=int, default=900)
     args = ap.parse_args()
