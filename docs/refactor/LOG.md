@@ -2299,13 +2299,68 @@ corpus is a private 8-bit game: 9 rooms, two with several backgrounds, 6 dialogs
   agscc", one diagnostic, which the editor lists as the build's one error); the editor needs no list of its
   own, `agsbuild` is the one that knows which tools a build takes.
 
+**6.7d-10 Run through `agsbuild`** (2026-11-07; an Opus 5.5 subagent):
+- F5 and Ctrl+F5 call `AGSEditor.BuildGameForRun`, which takes `BuildGame`'s steps (IDs repaired before the
+  save, `PreCompileGame` with `BuildsWithTools`, the checks, plugin headers, the busy dialog with progress
+  and Cancel, user data saved on success) and runs `agsbuild --data-only` into `_Debug` instead of building
+  and deploying the targets. Before it, the `_Debug` target deletes `<name>.ags` and the `<name>.exe` that
+  earlier editors made there, also for the previous game file name; the editor checks first that the engine
+  is next to it.
+- The engine is the editor's own `acwin.exe`, started in the project folder with 6.7d-6's command line:
+  `--runfromide "<proj>\_Debug" "<proj>\_Debug\Rooms":"","<proj>":"","<proj>\Fonts":"","AudioCache":"audio",
+  "Speech":"voice" "<proj>\_Debug\<name>.ags"`, after the same window or debugger options as before. Nothing is
+  copied into `_Debug` any more (the engine as `<name>.exe` with `game28.dta` appended, `SDL2.dll`, the
+  plugins): the engine looks for plugins in its own folder first, where the editor took them from, and
+  reads `acsetup.cfg` next to the game file. `Compiled/Windows` is no longer the install folder of a Run,
+  so a Run needs no earlier Build EXE.
+- Unused now, deleted in 6.7d-12 (added to its list): `CompileGame`, `CreateMiniEXEForDebugging`,
+  `CreateCompiledFiles`, `BuildTargetDebug.Build`, and `PreCompileGameEventArgs.BuildsWithTools`, which only
+  that dead path passes as false (its comment says so now).
+- Verified with the real editor driven by UI Automation (a local script opens the project, posts F5 or Ctrl+F5
+  to its window with Ctrl held in the thread's key state, dismisses the editor's message boxes, and reads the
+  engine's command line from the process list), on fresh exports of the auto-test project:
+
+  | Run | Result |
+  |---|---|
+  | Ctrl+F5, this editor, twice | 2414 of 2414 each time, engine exit code 0 |
+  | F5 (`--enabledebugger`), a broken `room1.crm` in the project folder | 2414 of 2414; the stale room is never loaded |
+  | Ctrl+F5, the reference editor (`pre-6.7d`) | 2411 of 2414 (the three `FillDirList` tests: `Compiled/Windows` as the install folder, as 6.7d-6 found) |
+  | F5 on a copy with an array index error at line 11 of `room1.asc` | the editor goes to `[Break]`, shows "Error running function 'room_AfterFadeIn': Error (line 11): Array index out of bounds" and opens `room1.asc` |
+
+  What the engine is given: the reference editor's run (`game28.dta` in the mini EXE, un-embedded as
+  `compare_builds.py` does, the rooms it compiled into the project folder, `_Debug/acsetup.cfg`) against this
+  editor's (`_Debug/<name>.ags`, `_Debug/Rooms`): `game28.dta`, the 40 scripts, the 3 rooms and
+  `acsetup.cfg`, 45 of 45 files identical. The script section names the debugger matches breakpoints
+  against are in those bytes, so breakpoints, the call stack and watches see what they saw before.
+- **Cost, for the user to decide:** the old Run compiled only the rooms whose script had changed and wrote
+  one `game28.dta`; `agsbuild` builds every room each time. The build before a Run, from the key to the
+  "compiled" message, both editors MSBuild Release x86, two runs each on a warm project:
+
+  | Project | Reference editor | This editor | `agsbuild --data-only` alone |
+  |---|---|---|---|
+  | auto-test (3 rooms) | 1.7 s | 2.0 s | |
+  | a private AGS 4 game (53 rooms, 36 scripts) | 1.9 s, 1.8 s | 8.4 s, 8.8 s | 5.3 to 7.6 s (5 runs) |
+
+  Incremental room builds in `agsbuild` (a room whose sources and headers did not change keeps its
+  `room<n>.crm`; `_obj/` is meant for it, 7.1k) would win this back. The C# Run stays in the code until 6.7d-12.
+- Also seen: the private game now gets "compiled with warnings" on every Run, where the reference editor's
+  warm Run said "compiled successfully": the room compiler's warnings and the room event-handler scan
+  (6.7d-9) are reported each time, not only when a room is recompiled.
+- Not verified here (the user, by hand): a breakpoint set in a script editor, Step into, Pause, the call stack
+  panel's contents and watch variables while paused (the injected error proves the engine-to-editor messages
+  and the room script's name, not the editor-to-engine `SETBREAK`); a game with engine plugins (the plugin
+  lookup now finds them in the editor's folder instead of a copy in `_Debug`). *The user checked them on
+  2026-11-07 on their game: breakpoints, step, call stack, watches, Ctrl+F5 and the renamed game file all
+  work.* The Run's cost was decided the same day: 7.1k, redefined as incremental room builds in `agsbuild`,
+  goes before 6.7d-11, so the Run is as fast as the editor's before 6.7d-12 deletes the C# Run.
+
 **Bugs found on the way, not fixed:** `BuildTargetBase.DeleteCommonGameFiles` deletes `filename`
 instead of the loop's `fileName`, so old split parts are never removed (still so for `Compiled/Windows`;
 in `Compiled/Data` agsbuild removes them); the split part names above;
 `RoomsComponent.CopyGamePalette` copies references, so opening a room changes the game palette (6.7d-5);
 `AGSEditor.CreateAudioVOXFile` is an unused copy of the one in `BuildTargetDataFile`;
-`Tasks.HandleObjectIDErrors` repairs IDs after the project was saved (fixed for the build in 6.7d-9, still so
-for the Run).
+`Tasks.HandleObjectIDErrors` repaired IDs after the project was saved (fixed for the build in 6.7d-9, for the
+Run in 6.7d-10).
 
 Not verified: the gaps listed as read from the code; anything on Linux or macOS (the harness needs
 the editor).
