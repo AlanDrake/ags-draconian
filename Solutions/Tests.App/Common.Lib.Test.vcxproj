@@ -26,6 +26,7 @@
     <ClCompile Include="..\..\Common\test\datahelpers_test.cpp" />
     <ClCompile Include="..\..\Common\test\directory_test.cpp" />
     <ClCompile Include="..\..\Common\test\error_test.cpp" />
+    <ClCompile Include="..\..\Common\test\game_compat_test.cpp" />
     <ClCompile Include="..\..\Common\test\gfxdef_test.cpp" />
     <ClCompile Include="..\..\Common\test\gui_test.cpp" />
     <ClCompile Include="..\..\Common\test\imagefile_test.cpp" />
@@ -109,6 +110,8 @@
   <PropertyGroup>
     <OutDir>$(AgsTestOutDir)</OutDir>
     <IntDir>$(AgsObjDir)</IntDir>
+    <!-- game_compat_test.cpp reads the games there: an absolute path with forward slashes for a C string -->
+    <AgsCompatFixturesDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\..\Common\test\data\compat').Replace('\', '/'))</AgsCompatFixturesDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -128,7 +131,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;ALLEGRO_USE_CONSTRUCTOR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;ALLEGRO_USE_CONSTRUCTOR;COMPAT_FIXTURES_DIR="$(AgsCompatFixturesDir)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest\googletest;..\..\Common\libsrc\googletest\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -147,7 +150,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;ALLEGRO_USE_CONSTRUCTOR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;ALLEGRO_USE_CONSTRUCTOR;COMPAT_FIXTURES_DIR="$(AgsCompatFixturesDir)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest\googletest;..\..\Common\libsrc\googletest\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -168,7 +171,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;ALLEGRO_USE_CONSTRUCTOR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;ALLEGRO_USE_CONSTRUCTOR;COMPAT_FIXTURES_DIR="$(AgsCompatFixturesDir)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest\googletest;..\..\Common\libsrc\googletest\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -191,7 +194,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;ALLEGRO_USE_CONSTRUCTOR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;ALLEGRO_USE_CONSTRUCTOR;COMPAT_FIXTURES_DIR="$(AgsCompatFixturesDir)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest\googletest;..\..\Common\libsrc\googletest\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

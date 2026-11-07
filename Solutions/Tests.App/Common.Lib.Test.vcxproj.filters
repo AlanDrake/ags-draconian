@@ -70,6 +70,9 @@
     <ClCompile Include="..\..\Common\test\error_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\test\game_compat_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Common\test\bitmapdata_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
