@@ -2234,11 +2234,78 @@ corpus is a private 8-bit game: 9 rooms, two with several backgrounds, 6 dialogs
 - Helpers, local: `.compare/helpers/mk_8bit_cases.py` (the derived projects), `cmpdta2.py` (the two
   `game28.dta` block by block, scripts taken out), `which_script.py`.
 
+**6.7d-9 Build through `agsbuild`** (2026-11-07; an Opus 5.5 subagent):
+- `AGSEditor.BuildGame(forceRebuild)` serves Build EXE, Rebuild all, `/compile` and the new-game wizard (the
+  callers no longer save or compile themselves): object IDs repaired, then the project saved (the order
+  agsbuild needs, as it reads the files: the editor's build repaired the IDs after the callers' save),
+  `PreCompileGame`, `RunPreCompilationChecks`, the script checks (`CheckGameScripts`), then one busy dialog
+  that deletes the targets' old game files (also those of an earlier game file name, as before), runs
+  `agsbuild` from the editor's folder into `Compiled/Data` (`BuildToolRunner`, default `_obj`, no
+  `--temp-dir`) and deploys the other selected targets, which copy from there. User data saved and
+  `RequiresRebuild` cleared after a success. F5 still takes the editor's build (`CompileGame(false, true)`,
+  6.7d-10); its other branch is unused now and goes in 6.7d-12.
+- `PreCompileGameEventArgs.BuildsWithTools` (only until the Run switches): rooms keep the open-room save and
+  the missing-file checks but are not compiled, translations are not compiled (`po2tra`). The editor's
+  room compile was also its only check of the rooms' event handlers ("looks like an event handler, but is
+  not linked on Room N's Event pane"): the agsbuild build loads every room and scans it
+  (`ScanAllRoomsForMissingEventHandlers`), so every build reports what only a full rebuild reported.
+  The lip-sync data (`Speech/syncdata.dat`, a source of the voice packs) is made in `PreCompileGame`, for both
+  builds; `ExtraCompilationStep` has no subscriber left, and `ExtraOutputCreationStep` (the C# voice packs) is
+  not raised by the agsbuild build (its check, `CheckSpeechFilesForConsistency`, is empty).
+- Plugin headers (`GetScriptHeaderList` without `_GlobalVariables.ash`, which agsbuild makes) are written by
+  `Build/ScriptHeaderFiles.cs` to a new folder in `%TEMP%` (each in a sub-folder, under its own name, which
+  agscc takes as the section name) and passed as `--header`; deleted after the build (7 NUnit tests).
+- The busy dialog has an optional Cancel button (and Esc) and a progress bar when a total is known; the
+  build shows `agsbuild`'s task and count ("agscc:Defs.asc (14 / 215)"). The tools' information lines are
+  not listed (agspak's "found pattern file" for the lists agsbuild writes); errors and warnings are.
+- `!_obj/*` in `GetPatternsForStandardGameFiles` (templates, upgrade backup). Rooms are no longer loaded and
+  re-saved in the current format by the rebuild that follows an upgrade of the room format: `crmbuild`
+  reads the older room formats itself (`Transparency` before 4.0.0.34).
+- `compare_builds.py --tools-editor <AGSEditor.exe>`: the second side is that editor's `/compile`, so the
+  reference editor (scripts embedded) is compared with this one (scripts separate) directly.
+- Measured, reference editor (`pre-6.7d`) against this editor, both MSBuild Release x86:
+
+  | Project | Default | Ten variants |
+  |---|---|---|
+  | auto-test | 59 of 59 identical | parity in all ten |
+  | a private AGS 4 game | 208 of 208 identical (reference 12 s, this editor 7 s before the room scan) | parity in all ten |
+  | a private 8-bit game | 53 of 53 identical | parity in all ten |
+
+  The final binary (with the room scan) was run again on the auto-test game (59 of 59), the private AGS 4
+  game (208 of 208; its 12 room event-handler warnings are the reference's 12) and its `unicode` variant;
+  the other variants ran with the binary before the scan, which changes no output file. The `unicode`
+  variant had never run on that game: the harness could not add a translation to a project that has
+  some (`<Translations>` with children), fixed.
+
+- Errors, by `/compile`'s console (one error put into a copy of the auto-test game each time): both editors
+  report `GlobalScript.asc` line 5, `Rooms\1\room1.asc` line 4 and `Dialog 0` line 3, the names the output
+  panel hands to the same `ZoomToFile` handlers (scripts by file name, rooms by the `Rooms\<n>\room<n>.asc`
+  pattern, dialogs by `Dialog <n>`). The click in the output panel was not tried.
+- Cancel, by UI Automation (Cancel pressed 0.5, 1, 1.5 and 3 s into the private game's build): the editor
+  ends 0.25 to 0.8 s after the press with "The build was cancelled.", exit code 1, no tool left running.
+- Messages that differ from the reference editor's: the room compiler's warnings now reach the output
+  ("Code execution cannot reach this point" in three rooms of the private game: the editor's room compile
+  threw them away, `SaveRoomOnThread` looks at its messages only for errors); "Room room9.crm was saved, but
+  there were warnings" is gone with the room compile.
+- Left for 6.7d-10 and 6.7d-11: F5 and Ctrl+F5 still build with the C# code (and still repair the IDs after
+  the save); saving a room still compiles it and writes `room<n>.crm` into the project folder, which nothing
+  reads now; the room event-handler scan moves to `CheckGameScripts` when the editor's room compile goes.
+- The user's first Rebuild all showed one "Process failed with err code: 2" per script: their editor folder
+  had the tools of `Tools.sln` but not `agscc.exe`, which only `Compiler.App.sln` built, and `agsbuild`
+  reported each failed `CreateProcess` with the system's code alone (2, `ERROR_FILE_NOT_FOUND`). Fixed three
+  ways: `Tools.sln` now holds `Compiler.App` and `Compiler.Lib` (the `Compiler.App.sln` steps of `ci.yml` and
+  of `prepush.py`'s msbuild stage are gone, `Compiler.App.sln` itself stays); `agsbuild` checks every tool it
+  may start before it starts any (`CheckBuildOptions`: "not found in the system directory '...' (--sys-dir):
+  agscc", one diagnostic, which the editor lists as the build's one error); the editor needs no list of its
+  own, `agsbuild` is the one that knows which tools a build takes.
+
 **Bugs found on the way, not fixed:** `BuildTargetBase.DeleteCommonGameFiles` deletes `filename`
-instead of the loop's `fileName`, so old split parts are never removed; the split part names above;
+instead of the loop's `fileName`, so old split parts are never removed (still so for `Compiled/Windows`;
+in `Compiled/Data` agsbuild removes them); the split part names above;
 `RoomsComponent.CopyGamePalette` copies references, so opening a room changes the game palette (6.7d-5);
 `AGSEditor.CreateAudioVOXFile` is an unused copy of the one in `BuildTargetDataFile`;
-`Tasks.HandleObjectIDErrors` repairs IDs after the project was saved.
+`Tasks.HandleObjectIDErrors` repairs IDs after the project was saved (fixed for the build in 6.7d-9, still so
+for the Run).
 
 Not verified: the gaps listed as read from the code; anything on Linux or macOS (the harness needs
 the editor).
