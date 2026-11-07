@@ -1083,6 +1083,8 @@ namespace AGS.Editor
         {
             Factory.GUIController.ClearOutputPanel();
             CompileMessages messages = new CompileMessages();
+            // An upgraded project (or one with rooms to upgrade) asks for a full build once; cleared below
+            forceRebuild |= _game.WorkspaceState.RequiresRebuild;
 
             Utilities.EnsureStandardSubFoldersExist();
             // In case something went wrong during the editing session (plugins can also edit the
