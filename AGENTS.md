@@ -71,10 +71,12 @@ Entry points, in reading order:
   kGameVersion_399`, the pre-3.99 upgrade paths and version values are gone, an older game gets a "compiled
   with ... this engine loads games made with AGS 3.99 or later" error. Rooms, saves and the script API are
   still at upstream's minimums (3.4 steps 2 to 4).
-- CMake is the only build system for the engine, `agscc` and the tools (D5; 3.2a/b, 2026-11-05): the
-  Makefiles, `make.yml` and `dh --buildsystem makefile` are gone, `debian/rules` calls CMake, CI installs
-  the tools with `cmake --install`. Adding an engine `.cpp` means editing `Engine/CMakeLists.txt` (and
-  the native `Solutions/*.vcxproj` until 3.2c). Two standalone plugin Makefiles stay
+- CMake and the hand-written Windows solutions are the build systems for the engine, `agscc` and the
+  tools (D5; 3.2a/b, 2026-11-05; 3.2c, 2026-11-07): the Makefiles, `make.yml` and `dh --buildsystem
+  makefile` are gone, `debian/rules` calls CMake, CI installs the tools with `cmake --install`. Adding an
+  engine `.cpp` means editing `Engine/CMakeLists.txt` and `Solutions/Engine.App/Engine.App.vcxproj`
+  (+ `.filters`); the `buildlists` stage checks that the two agree. Release builds link SDL2
+  dynamically (`SDL2.dll`, the Linux bundle's `libSDL2`). Two standalone plugin Makefiles stay
   (`Plugins/agslua`, `Plugins/agspalrender`, phase 7).
 - Upstream is read-only: `git fetch upstream`, cherry-pick with `-x`, record in `docs/UPSTREAM.md`.
 
@@ -99,7 +101,8 @@ Entry points, in reading order:
 but `emscripten`; Common, Engine, Plugins: every stage; an unknown path: every stage), and lists the
 changed files that no stage verifies (workflows, packaging, most scripts). `--dry-run` shows the choice.
 Without `--auto` every stage runs, which a repository-wide change needs (`--list`, `--only`, `--skip`,
-`--base`, `--emsdk <dir>`): `format`, `build`
+`--base`, `--emsdk <dir>`): `format`, `buildlists` (`Script/check_build_lists.py`: every `.vcxproj`'s
+sources against its CMake target, deliberate differences listed with reasons in the script), `build`
 (+ `ctest`), `tidy` (clang-tidy on changed lines), `headers`, `libcxx`, `emscripten` (engine as GLES2, then
 a syntax check of the Linux-only code), `linux` (the CI's GCC job: build, header check, `ctest`), `msbuild`.
 On demand with `--only`: `sanitizers` (ASan, UBSan and leaks on the unit tests and the auto-test game),
@@ -132,9 +135,10 @@ read by `Script/linux_jobs.sh` and `analysis.yml`, which are kept in step.
   the `emscripten` and `linux` stages; report what no local build compiled (macOS, iOS, Android,
   FreeBSD, the Debian 10 builder image).
 - **One build description only** (3): a new, moved or deleted `.cpp`, tests included, goes in
-  `CMakeLists.txt` and in the `Solutions/` `.vcxproj` + `.filters` (until 3.2c); the `msbuild` stage
-  finds a missing source, not a missing test file, whose tests then never run on x86 (LOG.md 3.2,
-  2026-11-07). A new test target also needs a `Tests.App` project, `ci.yml` and `prepush.py` `TEST_RUNNERS`.
+  `CMakeLists.txt` and in the `Solutions/` `.vcxproj` + `.filters` (both stay, 3.2c); the `buildlists`
+  stage and CI's Windows build job fail when the two differ, test files included. A new `.vcxproj` goes
+  in the script's `PROJECTS` table; a new test target also needs a `Tests.App` project, `ci.yml` and
+  `prepush.py` `TEST_RUNNERS`.
 - **CI-only jobs changed blind** (3): the Linux builder image (Debian 10, GCC 8, glibc 2.28, no downloads
   on i386), Android, macOS, new workflows. Ask the user for a probe branch (a name outside
   `ags4draconian*`, only the affected jobs), then one full run.
