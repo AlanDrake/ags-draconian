@@ -344,12 +344,10 @@ namespace AGS.Types
             get; set; // not used; kept so that the older projects, which have it, still load
         }
 
-        [DisplayName("Script compiler")]
-        [Description("Select the script compiler that will be used when compiling your game scripts")]
-        [Category("Compiler")]
-        [TypeConverter(typeof(ScriptCompilerTypeConverter))]
+        [Browsable(false)]
         public string ScriptCompiler
         {
+            // There is one compiler, agscc (D3), which does not read this; the project format has it
             get { return _scriptCompiler; }
             set { _scriptCompiler = value; }
         }

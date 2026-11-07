@@ -464,19 +464,17 @@ namespace AGS.Editor
                 game.InventoryItems.Insert(0, dummy);
             }
 
-            // Select an available script compiler, if the project has none or one that is gone
+            // Select the script compiler, if the project has none or one that is gone
             // (the legacy "AGS SCOM 3 EXT", which older projects select)
-            var compilers = Factory.NativeProxy.GetEmbeddedScriptCompilers();
-            if (!compilers.Any(c => c.GetName() == game.Settings.ScriptCompiler))
+            if (game.Settings.ScriptCompiler != AGSEditor.DEFAULT_SCRIPT_COMPILER)
             {
-                var compiler = compilers.FirstOrDefault();
-                if (!string.IsNullOrEmpty(game.Settings.ScriptCompiler) && compiler != null)
+                if (!string.IsNullOrEmpty(game.Settings.ScriptCompiler))
                 {
                     errors.Add(new CompileWarning($"The project selected the script compiler \"{game.Settings.ScriptCompiler}\", " +
-                        $"which this Editor no longer has; it now uses \"{compiler.GetName()}\". " +
+                        $"which this Editor no longer has; it now uses \"{AGSEditor.DEFAULT_SCRIPT_COMPILER}\". " +
                         "Scripts that only the old compiler accepted may need changes."));
                 }
-                game.Settings.ScriptCompiler = compiler != null ? compiler.GetName() : string.Empty;
+                game.Settings.ScriptCompiler = AGSEditor.DEFAULT_SCRIPT_COMPILER;
             }
 
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);

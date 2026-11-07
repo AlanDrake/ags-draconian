@@ -320,15 +320,6 @@ namespace AGS.Editor
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetLinux());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetWeb());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetAndroid());
-
-            // Fill the list of script compilers.
-            var compilerDic = new Dictionary<string, string>();
-            List<AGS.Native.IScriptCompiler> compilers = Factory.NativeProxy.GetEmbeddedScriptCompilers();
-            foreach (AGS.Native.IScriptCompiler compiler in compilers)
-            {
-                compilerDic.Add(compiler.GetName(), compiler.GetDescription());
-            }
-            ScriptCompilerTypeConverter.SetCompilerList(compilerDic);
         }
 
         public Game CurrentGame
