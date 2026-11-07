@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Text;
 using System.Windows.Forms;
 using TypeUtils = AGS.Types.Utilities;
 
@@ -24,15 +23,6 @@ namespace AGS.Editor.Components
         private const string COMMAND_MAKE_DEFAULT = "MakeDefaultTranslation";
 
         private const string TRANSLATION_SOURCE_FILE_LEGACY_EXTENSION = ".trs";
-
-        private const string COMPILED_TRANSLATION_FILE_SIGNATURE = "AGSTranslation\0";
-        private const int TRANSLATION_BLOCK_TRANSLATION_DATA = 1;
-        private const int TRANSLATION_BLOCK_GAME_ID = 2;
-        private const int TRANSLATION_BLOCK_OPTIONS = 3;
-        private const string TRANSLATION_BLOCK_STROPTIONS = "ext_sopts";
-        private const string TRANSLATION_BLOCK_FONTOVERRIDES = "ext_fonts";
-        private const string TRANSLATION_BLOCK_PARSERDICT = "ext_parserdict";
-        private const int TRANSLATION_BLOCK_END_OF_FILE = -1;
 
 //        private Dictionary<AGS.Types.Font, ContentDocument> _documents;
         private Translation _itemRightClicked = null;
@@ -76,178 +66,6 @@ namespace AGS.Editor.Components
         private void StartRename(Translation itemToRename, string nodeID)
         {
             _guiController.ProjectTree.BeginLabelEdit(this, nodeID);
-        }
-
-        // "Avis Durgan" in ASCII
-        private byte[] EncryptKey = Encoding.ASCII.GetBytes("Avis Durgan");
-
-        private byte[] EncryptStringToBytes(string text, Encoding encoding)
-        {
-            var bytes = encoding.GetBytes(text);
-            for (int i = 0, key = 0; i < bytes.Length; ++i)
-            {
-                bytes[i] += EncryptKey[key++];
-                if (key > 10)
-                    key = 0;
-            }
-            return bytes;
-        }
-
-        private void WriteString(BinaryWriter bw, string text, Encoding encoding)
-        {
-            var bytes = EncryptStringToBytes(text, encoding);
-            bw.Write(bytes.Length);
-            bw.Write(bytes);
-        }
-
-        private void WriteExtGameID(BinaryWriter bw, Translation translation, CompileMessages error)
-        {
-            bw.Write(_agsEditor.CurrentGame.Settings.UniqueID);
-            WriteString(bw, _agsEditor.CurrentGame.Settings.GameName, _agsEditor.CurrentGame.TextEncoding);
-        }
-
-        private void WriteExtDictionary(BinaryWriter bw, Translation translation, List<Tuple<string, string>> translatedLines, CompileMessages error)
-        {
-            Encoding textEncoding = translation.Encoding;
-            foreach (var line in translatedLines)
-            {
-                WriteString(bw, Translation.UnescapeText(line.Item1), textEncoding);
-                WriteString(bw, Translation.UnescapeText(line.Item2), textEncoding);
-            }
-            WriteString(bw, string.Empty, textEncoding);
-            WriteString(bw, string.Empty, textEncoding);
-        }
-
-        private void WriteExtParserDict(BinaryWriter bw, Translation translation, List<Tuple<string, ushort>> parserDict, CompileMessages errors)
-        {
-            // Follow same data format as the main parser dictionary in the game file
-            DataFileWriter.WriteTextParserDictionary(parserDict, bw);
-        }
-
-        private void WriteExtTextOptions(BinaryWriter bw, Translation translation, CompileMessages error)
-        {
-            bw.Write(translation.NormalFont ?? -1);
-            bw.Write(translation.SpeechFont ?? -1);
-            bw.Write((translation.RightToLeftText == true) ? 2 : ((translation.RightToLeftText == false) ? 1 : -1));
-            // Since 3.6.3.10: parser options flag set
-            int flags = 0;
-            if (translation.AutoTranslateParserSaid) flags |= 0x0001;
-            bw.Write(flags);
-        }
-
-        private void WriteExtStrOptions(BinaryWriter bw, Translation translation, CompileMessages errors)
-        {
-            bw.Write((int)2); // size of key/value table
-            DataFileWriter.FilePutString("encoding", bw);
-            DataFileWriter.FilePutString(translation.EncodingHint, bw);
-            DataFileWriter.FilePutString("language", bw);
-            DataFileWriter.FilePutString(translation.TextLanguage, bw);
-        }
-        
-        private void WriteExtFontOverrides(BinaryWriter bw, Translation translation, CompileMessages errors)
-        {
-            bw.Write(translation.FontOverrides.Count);
-            // data version (matches current game data); determines which font info extensions are written
-            bw.Write(NativeConstants.GAME_DATA_VERSION_CURRENT);
-
-            foreach (var overrideEntry in translation.FontOverrides)
-            {
-                var fontOverride = overrideEntry.Value;
-                var font = fontOverride.Font; // font to override with
-                var fields = fontOverride.Fields; // valid fields
-
-                bw.Write(overrideEntry.Key); // font to override
-                bw.Write(font.ID); // replacement font ID (or -1 if font is determined by its filename)
-                bw.Write((int)fields); // which font fields are valid
-                bw.Write((int)0); // reserved field (more flags?)
-                // Font data, format matches various font-related sections of the main game file
-                DataFileWriter.WriteFontInfo(bw, font);
-                DataFileWriter.WriteFontInfo_Ex360(bw, font);
-                // Explicit font's filename: this corresponds to 4.* font's FileName ("v400_fontfiles" ext).
-                    DataFileWriter.FilePutString(font.FontFileName, bw);
-            }
-        }
-
-        private void CompileTranslation(Translation translation, CompileMessages errors)
-        {
-            var load_errors = translation.TryLoadData();
-            errors.AddRange(load_errors);
-            if (load_errors.HasErrors)
-                return;
-
-            string tempFile = Path.GetTempFileName();
-            Encoding textEncoding = translation.Encoding;
-
-            var translatedLines = new List<Tuple<string, string>>();
-            var parserDict = new List<Tuple<string, ushort>>();
-            SplitTranslationItemsIntoSections(translation, ref translatedLines, ref parserDict);
-
-            using (BinaryWriter bw = new BinaryWriter(new FileStream(tempFile, FileMode.Create, FileAccess.Write)))
-            {
-                bw.Write(Encoding.ASCII.GetBytes(COMPILED_TRANSLATION_FILE_SIGNATURE));
-
-                DataFileWriter.WriteExtension(string.Empty, TRANSLATION_BLOCK_GAME_ID, DataFileWriter.DataExtFlags.ID32,
-                    (w, e) => WriteExtGameID(w, translation, e), bw, errors);
-
-                DataFileWriter.WriteExtension(string.Empty, TRANSLATION_BLOCK_TRANSLATION_DATA, DataFileWriter.DataExtFlags.ID32,
-                    (w, e) => WriteExtDictionary(w, translation, translatedLines, e), bw, errors);
-
-                if (parserDict.Count > 0)
-                {
-                    DataFileWriter.WriteExtension(TRANSLATION_BLOCK_PARSERDICT, 0, DataFileWriter.DataExtFlags.ID32,
-                        (w, e) => WriteExtParserDict(w, translation, parserDict, e), bw, errors);
-                }
-
-                DataFileWriter.WriteExtension(string.Empty, TRANSLATION_BLOCK_OPTIONS, DataFileWriter.DataExtFlags.ID32,
-                    (w, e) => WriteExtTextOptions(w, translation, e), bw, errors);
-
-                DataFileWriter.WriteExtension(TRANSLATION_BLOCK_STROPTIONS, 0, DataFileWriter.DataExtFlags.ID32,
-                    (w, e) => WriteExtStrOptions(w, translation, e), bw, errors);
-
-                if (translation.FontOverrides.Count > 0)
-                {
-                    DataFileWriter.WriteExtension(TRANSLATION_BLOCK_FONTOVERRIDES, 0, DataFileWriter.DataExtFlags.ID32,
-                        (w, e) => WriteExtFontOverrides(w, translation, e), bw, errors);
-                }
-
-                bw.Write(TRANSLATION_BLOCK_END_OF_FILE);
-                bw.Write((int)0);
-                bw.Close();
-            }
-
-            string destFile = Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
-                Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, translation.CompiledFileName));
-            Utilities.ExecuteOrError(() =>
-            {
-                Utilities.TryDeleteFile(destFile);
-                File.Move(tempFile, destFile);
-            }, $"Failed to replace an old file {destFile}", errors);
-        }
-
-        private void SplitTranslationItemsIntoSections(Translation translation, ref List<Tuple<string, string>> translatedLines,
-            ref List<Tuple<string, ushort>> wordsDictionary)
-        {
-            foreach (var entry in translation.TranslatedEntries.Values)
-            {
-                string srcLine = entry.Key;
-                string trsLine = entry.Value;
-                if (!string.IsNullOrEmpty(trsLine))
-                {
-                    // Skip obsolete entries, and those which translators marked for review
-                    if (entry.IsObsolete || entry.IsFuzzy)
-                    {
-                        continue;
-                    }
-                    // Words dictionary is written in a separate data section
-                    if (entry.IsParserDictionary)
-                    {
-                        wordsDictionary.Add(new Tuple<string, ushort>(Translation.UnescapeText(trsLine), (ushort)entry.ParserWordID));
-                        continue;
-                    }
-
-                    translatedLines.Add(new Tuple<string, string>(srcLine, trsLine));
-                }
-            }
         }
 
         private object UpdateTranslationsProcess(IWorkProgress progress, object translationList)
