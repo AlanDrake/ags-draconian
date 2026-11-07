@@ -382,7 +382,7 @@ namespace AGS.Editor.Components
                 {
 					bw.Write((short)line.Phonemes.Count);
 
-                    DataFileWriter.FilePutNullTerminatedString(line.FileName, bw);
+                    WriteNullTerminatedString(bw, line.FileName, _agsEditor.CurrentGame.TextEncoding);
                     for (int i = 0; i < line.Phonemes.Count; i++)
                     {
 						bw.Write((int)line.Phonemes[i].EndTimeOffset);
@@ -395,6 +395,16 @@ namespace AGS.Editor.Components
 
                 bw.Close();
             }
+        }
+
+        // Writes the text in the given encoding followed by a zero byte; null or empty text gives just the zero byte.
+        private static void WriteNullTerminatedString(BinaryWriter writer, string text, Encoding encoding)
+        {
+            if (!string.IsNullOrEmpty(text))
+            {
+                writer.Write(encoding.GetBytes(text));
+            }
+            writer.Write((byte)0);
         }
 
         private byte[] RawSerialize(object anything)
