@@ -22,12 +22,7 @@ namespace AGS.Types
 		public BuildConfiguration LastBuildConfiguration
 		{
 			get { return _lastBuildConfiguration; }
-			set
-            {
-                if (_lastBuildConfiguration != value)
-                    RequiredRebuildTime = DateTime.Now;
-                _lastBuildConfiguration = value;
-            }
+			set { _lastBuildConfiguration = value; }
 		}
 
         [Browsable(false)]
@@ -41,16 +36,8 @@ namespace AGS.Types
         public bool RequiresRebuild
         {
             get { return _requiresRebuild; }
-            set
-            {
-                _requiresRebuild = value;
-                if (value)
-                    RequiredRebuildTime = DateTime.Now;
-            }
+            set { _requiresRebuild = value; }
         }
-
-        [Browsable(false)]
-        public DateTime RequiredRebuildTime { get; set; } = DateTime.MinValue;
 
         // TODO: generic method of serializing key-value list in a string (or other xml element)
         private static string[] StringListSeparators = new string[] { "," };

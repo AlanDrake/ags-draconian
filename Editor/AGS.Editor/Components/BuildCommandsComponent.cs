@@ -244,7 +244,6 @@ namespace AGS.Editor.Components
 
 		private void CompileGame(bool forceRebuild)
 		{
-            _agsEditor.CurrentGame.WorkspaceState.RequiredRebuildTime = DateTime.Now;
             _agsEditor.BuildGame(forceRebuild);
 		}
 
