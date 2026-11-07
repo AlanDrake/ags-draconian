@@ -1123,6 +1123,7 @@
     <Compile Include="Build\ScriptHeaderFiles.cs" />
     <Compile Include="Build\ToolProcess.cs" />
     <Compile Include="Build\ToolProcessResult.cs" />
+    <Compile Include="Build\TemplatePackage.cs" />
     <Compile Include="Build\TranslationCompiler.cs" />
     <Compile Include="BuildTargets\BuildTargetBase.cs" />
     <Compile Include="BuildTargets\BuildTargetDataFile.cs" />

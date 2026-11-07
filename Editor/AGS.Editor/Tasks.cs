@@ -1,3 +1,4 @@
+using AGS.Editor.Build;
 using AGS.Editor.Components;
 using AGS.Editor.Preferences;
 using AGS.Editor.Utils;
@@ -155,63 +156,90 @@ namespace AGS.Editor
             }
         }
 
-        private void ConstructBasicFileListForTemplate(List<string> filesToInclude, List<string> filesToDeleteAfterwards)
+        private void ConstructBasicFileListForTemplate(List<string> filesToInclude)
         {
             var patternStr = GetPatternsForStandardGameFiles(Factory.AGSEditor.CurrentGame, mediaResources: true);
             var patterns = IncludeUtils.CreatePatternList(patternStr, IncludeUtils.MatchOption.CaseInsensitive);
             string[] files = Utilities.GetDirectoryFileList(Factory.AGSEditor.CurrentGame.DirectoryPath, "*.*", SearchOption.AllDirectories, relativePaths: true);
             files = IncludeUtils.FilterItemList(files, patterns, IncludeUtils.MatchOption.CaseInsensitive);
             filesToInclude.AddRange(files);
+        }
 
+        // The files that plugins add to a game template, as full paths
+        private List<string> GetPluginFilesForTemplate()
+        {
+            List<string> extraFiles = new List<string>();
             if (GetFilesForInclusionInTemplate != null)
             {
-                List<string> extraFiles = new List<string>();
-
                 GetFilesForInclusionInTemplate(extraFiles);
-
-                // FIXME: remind why do we have to copy these files into the current directory?!
-                // there has to be a way to avoid doing this!
-                foreach (string fullFileName in extraFiles)
-                {
-                    string baseFileName = Path.GetFileName(fullFileName);
-                    if (Path.GetDirectoryName(fullFileName).ToLower() != Directory.GetCurrentDirectory().ToLower())
-                    {
-                        File.Copy(fullFileName, baseFileName, true);
-                        filesToDeleteAfterwards.Add(baseFileName);
-                    }
-                    filesToInclude.Add(baseFileName);
-                }
             }
+            return extraFiles;
         }
 
         public void CreateTemplateFromCurrentGame(string templateFileName)
         {
+            string projectDir = Factory.AGSEditor.CurrentGame.DirectoryPath;
             List<string> files = new List<string>();
-            List<string> filesToDeleteAfterwards = new List<string>();
+            List<string> pluginFiles = new List<string>();
 
-            string templateIncludeFile = Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, AGSEditor.TEMPLATE_INCLUDE_FILE);
+            string templateIncludeFile = Path.Combine(projectDir, AGSEditor.TEMPLATE_INCLUDE_FILE);
             if (File.Exists(templateIncludeFile))
             {
-                ConstructFileListUsingIncludeFile(files, Factory.AGSEditor.CurrentGame.DirectoryPath, templateIncludeFile);
+                ConstructFileListUsingIncludeFile(files, projectDir, templateIncludeFile);
             }
             else
             {
-                ConstructBasicFileListForTemplate(files, filesToDeleteAfterwards);
+                ConstructBasicFileListForTemplate(files);
+                pluginFiles = GetPluginFilesForTemplate();
             }
 
-            Utilities.TryDeleteFile(templateFileName);
-
-            CreateTemplateFile(templateFileName, files.ToArray());
-
-            foreach (string fileName in filesToDeleteAfterwards)
+            List<KeyValuePair<string, string>> assets = MakeTemplateAssets(projectDir, files);
+            // A plugin's file is stored at the top of the template, under its own name
+            foreach (string pluginFile in pluginFiles)
             {
-                Utilities.TryDeleteFile(fileName);
+                string name = Path.GetFileName(pluginFile);
+                string source = Path.GetFullPath(Path.Combine(projectDir, pluginFile));
+                KeyValuePair<string, string> same = assets.FirstOrDefault(a => string.Equals(a.Key, name, StringComparison.OrdinalIgnoreCase));
+                if (same.Key == null)
+                {
+                    assets.Add(new KeyValuePair<string, string>(name, source));
+                }
+                else if (!string.Equals(Path.GetFullPath(same.Value), source, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new AGSEditorException("A plugin adds the file " + source + " to the template, but the template has a file named " + name + " already: " + same.Value);
+                }
             }
+
+            CreateTemplateFile(templateFileName, assets);
         }
 
+        /// <summary>
+        /// Packs the files of the current game's project, given as paths relative to the project's folder,
+        /// into a template file, under those paths. Throws an AGSEditorException if the template was not made.
+        /// </summary>
         public static void CreateTemplateFile(string templateFileName, string[] fileList)
         {
-            DataFileWriter.MakeDataFile(fileList, 0, templateFileName);
+            CreateTemplateFile(templateFileName, MakeTemplateAssets(Factory.AGSEditor.CurrentGame.DirectoryPath, fileList));
+        }
+
+        // The assets for files given as paths relative to the project's folder: stored under those paths, with '/'
+        private static List<KeyValuePair<string, string>> MakeTemplateAssets(string projectDir, IEnumerable<string> relativeFiles)
+        {
+            return relativeFiles
+                .Select(f => new KeyValuePair<string, string>(f.Replace('\\', '/'), Path.Combine(projectDir, f)))
+                .ToList();
+        }
+
+        private static void CreateTemplateFile(string templateFileName, IEnumerable<KeyValuePair<string, string>> assets)
+        {
+            string projectDir = Factory.AGSEditor.CurrentGame.DirectoryPath;
+            CompileMessages messages = TemplatePackage.Pack(Factory.AGSEditor.EditorDirectory,
+                Path.Combine(projectDir, templateFileName), assets,
+                Path.Combine(projectDir, AGSEditor.BUILD_TEMP_DIRECTORY, "template"));
+            if (messages.HasErrors)
+            {
+                throw new AGSEditorException(string.Join(Environment.NewLine, messages.Errors.Select(e => e.Message)));
+            }
         }
 
         public bool LoadGameFromDisk(string gameToLoad, bool interactive)

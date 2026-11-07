@@ -1,3 +1,4 @@
+using AGS.Editor.Build;
 using AGS.Editor.Components;
 using AGS.Editor.Preferences;
 using AGS.Types;
@@ -1368,31 +1369,59 @@ namespace AGS.Editor
             return createdSuccessfully;
         }
 
-		private string[] ConstructRoomTemplateFileList(UnloadedRoom room)
-		{
-			List<string> files = new List<string>();
-			Utilities.AddAllMatchingFiles(files, Path.ChangeExtension(room.FileName, ".ico"));
-			Utilities.AddAllMatchingFiles(files, ROOM_TEMPLATE_ID_FILE);
-			Utilities.AddAllMatchingFiles(files, room.FileName);
-			Utilities.AddAllMatchingFiles(files, room.ScriptFileName);
-			return files.ToArray();
-		}
-
+        /// <summary>
+        /// Saves the game, then packs a room template (*.art) of the room: its room file, built from
+        /// the saved sources with crmbuild, its script and icon, and rtemplate.dat, which marks a room
+        /// template and holds the room's number.
+        /// </summary>
         public void SaveRoomAsTemplate(UnloadedRoom room)
         {
             string filename = Factory.GUIController.ShowSaveFileDialog("Save room template as...", Constants.ROOM_TEMPLATE_FILE_FILTER, Factory.AGSEditor.UserTemplatesDirectory);
 
             if (filename != null)
             {
+                // crmbuild reads Game.agf and the room's sources from disk
+                if (!_agsEditor.SaveGameFiles())
+                {
+                    return;
+                }
+
+                string projectDir = _agsEditor.CurrentGame.DirectoryPath;
+                string tempDir = Path.Combine(projectDir, AGSEditor.BUILD_TEMP_DIRECTORY, "template-room");
                 try
                 {
-                    BinaryWriter writer = new BinaryWriter(new FileStream(ROOM_TEMPLATE_ID_FILE, FileMode.Create, FileAccess.Write));
-                    writer.Write(ROOM_TEMPLATE_ID_FILE_SIGNATURE);
-                    writer.Write(room.Number);
-                    writer.Close();
+                    string roomFile = Path.Combine(tempDir, room.FileName);
+                    CompileMessages messages = TemplatePackage.BuildRoomFile(_agsEditor.EditorDirectory,
+                        Path.Combine(projectDir, AGSEditor.GAME_FILE_NAME), room.Number, roomFile);
+                    if (!messages.HasErrors)
+                    {
+                        string idFile = Path.Combine(tempDir, ROOM_TEMPLATE_ID_FILE);
+                        using (BinaryWriter writer = new BinaryWriter(new FileStream(idFile, FileMode.Create, FileAccess.Write)))
+                        {
+                            writer.Write(ROOM_TEMPLATE_ID_FILE_SIGNATURE);
+                            writer.Write(room.Number);
+                        }
 
-                    Tasks.CreateTemplateFile(filename, ConstructRoomTemplateFileList(room));
-                    Utilities.TryDeleteFile(ROOM_TEMPLATE_ID_FILE);
+                        // The names the editor has always stored; it extracts the files by their extension
+                        var assets = new List<KeyValuePair<string, string>>();
+                        string iconFile = Path.Combine(projectDir, Path.ChangeExtension(room.FileName, ".ico"));
+                        if (File.Exists(iconFile))
+                        {
+                            assets.Add(new KeyValuePair<string, string>(Path.GetFileName(iconFile), iconFile));
+                        }
+                        assets.Add(new KeyValuePair<string, string>(ROOM_TEMPLATE_ID_FILE, idFile));
+                        assets.Add(new KeyValuePair<string, string>(room.FileName, roomFile));
+                        string scriptFile = Path.Combine(projectDir, room.ScriptFileName);
+                        if (File.Exists(scriptFile))
+                        {
+                            assets.Add(new KeyValuePair<string, string>(room.ScriptFileName.Replace('\\', '/'), scriptFile));
+                        }
+                        messages.AddRange(TemplatePackage.Pack(_agsEditor.EditorDirectory, filename, assets, tempDir));
+                    }
+                    if (messages.HasErrors)
+                    {
+                        throw new AGSEditorException(string.Join(Environment.NewLine, messages.Errors.Select(e => e.Message)));
+                    }
                 }
                 catch (AGSEditorException ex)
                 {
@@ -1402,6 +1431,25 @@ namespace AGS.Editor
                 {
                     Factory.GUIController.ShowError("There was an error creating your room template.", ex, MessageBoxIcon.Warning);
                 }
+                finally
+                {
+                    DeleteTemporaryDirectory(tempDir);
+                }
+            }
+        }
+
+        private void DeleteTemporaryDirectory(string directory)
+        {
+            try
+            {
+                if (Directory.Exists(directory))
+                {
+                    Directory.Delete(directory, true);
+                }
+            }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+            {
+                ShowMessage("Cannot delete the temporary folder " + directory + ": " + ex.Message, MessageBoxIcon.Warning);
             }
         }
 
