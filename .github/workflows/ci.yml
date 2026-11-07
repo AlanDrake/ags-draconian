@@ -538,6 +538,9 @@ jobs:
       - name: Run Engine tests (x86)
         run: Solutions\.test\x86\Release\Engine.App.Test.exe
 
+      - name: Run Engine full tests (x86)
+        run: Solutions\.test\x86\Release\Engine.Full.Test.exe
+
       - name: Run Tools tests (x86)
         run: Solutions\.test\x86\Release\Tools.Test.exe
 
@@ -572,6 +575,10 @@ jobs:
       - name: Run Engine tests (x64)
         if: needs.plan.outputs.full == 'true'
         run: Solutions\.test\x64\Release\Engine.App.Test.exe
+
+      - name: Run Engine full tests (x64)
+        if: needs.plan.outputs.full == 'true'
+        run: Solutions\.test\x64\Release\Engine.Full.Test.exe
 
       - name: Run Tools tests (x64)
         if: needs.plan.outputs.full == 'true'

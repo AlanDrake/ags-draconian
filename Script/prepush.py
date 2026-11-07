@@ -80,7 +80,8 @@ WERROR = '-DAGS_WARNINGS_AS_ERRORS=ON'
 MSB = os.path.join(WORK, 'msb')
 SOURCE_GLOBS = ['*.c', '*.cc', '*.cpp', '*.cxx', '*.h', '*.hpp', '*.inl']
 SOLUTIONS = ['Compiler.Lib', 'Tests', 'Engine', 'Tools', 'AGS.Editor.Full']  # Tools.sln builds agscc too
-TEST_RUNNERS = ['Compiler.Lib.Test.exe', 'Common.Lib.Test.exe', 'Engine.App.Test.exe', 'Tools.Test.exe']
+TEST_RUNNERS = ['Compiler.Lib.Test.exe', 'Common.Lib.Test.exe', 'Engine.App.Test.exe', 'Engine.Full.Test.exe',
+                'Tools.Test.exe']
 STAGES = ['format', 'build', 'tidy', 'headers', 'libcxx', 'emscripten', 'linux', 'msbuild']
 # Run only when named in --only: long, and a report more than a gate (analysis.yml is on demand too)
 ON_DEMAND = ['sanitizers', 'coverage']
