@@ -250,10 +250,20 @@ jobs:
         key: ccache-${{ matrix.platform.name }}-${{ github.sha }}
         restore-keys: ccache-${{ matrix.platform.name }}-
 
+    # The drift guard between the .vcxproj and the CMake targets (docs/refactor/PLAN.md, 3.2c): the CMake
+    # File API answers this query at the configure step that follows
+    - name: Query the CMake targets (File API)
+      if: matrix.platform.name == 'Windows'
+      run: python Script/check_build_lists.py --build "${{github.workspace}}/build" --query
+
     - name: Configure CMake
       run: |
         cmake --version
         ${{ matrix.platform.cmakecmd }} -S "${{github.workspace}}" -B "${{github.workspace}}/build" ${{ matrix.platform.cmakeargs }} -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Check the .vcxproj source lists against CMake
+      if: matrix.platform.name == 'Windows'
+      run: python Script/check_build_lists.py --build "${{github.workspace}}/build"
 
     # The statistics start here: the configure step's compiler checks are in scratch directories with
     # random names, some 200 calls that never hit

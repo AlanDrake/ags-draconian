@@ -12,6 +12,8 @@ Runs locally what the CI would otherwise discover after a push (docs/refactor/PL
 
 Stages, in the order they run (a failed stage does not stop the later ones; the summary lists all):
   format   clang-format 19.1.7 --dry-run -Werror over every tracked C/C++ file, as format.yml does
+  buildlists  the source lists of the .vcxproj against the CMake targets of the build stage's tree
+           (Script/check_build_lists.py, PLAN.md 3.2c), as the CI's Windows job does; configures the tree
   build    CMake + Ninja (MSVC) Release build with tools and tests, then ctest
   tidy     clang-tidy 19.1 on the lines that differ from the upstream branch (Script/tidy_diff.py, 2.4):
            naming and size rules for new code only; the build's compile_commands.json is the input
@@ -78,11 +80,12 @@ EMS = os.path.join(WORK, 'ems')
 # The targets marked ags_warning_free() fail on a warning (PLAN.md 1.5), as in the CI
 WERROR = '-DAGS_WARNINGS_AS_ERRORS=ON'
 MSB = os.path.join(WORK, 'msb')
+CHECK_BUILD_LISTS = os.path.join(REPO, 'Script', 'check_build_lists.py')
 SOURCE_GLOBS = ['*.c', '*.cc', '*.cpp', '*.cxx', '*.h', '*.hpp', '*.inl']
 SOLUTIONS = ['Compiler.Lib', 'Tests', 'Engine', 'Tools', 'AGS.Editor.Full']  # Tools.sln builds agscc too
 TEST_RUNNERS = ['Compiler.Lib.Test.exe', 'Common.Lib.Test.exe', 'Engine.App.Test.exe', 'Engine.Full.Test.exe',
                 'Tools.Test.exe']
-STAGES = ['format', 'build', 'tidy', 'headers', 'libcxx', 'emscripten', 'linux', 'msbuild']
+STAGES = ['format', 'buildlists', 'build', 'tidy', 'headers', 'libcxx', 'emscripten', 'linux', 'msbuild']
 # Run only when named in --only: long, and a report more than a gate (analysis.yml is on demand too)
 ON_DEMAND = ['sanitizers', 'coverage']
 # --auto: (pattern of a repository path, the stages a change there needs, what no stage verifies or None).
@@ -98,7 +101,8 @@ NOT_IN_THE_WEB_BUILD = ['build', 'headers', 'libcxx', 'linux', 'msbuild']
 AUTO_RULES = [
     (r'^docs/|\.md$|^\.git-blame-ignore-revs$|^\.github/ISSUE_TEMPLATE/|^(License|Copyright|Changes)\.txt$', [], None),
     (r'^\.github/', [], 'workflows: actionlint, and a probe branch for the jobs only CI runs'),
-    (r'(^|/)CMakeLists\.txt$|^CMake/', CMAKE_BUILDS, None),
+    (r'(^|/)CMakeLists\.txt$|^CMake/|\.cmake$', CMAKE_BUILDS + ['buildlists'], None),
+    (r'\.vcxproj$', ['buildlists', 'msbuild'], None),
     (r'(^|/)(libsrc|libinclude)/', ['build', 'emscripten', 'linux', 'msbuild'], None),
     (r'^Editor/AGS\.Editor/Resources/agsdefns\.sh$', NOT_IN_THE_WEB_BUILD, None),
     (r'^(Editor|Solutions)/', ['msbuild'], None),
@@ -108,6 +112,7 @@ AUTO_RULES = [
     (r'^Script/linux_jobs\.sh$', ['linux'], None),
     (r'^Script/(tidy_diff|refactor_metrics)\.py$', ['tidy'], None),
     (r'^Script/header_check_libcxx\.py$', ['libcxx'], None),
+    (r'^Script/check_build_lists\.py$', ['buildlists'], None),
     (r'^Script/', [], 'scripts: no stage runs this one'),
     (r'^ci/', [], 'CI support files: the on-demand stages, or a CI run'),
     (r'^(Android|iOS|OSX|Windows|debian)/', [], 'platform packaging: a full CI run (ci.yml, macos.yml)'),
@@ -210,6 +215,25 @@ def cmake_configure():
         run('build', [cmake, '-S', REPO, '-B', BUILD, '-G', 'Ninja', '-DCMAKE_BUILD_TYPE=Release', '-DAGS_BUILD_TOOLS=1',
                       '-DAGS_TESTS=1', '-DAGS_HEADER_CHECK=1', '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON', WERROR], env=env)
     return env, cmake
+
+
+def stage_buildlists():
+    env, cmake = cmake_configure()
+    # The File API answers a query at the next configure: once by hand, then whenever ninja regenerates
+    has_reply = glob.glob(os.path.join(BUILD, '.cmake', 'api', 'v1', 'reply', 'index-*.json'))
+    run('buildlists', [sys.executable, CHECK_BUILD_LISTS, '--build', BUILD, '--query'])
+    if has_reply:
+        run('buildlists', [tool_of('ninja', env), '-C', BUILD, 'build.ninja'], env=env)
+    else:
+        run('buildlists', [cmake, BUILD], env=env)
+    try:
+        run('buildlists', [sys.executable, CHECK_BUILD_LISTS, '--build', BUILD])
+    except subprocess.CalledProcessError as e:
+        drift = last_match('buildlists', 'only in ')
+        if drift:
+            e.note = 'drift (%s and maybe more), see %s' % (drift, os.path.relpath(log_path('buildlists'), REPO))
+        raise
+    return last_match('buildlists', 'match their CMake targets')
 
 
 def stage_build():
@@ -549,8 +573,9 @@ def print_auto_plan(base, paths, needed, uncovered):
         print('  no stage verifies %s%s (%s)' % (', '.join(group[:3]), more, note))
 
 
-RUNNERS = {'format': stage_format, 'build': stage_build, 'tidy': stage_tidy, 'headers': stage_headers,
-           'libcxx': stage_libcxx, 'emscripten': stage_emscripten, 'linux': stage_linux, 'msbuild': stage_msbuild,
+RUNNERS = {'format': stage_format, 'buildlists': stage_buildlists, 'build': stage_build, 'tidy': stage_tidy,
+           'headers': stage_headers, 'libcxx': stage_libcxx, 'emscripten': stage_emscripten, 'linux': stage_linux,
+           'msbuild': stage_msbuild,
            'sanitizers': stage_sanitizers, 'coverage': stage_coverage}
 
 
