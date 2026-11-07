@@ -2405,11 +2405,59 @@ Sonnet 5.5 one, each on its own files):
   stage applies to this change (Editor only); `prepush.py --auto` also lists the stages of the earlier
   unpushed commits.
 
+**6.7d-12 Deletions** (2026-11-07; an Opus 5.5 subagent): eleven commits, in an order where each one builds
+and passes the tests (the in-process compile goes after `DataFileWriter`, which read `Script.CompiledData` and
+`Game.ScriptsToCompile`; `DialogScriptConverter` and the preprocessor after the compile, their only caller):
+1. The editor's build: `CompileGame`, `CreateCompiledFiles`, `CreateMiniEXEForDebugging`,
+   `ExtraOutputCreationStep` (raised only there; the C# voice packs with it), `BuildTargetDebug.Build`,
+   `BuildTargetDataFile.Build` (only `CreateCompiledFiles` called it), `PreCompileGameEventArgs.BuildsWithTools`
+   and `ForceRebuildTime`, the translation branch of `PreCompileGame`, both `Utilities.DoesFileNeedRecompile`.
+2. The C# `.tra` writer. 3. `DataFileWriter.cs` (2,557 lines) and an unused copy of `CreateAudioVOXFile`;
+   `BuildTargetWindows` (Build EXE with the data attached) keeps the CLIB end signature as its own constant.
+4. The room writer in `AGS.Native`: `NativeRoom.SaveToFile`, `save_room_file`, `save_default_crm_file` (without a
+   caller at all) and the two helpers only they used.
+5. A move: `ScriptCompiler.cpp` also held the live EXE resource functions (`UpdateFileIcon`,
+   `UpdateFileVersionInfo`), now at the end of `NativeMethods.cpp`.
+6. The script compiler setting has no list (a behaviour change): the list came from the in-process compilers;
+   the setting is hidden, still saved, and set to "AGS SCOM 4" on load as before (`agscc` does not read it).
+7. The in-process compile: `CompileScript*`, `IScriptCompiler`, `ScriptCompiler.cpp`, `CompiledScript.h`,
+   `Script.CompiledData`, `Game.ScriptsToCompile`, `ExtraCompilationStep`, `GetScriptModuleList`,
+   `_GlobalVariables.asc`. `IScriptCompiler.h` had put `using namespace AGS::Types` inside `AGS::Native`, which
+   `NativeMethods.cpp` relied on (`Native::FontMetrics`); the type is written as `AGS::Types::FontMetrics` now
+   (unqualified it is ambiguous with the native `FontMetrics` of `Common/font`), no `using namespace` in a header.
+8. `DialogScriptConverter.cs` and `Dialog.CachedConvertedScript`; `IsRealScriptLineInDialog` moved to
+   `GameSpeechProcessor`. 9. The C# preprocessor (`Preprocessor`, `IPreprocessor`, `PreprocessorState`,
+   `Macro`, `Macros`) and its 22 tests: its one other caller was the in-process compile; autocomplete and the
+   script editor never used it.
+10. A move: the `_GlobalVariables.ash` text to `Tasks.MakeGlobalVariablesHeader`, next to
+    `RegenerateScriptHeader`, so a test can call it. 11. `AgfexportHeaderTests`: both headers against
+    `agfexport autoash` and `glvar`, line by line, with `AGS_TEST_PROJECT`. Its first version failed on a private
+    AGS 4 game: the editor lists a folder's views before its subfolders, `agfexport` by ID, which the scripts do
+    not see; runs of `#define` lines are compared sorted. It passes on the auto-test project,
+    `Tools/test/data`, a private AGS 4 game and a private 8-bit game.
+- Measured: MSBuild after every step, no warning added (the native code from scratch: 25 warnings before, 24
+  after, one moved with its function and one went with `save_default_crm_file`); NUnit 567 of 567 after steps
+  1 to 8 less the 22 preprocessor tests, 547 of 547 at the end (541 and 6 ignored without the test project);
+  `compare_builds.py --tools-editor` against the reference editor: 59 of 59 identical, parity in all ten
+  variants; the auto-test template byte-identical (119 assets); Ctrl+F5 of this editor: 2414 of 2414;
+  `prepush.py --auto`: `format` and `msbuild` (five solutions and the editor's NUnit) pass.
+- Found and fixed on the way: the first version of step 1 also dropped the C# voice packs' file-time cache, but
+  that is written into `Game.agf` (`<SpeechVoxFiles>`, component data), not the user file; the template check
+  caught the 77 bytes, and the element stays (read and written back) until the user decides.
+- Found, not fixed: `WorkspaceState.RequiredRebuildTime` is saved in the user data and read by nothing;
+  `NativeRoom(Room)`, `SetBackground`, `SetAreaMask` and `convert_room_to_native` have no caller outside
+  `NativeRoomTests`; `AGS.Native` no longer includes anything from `Compiler/`, so its `Compiler_md.lib` link and
+  include path are unneeded; what is left of `AGS.CScript.Compiler` outside `FastString` (autocomplete) has no
+  user outside the project.
+- Not verified: the intermediate states were built and tested before the `<SpeechVoxFiles>` fix (three lines
+  that only keep the element; the final state is); a plugin that used the removed events or types; Linux and
+  macOS (the editor is Windows only).
+
 **Bugs found on the way, not fixed:** `BuildTargetBase.DeleteCommonGameFiles` deletes `filename`
 instead of the loop's `fileName`, so old split parts are never removed (still so for `Compiled/Windows`;
 in `Compiled/Data` agsbuild removes them); the split part names above;
 `RoomsComponent.CopyGamePalette` copies references, so opening a room changes the game palette (6.7d-5);
-`AGSEditor.CreateAudioVOXFile` is an unused copy of the one in `BuildTargetDataFile`;
+`AGSEditor.CreateAudioVOXFile` is an unused copy of the one in `BuildTargetDataFile` (both deleted in 6.7d-12);
 `Tasks.HandleObjectIDErrors` repaired IDs after the project was saved (fixed for the build in 6.7d-9, for the
 Run in 6.7d-10).
 
