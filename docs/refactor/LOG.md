@@ -1183,6 +1183,25 @@ See LOG.md for the details of the removal and its verification.
   loads with the warning, compiles and is saved with "AGS SCOM 4"; the Makefile's source list
   links into a working `agscc` (MSVC objects, no GCC here).
 
+*Status (2026-11-07):* `Editor/AGS.CScript.Compiler` is gone (task 3.3 is done). Three commits:
+- `FastString`, the project's one type with a user outside it (`AutoComplete`), moved to
+  `Editor/AGS.Editor/Utils/FastString.cs`, namespace `AGS.Editor` (the namespace line is the only text change).
+  It is a copy for one commit, because the project's tokenizer and `ScriptAnnotations` still used it; the
+  original went with the folder.
+- Deleted: the project (50 files, about 3,200 lines: tokenizer, code generator, `ScriptCompiler.cs`, the
+  entities), the `ProjectReference` in `AGSEditor.csproj` and `AGS.Editor.Tests.csproj`, the project and its
+  configuration lines in `AGS.Editor.Full.sln` and `AGS.Editor.NoNative.sln`, the `Program.cs` assembly-resolve
+  case, the unused `using` in `SpeechComponent.cs` and `GameTextEncodingChangedArgs.cs`, the dll in the
+  installer's file list (`ags.iss`) and in `Windows/README.md`. Nothing in `.github/` or `ci/` named it.
+- Measured: `AGS.Editor.Full.sln` Release x86 builds, the same five C# warnings (CS0168, CS0612) after the move and after the
+  deletion, all in files this task did not touch, no `AGS.CScript.Compiler.dll` in the output; editor NUnit 547 of 547
+  after each commit, `AutoCompleteTests` among them (they cover `FastString` through `AutoComplete`).
+  `grep CScript` finds nothing outside `docs/context/` (upstream knowledge, upstream still has the project) and
+  this file and PLAN.md.
+- Not verified: the installer (`ags.iss` builds only with Inno Setup and a prepared `Source\`), the README text,
+  and `AGS.Editor.NoNative.sln` (its native project fails to link `Common_md_d.lib` in a fresh output
+  directory, in a project this change does not touch; not compared against the parent commit, and the log shows no C# error).
+
 ### 7.1 Make the C++ tools the only build path
 
 *Starting point, moved from PLAN.md on 2026-11-04:*

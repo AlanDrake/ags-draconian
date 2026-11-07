@@ -79,7 +79,8 @@ Entry points, in reading order:
 `docs/context/repository.md` applies, with these differences: `Compiler/script` (new compiler),
 `Editor/AGS.Editor/Build/` (the editor's tool runners: `BuildToolRunner` for `agsbuild --json`,
 `ToolProcess` for the others, `TemplatePackage`, `TranslationCompiler`; no `DataFileWriter.cs`, no
-`ScriptCompiler.cpp` in `AGS.Native`),
+`ScriptCompiler.cpp` in `AGS.Native`; `AGS.CScript.Compiler` is gone, `FastString` lives in
+`Editor/AGS.Editor/Utils/`),
 `Tools/crmbuild`, `Tools/data/xml_fields.h` (table-driven `Game.agf` reading, drift guard
 `Tools/data/agf_elements.txt`), `Script/compare_objects.py`, `Script/compare_builds.py`,
 `Script/refactor_metrics.py` (BASELINE.md numbers), `Script/tidy_fix.py`, `Script/tidy_diff.py` (clang-tidy on changed lines), `ci/corpus/`,
