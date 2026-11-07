@@ -1121,6 +1121,8 @@
     <Compile Include="Build\BuildToolRunner.cs" />
     <Compile Include="Build\ProcessJob.cs" />
     <Compile Include="Build\ScriptHeaderFiles.cs" />
+    <Compile Include="Build\ToolProcess.cs" />
+    <Compile Include="Build\ToolProcessResult.cs" />
     <Compile Include="BuildTargets\BuildTargetBase.cs" />
     <Compile Include="BuildTargets\BuildTargetDataFile.cs" />
     <Compile Include="BuildTargets\BuildTargetDebug.cs" />
