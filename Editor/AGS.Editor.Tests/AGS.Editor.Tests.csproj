@@ -116,7 +116,6 @@
     <Compile Include="Editor\Utilities\ScriptParsingTests.cs" />
     <Compile Include="Editor\Utilities\TextUtilsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ScriptCompiler\PreprocessorTests.cs" />
     <Compile Include="Types\AgfElementsTests.cs" />
     <Compile Include="Types\GameXmlRoundTripTests.cs" />
     <Compile Include="Types\RuntimeSetupTests.cs" />

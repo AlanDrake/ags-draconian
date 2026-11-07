@@ -132,13 +132,8 @@
     <Compile Include="Entities\TokenType.cs" />
     <Compile Include="Entities\Tristate.cs" />
     <Compile Include="Entities\Warning.cs" />
-    <Compile Include="IPreprocessor.cs" />
-    <Compile Include="Entities\Macro.cs" />
-    <Compile Include="Entities\Macros.cs" />
     <Compile Include="IScriptCompiler.cs" />
     <Compile Include="ITokenizer.cs" />
-    <Compile Include="Preprocessor.cs" />
-    <Compile Include="Entities\PreprocessorState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScriptCompiler.cs" />
     <Compile Include="Tokenizer.cs" />
