@@ -2474,6 +2474,29 @@ and passes the tests (the in-process compile goes after `DataFileWriter`, which 
   done, 3.3 rewritten for what is left (`AGS.CScript.Compiler`).
 - Not verified: the CI job itself (the next push confirms it; `actionlint` passed on the edited workflow).
 
+**6.7d-12 follow-up, the three open decisions** (2026-11-07, the user decided, the supervisor did them):
+- The script compiler setting is `[Obsolete]`, as `ExtendedCompiler` is: still read, so older projects load, no
+  longer written, so it leaves `Game.agf` at the next save; the upgrade step no longer sets it, it only warns
+  when a project had selected a compiler other than "AGS SCOM 4" (the legacy "AGS SCOM 3 EXT"), since such
+  scripts may need changes for `agscc`. `Tools/data/agf_elements.txt` and the sample `Tools/test/data/Game.agf`
+  regenerated through their tests' update switches (`agfreader` keeps the element as known and ignored).
+- `<SpeechVoxFiles>`, the deleted C# voice packs' file-time cache, is no longer read or written; it leaves
+  `Game.agf` at the next save too. The two templates (reference editor, this editor) differ by those two
+  elements alone: 149 bytes of `Game.agf`, the other 118 assets identical.
+- `GetScriptModuleList` and the other removed types were hooks into the in-process compile, none of them in
+  `IAGSEditor` (its one event, `GetScriptHeaderList`, stays); nothing to restore.
+- Found and fixed: `WorkspaceState.RequiresRebuild` (set when a project or its rooms are upgraded on load) had
+  not been read since 6.7d-9: the old build OR-ed it into `forceRebuild`, the new build path did not, so an
+  upgraded project no longer got the full build it asked for (the content-hash cache of 7.1k and 7.1p covers
+  most of it, since upgraded sources hash differently). `BuildGame` ORs it in again, so it reaches
+  `agsbuild --rebuild`. `RequiredRebuildTime`, the time stamp that `DoesFileNeedRecompile` compared file
+  times with, is dead for good (the manifests replaced the comparison) and is gone from `WorkspaceState` and
+  the user file, with the setters that wrote it and the line in `BuildCommandsComponent`.
+- Measured: editor NUnit 547 of 547; `tools_test` `AGFReaderSample` 2 of 2 on the new sample;
+  `compare_builds.py --tools-editor` against the reference editor 59 of 59 identical; the template as above.
+  Not verified: a Debug/Release switch, which used to force a rebuild through the time stamp, now relies on
+  the cache's inputs (the flags and `Game.agf` part it hashes).
+
 **Bugs found on the way, not fixed:** `BuildTargetBase.DeleteCommonGameFiles` deletes `filename`
 instead of the loop's `fileName`, so old split parts are never removed (still so for `Compiled/Windows`;
 in `Compiled/Data` agsbuild removes them); the split part names above;
