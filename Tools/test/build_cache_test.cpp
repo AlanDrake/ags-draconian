@@ -12,19 +12,26 @@
 //
 //=============================================================================
 //
-// Tests for agsbuild's incremental room builds (docs/refactor/PLAN.md, 7.1k): a change to any kind
-// of input changes a room's manifest, so the room is built again; a room kept is one whose file
-// and manifest are there.
+// Tests for agsbuild's incremental room builds and script compiles (docs/refactor/PLAN.md, 7.1k and
+// 7.1p): a change to any kind of input changes a room's or a script's manifest, so it is built
+// again; a room or script kept is one whose file and manifest are there, and a script kept reports
+// the compiler's warnings again.
 //
 //=============================================================================
+#include <chrono>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <future>
 #include <memory>
 #include <utility>
 #include <vector>
 
 #include "agsbuild/build_cache.h"
+#include "agsbuild/diagnostics.h"
 #include "gtest/gtest.h"
+#include "platform/platform.h"
 #include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"
@@ -70,7 +77,7 @@ protected:
     {
         // A folder for each test: ctest runs them at the same time
         const String name =
-            String::FromFormat("room_cache_test_%s", ::testing::UnitTest::GetInstance()->current_test_info()->name());
+            String::FromFormat("build_cache_test_%s", ::testing::UnitTest::GetInstance()->current_test_info()->name());
         _dir = MakeTestDir(name.GetCStr());
         ASSERT_TRUE(Directory::CreateAllDirectories(_dir, "Rooms/1"));
         for (const char *tool : {"agsbuild", "agscc", "crmbuild"})
@@ -107,7 +114,7 @@ protected:
     {
         FileHasher hasher;
         String manifest;
-        HError err = MakeRoomManifest(_in, hasher, manifest);
+        HError err = MakeManifest(_in, hasher, manifest);
         EXPECT_TRUE(err) << (err ? "" : err->FullMessage().GetCStr());
         return manifest;
     }
@@ -123,13 +130,13 @@ protected:
     }
 
     String _dir;
-    RoomBuildInputs _in;
+    BuildInputs _in;
     String _manifest;
 };
 
 } // namespace
 
-TEST(RoomCache, HashIsFnv1a64)
+TEST(BuildCache, HashIsFnv1a64)
 {
     // The published FNV-1a test values
     EXPECT_EQ(0xcbf29ce484222325ull, HashBytes("", 0));
@@ -228,20 +235,20 @@ TEST_F(RoomCacheTest, MissingInputIsAnError)
     File::DeleteFile(_in.Headers[4]);
     FileHasher hasher;
     String manifest;
-    EXPECT_FALSE(MakeRoomManifest(_in, hasher, manifest));
+    EXPECT_FALSE(MakeManifest(_in, hasher, manifest));
 }
 
 TEST_F(RoomCacheTest, RoomWithTheSameManifestIsUpToDate)
 {
-    RoomCacheEntry entry;
-    entry.CrmFile = MakeFile("room1.crm", "room");
+    CacheEntry entry;
+    entry.OutputFile = MakeFile("room1.crm", "room");
     entry.ManifestFile = Path::ConcatPaths(_dir, "manifest.txt");
     entry.Manifest = _manifest;
-    ASSERT_TRUE(WriteRoomManifest(entry));
+    ASSERT_TRUE(WriteManifest(entry));
 
-    ASSERT_TRUE(CheckRoomCache(entry, false));
+    ASSERT_TRUE(CheckCache(entry, false));
     EXPECT_TRUE(entry.UpToDate);
-    EXPECT_TRUE(File::IsFile(entry.CrmFile));
+    EXPECT_TRUE(File::IsFile(entry.OutputFile));
     EXPECT_TRUE(File::IsFile(entry.ManifestFile));
 }
 
@@ -249,62 +256,62 @@ TEST_F(RoomCacheTest, RoomWithTheSameManifestIsUpToDate)
 // later leaves nothing that the next build would keep
 TEST_F(RoomCacheTest, StaleRoomIsDeleted)
 {
-    RoomCacheEntry entry;
-    entry.CrmFile = MakeFile("room1.crm", "room");
+    CacheEntry entry;
+    entry.OutputFile = MakeFile("room1.crm", "room");
     entry.ManifestFile = Path::ConcatPaths(_dir, "manifest.txt");
     entry.Manifest = _manifest;
-    ASSERT_TRUE(WriteRoomManifest(entry));
+    ASSERT_TRUE(WriteManifest(entry));
 
     entry.Manifest.Append("source 0000000000000000 background1.png\n");
-    ASSERT_TRUE(CheckRoomCache(entry, false));
+    ASSERT_TRUE(CheckCache(entry, false));
     EXPECT_FALSE(entry.UpToDate);
-    EXPECT_FALSE(File::IsFile(entry.CrmFile));
+    EXPECT_FALSE(File::IsFile(entry.OutputFile));
     EXPECT_FALSE(File::IsFile(entry.ManifestFile));
 }
 
 TEST_F(RoomCacheTest, RoomWithoutItsFileIsStale)
 {
-    RoomCacheEntry entry;
-    entry.CrmFile = Path::ConcatPaths(_dir, "room1.crm");
+    CacheEntry entry;
+    entry.OutputFile = Path::ConcatPaths(_dir, "room1.crm");
     entry.ManifestFile = Path::ConcatPaths(_dir, "manifest.txt");
     entry.Manifest = _manifest;
-    ASSERT_TRUE(WriteRoomManifest(entry));
+    ASSERT_TRUE(WriteManifest(entry));
 
-    ASSERT_TRUE(CheckRoomCache(entry, false));
+    ASSERT_TRUE(CheckCache(entry, false));
     EXPECT_FALSE(entry.UpToDate);
     EXPECT_FALSE(File::IsFile(entry.ManifestFile));
 }
 
 TEST_F(RoomCacheTest, RoomWithoutManifestIsStale)
 {
-    RoomCacheEntry entry;
-    entry.CrmFile = MakeFile("room1.crm", "room");
+    CacheEntry entry;
+    entry.OutputFile = MakeFile("room1.crm", "room");
     entry.ManifestFile = Path::ConcatPaths(_dir, "manifest.txt");
     entry.Manifest = _manifest;
 
-    ASSERT_TRUE(CheckRoomCache(entry, false));
+    ASSERT_TRUE(CheckCache(entry, false));
     EXPECT_FALSE(entry.UpToDate);
-    EXPECT_FALSE(File::IsFile(entry.CrmFile));
+    EXPECT_FALSE(File::IsFile(entry.OutputFile));
 }
 
 TEST_F(RoomCacheTest, RebuildMakesEveryRoomStale)
 {
-    RoomCacheEntry entry;
-    entry.CrmFile = MakeFile("room1.crm", "room");
+    CacheEntry entry;
+    entry.OutputFile = MakeFile("room1.crm", "room");
     entry.ManifestFile = Path::ConcatPaths(_dir, "manifest.txt");
     entry.Manifest = _manifest;
-    ASSERT_TRUE(WriteRoomManifest(entry));
+    ASSERT_TRUE(WriteManifest(entry));
 
-    ASSERT_TRUE(CheckRoomCache(entry, true));
+    ASSERT_TRUE(CheckCache(entry, true));
     EXPECT_FALSE(entry.UpToDate);
-    EXPECT_FALSE(File::IsFile(entry.CrmFile));
+    EXPECT_FALSE(File::IsFile(entry.OutputFile));
     EXPECT_FALSE(File::IsFile(entry.ManifestFile));
 }
 
 // A build starts with nothing of an earlier one but the rooms it keeps
 TEST(RoomCache, ClearTempDirKeepsRoomsWithManifest)
 {
-    const String dir = MakeTestDir("room_cache_clear_test");
+    const String dir = MakeTestDir("build_cache_clear_test");
     ASSERT_TRUE(Directory::CreateAllDirectories(dir, "room1"));
     ASSERT_TRUE(Directory::CreateAllDirectories(dir, "room2"));
     ASSERT_TRUE(Directory::CreateAllDirectories(dir, "roomx"));
@@ -319,7 +326,7 @@ TEST(RoomCache, ClearTempDirKeepsRoomsWithManifest)
     WriteFile(Path::ConcatPaths(dir, "_voice/speech.vox/a.ogg"), "voice");
     WriteFile(Path::ConcatPaths(dir, "game28.dta"), "data");
 
-    ASSERT_TRUE(ClearTempDirKeepingRooms(dir));
+    ASSERT_TRUE(ClearTempDirKeepingCache(dir));
     EXPECT_TRUE(File::IsFile(Path::ConcatPaths(dir, "room1/manifest.txt")));
     EXPECT_TRUE(File::IsFile(Path::ConcatPaths(dir, "room1/room1.o")));
     EXPECT_TRUE(File::IsFile(Path::ConcatPaths(dir, "room1.crm")));
@@ -334,8 +341,312 @@ TEST(RoomCache, ClearTempDirKeepsRoomsWithManifest)
 
 TEST(RoomCache, ClearTempDirOfNothingSucceeds)
 {
-    Directory::DeleteDirectoryTree("room_cache_none_test");
-    EXPECT_TRUE(ClearTempDirKeepingRooms("room_cache_none_test"));
+    Directory::DeleteDirectoryTree("build_cache_none_test");
+    EXPECT_TRUE(ClearTempDirKeepingCache("build_cache_none_test"));
+}
+
+// ... and the compiled scripts that have a manifest, with their manifests
+TEST(ScriptCache, ClearTempDirKeepsScriptsWithManifest)
+{
+    const String dir = MakeTestDir("build_cache_clear_scripts_test");
+    ASSERT_TRUE(Directory::CreateAllDirectories(dir, "scripts/sub"));
+    WriteFile(Path::ConcatPaths(dir, "GlobalScript.o"), "script");
+    WriteFile(Path::ConcatPaths(dir, MakeScriptManifestName("GlobalScript.o")), "manifest");
+    WriteFile(Path::ConcatPaths(dir, "Module.o"), "script");
+    WriteFile(Path::ConcatPaths(dir, MakeScriptManifestName("Removed.o")), "manifest");
+    WriteFile(Path::ConcatPaths(dir, "scripts/notes.txt"), "text");
+    WriteFile(Path::ConcatPaths(dir, "scripts/sub/a.manifest"), "manifest");
+    WriteFile(Path::ConcatPaths(dir, "ScriptModules.lst"), "Module.o");
+
+    ASSERT_TRUE(ClearTempDirKeepingCache(dir));
+    EXPECT_TRUE(File::IsFile(Path::ConcatPaths(dir, "GlobalScript.o")));
+    EXPECT_TRUE(File::IsFile(Path::ConcatPaths(dir, MakeScriptManifestName("GlobalScript.o"))));
+    EXPECT_FALSE(File::IsFile(Path::ConcatPaths(dir, "Module.o")));
+    EXPECT_FALSE(File::IsFile(Path::ConcatPaths(dir, MakeScriptManifestName("Removed.o"))));
+    EXPECT_FALSE(File::IsFile(Path::ConcatPaths(dir, "scripts/notes.txt")));
+    EXPECT_FALSE(File::IsDirectory(Path::ConcatPaths(dir, "scripts/sub")));
+    EXPECT_FALSE(File::IsFile(Path::ConcatPaths(dir, "ScriptModules.lst")));
+    Directory::DeleteDirectoryTree(dir);
+}
+
+TEST(ScriptCache, ManifestIsInTheScriptsFolder)
+{
+    EXPECT_STREQ("scripts/GlobalScript.o.manifest", MakeScriptManifestName("GlobalScript.o").GetCStr());
+}
+
+namespace
+{
+
+// A command that prints a warning in the form of agscc, and succeeds
+PipedProcessParams CompilerWithWarning()
+{
+#if AGS_PLATFORM_OS_WINDOWS
+    return PipedProcessParams("cmd", "/c echo Warning: issue at a.asc, line 3 : unused variable& exit 0");
+#else
+    return PipedProcessParams("sh", "-c 'echo \"Warning: issue at a.asc, line 3 : unused variable\"; exit 0'");
+#endif
+}
+
+// A command that prints an error in the form of agscc, and fails
+PipedProcessParams FailingCompiler()
+{
+#if AGS_PLATFORM_OS_WINDOWS
+    return PipedProcessParams("cmd", "/c echo Error: compile failed at a.asc, line 3 : broken& exit 1");
+#else
+    return PipedProcessParams("sh", "-c 'echo \"Error: compile failed at a.asc, line 3 : broken\"; exit 1'");
+#endif
+}
+
+// A project's script, tools and headers as files, and the inputs of its compile
+class ScriptCacheTest : public ::testing::Test
+{
+protected:
+    void SetUp() override
+    {
+        // A folder for each test: ctest runs them at the same time
+        const String name = String::FromFormat("build_cache_script_test_%s",
+                                               ::testing::UnitTest::GetInstance()->current_test_info()->name());
+        _dir = MakeTestDir(name.GetCStr());
+        ASSERT_TRUE(Directory::CreateAllDirectories(_dir, "_obj/scripts"));
+        for (const char *tool : {"agsbuild", "agscc"})
+        {
+            _in.Tools.push_back(MakeFile(tool, tool));
+        }
+        for (const char *header : {"_obj/_BuiltInScriptHeader.ash", "_obj/_AutoGenerated.ash",
+                                   "_obj/_GlobalVariables.ash", "__Plugin_a.ash", "Module.ash", "Other.ash"})
+        {
+            _in.Headers.push_back(MakeFile(header, header));
+        }
+        _in.Commands = {"Module.asc -H a.ash -o _obj/Module.o -A Highest"};
+        _in.Sources = {MakeFile("Module.asc", "function game_start() {}")};
+        MakeFile("Other.asc", "function other() {}");
+        _manifest = Manifest();
+        ASSERT_FALSE(_manifest.IsEmpty());
+        _entry.OutputFile = Path::ConcatPaths(_dir, "_obj/Module.o");
+        _entry.ManifestFile = Path::ConcatPaths(_dir, Path::ConcatPaths("_obj", MakeScriptManifestName("Module.o")));
+        _entry.Manifest = _manifest;
+    }
+
+    void TearDown() override { Directory::DeleteDirectoryTree(_dir); }
+
+    String MakeFile(const char *name, const char *text)
+    {
+        const String path = Path::ConcatPaths(_dir, name);
+        WriteFile(path, text);
+        return path;
+    }
+
+    String Manifest()
+    {
+        FileHasher hasher;
+        String manifest;
+        HError err = MakeManifest(_in, hasher, manifest);
+        EXPECT_TRUE(err) << (err ? "" : err->FullMessage().GetCStr());
+        return manifest;
+    }
+
+    void ExpectContentsCount(const String &path)
+    {
+        const String old_text = ReadFile(path);
+        WriteFile(path, "changed");
+        EXPECT_NE(_manifest, Manifest()) << path.GetCStr();
+        WriteFile(path, old_text.GetCStr());
+        EXPECT_EQ(_manifest, Manifest()) << path.GetCStr();
+    }
+
+    // Runs a compile task of the script with the command; returns its result and the diagnostics
+    HError Compile(const PipedProcessParams &compiler, bool rebuild, std::vector<Diag::Diagnostic> &seen)
+    {
+        TaskManager mgr(1);
+        mgr.AddTask(std::make_unique<TaskCompileScript>("agscc:Module.asc", &mgr, compiler, _in, _entry,
+                                                        std::make_shared<FileHasher>(), rebuild,
+                                                        std::vector<TaskInput>()));
+        Diag::SetDiagnosticObserver([&seen](const Diag::Diagnostic &d) { seen.push_back(d); });
+        auto run = std::async(std::launch::async, [&mgr]() { return mgr.RunAll(); });
+        if (run.wait_for(std::chrono::seconds(60)) != std::future_status::ready)
+        {
+            std::fprintf(stderr, "compile task did not finish in time\n");
+            std::abort();
+        }
+        HError err = run.get();
+        Diag::SetDiagnosticObserver(nullptr);
+        return err;
+    }
+
+    String _dir;
+    BuildInputs _in;
+    String _manifest;
+    CacheEntry _entry;
+};
+
+} // namespace
+
+TEST_F(ScriptCacheTest, SameInputsMakeTheSameManifest)
+{
+    EXPECT_EQ(_manifest, Manifest());
+}
+
+TEST_F(ScriptCacheTest, ToolChangesTheManifest)
+{
+    for (const auto &tool : _in.Tools)
+    {
+        ExpectContentsCount(tool);
+    }
+}
+
+// The command line holds the compiler's options, the script's path and the headers' order
+TEST_F(ScriptCacheTest, CompilerOptionChangesTheManifest)
+{
+    _in.Commands[0].Append(" -g");
+    EXPECT_NE(_manifest, Manifest());
+}
+
+// The built-in, auto-generated, global variables, plugin and module headers: a module's header
+// is an input of every script
+TEST_F(ScriptCacheTest, EachHeaderChangesTheManifest)
+{
+    for (const auto &header : _in.Headers)
+    {
+        ExpectContentsCount(header);
+    }
+}
+
+TEST_F(ScriptCacheTest, HeaderOrderChangesTheManifest)
+{
+    std::swap(_in.Headers[4], _in.Headers[5]);
+    EXPECT_NE(_manifest, Manifest());
+}
+
+TEST_F(ScriptCacheTest, AddedOrRemovedHeaderChangesTheManifest)
+{
+    _in.Headers.push_back(MakeFile("Added.ash", "Added.ash"));
+    EXPECT_NE(_manifest, Manifest());
+    _in.Headers.pop_back();
+    EXPECT_EQ(_manifest, Manifest());
+    _in.Headers.pop_back();
+    EXPECT_NE(_manifest, Manifest());
+}
+
+TEST_F(ScriptCacheTest, ScriptChangesTheManifest)
+{
+    ExpectContentsCount(_in.Sources[0]);
+}
+
+// The global variables and dialog scripts are generated: hashed as this build made them
+TEST_F(ScriptCacheTest, GeneratedScriptChangesTheManifest)
+{
+    _in.Sources = {MakeFile("_obj/__DialogScripts.asc", "function _run_dialog0() {}")};
+    _manifest = Manifest();
+    ExpectContentsCount(_in.Sources[0]);
+}
+
+// A script compiles without the other scripts: a change in another one keeps it
+TEST_F(ScriptCacheTest, OtherScriptKeepsTheManifest)
+{
+    WriteFile(Path::ConcatPaths(_dir, "Other.asc"), "function other() { int changed; }");
+    EXPECT_EQ(_manifest, Manifest());
+}
+
+TEST_F(ScriptCacheTest, ScriptWithTheSameManifestIsUpToDateWithItsOutput)
+{
+    MakeFile("_obj/Module.o", "script");
+    ASSERT_TRUE(WriteManifest(_entry, "Warning: issue at a.asc, line 3 : unused variable\n"));
+
+    ASSERT_TRUE(CheckCache(_entry, false));
+    EXPECT_TRUE(_entry.UpToDate);
+    EXPECT_STREQ("Warning: issue at a.asc, line 3 : unused variable\n", _entry.ToolOutput.GetCStr());
+    EXPECT_TRUE(File::IsFile(_entry.OutputFile));
+}
+
+TEST_F(ScriptCacheTest, StaleScriptIsDeleted)
+{
+    MakeFile("_obj/Module.o", "script");
+    ASSERT_TRUE(WriteManifest(_entry));
+    _entry.Manifest.Append("header 0000000000000000 Added.ash\n");
+
+    ASSERT_TRUE(CheckCache(_entry, false));
+    EXPECT_FALSE(_entry.UpToDate);
+    EXPECT_FALSE(File::IsFile(_entry.OutputFile));
+    EXPECT_FALSE(File::IsFile(_entry.ManifestFile));
+}
+
+// A manifest that has the inputs of this build, and more after them, is another build's
+TEST_F(ScriptCacheTest, ManifestWithMoreInputsIsStale)
+{
+    MakeFile("_obj/Module.o", "script");
+    CacheEntry more = _entry;
+    more.Manifest.Append("header 0000000000000000 Added.ash\n");
+    ASSERT_TRUE(WriteManifest(more));
+
+    ASSERT_TRUE(CheckCache(_entry, false));
+    EXPECT_FALSE(_entry.UpToDate);
+}
+
+TEST_F(ScriptCacheTest, ScriptWithoutItsFileIsStale)
+{
+    ASSERT_TRUE(WriteManifest(_entry));
+    ASSERT_TRUE(CheckCache(_entry, false));
+    EXPECT_FALSE(_entry.UpToDate);
+    EXPECT_FALSE(File::IsFile(_entry.ManifestFile));
+}
+
+TEST_F(ScriptCacheTest, RebuildMakesTheScriptStale)
+{
+    MakeFile("_obj/Module.o", "script");
+    ASSERT_TRUE(WriteManifest(_entry));
+    ASSERT_TRUE(CheckCache(_entry, true));
+    EXPECT_FALSE(_entry.UpToDate);
+    EXPECT_FALSE(File::IsFile(_entry.OutputFile));
+    EXPECT_FALSE(File::IsFile(_entry.ManifestFile));
+}
+
+// The task compiles a script that is not up to date and records it with the compiler's output;
+// the next one keeps it without running the compiler, and reports the same warning
+TEST_F(ScriptCacheTest, TaskKeepsTheScriptAndReportsItsWarningsAgain)
+{
+    std::vector<Diag::Diagnostic> seen;
+    ASSERT_TRUE(Compile(CompilerWithWarning(), false, seen));
+    ASSERT_EQ(1u, seen.size());
+    EXPECT_EQ(Diag::Severity::Warning, seen[0].Level);
+    EXPECT_EQ("unused variable", seen[0].Message);
+    const String recorded = ReadFile(_entry.ManifestFile);
+    EXPECT_TRUE(recorded.StartsWith(String::FromFormat("%soutput\n", _manifest.GetCStr()))) << recorded.GetCStr();
+    EXPECT_TRUE(recorded.FindString("unused variable") != String::NoIndex);
+
+    // What the compiler wrote; a compiler that fails if run shows that it is not
+    MakeFile("_obj/Module.o", "script");
+    std::vector<Diag::Diagnostic> seen_kept;
+    ASSERT_TRUE(Compile(FailingCompiler(), false, seen_kept));
+    ASSERT_EQ(1u, seen_kept.size());
+    EXPECT_EQ(Diag::Severity::Warning, seen_kept[0].Level);
+    EXPECT_EQ("unused variable", seen_kept[0].Message);
+    EXPECT_EQ("a.asc", seen_kept[0].File);
+    EXPECT_EQ(3, seen_kept[0].Line);
+    EXPECT_TRUE(File::IsFile(_entry.OutputFile));
+}
+
+// A changed input runs the compiler; when it fails, nothing is left recorded
+TEST_F(ScriptCacheTest, FailedCompileLeavesNothingRecorded)
+{
+    std::vector<Diag::Diagnostic> seen;
+    ASSERT_TRUE(Compile(CompilerWithWarning(), false, seen));
+    MakeFile("_obj/Module.o", "script");
+    WriteFile(_in.Sources[0], "function game_start() { broken }");
+
+    seen.clear();
+    EXPECT_FALSE(Compile(FailingCompiler(), false, seen));
+    EXPECT_FALSE(File::IsFile(_entry.OutputFile));
+    EXPECT_FALSE(File::IsFile(_entry.ManifestFile));
+}
+
+TEST_F(ScriptCacheTest, TaskWithRebuildRunsTheCompiler)
+{
+    std::vector<Diag::Diagnostic> seen;
+    ASSERT_TRUE(Compile(CompilerWithWarning(), false, seen));
+    MakeFile("_obj/Module.o", "script");
+    seen.clear();
+    EXPECT_FALSE(Compile(FailingCompiler(), true, seen));
+    EXPECT_FALSE(File::IsFile(_entry.ManifestFile));
 }
 
 } // namespace AGSBuild

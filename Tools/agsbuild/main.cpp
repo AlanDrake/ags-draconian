@@ -28,12 +28,12 @@
 #include "platform/windows/windows.h"
 #endif
 #include "ac/def_version.h"
+#include "build_cache.h"
 #include "commandline.h"
 #include "data/agfreader.h"
 #include "diagnostics.h"
 #include "package_files.h"
 #include "pipedprocess.h"
-#include "build_cache.h"
 #include "taskmanager.h"
 #include "util/cmdlineopts.h"
 #include "util/directory.h"
@@ -281,12 +281,17 @@ struct BuildContext
     String all_script_headers;
     String ExtraScriptHeaders;
     String module_script_headers;
+    // The files of all_script_headers, in its order
+    std::vector<String> ScriptHeaderFiles;
     // Compiled game scripts, and the tasks which compile them
     std::vector<String> scom_obj;
     std::vector<TaskInput> scom_tasks;
     // Rooms of the AGS 4 layout (sources in Rooms/<n>/), and of the older one (compiled room<n>.crm)
     std::vector<int> room_sources_list;
     std::vector<String> room_list_crm;
+    // Hashes the inputs of the scripts and rooms kept from earlier builds (build_cache.h), each
+    // file once for the tasks that check them
+    std::shared_ptr<FileHasher> InputHasher = std::make_shared<FileHasher>();
 
     BuildContext(const BuildOptions &opts, TaskManager &mgr)
         : bopts(opts),
@@ -454,19 +459,46 @@ static HError AddScriptTasks(BuildContext &c)
         c.module_script_headers.AppendFmt(AGSCC_H_SEP "%s/%s", c.src_dir.GetCStr(), header.GetCStr());
     c.all_script_headers.Append(c.ExtraScriptHeaders);
     c.all_script_headers.Append(c.module_script_headers);
+    // The same headers as files, in the same order
+    c.ScriptHeaderFiles = {c.builtin_ash, InDir(c.temp_dir, ScriptAutoHeader)};
+    if (c.project.has_globalvar_script)
+    {
+        c.ScriptHeaderFiles.push_back(InDir(c.temp_dir, ScriptGlvarHeader));
+    }
+    c.ScriptHeaderFiles.insert(c.ScriptHeaderFiles.end(), c.bopts.ExtraHeaders.begin(), c.bopts.ExtraHeaders.end());
+    for (const auto &header : c.project.scm_header_list)
+    {
+        c.ScriptHeaderFiles.push_back(InDir(c.src_dir, header));
+    }
 
+    // A compiled script whose inputs are those of the one kept in the intermediate folder is not
+    // compiled again: its task decides it, after the generated script and headers are made
+    if (!Directory::CreateAllDirectories(c.temp_dir, kScriptManifestDir))
+    {
+        return new Error("Failed to create %s/%s", c.temp_dir.GetCStr(), kScriptManifestDir);
+    }
     auto add_compile_task = [&](const String &script_dir, const String &script, std::vector<TaskInput> &&deps)
     {
         const String scom = Path::ReplaceExtension(script, "o");
         const String task_name = String::FromFormat("agscc:%s", script.GetCStr());
-        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
-            task_name, &c.taskmgr,
-            PipedProcessParams(tool_agscc, ProcessArgs{InDir(script_dir, script), "-H", c.all_script_headers, "-o",
-                                                       InDir(c.temp_dir, scom)}
-                                               .Add(MakeAGSCCFlags(c.project.agscc_opts))),
-            std::move(deps))));
+        const ProcessArgs args =
+            ProcessArgs{InDir(script_dir, script), "-H", c.all_script_headers, "-o", InDir(c.temp_dir, scom)}.Add(
+                MakeAGSCCFlags(c.project.agscc_opts));
+        // What the compile reads: the command line names every file but the tools
+        BuildInputs inputs;
+        inputs.Tools = {File::GetThisExePath(), tool_agscc};
+        inputs.Commands = {args.GetParams()};
+        inputs.Headers = c.ScriptHeaderFiles;
+        inputs.Sources = {InDir(script_dir, script)};
+        CacheEntry entry;
+        entry.OutputFile = InDir(c.temp_dir, scom);
+        entry.ManifestFile = InDir(c.temp_dir, MakeScriptManifestName(scom));
+        c.taskmgr.AddTask(std::make_unique<TaskCompileScript>(task_name, &c.taskmgr,
+                                                              PipedProcessParams(tool_agscc, args), inputs, entry,
+                                                              c.InputHasher, c.bopts.Rebuild, std::move(deps)));
         c.scom_obj.push_back(scom);
         c.scom_tasks.push_back({task_name});
+        c.clnup_temp_files.push_back(MakeScriptManifestName(scom));
     };
 
     if (c.project.has_globalvar_script)
@@ -519,23 +551,6 @@ static void SortRoomsByLayout(BuildContext &c)
     }
 }
 
-// The files that every room's build reads besides its own: the headers its script is compiled
-// with, in their order (the room's own header is made of the auto-generated one and the room's data)
-static std::vector<String> GetRoomHeaderFiles(const BuildContext &c)
-{
-    std::vector<String> headers = {c.builtin_ash, InDir(c.temp_dir, ScriptAutoHeader)};
-    if (c.project.has_globalvar_script)
-    {
-        headers.push_back(InDir(c.temp_dir, ScriptGlvarHeader));
-    }
-    headers.insert(headers.end(), c.bopts.ExtraHeaders.begin(), c.bopts.ExtraHeaders.end());
-    for (const auto &header : c.project.scm_header_list)
-    {
-        headers.push_back(InDir(c.src_dir, header));
-    }
-    return headers;
-}
-
 // Adds a task that does nothing when the room is up to date
 static void AddRoomTask(BuildContext &c, std::unique_ptr<Task> &&task, const std::shared_ptr<CachedRoom> &room)
 {
@@ -555,7 +570,6 @@ static HError AddRoomSourceTasks(BuildContext &c)
 
     const String tool_crmbuild = Path::MakeExePath(c.sys_dir, ToolCrmBuild);
     const String tool_agscc = Path::MakeExePath(c.sys_dir, ScriptCompiler);
-    const std::vector<String> header_files = GetRoomHeaderFiles(c);
     const String task_check = "check-rooms";
     // What crmbuild reads from Game.agf, as crmbuild itself finds it; a failure is the room build's
     const String task_game_key = "crmbuild:game-key";
@@ -607,9 +621,10 @@ static HError AddRoomSourceTasks(BuildContext &c)
         room->Inputs.Tools = {File::GetThisExePath(), tool_agscc, tool_crmbuild};
         room->Inputs.GameKeyFile = game_key_file;
         room->Inputs.Commands = {ash_args.GetParams(), agscc_args.GetParams(), crm_args.GetParams()};
-        room->Inputs.Headers = header_files;
+        // The room's own header is made of the auto-generated one and the room's data
+        room->Inputs.Headers = c.ScriptHeaderFiles;
         room->Inputs.SourceDir = Path::ConcatPaths(c.src_dir, String::FromFormat("Rooms/%d", r));
-        room->Entry.CrmFile = InDir(c.temp_dir, room_crm);
+        room->Entry.OutputFile = InDir(c.temp_dir, room_crm);
         room->Entry.ManifestFile = InDir(c.temp_dir, room_manifest);
         rooms.push_back(room);
 
@@ -639,7 +654,7 @@ static HError AddRoomSourceTasks(BuildContext &c)
         c.clnup_temp_files.push_back(room_manifest);
     }
     c.taskmgr.AddTask(
-        std::make_unique<TaskCheckRooms>(task_check, &c.taskmgr, rooms, c.bopts.Rebuild,
+        std::make_unique<TaskCheckRooms>(task_check, &c.taskmgr, rooms, c.InputHasher, c.bopts.Rebuild,
                                          std::vector<TaskInput>{{"autoash"}, {"glvar"}, {task_game_key}}));
     return HError::None();
 }
@@ -1314,20 +1329,22 @@ const char *HELP_STRING = ""
                           "  --import-sprites       create a new sprite pack, importing sprites from the\n"
                           "                         source image files, according to game.agf specs.\n"
                           "                         Requires a presence of spriteimport tool.\n"
-                          "  --rebuild              builds every room. Without it a room built from\n"
-                          "                         Rooms/<n>/ is kept in the intermediate folder, and not\n"
-                          "                         built again while nothing it is built from changes (its\n"
-                          "                         files, the headers, Game.agf's settings for rooms, the\n"
-                          "                         tools). Clears all of '_obj' first, if it is the one used.\n"
+                          "  --rebuild              builds every room and script. Without it a room built\n"
+                          "                         from Rooms/<n>/ is kept in the intermediate folder, and\n"
+                          "                         not built again while nothing it is built from changes\n"
+                          "                         (its files, the headers, Game.agf's settings for rooms,\n"
+                          "                         the tools); a compiled script likewise (its source, the\n"
+                          "                         headers, the compiler's options, the tools). Clears all\n"
+                          "                         of '_obj' first, if it is the one used.\n"
                           "  -s, --sys-dir <path>   a path to the system directory, where all the tools are\n"
                           "                         located. If not provided, agsbuild will assume it is\n"
                           "                         the same directory where it's located.\n"
                           "  -t, --temp-dir <path>  a folder for the intermediate files, created if it does\n"
                           "                         not exist, and never cleared. If not provided: '_obj'\n"
                           "                         in the project folder, which is cleared when a build\n"
-                          "                         starts, but for the rooms kept (see --rebuild), and\n"
-                          "                         kept after it (a failed build's files can be looked\n"
-                          "                         into).\n"
+                          "                         starts, but for the rooms and scripts kept (see\n"
+                          "                         --rebuild), and kept after it (a failed build's files\n"
+                          "                         can be looked into).\n"
                           "  -p, --threads <N>      limit task threads to this number (default: 8, at most\n"
                           "                         32, at least 1); note that tasks may spawn new\n"
                           "                         processes, executing other tools.\n"
@@ -1488,8 +1505,8 @@ static String CheckBuildOptions(const BuildOptions &bopts)
 }
 
 // Readies the folder for the intermediate files: the default one is cleared, so that a build
-// never finds the files of an earlier one, but for the rooms it may keep (all of it with
-// --rebuild); returns the error, or an empty string
+// never finds the files of an earlier one, but for the rooms and scripts it may keep (all of it
+// with --rebuild); returns the error, or an empty string
 static String PrepareTempDir(const BuildOptions &bopts)
 {
     if (bopts.OwnTempDir)
@@ -1502,7 +1519,7 @@ static String PrepareTempDir(const BuildOptions &bopts)
         }
         else if (!bopts.Rebuild)
         {
-            err = ClearTempDirKeepingRooms(bopts.TempDir);
+            err = ClearTempDirKeepingCache(bopts.TempDir);
         }
         if (!err)
         {

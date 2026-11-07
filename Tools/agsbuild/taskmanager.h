@@ -247,8 +247,13 @@ public:
 
     std::string GetTool() const override;
 
+protected:
+    // Runs the program, its output going to the log; output_start, if given, gets the length of
+    // the log where that output begins
+    HError RunProcess(size_t *output_start);
+
 private:
-    HError RunImpl() override;
+    HError RunImpl() override { return RunProcess(nullptr); }
     void OnAbort() override;
 
     const PipedProcessParams _params;

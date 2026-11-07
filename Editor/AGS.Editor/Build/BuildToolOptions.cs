@@ -53,8 +53,9 @@ namespace AGS.Editor.Build
         public bool DataOnly { get; set; }
 
         /// <summary>
-        /// Builds every room (--rebuild); without it agsbuild keeps a room built earlier while
-        /// nothing it is built from has changed. Clears all of _obj first, if that is the folder used.
+        /// Builds every room and script (--rebuild); without it agsbuild keeps a room built or a script
+        /// compiled earlier while nothing it is made from has changed. Clears all of _obj first, if that
+        /// is the folder used.
         /// </summary>
         public bool Rebuild { get; set; }
 

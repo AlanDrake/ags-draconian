@@ -343,11 +343,15 @@ void TaskPipedProcess::OnAbort()
         _process->Terminate();
 }
 
-HError TaskPipedProcess::RunImpl()
+HError TaskPipedProcess::RunProcess(size_t *output_start)
 {
     std::vector<uint8_t> data;
     PipedProcess pp(_params.ExePath, _params.Params, _logWriter.get());
     _logWriter->WriteFormat("Running: %s\n", pp.GetCommand().GetCStr());
+    if (output_start)
+    {
+        *output_start = _logBuffer.size();
+    }
     {
         std::lock_guard<std::mutex> lk(_processMutex);
         _process = &pp;
