@@ -24,6 +24,8 @@ namespace AGS.Editor.Components
         private const string COMMAND_SORT_BY_NUMBER = "SortByNumber";
         private const string COMMAND_DELETE_ITEM = "DeleteRoom";        
 		private const string COMMAND_CREATE_TEMPLATE = "TemplateFromRoom";
+        // The room reader refuses older .crm files (3.x, the 3.99 alphas' version 40)
+        private const string CRM_IMPORT_VERSION_NOTE = "AGS Draconian imports rooms built by AGS 4.0 or later.";
         private const string TREE_PREFIX_ROOM_NODE = "Rom";
         private const string TREE_PREFIX_ROOM_SETTINGS = "Roe";
         private const string TREE_PREFIX_ROOM_SCRIPT = "Ros";
@@ -530,6 +532,18 @@ namespace AGS.Editor.Components
             else
             {
                 newRoomNumber = _agsEditor.CurrentGame.FindFirstAvailableRoomNumber(FIRST_SUGGESTED_ROOM_NUMBER);
+            }
+
+            // Read the room file before copying anything, so that a room the reader refuses
+            // (one built before AGS 4.0) gets a single message
+            try
+            {
+                _nativeProxy.LoadRoomScript(fileName);
+            }
+            catch (Exception ex)
+            {
+                _guiController.ShowMessage($"There was an error importing the room. {CRM_IMPORT_VERSION_NOTE} The error was:{Environment.NewLine}{ex.Message}", MessageBoxIcon.Warning);
+                return;
             }
 
             List<string> newFiles = new List<string>();
@@ -2826,7 +2840,7 @@ namespace AGS.Editor.Components
             }
             catch (Exception e)
             {
-                errors.Add(new CompileError($"Failed to load a room from {unloadedRoom.FileName}", e));
+                errors.Add(new CompileError($"Failed to load a room from {unloadedRoom.FileName}. {CRM_IMPORT_VERSION_NOTE}", e));
                 report?.Invoke();
                 yield break;
             }
