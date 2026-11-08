@@ -241,5 +241,7 @@ Extends `CONTRIBUTING.md` (one program per commit, prefixes like `Engine:`, 72-c
    reorders give **identical** objects; `*_test.cpp` objects are reported separately and tolerated
    (the test macros record `__LINE__`; asserts don't matter under `NDEBUG`); renaming a function,
    type or global, or changing a string literal, changes objects **by design**, so review such a
-   commit as a code change.
+   commit as a code change. A `[delete]` commit of unreferenced functions must get "deletion: N
+   functions removed, 0 changed, 0 added (mechanical)": the changed objects lost those functions and
+   nothing else (MSVC only; data such as string literals is not compared).
 5. Every commit builds and passes the tests.

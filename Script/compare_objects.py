@@ -26,6 +26,10 @@ reordering includes does) is told apart by comparing the disassembly, function b
 dumpbin, so MSVC only); it is reported as "code identical" and tolerated.
 Expected, by design, to differ: renamed functions, types or globals (their symbol names are in
 the objects), and changed string literals.
+A [delete] commit of unreferenced functions changes objects by exactly the functions it removes: when no
+object was added, the differing and removed objects (tests aside) are compared function by function, and
+if functions were only removed, none changed or added, the result is "deletion: N functions removed, 0
+changed, 0 added (mechanical)", exit code 0. Data (string literals, tables) is not compared by this step.
 """
 import argparse
 import hashlib
@@ -152,6 +156,14 @@ def disassembly_blocks(dumpbin, env, obj_path):
         if line.startswith('Dump of file') or not line.strip():
             continue
         line = line.strip()
+        if line == 'Summary':  # the section sizes follow; not code of the last function
+            break
+        # a compiler-generated local label inside a function ($LN<n>, numbered per object, so removing a function
+        # renumbers the labels of the functions after it): part of the function, without its number
+        if re.match(r'^\$LN\d+:$', line):
+            blocks.setdefault(label, []).append('$LN:')
+            continue
+        line = re.sub(r'\$LN\d+\b', '$LN', line)
         if re.match(r'^[^\s:]+:$', line) or re.match(r'^\S+ \(.*\):$', line):  # a symbol's label
             label = line
             blocks.setdefault(label, [])
@@ -166,6 +178,36 @@ def disassembly_blocks(dumpbin, env, obj_path):
 
 def same_code(dumpbin, env, old_path, new_path):
     return disassembly_blocks(dumpbin, env, old_path) == disassembly_blocks(dumpbin, env, new_path)
+
+
+def function_changes(dumpbin, env, old_path, new_path):
+    """The functions of an object that a change removed, added and changed, as three sorted lists of
+    labels; new_path None means the object is gone, so all its functions were removed."""
+    old = disassembly_blocks(dumpbin, env, old_path)
+    new = disassembly_blocks(dumpbin, env, new_path) if new_path else {}
+    return (sorted(k for k in old if k not in new), sorted(k for k in new if k not in old),
+            sorted(k for k in old if k in new and old[k] != new[k]))
+
+
+def deletion_verdict(dumpbin, env, objects):
+    """For a [delete] commit: compares each (source, old object, new object or None) function by function.
+    Prints what each object lost, gained or changed; returns True when functions were only removed."""
+    totals = [0, 0, 0]
+    print('\nfunction by function:')
+    for source, old_path, new_path in objects:
+        changes = function_changes(dumpbin, env, old_path, new_path)
+        for i, items in enumerate(changes):
+            totals[i] += len(items)
+        print(f'  {source}: removed {len(changes[0])}, added {len(changes[1])}, changed {len(changes[2])}')
+        for title, items in zip(('removed', 'added', 'changed'), changes):
+            for label in items:
+                print(f'    {title}: {label}')
+    removed, added, changed = totals
+    if removed and not added and not changed:
+        print(f'\nRESULT: deletion: {removed} functions removed, 0 changed, 0 added (mechanical)')
+        return True
+    print(f'\n{removed} functions removed, {changed} changed, {added} added')
+    return False
 
 
 def is_third_party(path):
@@ -244,6 +286,16 @@ def main():
                 print(f'  {s}{note}')
 
     if unexpected or added or removed:
+        # A [delete] commit changes the objects by exactly the functions it removes
+        if dumpbin and not added:
+            def old_copy(o):
+                return os.path.join(kept, hashlib.sha1(o.encode()).hexdigest())
+            objects = [(after[o][1], old_copy(o), os.path.join(bdir, o)) for o in sorted(differ_objs)
+                       if o not in code_identical and not is_line_sensitive(after[o][1])]
+            objects += [(before[o][1], old_copy(o), None) for o in sorted(before)
+                        if o not in after and not is_line_sensitive(before[o][1])]
+            if deletion_verdict(dumpbin, env, objects):
+                return 0
         print('\nRESULT: NOT a purely mechanical change')
         return 1
     print('\nRESULT: mechanical change: no code generation differences')
