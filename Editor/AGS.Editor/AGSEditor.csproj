@@ -198,7 +198,6 @@
     <Compile Include="Entities\UpgradeGame\UpgradeGameFontsToFontFilesTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameIntroAndBackupTask.cs" />
     <Compile Include="Entities\UpgradeGame\IUpgradeGameTask.cs" />
-    <Compile Include="Entities\UpgradeGame\UpgradeGameRoomsOpenFormatTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameRoomsOptionalTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameUtils.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameVoiceClipsTask.cs" />

@@ -1865,7 +1865,6 @@ namespace AGS.Editor.Components
 
         private void Events_GamePrepareUpgrade(UpgradeGameEventArgs args)
         {
-            args.Tasks.Add(new UpgradeGameRoomsOpenFormatTask(ConvertAllRoomsFromCrmToOpenFormat));
             args.Tasks.Add(new UpgradeGameRoomsOptionalTask(UpgradeAllRoomsOptional));
         }
 
@@ -2812,64 +2811,6 @@ namespace AGS.Editor.Components
         #endregion // Upgrade Rooms to a new version
 
         #region Upgrade Crm Format To Open Format
-        /// <summary>
-        /// Upgrades the room format from .crm to open format with text files and images directly accessible from disk
-        /// </summary>
-        /// <remarks>
-        /// FIXME: the following remark about Room._roomStructPtr is obsolete, and that is no longer a problem.
-        /// ----
-        /// This easily maxes the work capacity of a single thread and runs for a while so this is a good candidate
-        /// for parallel execution. However the native proxy is designed around the <see cref="Room._roomStructPtr"/>
-        /// which can only hold the value of single room at a time so thread execution would crash. It might not be
-        /// worthwhile to refactor this hindrance if we're getting a standalone room CLI tool in the future that can
-        /// do the same job.
-        /// </remarks>
-        private async void ConvertAllRoomsFromCrmToOpenFormat(Game game, IWorkProgress progress, CompileMessages errors)
-        {
-            if ((_agsEditor.CurrentGame.SavedXmlVersion >= new System.Version(AGSEditor.FIRST_XML_VERSION_WITHOUT_INDEX)) ||
-                _agsEditor.CurrentGame.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS)
-                return; // Upgrade already completed
-
-            IList<IRoom> rooms = _agsEditor.CurrentGame.Rooms;
-
-            // If the room directory we want to write to already exists then backup
-            if (Directory.Exists(UnloadedRoom.ROOM_DIRECTORY))
-            {
-                string backupRootDir = Utilities.MakeUniqueDirectory(_agsEditor.CurrentGame.DirectoryPath, UnloadedRoom.ROOM_DIRECTORY, "Backup-");
-                Utilities.SafeMoveDirectoryFiles(UnloadedRoom.ROOM_DIRECTORY, backupRootDir);
-            }
-
-            // Must sync the Interactions Schema with the Game Cursors, as conversion from native room format
-            // requires a proper Schema to remap the interaction events.
-            // This of course assumes that the Cursors have been already loaded and upgraded as necessary.
-            Tasks.SyncCursorsWithInteractionSchema(game.Cursors, InteractionSchema.Instance);
-
-            // Now upgrade
-            object progressLock = new object();
-            int progressCounter = 0;
-            string progressText = "Converting rooms from .crm to open format.";
-            {
-                progress.SetProgress(rooms.Count, 0, progressText, autoFormatProgress: false);
-                Action progressReporter = () =>
-                {
-                    lock (progressLock)
-                    {
-                        progressCounter++;
-                        progress.SetProgress(progressCounter,
-                            $"{progressText} {progressCounter} of {rooms.Count} rooms converted.");
-                    }
-                };
-
-                var roomsConvertingTasks = rooms
-                    .Cast<UnloadedRoom>()
-                    .SelectMany(r => ConvertRoomFromCrmToOpenFormat(r, errors, progressReporter))
-                    .ToArray();
-                await Task.WhenAll(roomsConvertingTasks);
-            }
-
-            errors.Add(new CompileInformation($"Converted {progressCounter} rooms out of {rooms.Count} to an open format"));
-        }
-
         /// <summary>
         /// Converts a single room from .crm to open format.
         /// </summary>

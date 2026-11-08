@@ -86,11 +86,7 @@ namespace AGS.Editor
             }
 
             string[] roomFiles = null;
-            if (game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex > 0 && game.SavedXmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS)
-            {
-                roomFiles = new string[] { "*.crm" };
-            }
-            else if ((game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS)
+            if ((game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS)
                 || game.SavedXmlVersion >= new System.Version(AGSEditor.FIRST_XML_VERSION_WITHOUT_INDEX))
             {
                 roomFiles = new string[] {
