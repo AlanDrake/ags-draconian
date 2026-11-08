@@ -189,10 +189,16 @@ def find_clang_format():
                  '--clang-format or set AGS_CLANG_FORMAT' % (CLANG_FORMAT_VERSION, CLANG_FORMAT_VERSION))
 
 
+def tracked_files(*paths):
+    """`git ls-files` of paths, without the files deleted in the working tree and not yet staged."""
+    names = subprocess.run(['git', 'ls-files', *paths], cwd=REPO, capture_output=True, text=True,
+                           check=True).stdout.split()
+    return [n for n in names if os.path.isfile(os.path.join(REPO, n))]
+
+
 def stage_format():
     exe = find_clang_format()
-    files = subprocess.run(['git', 'ls-files', *SOURCE_GLOBS], cwd=REPO, capture_output=True, text=True,
-                           check=True).stdout.split()
+    files = tracked_files(*SOURCE_GLOBS)
     # Whole files, as CI does: git-clang-format checks changed lines only and misses alignment groups
     for i in range(0, len(files), 200):
         run('format', [exe, '--dry-run', '-Werror', *files[i:i + 200]])
@@ -318,10 +324,8 @@ def stage_emscripten():
 
 def linux_branch_files():
     """First-party Common and Engine files with code for Linux only, which neither MSVC nor emcc compiles."""
-    names = subprocess.run(['git', 'ls-files', 'Common', 'Engine'], cwd=REPO, capture_output=True, text=True,
-                           check=True).stdout.split()
     result = set()
-    for name in names:
+    for name in tracked_files('Common', 'Engine'):
         if 'libsrc/' in name or not name.endswith(('.h', '.cpp', '.c', '.inl')) or name == LINUX_SKIP:
             continue
         with open(os.path.join(REPO, name), encoding='utf-8', errors='replace') as f:
