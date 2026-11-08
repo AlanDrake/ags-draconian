@@ -894,11 +894,6 @@ void Character_RemoveTint(CharacterInfo *chaa)
     }
 }
 
-int Character_GetHasExplicitTint_Old(CharacterInfo *ch)
-{
-    return ch->has_explicit_tint() || ch->has_explicit_light();
-}
-
 int Character_GetHasExplicitTint(CharacterInfo *ch)
 {
     return ch->has_explicit_tint();
@@ -4438,12 +4433,6 @@ RuntimeScriptValue Sc_Character_GetFrame(void *self, const RuntimeScriptValue *p
 RuntimeScriptValue Sc_Character_SetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetFrame);
-}
-
-RuntimeScriptValue Sc_Character_GetHasExplicitTint_Old(void *self, const RuntimeScriptValue *params,
-                                                       int32_t param_count)
-{
-    API_OBJCALL_INT(CharacterInfo, Character_GetHasExplicitTint_Old);
 }
 
 RuntimeScriptValue Sc_Character_GetHasExplicitTint(void *self, const RuntimeScriptValue *params, int32_t param_count)

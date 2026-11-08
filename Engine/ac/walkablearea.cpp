@@ -350,11 +350,6 @@ RuntimeScriptValue Sc_Walkarea_GetByName(const RuntimeScriptValue *params, int32
     API_SCALL_OBJ_POBJ(ScriptWalkableArea, ccDynamicWalkarea, Walkarea_GetByName, const char);
 }
 
-RuntimeScriptValue Sc_Walkarea_GetDrawingSurface(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO(ScriptDrawingSurface, GetDrawingSurfaceForWalkableArea);
-}
-
 RuntimeScriptValue Sc_Walkarea_SetScaling(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT2(ScriptWalkableArea, Walkarea_SetScaling);

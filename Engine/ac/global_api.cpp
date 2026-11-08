@@ -133,12 +133,6 @@ RuntimeScriptValue Sc_DeleteSaveSlot(const RuntimeScriptValue *params, int32_t p
     API_SCALL_VOID_PINT(DeleteSaveSlot);
 }
 
-// void  (int gotSlot)
-RuntimeScriptValue Sc_free_dynamic_sprite(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(free_dynamic_sprite);
-}
-
 // void (int alsoEffects)
 RuntimeScriptValue Sc_DisableGroundLevelAreas(const RuntimeScriptValue *params, int32_t param_count)
 {

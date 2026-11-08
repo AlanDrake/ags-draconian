@@ -259,13 +259,6 @@ RuntimeScriptValue Sc_Walkbehind_GetByName(const RuntimeScriptValue *params, int
     API_SCALL_OBJ_POBJ(ScriptWalkbehind, ccDynamicWalkbehind, Walkbehind_GetByName, const char);
 }
 
-extern RuntimeScriptValue Sc_GetDrawingSurfaceForWalkableArea(const RuntimeScriptValue *params, int32_t param_count);
-
-RuntimeScriptValue Sc_Walkbehind_GetDrawingSurface(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO(ScriptDrawingSurface, GetDrawingSurfaceForWalkableArea);
-}
-
 RuntimeScriptValue Sc_Walkbehind_GetBaseline(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptWalkbehind, Walkbehind_GetBaseline);
