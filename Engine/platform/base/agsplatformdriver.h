@@ -88,8 +88,6 @@ public:
     // and only specified user/app directories should be used.
     // FIXME: this is a part of a hotfix, review uses of this function later.
     virtual bool IsLocalDirRestricted() { return true; }
-    // Returns array of characters illegal to use in file names
-    virtual const char *GetIllegalFileChars() { return "\\/"; }
     virtual const char *GetDiskWriteAccessTroubleshootingText();
     virtual const char *GetGraphicsTroubleshootingText() { return ""; }
     virtual uint64_t GetDiskFreeSpaceMB(const AGS::Common::String &path) = 0;

@@ -64,7 +64,6 @@ struct AGSWin32 : AGSPlatformDriver
     FSLocation GetUserGlobalConfigDirectory() override;
     FSLocation GetAppOutputDirectory() override;
     bool IsLocalDirRestricted() override;
-    const char *GetIllegalFileChars() override;
     const char *GetGraphicsTroubleshootingText() override;
     uint64_t GetDiskFreeSpaceMB(const String &path) override;
     const char *GetBackendFailUserHint() override;
@@ -196,11 +195,6 @@ bool AGSWin32::IsLocalDirRestricted()
 {
     // Let them to create temp files in the current working dir
     return false;
-}
-
-const char *AGSWin32::GetIllegalFileChars()
-{
-    return "\\/:?\"<>|*";
 }
 
 const char *AGSWin32::GetGraphicsTroubleshootingText()

@@ -48,7 +48,6 @@ struct AGSMac : AGSPlatformDriver
     FSLocation GetUserConfigDirectory() override;
     FSLocation GetUserGlobalConfigDirectory() override;
     FSLocation GetAppOutputDirectory() override;
-    const char *GetIllegalFileChars() override;
 };
 
 AGSMac::AGSMac()
@@ -99,11 +98,6 @@ FSLocation AGSMac::GetUserGlobalConfigDirectory()
 FSLocation AGSMac::GetAppOutputDirectory()
 {
     return commonDataPath;
-}
-
-const char *AGSMac::GetIllegalFileChars()
-{
-    return "\\/:?\"<>|*"; // keep same as Windows so we can sync.
 }
 
 AGSPlatformDriver *AGSPlatformDriver::CreateDriver()
