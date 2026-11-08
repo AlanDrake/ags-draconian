@@ -74,7 +74,7 @@ Recorded 2026-10-31.
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
-0–2, 3.1, 3.3, 3.4-1, 3.4-2, 6.7d, 7.1 (but 7.1n), U.1, U.2, U.4, U.5, U.9 (LOG.md). Upstream review takes weeks,
+0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 6.7d, 7.1 (but 7.1n), U.1, U.2, U.4, U.5, U.9 (LOG.md). Upstream review takes weeks,
 so the offers go out first and fork-only moves that would conflict with them (5.3) wait.
 
 | # | Task | Why now | Model / effort |
@@ -97,6 +97,8 @@ Open items from finished tasks (details in LOG.md "Open items"):
   offsets, `FindNearestWalkablePoint`'s old method).
 - 3.4-2: the editor's project upgrade steps below the 3.99.99.01 floor, unreachable now and kept for L.1
   (`UpgradeGameCommonTask`, `ScriptsComponent`'s `SetRestartPoint()` step).
+- 3.4-3: upstream's readers misread GUI saves 4000000-4000009 (no control refs; FIXME in `GUIMain::SkipSavestate`)
+  and keep `dialog_options_zorder` for Game State 4000000-4000023; the floors could rise to 1765a7451's (2024-02).
 - Scripts in a git worktree: `refactor_metrics.py`, `prepush.py`'s `linux` and `msbuild` stages fail there.
 - Stale: `Tools/test/directory_test.cpp`'s googletest comment; `FetchGoogleTest.cmake`'s pin for GCC < 5.
 
@@ -190,8 +192,10 @@ the corpus run (1.4).
      editor refuses projects older than 3.99.99.01 ("open and save it with the AGS 4.0 editor first")
      and says which `.crm` files it imports; `UpgradeGameRoomsOpenFormatTask` is gone. Pre-4.0 room
      version checks 3 → 0; ctest 1166 of 1166, the auto-test game 2414 of 2414.
-  3. **Savegames.** Raise `kSvgVersion_LowestSupported` (now `kSvgVersion_Components`, a 3.x version)
-     to the oldest a 3.99 engine writes; delete the branches below.
+  3. **Savegames.** Done 2026-11-08 (LOG.md): `kSvgVersion_LowestSupported = kSvgVersion_400` (no save that
+     loaded is lost: older ones failed the Game State floor already), five component floors raised to what the first
+     4.0 format wrote; the pre-4.0 branches and 66 enum values are gone; pre-4.0 save version checks 82 → 10 (the
+     rest are 3.6-numbered versions 4.0 engines wrote); ctest 1169 of 1169, the auto-test game 2414 of 2414.
   4. **Script API.** Delete `*_Old` variants (`Character_GetHasExplicitTint_Old`) and registrations
      only pre-3.99 scripts use, checking the C3 snapshot after each: what 3.99+ games call stays.
   5. Savegame-only dead fields (`gscript_timer`, `replay_hotkey_unused`, ...) go **only at the next

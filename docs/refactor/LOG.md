@@ -1538,12 +1538,91 @@ See LOG.md for the details of the removal and its verification.
   `git grep` and its regex), and two GitHub release downloads (libogg, libvorbis) gave 504, so the CMake build
   was configured with `AGS_FETCH_MIRROR_DIR`.
 
-*Moved from PLAN.md on 2026-11-07 (the plan's text as it stood):*
-
-  1. **Game files.** *Done 2026-11-07 (LOG.md):* `kGameVersion_LowSupported = kGameVersion_399`, a
-     3.6 game gets "Game was compiled with 3.6.0.21 (data format 3060021). This engine loads games made
-     with AGS 3.99 or later", the pre-3.99 branches of the `Upgrade*()` functions, Common/gui and
-     Engine and the enum values are gone: `legacy version checks` 62 → 0 (22 files → 0).
+*Status (2026-11-08): step 3, savegames, done.* Five commits:
+- **Behaviour:** `kSvgVersion_LowestSupported = kSvgVersion_400` (4000000; was `kSvgVersion_Components`, 9). A save
+  older than 4.0 gets the existing `kSvgErr_FormatVersionNotSupported` with "Required: 3060300, supported: 4000000 -
+  4000018." The evidence (a script over every first-parent commit from upstream's 3000d69de, 2023-10-02, to HEAD,
+  with the `ComponentHandlers` table's enum names resolved): the engines wrote main version 4000000 from 3000d69de
+  on and 4000018 from 1b1d79d31 (2025-05-11), nothing else; the 3.99.99 engines before 3000d69de wrote 20 and then
+  3999999, but their "Game State" component is version 10, below that component's floor 4000000 since 3000d69de,
+  and a script cannot leave "Game State" out, so none of them loads today. No save that loads now is lost. Five
+  component floors go up to what 3000d69de wrote, which no later engine wrote less than: Audio 0 → 2
+  (`kAudioSvgVersion_36009`), GUI 0 → `kGuiSvgVersion_400`, Mouse Cursors 0 → 1 (`kCursorSvgVersion_36016`), Overlays
+  0 → `kOverSvgVersion_400`, Managed Pool 0 → `kManagedPoolSvgVersion_400`; the others were 4.0 values already or
+  are 0 because 3000d69de wrote 0 (Dialogs, Inventory Items, Views, Script Modules, Plugin Data, Game Info, the
+  sprite and surface components). The 4.0.0.27 and 4.0.0.30 fixture saves carry main 4000018 and component versions
+  at or above every floor (dumped from the files). The Vista "rich media" header skip goes: its writer was removed in
+  018d8790f (2022-04-05), before 3000d69de, so no 4.0 save has it; such a file is now "not an AGS saved game"
+  (`kSvgErr_SignatureFailed`) instead of a version error. `CheckSaveSignature` returns a `bool`.
+  Tests: `SavegameFile.SaveOlderThan400IsRefused` (3060300, 3060200, 13, 3999999, 20, 9: refused, the message names
+  the version and "supported: 4000000 - 4000018"), `SaveNewerThanTheEngineIsRefused`,
+  `DescriptionWithoutFileFormatBlockIsRead` (was `OlderDescriptionFormatIsRead` with a 3.6.2 header; now 4000000,
+  the 4.0 saves before 4.0.0.18 have no file format block either), `RichMediaHeaderIsNotRead`;
+  `Savegame.ComponentOlderThan400IsRefused` (a component list per component with a floor above 0, at floor − 1:
+  `kSvgErr_UnsupportedComponentVersion` naming the floor). With the old floors set back (main 9, the five component
+  floors 0) both `SaveOlderThan400IsRefused` (3060300 opens) and `ComponentOlderThan400IsRefused` (Audio, GUI and
+  Mouse Cursors misread the data, Overlays throws `bad_alloc`) fail.
+- **Deleted, Engine** (+226 −441 lines; `Engine/game` 4 files, `Engine/ac` 10, `Engine/gui` 1): `has_fileformat` is
+  `>= kSvgVersion_400_18` (the 3.6.3 range is gone), the 3.5.0 component header form (no reserved field) and the
+  `>= 351`/`>= ComponentsEx` description fields; the branches of the readers below their floors: Audio's
+  pre-3.6.0.9 channel counts (whose `else` left `total_channels` uninitialised) and pre-3.5.0.26 positions; the
+  `< 36200` control ref copy of `ReadGUI`/`PrescanGUI`; overlays saved with their own bitmap (pre-3.6.1.8:
+  `ScreenOverlay::ReadFromSavegame` loses `has_bitmap`, `RestoredData::OverlayImages` and its restore in
+  `DoAfterRestore` go); 3.5/3.6 game state fields (the locked camera offsets, so the unused
+  `RestoredData::Camera0_Flags` goes, the old voice flags); the pre-3.6 character, room object, hotspot and room
+  state fields; the 3.5.0 move lists; the animating button's 3.6.0.20/25 forms; the `>= kRoomStatSvgVersion_40003`
+  checks (the Room States floor since 2024-02). `(v >= 36xxx && v < 400) || v >= 400_NN` became `v >= 400_NN` and
+  `v < 36xxx || (v >= 400 && v < 400_NN)` became `v < 400_NN`, the same set above the floors.
+- **Deleted, Common** (+105 −161 lines; `Common/ac` 5 files, `Common/gui` 8): the pre-4.0 branches of
+  `CharacterInfo`, `MouseCursor` and the GUI readers (`GUIMain`, `GUIControl`, button, label, list box, slider, text
+  box, `SkipSavestate`).
+- **Deleted, the enum values** (66): `kSvgVersion_321` to `_399` (13), and below the floors `kGSSvgVersion_*` (9),
+  `kCharSvgVersion_*` (8), `kGuiSvgVersion_*` (9), `kRoomStatSvgVersion_*` (12, `_400` included: below the Room States
+  floor 40003), `kOverSvgVersion_*` (7), `kMoveSvgVersion_*` (4), `kAudioSvgVersion_Initial`/`_35026`,
+  `kCursorSvgVersion_Initial`, `kManagedPoolSvgVersion_Initial`. Nothing in the tree names them (Editor, Tools,
+  Plugins, Compiler, tests and scripts included). Each enum keeps its history as a comment, the sync comments say
+  "sync with 3.6.3.4 (blocking x,y)" instead of naming a deleted value, and the writers' field comments name the
+  4.0 value that gates the field (`kCharSvgVersion_400_26`) or "since 3.6.0.25"; the writers' code is untouched.
+- **Kept**, 3.6-numbered values that 4.0 engines wrote: Audio 3060130 and 3060303 (`>= 36130`, `>= 36215`,
+  `>= 36303` stay), Inventory Items 3060304 and 3060314, Script Modules 3060200, Plugin Data 1 (`_36115`), and
+  `kDialogTopicSvgVer_363` (Dialogs' floor is 0; no comparison names it).
+- **Lint:** `.clang-tidy` gets `bugprone-signed-char-misuse.CharTypdefsToIgnore: 'int8_t'`: the de-indented
+  `x = in->ReadInt8()` lines became changed lines, and the check flags an `int8_t` to `int` conversion even with
+  `static_cast<int>`, while the value is a signed number (panning, channel counts); the option is the check's
+  documented remedy for integer typedefs. Braces added on the changed lines that `tidy_diff.py` flagged.
+- Measured: comparisons with a pre-4.0 save version name (`k*SvgVer*_3...`, `_Initial`, `_Components*`) 82 on 80
+  lines → 10, all against values above that 4.0 engines wrote (the kept list); enum values with such names 76 → 16;
+  `git diff --stat` 31 files, +449 −622 (tests +116 −20 and `.clang-tidy` +2 of it); Engine C/C++ lines
+  125748 → 125629, Common 51000 → 50944; `legacy version checks` 0 → 0 (it counts `kGameVersion_` only).
+  `prepush.py --auto`, every stage: format 1989 files, buildlists, CMake build with warnings as errors and ctest 1169
+  of 1169, tidy on changed lines clean (after the fixes above; the first run had 16 findings), headers, libc++ 343
+  headers, emscripten, the Linux GCC job 1169 of 1169 (no GCC warning in a changed reader), the five MSBuild
+  solutions (Compiler.Lib.Test 598, Common.Lib.Test 135, Engine.App.Test 51, Engine.Full.Test 115, Tools.Test 267;
+  the editor's NUnit 556 of 562, 6 skipped).
+  The auto-test game 2414 of 2414 (built by `agsbuild` from the tag `draconian-auto-test-1`, run by this build's
+  `ags.exe` with the software driver); `compat_restore_4.0.0.27` and `_30` pass. The writer: the 4.0.0.30
+  fixture game run without a save (it saves slot 1 at its first frame) by an engine built 2026-11-07 13:20 and by
+  this one gives decompressed components identical but for Game State bytes 1740-1741, which also differ between
+  two runs of the same engine; header identical; the restart point save the same.
+- Found, not touched (upstream's, kept as they were; the deletions do not change them): GUI saves 4000000 to
+  4000009 have no control refs (`kGuiSvgVersion_40010` added them back), `ReadGUI` then leaves the old ref list
+  empty, as the deleted `< 36200` copy should have been `< 40010`, and `GUIMain::SkipSavestate` reads refs from
+  them (a FIXME there now); Game State saves 4000000 to 4000023 keep the running game's `dialog_options_zorder`
+  (the reset to `INT32_MAX` was under `< 363_02`); `ReadDescription` still accepts 4000001 to 4000017 without a
+  file format block, as before. The floors are conservative: since the Room States floor went to 40003 (1765a7451,
+  2024-02-14) no save older than that loads, so every floor could rise to what that commit wrote (Characters
+  4000003, Game State 4000003, ...) and the `< 400_03` branches go; not done, the plan said 3000d69de.
+  `load_game`'s match by data file name (for saves without a GUID and legacy ID, pre-3.5.1) is now reached only by
+  a game with neither; its TODO says so.
+- Not verified: macOS, iOS, Android, FreeBSD and the Debian 10 builder image; the Linux clang-tidy gate with the new
+  option (Windows tidy only); a real 3.6 save and a 3.99.99 save (the refusal was checked with patched headers); the
+  auto-test game with the hardware drivers; each proposed commit on its own (only the final tree was built).
+  `compare_objects.py` does not apply: the deleted branches were runtime conditions.
+- Commits: `Engine: saves older than 4.0 are refused` (the floor line of `savegame.h`, `OpenSavegameBase`,
+  `CheckSaveSignature`, the five floors of `ComponentHandlers`, the tests), `CI: clang-tidy treats int8_t as a
+  number, not a character`, `Engine: [delete] the savegame branches below the 4.0 floor`, `Common: [delete] the
+  savegame branches and versions below the 4.0 floor` (after the Engine one: its readers stop naming the Common
+  enum values first), and this entry. The split was staged from the final tree; each commit was not built alone.
 
 *Moved from PLAN.md on 2026-11-08 (the plan's text as it stood):*
 
@@ -1560,6 +1639,11 @@ See LOG.md for the details of the removal and its verification.
      first"; `UpgradeGameRoomsOpenFormatTask` goes (every project it could still serve has version-40 or
      3.x rooms); "Import existing room" and room templates keep working for 4.0 `.crm` files and say so
      for older ones. Decided 2026-11-08 (D1): no legacy reader is carried; L.1 may rebuild one later.
+
+*Moved from PLAN.md on 2026-11-08 (the plan's text as it stood):*
+
+  3. **Savegames.** Raise `kSvgVersion_LowestSupported` (now `kSvgVersion_Components`, a 3.x version)
+     to the oldest a 3.99 engine writes; delete the branches below.
 
 ### 7.1 Make the C++ tools the only build path
 
