@@ -317,8 +317,6 @@ private:
 // errors (spriteimport printed errors for the sprites it could not import, and went on).
 Diag::Severity SeverityForTaskState(Diag::Severity level, TaskState state);
 
-void ReadStringListFromStdOut(const String &input_s, std::vector<String> &list);
-HError ReadStringListFromTextFile(const String &filename, std::vector<String> &list);
 HError WriteStringListToTextFile(const String &filename, const std::vector<String> &list);
 
 } // namespace AGSBuild

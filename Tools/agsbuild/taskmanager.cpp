@@ -21,7 +21,6 @@
 #include "util/memory_compat.h"
 #include "util/memorystream.h"
 #include "util/path.h"
-#include "util/textstreamreader.h"
 #include "util/textstreamwriter.h"
 
 using namespace AGS::Common;
@@ -51,26 +50,6 @@ std::vector<TaskInput> Clone(const std::vector<TaskInput> &v)
     for (const auto &s : v)
         copy.push_back(s.Clone());
     return copy;
-}
-
-void ReadStringListFromStdOut(const String &input_s, std::vector<String> &input_list)
-{
-    String uni_input_s = input_s;
-    uni_input_s.Replace("\r\n", "\n");
-    auto list = uni_input_s.Split("\n");
-    list.erase(std::remove_if(list.begin(), list.end(), [](const String &s) { return s.IsEmpty(); }), list.end());
-    input_list.insert(input_list.end(), list.begin(), list.end());
-}
-
-HError ReadStringListFromTextFile(const String &filename, std::vector<String> &list)
-{
-    auto in = File::OpenFileRead(filename);
-    if (!in)
-        return new Error("Failed to open file for reading: %s", filename.GetCStr());
-    auto text_reader = TextStreamReader(std::move(in));
-    for (String line = text_reader.ReadLine(); !line.IsEmpty(); line = text_reader.ReadLine())
-        list.push_back(line);
-    return HError::None();
 }
 
 HError WriteStringListToTextFile(const String &filename, const std::vector<String> &list)

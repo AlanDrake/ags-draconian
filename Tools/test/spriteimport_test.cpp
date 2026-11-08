@@ -146,30 +146,6 @@ PixelBuffer GetDefPixels32()
     return image;
 }
 
-void PrintPixelData8(const BitmapData &bm_data1, const BitmapData &bm_data2)
-{
-    for (size_t i = 0; i < bm_data1.GetDataSize(); ++i)
-    {
-        printf("--- %3d : %3d\n", ((uint8_t *)bm_data1.GetData())[i], ((uint8_t *)bm_data2.GetData())[i]);
-    }
-}
-
-void PrintPixelData16(const BitmapData &bm_data1, const BitmapData &bm_data2)
-{
-    for (size_t i = 0; i < bm_data1.GetDataSize() / 2; ++i)
-    {
-        printf("--- %8x : %8x\n", ((uint16_t *)bm_data1.GetData())[i], ((uint16_t *)bm_data2.GetData())[i]);
-    }
-}
-
-void PrintPixelData32(const BitmapData &bm_data1, const BitmapData &bm_data2)
-{
-    for (size_t i = 0; i < bm_data1.GetDataSize() / 4; ++i)
-    {
-        printf("--- %8x : %8x\n", ((uint32_t *)bm_data1.GetData())[i], ((uint32_t *)bm_data2.GetData())[i]);
-    }
-}
-
 template <typename PxType>
 void TestPixelData4x4(const BitmapData &bm_expect, const BitmapData &bm_result)
 {
@@ -320,7 +296,6 @@ TEST(SpriteImport, DirectImportConvert8To16)
     pixels[13] = makecol16(128, 128, 128);
     pixels[14] = makecol16(64, 64, 64);
     pixels[15] = makecol16(32, 32, 32);
-    /* PrintPixelData16(dest, image2); */
 
     TestPixelData4x4<uint16_t>(image2, dest);
 }
@@ -349,7 +324,6 @@ TEST(SpriteImport, DirectImportConvert8To32)
     pixels[13] = 0xFF808080;
     pixels[14] = 0xFF404040;
     pixels[15] = 0xFF202020;
-    /* PrintPixelData32(dest, image2); */
 
     TestPixelData4x4<uint32_t>(image2, dest);
 }
@@ -421,7 +395,6 @@ TEST(SpriteImport, Transparency8LeaveAsIs)
     Palette pal2;
     auto image2 = GetDefPixels8(pal2);
     uint16_t *pixels = reinterpret_cast<uint16_t *>(image2.GetData());
-    /* PrintPixelData8(dest, image2); */
 
     TestPixelData4x4<uint8_t>(image2, dest);
 }
@@ -432,7 +405,6 @@ TEST(SpriteImport, Transparency16LeaveAsIs)
 
     auto image2 = GetDefPixels16();
     uint16_t *pixels = reinterpret_cast<uint16_t *>(image2.GetData());
-    /* PrintPixelData16(dest, image2); */
 
     TestPixelData4x4<uint16_t>(image2, dest);
 }
@@ -448,7 +420,6 @@ TEST(SpriteImport, Transparency32LeaveAsIs)
     pixels[1] = MASK_COLOR_32;  // 0x00555555 -> MASK_COLOR_32
     pixels[10] = MASK_COLOR_32; // 0x00777777 -> MASK_COLOR_32
     pixels[13] = MASK_COLOR_32; // 0x00AAAAAA -> MASK_COLOR_32
-    /* PrintPixelData32(dest, image2); */
 
     TestPixelData4x4<uint32_t>(image2, dest);
 }
@@ -488,7 +459,6 @@ TEST(SpriteImport, Transparency32To16LeaveAsIs)
     pixels[3] = MASK_COLOR_16;
     pixels[4] = 0xF83F; // (255, 0, 255) => (255, 4, 255) prevent becoming MASK_COLOR_16
     pixels[5] = makecol16(0x40, 0x80, 0xC0);
-    /* PrintPixelData16(dest, image2); */
 
     TestPixelData4x4<uint16_t>(image2, dest);
 }
@@ -503,7 +473,6 @@ TEST(SpriteImport, Transparency8NoTransparency)
     uint8_t *pixels = reinterpret_cast<uint8_t *>(image2.GetData());
     pixels[5] = 16;
     pixels[9] = 16;
-    /* PrintPixelData8(dest, image2); */
 
     TestPixelData4x4<uint8_t>(image2, dest);
 }
@@ -518,7 +487,6 @@ TEST(SpriteImport, Transparency16NoTransparency)
     pixels[2] = MASK_COLOR_16 - 1;
     pixels[7] = MASK_COLOR_16 - 1;
     pixels[14] = MASK_COLOR_16 - 1;
-    /* PrintPixelData16(dest, image2); */
 
     TestPixelData4x4<uint16_t>(image2, dest);
 }
@@ -537,7 +505,6 @@ TEST(SpriteImport, Transparency32NoTransparency)
     pixels[10] = MASK_COLOR_32 - 1; // 0x00777777 -> MASK_COLOR_32 -> NO TRANS
     pixels[13] = MASK_COLOR_32 - 1; // 0x00AAAAAA -> MASK_COLOR_32 -> NO TRANS
     pixels[14] = MASK_COLOR_32 - 1; // MASK_COLOR_32 -> NO TRANS
-    /* PrintPixelData32(dest, image2); */
 
     TestPixelData4x4<uint32_t>(image2, dest);
 }
@@ -554,7 +521,6 @@ TEST(SpriteImport, Transparency8TopLeft)
     pixels[0] = 0;
     pixels[5] = 16;
     pixels[9] = 16;
-    /* PrintPixelData8(dest, image2); */
 
     TestPixelData4x4<uint8_t>(image2, dest);
 }
@@ -573,7 +539,6 @@ TEST(SpriteImport, Transparency16TopLeft)
     pixels[7] = 0;
     pixels[11] = MASK_COLOR_16;
     pixels[14] = 0;
-    /* PrintPixelData16(dest, image2); */
 
     TestPixelData4x4<uint16_t>(image2, dest);
 }
@@ -595,7 +560,6 @@ TEST(SpriteImport, Transparency32TopLeft)
     pixels[11] = MASK_COLOR_32;
     pixels[13] = 0;
     pixels[14] = 0;
-    /* PrintPixelData32(dest, image2); */
 
     TestPixelData4x4<uint32_t>(image2, dest);
 }
@@ -612,7 +576,6 @@ TEST(SpriteImport, Transparency8TopRight)
     pixels[3] = 0;
     pixels[5] = 16;
     pixels[9] = 16;
-    /* PrintPixelData8(dest, image2); */
 
     TestPixelData4x4<uint8_t>(image2, dest);
 }
@@ -631,7 +594,6 @@ TEST(SpriteImport, Transparency16TopRight)
     pixels[7] = 0;
     pixels[9] = MASK_COLOR_16;
     pixels[14] = 0;
-    /* PrintPixelData16(dest, image2); */
 
     TestPixelData4x4<uint16_t>(image2, dest);
 }
@@ -653,7 +615,6 @@ TEST(SpriteImport, Transparency32TopRight)
     pixels[10] = 0;
     pixels[13] = 0;
     pixels[14] = 0;
-    /* PrintPixelData32(dest, image2); */
 
     TestPixelData4x4<uint32_t>(image2, dest);
 }
@@ -670,7 +631,6 @@ TEST(SpriteImport, Transparency8BottomLeft)
     pixels[5] = 16;
     pixels[9] = 16;
     pixels[12] = 0;
-    /* PrintPixelData8(dest, image2); */
 
     TestPixelData4x4<uint8_t>(image2, dest);
 }
@@ -689,7 +649,6 @@ TEST(SpriteImport, Transparency16BottomLeft)
     pixels[8] = MASK_COLOR_16;
     pixels[12] = MASK_COLOR_16; // bottom-left
     pixels[14] = 0;
-    /* PrintPixelData16(dest, image2); */
 
     TestPixelData4x4<uint16_t>(image2, dest);
 }
@@ -711,7 +670,6 @@ TEST(SpriteImport, Transparency32BottomLeft)
     pixels[12] = MASK_COLOR_32;
     pixels[13] = 0;
     pixels[14] = 0;
-    /* PrintPixelData32(dest, image2); */
 
     TestPixelData4x4<uint32_t>(image2, dest);
 }
@@ -728,7 +686,6 @@ TEST(SpriteImport, Transparency8BottomRight)
     pixels[5] = 16;
     pixels[9] = 16;
     pixels[15] = 0;
-    /* PrintPixelData8(dest, image2); */
 
     TestPixelData4x4<uint8_t>(image2, dest);
 }
@@ -745,7 +702,6 @@ TEST(SpriteImport, Transparency16BottomRight)
     pixels[7] = 0;
     pixels[14] = 0;
     pixels[15] = MASK_COLOR_16;
-    /* PrintPixelData16(dest, image2); */
 
     TestPixelData4x4<uint16_t>(image2, dest);
 }
@@ -765,7 +721,6 @@ TEST(SpriteImport, Transparency32BottomRight)
     pixels[13] = 0;
     pixels[14] = 0;
     pixels[15] = MASK_COLOR_32;
-    /* PrintPixelData32(dest, image2); */
 
     TestPixelData4x4<uint32_t>(image2, dest);
 }
@@ -823,7 +778,6 @@ TEST(SpriteImport, Import8RemapToGamePalette)
     pixels[13] = 2;
     pixels[14] = 1;
     pixels[15] = 1;
-    /* PrintPixelData8(dest, image2); */
 
     TestPixelData4x4<uint8_t>(image2, dest);
 }
@@ -906,7 +860,6 @@ TEST(SpriteImport, Import8RemapToRoomPalette)
     pixels[13] = 2;
     pixels[14] = 1;
     pixels[15] = 1;
-    /* PrintPixelData8(dest, image2); */
 
     TestPixelData4x4<uint8_t>(image2, dest);
 }

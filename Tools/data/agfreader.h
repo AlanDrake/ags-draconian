@@ -98,8 +98,6 @@ public:
     // all of them return default value if the field cannot be read
     static const char *ReadString(DocElem elem, const char *field, const char *def_value = "");
     static int ReadInt(DocElem elem, const char *field, int def_value = 0);
-    static float ReadFloat(DocElem elem, const char *field, float def_value = 0.f);
-    static bool ReadBool(DocElem elem, const char *field, bool def_value = false);
 
     // Read values stored as XML attributes rather than child elements.
     static const char *ReadAttributeString(DocElem elem, const char *field, const char *def_value = "");
@@ -204,9 +202,6 @@ public:
     String ReadType(DocElem elem) override { return "Dialog"; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
     String ReadScriptName(DocElem elem) override { return ReadString(elem, "ScriptName"); }
-
-    int ReadOptionCount(DocElem elem);
-    String ReadScript(DocElem elem) { return ReadString(elem, "Script"); }
 };
 
 // Font data parser
@@ -433,7 +428,6 @@ public:
 class ScriptElem : public ValueParser
 {
 public:
-    bool IsHeader(DocElem elem);
     String ReadFilename(DocElem elem);
 };
 

@@ -23,7 +23,6 @@
 #include "debug/out.h"
 #include "util/file.h"
 #include "util/path.h"
-#include "util/string_compat.h"
 #include "util/string_utils.h"
 
 const char *XML_ROOT_NODE_NAME = "AGSEditorDocument";
@@ -301,24 +300,6 @@ int ValueParser::ReadInt(DocElem elem, const char *field, int def_value)
     return def_value;
 }
 
-float ValueParser::ReadFloat(DocElem elem, const char *field, float def_value)
-{
-    DocElem name_f = elem->FirstChildElement(field);
-    if (name_f)
-        return StrUtil::StringToFloat(name_f->GetText(), def_value);
-    return def_value;
-}
-
-bool ValueParser::ReadBool(DocElem elem, const char *field, bool def_value)
-{
-    if (!elem)
-        return def_value;
-    DocElem name_f = elem->FirstChildElement(field);
-    if (name_f && name_f->GetText())
-        return ags_stricmp(name_f->GetText(), "True") == 0;
-    return def_value;
-}
-
 const char *ValueParser::ReadAttributeString(DocElem elem, const char *field, const char *def_value)
 {
     if (!elem)
@@ -469,18 +450,6 @@ static DataUtil::ButtonColorStyle ReadButtonColorStyle(const String &value);
 static DataUtil::CharacterTurnOrderPriority ReadTurnOrderPriority(const String &value);
 static DataUtil::GUITextBoxKeyClaimStyle ReadTextBoxKeyClaimStyle(const String &value);
 DataUtil::LipSyncType ReadLipSyncType(const String &value);
-
-int Dialog::ReadOptionCount(DocElem elem)
-{
-    // Option count is not written in AGF, so we have to calculate number of elems
-    elem = elem->FirstChildElement("DialogOptions");
-    if (!elem)
-        return 0;
-    int count = 0;
-    for (elem = elem->FirstChildElement("DialogOption"); elem; elem = elem->NextSiblingElement("DialogOption"), count++)
-        ;
-    return count;
-}
 
 static FrameAlignment ReadFrameAlignment(const String &value, FrameAlignment def_value)
 {
@@ -1066,11 +1035,6 @@ static ScriptXml ReadScriptXml(DocElem elem)
     ScriptXml script;
     ReadFields(elem, script, kScriptFields, UnknownElements::Report);
     return script;
-}
-
-bool ScriptElem::IsHeader(DocElem elem)
-{
-    return ReadScriptXml(elem).IsHeader;
 }
 
 String ScriptElem::ReadFilename(DocElem elem)

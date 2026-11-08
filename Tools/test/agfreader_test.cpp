@@ -1505,17 +1505,6 @@ return;</Script>
     EXPECT_STREQ("Dialog", ref.TypeName.GetCStr());
     EXPECT_EQ(2, ref.ID);
     EXPECT_STREQ("dTalk", ref.ScriptName.GetCStr());
-    EXPECT_EQ(3, parser.ReadOptionCount(elem));
-    EXPECT_STREQ("@S\nreturn;", parser.ReadScript(elem).GetCStr());
-}
-
-TEST_F(AGFReaderBlocks, DialogWithoutOptions)
-{
-    AGF::DocElem elem = Parse("<Dialog><ID>0</ID><ScriptName>dEmpty</ScriptName></Dialog>");
-    ASSERT_TRUE(elem != nullptr);
-    AGF::Dialog parser;
-    EXPECT_EQ(0, parser.ReadOptionCount(elem));
-    EXPECT_STREQ("", parser.ReadScript(elem).GetCStr());
 }
 
 //
