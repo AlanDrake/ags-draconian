@@ -108,26 +108,22 @@ inline int CharFlagsToObjFlags(int chflags)
            FlagToNoFlag(chflags, CHF_NOBLOCKING, OBJF_SOLID);
 }
 
+// Before 4.0: 0 (3.5.0 pre-alpha); 1 (3.5.0) new movelist format (along with pathfinder);
+// 2 (3.6.0.25) animation volume; 3 (3.6.1.9) removed movelists, save externally;
+// 4 (3.6.1.15) no limit on character name's length; 3060205 32-bit "following" parameters;
+// 3060304 blocking x,y; 3060310 audio panning and speed
 enum CharacterSvgVersion
 {
-    kCharSvgVersion_Initial = 0,      // [UNSUPPORTED] from 3.5.0 pre-alpha
-    kCharSvgVersion_350 = 1,          // new movelist format (along with pathfinder)
-    kCharSvgVersion_36025 = 2,        // animation volume
-    kCharSvgVersion_36109 = 3,        // removed movelists, save externally
-    kCharSvgVersion_36115 = 4,        // no limit on character name's length
-    kCharSvgVersion_36205 = 3060205,  // 32-bit "following" parameters
-    kCharSvgVersion_36304 = 3060304,  // blocking x,y
-    kCharSvgVersion_36310 = 3060310,  // audio panning and speed
     kCharSvgVersion_400 = 4000000,    // extended graphic effects (blend, rotate,...)
-    kCharSvgVersion_400_03 = 4000003, // compat with kCharSvgVersion_36115
+    kCharSvgVersion_400_03 = 4000003, // compat with 3.6.1.15 (character name's length)
     kCharSvgVersion_400_09 = 4000009, // 32-bit color properties
-    kCharSvgVersion_400_13 = 4000013, // compat with kCharSvgVersion_36205
+    kCharSvgVersion_400_13 = 4000013, // compat with 3.6.2.5 (32-bit "following" parameters)
     kCharSvgVersion_400_14 = 4000014, // proper ARGB color properties
     kCharSvgVersion_400_16 = 4000016, // motion path exposed to script, separate runtime flags, turns
     kCharSvgVersion_400_18 = 4000018, // shaders
     kCharSvgVersion_400_20 = 4000020, // expanded and bit more consistent anim params serialization
-    kCharSvgVersion_400_26 = 4000026, // sync with kCharSvgVersion_36304
-    kCharSvgVersion_400_28 = 4000028, // sync with kCharSvgVersion_36310
+    kCharSvgVersion_400_26 = 4000026, // sync with 3.6.3.4 (blocking x,y)
+    kCharSvgVersion_400_28 = 4000028, // sync with 3.6.3.10 (audio panning and speed)
     kCharSvgVersion_400_29 = 4000029, // rotation pivot
     kCharSvgVersion_400_33 = 4000033, // removed MAX_INV
     kCharSvgVersion_400_34 = 4000034, // opacity instead of transparency, full tint and light ranges

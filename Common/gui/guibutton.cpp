@@ -512,21 +512,20 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _font = in->ReadInt32();
     _textColor = in->ReadInt32();
     SetText(StrUtil::ReadString(in));
-    if (svg_ver >= kGuiSvgVersion_350)
-        _textAlignment = (FrameAlignment)in->ReadInt32();
+    _textAlignment = (FrameAlignment)in->ReadInt32();
     // CHECKME: possibly this may be avoided, and currentimage updated according
     // to the button state after load
     _currentImage = in->ReadInt32();
     int old_paddingx = 0, old_paddingy = 0;
-    if (svg_ver >= kGuiSvgVersion_36202 && (svg_ver < kGuiSvgVersion_400 || svg_ver >= kGuiSvgVersion_40010))
+    if (svg_ver >= kGuiSvgVersion_40010)
     {
         old_paddingx = in->ReadInt32();
         old_paddingy = in->ReadInt32();
-        // valid since kGuiSvgVersion_36304
+        // valid since kGuiSvgVersion_40026
         _buttonFlags = in->ReadInt32();
         _borderShadeColor = in->ReadInt32();
     }
-    if (((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400)) || (svg_ver >= kGuiSvgVersion_40026))
+    if (svg_ver >= kGuiSvgVersion_40026)
     {
         _mouseOverBackColor = in->ReadInt32();
         _pushedBackColor = in->ReadInt32();
@@ -534,7 +533,7 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         _pushedBorderColor = in->ReadInt32();
         _mouseOverTextColor = in->ReadInt32();
         _pushedTextColor = in->ReadInt32();
-        // valid since kGuiSvgVersion_36308
+        // valid since kGuiSvgVersion_40027
         _textOutlineColor = in->ReadInt32();
         in->ReadInt32(); // reserved
         in->ReadInt32();
@@ -544,21 +543,11 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     {
         SetDefaultLooksFor363();
 
-        if (svg_ver >= kGuiSvgVersion_36202)
-        {
-            _paddingX = std::max(0, old_paddingx - 1);
-            _paddingY = std::max(0, old_paddingy - 1);
-        }
+        _paddingX = std::max(0, old_paddingx - 1);
+        _paddingY = std::max(0, old_paddingy - 1);
     }
 
-    if (svg_ver >= kGuiSvgVersion_400)
-    {
-        _imageFlags = (SpriteTransformFlags)in->ReadInt32();
-    }
-    else
-    {
-        _imageFlags = kSprTf_None;
-    }
+    _imageFlags = (SpriteTransformFlags)in->ReadInt32();
 
     // Update current state after reading
     _isPushed = false;
@@ -578,25 +567,25 @@ void GUIButton::WriteToSavegame(Stream *out) const
     StrUtil::WriteString(GetText(), out);
     out->WriteInt32(_textAlignment);
     out->WriteInt32(_currentImage);
-    // kGuiSvgVersion_36202
+    // kGuiSvgVersion_40010
     out->WriteInt32(_paddingX);
     out->WriteInt32(_paddingY);
-    // valid since kGuiSvgVersion_36304
+    // valid since kGuiSvgVersion_40026
     out->WriteInt32(_buttonFlags);
     out->WriteInt32(_borderShadeColor);
-    // kGuiSvgVersion_36304
+    // kGuiSvgVersion_40026
     out->WriteInt32(_mouseOverBackColor);
     out->WriteInt32(_pushedBackColor);
     out->WriteInt32(_mouseOverBorderColor);
     out->WriteInt32(_pushedBorderColor);
     out->WriteInt32(_mouseOverTextColor);
     out->WriteInt32(_pushedTextColor);
-    // valid since kGuiSvgVersion_36308
+    // valid since kGuiSvgVersion_40027
     out->WriteInt32(_textOutlineColor);
     out->WriteInt32(0); // reserved
     out->WriteInt32(0);
     out->WriteInt32(0);
-    //since kGuiSvgVersion_3991
+    // since kGuiSvgVersion_400
     out->WriteInt32(_imageFlags);
 }
 

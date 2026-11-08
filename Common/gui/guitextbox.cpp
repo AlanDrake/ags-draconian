@@ -129,13 +129,12 @@ void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _font = in->ReadInt32();
     _textColor = in->ReadInt32();
     _text = StrUtil::ReadString(in);
-    if (svg_ver >= kGuiSvgVersion_350)
-        _textBoxFlags = in->ReadInt32();
+    _textBoxFlags = in->ReadInt32();
 
-    if (((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400)) || (svg_ver >= kGuiSvgVersion_40026))
+    if (svg_ver >= kGuiSvgVersion_40026)
     {
         _textAlignment = static_cast<FrameAlignment>(in->ReadInt32());
-        // valid since kGuiSvgVersion_36308
+        // valid since kGuiSvgVersion_40027
         _textOutlineColor = in->ReadInt32();
         in->ReadInt32(); // reserved
         in->ReadInt32();
@@ -153,9 +152,9 @@ void GUITextBox::WriteToSavegame(Stream *out) const
     out->WriteInt32(_textColor);
     StrUtil::WriteString(_text, out);
     out->WriteInt32(_textBoxFlags);
-    // kGuiSvgVersion_36304
+    // kGuiSvgVersion_40026
     out->WriteInt32(_textAlignment);
-    // valid since kGuiSvgVersion_36308
+    // valid since kGuiSvgVersion_40027
     out->WriteInt32(_textOutlineColor);
     out->WriteInt32(0); // reserved
     out->WriteInt32(0);

@@ -492,7 +492,7 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _topItem = in->ReadInt32();
     _selectedItem = in->ReadInt32();
 
-    if (((svg_ver >= kGuiSvgVersion_36308) && (svg_ver < kGuiSvgVersion_400)) || (svg_ver >= kGuiSvgVersion_40027))
+    if (svg_ver >= kGuiSvgVersion_40027)
     {
         _textOutlineColor = in->ReadInt32();
         in->ReadInt32(); // reserved
@@ -500,7 +500,7 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         in->ReadInt32();
     }
 
-    if ((svg_ver < kGuiSvgVersion_36304) || (svg_ver >= kGuiSvgVersion_400 && svg_ver < kGuiSvgVersion_40026))
+    if (svg_ver < kGuiSvgVersion_40026)
     {
         SetDefaultLooksFor363();
     }
@@ -535,7 +535,7 @@ void GUIListBox::WriteToSavegame(Stream *out) const
     out->WriteInt32(_topItem);
     out->WriteInt32(_selectedItem);
 
-    // kGuiSvgVersion_36308
+    // kGuiSvgVersion_40027
     out->WriteInt32(_textOutlineColor);
     out->WriteInt32(0); // reserved
     out->WriteInt32(0);

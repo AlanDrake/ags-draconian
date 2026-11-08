@@ -695,13 +695,10 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver, std::v
         _opacity = GfxDef::LegacyTrans255ToAlpha255(_opacity);
     _zOrder = in->ReadInt32();
 
-    if (svg_ver >= kGuiSvgVersion_350)
-    {
-        _bgColor = in->ReadInt32();
-        _fgColor = in->ReadInt32();
-        _padding = in->ReadInt32();
-        _popupAtMouseY = in->ReadInt32();
-    }
+    _bgColor = in->ReadInt32();
+    _fgColor = in->ReadInt32();
+    _padding = in->ReadInt32();
+    _popupAtMouseY = in->ReadInt32();
 
     // Dynamic values
     _focusCtrl = in->ReadInt32();
@@ -712,7 +709,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver, std::v
     _mouseWasAt.Y = in->ReadInt32();
 
     // Control refs
-    if (svg_ver >= kGuiSvgVersion_36200 && (svg_ver < kGuiSvgVersion_400 || svg_ver >= kGuiSvgVersion_40010))
+    if (svg_ver >= kGuiSvgVersion_40010)
     {
         uint32_t ctrl_count = in->ReadInt32();
         ctrl_refs.resize(ctrl_count);
@@ -724,7 +721,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver, std::v
         }
     }
 
-    if (((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400)) || (svg_ver >= kGuiSvgVersion_40026))
+    if (svg_ver >= kGuiSvgVersion_40026)
     {
         _popupStyle = static_cast<GUIPopupStyle>(in->ReadInt32());
         in->ReadInt32(); // reserved
@@ -732,27 +729,24 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver, std::v
         in->ReadInt32();
     }
 
-    if (svg_ver >= kGuiSvgVersion_400)
-    {
-        _blendMode = (BlendMode)in->ReadInt32();
+    _blendMode = (BlendMode)in->ReadInt32();
 
-        // Reserved for colour options
-        in->ReadInt32(); // colour flags
-        in->ReadInt32(); // tint rgb + s
-        in->ReadInt32(); // tint light (or light level)
-        // Reserved for transform options
-        in->ReadInt32();               // sprite transform flags1
-        in->ReadInt32();               // sprite transform flags2
-        _scale.X = in->ReadFloat32();  // transform scale x
-        _scale.Y = in->ReadFloat32();  // transform scale y
-        in->ReadInt32();               // transform skew x
-        in->ReadInt32();               // transform skew y
-        _rotation = in->ReadFloat32(); // transform rotate
-        in->ReadInt32();               // sprite pivot x
-        in->ReadInt32();               // sprite pivot y
-        in->ReadInt32();               // sprite anchor x
-        in->ReadInt32();               // sprite anchor y
-    }
+    // Reserved for colour options
+    in->ReadInt32(); // colour flags
+    in->ReadInt32(); // tint rgb + s
+    in->ReadInt32(); // tint light (or light level)
+    // Reserved for transform options
+    in->ReadInt32();               // sprite transform flags1
+    in->ReadInt32();               // sprite transform flags2
+    _scale.X = in->ReadFloat32();  // transform scale x
+    _scale.Y = in->ReadFloat32();  // transform scale y
+    in->ReadInt32();               // transform skew x
+    in->ReadInt32();               // transform skew y
+    _rotation = in->ReadFloat32(); // transform rotate
+    in->ReadInt32();               // sprite pivot x
+    in->ReadInt32();               // sprite pivot y
+    in->ReadInt32();               // sprite anchor x
+    in->ReadInt32();               // sprite anchor y
 
     // Some of the fields above were not valid in previous versions,
     // and value 0 cannot be default either.
@@ -780,39 +774,31 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver, std::v
 
 void GUIMain::SkipSavestate(Stream *in, GuiSvgVersion svg_version, std::vector<ControlRef> *ctrl_refs)
 {
-    if (svg_version < kGuiSvgVersion_350)
-        in->Seek(15 * sizeof(int32_t));
-    else
-        in->Seek(18 * sizeof(int32_t));
+    in->Seek(18 * sizeof(int32_t));
 
-    if (svg_version >= kGuiSvgVersion_36200)
+    // FIXME: ReadFromSavegame reads control refs since kGuiSvgVersion_40010 only, so a save of 4000000
+    // to 4000009 (which has none) is misread here
+    if (!ctrl_refs)
     {
-        if (!ctrl_refs)
-        {
-            in->Seek(in->ReadInt32() * sizeof(int32_t));
-            return;
-        }
-
-        uint32_t ctrl_count = in->ReadInt32();
-        ctrl_refs->resize(ctrl_count);
-        for (uint32_t i = 0; i < ctrl_count; ++i)
-        {
-            const uint32_t ref_packed = in->ReadInt32();
-            (*ctrl_refs)[i].first = (GUIControlType)((ref_packed >> 16) & 0xFFFF);
-            (*ctrl_refs)[i].second = ref_packed & 0xFFFF;
-        }
+        in->Seek(in->ReadInt32() * sizeof(int32_t));
+        return;
     }
 
-    if (((svg_version >= kGuiSvgVersion_36304) && (svg_version < kGuiSvgVersion_400)) ||
-        (svg_version >= kGuiSvgVersion_40026))
+    uint32_t ctrl_count = in->ReadInt32();
+    ctrl_refs->resize(ctrl_count);
+    for (uint32_t i = 0; i < ctrl_count; ++i)
+    {
+        const uint32_t ref_packed = in->ReadInt32();
+        (*ctrl_refs)[i].first = (GUIControlType)((ref_packed >> 16) & 0xFFFF);
+        (*ctrl_refs)[i].second = ref_packed & 0xFFFF;
+    }
+
+    if (svg_version >= kGuiSvgVersion_40026)
     {
         in->Seek(4 * sizeof(int32_t));
     }
 
-    if (svg_version >= kGuiSvgVersion_400)
-    {
-        in->Seek(15 * sizeof(int32_t));
-    }
+    in->Seek(15 * sizeof(int32_t));
     if (svg_version >= kGuiSvgVersion_40018)
     {
         in->Seek(4 * sizeof(int32_t));
@@ -849,12 +835,12 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
         uint32_t ref_packed = ((ref.first & 0xFFFF) << 16) | (ref.second & 0xFFFF);
         out->WriteInt32(ref_packed);
     }
-    // kGuiSvgVersion_36304
+    // kGuiSvgVersion_40026
     out->WriteInt32(_popupStyle);
     out->WriteInt32(0); // reserved
     out->WriteInt32(0);
     out->WriteInt32(0);
-    // since kGuiSvgVersion_399
+    // since kGuiSvgVersion_400
     out->WriteInt32(_blendMode);
     // Reserved for colour options
     out->WriteInt32(0); // colour flags

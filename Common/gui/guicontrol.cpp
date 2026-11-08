@@ -269,17 +269,16 @@ void GUIControl::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     // Dynamic state
     _isActivated = in->ReadBool() ? 1 : 0;
 
-    if (svg_ver >= kGuiSvgVersion_36023)
+    _opacity = in->ReadInt32();
+    if (svg_ver < kGuiSvgVersion_40034)
     {
-        _opacity = in->ReadInt32();
-        if (svg_ver < kGuiSvgVersion_40034)
-            _opacity = GfxDef::LegacyTrans255ToAlpha255(_opacity);
-        // valid since kGuiSvgVersion_36304
-        _backgroundColor = in->ReadInt32();
-        _borderColor = in->ReadInt32();
-        _borderWidth = in->ReadInt32();
+        _opacity = GfxDef::LegacyTrans255ToAlpha255(_opacity);
     }
-    if (((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400)) || (svg_ver >= kGuiSvgVersion_40026))
+    // valid since kGuiSvgVersion_40026
+    _backgroundColor = in->ReadInt32();
+    _borderColor = in->ReadInt32();
+    _borderWidth = in->ReadInt32();
+    if (svg_ver >= kGuiSvgVersion_40026)
     {
         _paddingX = in->ReadInt32();
         _paddingY = in->ReadInt32();
@@ -345,13 +344,13 @@ void GUIControl::WriteToSavegame(Stream *out) const
     out->WriteInt32(_zOrder);
     // Dynamic state
     out->WriteBool(_isActivated != 0);
-    // kGuiSvgVersion_36023
+    // since 3.6.0.23
     out->WriteInt32(_opacity);
-    // valid since kGuiSvgVersion_36304
+    // valid since kGuiSvgVersion_40026
     out->WriteInt32(_backgroundColor);
     out->WriteInt32(_borderColor);
     out->WriteInt32(_borderWidth);
-    // kGuiSvgVersion_36304
+    // kGuiSvgVersion_40026
     out->WriteInt32(_paddingX);
     out->WriteInt32(_paddingY);
     out->WriteInt32(0); // reserved

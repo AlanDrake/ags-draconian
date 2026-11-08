@@ -253,7 +253,7 @@ void CharacterInfo::ReadFromSavegame(Stream *in, LegacyFields &old_fields, Chara
     in->ReadInt16(); // actx__
     in->ReadInt16(); // acty__
 
-    if (save_ver < kCharSvgVersion_36115 || (save_ver >= kCharSvgVersion_400 && save_ver < kCharSvgVersion_400_03))
+    if (save_ver < kCharSvgVersion_400_03)
     { // Fixed-size name and scriptname
         name.ReadCount(in, LEGACY_MAX_CHAR_NAME_LEN);
         in->Seek(LEGACY_MAX_SCRIPT_NAME_LEN); // skip legacy scriptname
@@ -275,8 +275,7 @@ void CharacterInfo::ReadFromSavegame(Stream *in, LegacyFields &old_fields, Chara
         flags |= CHF_ENABLED | (CHF_VISIBLE)*on;
     }
 
-    if (((save_ver >= kCharSvgVersion_36304) && (save_ver < kCharSvgVersion_400)) ||
-        (save_ver >= kCharSvgVersion_400_26))
+    if (save_ver >= kCharSvgVersion_400_26)
     {
         blocking_x = in->ReadInt16();
         blocking_y = in->ReadInt16();
@@ -285,13 +284,6 @@ void CharacterInfo::ReadFromSavegame(Stream *in, LegacyFields &old_fields, Chara
     {
         blocking_x = 0;
         blocking_y = 0;
-    }
-
-    //
-    // Upgrade restored data
-    if (save_ver < kCharSvgVersion_36025)
-    {
-        idle_anim_speed = animspeed + 5;
     }
 }
 
@@ -350,9 +342,9 @@ void CharacterInfo::WriteToSavegame(Stream *out) const
     out->WriteInt16(0); // actx__
     out->WriteInt16(0); // acty__
 
-    StrUtil::WriteString(name, out); // kCharSvgVersion_36115
+    StrUtil::WriteString(name, out); // kCharSvgVersion_400_03
     out->WriteInt8(0);               // [OBSOLETE], old enabled + visible flag
-    // kCharSvgVersion_36304
+    // kCharSvgVersion_400_26
     out->WriteInt16(blocking_x);
     out->WriteInt16(blocking_y);
 }

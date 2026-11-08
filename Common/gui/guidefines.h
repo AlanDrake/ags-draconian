@@ -179,28 +179,21 @@ enum GUITextBoxFlags
 };
 
 // GUI runtime save format
+// Before 4.0: 0 to 4 (3.5.0 to 3.6.0.25); 3060200 re-added control refs; 3060202 button padding;
+// 3060304 extended control frame properties; 3060308 +text outline color
 // TODO: move to the engine code
 enum GuiSvgVersion
 {
-    kGuiSvgVersion_Initial = 0,
-    kGuiSvgVersion_350,
-    kGuiSvgVersion_36020,
-    kGuiSvgVersion_36023,
-    kGuiSvgVersion_36025,
-    kGuiSvgVersion_36200 = 3060200, // re-added control refs
-    kGuiSvgVersion_36202 = 3060202,
-    kGuiSvgVersion_36304 = 3060304, // extended control frame properties
-    kGuiSvgVersion_36308 = 3060308, // +text outline color
     kGuiSvgVersion_400 = 4000000,
     kGuiSvgVersion_40008 = 4000008, // custom properties
     kGuiSvgVersion_40009 = 4000009, // 32-bit color properties
-    kGuiSvgVersion_40010 = 4000010, // compat with kGuiSvgVersion_36200-36202
+    kGuiSvgVersion_40010 = 4000010, // compat with 3.6.2.0-3.6.2.2 (control refs, button padding)
     kGuiSvgVersion_40014 = 4000014, // proper ARGB color properties
     kGuiSvgVersion_40016 = 4000016, // extended graphic properties for controls
     kGuiSvgVersion_40018 = 4000018, // shaders
     kGuiSvgVersion_40020 = 4000020, // expanded and bit more consistent anim params serialization
-    kGuiSvgVersion_40026 = 4000026, // sync with kGuiSvgVersion_36304
-    kGuiSvgVersion_40027 = 4000027, // sync with kGuiSvgVersion_36308
+    kGuiSvgVersion_40026 = 4000026, // sync with 3.6.3.4 (extended control frame properties)
+    kGuiSvgVersion_40027 = 4000027, // sync with 3.6.3.8 (text outline color)
     kGuiSvgVersion_40034 = 4000034, // opacity instead of transparency
     kGuiSvgVersion_Current = kGuiSvgVersion_40034
 };

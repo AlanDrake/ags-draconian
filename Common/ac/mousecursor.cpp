@@ -40,15 +40,14 @@ void MouseCursor::WriteToFile(Stream *out)
     out->WriteByteCount(0, 3); // alignment padding to int32
 }
 
-void MouseCursor::ReadFromSavegame(Stream *in, int cmp_ver)
+void MouseCursor::ReadFromSavegame(Stream *in, int /*cmp_ver*/)
 {
     pic = in->ReadInt32();
     hotx = static_cast<int16_t>(in->ReadInt32());
     hoty = static_cast<int16_t>(in->ReadInt32());
     view = static_cast<int16_t>(in->ReadInt32());
     flags = static_cast<int8_t>(in->ReadInt32());
-    if (cmp_ver >= kCursorSvgVersion_36016)
-        animdelay = in->ReadInt32();
+    animdelay = in->ReadInt32();
 }
 
 void MouseCursor::WriteToSavegame(Stream *out) const

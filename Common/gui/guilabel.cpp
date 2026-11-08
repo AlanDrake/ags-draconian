@@ -115,10 +115,9 @@ void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _font = in->ReadInt32();
     _textColor = in->ReadInt32();
     _text = StrUtil::ReadString(in);
-    if (svg_ver >= kGuiSvgVersion_350)
-        _textAlignment = (FrameAlignment)in->ReadInt32();
+    _textAlignment = (FrameAlignment)in->ReadInt32();
 
-    if (((svg_ver >= kGuiSvgVersion_36308) && (svg_ver < kGuiSvgVersion_400)) || (svg_ver >= kGuiSvgVersion_40027))
+    if (svg_ver >= kGuiSvgVersion_40027)
     {
         _textOutlineColor = in->ReadInt32();
         in->ReadInt32(); // reserved
@@ -140,7 +139,7 @@ void GUILabel::WriteToSavegame(Stream *out) const
     out->WriteInt32(_textColor);
     StrUtil::WriteString(_text, out);
     out->WriteInt32(_textAlignment);
-    // kGuiSvgVersion_36308
+    // kGuiSvgVersion_40027
     out->WriteInt32(_textOutlineColor);
     out->WriteInt32(0); // reserved
     out->WriteInt32(0);

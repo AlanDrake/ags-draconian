@@ -39,9 +39,9 @@ enum CursorRole
     kNumCursorRoles
 };
 
+// 0 (initial) is no longer read
 enum CursorSvgVersion
 {
-    kCursorSvgVersion_Initial = 0,
     kCursorSvgVersion_36016 = 1, // animation delay
 };
 
