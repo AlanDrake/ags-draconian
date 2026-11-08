@@ -68,10 +68,6 @@ int get_adjusted_spriteheight(int spr)
 {
     return 0;
 }
-bool is_sprite_alpha(int spr)
-{
-    return false;
-}
 
 void draw_gui_sprite(AGS::Common::Bitmap *ds, int spr, int x, int y, AGS::Common::BlendMode blend_mode) {}
 void draw_gui_sprite(AGS::Common::Bitmap *ds, int x, int y, AGS::Common::Bitmap *image,
@@ -88,20 +84,6 @@ void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int x, int y, AGS::Common:
 {
 }
 
-int game_to_data_coord(int coord)
-{
-    return coord;
-}
-int data_to_game_coord(int coord)
-{
-    return coord;
-}
-void data_to_game_coords(int *x, int *y) {}
-int get_fixed_pixel_size(int pixels)
-{
-    return pixels;
-}
-
 void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont, color_t text_color, const char *text) {}
 void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont, color_t text_color,
                       AGS::Common::BlendMode blend_mode, const char *text)
@@ -113,10 +95,6 @@ void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont, colo
 }
 
 void set_eip_guiobj(int eip) {}
-int get_eip_guiobj()
-{
-    return 0;
-}
 
 bool ShouldAntiAliasText()
 {

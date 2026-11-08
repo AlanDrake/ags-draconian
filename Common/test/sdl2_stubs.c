@@ -89,10 +89,6 @@ size_t SDL_RWread(SDL_RWops *context, void *ptr, size_t size, size_t maxnum)
 {
     return 0u;
 }
-size_t SDL_RWwrite(SDL_RWops *context, const void *ptr, size_t size, size_t num)
-{
-    return 0u;
-}
 int SDL_RWclose(SDL_RWops *context)
 {
     return 0;
