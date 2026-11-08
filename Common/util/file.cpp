@@ -92,17 +92,6 @@ time_t File::GetFileTime(const String &filename)
     // NOTE: ANDROID's AAsset storage seems to be unapplicable here
 }
 
-bool File::TestReadFile(const String &filename)
-{
-    FILE *test_file = ags_fopen(filename.GetCStr(), "rb");
-    if (test_file)
-    {
-        fclose(test_file);
-        return true;
-    }
-    return false;
-}
-
 bool File::TestWriteFile(const String &filename)
 {
     FILE *test_file = ags_fopen(filename.GetCStr(), "r+");
@@ -219,50 +208,6 @@ String File::GetThisExePath()
 #endif
 }
 
-bool File::GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, StreamMode &work_mode)
-{
-    // We do not test for 'b' and 't' here, because text mode reading/writing should be done with
-    // the use of ITextReader and ITextWriter implementations.
-    // The number of supported variants here is quite limited due the restrictions AGS makes on them.
-    bool read_base_mode = false;
-    // Default mode is open/read for safety reasons
-    open_mode = kFile_Open;
-    work_mode = kStream_Read;
-    for (size_t c = 0; c < cmode.GetLength(); ++c)
-    {
-        if (read_base_mode)
-        {
-            if (cmode[c] == '+')
-            {
-                work_mode = kStream_ReadWrite;
-            }
-            break;
-        }
-        else
-        {
-            if (cmode[c] == 'r')
-            {
-                open_mode = kFile_Open;
-                work_mode = kStream_Read;
-                read_base_mode = true;
-            }
-            else if (cmode[c] == 'a')
-            {
-                open_mode = kFile_Create;
-                work_mode = kStream_Write;
-                read_base_mode = true;
-            }
-            else if (cmode[c] == 'w')
-            {
-                open_mode = kFile_CreateAlways;
-                work_mode = kStream_Write;
-                read_base_mode = true;
-            }
-        }
-    }
-    return read_base_mode;
-}
-
 String File::GetCMode(FileOpenMode open_mode, StreamMode work_mode)
 {
     String mode;
@@ -348,21 +293,6 @@ std::unique_ptr<Stream> File::CreateTempFile()
         return nullptr;
     // Create a BufferedStream instance, wrapping the selected device impl
     return std::make_unique<Stream>(std::make_unique<BufferedStream>(FileStream::OwnHandle(file, kStream_ReadWrite)));
-}
-
-std::unique_ptr<Stream> File::OpenStdin()
-{
-    return std::make_unique<Stream>(std::make_unique<BufferedStream>(FileStream::WrapHandle(stdin, kStream_Read)));
-}
-
-std::unique_ptr<Stream> File::OpenStdout()
-{
-    return std::make_unique<Stream>(std::make_unique<BufferedStream>(FileStream::WrapHandle(stdout, kStream_Write)));
-}
-
-std::unique_ptr<Stream> File::OpenStderr()
-{
-    return std::make_unique<Stream>(std::make_unique<BufferedStream>(FileStream::WrapHandle(stderr, kStream_Write)));
 }
 
 String File::FindFileCI(const String &base_dir, const String &file_name, bool is_dir, String *most_found,

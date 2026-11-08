@@ -61,13 +61,6 @@ BufferedStream::~BufferedStream()
     Close();
 }
 
-std::unique_ptr<IStreamBase> BufferedStream::ReleaseStreamBase()
-{
-    if (_base && (_bufferMode == kStream_Write))
-        FlushBuffer(_position);
-    return std::move(_base);
-}
-
 void BufferedStream::FillBufferFromPosition(soff_t position)
 {
     assert(_base);

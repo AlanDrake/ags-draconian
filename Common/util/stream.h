@@ -477,11 +477,6 @@ private:
 class StreamSection : public StreamBase
 {
 public:
-    // Constructs a owning StreamSection over a base stream,
-    // restricting working range to [start, end), i.e. end offset is
-    // +1 past allowed position.
-    // TODO: allow end < 0 in which case the end of base stream is used
-    StreamSection(std::unique_ptr<IStreamBase> &&base, soff_t start, soff_t end);
     // Constructs a non-owning StreamSection over a base stream.
     // TODO: allow end < 0 in which case the end of base stream is used
     StreamSection(IStreamBase *base, soff_t start, soff_t end);

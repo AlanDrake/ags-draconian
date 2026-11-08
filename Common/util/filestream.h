@@ -56,12 +56,6 @@ public:
     {
         return std::unique_ptr<FileStream>(new FileStream(file, true, work_mode));
     }
-    // Constructs a file stream over an open FILE handle;
-    // does NOT take an ownership over it
-    static std::unique_ptr<FileStream> WrapHandle(FILE *file, StreamMode work_mode)
-    {
-        return std::unique_ptr<FileStream>(new FileStream(file, false, work_mode));
-    }
     ~FileStream() override;
 
     // Tells which open mode was used when opening a file.

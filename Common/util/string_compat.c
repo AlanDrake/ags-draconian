@@ -58,14 +58,6 @@ int ags_strnicmp(const char *s1, const char *s2, size_t n)
 #endif
 }
 
-char *ags_strdup(const char *s)
-{
-    size_t len = strlen(s);
-    char *result = (char *)malloc(len + 1);
-    memcpy(result, s, len + 1);
-    return result;
-}
-
 char *ags_strstr(const char *haystack, const char *needle)
 {
     return strstr(haystack, needle);

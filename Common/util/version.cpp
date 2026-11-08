@@ -28,42 +28,11 @@ Version::Version() : Major(0), Minor(0), Release(0), Revision(0)
     MakeString();
 }
 
-Version::Version(int32_t major, int32_t minor, int32_t release)
-    : Major(major),
-      Minor(minor),
-      Release(release),
-      Revision(0)
-{
-    MakeString();
-}
-
 Version::Version(int32_t major, int32_t minor, int32_t release, int32_t revision)
     : Major(major),
       Minor(minor),
       Release(release),
       Revision(revision)
-{
-    MakeString();
-}
-
-Version::Version(int32_t major, int32_t minor, int32_t release, int32_t revision, const String &special)
-    : Major(major),
-      Minor(minor),
-      Release(release),
-      Revision(revision),
-      Special(special)
-{
-    MakeString();
-}
-
-Version::Version(int32_t major, int32_t minor, int32_t release, int32_t revision, const String &special,
-                 const String &build_info)
-    : Major(major),
-      Minor(minor),
-      Release(release),
-      Revision(revision),
-      Special(special),
-      BuildInfo(build_info)
 {
     MakeString();
 }

@@ -47,19 +47,9 @@ inline bool CfgReadBoolInt(const ConfigTree &cfg, const String &sectn, const Str
 {
     return CfgReadInt(cfg, sectn, item, 0, 1, def) != 0;
 }
-int64_t CfgReadInt64(const ConfigTree &cfg, const String &sectn, const String &item, int64_t def = 0);
-int64_t CfgReadInt64(const ConfigTree &cfg, const String &sectn, const String &item, int64_t min, int64_t max,
-                     int64_t def = 0);
 uint64_t CfgReadUInt64(const ConfigTree &cfg, const String &sectn, const String &item, uint64_t def = 0);
-uint64_t CfgReadUInt64(const ConfigTree &cfg, const String &sectn, const String &item, uint64_t min, uint64_t max,
-                       uint64_t def = 0);
 float CfgReadFloat(const ConfigTree &cfg, const String &sectn, const String &item, float def = 0.f);
-float CfgReadFloat(const ConfigTree &cfg, const String &sectn, const String &item, float min, float max,
-                   float def = 0.f);
 String CfgReadString(const ConfigTree &cfg, const String &sectn, const String &item, const String &def = "");
-// Specialized variant for reading into char buffer, for code compatibility
-void CfgReadString(char *cbuf, size_t buf_sz, const ConfigTree &cfg, const String &sectn, const String &item,
-                   const String &def = "");
 // Looks up for a item key in a given section, returns actual key if one exists, or empty string otherwise,
 // optionally compares item name in case-insensitive way.
 // NOTE: this is a compatibility hack, in case we cannot enforce key case-sensitivity in some case.

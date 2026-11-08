@@ -37,23 +37,15 @@ bool rle_decompress(uint8_t *data, size_t data_sz, int image_bpp, Stream *in);
 void save_rle_bitmap8(Stream *out, const BitmapData &bmdata, const RGB (*pal)[256] = nullptr);
 // Reads a 8-bit bitmap with palette from the stream and unpacks from RLE
 PixelBuffer load_rle_bitmap8(Stream *in, RGB (*pal)[256] = nullptr);
-// Skips the 8-bit RLE bitmap
-void skip_rle_bitmap8(Stream *in);
 
 // LZW compression
 bool lzw_compress(const uint8_t *data, size_t data_sz, int image_bpp, Stream *out);
 bool lzw_decompress(uint8_t *data, size_t data_sz, int image_bpp, Stream *in, size_t in_sz);
-// Saves bitmap with an optional palette compressed by LZW
-void save_lzw(Stream *out, const BitmapData &bmdata, const RGB (*pal)[256] = nullptr);
 // Loads bitmap decompressing data using LZW algorithm
 PixelBuffer load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256] = nullptr);
-// Skips the LZW-compressed bitmap
-void skip_lzw(Stream *in);
 
 // Base64 encoding
 Common::String base64_encode(const void *addr, size_t input_size);
-Common::String base64_encode(const Common::String &input);
-void base64_decode(const Common::String &input, std::vector<uint8_t> &out);
 
 // Deflate compression
 bool deflate_compress(const uint8_t *data, size_t data_sz, int image_bpp, Stream *out);

@@ -43,11 +43,7 @@ struct Version
     static const Version LastOldFormatVersion;
 
     Version();
-    Version(int32_t major, int32_t minor, int32_t release);
     Version(int32_t major, int32_t minor, int32_t release, int32_t revision);
-    Version(int32_t major, int32_t minor, int32_t release, int32_t revision, const String &special);
-    Version(int32_t major, int32_t minor, int32_t release, int32_t revision, const String &special,
-            const String &build_info);
     Version(const String &version_string);
 
     inline int32_t AsNumber() const { return Major * 10000 + Minor * 100 + Release; }

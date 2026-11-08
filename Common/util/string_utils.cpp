@@ -136,15 +136,6 @@ int64_t StrUtil::StringToInt64(const String &s, int64_t def_val)
     return (stop_ptr == s.GetCStr() + s.GetLength()) ? val : def_val;
 }
 
-uint64_t StrUtil::StringToUInt64(const String &s, uint64_t def_val)
-{
-    if (s.IsEmpty())
-        return def_val;
-    char *stop_ptr;
-    uint64_t val = strtoull(s.GetCStr(), &stop_ptr, 0);
-    return (stop_ptr == s.GetCStr() + s.GetLength()) ? val : def_val;
-}
-
 float StrUtil::StringToFloat(const String &s, float def_val)
 {
     if (s.IsEmpty())
@@ -212,36 +203,6 @@ String StrUtil::ReadString(Stream *in)
     if (len > 0)
         return String::FromStreamCount(in, len);
     return String();
-}
-
-void StrUtil::ReadString(char *cstr, Stream *in, size_t buf_limit)
-{
-    size_t len = in->ReadInt32();
-    if (buf_limit == 0)
-    {
-        in->Seek(len);
-        return;
-    }
-
-    len = std::min(len, buf_limit - 1);
-    if (len > 0)
-        in->Read(cstr, len);
-    cstr[len] = 0;
-}
-
-void StrUtil::ReadString(String &s, Stream *in)
-{
-    size_t len = in->ReadInt32();
-    s.ReadCount(in, len);
-}
-
-void StrUtil::ReadString(char **cstr, Stream *in)
-{
-    size_t len = in->ReadInt32();
-    *cstr = new char[len + 1];
-    if (len > 0)
-        in->Read(*cstr, len);
-    (*cstr)[len] = 0;
 }
 
 void StrUtil::SkipString(Stream *in)
@@ -337,24 +298,11 @@ void StrUtil::ReadCStrCount(char *buf, Stream *in, size_t count)
     buf[count - 1] = 0; // for safety
 }
 
-char *StrUtil::ReadMallocCStrOrNull(Stream *in)
-{
-    char buf[1024];
-    ReadCStr(buf, in, sizeof(buf));
-    return buf[0] != 0 ? ags_strdup(buf) : nullptr;
-}
-
 std::string StrUtil::ReadCStrAsStdString(Stream *in)
 {
     char buf[1024];
     ReadCStr(buf, in, sizeof(buf));
     return buf;
-}
-
-void StrUtil::SkipCStr(Stream *in)
-{
-    while (in->ReadByte() > 0)
-        ;
 }
 
 void StrUtil::WriteCStr(const char *cstr, Stream *out)
@@ -378,16 +326,6 @@ void StrUtil::ReadStringMap(StringMap &map, Stream *in)
         String key = StrUtil::ReadString(in);
         String value = StrUtil::ReadString(in);
         map.insert(std::make_pair(key, value));
-    }
-}
-
-void StrUtil::SkipStringMap(Stream *in)
-{
-    size_t count = in->ReadInt32();
-    for (size_t i = 0; i < count; ++i)
-    {
-        StrUtil::SkipString(in);
-        StrUtil::SkipString(in);
     }
 }
 
@@ -453,47 +391,6 @@ std::vector<String> StrUtil::SplitPreservingDoublequoted(const String &s, char s
     // Append last section (it may be empty if separator was a last character)
     result.push_back(s.Mid(begin_at, s.GetLength() - begin_at));
     return result;
-}
-
-size_t StrUtil::ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, char *out_cstr, size_t out_sz)
-{
-    if (out_sz == 0)
-        return 0; // no output space
-    // TODO: later consider using alternative conversion methods
-    // (e.g. see C++11 features), as setlocale is unreliable.
-    char old_locale[64];
-    snprintf(old_locale, sizeof(old_locale), "%s", setlocale(LC_CTYPE, nullptr));
-    if (setlocale(LC_CTYPE, loc_name) == nullptr)
-    {
-        out_cstr[0] = 0;
-        return 0; // failed to set locale
-    }
-    // First convert utf-8 string into widestring;
-    std::vector<wchar_t> wcsbuf; // widechar buffer
-    wcsbuf.resize(Utf8::GetLength(mbstr) + 1);
-    // NOTE: we don't use mbstowcs, because unfortunately ".utf-8" locale
-    // is not normally supported on all systems (e.g. Windows 7 and earlier)
-    for (size_t at = 0, chr_sz = 0; *mbstr; mbstr += chr_sz, ++at)
-    {
-        Utf8::Rune r;
-        chr_sz = Utf8::GetChar(mbstr, Utf8::UtfSz, &r);
-        wcsbuf[at] = static_cast<wchar_t>(r);
-    }
-    // Then convert widestring to single-byte string using specified locale
-    size_t res_sz = wcstombs(out_cstr, wcsbuf.data(), out_sz);
-    setlocale(LC_CTYPE, old_locale);
-    if (res_sz == static_cast<std::size_t>(-1))
-    {
-        out_cstr[0] = 0;
-        return 0; // conversion failure
-    }
-    return res_sz;
-}
-
-size_t StrUtil::ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, std::vector<char> &out_cstr)
-{
-    out_cstr.resize(Utf8::GetLength(mbstr) + 1);
-    return ConvertUtf8ToAscii(mbstr, loc_name, out_cstr.data(), out_cstr.size());
 }
 
 // Where wchar_t has 16 bits (Windows) wide strings are UTF-16: a character above U+FFFF is a pair

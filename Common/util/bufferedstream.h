@@ -46,7 +46,6 @@ public:
     ~BufferedStream() override;
 
     IStreamBase *GetStreamBase() { return _base.get(); }
-    std::unique_ptr<IStreamBase> ReleaseStreamBase();
 
     const char *GetPath() const override { return _base ? _base->GetPath() : ""; }
     StreamMode GetMode() const override { return _base ? _base->GetMode() : kStream_None; }

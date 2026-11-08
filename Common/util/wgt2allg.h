@@ -30,8 +30,5 @@ class Bitmap;
 
 //=============================================================================
 
-extern AGS::Common::Bitmap *wnewblock(AGS::Common::Bitmap *src, int x1, int y1, int x2, int y2);
-
-extern void wputblock(AGS::Common::Bitmap *ds, int xx, int yy, AGS::Common::Bitmap *bll, int xray);
 // CHECKME: temporary solution for plugin system
 extern void wputblock_raw(AGS::Common::Bitmap *ds, int xx, int yy, BITMAP *bll, int xray);

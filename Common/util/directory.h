@@ -70,8 +70,6 @@ bool DeleteDirectory(const String &path);
 // also when there was none. On failure stops at the first entry that could not be deleted, and
 // gives its path in failed_path, if asked. A path to a file is not deleted, and is a failure.
 bool DeleteDirectoryTree(const String &path, String *failed_path = nullptr);
-// Sets current working directory, returns the resulting path
-String SetCurrentDirectory(const String &path);
 // Gets current working directory
 String GetCurrentDirectory();
 
@@ -81,14 +79,10 @@ String GetCurrentDirectory();
 void GetDirs(const String &dir_path, std::vector<String> &dirs);
 // Get list of files found in the given directory
 void GetFiles(const String &dir_path, std::vector<String> &files);
-// Get list of files found in the given directory using wildcard pattern
-void GetFiles(const String &dir_path, std::vector<String> &files, const String &wildcard);
 // Get list of file entries in the given directory using wildcard pattern
 void GetFiles(const String &dir_path, std::vector<FileEntry> &files, const String &wildcard);
 // Tells whether there are any files in the given directory
 bool HasAnyFiles(const String &dir_path);
-// Tells whether there are any files in the given directory matching the given wildcard pattern
-bool HasAnyFiles(const String &dir_path, const String &wildcard);
 } // namespace Directory
 
 

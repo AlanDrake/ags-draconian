@@ -362,18 +362,6 @@ PixelBuffer load_rle_bitmap8(Stream *in, RGB (*pal)[256])
     return pxbuf;
 }
 
-void skip_rle_bitmap8(Stream *in)
-{
-    const int w = in->ReadInt16();
-    const int h = in->ReadInt16();
-    // Unpack the pixels into temp buf
-    std::vector<uint8_t> buf;
-    buf.resize(w * h);
-    cunpackbitl(buf.data(), w * h, in);
-    // Skip RGB palette
-    in->Seek(3 * 256);
-}
-
 
 //-----------------------------------------------------------------------------
 // LZW
@@ -402,40 +390,6 @@ bool lzw_decompress(uint8_t *data, size_t data_sz, int /*image_bpp*/, Stream *in
     std::vector<uint8_t> in_buf(in_sz);
     in->Read(in_buf.data(), in_sz);
     return lzwexpand(in_buf.data(), in_sz, data, data_sz);
-}
-
-void save_lzw(Stream *out, const BitmapData &bmdata, const RGB (*pal)[256])
-{
-    // First write original bitmap's info and data into the memory buffer
-    // NOTE: we must do this purely for backward compatibility with old room formats:
-    // because they also included bmp width and height into compressed data!
-    std::vector<uint8_t> membuf;
-    {
-        Stream memws(std::make_unique<VectorStream>(membuf, kStream_Write));
-        memws.WriteInt32(bmdata.GetWidth() * bmdata.GetBytesPerPixel()); // length of line of pixels
-        memws.WriteInt32(bmdata.GetHeight());
-        PixelOp::WritePixelData(bmdata, &memws);
-    }
-
-    // Open same buffer for reading, and begin writing compressed data into the output
-    Stream mem_in(std::make_unique<VectorStream>(membuf));
-    // NOTE: this format saves full RGB struct here (4 bytes, including the filler)
-    if (pal)
-        out->WriteArray(*pal, sizeof(RGB), 256);
-    else
-        out->WriteByteCount(0, sizeof(RGB) * 256);
-    out->WriteInt32((uint32_t)mem_in.GetLength());
-
-    // reserve space for compressed size
-    soff_t cmpsz_at = out->GetPosition();
-    out->WriteInt32(0);
-    lzwcompress(&mem_in, out);
-    soff_t toret = out->GetPosition();
-    out->Seek(cmpsz_at, kSeekBegin);
-    soff_t compressed_sz = (toret - cmpsz_at) - sizeof(uint32_t);
-    out->WriteInt32(static_cast<uint32_t>(compressed_sz)); // write compressed size
-    // seek back to the end of the output stream
-    out->Seek(toret, kSeekBegin);
 }
 
 PixelBuffer load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256])
@@ -474,15 +428,6 @@ PixelBuffer load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256])
         in->Seek(end_pos, kSeekBegin);
 
     return pxbuf;
-}
-
-void skip_lzw(Stream *in)
-{
-    // NOTE: this format saves full RGB struct here (4 bytes, including the filler)
-    in->Seek(sizeof(RGB) * 256);
-    [[maybe_unused]] const size_t uncomp_sz = in->ReadInt32();
-    const size_t comp_sz = in->ReadInt32();
-    in->Seek(comp_sz);
 }
 
 //-----------------------------------------------------------------------------
@@ -598,44 +543,6 @@ String base64_encode(const void *addr, size_t input_size)
     while (out.GetLength() % 4)
         out.AppendChar('=');
     return out;
-}
-
-String base64_encode(const String &input)
-{
-    return base64_encode(reinterpret_cast<const uint8_t *>(input.GetCStr()), input.GetLength());
-}
-
-static bool Base64DecodeInit = false;
-static int Base64DecodeTable[256];
-
-static void base64_init_decode()
-{
-    memset(Base64DecodeTable, -1, sizeof(Base64DecodeTable));
-    for (int i = 0; i < 64; ++i)
-        Base64DecodeTable[static_cast<uint8_t>(Base64Alphabet[i])] = i;
-    Base64DecodeInit = true;
-}
-
-void base64_decode(const String &input, std::vector<uint8_t> &out)
-{
-    if (!Base64DecodeInit)
-        base64_init_decode();
-
-    out.clear();
-    int val = 0, valb = -8;
-    for (size_t i = 0; i < input.GetLength(); ++i)
-    {
-        uint8_t c = input[i];
-        if (Base64DecodeTable[c] == -1)
-            break;
-        val = (val << 6) + Base64DecodeTable[c];
-        valb += 6;
-        if (valb >= 0)
-        {
-            out.push_back(char((val >> valb) & 0xFF));
-            valb -= 8;
-        }
-    }
 }
 
 } // namespace Common

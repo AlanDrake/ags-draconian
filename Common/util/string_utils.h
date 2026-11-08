@@ -84,7 +84,6 @@ String IntToString(int val);
 int StringToInt(const String &s, int def_val = 0);
 int StringToIntHex(const String &s, int def_val = 0);
 int64_t StringToInt64(const String &s, int64_t def_val = 0);
-uint64_t StringToUInt64(const String &s, uint64_t def_val = 0);
 // Tries to convert whole string into integer value;
 // Returns error code if any non-digit character was met or if value is out
 // of range; the 'val' variable will be set with resulting integer, or
@@ -110,9 +109,6 @@ inline String Undoublequote(const String &s)
 // Serialize and unserialize unterminated string prefixed with 32-bit length;
 // length is presented as 32-bit integer integer
 String ReadString(Stream *in);
-void ReadString(char *cstr, Stream *in, size_t buf_limit);
-void ReadString(char **cstr, Stream *in);
-void ReadString(String &s, Stream *in);
 void SkipString(Stream *in);
 void WriteString(const String &s, Stream *out);
 void WriteString(const char *cstr, Stream *out);
@@ -135,21 +131,14 @@ void ReadCStr(char *buf, Stream *in, size_t buf_limit);
 // Reads N characters into the provided buffer.
 // Guarantees that output buffer will contain a null-terminator.
 void ReadCStrCount(char *buf, Stream *in, size_t count);
-// Reads a null-terminated string and !! mallocs !! a char buffer for it;
-// returns nullptr if the read string is empty.
-// Buffer is hard-limited to 1024 bytes, including null-terminator.
-// Strictly for compatibility with the C lib code!
-char *ReadMallocCStrOrNull(Stream *in);
 // Variant of above, that allocates std::string.
 // Buffer is hard-limited to 1024 bytes, including null-terminator.
 std::string ReadCStrAsStdString(Stream *in);
-void SkipCStr(Stream *in);
 void WriteCStr(const char *cstr, Stream *out);
 void WriteCStr(const String &s, Stream *out);
 
 // Serialize and unserialize a string map, both keys and values are read using ReadString
 void ReadStringMap(StringMap &map, Stream *in);
-void SkipStringMap(Stream *in);
 void WriteStringMap(const StringMap &map, Stream *out);
 
 
@@ -221,12 +210,6 @@ std::pair<String, String> GetKeyValue(const String &s, char key_val_separator = 
 std::vector<String> SplitPreservingDoublequoted(const String &s, char separator);
 
 // TODO: function variants that return std::vector<wchar_t> instead of requesting user to provide a buffer!
-// Convert utf-8 string to ascii/ansi representation;
-// writes into out_cstr buffer limited by out_sz bytes; returns bytes written.
-size_t ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, char *out_cstr, size_t out_sz);
-// Convert utf-8 string to ascii/ansi representation;
-// writes into out_cstr vector, resizing one as necessary; returns *bytes* written.
-size_t ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, std::vector<char> &out_cstr);
 // Convert utf-8 string to wide-string: UTF-16 where wchar_t has 16 bits (Windows), where a
 // character above U+FFFF takes two wchars, and UTF-32 elsewhere;
 // writes into out_wcstr buffer limited by out_sz *wchars*, the terminator included;

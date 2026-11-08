@@ -192,19 +192,6 @@ bool IsOnlyFilename(const String &path)
 #endif
 }
 
-String EscapePath(const String &path)
-{
-    const bool has_start = path.StartsWith("\""), has_end = path.EndsWith("\"");
-    if (has_start && has_end)
-        return path;
-    else if (has_start)
-        return String::FromFormat("%s\"", path.GetCStr());
-    else if (has_end)
-        return String::FromFormat("\"%s", path.GetCStr());
-    else
-        return String::FromFormat("\"%s\"", path.GetCStr());
-}
-
 void FixupPath(String &path)
 {
 #if AGS_PLATFORM_OS_WINDOWS
@@ -229,15 +216,6 @@ String MakePathNoSlash(const String &path)
     return dir_path;
 }
 
-String MakeTrailingSlash(const String &path)
-{
-    if (path.GetLast() == '/' || path.GetLast() == '\\')
-        return path;
-    String dir_path = String::FromFormat("%s/", path.GetCStr());
-    FixupPath(dir_path);
-    return dir_path;
-}
-
 String MakeAbsolutePath(const String &path)
 {
     if (path.IsEmpty())
@@ -251,21 +229,6 @@ String MakeAbsolutePath(const String &path)
     abs_path = buf;
     FixupPath(abs_path);
     return abs_path;
-}
-
-String MakeRelativePath(const String &base, const String &path)
-{
-    char can_parent[MAX_PATH_SZ];
-    char can_path[MAX_PATH_SZ];
-    char relative[MAX_PATH_SZ];
-    // canonicalize_filename treats "." as "./." (file in working dir)
-    const char *use_parent = base == "." ? "./" : base.GetCStr();
-    const char *use_path = path == "." ? "./" : path.GetCStr(); // FIXME?
-    canonicalize_filename(can_parent, use_parent, MAX_PATH_SZ);
-    canonicalize_filename(can_path, use_path, MAX_PATH_SZ);
-    String rel_path = make_relative_filename(relative, can_parent, can_path, MAX_PATH_SZ);
-    FixupPath(rel_path);
-    return rel_path;
 }
 
 String &AppendPath(String &path, const String &child)
@@ -322,11 +285,6 @@ String MakeExePath(const String &parent_path, const String &exe_filename)
         return Path::MakePath(parent_path, exe_filename, "exe");
 #endif
     return Path::MakePath(parent_path, exe_filename);
-}
-
-std::vector<String> Split(const String &path)
-{
-    return path.Split('/');
 }
 
 String FixupSharedFilename(const String &filename)

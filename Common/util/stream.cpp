@@ -187,14 +187,6 @@ size_t Stream::WriteByteCount(uint8_t b, size_t count)
 // StreamSection
 //-----------------------------------------------------------------------------
 
-StreamSection::StreamSection(std::unique_ptr<IStreamBase> &&base, soff_t start, soff_t end)
-    : StreamBase(base->GetPath())
-{
-    OpenSection(base.get(), start, end);
-    _ownBase = std::move(base);
-    _base = _ownBase.get();
-}
-
 StreamSection::StreamSection(IStreamBase *base, soff_t start, soff_t end) : StreamBase(base->GetPath())
 {
     OpenSection(base, start, end);

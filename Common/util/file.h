@@ -61,8 +61,6 @@ bool IsFileOrDir(const String &filename);
 soff_t GetFileSize(const String &filename);
 // Returns file's last writing time, or time_t() if no such file found
 time_t GetFileTime(const String &filename);
-// Tests if file could be opened for reading
-bool TestReadFile(const String &filename);
 // Opens a file for writing or creates new one if it does not exist; deletes file if it was created during test
 bool TestWriteFile(const String &filename);
 // Create new empty file and deletes it; returns TRUE if was able to create file
@@ -81,8 +79,6 @@ bool TruncateFile(const String &filename, soff_t length);
 // WARNING: supported only on desktop platforms (Win, Linux, MacOSX, FreeBSD, and alike).
 String GetThisExePath();
 
-// Sets FileOpenMode and FileWorkMode values corresponding to C-style file open mode string
-bool GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, StreamMode &work_mode);
 // Gets C-style file mode from FileOpenMode and FileWorkMode
 String GetCMode(FileOpenMode open_mode, StreamMode work_mode);
 
@@ -109,12 +105,6 @@ inline std::unique_ptr<Stream> OpenFileWrite(const String &filename)
 // Creates and opens a temporary file in read/write mode.
 // This file will be deleted as soon as the stream is closed.
 std::unique_ptr<Stream> CreateTempFile();
-// Opens stdin stream for reading
-std::unique_ptr<Stream> OpenStdin();
-// Opens stdout stream for writing
-std::unique_ptr<Stream> OpenStdout();
-// Opens stderr stream for writing
-std::unique_ptr<Stream> OpenStderr();
 
 // TODO: FindFileCI is used a lot when opening game assets;
 // this may result in lots and lots of repeating same work.

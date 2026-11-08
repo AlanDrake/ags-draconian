@@ -70,35 +70,19 @@ bool IsRelativePath(const String &path);
 // Tells if this path has only filename and no directory parts
 bool IsOnlyFilename(const String &path);
 
-// Wraps the path in double quotes, which will help in case it's used as a
-// shell command or argument and has special characters used as command
-// separators inside (e.g. spaces). This function checks if there are
-// double quotes around path already and does not add more in case there are.
-String EscapePath(const String &path);
 // Makes a path have only '/' slashes; this is to make it easier to work
 // with path, knowing it contains only one type of directory separators
 void FixupPath(String &path);
 // Fixups path and removes trailing slash
 String MakePathNoSlash(const String &path);
-// Fixups path and adds trailing slash if it's missing
-String MakeTrailingSlash(const String &path);
 // Converts any path to an absolute path; relative paths are assumed to
 // refer to the current working directory.
 String MakeAbsolutePath(const String &path);
-// Tries to create a relative path that would point to 'path' location
-// if walking out of the 'base'. Returns empty string on failure.
-// NOTE: the 'base' is only considered a directory if it has a trailing slash.
-String MakeRelativePath(const String &base, const String &path);
 // Creates path by combining directory, file name and extension
 String MakePath(const String &parent, const String &filename, const String &ext);
 // Creates path by combining directory and executable file name,
 // ensures a executable's extension depending on the current platform (i.e. ".exe" on Windows).
 String MakeExePath(const String &parent_path, const String &exe_filename);
-// Creates a executable path and escapes it with double quotes for use as a shell cmd
-inline String MakeEscapedExePath(const String &parent_path, const String &exe_filename)
-{
-    return EscapePath(MakeExePath(parent_path, exe_filename));
-}
 // Appends another section to existing path
 String &AppendPath(String &path, const String &child);
 // Concatenates parent and relative paths
@@ -106,8 +90,6 @@ String ConcatPaths(const String &parent, const String &child);
 // Concatenates paths into the buffer, returns the buffer;
 // warning: passing buffer as one of the path params results in UB
 String ConcatPaths(String &buf, const String &parent, const String &child);
-// Splits path into components, divided by path separator
-std::vector<String> Split(const String &path);
 
 // Subsitutes illegal characters with '_'. This function uses a combined set
 // of illegal chars from all the supported platforms to make a name that
