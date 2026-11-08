@@ -74,7 +74,7 @@ Recorded 2026-10-31.
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
-0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 6.7d, 7.1 (but 7.1n), U.1, U.2, U.4, U.5, U.9 (LOG.md). Upstream review takes weeks,
+0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 6.7d, 7.1 (but 7.1n), U.1, U.2, U.4, U.5, U.9 (LOG.md). Upstream review takes weeks,
 so the offers go out first and fork-only moves that would conflict with them (5.3) wait.
 
 | # | Task | Why now | Model / effort |
@@ -103,6 +103,11 @@ Open items from finished tasks (details in LOG.md "Open items"):
   below v399 or v400). It would free the gated registration, the four runtime switches and the `SCRIPT_API_v3xx` /
   `SCRIPT_COMPAT_v3xx` gates in `agsdefns.sh` (298 mentions below v399, 324 below v400); it costs a C3 change (C3 as frozen covers games compiled at those
   levels) and needs a clear error for an existing project or game that uses one.
+- 3.5: `CCStaticObjectArray` and the `kScValStaticArray` branches of the script VM are unreachable (nothing makes such a
+  value) but need a Release codegen comparison to go; `stream.h`'s big-endian branch does not compile
+  (`ReadAndConvertArrayOfInt24`); the `DEBUG_SPRITECACHE` and `DEBUG_PATHFINDER` builds fail; `= delete` or keep for the
+  unused copy/move members (`RoomData`, `OpenAlSource`, `SDLDecoder`, `Bitmap::operator=`); leftovers constant now
+  (`RunEventInModules`' last parameter, the write-only `SPRCACHEFLAG_LOCKED` and `DebugManager::_freeGroupID`).
 - Scripts in a git worktree: `refactor_metrics.py`, `prepush.py`'s `linux` and `msbuild` stages fail there.
 - Stale: `Tools/test/directory_test.cpp`'s googletest comment; `FetchGoogleTest.cmake`'s pin for GCC < 5.
 
@@ -209,11 +214,9 @@ the corpus run (1.4).
   *Done when:* `legacy version checks` = 0, the C1/C2 fixture tests pass, a 3.6 game fails with
   a clean "game too old" error, a 3.6 project and a 3.6 `.crm` get the editor's clean message, and a
   4.0 `.crm` still imports.
-- [ ] **3.5 Unused functions.** `refactor_metrics.py --list-dead 200` lists 154 *candidates*, many
-  false positives (plugin vtable entries, functions called from Java/Obj-C, name-string references).
-  Confirm with a Linux build using `-ffunction-sections -fdata-sections
-  -Wl,--gc-sections,--print-gc-sections` and `-Wunused-function`; delete in batches per directory.
-  *Done when:* the list holds only documented exceptions.
+- [x] **3.5 Unused functions** (2026-11-08): confirmed by gc-sections links (GCC, MSVC, AGS.Native) and deleted:
+  283 production functions (Engine 80, Common 189, Tools 7, Compiler 6, editor native 1) and 10 test helpers;
+  `dead-code candidates` 151 → 0, the 8 documented exceptions in `DEAD_CODE_EXCEPTIONS` (LOG.md).
 - [ ] **3.6 Comment debris.** Delete commented-out code (83 lines, mostly `Compiler/test`). Triage 735
   `TODO` / 332 `FIXME` / 80 `CHECKME`: resolve, reclassify per STYLE.md, or delete; per directory,
   with phase 4.

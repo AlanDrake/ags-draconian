@@ -1713,6 +1713,172 @@ See LOG.md for the details of the removal and its verification.
   4. **Script API.** Delete `*_Old` variants (`Character_GetHasExplicitTint_Old`) and registrations
      only pre-3.99 scripts use, checking the C3 snapshot after each: what 3.99+ games call stays.
 
+### 3.5 Unused functions
+
+*Definition:* PLAN.md 3.5: confirm the dead-code candidates with linker-verified builds and delete what is dead.
+
+*Status (2026-11-08): done.* 283 production functions and 10 test helpers deleted, in 14 commits:
+- **Method: the linker is the ground truth.** Three builds, each with every function in a section of its own and the
+  unreferenced ones dropped at link time; a function is dead when no binary keeps it:
+  1. Linux, GCC, in WSL: `-ffunction-sections -fdata-sections -Wunused-function`, linked with
+     `--gc-sections --print-gc-sections`, the engine, the 11 tools and the 5 test programs; `nm` over the 526
+     first-party objects against the 17 binaries (`.compare/helpers/dead-functions/gc_build.sh`, `collect.py`). At
+     `-O0`, as MinSizeRel with its flags replaced: CMakeLists.txt forces LTO on any build type matching "Release",
+     and an inlined function leaves no copy to count, so an optimised build cannot tell "inlined" from "unused".
+     Once with `NDEBUG` and once as Debug (functions only asserts call).
+  2. MSVC x64, `/Od /Ob0 /Gy`, `/OPT:REF /OPT:NOICF /MAP`: the CMake tree's 17 binaries, which also compile the
+     Windows-only code (`msvc_build.py`).
+  3. `AGS.Native.dll` (Debug x86, `/Gy`, `/OPT:REF`, map file): which Common functions the editor keeps
+     (`native_build.py`); 38 Linux-dead Common functions are live there only.
+  `classify.py` joins them with the metric's list and a whole-tree `git grep -w`.
+- **Blind spots and how each was covered.** Code no local build compiles: every target's word hits inside an `#if`
+  block were listed (`cond_hits.py`) and read, which found three live families the gc builds called dead (below);
+  macOS, iOS and Android files were read by hand (`alplmac.mm` and `jni_helper.cpp` are the only first-party sources
+  no build compiles). Debug switches no build turns on: a WSL Debug build with `DEBUG_SPRITECACHE`,
+  `DEBUG_MANAGED_OBJECTS`, `DEBUG_PATHFINDER` and `AUDIO_CORE_DEBUG` defined compiles every translation unit but
+  two, which fail at HEAD as well (`spritecache.cpp`'s `LoadSprite` log uses the private
+  `ResourceCache::_cacheSize`; `route_finder_impl.cpp:119` names `Debug`, `xx`, `yy`, none declared there);
+  `DEBUG_SAVECOMPONENTS` and `VIDEO_DEBUG_VERBOSE` are `#define`d to 0 in their files, and their blocks call only the
+  variadic `Debug::Printf`. Virtual members are kept by their vtables, so no linker sees a dead override: the two
+  families whose last caller went (GUI writers, `GetIllegalFileChars`) were found by reading the callers. Header
+  inline functions never instantiated have no symbol at all: those found next to a deleted function (the
+  `LoadFromFile` and `Join` wrappers, `MakeEscapedExePath`) went with it. Java names are not references (a JNI
+  function is `Java_<package>_<class>_<method>`), C# has no P/Invoke into AGS code; Objective-C(++) files are read
+  by the metric now. Windows-only code: phase A only looked at the metric's Windows candidates; the second round
+  listed every first-party function the MSVC link drops in Windows-only files (`msvc_win_dead.py`).
+- **Deleted, Engine** (80 functions; +1 -891 lines in 89 files, tests +8 -47): the whole `FileBasedAGSDebugger`
+  (the editor debugger is the named-pipe one; its non-Windows `GetEditorDebugger` stub, whose only call is inside
+  `#if AGS_PLATFORM_OS_WINDOWS`, went too) and the whole `D3D11GfxFilter` / `AAD3D11GfxFilter` (nothing names them
+  outside their files: the D3D11 driver uses the D3D9 filter classes), with their file pairs in `Engine/CMakeLists.txt`,
+  `Engine.App.vcxproj` and `.filters` (and FileBasedAGSDebugger's in the Xcode project, as 3.1 did); 53 functions
+  across `Engine/ac`, `gfx`, `gui`, `main`, `media`, `script`, `platform` (e.g. `Character_SetOption`,
+  `walk_character_straight`, the four `ListBox_*Hide*` getters and setters, `RunSingleEvent`,
+  `RunScriptFunctionNonBlocking`, `ccGetSymbolAddress`, `ccAddExternalStaticArray` and `SetStaticArray`,
+  `quit_c`, `ALSW::_trans_alpha_blender32` and `GetBufferMs`, the last two first-party `-Wunused-function`
+  warnings); Windows-only `D3DGraphicsDriver::IsTextureFormatOk` and `DeleteShaders`, the two factories'
+  `GetD3DDriver`/`GetD3D11Driver`, `GetItemCount(HWND)`, `WinDialog::Show()`; `get_eip_guiobj` (also in
+  `Editor/Native/acgui_agsnative.cpp`, declared in Common; hidden in the first round behind the test stub of the same
+  name); the test-only `MoveList::SetStageProgress` and `ManagedObjectPool::RemoveObject` (the `ManagedPool` fixture now
+  clears the pool with `pool.Reset()`, as `script_vm_test.cpp` does); `AGSPlatformDriver::GetIllegalFileChars` and its
+  overrides in `acplwin.cpp` and `acplmac.cpp` (its only caller was `FixupFilename`; android, ios, linux and
+  emscripten have none).
+- **Deleted, Common** (189 functions; +2 -2858 in 100 files, tests +16 -146): the writers no program uses. The engine
+  writes saves, not game data, and the tools write game data with their own writer
+  (`Tools/data/data_file_writer.cpp`, which says why it does not use Common's classes), so the Common side of the
+  write path was dead: `GameSetupStruct::WriteInvInfo`/`WriteMouseCursors`/`WriteCharacters`,
+  `GameSetupStructBase::WriteToFile`, the `View*`, `AudioClipType`, `WordsDictionary` writers, `WriteSchema`,
+  `WriteRoomEnding` and two old room blocks, the whole translation writer `WriteTraData` with its seven helpers, and
+  `GUI::WriteGUI` with `GUIMain::WriteToFile`. After those, the GUI controls' virtual `WriteToFile` (the base
+  `GUIControl` one and six overrides) had no caller left, and went in a commit of its own. The rest: font queries,
+  blenders, `Bitmap` helpers, `DebugManager` group handling, `AssetManager` queries, `ccScript` section names,
+  `String` (`Join` x3, `Upper`, `UpperUTF8`, `RightSection`, `ReserveMore`, `Compact`, `Wrap`), `StrUtil` readers,
+  `Path` helpers, `Directory`/`File` helpers, three `Version` constructors, `ini_util` overloads, `base64_decode`
+  (with its tables) and `base64_encode(String)`, `save_lzw`, `skip_lzw`, `skip_rle_bitmap8`, `ags_strdup`,
+  `wnewblock`/`wputblock`.
+- **Test-only functions, the rule:** a function only tests call goes, with its test cases, when its whole family is
+  dead; a lone unused member of a live family stays. Deleted: `String::TruncateTo*` (6), `Clip*Section` (3),
+  `PrependChar`, `MakeUpperUTF8` with `Utf8::ToUpper`/`CStrToUpper`; `IniFile::ItemDef::SetKey`, `SectionDef::Clear`
+  and `EraseItem`, `IniFile::RemoveSection` (with the dead `SetName`, `RemoveItem`); the sprite-locking entry points
+  `SpriteCache::LockSprite`, `UnlockSprite`, `DisposeCached`, `SpriteData::IsLocked`, `ResourceCache::Lock`/`Release`
+  (only the entry points: the lock flag is live eviction logic for sprite 0, external sprites and `LoadSprite(index,
+  lock)`); `AGF::Dialog::ReadOptionCount`/`ReadScript`; `SymbolTable::IsPrimitiveVartype`. Four test cases went
+  (`String.ClipSection`, `Truncate`, `TruncateToSection`, `EngineSpriteCache.LockedSpriteIsKeptUntilUnlocked`) and
+  one in Tools (`AGFReaderBlocks.DialogWithoutOptions`); tests that also check live code were trimmed:
+  `String.Internal` uses `ClipRight`/`ClipLeft` for the same strings, `IniFile.ReadAndModify` changes items with live
+  calls only and compares with a new `IniFileTextModified` (`IniFileText2` is shared with `ReadKeyValueTree`, which
+  failed when it was edited first), the sprite fixture frees its measuring sprite with `DisposeAllFreeCached`,
+  `ClearingTheCacheKeepsLockedSprites` keeps sprite 0 only, `SymbolTable.IsAtomicVartype` (was `IsPrimitiveAtomic`).
+  Kept, live families: `String::Right`, `SpriteCache::SaveToFile(stream)`, the `IndexedObjectPool` overloads, the
+  `Memory`/`BitByteOperations` Int64 and big-endian functions, `Error`'s constructors and getters, the Stream and
+  String introspection getters, the compiler and `Diag` test seams, the agfreader drift guard, `PreservedParams`,
+  `ScriptSprintf`/`ScriptVSprintf`, `GUIObject::GetPosition`, the GUI flag getters.
+- **Deleted, Tools** (7 functions: `ReadStringListFromStdOut`/`FromTextFile`, `ValueParser::ReadFloat`/`ReadBool`,
+  `ScriptElem::IsHeader`, the two test-only `Dialog` readers) and 3 test print helpers with the 23 commented-out calls
+  to them; **Compiler** (6: `MacroTable::merge`/`clear`, `Preprocessor::MergeMacros`,
+  `TypeQualifierSet::WithouttVarFuncDefQualifiers`, `RegisterTracking::GetGeneralPurposeRegister`,
+  `IsPrimitiveVartype`); **test stubs** (7: six `common_stubs.cpp` engine stubs, `sdl2_stubs.c`'s `SDL_RWwrite`). Comments
+  that named a deleted function were rewritten (`touch.cpp`, `utf8.h`'s two FIXMEs, `room_build.cpp`,
+  `data_file_writer.cpp`, the five compiler tests' note on `ccResetOptions`); includes only they needed went
+  (`<cstdio>` in `parser.cpp`, `textstreamreader.h` and `string_compat.h` in Tools).
+- **The gc builds were wrong three times, found by reading the `#if` hits:** `CfgWriteFloat(cfg, section, item,
+  float)` is called by `Engine/platform/base/mobile_base.cpp:149` (`#if AGS_PLATFORM_MOBILE`); `Stream`'s
+  `ReadAndConvertArrayOf*`/`WriteAndConvertArrayOf*` (10) are the big-endian half of its array I/O (`stream.h`,
+  `#if defined(BITBYTE_BIG_ENDIAN)`), and `SwapBytesFloat32` with `IntFloatSwap` serve `Float32FromLE/BE`; all kept. And
+  `String::FillString` is called by the live `String(char, size_t)` constructor; kept.
+- **Exceptions, not deleted** (`DEAD_CODE_EXCEPTIONS` in `refactor_metrics.py` lists those the metric would list):
+  the 7 iOS functions of `acplios.cpp` (built only on iOS; the Objective-C settings UI that called them is not in the
+  tree); `ReadAndConvertArrayOfUInt24` (the big-endian half above; `stream.h` calls it as
+  `ReadAndConvertArrayOfInt24`, so that half does not compile); `engine_set_pre_init_callback` and
+  `pl_register_builtin_plugin` (called by the Xcode project's `plugin_registration.cpp`); the copy/move special members
+  `RoomData` x2, `OpenAlSource`, `SDLDecoder`, `Bitmap::operator=` (the type's semantics; `= delete` is a decision);
+  everything under `Plugins/` (DLL exports, mobile-only built-in entry points; phase 7); `cc_bytecode_test_lib.cpp`'s
+  `WriteOutput*` (a test-authoring tool, 3.6); `CCStaticObjectArray` (below).
+- **CCStaticObjectArray stays, an open item.** No value of its kind is made any more (`SetStaticArray`, its only
+  setter, went with `ccAddExternalStaticArray`), but its header also holds the live `CCStaticArray`, and the script VM
+  names the class in its `kScValStaticArray` branches (`ScriptExecutor::Run` four times, `runtimescriptvalue.cpp` six
+  cases, `runtimescriptvalue.h`, `script_api.cpp`). Deleting it means deleting those branches of live functions on the
+  hot path: not a deletion the object comparison can call mechanical, and a Release codegen comparison first.
+- **Second round** (the gc builds rerun on the patched tree; MSVC and AGS.Native rerun): no function went from live to
+  test-only or dead; newly visible were only `get_eip_guiobj` and the Windows-only functions above. The final dead set
+  is the exceptions, the kept families above, `SystemImports::FindName` (live in Debug, `DEBUG_CC_EXEC`) and the
+  test-authoring tool.
+- Measured: `dead-code candidates (unverified)` 151 → 0, `dead-code exceptions (documented)` 8 (new metric);
+  `functions scanned` 8935 → 8695; C/C++ lines Common 50944 → 47958, Engine 125665 → 124742, Tools 29032 → 28909,
+  Compiler 34948 → 34883, Editor 6591 → 6586. Linux ndebug gc build: definition sites 13265 → 12996, dead 352 → 117,
+  test-only 1595 → 1562; `-Wunused-function` warnings 12 → 1 (`currentline` in `cc_internallist.cpp`, an unused
+  variable, left for 3.6); MSVC function symbols 112929 → 112088 (dead 8345 → 7823); AGS.Native keeps 23954 of 32541
+  Common.Lib functions (was 24133 of 33358). The gc round costs 406 s of build and 90 s of `collect.py` (WSL, 12
+  threads), MSVC and AGS.Native a few minutes each. `compare_objects.py HEAD` on the working tree after each batch
+  (cumulative; MSVC function blocks, inline copies and unwind funclets included): batches 1+3 "deletion: 34 functions
+  removed, 0 changed, 0 added (mechanical)", 1-5 315, 1-6b 1735, every pure-deletion batch (the tree before the two
+  virtual families) 1929 removed, 0 changed, 0 added (recomputed on the same objects after the second fix below); with the two virtual families
+  "1946 functions removed, 62 changed, 1 added" (in 20 objects of `Common/gui`, `Common/game`, `Engine`), as expected:
+  the classes lost vtable slots, and `vtable_check.py` (scratch helper) shows every one of the 62 differing only by
+  displacements that moved down by 8 bytes (one x64 slot) in calls through the vtable, or by the slot offset in the
+  name of an MSVC vcall thunk (a pointer to a virtual member: `AGSPlatformDriver`'s `$BMI`/`$BNA` became
+  `$BMA`/`$BMI`, so the "added" function is the thunk renamed). The script needed two fixes on the way: dumpbin's closing "Summary"
+  line was taken as code of whichever function is last in the object (two false "changed" when the last
+  function was the one deleted), and MSVC's local `$LN<n>` labels, numbered per object, were taken as functions
+  (three false "changed" in `string.cpp`'s big `Utf8::ToLower` switch once `ToUpper` before it went). ctest after
+  every batch: 1170 → 1169 → 1165 of as many (the deleted cases). `prepush.py --auto`, every stage: buildlists (26
+  `.vcxproj`), CMake build with warnings as errors and ctest 1165 of 1165, tidy on changed lines clean (57 files, 1417
+  lines), headers, libc++ 342 headers, emscripten (`ags.wasm` linked, 4 Linux-branch files pass the syntax check), the
+  Linux GCC job 1165 of 1165, the five MSBuild solutions (Compiler.Lib.Test 598, Common.Lib.Test 132, Engine.App.Test
+  51, Engine.Full.Test 115, Tools.Test 266; the editor's NUnit 556 of 562, 6 skipped), format 1983 files. Format and
+  emscripten ran through a wrapper that drops deleted files from `git ls-files`: with the deletions not staged, both
+  stages open files that are gone (clang-format "no such file", `linux_branch_files` raising); `prepush.py` now
+  lists tracked files that exist (`tracked_files`), verified with `--only format` on this tree.
+  The auto-test game 2414 of 2414 (built by `agsbuild` from the tag `draconian-auto-test-1`, run by this build's
+  `ags.exe` with the software driver). `compare_builds.py` was not needed: the deletion verdict shows that the tool
+  objects differ only by removed functions.
+- Found, not touched: `RunEventInModules`' last parameter is now always `false`; `SPRCACHEFLAG_LOCKED` is set and never
+  read in `spritecache.cpp`; `DebugManager::_freeGroupID` is only reset; `stream.h`'s big-endian branch does not
+  compile (above); the `DEBUG_SPRITECACHE` and `DEBUG_PATHFINDER` builds fail at HEAD (above); the IAGSEngine members
+  no plugin in the tree calls (36 metric false positives, the vtable keeps them; C4 decides).
+- Not verified: macOS (`acplmac.cpp`'s `GetIllegalFileChars` override and the Xcode project lines), iOS, Android,
+  FreeBSD and the Debian 10 builder image (no local build; CI-only jobs); a big-endian build; AGS.Native x64 or Release
+  (Debug x86 measured); the MSVC Debug build's asserts in Windows-only code; header inline functions and templates never
+  instantiated, away from the deleted ones; virtual members other than the two families; each proposed commit on its
+  own beyond the per-batch build and ctest (the object comparison ran on the cumulative tree). Side effect of
+  `native_build.py`: AGS.Native's post-build copies its Debug DLL over the git-ignored
+  `Editor/References/AGS.Native.dll`.
+- Commits: `Script: compare_objects.py tells a deletion from a code change`, `Script: dead-code candidates read
+  Obj-C, skip virtual members, list exceptions`, `Engine: [delete] FileBasedAGSDebugger and the D3D11 filter classes,
+  unused`, `Engine: [delete] unused functions`, `Tools: [delete] unused functions and test print helpers`, `Compiler:
+  [delete] unused functions`, `Common: [delete] unused functions in util/`, `Common: [delete] unused functions`,
+  `Common: [delete] unused String, IniFile and sprite-locking API with their tests`, `Common: [delete] unused test
+  stubs`, `Common: [delete] the GUI file writer virtual family`, `Engine: [delete]
+  AGSPlatformDriver::GetIllegalFileChars and its overrides`, `Script: prepush.py skips files deleted in the
+  working tree`, and this entry (all "(3.5)").
+
+*Moved from PLAN.md on 2026-11-08 (the plan's text as it stood):*
+
+- [ ] **3.5 Unused functions.** `refactor_metrics.py --list-dead 200` lists 154 *candidates*, many
+  false positives (plugin vtable entries, functions called from Java/Obj-C, name-string references).
+  Confirm with a Linux build using `-ffunction-sections -fdata-sections
+  -Wl,--gc-sections,--print-gc-sections` and `-Wunused-function`; delete in batches per directory.
+  *Done when:* the list holds only documented exceptions.
+
 ### 7.1 Make the C++ tools the only build path
 
 *Starting point, moved from PLAN.md on 2026-11-04:*

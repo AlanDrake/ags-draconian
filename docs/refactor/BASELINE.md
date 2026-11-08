@@ -89,7 +89,8 @@ Not captured by the script, measured by hand for this snapshot:
 | > 200 lines | 19 |
 | nesting depth >= 6 | 10 |
 | script API wrappers (Sc_*) | 1598 |
-| dead-code candidates (unverified) | 154 |
+| dead-code candidates (unverified) | 154 (2026-11-08, after 3.5: 0) |
+| dead-code exceptions (documented) | 8 (2026-11-08, 3.5; metric added then) |
 
 ## cryptic_names
 
