@@ -69,8 +69,13 @@ Entry points, in reading order:
   and engine config).
 - Game data from 3.99 on (D1; 3.4-1, 2026-11-07; upstream loads 3.6.0.21+): `kGameVersion_LowSupported =
   kGameVersion_399`, the pre-3.99 upgrade paths and version values are gone, an older game gets a "compiled
-  with ... this engine loads games made with AGS 3.99 or later" error. Rooms, saves and the script API are
-  still at upstream's minimums (3.4 steps 2 to 4).
+  with ... this engine loads games made with AGS 3.99 or later" error. Rooms from 4.0 on (3.4-2,
+  2026-11-08; upstream reads 3.5.0.8+): `kRoomVersion_LowSupport = kRoomVersion_400`, an older `.crm` gets
+  `kRoomFileErr_FormatNotSupported`; the `v363_objects` block and LZW backgrounds stay (4.0 rooms use them).
+  The editor opens projects saved by 4.0 or later (version index 3999901, open-format rooms; 3.4-2): an
+  older one is refused with "open and save it with the AGS 4.0 editor first", "Import existing room" and room
+  templates take 4.0 `.crm` files only. Saves and the script API are still at upstream's minimums (3.4
+  steps 3 and 4).
 - CMake and the hand-written Windows solutions are the build systems for the engine, `agscc` and the
   tools (D5; 3.2a/b, 2026-11-05; 3.2c, 2026-11-07): the Makefiles, `make.yml` and `dh --buildsystem
   makefile` are gone, `debian/rules` calls CMake, CI installs the tools with `cmake --install`. Adding an

@@ -74,13 +74,13 @@ Recorded 2026-10-31.
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
-0–2, 3.1, 3.3, 3.4-1, 6.7d, 7.1 (but 7.1n), U.1, U.2, U.4, U.5, U.9 (LOG.md). Upstream review takes weeks,
+0–2, 3.1, 3.3, 3.4-1, 3.4-2, 6.7d, 7.1 (but 7.1n), U.1, U.2, U.4, U.5, U.9 (LOG.md). Upstream review takes weeks,
 so the offers go out first and fork-only moves that would conflict with them (5.3) wait.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
 | 1 | **3.2c, done locally:** push it and read the Windows build job's new drift-guard step (its first run) | CI confirms the guard | Sonnet 5.5, `medium` |
-| 1b | **3.4-2** room files: `kRoomVersion_LowSupport = kRoomVersion_400`, the 3.x `ReadExt_*` and upgrade code go, the editor refuses pre-4.0 projects and `.crm` files with a clear message (decided 2026-11-08, D1); then **2.9d** (x64-only CI, the user's decisions) | Next deletion; 1.2's fixtures guard it | Opus 5.5, `high` |
+| 1b | **2.9d** x64 only on CI except what exists only as 32-bit; first the user's decisions on the installer's engine, the Linux i386 packages and the editor | Decided 2026-11-06, waits on the user | Sonnet 5.5, `medium` |
 | 2 | **U.8:** offer upstream the 1.5b-2 fixes (`RuntimeScript::CheckFixupInCode`, `JointRTTI::Join`); the `String(ptr, length)` change separately if at all; the 1.5b-4 compiler leak fixes only if the user confirms | Real defects, small | Sonnet 5.5, `medium` |
 | 3 | **2.9 follow-up:** read the first push's runs after 2.9 (the plan job's push filter, cold ccache); the apt package cache, the ARM64 retry | The first push finds what the probe could not | Sonnet 5.5, `medium` |
 | 4 | **Waiting on review:** U.3 (#3186–#3190, #3185, #3191), U.6 (the fork port once the PR is stable), U.7 (#3193) | Upstream review takes weeks | Sonnet 5.5, `medium` (U.6: the user first) |
@@ -95,6 +95,8 @@ Open items from finished tasks (details in LOG.md "Open items"):
 - 1.5a: the 4-bit pixel write in `Common/gfx/bitmapdata.cpp` (wrong mask and shift, untested).
 - 3.4-1: constants left behind (`GUI::DataVersion`, always-on behaviour switches, three dialog option
   offsets, `FindNearestWalkablePoint`'s old method).
+- 3.4-2: the editor's project upgrade steps below the 3.99.99.01 floor, unreachable now and kept for L.1
+  (`UpgradeGameCommonTask`, `ScriptsComponent`'s `SetRestartPoint()` step).
 - Scripts in a git worktree: `refactor_metrics.py`, `prepush.py`'s `linux` and `msbuild` stages fail there.
 - Stale: `Tools/test/directory_test.cpp`'s googletest comment; `FetchGoogleTest.cmake`'s pin for GCC < 5.
 
@@ -182,19 +184,12 @@ the corpus run (1.4).
 - [ ] **3.4 Legacy data-version paths** (D1). The largest deletion; one commit per step:
   1. **Game files.** Done 2026-11-07 (LOG.md): games older than 3.99 get a clean error;
      `legacy version checks` 62 → 0.
-  2. **Room files.** The enum holds `3508 = 33`, `399 = 40`, `363_06 = 36306`, `363_15 = 36315`, then
-     `400 = 4000000` to `400_34`. Version 40 (the 3.99 alphas) loads nowhere already ("Block data
-     overlapping"; upstream rejects it outright since 2026-02); 33 to 36315 are 3.5.0.8 to 3.6.3 rooms,
-     whose games 3.4-1 refuses. So `kRoomVersion_LowSupport = kRoomVersion_400` (monotonic again, no
-     explicit list needed), and the readers below it go: `ReadExt_363_Objects`, the LZW background
-     branch, the `< kRoomVersion_400` steps of `UpdateRoomData`; the `400_24` and `400_34` steps stay.
-     1.2's fixtures (`kRoomVersion_400_26`) guard the kept path.
-     **The editor shares this reader** (`NativeRoom` → `load_room_file` → `LoadRoom`), so in the same
-     task: the project floor in `AGSEditor.cs` (today 2.80.1) becomes the first 4.0 editor whose rooms
-     are version `400` or open-format, with the message "upgrade this project with the AGS 4.0 editor
-     first"; `UpgradeGameRoomsOpenFormatTask` goes (every project it could still serve has version-40 or
-     3.x rooms); "Import existing room" and room templates keep working for 4.0 `.crm` files and say so
-     for older ones. Decided 2026-11-08 (D1): no legacy reader is carried; L.1 may rebuild one later.
+  2. **Room files.** Done 2026-11-08 (LOG.md): `kRoomVersion_LowSupport = kRoomVersion_400`, a 3.6.3
+     `.crm` gets "Required format version: 36315, supported 4000000 - 4000034"; the 3.x branches and
+     enum values are gone (`ReadExt_363_Objects` and LZW backgrounds stay: 4.0 rooms use them); the
+     editor refuses projects older than 3.99.99.01 ("open and save it with the AGS 4.0 editor first")
+     and says which `.crm` files it imports; `UpgradeGameRoomsOpenFormatTask` is gone. Pre-4.0 room
+     version checks 3 → 0; ctest 1166 of 1166, the auto-test game 2414 of 2414.
   3. **Savegames.** Raise `kSvgVersion_LowestSupported` (now `kSvgVersion_Components`, a 3.x version)
      to the oldest a 3.99 engine writes; delete the branches below.
   4. **Script API.** Delete `*_Old` variants (`Character_GetHasExplicitTint_Old`) and registrations

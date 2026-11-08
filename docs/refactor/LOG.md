@@ -1476,12 +1476,90 @@ See LOG.md for the details of the removal and its verification.
   deletions change what older data does, by design. The editor's `ImportOldGame` (`AGS.Native`) shares the
   reader, so it refuses compiled games older than 3.99 too; 6.7 deletes it.
 
+*Status (2026-11-08): step 2, room files, done.* Six commits:
+- **Behaviour, Common:** `kRoomVersion_LowSupport = kRoomVersion_400`. A room older than 4.0 gets the existing
+  `kRoomFileErr_FormatNotSupported` message: "Room was compiled with (unknown). Required format version: 36315,
+  supported 4000000 - 4000034". Rooms before 4.0 wrote a bare 16-bit version (3.5.0.8 = 33, 3.6.x = 363xx, the
+  3.99 alphas = 40); 4.0 writes 0xFFFF, the signature and a 32-bit version, so every 16-bit version is below the
+  floor. That header branch stays only so that such a file is named with its version instead of failing the
+  signature check. `RoomDataVersion.*` in `game_compat_test.cpp` write a header and open it: 33, 40 and 36315 in
+  the 16-bit form are refused with the version and 4000000 in the message, 4000000 opens, a version newer than
+  the engine is refused. With the old minimum the first test fails.
+- **Deleted, Common** (17 lines, 2 files): the `< kRoomVersion_400` step of `UpdateRoomData` (every object marked
+  enabled), the `>= 363_15 && < 400` half of the two background conditions, the enum values `kRoomVersion_3508`,
+  `_399`, `_363_06`, `_363_15` (nothing in the tree names them, Editor and Tools included). The plan's list was
+  wrong on two counts, found in the code: `ReadExt_363_Objects` stays, because `WriteRoomData` writes the
+  `v363_objects` block in every room and the 4.0.0.27 and 4.0.0.30 fixtures' rooms carry it (without the reader they
+  would fail with "Unknown block type"; not tried); the LZW background branch stays, because rooms 4000000 to 4000032 (the
+  fixtures' `400_26` among them) have LZW backgrounds, so the condition became `>= kRoomVersion_400_33`.
+  `Common/util/lzw.*` also serve the sprite file's LZW compression. The `400_24` and `400_34` steps stay.
+- **Behaviour, Editor:** a project saved before 3.99.99.01 (version index 3999901, the open-format rooms) is
+  refused: "This project was saved by AGS 3.6.3.16. AGS Draconian opens projects saved by AGS 4.0 or later; open
+  and save it with the AGS 4.0 editor first." (without the editor's version, written since 3.5.0.22: "saved by an
+  AGS editor older than 3.5.0.22"). Every older project keeps its rooms as `room*.crm` files of version 40 or
+  3.x. The decision is `ProjectVersion.Check` (`Editor/AGS.Editor/ProjectVersion.cs`, no WinForms), with the two
+  "newer than this editor" refusals moved unchanged; `ProjectVersionTests` cover 2.80.1 to 3.99.99.00 refused,
+  3.99.99.01 to 4.0.0.34 opened, two newer ones refused. `FIRST_XML_VERSION` (2.80.1) had no user left.
+- **Deleted, Editor** (123 lines, 4 files): `UpgradeGameRoomsOpenFormatTask` and `ConvertAllRoomsFromCrmToOpenFormat`
+  (the `.crm` to `Rooms/<n>/` project upgrade; every project it could serve is now refused), its registration,
+  the `*.crm` branch of `Tasks.GetPatternsForStandardGameFiles` (index 1 to 3999900).
+- **Behaviour, Editor:** "Import existing room" reads the file before copying anything, so an old `.crm` gets
+  one message: "There was an error importing the room. AGS Draconian imports rooms built by AGS 4.0 or later. The
+  error was: ..." with the reader's text. The conversion's error (import and room templates) carries the same
+  sentence. `ConvertRoomFromCrmToOpenFormat`, `ImportExistingRoomFile` and the template path stay for 4.0 files.
+- **Fixed, `AGS.Native`:** `load_room_script` passed a `String` to `%s` (undefined behaviour; it worked on MSVC
+  because `_cstr` is the first member); `.GetCStr()`.
+- Measured: `legacy version checks` 0 → 0 (it counts `kGameVersion_` only); comparisons with a pre-4.0 room
+  version 3 → 0, enum values below `kRoomVersion_400` 4 → 0. `prepush.py` (format 1989 files, buildlists, CMake
+  build with warnings as errors and ctest 1166 of 1166, tidy on changed lines clean, headers, libc++ 343 headers,
+  emscripten); the msbuild stage by hand, as the script runs it (the five solutions; Compiler.Lib.Test 598,
+  Common.Lib.Test 135, Engine.App.Test 51, Engine.Full.Test 112, Tools.Test 267, all passed; the editor's NUnit 556
+  of 562, 6 skipped without `AGS_TEST_PROJECT`); `RoomDataVersion.OlderThan400IsRefused` fails with the floor set
+  back to 33; the headless editor (`/compile`) refuses copies of the auto-test project that claim 3.6.3.16
+  (index 3060316) and 3.99.99.0 (3999900) with the message above and builds the project itself; the auto-test
+  game 2414 of 2414 (built by that editor, run by the MSBuild engine).
+- Found, not touched (the user, 2026-11-08: keep, L.1's C# half or still reachable above the floor). Now
+  unreachable for a loaded project, each with its threshold on the version index: `UpgradeGameCommonTask.Execute`'s
+  `< 2`, `< 3`, `< 8`, `< 15`, `< 18` (twice), `< 19`, `< 20`, `< 21`, `< 23`, `< 24`, `21..25`, `< 3060000`,
+  `< 3060020`, `< 3060109`, `< 3999901` (`ConvertLinebreakInTextProperties`), and the 3.6 half of seven
+  conditions whose 4.0 half stays (`< 3060200`, `< 3060202`, `< 3060206`, `< 3060303`, `< 3060304`, `< 3060310`,
+  `3060304..3060315`); `ScriptsComponent.Events_GamePostLoad`'s `< 3060110` (`SetRestartPoint()` added to
+  `game_start`); `UpgradeGameFontsToFontFilesTask`'s `GameVersion` 3.0.3.2 (its index 4000010 still applies).
+  Still reachable: the fonts task (< 4000010), the dialogs task (4.0.0.33), the voice clips task (4000033), the
+  colour remaps (< 4000009, < 4000014), the `[Obsolete]` shims. `ReadRoomObjectBase`'s comment on the old "on"
+  flag still speaks of older rooms; the writer writes 0 there.
+- Not verified: the `linux` stage (GCC; a worktree cannot run it), macOS, iOS, Android, FreeBSD and the Debian 10
+  builder image; a real 3.6.3 `.crm` (the refusal was checked with written headers) and the corpus run (1.4);
+  "Import existing room" and room templates in the editor's window, for an old `.crm` (the message) and a 4.0
+  one (the reader is covered by `GameCompat.Room` on the 4.0.0.27 and 4.0.0.30 rooms); opening a 3.99.99.01
+  project in the editor (NUnit only: the upgrade wizard needs a window); each intermediate commit on its own (only
+  the final tree was built). `compare_objects.py` does not apply: the deleted branches were runtime conditions.
+  In a worktree `refactor_metrics.py` stops with "Run from the repository root." (the metric was counted with
+  `git grep` and its regex), and two GitHub release downloads (libogg, libvorbis) gave 504, so the CMake build
+  was configured with `AGS_FETCH_MIRROR_DIR`.
+
 *Moved from PLAN.md on 2026-11-07 (the plan's text as it stood):*
 
   1. **Game files.** *Done 2026-11-07 (LOG.md):* `kGameVersion_LowSupported = kGameVersion_399`, a
      3.6 game gets "Game was compiled with 3.6.0.21 (data format 3060021). This engine loads games made
      with AGS 3.99 or later", the pre-3.99 branches of the `Upgrade*()` functions, Common/gui and
      Engine and the enum values are gone: `legacy version checks` 62 → 0 (22 files → 0).
+
+*Moved from PLAN.md on 2026-11-08 (the plan's text as it stood):*
+
+  2. **Room files.** The enum holds `3508 = 33`, `399 = 40`, `363_06 = 36306`, `363_15 = 36315`, then
+     `400 = 4000000` to `400_34`. Version 40 (the 3.99 alphas) loads nowhere already ("Block data
+     overlapping"; upstream rejects it outright since 2026-02); 33 to 36315 are 3.5.0.8 to 3.6.3 rooms,
+     whose games 3.4-1 refuses. So `kRoomVersion_LowSupport = kRoomVersion_400` (monotonic again, no
+     explicit list needed), and the readers below it go: `ReadExt_363_Objects`, the LZW background
+     branch, the `< kRoomVersion_400` steps of `UpdateRoomData`; the `400_24` and `400_34` steps stay.
+     1.2's fixtures (`kRoomVersion_400_26`) guard the kept path.
+     **The editor shares this reader** (`NativeRoom` → `load_room_file` → `LoadRoom`), so in the same
+     task: the project floor in `AGSEditor.cs` (today 2.80.1) becomes the first 4.0 editor whose rooms
+     are version `400` or open-format, with the message "upgrade this project with the AGS 4.0 editor
+     first"; `UpgradeGameRoomsOpenFormatTask` goes (every project it could still serve has version-40 or
+     3.x rooms); "Import existing room" and room templates keep working for 4.0 `.crm` files and say so
+     for older ones. Decided 2026-11-08 (D1): no legacy reader is carried; L.1 may rebuild one later.
 
 ### 7.1 Make the C++ tools the only build path
 
