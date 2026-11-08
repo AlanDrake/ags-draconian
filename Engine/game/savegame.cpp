@@ -101,8 +101,6 @@ namespace Engine
 {
 
 const String SavegameSource::Signature = "Adventure Game Studio saved game v2";
-// Size of the "windows vista rich game media header" feature, in bytes
-const size_t LegacyRichHeaderSize = (6 * sizeof(int32_t)) + 16 + (1024 * sizeof(int16_t) * 4);
 
 SavegameSource::SavegameSource() : Version(kSvgVersion_Undefined) {}
 
@@ -328,15 +326,11 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
     return HSaveError::None();
 }
 
-// Tests for the save signature, returns first supported version of found save type
-SavegameVersion CheckSaveSignature(Stream *in)
+// Tests for the save signature at the start of the stream
+bool CheckSaveSignature(Stream *in)
 {
-    soff_t pre_sig_pos = in->GetPosition();
     String svg_sig = String::FromStreamCount(in, SavegameSource::Signature.GetLength());
-    if (svg_sig.Compare(SavegameSource::Signature) == 0)
-        return kSvgVersion_Components;
-    in->Seek(pre_sig_pos, kSeekBegin);
-    return kSvgVersion_Undefined;
+    return svg_sig.Compare(SavegameSource::Signature) == 0;
 }
 
 HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, SavegameDescription *desc,
@@ -347,20 +341,8 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
         return new SavegameError(kSvgErr_FileOpenFailed, "Requested filename: %s.", filename.GetCStr());
 
     // Check saved game signature
-    SavegameVersion sig_ver = CheckSaveSignature(in.get());
-    if (sig_ver == kSvgVersion_Undefined)
-    {
-        // Skip MS Windows Vista rich media header (was present in older saves)
-        in->Seek(LegacyRichHeaderSize);
-        sig_ver = CheckSaveSignature(in.get());
-        if (sig_ver == kSvgVersion_Undefined)
-            return new SavegameError(kSvgErr_SignatureFailed);
-    }
-
-    if (sig_ver < kSvgVersion_Components)
-    {
-        return new SavegameError(kSvgErr_FormatVersionNotSupported, "Engine no longer supports pre-3.5.0 saves.");
-    }
+    if (!CheckSaveSignature(in.get()))
+        return new SavegameError(kSvgErr_SignatureFailed);
 
     SavegameVersion svg_ver;
     SavegameDescription temp_desc;

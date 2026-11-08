@@ -2015,27 +2015,27 @@ struct ComponentHandler
 ComponentHandler ComponentHandlers[] = {
     // NOTE: the new format values should now be defined as AGS version
     // at which a change was introduced, represented as NN,NN,NN,NN.
+    // The lowest version is the one written by the first 4.0 format (kSvgVersion_400) or a later one.
     {"Game Info", 0, 0,
      kSaveCmp_GameState, // consider this is a part of game state
      WriteGameInfo, ReadGameInfo, PrescanGameInfo},
     {"Game State", kGSSvgVersion_Current, kGSSvgVersion_400, kSaveCmp_GameState, WriteGameState, ReadGameState,
      nullptr},
-    {"Audio", kAudioSvgVersion_36303, kAudioSvgVersion_Initial, kSaveCmp_Audio, WriteAudio, ReadAudio, PrescanAudio},
+    {"Audio", kAudioSvgVersion_36303, kAudioSvgVersion_36009, kSaveCmp_Audio, WriteAudio, ReadAudio, PrescanAudio},
     {"Characters", kCharSvgVersion_Current, kCharSvgVersion_400, kSaveCmp_Characters, WriteCharacters, ReadCharacters,
      PrescanCharacters},
     {"Dialogs", kDialogTopicSvgVer_40026, kDialogTopicSvgVer_Initial, kSaveCmp_Dialogs, WriteDialogs, ReadDialogs,
      PrescanDialogs},
-    {"GUI", kGuiSvgVersion_Current, kGuiSvgVersion_Initial, kSaveCmp_GUI, WriteGUI, ReadGUI, PrescanGUI},
+    {"GUI", kGuiSvgVersion_Current, kGuiSvgVersion_400, kSaveCmp_GUI, WriteGUI, ReadGUI, PrescanGUI},
     {"Inventory Items", kInvitemSvgVersion_Current, kInvitemSvgVersion_Initial, kSaveCmp_InvItems, WriteInventory,
      ReadInventory, PrescanInventory},
-    {"Mouse Cursors", kCursorSvgVersion_36016, kCursorSvgVersion_Initial, kSaveCmp_Cursors, WriteMouseCursors,
+    {"Mouse Cursors", kCursorSvgVersion_36016, kCursorSvgVersion_36016, kSaveCmp_Cursors, WriteMouseCursors,
      ReadMouseCursors, PrescanMouseCursors},
     {"Views", kViewSvgVersion_4000024, kViewSvgVersion_Initial, kSaveCmp_Views, WriteViews, ReadViews, PrescanViews},
     {"Dynamic Sprites", 0, 0, kSaveCmp_DynamicSprites, WriteDynamicSprites, ReadDynamicSprites, nullptr},
     // Alternate "Dynamic Sprites" handler in case only object-owned sprites are serialized
     {"Dynamic Sprites", 0, 0, kSaveCmp_ObjectSprites, WriteObjectSprites, ReadObjectSprites, nullptr},
-    {"Overlays", kOverSvgVersion_Current, kOverSvgVersion_Initial, kSaveCmp_Overlays, WriteOverlays, ReadOverlays,
-     nullptr},
+    {"Overlays", kOverSvgVersion_Current, kOverSvgVersion_400, kSaveCmp_Overlays, WriteOverlays, ReadOverlays, nullptr},
     {"AnimatedOverlays", kAnimOverSvgVersion_40024, kAnimOverSvgVersion_40024, kSaveCmp_Overlays, WriteAnimOverlays,
      ReadAnimOverlays, nullptr},
     {"Dynamic Surfaces", 0, 0,
@@ -2051,7 +2051,7 @@ ComponentHandler ComponentHandlers[] = {
     {"Move Lists", kMoveSvgVersion_40020, kMoveSvgVersion_400,
      (SaveCmpSelection)(kSaveCmp_Characters | kSaveCmp_ThisRoom), // must go along with characters and room objects
      WriteMoveLists, ReadMoveLists, PrescanMoveLists},
-    {"Managed Pool", kManagedPoolSvgVersion_400, kManagedPoolSvgVersion_Initial,
+    {"Managed Pool", kManagedPoolSvgVersion_400, kManagedPoolSvgVersion_400,
      kSaveCmp_Scripts, // must go along with scripts
      WriteManagedPool, ReadManagedPool, nullptr},
     {"RTTI", kRTTISvgVer_400_22, kRTTISvgVer_Initial,

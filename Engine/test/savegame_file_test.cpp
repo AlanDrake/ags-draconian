@@ -139,6 +139,17 @@ protected:
         return _files.back();
     }
 
+    // Sets the format version, which follows the signature, little-endian
+    static void SetFormatVersion(std::vector<uint8_t> &bytes, int32_t version)
+    {
+        const size_t version_pos = SavegameSource::Signature.GetLength();
+        ASSERT_GE(bytes.size(), version_pos + 4);
+        for (int i = 0; i < 4; ++i)
+        {
+            bytes[version_pos + i] = static_cast<uint8_t>(version >> (i * 8));
+        }
+    }
+
     String _dir;
     std::vector<String> _files;
 };
@@ -249,39 +260,55 @@ TEST_F(SavegameFile, FileThatIsNotASaveIsRefused)
     EXPECT_EQ(kSvgErr_SignatureFailed, err->Code());
 }
 
-TEST_F(SavegameFile, UnsupportedFormatVersionsAreRefused)
+TEST_F(SavegameFile, SaveOlderThan400IsRefused)
 {
     const String path = FilePath("agssave.004");
     ASSERT_TRUE(SaveGame(path, "text", nullptr, kSaveCmp_GameState, false));
     std::vector<uint8_t> bytes = ReadAllBytes(path);
-    const size_t version_pos = SavegameSource::Signature.GetLength();
-    ASSERT_GT(bytes.size(), version_pos + 4);
-    // the format version follows the signature, little-endian
-    const int32_t versions[] = {kSvgVersion_LowestSupported - 1, kSvgVersion_Current + 1};
+    ASSERT_GT(bytes.size(), SavegameSource::Signature.GetLength() + 4);
+    // 3.6.3 (which has the file format block too), 3.6.2, 3.5.1, the 3.99.99 engines, the first block format
+    const int32_t versions[] = {3060300, 3060200, 13, 3999999, 20, 9};
     for (int32_t version : versions)
     {
-        for (int i = 0; i < 4; ++i)
-            bytes[version_pos + i] = static_cast<uint8_t>(version >> (i * 8));
+        SetFormatVersion(bytes, version);
         WriteAllBytes(path, bytes);
         SavegameDescription desc;
         HSaveError err = OpenSavegame(path, desc);
         ASSERT_FALSE(err) << version;
         EXPECT_EQ(kSvgErr_FormatVersionNotSupported, err->Code()) << version;
+        const std::string message = err->FullMessage().GetCStr();
+        EXPECT_NE(std::string::npos, message.find(String::FromFormat("Required: %d,", version).GetCStr())) << message;
+        EXPECT_NE(std::string::npos,
+                  message.find(String::FromFormat("supported: 4000000 - %d.", kSvgVersion_Current).GetCStr()))
+            << message;
     }
 }
 
-TEST_F(SavegameFile, OlderDescriptionFormatIsRead)
+TEST_F(SavegameFile, SaveNewerThanTheEngineIsRefused)
 {
-    // a 3.6.2 save has no file format block after the format version, so its description is
-    // found by sizes rather than offsets; make one from a current save by taking the block out
+    const String path = FilePath("agssave.004");
+    ASSERT_TRUE(SaveGame(path, "text", nullptr, kSaveCmp_GameState, false));
+    std::vector<uint8_t> bytes = ReadAllBytes(path);
+    SetFormatVersion(bytes, kSvgVersion_Current + 1);
+    WriteAllBytes(path, bytes);
+    SavegameDescription desc;
+    HSaveError err = OpenSavegame(path, desc);
+    ASSERT_FALSE(err);
+    EXPECT_EQ(kSvgErr_FormatVersionNotSupported, err->Code());
+}
+
+TEST_F(SavegameFile, DescriptionWithoutFileFormatBlockIsRead)
+{
+    // a 4.0 save older than 4.0.0.18 has no file format block after the format version, so its
+    // description is found by sizes rather than offsets; make one from a current save by taking
+    // the block out
     const String path = FilePath("agssave.005");
     ASSERT_TRUE(SaveGame(path, "an older save", nullptr, kSaveCmp_GameState, false));
     const std::vector<uint8_t> save = ReadAllBytes(path);
     const size_t version_pos = SavegameSource::Signature.GetLength();
     const size_t fileformat_size = 5 * sizeof(int32_t);
-    std::vector<uint8_t> legacy(save.begin(), save.begin() + version_pos);
-    for (int i = 0; i < 4; ++i)
-        legacy.push_back(static_cast<uint8_t>(kSvgVersion_362 >> (i * 8)));
+    std::vector<uint8_t> legacy(save.begin(), save.begin() + version_pos + 4);
+    SetFormatVersion(legacy, kSvgVersion_400);
     legacy.insert(legacy.end(), save.begin() + version_pos + 4 + fileformat_size, save.end());
     WriteAllBytes(path, legacy);
 
@@ -289,19 +316,26 @@ TEST_F(SavegameFile, OlderDescriptionFormatIsRead)
     SavegameDescription desc;
     HSaveError err = OpenSavegame(path, src, desc, kSvgDesc_All);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
-    EXPECT_EQ(kSvgVersion_362, src.Version);
+    EXPECT_EQ(kSvgVersion_400, src.Version);
     EXPECT_STREQ("an older save", desc.UserText.GetCStr());
     EXPECT_STREQ("Savegame Test", desc.GameTitle.GetCStr());
     EXPECT_EQ(0x5A5A1234, desc.LegacyID);
+}
 
-    // saves of old engines on Windows Vista and later could start with a "rich media" header
+TEST_F(SavegameFile, RichMediaHeaderIsNotRead)
+{
+    // saves of engines before 3.6 on Windows Vista and later could start with a "rich media" header;
+    // no 4.0 engine wrote it, so such a file is not taken for a save
+    const String path = FilePath("agssave.006");
+    ASSERT_TRUE(SaveGame(path, "text", nullptr, kSaveCmp_GameState, false));
     std::vector<uint8_t> with_header((6 * sizeof(int32_t)) + 16 + (1024 * sizeof(int16_t) * 4), 0xAB);
-    with_header.insert(with_header.end(), legacy.begin(), legacy.end());
+    const std::vector<uint8_t> save = ReadAllBytes(path);
+    with_header.insert(with_header.end(), save.begin(), save.end());
     WriteAllBytes(path, with_header);
-    SavegameDescription desc2;
-    err = OpenSavegame(path, desc2, kSvgDesc_UserText);
-    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
-    EXPECT_STREQ("an older save", desc2.UserText.GetCStr());
+    SavegameDescription desc;
+    HSaveError err = OpenSavegame(path, desc, kSvgDesc_UserText);
+    ASSERT_FALSE(err);
+    EXPECT_EQ(kSvgErr_SignatureFailed, err->Code());
 }
 
 TEST_F(SavegameFile, SaveInAMissingDirectoryFails)

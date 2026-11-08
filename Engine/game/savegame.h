@@ -68,7 +68,7 @@ enum SavegameVersion
     kSvgVersion_400 = 4000000,
     kSvgVersion_400_18 = 4000018, // sync with kSvgVersion_363 (added compression)
     kSvgVersion_Current = kSvgVersion_400_18,
-    kSvgVersion_LowestSupported = kSvgVersion_Components // change if support dropped
+    kSvgVersion_LowestSupported = kSvgVersion_400 // change if support dropped
 };
 
 // Error codes for save restoration routine

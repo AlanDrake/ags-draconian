@@ -20,6 +20,7 @@
 // The tests run in the process without a loaded game, so they work with the
 // state that exists at start: the engine's global objects with their defaults.
 // The script component is left out, because it needs the game's scripts.
+// A component of a version older than the first 4.0 save format is refused.
 //
 //=============================================================================
 #include <memory>
@@ -87,6 +88,31 @@ bool Restore(const std::vector<uint8_t> &buf, SaveCmpSelection cmp, std::string 
     if (!err)
         error = err->FullMessage().GetCStr();
     return static_cast<bool>(err);
+}
+
+// A component list with one component of that name and format version, and no data
+std::vector<uint8_t> MakeComponentList(const char *name, int32_t version)
+{
+    std::vector<uint8_t> buf;
+    auto append_text = [&buf](const std::string &text) { buf.insert(buf.end(), text.begin(), text.end()); };
+    auto append_int = [&buf](int32_t value)
+    {
+        for (int i = 0; i < 4; ++i)
+        {
+            buf.push_back(static_cast<uint8_t>(value >> (i * 8)));
+        }
+    };
+    append_text("<Components>");
+    append_text(std::string("<") + name + ">");
+    append_int(6 * sizeof(int32_t)); // header size
+    append_int(0);                   // flags
+    append_int(version);
+    append_int(0); // data size
+    append_int(0); // uncompressed size
+    append_int(0); // checksum
+    append_text(std::string("</") + name + ">");
+    append_text("</Components>");
+    return buf;
 }
 
 // Some of the state that the game state component saves, with values that no new game has
@@ -222,6 +248,42 @@ TEST(Savegame, SaveWithNoComponentsIsJustTheList)
     EXPECT_GT(buf.size(), 0u);
     EXPECT_LT(buf.size(), 200u);
     ASSERT_TRUE(Restore(buf, kSaveCmp_None, error)) << error;
+}
+
+TEST(Savegame, ComponentOlderThan400IsRefused)
+{
+    // the lowest version of every component whose 4.0 format has one above 0
+    const struct
+    {
+        const char *Name;
+        int32_t Lowest;
+    } floors[] = {
+        {"Game State", 4000000},        {"Audio", 2},
+        {"Characters", 4000000},        {"GUI", 4000000},
+        {"Mouse Cursors", 1},           {"Overlays", 4000000},
+        {"AnimatedOverlays", 4000024},  {"Room States", 4000003},
+        {"Loaded Room State", 4000003}, {"Move Lists", 4000000},
+        {"Managed Pool", 4000000},      {"RTTI", 4000000},
+    };
+    for (const auto &floor : floors)
+    {
+        const std::vector<uint8_t> buf = MakeComponentList(floor.Name, floor.Lowest - 1);
+        Stream in(std::make_unique<VectorStream>(buf));
+        PreservedParams pp;
+        RestoredData r_data;
+        HSaveError err = SavegameComponents::ReadAll(&in, kSvgVersion_Current, kSaveCmp_All, pp, r_data);
+        ASSERT_FALSE(err) << floor.Name;
+        // the component's error is wrapped in the list's
+        bool version_refused = err->Code() == kSvgErr_UnsupportedComponentVersion;
+        for (PError cause = err->PreviousError(); cause; cause = cause->PreviousError())
+        {
+            version_refused |= cause->Code() == kSvgErr_UnsupportedComponentVersion;
+        }
+        EXPECT_TRUE(version_refused) << floor.Name << ": " << err->FullMessage().GetCStr();
+        const std::string expected = String::FromFormat("supported: %d - ", floor.Lowest).GetCStr();
+        EXPECT_NE(std::string::npos, std::string(err->FullMessage().GetCStr()).find(expected))
+            << floor.Name << ": " << err->FullMessage().GetCStr();
+    }
 }
 
 TEST(Savegame, TruncatedSaveIsRefused)
