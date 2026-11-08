@@ -39,16 +39,11 @@ void AnimatingGUIButton::ReadFromSavegame(Stream *in, int cmp_ver)
         anim_delay = in->ReadInt16();
         uint16_t anim_flags = in->ReadInt16(); // was repeat (0,1)
         wait = in->ReadInt16();
-        if (cmp_ver >= kGuiSvgVersion_36025)
-        {
-            anim_volume = in->ReadInt8();
-            in->ReadInt8(); // reserved to fill int32
-            in->ReadInt8();
-            in->ReadInt8();
-        }
+        anim_volume = in->ReadInt8();
+        in->ReadInt8(); // reserved to fill int32
+        in->ReadInt8();
+        in->ReadInt8();
 
-        if (cmp_ver < kGuiSvgVersion_36020)
-            anim_flags &= 0x1; // restrict to repeat only
         anim_flow = (anim_flags & 0x1) ? kAnimFlow_Repeat : kAnimFlow_Once;
         anim_dir_initial = static_cast<AnimFlowDirection>((anim_flags >> 2) & 0x1);
         anim_dir_current = anim_dir_initial;

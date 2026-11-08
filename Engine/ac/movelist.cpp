@@ -325,7 +325,7 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     pos.resize(numstage);
     permove.resize(numstage);
     stageflags.resize(numstage);
-    if ((numstage == 0) && cmp_ver >= kMoveSvgVersion_36109)
+    if (numstage == 0)
     {
         return HSaveError::None();
     }
@@ -354,7 +354,7 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     }
 
     // Stage flags
-    if ((cmp_ver >= kMoveSvgVersion_36208 && cmp_ver < kMoveSvgVersion_400) || cmp_ver >= kMoveSvgVersion_40016)
+    if (cmp_ver >= kMoveSvgVersion_40016)
     {
         for (uint32_t i = 0; i < numstage; ++i)
         {
@@ -421,7 +421,7 @@ void MoveList::WriteToSavegame(Stream *out) const
         out->WriteFloat32(permove[i].Y);
     }
 
-    // kMoveSvgVersion_36208 || kMoveSvgVersion_40016
+    // kMoveSvgVersion_40016
     for (uint32_t i = 0; i < numstage; ++i)
     {
         out->WriteInt8(stageflags[i]);

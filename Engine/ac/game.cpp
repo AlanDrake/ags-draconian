@@ -1506,8 +1506,9 @@ HSaveError load_game(const String &path, int slotNumber, bool startup, bool &dat
             return new SavegameError(kSvgErr_GameGuidMismatch);
         }
     }
-    // If it's an older save, then do the stupid old-style filename test
-    // TODO: remove filename test after deprecating old saves (pre - kSvgVersion_351)
+    // A save without a game GUID and legacy ID: match the game data by its file name. Saves before
+    // 3.5.1 had neither (they are refused now); a 4.0 save has none only if its game has none.
+    // TODO: remove the filename test if every game is given a GUID
     else if (desc.MainDataFilename.Compare(ResPaths.GamePak.Name))
     {
         String gamefile = Path::ConcatPaths(ResPaths.DataDir, desc.MainDataFilename);

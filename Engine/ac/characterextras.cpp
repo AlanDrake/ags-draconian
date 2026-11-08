@@ -144,8 +144,8 @@ void CharacterExtras::UpdateEffectiveValues(const CharacterInfo *chin)
 
 void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, CharacterSvgVersion save_ver)
 {
-    // 4.0 saves before kCharSvgVersion_400_28 have the legacy inventory too (as with audio_speed below)
-    if (save_ver < kCharSvgVersion_36310 || (save_ver >= kCharSvgVersion_400 && save_ver < kCharSvgVersion_400_28))
+    // saves before kCharSvgVersion_400_28 have the legacy inventory (as with audio_speed below)
+    if (save_ver < kCharSvgVersion_400_28)
     {
         int16_t invorder[LEGACY_MAX_CHAR_INVENTORY];
         in->ReadArrayOfInt16(invorder, LEGACY_MAX_CHAR_INVENTORY);
@@ -176,21 +176,12 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
     slow_move_counter = in->ReadInt8();
     animwait = in->ReadInt16();
     int cur_anim_volume = 100;
-    if (save_ver >= kCharSvgVersion_36025)
-    {
-        audio_volume = static_cast<uint8_t>(in->ReadInt8());
-        cur_audio_volume = static_cast<uint8_t>(in->ReadInt8());
-        audio_panning = in->ReadInt8();
-        in->ReadInt8(); // reserved
-    }
-    else
-    {
-        audio_volume = 100;
-        cur_audio_volume = 100;
-        audio_panning = 0;
-    }
+    audio_volume = static_cast<uint8_t>(in->ReadInt8());
+    cur_audio_volume = static_cast<uint8_t>(in->ReadInt8());
+    audio_panning = in->ReadInt8();
+    in->ReadInt8(); // reserved
 
-    if (save_ver >= kCharSvgVersion_36205 && (save_ver < kCharSvgVersion_400 || save_ver >= kCharSvgVersion_400_13))
+    if (save_ver >= kCharSvgVersion_400_13)
     {
         following = in->ReadInt32();
         follow_dist = in->ReadInt32();
@@ -203,7 +194,7 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
         follow_eagerness = 0;
     }
 
-    if ((save_ver >= kCharSvgVersion_36310) && (save_ver < kCharSvgVersion_400 || save_ver >= kCharSvgVersion_400_28))
+    if (save_ver >= kCharSvgVersion_400_28)
     {
         audio_speed = in->ReadInt32();
         in->ReadInt32(); // reserved
@@ -211,30 +202,23 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
         in->ReadInt32();
     }
 
-    if (save_ver >= kCharSvgVersion_400)
-    {
-        blend_mode = (BlendMode)in->ReadInt32();
-        // Reserved for colour options
-        in->ReadInt32(); // colour flags
-        // Reserved for transform options
-        in->ReadInt32();              // sprite transform flags1
-        in->ReadInt32();              // sprite transform flags2
-        in->ReadInt32();              // transform scale x
-        in->ReadInt32();              // transform scale y
-        in->ReadInt32();              // transform skew x
-        in->ReadInt32();              // transform skew y
-        rotation = in->ReadFloat32(); // transform rotate
-        float px = in->ReadFloat32(); // sprite pivot x
-        float py = in->ReadFloat32(); // sprite pivot y
-        float ax = in->ReadFloat32(); // sprite anchor x
-        float ay = in->ReadFloat32(); // sprite anchor y
-        spr_anchor = Pointf(ax, ay);
-        pivot = Pointf(px, py);
-    }
-    else
-    {
-        blend_mode = kBlend_Normal;
-    }
+    blend_mode = (BlendMode)in->ReadInt32();
+    // Reserved for colour options
+    in->ReadInt32(); // colour flags
+    // Reserved for transform options
+    in->ReadInt32();              // sprite transform flags1
+    in->ReadInt32();              // sprite transform flags2
+    in->ReadInt32();              // transform scale x
+    in->ReadInt32();              // transform scale y
+    in->ReadInt32();              // transform skew x
+    in->ReadInt32();              // transform skew y
+    rotation = in->ReadFloat32(); // transform rotate
+    float px = in->ReadFloat32(); // sprite pivot x
+    float py = in->ReadFloat32(); // sprite pivot y
+    float ax = in->ReadFloat32(); // sprite anchor x
+    float ay = in->ReadFloat32(); // sprite anchor y
+    spr_anchor = Pointf(ax, ay);
+    pivot = Pointf(px, py);
 
     if (save_ver >= kCharSvgVersion_400_03)
     {
@@ -278,9 +262,9 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
         int offx = in->ReadInt32();
         int offy = in->ReadInt32();
         spr_offset = Point(offx, offy);
-        float ax = in->ReadFloat32();
-        float ay = in->ReadFloat32();
-        view_anchor = Pointf(ax, ay);
+        float view_ax = in->ReadFloat32();
+        float view_ay = in->ReadFloat32();
+        view_anchor = Pointf(view_ax, view_ay);
         offx = in->ReadInt32();
         offy = in->ReadInt32();
         view_offset = Point(offx, offy);
@@ -327,16 +311,16 @@ void CharacterExtras::WriteToSavegame(const CharacterInfo *chin, Stream *out) co
     out->WriteInt8(process_idle_this_time);
     out->WriteInt8(slow_move_counter);
     out->WriteInt16(animwait);
-    // kCharSvgVersion_36025
+    // since 3.6.0.25
     out->WriteInt8(static_cast<uint8_t>(audio_volume));
     out->WriteInt8(static_cast<uint8_t>(anim.AudioVolume));
     out->WriteInt8(audio_panning);
     out->WriteInt8(0); // reserved
-    // kCharSvgVersion_36205
+    // kCharSvgVersion_400_13
     out->WriteInt32(following);
     out->WriteInt32(follow_dist);
     out->WriteInt32(follow_eagerness);
-    // kCharSvgVersion_36310
+    // kCharSvgVersion_400_28
     out->WriteInt32(audio_speed);
     out->WriteInt32(0);
     out->WriteInt32(0);

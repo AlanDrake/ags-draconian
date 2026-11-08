@@ -34,15 +34,13 @@ enum MoveListStageFlags
 };
 
 
+// Before 4.0: 0 (3.5.0 pre-alpha); 1 (3.5.0) new pathfinder, arbitrary number of stages;
+// 2 (3.6.1.9) skip empty lists, progress as float; 3060208 flags per stage
 enum MoveListSvgVersion
 {
-    kMoveSvgVersion_Initial = 0,     // [UNSUPPORTED] from 3.5.0 pre-alpha
-    kMoveSvgVersion_350 = 1,         // new pathfinder, arbitrary number of stages
-    kMoveSvgVersion_36109 = 2,       // skip empty lists, progress as float
-    kMoveSvgVersion_36208 = 3060208, // flags per stage
     kMoveSvgVersion_400 = 4000000,   // fixed->floats, positions are int32
     kMoveSvgVersion_40006 = 4000006, // extra running params (repeat, dir)
-    kMoveSvgVersion_40016 = 4000016, // sync with kMoveSvgVersion_36208
+    kMoveSvgVersion_40016 = 4000016, // sync with 3.6.2.8 (flags per stage)
     kMoveSvgVersion_40020 = 4000020, // expanded animation flow params
 };
 

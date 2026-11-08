@@ -191,43 +191,19 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     moving = in->ReadInt16();
     int legacy_animating = in->ReadInt8(); // legacy animating
     int anim_delay = in->ReadInt8();       // legacy anim delay (8-bit)
-    if (cmp_ver >= kRoomStatSvgVersion_40003)
-    {
-        flags = in->ReadInt32();
-    }
-    else
-    {
-        uint8_t on = in->ReadInt8(); // old enabled + visible flag
-        flags = in->ReadInt8();
-        // Only treat "on" as visible and make objects from old saves all enabled
-        flags |= OBJF_ENABLED | (OBJF_VISIBLE)*on;
-    }
+    flags = in->ReadInt32();
 
     blocking_width = in->ReadInt16();
     blocking_height = in->ReadInt16();
-    if (cmp_ver >= kRoomStatSvgVersion_36016)
-    {
-        name = StrUtil::ReadString(in);
-    }
+    name = StrUtil::ReadString(in);
 
-    int cur_audio_volume = 100;
-    if (cmp_ver >= kRoomStatSvgVersion_36025)
-    {
-        // anim vols order inverted compared to character, by mistake :(
-        cur_audio_volume = static_cast<uint8_t>(in->ReadInt8());
-        audio_volume = static_cast<uint8_t>(in->ReadInt8());
-        audio_panning = in->ReadInt8();
-        in->ReadInt8(); // reserved
-    }
-    else
-    {
-        cur_audio_volume = 100;
-        audio_volume = 100;
-        audio_panning = 0;
-    }
+    // anim vols order inverted compared to character, by mistake :(
+    int cur_audio_volume = static_cast<uint8_t>(in->ReadInt8());
+    audio_volume = static_cast<uint8_t>(in->ReadInt8());
+    audio_panning = in->ReadInt8();
+    in->ReadInt8(); // reserved
 
-    if ((cmp_ver >= kRoomStatSvgVersion_36304) &&
-        ((cmp_ver < kRoomStatSvgVersion_400) || (cmp_ver >= kRoomStatSvgVersion_40026)))
+    if (cmp_ver >= kRoomStatSvgVersion_40026)
     {
         blocking_x = in->ReadInt16();
         blocking_y = in->ReadInt16();
@@ -238,8 +214,7 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         blocking_y = 0;
     }
 
-    if ((cmp_ver >= kRoomStatSvgVersion_36310) &&
-        ((cmp_ver < kRoomStatSvgVersion_400) || (cmp_ver >= kRoomStatSvgVersion_40028)))
+    if (cmp_ver >= kRoomStatSvgVersion_40028)
     {
         audio_speed = in->ReadInt32();
         in->ReadInt32(); // reserved
@@ -247,30 +222,23 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         in->ReadInt32();
     }
 
-    if (cmp_ver >= kRoomStatSvgVersion_400)
-    {
-        blend_mode = (BlendMode)in->ReadInt32();
-        // Reserved for colour options
-        in->ReadInt32(); // colour flags
-        // Reserved for transform options
-        in->ReadInt32();              // sprite transform flags1
-        in->ReadInt32();              // sprite transform flags2
-        in->ReadInt32();              // transform scale x
-        in->ReadInt32();              // transform scale y
-        in->ReadInt32();              // transform skew x
-        in->ReadInt32();              // transform skew y
-        rotation = in->ReadFloat32(); // transform rotate
-        float px = in->ReadFloat32(); // sprite pivot x
-        float py = in->ReadFloat32(); // sprite pivot y
-        float ax = in->ReadFloat32(); // sprite anchor x
-        float ay = in->ReadFloat32(); // sprite anchor y
-        spr_anchor = Pointf(ax, ay);
-        pivot = Pointf(px, py);
-    }
-    else
-    {
-        blend_mode = kBlend_Normal;
-    }
+    blend_mode = (BlendMode)in->ReadInt32();
+    // Reserved for colour options
+    in->ReadInt32(); // colour flags
+    // Reserved for transform options
+    in->ReadInt32();              // sprite transform flags1
+    in->ReadInt32();              // sprite transform flags2
+    in->ReadInt32();              // transform scale x
+    in->ReadInt32();              // transform scale y
+    in->ReadInt32();              // transform skew x
+    in->ReadInt32();              // transform skew y
+    rotation = in->ReadFloat32(); // transform rotate
+    float px = in->ReadFloat32(); // sprite pivot x
+    float py = in->ReadFloat32(); // sprite pivot y
+    float ax = in->ReadFloat32(); // sprite anchor x
+    float ay = in->ReadFloat32(); // sprite anchor y
+    spr_anchor = Pointf(ax, ay);
+    pivot = Pointf(px, py);
 
     if (cmp_ver >= kRoomStatSvgVersion_40016)
     {
@@ -389,22 +357,22 @@ void RoomObject::WriteToSavegame(Stream *out) const
     out->WriteInt32(flags);
     out->WriteInt16(blocking_width);
     out->WriteInt16(blocking_height);
-    // kRoomStatSvgVersion_36016
+    // since 3.6.0.16
     StrUtil::WriteString(name, out);
-    // kRoomStatSvgVersion_36025
+    // since 3.6.0.25
     out->WriteInt8(static_cast<uint8_t>(anim.AudioVolume));
     out->WriteInt8(static_cast<uint8_t>(audio_volume));
     out->WriteInt8(audio_panning);
     out->WriteInt8(0); // reserved
-    // kRoomStatSvgVersion_36304
+    // kRoomStatSvgVersion_40026
     out->WriteInt16(blocking_x);
     out->WriteInt16(blocking_y);
-    // kRoomStatSvgVersion_36310
+    // kRoomStatSvgVersion_40028
     out->WriteInt32(audio_speed);
     out->WriteInt32(0); // reserved
     out->WriteInt32(0);
     out->WriteInt32(0);
-    // kRoomStatSvgVersion_400
+    // since 4.0.0.0
     out->WriteInt32(blend_mode);
     // Reserved for colour options
     out->WriteInt32(0); // colour flags

@@ -47,26 +47,18 @@ typedef std::shared_ptr<Stream> PStream;
 //
 // 8      last old style saved game format (of AGS 3.2.1)
 // 9      first new style (self-descriptive block-based) format version
+// 10-13  revisions of 3.5.0 and 3.5.1
 // Since 3.6.0: value is defined as AGS version represented as NN,NN,NN,NN.
+// 3060300  3.6.3: the file format block (offsets, flags) and compressed components
+// 4000000  the first 4.0 format; the 3.99.99 engines before it wrote 20 and 3999999
+// 4000018  sync with 3.6.3 (the file format block and compression)
+// This engine reads 4.0 saves only (from 4000000 on).
 //-----------------------------------------------------------------------------
 enum SavegameVersion
 {
     kSvgVersion_Undefined = 0,
-    kSvgVersion_321 = 8, // DEPRECATED
-    kSvgVersion_Components = 9,
-    kSvgVersion_ComponentsEx = 10,
-    kSvgVersion_350_final = 11,
-    kSvgVersion_350_final2 = 12,
-    kSvgVersion_351 = 13,
-    kSvgVersion_360_beta = 3060023,
-    kSvgVersion_360_final = 3060041,
-    kSvgVersion_361 = 3060115,
-    kSvgVersion_361_p8 = 3060130,
-    kSvgVersion_362 = 3060200,
-    kSvgVersion_363 = 3060300,
-    kSvgVersion_399 = 3999999,
     kSvgVersion_400 = 4000000,
-    kSvgVersion_400_18 = 4000018, // sync with kSvgVersion_363 (added compression)
+    kSvgVersion_400_18 = 4000018, // sync with 3.6.3 (added compression)
     kSvgVersion_Current = kSvgVersion_400_18,
     kSvgVersion_LowestSupported = kSvgVersion_400 // change if support dropped
 };

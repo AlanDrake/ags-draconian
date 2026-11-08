@@ -253,8 +253,7 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
         return new SavegameError(kSvgErr_FormatVersionNotSupported, "Required: %d, supported: %d - %d.", svg_ver,
                                  kSvgVersion_LowestSupported, kSvgVersion_Current);
 
-    const bool has_fileformat =
-        (svg_ver >= kSvgVersion_363 && svg_ver < kSvgVersion_399) || (svg_ver >= kSvgVersion_400_18);
+    const bool has_fileformat = svg_ver >= kSvgVersion_400_18;
 
     // File format info
     if (has_fileformat)
@@ -272,29 +271,22 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
         in->Seek(desc.Format.EnvInfoOffset, kSeekBegin);
 
     // Enviroment information
-    uint32_t env_info_size = 0u;
     const soff_t env_info_pos = in->GetPosition();
-    if (svg_ver >= kSvgVersion_351)
-        env_info_size = in->ReadInt32(); // header size
+    const uint32_t env_info_size = in->ReadInt32(); // header size
     desc.EngineName = StrUtil::ReadString(in);
     desc.EngineVersion.SetFromString(StrUtil::ReadString(in));
     desc.GameGuid = StrUtil::ReadString(in);
     desc.GameTitle = StrUtil::ReadString(in);
     desc.MainDataFilename = StrUtil::ReadString(in);
-    if (svg_ver >= kSvgVersion_ComponentsEx)
-        desc.MainDataVersion = (GameDataVersion)in->ReadInt32();
+    desc.MainDataVersion = (GameDataVersion)in->ReadInt32();
     desc.ColorDepth = in->ReadInt32();
-    if (svg_ver >= kSvgVersion_351)
-        desc.LegacyID = in->ReadInt32();
+    desc.LegacyID = in->ReadInt32();
 
     // If user desc offset is valid, then skip any remaining part
     // (this is in case there is some data that we do not support)
-    soff_t user_desc_pos = in->GetPosition();
-    if (svg_ver >= kSvgVersion_351)
-    {
-        user_desc_pos = (desc.Format.UserDescOffset > 0u) ? desc.Format.UserDescOffset : (env_info_pos + env_info_size);
-        in->Seek(user_desc_pos, kSeekBegin);
-    }
+    const soff_t user_desc_pos =
+        (desc.Format.UserDescOffset > 0u) ? desc.Format.UserDescOffset : (env_info_pos + env_info_size);
+    in->Seek(user_desc_pos, kSeekBegin);
 
     // User description
     if (elems & kSvgDesc_UserText)
@@ -342,7 +334,9 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
 
     // Check saved game signature
     if (!CheckSaveSignature(in.get()))
+    {
         return new SavegameError(kSvgErr_SignatureFailed);
+    }
 
     SavegameVersion svg_ver;
     SavegameDescription temp_desc;
@@ -666,13 +660,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     if (debug_flags & DBG_DEBUGMODE)
         play.debug_mode = 1;
 
-    // Restore Overlay bitmaps (older save format, which stored them along with overlays)
-    auto &overs = get_overlays();
-    for (auto &over_im : r_data.OverlayImages)
-    {
-        auto &over = overs[over_im.first];
-        over.SetImage(std::move(over_im.second));
-    }
     // Restore dynamic surfaces
     const size_t dynsurf_num = std::min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());
     for (size_t i = 0; i < dynsurf_num; ++i)

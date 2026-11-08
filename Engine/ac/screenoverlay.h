@@ -71,20 +71,16 @@ enum OverlayFlags
     kOver_AutoSize = 0x0200 // autoresize whenever the graphic changes
 };
 
+// Before 4.0: 1 (3.5.0.28) offset x,y; 2 (3.6.0.8) z, transparency; 3 (3.6.0.25) merged options into flags;
+// 4 (3.6.1.8) don't save owned sprites (use dynamic sprites); 3060303 visible flag must be on by default;
+// 3060304 text property
 enum OverlaySvgVersion
 {
-    kOverSvgVersion_Initial = 0,
-    kOverSvgVersion_35028 = 1,       // offset x,y
-    kOverSvgVersion_36008 = 2,       // z, transparency
-    kOverSvgVersion_36025 = 3,       // merged options into flags
-    kOverSvgVersion_36108 = 4,       // don't save owned sprites (use dynamic sprites)
-    kOverSvgVersion_36303 = 3060303, // visible flag must be on by default
-    kOverSvgVersion_36304 = 3060304, // text property
     kOverSvgVersion_400 = 4000000,   // blend mode, etc
     kOverSvgVersion_40005 = 4000005, // no magic values stored in x,y
     kOverSvgVersion_40018 = 4000018, // shaders
-    kOverSvgVersion_40024 = 4000024, // sync with kOverSvgVersion_36303
-    kOverSvgVersion_40026 = 4000026, // sync with kOverSvgVersion_36304
+    kOverSvgVersion_40024 = 4000024, // sync with 3.6.3.3 (visible flag on by default)
+    kOverSvgVersion_40026 = 4000026, // sync with 3.6.3.4 (text property)
     kOverSvgVersion_40028 = 4000028, // autosize flag, scale field is valid
     kOverSvgVersion_40029 = 4000029, // rotation pivot
     kOverSvgVersion_40034 = 4000034, // opacity instead of transparency, full tint and light ranges
@@ -232,7 +228,7 @@ public:
     // Marks that the overlay's image has changed and the texture has to be updated
     void MarkImageChanged();
 
-    void ReadFromSavegame(AGS::Common::Stream *in, bool &has_bitmap, int32_t cmp_ver);
+    void ReadFromSavegame(AGS::Common::Stream *in, int32_t cmp_ver);
     void WriteToSavegame(AGS::Common::Stream *out) const;
 
 private:

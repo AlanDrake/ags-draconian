@@ -358,60 +358,34 @@ int ScreenOverlay::UpdateTimeout()
     return _timeout;
 }
 
-void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_ver)
+void ScreenOverlay::ReadFromSavegame(Stream *in, int32_t cmp_ver)
 {
     ResetImage(true);
 
     in->ReadInt32(); // ddb 32-bit pointer value (nasty legacy format)
-    int pic = in->ReadInt32();
+    // overlay images are saved as a part of the dynamic sprite set
+    _sprnum = in->ReadInt32();
     _id = in->ReadInt32();
     _x = in->ReadInt32();
     _y = in->ReadInt32();
     _timeout = in->ReadInt32();
     _speechForChar = in->ReadInt32();
     _scriptHandle = in->ReadInt32();
-    if (cmp_ver >= kOverSvgVersion_36025)
-    {
-        _flags = in->ReadInt16();
-    }
-    else
-    {
-        in->ReadBool(); // [DEPRECATED] has alpha
-        in->ReadBool(); // [DEPRECATED] "is screen relative" (neg for blocking speech, never saved in practice)
-    }
+    _flags = in->ReadInt16();
 
-    if (cmp_ver >= kOverSvgVersion_35028)
-    {
-        int offx = in->ReadInt32();
-        int offy = in->ReadInt32();
-        _sprOffset = Point(offx, offy);
-    }
-    if (cmp_ver >= kOverSvgVersion_36008)
-    {
-        _zorder = in->ReadInt32();
-        _opacity = in->ReadInt32();
-        _destSize.Width = in->ReadInt32();
-        _destSize.Height = in->ReadInt32();
-    }
-    if ((cmp_ver >= kOverSvgVersion_36304) && (cmp_ver < kOverSvgVersion_400) || (cmp_ver >= kOverSvgVersion_40026))
+    int offx = in->ReadInt32();
+    int offy = in->ReadInt32();
+    _sprOffset = Point(offx, offy);
+    _zorder = in->ReadInt32();
+    _opacity = in->ReadInt32();
+    _destSize.Width = in->ReadInt32();
+    _destSize.Height = in->ReadInt32();
+    if (cmp_ver >= kOverSvgVersion_40026)
     {
         _text = StrUtil::ReadString(in);
     }
 
-    // New saves always save overlay images as a part of the dynamicsprite set;
-    // old saves could contain images saved along with overlays
-    if ((cmp_ver >= kOverSvgVersion_36108) || (_flags & kOver_SpriteShared))
-    {
-        _sprnum = pic;
-        has_bitmap = false;
-    }
-    else
-    {
-        _sprnum = 0;
-        has_bitmap = pic != 0;
-    }
-
-    if ((cmp_ver < kOverSvgVersion_36303) || ((cmp_ver >= kOverSvgVersion_400) && (cmp_ver < kOverSvgVersion_40024)))
+    if (cmp_ver < kOverSvgVersion_40024)
     {
         _flags |= kOver_Visible;
     }
@@ -420,32 +394,29 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         _flags |= kOver_AutoSize;
     }
 
-    if (cmp_ver >= kOverSvgVersion_400)
-    {
-        _blendMode = (BlendMode)in->ReadInt32();
-        // Reserved for colour options
-        in->ReadInt32(); // colour flags
-        // tint rgb + s (4 uint8)
-        _tintR = in->ReadInt8();
-        _tintG = in->ReadInt8();
-        _tintB = in->ReadInt8();
-        _tintLevel = in->ReadInt8();
-        _tintLight = in->ReadInt32(); // tint light (or light level)
-        // Reserved for transform options
-        _spritetf = (SpriteTransformFlags)in->ReadInt32(); // sprite transform flags1
-        in->ReadInt32();                                   // sprite transform flags2
-        _scale.X = in->ReadFloat32();                      // transform scale x
-        _scale.Y = in->ReadFloat32();                      // transform scale y
-        in->ReadInt32();                                   // transform skew x
-        in->ReadInt32();                                   // transform skew y
-        _rotation = in->ReadFloat32();                     // transform rotate
-        float px = in->ReadFloat32();                      // sprite pivot x
-        float py = in->ReadFloat32();                      // sprite pivot y
-        float ax = in->ReadFloat32();                      // sprite anchor x
-        float ay = in->ReadFloat32();                      // sprite anchor y
-        _sprAnchor = Pointf(ax, ay);
-        _pivot = Pointf(px, py);
-    }
+    _blendMode = (BlendMode)in->ReadInt32();
+    // Reserved for colour options
+    in->ReadInt32(); // colour flags
+    // tint rgb + s (4 uint8)
+    _tintR = in->ReadInt8();
+    _tintG = in->ReadInt8();
+    _tintB = in->ReadInt8();
+    _tintLevel = in->ReadInt8();
+    _tintLight = in->ReadInt32(); // tint light (or light level)
+    // Reserved for transform options
+    _spritetf = (SpriteTransformFlags)in->ReadInt32(); // sprite transform flags1
+    in->ReadInt32();                                   // sprite transform flags2
+    _scale.X = in->ReadFloat32();                      // transform scale x
+    _scale.Y = in->ReadFloat32();                      // transform scale y
+    in->ReadInt32();                                   // transform skew x
+    in->ReadInt32();                                   // transform skew y
+    _rotation = in->ReadFloat32();                     // transform rotate
+    float px = in->ReadFloat32();                      // sprite pivot x
+    float py = in->ReadFloat32();                      // sprite pivot y
+    float ax = in->ReadFloat32();                      // sprite anchor x
+    float ay = in->ReadFloat32();                      // sprite anchor y
+    _sprAnchor = Pointf(ax, ay);
+    _pivot = Pointf(px, py);
 
     // Some of the fields above were not valid in previous versions,
     // and value 0 cannot be default either.
@@ -479,8 +450,7 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
     // Upgrade legacy transparency, tint and light ranges
     if (cmp_ver < kOverSvgVersion_40034)
     {
-        if (cmp_ver >= kOverSvgVersion_36008)
-            _opacity = GfxDef::LegacyTrans255ToAlpha255(_opacity);
+        _opacity = GfxDef::LegacyTrans255ToAlpha255(_opacity);
         if (HasTint())
         {
             _tintLevel = static_cast<uint8_t>(GfxDef::Value100ToValue255(_tintLevel));
@@ -525,7 +495,7 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     out->WriteInt32(_opacity);
     out->WriteInt32(_destSize.Width);
     out->WriteInt32(_destSize.Height);
-    // kOverSvgVersion_36304
+    // kOverSvgVersion_40026
     StrUtil::WriteString(_text, out);
     // kOverSvgVersion_400
     out->WriteInt32(_blendMode);

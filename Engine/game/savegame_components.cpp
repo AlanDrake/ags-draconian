@@ -482,8 +482,7 @@ HSaveError ReadGameState(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
 // Savegame data format for Audio state
 enum AudioSvgVersion
 {
-    kAudioSvgVersion_Initial = 0,
-    kAudioSvgVersion_35026 = 1,       // source position settings
+    // 0 initial, 1 (3.5.0.26) source position settings: no longer read
     kAudioSvgVersion_36009 = 2,       // up number of channels
     kAudioSvgVersion_36130 = 3060130, // playback state
     kAudioSvgVersion_36215 = 3060215, // clips referenced by filename
@@ -523,7 +522,7 @@ HSaveError WriteAudio(Stream *out)
             out->WriteInt32(ch->get_volume100());
             out->WriteInt32(ch->get_panning());
             out->WriteInt32(ch->get_speed());
-            // since version kAudioSvgVersion_35026
+            // since 3.5.0.26
             out->WriteInt32(ch->xSource);
             out->WriteInt32(ch->ySource);
             out->WriteInt32(ch->maximumPossibleDistanceAway);
@@ -574,19 +573,13 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
                            r_data.DataCounts.AudioClipTypes))
         return err;
 
-    int total_channels, max_game_channels;
-    if (cmp_ver >= kAudioSvgVersion_36009)
+    const int total_channels = in->ReadInt8();
+    const int max_game_channels = in->ReadInt8();
+    in->ReadInt16(); // reserved 2 bytes
+    if (!AssertCompatLimit(err, total_channels, TOTAL_AUDIO_CHANNELS, "System Audio Channels") ||
+        !AssertCompatLimit(err, max_game_channels, MAX_GAME_CHANNELS, "Game Audio Channels"))
     {
-        total_channels = in->ReadInt8();
-        max_game_channels = in->ReadInt8();
-        in->ReadInt16(); // reserved 2 bytes
-        if (!AssertCompatLimit(err, total_channels, TOTAL_AUDIO_CHANNELS, "System Audio Channels") ||
-            !AssertCompatLimit(err, max_game_channels, MAX_GAME_CHANNELS, "Game Audio Channels"))
-            return err;
-    }
-    else
-    {                    /* DEPRECATED */
-        in->ReadInt32(); // unused in prev format ver
+        return err;
     }
 
     // Audio types
@@ -622,12 +615,9 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
             chan_info.Pan = in->ReadInt32();
             chan_info.Speed = 1000;
             chan_info.Speed = in->ReadInt32();
-            if (cmp_ver >= kAudioSvgVersion_35026)
-            {
-                chan_info.XSource = in->ReadInt32();
-                chan_info.YSource = in->ReadInt32();
-                chan_info.MaxDist = in->ReadInt32();
-            }
+            chan_info.XSource = in->ReadInt32();
+            chan_info.YSource = in->ReadInt32();
+            chan_info.MaxDist = in->ReadInt32();
             if (cmp_ver >= kAudioSvgVersion_36130)
             {
                 chan_info.Flags = in->ReadInt32();
@@ -660,7 +650,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
     return err;
 }
 
-HSaveError PrescanAudio(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const PreservedParams & /*pp*/,
+HSaveError PrescanAudio(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams & /*pp*/,
                         RestoredData &r_data)
 {
     HSaveError err;
@@ -669,14 +659,12 @@ HSaveError PrescanAudio(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
                            r_data.DataCounts.AudioClipTypes))
         return err;
 
-    int total_channels, max_game_channels;
-    if (cmp_ver >= kAudioSvgVersion_36009)
+    const int total_channels = in->ReadInt8();
+    const int max_game_channels = in->ReadInt8();
+    if (!AssertCompatLimit(err, total_channels, TOTAL_AUDIO_CHANNELS, "System Audio Channels") ||
+        !AssertCompatLimit(err, max_game_channels, MAX_GAME_CHANNELS, "Game Audio Channels"))
     {
-        total_channels = in->ReadInt8();
-        max_game_channels = in->ReadInt8();
-        if (!AssertCompatLimit(err, total_channels, TOTAL_AUDIO_CHANNELS, "System Audio Channels") ||
-            !AssertCompatLimit(err, max_game_channels, MAX_GAME_CHANNELS, "Game Audio Channels"))
-            return err;
+        return err;
     }
     return HSaveError::None();
 }
@@ -988,13 +976,6 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
             Properties::ReadValues(play.guiProps[i], in);
     }
 
-    // For older save formats: copy pre-existing control ref array
-    if (svg_ver < kGuiSvgVersion_36200)
-    {
-        for (uint32_t i = 0; i < guis_read; ++i)
-            guictrl_refs_old[i] = guis[i].GetControlRefs();
-    }
-
     r_data.DataCounts.GUIControls.resize(guis_read);
 
     // Build a reference of the range of control indexes per type per each GUI;
@@ -1075,13 +1056,6 @@ HSaveError PrescanGUI(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pr
             !AssertGameContent(err, guictrl_refs_old[i].size(), guis[i].GetControlCount(), assert_buf.GetCStr(),
                                r_data.Result, r_data.DataCounts.GUIControls[i]))
             return err;
-    }
-
-    // For older save formats: copy pre-existing control ref array
-    if (svg_ver < kGuiSvgVersion_36200)
-    {
-        for (uint32_t i = 0; i < guis_read; ++i)
-            guictrl_refs_old[i] = guis[i].GetControlRefs();
     }
 
     std::array<size_t, kGUIControlTypeNum> ctrl_counts_old = {}, ctrl_counts_new = {};
@@ -1395,7 +1369,7 @@ HSaveError WriteOverlays(Stream *out)
 }
 
 HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams & /*pp*/,
-                        RestoredData &r_data)
+                        RestoredData & /*r_data*/)
 {
     // Remember that overlay indexes may be non-sequential
     // the vector may be resized during read
@@ -1407,13 +1381,9 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pres
     for (size_t i = 0; i < over_count; ++i)
     {
         ScreenOverlay over;
-        bool has_bitmap;
-        over.ReadFromSavegame(in, has_bitmap, cmp_ver);
+        over.ReadFromSavegame(in, cmp_ver);
         if (over.GetID() < 0)
             continue; // safety abort
-        if (has_bitmap)
-            r_data.OverlayImages[over.GetID()].reset(
-                ReadBitmap(in, false /* not compressed (expect component is compressed) */));
         auto type = over.GetID();
         if (static_cast<size_t>(type) >= overs.size())
         {
@@ -1733,7 +1703,7 @@ HSaveError WriteThisRoom(Stream *out)
         return HSaveError::None();
 
     // modified room backgrounds
-    // -- varied count since kRoomStatSvgVersion_36314
+    // -- varied count since kRoomStatSvgVersion_40033
     out->WriteInt8(static_cast<uint8_t>(thisroom.BgImages.size()));
     for (size_t i = 0; i < thisroom.BgImages.size(); ++i)
     {
@@ -1744,7 +1714,7 @@ HSaveError WriteThisRoom(Stream *out)
     out->WriteBool(false); //[DEPRECATED]
 
     // modified room masks
-    // -- kRoomStatSvgVersion_36214, kRoomStatSvgVersion_40023
+    // -- kRoomStatSvgVersion_40024
     for (int i = 0; i < kNumRoomAreaTypes; ++i)
     {
         out->WriteBool(play.room_mask_modified[i]);
@@ -1787,9 +1757,10 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
 
     // modified room backgrounds
     uint8_t bg_count = MAX_ROOM_BGFRAMES_321;
-    if (((cmp_ver >= kRoomStatSvgVersion_36314) && (cmp_ver < kRoomStatSvgVersion_400)) ||
-        (cmp_ver >= kRoomStatSvgVersion_40033))
+    if (cmp_ver >= kRoomStatSvgVersion_40033)
+    {
         bg_count = static_cast<uint8_t>(in->ReadInt8());
+    }
     r_data.RoomBkgScene.resize(bg_count);
     for (uint8_t i = 0; i < bg_count; ++i)
     {
@@ -1801,8 +1772,7 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
         SkipBitmap(in, false /* not compressed (expect component is compressed) */); //[DEPRECATED]
 
     // modified room masks
-    if (((cmp_ver >= kRoomStatSvgVersion_36214) && (cmp_ver < kRoomStatSvgVersion_400)) ||
-        (cmp_ver >= kRoomStatSvgVersion_40024))
+    if (cmp_ver >= kRoomStatSvgVersion_40024)
     {
         for (int i = 0; i < kNumRoomAreaTypes; ++i)
         {
@@ -1995,7 +1965,6 @@ HSaveError ReadPluginData(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
 // FIXME: currently not passed into the dynamic object deserializer
 enum ManagedPoolSavegameVersion
 {
-    kManagedPoolSvgVersion_Initial = 0,
     kManagedPoolSvgVersion_400 = 4000000 // typeinfo for dynamic objects
 };
 
@@ -2116,8 +2085,7 @@ struct ComponentInfo
 
 HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
 {
-    const bool has_fileformat =
-        (hlp.Version >= kSvgVersion_363 && hlp.Version < kSvgVersion_399) || (hlp.Version >= kSvgVersion_400_18);
+    const bool has_fileformat = hlp.Version >= kSvgVersion_400_18;
 
     // Read component info
     info = ComponentInfo();
@@ -2133,16 +2101,11 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
         info.UncompressedDataSize = in->ReadInt32();
         info.Checksum = in->ReadInt32();
     }
-    else if (hlp.Version >= kSvgVersion_ComponentsEx)
-    {
-        info.Version = in->ReadInt32();
-        info.DataSize = in->ReadInt32();
-        in->ReadInt32(); // reserved
-    }
     else
     {
         info.Version = in->ReadInt32();
         info.DataSize = in->ReadInt32();
+        in->ReadInt32(); // reserved
     }
     // Assume that component data begins right after the header
     info.DataOffset = in->GetPosition();

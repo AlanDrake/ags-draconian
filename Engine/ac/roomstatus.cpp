@@ -28,13 +28,10 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 
-void HotspotState::ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion save_ver)
+void HotspotState::ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion /*save_ver*/)
 {
     Enabled = in->ReadInt8() != 0;
-    if (save_ver >= kRoomStatSvgVersion_36016)
-    {
-        Name = StrUtil::ReadString(in);
-    }
+    Name = StrUtil::ReadString(in);
 }
 
 void HotspotState::WriteToSavegame(Common::Stream *out) const
@@ -115,17 +112,10 @@ void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
     beenhere = in->ReadInt8();
     numobj = static_cast<uint32_t>(in->ReadInt32());
 
-    int num_hotspots = MAX_ROOM_HOTSPOTS;
-    int num_regions = MAX_ROOM_REGIONS;
-    int num_walkbehinds = MAX_WALK_BEHINDS;
-    int num_walkareas = MAX_WALK_AREAS;
-    if (cmp_ver >= kRoomStatSvgVersion_40003)
-    {
-        num_hotspots = in->ReadInt32();
-        num_regions = in->ReadInt32();
-        num_walkbehinds = in->ReadInt32();
-        num_walkareas = in->ReadInt32();
-    }
+    const int num_hotspots = in->ReadInt32();
+    const int num_regions = in->ReadInt32();
+    const int num_walkbehinds = in->ReadInt32();
+    const int num_walkareas = in->ReadInt32();
 
     obj.resize(numobj);
     objProps.resize(numobj);
@@ -147,12 +137,9 @@ void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
     {
         walkbehind_base[i] = in->ReadInt32();
     }
-    if (cmp_ver >= kRoomStatSvgVersion_40003)
+    for (int i = 0; i < num_walkareas; ++i)
     {
-        for (int i = 0; i < num_walkareas; ++i)
-        {
-            walkareas[i].ReadFromSavegame(in, cmp_ver);
-        }
+        walkareas[i].ReadFromSavegame(in, cmp_ver);
     }
 
     Properties::ReadValues(roomProps, in);
@@ -164,28 +151,15 @@ void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
         in->Read(tsdata.data(), tsdatasize);
     }
 
-    contentFormat = cmp_ver;
-    if (cmp_ver >= kRoomStatSvgVersion_36041)
-    {
-        contentFormat = (RoomStatSvgVersion)in->ReadInt32();
-        in->ReadInt32(); // reserved
-        in->ReadInt32();
-        in->ReadInt32();
-    }
+    contentFormat = (RoomStatSvgVersion)in->ReadInt32();
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
 
-    if (cmp_ver >= kRoomStatSvgVersion_40003)
-    {
-        face_dir_ratio = in->ReadFloat32();
-        _bgShaderID = in->ReadInt32(); // used since kRoomStatSvgVersion_40018
-        _bgShaderHandle = in->ReadInt32();
-        in->ReadInt32(); // reserved
-    }
-    else
-    {
-        face_dir_ratio = 1.f;
-        _bgShaderID = 0;
-        _bgShaderHandle = 0;
-    }
+    face_dir_ratio = in->ReadFloat32();
+    _bgShaderID = in->ReadInt32(); // used since kRoomStatSvgVersion_40018
+    _bgShaderHandle = in->ReadInt32();
+    in->ReadInt32(); // reserved
 
     if (cmp_ver >= kRoomStatSvgVersion_40008)
     {
@@ -241,7 +215,7 @@ void RoomStatus::WriteToSavegame(Stream *out) const
     if (tsdatasize)
         out->Write(tsdata.data(), tsdatasize);
 
-    // kRoomStatSvgVersion_36041
+    // since 3.6.0.41
     out->WriteInt32(contentFormat);
     out->WriteInt32(0); // reserved
     out->WriteInt32(0);

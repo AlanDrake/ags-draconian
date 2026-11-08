@@ -162,8 +162,6 @@ struct RestoredData
     int FPS;
     // Unserialized bitmaps for dynamic surfaces
     std::vector<std::unique_ptr<Bitmap>> DynamicSurfaces;
-    // Unserialized bitmaps for overlays (old-style saves)
-    std::unordered_map<int, std::unique_ptr<Bitmap>> OverlayImages;
     // Scripts global data
     struct ScriptData
     {
@@ -240,7 +238,6 @@ struct RestoredData
     };
     std::vector<ViewportData> Viewports;
     std::vector<CameraData> Cameras;
-    int32_t Camera0_Flags = 0; // flags for primary camera, when data is read in legacy order
 
     RestoredData();
 };

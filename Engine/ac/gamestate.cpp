@@ -670,19 +670,13 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     audio_master_volume = in->ReadInt32();
     in->Read(walkable_areas_on, MAX_WALK_AREAS);
     screen_flipped = in->ReadInt16();
-    if (svg_ver < kGSSvgVersion_350_10)
-    {
-        short offsets_locked = in->ReadInt16();
-        if (offsets_locked != 0)
-            r_data.Camera0_Flags = kSvgCamPosLocked;
-    }
     entered_at_x = in->ReadInt32();
     entered_at_y = in->ReadInt32();
     entered_edge = in->ReadInt32();
     speech_mode = (SpeechMode)in->ReadInt32();
     speech_skip_style = in->ReadInt32();
     // Old-style timers, limited to 20, with 1-based ID
-    if ((svg_ver < kGSSvgVersion_363_04) || (svg_ver >= kGSSvgVersion_400 && svg_ver < kGSSvgVersion_400_26))
+    if (svg_ver < kGSSvgVersion_400_26)
     {
         int old_script_timers[LEGACY_MAX_TIMERS];
         in->ReadArrayOfInt32(old_script_timers, LEGACY_MAX_TIMERS);
@@ -711,8 +705,8 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     in->Seek(LEGACY_MAXSAVEGAMES * sizeof(int16_t)); // [DEPRECATED]
     uint32_t mouse_opts = in->ReadInt32();
     mouse_cursor_shown = (mouse_opts & 0x01) == 0;  // previously this field had a reverse meaning
-    mouse_input_enabled = (mouse_opts & 0x02) != 0; // kGSSvgVersion_363_13, kGSSvgVersion_400_33
-    if ((svg_ver < kGSSvgVersion_363_13) || (svg_ver >= kGSSvgVersion_400 && svg_ver < kGSSvgVersion_400_33))
+    mouse_input_enabled = (mouse_opts & 0x02) != 0; // kGSSvgVersion_400_33
+    if (svg_ver < kGSSvgVersion_400_33)
     {
         mouse_input_enabled = true;
     }
@@ -776,10 +770,14 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     in->Seek(50); // [DEPRECATED]
     in->Seek(LEGACY_MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
     in->Read(lastParserEntry, MAX_MAXSTRLEN);
-    if ((svg_ver < kGSSvgVersion_361_14) || (svg_ver >= kGSSvgVersion_400 && svg_ver < kGSSvgVersion_400_03))
+    if (svg_ver < kGSSvgVersion_400_03)
+    {
         game_name.ReadCount(in, LEGACY_GAMENAMELENGTH);
+    }
     else
+    {
         game_name = StrUtil::ReadString(in);
+    }
     ground_level_areas_disabled = in->ReadInt32();
     next_screen_transition = in->ReadInt32();
     in->ReadInt32(); // gamma_adjustment -- do not apply gamma level from savegame
@@ -792,18 +790,11 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     }
     text_min_display_time_ms = in->ReadInt32();
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
-    if (svg_ver < kGSSvgVersion_350_9)
-    {
-        in->ReadInt32(); // ignore_user_input_until_time -- do not apply from savegame
-    }
-    else // (svg_ver >= kGSSvgVersion_350_9)
-    {
-        int voice_speech_flags = in->ReadInt32();
-        speech_has_voice = voice_speech_flags != 0;
-        speech_voice_blocking = (voice_speech_flags & 0x02) != 0;
-    }
+    int voice_speech_flags = in->ReadInt32();
+    speech_has_voice = voice_speech_flags != 0;
+    speech_voice_blocking = (voice_speech_flags & 0x02) != 0;
 
-    if ((svg_ver >= kGSSvgVersion_363 && svg_ver < kGSSvgVersion_400) || (svg_ver >= kGSSvgVersion_400_17))
+    if (svg_ver >= kGSSvgVersion_400_17)
     {
         dialog_options_gui_x = in->ReadInt32();
         dialog_options_gui_y = in->ReadInt32();
@@ -818,28 +809,23 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
         dialog_options_font = FONT_UNDEFINED;
     }
 
-    if ((svg_ver >= kGSSvgVersion_363_02 && svg_ver < kGSSvgVersion_400) || svg_ver >= kGSSvgVersion_400_24)
+    if (svg_ver >= kGSSvgVersion_400_24)
     {
         dialog_options_zorder = in->ReadInt32();
-        speech_zorder = in->ReadInt32(); // since kGSSvgVersion_363_13, kGSSvgVersion_400_33
+        speech_zorder = in->ReadInt32(); // since kGSSvgVersion_400_33
         uint32_t speech_ex_flags = in->ReadInt32();
         speech_always_wait_for_text = speech_ex_flags & 0x01;
         in->ReadInt32(); // reserved
     }
 
-    if (svg_ver < kGSSvgVersion_363_02)
-    {
-        dialog_options_zorder = INT32_MAX;
-    }
-
-    if (svg_ver < kGSSvgVersion_363_13 || (svg_ver >= kGSSvgVersion_400 && svg_ver < kGSSvgVersion_400_33))
+    if (svg_ver < kGSSvgVersion_400_33)
     {
         speech_zorder = INT32_MAX;
         speech_always_wait_for_text = false;
     }
 
     // New-style timers
-    if (((svg_ver >= kGSSvgVersion_363_04) && (svg_ver < kGSSvgVersion_400)) || (svg_ver >= kGSSvgVersion_400_26))
+    if (svg_ver >= kGSSvgVersion_400_26)
     {
         uint32_t timer_count = in->ReadInt32();
         _scriptTimers.clear();
@@ -1002,7 +988,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(0);                                            // [DEPRECATED]
     out->WriteByteCount(0, LEGACY_MAXSAVEGAMES * sizeof(int16_t)); // [DEPRECATED]
     uint32_t mouse_opts = 0x01 * (!mouse_cursor_shown)             // previously this field had a reverse meaning
-                          | 0x02 * mouse_input_enabled;            // kGSSvgVersion_363_13, kGSSvgVersion_400_33
+                          | 0x02 * mouse_input_enabled;            // kGSSvgVersion_400_33
     out->WriteInt32(mouse_opts);
     out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(0);
@@ -1061,19 +1047,19 @@ void GamePlayState::WriteForSavegame(Stream *out) const
         voice_speech_flags |= 0x02;
     out->WriteInt32(voice_speech_flags);
 
-    // kGSSvgVersion_363
+    // kGSSvgVersion_400_17
     out->WriteInt32(dialog_options_gui_x);
     out->WriteInt32(dialog_options_gui_y);
     out->WriteInt32(dialog_options_textalign);
     out->WriteInt32(dialog_options_font);
-    // kGSSvgVersion_363_02, kGSSvgVersion_400_24
+    // kGSSvgVersion_400_24
     out->WriteInt32(dialog_options_zorder);
-    out->WriteInt32(speech_zorder); // since kGSSvgVersion_363_13, kGSSvgVersion_400_33
+    out->WriteInt32(speech_zorder); // since kGSSvgVersion_400_33
     uint32_t speech_ex_flags = (0x01 * speech_always_wait_for_text);
     out->WriteInt32(speech_ex_flags);
     out->WriteInt32(0); // reserved
 
-    // kGSSvgVersion_363_04
+    // kGSSvgVersion_400_26
     out->WriteInt32(_scriptTimers.size());
     for (const auto &timer : _scriptTimers)
     {
