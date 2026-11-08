@@ -28,11 +28,6 @@ int currentline = 0;
 // name of currently compiling script or script section
 std::string ccCurScriptName;
 
-void ccResetOptions(int optbit)
-{
-    ccCompOptions = optbit;
-}
-
 void ccSetOption(int optbit, int onoroff)
 {
     if (onoroff)

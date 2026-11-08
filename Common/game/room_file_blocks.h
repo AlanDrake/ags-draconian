@@ -51,8 +51,6 @@ typedef std::function<HError(RoomData *room, RoomDataAux *room_aux, Stream *in, 
 class RoomBlockReader : public DataExtReader
 {
 public:
-    RoomBlockReader(RoomData *room, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in,
-                    const RoomReadOptions &read_opts, PfnReadRoomBlock pfn_read = nullptr);
     RoomBlockReader(RoomData *room, RoomDataAux *room_aux, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in,
                     const RoomReadOptions &read_opts, PfnReadRoomBlock pfn_read = nullptr);
 
@@ -81,7 +79,6 @@ private:
 typedef std::function<void(const RoomData *room, Stream *out)> PfnWriteRoomBlock;
 // Helper for new-style blocks with string id
 void WriteRoomBlock(const RoomData *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out);
-void WriteRoomBlock(const String &ext_id, const std::vector<uint8_t> &data, Stream *out);
 // Helper for old-style blocks with only numeric id
 void WriteRoomBlock(const RoomData *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out);
 void WriteRoomBlock(RoomFileBlock block, const std::vector<uint8_t> &data, Stream *out);

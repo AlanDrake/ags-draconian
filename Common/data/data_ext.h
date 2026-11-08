@@ -163,8 +163,6 @@ protected:
 };
 
 
-// Parses the data ext format and queries list of data blocks; uses default DataExtParser
-HError ReadExtBlockList(std::vector<DataExtBlockInfo> &blk_infos, std::unique_ptr<Stream> &&in, int data_ext_flags);
 // Parses the data ext format and queries list of data blocks; uses provided DataExtParser implementation
 HError ReadExtBlockList(std::vector<DataExtBlockInfo> &blk_infos, DataExtParser &parser);
 
@@ -186,11 +184,6 @@ inline void WriteExtBlock(const String &ext_id, PfnWriteExtBlock writer, int fla
 inline void WriteExtBlock(int block, PfnWriteExtBlock writer, int flags, Stream *out)
 {
     WriteExtBlock(block, String(), writer, flags, out);
-}
-// Writes a block with a new-style string id, using provided data
-inline void WriteExtBlock(const String &ext_id, const std::vector<uint8_t> &data, int flags, Stream *out)
-{
-    WriteExtBlock(0, ext_id, data, flags, out);
 }
 // Writes a block with a old-style numeric id, using provided data
 inline void WriteExtBlock(int block, const std::vector<uint8_t> &data, int flags, Stream *out)

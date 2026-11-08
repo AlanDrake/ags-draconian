@@ -51,17 +51,10 @@ int get_font_topmost_char_code(int font_number);
 const std::vector<int> *get_font_valid_char_codes(int font_number);
 // Get font's name, if it's available, otherwise returns empty string
 const char *get_font_name(int font_number);
-// Get a collection of FFLG_* flags corresponding to this font
-int get_font_flags(int font_number);
-// Get font's scaling multiplier
-int get_font_scaling_mul(int font_number);
 // Calculate actual width of a line of text
 int get_text_width(const char *texx, int font_number);
 // Get the maximal width of the line of text, with corresponding outlining
 int get_text_width_outlined(const char *text, int font_number);
-// Get the maximal height of the line of text;
-// note that this won't be a nominal font's height, but the max of each met glyph's graphical height.
-int get_text_height(const char *text, int font_number);
 // Get font's height; this value is used for logical arrangement of UI elements;
 // note that this value may depend on font settings, and return either nominal
 // import size, or real font's height, or a user-supplied custom value.
@@ -70,9 +63,6 @@ int get_font_height(int font_number);
 int get_font_height_outlined(int font_number);
 // Get the real dont's height as reported by the font file
 int get_font_real_height(int font_number);
-// Get font's surface height: this always returns the height enough to accomodate
-// any font's letters (glyphs) on a bitmap or a texture
-int get_font_surface_height(int font_number);
 // Gets the surface height of the given font with corresponding outlining
 int get_font_surface_height_outlined(int font_number);
 // Get font's maximal horizontal extent: this means the farthest horizontal positions
@@ -87,23 +77,15 @@ std::pair<int, int> get_font_surface_vextent(int font_number);
 Rect get_font_glyph_bbox(int font_number);
 // Get font's line spacing
 int get_font_linespacing(int font_number);
-// Set font's line spacing
-void set_font_linespacing(int font_number, int spacing);
 // Get font's outline type
 int get_font_outline(int font_number);
-// Get font's *automatic* outline thickness setting (if set)
-int get_font_outline_thickness(int font_number);
 // Gets the total maximal height of the given number of lines printed with the given font;
 // note this accounts for the font's setting which may either tell to use nominal
 // or real graphical height of a font.
 int get_text_lines_height(int font_number, size_t numlines);
-// Gets the height of a graphic surface enough to accomodate this number of text lines;
-// note this accounts always for the real pixel font height
-int get_text_lines_surf_height(size_t font_number, size_t numlines);
 // Set font's outline type
 void set_font_outline(int font_number, int outline_type, enum FontInfo::AutoOutlineStyle style = FontInfo::kSquared,
                       int thickness = 1);
-bool is_font_antialiased(int font_number);
 // Assigns FontInfo to the font
 void set_fontinfo(int font_number, const FontInfo &finfo);
 // Gets the general font properties
@@ -123,12 +105,8 @@ void alloc_font_outline_buffers(int font_number, AGS::Common::Bitmap **text_sten
                                 int color_depth);
 // Perform necessary adjustments on all fonts in case the text render mode changed (anti-aliasing etc)
 void adjust_fonts_for_render_mode(bool aa_mode);
-// Set current blend mode, it will be applied for all the following text render
-void font_set_blend_mode(size_t font_number, AGS::Common::BlendMode blend_mode);
 // Free particular font's data
 void freefont(int font_number);
-// Moves font data from one index to another; previous index becomes empty
-void movefont(size_t old_font_num, size_t new_font_num);
 // Free all fonts data
 void free_all_fonts();
 
@@ -137,9 +115,6 @@ void wouttextxy(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t 
 // Outputs a single line of text, using blend mode
 void wouttextxy(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t text_color,
                 AGS::Common::BlendMode blend_mode, const char *text);
-// FIXME: review this function, used only in AGS.Native (editor)
-void woutprintf(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t text_color,
-                AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(6);
 
 // Tells if the text should be antialiased when possible
 bool ShouldAntiAliasText();

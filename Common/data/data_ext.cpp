@@ -138,12 +138,6 @@ HError DataExtReader::Read()
     return err;
 }
 
-HError ReadExtBlockList(std::vector<DataExtBlockInfo> &blk_infos, std::unique_ptr<Stream> &&in, int data_ext_flags)
-{
-    DataExtParser parser(std::move(in), data_ext_flags);
-    return ReadExtBlockList(blk_infos, parser);
-}
-
 HError ReadExtBlockList(std::vector<DataExtBlockInfo> &blk_infos, DataExtParser &parser)
 {
     HError err;

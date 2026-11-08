@@ -284,42 +284,6 @@ void RoomData::RemapOldInteractions()
     Interactions = {};
 }
 
-const BitmapData &RoomData::GetMask(RoomAreaMask mask) const
-{
-    switch (mask)
-    {
-    case kRoomAreaHotspot: return HotspotMaskBuf;
-    case kRoomAreaWalkBehind: return WalkBehindMaskBuf;
-    case kRoomAreaWalkable: return WalkAreaMaskBuf;
-    case kRoomAreaRegion: return RegionMaskBuf;
-    default: assert(false); return WalkAreaMaskBuf; // have to return a reference to something...
-    }
-}
-
-void RoomData::SetMask(RoomAreaMask mask, PixelBuffer &&pxbuf)
-{
-    switch (mask)
-    {
-    case kRoomAreaHotspot: HotspotMaskBuf = std::move(pxbuf); break;
-    case kRoomAreaWalkBehind: WalkBehindMaskBuf = std::move(pxbuf); break;
-    case kRoomAreaWalkable: WalkAreaMaskBuf = std::move(pxbuf); break;
-    case kRoomAreaRegion: RegionMaskBuf = std::move(pxbuf); break;
-    default: assert(0); break;
-    }
-}
-
-float RoomData::GetMaskScale(RoomAreaMask mask) const
-{
-    switch (mask)
-    {
-    case kRoomAreaWalkBehind: return 1.f; // walk-behinds always 1:1 with room size
-    case kRoomAreaHotspot:
-    case kRoomAreaWalkable:
-    case kRoomAreaRegion: return 1.f / MaskResolution;
-    default: return 0.f;
-    }
-}
-
 bool RoomData::HasRegionLightLevel(int id) const
 {
     if (id >= 0 && id < MAX_ROOM_REGIONS)

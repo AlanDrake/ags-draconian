@@ -36,7 +36,7 @@ protected:
 
     Compile1()
     {
-        // Note: Don't use 'ccSetOption()', 'ccResetOptions()' etc.
+        // Note: Don't use 'ccSetOption()' etc.
         // googletests are often called in parallel, and these clobber each other
     }
 };

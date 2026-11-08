@@ -43,15 +43,5 @@ void WordsDictionary::ReadFromFile(Stream *in)
     }
 }
 
-void WordsDictionary::WriteToFile(Stream *out) const
-{
-    out->WriteInt32(_words.size());
-    for (auto item : _words)
-    {
-        WriteStringEncrypt(out, item.first.GetCStr());
-        out->WriteInt16(item.second);
-    }
-}
-
 } // namespace Common
 } // namespace AGS

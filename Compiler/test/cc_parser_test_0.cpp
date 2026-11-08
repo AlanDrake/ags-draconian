@@ -38,7 +38,7 @@ protected:
     Compile0()
     {
         // Initializations, will be done at the start of each test
-        // Note, don't use  'ccSetOption()', 'ccResetOptions()' etc.
+        // Note, don't use  'ccSetOption()' etc.
         // Googletests often run in parallel
         // and then these functions clobber each other
     }

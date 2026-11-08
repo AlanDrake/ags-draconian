@@ -48,8 +48,6 @@ public:
     bool AreArrowsShown() const;
     // Tells if the given x coordinate is located over a scrollbar
     bool IsPosOnScrollbar(int x) const;
-    // Tells if this listbox stores save game indexes
-    bool IsSvgIndex() const;
     uint32_t GetItemCount() const { return _items.size(); }
     String GetItem(int index) const;
     int GetSavedGameIndex(int index) const;

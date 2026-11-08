@@ -40,7 +40,6 @@ struct ViewFrame
     ViewFrame() = default;
 
     void ReadFromFile(AGS::Common::Stream *in);
-    void WriteToFile(AGS::Common::Stream *out) const;
 };
 
 #define LOOPFLAG_RUNNEXTLOOP 1
@@ -59,12 +58,9 @@ struct ViewLoopNew
 
     ViewLoopNew();
     void Initialize(int frameCount);
-    void Dispose();
     // Tells if this loop has a "Run next loop after this" flag
     bool RunNextLoop() const;
-    void WriteToFile(AGS::Common::Stream *out) const;
     void ReadFromFile(AGS::Common::Stream *in);
-    void WriteFrames(AGS::Common::Stream *out) const;
     void ReadFrames(AGS::Common::Stream *in);
 };
 
@@ -78,7 +74,5 @@ struct ViewStruct
 
     ViewStruct();
     void Initialize(int loopCount);
-    void Dispose();
-    void WriteToFile(AGS::Common::Stream *out) const;
     void ReadFromFile(AGS::Common::Stream *in);
 };

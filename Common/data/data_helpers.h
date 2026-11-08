@@ -110,8 +110,6 @@ extern const char *EncryptPassword;
 //
 // Decrypts text found in the given buffer, writes back to the same buffer
 void DecryptText(char *buf, size_t buf_sz, bool inverse = false);
-// Reads an encrypted string from the stream and decrypts into the provided buffer
-void ReadStringDecrypt(Stream *in, char *buf, size_t buf_sz, bool inverse = false);
 // Reads an encrypted string from the stream and returns as a string
 String ReadStringDecrypt(Stream *in, bool inverse = false);
 // Reads an encrypted string from the stream and returns as a string;
@@ -122,11 +120,6 @@ void SkipStringDecrypt(Stream *in);
 
 // Encrypts string in-place
 void EncryptText(char *buf, size_t buf_sz, bool inverse = false);
-// Encrypts input string and stores result in the vector of chars;
-// returns a pointer to the buffer.
-const char *EncryptText(std::vector<char> &en_buf, const String &s, bool inverse = false);
-// Encrypts empty string. A helper function in case you don't have any source text
-const char *EncryptEmptyString(std::vector<char> &en_buf, bool inverse = false);
 // Encrypts string and writes into the output stream
 void WriteStringEncrypt(Stream *out, const char *s, bool inverse = false);
 

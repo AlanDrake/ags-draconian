@@ -43,16 +43,7 @@ void set_my_trans_blender(int r, int g, int b, int a);
 // Custom alpha parameter, when not zero, is treated as fraction of source
 // alpha that has to be used in color blending.
 uint32_t _argb2argb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha);
-// Argb2rgb blender combines RGBs proportionally to src alpha, but discards alpha in the end.
-// It is almost a clone of Allegro's _blender_alpha32, except it also applies optional overall alpha.
-uint32_t _argb2rgb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha);
-// Rgb2argb blender treats all src pixels as if having opaque alpha.
-uint32_t _rgb2argb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha);
-// Sets the alpha channel to opaque. Used when drawing a non-alpha sprite onto an alpha-sprite.
-uint32_t _opaque_alpha_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha);
 
-// Opaque alpha blender plain copies src over, applying opaque alpha value.
-void set_opaque_alpha_blender();
 // Sets argb2argb for 32-bit mode, and provides appropriate funcs for blending 32-bit onto 15/16/24-bit destination
 void set_argb2any_blender();
 
@@ -82,8 +73,5 @@ namespace AGS
 namespace Common
 {
 typedef uint32_t (*PfnBlenderCb)(uint32_t x, uint32_t y, uint32_t n);
-// Gets 32-bit ARGB blender function for the given blending mode.
-// This is meant for manually applying blend functions.
-PfnBlenderCb GetBlenderFunc(BlendMode blend_mode);
 } // namespace Common
 } // namespace AGS

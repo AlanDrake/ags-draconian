@@ -30,15 +30,6 @@ void AudioClipType::ReadFromFile(Stream *in)
     in->ReadInt32(); // reserved
 }
 
-void AudioClipType::WriteToFile(Stream *out) const
-{
-    out->WriteInt32(id);
-    out->WriteInt32(reservedChannels);
-    out->WriteInt32(volume_reduction_while_speech_playing);
-    out->WriteInt32(crossfadeSpeed);
-    out->WriteInt32(0); // reserved
-}
-
 void AudioClipType::ReadFromSavegame(Common::Stream *in)
 {
     volume_reduction_while_speech_playing = in->ReadInt32();

@@ -32,19 +32,6 @@ void ViewFrame::ReadFromFile(Stream *in)
     in->ReadInt32(); // reserved 1
 }
 
-void ViewFrame::WriteToFile(Stream *out) const
-{
-    out->WriteInt32(pic);
-    out->WriteInt16(xoffs);
-    out->WriteInt16(yoffs);
-    out->WriteInt16(speed);
-    out->WriteInt16(0); // alignment padding to int32
-    out->WriteInt32(flags);
-    out->WriteInt32(sound);
-    out->WriteInt32(0); // reserved 1
-    out->WriteInt32(0); // reserved 1
-}
-
 ViewLoopNew::ViewLoopNew() : numFrames(0), flags(0) {}
 
 bool ViewLoopNew::RunNextLoop() const
@@ -58,27 +45,6 @@ void ViewLoopNew::Initialize(int frameCount)
     flags = 0;
     // an extra frame is allocated to prevent crashes with empty loops
     frames.resize(numFrames > 0 ? numFrames : 1);
-}
-
-void ViewLoopNew::Dispose()
-{
-    frames.clear();
-    numFrames = 0;
-}
-
-void ViewLoopNew::WriteToFile(Stream *out) const
-{
-    out->WriteInt16(static_cast<uint16_t>(numFrames));
-    out->WriteInt32(flags);
-    WriteFrames(out);
-}
-
-void ViewLoopNew::WriteFrames(Stream *out) const
-{
-    for (int i = 0; i < numFrames; ++i)
-    {
-        frames[i].WriteToFile(out);
-    }
 }
 
 void ViewLoopNew::ReadFromFile(Stream *in)
@@ -102,21 +68,6 @@ void ViewStruct::Initialize(int loopCount)
 {
     numLoops = loopCount;
     loops.resize(numLoops);
-}
-
-void ViewStruct::Dispose()
-{
-    loops.clear();
-    numLoops = 0;
-}
-
-void ViewStruct::WriteToFile(Stream *out) const
-{
-    out->WriteInt16(static_cast<uint16_t>(numLoops));
-    for (int i = 0; i < numLoops; i++)
-    {
-        loops[i].WriteToFile(out);
-    }
 }
 
 void ViewStruct::ReadFromFile(Stream *in)

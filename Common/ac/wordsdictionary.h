@@ -42,7 +42,6 @@ public:
     MapType &GetWords() { return _words; }
 
     void ReadFromFile(Stream *in);
-    void WriteToFile(Stream *out) const;
 
 private:
     // Map word to word ID;

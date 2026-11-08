@@ -103,14 +103,6 @@ void ReadSpriteHeader_360(SpriteDatHeader &hdr, Stream *in);
 // Reads a sprite header in pre-3.6.0 format, corresponding to engine versions 2.x - 3.6.0.
 void ReadSpriteHeader_321(SpriteDatHeader &hdr, Stream *in, SpriteCompression compress);
 
-// Read sprite data, using previously read header as a hint;
-// optionally fills sprite's palette (if available)
-PixelBuffer ReadSpriteData_360(const SpriteDatHeader &hdr, Stream *in, HError &err, PALETTE *out_palette = nullptr);
-// Read sprite data in pre-3.6.0 format, corresponding to engine versions 2.x - 3.6.0;
-// optionally fills sprite's palette (if available)
-PixelBuffer ReadSpriteData_321(const SpriteDatHeader &hdr, Stream *in, SpriteCompression compress, HError &err,
-                               PALETTE *out_palette = nullptr);
-
 // Calculates the size of the sprite data ahead, using previously read header as a hint
 size_t GetSpriteDataSize_360(const SpriteDatHeader &hdr, Stream *in);
 // Calculates the size of the sprite data in pre-3.6.0 format, using previously read header as a hint

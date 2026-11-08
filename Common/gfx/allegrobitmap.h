@@ -49,8 +49,6 @@ public:
     Bitmap(int width, int height, int color_depth = 0);
     // Construct bitmap by attaching and owning pixel buffer
     Bitmap(PixelBuffer &&pxbuf);
-    // Constructs a sub-bitmap, referencing parent
-    Bitmap(const Bitmap *src, const Rect &rc);
     // Wraps Allegro BITMAP object, optionally owning it
     Bitmap(BITMAP *al_bmp, bool shared_data);
     // Wraps an arbitrary pixel data object, optionally owning it;
@@ -93,16 +91,10 @@ public:
     // TODO: this is a temporary solution for plugin support
     // Wraps a raw allegro BITMAP object, optionally owns it (will delete on disposal)
     bool WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data);
-    // Releases a reference to raw allegro BITMAP object without deleting it;
-    // WARNING: this is meant strictly as a workaround in case third-party lib
-    // have deleted our owned BITMAP object.
-    void ForgetAllegroBitmap();
     // Wraps an arbitrary pixel data object, optionally owns it (will delete on disposal);
     // BitmapData is used to pass pixel buffer pointer and metrics, while PixelObjectPtr
     // stores *something* that ought to be deleted using its own function.
     bool WrapPixelObject(PixelObjectPtr &&data_obj, BitmapData &bm_data, bool shared_data);
-    // Releases pixel data from ownership and returns it to the caller
-    PixelBuffer ReleasePixelData();
     // Deallocate bitmap
     void Destroy();
 
@@ -212,7 +204,6 @@ public:
     void StretchBlt(const Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
     // Antia-aliased stretch-blit
     void AAStretchBlt(const Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
-    void AAStretchBlt(const Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
     // TODO: find more general way to call these operations, probably require pointer to Blending data struct?
     // Draw bitmap using translucency preset
     void TransBlendBlt(const Bitmap *src, int dst_x = 0, int dst_y = 0);
@@ -224,7 +215,6 @@ public:
     // Draws rotated bitmap, using angle given in degrees.
     // Warning: does not resize destination bitmap; if it's not large enough
     // then the resulting image may end up cropped.
-    void RotateBlt(const Bitmap *src, int dst_x, int dst_y, int angle);
     void RotateBlt(const Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, int angle);
 
     //=========================================================================
@@ -273,8 +263,6 @@ public:
         return _alBitmap->line[index];
     }
     inline unsigned char *GetDataForWriting() { return _alBitmap->line[0]; }
-    // Copies buffer contents into scanline
-    void SetScanLine(int index, unsigned char *data, int data_size = -1);
 
 private:
     // Actual pixel data storage
@@ -294,11 +282,7 @@ namespace BitmapHelper
 int AGSColorToBitmapColor(int color, int color_depth);
 // Remaps a bitmap pixel of certain color depth to AGS color number
 int BitmapColorToAGSColor(int color, int color_depth);
-// Remaps AGS color number in certain color depth mode to a actual RGB
-void AGSColorToRGB(int color, int color_depth, RGB &rgb);
 // TODO: revise those functions later (currently needed in a few very specific cases)
-// NOTE: the resulting object __owns__ bitmap data from now on
-Bitmap *CreateRawBitmapOwner(BITMAP *al_bmp);
 // NOTE: the resulting object __does not own__ bitmap data
 Bitmap *CreateRawBitmapWrapper(BITMAP *al_bmp);
 } // namespace BitmapHelper

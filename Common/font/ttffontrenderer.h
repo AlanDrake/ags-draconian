@@ -55,13 +55,9 @@ public:
     TTFFontRenderer(AGS::Common::AssetManager *amgr);
     virtual ~TTFFontRenderer();
 
-    void SetLegacyAntiaAliasedFontHeightFixup(bool legacy_aa_height_fixup);
-
     //
     // Utility functions
     //
-    // Try load the TTF font using provided point size, and report its metrics
-    bool MeasureFontOfPointSize(const AGS::Common::String &filename, int size_pt, FontMetrics *metrics);
     // Try load the TTF font, find the point size which results in pixel height
     // as close to the requested as possible; report its metrics
     bool MeasureFontOfPixelHeight(const AGS::Common::String &filename, int pixel_height, FontMetrics *metrics);

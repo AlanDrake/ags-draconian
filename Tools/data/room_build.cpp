@@ -597,7 +597,7 @@ HError LoadRoomImages(const String &room_dir, const RoomXml &room, const RoomBui
 
     data.BgFrameCount = static_cast<uint32_t>(backgrounds.size());
     data.BgFrames = std::move(backgrounds);
-    // RoomStruct.PrepareForWriteToFile
+    // the room's colour depth and palette are the first background's
     data.BackgroundBPP = data.BgFrames[0].GraphicBuf.GetBytesPerPixel();
     std::copy(std::begin(data.BgFrames[0].Palette), std::end(data.BgFrames[0].Palette), std::begin(data.Palette));
 

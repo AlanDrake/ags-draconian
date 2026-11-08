@@ -265,17 +265,6 @@ public:
         _buf = _data.get();
         _cbuf = _data.get();
     }
-    PixelBuffer(std::unique_ptr<uint8_t[]> &&data, size_t data_sz, int width, int height, PixelFormat fmt,
-                size_t stride)
-        : BitmapData(width, height, fmt)
-    {
-        _dataSize = data_sz;
-        _stride = stride;
-        assert(_dataSize > 0u && _stride > 0u);
-        _data = std::move(data);
-        _buf = _data.get();
-        _cbuf = _data.get();
-    }
     PixelBuffer(const PixelBuffer &src) : BitmapData(src) { *this = src; }
     PixelBuffer(PixelBuffer &&src) { *this = std::move(src); }
 

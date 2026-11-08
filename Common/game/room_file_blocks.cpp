@@ -40,17 +40,6 @@ HError ReadRoomBlock(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFile
 // RoomBlockReader
 //
 
-RoomBlockReader::RoomBlockReader(RoomData *room, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in,
-                                 const RoomReadOptions &read_opts, PfnReadRoomBlock pfn_read)
-    : DataExtReader(std::move(in), GetDataExtFlags(data_ver, read_opts)),
-      _room(room),
-      _roomAux(nullptr),
-      _dataVer(data_ver),
-      _roomReadOpts(read_opts),
-      _readFn(pfn_read ? pfn_read : ReadRoomBlock)
-{
-}
-
 RoomBlockReader::RoomBlockReader(RoomData *room, RoomDataAux *room_aux, RoomFileVersion data_ver,
                                  std::unique_ptr<Stream> &&in, const RoomReadOptions &read_opts,
                                  PfnReadRoomBlock pfn_read)
@@ -82,11 +71,6 @@ void WriteRoomBlock(const RoomData *room, const String &ext_id, PfnWriteRoomBloc
 {
     WriteExtBlock(
         ext_id, [room, writer](Stream *block_out) { writer(room, block_out); }, kDataExt_NumID8 | kDataExt_File64, out);
-}
-
-void WriteRoomBlock(const String &ext_id, const std::vector<uint8_t> &data, Stream *out)
-{
-    WriteExtBlock(ext_id, data, kDataExt_NumID8 | kDataExt_File64, out);
 }
 
 void WriteRoomBlock(const RoomData *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out)

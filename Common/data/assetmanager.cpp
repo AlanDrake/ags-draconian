@@ -85,11 +85,6 @@ void AssetManager::SetSearchPriority(AssetSearchPriority priority)
     std::sort(_activeLibs.begin(), _activeLibs.end(), _libsSorter);
 }
 
-AssetSearchPriority AssetManager::GetSearchPriority() const
-{
-    return _libsPriority;
-}
-
 AssetError AssetManager::AddLibrary(const String &path, const AssetLibInfo **out_lib)
 {
     return AddLibrary(path, "", out_lib);
@@ -159,11 +154,6 @@ AssetLibEntry AssetManager::GetLibraryEntry(size_t index) const
                          _libs[index]->FilterString);
 }
 
-const AssetLibInfo *AssetManager::GetLibraryInfo(size_t index) const
-{
-    return index < _libs.size() ? _libs[index].get() : nullptr;
-}
-
 bool AssetManager::DoesAssetExist(const String &asset_name, const String &filter) const
 {
     for (const auto &lib : _activeLibs)
@@ -209,43 +199,6 @@ bool AssetManager::GetAssetTime(const String &asset_name, time_t &ft, const Stri
         }
     }
     return false;
-}
-
-void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcard, const String &filter) const
-{
-    String pattern = StrUtil::WildcardToRegex(wildcard);
-    const std::regex regex(pattern.GetCStr(), std::regex_constants::icase);
-    std::cmatch mr;
-
-    for (const auto *lib : _activeLibs)
-    {
-        if (!lib->TestFilter(filter))
-            continue; // filter does not match
-
-        if (IsAssetLibDir(lib))
-        {
-            // TODO: support multipart wildcards (wildcards in each path section)
-            const String pattern_parent = Path::GetParent(wildcard);
-            for (FindFile ff =
-                     FindFile::OpenFiles(Path::ConcatPaths(lib->BaseDir, pattern_parent), Path::GetFilename(wildcard));
-                 !ff.AtEnd(); ff.Next())
-            {
-                assets.push_back(Path::ConcatPaths(pattern_parent, ff.Current()));
-            }
-        }
-        else
-        {
-            for (const auto &a : lib->AssetInfos)
-            {
-                if (std::regex_match(a.FileName.GetCStr(), mr, regex))
-                    assets.push_back(a.FileName);
-            }
-        }
-    }
-
-    // Sort and remove duplicates
-    std::sort(assets.begin(), assets.end(), StrLessUtf8NoCase());
-    assets.erase(std::unique(assets.begin(), assets.end(), StrEqUtf8NoCase()), assets.end());
 }
 
 void AssetManager::FindAssets(std::vector<FileEntry> &assets, const String &wildcard, const String &filter) const

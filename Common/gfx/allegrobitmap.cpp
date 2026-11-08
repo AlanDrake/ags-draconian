@@ -46,11 +46,6 @@ Bitmap::Bitmap(PixelBuffer &&pxbuf)
     Create(std::move(pxbuf));
 }
 
-Bitmap::Bitmap(const Bitmap *src, const Rect &rc)
-{
-    CreateSubBitmap(src, rc);
-}
-
 Bitmap::Bitmap(BITMAP *al_bmp, bool shared_data)
 {
     WrapAllegroBitmap(al_bmp, shared_data);
@@ -213,13 +208,6 @@ bool Bitmap::WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data)
     return _alBitmap != nullptr;
 }
 
-void Bitmap::ForgetAllegroBitmap()
-{
-    _alBitmap = nullptr;
-    _isBmOwner = false;
-    Destroy(); // clean up the rest
-}
-
 bool Bitmap::WrapPixelObject(PixelObjectPtr &&data_obj, BitmapData &bm_data, bool shared_data)
 {
     Destroy();
@@ -233,17 +221,6 @@ bool Bitmap::WrapPixelObject(PixelObjectPtr &&data_obj, BitmapData &bm_data, boo
     _isBmOwner = true;
     _ownPixelData = !shared_data;
     return true;
-}
-
-PixelBuffer Bitmap::ReleasePixelData()
-{
-    if (!_alBitmap)
-        return {};
-
-    auto pxbuf = PixelBuffer(std::move(_pixelData), _alBitmap->dat_sz, _alBitmap->w, _alBitmap->h,
-                             ColorDepthToPixelFormat(GetColorDepth()), _alBitmap->pitch);
-    Destroy();
-    return pxbuf;
 }
 
 void Bitmap::Destroy()
@@ -381,23 +358,6 @@ void Bitmap::AAStretchBlt(const Bitmap *src, const Rect &dst_rc, BitmapMaskOptio
     }
 }
 
-void Bitmap::AAStretchBlt(const Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask)
-{
-    BITMAP *al_src_bmp = src->_alBitmap;
-    if (mask == kBitmap_Transparency)
-    {
-        // TODO: aastr lib does not expose method for masked stretch blit; should do that at some point since
-        // the source code is a gift-ware anyway
-        // aa_masked_blit(_alBitmap, al_src_bmp, src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(), dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-        throw std::runtime_error("aa_masked_blit is not yet supported!");
-    }
-    else
-    {
-        aa_stretch_blit(al_src_bmp, _alBitmap, src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(),
-                        dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-    }
-}
-
 void Bitmap::TransBlendBlt(const Bitmap *src, int dst_x, int dst_y)
 {
     BITMAP *al_src_bmp = src->_alBitmap;
@@ -422,13 +382,6 @@ void Bitmap::FlipBlt(const Bitmap *src, int dst_x, int dst_y, GraphicFlip flip)
         Blit(src, dst_x, dst_y);
         break;
     }
-}
-
-void Bitmap::RotateBlt(const Bitmap *src, int dst_x, int dst_y, int angle)
-{
-    fixed_t al_angle = ToAllegroAngle(angle);
-    BITMAP *al_src_bmp = src->_alBitmap;
-    rotate_sprite(_alBitmap, al_src_bmp, dst_x, dst_y, al_angle);
 }
 
 void Bitmap::RotateBlt(const Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, int angle)
@@ -630,27 +583,6 @@ void Bitmap::FloodFill(int x, int y, color_t color)
 // Direct access operations
 //=============================================================================
 
-void Bitmap::SetScanLine(int index, unsigned char *data, int data_size)
-{
-    if (index < 0 || index >= GetHeight())
-    {
-        return;
-    }
-
-    int copy_length = data_size;
-    if (copy_length < 0)
-    {
-        copy_length = GetPitch();
-    }
-    else // TODO: use Math namespace here
-        if (copy_length > GetPitch())
-        {
-            copy_length = GetPitch();
-        }
-
-    memcpy(_alBitmap->line[index], data, copy_length);
-}
-
 
 namespace BitmapHelper
 {
@@ -667,36 +599,6 @@ int BitmapColorToAGSColor(int color, int /*color_depth*/)
     // no conversion necessary, we assume that "ags color" is matching
     // palette index in 8-bit mode and 32-bit A8R8G8B8 in 32-bit mode
     return color;
-}
-
-void AGSColorToRGB(int color, int color_depth, RGB &rgb)
-{
-    if (color_depth == 8)
-    {
-        if (color < 0 || color > 255)
-            color = 0;
-        get_color(color, &rgb);
-        rgb.a = 0xFF; // pseudo-alpha
-    }
-    else
-    {
-        // assume is always A8R8G8B8
-        rgb.r = getr32(color);
-        rgb.g = getg32(color);
-        rgb.b = getb32(color);
-        rgb.a = 0xFF; // pseudo-alpha
-    }
-}
-
-Bitmap *CreateRawBitmapOwner(BITMAP *al_bmp)
-{
-    Bitmap *bitmap = new Bitmap();
-    if (!bitmap->WrapAllegroBitmap(al_bmp, false))
-    {
-        delete bitmap;
-        bitmap = nullptr;
-    }
-    return bitmap;
 }
 
 Bitmap *CreateRawBitmapWrapper(BITMAP *al_bmp)

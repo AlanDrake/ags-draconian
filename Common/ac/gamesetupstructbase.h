@@ -95,7 +95,6 @@ struct GameSetupStructBase
     };
 
     void ReadFromFile(AGS::Common::Stream *in, GameDataVersion game_ver, SerializeInfo &info);
-    void WriteToFile(AGS::Common::Stream *out, const SerializeInfo &info) const;
 
     // Game resolution is a size of a native game screen in pixels.
     // This is the "game resolution" that developer sets up in AGS Editor.

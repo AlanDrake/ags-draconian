@@ -61,8 +61,6 @@ namespace BitmapHelper
 // color depth will be used (as previously set for the system).
 // Creates a new bitmap of the given format; the pixel contents are undefined.
 Bitmap *CreateBitmap(int width, int height, int color_depth = 0);
-// Creates a new bitmap and clears it with the given color
-Bitmap *CreateClearBitmap(int width, int height, int color_depth = 0, int clear_color = 0);
 // Creates a new bitmap and clears it with the transparent color
 Bitmap *CreateTransparentBitmap(int width, int height, int color_depth = 0);
 // Create Bitmap and attach prepared pixel buffer
@@ -83,25 +81,6 @@ Bitmap *CreateBitmapCopy(const Bitmap *src, int color_depth = 0);
 Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth, const uint8_t *pixels,
                                const int src_col_depth, const int src_pitch);
 
-// Load a bitmap from file; supported formats currently are: BMP, PCX.
-// Optionally instructs to convert to the bitmap of certain color depth.
-// Optionally assigns a source pixel format, for informational purposes.
-// Optionally fills in a palette, if one was found in the file.
-Bitmap *LoadFromFile(const char *filename, int dst_color_depth, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr);
-inline Bitmap *LoadFromFile(const String &filename, int dst_color_depth, PixelFormat *src_fmt = nullptr,
-                            RGB *pal = nullptr)
-{
-    return LoadFromFile(filename.GetCStr(), dst_color_depth, src_fmt, pal);
-}
-// Load a bitmap from file; supported formats currently are: BMP, PCX.
-inline Bitmap *LoadFromFile(const char *filename, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr)
-{
-    return LoadFromFile(filename, 0, src_fmt, pal);
-}
-inline Bitmap *LoadFromFile(const String &filename, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr)
-{
-    return LoadFromFile(filename.GetCStr(), 0, src_fmt);
-}
 // Write a bitmap into a file; supported formats currently are: BMP, PCX.
 // FIXME: skip_alpha parameter is added as a hotfix, to be able to reduce
 // image file size when writing 32-bit images which are known to be opaque (like screenshots).
@@ -130,9 +109,6 @@ inline bool SaveBitmap(const Bitmap *bmp, Stream *out, const String &ext)
     return SaveBitmap(bmp, false, nullptr, out, ext);
 }
 
-// Stretches bitmap to the requested size. The new bitmap will have same
-// colour depth. Returns original bitmap if no changes are necessary.
-Bitmap *AdjustBitmapSize(const Bitmap *src, int width, int height);
 // Makes sure that the parent bitmap is large enough, and initializes sub-bitmap of the
 // requested size. The parent bitmap is only recreated when grown, but is never shrunk.
 // This function does not make an effort to retain the original image.

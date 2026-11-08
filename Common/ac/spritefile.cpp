@@ -374,15 +374,6 @@ HError SpriteFile::LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector
     return HError::None();
 }
 
-HError SpriteFile::LoadSpriteMetrics(std::vector<SpriteDatHeader> &metrics)
-{
-    metrics.resize(_spriteData.size());
-    if (_spriteData.size() == 0)
-        return HError::None();
-
-    return RebuildSpriteIndex(_stream.get(), GetTopmostSprite(), nullptr, &metrics);
-}
-
 void SpriteFile::SeekToSprite(sprkey_t index)
 {
     // If we didn't just load the previous sprite, seek to it

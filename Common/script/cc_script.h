@@ -36,8 +36,6 @@ class Stream;
 struct ccScript
 {
 public:
-    static const std::string noname;
-
     std::string scriptname;
     std::vector<uint8_t> globaldata;
     std::vector<int32_t> code; // executable byte-code, 32-bit per op or arg
@@ -68,8 +66,6 @@ public:
     ccScript &operator=(const ccScript &);
 
     const std::string &GetScriptName() const;
-    const std::string &GetSectionName(int32_t offset) const;
-    const std::string &GetSectionOrScriptName(int32_t offset) const;
 
     void SetScriptName(const std::string &name);
 

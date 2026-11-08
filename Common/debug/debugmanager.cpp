@@ -33,22 +33,6 @@ DebugManager::DebugOutput::DebugOutput(const String &id, std::unique_ptr<IOutput
     SetFilters(def_verbosity, group_filters);
 }
 
-MessageType DebugManager::DebugOutput::GetFilter(const DebugGroupID &group_id) const
-{
-    if (group_id.ID != InvalidMessageGroup)
-    {
-        if (group_id.ID < _groupFilter.size())
-            return _groupFilter[group_id.ID];
-    }
-
-    if (_unresolvedGroups.count(group_id.SID) != 0)
-    {
-        return _unresolvedGroups.at(group_id.SID);
-    }
-
-    return kDbgMsg_None;
-}
-
 void DebugManager::DebugOutput::SetFilter(const DebugGroupID &group_id, MessageType filter)
 {
     if (group_id.ID != InvalidMessageGroup)
@@ -127,41 +111,6 @@ DebugManager::DebugManager(bool buffer_messages)
     {
         StartMessageBuffering();
     }
-}
-
-MessageGroupHandle DebugManager::FindFreeGroupID()
-{
-    if (_groups.size() >= UINT32_MAX)
-        return InvalidMessageGroup;
-
-    if (_freeGroupID >= _groups.size())
-    {
-        _freeGroupID = static_cast<uint32_t>(_groups.size());
-    }
-    else
-    {
-        for (; _freeGroupID < _groups.size() && _groups[_freeGroupID].UID.IsValid(); ++_freeGroupID)
-        {
-        }
-    }
-    return _freeGroupID;
-}
-
-MessageGroupHandle DebugManager::RegisterGroup(const String &id, const String &out_name)
-{
-    std::lock_guard<std::mutex> lk(_mutex);
-    auto it = _groupByStrLookup.find(id);
-    if (it != _groupByStrLookup.end())
-    {
-        _groups[it->second.ID].OutputName = out_name;
-        return it->second.ID;
-    }
-
-    MessageGroupHandle handle = FindFreeGroupID();
-    if (handle == InvalidMessageGroup)
-        return InvalidMessageGroup;
-
-    return RegisterGroupImpl(DebugGroupID(handle, id), out_name);
 }
 
 MessageGroupHandle DebugManager::RegisterGroup(const DebugGroupID &group_id, const String &out_name)
@@ -279,16 +228,6 @@ void DebugManager::SetOutputFilters(const String &output_id, MessageType def_ver
         _outputs[output_id].ResolveGroupID(group.UID);
 }
 
-void DebugManager::CloneGroupFilters(const DebugGroupID &src_group, const DebugGroupID &dst_group)
-{
-    std::lock_guard<std::mutex> lk(_mutex);
-    for (auto &out_it : _outputs)
-    {
-        auto &out = out_it.second;
-        out.SetFilter(dst_group, out.GetFilter(src_group));
-    }
-}
-
 void DebugManager::UnregisterAll()
 {
     std::lock_guard<std::mutex> lk(_mutex);
@@ -296,25 +235,6 @@ void DebugManager::UnregisterAll()
     _groupByStrLookup.clear();
     _outputs.clear();
     _freeGroupID = 0u;
-}
-
-void DebugManager::UnregisterGroup(const DebugGroupID &id)
-{
-    std::lock_guard<std::mutex> lk(_mutex);
-    DebugGroup group = GetGroupImpl(id);
-    if (!group.UID.IsValid())
-        return;
-
-    if (group.UID.ID < _freeGroupID)
-        _freeGroupID = group.UID.ID;
-    _groups[group.UID.ID] = DebugGroup();
-    _groupByStrLookup.erase(group.UID.SID);
-}
-
-void DebugManager::UnregisterOutput(const String &id)
-{
-    std::lock_guard<std::mutex> lk(_mutex);
-    _outputs.erase(id);
 }
 
 void DebugManager::StartMessageBuffering()
@@ -363,11 +283,6 @@ void Printf(const String &text)
 void Printf(MessageType mt, const String &text)
 {
     DbgMgr.Print(kDbgGroup_Main, mt, text);
-}
-
-void Printf(MessageGroupHandle group, MessageType mt, const String &text)
-{
-    DbgMgr.Print(group, mt, text);
 }
 
 void Printf(AGS_FORMAT_STRING_ARG const char *fmt, ...)

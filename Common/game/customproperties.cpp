@@ -27,14 +27,6 @@ PropertyDesc::PropertyDesc()
     Type = kPropertyBoolean;
 }
 
-PropertyDesc::PropertyDesc(const String &name, PropertyType type, const String &desc, const String &def_value)
-{
-    Name = name;
-    Type = type;
-    Description = desc;
-    DefaultValue = def_value;
-}
-
 
 namespace Properties
 {
@@ -58,20 +50,6 @@ PropertyError ReadSchema(PropertySchema &schema, Stream *in)
         schema[prop.Name] = prop;
     }
     return kPropertyErr_NoError;
-}
-
-void WriteSchema(const PropertySchema &schema, Stream *out)
-{
-    out->WriteInt32(kPropertyVersion_Current);
-    out->WriteInt32(static_cast<uint32_t>(schema.size()));
-    for (PropertySchema::const_iterator it = schema.begin(); it != schema.end(); ++it)
-    {
-        const PropertyDesc &prop = it->second;
-        StrUtil::WriteString(prop.Name, out);
-        out->WriteInt32(prop.Type);
-        StrUtil::WriteString(prop.Description, out);
-        StrUtil::WriteString(prop.DefaultValue, out);
-    }
 }
 
 PropertyError ReadValues(StringIMap &map, Stream *in)

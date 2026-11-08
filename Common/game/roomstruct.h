@@ -48,17 +48,11 @@ public:
     // CHECKME: this should be a private method; currently only accessed by a
     // (possibly temporary) code in the Editor.
     void InitBitmaps();
-    // Initializes RoomData's pixel buffers from bitmaps,
-    // this lets to write this RoomStruct as RoomData back to the file.
-    // CHECKME: idk if this should exist; currently only accessed by a
-    // (possibly temporary) code in the Editor.
-    void PrepareForWriteToFile();
     // Releases room resources
     void Free();
 
     Bitmap *GetBackgroundImage(int index) const;
     void SetBackgroundImage(int index, std::unique_ptr<Bitmap> &&bmp, PALETTE *bgpal = nullptr);
-    void DeleteBackground(int index);
 
     // Gets bitmap of particular mask layer
     Bitmap *GetMask(RoomAreaMask mask) const;
@@ -78,15 +72,6 @@ public:
     PBitmap WalkAreaMask;
     PBitmap WalkBehindMask;
 };
-
-// TODO: functions UpscaleRoomBackground() and FixRoomMasks() are only used in the Editor
-// under certain circumstances. Engine does this differently. Need to re-investigate this,
-// and either share this operation with the engine, or move it to Editor code.
-// Ensures that all existing room masks match room background size and
-// MaskResolution property, resizes mask bitmaps if necessary.
-void FixRoomMasks(RoomStruct *room);
-// Adjusts bitmap size if necessary and returns either new or old bitmap.
-PBitmap FixBitmap(PBitmap bmp, int dst_width, int dst_height);
 
 } // namespace Common
 } // namespace AGS

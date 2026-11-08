@@ -339,17 +339,6 @@ static PixelBuffer ReadSpriteImpl(Stream *in, bool version360, SpriteCompression
     return ReadSpriteDataImpl(hdr, in, version360, compress, err, out_palette);
 }
 
-PixelBuffer ReadSpriteData_360(const SpriteDatHeader &hdr, Stream *in, HError &err, PALETTE *out_palette)
-{
-    return ReadSpriteDataImpl(hdr, in, true, kSprCompress_None /* read from format */, err, out_palette);
-}
-
-PixelBuffer ReadSpriteData_321(const SpriteDatHeader &hdr, Stream *in, SpriteCompression compress, HError &err,
-                               PALETTE *out_palette)
-{
-    return ReadSpriteDataImpl(hdr, in, false, compress, err, out_palette);
-}
-
 PixelBuffer ReadSprite_360(Stream *in, HError &err, PALETTE *out_palette)
 {
     return ReadSpriteImpl(in, true, kSprCompress_None /* read from format */, err, out_palette);

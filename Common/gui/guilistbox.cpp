@@ -124,11 +124,6 @@ bool GUIListBox::IsPosOnScrollbar(int x) const
     return 0;
 }
 
-bool GUIListBox::IsSvgIndex() const
-{
-    return (_listBoxFlags & kListBox_SvgIndex) != 0;
-}
-
 Rect GUIListBox::CalcGraphicRect(bool clipped)
 {
     if (clipped)

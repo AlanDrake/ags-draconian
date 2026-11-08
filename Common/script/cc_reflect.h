@@ -310,10 +310,6 @@ public:
     void Join(const RTTI &rtti, std::unordered_map<uint32_t, uint32_t> &loc_l2g,
               std::unordered_map<uint32_t, uint32_t> &type_l2g);
 
-    // Adds a lookup alias for the given typename.
-    // This typename will match any first found type of the same name,
-    // disregarding the namespace (decl location).
-    void AddGlobalTypeLookupAlias(const String &type_name);
     // Adds lookup aliases for all typenames that are declared
     // within the given namespace (decl location).
     void AddGlobalTypeLookupAliasesForLocation(const String &location);

@@ -66,7 +66,6 @@ public:
     GUIButton();
 
     // Properties
-    void SetButtonFlags(int flags);
     bool IsDynamicColors() const { return ((_buttonFlags & kButton_DynamicColors) != 0); }
     void SetDynamicColors(bool on);
     bool IsFlatStyle() const { return ((_buttonFlags & kButton_FlatStyle) != 0); }
@@ -90,10 +89,7 @@ public:
     int GetNormalImage() const;
     int GetMouseOverImage() const;
     int GetPushedImage() const;
-    SpriteTransformFlags GetImageFlags() const;
     GraphicFlip GetImageFlip() const;
-    SpriteTransformFlags GetCurrentImageFlags() const;
-    GraphicFlip GetCurrentImageFlip() const;
     GUIButtonPlaceholder GetPlaceholder() const;
     bool IsImageButton() const;
     bool IsClippingImage() const;

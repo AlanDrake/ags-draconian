@@ -35,11 +35,6 @@ TTFFontRenderer::~TTFFontRenderer()
     TTF_Quit();
 }
 
-void TTFFontRenderer::SetLegacyAntiaAliasedFontHeightFixup(bool legacy_aa_height_fixup)
-{
-    // CLNUP: remove in AGS 4
-}
-
 void TTFFontRenderer::AdjustYCoordinateForFont(int *ycoord, int /*fontNumber*/)
 {
     // TTF fonts already have space at the top, so try to remove the gap
@@ -269,16 +264,6 @@ void TTFFontRenderer::FreeMemory(int fontNumber)
 {
     TTF_CloseFont(_fontData[fontNumber].Font);
     _fontData.erase(fontNumber);
-}
-
-bool TTFFontRenderer::MeasureFontOfPointSize(const String &filename, int size_pt, FontMetrics *metrics)
-{
-    TTF_Font *font = LoadTTF(filename, size_pt);
-    if (!font)
-        return false;
-    FillMetrics(font, size_pt, metrics);
-    TTF_CloseFont(font);
-    return true;
 }
 
 bool TTFFontRenderer::MeasureFontOfPixelHeight(const String &filename, int pixel_height, FontMetrics *metrics)

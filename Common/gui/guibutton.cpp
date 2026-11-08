@@ -47,15 +47,6 @@ GUIButton::GUIButton() : GUITextFieldControl(&GUIButton::_eventSchema)
     _clickData[kGUIClickLeft] = 0;
 }
 
-void GUIButton::SetButtonFlags(int flags)
-{
-    if (_buttonFlags != flags)
-    {
-        _buttonFlags = flags;
-        MarkChanged(); // TODO: only mark changed if flags control the looks
-    }
-}
-
 void GUIButton::SetDynamicColors(bool on)
 {
     _buttonFlags = (_buttonFlags & ~kButton_DynamicColors) | kButton_DynamicColors * on;
@@ -130,24 +121,9 @@ int GUIButton::GetPushedImage() const
     return _pushedImage;
 }
 
-SpriteTransformFlags GUIButton::GetImageFlags() const
-{
-    return _imageFlags;
-}
-
 GraphicFlip GUIButton::GetImageFlip() const
 {
     return GfxDef::GetFlipFromFlags(_imageFlags);
-}
-
-SpriteTransformFlags GUIButton::GetCurrentImageFlags() const
-{
-    return _curImageFlags;
-}
-
-GraphicFlip GUIButton::GetCurrentImageFlip() const
-{
-    return GfxDef::GetFlipFromFlags(_curImageFlags);
 }
 
 GUIButtonPlaceholder GUIButton::GetPlaceholder() const

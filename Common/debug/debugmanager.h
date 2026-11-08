@@ -70,8 +70,6 @@ struct DebugGroupID
     DebugGroupID() = default;
     DebugGroupID(uint32_t id, const String &sid = "") : ID(id), SID(sid) {}
     DebugGroupID(const String &sid) : ID(InvalidMessageGroup), SID(sid) {}
-    // Tells if any of the id components is valid
-    bool IsValid() const { return ID != InvalidMessageGroup || !SID.IsEmpty(); }
     // Tells if both id components are properly set
     bool IsComplete() const { return ID != InvalidMessageGroup && !SID.IsEmpty(); }
 };
@@ -98,12 +96,6 @@ class DebugManager
 public:
     DebugManager(bool buffer_messages);
 
-    // Registers message group with the given string ID; numeric ID will be
-    // assigned internally. "Out_name" is an optional name to use when printing
-    // a message from this group, it may be empty.
-    // Returns a numeric group handle.
-    // If the group with such string id already exists, then returns existing ID.
-    MessageGroupHandle RegisterGroup(const String &id, const String &out_name);
     // Registers message group with the pair of numeric and string IDs.
     // "Out_name" is an optional name to use when printing a message from
     // this group, it may be empty.
@@ -123,16 +115,9 @@ public:
     // Resets message group filters for the given output
     void SetOutputFilters(const String &output_id, MessageType def_verbosity,
                           const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
-    // Clones message group filters from the source group to another group, throughout all outputs
-    // This may be useful for sharing same filter settings among multiple groups in a collection
-    void CloneGroupFilters(const DebugGroupID &src_group, const DebugGroupID &dst_group);
 
     // Unregisters all groups and all targets
     void UnregisterAll();
-    // Unregisters debugging group with the given string ID
-    void UnregisterGroup(const DebugGroupID &id);
-    // Unregisters output delegate with the given string ID
-    void UnregisterOutput(const String &id);
 
     // Begins to record messages in the internal buffer.
     // Whenever a new output is registered, any buffered messages will be
@@ -156,7 +141,6 @@ private:
 
         const String &GetID() const { return _id; }
         IOutputHandler *GetHandler() const { return _handler.get(); }
-        MessageType GetFilter(const DebugGroupID &group_id) const;
         void SetFilter(const DebugGroupID &group_id, MessageType filter);
         void SetFilters(MessageType def_verbosity,
                         const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
@@ -184,7 +168,6 @@ private:
         std::unordered_map<String, MessageType, HashStrNoCase, StrEqNoCase> _unresolvedGroups;
     };
 
-    MessageGroupHandle FindFreeGroupID();
     DebugGroup GetGroupImpl(const DebugGroupID &id);
     MessageGroupHandle RegisterGroupImpl(const DebugGroupID &group_id, const String &out_name);
     DebugOutput CreateOutputImpl(const String &id, std::unique_ptr<IOutputHandler> &&handler, MessageType def_verbosity,

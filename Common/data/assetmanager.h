@@ -110,8 +110,6 @@ public:
 
     // Sets asset search priority (in which order manager will search available locations)
     void SetSearchPriority(AssetSearchPriority priority);
-    // Gets current asset search priority
-    AssetSearchPriority GetSearchPriority() const;
 
     // Add library location to the list of asset locations
     AssetError AddLibrary(const String &path, const AssetLibInfo **lib = nullptr);
@@ -127,19 +125,12 @@ public:
     size_t GetLibraryCount() const;
     // Gets a basic info of a registered AssetLibrary, paired with its filters
     AssetLibEntry GetLibraryEntry(size_t index) const;
-    // Gets full description of a AssetLibrary (including asset TOC)
-    const AssetLibInfo *GetLibraryInfo(size_t index) const;
     // Tells whether asset exists in any of the registered search locations
     bool DoesAssetExist(const String &asset_name, const String &filter = "") const;
     inline bool DoesAssetExist(const AssetPath &apath) const { return DoesAssetExist(apath.Name, apath.Filter); }
     // Tries to get asset's "file time" (last modification time).
     // Note that for the assets packed within a CLIB format this will return library's time instead.
     bool GetAssetTime(const String &asset_name, time_t &ft, const String &filter = "") const;
-    // Searches in all the registered locations and collects a list of
-    // assets using given wildcard pattern. The provided list contains full asset name,
-    // which may include subpaths (relative to the asset directory or library).
-    // TODO: variant accepting std::regex instead of wildcard, and replace uses where convenient
-    void FindAssets(std::vector<String> &assets, const String &wildcard, const String &filter = "") const;
     // Searches in all the registered locations and collects a list of
     // FileEntry objects corresponding to assets, using given wildcard pattern.
     // The provided entries contain full asset name, which may include subpaths

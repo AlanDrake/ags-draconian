@@ -331,6 +331,3 @@ inline bool IsAGSServiceKey(eAGSKeyCode keycode)
 
 // Converts eAGSKeyCode to script API code, for "on_key_press" and similar callbacks
 eAGSKeyCode AGSKeyToScriptKey(eAGSKeyCode keycode);
-// Converts eAGSKeyCode to ASCII text representation with the range check; returns 0 on failure
-// Not unicode compatible.
-char AGSKeyToText(eAGSKeyCode keycode);

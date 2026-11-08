@@ -132,51 +132,6 @@ uint32_t _argb2argb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alp
     return argb2argb_blend_core(src_col, dst_col, src_alpha);
 }
 
-uint32_t _rgb2argb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha)
-{
-    if (src_alpha == 0 || src_alpha == 0xFF)
-        return src_col | 0xFF000000;
-    return argb2argb_blend_core(src_col | 0xFF000000, dst_col, src_alpha);
-}
-
-uint32_t _argb2rgb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha)
-{
-    uint32_t res, g;
-
-    if (src_alpha > 0)
-        src_alpha = geta32(src_col) * ((src_alpha & 0xFF) + 1) / 256;
-    else
-        src_alpha = geta32(src_col);
-    if (src_alpha)
-        src_alpha++;
-
-    res = ((src_col & 0xFF00FF) - (dst_col & 0xFF00FF)) * src_alpha / 256 + dst_col;
-    dst_col &= 0xFF00;
-    src_col &= 0xFF00;
-    g = (src_col - dst_col) * src_alpha / 256 + dst_col;
-
-    res &= 0xFF00FF;
-    g &= 0xFF00;
-
-    return res | g;
-}
-
-void set_argb2argb_blender(int alpha)
-{
-    set_blender_mode(nullptr, nullptr, _argb2argb_blender, 0, 0, 0, alpha);
-}
-
-// sets the alpha channel to opaque. used when drawing a non-alpha sprite onto an alpha-sprite
-uint32_t _opaque_alpha_blender(uint32_t x, uint32_t /*y*/, uint32_t /*n*/)
-{
-    return x | 0xff000000;
-}
-
-void set_opaque_alpha_blender()
-{
-    set_blender_mode(nullptr, nullptr, _opaque_alpha_blender, 0, 0, 0, 0);
-}
-
 void set_argb2any_blender()
 {
     set_blender_mode_ex(_blender_black, _blender_black, _blender_black, _argb2argb_blender, nullptr, nullptr, nullptr,
@@ -342,13 +297,6 @@ bool SetBlender(BlendMode blend_mode, int alpha)
     const auto &blender = BlendModeSets[blend_mode];
     set_blender_mode(nullptr, nullptr, blender, 0, 0, 0, alpha);
     return true;
-}
-
-BLENDER_FUNC GetBlenderFunc(BlendMode blend_mode)
-{
-    if (blend_mode < 0 || blend_mode >= kNumBlendModes)
-        return nullptr;
-    return BlendModeSets[blend_mode];
 }
 
 } // namespace Common

@@ -42,7 +42,7 @@ protected:
     Bytecode1()
     {
         // Initializations, will be done at the start of each test
-        // Note: Don't use 'ccSetOption()', 'ccResetOptions()' etc.
+        // Note: Don't use 'ccSetOption()' etc.
         // googletests are often called in parallel, and these functions clobber each other
     }
 };

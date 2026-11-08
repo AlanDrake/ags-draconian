@@ -20,49 +20,6 @@ namespace AGS
 namespace Common
 {
 
-String PreprocessLineForOldStyleLinebreaks(const String &line)
-{
-    const size_t first_at = line.FindChar('\\');
-    if (first_at == String::NoIndex)
-        return line; // no escaping chars, nothing to do
-
-    std::vector<char> out;
-    const char *begin_ptr = line.GetCStr();
-    const char *end_ptr = line.GetCStr() + line.GetLength();
-    char last_char = 0;
-    for (const char *src_ptr = line.GetCStr() + first_at; src_ptr < end_ptr; ++src_ptr)
-    {
-        if (last_char == '\\')
-        {
-            // Copy accumulated portion
-            const size_t old_size = out.size();
-            out.resize(out.size() + (src_ptr - begin_ptr));
-            std::copy(begin_ptr, src_ptr, out.begin() + old_size);
-            if (*src_ptr == '[')
-            {
-                // add double escaping of '['
-                out.push_back('\\');
-                out.push_back('[');
-            }
-            else
-            {
-                out.push_back(*src_ptr);
-            }
-            last_char = 0; // eat escaping char
-            begin_ptr = src_ptr + 1;
-        }
-        else
-        {
-            last_char = *src_ptr;
-        }
-    }
-    // Copy final accumulated portion (if any)
-    const size_t old_size = out.size();
-    out.resize(out.size() + (end_ptr - begin_ptr));
-    std::copy(begin_ptr, end_ptr, out.begin() + old_size);
-    return String(out.data(), out.size());
-}
-
 void ScanMacroTokens(const String &text, std::function<bool(const String &macro)> &fn_parse, bool allow_unclosed_macros)
 {
     for (size_t scan_at = text.FindChar('@'); scan_at != String::NoIndex;)
@@ -156,17 +113,6 @@ void DecryptText(char *buf, size_t buf_sz, bool inverse)
     }
 }
 
-void ReadStringDecrypt(Stream *in, char *buf, size_t buf_sz, bool inverse)
-{
-    size_t len = in->ReadInt32();
-    size_t slen = std::min(buf_sz - 1, len);
-    in->Read(buf, slen);
-    if (len > slen)
-        in->Seek(len - slen);
-    DecryptText(buf, slen, inverse);
-    buf[slen] = 0;
-}
-
 String ReadStringDecrypt(Stream *in, bool inverse)
 {
     std::vector<char> dec_buf;
@@ -199,22 +145,6 @@ void EncryptText(char *buf, size_t buf_sz, bool inverse)
         if (src_c == 0)
             break;
     }
-}
-
-const char *EncryptText(std::vector<char> &en_buf, const String &s, bool inverse)
-{
-    en_buf.resize(s.GetLength() + 1);
-    std::copy(s.GetCStr(), s.GetCStr() + s.GetLength() + 1, en_buf.data());
-    EncryptText(en_buf.data(), en_buf.size(), inverse);
-    return en_buf.data();
-}
-
-const char *EncryptEmptyString(std::vector<char> &en_buf, bool inverse)
-{
-    en_buf.resize(1);
-    en_buf[0] = 0;
-    EncryptText(en_buf.data(), en_buf.size(), inverse);
-    return en_buf.data();
 }
 
 void WriteStringEncrypt(Stream *out, const char *s, bool inverse)

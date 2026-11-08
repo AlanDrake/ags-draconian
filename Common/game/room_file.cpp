@@ -700,11 +700,6 @@ void WriteRoomHeader(Stream *out, RoomFileVersion data_ver, const String &compil
     StrUtil::WriteString(compiled_with, out);
 }
 
-void WriteRoomEnding(Stream *out)
-{
-    out->WriteByte(kRoomFile_EOF);
-}
-
 
 HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
 {
@@ -950,20 +945,6 @@ void WriteCompSc3Block(const RoomData *room, Stream *out)
     room->CompiledScript->Write(out);
 }
 
-void WriteObjNamesBlock(const RoomData *room, Stream *out)
-{
-    out->WriteByte((uint8_t)room->Objects.size());
-    for (const auto &obj : room->Objects)
-        StrUtil::WriteString(obj.Name, out);
-}
-
-void WriteObjScNamesBlock(const RoomData *room, Stream *out)
-{
-    out->WriteByte((uint8_t)room->Objects.size());
-    for (const auto &obj : room->Objects)
-        StrUtil::WriteString(obj.ScriptName, out);
-}
-
 void WriteAnimBgBlock(const RoomData *room, Stream *out)
 {
     out->WriteByte((int8_t)room->BgFrameCount);
@@ -1190,11 +1171,6 @@ HRoomFileError WriteRoomData(const RoomData *room, const RoomDataAux *room_aux, 
     // Write end of room file
     out->WriteByte(kRoomFile_EOF);
     return HRoomFileError::None();
-}
-
-HRoomFileError WriteRoomData(const RoomData *room, Stream *out, RoomFileVersion data_ver, const String &compiled_with)
-{
-    return WriteRoomData(room, nullptr, out, data_ver, compiled_with);
 }
 
 HRoomFileError WriteRoomData(const RoomDataExt *room, Stream *out, RoomFileVersion data_ver,

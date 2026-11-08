@@ -31,7 +31,6 @@ struct AudioClipType
     int crossfadeSpeed = 0;
 
     void ReadFromFile(AGS::Common::Stream *in);
-    void WriteToFile(AGS::Common::Stream *out) const;
     void ReadFromSavegame(AGS::Common::Stream *in);
     void WriteToSavegame(AGS::Common::Stream *out) const;
 };

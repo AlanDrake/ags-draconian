@@ -43,18 +43,6 @@ Bitmap *CreateBitmap(int width, int height, int color_depth)
     return bitmap;
 }
 
-Bitmap *CreateClearBitmap(int width, int height, int color_depth, int clear_color)
-{
-    Bitmap *bitmap = new Bitmap();
-    if (!bitmap->Create(width, height, color_depth))
-    {
-        delete bitmap;
-        return nullptr;
-    }
-    bitmap->Clear(clear_color);
-    return bitmap;
-}
-
 Bitmap *CreateTransparentBitmap(int width, int height, int color_depth)
 {
     Bitmap *bitmap = new Bitmap();
@@ -112,25 +100,6 @@ Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth, const
         return nullptr;
 
     return bitmap.release();
-}
-
-Bitmap *LoadFromFile(const char *filename, int dst_color_depth, PixelFormat *src_fmt, RGB *pal)
-{
-    std::unique_ptr<Stream> in(File::OpenFile(filename, FileOpenMode::kFile_Open, StreamMode::kStream_Read));
-    if (!in)
-        return nullptr;
-
-    return BitmapHelper::LoadBitmap(in.get(), Path::GetFileExtension(filename), dst_color_depth, src_fmt, pal);
-}
-
-Bitmap *AdjustBitmapSize(const Bitmap *src, int width, int height)
-{
-    int oldw = src->GetWidth(), oldh = src->GetHeight();
-    if ((oldw == width) && (oldh == height))
-        return const_cast<Bitmap *>(src);
-    Bitmap *bmp = BitmapHelper::CreateBitmap(width, height, src->GetColorDepth());
-    bmp->StretchBlt(src, RectWH(0, 0, oldw, oldh), RectWH(0, 0, width, height));
-    return bmp;
 }
 
 void AllocateBitmapAndSubBitmap(Bitmap *parent, Bitmap *child, int sub_width, int sub_height, int color_depth)

@@ -294,20 +294,6 @@ const char *get_font_name(int font_number)
     return name ? name : "";
 }
 
-int get_font_flags(int font_number)
-{
-    if (!assert_font_number(font_number))
-        return 0;
-    return fonts[font_number].Info.Flags;
-}
-
-int get_font_scaling_mul(int font_number)
-{
-    if (!assert_font_number(font_number))
-        return 0;
-    return fonts[font_number].Info.SizeMultiplier;
-}
-
 int get_text_width(const char *texx, int font_number)
 {
     if (!assert_font_renderer(font_number))
@@ -332,25 +318,11 @@ int get_text_width_outlined(const char *text, int font_number)
     return std::max(self_width, outline_width);
 }
 
-int get_text_height(const char *text, int font_number)
-{
-    if (!assert_font_renderer(font_number))
-        return 0;
-    return fonts[font_number].Renderer->GetTextHeight(text, font_number);
-}
-
 int get_font_outline(int font_number)
 {
     if (!assert_font_number(font_number))
         return FONT_OUTLINE_NONE;
     return fonts[font_number].Info.Outline;
-}
-
-int get_font_outline_thickness(int font_number)
-{
-    if (!assert_font_number(font_number))
-        return 0;
-    return fonts[font_number].Info.AutoOutlineThickness;
 }
 
 void set_font_outline(int font_number, int outline_type, enum FontInfo::AutoOutlineStyle style, int thickness)
@@ -360,13 +332,6 @@ void set_font_outline(int font_number, int outline_type, enum FontInfo::AutoOutl
     fonts[font_number].Info.Outline = outline_type;
     fonts[font_number].Info.AutoOutlineStyle = style;
     fonts[font_number].Info.AutoOutlineThickness = thickness;
-}
-
-bool is_font_antialiased(int font_number)
-{
-    if (!assert_font_number(font_number))
-        return false;
-    return ShouldAntiAliasText() && !is_bitmap_font(font_number);
 }
 
 int get_font_height(int font_number)
@@ -406,13 +371,6 @@ int get_font_real_height(int font_number)
     return fonts[font_number].Metrics.RealHeight;
 }
 
-int get_font_surface_height(int font_number)
-{
-    if (!assert_font_number(font_number))
-        return 0;
-    return fonts[font_number].Metrics.ExtentHeight();
-}
-
 int get_font_surface_height_outlined(int font_number)
 {
     if (!assert_font_number(font_number))
@@ -448,29 +406,11 @@ int get_font_linespacing(int font_number)
     return fonts[font_number].LineSpacingCalc;
 }
 
-void set_font_linespacing(int font_number, int spacing)
-{
-    if (!assert_font_number(font_number))
-        return;
-
-    fonts[font_number].Info.Flags &= ~FFLG_DEFLINESPACING;
-    fonts[font_number].Info.LineSpacing = spacing;
-    fonts[font_number].LineSpacingCalc = spacing;
-}
-
 int get_text_lines_height(int font_number, size_t numlines)
 {
     if (!assert_font_number(font_number) || numlines == 0)
         return 0;
     return fonts[font_number].LineSpacingCalc * (numlines - 1) + get_font_height_with_outline(font_number);
-}
-
-int get_text_lines_surf_height(size_t font_number, size_t numlines)
-{
-    if (!assert_font_number(font_number) || numlines == 0)
-        return 0;
-    return fonts[font_number].LineSpacingCalc * (numlines - 1) +
-           get_font_height_with_outline(font_number, true /* surf height */);
 }
 
 namespace AGS
@@ -700,15 +640,6 @@ void adjust_fonts_for_render_mode(bool aa_mode)
     }
 }
 
-void font_set_blend_mode(size_t font_number, AGS::Common::BlendMode blend_mode)
-{
-    if (font_number >= fonts.size())
-        return;
-
-    if (fonts[font_number].RendererInt)
-        fonts[font_number].RendererInt->SetBlendMode(blend_mode);
-}
-
 void freefont(int font_number)
 {
     if (!assert_font_number(font_number))
@@ -717,18 +648,6 @@ void freefont(int font_number)
     if (fonts[font_number].Renderer)
         fonts[font_number].Renderer->FreeMemory(font_number);
     fonts[font_number] = Font();
-}
-
-void movefont(int old_number, int new_number)
-{
-    if (!assert_font_number(old_number) || !assert_font_number(new_number))
-        return;
-
-    if (old_number == new_number)
-        return; // same number
-
-    fonts[new_number] = std::move(fonts[old_number]);
-    fonts[old_number] = Font();
 }
 
 void free_all_fonts()
@@ -759,17 +678,4 @@ void wouttextxy(Bitmap *ds, int x, int y, int font_number, color_t text_color, B
 void wouttextxy(Bitmap *ds, int x, int y, int font_number, color_t text_color, const char *text)
 {
     wouttextxy(ds, x, y, font_number, text_color, kBlend_Normal, text);
-}
-
-void woutprintf(Bitmap *ds, int x, int y, int font_number, color_t text_color, AGS_FORMAT_STRING_ARG const char *fmt,
-                ...)
-{
-    if (!assert_font_renderer(font_number))
-        return;
-
-    va_list ap;
-    va_start(ap, fmt);
-    String text = String::FromFormatV(fmt, ap);
-    va_end(ap);
-    wouttextxy(ds, x, y, font_number, text_color, text.GetCStr());
 }

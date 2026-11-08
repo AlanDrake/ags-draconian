@@ -63,30 +63,6 @@ void RoomStruct::InitBitmaps()
         WalkBehindMask.reset(new Bitmap(std::move(WalkBehindMaskBuf)));
 }
 
-void RoomStruct::PrepareForWriteToFile()
-{
-    if (BgImages.size() > 0)
-        BackgroundBPP = BgImages[0]->GetBPP();
-    if (BgFrames.size() > 0)
-    {
-        for (int i = 0; i < 256; ++i)
-            Palette[i] = BgFrames[0].Palette[i];
-    }
-
-    BgFrames.resize(BgImages.size());
-    for (size_t i = 0; i < BgFrames.size(); ++i)
-        if (BgImages[i])
-            BgFrames[i].GraphicBuf = BgImages[i]->ReleasePixelData();
-    if (HotspotMask)
-        HotspotMaskBuf = HotspotMask->ReleasePixelData();
-    if (RegionMask)
-        RegionMaskBuf = RegionMask->ReleasePixelData();
-    if (WalkAreaMask)
-        WalkAreaMaskBuf = WalkAreaMask->ReleasePixelData();
-    if (WalkBehindMask)
-        WalkBehindMaskBuf = WalkBehindMask->ReleasePixelData();
-}
-
 void RoomStruct::Free()
 {
     RoomData::Free();
@@ -126,18 +102,6 @@ void RoomStruct::SetBackgroundImage(int index, std::unique_ptr<Bitmap> &&bmp, PA
     }
 }
 
-void RoomStruct::DeleteBackground(int index)
-{
-    assert(index >= 0 && static_cast<uint8_t>(index) < BgImages.size());
-    if (index < 0 || static_cast<uint8_t>(index) >= BgImages.size())
-        return;
-
-    BgFrameCount--;
-    BgImages.erase(BgImages.begin() + index);
-    if (static_cast<uint8_t>(index) < BgFrames.size())
-        BgFrames.erase(BgFrames.begin() + index);
-}
-
 Bitmap *RoomStruct::GetMask(RoomAreaMask mask) const
 {
     switch (mask)
@@ -170,40 +134,6 @@ void RoomStruct::CopyMask(RoomAreaMask mask, const Bitmap *bitmap)
         room_mask->Clear(0); // in case sizes are different
         room_mask->Blit(bitmap);
     }
-}
-
-PBitmap FixBitmap(PBitmap bmp, int width, int height)
-{
-    Bitmap *new_bmp = BitmapHelper::AdjustBitmapSize(bmp.get(), width, height);
-    if (new_bmp != bmp.get())
-        return PBitmap(new_bmp);
-    return bmp;
-}
-
-void FixRoomMasks(RoomStruct *room)
-{
-    if (room->MaskResolution <= 0)
-        return;
-    Bitmap *bkg = room->BgImages[0].get();
-    if (bkg == nullptr)
-        return;
-    // TODO: this issue is somewhat complicated. Original code was relying on
-    // room->Width and Height properties. But in the engine these are saved
-    // already converted to data resolution which may be "low-res". Since this
-    // function is shared between engine and editor we do not know if we need
-    // to upscale them.
-    // For now room width/height is always equal to background bitmap.
-    int base_width = bkg->GetWidth();
-    int base_height = bkg->GetHeight();
-    int low_width = base_width / room->MaskResolution;
-    int low_height = base_height / room->MaskResolution;
-
-    // Walk-behinds are always 1:1 of the primary background.
-    // Other masks are 1:x where X is MaskResolution.
-    room->WalkBehindMask = FixBitmap(room->WalkBehindMask, base_width, base_height);
-    room->HotspotMask = FixBitmap(room->HotspotMask, low_width, low_height);
-    room->RegionMask = FixBitmap(room->RegionMask, low_width, low_height);
-    room->WalkAreaMask = FixBitmap(room->WalkAreaMask, low_width, low_height);
 }
 
 } // namespace Common

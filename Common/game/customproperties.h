@@ -66,7 +66,6 @@ struct PropertyDesc
     String DefaultValue;
 
     PropertyDesc();
-    PropertyDesc(const String &name, PropertyType type, const String &desc, const String &def_value);
 };
 
 // Schema - a map of property descriptions
@@ -79,7 +78,6 @@ typedef std::unordered_map<String, PropertyDesc, HashStrNoCase, StrEqNoCase> Pro
 namespace Properties
 {
 PropertyError ReadSchema(PropertySchema &schema, Stream *in);
-void WriteSchema(const PropertySchema &schema, Stream *out);
 
 // Reads property values from the stream and assign them to map.
 // The non-matching existing map items, if any, are NOT erased.

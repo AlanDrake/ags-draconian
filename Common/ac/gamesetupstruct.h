@@ -157,9 +157,7 @@ struct GameSetupStruct : public GameSetupStructBase
     void read_words_dictionary(AGS::Common::Stream *in);
 
     void ReadInvInfo(AGS::Common::Stream *in, GameDataVersion data_ver);
-    void WriteInvInfo(AGS::Common::Stream *out);
     void ReadMouseCursors(AGS::Common::Stream *in);
-    void WriteMouseCursors(AGS::Common::Stream *out);
     //------------------------------
     // Part 2
     void read_characters(AGS::Common::Stream *in, GameDataVersion data_ver);
@@ -170,7 +168,6 @@ struct GameSetupStruct : public GameSetupStructBase
                        GameDataVersion data_ver);
 
     void ReadCharacters(AGS::Common::Stream *in, GameDataVersion data_ver);
-    void WriteCharacters(AGS::Common::Stream *out);
     //------------------------------
     // Part 3
     HGameFileError read_customprops(AGS::Common::Stream *in, GameDataVersion data_ver);

@@ -85,49 +85,6 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, Ser
     info.HasCCScript = in->ReadInt32() != 0;
 }
 
-void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info) const
-{
-    // NOTE: historically the struct was saved by dumping whole memory
-    // into the file stream, which added padding from memory alignment;
-    // here we mark the padding bytes, as they do not belong to actual data.
-    gamename.WriteCount(out, LEGACY_GAME_NAME_LENGTH);
-    out->WriteInt16(0); // alignment padding to int32
-    out->WriteArrayOfInt32(options, MAX_OPTIONS);
-    out->Write(&paluses[0], sizeof(paluses));
-    // colors are an array of chars
-    out->Write(&defpal[0], sizeof(defpal));
-    out->WriteInt32(numviews);
-    out->WriteInt32(numcharacters);
-    out->WriteInt32(playercharacter);
-    out->WriteInt32(0); // [DEPRECATED]
-    out->WriteInt16(numinvitems);
-    out->WriteInt16(0); // alignment padding to int32
-    out->WriteInt32(numdialog);
-    out->WriteInt32(numdlgmessage);
-    out->WriteInt32(numfonts);
-    out->WriteInt32(color_depth);
-    out->WriteInt32(target_win);
-    out->WriteInt32(dialog_bullet);
-    out->WriteInt16(0); // [DEPRECATED] uint16 value of a inv cursor hotdot color
-    out->WriteInt16(0); // [DEPRECATED] uint16 value of a inv cursor hot cross color
-    out->WriteInt32(uniqueid);
-    out->WriteInt32(numgui);
-    out->WriteInt32(numcursors);
-    out->WriteInt32(0); // [DEPRECATED] resolution type
-    out->WriteInt32(_gameResolution.Width);
-    out->WriteInt32(_gameResolution.Height);
-    out->WriteInt32(default_lipsync_frame);
-    out->WriteInt32(inv_hot_sprite);
-    out->WriteInt32(inv_hot_color);
-    out->WriteInt32(inv_hot_cross_color);
-    out->WriteArrayOfInt32(reserved, NUM_INTS_RESERVED);
-    // skip NUM_LEGACY_GLOBALMES int32s since kGameVersion_400_33
-    out->WriteInt32(dict ? 1 : 0);
-    out->WriteInt32(0); // globalscript (dummy 32-bit pointer value)
-    out->WriteInt32(0); // chars  (dummy 32-bit pointer value)
-    out->WriteInt32(info.HasCCScript ? 1 : 0);
-}
-
 const char *GetScriptAPIName(ScriptAPIVersion v)
 {
     switch (v)

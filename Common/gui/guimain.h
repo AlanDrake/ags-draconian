@@ -216,7 +216,6 @@ public:
 
     // Serialization
     void ReadFromFile(Stream *in, GuiVersion gui_version);
-    void WriteToFile(Stream *out) const;
     // Savegame reading and writing
     // TODO: move to engine, but will require to split GUI into data and runtime classes
     // NOTE: when reading from a save state we read control refs into an external array,
@@ -459,8 +458,6 @@ void DrawDisabledEffect(Bitmap *ds, const Rect &rc);
 // Draw text aligned inside rectangle
 void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
                      const Rect &frame, FrameAlignment align);
-void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
-                     BlendMode blend_mode, const Rect &frame, FrameAlignment align);
 // Draw text aligned horizontally inside given bounds
 void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color, int x1,
                         int x2, int y, FrameAlignment align);
@@ -487,8 +484,6 @@ size_t SplitLinesForDrawing(const String &text, bool apply_direction, SplitLines
 // Reads all GUIs and their controls. Fills guis, guiobjs arrays and gui_version on success.
 HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVersion &gui_version,
                GUIRefCollection &guiobjs, Stream *in);
-// Writes all GUIs and their controls.
-void WriteGUI(const std::vector<GUIMain> &guis, const GUIRefCollection &guiobjs, Stream *out);
 
 // Rebuilds GUIs, connecting them to the child controls in memory.
 HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs);
@@ -525,4 +520,3 @@ extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfon
 
 extern void set_our_eip(int eip);
 extern void set_eip_guiobj(int eip);
-extern int get_eip_guiobj();

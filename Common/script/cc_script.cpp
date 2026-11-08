@@ -29,8 +29,6 @@ using namespace AGS::Common;
 // script file format signature
 const char scfilesig[5] = "SCOM";
 
-const std::string ccScript::noname = "";
-
 // ScriptExtReader reads script data's extension blocks
 class ScriptExtReader : public DataExtReader
 {
@@ -282,29 +280,6 @@ bool ccScript::Read(Stream *in)
 const std::string &ccScript::GetScriptName() const
 {
     return scriptname;
-}
-
-const std::string &ccScript::GetSectionName(int32_t offs) const
-{
-    size_t sect_idx = 0;
-    for (; sect_idx < sectionOffsets.size(); ++sect_idx)
-    {
-        if (sectionOffsets[sect_idx] < offs)
-            continue;
-        break;
-    }
-
-    // if no sections in script, return unknown
-    if (sect_idx == 0)
-        return noname;
-
-    return sectionNames[sect_idx - 1];
-}
-
-const std::string &ccScript::GetSectionOrScriptName(int32_t offset) const
-{
-    const auto &s = GetSectionName(offset);
-    return s.empty() ? GetScriptName() : s;
 }
 
 void ccScript::SetScriptName(const std::string &name)

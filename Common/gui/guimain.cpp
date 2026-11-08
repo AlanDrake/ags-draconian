@@ -655,32 +655,6 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     UpdateGraphicSpace();
 }
 
-void GUIMain::WriteToFile(Stream *out) const
-{
-    StrUtil::WriteString(_name, out);
-    StrUtil::WriteString(String(), out); // obsolete
-    out->WriteInt32(_x);
-    out->WriteInt32(_y);
-    out->WriteInt32(_width);
-    out->WriteInt32(_height);
-    out->WriteInt32(static_cast<uint32_t>(_ctrlRefs.size()));
-    out->WriteInt32(_popupStyle);
-    out->WriteInt32(_popupAtMouseY);
-    out->WriteInt32(_bgColor);
-    out->WriteInt32(_bgImage);
-    out->WriteInt32(_fgColor);
-    out->WriteInt32(_flags);
-    out->WriteInt32(_opacity);
-    out->WriteInt32(_zOrder);
-    out->WriteInt32(_id);
-    out->WriteInt32(_padding);
-    for (const auto &ref : _ctrlRefs)
-    {
-        uint32_t ref_packed = ((ref.first & 0xFFFF) << 16) | (ref.second & 0xFFFF);
-        out->WriteInt32(ref_packed);
-    }
-}
-
 void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver, std::vector<ControlRef> &ctrl_refs)
 {
     // Properties
@@ -1002,13 +976,6 @@ void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_colo
     wouttext_outline(ds, pos.Left, pos.Top, font, text_color, outline_color, kBlend_Normal, text.GetCStr());
 }
 
-void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
-                     BlendMode blend_mode, const Rect &frame, FrameAlignment align)
-{
-    Rect pos = CalcTextPosition(text, font, frame, align);
-    wouttext_outline(ds, pos.Left, pos.Top, font, text_color, outline_color, blend_mode, text.GetCStr());
-}
-
 void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color, int x1,
                         int x2, int y, FrameAlignment align)
 {
@@ -1191,54 +1158,6 @@ HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVe
     }
 
     return HError::None();
-}
-
-void WriteGUI(const std::vector<GUIMain> &guis, const GUIRefCollection &guiobjs, Stream *out)
-{
-    out->WriteInt32(GUIMAGIC);
-    out->WriteInt32(kGuiVersion_Current);
-    out->WriteInt32(static_cast<uint32_t>(guis.size()));
-
-    for (const auto &gui : guis)
-    {
-        gui.WriteToFile(out);
-    }
-    const auto &guibuts = guiobjs.Buttons;
-    out->WriteInt32(static_cast<int32_t>(guibuts.size()));
-    for (const auto &but : guibuts)
-    {
-        but.WriteToFile(out);
-    }
-    const auto &guilabels = guiobjs.Labels;
-    out->WriteInt32(static_cast<int32_t>(guilabels.size()));
-    for (const auto &label : guilabels)
-    {
-        label.WriteToFile(out);
-    }
-    const auto &guiinv = guiobjs.InvWindows;
-    out->WriteInt32(static_cast<int32_t>(guiinv.size()));
-    for (const auto &inv : guiinv)
-    {
-        inv.WriteToFile(out);
-    }
-    const auto &guislider = guiobjs.Sliders;
-    out->WriteInt32(static_cast<int32_t>(guislider.size()));
-    for (const auto &slider : guislider)
-    {
-        slider.WriteToFile(out);
-    }
-    const auto &guitext = guiobjs.TextBoxes;
-    out->WriteInt32(static_cast<int32_t>(guitext.size()));
-    for (const auto &tb : guitext)
-    {
-        tb.WriteToFile(out);
-    }
-    const auto &guilist = guiobjs.ListBoxes;
-    out->WriteInt32(static_cast<int32_t>(guilist.size()));
-    for (const auto &list : guilist)
-    {
-        list.WriteToFile(out);
-    }
 }
 
 void SetExcludedFromDisabled(GUIControl *gc, bool on)

@@ -116,8 +116,6 @@ public:
     HError LoadSprite(sprkey_t index, PixelBuffer &sprite);
     // Loads a raw sprite element data into the buffer, stores header info separately
     HError LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector<uint8_t> &data);
-    // Loads all sprites's available metrics
-    HError LoadSpriteMetrics(std::vector<SpriteDatHeader> &metrics);
 
 private:
     HError OpenFileImpl(std::unique_ptr<Stream> &&sprite_file, std::unique_ptr<Stream> &&index_file,

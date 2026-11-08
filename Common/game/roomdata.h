@@ -373,13 +373,6 @@ public:
     // Gets this room's script name
     const String &GetScriptName() const { return ScriptName; }
 
-    // Gets bitmap of particular mask layer
-    const BitmapData &GetMask(RoomAreaMask mask) const;
-    // Assigns bitmap for the particular mask layer
-    void SetMask(RoomAreaMask mask, PixelBuffer &&pxbuf);
-    // Gets mask's scale relative to the room's background size
-    float GetMaskScale(RoomAreaMask mask) const;
-
     // TODO: see later whether it may be more convenient to move these to the Region class instead.
     // Gets if the given region has light level set
     bool HasRegionLightLevel(int id) const;

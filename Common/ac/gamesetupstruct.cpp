@@ -71,14 +71,6 @@ void GameSetupStruct::ReadInvInfo(Stream *in, GameDataVersion data_ver)
     }
 }
 
-void GameSetupStruct::WriteInvInfo(Stream *out)
-{
-    for (int i = 0; i < numinvitems; ++i)
-    {
-        invinfo[i].WriteToFile(out);
-    }
-}
-
 HGameFileError GameSetupStruct::read_cursors(Common::Stream *in)
 {
     mcurs.resize(numcursors);
@@ -121,14 +113,6 @@ void GameSetupStruct::ReadMouseCursors(Stream *in)
     }
 }
 
-void GameSetupStruct::WriteMouseCursors(Stream *out)
-{
-    for (int i = 0; i < numcursors; ++i)
-    {
-        mcurs[i].WriteToFile(out);
-    }
-}
-
 //-----------------------------------------------------------------------------
 // Reading Part 2
 
@@ -159,14 +143,6 @@ void GameSetupStruct::ReadCharacters(Stream *in, GameDataVersion data_ver)
     for (int i = 0; i < numcharacters; ++i)
     {
         chars[i].ReadFromFile(in, data_ver);
-    }
-}
-
-void GameSetupStruct::WriteCharacters(Stream *out)
-{
-    for (int i = 0; i < numcharacters; ++i)
-    {
-        chars[i].WriteToFile(out);
     }
 }
 
