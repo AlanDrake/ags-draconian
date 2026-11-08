@@ -1624,6 +1624,69 @@ See LOG.md for the details of the removal and its verification.
   savegame branches and versions below the 4.0 floor` (after the Engine one: its readers stop naming the Common
   enum values first), and this entry. The split was staged from the final tree; each commit was not built alone.
 
+*Status (2026-11-08): step 4, script API, done.* Three commits:
+- **Finding: the script API level is a project setting, not a data version**, so it has no 3.99 floor. A 4.0
+  project chooses any level from v321 to v400_33 (`Editor/AGS.Types/Enums/ScriptAPIVersion.cs`, lines 14 to 61, plus
+  `Highest`); `Tools/data/data_file_writer.cpp` writes the names to `game.options[OPT_BASESCRIPTAPI]` and
+  `[OPT_SCRIPTCOMPATLEV]` (547-548) through `kScriptAPINames` (`Common/ac/gamestructdefines.h:224`), whose every name
+  `Compiler/compiler.cpp` accepts (`MakeScriptAPIList`, 54) and turns into `SCRIPT_API_vXXX` / `SCRIPT_COMPAT_vXXX`
+  macros for `agsdefns.sh`. A 3.99+ game may so be compiled against any level, and C3 covers what it can link. Kept
+  therefore: the one level-gated registration (`RegisterGlobalAPI`, `global_api.cpp:886`, below v362) and the four
+  runtime switches on `OPT_BASESCRIPTAPI` (`game.cpp:1203` v363, `gamestate.cpp:252` v3507, `global_game.cpp:900`
+  v360; `game_init.cpp:509-513` only checks the range against `kScriptAPI_Current`); `agsdefns.sh`'s 302
+  `SCRIPT_API_v3*` and 22 `SCRIPT_COMPAT_v3*` mentions (282 and 16 below v399) are untouched. The plan's "registrations
+  only pre-3.99 scripts use" has no instance: `setup_script_exports` registers the same names at every level.
+- **The gate does not add names:** below v362 it binds `SaveGameSlot`, `RestoreGameDialog` and `SaveGameDialog` (no
+  `^N`: the old compiler gave non-member functions none) to `SaveGameSlot2` (no sprite argument),
+  `restore_game_dialog`, `save_game_dialog` (no slot range); from v362 to `SaveGameSlot`, `restore_game_dialog2`,
+  `save_game_dialog2`. The snapshot holds the names, so it cannot see the gate.
+- **Deleted, Engine** (29 lines, 4 files; `Engine/ac/character.cpp` −11, `global_api.cpp` −6, `walkablearea.cpp` −5,
+  `walkbehind.cpp` −7): the script-API wrappers that nothing registers or names, found by a sweep of the 1607
+  `RuntimeScriptValue Sc_*(` definitions in `Engine/**/*.cpp` (46 files) for a `Sc_X` with no other occurrence in the
+  tracked tree and no `API_FN_PAIR(X)` (the only `Sc_##` macro); the 16 `ScPl_*` wrappers are all registered. Four,
+  each with its history (`git log -S`): `Sc_Character_GetHasExplicitTint_Old` and `Character_GetHasExplicitTint_Old`
+  (its only caller; registered below `kScriptAPI_v341` until upstream's 1295db018, 2023-05-18, before the fork point,
+  bound every level to `Character_GetHasExplicitTint`); `Sc_free_dynamic_sprite` (it was `DeleteSprite`, whose
+  registration upstream's 5e852ea37, 2025-02-04, removed; `free_dynamic_sprite` stays, 12 callers);
+  `Sc_Walkarea_GetDrawingSurface` and `Sc_Walkbehind_GetDrawingSurface` (added unregistered by upstream's b4f32fba4,
+  2024-01-21: the tables bind `GetDrawingSurface` to `API_FN_PAIR(GetDrawingSurfaceFor*)`; the walk-behind one called
+  the walkable-area function), with `walkbehind.cpp`'s `extern` of `Sc_GetDrawingSurfaceForWalkableArea`, used by it
+  only. A second sweep, for functions in `Engine/ac/**/*.cpp` whose name occurs once in the tree (no header, no
+  caller, no string), found none.
+- **Test:** `ScriptExports.OldApiLevelsKeepTheirSaveFunctions` registers the API at every level of `kScriptAPINames`
+  and compares each name's binding (the script function and the plugin one) with `kScriptAPI_Current`'s: the same
+  names at every level, the three above bound differently below v362 and nothing else at any level; the plugin
+  functions at v321 and at Current are the six named above. With the gate set to never apply (`< v321`) it fails for
+  v321 to v361 while `MatchSnapshot` and `ReleaseExportsResolve` still pass.
+- Measured: `Engine/test/data/script_exports.txt` unchanged (`MatchSnapshot`, `ReleaseExportsResolve` pass);
+  `kScriptAPI_` comparisons in Engine outside the tests 7 lines in 5 files before and after; `legacy version checks`
+  not affected (it counts `kGameVersion_` only; none in the diff). `prepush.py --auto`, every stage: format 1989
+  files, buildlists, CMake build with warnings as errors and ctest 1170 of 1170 (two `ScriptBytecode` tests skip, one
+  `NearestWalkablePoint` test is disabled), headers, libc++ 343 headers, emscripten, the Linux GCC job 1170 of 1170,
+  the five MSBuild solutions (Compiler.Lib.Test 598, Common.Lib.Test 135, Engine.App.Test 51, Engine.Full.Test 116,
+  Tools.Test 267; the editor's NUnit 556 of 562, 6 skipped); tidy on changed lines found two braces in the new test,
+  fixed, then clean (format, build and tidy rerun). The auto-test game 2414 of 2414 (built by `agsbuild` from the tag
+  `draconian-auto-test-1`, run by this build's `ags.exe` with the software driver).
+  `compare_objects.py HEAD` (MSVC MinSizeRel): 637 objects identical, the four `Engine/ac` objects and the test's
+  differ; the tool has no "deletion only" verdict, so their disassembly was compared function by function (its
+  normalisation, a scratchpad helper over the kept base objects): character 992 → 990, global_api 228 → 227,
+  walkablearea 71 → 70, walkbehind 128 → 127 functions, the missing ones exactly the five deleted, no function
+  changed or added.
+- Found, not touched: 20 snapshot names whose identifier `agsdefns.sh` declares at no level (`AudioChannel::SetSpeed^1`,
+  `Button`/`Label`/`TextBox::GetText^1`, `Character`/`Hotspot`/`InventoryItem`/`Object::GetPropertyText^2`,
+  `DrawingSurface::SetPixel^3`, `File::ReadRawLine^1`, `File::ReadString^1`, `GetWalkableAreaAt`, `InterfaceOff`,
+  `InterfaceOn`, `InventoryItem::SetName^1`, `ListBox::GetItemText^2`, `ListBox::SetItemText^2`,
+  `SystemInfo::get_Version`, and the compiler's two `__Builtin_DynamicArray*` names, which it emits itself; a word
+  match, not a parse): the 4.0.0.30 release registers them, so only compiled games that use them know whether any
+  does; removing them is a C3 change. `RegisterSpeechAPI` names a `base_api` parameter it does not use (the
+  others comment theirs out); `global_api.cpp` still includes `ac/dynamicsprite.h`, which it needed for
+  `free_dynamic_sprite` and which brings the `ScriptDrawingSurface` it uses.
+- Not verified: macOS, iOS, Android, FreeBSD and the Debian 10 builder image; the auto-test game with the hardware
+  drivers; a game compiled below v362 (the bindings are checked by the test, not by running such a game); each
+  proposed commit on its own (only the final tree was built).
+- Commits: `Engine: [delete] script API wrappers that nothing registers (3.4-4)` (the four `Engine/ac` files),
+  `Engine: test the script API level gate (3.4-4)` (`script_exports_test.cpp`), and this entry.
+
 *Moved from PLAN.md on 2026-11-08 (the plan's text as it stood):*
 
   2. **Room files.** The enum holds `3508 = 33`, `399 = 40`, `363_06 = 36306`, `363_15 = 36315`, then
@@ -1644,6 +1707,11 @@ See LOG.md for the details of the removal and its verification.
 
   3. **Savegames.** Raise `kSvgVersion_LowestSupported` (now `kSvgVersion_Components`, a 3.x version)
      to the oldest a 3.99 engine writes; delete the branches below.
+
+*Moved from PLAN.md on 2026-11-08 (the plan's text as it stood):*
+
+  4. **Script API.** Delete `*_Old` variants (`Character_GetHasExplicitTint_Old`) and registrations
+     only pre-3.99 scripts use, checking the C3 snapshot after each: what 3.99+ games call stays.
 
 ### 7.1 Make the C++ tools the only build path
 
