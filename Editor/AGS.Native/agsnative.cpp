@@ -3132,7 +3132,7 @@ System::String ^load_room_script(System::String ^fileName)
             return nullptr; // simply did not find the script text
     }
     if (!err)
-        quit(AGSString::FromFormat("Unable to load room script source from '%s', error was:\r\n%s", roomFileName.GetCStr(), err->FullMessage()));
+        quit(AGSString::FromFormat("Unable to load room script source from '%s', error was:\r\n%s", roomFileName.GetCStr(), err->FullMessage().GetCStr()));
 
 	return gcnew String(scriptText.GetCStr(), 0, scriptText.GetLength(), System::Text::Encoding::Default);;
 }
