@@ -121,8 +121,6 @@ private:
 RoomStatus *GetRoomState(int room);
 // Retrieves a existing room's runtime state; returns null if one was not allocated
 RoomStatus *GetRoomStateIfExists(int room);
-// Checks whether the room state exists.
-bool IsRoomStateValid(int room);
 // Deletes particular room's runtime state. This will make the game forget about
 // what happened in that room, and make it start anew whenever player enters it again.
 void ResetRoomState(int room);

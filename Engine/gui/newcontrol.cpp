@@ -18,19 +18,6 @@
 
 extern int topwindowhandle;
 
-NewControl::NewControl(int xx, int yy, int wi, int hi)
-{
-    x = xx;
-    y = yy;
-    wid = wi;
-    hit = hi;
-    state = 0;
-    typeandflags = 0;
-    wlevel = 0;
-    visible = 1;
-    enabled = 1;
-    needredraw = 1;
-};
 NewControl::NewControl()
 {
     x = y = wid = hit = 0;

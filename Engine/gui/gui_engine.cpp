@@ -53,11 +53,6 @@ void set_eip_guiobj(int eip)
     eip_guiobj = eip;
 }
 
-int get_eip_guiobj()
-{
-    return eip_guiobj;
-}
-
 namespace AGS
 {
 namespace Common

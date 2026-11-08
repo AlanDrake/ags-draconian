@@ -772,7 +772,6 @@ public:
     String GetDefaultFilterID() const override;
 
     static D3D11GraphicsFactory *GetFactory();
-    static D3D11GraphicsDriver *GetD3D11Driver();
 
 private:
     D3D11GraphicsFactory() = default;

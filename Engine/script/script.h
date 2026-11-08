@@ -162,9 +162,6 @@ bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, 
 // uses default script module for the given "script type".
 bool RunScriptFunctionAuto(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
                            const RuntimeScriptValue *params = nullptr);
-// Try to run a script function on a non-blocking thread
-RunScFuncResult RunScriptFunctionNonBlocking(ScriptType sc_type, const ScriptFunctionRef &fn_ref,
-                                             size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
 
 // Allocates script executor and standard threads
 void InitScriptExec();
@@ -189,8 +186,6 @@ void FreeAllScripts();
 
 //=============================================================================
 
-// Makes a old-style interaction function name (for interaction list "run script" command)
-String make_interact_func_name(const String &base, int param, int subd);
 // Performs various updates to the game after script interpreter returns control to the engine.
 // Executes scheduled commands and does changes that are not executed immediately during script
 // (either for logical reasons, and for optimization).

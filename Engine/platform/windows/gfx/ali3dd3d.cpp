@@ -949,11 +949,6 @@ bool D3DGraphicsDriver::CreateStandardShaders()
     return _tintShader->IsValid();
 }
 
-void D3DGraphicsDriver::DeleteShaders()
-{
-    _tintShader = nullptr;
-}
-
 bool D3DGraphicsDriver::CreateShaderProgram(D3DShader::ProgramData &prg, const String &name, const uint8_t *data_ptr)
 {
     D3DPixelShaderPtr shader_ptr;
@@ -2208,14 +2203,6 @@ void D3DGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *heig
     *height = allocatedHeight;
 }
 
-bool D3DGraphicsDriver::IsTextureFormatOk(D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat)
-{
-    HRESULT hr = direct3d->CheckDeviceFormat(direct3dcreateparams.AdapterOrdinal, D3DDEVTYPE_HAL, AdapterFormat, 0,
-                                             D3DRTYPE_TEXTURE, TextureFormat);
-
-    return SUCCEEDED(hr);
-}
-
 IDriverDependantBitmap *D3DGraphicsDriver::CreateDDB()
 {
     return new D3DBitmap();
@@ -2551,15 +2538,6 @@ String D3DGraphicsFactory::GetDefaultFilterID() const
         }
     }
     return _factory;
-}
-
-/* static */ D3DGraphicsDriver *D3DGraphicsFactory::GetD3DDriver()
-{
-    if (!_factory)
-        _factory = GetFactory();
-    if (_factory)
-        return _factory->EnsureDriverCreated();
-    return nullptr;
 }
 
 

@@ -58,4 +58,3 @@ String make_scaling_option(FrameScaleDef scale_def);
 String make_speechskip_option(SkipSpeechStyle style);
 String make_speechmode_option(SpeechMode mode);
 uint32_t convert_scaling_to_fp(int scale_factor);
-int convert_fp_to_scaling(uint32_t scaling);

@@ -273,8 +273,6 @@ TEST(MoveList, ResetToStageAndProgress)
     mls.ResetToStage(1, 0.5f);
     EXPECT_EQ(1u, mls.GetStage());
     EXPECT_EQ(Point(10, 5), mls.GetCurrentPos());
-    mls.SetStageProgress(0.2f);
-    EXPECT_EQ(Point(10, 2), mls.GetCurrentPos());
     mls.ResetToEnd();
     EXPECT_EQ(Point(10, 10), mls.GetCurrentPos());
     mls.ResetToBegin();

@@ -29,7 +29,6 @@ struct NewControl
     virtual int pressedon(int mx, int my) = 0;
     virtual int processmessage(int, int, intptr_t) = 0;
 
-    NewControl(int xx, int yy, int wi, int hi);
     NewControl();
     virtual ~NewControl() = default;
     int mouseisinarea(int mx, int my);

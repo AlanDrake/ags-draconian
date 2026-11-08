@@ -38,10 +38,6 @@ extern const String GameSavedgamesDirToken;
 extern const String GameDataDirToken;
 extern const String DefaultConfigFileName;
 
-// Subsitutes illegal characters with '_'. This function uses illegal chars array
-// specific to current platform.
-void FixupFilename(char *filename);
-
 // FSLocation describes a file system location defined by two parts:
 // a secure path that engine does not own, and sub-path that it owns.
 // The meaning of this is that engine is only allowed to create
@@ -69,7 +65,6 @@ struct FSLocation
 // Tests the input path, if it's an absolute path then returns it unchanged;
 // if it's a relative path then resolves it into absolute, using install dir as a base.
 String PathFromInstallDir(const String &path);
-FSLocation PathFromInstallDir(const FSLocation &fsloc);
 // Makes sure that given system location is available, makes directories if have to (and if it's allowed to)
 // Returns full file path on success, empty string on failure.
 String PreparePathForWriting(const FSLocation &fsloc, const String &filename);

@@ -34,11 +34,6 @@ VideoPlayer::~VideoPlayer()
     Stop();
 }
 
-HError VideoPlayer::Open(std::unique_ptr<Common::Stream> data_stream, const String &name, int flags)
-{
-    return Open(std::move(data_stream), name, flags, Size(), 0);
-}
-
 HError VideoPlayer::Open(std::unique_ptr<Common::Stream> data_stream, const String &name, int flags,
                          const Size &target_sz, int target_depth, float target_fps)
 {

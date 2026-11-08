@@ -81,6 +81,5 @@ const std::vector<AnimatedOverlay> &GetAnimatedOverlays();
 bool IsOverlayAnimating(int over_id);
 AnimatedOverlay *GetOverlayAnimation(int over_id);
 void UpdateOverlayAnimations();
-void StopOverlayAnimation(int over_id);
 void RemoveAnimatedOverlay(int over_id);
 void RemoveAllAnimatedOverlays();

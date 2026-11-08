@@ -122,13 +122,6 @@ bool SDLDecoder::Open(float pos_ms)
     return true;
 }
 
-void SDLDecoder::Close()
-{
-    _sample.reset();
-    _rwops = nullptr; // rwops was closed by the Sound_NewSample
-    _sampleData = nullptr;
-}
-
 float SDLDecoder::Seek(float pos_ms)
 {
     if (!_sample || pos_ms < 0.f)

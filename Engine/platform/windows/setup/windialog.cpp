@@ -58,11 +58,6 @@ void WinDialog::CreateModeless(HWND parent_hwnd)
     CreateDialogIndirectParamW(hinst, dlgtempl, parent_hwnd, (DLGPROC)WinDialog::DialogProc, (LONG_PTR)this);
 }
 
-void WinDialog::Show()
-{
-    ShowWindow(_hwnd, SW_SHOW);
-}
-
 void WinDialog::Show(HWND insert_after, const Rect &pos)
 {
     ShowWindow(_hwnd, SW_SHOW);

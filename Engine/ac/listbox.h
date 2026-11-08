@@ -43,5 +43,3 @@ void ListBox_SetTopItem(GUIListBox *guisl, int item);
 int ListBox_GetRowCount(GUIListBox *listbox);
 void ListBox_ScrollDown(GUIListBox *listbox);
 void ListBox_ScrollUp(GUIListBox *listbox);
-
-GUIListBox *is_valid_listbox(int guin, int objn);

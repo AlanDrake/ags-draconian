@@ -1333,11 +1333,6 @@ void invalidate_screen()
     invalidate_all_rects();
 }
 
-void invalidate_camera_frame(int index)
-{
-    invalidate_all_camera_rects(index);
-}
-
 void invalidate_rect(int x1, int y1, int x2, int y2, bool in_room)
 {
     invalidate_rect_ds(x1, y1, x2, y2, in_room);
@@ -1633,23 +1628,6 @@ static void draw_sprite_list()
 void put_sprite_list_on_screen(bool in_room);
 //
 //------------------------------------------------------------------------
-
-void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
-{
-    // Repair the alpha channel, because sprites may have been drawn
-    // over it by the buttons, etc
-    int theWid = (dest->GetWidth() < bgpic->GetWidth()) ? dest->GetWidth() : bgpic->GetWidth();
-    int theHit = (dest->GetHeight() < bgpic->GetHeight()) ? dest->GetHeight() : bgpic->GetHeight();
-    for (int y = 0; y < theHit; y++)
-    {
-        unsigned int *destination = ((unsigned int *)dest->GetScanLineForWriting(y));
-        unsigned int *source = ((unsigned int *)bgpic->GetScanLineForWriting(y));
-        for (int x = 0; x < theWid; x++)
-        {
-            destination[x] |= (source[x] & 0xff000000);
-        }
-    }
-}
 
 
 // used by GUI renderer to draw images

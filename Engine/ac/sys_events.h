@@ -138,8 +138,6 @@ eAGSMouseButton sdl_mbut_to_ags_but(int sdl_mbut);
 bool ags_misbuttondown(eAGSMouseButton but);
 // Tells if any of the mouse buttons is currently down
 bool ags_misanybuttondown();
-// Returns recent relative mouse movement; resets accumulated values
-void ags_mouse_acquire_relxy(int &x, int &y);
 // Updates mouse cursor position in game
 void ags_domouse();
 // Returns -1 for wheel down and +1 for wheel up

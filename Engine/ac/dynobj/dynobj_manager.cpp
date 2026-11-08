@@ -67,12 +67,6 @@ int32_t ccRegisterPersistentObjectIfMissing(void *object, IScriptObject *callbac
     return ccRegisterPersistentObject(object, callback);
 }
 
-// unregister a particular object
-int ccUnRegisterManagedObject(void *object)
-{
-    return pool.RemoveObject(object);
-}
-
 // remove all registered objects
 void ccUnregisterAllObjects()
 {

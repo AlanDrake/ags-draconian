@@ -90,9 +90,6 @@ int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxD
 void update_directional_sound_vol();
 // Tells if the audio type is allowed to play with regards to current sound config
 bool is_audiotype_allowed_to_play(AudioFileType type);
-// Loads sound data referenced by audio clip item, and starts playback;
-// returns NULL on failure
-std::unique_ptr<SoundClip> load_sound_and_play(const ScriptAudioClip *aclip, bool repeat);
 void stop_all_sound_and_music();
 void shutdown_sound();
 

@@ -234,15 +234,6 @@ ScriptShaderProgram *ScriptShaderInstance::GetScriptShader() const
     return _scriptShader;
 }
 
-void ScriptShaderInstance::SetConstantData(const String &name, float value[4], uint32_t size)
-{
-    if (!_scriptShader)
-        return;
-
-    uint32_t index = _scriptShader->SetConstant(name);
-    SetConstantData(index, value, size);
-}
-
 void ScriptShaderInstance::SetConstantData(uint32_t index, float value[4], uint32_t size)
 {
     if (_constData.size() <= index)

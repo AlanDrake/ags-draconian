@@ -670,14 +670,6 @@ static void on_sdl_mouse_wheel(const SDL_MouseWheelEvent &event)
     sys_mouse_z += event.y;
 }
 
-void ags_mouse_acquire_relxy(int &x, int &y)
-{
-    x = mouse_accum_relx;
-    y = mouse_accum_rely;
-    mouse_accum_relx = 0;
-    mouse_accum_rely = 0;
-}
-
 void ags_domouse()
 {
     Mouse::Poll();

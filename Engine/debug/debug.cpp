@@ -74,13 +74,6 @@ IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
     return new NamedPipesAGSDebugger(instanceToken);
 }
 
-#else // AGS_PLATFORM_OS_WINDOWS
-
-IAGSEditorDebugger *GetEditorDebugger(const char * /*instanceToken*/)
-{
-    return nullptr;
-}
-
 #endif
 
 int debug_flags = 0;

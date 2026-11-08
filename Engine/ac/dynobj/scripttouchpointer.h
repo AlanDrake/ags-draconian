@@ -21,7 +21,6 @@ public:
     ScriptTouchPointer(int pointer_id) : _pointerID(pointer_id) {}
 
     int GetPointerID() const { return _pointerID; }
-    void Invalidate() { _pointerID = -1; }
 
     const char *GetType() override;
     int Dispose(void *address, bool force) override;

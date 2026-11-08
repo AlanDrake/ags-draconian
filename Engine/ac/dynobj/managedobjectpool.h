@@ -111,8 +111,6 @@ public:
     void *HandleToAddress(int32_t handle);
     IScriptObject *AddressToManager(void *addr);
     ScriptValueType HandleToAddressAndManager(int32_t handle, void *&object, IScriptObject *&manager);
-    // Forcefully remove the object, regardless of the current ref count
-    int RemoveObject(void *address);
     void RunGarbageCollectionIfAppropriate();
     int AddObject(void *address, IScriptObject *callback, ScriptValueType obj_type, bool persistent);
     int AddUnserializedObject(void *address, IScriptObject *callback, int handle, ScriptValueType obj_type,

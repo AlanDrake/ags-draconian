@@ -79,7 +79,6 @@ class ScriptThread
     using String = Common::String;
 
 public:
-    ScriptThread();
     ScriptThread(const String &name);
 
     typedef RuntimeScriptValue Registers[CC_NUM_REGISTERS];

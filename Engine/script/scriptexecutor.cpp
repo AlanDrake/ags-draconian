@@ -72,11 +72,6 @@ static String FormatCallStack(const ScriptExecPosition &pos, const std::deque<Sc
 #define MAX_CALL_STACK     128
 
 
-ScriptThread::ScriptThread()
-{
-    Alloc();
-}
-
 ScriptThread::ScriptThread(const String &name) : _name(name)
 {
     Alloc();

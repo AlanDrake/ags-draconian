@@ -222,11 +222,6 @@ int GamePlayState::RoomToScreenX(int roomx)
     return _roomViewports[0]->RoomToScreen(roomx, 0, false).first.X;
 }
 
-int GamePlayState::RoomToScreenY(int roomy)
-{
-    return _roomViewports[0]->RoomToScreen(0, roomy, false).first.Y;
-}
-
 VpPoint GamePlayState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport)
 {
     PViewport view;

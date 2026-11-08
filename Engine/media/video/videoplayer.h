@@ -92,8 +92,6 @@ class VideoPlayer
 public:
     virtual ~VideoPlayer();
 
-    // Tries to init a video playback reading from the given stream
-    Common::HError Open(std::unique_ptr<Common::Stream> data_stream, const String &name, int flags);
     Common::HError Open(std::unique_ptr<Common::Stream> data_stream, const String &name, int flags,
                         const Size &target_sz, int target_depth = 0, float target_fps = 0.f);
     // Tells if the videoplayer object is valid and ready to render

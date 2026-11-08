@@ -270,11 +270,3 @@ void quit(const char *quitmsg)
     set_our_eip(9904);
     exit(EXIT_NORMAL);
 }
-
-extern "C"
-{
-    void quit_c(char *msg)
-    {
-        quit(msg);
-    }
-}

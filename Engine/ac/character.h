@@ -63,7 +63,6 @@ void Character_SayAt(CharacterInfo *chaa, int x, int y, int width, const char *t
 ScriptOverlay *Character_SayBackground(CharacterInfo *chaa, const char *texx);
 void Character_SetAsPlayer(CharacterInfo *chaa);
 void Character_SetIdleView(CharacterInfo *chaa, int iview, int itime);
-void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno);
 void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed);
 void Character_StopMoving(CharacterInfo *charp);
 void Character_StopMovingEx(CharacterInfo *charp, bool force_walkable_area);
@@ -199,8 +198,6 @@ void move_character(CharacterInfo *chaa, const std::vector<Point> &path, bool wa
 void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim);
 // Start character walk; calculate path using destination and optionally "ignore walls" flag
 void walk_character(CharacterInfo *chaa, int tox, int toy, bool ignwal);
-// Start character walk the straight line until any non-passable area is met
-void walk_character_straight(CharacterInfo *chaa, int tox, int toy);
 void MoveCharacterToHotspot(int chaa, int hotsp);
 int wantMoveNow(CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);

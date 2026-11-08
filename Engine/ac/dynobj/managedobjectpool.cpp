@@ -195,24 +195,6 @@ ScriptValueType ManagedObjectPool::HandleToAddressAndManager(int32_t handle, voi
     return o.obj_type;
 }
 
-int ManagedObjectPool::RemoveObject(void *address)
-{
-    if (address == nullptr)
-    {
-        return 0;
-    }
-    auto it = handleByAddress.find(address);
-    if (it == handleByAddress.end())
-    {
-        return 0;
-    }
-
-    auto &o = objects[it->second];
-    if ((o.gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) == 0)
-        gcUsedList.erase(o.gcItUsed);
-    return Remove(o, true);
-}
-
 void ManagedObjectPool::RunGarbageCollectionIfAppropriate()
 {
     if (objectCreationCounter <= GARBAGE_COLLECTION_INTERVAL)

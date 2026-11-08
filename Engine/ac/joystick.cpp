@@ -98,23 +98,6 @@ SDL_GameControllerButton Gamepad_Button_AGStoSDL(eAGSGamepad_Button ags_button)
     return SDL_CONTROLLER_BUTTON_INVALID;
 }
 
-eAGSJoystick_Hat Joystick_Hat_SDLtoAGS(uint8_t sdl_hat)
-{
-    switch (sdl_hat)
-    {
-    case SDL_HAT_CENTERED: return eAGSJoystick_HatCentered;
-    case SDL_HAT_UP: return eAGSJoystick_HatUp;
-    case SDL_HAT_RIGHT: return eAGSJoystick_HatRight;
-    case SDL_HAT_DOWN: return eAGSJoystick_HatDown;
-    case SDL_HAT_LEFT: return eAGSJoystick_HatLeft;
-    case SDL_HAT_RIGHTUP: return eAGSJoystick_HatRightUp;
-    case SDL_HAT_RIGHTDOWN: return eAGSJoystick_HatRightDown;
-    case SDL_HAT_LEFTUP: return eAGSJoystick_HatLeftUp;
-    case SDL_HAT_LEFTDOWN: return eAGSJoystick_HatLeftDown;
-    }
-    return eAGSJoystick_HatCentered;
-}
-
 uint8_t Joystick_Hat_AGStoSDL(eAGSJoystick_Hat ags_hat)
 {
     switch (ags_hat)

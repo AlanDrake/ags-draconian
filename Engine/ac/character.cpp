@@ -1046,23 +1046,6 @@ int Character_GetTintLuminance(CharacterInfo *ch)
     return ch->has_explicit_tint() ? charextra[ch->index_id].tint_light : 0;
 }
 
-void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno)
-{
-    if ((yesorno < 0) || (yesorno > 1))
-        quit("!SetCharacterProperty: last parameter must be 0 or 1");
-
-    if (flag & CHF_MANUALSCALING)
-    {
-        Character_SetManualScaling(chaa, yesorno);
-    }
-    else
-    {
-        chaa->flags &= ~flag;
-        if (yesorno)
-            chaa->flags |= flag;
-    }
-}
-
 void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed)
 {
     if ((xspeed == 0) || (yspeed == 0))
@@ -2815,11 +2798,6 @@ void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim)
 void walk_character(CharacterInfo *chaa, int tox, int toy, bool ignwal)
 {
     move_character(chaa, tox, toy, ignwal, true /* animate */);
-}
-
-void walk_character_straight(CharacterInfo *chaa, int x, int y)
-{
-    move_character_straight(chaa, x, y, true /* animate */);
 }
 
 void MoveCharacterToHotspot(int chaa, int hotsp)

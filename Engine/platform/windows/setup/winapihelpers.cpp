@@ -122,11 +122,6 @@ int InsertString(HWND hwnd, LPCSTR text, int at_index, DWORD_PTR data)
 //
 //=============================================================================
 
-int GetItemCount(HWND hwnd)
-{
-    return SendMessage(hwnd, CB_GETCOUNT, 0, 0L);
-}
-
 int GetCurSel(HWND hwnd)
 {
     return SendMessage(hwnd, CB_GETCURSEL, 0, 0);

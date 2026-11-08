@@ -40,8 +40,6 @@ namespace ALSW
 
 using namespace Common;
 
-static uint32_t _trans_alpha_blender32(uint32_t x, uint32_t y, uint32_t n);
-
 
 // ----------------------------------------------------------------------------
 // SDLRendererGraphicsDriver
@@ -859,28 +857,6 @@ bool SDLRendererGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, c
         destination->StretchBlt(virtualScreen, copy_from, RectWH(destination->GetSize()));
     }
     return true;
-}
-
-// add the alpha values together, used for compositing alpha images
-// TODO: why is this here, move to gfx/blender? check if there's already similar function there
-static uint32_t _trans_alpha_blender32(uint32_t x, uint32_t y, uint32_t n)
-{
-    uint32_t res, g;
-
-    n = (n * geta32(x)) / 256;
-
-    if (n)
-        n++;
-
-    res = ((x & 0xFF00FF) - (y & 0xFF00FF)) * n / 256 + y;
-    y &= 0xFF00;
-    x &= 0xFF00;
-    g = (x - y) * n / 256 + y;
-
-    res &= 0xFF00FF;
-    g &= 0xFF00;
-
-    return res | g;
 }
 
 bool SDLRendererGraphicsDriver::SetVsyncImpl(bool enabled, bool &vsync_res)

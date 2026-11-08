@@ -591,13 +591,6 @@ static bool RunUnclaimableEvent(const String &tsname)
     return RunEventInModules(tsname, 0, nullptr, false);
 }
 
-// Run a single event callback, look for it in all script modules, *excluding* room;
-// break after the first run callback, or in case of certain changes to the game state
-static bool RunSingleEvent(const String &tsname, size_t param_count, const RuntimeScriptValue *params)
-{
-    return RunEventInModules(tsname, param_count, params, true);
-}
-
 // Run a single event callback in the specified script module;
 // if the name is not provided, then tries to run it in global script.
 static bool RunEventInModule(const ScriptFunctionRef &fn_ref, size_t param_count, const RuntimeScriptValue *params)
@@ -668,32 +661,6 @@ bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, 
     return RunEventInModule(fn_ref, param_count, params);
 }
 
-// TODO: merge this function with DoRunScriptFuncCantBlock
-RunScFuncResult RunScriptFunctionNonBlocking(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count,
-                                             const RuntimeScriptValue *params)
-{
-    auto *script = GetScriptInstance(sc_type, fn_ref.ModuleName);
-
-    no_blocking_functions++;
-    const ScriptExecError result =
-        scriptExecutor->Run(scriptThreadNonBlocking.get(), script, fn_ref.FuncName, params, param_count);
-
-    if ((result != kScExecErr_None) && (result != kScExecErr_FuncNotFound) && (result != kScExecErr_Aborted))
-    {
-        quit_with_script_error(fn_ref.FuncName);
-    }
-
-    // this might be nested, so don't disrupt blocked scripts
-    cc_clear_error();
-    no_blocking_functions--;
-
-    // Convert any instance exec error into RunScriptFunction result;
-    // NOTE: only kScExecErr_FuncNotFound and kScExecErr_Aborted can reach here
-    if (result == kScExecErr_FuncNotFound)
-        return kScFnRes_NotFound;
-    return kScFnRes_Done;
-}
-
 void InitScriptExec()
 {
     scriptExecutor = std::make_unique<ScriptExecutor>();
@@ -752,15 +719,6 @@ void FreeAllScripts()
 }
 
 //=============================================================================
-
-String make_interact_func_name(const String &base, int param, int subd)
-{
-    // This will result in a name like "baseX_Y",
-    // where 'X' is defined by "param" and 'Y' defined by "subd"
-    String fname = String::FromFormat(base.GetCStr(), param);
-    fname.AppendFmt("_%c", 'a' + subd);
-    return fname;
-}
 
 void PostScriptProcessing()
 {

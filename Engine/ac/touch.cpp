@@ -50,20 +50,6 @@ struct TouchPointer
 
 std::vector<TouchPointer> g_TouchPointers;
 
-static void DetachScriptTouchPointer(TouchPointer &tp)
-{
-    if (tp.ScriptObjHandle > 0)
-    {
-        ScriptTouchPointer *stp = static_cast<ScriptTouchPointer *>(ccGetObjectAddressFromHandle(tp.ScriptObjHandle));
-        if (stp)
-        {
-            stp->Invalidate();
-            ccReleaseObjectReference(tp.ScriptObjHandle);
-        }
-        tp.ScriptObjHandle = 0;
-    }
-}
-
 static void OnTouchPointer(int pointer_id, TouchPhase phase, const Point &position)
 {
     assert(pointer_id >= 0);
@@ -73,7 +59,7 @@ static void OnTouchPointer(int pointer_id, TouchPhase phase, const Point &positi
     g_TouchPointers.resize(std::max(static_cast<size_t>(pointer_id) + 1, g_TouchPointers.size()));
     // NOTE: if we decide to detach script object when the pointer gets
     // to a particular state (e.g. "up", or "inactive"), then here is the
-    // place to do so. See DetachScriptTouchPointer().
+    // place to do so (release the pointer's ScriptObjHandle).
     const int old_handle = g_TouchPointers[pointer_id].ScriptObjHandle;
     g_TouchPointers[pointer_id] = TouchPointer(pointer_id, phase, position, old_handle);
 }
@@ -99,15 +85,6 @@ void ResetAllTouchPointers()
     {
         tp.SetUndefinedState();
     }
-}
-
-void RemoveAllTouchPointers()
-{
-    for (auto &tp : g_TouchPointers)
-    {
-        DetachScriptTouchPointer(tp);
-    }
-    g_TouchPointers.clear();
 }
 
 int Touch_GetTouchPointerCount()

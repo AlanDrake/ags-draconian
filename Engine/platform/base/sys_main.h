@@ -47,8 +47,6 @@ int sys_main_init(/*config*/);
 void sys_set_config(const SystemConfig &cfg);
 // Configure the display size reference for the event handling system
 void sys_set_display_size_ref(const Size &mode);
-// Get system config
-const SystemConfig &sys_get_config();
 // Shutdown main backend system;
 // should be called last, after everything else backend related is shutdown.
 void sys_main_shutdown();

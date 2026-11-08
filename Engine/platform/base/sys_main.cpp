@@ -81,11 +81,6 @@ void sys_set_display_size_ref(const Size &mode)
     gl_SysConfig.DisplayMode = mode;
 }
 
-const SystemConfig &sys_get_config()
-{
-    return gl_SysConfig;
-}
-
 void sys_main_shutdown()
 {
     sys_window_destroy();

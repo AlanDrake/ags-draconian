@@ -53,11 +53,6 @@ bool ccAddExternalPluginFunction(const String &name, void *pfn)
     return simp.Add(name, RuntimeScriptValue().SetPluginFunction(pfn), nullptr) != UINT32_MAX;
 }
 
-bool ccAddExternalStaticArray(const String &name, void *ptr, CCStaticObjectArray *array_mgr)
-{
-    return simp.Add(name, RuntimeScriptValue().SetStaticArray(ptr, array_mgr), nullptr) != UINT32_MAX;
-}
-
 bool ccAddExternalScriptObject(const String &name, void *ptr, IScriptObject *manager)
 {
     return simp.Add(name, RuntimeScriptValue().SetScriptObject(ptr, manager), nullptr) != UINT32_MAX;
@@ -82,16 +77,6 @@ void ccRemoveExternalSymbol(const String &name)
 void ccRemoveAllSymbols()
 {
     simp.Clear();
-}
-
-void *ccGetSymbolAddress(const String &name)
-{
-    const ScriptImport *import = simp.GetByName(name);
-    if (import)
-    {
-        return import->Value.Ptr;
-    }
-    return nullptr;
 }
 
 void *ccGetSymbolAddressForPlugin(const String &name)

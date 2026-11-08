@@ -49,23 +49,11 @@ protected:
 
     void TearDown() override
     {
-        for (int handle : _created)
-        {
-            void *addr = pool.HandleToAddress(handle);
-            if (addr)
-                pool.RemoveObject(addr);
-        }
+        pool.Reset();
         cc_clear_error();
     }
 
-    DynObjectRef NewObject(size_t size = 8)
-    {
-        DynObjectRef ref = ScriptUserObject::Create(AGS::RTTI::NoType, size);
-        _created.push_back(ref.Handle());
-        return ref;
-    }
-
-    std::vector<int> _created;
+    DynObjectRef NewObject(size_t size = 8) { return ScriptUserObject::Create(AGS::RTTI::NoType, size); }
 };
 
 TEST_F(ManagedPool, ObjectHasAHandleAndAnAddress)
@@ -146,7 +134,6 @@ TEST_F(ManagedPool, ArrayOfPointersReleasesItsElements)
 {
     // int-sized slots that hold object handles, as script arrays of pointers do
     const DynObjectRef array = CCDynamicArray::CreateOld(2, sizeof(int32_t), true);
-    _created.push_back(array.Handle());
     ASSERT_GT(array.Handle(), 0);
     const DynObjectRef first = NewObject();
     const DynObjectRef second = NewObject();
@@ -172,7 +159,6 @@ TEST_F(ManagedPool, ArrayOfPointersReleasesItsElements)
 TEST_F(ManagedPool, ElementWithAnotherReferenceOutlivesTheArray)
 {
     const DynObjectRef array = CCDynamicArray::CreateOld(1, sizeof(int32_t), true);
-    _created.push_back(array.Handle());
     const DynObjectRef kept = NewObject();
     Memory::WriteInt32LE(array.Obj(), kept.Handle());
     ccAddObjectReference(kept.Handle()); // the array's
@@ -189,7 +175,6 @@ TEST_F(ManagedPool, ElementWithAnotherReferenceOutlivesTheArray)
 TEST_F(ManagedPool, ArrayHeaderHasCountAndSize)
 {
     const DynObjectRef array = CCDynamicArray::CreateOld(5, 12, false);
-    _created.push_back(array.Handle());
     const auto &hdr = CCDynamicArray::GetHeader(array.Obj());
     EXPECT_EQ(5u, hdr.ElemCount);
     EXPECT_EQ(60u, hdr.TotalSize);

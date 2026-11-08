@@ -110,8 +110,6 @@ public:
     void ResetToStage(int stage, float progress);
     // Set MoveList's progress to the given number of steps within the current stage
     void SetStageDoneSteps(float parts);
-    // Set MoveList's progress within the current stage [0.0; 1.0)
-    void SetStageProgress(float progress);
     // Increment current stage's progress, update object position;
     // if the stage is complete, then progress to the next stage;
     // do_step tells whether to do a +1 step, or only update position using current progress.

@@ -64,10 +64,6 @@ void UpdateCursorAndDrawables();
 void SyncDrawablesState();
 // Checks if currently in blocking action state (blocking action, or Wait called from script).
 bool IsInBlockingAction();
-// Checks if currently in waiting state, which is instigated from the script callback
-// (on the main script thread). This function is meant in case we need to know if it's
-// caused by the script command exactly, and we are hanging in script because of that.
-bool IsInWaitRunFromScript();
 // Shuts down game's waiting state, if one is running right now.
 void ShutGameWaitState();
 

@@ -95,8 +95,6 @@ void update_object_scale(int objid);
 // Deduces arbitrary object's scale, accounting for both manual scaling and the room region effects
 void update_object_scale(int &res_zoom, int &res_width, int &res_height, int objx, int objy, int sprnum, int own_zoom,
                          bool use_region_scaling);
-// Start moving object to the given destination, calculate path using destination and optionally "ignore walls" flag
-void move_object(int objj, int tox, int toy, int speed, bool ignwal);
 Rect get_object_blocking_rect(int objid);
 // xx,yy is the position in room co-ordinates that we are checking
 // arx,ary,spww,sphh are the sprite's bounding box (including sprite scaling);

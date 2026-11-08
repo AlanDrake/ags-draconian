@@ -59,25 +59,6 @@ static ALenum OpenAlFormatFromSDLFormat(const Sound_AudioInfo &input, Sound_Audi
     }
 }
 
-// Returns buffer duration in milliseconds
-static float GetBufferMs(ALuint buf_id)
-{
-    ALint size;
-    ALint chans;
-    ALint bits;
-    ALint freq;
-    alGetBufferi(buf_id, AL_SIZE, &size);
-    alGetBufferi(buf_id, AL_CHANNELS, &chans);
-    // IMPORTANT! mojoAL is *LYING* about buffer bitness, because it reports the one
-    // passed to alBufferData, but internally always works with Float32; therefore
-    // final samples found in the buffer are in float32!
-    //alGetBufferi(buf_id, AL_BITS, &bits);
-    bits = sizeof(ALfloat) * 8;
-    alGetBufferi(buf_id, AL_FREQUENCY, &freq);
-    auto num_samples = size * 8 / (chans * bits);
-    return 1000.0f * (float)num_samples / (float)freq;
-}
-
 // Internal OpenAl-related resources
 static struct
 {
@@ -316,11 +297,6 @@ void OpenAlSource::Pause()
         break;
     default: break;
     }
-}
-
-void OpenAlSource::Resume()
-{ // function is reserved, simply call Play() for now
-    Play();
 }
 
 void OpenAlSource::SetPlaybackPosMs(float pos_ms)

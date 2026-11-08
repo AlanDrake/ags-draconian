@@ -1475,11 +1475,6 @@ bool IsInBlockingAction()
     return restrict_until != nullptr;
 }
 
-bool IsInWaitRunFromScript()
-{
-    return restrict_until_in_script;
-}
-
 // Checks if wait mode should continue until condition is met
 // FIXME: should be a private method of GameLoopUntilState,
 // but is called elsewhere for some strange reason;

@@ -374,7 +374,6 @@ struct GamePlayState
     // TODO: also support using arbitrary viewport (for multiple viewports).
     Point RoomToScreen(int roomx, int roomy);
     int RoomToScreenX(int roomx);
-    int RoomToScreenY(int roomy);
     // Converts game screen coordinates to the room coordinates through the room viewport.
     // Tries to find if there is any viewport at the given coords.
     // If "clip_viewport" parameter is true, then not finding a viewport results in failure,

@@ -182,13 +182,6 @@ uint32_t convert_scaling_to_fp(int scale_factor)
         return kUnit / abs(scale_factor);
 }
 
-int convert_fp_to_scaling(uint32_t scaling)
-{
-    if (scaling == 0)
-        return 0;
-    return scaling >= kUnit ? (scaling >> kShift) : -kUnit / (int32_t)scaling;
-}
-
 String find_default_cfg_file()
 {
     return Path::ConcatPaths(usetup.StartupDir, DefaultConfigFileName);

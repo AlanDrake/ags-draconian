@@ -494,8 +494,6 @@ private:
     void SetupDefaultVertices();
     // Create shader programs for sprite tinting and changing light level
     bool CreateStandardShaders();
-    // Delete all shader programs
-    void DeleteShaders();
     // Resets
     void ResetDeviceIfNecessary();
     HRESULT ResetDeviceAndRestore();
@@ -506,7 +504,6 @@ private:
     ///////////////////////////////////////////////////////
     // Texture management: implementation
     //
-    bool IsTextureFormatOk(D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat);
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
     void UpdateTextureRegion(D3DTextureTile *tile, const Bitmap *bitmap, bool opaque);
     // For tracked render targets, disposes only the internal texture data
@@ -685,7 +682,6 @@ public:
     String GetDefaultFilterID() const override;
 
     static D3DGraphicsFactory *GetFactory();
-    static D3DGraphicsDriver *GetD3DDriver();
 
 private:
     D3DGraphicsFactory() = default;

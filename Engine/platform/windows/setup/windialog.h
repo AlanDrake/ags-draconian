@@ -45,7 +45,6 @@ public:
 
     bool IsCreated() const { return _hwnd != nullptr; }
     HWND GetHandle() const { return _hwnd; }
-    void Show();
     void Show(HWND insert_after, const Rect &pos);
     void Hide();
 

@@ -88,12 +88,6 @@ void MoveList::SetStageDoneSteps(float parts)
     curpos = CalcCurrentPos();
 }
 
-void MoveList::SetStageProgress(float progress)
-{
-    onpart = CalcPartsFromProgress(onstage, Math::Clamp(progress, 0.f, 1.f));
-    curpos = CalcCurrentPos();
-}
-
 bool MoveList::Forward(bool do_step)
 {
     // Safety fix, in case onpart became invalid

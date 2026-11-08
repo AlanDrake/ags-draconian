@@ -1717,10 +1717,6 @@ public:
     // This request is scheduled and performed as soon as dialog state receives control.
     // This overrides the dialog script's return value.
     void GotoDialog(int dlgnum, int start_opt = 0);
-    // Request a return to the previous dialog.
-    // This request is scheduled and performed as soon as dialog state receives control.
-    // This overrides the dialog script's return value.
-    void ReturnToPreviousDialog();
     // Request the Dialog state to stop.
     // This request is scheduled and performed as soon as dialog state receives control.
     // This overrides the dialog script's return value.
@@ -1873,11 +1869,6 @@ void DialogExec::GotoDialog(int dlgnum, int start_opt)
 {
     _doRunDialog = dlgnum;
     _startOpt = start_opt;
-}
-
-void DialogExec::ReturnToPreviousDialog()
-{
-    _doRunDialog = RUN_DIALOG_GOTO_PREVIOUS;
 }
 
 void DialogExec::Stop()

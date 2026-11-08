@@ -36,5 +36,3 @@ void OnTouchPointerMotion(int pointer_id, const Point &position);
 void OnTouchPointerUp(int pointer_id, const Point &position);
 // Reset all the registered touch pointer states; use this when resetting input state
 void ResetAllTouchPointers();
-// Removes all registered touch pointers, invalidate any script objects
-void RemoveAllTouchPointers();

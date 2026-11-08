@@ -2959,15 +2959,6 @@ String D3D11GraphicsFactory::GetDefaultFilterID() const
     return _factory;
 }
 
-/* static */ D3D11GraphicsDriver *D3D11GraphicsFactory::GetD3D11Driver()
-{
-    if (!_factory)
-        _factory = GetFactory();
-    if (_factory)
-        return _factory->EnsureDriverCreated();
-    return nullptr;
-}
-
 D3D11GraphicsDriver *D3D11GraphicsFactory::EnsureDriverCreated()
 {
     if (!_driver)

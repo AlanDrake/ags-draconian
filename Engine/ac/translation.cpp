@@ -248,11 +248,6 @@ String get_translation_name()
     return trans_name;
 }
 
-String get_translation_path()
-{
-    return trans_filename;
-}
-
 const StringMap &get_translation_tree()
 {
     return trans.Dict;

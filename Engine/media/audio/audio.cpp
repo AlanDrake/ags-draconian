@@ -595,20 +595,6 @@ void update_directional_sound_vol()
     }
 }
 
-std::unique_ptr<SoundClip> load_sound_and_play(const ScriptAudioClip *aclip, bool repeat)
-{
-    std::unique_ptr<SoundClip> soundfx = load_sound_clip(aclip, repeat);
-    if (!soundfx)
-        return nullptr;
-
-    if (!soundfx->play())
-    {
-        return nullptr;
-    }
-
-    return soundfx;
-}
-
 void stop_all_sound_and_music()
 {
     stop_voice_nonblocking();

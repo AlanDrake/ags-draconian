@@ -253,16 +253,6 @@ public:
         return *this;
     }
 
-    inline RuntimeScriptValue &SetStaticArray(void *object, CCStaticObjectArray *manager)
-    {
-        Type = kScValStaticArray;
-        IValue = 0;
-        Ptr = object;
-        ArrMgr = manager;
-        Size = 4;
-        return *this;
-    }
-
     inline RuntimeScriptValue &SetScriptObject(void *object, IScriptObject *manager)
     {
         Type = kScValScriptObject;

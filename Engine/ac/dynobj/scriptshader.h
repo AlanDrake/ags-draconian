@@ -120,7 +120,6 @@ public:
 
     uint32_t GetConstantCount() const { return _constData.size(); }
     Constant GetConstant(uint32_t index) const { return index < _constData.size() ? _constData[index] : Constant(); }
-    void SetConstantData(const String &name, float value[4], uint32_t size);
     void SetConstantData(uint32_t index, float value[4], uint32_t size);
     void SetTexture(uint32_t index, int sprite);
     int GetTexture(uint32_t index) const { return index < _textures.size() ? _textures[index] : 0; }

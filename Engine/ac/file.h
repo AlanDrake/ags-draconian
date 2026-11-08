@@ -62,4 +62,3 @@ int32_t add_file_stream(std::unique_ptr<AGS::Common::Stream> &&stream, const cha
 void close_file_stream(int32_t fhandle, const char *operation_name);
 AGS::Common::Stream *get_file_stream(int32_t fhandle, const char *operation_name);
 AGS::Common::IStreamBase *get_file_stream_iface(int32_t fhandle, const char *operation_name);
-void close_all_file_streams();

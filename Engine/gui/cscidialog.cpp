@@ -80,11 +80,6 @@ OnScreenWindow::OnScreenWindow()
     oldtop = -1;
 }
 
-int CSCIGetVersion()
-{
-    return 0x0100;
-}
-
 int windowcount = 0, curswas = 0;
 int win_x = 0, win_y = 0, win_width = 0, win_height = 0;
 // CLNUP dialogs are based on 320x200 coords, will need to at least center them
@@ -309,9 +304,4 @@ int finddefaultcontrol(int flagmask)
     }
 
     return -1;
-}
-
-int GetBaseWidth()
-{
-    return play.GetUIViewport().GetWidth();
 }

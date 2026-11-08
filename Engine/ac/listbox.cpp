@@ -255,26 +255,6 @@ void ListBox_SetShowScrollArrows(GUIListBox *listbox, bool newValue)
     }
 }
 
-int ListBox_GetHideBorder(GUIListBox *listbox)
-{
-    return !ListBox_GetShowBorder(listbox);
-}
-
-void ListBox_SetHideBorder(GUIListBox *listbox, int newValue)
-{
-    ListBox_SetShowBorder(listbox, !newValue);
-}
-
-int ListBox_GetHideScrollArrows(GUIListBox *listbox)
-{
-    return !ListBox_GetShowScrollArrows(listbox);
-}
-
-void ListBox_SetHideScrollArrows(GUIListBox *listbox, int newValue)
-{
-    ListBox_SetShowScrollArrows(listbox, !newValue);
-}
-
 int ListBox_GetSelectedBackColor(GUIListBox *listbox)
 {
     return listbox->GetSelectedBgColor();
@@ -376,17 +356,6 @@ void ListBox_ScrollUp(GUIListBox *listbox)
     }
 }
 
-
-GUIListBox *is_valid_listbox(int guin, int objn)
-{
-    if ((guin < 0) | (guin >= game.numgui))
-        quit("!ListBox: invalid GUI number");
-    if ((objn < 0) | (objn >= guis[guin].GetControlCount()))
-        quit("!ListBox: invalid object number");
-    if (guis[guin].GetControlType(objn) != kGUIListBox)
-        quit("!ListBox: specified control is not a list box");
-    return (GUIListBox *)guis[guin].GetControl(objn);
-}
 
 //=============================================================================
 //

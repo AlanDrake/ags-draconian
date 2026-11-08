@@ -67,8 +67,6 @@ public:
     void Stop();
     // Pauses the playback, keeps the queued data
     void Pause();
-    // Resumes the playback from the current position
-    void Resume();
 
     // Sets the reference position in ms; this may be necessary because player
     // receives position hint only with the data timestamps

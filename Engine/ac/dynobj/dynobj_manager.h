@@ -48,8 +48,6 @@ int32_t ccRegisterUnserializedPersistentObject(int handle, void *object, IScript
                                                ScriptValueType obj_type = kScValScriptObject);
 // register the object, unless it's already registered; returns its handle
 int32_t ccRegisterPersistentObjectIfMissing(void *object, IScriptObject *);
-// unregister a particular object
-int ccUnRegisterManagedObject(void *object);
 // remove all registered objects
 void ccUnregisterAllObjects();
 // serialize all objects to disk

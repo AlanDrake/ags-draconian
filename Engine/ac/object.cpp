@@ -1236,11 +1236,6 @@ void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int
     }
 }
 
-void move_object(int objj, int tox, int toy, int speed, bool ignwal)
-{
-    move_object(objj, nullptr, tox, toy, speed, ignwal, RunPathParams::DefaultOnce());
-}
-
 bool Object_RunFrameEvent(ScriptObject *objj, int view, int loop, int frame)
 {
     if (!AssertObject("Object.RunFrameEvent", objj->id))

@@ -56,7 +56,6 @@ int AddString(HWND hwnd, LPCWSTR text, DWORD_PTR data = 0L);
 int AddString(HWND hwnd, LPCSTR text, DWORD_PTR data = 0L);
 int InsertString(HWND hwnd, LPCWSTR text, int at_index, DWORD_PTR data = 0L);
 int InsertString(HWND hwnd, LPCSTR text, int at_index, DWORD_PTR data = 0L);
-int GetItemCount(HWND hwnd);
 int GetCurSel(HWND hwnd);
 void SetCurSel(HWND hwnd, int cur_sel);
 typedef bool (*PfnCompareCBItemData)(DWORD_PTR data1, DWORD_PTR data2);

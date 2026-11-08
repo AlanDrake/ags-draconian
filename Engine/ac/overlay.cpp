@@ -974,11 +974,6 @@ void BeginAnimateOverlay(int over_id, int view, int loop, int frame, const ViewA
     UpdateOverlayState(*aover);
 }
 
-const std::vector<AnimatedOverlay> &GetAnimateOverlays()
-{
-    return animovers;
-}
-
 size_t AddAnimatedOverlay(AnimatedOverlay &&aover)
 {
     const int over_id = aover.GetOverID();
@@ -1056,14 +1051,6 @@ void UpdateOverlayAnimations()
         {
             StopOverlayAnimImpl(i);
         }
-    }
-}
-
-void StopOverlayAnimation(int over_id)
-{
-    if (over_id >= 0 && static_cast<uint32_t>(over_id) < over_to_anim.size() && over_to_anim[over_id] != SIZE_MAX)
-    {
-        StopOverlayAnimImpl(over_to_anim[over_id]);
     }
 }
 

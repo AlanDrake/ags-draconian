@@ -42,14 +42,6 @@ extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern CCHotspot ccDynamicHotspot;
 extern CharacterInfo *playerchar;
 
-bool AssertHotspot(const char *apiname, int hot_id)
-{
-    if ((hot_id >= 0) && (static_cast<uint32_t>(hot_id) < thisroom.HotspotCount))
-        return true;
-    debug_script_warn("%s: invalid hotspot id %d (range is 0..%d)", apiname, hot_id, thisroom.HotspotCount - 1);
-    return false;
-}
-
 void DisableHotspot(int hsnum)
 {
     if ((hsnum < 1) | (hsnum >= MAX_ROOM_HOTSPOTS))

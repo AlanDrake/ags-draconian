@@ -69,7 +69,6 @@ bool ccAddExternalFunction(const ScFnRegister &scfnreg);
 // Register a function, exported from a plugin. Requires direct function pointer only.
 bool ccAddExternalPluginFunction(const String &name, void *pfn);
 // Register engine objects for script's access.
-bool ccAddExternalStaticArray(const String &name, void *ptr, CCStaticObjectArray *array_mgr);
 bool ccAddExternalScriptObject(const String &name, void *ptr, IScriptObject *manager);
 bool ccAddExternalScriptObjectHandle(const String &name, void *ptr);
 // Register script own functions (defined in the linked scripts)
@@ -87,8 +86,6 @@ inline void ccAddExternalFunctions(const ScFnRegister (&arr)[N])
         ccAddExternalFunction(*it);
 }
 
-// Get the address of an exported variable in the script
-void *ccGetSymbolAddress(const String &name);
 // Get a registered symbol's direct pointer; this is used solely for plugins
 void *ccGetSymbolAddressForPlugin(const String &name);
 // Get a registered Script Object, optionally restricting to the given type name

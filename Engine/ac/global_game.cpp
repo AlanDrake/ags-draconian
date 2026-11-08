@@ -640,11 +640,6 @@ const char *GetLocationName(int x, int y, int hit_options)
     return loc_name;
 }
 
-const char *GetLocationName2(int x, int y)
-{
-    return GetLocationName(x, y, kHit_Interactable);
-}
-
 int IsKeyPressed(int keycode)
 {
     return ags_iskeydown(static_cast<eAGSKeyCode>(keycode));

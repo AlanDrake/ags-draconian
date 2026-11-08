@@ -260,11 +260,6 @@ RoomStatus *GetRoomStateIfExists(int room)
     return room_statuses[room].get();
 }
 
-bool IsRoomStateValid(int room)
-{
-    return (room >= 0 && room < MAX_ROOMS) && (room_statuses[room] != nullptr);
-}
-
 void ResetRoomState(int room)
 {
     if (room < 0 || room >= MAX_ROOMS)

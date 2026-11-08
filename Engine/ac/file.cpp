@@ -608,36 +608,11 @@ const String GameDataDirToken = "$APPDATADIR$";
 const String GameAssetToken = "$DATA$";
 const String UserConfigFileToken = "$CONFIGFILE$";
 
-void FixupFilename(char *filename)
-{
-    const char *illegal = platform->GetIllegalFileChars();
-    for (char *name_ptr = filename; *name_ptr; ++name_ptr)
-    {
-        if (*name_ptr < ' ')
-        {
-            *name_ptr = '_';
-        }
-        else
-        {
-            for (const char *ch_ptr = illegal; *ch_ptr; ++ch_ptr)
-                if (*name_ptr == *ch_ptr)
-                    *name_ptr = '_';
-        }
-    }
-}
-
 String PathFromInstallDir(const String &path)
 {
     if (Path::IsRelativePath(path))
         return Path::ConcatPaths(ResPaths.DataDir, path);
     return path;
-}
-
-FSLocation PathFromInstallDir(const FSLocation &fsloc)
-{
-    if (Path::IsRelativePath(fsloc.FullDir))
-        return FSLocation(ResPaths.DataDir).Concat(fsloc.FullDir);
-    return fsloc;
 }
 
 String PreparePathForWriting(const FSLocation &fsloc, const String &filename)
@@ -1077,11 +1052,6 @@ IStreamBase *get_file_stream_iface(int32_t fhandle, const char *operation_name)
 {
     ScriptFileHandle *fh = check_file_stream(fhandle, operation_name);
     return fh ? fh->GetStream()->GetStreamBase() : nullptr;
-}
-
-void close_all_file_streams()
-{
-    file_streams.clear();
 }
 
 //=============================================================================
