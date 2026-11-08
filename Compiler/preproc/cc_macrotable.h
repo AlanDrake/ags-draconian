@@ -29,6 +29,4 @@ public:
     AGString get_macro(const AGString &name);
     void add(const AGString &macroname, const AGString &value);
     void remove(const AGString &macroname);
-    void merge(MacroTable &macro_table);
-    void clear();
 };

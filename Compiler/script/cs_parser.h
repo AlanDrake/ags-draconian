@@ -322,9 +322,6 @@ private:
         // Only consider SREG_AX .. SREG_DX and SREG_MAR
         bool IsValid(size_t reg, TickT tick) const { return _register[reg] <= tick; }
 
-        // Find the general purpose register that was set the longest time ago
-        // Only return one of SREG_AX, SREG_BX, SREG_CX, SREG_DX
-        size_t GetGeneralPurposeRegister() const;
     } _reg_track;
 
     // We set the MAR register lazily to save on runtime computation. This object

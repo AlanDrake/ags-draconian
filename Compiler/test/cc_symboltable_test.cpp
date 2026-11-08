@@ -180,20 +180,16 @@ TEST_F(SymbolTable, CanBePartOfAnExpression)
     EXPECT_TRUE(symt.CanBePartOfAnExpression(var_sym));
 }
 
-TEST_F(SymbolTable, IsPrimitiveAtomic)
+TEST_F(SymbolTable, IsAtomicVartype)
 {
-    EXPECT_TRUE(symt.IsPrimitiveVartype(AGS::kKW_Long));
     EXPECT_TRUE(symt.IsAtomicVartype(AGS::kKW_Long));
-    EXPECT_FALSE(symt.IsPrimitiveVartype(AGS::kKW_Return));
     EXPECT_FALSE(symt.IsAtomicVartype(AGS::kKW_Return));
 
     AGS::Symbol const structy_sym = symt.Add("Structy");
     symt.MakeEntryVartype(structy_sym);
-    EXPECT_FALSE(symt.IsPrimitiveVartype(structy_sym));
     EXPECT_TRUE(symt.IsAtomicVartype(structy_sym));
 
     AGS::Symbol const structy_ptr_sym = symt.VartypeWithDynpointer(structy_sym);
-    EXPECT_FALSE(symt.IsPrimitiveVartype(structy_ptr_sym));
     EXPECT_FALSE(symt.IsAtomicVartype(structy_ptr_sym));
 }
 

@@ -448,22 +448,6 @@ void AGS::Parser::RegisterTracking::SetAllRegisters()
         SetRegister(*it);
 }
 
-size_t AGS::Parser::RegisterTracking::GetGeneralPurposeRegister() const
-{
-    size_t oldest_reg = INT32_MAX;
-    TickT oldest_tick = UINT32_MAX;
-    for (auto it = _register_list.begin(); it != _register_list.end(); ++it)
-    {
-        if (*it == SREG_MAR)
-            continue;
-        if (_register[*it] >= oldest_tick)
-            continue;
-        oldest_reg = *it;
-        oldest_tick = _register[*it];
-    }
-    return oldest_reg;
-}
-
 AGS::Parser::Parser(SrcList &src, FlagSet options, ccCompiledScript &scrip, SymbolTable &symt, MessageHandler &mh)
     : _nest(scrip),
       _pp(PP::kPreAnalyze),

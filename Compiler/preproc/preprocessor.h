@@ -83,7 +83,6 @@ public:
     static const Error NoError;
     Error GetLastError() const;
     void SetAppVersion(const Common::String &version);
-    void MergeMacros(MacroTable &macros);
     void DefineMacro(const Common::String &name, const Common::String &value);
 
     Common::String Preprocess(const Common::String &script, const Common::String &scriptName);

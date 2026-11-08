@@ -19,11 +19,6 @@
 using namespace AGS::Common;
 
 
-void MacroTable::merge(MacroTable &others)
-{
-    _macro_table.insert(others._macro_table.begin(), others._macro_table.end());
-}
-
 bool MacroTable::contains(const String &name) const
 {
     return _macro_table.count(name) > 0;
@@ -57,9 +52,4 @@ void MacroTable::remove(const String &macroname)
         return;
     }
     _macro_table.erase(macroname);
-}
-
-void MacroTable::clear()
-{
-    _macro_table.clear();
 }

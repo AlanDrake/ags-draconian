@@ -580,11 +580,6 @@ String Preprocessor::Preprocess(const String &script, const String &scriptName)
     return result.GetString();
 }
 
-void Preprocessor::MergeMacros(MacroTable &macros)
-{
-    _macros.merge(macros);
-}
-
 void Preprocessor::SetAppVersion(const String &version)
 {
     _applicationVersion = Version(version);

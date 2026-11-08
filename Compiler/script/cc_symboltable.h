@@ -124,7 +124,6 @@ public:
     inline bool empty() { return _flags == std::bitset<16u>{}; }
 
     TypeQualifierSet WithoutTypedefQualifiers();
-    TypeQualifierSet WithouttVarFuncDefQualifiers();
 };
 
 // Note: Don't convert to enum class: Only the _start_ of the symbol table vector
@@ -562,8 +561,6 @@ public:
 
     // int, long, char, an enum etc.
     bool IsAnyIntegerVartype(Symbol s) const;
-    // A predefined atomic vartype such as int and float.
-    bool IsPrimitiveVartype(Symbol s) const;
 
     // Structs
     inline bool IsStructVartype(Symbol s) const { return IsVTF(s, VTF::kStruct); }

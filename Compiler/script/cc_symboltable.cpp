@@ -143,13 +143,6 @@ AGS::TypeQualifierSet AGS::TypeQualifierSet::WithoutTypedefQualifiers()
     return ret;
 }
 
-AGS::TypeQualifierSet AGS::TypeQualifierSet::WithouttVarFuncDefQualifiers()
-{
-    TypeQualifierSet ret{*this};
-    ret[TQ::kImport] = ret[TQ::kProtected] = ret[TQ::kReadonly] = ret[TQ::kStatic] = ret[TQ::kWriteprotected] = false;
-    return ret;
-}
-
 void AGS::SymbolTableEntry::Clear()
 {
     // Leave the name so that symbols in the main phase equate to symbols in the pre phase.
@@ -518,20 +511,6 @@ size_t AGS::SymbolTable::GetSize(Symbol s) const
     if (!IsVartype(s))
         return (0u);
     return entries.at(s).VartypeD->Size;
-}
-
-bool AGS::SymbolTable::IsPrimitiveVartype(Symbol s) const
-{
-    if (!IsVartype(s))
-        return false;
-
-    if (VTT::kConst == entries.at(s).VartypeD->Type)
-        s = entries.at(s).VartypeD->BaseVartype;
-    if (!IsPredefined(s))
-        return false;
-    if (VTT::kAtomic != entries.at(s).VartypeD->Type)
-        return false;
-    return kKW_NoSymbol == entries.at(s).VartypeD->BaseVartype;
 }
 
 size_t AGS::SymbolTable::ArrayElementsCount(Symbol s) const
