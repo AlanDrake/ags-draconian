@@ -57,7 +57,6 @@ public:
         String GetValue() const { return SubString(Line, Value); }
         // Tells if this is a valid key/value item, which means that it has a valid key
         bool IsKeyValue() const { return IsValidStrPos(Key); }
-        void SetKey(const String &key);
         void SetValue(const String &value);
 
     private:
@@ -86,10 +85,7 @@ public:
         ItemIterator End() { return Items.end(); }
         ConstItemIterator CBegin() const { return Items.begin(); }
         ConstItemIterator CEnd() const { return Items.end(); }
-        void SetName(const String &sec_name);
-        void Clear();
         ItemIterator InsertItem(ItemIterator item, const ItemDef &itemdef);
-        void EraseItem(ItemIterator item);
 
     private:
         String Header; // section's heading line
@@ -124,11 +120,6 @@ public:
     ItemIterator InsertItem(SectionIterator sec, ItemIterator item, const String &key, const String &value);
     // Insert new section *before* existing section
     SectionIterator InsertSection(SectionIterator sec, const String &name);
-    // Remove a single item
-    void RemoveItem(SectionIterator sec, ItemIterator item);
-    // Completely remove whole section; this removes all lines between section
-    // header and the last item found in that section (inclusive).
-    void RemoveSection(SectionIterator sec);
 
 private:
     LSections _sections;

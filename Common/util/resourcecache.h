@@ -153,48 +153,6 @@ public:
         PutImpl(key, std::move(value), flags);
     }
 
-    // Locks the item with the given key,
-    // temporarily excluding it from MRU disposal rules
-    void Lock(const TKey &key)
-    {
-        auto it = _storage.find(key);
-        if (it == _storage.end())
-            return; // no such key
-        auto &item = it->second;
-        if ((item.Flags & kCacheItem_Locked) != 0)
-            return; // already locked
-
-        // Lock item and move to the locked section
-        item.Flags |= kCacheItem_Locked;
-        _mru.splice(_sectionLocked, _mru, item.MruIt); // CHECKME: TEST!!
-        _sectionLocked = item.MruIt;
-        _lockedSize += item.Size;
-    }
-
-    // Releases (unlocks) the item with the given key,
-    // adds it back to MRU disposal rules
-    void Release(const TKey &key)
-    {
-        auto it = _storage.find(key);
-        if (it == _storage.end())
-            return; // no such key
-
-        auto &item = it->second;
-        if ((item.Flags & kCacheItem_External) != 0)
-            return; // never release external data, must be removed by user
-        if ((item.Flags & kCacheItem_Locked) == 0)
-            return; // not locked
-
-        // Unlock, and move the item to the beginning of the MRU list
-        item.Flags &= ~kCacheItem_Locked;
-        if (_sectionLocked == item.MruIt)
-            _sectionLocked = std::next(item.MruIt);
-        _mru.splice(_mru.begin(), _mru, item.MruIt); // CHECKME: TEST!!
-        _lockedSize -= item.Size;
-
-        FreeMem(0u); // dispose anything exceeding max size
-    }
-
     // Deletes the cached item
     void Dispose(const TKey &key)
     {

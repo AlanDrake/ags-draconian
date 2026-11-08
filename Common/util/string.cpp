@@ -390,29 +390,6 @@ String String::Wrapper(const char *cstr)
     return str;
 }
 
-/* static */ String String::Join(const std::vector<String> &list, char separator)
-{
-    char sep_str[2] = {separator, 0};
-    return Join(list, sep_str);
-}
-
-/* static */ String String::Join(const std::vector<String> &list, const char *separator)
-{
-    String str;
-    size_t reserve_count = list.size() > 1 ? (list.size() - 1) * strlen(separator) : 0u;
-    for (const auto &s : list)
-        reserve_count += s.GetLength();
-    str.Reserve(reserve_count);
-    if (list.size() > 0)
-        str = list[0];
-    for (size_t i = 1; i < list.size(); ++i)
-    {
-        str.Append(separator);
-        str.Append(list[i]);
-    }
-    return str;
-}
-
 String String::Lower() const
 {
     String str = *this;
@@ -420,24 +397,10 @@ String String::Lower() const
     return str;
 }
 
-String String::Upper() const
-{
-    String str = *this;
-    str.MakeUpper();
-    return str;
-}
-
 String String::LowerUTF8() const
 {
     String str = *this;
     str.MakeLowerUTF8();
-    return str;
-}
-
-String String::UpperUTF8() const
-{
-    String str = *this;
-    str.MakeUpperUTF8();
     return str;
 }
 
@@ -468,20 +431,6 @@ String String::LeftSection(char separator, bool exclude_separator) const
         {
             slice_at = exclude_separator ? slice_at : slice_at + 1;
             return Left(slice_at);
-        }
-    }
-    return *this;
-}
-
-String String::RightSection(char separator, bool exclude_separator) const
-{
-    if ((_len != 0) && separator)
-    {
-        size_t slice_at = FindCharReverse(separator);
-        if (slice_at != NoIndex)
-        {
-            size_t count = exclude_separator ? _len - slice_at - 1 : _len - slice_at;
-            return Right(count);
         }
     }
     return *this;
@@ -544,19 +493,6 @@ void String::Reserve(size_t max_length)
     else
     {
         Create(max_length);
-    }
-}
-
-void String::ReserveMore(size_t more_length)
-{
-    Reserve(_len + more_length);
-}
-
-void String::Compact()
-{
-    if (_bufHead && _bufHead->Capacity > _len)
-    {
-        Copy(_len);
     }
 }
 
@@ -668,49 +604,6 @@ void String::ClipRight(size_t count)
     }
 }
 
-void String::ClipLeftSection(char separator, bool include_separator)
-{
-    if ((_len != 0) && separator)
-    {
-        size_t slice_at = FindChar(separator);
-        if (slice_at != NoIndex)
-        {
-            ClipLeft(include_separator ? slice_at + 1 : slice_at);
-        }
-        else
-            Empty();
-    }
-}
-
-void String::ClipRightSection(char separator, bool include_separator)
-{
-    if ((_len != 0) && separator)
-    {
-        size_t slice_at = FindCharReverse(separator);
-        if (slice_at != NoIndex)
-        {
-            ClipRight(include_separator ? _len - slice_at : _len - slice_at - 1);
-        }
-        else
-            Empty();
-    }
-}
-
-void String::ClipSection(char separator, size_t first, size_t last, bool include_first_sep, bool include_last_sep)
-{
-    if ((_len == 0) || !separator)
-    {
-        return;
-    }
-
-    size_t slice_from;
-    size_t slice_to;
-    if (FindSection(separator, first, last, !include_first_sep, !include_last_sep, slice_from, slice_to))
-    {
-        ClipMid(slice_from, slice_to - slice_from);
-    }
-}
-
 void String::Empty()
 {
     if (IsShared())
@@ -813,25 +706,6 @@ void String::MakeLowerUTF8()
     }
 }
 
-void String::MakeUpperUTF8()
-{
-    if (_len != 0)
-    {
-        const size_t newsize = Utf8::CStrToUpper(_cstr, nullptr, 0);
-        if (newsize == _len + 1)
-        {
-            BecomeUnique();
-            Utf8::CStrToUpper(_cstr, _cstr, newsize);
-        }
-        else
-        {
-            String temp = *this; // TODO: we might benefit from a separate StringBuffer object
-            Create(newsize - 1);
-            Utf8::CStrToUpper(temp.GetCStr(), _cstr, newsize);
-        }
-    }
-}
-
 void String::MergeSequences(char c)
 {
     if (_len <= 1)
@@ -858,17 +732,6 @@ void String::Prepend(const String &str)
         memcpy(_cstr - length, str._cstr, length);
         _len += length;
         _cstr -= length;
-    }
-}
-
-void String::PrependChar(char c)
-{
-    if (c)
-    {
-        ReserveAndShift(true, 1);
-        _len++;
-        _cstr--;
-        _cstr[0] = c;
     }
 }
 
@@ -1104,102 +967,6 @@ void String::TrimRight(char c)
         _len -= trimmed;
         _cstr[_len] = 0;
     }
-}
-
-void String::TruncateToLeft(size_t count)
-{
-    if (_len != 0)
-    {
-        count = std::min(count, _len);
-        if (count < _len)
-        {
-            BecomeUnique();
-            _len = count;
-            _cstr[_len] = 0;
-        }
-    }
-}
-
-void String::TruncateToMid(size_t from, size_t count)
-{
-    if (_len != 0)
-    {
-        Math::ClampLength(from, count, (size_t)0, _len);
-        if (from > 0 || count < _len)
-        {
-            BecomeUnique();
-            _len = count;
-            _cstr += from;
-            _cstr[_len] = 0;
-        }
-    }
-}
-
-void String::TruncateToRight(size_t count)
-{
-    if (_len != 0)
-    {
-        count = std::min(count, _len);
-        if (count < _len)
-        {
-            BecomeUnique();
-            _cstr += _len - count;
-            _len = count;
-        }
-    }
-}
-
-void String::TruncateToLeftSection(char separator, bool exclude_separator)
-{
-    if ((_len != 0) && separator)
-    {
-        size_t slice_at = FindChar(separator);
-        if (slice_at != NoIndex)
-        {
-            TruncateToLeft(exclude_separator ? slice_at : slice_at + 1);
-        }
-    }
-}
-
-void String::TruncateToRightSection(char separator, bool exclude_separator)
-{
-    if ((_len != 0) && separator)
-    {
-        size_t slice_at = FindCharReverse(separator);
-        if (slice_at != NoIndex)
-        {
-            TruncateToRight(exclude_separator ? _len - slice_at - 1 : _len - slice_at);
-        }
-    }
-}
-
-void String::TruncateToSection(char separator, size_t first, size_t last, bool exclude_first_sep, bool exclude_last_sep)
-{
-    if ((_len == 0) || !separator)
-    {
-        return;
-    }
-
-    size_t slice_from;
-    size_t slice_to;
-    if (FindSection(separator, first, last, exclude_first_sep, exclude_last_sep, slice_from, slice_to))
-    {
-        TruncateToMid(slice_from, slice_to - slice_from);
-    }
-    else
-    {
-        Empty();
-    }
-}
-
-void String::Wrap(const char *cstr)
-{
-    Free();
-    _buf = nullptr;
-    // Note that String will NOT *modify* the const buffer.
-    // Any write operation on the buffer is preceded by a call to BecomeUnique.
-    _cstr = const_cast<char *>(cstr ? cstr : "");
-    _len = strlen(_cstr);
 }
 
 String &String::operator=(const String &str)

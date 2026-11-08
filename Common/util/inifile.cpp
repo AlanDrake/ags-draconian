@@ -59,25 +59,6 @@ IniFile::ItemDef::ItemDef(const String &line, const StrPos &key, const StrPos &v
     SepAt = sep_at;
 }
 
-void IniFile::ItemDef::SetKey(const String &key)
-{
-    if (key.IsEmpty())
-        return;
-
-    if (IsKeyValue())
-    {
-        size_t diff = key.GetLength() - (Key.second - Key.first);
-        ReplaceSubString(Line, Key, key);
-        Key.second += diff;
-        Value.first += diff;
-        Value.second += diff;
-    }
-    else
-    {
-        *this = ItemDef(key, "");
-    }
-}
-
 void IniFile::ItemDef::SetValue(const String &value)
 {
     if (!IsKeyValue())
@@ -118,29 +99,9 @@ IniFile::SectionDef::SectionDef(const String &line, const StrPos &name)
     Name = name;
 }
 
-void IniFile::SectionDef::SetName(const String &sec_name)
-{
-    if (sec_name.IsEmpty())
-        return;
-
-    size_t diff = sec_name.GetLength() - (Name.second - Name.first);
-    ReplaceSubString(Header, Name, sec_name);
-    Name.second += diff;
-}
-
-void IniFile::SectionDef::Clear()
-{
-    Items.clear();
-}
-
 IniFile::ItemIterator IniFile::SectionDef::InsertItem(ItemIterator item, const ItemDef &itemdef)
 {
     return Items.insert(item, itemdef);
-}
-
-void IniFile::SectionDef::EraseItem(ItemIterator item)
-{
-    Items.erase(item);
 }
 
 IniFile::ItemIterator IniFile::InsertItem(SectionIterator sec, ItemIterator item, const String &key,
@@ -157,20 +118,6 @@ IniFile::SectionIterator IniFile::InsertSection(SectionIterator sec, const Strin
 
     SectionDef secdef(name);
     return _sections.insert(sec, secdef);
-}
-
-void IniFile::RemoveItem(SectionIterator sec, ItemIterator item)
-{
-    sec->EraseItem(item);
-}
-
-void IniFile::RemoveSection(SectionIterator sec)
-{
-    if (sec == _sections.begin())
-        // do not remove global section, clear items instead
-        sec->Clear();
-    else
-        _sections.erase(sec);
 }
 
 

@@ -85,7 +85,6 @@ public:
     };
 
 
-    SpriteCache(std::vector<SpriteInfo> &sprInfos);
     SpriteCache(std::vector<SpriteInfo> &sprInfos, const Callbacks &callbacks);
     ~SpriteCache() override = default;
 
@@ -150,26 +149,10 @@ public:
     // TODO: consider redesigning this function later; maybe there should be
     // separate sprite loader and sprite cache classes; also maybe use shared_ptrs?
     std::unique_ptr<Bitmap> LoadSpriteNoCache(sprkey_t index);
-    // Locks sprite, preventing it from getting removed by the normal cache limit.
-    // If this is a registered sprite from the game assets, then loads it first.
-    // If this is a sprite with SPRCACHEFLAG_EXTERNAL flag, then does nothing,
-    // as these are always "locked".
-    // If such sprite does not exist, then fails silently.
-    void LockSprite(sprkey_t index);
-    // Unlocks sprite, putting it back into the cache logic,
-    // where it counts towards normal limit may be deleted to free space.
-    // NOTE: sprites with SPRCACHEFLAG_EXTERNAL flag cannot be unlocked,
-    // only explicitly removed.
-    // If such sprite was not present in memory, then fails silently.
-    void UnlockSprite(sprkey_t index);
     // Unregisters sprite from the bank and returns the bitmap
     std::unique_ptr<Bitmap> RemoveSprite(sprkey_t index);
     // Deletes particular sprite, marks slot as unused
     void DeleteSprite(sprkey_t index);
-    // Deletes a loaded asset image (non-external) from memory, ignoring its
-    // locked status; this keeps an auxiliary sprite information intact,
-    // so that the same sprite can be cached back later.
-    void DisposeCached(sprkey_t index);
     // Deletes all free cached asset images (non-locked, non-external)
     // from memory; this keeps all the auxiliary sprite information intact,
     // so that the same sprite(s) can be cached back later.
@@ -237,10 +220,6 @@ private:
         bool IsAssetSprite() const;
         // Tells if a sprite failed to load from assets, and should not be used
         bool IsError() const;
-        // Tells if sprite was added externally, not loaded from game resources
-        bool IsExternalSprite() const;
-        // Tells if sprite is locked and should not be disposed by cache logic
-        bool IsLocked() const;
     };
 
     // Provided map of sprite infos, to fill in loaded sprite properties

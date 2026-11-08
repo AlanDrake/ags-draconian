@@ -45,14 +45,6 @@ namespace AGS
 namespace Common
 {
 
-SpriteCache::SpriteCache(std::vector<SpriteInfo> &sprInfos)
-    : ResourceCache(DEFAULTCACHESIZE_KB * 1024u),
-      _sprInfos(sprInfos)
-{
-    // Generate a placeholder sprite: 1x1 transparent bitmap
-    _placeholder.reset(BitmapHelper::CreateTransparentBitmap(1, 1));
-}
-
 SpriteCache::SpriteCache(std::vector<SpriteInfo> &sprInfos, const Callbacks &callbacks)
     : ResourceCache(DEFAULTCACHESIZE_KB * 1024u),
       _sprInfos(sprInfos)
@@ -227,16 +219,6 @@ bool SpriteCache::SpriteData::IsError() const
     return (Flags & SPRCACHEFLAG_ERROR) != 0;
 }
 
-bool SpriteCache::SpriteData::IsExternalSprite() const
-{
-    return (Flags & SPRCACHEFLAG_EXTERNAL) != 0;
-}
-
-bool SpriteCache::SpriteData::IsLocked() const
-{
-    return (Flags & SPRCACHEFLAG_LOCKED) != 0;
-}
-
 bool SpriteCache::DoesSpriteExist(sprkey_t index) const
 {
     return (index >= 0 && (size_t)index < _spriteData.size()) && // in the valid range
@@ -267,15 +249,6 @@ Bitmap *SpriteCache::operator[](sprkey_t index)
             return bitmap;
     }
     return _placeholder.get();
-}
-
-void SpriteCache::DisposeCached(sprkey_t index)
-{
-    if (IsAssetSprite(index))
-    {
-        _spriteData[index].Flags &= ~SPRCACHEFLAG_LOCKED;
-        ResourceCache::Dispose(index);
-    }
 }
 
 void SpriteCache::DisposeAllFreeCached()
@@ -326,39 +299,6 @@ std::unique_ptr<Bitmap> SpriteCache::LoadSpriteNoCache(sprkey_t index)
             return ResourceCache::Remove(index);
     }
     return std::unique_ptr<Bitmap>(BitmapHelper::CreateBitmapCopy(_placeholder.get()));
-}
-
-void SpriteCache::LockSprite(sprkey_t index)
-{
-    assert(index >= 0); // out of positive range indexes are valid to fail
-    if (index < 0 || (size_t)index >= _spriteData.size())
-        return;
-    if (!_spriteData[index].IsAssetSprite())
-        return; // cannot lock a non-asset sprite
-
-    if (ResourceCache::Exists(index))
-    {
-        ResourceCache::Lock(index);
-        _spriteData[index].Flags |= SPRCACHEFLAG_LOCKED;
-    }
-    else
-    {
-        LoadSprite(index, true);
-    }
-    SprCacheLog("Locked %d", index);
-}
-
-void SpriteCache::UnlockSprite(sprkey_t index)
-{
-    assert(index >= 0); // out of positive range indexes are valid to fail
-    if (index < 0 || (size_t)index >= _spriteData.size())
-        return;
-    if (!_spriteData[index].IsAssetSprite() || !_spriteData[index].IsLocked())
-        return; // cannot unlock a non-asset sprite, or non-locked sprite
-
-    ResourceCache::Release(index);
-    _spriteData[index].Flags &= ~SPRCACHEFLAG_LOCKED;
-    SprCacheLog("Unlocked %d", index);
 }
 
 size_t SpriteCache::CalcSize(const std::unique_ptr<Bitmap> &item)

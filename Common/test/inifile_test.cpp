@@ -44,6 +44,16 @@ const char *IniFileText2 =
     "new_item2=new_value2" ENDL "[section5]" ENDL "item5_1=value5_1" ENDL "item5_2=value5_2" ENDL
     "item5_3=value5_3" ENDL;
 
+// IniFileText after the changes of IniFile.ReadAndModify
+const char *IniFileTextModified =
+    ""
+    "global_item=global_value" ENDL "[section1]" ENDL "item1=value1" ENDL "//this is comment" ENDL "item2=value2" ENDL
+    "item3=value3" ENDL "item4=new_value" ENDL "[this_section_should_be_deleted]" ENDL "item1=value1" ENDL
+    "item2=value2" ENDL ";this is comment" ENDL "[section3]" ENDL "item_to_be_deleted=value" ENDL
+    "item_to_be_kept=another value" ENDL "     [     section4     ]      " ENDL "new_item1=new_value1" ENDL
+    "        item1     =     value  " ENDL "new_item2=new_value2" ENDL "[section5]" ENDL "item5_1=value5_1" ENDL
+    "item5_2=value5_2" ENDL "item5_3=value5_3" ENDL;
+
 
 TEST(IniFile, ReadAndQuery)
 {
@@ -160,24 +170,16 @@ TEST(IniFile, ReadAndModify)
     ++item;
     item->SetValue("value3");
     ++item;
-    item->SetKey("new_item");
     item->SetValue("new_value");
+    ASSERT_TRUE(ini.GetSectionCount() == section_count);
 
-    // Removing a section
     sec = ini.Begin();
     ++sec;
-    ++sec;
-    ini.RemoveSection(sec);
-    ASSERT_TRUE(ini.GetSectionCount() == section_count - 1u);
-
-    // Removing an item
-    sec = ini.Begin();
     ++sec;
     ++sec;
     ASSERT_TRUE(sec->GetName() == "section3");
     item = sec->Begin();
     ASSERT_TRUE(item->GetKey() == "item_to_be_deleted");
-    sec->EraseItem(item);
 
     // Inserting new items
     ++sec;
@@ -204,7 +206,7 @@ TEST(IniFile, ReadAndModify)
     ini_content.ReadCount(in.get(), static_cast<size_t>(in->GetLength()));
     in.reset();
 
-    ASSERT_TRUE(ini_content == IniFileText2);
+    ASSERT_TRUE(ini_content == IniFileTextModified);
 }
 
 TEST(IniFile, ReadKeyValueTree)

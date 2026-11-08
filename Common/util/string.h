@@ -243,23 +243,11 @@ public:
     // Reads up to N chars from stream
     static String FromStreamCount(Stream *in, size_t count);
 
-    // Joins a vector of strings together, optionally inserting separator between elements
-    static String Join(const std::vector<String> &list, char separator);
-    static String Join(const std::vector<String> &list, const char *separator);
-    static String Join(const std::vector<String> &list, const String &separator)
-    {
-        return Join(list, separator.GetCStr());
-    }
-
     // Creates a lowercased copy of the string
     String Lower() const;
-    // Creates an uppercased copy of the string
-    String Upper() const;
 
     // Creates a lowercased copy of the utf-8 string
     String LowerUTF8() const;
-    // Creates an uppercased copy of the utf-8 string
-    String UpperUTF8() const;
 
     // Extract N leftmost characters as a new string
     String Left(size_t count) const;
@@ -271,9 +259,6 @@ public:
     // Extract leftmost part, separated by the given char; if no separator was
     // found returns the whole string
     String LeftSection(char separator, bool exclude_separator = true) const;
-    // Extract rightmost part, separated by the given char; if no separator was
-    // found returns the whole string
-    String RightSection(char separator, bool exclude_separator = true) const;
     // Extract the range of Xth to Yth fields, separated by the given character
     String Section(char separator, size_t first, size_t last, bool exclude_first_sep = true,
                    bool exclude_last_sep = true) const;
@@ -291,10 +276,6 @@ public:
     // Ensure string has at least space to store N chars;
     // this does not change string contents, nor length
     void Reserve(size_t max_length);
-    // Ensure string has at least space to store N additional chars
-    void ReserveMore(size_t more_length);
-    // Make string's buffer as small as possible to hold current data
-    void Compact();
 
     // Append* methods add content at the string's end, increasing its length
     // Appends another string to this string
@@ -317,15 +298,6 @@ public:
     void ClipMid(size_t from, size_t count = NoIndex);
     // Cuts off rightmost N characters
     void ClipRight(size_t count);
-    // Cuts off leftmost part, separated by the given char; if no separator was
-    // found cuts whole string, leaving empty string
-    void ClipLeftSection(char separator, bool include_separator = true);
-    // Cuts off rightmost part, separated by the given char; if no separator
-    // was found cuts whole string, leaving empty string
-    void ClipRightSection(char separator, bool include_separator = true);
-    // Cuts out the range of Xth to Yth fields separated by the given character
-    void ClipSection(char separator, size_t first, size_t last, bool include_first_sep = true,
-                     bool include_last_sep = true);
     // Sets string length to zero
     void Empty();
     // Makes a new string by filling N chars with certain value
@@ -344,8 +316,6 @@ public:
     void MakeUpper();
     // Convert utf-8 string to lowercase equivalent
     void MakeLowerUTF8();
-    // Convert utf-8 string to uppercase equivalent
-    void MakeUpperUTF8();
     // Merges sequences of same characters into one
     void MergeSequences(char c = 0);
     // Prepend* methods add content before the string's head, increasing its length
@@ -356,8 +326,6 @@ public:
         String str = String::Wrapper(cstr);
         Prepend(str);
     }
-    // Prepends a single character
-    void PrependChar(char c);
     // Replaces all occurences of one character with another character
     void Replace(char what, char with);
     // Replaces all occurences of one substring with another substring
@@ -395,26 +363,6 @@ public:
     void TrimLeft(char c = 0);
     // Remove trailing characters from the string
     void TrimRight(char c = 0);
-    // Truncate* methods decrease the string to the part of itself
-    // Truncate the string to the leftmost N characters
-    void TruncateToLeft(size_t count);
-    // Truncate the string to the middle N characters
-    void TruncateToMid(size_t from, size_t count = NoIndex);
-    // Truncate the string to the rightmost N characters
-    void TruncateToRight(size_t count);
-    // Truncate the string to the leftmost part, separated by the given char;
-    // if no separator was found leaves string unchanged
-    void TruncateToLeftSection(char separator, bool exclude_separator = true);
-    // Truncate the string to the rightmost part, separated by the given char;
-    // if no separator was found leaves string unchanged
-    void TruncateToRightSection(char separator, bool exclude_separator = true);
-    // Truncate the string to range of Xth to Yth fields separated by the
-    // given character
-    void TruncateToSection(char separator, size_t first, size_t last, bool exclude_first_sep = true,
-                           bool exclude_last_sep = true);
-    // Wraps the given string buffer without owning it, won't count references,
-    // won't delete it at destruction. Can be used with string literals.
-    void Wrap(const char *cstr);
 
     //-------------------------------------------------------------------------
     // Operators

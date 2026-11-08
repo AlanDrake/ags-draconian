@@ -30,9 +30,9 @@ TEST(String, Internal)
     int cap1 = s1.GetCapacity();
     ASSERT_TRUE(cap1 == s1.GetLength());
 
-    s2.TruncateToLeft(10);
+    s2.ClipRight(6);
     ASSERT_TRUE(cap1 == s2.GetCapacity());
-    s3.TruncateToRight(10);
+    s3.ClipLeft(6);
     ASSERT_TRUE(cap1 == s3.GetCapacity());
     ASSERT_TRUE(s1.GetRefCount() == 1);
 
@@ -267,44 +267,6 @@ TEST(String, Clip)
     ASSERT_TRUE(strcmp(str5.GetCStr(), "") == 0);
 }
 
-TEST(String, ClipSection)
-{
-    String str1 = "C:\\Games\\AGS\\MyNewGame";
-    String str2 = str1;
-    String str3 = str1;
-    String str4 = str1;
-    String str5 = str1;
-    String str6 = str1;
-    String str7 = str1;
-    String str8 = str1;
-    String str9 = str1;
-    String str10 = str1;
-    String str11 = str1;
-
-    str1.ClipLeftSection('\\');
-    str2.ClipLeftSection('\\', false);
-    str3.ClipRightSection('\\');
-    str4.ClipRightSection('\\', false);
-    str5.ClipSection('\\', 1, 2);
-    str6.ClipSection('\\', 1, 2, false, false);
-    str7.ClipSection('|', 1, 2);
-    str8.ClipSection('\\', 0, 2);
-    str9.ClipSection('\\', 1, 3);
-    str10.ClipSection('\\', 3, 1);
-    str11.ClipSection('\\', 0, 4);
-    ASSERT_TRUE(strcmp(str1.GetCStr(), "Games\\AGS\\MyNewGame") == 0);
-    ASSERT_TRUE(strcmp(str2.GetCStr(), "\\Games\\AGS\\MyNewGame") == 0);
-    ASSERT_TRUE(strcmp(str3.GetCStr(), "C:\\Games\\AGS") == 0);
-    ASSERT_TRUE(strcmp(str4.GetCStr(), "C:\\Games\\AGS\\") == 0);
-    ASSERT_TRUE(strcmp(str5.GetCStr(), "C:MyNewGame") == 0);
-    ASSERT_TRUE(strcmp(str6.GetCStr(), "C:\\\\MyNewGame") == 0);
-    ASSERT_TRUE(strcmp(str7.GetCStr(), "C:\\Games\\AGS\\MyNewGame") == 0);
-    ASSERT_TRUE(strcmp(str8.GetCStr(), "MyNewGame") == 0);
-    ASSERT_TRUE(strcmp(str9.GetCStr(), "C:") == 0);
-    ASSERT_TRUE(strcmp(str10.GetCStr(), "C:\\Games\\AGS\\MyNewGame") == 0);
-    ASSERT_TRUE(strcmp(str11.GetCStr(), "") == 0);
-}
-
 TEST(String, FactoryMethods)
 {
     String s1 = "we have some string here";
@@ -360,11 +322,8 @@ TEST(String, LowerUpperCaseUTF8)
 {
     String s1 = "FußGÄNgeRüBerGÄNGe";
     String s2 = s1;
-    String s3 = s1;
     s2.MakeLowerUTF8();
-    s3.MakeUpperUTF8();
     ASSERT_TRUE(strcmp(s2.GetCStr(), "fußgängerübergänge") == 0);
-    ASSERT_TRUE(strcmp(s3.GetCStr(), "FUßGÄNGERÜBERGÄNGE") == 0);
 }
 
 TEST(String, Prepend)
@@ -372,12 +331,8 @@ TEST(String, Prepend)
     String s1 = "- a string to enlarge";
     s1.Prepend("make it bigger ");
     ASSERT_TRUE(strcmp(s1.GetCStr(), "make it bigger - a string to enlarge") == 0);
-    s1.PrependChar('!');
-    ASSERT_TRUE(strcmp(s1.GetCStr(), "!make it bigger - a string to enlarge") == 0);
-    s1.PrependChar(' ');
-    ASSERT_TRUE(strcmp(s1.GetCStr(), " !make it bigger - a string to enlarge") == 0);
-    s1.Prepend("much much bigger!");
-    ASSERT_TRUE(strcmp(s1.GetCStr(), "much much bigger! !make it bigger - a string to enlarge") == 0);
+    s1.Prepend("much much bigger! ");
+    ASSERT_TRUE(strcmp(s1.GetCStr(), "much much bigger! make it bigger - a string to enlarge") == 0);
 }
 
 TEST(String, ReplaceChar)
@@ -512,67 +467,6 @@ TEST(String, Split)
     ASSERT_TRUE(strcmp(result[2].GetCStr(), "test") == 0);
     ASSERT_TRUE(strcmp(result[3].GetCStr(), "") == 0);
     ASSERT_TRUE(strcmp(result[4].GetCStr(), "") == 0);
-}
-
-TEST(String, Truncate)
-{
-    String str1 = "long truncateable string";
-    String str2 = str1;
-    String str3 = str1;
-    String str4 = str1;
-    String str5 = str1;
-
-    str1.TruncateToLeft(4);
-    str2.TruncateToRight(6);
-    str3.TruncateToMid(5, 12);
-    str4.TruncateToMid(5, 0);
-    str5.TruncateToMid(0);
-    ASSERT_TRUE(strcmp(str1.GetCStr(), "long") == 0);
-    ASSERT_TRUE(strcmp(str2.GetCStr(), "string") == 0);
-    ASSERT_TRUE(strcmp(str3.GetCStr(), "truncateable") == 0);
-    ASSERT_TRUE(strcmp(str4.GetCStr(), "") == 0);
-    ASSERT_TRUE(strcmp(str5.GetCStr(), "long truncateable string") == 0);
-}
-
-TEST(String, TruncateToSection)
-{
-    String str1 = "C:\\Games\\AGS\\MyNewGame";
-    String str2 = str1;
-    String str3 = str1;
-    String str4 = str1;
-    String str5 = str1;
-    String str6 = str1;
-    String str7 = str1;
-    String str8 = str1;
-    String str9 = str1;
-    String str10 = str1;
-    String str11 = str1;
-    String str12 = str1;
-
-    str1.TruncateToLeftSection('\\');
-    str2.TruncateToLeftSection('\\', false);
-    str3.TruncateToRightSection('\\');
-    str4.TruncateToRightSection('\\', false);
-    str5.TruncateToSection('\\', 1, 2);
-    str6.TruncateToSection('\\', 1, 2, false, false);
-    str7.TruncateToSection('|', 1, 3);
-    str8.TruncateToSection('\\', 0, 2);
-    str9.TruncateToSection('\\', 1, 3);
-    str10.TruncateToSection('\\', 3, 1);
-    str11.TruncateToSection('\\', 3, 3);
-    str12.TruncateToSection('\\', 3, 3, false, false);
-    ASSERT_TRUE(strcmp(str1.GetCStr(), "C:") == 0);
-    ASSERT_TRUE(strcmp(str2.GetCStr(), "C:\\") == 0);
-    ASSERT_TRUE(strcmp(str3.GetCStr(), "MyNewGame") == 0);
-    ASSERT_TRUE(strcmp(str4.GetCStr(), "\\MyNewGame") == 0);
-    ASSERT_TRUE(strcmp(str5.GetCStr(), "Games\\AGS") == 0);
-    ASSERT_TRUE(strcmp(str6.GetCStr(), "\\Games\\AGS\\") == 0);
-    ASSERT_TRUE(strcmp(str7.GetCStr(), "") == 0);
-    ASSERT_TRUE(strcmp(str8.GetCStr(), "C:\\Games\\AGS") == 0);
-    ASSERT_TRUE(strcmp(str9.GetCStr(), "Games\\AGS\\MyNewGame") == 0);
-    ASSERT_TRUE(strcmp(str10.GetCStr(), "") == 0);
-    ASSERT_TRUE(strcmp(str11.GetCStr(), "MyNewGame") == 0);
-    ASSERT_TRUE(strcmp(str12.GetCStr(), "\\MyNewGame") == 0);
 }
 
 TEST(String, Wrap)

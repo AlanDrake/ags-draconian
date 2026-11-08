@@ -89,7 +89,7 @@ protected:
         // the memory one sprite takes in the cache
         spriteset.PrecacheSprite(1);
         _oneSprite = spriteset.GetCacheSize();
-        spriteset.DisposeCached(1);
+        spriteset.DisposeAllFreeCached();
     }
 
     void TearDown() override
@@ -177,22 +177,6 @@ TEST_F(EngineSpriteCache, SpriteZeroStaysLocked)
     EXPECT_FALSE(spriteset.IsSpriteLoaded(7));
 }
 
-TEST_F(EngineSpriteCache, LockedSpriteIsKeptUntilUnlocked)
-{
-    LimitTo(2);
-    spriteset.LockSprite(5);
-    EXPECT_TRUE(spriteset.IsSpriteLoaded(5));
-    for (int i = 1; i < kSpriteCount; ++i)
-        Use(i);
-    EXPECT_TRUE(spriteset.IsSpriteLoaded(5));
-    spriteset.UnlockSprite(5);
-    EXPECT_EQ(0u, spriteset.GetLockedSize());
-    // now it is the most recently used, and the next loads evict it
-    Use(1);
-    Use(2);
-    EXPECT_FALSE(spriteset.IsSpriteLoaded(5));
-}
-
 TEST_F(EngineSpriteCache, PrecachedSpriteCanBeEvicted)
 {
     // Game.PrecacheSprite loads a sprite ahead, but does not lock it
@@ -248,23 +232,17 @@ TEST_F(EngineSpriteCache, ClearingTheCacheKeepsLockedSprites)
     Use(1);
     Use(2);
     Use(3);
-    spriteset.LockSprite(4);
     spriteset.DisposeAllFreeCached();
     EXPECT_TRUE(spriteset.IsSpriteLoaded(0));
-    EXPECT_TRUE(spriteset.IsSpriteLoaded(4));
     EXPECT_FALSE(spriteset.IsSpriteLoaded(1));
     EXPECT_FALSE(spriteset.IsSpriteLoaded(2));
     EXPECT_FALSE(spriteset.IsSpriteLoaded(3));
-    EXPECT_EQ(2 * _oneSprite, spriteset.GetCacheSize());
-    EXPECT_EQ(2 * _oneSprite, spriteset.GetLockedSize());
-    // the cache goes on working: sprites load, lock and unlock again
+    EXPECT_EQ(_oneSprite, spriteset.GetCacheSize());
+    EXPECT_EQ(_oneSprite, spriteset.GetLockedSize());
+    // the cache goes on working: sprites load and are freed again
     Use(1);
-    spriteset.LockSprite(5);
-    spriteset.UnlockSprite(4);
-    EXPECT_EQ(4 * _oneSprite, spriteset.GetCacheSize());
-    EXPECT_EQ(2 * _oneSprite, spriteset.GetLockedSize());
-    // with nothing locked but sprite 0, everything else goes
-    spriteset.UnlockSprite(5);
+    EXPECT_EQ(2 * _oneSprite, spriteset.GetCacheSize());
+    EXPECT_EQ(_oneSprite, spriteset.GetLockedSize());
     spriteset.DisposeAllFreeCached();
     EXPECT_EQ(_oneSprite, spriteset.GetCacheSize());
     EXPECT_TRUE(spriteset.IsSpriteLoaded(0));
