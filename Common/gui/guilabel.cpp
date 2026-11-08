@@ -73,17 +73,6 @@ void GUILabel::OnTextChanged()
     _textMacro = GUI::FindLabelMacros(_text);
 }
 
-// TODO: replace string serialization with StrUtil::ReadString and WriteString
-// methods in the future, to keep this organized.
-void GUILabel::WriteToFile(Stream *out) const
-{
-    GUIControl::WriteToFile(out);
-    StrUtil::WriteString(_text, out);
-    out->WriteInt32(_font);
-    out->WriteInt32(_textColor);
-    out->WriteInt32(_textAlignment);
-}
-
 void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     GUIControl::ReadFromFile(in, gui_version);

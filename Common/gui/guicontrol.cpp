@@ -207,20 +207,6 @@ void GUIControl::UpdateControlRect()
     OnContentRectChanged();
 }
 
-// TODO: replace string serialization with StrUtil::ReadString and WriteString
-// methods in the future, to keep this organized.
-void GUIControl::WriteToFile(Stream *out) const
-{
-    out->WriteInt32(_flags);
-    out->WriteInt32(_x);
-    out->WriteInt32(_y);
-    out->WriteInt32(_width);
-    out->WriteInt32(_height);
-    out->WriteInt32(_zOrder);
-    _name.Write(out);
-    out->WriteInt32(0); // obsolete (old-style event table)
-}
-
 void GUIControl::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     _flags = in->ReadInt32();

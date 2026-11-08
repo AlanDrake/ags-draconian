@@ -83,14 +83,6 @@ void GUIInvWindow::OnResized()
     UpdateGraphicSpace();
 }
 
-void GUIInvWindow::WriteToFile(Stream *out) const
-{
-    GUIControl::WriteToFile(out);
-    out->WriteInt32(_charID);
-    out->WriteInt32(_itemWidth);
-    out->WriteInt32(_itemHeight);
-}
-
 void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     GUIControl::ReadFromFile(in, gui_version);

@@ -90,17 +90,6 @@ bool GUITextBox::OnKeyPress(const KeyInput &ki)
     return true;
 }
 
-// TODO: replace string serialization with StrUtil::ReadString and WriteString
-// methods in the future, to keep this organized.
-void GUITextBox::WriteToFile(Stream *out) const
-{
-    GUIControl::WriteToFile(out);
-    StrUtil::WriteString(_text, out);
-    out->WriteInt32(_font);
-    out->WriteInt32(_textColor);
-    out->WriteInt32(_textBoxFlags);
-}
-
 void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     GUIControl::ReadFromFile(in, gui_version);

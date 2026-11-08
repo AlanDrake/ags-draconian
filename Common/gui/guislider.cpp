@@ -377,17 +377,6 @@ void GUISlider::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
     in->ReadInt32();
 }
 
-void GUISlider::WriteToFile(Stream *out) const
-{
-    GUIControl::WriteToFile(out);
-    out->WriteInt32(_minValue);
-    out->WriteInt32(_maxValue);
-    out->WriteInt32(_value);
-    out->WriteInt32(_handleImage);
-    out->WriteInt32(_handleOffset);
-    out->WriteInt32(_bgImage);
-}
-
 void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     GUIControl::ReadFromSavegame(in, svg_ver);

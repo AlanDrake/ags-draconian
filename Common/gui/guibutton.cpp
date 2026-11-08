@@ -419,24 +419,6 @@ void GUIButton::UpdateCurrentImage()
     SetCurrentColors(new_bg_color, new_border_color, new_text_color);
 }
 
-void GUIButton::WriteToFile(Stream *out) const
-{
-    GUIControl::WriteToFile(out);
-
-    out->WriteInt32(_image);
-    out->WriteInt32(_mouseOverImage);
-    out->WriteInt32(_pushedImage);
-    out->WriteInt32(_font);
-    out->WriteInt32(_textColor);
-    out->WriteInt32(_clickAction[kGUIClickLeft]);
-    out->WriteInt32(_clickAction[kGUIClickRight]);
-    out->WriteInt32(_clickData[kGUIClickLeft]);
-    out->WriteInt32(_clickData[kGUIClickRight]);
-
-    StrUtil::WriteString(_text, out);
-    out->WriteInt32(_textAlignment);
-}
-
 void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     GUIControl::ReadFromFile(in, gui_version);

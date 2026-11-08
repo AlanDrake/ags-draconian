@@ -400,22 +400,6 @@ void GUIListBox::UpdateMetrics()
     _itemsRect = Rect(_innerRect.Left, _innerRect.Top, items_right, _innerRect.Bottom);
 }
 
-// TODO: replace string serialization with StrUtil::ReadString and WriteString
-// methods in the future, to keep this organized.
-void GUIListBox::WriteToFile(Stream *out) const
-{
-    GUIControl::WriteToFile(out);
-    out->WriteInt32(_items.size());
-    out->WriteInt32(_font);
-    out->WriteInt32(_textColor);
-    out->WriteInt32(_selectedTextColor);
-    out->WriteInt32(_listBoxFlags);
-    out->WriteInt32(_textAlignment);
-    out->WriteInt32(_selectedBgColor);
-    for (uint32_t i = 0; i < _items.size(); ++i)
-        _items[i].Write(out);
-}
-
 void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     Clear();

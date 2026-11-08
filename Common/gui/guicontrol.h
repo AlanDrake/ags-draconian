@@ -99,7 +99,6 @@ public:
     // Serialization
     virtual void ReadFromFile(Stream *in, GuiVersion gui_version);
     virtual void ReadFromFile_Ext363(Stream *in, GuiVersion gui_version);
-    virtual void WriteToFile(Stream *out) const;
     virtual void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver);
     virtual void WriteToSavegame(Stream *out) const;
 

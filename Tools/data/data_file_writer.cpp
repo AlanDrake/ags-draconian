@@ -303,10 +303,10 @@ int GetGuiPopupStyle(DataUtil::GUIPopupStyle style)
     }
 }
 
-// GUI classes in Common have equivalent WriteToFile methods, but using them here
-// would pull their runtime implementations into libtools and dependencies.
-// New GUIObjects also cannot initialize serialized event-handler slots through
-// the public API, and v363_guictrls2 has no writer there.
+// The only writer of the GUI data: the GUI classes in Common only read it. A writer
+// there would pull their runtime implementations into libtools and dependencies,
+// new GUIObjects cannot initialize serialized event-handler slots through the
+// public API, and v363_guictrls2 has no writer there either.
 // Keep this until Common is refactored to include a data-only GUI writer.
 // Read by GUIMain::ReadFromFile() in Common/gui/guimain.cpp, called from
 // GUI::ReadGUI().
