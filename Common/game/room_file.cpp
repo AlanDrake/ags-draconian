@@ -391,6 +391,7 @@ HError ReadPropertiesBlock(RoomData *room, Stream *in, RoomFileVersion /*data_ve
     return HError::None();
 }
 
+// Room object options that came with 3.6.3; 4.0 rooms carry this block too
 HError ReadExt_363_Objects(RoomData *room, Stream *in, RoomFileVersion data_ver)
 {
     uint32_t obj_count = static_cast<uint32_t>(in->ReadInt32());
@@ -661,8 +662,9 @@ const String RoomDataSource::Signature = "AGS Room File v2";
 HRoomFileError ReadRoomHeader(RoomDataSource &src)
 {
     Stream *in = src.InputStream.get();
-    // Older format started with a 16-bit version number right away.
-    // The new format has this field filled with 0xFFFF
+    // Rooms before 4.0 started with a 16-bit version number right away; 4.0 fills this field with
+    // 0xFFFF and writes a signature and a 32-bit version after it. A 16-bit version is always below
+    // kRoomVersion_LowSupport: it is read only to name it in the error.
     uint16_t old_room_ver = in->ReadInt16();
     if (old_room_ver == 0xFFFF)
     {
@@ -675,7 +677,7 @@ HRoomFileError ReadRoomHeader(RoomDataSource &src)
     }
     else
     {
-        // Old format
+        // Pre-4.0 format
         src.DataVersion = static_cast<RoomFileVersion>(old_room_ver);
     }
 

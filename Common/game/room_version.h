@@ -70,6 +70,7 @@ enum RoomFileVersion
     kRoomVersion_400_26 = 4000026,
     kRoomVersion_400_33 = 4000033,
     kRoomVersion_400_34 = 4000034,
-    kRoomVersion_LowSupport = kRoomVersion_3508,
+    // Rooms older than 4.0 (the 16-bit versions in the history above, up to 3.6.3's 36315) are refused
+    kRoomVersion_LowSupport = kRoomVersion_400,
     kRoomVersion_Current = kRoomVersion_400_34
 };

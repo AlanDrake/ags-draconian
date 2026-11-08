@@ -15,7 +15,8 @@
 // Compatibility contract C1 (docs/refactor/PLAN.md): game data built by released AGS 4 editors
 // keeps loading. The fixtures in data/compat/<version>/ are the Sierra-style template built by
 // each release (data/compat/make_fixtures.py); the engine runs them in the compat_* ctest cases.
-// Game data older than 3.99 (decision D1) is refused when its header is read.
+// Game data older than 3.99 and rooms older than 4.0 (decision D1) are refused when their header is
+// read.
 //
 //=============================================================================
 #include <memory>
@@ -222,4 +223,76 @@ TEST(GameDataVersion, NewerThanEngineIsRefused)
     HGameFileError err = OpenGameHeader(kGameVersion_Current + 1, "9.0.0.0", src);
     ASSERT_FALSE(err);
     EXPECT_EQ(err->Code(), kMGFErr_FormatVersionNotSupported);
+}
+
+namespace
+{
+
+// Writes a room file header and opens it. A pre-4.0 room starts with its 16-bit version; a 4.0 room
+// writes 0xFFFF there, then the signature, the 32-bit version and the editor's version string
+// (WriteRoomHeader).
+HRoomFileError OpenRoomHeader(int data_version, bool extended_header, RoomDataSource &src)
+{
+    const String filename = String::FromFormat("RoomHeader_%d.crm", data_version);
+    {
+        std::unique_ptr<Stream> out = File::CreateFile(filename);
+        if (!out)
+        {
+            return new RoomFileError(kRoomFileErr_FileOpenFailed, "Could not create %s", filename.GetCStr());
+        }
+        if (extended_header)
+        {
+            out->WriteInt16(-1);
+            out->Write(RoomDataSource::Signature.GetCStr(), RoomDataSource::Signature.GetLength());
+            out->WriteInt32(data_version);
+            StrUtil::WriteString("4.00.00.34", out.get());
+        }
+        else
+        {
+            out->WriteInt16(static_cast<int16_t>(data_version));
+        }
+    }
+    HRoomFileError err = OpenRoomFile(filename, src);
+    src.InputStream.reset(); // close the file before deleting it
+    File::DeleteFile(filename);
+    return err;
+}
+
+} // namespace
+
+// D1: rooms older than 4.0 are refused when the header is read, with an error that names the file's
+// format version and the oldest supported one
+TEST(RoomDataVersion, OlderThan400IsRefused)
+{
+    // 3.5.0.8 (the oldest that upstream reads), 3.99 (the 4.0 alphas) and 3.6.3.15 (the last 3.x format),
+    // all with the 16-bit header they were written with
+    for (int version : {33, 40, 36315})
+    {
+        RoomDataSource src;
+        HRoomFileError err = OpenRoomHeader(version, false, src);
+        ASSERT_FALSE(err) << version;
+        EXPECT_EQ(err->Code(), kRoomFileErr_FormatNotSupported);
+        const String message = err->FullMessage();
+        EXPECT_TRUE(message.FindString(String::FromFormat("version: %d,", version)) != String::NoIndex)
+            << message.GetCStr();
+        EXPECT_TRUE(message.FindString(String::FromFormat("supported %d -", kRoomVersion_400)) != String::NoIndex)
+            << message.GetCStr();
+    }
+}
+
+TEST(RoomDataVersion, From400IsOpened)
+{
+    RoomDataSource src;
+    HRoomFileError err = OpenRoomHeader(kRoomVersion_400, true, src);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    EXPECT_EQ(src.DataVersion, kRoomVersion_400);
+    EXPECT_STREQ(src.CompiledWith.GetCStr(), "4.00.00.34");
+}
+
+TEST(RoomDataVersion, NewerThanEngineIsRefused)
+{
+    RoomDataSource src;
+    HRoomFileError err = OpenRoomHeader(kRoomVersion_Current + 1, true, src);
+    ASSERT_FALSE(err);
+    EXPECT_EQ(err->Code(), kRoomFileErr_FormatNotSupported);
 }
