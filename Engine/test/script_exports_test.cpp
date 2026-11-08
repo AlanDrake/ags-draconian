@@ -23,12 +23,16 @@
 #include <cstdlib>
 #include <fstream>
 #include <iterator>
+#include <map>
 #include <set>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
+#include "ac/game.h"
 #include "ac/gamestructdefines.h"
+#include "ac/global_game.h"
 #include "gtest/gtest.h"
 #include "script/exports.h"
 #include "script/script_runtime.h"
@@ -99,6 +103,29 @@ std::vector<std::string> SplitLines(const std::string &text)
     for (std::string line; std::getline(ss, line);)
         lines.push_back(line);
     return lines;
+}
+
+// What each exported name is bound to when the API is registered for a game compiled against
+// the given level: the function scripts call and the one plugins look up.
+using Binding = std::pair<const void *, const void *>;
+
+std::map<std::string, Binding> BindingsAt(ScriptAPIVersion level)
+{
+    simp.Clear();
+    simp_for_plugin.Clear();
+    setup_script_exports(level, level);
+
+    std::map<std::string, Binding> bindings;
+    for (uint32_t i = 0; const ScriptImport *imp = simp.GetByIndex(i); ++i)
+    {
+        if (imp->Name.IsEmpty())
+        {
+            continue;
+        }
+        const ScriptImport *for_plugin = simp_for_plugin.GetByName(imp->Name);
+        bindings[imp->Name.GetCStr()] = {imp->Value.Ptr, for_plugin ? for_plugin->Value.Ptr : nullptr};
+    }
+    return bindings;
 }
 
 } // namespace
@@ -175,4 +202,42 @@ TEST(ScriptExports, ReleaseExportsResolve)
     }
     EXPECT_TRUE(missing.empty()) << "Exports of the 4.0.0.30 release that compiled games can no longer link:\n"
                                  << missing;
+}
+
+// A game may be compiled against any script API level (the project's ScriptAPIVersion), so every
+// level is part of C3. One registration depends on it (RegisterGlobalAPI): below v362,
+// SaveGameSlot, RestoreGameDialog and SaveGameDialog keep their older forms (no sprite argument,
+// no slot range), registered under the same names, without "^N". Every level exports the
+// snapshot's names; only those three bindings differ, and only below v362.
+TEST(ScriptExports, OldApiLevelsKeepTheirSaveFunctions)
+{
+    const std::map<std::string, Binding> current = BindingsAt(kScriptAPI_Current);
+    ASSERT_GT(current.size(), 1000u);
+
+    const std::set<std::string> gated = {"RestoreGameDialog", "SaveGameDialog", "SaveGameSlot"};
+    for (const ScriptAPIName &level : kScriptAPINames)
+    {
+        const std::map<std::string, Binding> at_level = BindingsAt(level.Version);
+        // A name missing at this level counts as differing too; with equal sizes, the names are the same
+        std::set<std::string> differ;
+        for (const auto &[name, binding] : current)
+        {
+            const auto it = at_level.find(name);
+            if (it == at_level.end() || it->second != binding)
+            {
+                differ.insert(name);
+            }
+        }
+        EXPECT_EQ(at_level.size(), current.size()) << "level " << level.Name;
+        const std::set<std::string> expected = level.Version < kScriptAPI_v362 ? gated : std::set<std::string>();
+        EXPECT_EQ(differ, expected) << "level " << level.Name;
+    }
+
+    const std::map<std::string, Binding> v321 = BindingsAt(kScriptAPI_v321);
+    EXPECT_EQ(v321.at("SaveGameSlot").second, reinterpret_cast<const void *>(SaveGameSlot2));
+    EXPECT_EQ(v321.at("RestoreGameDialog").second, reinterpret_cast<const void *>(restore_game_dialog));
+    EXPECT_EQ(v321.at("SaveGameDialog").second, reinterpret_cast<const void *>(save_game_dialog));
+    EXPECT_EQ(current.at("SaveGameSlot").second, reinterpret_cast<const void *>(SaveGameSlot));
+    EXPECT_EQ(current.at("RestoreGameDialog").second, reinterpret_cast<const void *>(restore_game_dialog2));
+    EXPECT_EQ(current.at("SaveGameDialog").second, reinterpret_cast<const void *>(save_game_dialog2));
 }
