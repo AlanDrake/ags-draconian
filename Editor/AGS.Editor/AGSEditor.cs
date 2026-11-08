@@ -154,10 +154,6 @@ namespace AGS.Editor
         public const string LATEST_XML_VERSION = "4.0.0.34";
 
         /*
-         * FIRST_XML_VERSION is the very first version of the Editor using XML project file.
-        */
-        public const string FIRST_XML_VERSION = "2.80.1";
-        /*
          * FIRST_XML_VERSION_USING_INDEX is the old version of the Editor that froze the version string
          * and started using XML_VERSION_INDEX instead.
         */
@@ -860,43 +856,13 @@ namespace AGS.Editor
                 versionIndex = Convert.ToInt32(versionIndexNode.InnerText);
             }
 
-            if (primaryVersion > new System.Version(LATEST_XML_VERSION))
-            {
-                throw new AGSEditorException("Game data file is from " +
-                        ((gameSavedWithEditorVersion == null) ? "a newer version" : ("version " + gameSavedWithEditorVersion))
-                        + " of AGS or an unsupported beta version. Please check the AGS website for a newer version of the editor.");
-            }
-            else if (primaryVersion >= new System.Version(FIRST_XML_VERSION_USING_INDEX)
-                && primaryVersion < new System.Version(FIRST_XML_VERSION_WITHOUT_INDEX)
-                && versionIndex != null)
-            {
-                if ((versionIndex < 1) || (versionIndex > LAST_XML_VERSION_INDEX))
-                {
-                    throw new AGSEditorException("Game data file is from " +
-                        ((gameSavedWithEditorVersion == null) ? "a newer version" : ("version " + gameSavedWithEditorVersion))
-                        + " of AGS or an unsupported beta version. Please check the AGS website for a newer version of the editor.");
-                }
-            }
-            else if (primaryVersion < new System.Version(FIRST_XML_VERSION))
-            {
-                throw new AGSEditorException("Game data file is from " +
-                        ((gameSavedWithEditorVersion == null) ? "a too old version" : ("version " + gameSavedWithEditorVersion))
-                        + " of AGS or an unsupported beta version. It cannot be loaded.");
-            }
-
-            if (versionIndex == null)
-            {
-                // Assign version index by converting a version to a XXYYZZWW encoded integer,
-                // this is in case we still use this somewhere in code (or if Editor plugins use it)
-                versionIndex =
-                    Math.Min(primaryVersion.Major, 99) * 1000000
-                  + Math.Min(primaryVersion.Minor, 99) * 10000
-                  + Math.Min(primaryVersion.Build, 99) * 100
-                  + Math.Min(primaryVersion.Revision, 99);
-            }
+            // Refuses a project newer than this editor or older than AGS 4.0; a project without
+            // a version index gets one derived from its version, in case we still use this
+            // somewhere in code (or if Editor plugins use it)
+            int savedVersionIndex = ProjectVersion.Check(primaryVersion, versionIndex, gameSavedWithEditorVersion);
 
             _game.SavedXmlVersion = primaryVersion;
-            _game.SavedXmlVersionIndex = versionIndex;
+            _game.SavedXmlVersionIndex = savedVersionIndex;
             _game.SavedXmlEditorVersion = new System.Version(gameSavedWithEditorVersion);
             try
             { // Try to retrieve the xml encoding declaration, to be used as a fallback for older projects
