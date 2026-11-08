@@ -269,7 +269,7 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const
     {
         HError bg_err;
         // Primary background (Deflate, LZW or RLE compressed depending on data version)
-        if ((data_ver >= kRoomVersion_363_15 && data_ver < kRoomVersion_400) || (data_ver >= kRoomVersion_400_33))
+        if (data_ver >= kRoomVersion_400_33)
         {
             room->BgFrames[0].GraphicBuf = SpriteDataUtils::ReadSprite_360(in, bg_err, &room->Palette);
         }
@@ -353,7 +353,7 @@ HError ReadAnimBgBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
 
     HError err;
     // Secondary backgrounds (Deflate or LZW compressed depending on data version)
-    if ((data_ver >= kRoomVersion_363_15 && data_ver < kRoomVersion_400) || (data_ver >= kRoomVersion_400_33))
+    if (data_ver >= kRoomVersion_400_33)
     {
         for (size_t i = 1; i < room->BgFrameCount; ++i)
         {
@@ -756,17 +756,6 @@ HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, const st
         room->WalkAreas[id].ID = id;
     for (int id = 0; id < MAX_WALK_BEHINDS; ++id)
         room->WalkBehinds[id].ID = id;
-
-    // For objects loaded from an older room, mark everything as
-    // Enabled, because there's no good way to distinct if it was
-    // disabled or only made invisible by setting "on" property.
-    if (data_ver < kRoomVersion_400)
-    {
-        for (auto &obj : room->Objects)
-        {
-            obj.Flags |= OBJF_ENABLED;
-        }
-    }
 
     // if they set a continiously scaled area where the top
     // and bottom zoom levels are identical, set it as a normal
