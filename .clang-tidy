@@ -46,6 +46,8 @@ CheckOptions:
   readability-function-size.NestingThreshold: 4
   readability-function-size.ParameterThreshold: 7
   readability-braces-around-statements.ShortStatementLines: 0
+  # int8_t is a number (Stream::ReadInt8, the save formats), not a character
+  bugprone-signed-char-misuse.CharTypdefsToIgnore: 'int8_t'
 
   # --- naming (mirrors STYLE.md, section "Naming") ---
   readability-identifier-naming.NamespaceCase: CamelCase
