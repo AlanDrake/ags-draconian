@@ -35,6 +35,26 @@ CRYPTIC_WATCHLIST = ['chaa', 'chap', 'chin', 'chinfo', 'char1', 'chi', 'objj', '
                      'butid', 'guisl', 'tehtext', 'ddd', 'abuf', 'thisroom', 'croom', 'objs', 'scsystem', 'usetup']
 NOT_FUNCS = {'if', 'for', 'while', 'switch', 'return', 'else', 'catch', 'main', 'WinMain', 'operator', 'sizeof'}
 
+# Dead-code candidates: tokens in the code (not comments) of these files count as uses too: Objective-C(++)
+# calls C and C++ functions directly. Java does not count: a native method's C side is named
+# Java_<package>_<class>_<method> (JNI), never <method>, and the Android methods named like the iOS port's
+# functions (writeConfigFile, ...) would hide them. C# does not count either: it reaches first-party C++
+# only through AGS.Native (C++/CLI, read with the C++ files) and has no P/Invoke into AGS code.
+REF_EXT = ('.mm', '.m')
+RAW_STRING_RE = re.compile(r'R"([^(\s]*)\(.*?\)\1"', re.S)
+VIRTUAL_RE = re.compile(r'\b(?:virtual|AGSIFUNC\s*\([^()]*\))\s+[^;(){}]*?\b([A-Za-z_]\w*)\s*\(')
+OVERRIDE_RE = re.compile(r'\b([A-Za-z_]\w*)\s*\([^;{}()]*(?:\([^;{}()]*\)[^;{}()]*)*\)\s*(?:const\s*)?'
+                         r'(?:noexcept\s*)?(?:override|final)\b')
+# Dead by every local measure (PLAN.md 3.5: the gc-sections builds with GCC and MSVC, the grep) and kept on
+# purpose: pattern (searched in "file:name"), reason. `--list-dead` prints them apart from the candidates.
+DEAD_CODE_EXCEPTIONS = [
+    (r'^Engine/platform/ios/', 'built only on iOS (inside #if AGS_PLATFORM_OS_IOS), not verified locally; the iOS '
+                               'settings UI that called it is not in the tree'),
+    (r'^Common/util/stream\.cpp:ReadAndConvertArrayOfUInt24$',
+     "the big-endian half of Stream's array reads (BITBYTE_BIG_ENDIAN, util/stream.h); no supported target is "
+     'big-endian, and stream.h calls it as ReadAndConvertArrayOfInt24, so that half does not compile'),
+]
+
 
 def tracked_files():
     out = subprocess.run(['git', 'ls-files'], capture_output=True, text=True, check=True).stdout
@@ -170,8 +190,20 @@ def collect(files):
     return m, funcs, raw, cpp
 
 
-def dead_candidates(raw, cpp):
-    """Function definitions whose name never appears outside their own definition/declaration."""
+def virtual_members(raw, cpp):
+    """Names declared virtual (`virtual`, the plugin API's `AGSIFUNC`) or `override` anywhere: a member of
+    that name is called through its vtable (by plugins, for the plugin interfaces), which names it nowhere."""
+    names = set()
+    for f in cpp:
+        txt = strip_comments_and_strings(raw[f])
+        names.update(m.group(1) for m in VIRTUAL_RE.finditer(txt))
+        names.update(m.group(1) for m in OVERRIDE_RE.finditer(txt))
+    return names
+
+
+def dead_candidates(raw, cpp, files):
+    """Function definitions whose name never appears outside their own definition/declaration.
+    Returns (listed, kept): kept are those DEAD_CODE_EXCEPTIONS names, as (file, line, name, reason)."""
     def_roots = ('Engine/', 'Common/', 'Compiler/script/', 'Compiler/preproc/', 'Tools/')
     tokens = collections.Counter()
     header_tokens = collections.Counter()
@@ -183,23 +215,34 @@ def dead_candidates(raw, cpp):
         if f.endswith(('.h', '.hpp')):
             header_tokens.update(set(toks))
         if f.endswith(('.cpp', '.c')) and f.startswith(def_roots) and '/test' not in f:
-            lines = txt.split('\n')
+            # a raw string holds shader code, whose functions are not C++ (rgb2hsv in ali3dogl.cpp)
+            lines = RAW_STRING_RE.sub(lambda m: '\n' * m.group(0).count('\n'), txt).split('\n')
             for i, line in enumerate(lines):
                 dm = DEF_RE.match(line)
                 if dm and i + 1 < len(lines) and (line.rstrip().endswith('{') or lines[i + 1].strip().startswith('{')):
                     name = dm.group(1).split('::')[-1]
                     if name not in NOT_FUNCS and not name.startswith(('Sc_', '~')):
-                        defs.append((f, i + 1, name))
+                        defs.append((f, i + 1, name, '::' in dm.group(1)))
+    for f in files:
+        if f.endswith(REF_EXT):
+            with open(f, encoding='utf-8', errors='replace') as fh:
+                tokens.update(TOK_RE.findall(strip_comments_and_strings(fh.read())))
+    virtual = virtual_members(raw, cpp)
     seen = set()
-    out = []
-    for f, line, name in sorted(defs):
+    listed, kept = [], []
+    for f, line, name, member in sorted(defs):
         if name in seen:
             continue
         seen.add(name)
         # definition (+ one declaration in a header) is all there is
-        if tokens[name] - min(header_tokens[name], 1) <= 1:
-            out.append((f, line, name))
-    return out
+        if tokens[name] - min(header_tokens[name], 1) > 1 or (member and name in virtual):
+            continue
+        reason = next((r for pattern, r in DEAD_CODE_EXCEPTIONS if re.search(pattern, f'{f}:{name}')), None)
+        if reason:
+            kept.append((f, line, name, reason))
+        else:
+            listed.append((f, line, name))
+    return listed, kept
 
 
 def main():
@@ -213,8 +256,9 @@ def main():
         sys.exit('Run from the repository root.')
     files = tracked_files()
     metrics, funcs, raw, cpp = collect(files)
-    dead = dead_candidates(raw, cpp)
+    dead, kept = dead_candidates(raw, cpp, files)
     metrics['functions']['dead-code candidates (unverified)'] = len(dead)
+    metrics['functions']['dead-code exceptions (documented)'] = len(kept)
     commit = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], capture_output=True, text=True).stdout.strip()
 
     if args.json:
@@ -238,6 +282,10 @@ def main():
         print(f'\n## dead-code candidates (first {args.list_dead}, verify before deleting)\n')
         for f, line, name in dead[:args.list_dead]:
             print(f'- `{f}:{line}` {name}')
+        if kept:
+            print(f'\n## dead-code exceptions ({len(kept)}, DEAD_CODE_EXCEPTIONS)\n')
+            for f, line, name, reason in kept:
+                print(f'- `{f}:{line}` {name}: kept, documented: {reason}')
 
 
 if __name__ == '__main__':
