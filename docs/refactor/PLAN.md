@@ -63,7 +63,7 @@ Recorded 2026-10-31.
 
 | ID | Question | Decision | Consequences | Unblocks |
 |---|---|---|---|---|
-| D1 | Oldest game version loaded (C1) | **3.99 and later** (`kGameVersion_399`) | All 3.x upgrade paths can go; room versions need care (3.4) | 3.4 |
+| D1 | Oldest game version loaded (C1) | **3.99 and later** (`kGameVersion_399`) | All 3.x upgrade paths can go; room versions need care (3.4). *2026-11-08:* the editor follows: the one `.crm` reader is Common's, so after 3.4-2 the editor opens and imports **AGS 4.0 projects and rooms only**; a 3.x project is upgraded with upstream's 4.0 editor first. Legacy importers are rebuilt, if wanted, after the planned phases (L.1), not kept through them | 3.4 |
 | D2 | Platforms | **Windows, Linux, macOS, Android, Web, iOS.** PSP goes; FreeBSD stays for now (shares the POSIX code) | iOS can't be tested locally (no Mac): compile-only CI job (7.3) | 3.1, 7.3 |
 | D3 | Legacy script compiler | **Removed**; `script2` is the only compiler | 3.3 | 3.3 |
 | D4 | Editor UI | **Avalonia is the main candidate**; WinForms goes into maintenance. *2026-11-03:* upstream plans no cross-platform editor but welcomes the core split (#1092, #3177); a-riddle-fan's `ags-for-mac` (3.6.x, .NET 10 + Avalonia, `AGS.Native` replaced by a CMake C library) is studied before 6.7c | Work goes into a UI-free core and replacing the C++/CLI bridge, which Avalonia can't use (phase 6) | 6.x |
@@ -80,7 +80,7 @@ so the offers go out first and fork-only moves that would conflict with them (5.
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
 | 1 | **3.2c, done locally:** push it and read the Windows build job's new drift-guard step (its first run) | CI confirms the guard | Sonnet 5.5, `medium` |
-| 1b | **3.4-2** room files: an explicit check for the room versions 3.99+ data has, then the older `ReadExt_*` and upgrade code; then **2.9d** (x64-only CI, the user's decisions) | Next deletion; 1.2's fixtures guard it | Opus 5.5, `high` |
+| 1b | **3.4-2** room files: `kRoomVersion_LowSupport = kRoomVersion_400`, the 3.x `ReadExt_*` and upgrade code go, the editor refuses pre-4.0 projects and `.crm` files with a clear message (decided 2026-11-08, D1); then **2.9d** (x64-only CI, the user's decisions) | Next deletion; 1.2's fixtures guard it | Opus 5.5, `high` |
 | 2 | **U.8:** offer upstream the 1.5b-2 fixes (`RuntimeScript::CheckFixupInCode`, `JointRTTI::Join`); the `String(ptr, length)` change separately if at all; the 1.5b-4 compiler leak fixes only if the user confirms | Real defects, small | Sonnet 5.5, `medium` |
 | 3 | **2.9 follow-up:** read the first push's runs after 2.9 (the plan job's push filter, cold ccache); the apt package cache, the ARM64 retry | The first push finds what the probe could not | Sonnet 5.5, `medium` |
 | 4 | **Waiting on review:** U.3 (#3186–#3190, #3185, #3191), U.6 (the fork port once the PR is stable), U.7 (#3193) | Upstream review takes weeks | Sonnet 5.5, `medium` (U.6: the user first) |
@@ -182,10 +182,19 @@ the corpus run (1.4).
 - [ ] **3.4 Legacy data-version paths** (D1). The largest deletion; one commit per step:
   1. **Game files.** Done 2026-11-07 (LOG.md): games older than 3.99 get a clean error;
      `legacy version checks` 62 → 0.
-  2. **Room files: careful.** Room versions are not monotonic: `kRoomVersion_399 = 40` sorts *below*
-     `kRoomVersion_363_06 = 36306`, so raising `kRoomVersion_LowSupport` to 399 would make 3.6.x
-     rooms look newer. Use the versions recorded by 1.2's fixtures, replace the minimum with an
-     explicit check for them, then delete the older `ReadExt_*` and upgrade code.
+  2. **Room files.** The enum holds `3508 = 33`, `399 = 40`, `363_06 = 36306`, `363_15 = 36315`, then
+     `400 = 4000000` to `400_34`. Version 40 (the 3.99 alphas) loads nowhere already ("Block data
+     overlapping"; upstream rejects it outright since 2026-02); 33 to 36315 are 3.5.0.8 to 3.6.3 rooms,
+     whose games 3.4-1 refuses. So `kRoomVersion_LowSupport = kRoomVersion_400` (monotonic again, no
+     explicit list needed), and the readers below it go: `ReadExt_363_Objects`, the LZW background
+     branch, the `< kRoomVersion_400` steps of `UpdateRoomData`; the `400_24` and `400_34` steps stay.
+     1.2's fixtures (`kRoomVersion_400_26`) guard the kept path.
+     **The editor shares this reader** (`NativeRoom` → `load_room_file` → `LoadRoom`), so in the same
+     task: the project floor in `AGSEditor.cs` (today 2.80.1) becomes the first 4.0 editor whose rooms
+     are version `400` or open-format, with the message "upgrade this project with the AGS 4.0 editor
+     first"; `UpgradeGameRoomsOpenFormatTask` goes (every project it could still serve has version-40 or
+     3.x rooms); "Import existing room" and room templates keep working for 4.0 `.crm` files and say so
+     for older ones. Decided 2026-11-08 (D1): no legacy reader is carried; L.1 may rebuild one later.
   3. **Savegames.** Raise `kSvgVersion_LowestSupported` (now `kSvgVersion_Components`, a 3.x version)
      to the oldest a 3.99 engine writes; delete the branches below.
   4. **Script API.** Delete `*_Old` variants (`Character_GetHasExplicitTint_Old`) and registrations
@@ -193,8 +202,9 @@ the corpus run (1.4).
   5. Savegame-only dead fields (`gscript_timer`, `replay_hotkey_unused`, ...) go **only at the next
      savegame format bump** (C2).
 
-  *Done when:* `legacy version checks` = 0, the C1/C2 fixture tests pass, and a 3.6 game fails with
-  a clean "game too old" error.
+  *Done when:* `legacy version checks` = 0, the C1/C2 fixture tests pass, a 3.6 game fails with
+  a clean "game too old" error, a 3.6 project and a 3.6 `.crm` get the editor's clean message, and a
+  4.0 `.crm` still imports.
 - [ ] **3.5 Unused functions.** `refactor_metrics.py --list-dead 200` lists 154 *candidates*, many
   false positives (plugin vtable entries, functions called from Java/Obj-C, name-string references).
   Confirm with a Linux build using `-ffunction-sections -fdata-sections
@@ -396,8 +406,8 @@ Framework-only.
     symbols, one process-wide recursive mutex because `Common` is not thread-safe) and its **image,
     sprite-file, font and GUI entry points** with the `agsn_` names where the semantics match, so a later
     merge on `ags4` is mechanical; say so on #3177 when the branch is cut. Not reused: its 38 room
-    functions (`ags4` rooms are XML + PNG; only the 3.99 upgrade reads `.crm`, so a read-only loader with
-    fork-defined structs), its CMake-generated constants (6.7b ports them to C#), its templates (6.7b), its
+    functions (`ags4` rooms are XML + PNG; only "Import existing room" and room templates read `.crm`,
+    4.0 versions only after 3.4-2, so a read-only loader with fork-defined structs), its CMake-generated constants (6.7b ports them to C#), its templates (6.7b), its
     3.6 struct layouts (the fork's GUI model has Opacity and `ags4` fields). About 30–40 `extern "C"`
     functions in a CMake `SHARED` target linking `Common` and `Tools/data`: images (BMP/PCX/PNG with
     palettes), sprite file slot info/read **as RGBA** and a slot-by-slot writer with raw copy (the sprite
@@ -440,6 +450,28 @@ Framework-only.
   (`-DCMAKE_SYSTEM_NAME=iOS`, Xcode generator) in a compile-only `macos-latest` job (simulator, no
   signing), and treat a red iOS build as blocking.
   *Done when:* CI builds every kept port from CMake, iOS included.
+
+---
+
+## Later: after the planned phases
+
+Wanted, but not before phases 3–7 are done; nothing is kept in the code to make them easier
+(decided 2026-11-08: clean up first, rebuild legacy paths afterwards if still wanted).
+
+- [ ] **L.1 Legacy project import.** Open a 3.5.0.8–3.6.3 project (or import one of its rooms) in the
+  fork's editor without a detour through upstream's 4.0 editor. Design chosen 2026-11-08: a tool,
+  `crmimport`, in `Tools/` (D7 pattern, run by the editor like `crmbuild`): reads a `.crm` of any
+  supported version with Common's reader plus a frozen copy of the 3.x code that 3.4-2 deleted (the
+  3.x format is final, so the copy never drifts), and writes `Rooms/<n>/` sources: `data.xml` (a
+  C++ writer, the mirror of `Tools/data/room_xml.cpp`, table-driven), backgrounds and masks as PNG.
+  The editor keeps the C# half (`Game.agf` upgrade: the 78 `[Obsolete]` shims in `AGS.Types`, the
+  `UpgradeGame*Task` classes, the version-index checks; `room<n>.asc` and `.crm.user` moves). Not a
+  C# port of the reader (a second implementation of the block format, with LZW, and no fixture) and
+  not a copy inside the editor's native library (6.7c stays small). Safety net first: a 3.6.3 room
+  fixture built with the 3.6.3 release editor as `make_fixtures.py` builds the 4.0 ones, and the
+  reference conversion output taken from the pre-3.4-2 editor (tag it before deleting).
+  *Done when:* the 3.6.3 fixture project opens, builds and runs; the converted sources match the
+  reference output; the tool runs in the Linux CI job.
 
 ---
 
