@@ -259,8 +259,6 @@ target_sources(engine
     debug/debug_log.h
     debug/debugger.h
     debug/dummyagsdebugger.h
-    debug/filebasedagsdebugger.cpp
-    debug/filebasedagsdebugger.h
     debug/logfile.cpp
     debug/logfile.h
     debug/memory_inspect.cpp
@@ -292,15 +290,11 @@ target_sources(engine
     gfx/gfxdriverfactorybase.h
     gfx/gfxfilter.h
     gfx/gfxfilter_aad3d.cpp
-    gfx/gfxfilter_aad3d11.cpp
     gfx/gfxfilter_aad3d.h
-    gfx/gfxfilter_aad3d11.h
     gfx/gfxfilter_aaogl.cpp
     gfx/gfxfilter_aaogl.h
     gfx/gfxfilter_d3d.cpp
-    gfx/gfxfilter_d3d11.cpp
     gfx/gfxfilter_d3d.h
-    gfx/gfxfilter_d3d11.h
     gfx/gfxfilter_ogl.cpp
     gfx/gfxfilter_ogl.h
     gfx/gfxfilter_scaling.cpp

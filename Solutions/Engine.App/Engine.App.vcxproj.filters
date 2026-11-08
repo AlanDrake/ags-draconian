@@ -522,9 +522,6 @@
     <ClCompile Include="..\..\Engine\debug\debug.cpp">
       <Filter>Source Files\debug</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\debug\filebasedagsdebugger.cpp">
-      <Filter>Source Files\debug</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\debug\logfile.cpp">
       <Filter>Source Files\debug</Filter>
     </ClCompile>
@@ -784,12 +781,6 @@
       <Filter>Source Files\ac</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\platform\windows\gfx\ali3dd3d11.cpp">
-      <Filter>Source Files\gfx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\gfx\gfxfilter_d3d11.cpp">
-      <Filter>Source Files\gfx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\gfx\gfxfilter_aad3d11.cpp">
       <Filter>Source Files\gfx</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1196,9 +1187,6 @@
     <ClInclude Include="..\..\Engine\debug\dummyagsdebugger.h">
       <Filter>Header Files\debug</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\debug\filebasedagsdebugger.h">
-      <Filter>Header Files\debug</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\debug\logfile.h">
       <Filter>Header Files\debug</Filter>
     </ClInclude>
@@ -1584,12 +1572,6 @@
       <Filter>Header Files\main</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\platform\windows\gfx\ali3dd3d11.h">
-      <Filter>Header Files\gfx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\gfx\gfxfilter_d3d11.h">
-      <Filter>Header Files\gfx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\gfx\gfxfilter_aad3d11.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
   </ItemGroup>

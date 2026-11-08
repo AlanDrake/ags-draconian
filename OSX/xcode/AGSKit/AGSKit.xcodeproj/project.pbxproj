@@ -783,8 +783,6 @@
 		526F27A51D3B5CC300EF4E1F /* debug_log.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25241D3B5CC300EF4E1F /* debug_log.h */; };
 		526F27A61D3B5CC300EF4E1F /* debugger.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25251D3B5CC300EF4E1F /* debugger.h */; };
 		526F27A71D3B5CC300EF4E1F /* dummyagsdebugger.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25261D3B5CC300EF4E1F /* dummyagsdebugger.h */; };
-		526F27A81D3B5CC300EF4E1F /* filebasedagsdebugger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25271D3B5CC300EF4E1F /* filebasedagsdebugger.cpp */; };
-		526F27A91D3B5CC300EF4E1F /* filebasedagsdebugger.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25281D3B5CC300EF4E1F /* filebasedagsdebugger.h */; };
 		526F27AA1D3B5CC300EF4E1F /* logfile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25291D3B5CC300EF4E1F /* logfile.cpp */; };
 		526F27AB1D3B5CC300EF4E1F /* logfile.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F252A1D3B5CC300EF4E1F /* logfile.h */; };
 		526F27AC1D3B5CC300EF4E1F /* mousew32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F252C1D3B5CC300EF4E1F /* mousew32.cpp */; };
@@ -1735,8 +1733,6 @@
 		526F25241D3B5CC300EF4E1F /* debug_log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = debug_log.h; sourceTree = "<group>"; };
 		526F25251D3B5CC300EF4E1F /* debugger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = debugger.h; sourceTree = "<group>"; };
 		526F25261D3B5CC300EF4E1F /* dummyagsdebugger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dummyagsdebugger.h; sourceTree = "<group>"; };
-		526F25271D3B5CC300EF4E1F /* filebasedagsdebugger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = filebasedagsdebugger.cpp; sourceTree = "<group>"; };
-		526F25281D3B5CC300EF4E1F /* filebasedagsdebugger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = filebasedagsdebugger.h; sourceTree = "<group>"; };
 		526F25291D3B5CC300EF4E1F /* logfile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = logfile.cpp; sourceTree = "<group>"; };
 		526F252A1D3B5CC300EF4E1F /* logfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = logfile.h; sourceTree = "<group>"; };
 		526F252C1D3B5CC300EF4E1F /* mousew32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mousew32.cpp; sourceTree = "<group>"; };
@@ -3220,8 +3216,6 @@
 				526F25241D3B5CC300EF4E1F /* debug_log.h */,
 				526F25251D3B5CC300EF4E1F /* debugger.h */,
 				526F25261D3B5CC300EF4E1F /* dummyagsdebugger.h */,
-				526F25271D3B5CC300EF4E1F /* filebasedagsdebugger.cpp */,
-				526F25281D3B5CC300EF4E1F /* filebasedagsdebugger.h */,
 				526F25291D3B5CC300EF4E1F /* logfile.cpp */,
 				526F252A1D3B5CC300EF4E1F /* logfile.h */,
 			);
@@ -3876,7 +3870,6 @@
 				20E6852B28F2219B00B95C00 /* SpriteFontRendererClifftopGames.h in Headers */,
 				20E67D9F28F1BDE000B95C00 /* file.h in Headers */,
 				526F288C1D3B5CC300EF4E1F /* queuedaudioitem.h in Headers */,
-				526F27A91D3B5CC300EF4E1F /* filebasedagsdebugger.h in Headers */,
 				526F271C1D3B5CC300EF4E1F /* global_label.h in Headers */,
 				526F26E01D3B5CC300EF4E1F /* scriptdynamicsprite.h in Headers */,
 				526F28C31D3B5CC300EF4E1F /* exports.h in Headers */,
@@ -4408,7 +4401,6 @@
 				526F26FA1D3B5CC300EF4E1F /* gamestate.cpp in Sources */,
 				20E684AE28F20CC700B95C00 /* bitpack.c in Sources */,
 				20522A8A28E8FD2B00589E91 /* sdl2_util.cpp in Sources */,
-				526F27A81D3B5CC300EF4E1F /* filebasedagsdebugger.cpp in Sources */,
 				526F22EB1D3B5C4900EF4E1F /* guislider.cpp in Sources */,
 				526F269E1D3B5CC300EF4E1F /* button.cpp in Sources */,
 				20E6822B28F1D2B400B95C00 /* load_xm.c in Sources */,

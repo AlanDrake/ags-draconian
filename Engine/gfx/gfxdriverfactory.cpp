@@ -25,7 +25,6 @@
 
 #if AGS_HAS_DIRECT3D
 #include "gfx/gfxfilter_d3d.h"
-#include "gfx/gfxfilter_d3d11.h"
 #include "platform/windows/gfx/ali3dd3d.h"
 #include "platform/windows/gfx/ali3dd3d11.h"
 #endif
