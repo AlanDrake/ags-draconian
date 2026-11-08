@@ -698,74 +698,100 @@ namespace AGS.Editor
             return true;
         }
 
+        /// <summary>
+        /// Loads the project's user data file (Game.agf.user): the per-user editor state, that is the
+        /// components' preferences, the open windows and the workspace state. The file is ancillary and
+        /// must never keep the project from opening: when any part of it cannot be read, the user is
+        /// warned, the state starts from defaults, and the file is deleted (the next save writes a new one).
+        /// </summary>
         private void LoadUserDataFile(string fileName)
         {
-            XmlNode docNode = null;
             try
             {
-                XmlDocument doc = new XmlDocument();
-                doc.Load(fileName);
-                if (doc.DocumentElement.Name != XML_USER_DATA_ROOT_NODE_NAME)
-                {
-                    throw new AGSEditorException("Invalid user data file. This is not a valid AGS user data file.");
-                }
-
-                string userDataSavedWithEditorVersion = null;
-                XmlAttribute editorVersionNode = doc.DocumentElement.Attributes[XML_ATTRIBUTE_EDITOR_VERSION];
-                if (editorVersionNode != null)
-                {
-                    userDataSavedWithEditorVersion = editorVersionNode.InnerText;
-                }
-
-                string fileVersion = doc.DocumentElement.Attributes[XML_ATTRIBUTE_VERSION].InnerXml;
-                System.Version primaryVersion;
-                if (!System.Version.TryParse(fileVersion, out primaryVersion))
-                {
-                    throw new AGSEditorException("User data file has an invalid version identifier.");
-                }
-
-                // Numeric version indexes have been used in a long range of Editors between 3.0 and 4.0;
-                // we optionally check it too if it's present.
-                int? versionIndex = null;
-                XmlAttribute versionIndexNode = doc.DocumentElement.Attributes[XML_ATTRIBUTE_VERSION_INDEX];
-                if (versionIndexNode != null)
-                {
-                    versionIndex = Convert.ToInt32(versionIndexNode.InnerText);
-                }
-
-                if (primaryVersion > new System.Version(LATEST_USER_DATA_VERSION))
-                {
-                    throw new AGSEditorException("This game's user data file is from " +
-                            ((userDataSavedWithEditorVersion == null) ? "a newer version" : ("version " + userDataSavedWithEditorVersion))
-                            + " of AGS or an unsupported beta version. Please check the AGS website for a newer version of the editor.");
-                }
-                else if (primaryVersion >= new System.Version(FIRST_USER_DATA_VERSION_USING_INDEX)
-                    && primaryVersion < new System.Version(FIRST_USER_DATA_VERSION_WITHOUT_INDEX)
-                    && versionIndex != null)
-                {
-                    if ((versionIndex < 1) || (versionIndex > LAST_USER_DATA_VERSION_INDEX))
-                    {
-                        throw new AGSEditorException("This game's user data file is from " +
-                            ((userDataSavedWithEditorVersion == null) ? "a newer version" : ("version " + userDataSavedWithEditorVersion))
-                            + " of AGS or an unsupported beta version. Please check the AGS website for a newer version of the editor.");
-                    }
-                }
-                else if (primaryVersion < new System.Version(FIRST_USER_DATA_VERSION_USING_INDEX))
-                {
-                    throw new AGSEditorException("Game data file is from " +
-                            ((userDataSavedWithEditorVersion == null) ? "a too old version" : ("version " + userDataSavedWithEditorVersion))
-                            + " of AGS or an unsupported beta version. It cannot be loaded.");
-                }
-
-                docNode = doc.DocumentElement;
+                XmlNode docNode = ReadUserDataFile(fileName);
+                Factory.Events.OnLoadedUserData(docNode);
+                _game.WorkspaceState.FromXml(docNode);
+                return;
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowError("Unable to read the user preferences file for this project. You may lose some of your Preferences settings.", ex, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("Unable to read the user preferences file for this project (" + Path.GetFileName(fileName) +
+                    "). The file has been reset, so the editor's preferences for this project start from defaults.", ex, MessageBoxIcon.Warning);
             }
 
-            Factory.Events.OnLoadedUserData(docNode);
-            _game.WorkspaceState.FromXml(docNode);
+            Factory.Events.OnLoadedUserData(null);
+            _game.WorkspaceState.FromXml(null);
+            try
+            {
+                File.Delete(fileName);
+            }
+            catch (Exception)
+            {
+                // Not deletable (locked, read-only): the next save overwrites it
+            }
+        }
+
+        /// <summary>
+        /// Reads and validates the user data file, returning its root node. Throws when the file is not
+        /// AGS user data or comes from a version of the editor that this one cannot read.
+        /// </summary>
+        private static XmlNode ReadUserDataFile(string fileName)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.Load(fileName);
+            if (doc.DocumentElement.Name != XML_USER_DATA_ROOT_NODE_NAME)
+            {
+                throw new AGSEditorException("Invalid user data file. This is not a valid AGS user data file.");
+            }
+
+            string userDataSavedWithEditorVersion = null;
+            XmlAttribute editorVersionNode = doc.DocumentElement.Attributes[XML_ATTRIBUTE_EDITOR_VERSION];
+            if (editorVersionNode != null)
+            {
+                userDataSavedWithEditorVersion = editorVersionNode.InnerText;
+            }
+
+            string fileVersion = doc.DocumentElement.Attributes[XML_ATTRIBUTE_VERSION].InnerXml;
+            System.Version primaryVersion;
+            if (!System.Version.TryParse(fileVersion, out primaryVersion))
+            {
+                throw new AGSEditorException("User data file has an invalid version identifier.");
+            }
+
+            // Numeric version indexes have been used in a long range of Editors between 3.0 and 4.0;
+            // we optionally check it too if it's present.
+            int? versionIndex = null;
+            XmlAttribute versionIndexNode = doc.DocumentElement.Attributes[XML_ATTRIBUTE_VERSION_INDEX];
+            if (versionIndexNode != null)
+            {
+                versionIndex = Convert.ToInt32(versionIndexNode.InnerText);
+            }
+
+            if (primaryVersion > new System.Version(LATEST_USER_DATA_VERSION))
+            {
+                throw new AGSEditorException("This game's user data file is from " +
+                        ((userDataSavedWithEditorVersion == null) ? "a newer version" : ("version " + userDataSavedWithEditorVersion))
+                        + " of AGS or an unsupported beta version. Please check the AGS website for a newer version of the editor.");
+            }
+            else if (primaryVersion >= new System.Version(FIRST_USER_DATA_VERSION_USING_INDEX)
+                && primaryVersion < new System.Version(FIRST_USER_DATA_VERSION_WITHOUT_INDEX)
+                && versionIndex != null)
+            {
+                if ((versionIndex < 1) || (versionIndex > LAST_USER_DATA_VERSION_INDEX))
+                {
+                    throw new AGSEditorException("This game's user data file is from " +
+                        ((userDataSavedWithEditorVersion == null) ? "a newer version" : ("version " + userDataSavedWithEditorVersion))
+                        + " of AGS or an unsupported beta version. Please check the AGS website for a newer version of the editor.");
+                }
+            }
+            else if (primaryVersion < new System.Version(FIRST_USER_DATA_VERSION_USING_INDEX))
+            {
+                throw new AGSEditorException("This game's user data file is from " +
+                        ((userDataSavedWithEditorVersion == null) ? "a too old version" : ("version " + userDataSavedWithEditorVersion))
+                        + " of AGS or an unsupported beta version. It cannot be loaded.");
+            }
+
+            return doc.DocumentElement;
         }
 
         private void VerifyGameNotAlreadyOpenInAnotherEditor()

@@ -2879,8 +2879,25 @@ and passes the tests (the in-process compile goes after `DataFileWriter`, which 
   upgraded project no longer got the full build it asked for (the content-hash cache of 7.1k and 7.1p covers
   most of it, since upgraded sources hash differently). `BuildGame` ORs it in again, so it reaches
   `agsbuild --rebuild`. `RequiredRebuildTime`, the time stamp that `DoesFileNeedRecompile` compared file
-  times with, is dead for good (the manifests replaced the comparison) and is gone from `WorkspaceState` and
-  the user file, with the setters that wrote it and the line in `BuildCommandsComponent`.
+  times with, is dead for good (the manifests replaced the comparison): the setters that wrote it and the line
+  in `BuildCommandsComponent` are gone, and it leaves the user file at the next save.
+- Found by the user and fixed (2026-11-08): the first version deleted the `RequiredRebuildTime` property
+  outright, but `SerializeUtils.DeserializePropertiesFromXML` throws on an element without a property and
+  `WorkspaceState.FromXml` runs outside `LoadUserDataFile`'s try/catch, so every `Game.agf.user` written by a
+  3.6.3.13+ editor made the project fail to open. The property is back as `[Obsolete]`, which the serializer
+  reads and does not write (the `Settings.ScriptCompiler` pattern); `WorkspaceStateTests` covers the load of
+  an old user file and the absence of the element on save. The user decided the general rule: the user file is
+  ancillary and must never keep a project from opening. `LoadUserDataFile` now catches a failure anywhere in the
+  read (the file, the version checks, the components' `DeSerialize`, `WorkspaceState.FromXml`), warns, resets
+  the components and the workspace state to defaults, and deletes the file; the next save writes a new one.
+  `WorkspaceState.FromXml` resets every field first. Measured with the headless editor (`/compile`) on a copy of
+  the auto-test project: a user file from an older editor (with `RequiredRebuildTime`) opens without a warning
+  and is saved without the element; a file with an unknown element and a file that is not XML each warn on the
+  console, the project opens and builds, and a fresh user file is written. Editor NUnit 550 of 550 (544 passed,
+  the 6 that need `AGS_TEST_PROJECT` skipped). The room user files (`room<n>.crm.user`,
+  `RoomDesignData.LoadFromUserFile`) already fail soft: the whole read is in a try/catch that warns and resets
+  the design-time state, and the elements are read by name, so an unknown one is ignored; the file is not
+  deleted, the next room save rewrites it.
 - Measured: editor NUnit 547 of 547; `tools_test` `AGFReaderSample` 2 of 2 on the new sample;
   `compare_builds.py --tools-editor` against the reference editor 59 of 59 identical; the template as above.
   Not verified: a Debug/Release switch, which used to force a rebuild through the time stamp, now relies on

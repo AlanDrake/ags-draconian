@@ -39,6 +39,13 @@ namespace AGS.Types
             set { _requiresRebuild = value; }
         }
 
+        [Obsolete]
+        [Browsable(false)]
+        public DateTime RequiredRebuildTime
+        {
+            get; set; // not used: the build manifests replaced the time-stamp comparison (6.7d-12); kept so that user data written before it still loads
+        }
+
         // TODO: generic method of serializing key-value list in a string (or other xml element)
         private static string[] StringListSeparators = new string[] { "," };
         private static string[] KeyValueSeparators = new string[] { "=" };
@@ -69,11 +76,16 @@ namespace AGS.Types
 			SerializeUtils.SerializeToXML(this, writer);
 		}
 
+		/// <summary>
+		/// Reads the state from the user data's root node; a null node, or one without a WorkspaceState
+		/// section (user data written before 3.4.0.1, or reset after a failed read), gives the defaults.
+		/// </summary>
 		public void FromXml(System.Xml.XmlNode node)
 		{
 			_lastBuildConfiguration = AGS.Types.BuildConfiguration.Unknown;
+			_lastBuildGameFileName = "";
+			_requiresRebuild = false;
 
-			// Allow for earlier versions of the XML
 			if (node != null && node.SelectSingleNode("WorkspaceState") != null)
 				SerializeUtils.DeserializeFromXML(this, node);
 		}
