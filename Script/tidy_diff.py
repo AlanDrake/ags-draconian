@@ -14,7 +14,11 @@ headers go there too, unless a .cpp of the same name is in the diff and covers t
 
 A function-size or naming diagnostic is reported on the line of the declaration, so a long function is
 flagged when its first line is in the diff (new or rewritten functions), not when a line inside an old
-one is edited. That is the intent: legacy code is cleaned up by tasks of its own.
+one is edited. That is the intent: legacy code is cleaned up by tasks of its own. A rename of the
+parameters also changes the first line without making the function new, so a function-size or
+function-name diagnostic is dropped when the base revision's copy of the file already has a function
+of that name (PLAN.md phase 4 touches every declaration; function names are 4.2, lengths are 5.4).
+A new or renamed function is checked in full.
 
 clang-tidy's naming check knows case styles, not words, so a new "CharacterInfo *chaa" would pass it.
 The banned abbreviations (CRYPTIC_WATCHLIST in refactor_metrics.py; STYLE.md "Naming") are found through
@@ -50,6 +54,9 @@ HUNK = re.compile(r'^@@ -\S+ \+(\d+)(?:,(\d+))? @@')
 DECLARED_CHECK = 'readability-identifier-length'
 DECLARED_NAME = re.compile(r"name '(\w+)' is too short")
 CRYPTIC_CHECK = 'ags-cryptic-name'
+# The diagnostics about a whole function, reported on its declaration line (see the docstring)
+FUNCTION_CHECKS = {'readability-function-size': re.compile(r"^function '([\w:~]+)' exceeds"),
+                   'readability-identifier-naming': re.compile(r"^invalid case style for (?:function|method) '([\w:~]+)'")}
 
 
 def git(*cmd):
@@ -94,6 +101,21 @@ def changed_lines(base):
             if count > 0:
                 result[path] = [(1, count)]
     return result
+
+
+class BaseFunctions:
+    """Tells whether a function name is already in the base revision's copy of a file."""
+
+    def __init__(self, base):
+        self._base = base
+        self._texts = {}
+
+    def has(self, path, name):
+        if path not in self._texts:
+            r = subprocess.run(['git', 'show', '%s:%s' % (self._base, path)], cwd=REPO, capture_output=True,
+                               text=True, encoding='utf-8', errors='replace')
+            self._texts[path] = r.stdout if r.returncode == 0 else ''  # a new file has no base copy
+        return re.search(r'\b%s\s*\(' % re.escape(name.split('::')[-1]), self._texts[path]) is not None
 
 
 def find_clang_tidy(explicit):
@@ -172,6 +194,7 @@ def main():
 
     found = {}
     broken = []
+    legacy = BaseFunctions(base)
     with ThreadPoolExecutor(max_workers=args.jobs) as pool:
         futures = [pool.submit(run_one, tidy, build, p, line_filter) for p in files]
         for fut in futures:
@@ -193,6 +216,10 @@ def main():
                     if declared and declared.group(1) in CRYPTIC_WATCHLIST:
                         text = "banned abbreviation '%s' in a new name (STYLE.md \"Naming\")" % declared.group(1)
                         found[(name, int(m.group('line')), CRYPTIC_CHECK, text)] = True
+                elif m.group('check') in FUNCTION_CHECKS and \
+                        (fn := FUNCTION_CHECKS[m.group('check')].match(m.group('text'))) and \
+                        legacy.has(name, fn.group(1)):
+                    continue  # an old function whose declaration line changed, not a new one
                 else:
                     found[(name, int(m.group('line')), m.group('check'), m.group('text'))] = True
             if code != 0 and not parsed:
