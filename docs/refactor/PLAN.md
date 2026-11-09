@@ -80,7 +80,7 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **4.1 + 4.5 + 3.6 per file:** parameter and local names, comments, comment debris, `Engine/ac/` most-churned files first; one `[rename]` commit per file checked by `compare_objects.py`, then a `[comment]` commit | Phase 5 needs phase 4; mechanical and verifiable | Sonnet 5.5, `medium`, one file set per session |
+| 1 | **4.1 + 4.5 + 3.6 per file:** parameter and local names, comments, comment debris, `Engine/ac/` most-churned files first; one `[rename]` commit per file checked by `compare_objects.py`, then a `[comment]` commit. Done: `character.cpp/.h` (2026-11-09). Next: `object.cpp/.h`, then `guicontrol`, `button`, `characterinfo_engine` (which also gets `character.h`'s `ch` names and `followingAsSheep`). camelCase parameters go to `snake_case` in the same pass, and braces on the touched lines in a `[format]` commit, or the tidy gate fails | Phase 5 needs phase 4; mechanical and verifiable | Sonnet 5.5, `medium`, one file set per session |
 | 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` with upstream's draft names where they overlap | Files move once (4.4 rides along) | Fable 5.1, `high` for the move map, subagents for the moves |
 | 3 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); U.3 (#3186–#3190, #3185, #3191), U.6, U.7 (#3193) under review | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
@@ -108,6 +108,11 @@ Open items from finished tasks (details in LOG.md "Open items"):
   (`ReadAndConvertArrayOfInt24`); the `DEBUG_SPRITECACHE` and `DEBUG_PATHFINDER` builds fail; `= delete` or keep for the
   unused copy/move members (`RoomData`, `OpenAlSource`, `SDLDecoder`, `Bitmap::operator=`); leftovers constant now
   (`RunEventInModules`' last parameter, the write-only `SPRCACHEFLAG_LOCKED` and `DebugManager::_freeGroupID`).
+- 4.1 (character): `start_character_turning`'s `kScTurnOrder_FaceDown` tie-break passes a `turnlooporder` index to
+  `is_loop_in_left_half` and has its sign inverted for that table; the two cancel for Left, Right and DownRight starts,
+  but a 180° turn from DownLeft, UpLeft or UpRight passed through Up instead of Down. Fixed in `63da172bd`
+  (2026-11-09), visual check and a test pending; upstream `ags4` has the same line (a U.x candidate; LOG.md "4.1 +
+  4.5 + 3.6 per file").
 - Scripts in a git worktree: `refactor_metrics.py`, `prepush.py`'s `linux` and `msbuild` stages fail there.
 - Stale: `Tools/test/directory_test.cpp`'s googletest comment; `FetchGoogleTest.cmake`'s pin for GCC < 5.
 
@@ -241,6 +246,9 @@ optionally a `[comments]` commit.
   (`CharacterInfo*`), `obj` (`RoomObject*`), `gui` (`GUIMain*`), `btn` (`GUIButton*`), `dst`
   (destination bitmaps), `err` (error results). IDE or clang-based renaming, never search-and-replace.
   *Done when:* cryptic names = 0, except the globals of 5.1.
+  *Progress:* `character.cpp/.h` done with 4.5 and 3.6 (2026-11-09, LOG.md "4.1 + 4.5 + 3.6 per file": 1,324
+  names to 0, camelCase parameters too; a turn-order bug found, see "Next up"). Next by count: `object.cpp/.h`
+  414, `guicontrol.cpp/.h` 249, `button.cpp/.h` 195, `characterinfo_engine.cpp` 186, `drawingsurface.cpp/.h` 196.
 - [ ] **4.2 Function names.** Engine free functions: `snake_case` 949, `PascalCase` 1,094,
   `Type_Method` 3,119 (script API). Rename snake_case to PascalCase as phase 5 restructures their
   files, not before (many will be deleted or become methods).

@@ -790,6 +790,12 @@ code only. *Done when:* a PR that adds a `chaa`-style name or a 300-line functio
   passed everything). The fork's last 60 commits hold 36 findings (braces, C-style casts, test names),
   reported when those lines are next touched.
 - **Not verified:** a large diff on the runner.
+- **Follow-up (2026-11-09, with 4.1's first file):** a `[rename]` of parameters changes every declaration line, which
+  brought the file's old functions under the size and function-name rules (10 findings in `character.cpp`: three
+  `snake_case` helpers, seven long functions). `tidy_diff.py` now drops a `readability-function-size` or a
+  function/method `readability-identifier-naming` finding when the base revision's copy of the file already has a
+  function of that name (`BaseFunctions`); a new or renamed function is still checked. Checked locally: the stage went
+  from 10 findings to clean on the 4.1 commits, and a name absent from the base is not dropped.
 
 ### 2.5 Header guards → `#pragma once`
 
@@ -3861,6 +3867,58 @@ the editor).
     profile, the task manager wakes on a finished task instead of every 8 ms. `agsbuild --data-only` with nothing
     changed 0.34 s against 1.74 s; the Run 1.5 to 2.1 s against the reference editor's 1.3 to 1.7 s, the rest of
     the gap being the editor's work before `agsbuild` starts (1.0 to 1.1 s).
+
+### 4.1 + 4.5 + 3.6 per file
+
+*Definition:* PLAN.md 4.1, 4.5 and 3.6 applied to one file set per session, `Engine/ac/` most-churned first: a
+`[rename]` commit for parameter and local names (checked by `compare_objects.py`), then a `[comment]` commit (comment
+debris, stale comments, a header comment on every public function). The task stays open until the watchlist is at
+zero; each file set is logged here.
+
+**`Engine/ac/character.cpp` + `character.h`** (2026-11-09; a Sonnet 5.5 subagent at `medium`, reviewed here; four
+local commits `b65708b52`, `0ba2ef3fc`, `6efc3bd1c`, `54f3e0173`):
+- **`[rename]`, 1,138 lines:** the watchlist names of the two files to 0 (`chaa` 642, `chi` 129, `chin` 89, `chap`
+  88, `char1` 84, `vii` 41, `texx` 27, `xx` 27, `yy` 23, `aschar` 19, `widd` 10, `iit` 10, `chinfo` 9; the globals
+  `thisroom`, `croom`, `objs` stay for 5.1). Every `CharacterInfo*` is `ch` (`chinf`, `charp`, `cchar`, `cha` too);
+  `CharacterExtras*` stays `chex`, already the established name; the second character of `FaceCharacter` and
+  `IsCollidingWithChar` is `other`, `FollowCharacter` keeps `tofollow`; `vii` → `view`, `xx`/`yy` → `x`/`y`, `texx`
+  → `text`, `widd` → `width`, `aschar` and the `int chaa` of `MoveCharacterToHotspot` → `char_id`, `iit` →
+  `item_id`/`item`. Five header declarations whose parameter names differed from the definition were synced. A
+  second `[rename]` took the camelCase parameters and locals to `snake_case` (`blockingStyle`, `stopMoving`,
+  `newPos`, `newName`, `newDelay`, `speakingChar`, `maxWidth`, ...; `followingAsSheep` stays, its definitions are in
+  `characterinfo_engine.cpp`). Method: a per-function name map applied by a scratch script, skipping string literals
+  and member accesses (clang-rename exists in VS's LLVM but ~1,100 occurrences made per-symbol runs impractical);
+  the proof is `compare_objects.py`: 637 objects identical after each commit. The files have no `#if` branches, so
+  MSVC's comparison covers every line.
+- **`[comment]`, +100 -26:** the commented-out `frameletters` table and two commented-out conditions deleted; the
+  two CHECKMEs answered (the `xwas`/`ywas` fix-up in `Character_StopMovingEx` restores the full-step position that
+  `wantMoveNow` keeps at small zoom levels; the "is the destination guaranteed valid" one became a TODO: a
+  pathfinder route ends on a walkable pixel, a script-given path need not); the `walkwaitcounter` FIXME names its
+  case (`int16_t`, negative after 32767 steps); a wrong "[DEPRECATED] still used by Character_SetAsPlayer" note
+  became a TODO naming the three callers of `SetActiveInventory`; every public function of `character.h` has a
+  comment (two group comments cover the `Character_*` script functions and the `Get`/`Set` property pairs, the
+  exceptions and the engine-side functions have their own). The review checked the factual claims against the code
+  (`wantMoveNow`'s return values, `GetCharacterWidth`'s 4, `blocking_width - 4`, `DisplayName`/`Name` sharing one
+  pair, `turnlooporder`'s direction): all true. The `// void | CharacterInfo *ch, ...` signature comments above the
+  `Sc_*` wrappers were renamed but not audited (some drift from the real signatures); 5.2 moves or deletes them.
+- **`[format]`, +182:** braces around the single statements on the changed lines, as the tidy gate asks (STYLE.md
+  leaves them optional; the gate's `ShortStatementLines: 0` does not). 252 such statements remain in the file on
+  untouched lines.
+- **Verification:** `prepush.py --auto` after the first two commits: format, build + ctest, headers, libcxx (341),
+  emscripten, linux (GCC in WSL, ctest 1165/1165), msbuild (5 solutions, Editor NUnit) pass; tidy failed on the 10
+  legacy function findings until the 2.4 follow-up above, then clean. After the last two commits only format and
+  tidy were re-run (objects identical). Not run: macOS, iOS, Android; the auto-test game beyond the CI job's CMake
+  build (prepush's `build` stage runs ctest, not the game).
+- **Bug found, fixed in `63da172bd` (visual check pending; upstream too):** `start_character_turning` decides the 180° tie-break of
+  `kScTurnOrder_FaceDown` (turn through the Down loop, toward the viewer) with `is_loop_in_left_half(fromidx) ? 1 :
+  -1`. Two errors cancel for the common starts: `fromidx` is an index into `turnlooporder`, not a loop, and `+1` in
+  that table (Down, DownLeft, Left, UpLeft, Up, ...) leads a left-half loop *up*, away from Down. Left, Right and
+  DownRight starts do pass through Down; DownLeft, UpLeft and UpRight starts pass through Up (checked for all eight
+  starts with a table script). The fix is `is_loop_in_left_half(turnlooporder[fromidx]) ? -1 : 1`, with a test on
+  `start_character_turning`. Upstream `8d0654ddd`, same line on `ags4`: a U.x candidate.
+- **Left for the next file sets:** `characterinfo_engine.cpp` still names the character `chi` where `character.h`
+  declares `ch`, and has two CHECKMEs (~lines 271 and 426); `object.cpp/.h` (414 watchlist names), `guicontrol.cpp/.h`
+  (249), `button.cpp/.h` (195), `characterinfo_engine.cpp` (186), `drawingsurface.cpp/.h` (196) are the next by count.
 
 ### 7.3 Ports
 
