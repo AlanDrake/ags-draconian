@@ -3916,9 +3916,33 @@ local commits `b65708b52`, `0ba2ef3fc`, `6efc3bd1c`, `54f3e0173`):
   DownRight starts do pass through Down; DownLeft, UpLeft and UpRight starts pass through Up (checked for all eight
   starts with a table script). The fix is `is_loop_in_left_half(turnlooporder[fromidx]) ? -1 : 1`, with a test on
   `start_character_turning`. Upstream `8d0654ddd`, same line on `ags4`: a U.x candidate.
+**`Engine/ac/object.cpp` + `object.h`** (2026-11-09; a Sonnet 5.5 subagent at `medium`, reviewed here; local commits
+`209dba696`, `b23b5506c`, `17c8226bc`):
+- **`[rename]`, 405 lines:** `objj` 337, `xx`/`yy` 10 each, `xxx`/`yyy` 1 each to 0 (the globals `thisroom`, `croom`,
+  `objs` stay). `ScriptObject *objj` → `obj`, the second one `other`; `int objj` → `obj_id` (seven functions); where
+  a parameter `obj` met a local `obj`, the local became `room_obj` (`RoomObject &`) or `obj_id`; `xxx`/`yyy` →
+  `obj_x`/`obj_y`; camelCase `spWidth`, `spHeight`, `theImage`, `newName` → `sprite_width`, `sprite_height`, `image`,
+  `new_name`. Two header declarations synced with their definitions. 637 objects identical. Not on the watchlist and
+  left: `obn`, `aa`, `cha`, `hss`, `slott`, `clik`, `bwid`, `bhit`, `basel`, `o_loop`/`o_frame`.
+- **`[comment]`, +93 -34:** the `OVERLAPPING_OBJECT` CHECKME answered (a "thing" of `AreThingsOverlapping` is a
+  character ID or an object ID + 1000, C3); `obj_lowest_yp`'s and `Object_IsInteractionAvailable`'s FIXMEs were
+  design notes, now explanations plus a TODO each; `GetThingRect`'s two "visible or enabled?" FIXMEs became one naming
+  the case (a disabled character in the room counts as overlapping, a disabled object does not, neither checks
+  visibility); a stale "native format" TODO and a comment naming a parameter that does not exist deleted; an `[IKM]`
+  history note gone; every public function of `object.h` documented. The review checked the claims against the code.
+- **`[format]`, +108:** braces on 54 changed lines.
+- **Verification:** `prepush.py --auto --base 1c781586e`, every selected stage passes (format, build + ctest, tidy,
+  headers, libcxx 341, emscripten, linux ctest 1165/1165, msbuild). Not run: macOS, iOS, Android.
+- **Found, not fixed:** `GetObjectIDAtRoom` computes `obj_x`/`obj_y` and never uses them (dead locals, a `[delete]`
+  for later); `is_pos_in_sprite` with a 0 width or height falls back to the bitmap size minus 1, which excludes the
+  last column or row (callers always pass sizes, so unreached); `Object.Baseline` returns the stored value, 0 when
+  unset, not the effective one (script API behaviour, likely intended). `AreThingsOverlapping`'s `+1` after the
+  comparison was suspected and is not a bug: the same minimum is chosen either way.
+- **Both `[format]` commits** (`54f3e0173`, `17c8226bc`) are in `.git-blame-ignore-revs`.
+
 - **Left for the next file sets:** `characterinfo_engine.cpp` still names the character `chi` where `character.h`
-  declares `ch`, and has two CHECKMEs (~lines 271 and 426); `object.cpp/.h` (414 watchlist names), `guicontrol.cpp/.h`
-  (249), `button.cpp/.h` (195), `characterinfo_engine.cpp` (186), `drawingsurface.cpp/.h` (196) are the next by count.
+  declares `ch` (and `followingAsSheep`), and has two CHECKMEs (~lines 271 and 426); next by count:
+  `guicontrol.cpp/.h` (249), `drawingsurface.cpp/.h` (196), `button.cpp/.h` (195), `characterinfo_engine.cpp` (186).
 
 ### 7.3 Ports
 
