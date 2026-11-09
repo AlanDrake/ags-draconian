@@ -83,7 +83,9 @@ void GUIControl_SetVisible(GUIControl *control, int visible)
 int GUIControl_GetClickable(GUIControl *control)
 {
     if (control->IsClickable())
+    {
         return 1;
+    }
     return 0;
 }
 
@@ -129,7 +131,9 @@ ScriptGUI *GUIControl_GetOwningGUI(GUIControl *control)
 GUIButton *GUIControl_GetAsButton(GUIControl *control)
 {
     if (guis[control->GetParentID()].GetControlType(control->GetID()) != kGUIButton)
+    {
         return nullptr;
+    }
 
     return (GUIButton *)control;
 }
@@ -137,7 +141,9 @@ GUIButton *GUIControl_GetAsButton(GUIControl *control)
 GUIInvWindow *GUIControl_GetAsInvWindow(GUIControl *control)
 {
     if (guis[control->GetParentID()].GetControlType(control->GetID()) != kGUIInvWindow)
+    {
         return nullptr;
+    }
 
     return (GUIInvWindow *)control;
 }
@@ -145,7 +151,9 @@ GUIInvWindow *GUIControl_GetAsInvWindow(GUIControl *control)
 GUILabel *GUIControl_GetAsLabel(GUIControl *control)
 {
     if (guis[control->GetParentID()].GetControlType(control->GetID()) != kGUILabel)
+    {
         return nullptr;
+    }
 
     return (GUILabel *)control;
 }
@@ -153,7 +161,9 @@ GUILabel *GUIControl_GetAsLabel(GUIControl *control)
 GUIListBox *GUIControl_GetAsListBox(GUIControl *control)
 {
     if (guis[control->GetParentID()].GetControlType(control->GetID()) != kGUIListBox)
+    {
         return nullptr;
+    }
 
     return (GUIListBox *)control;
 }
@@ -161,7 +171,9 @@ GUIListBox *GUIControl_GetAsListBox(GUIControl *control)
 GUISlider *GUIControl_GetAsSlider(GUIControl *control)
 {
     if (guis[control->GetParentID()].GetControlType(control->GetID()) != kGUISlider)
+    {
         return nullptr;
+    }
 
     return (GUISlider *)control;
 }
@@ -169,7 +181,9 @@ GUISlider *GUIControl_GetAsSlider(GUIControl *control)
 GUITextBox *GUIControl_GetAsTextBox(GUIControl *control)
 {
     if (guis[control->GetParentID()].GetControlType(control->GetID()) != kGUITextBox)
+    {
         return nullptr;
+    }
 
     return (GUITextBox *)control;
 }
