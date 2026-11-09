@@ -472,7 +472,8 @@ void GUIControl_SetShader(GUIControl *control, ScriptShaderInstance *shader_inst
 
 GUIControl *GUIControl_GetByName(const char *name)
 {
-    // TODO: figure out if this may be simplified
+    // A control script name is imported with the manager of the control's own type, never the base GUIControl
+    // one, so the object must be of one of these six.
     const static std::vector<String> typenames = {ccDynamicGUIButton.GetType(), ccDynamicGUIInvWindow.GetType(),
                                                   ccDynamicGUILabel.GetType(),  ccDynamicGUIListBox.GetType(),
                                                   ccDynamicGUISlider.GetType(), ccDynamicGUITextBox.GetType()};
