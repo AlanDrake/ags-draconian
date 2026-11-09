@@ -1205,12 +1205,17 @@ four commits, three runs of each workflow (Verify 42584941158, 42592142379; CI l
   mirror is 12 MB. The download step takes 13 to 15 s cold and 0 to 1 s warm (7 s on the mingw-arm64 entry
   in its first full run); the configure logs show no `https://` source. The `_deps` caches stay for now: what
   they still save is the extraction; the user decides whether they go.
-- **The light run is not shorter:** 12 min 57 s warm (16 min 32 s cold, which also paid for the first ccache
-  of the new keys) against 12 min 15 s before. The critical path is the same (Auto-test game 97 s, Windows
-  581 s with configure 87 s, parity 91 s); the downloads were never most of it, the configure is (76 to 101 s
-  with the mirror: extraction and the SDL configure). Verify warm: 8 min 8 s (GCC 483 s) against 6 min 35 s
-  on 2026-11-09's push; the difference is the ccache of the changed workflow keys and runner variance, not
-  measured further.
+- **The light run is not shorter:** 12 min 57 s warm (16 min 32 s on the first run, where Ubuntu-x86_64, which
+  a manual light run keeps, had no ccache) against 12 min 15 s before. The critical path is the same (Auto-test
+  game 97 s, Windows 581 s with configure 87 s, parity 91 s); the downloads were never most of it, the
+  configure is (76 to 101 s with the mirror: extraction and the SDL configure). Verify warm: 8 min 8 s (GCC
+  483 s) against 6 min 35 s on 2026-11-09's push. The extra time is not the change: every ccache hit 100% on
+  the warm runs (GCC 1015 of 1015, clang 560 of 560, Ubuntu 673 of 673, MSVC 1275 of 1275; the first probe
+  run's Windows job had restored the main branch's cache too and built in 276 s), and every step was 20 to
+  30% slower than on the push, the ones the change cannot touch included (Windows build 282 s against 214,
+  GCC build 210 against 163 and configure 101 against 77, the auto-test runs 74 and 58 s against 64 and 50),
+  while the configure with the mirror was not slower on Windows (85 to 87 s against 91). That is the runners'
+  speed in that hour (GitHub had an incident on); the first push after landing gives the real number.
 - **Not changed:** the Linux package and tools jobs that configure inside containers (the variable does not
   reach them); the i386 container still does not resolve `github.com`.
 
