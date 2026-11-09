@@ -353,9 +353,22 @@ jobs:
       run: |
         tappy agstest_hardware.tap
 
+    # A failing test exits 0 and is caught by the tappy check below, so only a crash fails this step: the
+    # intermittent heap abort of the Ubuntu-Arm64 software renderer (docs/refactor/LOG.md, 2.9) gets one
+    # retry, on that platform only
     - name: Run auto-test (Software GFX)
+      id: autotest-software
+      continue-on-error: ${{ matrix.platform.name == 'Ubuntu-Arm64' }}
       working-directory: ${{github.workspace}}/build
       run: |
+        ${{matrix.platform.runbin}} --gfxdriver Software --no-message-box --log-stdout=script:info,main:debug,game:warn --user-data-dir . ${{env.AUTO_TEST_ASSET_BASENAME}}.ags
+        mv agstest.tap agstest_software.tap
+
+    - name: Retry auto-test (Software GFX) after a crash
+      if: matrix.platform.name == 'Ubuntu-Arm64' && steps.autotest-software.outcome == 'failure'
+      working-directory: ${{github.workspace}}/build
+      run: |
+        echo "::warning::Ubuntu-Arm64 software auto-test crashed; retrying once (the known intermittent heap abort, docs/refactor/LOG.md 2.9)"
         ${{matrix.platform.runbin}} --gfxdriver Software --no-message-box --log-stdout=script:info,main:debug,game:warn --user-data-dir . ${{env.AUTO_TEST_ASSET_BASENAME}}.ags
         mv agstest.tap agstest_software.tap
 
