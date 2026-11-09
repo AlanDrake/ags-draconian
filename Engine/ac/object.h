@@ -43,49 +43,49 @@ int GetObjectIDAtRoom(int roomx, int roomy, int hit_options);
 AGS::Common::Bitmap *GetObjectImage(int obj, bool always_original = true, bool *is_original = nullptr);
 // Gets current source image (untransformed) for the room object
 AGS::Common::Bitmap *GetObjectSourceImage(int obj);
-int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2);
-void Object_Tint(ScriptObject *objj, int red, int green, int blue, int saturation, int luminance);
-void Object_RemoveTint(ScriptObject *objj);
-void Object_SetView(ScriptObject *objj, int view, int loop, int frame);
-void Object_SetOpacity(ScriptObject *objj, int alpha);
-int Object_GetOpacity(ScriptObject *objj);
-void Object_SetBaseline(ScriptObject *objj, int basel);
-int Object_GetBaseline(ScriptObject *objj);
-void Object_Animate(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction, int sframe = 0,
+int Object_IsCollidingWithObject(ScriptObject *obj, ScriptObject *other);
+void Object_Tint(ScriptObject *obj, int red, int green, int blue, int saturation, int luminance);
+void Object_RemoveTint(ScriptObject *obj);
+void Object_SetView(ScriptObject *obj, int view, int loop, int frame);
+void Object_SetOpacity(ScriptObject *obj, int alpha);
+int Object_GetOpacity(ScriptObject *obj);
+void Object_SetBaseline(ScriptObject *obj, int basel);
+int Object_GetBaseline(ScriptObject *obj);
+void Object_Animate(ScriptObject *obj, int loop, int delay, int repeat, int blocking, int direction, int sframe = 0,
                     int volume = 100);
-void Object_StopAnimating(ScriptObject *objj);
-void Object_StopMoving(ScriptObject *objj);
-void Object_SetVisible(ScriptObject *objj, bool onoroff);
-int Object_GetView(ScriptObject *objj);
-int Object_GetLoop(ScriptObject *objj);
-int Object_GetFrame(ScriptObject *objj);
-bool Object_GetVisible(ScriptObject *objj);
-void Object_SetGraphic(ScriptObject *objj, int slott);
-int Object_GetGraphic(ScriptObject *objj);
-int Object_GetX(ScriptObject *objj);
-int Object_GetY(ScriptObject *objj);
-int Object_GetAnimating(ScriptObject *objj);
-int Object_GetMoving(ScriptObject *objj);
-void Object_SetPosition(ScriptObject *objj, int xx, int yy);
-void Object_SetX(ScriptObject *objj, int xx);
-void Object_SetY(ScriptObject *objj, int yy);
-const char *Object_GetName_New(ScriptObject *objj);
-bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood);
-void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int ignwal);
-void Object_SetClickable(ScriptObject *objj, int clik);
-int Object_GetClickable(ScriptObject *objj);
-void Object_SetSolid(ScriptObject *objj, int solid);
-int Object_GetSolid(ScriptObject *objj);
-void Object_SetBlockingWidth(ScriptObject *objj, int bwid);
-int Object_GetBlockingWidth(ScriptObject *objj);
-void Object_SetBlockingHeight(ScriptObject *objj, int bhit);
-int Object_GetBlockingHeight(ScriptObject *objj);
-int Object_GetID(ScriptObject *objj);
-void Object_RunInteraction(ScriptObject *objj, int mode);
+void Object_StopAnimating(ScriptObject *obj);
+void Object_StopMoving(ScriptObject *obj);
+void Object_SetVisible(ScriptObject *obj, bool on);
+int Object_GetView(ScriptObject *obj);
+int Object_GetLoop(ScriptObject *obj);
+int Object_GetFrame(ScriptObject *obj);
+bool Object_GetVisible(ScriptObject *obj);
+void Object_SetGraphic(ScriptObject *obj, int slott);
+int Object_GetGraphic(ScriptObject *obj);
+int Object_GetX(ScriptObject *obj);
+int Object_GetY(ScriptObject *obj);
+int Object_GetAnimating(ScriptObject *obj);
+int Object_GetMoving(ScriptObject *obj);
+void Object_SetPosition(ScriptObject *obj, int x, int y);
+void Object_SetX(ScriptObject *obj, int x);
+void Object_SetY(ScriptObject *obj, int y);
+const char *Object_GetName_New(ScriptObject *obj);
+bool Object_IsInteractionAvailable(ScriptObject *obj, int mood);
+void Object_Move(ScriptObject *obj, int x, int y, int speed, int blocking, int ignwal);
+void Object_SetClickable(ScriptObject *obj, int clik);
+int Object_GetClickable(ScriptObject *obj);
+void Object_SetSolid(ScriptObject *obj, int solid);
+int Object_GetSolid(ScriptObject *obj);
+void Object_SetBlockingWidth(ScriptObject *obj, int bwid);
+int Object_GetBlockingWidth(ScriptObject *obj);
+void Object_SetBlockingHeight(ScriptObject *obj, int bhit);
+int Object_GetBlockingHeight(ScriptObject *obj);
+int Object_GetID(ScriptObject *obj);
+void Object_RunInteraction(ScriptObject *obj, int mode);
 
-int Object_GetProperty(ScriptObject *objj, const char *property);
-void Object_GetPropertyText(ScriptObject *objj, const char *property, char *bufer);
-const char *Object_GetTextProperty(ScriptObject *objj, const char *property);
+int Object_GetProperty(ScriptObject *obj, const char *property);
+void Object_GetPropertyText(ScriptObject *obj, const char *property, char *bufer);
+const char *Object_GetTextProperty(ScriptObject *obj, const char *property);
 
 int AreThingsOverlapping(int thing1, int thing2);
 
@@ -96,10 +96,10 @@ void update_object_scale(int objid);
 void update_object_scale(int &res_zoom, int &res_width, int &res_height, int objx, int objy, int sprnum, int own_zoom,
                          bool use_region_scaling);
 Rect get_object_blocking_rect(int objid);
-// xx,yy is the position in room co-ordinates that we are checking
+// x,y is the position in room co-ordinates that we are checking
 // arx,ary,spww,sphh are the sprite's bounding box (including sprite scaling);
 // bitmap_original tells whether bitmap is an original sprite, or transformed version
-int is_pos_in_sprite(int xx, int yy, int arx, int ary, AGS::Common::Bitmap *sprit, int spww, int sphh,
+int is_pos_in_sprite(int x, int y, int arx, int ary, AGS::Common::Bitmap *sprit, int spww, int sphh,
                      AGS::Common::SpriteTransformFlags sprite_flags);
 // X and Y co-ordinates must be in native format
 // X and Y are ROOM coordinates
@@ -124,7 +124,7 @@ int SetFirstAnimFrame(int view, int loop, int sframe, AnimFlowDirection dir);
 // loop and frame values are passed by reference and will be updated;
 // AnimationFlowParams may be modified if direction changes, according to flow style;
 // returns whether the animation should continue.
-bool CycleViewAnim(int view, uint16_t &loop, uint16_t &frame, AnimFlowParams &anim_params);
+bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams &anim_params);
 
 // Tests if the standard move/walk parameters are in valid range, if not then clamps them and
 // reports a script warning.

@@ -153,9 +153,9 @@ int AreObjectsColliding(int obj1, int obj2)
     return (AreThingsOverlapping(obj1 + OVERLAPPING_OBJECT, obj2 + OVERLAPPING_OBJECT)) ? 1 : 0;
 }
 
-int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2)
+int Object_IsCollidingWithObject(ScriptObject *obj, ScriptObject *other)
 {
-    return AreObjectsColliding(objj->id, obj2->id);
+    return AreObjectsColliding(obj->id, other->id);
 }
 
 Bitmap *GetObjectImage(int obj, bool always_original, bool *is_original)
@@ -190,18 +190,18 @@ int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
             continue; // disabled or invisible
         if (only_clickable && (objs[aa].flags & OBJF_NOINTERACT))
             continue;
-        int xxx = objs[aa].x, yyy = objs[aa].y;
+        int obj_x = objs[aa].x, obj_y = objs[aa].y;
         SpriteTransformFlags sprite_flags = kSprTf_None;
-        int spWidth = objs[aa].get_width();
-        int spHeight = objs[aa].get_height();
+        int sprite_width = objs[aa].get_width();
+        int sprite_height = objs[aa].get_height();
         // TODO: support mirrored transformation in GraphicSpace
         if (objs[aa].view != RoomObject::NoView)
             sprite_flags = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags;
 
-        Bitmap *theImage = GetObjectSourceImage(aa);
+        Bitmap *image = GetObjectSourceImage(aa);
         // Convert to local object coordinates
         Point local = objs[aa].GetGraphicSpace().WorldToLocal(roomx, roomy);
-        if (is_pos_in_sprite(local.X, local.Y, 0, 0, theImage, spWidth, spHeight, sprite_flags) == FALSE)
+        if (is_pos_in_sprite(local.X, local.Y, 0, 0, image, sprite_width, sprite_height, sprite_flags) == FALSE)
             continue;
 
         int usebasel = objs[aa].get_baseline();
@@ -285,14 +285,14 @@ void RemoveObjectTint(int obj)
     }
 }
 
-void Object_Tint(ScriptObject *objj, int red, int green, int blue, int saturation, int luminance)
+void Object_Tint(ScriptObject *obj, int red, int green, int blue, int saturation, int luminance)
 {
-    SetObjectTint(objj->id, red, green, blue, saturation, luminance);
+    SetObjectTint(obj->id, red, green, blue, saturation, luminance);
 }
 
-void Object_RemoveTint(ScriptObject *objj)
+void Object_RemoveTint(ScriptObject *obj)
 {
-    RemoveObjectTint(objj->id);
+    RemoveObjectTint(obj->id);
 }
 
 void SetObjectGraphic(int obn, int slott)
@@ -358,9 +358,9 @@ bool SetObjectFrameSimple(int obn, int viw, int lop, int fra)
     return true;
 }
 
-void Object_SetView(ScriptObject *objj, int view, int loop, int frame)
+void Object_SetView(ScriptObject *obj, int view, int loop, int frame)
 {
-    SetObjectFrameSimple(objj->id, view, loop, frame);
+    SetObjectFrameSimple(obj->id, view, loop, frame);
 }
 
 // pass alpha=255 for fully solid, alpha=0 for fully transparent
@@ -374,75 +374,75 @@ void SetObjectAlpha(int obn, int alpha)
     objs[obn].opacity = alpha;
 }
 
-void Object_SetOpacity(ScriptObject *objj, int alpha)
+void Object_SetOpacity(ScriptObject *obj, int alpha)
 {
-    SetObjectAlpha(objj->id, alpha);
+    SetObjectAlpha(obj->id, alpha);
 }
 
-int Object_GetOpacity(ScriptObject *objj)
+int Object_GetOpacity(ScriptObject *obj)
 {
-    if (!AssertObject("Object.Opacity", objj->id))
+    if (!AssertObject("Object.Opacity", obj->id))
         return 0;
 
-    return objs[objj->id].opacity;
+    return objs[obj->id].opacity;
 }
 
 // [OBSOLETE] the AGS 4.0 Transparency, for compiled 4.0 games
-static void Object_SetTransparency(ScriptObject *objj, int trans)
+static void Object_SetTransparency(ScriptObject *obj, int trans)
 {
     if ((trans < 0) || (trans > 100))
         quit("!SetObjectTransparency: transparency value must be between 0 and 100");
-    SetObjectAlpha(objj->id, GfxDef::Trans100ToOpacity(trans));
+    SetObjectAlpha(obj->id, GfxDef::Trans100ToOpacity(trans));
 }
 
-static int Object_GetTransparency(ScriptObject *objj)
+static int Object_GetTransparency(ScriptObject *obj)
 {
-    if (!AssertObject("Object.Transparency", objj->id))
+    if (!AssertObject("Object.Transparency", obj->id))
         return 0;
 
-    return GfxDef::OpacityToTrans100(objs[objj->id].opacity);
+    return GfxDef::OpacityToTrans100(objs[obj->id].opacity);
 }
 
-int Object_GetAudioPanning(ScriptObject *objj)
+int Object_GetAudioPanning(ScriptObject *obj)
 {
-    if (!AssertObject("Object.AudioPanning", objj->id))
+    if (!AssertObject("Object.AudioPanning", obj->id))
         return 0;
-    return objs[objj->id].audio_panning;
+    return objs[obj->id].audio_panning;
 }
 
-void Object_SetAudioPanning(ScriptObject *objj, int newval)
+void Object_SetAudioPanning(ScriptObject *obj, int newval)
 {
-    if (!AssertObject("Object.AudioPanning", objj->id))
+    if (!AssertObject("Object.AudioPanning", obj->id))
         return;
-    objs[objj->id].audio_panning = Math::Clamp(newval, -100, 100);
+    objs[obj->id].audio_panning = Math::Clamp(newval, -100, 100);
 }
 
-int Object_GetAudioSpeed(ScriptObject *objj)
+int Object_GetAudioSpeed(ScriptObject *obj)
 {
-    if (!AssertObject("Object.AudioSpeed", objj->id))
+    if (!AssertObject("Object.AudioSpeed", obj->id))
         return 0;
-    return objs[objj->id].audio_speed;
+    return objs[obj->id].audio_speed;
 }
 
-void Object_SetAudioSpeed(ScriptObject *objj, int newval)
+void Object_SetAudioSpeed(ScriptObject *obj, int newval)
 {
-    if (!AssertObject("Object.AudioSpeed", objj->id))
+    if (!AssertObject("Object.AudioSpeed", obj->id))
         return;
-    objs[objj->id].audio_speed = newval;
+    objs[obj->id].audio_speed = newval;
 }
 
-int Object_GetAudioVolume(ScriptObject *objj)
+int Object_GetAudioVolume(ScriptObject *obj)
 {
-    if (!AssertObject("Object.AudioVolume", objj->id))
+    if (!AssertObject("Object.AudioVolume", obj->id))
         return 0;
-    return objs[objj->id].audio_volume;
+    return objs[obj->id].audio_volume;
 }
 
-void Object_SetAudioVolume(ScriptObject *objj, int newval)
+void Object_SetAudioVolume(ScriptObject *obj, int newval)
 {
-    if (!AssertObject("Object.AudioVolume", objj->id))
+    if (!AssertObject("Object.AudioVolume", obj->id))
         return;
-    objs[objj->id].audio_volume = Math::Clamp(newval, 0, 100);
+    objs[obj->id].audio_volume = Math::Clamp(newval, 0, 100);
 }
 
 void SetObjectBaseline(int obn, int basel)
@@ -468,14 +468,14 @@ int GetObjectBaseline(int obn)
     return objs[obn].baseline;
 }
 
-void Object_SetBaseline(ScriptObject *objj, int basel)
+void Object_SetBaseline(ScriptObject *obj, int basel)
 {
-    SetObjectBaseline(objj->id, basel);
+    SetObjectBaseline(obj->id, basel);
 }
 
-int Object_GetBaseline(ScriptObject *objj)
+int Object_GetBaseline(ScriptObject *obj)
 {
-    return GetObjectBaseline(objj->id);
+    return GetObjectBaseline(obj->id);
 }
 
 void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, int blocking, int sframe, int volume)
@@ -527,115 +527,115 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
         GameLoopUntilViewAnimEnd(&obj.anim);
 }
 
-void Object_Animate(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction, int sframe,
+void Object_Animate(ScriptObject *obj, int loop, int delay, int repeat, int blocking, int direction, int sframe,
                     int volume)
 {
-    AnimateObjectImpl(objj->id, loop, delay, repeat, direction, blocking, sframe, volume);
+    AnimateObjectImpl(obj->id, loop, delay, repeat, direction, blocking, sframe, volume);
 }
 
-void Object_Animate5(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction)
+void Object_Animate5(ScriptObject *obj, int loop, int delay, int repeat, int blocking, int direction)
 {
-    Object_Animate(objj, loop, delay, repeat, blocking, direction, 0 /* frame */, 100 /* full volume */);
+    Object_Animate(obj, loop, delay, repeat, blocking, direction, 0 /* frame */, 100 /* full volume */);
 }
 
-void Object_Animate6(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction, int sframe)
+void Object_Animate6(ScriptObject *obj, int loop, int delay, int repeat, int blocking, int direction, int sframe)
 {
-    Object_Animate(objj, loop, delay, repeat, blocking, direction, sframe, 100 /* full volume */);
+    Object_Animate(obj, loop, delay, repeat, blocking, direction, sframe, 100 /* full volume */);
 }
 
-void Object_StopAnimating(ScriptObject *objj)
+void Object_StopAnimating(ScriptObject *obj)
 {
-    if (!AssertObject("Object.StopAnimating", objj->id))
+    if (!AssertObject("Object.StopAnimating", obj->id))
         return;
 
-    if (objs[objj->id].is_animating())
+    if (objs[obj->id].is_animating())
     {
-        objs[objj->id].anim = ViewAnimateParams();
-        objs[objj->id].wait = 0;
+        objs[obj->id].anim = ViewAnimateParams();
+        objs[obj->id].wait = 0;
     }
 }
 
-void StopObjectMoving(int objj)
+void StopObjectMoving(int obj_id)
 {
-    if (!AssertObject("StopObjectMoving", objj))
+    if (!AssertObject("StopObjectMoving", obj_id))
         return;
 
-    objs[objj].OnStopMoving();
+    objs[obj_id].OnStopMoving();
 
-    debug_script_log("Object %d stop moving", objj);
+    debug_script_log("Object %d stop moving", obj_id);
 }
 
-void Object_StopMoving(ScriptObject *objj)
+void Object_StopMoving(ScriptObject *obj)
 {
-    StopObjectMoving(objj->id);
+    StopObjectMoving(obj->id);
 }
 
-int Object_GetView(ScriptObject *objj)
+int Object_GetView(ScriptObject *obj)
 {
-    if (!AssertObject("Object.View", objj->id))
+    if (!AssertObject("Object.View", obj->id))
         return 0;
-    if (objs[objj->id].view == RoomObject::NoView)
+    if (objs[obj->id].view == RoomObject::NoView)
         return 0;
-    return objs[objj->id].view + 1;
+    return objs[obj->id].view + 1;
 }
 
-int Object_GetLoop(ScriptObject *objj)
+int Object_GetLoop(ScriptObject *obj)
 {
-    if (!AssertObject("Object.Loop", objj->id))
+    if (!AssertObject("Object.Loop", obj->id))
         return 0;
-    if (objs[objj->id].view == RoomObject::NoView)
+    if (objs[obj->id].view == RoomObject::NoView)
         return 0;
-    return objs[objj->id].loop;
+    return objs[obj->id].loop;
 }
 
-int Object_GetFrame(ScriptObject *objj)
+int Object_GetFrame(ScriptObject *obj)
 {
-    if (!AssertObject("Object.Frame", objj->id))
+    if (!AssertObject("Object.Frame", obj->id))
         return 0;
-    if (objs[objj->id].view == RoomObject::NoView)
+    if (objs[obj->id].view == RoomObject::NoView)
         return 0;
-    return objs[objj->id].frame;
+    return objs[obj->id].frame;
 }
 
-bool Object_GetEnabled(ScriptObject *objj)
+bool Object_GetEnabled(ScriptObject *obj)
 {
-    if (!AssertObject("Object.Enabled", objj->id))
+    if (!AssertObject("Object.Enabled", obj->id))
         return false;
-    return objs[objj->id].is_enabled();
+    return objs[obj->id].is_enabled();
 }
 
-void Object_SetEnabled(ScriptObject *objj, bool on)
+void Object_SetEnabled(ScriptObject *obj, bool on)
 {
-    if (!AssertObject("Object.Enabled", objj->id))
+    if (!AssertObject("Object.Enabled", obj->id))
         return;
-    if (objs[objj->id].is_enabled() != on)
+    if (objs[obj->id].is_enabled() != on)
     {
-        objs[objj->id].set_enabled(on);
-        debug_script_log("Object %d enabled = %d", objj->id, on);
+        objs[obj->id].set_enabled(on);
+        debug_script_log("Object %d enabled = %d", obj->id, on);
     }
 }
 
-bool Object_GetVisible(ScriptObject *objj)
+bool Object_GetVisible(ScriptObject *obj)
 {
-    if (!AssertObject("Object.Visible", objj->id))
+    if (!AssertObject("Object.Visible", obj->id))
         return false;
-    return objs[objj->id].is_visible();
+    return objs[obj->id].is_visible();
 }
 
-void Object_SetVisible(ScriptObject *objj, bool on)
+void Object_SetVisible(ScriptObject *obj, bool on)
 {
-    if (!AssertObject("Object.Visible", objj->id))
+    if (!AssertObject("Object.Visible", obj->id))
         return;
-    if (objs[objj->id].is_visible() != on)
+    if (objs[obj->id].is_visible() != on)
     {
-        objs[objj->id].set_visible(on);
-        debug_script_log("Object %d visible = %d", objj->id, on);
+        objs[obj->id].set_visible(on);
+        debug_script_log("Object %d visible = %d", obj->id, on);
     }
 }
 
-void Object_SetGraphic(ScriptObject *objj, int slott)
+void Object_SetGraphic(ScriptObject *obj, int slott)
 {
-    SetObjectGraphic(objj->id, slott);
+    SetObjectGraphic(obj->id, slott);
 }
 
 int GetObjectGraphic(int obn)
@@ -645,57 +645,57 @@ int GetObjectGraphic(int obn)
     return objs[obn].num;
 }
 
-int Object_GetGraphic(ScriptObject *objj)
+int Object_GetGraphic(ScriptObject *obj)
 {
-    return GetObjectGraphic(objj->id);
+    return GetObjectGraphic(obj->id);
 }
 
-int GetObjectX(int objj)
+int GetObjectX(int obj_id)
 {
-    if (!AssertObject("GetObjectX", objj))
+    if (!AssertObject("GetObjectX", obj_id))
         return 0;
-    return objs[objj].x;
+    return objs[obj_id].x;
 }
 
-int Object_GetX(ScriptObject *objj)
+int Object_GetX(ScriptObject *obj)
 {
-    return GetObjectX(objj->id);
+    return GetObjectX(obj->id);
 }
 
-int GetObjectY(int objj)
+int GetObjectY(int obj_id)
 {
-    if (!AssertObject("GetObjectY", objj))
+    if (!AssertObject("GetObjectY", obj_id))
         return 0;
-    return objs[objj].y;
+    return objs[obj_id].y;
 }
 
-int Object_GetY(ScriptObject *objj)
+int Object_GetY(ScriptObject *obj)
 {
-    return GetObjectY(objj->id);
+    return GetObjectY(obj->id);
 }
 
-int IsObjectAnimating(int objj)
+int IsObjectAnimating(int obj_id)
 {
-    if (!AssertObject("IsObjectAnimating", objj))
+    if (!AssertObject("IsObjectAnimating", obj_id))
         return 0;
-    return objs[objj].is_animating() ? 1 : 0;
+    return objs[obj_id].is_animating() ? 1 : 0;
 }
 
-int Object_GetAnimating(ScriptObject *objj)
+int Object_GetAnimating(ScriptObject *obj)
 {
-    return IsObjectAnimating(objj->id);
+    return IsObjectAnimating(obj->id);
 }
 
-int IsObjectMoving(int objj)
+int IsObjectMoving(int obj_id)
 {
-    if (!AssertObject("IsObjectMoving", objj))
+    if (!AssertObject("IsObjectMoving", obj_id))
         return 0;
-    return (objs[objj].moving > 0) ? 1 : 0;
+    return (objs[obj_id].moving > 0) ? 1 : 0;
 }
 
-int Object_GetMoving(ScriptObject *objj)
+int Object_GetMoving(ScriptObject *obj)
 {
-    return IsObjectMoving(objj->id);
+    return IsObjectMoving(obj->id);
 }
 
 bool Object_HasExplicitLight(ScriptObject *obj)
@@ -719,15 +719,15 @@ int Object_GetLightLevel(ScriptObject *obj)
     return objs[obj->id].has_explicit_light() ? objs[obj->id].tint_light : 0;
 }
 
-void Object_SetLightLevel(ScriptObject *objj, int light_level)
+void Object_SetLightLevel(ScriptObject *obj, int light_level)
 {
-    if (!AssertObject("Object.LightLevel", objj->id))
+    if (!AssertObject("Object.LightLevel", obj->id))
         return;
 
-    int obj = objj->id;
-    objs[obj].tint_light = light_level;
-    objs[obj].flags &= ~OBJF_HASTINT;
-    objs[obj].flags |= OBJF_HASLIGHT;
+    int obj_id = obj->id;
+    objs[obj_id].tint_light = light_level;
+    objs[obj_id].flags &= ~OBJF_HASTINT;
+    objs[obj_id].flags |= OBJF_HASLIGHT;
 }
 
 int Object_GetTintRed(ScriptObject *obj)
@@ -765,50 +765,50 @@ int Object_GetTintLuminance(ScriptObject *obj)
     return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_light : 0;
 }
 
-void SetObjectPosition(int objj, int tox, int toy)
+void SetObjectPosition(int obj_id, int tox, int toy)
 {
-    if (!AssertObject("SetObjectPosition", objj))
+    if (!AssertObject("SetObjectPosition", obj_id))
         return;
 
-    if (objs[objj].moving > 0)
+    if (objs[obj_id].moving > 0)
     {
         debug_script_warn("Object.SetPosition: cannot set position while object is moving");
         return;
     }
 
-    objs[objj].x = tox;
-    objs[objj].y = toy;
-    objs[objj].UpdateGraphicSpace();
+    objs[obj_id].x = tox;
+    objs[obj_id].y = toy;
+    objs[obj_id].UpdateGraphicSpace();
 }
 
-void Object_SetPosition(ScriptObject *objj, int xx, int yy)
+void Object_SetPosition(ScriptObject *obj, int x, int y)
 {
-    SetObjectPosition(objj->id, xx, yy);
+    SetObjectPosition(obj->id, x, y);
 }
 
-void Object_SetX(ScriptObject *objj, int xx)
+void Object_SetX(ScriptObject *obj, int x)
 {
-    SetObjectPosition(objj->id, xx, objs[objj->id].y);
+    SetObjectPosition(obj->id, x, objs[obj->id].y);
 }
 
-void Object_SetY(ScriptObject *objj, int yy)
+void Object_SetY(ScriptObject *obj, int y)
 {
-    SetObjectPosition(objj->id, objs[objj->id].x, yy);
+    SetObjectPosition(obj->id, objs[obj->id].x, y);
 }
 
-const char *Object_GetName_New(ScriptObject *objj)
+const char *Object_GetName_New(ScriptObject *obj)
 {
-    if (!AssertObject("Object.Name", objj->id))
+    if (!AssertObject("Object.Name", obj->id))
         return nullptr;
 
-    return CreateNewScriptString(croom->obj[objj->id].name);
+    return CreateNewScriptString(croom->obj[obj->id].name);
 }
 
-void Object_SetName(ScriptObject *objj, const char *newName)
+void Object_SetName(ScriptObject *obj, const char *new_name)
 {
-    if (!AssertObject("Object.Name", objj->id))
+    if (!AssertObject("Object.Name", obj->id))
         return;
-    croom->obj[objj->id].name = newName;
+    croom->obj[obj->id].name = new_name;
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
@@ -840,30 +840,30 @@ void RunObjectInteraction(int aa, int mood)
     run_event_script(obj_evt, &thisroom.Objects[aa].GetEvents(), anyclick_evt);
 }
 
-bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood)
+bool Object_IsInteractionAvailable(ScriptObject *obj, int mood)
 {
     play.check_interaction_only = 1;
-    RunObjectInteraction(oobj->id, mood);
+    RunObjectInteraction(obj->id, mood);
     int ciwas = play.check_interaction_only; // FIXME: reimplement returning check result without this hack!
     play.check_interaction_only = 0;
     return (ciwas == 2);
 }
 
-void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int speed, bool ignwal,
+void move_object(int obj_id, const std::vector<Point> *path, int tox, int toy, int speed, bool ignwal,
                  const RunPathParams &run_params);
 
-void Object_DoMove(ScriptObject *objj, const char *api_name, void *path_arr, int x, int y, bool use_path, int speed,
+void Object_DoMove(ScriptObject *obj, const char *api_name, void *path_arr, int x, int y, bool use_path, int speed,
                    int blocking, int ignwal, int repeat = kAnimFlow_Once, int direction = FORWARDS)
 {
-    if (!AssertObject("Object.Move", objj->id))
+    if (!AssertObject("Object.Move", obj->id))
         return;
-    const RoomObjectInfo &obji = thisroom.Objects[objj->id];
+    const RoomObjectInfo &obji = thisroom.Objects[obj->id];
     ValidateMoveParams(api_name, obji.ScriptName.GetCStr(), blocking, ignwal);
     ValidateAnimParams(api_name, obji.ScriptName.GetCStr(), repeat, direction);
 
-    if (!objs[objj->id].is_enabled())
+    if (!objs[obj->id].is_enabled())
     {
-        debug_script_warn("%s: object %d is disabled, cannot start move", "Object.Move", objj->id);
+        debug_script_warn("%s: object %d is disabled, cannot start move", "Object.Move", obj->id);
         return;
     }
 
@@ -875,26 +875,26 @@ void Object_DoMove(ScriptObject *objj, const char *api_name, void *path_arr, int
             debug_script_warn("%s: path is null, or failed to resolve array of points", api_name);
             return;
         }
-        move_object(objj->id, &path, 0, 0, speed, ignwal != 0,
+        move_object(obj->id, &path, 0, 0, speed, ignwal != 0,
                     RunPathParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction)));
     }
     else
     {
-        move_object(objj->id, nullptr, x, y, speed, ignwal != 0, RunPathParams::DefaultOnce());
+        move_object(obj->id, nullptr, x, y, speed, ignwal != 0, RunPathParams::DefaultOnce());
     }
 
     if (blocking)
-        GameLoopUntilNotMoving(&objs[objj->id].moving);
+        GameLoopUntilNotMoving(&objs[obj->id].moving);
 }
 
-void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int ignwal)
+void Object_Move(ScriptObject *obj, int x, int y, int speed, int blocking, int ignwal)
 {
-    Object_DoMove(objj, "Object.Move", nullptr, x, y, false /* no path */, speed, blocking, ignwal);
+    Object_DoMove(obj, "Object.Move", nullptr, x, y, false /* no path */, speed, blocking, ignwal);
 }
 
-void Object_MovePath(ScriptObject *objj, void *path_arr, int speed, int blocking, int repeat, int direction)
+void Object_MovePath(ScriptObject *obj, void *path_arr, int speed, int blocking, int repeat, int direction)
 {
-    Object_DoMove(objj, "Object.MovePath", path_arr, 0, 0, true /* use path */, speed, blocking, ANYWHERE, repeat,
+    Object_DoMove(obj, "Object.MovePath", path_arr, 0, 0, true /* use path */, speed, blocking, ANYWHERE, repeat,
                   direction);
 }
 
@@ -907,79 +907,79 @@ void SetObjectClickable(int cha, int clik)
         objs[cha].flags |= OBJF_NOINTERACT;
 }
 
-void Object_SetClickable(ScriptObject *objj, int clik)
+void Object_SetClickable(ScriptObject *obj, int clik)
 {
-    SetObjectClickable(objj->id, clik);
+    SetObjectClickable(obj->id, clik);
 }
 
-int Object_GetClickable(ScriptObject *objj)
+int Object_GetClickable(ScriptObject *obj)
 {
-    if (!AssertObject("Object.Clickable", objj->id))
+    if (!AssertObject("Object.Clickable", obj->id))
         return 0;
 
-    if (objs[objj->id].flags & OBJF_NOINTERACT)
+    if (objs[obj->id].flags & OBJF_NOINTERACT)
         return 0;
     return 1;
 }
 
-int Object_GetDestinationX(ScriptObject *objj)
+int Object_GetDestinationX(ScriptObject *obj)
 {
-    if (!AssertObject("Object.DestinationX", objj->id))
+    if (!AssertObject("Object.DestinationX", obj->id))
         return 0;
 
-    if (objs[objj->id].moving)
+    if (objs[obj->id].moving)
     {
-        MoveList *cmls = get_movelist(objs[objj->id].moving);
+        MoveList *cmls = get_movelist(objs[obj->id].moving);
         return cmls->GetLastPos().X;
     }
-    return objs[objj->id].x;
+    return objs[obj->id].x;
 }
 
-int Object_GetDestinationY(ScriptObject *objj)
+int Object_GetDestinationY(ScriptObject *obj)
 {
-    if (!AssertObject("Object.DestinationY", objj->id))
+    if (!AssertObject("Object.DestinationY", obj->id))
         return 0;
 
-    if (objs[objj->id].moving)
+    if (objs[obj->id].moving)
     {
-        MoveList *cmls = get_movelist(objs[objj->id].moving);
+        MoveList *cmls = get_movelist(objs[obj->id].moving);
         return cmls->GetLastPos().Y;
     }
-    return objs[objj->id].y;
+    return objs[obj->id].y;
 }
 
-bool Object_GetManualScaling(ScriptObject *objj)
+bool Object_GetManualScaling(ScriptObject *obj)
 {
-    if (!AssertObject("Object.ManualScaling", objj->id))
+    if (!AssertObject("Object.ManualScaling", obj->id))
         return false;
 
-    return !(objs[objj->id].flags & OBJF_USEROOMSCALING);
+    return !(objs[obj->id].flags & OBJF_USEROOMSCALING);
 }
 
-void Object_SetManualScaling(ScriptObject *objj, bool on)
+void Object_SetManualScaling(ScriptObject *obj, bool on)
 {
-    if (!AssertObject("Object.ManualScaling", objj->id))
+    if (!AssertObject("Object.ManualScaling", obj->id))
         return;
     if (on)
-        objs[objj->id].flags &= ~OBJF_USEROOMSCALING;
+        objs[obj->id].flags &= ~OBJF_USEROOMSCALING;
     else
-        objs[objj->id].flags |= OBJF_USEROOMSCALING;
+        objs[obj->id].flags |= OBJF_USEROOMSCALING;
     // clear the cache
-    mark_object_changed(objj->id);
+    mark_object_changed(obj->id);
 }
 
-int Object_GetScaling(ScriptObject *objj)
+int Object_GetScaling(ScriptObject *obj)
 {
-    if (!AssertObject("Object.Scaling", objj->id))
+    if (!AssertObject("Object.Scaling", obj->id))
         return 0;
-    return objs[objj->id].zoom;
+    return objs[obj->id].zoom;
 }
 
-void Object_SetScaling(ScriptObject *objj, int zoomlevel)
+void Object_SetScaling(ScriptObject *obj, int zoomlevel)
 {
-    if (!AssertObject("Object.Scaling", objj->id))
+    if (!AssertObject("Object.Scaling", obj->id))
         return;
-    if ((objs[objj->id].flags & OBJF_USEROOMSCALING) != 0)
+    if ((objs[obj->id].flags & OBJF_USEROOMSCALING) != 0)
     {
         debug_script_warn("Object.Scaling: cannot set property unless ManualScaling is enabled");
         return;
@@ -988,216 +988,216 @@ void Object_SetScaling(ScriptObject *objj, int zoomlevel)
     if (zoomlevel != zoom_fixed)
         debug_script_warn("Object.Scaling: scaling level must be between 1 and %d%%, asked for: %d", (int)(INT16_MAX),
                           zoomlevel);
-    objs[objj->id].zoom = zoom_fixed;
+    objs[obj->id].zoom = zoom_fixed;
 }
 
-void Object_SetSolid(ScriptObject *objj, int solid)
+void Object_SetSolid(ScriptObject *obj, int solid)
 {
-    if (!AssertObject("Object.Solid", objj->id))
+    if (!AssertObject("Object.Solid", obj->id))
         return;
-    objs[objj->id].flags &= ~OBJF_SOLID;
+    objs[obj->id].flags &= ~OBJF_SOLID;
     if (solid)
-        objs[objj->id].flags |= OBJF_SOLID;
+        objs[obj->id].flags |= OBJF_SOLID;
 }
 
-int Object_GetSolid(ScriptObject *objj)
+int Object_GetSolid(ScriptObject *obj)
 {
-    if (!AssertObject("Object.Solid", objj->id))
+    if (!AssertObject("Object.Solid", obj->id))
         return 0;
-    if (objs[objj->id].flags & OBJF_SOLID)
+    if (objs[obj->id].flags & OBJF_SOLID)
         return 1;
     return 0;
 }
 
-void Object_SetBlockingWidth(ScriptObject *objj, int bwid)
+void Object_SetBlockingWidth(ScriptObject *obj, int bwid)
 {
-    if (!AssertObject("Object.BlockingWidth", objj->id))
+    if (!AssertObject("Object.BlockingWidth", obj->id))
         return;
-    objs[objj->id].blocking_width = static_cast<int16_t>(bwid);
+    objs[obj->id].blocking_width = static_cast<int16_t>(bwid);
 }
 
-int Object_GetBlockingWidth(ScriptObject *objj)
+int Object_GetBlockingWidth(ScriptObject *obj)
 {
-    if (!AssertObject("Object.BlockingWidth", objj->id))
+    if (!AssertObject("Object.BlockingWidth", obj->id))
         return 0;
-    return objs[objj->id].blocking_width;
+    return objs[obj->id].blocking_width;
 }
 
-void Object_SetBlockingHeight(ScriptObject *objj, int bhit)
+void Object_SetBlockingHeight(ScriptObject *obj, int bhit)
 {
-    if (!AssertObject("Object.BlockingHeight", objj->id))
+    if (!AssertObject("Object.BlockingHeight", obj->id))
         return;
-    objs[objj->id].blocking_height = static_cast<int16_t>(bhit);
+    objs[obj->id].blocking_height = static_cast<int16_t>(bhit);
 }
 
-int Object_GetBlockingHeight(ScriptObject *objj)
+int Object_GetBlockingHeight(ScriptObject *obj)
 {
-    if (!AssertObject("Object.BlockingHeight", objj->id))
+    if (!AssertObject("Object.BlockingHeight", obj->id))
         return 0;
-    return objs[objj->id].blocking_height;
+    return objs[obj->id].blocking_height;
 }
 
-int Object_GetBlockingRectX(ScriptObject *objj)
+int Object_GetBlockingRectX(ScriptObject *obj)
 {
-    if (!AssertObject("Object.BlockingRectX", objj->id))
+    if (!AssertObject("Object.BlockingRectX", obj->id))
         return 0;
-    return objs[objj->id].blocking_x;
+    return objs[obj->id].blocking_x;
 }
 
-void Object_SetBlockingRectX(ScriptObject *objj, int x)
+void Object_SetBlockingRectX(ScriptObject *obj, int x)
 {
-    if (!AssertObject("Object.BlockingRectX", objj->id))
+    if (!AssertObject("Object.BlockingRectX", obj->id))
         return;
-    objs[objj->id].blocking_x = static_cast<int16_t>(x);
+    objs[obj->id].blocking_x = static_cast<int16_t>(x);
 }
 
-int Object_GetBlockingRectY(ScriptObject *objj)
+int Object_GetBlockingRectY(ScriptObject *obj)
 {
-    if (!AssertObject("Object.BlockingRectY", objj->id))
+    if (!AssertObject("Object.BlockingRectY", obj->id))
         return 0;
-    return objs[objj->id].blocking_y;
+    return objs[obj->id].blocking_y;
 }
 
-void Object_SetBlockingRectY(ScriptObject *objj, int y)
+void Object_SetBlockingRectY(ScriptObject *obj, int y)
 {
-    if (!AssertObject("Object.BlockingRectY", objj->id))
+    if (!AssertObject("Object.BlockingRectY", obj->id))
         return;
-    objs[objj->id].blocking_y = static_cast<int16_t>(y);
+    objs[obj->id].blocking_y = static_cast<int16_t>(y);
 }
 
-int Object_GetID(ScriptObject *objj)
+int Object_GetID(ScriptObject *obj)
 {
-    return objj->id;
+    return obj->id;
 }
 
-const char *Object_GetScriptName(ScriptObject *objj)
+const char *Object_GetScriptName(ScriptObject *obj)
 {
-    return CreateNewScriptString(thisroom.Objects[objj->id].ScriptName);
+    return CreateNewScriptString(thisroom.Objects[obj->id].ScriptName);
 }
 
-int Object_GetBlendMode(ScriptObject *objj)
+int Object_GetBlendMode(ScriptObject *obj)
 {
-    return objs[objj->id].blend_mode;
+    return objs[obj->id].blend_mode;
 }
 
-void Object_SetBlendMode(ScriptObject *objj, int blend_mode)
+void Object_SetBlendMode(ScriptObject *obj, int blend_mode)
 {
-    objs[objj->id].blend_mode =
-        ValidateBlendMode("Object.BlendMode", thisroom.Objects[objj->id].ScriptName.GetCStr(), blend_mode);
+    objs[obj->id].blend_mode =
+        ValidateBlendMode("Object.BlendMode", thisroom.Objects[obj->id].ScriptName.GetCStr(), blend_mode);
 }
 
-float Object_GetGraphicAnchorX(ScriptObject *objj)
+float Object_GetGraphicAnchorX(ScriptObject *obj)
 {
-    return objs[objj->id].spr_anchor.X;
+    return objs[obj->id].spr_anchor.X;
 }
 
-void Object_SetGraphicAnchorX(ScriptObject *objj, float x)
+void Object_SetGraphicAnchorX(ScriptObject *obj, float x)
 {
-    objs[objj->id].spr_anchor.X = Math::Clamp(x, 0.f, 1.f);
+    objs[obj->id].spr_anchor.X = Math::Clamp(x, 0.f, 1.f);
 }
 
-float Object_GetGraphicAnchorY(ScriptObject *objj)
+float Object_GetGraphicAnchorY(ScriptObject *obj)
 {
-    return objs[objj->id].spr_anchor.Y;
+    return objs[obj->id].spr_anchor.Y;
 }
 
-void Object_SetGraphicAnchorY(ScriptObject *objj, float y)
+void Object_SetGraphicAnchorY(ScriptObject *obj, float y)
 {
-    objs[objj->id].spr_anchor.Y = Math::Clamp(y, 0.f, 1.f);
+    objs[obj->id].spr_anchor.Y = Math::Clamp(y, 0.f, 1.f);
 }
 
-int Object_GetGraphicOffsetX(ScriptObject *objj)
+int Object_GetGraphicOffsetX(ScriptObject *obj)
 {
-    return objs[objj->id].spr_offset.X;
+    return objs[obj->id].spr_offset.X;
 }
 
-void Object_SetGraphicOffsetX(ScriptObject *objj, int x)
+void Object_SetGraphicOffsetX(ScriptObject *obj, int x)
 {
-    objs[objj->id].spr_offset.X = x;
+    objs[obj->id].spr_offset.X = x;
 }
 
-int Object_GetGraphicOffsetY(ScriptObject *objj)
+int Object_GetGraphicOffsetY(ScriptObject *obj)
 {
-    return objs[objj->id].spr_offset.Y;
+    return objs[obj->id].spr_offset.Y;
 }
 
-void Object_SetGraphicOffsetY(ScriptObject *objj, int y)
+void Object_SetGraphicOffsetY(ScriptObject *obj, int y)
 {
-    objs[objj->id].spr_offset.Y = y;
+    objs[obj->id].spr_offset.Y = y;
 }
 
-ScriptShaderInstance *Object_GetShader(ScriptObject *objj)
+ScriptShaderInstance *Object_GetShader(ScriptObject *obj)
 {
-    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(objs[objj->id].shader_handle));
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(objs[obj->id].shader_handle));
 }
 
-void Object_SetShader(ScriptObject *objj, ScriptShaderInstance *shader_inst)
+void Object_SetShader(ScriptObject *obj, ScriptShaderInstance *shader_inst)
 {
-    auto &obj = objs[objj->id];
-    obj.shader_id = shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID;
-    obj.shader_handle = ccReplaceObjectHandle(obj.shader_handle, shader_inst);
+    auto &room_obj = objs[obj->id];
+    room_obj.shader_id = shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID;
+    room_obj.shader_handle = ccReplaceObjectHandle(room_obj.shader_handle, shader_inst);
 }
 
-float Object_GetRotation(ScriptObject *objj)
+float Object_GetRotation(ScriptObject *obj)
 {
-    return objs[objj->id].rotation;
+    return objs[obj->id].rotation;
 }
 
-void Object_SetRotation(ScriptObject *objj, float degrees)
+void Object_SetRotation(ScriptObject *obj, float degrees)
 {
-    objs[objj->id].rotation = Math::ClampAngle360(degrees);
-    objs[objj->id].UpdateGraphicSpace();
+    objs[obj->id].rotation = Math::ClampAngle360(degrees);
+    objs[obj->id].UpdateGraphicSpace();
 }
 
-float Object_GetGraphicPivotX(ScriptObject *objj)
+float Object_GetGraphicPivotX(ScriptObject *obj)
 {
-    return objs[objj->id].pivot.X;
+    return objs[obj->id].pivot.X;
 }
 
-void Object_SetGraphicPivotX(ScriptObject *objj, float pivotx)
+void Object_SetGraphicPivotX(ScriptObject *obj, float pivotx)
 {
-    objs[objj->id].pivot.X = pivotx;
+    objs[obj->id].pivot.X = pivotx;
 }
 
-float Object_GetGraphicPivotY(ScriptObject *objj)
+float Object_GetGraphicPivotY(ScriptObject *obj)
 {
-    return objs[objj->id].pivot.Y;
+    return objs[obj->id].pivot.Y;
 }
 
-void Object_SetGraphicPivotY(ScriptObject *objj, float pivoty)
+void Object_SetGraphicPivotY(ScriptObject *obj, float pivoty)
 {
-    objs[objj->id].pivot.Y = pivoty;
+    objs[obj->id].pivot.Y = pivoty;
 }
 
-int Object_GetGraphicPivotOffsetX(ScriptObject *objj)
+int Object_GetGraphicPivotOffsetX(ScriptObject *obj)
 {
-    return objs[objj->id].pivot_offset.X;
+    return objs[obj->id].pivot_offset.X;
 }
 
-void Object_SetGraphicPivotOffsetX(ScriptObject *objj, int px)
+void Object_SetGraphicPivotOffsetX(ScriptObject *obj, int px)
 {
-    objs[objj->id].pivot_offset.X = px;
+    objs[obj->id].pivot_offset.X = px;
 }
 
-int Object_GetGraphicPivotOffsetY(ScriptObject *objj)
+int Object_GetGraphicPivotOffsetY(ScriptObject *obj)
 {
-    return objs[objj->id].pivot_offset.Y;
+    return objs[obj->id].pivot_offset.Y;
 }
 
-void Object_SetGraphicPivotOffsetY(ScriptObject *objj, int py)
+void Object_SetGraphicPivotOffsetY(ScriptObject *obj, int py)
 {
-    objs[objj->id].pivot_offset.Y = py;
+    objs[obj->id].pivot_offset.Y = py;
 }
 
-void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int speed, bool ignwal,
+void move_object(int obj_id, const std::vector<Point> *path, int tox, int toy, int speed, bool ignwal,
                  const RunPathParams &run_params)
 {
-    RoomObject &obj = objs[objj];
+    RoomObject &obj = objs[obj_id];
     if (path)
     {
         if (path->empty())
         {
-            debug_script_log("MoveObject: path is empty for object %d, not moving", objj);
+            debug_script_log("MoveObject: path is empty for object %d, not moving", obj_id);
             return;
         }
 
@@ -1208,11 +1208,11 @@ void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int
     }
     else if ((tox == obj.x) && (toy == obj.y))
     {
-        debug_script_log("MoveObject: object %d already at destination, not moving", objj);
+        debug_script_log("MoveObject: object %d already at destination, not moving", obj_id);
         return;
     }
 
-    debug_script_log("Object %d start move to %d,%d", objj, tox, toy);
+    debug_script_log("Object %d start move to %d,%d", obj_id, tox, toy);
 
     MoveList new_mlist;
     bool path_result = false;
@@ -1232,38 +1232,38 @@ void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int
     // If successful, then start moving
     if (path_result)
     {
-        objs[objj].moving = add_movelist(std::move(new_mlist));
+        objs[obj_id].moving = add_movelist(std::move(new_mlist));
     }
 }
 
-bool Object_RunFrameEvent(ScriptObject *objj, int view, int loop, int frame)
+bool Object_RunFrameEvent(ScriptObject *obj, int view, int loop, int frame)
 {
-    if (!AssertObject("Object.RunFrameEvent", objj->id))
+    if (!AssertObject("Object.RunFrameEvent", obj->id))
         return false;
     view--; // convert to internal 0-based view ID
-    AssertFrame("Object.RunFrameEvent", thisroom.Objects[objj->id].ScriptName.GetCStr(), view, loop, frame);
-    return objs[objj->id].RunFrameEvent(view, loop, frame);
+    AssertFrame("Object.RunFrameEvent", thisroom.Objects[obj->id].ScriptName.GetCStr(), view, loop, frame);
+    return objs[obj->id].RunFrameEvent(view, loop, frame);
 }
 
-void Object_RunInteraction(ScriptObject *objj, int mode)
+void Object_RunInteraction(ScriptObject *obj, int mode)
 {
-    RunObjectInteraction(objj->id, mode);
+    RunObjectInteraction(obj->id, mode);
 }
 
-void *Object_GetGraphicPosition(ScriptObject *objj)
+void *Object_GetGraphicPosition(ScriptObject *obj)
 {
-    objs[objj->id].UpdateGraphicSpace();
+    objs[obj->id].UpdateGraphicSpace();
     std::vector<Point> points;
-    objs[objj->id].GetGraphicSpace().GetTransformedCorners(points,
-                                                           Size(objs[objj->id].spr_width, objs[objj->id].spr_height));
+    objs[obj->id].GetGraphicSpace().GetTransformedCorners(points,
+                                                          Size(objs[obj->id].spr_width, objs[obj->id].spr_height));
     return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
 }
 
-void *Object_GetGraphicBoundBox(ScriptObject *objj)
+void *Object_GetGraphicBoundBox(ScriptObject *obj)
 {
-    objs[objj->id].UpdateGraphicSpace();
+    objs[obj->id].UpdateGraphicSpace();
     std::vector<Point> points;
-    objs[objj->id].GetGraphicSpace().GetAABBPoints(points);
+    objs[obj->id].GetGraphicSpace().GetAABBPoints(points);
     return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
 }
 
@@ -1281,64 +1281,64 @@ void GetObjectPropertyText(int item, const char *property, char *bufer)
     get_text_property(thisroom.Objects[item].Properties, croom->objProps[item], property, bufer);
 }
 
-int Object_GetProperty(ScriptObject *objj, const char *property)
+int Object_GetProperty(ScriptObject *obj, const char *property)
 {
-    return GetObjectProperty(objj->id, property);
+    return GetObjectProperty(obj->id, property);
 }
 
-void Object_GetPropertyText(ScriptObject *objj, const char *property, char *bufer)
+void Object_GetPropertyText(ScriptObject *obj, const char *property, char *bufer)
 {
-    GetObjectPropertyText(objj->id, property, bufer);
+    GetObjectPropertyText(obj->id, property, bufer);
 }
 
-const char *Object_GetTextProperty(ScriptObject *objj, const char *property)
+const char *Object_GetTextProperty(ScriptObject *obj, const char *property)
 {
-    if (!AssertObject("Object.GetTextProperty", objj->id))
+    if (!AssertObject("Object.GetTextProperty", obj->id))
         return nullptr;
-    return get_text_property_dynamic_string(thisroom.Objects[objj->id].Properties, croom->objProps[objj->id], property);
+    return get_text_property_dynamic_string(thisroom.Objects[obj->id].Properties, croom->objProps[obj->id], property);
 }
 
-bool Object_SetProperty(ScriptObject *objj, const char *property, int value)
+bool Object_SetProperty(ScriptObject *obj, const char *property, int value)
 {
-    if (!AssertObject("Object.SetProperty", objj->id))
+    if (!AssertObject("Object.SetProperty", obj->id))
         return false;
-    return set_int_property(croom->objProps[objj->id], property, value);
+    return set_int_property(croom->objProps[obj->id], property, value);
 }
 
-bool Object_SetTextProperty(ScriptObject *objj, const char *property, const char *value)
+bool Object_SetTextProperty(ScriptObject *obj, const char *property, const char *value)
 {
-    if (!AssertObject("Object.SetTextProperty", objj->id))
+    if (!AssertObject("Object.SetTextProperty", obj->id))
         return false;
-    return set_text_property(croom->objProps[objj->id], property, value);
+    return set_text_property(croom->objProps[obj->id], property, value);
 }
 
-bool Object_GetUseRegionTint(ScriptObject *objj)
+bool Object_GetUseRegionTint(ScriptObject *obj)
 {
-    return (croom->obj[objj->id].flags & OBJF_USEREGIONTINTS) != 0;
+    return (croom->obj[obj->id].flags & OBJF_USEREGIONTINTS) != 0;
 }
 
-void Object_SetUseRegionTint(ScriptObject *objj, int yesorno)
+void Object_SetUseRegionTint(ScriptObject *obj, int yesorno)
 {
-    objs[objj->id].flags &= ~OBJF_USEREGIONTINTS;
+    objs[obj->id].flags &= ~OBJF_USEREGIONTINTS;
     if (yesorno)
-        objs[objj->id].flags |= OBJF_USEREGIONTINTS;
+        objs[obj->id].flags |= OBJF_USEREGIONTINTS;
 }
 
-ScriptMotionPath *Object_GetMotionPath(ScriptObject *objj)
+ScriptMotionPath *Object_GetMotionPath(ScriptObject *obj)
 {
-    RoomObject &obj = objs[objj->id];
-    const int mslot = obj.moving;
+    RoomObject &room_obj = objs[obj->id];
+    const int mslot = room_obj.moving;
     if (mslot <= 0)
         return nullptr;
 
-    if (obj.movelist_handle > 0)
+    if (room_obj.movelist_handle > 0)
     {
-        return static_cast<ScriptMotionPath *>(ccGetObjectAddressFromHandle(obj.movelist_handle));
+        return static_cast<ScriptMotionPath *>(ccGetObjectAddressFromHandle(room_obj.movelist_handle));
     }
 
     auto sc_path = ScriptMotionPath::Create(mslot);
     ccAddObjectReference(sc_path.Handle());
-    obj.movelist_handle = sc_path.Handle();
+    room_obj.movelist_handle = sc_path.Handle();
     return static_cast<ScriptMotionPath *>(sc_path.Obj());
 }
 
@@ -1428,10 +1428,10 @@ Rect get_object_blocking_rect(int objid)
     return RectWH(x, y1, width, y2 - y1);
 }
 
-// xx,yy is the position in room co-ordinates that we are checking
+// x,y is the position in room co-ordinates that we are checking
 // arx,ary,spww,sphh are the sprite's bounding box
 // bitmap_original tells whether bitmap is an original sprite, or transformed version
-int is_pos_in_sprite(int xx, int yy, int arx, int ary, Bitmap *sprit, int spww, int sphh,
+int is_pos_in_sprite(int x, int y, int arx, int ary, Bitmap *sprit, int spww, int sphh,
                      Common::SpriteTransformFlags sprite_flags)
 {
     if (spww == 0)
@@ -1439,14 +1439,14 @@ int is_pos_in_sprite(int xx, int yy, int arx, int ary, Bitmap *sprit, int spww, 
     if (sphh == 0)
         sphh = sprit->GetHeight() - 1;
 
-    if (!RectWH(arx, ary, spww, sphh).IsInside(xx, yy))
+    if (!RectWH(arx, ary, spww, sphh).IsInside(x, y))
         return false;
 
     if (game.options[OPT_PIXPERFECT])
     {
         // if it's transparent, or off the edge of the sprite, ignore
-        int xpos = xx - arx;
-        int ypos = yy - ary;
+        int xpos = x - arx;
+        int ypos = y - ary;
 
         if (sprite_flags & kSprTf_FlipX)
             xpos = (sprit->GetWidth() - 1) - xpos;
@@ -1730,7 +1730,7 @@ RuntimeScriptValue Sc_Object_GetByName(const RuntimeScriptValue *params, int32_t
     API_SCALL_OBJ_POBJ(ScriptObject, ccDynamicObject, Object_GetByName, const char);
 }
 
-// void (ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction)
+// void (ScriptObject *obj, int loop, int delay, int repeat, int blocking, int direction)
 RuntimeScriptValue Sc_Object_Animate5(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT5(ScriptObject, Object_Animate5);
@@ -1746,7 +1746,7 @@ RuntimeScriptValue Sc_Object_Animate(void *self, const RuntimeScriptValue *param
     API_OBJCALL_VOID_PINT7(ScriptObject, Object_Animate);
 }
 
-// int (ScriptObject *objj, ScriptObject *obj2)
+// int (ScriptObject *obj, ScriptObject *other)
 RuntimeScriptValue Sc_Object_IsCollidingWithObject(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT_POBJ(ScriptObject, Object_IsCollidingWithObject, ScriptObject);
@@ -1762,19 +1762,19 @@ RuntimeScriptValue Sc_Object_GetGraphicBoundBox(void *self, const RuntimeScriptV
     API_OBJCALL_OBJ(ScriptObject, void, globalDynamicArray, Object_GetGraphicBoundBox);
 }
 
-// int (ScriptObject *objj, const char *property)
+// int (ScriptObject *obj, const char *property)
 RuntimeScriptValue Sc_Object_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT_POBJ(ScriptObject, Object_GetProperty, const char);
 }
 
-// void (ScriptObject *objj, const char *property, char *bufer)
+// void (ScriptObject *obj, const char *property, char *bufer)
 RuntimeScriptValue Sc_Object_GetPropertyText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_POBJ2(ScriptObject, Object_GetPropertyText, const char, char);
 }
 
-//const char* (ScriptObject *objj, const char *property)
+//const char* (ScriptObject *obj, const char *property)
 RuntimeScriptValue Sc_Object_GetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJ_POBJ(ScriptObject, const char, myScriptStringImpl, Object_GetTextProperty, const char);
@@ -1795,7 +1795,7 @@ RuntimeScriptValue Sc_Object_IsInteractionAvailable(void *self, const RuntimeScr
     API_OBJCALL_BOOL_PINT(ScriptObject, Object_IsInteractionAvailable);
 }
 
-// void (ScriptObject *objj, int x, int y, int speed, int blocking, int direct)
+// void (ScriptObject *obj, int x, int y, int speed, int blocking, int direct)
 RuntimeScriptValue Sc_Object_Move(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT5(ScriptObject, Object_Move);
@@ -1806,7 +1806,7 @@ RuntimeScriptValue Sc_Object_MovePath(void *self, const RuntimeScriptValue *para
     API_OBJCALL_VOID_POBJ_PINT4(ScriptObject, Object_MovePath, void);
 }
 
-// void (ScriptObject *objj)
+// void (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_RemoveTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID(ScriptObject, Object_RemoveTint);
@@ -1817,7 +1817,7 @@ RuntimeScriptValue Sc_Object_RunFrameEvent(void *self, const RuntimeScriptValue 
     API_OBJCALL_VOID_PINT3(ScriptObject, Object_RunFrameEvent);
 }
 
-// void (ScriptObject *objj, int mode)
+// void (ScriptObject *obj, int mode)
 RuntimeScriptValue Sc_Object_RunInteraction(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptObject, Object_RunInteraction);
@@ -1868,31 +1868,31 @@ RuntimeScriptValue Sc_Object_GetTintLuminance(void *self, const RuntimeScriptVal
     API_OBJCALL_INT(ScriptObject, Object_GetTintLuminance);
 }
 
-// void (ScriptObject *objj, int xx, int yy)
+// void (ScriptObject *obj, int x, int y)
 RuntimeScriptValue Sc_Object_SetPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT2(ScriptObject, Object_SetPosition);
 }
 
-// void (ScriptObject *objj, int view, int loop, int frame)
+// void (ScriptObject *obj, int view, int loop, int frame)
 RuntimeScriptValue Sc_Object_SetView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT3(ScriptObject, Object_SetView);
 }
 
-// void (ScriptObject *objj)
+// void (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_StopAnimating(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID(ScriptObject, Object_StopAnimating);
 }
 
-// void (ScriptObject *objj)
+// void (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_StopMoving(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID(ScriptObject, Object_StopMoving);
 }
 
-// void (ScriptObject *objj, int red, int green, int blue, int saturation, int luminance)
+// void (ScriptObject *obj, int red, int green, int blue, int saturation, int luminance)
 RuntimeScriptValue Sc_Object_Tint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT5(ScriptObject, Object_Tint);
@@ -1918,7 +1918,7 @@ RuntimeScriptValue Sc_Object_GetAtScreenXY2(const RuntimeScriptValue *params, in
     API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, Object_GetAtScreenXY2);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetAnimating(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetAnimating);
@@ -1954,37 +1954,37 @@ RuntimeScriptValue Sc_Object_SetAudioVolume(void *self, const RuntimeScriptValue
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetAudioVolume);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetBaseline(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetBaseline);
 }
 
-// void (ScriptObject *objj, int basel)
+// void (ScriptObject *obj, int basel)
 RuntimeScriptValue Sc_Object_SetBaseline(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBaseline);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetBlockingHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetBlockingHeight);
 }
 
-// void (ScriptObject *objj, int bhit)
+// void (ScriptObject *obj, int bhit)
 RuntimeScriptValue Sc_Object_SetBlockingHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlockingHeight);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetBlockingWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetBlockingWidth);
 }
 
-// void (ScriptObject *objj, int bwid)
+// void (ScriptObject *obj, int bwid)
 RuntimeScriptValue Sc_Object_SetBlockingWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlockingWidth);
@@ -2010,13 +2010,13 @@ RuntimeScriptValue Sc_Object_SetBlockingRectY(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlockingRectY);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetClickable(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetClickable);
 }
 
-// void (ScriptObject *objj, int clik)
+// void (ScriptObject *obj, int clik)
 RuntimeScriptValue Sc_Object_SetClickable(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetClickable);
@@ -2042,25 +2042,25 @@ RuntimeScriptValue Sc_Object_SetEnabled(void *self, const RuntimeScriptValue *pa
     API_OBJCALL_VOID_PBOOL(ScriptObject, Object_SetEnabled);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetFrame);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetGraphic);
 }
 
-// void (ScriptObject *objj, int slott)
+// void (ScriptObject *obj, int slott)
 RuntimeScriptValue Sc_Object_SetGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetGraphic);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetID(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetID);
@@ -2071,7 +2071,7 @@ RuntimeScriptValue Sc_Object_GetScriptName(void *self, const RuntimeScriptValue 
     API_OBJCALL_OBJ(ScriptObject, const char, myScriptStringImpl, Object_GetScriptName);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetLoop);
@@ -2087,13 +2087,13 @@ RuntimeScriptValue Sc_Object_SetManualScaling(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PBOOL(ScriptObject, Object_SetManualScaling);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetMoving(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetMoving);
 }
 
-// const char* (ScriptObject *objj)
+// const char* (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetName_New(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJ(ScriptObject, const char, myScriptStringImpl, Object_GetName_New);
@@ -2115,91 +2115,91 @@ RuntimeScriptValue Sc_Object_SetScaling(void *self, const RuntimeScriptValue *pa
 }
 
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetSolid(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetSolid);
 }
 
-// void (ScriptObject *objj, int solid)
+// void (ScriptObject *obj, int solid)
 RuntimeScriptValue Sc_Object_SetSolid(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetSolid);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetOpacity);
 }
 
-// void (ScriptObject *objj, int alpha)
+// void (ScriptObject *obj, int alpha)
 RuntimeScriptValue Sc_Object_SetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetOpacity);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetTransparency);
 }
 
-// void (ScriptObject *objj, int trans)
+// void (ScriptObject *obj, int trans)
 RuntimeScriptValue Sc_Object_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetTransparency);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetView);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_BOOL(ScriptObject, Object_GetVisible);
 }
 
-// void (ScriptObject *objj, int onoroff)
+// void (ScriptObject *obj, int onoroff)
 RuntimeScriptValue Sc_Object_SetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PBOOL(ScriptObject, Object_SetVisible);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetX);
 }
 
-// void (ScriptObject *objj, int xx)
+// void (ScriptObject *obj, int x)
 RuntimeScriptValue Sc_Object_SetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetX);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetY);
 }
 
-// void (ScriptObject *objj, int yy)
+// void (ScriptObject *obj, int y)
 RuntimeScriptValue Sc_Object_SetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetY);
 }
 
-// int (ScriptObject *objj)
+// int (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetBlendMode);
 }
 
-// void (ScriptObject *objj, int blendMode)
+// void (ScriptObject *obj, int blendMode)
 RuntimeScriptValue Sc_Object_SetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlendMode);
@@ -2250,19 +2250,19 @@ RuntimeScriptValue Sc_Object_GetShader(void *self, const RuntimeScriptValue *par
     API_OBJCALL_OBJAUTO(ScriptObject, ScriptShaderInstance, Object_GetShader);
 }
 
-// void (ScriptObject *objj, int blendMode)
+// void (ScriptObject *obj, int blendMode)
 RuntimeScriptValue Sc_Object_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_POBJ(ScriptObject, Object_SetShader, ScriptShaderInstance);
 }
 
-// bool (ScriptObject *objj)
+// bool (ScriptObject *obj)
 RuntimeScriptValue Sc_Object_GetUseRegionTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_BOOL(ScriptObject, Object_GetUseRegionTint);
 }
 
-// void (ScriptObject *objj, int yesorno)
+// void (ScriptObject *obj, int yesorno)
 RuntimeScriptValue Sc_Object_SetUseRegionTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetUseRegionTint);
