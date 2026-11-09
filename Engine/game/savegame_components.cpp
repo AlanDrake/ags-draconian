@@ -506,32 +506,32 @@ HSaveError WriteAudio(Stream *out)
     // Audio playbacks (from channels)
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++)
     {
-        auto *ch = AudioChans::GetChannelIfPlaying(i);
-        if (ch)
+        auto *voice = AudioChans::GetChannelIfPlaying(i);
+        if (voice)
         {
-            out->WriteInt32(ch->sourceClipID);
+            out->WriteInt32(voice->sourceClipID);
             // kAudioSvgVersion_36215
-            StrUtil::WriteString(ch->fileName, out);
-            out->WriteInt8(ch->bundlingType);
+            StrUtil::WriteString(voice->fileName, out);
+            out->WriteInt8(voice->bundlingType);
             //
-            out->WriteInt32(ch->get_pos());
-            out->WriteInt32(ch->priority);
-            out->WriteInt32(ch->repeat ? 1 : 0);
-            out->WriteInt32(ch->get_volume255());
+            out->WriteInt32(voice->get_pos());
+            out->WriteInt32(voice->priority);
+            out->WriteInt32(voice->repeat ? 1 : 0);
+            out->WriteInt32(voice->get_volume255());
             out->WriteInt32(0); // was redundant data
-            out->WriteInt32(ch->get_volume100());
-            out->WriteInt32(ch->get_panning());
-            out->WriteInt32(ch->get_speed());
+            out->WriteInt32(voice->get_volume100());
+            out->WriteInt32(voice->get_panning());
+            out->WriteInt32(voice->get_speed());
             // since 3.5.0.26
-            out->WriteInt32(ch->xSource);
-            out->WriteInt32(ch->ySource);
-            out->WriteInt32(ch->maximumPossibleDistanceAway);
+            out->WriteInt32(voice->xSource);
+            out->WriteInt32(voice->ySource);
+            out->WriteInt32(voice->maximumPossibleDistanceAway);
             // since version kAudioSvgVersion_36130
             int playback_flags = 0;
-            if (ch->is_paused())
+            if (voice->is_paused())
                 playback_flags |= kSvgAudioPaused;
             out->WriteInt32(playback_flags);
-            out->WriteInt32(ch->sourceClipType);
+            out->WriteInt32(voice->sourceClipType);
             out->WriteInt32(0); // reserved
             out->WriteInt32(0);
         }

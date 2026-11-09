@@ -159,12 +159,12 @@ bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume, int sou
     ScriptAudioChannel *channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
     if (channel)
     {
-        auto *ch = AudioChans::GetChannel(channel->id);
-        if (ch)
+        auto *voice = AudioChans::GetChannel(channel->id);
+        if (voice)
         {
-            ch->set_volume100(ch->get_volume100() * Math::Clamp(sound_volume, 0, 100) / 100);
-            ch->set_panning(sound_pan);
-            ch->set_speed(sound_speed);
+            voice->set_volume100(voice->get_volume100() * Math::Clamp(sound_volume, 0, 100) / 100);
+            voice->set_panning(sound_pan);
+            voice->set_speed(sound_speed);
         }
         return true; // return positive if sound is linked, regardless of the playback success
     }

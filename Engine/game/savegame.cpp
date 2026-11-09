@@ -517,18 +517,18 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
                 play_sound_on_channel(std::move(sound), i, chan_info.Priority, chan_info.Repeat, chan_info.Pos);
         }
 
-        auto *ch = AudioChans::GetChannel(i);
-        if (ch != nullptr)
+        auto *voice = AudioChans::GetChannel(i);
+        if (voice != nullptr)
         {
-            ch->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
-            ch->set_speed(chan_info.Speed);
-            ch->set_panning(chan_info.Pan);
-            ch->xSource = chan_info.XSource;
-            ch->ySource = chan_info.YSource;
-            ch->maximumPossibleDistanceAway = chan_info.MaxDist;
+            voice->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
+            voice->set_speed(chan_info.Speed);
+            voice->set_panning(chan_info.Pan);
+            voice->xSource = chan_info.XSource;
+            voice->ySource = chan_info.YSource;
+            voice->maximumPossibleDistanceAway = chan_info.MaxDist;
 
             if ((chan_info.Flags & kSvgAudioPaused) != 0)
-                ch->pause();
+                voice->pause();
         }
     }
     if ((cf_in_chan > 0) && (AudioChans::GetChannel(cf_in_chan) != nullptr))
@@ -540,11 +540,11 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
     // different channels will have thrown them out of sync, so re-time it
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     {
-        auto *ch = AudioChans::GetChannelIfPlaying(i);
+        auto *voice = AudioChans::GetChannelIfPlaying(i);
         int pos = r_data.AudioChans[i].Pos;
-        if ((pos > 0) && (ch != nullptr))
+        if ((pos > 0) && (voice != nullptr))
         {
-            ch->seek(pos);
+            voice->seek(pos);
         }
     }
 

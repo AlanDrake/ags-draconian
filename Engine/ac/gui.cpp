@@ -720,10 +720,10 @@ static void run_control_event(GUIControl *control, const String &script_module, 
     }
 }
 
-void process_interface_click(int ifce, int btn, int mbut)
+void process_interface_click(int ifce, int btn_id, int mbut)
 {
     const GUIMain &gui = guis[ifce];
-    if (btn < 0)
+    if (btn_id < 0)
     {
         // click on GUI background
         RuntimeScriptValue params[]{RuntimeScriptValue().SetScriptObject(&scrGui[ifce], &ccDynamicGUI),
@@ -734,11 +734,11 @@ void process_interface_click(int ifce, int btn, int mbut)
     }
 
     // Decide which event to fire when the control is clicked on
-    GUIControl *control = guis[ifce].GetControl(btn);
+    GUIControl *control = guis[ifce].GetControl(btn_id);
     if (!control)
         return;
 
-    const GUIControlType ctrl_type = guis[ifce].GetControlType(btn);
+    const GUIControlType ctrl_type = guis[ifce].GetControlType(btn_id);
     switch (ctrl_type)
     {
     case kGUIButton:

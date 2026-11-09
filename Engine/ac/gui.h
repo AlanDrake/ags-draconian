@@ -58,7 +58,7 @@ int GetGUIAt(int x, int y, int hit_options);
 
 
 void remove_popup_interface(int ifacenum);
-void process_interface_click(int ifce, int btn, int mbut);
+void process_interface_click(int ifce, int btn_id, int mbut);
 void update_gui_zorder();
 // Initializes all GUI and controls for runtime state;
 // this must be done after creating or loading GUIs.

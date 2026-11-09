@@ -46,19 +46,19 @@ int AudioChannel_GetIsPlaying(ScriptAudioChannel *channel)
 
 bool AudioChannel_GetIsPaused(ScriptAudioChannel *channel)
 {
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
-    if (ch)
-        return ch->is_paused();
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
+    if (voice)
+        return voice->is_paused();
     return false;
 }
 
 int AudioChannel_GetPanning(ScriptAudioChannel *channel)
 {
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
 
-    if (ch)
+    if (voice)
     {
-        return ch->get_panning();
+        return voice->get_panning();
     }
     return 0;
 }
@@ -68,67 +68,67 @@ void AudioChannel_SetPanning(ScriptAudioChannel *channel, int newPanning)
     if ((newPanning < -100) || (newPanning > 100))
         quitprintf("!AudioChannel.Panning: panning value must be between -100 and 100 (passed=%d)", newPanning);
 
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
 
-    if (ch)
+    if (voice)
     {
-        ch->set_panning(newPanning);
+        voice->set_panning(newPanning);
     }
 }
 
 ScriptAudioClip *AudioChannel_GetPlayingClip(ScriptAudioChannel *channel)
 {
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
 
-    if (ch && ch->sourceClipID >= 0)
+    if (voice && voice->sourceClipID >= 0)
     {
-        return &game.audioClips[ch->sourceClipID];
+        return &game.audioClips[voice->sourceClipID];
     }
     return nullptr;
 }
 
 int AudioChannel_GetPlayingType(ScriptAudioChannel *channel)
 {
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
-    if (ch)
-        return ch->sourceClipType;
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
+    if (voice)
+        return voice->sourceClipType;
     return AUDIOTYPE_UNDEFINED;
 }
 
 int AudioChannel_GetPosition(ScriptAudioChannel *channel)
 {
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
-    if (!ch)
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
+    if (!voice)
         return 0;
-    return ch->get_pos();
+    return voice->get_pos();
 }
 
 int AudioChannel_GetPositionMs(ScriptAudioChannel *channel)
 {
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
-    if (!ch)
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
+    if (!voice)
         return 0;
-    return ch->get_pos_ms();
+    return voice->get_pos_ms();
 }
 
 int AudioChannel_GetLengthMs(ScriptAudioChannel *channel)
 {
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
 
-    if (ch)
+    if (voice)
     {
-        return ch->get_length_ms();
+        return voice->get_length_ms();
     }
     return 0;
 }
 
 int AudioChannel_GetVolume(ScriptAudioChannel *channel)
 {
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
 
-    if (ch)
+    if (voice)
     {
-        return ch->get_volume100();
+        return voice->get_volume100();
     }
     return 0;
 }
@@ -138,33 +138,33 @@ int AudioChannel_SetVolume(ScriptAudioChannel *channel, int newVolume)
     if ((newVolume < 0) || (newVolume > 100))
         quitprintf("!AudioChannel.Volume: new value out of range (supplied: %d, range: 0..100)", newVolume);
 
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
 
-    if (ch)
+    if (voice)
     {
-        ch->set_volume100(newVolume);
+        voice->set_volume100(newVolume);
     }
     return 0;
 }
 
 int AudioChannel_GetSpeed(ScriptAudioChannel *channel)
 {
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
 
-    if (ch)
+    if (voice)
     {
-        return ch->get_speed();
+        return voice->get_speed();
     }
     return 0;
 }
 
 void AudioChannel_SetSpeed(ScriptAudioChannel *channel, int new_speed)
 {
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
 
-    if (ch)
+    if (voice)
     {
-        ch->set_speed(new_speed);
+        voice->set_speed(new_speed);
     }
 }
 
@@ -178,16 +178,16 @@ void AudioChannel_Stop(ScriptAudioChannel *channel)
 
 void AudioChannel_Pause(ScriptAudioChannel *channel)
 {
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
-    if (ch)
-        ch->pause();
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
+    if (voice)
+        voice->pause();
 }
 
 void AudioChannel_Resume(ScriptAudioChannel *channel)
 {
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
-    if (ch)
-        ch->resume();
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
+    if (voice)
+        voice->resume();
 }
 
 void AudioChannel_Seek(ScriptAudioChannel *channel, int newPosition)
@@ -195,9 +195,9 @@ void AudioChannel_Seek(ScriptAudioChannel *channel, int newPosition)
     if (newPosition < 0)
         quitprintf("!AudioChannel.Seek: invalid seek position %d", newPosition);
 
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
-    if (ch)
-        ch->seek(newPosition);
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
+    if (voice)
+        voice->seek(newPosition);
 }
 
 void AudioChannel_SeekMs(ScriptAudioChannel *channel, int newPosition)
@@ -205,32 +205,32 @@ void AudioChannel_SeekMs(ScriptAudioChannel *channel, int newPosition)
     if (newPosition < 0)
         quitprintf("!AudioChannel.SeekMs: invalid seek position %d", newPosition);
 
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
-    if (ch)
-        ch->seek_ms(newPosition);
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
+    if (voice)
+        voice->seek_ms(newPosition);
 }
 
 void AudioChannel_SetRoomLocation(ScriptAudioChannel *channel, int xPos, int yPos, int maxDist)
 {
-    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
+    auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
 
-    if (ch)
+    if (voice)
     {
         if ((maxDist < 1) || (thisroom.Width <= maxDist))
         {
             maxDist = ((xPos > thisroom.Width / 2) ? xPos : (thisroom.Width - xPos)) - AMBIENCE_FULL_DIST;
         }
 
-        ch->xSource = (xPos > 0) ? xPos : -1;
-        ch->ySource = yPos;
-        ch->maximumPossibleDistanceAway = maxDist;
+        voice->xSource = (xPos > 0) ? xPos : -1;
+        voice->ySource = yPos;
+        voice->maximumPossibleDistanceAway = maxDist;
         if (xPos > 0)
         {
             update_directional_sound_vol();
         }
         else
         {
-            ch->apply_directional_modifier(0);
+            voice->apply_directional_modifier(0);
         }
     }
 }
