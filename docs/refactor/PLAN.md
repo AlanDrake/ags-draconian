@@ -79,10 +79,9 @@ so the offers go out first and fork-only moves that would conflict with them (5.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **2.9d consequences, for the user to decide** (LOG.md 2.9d: no 32-bit coverage on a push, 32-bit plugin DLLs, the MSBuild Tests job duplicating the CMake one) | Landed; decisions open | the user first |
-| 2 | **U.8:** offer upstream the 1.5b-2 fixes (`RuntimeScript::CheckFixupInCode`, `JointRTTI::Join`); the `String(ptr, length)` change separately if at all; the 1.5b-4 compiler leak fixes only if the user confirms | Real defects, small | Sonnet 5.5, `medium` |
-| 3 | **2.9 follow-up:** read the first push's runs after 2.9 (the plan job's push filter, cold ccache); the apt package cache, the ARM64 retry | The first push finds what the probe could not | Sonnet 5.5, `medium` |
-| 4 | **Waiting on review:** U.3 (#3186–#3190, #3185, #3191), U.6 (the fork port once the PR is stable), U.7 (#3193) | Upstream review takes weeks | Sonnet 5.5, `medium` (U.6: the user first) |
+| 1 | **U.8:** offer upstream the 1.5b-2 fixes (`RuntimeScript::CheckFixupInCode`, `JointRTTI::Join`); the `String(ptr, length)` change separately if at all; the 1.5b-4 compiler leak fixes only if the user confirms | Real defects, small | Sonnet 5.5, `medium` |
+| 2 | **2.9 follow-up:** landing the probe branch `probe-2.9-followup` on `ags4draconianr21` (green: Verify 42584941158, 42592142379; CI light 42584941744, 42592146847; CI full 42586968168). Tests job in full runs, apt cache, ARM64 retry, dependency mirror (LOG.md 2.9 follow-up) | Measured, waiting for the user to land | the user |
+| 3 | **Waiting on review:** U.3 (#3186–#3190, #3185, #3191), U.6 (the fork port once the PR is stable), U.7 (#3193) | Upstream review takes weeks | Sonnet 5.5, `medium` (U.6: the user first) |
 
 Open items from finished tasks (details in LOG.md "Open items"):
 - 0.4: the CodeQL setting, `D3DCOMPILER_47` on Windows 7, the macOS 10.9 deployment target.
@@ -164,10 +163,13 @@ folders.
 - [ ] **2.9 CI and pre-push time.** 2.9a–c done 2026-11-07 (ccache, light runs, `prepush.py
   --auto`; LOG.md). **2.9d** done 2026-11-08, landed 2026-11-09 (LOG.md): every Windows build
   is x64 (editor, engine, tools, installer), no x86 build is left where an x64 one exists, the Linux i386
-  packages stay in full runs. Open: an
-  apt package cache; a retry for the ARM64 auto-test abort; upstream's workflows failing on the port
-  branches; the laptop for the WSL stages. LTO stays in the verification builds (the user, 2026-11-07).
-  *Done when:* CI confirms a push that changes a few files in under 10 minutes.
+  packages stay in full runs; the plugin DLLs are x64 with nothing to ship (the user, 2026-11-09). Open:
+  upstream's workflows failing on the port
+  branches; the laptop for the WSL stages. LTO stays in the verification builds (the user, 2026-11-07),
+  and so does the auto-test game in the Windows CMake job (the user, 2026-11-09).
+  *Done when:* CI confirms a push that changes a few files in under 10 minutes. The first push measured
+  12 min 15 s (LOG.md 2.9, 2026-11-09); with LTO and the game where they are, the 10 minutes need
+  another saving or a new target.
 
 ## Phase 3: Dead code removal
 

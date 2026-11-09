@@ -1121,9 +1121,25 @@ not happened yet), not 10, and the time left is the link-time code generation (2
   - *No 32-bit coverage on a push.* The 3.2c re-decision counted the MSBuild jobs as "CI's only x86 coverage";
     now no Windows build is 32-bit, the Linux i386 packages build (no tests) in full runs only, and wasm32 in
     full runs and the `emscripten` stage. A defect that needs 32-bit pointers waits for a full run.
+    *Checked 2026-11-09:* three shipped targets are still 32-bit, all built in full runs only: the web engine
+    (wasm32, the installer's Web component), the Linux i386 packages, Android's `armeabi-v7a` and `x86`
+    (`abiFilters` in `Android/library/runtime/build.gradle`). Compiling for 32-bit before a push is covered
+    when `prepush.py --auto` runs (Common, Engine, Plugins and `libsrc` changes include the `emscripten`
+    stage; Compiler and Tools do not, they are not in the web build). What 2.9d removed is *running tests* on
+    32-bit: the x86 MSBuild Tests job did on every light run; now no 32-bit build runs a test anywhere. Adding
+    `ctest` to the i386 package build is not small: the package is built by `debian/rules` inside the Debian 10
+    builder image with `override_dh_auto_test` empty and no `AGS_TESTS`, the tests need googletest, which
+    `CMake/FetchGoogleTest.cmake` downloads, and the i386 container does not resolve `github.com` (3.2c), so it
+    needs googletest in the builder image (a `ci/linux/Dockerfile` change, both public images rebuilt), a
+    local-googletest path in the CMake, `-DAGS_TESTS=1` and `ctest` in `debian/rules`, and a probe for the
+    CI-only jobs. Not done; the user decides.
   - *32-bit plugin DLLs.* An x64 engine cannot load a 32-bit plugin DLL, so a game that needs a plugin released
     only as 32-bit cannot be run or released for Windows from this installer. The plugin API (C4) is unchanged;
-    the cost is to the plugins' binaries.
+    the cost is to the plugins' binaries. *Decided 2026-11-09 (the user):* the plugin DLLs are x64 from now on,
+    and nothing more is needed: the seven plugin projects under `Plugins/*/msvc` already have x64
+    configurations, and no CI job built or shipped their DLLs before 2.9d either, so nothing depends on them
+    (the CMake engine has five of them built in, `AGS_BUILTIN_PLUGINS`; the MSBuild `acwin.exe` has none).
+    Plugins outside the repository are their authors' to rebuild.
   - *The MSBuild Tests job* now runs the same tests and architecture as the CMake "Windows" job on every light
     run (about 3 runner-minutes, in parallel, so little wall time); moving it to full runs is an option.
   - `setup_ags_build_deps.bat` still builds the x86 libraries and downloads the x86 redistributable (cost only
@@ -1132,6 +1148,71 @@ not happened yet), not 10, and the time left is the link-time code generation (2
   ran); an upgrade over an x86 install of the same version; the 25 ignored NUnit tests compared with x86.
 - **Landed** on `ags4draconianr21` on 2026-11-09 as separate commits (the 3.2c status edits split out from the
   CI change); the probe branch `probe-x64-2.9d` is deleted.
+
+*2.9, the first push measured (2026-11-09; read by Sonnet 5.5, checked by Opus 5.5 against the logs):* the push
+of `525ddd44d` (docs, `ci.yml`, `prepush.py`, `ags.iss`; the 2.9d landing).
+- **Results:** Verify 42577936478 green in 6 min 35 s (GCC 392 s, clang headers 196 s, format 16 s); CI
+  42577936484 green in 12 min 15 s, against the 12.5 estimated from the probe. The "under 10 minutes" of
+  2.9's "done when" is not met.
+- **The push filter works:** the plan job printed `full=false` and chose the Windows CMake job alone; Ubuntu
+  x86_64 was left to Verify, Emscripten, Linux, Linux Tools, Linux Bundle, Android and the packaging jobs
+  were skipped; the MSBuild jobs ran x64 Release (Tests 375 s, Tools 166, Engine 129, Editor 125), parity
+  passed.
+- **The caches were warm, not cold:** every ccache restored the previous commit's key by prefix
+  (`ccache-*-dd514dad9...`): GCC 1015 of 1016 hits, clang 560 of 561, MSVC 1274 of 1275; the FetchContent
+  and Windows dependency caches hit. A cold push was not observed (it happens after a cache eviction or a
+  change to a key's inputs).
+- **The critical path** is Auto-test game → Windows → Parity, all serial: the game job 110 s (99 of them
+  building the tools), the Windows job 504 s (configure 91, build 214, tests 30, the two auto-test runs 114,
+  the ccache save 6), parity 112 s. The Windows job `needs: auto-test-game` but uses the game only in its last
+  two minutes, so it starts 110 s late; running the game in a job of its own after `build` would have brought
+  the run to about 10.5 min. *Decided 2026-11-09 (the user):* no; the auto-test game is what says whether the
+  engine binary is worth using, and it stays in the Windows job as it is. With LTO staying too (2.9e), a
+  light run is about 12 minutes.
+- **Not seen on this push:** the ARM64 job (full runs only), the apt step of the Linux packages, the
+  installer (packaging is skipped on a light run).
+
+*2.9 follow-up (2026-11-09; Sonnet 5.5 on a probe branch, overseen by Fable 5.1):* branch `probe-2.9-followup`,
+four commits, three runs of each workflow (Verify 42584941158, 42592142379; CI light 42584941744 cold,
+42592146847 warm; CI full 42586968168).
+- **Decided 2026-11-09 (the user):** (a) no 32-bit test run on a push is accepted, and `ctest` is not added to
+  the i386 package build (the cost analysis is in 2.9d above); (b) the MSBuild Tests job moves to full runs;
+  (c) the auto-test game stays in the Windows CMake job.
+- **The Tests job** has `if: needs.plan.outputs.full == 'true'`: skipped in both light runs, 305 s in the full
+  run. The CMake Windows job runs the same tests with the same compiler and architecture on every run; the
+  hand-written projects stay checked by `buildlists`, the MSBuild Engine and Tools jobs and `prepush.py`'s
+  `msbuild` stage. It was off the critical path, so a light run does not get shorter by it (the cost is the
+  runner minutes).
+- **The apt cache** (`actions/cache@v5` of `$RUNNER_TEMP/apt-archives`, ~79 MB, keyed on OS, architecture,
+  runner image version and the hash of the workflow file) is in `ci.yml`'s `build` job (after checkout, because
+  `hashFiles` reads the workspace) and in both Verify jobs. The install step, cold then warm: Ubuntu-x86_64 52 s
+  then 21 to 22 s, Verify GCC 38 s then 22 s, Verify clang 66 s then 26 s; the restore takes 1 to 3 s, the
+  save 4 s. Ubuntu-Arm64 was cold in the full run (65 s, saved). What remains in the step is `apt-get update`
+  and the unpacking, which the cache does not touch. A saving of 15 to 40 s per Ubuntu job, and no more
+  21-minute steps on a slow mirror.
+- **The ARM64 retry** is in place (`continue-on-error` on the first attempt for that platform only, a second
+  attempt on failure); in the full run the first attempt passed and the retry step showed as skipped. A real
+  crash has not been seen since, so the retry itself is untested.
+- **Finding: every CMake job downloaded its dependencies on every run**, cache hit or not. The `_deps` cache
+  restores the extracted sources, but FetchContent runs its download step at every configure, so each job
+  fetched googletest, ogg, vorbis, theora (and SDL) from github.com every time; the runs that failed on
+  2026-11-09 (HTTP 504 on the release downloads, a GitHub incident) failed there. The Android job had solved
+  this on 2026-11-02 (`Script/fetch_deps.sh`, `AGS_FETCH_MIRROR_DIR`). The fourth commit puts the same two steps
+  (the `ags-deps` cache, then the download with curl retries) into every CMake job: `auto-test-game`, the
+  `build` matrix (the Windows entries through `shell: bash` and `cygpath -m`), Emscripten, and Verify's two
+  jobs. googletest was the one archive outside the mirror (literal URLs in `CMake/FetchGoogleTest.cmake`); it
+  goes through `ags_fetch_url` now, and `fetch_deps.sh` accepts indented calls (7 archives, 7 calls). The
+  mirror is 12 MB. The download step takes 13 to 15 s cold and 0 to 1 s warm (7 s on the mingw-arm64 entry
+  in its first full run); the configure logs show no `https://` source. The `_deps` caches stay for now: what
+  they still save is the extraction; the user decides whether they go.
+- **The light run is not shorter:** 12 min 57 s warm (16 min 32 s cold, which also paid for the first ccache
+  of the new keys) against 12 min 15 s before. The critical path is the same (Auto-test game 97 s, Windows
+  581 s with configure 87 s, parity 91 s); the downloads were never most of it, the configure is (76 to 101 s
+  with the mirror: extraction and the SDL configure). Verify warm: 8 min 8 s (GCC 483 s) against 6 min 35 s
+  on 2026-11-09's push; the difference is the ccache of the changed workflow keys and runner variance, not
+  measured further.
+- **Not changed:** the Linux package and tools jobs that configure inside containers (the variable does not
+  reach them); the i386 container still does not resolve `github.com`.
 
 ### 3.1 Dead platforms
 
