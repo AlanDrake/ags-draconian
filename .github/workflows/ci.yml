@@ -221,22 +221,39 @@ jobs:
         if (-not $exe) { throw 'ccache.exe is not in the archive' }
         $exe.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-    - name: Set up SDL dependencies on Linux (ensures OpenGL)
-      if: matrix.platform.sys == 'Ubuntu'
-      run: |
-        sudo apt-get update -y
-        sudo apt-get install -y ccache \
-          gnome-desktop-testing libasound2-dev libpulse-dev libaudio-dev libjack-dev libsndio-dev \
-          libusb-1.0-0-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
-          libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
-          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
-
     - name: Set up Tappy
       run: pip install tap.py
 
     - uses: actions/checkout@v6
       with:
         persist-credentials: false
+
+    - name: Find the runner image version
+      id: apt-image
+      if: matrix.platform.sys == 'Ubuntu'
+      run: echo "image=$ImageVersion" >> "$GITHUB_OUTPUT"
+
+    # Only the packages' files are cached, apt checks every .deb against the fresh index. "1": raise it to drop the cache by hand
+    - name: Cache apt packages
+      if: matrix.platform.sys == 'Ubuntu'
+      uses: actions/cache@v5
+      with:
+        path: ${{ runner.temp }}/apt-archives
+        key: apt-1-${{ runner.os }}-${{ runner.arch }}-${{ steps.apt-image.outputs.image }}-${{ hashFiles('.github/workflows/ci.yml') }}
+
+    - name: Set up SDL dependencies on Linux (ensures OpenGL)
+      if: matrix.platform.sys == 'Ubuntu'
+      run: |
+        mkdir -p "$RUNNER_TEMP/apt-archives"
+        sudo apt-get update -y
+        sudo apt-get -o Dir::Cache::archives="$RUNNER_TEMP/apt-archives" install -y ccache \
+          gnome-desktop-testing libasound2-dev libpulse-dev libaudio-dev libjack-dev libsndio-dev \
+          libusb-1.0-0-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
+          libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
+        sudo rm -rf "$RUNNER_TEMP/apt-archives/partial" "$RUNNER_TEMP/apt-archives/lock"
+        sudo chown -R "$(id -u):$(id -g)" "$RUNNER_TEMP/apt-archives"
+        du -sh "$RUNNER_TEMP/apt-archives"
 
     # "2": the Windows entry moved to Ninja, and a tree that another generator configured cannot be reused
     - name: Cache CMake FetchContent dependencies
