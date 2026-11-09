@@ -3977,10 +3977,13 @@ here; local commits `24c36d4ea`, `bc90b54ee`, `fad87c64f`):
 - **`[format]`, +2:** braces on the one changed line the gate flagged.
 - **Verification:** `prepush.py --auto --base 073d57f7b`: every selected stage passes (format, build + ctest, tidy,
   headers, libcxx 341, emscripten, linux ctest 1165/1165, msbuild). Not run: macOS, iOS, Android.
-- **Found, not fixed (upstream `ags4` too):** `ScriptDrawingSurface::SetDrawingColor`
-  (`Engine/ac/dynobj/scriptdrawingsurface.cpp`) dereferences `GetBitmapSurface()` without a check, so setting
-  `DrawingColor` after `Release()` (or after the source sprite is deleted) crashes the engine instead of warning like
-  the drawing functions; `DrawingSurface_SetPixelsImpl` warns as `"DrawingSurface.GetPixels"`. Minor:
+- **Found and fixed (upstream `ags4` too):** `ScriptDrawingSurface::SetDrawingColor`
+  (`Engine/ac/dynobj/scriptdrawingsurface.cpp`) dereferenced `GetBitmapSurface()` without a check, so setting
+  `DrawingColor` after `Release()` (or after the source sprite was deleted) crashed the engine; now
+  `DrawingSurface_SetDrawingColor` warns as the drawing functions do and keeps the old colour (`1c83f49aa`).
+  `DrawingSurface_SetPixelsImpl` warned as `"DrawingSurface.GetPixels"`, now `SetPixels` (`599acd6fd`). Both: format,
+  build + ctest, tidy, headers, libcxx, emscripten, msbuild pass; the `linux` stage did not run (WSL failed to start
+  with `Wsl/Service/ERROR_NETNAME_DELETED`, also after `wsl --shutdown`). Not added: a test. Not fixed, minor:
   `Sc_DrawingSurface_DrawStringWrapped` names `DrawingSurface_DrawString` in its parameter-count assertion (only the
   debug message).
 
