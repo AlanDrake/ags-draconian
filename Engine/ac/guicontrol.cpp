@@ -403,8 +403,10 @@ int GUIControl_GetOpacity(GUIControl *control)
 
 void GUIControl_SetOpacity(GUIControl *control, int alpha)
 {
-    if ((alpha < 0) | (alpha > 255))
+    if ((alpha < 0) || (alpha > 255))
+    {
         quit("!GUIControl.Opacity: alpha value must be between 0 and 255");
+    }
     control->SetOpacity(alpha);
 }
 
