@@ -39,14 +39,18 @@ extern int char_speaking_anim;
 int CharacterInfo::get_baseline() const
 {
     if (baseline < 1)
+    {
         return y;
+    }
     return baseline;
 }
 
 int CharacterInfo::get_blocking_top() const
 {
     if (blocking_height > 0)
+    {
         return y - blocking_height / 2;
+    }
     return y - 2;
 }
 
@@ -55,7 +59,9 @@ int CharacterInfo::get_blocking_bottom() const
     // the blocking_bottom should be 1 less than the top + height
     // since the code does <= checks on it rather than < checks
     if (blocking_height > 0)
+    {
         return (y + (blocking_height + 1) / 2) - 1;
+    }
     return y + 3;
 }
 
@@ -80,18 +86,24 @@ static void FixupCharacterLoopAndFrame(CharacterInfo *ch, bool switch_from_bad_l
     // we do so for backwards compatibility; this approximately emulates older games behavior.
     const int view = ch->view;
     if (view < 0 || view >= views.size())
+    {
         quitprintf("!Character %s is assigned a invalid view %d (valid range 1..%d)", ch->scrname.GetCStr(), view,
                    game.numviews);
+    }
     if (!switch_from_bad_loop && (ch->loop < 0 || ch->loop >= views[view].numLoops))
+    {
         quitprintf("!Character %s is assigned a invalid loop %d in view %d (valid range 0..%d)", ch->scrname.GetCStr(),
                    ch->loop, view, views[view].GetLastLoop());
+    }
 
     if (switch_from_bad_loop &&
         ((ch->loop < 0 || ch->loop >= views[view].numLoops) || (views[view].loops[ch->loop].numFrames == 0)))
     {
         int loop = ch->loop;
         for (loop = 0; (loop < views[view].numLoops) && (views[view].loops[loop].numFrames == 0); ++loop)
+        {
             ;
+        }
         if (loop == views[view].numLoops) // view has no frames?!
         {
             quitprintf("!Character %s is assigned view %d that has no frames!", ch->scrname.GetCStr(), view);
@@ -106,7 +118,9 @@ static void FixupCharacterLoopAndFrame(CharacterInfo *ch, bool switch_from_bad_l
 void UpdateCharacterMoveAndAnim(CharacterInfo *ch, CharacterExtras *chex, std::vector<int> &following_as_sheep)
 {
     if (!ch->is_enabled())
+    {
         return;
+    }
 
     // Update turning
     bool is_turning = UpdateCharacterTurning(ch, chex);
@@ -114,14 +128,18 @@ void UpdateCharacterMoveAndAnim(CharacterInfo *ch, CharacterExtras *chex, std::v
     // but don't fixup "bad" loops if animated by command, as that leads to confusing behavior.
     FixupCharacterLoopAndFrame(ch, !chex->IsAnimating());
     if (is_turning)
+    {
         return; // still turning, break
+    }
 
     int doing_nothing = 1;
     UpdateCharacterMoving(ch, chex, doing_nothing);
 
     // Update animating
     if (UpdateCharacterAnimating(ch, chex, doing_nothing))
+    {
         return; // further update blocked by active animation
+    }
 
     UpdateCharacterFollower(ch, following_as_sheep, doing_nothing);
 
@@ -141,9 +159,13 @@ void UpdateFollowingExactlyCharacter(CharacterInfo *ch)
 
     const int usebase = following.get_baseline();
     if (ch->get_follow_sort_behind())
+    {
         ch->baseline = usebase - 1;
+    }
     else
+    {
         ch->baseline = usebase + 1;
+    }
 }
 
 bool UpdateCharacterTurning(CharacterInfo *ch, CharacterExtras *chex)
@@ -162,22 +184,32 @@ bool UpdateCharacterTurning(CharacterInfo *ch, CharacterExtras *chex)
             int wantloop = find_looporder_index(ch->loop) + 1;
             // going anti-clockwise, take one before instead
             if (chex->IsTurningCounterClockwise())
+            {
                 wantloop -= 2;
+            }
             while (1)
             {
                 if (wantloop >= 8)
+                {
                     wantloop = 0;
+                }
                 else if (wantloop < 0)
+                {
                     wantloop = 7;
+                }
 
                 if ((turnlooporder[wantloop] >= views[view].numLoops) ||
                     (views[view].loops[turnlooporder[wantloop]].numFrames < 1) ||
                     ((turnlooporder[wantloop] >= NUM_BASE_DIRECTIONS) && ((ch->flags & CHF_NODIAGONAL) != 0)))
                 {
                     if (chex->IsTurningCounterClockwise())
+                    {
                         wantloop--;
+                    }
                     else
+                    {
                         wantloop++;
+                    }
                 }
                 else
                 {
@@ -188,9 +220,13 @@ bool UpdateCharacterTurning(CharacterInfo *ch, CharacterExtras *chex)
             chex->DecrementTurning();
             // if still turning, wait for next frame
             if (chex->turns > 0)
+            {
                 ch->walkwait = ch->animspeed;
+            }
             else if (ch->is_moving())
+            {
                 ch->walkwait = 1; // wait 1 frame to let walking animation advance once
+            }
             chex->animwait = 0;
         }
 
@@ -233,9 +269,13 @@ void UpdateCharacterMoving(CharacterInfo *ch, CharacterExtras *chex, int &doing_
             for (int ff = 0; ff < abs(num_steps); ff++)
             {
                 if (doNextCharMoveStep(ch, chex))
+                {
                     break;
+                }
                 if ((ch->walking == 0) || (chex->turns > 0))
+                {
                     break;
+                }
             }
 
             if (num_steps < 0)
@@ -248,10 +288,14 @@ void UpdateCharacterMoving(CharacterInfo *ch, CharacterExtras *chex, int &doing_
                 ch->y = ((ch->y) - oldyp) / 2 + oldyp;
             }
             else if (num_steps > 0)
+            {
                 chex->xwas = INVALID_X;
+            }
 
             if ((ch->flags & CHF_ANTIGLIDE) == 0)
+            {
                 ch->walkwaitcounter++;
+            }
         }
 
         // Fixup character's loop, it may be changed when making a walk-move
@@ -288,7 +332,9 @@ void UpdateCharacterMoving(CharacterInfo *ch, CharacterExtras *chex, int &doing_
         else
         {
             if (ch->flags & CHF_ANTIGLIDE)
+            {
                 ch->walkwaitcounter++;
+            }
 
             if (ch->is_moving_walkanim())
             {
@@ -298,9 +344,13 @@ void UpdateCharacterMoving(CharacterInfo *ch, CharacterExtras *chex, int &doing_
                 chex->animwait = views[view].loops[loop].frames[ch->frame].speed + ch->animspeed;
 
                 if (ch->flags & CHF_ANTIGLIDE)
+                {
                     ch->walkwait = chex->animwait;
+                }
                 else
+                {
                     ch->walkwait = 0;
+                }
 
                 chex->CheckViewFrame(ch);
             }
@@ -317,7 +367,9 @@ bool UpdateCharacterAnimating(CharacterInfo *ch, CharacterExtras *chex, int &doi
         doing_nothing = 0;
         // idle anim doesn't count as doing something
         if (ch->is_idling())
+        {
             doing_nothing = 1;
+        }
 
         const int view = ch->view;
         const bool is_char_speaking = (char_speaking_anim == ch->index_id);
@@ -344,7 +396,9 @@ bool UpdateCharacterAnimating(CharacterInfo *ch, CharacterExtras *chex, int &doi
             // NOTE: standard lip-sync is synchronized with text timer, not voice file
             if (play.speech_in_post_state ||
                 ((play.messagetime >= 0) && (play.messagetime < play.close_mouth_speech_time)))
+            {
                 ch->frame = 0;
+            }
 
             if (ch->frame != fraa)
             {
@@ -378,7 +432,9 @@ bool UpdateCharacterAnimating(CharacterInfo *ch, CharacterExtras *chex, int &doi
                     {
                         // constant anim, reset (need this cos animating==0)
                         if (ch->idledelay == 0)
+                        {
                             ch->frame = 0;
+                        }
                         // one-off anim, stop
                         else
                         {
@@ -392,15 +448,23 @@ bool UpdateCharacterAnimating(CharacterInfo *ch, CharacterExtras *chex, int &doi
             // An idle animation has no animation parameters in chex (they are cleared when it starts, see
             // UpdateCharacterIdle), so its delay comes from idle_anim_speed instead of GetAnimDelay()
             if (ch->is_idling())
+            {
                 ch->wait += ch->idle_anim_speed;
+            }
             else
+            {
                 ch->wait += chex->GetAnimDelay();
+            }
 
             if (ch->frame != oldframe)
+            {
                 chex->CheckViewFrame(ch);
+            }
 
             if (done_anim)
+            {
                 stop_character_anim(ch);
+            }
         }
     }
 
@@ -424,7 +488,9 @@ void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_s
     {
         // either of the two characters is disabled: do nothing
         if (!game.chars[following].is_enabled() || !ch->is_enabled())
+        {
             ;
+        }
         else if (ch->room < 0)
         {
             // A negative room is the countdown set below (-follow_change_room_timer), the delay before the follower
@@ -441,10 +507,14 @@ void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_s
         }
         // wait a bit, so we're not constantly walking
         else if (Random(100) < eagerness)
+        {
             ;
+        }
         // TODO: this branch can never be taken, a disabled followed character is already handled above
         else if ((ch->room != game.chars[following].room) && (!game.chars[following].is_enabled()))
+        {
             ; // do nothing if the followed character is disabled
+        }
         // the followed character has changed room
         else if (ch->room != game.chars[following].room)
         {
@@ -500,9 +570,13 @@ void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_s
             int goxoffs = (Random(50) - 25);
             // make sure he's not standing on top of the other man
             if (goxoffs < 0)
+            {
                 goxoffs -= distaway;
+            }
             else
+            {
                 goxoffs += distaway;
+            }
             walk_character(ch, game.chars[following].x + goxoffs, game.chars[following].y + (Random(50) - 25),
                            false /* walk areas */);
 
@@ -515,17 +589,25 @@ void UpdateCharacterIdle(CharacterInfo *ch, CharacterExtras *chex, int &doing_no
 {
     // no idle animation, so skip this bit
     if (ch->idleview < 1)
+    {
         ;
+    }
     // currently playing idle anim
     else if (ch->is_idling())
+    {
         ;
+    }
     // not in the current room
     else if (ch->room != displayed_room)
+    {
         ;
+    }
     // they are moving or animating (or the view is locked), so
     // reset idle timeout
     else if ((doing_nothing == 0) || ((ch->flags & CHF_FIXVIEW) != 0))
+    {
         ch->idleleft = ch->idledelay;
+    }
     // count idle time
     else if ((get_loop_counter() % GetGameSpeed() == 0) || (chex->process_idle_this_time == 1))
     {
@@ -541,7 +623,9 @@ void UpdateCharacterIdle(CharacterInfo *ch, CharacterExtras *chex, int &doing_no
             // if the char is set to "no diagonal loops", don't try
             // to use diagonal idle loops either
             if ((max_loops > 4) && (!should_use_diagloops(ch, false /* allow 1-frame loops */)))
+            {
                 max_loops = 4;
+            }
             // If it's not a "swimming"-type idleanim, choose a random loop
             // if there arent enough loops to do the current one.
             if ((ch->idledelay > 0) && (useloop >= max_loops))
@@ -555,7 +639,9 @@ void UpdateCharacterIdle(CharacterInfo *ch, CharacterExtras *chex, int &doing_no
             // Normal idle anim - just reset to loop 0 if not enough to
             // use the current one
             else if (useloop >= max_loops)
+            {
                 useloop = 0;
+            }
 
             animate_character(ch, useloop, ch->idle_anim_speed, (ch->idledelay == 0) ? 1 : 0 /* repeat */);
 
