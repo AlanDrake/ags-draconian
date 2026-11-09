@@ -468,7 +468,7 @@ int MFLUtil::GetNextPseudoRand(int &rand_val)
 void MFLUtil::ReadEncArray(void *data, size_t size, size_t count, Stream *in, int &rand_val)
 {
     in->ReadArray(data, size, count);
-    uint8_t *bytes = (uint8_t *)data;
+    uint8_t *bytes = static_cast<uint8_t *>(data);
     const size_t len = size * count;
     for (size_t i = 0; i < len; ++i)
     {
