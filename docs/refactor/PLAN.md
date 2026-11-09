@@ -283,6 +283,32 @@ Each task is a series of small PRs.
 
   *Done when:* `extern decls in Engine .cpp files` = 0 and the top 12 globals are reached only
   through the accessors.
+- [ ] **5.1a Design data apart from runtime state** (the user, 2026-11-09). Today `CharacterInfo` holds the
+  design record *and* the runtime state (`x`, `y`, `room`, `walking`, `frame`, `loop`, `idleleft`, the `CHF_*`
+  flags), while `CharacterExtras` holds the rest of the state in a parallel array reached by
+  `charextra[ch->index_id]` (111 sites in `character.cpp` alone); `RoomObject`/`RoomStatus` repeat the pattern.
+  The split makes three layers explicit, with upstream #2058's names where they exist:
+
+  | Layer | Lives in | Linked by | Pattern | Example |
+  |---|---|---|---|---|
+  | Project (`Game.agf`, `data.xml`) | `Tools/data`, `AGS.Types` | editor, tools | `AGF::X`, `DataUtil::XData` | as today |
+  | Game data (`.dta`/`.crm` records) | `Common/game` | **tools and engine** | `XInfo`: design-time only, serialises itself, no engine include | `CharacterInfo`, `RoomObjectInfo` |
+  | Runtime | `Engine` | engine only | `X`: owns or references its `XInfo` plus the state | `Character` (= today's `CharacterInfo` state + `CharacterExtras`), `RoomObject` |
+
+  1. `Character` first: one runtime list replaces `game.chars` + `charextra`; the `Character_*` functions
+     take the runtime object; `CharacterInfo` keeps only what the game file holds. Then `RoomObject`.
+  2. The save stream stays byte-identical (C2): the serialisers walk the two structs in the old field order,
+     generated from one field list (the 5.4 item, done here instead). The script API sees the same handles
+     (C3); plugins get the same opaque `AGSCharacter *` with a stable address (C4).
+  3. 4.3 (struct field names) is done here, per struct, so each field is renamed once, in its final struct.
+  4. Variables: a runtime object is `ch`/`obj`/`gui`, a design record `info` (STYLE.md "Reserved names").
+     Class names are chosen at the split, not before (a type rename changes every object by design).
+
+  *When:* after 5.2 step 1 and 5.3 (so the files move once) and after 4.1 on the files it touches; before 5.4.
+  *Guard:* a CMake target that compiles `Common/game` with no `Engine/` on the include path (the build
+  tools link the design structs without the extras: that is the point of the split), the C2 round-trip
+  tests, the auto-test game. *Done when:* no `Common` struct has a field the engine writes during play,
+  `charextra` is gone, and `agf2dta`/`crmbuild` link no Engine object.
 - [ ] **5.2 Script bindings apart from logic.** 1,598 hand-written `Sc_*` wrappers from 147 `API_*`
   macros (`script_api.h`), interleaved with logic (`character.cpp`, 5,092 lines: the last ~1,400 are
   bindings and a 228-line `RegisterCharacterAPI`).
