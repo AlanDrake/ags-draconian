@@ -57,9 +57,9 @@ jobs:
   # else is a light run (docs/refactor/PLAN.md, 2.9):
   #   - the light platforms only: Windows MSVC and Ubuntu x86_64, which also run the auto-test game.
   #     On a push Ubuntu x86_64 is left out: verify.yml builds and tests the same there ("verify").
-  #   - the Windows MSBuild jobs build x86 Release only, which is what the editor ships, what the
-  #     parity job compares and what Script/prepush.py builds; their Debug and x64 steps wait for a
-  #     full run.
+  #   - the Windows MSBuild jobs build x64 Release only, which is what the editor and the engine ship,
+  #     what the parity job compares and what Script/prepush.py builds; their Debug steps wait for a
+  #     full run. There are no x86 builds of what has an x64 one (docs/refactor/PLAN.md, 2.9d).
   # Heavy jobs and steps say `if: needs.plan.outputs.full == 'true'`.
   plan:
     name: Plan
@@ -506,13 +506,13 @@ jobs:
     needs: [plan, windows-deps]
     timeout-minutes: 40
     env:
-      AGS_LIBOGG_LIB:        C:\Lib\Xiph\x86
-      AGS_LIBTHEORA_LIB:     C:\Lib\Xiph\x86
-      AGS_LIBVORBIS_LIB:     C:\Lib\Xiph\x86
+      AGS_LIBOGG_LIB:        C:\Lib\Xiph\x64
+      AGS_LIBTHEORA_LIB:     C:\Lib\Xiph\x64
+      AGS_LIBVORBIS_LIB:     C:\Lib\Xiph\x64
       AGS_SDL_INCLUDE:       C:\Lib\SDL2\include
-      AGS_SDL_LIB:           C:\Lib\SDL2\lib\x86
+      AGS_SDL_LIB:           C:\Lib\SDL2\lib\x64
       AGS_SDL_SOUND_INCLUDE: C:\Lib\SDL_sound\src
-      AGS_SDL_SOUND_LIB:     C:\Lib\SDL_sound\lib\x86
+      AGS_SDL_SOUND_LIB:     C:\Lib\SDL_sound\lib\x64
     steps:
       - uses: actions/checkout@v6
         with:
@@ -527,71 +527,31 @@ jobs:
           name: WinDevDependenciesVS.zip
           path: C:\Lib
 
-      - name: Build Compiler test runner (x86)
-        shell: cmd
-        run: |
-          cd Solutions
-          msbuild Compiler.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
-
-      - name: Run Compiler tests (x86)
-        run: Solutions\.test\x86\Release\Compiler.Lib.Test.exe
-
-      - name: Build AGS test runners (x86)
-        shell: cmd
-        run: |
-          cd Solutions
-          msbuild Tests.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
-
-      - name: Run Common tests (x86)
-        run: Solutions\.test\x86\Release\Common.Lib.Test.exe
-
-      - name: Run Engine tests (x86)
-        run: Solutions\.test\x86\Release\Engine.App.Test.exe
-
-      - name: Run Engine full tests (x86)
-        run: Solutions\.test\x86\Release\Engine.Full.Test.exe
-
-      - name: Run Tools tests (x86)
-        run: Solutions\.test\x86\Release\Tools.Test.exe
-
-      # x64 in a full run only: the CMake "Windows" job runs the same tests as x64 on every run
-      - name: Clean up
-        if: needs.plan.outputs.full == 'true'
-        shell: cmd
-        run: cd Solutions && rd /s /q .test
-
       - name: Build Compiler test runner (x64)
-        if: needs.plan.outputs.full == 'true'
         shell: cmd
         run: |
           cd Solutions
           msbuild Compiler.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
 
       - name: Run Compiler tests (x64)
-        if: needs.plan.outputs.full == 'true'
         run: Solutions\.test\x64\Release\Compiler.Lib.Test.exe
 
       - name: Build AGS test runners (x64)
-        if: needs.plan.outputs.full == 'true'
         shell: cmd
         run: |
           cd Solutions
           msbuild Tests.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
 
       - name: Run Common tests (x64)
-        if: needs.plan.outputs.full == 'true'
         run: Solutions\.test\x64\Release\Common.Lib.Test.exe
 
       - name: Run Engine tests (x64)
-        if: needs.plan.outputs.full == 'true'
         run: Solutions\.test\x64\Release\Engine.App.Test.exe
 
       - name: Run Engine full tests (x64)
-        if: needs.plan.outputs.full == 'true'
         run: Solutions\.test\x64\Release\Engine.Full.Test.exe
 
       - name: Run Tools tests (x64)
-        if: needs.plan.outputs.full == 'true'
         run: Solutions\.test\x64\Release\Tools.Test.exe
 
   windows-msvc-engine:
@@ -600,13 +560,13 @@ jobs:
     needs: [plan, windows-deps]
     timeout-minutes: 40
     env:
-      AGS_LIBOGG_LIB:        C:\Lib\Xiph\x86
-      AGS_LIBTHEORA_LIB:     C:\Lib\Xiph\x86
-      AGS_LIBVORBIS_LIB:     C:\Lib\Xiph\x86
+      AGS_LIBOGG_LIB:        C:\Lib\Xiph\x64
+      AGS_LIBTHEORA_LIB:     C:\Lib\Xiph\x64
+      AGS_LIBVORBIS_LIB:     C:\Lib\Xiph\x64
       AGS_SDL_INCLUDE:       C:\Lib\SDL2\include
-      AGS_SDL_LIB:           C:\Lib\SDL2\lib\x86
+      AGS_SDL_LIB:           C:\Lib\SDL2\lib\x64
       AGS_SDL_SOUND_INCLUDE: C:\Lib\SDL_sound\src
-      AGS_SDL_SOUND_LIB:     C:\Lib\SDL_sound\lib\x86
+      AGS_SDL_SOUND_LIB:     C:\Lib\SDL_sound\lib\x64
     steps:
       - uses: actions/checkout@v6
         with:
@@ -620,54 +580,21 @@ jobs:
           name: WinDevDependenciesVS.zip
           path: C:\Lib
 
-      # Debug and x64 in a full run only (the plan job)
-      - name: Build Engine (x86 Debug)
+      # Debug in a full run only (the plan job)
+      - name: Build Engine (x64 Debug)
         if: needs.plan.outputs.full == 'true'
         shell: cmd
         run: |
           cd Solutions
-          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
-
-      - name: Build Engine (x86 Release)
-        shell: cmd
-        run: |
-          cd Solutions
-          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
-
-      - name: Upload x86 Engine PDBs
-        uses: actions/upload-artifact@v7
-        with:
-          name: windows-engine-pdb-x86
-          include-hidden-files: true
-          path: Solutions/.build/*/*/acwin.pdb
-
-      - name: Delete x86 PDB / intermediate files
-        shell: cmd
-        run: |
-          cd Solutions\.build
-          del /s /q *.pdb *.map *.ilk *.iobj *.ipdb
-
-      - name: Upload x86 binaries
-        uses: actions/upload-artifact@v7
-        with:
-          name: windows-engine-binaries-x86
-          include-hidden-files: true
-          path: Solutions/.build/*/*
-
-      - name: Delete x86 build output
-        if: needs.plan.outputs.full == 'true'
-        shell: cmd
-        run: cd Solutions && rd /s /q .build
+          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Debug /p:Platform=x64 /maxcpucount /nologo
 
       - name: Build Engine (x64 Release)
-        if: needs.plan.outputs.full == 'true'
         shell: cmd
         run: |
           cd Solutions
           msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
 
       - name: Upload x64 Engine PDBs
-        if: needs.plan.outputs.full == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: windows-engine-pdb-x64
@@ -675,14 +602,12 @@ jobs:
           path: Solutions/.build/*/*/acwin.pdb
 
       - name: Delete x64 PDB / intermediate files
-        if: needs.plan.outputs.full == 'true'
         shell: cmd
         run: |
           cd Solutions\.build
           del /s /q *.pdb *.map *.ilk *.iobj *.ipdb
 
-      - name: Upload x64 binaries
-        if: needs.plan.outputs.full == 'true'
+      - name: Upload x64 Engine binaries
         uses: actions/upload-artifact@v7
         with:
           name: windows-engine-binaries-x64
@@ -696,7 +621,7 @@ jobs:
     timeout-minutes: 40
     env:
       AGS_SDL_INCLUDE:       C:\Lib\SDL2\include
-      AGS_SDL_LIB:           C:\Lib\SDL2\lib\x86
+      AGS_SDL_LIB:           C:\Lib\SDL2\lib\x64
     steps:
       - uses: actions/checkout@v6
         with:
@@ -710,54 +635,21 @@ jobs:
           name: WinDevDependenciesVS.zip
           path: C:\Lib
 
-      # Debug and x64 in a full run only (the plan job)
-      - name: Build Tools (x86 Debug)
+      # Debug in a full run only (the plan job)
+      - name: Build Tools (x64 Debug)
         if: needs.plan.outputs.full == 'true'
         shell: cmd
         run: |
           cd Solutions
-          msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
-
-      - name: Build Tools (x86 Release)
-        shell: cmd
-        run: |
-          cd Solutions
-          msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
-
-      - name: Upload x86 Tools PDBs
-        uses: actions/upload-artifact@v7
-        with:
-          name: windows-tools-pdb-x86
-          include-hidden-files: true
-          path: Solutions/.build/*/*/*.pdb
-
-      - name: Delete x86 PDB / intermediate files
-        shell: cmd
-        run: |
-          cd Solutions\.build
-          del /s /q *.pdb *.map *.ilk *.iobj *.ipdb
-
-      - name: Upload x86 Tools binaries
-        uses: actions/upload-artifact@v7
-        with:
-          name: windows-tools-binaries-x86
-          include-hidden-files: true
-          path: Solutions/.build/*/*
-
-      - name: Delete x86 build output
-        if: needs.plan.outputs.full == 'true'
-        shell: cmd
-        run: cd Solutions && rd /s /q .build
+          msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Debug /p:Platform=x64 /maxcpucount /nologo
 
       - name: Build Tools (x64 Release)
-        if: needs.plan.outputs.full == 'true'
         shell: cmd
         run: |
           cd Solutions
           msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
 
       - name: Upload x64 Tools PDBs
-        if: needs.plan.outputs.full == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: windows-tools-pdb-x64
@@ -765,14 +657,12 @@ jobs:
           path: Solutions/.build/*/*/*.pdb
 
       - name: Delete x64 PDB / intermediate files
-        if: needs.plan.outputs.full == 'true'
         shell: cmd
         run: |
           cd Solutions\.build
           del /s /q *.pdb *.map *.ilk *.iobj *.ipdb
 
       - name: Upload x64 Tools binaries
-        if: needs.plan.outputs.full == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: windows-tools-binaries-x64
@@ -785,13 +675,13 @@ jobs:
     needs: [plan, windows-deps, windows-msvc-tools]
     timeout-minutes: 40
     env:
-      AGS_LIBOGG_LIB:        C:\Lib\Xiph\x86
-      AGS_LIBTHEORA_LIB:     C:\Lib\Xiph\x86
-      AGS_LIBVORBIS_LIB:     C:\Lib\Xiph\x86
+      AGS_LIBOGG_LIB:        C:\Lib\Xiph\x64
+      AGS_LIBTHEORA_LIB:     C:\Lib\Xiph\x64
+      AGS_LIBVORBIS_LIB:     C:\Lib\Xiph\x64
       AGS_SDL_INCLUDE:       C:\Lib\SDL2\include
-      AGS_SDL_LIB:           C:\Lib\SDL2\lib\x86
+      AGS_SDL_LIB:           C:\Lib\SDL2\lib\x64
       AGS_SDL_SOUND_INCLUDE: C:\Lib\SDL_sound\src
-      AGS_SDL_SOUND_LIB:     C:\Lib\SDL_sound\lib\x86
+      AGS_SDL_SOUND_LIB:     C:\Lib\SDL_sound\lib\x64
     steps:
       - uses: actions/checkout@v6
         with:
@@ -808,7 +698,6 @@ jobs:
       - name: Copy irrKlang DLLs to Editor\References
         shell: pwsh
         run: |
-          Copy-Item C:\Lib\irrKlang\x86\*.dll Editor\References\
           New-Item -ItemType Directory -Path Editor\References\x64 -Force
           Copy-Item C:\Lib\irrKlang\x64\*.dll Editor\References\x64
 
@@ -830,7 +719,7 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
+          msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Debug /p:Platform=x64 /maxcpucount /nologo
 
       - name: Run NUnit tests (Debug)
         if: needs.plan.outputs.full == 'true'
@@ -839,13 +728,13 @@ jobs:
           pushd Solutions\packages\NUnit.ConsoleRunner.3.*
           set RUNNER="%CD%\tools\nunit3-console.exe"
           popd
-          cmd /v:on /c "!RUNNER! Solutions\.test\x86\Debug\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=Editor\AGS.Editor.Tests\nunit3-junit.xslt"
+          cmd /v:on /c "!RUNNER! Solutions\.test\x64\Debug\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=Editor\AGS.Editor.Tests\nunit3-junit.xslt"
 
       - name: Build Editor (Release)
         shell: cmd
         run: |
           cd Solutions
-          msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
+          msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v143 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
 
       - name: Run NUnit tests (Release)
         shell: cmd
@@ -853,7 +742,7 @@ jobs:
           pushd Solutions\packages\NUnit.ConsoleRunner.3.*
           set RUNNER="%CD%\tools\nunit3-console.exe"
           popd
-          cmd /v:on /c "!RUNNER! Solutions\.test\x86\Release\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=Editor\AGS.Editor.Tests\nunit3-junit.xslt"
+          cmd /v:on /c "!RUNNER! Solutions\.test\x64\Release\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=Editor\AGS.Editor.Tests\nunit3-junit.xslt"
 
       - name: Upload test results
         if: always()
@@ -878,28 +767,28 @@ jobs:
 
       # The editor builds games with agsbuild and the tools it runs, which ship next to it with the
       # script API header (docs/refactor/PLAN.md, 6.7d-7); the header is copied by the editor's build
-      - name: Download x86 Tools binaries
+      - name: Download x64 Tools binaries
         uses: actions/download-artifact@v8
         with:
-          name: windows-tools-binaries-x86
+          name: windows-tools-binaries-x64
           path: tmp_win_tools
 
       - name: Put the tools next to the editor
         shell: pwsh
         run: |
-          Copy-Item tmp_win_tools\x86\Release\*.exe Solutions\.build\x86\Release\
+          Copy-Item tmp_win_tools\x64\Release\*.exe Solutions\.build\x64\Release\
           Remove-Item -Recurse -Force tmp_win_tools
           foreach ($tool in 'agsbuild','agf2dta','agf2dlgasc','agfexport','agscc','agspak','crmbuild','crmpak','po2tra','spriteimport') {
-            if (-not (Test-Path "Solutions\.build\x86\Release\$tool.exe")) { throw "$tool.exe is missing" }
+            if (-not (Test-Path "Solutions\.build\x64\Release\$tool.exe")) { throw "$tool.exe is missing" }
           }
-          if (-not (Test-Path Solutions\.build\x86\Release\agsdefns.sh)) { throw "agsdefns.sh is missing" }
+          if (-not (Test-Path Solutions\.build\x64\Release\agsdefns.sh)) { throw "agsdefns.sh is missing" }
 
       - name: Upload Editor Release binaries
         uses: actions/upload-artifact@v7
         with:
           name: windows-editor-binaries
           include-hidden-files: true
-          path: Solutions/.build/x86/Release/*
+          path: Solutions/.build/x64/Release/*
 
   # Builds the auto-test project with the editor (which runs the agsbuild next to it, 6.7d-9) and with a
   # plain agsbuild run, and fails unless the packages match file by file (docs/refactor/PLAN.md, 7.1j and
@@ -938,10 +827,10 @@ jobs:
           name: windows-editor-binaries
           path: parity-editor
 
-      - name: Download Engine x86 binary
+      - name: Download Engine x64 binary
         uses: actions/download-artifact@v8
         with:
-          name: windows-engine-binaries-x86
+          name: windows-engine-binaries-x64
           path: parity-engine
 
       - name: Download tools
@@ -954,8 +843,8 @@ jobs:
       - name: Put the engine next to the editor
         shell: cmd
         run: |
-          copy parity-engine\x86\Release\acwin.exe parity-editor\acwin.exe
-          copy C:\Lib\SDL2\lib\x86\SDL2.dll parity-editor\SDL2.dll
+          copy parity-engine\x64\Release\acwin.exe parity-editor\acwin.exe
+          copy C:\Lib\SDL2\lib\x64\SDL2.dll parity-editor\SDL2.dll
 
       - name: Compare the editor build with agsbuild
         run: >
@@ -985,12 +874,6 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-
-      - name: Download Engine x86 PDBs
-        uses: actions/download-artifact@v8
-        with:
-          name: windows-engine-pdb-x86
-          path: pdbs/
 
       - name: Download Engine x64 PDBs
         uses: actions/download-artifact@v8
@@ -1197,20 +1080,12 @@ jobs:
           name: windows-tools-binaries-x64
           path: tmp_win_tools/x64
 
-      - name: Download Windows x86 Tools binaries
-        uses: actions/download-artifact@v8
-        with:
-          name: windows-tools-binaries-x86
-          path: tmp_win_tools/x86
-
       - name: Create Windows Tools archive
         run: |
           version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/ac/def_version.h)
-          mkdir -p Win/Tools/x86
           mkdir -p Win/Tools/x64
-          cp tmp_win_tools/x86/x86/Release/*.exe Win/Tools/x86/
           cp tmp_win_tools/x64/x64/Release/*.exe Win/Tools/x64/
-          bsdtar -f "AGS-Tools-${version}.zip" -acvC Win/Tools x86 x64
+          bsdtar -f "AGS-Tools-${version}.zip" -acvC Win/Tools x64
           rm -rf tmp_win_tools
           rm -rf Win/Tools
 
@@ -1267,7 +1142,7 @@ jobs:
     env:
       TEMPLATES_REPOSITORY: adventuregamestudio/ags-templates
       DEMOGAME_REPOSITORY: adventuregamestudio/ags-demo-game
-      AGS_SDL_LIB: C:\Lib\SDL2\lib\x86
+      AGS_SDL_LIB: C:\Lib\SDL2\lib\x64
     steps:
       - uses: actions/checkout@v6
         with:
@@ -1285,10 +1160,10 @@ jobs:
           name: windows-editor-binaries
           path: Windows\Installer\Source\Editor
 
-      - name: Download Engine x86 binary
+      - name: Download Engine x64 binary
         uses: actions/download-artifact@v8
         with:
-          name: windows-engine-binaries-x86
+          name: windows-engine-binaries-x64
           path: Windows\Installer\Source\Engine_tmp
 
       - name: Copy vcredist, acwin.exe and SDL2.dll
@@ -1296,8 +1171,8 @@ jobs:
         run: |
           mkdir Windows\Installer\Source\Redist
           mkdir Windows\Installer\Source\Engine
-          copy C:\Lib\VcRedist\vc_redist.x86.exe Windows\Installer\Source\Redist\vc_redist.x86.exe
-          copy Windows\Installer\Source\Engine_tmp\x86\Release\acwin.exe Windows\Installer\Source\Engine\acwin.exe
+          copy C:\Lib\VcRedist\vc_redist.x64.exe Windows\Installer\Source\Redist\vc_redist.x64.exe
+          copy Windows\Installer\Source\Engine_tmp\x64\Release\acwin.exe Windows\Installer\Source\Engine\acwin.exe
           copy %AGS_SDL_LIB%\SDL2.dll Windows\Installer\Source\Engine\SDL2.dll
 
       - name: Download AGS manual

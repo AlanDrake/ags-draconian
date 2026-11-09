@@ -28,7 +28,7 @@ Stages, in the order they run (a failed stage does not stop the later ones; the 
   linux    the CI's "Linux (GCC)" job (Script/linux_jobs.sh gcc): GCC build with warnings as errors,
            header check and ctest. On Windows it runs in a WSL 2 distro, on a copy of the working tree
   msbuild  the solutions the CI builds (Compiler.Lib, Tests, Engine, Tools, Compiler.App, Editor.Full;
-           x86 Release) with their test runners, into .tidy/prepush/msb so that the PDBs of the
+           x64 Release) with their test runners, into .tidy/prepush/msb so that the PDBs of the
            regular Solutions/.build are not overwritten
 
 --auto (PLAN.md 2.9) runs only the stages that the changed files need: the paths that differ between
@@ -510,17 +510,17 @@ def stage_msbuild():
     for sln in SOLUTIONS:
         run('msbuild', [msbuild, os.path.join(REPO, 'Solutions', sln + '.sln'), '/m', '/nologo', '/v:minimal',
                         '/p:MultiProcessorCompilation=true', '/p:PlatformToolset=v143', '/p:Configuration=Release',
-                        '/p:Platform=x86', '/p:AgsSolutionsDir=' + out_dir])
+                        '/p:Platform=x64', '/p:AgsSolutionsDir=' + out_dir])
         built.append(sln)
         if sln in ('Tests',):
             for exe in TEST_RUNNERS:
-                path = os.path.join(MSB, '.test', 'x86', 'Release', exe)
+                path = os.path.join(MSB, '.test', 'x64', 'Release', exe)
                 if not os.path.isfile(path):
                     raise subprocess.CalledProcessError(1, 'missing test runner ' + exe)
                 run('msbuild', [path])
     # The editor's NUnit tests, when NuGet has restored the runner
     runners = glob.glob(os.path.join(REPO, 'Solutions', 'packages', 'NUnit.ConsoleRunner.3.*', 'tools', 'nunit3-console.exe'))
-    dll = os.path.join(MSB, '.test', 'x86', 'Release', 'AGS.Editor.Tests.dll')
+    dll = os.path.join(MSB, '.test', 'x64', 'Release', 'AGS.Editor.Tests.dll')
     if runners and os.path.isfile(dll):
         run('msbuild', [runners[0], dll, '--noresult'])
         return '%d solutions, Editor NUnit' % len(built)

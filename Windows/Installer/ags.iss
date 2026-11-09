@@ -1,8 +1,8 @@
 
 #define AgsName "Adventure Game Studio"
 #define AgsUrl "https://www.adventuregamestudio.co.uk/"
-#define VcRedistInstaller "vc_redist.x86.exe"
-#define VcRedistName "Microsoft Visual C++ 2015-2022 Redistributable (x86)"
+#define VcRedistInstaller "vc_redist.x64.exe"
+#define VcRedistName "Microsoft Visual C++ 2015-2022 Redistributable (x64)"
 
 ; requires following macros to be passed by command line:
 ;   AgsAppId - a GUID identifying installed software
@@ -33,7 +33,10 @@ AppPublisher=AGS Project Team
 AppPublisherURL={#AgsUrl}
 AppSupportURL={#AgsUrl}
 AppUpdatesURL={#AgsUrl}
-DefaultDirName={commonpf32}\{#AgsName} {#AgsFriendlyVersion}
+; The editor and the engine are 64-bit (docs/refactor/PLAN.md, 2.9d): a 64-bit Windows is required
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+DefaultDirName={autopf}\{#AgsName} {#AgsFriendlyVersion}
 DefaultGroupName={#AgsVerNameStr}
 AllowNoIcons=yes
 LicenseFile=License.txt
@@ -102,7 +105,7 @@ Source: "Source\Editor\ikpMP3.dll"; DestDir: "{app}"; Flags: ignoreversion; Comp
 Source: "Source\Editor\ikpFlac.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\irrKlang.NET4.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\Magick.NET-Q8-AnyCPU.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
-Source: "Source\Editor\Magick.NET-Q8-x86.Native.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\Magick.NET-Q8-x64.Native.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\WeifenLuo.WinFormsUI.Docking.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\WeifenLuo.WinFormsUI.Docking.ThemeVS2015.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
@@ -218,7 +221,7 @@ const
   PLATFORM_CHECK_ERROR_MESSAGE = 'This program is only supported on Windows 7 or newer.';
 
   // Visual C++ runtime 14.42
-  // https://download.visualstudio.microsoft.com/download/pr/5319f718-2a84-4aff-86be-8dbdefd92ca1/DD1A8BE03398367745A87A5E35BEBDAB00FDAD080CF42AF0C3F20802D08C25D4/VC_redist.x86.exe
+  // https://download.visualstudio.microsoft.com/download/pr/c7dac50a-e3e8-40f6-bbb2-9cc4e3dfcabe/1821577409C35B2B9505AC833E246376CC68A8262972100444010B57226F0940/VC_redist.x64.exe
   // Registry Key ("path"-like) is fixed at "14.0" for Visual C++ 2015-2022 runtimes
   VCPP_REDIST_MAJOR_VERSION = 14;
   VCPP_REDIST_BUILD_VERSION = 34433;
@@ -236,10 +239,11 @@ var
 begin
   // Real version is contained inside along Bld, as Major, Minor ints and a Version string
   // But checking Bld (Build Version) only is sufficient here.
-  // Path here assumes Inno Installer is creating a 32-bit installer, in registry editor this path is under Wow64 (WOW6432Node)
+  // The installer runs in 64-bit mode (ArchitecturesInstallIn64BitMode), so HKLM is the 64-bit view,
+  // where the x64 runtime registers itself
   Result := (RegQueryDWordValue(
     HKLM,
-    Format('SOFTWARE\Microsoft\VisualStudio\%d.0\VC\Runtimes\X86', [VCPP_REDIST_MAJOR_VERSION]),
+    Format('SOFTWARE\Microsoft\VisualStudio\%d.0\VC\Runtimes\X64', [VCPP_REDIST_MAJOR_VERSION]),
     'Bld',
     bld)) AND (bld >= VCPP_REDIST_BUILD_VERSION);
 end;
