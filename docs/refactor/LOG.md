@@ -3933,10 +3933,11 @@ local commits `b65708b52`, `0ba2ef3fc`, `6efc3bd1c`, `54f3e0173`):
 - **`[format]`, +108:** braces on 54 changed lines.
 - **Verification:** `prepush.py --auto --base 1c781586e`, every selected stage passes (format, build + ctest, tidy,
   headers, libcxx 341, emscripten, linux ctest 1165/1165, msbuild). Not run: macOS, iOS, Android.
-- **Found, not fixed:** `GetObjectIDAtRoom` computes `obj_x`/`obj_y` and never uses them (dead locals, a `[delete]`
-  for later); `is_pos_in_sprite` with a 0 width or height falls back to the bitmap size minus 1, which excludes the
-  last column or row (callers always pass sizes, so unreached); `Object.Baseline` returns the stored value, 0 when
-  unset, not the effective one (script API behaviour, likely intended). `AreThingsOverlapping`'s `+1` after the
+- **Found:** `GetObjectIDAtRoom` computed `obj_x`/`obj_y` and never used them (deleted in `ac3bc8730`);
+  `is_pos_in_sprite` with a 0 width or height fell back to the bitmap size minus 1, which excluded the last column and
+  row from the hit test (reached when a sprite's recorded size is 0 while its image exists; fixed in `df791c714`);
+  `Object.Baseline` returns the stored value, 0 when unset, not the effective one (script API behaviour as
+  documented, kept). `AreThingsOverlapping`'s `+1` after the
   comparison was suspected and is not a bug: the same minimum is chosen either way.
 - **Both `[format]` commits** (`54f3e0173`, `17c8226bc`) are in `.git-blame-ignore-revs`.
 
@@ -3957,9 +3958,10 @@ commits `4d69ebf58`, `612aee72e`, `b2b8ac185`, and `351392e6e` by the supervisor
 - **Verification:** `prepush.py --auto --base 3976186a6` before the cast commit: format, build + ctest, headers, libcxx
   341, emscripten, linux ctest 1165/1165, msbuild pass, tidy failed on the six casts only; after it, format and tidy
   pass. Not run: macOS, iOS, Android.
-- **Found, not fixed:** `RegisterGUIControlAPI` registers `"GUIControl::SetScale"` twice on consecutive lines (a
-  `[delete]` for later); `GUIControl_SetOpacity` tests its range with a bitwise `|` (correct for two `bool`s, `||`
-  meant).
+- **Found and fixed:** `RegisterGUIControlAPI` registered `"GUIControl::SetScale"` twice on consecutive lines
+  (`SystemImports::Add` overwrote the entry with the same function; the repeat deleted in `ac3bc8730`, the table 71 →
+  70 entries); `GUIControl_SetOpacity` tested its range with a bitwise `|` (same result for two `bool`s; `||` in
+  `c81711ba6`, the generated code differs by a short-circuit branch).
 
 - **Left for the next file sets:** `characterinfo_engine.cpp` still names the character `chi` where `character.h`
   declares `ch` (and `followingAsSheep`), and has two CHECKMEs (~lines 271 and 426); next by count:
