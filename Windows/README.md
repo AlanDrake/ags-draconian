@@ -16,11 +16,11 @@ The following are instructions on how to build the Engine and Editor from the so
   - libtheora-1.0 or higher ([Download](https://www.xiph.org/downloads/))
   - libvorbis-1.2.0 or higher ([Download](https://www.xiph.org/downloads/))
 - Specifically for the Editor:
-  - irrKlang 1.6 (32-bit) assembly pack for .NET 4.7 ([Download](https://www.ambiera.com/irrklang/downloads.html)).
+  - irrKlang 1.6 (64-bit) assembly pack for .NET 4.7 ([Download](https://www.ambiera.com/irrklang/downloads.html)).
 - To build Windows installer:
   - Inno Setup 6.2.2 or higher ([Download](http://www.jrsoftware.org/isdl.php))
   - (optional) PowerShell ([Download](https://aka.ms/powershell-release?tag=stable))
-**IMPORTANT:** all libraries should match the Engine's architecture: e.g. if you are building engine using 32-bit (x86) configuration then link libraries for 32-bit (x86) too.
+**IMPORTANT:** all libraries should match the architecture you build: the released editor, engine and tools are 64-bit (x64), so link the x64 libraries.
 
 **NOTE:** You may skip building libraries from the source completely by using prebuilt libs from the archive called "WinDevDependenciesVS.zip", which is attached to any [latest release of AGS](https://github.com/adventuregamestudio/ags/releases). If you go this way, then skip **"Building the libraries"** sections altogether.
 
@@ -105,7 +105,7 @@ In order to direct Studio to necessary libraries and their headers setup followi
 Editor has two related solutions: Solutions\AGS.Editor.Full.sln and Solutions\AGS.Editor.NoNative.sln. The latter is useful if your version of MSVS cannot build mixed (C#/C++) assemblies, or if you specifically do not want to work with and/or compile C++ code.
 Within the solution there are several library projects, and "AGSEditor" project is the one creating the executable.
 
-Editor demands several third-party .NET libraries, most of them will be downloaded automatically as NuGet packages, but you will have to manually get [irrKlang 1.6 (32-bit) for .NET 4.5](https://www.ambiera.com/irrklang/downloads.html) and put irrKlang.NET4.dll and ikpMP3.dll into Editor/References subdirectory.
+Editor demands several third-party .NET libraries, most of them will be downloaded automatically as NuGet packages, but you will have to manually get [irrKlang 1.6 (64-bit) for .NET 4.5](https://www.ambiera.com/irrklang/downloads.html) and put irrKlang.NET4.dll, ikpMP3.dll and ikpFlac.dll into the Editor/References/x64 subdirectory. Build the solution as `x64`: the `x86` configuration is no longer released or built by CI.
 
 As noted before, you may download the missing libraries [here](https://www.dropbox.com/s/3vdq7qw01tdtfux/ags-prebuilt-libs-3.5.x.zip?dl=0).
 
@@ -142,7 +142,7 @@ There are two things to note here:
 
 In any case, there is a number of files that have to be prepared for installer to actually build. These files have to be placed in Windows\Installer\Source and subdirectories:
 
-- Redist\vc_redist.x86.exe - a [Visual C++ Redistributable for Visual Studio 2015+, version 14.42.34433](https://download.visualstudio.microsoft.com/download/pr/5319f718-2a84-4aff-86be-8dbdefd92ca1/DD1A8BE03398367745A87A5E35BEBDAB00FDAD080CF42AF0C3F20802D08C25D4/VC_redist.x86.exe) (or C++ Redist corresponding to the MSVS you were building AGS with).
+- Redist\vc_redist.x64.exe - a [Visual C++ Redistributable for Visual Studio 2015+, version 14.42.34433](https://download.visualstudio.microsoft.com/download/pr/c7dac50a-e3e8-40f6-bbb2-9cc4e3dfcabe/1821577409C35B2B9505AC833E246376CC68A8262972100444010B57226F0940/VC_redist.x64.exe) (or C++ Redist corresponding to the MSVS you were building AGS with).
 - Editor\
   - AGSEditor.exe
   - AGS.Controls.dll
@@ -150,8 +150,8 @@ In any case, there is a number of files that have to be prepared for installer t
   - AGS.Types.dll
   - ikpMP3.dll
   - irrKlang.NET4.dll
-  - Magick.NET-Q8-x86.dll
-  - Magick.NET-Q8-x86.Native.dll
+  - Magick.NET-Q8-AnyCPU.dll
+  - Magick.NET-Q8-x64.Native.dll
   - Newtonsoft.Json.dll
   - WeifenLuo.WinFormsUI.Docking.dll
   - AGSEditor.exe.config

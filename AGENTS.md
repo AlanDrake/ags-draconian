@@ -119,8 +119,9 @@ tool or `agfreader` changes; the generated code or a benchmark for a change on a
 
 Workflows: `verify.yml` (every push: format, GCC build + tests + auto-test game + tidy gate, header
 checks), `ci.yml` (`ags4draconian*`, PRs: light set, which is the Windows CMake build with Ninja and the
-auto-test game plus the MSBuild jobs as x86 Release; tags, weekly, `gh workflow run ci.yml -f full=true`:
-every platform, Debug and x64). The CMake jobs keep a ccache between runs (PLAN.md 2.9).
+auto-test game plus the MSBuild jobs as x64 Release; tags, weekly, `gh workflow run ci.yml -f full=true`:
+every platform and the MSBuild Debug builds). No Windows build is x86 any more: the editor, engine, tools and
+installer are x64 (PLAN.md 2.9d, 2026-11-08); the Linux i386 packages stay, in full runs. The CMake jobs keep a ccache between runs (PLAN.md 2.9).
 `macos.yml` (tags, weekly, on demand; macOS runners are often unavailable), `analysis.yml` (on demand:
 ASan + UBSan 27 min, coverage per directory 14 min).
 

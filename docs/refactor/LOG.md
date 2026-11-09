@@ -1092,6 +1092,47 @@ not happened yet), not 10, and the time left is the link-time code generation (2
   instead of 18 (estimated from the probe's jobs), Verify in 7 instead of 8 with the auto-test game
   added; the second half of the "done when" holds. The state before it is the tag `pre-2.9`.
 
+*2.9d, x64 only on Windows (2026-11-08; Sonnet 5.5, reviewed by Opus 5.5 the same session):*
+- **Decisions (the user, 2026-11-08):** the installer ships the x64 `acwin.exe` and editor; the editor moves to
+  x64; every x86 build that has an x64 alternative goes (the MSBuild engine, tools, tests and editor, the x86
+  installer parts, the x86 Windows tools in `AGS-Tools-<version>.zip`); what exists only as 32-bit stays. The
+  Linux i386 packages stay, built in full runs and tags only, which `linux-binaries-builds` already did.
+- **Survey:** the editor already had x64 configurations (`AGSEditor.csproj`, `NativeDLL.vcxproj`,
+  `AGS.Editor.Full.sln`, x64 irrKlang in `Editor/References/x64`, Magick.NET's `win-x64` native, NUnit x64);
+  only full runs built them, and the csproj platform called `AnyCPU` means x86. So "the editor moves to x64"
+  needed no port, only the x64 build shipped.
+- **Changed:** `ci.yml`: the MSBuild test, engine, tools and editor jobs build x64 Release on every run and x64
+  Debug in a full run, link the x64 libraries in `C:\Lib`, the editor job takes the x64 irrKlang and tools; the
+  parity job, the PDB archive, the tools archive and the Windows packaging take x64. `ags.iss`: 64-bit install
+  mode (`ArchitecturesAllowed` and `ArchitecturesInstallIn64BitMode` = `x64compatible`, so 64-bit Windows only),
+  `{autopf}`, `vc_redist.x64.exe` and its registry check (`VC\Runtimes\X64`, present in the 64-bit view here),
+  `Magick.NET-Q8-x64.Native.dll`; `checksums.sha256` names the x64 redistributable (14.42.34433, the SHA-256 its
+  download URL carries, checked). `prepush.py` `msbuild` builds x64. `Windows/README.md`,
+  `Editor/References/references.txt` and AGENTS.md say x64.
+- **Measured, locally:** x64 Release and Debug of Engine, Tools, Tests and `AGS.Editor.Full` build; the editor's
+  NUnit tests as x64: 537 passed, 25 ignored, 0 failed; `compare_builds.py` with the x64 editor, tools and engine:
+  59 identical, auto-test 2414 of 2414, PARITY; `prepush.py --only msbuild` 392 s, pass; every editor file
+  `ags.iss` lists exists in the x64 output. **On CI**, probe branch `probe-x64-2.9d`: full run 42524209246 failed
+  in Windows Packaging only (`build.ps1` checks `Source/Redist` against `checksums.sha256`, which still named the
+  x86 redistributable; missed by the survey); full run 42526395741 green in every job, Inno Setup's first
+  compile of the x64 `ags.iss` with no warning, installer 75.6 MB, Windows tools zip 2.8 MB; Verify green on both
+  pushes.
+- **Consequences, recorded for later decisions:**
+  - *No 32-bit coverage on a push.* The 3.2c re-decision counted the MSBuild jobs as "CI's only x86 coverage";
+    now no Windows build is 32-bit, the Linux i386 packages build (no tests) in full runs only, and wasm32 in
+    full runs and the `emscripten` stage. A defect that needs 32-bit pointers waits for a full run.
+  - *32-bit plugin DLLs.* An x64 engine cannot load a 32-bit plugin DLL, so a game that needs a plugin released
+    only as 32-bit cannot be run or released for Windows from this installer. The plugin API (C4) is unchanged;
+    the cost is to the plugins' binaries.
+  - *The MSBuild Tests job* now runs the same tests and architecture as the CMake "Windows" job on every light
+    run (about 3 runner-minutes, in parallel, so little wall time); moving it to full runs is an option.
+  - `setup_ags_build_deps.bat` still builds the x86 libraries and downloads the x86 redistributable (cost only
+  when the dependency cache is rebuilt).
+- **Not verified:** the installer installed and run; the editor's window opened by hand (its headless build
+  ran); an upgrade over an x86 install of the same version; the 25 ignored NUnit tests compared with x86.
+- **Landed** on `ags4draconianr21` on 2026-11-09 as separate commits (the 3.2c status edits split out from the
+  CI change); the probe branch `probe-x64-2.9d` is deleted.
+
 ### 3.1 Dead platforms
 
 *Definition, moved from PLAN.md on 2026-11-04:*

@@ -1,5 +1,8 @@
-Following assemblies must be in this directory for the Editor to build and run:
+The Editor is built and released as x64 (docs/refactor/PLAN.md, 2.9d). Following assemblies must be in
+the "x64" subfolder of this directory for it to build and run:
 
-1. AGS.Native.dll - this library is built as a part of AGS.Editor.Full solution in this very repository.
-2. irrKlang.NET4.0.dll, ikpMP3.dll, and ikpFlac.dll - a part of irrKlang 1.6 (32-bit), get package at https://www.ambiera.com/irrklang/downloads.html
-3. For the x64 Editor build: irrKlang.NET4.0.dll, ikpMP3.dll and ikpFlac.dll (64-bit) placed into "x64" subfolder.
+1. AGS.Native.dll and SDL2.dll - copied there by the AGS.Native project of the AGS.Editor.Full solution.
+2. irrKlang.NET4.dll, ikpMP3.dll and ikpFlac.dll - a part of irrKlang 1.6 (64-bit), get package at https://www.ambiera.com/irrklang/downloads.html
+
+The x86 configuration (32-bit irrKlang and AGS.Native.dll in this directory itself) still exists in the
+projects but is no longer built by CI or released.
