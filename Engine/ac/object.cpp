@@ -1542,9 +1542,9 @@ int is_pos_in_sprite(int x, int y, int arx, int ary, Bitmap *sprit, int spww, in
                      Common::SpriteTransformFlags sprite_flags)
 {
     if (spww == 0)
-        spww = sprit->GetWidth() - 1;
+        spww = sprit->GetWidth();
     if (sphh == 0)
-        sphh = sprit->GetHeight() - 1;
+        sphh = sprit->GetHeight();
 
     if (!RectWH(arx, ary, spww, sphh).IsInside(x, y))
     {

@@ -152,7 +152,7 @@ Rect get_object_blocking_rect(int objid);
 // Tells if the point x,y hits the sprite sprit: it is inside the area arx,ary,spww,sphh and, if the pixel-perfect
 // game option is on, the sprite's pixel there is not transparent (sprite_flags mirror the pixel lookup).
 // x,y and arx,ary must be in the same space; the callers pass a point already converted to the object's local
-// space, with arx = ary = 0. spww and sphh of 0 mean the bitmap's size minus one.
+// space, with arx = ary = 0. spww and sphh of 0 mean the bitmap's size.
 // Returns TRUE or FALSE.
 int is_pos_in_sprite(int x, int y, int arx, int ary, AGS::Common::Bitmap *sprit, int spww, int sphh,
                      AGS::Common::SpriteTransformFlags sprite_flags);
