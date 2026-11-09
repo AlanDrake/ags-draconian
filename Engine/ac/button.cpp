@@ -400,7 +400,7 @@ void AddButtonAnimation(const AnimatingGUIButton &abtn)
     animbuts.push_back(abtn);
 }
 
-// returns 1 if animation finished
+// Returns true while the animation continues, false when it has ended
 bool UpdateAnimatingButton(int bu)
 {
     AnimatingGUIButton &abtn = animbuts[bu];
@@ -465,7 +465,7 @@ bool Button_IsAnimating(GUIButton *btn)
     return FindButtonAnimation(btn->GetParentID(), btn->GetID()) >= 0;
 }
 
-// NOTE: in correspondance to similar functions for Character & Object,
+// NOTE: in correspondence to similar functions for Character & Object,
 // GetView returns (view index + 1), while GetLoop and GetFrame return
 // zero-based index and 0 in case of no animation.
 int Button_GetAnimView(GUIButton *btn)
