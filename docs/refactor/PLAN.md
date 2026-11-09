@@ -64,7 +64,7 @@ Recorded 2026-10-31.
 | ID | Question | Decision | Consequences | Unblocks |
 |---|---|---|---|---|
 | D1 | Oldest game version loaded (C1) | **3.99 and later** (`kGameVersion_399`) | All 3.x upgrade paths can go; room versions need care (3.4). *2026-11-08:* the editor follows: the one `.crm` reader is Common's, so after 3.4-2 the editor opens and imports **AGS 4.0 projects and rooms only**; a 3.x project is upgraded with upstream's 4.0 editor first. Legacy importers are rebuilt, if wanted, after the planned phases (L.1), not kept through them | 3.4 |
-| D2 | Platforms | **Windows, Linux, macOS, Android, Web, iOS.** PSP goes; FreeBSD stays for now (shares the POSIX code) | iOS can't be tested locally (no Mac): compile-only CI job (7.3) | 3.1, 7.3 |
+| D2 | Platforms | **Windows, Linux, macOS, Android, Web, iOS.** PSP goes; FreeBSD stays for now (shares the POSIX code) | iOS has no CI, no Mac and no project file on `ags4`: ignored until the refactor is done (7.3, 2026-11-09) | 3.1, 7.3 |
 | D3 | Legacy script compiler | **Removed**; `script2` is the only compiler | 3.3 | 3.3 |
 | D4 | Editor UI | **Avalonia is the main candidate**; WinForms goes into maintenance. *2026-11-03:* upstream plans no cross-platform editor but welcomes the core split (#1092, #3177); a-riddle-fan's `ags-for-mac` (3.6.x, .NET 10 + Avalonia, `AGS.Native` replaced by a CMake C library) is studied before 6.7c | Work goes into a UI-free core and replacing the C++/CLI bridge, which Avalonia can't use (phase 6) | 6.x |
 | D5 | Native build system | **CMake**; MSBuild for the C# projects and the hand-written Windows solutions, which stay (re-decided 2026-11-07, 3.2c) | Makefiles go; the `Solutions/*.vcxproj` are checked against the CMake targets (3.2c) | 3.2 |

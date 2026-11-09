@@ -520,8 +520,6 @@
 		526F23F11D3B5C4900EF4E1F /* textstreamwriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F22991D3B5C4900EF4E1F /* textstreamwriter.cpp */; };
 		526F23F21D3B5C4900EF4E1F /* textstreamwriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F229A1D3B5C4900EF4E1F /* textstreamwriter.h */; };
 		526F23F31D3B5C4900EF4E1F /* textwriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F229B1D3B5C4900EF4E1F /* textwriter.h */; };
-		526F23F41D3B5C4900EF4E1F /* wgt2allg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F229C1D3B5C4900EF4E1F /* wgt2allg.cpp */; };
-		526F23F51D3B5C4900EF4E1F /* wgt2allg.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F229D1D3B5C4900EF4E1F /* wgt2allg.h */; };
 		526F269A1D3B5CC300EF4E1F /* audiochannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24161D3B5CC200EF4E1F /* audiochannel.cpp */; };
 		526F269B1D3B5CC300EF4E1F /* audiochannel.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24171D3B5CC200EF4E1F /* audiochannel.h */; };
 		526F269C1D3B5CC300EF4E1F /* audioclip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24181D3B5CC200EF4E1F /* audioclip.cpp */; };
@@ -1430,8 +1428,6 @@
 		526F22991D3B5C4900EF4E1F /* textstreamwriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = textstreamwriter.cpp; sourceTree = "<group>"; };
 		526F229A1D3B5C4900EF4E1F /* textstreamwriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = textstreamwriter.h; sourceTree = "<group>"; };
 		526F229B1D3B5C4900EF4E1F /* textwriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = textwriter.h; sourceTree = "<group>"; };
-		526F229C1D3B5C4900EF4E1F /* wgt2allg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wgt2allg.cpp; sourceTree = "<group>"; };
-		526F229D1D3B5C4900EF4E1F /* wgt2allg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wgt2allg.h; sourceTree = "<group>"; };
 		526F24161D3B5CC200EF4E1F /* audiochannel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audiochannel.cpp; sourceTree = "<group>"; };
 		526F24171D3B5CC200EF4E1F /* audiochannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audiochannel.h; sourceTree = "<group>"; };
 		526F24181D3B5CC200EF4E1F /* audioclip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audioclip.cpp; sourceTree = "<group>"; };
@@ -2922,8 +2918,6 @@
 				526F229B1D3B5C4900EF4E1F /* textwriter.h */,
 				52F5D8621DA121CC006F8F4B /* version.cpp */,
 				52F5D8631DA121CC006F8F4B /* version.h */,
-				526F229C1D3B5C4900EF4E1F /* wgt2allg.cpp */,
-				526F229D1D3B5C4900EF4E1F /* wgt2allg.h */,
 				2FDEC420CFD5783176F81572 /* sdl2_util.cpp */,
 			);
 			path = util;
@@ -4032,7 +4026,6 @@
 				526F27A71D3B5CC300EF4E1F /* dummyagsdebugger.h in Headers */,
 				526F23DC1D3B5C4900EF4E1F /* lzw.h in Headers */,
 				20522A4328E8F86400589E91 /* scriptset.h in Headers */,
-				526F23F51D3B5C4900EF4E1F /* wgt2allg.h in Headers */,
 				526F23E81D3B5C4900EF4E1F /* stream.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -4250,7 +4243,6 @@
 				20E67D7928F1BDE000B95C00 /* allegro.c in Sources */,
 				20E681F428F1D2A800B95C00 /* SDL_sound_modplug.c in Sources */,
 				20E6823B28F1D2B400B95C00 /* load_dbm.c in Sources */,
-				526F23F41D3B5C4900EF4E1F /* wgt2allg.cpp in Sources */,
 				526F288D1D3B5CC300EF4E1F /* sound.cpp in Sources */,
 				20E67D6728F1BDE000B95C00 /* math.c in Sources */,
 				526F28CE1D3B5CC300EF4E1F /* systemimports.cpp in Sources */,
