@@ -4052,9 +4052,11 @@ the compiler, Tools); `btn` as an `int` once.
   `817678acd` `bytesRead`, `newVolume` to `snake_case`, `f0f7e8dba` a `static_cast`. compare_objects.py: identical
   objects for every commit (a test object differs by `__LINE__`). `prepush.py --auto --base e8c69f3e1`: every stage
   passes, linux ctest 1165/1165, tidy clean with the new rule.
-- **Found, not fixed:** `Compiler/script/cs_scanner.h` `IsHexDigit` accepts every letter (`'Z'`/`'z'` where `'F'`/`'f'`
-  is meant). It only decides how far a malformed number literal such as `0xg` is read; a valid script compiles the same,
-  an invalid one gets a less precise error. The crossfade code in `audio.cpp` that the agent suspected of a null
+- **Found and fixed (`b59fd4b94`):** `Compiler/script/cs_scanner.h` `IsHexDigit` accepted every letter (`'Z'`/`'z'`
+  where `'F'`/`'f'` is meant). It decides how far a number literal is read after `0x` and across a `'` separator:
+  `0x1'g'` swallowed the quote and failed on an unterminated char literal, where it is `1` and the char `'g'`. Valid
+  literals scan as before. Test `Scan.LiteralIntHexSeparatorNeedsHexDigits` (fails without the fix); `prepush.py
+  --auto`: format, build, tidy, headers, libcxx, linux (ctest 1166/1166), msbuild pass. The crossfade code in `audio.cpp` that the agent suspected of a null
   dereference is safe: `crossfading_in_channel` is reset to 0 two lines earlier when nothing plays on it.
 
 - **Left for the next file sets:** by count, the remaining `Engine/ac` files (`viewport_script.cpp` 138, `dynamicsprite.cpp` 73, `file.cpp` 69, `display.cpp` 53,
