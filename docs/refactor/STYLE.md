@@ -102,8 +102,9 @@ private:
 - **Reserved names** mean exactly one thing in first-party code, so a reader never has to check
   **[enforced]** (`tidy_diff.py` flags a variable or parameter so named with another explicit type;
   `auto` is not checked): `ch` = a character (`CharacterInfo`, the plugin API's `AGSCharacter`, later
-  `Character`), `chex` = `CharacterExtras`, `btn` = `GUIButton`. A text character or byte is `c`, an
-  audio clip `clip`, an index `char_id`/`btn_id`. A name is added here once the code uses it for
+  `Character`), `chex` = `CharacterExtras`, `btn` = `GUIButton`. A text character or byte is `c`, a
+  playing sound (`SoundClip`, a mixer "voice", not the `AudioClip` asset) `voice`, an index
+  `char_id`/`btn_id`. A name is added here once the code uses it for
   nothing else.
 - Booleans are predicates (`is_visible`, `HasAlpha()`, `_needsRedraw`); functions are verbs, types
   nouns; ambiguous units go in the name (`delay_ms`, `volume_percent`, `speed_fps`).
