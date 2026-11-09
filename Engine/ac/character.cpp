@@ -266,14 +266,14 @@ void Character_Animate6(CharacterInfo *ch, int loop, int delay, int repeat, int 
     Character_Animate(ch, loop, delay, repeat, blocking, direction, sframe, 100 /* full volume */);
 }
 
-void Character_ChangeRoomAutoPosition(CharacterInfo *ch, int room, int newPos)
+void Character_ChangeRoomAutoPosition(CharacterInfo *ch, int room, int new_pos)
 {
     if (ch->index_id != game.playercharacter)
     {
         quit("!Character.ChangeRoomAutoPosition can only be used with the player character.");
     }
 
-    new_room_pos = newPos;
+    new_room_pos = new_pos;
 
     if (new_room_pos == 0)
     {
@@ -465,7 +465,7 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *ch, float x_diff, float y_diff
     return next_loop;
 }
 
-void FaceDirectionalLoop(CharacterInfo *ch, int direction, int blockingStyle)
+void FaceDirectionalLoop(CharacterInfo *ch, int direction, int blocking_style)
 {
     // Stop any kind of a side activity: turning, idling
     charextra[ch->index_id].StopTurning();
@@ -477,8 +477,8 @@ void FaceDirectionalLoop(CharacterInfo *ch, int direction, int blockingStyle)
         if ((game.options[OPT_CHARTURNWHENFACE] != 0) && ((ch->flags & CHF_TURNWHENFACE) != 0) && (!in_enters_screen))
         {
             const bool use_diagloops = should_use_diagloops(ch, false /* allow 1 frame in loops */);
-            const int highestLoopForTurning = use_diagloops ? kDirLoop_Last : kDirLoop_LastOrthogonal;
-            if ((ch->loop <= highestLoopForTurning))
+            const int highest_loop = use_diagloops ? kDirLoop_Last : kDirLoop_LastOrthogonal;
+            if ((ch->loop <= highest_loop))
             {
                 // Turn to face new direction
                 Character_StopMoving(ch);
@@ -488,7 +488,7 @@ void FaceDirectionalLoop(CharacterInfo *ch, int direction, int blockingStyle)
                     // (otherwise GameLoopUntilNotMoving will never return)
                     start_character_turning(ch, direction, use_diagloops);
 
-                    if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
+                    if ((blocking_style == BLOCKING) || (blocking_style == 1))
                         GameLoopUntilFlagUnset(&charextra[ch->index_id].flags, kCharf_TurningMask);
                 }
                 else
@@ -505,18 +505,18 @@ void FaceDirectionalLoop(CharacterInfo *ch, int direction, int blockingStyle)
     reset_character_idling_time(ch);
 }
 
-void FaceLocationXY(CharacterInfo *ch, int x, int y, int blockingStyle)
+void FaceLocationXY(CharacterInfo *ch, int x, int y, int blocking_style)
 {
     debug_script_log("%s: Face location %d,%d", ch->scrname.GetCStr(), x, y);
 
     const int diffrx = x - ch->x;
     const int diffry = y - ch->y;
-    FaceDirectionalLoop(ch, GetDirectionalLoop(ch, diffrx, diffry), blockingStyle);
+    FaceDirectionalLoop(ch, GetDirectionalLoop(ch, diffrx, diffry), blocking_style);
 }
 
 // External direction-facing functions with validation
 
-void Character_FaceDirection(CharacterInfo *ch, int direction, int blockingStyle)
+void Character_FaceDirection(CharacterInfo *ch, int direction, int blocking_style)
 {
     if (ch == nullptr)
         quit("!FaceDirection: invalid character specified");
@@ -524,26 +524,26 @@ void Character_FaceDirection(CharacterInfo *ch, int direction, int blockingStyle
     if (direction < 0 || direction > kDirLoop_Last)
         quit("!FaceDirection: invalid direction specified");
 
-    FaceDirectionalLoop(ch, direction, blockingStyle);
+    FaceDirectionalLoop(ch, direction, blocking_style);
 }
 
-void Character_FaceLocation(CharacterInfo *ch, int x, int y, int blockingStyle)
+void Character_FaceLocation(CharacterInfo *ch, int x, int y, int blocking_style)
 {
     if (ch == nullptr)
         quit("!FaceLocation: invalid character specified");
 
-    FaceLocationXY(ch, x, y, blockingStyle);
+    FaceLocationXY(ch, x, y, blocking_style);
 }
 
-void Character_FaceObject(CharacterInfo *ch, ScriptObject *obj, int blockingStyle)
+void Character_FaceObject(CharacterInfo *ch, ScriptObject *obj, int blocking_style)
 {
     if (obj == nullptr)
         quit("!FaceObject: invalid object specified");
 
-    FaceLocationXY(ch, objs[obj->id].x, objs[obj->id].y, blockingStyle);
+    FaceLocationXY(ch, objs[obj->id].x, objs[obj->id].y, blocking_style);
 }
 
-void Character_FaceCharacter(CharacterInfo *ch, CharacterInfo *other, int blockingStyle)
+void Character_FaceCharacter(CharacterInfo *ch, CharacterInfo *other, int blocking_style)
 {
     if (other == nullptr)
         quit("!FaceCharacter: invalid character specified");
@@ -552,7 +552,7 @@ void Character_FaceCharacter(CharacterInfo *ch, CharacterInfo *other, int blocki
         quitprintf("!FaceCharacter: characters %s and %s are in different rooms (room %d and room %d respectively)",
                    ch->scrname.GetCStr(), other->scrname.GetCStr(), ch->room, other->room);
 
-    FaceLocationXY(ch, other->x, other->y, blockingStyle);
+    FaceLocationXY(ch, other->x, other->y, blocking_style);
 }
 
 void Character_FollowCharacter(CharacterInfo *ch, CharacterInfo *tofollow, int distaway, int eagerness)
@@ -751,10 +751,10 @@ void Character_LockViewImpl(CharacterInfo *ch, const char *api_name, int view, i
     debug_script_log("%s: View locked to %d", ch->scrname.GetCStr(), view + 1);
 }
 
-void Character_LockViewEx(CharacterInfo *ch, int view, int stopMoving)
+void Character_LockViewEx(CharacterInfo *ch, int view, int stop_moving)
 {
     Character_LockViewImpl(ch, "Character.LockView", view, -1, -1, CharacterInfo::GetDefaultSpriteAnchor(), Point(),
-                           stopMoving != 0);
+                           stop_moving != 0);
 }
 
 void Character_LockView(CharacterInfo *ch, int view)
@@ -762,7 +762,7 @@ void Character_LockView(CharacterInfo *ch, int view)
     Character_LockViewEx(ch, view, STOP_MOVING);
 }
 
-void Character_LockViewAlignedEx(CharacterInfo *ch, int view, int loop, int align, int stopMoving)
+void Character_LockViewAlignedEx(CharacterInfo *ch, int view, int loop, int align, int stop_moving)
 {
     if ((align & kMAlignAny) == 0)
     {
@@ -771,7 +771,7 @@ void Character_LockViewAlignedEx(CharacterInfo *ch, int view, int loop, int alig
 
     Character_LockViewImpl(ch, "Character.LockViewAligned", view, loop, -1,
                            GfxDef::GetGraphicAnchorFromAlignment(static_cast<FrameAlignment>(align)), Point(),
-                           stopMoving != 0);
+                           stop_moving != 0);
 }
 
 void Character_LockViewAnchored(CharacterInfo *ch, int view, float x_anchor, float y_anchor, int x_off, int y_off,
@@ -781,16 +781,16 @@ void Character_LockViewAnchored(CharacterInfo *ch, int view, float x_anchor, flo
                            Point(x_off, y_off), stop_moving != 0);
 }
 
-void Character_LockViewFrameEx(CharacterInfo *ch, int view, int loop, int frame, int stopMoving)
+void Character_LockViewFrameEx(CharacterInfo *ch, int view, int loop, int frame, int stop_moving)
 {
     Character_LockViewImpl(ch, "Character.LockViewFrame", view, loop, frame, CharacterInfo::GetDefaultSpriteAnchor(),
-                           Point(), stopMoving != 0);
+                           Point(), stop_moving != 0);
 }
 
-void Character_LockViewOffsetEx(CharacterInfo *ch, int view, int xoffs, int yoffs, int stopMoving)
+void Character_LockViewOffsetEx(CharacterInfo *ch, int view, int xoffs, int yoffs, int stop_moving)
 {
     Character_LockViewImpl(ch, "Character.LockViewOffset", view, -1, -1, CharacterInfo::GetDefaultSpriteAnchor(),
-                           Point(xoffs, yoffs), stopMoving != 0);
+                           Point(xoffs, yoffs), stop_moving != 0);
 }
 
 void Character_LoseInventoryImpl(CharacterInfo *ch, int item_id, int item_inv_index)
@@ -1165,14 +1165,14 @@ void Character_UnlockView(CharacterInfo *ch)
     Character_UnlockViewEx(ch, STOP_MOVING);
 }
 
-void Character_UnlockViewEx(CharacterInfo *ch, int stopMoving)
+void Character_UnlockViewEx(CharacterInfo *ch, int stop_moving)
 {
     if (ch->flags & CHF_FIXVIEW)
     {
         debug_script_log("%s: Released view back to default", ch->scrname.GetCStr());
     }
     charextra[ch->index_id].SetUnlockedView(ch);
-    if (stopMoving != KEEP_MOVING)
+    if (stop_moving != KEEP_MOVING)
     {
         Character_StopMoving(ch);
     }
@@ -1495,10 +1495,10 @@ int Character_GetBlinkWhileThinking(CharacterInfo *ch)
     return 1;
 }
 
-void Character_SetBlinkWhileThinking(CharacterInfo *ch, int yesOrNo)
+void Character_SetBlinkWhileThinking(CharacterInfo *ch, int yesorno)
 {
     ch->flags &= ~CHF_NOBLINKANDTHINK;
-    if (yesOrNo == 0)
+    if (yesorno == 0)
         ch->flags |= CHF_NOBLINKANDTHINK;
 }
 
@@ -1810,9 +1810,9 @@ const char *Character_GetName(CharacterInfo *ch)
     return CreateNewScriptString(game.chars[ch->index_id].name.GetCStr());
 }
 
-void Character_SetName(CharacterInfo *ch, const char *newName)
+void Character_SetName(CharacterInfo *ch, const char *name)
 {
-    ch->name = newName;
+    ch->name = name;
     // Fill legacy name fields, for compatibility with old scripts and plugins
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
@@ -1927,7 +1927,7 @@ int Character_GetSpeechAnimationDelay(CharacterInfo *ch)
         return ch->speech_anim_speed;
 }
 
-void Character_SetSpeechAnimationDelay(CharacterInfo *ch, int newDelay)
+void Character_SetSpeechAnimationDelay(CharacterInfo *ch, int delay)
 {
     if (game.options[OPT_GLOBALTALKANIMSPD] != 0)
     {
@@ -1935,7 +1935,7 @@ void Character_SetSpeechAnimationDelay(CharacterInfo *ch, int newDelay)
         return;
     }
 
-    ch->speech_anim_speed = newDelay;
+    ch->speech_anim_speed = delay;
 }
 
 int Character_GetIdleAnimationDelay(CharacterInfo *ch)
@@ -1943,9 +1943,9 @@ int Character_GetIdleAnimationDelay(CharacterInfo *ch)
     return ch->idle_anim_speed;
 }
 
-void Character_SetIdleAnimationDelay(CharacterInfo *ch, int newDelay)
+void Character_SetIdleAnimationDelay(CharacterInfo *ch, int delay)
 {
-    ch->idle_anim_speed = newDelay;
+    ch->idle_anim_speed = delay;
 }
 
 int Character_GetSpeechView(CharacterInfo *ch)
@@ -2583,10 +2583,10 @@ void fix_player_sprite(CharacterInfo *ch, const MoveList &cmls)
 }
 
 // Check whether two characters have walked into each other
-int has_hit_another_character(int sourceChar)
+int has_hit_another_character(int source_char)
 {
     // if the character who's moving doesn't block, don't bother checking
-    if (game.chars[sourceChar].flags & CHF_NOBLOCKING)
+    if (game.chars[source_char].flags & CHF_NOBLOCKING)
         return -1;
 
     for (int ww = 0; ww < game.numcharacters; ww++)
@@ -2595,12 +2595,12 @@ int has_hit_another_character(int sourceChar)
             continue;
         if (game.chars[ww].room != displayed_room)
             continue;
-        if (ww == sourceChar)
+        if (ww == source_char)
             continue;
         if (game.chars[ww].flags & CHF_NOBLOCKING)
             continue;
 
-        if (get_char_blocking_rect(ww).IsInside(game.chars[sourceChar].x, game.chars[sourceChar].y))
+        if (get_char_blocking_rect(ww).IsInside(game.chars[source_char].x, game.chars[source_char].y))
         {
             // we are now overlapping character 'ww'
             if ((game.chars[ww].walking) && ((game.chars[ww].flags & CHF_AWAITINGMOVE) == 0))
@@ -3062,10 +3062,10 @@ int GetCharIDAtRoom(int x, int y, int hit_options)
         int usehit = game.SpriteInfos[sppic].Height;
         // TODO: support mirrored transformation in GraphicSpace
         SpriteTransformFlags sprite_flags = views[ch->view].loops[ch->loop].frames[ch->frame].flags;
-        Bitmap *theImage = GetCharacterSourceImage(cc);
+        Bitmap *image = GetCharacterSourceImage(cc);
         // Convert to local object coordinates
         Point local = charextra[cc].GetGraphicSpace().WorldToLocal(x, y);
-        if (is_pos_in_sprite(local.X, local.Y, 0, 0, theImage, usewid, usehit, sprite_flags) == FALSE)
+        if (is_pos_in_sprite(local.X, local.Y, 0, 0, image, usewid, usehit, sprite_flags) == FALSE)
             continue;
 
         int use_base = ch->get_baseline();
@@ -3150,8 +3150,8 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
     if (!AssertCharacter("DisplaySpeech", char_id))
         return;
 
-    CharacterInfo *speakingChar = &game.chars[char_id];
-    if ((speakingChar->view < 0) || (speakingChar->view >= game.numviews))
+    CharacterInfo *speaking_char = &game.chars[char_id];
+    if ((speaking_char->view < 0) || (speaking_char->view >= game.numviews))
         quit("!DisplaySpeech: character has invalid view");
 
     if (play.screen_is_faded_out)
@@ -3163,7 +3163,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
         return;
     }
 
-    debug_script_log("%s: \"%s\"", speakingChar->scrname.GetCStr(), text);
+    debug_script_log("%s: \"%s\"", speaking_char->scrname.GetCStr(), text);
 
     EndSkippingUntilCharStops();
 
@@ -3183,13 +3183,13 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
 
     set_our_eip(150);
 
-    int isPause = 1;
+    int is_pause = 1;
     // if the message is all .'s, don't display anything
     for (size_t aa = 0; text[aa] != 0; aa++)
     {
         if (text[aa] != '.')
         {
-            isPause = 0;
+            is_pause = 0;
             break;
         }
     }
@@ -3197,7 +3197,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
     play.messagetime = GetTextDisplayTime(text);
     play.speech_in_post_state = false;
 
-    if (isPause)
+    if (is_pause)
     {
         postpone_scheduled_music_update_by(std::chrono::milliseconds(play.messagetime * 1000 / frames_per_second));
         // Set a post-state right away, as we only need to wait for a messagetime timer
@@ -3215,10 +3215,10 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
     // this has to be kept in mind if backwards compatibility matters.
     DisplayTextPosition disp_pos =
         (DisplayTextPosition)((auto_position
-                                   ? get_textpos_from_scriptcoords(x, y, (speakingChar->room == displayed_room))
+                                   ? get_textpos_from_scriptcoords(x, y, (speaking_char->room == displayed_room))
                                    : kDisplayTextPos_Normal) |
                               kDisplayTextPos_ClampToScreenWidth);
-    const color_t text_color = speakingChar->talkcolor;
+    const color_t text_color = speaking_char->talkcolor;
 
     DisplayTextShrink allow_shrink = kDisplayTextShrink_None;
     bool align_hcenter = false; // whether to align text by centering over position
@@ -3230,10 +3230,10 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
 
     set_our_eip(151);
 
-    int useview = speakingChar->talkview;
+    int useview = speaking_char->talkview;
     if (is_thought)
     {
-        useview = speakingChar->thinkview;
+        useview = speaking_char->thinkview;
         // view 0 is not valid for think views
         if (useview == 0)
             useview = -1;
@@ -3254,7 +3254,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
     // If has a valid speech view, and idle anim in progress for the character, then stop it
     if (useview >= 0)
     {
-        stop_character_idling(speakingChar);
+        stop_character_idling(speaking_char);
     }
 
     // TODO: consider turning certain speech styles into autoplaced overlays
@@ -3267,38 +3267,38 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
     text_lips_text = text;
     std::unique_ptr<Bitmap> closeupface;
     int char_frame_was = 0;
-    const bool view_was_locked = (speakingChar->flags & CHF_FIXVIEW);
-    char_speaking = speakingChar->index_id;
+    const bool view_was_locked = (speaking_char->flags & CHF_FIXVIEW);
+    char_speaking = speaking_char->index_id;
 
     // Start voice-over, if requested by the tokens in speech text
     try_auto_play_speech(text, text, char_id);
 
-    if (speakingChar->room == displayed_room)
+    if (speaking_char->room == displayed_room)
     {
         // If the character is in this room, go for it - otherwise
         // run the "else" clause which  does text in the middle of
         // the screen.
         set_our_eip(1501);
 
-        if (speakingChar->walking)
-            Character_StopMoving(speakingChar);
+        if (speaking_char->walking)
+            Character_StopMoving(speaking_char);
 
         // save the frame we need to go back to
         // if they were moving, this will be 0 (because we just called
         // StopMoving); otherwise, it might be a specific animation
         // frame which we should return to
         if (view_was_locked)
-            char_frame_was = speakingChar->frame;
+            char_frame_was = speaking_char->frame;
 
-        if ((speakingChar->view < 0) || views[speakingChar->view].numLoops == 0)
-            quitprintf("!Character %s current view %d is invalid, or has no loops.", speakingChar->scrname.GetCStr(),
-                       speakingChar->view + 1);
+        if ((speaking_char->view < 0) || views[speaking_char->view].numLoops == 0)
+            quitprintf("!Character %s current view %d is invalid, or has no loops.", speaking_char->scrname.GetCStr(),
+                       speaking_char->view + 1);
         // If current view is missing a loop - use loop 0
-        if (speakingChar->loop >= views[speakingChar->view].numLoops)
+        if (speaking_char->loop >= views[speaking_char->view].numLoops)
         {
             debug_script_warn("Character %s current view %d does not have necessary loop %d; switching to loop 0.",
-                              speakingChar->scrname.GetCStr(), speakingChar->view + 1, speakingChar->loop);
-            speakingChar->loop = 0;
+                              speaking_char->scrname.GetCStr(), speaking_char->view + 1, speaking_char->loop);
+            speaking_char->loop = 0;
         }
 
         set_our_eip(1504);
@@ -3307,7 +3307,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
         // (an assumption here, but this must be the case if it's LA-style speech)
         auto view = FindNearestViewport(char_id);
         if (tdxp < 0)
-            tdxp = view->RoomToScreen(speakingChar->x, 0).first.X;
+            tdxp = view->RoomToScreen(speaking_char->x, 0).first.X;
         if (tdxp < 2)
             tdxp = 2;
         // tell it to align it by center
@@ -3315,9 +3315,9 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
 
         if (tdyp < 0)
         {
-            int sppic = views[speakingChar->view].loops[speakingChar->loop].frames[0].pic;
+            int sppic = views[speaking_char->view].loops[speaking_char->loop].frames[0].pic;
             int height = (charextra[char_id].height < 1) ? game.SpriteInfos[sppic].Height : charextra[char_id].height;
-            tdyp = view->RoomToScreen(0, charextra[char_id].GetEffectiveY(speakingChar) - height).first.Y - 5;
+            tdyp = view->RoomToScreen(0, charextra[char_id].GetEffectiveY(speaking_char) - height).first.Y - 5;
             if (is_thought) // if it's a thought, lift it a bit further up
                 tdyp -= 10;
         }
@@ -3353,7 +3353,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                         // No previous character been spoken to
                         // therefore, assume it's the player
                         if (game.playercharacter != char_id &&
-                            game.chars[game.playercharacter].room == speakingChar->room &&
+                            game.chars[game.playercharacter].room == speaking_char->room &&
                             game.chars[game.playercharacter].is_enabled())
                         {
                             play.swap_portrait_lastchar = game.playercharacter;
@@ -3364,7 +3364,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                             // that it could be
                             for (int ce = 0; ce < game.numcharacters; ce++)
                             {
-                                if ((game.chars[ce].room == speakingChar->room) && (game.chars[ce].is_enabled()) &&
+                                if ((game.chars[ce].room == speaking_char->room) && (game.chars[ce].is_enabled()) &&
                                     (ce != char_id))
                                 {
                                     play.swap_portrait_lastchar = ce;
@@ -3378,7 +3378,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                     {
                         // if this character is right of the one before, put the
                         // portrait on the right
-                        if (speakingChar->x > game.chars[play.swap_portrait_lastchar].x)
+                        if (speaking_char->x > game.chars[play.swap_portrait_lastchar].x)
                             play.swap_portrait_side = -1;
                         else
                             play.swap_portrait_side = 0;
@@ -3392,7 +3392,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                 // speaking, compare against the previous *previous* character to see where the speech should be
                 if (game.options[OPT_PORTRAITSIDE] == PORTRAIT_XPOSITION && play.swap_portrait_lastlastchar >= 0)
                 {
-                    if (speakingChar->x > game.chars[play.swap_portrait_lastlastchar].x)
+                    if (speaking_char->x > game.chars[play.swap_portrait_lastlastchar].x)
                         play.swap_portrait_side = -1;
                     else
                         play.swap_portrait_side = 0;
@@ -3495,11 +3495,11 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                     tdxp += 16;
                 }
 
-                int maxWidth =
+                int max_width =
                     (ui_view.GetWidth() - tdxp) - 5 - get_textwindow_border_width(play.speech_textwindow_gui) / 2;
 
-                if (bwidth > maxWidth)
-                    bwidth = maxWidth;
+                if (bwidth > max_width)
+                    bwidth = max_width;
             }
             else
             {
@@ -3519,10 +3519,10 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                     if (play.speech_portrait_placement)
                     {
                         overlay_x = (ui_view.GetWidth() - bigx) - play.speech_portrait_x;
-                        int maxWidth =
+                        int max_width =
                             overlay_x - tdxp - 9 - get_textwindow_border_width(play.speech_textwindow_gui) / 2;
-                        if (bwidth > maxWidth)
-                            bwidth = maxWidth;
+                        if (bwidth > max_width)
+                            bwidth = max_width;
                     }
                     else
                     {
@@ -3543,11 +3543,11 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
             facetalkview = useview;
             facetalkloop = 0;
             facetalkframe = 0;
-            facetalkwait = viptr->loops[0].frames[0].speed + Character_GetSpeechAnimationDelay(speakingChar);
+            facetalkwait = viptr->loops[0].frames[0].speed + Character_GetSpeechAnimationDelay(speaking_char);
             facetalkrepeat = (is_thought) ? 0 : 1;
             facetalkBlinkLoop = 0;
             facetalkAllowBlink = 1;
-            if ((is_thought) && (speakingChar->flags & CHF_NOBLINKANDTHINK))
+            if ((is_thought) && (speaking_char->flags & CHF_NOBLINKANDTHINK))
                 facetalkAllowBlink = 0;
             facetalkchar = &game.chars[char_id];
             if (facetalkchar->blinktimer < 0)
@@ -3562,40 +3562,40 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
             // Lucasarts-style speech
             set_our_eip(154);
 
-            oldview = speakingChar->view;
-            oldloop = speakingChar->loop;
+            oldview = speaking_char->view;
+            oldloop = speaking_char->loop;
 
-            charextra[speakingChar->index_id].SetAnimating(
+            charextra[speaking_char->index_id].SetAnimating(
                 is_thought ? kAnimFlow_Once : kAnimFlow_Repeat, // only repeat if speech, not thought
                 kAnimDirForward,                                // always forwards
-                Character_GetSpeechAnimationDelay(speakingChar));
+                Character_GetSpeechAnimationDelay(speaking_char));
 
-            speakingChar->view = useview;
-            speakingChar->frame = 0;
-            speakingChar->flags |= CHF_FIXVIEW;
+            speaking_char->view = useview;
+            speaking_char->frame = 0;
+            speaking_char->flags |= CHF_FIXVIEW;
 
-            if ((speakingChar->view < 0) || views[speakingChar->view].numLoops == 0)
-                quitprintf("!Character %s speech view %d is invalid, or has no loops.", speakingChar->scrname.GetCStr(),
-                           speakingChar->view + 1);
+            if ((speaking_char->view < 0) || views[speaking_char->view].numLoops == 0)
+                quitprintf("!Character %s speech view %d is invalid, or has no loops.",
+                           speaking_char->scrname.GetCStr(), speaking_char->view + 1);
             // If speech view is missing a loop - use loop 0
-            if (speakingChar->loop >= views[speakingChar->view].numLoops)
+            if (speaking_char->loop >= views[speaking_char->view].numLoops)
             {
                 debug_script_warn("Character %s speech view %d does not have necessary loop %d; switching to loop 0.",
-                                  speakingChar->scrname.GetCStr(), speakingChar->view + 1, speakingChar->loop);
-                speakingChar->loop = 0;
+                                  speaking_char->scrname.GetCStr(), speaking_char->view + 1, speaking_char->loop);
+                speaking_char->loop = 0;
             }
 
-            facetalkBlinkLoop = speakingChar->loop;
+            facetalkBlinkLoop = speaking_char->loop;
 
             // set up the speed of the first frame
-            speakingChar->wait = Character_GetSpeechAnimationDelay(speakingChar) +
-                                 views[speakingChar->view].loops[speakingChar->loop].frames[0].speed;
+            speaking_char->wait = Character_GetSpeechAnimationDelay(speaking_char) +
+                                  views[speaking_char->view].loops[speaking_char->loop].frames[0].speed;
 
             if (width < 0)
             {
                 bwidth = ui_view.GetWidth() / 2 + ui_view.GetWidth() / 6;
                 // If they are close to the screen edge, make the text narrower
-                int relx = play.RoomToScreenX(speakingChar->x);
+                int relx = play.RoomToScreenX(speaking_char->x);
                 if ((relx < ui_view.GetWidth() / 4) || (relx > ui_view.GetWidth() - (ui_view.GetWidth() / 4)))
                     bwidth -= ui_view.GetWidth() / 5;
             }
@@ -3636,15 +3636,15 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
     if (oldview >= 0)
     {
         // Restore the character's locked view (if one was locked prior to the speech)
-        speakingChar->flags &= ~CHF_FIXVIEW;
+        speaking_char->flags &= ~CHF_FIXVIEW;
         if (view_was_locked)
-            speakingChar->flags |= CHF_FIXVIEW;
-        speakingChar->view = oldview;
-        stop_character_anim(speakingChar);
-        speakingChar->frame = char_frame_was;
-        speakingChar->wait = 0;
+            speaking_char->flags |= CHF_FIXVIEW;
+        speaking_char->view = oldview;
+        stop_character_anim(speaking_char);
+        speaking_char->frame = char_frame_was;
+        speaking_char->wait = 0;
         // Restart idle timer
-        reset_character_idling_time(speakingChar);
+        reset_character_idling_time(speaking_char);
     }
     char_speaking = -1;
     char_speaking_anim = -1;

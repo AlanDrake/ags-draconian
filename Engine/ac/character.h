@@ -43,9 +43,9 @@ void Character_Animate(CharacterInfo *ch, int loop, int delay, int repeat, int b
                        int volume = 100);
 // Character.Animate without the first frame and volume: starts at frame 0, at full volume.
 void Character_Animate5(CharacterInfo *ch, int loop, int delay, int repeat, int blocking, int direction);
-// Character.ChangeRoomAutoPosition, the player character only: changes the room and places the character by newPos,
-// or, if newPos is 0, at the screen edge opposite to the one it stands at.
-void Character_ChangeRoomAutoPosition(CharacterInfo *ch, int room, int newPos);
+// Character.ChangeRoomAutoPosition, the player character only: changes the room and places the character by new_pos,
+// or, if new_pos is 0, at the screen edge opposite to the one it stands at.
+void Character_ChangeRoomAutoPosition(CharacterInfo *ch, int room, int new_pos);
 void Character_ChangeRoom(CharacterInfo *ch, int room, int x, int y);
 // Character.ChangeRoom with a direction (loop) the character is to face in the new room;
 // Character_ChangeRoom passes SCR_NO_VALUE for none.
@@ -54,10 +54,10 @@ void Character_ChangeView(CharacterInfo *ch, int view);
 // Not a script function: sets the character's current view without changing its default view.
 // The view number is 0-based and is not validated.
 void Character_SetViewDirect(CharacterInfo *ch, int view, bool is_walk_view);
-void Character_FaceDirection(CharacterInfo *ch, int direction, int blockingStyle);
-void Character_FaceCharacter(CharacterInfo *ch, CharacterInfo *other, int blockingStyle);
-void Character_FaceLocation(CharacterInfo *ch, int x, int y, int blockingStyle);
-void Character_FaceObject(CharacterInfo *ch, ScriptObject *obj, int blockingStyle);
+void Character_FaceDirection(CharacterInfo *ch, int direction, int blocking_style);
+void Character_FaceCharacter(CharacterInfo *ch, CharacterInfo *other, int blocking_style);
+void Character_FaceLocation(CharacterInfo *ch, int x, int y, int blocking_style);
+void Character_FaceObject(CharacterInfo *ch, ScriptObject *obj, int blocking_style);
 void Character_FollowCharacter(CharacterInfo *ch, CharacterInfo *tofollow, int distaway, int eagerness);
 int Character_IsCollidingWithChar(CharacterInfo *ch, CharacterInfo *other);
 int Character_IsCollidingWithObject(CharacterInfo *ch, ScriptObject *objid);
@@ -66,11 +66,11 @@ int Character_IsCollidingWithObject(CharacterInfo *ch, ScriptObject *objid);
 bool Character_IsInteractionAvailable(CharacterInfo *ch, int mood);
 void Character_LockView(CharacterInfo *ch, int view);
 // LockViewEx, LockViewAlignedEx, LockViewFrameEx and LockViewOffsetEx implement the script functions LockView
-// (with the stopMoving argument), LockViewAligned, LockViewFrame and LockViewOffset; the view is 1-based.
-void Character_LockViewEx(CharacterInfo *ch, int view, int stopMoving);
-void Character_LockViewAlignedEx(CharacterInfo *ch, int view, int loop, int align, int stopMoving);
-void Character_LockViewFrameEx(CharacterInfo *ch, int view, int loop, int frame, int stopMoving);
-void Character_LockViewOffsetEx(CharacterInfo *ch, int view, int xoffs, int yoffs, int stopMoving);
+// (with the stop_moving argument), LockViewAligned, LockViewFrame and LockViewOffset; the view is 1-based.
+void Character_LockViewEx(CharacterInfo *ch, int view, int stop_moving);
+void Character_LockViewAlignedEx(CharacterInfo *ch, int view, int loop, int align, int stop_moving);
+void Character_LockViewFrameEx(CharacterInfo *ch, int view, int loop, int frame, int stop_moving);
+void Character_LockViewOffsetEx(CharacterInfo *ch, int view, int xoffs, int yoffs, int stop_moving);
 void Character_LoseInventory(CharacterInfo *ch, ScriptInvItem *invi);
 void Character_PlaceOnWalkableArea(CharacterInfo *ch);
 void Character_RemoveTint(CharacterInfo *ch);
@@ -90,7 +90,7 @@ void Character_StopMovingEx(CharacterInfo *ch, bool force_walkable_area);
 void Character_Tint(CharacterInfo *ch, int red, int green, int blue, int opacity, int luminance);
 void Character_Think(CharacterInfo *ch, const char *text);
 void Character_UnlockView(CharacterInfo *ch);
-void Character_UnlockViewEx(CharacterInfo *ch, int stopMoving);
+void Character_UnlockViewEx(CharacterInfo *ch, int stop_moving);
 void Character_Walk(CharacterInfo *ch, int x, int y, int blocking, int ignwal);
 void Character_Move(CharacterInfo *ch, int x, int y, int blocking, int ignwal);
 void Character_WalkStraight(CharacterInfo *ch, int x, int y, int blocking);
@@ -124,7 +124,7 @@ void Character_SetBlinkInterval(CharacterInfo *ch, int interval);
 int Character_GetBlinkView(CharacterInfo *ch);
 void Character_SetBlinkView(CharacterInfo *ch, int view);
 int Character_GetBlinkWhileThinking(CharacterInfo *ch);
-void Character_SetBlinkWhileThinking(CharacterInfo *ch, int yesOrNo);
+void Character_SetBlinkWhileThinking(CharacterInfo *ch, int yesorno);
 int Character_GetBlockingHeight(CharacterInfo *ch);
 void Character_SetBlockingHeight(CharacterInfo *ch, int hit);
 int Character_GetBlockingWidth(CharacterInfo *ch);
@@ -152,7 +152,7 @@ void Character_SetLoop(CharacterInfo *ch, int newval);
 int Character_GetMoving(CharacterInfo *ch);
 // Character.DisplayName, and the obsolete Character.Name, which is registered to the same functions.
 const char *Character_GetName(CharacterInfo *ch);
-void Character_SetName(CharacterInfo *ch, const char *newName);
+void Character_SetName(CharacterInfo *ch, const char *name);
 int Character_GetNormalView(CharacterInfo *ch);
 int Character_GetPreviousRoom(CharacterInfo *ch);
 int Character_GetRoom(CharacterInfo *ch);
@@ -168,7 +168,7 @@ int Character_GetSpeaking(CharacterInfo *ch);
 int Character_GetSpeechColor(CharacterInfo *ch);
 void Character_SetSpeechColor(CharacterInfo *ch, int ncol);
 int Character_GetSpeechAnimationDelay(CharacterInfo *ch);
-void Character_SetSpeechAnimationDelay(CharacterInfo *ch, int newDelay);
+void Character_SetSpeechAnimationDelay(CharacterInfo *ch, int delay);
 int Character_GetSpeechView(CharacterInfo *ch);
 void Character_SetSpeechView(CharacterInfo *ch, int view);
 int Character_GetThinkView(CharacterInfo *ch);
@@ -223,7 +223,7 @@ void start_character_turning(CharacterInfo *ch, int useloop, bool use_diagloops)
 // when the game turns characters while they walk, by turning it step by step. Does nothing if the move has no speed.
 void fix_player_sprite(CharacterInfo *ch, const MoveList &cmls);
 // Check whether two characters have walked into each other
-int has_hit_another_character(int sourceChar);
+int has_hit_another_character(int source_char);
 // Does the next move from the character's movelist.
 // Returns 1 if the character is now waiting for another one to move, otherwise 0.
 int doNextCharMoveStep(CharacterInfo *ch, CharacterExtras *chex);
