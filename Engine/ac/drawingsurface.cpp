@@ -86,7 +86,9 @@ ScriptDrawingSurface *DrawingSurface_CreateCopy(ScriptDrawingSurface *surface)
 {
     Bitmap *source_bitmap = AssertBitmapSurface(surface->GetBitmapSurface(), "DrawingSurface.CreateCopy");
     if (!source_bitmap)
+    {
         return nullptr;
+    }
 
     for (int i = 0; i < MAX_DYNAMIC_SURFACES; i++)
     {
