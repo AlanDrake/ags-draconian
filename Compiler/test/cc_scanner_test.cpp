@@ -472,6 +472,30 @@ TEST_F(Scan, LiteralIntHex)
     EXPECT_EQ(-1, sym[lit_hex2].LiteralD->Value);
 }
 
+TEST_F(Scan, LiteralIntHexSeparatorNeedsHexDigits)
+{
+    // A ' between two hex digits is a digit separator; before a letter past 'F' it is not, so it starts a
+    // char literal: "0x1'g'" is the number 1 and the char 'g'.
+    char const *inp = "0xA'B 0x1'g'";
+
+    AGS::Scanner scanner(inp, false, token_list, string_collector, sym, mh);
+    scanner.Scan();
+    ASSERT_FALSE(mh.HasError());
+    ASSERT_EQ(3u, token_list.Length());
+
+    AGS::Symbol const lit_ab = token_list[0u];
+    ASSERT_TRUE(sym.IsLiteral(lit_ab));
+    EXPECT_EQ(0xAB, sym[lit_ab].LiteralD->Value);
+
+    AGS::Symbol const lit_1 = token_list[1u];
+    ASSERT_TRUE(sym.IsLiteral(lit_1));
+    EXPECT_EQ(1, sym[lit_1].LiteralD->Value);
+
+    AGS::Symbol const lit_g = token_list[2u];
+    ASSERT_TRUE(sym.IsLiteral(lit_g));
+    EXPECT_EQ('g', sym[lit_g].LiteralD->Value);
+}
+
 TEST_F(Scan, LiteralFloat)
 {
     //           0u 1u  2u  3u  4u   5u    6u   7u    8u   9u    10u
