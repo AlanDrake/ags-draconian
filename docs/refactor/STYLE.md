@@ -184,7 +184,17 @@ change. What the first case taught is marked [1.5b-3] (LOG.md).
 
 - Say **why**, or what isn't obvious; don't repeat the code. Every public function and class gets a
   plain `//` block above its declaration in the header (no Doxygen needed).
+- **Worth a comment:** an order or invariant the code depends on, a tie to code elsewhere, something
+  kept for the compatibility contract (name it: "C3, script ABI"), a hot path that was measured. The
+  best one says what breaks if the line changes.
 - **No commented-out code**; no changelogs, author initials or dates ("CJ: fixed for 2.61").
+- **Describe the code, not the change:** no "now uses X", "moved from Y", "fixed the crash", "no longer
+  needed". What a commit did goes in its message; the comment must still read true in a year.
+- **Comments move with their code:** a refactoring keeps the why-comments of what it moves or
+  rewrites, reworded where needed. One is deleted only when its reason is gone, not because the code
+  around it changed.
+- **A comment and its code disagree:** trust neither. `git log -S`, blame or a test decides which is
+  right, then the other is fixed.
 - `// FIXME:` = wrong or unreliable in some case (say which); `// TODO:` = works, could be better
   (say what and why). `HACK` becomes `FIXME`; a `CHECKME` is answered in PLAN.md 3.6 or becomes a
   `TODO`.

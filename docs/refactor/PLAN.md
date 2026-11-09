@@ -74,14 +74,15 @@ Recorded 2026-10-31.
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
-0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 6.7d, 7.1 (but 7.1n), U.1, U.2, U.4, U.5, U.9 (LOG.md); 3.2 with 3.2c (CI-confirmed 2026-11-08). Upstream review takes weeks,
-so the offers go out first and fork-only moves that would conflict with them (5.3) wait.
+0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 6.7d, 7.1 (but 7.1n), U.1, U.2, U.4, U.5, U.9 (LOG.md); 3.2 with 3.2c
+(CI-confirmed 2026-11-08). The fork does not wait for upstream review (the user, 2026-11-09): a fork-only
+move that would conflict with an open offer is preceded by a tag of the pre-move tree for `port.py`.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **U.8:** offer upstream the 1.5b-2 fixes (`RuntimeScript::CheckFixupInCode`, `JointRTTI::Join`); the `String(ptr, length)` change separately if at all; the 1.5b-4 compiler leak fixes only if the user confirms | Real defects, small | Sonnet 5.5, `medium` |
-| 2 | **2.9 follow-up:** landing the probe branch `probe-2.9-followup` on `ags4draconianr21` (green: Verify 42584941158, 42592142379; CI light 42584941744, 42592146847; CI full 42586968168). Tests job in full runs, apt cache, ARM64 retry, dependency mirror (LOG.md 2.9 follow-up) | Measured, waiting for the user to land | the user |
-| 3 | **Waiting on review:** U.3 (#3186–#3190, #3185, #3191), U.6 (the fork port once the PR is stable), U.7 (#3193) | Upstream review takes weeks | Sonnet 5.5, `medium` (U.6: the user first) |
+| 1 | **4.1 + 4.5 + 3.6 per file:** parameter and local names, comments, comment debris, `Engine/ac/` most-churned files first; one `[rename]` commit per file checked by `compare_objects.py`, then a `[comment]` commit | Phase 5 needs phase 4; mechanical and verifiable | Sonnet 5.5, `medium`, one file set per session |
+| 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` with upstream's draft names where they overlap | Files move once (4.4 rides along) | Fable 5.1, `high` for the move map, subagents for the moves |
+| 3 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); U.3 (#3186–#3190, #3185, #3191), U.6, U.7 (#3193) under review | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
 Open items from finished tasks (details in LOG.md "Open items"):
 - 0.4: the CodeQL setting, `D3DCOMPILER_47` on Windows 7, the macOS 10.9 deployment target.
@@ -100,7 +101,8 @@ Open items from finished tasks (details in LOG.md "Open items"):
 - 3.4-4, a decision for the user: a script API level floor for 4.0 projects (the editor and `agscc` refuse levels
   below v399 or v400). It would free the gated registration, the four runtime switches and the `SCRIPT_API_v3xx` /
   `SCRIPT_COMPAT_v3xx` gates in `agsdefns.sh` (298 mentions below v399, 324 below v400); it costs a C3 change (C3 as frozen covers games compiled at those
-  levels) and needs a clear error for an existing project or game that uses one.
+  levels) and needs a clear error for an existing project or game that uses one. The way up for such a
+  project: L.2.
 - 3.5: `CCStaticObjectArray` and the `kScValStaticArray` branches of the script VM are unreachable (nothing makes such a
   value) but need a Release codegen comparison to go; `stream.h`'s big-endian branch does not compile
   (`ReadAndConvertArrayOfInt24`); the `DEBUG_SPRITECACHE` and `DEBUG_PATHFINDER` builds fail; `= delete` or keep for the
@@ -109,7 +111,7 @@ Open items from finished tasks (details in LOG.md "Open items"):
 - Scripts in a git worktree: `refactor_metrics.py`, `prepush.py`'s `linux` and `msbuild` stages fail there.
 - Stale: `Tools/test/directory_test.cpp`'s googletest comment; `FetchGoogleTest.cmake`'s pin for GCC < 5.
 
-Waiting: 5.3 until U.3 is closed, then with upstream's draft directory names.
+Ignored until the refactor is done: the iOS port (7.3, 2026-11-09).
 
 ---
 
@@ -168,8 +170,8 @@ folders.
   branches; the laptop for the WSL stages. LTO stays in the verification builds (the user, 2026-11-07),
   and so does the auto-test game in the Windows CMake job (the user, 2026-11-09).
   *Done when:* CI confirms a push that changes a few files in under 10 minutes. The first push measured
-  12 min 15 s (LOG.md 2.9, 2026-11-09); with LTO and the game where they are, the 10 minutes need
-  another saving or a new target.
+  12 min 15 s on a fast runner, the usual one gives about 13 (LOG.md 2.9, 2026-11-09); with LTO and the
+  game where they are, the 10 minutes need another saving or a new target.
 
 ## Phase 3: Dead code removal
 
@@ -224,9 +226,9 @@ the corpus run (1.4).
   `TODO` / 332 `FIXME` / 80 `CHECKME`: resolve, reclassify per STYLE.md, or delete; per directory,
   with phase 4.
   *Done when:* no `CHECKME`/`HACK` in a cleaned directory and every `FIXME` names its wrong case.
-- [ ] **3.7 Obsolete API stubs.** `Engine/plugin/plugin_stubs.cpp` (223-line `RegisterPluginStubs`)
-  keeps games using dead plugins (snow/rain, ...) running: keep the needed stubs, drop the rest.
-  Fold `Common/util/wgt2allg.*` (DOS WGT shim, 6 includes) into `BitmapHelper` and delete it.
+- [x] **3.7 Obsolete API stubs** (2026-11-09): `wgt2allg.*` folded into `BitmapHelper::BlitAllegroBitmap`; the
+  stubs of the five built-in plugins dropped (272 → 198 lines), those of the closed-source and defunct plugins
+  (Steam, Galaxy, Wadjet, shell, URL, joystick) kept with their reasons in the file (LOG.md).
 
 ## Phase 4: Names and comments
 
@@ -300,8 +302,9 @@ Each task is a series of small PRs.
   domain or go. `Common/ac/` likewise (`Common/game/`, `Common/assets/`). *Upstream (2026-11-03):*
   the wiki draft "AGS 4 Draft: major engine refactor" proposes
   `system/main/script/data/game/gfx/audio/video/util`, undecided. File moves hurt `port.py` most:
-  wait until U.3 is closed, then prefer upstream's names where they overlap (`game/`, `script/`,
-  `gfx/`, `audio/`, `util/`); `navigation/`, `dialog/`, `ui/` stay fork-only.
+  tag the pre-move tree `pre-5.3` so ports have a fixed base (no waiting for U.3; the user,
+  2026-11-09), and prefer upstream's names where they overlap (`game/`, `script/`, `gfx/`, `audio/`,
+  `util/`); `navigation/`, `dialog/`, `ui/` stay fork-only.
   *Done when:* `Engine/ac/` no longer exists.
 - [ ] **5.4 Split the longest functions** (BASELINE.md list), tests first:
   - `display_speech` (489 lines, nesting 8): text layout, portrait/bubble placement, lip-sync setup,
@@ -482,6 +485,13 @@ Wanted, but not before phases 3–7 are done; nothing is kept in the code to mak
   reference conversion output taken from the pre-3.4-2 editor (tag it before deleting).
   *Done when:* the 3.6.3 fixture project opens, builds and runs; the converted sources match the
   reference output; the tool runs in the Linux CI job.
+- [ ] **L.2 Script API compatibility** (2026-11-09; with the API level floor, open item 3.4-4; not
+  designed yet). Two candidates, alone or together:
+  - *Script shims* (the user): AGS script modules on the side. A removed or renamed API gets a drop-in
+    with the old name; one whose meaning or range changed (Transparency 0-100, tint ranges) gets a new
+    name and the user does a replace-all. Source projects only.
+  - *A compatibility plugin* (ivan-mogilko): registers the old functions through the plugin API (C4).
+    Could also serve games already compiled at an old level; native code on every port.
 
 ---
 

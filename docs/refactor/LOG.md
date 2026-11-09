@@ -1216,8 +1216,42 @@ four commits, three runs of each workflow (Verify 42584941158, 42592142379; CI l
   GCC build 210 against 163 and configure 101 against 77, the auto-test runs 74 and 58 s against 64 and 50),
   while the configure with the mirror was not slower on Windows (85 to 87 s against 91). That is the runners'
   speed in that hour (GitHub had an incident on); the first push after landing gives the real number.
+  *Corrected by the reading below:* it was the runner, but not the incident: the slower times are the usual
+  ones.
 - **Not changed:** the Linux package and tools jobs that configure inside containers (the variable does not
   reach them); the i386 container still does not resolve `github.com`.
+
+*2.9 follow-up, the push after landing (2026-11-09; Fable 5.1):* `a04697491..edb87dc88` on
+`ags4draconianr21`, Verify 42594814913 (6 min 53 s) and CI light 42594814912 (13 min 44 s), both green.
+- **The first fill on the main branch** (a branch's caches are not visible to another branch, so the probe's
+  did not count): `ags-deps` not found and saved under both keys (Linux 12.9 MB, Windows 12.9 MB), the
+  `_deps` caches not found and saved (their keys changed with the CMake files), the apt cache of Verify not
+  found and saved (84.8 MB). The download step, cold: 2 to 6 s (Windows 6, the game job 4, GCC 6, clang 2).
+  The apt step, cold: GCC 30 s, clang 47 s. `ci.yml`'s apt key is filled by the first full or manual run (no
+  Ubuntu job in a light run). Every ccache restored `525ddd44d`'s by prefix: MSVC 1274 of 1275, GCC 1303 of
+  1304, clang 847 of 848 (288 calls more than on a warm `_deps` cache in both Linux jobs, all hits: the
+  dependencies compiled again from the fresh extraction, by the numbers; not looked into).
+- **Both Verify jobs save the apt cache and the `ags-deps` cache under the same keys.** The clang job
+  ends first and saved both; the GCC job's saves were refused ("Unable to reserve cache ... another job may
+  be creating this cache", a log line, not a failure). The apt archive is therefore the clang job's package
+  set; the probe's warm numbers (GCC 22 s) were measured against the same. If the GCC job ever saved first,
+  the clang job would stay partly cold until the key changes; the job name in the apt key would end that.
+  Not changed.
+- **The critical path:** Auto-test game 89 s (the tools 72 s), Windows 619 s (configure 89, build 281, tests
+  34, the two auto-test runs 75 and 58, the ccache restore 14), parity 108 s.
+- **The runners come in two speeds, and 12 min 15 s was the fast one.** The Windows job of the last 13 CI
+  runs (2026-11-06 to 11-09, main and probe branches, the same runner image), by the two auto-test runs,
+  which no cache touches: 63 to 64 s and 50 s in two runs (the push of 07:15 UTC that gave 12 min 15 s, and
+  the probe's full run of 08:36, which already had the mirror: Windows job 467 s, build 208 s); 74 to 75 s
+  and 57 to 58 s in eight; slower still in three (85 to 99 s and 62 to 67 s). The build step follows
+  the same split: 208 and 214 s on the fast runners, 261 to 284 s on the others (eight runs; the ccache
+  statistics were read on two of the ten for this entry, 1274 of 1275 hits both times, and taken as the
+  same for the rest; three more runs with builds of 404 to 503 s were pushes of code changes and are left out). The
+  logs do not name the hardware. So: the follow-up changed nothing in the time of a light run (Windows job
+  569 and 571 s on 2026-11-06 before it, 581 s warm after it, on the usual runner), and the time to expect
+  is about 13 minutes (the game 90 to 110 s, Windows 570 to 580 s, parity 90 to 110 s, and 15 s more on a
+  push that fills caches), 12 on a fast runner. The "about 12 minutes" of the entries above is the fast
+  runner's.
 
 ### 3.1 Dead platforms
 
@@ -2010,6 +2044,37 @@ See LOG.md for the details of the removal and its verification.
   Confirm with a Linux build using `-ffunction-sections -fdata-sections
   -Wl,--gc-sections,--print-gc-sections` and `-Wunused-function`; delete in batches per directory.
   *Done when:* the list holds only documented exceptions.
+
+### 3.7 Obsolete API stubs
+
+*Definition:* PLAN.md 3.7: keep the plugin stubs games still need, drop the rest; fold `Common/util/wgt2allg.*`
+into `BitmapHelper` and delete it.
+
+*Status (2026-11-09): done* on branch `task-3.7`, three commits, 16 files, +30 -170:
+- **`wgt2allg.*` gone** (`[move]`): its one function, `wputblock_raw`, is `BitmapHelper::BlitAllegroBitmap(dst, x, y,
+  src, transparent)` in `Common/gfx/bitmap.*`, called from the plugin API's `IAGSEngine::BlitBitmap` only. The
+  file-scope wrapper `Bitmap` (with its startup initializer and exit destructor) is a local: the default constructor
+  allocates nothing and the wrap shares the pixels. Four of the five includers (`draw.cpp`, `global_palette.cpp`,
+  `invwindow.cpp`, `agsnative.cpp`) used nothing from the header. `compare_objects.py` (MSVC x64): 634 objects
+  identical, `bitmap.cpp` and `agsplugin.cpp` differ as expected, `wgt2allg.cpp` removed; not byte-identical because
+  the global went. `allegro.h includes` 41 → 40.
+- **Stubs dropped** (`[delete]`, 78 lines, 272 → 198) for the five plugins the engine has built in
+  (`ags_snowrain`, `ags_SnowRain20`, `agsblend`, `agsflashlight`, `agsspritefont`): `pl_use_builtin_plugin` runs
+  first, so the stubs were reached only by an engine without `BUILTIN_PLUGINS` (the MSBuild `acwin.exe`, which loads
+  `Plugins/*/msvc` DLLs, or CMake with `-DAGS_BUILTIN_PLUGINS=OFF`) *and* the plugin DLL missing from the game folder.
+  In that case the game now stops at "N unresolved imports" (`RuntimeScript::ResolveImports`) after the "No
+  placeholder functions" warning, where before it ran without the plugin's effect. Kept, each with its reason in the
+  file header: `agsteam*`/`agsgalaxy*` (closed source), `agswadjetutil` (closed source), `ags_shell`/`agsshell`,
+  `agsappopenurl`, `agsjoy` (defunct). The four `Sc_PluginStub_*` helpers are all still used.
+- **Verification:** `prepush.py --auto`, every stage: format, buildlists, build + ctest, tidy, headers, libcxx (341),
+  emscripten, linux (GCC in WSL, ctest 1165/1165), msbuild (5 solutions, Editor NUnit) all pass; `--only sanitizers`
+  (ASan, UBSan, leaks; unit tests and the auto-test game) clean in 1060 s. The tidy stage first caught two missing
+  braces in the new function, folded into the `[move]` commit; after that fix only format, buildlists, tidy and build
+  were re-run. Not run: the "DLL missing, no built-ins" case itself; Android's build was not checked for
+  `BUILTIN_PLUGINS`.
+- **On the way:** the agent writing this entry truncated PLAN.md to 0 bytes (a Python script opened the file for
+  writing, then failed on a non-ASCII character); restored from HEAD plus the pending diff. Scripts that rewrite a
+  tracked file read and write it as UTF-8, and write to a temporary file first.
 
 ### 7.1 Make the C++ tools the only build path
 
