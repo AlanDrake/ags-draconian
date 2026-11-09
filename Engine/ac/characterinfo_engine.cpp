@@ -221,8 +221,8 @@ void UpdateCharacterMoving(CharacterInfo *ch, CharacterExtras *chex, int &doing_
 
             if ((num_steps) && (chex->xwas != INVALID_X))
             {
-                // if the zoom level changed mid-move, the walkcounter
-                // might not have come round properly - so sort it out
+                // A half-step position saved by an earlier update (see below) may still be pending, for instance
+                // when the zoom level changed in between: restore the full-step position before stepping
                 ch->x = chex->xwas;
                 ch->y = chex->ywas;
                 chex->xwas = INVALID_X;
@@ -240,8 +240,8 @@ void UpdateCharacterMoving(CharacterInfo *ch, CharacterExtras *chex, int &doing_
 
             if (num_steps < 0)
             {
-                // very small scaling, intersperse the movement
-                // to stop it being jumpy
+                // Very small scaling: show the character half way through the step, to stop the movement being
+                // jumpy; the full-step position is kept in xwas/ywas and restored on the next update
                 chex->xwas = ch->x;
                 chex->ywas = ch->y;
                 ch->x = ((ch->x) - oldxp) / 2 + oldxp;
@@ -268,8 +268,11 @@ void UpdateCharacterMoving(CharacterInfo *ch, CharacterExtras *chex, int &doing_
             ch->walkwait = 0;
             const bool was_walk_anim = ch->is_moving_walkanim();
             Character_StopMovingEx(ch, !was_move_direct);
-            // CHECKME: there's possibly a flaw in game logic design here, as StopMoving also resets the frame,
-            // except it does not reset animwait, nor calls CheckViewFrame()
+            // The move list is gone and "walking" is already 0 here (do_movelist_move), so Character_StopMovingEx
+            // skips its "walking > 0" part, which is the one that resets the frame: this is the only place where
+            // the standing frame is set after a finished walk.
+            // TODO: Character_StopMoving called by a script on a walking character resets the frame, but not
+            // animwait, and does not call CheckViewFrame(), unlike here: the same reset could be shared.
             if (was_walk_anim)
             {
                 // use standing pic
@@ -307,7 +310,7 @@ void UpdateCharacterMoving(CharacterInfo *ch, CharacterExtras *chex, int &doing_
 
 bool UpdateCharacterAnimating(CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing)
 {
-    // not moving, but animating
+    // animating or idling, and not walking with a walk animation
     if (((chex->IsAnimating()) || (ch->is_idling())) && (!ch->is_moving() || ch->is_moving_no_anim()) &&
         (ch->room == displayed_room))
     {
@@ -386,7 +389,8 @@ bool UpdateCharacterAnimating(CharacterInfo *ch, CharacterExtras *chex, int &doi
             }
 
             ch->wait = views[view].loops[ch->loop].frames[ch->frame].speed;
-            // idle anim doesn't have speed stored cos animating==0 (TODO: investigate why?)
+            // An idle animation has no animation parameters in chex (they are cleared when it starts, see
+            // UpdateCharacterIdle), so its delay comes from idle_anim_speed instead of GetAnimDelay()
             if (ch->is_idling())
                 ch->wait += ch->idle_anim_speed;
             else
@@ -418,12 +422,15 @@ void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_s
     // not moving, but should be following another character
     else if ((following >= 0) && (doing_nothing == 1))
     {
-        // no character in this room
+        // either of the two characters is disabled: do nothing
         if (!game.chars[following].is_enabled() || !ch->is_enabled())
             ;
         else if (ch->room < 0)
         {
-            ch->room++; // CHECKME: what the heck is this for ???
+            // A negative room is the countdown set below (-follow_change_room_timer), the delay before the follower
+            // appears in the room the followed character is in. It counts up by one per update while the
+            // character has nothing else to do, and the follower enters at 0.
+            ch->room++;
             if (ch->room == 0)
             {
                 // appear in the new room
@@ -435,9 +442,10 @@ void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_s
         // wait a bit, so we're not constantly walking
         else if (Random(100) < eagerness)
             ;
-        // the followed character has changed room
+        // TODO: this branch can never be taken, a disabled followed character is already handled above
         else if ((ch->room != game.chars[following].room) && (!game.chars[following].is_enabled()))
-            ; // do nothing if the player isn't visible
+            ; // do nothing if the followed character is disabled
+        // the followed character has changed room
         else if (ch->room != game.chars[following].room)
         {
             ch->prevroom = ch->room;
@@ -482,7 +490,7 @@ void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_s
         }
         else if (ch->room != displayed_room)
         {
-            // if the characetr is following another character and
+            // if the character is following another character and
             // neither is in the current room, don't try to move
         }
         else if ((abs(game.chars[following].x - ch->x) > distaway + 30) ||
@@ -527,7 +535,7 @@ void UpdateCharacterIdle(CharacterInfo *ch, CharacterExtras *chex, int &doing_no
             int useloop = ch->loop;
             debug_script_log("%s: Now idle (view %d)", ch->scrname.GetCStr(), ch->idleview + 1);
             Character_LockView(ch, ch->idleview + 1);
-            // SetCharView resets it to 0
+            // Character_LockView stops the idling (idleleft is -1 here) and resets idleleft: mark it as idling again
             ch->idleleft = -2;
             int max_loops = views[ch->idleview].numLoops;
             // if the char is set to "no diagonal loops", don't try
@@ -551,7 +559,10 @@ void UpdateCharacterIdle(CharacterInfo *ch, CharacterExtras *chex, int &doing_no
 
             animate_character(ch, useloop, ch->idle_anim_speed, (ch->idledelay == 0) ? 1 : 0 /* repeat */);
 
-            // don't set Animating while the idle anim plays (TODO: investigate why?)
+            // Don't keep the animation parameters while the idle anim plays: chex->IsAnimating() stays false, and
+            // the idling state is told by idleleft < 0 alone (is_idling()).
+            // TODO: the idle animation's delay could live in chex->anim like the other animations' (see
+            // UpdateCharacterAnimating), which would drop the idle_anim_speed special case.
             chex->anim = ViewAnimateParams();
         }
     } // end do idle animation
