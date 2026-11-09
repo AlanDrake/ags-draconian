@@ -307,8 +307,8 @@ PViewport FindNearestViewport(int charid);
 //
 // Updates one character for one game tick: turning, moving, animating, following, idling, in this order; does
 // nothing if the character is disabled. Characters following another "always on top" are added to
-// followingAsSheep, to be updated afterwards with UpdateFollowingExactlyCharacter.
-void UpdateCharacterMoveAndAnim(CharacterInfo *ch, CharacterExtras *chex, std::vector<int> &followingAsSheep);
+// following_as_sheep, to be updated afterwards with UpdateFollowingExactlyCharacter.
+void UpdateCharacterMoveAndAnim(CharacterInfo *ch, CharacterExtras *chex, std::vector<int> &following_as_sheep);
 // Copies the position, room and previous room of the character it follows "always on top", and puts its baseline
 // one behind or in front of the followed one's.
 void UpdateFollowingExactlyCharacter(CharacterInfo *ch);
@@ -323,7 +323,7 @@ bool UpdateCharacterAnimating(CharacterInfo *ch, CharacterExtras *chex, int &doi
 // Counts the idle time of a character that does nothing and starts its idle animation when the time is up.
 void UpdateCharacterIdle(CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing);
 // Makes a character that follows another one walk after it, or change room with it, when it has nothing else to do.
-void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &followingAsSheep, int &doing_nothing);
+void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_sheep, int &doing_nothing);
 // Rebuilds every character's list of inventory items (CharacterExtras::inventory) from the item quantities.
 void UpdateInventory();
 
