@@ -112,10 +112,7 @@ static void DrawingSurface_DrawImageImpl(ScriptDrawingSurface *surface, Bitmap *
     if (!ds)
         return;
 
-    if (src == ds)
-    {
-    } // ignore for now; bitmap lib supports, and may be used for effects
-    /* debug_script_warn("DrawingSurface.DrawImage: drawing onto itself"); */
+    // Drawing a surface onto itself is allowed: the bitmap lib supports it, and it may be used for effects.
     if (src->GetColorDepth() != ds->GetColorDepth())
     {
         if (sprite_id >= 0)
@@ -169,7 +166,7 @@ static void DrawingSurface_DrawImageImpl(ScriptDrawingSurface *surface, Bitmap *
     Math::ClampLength(src_y, src_height, 0, src->GetHeight());
 
     // TODO: possibly optimize by not making a stretched intermediate bitmap
-    // if simplier blit/draw_sprite could be called (no translucency with alpha channel).
+    // if simpler blit/draw_sprite could be called (no translucency with alpha channel).
     std::unique_ptr<Bitmap> conv_src;
     if (dst_width != src->GetWidth() || dst_height != src->GetHeight() || src_width != src->GetWidth() ||
         src_height != src->GetHeight())
