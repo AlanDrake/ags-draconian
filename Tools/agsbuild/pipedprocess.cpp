@@ -42,22 +42,22 @@ String QuoteWindowsArg(const String &arg)
     }
 
     std::string quoted = "\"";
-    for (const char *ch = text;; ++ch)
+    for (const char *p = text;; ++p)
     {
         size_t backslashes = 0;
-        for (; *ch == '\\'; ++ch)
+        for (; *p == '\\'; ++p)
         {
             ++backslashes;
         }
-        if (*ch == 0)
+        if (*p == 0)
         {
             // Before the closing quote every backslash is doubled, or the last one would escape it
             quoted.append(backslashes * 2, '\\');
             break;
         }
         // Doubled before a quote too, and one more to escape the quote; literal anywhere else
-        quoted.append(*ch == '"' ? backslashes * 2 + 1 : backslashes, '\\');
-        quoted += *ch;
+        quoted.append(*p == '"' ? backslashes * 2 + 1 : backslashes, '\\');
+        quoted += *p;
     }
     quoted += '"';
     return quoted.c_str();
@@ -73,15 +73,15 @@ String QuotePosixShellArg(const String &arg)
     }
 
     std::string quoted = "'";
-    for (const char *ch = text; *ch; ++ch)
+    for (const char *p = text; *p; ++p)
     {
-        if (*ch == '\'')
+        if (*p == '\'')
         {
             quoted += "'\\''"; // there is no escape inside single quotes: close them, escape, reopen
         }
         else
         {
-            quoted += *ch;
+            quoted += *p;
         }
     }
     quoted += '\'';

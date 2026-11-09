@@ -1773,13 +1773,13 @@ static std::vector<uint8_t> DecodeBase64(const char *text)
     int value = 0, bits = -8;
     for (const unsigned char *ptr = reinterpret_cast<const unsigned char *>(text ? text : ""); *ptr; ++ptr)
     {
-        const unsigned char ch = *ptr;
-        int digit = ch >= 'A' && ch <= 'Z'   ? ch - 'A'
-                    : ch >= 'a' && ch <= 'z' ? ch - 'a' + 26
-                    : ch >= '0' && ch <= '9' ? ch - '0' + 52
-                    : ch == '+'              ? 62
-                    : ch == '/'              ? 63
-                                             : -1;
+        const unsigned char c = *ptr;
+        int digit = c >= 'A' && c <= 'Z'   ? c - 'A'
+                    : c >= 'a' && c <= 'z' ? c - 'a' + 26
+                    : c >= '0' && c <= '9' ? c - '0' + 52
+                    : c == '+'             ? 62
+                    : c == '/'             ? 63
+                                           : -1;
         if (digit < 0)
             continue;
         value = (value << 6) | digit;

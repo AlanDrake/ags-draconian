@@ -604,8 +604,8 @@ TEST(DataFileWriter, RoundTripExtensionFraming)
         EXPECT_EQ(i, in->ReadInt8());
     EXPECT_EQ(small_payload_pos + small_length, in->GetPosition());
 
-    for (char &ch : id)
-        ch = 0;
+    for (char &c : id)
+        c = 0;
     EXPECT_EQ(0, in->ReadInt8());
     in->Read(id, 16);
     EXPECT_STREQ("large", id);
