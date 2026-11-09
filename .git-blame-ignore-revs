@@ -27,3 +27,5 @@ fad87c64f92699d5b0805e7322068554640d996e
 92a1ad6f11818cc2aafe64b7872dd4495d44de66
 # Engine: [format] braces in characterinfo_engine.cpp (2.4)
 a6a139eb7a678d1e1fea057f52e298708a643de9
+# [format] braces on the lines the ch renames touched (2.4)
+fd0a4bbe2e27ef1636c3a7b25f342a014375e4f3

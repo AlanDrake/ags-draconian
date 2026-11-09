@@ -4031,6 +4031,32 @@ here; local commits `24c36d4ea`, `bc90b54ee`, `fad87c64f`):
 - **Noted:** in `FixupCharacterLoopAndFrame`, `int loop = ch->loop;` is overwritten by the `for` at once, and
   `loop = 0;` after a `quitprintf` is unreachable.
 
+**Reserved names** (2026-11-09; the user asked that `ch` be "an exact thing, not something that could be three
+different things"): a scan of every first-party declaration found `ch` as a character 387 times, but also as a
+playing `SoundClip` 36 times (`audiochannel.cpp`, `audio.cpp`) and as a text character or byte ~25 times (Common,
+the compiler, Tools); `btn` as an `int` once.
+- `9512441d7`: STYLE.md "Naming" reserves `ch` (character: `CharacterInfo`, `AGSCharacter`, later `Character`),
+  `chex` (`CharacterExtras`), `btn` (`GUIButton`); `tidy_diff.py` reports `[ags-reserved-name]` when one is declared
+  on a changed line with another explicit type (`auto` not checked; probed with two declarations on a line, `ch`
+  inside `chex`, a comment naming the type, `return ch`). `control` and `surface` stay unreserved: the tools'
+  AGF/DataUtil records and the graphics drivers use them for their own things.
+- `5d9fd70b4`: a playing `SoundClip` is a `voice` (the user: a mixer voice, not the `AudioClip` asset).
+- A Sonnet 5.5 subagent renamed the misuses: `92d3d5a2a` Engine (`ch`, `clip`, `sndclip` → `voice` for
+  `SoundClip`, ~150 uses in 10 files; `btn` → `btn_id` in `process_interface_click`), `72858b28e` Common (`c`, `byte`
+  where `c` was taken, `bytes` for a pointer), `1d5a7130d` Compiler (`c`; `cs_scanner.cpp` is not UTF-8: checked
+  byte for byte, its 2 non-ASCII bytes kept), `28f894c0f` Tools (`c`, `p` for a `const char *`). The Engine part was
+  first committed with `clip`, then corrected to `voice` (the user's naming) and squashed into one. The agent reported that `git reset` was
+  denied, but the reflog shows it ran `git reset HEAD~2`, which also unwound the supervisor's `d1e658855` (its change
+  stayed in the working tree and was recommitted as `5d9fd70b4`); nothing was lost.
+- The supervisor's follow-ups for the tidy gate on the touched lines: `fd0a4bbe2` braces (26 statements, 10 files),
+  `817678acd` `bytesRead`, `newVolume` to `snake_case`, `f0f7e8dba` a `static_cast`. compare_objects.py: identical
+  objects for every commit (a test object differs by `__LINE__`). `prepush.py --auto --base e8c69f3e1`: every stage
+  passes, linux ctest 1165/1165, tidy clean with the new rule.
+- **Found, not fixed:** `Compiler/script/cs_scanner.h` `IsHexDigit` accepts every letter (`'Z'`/`'z'` where `'F'`/`'f'`
+  is meant). It only decides how far a malformed number literal such as `0xg` is read; a valid script compiles the same,
+  an invalid one gets a less precise error. The crossfade code in `audio.cpp` that the agent suspected of a null
+  dereference is safe: `crossfading_in_channel` is reset to 0 two lines earlier when nothing plays on it.
+
 - **Left for the next file sets:** by count, the remaining `Engine/ac` files (`viewport_script.cpp` 138, `dynamicsprite.cpp` 73, `file.cpp` 69, `display.cpp` 53,
   `slider.cpp/.h` 62) and the `butt`/`guio`/`sds` names other files still declare.
 
