@@ -120,6 +120,20 @@ jobs:
         path: auto-test-source
         persist-credentials: false
 
+    # FetchContent re-runs its download step at every configure even when `_deps` is restored, so the archives
+    # come from this mirror (measured 2026-11-09: every CMake job downloaded on every run; a github.com outage
+    # failed them all). The same cache serves every job and the Android one: the archives are the same bytes.
+    - name: Cache CMake dependency archives
+      uses: actions/cache@v5
+      with:
+        path: ${{ runner.temp }}/ags-deps
+        key: ags-deps-${{ hashFiles('CMake/Fetch*.cmake') }}
+
+    - name: Download CMake dependency archives
+      run: |
+        Script/fetch_deps.sh "$RUNNER_TEMP/ags-deps"
+        echo "AGS_FETCH_MIRROR_DIR=$RUNNER_TEMP/ags-deps" >> "$GITHUB_ENV"
+
     - name: Cache CMake FetchContent dependencies
       uses: actions/cache@v5
       with:
@@ -254,6 +268,20 @@ jobs:
         sudo rm -rf "$RUNNER_TEMP/apt-archives/partial" "$RUNNER_TEMP/apt-archives/lock"
         sudo chown -R "$(id -u):$(id -g)" "$RUNNER_TEMP/apt-archives"
         du -sh "$RUNNER_TEMP/apt-archives"
+
+    - name: Cache CMake dependency archives
+      uses: actions/cache@v5
+      with:
+        path: ${{ runner.temp }}/ags-deps
+        key: ags-deps-${{ hashFiles('CMake/Fetch*.cmake') }}
+
+    - name: Download CMake dependency archives
+      shell: bash
+      run: |
+        dir="$RUNNER_TEMP/ags-deps"
+        case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) dir="$(cygpath -m "$dir")";; esac
+        sh Script/fetch_deps.sh "$dir"
+        echo "AGS_FETCH_MIRROR_DIR=$dir" >> "$GITHUB_ENV"
 
     # "2": the Windows entry moved to Ninja, and a tree that another generator configured cannot be reused
     - name: Cache CMake FetchContent dependencies
@@ -395,6 +423,17 @@ jobs:
       - uses: emscripten-core/setup-emsdk@4528d102f7230f0e7b276855c01ea1159be0e984 #v16
         with:
           version: ${{env.EM_VERSION}}
+
+      - name: Cache CMake dependency archives
+        uses: actions/cache@v5
+        with:
+          path: ${{ runner.temp }}/ags-deps
+          key: ags-deps-${{ hashFiles('CMake/Fetch*.cmake') }}
+
+      - name: Download CMake dependency archives
+        run: |
+          Script/fetch_deps.sh "$RUNNER_TEMP/ags-deps"
+          echo "AGS_FETCH_MIRROR_DIR=$RUNNER_TEMP/ags-deps" >> "$GITHUB_ENV"
 
       - name: Cache CMake FetchContent dependencies
         uses: actions/cache@v5

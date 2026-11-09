@@ -101,6 +101,17 @@ jobs:
       - name: Set up Tappy
         run: pip install tap.py
 
+      - name: Cache CMake dependency archives
+        uses: actions/cache@v5
+        with:
+          path: ${{ runner.temp }}/ags-deps
+          key: ags-deps-${{ hashFiles('CMake/Fetch*.cmake') }}
+
+      - name: Download CMake dependency archives
+        run: |
+          Script/fetch_deps.sh "$RUNNER_TEMP/ags-deps"
+          echo "AGS_FETCH_MIRROR_DIR=$RUNNER_TEMP/ags-deps" >> "$GITHUB_ENV"
+
       - name: Cache CMake FetchContent dependencies
         uses: actions/cache@v5
         with:
@@ -212,6 +223,17 @@ jobs:
           sudo rm -rf "$RUNNER_TEMP/apt-archives/partial" "$RUNNER_TEMP/apt-archives/lock"
           sudo chown -R "$(id -u):$(id -g)" "$RUNNER_TEMP/apt-archives"
           du -sh "$RUNNER_TEMP/apt-archives"
+
+      - name: Cache CMake dependency archives
+        uses: actions/cache@v5
+        with:
+          path: ${{ runner.temp }}/ags-deps
+          key: ags-deps-${{ hashFiles('CMake/Fetch*.cmake') }}
+
+      - name: Download CMake dependency archives
+        run: |
+          Script/fetch_deps.sh "$RUNNER_TEMP/ags-deps"
+          echo "AGS_FETCH_MIRROR_DIR=$RUNNER_TEMP/ags-deps" >> "$GITHUB_ENV"
 
       - name: Cache CMake FetchContent dependencies
         uses: actions/cache@v5

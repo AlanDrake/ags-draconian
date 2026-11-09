@@ -11,7 +11,7 @@ dir=$1
 repo=$(cd "$(dirname "$0")/.." && pwd)
 mkdir -p "$dir"
 
-sed -n 's/^ags_fetch_url([A-Za-z0-9_]* \(https:[^)]*\)).*/\1/p' "$repo"/CMake/Fetch*.cmake | while read -r url; do
+sed -n 's/^ *ags_fetch_url([A-Za-z0-9_]* \(https:[^)]*\)).*/\1/p' "$repo"/CMake/Fetch*.cmake | while read -r url; do
     archive="$dir/$(basename "$url")"
     if [ -s "$archive" ]; then
         echo "Have $(basename "$url")"

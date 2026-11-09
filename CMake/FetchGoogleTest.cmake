@@ -12,15 +12,17 @@ message("googletest building with LINUX_OLD_GCC:" ${LINUX_OLD_GCC})
 FetchContent_GetProperties(googletest_content)
 if(NOT googletest_content_POPULATED)
     if(LINUX_OLD_GCC)
+        ags_fetch_url(GTEST_URL https://github.com/google/googletest/archive/refs/tags/release-1.8.1.tar.gz)
         FetchContent_Populate(googletest_content
                 DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-                URL https://github.com/google/googletest/archive/refs/tags/release-1.8.1.tar.gz
+                URL ${GTEST_URL}
                 URL_HASH MD5=2e6fbeb6a91310a16efe181886c59596
         )
     else()
+        ags_fetch_url(GTEST_URL https://github.com/google/googletest/archive/52204f78f94d7512df1f0f3bea1d47437a2c3a58.tar.gz)
         FetchContent_Populate(googletest_content
                 DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-                URL https://github.com/google/googletest/archive/52204f78f94d7512df1f0f3bea1d47437a2c3a58.tar.gz
+                URL ${GTEST_URL}
                 URL_HASH MD5=9512a106bb006ab84e0a822ec363c6c7
         )
     endif()
