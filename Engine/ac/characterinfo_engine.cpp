@@ -510,11 +510,6 @@ void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_s
         {
             ;
         }
-        // TODO: this branch can never be taken, a disabled followed character is already handled above
-        else if ((ch->room != game.chars[following].room) && (!game.chars[following].is_enabled()))
-        {
-            ; // do nothing if the followed character is disabled
-        }
         // the followed character has changed room
         else if (ch->room != game.chars[following].room)
         {
