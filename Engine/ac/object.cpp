@@ -62,11 +62,13 @@ extern Bitmap *walkable_areas_temp;
 extern CCObject ccDynamicObject;
 extern SpriteCache spriteset;
 
-// CHECKME: what is this?
+// AreThingsOverlapping takes a character ID, or a room object ID plus this offset, for a "thing"
+// (the script API, C3).
 #define OVERLAPPING_OBJECT 1000
 
-// Used for deciding whether a char or obj was closer
-// FIXME: should not be a global variable!!!
+// The baseline of the object that GetObjectIDAtRoom found last, -1 if none; GetLocationTypeImpl (game.cpp)
+// compares it with char_lowest_yp and the walk-behind's to tell which is in front.
+// TODO: return it together with the object ID instead of through a global.
 int obj_lowest_yp;
 
 bool IsValidObject(int obj_id)
@@ -87,7 +89,8 @@ static int GetThingRect(int thing, Rect *rect)
 {
     if (IsValidCharacter(thing))
     {
-        // FIXME: do we check visible or enabled here?
+        // FIXME: a disabled character in this room still counts as overlapping, a disabled object does not
+        // (below), and neither case looks at visibility
         if (game.chars[thing].room != displayed_room)
             return 0;
 
@@ -99,7 +102,6 @@ static int GetThingRect(int thing, Rect *rect)
     else if (IsValidObject(thing - OVERLAPPING_OBJECT))
     {
         int objid = thing - OVERLAPPING_OBJECT;
-        // FIXME: do we check visible or enabled here?
         if (!objs[objid].is_enabled())
             return 0;
 
@@ -119,7 +121,7 @@ int AreThingsOverlapping(int thing1, int thing2)
 {
     Rect r1, r2;
     // get the bounding rectangles, and return 0 if the object/char
-    // is currently turned off
+    // is not there (a character in another room, a disabled object)
     if (GetThingRect(thing1, &r1) == 0)
         return 0;
     if (GetThingRect(thing2, &r2) == 0)
@@ -136,7 +138,7 @@ int AreThingsOverlapping(int thing1, int thing2)
         int ydist = abs(r1.Bottom - r2.Top) + 1;
         if (abs(r1.Top - r2.Bottom) < ydist)
             ydist = abs(r1.Top - r2.Bottom) + 1;
-        // the overlapping amount is the smaller of the X and Y ovrlap
+        // the overlapping amount is the smaller of the X and Y overlap
         if (xdist < ydist)
             return xdist;
         else
@@ -836,7 +838,7 @@ void RunObjectInteraction(int aa, int mood)
         run_event_script(obj_evt, &thisroom.Objects[aa].Interactions, evnt, &thisroom.Objects[aa].GetEvents(),
                          anyclick_evt, true /* do unhandled event */) < 0)
         return; // game state changed, don't do "any click"
-                // any click on obj
+    // any click on obj
     run_event_script(obj_evt, &thisroom.Objects[aa].GetEvents(), anyclick_evt);
 }
 
@@ -844,7 +846,10 @@ bool Object_IsInteractionAvailable(ScriptObject *obj, int mood)
 {
     play.check_interaction_only = 1;
     RunObjectInteraction(obj->id, mood);
-    int ciwas = play.check_interaction_only; // FIXME: reimplement returning check result without this hack!
+    // In the check-only mode run_event_script runs no handler, but sets check_interaction_only to 2
+    // if it found one (for the event, or for "any click")
+    // TODO: return the check result from run_event_script, instead of passing it through play.check_interaction_only
+    int ciwas = play.check_interaction_only;
     play.check_interaction_only = 0;
     return (ciwas == 2);
 }
@@ -1348,7 +1353,7 @@ void update_object_scale(int &res_zoom, int &res_width, int &res_height, int obj
     int zoom = own_zoom;
     if (use_region_scaling)
     {
-        // Only apply area zoom if we're on a a valid area:
+        // Only apply area zoom if we're on a valid area:
         // * either area is > 0, or
         // * area 0 has valid scaling property (<> 0)
         int onarea = get_walkable_area_at_location(objx, objy);
@@ -1387,7 +1392,7 @@ void update_object_scale(int objid)
     update_object_scale(zoom, scale_width, scale_height, obj.x, obj.y, obj.num, obj.zoom,
                         (obj.flags & OBJF_USEROOMSCALING) != 0);
 
-    // Save calculated propertes and recalc GS
+    // Save calculated properties and recalc GS
     obj.zoom = zoom;
     obj.spr_width = game.SpriteInfos[obj.num].Width;
     obj.spr_height = game.SpriteInfos[obj.num].Height;
@@ -1428,9 +1433,6 @@ Rect get_object_blocking_rect(int objid)
     return RectWH(x, y1, width, y2 - y1);
 }
 
-// x,y is the position in room co-ordinates that we are checking
-// arx,ary,spww,sphh are the sprite's bounding box
-// bitmap_original tells whether bitmap is an original sprite, or transformed version
 int is_pos_in_sprite(int x, int y, int arx, int ary, Bitmap *sprit, int spww, int sphh,
                      Common::SpriteTransformFlags sprite_flags)
 {
@@ -1460,7 +1462,6 @@ int is_pos_in_sprite(int x, int y, int arx, int ary, Bitmap *sprit, int spww, in
     return TRUE;
 }
 
-// X and Y co-ordinates must be in native format (TODO: find out if this comment is still true)
 int check_click_on_object(int roomx, int roomy, int mood)
 {
     int aa = GetObjectIDAtRoom(roomx, roomy, kHit_Interactable);
