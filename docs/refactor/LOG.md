@@ -3987,9 +3987,29 @@ here; local commits `24c36d4ea`, `bc90b54ee`, `fad87c64f`):
   `Sc_DrawingSurface_DrawStringWrapped` names `DrawingSurface_DrawString` in its parameter-count assertion (only the
   debug message).
 
-- **Left for the next file sets:** `characterinfo_engine.cpp` still names the character `chi` where `character.h`
-  declares `ch` (and `followingAsSheep`), and has two CHECKMEs (~lines 271 and 426); next by count:
-  `button.cpp/.h` (195), `characterinfo_engine.cpp` (186).
+**`Engine/ac/button.cpp` + `button.h`** (2026-11-09; a Sonnet 5.5 subagent at `medium`, reviewed here; local commits
+`b94b5235b`, `68e9a925c`, `92a1ad6f1`):
+- **`[rename]`, +190 -191:** `butt`, `guin` and the unlisted `guil` to 0. `GUIButton *` is `btn` (PLAN.md 4.1's name;
+  other Engine files still say `butt` 82 times, `guil` 6, `gbpt` 2, `but` 1); the GUI index `guin` is `gui_id`;
+  `newFont` → `new_font`. Three header declarations synced. Left, not on the watchlist: `objn` (the button's index in
+  its GUI, a later `btn_id`), `slotn`, `newtx`, `newval`, `newcol`, `idxn`. 637 objects identical.
+- **`[comment]`, +40 -3:** no CHECKME, HACK, FIXME or TODO in the files. `UpdateAnimatingButton`'s "returns 1 if
+  animation finished" was inverted (it returns `true` while the animation goes on; `game_run.cpp` stops it on `false`),
+  now correct; every public function of `button.h` documented. Checked against the code.
+- **`[format]`, +14:** braces on 7 changed statements.
+- **Verification:** `prepush.py --auto --base afb95c9d7` after the first two commits: format, build + ctest, headers,
+  libcxx 341, emscripten, linux (WSL worked again; ctest 1165/1165; the run built the whole tree, so it also covered the
+  two drawingsurface fixes above), msbuild pass; tidy asked for the braces, then format and tidy pass. Not run: macOS,
+  iOS, Android.
+- **Noted, not changed:** `AddButtonAnimation` (the save loader's path) does not drop a duplicate for the same button,
+  as `Button_Animate` does; `StopButtonAnimation` has no range check (its callers pass valid indices);
+  `Button_GetText` copies at most 199 characters (`MAX_MAXSTRLEN`). `Button_GetGraphic` treating only a negative
+  current image as "none" is right: sprite 0 is a real sprite.
+
+- **Left for the next file sets:** `characterinfo_engine.cpp` (186) still names the character `chi` where
+  `character.h` declares `ch` (and `followingAsSheep`), and has two CHECKMEs (~lines 271 and 426); then, by count, the
+  remaining `Engine/ac` files (`viewport_script.cpp` 138, `dynamicsprite.cpp` 73, `file.cpp` 69, `display.cpp` 53,
+  `slider.cpp/.h` 62) and the `butt`/`guio`/`sds` names other files still declare.
 
 ### 7.3 Ports
 

@@ -80,7 +80,7 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **4.1 + 4.5 + 3.6 per file:** parameter and local names, comments, comment debris, `Engine/ac/` most-churned files first; one `[rename]` commit per file checked by `compare_objects.py`, then a `[comment]` commit. Done: `character.cpp/.h`, `object.cpp/.h`, `guicontrol.cpp/.h`, `drawingsurface.cpp/.h` (2026-11-09). Next: `button.cpp/.h`, then `characterinfo_engine` (which also gets `character.h`'s `ch` names and `followingAsSheep`). camelCase parameters go to `snake_case` in the same pass, and braces on the touched lines in a `[format]` commit, or the tidy gate fails | Phase 5 needs phase 4; mechanical and verifiable | Sonnet 5.5, `medium`, one file set per session |
+| 1 | **4.1 + 4.5 + 3.6 per file:** parameter and local names, comments, comment debris, `Engine/ac/` most-churned files first; one `[rename]` commit per file checked by `compare_objects.py`, then a `[comment]` commit. Done: `character.cpp/.h`, `object.cpp/.h`, `guicontrol.cpp/.h`, `drawingsurface.cpp/.h`, `button.cpp/.h` (2026-11-09). Next: `characterinfo_engine.cpp`, then `viewport_script`, `dynamicsprite`, `file` (which also gets `character.h`'s `ch` names and `followingAsSheep`). camelCase parameters go to `snake_case` in the same pass, and braces on the touched lines in a `[format]` commit, or the tidy gate fails | Phase 5 needs phase 4; mechanical and verifiable | Sonnet 5.5, `medium`, one file set per session |
 | 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` with upstream's draft names where they overlap | Files move once (4.4 rides along) | Fable 5.1, `high` for the move map, subagents for the moves |
 | 3 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); U.3 (#3186–#3190, #3185, #3191), U.6, U.7 (#3193) under review | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
@@ -248,8 +248,9 @@ optionally a `[comments]` commit.
   *Done when:* cryptic names = 0, except the globals of 5.1.
   *Progress:* `character.cpp/.h` done with 4.5 and 3.6 (2026-11-09, LOG.md "4.1 + 4.5 + 3.6 per file": 1,324
   names to 0, camelCase parameters too; a turn-order bug found and fixed), `object.cpp/.h` (2026-11-09, 359 to 0),
-  `guicontrol.cpp/.h` (2026-11-09, 249 to 0), `drawingsurface.cpp/.h` (2026-11-09, 196 to 0). Next by count:
-  `button.cpp/.h` 195, `characterinfo_engine.cpp` 186.
+  `guicontrol.cpp/.h` (2026-11-09, 249 to 0), `drawingsurface.cpp/.h` (2026-11-09, 196 to 0),
+  `button.cpp/.h` (2026-11-09, 195 to 0). Next: `characterinfo_engine.cpp` 186, then `viewport_script.cpp` 138,
+  `dynamicsprite.cpp` 73, `file.cpp` 69, `slider.cpp/.h` 62, `display.cpp` 53.
 - [ ] **4.2 Function names.** Engine free functions: `snake_case` 949, `PascalCase` 1,094,
   `Type_Method` 3,119 (script API). Rename snake_case to PascalCase as phase 5 restructures their
   files, not before (many will be deleted or become methods).
