@@ -332,7 +332,6 @@ if(AGS_TESTS)
       ../Common/util/path.cpp # needed by assetmanager.cpp
       ../Common/util/sdl2_util.cpp
       ../Common/util/version.cpp # needed by common_stubs.cpp
-      ../Common/util/wgt2allg.cpp # needed by Common bitmap/font implementations
       ../Common/test/sdl2_stubs.c
       test/agfreader_test.cpp
       test/data_file_writer_test.cpp

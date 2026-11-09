@@ -224,9 +224,6 @@
     <ClCompile Include="..\..\Common\util\version.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\util\wgt2allg.cpp">
-      <Filter>Source Files\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\script\cc_script.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
@@ -758,9 +755,6 @@
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\version.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\util\wgt2allg.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_script.h">

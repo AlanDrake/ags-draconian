@@ -36,7 +36,6 @@
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "script/runtimescriptvalue.h"
-#include "util/wgt2allg.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

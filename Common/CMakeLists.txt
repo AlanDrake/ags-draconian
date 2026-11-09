@@ -199,8 +199,6 @@ target_sources(common
     util/transformstream.h
     util/version.cpp
     util/version.h
-    util/wgt2allg.cpp
-    util/wgt2allg.h
     
     platform/platform.h
     platform/types.h

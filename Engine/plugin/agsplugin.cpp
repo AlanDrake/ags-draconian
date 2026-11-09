@@ -62,7 +62,6 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "util/library.h"
-#include "util/wgt2allg.h"
 
 // hide internal constants conflicting with plugin API
 #undef OBJF_NOINTERACT
@@ -369,7 +368,7 @@ void IAGSEngine::BlitBitmap(int32 x, int32 y, BITMAP *bmp, int32 masked)
     Bitmap *ds = gfxDriver->GetStageBackBuffer(true);
     if (!ds)
         return;
-    wputblock_raw(ds, x, y, bmp, masked);
+    BitmapHelper::BlitAllegroBitmap(ds, x, y, bmp, masked != 0);
     invalidate_rect(x, y, x + bmp->w, y + bmp->h, false);
 }
 

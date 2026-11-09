@@ -17,7 +17,6 @@
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "util/wgt2allg.h"
 
 using namespace AGS;
 using namespace AGS::Common;

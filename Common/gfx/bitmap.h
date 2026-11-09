@@ -147,6 +147,9 @@ void CopyTransparency(Bitmap *dst, const Bitmap *mask, bool dst_has_alpha, bool 
 // Pitch is given in bytes and defines the length of the source scan line.
 // FIXME: a safer version that requires to assert buffer size
 void ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t src_pitch);
+// Draws a raw Allegro bitmap, which the caller keeps owning, on a bitmap at the given position;
+// if "transparent" is set, the pixels of the mask color are skipped, otherwise they are copied.
+void BlitAllegroBitmap(Bitmap *dst, int x, int y, BITMAP *src, bool transparent);
 
 } // namespace BitmapHelper
 

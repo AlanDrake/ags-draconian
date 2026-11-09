@@ -344,6 +344,20 @@ bool SaveToFile(const Bitmap *bmp, const char *filename, bool skip_alpha, const 
     return SaveBitmap(bmp, skip_alpha, pal, out.get(), Path::GetFileExtension(filename));
 }
 
+void BlitAllegroBitmap(Bitmap *dst, int x, int y, BITMAP *src, bool transparent)
+{
+    Bitmap wrapper;
+    wrapper.WrapAllegroBitmap(src, true);
+    if (transparent)
+    {
+        dst->Blit(&wrapper, x, y, kBitmap_Transparency);
+    }
+    else
+    {
+        dst->Blit(&wrapper, 0, 0, x, y, wrapper.GetWidth(), wrapper.GetHeight());
+    }
+}
+
 } // namespace BitmapHelper
 
 } // namespace Common

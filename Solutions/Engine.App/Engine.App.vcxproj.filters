@@ -1376,9 +1376,6 @@
     <ClInclude Include="..\..\Common\util\string_utils.h">
       <Filter>Common Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\util\wgt2allg.h">
-      <Filter>Common Header Files\util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_aaogl.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>

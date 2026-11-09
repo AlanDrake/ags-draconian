@@ -587,7 +587,6 @@
     <ClInclude Include="..\..\Common\util\lzw.h" />
     <ClInclude Include="..\..\Common\util\misc.h" />
     <ClInclude Include="..\..\Common\util\string_utils.h" />
-    <ClInclude Include="..\..\Common\util\wgt2allg.h" />
     <ClInclude Include="..\..\Engine\ac\asset_helper.h" />
     <ClInclude Include="..\..\Engine\ac\audiochannel.h" />
     <ClInclude Include="..\..\Engine\ac\audioclip.h" />
