@@ -3963,9 +3963,30 @@ commits `4d69ebf58`, `612aee72e`, `b2b8ac185`, and `351392e6e` by the supervisor
   70 entries); `GUIControl_SetOpacity` tested its range with a bitwise `|` (same result for two `bool`s; `||` in
   `c81711ba6`, the generated code differs by a short-circuit branch).
 
+**`Engine/ac/drawingsurface.cpp` + `drawingsurface.h`** (2026-11-09; a Sonnet 5.5 subagent at `medium`, reviewed
+here; local commits `24c36d4ea`, `bc90b54ee`, `fad87c64f`):
+- **`[rename]`, +178 -178:** `sds` 162, `xx` 16, `yy` 15, `texx` 3 to 0. `ScriptDrawingSurface *` is `surface` (in
+  other Engine files: `sds` 70, `surface` 5, `target`/`source`/`surf` 3 each; `target` and `source` stay where a
+  function has two surfaces); `xx`/`yy` → `x`/`y`, `texx` → `text`; camelCase `newColour`, `sourceBitmap`,
+  `newSurface`, `allegroColor` to `snake_case`. 637 objects identical; the pixel loops' code unchanged.
+- **`[comment]`, +34 -6:** no CHECKME, HACK or FIXME in the files; the empty `if (src == ds) {}` with a commented-out
+  warning became the reason drawing a surface onto itself is allowed (upstream `aeb65ccbf` dropped the error on
+  purpose); a stale "convert co-ordinate back" comment from the removed high-res coordinates deleted; every public
+  function of `drawingsurface.h` documented. Spot-checked against the code (`DrawLine`'s thickness, `Release`, the
+  invalid-surface warnings).
+- **`[format]`, +2:** braces on the one changed line the gate flagged.
+- **Verification:** `prepush.py --auto --base 073d57f7b`: every selected stage passes (format, build + ctest, tidy,
+  headers, libcxx 341, emscripten, linux ctest 1165/1165, msbuild). Not run: macOS, iOS, Android.
+- **Found, not fixed (upstream `ags4` too):** `ScriptDrawingSurface::SetDrawingColor`
+  (`Engine/ac/dynobj/scriptdrawingsurface.cpp`) dereferences `GetBitmapSurface()` without a check, so setting
+  `DrawingColor` after `Release()` (or after the source sprite is deleted) crashes the engine instead of warning like
+  the drawing functions; `DrawingSurface_SetPixelsImpl` warns as `"DrawingSurface.GetPixels"`. Minor:
+  `Sc_DrawingSurface_DrawStringWrapped` names `DrawingSurface_DrawString` in its parameter-count assertion (only the
+  debug message).
+
 - **Left for the next file sets:** `characterinfo_engine.cpp` still names the character `chi` where `character.h`
   declares `ch` (and `followingAsSheep`), and has two CHECKMEs (~lines 271 and 426); next by count:
-  `drawingsurface.cpp/.h` (196), `button.cpp/.h` (195), `characterinfo_engine.cpp` (186).
+  `button.cpp/.h` (195), `characterinfo_engine.cpp` (186).
 
 ### 7.3 Ports
 

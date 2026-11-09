@@ -21,3 +21,5 @@ e7958f11663a74f6e0475a23abeab7846f1294ff
 17c8226bc5c0e101a2ea64da0930926241660c6b
 # Engine: [format] braces around one-line statements in guicontrol.cpp (2.4)
 b2b8ac185e7a044f7d2924438671b12bf162c2de
+# Engine: [format] braces on a changed line in drawingsurface.cpp (2.4)
+fad87c64f92699d5b0805e7322068554640d996e
