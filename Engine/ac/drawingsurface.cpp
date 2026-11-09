@@ -561,7 +561,7 @@ void *DrawingSurface_GetPixelsCopy32(ScriptDrawingSurface *surface, int x, int y
 void DrawingSurface_SetPixelsImpl(ScriptDrawingSurface *surface, void *arrobj, int x, int y, int width, int height,
                                   uint8_t dest_elem_size)
 {
-    Bitmap *ds = AssertBitmapSurface(surface->StartDrawing(), "DrawingSurface.GetPixels");
+    Bitmap *ds = AssertBitmapSurface(surface->StartDrawing(), "DrawingSurface.SetPixels");
     if (!ds)
         return;
     if (arrobj == nullptr)
