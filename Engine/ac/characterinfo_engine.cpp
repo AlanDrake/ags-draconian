@@ -489,9 +489,9 @@ void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_s
         // either of the two characters is disabled: do nothing
         if (!game.chars[following].is_enabled() || !ch->is_enabled())
         {
-            ;
+            return;
         }
-        else if (ch->room < 0)
+        if (ch->room < 0)
         {
             // A negative room is the countdown set below (-follow_change_room_timer), the delay before the follower
             // appears in the room the followed character is in. It counts up by one per update while the
@@ -508,7 +508,7 @@ void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_s
         // wait a bit, so we're not constantly walking
         else if (Random(100) < eagerness)
         {
-            ;
+            return;
         }
         // the followed character has changed room
         else if (ch->room != game.chars[following].room)
@@ -582,24 +582,14 @@ void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_s
 
 void UpdateCharacterIdle(CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing)
 {
-    // no idle animation, so skip this bit
-    if (ch->idleview < 1)
+    // no idle animation, already playing the idle animation, or not in the current room
+    if ((ch->idleview < 1) || ch->is_idling() || (ch->room != displayed_room))
     {
-        ;
-    }
-    // currently playing idle anim
-    else if (ch->is_idling())
-    {
-        ;
-    }
-    // not in the current room
-    else if (ch->room != displayed_room)
-    {
-        ;
+        return;
     }
     // they are moving or animating (or the view is locked), so
     // reset idle timeout
-    else if ((doing_nothing == 0) || ((ch->flags & CHF_FIXVIEW) != 0))
+    if ((doing_nothing == 0) || ((ch->flags & CHF_FIXVIEW) != 0))
     {
         ch->idleleft = ch->idledelay;
     }
