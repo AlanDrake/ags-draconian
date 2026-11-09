@@ -286,10 +286,10 @@ static void audio_update_polled_stuff()
     if (play.crossfading_out_channel > 0)
     {
         SoundClip *voice = AudioChans::GetChannel(play.crossfading_out_channel);
-        int newVolume = voice ? voice->get_volume100() - play.crossfade_out_volume_per_step : 0;
-        if (newVolume > 0)
+        int new_volume = voice ? voice->get_volume100() - play.crossfade_out_volume_per_step : 0;
+        if (new_volume > 0)
         {
-            voice->set_volume100(newVolume);
+            voice->set_volume100(new_volume);
         }
         else
         {
@@ -304,15 +304,15 @@ static void audio_update_polled_stuff()
     if (play.crossfading_in_channel > 0)
     {
         SoundClip *voice = AudioChans::GetChannel(play.crossfading_in_channel);
-        int newVolume = voice ? voice->get_volume100() + play.crossfade_in_volume_per_step : 0;
-        if (newVolume > play.crossfade_final_volume_in)
+        int new_volume = voice ? voice->get_volume100() + play.crossfade_in_volume_per_step : 0;
+        if (new_volume > play.crossfade_final_volume_in)
         {
-            newVolume = play.crossfade_final_volume_in;
+            new_volume = play.crossfade_final_volume_in;
         }
 
-        voice->set_volume100(newVolume);
+        voice->set_volume100(new_volume);
 
-        if (newVolume >= play.crossfade_final_volume_in)
+        if (new_volume >= play.crossfade_final_volume_in)
         {
             play.crossfading_in_channel = 0;
         }

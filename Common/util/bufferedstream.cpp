@@ -189,8 +189,8 @@ size_t BufferedStream::Read(void *buffer, size_t size)
 int32_t BufferedStream::ReadByte()
 {
     uint8_t c;
-    auto bytesRead = Read(&c, 1);
-    if (bytesRead != 1)
+    auto bytes_read = Read(&c, 1);
+    if (bytes_read != 1)
     {
         return EOF;
     }

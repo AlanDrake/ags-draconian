@@ -236,8 +236,8 @@ size_t TransformStream::Read(void *buffer, size_t size)
 int32_t TransformStream::ReadByte()
 {
     uint8_t c;
-    auto bytesRead = Read(&c, 1);
-    if (bytesRead != 1)
+    auto bytes_read = Read(&c, 1);
+    if (bytes_read != 1)
     {
         return EOF;
     }
