@@ -3862,6 +3862,33 @@ the editor).
     changed 0.34 s against 1.74 s; the Run 1.5 to 2.1 s against the reference editor's 1.3 to 1.7 s, the rest of
     the gap being the editor's work before `agsbuild` starts (1.0 to 1.1 s).
 
+### 7.3 Ports
+
+**7.3, the macOS Xcode source list** (2026-11-09; a slice of 7.3, the other ports are open; a Sonnet 5.5 subagent):
+- iOS is ignored until the refactor is done (no `project.pbxproj` on `ags4`, a DIY port with a forum guide); the
+  plan's compile-only iOS job is dropped from 7.3.
+- `Script/check_build_lists.py` reads `OSX/xcode/AGSKit/AGSKit.xcodeproj/project.pbxproj` (PBXBuildFile of the
+  Sources phases → PBXFileReference → PBXGroup paths, by regular expressions) and compares what it compiles with the
+  CMake targets `common`, `engine`, the libraries and the built-in plugins, in the Windows tree the check already
+  uses. 18 new deliberate differences, each with a reason: other platforms' drivers, `alplmac.mm`, Allegro's
+  `win/` and `unix/ufile.c`, FreeType's `builds/windows` and `builds/unix/ftsystem.c`, the MPEG audio files that
+  `DISABLE_MPEG_AUDIO` empties, and the four libraries `libsrc/download.sh` unpacks (ogg, vorbis, theora, SDL_sound:
+  git-ignored, so the check skips their existence test). `OSX/xcode/ags/ags.xcodeproj` (one source,
+  `plugin_registration.cpp`) is in `NOT_IN_CMAKE`; every compiled file of both projects must be tracked by git, by
+  its exact case.
+- The project was far out of step: 82 sources missing (all of `Common/data/`, the script-API files of 4.0, FreeType
+  2.x and SDL_ttf in place of the `freetype-2.1.3` and `alfont` the project still listed, `stb_image.c`) and 71
+  compiled files that no longer exist (`Common/core/asset*.cpp`, the `global_*.cpp` of the old script API,
+  `cc_instance.cpp`, `freetype-2.1.3`, `alfont`), with 47 headers and a folder reference gone with them: 118
+  references removed, 82 added, 480 compiled sources afterwards (469 before). Three case mismatches fixed
+  (`AAROT.c` is `aarot.c`, the `AGSflashlight` group is `agsflashlight`: a Mac with a case-sensitive volume fails
+  on them), five groups left empty were dropped. No duplicate references, no dangling ids.
+- Not verified: an Xcode build (no Mac). The build settings were not touched and probably need a pass on a Mac:
+  `HEADER_SEARCH_PATHS` still names `freetype-2.1.3`, `alfont-2.0.9` and a misspelled `Common/lbsrc/aastr-0.1.1`,
+  not `libsrc/freetype/include`, `libsrc/sdl_ttf` and `libsrc/stb`, nor FreeType's `FT2_BUILD_LIBRARY`-style
+  definitions. The check also compares with a Windows CMake tree, so macOS-only CMake sources (what `if(MACOS)`
+  adds besides `alplmac.mm`) are not seen.
+
 ### Open items from finished tasks
 
 *Moved from PLAN.md "Next up" on 2026-11-07:*

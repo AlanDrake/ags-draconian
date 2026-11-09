@@ -458,11 +458,11 @@ Framework-only.
   game uses it; `agspalrender`'s 745-line `Raycast_Render` only if it's kept; the rest build with
   CMake only (3.2).
 - [ ] **7.3 Ports** (D2): each kept port (Android, macOS, Web, iOS, Linux packaging) CMake-driven and
-  documented in its README. **iOS has no CI job and no Mac to test on**, and its Xcode project
-  (`iOS/xcode/ags`) keeps its own source list, which 4.4 and 5.3 would break: **before phase 5**, build it with CMake
-  (`-DCMAKE_SYSTEM_NAME=iOS`, Xcode generator) in a compile-only `macos-latest` job (simulator, no
-  signing), and treat a red iOS build as blocking.
-  *Done when:* CI builds every kept port from CMake, iOS included.
+  documented in its README. **iOS is ignored until the refactor is done** (no
+  `project.pbxproj` on `ags4`, a DIY port with a forum guide, 2026-11-09). The macOS Xcode project
+  `OSX/xcode/AGSKit` keeps its own source list, which no CI job builds (`macos.yml` uses CMake): it is
+  kept in step by `Script/check_build_lists.py` (the `buildlists` stage), against the CMake targets.
+  *Done when:* CI builds every kept port from CMake, iOS excepted.
 
 ---
 

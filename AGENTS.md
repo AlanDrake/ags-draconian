@@ -113,8 +113,8 @@ Entry points, in reading order:
 but `emscripten`; Common, Engine, Plugins: every stage; an unknown path: every stage), and lists the
 changed files that no stage verifies (workflows, packaging, most scripts). `--dry-run` shows the choice.
 Without `--auto` every stage runs, which a repository-wide change needs (`--list`, `--only`, `--skip`,
-`--base`, `--emsdk <dir>`): `format`, `buildlists` (`Script/check_build_lists.py`: every `.vcxproj`'s
-sources against its CMake target, deliberate differences listed with reasons in the script), `build`
+`--base`, `--emsdk <dir>`): `format`, `buildlists` (`Script/check_build_lists.py`: every `.vcxproj`'s and the macOS Xcode project's
+(`OSX/xcode/AGSKit`) sources against its CMake targets, deliberate differences listed with reasons in the script), `build`
 (+ `ctest`), `tidy` (clang-tidy on changed lines), `headers`, `libcxx`, `emscripten` (engine as GLES2, then
 a syntax check of the Linux-only code), `linux` (the CI's GCC job: build, header check, `ctest`), `msbuild`.
 On demand with `--only`: `sanitizers` (ASan, UBSan and leaks on the unit tests and the auto-test game),
@@ -148,7 +148,8 @@ read by `Script/linux_jobs.sh` and `analysis.yml`, which are kept in step.
   the `emscripten` and `linux` stages; report what no local build compiled (macOS, iOS, Android,
   FreeBSD, the Debian 10 builder image).
 - **One build description only** (3): a new, moved or deleted `.cpp`, tests included, goes in
-  `CMakeLists.txt` and in the `Solutions/` `.vcxproj` + `.filters` (both stay, 3.2c); the `buildlists`
+  `CMakeLists.txt` and in the `Solutions/` `.vcxproj` + `.filters` (both stay, 3.2c), and a file the macOS
+  build compiles also in `OSX/xcode/AGSKit` (7.3; nothing builds that project, the check is its only guard); the `buildlists`
   stage and CI's Windows build job fail when the two differ, test files included. A new `.vcxproj` goes
   in the script's `PROJECTS` table; a new test target also needs a `Tests.App` project, `ci.yml` and
   `prepush.py` `TEST_RUNNERS`.
