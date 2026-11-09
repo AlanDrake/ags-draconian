@@ -1360,6 +1360,11 @@ part of it.
 - `prepush.py --auto`: `buildlists` and `msbuild` pass (5 solutions, Compiler 598, Common 120, Engine.App 51,
   Engine.Full 112, Tools 267 tests, the editor's NUnit tests); actionlint clean.
   Not verified: the x64 builds of the editor; the CI step (the next push runs it).
+- **CI (2026-11-08, the push of `dd514dad9`):** the Windows build job's "Query the CMake targets (File API)" and
+  "Check the .vcxproj source lists against CMake" steps passed on their first run: "26 .vcxproj match their CMake
+  targets (15 deliberate differences; not in CMake: Editor/AGS.Native/NativeDLL.vcxproj)"; the MSVC Engine, Tools,
+  Tests and Editor jobs, the auto-test game (hardware and software) and Windows Build Parity are green. Not tried
+  on CI: a deliberately mismatched file (done locally above).
 
 ### 3.3 Legacy compiler
 

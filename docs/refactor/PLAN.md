@@ -74,13 +74,12 @@ Recorded 2026-10-31.
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
-0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 6.7d, 7.1 (but 7.1n), U.1, U.2, U.4, U.5, U.9 (LOG.md). Upstream review takes weeks,
+0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 6.7d, 7.1 (but 7.1n), U.1, U.2, U.4, U.5, U.9 (LOG.md); 3.2 with 3.2c (CI-confirmed 2026-11-08). Upstream review takes weeks,
 so the offers go out first and fork-only moves that would conflict with them (5.3) wait.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **3.2c, done locally:** push it and read the Windows build job's new drift-guard step (its first run) | CI confirms the guard | Sonnet 5.5, `medium` |
-| 1b | **2.9d** x64 only on CI except what exists only as 32-bit; first the user's decisions on the installer's engine, the Linux i386 packages and the editor | Decided 2026-11-06, waits on the user | Sonnet 5.5, `medium` |
+| 1 | **2.9d** x64 only on CI except what exists only as 32-bit. *Decided 2026-11-08 (the user):* the installer ships the **x64** `acwin.exe` (x86 engine out of the installer); the Linux **i386** packages stay but build in full runs and tags only (already so: `linux-binaries-builds` has `if: full`); the **editor moves to x64**. *Survey (2026-11-08):* the editor already has x64 configurations (`AGSEditor.csproj`, `NativeDLL.vcxproj`, `AGS.Editor.Full.sln`, x64 irrKlang and `Magick.NET` natives, NUnit `x64` targets); they are built only in full runs, the platform called `AnyCPU` in the csproj means x86, and everything shipped is x86: the `windows-msvc-editor` job (x86 Release, irrKlang x86, tools x86), `windows-parity` (x86 engine, SDL2 x86), `windows-packaging` (`vc_redist.x86.exe`, `acwin.exe` x86, `Magick.NET-Q8-x86.Native.dll` in `ags.iss`, no `ArchitecturesInstallIn64BitMode`), `Script/prepush.py` `msbuild` stage (`/p:Platform=x86`). Steps: **a)** locally, make the x64 editor the one that runs: build and NUnit x64, start it, open the auto-test project, Build and Run, `compare_builds.py` with x64 tools; `prepush.py` `msbuild` to x64; **b)** `ags.iss` and `Windows/README.md` for x64 (redist, Magick native, 64-bit install mode); **c)** `ci.yml` through a probe branch: the light MSBuild jobs, parity and packaging x64, x86 and Debug in full runs only; **d)** *decided 2026-11-08 (the user):* drop the x86 builds that have an x64 alternative (the MSBuild engine, tools, tests and editor, the x86 installer parts); what exists only as 32-bit stays. A 32-bit plugin DLL cannot load in an x64 engine (C4 check first) | The decisions are in; a) to d) are not done | Sonnet 5.5, `medium` |
 | 2 | **U.8:** offer upstream the 1.5b-2 fixes (`RuntimeScript::CheckFixupInCode`, `JointRTTI::Join`); the `String(ptr, length)` change separately if at all; the 1.5b-4 compiler leak fixes only if the user confirms | Real defects, small | Sonnet 5.5, `medium` |
 | 3 | **2.9 follow-up:** read the first push's runs after 2.9 (the plan job's push filter, cold ccache); the apt package cache, the ARM64 retry | The first push finds what the probe could not | Sonnet 5.5, `medium` |
 | 4 | **Waiting on review:** U.3 (#3186–#3190, #3185, #3191), U.6 (the fork port once the PR is stable), U.7 (#3193) | Upstream review takes weeks | Sonnet 5.5, `medium` (U.6: the user first) |
@@ -177,7 +176,7 @@ the corpus run (1.4).
 - [x] **3.1 Dead platforms** (2026-11-04): PSP port, plugin PSP builds and branches,
   `AGS_PLATFORM_OS_PSP` (0 refs), pre-Windows 7 checks in the Editor, engine and installer; the
   script enum value and config name stay (LOG.md).
-- [ ] **3.2 Duplicate build systems** (D5). 3.2a/b done 2026-11-05: the Makefiles are gone, CMake
+- [x] **3.2 Duplicate build systems** (D5; 3.2c confirmed by CI 2026-11-08). 3.2a/b done 2026-11-05: the Makefiles are gone, CMake
   builds the engine, tools, plugins and `debian/` (LOG.md; `Plugins/agslua/Makefile*` stays until the
   user decides).
   **3.2c, re-decided 2026-11-07** (LOG.md): the hand-written `Solutions/*.vcxproj` stay, so the two build
@@ -188,8 +187,9 @@ the corpus run (1.4).
   *Done when:* a source file in one build description and not the other fails `prepush.py` and CI;
   the editor builds without `Compiler.Lib`.
   *Status (2026-11-07, LOG.md):* done locally: `Script/check_build_lists.py` (26 `.vcxproj`, 15 deliberate
-  differences, no drift), the `buildlists` stage, the step in CI's Windows build job (runs on the next
-  push); the editor builds without `Compiler.Lib`, build parity holds.
+  differences, no drift), the `buildlists` stage, the step in CI's Windows build job; the editor builds
+  without `Compiler.Lib`, build parity holds. CI (2026-11-08): both steps green, "26 .vcxproj match their
+  CMake targets (15 deliberate differences)".
 - [x] **3.3 Legacy compiler** (D3; 2026-11-07): one compiler, one preprocessor (C++), no
   `AGS.CScript.Compiler`; `FastString` lives in `Editor/AGS.Editor/Utils/` (LOG.md).
 - [ ] **3.4 Legacy data-version paths** (D1). The largest deletion; one commit per step:
