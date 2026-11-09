@@ -55,6 +55,13 @@ Entry points, in reading order:
   references/contexts, D3D11 pixel-shader blenders, fake gamma, `DrawingSurface` primitives:
   fork features the upstream auto-test does not cover. The fork's test game is
   `AlanDrake/ags-test-games` branch `ags4-draconian`; CI builds it from source with `agsbuild`.
+- `Game.agf` and `Rooms/<n>/data.xml` are read through tables (`Tools/data/xml_fields.h`: one row per
+  element, unknown elements reported, the drift guard `Tools/data/agf_elements.txt` against `AGS.Types`).
+  Upstream reads them as one `ValueParser` line per property and has no drift check (ericoporto's review
+  of #3187, 2026-11-08). The fork keeps the tables on purpose: here the tools are the only build path, so
+  an element they do not read must fail the build, which only a table or a hand-kept element list gives.
+  The two readers no longer share structure; port between them with `.compare/helpers/port.py`
+  (`docs/UPSTREAM.md` "Taking an upstream change").
 - Games build through the C++ tools (D7): `agsbuild` → `agf2dta`, `agscc`, `crmbuild` (rooms from
   `Rooms/<n>/`), `po2tra`, `agspak`; `agsbuild --json` gives machine-readable diagnostics;
   `ci/corpus/run.py` runs a private game through every room. The Editor builds through them too

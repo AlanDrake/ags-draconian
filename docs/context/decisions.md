@@ -42,6 +42,7 @@ Names: `sources.md`.
 | T8 | New compiler default for new 4.0 projects; old compiler removal is a 4.0 Beta item (#3172); add a non-parallel compile option first (#3178, agreed 2026-10-31) | in code / proposed |
 | T9 | Style: wiki conventions for new code; in edits, consistency with surrounding code first; repo-wide `.clang-format` proposed (#2211, 2023) and not adopted | decided / not adopted |
 | T10 | Third-party code: link external libraries; vendor only if unavailable on Linux, tiny, or pinned/modified | decided; wiki "Adding third-party libraries" |
+| T11 | Tool readers of the Editor's XML (`agfreader`, room data): one `ValueParser` line per property, readable side by side with the AGS.Types C#; no table or reflection layer, no generated element lists in the repo; a check that the tools read everything the Editor writes, if any, as a C++/CLI test over AGS.Types, discussed in its own issue | position; ericoporto review of #3187, 2026-11-08 |
 
 ## Engine (4.0)
 
