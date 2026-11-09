@@ -64,24 +64,24 @@ bool Button_RunFrameEventImpl(GUIButton &btn, int view, int loop, int frame)
     return RunViewFrameEvent(view, loop, frame, objevt, &btn.GetEvents(), kButtonEvent_OnFrameEvent);
 }
 
-void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat, int blocking, int direction, int sframe,
+void Button_Animate(GUIButton *btn, int view, int loop, int speed, int repeat, int blocking, int direction, int sframe,
                     int volume)
 {
-    int guin = butt->GetParentID();
-    int objn = butt->GetID();
+    int gui_id = btn->GetParentID();
+    int objn = btn->GetID();
 
     view--; // convert to internal 0-based view ID
-    ValidateViewAnimVLF("Button.Animate", butt->GetName().GetCStr(), view, loop, sframe);
-    ValidateViewAnimParams("Button.Animate", butt->GetName().GetCStr(), blocking, repeat, direction);
+    ValidateViewAnimVLF("Button.Animate", btn->GetName().GetCStr(), view, loop, sframe);
+    ValidateViewAnimParams("Button.Animate", btn->GetName().GetCStr(), blocking, repeat, direction);
 
     volume = Math::Clamp(volume, 0, 100);
 
     // if it's already animating, stop it
-    FindAndRemoveButtonAnimation(guin, objn);
+    FindAndRemoveButtonAnimation(gui_id, objn);
 
-    int but_id = guis[guin].GetControlID(objn);
+    int but_id = guis[gui_id].GetControlID(objn);
     AnimatingGUIButton abtn;
-    abtn.ongui = guin;
+    abtn.ongui = gui_id;
     abtn.onguibut = objn;
     abtn.buttonid = but_id;
     abtn.view = view;
@@ -99,57 +99,56 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat, 
     {
         // Wait until the animation completes.
         // Override disabled effect for the animating button and its parent GUI.
-        GUI::SetExcludedFromDisabled(butt, true);
-        GameLoopUntilButAnimEnd(guin, objn);
-        GUI::SetExcludedFromDisabled(butt, false);
+        GUI::SetExcludedFromDisabled(btn, true);
+        GameLoopUntilButAnimEnd(gui_id, objn);
+        GUI::SetExcludedFromDisabled(btn, false);
     }
 }
 
-void Button_Animate4(GUIButton *butt, int view, int loop, int speed, int repeat)
+void Button_Animate4(GUIButton *btn, int view, int loop, int speed, int repeat)
 {
-    Button_Animate(butt, view, loop, speed, repeat, IN_BACKGROUND, FORWARDS, 0, 100 /* full volume */);
+    Button_Animate(btn, view, loop, speed, repeat, IN_BACKGROUND, FORWARDS, 0, 100 /* full volume */);
 }
 
-void Button_Animate7(GUIButton *butt, int view, int loop, int speed, int repeat, int blocking, int direction,
-                     int sframe)
+void Button_Animate7(GUIButton *btn, int view, int loop, int speed, int repeat, int blocking, int direction, int sframe)
 {
-    Button_Animate(butt, view, loop, speed, repeat, blocking, direction, sframe, 100 /* full volume */);
+    Button_Animate(btn, view, loop, speed, repeat, blocking, direction, sframe, 100 /* full volume */);
 }
 
-const char *Button_GetText_New(GUIButton *butt)
+const char *Button_GetText_New(GUIButton *btn)
 {
-    return CreateNewScriptString(butt->GetText());
+    return CreateNewScriptString(btn->GetText());
 }
 
-void Button_GetText(GUIButton *butt, char *buffer)
+void Button_GetText(GUIButton *btn, char *buffer)
 {
-    snprintf(buffer, MAX_MAXSTRLEN, "%s", butt->GetText().GetCStr());
+    snprintf(buffer, MAX_MAXSTRLEN, "%s", btn->GetText().GetCStr());
 }
 
-void Button_SetText(GUIButton *butt, const char *newtx)
+void Button_SetText(GUIButton *btn, const char *newtx)
 {
-    if (butt->GetText() != newtx)
+    if (btn->GetText() != newtx)
     {
-        butt->SetText(newtx);
+        btn->SetText(newtx);
     }
 }
 
-void Button_SetFont(GUIButton *butt, int newFont)
+void Button_SetFont(GUIButton *btn, int new_font)
 {
-    newFont = ValidateFontNumber("Button.Font", newFont);
-    butt->SetFont(newFont);
+    new_font = ValidateFontNumber("Button.Font", new_font);
+    btn->SetFont(new_font);
 }
 
-int Button_GetFont(GUIButton *butt)
+int Button_GetFont(GUIButton *btn)
 {
-    return butt->GetFont();
+    return btn->GetFont();
 }
 
-int Button_GetColorStyle(GUIButton *butt)
+int Button_GetColorStyle(GUIButton *btn)
 {
-    if (butt->IsDynamicColors())
+    if (btn->IsDynamicColors())
     {
-        if (butt->IsFlatStyle())
+        if (btn->IsFlatStyle())
             return eGUIButtonDynamicFlat;
         else
             return eGUIButtonDynamic;
@@ -160,228 +159,228 @@ int Button_GetColorStyle(GUIButton *butt)
     }
 }
 
-void Button_SetColorStyle(GUIButton *butt, int style)
+void Button_SetColorStyle(GUIButton *btn, int style)
 {
-    const ScriptButtonColorStyle old_style = static_cast<ScriptButtonColorStyle>(Button_GetColorStyle(butt));
+    const ScriptButtonColorStyle old_style = static_cast<ScriptButtonColorStyle>(Button_GetColorStyle(btn));
     if (old_style != style)
     {
         switch (style)
         {
         case eGUIButtonDefault:
-            butt->SetDynamicColors(false);
-            butt->SetFlatStyle(false);
+            btn->SetDynamicColors(false);
+            btn->SetFlatStyle(false);
             break;
         case eGUIButtonDynamic:
-            butt->SetDynamicColors(true);
-            butt->SetFlatStyle(false);
+            btn->SetDynamicColors(true);
+            btn->SetFlatStyle(false);
             break;
         case eGUIButtonDynamicFlat:
-            butt->SetDynamicColors(true);
-            butt->SetFlatStyle(true);
+            btn->SetDynamicColors(true);
+            btn->SetFlatStyle(true);
             break;
         }
     }
 }
 
-int Button_GetClipImage(GUIButton *butt)
+int Button_GetClipImage(GUIButton *btn)
 {
-    return butt->IsClippingImage() ? 1 : 0;
+    return btn->IsClippingImage() ? 1 : 0;
 }
 
-void Button_SetClipImage(GUIButton *butt, int newval)
+void Button_SetClipImage(GUIButton *btn, int newval)
 {
-    if (butt->IsClippingImage() != (newval != 0))
+    if (btn->IsClippingImage() != (newval != 0))
     {
-        butt->SetClipImage(newval != 0);
+        btn->SetClipImage(newval != 0);
     }
 }
 
-int Button_GetGraphic(GUIButton *butt)
+int Button_GetGraphic(GUIButton *btn)
 {
     // return currently displayed pic
-    if (butt->GetCurrentImage() < 0)
-        return butt->GetNormalImage();
-    return butt->GetCurrentImage();
+    if (btn->GetCurrentImage() < 0)
+        return btn->GetNormalImage();
+    return btn->GetCurrentImage();
 }
 
-int Button_GetGraphicFlip(GUIButton *butt)
+int Button_GetGraphicFlip(GUIButton *btn)
 {
-    return butt->GetImageFlip();
+    return btn->GetImageFlip();
 }
 
-void Button_SetGraphicFlip(GUIButton *butt, int flip)
+void Button_SetGraphicFlip(GUIButton *btn, int flip)
 {
-    butt->SetImageFlip((GraphicFlip)flip);
+    btn->SetImageFlip((GraphicFlip)flip);
 }
 
-bool Button_GetIsHighlighted(GUIButton *butt)
+bool Button_GetIsHighlighted(GUIButton *btn)
 {
-    return butt->IsHighlighted();
+    return btn->IsHighlighted();
 }
 
-bool Button_GetIsPushed(GUIButton *butt)
+bool Button_GetIsPushed(GUIButton *btn)
 {
-    return butt->IsPushed();
+    return btn->IsPushed();
 }
 
-int Button_GetMouseOverBackgroundColor(GUIButton *butt)
+int Button_GetMouseOverBackgroundColor(GUIButton *btn)
 {
-    return butt->GetMouseOverBackColor();
+    return btn->GetMouseOverBackColor();
 }
 
-void Button_SetMouseOverBackgroundColor(GUIButton *butt, int color)
+void Button_SetMouseOverBackgroundColor(GUIButton *btn, int color)
 {
-    butt->SetMouseOverBackColor(color);
+    btn->SetMouseOverBackColor(color);
 }
 
-int Button_GetPushedBackgroundColor(GUIButton *butt)
+int Button_GetPushedBackgroundColor(GUIButton *btn)
 {
-    return butt->GetPushedBackColor();
+    return btn->GetPushedBackColor();
 }
 
-void Button_SetPushedBackgroundColor(GUIButton *butt, int color)
+void Button_SetPushedBackgroundColor(GUIButton *btn, int color)
 {
-    butt->SetPushedBackColor(color);
+    btn->SetPushedBackColor(color);
 }
 
-int Button_GetMouseOverBorderColor(GUIButton *butt)
+int Button_GetMouseOverBorderColor(GUIButton *btn)
 {
-    return butt->GetMouseOverBorderColor();
+    return btn->GetMouseOverBorderColor();
 }
 
-void Button_SetMouseOverBorderColor(GUIButton *butt, int color)
+void Button_SetMouseOverBorderColor(GUIButton *btn, int color)
 {
-    butt->SetMouseOverBorderColor(color);
+    btn->SetMouseOverBorderColor(color);
 }
 
-int Button_GetPushedBorderColor(GUIButton *butt)
+int Button_GetPushedBorderColor(GUIButton *btn)
 {
-    return butt->GetPushedBorderColor();
+    return btn->GetPushedBorderColor();
 }
 
-void Button_SetPushedBorderColor(GUIButton *butt, int color)
+void Button_SetPushedBorderColor(GUIButton *btn, int color)
 {
-    butt->SetPushedBorderColor(color);
+    btn->SetPushedBorderColor(color);
 }
 
-int Button_GetMouseOverGraphic(GUIButton *butt)
+int Button_GetMouseOverGraphic(GUIButton *btn)
 {
-    return butt->GetMouseOverImage();
+    return btn->GetMouseOverImage();
 }
 
-void Button_SetMouseOverGraphic(GUIButton *butt, int slotn)
+void Button_SetMouseOverGraphic(GUIButton *btn, int slotn)
 {
     slotn = std::max(0, slotn);
-    if (butt->GetMouseOverImage() != slotn)
-        debug_script_log("GUI %d Button %d mouseover set to slot %d", butt->GetParentID(), butt->GetID(), slotn);
+    if (btn->GetMouseOverImage() != slotn)
+        debug_script_log("GUI %d Button %d mouseover set to slot %d", btn->GetParentID(), btn->GetID(), slotn);
 
-    const int old_slotn = butt->GetMouseOverImage();
-    butt->SetMouseOverImage(slotn);
+    const int old_slotn = btn->GetMouseOverImage();
+    btn->SetMouseOverImage(slotn);
     // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
-    replace_sprite_changed_callback(old_slotn, slotn, butt);
+    replace_sprite_changed_callback(old_slotn, slotn, btn);
 
-    FindAndRemoveButtonAnimation(butt->GetParentID(), butt->GetID());
+    FindAndRemoveButtonAnimation(btn->GetParentID(), btn->GetID());
 }
 
-int Button_GetNormalGraphic(GUIButton *butt)
+int Button_GetNormalGraphic(GUIButton *btn)
 {
-    return butt->GetNormalImage();
+    return btn->GetNormalImage();
 }
 
-void Button_SetNormalGraphic(GUIButton *butt, int slotn)
+void Button_SetNormalGraphic(GUIButton *btn, int slotn)
 {
     slotn = std::max(0, slotn);
-    if (butt->GetNormalImage() != slotn)
-        debug_script_log("GUI %d Button %d normal set to slot %d", butt->GetParentID(), butt->GetID(), slotn);
+    if (btn->GetNormalImage() != slotn)
+        debug_script_log("GUI %d Button %d normal set to slot %d", btn->GetParentID(), btn->GetID(), slotn);
 
-    const int old_slotn = butt->GetNormalImage();
+    const int old_slotn = btn->GetNormalImage();
     // NormalGraphic = 0 will turn the Button into a standard colored button
     if (slotn == 0)
     {
-        butt->SetNormalImage(slotn);
+        btn->SetNormalImage(slotn);
     }
     // Any other sprite - update the clickable area to the same size as the graphic
     else
     {
         const int width = static_cast<size_t>(slotn) < game.SpriteInfos.size() ? game.SpriteInfos[slotn].Width : 0;
         const int height = static_cast<size_t>(slotn) < game.SpriteInfos.size() ? game.SpriteInfos[slotn].Height : 0;
-        butt->SetNormalImage(slotn);
-        butt->SetSize(width, height);
+        btn->SetNormalImage(slotn);
+        btn->SetSize(width, height);
     }
 
     // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
-    replace_sprite_changed_callback(old_slotn, slotn, butt);
+    replace_sprite_changed_callback(old_slotn, slotn, btn);
 
-    FindAndRemoveButtonAnimation(butt->GetParentID(), butt->GetID());
+    FindAndRemoveButtonAnimation(btn->GetParentID(), btn->GetID());
 }
 
-int Button_GetPushedGraphic(GUIButton *butt)
+int Button_GetPushedGraphic(GUIButton *btn)
 {
-    return butt->GetPushedImage();
+    return btn->GetPushedImage();
 }
 
-void Button_SetPushedGraphic(GUIButton *butt, int slotn)
+void Button_SetPushedGraphic(GUIButton *btn, int slotn)
 {
     slotn = std::max(0, slotn);
-    if (butt->GetPushedImage() != slotn)
-        debug_script_log("GUI %d Button %d pushed set to slot %d", butt->GetParentID(), butt->GetID(), slotn);
+    if (btn->GetPushedImage() != slotn)
+        debug_script_log("GUI %d Button %d pushed set to slot %d", btn->GetParentID(), btn->GetID(), slotn);
 
-    const int old_slotn = butt->GetPushedImage();
-    butt->SetPushedImage(slotn);
+    const int old_slotn = btn->GetPushedImage();
+    btn->SetPushedImage(slotn);
     // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
-    replace_sprite_changed_callback(old_slotn, slotn, butt);
+    replace_sprite_changed_callback(old_slotn, slotn, btn);
 
-    FindAndRemoveButtonAnimation(butt->GetParentID(), butt->GetID());
+    FindAndRemoveButtonAnimation(btn->GetParentID(), btn->GetID());
 }
 
-int Button_GetBorderShadeColor(GUIButton *butt)
+int Button_GetBorderShadeColor(GUIButton *btn)
 {
-    return butt->GetBorderShadeColor();
+    return btn->GetBorderShadeColor();
 }
 
-void Button_SetBorderShadeColor(GUIButton *butt, int color)
+void Button_SetBorderShadeColor(GUIButton *btn, int color)
 {
-    butt->SetBorderShadeColor(color);
+    btn->SetBorderShadeColor(color);
 }
 
-int Button_GetTextColor(GUIButton *butt)
+int Button_GetTextColor(GUIButton *btn)
 {
-    return butt->GetTextColor();
+    return btn->GetTextColor();
 }
 
-void Button_SetTextColor(GUIButton *butt, int color)
+void Button_SetTextColor(GUIButton *btn, int color)
 {
-    butt->SetTextColor(color);
+    btn->SetTextColor(color);
 }
 
-int Button_GetTextOutlineColor(GUIButton *butt)
+int Button_GetTextOutlineColor(GUIButton *btn)
 {
-    return butt->GetTextOutlineColor();
+    return btn->GetTextOutlineColor();
 }
 
-void Button_SetTextOutlineColor(GUIButton *butt, int color)
+void Button_SetTextOutlineColor(GUIButton *btn, int color)
 {
-    butt->SetTextOutlineColor(color);
+    btn->SetTextOutlineColor(color);
 }
 
-int Button_GetMouseOverTextColor(GUIButton *butt)
+int Button_GetMouseOverTextColor(GUIButton *btn)
 {
-    return butt->GetMouseOverTextColor();
+    return btn->GetMouseOverTextColor();
 }
 
-void Button_SetMouseOverTextColor(GUIButton *butt, int color)
+void Button_SetMouseOverTextColor(GUIButton *btn, int color)
 {
-    butt->SetMouseOverTextColor(color);
+    btn->SetMouseOverTextColor(color);
 }
 
-int Button_GetPushedTextColor(GUIButton *butt)
+int Button_GetPushedTextColor(GUIButton *btn)
 {
-    return butt->GetPushedTextColor();
+    return btn->GetPushedTextColor();
 }
 
-void Button_SetPushedTextColor(GUIButton *butt, int color)
+void Button_SetPushedTextColor(GUIButton *btn, int color)
 {
-    butt->SetPushedTextColor(color);
+    btn->SetPushedTextColor(color);
 }
 
 // ** start animating buttons code
@@ -430,104 +429,104 @@ void RemoveAllButtonAnimations()
 
 // Returns the index of the AnimatingGUIButton object corresponding to the
 // given button ID; returns -1 if no such animation exists
-int FindButtonAnimation(int guin, int objn)
+int FindButtonAnimation(int gui_id, int objn)
 {
     for (size_t i = 0; i < animbuts.size(); ++i)
     {
-        if (animbuts[i].ongui == guin && animbuts[i].onguibut == objn)
+        if (animbuts[i].ongui == gui_id && animbuts[i].onguibut == objn)
             return i;
     }
     return -1;
 }
 
-void FindAndRemoveButtonAnimation(int guin, int objn)
+void FindAndRemoveButtonAnimation(int gui_id, int objn)
 {
-    int idx = FindButtonAnimation(guin, objn);
+    int idx = FindButtonAnimation(gui_id, objn);
     if (idx >= 0)
         StopButtonAnimation(idx);
 }
 
 // ** end animating buttons code
 
-void Button_Click(GUIButton *butt, int mbut)
+void Button_Click(GUIButton *btn, int mbut)
 {
-    process_interface_click(butt->GetParentID(), butt->GetID(), mbut);
+    process_interface_click(btn->GetParentID(), btn->GetID(), mbut);
 }
 
-bool Button_RunFrameEvent(GUIButton *butt, int view, int loop, int frame)
+bool Button_RunFrameEvent(GUIButton *btn, int view, int loop, int frame)
 {
     view--; // convert to internal 0-based view ID
-    AssertFrame("Button.RunFrameEvent", butt->GetName().GetCStr(), view, loop, frame);
-    return Button_RunFrameEventImpl(*butt, view, loop, frame);
+    AssertFrame("Button.RunFrameEvent", btn->GetName().GetCStr(), view, loop, frame);
+    return Button_RunFrameEventImpl(*btn, view, loop, frame);
 }
 
-bool Button_IsAnimating(GUIButton *butt)
+bool Button_IsAnimating(GUIButton *btn)
 {
-    return FindButtonAnimation(butt->GetParentID(), butt->GetID()) >= 0;
+    return FindButtonAnimation(btn->GetParentID(), btn->GetID()) >= 0;
 }
 
 // NOTE: in correspondance to similar functions for Character & Object,
 // GetView returns (view index + 1), while GetLoop and GetFrame return
 // zero-based index and 0 in case of no animation.
-int Button_GetAnimView(GUIButton *butt)
+int Button_GetAnimView(GUIButton *btn)
 {
-    int idx = FindButtonAnimation(butt->GetParentID(), butt->GetID());
+    int idx = FindButtonAnimation(btn->GetParentID(), btn->GetID());
     return idx >= 0 ? animbuts[idx].view + 1 : 0;
 }
 
-int Button_GetAnimLoop(GUIButton *butt)
+int Button_GetAnimLoop(GUIButton *btn)
 {
-    int idx = FindButtonAnimation(butt->GetParentID(), butt->GetID());
+    int idx = FindButtonAnimation(btn->GetParentID(), btn->GetID());
     return idx >= 0 ? animbuts[idx].loop : 0;
 }
 
-int Button_GetAnimFrame(GUIButton *butt)
+int Button_GetAnimFrame(GUIButton *btn)
 {
-    int idx = FindButtonAnimation(butt->GetParentID(), butt->GetID());
+    int idx = FindButtonAnimation(btn->GetParentID(), btn->GetID());
     return idx >= 0 ? animbuts[idx].frame : 0;
 }
 
-int Button_GetTextAlignment(GUIButton *butt)
+int Button_GetTextAlignment(GUIButton *btn)
 {
-    return butt->GetTextAlignment();
+    return btn->GetTextAlignment();
 }
 
-void Button_SetTextAlignment(GUIButton *butt, int align)
+void Button_SetTextAlignment(GUIButton *btn, int align)
 {
-    butt->SetTextAlignment((FrameAlignment)align);
+    btn->SetTextAlignment((FrameAlignment)align);
 }
 
-int Button_GetTextPaddingHorizontal(GUIButton *butt)
+int Button_GetTextPaddingHorizontal(GUIButton *btn)
 {
-    return butt->GetPaddingX();
+    return btn->GetPaddingX();
 }
 
-void Button_SetTextPaddingHorizontal(GUIButton *butt, int pad)
+void Button_SetTextPaddingHorizontal(GUIButton *btn, int pad)
 {
-    butt->SetPaddingX(pad);
+    btn->SetPaddingX(pad);
 }
 
-int Button_GetTextPaddingVertical(GUIButton *butt)
+int Button_GetTextPaddingVertical(GUIButton *btn)
 {
-    return butt->GetPaddingY();
+    return btn->GetPaddingY();
 }
 
-void Button_SetTextPaddingVertical(GUIButton *butt, int pad)
+void Button_SetTextPaddingVertical(GUIButton *btn, int pad)
 {
-    butt->SetPaddingY(pad);
+    btn->SetPaddingY(pad);
 }
 
-bool Button_GetWrapText(GUIButton *butt)
+bool Button_GetWrapText(GUIButton *btn)
 {
-    return butt->IsWrapText();
+    return btn->IsWrapText();
 }
 
-void Button_SetWrapText(GUIButton *butt, bool wrap)
+void Button_SetWrapText(GUIButton *btn, bool wrap)
 {
-    if (butt->IsWrapText() != wrap)
+    if (btn->IsWrapText() != wrap)
     {
-        butt->SetWrapText(wrap);
-        butt->MarkChanged();
+        btn->SetWrapText(wrap);
+        btn->MarkChanged();
     }
 }
 
@@ -542,7 +541,7 @@ void Button_SetWrapText(GUIButton *butt, bool wrap)
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
-// void | GUIButton *butt, int view, int loop, int speed, int repeat
+// void | GUIButton *btn, int view, int loop, int speed, int repeat
 RuntimeScriptValue Sc_Button_Animate4(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT4(GUIButton, Button_Animate4);
@@ -558,31 +557,31 @@ RuntimeScriptValue Sc_Button_Animate(void *self, const RuntimeScriptValue *param
     API_OBJCALL_VOID_PINT8(GUIButton, Button_Animate);
 }
 
-// const char* | GUIButton *butt
+// const char* | GUIButton *btn
 RuntimeScriptValue Sc_Button_GetText_New(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJ(GUIButton, const char, myScriptStringImpl, Button_GetText_New);
 }
 
-// void | GUIButton *butt, char *buffer
+// void | GUIButton *btn, char *buffer
 RuntimeScriptValue Sc_Button_GetText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_POBJ(GUIButton, Button_GetText, char);
 }
 
-// void | GUIButton *butt, const char *newtx
+// void | GUIButton *btn, const char *newtx
 RuntimeScriptValue Sc_Button_SetText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_POBJ(GUIButton, Button_SetText, const char);
 }
 
-// void | GUIButton *butt, int newFont
+// void | GUIButton *btn, int new_font
 RuntimeScriptValue Sc_Button_SetFont(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUIButton, Button_SetFont);
 }
 
-// int | GUIButton *butt
+// int | GUIButton *btn
 RuntimeScriptValue Sc_Button_GetFont(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIButton, Button_GetFont);
@@ -598,19 +597,19 @@ RuntimeScriptValue Sc_Button_SetColorStyle(void *self, const RuntimeScriptValue 
     API_OBJCALL_VOID_PINT(GUIButton, Button_SetColorStyle);
 }
 
-// int | GUIButton *butt
+// int | GUIButton *btn
 RuntimeScriptValue Sc_Button_GetClipImage(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIButton, Button_GetClipImage);
 }
 
-// void | GUIButton *butt, int newval
+// void | GUIButton *btn, int newval
 RuntimeScriptValue Sc_Button_SetClipImage(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUIButton, Button_SetClipImage);
 }
 
-// int | GUIButton *butt
+// int | GUIButton *btn
 RuntimeScriptValue Sc_Button_GetGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIButton, Button_GetGraphic);
@@ -679,37 +678,37 @@ RuntimeScriptValue Sc_Button_SetPushedBorderColor(void *self, const RuntimeScrip
     API_OBJCALL_VOID_PINT(GUIButton, Button_SetPushedBorderColor);
 }
 
-// int | GUIButton *butt
+// int | GUIButton *btn
 RuntimeScriptValue Sc_Button_GetMouseOverGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIButton, Button_GetMouseOverGraphic);
 }
 
-// void | GUIButton *guil, int slotn
+// void | GUIButton *btn, int slotn
 RuntimeScriptValue Sc_Button_SetMouseOverGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUIButton, Button_SetMouseOverGraphic);
 }
 
-// int | GUIButton *butt
+// int | GUIButton *btn
 RuntimeScriptValue Sc_Button_GetNormalGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIButton, Button_GetNormalGraphic);
 }
 
-// void | GUIButton *guil, int slotn
+// void | GUIButton *btn, int slotn
 RuntimeScriptValue Sc_Button_SetNormalGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUIButton, Button_SetNormalGraphic);
 }
 
-// int | GUIButton *butt
+// int | GUIButton *btn
 RuntimeScriptValue Sc_Button_GetPushedGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIButton, Button_GetPushedGraphic);
 }
 
-// void | GUIButton *guil, int slotn
+// void | GUIButton *btn, int slotn
 RuntimeScriptValue Sc_Button_SetPushedGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUIButton, Button_SetPushedGraphic);
