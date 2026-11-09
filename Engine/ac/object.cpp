@@ -204,7 +204,9 @@ int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
         // Convert to local object coordinates
         Point local = objs[aa].GetGraphicSpace().WorldToLocal(roomx, roomy);
         if (is_pos_in_sprite(local.X, local.Y, 0, 0, image, sprite_width, sprite_height, sprite_flags) == FALSE)
+        {
             continue;
+        }
 
         int usebasel = objs[aa].get_baseline();
         if (usebasel < bestshotyp)
@@ -384,7 +386,9 @@ void Object_SetOpacity(ScriptObject *obj, int alpha)
 int Object_GetOpacity(ScriptObject *obj)
 {
     if (!AssertObject("Object.Opacity", obj->id))
+    {
         return 0;
+    }
 
     return objs[obj->id].opacity;
 }
@@ -400,7 +404,9 @@ static void Object_SetTransparency(ScriptObject *obj, int trans)
 static int Object_GetTransparency(ScriptObject *obj)
 {
     if (!AssertObject("Object.Transparency", obj->id))
+    {
         return 0;
+    }
 
     return GfxDef::OpacityToTrans100(objs[obj->id].opacity);
 }
@@ -408,42 +414,54 @@ static int Object_GetTransparency(ScriptObject *obj)
 int Object_GetAudioPanning(ScriptObject *obj)
 {
     if (!AssertObject("Object.AudioPanning", obj->id))
+    {
         return 0;
+    }
     return objs[obj->id].audio_panning;
 }
 
 void Object_SetAudioPanning(ScriptObject *obj, int newval)
 {
     if (!AssertObject("Object.AudioPanning", obj->id))
+    {
         return;
+    }
     objs[obj->id].audio_panning = Math::Clamp(newval, -100, 100);
 }
 
 int Object_GetAudioSpeed(ScriptObject *obj)
 {
     if (!AssertObject("Object.AudioSpeed", obj->id))
+    {
         return 0;
+    }
     return objs[obj->id].audio_speed;
 }
 
 void Object_SetAudioSpeed(ScriptObject *obj, int newval)
 {
     if (!AssertObject("Object.AudioSpeed", obj->id))
+    {
         return;
+    }
     objs[obj->id].audio_speed = newval;
 }
 
 int Object_GetAudioVolume(ScriptObject *obj)
 {
     if (!AssertObject("Object.AudioVolume", obj->id))
+    {
         return 0;
+    }
     return objs[obj->id].audio_volume;
 }
 
 void Object_SetAudioVolume(ScriptObject *obj, int newval)
 {
     if (!AssertObject("Object.AudioVolume", obj->id))
+    {
         return;
+    }
     objs[obj->id].audio_volume = Math::Clamp(newval, 0, 100);
 }
 
@@ -548,7 +566,9 @@ void Object_Animate6(ScriptObject *obj, int loop, int delay, int repeat, int blo
 void Object_StopAnimating(ScriptObject *obj)
 {
     if (!AssertObject("Object.StopAnimating", obj->id))
+    {
         return;
+    }
 
     if (objs[obj->id].is_animating())
     {
@@ -560,7 +580,9 @@ void Object_StopAnimating(ScriptObject *obj)
 void StopObjectMoving(int obj_id)
 {
     if (!AssertObject("StopObjectMoving", obj_id))
+    {
         return;
+    }
 
     objs[obj_id].OnStopMoving();
 
@@ -575,41 +597,57 @@ void Object_StopMoving(ScriptObject *obj)
 int Object_GetView(ScriptObject *obj)
 {
     if (!AssertObject("Object.View", obj->id))
+    {
         return 0;
+    }
     if (objs[obj->id].view == RoomObject::NoView)
+    {
         return 0;
+    }
     return objs[obj->id].view + 1;
 }
 
 int Object_GetLoop(ScriptObject *obj)
 {
     if (!AssertObject("Object.Loop", obj->id))
+    {
         return 0;
+    }
     if (objs[obj->id].view == RoomObject::NoView)
+    {
         return 0;
+    }
     return objs[obj->id].loop;
 }
 
 int Object_GetFrame(ScriptObject *obj)
 {
     if (!AssertObject("Object.Frame", obj->id))
+    {
         return 0;
+    }
     if (objs[obj->id].view == RoomObject::NoView)
+    {
         return 0;
+    }
     return objs[obj->id].frame;
 }
 
 bool Object_GetEnabled(ScriptObject *obj)
 {
     if (!AssertObject("Object.Enabled", obj->id))
+    {
         return false;
+    }
     return objs[obj->id].is_enabled();
 }
 
 void Object_SetEnabled(ScriptObject *obj, bool on)
 {
     if (!AssertObject("Object.Enabled", obj->id))
+    {
         return;
+    }
     if (objs[obj->id].is_enabled() != on)
     {
         objs[obj->id].set_enabled(on);
@@ -620,14 +658,18 @@ void Object_SetEnabled(ScriptObject *obj, bool on)
 bool Object_GetVisible(ScriptObject *obj)
 {
     if (!AssertObject("Object.Visible", obj->id))
+    {
         return false;
+    }
     return objs[obj->id].is_visible();
 }
 
 void Object_SetVisible(ScriptObject *obj, bool on)
 {
     if (!AssertObject("Object.Visible", obj->id))
+    {
         return;
+    }
     if (objs[obj->id].is_visible() != on)
     {
         objs[obj->id].set_visible(on);
@@ -655,7 +697,9 @@ int Object_GetGraphic(ScriptObject *obj)
 int GetObjectX(int obj_id)
 {
     if (!AssertObject("GetObjectX", obj_id))
+    {
         return 0;
+    }
     return objs[obj_id].x;
 }
 
@@ -667,7 +711,9 @@ int Object_GetX(ScriptObject *obj)
 int GetObjectY(int obj_id)
 {
     if (!AssertObject("GetObjectY", obj_id))
+    {
         return 0;
+    }
     return objs[obj_id].y;
 }
 
@@ -679,7 +725,9 @@ int Object_GetY(ScriptObject *obj)
 int IsObjectAnimating(int obj_id)
 {
     if (!AssertObject("IsObjectAnimating", obj_id))
+    {
         return 0;
+    }
     return objs[obj_id].is_animating() ? 1 : 0;
 }
 
@@ -691,7 +739,9 @@ int Object_GetAnimating(ScriptObject *obj)
 int IsObjectMoving(int obj_id)
 {
     if (!AssertObject("IsObjectMoving", obj_id))
+    {
         return 0;
+    }
     return (objs[obj_id].moving > 0) ? 1 : 0;
 }
 
@@ -724,7 +774,9 @@ int Object_GetLightLevel(ScriptObject *obj)
 void Object_SetLightLevel(ScriptObject *obj, int light_level)
 {
     if (!AssertObject("Object.LightLevel", obj->id))
+    {
         return;
+    }
 
     int obj_id = obj->id;
     objs[obj_id].tint_light = light_level;
@@ -770,7 +822,9 @@ int Object_GetTintLuminance(ScriptObject *obj)
 void SetObjectPosition(int obj_id, int tox, int toy)
 {
     if (!AssertObject("SetObjectPosition", obj_id))
+    {
         return;
+    }
 
     if (objs[obj_id].moving > 0)
     {
@@ -801,7 +855,9 @@ void Object_SetY(ScriptObject *obj, int y)
 const char *Object_GetName_New(ScriptObject *obj)
 {
     if (!AssertObject("Object.Name", obj->id))
+    {
         return nullptr;
+    }
 
     return CreateNewScriptString(croom->obj[obj->id].name);
 }
@@ -809,7 +865,9 @@ const char *Object_GetName_New(ScriptObject *obj)
 void Object_SetName(ScriptObject *obj, const char *new_name)
 {
     if (!AssertObject("Object.Name", obj->id))
+    {
         return;
+    }
     croom->obj[obj->id].name = new_name;
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
@@ -861,7 +919,9 @@ void Object_DoMove(ScriptObject *obj, const char *api_name, void *path_arr, int 
                    int blocking, int ignwal, int repeat = kAnimFlow_Once, int direction = FORWARDS)
 {
     if (!AssertObject("Object.Move", obj->id))
+    {
         return;
+    }
     const RoomObjectInfo &obji = thisroom.Objects[obj->id];
     ValidateMoveParams(api_name, obji.ScriptName.GetCStr(), blocking, ignwal);
     ValidateAnimParams(api_name, obji.ScriptName.GetCStr(), repeat, direction);
@@ -920,17 +980,23 @@ void Object_SetClickable(ScriptObject *obj, int clik)
 int Object_GetClickable(ScriptObject *obj)
 {
     if (!AssertObject("Object.Clickable", obj->id))
+    {
         return 0;
+    }
 
     if (objs[obj->id].flags & OBJF_NOINTERACT)
+    {
         return 0;
+    }
     return 1;
 }
 
 int Object_GetDestinationX(ScriptObject *obj)
 {
     if (!AssertObject("Object.DestinationX", obj->id))
+    {
         return 0;
+    }
 
     if (objs[obj->id].moving)
     {
@@ -943,7 +1009,9 @@ int Object_GetDestinationX(ScriptObject *obj)
 int Object_GetDestinationY(ScriptObject *obj)
 {
     if (!AssertObject("Object.DestinationY", obj->id))
+    {
         return 0;
+    }
 
     if (objs[obj->id].moving)
     {
@@ -956,7 +1024,9 @@ int Object_GetDestinationY(ScriptObject *obj)
 bool Object_GetManualScaling(ScriptObject *obj)
 {
     if (!AssertObject("Object.ManualScaling", obj->id))
+    {
         return false;
+    }
 
     return !(objs[obj->id].flags & OBJF_USEROOMSCALING);
 }
@@ -964,7 +1034,9 @@ bool Object_GetManualScaling(ScriptObject *obj)
 void Object_SetManualScaling(ScriptObject *obj, bool on)
 {
     if (!AssertObject("Object.ManualScaling", obj->id))
+    {
         return;
+    }
     if (on)
         objs[obj->id].flags &= ~OBJF_USEROOMSCALING;
     else
@@ -976,14 +1048,18 @@ void Object_SetManualScaling(ScriptObject *obj, bool on)
 int Object_GetScaling(ScriptObject *obj)
 {
     if (!AssertObject("Object.Scaling", obj->id))
+    {
         return 0;
+    }
     return objs[obj->id].zoom;
 }
 
 void Object_SetScaling(ScriptObject *obj, int zoomlevel)
 {
     if (!AssertObject("Object.Scaling", obj->id))
+    {
         return;
+    }
     if ((objs[obj->id].flags & OBJF_USEROOMSCALING) != 0)
     {
         debug_script_warn("Object.Scaling: cannot set property unless ManualScaling is enabled");
@@ -999,7 +1075,9 @@ void Object_SetScaling(ScriptObject *obj, int zoomlevel)
 void Object_SetSolid(ScriptObject *obj, int solid)
 {
     if (!AssertObject("Object.Solid", obj->id))
+    {
         return;
+    }
     objs[obj->id].flags &= ~OBJF_SOLID;
     if (solid)
         objs[obj->id].flags |= OBJF_SOLID;
@@ -1008,65 +1086,85 @@ void Object_SetSolid(ScriptObject *obj, int solid)
 int Object_GetSolid(ScriptObject *obj)
 {
     if (!AssertObject("Object.Solid", obj->id))
+    {
         return 0;
+    }
     if (objs[obj->id].flags & OBJF_SOLID)
+    {
         return 1;
+    }
     return 0;
 }
 
 void Object_SetBlockingWidth(ScriptObject *obj, int bwid)
 {
     if (!AssertObject("Object.BlockingWidth", obj->id))
+    {
         return;
+    }
     objs[obj->id].blocking_width = static_cast<int16_t>(bwid);
 }
 
 int Object_GetBlockingWidth(ScriptObject *obj)
 {
     if (!AssertObject("Object.BlockingWidth", obj->id))
+    {
         return 0;
+    }
     return objs[obj->id].blocking_width;
 }
 
 void Object_SetBlockingHeight(ScriptObject *obj, int bhit)
 {
     if (!AssertObject("Object.BlockingHeight", obj->id))
+    {
         return;
+    }
     objs[obj->id].blocking_height = static_cast<int16_t>(bhit);
 }
 
 int Object_GetBlockingHeight(ScriptObject *obj)
 {
     if (!AssertObject("Object.BlockingHeight", obj->id))
+    {
         return 0;
+    }
     return objs[obj->id].blocking_height;
 }
 
 int Object_GetBlockingRectX(ScriptObject *obj)
 {
     if (!AssertObject("Object.BlockingRectX", obj->id))
+    {
         return 0;
+    }
     return objs[obj->id].blocking_x;
 }
 
 void Object_SetBlockingRectX(ScriptObject *obj, int x)
 {
     if (!AssertObject("Object.BlockingRectX", obj->id))
+    {
         return;
+    }
     objs[obj->id].blocking_x = static_cast<int16_t>(x);
 }
 
 int Object_GetBlockingRectY(ScriptObject *obj)
 {
     if (!AssertObject("Object.BlockingRectY", obj->id))
+    {
         return 0;
+    }
     return objs[obj->id].blocking_y;
 }
 
 void Object_SetBlockingRectY(ScriptObject *obj, int y)
 {
     if (!AssertObject("Object.BlockingRectY", obj->id))
+    {
         return;
+    }
     objs[obj->id].blocking_y = static_cast<int16_t>(y);
 }
 
@@ -1244,7 +1342,9 @@ void move_object(int obj_id, const std::vector<Point> *path, int tox, int toy, i
 bool Object_RunFrameEvent(ScriptObject *obj, int view, int loop, int frame)
 {
     if (!AssertObject("Object.RunFrameEvent", obj->id))
+    {
         return false;
+    }
     view--; // convert to internal 0-based view ID
     AssertFrame("Object.RunFrameEvent", thisroom.Objects[obj->id].ScriptName.GetCStr(), view, loop, frame);
     return objs[obj->id].RunFrameEvent(view, loop, frame);
@@ -1299,21 +1399,27 @@ void Object_GetPropertyText(ScriptObject *obj, const char *property, char *bufer
 const char *Object_GetTextProperty(ScriptObject *obj, const char *property)
 {
     if (!AssertObject("Object.GetTextProperty", obj->id))
+    {
         return nullptr;
+    }
     return get_text_property_dynamic_string(thisroom.Objects[obj->id].Properties, croom->objProps[obj->id], property);
 }
 
 bool Object_SetProperty(ScriptObject *obj, const char *property, int value)
 {
     if (!AssertObject("Object.SetProperty", obj->id))
+    {
         return false;
+    }
     return set_int_property(croom->objProps[obj->id], property, value);
 }
 
 bool Object_SetTextProperty(ScriptObject *obj, const char *property, const char *value)
 {
     if (!AssertObject("Object.SetTextProperty", obj->id))
+    {
         return false;
+    }
     return set_text_property(croom->objProps[obj->id], property, value);
 }
 
@@ -1442,7 +1548,9 @@ int is_pos_in_sprite(int x, int y, int arx, int ary, Bitmap *sprit, int spww, in
         sphh = sprit->GetHeight() - 1;
 
     if (!RectWH(arx, ary, spww, sphh).IsInside(x, y))
+    {
         return false;
+    }
 
     if (game.options[OPT_PIXPERFECT])
     {
