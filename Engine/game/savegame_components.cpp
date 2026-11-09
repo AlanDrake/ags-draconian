@@ -529,7 +529,9 @@ HSaveError WriteAudio(Stream *out)
             // since version kAudioSvgVersion_36130
             int playback_flags = 0;
             if (voice->is_paused())
+            {
                 playback_flags |= kSvgAudioPaused;
+            }
             out->WriteInt32(playback_flags);
             out->WriteInt32(voice->sourceClipType);
             out->WriteInt32(0); // reserved

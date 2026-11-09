@@ -47,7 +47,9 @@ void SetSpeechVolume(int newvol)
 
     auto *voice = AudioChans::GetChannel(SCHAN_SPEECH);
     if (voice)
+    {
         voice->set_volume255(newvol);
+    }
     play.speech_volume = newvol;
 }
 

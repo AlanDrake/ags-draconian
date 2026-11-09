@@ -48,7 +48,9 @@ bool AudioChannel_GetIsPaused(ScriptAudioChannel *channel)
 {
     auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
     if (voice)
+    {
         return voice->is_paused();
+    }
     return false;
 }
 
@@ -91,7 +93,9 @@ int AudioChannel_GetPlayingType(ScriptAudioChannel *channel)
 {
     auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
     if (voice)
+    {
         return voice->sourceClipType;
+    }
     return AUDIOTYPE_UNDEFINED;
 }
 
@@ -99,7 +103,9 @@ int AudioChannel_GetPosition(ScriptAudioChannel *channel)
 {
     auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
     if (!voice)
+    {
         return 0;
+    }
     return voice->get_pos();
 }
 
@@ -107,7 +113,9 @@ int AudioChannel_GetPositionMs(ScriptAudioChannel *channel)
 {
     auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
     if (!voice)
+    {
         return 0;
+    }
     return voice->get_pos_ms();
 }
 
@@ -180,14 +188,18 @@ void AudioChannel_Pause(ScriptAudioChannel *channel)
 {
     auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
     if (voice)
+    {
         voice->pause();
+    }
 }
 
 void AudioChannel_Resume(ScriptAudioChannel *channel)
 {
     auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
     if (voice)
+    {
         voice->resume();
+    }
 }
 
 void AudioChannel_Seek(ScriptAudioChannel *channel, int newPosition)
@@ -197,7 +209,9 @@ void AudioChannel_Seek(ScriptAudioChannel *channel, int newPosition)
 
     auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
     if (voice)
+    {
         voice->seek(newPosition);
+    }
 }
 
 void AudioChannel_SeekMs(ScriptAudioChannel *channel, int newPosition)
@@ -207,7 +221,9 @@ void AudioChannel_SeekMs(ScriptAudioChannel *channel, int newPosition)
 
     auto *voice = AudioChans::GetChannelIfPlaying(channel->id);
     if (voice)
+    {
         voice->seek_ms(newPosition);
+    }
 }
 
 void AudioChannel_SetRoomLocation(ScriptAudioChannel *channel, int xPos, int yPos, int maxDist)

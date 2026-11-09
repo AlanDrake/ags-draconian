@@ -475,13 +475,21 @@ bool AGS::SymbolTable::IsIdentifier(Symbol s) const
     {
         char const &c = name[idx];
         if ('0' <= c && c <= '9')
+        {
             continue;
+        }
         if ('A' <= c && c <= 'Z')
+        {
             continue;
+        }
         if ('a' <= c && c <= 'z')
+        {
             continue;
+        }
         if ('_' == c)
+        {
             continue;
+        }
         return false;
     }
     return true;

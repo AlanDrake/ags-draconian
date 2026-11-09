@@ -261,10 +261,14 @@ void AGS::Scanner::SkipWhitespace()
 
         // Gobble the CR of a CRLF combination
         if ('\r' == c && '\n' == Peek())
+        {
             continue;
+        }
 
         if ('\n' == c)
+        {
             NewLine(_lineno + 1u);
+        }
     }
 }
 
@@ -321,7 +325,9 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
             continue; // Is neither an int nor a float yet but will become a number in later loop traversals
 
         if (std::string::npos != exponent_leadin.find(c) && std::string::npos != exponent_follow.find(Peek()))
+        {
             continue; // Is neither an int nor a float yet but will become a number in later loop traversals
+        }
 
         if (('-' == c || '+' == c) && IsDigit(Peek()) && valstring.length() > 1u &&
             std::string::npos != exponent_leadin.find(valstring[valstring.length() - 2u]))
@@ -632,7 +638,9 @@ void AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstrin
         int c = Get();
         symstring.push_back(c);
         if (Failed() || '\n' == c || '\r' == c)
+        {
             break; // to error msg
+        }
 
         // CHECKME: a problem was found where _eofReached is set while testing for the
         // new section marker, but not unset, which leads to unexpected errors
@@ -653,7 +661,9 @@ void AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstrin
             c = Get();
             symstring.push_back(c);
             if (EOFReached() || Failed() || '\n' == c || '\r' == c)
+            {
                 break; // to error msg
+            }
 
             int converted;
             EscapedChar2Char(c, symstring, converted);

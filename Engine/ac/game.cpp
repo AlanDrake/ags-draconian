@@ -310,7 +310,9 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
             {
                 auto *voice = AudioChans::GetChannel(i);
                 if (voice)
+                {
                     voice->set_volume100(volume);
+                }
             }
         }
     }

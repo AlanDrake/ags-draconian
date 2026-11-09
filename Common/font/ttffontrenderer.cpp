@@ -238,7 +238,9 @@ void TTFFontRenderer::GetCharCodeRange(int fontNumber, std::pair<int, int> *char
     {
         first_charcode = static_cast<int>(c);
         for (; c != UINT32_MAX; c = TTF_GetNextFontChar(font, c))
+        {
             last_charcode = static_cast<int>(c);
+        }
     }
     *char_codes = std::make_pair(first_charcode, last_charcode);
 }
