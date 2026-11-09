@@ -426,16 +426,14 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *ch, float x_diff, float y_diff
     const ViewStruct &chview = views[ch->view];
     const bool has_down_loop = ((chview.numLoops > kDirLoop_Down) && (chview.loops[kDirLoop_Down].numFrames > 0));
     const bool has_up_loop = ((chview.numLoops > kDirLoop_Up) && (chview.loops[kDirLoop_Up].numFrames > 0));
-    // NOTE: 3.+ games required left & right loops to be present at all times
-    const bool has_left_loop =
-        true; // ((chview.numLoops > kDirLoop_Left)  && (chview.loops[kDirLoop_Left].numFrames > 0));
-    const bool has_right_loop =
-        true; // ((chview.numLoops > kDirLoop_Right) && (chview.loops[kDirLoop_Right].numFrames > 0));
+    // NOTE: left and right loops are required to be present at all times (as 3.+ games did)
+    const bool has_left_loop = true;
+    const bool has_right_loop = true;
     const bool has_diagonal_loops = should_use_diagloops(ch, true /* require >1 frames in loops */);
 
     const bool want_horizontal = (abs(y_diff) < abs(x_diff)) || (!has_down_loop || !has_up_loop);
 
-    DirectionalLoop next_loop = kDirLoop_Left; // NOTE: default loop was Left for some reason
+    DirectionalLoop next_loop = kDirLoop_Left; // NOTE: the default loop is Left
     if (want_horizontal)
     {
         const bool want_diagonal = has_diagonal_loops && (abs(y_diff) > abs(x_diff) / 2);
@@ -920,7 +918,8 @@ ScriptOverlay *Character_SayBackground(CharacterInfo *ch, const char *text)
     return scover;
 }
 
-// [DEPRECATED] still used by Character_SetAsPlayer
+// [DEPRECATED] the former script function; still called by gui.cpp, savegame.cpp and Character_SetAsPlayer.
+// TODO: call Character_SetActiveInventory(playerchar, ...) there instead and delete this function.
 void SetActiveInventory(int item_id)
 {
     if (!AssertInvItem("SetActiveInventory", item_id))
@@ -929,7 +928,6 @@ void SetActiveInventory(int item_id)
     Character_SetActiveInventory(playerchar, &scrInv[item_id]);
 }
 
-// CLNUP check the use of SetActiveInventory
 void Character_SetAsPlayer(CharacterInfo *ch)
 {
     // Set to same character, so ignore.
@@ -1087,7 +1085,8 @@ void Character_StopMovingEx(CharacterInfo *ch, bool force_walkable_area)
         EndSkippingUntilCharStops();
 
     CharacterExtras &chex = charextra[chid];
-    // Fixup position to the last saved one (CHECKME: find out what this means)
+    // A walk at a very small zoom level shows the character half way through a step, and keeps the position
+    // of the full step in xwas/ywas (see UpdateCharacterMoving); restore it before stopping
     if (chex.xwas != INVALID_X)
     {
         ch->x = chex.xwas;
@@ -1105,7 +1104,8 @@ void Character_StopMovingEx(CharacterInfo *ch, bool force_walkable_area)
         // TODO: don't use PlaceOnWalkable, as that may result in moving character
         // into the random direction.
         // For finishing a walk clamp to a precalculated final destination instead
-        // (CHECKME: is it guaranteed valid?).
+        // (the end of a pathfinder route is walkable, the end of a path given by a script is not
+        // guaranteed to be, so the clamp would be limited to routes).
         // For when interrupting a move, consider writing a "backtracing"
         // function that runs along MoveList's current stage back, looking for
         // the first pixel on a walkable area.
@@ -2469,7 +2469,7 @@ bool should_use_diagloops(CharacterInfo *ch, bool require_animation)
     return true;
 }
 
-// returns 1 normally, or 0 if they only have horizontal animations
+// Tells if the view has frames in both the Down and the Up loops; false if there are only horizontal animations
 bool has_updown_loops(CharacterInfo *ch)
 {
     // if no loops in the Down animation
@@ -2706,7 +2706,7 @@ bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
     int top_edge = room_to_mask_coord(thisroom.Edges.Top);
     int bottom_edge = room_to_mask_coord(thisroom.Edges.Bottom);
 
-    // Original comment sais that edges are ignored if the character is outside,
+    // Original comment says that edges are ignored if the character is outside,
     // because "people forget to move the edges sometimes".
     if (at_pt.X <= left_edge)
         left_edge = 0;
@@ -2815,7 +2815,8 @@ int wantMoveNow(CharacterInfo *ch, CharacterExtras *chex)
 
     // the % checks don't work when the counter is negative, so once
     // it wraps round, correct it
-    // FIXME: can this be solved by making walkwaitcounter unsigned instead??
+    // FIXME: walkwaitcounter is int16_t and turns negative after 32767 steps, which this loop works around
+    // (12000 is a multiple of 4, so the phase of the % 4 checks is kept); an unsigned counter would not need it.
     while (ch->walkwaitcounter < 0)
     {
         ch->walkwaitcounter += 12000;
@@ -3672,11 +3673,6 @@ void DisplaySpeech(const char *text, int char_id)
 // speech
 int GetLipSyncFrame(const char *curtex, int *stroffs)
 {
-    /*char *frameletters[MAXLIPSYNCFRAMES] =
-    {"./,/ ", "A", "O", "F/V", "D/N/G/L/R", "B/P/M",
-    "Y/H/K/Q/C", "I/T/E/X/th", "U/W", "S/Z/J/ch", NULL,
-    NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};*/
-
     size_t bestfit_len = 0;
     int bestfit = game.default_lipsync_frame;
     for (int aa = 0; aa < MAXLIPSYNCFRAMES; aa++)
@@ -3713,7 +3709,7 @@ int update_lip_sync(int talkview, int talkloop, int *talkframeptr)
 
     // lip-sync speech
     const char *nowsaying = &text_lips_text[text_lips_offset];
-    // if it's an apostraphe, skip it (we'll, I'll, etc)
+    // if it's an apostrophe, skip it (we'll, I'll, etc)
     if (nowsaying[0] == '\'')
     {
         text_lips_offset++;
