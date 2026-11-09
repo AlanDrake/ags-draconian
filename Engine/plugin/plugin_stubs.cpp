@@ -69,31 +69,6 @@ bool RegisterPluginStubs(const char *name)
         ccAddExternalStaticFunction("AppOpenURL", Sc_PluginStub_Int0);
         return true;
     }
-    else if (ags_stricmp(name, "ags_snowrain") == 0 || ags_stricmp(name, "ags_SnowRain20") == 0)
-    {
-        // ags_snowrain.dll
-        ccAddExternalStaticFunction("srSetSnowDriftRange", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetSnowDriftSpeed", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetSnowFallSpeed", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srChangeSnowAmount", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetSnowBaseline", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetSnowTransparency", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetSnowDefaultView", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetSnowWindSpeed", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetSnowAmount", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetSnowView", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srChangeRainAmount", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetRainView", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetRainDefaultView", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetRainTransparency", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetRainWindSpeed", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetRainBaseline", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetRainAmount", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetRainFallSpeed", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetWindSpeed", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("srSetBaseline", Sc_PluginStub_Void);
-        return true;
-    }
     else if (ags_stricmp(name, "agsjoy") == 0)
     {
         // agsjoy.dll
@@ -115,50 +90,6 @@ bool RegisterPluginStubs(const char *name)
         ccAddExternalStaticFunction("Joystick::EnableEvents^1", Sc_PluginStub_Void);
         return true;
     }
-    else if (ags_stricmp(name, "agsblend") == 0)
-    {
-        // agsblend.dll
-        ccAddExternalStaticFunction("DrawAlpha", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("GetAlpha", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("PutAlpha", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("Blur", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("HighPass", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("DrawAdd", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("DrawSprite", Sc_PluginStub_Int0);
-        return true;
-    }
-    else if (ags_stricmp(name, "agsflashlight") == 0)
-    {
-        // agsflashlight.dll
-        ccAddExternalStaticFunction("SetFlashlightTint", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("GetFlashlightTintRed", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("GetFlashlightTintGreen", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("GetFlashlightTintBlue", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("GetFlashlightMinLightLevel", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("GetFlashlightMaxLightLevel", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("SetFlashlightDarkness", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("GetFlashlightDarkness", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("SetFlashlightDarknessSize", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("GetFlashlightDarknessSize", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("SetFlashlightBrightness", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("GetFlashlightBrightness", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("SetFlashlightBrightnessSize", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("GetFlashlightBrightnessSize", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("SetFlashlightPosition", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("GetFlashlightPositionX", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("GetFlashlightPositionY", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("SetFlashlightFollowMouse", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("GetFlashlightFollowMouse", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("SetFlashlightFollowCharacter", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("GetFlashlightFollowCharacter", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("GetFlashlightCharacterDX", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("GetFlashlightCharacterDY", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("GetFlashlightCharacterHorz", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("GetFlashlightCharacterVert", Sc_PluginStub_Int0);
-        ccAddExternalStaticFunction("SetFlashlightMask", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("GetFlashlightMask", Sc_PluginStub_Int0);
-        return true;
-    }
     else if (ags_stricmp(name, "agswadjetutil") == 0)
     {
         // agswadjetutil.dll
@@ -172,15 +103,6 @@ bool RegisterPluginStubs(const char *name)
         ccAddExternalStaticFunction("MobileSetAchievement", Sc_PluginStub_Int0);
         ccAddExternalStaticFunction("MobileShowAchievements", Sc_PluginStub_Void);
         ccAddExternalStaticFunction("MobileResetAchievements", Sc_PluginStub_Void);
-        return true;
-    }
-    else if (ags_stricmp(name, "agsspritefont") == 0 || ags_stricmp(name, "agsplugin.spritefont") == 0)
-    {
-        ccAddExternalStaticFunction("SetSpriteFont", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("SetVariableSpriteFont", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("SetGlyph", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("SetSpacing", Sc_PluginStub_Void);
-        ccAddExternalStaticFunction("SetLineHeightAdjust", Sc_PluginStub_Void);
         return true;
     }
     else if (is_agsteam || is_agsgalaxy)
