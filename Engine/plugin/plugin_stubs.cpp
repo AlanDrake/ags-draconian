@@ -12,7 +12,12 @@
 //
 //=============================================================================
 //
-// Stubs for plugin functions.
+// Placeholder script functions for plugins that the engine cannot carry: closed
+// source (Steam, GOG Galaxy) or defunct ones. A game shipped with such a plugin
+// imports its functions, and a script with an unresolved import does not load;
+// the stubs make the imports resolve (they do nothing and return 0, -1 or null)
+// so that the game starts without the plugin's effect.
+// Plugins that the engine has built in (see pl_use_builtin_plugin) are not here.
 //
 //=============================================================================
 
@@ -50,8 +55,6 @@ RuntimeScriptValue Sc_PluginStub_NullStr(const RuntimeScriptValue * /*params*/, 
 
 bool RegisterPluginStubs(const char *name)
 {
-    // Stubs for plugin functions.
-
     bool is_agsteam = (ags_stricmp(name, "agsteam") == 0) || (ags_stricmp(name, "agsteam-unified") == 0) ||
                       (ags_stricmp(name, "agsteam-disjoint") == 0);
     bool is_agsgalaxy = (ags_stricmp(name, "agsgalaxy") == 0) || (ags_stricmp(name, "agsgalaxy-unified") == 0) ||
@@ -59,19 +62,19 @@ bool RegisterPluginStubs(const char *name)
 
     if (ags_stricmp(name, "ags_shell") == 0 || ags_stricmp(name, "agsshell") == 0)
     {
-        // ags_shell.dll or agsshell.dll
+        // ags_shell.dll or agsshell.dll: defunct, ran a program
         ccAddExternalStaticFunction("ShellExecute", Sc_PluginStub_Void);
         return true;
     }
     else if (ags_stricmp(name, "agsappopenurl") == 0)
     {
-        // agsappopenurl.dll
+        // agsappopenurl.dll: defunct, opened a web page
         ccAddExternalStaticFunction("AppOpenURL", Sc_PluginStub_Int0);
         return true;
     }
     else if (ags_stricmp(name, "agsjoy") == 0)
     {
-        // agsjoy.dll
+        // agsjoy.dll: defunct, joystick access
         ccAddExternalStaticFunction("JoystickCount", Sc_PluginStub_Int0);
         ccAddExternalStaticFunction("JoystickName", Sc_PluginStub_Int0);
         ccAddExternalStaticFunction("JoystickRescan", Sc_PluginStub_Int0);
@@ -92,7 +95,7 @@ bool RegisterPluginStubs(const char *name)
     }
     else if (ags_stricmp(name, "agswadjetutil") == 0)
     {
-        // agswadjetutil.dll
+        // agswadjetutil.dll: closed source, phone helpers and achievements of mobile ports
         ccAddExternalStaticFunction("IsOnPhone", Sc_PluginStub_Int0);
         ccAddExternalStaticFunction("FakeKeypress", Sc_PluginStub_Void);
         ccAddExternalStaticFunction("IosSetAchievementValue", Sc_PluginStub_Void);
@@ -107,7 +110,8 @@ bool RegisterPluginStubs(const char *name)
     }
     else if (is_agsteam || is_agsgalaxy)
     {
-        // agsteam.dll or agsgalaxy.dll
+        // agsteam.dll or agsgalaxy.dll: closed source, store achievements, statistics and
+        // leaderboards
         ccAddExternalStaticFunction("AGS2Client::IsAchievementAchieved^1", Sc_PluginStub_Int0);
         ccAddExternalStaticFunction("AGS2Client::SetAchievementAchieved^1", Sc_PluginStub_Int0);
         ccAddExternalStaticFunction("AGS2Client::ResetAchievement^1", Sc_PluginStub_Int0);
