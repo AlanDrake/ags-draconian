@@ -235,13 +235,13 @@ size_t TransformStream::Read(void *buffer, size_t size)
 
 int32_t TransformStream::ReadByte()
 {
-    uint8_t ch;
-    auto bytesRead = Read(&ch, 1);
+    uint8_t c;
+    auto bytesRead = Read(&c, 1);
     if (bytesRead != 1)
     {
         return EOF;
     }
-    return ch;
+    return c;
 }
 
 size_t TransformStream::Write(const void *buffer, size_t size)

@@ -177,14 +177,14 @@ static int cunpackbitl(uint8_t *line, size_t size, Stream *in)
         if (cx < 0)
         { //.............run
             int i = 1 - cx;
-            char ch = in->ReadInt8();
+            char c = in->ReadInt8();
             while (i--)
             {
                 // test for buffer overflow
                 if (n >= size)
                     return -1;
 
-                line[n++] = ch;
+                line[n++] = c;
             }
         }
         else
@@ -219,14 +219,14 @@ static int cunpackbitl16(uint16_t *line, size_t size, Stream *in)
         if (cx < 0)
         { //.............run
             int i = 1 - cx;
-            unsigned short ch = in->ReadInt16();
+            unsigned short c = in->ReadInt16();
             while (i--)
             {
                 // test for buffer overflow
                 if (n >= size)
                     return -1;
 
-                line[n++] = ch;
+                line[n++] = c;
             }
         }
         else
@@ -261,14 +261,14 @@ static int cunpackbitl32(uint32_t *line, size_t size, Stream *in)
         if (cx < 0)
         { //.............run
             int i = 1 - cx;
-            unsigned int ch = in->ReadInt32();
+            unsigned int c = in->ReadInt32();
             while (i--)
             {
                 // test for buffer overflow
                 if (n >= size)
                     return -1;
 
-                line[n++] = ch;
+                line[n++] = c;
             }
         }
         else

@@ -130,7 +130,7 @@ void _delete(int z)
 
 bool lzwcompress(Stream *lzw_in, Stream *out)
 {
-    int ch, i, run, len, match, size, mask;
+    int byte, i, run, len, match, size, mask;
     uint8_t buf[17];
 
     lzbuffer = (uint8_t *)malloc(N + F + (N + 1 + N + N + 256) * sizeof(int)); // 28.5 k !
@@ -150,9 +150,9 @@ bool lzwcompress(Stream *lzw_in, Stream *out)
     buf[0] = 0;
     i = N - F - F;
 
-    for (len = 0; len < F && (ch = lzw_in->ReadByte()) != -1; len++)
+    for (len = 0; len < F && (byte = lzw_in->ReadByte()) != -1; len++)
     {
-        lzbuffer[i + F] = static_cast<uint8_t>(ch);
+        lzbuffer[i + F] = static_cast<uint8_t>(byte);
         i = (i + 1) & (N - 1);
     }
 
@@ -160,20 +160,20 @@ bool lzwcompress(Stream *lzw_in, Stream *out)
 
     do
     {
-        ch = lzw_in->ReadByte();
+        byte = lzw_in->ReadByte();
         if (i >= N - F)
         {
             _delete(i + F - N);
-            lzbuffer[i + F] = lzbuffer[i + F - N] = static_cast<uint8_t>(ch);
+            lzbuffer[i + F] = lzbuffer[i + F - N] = static_cast<uint8_t>(byte);
         }
         else
         {
             _delete(i + F);
-            lzbuffer[i + F] = static_cast<uint8_t>(ch);
+            lzbuffer[i + F] = static_cast<uint8_t>(byte);
         }
 
         match = insert(i, run);
-        if (ch == -1)
+        if (byte == -1)
         {
             run--;
             len--;
@@ -218,7 +218,7 @@ bool lzwcompress(Stream *lzw_in, Stream *out)
 
 bool lzwexpand(const uint8_t *src, size_t src_sz, uint8_t *dst, size_t dst_sz)
 {
-    int bits, ch, i, j, len, mask;
+    int bits, byte, i, j, len, mask;
     uint8_t *dst_ptr = dst;
     const uint8_t *src_ptr = src;
 
@@ -263,8 +263,8 @@ bool lzwexpand(const uint8_t *src, size_t src_sz, uint8_t *dst, size_t dst_sz)
             }
             else
             {
-                ch = *(src_ptr++);
-                *(dst_ptr++) = (lzbuffer[i] = static_cast<uint8_t>(ch));
+                byte = *(src_ptr++);
+                *(dst_ptr++) = (lzbuffer[i] = static_cast<uint8_t>(byte));
                 i = (i + 1) & (N - 1);
             }
 

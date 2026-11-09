@@ -233,12 +233,12 @@ void TTFFontRenderer::GetCharCodeRange(int fontNumber, std::pair<int, int> *char
 {
     int first_charcode = -1, last_charcode = -1;
     TTF_Font *font = _fontData[fontNumber].Font;
-    Uint32 ch = TTF_GetFirstFontChar(font);
-    if (ch != UINT32_MAX)
+    Uint32 c = TTF_GetFirstFontChar(font);
+    if (c != UINT32_MAX)
     {
-        first_charcode = static_cast<int>(ch);
-        for (; ch != UINT32_MAX; ch = TTF_GetNextFontChar(font, ch))
-            last_charcode = static_cast<int>(ch);
+        first_charcode = static_cast<int>(c);
+        for (; c != UINT32_MAX; c = TTF_GetNextFontChar(font, c))
+            last_charcode = static_cast<int>(c);
     }
     *char_codes = std::make_pair(first_charcode, last_charcode);
 }
@@ -246,9 +246,9 @@ void TTFFontRenderer::GetCharCodeRange(int fontNumber, std::pair<int, int> *char
 void TTFFontRenderer::GetValidCharCodes(int fontNumber, std::vector<int> &char_codes)
 {
     TTF_Font *font = _fontData[fontNumber].Font;
-    for (Uint32 ch = TTF_GetFirstFontChar(font); ch != UINT32_MAX; ch = TTF_GetNextFontChar(font, ch))
+    for (Uint32 c = TTF_GetFirstFontChar(font); c != UINT32_MAX; c = TTF_GetNextFontChar(font, c))
     {
-        char_codes.push_back(ch);
+        char_codes.push_back(c);
     }
 }
 

@@ -96,9 +96,9 @@ size_t AAssetStream::Read(void *buffer, size_t size)
 
 int32_t AAssetStream::ReadByte()
 {
-    uint8_t ch;
-    auto read_size = Read(&ch, 1);
-    return (read_size == 1) ? ch : EOF;
+    uint8_t c;
+    auto read_size = Read(&c, 1);
+    return (read_size == 1) ? c : EOF;
 }
 
 size_t AAssetStream::Write(const void *buffer, size_t size)

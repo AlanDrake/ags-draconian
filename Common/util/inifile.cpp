@@ -25,9 +25,9 @@
 // TODO: replace with C++11 std::isblank library function
 namespace agsstd
 {
-inline int isblank(int ch)
+inline int isblank(int c)
 {
-    return ch == ' ' || ch == '\t';
+    return c == ' ' || c == '\t';
 }
 } // namespace agsstd
 
