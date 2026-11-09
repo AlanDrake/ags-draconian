@@ -42,7 +42,8 @@ ScriptDrawingSurface *DrawingSurface_CreateCopy(ScriptDrawingSurface *surface);
 void DrawingSurface_DrawSurface(ScriptDrawingSurface *target, ScriptDrawingSurface *source, int alpha, int dst_x,
                                 int dst_y, int dst_width, int dst_height, int src_x, int src_y, int src_width,
                                 int src_height);
-// DrawingSurface.DrawingColor: the colour number the script set, which the drawing functions use.
+// DrawingSurface.DrawingColor: the colour number the script set, which the drawing functions use. Setting it on a
+// surface that is not valid warns and keeps the old colour.
 void DrawingSurface_SetDrawingColor(ScriptDrawingSurface *surface, int new_colour);
 int DrawingSurface_GetDrawingColor(ScriptDrawingSurface *surface);
 // DrawingSurface.Height and DrawingSurface.Width: the size of the image, 0 if the surface is not valid.

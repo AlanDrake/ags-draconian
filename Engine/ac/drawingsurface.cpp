@@ -237,6 +237,11 @@ void DrawingSurface_BlendSurface(ScriptDrawingSurface *target, ScriptDrawingSurf
 
 void DrawingSurface_SetDrawingColor(ScriptDrawingSurface *surface, int new_colour)
 {
+    // ScriptDrawingSurface::SetDrawingColor converts the colour for the surface's bitmap, so it needs one
+    if (!AssertBitmapSurface(surface->GetBitmapSurface(), "DrawingSurface.DrawingColor"))
+    {
+        return;
+    }
     surface->SetDrawingColor(new_colour);
 }
 
