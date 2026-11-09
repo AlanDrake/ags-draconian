@@ -60,6 +60,9 @@ jobs:
   #   - the Windows MSBuild jobs build x64 Release only, which is what the editor and the engine ship,
   #     what the parity job compares and what Script/prepush.py builds; their Debug steps wait for a
   #     full run. There are no x86 builds of what has an x64 one (docs/refactor/PLAN.md, 2.9d).
+  #   - the MSBuild Tests job waits for a full run: the CMake Windows job runs the same tests with the same
+  #     compiler and architecture on every run, and the hand-written projects stay checked by the
+  #     `buildlists` step, the MSBuild Engine and Tools jobs and Script/prepush.py's `msbuild` stage.
   # Heavy jobs and steps say `if: needs.plan.outputs.full == 'true'`.
   plan:
     name: Plan
@@ -504,6 +507,7 @@ jobs:
     name: Windows MSVC Tests
     runs-on: windows-2022
     needs: [plan, windows-deps]
+    if: needs.plan.outputs.full == 'true'
     timeout-minutes: 40
     env:
       AGS_LIBOGG_LIB:        C:\Lib\Xiph\x64
