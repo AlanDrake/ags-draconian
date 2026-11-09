@@ -149,9 +149,13 @@ int Button_GetColorStyle(GUIButton *btn)
     if (btn->IsDynamicColors())
     {
         if (btn->IsFlatStyle())
+        {
             return eGUIButtonDynamicFlat;
+        }
         else
+        {
             return eGUIButtonDynamic;
+        }
     }
     else
     {
@@ -199,7 +203,9 @@ int Button_GetGraphic(GUIButton *btn)
 {
     // return currently displayed pic
     if (btn->GetCurrentImage() < 0)
+    {
         return btn->GetNormalImage();
+    }
     return btn->GetCurrentImage();
 }
 
@@ -272,7 +278,9 @@ void Button_SetMouseOverGraphic(GUIButton *btn, int slotn)
 {
     slotn = std::max(0, slotn);
     if (btn->GetMouseOverImage() != slotn)
+    {
         debug_script_log("GUI %d Button %d mouseover set to slot %d", btn->GetParentID(), btn->GetID(), slotn);
+    }
 
     const int old_slotn = btn->GetMouseOverImage();
     btn->SetMouseOverImage(slotn);
@@ -291,7 +299,9 @@ void Button_SetNormalGraphic(GUIButton *btn, int slotn)
 {
     slotn = std::max(0, slotn);
     if (btn->GetNormalImage() != slotn)
+    {
         debug_script_log("GUI %d Button %d normal set to slot %d", btn->GetParentID(), btn->GetID(), slotn);
+    }
 
     const int old_slotn = btn->GetNormalImage();
     // NormalGraphic = 0 will turn the Button into a standard colored button
@@ -323,7 +333,9 @@ void Button_SetPushedGraphic(GUIButton *btn, int slotn)
 {
     slotn = std::max(0, slotn);
     if (btn->GetPushedImage() != slotn)
+    {
         debug_script_log("GUI %d Button %d pushed set to slot %d", btn->GetParentID(), btn->GetID(), slotn);
+    }
 
     const int old_slotn = btn->GetPushedImage();
     btn->SetPushedImage(slotn);
@@ -434,7 +446,9 @@ int FindButtonAnimation(int gui_id, int objn)
     for (size_t i = 0; i < animbuts.size(); ++i)
     {
         if (animbuts[i].ongui == gui_id && animbuts[i].onguibut == objn)
+        {
             return i;
+        }
     }
     return -1;
 }
