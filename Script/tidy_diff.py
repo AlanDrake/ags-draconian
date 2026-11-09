@@ -24,7 +24,10 @@ clang-tidy's naming check knows case styles, not words, so a new "CharacterInfo 
 The banned abbreviations (CRYPTIC_WATCHLIST in refactor_metrics.py; STYLE.md "Naming") are found through
 readability-identifier-length, which .clang-tidy sets up to report every variable and parameter declared
 on a changed line: the ones on the watchlist are reported as [ags-cryptic-name], the rest dropped. Only
-a declaration is flagged; a changed line that uses a legacy "chaa" is not.
+a declaration is flagged; a changed line that uses a legacy "chaa" is not. The same list serves the
+reserved names (STYLE.md "Naming": `ch` is a character, `chex` a CharacterExtras, `btn` a GUIButton):
+a declaration of one of them is read from the source line and reported as [ags-reserved-name] when
+the type written there is not the reserved one. A declaration by `auto` is not checked.
 
 Needs clang-tidy 19.1 (CLANG_TIDY env var, --clang-tidy, or on PATH; pip install clang-tidy==19.1.0).
 On Windows the compile database comes from an MSVC build, so run it from a VS developer environment
@@ -54,6 +57,11 @@ HUNK = re.compile(r'^@@ -\S+ \+(\d+)(?:,(\d+))? @@')
 DECLARED_CHECK = 'readability-identifier-length'
 DECLARED_NAME = re.compile(r"name '(\w+)' is too short")
 CRYPTIC_CHECK = 'ags-cryptic-name'
+# Reserved names and the types they may have (STYLE.md "Naming"); a type token of the declaration must match
+RESERVED_NAMES = {'ch': ('CharacterInfo', 'AGSCharacter', 'Character'),
+                  'chex': ('CharacterExtras',),
+                  'btn': ('GUIButton',)}
+RESERVED_CHECK = 'ags-reserved-name'
 # The diagnostics about a whole function, reported on its declaration line (see the docstring)
 FUNCTION_CHECKS = {'readability-function-size': re.compile(r"^function '([\w:~]+)' exceeds"),
                    'readability-identifier-naming': re.compile(r"^invalid case style for (?:function|method) '([\w:~]+)'")}
@@ -116,6 +124,26 @@ class BaseFunctions:
                                text=True, encoding='utf-8', errors='replace')
             self._texts[path] = r.stdout if r.returncode == 0 else ''  # a new file has no base copy
         return re.search(r'\b%s\s*\(' % re.escape(name.split('::')[-1]), self._texts[path]) is not None
+
+
+def reserved_name_misuse(path, line, name):
+    """The type a reserved name is declared with on that source line, if it is not an allowed one; else None."""
+    try:
+        with open(os.path.join(REPO, path), encoding='utf-8', errors='replace') as f:
+            text = f.read().splitlines()[line - 1]
+    except (OSError, IndexError):
+        return None
+    text = text.split('//')[0]
+    # every declaration of the name on the line: the tokens before it, back to the previous separator
+    for m in re.finditer(r'\b%s\b' % re.escape(name), text):
+        before = re.split(r'[(,;{]', text[:m.start()])[-1]
+        tokens = re.findall(r'[A-Za-z_]\w*', before)
+        if not tokens or 'auto' in tokens or tokens[-1] in ('return', 'else', 'case', 'delete', 'throw', 'co_return'):
+            continue  # a use, not a declaration, or a type we cannot read
+        if any(t == allowed for t in tokens for allowed in RESERVED_NAMES[name]):
+            continue
+        return ' '.join(tokens)
+    return None
 
 
 def find_clang_tidy(explicit):
@@ -216,6 +244,12 @@ def main():
                     if declared and declared.group(1) in CRYPTIC_WATCHLIST:
                         text = "banned abbreviation '%s' in a new name (STYLE.md \"Naming\")" % declared.group(1)
                         found[(name, int(m.group('line')), CRYPTIC_CHECK, text)] = True
+                    elif declared and declared.group(1) in RESERVED_NAMES:
+                        misuse = reserved_name_misuse(name, int(m.group('line')), declared.group(1))
+                        if misuse:
+                            text = "'%s' is reserved for a %s, not a '%s' (STYLE.md \"Naming\")" % (
+                                declared.group(1), ' or '.join(RESERVED_NAMES[declared.group(1)]), misuse)
+                            found[(name, int(m.group('line')), RESERVED_CHECK, text)] = True
                 elif m.group('check') in FUNCTION_CHECKS and \
                         (fn := FUNCTION_CHECKS[m.group('check')].match(m.group('text'))) and \
                         legacy.has(name, fn.group(1)):

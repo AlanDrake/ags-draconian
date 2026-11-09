@@ -97,7 +97,14 @@ private:
   `texx`, `widd`, `iit`, `vii` are on the `refactor_metrics.py` watchlist and banned in new code
   **[enforced]**: `tidy_diff.py` flags a new variable or parameter so named.
 - **One concept, one name:** a `CharacterInfo*` is `ch` (or `character`) everywhere, not `chaa`,
-  `chap`, `chin`, `chinfo`, `char1` or `chi`.
+  `chap`, `chin`, `chinfo`, `char1` or `chi`. Name the concept, not the struct: `ch` stays right when
+  `CharacterInfo` becomes design-time data and the engine's character is a `Character` (PLAN.md 5.1a).
+- **Reserved names** mean exactly one thing in first-party code, so a reader never has to check
+  **[enforced]** (`tidy_diff.py` flags a variable or parameter so named with another explicit type;
+  `auto` is not checked): `ch` = a character (`CharacterInfo`, the plugin API's `AGSCharacter`, later
+  `Character`), `chex` = `CharacterExtras`, `btn` = `GUIButton`. A text character or byte is `c`, an
+  audio clip `clip`, an index `char_id`/`btn_id`. A name is added here once the code uses it for
+  nothing else.
 - Booleans are predicates (`is_visible`, `HasAlpha()`, `_needsRedraw`); functions are verbs, types
   nouns; ambiguous units go in the name (`delay_ms`, `volume_percent`, `speed_fps`).
 - **No new mutable globals.** The existing ones (`game`, `play`, `thisroom`, `croom`, `objs`, ...)
