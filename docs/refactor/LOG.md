@@ -3940,9 +3940,30 @@ local commits `b65708b52`, `0ba2ef3fc`, `6efc3bd1c`, `54f3e0173`):
   comparison was suspected and is not a bug: the same minimum is chosen either way.
 - **Both `[format]` commits** (`54f3e0173`, `17c8226bc`) are in `.git-blame-ignore-revs`.
 
+**`Engine/ac/guicontrol.cpp` + `guicontrol.h`** (2026-11-09; a Sonnet 5.5 subagent at `medium`, reviewed here; local
+commits `4d69ebf58`, `612aee72e`, `b2b8ac185`, and `351392e6e` by the supervisor):
+- **`[rename]`, +208 -208:** `guio` 227 and `xx`/`yy` 11 each to 0. Every `guio` was a `GUIControl *`; it is `control`,
+  the name Engine/ and Common/gui already use for that type (5 places; `ctrl` nowhere, `guio` in 126 declarations of
+  other files, which take `control` as their file sets come). No camelCase names; header and definitions already
+  agreed. 637 objects identical.
+- **`[comment]`, +27 -1:** the file had no debris, CHECKME, HACK or FIXME; the vague "figure out if this may be
+  simplified" TODO on `GUIControl_GetByName`'s type list became the reason for the list; every function of
+  `guicontrol.h` documented (one group comment for the script functions and property pairs, own text for the
+  exceptions: `GetAs*` return nullptr on a type mismatch, `SetSize` quits below 2x2 while the one-side setters do not).
+  Checked against the code.
+- **`[format]`:** braces on 7 changed lines; then `static_cast` for the six `GUIControl_GetAs*` downcasts the rename put
+  under the gate's `cppcoreguidelines-pro-type-cstyle-cast` (a C-style cast to a subclass is a `static_cast`; 637
+  objects identical). Tidy clean after it.
+- **Verification:** `prepush.py --auto --base 3976186a6` before the cast commit: format, build + ctest, headers, libcxx
+  341, emscripten, linux ctest 1165/1165, msbuild pass, tidy failed on the six casts only; after it, format and tidy
+  pass. Not run: macOS, iOS, Android.
+- **Found, not fixed:** `RegisterGUIControlAPI` registers `"GUIControl::SetScale"` twice on consecutive lines (a
+  `[delete]` for later); `GUIControl_SetOpacity` tests its range with a bitwise `|` (correct for two `bool`s, `||`
+  meant).
+
 - **Left for the next file sets:** `characterinfo_engine.cpp` still names the character `chi` where `character.h`
   declares `ch` (and `followingAsSheep`), and has two CHECKMEs (~lines 271 and 426); next by count:
-  `guicontrol.cpp/.h` (249), `drawingsurface.cpp/.h` (196), `button.cpp/.h` (195), `characterinfo_engine.cpp` (186).
+  `drawingsurface.cpp/.h` (196), `button.cpp/.h` (195), `characterinfo_engine.cpp` (186).
 
 ### 7.3 Ports
 
