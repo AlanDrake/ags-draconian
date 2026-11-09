@@ -25,3 +25,5 @@ b2b8ac185e7a044f7d2924438671b12bf162c2de
 fad87c64f92699d5b0805e7322068554640d996e
 # Engine: [format] braces on changed lines in button.cpp (2.4)
 92a1ad6f11818cc2aafe64b7872dd4495d44de66
+# Engine: [format] braces in characterinfo_engine.cpp (2.4)
+a6a139eb7a678d1e1fea057f52e298708a643de9

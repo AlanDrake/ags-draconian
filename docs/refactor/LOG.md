@@ -4006,9 +4006,32 @@ here; local commits `24c36d4ea`, `bc90b54ee`, `fad87c64f`):
   `Button_GetText` copies at most 199 characters (`MAX_MAXSTRLEN`). `Button_GetGraphic` treating only a negative
   current image as "none" is right: sprite 0 is a real sprite.
 
-- **Left for the next file sets:** `characterinfo_engine.cpp` (186) still names the character `chi` where
-  `character.h` declares `ch` (and `followingAsSheep`), and has two CHECKMEs (~lines 271 and 426); then, by count, the
-  remaining `Engine/ac` files (`viewport_script.cpp` 138, `dynamicsprite.cpp` 73, `file.cpp` 69, `display.cpp` 53,
+**`Engine/ac/characterinfo_engine.cpp`** (2026-11-09; a Sonnet 5.5 subagent at `medium`, reviewed here; local commits
+`ce2466d9a`, `b56d9cff1`, `a6a139eb7`, then `e03971a33` and `6d9c3736d` by the supervisor):
+- **`[rename]`, +171 -171:** `chi` 186 to 0, every one a `CharacterInfo *`, now `ch` as in `character.h`;
+  `followingAsSheep` → `following_as_sheep` here and in `character.h`; `numSteps`, `maxLoops` to `snake_case`. 637
+  objects identical. `Engine/main/update.cpp` still says `chi` and `followingAsSheep` (a later file set).
+- **`[comment]`, +26 -15:** both CHECKMEs answered. After a finished walk `do_movelist_move` has already set `walking`
+  to 0, so `Character_StopMovingEx` skips its frame reset and `UpdateCharacterMoving` is the only place that sets the
+  standing frame (checked against `update.cpp` and `character.cpp`); a TODO notes that a script's `StopMoving` resets
+  the frame but not `animwait`. `ch->room++` is the follower's room-change countdown (a negative room, set from
+  `-follow_change_room_timer`). Two "investigate why" notes explained (an idle animation clears `chex->anim`, so its
+  delay is `idle_anim_speed`); comments that said "visible" where the code tests "enabled" corrected. The
+  `character.h` comments for these functions still match.
+- **`[format]`, +86:** braces for the whole file (86 of 86), only `{`/`}` lines.
+- **Supervisor's follow-ups:** the braces put two old empty-branch chains under the gate's `bugprone-branch-clone`.
+  `e03971a33` `[delete]`s an unreachable branch of `UpdateCharacterFollower` ("followed character in another room and
+  disabled", after a branch that already handles "disabled"; dead since before the 2024 Enabled/Visible split, when
+  both tested `on == 0`; the code differs, the compiler could not prove it dead across `Random()`). `6d9c3736d`
+  turns the empty branches of `UpdateCharacterIdle` and `UpdateCharacterFollower` into early returns (both chains end
+  their function; code identical).
+- **Verification:** `prepush.py --auto --base dc6c08b7b`: format, build + ctest, headers, libcxx 341, emscripten,
+  linux ctest 1165/1165, msbuild pass; tidy clean after `6d9c3736d` (format, build, tidy re-run). Not run: macOS,
+  iOS, Android.
+- **Noted:** in `FixupCharacterLoopAndFrame`, `int loop = ch->loop;` is overwritten by the `for` at once, and
+  `loop = 0;` after a `quitprintf` is unreachable.
+
+- **Left for the next file sets:** by count, the remaining `Engine/ac` files (`viewport_script.cpp` 138, `dynamicsprite.cpp` 73, `file.cpp` 69, `display.cpp` 53,
   `slider.cpp/.h` 62) and the `butt`/`guio`/`sds` names other files still declare.
 
 ### 7.3 Ports
