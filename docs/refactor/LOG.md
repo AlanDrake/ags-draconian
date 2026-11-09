@@ -3909,7 +3909,7 @@ local commits `b65708b52`, `0ba2ef3fc`, `6efc3bd1c`, `54f3e0173`):
   legacy function findings until the 2.4 follow-up above, then clean. After the last two commits only format and
   tidy were re-run (objects identical). Not run: macOS, iOS, Android; the auto-test game beyond the CI job's CMake
   build (prepush's `build` stage runs ctest, not the game).
-- **Bug found, fixed in `63da172bd` (visual check pending; upstream too):** `start_character_turning` decides the 180° tie-break of
+- **Bug found, fixed in `63da172bd` (checked visually by the user, 2026-11-09; upstream too):** `start_character_turning` decides the 180° tie-break of
   `kScTurnOrder_FaceDown` (turn through the Down loop, toward the viewer) with `is_loop_in_left_half(fromidx) ? 1 :
   -1`. Two errors cancel for the common starts: `fromidx` is an index into `turnlooporder`, not a loop, and `+1` in
   that table (Down, DownLeft, Left, UpLeft, Up, ...) leads a left-half loop *up*, away from Down. Left, Right and
@@ -3936,8 +3936,8 @@ local commits `b65708b52`, `0ba2ef3fc`, `6efc3bd1c`, `54f3e0173`):
 - **Found:** `GetObjectIDAtRoom` computed `obj_x`/`obj_y` and never used them (deleted in `ac3bc8730`);
   `is_pos_in_sprite` with a 0 width or height fell back to the bitmap size minus 1, which excluded the last column and
   row from the hit test (reached when a sprite's recorded size is 0 while its image exists; fixed in `df791c714`);
-  `Object.Baseline` returns the stored value, 0 when unset, not the effective one (script API behaviour as
-  documented, kept). `AreThingsOverlapping`'s `+1` after the
+  `Object.Baseline` returns the stored value, not the effective one: 0 means "use the object's Y" (script API
+  behaviour, intended; confirmed by the user). `AreThingsOverlapping`'s `+1` after the
   comparison was suspected and is not a bug: the same minimum is chosen either way.
 - **Both `[format]` commits** (`54f3e0173`, `17c8226bc`) are in `.git-blame-ignore-revs`.
 

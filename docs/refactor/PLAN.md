@@ -111,7 +111,7 @@ Open items from finished tasks (details in LOG.md "Open items"):
 - 4.1 (character): `start_character_turning`'s `kScTurnOrder_FaceDown` tie-break passes a `turnlooporder` index to
   `is_loop_in_left_half` and has its sign inverted for that table; the two cancel for Left, Right and DownRight starts,
   but a 180° turn from DownLeft, UpLeft or UpRight passed through Up instead of Down. Fixed in `63da172bd`
-  (2026-11-09), visual check and a test pending; upstream `ags4` has the same line (a U.x candidate; LOG.md "4.1 +
+  (2026-11-09, checked visually by the user), a test pending; upstream `ags4` has the same line (a U.x candidate; LOG.md "4.1 +
   4.5 + 3.6 per file").
 - Scripts in a git worktree: `refactor_metrics.py`, `prepush.py`'s `linux` and `msbuild` stages fail there.
 - Stale: `Tools/test/directory_test.cpp`'s googletest comment; `FetchGoogleTest.cmake`'s pin for GCC < 5.
