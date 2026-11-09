@@ -135,7 +135,7 @@ GUIButton *GUIControl_GetAsButton(GUIControl *control)
         return nullptr;
     }
 
-    return (GUIButton *)control;
+    return static_cast<GUIButton *>(control);
 }
 
 GUIInvWindow *GUIControl_GetAsInvWindow(GUIControl *control)
@@ -145,7 +145,7 @@ GUIInvWindow *GUIControl_GetAsInvWindow(GUIControl *control)
         return nullptr;
     }
 
-    return (GUIInvWindow *)control;
+    return static_cast<GUIInvWindow *>(control);
 }
 
 GUILabel *GUIControl_GetAsLabel(GUIControl *control)
@@ -155,7 +155,7 @@ GUILabel *GUIControl_GetAsLabel(GUIControl *control)
         return nullptr;
     }
 
-    return (GUILabel *)control;
+    return static_cast<GUILabel *>(control);
 }
 
 GUIListBox *GUIControl_GetAsListBox(GUIControl *control)
@@ -165,7 +165,7 @@ GUIListBox *GUIControl_GetAsListBox(GUIControl *control)
         return nullptr;
     }
 
-    return (GUIListBox *)control;
+    return static_cast<GUIListBox *>(control);
 }
 
 GUISlider *GUIControl_GetAsSlider(GUIControl *control)
@@ -175,7 +175,7 @@ GUISlider *GUIControl_GetAsSlider(GUIControl *control)
         return nullptr;
     }
 
-    return (GUISlider *)control;
+    return static_cast<GUISlider *>(control);
 }
 
 GUITextBox *GUIControl_GetAsTextBox(GUIControl *control)
@@ -185,7 +185,7 @@ GUITextBox *GUIControl_GetAsTextBox(GUIControl *control)
         return nullptr;
     }
 
-    return (GUITextBox *)control;
+    return static_cast<GUITextBox *>(control);
 }
 
 int GUIControl_GetX(GUIControl *control)
