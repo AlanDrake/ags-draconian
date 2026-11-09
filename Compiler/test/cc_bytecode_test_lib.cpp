@@ -22,19 +22,19 @@
 #include "gtest/gtest.h"
 #include "script/cc_compiledscript.h"
 
-static std::string Esc(char const ch)
+static std::string Esc(char const c)
 {
-    if (ch >= ' ' && ch <= 126)
+    if (c >= ' ' && c <= 126)
     {
-        return std::string(1, ch);
+        return std::string(1, c);
     }
 
-    switch (ch)
+    switch (c)
     {
     default:
     {
         static char const *tohex = "0123456789abcdef";
-        unsigned char uch = static_cast<unsigned char>(ch);
+        unsigned char uch = static_cast<unsigned char>(c);
         std::string ret = "\\x";
         ret.push_back(tohex[uch / 16u]);
         ret.push_back(tohex[uch % 16u]);

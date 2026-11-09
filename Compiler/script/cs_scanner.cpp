@@ -247,23 +247,23 @@ void AGS::Scanner::SkipWhitespace()
         return;
     while (true)
     {
-        int const ch = Get();
+        int const c = Get();
         if (EOFReached())
             return;
         if (Failed())
             UserError("Error whilst skipping whitespace (file corrupt?)");
 
-        if (!IsSpace(ch))
+        if (!IsSpace(c))
         {
             UnGet();
             return;
         }
 
         // Gobble the CR of a CRLF combination
-        if ('\r' == ch && '\n' == Peek())
+        if ('\r' == c && '\n' == Peek())
             continue;
 
-        if ('\n' == ch)
+        if ('\n' == c)
             NewLine(_lineno + 1u);
     }
 }
@@ -301,12 +301,12 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
 
     while (true)
     {
-        int const ch = Get();
+        int const c = Get();
         if (!EOFReached() && Failed())
             UserError("Error whilst reading the number literal starting with '%s' (file corrupt?)", valstring.c_str());
 
-        symstring.push_back(ch);
-        if ('\'' == ch)
+        symstring.push_back(c);
+        if ('\'' == c)
         {
             if (!valstring.empty() && IsDigit(valstring.back()) && IsDigit(Peek()))
                 continue;
@@ -315,15 +315,15 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
                 IsHexDigit(valstring.back()) && IsHexDigit(Peek()))
                 continue;
         }
-        valstring.push_back(ch);
+        valstring.push_back(c);
 
         if (2 == valstring.length() && ("0x" == valstring || "0X" == valstring) && IsHexDigit(Peek()))
             continue; // Is neither an int nor a float yet but will become a number in later loop traversals
 
-        if (std::string::npos != exponent_leadin.find(ch) && std::string::npos != exponent_follow.find(Peek()))
+        if (std::string::npos != exponent_leadin.find(c) && std::string::npos != exponent_follow.find(Peek()))
             continue; // Is neither an int nor a float yet but will become a number in later loop traversals
 
-        if (('-' == ch || '+' == ch) && IsDigit(Peek()) && valstring.length() > 1u &&
+        if (('-' == c || '+' == c) && IsDigit(Peek()) && valstring.length() > 1u &&
             std::string::npos != exponent_leadin.find(valstring[valstring.length() - 2u]))
             continue; // Is neither an int nor a float yet but will become a number in later loop traversals
 
@@ -629,9 +629,9 @@ void AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstrin
 
     while (true)
     {
-        int ch = Get();
-        symstring.push_back(ch);
-        if (Failed() || '\n' == ch || '\r' == ch)
+        int c = Get();
+        symstring.push_back(c);
+        if (Failed() || '\n' == c || '\r' == c)
             break; // to error msg
 
         // CHECKME: a problem was found where _eofReached is set while testing for the
@@ -648,21 +648,21 @@ void AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstrin
             _eofReached = false;
         }
 
-        if ('\\' == ch)
+        if ('\\' == c)
         {
-            ch = Get();
-            symstring.push_back(ch);
-            if (EOFReached() || Failed() || '\n' == ch || '\r' == ch)
+            c = Get();
+            symstring.push_back(c);
+            if (EOFReached() || Failed() || '\n' == c || '\r' == c)
                 break; // to error msg
 
             int converted;
-            EscapedChar2Char(ch, symstring, converted);
+            EscapedChar2Char(c, symstring, converted);
             valstring.push_back(converted);
 
             continue;
         }
 
-        if (ch == '"')
+        if (c == '"')
         {
             // Except for string literals that are new section markers really,
             // if whitespace and another string literal follows, the literals must be concatenated.
@@ -705,7 +705,7 @@ void AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstrin
             continue;
         }
 
-        valstring.push_back(ch);
+        valstring.push_back(c);
     }
 
     // Here when an error or eof occurs.
@@ -723,15 +723,15 @@ void AGS::Scanner::ReadInIdentifier(std::string &symstring)
 
     while (true)
     {
-        int ch = Get();
+        int c = Get();
         if (EOFReached())
             return;
         if (Failed())
             UserError("Read error while scanning an identifier (file corrupt?)");
 
-        if (IsAlpha(ch) || IsDigit(ch) || '_' == ch)
+        if (IsAlpha(c) || IsDigit(c) || '_' == c)
         {
-            symstring.push_back(ch);
+            symstring.push_back(c);
             continue;
         }
         // That last char doesn't belong to the literal, so put it back.

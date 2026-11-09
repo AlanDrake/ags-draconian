@@ -473,14 +473,14 @@ bool AGS::SymbolTable::IsIdentifier(Symbol s) const
         return false;
     for (size_t idx = 0u; idx < name.size(); ++idx)
     {
-        char const &ch = name[idx];
-        if ('0' <= ch && ch <= '9')
+        char const &c = name[idx];
+        if ('0' <= c && c <= '9')
             continue;
-        if ('A' <= ch && ch <= 'Z')
+        if ('A' <= c && c <= 'Z')
             continue;
-        if ('a' <= ch && ch <= 'z')
+        if ('a' <= c && c <= 'z')
             continue;
-        if ('_' == ch)
+        if ('_' == c)
             continue;
         return false;
     }

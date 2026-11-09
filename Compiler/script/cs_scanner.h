@@ -194,13 +194,10 @@ private:
     void Warning(char const *desc...);
 
 protected:
-    inline static bool IsDigit(int ch) { return (ch >= '0' && ch <= '9'); }
-    inline static bool IsHexDigit(int ch)
-    {
-        return IsDigit(ch) || (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z');
-    }
-    inline static bool IsAlpha(int ch) { return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'); }
-    inline static bool IsSpace(int ch) { return (std::strchr(" \t\n\v\f\r", ch) != nullptr); }
+    inline static bool IsDigit(int c) { return (c >= '0' && c <= '9'); }
+    inline static bool IsHexDigit(int c) { return IsDigit(c) || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'); }
+    inline static bool IsAlpha(int c) { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'); }
+    inline static bool IsSpace(int c) { return (std::strchr(" \t\n\v\f\r", c) != nullptr); }
 
     // Change 'where': replace the first occurrence of 'token' in 'where' by 'replacement'.
     inline static void ReplaceToken(std::string &where, std::string const &token, std::string const &replacement)
