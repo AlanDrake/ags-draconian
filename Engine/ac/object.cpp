@@ -192,7 +192,6 @@ int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
             continue; // disabled or invisible
         if (only_clickable && (objs[aa].flags & OBJF_NOINTERACT))
             continue;
-        int obj_x = objs[aa].x, obj_y = objs[aa].y;
         SpriteTransformFlags sprite_flags = kSprTf_None;
         int sprite_width = objs[aa].get_width();
         int sprite_height = objs[aa].get_height();
