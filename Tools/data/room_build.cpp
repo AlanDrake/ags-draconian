@@ -24,6 +24,7 @@
 #include "util/file.h"
 #include "util/path.h"
 #include "util/string_utils.h"
+#include "util/utf8.h"
 
 using namespace AGS::Common;
 using namespace AGS::AGF;
@@ -155,32 +156,6 @@ RoomScriptNames GetRoomScriptNames(const RoomXml &room)
 // Text
 //-----------------------------------------------------------------------------
 
-// Decodes one UTF-8 sequence; returns the code point, or -1 for a malformed sequence
-static int DecodeUtf8(const char *&s)
-{
-    const unsigned char c = static_cast<unsigned char>(*s++);
-    int extra, cp;
-    if (c < 0x80)
-        return c;
-    else if ((c & 0xE0) == 0xC0)
-        extra = 1, cp = c & 0x1F;
-    else if ((c & 0xF0) == 0xE0)
-        extra = 2, cp = c & 0x0F;
-    else if ((c & 0xF8) == 0xF0)
-        extra = 3, cp = c & 0x07;
-    else
-        return -1;
-    for (; extra > 0; --extra)
-    {
-        const unsigned char cc = static_cast<unsigned char>(*s);
-        if ((cc & 0xC0) != 0x80)
-            return -1;
-        cp = (cp << 6) | (cc & 0x3F);
-        ++s;
-    }
-    return cp;
-}
-
 // Encodes UTF-8 text as Windows-1252; characters it doesn't have become '?', as with .NET
 static String Utf8ToCp1252(const String &utf8)
 {
@@ -190,9 +165,12 @@ static String Utf8ToCp1252(const String &utf8)
                                        0,      0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014,
                                        0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0,      0x017E, 0x0178};
     std::vector<char> out;
-    for (const char *s = utf8.GetCStr(); *s;)
+    const char *const end = utf8.GetCStr() + utf8.GetLength();
+    for (const char *s = utf8.GetCStr(); s < end;)
     {
-        const int cp = DecodeUtf8(s);
+        // a malformed sequence gives Utf8::RuneInvalid, which the code page does not have
+        Utf8::Rune cp;
+        s += std::max<size_t>(1, Utf8::GetChar(s, end - s, &cp));
         int byte = '?';
         if (cp >= 0 && (cp < 0x80 || (cp >= 0xA0 && cp <= 0xFF)))
             byte = cp;

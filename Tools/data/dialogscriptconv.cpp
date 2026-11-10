@@ -111,12 +111,6 @@ String DialogScriptConverter::ConvertLine(const String &line)
     return ConvertDialogScript(line);
 }
 
-// A character of a script word: ASCII letters, digits and '_' (the bytes of UTF-8 text are not)
-static bool IsScriptWordChar(char c)
-{
-    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || (c == '_');
-}
-
 // NOTE: original CJ's comment:
 // We need this hideously complicated function because we don't
 // want to replace it if "this" appears inside a string, hence
@@ -127,11 +121,11 @@ String DialogScriptConverter::ConvertRealScript(const String &src_line)
 
     for (size_t at = line.FindString("this", 0); at != -1; at = line.FindString("this", at + 1))
     {
-        if (IsScriptWordChar(line[at - 1]))
+        if (StrUtil::IsScriptWordChar(line[at - 1]))
         {
             continue;
         }
-        if ((at < line.GetLength() - 4) && IsScriptWordChar(line[at + 4]))
+        if ((at < line.GetLength() - 4) && StrUtil::IsScriptWordChar(line[at + 4]))
         {
             continue;
         }

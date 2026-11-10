@@ -1767,32 +1767,6 @@ static void CollectElements(DocElem elem, const char *name, std::vector<DocElem>
     }
 }
 
-static std::vector<uint8_t> DecodeBase64(const char *text)
-{
-    std::vector<uint8_t> result;
-    int value = 0, bits = -8;
-    for (const unsigned char *ptr = reinterpret_cast<const unsigned char *>(text ? text : ""); *ptr; ++ptr)
-    {
-        const unsigned char c = *ptr;
-        int digit = c >= 'A' && c <= 'Z'   ? c - 'A'
-                    : c >= 'a' && c <= 'z' ? c - 'a' + 26
-                    : c >= '0' && c <= '9' ? c - '0' + 52
-                    : c == '+'             ? 62
-                    : c == '/'             ? 63
-                                           : -1;
-        if (digit < 0)
-            continue;
-        value = (value << 6) | digit;
-        bits += 6;
-        if (bits >= 0)
-        {
-            result.push_back(static_cast<uint8_t>((value >> bits) & 0xff));
-            bits -= 8;
-        }
-    }
-    return result;
-}
-
 template <typename T>
 static void SortByID(std::vector<T> &items)
 {
@@ -2115,7 +2089,7 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
     {
         DataUtil::PluginData data;
         data.Name = plugin_parser.ReadFileName(plugin);
-        data.Data = DecodeBase64(plugin_parser.ReadData(plugin).GetCStr());
+        base64_decode(plugin_parser.ReadData(plugin), data.Data);
         game.Plugins.push_back(data);
     }
 }

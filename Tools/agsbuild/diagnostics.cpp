@@ -31,6 +31,7 @@
 #else
 #include <unistd.h>
 #endif
+#include "util/string_compat.h"
 
 namespace AGSBuild
 {
@@ -42,22 +43,6 @@ static bool IsLetterOrSpace(char c)
     return c == ' ' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
-static bool StartsWithNoCase(const std::string &s, size_t pos, const char *prefix)
-{
-    const size_t len = strlen(prefix);
-    if (s.size() < pos + len)
-        return false;
-    for (size_t i = 0; i < len; ++i)
-    {
-        char c = s[pos + i];
-        if (c >= 'A' && c <= 'Z')
-            c = static_cast<char>(c - 'A' + 'a');
-        if (c != prefix[i])
-            return false;
-    }
-    return true;
-}
-
 bool ParseDiagnosticLine(const std::string &line, Diagnostic &diag)
 {
     const size_t pos = line.find_first_not_of(" \t");
@@ -65,17 +50,17 @@ bool ParseDiagnosticLine(const std::string &line, Diagnostic &diag)
         return false;
     Severity level;
     size_t prefix_len;
-    if (StartsWithNoCase(line, pos, "error:"))
+    if (ags_strnicmp(line.c_str() + pos, "error:", 6) == 0)
     {
         level = Severity::Error;
         prefix_len = 6;
     }
-    else if (StartsWithNoCase(line, pos, "warning:"))
+    else if (ags_strnicmp(line.c_str() + pos, "warning:", 8) == 0)
     {
         level = Severity::Warning;
         prefix_len = 8;
     }
-    else if (StartsWithNoCase(line, pos, "info:"))
+    else if (ags_strnicmp(line.c_str() + pos, "info:", 5) == 0)
     {
         level = Severity::Info;
         prefix_len = 5;

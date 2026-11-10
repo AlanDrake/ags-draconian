@@ -418,24 +418,6 @@ static bool ParsePOLine(const String &line, String &keyword, String &text, int &
     return true;
 }
 
-// Older editors left quotes unescaped in the texts (Translation.EscapeUnescapedQuotes)
-static String EscapeUnescapedQuotes(const String &text)
-{
-    if (text.FindChar('"') == String::NoIndex)
-        return text;
-    String result;
-    int backslashes = 0;
-    for (size_t i = 0; i < text.GetLength(); ++i)
-    {
-        const char c = text[i];
-        if (c == '"' && (backslashes % 2) == 0)
-            result.AppendChar('\\');
-        backslashes = (c == '\\') ? backslashes + 1 : 0;
-        result.AppendChar(c);
-    }
-    return result;
-}
-
 // A PO entry as it is parsed
 struct POEntry
 {
@@ -467,8 +449,9 @@ HError ReadPO(TranslationSource &src, std::unique_ptr<Stream> &&in)
         if (has_msgid && has_msgstr && !po.Entry.Key.IsEmpty())
         {
             TranslationSourceEntry &entry = po.Entry;
-            entry.Key = EscapeUnescapedQuotes(entry.Key);
-            entry.Value = EscapeUnescapedQuotes(entry.Value);
+            // a hand-edited source may have quotes without their backslash, as in the editor
+            entry.Key = StrUtil::EscapeUnescapedQuotes(entry.Key);
+            entry.Value = StrUtil::EscapeUnescapedQuotes(entry.Value);
             // The context marks obsolete entries and the Text Parser's words (TranslationEntry.Context)
             if (po.Context == PO_CONTEXT_OBSOLETE)
             {
@@ -605,42 +588,15 @@ HError ReadPO(TranslationSource &src, std::unique_ptr<Stream> &&in)
 // PO, decompiled from a TRA
 //-----------------------------------------------------------------------------
 
-// Escapes a text for a PO string (Translation.EscapeText). Unlike the editor, a "\r" stays "\r":
-// the texts come from the game, and must still match it once compiled again
-static String EscapeText(const String &text)
-{
-    String result;
-    for (size_t i = 0; i < text.GetLength(); ++i)
-    {
-        const char c = text[i];
-        switch (c)
-        {
-        case '\\': result.Append("\\\\"); continue;
-        case '"': result.Append("\\\""); continue;
-        case '\a': result.Append("\\a"); continue;
-        case '\b': result.Append("\\b"); continue;
-        case '\f': result.Append("\\f"); continue;
-        case '\n': result.Append("\\n"); continue;
-        case '\r': result.Append("\\r"); continue;
-        case '\t': result.Append("\\t"); continue;
-        case '\v': result.Append("\\v"); continue;
-        default: break;
-        }
-        if (static_cast<unsigned char>(c) < ' ')
-            result.AppendFmt("\\%03o", static_cast<unsigned char>(c));
-        else
-            result.AppendChar(c);
-    }
-    return result;
-}
-
+// The texts are escaped for a PO string (Translation.EscapeText). Unlike the editor, a "\r" stays
+// "\r": the texts come from the game, and must still match it once compiled again
 static void WritePOEntry(TextStreamWriter &sw, const String &context, const String &key, const String &value)
 {
     sw.WriteLine("");
     if (!context.IsEmpty())
         sw.WriteLineFormat("msgctxt \"%s\"", context.GetCStr());
-    sw.WriteLineFormat("msgid \"%s\"", EscapeText(key).GetCStr());
-    sw.WriteLineFormat("msgstr \"%s\"", EscapeText(value).GetCStr());
+    sw.WriteLineFormat("msgid \"%s\"", StrUtil::Escape(key).GetCStr());
+    sw.WriteLineFormat("msgstr \"%s\"", StrUtil::Escape(value).GetCStr());
 }
 
 HError WritePO(const Translation &tra, std::unique_ptr<Stream> &&out)
@@ -687,7 +643,7 @@ HError WritePO(const Translation &tra, std::unique_ptr<Stream> &&out)
     sw.WriteLine("msgstr \"\"");
     sw.WriteLine("\"Last-Translator: \\n\"");
     sw.WriteLine("\"Language-Team: \\n\"");
-    sw.WriteLineFormat("\"Language: %s\\n\"", EscapeText(lang_hint).GetCStr());
+    sw.WriteLineFormat("\"Language: %s\\n\"", StrUtil::Escape(lang_hint).GetCStr());
     sw.WriteLine("\"MIME-Version: 1.0\\n\"");
     sw.WriteLineFormat("\"Content-Type: text/plain; charset=%s\\n\"",
                        (encoding == "ASCII" ? "ISO-8859-1" : encoding.GetCStr()));
@@ -723,93 +679,8 @@ HError WritePO(const Translation &tra, std::unique_ptr<Stream> &&out)
 }
 
 //-----------------------------------------------------------------------------
-// TRA - compiled translation in a binary format
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // TRA - the compiled translation, written as the editor writes it
 //-----------------------------------------------------------------------------
-
-// Appends a character code given by a numeric escape, in the translation's encoding
-static void AppendCharCode(String &s, int code, bool utf8)
-{
-    if (utf8 && code >= 0x80)
-    {
-        s.AppendChar(static_cast<char>(0xC0 | (code >> 6)));
-        s.AppendChar(static_cast<char>(0x80 | (code & 0x3F)));
-    }
-    else
-    {
-        s.AppendChar(static_cast<char>(code));
-    }
-}
-
-// Resolves the escapes of a translated text, as the script compiler does, because the translation's
-// keys must match the game's texts; unknown escapes are kept as they are (Translation.UnescapeText)
-static String UnescapeText(const String &text, bool utf8)
-{
-    if (text.FindChar('\\') == String::NoIndex)
-        return text;
-    String result;
-    const size_t len = text.GetLength();
-    for (size_t i = 0; i < len; ++i)
-    {
-        char c = text[i];
-        if (c != '\\' || i + 1 >= len)
-        {
-            result.AppendChar(c);
-            continue;
-        }
-        c = text[++i];
-        switch (c)
-        {
-        case '\'':
-        case '"':
-        case '?':
-        case '\\': result.AppendChar(c); continue;
-        case 'a': result.AppendChar('\a'); continue;
-        case 'b': result.AppendChar('\b'); continue;
-        case 'e': result.AppendChar(27); continue;
-        case 'f': result.AppendChar('\f'); continue;
-        case 'n': result.AppendChar('\n'); continue;
-        case 'r': result.AppendChar('\r'); continue;
-        case 't': result.AppendChar('\t'); continue;
-        case 'v': result.AppendChar('\v'); continue;
-        default: break;
-        }
-        if (c >= '0' && c < '8')
-        {
-            // up to 3 octal digits, max value 255
-            int value = c - '0';
-            for (int n = 0; n < 2 && i + 1 < len; ++n)
-            {
-                const int digit = text[i + 1] - '0';
-                if (digit < 0 || digit >= 8 || value * 8 + digit > 255)
-                    break;
-                value = value * 8 + digit;
-                i++;
-            }
-            AppendCharCode(result, value, utf8);
-            continue;
-        }
-        if (c == 'x' && i + 1 < len && isxdigit(static_cast<unsigned char>(text[i + 1])))
-        {
-            // up to 2 hex digits
-            int value = 0;
-            for (int n = 0; n < 2 && i + 1 < len && isxdigit(static_cast<unsigned char>(text[i + 1])); ++n)
-            {
-                const char h = static_cast<char>(tolower(static_cast<unsigned char>(text[++i])));
-                value = value * 16 + (h <= '9' ? h - '0' : h - 'a' + 10);
-            }
-            AppendCharCode(result, value, utf8);
-            continue;
-        }
-        // unknown escape sequence
-        result.AppendChar('\\');
-        result.AppendChar(c);
-    }
-    return result;
-}
 
 // A text of the translation's dictionary or the game name: its length, and the encrypted text
 // without a terminator
@@ -825,10 +696,11 @@ static void WriteEncryptedText(const String &text, Stream *out)
 HError WriteTRA(const TranslationSource &src, std::unique_ptr<Stream> &&out)
 {
     const TranslationOptions &tra = src.Options;
-    const bool utf8 = tra.EncodingHint.CompareNoCase("UTF-8") == 0;
 
     // Translated texts and Text Parser words, skipping the obsolete entries and those which
-    // translators marked for review (TranslationsComponent.SplitTranslationItemsIntoSections)
+    // translators marked for review (as the Editor's own compiler did, up to the tag pre-6.7d).
+    // The escapes are resolved as the script compiler resolves them (unknown ones stay), because
+    // the translation's keys must match the game's texts (Translation.UnescapeText)
     std::vector<std::pair<String, String>> lines;
     std::vector<std::pair<String, uint16_t>> parser_words;
     for (const auto &entry : src.Entries)
@@ -836,9 +708,13 @@ HError WriteTRA(const TranslationSource &src, std::unique_ptr<Stream> &&out)
         if (entry.Value.IsEmpty() || entry.Obsolete || entry.Fuzzy)
             continue;
         if (entry.ParserWordID >= 0)
-            parser_words.push_back(std::make_pair(UnescapeText(entry.Value, utf8), entry.ParserWordID));
+        {
+            parser_words.emplace_back(StrUtil::Unescape(entry.Value, true), entry.ParserWordID);
+        }
         else
-            lines.push_back(std::make_pair(UnescapeText(entry.Key, utf8), UnescapeText(entry.Value, utf8)));
+        {
+            lines.emplace_back(StrUtil::Unescape(entry.Key, true), StrUtil::Unescape(entry.Value, true));
+        }
     }
     if (lines.empty())
         printf("WARNING: input translation did not appear to have any translated lines.\n");

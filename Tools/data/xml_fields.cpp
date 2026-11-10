@@ -50,12 +50,6 @@ static String Trimmed(const char *text)
     return s;
 }
 
-// Splits "a,b,c" into its parts
-static std::vector<String> SplitCommas(const char *text)
-{
-    return String(text).Split(',');
-}
-
 // Like C# Int32.Parse: optional whitespace and sign around decimal digits, no overflow.
 // Colors are written in hex ("0xFFA8A8A8"), which the editor reads with Convert.ToInt32(s, 16):
 // all 32 bits, so values above 0x7FFFFFFF become negative.
@@ -121,7 +115,7 @@ bool ParseXmlValue(const char *text, String &value)
 
 bool ParseXmlValue(const char *text, Point &value)
 {
-    const auto parts = SplitCommas(text);
+    const auto parts = String(text).Split(',');
     Point pt;
     if (parts.size() < 2 || !ParseInt(parts[0], pt.X) || !ParseInt(parts[1], pt.Y))
         return false;
@@ -131,7 +125,7 @@ bool ParseXmlValue(const char *text, Point &value)
 
 bool ParseXmlValue(const char *text, XmlRect &value)
 {
-    const auto parts = SplitCommas(text);
+    const auto parts = String(text).Split(',');
     XmlRect r;
     if (parts.size() < 4 || !ParseInt(parts[0], r.X) || !ParseInt(parts[1], r.Y) || !ParseInt(parts[2], r.Width) ||
         !ParseInt(parts[3], r.Height))
