@@ -164,8 +164,8 @@ public:
         if (_speed <= 0)
             _speed = 16;
 
-        // harmonise speeds with software driver which is faster (???)
-        _speed *= 2;
+        // Alpha goes 0-255 in steps of speed * 4, as the software fade (64 / speed steps)
+        _speed *= 4;
         // Create a "screenshot" on a texture
         play.screen_is_faded_out = false; // force all game elements to draw
 
