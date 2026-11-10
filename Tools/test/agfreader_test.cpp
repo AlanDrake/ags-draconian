@@ -45,9 +45,27 @@ static Common::HError OpenAgfWithRoot(const char *root_attributes)
     return err;
 }
 
+// The Version attribute for a project format: the given one with a step added to one of its four
+// numbers, so the tests follow the versions the reader is built with
+static std::string VersionAttribute(const char *version, int number = 3, int step = 0)
+{
+    int v[4] = {};
+    EXPECT_EQ(4, sscanf(version, "%d.%d.%d.%d", &v[0], &v[1], &v[2], &v[3])) << version;
+    v[number] += step;
+    for (int i = number + 1; step != 0 && i < 4; ++i)
+    {
+        v[i] = 0;
+    }
+    char attribute[64];
+    snprintf(attribute, sizeof(attribute), "Version=\"%d.%d.%d.%d\"", v[0], v[1], v[2], v[3]);
+    return attribute;
+}
+
 TEST(AGFReader, OpenAcceptsCurrentProjectFormat)
 {
-    Common::HError err = OpenAgfWithRoot("Version=\"4.0.0.34\" EditorVersion=\"4.00.00.34\"");
+    Common::HError err = OpenAgfWithRoot(VersionAttribute(AGF::LATEST_XML_VERSION).c_str());
+    EXPECT_TRUE(err) << (err ? "" : err->FullMessage().GetCStr());
+    err = OpenAgfWithRoot(VersionAttribute(AGF::OLDEST_READABLE_XML_VERSION).c_str());
     EXPECT_TRUE(err) << (err ? "" : err->FullMessage().GetCStr());
 }
 
@@ -56,13 +74,13 @@ TEST(AGFReader, OpenRejectsFormatsThatNeedAnUpgrade)
     // Legacy tag (Editor up to 4.0.0.19), and a version-string format older than the readable minimum:
     // both have to be opened and saved in the Editor first
     EXPECT_FALSE(OpenAgfWithRoot("Version=\"3.0.3.2\" VersionIndex=\"26\""));
-    EXPECT_FALSE(OpenAgfWithRoot("Version=\"4.0.0.33\""));
+    EXPECT_FALSE(OpenAgfWithRoot(VersionAttribute(AGF::OLDEST_READABLE_XML_VERSION, 3, -1).c_str()));
 }
 
 TEST(AGFReader, OpenRejectsNewerFormats)
 {
-    EXPECT_FALSE(OpenAgfWithRoot("Version=\"4.0.0.35\""));
-    EXPECT_FALSE(OpenAgfWithRoot("Version=\"4.1.0.0\""));
+    EXPECT_FALSE(OpenAgfWithRoot(VersionAttribute(AGF::LATEST_XML_VERSION, 3, +1).c_str()));
+    EXPECT_FALSE(OpenAgfWithRoot(VersionAttribute(AGF::LATEST_XML_VERSION, 1, +1).c_str()));
 }
 
 // Parses a single XML element and reads its script name with the given parser
@@ -100,7 +118,9 @@ TEST(AGFReader, GUIsAreInIDOrder)
     {
         std::ofstream f(path);
         f << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
-             "<AGSEditorDocument Version=\"4.0.0.34\" EditorVersion=\"4.00.00.34\"><Game><Settings /><GUIs>"
+             "<AGSEditorDocument "
+          << VersionAttribute(AGF::LATEST_XML_VERSION)
+          << "><Game><Settings /><GUIs>"
              "<GUIFolder Name=\"Main\"><SubFolders><GUIFolder Name=\"Sub\"><SubFolders /><GUIs>"
              "<GUIMain><NormalGUI><ID>1</ID><Name>gSecond</Name><Controls /></NormalGUI></GUIMain>"
              "</GUIs></GUIFolder></SubFolders><GUIs>"
