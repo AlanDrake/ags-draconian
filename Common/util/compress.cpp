@@ -517,33 +517,5 @@ bool inflate_decompress(uint8_t *data, size_t data_sz, int /*image_bpp*/, Stream
     return z_inflate(in_buf.data(), in_sz, data, data_sz);
 }
 
-// References:
-// https://en.wikipedia.org/wiki/Base64
-// https://stackoverflow.com/questions/180947/base64-decode-snippet-in-c
-static const char *Base64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-String base64_encode(const void *addr, size_t input_size)
-{
-    const uint8_t *bytes = static_cast<const uint8_t *>(addr);
-    String out;
-    int val = 0, valb = -6;
-    for (size_t i = 0; i < input_size; ++i)
-    {
-        uint8_t c = bytes[i];
-        val = (val << 8) + c;
-        valb += 8;
-        while (valb >= 0)
-        {
-            out.AppendChar(Base64Alphabet[(val >> valb) & 0x3F]);
-            valb -= 6;
-        }
-    }
-    if (valb > -6)
-        out.AppendChar(Base64Alphabet[((val << 8) >> (valb + 8)) & 0x3F]);
-    while (out.GetLength() % 4)
-        out.AppendChar('=');
-    return out;
-}
-
 } // namespace Common
 } // namespace AGS

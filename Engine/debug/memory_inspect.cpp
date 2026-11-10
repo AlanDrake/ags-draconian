@@ -41,7 +41,6 @@
 #include "script/script_runtime.h"
 #include "script/scriptexecutor.h"
 #include "script/systemimports.h"
-#include "util/compress.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;

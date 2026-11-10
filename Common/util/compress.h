@@ -44,9 +44,6 @@ bool lzw_decompress(uint8_t *data, size_t data_sz, int image_bpp, Stream *in, si
 // Loads bitmap decompressing data using LZW algorithm
 PixelBuffer load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256] = nullptr);
 
-// Base64 encoding
-Common::String base64_encode(const void *addr, size_t input_size);
-
 // Deflate compression
 bool deflate_compress(const uint8_t *data, size_t data_sz, int image_bpp, Stream *out);
 bool inflate_decompress(uint8_t *data, size_t data_sz, int image_bpp, Stream *in, size_t in_sz);

@@ -251,5 +251,12 @@ String ApplyTextDirection(const String &text, bool default_rtl = false);
 // or empty string if none was found.
 String FindCompatibleUTF8LocaleName(const String &lang_name);
 } // namespace StrUtil
+
+// Base64 encoding
+String base64_encode(const void *addr, size_t input_size);
+// Base64 decoding, with upstream's signature. Both are here and not in compress.h, where upstream has
+// them, because the build tools compile this file and not compress.cpp;
+// characters outside the alphabet (padding, line breaks) are skipped, where upstream's stops
+void base64_decode(const String &input, std::vector<uint8_t> &out);
 } // namespace Common
 } // namespace AGS

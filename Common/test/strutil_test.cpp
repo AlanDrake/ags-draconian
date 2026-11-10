@@ -78,6 +78,28 @@ TEST(StrUtil, EscapeUnescapedQuotes)
     EXPECT_STREQ("a \\\"b\\\\\\\" c", StrUtil::EscapeUnescapedQuotes("a \\\"b\\\\\" c").GetCStr());
 }
 
+TEST(Base64, DecodeIsTheReverseOfEncode)
+{
+    std::vector<uint8_t> decoded = {9};
+    base64_decode("", decoded);
+    EXPECT_TRUE(decoded.empty());
+    const std::vector<uint8_t> three = {0, 1, 2};
+    base64_decode("AAEC", decoded);
+    EXPECT_EQ(three, decoded);
+    // any length, with padding and line breaks
+    std::vector<uint8_t> data;
+    for (int i = 0; i < 300; ++i)
+    {
+        data.push_back(static_cast<uint8_t>(i * 7));
+        String text = base64_encode(data.data(), data.size());
+        base64_decode(text, decoded);
+        EXPECT_EQ(data, decoded) << i;
+        text.Append("\r\n");
+        base64_decode(text, decoded);
+        EXPECT_EQ(data, decoded) << i;
+    }
+}
+
 TEST(StrUtil, GetKeyValue)
 {
     auto kv = StrUtil::GetKeyValue(" Font1 = Size=12 ");
