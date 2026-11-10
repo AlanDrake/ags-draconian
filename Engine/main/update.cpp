@@ -178,8 +178,8 @@ void update_speech_and_messages()
     bool is_voice_playing = false;
     if (play.speech_voice_blocking)
     {
-        auto *voice = AudioChans::GetChannel(SCHAN_SPEECH);
-        is_voice_playing = voice && voice->is_ready();
+        auto *playback = AudioChans::GetChannel(SCHAN_SPEECH);
+        is_voice_playing = playback && playback->is_ready();
     }
     // determine if speech text should be removed
     // TODO: this code is similar to the Display's box update (see DisplayMessageState::Run),
@@ -240,8 +240,8 @@ int update_voice_lipsync(int frame)
     if (!has_voice_lipsync())
         return frame; // no change
 
-    auto *voice = AudioChans::GetChannel(SCHAN_SPEECH);
-    const int voice_pos_ms = voice ? voice->get_pos_ms() : -1;
+    auto *playback = AudioChans::GetChannel(SCHAN_SPEECH);
+    const int voice_pos_ms = playback ? playback->get_pos_ms() : -1;
     if (voice_pos_ms < 0)
         return frame; // no change
 

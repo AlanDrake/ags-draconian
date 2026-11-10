@@ -45,10 +45,10 @@ void SetSpeechVolume(int newvol)
     if ((newvol < 0) | (newvol > 255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
 
-    auto *voice = AudioChans::GetChannel(SCHAN_SPEECH);
-    if (voice)
+    auto *playback = AudioChans::GetChannel(SCHAN_SPEECH);
+    if (playback)
     {
-        voice->set_volume255(newvol);
+        playback->set_volume255(newvol);
     }
     play.speech_volume = newvol;
 }

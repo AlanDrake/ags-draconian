@@ -58,17 +58,17 @@ SoundClip *AudioChans::GetChannel(int index)
 
 SoundClip *AudioChans::GetChannelIfPlaying(int index)
 {
-    auto *voice = _channels[index].get();
-    return (voice != nullptr && voice->is_ready()) ? voice : nullptr;
+    auto *playback = _channels[index].get();
+    return (playback != nullptr && playback->is_ready()) ? playback : nullptr;
 }
 
-SoundClip *AudioChans::SetChannel(int index, std::unique_ptr<SoundClip> &&voice)
+SoundClip *AudioChans::SetChannel(int index, std::unique_ptr<SoundClip> &&playback)
 {
-    if ((voice != nullptr) && (_channels[index] != nullptr))
+    if ((playback != nullptr) && (_channels[index] != nullptr))
     {
         Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - clip overwritten", index);
     }
-    _channels[index] = std::move(voice);
+    _channels[index] = std::move(playback);
     return _channels[index].get();
 }
 
@@ -188,16 +188,16 @@ static int find_free_audio_channel(const AudioPlayback &aplay, int priority, boo
 
     for (int i = startAtChannel; i < endBeforeChannel; i++)
     {
-        auto *voice = AudioChans::GetChannelIfPlaying(i);
-        if (voice == nullptr)
+        auto *playback = AudioChans::GetChannelIfPlaying(i);
+        if (playback == nullptr)
         {
             channelToUse = i;
             stop_and_destroy_channel(i);
             break;
         }
-        if ((voice->priority < lowestPrioritySoFar) && (voice->sourceClipType == aplay.AudioType))
+        if ((playback->priority < lowestPrioritySoFar) && (playback->sourceClipType == aplay.AudioType))
         {
-            lowestPrioritySoFar = voice->priority;
+            lowestPrioritySoFar = playback->priority;
             lowestPriorityID = i;
         }
         // NOTE: This is a "hack" for starting queued clips;
@@ -205,10 +205,10 @@ static int find_free_audio_channel(const AudioPlayback &aplay, int priority, boo
         // changed a little, and queued sounds have to start bit earlier
         // if we want them to sound seamless with the previous clips.
         // TODO: investigate better solutions? may require reimplementation of the sound queue.
-        if (for_queue && (voice->sourceClipType == aplay.AudioType))
+        if (for_queue && (playback->sourceClipType == aplay.AudioType))
         { // try to start queued sounds 1 frame earlier
             const float trigger_pos = (1000.f / frames_per_second) * 1.f;
-            if (voice->get_pos_ms() >= (voice->get_length_ms() - trigger_pos))
+            if (playback->get_pos_ms() >= (playback->get_length_ms() - trigger_pos))
             {
                 lowestPrioritySoFar = priority;
                 lowestPriorityID = i;
@@ -285,11 +285,11 @@ static void audio_update_polled_stuff()
 
     if (play.crossfading_out_channel > 0)
     {
-        SoundClip *voice = AudioChans::GetChannel(play.crossfading_out_channel);
-        int new_volume = voice ? voice->get_volume100() - play.crossfade_out_volume_per_step : 0;
+        SoundClip *playback = AudioChans::GetChannel(play.crossfading_out_channel);
+        int new_volume = playback ? playback->get_volume100() - play.crossfade_out_volume_per_step : 0;
         if (new_volume > 0)
         {
-            voice->set_volume100(new_volume);
+            playback->set_volume100(new_volume);
         }
         else
         {
@@ -303,14 +303,14 @@ static void audio_update_polled_stuff()
 
     if (play.crossfading_in_channel > 0)
     {
-        SoundClip *voice = AudioChans::GetChannel(play.crossfading_in_channel);
-        int new_volume = voice ? voice->get_volume100() + play.crossfade_in_volume_per_step : 0;
+        SoundClip *playback = AudioChans::GetChannel(play.crossfading_in_channel);
+        int new_volume = playback ? playback->get_volume100() + play.crossfade_in_volume_per_step : 0;
         if (new_volume > play.crossfade_final_volume_in)
         {
             new_volume = play.crossfade_final_volume_in;
         }
 
-        voice->set_volume100(new_volume);
+        playback->set_volume100(new_volume);
 
         if (new_volume >= play.crossfade_final_volume_in)
         {
@@ -358,10 +358,11 @@ static void audio_update_polled_stuff()
 }
 
 // Applies a volume drop modifier to the clip, in accordance to its audio type
-static void apply_volume_drop_to_clip(SoundClip *voice)
+static void apply_volume_drop_to_clip(SoundClip *playback)
 {
-    int audiotype = voice->sourceClipType;
-    voice->apply_volume_modifier(-(game.audioClipTypes[audiotype].volume_reduction_while_speech_playing * 255 / 100));
+    int audiotype = playback->sourceClipType;
+    playback->apply_volume_modifier(
+        -(game.audioClipTypes[audiotype].volume_reduction_while_speech_playing * 255 / 100));
 }
 
 static void queue_audio_clip_to_play(const ScriptAudioClip *clip, int priority, int repeat)
@@ -485,12 +486,12 @@ void update_queued_clips_volume(int audioType, int new_vol)
     for (int i = 0; i < play.new_music_queue_size; ++i)
     {
         // NOTE: if clip is uncached, the volume will be set from defaults when it is loaded
-        SoundClip *voice = play.new_music_queue[i].cachedClip.get();
-        if (voice)
+        SoundClip *playback = play.new_music_queue[i].cachedClip.get();
+        if (playback)
         {
             const ScriptAudioClip *clip = &game.audioClips[play.new_music_queue[i].audioClipIndex];
             if (clip->type == audioType)
-                voice->set_volume100(new_vol);
+                playback->set_volume100(new_vol);
         }
     }
 }
@@ -586,13 +587,13 @@ void update_directional_sound_vol()
 {
     for (int chnum = NUM_SPEECH_CHANS; chnum < game.numGameChannels; chnum++)
     {
-        auto *voice = AudioChans::GetChannelIfPlaying(chnum);
-        if ((voice != nullptr) && (voice->xSource >= 0))
+        auto *playback = AudioChans::GetChannelIfPlaying(chnum);
+        if ((playback != nullptr) && (playback->xSource >= 0))
         {
-            voice->apply_directional_modifier(get_volume_adjusted_for_distance(voice->get_volume255(), voice->xSource,
-                                                                               voice->ySource,
-                                                                               voice->maximumPossibleDistanceAway) -
-                                              voice->get_volume255());
+            playback->apply_directional_modifier(
+                get_volume_adjusted_for_distance(playback->get_volume255(), playback->xSource, playback->ySource,
+                                                 playback->maximumPossibleDistanceAway) -
+                playback->get_volume255());
         }
     }
 }
@@ -664,13 +665,13 @@ void apply_volume_drop_modifier(bool applyModifier)
 {
     for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
     {
-        auto *voice = AudioChans::GetChannelIfPlaying(i);
-        if (voice && voice->sourceClipID >= 0)
+        auto *playback = AudioChans::GetChannelIfPlaying(i);
+        if (playback && playback->sourceClipID >= 0)
         {
             if (applyModifier)
-                apply_volume_drop_to_clip(voice);
+                apply_volume_drop_to_clip(playback);
             else
-                voice->apply_volume_modifier(0); // reset modifier
+                playback->apply_volume_modifier(0); // reset modifier
         }
     }
 }
@@ -687,8 +688,8 @@ void sync_audio_playback()
 {
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     { // update the playing channels, and dispose the finished / invalid ones
-        auto *voice = AudioChans::GetChannelIfPlaying(i);
-        if (voice && !voice->update())
+        auto *playback = AudioChans::GetChannelIfPlaying(i);
+        if (playback && !playback->update())
         {
             AudioChans::DeleteClipOnChannel(i);
         }

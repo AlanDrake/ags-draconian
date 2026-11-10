@@ -506,34 +506,34 @@ HSaveError WriteAudio(Stream *out)
     // Audio playbacks (from channels)
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++)
     {
-        auto *voice = AudioChans::GetChannelIfPlaying(i);
-        if (voice)
+        auto *playback = AudioChans::GetChannelIfPlaying(i);
+        if (playback)
         {
-            out->WriteInt32(voice->sourceClipID);
+            out->WriteInt32(playback->sourceClipID);
             // kAudioSvgVersion_36215
-            StrUtil::WriteString(voice->fileName, out);
-            out->WriteInt8(voice->bundlingType);
+            StrUtil::WriteString(playback->fileName, out);
+            out->WriteInt8(playback->bundlingType);
             //
-            out->WriteInt32(voice->get_pos());
-            out->WriteInt32(voice->priority);
-            out->WriteInt32(voice->repeat ? 1 : 0);
-            out->WriteInt32(voice->get_volume255());
+            out->WriteInt32(playback->get_pos());
+            out->WriteInt32(playback->priority);
+            out->WriteInt32(playback->repeat ? 1 : 0);
+            out->WriteInt32(playback->get_volume255());
             out->WriteInt32(0); // was redundant data
-            out->WriteInt32(voice->get_volume100());
-            out->WriteInt32(voice->get_panning());
-            out->WriteInt32(voice->get_speed());
+            out->WriteInt32(playback->get_volume100());
+            out->WriteInt32(playback->get_panning());
+            out->WriteInt32(playback->get_speed());
             // since 3.5.0.26
-            out->WriteInt32(voice->xSource);
-            out->WriteInt32(voice->ySource);
-            out->WriteInt32(voice->maximumPossibleDistanceAway);
+            out->WriteInt32(playback->xSource);
+            out->WriteInt32(playback->ySource);
+            out->WriteInt32(playback->maximumPossibleDistanceAway);
             // since version kAudioSvgVersion_36130
             int playback_flags = 0;
-            if (voice->is_paused())
+            if (playback->is_paused())
             {
                 playback_flags |= kSvgAudioPaused;
             }
             out->WriteInt32(playback_flags);
-            out->WriteInt32(voice->sourceClipType);
+            out->WriteInt32(playback->sourceClipType);
             out->WriteInt32(0); // reserved
             out->WriteInt32(0);
         }

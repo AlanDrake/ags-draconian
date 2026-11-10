@@ -32,7 +32,7 @@ public:
     // Gets a clip from the channel but only if it's in playback state
     static SoundClip *GetChannelIfPlaying(int index);
     // Assign new clip to the channel
-    static SoundClip *SetChannel(int index, std::unique_ptr<SoundClip> &&voice);
+    static SoundClip *SetChannel(int index, std::unique_ptr<SoundClip> &&playback);
     // Move clip from one channel to another, clearing the first channel
     static SoundClip *MoveChannel(int to, int from);
     // Deletes any clip and frees the channel
