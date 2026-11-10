@@ -28,6 +28,7 @@
 #include "ac/sys_events.h"
 #include "debug/debug_log.h"
 #include "gfx/bitmap.h"
+#include "gfx/bitmapdata.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
 #include "platform/base/agsplatformdriver.h"
@@ -61,7 +62,12 @@ RGB old_palette[256];
 // This special fade-out behavior may be deprecated later if wanted.
 static std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
 {
-    get_palette(old_palette);
+    // The palette the frame is in: the one on screen for a renderer with an 8-bit back buffer;
+    // the others draw an 8-bit game in the game palette and never send it to Allegro
+    if (gfxDriver->UsesMemoryBackBuffer())
+        get_palette(old_palette);
+    else
+        std::copy(palette, palette + PAL_SIZE, old_palette);
     const auto &view = play.GetMainViewport();
     if (for_fadein)
     {
@@ -610,6 +616,16 @@ public:
         play.screen_is_faded_out = false; // force all game elements to draw
         _view = play.GetMainViewport();
         _sprTrans = play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame());
+        // An 8-bit frame of the room that ends is drawn in the palette of the room that comes:
+        // its pixels are remapped to the nearest colours there, so that both rooms show in
+        // colours of their own during the dissolve (index 0 stays the transparent one)
+        if (saved_viewport_bitmap && (saved_viewport_bitmap->GetColorDepth() == 8))
+        {
+            BitmapData bm_data = saved_viewport_bitmap->GetBitmapData();
+            PaletteOp::Remap(bm_data, old_palette, palette);
+        }
+        if (game.color_depth == 1)
+            set_palette_range(palette, 0, 255, 0);
         _shot_ddb = get_frame_for_transition_in(false /* transparent */);
         _step = 0;
     }
@@ -637,12 +653,6 @@ public:
         if (_step >= 16)
             return false;
 
-        // merge the palette while dithering
-        if (game.color_depth == 1)
-        {
-            fade_interpolate(old_palette, palette, _interpal, _step * 4, 0, 255);
-            set_palette_range(_interpal, 0, 255, 0);
-        }
         // do the dissolving
         int maskCol = saved_viewport_bitmap->GetMaskColor();
         for (int x = 0; x < _view.GetWidth(); x += 4)
@@ -665,8 +675,6 @@ private:
     const int _pattern[16] = {0, 4, 14, 9, 5, 11, 2, 8, 10, 3, 12, 7, 15, 6, 13, 1};
     Rect _view;
     SpriteTransform _sprTrans;
-    // For 8-bit palette mode, will interpolate between old and new room palettes
-    RGB _interpal[256]{};
 };
 
 // Tells if we should use instant transition effect, based certain conditions
