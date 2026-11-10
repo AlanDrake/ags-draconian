@@ -32,7 +32,8 @@ DEF_RE = re.compile(r'^(?:static\s+|inline\s+)*[A-Za-z_][\w:<>,\*&\s]*?[\s\*&]([
 TOK_RE = re.compile(r'[A-Za-z_]\w*')
 CRYPTIC_WATCHLIST = ['chaa', 'chap', 'chin', 'chinfo', 'char1', 'chi', 'objj', 'guio', 'butt', 'sds', 'eres', 'tqs',
                      'scam', 'texx', 'widd', 'aschar', 'iit', 'vii', 'xxx', 'yyy', 'xx', 'yy', 'fil', 'scv', 'guin',
-                     'butid', 'guisl', 'tehtext', 'ddd', 'abuf', 'thisroom', 'croom', 'objs', 'scsystem', 'usetup']
+                     'butid', 'guisl', 'tehtext', 'ddd', 'abuf', 'thisroom', 'croom', 'objs', 'scsystem', 'usetup',
+                     'charid', 'objid', 'invi', 'tehobj', 'newval', 'newwid', 'newhit']
 NOT_FUNCS = {'if', 'for', 'while', 'switch', 'return', 'else', 'catch', 'main', 'WinMain', 'operator', 'sizeof'}
 
 # Dead-code candidates: tokens in the code (not comments) of these files count as uses too: Objective-C(++)
