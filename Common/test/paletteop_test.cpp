@@ -125,6 +125,45 @@ TEST(PaletteMatch, RgbTableAfterBestfitColor)
     }
 }
 
+// fade_interpolate weighed the source by 63-pos, from 6-bit Allegro: at pos 64 the weight was -1
+// and an 8-bit component of 64 or more wrapped round to 253-255 (a flash on the last fade step)
+TEST(PaletteMatch, FadeInterpolateEnds)
+{
+    PALETTE src, black, out;
+    MakeTestPalette(src, 5);
+    src[1] = RGB{255, 255, 255, 0};
+    for (int i = 0; i < PAL_SIZE; ++i)
+        black[i] = RGB{0, 0, 0, 0};
+
+    fade_interpolate(src, black, out, 0, 0, PAL_SIZE - 1);
+    for (int i = 0; i < PAL_SIZE; ++i)
+    {
+        EXPECT_EQ(out[i].r, src[i].r) << "index " << i;
+        EXPECT_EQ(out[i].g, src[i].g) << "index " << i;
+        EXPECT_EQ(out[i].b, src[i].b) << "index " << i;
+    }
+    fade_interpolate(src, black, out, 64, 0, PAL_SIZE - 1);
+    for (int i = 0; i < PAL_SIZE; ++i)
+    {
+        EXPECT_EQ(out[i].r, 0) << "index " << i;
+        EXPECT_EQ(out[i].g, 0) << "index " << i;
+        EXPECT_EQ(out[i].b, 0) << "index " << i;
+    }
+    // A fade to black never brightens a component
+    for (int pos = 0; pos <= 64; ++pos)
+    {
+        fade_interpolate(src, black, out, pos, 0, PAL_SIZE - 1);
+        for (int i = 0; i < PAL_SIZE; ++i)
+        {
+            ASSERT_LE(out[i].r, src[i].r) << "pos " << pos << " index " << i;
+            ASSERT_LE(out[i].g, src[i].g) << "pos " << pos << " index " << i;
+            ASSERT_LE(out[i].b, src[i].b) << "pos " << pos << " index " << i;
+        }
+    }
+    fade_interpolate(black, src, out, 64, 0, PAL_SIZE - 1);
+    EXPECT_EQ(out[1].r, 255);
+}
+
 TEST(PaletteMatch, RgbTablePinkIndexZero)
 {
     PALETTE pal;
