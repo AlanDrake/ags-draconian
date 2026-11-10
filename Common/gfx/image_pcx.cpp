@@ -36,7 +36,7 @@ bool SavePCX(const BitmapData &bmp, bool /* skip_alpha */, const RGB *pal, Strea
     int runcount;
     int color_depth, planes;
     char runchar;
-    char byte;
+    char value;
 
     /* we really need a palette */
     // FIXME: it seems like hi-color images can be saved without one,
@@ -89,40 +89,40 @@ bool SavePCX(const BitmapData &bmp, bool /* skip_alpha */, const RGB *pal, Strea
         { /* for each pixel... */
             if (color_depth == 8)
             {
-                byte = bmp.GetPixel(x, y);
+                value = bmp.GetPixel(x, y);
             }
             else
             {
                 if (x < bmp.GetWidth())
                 {
                     c = bmp.GetPixel(x, y);
-                    byte = getr_depth(color_depth, c);
+                    value = getr_depth(color_depth, c);
                 }
                 else if (x < bmp.GetWidth() * 2)
                 {
                     c = bmp.GetPixel(x - bmp.GetWidth(), y);
-                    byte = getg_depth(color_depth, c);
+                    value = getg_depth(color_depth, c);
                 }
                 else
                 {
                     c = bmp.GetPixel(x - bmp.GetWidth() * 2, y);
-                    byte = getb_depth(color_depth, c);
+                    value = getb_depth(color_depth, c);
                 }
             }
             if (runcount == 0)
             {
                 runcount = 1;
-                runchar = byte;
+                runchar = value;
             }
             else
             {
-                if ((byte != runchar) || (runcount >= 0x3f))
+                if ((value != runchar) || (runcount >= 0x3f))
                 {
                     if ((runcount > 1) || ((runchar & 0xC0) == 0xC0))
                         out->WriteInt8(0xC0 | runcount);
                     out->WriteInt8(runchar);
                     runcount = 1;
-                    runchar = byte;
+                    runchar = value;
                 }
                 else
                     runcount++;
@@ -195,7 +195,7 @@ PixelBuffer LoadPCX(Stream *in, PixelFormat *src_fmt, RGB *pal)
         return {};
     }
 
-    int8_t byte;
+    int8_t value;
     for (int c, xx, po, x, y = 0; y < height; y++)
     { /* read RLE encoded PCX data */
         x = xx = 0;
@@ -209,11 +209,11 @@ PixelBuffer LoadPCX(Stream *in, PixelFormat *src_fmt, RGB *pal)
 
         while (x < bytes_per_line * bpp / 8)
         {
-            byte = in->ReadInt8();
-            if ((byte & 0xC0) == 0xC0)
+            value = in->ReadInt8();
+            if ((value & 0xC0) == 0xC0)
             {
-                c = (byte & 0x3F);
-                byte = in->ReadInt8();
+                c = (value & 0x3F);
+                value = in->ReadInt8();
             }
             else
                 c = 1;
@@ -223,7 +223,7 @@ PixelBuffer LoadPCX(Stream *in, PixelFormat *src_fmt, RGB *pal)
                 while (c--)
                 {
                     if (x < bmp.GetWidth())
-                        current_line[x] = byte;
+                        current_line[x] = value;
                     x++;
                 }
             }
@@ -232,7 +232,7 @@ PixelBuffer LoadPCX(Stream *in, PixelFormat *src_fmt, RGB *pal)
                 while (c--)
                 {
                     if (xx < bmp.GetWidth())
-                        current_line[xx * 3 + po] = byte;
+                        current_line[xx * 3 + po] = value;
                     x++;
                     if (x == bytes_per_line)
                     {
