@@ -243,13 +243,15 @@ optionally a `[comments]` commit.
 - [ ] **4.1 Parameter and local names.** The `refactor_metrics.py` watchlist to zero (4,855 today:
   `chaa` 652, `eres` 445, `chi` 368, `objj` 335, `sds` 226, `tqs` 224, `guio` 220, `butt` 187, `chin`
   126, `char1` 98, `chap` 88, `scam` 82, `texx` 68, ...). One name per concept: `ch`
-  (`CharacterInfo*`), `obj` (`RoomObject*`), `gui` (`GUIMain*`), `btn` (`GUIButton*`), `dst`
+  (`CharacterInfo*`), `obj` (`ScriptObject*`; `room_obj` for a `RoomObject` beside it), `gui` (`GUIMain*`), `btn` (`GUIButton*`), `dst`
   (destination bitmaps), `err` (error results). IDE or clang-based renaming, never search-and-replace.
   *Done when:* cryptic names = 0, except the globals of 5.1.
   *Progress:* `character.cpp/.h` done with 4.5 and 3.6 (2026-11-09, LOG.md "4.1 + 4.5 + 3.6 per file": 1,324
   names to 0, camelCase parameters too; a turn-order bug found and fixed), `object.cpp/.h` (2026-11-09, 359 to 0),
   `guicontrol.cpp/.h` (2026-11-09, 249 to 0), `drawingsurface.cpp/.h` (2026-11-09, 196 to 0),
-  `button.cpp/.h` (2026-11-09, 195 to 0), `characterinfo_engine.cpp` (2026-11-09, 186 to 0). Next: `viewport_script.cpp` 138,
+  `button.cpp/.h` (2026-11-09, 195 to 0), `characterinfo_engine.cpp` (2026-11-09, 186 to 0). A naming review of these six sets (2026-11-09) made a playing
+  `SoundClip` a `playback`, indices `<thing>_id`, and put `charid`, `objid`, `invi`, `tehobj`, `newval`, `newwid`,
+  `newhit` on the watchlist (2,641 now, the seven new names 144 of them). Next: `viewport_script.cpp` 138,
   `dynamicsprite.cpp` 73, `file.cpp` 69, `slider.cpp/.h` 62, `display.cpp` 53.
 - [ ] **4.2 Function names.** Engine free functions: `snake_case` 949, `PascalCase` 1,094,
   `Type_Method` 3,119 (script API). Rename snake_case to PascalCase as phase 5 restructures their

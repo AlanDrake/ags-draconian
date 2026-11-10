@@ -94,7 +94,7 @@ private:
 
 - **No abbreviations except well-known ones** (`id`, `idx`, `num`, `pos`, `src`, `dst`, `bmp`, `gfx`,
   `cfg`, `str`, `x`/`y`/`w`/`h`). `chaa`, `objj`, `butt`, `guio`, `sds`, `tqs`, `eres`, `scam`,
-  `texx`, `widd`, `iit`, `vii` are on the `refactor_metrics.py` watchlist and banned in new code
+  `texx`, `widd`, `iit`, `vii`, `charid`, `objid`, `invi`, `newval`, `newwid`, `newhit` are on the `refactor_metrics.py` watchlist and banned in new code
   **[enforced]**: `tidy_diff.py` flags a new variable or parameter so named.
 - **One concept, one name:** a `CharacterInfo*` is `ch` (or `character`) everywhere, not `chaa`,
   `chap`, `chin`, `chinfo`, `char1` or `chi`. Name the concept, not the struct: `ch` stays right when
@@ -103,9 +103,12 @@ private:
   **[enforced]** (`tidy_diff.py` flags a variable or parameter so named with another explicit type;
   `auto` is not checked): `ch` = a character (`CharacterInfo`, the plugin API's `AGSCharacter`, later
   `Character`), `chex` = `CharacterExtras`, `btn` = `GUIButton`. A text character or byte is `c`, a
-  playing sound (`SoundClip`, a mixer "voice", not the `AudioClip` asset) `voice`, an index
-  `char_id`/`btn_id`. A name is added here once the code uses it for
-  nothing else.
+  playing sound (`SoundClip`, not the `AudioClip` asset) `playback`: `voice` is speech voice-over
+  and `channel` a `ScriptAudioChannel`. An index is `<thing>_id` (`char_id`, `obj_id`, `btn_id`,
+  `gui_id`, `item_id`), never `charid`, `objn` or the bare name of the thing. Where a file has the
+  script handle and the engine's record of one thing, the handle takes the short name
+  (`ScriptObject *obj`, `RoomObject &room_obj`). Words are spelled out and separated: `new_value`,
+  `new_width`, not `newval`, `newwid`. A name is added here once the code uses it for nothing else.
 - Booleans are predicates (`is_visible`, `HasAlpha()`, `_needsRedraw`); functions are verbs, types
   nouns; ambiguous units go in the name (`delay_ms`, `volume_percent`, `speed_fps`).
 - **No new mutable globals.** The existing ones (`game`, `play`, `thisroom`, `croom`, `objs`, ...)

@@ -4059,6 +4059,45 @@ the compiler, Tools); `btn` as an `int` once.
   --auto`: format, build, tidy, headers, libcxx, linux (ctest 1166/1166), msbuild pass. The crossfade code in `audio.cpp` that the agent suspected of a null
   dereference is safe: `crossfading_in_channel` is reset to 0 two lines earlier when nothing plays on it.
 
+**Naming review of the six file sets** (2026-11-09; the user asked whether the names hold; a scan here, the renames
+by a Sonnet 5.5 subagent at `medium`, reviewed here; local commits `0b05b0300`, `fad65bcf6`, `1a4a283da`
+`[rename]`, `e2b767951` `[format]` (in `.git-blame-ignore-revs`), `c32fc1041` the watchlist):
+- **Held:** one name per type in the finished files (`ch` 496, `obj` 197, `control` 120, `btn` 88, `surface` 65,
+  `chex` 26), no camelCase parameters or locals, the reserved names clean tree-wide but for three plugin typedefs.
+- **Did not hold, renamed:** indices were `charid` 9 times against `char_id` 5, and `objid`/`objn`/`obn`/`int obj`
+  beside `obj_id`: all `char_id`, `obj_id`, `btn_id` (the button's index in its GUI), `gui_id`, `item_id` now, with
+  one-off names for the same things (`chid`, `chac`, `hsnum`, `hss`, `cha`, `aa`, an `item` that was an object
+  index). `RoomObject` was `obj` in four functions where `ScriptObject *` is `obj` 197 times, and `tehobj` once: all
+  `room_obj`. `ScriptInvItem *invi` → `item`; a `ScriptObject *objid` → `obj`. Run-together names, which pass
+  clang-tidy as `snake_case`: `newval` → `new_value`, `newwid`/`newhit` → `new_width`/`new_height`, `newtx` →
+  `new_text`, `tofollow`, `useloop`, `useview`, `usewid`, `usehit`, `usebase(l)`, `wantloop`, `oldframe`, `oldview`,
+  `nowsaying`, `toidx`, `fromidx` spelled out, `toret` → `result`, `basel` → `baseline`, `bwid`/`bhit` →
+  `blocking_width`/`blocking_height`, `clik` → `clickable`, `bufer` → `buffer`, `viw`/`lop`/`fra`, `slotn`, `loopn`,
+  `idxn`, `wid`. Header declarations synced; `Button_SetTextColor`'s header said `newcol`, its definition `color`:
+  `color` in both.
+- **`voice` → `playback`** for a playing `SoundClip` (the user's choice over `channel`): "voice" is speech voice-over
+  in ~150 engine identifiers (`speech_has_voice`, `voice_clip`, `stop_voice_speech`), and `audio.cpp` had a music
+  clip named `voice` a few lines under "non-blocking voice speech"; `channel` is a `ScriptAudioChannel *` 40 times
+  and a slot index. `playback` was free as a variable and agrees with `PlaybackState`, `IsPlaybackDone`. 145 lines
+  in 10 files. `byte` locals of `72858b28e` → `value` (`image_pcx.cpp`, `lzw.cpp`; it read as the Windows `byte`
+  type).
+- **Rule and gate:** STYLE.md "Naming" has `playback`, `<thing>_id`, `obj`/`room_obj` and spelled-out words;
+  `CRYPTIC_WATCHLIST` gained `charid`, `objid`, `invi`, `tehobj`, `newval`, `newwid`, `newhit` (144 uses left in
+  other files; the total is 2,641).
+- **Verification:** `compare_objects.py HEAD`: 637 objects identical, before and after the 44 brace pairs the tidy
+  gate asked for on the touched lines. `prepush.py --auto --base HEAD` before the braces: format, build + ctest,
+  headers, libcxx 341, emscripten, linux ctest 1166/1166, msbuild pass. After the braces only format (whole tree),
+  the object comparison and `tidy_diff.py --base HEAD` (clean) were run. Not run: macOS, iOS, Android.
+- **Open, tool:** prepush's `tidy` stage crashed with `WinError 206` (command line too long): it always compares
+  with the upstream merge base, and the `--line-filter` for the 3,758 unpushed changed lines exceeds Windows' 32k
+  limit. It works again after a push; the fix is to pass each file only its own lines plus the changed headers', or
+  to honour `--base`.
+- **Left:** the three `AGSViewFrame *ch` typedef parameters in `agspalrender` and `ags_snowrain` (touching the line
+  puts the `typedef` and its `SCAPI_` name under the gate: phase 7); `inum` in `Character_AddInventory` (`item_id`
+  is taken there); script-API parameter names `sframe`, `ignwal`, `rept`, `sppd`, `spdd`, and `distaway`, `xwas`,
+  `ywas`, `oldxp`, `bestshotwas`, `sppic`, `tdxp` and the like, whose meaning needs a closer read; the `Sc_*`
+  signature comments still show old names (5.2).
+
 - **Left for the next file sets:** by count, the remaining `Engine/ac` files (`viewport_script.cpp` 138, `dynamicsprite.cpp` 73, `file.cpp` 69, `display.cpp` 53,
   `slider.cpp/.h` 62) and the `butt`/`guio`/`sds` names other files still declare.
 
