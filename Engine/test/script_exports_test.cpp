@@ -33,10 +33,14 @@
 #include "ac/game.h"
 #include "ac/gamestructdefines.h"
 #include "ac/global_game.h"
+#include "data/data_helpers.h"
 #include "gtest/gtest.h"
 #include "script/exports.h"
 #include "script/script_runtime.h"
 #include "script/systemimports.h"
+
+using AGS::Common::kScriptAPISourceNames;
+using AGS::Common::ScriptAPISourceName;
 
 namespace
 {
@@ -215,7 +219,7 @@ TEST(ScriptExports, OldApiLevelsKeepTheirSaveFunctions)
     ASSERT_GT(current.size(), 1000u);
 
     const std::set<std::string> gated = {"RestoreGameDialog", "SaveGameDialog", "SaveGameSlot"};
-    for (const ScriptAPIName &level : kScriptAPINames)
+    for (const ScriptAPISourceName &level : kScriptAPISourceNames)
     {
         const std::map<std::string, Binding> at_level = BindingsAt(level.Version);
         // A name missing at this level counts as differing too; with equal sizes, the names are the same

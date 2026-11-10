@@ -17,8 +17,8 @@
 #include <memory>
 #include <utility>
 
-#include "ac/gamestructdefines.h"
 #include "compiler.h"
+#include "data/data_helpers.h"
 #include "preproc/preprocessor.h"
 #include "script/cc_common.h"
 #include "script/cs_compiler.h"
@@ -47,12 +47,14 @@ String cc_get_callstack(int max_lines)
 
 const char *PREFIX_SCRIPT_COMPAT = "SCRIPT_COMPAT_";
 const char *PREFIX_SCRIPT_API = "SCRIPT_API_";
-// All script API levels in ascending order (shared with the engine), then "Highest"
+// All script API levels in ascending order (shared with the build tools), then "Highest"
 static std::vector<const char *> MakeScriptAPIList()
 {
     std::vector<const char *> apis;
-    for (const auto &api : kScriptAPINames)
+    for (const auto &api : kScriptAPISourceNames)
+    {
         apis.push_back(api.Name);
+    }
     apis.push_back(HIGHEST_SCRIPT_API);
     return apis;
 }
