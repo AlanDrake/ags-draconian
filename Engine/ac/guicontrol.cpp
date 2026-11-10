@@ -49,15 +49,15 @@ extern CCGUITextBox ccDynamicGUITextBox;
 
 GUIObject *GUIControl_GetAtScreenXY(int x, int y, int gui_hitoptions, int ctrl_hitoptions)
 {
-    int guinum = GetGUIAt(x, y, gui_hitoptions);
-    if (guinum == -1)
+    int gui_id = GetGUIAt(x, y, gui_hitoptions);
+    if (gui_id == -1)
         return nullptr;
 
-    int toret = guis[guinum].FindControlAt(x, y, 0, (ctrl_hitoptions & kHit_Interactable));
-    if (toret < 0)
+    int result = guis[gui_id].FindControlAt(x, y, 0, (ctrl_hitoptions & kHit_Interactable));
+    if (result < 0)
         return nullptr;
 
-    return guis[guinum].GetControl(toret);
+    return guis[gui_id].GetControl(result);
 }
 
 GUIObject *GUIControl_GetAtScreenXY2(int x, int y)
@@ -265,9 +265,9 @@ int GUIControl_GetWidth(GUIControl *control)
     return control->GetWidth();
 }
 
-void GUIControl_SetWidth(GUIControl *control, int newwid)
+void GUIControl_SetWidth(GUIControl *control, int new_width)
 {
-    control->SetWidth(newwid);
+    control->SetWidth(new_width);
 }
 
 int GUIControl_GetHeight(GUIControl *control)
@@ -275,19 +275,19 @@ int GUIControl_GetHeight(GUIControl *control)
     return control->GetHeight();
 }
 
-void GUIControl_SetHeight(GUIControl *control, int newhit)
+void GUIControl_SetHeight(GUIControl *control, int new_height)
 {
-    control->SetHeight(newhit);
+    control->SetHeight(new_height);
 }
 
-void GUIControl_SetSize(GUIControl *control, int newwid, int newhit)
+void GUIControl_SetSize(GUIControl *control, int new_width, int new_height)
 {
-    if ((newwid < 2) || (newhit < 2))
+    if ((new_width < 2) || (new_height < 2))
         quit("!SetGUIObjectSize: new size is too small (must be at least 2x2)");
 
-    debug_script_log("SetGUIObject %d,%d size %d,%d", control->GetParentID(), control->GetID(), newwid, newhit);
-    GUIControl_SetWidth(control, newwid);
-    GUIControl_SetHeight(control, newhit);
+    debug_script_log("SetGUIObject %d,%d size %d,%d", control->GetParentID(), control->GetID(), new_width, new_height);
+    GUIControl_SetWidth(control, new_width);
+    GUIControl_SetHeight(control, new_height);
 }
 
 void *GUIControl_GetGraphicPosition(GUIControl *control)

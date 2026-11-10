@@ -424,7 +424,7 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *surface, int x, int y, int 
     surface->FinishedDrawing();
 }
 
-void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *surface, int x, int y, int wid, int font, int alignment,
+void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *surface, int x, int y, int width, int font, int alignment,
                                       const char *msg)
 {
     // no need to use "brush", blending is done by font renderer
@@ -434,15 +434,15 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *surface, int x, int 
 
     int linespacing = get_font_linespacing(font);
     const char *draw_text = skip_voiceover_token(msg);
-    if (break_up_text_into_lines(draw_text, Lines, wid, font) == 0)
+    if (break_up_text_into_lines(draw_text, Lines, width, font) == 0)
         return;
 
     color_t text_color = surface->GetRealDrawingColor();
     color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
     for (size_t i = 0; i < Lines.Count(); i++)
     {
-        GUI::DrawTextAlignedHor(ds, Lines[i], font, text_color, outline_color, surface->GetBlendMode(), x, x + wid - 1,
-                                y + linespacing * static_cast<int>(i), (FrameAlignment)alignment);
+        GUI::DrawTextAlignedHor(ds, Lines[i], font, text_color, outline_color, surface->GetBlendMode(), x,
+                                x + width - 1, y + linespacing * static_cast<int>(i), (FrameAlignment)alignment);
     }
 
     surface->FinishedDrawing();
@@ -849,11 +849,11 @@ void ScPl_DrawingSurface_DrawString(ScriptDrawingSurface *surface, int x, int y,
     DrawingSurface_DrawString(surface, x, y, font, scsf_buffer);
 }
 
-void ScPl_DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *surface, int x, int y, int wid, int font,
+void ScPl_DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *surface, int x, int y, int width, int font,
                                            int alignment, const char *msg, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(msg);
-    DrawingSurface_DrawStringWrapped(surface, x, y, wid, font, alignment, scsf_buffer);
+    DrawingSurface_DrawStringWrapped(surface, x, y, width, font, alignment, scsf_buffer);
 }
 
 void RegisterDrawingSurfaceAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*compat_api*/)

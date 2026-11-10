@@ -39,9 +39,9 @@ bool AssertObject(const char *apiname, int obj_id);
 int GetObjectIDAtRoom(int roomx, int roomy, int hit_options);
 // Gets the object's current image: the last cached (transformed) one, which exists in software render mode only
 // and when always_original is not set, else the source sprite; is_original, if given, tells which one it is.
-AGS::Common::Bitmap *GetObjectImage(int obj, bool always_original = true, bool *is_original = nullptr);
+AGS::Common::Bitmap *GetObjectImage(int obj_id, bool always_original = true, bool *is_original = nullptr);
 // Gets current source image (untransformed) for the room object
-AGS::Common::Bitmap *GetObjectSourceImage(int obj);
+AGS::Common::Bitmap *GetObjectSourceImage(int obj_id);
 
 // **** OBJECT: FUNCTIONS ****
 //
@@ -68,7 +68,7 @@ void Object_SetOpacity(ScriptObject *obj, int alpha);
 int Object_GetOpacity(ScriptObject *obj);
 // Object.Baseline: 0 or less, which is what the getter returns for it, means no explicit baseline:
 // the object's Y is used then (RoomObject::get_baseline).
-void Object_SetBaseline(ScriptObject *obj, int basel);
+void Object_SetBaseline(ScriptObject *obj, int baseline);
 int Object_GetBaseline(ScriptObject *obj);
 // Object.Animate with every argument; Animate5 and Animate6 (not declared here) supply sframe and volume by default.
 // Warns and does nothing if the object is disabled or has no view; an invalid loop is a script error and a start
@@ -88,7 +88,7 @@ int Object_GetFrame(ScriptObject *obj);
 bool Object_GetVisible(ScriptObject *obj);
 // Object.Graphic (set): changes the sprite and resets the view, loop, frame and animation.
 // A sprite beyond 16 bits is warned about and replaced by 0.
-void Object_SetGraphic(ScriptObject *obj, int slott);
+void Object_SetGraphic(ScriptObject *obj, int slot);
 int Object_GetGraphic(ScriptObject *obj);
 int Object_GetX(ScriptObject *obj);
 int Object_GetY(ScriptObject *obj);
@@ -108,7 +108,7 @@ bool Object_IsInteractionAvailable(ScriptObject *obj, int mood);
 // Warns and does nothing if the object is disabled; with blocking set, waits until the object stops moving.
 void Object_Move(ScriptObject *obj, int x, int y, int speed, int blocking, int ignwal);
 // Object.Clickable: an object that is not clickable is skipped by GetObjectIDAtRoom with kHit_Interactable.
-void Object_SetClickable(ScriptObject *obj, int clik);
+void Object_SetClickable(ScriptObject *obj, int clickable);
 int Object_GetClickable(ScriptObject *obj);
 // Object.Solid: an enabled solid object cuts its blocking rectangle (get_object_blocking_rect) out of the
 // walkable areas.
@@ -116,9 +116,9 @@ void Object_SetSolid(ScriptObject *obj, int solid);
 int Object_GetSolid(ScriptObject *obj);
 // Object.BlockingWidth and BlockingHeight: the size of the blocking rectangle; 0 or less means the default
 // (see get_object_blocking_rect).
-void Object_SetBlockingWidth(ScriptObject *obj, int bwid);
+void Object_SetBlockingWidth(ScriptObject *obj, int blocking_width);
 int Object_GetBlockingWidth(ScriptObject *obj);
-void Object_SetBlockingHeight(ScriptObject *obj, int bhit);
+void Object_SetBlockingHeight(ScriptObject *obj, int blocking_height);
 int Object_GetBlockingHeight(ScriptObject *obj);
 int Object_GetID(ScriptObject *obj);
 // Object.RunInteraction: runs the object's event for the cursor mode (mood) from the Interactions table,
@@ -128,7 +128,7 @@ void Object_RunInteraction(ScriptObject *obj, int mode);
 // Object.GetProperty, GetPropertyText and GetTextProperty: read a custom property of the object;
 // GetPropertyText copies it into bufer, GetTextProperty returns a new script string.
 int Object_GetProperty(ScriptObject *obj, const char *property);
-void Object_GetPropertyText(ScriptObject *obj, const char *property, char *bufer);
+void Object_GetPropertyText(ScriptObject *obj, const char *property, char *buffer);
 const char *Object_GetTextProperty(ScriptObject *obj, const char *property);
 
 // **** OBJECT: ENGINE FUNCTIONS ****
@@ -141,14 +141,14 @@ int AreThingsOverlapping(int thing1, int thing2);
 
 // Deduces room object's scale, accounting for both manual scaling and the room region effects;
 // calculates resulting sprite size. Does nothing to a disabled object.
-void update_object_scale(int objid);
+void update_object_scale(int obj_id);
 // Deduces arbitrary object's scale, accounting for both manual scaling and the room region effects
 void update_object_scale(int &res_zoom, int &res_width, int &res_height, int objx, int objy, int sprnum, int own_zoom,
                          bool use_region_scaling);
 // Gets the rectangle in room coordinates that the object blocks for walking when it is solid:
 // blocking_width wide (the object's width minus 4 if unset) and blocking_height tall (5 pixels around its Y
 // if unset), centred on the object's X, then shifted by blocking_x and blocking_y.
-Rect get_object_blocking_rect(int objid);
+Rect get_object_blocking_rect(int obj_id);
 // Tells if the point x,y hits the sprite sprit: it is inside the area arx,ary,spww,sphh and, if the pixel-perfect
 // game option is on, the sprite's pixel there is not transparent (sprite_flags mirror the pixel lookup).
 // x,y and arx,ary must be in the same space; the callers pass a point already converted to the object's local

@@ -157,14 +157,14 @@ void UpdateFollowingExactlyCharacter(CharacterInfo *ch)
     ch->room = following.room;
     ch->prevroom = following.prevroom;
 
-    const int usebase = following.get_baseline();
+    const int use_baseline = following.get_baseline();
     if (ch->get_follow_sort_behind())
     {
-        ch->baseline = usebase - 1;
+        ch->baseline = use_baseline - 1;
     }
     else
     {
-        ch->baseline = usebase + 1;
+        ch->baseline = use_baseline + 1;
     }
 }
 
@@ -181,34 +181,34 @@ bool UpdateCharacterTurning(CharacterInfo *ch, CharacterExtras *chex)
         else
         {
             // Work out which direction is next
-            int wantloop = find_looporder_index(ch->loop) + 1;
+            int want_loop = find_looporder_index(ch->loop) + 1;
             // going anti-clockwise, take one before instead
             if (chex->IsTurningCounterClockwise())
             {
-                wantloop -= 2;
+                want_loop -= 2;
             }
             while (1)
             {
-                if (wantloop >= 8)
+                if (want_loop >= 8)
                 {
-                    wantloop = 0;
+                    want_loop = 0;
                 }
-                else if (wantloop < 0)
+                else if (want_loop < 0)
                 {
-                    wantloop = 7;
+                    want_loop = 7;
                 }
 
-                if ((turnlooporder[wantloop] >= views[view].numLoops) ||
-                    (views[view].loops[turnlooporder[wantloop]].numFrames < 1) ||
-                    ((turnlooporder[wantloop] >= NUM_BASE_DIRECTIONS) && ((ch->flags & CHF_NODIAGONAL) != 0)))
+                if ((turnlooporder[want_loop] >= views[view].numLoops) ||
+                    (views[view].loops[turnlooporder[want_loop]].numFrames < 1) ||
+                    ((turnlooporder[want_loop] >= NUM_BASE_DIRECTIONS) && ((ch->flags & CHF_NODIAGONAL) != 0)))
                 {
                     if (chex->IsTurningCounterClockwise())
                     {
-                        wantloop--;
+                        want_loop--;
                     }
                     else
                     {
-                        wantloop++;
+                        want_loop++;
                     }
                 }
                 else
@@ -216,7 +216,7 @@ bool UpdateCharacterTurning(CharacterInfo *ch, CharacterExtras *chex)
                     break;
                 }
             }
-            ch->loop = turnlooporder[wantloop];
+            ch->loop = turnlooporder[want_loop];
             chex->DecrementTurning();
             // if still turning, wait for next frame
             if (chex->turns > 0)
@@ -411,7 +411,7 @@ bool UpdateCharacterAnimating(CharacterInfo *ch, CharacterExtras *chex, int &doi
         else
         {
             // Normal view animation
-            const int oldframe = ch->frame;
+            const int old_frame = ch->frame;
 
             bool done_anim = false;
             if ((ch->index_id == char_speaking_anim) &&
@@ -456,7 +456,7 @@ bool UpdateCharacterAnimating(CharacterInfo *ch, CharacterExtras *chex, int &doi
                 ch->wait += chex->GetAnimDelay();
             }
 
-            if (ch->frame != oldframe)
+            if (ch->frame != old_frame)
             {
                 chex->CheckViewFrame(ch);
             }
@@ -599,7 +599,7 @@ void UpdateCharacterIdle(CharacterInfo *ch, CharacterExtras *chex, int &doing_no
         ch->idleleft--;
         if (ch->idleleft == -1)
         {
-            int useloop = ch->loop;
+            int use_loop = ch->loop;
             debug_script_log("%s: Now idle (view %d)", ch->scrname.GetCStr(), ch->idleview + 1);
             Character_LockView(ch, ch->idleview + 1);
             // Character_LockView stops the idling (idleleft is -1 here) and resets idleleft: mark it as idling again
@@ -613,22 +613,22 @@ void UpdateCharacterIdle(CharacterInfo *ch, CharacterExtras *chex, int &doing_no
             }
             // If it's not a "swimming"-type idleanim, choose a random loop
             // if there arent enough loops to do the current one.
-            if ((ch->idledelay > 0) && (useloop >= max_loops))
+            if ((ch->idledelay > 0) && (use_loop >= max_loops))
             {
                 do
                 {
-                    useloop = rand() % max_loops;
+                    use_loop = rand() % max_loops;
                     // don't select a loop which is a continuation of a previous one
-                } while ((useloop > 0) && (views[ch->idleview].loops[useloop - 1].RunNextLoop()));
+                } while ((use_loop > 0) && (views[ch->idleview].loops[use_loop - 1].RunNextLoop()));
             }
             // Normal idle anim - just reset to loop 0 if not enough to
             // use the current one
-            else if (useloop >= max_loops)
+            else if (use_loop >= max_loops)
             {
-                useloop = 0;
+                use_loop = 0;
             }
 
-            animate_character(ch, useloop, ch->idle_anim_speed, (ch->idledelay == 0) ? 1 : 0 /* repeat */);
+            animate_character(ch, use_loop, ch->idle_anim_speed, (ch->idledelay == 0) ? 1 : 0 /* repeat */);
 
             // Don't keep the animation parameters while the idle anim plays: chex->IsAnimating() stays false, and
             // the idling state is told by idleleft < 0 alone (is_idling()).

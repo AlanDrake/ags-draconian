@@ -35,7 +35,7 @@ bool IsValidCharacter(int char_id);
 // if not then prints a warning to the log; returns assertion result
 bool AssertCharacter(const char *apiname, int char_id);
 
-void Character_AddInventory(CharacterInfo *ch, ScriptInvItem *invi, int at_index);
+void Character_AddInventory(CharacterInfo *ch, ScriptInvItem *item, int at_index);
 void Character_AddWaypoint(CharacterInfo *ch, int x, int y);
 // Character.Animate with every argument; Animate5 and Animate6 supply the last ones (sframe, volume) by default.
 // Stops an idle animation first, and waits for the animation to end if blocking is set.
@@ -58,9 +58,9 @@ void Character_FaceDirection(CharacterInfo *ch, int direction, int blocking_styl
 void Character_FaceCharacter(CharacterInfo *ch, CharacterInfo *other, int blocking_style);
 void Character_FaceLocation(CharacterInfo *ch, int x, int y, int blocking_style);
 void Character_FaceObject(CharacterInfo *ch, ScriptObject *obj, int blocking_style);
-void Character_FollowCharacter(CharacterInfo *ch, CharacterInfo *tofollow, int distaway, int eagerness);
+void Character_FollowCharacter(CharacterInfo *ch, CharacterInfo *to_follow, int distaway, int eagerness);
 int Character_IsCollidingWithChar(CharacterInfo *ch, CharacterInfo *other);
-int Character_IsCollidingWithObject(CharacterInfo *ch, ScriptObject *objid);
+int Character_IsCollidingWithObject(CharacterInfo *ch, ScriptObject *obj);
 // Tells if the character has an event handler for the cursor mode (mood), without running it:
 // runs Character_RunInteraction in the check-only mode.
 bool Character_IsInteractionAvailable(CharacterInfo *ch, int mood);
@@ -71,7 +71,7 @@ void Character_LockViewEx(CharacterInfo *ch, int view, int stop_moving);
 void Character_LockViewAlignedEx(CharacterInfo *ch, int view, int loop, int align, int stop_moving);
 void Character_LockViewFrameEx(CharacterInfo *ch, int view, int loop, int frame, int stop_moving);
 void Character_LockViewOffsetEx(CharacterInfo *ch, int view, int xoffs, int yoffs, int stop_moving);
-void Character_LoseInventory(CharacterInfo *ch, ScriptInvItem *invi);
+void Character_LoseInventory(CharacterInfo *ch, ScriptInvItem *item);
 void Character_PlaceOnWalkableArea(CharacterInfo *ch);
 void Character_RemoveTint(CharacterInfo *ch);
 // Character.HasExplicitTint.
@@ -106,7 +106,7 @@ void Character_RunInteraction(CharacterInfo *ch, int mood);
 
 // Character.GetProperty, GetPropertyText and GetTextProperty: read a custom property of the character.
 int Character_GetProperty(CharacterInfo *ch, const char *property);
-void Character_GetPropertyText(CharacterInfo *ch, const char *property, char *bufer);
+void Character_GetPropertyText(CharacterInfo *ch, const char *property, char *buffer);
 const char *Character_GetTextProperty(CharacterInfo *ch, const char *property);
 
 ScriptInvItem *Character_GetActiveInventory(CharacterInfo *ch);
@@ -116,9 +116,9 @@ void Character_SetActiveInventory(CharacterInfo *ch, ScriptInvItem *item);
 void SetActiveInventory(int item_id);
 int Character_GetAnimating(CharacterInfo *ch);
 int Character_GetAnimationSpeed(CharacterInfo *ch);
-void Character_SetAnimationSpeed(CharacterInfo *ch, int newval);
+void Character_SetAnimationSpeed(CharacterInfo *ch, int new_value);
 int Character_GetBaseline(CharacterInfo *ch);
-void Character_SetBaseline(CharacterInfo *ch, int basel);
+void Character_SetBaseline(CharacterInfo *ch, int baseline);
 int Character_GetBlinkInterval(CharacterInfo *ch);
 void Character_SetBlinkInterval(CharacterInfo *ch, int interval);
 int Character_GetBlinkView(CharacterInfo *ch);
@@ -133,14 +133,14 @@ void Character_SetBlockingWidth(CharacterInfo *ch, int wid);
 int Character_GetDiagonalWalking(CharacterInfo *ch);
 void Character_SetDiagonalWalking(CharacterInfo *ch, int yesorno);
 int Character_GetClickable(CharacterInfo *ch);
-void Character_SetClickable(CharacterInfo *ch, int clik);
+void Character_SetClickable(CharacterInfo *ch, int clickable);
 int Character_GetID(CharacterInfo *ch);
 int Character_GetFrame(CharacterInfo *ch);
-void Character_SetFrame(CharacterInfo *ch, int newval);
+void Character_SetFrame(CharacterInfo *ch, int new_value);
 int Character_GetIdleView(CharacterInfo *ch);
 // Character.InventoryQuantity[] (an indexed property: the index is the inventory item ID).
 int Character_GetIInventoryQuantity(CharacterInfo *ch, int index);
-int Character_HasInventory(CharacterInfo *ch, ScriptInvItem *invi);
+int Character_HasInventory(CharacterInfo *ch, ScriptInvItem *item);
 void Character_SetIInventoryQuantity(CharacterInfo *ch, int index, int quant);
 int Character_GetIgnoreLighting(CharacterInfo *ch);
 void Character_SetIgnoreLighting(CharacterInfo *ch, int yesorno);
@@ -148,7 +148,7 @@ void Character_SetManualScaling(CharacterInfo *ch, int yesorno);
 int Character_GetMovementLinkedToAnimation(CharacterInfo *ch);
 void Character_SetMovementLinkedToAnimation(CharacterInfo *ch, int yesorno);
 int Character_GetLoop(CharacterInfo *ch);
-void Character_SetLoop(CharacterInfo *ch, int newval);
+void Character_SetLoop(CharacterInfo *ch, int new_value);
 int Character_GetMoving(CharacterInfo *ch);
 // Character.DisplayName, and the obsolete Character.Name, which is registered to the same functions.
 const char *Character_GetName(CharacterInfo *ch);
@@ -181,11 +181,11 @@ int Character_GetView(CharacterInfo *ch);
 int Character_GetWalkSpeedX(CharacterInfo *ch);
 int Character_GetWalkSpeedY(CharacterInfo *ch);
 int Character_GetX(CharacterInfo *ch);
-void Character_SetX(CharacterInfo *ch, int newval);
+void Character_SetX(CharacterInfo *ch, int new_value);
 int Character_GetY(CharacterInfo *ch);
-void Character_SetY(CharacterInfo *ch, int newval);
+void Character_SetY(CharacterInfo *ch, int new_value);
 int Character_GetZ(CharacterInfo *ch);
-void Character_SetZ(CharacterInfo *ch, int newval);
+void Character_SetZ(CharacterInfo *ch, int new_value);
 int Character_GetSpeakingFrame(CharacterInfo *ch);
 int Character_GetBlendMode(CharacterInfo *ch);
 void Character_SetBlendMode(CharacterInfo *ch, int blend_mode);
@@ -202,7 +202,7 @@ class Bitmap;
 } // namespace AGS
 
 // Configures and starts character animation.
-void animate_character(CharacterInfo *ch, int loopn, int sppd, int rept, int direction = 0, int sframe = 0,
+void animate_character(CharacterInfo *ch, int loop, int sppd, int rept, int direction = 0, int sframe = 0,
                        int volume = 100);
 // Clears the character's animation state, which stops the animation started by animate_character
 void stop_character_anim(CharacterInfo *ch);
@@ -214,11 +214,11 @@ int find_looporder_index(int curloop);
 bool should_use_diagloops(CharacterInfo *ch, bool require_animation);
 // Tells if the view has frames in both the Down and the Up loops; false if it has only horizontal animations
 bool has_updown_loops(CharacterInfo *ch);
-// Starts turning the character from its current loop to useloop, one step of turnlooporder per update,
+// Starts turning the character from its current loop to use_loop, one step of turnlooporder per update,
 // in the shorter direction (equal ones are decided by the "turn order priority" game option). Loops that do not
 // exist or have no frames are skipped, so are the diagonal ones if use_diagloops is false; the turning is not
 // started if no step is needed.
-void start_character_turning(CharacterInfo *ch, int useloop, bool use_diagloops);
+void start_character_turning(CharacterInfo *ch, int use_loop, bool use_diagloops);
 // Sets the loop of a walking character according to the direction of its current move, either right away or,
 // when the game turns characters while they walk, by turning it step by step. Does nothing if the move has no speed.
 void fix_player_sprite(CharacterInfo *ch, const MoveList &cmls);
@@ -251,31 +251,31 @@ void MoveCharacterToHotspot(int char_id, int hotsp);
 // abs(value) steps made half-way, with the position saved to be completed on the next update (UpdateCharacterMoving).
 int wantMoveNow(CharacterInfo *ch, CharacterExtras *chex);
 // Makes the character the player: sets game.playercharacter, playerchar and the script pointer to it.
-void setup_player_character(int charid);
+void setup_player_character(int char_id);
 // Width and height of the character's sprite: the scaled size calculated by update_character_scale, or the size of
 // the current frame until then; 4 and 2 if the frame is invalid.
-int GetCharacterWidth(int charid);
-int GetCharacterHeight(int charid);
+int GetCharacterWidth(int char_id);
+int GetCharacterHeight(int char_id);
 
 // Get current character's image; this may return either source image, or cached transformed image
-AGS::Common::Bitmap *GetCharacterImage(int charid, bool always_original = false, bool *is_original = nullptr);
+AGS::Common::Bitmap *GetCharacterImage(int char_id, bool always_original = false, bool *is_original = nullptr);
 // Gets current source image (untransformed) for the character
-AGS::Common::Bitmap *GetCharacterSourceImage(int charid);
+AGS::Common::Bitmap *GetCharacterSourceImage(int char_id);
 // Deduces the character's scale, accounting for both manual scaling and the room region effects;
 // calculates the resulting sprite size. Does nothing for a disabled character or one in another room.
-void update_character_scale(int charid);
+void update_character_scale(int char_id);
 // Get character ID at the given room coordinates
 int GetCharIDAtRoom(int x, int y, int hit_options);
 // Returns the character's blocking rectangle in room coordinates: the blocking width (by default the sprite's
 // width less 4) and the blocking top and bottom, with the blocking offsets applied.
-Rect get_char_blocking_rect(int charid);
+Rect get_char_blocking_rect(int char_id);
 // Runs the interaction for the cursor mode (mood) on the character at the given room position, if there is one;
 // returns 1 if there was a character, otherwise 0.
 int check_click_on_character(int x, int y, int mood);
 // The core of Character.Say and Character.Think, taking the formatted text. An empty speech text only marks
 // the character as the last one that spoke, which switches the portrait side.
-void DisplaySpeechCore(int chid, const char *displbuf);
-void DisplayThoughtCore(int chid, const char *displbuf);
+void DisplaySpeechCore(int char_id, const char *displbuf);
+void DisplayThoughtCore(int char_id, const char *displbuf);
 // Displays character speech or thought message.
 // When auto-position flag is on, passing negative coordinates will request
 // auto-position on the respective axis. The nature of auto-pos will depend
@@ -294,11 +294,11 @@ void restore_characters();
 
 // Calculates character's bounding box in room coordinates (takes only in-room transform into account)
 // use_frame_0 optionally tells to use frame 0 of current loop instead of current frame.
-Rect GetCharacterRoomBBox(int charid, bool use_frame_0 = false);
+Rect GetCharacterRoomBBox(int char_id, bool use_frame_0 = false);
 // Find a closest viewport given character is to. Checks viewports in their order in game's array,
 // and returns either first viewport character's bounding box intersects with (or rather with its camera),
 // or the one that is least far away from its camera; calculated as a perpendicular distance between two AABBs.
-PViewport FindNearestViewport(int charid);
+PViewport FindNearestViewport(int char_id);
 
 //
 // Character update functions, defined in characterinfo_engine.cpp and called from the game update.

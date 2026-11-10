@@ -68,7 +68,7 @@ void Button_Animate(GUIButton *btn, int view, int loop, int speed, int repeat, i
                     int volume)
 {
     int gui_id = btn->GetParentID();
-    int objn = btn->GetID();
+    int btn_id = btn->GetID();
 
     view--; // convert to internal 0-based view ID
     ValidateViewAnimVLF("Button.Animate", btn->GetName().GetCStr(), view, loop, sframe);
@@ -77,12 +77,12 @@ void Button_Animate(GUIButton *btn, int view, int loop, int speed, int repeat, i
     volume = Math::Clamp(volume, 0, 100);
 
     // if it's already animating, stop it
-    FindAndRemoveButtonAnimation(gui_id, objn);
+    FindAndRemoveButtonAnimation(gui_id, btn_id);
 
-    int but_id = guis[gui_id].GetControlID(objn);
+    int but_id = guis[gui_id].GetControlID(btn_id);
     AnimatingGUIButton abtn;
     abtn.ongui = gui_id;
-    abtn.onguibut = objn;
+    abtn.onguibut = btn_id;
     abtn.buttonid = but_id;
     abtn.view = view;
     abtn.loop = loop;
@@ -100,7 +100,7 @@ void Button_Animate(GUIButton *btn, int view, int loop, int speed, int repeat, i
         // Wait until the animation completes.
         // Override disabled effect for the animating button and its parent GUI.
         GUI::SetExcludedFromDisabled(btn, true);
-        GameLoopUntilButAnimEnd(gui_id, objn);
+        GameLoopUntilButAnimEnd(gui_id, btn_id);
         GUI::SetExcludedFromDisabled(btn, false);
     }
 }
@@ -125,11 +125,11 @@ void Button_GetText(GUIButton *btn, char *buffer)
     snprintf(buffer, MAX_MAXSTRLEN, "%s", btn->GetText().GetCStr());
 }
 
-void Button_SetText(GUIButton *btn, const char *newtx)
+void Button_SetText(GUIButton *btn, const char *new_text)
 {
-    if (btn->GetText() != newtx)
+    if (btn->GetText() != new_text)
     {
-        btn->SetText(newtx);
+        btn->SetText(new_text);
     }
 }
 
@@ -191,11 +191,11 @@ int Button_GetClipImage(GUIButton *btn)
     return btn->IsClippingImage() ? 1 : 0;
 }
 
-void Button_SetClipImage(GUIButton *btn, int newval)
+void Button_SetClipImage(GUIButton *btn, int new_value)
 {
-    if (btn->IsClippingImage() != (newval != 0))
+    if (btn->IsClippingImage() != (new_value != 0))
     {
-        btn->SetClipImage(newval != 0);
+        btn->SetClipImage(new_value != 0);
     }
 }
 
@@ -274,18 +274,18 @@ int Button_GetMouseOverGraphic(GUIButton *btn)
     return btn->GetMouseOverImage();
 }
 
-void Button_SetMouseOverGraphic(GUIButton *btn, int slotn)
+void Button_SetMouseOverGraphic(GUIButton *btn, int slot)
 {
-    slotn = std::max(0, slotn);
-    if (btn->GetMouseOverImage() != slotn)
+    slot = std::max(0, slot);
+    if (btn->GetMouseOverImage() != slot)
     {
-        debug_script_log("GUI %d Button %d mouseover set to slot %d", btn->GetParentID(), btn->GetID(), slotn);
+        debug_script_log("GUI %d Button %d mouseover set to slot %d", btn->GetParentID(), btn->GetID(), slot);
     }
 
-    const int old_slotn = btn->GetMouseOverImage();
-    btn->SetMouseOverImage(slotn);
+    const int old_slot = btn->GetMouseOverImage();
+    btn->SetMouseOverImage(slot);
     // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
-    replace_sprite_changed_callback(old_slotn, slotn, btn);
+    replace_sprite_changed_callback(old_slot, slot, btn);
 
     FindAndRemoveButtonAnimation(btn->GetParentID(), btn->GetID());
 }
@@ -295,31 +295,31 @@ int Button_GetNormalGraphic(GUIButton *btn)
     return btn->GetNormalImage();
 }
 
-void Button_SetNormalGraphic(GUIButton *btn, int slotn)
+void Button_SetNormalGraphic(GUIButton *btn, int slot)
 {
-    slotn = std::max(0, slotn);
-    if (btn->GetNormalImage() != slotn)
+    slot = std::max(0, slot);
+    if (btn->GetNormalImage() != slot)
     {
-        debug_script_log("GUI %d Button %d normal set to slot %d", btn->GetParentID(), btn->GetID(), slotn);
+        debug_script_log("GUI %d Button %d normal set to slot %d", btn->GetParentID(), btn->GetID(), slot);
     }
 
-    const int old_slotn = btn->GetNormalImage();
+    const int old_slot = btn->GetNormalImage();
     // NormalGraphic = 0 will turn the Button into a standard colored button
-    if (slotn == 0)
+    if (slot == 0)
     {
-        btn->SetNormalImage(slotn);
+        btn->SetNormalImage(slot);
     }
     // Any other sprite - update the clickable area to the same size as the graphic
     else
     {
-        const int width = static_cast<size_t>(slotn) < game.SpriteInfos.size() ? game.SpriteInfos[slotn].Width : 0;
-        const int height = static_cast<size_t>(slotn) < game.SpriteInfos.size() ? game.SpriteInfos[slotn].Height : 0;
-        btn->SetNormalImage(slotn);
+        const int width = static_cast<size_t>(slot) < game.SpriteInfos.size() ? game.SpriteInfos[slot].Width : 0;
+        const int height = static_cast<size_t>(slot) < game.SpriteInfos.size() ? game.SpriteInfos[slot].Height : 0;
+        btn->SetNormalImage(slot);
         btn->SetSize(width, height);
     }
 
     // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
-    replace_sprite_changed_callback(old_slotn, slotn, btn);
+    replace_sprite_changed_callback(old_slot, slot, btn);
 
     FindAndRemoveButtonAnimation(btn->GetParentID(), btn->GetID());
 }
@@ -329,18 +329,18 @@ int Button_GetPushedGraphic(GUIButton *btn)
     return btn->GetPushedImage();
 }
 
-void Button_SetPushedGraphic(GUIButton *btn, int slotn)
+void Button_SetPushedGraphic(GUIButton *btn, int slot)
 {
-    slotn = std::max(0, slotn);
-    if (btn->GetPushedImage() != slotn)
+    slot = std::max(0, slot);
+    if (btn->GetPushedImage() != slot)
     {
-        debug_script_log("GUI %d Button %d pushed set to slot %d", btn->GetParentID(), btn->GetID(), slotn);
+        debug_script_log("GUI %d Button %d pushed set to slot %d", btn->GetParentID(), btn->GetID(), slot);
     }
 
-    const int old_slotn = btn->GetPushedImage();
-    btn->SetPushedImage(slotn);
+    const int old_slot = btn->GetPushedImage();
+    btn->SetPushedImage(slot);
     // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
-    replace_sprite_changed_callback(old_slotn, slotn, btn);
+    replace_sprite_changed_callback(old_slot, slot, btn);
 
     FindAndRemoveButtonAnimation(btn->GetParentID(), btn->GetID());
 }
@@ -402,9 +402,9 @@ size_t GetAnimatingButtonCount()
     return animbuts.size();
 }
 
-AnimatingGUIButton *GetAnimatingButtonByIndex(int idxn)
+AnimatingGUIButton *GetAnimatingButtonByIndex(int idx)
 {
-    return idxn >= 0 && (size_t)idxn < animbuts.size() ? &animbuts[idxn] : nullptr;
+    return idx >= 0 && (size_t)idx < animbuts.size() ? &animbuts[idx] : nullptr;
 }
 
 void AddButtonAnimation(const AnimatingGUIButton &abtn)
@@ -429,9 +429,9 @@ bool UpdateAnimatingButton(int bu)
     return true;
 }
 
-void StopButtonAnimation(int idxn)
+void StopButtonAnimation(int idx)
 {
-    animbuts.erase(animbuts.begin() + idxn);
+    animbuts.erase(animbuts.begin() + idx);
 }
 
 void RemoveAllButtonAnimations()
@@ -441,11 +441,11 @@ void RemoveAllButtonAnimations()
 
 // Returns the index of the AnimatingGUIButton object corresponding to the
 // given button ID; returns -1 if no such animation exists
-int FindButtonAnimation(int gui_id, int objn)
+int FindButtonAnimation(int gui_id, int btn_id)
 {
     for (size_t i = 0; i < animbuts.size(); ++i)
     {
-        if (animbuts[i].ongui == gui_id && animbuts[i].onguibut == objn)
+        if (animbuts[i].ongui == gui_id && animbuts[i].onguibut == btn_id)
         {
             return i;
         }
@@ -453,9 +453,9 @@ int FindButtonAnimation(int gui_id, int objn)
     return -1;
 }
 
-void FindAndRemoveButtonAnimation(int gui_id, int objn)
+void FindAndRemoveButtonAnimation(int gui_id, int btn_id)
 {
-    int idx = FindButtonAnimation(gui_id, objn);
+    int idx = FindButtonAnimation(gui_id, btn_id);
     if (idx >= 0)
         StopButtonAnimation(idx);
 }

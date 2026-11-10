@@ -59,10 +59,10 @@ void DrawingSurface_DrawRectangle(ScriptDrawingSurface *surface, int x1, int y1,
 void DrawingSurface_DrawTriangle(ScriptDrawingSurface *surface, int x1, int y1, int x2, int y2, int x3, int y3);
 // Draws the text at x, y in the drawing colour and blend mode, applying the text direction.
 void DrawingSurface_DrawString(ScriptDrawingSurface *surface, int x, int y, int font, const char *text);
-// Breaks msg into lines no wider than wid and draws them one under another from y, aligned inside the span from x to
-// x + wid - 1; a voice-over token at the start of msg is skipped. The outline colour is the speech text shadow colour
+// Breaks msg into lines no wider than width and draws them one under another from y, aligned inside the span from x to
+// x + width - 1; a voice-over token at the start of msg is skipped. The outline colour is the speech text shadow colour
 // (play.speech_text_shadow).
-void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *surface, int x, int y, int wid, int font, int alignment,
+void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *surface, int x, int y, int width, int font, int alignment,
                                       const char *msg);
 // Draws a line; a thickness above 1 is made of thickness * thickness one-pixel lines, each offset by whole pixels
 // around the given line.

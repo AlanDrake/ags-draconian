@@ -81,10 +81,10 @@ void GUIControl_SetPosition(GUIControl *control, int x, int y);
 // GUIControl.Width and Height, SetSize: the control's size; SetSize is a script error that ends the game if either
 // side is less than 2, the setters of one side do not check.
 int GUIControl_GetWidth(GUIControl *control);
-void GUIControl_SetWidth(GUIControl *control, int newwid);
+void GUIControl_SetWidth(GUIControl *control, int new_width);
 int GUIControl_GetHeight(GUIControl *control);
-void GUIControl_SetHeight(GUIControl *control, int newhit);
-void GUIControl_SetSize(GUIControl *control, int newwid, int newhit);
+void GUIControl_SetHeight(GUIControl *control, int new_height);
+void GUIControl_SetSize(GUIControl *control, int new_width, int new_height);
 // GUIControl.SendToBack and BringToFront: move the control to the bottom or the top of its GUI's drawing order.
 void GUIControl_SendToBack(GUIControl *control);
 void GUIControl_BringToFront(GUIControl *control);

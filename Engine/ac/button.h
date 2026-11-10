@@ -36,14 +36,14 @@ void Button_Animate4(GUIButton *btn, int view, int loop, int speed, int repeat);
 // buffer (at most MAX_MAXSTRLEN - 1 characters). The setter changes the button only when the text differs.
 const char *Button_GetText_New(GUIButton *btn);
 void Button_GetText(GUIButton *btn, char *buffer);
-void Button_SetText(GUIButton *btn, const char *newtx);
+void Button_SetText(GUIButton *btn, const char *new_text);
 // Button.Font: the setter validates the font number.
 void Button_SetFont(GUIButton *btn, int new_font);
 int Button_GetFont(GUIButton *btn);
 // Button.ClipImage: whether the image is clipped to the button; the getter returns 1 or 0, the setter takes any
 // non-zero value as "on".
 int Button_GetClipImage(GUIButton *btn);
-void Button_SetClipImage(GUIButton *btn, int newval);
+void Button_SetClipImage(GUIButton *btn, int new_value);
 // Button.Graphic: the sprite displayed now, which follows the button's state and its animation; the normal sprite
 // when none has been displayed yet. Read-only.
 int Button_GetGraphic(GUIButton *btn);
@@ -52,14 +52,14 @@ int Button_GetGraphic(GUIButton *btn);
 // Setting NormalGraphic to a slot other than 0 also resizes the button to the sprite's size; 0 makes it a plain
 // coloured button.
 int Button_GetMouseOverGraphic(GUIButton *btn);
-void Button_SetMouseOverGraphic(GUIButton *btn, int slotn);
+void Button_SetMouseOverGraphic(GUIButton *btn, int slot);
 int Button_GetNormalGraphic(GUIButton *btn);
-void Button_SetNormalGraphic(GUIButton *btn, int slotn);
+void Button_SetNormalGraphic(GUIButton *btn, int slot);
 int Button_GetPushedGraphic(GUIButton *btn);
-void Button_SetPushedGraphic(GUIButton *btn, int slotn);
+void Button_SetPushedGraphic(GUIButton *btn, int slot);
 // Button.TextColor: the colour of the button's text.
 int Button_GetTextColor(GUIButton *btn);
-void Button_SetTextColor(GUIButton *btn, int newcol);
+void Button_SetTextColor(GUIButton *btn, int color);
 
 // **** BUTTON: ANIMATIONS ****
 //
@@ -72,15 +72,15 @@ bool UpdateAnimatingButton(int bu);
 // The number of running animations.
 size_t GetAnimatingButtonCount();
 // The animation at the given index, or nullptr if the index is out of range.
-AnimatingGUIButton *GetAnimatingButtonByIndex(int idxn);
+AnimatingGUIButton *GetAnimatingButtonByIndex(int idx);
 // Appends a copy of the animation to the list (the save loader uses it); does not look for one on the same button.
 void AddButtonAnimation(const AnimatingGUIButton &abtn);
 // Removes the animation at the given index, which must be valid.
-void StopButtonAnimation(int idxn);
-// Returns the index of the animation of the button objn (its ID within its GUI) on the GUI gui_id, or -1 if the button
+void StopButtonAnimation(int idx);
+// Returns the index of the animation of the button btn_id (its ID within its GUI) on the GUI gui_id, or -1 if the button
 // is not animating.
-int FindButtonAnimation(int gui_id, int objn);
+int FindButtonAnimation(int gui_id, int btn_id);
 // Stops the animation of the given button, if there is one.
-void FindAndRemoveButtonAnimation(int gui_id, int objn);
+void FindAndRemoveButtonAnimation(int gui_id, int btn_id);
 // Removes all the animations (a loaded save starts from none).
 void RemoveAllButtonAnimations();

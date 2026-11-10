@@ -101,13 +101,13 @@ static int GetThingRect(int thing, Rect *rect)
     }
     else if (IsValidObject(thing - OVERLAPPING_OBJECT))
     {
-        int objid = thing - OVERLAPPING_OBJECT;
-        if (!objs[objid].is_enabled())
+        int obj_id = thing - OVERLAPPING_OBJECT;
+        if (!objs[obj_id].is_enabled())
             return 0;
 
-        const int objw = objs[objid].get_width();
-        const int objh = objs[objid].get_height();
-        *rect = RectWH(objs[objid].x, objs[objid].y - objh + 1, objw, objh);
+        const int objw = objs[obj_id].get_width();
+        const int objh = objs[obj_id].get_height();
+        *rect = RectWH(objs[obj_id].x, objs[obj_id].y - objh + 1, objw, objh);
     }
     else
     {
@@ -160,25 +160,25 @@ int Object_IsCollidingWithObject(ScriptObject *obj, ScriptObject *other)
     return AreObjectsColliding(obj->id, other->id);
 }
 
-Bitmap *GetObjectImage(int obj, bool always_original, bool *is_original)
+Bitmap *GetObjectImage(int obj_id, bool always_original, bool *is_original)
 {
     Bitmap *pic = nullptr;
     if (!always_original)
     {
         // NOTE: the cached image will only be present in software render mode
-        pic = get_cached_object_image(obj);
+        pic = get_cached_object_image(obj_id);
     }
 
     if (is_original)
         *is_original = pic == nullptr; // if not used cached image, then use original
     if (!pic)
-        pic = spriteset[objs[obj].num];
+        pic = spriteset[objs[obj_id].num];
     return pic;
 }
 
-Bitmap *GetObjectSourceImage(int obj)
+Bitmap *GetObjectSourceImage(int obj_id)
 {
-    return spriteset[objs[obj].num];
+    return spriteset[objs[obj_id].num];
 }
 
 int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
@@ -186,33 +186,33 @@ int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
     const bool only_clickable = (hit_options & kHit_Interactable) != 0;
     int bestshotyp = -1, bestshotwas = -1;
     // Iterate through all objects in the room
-    for (uint32_t aa = 0; aa < croom->numobj; aa++)
+    for (uint32_t obj_id = 0; obj_id < croom->numobj; obj_id++)
     {
-        if (!objs[aa].is_displayed())
+        if (!objs[obj_id].is_displayed())
             continue; // disabled or invisible
-        if (only_clickable && (objs[aa].flags & OBJF_NOINTERACT))
+        if (only_clickable && (objs[obj_id].flags & OBJF_NOINTERACT))
             continue;
         SpriteTransformFlags sprite_flags = kSprTf_None;
-        int sprite_width = objs[aa].get_width();
-        int sprite_height = objs[aa].get_height();
+        int sprite_width = objs[obj_id].get_width();
+        int sprite_height = objs[obj_id].get_height();
         // TODO: support mirrored transformation in GraphicSpace
-        if (objs[aa].view != RoomObject::NoView)
-            sprite_flags = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags;
+        if (objs[obj_id].view != RoomObject::NoView)
+            sprite_flags = views[objs[obj_id].view].loops[objs[obj_id].loop].frames[objs[obj_id].frame].flags;
 
-        Bitmap *image = GetObjectSourceImage(aa);
+        Bitmap *image = GetObjectSourceImage(obj_id);
         // Convert to local object coordinates
-        Point local = objs[aa].GetGraphicSpace().WorldToLocal(roomx, roomy);
+        Point local = objs[obj_id].GetGraphicSpace().WorldToLocal(roomx, roomy);
         if (is_pos_in_sprite(local.X, local.Y, 0, 0, image, sprite_width, sprite_height, sprite_flags) == FALSE)
         {
             continue;
         }
 
-        int usebasel = objs[aa].get_baseline();
-        if (usebasel < bestshotyp)
+        int use_baseline = objs[obj_id].get_baseline();
+        if (use_baseline < bestshotyp)
             continue;
 
-        bestshotwas = aa;
-        bestshotyp = usebasel;
+        bestshotwas = obj_id;
+        bestshotyp = use_baseline;
     }
     obj_lowest_yp = bestshotyp;
     return bestshotwas;
@@ -224,10 +224,10 @@ ScriptObject *Object_GetAtScreenXY(int x, int y, int hit_options)
     VpPoint vpt = play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return nullptr;
-    int hsnum = GetObjectIDAtRoom(vpt.first.X, vpt.first.Y, hit_options);
-    if (hsnum < 0)
+    int obj_id = GetObjectIDAtRoom(vpt.first.X, vpt.first.Y, hit_options);
+    if (obj_id < 0)
         return nullptr;
-    return &scrObj[hsnum];
+    return &scrObj[obj_id];
 }
 
 ScriptObject *Object_GetAtScreenXY2(int x, int y)
@@ -237,19 +237,19 @@ ScriptObject *Object_GetAtScreenXY2(int x, int y)
 
 ScriptObject *Object_GetAtRoomXY(int x, int y, int hit_options)
 {
-    int hsnum = GetObjectIDAtRoom(x, y, hit_options);
-    if (hsnum < 0)
+    int obj_id = GetObjectIDAtRoom(x, y, hit_options);
+    if (obj_id < 0)
         return nullptr;
-    return &scrObj[hsnum];
+    return &scrObj[obj_id];
 }
 ScriptObject *Object_GetAtRoomXY2(int x, int y)
 {
     return Object_GetAtRoomXY(x, y, true);
 }
 
-void SetObjectTint(int obj, int red, int green, int blue, int opacity, int luminance)
+void SetObjectTint(int obj_id, int red, int green, int blue, int opacity, int luminance)
 {
-    if (!AssertObject("SetObjectTint", obj))
+    if (!AssertObject("SetObjectTint", obj_id))
         return;
 
     if ((red < 0) || (green < 0) || (blue < 0) || (red > 255) || (green > 255) || (blue > 255) || (opacity < 0) ||
@@ -261,26 +261,26 @@ void SetObjectTint(int obj, int red, int green, int blue, int opacity, int lumin
         return;
     }
 
-    debug_script_log("Set object %d tint RGB(%d,%d,%d) %d%%", obj, red, green, blue, opacity);
+    debug_script_log("Set object %d tint RGB(%d,%d,%d) %d%%", obj_id, red, green, blue, opacity);
 
-    objs[obj].tint_r = red;
-    objs[obj].tint_g = green;
-    objs[obj].tint_b = blue;
-    objs[obj].tint_level = opacity;
-    objs[obj].tint_light = luminance;
-    objs[obj].flags &= ~OBJF_HASLIGHT;
-    objs[obj].flags |= OBJF_HASTINT;
+    objs[obj_id].tint_r = red;
+    objs[obj_id].tint_g = green;
+    objs[obj_id].tint_b = blue;
+    objs[obj_id].tint_level = opacity;
+    objs[obj_id].tint_light = luminance;
+    objs[obj_id].flags &= ~OBJF_HASLIGHT;
+    objs[obj_id].flags |= OBJF_HASTINT;
 }
 
-void RemoveObjectTint(int obj)
+void RemoveObjectTint(int obj_id)
 {
-    if (!AssertObject("RemoveObjectTint", obj))
+    if (!AssertObject("RemoveObjectTint", obj_id))
         return;
 
-    if (objs[obj].flags & (OBJF_HASTINT | OBJF_HASLIGHT))
+    if (objs[obj_id].flags & (OBJF_HASTINT | OBJF_HASLIGHT))
     {
-        debug_script_log("Un-tint object %d", obj);
-        objs[obj].flags &= ~(OBJF_HASTINT | OBJF_HASLIGHT);
+        debug_script_log("Un-tint object %d", obj_id);
+        objs[obj_id].flags &= ~(OBJF_HASTINT | OBJF_HASLIGHT);
     }
     else
     {
@@ -298,65 +298,65 @@ void Object_RemoveTint(ScriptObject *obj)
     RemoveObjectTint(obj->id);
 }
 
-void SetObjectGraphic(int obn, int slott)
+void SetObjectGraphic(int obj_id, int slot)
 {
-    if (!AssertObject("Object.Graphic", obn))
+    if (!AssertObject("Object.Graphic", obj_id))
         return;
 
-    if (objs[obn].num != slott)
+    if (objs[obj_id].num != slot)
     {
-        objs[obn].num = Math::InRangeOrDef<uint16_t>(slott, 0);
-        if (slott > UINT16_MAX)
-            debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, slott,
+        objs[obj_id].num = Math::InRangeOrDef<uint16_t>(slot, 0);
+        if (slot > UINT16_MAX)
+            debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obj_id, slot,
                               UINT16_MAX);
-        debug_script_log("Object %d graphic changed to slot %d", obn, slott);
+        debug_script_log("Object %d graphic changed to slot %d", obj_id, slot);
     }
-    objs[obn].frame = 0;
-    objs[obn].loop = 0;
-    objs[obn].view = RoomObject::NoView;
-    objs[obn].anim = ViewAnimateParams(); // reset anim
+    objs[obj_id].frame = 0;
+    objs[obj_id].loop = 0;
+    objs[obj_id].view = RoomObject::NoView;
+    objs[obj_id].anim = ViewAnimateParams(); // reset anim
 }
 
-bool SetObjectFrameSimple(int obn, int viw, int lop, int fra)
+bool SetObjectFrameSimple(int obj_id, int view, int loop, int frame)
 {
-    if (!AssertObject("SetObjectFrame", obn))
+    if (!AssertObject("SetObjectFrame", obj_id))
         return false;
-    viw--;
-    AssertViewHasLoops("SetObjectFrame", thisroom.Objects[obn].ScriptName.GetCStr(), viw);
+    view--;
+    AssertViewHasLoops("SetObjectFrame", thisroom.Objects[obj_id].ScriptName.GetCStr(), view);
 
-    auto &obj = objs[obn];
+    auto &room_obj = objs[obj_id];
     // Fixup invalid loop & frame numbers by using default 0 value
-    if (lop < 0 || lop >= views[viw].numLoops)
+    if (loop < 0 || loop >= views[view].numLoops)
     {
-        debug_script_warn("SetObjectFrame: invalid loop number used for view %d (%d, range is 0 - %d)", viw, lop,
-                          views[viw].GetLastLoop());
-        lop = 0;
+        debug_script_warn("SetObjectFrame: invalid loop number used for view %d (%d, range is 0 - %d)", view, loop,
+                          views[view].GetLastLoop());
+        loop = 0;
     }
-    if (fra < 0 || fra >= views[viw].loops[lop].numFrames)
+    if (frame < 0 || frame >= views[view].loops[loop].numFrames)
     {
-        debug_script_warn("SetObjectFrame: frame index out of range (%d, must be 0 - %d)", fra,
-                          views[viw].loops[lop].GetLastFrame());
-        fra = 0; // NOTE: we have 1 dummy frame allocated for empty loops
+        debug_script_warn("SetObjectFrame: frame index out of range (%d, must be 0 - %d)", frame,
+                          views[view].loops[loop].GetLastFrame());
+        frame = 0; // NOTE: we have 1 dummy frame allocated for empty loops
     }
 
     // Current engine's object data limitation by uint16_t
-    if (viw > UINT16_MAX || lop > UINT16_MAX || fra > UINT16_MAX)
+    if (view > UINT16_MAX || loop > UINT16_MAX || frame > UINT16_MAX)
     {
         debug_script_warn(
             "Object's (id %d) view/loop/frame (%d/%d/%d) is outside of internal range (%d/%d/%d), reset to no view",
-            obn, viw + 1, lop, fra, UINT16_MAX + 1, UINT16_MAX, UINT16_MAX);
-        SetObjectGraphic(obn, 0);
+            obj_id, view + 1, loop, frame, UINT16_MAX + 1, UINT16_MAX, UINT16_MAX);
+        SetObjectGraphic(obj_id, 0);
         return false;
     }
 
-    obj.view = static_cast<uint16_t>(viw);
-    obj.loop = static_cast<uint16_t>(lop);
-    obj.frame = static_cast<uint16_t>(fra);
-    obj.anim = ViewAnimateParams(); // reset anim
-    int pic = views[viw].loops[lop].frames[fra].pic;
-    obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
+    room_obj.view = static_cast<uint16_t>(view);
+    room_obj.loop = static_cast<uint16_t>(loop);
+    room_obj.frame = static_cast<uint16_t>(frame);
+    room_obj.anim = ViewAnimateParams(); // reset anim
+    int pic = views[view].loops[loop].frames[frame].pic;
+    room_obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
-        debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic,
+        debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obj_id, pic,
                           UINT16_MAX);
     return true;
 }
@@ -367,14 +367,14 @@ void Object_SetView(ScriptObject *obj, int view, int loop, int frame)
 }
 
 // pass alpha=255 for fully solid, alpha=0 for fully transparent
-void SetObjectAlpha(int obn, int alpha)
+void SetObjectAlpha(int obj_id, int alpha)
 {
-    if (!AssertObject("Object.Opacity", obn))
+    if (!AssertObject("Object.Opacity", obj_id))
         return;
     if ((alpha < 0) || (alpha > 255))
         quit("!Object.Opacity: alpha value must be between 0 and 255");
 
-    objs[obn].opacity = alpha;
+    objs[obj_id].opacity = alpha;
 }
 
 void Object_SetOpacity(ScriptObject *obj, int alpha)
@@ -419,13 +419,13 @@ int Object_GetAudioPanning(ScriptObject *obj)
     return objs[obj->id].audio_panning;
 }
 
-void Object_SetAudioPanning(ScriptObject *obj, int newval)
+void Object_SetAudioPanning(ScriptObject *obj, int new_value)
 {
     if (!AssertObject("Object.AudioPanning", obj->id))
     {
         return;
     }
-    objs[obj->id].audio_panning = Math::Clamp(newval, -100, 100);
+    objs[obj->id].audio_panning = Math::Clamp(new_value, -100, 100);
 }
 
 int Object_GetAudioSpeed(ScriptObject *obj)
@@ -437,13 +437,13 @@ int Object_GetAudioSpeed(ScriptObject *obj)
     return objs[obj->id].audio_speed;
 }
 
-void Object_SetAudioSpeed(ScriptObject *obj, int newval)
+void Object_SetAudioSpeed(ScriptObject *obj, int new_value)
 {
     if (!AssertObject("Object.AudioSpeed", obj->id))
     {
         return;
     }
-    objs[obj->id].audio_speed = newval;
+    objs[obj->id].audio_speed = new_value;
 }
 
 int Object_GetAudioVolume(ScriptObject *obj)
@@ -455,41 +455,41 @@ int Object_GetAudioVolume(ScriptObject *obj)
     return objs[obj->id].audio_volume;
 }
 
-void Object_SetAudioVolume(ScriptObject *obj, int newval)
+void Object_SetAudioVolume(ScriptObject *obj, int new_value)
 {
     if (!AssertObject("Object.AudioVolume", obj->id))
     {
         return;
     }
-    objs[obj->id].audio_volume = Math::Clamp(newval, 0, 100);
+    objs[obj->id].audio_volume = Math::Clamp(new_value, 0, 100);
 }
 
-void SetObjectBaseline(int obn, int basel)
+void SetObjectBaseline(int obj_id, int baseline)
 {
-    if (!AssertObject("SetObjectBaseline", obn))
+    if (!AssertObject("SetObjectBaseline", obj_id))
         return;
     // baseline has changed, invalidate the cache
-    if (objs[obn].baseline != basel)
+    if (objs[obj_id].baseline != baseline)
     {
-        objs[obn].baseline = basel;
-        mark_object_changed(obn);
+        objs[obj_id].baseline = baseline;
+        mark_object_changed(obj_id);
     }
 }
 
-int GetObjectBaseline(int obn)
+int GetObjectBaseline(int obj_id)
 {
-    if (!AssertObject("GetObjectBaseline", obn))
+    if (!AssertObject("GetObjectBaseline", obj_id))
         return 0;
 
-    if (objs[obn].baseline < 1)
+    if (objs[obj_id].baseline < 1)
         return 0;
 
-    return objs[obn].baseline;
+    return objs[obj_id].baseline;
 }
 
-void Object_SetBaseline(ScriptObject *obj, int basel)
+void Object_SetBaseline(ScriptObject *obj, int baseline)
 {
-    SetObjectBaseline(obj->id, basel);
+    SetObjectBaseline(obj->id, baseline);
 }
 
 int Object_GetBaseline(ScriptObject *obj)
@@ -497,53 +497,54 @@ int Object_GetBaseline(ScriptObject *obj)
     return GetObjectBaseline(obj->id);
 }
 
-void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, int blocking, int sframe, int volume)
+void AnimateObjectImpl(int obj_id, int loop, int spdd, int rept, int direction, int blocking, int sframe, int volume)
 {
-    if (!AssertObject("AnimateObject", obn))
+    if (!AssertObject("AnimateObject", obj_id))
         return;
 
-    RoomObject &obj = objs[obn];
-    const RoomObjectInfo &obji = thisroom.Objects[obn];
+    RoomObject &room_obj = objs[obj_id];
+    const RoomObjectInfo &obji = thisroom.Objects[obj_id];
 
-    if (!obj.is_enabled())
+    if (!room_obj.is_enabled())
     {
-        debug_script_warn("%s: object %d is disabled, cannot animate", "Object.Animate", obn);
+        debug_script_warn("%s: object %d is disabled, cannot animate", "Object.Animate", obj_id);
         return;
     }
-    if (obj.view == RoomObject::NoView)
+    if (room_obj.view == RoomObject::NoView)
     {
-        debug_script_warn("%s: object %d has not been assigned a view", "AnimateObject", obn);
+        debug_script_warn("%s: object %d has not been assigned a view", "AnimateObject", obj_id);
         return;
     }
 
-    ValidateViewAnimVLF("Object.Animate", obji.ScriptName.GetCStr(), obj.view, loopn, sframe);
+    ValidateViewAnimVLF("Object.Animate", obji.ScriptName.GetCStr(), room_obj.view, loop, sframe);
     ValidateViewAnimParams("Object.Animate", obji.ScriptName.GetCStr(), blocking, rept, direction);
 
-    if (loopn > UINT16_MAX || sframe > UINT16_MAX)
+    if (loop > UINT16_MAX || sframe > UINT16_MAX)
     {
         debug_script_warn("Object's (id %d) loop/frame (%d/%d) is outside of internal range (%d/%d), cancel animation",
-                          obn, loopn, sframe, UINT16_MAX, UINT16_MAX);
+                          obj_id, loop, sframe, UINT16_MAX, UINT16_MAX);
         return;
     }
 
-    debug_script_log("Obj %d start anim view %d loop %d, speed %d, repeat %d, frame %d", obn, obj.view + 1, loopn, spdd,
-                     rept, sframe);
+    debug_script_log("Obj %d start anim view %d loop %d, speed %d, repeat %d, frame %d", obj_id, room_obj.view + 1,
+                     loop, spdd, rept, sframe);
 
-    obj.set_animating(static_cast<AnimFlowStyle>(rept), static_cast<AnimFlowDirection>(direction), spdd,
-                      Math::Clamp(volume, 0, 100));
-    obj.loop = (uint16_t)loopn;
-    obj.frame = (uint16_t)SetFirstAnimFrame(obj.view, loopn, sframe, static_cast<AnimFlowDirection>(direction));
-    obj.wait = spdd + views[obj.view].loops[loopn].frames[obj.frame].speed;
-    int pic = views[obj.view].loops[loopn].frames[obj.frame].pic;
-    obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
+    room_obj.set_animating(static_cast<AnimFlowStyle>(rept), static_cast<AnimFlowDirection>(direction), spdd,
+                           Math::Clamp(volume, 0, 100));
+    room_obj.loop = (uint16_t)loop;
+    room_obj.frame =
+        (uint16_t)SetFirstAnimFrame(room_obj.view, loop, sframe, static_cast<AnimFlowDirection>(direction));
+    room_obj.wait = spdd + views[room_obj.view].loops[loop].frames[room_obj.frame].speed;
+    int pic = views[room_obj.view].loops[loop].frames[room_obj.frame].pic;
+    room_obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
-        debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic,
+        debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obj_id, pic,
                           UINT16_MAX);
 
-    objs[obn].CheckViewFrame();
+    objs[obj_id].CheckViewFrame();
 
     if (blocking)
-        GameLoopUntilViewAnimEnd(&obj.anim);
+        GameLoopUntilViewAnimEnd(&room_obj.anim);
 }
 
 void Object_Animate(ScriptObject *obj, int loop, int delay, int repeat, int blocking, int direction, int sframe,
@@ -676,16 +677,16 @@ void Object_SetVisible(ScriptObject *obj, bool on)
     }
 }
 
-void Object_SetGraphic(ScriptObject *obj, int slott)
+void Object_SetGraphic(ScriptObject *obj, int slot)
 {
-    SetObjectGraphic(obj->id, slott);
+    SetObjectGraphic(obj->id, slot);
 }
 
-int GetObjectGraphic(int obn)
+int GetObjectGraphic(int obj_id)
 {
-    if (!AssertObject("GetObjectGraphic", obn))
+    if (!AssertObject("GetObjectGraphic", obj_id))
         return 0;
-    return objs[obn].num;
+    return objs[obj_id].num;
 }
 
 int Object_GetGraphic(ScriptObject *obj)
@@ -871,9 +872,9 @@ void Object_SetName(ScriptObject *obj, const char *new_name)
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
-void RunObjectInteraction(int aa, int mood)
+void RunObjectInteraction(int obj_id, int mood)
 {
-    if (!AssertObject("RunObjectInteraction", aa))
+    if (!AssertObject("RunObjectInteraction", obj_id))
         return;
 
     if (!AssertCursorValidForEvent("Object.RunInteraction", mood))
@@ -889,14 +890,14 @@ void RunObjectInteraction(int aa, int mood)
         play.usedinv = playerchar->activeinv;
     }
 
-    const auto obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_OBJ, aa,
-                                     RuntimeScriptValue().SetScriptObject(&scrObj[aa], &ccDynamicObject), mood);
+    const auto obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_OBJ, obj_id,
+                                     RuntimeScriptValue().SetScriptObject(&scrObj[obj_id], &ccDynamicObject), mood);
     if ((evnt >= 0) &&
-        run_event_script(obj_evt, &thisroom.Objects[aa].Interactions, evnt, &thisroom.Objects[aa].GetEvents(),
+        run_event_script(obj_evt, &thisroom.Objects[obj_id].Interactions, evnt, &thisroom.Objects[obj_id].GetEvents(),
                          anyclick_evt, true /* do unhandled event */) < 0)
         return; // game state changed, don't do "any click"
     // any click on obj
-    run_event_script(obj_evt, &thisroom.Objects[aa].GetEvents(), anyclick_evt);
+    run_event_script(obj_evt, &thisroom.Objects[obj_id].GetEvents(), anyclick_evt);
 }
 
 bool Object_IsInteractionAvailable(ScriptObject *obj, int mood)
@@ -962,18 +963,18 @@ void Object_MovePath(ScriptObject *obj, void *path_arr, int speed, int blocking,
                   direction);
 }
 
-void SetObjectClickable(int cha, int clik)
+void SetObjectClickable(int obj_id, int clickable)
 {
-    if (!AssertObject("SetObjectClickable", cha))
+    if (!AssertObject("SetObjectClickable", obj_id))
         return;
-    objs[cha].flags &= ~OBJF_NOINTERACT;
-    if (clik == 0)
-        objs[cha].flags |= OBJF_NOINTERACT;
+    objs[obj_id].flags &= ~OBJF_NOINTERACT;
+    if (clickable == 0)
+        objs[obj_id].flags |= OBJF_NOINTERACT;
 }
 
-void Object_SetClickable(ScriptObject *obj, int clik)
+void Object_SetClickable(ScriptObject *obj, int clickable)
 {
-    SetObjectClickable(obj->id, clik);
+    SetObjectClickable(obj->id, clickable);
 }
 
 int Object_GetClickable(ScriptObject *obj)
@@ -1095,13 +1096,13 @@ int Object_GetSolid(ScriptObject *obj)
     return 0;
 }
 
-void Object_SetBlockingWidth(ScriptObject *obj, int bwid)
+void Object_SetBlockingWidth(ScriptObject *obj, int blocking_width)
 {
     if (!AssertObject("Object.BlockingWidth", obj->id))
     {
         return;
     }
-    objs[obj->id].blocking_width = static_cast<int16_t>(bwid);
+    objs[obj->id].blocking_width = static_cast<int16_t>(blocking_width);
 }
 
 int Object_GetBlockingWidth(ScriptObject *obj)
@@ -1113,13 +1114,13 @@ int Object_GetBlockingWidth(ScriptObject *obj)
     return objs[obj->id].blocking_width;
 }
 
-void Object_SetBlockingHeight(ScriptObject *obj, int bhit)
+void Object_SetBlockingHeight(ScriptObject *obj, int blocking_height)
 {
     if (!AssertObject("Object.BlockingHeight", obj->id))
     {
         return;
     }
-    objs[obj->id].blocking_height = static_cast<int16_t>(bhit);
+    objs[obj->id].blocking_height = static_cast<int16_t>(blocking_height);
 }
 
 int Object_GetBlockingHeight(ScriptObject *obj)
@@ -1294,7 +1295,7 @@ void Object_SetGraphicPivotOffsetY(ScriptObject *obj, int py)
 void move_object(int obj_id, const std::vector<Point> *path, int tox, int toy, int speed, bool ignwal,
                  const RunPathParams &run_params)
 {
-    RoomObject &obj = objs[obj_id];
+    RoomObject &room_obj = objs[obj_id];
     if (path)
     {
         if (path->empty())
@@ -1303,12 +1304,12 @@ void move_object(int obj_id, const std::vector<Point> *path, int tox, int toy, i
             return;
         }
 
-        obj.x = path->front().X;
-        obj.y = path->front().Y;
+        room_obj.x = path->front().X;
+        room_obj.y = path->front().Y;
         tox = path->back().X;
         toy = path->back().Y;
     }
-    else if ((tox == obj.x) && (toy == obj.y))
+    else if ((tox == room_obj.x) && (toy == room_obj.y))
     {
         debug_script_log("MoveObject: object %d already at destination, not moving", obj_id);
         return;
@@ -1327,8 +1328,8 @@ void move_object(int obj_id, const std::vector<Point> *path, int tox, int toy, i
     {
         MaskRouteFinder *pathfind = get_room_pathfinder();
         pathfind->SetWalkableArea(prepare_walkable_areas(-1), thisroom.MaskResolution);
-        path_result = Pathfinding::FindRoute(new_mlist, pathfind, obj.x, obj.y, tox, toy, speed, speed, false, ignwal,
-                                             run_params);
+        path_result = Pathfinding::FindRoute(new_mlist, pathfind, room_obj.x, room_obj.y, tox, toy, speed, speed, false,
+                                             ignwal, run_params);
     }
 
     // If successful, then start moving
@@ -1371,18 +1372,18 @@ void *Object_GetGraphicBoundBox(ScriptObject *obj)
     return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
 }
 
-int GetObjectProperty(int hss, const char *property)
+int GetObjectProperty(int obj_id, const char *property)
 {
-    if (!AssertObject("GetObjectProperty", hss))
+    if (!AssertObject("GetObjectProperty", obj_id))
         return 0;
-    return get_int_property(thisroom.Objects[hss].Properties, croom->objProps[hss], property);
+    return get_int_property(thisroom.Objects[obj_id].Properties, croom->objProps[obj_id], property);
 }
 
-void GetObjectPropertyText(int item, const char *property, char *bufer)
+void GetObjectPropertyText(int obj_id, const char *property, char *buffer)
 {
-    if (!AssertObject("GetObjectPropertyText", item))
+    if (!AssertObject("GetObjectPropertyText", obj_id))
         return;
-    get_text_property(thisroom.Objects[item].Properties, croom->objProps[item], property, bufer);
+    get_text_property(thisroom.Objects[obj_id].Properties, croom->objProps[obj_id], property, buffer);
 }
 
 int Object_GetProperty(ScriptObject *obj, const char *property)
@@ -1390,9 +1391,9 @@ int Object_GetProperty(ScriptObject *obj, const char *property)
     return GetObjectProperty(obj->id, property);
 }
 
-void Object_GetPropertyText(ScriptObject *obj, const char *property, char *bufer)
+void Object_GetPropertyText(ScriptObject *obj, const char *property, char *buffer)
 {
-    GetObjectPropertyText(obj->id, property, bufer);
+    GetObjectPropertyText(obj->id, property, buffer);
 }
 
 const char *Object_GetTextProperty(ScriptObject *obj, const char *property)
@@ -1487,53 +1488,53 @@ void update_object_scale(int &res_zoom, int &res_width, int &res_height, int obj
     res_height = sprheight;
 }
 
-void update_object_scale(int objid)
+void update_object_scale(int obj_id)
 {
-    RoomObject &obj = objs[objid];
-    if (!obj.is_enabled())
+    RoomObject &room_obj = objs[obj_id];
+    if (!room_obj.is_enabled())
         return; // not enabled
 
     int zoom, scale_width, scale_height;
-    update_object_scale(zoom, scale_width, scale_height, obj.x, obj.y, obj.num, obj.zoom,
-                        (obj.flags & OBJF_USEROOMSCALING) != 0);
+    update_object_scale(zoom, scale_width, scale_height, room_obj.x, room_obj.y, room_obj.num, room_obj.zoom,
+                        (room_obj.flags & OBJF_USEROOMSCALING) != 0);
 
     // Save calculated properties and recalc GS
-    obj.zoom = zoom;
-    obj.spr_width = game.SpriteInfos[obj.num].Width;
-    obj.spr_height = game.SpriteInfos[obj.num].Height;
-    if (obj.is_animating())
+    room_obj.zoom = zoom;
+    room_obj.spr_width = game.SpriteInfos[room_obj.num].Width;
+    room_obj.spr_height = game.SpriteInfos[room_obj.num].Height;
+    if (room_obj.is_animating())
     {
-        obj.frame_xoff = views[obj.view].loops[obj.loop].frames[obj.frame].xoffs;
-        obj.frame_yoff = views[obj.view].loops[obj.loop].frames[obj.frame].yoffs;
+        room_obj.frame_xoff = views[room_obj.view].loops[room_obj.loop].frames[room_obj.frame].xoffs;
+        room_obj.frame_yoff = views[room_obj.view].loops[room_obj.loop].frames[room_obj.frame].yoffs;
     }
-    obj.width = scale_width;
-    obj.height = scale_height;
-    obj.UpdateGraphicSpace();
+    room_obj.width = scale_width;
+    room_obj.height = scale_height;
+    room_obj.UpdateGraphicSpace();
 }
 
-Rect get_object_blocking_rect(int objid)
+Rect get_object_blocking_rect(int obj_id)
 {
-    RoomObject *tehobj = &objs[objid];
+    RoomObject *room_obj = &objs[obj_id];
 
     int width;
-    if (tehobj->blocking_width < 1)
-        width = tehobj->width - 4;
+    if (room_obj->blocking_width < 1)
+        width = room_obj->width - 4;
     else
-        width = tehobj->blocking_width;
+        width = room_obj->blocking_width;
 
-    int x = tehobj->x + (tehobj->width / 2) - width / 2 + tehobj->blocking_x;
+    int x = room_obj->x + (room_obj->width / 2) - width / 2 + room_obj->blocking_x;
 
     int y1, y2;
-    if (tehobj->blocking_height > 0)
-        y1 = tehobj->y - tehobj->blocking_height / 2;
+    if (room_obj->blocking_height > 0)
+        y1 = room_obj->y - room_obj->blocking_height / 2;
     else
-        y1 = tehobj->y - 2;
-    if (tehobj->blocking_height > 0)
-        y2 = tehobj->y + tehobj->blocking_height / 2;
+        y1 = room_obj->y - 2;
+    if (room_obj->blocking_height > 0)
+        y2 = room_obj->y + room_obj->blocking_height / 2;
     else
-        y2 = tehobj->y + 3;
-    y1 += tehobj->blocking_y;
-    y2 += tehobj->blocking_y;
+        y2 = room_obj->y + 3;
+    y1 += room_obj->blocking_y;
+    y2 += room_obj->blocking_y;
 
     return RectWH(x, y1, width, y2 - y1);
 }
@@ -1571,10 +1572,10 @@ int is_pos_in_sprite(int x, int y, int arx, int ary, Bitmap *sprit, int spww, in
 
 int check_click_on_object(int roomx, int roomy, int mood)
 {
-    int aa = GetObjectIDAtRoom(roomx, roomy, kHit_Interactable);
-    if (aa < 0)
+    int obj_id = GetObjectIDAtRoom(roomx, roomy, kHit_Interactable);
+    if (obj_id < 0)
         return 0;
-    RunObjectInteraction(aa, mood);
+    RunObjectInteraction(obj_id, mood);
     return 1;
 }
 
