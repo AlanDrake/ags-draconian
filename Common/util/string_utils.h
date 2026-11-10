@@ -93,8 +93,17 @@ ConversionError StringToInt(const String &s, int &val, int def_val);
 // returns def_val on failure
 float StringToFloat(const String &s, float def_val = 0.f);
 
-// A simple unescape string implementation, unescapes "\\x" into '\x'.
-String Unescape(const String &s);
+// Resolves the escape sequences of a C string literal: the simple ones (\n, \t, \", \\ and so on),
+// \e, up to three octal digits (255 at most) and \x with up to two hex digits; a code above 127 is
+// written as UTF-8, a code of 0 is not a character. A sequence that is not one of these loses its
+// backslash, or stays as it is with keep_unknown (as the script compiler leaves it).
+String Unescape(const String &s, bool keep_unknown = false);
+// Escapes a text for a C string literal, the reverse of Unescape: the backslash, the double quote,
+// the control characters by their letter, or as three octal digits where they have none.
+String Escape(const String &s);
+// Escapes the double quotes that are not escaped yet, in a text that is meant to be escaped
+// but is not necessarily.
+String EscapeUnescapedQuotes(const String &s);
 // Converts a classic wildcard search pattern into C++11 compatible regex pattern
 String WildcardToRegex(const String &wildcard);
 

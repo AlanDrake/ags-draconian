@@ -13,10 +13,12 @@
 //=============================================================================
 #include "util/string_utils.h"
 
+#include <cctype>
 #include <cerrno>
 #include <cstring>
 #include <cwchar>
 #include <regex>
+#include <string>
 #include <type_traits>
 
 #include "platform/platform.h"
@@ -158,43 +160,142 @@ String StrUtil::WildcardToRegex(const String &wildcard)
     return pattern;
 }
 
-String StrUtil::Unescape(const String &s)
+// Appends a character code given by a numeric escape; codes above 127 as UTF-8
+static void AppendCharCode(std::string &out, int code)
 {
-    size_t at = s.FindChar('\\');
+    char buf[Utf8::UtfSz];
+    out.append(buf, Utf8::SetChar(code, buf, sizeof(buf)));
+}
+
+String StrUtil::Unescape(const String &s, bool keep_unknown)
+{
+    const size_t at = s.FindChar('\\');
     if (at == String::NoIndex)
-        return s; // no unescaping necessary, return original string
-    char *buf = new char[s.GetLength()];
-    strncpy(buf, s.GetCStr(), at);
-    char *pb = buf + at;
-    for (const char *ptr = s.GetCStr() + at; *ptr; ++ptr)
     {
-        if (*ptr != '\\')
+        return s; // no unescaping necessary, return original string
+    }
+    const char *text = s.GetCStr();
+    const size_t len = s.GetLength();
+    std::string out;
+    out.reserve(len); // a sequence is never shorter than what it stands for
+    out.append(text, at);
+    for (size_t i = at; i < len; ++i)
+    {
+        char c = text[i];
+        if (c != '\\' || i + 1 >= len)
         {
-            *(pb++) = *ptr;
+            out.push_back(c); // a backslash at the end stays
             continue;
         }
-
-        char next = *(++ptr);
-        switch (next)
+        c = text[++i];
+        switch (c)
         {
-        case 'a': *(pb++) = '\a'; break;
-        case 'b': *(pb++) = '\b'; break;
-        case 'f': *(pb++) = '\f'; break;
-        case 'n': *(pb++) = '\n'; break;
-        case 'r': *(pb++) = '\r'; break;
-        case 't': *(pb++) = '\t'; break;
-        case 'v': *(pb++) = '\v'; break;
-        case '\\': *(pb++) = '\\'; break;
-        case '\'': *(pb++) = '\''; break;
-        case '\"': *(pb++) = '\"'; break;
-        case '\?': *(pb++) = '\?'; break;
-        default: *(pb++) = next; break;
+        case 'a': out.push_back('\a'); continue;
+        case 'b': out.push_back('\b'); continue;
+        case 'e': out.push_back(27); continue;
+        case 'f': out.push_back('\f'); continue;
+        case 'n': out.push_back('\n'); continue;
+        case 'r': out.push_back('\r'); continue;
+        case 't': out.push_back('\t'); continue;
+        case 'v': out.push_back('\v'); continue;
+        case '\\':
+        case '\'':
+        case '\"':
+        case '\?': out.push_back(c); continue;
+        default: break;
+        }
+        const size_t seq_at = i;
+        int code = 0;
+        if (c >= '0' && c < '8')
+        {
+            // up to 3 octal digits, max value 255
+            code = c - '0';
+            for (int n = 0; n < 2 && i + 1 < len; ++n)
+            {
+                const int digit = text[i + 1] - '0';
+                if (digit < 0 || digit >= 8 || code * 8 + digit > 255)
+                {
+                    break;
+                }
+                code = code * 8 + digit;
+                ++i;
+            }
+        }
+        else if (c == 'x')
+        {
+            // up to 2 hex digits
+            for (int n = 0; n < 2 && i + 1 < len && isxdigit(static_cast<unsigned char>(text[i + 1])); ++n)
+            {
+                const char h = static_cast<char>(tolower(static_cast<unsigned char>(text[++i])));
+                code = code * 16 + (h <= '9' ? h - '0' : h - 'a' + 10);
+            }
+        }
+        if (code > 0)
+        {
+            AppendCharCode(out, code);
+            continue;
+        }
+        // not a sequence we know
+        i = seq_at;
+        if (keep_unknown)
+        {
+            out.push_back('\\');
+        }
+        out.push_back(c);
+    }
+    return String(out.data(), out.size());
+}
+
+String StrUtil::Escape(const String &s)
+{
+    String result;
+    for (size_t i = 0; i < s.GetLength(); ++i)
+    {
+        const char c = s[i];
+        switch (c)
+        {
+        case '\\': result.Append("\\\\"); continue;
+        case '"': result.Append("\\\""); continue;
+        case '\a': result.Append("\\a"); continue;
+        case '\b': result.Append("\\b"); continue;
+        case '\f': result.Append("\\f"); continue;
+        case '\n': result.Append("\\n"); continue;
+        case '\r': result.Append("\\r"); continue;
+        case '\t': result.Append("\\t"); continue;
+        case '\v': result.Append("\\v"); continue;
+        default: break;
+        }
+        if (static_cast<unsigned char>(c) < ' ')
+        {
+            result.AppendFmt("\\%03o", static_cast<unsigned char>(c));
+        }
+        else
+        {
+            result.AppendChar(c);
         }
     }
-    *pb = 0;
-    String dst(buf);
-    delete[] buf;
-    return dst;
+    return result;
+}
+
+String StrUtil::EscapeUnescapedQuotes(const String &s)
+{
+    if (s.FindChar('"') == String::NoIndex)
+    {
+        return s;
+    }
+    String result;
+    int backslashes = 0;
+    for (size_t i = 0; i < s.GetLength(); ++i)
+    {
+        const char c = s[i];
+        if (c == '"' && (backslashes % 2) == 0)
+        {
+            result.AppendChar('\\');
+        }
+        backslashes = (c == '\\') ? backslashes + 1 : 0;
+        result.AppendChar(c);
+    }
+    return result;
 }
 
 String StrUtil::ReadString(Stream *in)

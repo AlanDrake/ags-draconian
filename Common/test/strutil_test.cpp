@@ -35,6 +35,49 @@ TEST(StrUtil, Unescape)
     ASSERT_TRUE(StrUtil::Unescape(s) == "Text\rText");
 }
 
+TEST(StrUtil, UnescapeNumericSequences)
+{
+    // up to three octal digits, up to two hex digits, \e
+    EXPECT_STREQ("AA\x1B!", StrUtil::Unescape("\\x41\\101\\e\\41").GetCStr());
+    // the digits that would pass 255 are text
+    EXPECT_STREQ(" 0 A1", StrUtil::Unescape("\\400 \\x411").GetCStr());
+    // a code above 127 is written as UTF-8
+    EXPECT_STREQ("caf\xC3\xA9 \xC3\xA9", StrUtil::Unescape("caf\\xe9 \\351").GetCStr());
+    // a code of 0 and an x without digits are not sequences
+    EXPECT_STREQ("0 x", StrUtil::Unescape("\\0 \\x").GetCStr());
+    EXPECT_STREQ("\\0 \\x", StrUtil::Unescape("\\0 \\x", true).GetCStr());
+}
+
+TEST(StrUtil, UnescapeUnknownSequences)
+{
+    // an unknown sequence loses its backslash, or stays as it is when asked
+    EXPECT_STREQ("a[b %q", StrUtil::Unescape("a\\[b \\%q").GetCStr());
+    EXPECT_STREQ("a\\[b \\%q\n", StrUtil::Unescape("a\\[b \\%q\\n", true).GetCStr());
+    // a backslash at the end stays
+    EXPECT_STREQ("end\\", StrUtil::Unescape("end\\").GetCStr());
+    EXPECT_STREQ("\n\\", StrUtil::Unescape("\\n\\", true).GetCStr());
+}
+
+TEST(StrUtil, Escape)
+{
+    EXPECT_STREQ("plain", StrUtil::Escape("plain").GetCStr());
+    EXPECT_STREQ("Back\\\\slash \\\"quoted\\\"\\r\\n\\t\\001 end",
+                 StrUtil::Escape("Back\\slash \"quoted\"\r\n\t\x01 end").GetCStr());
+    // bytes of UTF-8 text stay as they are
+    EXPECT_STREQ("caf\xC3\xA9", StrUtil::Escape("caf\xC3\xA9").GetCStr());
+    // Unescape is its reverse
+    const String text = "a\\b \"c\"\a\b\f\n\r\t\v\x01\x1F d";
+    EXPECT_STREQ(text.GetCStr(), StrUtil::Unescape(StrUtil::Escape(text)).GetCStr());
+}
+
+TEST(StrUtil, EscapeUnescapedQuotes)
+{
+    EXPECT_STREQ("no quotes", StrUtil::EscapeUnescapedQuotes("no quotes").GetCStr());
+    EXPECT_STREQ("a \\\"b\\\" c", StrUtil::EscapeUnescapedQuotes("a \"b\" c").GetCStr());
+    // an escaped quote stays, a quote after an escaped backslash is escaped
+    EXPECT_STREQ("a \\\"b\\\\\\\" c", StrUtil::EscapeUnescapedQuotes("a \\\"b\\\\\" c").GetCStr());
+}
+
 TEST(StrUtil, GetKeyValue)
 {
     auto kv = StrUtil::GetKeyValue(" Font1 = Size=12 ");
