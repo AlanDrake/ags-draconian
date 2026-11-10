@@ -43,9 +43,8 @@ struct TranslationSourceEntry
 // translated texts in the order of the file
 struct TranslationSource
 {
-    // Game identification, text options, encoding and language hints, font overrides;
-    // the dictionaries are not used
-    Translation Options;
+    // Game identification, text options, encoding and language hints, font overrides
+    Common::TranslationOptions Options;
     std::vector<int> FontOverrideOrder; // the overridden fonts, in the order of the file
     // A text found twice keeps its first place and the later translation, as in the editor
     std::vector<TranslationSourceEntry> Entries;

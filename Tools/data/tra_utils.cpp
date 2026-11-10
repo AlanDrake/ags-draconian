@@ -207,7 +207,7 @@ static bool ParseFontOverride(const String &line, FontOverride &fover)
 
 static void ReadSpecialTags(TranslationSource &src, const String &line)
 {
-    Translation &tra = src.Options;
+    TranslationOptions &tra = src.Options;
     const auto key_value = StrUtil::GetKeyValue(line, OPTION_SEPARATOR);
     const String key = key_value.first;
     const String value = key_value.second;
@@ -280,7 +280,7 @@ static void ReadSpecialTags(TranslationSource &src, const String &line)
     }
 }
 
-static void WriteFontOverrides(const Translation &tra, TextStreamWriter &sw)
+static void WriteFontOverrides(const TranslationOptions &tra, TextStreamWriter &sw)
 {
     // in the order of the fonts, the translation keeps them in a hash map
     const std::map<int, FontOverride> sorted_overrides(tra.FontOverrides.begin(), tra.FontOverrides.end());
@@ -824,7 +824,7 @@ static void WriteEncryptedText(const String &text, Stream *out)
 
 HError WriteTRA(const TranslationSource &src, std::unique_ptr<Stream> &&out)
 {
-    const Translation &tra = src.Options;
+    const TranslationOptions &tra = src.Options;
     const bool utf8 = tra.EncodingHint.CompareNoCase("UTF-8") == 0;
 
     // Translated texts and Text Parser words, skipping the obsolete entries and those which

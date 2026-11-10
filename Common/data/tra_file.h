@@ -96,15 +96,13 @@ struct FontOverride
     FontFieldFlags Fields = kFontField_None;
 };
 
-struct Translation
+// What a translation holds besides its texts; shared by the compiled translation and by the
+// translation sources of the tools
+struct TranslationOptions
 {
     // Game identifiers, for matching the translation file with the game
     int GameUid = 0;
     String GameName;
-    // Translation dictionary in source/dest pairs
-    StringMap Dict;
-    // Optional text parser's words dictionary (translation for text parser)
-    WordsDictionary ParserDict;
     // Localization parameters
     String EncodingHint;
     String GameEncodingHint;
@@ -115,6 +113,15 @@ struct Translation
     int OptFlags = 0;                                       // misc translation options
     StringMap StrOptions;                                   // to store extended options with string values
     std::unordered_map<int, FontOverride> FontOverrides;
+};
+
+// A compiled translation, as the engine uses it
+struct Translation : TranslationOptions
+{
+    // Translation dictionary in source/dest pairs
+    StringMap Dict;
+    // Optional text parser's words dictionary (translation for text parser)
+    WordsDictionary ParserDict;
 };
 
 
