@@ -35,10 +35,17 @@ Entry points, in reading order:
   On a hot path (script VM, pixel loops, `Common/util`), compare the code of the objects that changed
   or benchmark, before and after, with MSVC and GCC, and put the result in the commit message; a cost
   is reported with its numbers and the user decides (STYLE.md "Performance").
+- **Reuse before writing:** a function that works on text, bytes, paths or files in general is looked
+  for first (`grep` in `Common/util` and `data_helpers.h`; the table in STYLE.md "Shared helpers"), then
+  used, or extended with a test. No copy with one case added, no second reader or writer of a format.
+  `Script/check_helpers.py` (prepush stage `helpers`) reports the new functions named like a shared one.
 - Private game projects used as a corpus never appear in the repo (paths, names, content).
 - Upstream work (`U.x` tasks) is done in the worktree `../ags4-upstream` on branches off
   `upstream/ags4`, in **upstream's style and C++11**, without fork-only features
-  (`docs/context/decisions.md`, `docs/context/workflows.md` "Submit").
+  (`docs/context/decisions.md`, `docs/context/workflows.md` "Submit"). A tool there mirrors
+  **upstream's** Editor, not the fork's: before a push, `python Script/check_helpers.py --repo
+  ../ags4-upstream --base upstream/ags4` (repeated helpers, comments citing Editor members upstream
+  does not have; `workflows.md` "Verify before a PR" 7 and 8).
 
 ## Facts that differ from upstream
 
@@ -101,7 +108,7 @@ Entry points, in reading order:
 `Editor/AGS.Editor/Utils/`),
 `Tools/crmbuild`, `Tools/data/xml_fields.h` (table-driven `Game.agf` reading, drift guard
 `Tools/data/agf_elements.txt`), `Script/compare_objects.py`, `Script/compare_builds.py`,
-`Script/refactor_metrics.py` (BASELINE.md numbers), `Script/tidy_fix.py`, `Script/tidy_diff.py` (clang-tidy on changed lines), `ci/corpus/`,
+`Script/refactor_metrics.py` (BASELINE.md numbers), `Script/tidy_fix.py`, `Script/tidy_diff.py` (clang-tidy on changed lines), `Script/check_helpers.py` (repeated helpers), `ci/corpus/`,
 `.github/workflows/verify.yml`, `Script/prepush.py`, `Script/linux_jobs.sh` (the Linux CI jobs, run by
 `prepush.py`). Local-only helpers and build trees live in the git-ignored
 `.compare/` and `.tidy/`.
@@ -113,7 +120,8 @@ Entry points, in reading order:
 but `emscripten`; Common, Engine, Plugins: every stage; an unknown path: every stage), and lists the
 changed files that no stage verifies (workflows, packaging, most scripts). `--dry-run` shows the choice.
 Without `--auto` every stage runs, which a repository-wide change needs (`--list`, `--only`, `--skip`,
-`--base`, `--emsdk <dir>`): `format`, `buildlists` (`Script/check_build_lists.py`: every `.vcxproj`'s and the macOS Xcode project's
+`--base`, `--emsdk <dir>`): `format`, `helpers` (`Script/check_helpers.py` on the changed lines: functions
+named like a shared helper, comments citing an Editor member that is not there), `buildlists` (`Script/check_build_lists.py`: every `.vcxproj`'s and the macOS Xcode project's
 (`OSX/xcode/AGSKit`) sources against its CMake targets, deliberate differences listed with reasons in the script), `build`
 (+ `ctest`), `tidy` (clang-tidy on changed lines), `headers`, `libcxx`, `emscripten` (engine as GLES2, then
 a syntax check of the Linux-only code), `linux` (the CI's GCC job: build, header check, `ctest`), `msbuild`.

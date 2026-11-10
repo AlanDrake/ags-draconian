@@ -12,6 +12,9 @@ Runs locally what the CI would otherwise discover after a push (docs/refactor/PL
 
 Stages, in the order they run (a failed stage does not stop the later ones; the summary lists all):
   format   clang-format 19.1.7 --dry-run -Werror over every tracked C/C++ file, as format.yml does
+  helpers  the lines that differ from the upstream branch (Script/check_helpers.py, STYLE.md "Shared
+           helpers"): a new function named like one of Common/util, and a comment that cites a member
+           the Editor's class does not have; no build needed
   buildlists  the source lists of the .vcxproj against the CMake targets of the build stage's tree
            (Script/check_build_lists.py, PLAN.md 3.2c), as the CI's Windows job does; configures the tree
   build    CMake + Ninja (MSVC) Release build with tools and tests, then ctest
@@ -85,12 +88,12 @@ SOURCE_GLOBS = ['*.c', '*.cc', '*.cpp', '*.cxx', '*.h', '*.hpp', '*.inl']
 SOLUTIONS = ['Compiler.Lib', 'Tests', 'Engine', 'Tools', 'AGS.Editor.Full']  # Tools.sln builds agscc too
 TEST_RUNNERS = ['Compiler.Lib.Test.exe', 'Common.Lib.Test.exe', 'Engine.App.Test.exe', 'Engine.Full.Test.exe',
                 'Tools.Test.exe']
-STAGES = ['format', 'buildlists', 'build', 'tidy', 'headers', 'libcxx', 'emscripten', 'linux', 'msbuild']
+STAGES = ['format', 'helpers', 'buildlists', 'build', 'tidy', 'headers', 'libcxx', 'emscripten', 'linux', 'msbuild']
 # Run only when named in --only: long, and a report more than a gate (analysis.yml is on demand too)
 ON_DEMAND = ['sanitizers', 'coverage']
 # --auto: (pattern of a repository path, the stages a change there needs, what no stage verifies or None).
 # The first pattern found in a path decides. Added to what the rule says: `format` for a C or C++ file,
-# `tidy` for one that clang-tidy checks (tidy_diff.is_checked). The stage lists rest on what each build
+# `tidy` and `helpers` for one that clang-tidy checks (tidy_diff.is_checked). The stage lists rest on what each build
 # reads: the Emscripten build reads Common, Engine, Plugins and the libraries, nothing under Compiler or
 # Tools (`ninja -t deps`); MSBuild reads no CMake file; only MSBuild builds the editor; the tests of the
 # compiler and the tools read the script API header.
@@ -113,6 +116,7 @@ AUTO_RULES = [
     (r'^Script/(tidy_diff|refactor_metrics)\.py$', ['tidy'], None),
     (r'^Script/header_check_libcxx\.py$', ['libcxx'], None),
     (r'^Script/check_build_lists\.py$', ['buildlists'], None),
+    (r'^Script/check_helpers\.py$', ['helpers'], None),
     (r'^Script/', [], 'scripts: no stage runs this one'),
     (r'^ci/', [], 'CI support files: the on-demand stages, or a CI run'),
     (r'^(Android|iOS|OSX|Windows|debian)/', [], 'platform packaging: a full CI run (ci.yml, macos.yml)'),
@@ -203,6 +207,15 @@ def stage_format():
     for i in range(0, len(files), 200):
         run('format', [exe, '--dry-run', '-Werror', *files[i:i + 200]])
     return '%d files' % len(files)
+
+
+def stage_helpers():
+    try:
+        run('helpers', [sys.executable, os.path.join(REPO, 'Script', 'check_helpers.py')])
+    except subprocess.CalledProcessError as e:
+        e.note = '%s, see %s' % (last_match('helpers', 'check_helpers: '), os.path.relpath(log_path('helpers'), REPO))
+        raise
+    return last_match('helpers', 'check_helpers: ')
 
 
 def is_configured(build_dir):
@@ -551,8 +564,8 @@ def auto_plan(paths):
         if os.path.isfile(os.path.join(REPO, path)):
             if path.endswith(SOURCE_EXTENSIONS) and 'format' not in stages:
                 stages.append('format')
-            if tidy_diff.is_checked(path) and 'tidy' not in stages:
-                stages.append('tidy')
+            if tidy_diff.is_checked(path):
+                stages += [stage for stage in ('tidy', 'helpers') if stage not in stages]
         for stage in stages:
             needed[stage].append(path)
         if note:
@@ -577,7 +590,7 @@ def print_auto_plan(base, paths, needed, uncovered):
         print('  no stage verifies %s%s (%s)' % (', '.join(group[:3]), more, note))
 
 
-RUNNERS = {'format': stage_format, 'buildlists': stage_buildlists, 'build': stage_build, 'tidy': stage_tidy,
+RUNNERS = {'format': stage_format, 'helpers': stage_helpers, 'buildlists': stage_buildlists, 'build': stage_build, 'tidy': stage_tidy,
            'headers': stage_headers, 'libcxx': stage_libcxx, 'emscripten': stage_emscripten, 'linux': stage_linux,
            'msbuild': stage_msbuild,
            'sanitizers': stage_sanitizers, 'coverage': stage_coverage}

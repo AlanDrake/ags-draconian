@@ -28,6 +28,7 @@ in `THIRD_PARTY` in `Script/refactor_metrics.py`.
 | clang-format | 19.1.7 (`pip install clang-format==19.1.7`) | `/.clang-format` | C/C++ layout, whole files **[enforced]** (`verify.yml`) |
 | clang-tidy | 19.1.0 (`pip install clang-tidy==19.1.0`) | `/.clang-tidy` | C/C++ naming and bug-prone patterns, changed lines (CI gate: PLAN.md 2.4) |
 | dotnet format / IDE analyzers | .NET SDK 8+ | `/.editorconfig` | C# layout and naming (suggestions until PLAN.md 6.2) |
+| `Script/check_helpers.py` | Python 3.8+ | `KNOWN` in the script | new functions named like a shared helper, comments citing a missing Editor member, changed lines (`prepush.py` stage `helpers`; "Shared helpers" below) |
 | `Script/refactor_metrics.py` | Python 3.8+ | — | progress tracking, `BASELINE.md` |
 
 Use the pinned versions: other clang-format versions format differently, and old system installs
@@ -137,6 +138,37 @@ private:
 - `auto` when the type is obvious from the right-hand side or an iterator; no C-style casts.
 - Fixed-width integers (`int32_t`, `uint8_t`) for anything serialized (game data, saves, the
   script ABI); plain `int` / `size_t` elsewhere.
+
+### Shared helpers
+
+Before writing a function that works on text, bytes, paths or files in general (nothing in it is about
+the task at hand), look for it: `grep -rn "<the word>" Common/util Common/data/data_helpers.h`. Four
+reviews of upstream PR #3190 asked for the same thing: a private `UnescapeText` next to
+`StrUtil::Unescape`, `EscapeText` and `EscapeUnescapedQuotes` that belonged in `StrUtil`, a second
+`WriteTRA` next to the first.
+
+- The shared function is used. Where it falls short it is **extended** (a parameter, a case), with a
+  test in `Common/test`, not copied with one line changed.
+- A new function that is general goes into the shared header from the start, with its test. A
+  file-local `static` helper is for what only that file can need.
+- The same holds for a second reader or writer of a format: one function, two callers. If the input
+  differs, convert the input.
+- `Script/check_helpers.py` (prepush stage `helpers`) reports a new function named like a shared one
+  and lists the candidates. It reads names only, so it reminds, it does not prove. An accepted
+  finding goes into its `KNOWN` table with the reason. `--all` lists the whole tree.
+
+| For | Look in |
+|---|---|
+| escape and unescape, quotes, key=value, split keeping quoted parts, wildcards, number parsing, enum names, length-prefixed and C strings in streams | `util/string_utils.h` (`StrUtil`) |
+| trim, split, replace, compare without case, starts and ends with, sections | `util/string.h` (`String`), `util/string_compat.h` |
+| UTF-8 decode, encode, step, lower case | `util/utf8.h` (`Utf8`), `StrUtil::ConvertUtf8To*` |
+| join, parent, file name, extension, compare and fix up paths | `util/path.h` (`Path`) |
+| exists, delete, copy, open, temporary files, list and create directories | `util/file.h` (`File`), `util/directory.h` (`Directory`) |
+| read or write a text file by lines, a buffer as a stream | `util/textstreamreader.h`, `textstreamwriter.h`, `memorystream.h` |
+| base64, LZW, deflate | `util/compress.h`, `util/deflatestream.h` |
+| byte order, bit flags, clamp, rounding | `util/bbop.h`, `util/math.h` |
+| text encryption of game data, macro tokens, script API level names | `data/data_helpers.h` |
+| INI files, command line options | `util/ini_util.h`, `util/cmdlineopts.h` |
 
 ### Functions and control flow
 

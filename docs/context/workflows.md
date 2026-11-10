@@ -67,6 +67,14 @@ Engine options for testing: `--no-message-box`, `--log-stdout=<group>:<level>,..
 5. tools or `agfreader` changes: build the auto-test project with `agsbuild`, compare with the
    Editor's `game28.dta` (the Editor is the reference until the tools replace it)
 6. Makefile source lists updated
+7. no function that repeats one of `Common/util` (`StrUtil`, `String`, `Path`, `File`, `Utf8`) and
+   no second reader or writer of a format: reviewers send these back (#3190: "use `StrUtil::Unescape`,
+   amend it if it needs more", "there must not be 2 writing functions"). A case the shared function
+   lacks is added to it, with a test in `Common/test`
+8. a tool mirrors the Editor **of the tree it is in**: every Editor member a comment cites exists
+   under `Editor/` there. The fork's Editor has functions upstream's does not (`Translation.EscapeText`,
+   fuzzy entries), and a port that follows them changes behaviour. The fork's
+   `Script/check_helpers.py --repo <worktree> --base upstream/ags4` reports 7 and 8
 
 ## Documentation duties
 
