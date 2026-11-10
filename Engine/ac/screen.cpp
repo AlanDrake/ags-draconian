@@ -102,6 +102,18 @@ static IDriverDependantBitmap *get_frame_for_transition_in(bool opaque)
 // Transition game states
 //-----------------------------------------------------------------------------
 
+// Gives the colour a transition fills the screen with, in the game's colour depth.
+// An 8-bit game gets the nearest index in the game palette, which is the one on screen
+// during the transition (the room's that ends or begins); makecol would match against
+// the palette last sent to the screen, which an 8-bit game only sends during the
+// transition, so before the first fade-in it is all black and black became index 1.
+static int make_fade_color(int r, int g, int b)
+{
+    if (game.color_depth == 1)
+        return bestfit_color(palette, r, g, b);
+    return makecol(r, g, b);
+}
+
 class ScreenTransition : public GameState
 {
 public:
@@ -142,7 +154,7 @@ public:
     ScreenFade(bool fade_in, int speed, int fader, int fadeg, int fadeb)
         : ScreenTransition(kScrTran_Fade, fade_in, speed)
     {
-        _fadeColor = makecol(fader, fadeg, fadeb);
+        _fadeColor = make_fade_color(fader, fadeg, fadeb);
     }
 
     // Begin the state, initialize and prepare any resources
@@ -357,7 +369,7 @@ public:
     ScreenBoxOut(bool fade_in, int speed, int fader = 0, int fadeg = 0, int fadeb = 0)
         : ScreenTransition(kScrTran_Boxout, fade_in, speed)
     {
-        _fadeColor = makecol(fader, fadeg, fadeb);
+        _fadeColor = make_fade_color(fader, fadeg, fadeb);
     }
 
     // Begin the state, initialize and prepare any resources
@@ -449,7 +461,7 @@ public:
     ScreenBoxOutSoftware(bool fade_in, int speed, int fader = 0, int fadeg = 0, int fadeb = 0)
         : ScreenTransition(kScrTran_Boxout, fade_in, speed)
     {
-        _fadeColor = makecol(fader, fadeg, fadeb);
+        _fadeColor = make_fade_color(fader, fadeg, fadeb);
     }
 
     // Begin the state, initialize and prepare any resources
