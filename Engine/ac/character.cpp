@@ -150,7 +150,9 @@ bool AssertCharacter(const char *apiname, int char_id)
 void Character_AddInventory(CharacterInfo *ch, ScriptInvItem *item, int at_index)
 {
     if (item == nullptr)
+    {
         quit("!Character.AddInventory: invalid inventory number");
+    }
 
     if (at_index >= SCR_NO_VALUE)
         at_index = -1;
@@ -706,14 +708,18 @@ int Character_IsCollidingWithChar(CharacterInfo *ch, CharacterInfo *other)
 int Character_IsCollidingWithObject(CharacterInfo *ch, ScriptObject *obj)
 {
     if (obj == nullptr)
+    {
         quit("!AreCharObjColliding: invalid object number");
+    }
 
     if (ch->room != displayed_room)
     {
         return 0;
     }
     if (!objs[obj->id].is_enabled())
+    {
         return 0;
+    }
 
     // TODO: use GraphicSpace and proper transformed coords?
 
@@ -864,7 +870,9 @@ void Character_LoseInventoryImpl(CharacterInfo *ch, int item_id, int item_inv_in
             auto it_found =
                 std::find(charextra[char_id].inventory.begin(), charextra[char_id].inventory.end(), item_id);
             if (it_found != charextra[char_id].inventory.end())
+            {
                 charextra[char_id].inventory.erase(it_found);
+            }
         }
     }
     // Redraw active inventory window(s) for this character
@@ -879,7 +887,9 @@ void Character_LoseInventoryImpl(CharacterInfo *ch, int item_id, int item_inv_in
 void Character_LoseInventory(CharacterInfo *ch, ScriptInvItem *item)
 {
     if (item == nullptr)
+    {
         quit("!LoseInventoryFromCharacter: invalid inventory number");
+    }
 
     const int item_id = item->id;
     if (!ch->has_any_of_item(item_id))
@@ -1133,7 +1143,9 @@ void Character_StopMovingEx(CharacterInfo *ch, bool force_walkable_area)
 
     int char_id = ch->index_id;
     if (char_id == play.skip_until_char_stops)
+    {
         EndSkippingUntilCharStops();
+    }
 
     CharacterExtras &chex = charextra[char_id];
     // A walk at a very small zoom level shows the character half way through a step, and keeps the position
@@ -1651,7 +1663,9 @@ void Character_SetClickable(CharacterInfo *ch, int clickable)
     ch->flags &= ~CHF_NOINTERACT;
     // if they don't want it clickable, set the relevant bit
     if (clickable == 0)
+    {
         ch->flags |= CHF_NOINTERACT;
+    }
 }
 
 int Character_GetID(CharacterInfo *ch)
@@ -1715,7 +1729,9 @@ int Character_GetIInventoryQuantity(CharacterInfo *ch, int index)
 int Character_HasInventory(CharacterInfo *ch, ScriptInvItem *item)
 {
     if (item == nullptr)
+    {
         quit("!Character.HasInventory: NULL inventory item supplied");
+    }
 
     return ch->has_any_of_item(item->id) ? 1 : 0;
 }
@@ -2651,7 +2667,9 @@ void start_character_turning(CharacterInfo *ch, int use_loop, bool use_diagloops
         if (ii >= MAX_FACE_DIRECTIONS)
             ii = 0;
         if (ii == to_idx)
+        {
             break;
+        }
         if ((turnlooporder[ii] >= NUM_BASE_DIRECTIONS) && (!use_diagloops))
             continue; // there are no diagonal loops
         if (turnlooporder[ii] >= views[ch->view].numLoops)
@@ -3123,7 +3141,9 @@ CharacterInfo *Character_GetAtRoomXY(int x, int y, int hit_options)
 {
     int char_id = GetCharIDAtRoom(x, y, hit_options);
     if (char_id < 0)
+    {
         return nullptr;
+    }
     return &game.chars[char_id];
 }
 
@@ -3394,13 +3414,17 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
         use_view = speaking_char->thinkview;
         // view 0 is not valid for think views
         if (use_view == 0)
+        {
             use_view = -1;
+        }
         // speech bubble can shrink to fit
         allow_shrink = kDisplayTextShrink_Left;
     }
 
     if (use_view >= game.numviews)
+    {
         quitprintf("!Character.Say: attempted to use view %d for animation, but it does not exist", use_view + 1);
+    }
 
     if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
         remove_screen_overlay(OVER_COMPLETE);

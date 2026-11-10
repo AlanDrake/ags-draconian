@@ -103,7 +103,9 @@ static int GetThingRect(int thing, Rect *rect)
     {
         int obj_id = thing - OVERLAPPING_OBJECT;
         if (!objs[obj_id].is_enabled())
+        {
             return 0;
+        }
 
         const int objw = objs[obj_id].get_width();
         const int objh = objs[obj_id].get_height();
@@ -189,15 +191,21 @@ int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
     for (uint32_t obj_id = 0; obj_id < croom->numobj; obj_id++)
     {
         if (!objs[obj_id].is_displayed())
+        {
             continue; // disabled or invisible
+        }
         if (only_clickable && (objs[obj_id].flags & OBJF_NOINTERACT))
+        {
             continue;
+        }
         SpriteTransformFlags sprite_flags = kSprTf_None;
         int sprite_width = objs[obj_id].get_width();
         int sprite_height = objs[obj_id].get_height();
         // TODO: support mirrored transformation in GraphicSpace
         if (objs[obj_id].view != RoomObject::NoView)
+        {
             sprite_flags = views[objs[obj_id].view].loops[objs[obj_id].loop].frames[objs[obj_id].frame].flags;
+        }
 
         Bitmap *image = GetObjectSourceImage(obj_id);
         // Convert to local object coordinates
@@ -209,7 +217,9 @@ int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
 
         int use_baseline = objs[obj_id].get_baseline();
         if (use_baseline < bestshotyp)
+        {
             continue;
+        }
 
         bestshotwas = obj_id;
         bestshotyp = use_baseline;
@@ -226,7 +236,9 @@ ScriptObject *Object_GetAtScreenXY(int x, int y, int hit_options)
         return nullptr;
     int obj_id = GetObjectIDAtRoom(vpt.first.X, vpt.first.Y, hit_options);
     if (obj_id < 0)
+    {
         return nullptr;
+    }
     return &scrObj[obj_id];
 }
 
@@ -239,7 +251,9 @@ ScriptObject *Object_GetAtRoomXY(int x, int y, int hit_options)
 {
     int obj_id = GetObjectIDAtRoom(x, y, hit_options);
     if (obj_id < 0)
+    {
         return nullptr;
+    }
     return &scrObj[obj_id];
 }
 ScriptObject *Object_GetAtRoomXY2(int x, int y)
@@ -250,7 +264,9 @@ ScriptObject *Object_GetAtRoomXY2(int x, int y)
 void SetObjectTint(int obj_id, int red, int green, int blue, int opacity, int luminance)
 {
     if (!AssertObject("SetObjectTint", obj_id))
+    {
         return;
+    }
 
     if ((red < 0) || (green < 0) || (blue < 0) || (red > 255) || (green > 255) || (blue > 255) || (opacity < 0) ||
         (opacity > 255) || (luminance < 0) || (luminance > 255))
@@ -275,7 +291,9 @@ void SetObjectTint(int obj_id, int red, int green, int blue, int opacity, int lu
 void RemoveObjectTint(int obj_id)
 {
     if (!AssertObject("RemoveObjectTint", obj_id))
+    {
         return;
+    }
 
     if (objs[obj_id].flags & (OBJF_HASTINT | OBJF_HASLIGHT))
     {
@@ -301,14 +319,18 @@ void Object_RemoveTint(ScriptObject *obj)
 void SetObjectGraphic(int obj_id, int slot)
 {
     if (!AssertObject("Object.Graphic", obj_id))
+    {
         return;
+    }
 
     if (objs[obj_id].num != slot)
     {
         objs[obj_id].num = Math::InRangeOrDef<uint16_t>(slot, 0);
         if (slot > UINT16_MAX)
+        {
             debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obj_id, slot,
                               UINT16_MAX);
+        }
         debug_script_log("Object %d graphic changed to slot %d", obj_id, slot);
     }
     objs[obj_id].frame = 0;
@@ -320,7 +342,9 @@ void SetObjectGraphic(int obj_id, int slot)
 bool SetObjectFrameSimple(int obj_id, int view, int loop, int frame)
 {
     if (!AssertObject("SetObjectFrame", obj_id))
+    {
         return false;
+    }
     view--;
     AssertViewHasLoops("SetObjectFrame", thisroom.Objects[obj_id].ScriptName.GetCStr(), view);
 
@@ -370,7 +394,9 @@ void Object_SetView(ScriptObject *obj, int view, int loop, int frame)
 void SetObjectAlpha(int obj_id, int alpha)
 {
     if (!AssertObject("Object.Opacity", obj_id))
+    {
         return;
+    }
     if ((alpha < 0) || (alpha > 255))
         quit("!Object.Opacity: alpha value must be between 0 and 255");
 
@@ -467,7 +493,9 @@ void Object_SetAudioVolume(ScriptObject *obj, int new_value)
 void SetObjectBaseline(int obj_id, int baseline)
 {
     if (!AssertObject("SetObjectBaseline", obj_id))
+    {
         return;
+    }
     // baseline has changed, invalidate the cache
     if (objs[obj_id].baseline != baseline)
     {
@@ -479,10 +507,14 @@ void SetObjectBaseline(int obj_id, int baseline)
 int GetObjectBaseline(int obj_id)
 {
     if (!AssertObject("GetObjectBaseline", obj_id))
+    {
         return 0;
+    }
 
     if (objs[obj_id].baseline < 1)
+    {
         return 0;
+    }
 
     return objs[obj_id].baseline;
 }
@@ -500,7 +532,9 @@ int Object_GetBaseline(ScriptObject *obj)
 void AnimateObjectImpl(int obj_id, int loop, int spdd, int rept, int direction, int blocking, int sframe, int volume)
 {
     if (!AssertObject("AnimateObject", obj_id))
+    {
         return;
+    }
 
     RoomObject &room_obj = objs[obj_id];
     const RoomObjectInfo &obji = thisroom.Objects[obj_id];
@@ -685,7 +719,9 @@ void Object_SetGraphic(ScriptObject *obj, int slot)
 int GetObjectGraphic(int obj_id)
 {
     if (!AssertObject("GetObjectGraphic", obj_id))
+    {
         return 0;
+    }
     return objs[obj_id].num;
 }
 
@@ -875,7 +911,9 @@ void Object_SetName(ScriptObject *obj, const char *new_name)
 void RunObjectInteraction(int obj_id, int mood)
 {
     if (!AssertObject("RunObjectInteraction", obj_id))
+    {
         return;
+    }
 
     if (!AssertCursorValidForEvent("Object.RunInteraction", mood))
         return;
@@ -966,10 +1004,14 @@ void Object_MovePath(ScriptObject *obj, void *path_arr, int speed, int blocking,
 void SetObjectClickable(int obj_id, int clickable)
 {
     if (!AssertObject("SetObjectClickable", obj_id))
+    {
         return;
+    }
     objs[obj_id].flags &= ~OBJF_NOINTERACT;
     if (clickable == 0)
+    {
         objs[obj_id].flags |= OBJF_NOINTERACT;
+    }
 }
 
 void Object_SetClickable(ScriptObject *obj, int clickable)
@@ -1375,14 +1417,18 @@ void *Object_GetGraphicBoundBox(ScriptObject *obj)
 int GetObjectProperty(int obj_id, const char *property)
 {
     if (!AssertObject("GetObjectProperty", obj_id))
+    {
         return 0;
+    }
     return get_int_property(thisroom.Objects[obj_id].Properties, croom->objProps[obj_id], property);
 }
 
 void GetObjectPropertyText(int obj_id, const char *property, char *buffer)
 {
     if (!AssertObject("GetObjectPropertyText", obj_id))
+    {
         return;
+    }
     get_text_property(thisroom.Objects[obj_id].Properties, croom->objProps[obj_id], property, buffer);
 }
 
@@ -1492,7 +1538,9 @@ void update_object_scale(int obj_id)
 {
     RoomObject &room_obj = objs[obj_id];
     if (!room_obj.is_enabled())
+    {
         return; // not enabled
+    }
 
     int zoom, scale_width, scale_height;
     update_object_scale(zoom, scale_width, scale_height, room_obj.x, room_obj.y, room_obj.num, room_obj.zoom,
@@ -1518,7 +1566,9 @@ Rect get_object_blocking_rect(int obj_id)
 
     int width;
     if (room_obj->blocking_width < 1)
+    {
         width = room_obj->width - 4;
+    }
     else
         width = room_obj->blocking_width;
 
@@ -1526,11 +1576,15 @@ Rect get_object_blocking_rect(int obj_id)
 
     int y1, y2;
     if (room_obj->blocking_height > 0)
+    {
         y1 = room_obj->y - room_obj->blocking_height / 2;
+    }
     else
         y1 = room_obj->y - 2;
     if (room_obj->blocking_height > 0)
+    {
         y2 = room_obj->y + room_obj->blocking_height / 2;
+    }
     else
         y2 = room_obj->y + 3;
     y1 += room_obj->blocking_y;
@@ -1574,7 +1628,9 @@ int check_click_on_object(int roomx, int roomy, int mood)
 {
     int obj_id = GetObjectIDAtRoom(roomx, roomy, kHit_Interactable);
     if (obj_id < 0)
+    {
         return 0;
+    }
     RunObjectInteraction(obj_id, mood);
     return 1;
 }

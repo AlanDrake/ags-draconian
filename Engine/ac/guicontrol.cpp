@@ -51,11 +51,15 @@ GUIObject *GUIControl_GetAtScreenXY(int x, int y, int gui_hitoptions, int ctrl_h
 {
     int gui_id = GetGUIAt(x, y, gui_hitoptions);
     if (gui_id == -1)
+    {
         return nullptr;
+    }
 
     int result = guis[gui_id].FindControlAt(x, y, 0, (ctrl_hitoptions & kHit_Interactable));
     if (result < 0)
+    {
         return nullptr;
+    }
 
     return guis[gui_id].GetControl(result);
 }
@@ -283,7 +287,9 @@ void GUIControl_SetHeight(GUIControl *control, int new_height)
 void GUIControl_SetSize(GUIControl *control, int new_width, int new_height)
 {
     if ((new_width < 2) || (new_height < 2))
+    {
         quit("!SetGUIObjectSize: new size is too small (must be at least 2x2)");
+    }
 
     debug_script_log("SetGUIObject %d,%d size %d,%d", control->GetParentID(), control->GetID(), new_width, new_height);
     GUIControl_SetWidth(control, new_width);

@@ -435,7 +435,9 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *surface, int x, int 
     int linespacing = get_font_linespacing(font);
     const char *draw_text = skip_voiceover_token(msg);
     if (break_up_text_into_lines(draw_text, Lines, width, font) == 0)
+    {
         return;
+    }
 
     color_t text_color = surface->GetRealDrawingColor();
     color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
