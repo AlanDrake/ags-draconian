@@ -1604,7 +1604,6 @@ void RegisterGUIAPI()
         {"GUI::get_ScaleY", API_FN_PAIR(GUI_GetScaleY)},
         {"GUI::set_ScaleY", API_FN_PAIR(GUI_SetScaleY)},
         {"GUI::SetScale", API_FN_PAIR(GUI_SetScale)},
-        {"GUI::SetScale", API_FN_PAIR(GUI_SetScale)},
 
         {"GUI::get_Shader", API_FN_PAIR(GUI_GetShader)},
         {"GUI::set_Shader", API_FN_PAIR(GUI_SetShader)},
