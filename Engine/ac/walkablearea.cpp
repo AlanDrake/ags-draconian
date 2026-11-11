@@ -140,9 +140,7 @@ Bitmap *prepare_walkable_areas(int source_char_id)
     walkable_areas_temp->Blit(thisroom.WalkAreaMask.get(), 0, 0, 0, 0, thisroom.WalkAreaMask->GetWidth(),
                               thisroom.WalkAreaMask->GetHeight());
     // if the character who's moving doesn't block, don't bother checking: it passes through everybody
-    if (source_char_id < 0)
-        ;
-    else if (game.chars[source_char_id].flags & CHF_NOBLOCKING)
+    if ((source_char_id >= 0) && (game.chars[source_char_id].flags & CHF_NOBLOCKING))
         return walkable_areas_temp;
 
     // for each character in the current room, make the area under them unwalkable
