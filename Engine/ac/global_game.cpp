@@ -183,7 +183,7 @@ int IsGamePaused()
     return 0;
 }
 
-bool GetSaveSlotDescription(int slot, String &description)
+static bool GetSaveSlotDescription(int slot, String &description)
 {
     if (read_savedgame_description(get_save_game_path(slot), description))
         return true;
