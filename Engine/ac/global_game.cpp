@@ -216,7 +216,7 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned
         String description;
         if (get_description)
             GetSaveSlotDescription(save_slot, description);
-        saves.push_back(SaveListItem(save_slot, description, ff.GetEntry().Time));
+        saves.emplace_back(save_slot, description, ff.GetEntry().Time);
     }
 }
 
@@ -271,7 +271,7 @@ void FillSaveList(const std::vector<int> &slots, std::vector<SaveListItem> &save
         String description;
         if (get_description)
             GetSaveSlotDescription(slot, description);
-        saves.push_back(SaveListItem(slot, description, File::GetFileTime(path)));
+        saves.emplace_back(slot, description, File::GetFileTime(path));
     }
 
     SortSaveList(saves, save_sort, sort_dir);
