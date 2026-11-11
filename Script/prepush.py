@@ -36,7 +36,8 @@ Stages, in the order they run (a failed stage does not stop the later ones; the 
 
 --auto (PLAN.md 2.9) runs only the stages that the changed files need: the paths that differ between
 the base revision and the working tree (the unpushed commits, the uncommitted and the untracked files;
---base names another revision) are matched against AUTO_RULES below. A change to the editor's C# code
+--base names another revision, which the `tidy` and `helpers` stages then diff against too) are
+matched against AUTO_RULES below. A change to the editor's C# code
 needs `msbuild` alone, one to the tools everything but `emscripten`, one to Common or Engine every
 stage; a path no rule knows needs every stage. It prints the choice with a path that caused it, and
 the changed files that no stage verifies (workflows, packaging, most scripts). Without --auto nothing
@@ -209,9 +210,14 @@ def stage_format():
     return '%d files' % len(files)
 
 
+def base_args():
+    """--base for the stages that diff (tidy, helpers): the one given to --auto, else their own default."""
+    return ['--base', args.base] if args.base else []
+
+
 def stage_helpers():
     try:
-        run('helpers', [sys.executable, os.path.join(REPO, 'Script', 'check_helpers.py')])
+        run('helpers', [sys.executable, os.path.join(REPO, 'Script', 'check_helpers.py')] + base_args())
     except subprocess.CalledProcessError as e:
         e.note = '%s, see %s' % (last_match('helpers', 'check_helpers: '), os.path.relpath(log_path('helpers'), REPO))
         raise
@@ -272,9 +278,9 @@ def stage_tidy():
         raise NotRun('clang-tidy %s not found: pip install clang-tidy==19.1.0 into a venv and pass '
                      '--clang-tidy or set CLANG_TIDY' % tidy_diff.CLANG_TIDY_VERSION)
     env, _ = cmake_configure()
-    # The compile database of the build tree; the diff is the unpushed commits and the working tree
-    run('tidy', [sys.executable, os.path.join(REPO, 'Script', 'tidy_diff.py'), '--build', BUILD, '--clang-tidy', exe],
-        env=env)
+    # The compile database of the build tree; the diff is the unpushed commits and the working tree (or --base)
+    run('tidy', [sys.executable, os.path.join(REPO, 'Script', 'tidy_diff.py'), '--build', BUILD, '--clang-tidy', exe]
+        + base_args(), env=env)
     with open(log_path('tidy'), encoding='utf-8', errors='replace') as log:
         return log.read().strip().splitlines()[-1]
 
