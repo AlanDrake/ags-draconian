@@ -519,8 +519,12 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
         result = scriptExecutor->GetReturnValue();
     }
 
+    // Changed room while running the dialog: close the dialog immediately
     if (in_new_room != kEnterRoom_None)
+    {
+        schedule_dialog_stop();
         return RUN_DIALOG_STOP_DIALOG;
+    }
 
     if (said_speech_line > 0)
     {
@@ -1734,10 +1738,10 @@ private:
     bool _isFirstEntry = true;
     // Dialog topics history, used by "goto-previous" command
     std::stack<int> _topicHist;
-    int _executedOption = -1;          // option which is currently run (or -1)
-    bool _areOptionsDisplayed = false; // if dialog options are displayed on screen
-    int _doRunDialog = -1;             // scheduled goto dialog
-    bool _doStop = false;              // scheduled stop
+    int _executedOption = -1;           // option which is currently run (or -1)
+    bool _areOptionsDisplayed = false;  // if dialog options are displayed on screen
+    int _doRunDialog = RUN_DIALOG_STAY; // scheduled goto dialog
+    bool _doStop = false;               // scheduled stop
 
     // A position in script saved by certain API function calls in "dialog_request" callback;
     // used purely for error reporting when the script has 2+ calls to gamestate-changing
