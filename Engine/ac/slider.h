@@ -21,15 +21,15 @@
 
 using AGS::Common::GUISlider;
 
-void Slider_SetMax(GUISlider *guisl, int valn);
-int Slider_GetMax(GUISlider *guisl);
-void Slider_SetMin(GUISlider *guisl, int valn);
-int Slider_GetMin(GUISlider *guisl);
-void Slider_SetValue(GUISlider *guisl, int valn);
-int Slider_GetValue(GUISlider *guisl);
-int Slider_GetBackgroundGraphic(GUISlider *guisl);
-void Slider_SetBackgroundGraphic(GUISlider *guisl, int newImage);
-int Slider_GetHandleGraphic(GUISlider *guisl);
-void Slider_SetHandleGraphic(GUISlider *guisl, int newImage);
-int Slider_GetHandleOffset(GUISlider *guisl);
-void Slider_SetHandleOffset(GUISlider *guisl, int newOffset);
+void Slider_SetMax(GUISlider *slider, int max_value);
+int Slider_GetMax(GUISlider *slider);
+void Slider_SetMin(GUISlider *slider, int min_value);
+int Slider_GetMin(GUISlider *slider);
+void Slider_SetValue(GUISlider *slider, int value);
+int Slider_GetValue(GUISlider *slider);
+int Slider_GetBackgroundGraphic(GUISlider *slider);
+void Slider_SetBackgroundGraphic(GUISlider *slider, int new_image);
+int Slider_GetHandleGraphic(GUISlider *slider);
+void Slider_SetHandleGraphic(GUISlider *slider, int new_image);
+int Slider_GetHandleOffset(GUISlider *slider);
+void Slider_SetHandleOffset(GUISlider *slider, int new_offset);

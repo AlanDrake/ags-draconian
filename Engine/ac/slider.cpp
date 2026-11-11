@@ -19,90 +19,90 @@
 
 using namespace AGS::Common;
 
-void Slider_SetMax(GUISlider *guisl, int valn)
+void Slider_SetMax(GUISlider *slider, int max_value)
 {
-    guisl->SetMaxValue(valn);
+    slider->SetMaxValue(max_value);
 }
 
-int Slider_GetMax(GUISlider *guisl)
+int Slider_GetMax(GUISlider *slider)
 {
-    return guisl->GetMaxValue();
+    return slider->GetMaxValue();
 }
 
-void Slider_SetMin(GUISlider *guisl, int valn)
+void Slider_SetMin(GUISlider *slider, int min_value)
 {
-    guisl->SetMinValue(valn);
+    slider->SetMinValue(min_value);
 }
 
-int Slider_GetMin(GUISlider *guisl)
+int Slider_GetMin(GUISlider *slider)
 {
-    return guisl->GetMinValue();
+    return slider->GetMinValue();
 }
 
-void Slider_SetValue(GUISlider *guisl, int valn)
+void Slider_SetValue(GUISlider *slider, int value)
 {
-    guisl->SetValue(valn);
+    slider->SetValue(value);
 }
 
-int Slider_GetValue(GUISlider *guisl)
+int Slider_GetValue(GUISlider *slider)
 {
-    return guisl->GetValue();
+    return slider->GetValue();
 }
 
-int Slider_GetBackgroundGraphic(GUISlider *guisl)
+int Slider_GetBackgroundGraphic(GUISlider *slider)
 {
-    return (guisl->GetBgImage() > 0) ? guisl->GetBgImage() : 0;
+    return (slider->GetBgImage() > 0) ? slider->GetBgImage() : 0;
 }
 
-void Slider_SetBackgroundGraphic(GUISlider *guisl, int newImage)
+void Slider_SetBackgroundGraphic(GUISlider *slider, int new_image)
 {
-    const int old_image = guisl->GetBgImage();
-    guisl->SetBgImage(newImage);
+    const int old_image = slider->GetBgImage();
+    slider->SetBgImage(new_image);
     // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
-    replace_sprite_changed_callback(old_image, newImage, guisl);
+    replace_sprite_changed_callback(old_image, new_image, slider);
 }
 
-int Slider_GetBorderShadeColor(GUISlider *guisl)
+int Slider_GetBorderShadeColor(GUISlider *slider)
 {
-    return guisl->GetBorderShadeColor();
+    return slider->GetBorderShadeColor();
 }
 
-void Slider_SetBorderShadeColor(GUISlider *guisl, int color)
+void Slider_SetBorderShadeColor(GUISlider *slider, int color)
 {
-    guisl->SetBorderShadeColor(color);
+    slider->SetBorderShadeColor(color);
 }
 
-int Slider_GetHandleColor(GUISlider *guisl)
+int Slider_GetHandleColor(GUISlider *slider)
 {
-    return guisl->GetHandleColor();
+    return slider->GetHandleColor();
 }
 
-void Slider_SetHandleColor(GUISlider *guisl, int color)
+void Slider_SetHandleColor(GUISlider *slider, int color)
 {
-    guisl->SetHandleColor(color);
+    slider->SetHandleColor(color);
 }
 
-int Slider_GetHandleGraphic(GUISlider *guisl)
+int Slider_GetHandleGraphic(GUISlider *slider)
 {
-    return (guisl->GetHandleImage() > 0) ? guisl->GetHandleImage() : 0;
+    return (slider->GetHandleImage() > 0) ? slider->GetHandleImage() : 0;
 }
 
-void Slider_SetHandleGraphic(GUISlider *guisl, int newImage)
+void Slider_SetHandleGraphic(GUISlider *slider, int new_image)
 {
-    const int old_image = guisl->GetHandleImage();
-    guisl->SetHandleImage(newImage);
+    const int old_image = slider->GetHandleImage();
+    slider->SetHandleImage(new_image);
     // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
-    replace_sprite_changed_callback(old_image, newImage, guisl);
+    replace_sprite_changed_callback(old_image, new_image, slider);
 }
 
-int Slider_GetHandleOffset(GUISlider *guisl)
+int Slider_GetHandleOffset(GUISlider *slider)
 {
-    return guisl->GetHandleOffset();
+    return slider->GetHandleOffset();
 }
 
-void Slider_SetHandleOffset(GUISlider *guisl, int newOffset)
+void Slider_SetHandleOffset(GUISlider *slider, int new_offset)
 {
-    guisl->SetHandleOffset(newOffset);
+    slider->SetHandleOffset(new_offset);
 }
 
 //=============================================================================
@@ -115,13 +115,13 @@ void Slider_SetHandleOffset(GUISlider *guisl, int newOffset)
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
-// int (GUISlider *guisl)
+// int (GUISlider *slider)
 RuntimeScriptValue Sc_Slider_GetBackgroundGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUISlider, Slider_GetBackgroundGraphic);
 }
 
-// void (GUISlider *guisl, int newImage)
+// void (GUISlider *slider, int new_image)
 RuntimeScriptValue Sc_Slider_SetBackgroundGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetBackgroundGraphic);
@@ -147,61 +147,61 @@ RuntimeScriptValue Sc_Slider_SetHandleColor(void *self, const RuntimeScriptValue
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetHandleColor);
 }
 
-// int (GUISlider *guisl)
+// int (GUISlider *slider)
 RuntimeScriptValue Sc_Slider_GetHandleGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUISlider, Slider_GetHandleGraphic);
 }
 
-// void (GUISlider *guisl, int newImage)
+// void (GUISlider *slider, int new_image)
 RuntimeScriptValue Sc_Slider_SetHandleGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetHandleGraphic);
 }
 
-// int (GUISlider *guisl)
+// int (GUISlider *slider)
 RuntimeScriptValue Sc_Slider_GetHandleOffset(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUISlider, Slider_GetHandleOffset);
 }
 
-// void (GUISlider *guisl, int newOffset)
+// void (GUISlider *slider, int new_offset)
 RuntimeScriptValue Sc_Slider_SetHandleOffset(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetHandleOffset);
 }
 
-// int (GUISlider *guisl)
+// int (GUISlider *slider)
 RuntimeScriptValue Sc_Slider_GetMax(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUISlider, Slider_GetMax);
 }
 
-// void (GUISlider *guisl, int valn)
+// void (GUISlider *slider, int max_value)
 RuntimeScriptValue Sc_Slider_SetMax(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetMax);
 }
 
-// int (GUISlider *guisl)
+// int (GUISlider *slider)
 RuntimeScriptValue Sc_Slider_GetMin(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUISlider, Slider_GetMin);
 }
 
-// void (GUISlider *guisl, int valn)
+// void (GUISlider *slider, int min_value)
 RuntimeScriptValue Sc_Slider_SetMin(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetMin);
 }
 
-// int (GUISlider *guisl)
+// int (GUISlider *slider)
 RuntimeScriptValue Sc_Slider_GetValue(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUISlider, Slider_GetValue);
 }
 
-// void Slider_SetValue(GUISlider *guisl, int valn)
+// void Slider_SetValue(GUISlider *slider, int value)
 RuntimeScriptValue Sc_Slider_SetValue(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetValue);
