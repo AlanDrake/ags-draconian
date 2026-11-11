@@ -29,19 +29,21 @@
 
 using namespace AGS;
 
-// Writes a minimal Game.agf with the given root attributes and tries to open it
+// Writes a minimal Game.agf with the given root attributes and tries to open it. The file is named after
+// the running test: ctest runs the tests of this file in parallel, in the same directory
 static Common::HError OpenAgfWithRoot(const char *root_attributes)
 {
-    const char *path = "agfreader_test_version.agf";
+    const std::string path =
+        std::string("agfreader_test_") + ::testing::UnitTest::GetInstance()->current_test_info()->name() + ".agf";
     {
         std::ofstream f(path);
         f << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<AGSEditorDocument " << root_attributes
           << ">\n  <Game />\n</AGSEditorDocument>\n";
     }
     AGF::AGFReader reader;
-    Common::HError err = reader.Open(path);
+    Common::HError err = reader.Open(path.c_str());
     reader.Close();
-    std::remove(path);
+    std::remove(path.c_str());
     return err;
 }
 
