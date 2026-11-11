@@ -2554,9 +2554,8 @@ static PBitmap draw_room_background(const Viewport *view)
         auto camera = view->GetCamera();
         set_invalidrects_cameraoffs(view_index, camera->GetRect().Left, camera->GetRect().Top);
 
-        // NOTE: the following call takes up to 50% of the game CPU time at
-        // high resolutions and colour depths - if we can optimise it
-        // somehow, significant performance gains to be had
+        // TODO: measure this call. An old note said it took up to 50% of the game CPU time at
+        // high resolutions and colour depths; that was never measured on the current code
         update_room_invreg_and_reset(view_index, roomcam_surface, thisroom.BgImages[play.bg_frame].get(),
                                      draw_to_camsurf);
     }
