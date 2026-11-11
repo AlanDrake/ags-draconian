@@ -53,11 +53,12 @@ extern int face_talking;
 extern std::vector<ViewStruct> views;
 extern IGraphicsDriver *gfxDriver;
 
+// All overlays by their IDs; the fixed IDs (OVER_*) are below OVER_FIRSTFREE, custom ones are allocated above
 IndexedObjectPool<ScreenOverlay, int32_t> screenover(OVER_FIRSTFREE);
 // TODO: reimplement AnimatedOverlays storage using IndexedObjectPool, just like regular overlays
-std::vector<AnimatedOverlay> animovers;
-std::vector<size_t> over_to_anim; // overlay to animated overlay lookup
-std::queue<size_t> animover_free_ids;
+std::vector<AnimatedOverlay> animovers; // animation records; a removed one stays as an empty record
+std::vector<size_t> over_to_anim;       // overlay ID to its index in animovers, SIZE_MAX if it has no animation
+std::queue<size_t> animover_free_ids;   // indexes of the empty records in animovers, to be reused
 
 
 ScreenOverlay *GetOverlayValidate(const char *apiname, int over_id)
@@ -888,7 +889,8 @@ size_t add_screen_overlay(bool room_layer, int x, int y, int type, std::unique_p
     return add_screen_overlay_impl(room_layer, x, y, type, -1, std::move(image), offset_x, offset_y);
 }
 
-// Calculates overlay position above linked character
+// Calculates overlay position above linked character: centred on the character's x, above its head and kept
+// inside the UI viewport; if the character is in another room, the overlay is centred on the screen
 // TODO: this code assumes that overlay is in the screen layer;
 // perhaps add a branch for room layer as well?
 void autoposition_overlay(ScreenOverlay &over)
@@ -1626,7 +1628,7 @@ ScriptOverlay *ScPl_Overlay_CreateRoomTextual(int x, int y, int width, int font,
     return Overlay_CreateRoomTextual(x, y, width, font, text_color, scsf_buffer);
 }
 
-// void (ScriptOverlay *scover, int wii, int fontid, int clr, char*texx, ...)
+// void (ScriptOverlay *script_over, int width, int font, int text_color, char *text, ...)
 void ScPl_Overlay_SetText(ScriptOverlay *script_over, int width, int font, int text_color, char *text, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(text);
