@@ -115,13 +115,11 @@ void Slider_SetHandleOffset(GUISlider *slider, int new_offset)
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
-// int (GUISlider *slider)
 RuntimeScriptValue Sc_Slider_GetBackgroundGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUISlider, Slider_GetBackgroundGraphic);
 }
 
-// void (GUISlider *slider, int new_image)
 RuntimeScriptValue Sc_Slider_SetBackgroundGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetBackgroundGraphic);
@@ -147,61 +145,51 @@ RuntimeScriptValue Sc_Slider_SetHandleColor(void *self, const RuntimeScriptValue
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetHandleColor);
 }
 
-// int (GUISlider *slider)
 RuntimeScriptValue Sc_Slider_GetHandleGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUISlider, Slider_GetHandleGraphic);
 }
 
-// void (GUISlider *slider, int new_image)
 RuntimeScriptValue Sc_Slider_SetHandleGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetHandleGraphic);
 }
 
-// int (GUISlider *slider)
 RuntimeScriptValue Sc_Slider_GetHandleOffset(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUISlider, Slider_GetHandleOffset);
 }
 
-// void (GUISlider *slider, int new_offset)
 RuntimeScriptValue Sc_Slider_SetHandleOffset(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetHandleOffset);
 }
 
-// int (GUISlider *slider)
 RuntimeScriptValue Sc_Slider_GetMax(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUISlider, Slider_GetMax);
 }
 
-// void (GUISlider *slider, int max_value)
 RuntimeScriptValue Sc_Slider_SetMax(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetMax);
 }
 
-// int (GUISlider *slider)
 RuntimeScriptValue Sc_Slider_GetMin(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUISlider, Slider_GetMin);
 }
 
-// void (GUISlider *slider, int min_value)
 RuntimeScriptValue Sc_Slider_SetMin(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetMin);
 }
 
-// int (GUISlider *slider)
 RuntimeScriptValue Sc_Slider_GetValue(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUISlider, Slider_GetValue);
 }
 
-// void Slider_SetValue(GUISlider *slider, int value)
 RuntimeScriptValue Sc_Slider_SetValue(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetValue);
