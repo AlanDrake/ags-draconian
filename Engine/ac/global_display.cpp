@@ -63,7 +63,10 @@ void DisplayMB(const char *text)
 
 void DisplayTopBar(int ypos, int text_color, int back_color, const char *title, const char *text)
 {
-    // FIXME: refactor source_text_length and get rid of this ugly hack!
+    // TODO: this reads source_text_length and writes the same value back, which changes nothing. Probably it
+    // was meant to keep the text's length across get_translation(title) below, which overwrites it with the
+    // title's length; then GetTextDisplayTime(text) uses it for messagetime. Remove, or move after the
+    // translation, together with the refactoring of source_text_length (see display.h).
     const int real_text_sourcelen = source_text_length;
     source_text_length = real_text_sourcelen;
 
@@ -75,13 +78,15 @@ void DisplayTopBar(int ypos, int text_color, int back_color, const char *title, 
         play.top_bar_backcolor = back_color;
 
     int font;
-    // they want to customize the font
+    // the font set by the game (play.top_bar_font), or the normal one
     if (play.top_bar_font >= 0)
         font = play.top_bar_font;
     else
         font = FONT_NORMAL;
     int height = get_font_height_outlined(font) + play.top_bar_borderwidth * 2 + 1;
 
+    // TODO: the bar's text is drawn with FONT_NORMAL, while the bar's height is that of `font`; probably `font`
+    // was meant here
     const TopBarSettings topbar(get_translation(title), FONT_NORMAL, height);
 
     // DisplaySpeech normally sets this up, but since we're not going via it...
@@ -103,6 +108,9 @@ void DisplayAt(int x, int y, int width, const char *text)
     display_at(x, y, width, text, nullptr);
 }
 
+// Shows the text at the vertical position ypos (-1: automatic) as a message box, or as speech of the player
+// character if as_speech is set; topbar is an optional top bar of the message box (ignored for speech).
+// Translates the text.
 void DisplayAtYImpl(int ypos, const char *text, const TopBarSettings *topbar, bool as_speech)
 {
     const Rect &ui_view = play.GetUIViewport();
