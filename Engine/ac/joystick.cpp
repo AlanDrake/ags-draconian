@@ -192,7 +192,7 @@ void remove_joystick(int instance_id)
     // remove the joystick from list if it was found
     if (it != _joysticks.end())
     {
-        // need to do something with the script reference here!
+        // mark the script object as invalid and release the internal reference to it
         if (it->scriptJoystickHandle > 0)
         {
             auto *script_joy = (ScriptJoystick *)ccGetObjectAddressFromHandle(it->scriptJoystickHandle);
@@ -214,7 +214,8 @@ void remove_joystick(int instance_id)
     }
 }
 
-// it looks like on desktop platforms a connection event is always generated and thus this is not needed
+// Adds the joysticks that are already connected. On desktop platforms SDL seems to generate a connection event
+// for each of them anyway, and add_joystick() ignores the repeated ones.
 void init_joystick()
 {
     if (!_joysticks.empty())

@@ -85,10 +85,17 @@ struct GamepadInput
     eAGSGamepad_InputType Type = eAGSGamepad_InputType::eAGSGamepad_InputTypeNone;
 };
 
+// Handles SDL's joystick connection and disconnection events: adds the new device to, or removes the lost one from,
+// the list of joysticks that scripts see.
 void JoystickConnectionEvent(const SDL_JoyDeviceEvent &event);
+// Tells if the gamepad button is one of those that skip a cutscene or a video by default (A, B, X, Y).
 bool is_default_gamepad_skip_button_pressed(eAGSGamepad_Button button);
+// Adds the joysticks that are connected at the time of the call, unless the list is already filled.
 void init_joystick();
 
+// Converts the AGS gamepad axis to the SDL one; an unknown value gives the invalid axis.
 SDL_GameControllerAxis Gamepad_Axis_AGStoSDL(eAGSGamepad_Axis ags_axis);
+// Converts the AGS gamepad button to the SDL one; an unknown value gives the invalid button.
 SDL_GameControllerButton Gamepad_Button_AGStoSDL(eAGSGamepad_Button ags_button);
+// Converts the SDL gamepad button to the AGS one; an unknown value gives the invalid button.
 eAGSGamepad_Button Gamepad_Button_SDLtoAGS(SDL_GameControllerButton sdl_button);
