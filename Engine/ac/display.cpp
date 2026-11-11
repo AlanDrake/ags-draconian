@@ -619,7 +619,7 @@ int GetTextDisplayLength(const char *text)
 // But because of a precision loss due integer division this resulted in "jumping" values.
 // The new formula uses float division, and coefficent found experimentally to make
 // results match the old formula in certain key text lengths, for backwards compatibility.
-int CalcLipsyncFrameDuration(int text_len, int fps)
+static int CalcLipsyncFrameDuration(int text_len, int fps)
 {
     return static_cast<int>((((static_cast<float>(text_len) / play.lipsync_speed) + 0.75f) * fps) / text_len);
 }
