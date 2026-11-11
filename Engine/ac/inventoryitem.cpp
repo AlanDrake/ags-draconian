@@ -65,7 +65,7 @@ void InvItems_RegisterDynamicSpriteCallbacks()
 }
 
 
-void set_inv_item_pic(int item_id, int sprite)
+static void set_inv_item_pic(int item_id, int sprite)
 {
     if ((item_id < 0) || (item_id >= game.numinvitems))
         quit("!SetInvItemPic: invalid inventory item specified");
@@ -92,7 +92,7 @@ void set_inv_item_cursorpic(int item_id, int sprite)
     }
 }
 
-void set_inv_item_cursorhotspot(int item_id, int hx, int hy, FrameAlignment align)
+static void set_inv_item_cursorhotspot(int item_id, int hx, int hy, FrameAlignment align)
 {
     auto &item = game.invinfo[item_id];
     item.hotx = hx;
@@ -161,7 +161,7 @@ void InventoryItem_SetGraphic(ScriptInvItem *item, int sprite)
     set_inv_item_pic(item->id, sprite);
 }
 
-void SetInvItemName(int item_id, const char *new_name)
+static void SetInvItemName(int item_id, const char *new_name)
 {
     if ((item_id < 0) || (item_id >= game.numinvitems))
         quit("!SetInvName: invalid inventory item specified");
@@ -253,7 +253,7 @@ void RunInventoryInteraction(int item_id, int mood)
     run_event_script(obj_evt, &game.invinfo[item_id].GetEvents(), anyclick_evt);
 }
 
-int IsInventoryInteractionAvailable(int item_id, int mood)
+static int IsInventoryInteractionAvailable(int item_id, int mood)
 {
     if ((item_id < 0) || (item_id >= game.numinvitems))
         quit("!IsInventoryInteractionAvailable: invalid inventory number");
