@@ -33,20 +33,24 @@ void WriteTextFile(const String &path, const char *text)
     out->Write(text, strlen(text));
 }
 
-// Packs two small assets into lib_file, appending the library if requested
+// Packs two small assets into lib_file, appending the library if requested. The asset files are named
+// after the running test: ctest runs the tests of this file in parallel, in the same directory
 HError PackTwoAssets(const String &lib_file, bool append)
 {
-    WriteTextFile("mfl_test_a.txt", "first");
-    WriteTextFile("mfl_test_b.txt", "second");
+    const char *test_name = ::testing::UnitTest::GetInstance()->current_test_info()->name();
+    const String file_a = String::FromFormat("mfl_test_%s_a.txt", test_name);
+    const String file_b = String::FromFormat("mfl_test_%s_b.txt", test_name);
+    WriteTextFile(file_a, "first");
+    WriteTextFile(file_b, "second");
     StringIMap asset_map;
-    asset_map["a.txt"] = "mfl_test_a.txt";
-    asset_map["b.txt"] = "mfl_test_b.txt";
+    asset_map["a.txt"] = file_a;
+    asset_map["b.txt"] = file_b;
     AssetLibInfo lib;
     HError err = MakeAssetLib(lib, lib_file, asset_map, 0, append);
     if (err)
         err = WriteLibrary(lib, asset_map, ".", MFLUtil::kMFLVersion_MultiV30, append, false);
-    File::DeleteFile("mfl_test_a.txt");
-    File::DeleteFile("mfl_test_b.txt");
+    File::DeleteFile(file_a);
+    File::DeleteFile(file_b);
     return err;
 }
 
