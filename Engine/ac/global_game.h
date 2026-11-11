@@ -66,11 +66,11 @@ void AbortGame();
 void restart_game();
 void CopySaveSlot(int old_slot, int new_slot);
 void MoveSaveSlot(int old_slot, int new_slot);
-void RestoreGameSlot(int slnum);
+void RestoreGameSlot(int slot);
 void MoveSaveSlot(int old_slot, int new_slot);
-void SaveGameSlot(int slnum, const char *descript, int spritenum);
-void SaveGameSlot2(int slnum, const char *descript);
-void DeleteSaveSlot(int slnum);
+void SaveGameSlot(int slot, const char *description, int sprite_id);
+void SaveGameSlot2(int slot, const char *description);
+void DeleteSaveSlot(int slot);
 // Fills a list of SaveListItems by any save files found within the given range
 void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description);
 // Fills a list of SaveListItems by any save files found within the given range; sorts the resulting list
@@ -85,29 +85,29 @@ int GetLastSaveSlot();
 void PauseGame();
 void UnPauseGame();
 int IsGamePaused();
-int RunAGSGame(const AGS::Common::String &newgame, unsigned int mode, int data);
+int RunAGSGame(const AGS::Common::String &new_game, unsigned int mode, int data);
 void QuitGame(int dialog);
 void SetRestartPoint();
-void SetGameSpeed(int newspd);
+void SetGameSpeed(int new_speed);
 int GetGameSpeed();
-int SetGameOption(int opt, int setting);
+int SetGameOption(int opt, int new_value);
 int GetGameOption(int opt);
 
-void SkipUntilCharacterStops(int cc);
+void SkipUntilCharacterStops(int char_id);
 void EndSkippingUntilCharStops();
-// skipwith decides how it can be skipped:
+// skip_mode decides how it can be skipped:
 // 1 = ESC only
 // 2 = any key
 // 3 = mouse button
 // 4 = mouse button or any key
 // 5 = right click or ESC only
-void StartCutscene(int skipwith);
+void StartCutscene(int skip_mode);
 int EndCutscene();
 // Tell the game to skip current cutscene
 void SkipCutscene();
 
 // ShowInputBox assumes a string buffer of MAX_MAXSTRLEN
-void ShowInputBox(const char *msg, char *bufr);
+void ShowInputBox(const char *msg, char *buffer);
 AGS::Common::String ShowInputBoxImpl(const char *msg);
 
 int GetLocationType(int x, int y, int hit_options);
@@ -120,19 +120,19 @@ int IsKeyPressed(int keycode);
 bool IsAnyKeyPressed();
 void *GetPressedKeys();
 
-int SaveScreenShot1(const char *namm);
-int SaveScreenShot4(const char *namm, int width, int height, int layers);
+int SaveScreenShot1(const char *filename);
+int SaveScreenShot4(const char *filename, int width, int height, int layers);
 void SetMultitasking(int mode);
 
-void RoomProcessClick(int xx, int yy, int mood);
-int IsInteractionAvailable(int xx, int yy, int mood);
+void RoomProcessClick(int x, int y, int mood);
+int IsInteractionAvailable(int x, int y, int mood);
 
 void _sc_AbortGame(const char *text);
 
-void scrWait(int nloops);
-int WaitKey(int nloops);
-int WaitMouse(int nloops);
-int WaitMouseKey(int nloops);
-int WaitInput(int input_flags, int nloops);
+void scrWait(int num_loops);
+int WaitKey(int num_loops);
+int WaitMouse(int num_loops);
+int WaitMouseKey(int num_loops);
+int WaitInput(int input_flags, int num_loops);
 void SkipWait0();
 void SkipWait(int result_value);
