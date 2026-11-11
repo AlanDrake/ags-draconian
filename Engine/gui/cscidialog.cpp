@@ -107,7 +107,7 @@ int CSCIDrawWindow(int x, int y, int width, int height)
     Bitmap *dst = prepare_gui_screen(x, y, width, height, true);
     oswi[win_id].x = x;
     oswi[win_id].y = y;
-    __my_wbutt(dst, 0, 0, width - 1, height - 1); // wbutt goes outside its area
+    __my_wbutt(dst, 0, 0, width - 1, height - 1); // fills the whole enlarged area and frames it
     oswi[win_id].oldtop = topwindowhandle;
     topwindowhandle = win_id;
     oswi[win_id].handle = topwindowhandle;
