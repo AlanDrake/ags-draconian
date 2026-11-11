@@ -73,7 +73,6 @@ void MoveSaveSlot(int old_slot, int new_slot);
 // Restores the game from the given save slot; quits if no room is loaded yet (the game is in game_start).
 // When called from a script, queues the action to run after the script ends.
 void RestoreGameSlot(int slot);
-void MoveSaveSlot(int old_slot, int new_slot);
 // Schedules saving the game into the given slot, with a description and, if sprite_id >= 0, a copy of that sprite
 // as the save's image. Does nothing but show a message if the disk has less than 2 MB free.
 void SaveGameSlot(int slot, const char *description, int sprite_id);
