@@ -446,15 +446,6 @@ float File_ReadFloat(sc_File *file)
     return in->ReadFloat32();
 }
 
-char FileReadRawChar(int32_t handle)
-{
-    Stream *in = get_file_stream(handle, "FileReadRawChar");
-    // NOTE: the return type is char, so a byte above 127 comes back negative where char is signed, and
-    // EOF (-1 from ReadByte, converted to 255) is the same as the byte 255; kept as it is for the sake
-    // of old scripts
-    return static_cast<uint8_t>(in->ReadByte());
-}
-
 int File_ReadRawChar(sc_File *file)
 {
     Stream *in = get_file_stream(file->handle, "File.ReadRawChar");
