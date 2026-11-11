@@ -449,9 +449,10 @@ float File_ReadFloat(sc_File *file)
 char FileReadRawChar(int32_t handle)
 {
     Stream *in = get_file_stream(handle, "FileReadRawChar");
+    // NOTE: the return type is char, so a byte above 127 comes back negative where char is signed, and
+    // EOF (-1 from ReadByte, converted to 255) is the same as the byte 255; kept as it is for the sake
+    // of old scripts
     return static_cast<uint8_t>(in->ReadByte());
-    // NOTE: this function has incorrect return value for historical reasons;
-    // we keep this strictly for backwards compatibility with old scripts
 }
 
 int File_ReadRawChar(sc_File *file)
@@ -738,7 +739,9 @@ ResolvedPath ResolveScriptPath(const String &orig_sc_path, bool read_only)
     }
     else if (sc_path.CompareLeft(GameSavedgamesDirToken) == 0)
     {
-        parent_dir = FSLocation(get_save_game_directory()); // FIXME: get FSLocation of save dir
+        // TODO: get_save_game_directory() is a plain path, so all of it becomes the base location, which
+        // is assumed to exist; an FSLocation of the save dir would let the engine create it
+        parent_dir = FSLocation(get_save_game_directory());
         child_path = sc_path.Mid(GameSavedgamesDirToken.GetLength());
     }
     else if (sc_path.CompareLeft(GameDataDirToken) == 0)
@@ -746,7 +749,8 @@ ResolvedPath ResolveScriptPath(const String &orig_sc_path, bool read_only)
         parent_dir = GetGameAppDataDir();
         child_path = sc_path.Mid(GameDataDirToken.GetLength());
     }
-    // FIXME: invalid token case; parse token prefix between $$ first
+    // TODO: a path starting with an unknown "$TOKEN$" falls to the branch below and is taken as a plain
+    // relative path (the token as a directory name); parse the "$...$" prefix first to tell it apart
     else
     {
         // If no token found -- assume game installation directory
@@ -763,7 +767,8 @@ ResolvedPath ResolveScriptPath(const String &orig_sc_path, bool read_only)
     child_path.TrimLeft('/'); // remove any preceding slash, or this will be abs path
     // Create a proper ResolvedPath with FSLocation separating base location
     // (which the engine is not allowed to create) and sub-dirs (created by the engine).
-    // FIXME: following 2 lines may be redundant, maybe may just use ResolvedPath ctor
+    // The directory part of child_path goes to the sub-dir of the location, so that Loc is the directory
+    // of the file itself: the write check below and the directory creation of the callers rely on that
     parent_dir = parent_dir.Concat(Path::GetParent(child_path));
     child_path = Path::GetFilename(child_path);
     ResolvedPath test_rp = ResolvedPath(parent_dir, child_path);
@@ -938,7 +943,6 @@ static int ags_pf_ferror(void *userdata)
 // Custom PACKFILE callback table
 static PACKFILE_VTABLE ags_packfile_vtable = {ags_pf_fclose, ags_pf_getc,  ags_pf_ungetc, ags_pf_fread, ags_pf_putc,
                                               ags_pf_fwrite, ags_pf_fseek, ags_pf_feof,   ags_pf_ferror};
-//
 
 PACKFILE *PackfileFromStream(std::unique_ptr<Stream> stream)
 {
