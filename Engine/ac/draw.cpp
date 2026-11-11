@@ -1618,9 +1618,9 @@ static void add_to_sprite_list(IDriverDependantBitmap *ddb, int x, int y, const 
     sprlist.push_back(SpriteListEntry(ddb, x, y, zorder, aabb, -1, id));
 }
 
-static void add_to_sprite_list(IDriverDependantBitmap *spp, int x, int y, int zorder, int id = -1)
+static void add_to_sprite_list(IDriverDependantBitmap *spp, int x, int y, int zorder, uint32_t id = 0u)
 {
-    add_to_sprite_list(spp, x, y, RectWH(x, y, spp->GetWidth(), spp->GetHeight()), zorder);
+    add_to_sprite_list(spp, x, y, RectWH(x, y, spp->GetWidth(), spp->GetHeight()), zorder, id);
 }
 
 // Sprite drawing order sorting function,
