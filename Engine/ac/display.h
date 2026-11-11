@@ -114,7 +114,7 @@ struct DisplayVars
     int FullTextHeight = 0; // total height of all the text
 
     DisplayVars() = default;
-    DisplayVars(int linespacing, int fulltxheight) : Linespacing(linespacing), FullTextHeight(fulltxheight) {}
+    DisplayVars(int linespacing, int full_text_height) : Linespacing(linespacing), FullTextHeight(full_text_height) {}
 };
 
 // Cast text coordinates received from the script to DisplayTextPosition
@@ -124,11 +124,11 @@ DisplayTextPosition get_textpos_from_scriptcoords(int x, int y, bool for_speech)
 // NOTE: this function treats text as-is, not doing any processing over it.
 // FIXME: for historical reasons this function also contains position adjustment;
 // but this should not be done here at all.
-// FIXME: xx is allowed to be passed as OVR_AUTOPLACE, which has special meaning,
+// FIXME: x is allowed to be passed as OVR_AUTOPLACE, which has special meaning,
 // but that's a confusing use of this argument.
 std::unique_ptr<AGS::Common::Bitmap> create_textual_image(const char *text, const DisplayTextLooks &look,
-                                                          color_t text_color, int &xx, int &yy, int &adjustedXX,
-                                                          int &adjustedYY, int wii, int usingfont,
+                                                          color_t text_color, int &x, int &y, int &adjusted_x,
+                                                          int &adjusted_y, int width, int font,
                                                           const TopBarSettings *topbar);
 // Creates a textual overlay using the given parameters;
 // * disp_type tells the wanted type of overlay and behavior (blocking, etc);
@@ -136,27 +136,27 @@ std::unique_ptr<AGS::Common::Bitmap> create_textual_image(const char *text, cons
 //    to use, valid only if kDisplayText_NormalOverlay;
 //    FIXME: find a way to not pass over_id at all, this logic is bad
 // * style - more specific desired look (use text window, etc);
-// * pass yy = -1 to find Y co-ord automatically;
+// * pass y = -1 to find Y co-ord automatically;
 // autoplace_at_char - tells whether overlay should autoposition itself whenever game updates.
 // NOTE: this function treats the text as-is; it assumes that any processing
 // (translation, parsing voice token) was done prior to its call.
 // TODO: refactor this collection of args into few args + 1-2 structs with extended params.
-ScreenOverlay *display_main(int xx, int yy, int wii, const char *text, const TopBarSettings *topbar,
-                            DisplayTextType disp_type, int over_id, const DisplayTextLooks &look, int usingfont,
+ScreenOverlay *display_main(int x, int y, int width, const char *text, const TopBarSettings *topbar,
+                            DisplayTextType disp_type, int over_id, const DisplayTextLooks &look, int font,
                             color_t text_color, int autoplace_at_char = -1, bool roomlayer = false);
 // Displays a standard blocking message box at a given position
-void display_at(int xx, int yy, int wii, const char *text, const TopBarSettings *topbar);
+void display_at(int x, int y, int width, const char *text, const TopBarSettings *topbar);
 // Cleans up display message state
 void post_display_cleanup();
 // Tests the given string for the voice-over tags and plays cue clip for the given character;
 // will assign replacement string, which will be blank string if game is in "voice-only" mode
 // and clip was started, or string cleaned from voice-over tags which is safe to display on screen.
 // Returns whether voice-over clip was started successfully.
-bool try_auto_play_speech(const char *text, const char *&replace_text, int charid);
+bool try_auto_play_speech(const char *text, const char *&replace_text, int char_id);
 // Calculates meaningful length of the displayed text
 int GetTextDisplayLength(const char *text);
 // Calculates number of game loops for displaying a text on screen
-int GetTextDisplayTime(const char *text, int canberel = 0);
+int GetTextDisplayTime(const char *text, int can_be_relative = 0);
 // Draw an (optionally) outlined text
 void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int font, color_t text_color, color_t outline_color,
                       AGS::Common::BlendMode blend_mode, const char *text);
@@ -166,30 +166,30 @@ void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int font, color_t t
 // Draw an (optionally) outlined text, using default outline color and normal blend mode
 void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int font, color_t text_color, const char *text);
 // Draw an (optionally) outlined text using a horizontal alignment
-void wouttext_aligned(AGS::Common::Bitmap *ds, int x, int y, int oriwid, int font, color_t text_color,
+void wouttext_aligned(AGS::Common::Bitmap *ds, int x, int y, int area_width, int font, color_t text_color,
                       int outline_color, const char *text, HorAlignment align);
 // Draw an (optionally) outlined text using a horizontal alignment and default outline color
-void wouttext_aligned(AGS::Common::Bitmap *ds, int x, int y, int oriwid, int usingfont, color_t text_color,
+void wouttext_aligned(AGS::Common::Bitmap *ds, int x, int y, int area_width, int font, color_t text_color,
                       const char *text, HorAlignment align);
-void do_corner(AGS::Common::Bitmap *ds, int sprn, int xx1, int yy1, int typx, int typy);
+void do_corner(AGS::Common::Bitmap *ds, int sprite_id, int x, int y, int off_x, int off_y);
 // Returns the image of a button control on the GUI under given child index
-int get_but_pic(AGS::Common::GUIMain *guo, AGS::Common::GUITextWindowBorder indx);
-void draw_button_background(AGS::Common::Bitmap *ds, int xx1, int yy1, int xx2, int yy2, AGS::Common::GUIMain *iep);
+int get_but_pic(AGS::Common::GUIMain *gui, AGS::Common::GUITextWindowBorder border);
+void draw_button_background(AGS::Common::Bitmap *ds, int x1, int y1, int x2, int y2, AGS::Common::GUIMain *gui);
 // Calculate the width that the left and right border of the textwindow
 // GUI take up
-int get_textwindow_border_width(int twgui);
+int get_textwindow_border_width(int gui_id);
 // get the hegiht of the text window's top border
-int get_textwindow_top_border_height(int twgui);
+int get_textwindow_top_border_height(int gui_id);
 // draw_text_window: draws the normal or custom text window
 // creates and returns a new bitmap
 // assings text start x & y pos in parameters
-std::unique_ptr<AGS::Common::Bitmap> draw_text_window(int *xins, int *yins, int *xx, int *yy, int *wii,
-                                                      color_t *set_text_color, int ovrheight, int ifnum,
+std::unique_ptr<AGS::Common::Bitmap> draw_text_window(int *text_x, int *text_y, int *x, int *y, int *width,
+                                                      color_t *set_text_color, int override_height, int gui_id,
                                                       const DisplayVars &disp);
 std::unique_ptr<AGS::Common::Bitmap> draw_text_window_and_bar(const TopBarSettings *topbar, const DisplayVars &disp,
-                                                              int *xins, int *yins, int *xx, int *yy, int *wii,
-                                                              color_t *set_text_color, int ifnum = -1);
-int get_textwindow_padding(int ifnum);
+                                                              int *text_x, int *text_y, int *x, int *y, int *width,
+                                                              color_t *set_text_color, int gui_id = -1);
+int get_textwindow_padding(int gui_id);
 
 // The efficient length of the last source text prepared for display
 extern int source_text_length;
