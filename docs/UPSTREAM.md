@@ -27,18 +27,29 @@ Status values: `picked` (applied unchanged), `adapted` (applied with changes), `
 change was already in the fork: own work sent upstream, a PR branch taken before upstream merged
 it, or a `master` commit that came in with a local branch), `skipped`. Merge commits get no row.
 
-Reviewed through `7e829ab3f` on `ags4` and `3f39d095f` on `master` (2026-11-07). Start the next
-review at `git log 7e829ab3f..upstream/ags4` and `git log upstream/ags4..upstream/master`. The
+Reviewed through `d171879df` on `ags4` and `7b9f8f906` on `master` (2026-11-11). Start the next
+review at `git log d171879df..upstream/ags4` and `git log upstream/ags4..upstream/master`. The
 `master` commits not yet merged into `ags4` are listed in their own rows (status as of this review);
 upstream's next master merge brings them into `ags4`, where they are reviewed again only if the
-merge resolved them differently. The picked lines then go through the fork's clang-tidy gate: this
-review's findings (braces, local names, a using-directive) were fixed in five mechanical commits
-after the picks (`9fb5ad0c3` to `33e85fb26`, objects identical by `compare_objects.py`). Verified
-on the whole: `prepush.py` every stage (GCC 1163 tests, Emscripten, libc++, MSBuild with the
-Editor's NUnit), `compare_builds.py` 59 of 59 identical on the auto-test project.
+merge resolved them differently. The picked lines go through the fork's clang-tidy gate: the
+2026-11-07 review's findings (braces, local names, a using-directive) were fixed in five mechanical
+commits after the picks (`9fb5ad0c3` to `33e85fb26`, objects identical by `compare_objects.py`).
+
+A change that touches files the fork has reformatted is taken as a 3-way merge rather than a
+cherry-pick (2026-11-11, #3184): clang-format upstream's file at the last reviewed commit and at the
+tip with the fork's `.clang-format`, then `git merge-file` the fork's file against the two; the
+formatting drops out and only the fork's own edits can conflict (two hunks out of twelve files for
+#3184). `.compare/helpers/merge3.py --base <reviewed> --theirs <commit> <files>` (local, git-ignored)
+does the formatting and the merge; the merged files are copied into the tree and resolved by hand.
 
 | Upstream commit | Status | Local commit | Notes |
 |---|---|---|---|
+| `0aa0c8e8d`, `ff38d03ac`, `efbeb3a54`, `b0fac321e`, `bf32091c4` | adapted | `ae9dc935d` | #3184, 4-bit WFN fonts (Gal Shemesh): the extended `WGT Font File 2` format with a glyph table and a sparse character table, shaded rendering in 32-bit (RGB steps of 17 per shade) and 8-bit (hue-matched palette entries, `set_wfn_palette_eligibility` from `game.paluses`), the stencil mode shared by the renderers for auto-outlines (`wouttextxy_stencil` replaces the `AGS_FONTOUTLINE_MOREOPAQUE` block), `WFNFont` behind `unique_ptr`, the Editor's font preview in 32-bit for WFN. Taken as one 3-way merge of the five commits; the two conflicts were the fork's 3.5 deletion of `woutprintf` (`ac1b2e4bd`) below `wouttextxy`, where upstream appends `wouttextxy_stencil`. Adaptations: `RenderChar` is a template on the glyph depth, dispatched once per glyph, so the 1-bit loop stays the old one where upstream tests `BitsPerPixel` for every pixel (STYLE.md "Performance"); the two readers are split along their documented steps (`ReadExtCharacterMap`, `CollectExtGlyphOffsets`, `ReadExtGlyphs`; `CollectClassicOffsets`, `ReadClassicGlyphs`) for the 120-line limit, the classic one because its rename made it a new function to the tidy gate; fork names (`kWfnExtCharEntrySize`, `glyph` for a `WFNChar`, `text`, `font_number` in the new methods). Added `Common/test/wfnfont_test.cpp` (7 tests: extended and classic reads, shared glyphs, flags, duplicate codes, bad offsets, truncated pixels), upstream has none. Left as upstream has it: `RenderChar`'s `BlendPixel` branch draws `text_color`, not the shaded `pixel_color`, so a 4-bit font loses its shades under a blend mode |
+| `0f979b256`, `156d6adaf` | picked | `ae9dc935d` | TTF font preview text and outline colours in `agsnative.cpp`; part of the same merge |
+| `d171879df`, `1c00f79ff` | present | `bb363c1b5`, `2c1749b13` | the fork's Allegro fixes sent upstream: `fade_interpolate` weights add up to 64, `create_rgb_table` on 8-bit components; the fork's copies keep a comment on the table's cells and a whitespace fix |
+| `1592a73ef` | skipped | — | upstream README on the ags3/ags4 plans; the fork's README is its own |
+| `7b9f8f906` (`master`) | adapted | `969fabe62` | a dialog whose script changed the room is stopped (`schedule_dialog_stop`), `_doRunDialog` starts at `RUN_DIALOG_STAY`; the fork's braces |
+| `e936449ac` (`master`) | skipped | — | `FixupCharacterLoopAndFrame` kept for <= 3.6.2.12 games; the fork loads 3.99+ only (3.4-1) |
 | `7e829ab3f`, `a2541e42e` | present | `ea1e94ae3` | `ScriptUserObject` leaked on restore; the fork's 1.5b-5 fix (`globalDynamicStruct.Unserialize`) is the same change; the second hash is the `master` twin |
 | `4d4b2c9cd` | present | `42a6f5c00` | `FT2_BUILD_LIBRARY` in Common.Lib's Debug x64 configuration came with the Windows 7 commit |
 | `1fbb3d84e`, `33da6c2d0` | adapted | `650f1dbc8` | `TransformStream::EOS()` waits for the transform to report its end; the DeflateStream tests move from `stream_test.cpp` to the new `deflatestream_test.cpp` with 13 tests (CMake + `Common.Lib.Test.vcxproj`); the fork's formatting and standard includes. Upstream's `TestDeflateStream_SemiUniqueSeq` loops to `length % 4` (probably meant `/ 4`), left as upstream has it |
