@@ -63,13 +63,6 @@ void DisplayMB(const char *text)
 
 void DisplayTopBar(int ypos, int text_color, int back_color, const char *title, const char *text)
 {
-    // TODO: this reads source_text_length and writes the same value back, which changes nothing. Probably it
-    // was meant to keep the text's length across get_translation(title) below, which overwrites it with the
-    // title's length; then GetTextDisplayTime(text) uses it for messagetime. Remove, or move after the
-    // translation, together with the refactoring of source_text_length (see display.h).
-    const int real_text_sourcelen = source_text_length;
-    source_text_length = real_text_sourcelen;
-
     if (ypos > 0)
         play.top_bar_ypos = ypos;
     if (text_color > 0)
@@ -87,7 +80,11 @@ void DisplayTopBar(int ypos, int text_color, int back_color, const char *title, 
 
     // TODO: the bar's text is drawn with FONT_NORMAL, while the bar's height is that of `font`; probably `font`
     // was meant here
+    // get_translation sets source_text_length, which GetTextDisplayTime below reads for the text: keep the text's.
+    // FIXME: refactor source_text_length and get rid of this hack (see display.h)
+    const int text_source_length = source_text_length;
     const TopBarSettings topbar(get_translation(title), FONT_NORMAL, height);
+    source_text_length = text_source_length;
 
     // DisplaySpeech normally sets this up, but since we're not going via it...
     if (play.speech_skip_style & SKIP_AUTOTIMER)
