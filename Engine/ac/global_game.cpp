@@ -515,7 +515,7 @@ void StartCutscene(int skip_mode)
     }
 
     if ((skip_mode < 1) || (skip_mode > 6))
-        quit("!StartCutscene: invalid argument, must be 1 to 5.");
+        quit("!StartCutscene: invalid argument, must be 1 to 6.");
 
     get_script_position(last_cutscene_script_pos);
 
