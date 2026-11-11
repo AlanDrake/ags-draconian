@@ -35,13 +35,12 @@ void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *ch)
     // * AABB should *divide* graphical offset by zoom, which may only work if AABB is made
     // of floats (otherwise value precision will be lost in integer division).
     // * OR we might require ADDITIONAL parameter into GS, which is an offset applied UNSCALED.
-    _gs =
-        GraphicSpace(ch->x, ch->y, eff_anchor, // origin
-                     Size(spr_width, spr_height),  // source sprite size
-                     Size(width, height),          // destination size (scaled)
-                     // real graphical aabb (maybe with extra offsets)
-                     RectWH((eff_offset.X + frame_xoff), (-ch->z + eff_offset.Y + frame_yoff), spr_width, spr_height),
-                     rotation, pivot, pivot_offset);
+    _gs = GraphicSpace(ch->x, ch->y, eff_anchor,    // origin
+                       Size(spr_width, spr_height), // source sprite size
+                       Size(width, height),         // destination size (scaled)
+                       // real graphical aabb (maybe with extra offsets)
+                       RectWH((eff_offset.X + frame_xoff), (-ch->z + eff_offset.Y + frame_yoff), spr_width, spr_height),
+                       rotation, pivot, pivot_offset);
 }
 
 void CharacterExtras::SetTurning(bool on, bool ccw, int turn_steps)

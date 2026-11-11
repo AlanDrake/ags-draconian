@@ -165,8 +165,7 @@ public:
     bool RunFrameEvent(CharacterInfo *ch, int view, int loop, int frame);
     // Sets up following another character (follow_who); a negative follow_who stops following.
     // Eagerness is ignored, and sort_behind applies, only when distance is FOLLOW_ALWAYSONTOP
-    void SetFollowing(CharacterInfo *ch, int follow_who, int distance = 0, int eagerness = 0,
-                      bool sort_behind = false);
+    void SetFollowing(CharacterInfo *ch, int follow_who, int distance = 0, int eagerness = 0, bool sort_behind = false);
 
     // Gets the character's graphic space, as of the last UpdateGraphicSpace
     inline const AGS::Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
