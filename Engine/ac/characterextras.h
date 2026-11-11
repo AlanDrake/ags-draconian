@@ -178,7 +178,7 @@ public:
     // Read character extra data from saves.
     void ReadFromSavegame(CharacterInfo *ch, AGS::Common::Stream *in, CharacterSvgVersion save_ver);
     // Write character extra data to saves.
-    void WriteToSavegame(const CharacterInfo *ch, AGS::Common::Stream *out) const;
+    void WriteToSavegame(AGS::Common::Stream *out) const;
 
 private:
     AGS::Common::GraphicSpace _gs;

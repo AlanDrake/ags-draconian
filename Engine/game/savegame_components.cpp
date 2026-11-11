@@ -677,7 +677,7 @@ HSaveError WriteCharacters(Stream *out)
     for (int i = 0; i < game.numcharacters; ++i)
     {
         game.chars[i].WriteToSavegame(out);
-        charextra[i].WriteToSavegame(&game.chars[i], out);
+        charextra[i].WriteToSavegame(out);
         Properties::WriteValues(play.charProps[i], out);
     }
     return HSaveError::None();

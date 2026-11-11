@@ -293,7 +293,7 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *ch, Stream *in, CharacterS
     UpdateEffectiveValues(ch);
 }
 
-void CharacterExtras::WriteToSavegame(const CharacterInfo *ch, Stream *out) const
+void CharacterExtras::WriteToSavegame(Stream *out) const
 {
     out->WriteInt32(static_cast<uint32_t>(inventory.size()));
     out->WriteArrayOfInt32(inventory.data(), inventory.size());
