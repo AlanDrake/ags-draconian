@@ -448,7 +448,7 @@ void GUI_SetBackgroundGraphic(ScriptGUI *sgui, int sprite)
 
 int GUI_GetBackgroundGraphic(ScriptGUI *sgui)
 {
-    if (guis[sgui->id].GetBgImage() < 1) // ???
+    if (guis[sgui->id].GetBgImage() < 1) // "no image" is reported to scripts as 0, not as a negative value
         return 0;
     return guis[sgui->id].GetBgImage();
 }
@@ -694,7 +694,7 @@ static void run_control_event(GUIControl *control, const String &script_module, 
 {
     // If the object has a special handler script then run it;
     // otherwise, run interface_click
-    // FIXME: do not call DoesScriptFunctionExist* every time, remember last result,
+    // TODO: do not call DoesScriptFunctionExist* every time, remember last result,
     // similar to the interaction event handler test.
     if (control->GetEvents().HasHandler(evt_index) &&
         DoesScriptFunctionExistInModule(script_module, control->GetEvents().GetHandler(evt_index).FunctionName))
@@ -850,7 +850,7 @@ static bool should_skip_adjust_for_gui(const GUIMain &gui)
         !gui.IsDisplayed() ||
         // completely offscreen
         !IsRectInsideRect(play.GetUIViewport(), gui.GetRect()) ||
-        // fully transparent (? FIXME: this only checks background, but not controls)
+        // fully transparent: only the GUI's own background and opacity are checked, not its controls (TODO)
         ((gui.GetBgColor() == 0) && (gui.GetBgImage() < 1)) || (gui.GetOpacity() == 0);
 }
 
@@ -859,8 +859,7 @@ int adjust_x_for_guis(int x, int y, bool assume_blocking)
     if ((GUI::Options.DisabledStyle == kGuiDis_Off) && (!IsInterfaceEnabled() || assume_blocking))
         return x; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it right a bit
-    // FIXME: should not we also account for the text's width here?
-    //        and then, maybe we should also able to move it left if rightmost part of text touches GUI?
+    // TODO: also account for the text's width here, and maybe move the text left when its right part touches a GUI
     for (const auto &gui : guis)
     {
         if (should_skip_adjust_for_gui(gui))
@@ -886,8 +885,7 @@ int adjust_y_for_guis(int y, bool assume_blocking)
     if ((GUI::Options.DisabledStyle == kGuiDis_Off) && (!IsInterfaceEnabled() || assume_blocking))
         return y; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it down a bit
-    // FIXME: should not we also account for the text's height here?
-    //        and then, maybe we should also able to move it up if lower part of text touches GUI below?
+    // TODO: also account for the text's height here, and maybe move the text up when its lower part touches a GUI below
     for (const auto &gui : guis)
     {
         if (should_skip_adjust_for_gui(gui))
@@ -895,7 +893,7 @@ int adjust_y_for_guis(int y, bool assume_blocking)
         // lower or higher than the message
         if ((gui.GetY() > y) || (gui.GetY() + gui.GetHeight() < y))
             continue;
-        // try to deal with tall GUIs; CHECKME this later
+        // ignore tall GUIs (a quarter of the game height or more): the text is not moved for them
         const float gui_height_cap = 0.25f; // NOTE: originally was 50 pixels in 200-height game
         if (gui.GetHeight() >= game.GetGameRes().Height * gui_height_cap)
             continue;
@@ -922,8 +920,8 @@ int gui_on_mouse_move(const int mx, const int my)
     {
         // Scan for mouse-y-pos GUIs, and pop one up if appropriate
         // Also work out the mouse-over GUI while we're at it
-        // CHECKME: not sure why, but we're testing forward draw order here -
-        // from farthest to nearest (this was in original code?)
+        // The loop goes in draw order, from farthest to nearest, so the last GUI that is
+        // interactable at the mouse position (the nearest one) stays in mouse_over_gui.
         for (int gui_id : play.gui_draw_order)
         {
             if (guis[gui_id].IsInteractableAt(mx, my))
