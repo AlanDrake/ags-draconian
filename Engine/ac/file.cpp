@@ -47,11 +47,11 @@ extern AGSPlatformDriver *platform;
 
 // object-based File routines
 
-int32_t FileOpen(const char *fnmm, FileOpenMode open_mode, StreamMode work_mode)
+int32_t FileOpen(const char *filename, FileOpenMode open_mode, StreamMode work_mode)
 {
-    debug_script_message(kDbgMsg_Debug, "FileOpen: request: %s, mode: %s", fnmm,
+    debug_script_message(kDbgMsg_Debug, "FileOpen: request: %s, mode: %s", filename,
                          File::GetCMode(open_mode, work_mode).GetCStr());
-    std::unique_ptr<Stream> s(ResolveScriptPathAndOpen(fnmm, open_mode, work_mode));
+    std::unique_ptr<Stream> s(ResolveScriptPathAndOpen(filename, open_mode, work_mode));
     if (!s)
         return 0;
 
@@ -66,9 +66,9 @@ void FileClose(int32_t handle)
     close_file_stream(handle, "FileClose");
 }
 
-int File_Exists(const char *fnmm)
+int File_Exists(const char *filename)
 {
-    const auto rp = ResolveScriptPathAndTestFile(fnmm);
+    const auto rp = ResolveScriptPathAndTestFile(filename);
     if (!rp)
         return 0;
 
@@ -77,9 +77,9 @@ int File_Exists(const char *fnmm)
     return 1; // was found in fs
 }
 
-ScriptDateTime *File_GetFileTime(const char *fnmm)
+ScriptDateTime *File_GetFileTime(const char *filename)
 {
-    const auto rp = ResolveScriptPathAndFindFile(fnmm, true);
+    const auto rp = ResolveScriptPathAndFindFile(filename, true);
     if (!rp)
         return nullptr;
 
@@ -99,9 +99,9 @@ ScriptDateTime *File_GetFileTime(const char *fnmm)
     return sdt;
 }
 
-int File_Delete(const char *fnmm)
+int File_Delete(const char *filename)
 {
-    const auto rp = ResolveScriptPathAndFindFile(fnmm, false);
+    const auto rp = ResolveScriptPathAndFindFile(filename, false);
     if (!rp)
         return 0;
 
@@ -219,13 +219,13 @@ void *File_GetFiles(const char *filemask, int file_sort, int sort_dir)
     return arr.Obj();
 }
 
-void *sc_OpenFile(const char *fnmm, int mode)
+void *sc_OpenFile(const char *filename, int mode)
 {
     if ((mode < scFileRead) || (mode > scFileAppend))
         quit("!OpenFile: invalid file mode");
 
     sc_File *scf = new sc_File();
-    if (scf->OpenFile(fnmm, mode) == 0)
+    if (scf->OpenFile(filename, mode) == 0)
     {
         delete scf;
         return nullptr;
@@ -234,17 +234,17 @@ void *sc_OpenFile(const char *fnmm, int mode)
     return scf;
 }
 
-const char *File_ResolvePath(const char *fnmm)
+const char *File_ResolvePath(const char *filename)
 {
-    ResolvedPath rp = ResolveScriptPathAndFindFile(fnmm, true, true /* don't test file */);
+    ResolvedPath rp = ResolveScriptPathAndFindFile(filename, true, true /* don't test file */);
     // Make path pretty -
     String path = Path::MakeAbsolutePath(rp.FullPath);
     return CreateNewScriptString(path.GetCStr());
 }
 
-void File_Close(sc_File *fil)
+void File_Close(sc_File *file)
 {
-    fil->Close();
+    file->Close();
 }
 
 void FileWrite(int32_t handle, const char *towrite)
@@ -255,9 +255,9 @@ void FileWrite(int32_t handle, const char *towrite)
     out->Write(towrite, len + 1);
 }
 
-void File_WriteString(sc_File *fil, const char *towrite)
+void File_WriteString(sc_File *file, const char *towrite)
 {
-    FileWrite(fil->handle, towrite);
+    FileWrite(file->handle, towrite);
 }
 
 void FileWriteInt(int32_t handle, int into)
@@ -267,41 +267,41 @@ void FileWriteInt(int32_t handle, int into)
     out->WriteInt32(into);
 }
 
-void File_WriteInt(sc_File *fil, int towrite)
+void File_WriteInt(sc_File *file, int towrite)
 {
-    FileWriteInt(fil->handle, towrite);
+    FileWriteInt(file->handle, towrite);
 }
 
-void File_WriteFloat(sc_File *fil, float towrite)
+void File_WriteFloat(sc_File *file, float towrite)
 {
-    Stream *out = get_file_stream(fil->handle, "File.WriteFloat");
+    Stream *out = get_file_stream(file->handle, "File.WriteFloat");
     out->WriteInt8('F');
     out->WriteFloat32(towrite);
 }
 
-void FileWriteRawChar(int32_t handle, int chartoWrite)
+void FileWriteRawChar(int32_t handle, int char_to_write)
 {
     Stream *out = get_file_stream(handle, "FileWriteRawChar");
-    if ((chartoWrite < 0) || (chartoWrite > 255))
+    if ((char_to_write < 0) || (char_to_write > 255))
         debug_script_warn("FileWriteRawChar: can only write values 0-255");
 
-    out->WriteByte(static_cast<uint8_t>(chartoWrite));
+    out->WriteByte(static_cast<uint8_t>(char_to_write));
 }
 
-void File_WriteRawChar(sc_File *fil, int towrite)
+void File_WriteRawChar(sc_File *file, int towrite)
 {
-    FileWriteRawChar(fil->handle, towrite);
+    FileWriteRawChar(file->handle, towrite);
 }
 
-void File_WriteRawFloat(sc_File *fil, float towrite)
+void File_WriteRawFloat(sc_File *file, float towrite)
 {
-    Stream *out = get_file_stream(fil->handle, "FileWriteRawFloat");
+    Stream *out = get_file_stream(file->handle, "FileWriteRawFloat");
     out->WriteFloat32(towrite);
 }
 
-void File_WriteRawInt(sc_File *fil, int towrite)
+void File_WriteRawInt(sc_File *file, int towrite)
 {
-    Stream *out = get_file_stream(fil->handle, "FileWriteRawInt");
+    Stream *out = get_file_stream(file->handle, "FileWriteRawInt");
     out->WriteInt32(towrite);
 }
 
@@ -313,19 +313,19 @@ void FileWriteRawLine(int32_t handle, const char *towrite)
     out->WriteInt8('\n');
 }
 
-void File_WriteRawLine(sc_File *fil, const char *towrite)
+void File_WriteRawLine(sc_File *file, const char *towrite)
 {
-    FileWriteRawLine(fil->handle, towrite);
+    FileWriteRawLine(file->handle, towrite);
 }
 
 // Reads line of chars until linebreak is met or buffer is filled;
 // returns whether reached the end of line (false in case not enough buffer);
 // guarantees null-terminator in the buffer.
-static bool File_ReadRawLineImpl(sc_File *fil, char *buffer, size_t buf_len)
+static bool File_ReadRawLineImpl(sc_File *file, char *buffer, size_t buf_len)
 {
     if (buf_len == 0)
         return false;
-    Stream *in = get_file_stream(fil->handle, "File.ReadRawLine");
+    Stream *in = get_file_stream(file->handle, "File.ReadRawLine");
     for (size_t i = 0; i < buf_len - 1; ++i)
     {
         int c = in->ReadByte();
@@ -349,21 +349,21 @@ static bool File_ReadRawLineImpl(sc_File *fil, char *buffer, size_t buf_len)
     return false; // not enough buffer
 }
 
-void File_ReadRawLine(sc_File *fil, char *buffer)
+void File_ReadRawLine(sc_File *file, char *buffer)
 {
-    File_ReadRawLineImpl(fil, buffer, MAX_MAXSTRLEN);
+    File_ReadRawLineImpl(file, buffer, MAX_MAXSTRLEN);
 }
 
-const char *File_ReadRawLineBack(sc_File *fil)
+const char *File_ReadRawLineBack(sc_File *file)
 {
     char readbuffer[MAX_MAXSTRLEN];
-    if (File_ReadRawLineImpl(fil, readbuffer, MAX_MAXSTRLEN))
+    if (File_ReadRawLineImpl(file, readbuffer, MAX_MAXSTRLEN))
         return CreateNewScriptString(readbuffer);
     String sbuf = readbuffer;
     bool done = false;
     while (!done)
     {
-        done = File_ReadRawLineImpl(fil, readbuffer, MAX_MAXSTRLEN);
+        done = File_ReadRawLineImpl(file, readbuffer, MAX_MAXSTRLEN);
         sbuf.Append(readbuffer);
     };
     return CreateNewScriptString(sbuf.GetCStr());
@@ -388,14 +388,14 @@ void FileRead(int32_t handle, char *toread)
     in->Read(toread, lle);
 }
 
-void File_ReadString(sc_File *fil, char *toread)
+void File_ReadString(sc_File *file, char *toread)
 {
-    FileRead(fil->handle, toread);
+    FileRead(file->handle, toread);
 }
 
-const char *File_ReadStringBack(sc_File *fil)
+const char *File_ReadStringBack(sc_File *file)
 {
-    Stream *in = get_file_stream(fil->handle, "File.ReadStringBack");
+    Stream *in = get_file_stream(file->handle, "File.ReadStringBack");
     if (in->EOS())
     {
         return CreateNewScriptString("");
@@ -428,14 +428,14 @@ int FileReadInt(int32_t handle)
     return in->ReadInt32();
 }
 
-int File_ReadInt(sc_File *fil)
+int File_ReadInt(sc_File *file)
 {
-    return FileReadInt(fil->handle);
+    return FileReadInt(file->handle);
 }
 
-float File_ReadFloat(sc_File *fil)
+float File_ReadFloat(sc_File *file)
 {
-    Stream *in = get_file_stream(fil->handle, "File.ReadFloat");
+    Stream *in = get_file_stream(file->handle, "File.ReadFloat");
     if (in->EOS())
         return -1;
     if (in->ReadInt8() != 'F')
@@ -454,9 +454,9 @@ char FileReadRawChar(int32_t handle)
     // we keep this strictly for backwards compatibility with old scripts
 }
 
-int File_ReadRawChar(sc_File *fil)
+int File_ReadRawChar(sc_File *file)
 {
-    return FileReadRawChar(fil->handle);
+    return FileReadRawChar(file->handle);
 }
 
 int FileReadRawInt(int32_t handle)
@@ -468,20 +468,20 @@ int FileReadRawInt(int32_t handle)
 }
 
 
-int File_ReadRawInt(sc_File *fil)
+int File_ReadRawInt(sc_File *file)
 {
-    return FileReadRawInt(fil->handle);
+    return FileReadRawInt(file->handle);
 }
 
-float File_ReadRawFloat(sc_File *fil)
+float File_ReadRawFloat(sc_File *file)
 {
-    Stream *out = get_file_stream(fil->handle, "File.ReadRawFloat");
+    Stream *out = get_file_stream(file->handle, "File.ReadRawFloat");
     return out->ReadFloat32();
 }
 
-int File_ReadRawBytes(sc_File *fil, void *arr_obj, int index, int count)
+int File_ReadRawBytes(sc_File *file, void *arr_obj, int index, int count)
 {
-    Stream *in = get_file_stream(fil->handle, "File.ReadRawBytes");
+    Stream *in = get_file_stream(file->handle, "File.ReadRawBytes");
     const auto &hdr = CCDynamicArray::GetHeader(arr_obj);
     if (hdr.GetElemCount() == 0)
     {
@@ -507,9 +507,9 @@ int File_ReadRawBytes(sc_File *fil, void *arr_obj, int index, int count)
     return static_cast<int>(in->Read(static_cast<uint8_t *>(arr_obj) + read_at, read_count));
 }
 
-int File_WriteRawBytes(sc_File *fil, void *arr_obj, int index, int count)
+int File_WriteRawBytes(sc_File *file, void *arr_obj, int index, int count)
 {
-    Stream *out = get_file_stream(fil->handle, "File.WriteRawBytes");
+    Stream *out = get_file_stream(file->handle, "File.WriteRawBytes");
     const auto &hdr = CCDynamicArray::GetHeader(arr_obj);
     if (hdr.GetElemCount() == 0)
     {
@@ -535,9 +535,9 @@ int File_WriteRawBytes(sc_File *fil, void *arr_obj, int index, int count)
     return static_cast<int>(out->Write(static_cast<uint8_t *>(arr_obj) + write_at, write_count));
 }
 
-int File_Seek(sc_File *fil, int offset, int origin)
+int File_Seek(sc_File *file, int offset, int origin)
 {
-    Stream *in = get_file_stream(fil->handle, "File.Seek");
+    Stream *in = get_file_stream(file->handle, "File.Seek");
     return in->Seek(offset, (StreamSeek)origin);
 }
 
@@ -556,11 +556,11 @@ int FileIsEOF(int32_t handle)
     return 0;
 }
 
-int File_GetEOF(sc_File *fil)
+int File_GetEOF(sc_File *file)
 {
-    if (fil->handle <= 0)
+    if (file->handle <= 0)
         return 1;
-    return FileIsEOF(fil->handle);
+    return FileIsEOF(file->handle);
 }
 
 int FileIsError(int32_t handle)
@@ -574,27 +574,27 @@ int FileIsError(int32_t handle)
     return 0;
 }
 
-int File_GetError(sc_File *fil)
+int File_GetError(sc_File *file)
 {
-    if (fil->handle <= 0)
+    if (file->handle <= 0)
         return 1;
-    return FileIsError(fil->handle);
+    return FileIsError(file->handle);
 }
 
-int File_GetPosition(sc_File *fil)
+int File_GetPosition(sc_File *file)
 {
-    if (fil->handle <= 0)
+    if (file->handle <= 0)
         return -1;
-    Stream *stream = get_file_stream(fil->handle, "File.Position");
+    Stream *stream = get_file_stream(file->handle, "File.Position");
     // TODO: a problem is that AGS script does not support unsigned or long int
     return (int)stream->GetPosition();
 }
 
-const char *File_GetPath(sc_File *fil)
+const char *File_GetPath(sc_File *file)
 {
-    if (fil->handle <= 0)
+    if (file->handle <= 0)
         return nullptr;
-    Stream *stream = get_file_stream(fil->handle, "File.Path");
+    Stream *stream = get_file_stream(file->handle, "File.Path");
     return CreateNewScriptString(stream->GetPath());
 }
 
@@ -1071,13 +1071,13 @@ RuntimeScriptValue Sc_File_Copy(const RuntimeScriptValue *params, int32_t param_
     API_SCALL_INT_POBJ2(File_Copy, const char, const char);
 }
 
-// int (const char *fnmm)
+// int (const char *filename)
 RuntimeScriptValue Sc_File_Delete(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_POBJ(File_Delete, const char);
 }
 
-// int (const char *fnmm)
+// int (const char *filename)
 RuntimeScriptValue Sc_File_Exists(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_POBJ(File_Exists, const char);
@@ -1098,7 +1098,7 @@ RuntimeScriptValue Sc_File_GetFiles(const RuntimeScriptValue *params, int32_t pa
     API_SCALL_OBJ_POBJ_PINT2(void, globalDynamicArray, File_GetFiles, const char);
 }
 
-// void *(const char *fnmm, int mode)
+// void *(const char *filename, int mode)
 RuntimeScriptValue Sc_sc_OpenFile(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_POBJ_PINT(sc_File, sc_OpenFile, const char);
@@ -1109,13 +1109,13 @@ RuntimeScriptValue Sc_File_ResolvePath(const RuntimeScriptValue *params, int32_t
     API_SCALL_OBJ_POBJ(const char, myScriptStringImpl, File_ResolvePath, const char);
 }
 
-// void (sc_File *fil)
+// void (sc_File *file)
 RuntimeScriptValue Sc_File_Close(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID(sc_File, File_Close);
 }
 
-// int (sc_File *fil)
+// int (sc_File *file)
 RuntimeScriptValue Sc_File_ReadInt(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(sc_File, File_ReadInt);
@@ -1126,7 +1126,7 @@ RuntimeScriptValue Sc_File_ReadFloat(void *self, const RuntimeScriptValue *param
     API_OBJCALL_FLOAT(sc_File, File_ReadFloat);
 }
 
-// int (sc_File *fil)
+// int (sc_File *file)
 RuntimeScriptValue Sc_File_ReadRawChar(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(sc_File, File_ReadRawChar);
@@ -1137,37 +1137,37 @@ RuntimeScriptValue Sc_File_ReadRawFloat(void *self, const RuntimeScriptValue *pa
     API_OBJCALL_FLOAT(sc_File, File_ReadRawFloat);
 }
 
-// int (sc_File *fil)
+// int (sc_File *file)
 RuntimeScriptValue Sc_File_ReadRawInt(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(sc_File, File_ReadRawInt);
 }
 
-// void (sc_File *fil, char* buffer)
+// void (sc_File *file, char* buffer)
 RuntimeScriptValue Sc_File_ReadRawLine(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_POBJ(sc_File, File_ReadRawLine, char);
 }
 
-// const char* (sc_File *fil)
+// const char* (sc_File *file)
 RuntimeScriptValue Sc_File_ReadRawLineBack(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJ(sc_File, const char, myScriptStringImpl, File_ReadRawLineBack);
 }
 
-// void (sc_File *fil, char *toread)
+// void (sc_File *file, char *toread)
 RuntimeScriptValue Sc_File_ReadString(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_POBJ(sc_File, File_ReadString, char);
 }
 
-// const char* (sc_File *fil)
+// const char* (sc_File *file)
 RuntimeScriptValue Sc_File_ReadStringBack(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJ(sc_File, const char, myScriptStringImpl, File_ReadStringBack);
 }
 
-// void (sc_File *fil, int towrite)
+// void (sc_File *file, int towrite)
 RuntimeScriptValue Sc_File_WriteInt(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(sc_File, File_WriteInt);
@@ -1178,7 +1178,7 @@ RuntimeScriptValue Sc_File_WriteFloat(void *self, const RuntimeScriptValue *para
     API_OBJCALL_VOID_PFLOAT(sc_File, File_WriteFloat);
 }
 
-// void (sc_File *fil, int towrite)
+// void (sc_File *file, int towrite)
 RuntimeScriptValue Sc_File_WriteRawChar(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(sc_File, File_WriteRawChar);
@@ -1194,13 +1194,13 @@ RuntimeScriptValue Sc_File_WriteRawInt(void *self, const RuntimeScriptValue *par
     API_OBJCALL_VOID_PINT(sc_File, File_WriteRawInt);
 }
 
-// void (sc_File *fil, const char *towrite)
+// void (sc_File *file, const char *towrite)
 RuntimeScriptValue Sc_File_WriteRawLine(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_POBJ(sc_File, File_WriteRawLine, const char);
 }
 
-// void (sc_File *fil, const char *towrite)
+// void (sc_File *file, const char *towrite)
 RuntimeScriptValue Sc_File_WriteString(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_POBJ(sc_File, File_WriteString, const char);
@@ -1221,13 +1221,13 @@ RuntimeScriptValue Sc_File_Seek(void *self, const RuntimeScriptValue *params, in
     API_OBJCALL_INT_PINT2(sc_File, File_Seek);
 }
 
-// int (sc_File *fil)
+// int (sc_File *file)
 RuntimeScriptValue Sc_File_GetEOF(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(sc_File, File_GetEOF);
 }
 
-// int (sc_File *fil)
+// int (sc_File *file)
 RuntimeScriptValue Sc_File_GetError(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(sc_File, File_GetError);

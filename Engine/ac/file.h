@@ -25,29 +25,29 @@
 #include "util/stream.h"
 #include "util/string.h"
 
-int File_Exists(const char *fnmm);
-int File_Delete(const char *fnmm);
-int32_t FileOpen(const char *fnmm, AGS::Common::FileOpenMode open_mode, AGS::Common::StreamMode work_mode);
+int File_Exists(const char *filename);
+int File_Delete(const char *filename);
+int32_t FileOpen(const char *filename, AGS::Common::FileOpenMode open_mode, AGS::Common::StreamMode work_mode);
 void FileClose(int32_t handle);
-void *sc_OpenFile(const char *fnmm, int mode);
-const char *File_ResolvePath(const char *fnmm);
-void File_Close(sc_File *fil);
-void File_WriteString(sc_File *fil, const char *towrite);
-void File_WriteInt(sc_File *fil, int towrite);
-void File_WriteRawChar(sc_File *fil, int towrite);
-void File_WriteRawInt(sc_File *fil, int towrite);
-void File_WriteRawLine(sc_File *fil, const char *towrite);
-void File_ReadRawLine(sc_File *fil, char *buffer);
-const char *File_ReadRawLineBack(sc_File *fil);
-void File_ReadString(sc_File *fil, char *toread);
-const char *File_ReadStringBack(sc_File *fil);
-int File_ReadInt(sc_File *fil);
-int File_ReadRawChar(sc_File *fil);
-int File_ReadRawInt(sc_File *fil);
-int File_Seek(sc_File *fil, int offset, int origin);
-int File_GetEOF(sc_File *fil);
-int File_GetError(sc_File *fil);
-int File_GetPosition(sc_File *fil);
+void *sc_OpenFile(const char *filename, int mode);
+const char *File_ResolvePath(const char *filename);
+void File_Close(sc_File *file);
+void File_WriteString(sc_File *file, const char *towrite);
+void File_WriteInt(sc_File *file, int towrite);
+void File_WriteRawChar(sc_File *file, int towrite);
+void File_WriteRawInt(sc_File *file, int towrite);
+void File_WriteRawLine(sc_File *file, const char *towrite);
+void File_ReadRawLine(sc_File *file, char *buffer);
+const char *File_ReadRawLineBack(sc_File *file);
+void File_ReadString(sc_File *file, char *toread);
+const char *File_ReadStringBack(sc_File *file);
+int File_ReadInt(sc_File *file);
+int File_ReadRawChar(sc_File *file);
+int File_ReadRawInt(sc_File *file);
+int File_Seek(sc_File *file, int offset, int origin);
+int File_GetEOF(sc_File *file);
+int File_GetError(sc_File *file);
+int File_GetPosition(sc_File *file);
 // Fills a list of filenames found using given pattern; sorts the resulting list.
 // The filenames *do not* contain any parent paths, strictly names of files.
 // While this function supports parent path in pattern, but it does not support
