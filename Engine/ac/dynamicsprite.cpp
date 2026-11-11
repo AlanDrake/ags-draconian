@@ -75,6 +75,9 @@ void DynamicSprite_Delete(ScriptDynamicSprite *dynsprite)
 
 ScriptDrawingSurface *DynamicSprite_GetDrawingSurface(ScriptDynamicSprite *dynsprite)
 {
+    if (dynsprite->slot == 0)
+        quit("!DynamicSprite.GetDrawingSurface: sprite has been deleted");
+
     // If there's already a active DrawingSurface, then return one
     ScriptDrawingSurface *surface = get_dynsprite_surface(dynsprite->slot);
     if (surface)
