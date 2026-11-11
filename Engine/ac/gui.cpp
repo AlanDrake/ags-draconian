@@ -1009,7 +1009,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
             click_handled = true;
             Point guipt = gui.GetGraphicSpace().WorldToLocal(mx, my);
             Point gobjpt = control->GetGraphicSpace().WorldToLocal(guipt.X, guipt.Y);
-            int item_id = InvWindow_GetItemAtXY((GUIInvWindow *)control, gobjpt.X, gobjpt.Y);
+            int item_id = InvWindow_GetItemAtXY(static_cast<GUIInvWindow *>(control), gobjpt.X, gobjpt.Y);
             if (item_id >= 0)
             {
                 play.used_inv_on = item_id;
