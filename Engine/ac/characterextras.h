@@ -78,7 +78,9 @@ public:
     short width = 0; // width/height (includes character scaling!)
     short height = 0;
     short zoom = 100;
-    short xwas = 0; // TODO: figure out how these xwas,ywas are being used and comment them
+    // Full-step position of a character that is shown half way through a step (very small scaling,
+    // see UpdateCharacterMoving); xwas == INVALID_X when there is none
+    short xwas = 0;
     short ywas = 0;
     short tint_r = 0;
     short tint_g = 0;
@@ -88,7 +90,7 @@ public:
     char process_idle_this_time = 0;
     char slow_move_counter = 0;
     ViewAnimateParams anim;
-    short animwait = 0;         // current ticks counter, before advancing a animation
+    short animwait = 0;         // current ticks counter, before advancing an animation
     int audio_volume = 100;     // default animation volume (relative factor)
     int cur_audio_volume = 100; // current animation sound volume (relative factor)
     int audio_panning = 0;
@@ -109,59 +111,74 @@ public:
     int flags = 0;           // runtime character flags (CharacterRuntimeFlags)
     int turns = 0;           // turning counter
 
-    // Following fields are deriatives of the above (calculated from these
+    // Following fields are derivatives of the above (calculated from these
     // and other factors), and hence are not serialized.
     //
-    // zoom factor of sprite offsets, fixed at 100 in backwards compatible mode
+    // zoom factor of sprite offsets: the character's zoom if OPT_SCALECHAROFFSETS is set, otherwise 100
     int zoom_offs = 100;
 
+    // Tells whether the character is turning, and in which direction
     bool IsTurning() const { return (flags & kCharf_Turning) != 0; }
     bool IsTurningClockwise() const { return IsTurning() && (flags & kCharf_TurningCCW) == 0; }
     bool IsTurningCounterClockwise() const { return IsTurning() && (flags & kCharf_TurningCCW) != 0; }
+    // Starts (on) or stops turning; turning with no steps (turn_steps <= 0) is stopped
     void SetTurning(bool on, bool ccw, int turn_steps);
+    // Counts one turning step; stops turning when none are left
     void DecrementTurning();
+    // Stops turning at once
     void StopTurning() { SetTurning(false, false, 0); }
 
+    // Tells whether the character has a view animation set up
     bool IsAnimating() const { return anim.IsValid(); }
+    // Tells whether the animation repeats
     bool IsAnimatingRepeatedly() const { return anim.IsRepeating(); }
+    // Gets the animation delay
     int GetAnimDelay() const { return anim.Delay; }
     // NOTE: has to return non-const for CycleViewAnim :/
     // this may be solved by having a base class that handles animation, e.g. ViewBasedObject
     ViewAnimateParams &GetAnimParams() { return anim; }
+    // Sets up a view animation
     void SetAnimating(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int anim_volume = 100);
+    // Clears the view animation
     void ResetAnimating();
 
     // Get current effective graphic anchor, which may be either a freely assigned anchor
-    // or a offset from the temporarily locked view
+    // or an offset from the temporarily locked view
     Pointf GetEffectiveGraphicAnchor() const { return eff_anchor; }
     // Get current effective graphic offset, which may be either a freely assigned offset
-    // or a offset from the temporarily locked view
+    // or an offset from the temporarily locked view
     Point GetEffectiveGraphicOffset() const { return eff_offset; }
-    // Get visual Y position, which is calculated as Y - Z (scaled)
+    // Get visual Y position, which is calculated as Y - Z (Z scaled by zoom_offs)
     int GetEffectiveY(const CharacterInfo *ch) const;
     // Calculate wanted frame sound volume based on multiple factors
     int GetFrameSoundVolume(const CharacterInfo *ch) const;
-    // Set locked view with anchor and offset
+    // Set locked view with anchor and offset; also sets the character's view, loop and frame
     void SetLockedView(CharacterInfo *ch, int view, int loop, int frame, const Pointf &anchor = Pointf(),
                        const Point &off = Point());
-    // Set unlocked view, revert to common anchor and offset
+    // Set unlocked view, revert to common anchor and offset; also sets the character's default view
     void SetUnlockedView(CharacterInfo *ch);
     // Process the current animation frame for the character:
-    // play linked sounds, and so forth.
+    // play linked sounds, run the frame event, and so forth.
     void CheckViewFrame(CharacterInfo *ch);
-    // Run the arbitrary frame's event if one is associated and character has a handler
+    // Run the arbitrary frame's event if one is associated and character has a handler;
+    // returns the result of RunViewFrameEvent
     bool RunFrameEvent(CharacterInfo *ch, int view, int loop, int frame);
-    // Setups following another character (follow_who)
+    // Sets up following another character (follow_who); a negative follow_who stops following.
+    // Eagerness is ignored, and sort_behind applies, only when distance is FOLLOW_ALWAYSONTOP
     void SetFollowing(CharacterInfo *ch, int follow_who, int distance = 0, int eagerness = 0,
                       bool sort_behind = false);
 
+    // Gets the character's graphic space, as of the last UpdateGraphicSpace
     inline const AGS::Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
 
+    // Recalculates the effective offset and anchor: the locked view's if the view is locked, else the sprite's
     void UpdateEffectiveValues(const CharacterInfo *ch);
+    // Recalculates the graphic space from the character position and the sprite, scaling and rotation fields
     void UpdateGraphicSpace(const CharacterInfo *ch);
 
     // Read character extra data from saves.
     void ReadFromSavegame(CharacterInfo *ch, AGS::Common::Stream *in, CharacterSvgVersion save_ver);
+    // Write character extra data to saves.
     void WriteToSavegame(const CharacterInfo *ch, AGS::Common::Stream *out) const;
 
 private:

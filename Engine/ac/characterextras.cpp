@@ -30,8 +30,8 @@ extern GameSetupStruct game;
 
 void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *ch)
 {
-    // FIXME: zoom_offs does not work now, should we deprecate and cut this factor completely?
-    // if not, then either:
+    // TODO: zoom_offs is not applied to eff_offset here, while draw.cpp scales the offsets by it on its own.
+    // To apply it here, either:
     // * AABB should *divide* graphical offset by zoom, which may only work if AABB is made
     // of floats (otherwise value precision will be lost in integer division).
     // * OR we might require ADDITIONAL parameter into GS, which is an offset applied UNSCALED.
@@ -356,14 +356,14 @@ void CharacterExtras::WriteToSavegame(const CharacterInfo *ch, Stream *out) cons
     out->WriteInt8(0); // reserved to fill int32
     out->WriteInt16(anim.Delay);
     out->WriteInt16(0); // reserved to fill int32
-    // kRoomStatSvgVersion_40026
+    // kCharSvgVersion_400_26
     out->WriteInt32(spr_offset.X);
     out->WriteInt32(spr_offset.Y);
     out->WriteFloat32(view_anchor.X);
     out->WriteFloat32(view_anchor.Y);
     out->WriteInt32(view_offset.X);
     out->WriteInt32(view_offset.Y);
-    // kRoomStatSvgVersion_40029
+    // kCharSvgVersion_400_29
     out->WriteInt32(pivot_offset.X);
     out->WriteInt32(pivot_offset.Y);
 }
