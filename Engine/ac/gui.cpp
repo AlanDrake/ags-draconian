@@ -921,7 +921,9 @@ int gui_on_mouse_move(const int mx, const int my)
         // Scan for mouse-y-pos GUIs, and pop one up if appropriate
         // Also work out the mouse-over GUI while we're at it
         // The loop goes in draw order, from farthest to nearest, so the last GUI that is
-        // interactable at the mouse position (the nearest one) stays in mouse_over_gui.
+        // interactable at the mouse position (the nearest one) stays in mouse_over_gui;
+        // except when the loop stops early, on a GUI that pops up or while a blocking
+        // overlay disables the interface: the GUIs after that one are not tested.
         for (int gui_id : play.gui_draw_order)
         {
             if (guis[gui_id].IsInteractableAt(mx, my))
