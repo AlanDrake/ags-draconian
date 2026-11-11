@@ -33,8 +33,14 @@ using namespace AGS::Common;
 //
 // Camera script API.
 //
+// A ScriptCamera is a handle to a room camera in the game state (GamePlayState),
+// found by its ID. Deleting a camera invalidates the handle (ID becomes -1):
+// every function below but Delete (which ignores it) then warns and does nothing,
+// or returns a null or zero value.
+//
 //=============================================================================
 
+// Creates a new room camera and returns its script handle, or null on failure.
 ScriptCamera *Camera_Create()
 {
     auto cam = play.CreateRoomCamera();
@@ -443,8 +449,12 @@ RuntimeScriptValue Sc_Camera_SetShader(void *self, const RuntimeScriptValue *par
 //
 // Viewport script API.
 //
+// A ScriptViewport is a handle to a room viewport in the game state, with the
+// same rules as ScriptCamera above: a deleted viewport has the ID -1.
+//
 //=============================================================================
 
+// Creates a new room viewport and returns its script handle, or null on failure.
 ScriptViewport *Viewport_Create()
 {
     auto view = play.CreateRoomViewport();
@@ -569,11 +579,11 @@ void Viewport_SetCamera(ScriptViewport *script_view, ScriptCamera *script_cam)
         return;
     }
     auto view = play.GetRoomViewport(script_view->GetID());
-    // unlink previous camera
+    // unlink the previous camera
     auto cam = view->GetCamera();
     if (cam)
         cam->UnlinkFromViewport(view->GetID());
-    // link new one
+    // link the new camera; null leaves the viewport without a camera
     if (script_cam != nullptr)
     {
         cam = play.GetRoomCamera(script_cam->GetID());
