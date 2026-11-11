@@ -169,7 +169,7 @@ int CSCIWaitMessage(CSCIMessage *msg)
             }
             else if ((unichar == 0) && (key < eAGSKeyCodeSpace) && (key != eAGSKeyCodeBackspace))
                 ;
-            else if ((key >= eAGSKeyCodeUpArrow) & (key <= eAGSKeyCodePageDown) &
+            else if ((key >= eAGSKeyCodeUpArrow) && (key <= eAGSKeyCodePageDown) &&
                      (finddefaultcontrol(CNT_LISTBOX) >= 0))
                 vobjs[finddefaultcontrol(CNT_LISTBOX)]->processmessage(CTB_KEYPRESS, key, 0);
             else if (finddefaultcontrol(CNT_TEXTBOX) >= 0)

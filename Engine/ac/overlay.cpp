@@ -490,7 +490,7 @@ int Overlay_GetOpacity(ScriptOverlay *script_over)
 void Overlay_SetOpacity(ScriptOverlay *script_over, int alpha)
 {
     auto *over = GetOverlayValidate("Overlay.Opacity", script_over);
-    if ((alpha < 0) | (alpha > 255))
+    if ((alpha < 0) || (alpha > 255))
         quit("!Overlay.Opacity: alpha value must be between 0 and 255");
 
     if (over)
