@@ -78,7 +78,6 @@ void set_inv_item_pic(int item_id, int sprite)
     // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
     replace_sprite_changed_callback(old_pic, sprite, &gl_InvItemSpriteListener);
 
-    game.invinfo[item_id].pic = sprite;
     GUIE::MarkInventoryForUpdate(-1, false);
 }
 
