@@ -37,21 +37,21 @@ class Bitmap;
 ScreenOverlay *GetOverlayValidate(const char *apiname, int over_id);
 // Gets an actual ScreenOverlay object from its ScriptOverlay reference;
 // validate object, send an error to the logging system on failure
-inline ScreenOverlay *GetOverlayValidate(const char *apiname, ScriptOverlay *scover)
+inline ScreenOverlay *GetOverlayValidate(const char *apiname, ScriptOverlay *script_over)
 {
-    return GetOverlayValidate(apiname, scover->GetOverlayID());
+    return GetOverlayValidate(apiname, script_over->GetOverlayID());
 }
 
-void Overlay_Remove(ScriptOverlay *sco);
-void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_color, const char *text);
-void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, int text_color, const char *text);
-int Overlay_GetX(ScriptOverlay *scover);
-void Overlay_SetX(ScriptOverlay *scover, int newx);
-int Overlay_GetY(ScriptOverlay *scover);
-void Overlay_SetY(ScriptOverlay *scover, int newy);
-int Overlay_GetValid(ScriptOverlay *scover);
+void Overlay_Remove(ScriptOverlay *script_over);
+void Overlay_SetText(ScriptOverlay *script_over, int width, int font, int text_color, const char *text);
+void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int font, int text_color, const char *text);
+int Overlay_GetX(ScriptOverlay *script_over);
+void Overlay_SetX(ScriptOverlay *script_over, int new_x);
+int Overlay_GetY(ScriptOverlay *script_over);
+void Overlay_SetY(ScriptOverlay *script_over, int new_y);
+int Overlay_GetValid(ScriptOverlay *script_over);
 ScriptOverlay *Overlay_CreateGraphical(int x, int y, int slot, bool clone);
-ScriptOverlay *Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char *text);
+ScriptOverlay *Overlay_CreateTextual(int x, int y, int width, int font, int text_color, const char *text);
 ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot, bool clone = false);
 ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, int font, int text_color,
                                       const char *text, int over_type, DisplayTextStyle style,
@@ -60,10 +60,10 @@ ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, 
 ScreenOverlay *get_overlay(int type);
 // Autopositions overlay, that is linked to a character
 void autoposition_overlay(ScreenOverlay &over);
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, int sprnum);
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<AGS::Common::Bitmap> piccy);
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<AGS::Common::Bitmap> piccy,
-                          int pic_offx, int pic_offy);
+size_t add_screen_overlay(bool room_layer, int x, int y, int type, int sprite_num);
+size_t add_screen_overlay(bool room_layer, int x, int y, int type, std::unique_ptr<AGS::Common::Bitmap> image);
+size_t add_screen_overlay(bool room_layer, int x, int y, int type, std::unique_ptr<AGS::Common::Bitmap> image,
+                          int offset_x, int offset_y);
 void remove_screen_overlay(int type);
 void remove_all_overlays();
 // Restores overlays, e.g. after restoring a game save
