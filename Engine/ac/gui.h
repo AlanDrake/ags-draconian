@@ -17,62 +17,62 @@
 #include "gui/guidefines.h"
 #include "gui/guimain.h"
 
-ScriptGUI *GUI_AsTextWindow(ScriptGUI *tehgui);
-int GUI_GetPopupStyle(ScriptGUI *tehgui);
-void GUI_SetVisible(ScriptGUI *tehgui, int isvisible);
-int GUI_GetVisible(ScriptGUI *tehgui);
-int GUI_GetX(ScriptGUI *tehgui);
-void GUI_SetX(ScriptGUI *tehgui, int xx);
-int GUI_GetY(ScriptGUI *tehgui);
-void GUI_SetY(ScriptGUI *tehgui, int yy);
-void GUI_SetPosition(ScriptGUI *tehgui, int xx, int yy);
-void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt);
+ScriptGUI *GUI_AsTextWindow(ScriptGUI *sgui);
+int GUI_GetPopupStyle(ScriptGUI *sgui);
+void GUI_SetVisible(ScriptGUI *sgui, int is_visible);
+int GUI_GetVisible(ScriptGUI *sgui);
+int GUI_GetX(ScriptGUI *sgui);
+void GUI_SetX(ScriptGUI *sgui, int x);
+int GUI_GetY(ScriptGUI *sgui);
+void GUI_SetY(ScriptGUI *sgui, int y);
+void GUI_SetPosition(ScriptGUI *sgui, int x, int y);
+void GUI_SetSize(ScriptGUI *sgui, int width, int height);
 int GUI_GetWidth(ScriptGUI *sgui);
 int GUI_GetHeight(ScriptGUI *sgui);
-void GUI_SetWidth(ScriptGUI *sgui, int newwid);
-void GUI_SetHeight(ScriptGUI *sgui, int newhit);
-void GUI_SetZOrder(ScriptGUI *tehgui, int z);
-int GUI_GetZOrder(ScriptGUI *tehgui);
-void GUI_SetClickable(ScriptGUI *tehgui, int clickable);
-int GUI_GetClickable(ScriptGUI *tehgui);
-int GUI_GetID(ScriptGUI *tehgui);
-AGS::Common::GUIControl *GUI_GetiControls(ScriptGUI *tehgui, int idx);
-int GUI_GetControlCount(ScriptGUI *tehgui);
-void GUI_SetPopupYPos(ScriptGUI *tehgui, int newpos);
-int GUI_GetPopupYPos(ScriptGUI *tehgui);
-void GUI_SetOpacity(ScriptGUI *tehgui, int alpha);
-int GUI_GetOpacity(ScriptGUI *tehgui);
+void GUI_SetWidth(ScriptGUI *sgui, int new_width);
+void GUI_SetHeight(ScriptGUI *sgui, int new_height);
+void GUI_SetZOrder(ScriptGUI *sgui, int z);
+int GUI_GetZOrder(ScriptGUI *sgui);
+void GUI_SetClickable(ScriptGUI *sgui, int clickable);
+int GUI_GetClickable(ScriptGUI *sgui);
+int GUI_GetID(ScriptGUI *sgui);
+AGS::Common::GUIControl *GUI_GetiControls(ScriptGUI *sgui, int idx);
+int GUI_GetControlCount(ScriptGUI *sgui);
+void GUI_SetPopupYPos(ScriptGUI *sgui, int popup_y);
+int GUI_GetPopupYPos(ScriptGUI *sgui);
+void GUI_SetOpacity(ScriptGUI *sgui, int alpha);
+int GUI_GetOpacity(ScriptGUI *sgui);
 void GUI_Centre(ScriptGUI *sgui);
-void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn);
-int GUI_GetBackgroundGraphic(ScriptGUI *tehgui);
-void GUI_SetBackgroundColor(ScriptGUI *tehgui, int newcol);
-int GUI_GetBackgroundColor(ScriptGUI *tehgui);
-void GUI_SetBorderColor(ScriptGUI *tehgui, int newcol);
-int GUI_GetBorderColor(ScriptGUI *tehgui);
-void GUI_SetTextColor(ScriptGUI *tehgui, int newcol);
-int GUI_GetTextColor(ScriptGUI *tehgui);
-void GUI_SetTextPadding(ScriptGUI *tehgui, int newpos);
-int GUI_GetTextPadding(ScriptGUI *tehgui);
+void GUI_SetBackgroundGraphic(ScriptGUI *sgui, int sprite);
+int GUI_GetBackgroundGraphic(ScriptGUI *sgui);
+void GUI_SetBackgroundColor(ScriptGUI *sgui, int color);
+int GUI_GetBackgroundColor(ScriptGUI *sgui);
+void GUI_SetBorderColor(ScriptGUI *sgui, int color);
+int GUI_GetBorderColor(ScriptGUI *sgui);
+void GUI_SetTextColor(ScriptGUI *sgui, int color);
+int GUI_GetTextColor(ScriptGUI *sgui);
+void GUI_SetTextPadding(ScriptGUI *sgui, int padding);
+int GUI_GetTextPadding(ScriptGUI *sgui);
 ScriptGUI *GUI_GetAtScreenXY(int x, int y, int hit_options);
 int GetGUIAt(int x, int y, int hit_options);
 
 
-void remove_popup_interface(int ifacenum);
-void process_interface_click(int ifce, int btn_id, int mbut);
+void remove_popup_interface(int gui_id);
+void process_interface_click(int gui_id, int btn_id, int mbut);
 void update_gui_zorder();
 // Initializes all GUI and controls for runtime state;
 // this must be done after creating or loading GUIs.
 void prepare_gui_runtime(bool startup);
 void update_gui_disabled_status();
-int adjust_x_for_guis(int xx, int yy, bool assume_blocking = false);
-int adjust_y_for_guis(int yy, bool assume_blocking = false);
+int adjust_x_for_guis(int x, int y, bool assume_blocking = false);
+int adjust_y_for_guis(int y, bool assume_blocking = false);
 // Create or resize GUI surface, accomodating for any GUI transformations
 
 int gui_get_interactable(int x, int y);
 int gui_on_mouse_move(const int mx, const int my);
 void gui_on_mouse_hold(const int wasongui, const int wasbutdown);
 void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, const int my);
-void gui_on_mouse_down(const int guin, const int mbut, const int mx, const int my);
+void gui_on_mouse_down(const int gui_id, const int mbut, const int mx, const int my);
 
 AGS::Common::GUITextBox *gui_get_active_textbox();
 
