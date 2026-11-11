@@ -1069,9 +1069,9 @@ void on_roomcamera_changed(Camera *cam)
     invalidate_screen();
 }
 
-void mark_object_changed(int objid)
+void mark_object_changed(int obj_id)
 {
-    objcache[objid].y = -9999;
+    objcache[obj_id].y = -9999;
 }
 
 void reset_drawobj_dynamic_index()
@@ -1617,9 +1617,9 @@ static void add_to_sprite_list(IDriverDependantBitmap *ddb, int x, int y, const 
     sprlist.push_back(SpriteListEntry(ddb, x, y, zorder, aabb, -1, id));
 }
 
-static void add_to_sprite_list(IDriverDependantBitmap *spp, int xx, int yy, int zorder, int id = -1)
+static void add_to_sprite_list(IDriverDependantBitmap *spp, int x, int y, int zorder, int id = -1)
 {
-    add_to_sprite_list(spp, xx, yy, RectWH(xx, yy, spp->GetWidth(), spp->GetHeight()), zorder);
+    add_to_sprite_list(spp, x, y, RectWH(x, y, spp->GetWidth(), spp->GetHeight()), zorder);
 }
 
 // Sprite drawing order sorting function,
@@ -1758,32 +1758,32 @@ void get_local_tint(int xpp, int ypp, bool use_region_tint, int *tint_amnt, int 
 
     if (use_region_tint)
     {
-        int onRegion = 0;
+        int on_region = 0;
 
         if ((play.ground_level_areas_disabled & GLED_EFFECTS) == 0)
         {
             // check if the player is on a region, to find its
             // light/tint level
-            onRegion = GetRegionIDAtRoom(xpp, ypp, kHit_Interactable);
-            if (onRegion == 0)
+            on_region = GetRegionIDAtRoom(xpp, ypp, kHit_Interactable);
+            if (on_region == 0)
             {
                 // when walking, he might just be off a walkable area
-                onRegion = GetRegionIDAtRoom(xpp - 3, ypp, kHit_Interactable);
-                if (onRegion == 0)
-                    onRegion = GetRegionIDAtRoom(xpp + 3, ypp, kHit_Interactable);
-                if (onRegion == 0)
-                    onRegion = GetRegionIDAtRoom(xpp, ypp - 3, kHit_Interactable);
-                if (onRegion == 0)
-                    onRegion = GetRegionIDAtRoom(xpp, ypp + 3, kHit_Interactable);
+                on_region = GetRegionIDAtRoom(xpp - 3, ypp, kHit_Interactable);
+                if (on_region == 0)
+                    on_region = GetRegionIDAtRoom(xpp + 3, ypp, kHit_Interactable);
+                if (on_region == 0)
+                    on_region = GetRegionIDAtRoom(xpp, ypp - 3, kHit_Interactable);
+                if (on_region == 0)
+                    on_region = GetRegionIDAtRoom(xpp, ypp + 3, kHit_Interactable);
             }
         }
 
-        if ((onRegion > 0) && (onRegion < MAX_ROOM_REGIONS))
+        if ((on_region > 0) && (on_region < MAX_ROOM_REGIONS))
         {
-            light_level = thisroom.Regions[onRegion].Light;
-            tint_level = thisroom.Regions[onRegion].Tint;
+            light_level = thisroom.Regions[on_region].Light;
+            tint_level = thisroom.Regions[on_region].Tint;
         }
-        else if (onRegion <= 0)
+        else if (on_region <= 0)
         {
             light_level = thisroom.Regions[0].Light;
             tint_level = thisroom.Regions[0].Tint;
@@ -1858,7 +1858,7 @@ static void apply_tint_or_light_ddb(ObjTexture &objtx, int light_level, int tint
 // Applies the specified RGB Tint or Light Level to the ObjTexture 'actsp'.
 // Used for software render mode only.
 static void apply_tint_or_light(ObjTexture &actsp, int light_level, int tint_amount, int tint_red, int tint_green,
-                                int tint_blue, int tint_light, int coldept, Bitmap *blitFrom)
+                                int tint_blue, int tint_light, int coldept, Bitmap *blit_from)
 {
     // In a 256-colour game, we cannot do tinting or lightening
     // (but we can do darkening, if light_level < 0)
@@ -1874,8 +1874,8 @@ static void apply_tint_or_light(ObjTexture &actsp, int light_level, int tint_amo
         std::unique_ptr<Bitmap> oldwas;
         // if the caller supplied a source bitmap, ->Blit from it
         // (used as a speed optimisation where possible)
-        if (blitFrom)
-            oldwas.reset(blitFrom);
+        if (blit_from)
+            oldwas.reset(blit_from);
         // otherwise, make a new target bmp
         else
         {
@@ -1916,15 +1916,15 @@ static void apply_tint_or_light(ObjTexture &actsp, int light_level, int tint_amo
             active_spr->LitBlendBlt(oldwas.get(), 0, 0, lit_amnt);
         }
 
-        if (oldwas.get() == blitFrom)
+        if (oldwas.get() == blit_from)
             oldwas.release();
     }
-    else if (blitFrom)
+    else if (blit_from)
     {
         // sprite colour depth != game colour depth, so don't try and tint
         // but we do need to do something, so copy the source
         Bitmap *active_spr = actsp.Bmp.get();
-        active_spr->Blit(blitFrom, 0, 0, 0, 0, active_spr->GetWidth(), active_spr->GetHeight());
+        active_spr->Blit(blit_from, 0, 0, 0, 0, active_spr->GetWidth(), active_spr->GetHeight());
     }
 }
 
@@ -2237,9 +2237,9 @@ void prepare_and_add_object_gfx(const ObjectCache &objsav, ObjTexture &actsp, bo
 // Prepares a actsps element for RoomObject; updates object cache.
 // Software mode draws an actual bitmap in actsp, hardware mode only
 // assigns parameters, which may further be assigned to a texture.
-bool construct_object_gfx(int objid, bool force_software)
+bool construct_object_gfx(int obj_id, bool force_software)
 {
-    const RoomObject &obj = objs[objid];
+    const RoomObject &obj = objs[obj_id];
     const int sprite_id = spriteset.DoesSpriteExist(obj.num) ? obj.num : 0;
 
     ObjectCache objsrc(sprite_id, obj.tint_r, obj.tint_g, obj.tint_b, obj.tint_level, obj.tint_light, 0 /* skip */,
@@ -2249,7 +2249,7 @@ bool construct_object_gfx(int objid, bool force_software)
 
     return construct_object_gfx((obj.view != UINT16_MAX) ? &views[obj.view].loops[obj.loop].frames[obj.frame] : nullptr,
                                 sprite_id, Size(obj.width, obj.height), obj.flags & OBJF_TINTLIGHTMASK, objsrc,
-                                objcache[objid], actsps[objid], true, force_software);
+                                objcache[obj_id], actsps[obj_id], true, force_software);
 }
 
 void prepare_objects_for_drawing()
@@ -2257,17 +2257,17 @@ void prepare_objects_for_drawing()
     set_our_eip(32);
     const bool hw_accel = !drawstate.SoftwareRender;
 
-    for (uint32_t objid = 0; objid < croom->numobj; ++objid)
+    for (uint32_t obj_id = 0; obj_id < croom->numobj; ++obj_id)
     {
-        const RoomObject &obj = objs[objid];
+        const RoomObject &obj = objs[obj_id];
         if (!obj.is_displayed())
             continue; // disabled or invisible
         if ((obj.x >= thisroom.Width) || (obj.y < 1))
             continue; // offscreen
 
-        eip_guinum = objid;
-        const ObjectCache &objsav = objcache[objid];
-        ObjTexture &actsp = actsps[objid];
+        eip_guinum = obj_id;
+        const ObjectCache &objsav = objcache[obj_id];
+        ObjTexture &actsp = actsps[obj_id];
 
         // we must use actual image's top-left position here
         const Rect &aabb = obj.GetGraphicSpace().AABB();
@@ -2276,7 +2276,7 @@ void prepare_objects_for_drawing()
         int usebasel = obj.get_baseline();
 
         // Generate raw bitmap in ObjTexture and store parameters in ObjectCache.
-        const bool actsp_modified = !construct_object_gfx(objid, false);
+        const bool actsp_modified = !construct_object_gfx(obj_id, false);
         // Prepare the object texture
         prepare_and_add_object_gfx(objsav, actsp, actsp_modified, Size(obj.width, obj.height), imgx, imgy, usebasel,
                                    (obj.flags & OBJF_NOWALKBEHINDS) == 0, obj.spr_anchor, obj.opacity, obj.blend_mode,
@@ -2343,21 +2343,21 @@ void tint_image(Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int light
 // Prepares a actsps element for Character; updates character cache.
 // Software mode draws an actual bitmap in actsp, hardware mode only
 // assigns parameters, which may further be assigned to a texture.
-bool construct_char_gfx(int charid, bool force_software)
+bool construct_char_gfx(int char_id, bool force_software)
 {
-    const CharacterInfo &chin = game.chars[charid];
-    const CharacterExtras &chex = charextra[charid];
-    const ViewFrame *vf = &views[chin.view].loops[chin.loop].frames[chin.frame];
+    const CharacterInfo &ch = game.chars[char_id];
+    const CharacterExtras &chex = charextra[char_id];
+    const ViewFrame *vf = &views[ch.view].loops[ch.loop].frames[ch.frame];
     const int pic = spriteset.DoesSpriteExist(vf->pic) ? vf->pic : 0;
 
     ObjectCache chsrc(pic, chex.tint_r, chex.tint_g, chex.tint_b, chex.tint_level, chex.tint_light, 0 /* skip */,
-                      chex.zoom, chex.rotation, kFlip_None /* skip */, chin.x, chin.y);
+                      chex.zoom, chex.rotation, kFlip_None /* skip */, ch.x, ch.y);
     chsrc.pivotx = chex.pivot.X + (static_cast<float>(chex.pivot_offset.X) / chex.width);
     chsrc.pivoty = chex.pivot.Y + (static_cast<float>(chex.pivot_offset.Y) / chex.height);
 
     return construct_object_gfx(
-        vf, pic, Size(chex.width, chex.height), CharFlagsToObjFlags(chin.flags) & OBJF_TINTLIGHTMASK, chsrc,
-        charcache[charid], actsps[charid + ACTSP_OBJSOFF],
+        vf, pic, Size(chex.width, chex.height), CharFlagsToObjFlags(ch.flags) & OBJF_TINTLIGHTMASK, chsrc,
+        charcache[char_id], actsps[char_id + ACTSP_OBJSOFF],
         false, // characters cannot optimize by pos, probably because of z coord and view offsets (?)
         force_software);
 }
@@ -2368,53 +2368,53 @@ void prepare_characters_for_drawing()
     const bool hw_accel = !drawstate.SoftwareRender;
 
     // draw characters
-    for (int charid = 0; charid < game.numcharacters; ++charid)
+    for (int char_id = 0; char_id < game.numcharacters; ++char_id)
     {
-        const CharacterInfo &chin = game.chars[charid];
-        if (!chin.is_displayed())
+        const CharacterInfo &ch = game.chars[char_id];
+        if (!ch.is_displayed())
             continue; // disabled or not visible
-        if (chin.room != displayed_room)
+        if (ch.room != displayed_room)
             continue; // in another room
 
-        eip_guinum = charid;
-        const CharacterExtras &chex = charextra[charid];
-        const ObjectCache &chsav = charcache[charid];
-        ObjTexture &actsp = actsps[charid + ACTSP_OBJSOFF];
+        eip_guinum = char_id;
+        const CharacterExtras &chex = charextra[char_id];
+        const ObjectCache &chsav = charcache[char_id];
+        ObjTexture &actsp = actsps[char_id + ACTSP_OBJSOFF];
 
         // we must use actual image's top-left position here
         const Rect &aabb = chex.GetGraphicSpace().AABB();
         const int imgx = aabb.Left;
         const int imgy = aabb.Top;
-        int usebasel = chin.get_baseline();
+        int usebasel = ch.get_baseline();
 
         // Generate raw bitmap in ObjTexture and store parameters in ObjectCache.
-        const bool actsp_modified = !construct_char_gfx(charid, false);
+        const bool actsp_modified = !construct_char_gfx(char_id, false);
         // Prepare the object texture
         prepare_and_add_object_gfx(chsav, actsp, actsp_modified, Size(chex.width, chex.height), imgx, imgy, usebasel,
-                                   (chin.flags & CHF_NOWALKBEHINDS) == 0, chex.eff_anchor, chin.opacity,
-                                   chex.blend_mode, chex.shader_id, hw_accel);
+                                   (ch.flags & CHF_NOWALKBEHINDS) == 0, chex.eff_anchor, ch.opacity, chex.blend_mode,
+                                   chex.shader_id, hw_accel);
 #if (AGS_PLATFORM_DEBUG)
-        actsp.Ddb->SetTag(String::FromFormat("CHAR%d:%s", chin.index_id, chin.scrname.GetCStr()));
+        actsp.Ddb->SetTag(String::FromFormat("CHAR%d:%s", ch.index_id, ch.scrname.GetCStr()));
 #endif
         // Finally, add the texture to the draw list
         // FIXME: find a way to achieve this without manually coding scaling of the offset here;
         // also see fixme comment to GraphicSpace struct.
         // FIXME: can't we just use anything saved (e.g. when updating GraphicSpace) here?
         // why do we have to recalculate these offsets in multiple places?!!
-        const int charx = chin.x + (chex.frame_xoff + chex.eff_offset.X) * chex.zoom_offs / 100;
-        const int chary = chin.y + (-chin.z + chex.frame_yoff + chex.eff_offset.Y) * chex.zoom_offs / 100;
+        const int charx = ch.x + (chex.frame_xoff + chex.eff_offset.X) * chex.zoom_offs / 100;
+        const int chary = ch.y + (-ch.z + chex.frame_yoff + chex.eff_offset.Y) * chex.zoom_offs / 100;
         add_to_sprite_list(actsp.Ddb, charx, chary, aabb, usebasel, actsp.DrawIndex);
     }
 }
 
-Bitmap *get_cached_character_image(int charid)
+Bitmap *get_cached_character_image(int char_id)
 {
-    return actsps[charid + ACTSP_OBJSOFF].Bmp.get();
+    return actsps[char_id + ACTSP_OBJSOFF].Bmp.get();
 }
 
-Bitmap *get_cached_object_image(int objid)
+Bitmap *get_cached_object_image(int obj_id)
 {
-    return actsps[objid].Bmp.get();
+    return actsps[obj_id].Bmp.get();
 }
 
 void add_walkbehind_image(size_t index, Common::Bitmap *bmp, int x, int y)
@@ -2589,15 +2589,15 @@ void draw_fps(const Rect &viewport)
         return;
 
     const int font = FONT_NORMAL;
-    auto &fpsDisplay = gl_DrawFPS.bmp;
-    if (fpsDisplay == nullptr || gl_DrawFPS.font != font)
+    auto &fps_display = gl_DrawFPS.bmp;
+    if (fps_display == nullptr || gl_DrawFPS.font != font)
     {
-        recycle_bitmap(fpsDisplay, game.GetColorDepth(), viewport.GetWidth(),
+        recycle_bitmap(fps_display, game.GetColorDepth(), viewport.GetWidth(),
                        (get_font_surface_height_outlined(font) + 5));
         gl_DrawFPS.font = font;
     }
 
-    fpsDisplay->ClearTransparent();
+    fps_display->ClearTransparent();
     const color_t text_color = GUI::GetStandardColorForBitmap(14);
     char base_buffer[20];
     if (!isTimerFpsMaxed())
@@ -2626,11 +2626,11 @@ void draw_fps(const Rect &viewport)
     snprintf(loop_buffer, sizeof(loop_buffer), "Loop %u Time %.2f", loopcounter, time_ms * 0.001f);
 
     int text_off = get_font_surface_vextent(font).first; // TODO: a generic function that accounts for this?
-    wouttext_outline(fpsDisplay.get(), 1, 1 - text_off, font, text_color, fps_buffer);
-    wouttext_outline(fpsDisplay.get(), viewport.GetWidth() / 2, 1 - text_off, font, text_color, loop_buffer);
+    wouttext_outline(fps_display.get(), 1, 1 - text_off, font, text_color, fps_buffer);
+    wouttext_outline(fps_display.get(), viewport.GetWidth() / 2, 1 - text_off, font, text_color, loop_buffer);
 
     gl_DrawFPS.ddb = recycle_ddb_bitmap(gl_DrawFPS.ddb, gl_DrawFPS.bmp.get());
-    int yp = viewport.GetHeight() - fpsDisplay->GetHeight();
+    int yp = viewport.GetHeight() - fps_display->GetHeight();
     gfxDriver->DrawSprite(1, yp, gl_DrawFPS.ddb);
     invalidate_sprite_glob(1, yp, gl_DrawFPS.ddb);
 }
@@ -3364,7 +3364,7 @@ void update_room_debug()
 }
 
 // Draw everything
-void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY)
+void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extra_y)
 {
     // Don't render if skipping cutscene
     if (play.fast_forward)
@@ -3383,14 +3383,14 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     gfxDriver->ClearDrawLists();
     construct_game_scene(false);
     set_our_eip(5);
-    // TODO: extraBitmap is a hack, used to place an additional gui element
+    // TODO: extra_bitmap is a hack, used to place an additional gui element
     // on top of the screen. Normally this should be a part of the game UI stage.
-    if (extraBitmap != nullptr)
+    if (extra_bitmap != nullptr)
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
                                     (GraphicFlip)play.screen_flipped);
-        invalidate_sprite(extraX, extraY, extraBitmap, false);
-        gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
+        invalidate_sprite(extra_x, extra_y, extra_bitmap, false);
+        gfxDriver->DrawSprite(extra_x, extra_y, extra_bitmap);
         gfxDriver->EndSpriteBatch();
     }
     construct_game_screen_overlay(!in_room_transition);

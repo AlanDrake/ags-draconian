@@ -86,7 +86,7 @@ void detect_roomviewport_overlaps(size_t z_index);
 // Updates drawing settings if room camera's size has changed
 void on_roomcamera_changed(Camera *cam);
 // Marks particular object as need to update the texture
-void mark_object_changed(int objid);
+void mark_object_changed(int obj_id);
 // TODO: write a generic drawable/objcache system where each object
 // allocates a drawable for itself, and disposes one if being removed.
 // Resets drawing index for dynamic objects
@@ -166,7 +166,7 @@ AGS::Engine::IDriverDependantBitmap *recycle_render_target(AGS::Engine::IDriverD
                                                            int height, int col_depth, bool opaque = false);
 
 // Draw everything
-void render_graphics(AGS::Engine::IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
+void render_graphics(AGS::Engine::IDriverDependantBitmap *extra_bitmap = nullptr, int extra_x = 0, int extra_y = 0);
 // Construct game scene, scheduling drawing list for the renderer
 void construct_game_scene(bool full_redraw = false);
 // Construct final game screen elements; updates and draws mouse cursor
@@ -180,7 +180,7 @@ RoomAreaMask get_room_mask_debugmode();
 void debug_draw_room_mask(RoomAreaMask mask);
 void debug_draw_movelist(int charnum);
 void update_room_debug();
-void tint_image(AGS::Common::Bitmap *g, AGS::Common::Bitmap *source, int red, int grn, int blu, int light_level,
+void tint_image(AGS::Common::Bitmap *ds, AGS::Common::Bitmap *srcimg, int red, int grn, int blu, int light_level,
                 int luminance = 255);
 void draw_sprite_support_alpha(AGS::Common::Bitmap *ds, int xpos, int ypos, AGS::Common::Bitmap *image,
                                AGS::Common::BlendMode blend_mode = AGS::Common::kBlend_Normal, int alpha = 0xFF);
@@ -188,11 +188,11 @@ void draw_sprite_slot_support_alpha(AGS::Common::Bitmap *ds, int xpos, int ypos,
                                     AGS::Common::BlendMode blend_mode = AGS::Common::kBlend_Normal, int alpha = 0xFF);
 // CLNUP I'd like to put the default parameters to draw_gui_sprite, but the extern from guiman.h prevents it
 void draw_gui_sprite(AGS::Common::Bitmap *ds, int pic, int x, int y, AGS::Common::BlendMode blend_mode);
-void draw_gui_sprite(AGS::Common::Bitmap *ds, int xpos, int ypos, AGS::Common::Bitmap *image,
+void draw_gui_sprite(AGS::Common::Bitmap *ds, int x, int y, AGS::Common::Bitmap *sprite,
                      AGS::Common::BlendMode blend_mode = AGS::Common::kBlend_Normal, int alpha = 0xFF);
 void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int pic, int x, int y, AGS::Common::BlendMode blend_mode,
                              AGS::Common::GraphicFlip flip);
-void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int xpos, int ypos, AGS::Common::Bitmap *image,
+void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int x, int y, AGS::Common::Bitmap *sprite,
                              AGS::Common::BlendMode blend_mode = AGS::Common::kBlend_Normal, int alpha = 0xFF,
                              AGS::Common::GraphicFlip flip = AGS::Common::kFlip_None);
 
@@ -201,7 +201,7 @@ void render_to_screen();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverSpriteEvtCallback(int evt, intptr_t data);
 
-// Create the actsps[objid] image with the object drawn correctly.
+// Create the actsps[obj_id] image with the object drawn correctly.
 // Returns true if nothing at all has changed and actsps is still
 // intact from last time; false otherwise.
 // Hardware-accelerated do not require altering the raw bitmap itself,
@@ -210,12 +210,12 @@ bool GfxDriverSpriteEvtCallback(int evt, intptr_t data);
 // effect changes (scaling, tint, etc).
 // * force_software option forces HW renderers to construct the image
 // in software mode as well.
-bool construct_object_gfx(int objid, bool force_software);
-bool construct_char_gfx(int charid, bool force_software);
+bool construct_object_gfx(int obj_id, bool force_software);
+bool construct_char_gfx(int char_id, bool force_software);
 // Returns a cached character image prepared for the render
-AGS::Common::Bitmap *get_cached_character_image(int charid);
+AGS::Common::Bitmap *get_cached_character_image(int char_id);
 // Returns a cached object image prepared for the render
-AGS::Common::Bitmap *get_cached_object_image(int objid);
+AGS::Common::Bitmap *get_cached_object_image(int obj_id);
 // Adds a walk-behind sprite to the list for the given slot
 // (reuses existing texture if possible)
 void add_walkbehind_image(size_t index, AGS::Common::Bitmap *bmp, int x, int y);
