@@ -207,11 +207,11 @@ TEST_F(EngineSpriteCache, DynamicSpritesAreNotEvicted)
     EXPECT_EQ(0xFF123456u, static_cast<color_t>(spriteset[slot]->GetPixel(10, 10)));
 
     // a freed slot is taken by the next dynamic sprite
-    free_dynamic_sprite(slot, false);
+    free_dynamic_sprite(slot);
     EXPECT_FALSE(spriteset.DoesSpriteExist(slot));
     EXPECT_EQ(0u, spriteset.GetExternalSize());
     EXPECT_EQ(slot, add_dynamic_sprite(std::make_unique<Bitmap>(8, 8, 32)));
-    free_dynamic_sprite(slot, false);
+    free_dynamic_sprite(slot);
 }
 
 TEST_F(EngineSpriteCache, DynamicSpriteReplacingAGameSpriteIsRefused)

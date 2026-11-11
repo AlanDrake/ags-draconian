@@ -39,7 +39,7 @@ ScreenOverlay::ScreenOverlay(ScreenOverlay &&over)
 ScreenOverlay::~ScreenOverlay()
 {
     if (_sprnum > 0 && !IsSpriteShared())
-        free_dynamic_sprite(_sprnum, false);
+        free_dynamic_sprite(_sprnum);
 }
 
 // TODO: this may be avoided if we somehow make (dynamic) sprites reference counted when assigning ID too
@@ -158,7 +158,7 @@ void ScreenOverlay::SetZOrder(int zorder)
 void ScreenOverlay::ResetImage(bool reset_size)
 {
     if (_sprnum > 0 && !IsSpriteShared())
-        free_dynamic_sprite(_sprnum, false);
+        free_dynamic_sprite(_sprnum);
     _sprnum = 0;
     _flags &= ~(kOver_SpriteShared);
     if (reset_size)

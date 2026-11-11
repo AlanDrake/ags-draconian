@@ -81,9 +81,8 @@ int add_dynamic_sprite(std::unique_ptr<AGS::Common::Bitmap> image, uint32_t extr
 // Returns same slot number on success, or 0 if there was an error.
 // Updates game.SpriteInfos[].
 int add_dynamic_sprite(int slot, std::unique_ptr<AGS::Common::Bitmap> image, uint32_t extra_flags = 0u);
-// Disposes a dynamic sprite, and frees the slot. Tells the draw system that the sprite was deleted;
-// "notify_all" selects game_sprite_updated() or notify_sprite_changed(), which currently do the same.
-void free_dynamic_sprite(int slot, bool notify_all = true);
+// Disposes a dynamic sprite, and frees the slot. Tells the draw system that the sprite was deleted.
+void free_dynamic_sprite(int slot);
 // Retrieves a DrawingSurface object, connected to the given dynamic sprite; nullptr if none is acquired.
 ScriptDrawingSurface *get_dynsprite_surface(int slot);
 // Attaches drawing surface handle to the dynamic sprite.

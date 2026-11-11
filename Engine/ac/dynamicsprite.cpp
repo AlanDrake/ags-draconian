@@ -500,7 +500,7 @@ int add_dynamic_sprite(int slot, std::unique_ptr<Bitmap> image, uint32_t extra_f
     return slot;
 }
 
-void free_dynamic_sprite(int slot, bool notify_all)
+void free_dynamic_sprite(int slot)
 {
     assert((slot > 0) && (static_cast<size_t>(slot) < game.SpriteInfos.size()) &&
            (game.SpriteInfos[slot].Flags & SPF_DYNAMICALLOC));
@@ -509,10 +509,7 @@ void free_dynamic_sprite(int slot, bool notify_all)
         return;
 
     spriteset.DeleteSprite(slot);
-    if (notify_all)
-        game_sprite_updated(slot, true);
-    else
-        notify_sprite_changed(slot, true);
+    notify_sprite_changed(slot, true);
 }
 
 // Dynamic sprite (slot index) map to DrawingSurface handle.
