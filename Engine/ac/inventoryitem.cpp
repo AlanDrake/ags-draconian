@@ -65,140 +65,140 @@ void InvItems_RegisterDynamicSpriteCallbacks()
 }
 
 
-void set_inv_item_pic(int invi, int piccy)
+void set_inv_item_pic(int item_id, int sprite)
 {
-    if ((invi < 0) || (invi >= game.numinvitems))
+    if ((item_id < 0) || (item_id >= game.numinvitems))
         quit("!SetInvItemPic: invalid inventory item specified");
 
-    if (game.invinfo[invi].pic == piccy)
+    if (game.invinfo[item_id].pic == sprite)
         return;
 
-    const int old_pic = game.invinfo[invi].pic;
-    game.invinfo[invi].pic = piccy;
+    const int old_pic = game.invinfo[item_id].pic;
+    game.invinfo[item_id].pic = sprite;
     // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
-    replace_sprite_changed_callback(old_pic, piccy, &gl_InvItemSpriteListener);
+    replace_sprite_changed_callback(old_pic, sprite, &gl_InvItemSpriteListener);
 
-    game.invinfo[invi].pic = piccy;
+    game.invinfo[item_id].pic = sprite;
     GUIE::MarkInventoryForUpdate(-1, false);
 }
 
-void set_inv_item_cursorpic(int invItemId, int piccy)
+void set_inv_item_cursorpic(int item_id, int sprite)
 {
-    game.invinfo[invItemId].cursorPic = piccy;
+    game.invinfo[item_id].cursorPic = sprite;
 
-    if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv == invItemId))
+    if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv == item_id))
     {
-        update_inv_cursor(invItemId);
+        update_inv_cursor(item_id);
         set_cursor_look(cur_cursor);
     }
 }
 
-void set_inv_item_cursorhotspot(int inv_item, int hx, int hy, FrameAlignment align)
+void set_inv_item_cursorhotspot(int item_id, int hx, int hy, FrameAlignment align)
 {
-    auto &item = game.invinfo[inv_item];
+    auto &item = game.invinfo[item_id];
     item.hotx = hx;
     item.hoty = hy;
     item.hotAlign = align;
 
     // The cursor image may include hotspot marker, therefore update cursor image
-    if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv == inv_item))
+    if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv == item_id))
     {
-        update_inv_cursor(inv_item);
+        update_inv_cursor(item_id);
         set_cursor_look(cur_cursor);
     }
 }
 
-bool AssertInvItem(const char *apiname, int item_index)
+bool AssertInvItem(const char *apiname, int item_id)
 {
-    if ((item_index >= 0) && (item_index < game.numinvitems))
+    if ((item_id >= 0) && (item_id < game.numinvitems))
         return true;
-    debug_script_warn("%s: invalid inventory id %d (range is 0..%d)", apiname, item_index, game.numinvitems - 1);
+    debug_script_warn("%s: invalid inventory id %d (range is 0..%d)", apiname, item_id, game.numinvitems - 1);
     return false;
 }
 
-void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite)
+void InventoryItem_SetCursorGraphic(ScriptInvItem *item, int sprite)
 {
-    set_inv_item_cursorpic(iitem->id, newSprite);
+    set_inv_item_cursorpic(item->id, sprite);
 }
 
-int InventoryItem_GetCursorGraphic(ScriptInvItem *iitem)
+int InventoryItem_GetCursorGraphic(ScriptInvItem *item)
 {
-    return game.invinfo[iitem->id].cursorPic;
+    return game.invinfo[item->id].cursorPic;
 }
 
-int InventoryItem_GetCursorHotspotAlignment(ScriptInvItem *iitem)
+int InventoryItem_GetCursorHotspotAlignment(ScriptInvItem *item)
 {
-    return game.invinfo[iitem->id].hotx;
+    return game.invinfo[item->id].hotx;
 }
 
-void InventoryItem_SetCursorHotspotAlignment(ScriptInvItem *iitem, int align)
+void InventoryItem_SetCursorHotspotAlignment(ScriptInvItem *item, int align)
 {
-    set_inv_item_cursorhotspot(iitem->id, game.invinfo[iitem->id].hotx, game.invinfo[iitem->id].hoty,
+    set_inv_item_cursorhotspot(item->id, game.invinfo[item->id].hotx, game.invinfo[item->id].hoty,
                                static_cast<FrameAlignment>(align));
 }
 
-int InventoryItem_GetCursorHotspotX(ScriptInvItem *iitem)
+int InventoryItem_GetCursorHotspotX(ScriptInvItem *item)
 {
-    return game.invinfo[iitem->id].hotx;
+    return game.invinfo[item->id].hotx;
 }
 
-void InventoryItem_SetCursorHotspotX(ScriptInvItem *iitem, int hotspotx)
+void InventoryItem_SetCursorHotspotX(ScriptInvItem *item, int hotspot_x)
 {
-    set_inv_item_cursorhotspot(iitem->id, hotspotx, game.invinfo[iitem->id].hoty, game.invinfo[iitem->id].hotAlign);
+    set_inv_item_cursorhotspot(item->id, hotspot_x, game.invinfo[item->id].hoty, game.invinfo[item->id].hotAlign);
 }
 
-int InventoryItem_GetCursorHotspotY(ScriptInvItem *iitem)
+int InventoryItem_GetCursorHotspotY(ScriptInvItem *item)
 {
-    return game.invinfo[iitem->id].hoty;
+    return game.invinfo[item->id].hoty;
 }
 
-void InventoryItem_SetCursorHotspotY(ScriptInvItem *iitem, int hotspoty)
+void InventoryItem_SetCursorHotspotY(ScriptInvItem *item, int hotspot_y)
 {
-    set_inv_item_cursorhotspot(iitem->id, game.invinfo[iitem->id].hotx, hotspoty, game.invinfo[iitem->id].hotAlign);
+    set_inv_item_cursorhotspot(item->id, game.invinfo[item->id].hotx, hotspot_y, game.invinfo[item->id].hotAlign);
 }
 
-void InventoryItem_SetGraphic(ScriptInvItem *iitem, int piccy)
+void InventoryItem_SetGraphic(ScriptInvItem *item, int sprite)
 {
-    set_inv_item_pic(iitem->id, piccy);
+    set_inv_item_pic(item->id, sprite);
 }
 
-void SetInvItemName(int invi, const char *newName)
+void SetInvItemName(int item_id, const char *new_name)
 {
-    if ((invi < 0) || (invi >= game.numinvitems))
+    if ((item_id < 0) || (item_id >= game.numinvitems))
         quit("!SetInvName: invalid inventory item specified");
 
-    game.invinfo[invi].name = newName;
+    game.invinfo[item_id].name = new_name;
     // might need to redraw the GUI if it has the inv item name on it
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
-void InventoryItem_SetName(ScriptInvItem *scii, const char *newname)
+void InventoryItem_SetName(ScriptInvItem *item, const char *new_name)
 {
-    SetInvItemName(scii->id, newname);
+    SetInvItemName(item->id, new_name);
 }
 
-int InventoryItem_GetID(ScriptInvItem *scii)
+int InventoryItem_GetID(ScriptInvItem *item)
 {
-    return scii->id;
+    return item->id;
 }
 
-const char *InventoryItem_GetScriptName(ScriptInvItem *scii)
+const char *InventoryItem_GetScriptName(ScriptInvItem *item)
 {
-    return CreateNewScriptString(game.invScriptNames[scii->id]);
+    return CreateNewScriptString(game.invScriptNames[item->id]);
 }
 
-int GetInvAt(int atx, int aty, int gui_hitoptions, int inv_hitoptions)
+int GetInvAt(int x, int y, int gui_hitoptions, int inv_hitoptions)
 {
-    int ongui = GetGUIAt(atx, aty, gui_hitoptions);
-    if (ongui >= 0)
+    int gui_id = GetGUIAt(x, y, gui_hitoptions);
+    if (gui_id >= 0)
     {
-        int onobj = guis[ongui].FindControlAt(atx, aty, 0, inv_hitoptions & kHit_Interactable);
-        GUIObject *guio = guis[ongui].GetControl(onobj);
-        if (guio && (guis[ongui].GetControlType(onobj) == kGUIInvWindow))
+        int control_id = guis[gui_id].FindControlAt(x, y, 0, inv_hitoptions & kHit_Interactable);
+        GUIObject *control = guis[gui_id].GetControl(control_id);
+        if (control && (guis[gui_id].GetControlType(control_id) == kGUIInvWindow))
         {
-            const int inv_atx = atx - guis[ongui].GetX() - guio->GetX();
-            const int inv_aty = aty - guis[ongui].GetY() - guio->GetY();
-            return InvWindow_GetItemAtXY((GUIInvWindow *)guio, inv_atx, inv_aty);
+            const int inv_atx = x - guis[gui_id].GetX() - control->GetX();
+            const int inv_aty = y - guis[gui_id].GetY() - control->GetY();
+            return InvWindow_GetItemAtXY((GUIInvWindow *)control, inv_atx, inv_aty);
         }
     }
     return -1;
@@ -206,10 +206,10 @@ int GetInvAt(int atx, int aty, int gui_hitoptions, int inv_hitoptions)
 
 ScriptInvItem *InventoryItem_GetAtScreenXY(int x, int y, int gui_hitoptions, int inv_hitoptions)
 {
-    int hsnum = GetInvAt(x, y, gui_hitoptions, inv_hitoptions);
-    if (hsnum <= 0)
+    int item_id = GetInvAt(x, y, gui_hitoptions, inv_hitoptions);
+    if (item_id <= 0)
         return nullptr;
-    return &scrInv[hsnum];
+    return &scrInv[item_id];
 }
 
 ScriptInvItem *InventoryItem_GetAtScreenXY2(int x, int y)
@@ -217,19 +217,19 @@ ScriptInvItem *InventoryItem_GetAtScreenXY2(int x, int y)
     return InventoryItem_GetAtScreenXY(x, y, kHit_Interactable, kHit_Interactable);
 }
 
-const char *InventoryItem_GetName_New(ScriptInvItem *invitem)
+const char *InventoryItem_GetName_New(ScriptInvItem *item)
 {
-    return CreateNewScriptString(game.invinfo[invitem->id].name);
+    return CreateNewScriptString(game.invinfo[item->id].name);
 }
 
-int InventoryItem_GetGraphic(ScriptInvItem *iitem)
+int InventoryItem_GetGraphic(ScriptInvItem *item)
 {
-    return game.invinfo[iitem->id].pic;
+    return game.invinfo[item->id].pic;
 }
 
-void RunInventoryInteraction(int iit, int mood)
+void RunInventoryInteraction(int item_id, int mood)
 {
-    if ((iit < 0) || (iit >= game.numinvitems))
+    if ((item_id < 0) || (item_id >= game.numinvitems))
         quit("!RunInventoryInteraction: invalid inventory number");
     if (!AssertCursorValidForEvent("InventoryItem.RunInteraction", mood))
         return;
@@ -244,66 +244,67 @@ void RunInventoryInteraction(int iit, int mood)
         play.usedinv = playerchar->activeinv;
     }
 
-    const auto obj_evt = ObjectEvent(kScTypeGame, LOCTYPE_INVITEM, iit,
-                                     RuntimeScriptValue().SetScriptObject(&scrInv[iit], &ccDynamicInv), mood);
-    if ((evnt >= 0) && run_event_script(obj_evt, &game.invinfo[iit].interactions, evnt, &game.invinfo[iit].GetEvents(),
-                                        anyclick_evt, true /* do unhandled event */) < 0)
+    const auto obj_evt = ObjectEvent(kScTypeGame, LOCTYPE_INVITEM, item_id,
+                                     RuntimeScriptValue().SetScriptObject(&scrInv[item_id], &ccDynamicInv), mood);
+    if ((evnt >= 0) &&
+        run_event_script(obj_evt, &game.invinfo[item_id].interactions, evnt, &game.invinfo[item_id].GetEvents(),
+                         anyclick_evt, true /* do unhandled event */) < 0)
         return; // game state changed, don't do "any click"
     // any click on inv item
-    run_event_script(obj_evt, &game.invinfo[iit].GetEvents(), anyclick_evt);
+    run_event_script(obj_evt, &game.invinfo[item_id].GetEvents(), anyclick_evt);
 }
 
-int IsInventoryInteractionAvailable(int item, int mood)
+int IsInventoryInteractionAvailable(int item_id, int mood)
 {
-    if ((item < 0) || (item >= game.numinvitems))
+    if ((item_id < 0) || (item_id >= game.numinvitems))
         quit("!IsInventoryInteractionAvailable: invalid inventory number");
 
     play.check_interaction_only = 1;
 
-    RunInventoryInteraction(item, mood);
+    RunInventoryInteraction(item_id, mood);
 
-    int ciwas = play.check_interaction_only;
+    int result = play.check_interaction_only;
     play.check_interaction_only = 0;
 
-    if (ciwas == 2)
+    if (result == 2)
         return 1;
 
     return 0;
 }
 
-void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood)
+void InventoryItem_RunInteraction(ScriptInvItem *item, int mood)
 {
-    RunInventoryInteraction(iitem->id, mood);
+    RunInventoryInteraction(item->id, mood);
 }
 
-int InventoryItem_CheckInteractionAvailable(ScriptInvItem *iitem, int mood)
+int InventoryItem_CheckInteractionAvailable(ScriptInvItem *item, int mood)
 {
-    return IsInventoryInteractionAvailable(iitem->id, mood);
+    return IsInventoryInteractionAvailable(item->id, mood);
 }
 
-int InventoryItem_GetProperty(ScriptInvItem *scii, const char *property)
+int InventoryItem_GetProperty(ScriptInvItem *item, const char *property)
 {
-    return get_int_property(game.invProps[scii->id], play.invProps[scii->id], property);
+    return get_int_property(game.invProps[item->id], play.invProps[item->id], property);
 }
 
-void InventoryItem_GetPropertyText(ScriptInvItem *scii, const char *property, char *bufer)
+void InventoryItem_GetPropertyText(ScriptInvItem *item, const char *property, char *buffer)
 {
-    get_text_property(game.invProps[scii->id], play.invProps[scii->id], property, bufer);
+    get_text_property(game.invProps[item->id], play.invProps[item->id], property, buffer);
 }
 
-const char *InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *property)
+const char *InventoryItem_GetTextProperty(ScriptInvItem *item, const char *property)
 {
-    return get_text_property_dynamic_string(game.invProps[scii->id], play.invProps[scii->id], property);
+    return get_text_property_dynamic_string(game.invProps[item->id], play.invProps[item->id], property);
 }
 
-bool InventoryItem_SetProperty(ScriptInvItem *scii, const char *property, int value)
+bool InventoryItem_SetProperty(ScriptInvItem *item, const char *property, int value)
 {
-    return set_int_property(play.invProps[scii->id], property, value);
+    return set_int_property(play.invProps[item->id], property, value);
 }
 
-bool InventoryItem_SetTextProperty(ScriptInvItem *scii, const char *property, const char *value)
+bool InventoryItem_SetTextProperty(ScriptInvItem *item, const char *property, const char *value)
 {
-    return set_text_property(play.invProps[scii->id], property, value);
+    return set_text_property(play.invProps[item->id], property, value);
 }
 
 //=============================================================================

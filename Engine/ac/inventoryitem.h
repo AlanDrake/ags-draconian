@@ -11,31 +11,27 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #pragma once
 
 #include "ac/dynobj/scriptobjects.h"
 
-bool AssertInvItem(const char *apiname, int item_index);
+bool AssertInvItem(const char *apiname, int item_id);
 
-void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite);
-int InventoryItem_GetCursorGraphic(ScriptInvItem *iitem);
-void InventoryItem_SetGraphic(ScriptInvItem *iitem, int piccy);
-void InventoryItem_SetName(ScriptInvItem *scii, const char *newname);
-int InventoryItem_GetID(ScriptInvItem *scii);
-const char *InventoryItem_GetName_New(ScriptInvItem *invitem);
-int InventoryItem_GetGraphic(ScriptInvItem *iitem);
-void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood);
-void RunInventoryInteraction(int iit, int mood);
-int InventoryItem_CheckInteractionAvailable(ScriptInvItem *iitem, int mood);
-int InventoryItem_GetProperty(ScriptInvItem *scii, const char *property);
-void InventoryItem_GetPropertyText(ScriptInvItem *scii, const char *property, char *bufer);
-const char *InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *property);
-int GetInvAt(int scrx, int scry, int gui_hitoptions, int inv_hitoptions);
+void InventoryItem_SetCursorGraphic(ScriptInvItem *item, int sprite);
+int InventoryItem_GetCursorGraphic(ScriptInvItem *item);
+void InventoryItem_SetGraphic(ScriptInvItem *item, int sprite);
+void InventoryItem_SetName(ScriptInvItem *item, const char *new_name);
+int InventoryItem_GetID(ScriptInvItem *item);
+const char *InventoryItem_GetName_New(ScriptInvItem *item);
+int InventoryItem_GetGraphic(ScriptInvItem *item);
+void InventoryItem_RunInteraction(ScriptInvItem *item, int mood);
+void RunInventoryInteraction(int item_id, int mood);
+int InventoryItem_CheckInteractionAvailable(ScriptInvItem *item, int mood);
+int InventoryItem_GetProperty(ScriptInvItem *item, const char *property);
+void InventoryItem_GetPropertyText(ScriptInvItem *item, const char *property, char *buffer);
+const char *InventoryItem_GetTextProperty(ScriptInvItem *item, const char *property);
+int GetInvAt(int x, int y, int gui_hitoptions, int inv_hitoptions);
 
-void set_inv_item_cursorpic(int invItemId, int piccy);
+void set_inv_item_cursorpic(int item_id, int sprite);
 
 void InvItems_RegisterDynamicSpriteCallbacks();
