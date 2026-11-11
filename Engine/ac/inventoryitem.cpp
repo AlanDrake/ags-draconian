@@ -128,7 +128,7 @@ int InventoryItem_GetCursorGraphic(ScriptInvItem *item)
 
 int InventoryItem_GetCursorHotspotAlignment(ScriptInvItem *item)
 {
-    return game.invinfo[item->id].hotx;
+    return game.invinfo[item->id].hotAlign;
 }
 
 void InventoryItem_SetCursorHotspotAlignment(ScriptInvItem *item, int align)
