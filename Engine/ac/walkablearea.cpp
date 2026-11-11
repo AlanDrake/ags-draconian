@@ -102,7 +102,7 @@ int get_area_scaling(int area_id, int x, int y)
         }
         zoom_level += 100; // the scaling is stored as the percentage minus 100 (SetAreaScaling)
     }
-    else if ((area_id >= 0) & (area_id < MAX_WALK_AREAS))
+    else if ((area_id >= 0) && (area_id < MAX_WALK_AREAS))
         zoom_level = thisroom.WalkAreas[area_id].ScalingFar + 100;
 
     // zero would make the sprite vanish: treat it as normal size

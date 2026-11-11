@@ -64,7 +64,7 @@ void SetAreaScaling(int area, int min, int max)
 
 void RemoveWalkableArea(int areanum)
 {
-    if ((areanum < 1) | (areanum >= MAX_WALK_AREAS))
+    if ((areanum < 1) || (areanum >= MAX_WALK_AREAS))
         quitprintf("!RemoveWalkableArea: invalid area number specified (1-%d).", MAX_WALK_AREAS - 1);
     play.walkable_areas_on[areanum] = 0;
     redo_walkable_areas();
@@ -73,7 +73,7 @@ void RemoveWalkableArea(int areanum)
 
 void RestoreWalkableArea(int areanum)
 {
-    if ((areanum < 1) | (areanum >= MAX_WALK_AREAS))
+    if ((areanum < 1) || (areanum >= MAX_WALK_AREAS))
         quitprintf("!RestoreWalkableArea: invalid area number specified (1-%d).", MAX_WALK_AREAS - 1);
     play.walkable_areas_on[areanum] = 1;
     redo_walkable_areas();
