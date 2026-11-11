@@ -1010,11 +1010,9 @@ int Game_GetColorFromRGBA(int red, int grn, int blu, int alpha)
         alpha = Math::Clamp(alpha, 0, 255);
     }
 
-    // An 8-bit game matches against its palette: makecol8 would use the one on screen,
-    // which is black or part-faded during a transition, and room_Load runs faded out
     if (game.color_depth == 1)
     {
-        return bestfit_color(palette, red, grn, blu);
+        return makecol8(red, grn, blu);
     }
 
     return makeacol32(red, grn, blu, alpha);

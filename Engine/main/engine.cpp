@@ -664,6 +664,8 @@ void engine_init_game_settings()
         if (game.paluses[ee] != PAL_BACKGROUND)
             palette[ee] = game.defpal[ee];
     }
+    // Allegro's palette starts all black; colours are matched against it (makecol8)
+    setpal();
 
     for (ee = 0; ee < game.numcursors; ee++)
     {

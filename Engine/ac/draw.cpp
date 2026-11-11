@@ -550,14 +550,10 @@ static Bitmap *PrepareSpriteForUseImpl(Bitmap *bitmap, bool conv_to_gamedepth, b
     const int bmp_col_depth = bitmap->GetColorDepth();
     const int game_col_depth = game.GetColorDepth();
 
-    // Palette must be selected if we convert a 8-bit bitmap for a 32-bit game, or a 32-bit
-    // bitmap for an 8-bit game: the conversion uses Allegro's selected palette, which in an
-    // 8-bit game is the one on screen (black or part-faded during a transition)
-    const bool to_hicolor = conv_to_gamedepth && (bmp_col_depth == 8) && (game_col_depth > 8);
-    const bool to_8bit = conv_to_gamedepth && (bmp_col_depth > 8) && (game_col_depth == 8);
-    const bool must_switch_palette = to_hicolor || to_8bit;
+    // Palette must be selected if we convert a 8-bit bitmap for a 32-bit game
+    const bool must_switch_palette = conv_to_gamedepth && (bitmap->GetColorDepth() == 8) && (game_col_depth > 8);
     if (must_switch_palette)
-        select_palette((to_hicolor && bm_palette != nullptr) ? bm_palette : palette);
+        select_palette(bm_palette != nullptr ? bm_palette : palette);
 
     Bitmap *new_bitmap = bitmap;
 
@@ -624,18 +620,11 @@ PBitmap PrepareSpriteForUse(PBitmap bitmap, bool conv_to_gamedepth, bool make_op
 Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect, bool at_native_res,
                              uint32_t batch_skip_filter)
 {
-    const int dst_depth = game.GetColorDepth();
-    Bitmap *dst = new Bitmap(width, height, dst_depth);
+    Bitmap *dst = new Bitmap(width, height, game.GetColorDepth());
     GraphicResolution want_fmt;
     // If the size and color depth are supported, then we may copy right into our final bitmap
     if (gfxDriver->GetCopyOfScreenIntoBitmap(dst, src_rect, at_native_res, &want_fmt, batch_skip_filter))
         return dst;
-
-    // A screen in another colour depth is matched to the game palette for an 8-bit copy,
-    // not to Allegro's selected palette, which in an 8-bit game is the one on screen
-    const bool must_switch_palette = (dst_depth == 8) && (want_fmt.ColorDepth != 8);
-    if (must_switch_palette)
-        select_palette(palette);
 
     // Otherwise we might need to copy between few bitmaps...
     // Get screenshot in the suitable format
@@ -645,9 +634,9 @@ Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect, bool a
     // because Allegro does not support stretching with mismatching color depths
     std::unique_ptr<Bitmap> buf_fixdepth;
     Bitmap *blit_from = buf_screenfmt.get();
-    if ((dst->GetSize() != blit_from->GetSize()) && (want_fmt.ColorDepth != dst_depth))
+    if ((dst->GetSize() != blit_from->GetSize()) && (want_fmt.ColorDepth != game.GetColorDepth()))
     {
-        buf_fixdepth = std::make_unique<Bitmap>(want_fmt.Width, want_fmt.Height, dst_depth);
+        buf_fixdepth = std::make_unique<Bitmap>(want_fmt.Width, want_fmt.Height, game.GetColorDepth());
         buf_fixdepth->Blit(buf_screenfmt.get());
         blit_from = buf_fixdepth.get();
     }
@@ -661,8 +650,6 @@ Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect, bool a
     {
         dst->StretchBlt(blit_from, RectWH(dst->GetSize()));
     }
-    if (must_switch_palette)
-        unselect_palette();
     return dst;
 }
 
