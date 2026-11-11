@@ -222,8 +222,6 @@ struct ObjectCache
 #endif
 
     std::unique_ptr<Bitmap> image;
-    // TODO: remove in_use, it is set in construct_object_gfx and never read
-    bool in_use = false;
     int sppic = 0;
     // TODO: pickout tint settings, maybe even share with Char/Obj structs,
     // if plugin API permits!
@@ -2159,7 +2157,6 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic, const Size &scale
     // Create the cached image and store it
     recycle_bitmap(objsav.image, actsp.Bmp->GetColorDepth(), actsp.Bmp->GetWidth(), actsp.Bmp->GetHeight());
     objsav.image->Blit(actsp.Bmp.get(), 0, 0);
-    objsav.in_use = true;
     objsav.sppic = specialpic;
     objsav.tintamnt = tint_level;
     objsav.tintr = tint_red;
