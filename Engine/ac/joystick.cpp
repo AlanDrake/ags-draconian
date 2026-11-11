@@ -195,7 +195,7 @@ void remove_joystick(int instance_id)
         // mark the script object as invalid and release the internal reference to it
         if (it->scriptJoystickHandle > 0)
         {
-            auto *script_joy = (ScriptJoystick *)ccGetObjectAddressFromHandle(it->scriptJoystickHandle);
+            auto *script_joy = static_cast<ScriptJoystick *>(ccGetObjectAddressFromHandle(it->scriptJoystickHandle));
             script_joy->Invalidate();
             ccReleaseObjectReference(it->scriptJoystickHandle);
         }
@@ -208,7 +208,7 @@ void remove_joystick(int instance_id)
         auto const &joy = _joysticks[i];
         if (joy.scriptJoystickHandle > 0)
         {
-            auto *script_joy = (ScriptJoystick *)ccGetObjectAddressFromHandle(joy.scriptJoystickHandle);
+            auto *script_joy = static_cast<ScriptJoystick *>(ccGetObjectAddressFromHandle(joy.scriptJoystickHandle));
             script_joy->SetID(i);
         }
     }
