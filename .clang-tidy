@@ -21,7 +21,6 @@ Checks: >
   modernize-redundant-void-arg,
   modernize-deprecated-headers,
   readability-identifier-naming,
-  readability-braces-around-statements,
   readability-function-size,
   readability-misleading-indentation,
   readability-redundant-declaration,
@@ -45,7 +44,6 @@ CheckOptions:
   readability-function-size.LineThreshold: 120
   readability-function-size.NestingThreshold: 4
   readability-function-size.ParameterThreshold: 7
-  readability-braces-around-statements.ShortStatementLines: 0
   # int8_t is a number (Stream::ReadInt8, the save formats), not a character
   bugprone-signed-char-misuse.CharTypdefsToIgnore: 'int8_t'
 

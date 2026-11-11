@@ -51,7 +51,9 @@ python Script/tidy_diff.py --build build
 - 4 spaces, no tabs, 120 columns; Allman braces for functions, classes, namespaces and control
   statements.
 - Every `if`/`for`/`while` body on its own line. Braces optional for one statement, required if any
-  branch of the same `if`/`else` chain has them.
+  branch of the same `if`/`else` chain has them (a review rule: no clang-tidy setting of
+  `readability-braces-around-statements` matches it, so the check is off; the gate's
+  `readability-misleading-indentation` catches a second statement indented as if it were in the body).
 - Namespace contents not indented; access specifiers at the class's level.
 - `Bitmap *bmp`, `const String &name`; short inline members may stay on one line.
 
