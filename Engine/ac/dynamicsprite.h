@@ -25,25 +25,25 @@ enum ScriptColorFormat
 // Validates color format requested by user script, and returns a compatible color depth value
 int ValidateColorFormat(const char *api_name, ScriptColorFormat color_format);
 
-void DynamicSprite_Delete(ScriptDynamicSprite *sds);
-ScriptDrawingSurface *DynamicSprite_GetDrawingSurface(ScriptDynamicSprite *dss);
-int DynamicSprite_GetGraphic(ScriptDynamicSprite *sds);
-int DynamicSprite_GetWidth(ScriptDynamicSprite *sds);
-int DynamicSprite_GetHeight(ScriptDynamicSprite *sds);
-int DynamicSprite_GetColorDepth(ScriptDynamicSprite *sds);
-void DynamicSprite_Resize(ScriptDynamicSprite *sds, int width, int height);
-void DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction);
-void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSprite);
-void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int height, int x, int y);
-void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x1, int y1, int width, int height);
-void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int height);
-void DynamicSprite_Tint(ScriptDynamicSprite *sds, int red, int green, int blue, int saturation, int luminance);
-int DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char *namm);
-ScriptDynamicSprite *DynamicSprite_CreateFromSaveGame(int sgslot, int width, int height);
+void DynamicSprite_Delete(ScriptDynamicSprite *dynsprite);
+ScriptDrawingSurface *DynamicSprite_GetDrawingSurface(ScriptDynamicSprite *dynsprite);
+int DynamicSprite_GetGraphic(ScriptDynamicSprite *dynsprite);
+int DynamicSprite_GetWidth(ScriptDynamicSprite *dynsprite);
+int DynamicSprite_GetHeight(ScriptDynamicSprite *dynsprite);
+int DynamicSprite_GetColorDepth(ScriptDynamicSprite *dynsprite);
+void DynamicSprite_Resize(ScriptDynamicSprite *dynsprite, int width, int height);
+void DynamicSprite_Flip(ScriptDynamicSprite *dynsprite, int direction);
+void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *dynsprite, int source_sprite);
+void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *dynsprite, int width, int height, int x, int y);
+void DynamicSprite_Crop(ScriptDynamicSprite *dynsprite, int x, int y, int width, int height);
+void DynamicSprite_Rotate(ScriptDynamicSprite *dynsprite, int angle, int width, int height);
+void DynamicSprite_Tint(ScriptDynamicSprite *dynsprite, int red, int green, int blue, int saturation, int luminance);
+int DynamicSprite_SaveToFile(ScriptDynamicSprite *dynsprite, const char *name);
+ScriptDynamicSprite *DynamicSprite_CreateFromSaveGame(int save_slot, int width, int height);
 ScriptDynamicSprite *DynamicSprite_CreateFromFile(const char *filename, int color_fmt);
 ScriptDynamicSprite *DynamicSprite_CreateFromScreenShot(int width, int height, int layers);
 ScriptDynamicSprite *DynamicSprite_CreateFromExistingSprite(int slot, int color_fmt);
-ScriptDynamicSprite *DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width,
+ScriptDynamicSprite *DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *surface, int x, int y, int width,
                                                             int height, int color_fmt);
 ScriptDynamicSprite *DynamicSprite_Create(int width, int height, int color_fmt);
 ScriptDynamicSprite *DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height);
