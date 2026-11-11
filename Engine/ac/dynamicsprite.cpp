@@ -50,8 +50,6 @@ extern AGS::Engine::IGraphicsDriver *gfxDriver;
 
 char check_dynamic_sprites_at_exit = 1;
 
-// ** SCRIPT DYNAMIC SPRITE
-
 int ValidateColorFormat(const char *api_name, ScriptColorFormat color_format)
 {
     switch (color_format)
@@ -138,7 +136,6 @@ void DynamicSprite_Flip(ScriptDynamicSprite *dynsprite, int direction)
         quit("!DynamicSprite.Flip: sprite has been deleted");
     GraphicFlip flip = ValidateFlip("DynamicSprite.Flip", direction);
 
-    // resize the sprite to the requested size
     Bitmap *sprite = spriteset[dynsprite->slot];
     std::unique_ptr<Bitmap> new_pic(
         BitmapHelper::CreateTransparentBitmap(sprite->GetWidth(), sprite->GetHeight(), sprite->GetColorDepth()));
@@ -168,7 +165,7 @@ void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *dynsprite, int sour
         quit("!DynamicSprite.CopyTransparencyMask: sprites are not the same colour depth");
     }
 
-    // set the dst's alpha channel depending on the src
+    // merge the source's transparency (alpha channel or mask) into the dynamic sprite
     BitmapHelper::CopyTransparency(dst, src, dst->GetColorDepth() == 32, src->GetColorDepth() == 32);
     game_sprite_updated(dynsprite->slot);
 }
@@ -198,7 +195,7 @@ void DynamicSprite_Crop(ScriptDynamicSprite *dynsprite, int x, int y, int width,
     if ((width < 1) || (height < 1))
         quit("!DynamicSprite.Crop: width and height must be greater than zero");
 
-    // Clamp the cropped size to the valid area of the original image
+    // Warn if the crop area is outside the original image, then clamp it to the image
     if ((x < 0) || (y < 0) || (width > game.SpriteInfos[dynsprite->slot].Width - x) ||
         (height > game.SpriteInfos[dynsprite->slot].Height - y))
     {
@@ -242,7 +239,7 @@ void DynamicSprite_Rotate(ScriptDynamicSprite *dynsprite, int angle, int width, 
         height = rot_sz.Height;
     }
 
-    // resize the sprite to the requested size
+    // draw the sprite onto a new transparent bitmap of the requested size
     Bitmap *sprite = spriteset[dynsprite->slot];
     std::unique_ptr<Bitmap> new_pic(BitmapHelper::CreateTransparentBitmap(width, height, sprite->GetColorDepth()));
 
@@ -282,10 +279,6 @@ int DynamicSprite_SaveToFile(ScriptDynamicSprite *dynsprite, const char *name)
 
 ScriptDynamicSprite *DynamicSprite_CreateFromSaveGame(int save_slot, int width, int height)
 {
-    // FIXME: disabled HasFreeSlots check because it's not implemented right
-    //if (!spriteset.HasFreeSlots())
-    //    return nullptr;
-
     auto screenshot = read_savedgame_screenshot(get_save_game_path(save_slot));
     if (!screenshot)
         return nullptr;
@@ -307,10 +300,6 @@ ScriptDynamicSprite *DynamicSprite_CreateFromSaveGame(int save_slot, int width, 
 
 ScriptDynamicSprite *DynamicSprite_CreateFromFile(const char *filename, int color_fmt)
 {
-    // FIXME: disabled HasFreeSlots check because it's not implemented right
-    //if (!spriteset.HasFreeSlots())
-    //    return nullptr;
-
     std::unique_ptr<Stream> in(ResolveScriptPathAndOpen(filename, FileOpenMode::kFile_Open, StreamMode::kStream_Read));
     if (!in)
         return nullptr;
@@ -332,10 +321,6 @@ ScriptDynamicSprite *DynamicSprite_CreateFromFile(const char *filename, int colo
 ScriptDynamicSprite *DynamicSprite_CreateFromScreenShot(int width, int height, int layers)
 {
     // TODO: refactor and merge with create_savegame_screenshot()
-    // FIXME: disabled HasFreeSlots check because it's not implemented right
-    //if (!spriteset.HasFreeSlots())
-    //    return nullptr;
-
     auto new_pic = create_game_screenshot(width, height, layers);
     if (!new_pic)
         return nullptr; // out of mem or invalid parameters
@@ -352,10 +337,6 @@ ScriptDynamicSprite *DynamicSprite_CreateFromScreenShot2(int width, int height)
 
 ScriptDynamicSprite *DynamicSprite_CreateFromExistingSprite(int slot, int color_fmt)
 {
-    // FIXME: disabled HasFreeSlots check because it's not implemented right
-    //if (!spriteset.HasFreeSlots())
-    //    return nullptr;
-
     if (!spriteset.DoesSpriteExist(slot))
         quitprintf("DynamicSprite.CreateFromExistingSprite: sprite %d does not exist", slot);
 
@@ -375,10 +356,6 @@ ScriptDynamicSprite *DynamicSprite_CreateFromExistingSprite(int slot, int color_
 ScriptDynamicSprite *DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *surface, int x, int y, int width,
                                                             int height, int color_fmt)
 {
-    // FIXME: disabled HasFreeSlots check because it's not implemented right
-    //if (!spriteset.HasFreeSlots())
-    //    return nullptr;
-
     if (!surface->IsValid())
     {
         debug_script_warn("DynamicSprite.CreateFromDrawingSurface: attempted to use surface after its source image was "
@@ -414,10 +391,6 @@ ScriptDynamicSprite *DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
 
 ScriptDynamicSprite *DynamicSprite_Create(int width, int height, int color_fmt)
 {
-    // FIXME: disabled HasFreeSlots check because it's not implemented right
-    //if (!spriteset.HasFreeSlots())
-    //    return nullptr;
-
     int color_depth = ValidateColorFormat("DynamicSprite.Create", static_cast<ScriptColorFormat>(color_fmt));
 
     if (width <= 0 || height <= 0)
@@ -441,10 +414,6 @@ ScriptDynamicSprite *DynamicSprite_Create(int width, int height, int color_fmt)
 
 ScriptDynamicSprite *DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height)
 {
-    // FIXME: disabled HasFreeSlots check because it's not implemented right
-    //if (!spriteset.HasFreeSlots())
-    //    return nullptr;
-
     if (frame == SCR_NO_VALUE)
     {
         frame = play.bg_frame;
@@ -471,7 +440,7 @@ ScriptDynamicSprite *DynamicSprite_CreateFromBackground(int frame, int x1, int y
     if ((x1 < 0) || (y1 < 0) || (x1 + width > play.room_width) || (y1 + height > play.room_height))
         quit("!DynamicSprite.CreateFromBackground: invalid co-ordinates specified");
 
-    // create a new sprite as a copy of the existing one
+    // create a new sprite as a copy of the background area
     std::unique_ptr<Bitmap> new_pic(
         BitmapHelper::CreateBitmap(width, height, thisroom.BgImages[frame]->GetColorDepth()));
     if (!new_pic)
