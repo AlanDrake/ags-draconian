@@ -253,6 +253,9 @@ void DynamicSprite_Rotate(ScriptDynamicSprite *dynsprite, int angle, int width, 
 
 void DynamicSprite_Tint(ScriptDynamicSprite *dynsprite, int red, int green, int blue, int saturation, int luminance)
 {
+    if (dynsprite->slot == 0)
+        quit("!DynamicSprite.Tint: sprite has been deleted");
+
     Bitmap *src = spriteset[dynsprite->slot];
     std::unique_ptr<Bitmap> new_pic(
         BitmapHelper::CreateBitmap(src->GetWidth(), src->GetHeight(), src->GetColorDepth()));

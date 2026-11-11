@@ -26,7 +26,7 @@ enum ScriptColorFormat
 int ValidateColorFormat(const char *api_name, ScriptColorFormat color_format);
 
 // Script API functions of DynamicSprite. Resize, Flip, CopyTransparencyMask, ChangeCanvasSize, Crop, Rotate,
-// SaveToFile and GetGraphic quit the script if the sprite was deleted.
+// Tint, SaveToFile and GetGraphic quit the script if the sprite was deleted.
 // Frees the sprite, invalidates its drawing surfaces, and resets the object's slot to 0.
 void DynamicSprite_Delete(ScriptDynamicSprite *dynsprite);
 // Returns the sprite's DrawingSurface; one that is already acquired is returned again, else a new one is made.
