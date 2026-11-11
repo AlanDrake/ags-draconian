@@ -24,10 +24,10 @@
 #include "debug/debug_log.h"
 #include "script/script_api.h"
 
-bool is_default_gamepad_skip_button_pressed(eAGSGamepad_Button gbn)
+bool is_default_gamepad_skip_button_pressed(eAGSGamepad_Button button)
 {
-    return (gbn == eAGSGamepad_ButtonA) || (gbn == eAGSGamepad_ButtonB) || (gbn == eAGSGamepad_ButtonX) ||
-           (gbn == eAGSGamepad_ButtonY);
+    return (button == eAGSGamepad_ButtonA) || (button == eAGSGamepad_ButtonB) || (button == eAGSGamepad_ButtonX) ||
+           (button == eAGSGamepad_ButtonY);
 }
 
 // clamps to -1.0 to 1.0, taking into account a dead-zone from 0.0
@@ -195,8 +195,8 @@ void remove_joystick(int instance_id)
         // need to do something with the script reference here!
         if (it->scriptJoystickHandle > 0)
         {
-            auto *scriptJoystick = (ScriptJoystick *)ccGetObjectAddressFromHandle(it->scriptJoystickHandle);
-            scriptJoystick->Invalidate();
+            auto *script_joy = (ScriptJoystick *)ccGetObjectAddressFromHandle(it->scriptJoystickHandle);
+            script_joy->Invalidate();
             ccReleaseObjectReference(it->scriptJoystickHandle);
         }
 
@@ -208,8 +208,8 @@ void remove_joystick(int instance_id)
         auto const &joy = _joysticks[i];
         if (joy.scriptJoystickHandle > 0)
         {
-            auto *scriptJoystick = (ScriptJoystick *)ccGetObjectAddressFromHandle(joy.scriptJoystickHandle);
-            scriptJoystick->SetID(i);
+            auto *script_joy = (ScriptJoystick *)ccGetObjectAddressFromHandle(joy.scriptJoystickHandle);
+            script_joy->SetID(i);
         }
     }
 }
@@ -249,12 +249,12 @@ ScriptJoystick *Joystick_GetiJoysticks(int i)
         return static_cast<ScriptJoystick *>(ccGetObjectAddressFromHandle(_joysticks[i].scriptJoystickHandle));
     }
 
-    ScriptJoystick *newJoy = new ScriptJoystick(i);
-    int handle = ccRegisterManagedObject(newJoy, newJoy);
+    ScriptJoystick *new_joy = new ScriptJoystick(i);
+    int handle = ccRegisterManagedObject(new_joy, new_joy);
     // make sure an internal reference is kept
     ccAddObjectReference(handle);
     _joysticks[i].scriptJoystickHandle = handle;
-    return newJoy;
+    return new_joy;
 }
 
 bool Joystick_IsAnyButtonDown(ScriptJoystick *joy)
@@ -264,9 +264,9 @@ bool Joystick_IsAnyButtonDown(ScriptJoystick *joy)
     auto const &joy_impl = _joysticks[joy->GetID()];
     if (joy_impl.sdlGameController != nullptr)
     {
-        for (int butt = SDL_CONTROLLER_BUTTON_A; butt < SDL_CONTROLLER_BUTTON_MAX; butt++)
+        for (int button = SDL_CONTROLLER_BUTTON_A; button < SDL_CONTROLLER_BUTTON_MAX; button++)
         {
-            if (SDL_GameControllerGetButton(joy_impl.sdlGameController, static_cast<SDL_GameControllerButton>(butt)))
+            if (SDL_GameControllerGetButton(joy_impl.sdlGameController, static_cast<SDL_GameControllerButton>(button)))
             {
                 return true;
             }
@@ -275,9 +275,9 @@ bool Joystick_IsAnyButtonDown(ScriptJoystick *joy)
     else
     {
         int button_count = joy_impl.ButtonCount;
-        for (int butt = 0; butt < button_count; butt++)
+        for (int button = 0; button < button_count; button++)
         {
-            if (SDL_JoystickGetButton(joy_impl.sdlJoystick, butt) > 0)
+            if (SDL_JoystickGetButton(joy_impl.sdlJoystick, button) > 0)
             {
                 return true;
             }
@@ -311,13 +311,13 @@ const char *Joystick_GetName(ScriptJoystick *joy)
     return CreateNewScriptString(name_str);
 }
 
-int Joystick_IsGamepadButtonDown(ScriptJoystick *joy, int butt)
+int Joystick_IsGamepadButtonDown(ScriptJoystick *joy, int button)
 {
     if (joy->IsInvalid())
         return 0;
     auto const &joy_impl = _joysticks[joy->GetID()];
     return SDL_GameControllerGetButton(joy_impl.sdlGameController,
-                                       Gamepad_Button_AGStoSDL(static_cast<eAGSGamepad_Button>(butt)));
+                                       Gamepad_Button_AGStoSDL(static_cast<eAGSGamepad_Button>(button)));
 }
 
 float Joystick_GetGamepadAxis(ScriptJoystick *joy, int axis, float dead_zone)
@@ -346,19 +346,19 @@ float Joystick_GetAxis(ScriptJoystick *joy, int axis, float dead_zone)
     return axis_to_float_with_deadzone(axis_val_int, dead_zone);
 }
 
-int Joystick_IsButtonDown(ScriptJoystick *joy, int butt)
+int Joystick_IsButtonDown(ScriptJoystick *joy, int button)
 {
     if (joy->IsInvalid())
         return 0;
     auto const &joy_impl = _joysticks[joy->GetID()];
     int button_count = joy_impl.ButtonCount;
-    if (butt < 0 || butt >= button_count)
+    if (button < 0 || button >= button_count)
     {
         debug_script_warn("Warning: joystick's (id %d) button %d is not in range (0:%d), returned false",
-                          joy_impl.sdlJoystickID, butt, button_count);
+                          joy_impl.sdlJoystickID, button, button_count);
         return 0;
     }
-    return SDL_JoystickGetButton(joy_impl.sdlJoystick, butt);
+    return SDL_JoystickGetButton(joy_impl.sdlJoystick, button);
 }
 
 

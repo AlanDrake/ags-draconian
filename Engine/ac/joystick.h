@@ -86,7 +86,7 @@ struct GamepadInput
 };
 
 void JoystickConnectionEvent(const SDL_JoyDeviceEvent &event);
-bool is_default_gamepad_skip_button_pressed(eAGSGamepad_Button gbn);
+bool is_default_gamepad_skip_button_pressed(eAGSGamepad_Button button);
 void init_joystick();
 
 SDL_GameControllerAxis Gamepad_Axis_AGStoSDL(eAGSGamepad_Axis ags_axis);
