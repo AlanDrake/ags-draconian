@@ -4101,6 +4101,62 @@ by a Sonnet 5.5 subagent at `medium`, reviewed here; local commits `0b05b0300`, 
 - **Left for the next file sets:** by count, the remaining `Engine/ac` files (`viewport_script.cpp` 138, `dynamicsprite.cpp` 73, `file.cpp` 69, `display.cpp` 53,
   `slider.cpp/.h` 62) and the `butt`/`guio`/`sds` names other files still declare.
 
+**`viewport_script.cpp`, `dynamicsprite.cpp/.h`, `file.cpp/.h`** (2026-11-11; three Sonnet 5.5 subagents at `medium`
+in parallel, one worktree each from HEAD, reviewed here; the first set run this way):
+- **`viewport_script.cpp`** (`9e09c881a` `[rename]`, `83ae040bf` `[comment]`): `scam` 78 and `scv` 60 to 0. A
+  `ScriptCamera *` is `script_cam`, a `ScriptViewport *` `script_view`: the same functions use `cam`/`view` for the
+  `Camera`/`Viewport` behind them (`gamestate.cpp`'s `sccam`/`scview` are off the watchlist and stay);
+  `clipViewport` → `clip_viewport`. No header, no debris, no CHECKME: the section banners say that a deleted camera or
+  viewport has the ID -1 and every function but `Delete` warns on it (43 functions, 44 `GetID() < 0` checks).
+- **`dynamicsprite.cpp/.h`** (`7036f0198`, `838984bb9`): `sds` 91 to 0. A `ScriptDynamicSprite *` is `dynsprite`, as
+  in `get_dynsprite_surface` (other files: `sds` 39, `dss` 3); its `ScriptDrawingSurface *` is `surface`, bitmaps
+  `src`/`dst`, `sgslot` → `save_slot`, `namm` → `name`, `sourceSprite` → `source_sprite`; `Crop`'s header synced.
+  Comments: seven commented-out `HasFreeSlots` blocks deleted (the method is commented out in `spritecache.h`), wrong
+  "resize" comments in `Flip`/`Rotate` fixed, `add_dynamic_sprite`'s "returns 0" corrected (it passes on -1,
+  `NO_SPRITE_INDEX`), every function of the header documented (spot-checked: `Rotate`'s 1-359, `SaveToFile`'s `.bmp`).
+- **`file.cpp/.h` + `update.cpp`** (`c4403392d`, `4af9514ed`, `b54332ca9`, `a8c32ba14`): `fil` 86 to 0 (`file`),
+  `fnmm` → `filename`, `chartoWrite` → `char_to_write`. `character.h` needed nothing; `followingAsSheep` was in
+  `Engine/main/update.cpp`, not `characterinfo_engine.cpp` (a parameter and a local: `following_as_sheep`), and the
+  tidy gate's reserved-name rule then took that file's two `CharacterInfo *chi` to `ch`. Comments: two FIXMEs became
+  precise TODOs (the save directory, an unknown `$TOKEN$`), one answered (the `Loc.SubDir` lines are needed: callers
+  create the file's own directory), every function of `file.h` documented.
+- **Verification:** each agent: `compare_objects.py` 638 objects identical, format, helpers, build + ctest, tidy,
+  headers. On a branch with the eight commits, in the main tree: `compare_objects.py 93b33dbab` identical for the range
+  and for every commit against its parent (a first run reported 3 changed functions; stale objects in `.compare/`, a
+  re-run was identical); `prepush.py --auto --base 93b33dbab --emsdk ...`: every selected stage passes, linux ctest
+  1181/1181 (one WSL run for the three sets). Not run: macOS, iOS, Android.
+- **Parallel runs:** a fresh worktree lacks the googletest submodule (the `msbuild` stage cannot find `gtest/gtest.h`)
+  and the Editor's NuGet packages; the agents shared the scratchpad and overwrote each other's scripts once; the
+  `linux` stages share one WSL clone, so each agent skipped it. Give each agent its own scratch folder.
+- **Found and fixed, one commit each** (the user, 2026-11-11):
+  - `cc7e218d4`: the three AGFReader version tests wrote, opened and deleted one file, `agfreader_test_version.agf`;
+    under `ctest -j` they raced (`OpenAcceptsCurrentProjectFormat` failed with `XML_ERROR_EMPTY_DOCUMENT` in an agent's
+    run). The file is named after the running test, as in `build_cache_test.cpp`.
+  - `f04c500e3`: `File.ReadRawChar` (int) returned the `char` of the old global `FileReadRawChar`: with a signed
+    `char` a byte above 127 came back negative and 255 as -1, the end-of-file value; with an unsigned one (ARM) the end
+    came back as 255. It returns `Stream::ReadByte()`: 0-255, -1 at the end (every stream class checked).
+    `862284d0c` `[delete]`s the unregistered `FileReadRawChar` (1 function removed). Upstream `ags4` has the same code.
+  - `50510bb9f` a stray `;` in `File_ReadStringBack` (code identical); `6c237db78` `||` for a bitwise `|` in
+    `FileRead` (a short-circuit branch, not a hot path).
+  - `9ce810048`: `DynamicSprite.Tint` on a deleted sprite (slot 0) tinted sprite 0 and passed it to
+    `add_dynamic_sprite(0, ...)`, which refuses slot 0 (an assert in Debug, a silent no-op in Release); it quits now,
+    as the other functions that change the image.
+  - `2b1389a2e`: `Width`, `Height`, `ColorDepth` of a deleted sprite returned sprite 0's; they warn and return 0 (not
+    a quit: a game that reads them after `Delete` runs on).
+  - `964ffb429`: `DynamicSprite.GetDrawingSurface` on a deleted sprite made a surface on slot 0, which
+    `ScriptDrawingSurface::GetBitmapSurface` takes as valid: the script drew on the game's sprite 0 in memory. It
+    quits now. Upstream `ags4` has the same code: a U.x candidate, with `f04c500e3`.
+  - `1c25551d1`: `free_dynamic_sprite`'s `notify_all` chose between two calls that have done the same since upstream
+    `fcc42eb6a`; the parameter is gone (callers differ by the argument only).
+  - Verification: `prepush.py --auto --base a8c32ba14 --emsdk ...`: every selected stage passes (format, helpers,
+    build + ctest, tidy, headers, libcxx 341, emscripten, linux ctest 1181/1181, msbuild + Editor NUnit). Not added: tests for the `File` and `DynamicSprite` fixes
+    (no test reaches the script file handles or `ScriptDynamicSprite` yet).
+- **Noted, not changed:** `DynamicSprite_Rotate`'s condition mixes `&&` and `||` without parentheses (right by
+  precedence); a few `Sc_DynamicSprite_*` wrappers have no signature comment (5.2); `file.cpp`'s read stream named
+  `out` in `File_ReadRawFloat`.
+- **Left for the next file sets:** `slider.cpp/.h`, `display.cpp` 55, `gui.cpp` 55, `draw.cpp` 56; 2,354 watchlist
+  names in all, 714 without the 5.1 globals (`thisroom`, `croom`, `objs`, `scsystem`, `usetup`).
+
 ### 7.3 Ports
 
 **7.3, the macOS Xcode source list** (2026-11-09; a slice of 7.3, the other ports are open; a Sonnet 5.5 subagent):
