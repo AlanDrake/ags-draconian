@@ -183,7 +183,7 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
     const int screen_padding = 5; // historical limit of text placement from any screen border
     const int padding = get_textwindow_padding(gui_id);
     const int padding_scaled = padding;
-    const int padding_doubled_scaled = padding * 2; // Just in case screen size does is not neatly divisible by 320x200
+    const int padding_doubled_scaled = padding * 2; // padding on both sides of the text
 
     break_up_text_into_lines(text, Lines, width - 2 * padding, font);
     DisplayVars disp(get_font_linespacing(font), get_text_lines_height(font, Lines.Count()));
@@ -242,8 +242,8 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
             x += (old_width - width);
     }
 
-    if ((look.Position & kDisplayTextPos_ScreenCenterX) != 0)
     // Center the text in the middle of the screen
+    if ((look.Position & kDisplayTextPos_ScreenCenterX) != 0)
     {
         x = ui_view.GetWidth() / 2 - width / 2;
     }
@@ -272,7 +272,8 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
     // if it's an empty speech line, don't draw anything
     if ((strlen(text) < 1) || (strcmp(text, "  ") == 0) || (width == 0))
     {
-        // CHECKME: creating a clear bitmap here is a safety measure, but probably we may somehow avoid doing this?
+        // Both callers make an overlay out of the result, which needs a bitmap;
+        // TODO: let the overlay of an empty line have no bitmap
         return std::unique_ptr<Bitmap>(BitmapHelper::CreateTransparentBitmap(2, 2, game.GetColorDepth()));
     }
 
@@ -459,12 +460,12 @@ ScreenOverlay *display_main(int x, int y, int width, const char *text, const Top
         render_graphics();
 
     // TODO: should this really be called regardless of message type?
-    // _display_main may be called even for custom textual overlays
+    // display_main may be called even for custom textual overlays
     EndSkippingUntilCharStops();
 
     if (topbar)
     {
-        // the top bar should behave like DisplaySpeech wrt blocking (???)
+        // a message with a top bar (DisplayTopBar) blocks like speech, not like a message box
         disp_type = kDisplayText_Speech;
     }
 
@@ -896,8 +897,6 @@ void draw_button_background(Bitmap *ds, int x1, int y1, int x2, int y2, GUIMain 
     }
 }
 
-// Calculate the width that the left and right border of the textwindow
-// GUI take up
 int get_textwindow_border_width(int gui_id)
 {
     if (gui_id < 0)
@@ -915,7 +914,6 @@ int get_textwindow_border_width(int gui_id)
     return border_width;
 }
 
-// get the hegiht of the text window's top border
 int get_textwindow_top_border_height(int gui_id)
 {
     if (gui_id < 0)
@@ -930,8 +928,6 @@ int get_textwindow_top_border_height(int gui_id)
     return game.SpriteInfos[get_but_pic(&guis[gui_id], kTW_Top)].Height;
 }
 
-// Get the padding for a text window
-// -1 for the game's custom text window
 int get_textwindow_padding(int gui_id)
 {
     int result;

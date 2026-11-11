@@ -64,7 +64,7 @@ enum DisplayTextPosition
     kDisplayTextPos_ClampToScreenHeight = 0x0020,
 };
 
-// Whether displayed text is allowed to be shrinked
+// Whether displayed text is allowed to be shrunk
 enum DisplayTextShrink
 {
     kDisplayTextShrink_None,
@@ -124,8 +124,6 @@ DisplayTextPosition get_textpos_from_scriptcoords(int x, int y, bool for_speech)
 // NOTE: this function treats text as-is, not doing any processing over it.
 // FIXME: for historical reasons this function also contains position adjustment;
 // but this should not be done here at all.
-// FIXME: x is allowed to be passed as OVR_AUTOPLACE, which has special meaning,
-// but that's a confusing use of this argument.
 std::unique_ptr<AGS::Common::Bitmap> create_textual_image(const char *text, const DisplayTextLooks &look,
                                                           color_t text_color, int &x, int &y, int &adjusted_x,
                                                           int &adjusted_y, int width, int font,
@@ -136,7 +134,7 @@ std::unique_ptr<AGS::Common::Bitmap> create_textual_image(const char *text, cons
 //    to use, valid only if kDisplayText_NormalOverlay;
 //    FIXME: find a way to not pass over_id at all, this logic is bad
 // * style - more specific desired look (use text window, etc);
-// * pass y = -1 to find Y co-ord automatically;
+// * pass y < 0 to find Y co-ord automatically (see get_textpos_from_scriptcoords);
 // autoplace_at_char - tells whether overlay should autoposition itself whenever game updates.
 // NOTE: this function treats the text as-is; it assumes that any processing
 // (translation, parsing voice token) was done prior to its call.
@@ -155,7 +153,11 @@ void post_display_cleanup();
 bool try_auto_play_speech(const char *text, const char *&replace_text, int char_id);
 // Calculates meaningful length of the displayed text
 int GetTextDisplayLength(const char *text);
-// Calculates number of game loops for displaying a text on screen
+// Calculates number of game loops for displaying a text on screen;
+// uses source_text_length instead of the text's own length, if that is set (and resets it);
+// can_be_relative is 1 for background speech, which keeps its time relative to a fixed 40 fps
+// when play.bgspeech_game_speed is set.
+// Also stores the lipsync frame duration in loops_per_character.
 int GetTextDisplayTime(const char *text, int can_be_relative = 0);
 // Draw an (optionally) outlined text
 void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int font, color_t text_color, color_t outline_color,
@@ -171,24 +173,32 @@ void wouttext_aligned(AGS::Common::Bitmap *ds, int x, int y, int area_width, int
 // Draw an (optionally) outlined text using a horizontal alignment and default outline color
 void wouttext_aligned(AGS::Common::Bitmap *ds, int x, int y, int area_width, int font, color_t text_color,
                       const char *text, HorAlignment align);
+// Draws a text window's border sprite at x, y, shifted by off_x/off_y sprite widths/heights
+// (-1 shifts to the left or up of the point, 0 leaves it)
 void do_corner(AGS::Common::Bitmap *ds, int sprite_id, int x, int y, int off_x, int off_y);
-// Returns the image of a button control on the GUI under given child index
+// Returns the normal image of the button that makes the given border of a text window GUI,
+// or 0 if the GUI has no such control
 int get_but_pic(AGS::Common::GUIMain *gui, AGS::Common::GUITextWindowBorder border);
+// Draws the background and borders of a text window into the rectangle x1,y1 - x2,y2 (inclusive)
+// of the bitmap; gui is the text window GUI, or null for the standard window
 void draw_button_background(AGS::Common::Bitmap *ds, int x1, int y1, int x2, int y2, AGS::Common::GUIMain *gui);
-// Calculate the width that the left and right border of the textwindow
-// GUI take up
+// Calculates the width that the left and right border of the text window GUI take up
 int get_textwindow_border_width(int gui_id);
-// get the hegiht of the text window's top border
+// Gets the height of the text window's top border
 int get_textwindow_top_border_height(int gui_id);
 // draw_text_window: draws the normal or custom text window
 // creates and returns a new bitmap
-// assings text start x & y pos in parameters
+// assigns text start x & y pos in the first two parameters;
+// x, y and width are also adjusted to the size of the borders (custom text window only)
 std::unique_ptr<AGS::Common::Bitmap> draw_text_window(int *text_x, int *text_y, int *x, int *y, int *width,
                                                       color_t *set_text_color, int override_height, int gui_id,
                                                       const DisplayVars &disp);
+// Same as draw_text_window, with a top bar (name label) on top of the window, if topbar is given
 std::unique_ptr<AGS::Common::Bitmap> draw_text_window_and_bar(const TopBarSettings *topbar, const DisplayVars &disp,
                                                               int *text_x, int *text_y, int *x, int *y, int *width,
                                                               color_t *set_text_color, int gui_id = -1);
+// Gets the padding of a text window GUI; negative gui_id stands for the game's custom text window,
+// zero or an invalid one gives the default padding
 int get_textwindow_padding(int gui_id);
 
 // The efficient length of the last source text prepared for display
