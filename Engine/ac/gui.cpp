@@ -913,42 +913,40 @@ int gui_get_interactable(int x, int y)
 int gui_on_mouse_move(const int mx, const int my)
 {
     int mouse_over_gui = -1;
-    // If all GUIs are off, skip the loop
+    // If all GUIs are off, no GUI is under the mouse or pops up
     if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (GUI::Context.DisabledState >= 0))
-        ;
-    else
+        return mouse_over_gui;
+
+    // Scan for mouse-y-pos GUIs, and pop one up if appropriate
+    // Also work out the mouse-over GUI while we're at it
+    // The loop goes in draw order, from farthest to nearest, so the last GUI that is
+    // interactable at the mouse position (the nearest one) stays in mouse_over_gui;
+    // except when the loop stops early, on a GUI that pops up or while a blocking
+    // overlay disables the interface: the GUIs after that one are not tested.
+    for (int gui_id : play.gui_draw_order)
     {
-        // Scan for mouse-y-pos GUIs, and pop one up if appropriate
-        // Also work out the mouse-over GUI while we're at it
-        // The loop goes in draw order, from farthest to nearest, so the last GUI that is
-        // interactable at the mouse position (the nearest one) stays in mouse_over_gui;
-        // except when the loop stops early, on a GUI that pops up or while a blocking
-        // overlay disables the interface: the GUIs after that one are not tested.
-        for (int gui_id : play.gui_draw_order)
+        if (guis[gui_id].IsInteractableAt(mx, my))
+            mouse_over_gui = gui_id;
+
+        if (guis[gui_id].GetPopupStyle() != kGUIPopupMouseY)
+            continue;
+        if (play.complete_overlay_on > 0)
+            break; // interfaces disabled
+        if (ifacepopped == gui_id)
+            continue;
+        if (!guis[gui_id].IsVisible())
+            continue;
+        // Don't allow it to be popped up while skipping cutscene
+        if (play.fast_forward)
+            continue;
+
+        if (mousey < guis[gui_id].GetPopupAtY())
         {
-            if (guis[gui_id].IsInteractableAt(mx, my))
-                mouse_over_gui = gui_id;
-
-            if (guis[gui_id].GetPopupStyle() != kGUIPopupMouseY)
-                continue;
-            if (play.complete_overlay_on > 0)
-                break; // interfaces disabled
-            if (ifacepopped == gui_id)
-                continue;
-            if (!guis[gui_id].IsVisible())
-                continue;
-            // Don't allow it to be popped up while skipping cutscene
-            if (play.fast_forward)
-                continue;
-
-            if (mousey < guis[gui_id].GetPopupAtY())
-            {
-                set_cursor_look(game.GetModePointer());
-                guis[gui_id].SetConceal(false);
-                ifacepopped = gui_id;
-                PauseGame();
-                break;
-            }
+            set_cursor_look(game.GetModePointer());
+            guis[gui_id].SetConceal(false);
+            ifacepopped = gui_id;
+            PauseGame();
+            break;
         }
     }
     return mouse_over_gui;
