@@ -80,7 +80,6 @@ OnScreenWindow::OnScreenWindow()
     oldtop = -1;
 }
 
-int windowcount = 0, curswas = 0;
 int win_x = 0, win_y = 0, win_width = 0, win_height = 0;
 // CLNUP dialogs are based on 320x200 coords, will need to at least center them
 int CSCIDrawWindow(int x, int y, int width, int height)
@@ -99,7 +98,6 @@ int CSCIDrawWindow(int x, int y, int width, int height)
     if (win_id < 0)
         quit("Too many windows created.");
 
-    windowcount++;
     x -= 2;
     y -= 2;
     width += 4;
@@ -123,7 +121,6 @@ void CSCIEraseWindow(int win_id)
     ignore_bounds--;
     topwindowhandle = oswi[win_id].oldtop;
     oswi[win_id].handle = -1;
-    windowcount--;
     clear_gui_screen();
 }
 
