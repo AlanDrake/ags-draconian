@@ -282,7 +282,7 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *ch, Stream *in, CharacterS
     }
     else
     {
-        pivot = Point(0.5f, 0.5f); // default: center
+        pivot = Pointf(0.5f, 0.5f); // default: center
         pivot_offset = Point();
     }
 
