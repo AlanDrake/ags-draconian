@@ -279,6 +279,7 @@ if(AGS_TESTS)
         test/utf8_test.cpp
         test/scriptapi_test.cpp
         test/version_test.cpp
+        test/wfnfont_test.cpp
     )
     set_target_properties(common_test PROPERTIES
         CXX_STANDARD 17

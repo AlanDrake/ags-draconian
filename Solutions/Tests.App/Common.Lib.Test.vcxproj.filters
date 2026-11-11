@@ -25,6 +25,9 @@
     <ClCompile Include="..\..\Common\test\version_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\test\wfnfont_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Common\test\stream_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>

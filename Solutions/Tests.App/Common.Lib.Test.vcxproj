@@ -48,6 +48,7 @@
     <ClCompile Include="..\..\Common\test\utf8_test.cpp" />
     <ClCompile Include="..\..\Common\test\scriptapi_test.cpp" />
     <ClCompile Include="..\..\Common\test\version_test.cpp" />
+    <ClCompile Include="..\..\Common\test\wfnfont_test.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{212724F9-66FC-4BB6-97F5-975CA10EFFEB}</ProjectGuid>
