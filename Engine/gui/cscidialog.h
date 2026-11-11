@@ -20,11 +20,11 @@
 #include "gui/guidialogdefines.h"
 #include "platform/types.h"
 
-int CSCIDrawWindow(int xx, int yy, int wid, int hit);
-void CSCIEraseWindow(int handl);
-int CSCIWaitMessage(CSCIMessage *cscim);
-int CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const char *title);
-void CSCIDeleteControl(int haa);
-int CSCISendControlMessage(int haa, int mess, int wPar, intptr_t ipPar);
+int CSCIDrawWindow(int x, int y, int width, int height);
+void CSCIEraseWindow(int win_id);
+int CSCIWaitMessage(CSCIMessage *msg);
+int CSCICreateControl(int typeandflags, int x, int y, int width, int height, const char *title);
+void CSCIDeleteControl(int ctrl_id);
+int CSCISendControlMessage(int ctrl_id, int msg, int w_param, intptr_t ip_param);
 int checkcontrols();
-int finddefaultcontrol(int flagmask);
+int finddefaultcontrol(int flag_mask);

@@ -63,12 +63,12 @@ int controlid = 0;
 
 //-----------------------------------------------------------------------------
 
-void __my_wbutt(Bitmap *ds, int x1, int y1, int x2, int y2)
+void __my_wbutt(Bitmap *dst, int x1, int y1, int x2, int y2)
 {
     color_t draw_color = GUI::GetStandardColorForBitmap(COL254);
-    ds->FillRect(Rect(x1, y1, x2, y2), draw_color);
+    dst->FillRect(Rect(x1, y1, x2, y2), draw_color);
     draw_color = GUI::GetStandardColorForBitmap(0);
-    ds->DrawRect(Rect(x1, y1, x2, y2), draw_color);
+    dst->DrawRect(Rect(x1, y1, x2, y2), draw_color);
 }
 
 //-----------------------------------------------------------------------------
@@ -83,57 +83,57 @@ OnScreenWindow::OnScreenWindow()
 int windowcount = 0, curswas = 0;
 int win_x = 0, win_y = 0, win_width = 0, win_height = 0;
 // CLNUP dialogs are based on 320x200 coords, will need to at least center them
-int CSCIDrawWindow(int xx, int yy, int wid, int hit)
+int CSCIDrawWindow(int x, int y, int width, int height)
 {
     ignore_bounds++;
-    int drawit = -1;
-    for (int aa = 0; aa < MAXSCREENWINDOWS; aa++)
+    int win_id = -1;
+    for (int i = 0; i < MAXSCREENWINDOWS; i++)
     {
-        if (oswi[aa].handle < 0)
+        if (oswi[i].handle < 0)
         {
-            drawit = aa;
+            win_id = i;
             break;
         }
     }
 
-    if (drawit < 0)
+    if (win_id < 0)
         quit("Too many windows created.");
 
     windowcount++;
-    xx -= 2;
-    yy -= 2;
-    wid += 4;
-    hit += 4;
-    Bitmap *ds = prepare_gui_screen(xx, yy, wid, hit, true);
-    oswi[drawit].x = xx;
-    oswi[drawit].y = yy;
-    __my_wbutt(ds, 0, 0, wid - 1, hit - 1); // wbutt goes outside its area
-    oswi[drawit].oldtop = topwindowhandle;
-    topwindowhandle = drawit;
-    oswi[drawit].handle = topwindowhandle;
-    win_x = xx;
-    win_y = yy;
-    win_width = wid;
-    win_height = hit;
-    return drawit;
+    x -= 2;
+    y -= 2;
+    width += 4;
+    height += 4;
+    Bitmap *dst = prepare_gui_screen(x, y, width, height, true);
+    oswi[win_id].x = x;
+    oswi[win_id].y = y;
+    __my_wbutt(dst, 0, 0, width - 1, height - 1); // wbutt goes outside its area
+    oswi[win_id].oldtop = topwindowhandle;
+    topwindowhandle = win_id;
+    oswi[win_id].handle = topwindowhandle;
+    win_x = x;
+    win_y = y;
+    win_width = width;
+    win_height = height;
+    return win_id;
 }
 
-void CSCIEraseWindow(int handl)
+void CSCIEraseWindow(int win_id)
 {
     ignore_bounds--;
-    topwindowhandle = oswi[handl].oldtop;
-    oswi[handl].handle = -1;
+    topwindowhandle = oswi[win_id].oldtop;
+    oswi[win_id].handle = -1;
     windowcount--;
     clear_gui_screen();
 }
 
-int CSCIWaitMessage(CSCIMessage *cscim)
+int CSCIWaitMessage(CSCIMessage *msg)
 {
-    for (int uu = 0; uu < MAXCONTROLS; uu++)
+    for (int i = 0; i < MAXCONTROLS; i++)
     {
-        if (vobjs[uu] != nullptr)
+        if (vobjs[i] != nullptr)
         {
-            vobjs[uu]->drawifneeded();
+            vobjs[i]->drawifneeded();
         }
     }
 
@@ -146,59 +146,59 @@ int CSCIWaitMessage(CSCIMessage *cscim)
         update_audio_system_on_game_loop();
         refresh_gui_screen();
 
-        cscim->id = -1;
-        cscim->code = 0;
+        msg->id = -1;
+        msg->code = 0;
         smcode = 0;
         // NOTE: CSCIWaitMessage is supposed to report only single message,
         // therefore we cannot process all buffered key presses here
         // (unless the whole dialog system is rewritten).
-        KeyInput ki;
-        if (run_service_key_controls(ki) && !play.IsIgnoringInput())
+        KeyInput key_input;
+        if (run_service_key_controls(key_input) && !play.IsIgnoringInput())
         {
-            int keywas = ki.Key;
-            int uchar = ki.UChar;
-            if (keywas == eAGSKeyCodeReturn)
+            int key = key_input.Key;
+            int unichar = key_input.UChar;
+            if (key == eAGSKeyCodeReturn)
             {
-                cscim->id = finddefaultcontrol(CNF_DEFAULT);
-                cscim->code = CM_COMMAND;
+                msg->id = finddefaultcontrol(CNF_DEFAULT);
+                msg->code = CM_COMMAND;
             }
-            else if (keywas == eAGSKeyCodeEscape)
+            else if (key == eAGSKeyCodeEscape)
             {
-                cscim->id = finddefaultcontrol(CNF_CANCEL);
-                cscim->code = CM_COMMAND;
+                msg->id = finddefaultcontrol(CNF_CANCEL);
+                msg->code = CM_COMMAND;
             }
-            else if ((uchar == 0) && (keywas < eAGSKeyCodeSpace) && (keywas != eAGSKeyCodeBackspace))
+            else if ((unichar == 0) && (key < eAGSKeyCodeSpace) && (key != eAGSKeyCodeBackspace))
                 ;
-            else if ((keywas >= eAGSKeyCodeUpArrow) & (keywas <= eAGSKeyCodePageDown) &
+            else if ((key >= eAGSKeyCodeUpArrow) & (key <= eAGSKeyCodePageDown) &
                      (finddefaultcontrol(CNT_LISTBOX) >= 0))
-                vobjs[finddefaultcontrol(CNT_LISTBOX)]->processmessage(CTB_KEYPRESS, keywas, 0);
+                vobjs[finddefaultcontrol(CNT_LISTBOX)]->processmessage(CTB_KEYPRESS, key, 0);
             else if (finddefaultcontrol(CNT_TEXTBOX) >= 0)
-                vobjs[finddefaultcontrol(CNT_TEXTBOX)]->processmessage(CTB_KEYPRESS, keywas, uchar);
+                vobjs[finddefaultcontrol(CNT_TEXTBOX)]->processmessage(CTB_KEYPRESS, key, unichar);
 
-            if (cscim->id < 0)
+            if (msg->id < 0)
             {
-                cscim->code = CM_KEYPRESS;
-                cscim->wParam = keywas;
+                msg->code = CM_KEYPRESS;
+                msg->wParam = key;
             }
         }
 
-        eAGSMouseButton mbut;
-        if (run_service_mb_controls(mbut) && (mbut > kMouseNone) && !play.IsIgnoringInput())
+        eAGSMouseButton mouse_btn;
+        if (run_service_mb_controls(mouse_btn) && (mouse_btn > kMouseNone) && !play.IsIgnoringInput())
         {
             if (checkcontrols())
             {
-                cscim->id = controlid;
-                cscim->code = CM_COMMAND;
+                msg->id = controlid;
+                msg->code = CM_COMMAND;
             }
         }
 
         if (smcode)
         {
-            cscim->code = smcode;
-            cscim->id = controlid;
+            msg->code = smcode;
+            msg->id = controlid;
         }
 
-        if (cscim->code > 0)
+        if (msg->code > 0)
             break;
 
         WaitForNextFrame();
@@ -207,61 +207,61 @@ int CSCIWaitMessage(CSCIMessage *cscim)
     return 0;
 }
 
-int CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const char *title)
+int CSCICreateControl(int typeandflags, int x, int y, int width, int height, const char *title)
 {
-    int usec = -1;
-    for (int hh = 1; hh < MAXCONTROLS; hh++)
+    int ctrl_id = -1;
+    for (int i = 1; i < MAXCONTROLS; i++)
     {
-        if (vobjs[hh] == nullptr)
+        if (vobjs[i] == nullptr)
         {
-            usec = hh;
+            ctrl_id = i;
             break;
         }
     }
 
-    if (usec < 0)
+    if (ctrl_id < 0)
         quit("Too many controls created");
 
     int type = typeandflags & 0x00ff; // 256 control types
     if (type == CNT_PUSHBUTTON)
     {
-        if (wii == -1)
-            wii = get_text_width(title, cbuttfont) + 20;
+        if (width == -1)
+            width = get_text_width(title, cbuttfont) + 20;
 
-        vobjs[usec] = new MyPushButton(xx, yy, wii, hii, title);
+        vobjs[ctrl_id] = new MyPushButton(x, y, width, height, title);
     }
     else if (type == CNT_LISTBOX)
     {
-        vobjs[usec] = new MyListBox(xx, yy, wii, hii, play.std_gui_textheight);
+        vobjs[ctrl_id] = new MyListBox(x, y, width, height, play.std_gui_textheight);
     }
     else if (type == CNT_LABEL)
     {
-        vobjs[usec] = new MyLabel(xx, yy, wii, title, play.std_gui_textheight);
+        vobjs[ctrl_id] = new MyLabel(x, y, width, title, play.std_gui_textheight);
     }
     else if (type == CNT_TEXTBOX)
     {
-        vobjs[usec] = new MyTextBox(xx, yy, wii, title, play.std_gui_textheight);
+        vobjs[ctrl_id] = new MyTextBox(x, y, width, title, play.std_gui_textheight);
     }
     else
         quit("Unknown control type requested");
 
-    vobjs[usec]->typeandflags = typeandflags;
-    vobjs[usec]->wlevel = topwindowhandle;
-    vobjs[usec]->draw(get_gui_screen());
-    return usec;
+    vobjs[ctrl_id]->typeandflags = typeandflags;
+    vobjs[ctrl_id]->wlevel = topwindowhandle;
+    vobjs[ctrl_id]->draw(get_gui_screen());
+    return ctrl_id;
 }
 
-void CSCIDeleteControl(int haa)
+void CSCIDeleteControl(int ctrl_id)
 {
-    delete vobjs[haa];
-    vobjs[haa] = nullptr;
+    delete vobjs[ctrl_id];
+    vobjs[ctrl_id] = nullptr;
 }
 
-int CSCISendControlMessage(int haa, int mess, int wPar, intptr_t ipPar)
+int CSCISendControlMessage(int ctrl_id, int msg, int w_param, intptr_t ip_param)
 {
-    if (vobjs[haa] == nullptr)
+    if (vobjs[ctrl_id] == nullptr)
         return -1;
-    return vobjs[haa]->processmessage(mess, wPar, ipPar);
+    return vobjs[ctrl_id]->processmessage(msg, w_param, ip_param);
 }
 
 // TODO: this is silly, make a uniform formula
@@ -275,32 +275,32 @@ int checkcontrols()
     const int my = ::mousey - win_y;
 
     smcode = 0;
-    for (int kk = 0; kk < MAXCONTROLS; kk++)
+    for (int i = 0; i < MAXCONTROLS; i++)
     {
-        if (vobjs[kk] != nullptr)
+        if (vobjs[i] != nullptr)
         {
-            if (vobjs[kk]->mouseisinarea(mx, my))
+            if (vobjs[i]->mouseisinarea(mx, my))
             {
-                controlid = kk;
-                return vobjs[kk]->pressedon(mx, my);
+                controlid = i;
+                return vobjs[i]->pressedon(mx, my);
             }
         }
     }
     return 0;
 }
 
-int finddefaultcontrol(int flagmask)
+int finddefaultcontrol(int flag_mask)
 {
-    for (int ff = 0; ff < MAXCONTROLS; ff++)
+    for (int i = 0; i < MAXCONTROLS; i++)
     {
-        if (vobjs[ff] == nullptr)
+        if (vobjs[i] == nullptr)
             continue;
 
-        if (vobjs[ff]->wlevel != topwindowhandle)
+        if (vobjs[i]->wlevel != topwindowhandle)
             continue;
 
-        if (vobjs[ff]->typeandflags & flagmask)
-            return ff;
+        if (vobjs[i]->typeandflags & flag_mask)
+            return i;
     }
 
     return -1;
