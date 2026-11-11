@@ -231,7 +231,7 @@ void Overlay_SetWidth(ScriptOverlay *script_over, int width)
         if (width > 0)
             over->SetDestinationSize(width, over->GetDestinationHeight());
         else
-            debug_script_warn("Overlay.SetWidth: invalid width %d", width);
+            debug_script_warn("Overlay.Width: invalid width %d", width);
     }
 }
 
@@ -243,7 +243,7 @@ void Overlay_SetHeight(ScriptOverlay *script_over, int height)
         if (height > 0)
             over->SetDestinationSize(over->GetDestinationWidth(), height);
         else
-            debug_script_warn("Overlay.SetWidth: invalid height %d", height);
+            debug_script_warn("Overlay.Height: invalid height %d", height);
     }
 }
 
@@ -1123,7 +1123,7 @@ void AnimatedOverlay_Animate(ScriptAnimatedOverlay *script_over, int view, int l
 
 bool AnimatedOverlay_GetAnimating(ScriptAnimatedOverlay *script_over)
 {
-    auto *over = GetOverlayValidate("AnimatedOverlay.Animate", script_over);
+    auto *over = GetOverlayValidate("AnimatedOverlay.Animating", script_over);
     return over ? IsOverlayAnimating(over->GetID()) : false;
 }
 
