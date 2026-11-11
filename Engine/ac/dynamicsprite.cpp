@@ -96,17 +96,32 @@ int DynamicSprite_GetGraphic(ScriptDynamicSprite *dynsprite)
 
 int DynamicSprite_GetWidth(ScriptDynamicSprite *dynsprite)
 {
+    if (dynsprite->slot == 0)
+    {
+        debug_script_warn("DynamicSprite.Width: sprite has been deleted");
+        return 0;
+    }
     return game.SpriteInfos[dynsprite->slot].Width;
 }
 
 int DynamicSprite_GetHeight(ScriptDynamicSprite *dynsprite)
 {
+    if (dynsprite->slot == 0)
+    {
+        debug_script_warn("DynamicSprite.Height: sprite has been deleted");
+        return 0;
+    }
     return game.SpriteInfos[dynsprite->slot].Height;
 }
 
 int DynamicSprite_GetColorDepth(ScriptDynamicSprite *dynsprite)
 {
-    // Dynamic sprite ensures the sprite exists always
+    if (dynsprite->slot == 0)
+    {
+        debug_script_warn("DynamicSprite.ColorDepth: sprite has been deleted");
+        return 0;
+    }
+    // A dynamic sprite that was not deleted always has its image
     return spriteset[dynsprite->slot]->GetColorDepth();
 }
 
