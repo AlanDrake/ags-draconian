@@ -198,7 +198,7 @@ int GetInvAt(int x, int y, int gui_hitoptions, int inv_hitoptions)
         {
             const int inv_atx = x - guis[gui_id].GetX() - control->GetX();
             const int inv_aty = y - guis[gui_id].GetY() - control->GetY();
-            return InvWindow_GetItemAtXY((GUIInvWindow *)control, inv_atx, inv_aty);
+            return InvWindow_GetItemAtXY(static_cast<GUIInvWindow *>(control), inv_atx, inv_aty);
         }
     }
     return -1;
