@@ -375,7 +375,8 @@ int Joystick_GetHat(ScriptJoystick *joy, int hat)
                           joy_impl.sdlJoystickID, hat, hat_count);
         return eAGSJoystick_Hat::eAGSJoystick_HatCentered;
     }
-    return SDL_JoystickGetHat(joy_impl.sdlJoystick, Joystick_Hat_AGStoSDL(static_cast<eAGSJoystick_Hat>(hat)));
+    // the eAGSJoystick_Hat values are SDL's SDL_HAT_* bits
+    return SDL_JoystickGetHat(joy_impl.sdlJoystick, hat);
 }
 
 int Joystick_GetAxisCount(ScriptJoystick *joy)
