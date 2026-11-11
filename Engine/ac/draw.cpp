@@ -122,9 +122,9 @@ struct DrawState
     uint32_t NextDrawIndex = 0u;
 
     // A map of "control blocks" per each sprite which is used when preparing
-    // object textures. "Control block" contains ......... fixme
-    // an integer which lets to check whether the object texture is in sync
-    // with the sprite. When the dynamic sprite is updated or deleted,
+    // object textures. A "control block" holds an integer which lets to check
+    // whether the object texture is in sync with the sprite.
+    // When the dynamic sprite is updated or deleted,
     // the control block is marked as invalid and removed from the map;
     // but certain objects may keep the shared ptr to the old block with
     // "invalid" mark, thus they know that they must reset their texture.
@@ -222,7 +222,8 @@ struct ObjectCache
 #endif
 
     std::unique_ptr<Bitmap> image;
-    bool in_use = false; // CHECKME: possibly may be removed
+    // TODO: remove in_use, it is set in construct_object_gfx and never read
+    bool in_use = false;
     int sppic = 0;
     // TODO: pickout tint settings, maybe even share with Char/Obj structs,
     // if plugin API permits!
@@ -1642,8 +1643,8 @@ void put_sprite_list_on_screen(bool in_room);
 //------------------------------------------------------------------------
 
 
-// used by GUI renderer to draw images
-// NOTE: use_alpha arg is for backward compatibility (legacy draw modes)
+// Used by GUI renderer to draw images: blended with alpha if the target is 32-bit,
+// with transparency otherwise.
 void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, BlendMode blend_mode)
 {
     draw_gui_sprite(ds, x, y, spriteset[pic], blend_mode);
@@ -2022,7 +2023,7 @@ static bool transform_sprite(ObjTexture &actsp, int sppic, const Size &scale_sz,
 // was redrawn.
 // Hardware-accelerated renderers always return true, because they do not
 // require preparing the raw bitmap.
-// Except if alwaysUseSoftware is set, in which case even HW renderers
+// Except if force_software is set, in which case even HW renderers
 // construct the image in software mode as well.
 static bool construct_object_gfx(const ViewFrame *vf, int pic, const Size &scale_size,
                                  int tint_flags,            // OBJF_* flags related to using tint and light fx
@@ -2133,7 +2134,8 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic, const Size &scale
     bool actsps_used = transform_sprite(actsp, pic, scale_size, objsrc.rotation, use_flip);
     if (!actsps_used)
     {
-        // ensure actsps exists // CHECKME: why do we need this in hardware accel mode too?
+        // ensure actsp.Bmp exists: this is the software path, reached by a HW driver only with force_software,
+        // and the texture is then made from actsp.Bmp
         recycle_bitmap(actsp.Bmp, coldept, src_sprwidth, src_sprheight);
     }
 
@@ -2199,7 +2201,8 @@ void prepare_and_add_object_gfx(const ObjectCache &objsav, ObjTexture &actsp, bo
     else
     {
         // Ignore walk-behinds by shifting baseline to a larger value
-        // CHECKME: may this fail if WB somehow got larger than room baseline?
+        // TODO: make sure a walk-behind baseline can never exceed thisroom.Height,
+        // or this shifted baseline will not be above it
         if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
         {
             usebasel += thisroom.Height;
@@ -2293,7 +2296,7 @@ void prepare_objects_for_drawing()
 }
 
 
-// Draws srcimg onto destimg, tinting to the specified level
+// Draws srcimg onto ds, tinting to the specified level
 // Totally overwrites the contents of the destination image
 void tint_image(Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int light_level, int luminance)
 {
@@ -2554,8 +2557,7 @@ static PBitmap draw_room_background(const Viewport *view)
         auto camera = view->GetCamera();
         set_invalidrects_cameraoffs(view_index, camera->GetRect().Left, camera->GetRect().Top);
 
-        // TODO: (by CJ)
-        // the following line takes up to 50% of the game CPU time at
+        // NOTE: the following call takes up to 50% of the game CPU time at
         // high resolutions and colour depths - if we can optimise it
         // somehow, significant performance gains to be had
         update_room_invreg_and_reset(view_index, roomcam_surface, thisroom.BgImages[play.bg_frame].get(),
@@ -2905,9 +2907,6 @@ void GfxDriverOnInitCallback(void *data)
     pl_run_plugin_init_gfx_hooks(gfxDriver->GetDriverID(), data);
 }
 
-// WARNING: rendering rooms as textures currently prevents "render sprites at screen resolution"
-//#define RENDER_ROOMS_AS_TEXTURES (1)
-
 // Renders room viewport: hardware gfx driver version
 static void construct_roomview_hw(const Viewport *viewport)
 {
@@ -3234,7 +3233,7 @@ void construct_game_screen_overlay(bool draw_cursor)
         {
             cursor_tx.Ddb->SetShader(shaderInstances[play.GetCursorShaderID()]);
 
-            // Exclusive sub-batch for mouse cursor, to let filter it out (CHECKME later?)
+            // Exclusive sub-batch for mouse cursor, to let filter it out (see RENDER_SHOT_SKIP_ON_FADE)
             gfxDriver->BeginSpriteBatch(Rect(), SpriteTransform(), kFlip_None, nullptr, RENDER_BATCH_MOUSE_CURSOR);
             gfxDriver->DrawSprite(mousex - mouse_hotx, mousey - mouse_hoty, cursor_tx.Ddb);
             invalidate_sprite(mousex - mouse_hotx, mousey - mouse_hoty, cursor_tx.Ddb, false);

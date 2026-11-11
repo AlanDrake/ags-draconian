@@ -87,9 +87,9 @@ void detect_roomviewport_overlaps(size_t z_index);
 void on_roomcamera_changed(Camera *cam);
 // Marks particular object as need to update the texture
 void mark_object_changed(int obj_id);
+// Resets drawing index for dynamic objects
 // TODO: write a generic drawable/objcache system where each object
 // allocates a drawable for itself, and disposes one if being removed.
-// Resets drawing index for dynamic objects
 void reset_drawobj_dynamic_index();
 // Assigns drawable object index for this overlay
 void add_drawobj_for_overlay(int objnum);
@@ -134,7 +134,7 @@ void add_shader_instance(AGS::Engine::IShaderInstance *shader_instance, uint32_t
 AGS::Engine::IShaderInstance *get_shader_instance(uint32_t shinst_index);
 // Deletes a custom shader instance
 void delete_shader_instance(uint32_t shader_inst_id);
-// Deletes all custom shaders and their isntances
+// Deletes all custom shaders and their instances
 void dispose_all_custom_shaders();
 
 // Initializes a loaded sprite for use in the game, adjusts the sprite flags.
@@ -151,17 +151,26 @@ void invalidate_screen();
 // in_room flag tells how to interpret the coordinates: as in-room coords or screen viewport coordinates.
 void invalidate_rect(int x1, int y1, int x2, int y2, bool in_room);
 
+// Tells that the room background has to be uploaded to the renderer again
 void mark_current_background_dirty();
 
-// Avoid freeing and reallocating the memory if possible
+// Avoid freeing and reallocating the memory if possible:
+// returns bimp when it already has the requested size and color depth (clipping reset, cleared
+// to transparent if asked), otherwise deletes it and returns a new bitmap.
 AGS::Common::Bitmap *recycle_bitmap(AGS::Common::Bitmap *bimp, int coldep, int wid, int hit,
                                     bool make_transparent = false);
+// Same as above, for a bitmap held by a unique_ptr
 void recycle_bitmap(std::unique_ptr<AGS::Common::Bitmap> &bimp, int coldep, int wid, int hit,
                     bool make_transparent = false);
+// Updates ddb from the source bitmap, or recreates it if the format does not match (or makes a new one
+// if ddb is null); returns the resulting DDB
 AGS::Engine::IDriverDependantBitmap *recycle_ddb_bitmap(AGS::Engine::IDriverDependantBitmap *ddb,
                                                         AGS::Common::Bitmap *source, bool opaque = false);
+// Same as above for a sprite: a hardware renderer shares the texture cached for sprite_id (source
+// is used if the sprite is not in the cache yet), a software one makes a DDB from the bitmap
 AGS::Engine::IDriverDependantBitmap *recycle_ddb_sprite(AGS::Engine::IDriverDependantBitmap *ddb, uint32_t sprite_id,
                                                         AGS::Common::Bitmap *source, bool opaque = false);
+// Returns ddb if it is a render target of the requested size, otherwise destroys it and creates a new one
 AGS::Engine::IDriverDependantBitmap *recycle_render_target(AGS::Engine::IDriverDependantBitmap *ddb, int width,
                                                            int height, int col_depth, bool opaque = false);
 
@@ -174,22 +183,34 @@ void construct_game_screen_overlay(bool draw_cursor = true);
 // Construct engine overlay with debugging tools (fps, console)
 void construct_engine_overlay();
 
+// Updates the vertical shake offset (play.shake_screen_yoff) for the current game loop
 void update_shakescreen();
 
+// Returns the room mask now shown by the debug overlay (kRoomAreaNone if none)
 RoomAreaMask get_room_mask_debugmode();
+// Shows the given room mask as a semi-transparent debug overlay (kRoomAreaNone hides it)
 void debug_draw_room_mask(RoomAreaMask mask);
+// Shows the movement path of the given character as a debug overlay (a negative number hides it)
 void debug_draw_movelist(int charnum);
+// Redraws the debug overlays that change with the game: the walkable areas mask and the movelist
 void update_room_debug();
+// Draws srcimg onto ds, tinting to the specified level; totally overwrites the destination image.
+// Both must have the same color depth, not 8-bit; otherwise warns and copies the source as is.
 void tint_image(AGS::Common::Bitmap *ds, AGS::Common::Bitmap *srcimg, int red, int grn, int blu, int light_level,
                 int luminance = 255);
+// Draws a sprite with the blend mode and alpha; nothing is drawn if alpha is 0 or less
 void draw_sprite_support_alpha(AGS::Common::Bitmap *ds, int xpos, int ypos, AGS::Common::Bitmap *image,
                                AGS::Common::BlendMode blend_mode = AGS::Common::kBlend_Normal, int alpha = 0xFF);
+// Same as above, for a sprite by its slot number
 void draw_sprite_slot_support_alpha(AGS::Common::Bitmap *ds, int xpos, int ypos, int src_slot,
                                     AGS::Common::BlendMode blend_mode = AGS::Common::kBlend_Normal, int alpha = 0xFF);
 // CLNUP I'd like to put the default parameters to draw_gui_sprite, but the extern from guiman.h prevents it
+// Draws a sprite (by slot or bitmap) for the GUI renderer: blended with alpha if ds is 32-bit,
+// with transparency otherwise; nothing is drawn if alpha is 0 or less
 void draw_gui_sprite(AGS::Common::Bitmap *ds, int pic, int x, int y, AGS::Common::BlendMode blend_mode);
 void draw_gui_sprite(AGS::Common::Bitmap *ds, int x, int y, AGS::Common::Bitmap *sprite,
                      AGS::Common::BlendMode blend_mode = AGS::Common::kBlend_Normal, int alpha = 0xFF);
+// Same as draw_gui_sprite, with the sprite flipped as requested
 void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int pic, int x, int y, AGS::Common::BlendMode blend_mode,
                              AGS::Common::GraphicFlip flip);
 void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int x, int y, AGS::Common::Bitmap *sprite,
@@ -198,19 +219,23 @@ void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int x, int y, AGS::Common:
 
 // Render game on screen
 void render_to_screen();
+// Gfx driver callback: lets the plugins initialize their graphics hooks for the driver
 void GfxDriverOnInitCallback(void *data);
+// Gfx driver callback: passes a sprite batch event to the plugin hooks;
+// returns true if a plugin handled it (never while no room is loaded)
 bool GfxDriverSpriteEvtCallback(int evt, intptr_t data);
 
 // Create the actsps[obj_id] image with the object drawn correctly.
 // Returns true if nothing at all has changed and actsps is still
 // intact from last time; false otherwise.
-// Hardware-accelerated do not require altering the raw bitmap itself,
+// Hardware-accelerated renderers do not require altering the raw bitmap itself,
 // so they only detect whether the sprite ID itself has changed.
 // Software renderers modify the cached bitmap whenever any visual
 // effect changes (scaling, tint, etc).
 // * force_software option forces HW renderers to construct the image
 // in software mode as well.
 bool construct_object_gfx(int obj_id, bool force_software);
+// Same as above for a character: creates the actsps image of character char_id
 bool construct_char_gfx(int char_id, bool force_software);
 // Returns a cached character image prepared for the render
 AGS::Common::Bitmap *get_cached_character_image(int char_id);
@@ -222,14 +247,16 @@ void add_walkbehind_image(size_t index, AGS::Common::Bitmap *bmp, int x, int y);
 // Clears black game borders in legacy letterbox mode (CLNUP?)
 void clear_letterbox_borders();
 
+// Draws the outlined text and marks its rectangle as needing a redraw
 void draw_and_invalidate_text(AGS::Common::Bitmap *ds, int x1, int y1, int font, color_t text_color, const char *text);
 
+// Applies the game palette to the screen
 void setpal();
 
 // Creates bitmap of a format compatible with the gfxdriver;
 // if col_depth is 0, uses game's native color depth.
 AGS::Common::Bitmap *CreateCompatBitmap(int width, int height, int col_depth = 0);
-// Peforms any kind of conversions over bitmap if they are necessary for it
+// Performs any kind of conversions over bitmap if they are necessary for it
 // to be be used in AGS sprite operations. Returns either old or new bitmap.
 // Original bitmap **gets deleted** if a new bitmap had to be created.
 // * conv_to_gamedepth - tells whether the sprite has to be matching game's
