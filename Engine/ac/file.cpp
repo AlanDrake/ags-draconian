@@ -457,7 +457,8 @@ char FileReadRawChar(int32_t handle)
 
 int File_ReadRawChar(sc_File *file)
 {
-    return FileReadRawChar(file->handle);
+    Stream *in = get_file_stream(file->handle, "File.ReadRawChar");
+    return in->ReadByte();
 }
 
 int FileReadRawInt(int32_t handle)

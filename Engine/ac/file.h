@@ -67,7 +67,7 @@ void File_ReadString(sc_File *file, char *toread);
 const char *File_ReadStringBack(sc_File *file);
 // Reads an int written by File_WriteInt; -1 at the end of the file or if it was not written so.
 int File_ReadInt(sc_File *file);
-// Reads one byte; -1 at the end of the file (so is the byte 255, see the .cpp).
+// Reads one byte as 0-255; -1 at the end of the file.
 int File_ReadRawChar(sc_File *file);
 // Reads 4 bytes as an int; -1 at the end of the file.
 int File_ReadRawInt(sc_File *file);
