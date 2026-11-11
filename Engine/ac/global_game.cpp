@@ -194,7 +194,7 @@ bool GetSaveSlotDescription(int slot, String &description)
 void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description)
 {
     if (top_index < bot_index)
-        return; // duh
+        return; // empty range
 
     bot_index = std::min(999u, bot_index); // NOTE: slots are limited by 0..999 range
     top_index = std::min(999u, top_index);
@@ -209,7 +209,7 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned
         if (!save_suffix.IsEmpty())
             slot_name.ClipRight(save_suffix.GetLength());
         int save_slot = Path::GetFileExtension(slot_name).ToInt();
-        // only list games between .XXX to .YYY (to allow hidden slots for special perposes)
+        // only list games between .XXX to .YYY (to allow hidden slots for special purposes)
         if (save_slot < 0 || static_cast<unsigned>(save_slot) < bot_index ||
             static_cast<unsigned>(save_slot) > top_index)
             continue;
@@ -287,7 +287,6 @@ int GetLastSaveSlot()
     return saves[0].Slot;
 }
 
-// TODO: refactor this method, and use same shared procedure at both normal stop/startup and in RunAGSGame
 int RunAGSGame(const String &new_game, unsigned int mode, int data)
 {
     can_run_delayed_command();
@@ -336,7 +335,7 @@ int RunAGSGame(const String &new_game, unsigned int mode, int data)
 
     AssetMgr->RemoveAllLibraries();
 
-    // TODO: refactor and share same code with the startup!
+    // TODO: this repeats the engine's startup steps (main/engine.cpp); share them
     if (AssetMgr->AddLibrary(ResPaths.GamePak.Path) != Common::kAssetNoError)
         quitprintf("!RunAGSGame: unable to load new game file '%s'", ResPaths.GamePak.Path.GetCStr());
     engine_assign_assetpaths();
@@ -591,7 +590,7 @@ static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y
     int loc_id = -1;
     // GetLocationType takes screen coords
     const int loc_type =
-        GetLocationTypeImpl(&loc_id, x, y, hit_options, false /* dont ignore gui */, true /* allow hotspot0 */);
+        GetLocationTypeImpl(&loc_id, x, y, hit_options, false /* dont click-through gui */, true /* allow hotspot0 */);
     loc_ref = SceneLocationRef(loc_type, loc_id);
     if (loc_type == LOCTYPE_NOTHING)
     {
@@ -737,8 +736,8 @@ void SetMultitasking(int mode)
 void RoomProcessClick(int x, int y, int mood)
 {
     int loc_id = -1;
-    int loc_type =
-        GetLocationTypeImpl(&loc_id, x, y, kHit_Interactable, true /* ignore gui */, false /* not allow hotspot0 */);
+    int loc_type = GetLocationTypeImpl(&loc_id, x, y, kHit_Interactable, true /* click-through gui */,
+                                       false /* not allow hotspot0 */);
     VpPoint vpt = play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return;
@@ -789,8 +788,8 @@ void RoomProcessClick(int x, int y, int mood)
 int IsInteractionAvailable(int x, int y, int mood)
 {
     int loc_id = -1;
-    int loc_type =
-        GetLocationTypeImpl(&loc_id, x, y, kHit_Interactable, true /* ignore gui */, false /* not allow hotspot0 */);
+    int loc_type = GetLocationTypeImpl(&loc_id, x, y, kHit_Interactable, true /* click-through gui */,
+                                       false /* not allow hotspot0 */);
     VpPoint vpt = play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return 0;
@@ -835,7 +834,8 @@ void _sc_AbortGame(const char *text)
     quit(String::FromFormat("!?%s", text));
 }
 
-// Wait* implementation specific to pre-3.6.0 games, which had number of accidental effects.
+// Wait* implementation for games with a base script API below 3.6.0 (OPT_BASESCRIPTAPI), which had a number of
+// accidental effects that some old games depend on.
 static int WaitImplPre360(int skip_type, int num_loops)
 {
     // Negative nloops was forbidden in < 3.6.0, but here we just return instantly
