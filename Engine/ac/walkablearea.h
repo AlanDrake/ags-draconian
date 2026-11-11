@@ -29,10 +29,10 @@ class Bitmap;
 
 void redo_walkable_areas();
 int get_walkable_area_pixel(int x, int y);
-int get_area_scaling(int onarea, int xx, int yy);
-void scale_sprite_size(int sppic, int zoom_level, int *newwidth, int *newheight);
+int get_area_scaling(int area_id, int x, int y);
+void scale_sprite_size(int sprite_id, int zoom_level, int *new_width, int *new_height);
 void remove_walkable_areas_from_temp(const Rect &area);
 // IMPORTANT: this function returns *global pointer*, do not delete the returned bitmap! -- subject to future refactor
-AGS::Common::Bitmap *prepare_walkable_areas(int sourceChar);
-int get_walkable_area_at_location(int xx, int yy);
-int get_walkable_area_at_character(int charnum);
+AGS::Common::Bitmap *prepare_walkable_areas(int source_char_id);
+int get_walkable_area_at_location(int x, int y);
+int get_walkable_area_at_character(int char_id);
