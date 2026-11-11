@@ -78,12 +78,10 @@ void DisplayTopBar(int ypos, int text_color, int back_color, const char *title, 
         font = FONT_NORMAL;
     int height = get_font_height_outlined(font) + play.top_bar_borderwidth * 2 + 1;
 
-    // TODO: the bar's text is drawn with FONT_NORMAL, while the bar's height is that of `font`; probably `font`
-    // was meant here
     // get_translation sets source_text_length, which GetTextDisplayTime below reads for the text: keep the text's.
     // FIXME: refactor source_text_length and get rid of this hack (see display.h)
     const int text_source_length = source_text_length;
-    const TopBarSettings topbar(get_translation(title), FONT_NORMAL, height);
+    const TopBarSettings topbar(get_translation(title), font, height);
     source_text_length = text_source_length;
 
     // DisplaySpeech normally sets this up, but since we're not going via it...
