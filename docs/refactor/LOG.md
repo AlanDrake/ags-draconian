@@ -4157,6 +4157,56 @@ in parallel, one worktree each from HEAD, reviewed here; the first set run this 
 - **Left for the next file sets:** `slider.cpp/.h`, `display.cpp` 55, `gui.cpp` 55, `draw.cpp` 56; 2,354 watchlist
   names in all, 714 without the 5.1 globals (`thisroom`, `croom`, `objs`, `scsystem`, `usetup`).
 
+**`slider.cpp/.h`, `display.cpp/.h`, `gui.cpp/.h`, `draw.cpp/.h`** (2026-11-11; four Sonnet 5.5 subagents at `medium`
+in parallel, worktrees from `beca7d561`, the brief `.compare/briefs/brief-41-fileset.md` with the earlier lessons;
+reviewed here):
+- **`slider`** (`eb5744d86`, `ecd8850d4`): `guisl` 62 to 0; a `GUISlider *` is `slider` (no other name for it in the
+  tree), `valn` → `max_value`/`min_value`/`value`. The `Sc_*` signature comments were deleted (they repeated the
+  declarations, one was stale), unlike the earlier sets, which kept them for 5.2. Header comments checked against
+  `guislider.cpp` (`SetMin`/`SetMax` move the other limit and clamp the value; the handle offset moves across the bar).
+- **`display`** (`4e0c2f807`, `ae433f1ef`): `xx` 29, `yy` 33, `charid` 3, `butid` 3 to 0; `gui_id` for the text-window
+  GUI index (`usingGui`, `ifnum`, `twgui`), `text_x`/`text_y` for the text window's output pointers, `area_width`
+  (`oriwid`), `new_over_id` (`nse`), camelCase to `snake_case`. Comments: the stale `OVR_AUTOPLACE` FIXME deleted (the
+  autoplace is the `autoplace_at_char` parameter now), the 2x2-bitmap CHECKME answered (both callers make an overlay
+  of the result), a "(???)" made precise (a top-bar message is forced to blocking speech), the "320x200" padding
+  comment corrected.
+- **`gui`** (`fc73c4f99`, `b68925a80`, `0b4c85249`): `guin` 20, `guio` 11, `newwid`/`newhit` 16, `iit` 6, `xx`/`yy` 11,
+  `widd` 2 to 0; `GUIMain *` is `gui`, `ScriptGUI *` `sgui` (was `tehgui`, `scgui`, a `gui`), `GUIButton *` `btn`,
+  `slotn` → `sprite`. The rename put a C-style `GUIInvWindow` downcast under the gate: `static_cast` (`[format]`,
+  retitled here from the agent's `[rename]`). Two CHECKMEs answered, four FIXMEs became TODOs.
+- **`draw`** (`0a987d72b`, `85da7164a`, `d4aef55f2`): `objid` 20, `charid` 18, `chin` 18, `xx`/`yy` 6 to 0 (`chin` was a
+  `CharacterInfo &`, now `ch`); camelCase locals to `snake_case`, three header declarations synced. Comments: the
+  commented-out `RENDER_ROOMS_AS_TEXTURES` and a `(by CJ)` tag deleted, the "hardware accel mode too" CHECKME
+  answered (the software path, reached by a hardware driver only with `force_software`). The rename put the unused
+  `id` of `add_to_sprite_list`'s position overload under the gate: it is passed on now (`d4aef55f2`; its one caller
+  passes `0u`, the other overload's default, so the behaviour is the same; once per walk-behind per frame).
+- **Verification:** every agent: `compare_objects.py` identical for its rename and comment commits (638 objects),
+  format, helpers, tidy, headers, libcxx, emscripten. On `wt-41-batch2` in the main tree: the 11 mechanical commits
+  compared against their parents, all identical; `prepush.py --auto --base beca7d561 --emsdk ...`: every selected stage
+  passes (linux ctest 1181/1181, msbuild + Editor NUnit). The agents' `build` stages failed under the load of four
+  parallel builds: two `compat_restore` tests timed out (pass alone) and `MflUtils.StandaloneLibraryHasNoEnder`
+  failed (a race, fixed below). Not run: macOS, iOS, Android.
+- **Found and fixed, one commit each:**
+  - `f04f88996` `[comment]`: the agent's new comment said the nearest interactable GUI always ends in
+    `gui_on_mouse_move`'s result; the loop breaks on a popup and while an overlay disables the interface.
+  - `284fddc89`: the empty `if (...) ;` of that function's "all GUIs off" case became an early return (code identical).
+  - `e903548c7` `||` for a bitwise `|` in `GUI_SetOpacity`; `9846f97d4` `"GUI::SetScale"` was registered twice in a row
+    (as `GUIControl::SetScale` was, `ac3bc8730`).
+  - `a656390f3`: `CalcLipsyncFrameDuration` is `static` (one caller, no declaration; MSVC inlines it, once per text).
+  - `0235fa2ea` `[delete]` `ObjectCache::in_use`, written in `construct_object_gfx` and never read (the field offsets
+    of the functions using the struct change; it also clears the tidy gate's naming finding on that line).
+  - `001940372`: `MflUtils`' two library tests packed and deleted the same `mfl_test_a.txt`/`b.txt`; the files are
+    named after the running test, as `cc7e218d4` did for AGFReader.
+- **Not a finding:** the `display` agent called `ShouldAntiAliasText()` unused; it is the callback `Common/font`
+  declares (`fonts.h`) and calls, defined by the engine, the editor and the test stubs (the agent searched Engine and
+  Plugins only).
+- **Noted, not changed:** `global_display.cpp` reads `source_text_length` and writes it back (an "ugly hack" no-op);
+  `prepare_and_add_object_gfx` adds `thisroom.Height` to a baseline to put it above walk-behinds, assuming no baseline
+  exceeds the room height (a TODO now).
+- **Left for the next file sets:** `characterextras.cpp/.h` 52, `global_game.cpp` 37, `walkablearea.cpp` 35,
+  `global_display.cpp` 30, `global_api.cpp` 24, `inventoryitem.cpp` 24; 2,118 watchlist names in all, 456 without the
+  5.1 globals.
+
 ### 7.3 Ports
 
 **7.3, the macOS Xcode source list** (2026-11-09; a slice of 7.3, the other ports are open; a Sonnet 5.5 subagent):
