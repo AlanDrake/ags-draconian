@@ -406,7 +406,6 @@ const char *File_ReadStringBack(sc_File *file)
     {
         debug_script_warn("File.ReadStringBack: file was not written by WriteString");
         return CreateNewScriptString("");
-        ;
     }
 
     // NOTE: support both deserialized with and without null terminator for varied use cases
