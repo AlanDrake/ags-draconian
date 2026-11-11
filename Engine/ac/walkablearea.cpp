@@ -163,7 +163,6 @@ Bitmap *prepare_walkable_areas(int source_char_id)
         if ((game.chars[char_id].y < 0) || (game.chars[char_id].x < 0))
             continue;
 
-        CharacterInfo *ch = &game.chars[char_id];
         // If walking character is already inside that other character's blocking rect,
         // then ignore that blocking rect (otherwise character may get stuck forever)
         const Rect blocking_rect = get_char_blocking_rect(char_id);
