@@ -669,6 +669,8 @@ void Overlay_SetScaleY(ScriptOverlay *script_over, float scale_y)
 void Overlay_Tint(ScriptOverlay *script_over, int red, int green, int blue, int opacity, int luminance)
 {
     auto *over = GetOverlayValidate("Overlay.Tint", script_over);
+    if (!over)
+        return;
 
     if ((red < 0) || (green < 0) || (blue < 0) || (red > 255) || (green > 255) || (blue > 255) || (opacity < 0) ||
         (opacity > 255) || (luminance < 0) || (luminance > 255))
