@@ -28,7 +28,7 @@ extern CCCharacter ccDynamicCharacter;
 extern std::vector<ViewStruct> views;
 extern GameSetupStruct game;
 
-void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *chin)
+void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *ch)
 {
     // FIXME: zoom_offs does not work now, should we deprecate and cut this factor completely?
     // if not, then either:
@@ -36,11 +36,11 @@ void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *chin)
     // of floats (otherwise value precision will be lost in integer division).
     // * OR we might require ADDITIONAL parameter into GS, which is an offset applied UNSCALED.
     _gs =
-        GraphicSpace(chin->x, chin->y, eff_anchor, // origin
+        GraphicSpace(ch->x, ch->y, eff_anchor, // origin
                      Size(spr_width, spr_height),  // source sprite size
                      Size(width, height),          // destination size (scaled)
                      // real graphical aabb (maybe with extra offsets)
-                     RectWH((eff_offset.X + frame_xoff), (-chin->z + eff_offset.Y + frame_yoff), spr_width, spr_height),
+                     RectWH((eff_offset.X + frame_xoff), (-ch->z + eff_offset.Y + frame_yoff), spr_width, spr_height),
                      rotation, pivot, pivot_offset);
 }
 
@@ -72,77 +72,77 @@ void CharacterExtras::ResetAnimating()
     anim = ViewAnimateParams();
 }
 
-int CharacterExtras::GetEffectiveY(const CharacterInfo *chi) const
+int CharacterExtras::GetEffectiveY(const CharacterInfo *ch) const
 {
-    return chi->y - (chi->z * zoom_offs) / 100;
+    return ch->y - (ch->z * zoom_offs) / 100;
 }
 
-int CharacterExtras::GetFrameSoundVolume(const CharacterInfo *chi) const
+int CharacterExtras::GetFrameSoundVolume(const CharacterInfo *ch) const
 {
-    return ::CalcFrameSoundVolume(audio_volume, anim.AudioVolume, (chi->flags & CHF_SCALEVOLUME) ? zoom : 100);
+    return ::CalcFrameSoundVolume(audio_volume, anim.AudioVolume, (ch->flags & CHF_SCALEVOLUME) ? zoom : 100);
 }
 
-void CharacterExtras::SetLockedView(CharacterInfo *chi, int view, int loop, int frame, const Pointf &anchor,
+void CharacterExtras::SetLockedView(CharacterInfo *ch, int view, int loop, int frame, const Pointf &anchor,
                                     const Point &off)
 {
-    chi->view = view;
-    chi->loop = loop;
-    chi->frame = frame;
-    chi->wait = 0;
-    chi->flags |= CHF_FIXVIEW;
+    ch->view = view;
+    ch->loop = loop;
+    ch->frame = frame;
+    ch->wait = 0;
+    ch->flags |= CHF_FIXVIEW;
     view_anchor = anchor;
     view_offset = off;
-    UpdateEffectiveValues(chi);
+    UpdateEffectiveValues(ch);
 }
 
-void CharacterExtras::SetUnlockedView(CharacterInfo *chi)
+void CharacterExtras::SetUnlockedView(CharacterInfo *ch)
 {
-    chi->flags &= ~CHF_FIXVIEW;
-    chi->view = chi->defview;
-    chi->frame = 0;
+    ch->flags &= ~CHF_FIXVIEW;
+    ch->view = ch->defview;
+    ch->frame = 0;
     view_anchor = CharacterInfo::GetDefaultSpriteAnchor();
     view_offset = Point();
-    UpdateEffectiveValues(chi);
+    UpdateEffectiveValues(ch);
 }
 
-void CharacterExtras::CheckViewFrame(CharacterInfo *chi)
+void CharacterExtras::CheckViewFrame(CharacterInfo *ch)
 {
-    ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(chi, &ccDynamicCharacter));
-    ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi), audio_panning, audio_speed, objevt,
-                     &chi->GetEvents(), kCharacterEvent_OnFrameEvent);
+    ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(ch, &ccDynamicCharacter));
+    ::CheckViewFrame(ch->view, ch->loop, ch->frame, GetFrameSoundVolume(ch), audio_panning, audio_speed, objevt,
+                     &ch->GetEvents(), kCharacterEvent_OnFrameEvent);
 }
 
-bool CharacterExtras::RunFrameEvent(CharacterInfo *chi, int view, int loop, int frame)
+bool CharacterExtras::RunFrameEvent(CharacterInfo *ch, int view, int loop, int frame)
 {
-    ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(chi, &ccDynamicCharacter));
-    return ::RunViewFrameEvent(view, loop, frame, objevt, &chi->GetEvents(), kCharacterEvent_OnFrameEvent);
+    ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(ch, &ccDynamicCharacter));
+    return ::RunViewFrameEvent(view, loop, frame, objevt, &ch->GetEvents(), kCharacterEvent_OnFrameEvent);
 }
 
-void CharacterExtras::SetFollowing(CharacterInfo *chi, int follow_who, int distance, int eagerness, bool sort_behind)
+void CharacterExtras::SetFollowing(CharacterInfo *ch, int follow_who, int distance, int eagerness, bool sort_behind)
 {
     if (follow_who < 0)
     {
         following = -1;
         follow_dist = 0;
         follow_eagerness = 0;
-        chi->set_following_sortbehind(false);
+        ch->set_following_sortbehind(false);
     }
     else
     {
         following = follow_who;
         follow_dist = distance;
         follow_eagerness = (distance == FOLLOW_ALWAYSONTOP) ? 0 : eagerness;
-        chi->set_following_sortbehind(sort_behind && (distance == FOLLOW_ALWAYSONTOP));
+        ch->set_following_sortbehind(sort_behind && (distance == FOLLOW_ALWAYSONTOP));
     }
 }
 
-void CharacterExtras::UpdateEffectiveValues(const CharacterInfo *chin)
+void CharacterExtras::UpdateEffectiveValues(const CharacterInfo *ch)
 {
-    eff_offset = chin->is_view_locked() ? view_offset : spr_offset;
-    eff_anchor = chin->is_view_locked() ? view_anchor : spr_anchor;
+    eff_offset = ch->is_view_locked() ? view_offset : spr_offset;
+    eff_anchor = ch->is_view_locked() ? view_anchor : spr_anchor;
 }
 
-void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, CharacterSvgVersion save_ver)
+void CharacterExtras::ReadFromSavegame(CharacterInfo *ch, Stream *in, CharacterSvgVersion save_ver)
 {
     // saves before kCharSvgVersion_400_28 have the legacy inventory (as with audio_speed below)
     if (save_ver < kCharSvgVersion_400_28)
@@ -291,10 +291,10 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
     // because they are loaded into deprecated CharacterInfo fields
     anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_anim_volume);
 
-    UpdateEffectiveValues(chin);
+    UpdateEffectiveValues(ch);
 }
 
-void CharacterExtras::WriteToSavegame(const CharacterInfo *chin, Stream *out) const
+void CharacterExtras::WriteToSavegame(const CharacterInfo *ch, Stream *out) const
 {
     out->WriteInt32(static_cast<uint32_t>(inventory.size()));
     out->WriteArrayOfInt32(inventory.data(), inventory.size());

@@ -138,31 +138,31 @@ public:
     // or a offset from the temporarily locked view
     Point GetEffectiveGraphicOffset() const { return eff_offset; }
     // Get visual Y position, which is calculated as Y - Z (scaled)
-    int GetEffectiveY(const CharacterInfo *chi) const;
+    int GetEffectiveY(const CharacterInfo *ch) const;
     // Calculate wanted frame sound volume based on multiple factors
-    int GetFrameSoundVolume(const CharacterInfo *chi) const;
+    int GetFrameSoundVolume(const CharacterInfo *ch) const;
     // Set locked view with anchor and offset
-    void SetLockedView(CharacterInfo *chi, int view, int loop, int frame, const Pointf &anchor = Pointf(),
+    void SetLockedView(CharacterInfo *ch, int view, int loop, int frame, const Pointf &anchor = Pointf(),
                        const Point &off = Point());
     // Set unlocked view, revert to common anchor and offset
-    void SetUnlockedView(CharacterInfo *chi);
+    void SetUnlockedView(CharacterInfo *ch);
     // Process the current animation frame for the character:
     // play linked sounds, and so forth.
-    void CheckViewFrame(CharacterInfo *chi);
+    void CheckViewFrame(CharacterInfo *ch);
     // Run the arbitrary frame's event if one is associated and character has a handler
-    bool RunFrameEvent(CharacterInfo *chi, int view, int loop, int frame);
+    bool RunFrameEvent(CharacterInfo *ch, int view, int loop, int frame);
     // Setups following another character (follow_who)
-    void SetFollowing(CharacterInfo *chi, int follow_who, int distance = 0, int eagerness = 0,
+    void SetFollowing(CharacterInfo *ch, int follow_who, int distance = 0, int eagerness = 0,
                       bool sort_behind = false);
 
     inline const AGS::Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
 
-    void UpdateEffectiveValues(const CharacterInfo *chin);
-    void UpdateGraphicSpace(const CharacterInfo *chin);
+    void UpdateEffectiveValues(const CharacterInfo *ch);
+    void UpdateGraphicSpace(const CharacterInfo *ch);
 
     // Read character extra data from saves.
-    void ReadFromSavegame(CharacterInfo *chin, AGS::Common::Stream *in, CharacterSvgVersion save_ver);
-    void WriteToSavegame(const CharacterInfo *chin, AGS::Common::Stream *out) const;
+    void ReadFromSavegame(CharacterInfo *ch, AGS::Common::Stream *in, CharacterSvgVersion save_ver);
+    void WriteToSavegame(const CharacterInfo *ch, AGS::Common::Stream *out) const;
 
 private:
     AGS::Common::GraphicSpace _gs;
