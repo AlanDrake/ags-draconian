@@ -648,7 +648,7 @@ Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect, bool a
     Bitmap *blit_from = buf_screenfmt.get();
     if ((dst->GetSize() != blit_from->GetSize()) && (want_fmt.ColorDepth != dst_depth))
     {
-        buf_fixdepth.reset(new Bitmap(want_fmt.Width, want_fmt.Height, dst_depth));
+        buf_fixdepth = std::make_unique<Bitmap>(want_fmt.Width, want_fmt.Height, dst_depth);
         buf_fixdepth->Blit(buf_screenfmt.get());
         blit_from = buf_fixdepth.get();
     }
