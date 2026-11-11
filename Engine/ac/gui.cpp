@@ -405,7 +405,7 @@ void GUI_SetPopupYPos(ScriptGUI *sgui, int popup_y)
 
 void GUI_SetOpacity(ScriptGUI *sgui, int alpha)
 {
-    if ((alpha < 0) | (alpha > 255))
+    if ((alpha < 0) || (alpha > 255))
         quit("!GUI.Opacity: alpha value must be between 0 and 255");
 
     guis[sgui->id].SetOpacity(alpha);
