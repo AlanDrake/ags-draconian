@@ -4207,6 +4207,66 @@ reviewed here):
   `global_display.cpp` 30, `global_api.cpp` 24, `inventoryitem.cpp` 24; 2,118 watchlist names in all, 456 without the
   5.1 globals.
 
+**`characterextras.cpp/.h`, `global_game.cpp/.h`, `walkablearea.cpp/.h`, `global_display.cpp/.h`** (2026-11-11; four
+Sonnet 5.5 subagents at `medium` in parallel, worktrees from `67e417ebc`, the brief with batch 2's lessons; reviewed and
+assembled here on `wt-41-batch3`, with two `[delete]`s split out of the agents' comment commits):
+- **`characterextras`** (`c9da42c0a` `[rename]`, `a6ea00c77` `[comment]`, `d116a98b6` `[format]`): `chi`/`chin` → `ch`.
+  Comments: `xwas`/`ywas` explained (the full-step position while a character at very small scaling is drawn half way
+  through a step; `INVALID_X` for none), `zoom_offs` corrected (the character's zoom with `OPT_SCALECHAROFFSETS`, else
+  100) and its FIXME made a precise TODO (`draw.cpp` scales the offsets itself, `UpdateGraphicSpace` does not), stale
+  `kRoomStatSvgVersion_*` tags in `WriteToSavegame` → `kCharSvgVersion_400_26`/`_29`, every member of the header
+  documented. `62db2030b`: the rename put `WriteToSavegame`'s unused `CharacterInfo *` under the tidy gate; it is gone
+  (one caller, `savegame_components.cpp`; the save format is the same).
+- **`global_display`** (`029b0bbe6`, `b95b229df`): `texx` (a printf format in `Display`: `format`), `xx`/`yy`, `widd`,
+  `wii`, `aschar`, `charid` to 0; `ttexcol`/`backcol` → `text_color`/`back_color`, `ovrl` → `over_id`. Header comments
+  on all 8 functions (the stale "does not apply translation" on `DisplaySimple` replaced: it translates).
+- **`walkablearea`** (`2d7c8061d`, `508bc862d`, `80187ed97` `[delete]`): `xx`/`yy` 29, `chin`, `char1` to 0; `onarea` →
+  `area_id`, `sppic` → `sprite_id`, `brect` → `blocking_rect`, `Walkarea_SetScaling`'s `min`/`max` → `scale_min`/
+  `scale_max`. Comments: the two bitmaps, `get_area_scaling`'s formula (scaling stored as the percentage minus 100),
+  every header function (room vs mask coordinates checked against `room_to_mask_coord` and `room_build.cpp`). The
+  agent's comment commit also deleted an unused `CharacterInfo *`: split out as `[delete]`. Its first comment draft
+  dropped the dead `x = room_to_mask_coord(x)` in `get_area_scaling` and changed the function's code: put back as a TODO.
+- **`global_game`** (`6b0b5e484`, `cdd438b00`, `e9c3be85d` `[delete]`, `9c7d8077e`): `xx`/`yy` 34, `newval` 7 to 0;
+  `cc` → `char_id`, `skipwith` → `skip_mode` (a cutscene skip style, not the Wait functions' `skip_type`), `nloops` →
+  `num_loops`, `svg_dir`/`svg_suff` → `save_dir`/`save_suffix`, `getloctype_index` → `loc_id`, `ciwas` →
+  `check_result`; 20 header declarations synced. Every public function documented (spot-checked: `AbortGame`,
+  `SaveGameSlot`'s 2 MB check, `UnPauseGame`, `SetGameSpeed`'s 10..1000 clamp, `SetGameOption`'s returns,
+  `SetFollowing`'s eagerness rule); the duplicate `MoveSaveSlot` declaration split out as `[delete]`. `9c7d8077e`:
+  `emplace_back` for the tidy gate's `modernize-use-emplace` on the renamed line (the `vector<SaveListItem>` code
+  changes; not a hot path).
+- **Verification:** on `wt-41-batch3` in the main tree, `compare_objects.py` for every commit against its parent: the
+  13 mechanical commits identical (the first run of the first commit showed `std::locale` differences in two files that
+  do not include the header; stale objects, a re-run was identical, as noted for batch 1); the code changes differ in
+  their own functions only. `prepush.py --auto --base 67e417ebc --emsdk ...`: every selected stage passes (format,
+  helpers, build + ctest, tidy, headers, libcxx 341, emscripten, linux ctest 1181/1181, msbuild + Editor NUnit). The
+  agents' builds (four at once) passed without the batch-2 timeouts. Not run: macOS, iOS, Android, the auto-test game.
+- **Found and fixed, one commit each:**
+  - `ea271ea5d`: `DisplayTopBar` timed a top-bar message by its title's length. The script wrapper translates the text
+    (`API_SCALL_SCRIPT_SPRINTF`), leaving its source length in `source_text_length` for `GetTextDisplayTime`; Ivan's
+    hotfix `101ec0f7e` (2019) kept it across the title's `get_translation`, upstream `3ab558f98` (2024-02) moved that
+    translation down and left the save and restore adjacent, doing nothing. Upstream `ags4` has the same code.
+  - `0becab61f`: the same 2024 commit passed `FONT_NORMAL` for the bar's title where the font chosen from
+    `game.top_bar_font` was meant (the bar's height used it). Upstream `ags4` has it too.
+  - `d228d1baa`: characters and room objects from a save before `kCharSvgVersion_400_29` / `kRoomStatSvgVersion_40029`
+    got the pivot `Point(0.5f, 0.5f)`, the *int* point: (0,0), the top-left corner, not the centre. From upstream
+    `5c5b9cd38` (2026-06); the agent found the character line, the room-object twin was found in review. Upstream
+    `ags4` has both: a U.x candidate with the two `DisplayTopBar` fixes.
+  - `c2c23c177` `&&`/`||` for bitwise `&`/`|` between comparisons (`get_area_scaling`, `RemoveWalkableArea`,
+    `RestoreWalkableArea`, `SetMultitasking`); `8e69deccf` one condition for `prepare_walkable_areas`' empty
+    `if (...) ;` branch (code identical); `52deb978f` `StartCutscene`'s error says 1 to 6, the range it checks;
+    `7f178e148` `GetSaveSlotDescription` is `static` (code identical).
+- **Open, for the user:** `CharacterExtras::ReadFromSavegame` reads into the live `charextra[i]` and gives no default to
+  `audio_speed` (saves before `_28`) or `view_anchor`/`view_offset` (before `_26`), so those survive from the running
+  game when such a save is restored (`RoomObject` has the same gap for `audio_speed`); `get_area_scaling` converts an
+  `x` it never reads (removing it changes the code; the parameter could go); `get_walkable_area_at_location` reads
+  mask row 1, not 0, for a point above the room (TODOs in the code).
+- **Noted, not changed:** `Display()` translates its format and `DisplayAtYImpl` translates the formatted text again;
+  `WaitImpl` is non-static and undeclared; `game.h`'s `GetLocationTypeImpl` comment was not touched.
+- **Left for the next file sets:** `inventoryitem.cpp` 24, `gui/cscidialog.cpp` 20, `joystick.cpp` 15, `overlay.cpp` 13,
+  `global_api.cpp` 12, `game/savegame_components.cpp` 11, `main/game_run.cpp` 10, `global_audio.cpp` 9; outside the
+  engine `Tools/data/data_file_writer.cpp` (`chinfo` 40) and the compiler's `eres`/`tqs` (669). 1,949 watchlist names in
+  all (`refactor_metrics.py`), 1,040 without the 5.1 globals.
+
 ### 7.3 Ports
 
 **7.3, the macOS Xcode source list** (2026-11-09; a slice of 7.3, the other ports are open; a Sonnet 5.5 subagent):

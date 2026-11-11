@@ -80,7 +80,7 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **4.1 + 4.5 + 3.6 per file:** parameter and local names, comments, comment debris, `Engine/ac/` most-churned files first; one `[rename]` commit per file checked by `compare_objects.py`, then a `[comment]` commit. Done: `character.cpp/.h`, `object.cpp/.h`, `guicontrol.cpp/.h`, `drawingsurface.cpp/.h`, `button.cpp/.h`, `characterinfo_engine.cpp` (2026-11-09), `viewport_script`, `dynamicsprite`, `file`, `slider`, `display`, `gui`, `draw` (2026-11-11). Next: `characterextras.cpp/.h`, `global_game.cpp`, `walkablearea.cpp`, `global_display.cpp`; independent sets run as parallel subagents with `.compare/briefs/brief-41-fileset.md`, one worktree each (googletest submodule initialised; WSL `linux` and `msbuild` once on the combined branch). camelCase parameters go to `snake_case` in the same pass; no brace commit since `266c8dfe2` | Phase 5 needs phase 4; mechanical and verifiable | Sonnet 5.5, `medium`, one file set per session |
+| 1 | **4.1 + 4.5 + 3.6 per file:** parameter and local names, comments, comment debris, `Engine/ac/` most-churned files first; one `[rename]` commit per file checked by `compare_objects.py`, then a `[comment]` commit. Done: `character.cpp/.h`, `object.cpp/.h`, `guicontrol.cpp/.h`, `drawingsurface.cpp/.h`, `button.cpp/.h`, `characterinfo_engine.cpp` (2026-11-09), `viewport_script`, `dynamicsprite`, `file`, `slider`, `display`, `gui`, `draw`, `characterextras`, `global_game`, `walkablearea`, `global_display` (2026-11-11). Next: `inventoryitem.cpp/.h`, `Engine/gui/cscidialog.cpp`, `joystick.cpp`, `overlay.cpp/.h`; independent sets run as parallel subagents with `.compare/briefs/brief-41-fileset.md`, one worktree each (googletest submodule initialised; WSL `linux` and `msbuild` once on the combined branch). camelCase parameters go to `snake_case` in the same pass; no brace commit since `266c8dfe2` | Phase 5 needs phase 4; mechanical and verifiable | Sonnet 5.5, `medium`, one file set per session |
 | 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` with upstream's draft names where they overlap | Files move once (4.4 rides along) | Fable 5.1, `high` for the move map, subagents for the moves |
 | 3 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); U.3 (#3186–#3190, #3185, #3191), U.6, U.7 (#3193) under review | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
@@ -113,6 +113,10 @@ Open items from finished tasks (details in LOG.md "Open items"):
   but a 180° turn from DownLeft, UpLeft or UpRight passed through Up instead of Down. Fixed in `63da172bd`
   (2026-11-09, checked visually by the user), a test pending; upstream `ags4` has the same line (a U.x candidate; LOG.md "4.1 +
   4.5 + 3.6 per file").
+- 4.1 (batch 3, a decision for the user): restoring a save older than `kCharSvgVersion_400_28`/`_26` keeps the running
+  game's `audio_speed` and `view_anchor`/`view_offset` (no default in `CharacterExtras::ReadFromSavegame`; `RoomObject`'s
+  `audio_speed` likewise); `get_area_scaling`'s unread `x`; the top edge's mask row 1 in `get_walkable_area_at_location`.
+  The `DisplayTopBar` and pivot fixes (`ea271ea5d`, `0becab61f`, `d228d1baa`) are U.x candidates.
 - Scripts in a git worktree: `refactor_metrics.py`, `prepush.py`'s `linux` and `msbuild` stages fail there.
 - Stale: `Tools/test/directory_test.cpp`'s googletest comment; `FetchGoogleTest.cmake`'s pin for GCC < 5.
 
