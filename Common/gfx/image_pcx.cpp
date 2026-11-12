@@ -196,9 +196,9 @@ PixelBuffer LoadPCX(Stream *in, PixelFormat *src_fmt, RGB *pal)
     }
 
     int8_t value;
-    for (int c, xx, po, x, y = 0; y < height; y++)
+    for (int c, pixel_x, po, x, y = 0; y < height; y++)
     { /* read RLE encoded PCX data */
-        x = xx = 0;
+        x = pixel_x = 0;
 #if AGS_PLATFORM_ENDIAN_BIG
         po = 2 - _rgb_r_shift_24 / 8;
 #else
@@ -231,12 +231,12 @@ PixelBuffer LoadPCX(Stream *in, PixelFormat *src_fmt, RGB *pal)
             {
                 while (c--)
                 {
-                    if (xx < bmp.GetWidth())
-                        current_line[xx * 3 + po] = value;
+                    if (pixel_x < bmp.GetWidth())
+                        current_line[pixel_x * 3 + po] = value;
                     x++;
                     if (x == bytes_per_line)
                     {
-                        xx = 0;
+                        pixel_x = 0;
 #if AGS_PLATFORM_ENDIAN_BIG
                         po = 2 - _rgb_g_shift_24 / 8;
 #else
@@ -245,7 +245,7 @@ PixelBuffer LoadPCX(Stream *in, PixelFormat *src_fmt, RGB *pal)
                     }
                     else if (x == bytes_per_line * 2)
                     {
-                        xx = 0;
+                        pixel_x = 0;
 #if AGS_PLATFORM_ENDIAN_BIG
                         po = 2 - _rgb_b_shift_24 / 8;
 #else
@@ -253,7 +253,7 @@ PixelBuffer LoadPCX(Stream *in, PixelFormat *src_fmt, RGB *pal)
 #endif
                     }
                     else
-                        xx++;
+                        pixel_x++;
                 }
             }
         }
