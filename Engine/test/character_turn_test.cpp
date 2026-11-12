@@ -26,8 +26,6 @@
 #include "ac/view.h"
 #include "gtest/gtest.h"
 
-using namespace AGS::Common;
-
 extern GameSetupStruct game;
 extern std::vector<ViewStruct> views;
 extern std::vector<CharacterExtras> charextra;
@@ -47,12 +45,12 @@ protected:
         game.chars[0].view = 0;
         game.chars[0].index_id = 0;
         charextra.resize(1);
-        saved_priority = game.options[OPT_TURNORDERPRIORITY];
+        _savedPriority = game.options[OPT_TURNORDERPRIORITY];
     }
 
     void TearDown() override
     {
-        game.options[OPT_TURNORDERPRIORITY] = saved_priority;
+        game.options[OPT_TURNORDERPRIORITY] = _savedPriority;
         charextra.clear();
         game.chars.clear();
         game.numcharacters = 0;
@@ -77,7 +75,7 @@ protected:
         return passed;
     }
 
-    int saved_priority = 0;
+    int _savedPriority = 0;
 };
 
 TEST_F(CharacterTurning, ShorterWayIsTaken)
