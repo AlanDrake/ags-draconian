@@ -46,7 +46,11 @@ enum SpeechMode
     kSpeech_Last = kSpeech_VoiceOnly
 };
 
+// Converts a script-facing skip style to a combination of SKIP_* flags (ac/runtime_defines.h).
 int user_to_internal_skip_speech(SkipSpeechStyle userval);
+// Converts SKIP_* flags to a skip style: the style that has exactly the timer, key and mouse flags
+// of the input. Any other flag (gamepad, touch) leaves the input unmatched, and the result is then
+// kSkipSpeechTime if the timer flag is set, otherwise kSkipSpeechNone.
 SkipSpeechStyle internal_skip_speech_to_user(int internal_val);
 // Locates and initializes a voice pack of the given *name*, tells if successful;
 // pass empty string for default voice pack.

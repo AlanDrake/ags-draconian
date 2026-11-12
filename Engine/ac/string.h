@@ -33,6 +33,7 @@ inline void VALIDATE_STRING(const char *strin)
 // Tests if a font number is valid, if not then prints a warning and returns a substitution
 int ValidateFontNumber(const char *apiname, int font_num);
 
+// Creates a managed script string with a copy of the text and returns a pointer to its characters.
 const char *CreateNewScriptString(const char *text);
 inline const char *CreateNewScriptString(const AGS::Common::String &text)
 {
@@ -43,6 +44,8 @@ inline const char *CreateNewScriptString(ScriptString::Buffer &&buf)
     return static_cast<const char *>(ScriptString::Create(std::move(buf)).Obj());
 }
 
+// Script API String functions. Each takes the script string as this_string, and the text results are
+// new script strings (an unchanged string may be returned as is, since script strings are immutable).
 int String_IsNullOrEmpty(const char *this_string);
 const char *String_Copy(const char *src_string);
 const char *String_Append(const char *this_string, const char *extra_text);
@@ -57,6 +60,7 @@ const char *String_Replace(const char *this_string, const char *look_for_text, c
                            int compare_style);
 const char *String_LowerCase(const char *this_string);
 const char *String_UpperCase(const char *this_string);
+// Returns the character code at a character (not byte) index, or 0 if the index is outside the string.
 int String_GetChars(const char *this_string, int index);
 int String_AsInt(const char *str);
 float String_AsFloat(const char *str);

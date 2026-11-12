@@ -389,7 +389,7 @@ void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle)
     Bitmap *ds = gfxDriver->GetStageBackBuffer(true);
     if (!ds)
         return;
-    // FIXME: call corresponding Graphics Blit
+    // TODO: draw through the engine's graphics code instead of calling allegro directly
     rotate_sprite(ds->GetAllegroBitmap(), bmp, x, y, itofix(angle));
 }
 
@@ -476,8 +476,8 @@ AGSObject *IAGSEngine::GetObject(int32 num)
 }
 BITMAP *IAGSEngine::CreateBlankBitmap(int32 width, int32 height, int32 coldep)
 {
-    // [IKM] We should not create Bitmap object here, because
-    // a) we are returning raw allegro bitmap and therefore loosing control over it
+    // We should not create Bitmap object here, because
+    // a) we are returning raw allegro bitmap and therefore losing control over it
     // b) plugin won't use Bitmap anyway
     BITMAP *tempb = create_bitmap_ex(coldep, width, height);
     clear_to_color(tempb, bitmap_mask_color(tempb));
@@ -648,9 +648,7 @@ int IAGSEngine::CreateDynamicSprite(int32 coldepth, int32 width, int32 height)
     if ((width < 1) || (height < 1))
         quit("!IAGSEngine::CreateDynamicSprite: invalid width/height requested by plugin");
 
-    // FIXME: disabled HasFreeSlots check because it's not implemented right
-    //if (!spriteset.HasFreeSlots())
-    //    return 0;
+    // TODO: check SpriteCache::HasFreeSlots() here once it is implemented right
 
     std::unique_ptr<Bitmap> image(BitmapHelper::CreateTransparentBitmap(width, height, coldepth));
     if (!image)
@@ -664,7 +662,7 @@ void IAGSEngine::DeleteDynamicSprite(int32 slot)
 }
 int IAGSEngine::IsSpriteAlphaBlended(int32 slot)
 {
-    // [DEPRECATED] TODO: may test for 32-bit? not sure if this function is necessary
+    // Deprecated; always returns 0
     debug_script_warn("IsSpriteAlphaBlended: this function is deprecated and won't have any effect.");
     return 0;
 }
@@ -697,7 +695,7 @@ void IAGSEngine::NotifySpriteUpdated(int32 slot)
 
 void IAGSEngine::SetSpriteAlphaBlended(int32 /*slot*/, int32 /*is_alpha_blended*/)
 {
-    // [DEPRECATED]
+    // Deprecated: does nothing
     debug_script_warn("SetSpriteAlphaBlended: this function is deprecated and won't have any effect.");
 }
 
@@ -873,7 +871,8 @@ size_t IAGSEngine::ResolveFilePath(const char *script_path, char *buf, size_t bu
                                                        static_cast<StreamMode>(work_mode)));
     if (!s)
         return nullptr;
-    // FIXME: this is ugly...
+    // TODO: the released stream base is handed out through a reinterpret_cast to the plugin API's IAGSStream;
+    // a typed conversion would not rely on the two having the same layout
     return reinterpret_cast<::IAGSStream *>(s->ReleaseStreamBase().release());
 }
 
@@ -965,9 +964,8 @@ intptr_t pl_run_plugin_hooks(int event, intptr_t data)
         if (plugin.wantHook & event)
         {
             intptr_t retval = plugin.onEvent(event, data);
-            // FIXME: this is an inconvenient design: breaking out
-            // should be done only for events that are claimable,
-            // such as key press, but not any random event!
+            // TODO: stop at the first non-zero result only for events that a plugin can claim,
+            // such as a key press, not for every event
             if (retval)
                 return retval;
         }

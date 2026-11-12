@@ -57,9 +57,9 @@ const char *CreateNewScriptString(const char *text)
     return static_cast<const char *>(ScriptString::Create(text).Obj());
 }
 
-// Gets a offset corresponding to a character index in a script String;
-// tries to speed up utf-8 offset calculation by using recorded previous result
-// of a offset search from the header. Updates header on success.
+// Gets the byte offset corresponding to a character index in a script String;
+// tries to speed up utf-8 offset calculation by using the previous result
+// of an offset search recorded in the header. Updates the header when the offset fits in 16 bits.
 size_t GetStringCharOff(const char *this_string, int index)
 {
     auto &header = ScriptString::GetHeader((void *)this_string);
@@ -202,9 +202,8 @@ const char *String_ReplaceCharAt(const char *this_string, int index, int new_cha
 
 const char *String_Reverse(const char *this_string)
 {
-    // TODO: i was in a rush when writing this, optimize to do with less copying?
-    // we might have string algorithms separated from String class and shared used
-    // by both String and these script api handlers.
+    // TODO: this copies the string into a String, reverses it, and copies it again into a script string;
+    // reversing in place in a script string buffer would copy once
     String str = this_string;
     (get_uformat() == U_UTF8) ? str.ReverseUTF8() : str.Reverse();
     return CreateNewScriptString(str);
