@@ -1469,8 +1469,8 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
             yOffs = (bmpToDraw->GetHeight() - (txdata->_tiles[ti].y + txdata->_tiles[ti].height)) * yProportion;
         else
             yOffs = txdata->_tiles[ti].y * yProportion;
-        float thisX = quad_x + xOffs;
-        float thisY = quad_y + yOffs;
+        float this_x = quad_x + xOffs;
+        float this_y = quad_y + yOffs;
 
         //Setup translation and scaling matrices
         float widthToScale = width;
@@ -1481,17 +1481,17 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
             // So first negate it (which changes 0..w into -w..0)
             widthToScale = -widthToScale;
             // and now shift it over to make it 0..w again
-            thisX += width;
+            this_x += width;
         }
         if ((bmpToDraw->GetFlip() & kFlip_Vertical) != 0)
         {
             heightToScale = -heightToScale;
-            thisY += height;
+            this_y += height;
         }
         // Center inside a rendering rect
         // FIXME: this should be a part of a projection matrix, afaik
-        thisX = (-(rend_sz.Width / 2.0f)) + thisX;
-        thisY = (rend_sz.Height / 2.0f) - thisY; // inverse axis
+        this_x = (-(rend_sz.Width / 2.0f)) + this_x;
+        this_y = (rend_sz.Height / 2.0f) - this_y; // inverse axis
 
         // Setup rotation and pivot
         float rotZ = bmpToDraw->GetRotation();
@@ -1499,7 +1499,8 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
         float pivotX = -(widthToScale * pivot.X), pivotY = (heightToScale * pivot.Y);
 
         // Self sprite transform (first scale, then rotate and then translate, reversed)
-        glm::mat4 transform = glmex::make_transform2d(thisX, thisY, widthToScale, heightToScale, rotZ, pivotX, pivotY);
+        glm::mat4 transform =
+            glmex::make_transform2d(this_x, this_y, widthToScale, heightToScale, rotZ, pivotX, pivotY);
         // Global batch transform, then the half-pixel offset of the render target,
         // which must be applied last, in the target's own pixels
         transform = glmex::translate(-_pixelRenderXOffset, _pixelRenderYOffset) * matGlobal * transform;
