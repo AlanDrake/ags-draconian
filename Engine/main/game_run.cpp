@@ -1561,7 +1561,7 @@ static void GameLoopUntilEvent(int until_what, const void *data_ptr = nullptr, i
     bool cached_restrict_until_in_script = restrict_until_in_script;
 
     restrict_until_in_script = is_inside_script();
-    restrict_until.reset(new GameLoopUntilState(until_what, data_ptr, data1, data2));
+    restrict_until = std::make_unique<GameLoopUntilState>(until_what, data_ptr, data1, data2);
     restrict_until->Begin();
     while (restrict_until->Run())
         ;
