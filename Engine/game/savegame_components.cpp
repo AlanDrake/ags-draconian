@@ -68,6 +68,7 @@ extern std::unique_ptr<Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern RoomStruct thisroom;
 extern RoomStatus troom;
 
+// Set to 1 to print each component's offsets and sizes while reading and writing
 #define DEBUG_SAVECOMPONENTS (0)
 
 namespace AGS
@@ -80,7 +81,7 @@ namespace SavegameComponents
 
 //-----------------------------------------------------------------------------
 //
-// Helper assertion functions.
+// Helper functions: component tags and game content assertions.
 //
 //-----------------------------------------------------------------------------
 
@@ -553,7 +554,7 @@ HSaveError WriteAudio(Stream *out)
     out->WriteInt32(0); // DEPRECATED current_music_type
 
     // Skip legacy Ambient sounds
-    // FIXME: CLNUP save format?
+    // NOTE: six ints per game channel, kept in the save format and ignored when reading
     for (int i = 0; i < game.numGameChannels; ++i)
     {
         out->WriteInt32(0);
@@ -639,7 +640,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
     in->ReadInt32(); // DEPRECATED current_music_type
 
     // Skip legacy Ambient sounds
-    // FIXME: CLNUP save format?
+    // NOTE: six ints per game channel, kept in the save format and ignored when reading
     for (int i = 0; i < max_game_channels; ++i)
     {
         in->ReadInt32();
@@ -1245,6 +1246,8 @@ HSaveError ReadViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pre
     return err;
 }
 
+// TODO: skips every frame as sound, pic, flags, speed and offsets (the kViewSvgVersion_4000018 layout), ignoring cmp_ver
+// and the frame event names that follow each loop's frames since kViewSvgVersion_4000024
 HSaveError PrescanViews(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams & /*pp*/,
                         RestoredData &r_data)
 {
@@ -1308,7 +1311,7 @@ HSaveError ReadDynamicSpritesImpl(Stream *in, int match_flags)
     HSaveError err;
     const int spr_count = in->ReadInt32();
     // ensure the sprite set is at least large enough
-    // to accomodate top dynamic sprite index
+    // to accommodate top dynamic sprite index
     const int top_index = in->ReadInt32();
     spriteset.EnlargeTo(top_index);
     for (int i = 0; i < spr_count; ++i)
@@ -1461,7 +1464,7 @@ HSaveError ReadDynamicSurfaces(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size,
     HSaveError err;
     if (!AssertCompatLimit(err, in->ReadInt32(), MAX_DYNAMIC_SURFACES, "Dynamic Surfaces"))
         return err;
-    // Load the surfaces into a temporary array since ccUnserialiseObjects will destroy them otherwise
+    // Load the surfaces into a temporary array since ccUnserializeAllObjects will destroy them otherwise
     r_data.DynamicSurfaces.resize(MAX_DYNAMIC_SURFACES);
     for (int i = 0; i < MAX_DYNAMIC_SURFACES; ++i)
     {
@@ -1882,7 +1885,7 @@ HSaveError WriteRTTI(Stream *out)
     const auto &helper = RuntimeScript::GetRTTIHelper();
     const auto &locs = rtti.GetLocations();
     const auto &types = rtti.GetTypes();
-    // NOTE: we don't write IDs here, as the Joint RTTI assumes to have them strcitly sequential
+    // NOTE: we don't write IDs here, as the Joint RTTI assumes to have them strictly sequential
     out->WriteInt32(locs.size());
     for (const auto &loc : locs)
     {
@@ -1964,7 +1967,7 @@ HSaveError ReadPluginData(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
 
 
 // TODO: move elsewhere later
-// FIXME: currently not passed into the dynamic object deserializer
+// FIXME: ReadManagedPool does not pass the component version to ccUnserializeAllObjects
 enum ManagedPoolSavegameVersion
 {
     kManagedPoolSvgVersion_400 = 4000000 // typeinfo for dynamic objects
@@ -2298,7 +2301,7 @@ HSaveError WriteComponent(Stream *out, ComponentHandler &handler, bool compress)
     out->Seek(data_sz_pos, kSeekBegin);
     out->WriteInt32(data_end_pos - data_begin_pos);                               // size of serialized component data
     out->WriteInt32(compress ? uncomp_data_sz : (data_end_pos - data_begin_pos)); // uncompressed size
-    out->WriteInt32(0);                                                           // checksum (?)
+    out->WriteInt32(0); // checksum: never computed, ReadComponent does not check it
     out->Seek(data_end_pos, kSeekBegin);
     WriteFormatTag(out, handler.Name, false);
     return HSaveError::None();

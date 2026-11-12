@@ -35,14 +35,17 @@ struct RestoredData;
 
 namespace SavegameComponents
 {
-// Reads all available components from the stream
+// Reads the components of the stream that select_cmp selects into the game state and r_data;
+// the others are skipped. pp holds the state kept from before the restore. Stops at the first
+// component that fails, and returns its error with the component name, version and offset.
 HSaveError ReadAll(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp, const PreservedParams &pp,
                    RestoredData &r_data);
-// Prescans all components, gathering data counts and asserting data match;
-// does *not* keep any actual game data
+// Prescans the selected components that have a prescan handler (the others are skipped), gathering
+// data counts into r_data and asserting that they match the game; does *not* keep any actual game data.
 HSaveError PrescanAll(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp, const PreservedParams &pp,
                       RestoredData &r_data);
-// Writes a full list of common components to the stream
+// Writes the common components that select_cmp selects to the stream, each one deflated if compress is set;
+// the stream also gets the component list tags. Stops at the first component that fails.
 HSaveError WriteAllCommon(Stream *out, SaveCmpSelection select_cmp, bool compress);
 } // namespace SavegameComponents
 
