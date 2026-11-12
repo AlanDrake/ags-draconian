@@ -930,7 +930,7 @@ void CreateAnimatedOverlay(int over_id, bool pause_with_game)
 
 static void UpdateOverlayState(const AnimatedOverlay &aover)
 {
-    assert(aover.GetOverID() >= 0 && aover.GetOverID() <= screenover.size() && screenover.IsInUse(aover.GetOverID()));
+    assert(aover.GetOverID() >= 0 && aover.GetOverID() < screenover.size() && screenover.IsInUse(aover.GetOverID()));
     if (aover.GetOverID() < 0 || aover.GetOverID() >= screenover.size() || !screenover.IsInUse(aover.GetOverID()))
         return;
 
