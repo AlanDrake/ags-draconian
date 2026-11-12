@@ -513,10 +513,10 @@ int check_write_access()
     String svg_dir = get_save_game_directory();
     if (platform->GetDiskFreeSpaceMB(svg_dir) < 2)
         return 0;
-    String tempPath = String::FromFormat("%s"
-                                         "tmptest.tmp",
-                                         svg_dir.GetCStr());
-    auto temp_s = File::CreateFile(tempPath);
+    String temp_path = String::FromFormat("%s"
+                                          "tmptest.tmp",
+                                          svg_dir.GetCStr());
+    auto temp_s = File::CreateFile(temp_path);
     if (!temp_s)
         return 0;
 
@@ -527,7 +527,7 @@ int check_write_access()
 
     set_our_eip(-1897);
 
-    if (!File::DeleteFile(tempPath))
+    if (!File::DeleteFile(temp_path))
         return 0;
 
     return 1;
@@ -564,26 +564,26 @@ void show_preload()
     if (!stream)
         return;
 
-    RGB temppal[256];
-    Bitmap *splashsc = BitmapHelper::LoadBitmap(stream.get(), f_ext.GetCStr(), nullptr, temppal);
-    if (splashsc != nullptr)
+    RGB temp_pal[256];
+    Bitmap *splash_bmp = BitmapHelper::LoadBitmap(stream.get(), f_ext.GetCStr(), nullptr, temp_pal);
+    if (splash_bmp != nullptr)
     {
         Debug::Printf("Displaying preload image");
-        if (splashsc->GetColorDepth() == 8)
-            set_palette_range(temppal, 0, 255, 0);
+        if (splash_bmp->GetColorDepth() == 8)
+            set_palette_range(temp_pal, 0, 255, 0);
         if (gfxDriver->UsesMemoryBackBuffer())
             gfxDriver->GetMemoryBackBuffer()->Clear();
 
         const Rect &view = play.GetMainViewport();
-        Bitmap *tsc = BitmapHelper::CreateBitmapCopy(splashsc, game.GetColorDepth());
-        if (!gfxDriver->HasAcceleratedTransform() && view.GetSize() != tsc->GetSize())
+        Bitmap *preload_bmp = BitmapHelper::CreateBitmapCopy(splash_bmp, game.GetColorDepth());
+        if (!gfxDriver->HasAcceleratedTransform() && view.GetSize() != preload_bmp->GetSize())
         {
-            Bitmap *stretched = new Bitmap(view.GetWidth(), view.GetHeight(), tsc->GetColorDepth());
-            stretched->StretchBlt(tsc, RectWH(0, 0, view.GetWidth(), view.GetHeight()));
-            delete tsc;
-            tsc = stretched;
+            Bitmap *stretched = new Bitmap(view.GetWidth(), view.GetHeight(), preload_bmp->GetColorDepth());
+            stretched->StretchBlt(preload_bmp, RectWH(0, 0, view.GetWidth(), view.GetHeight()));
+            delete preload_bmp;
+            preload_bmp = stretched;
         }
-        IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(tsc, kTxFlags_Opaque);
+        IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(preload_bmp, kTxFlags_Opaque);
         ddb->SetStretch(view.GetWidth(), view.GetHeight());
         gfxDriver->ClearDrawLists();
         gfxDriver->BeginSpriteBatch(view, SpriteTransform());
@@ -591,8 +591,8 @@ void show_preload()
         gfxDriver->EndSpriteBatch();
         render_to_screen();
         gfxDriver->DestroyDDB(ddb);
-        delete splashsc;
-        delete tsc;
+        delete splash_bmp;
+        delete preload_bmp;
         platform->Delay(500);
     }
 }
@@ -657,29 +657,29 @@ void engine_init_game_settings()
     if (game.options[OPT_GAMETEXTENCODING] != 65001)
         Debug::Printf(kDbgMsg_Warn, "WARNING: game's text encoding is not UTF-8, and may be displayed incorrectly");
 
-    int ee;
+    int i;
 
-    for (ee = 0; ee < 256; ee++)
+    for (i = 0; i < 256; i++)
     {
-        if (game.paluses[ee] != PAL_BACKGROUND)
-            palette[ee] = game.defpal[ee];
+        if (game.paluses[i] != PAL_BACKGROUND)
+            palette[i] = game.defpal[i];
     }
     // Allegro's palette starts all black; colours are matched against it (makecol8)
     setpal();
 
-    for (ee = 0; ee < game.numcursors; ee++)
+    for (i = 0; i < game.numcursors; i++)
     {
         // The cursor graphics are assigned to mousecurs[] and so cannot
         // be removed from memory
-        if (game.mcurs[ee].pic >= 0)
-            spriteset.PrecacheSprite(game.mcurs[ee].pic);
+        if (game.mcurs[i].pic >= 0)
+            spriteset.PrecacheSprite(game.mcurs[i].pic);
 
         // just in case they typed an invalid view number in the editor
-        if (game.mcurs[ee].view >= game.numviews)
-            game.mcurs[ee].view = -1;
+        if (game.mcurs[i].view >= game.numviews)
+            game.mcurs[i].view = -1;
 
-        if (game.mcurs[ee].view >= 0)
-            precache_view(game.mcurs[ee].view);
+        if (game.mcurs[i].view >= 0)
+            precache_view(game.mcurs[i].view);
     }
     // may as well preload the character gfx
     if (playerchar->view >= 0)
@@ -687,38 +687,38 @@ void engine_init_game_settings()
 
     set_our_eip(-6);
 
-    for (ee = 0; ee < MAX_ROOM_OBJECTS; ee++)
+    for (i = 0; i < MAX_ROOM_OBJECTS; i++)
     {
-        scrObj[ee].id = ee;
+        scrObj[i].id = i;
     }
 
-    for (ee = 0; ee < game.numcharacters; ee++)
+    for (i = 0; i < game.numcharacters; i++)
     {
-        game.chars[ee].activeinv = -1;
-        game.chars[ee].idleleft = game.chars[ee].idledelay;
-        game.chars[ee].walkwaitcounter = 0;
-        game.chars[ee].z = 0;
-        charextra[ee].xwas = INVALID_X;
-        charextra[ee].zoom = 100;
-        if (game.chars[ee].view >= 0)
+        game.chars[i].activeinv = -1;
+        game.chars[i].idleleft = game.chars[i].idledelay;
+        game.chars[i].walkwaitcounter = 0;
+        game.chars[i].z = 0;
+        charextra[i].xwas = INVALID_X;
+        charextra[i].zoom = 100;
+        if (game.chars[i].view >= 0)
         {
             // set initial loop to 0
-            game.chars[ee].loop = 0;
+            game.chars[i].loop = 0;
             // or to 1 if they don't have up/down frames
-            if (views[game.chars[ee].view].loops[0].numFrames < 1)
-                game.chars[ee].loop = 1;
+            if (views[game.chars[i].view].loops[0].numFrames < 1)
+                game.chars[i].loop = 1;
         }
-        charextra[ee].process_idle_this_time = 0;
-        charextra[ee].slow_move_counter = 0;
-        charextra[ee].animwait = 0;
+        charextra[i].process_idle_this_time = 0;
+        charextra[i].slow_move_counter = 0;
+        charextra[i].animwait = 0;
     }
 
     set_our_eip(-5);
     // Add all inventory items with "starts with" flag to the player character
-    for (ee = 0; ee < game.numinvitems; ee++)
+    for (i = 0; i < game.numinvitems; i++)
     {
-        if (game.invinfo[ee].flags & IFLG_STARTWITH)
-            playerchar->set_item_quantity(ee, 1);
+        if (game.invinfo[i].flags & IFLG_STARTWITH)
+            playerchar->set_item_quantity(i, 1);
     }
 
     //
@@ -1102,9 +1102,9 @@ void engine_prepare_config(ConfigTree &cfg, ConfigTree *def_cfg, const ConfigTre
     // Read configuration files
     engine_read_config(cfg, def_cfg);
     // Merge startup options in
-    for (const auto &sectn : startup_opts)
-        for (const auto &opt : sectn.second)
-            cfg[sectn.first][opt.first] = opt.second;
+    for (const auto &section : startup_opts)
+        for (const auto &opt : section.second)
+            cfg[section.first][opt.first] = opt.second;
 }
 
 // Applies configuration to the running game
@@ -1136,29 +1136,29 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
     }
     if (all || keys.count("graphicdriver") > 0)
     {
-        StringV drv;
-        AGS::Engine::GetGfxDriverFactoryNames(drv);
-        for (size_t i = 0; i < drv.size(); ++i)
+        StringV drivers;
+        AGS::Engine::GetGfxDriverFactoryNames(drivers);
+        for (size_t i = 0; i < drivers.size(); ++i)
         {
-            data["graphicdriver"][String::FromFormat("%zu", i)] = drv[i];
+            data["graphicdriver"][String::FromFormat("%zu", i)] = drivers[i];
         }
     }
     if (all || keys.count("configpath") > 0)
     {
         String def_cfg_file = find_default_cfg_file();
-        String gl_cfg_file = find_user_global_cfg_file();
+        String global_cfg_file = find_user_global_cfg_file();
         String user_cfg_file = find_user_cfg_file();
         data["configpath"]["default"] = def_cfg_file;
-        data["configpath"]["global"] = gl_cfg_file;
+        data["configpath"]["global"] = global_cfg_file;
         data["configpath"]["user"] = user_cfg_file;
     }
     if ((all || keys.count("config") > 0) && user_cfg)
     {
-        for (const auto &sectn : *user_cfg)
+        for (const auto &section : *user_cfg)
         {
-            String cfg_sectn = String::FromFormat("config@%s", sectn.first.GetCStr());
-            for (const auto &opt : sectn.second)
-                data[cfg_sectn][opt.first] = opt.second;
+            String cfg_section = String::FromFormat("config@%s", section.first.GetCStr());
+            for (const auto &opt : section.second)
+                data[cfg_section][opt.first] = opt.second;
         }
     }
     if (all || keys.count("data") > 0)
@@ -1197,8 +1197,8 @@ void engine_init_editor_debugging(const ConfigTree &cfg)
     if (!init_editor_debugging(cfg))
         return;
 
-    auto waitUntil = Clock::now() + std::chrono::milliseconds(500);
-    while (waitUntil > Clock::now())
+    auto wait_until = Clock::now() + std::chrono::milliseconds(500);
+    while (wait_until > Clock::now())
     {
         // pick up any breakpoints in game_start
         check_for_messages_from_debugger();
@@ -1407,10 +1407,10 @@ bool engine_try_switch_windowed_gfxmode()
     }
     else
     {
-        WindowSetup ws = windowed ? usetup.Display.WinSetup : usetup.Display.FsSetup;
+        WindowSetup window_setup = windowed ? usetup.Display.WinSetup : usetup.Display.FsSetup;
         frame = windowed ? usetup.Display.WinGameFrame : usetup.Display.FsGameFrame;
         res = graphics_mode_set_dm_any(
-            game.GetGameRes(), ws, old_dm.ColorDepth, frame,
+            game.GetGameRes(), window_setup, old_dm.ColorDepth, frame,
             DisplayParamsEx(use_display_index, usetup.Display.RefreshRate, usetup.Display.VSync));
     }
 
@@ -1436,9 +1436,9 @@ bool engine_try_switch_windowed_gfxmode()
     return res;
 }
 
-void engine_on_window_changed(const Size &sz)
+void engine_on_window_changed(const Size &size)
 {
-    graphics_mode_on_window_changed(sz);
+    graphics_mode_on_window_changed(size);
     on_coordinates_scaling_changed();
     invalidate_screen();
 }
@@ -1464,13 +1464,13 @@ const char *get_engine_version()
 
 String get_engine_version_and_build()
 {
-    const char *bit = (AGS_PLATFORM_64BIT) ? "64-bit" : "32-bit";
-    const char *end = (AGS_PLATFORM_ENDIAN_LITTLE) ? "LE" : "BE";
+    const char *bitness = (AGS_PLATFORM_64BIT) ? "64-bit" : "32-bit";
+    const char *endianness = (AGS_PLATFORM_ENDIAN_LITTLE) ? "LE" : "BE";
 #ifdef BUILD_STR
     return String::FromFormat("%s (Build: %s), %s %s", EngineVersion.LongString.GetCStr(),
-                              EngineVersion.BuildInfo.GetCStr(), bit, end);
+                              EngineVersion.BuildInfo.GetCStr(), bitness, endianness);
 #else
-    return String::FromFormat("%s, %s %s", EngineVersion.LongString.GetCStr(), bit, end);
+    return String::FromFormat("%s, %s %s", EngineVersion.LongString.GetCStr(), bitness, endianness);
 #endif
 }
 
