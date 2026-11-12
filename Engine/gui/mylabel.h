@@ -24,7 +24,7 @@ struct MyLabel : public NewControl
     int textheight; // TODO: use font instead
 
     // The height of the control is the text height: it is not recomputed for more than one line.
-    MyLabel(int left, int top, int width, const char *label, int textheight);
+    MyLabel(int left, int top, int width, const char *label, int text_height);
 
     void draw(AGS::Common::Bitmap *ds) override;
 

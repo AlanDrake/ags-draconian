@@ -27,7 +27,7 @@ struct MyListBox : public NewControl
     char *itemnames[MAXLISTITEM];
     int textheight; // TODO: use font instead
 
-    MyListBox(int left, int top, int width, int height, int textheight);
+    MyListBox(int left, int top, int width, int height, int text_height);
     // Frees all item texts and empties the list.
     void clearlist();
     ~MyListBox() override;

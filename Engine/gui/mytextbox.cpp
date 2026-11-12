@@ -27,7 +27,7 @@ using namespace AGS::Common;
 extern int windowbackgroundcolor;
 extern int cbuttfont;
 
-MyTextBox::MyTextBox(int left, int top, int width, const char *initial_text, int textheight_)
+MyTextBox::MyTextBox(int left, int top, int width, const char *initial_text, int text_height)
 {
     x = left;
     y = top;
@@ -37,7 +37,7 @@ MyTextBox::MyTextBox(int left, int top, int width, const char *initial_text, int
     else
         text[0] = 0;
 
-    textheight = textheight_;
+    textheight = text_height;
     hit = textheight + 1;
 }
 

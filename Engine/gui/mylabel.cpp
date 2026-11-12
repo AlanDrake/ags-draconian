@@ -26,13 +26,13 @@ using namespace AGS::Common;
 
 extern int acdialog_font;
 
-MyLabel::MyLabel(int left, int top, int width, const char *label, int textheight_)
+MyLabel::MyLabel(int left, int top, int width, const char *label, int text_height)
 {
     snprintf(text, sizeof(text), "%s", label);
     x = left;
     y = top;
     wid = width;
-    textheight = textheight_;
+    textheight = text_height;
     hit = textheight;
 }
 

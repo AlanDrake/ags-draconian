@@ -30,13 +30,13 @@ extern int windowbackgroundcolor;
 extern int cbuttfont;
 extern int smcode;
 
-MyListBox::MyListBox(int left, int top, int width, int height, int textheight_)
+MyListBox::MyListBox(int left, int top, int width, int height, int text_height)
 {
     x = left;
     y = top;
     wid = width;
     hit = height;
-    textheight = textheight_;
+    textheight = text_height;
     hit -= (hit - 4) % textheight; // so that the height less the 4 border pixels is a whole number of rows
     numonscreen = (hit - 4) / textheight;
     items = 0;

@@ -123,8 +123,8 @@ struct EnginePlugin
     void (*engineStartup)(IAGSEngine *) = nullptr;
     void (*engineShutdown)() = nullptr;
     intptr_t (*onEvent)(int evt, intptr_t param) = nullptr;
-    void (*initGfxHook)(const char *driver_name, void *data) = nullptr;
-    int (*debugHook)(const char *script_name, int line_number, int reserved) = nullptr;
+    void (*initGfxHook)(const char *driverName, void *data) = nullptr;
+    int (*debugHook)(const char *whichscript, int lineNumber, int reserved) = nullptr;
     IAGSEngine eiface;
     bool builtin = false;
 
