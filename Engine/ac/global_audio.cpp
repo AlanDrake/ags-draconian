@@ -40,17 +40,17 @@ extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 
-void SetSpeechVolume(int newvol)
+void SetSpeechVolume(int volume)
 {
-    if ((newvol < 0) | (newvol > 255))
+    if ((volume < 0) | (volume > 255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
 
     auto *playback = AudioChans::GetChannel(SCHAN_SPEECH);
     if (playback)
     {
-        playback->set_volume255(newvol);
+        playback->set_volume255(volume);
     }
-    play.speech_volume = newvol;
+    play.speech_volume = volume;
 }
 
 int IsSpeechVoxAvailable()
@@ -66,7 +66,7 @@ int IsMusicVoxAvailable()
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
 // Construct an asset name for the voice-over clip for the given character and cue id
-static String get_cue_filename(int charid, int sndid)
+static String get_cue_filename(int char_id, int cue_id)
 {
     // Clip name generation rule:
     // Cut a small case 'c' prefix from the character's script name,
@@ -75,12 +75,12 @@ static String get_cue_filename(int charid, int sndid)
     // Naming format: use full script name (past the prefix),
     //            clip number (X) is separated by a dot:
     //            "CHARNAME.X"
-    const char *charname = (charid >= 0) ? game.chars[charid].scrname.GetCStr() : "narrator";
-    size_t from = (charname[0] == 'c') ? 1 : 0u;
-    String charname_fix(charname + from, SIZE_MAX);
+    const char *char_name = (char_id >= 0) ? game.chars[char_id].scrname.GetCStr() : "narrator";
+    size_t from = (char_name[0] == 'c') ? 1 : 0u;
+    String clip_char_name(char_name + from, SIZE_MAX);
 
     const char *fmt_str = "%s.%d";
-    String asset_filename = String::FromFormat(fmt_str, charname_fix.GetCStr(), sndid);
+    String asset_filename = String::FromFormat(fmt_str, clip_char_name.GetCStr(), cue_id);
     return Path::ConcatPaths(get_voice_assetpath(), asset_filename);
 }
 
@@ -164,24 +164,24 @@ static void stop_voice_clip_impl()
     stop_and_destroy_channel(SCHAN_SPEECH);
 }
 
-bool play_voice_speech(int charid, int sndid)
+bool play_voice_speech(int char_id, int cue_id)
 {
     // don't play speech if we're skipping a cutscene
     if (!play.ShouldPlayVoiceSpeech())
         return false;
 
-    String voice_file = get_cue_filename(charid, sndid);
+    String voice_file = get_cue_filename(char_id, cue_id);
     if (!play_voice_clip_impl(voice_file, true, true))
         return false;
 
-    int ii;          // Compare the base file name to the .pam file name
+    int line_id;     // Compare the base file name to the .pam file name
     curLipLine = -1; // See if we have voice lip sync for this line
     curLipLinePhoneme = -1;
-    for (ii = 0; ii < numLipLines; ii++)
+    for (line_id = 0; line_id < numLipLines; line_id++)
     {
-        if (voice_file.CompareNoCase(splipsync[ii].filename) == 0)
+        if (voice_file.CompareNoCase(splipsync[line_id].filename) == 0)
         {
-            curLipLine = ii;
+            curLipLine = line_id;
             break;
         }
     }
@@ -200,7 +200,7 @@ bool play_voice_speech(int charid, int sndid)
     return true;
 }
 
-bool play_voice_nonblocking(int charid, int sndid, bool as_speech)
+bool play_voice_nonblocking(int char_id, int cue_id, bool as_speech)
 {
     // don't play voice if we're skipping a cutscene
     if (!play.ShouldPlayVoiceSpeechNonBlocking())
@@ -209,17 +209,17 @@ bool play_voice_nonblocking(int charid, int sndid, bool as_speech)
     if (as_speech && play.IsBlockingVoiceSpeech())
         return false;
 
-    String voice_file = get_cue_filename(charid, sndid);
+    String voice_file = get_cue_filename(char_id, cue_id);
     return play_voice_clip_impl(voice_file, as_speech, false);
 }
 
-const ScriptAudioChannel *play_voice_clip_as_type(int charid, int sndid, int type, int chan, int priority, int repeat)
+const ScriptAudioChannel *play_voice_clip_as_type(int char_id, int cue_id, int type, int chan, int priority, int repeat)
 {
     // don't play voice if we're skipping a cutscene
     if (!play.ShouldPlayVoiceSpeechNonBlocking())
         return nullptr;
 
-    String voice_file = get_cue_filename(charid, sndid);
+    String voice_file = get_cue_filename(char_id, cue_id);
     AssetPath apath = find_voice_clip(voice_file);
     if (!apath)
         return nullptr;
