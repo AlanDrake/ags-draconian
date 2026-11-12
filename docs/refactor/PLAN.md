@@ -113,14 +113,17 @@ Open items from finished tasks (details in LOG.md "Open items"):
   but a 180° turn from DownLeft, UpLeft or UpRight passed through Up instead of Down. Fixed in `63da172bd`
   (2026-11-09, checked visually by the user), a test pending; upstream `ags4` has the same line (a U.x candidate; LOG.md "4.1 +
   4.5 + 3.6 per file").
-- 4.1 (batch 3, a decision for the user): restoring a save older than `kCharSvgVersion_400_28`/`_26` keeps the running
-  game's `audio_speed` and `view_anchor`/`view_offset` (no default in `CharacterExtras::ReadFromSavegame`; `RoomObject`'s
-  `audio_speed` likewise); `get_area_scaling`'s unread `x`; the top edge's mask row 1 in `get_walkable_area_at_location`.
-  The `DisplayTopBar` and pivot fixes (`ea271ea5d`, `0becab61f`, `d228d1baa`) are U.x candidates, with batch 4's
-  `Joystick.GetHat`, `InventoryItem.CursorHotspotAlignment` and `Overlay.Tint` fixes (`4b1ce87fb`, `a3e21a6e3`, `9d81c631c`)
-  and batch 5's save prescan fix (`edadb75aa`).
-- 4.1 (batch 5, a decision for the user): voice lip-sync works only with the default `speech.vox` (the pack path in the
-  compared clip name, `syncdata.dat` read once at startup); pre-3.6.1 `DisplayAtY(y, text)` formats its text.
+- 4.1, upstream: **one upstream PR with all the bugs found in this stage, once 4.1 is finished** (the user, 2026-11-12).
+  So far: the `DisplayTopBar` read time and font (`ea271ea5d`, `0becab61f`), the pivot of older saves (`d228d1baa`),
+  `Joystick.GetHat` (`4b1ce87fb`), `InventoryItem.CursorHotspotAlignment` (`a3e21a6e3`), `Overlay.Tint` (`9d81c631c`),
+  the save prescan of views (`edadb75aa`), the defaults for older saves' audio speed and view anchor (`8a25d5732`),
+  `start_character_turning` (`63da172bd`, above); upstream `ags4` has each.
+- 4.1 (batch 5, a decision for the user): voice lip-sync works only with the default `speech.vox`. Checked on
+  2026-11-12: the editor writes a `syncdata.dat` with bare clip names (`EGO.1`) in every `Speech` folder, `agsbuild`
+  packs a folder's files as `<folder>/<file>` in `sp_<folder>.vox`, the engine reads `syncdata.dat` once at startup (the
+  default pack's) and `play_voice_speech` compares the clip's asset name, which carries the pack path (`<folder>/EGO.1`),
+  so after `Game.ChangeSpeechVox` no line matches and the pack's own sync data is never read. Upstream `ags4` and
+  `master` (3.6) have the same code. Fix: reload the sync data in `init_voicepak`, compare the bare clip name.
 - Scripts in a git worktree: `refactor_metrics.py`, `prepush.py`'s `linux` and `msbuild` stages fail there.
 - Stale: `Tools/test/directory_test.cpp`'s googletest comment; `FetchGoogleTest.cmake`'s pin for GCC < 5.
 

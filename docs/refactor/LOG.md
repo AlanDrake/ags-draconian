@@ -4367,6 +4367,16 @@ four Sonnet 5.5 subagents at `medium` in parallel, worktrees from `a241df4d1`; r
   `Tools/data/data_file_writer.cpp` (`chinfo` 40), `Common/gfx/image_pcx.cpp` 7, `Common/util/lzw.cpp` 6,
   `Common/game/main_game_file.cpp` 5 and the compiler (`eres`/`tqs` 669, `char1` 13). 1,826 watchlist names in all,
   917 without the 5.1 globals.
+- **Decided by the user (2026-11-12) on the open items of batches 3-5:**
+  - `8a25d5732`: characters from saves before `kCharSvgVersion_400_28`/`_26` get the default `audio_speed` (1000) and
+    view anchor/offset (as `SetUnlockedView`), room objects before `kRoomStatSvgVersion_40028` the default
+    `audio_speed` (0, which `SoundClipWaveBase` plays at normal speed), instead of keeping the running game's. No test
+    (the component tests write the current version only).
+  - `fb0b14838`: `get_area_scaling` takes the row only: its `x` was converted and never read in any version since the
+    source was opened (`ac.cpp`, 2012); the scaling of an area depends on the row.
+  - `6e8d72c93`: a point above the room reads mask row 0, not 1: row 1 was the old engine's 1..height design.
+  - The pre-3.6.1 `DisplayAtY` formatting: does not matter. The lip-sync limitation: checked (PLAN.md open items).
+  - One upstream PR with all the bugs found in this stage, once 4.1 is finished.
 
 ### 7.3 Ports
 
