@@ -2417,8 +2417,14 @@ namespace AGS.Editor.Components
 
         private void CopyGamePalette()
         {
-            _roomPalette = new PaletteEntry[Factory.AGSEditor.CurrentGame.Palette.Length];
-            Array.Copy(Factory.AGSEditor.CurrentGame.Palette, _roomPalette, Factory.AGSEditor.CurrentGame.Palette.Length);
+            // The room palette has its own entries: loading a room's background changes
+            // the colours in it, and that must not reach the game palette
+            PaletteEntry[] gamePalette = Factory.AGSEditor.CurrentGame.Palette;
+            _roomPalette = new PaletteEntry[gamePalette.Length];
+            for (int i = 0; i < gamePalette.Length; i++)
+            {
+                _roomPalette[i] = gamePalette[i].Clone();
+            }
         }
 
         /// <summary>

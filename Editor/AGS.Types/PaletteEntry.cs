@@ -23,6 +23,16 @@ namespace AGS.Types
             _index = index;
         }
 
+        /// <summary>
+        /// Makes an independent entry with the same index, colour and colour type.
+        /// </summary>
+        public PaletteEntry Clone()
+        {
+            PaletteEntry copy = new PaletteEntry(_index, _color);
+            copy._type = _type;
+            return copy;
+        }
+
         [Description("The colour represented by this palette index")]
         [Category("Appearance")]
         [DisplayName(PROPERTY_COLOR_RGB)]
