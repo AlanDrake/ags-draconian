@@ -251,7 +251,7 @@ enum PluginSvgVersion
 
 Bitmap *ReadBitmap(Stream *in, bool compressed = false);
 void SkipBitmap(Stream *in, bool compressed = false);
-void WriteBitmap(const Bitmap *thispic, Stream *out, bool compressed = false);
+void WriteBitmap(const Bitmap *bmp, Stream *out, bool compressed = false);
 // Runs plugin events, requesting to read save data from the given stream.
 // NOTE: there's no error check in this function, because plugin API currently
 // does not let plugins report any errors when restoring their saved data.

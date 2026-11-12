@@ -161,65 +161,64 @@ String GetSavegameErrorText(SavegameErrorType err)
 
 Bitmap *ReadBitmap(Stream *in, bool compressed)
 {
-    const int picwid = in->ReadInt32();
-    const int pichit = in->ReadInt32();
-    const int piccoldep = in->ReadInt32();
-    Bitmap *thispic = BitmapHelper::CreateBitmap(picwid, pichit, piccoldep);
-    if (thispic == nullptr)
+    const int width = in->ReadInt32();
+    const int height = in->ReadInt32();
+    const int color_depth = in->ReadInt32();
+    Bitmap *bmp = BitmapHelper::CreateBitmap(width, height, color_depth);
+    if (bmp == nullptr)
         return nullptr;
 
     if (compressed)
     {
         in->ReadInt32(); // reserved
-        size_t compressed_sz = in->ReadInt32();
-        inflate_decompress(thispic->GetDataForWriting(), thispic->GetWidth() * thispic->GetHeight() * thispic->GetBPP(),
-                           thispic->GetBPP(), in, compressed_sz);
+        size_t compressed_size = in->ReadInt32();
+        inflate_decompress(bmp->GetDataForWriting(), bmp->GetWidth() * bmp->GetHeight() * bmp->GetBPP(), bmp->GetBPP(),
+                           in, compressed_size);
     }
     else
     {
-        PixelOp::ReadPixelData(in, thispic->GetDataForWriting(), thispic->GetWidth(), thispic->GetHeight(),
-                               thispic->GetBPP(), thispic->GetPitch());
+        PixelOp::ReadPixelData(in, bmp->GetDataForWriting(), bmp->GetWidth(), bmp->GetHeight(), bmp->GetBPP(),
+                               bmp->GetPitch());
     }
 
-    return thispic;
+    return bmp;
 }
 
 void SkipBitmap(Stream *in, bool compressed)
 {
-    int picwid = in->ReadInt32();
-    int pichit = in->ReadInt32();
-    int piccoldep = in->ReadInt32();
+    int width = in->ReadInt32();
+    int height = in->ReadInt32();
+    int color_depth = in->ReadInt32();
 
     if (compressed)
     {
         in->ReadInt32(); // reserved
-        size_t compress_sz = in->ReadInt32();
-        in->Seek(compress_sz);
+        size_t compressed_size = in->ReadInt32();
+        in->Seek(compressed_size);
     }
     else
     {
-        int bpp = (piccoldep + 7) / 8;
-        in->Seek(picwid * pichit * bpp);
+        int bpp = (color_depth + 7) / 8;
+        in->Seek(width * height * bpp);
     }
 }
 
-void WriteBitmap(const Common::Bitmap *thispic, Stream *out, bool compressed)
+void WriteBitmap(const Common::Bitmap *bmp, Stream *out, bool compressed)
 {
-    assert(thispic);
-    if (!thispic)
+    assert(bmp);
+    if (!bmp)
         return;
 
-    out->WriteInt32(thispic->GetWidth());
-    out->WriteInt32(thispic->GetHeight());
-    out->WriteInt32(thispic->GetColorDepth());
+    out->WriteInt32(bmp->GetWidth());
+    out->WriteInt32(bmp->GetHeight());
+    out->WriteInt32(bmp->GetColorDepth());
 
     if (compressed)
     {
         out->WriteInt32(0); // reserved
         soff_t size_pos = out->GetPosition();
         out->WriteInt32(0); // size placeholder
-        deflate_compress(thispic->GetData(), thispic->GetWidth() * thispic->GetHeight() * thispic->GetBPP(),
-                         thispic->GetBPP(), out);
+        deflate_compress(bmp->GetData(), bmp->GetWidth() * bmp->GetHeight() * bmp->GetBPP(), bmp->GetBPP(), out);
         soff_t end_pos = out->GetPosition();
         out->Seek(size_pos, kSeekBegin);
         out->WriteInt32(end_pos - size_pos - sizeof(int32_t));
@@ -227,7 +226,7 @@ void WriteBitmap(const Common::Bitmap *thispic, Stream *out, bool compressed)
     }
     else
     {
-        PixelOp::WritePixelData(thispic->GetBitmapData(), out);
+        PixelOp::WritePixelData(bmp->GetBitmapData(), out);
     }
 }
 
@@ -605,11 +604,11 @@ static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedPar
 // Used in a call to ccTraverseManagedObjects.
 static void ValidateDynamicSprite(int handle, IScriptObject *obj)
 {
-    ScriptDynamicSprite *dspr = static_cast<ScriptDynamicSprite *>(obj);
-    if (dspr->slot < 0 || static_cast<uint32_t>(dspr->slot) >= game.SpriteInfos.size() ||
-        !game.SpriteInfos[dspr->slot].IsDynamicSprite())
+    ScriptDynamicSprite *dynsprite = static_cast<ScriptDynamicSprite *>(obj);
+    if (dynsprite->slot < 0 || static_cast<uint32_t>(dynsprite->slot) >= game.SpriteInfos.size() ||
+        !game.SpriteInfos[dynsprite->slot].IsDynamicSprite())
     {
-        dspr->slot = 0; // 0 is a "safety placeholder" sprite id
+        dynsprite->slot = 0; // 0 is a "safety placeholder" sprite id
     }
 }
 
@@ -617,17 +616,17 @@ static void ValidateDynamicSprite(int handle, IScriptObject *obj)
 static HSaveError ValidateRestoredSave(const SavegameDescription &save_desc, const RestoredData &r_data,
                                        SaveRestoreFeedback &feedback)
 {
-    auto *saveinfo = new ScriptRestoredSaveInfo(
+    auto *save_info = new ScriptRestoredSaveInfo(
         (SaveRestorationFlags)(r_data.Result.RestoreFlags & kSaveRestore_ResultMask), save_desc, r_data.DataCounts,
         (r_data.Result.RestoreFlags & kSaveRestore_MismatchMask) != 0);
-    int handle = ccRegisterManagedObject(saveinfo, saveinfo);
+    int handle = ccRegisterManagedObject(save_info, save_info);
     ccAddObjectReference(handle); // add internal ref
 
-    RuntimeScriptValue params[1] = {RuntimeScriptValue().SetScriptObject(saveinfo, saveinfo)};
+    RuntimeScriptValue params[1] = {RuntimeScriptValue().SetScriptObject(save_info, save_info)};
     RunScriptFunctionInModules("validate_restored_save", 1, params); // TODO: run in room script too?
 
-    const bool do_cancel = saveinfo->GetCancel();
-    const SaveCmpSelection retry_ignore_cmp = saveinfo->GetRetryWithoutComponents();
+    const bool do_cancel = save_info->GetCancel();
+    const SaveCmpSelection retry_ignore_cmp = save_info->GetRetryWithoutComponents();
     ccReleaseObjectReference(handle); // rem internal ref
 
     if (do_cancel)
@@ -661,15 +660,15 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         play.debug_mode = 1;
 
     // Restore dynamic surfaces
-    const size_t dynsurf_num = std::min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());
-    for (size_t i = 0; i < dynsurf_num; ++i)
+    const size_t dynamic_surface_count = std::min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());
+    for (size_t i = 0; i < dynamic_surface_count; ++i)
     {
         dynamicallyCreatedSurfaces[i] = std::move(r_data.DynamicSurfaces[i]);
     }
 
     // Rebuild GUI links to child controls
-    GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
-    GUI::RebuildGUI(guis, guictrl_refs);
+    GUIRefCollection gui_control_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
+    GUI::RebuildGUI(guis, gui_control_refs);
 
     // Register any static script objects missing from the restored managed pool
     RegisterMissingManagedObjects(game);
@@ -688,17 +687,17 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     }
 
     // restore the script module data
-    for (auto &sc_entry : r_data.ScriptModules)
+    for (auto &script_entry : r_data.ScriptModules)
     {
-        const String &name = sc_entry.first;
-        auto &scdata = sc_entry.second;
-        if (scdata.Data.empty())
+        const String &name = script_entry.first;
+        auto &script_data = script_entry.second;
+        if (script_data.Data.empty())
             continue;
-        for (auto &scmodule : scriptModules)
+        for (auto &script_module : scriptModules)
         {
-            if (name.Compare(scmodule->GetScriptName()) == 0)
+            if (name.Compare(script_module->GetScriptName()) == 0)
             {
-                scmodule->CopyGlobalData(scdata.Data);
+                script_module->CopyGlobalData(script_data.Data);
                 break;
             }
         }
@@ -707,7 +706,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     setup_player_character(game.playercharacter);
 
     // Save some parameters to restore them after room load
-    const int gstimer = play.gscript_timer;
+    const int gscript_timer = play.gscript_timer;
     const Rect mouse_bounds = play.mbounds;
     // load the room the game was saved in
     displayed_room = r_data.Room;
@@ -727,7 +726,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     pool.RemapTypeids(type_l2g);
 
     // Reapply few parameters after room load
-    play.gscript_timer = gstimer;
+    play.gscript_timer = gscript_timer;
     play.mbounds = mouse_bounds;
 
 
@@ -936,23 +935,23 @@ void WriteUserImage(Stream *out, const Bitmap *screenshot, bool compress)
         WriteBitmap(screenshot, out, compress);
 }
 
-void WriteFileFormat(Stream *out, const SavegameFileFormat &format)
+void WriteFileFormat(Stream *out, const SavegameFileFormat &file_format)
 {
-    if (format.FileFormatOffset > 0)
-        out->Seek(format.FileFormatOffset, kSeekBegin);
+    if (file_format.FileFormatOffset > 0)
+        out->Seek(file_format.FileFormatOffset, kSeekBegin);
 
-    out->WriteInt32(format.FileFormatSize);
-    out->WriteInt32(format.Flags);
-    out->WriteInt32(format.EnvInfoOffset);
-    out->WriteInt32(format.UserDescOffset);
-    out->WriteInt32(format.GameDataOffset);
+    out->WriteInt32(file_format.FileFormatSize);
+    out->WriteInt32(file_format.Flags);
+    out->WriteInt32(file_format.EnvInfoOffset);
+    out->WriteInt32(file_format.UserDescOffset);
+    out->WriteInt32(file_format.GameDataOffset);
 }
 
-void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_image, SavegameFileFormat &format)
+void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_image, SavegameFileFormat &file_format)
 {
-    // Data format version
+    // Data file_format version
     out->WriteInt32(kSvgVersion_Current);
-    soff_t fileformat_pos = out->GetPosition();
+    soff_t file_format_pos = out->GetPosition();
     WriteFileFormat(out, SavegameFileFormat()); // write placeholder
     // Enviroment information
     soff_t env_info_pos = out->GetPosition();
@@ -977,14 +976,14 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     WriteUserImage(out, user_image, true /* always compress screenshots */);
 
     // Fill few known fields for SavegameFileFormat
-    format.FileFormatOffset = fileformat_pos;
-    format.FileFormatSize = env_info_pos - fileformat_pos;
-    format.EnvInfoOffset = env_info_pos;
-    format.UserDescOffset = user_desc_pos;
+    file_format.FileFormatOffset = file_format_pos;
+    file_format.FileFormatSize = env_info_pos - file_format_pos;
+    file_format.EnvInfoOffset = env_info_pos;
+    file_format.UserDescOffset = user_desc_pos;
 }
 
 std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image,
-                                      SavegameFileFormat &format)
+                                      SavegameFileFormat &file_format)
 {
     auto out = File::CreateFile(filename);
     if (!out)
@@ -993,7 +992,7 @@ std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user
     // Savegame signature
     out->Write(SavegameSource::Signature.GetCStr(), SavegameSource::Signature.GetLength());
     // Write description block
-    WriteDescription(out.get(), user_text, user_image, format);
+    WriteDescription(out.get(), user_text, user_image, file_format);
     return out;
 }
 
@@ -1040,9 +1039,9 @@ HSaveError ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_s
                 plugin_data.resize(data_size);
                 plugin_data.resize(in->Read(plugin_data.data(), data_size));
                 auto guard_stream = std::make_unique<Stream>(std::make_unique<VectorStream>(plugin_data, kStream_Read));
-                int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
-                pl_run_plugin_hook_by_name(pl_name, kPluginEvt_RestoreGame, fhandle);
-                close_file_stream(fhandle, "RestoreGame");
+                int32_t file_handle = add_file_stream(std::move(guard_stream), "RestoreGame");
+                pl_run_plugin_hook_by_name(pl_name, kPluginEvt_RestoreGame, file_handle);
+                close_file_stream(file_handle, "RestoreGame");
                 guard_stream = nullptr;
             }
             catch (std::runtime_error ex)
@@ -1067,9 +1066,9 @@ HSaveError ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_s
             {
                 auto guard_stream = std::make_unique<Stream>(
                     std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
-                int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
-                pl_run_plugin_hook_by_index(pl_index, kPluginEvt_RestoreGame, fhandle);
-                close_file_stream(fhandle, "RestoreGame");
+                int32_t file_handle = add_file_stream(std::move(guard_stream), "RestoreGame");
+                pl_run_plugin_hook_by_index(pl_index, kPluginEvt_RestoreGame, file_handle);
+                close_file_stream(file_handle, "RestoreGame");
             }
             catch (std::runtime_error ex)
             {
@@ -1109,9 +1108,9 @@ HSaveError WritePluginSaveData(Stream *out)
         try
         {
             auto guard_stream = std::make_unique<Stream>(std::make_unique<VectorStream>(plugin_data, kStream_Write));
-            int32_t fhandle = add_file_stream(std::move(guard_stream), "SaveGame");
-            pl_run_plugin_hook_by_index(pl_index, kPluginEvt_SaveGame, fhandle);
-            close_file_stream(fhandle, "SaveGame");
+            int32_t file_handle = add_file_stream(std::move(guard_stream), "SaveGame");
+            pl_run_plugin_hook_by_index(pl_index, kPluginEvt_SaveGame, file_handle);
+            close_file_stream(file_handle, "SaveGame");
             guard_stream = nullptr;
         }
         catch (std::runtime_error ex)
@@ -1131,17 +1130,17 @@ HSaveError WritePluginSaveData(Stream *out)
 HSaveError SaveGame(const String &filename, const String &user_text, const Bitmap *user_image,
                     SaveCmpSelection select_cmp, bool compress_data)
 {
-    SavegameFileFormat format;
-    format.Flags = kSvgFmt_DeflateComponents * compress_data;
-    std::unique_ptr<Stream> out(StartSavegame(filename, user_text, user_image, format));
+    SavegameFileFormat file_format;
+    file_format.Flags = kSvgFmt_DeflateComponents * compress_data;
+    std::unique_ptr<Stream> out(StartSavegame(filename, user_text, user_image, file_format));
     if (!out)
         return new SavegameError(kSvgErr_FileOpenFailed, "Requested filename: %s.", filename.GetCStr());
 
-    format.GameDataOffset = out->GetPosition();
+    file_format.GameDataOffset = out->GetPosition();
     SaveGameState(out.get(), select_cmp, compress_data);
 
-    // Finalize the save file, write composed file format
-    WriteFileFormat(out.get(), format);
+    // Finalize the save file, write composed file file_format
+    WriteFileFormat(out.get(), file_format);
     return HSaveError::None();
 }
 
