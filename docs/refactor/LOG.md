@@ -1000,11 +1000,9 @@ U.5, U.7, U.9) are only there.
   worktree each, brief `.compare/briefs/brief-41-fileset.md`. Every mechanical commit `compare_objects.py`-identical
   against its parent (637, later 638 objects); `prepush.py --auto` every selected stage per set (linux ctest
   1165/1165 at first, 1182/1182 at batch 5). Not run for any set: macOS, iOS, Android, the auto-test game.
-- **Status (2026-11-12):** 1,826 watchlist names in all, 917 without the 5.1 globals (`thisroom`, `croom`, `objs`,
-  `scsystem`, `usetup`). Next: the engine tail `gui/mylistbox.cpp` 7, `listbox.cpp` 6, `speech.cpp` 5, `invwindow.cpp`
-  5, `plugin/agsplugin.cpp` 4, `gui/mytextbox.cpp`, `gui/mypushbutton.cpp` 4 each; outside it
-  `Tools/data/data_file_writer.cpp` (`chinfo` 40), `Common/gfx/image_pcx.cpp` 7, `Common/util/lzw.cpp` 6,
-  `Common/game/main_game_file.cpp` 5 and the compiler (`eres`/`tqs` 669, `char1` 13).
+- **Status (2026-11-12): 4.1 done** (batch 7): 909 watchlist names, all of them the 5.1 globals (`thisroom`, `croom`,
+  `objs`, `scsystem`, `usetup`). 4.5 and 3.6 stay open for the files that had a rename-only pass (the compiler, the
+  stray names of batches 6 and 7) and the files no batch touched.
 
 **Naming conventions set here** (STYLE.md "Naming"):
 - One name per type: `ch` `CharacterInfo *` (also `CharacterInfo &`), `chex` `CharacterExtras`, `obj` `ScriptObject *`,
@@ -1251,6 +1249,65 @@ worktrees from `a241df4d1`):
   - `6e8d72c93`: a point above the room reads mask row 0, not 1 (row 1 was the old engine's 1..height design).
   - The pre-3.6.1 `DisplayAtY` formatting does not matter; the lip-sync limitation is checked (PLAN.md open items).
   - One upstream PR with all the bugs found in this stage, once 4.1 is finished.
+
+**Batch 6, the engine's tail, Common and the data writer** (2026-11-12; four worktrees from `3ce6340df`; from this
+batch the agents prove each commit with `compare_objects.py` only and the supervisor runs `prepush.py` once on the
+combined branch, the user's rule):
+- GUI controls (`bd41c4301`, `fd5fe1234`): `gui/mylistbox`, `mylabel`, `mypushbutton`, `mytextbox`, `listbox` (`guisl`
+  → `listbox`), `invwindow` (`chaa` → `ch`), `guio` → `control` in `game_init` and `cc_guicontrol`. The `my*`
+  constructors take `left`/`top`/`width`/`height` (`x`/`y` would shadow `NewControl`'s members).
+- Speech, strings, plugin API (`d287298f7`, `81ceef5d6`): `speech`, `string` (camelCase parameters), `agsplugin.cpp`
+  (definitions only; `agsplugin.h`, C4, untouched), stray names in `hotspot`, `system`, `cc_character`, `cc_serializer`,
+  `route_finder_impl` (the `DEBUG_PATHFINDER` block's undeclared `xx`/`yy` → the call's `dstx`/`dsty`; no compiler sees it).
+- Codecs, fonts, video (`61e318149`, `8eff99e08`, `f6937d690`, `ca2b78320`, `e854aa59d`, `29f899b4c`): `image_pcx`
+  (`xx` → `pixel_x`, beside the byte column `x`), `lzw`, `fonts`, `script.cpp`, `scriptcamera` (`scam` → `script_cam`),
+  `abuf` → `audio_buf` on `VideoPlayer::NextAudioFrame` and its override.
+- Data writer (`c8e0f5cc5`, titled `Common` though it renames `Tools/data/data_file_writer.cpp` too; `25bb5eb98`):
+  `chinfo`/`chin` → `ch`; the writer's comments name the readers that exist (`ScriptEventHandlers::Read_v361`/`Read`,
+  `GUIControl::ReadFromFile*`), not the deleted `DataFileWriter.cs`, `interactions.cpp`, `guiobject.cpp`.
+- Tidy follow-ups: `fb4b004d2` (`textheight_` → `text_height`; the plugin hook fields' parameter names back to the
+  base, since the camelCase fields beside them mirror `InbuiltPluginDetails` and are 4.3's), `8816ae27e` (named casts,
+  `lzw.cpp`'s `min` macro → `std::min`, `emplace_back`; measured: `insert()` identical,
+  `AddManagedObjectReader` changed). `9b26aaa95`: `check_helpers.py` took `String_Trim` and five other script API
+  functions whose parameters were renamed for new helpers; a function counts as new now only if its file lacked it
+  at the base.
+- **Found, not fixed (PLAN.md open items):**
+  - `Speech.SkipStyle` does not read back what was set: `user_to_internal_skip_speech` adds `SKIP_GAMEPAD` to the key
+    styles and `SKIP_TOUCH` to the mouse ones, `internal_skip_speech_to_user` compares the flags with `==` without
+    them, so every style with key or mouse reads back as `kSkipSpeechTime` or `kSkipSpeechNone` (`speech.cpp:61-90`;
+    since the gamepad and touch flags, `c5c1c83a7`, `3ee7cf33b`; upstream too). Read, not run.
+  - `MyPushButton::pressedon` tracks the press position it was given, not the mouse, so dragging off a button of the
+    built-in dialogs never releases it (`mypushbutton.cpp:78`; the parameters shadowed the globals before `aa2a418b4`).
+  - `WriteGlobalMessagesBlock` writes `Game.agf`'s `<GlobalMessages>` after the lip-sync block, which the reader skips
+    only before `kGameVersion_400_33`. Unreachable: neither `AGS.Types` nor the `pre-6.7d` C# writer has global
+    messages, and `agfreader` refuses pre-4.0 projects; a `[delete]` of the read and the write.
+  - `lzwcompress` stores a `short` through a cast into a byte buffer (unaligned, host byte order: a big-endian host
+    writes other bytes; `lzw.cpp:188`). `ListBox_AddItem` tests `AddItem(...) < 0`, which never happens.
+
+**Batch 7, the compiler, the editor's native layer, `agspalrender`** (2026-11-12; two worktrees from `9b26aaa95`):
+- `d8941fa41`: the parser's `EvaluationResult`s `eres` → `eval_result` (`lhs_result`, `rhs_result`, `term1_result`...,
+  `unused_result` for `eres_dummy`), `TypeQualifierSet`s `tqs` → `qualifiers` (`vardecl_qualifiers`...), 683 names in
+  `cs_parser.cpp/.h` and `cc_symboltable.h`; `5237f2a4e`: the scanner's `char0`..`char3` → `byte0`..`byte3` (the bytes
+  of one UTF-8 sequence). Upstream changed `cs_parser.cpp` 8 times in the past year: a cherry-pick there may need the
+  names mapped by hand.
+- The parser commit was not object-identical at first: MSVC names a lambda after a hash of its body, so three
+  functions with `[&]` lambdas came out as 120 functions removed, 120 added. `f05423b49`: `compare_objects.py` compares
+  with `<lambda_hash>` read as `<lambda>`; the commit is identical then (636 + 2 identical in code), and the
+  `emplace_back` commit still shows its change.
+- `21dcce05b`: `agsnative.cpp` (`xx`/`yy` → `x`/`y`, `newwid`/`newhit`, `charid`); `f80252e5d`: `agspalrender`'s
+  `xx`/`xxx` → `x_squared`/`x_cubed`. Not covered by `compare_objects.py`: proved by `dumpbin /disasm` of the MSVC x64
+  Release objects before and after (identical; `agspalrender` built without `/GL` for the comparison).
+- `b5a19fa06`: `refactor_metrics.py` strips raw string literals: the shaders' `.xxx` swizzles counted as 4 names and
+  their `main()`s as 8 functions. **The watchlist is at 0 outside the 5.1 globals (909): 4.1 done.**
+- `43a7d79a6`: the rename put five `qualifiers[(error_tq = TQ::k...)] || ...` chains under tidy
+  (`bugprone-assignment-in-if-condition`); `TypeQualifierSet::HasAnyOf(list, found)` replaces them (three parser
+  functions change, compile time only).
+- Verification of the combined branch (`3ce6340df..43a7d79a6`, base `3ce6340df`): `prepush.py --auto` every stage
+  (format, helpers, build + ctest, tidy, headers, libcxx 341 headers, linux ctest 1187/1187, msbuild 5 solutions +
+  Editor NUnit); emscripten linked at `f05423b49` (the two commits after it touch no engine code). Runs took 15-18
+  minutes for all stages. Not run: macOS, iOS, Android, the auto-test game.
+- Left for later: the `Sc_*` signature comments keep the old names (5.2 moves them; the metric skips comments); the
+  compiler's comment pass (4.5, 3.6) and the camelCase parameters of files that had no full pass.
 
 ### 7.3 Ports
 

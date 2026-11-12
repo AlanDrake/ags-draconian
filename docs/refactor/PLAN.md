@@ -74,15 +74,16 @@ Recorded 2026-10-31.
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
-0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 6.7d, 7.1 (but 7.1n) (LOG.md); 3.2 with 3.2c
+0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 6.7d, 7.1 (but 7.1n) (LOG.md); 3.2 with 3.2c
 (CI-confirmed 2026-11-08). The fork does not wait for upstream review (the user, 2026-11-09): a fork-only
 move that would conflict with an open offer is preceded by a tag of the pre-move tree for `port.py`.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **4.1 + 4.5 + 3.6 per file:** parameter and local names, comments, comment debris, `Engine/ac/` most-churned files first; one `[rename]` commit per file checked by `compare_objects.py`, then a `[comment]` commit. Done: `character.cpp/.h`, `object.cpp/.h`, `guicontrol.cpp/.h`, `drawingsurface.cpp/.h`, `button.cpp/.h`, `characterinfo_engine.cpp` (2026-11-09), `viewport_script`, `dynamicsprite`, `file`, `slider`, `display`, `gui`, `draw`, `characterextras`, `global_game`, `walkablearea`, `global_display` (2026-11-11), `inventoryitem`, `gui/cscidialog`, `joystick`, `overlay`, `global_api`, `savegame_components`, `game_run`, `global_audio` (2026-11-12). Next: the engine's tail in one or two sets (`gui/my*.cpp`, `listbox`, `speech`, `invwindow`, `plugin/agsplugin.cpp`), then `Common` (`image_pcx`, `lzw`, `main_game_file`) and `Tools/data/data_file_writer.cpp`; the compiler's `eres`/`tqs` (669) want their own plan (LOG.md); independent sets run as parallel subagents with `.compare/briefs/brief-41-fileset.md`, one worktree each (googletest submodule initialised; WSL `linux` and `msbuild` once on the combined branch). camelCase parameters go to `snake_case` in the same pass; no brace commit since `266c8dfe2` | Phase 5 needs phase 4; mechanical and verifiable | Sonnet 5.5, `medium`, one file set per session |
+| 1 | **The user's decisions on 4.1's findings, then the upstream PR of 4.1's bugs** (the user, 2026-11-12: one PR once 4.1 is finished; the list is under "4.1, upstream" below): fix or not `Speech.SkipStyle`'s read-back and the built-in dialogs' push button, `[delete]` the global-messages write | 4.1 is done; the PR was waiting for it | Sonnet 5.5, `medium` for the fixes and their tests; the PR text with the user |
 | 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` with upstream's draft names where they overlap | Files move once (4.4 rides along) | Fable 5.1, `high` for the move map, subagents for the moves |
-| 3 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3187–#3189), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
+| 3 | **4.5 + 3.6 on what had no comment pass:** the compiler (7,440-line parser: its own plan, by function groups), the files with only stray renames in batches 6 and 7, then the untouched files most-churned first; the brief `.compare/briefs/brief-41-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | Comments before the 5.3 moves | Sonnet 5.5, `medium`, parallel subagents |
+| 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3187–#3189), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
 Open items from finished tasks (details in LOG.md "Open items"):
 - 0.4: the CodeQL setting, `D3DCOMPILER_47` on Windows 7, the macOS 10.9 deployment target.
@@ -118,7 +119,12 @@ Open items from finished tasks (details in LOG.md "Open items"):
   So far: the `DisplayTopBar` read time and font (`ea271ea5d`, `0becab61f`), the pivot of older saves (`d228d1baa`),
   `Joystick.GetHat` (`4b1ce87fb`), `InventoryItem.CursorHotspotAlignment` (`a3e21a6e3`), `Overlay.Tint` (`9d81c631c`),
   the save prescan of views (`edadb75aa`), the defaults for older saves' audio speed and view anchor (`8a25d5732`),
-  `start_character_turning` (`63da172bd`, above); upstream `ags4` has each.
+  `start_character_turning` (`63da172bd`, above); upstream `ags4` has each. 4.1 finished on 2026-11-12: the PR is due.
+- 4.1 (batch 6, decisions for the user; LOG.md "Batch 6"): `Speech.SkipStyle` reads back `kSkipSpeechTime` or
+  `kSkipSpeechNone` for every style with key or mouse (the gamepad and touch flags are not masked in
+  `internal_skip_speech_to_user`; upstream too); the built-in dialogs' push button tracks the press position, not the
+  mouse (`MyPushButton::pressedon`); `WriteGlobalMessagesBlock` writes what the reader skips since `kGameVersion_400_33`
+  (unreachable: a `[delete]`); `lzwcompress`'s unaligned host-order `short` store; `ListBox_AddItem`'s dead `< 0` test.
 - Sprite placement (2026-11-12, LOG.md "Sprite placement and the Direct3D 9 half-pixel offset"), in long-term
   testing by the user: the software renderer's scaling, hit tests on the truncated scaled size, truncated frame
   offsets, and a camera stretch by integer maths (exact agreement of all renderers at any zoom) are left. The
@@ -257,15 +263,14 @@ the corpus run (1.4).
 File by file, most-churned first. Each file gets a `[rename]` commit verified by 1.6, then
 optionally a `[comments]` commit.
 
-- [ ] **4.1 Parameter and local names.** The `refactor_metrics.py` watchlist to zero (4,855 today:
+- [x] **4.1 Parameter and local names** (2026-11-12; LOG.md "4.1 + 4.5 + 3.6 per file"). The `refactor_metrics.py` watchlist to zero (4,855 today:
   `chaa` 652, `eres` 445, `chi` 368, `objj` 335, `sds` 226, `tqs` 224, `guio` 220, `butt` 187, `chin`
   126, `char1` 98, `chap` 88, `scam` 82, `texx` 68, ...). One name per concept: `ch`
   (`CharacterInfo*`), `obj` (`ScriptObject*`; `room_obj` for a `RoomObject` beside it), `gui` (`GUIMain*`), `btn` (`GUIButton*`), `dst`
   (destination bitmaps), `err` (error results). IDE or clang-based renaming, never search-and-replace.
   *Done when:* cryptic names = 0, except the globals of 5.1.
-  *Progress (2026-11-12):* 1,826 names, 917 without the 5.1 globals (the watchlist grew by seven names on
-  2026-11-09); 24 file sets done, each in LOG.md "4.1 + 4.5 + 3.6 per file" with the naming conventions it set;
-  the next sets are in "Next up".
+  *Result:* 909 names, all of them the 5.1 globals; 7 batches, each file set in LOG.md with the naming conventions
+  it set (`eval_result` and `qualifiers` in the compiler).
 - [ ] **4.2 Function names.** Engine free functions: `snake_case` 949, `PascalCase` 1,094,
   `Type_Method` 3,119 (script API). Rename snake_case to PascalCase as phase 5 restructures their
   files, not before (many will be deleted or become methods).
