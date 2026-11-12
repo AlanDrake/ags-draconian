@@ -32,6 +32,7 @@
 #include "ac/lipsync.h"
 #include "ac/movelist.h"
 #include "ac/parser.h"
+#include "ac/speech.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
 #include "data/assetmanager.h"
@@ -51,6 +52,7 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "util/memory_compat.h"
+#include "util/path.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 
@@ -465,7 +467,8 @@ void LoadLipsyncData()
     numLipLines = 0;
     curLipLine = -1;
 
-    auto speechsync = AssetMgr->OpenAsset("syncdata.dat", "voice");
+    // a named voice pack has its files, the sync data included, under the pack's name
+    auto speechsync = AssetMgr->OpenAsset(Path::ConcatPaths(get_voice_assetpath(), "syncdata.dat"), "voice");
     if (!speechsync)
         return;
     // this game has voice lip sync
