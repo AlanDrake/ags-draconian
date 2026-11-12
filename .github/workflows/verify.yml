@@ -27,7 +27,7 @@ env:
   BUILD_TYPE: Release
   # The auto-test project, at the tag ci.yml builds
   AUTO_TEST_REPO: AlanDrake/ags-test-games
-  AUTO_TEST_TAG: draconian-auto-test-1
+  AUTO_TEST_TAG: draconian-auto-test-2
   # CMake reads the launcher from the environment (3.17+), so every configure step below uses ccache,
   # the downloaded dependencies included
   CMAKE_C_COMPILER_LAUNCHER: ccache

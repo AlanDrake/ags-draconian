@@ -47,7 +47,7 @@ env:
   # Fork-owned auto-test game, built with this fork's editor (docs/refactor/PLAN.md, task 1.1).
   # Pinned to a release tag: bump AUTO_TEST_TAG deliberately when the test game changes.
   AUTO_TEST_REPO: AlanDrake/ags-test-games
-  AUTO_TEST_TAG: draconian-auto-test-1
+  AUTO_TEST_TAG: draconian-auto-test-2
   AUTO_TEST_ASSET_BASENAME: ags4-auto-test
   BUILD_TYPE: Release
 
