@@ -404,7 +404,7 @@ private:
     // Augment the message with a "See ..." indication pointing to the declaration of 'symb'
     std::string const ReferenceMsgSym(std::string const &msg, Symbol symb);
 
-    std::string const TypeQualifierSet2String(TypeQualifierSet tqs) const;
+    std::string const TypeQualifierSet2String(TypeQualifierSet qualifiers) const;
 
     void SetDynpointerInManagedVartype(Vartype &vartype);
 
@@ -475,7 +475,7 @@ private:
     void RemoveLocalsFromStack(size_t nesting_level);
 
     // Record the literal as a compile time literal
-    void SetCompileTimeLiteral(Symbol lit, EvaluationResult &eres);
+    void SetCompileTimeLiteral(Symbol lit, EvaluationResult &eval_result);
 
     // Find or create a symbol that is a literal for the value 'value'.
     void FindOrAddIntLiteral(CodeCell value, Symbol &symb);
@@ -494,7 +494,7 @@ private:
     // We've just accepted something like 'int func('
     // We'll accept something like 'this Character *' --OR-- 'static Character'
     void ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &struct_of_func, Symbol &name_of_func,
-                                            TypeQualifierSet &tqs);
+                                            TypeQualifierSet &qualifiers);
 
     // Process a parameter decl in a function parameter list
     void ParseFuncdecl_Parameters_Param(Symbol name_of_func, bool body_follows, bool read_only, size_t param_idx);
@@ -502,7 +502,7 @@ private:
     // Process a function parameter list
     void ParseFuncdecl_Parameters(Symbol funcsym, bool body_follows);
 
-    void ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func,
+    void ParseFuncdecl_MasterData2Sym(TypeQualifierSet qualifiers, Vartype return_vartype, Symbol struct_of_func,
                                       Symbol name_of_func, bool body_follows);
 
     // There was a forward declaration -- check that the real declaration matches it
@@ -518,16 +518,16 @@ private:
     bool ParseFuncdecl_DoesBodyFollow();
 
     // We're in a func decl. Check whether the declaration is valid.
-    void ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, Vartype return_vartype,
-                              bool body_follows, bool no_loop_check);
+    void ParseFuncdecl_Checks(TypeQualifierSet qualifiers, Symbol struct_of_func, Symbol name_of_func,
+                              Vartype return_vartype, bool body_follows, bool no_loop_check);
 
-    void ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func,
-                                                   bool body_follows);
+    void ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet qualifiers, Symbol struct_of_func,
+                                                   Symbol name_of_func, bool body_follows);
 
     // Parse a function declaration.
     // We're behind the opening '(' of the parameter list,
     // and any first extender parameter has already be resolved.
-    void ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func,
+    void ParseFuncdecl(TypeQualifierSet qualifiers, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func,
                        bool no_loop_check, bool body_follows);
 
     // Return in 'idx' the index of the operator in the list that binds the least
@@ -556,14 +556,14 @@ private:
     static int GetWriteCommandForSize(int the_size);
 
     // If the result isn't in AX, move it there. Dereferences a pointer
-    void EvaluationResultToAx(EvaluationResult &eres);
+    void EvaluationResultToAx(EvaluationResult &eval_result);
 
     // We are processing a function call. Emit the actual function call
     void AccessData_FunctionCall_EmitCall(Symbol name_of_func, size_t args_count, bool func_is_import);
 
     // Generate Length attribute for the parsed dynarray type
     // and add it to the symbol table
-    void AccessData_GenerateDynarrayLengthAttrib(EvaluationResult &eres);
+    void AccessData_GenerateDynarrayLengthAttrib(EvaluationResult &eval_result);
 
     void AccessData_FunctionCall_Arguments_Named(Symbol name_of_func, std::vector<FuncParameterDesc> const &param_desc,
                                                  SrcList &arguments, std::vector<SrcList> &arg_exprs);
@@ -590,77 +590,77 @@ private:
                                            SrcList &arguments, size_t &args_size);
 
     // Process a function call.
-    void AccessData_FunctionCall(Symbol name_of_func, SrcList &arguments, EvaluationResult &eres);
+    void AccessData_FunctionCall(Symbol name_of_func, SrcList &arguments, EvaluationResult &eval_result);
 
     // Evaluate 'vloc_lhs op_sym vloc_rhs' at compile time, return the result in 'vloc'.
     // Return whether this is possible.
-    bool ParseExpression_CompileTime(Symbol op_sym, EvaluationResult const &eres_lhs, EvaluationResult const &eres_rhs,
-                                     EvaluationResult &eres);
+    bool ParseExpression_CompileTime(Symbol op_sym, EvaluationResult const &lhs_result,
+                                     EvaluationResult const &rhs_result, EvaluationResult &eval_result);
 
     // Process a parenthesised list following a 'new'
     void ParseExpression_New_CtorFuncCall(Symbol arg_vartype, SrcList &expression);
 
     // Parse the term given in 'expression'. The lowest-binding operator is unary 'new'
     // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
-    void ParseExpression_New(SrcList &expression, EvaluationResult &eres);
+    void ParseExpression_New(SrcList &expression, EvaluationResult &eval_result);
 
-    // Apply '-' (unary minus) to the expression 'eres'
-    void ParseExpression_PrefixMinus(EvaluationResult &eres);
+    // Apply '-' (unary minus) to the expression 'eval_result'
+    void ParseExpression_PrefixMinus(EvaluationResult &eval_result);
 
-    // Apply '+' (unary plus) to the expression 'eres'
-    void ParseExpression_PrefixPlus(EvaluationResult &eres);
+    // Apply '+' (unary plus) to the expression 'eval_result'
+    void ParseExpression_PrefixPlus(EvaluationResult &eval_result);
 
-    // Apply boolean ('!') or bitwise ('~') negation to the expression 'eres'
-    void ParseExpression_PrefixNegate(Symbol operation, EvaluationResult &eres);
+    // Apply boolean ('!') or bitwise ('~') negation to the expression 'eval_result'
+    void ParseExpression_PrefixNegate(Symbol operation, EvaluationResult &eval_result);
 
     // Parse the term given in 'expression'.
     // The lowest-binding operator is a prefix '++' or '--' that is _not_ included in the expression
     // Parsing must use up 'expression' completely; trailing symbols cause a UserError
-    void ParseExpression_PrefixCrement(Symbol op_sym, SrcList &expression, EvaluationResult &eres);
+    void ParseExpression_PrefixCrement(Symbol op_sym, SrcList &expression, EvaluationResult &eval_result);
     // Parse the term given in 'expression'. The lowest-binding operator is '++' or '--'.
     // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
-    void ParseExpression_PostfixCrement(Symbol op_sym, SrcList &expression, EvaluationResult &eres);
+    void ParseExpression_PostfixCrement(Symbol op_sym, SrcList &expression, EvaluationResult &eval_result);
 
     // If 'expression' starts with '(', then strip all fully enclosing pairs of parentheses
     void StripOutermostParens(SrcList &expression);
 
     // Parse the term given in 'expression'. The lowest-binding operator is a unary operator
     // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
-    void ParseExpression_Prefix(SrcList &expression, EvaluationResult &eres);
+    void ParseExpression_Prefix(SrcList &expression, EvaluationResult &eval_result);
 
     // Parse the term given in 'expression'. The lowest-binding operator is a unary operator
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     // If result_used == false then the calling function doesn't use the term result for calculating
     // This happens when a term is called for side effect only, e.g. in the statement 'foo++;'
-    void ParseExpression_Postfix(SrcList &expression, EvaluationResult &eres, bool result_used);
+    void ParseExpression_Postfix(SrcList &expression, EvaluationResult &eval_result, bool result_used);
 
-    void ParseExpression_Ternary_Term2(EvaluationResult &eres_term1, bool term1_has_been_ripped_out, SrcList &term2,
-                                       EvaluationResult &eres_term2, bool result_used);
+    void ParseExpression_Ternary_Term2(EvaluationResult &term1_result, bool term1_has_been_ripped_out, SrcList &term2,
+                                       EvaluationResult &term2_result, bool result_used);
 
     // Parse the term given in 'expression'. Expression is a ternary 'a ? b : c'
     // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
     // If 'result_used == false' then the calling function doesn't use the term result for calculating
     // This happens when a term is called for side effect only, e.g. in the statement 'i ? --foo : ++foo;'
-    void ParseExpression_Ternary(size_t tern_idx, SrcList &expression, bool result_used, EvaluationResult &eres);
+    void ParseExpression_Ternary(size_t tern_idx, SrcList &expression, bool result_used, EvaluationResult &eval_result);
 
     // Parse a 'as VARTYPE' clause
-    void ParseExpression_As(SrcList &vartype, EvaluationResult &eres);
+    void ParseExpression_As(SrcList &vartype, EvaluationResult &eval_result);
 
     // Parse the term given in 'expression'. The lowest-binding operator a binary operator.
     // Parsing must use up 'expression' completely; trailing symbols cause a UserError
-    void ParseExpression_Binary(size_t op_idx, SrcList &expression, EvaluationResult &eres);
+    void ParseExpression_Binary(size_t op_idx, SrcList &expression, EvaluationResult &eval_result);
 
     // Parse the term given in 'expression'. Expression begins with '('
     // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
     // If "result_used == false" then the calling function doesn't use the term result for calculating
     // This happens when a term is called for side effect only, e.g. in the statement '(--foo);'
-    void ParseExpression_InParens(SrcList &expression, EvaluationResult &eres, bool result_used);
+    void ParseExpression_InParens(SrcList &expression, EvaluationResult &eval_result, bool result_used);
 
     // Parse the term given in 'expression'. Expression does not contain operators
     // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
     // If "result_used == false" then the calling function doesn't use the term result for calculating
     // This happens when a term is called for side effect only, e.g. in the statement '--foo;'
-    void ParseExpression_NoOps(SrcList &expression, EvaluationResult &eres, bool result_used);
+    void ParseExpression_NoOps(SrcList &expression, EvaluationResult &eval_result, bool result_used);
 
     // Check whether spurious symbols exist after a subterm is processed
     void ParseExpression_CheckUsedUp(AGS::SrcList &expression);
@@ -670,7 +670,7 @@ private:
     // This happens when a term is called for side effect only, e.g. in the statement '--foo;'
     // It is NOT guaranteed that the cursor will be at the end of 'expression'
     // after 'ParseExpression_Term()' returns
-    void ParseExpression_Term(SrcList &expression, EvaluationResult &eres, bool result_used = true,
+    void ParseExpression_Term(SrcList &expression, EvaluationResult &eval_result, bool result_used = true,
                               bool classic_array_ok = false);
 
     // Parse an expression that must evaluate to a constant at compile time.
@@ -685,25 +685,25 @@ private:
     // 'src' may be longer than the expression. In this case,
     // leave src pointing to last token in expression.
     // 'src'  is parsed from the point where the cursor is.
-    void ParseIntegerExpression(SrcList &src, EvaluationResult &eres, std::string const &msg = "");
+    void ParseIntegerExpression(SrcList &src, EvaluationResult &eval_result, std::string const &msg = "");
 
     // Parse expression in delimiters, e.g., parentheses
     // 'src' may be longer than the expression. In this case,
     // leave src pointing to last token in expression.
     // 'src'  is parsed from the point where the cursor is.
-    void ParseDelimitedExpression(SrcList &src, Symbol opener, EvaluationResult &eres);
+    void ParseDelimitedExpression(SrcList &src, Symbol opener, EvaluationResult &eval_result);
 
     // Parse and evaluate an expression
     // 'src' may be longer than the expression. In this case,
     // leave src pointing to last token in expression.
     // 'src'  is parsed from the point where the cursor is.
     // After 'ParseExpression()' returns, the cursor is at the end of the expression.
-    void ParseExpression(SrcList &src, EvaluationResult &eres);
+    void ParseExpression(SrcList &src, EvaluationResult &eval_result);
 
     // We access a variable or a component of a struct in order to read or write it.
     // This is a simple member of the struct.
     void AccessData_StructMember(Symbol component, VariableAccess access_type, bool access_via_this,
-                                 SrcList &expression, EvaluationResult &eres);
+                                 SrcList &expression, EvaluationResult &eval_result);
 
     // Return the symbol for the get or set function corresponding to the attribute given.
     Symbol ConstructAttributeFuncName(Symbol attribsym, bool is_setter, bool is_indexed);
@@ -712,21 +712,21 @@ private:
     void AccessData_CallAttributeFunc(bool is_setter, SrcList &expression, Vartype vartype);
 
     // Memory location contains a pointer to another address. Get that address.
-    void AccessData_Dereference(EvaluationResult &eres);
+    void AccessData_Dereference(EvaluationResult &eval_result);
 
     // Process one index in a sequence of array indexes
     void AccessData_ProcessArrayIndex(size_t dim, size_t factor, bool is_dynarray, SrcList &index_expr,
-                                      EvaluationResult &eres);
+                                      EvaluationResult &eval_result);
 
     // We're processing some struct component or global or local variable.
     // If a sequence of array indexes follows, parse it
-    void AccessData_ProcessArrayIndexes(SrcList &expression, EvaluationResult &eres);
+    void AccessData_ProcessArrayIndexes(SrcList &expression, EvaluationResult &eval_result);
 
-    void AccessData_Variable(VariableAccess access_type, SrcList &expression, EvaluationResult &eres);
+    void AccessData_Variable(VariableAccess access_type, SrcList &expression, EvaluationResult &eval_result);
 
-    void AccessData_This(EvaluationResult &eres);
+    void AccessData_This(EvaluationResult &eval_result);
 
-    void AccessData_StructVartype(Vartype vartype, EvaluationResult &eres);
+    void AccessData_StructVartype(Vartype vartype, EvaluationResult &eval_result);
 
     // We're getting a variable, literal, constant, func call or the first element
     // of a STRUCT.STRUCT.STRUCT... cascade.
@@ -735,14 +735,14 @@ private:
     // to the position of the '.'.
     // The "return_scope_type" is used for deciding what values can be returned from a function.
     // 'implied_dot' is set if subsequent processing should imply that a '.' has already been read
-    void AccessData_FirstClause(VariableAccess access_type, SrcList &expression, EvaluationResult &eres,
+    void AccessData_FirstClause(VariableAccess access_type, SrcList &expression, EvaluationResult &eval_result,
                                 bool &inside_access, bool &implied_dot);
 
     // We're processing a STRUCT.STRUCT. ... clause.
     // We've already processed some structs, and the type of the last one is "vartype".
     // Now we process a component of "vartype".
     void AccessData_SubsequentClause(VariableAccess access_type, bool access_via_this, SrcList &expression,
-                                     EvaluationResult &eres);
+                                     EvaluationResult &eval_result);
 
     // Find the component of a struct in the struct or in the ancestors of the struct
     // and return the name of the struct (!) that the component is defined in
@@ -759,10 +759,10 @@ private:
     bool AccessData_IsClauseLast(SrcList &expression);
 
     // Access a variable, constant, literal, func call, struct.component.component cascade, etc.
-    // Result is in AX or m[MAR], dependent on 'eres.Location'. Variable type is in 'eres.Vartype'.
+    // Result is in AX or m[MAR], dependent on 'eval_result.Location'. Variable type is in 'eval_result.Vartype'.
     // At end of function, the cursor of 'expression' will point to the part of the symbol string
     // that has not been processed yet
-    void AccessData(VariableAccess access_type, SrcList &expression, EvaluationResult &eres);
+    void AccessData(VariableAccess access_type, SrcList &expression, EvaluationResult &eval_result);
 
     // Emit Bytecode for:
     // Copy at most 'count - 1' bytes from m[MAR...] to m[AX...],
@@ -776,12 +776,12 @@ private:
     // evaluated, and the result of that evaluation is in AX.
     // Store AX into the memory location that corresponds to LHS, or
     // call the attribute function corresponding to LHS.
-    void AccessData_AssignTo(SrcList &expression, EvaluationResult const &eres);
+    void AccessData_AssignTo(SrcList &expression, EvaluationResult const &eval_result);
 
     void SkipToEndOfExpression(SrcList &src);
 
     // We are parsing the left hand side of a '+=' or similar statement.
-    void ParseAssignment_ReadLHSForModification(SrcList &lhs, EvaluationResult &eres);
+    void ParseAssignment_ReadLHSForModification(SrcList &lhs, EvaluationResult &eval_result);
 
     // 'var = expression'; 'lhs' is the variable
     void ParseAssignment_Assign(SrcList &lhs);
@@ -843,31 +843,32 @@ private:
 
     void ParseVardecl_Local(Symbol var_name, Vartype vartype);
 
-    void ParseVardecl0(Symbol var_name, Vartype vartype, ScopeType scope_type, TypeQualifierSet tqs);
+    void ParseVardecl0(Symbol var_name, Vartype vartype, ScopeType scope_type, TypeQualifierSet qualifiers);
 
     // Checks whether an old definition exists that may be stashed; stashes it if possible
     void ParseVardecl_CheckAndStashOldDefn(Symbol var_name);
 
-    void ParseVardecl(TypeQualifierSet tqs, Vartype vartype, Symbol var_name, ScopeType scope_type);
+    void ParseVardecl(TypeQualifierSet qualifiers, Vartype vartype, Symbol var_name, ScopeType scope_type);
 
     void ParseFuncBodyStart(Symbol struct_of_func, Symbol name_of_func);
 
     void HandleEndOfFuncBody(Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     // Helper for ParseStruct_CheckForwardDecls()
-    void ParseStruct_GenerateForwardDeclError(Symbol stname, TypeQualifierSet tqs, TypeQualifier tq, VartypeFlag vtf);
+    void ParseStruct_GenerateForwardDeclError(Symbol stname, TypeQualifierSet qualifiers, TypeQualifier tq,
+                                              VartypeFlag vtf);
 
     // If there are forward declarations, check that their type qualifiers match
-    void ParseStruct_CheckForwardDecls(Symbol stname, TypeQualifierSet tqs);
+    void ParseStruct_CheckForwardDecls(Symbol stname, TypeQualifierSet qualifiers);
 
-    void ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierSet tqs);
+    void ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierSet qualifiers);
 
     // We have accepted something like "struct foo" and are waiting for "extends"
     void ParseStruct_ExtendsClause(Symbol stname);
 
-    void ParseQualifiers(TypeQualifierSet &tqs);
+    void ParseQualifiers(TypeQualifierSet &qualifiers);
 
-    void ParseStruct_FuncDecl(TypeQualifierSet tqs, Symbol struct_of_func, Vartype vartype, Symbol name_of_func);
+    void ParseStruct_FuncDecl(TypeQualifierSet qualifiers, Symbol struct_of_func, Vartype vartype, Symbol name_of_func);
 
     void ParseStruct_Attribute_ParamList(Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed,
                                          Vartype vartype);
@@ -876,40 +877,42 @@ private:
 
     // We are processing an attribute.
     // This corresponds to a getter func and a setter func, declare one of them
-    void ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol strct, Symbol qualified_name,
+    void ParseStruct_Attribute_DeclareFunc(TypeQualifierSet qualifiers, Symbol strct, Symbol qualified_name,
                                            Symbol unqualified_name, bool is_setter, bool is_indexed, Vartype vartype);
 
-    void ParseStruct_Attribute2SymbolTable(TypeQualifierSet tqs, Vartype const vartype, Symbol const name_of_struct,
-                                           Symbol const unqualified_attribute, bool const is_indexed);
+    void ParseStruct_Attribute2SymbolTable(TypeQualifierSet qualifiers, Vartype const vartype,
+                                           Symbol const name_of_struct, Symbol const unqualified_attribute,
+                                           bool const is_indexed);
 
-    void ParseStruct_MasterAttribute2SymbolTable(TypeQualifierSet tqs, Vartype const vartype,
+    void ParseStruct_MasterAttribute2SymbolTable(TypeQualifierSet qualifiers, Vartype const vartype,
                                                  Symbol const name_of_struct, Symbol const unqualified_attribute,
                                                  bool const is_indexed, Symbol getter_func = kKW_NoSymbol,
                                                  Symbol setter_func = kKW_NoSymbol);
 
     // We're in a struct declaration. Parse an attribute declaration.
-    void ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname);
+    void ParseStruct_Attribute(TypeQualifierSet qualifiers, Symbol stname);
 
     // We're inside a struct decl, processing a member variable
-    void ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype vartype, Symbol stname, Symbol vname);
+    void ParseStruct_VariableDefn(TypeQualifierSet qualifiers, Vartype vartype, Symbol stname, Symbol vname);
 
     // We're inside a struct decl, processing a compile-time constant
     void ParseStruct_ConstantDefn(Symbol name_of_struct);
 
     // We have accepted something like 'struct foo extends bar { const int'.
     // We're waiting for the name of the member.
-    void ParseStruct_VariableOrFunctionDefn(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype);
+    void ParseStruct_VariableOrFunctionDefn(Symbol name_of_struct, TypeQualifierSet qualifiers, Vartype vartype);
 
     void ParseStruct_CheckComponentVartype(Symbol stname, Vartype vartype);
 
     // We've accepted, e.g., 'struct foo {'. Now we're parsing a variable declaration or a function declaration
-    void ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs);
+    void ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet qualifiers);
 
     // Within a struct, we've accepted a type. Accept a list of function or variable members
-    void ParseStruct_Vartype_MemberList(TypeQualifierSet tqs, const AGS::Symbol containing_struct, Vartype vartype);
+    void ParseStruct_Vartype_MemberList(TypeQualifierSet qualifiers, const AGS::Symbol containing_struct,
+                                        Vartype vartype);
 
     // Handle a 'struct' definition clause
-    void ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func);
+    void ParseStruct(TypeQualifierSet qualifiers, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     // We've accepted something like 'enum foo { bar'; '=' follows
     void ParseEnum_AssignedValue(Symbol vname, CodeCell &value);
@@ -920,7 +923,7 @@ private:
     void ParseEnum_Name2Symtable(Symbol enum_name);
 
     // Parse an enum declaration, possibly followed by vars of this new enum
-    void ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_function);
+    void ParseEnum(TypeQualifierSet qualifiers, Symbol &struct_of_current_func, Symbol &name_of_current_function);
 
     // Read a vartype (that must already be defined at this point)
     // This is either a vartype name or 'const string'
@@ -949,24 +952,24 @@ private:
 
     void ParseVartype_CheckForIllegalContext();
 
-    void ParseVartype_CheckIllegalCombis(bool is_function, TypeQualifierSet tqs);
+    void ParseVartype_CheckIllegalCombis(bool is_function, TypeQualifierSet qualifiers);
 
-    void ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype vartype, Symbol struct_name, Symbol func_name,
+    void ParseVartype_FuncDecl(TypeQualifierSet qualifiers, Vartype vartype, Symbol struct_name, Symbol func_name,
                                bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func,
                                bool &body_follows);
 
     void ParseVartype_VarDecl_PreAnalyze(Symbol var_name, ScopeType scope_type);
 
-    void ParseAttribute(TypeQualifierSet tqs, Symbol name_of_current_func);
+    void ParseAttribute(TypeQualifierSet qualifiers, Symbol name_of_current_func);
 
-    void ParseVartype_VariableDefn(TypeQualifierSet tqs, Vartype vartype, Symbol var_name, ScopeType scope_type);
+    void ParseVartype_VariableDefn(TypeQualifierSet qualifiers, Vartype vartype, Symbol var_name, ScopeType scope_type);
 
-    void ParseVartype_MemberList(TypeQualifierSet tqs, Vartype vartype, ScopeType scope_type, bool no_loop_check,
+    void ParseVartype_MemberList(TypeQualifierSet qualifiers, Vartype vartype, ScopeType scope_type, bool no_loop_check,
                                  Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     // We accepted a variable type such as 'int',
     // so what follows is a variable, compile-time constant, or function declaration
-    void ParseVartypeClause(TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);
+    void ParseVartypeClause(TypeQualifierSet qualifiers, Symbol &name_of_current_func, Symbol &struct_of_current_func);
 
     // After a command that might be the end of sequences such as 'if (...) while (...) command;'
     // Find out what surrounding compound statements have ended and handle these endings.
@@ -1099,9 +1102,9 @@ private:
     }
 
     // Check that the qualifiers that accumulated for this decl go together
-    void Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl);
+    void Parse_CheckTQ(TypeQualifierSet qualifiers, bool in_func_body, bool in_struct_decl);
     // Check that no qualifiers have accumulated
-    void Parse_CheckTQSIsEmpty(TypeQualifierSet tqs);
+    void Parse_CheckTQSIsEmpty(TypeQualifierSet qualifiers);
 
     // Analyse the decls and collect info about locally defined functions
     // This is a pre phase that only does simplified analysis

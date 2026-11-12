@@ -108,7 +108,7 @@ public:
     inline Symbol TQ2Symbol(TypeQualifier tq) const { return TQToSymbolMap().at(tq); }
 
     // For iterating over type qualifiers; use it->first to get the qualifier
-    // for (auto it = tqs.begin(); it != tqs.end(); it++)
+    // for (auto it = qualifiers.begin(); it != qualifiers.end(); it++)
     // auto in return type is C++14 feature but we are still in C+11
     inline std::map<AGS::TQ, int, std::less<AGS::TQ>, std::allocator<std::pair<const AGS::TQ, int>>>::const_iterator
     begin() const

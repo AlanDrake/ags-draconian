@@ -266,12 +266,12 @@ const std::string AGS::Parser::_builtinDynArrayLength = BUILTIN_DYNAMIC_ARRAY_LE
 // than that it is easy to spot in listings. Don't build logic on that number
 int const kDestinationPlaceholder = -77;
 
-std::string const AGS::Parser::TypeQualifierSet2String(TypeQualifierSet tqs) const
+std::string const AGS::Parser::TypeQualifierSet2String(TypeQualifierSet qualifiers) const
 {
     std::string ret;
 
-    for (auto tq_it = tqs.begin(); tqs.end() != tq_it; tq_it++)
-        if (tqs[tq_it->first])
+    for (auto tq_it = qualifiers.begin(); qualifiers.end() != tq_it; tq_it++)
+        if (qualifiers[tq_it->first])
             ret += _sym.GetName(tq_it->second) + " ";
     if (ret.length() > 0)
         ret.pop_back(); // Get rid of the trailing space
@@ -731,18 +731,18 @@ void AGS::Parser::RestoreLocalsFromSymtable(size_t from_level)
 void AGS::Parser::HandleEndOfDo()
 {
     Expect(kKW_While, _src.GetNext(), "Expected the 'while' of a 'do ... while(...)' statement");
-    EvaluationResult eres;
-    ParseDelimitedExpression(_src, kKW_OpenParenthesis, eres);
-    if (!_sym.IsAnyIntegerVartype(eres.Vartype) && !_sym.IsDynVartype(eres.Vartype))
+    EvaluationResult eval_result;
+    ParseDelimitedExpression(_src, kKW_OpenParenthesis, eval_result);
+    if (!_sym.IsAnyIntegerVartype(eval_result.Vartype) && !_sym.IsDynVartype(eval_result.Vartype))
         UserError(
             "Expected an integer or dynamic array or dynamic pointer expression after 'while', found type '%s' instead",
-            _sym.GetName(eres.Vartype).c_str());
+            _sym.GetName(eval_result.Vartype).c_str());
     Expect(kKW_Semicolon, _src.GetNext());
 
-    if (!(eres.kTY_Literal == eres.Type && eres.kLOC_SymbolTable == eres.Location &&
-          0 == _sym[eres.Symbol].LiteralD->Value))
+    if (!(eval_result.kTY_Literal == eval_result.Type && eval_result.kLOC_SymbolTable == eval_result.Location &&
+          0 == _sym[eval_result.Symbol].LiteralD->Value))
     {
-        EvaluationResultToAx(eres);
+        EvaluationResultToAx(eval_result);
         // Jump back to the start of the loop while the condition is true
         _nest.Start().WriteJump(SCMD_JNZ, _src.GetLineno());
     }
@@ -824,12 +824,12 @@ Symbol AGS::Parser::ParseConstantExpression(SrcList &src, std::string const &msg
 
     Symbol const first_sym = src.PeekNext();
 
-    EvaluationResult eres;
-    ParseExpression(src, eres);
-    if (eres.kTY_Literal != eres.Type)
+    EvaluationResult eval_result;
+    ParseExpression(src, eval_result);
+    if (eval_result.kTY_Literal != eval_result.Type)
         UserError((msg + "Cannot evaluate the expression starting with '%s' at compile time").c_str(),
                   _sym.GetName(first_sym).c_str());
-    return eres.Symbol;
+    return eval_result.Symbol;
 }
 
 Symbol AGS::Parser::ParseFuncdecl_Parameters_ParamDefaultValue(Vartype const param_vartype, size_t const idx)
@@ -926,13 +926,13 @@ void AGS::Parser::ParseDynArrayMarkersIfPresent(SrcList &src, Vartype &vartype)
 // We've just accepted something like 'int func(', we expect 'this' --OR-- 'static' (!)
 // We'll accept something like "this Character *"
 void AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &strct, Symbol &unqualified_name,
-                                                     TypeQualifierSet &tqs)
+                                                     TypeQualifierSet &qualifiers)
 {
-    if (tqs[TQ::kStatic])
+    if (qualifiers[TQ::kStatic])
         Expect(kKW_Static, _src.PeekNext());
 
     if (is_static_extender)
-        tqs[TQ::kStatic] = true;
+        qualifiers[TQ::kStatic] = true;
 
     _src.GetNext(); // Eat "this" or "static"
     strct = _src.GetNext();
@@ -1129,7 +1129,7 @@ void AGS::Parser::ParseFuncdecl_Parameters(Symbol name_of_func, bool body_follow
     InternalError("End of input when processing parameter list"); // Cannot happen
 }
 
-void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype const return_vartype,
+void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet qualifiers, Vartype const return_vartype,
                                                Symbol struct_of_func, Symbol name_of_func, bool body_follows)
 {
     _sym.MakeEntryFunction(name_of_func);
@@ -1144,12 +1144,12 @@ void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype con
     entry.FunctionD->Parameters[0u].Vartype = return_vartype;
     entry.FunctionD->Parameters[0u].Name = kKW_NoSymbol;
     entry.FunctionD->Parameters[0u].Default = kKW_NoSymbol;
-    auto &entry_tqs = entry.FunctionD->TypeQualifiers;
-    entry_tqs[TQ::kImport] = tqs[TQ::kImport];
-    entry_tqs[TQ::kProtected] = tqs[TQ::kProtected];
-    entry_tqs[TQ::kReadonly] = tqs[TQ::kReadonly];
-    entry_tqs[TQ::kStatic] = tqs[TQ::kStatic];
-    entry_tqs[TQ::kWriteprotected] = tqs[TQ::kWriteprotected];
+    auto &entry_qualifiers = entry.FunctionD->TypeQualifiers;
+    entry_qualifiers[TQ::kImport] = qualifiers[TQ::kImport];
+    entry_qualifiers[TQ::kProtected] = qualifiers[TQ::kProtected];
+    entry_qualifiers[TQ::kReadonly] = qualifiers[TQ::kReadonly];
+    entry_qualifiers[TQ::kStatic] = qualifiers[TQ::kStatic];
+    entry_qualifiers[TQ::kWriteprotected] = qualifiers[TQ::kWriteprotected];
     // Do not set Extends and the component flag here.
     // They are used to denote functions that were either declared in a struct defn or as extender
 
@@ -1157,7 +1157,7 @@ void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype con
     {
         // Encode in entry.Offset the type of function declaration
         FunctionType ft = kFT_PureForward;
-        if (tqs[TQ::kImport])
+        if (qualifiers[TQ::kImport])
             ft = kFT_Import;
         if (body_follows)
             ft = kFT_LocalBody;
@@ -1350,7 +1350,7 @@ bool AGS::Parser::ParseFuncdecl_DoesBodyFollow()
     return body_follows;
 }
 
-void AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func,
+void AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet qualifiers, Symbol struct_of_func, Symbol name_of_func,
                                        Vartype return_vartype, bool body_follows, bool no_loop_check)
 {
     if (0 == _sym.GetName(name_of_func).compare(0u, _builtinSymbolPrefix.length(), _builtinSymbolPrefix))
@@ -1360,18 +1360,18 @@ void AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_fu
     bool const is_constructor = (kKW_NoSymbol != struct_of_func) && func_entry.ComponentD &&
                                 (func_entry.ComponentD->Component == func_entry.ComponentD->Parent);
 
-    if (tqs[TQ::kImport] && body_follows)
+    if (qualifiers[TQ::kImport] && body_follows)
         UserError("Cannot declare this function 'import' and define its body at the same time");
 
-    if (kKW_NoSymbol == struct_of_func && tqs[TQ::kProtected])
+    if (kKW_NoSymbol == struct_of_func && qualifiers[TQ::kProtected])
         UserError("Function '%s' isn't a struct component and so cannot be 'protected'",
                   _sym.GetName(name_of_func).c_str());
     if (is_constructor && !_sym[struct_of_func].VartypeD->Flags[VTF::kManaged])
         UserError("Constructors are not supported in non-managed structs (see '%s')",
                   _sym.GetName(name_of_func).c_str());
-    if (is_constructor && tqs[TQ::kStatic])
+    if (is_constructor && qualifiers[TQ::kStatic])
         UserError("Static constructors are not supported (see '%s')", _sym.GetName(name_of_func).c_str());
-    if (is_constructor && tqs[TQ::kProtected])
+    if (is_constructor && qualifiers[TQ::kProtected])
         UserError("Struct's constructor '%s' cannot be 'protected'", _sym.GetName(name_of_func).c_str());
     if (!body_follows && no_loop_check)
         UserError("Can only use 'noloopcheck' when a function body follows the definition");
@@ -1405,18 +1405,18 @@ void AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_fu
     }
 }
 
-void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs, Symbol struct_of_func,
+void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet qualifiers, Symbol struct_of_func,
                                                             Symbol name_of_func, bool body_follows)
 {
     if (PP::kMain == _pp)
     {
         int func_startoffs;
-        ParseFuncdecl_EnterAsImportOrFunc(name_of_func, body_follows, tqs[TQ::kImport],
+        ParseFuncdecl_EnterAsImportOrFunc(name_of_func, body_follows, qualifiers[TQ::kImport],
                                           _sym.FuncParamsCount(name_of_func), func_startoffs);
         _sym[name_of_func].FunctionD->Offset = func_startoffs;
     }
 
-    if (!tqs[TQ::kImport])
+    if (!qualifiers[TQ::kImport])
         return;
 
     // Imported functions
@@ -1451,14 +1451,14 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
     _importLabels.SetLabelValue(name_of_func, imports_idx);
 }
 
-void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype const return_vartype, Symbol const struct_of_func,
+void AGS::Parser::ParseFuncdecl(TypeQualifierSet qualifiers, Vartype const return_vartype, Symbol const struct_of_func,
                                 Symbol const name_of_func, bool const no_loop_check, bool const body_follows)
 {
-    ParseFuncdecl_Checks(tqs, struct_of_func, name_of_func, return_vartype, body_follows, no_loop_check);
+    ParseFuncdecl_Checks(qualifiers, struct_of_func, name_of_func, return_vartype, body_follows, no_loop_check);
 
     // A forward decl can be written with the "import" keyword (when allowed in the options).
     // This isn't an import proper, so reset the "import" flag in this case.
-    if (tqs[TQ::kImport] && // This declaration has 'import'
+    if (qualifiers[TQ::kImport] && // This declaration has 'import'
         _sym.IsFunction(name_of_func) &&
         !_sym[name_of_func].FunctionD->TypeQualifiers[TQ::kImport]) // but symbol table hasn't 'import'
     {
@@ -1466,7 +1466,7 @@ void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype const return_varty
             UserError(ReferenceMsgSym("In here, a function with a local body must not have an \"import\" declaration",
                                       name_of_func)
                           .c_str());
-        tqs[TQ::kImport] = false;
+        qualifiers[TQ::kImport] = false;
     }
 
     // Stash away the known info about the function so that we can check whether this declaration is compatible
@@ -1474,14 +1474,14 @@ void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype const return_varty
     _sym[name_of_func].FunctionD = nullptr;
     size_t const known_declared = _sym.GetDeclared(name_of_func);
 
-    ParseFuncdecl_MasterData2Sym(tqs, return_vartype, struct_of_func, name_of_func, body_follows);
+    ParseFuncdecl_MasterData2Sym(qualifiers, return_vartype, struct_of_func, name_of_func, body_follows);
     if (PP::kMain == _pp && body_follows)
         _sym[name_of_func].FunctionD->NoLoopCheck = no_loop_check;
     ParseFuncdecl_Parameters(name_of_func, body_follows);
 
     ParseFuncdecl_CheckAndAddKnownInfo(name_of_func, known_info.get(), known_declared, body_follows);
 
-    ParseFuncdecl_HandleFunctionOrImportIndex(tqs, struct_of_func, name_of_func, body_follows);
+    ParseFuncdecl_HandleFunctionOrImportIndex(qualifiers, struct_of_func, name_of_func, body_follows);
 
     if (PP::kMain == _pp && body_follows)
         // When this function is called, the return address is pushed to the stack
@@ -1800,37 +1800,37 @@ int AGS::Parser::GetWriteCommandForSize(int the_size)
     }
 }
 
-void AGS::Parser::EvaluationResultToAx(EvaluationResult &eres)
+void AGS::Parser::EvaluationResultToAx(EvaluationResult &eval_result)
 {
-    Vartype const vartype = eres.Vartype;
+    Vartype const vartype = eval_result.Vartype;
 
-    switch (eres.Type)
+    switch (eval_result.Type)
     {
-    default: InternalError("Expression result has type %d, cannot move to AX", eres.Type);
+    default: InternalError("Expression result has type %d, cannot move to AX", eval_result.Type);
 
     case EvaluationResult::kTY_FunctionName:
         // Cannot convert a naked function symbol; assume that the coder has forgotten '('
-        UserError("Expected '(' after '%s'", _sym.GetName(eres.Symbol).c_str());
+        UserError("Expected '(' after '%s'", _sym.GetName(eval_result.Symbol).c_str());
 
     case EvaluationResult::kTY_Literal:
         // Convert to runtime value in AX
-        WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[eres.Symbol].LiteralD->Value);
+        WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[eval_result.Symbol].LiteralD->Value);
         _reg_track.SetRegister(SREG_AX);
         if (kKW_String == _sym.VartypeWithout(VTT::kConst, vartype))
             _scrip.FixupPrevious(kFx_String);
-        eres.Type = eres.kTY_RunTimeValue;
-        eres.Location = eres.kLOC_AX;
-        eres.Symbol = kKW_NoSymbol;
+        eval_result.Type = eval_result.kTY_RunTimeValue;
+        eval_result.Location = eval_result.kLOC_AX;
+        eval_result.Symbol = kKW_NoSymbol;
         break;
 
     case EvaluationResult::kTY_RunTimeValue: break;
 
     case EvaluationResult::kTY_StructName:
         // Cannot convert naked typename; coder has probably forgotten '.'
-        UserError("Expected '.' after '%s'", _sym.GetName(eres.Symbol).c_str());
+        UserError("Expected '.' after '%s'", _sym.GetName(eval_result.Symbol).c_str());
     }
 
-    switch (eres.Location)
+    switch (eval_result.Location)
     {
     default: return InternalError("Cannot move expression result location to AX");
 
@@ -1838,13 +1838,13 @@ void AGS::Parser::EvaluationResultToAx(EvaluationResult &eres)
 
     case EvaluationResult::kLOC_MemoryAtMAR:
         _marMgr.UpdateMAR(_src.GetLineno(), _scrip);
-        if (kKW_String == _sym.VartypeWithout(VTT::kConst, eres.Vartype))
+        if (kKW_String == _sym.VartypeWithout(VTT::kConst, eval_result.Vartype))
             WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
         else
             WriteCmd(_sym.IsDynVartype(vartype) ? SCMD_MEMREADPTR : GetReadCommandForSize(_sym.GetSize(vartype)),
                      SREG_AX);
         _reg_track.SetRegister(SREG_AX);
-        eres.Location = EvaluationResult::kLOC_AX;
+        eval_result.Location = EvaluationResult::kLOC_AX;
         return;
     }
 }
@@ -1898,9 +1898,9 @@ void AGS::Parser::ParseExpression_New_CtorFuncCall(Symbol argument_vartype, SrcL
         // Address of the new object is expected in MAR
         WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
         _reg_track.SetRegister(SREG_MAR);
-        EvaluationResult eres_dummy;
+        EvaluationResult unused_result;
 
-        AccessData_FunctionCall(ctor_function, expression, eres_dummy);
+        AccessData_FunctionCall(ctor_function, expression, unused_result);
         ParseExpression_CheckUsedUp(expression);
         PopReg(SREG_AX);
         return;
@@ -1912,7 +1912,7 @@ void AGS::Parser::ParseExpression_New_CtorFuncCall(Symbol argument_vartype, SrcL
     ParseExpression_CheckUsedUp(expression);
 }
 
-void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &eres)
+void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &eval_result)
 {
     expression.StartRead();
     if (expression.ReachedEOF())
@@ -1937,20 +1937,20 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
         if (kKW_OpenBracket != open_bracket)
             UserError("Unexpected '%s'", _sym.GetName(open_bracket).c_str());
 
-        EvaluationResult bracketed_eres;
-        ParseIntegerExpression(expression, bracketed_eres);
-        EvaluationResultToAx(bracketed_eres);
+        EvaluationResult bracketed_result;
+        ParseIntegerExpression(expression, bracketed_result);
+        EvaluationResultToAx(bracketed_result);
         Expect(kKW_CloseBracket, expression.GetNext());
 
         element_vartype = is_managed ? _sym.VartypeWithDynpointer(argument_vartype) : argument_vartype;
-        eres.Vartype = _sym.VartypeWithDynarray(element_vartype);
+        eval_result.Vartype = _sym.VartypeWithDynarray(element_vartype);
 
         while (kKW_OpenBracket == expression.PeekNext())
         {
             SkipNextSymbol(expression, kKW_OpenBracket);
             Expect(kKW_CloseBracket, expression.GetNext());
-            element_vartype = eres.Vartype;
-            eres.Vartype = _sym.VartypeWithDynarray(element_vartype);
+            element_vartype = eval_result.Vartype;
+            eval_result.Vartype = _sym.VartypeWithDynarray(element_vartype);
         }
     }
     else // no bracket expression
@@ -1972,7 +1972,7 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
                 _sym.GetName(argument_vartype).c_str());
 
         element_vartype = argument_vartype;
-        eres.Vartype = _sym.VartypeWithDynpointer(argument_vartype);
+        eval_result.Vartype = _sym.VartypeWithDynpointer(argument_vartype);
     }
 
     size_t const element_size = _sym.GetSize(element_vartype);
@@ -2004,29 +2004,29 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
 
     ParseExpression_CheckUsedUp(expression);
 
-    eres.Type = eres.kTY_RunTimeValue;
-    eres.Location = eres.kLOC_AX;
-    eres.Symbol = kKW_NoSymbol;
+    eval_result.Type = eval_result.kTY_RunTimeValue;
+    eval_result.Location = eval_result.kLOC_AX;
+    eval_result.Symbol = kKW_NoSymbol;
     // Vartype has already been set
 }
 
-void AGS::Parser::ParseExpression_PrefixMinus(EvaluationResult &eres)
+void AGS::Parser::ParseExpression_PrefixMinus(EvaluationResult &eval_result)
 {
-    if (eres.kTY_Literal == eres.Type)
+    if (eval_result.kTY_Literal == eval_result.Type)
     {
         // Do the operation right now
-        EvaluationResult eres_lhs;
-        eres_lhs.Type = eres.kTY_Literal;
-        eres_lhs.Location = eres.kLOC_SymbolTable;
-        eres_lhs.Vartype = _sym[eres.Symbol].LiteralD->Vartype;
-        eres_lhs.Symbol = kKW_Float == eres_lhs.Vartype ? _sym.Find("0.0") : _sym.Find("0");
-        if (ParseExpression_CompileTime(kKW_Minus, eres_lhs, eres, eres))
+        EvaluationResult lhs_result;
+        lhs_result.Type = eval_result.kTY_Literal;
+        lhs_result.Location = eval_result.kLOC_SymbolTable;
+        lhs_result.Vartype = _sym[eval_result.Symbol].LiteralD->Vartype;
+        lhs_result.Symbol = kKW_Float == lhs_result.Vartype ? _sym.Find("0.0") : _sym.Find("0");
+        if (ParseExpression_CompileTime(kKW_Minus, lhs_result, eval_result, eval_result))
             return;
     }
 
-    EvaluationResultToAx(eres);
+    EvaluationResultToAx(eval_result);
 
-    CodeCell const opcode = GetOpcode(kKW_Minus, eres.Vartype, eres.Vartype);
+    CodeCell const opcode = GetOpcode(kKW_Minus, eval_result.Vartype, eval_result.Vartype);
 
     // Calculate 0 - AX
     // The binary representation of 0.0 is identical to the binary representation of 0
@@ -2036,38 +2036,38 @@ void AGS::Parser::ParseExpression_PrefixMinus(EvaluationResult &eres)
     WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
     _reg_track.SetRegister(SREG_BX);
     _reg_track.SetRegister(SREG_AX);
-    eres.Symbol = kKW_NoSymbol;
-    eres.Modifiable = false;
+    eval_result.Symbol = kKW_NoSymbol;
+    eval_result.Modifiable = false;
 }
 
-void AGS::Parser::ParseExpression_PrefixPlus(EvaluationResult &eres)
+void AGS::Parser::ParseExpression_PrefixPlus(EvaluationResult &eval_result)
 {
-    if (_sym.IsAnyIntegerVartype(eres.Vartype) || kKW_Float == eres.Vartype)
+    if (_sym.IsAnyIntegerVartype(eval_result.Vartype) || kKW_Float == eval_result.Vartype)
         return;
 
-    UserError("Cannot apply unary '+' to an expression of type '%s'", _sym.GetName(eres.Vartype).c_str());
+    UserError("Cannot apply unary '+' to an expression of type '%s'", _sym.GetName(eval_result.Vartype).c_str());
 }
 
-void AGS::Parser::ParseExpression_PrefixNegate(Symbol op_sym, EvaluationResult &eres)
+void AGS::Parser::ParseExpression_PrefixNegate(Symbol op_sym, EvaluationResult &eval_result)
 {
     bool const bitwise_negation = kKW_BitNeg == op_sym;
 
     std::string msg = "Argument of '<op>'";
     string_replace(msg, "<op>", _sym.GetName(op_sym));
-    CheckVartypeMismatch(eres.Vartype, kKW_Int, true, msg);
+    CheckVartypeMismatch(eval_result.Vartype, kKW_Int, true, msg);
 
-    if (eres.kTY_Literal == eres.Type)
+    if (eval_result.kTY_Literal == eval_result.Type)
     {
         // Try to do the negation now
-        EvaluationResult eres_lhs;
-        eres_lhs.Type = eres.kTY_Literal;
-        eres_lhs.Location = eres.kLOC_SymbolTable;
-        eres_lhs.Symbol = _sym.Find("0");
-        if (ParseExpression_CompileTime(op_sym, eres_lhs, eres, eres))
+        EvaluationResult lhs_result;
+        lhs_result.Type = eval_result.kTY_Literal;
+        lhs_result.Location = eval_result.kLOC_SymbolTable;
+        lhs_result.Symbol = _sym.Find("0");
+        if (ParseExpression_CompileTime(op_sym, lhs_result, eval_result, eval_result))
             return;
     }
 
-    EvaluationResultToAx(eres);
+    EvaluationResultToAx(eval_result);
 
     if (bitwise_negation)
     {
@@ -2084,11 +2084,11 @@ void AGS::Parser::ParseExpression_PrefixNegate(Symbol op_sym, EvaluationResult &
         _reg_track.SetRegister(SREG_AX);
     }
 
-    eres.Vartype = kKW_Int;
-    eres.Location = EvaluationResult::kLOC_AX;
+    eval_result.Vartype = kKW_Int;
+    eval_result.Location = EvaluationResult::kLOC_AX;
 }
 
-void AGS::Parser::ParseExpression_PrefixCrement(Symbol op_sym, AGS::SrcList &expression, EvaluationResult &eres)
+void AGS::Parser::ParseExpression_PrefixCrement(Symbol op_sym, AGS::SrcList &expression, EvaluationResult &eval_result)
 {
     SrcList inner = SrcList(expression);
 
@@ -2109,11 +2109,11 @@ void AGS::Parser::ParseExpression_PrefixCrement(Symbol op_sym, AGS::SrcList &exp
 
     inner.StartRead();
 
-    ParseAssignment_ReadLHSForModification(inner, eres);
+    ParseAssignment_ReadLHSForModification(inner, eval_result);
 
     std::string msg = "Argument of '<op>'";
     string_replace(msg, "<op>", _sym.GetName(op_sym).c_str());
-    CheckVartypeMismatch(eres.Vartype, kKW_Int, true, msg);
+    CheckVartypeMismatch(eval_result.Vartype, kKW_Int, true, msg);
 
     WriteCmd((kKW_Increment == op_sym) ? SCMD_ADD : SCMD_SUB, SREG_AX, 1);
     _reg_track.SetRegister(SREG_AX);
@@ -2121,21 +2121,21 @@ void AGS::Parser::ParseExpression_PrefixCrement(Symbol op_sym, AGS::SrcList &exp
     // Really do the assignment the long way so that all the checks and safeguards will run.
     // If a shortcut is possible then undo this and generate the shortcut instead.
     RestorePoint before_long_way_modification = RestorePoint(_scrip);
-    AccessData_AssignTo(inner, eres);
+    AccessData_AssignTo(inner, eval_result);
 
-    if (EvaluationResult::kLOC_MemoryAtMAR == eres.Location)
+    if (EvaluationResult::kLOC_MemoryAtMAR == eval_result.Location)
     {
         before_long_way_modification.Restore();
-        CodeCell memwrite = GetWriteCommandForSize(_sym.GetSize(eres.Vartype));
+        CodeCell memwrite = GetWriteCommandForSize(_sym.GetSize(eval_result.Vartype));
         WriteCmd(memwrite, SREG_AX);
         _reg_track.SetRegister(SREG_AX);
     }
-    eres.SideEffects = true;
+    eval_result.SideEffects = true;
     ParseExpression_CheckUsedUp(inner);
 }
 
 
-void AGS::Parser::ParseExpression_Prefix(SrcList &expression, EvaluationResult &eres)
+void AGS::Parser::ParseExpression_Prefix(SrcList &expression, EvaluationResult &eval_result)
 {
     // The least binding operator is the first thing in the expression
     // This means that the op must be an unary op.
@@ -2148,40 +2148,41 @@ void AGS::Parser::ParseExpression_Prefix(SrcList &expression, EvaluationResult &
     inner.EatFirstSymbol();
 
     if (kKW_New == op_sym)
-        return ParseExpression_New(inner, eres);
+        return ParseExpression_New(inner, eval_result);
 
     if (kKW_Decrement == op_sym || kKW_Increment == op_sym)
-        return ParseExpression_PrefixCrement(op_sym, inner, eres);
+        return ParseExpression_PrefixCrement(op_sym, inner, eval_result);
 
     // Special case: Lowest integer literal, written in decimal notation.
     // We treat this here in the parser because the scanner doesn't know
     // whether a minus symbol stands for a unary minus.
     if (op_sym == kKW_Minus && inner.Length() == 1u && inner[0u] == kKW_OnePastLongMax)
     {
-        eres.Type = eres.kTY_Literal;
-        eres.Location = eres.kLOC_SymbolTable;
-        eres.Symbol = _sym.Find("-2147483648");
-        eres.Vartype = kKW_Int;
+        eval_result.Type = eval_result.kTY_Literal;
+        eval_result.Location = eval_result.kLOC_SymbolTable;
+        eval_result.Symbol = _sym.Find("-2147483648");
+        eval_result.Vartype = kKW_Int;
         ParseExpression_CheckUsedUp(inner);
         return;
     }
 
-    ParseExpression_Term(inner, eres);
+    ParseExpression_Term(inner, eval_result);
 
     switch (op_sym)
     {
     case kKW_BitNeg:
-    case kKW_Not: return ParseExpression_PrefixNegate(op_sym, eres);
+    case kKW_Not: return ParseExpression_PrefixNegate(op_sym, eval_result);
 
-    case kKW_Minus: return ParseExpression_PrefixMinus(eres);
+    case kKW_Minus: return ParseExpression_PrefixMinus(eval_result);
 
-    case kKW_Plus: return ParseExpression_PrefixPlus(eres);
+    case kKW_Plus: return ParseExpression_PrefixPlus(eval_result);
     }
 
     InternalError("Illegal prefix op '%s'", _sym.GetName(op_sym).c_str());
 }
 
-void AGS::Parser::ParseExpression_PostfixCrement(Symbol const op_sym, SrcList &expression, EvaluationResult &eres)
+void AGS::Parser::ParseExpression_PostfixCrement(Symbol const op_sym, SrcList &expression,
+                                                 EvaluationResult &eval_result)
 {
     bool const op_is_inc = kKW_Increment == op_sym;
 
@@ -2203,12 +2204,12 @@ void AGS::Parser::ParseExpression_PostfixCrement(Symbol const op_sym, SrcList &e
     }
 
     inner.StartRead();
-    ParseAssignment_ReadLHSForModification(inner, eres);
+    ParseAssignment_ReadLHSForModification(inner, eval_result);
     ParseExpression_CheckUsedUp(inner);
 
     std::string msg = "Argument of '<op>'";
     string_replace(msg, "<op>", _sym.GetName(op_sym).c_str());
-    CheckVartypeMismatch(eres.Vartype, kKW_Int, true, msg);
+    CheckVartypeMismatch(eval_result.Vartype, kKW_Int, true, msg);
 
     // Really do the assignment the long way so that all the checks and safeguards will run.
     // If a shortcut is possible then undo this and generate the shortcut instead.
@@ -2216,23 +2217,23 @@ void AGS::Parser::ParseExpression_PostfixCrement(Symbol const op_sym, SrcList &e
 
     PushReg(SREG_AX);
     WriteCmd((op_is_inc ? SCMD_ADD : SCMD_SUB), SREG_AX, 1);
-    AccessData_AssignTo(inner, eres);
+    AccessData_AssignTo(inner, eval_result);
     PopReg(SREG_AX);
 
-    if (EvaluationResult::kLOC_MemoryAtMAR == eres.Location)
+    if (EvaluationResult::kLOC_MemoryAtMAR == eval_result.Location)
     { // We know the memory where the var resides. Do modify this memory directly.
         before_long_way_modification.Restore();
         WriteCmd((op_is_inc ? SCMD_ADD : SCMD_SUB), SREG_AX, 1);
-        CodeCell memwrite = GetWriteCommandForSize(_sym.GetSize(eres.Vartype));
+        CodeCell memwrite = GetWriteCommandForSize(_sym.GetSize(eval_result.Vartype));
         WriteCmd(memwrite, SREG_AX);
         WriteCmd((!op_is_inc ? SCMD_ADD : SCMD_SUB), SREG_AX, 1);
         _reg_track.SetRegister(SREG_AX);
     }
-    eres.Location = EvaluationResult::kLOC_AX;
-    eres.SideEffects = true;
+    eval_result.Location = EvaluationResult::kLOC_AX;
+    eval_result.SideEffects = true;
 }
 
-void AGS::Parser::ParseExpression_Postfix(SrcList &expression, EvaluationResult &eres, bool const result_used)
+void AGS::Parser::ParseExpression_Postfix(SrcList &expression, EvaluationResult &eval_result, bool const result_used)
 {
     size_t const expr_len = expression.Length();
 
@@ -2251,30 +2252,30 @@ void AGS::Parser::ParseExpression_Postfix(SrcList &expression, EvaluationResult 
 
     // If the result isn't used then take the more efficient version of increment / decrement
     if (!result_used)
-        return ParseExpression_PrefixCrement(op_sym, inner, eres);
+        return ParseExpression_PrefixCrement(op_sym, inner, eval_result);
 
-    ParseExpression_PostfixCrement(op_sym, inner, eres);
+    ParseExpression_PostfixCrement(op_sym, inner, eval_result);
 }
 
-void AGS::Parser::ParseExpression_Ternary_Term2(EvaluationResult &eres_term1, bool term1_has_been_ripped_out,
-                                                SrcList &term2, EvaluationResult &eres, bool const result_used)
+void AGS::Parser::ParseExpression_Ternary_Term2(EvaluationResult &term1_result, bool term1_has_been_ripped_out,
+                                                SrcList &term2, EvaluationResult &eval_result, bool const result_used)
 {
     bool const second_term_exists = (term2.Length() > 0);
     if (second_term_exists)
     {
-        ParseExpression_Term(term2, eres, result_used);
+        ParseExpression_Term(term2, eval_result, result_used);
 
-        EvaluationResult eres_dummy = eres;
-        EvaluationResultToAx(eres_dummy); // don't clobber eres
+        EvaluationResult unused_result = eval_result;
+        EvaluationResultToAx(unused_result); // don't clobber eval_result
     }
     else
     {
         // Take the first expression as the result of the missing second expression
-        eres = eres_term1;
+        eval_result = term1_result;
         if (term1_has_been_ripped_out)
         { // Still needs to be moved to AX
-            EvaluationResult eres_dummy = eres;
-            EvaluationResultToAx(eres_dummy); // don't clobber eres
+            EvaluationResult unused_result = eval_result;
+            EvaluationResultToAx(unused_result); // don't clobber eval_result
         }
     }
 
@@ -2283,11 +2284,11 @@ void AGS::Parser::ParseExpression_Ternary_Term2(EvaluationResult &eres_term1, bo
     // term3 will evaluate to a 'string', and we need to generate code here,
     // so to be on the safe side, convert any 'string' into 'String'.
     // Note that the result of term2 has already been moved to AX
-    ConvertAXStringToStringObject(_sym.GetStringStructPtrSym(), eres.Vartype);
+    ConvertAXStringToStringObject(_sym.GetStringStructPtrSym(), eval_result.Vartype);
 }
 
 void AGS::Parser::ParseExpression_Ternary(size_t const tern_idx, SrcList &expression, bool const result_used,
-                                          EvaluationResult &eres)
+                                          EvaluationResult &eval_result)
 {
     // First term ends before the '?'
     SrcList term1 = SrcList(expression, 0u, tern_idx);
@@ -2314,7 +2315,7 @@ void AGS::Parser::ParseExpression_Ternary(size_t const tern_idx, SrcList &expres
 
     bool const second_term_exists = (term2.Length() > 0);
 
-    EvaluationResult eres_term1, eres_term2, eres_term3;
+    EvaluationResult term1_result, term2_result, term3_result;
 
     // Note: Cannot use the same jump-collector for the end of term1
     // and the end of term2 although both jump to the same destination,
@@ -2332,15 +2333,15 @@ void AGS::Parser::ParseExpression_Ternary(size_t const tern_idx, SrcList &expres
     // First term of ternary (i.e, the test of the ternary)
     // We basically let through anything that can be compared to
     // some kind of zero or null so that 'a ?: whatever' can be evaluated
-    ParseExpression_Term(term1, eres_term1);
+    ParseExpression_Term(term1, term1_result);
 
-    bool const term1_known = eres.kTY_Literal == eres_term1.Type;
-    CodeCell const term1_value = term1_known ? _sym[eres_term1.Symbol].LiteralD->Value : false;
+    bool const term1_known = eval_result.kTY_Literal == term1_result.Type;
+    CodeCell const term1_value = term1_known ? _sym[term1_result.Symbol].LiteralD->Value : false;
     // Put the result into AX, but don't clobber 'vloc_term1'
     // So we can use results at compile time that are known at compile time
     // and also be sure that all the other results can be found in AX.
-    EvaluationResult eres_dummy = eres_term1;
-    EvaluationResultToAx(eres_dummy);
+    EvaluationResult unused_result = term1_result;
+    EvaluationResultToAx(unused_result);
 
     bool term1_has_been_ripped_out = false;
     if (term1_known)
@@ -2368,7 +2369,7 @@ void AGS::Parser::ParseExpression_Ternary(size_t const tern_idx, SrcList &expres
 
     // Second term of the ternary
     RestorePoint start_of_term2(_scrip);
-    ParseExpression_Ternary_Term2(eres_term1, term1_has_been_ripped_out, term2, eres_term2, result_used);
+    ParseExpression_Ternary_Term2(term1_result, term1_has_been_ripped_out, term2, term2_result, result_used);
 
     // Needs to be here so that the jump after term2 is ripped out whenever
     // term3 is ripped out so there isn't any term that would need to be jumped over.
@@ -2390,13 +2391,13 @@ void AGS::Parser::ParseExpression_Ternary(size_t const tern_idx, SrcList &expres
     // All jumps to the start of the third term should go to _here_.
     jumpdest_to_term3.Patch(_src.GetLineno());
 
-    ParseExpression_Term(term3, eres_term3, result_used);
+    ParseExpression_Term(term3, term3_result, result_used);
     // Put the result into AX, but don't clobber 'vloc_term3'
     // So we can use results at compile time that are known at compile time
     // and also be sure that all the other results can be found in AX.
-    eres_dummy = eres_term3;
-    EvaluationResultToAx(eres_dummy);
-    ConvertAXStringToStringObject(_sym.GetStringStructPtrSym(), eres_term3.Vartype);
+    unused_result = term3_result;
+    EvaluationResultToAx(unused_result);
+    ConvertAXStringToStringObject(_sym.GetStringStructPtrSym(), term3_result.Vartype);
 
     bool term3_has_been_ripped_out = false;
     if (term1_known && term1_value)
@@ -2410,50 +2411,50 @@ void AGS::Parser::ParseExpression_Ternary(size_t const tern_idx, SrcList &expres
         jumpdest_after_term2.Patch(_src.GetLineno());
     jumpdest_out_of_ternary.Patch(_src.GetLineno());
 
-    eres.LocalNonParameter = eres_term2.LocalNonParameter || eres_term3.LocalNonParameter;
+    eval_result.LocalNonParameter = term2_result.LocalNonParameter || term3_result.LocalNonParameter;
 
-    eres.Vartype = eres_term2.Vartype;
-    if (IsVartypeMismatch_Oneway(eres_term3.Vartype, eres_term2.Vartype))
+    eval_result.Vartype = term2_result.Vartype;
+    if (IsVartypeMismatch_Oneway(term3_result.Vartype, term2_result.Vartype))
     {
-        if (IsVartypeMismatch_Oneway(eres_term2.Vartype, eres_term3.Vartype))
+        if (IsVartypeMismatch_Oneway(term2_result.Vartype, term3_result.Vartype))
         {
             expression.SetCursor(tern_idx);
             UserError("An expression of type '%s' is incompatible with an expression of type '%s'",
-                      _sym.GetName(eres_term2.Vartype).c_str(), _sym.GetName(eres_term3.Vartype).c_str());
+                      _sym.GetName(term2_result.Vartype).c_str(), _sym.GetName(term3_result.Vartype).c_str());
         }
-        eres.Vartype = eres_term3.Vartype;
+        eval_result.Vartype = term3_result.Vartype;
     }
 
     if (term1_known)
     {
-        if (term1_value && EvaluationResult::kTY_Literal == eres_term2.Type)
+        if (term1_value && EvaluationResult::kTY_Literal == term2_result.Type)
         {
             start_of_term1.Restore(); // Don't need the ternary at all
-            eres = eres_term2;
+            eval_result = term2_result;
             return;
         }
-        if (!term1_value && EvaluationResult::kTY_Literal == eres_term3.Type)
+        if (!term1_value && EvaluationResult::kTY_Literal == term3_result.Type)
         {
             start_of_term1.Restore(); // Don't need the ternary at all
-            eres = eres_term3;
+            eval_result = term3_result;
             return;
         }
     }
 
     // Each branch has been putting the result into AX so that's where it's now
-    eres.Type = eres.kTY_RunTimeValue;
-    eres.Location = EvaluationResult::kLOC_AX;
-    eres.Modifiable = false;
+    eval_result.Type = eval_result.kTY_RunTimeValue;
+    eval_result.Location = EvaluationResult::kLOC_AX;
+    eval_result.Modifiable = false;
 }
 
-void AGS::Parser::ParseExpression_As(SrcList &vartype_list, EvaluationResult &eres)
+void AGS::Parser::ParseExpression_As(SrcList &vartype_list, EvaluationResult &eval_result)
 {
     vartype_list.StartRead();
     Vartype new_vartype = ParseVartype(vartype_list);
     ParseDynArrayMarkersIfPresent(vartype_list, new_vartype);
     ParseExpression_CheckUsedUp(vartype_list);
 
-    Vartype const curr_vartype = eres.Vartype;
+    Vartype const curr_vartype = eval_result.Vartype;
 
     if (_sym.IsDynpointerVartype(curr_vartype))
     {
@@ -2465,7 +2466,7 @@ void AGS::Parser::ParseExpression_As(SrcList &vartype_list, EvaluationResult &er
     // even without any 'as' clause.
     if (!IsVartypeMismatch_Oneway(curr_vartype, new_vartype))
     {
-        eres.Vartype = new_vartype;
+        eval_result.Vartype = new_vartype;
         return;
     }
 
@@ -2499,7 +2500,7 @@ void AGS::Parser::ParseExpression_As(SrcList &vartype_list, EvaluationResult &er
 
     if (FlagIsSet(_options, SCOPT_RTTIOPS))
     {
-        EvaluationResultToAx(eres);
+        EvaluationResultToAx(eval_result);
         WriteCmd(SCMD_DYNAMICCAST, element_vartype);
     }
     else
@@ -2508,10 +2509,10 @@ void AGS::Parser::ParseExpression_As(SrcList &vartype_list, EvaluationResult &er
             UserError("Cannot convert type '%s', it isn't type '%s' or an ancester of it (RTTI is disabled)",
                       _sym.GetName(curr_vartype).c_str(), _sym.GetName(new_vartype).c_str());
     }
-    eres.Vartype = new_vartype;
+    eval_result.Vartype = new_vartype;
 }
 
-void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expression, EvaluationResult &eres)
+void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expression, EvaluationResult &eval_result)
 {
     RestorePoint start_of_term(_scrip);
     Symbol const operator_sym = expression[op_idx];
@@ -2520,10 +2521,10 @@ void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expressio
     // This will be in vain if we find out later on that there isn't any right hand side,
     // but doing the left hand side first means that any errors will be generated from left to right
     SrcList lhs = SrcList(expression, 0u, op_idx);
-    ParseExpression_Term(lhs, eres);
+    ParseExpression_Term(lhs, eval_result);
 
-    EvaluationResult eres_lhs = eres;
-    EvaluationResultToAx(eres);
+    EvaluationResult lhs_result = eval_result;
+    EvaluationResultToAx(eval_result);
 
     ForwardJump to_exit(_scrip);
 
@@ -2553,7 +2554,7 @@ void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expressio
     else if (kKW_As == operator_sym)
     {
         SrcList rhs = SrcList(expression, op_idx + 1u, expression.Length());
-        return ParseExpression_As(rhs, eres);
+        return ParseExpression_As(rhs, eval_result);
     }
     else
     {
@@ -2569,11 +2570,11 @@ void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expressio
         UserError("Binary operator '%s' doesn't have a right hand side", _sym.GetName(operator_sym).c_str());
     }
 
-    ParseExpression_Term(rhs, eres);
+    ParseExpression_Term(rhs, eval_result);
     size_t const expression_end_idx = expression.GetCursor();
 
-    EvaluationResult eres_rhs = eres;
-    EvaluationResultToAx(eres);
+    EvaluationResult rhs_result = eval_result;
+    EvaluationResultToAx(eval_result);
 
     if (!lazy_evaluation)
     {
@@ -2581,43 +2582,43 @@ void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expressio
         PopReg(SREG_BX); // Note, we pop to BX although we have pushed AX
         _reg_track.SetRegister(SREG_BX);
         // now the result of the left side is in BX, of the right side is in AX
-        CodeCell const opcode = GetOpcode(operator_sym, eres_lhs.Vartype, eres_rhs.Vartype);
+        CodeCell const opcode = GetOpcode(operator_sym, lhs_result.Vartype, rhs_result.Vartype);
         WriteCmd(opcode, SREG_BX, SREG_AX);
         WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
     }
 
     _reg_track.SetRegister(SREG_AX);
-    eres.Location = EvaluationResult::kLOC_AX;
+    eval_result.Location = EvaluationResult::kLOC_AX;
     expression.SetCursor(expression_end_idx);
     to_exit.Patch(_src.GetLineno());
 
     if (_sym.IsBooleanOperator(operator_sym))
-        eres.Vartype = kKW_Int;
+        eval_result.Vartype = kKW_Int;
 
-    if (eres.kTY_Literal != eres_lhs.Type || eres.kTY_Literal != eres_rhs.Type)
+    if (eval_result.kTY_Literal != lhs_result.Type || eval_result.kTY_Literal != rhs_result.Type)
         return;
 
     // Attempt to do this at compile-time
 
     if (kKW_And == operator_sym || kKW_Or == operator_sym)
     {
-        bool const condition = (0 != _sym[eres_lhs.Symbol].LiteralD->Value);
+        bool const condition = (0 != _sym[lhs_result.Symbol].LiteralD->Value);
         if (kKW_And == operator_sym)
-            eres = condition ? eres_rhs : eres_lhs;
+            eval_result = condition ? rhs_result : lhs_result;
         else // kKW_Or
-            eres = condition ? eres_lhs : eres_rhs;
+            eval_result = condition ? lhs_result : rhs_result;
 
-        if (!_sym.IsAnyIntegerVartype(_sym[eres.Symbol].LiteralD->Vartype))
+        if (!_sym.IsAnyIntegerVartype(_sym[eval_result.Symbol].LiteralD->Vartype))
         { // Swap an int literal in (note: Don't change the vartype of the pre-existing literal)
-            bool const result = (0 != _sym[eres.Symbol].LiteralD->Value);
-            eres.Symbol = result ? _sym.Find("1") : _sym.Find("0");
+            bool const result = (0 != _sym[eval_result.Symbol].LiteralD->Value);
+            eval_result.Symbol = result ? _sym.Find("1") : _sym.Find("0");
         }
 
         start_of_term.Restore();
         return;
     }
 
-    if (ParseExpression_CompileTime(operator_sym, eres_lhs, eres_rhs, eres))
+    if (ParseExpression_CompileTime(operator_sym, lhs_result, rhs_result, eval_result))
         start_of_term.Restore();
 }
 
@@ -2637,7 +2638,7 @@ void AGS::Parser::ParseExpression_CheckUsedUp(SrcList &expression)
     UserError("Expected an operator, found '%s' instead", _sym.GetName(expression.GetNext()).c_str());
 }
 
-void AGS::Parser::ParseExpression_InParens(SrcList &expression, EvaluationResult &eres, bool const result_used)
+void AGS::Parser::ParseExpression_InParens(SrcList &expression, EvaluationResult &eval_result, bool const result_used)
 {
     // Check for spurious symbols after the closing paren.
     expression.SetCursor(1u);
@@ -2647,7 +2648,7 @@ void AGS::Parser::ParseExpression_InParens(SrcList &expression, EvaluationResult
 
     SrcList inner(expression);
     StripOutermostParens(inner);
-    return ParseExpression_Term(inner, eres, result_used);
+    return ParseExpression_Term(inner, eval_result, result_used);
 }
 
 std::string const AGS::Parser::ReferenceMsgLoc(std::string const &msg, size_t declared)
@@ -2736,10 +2737,10 @@ void AGS::Parser::AccessData_FunctionCall_EmitCall(Symbol const name_of_func, si
     }
 }
 
-void AGS::Parser::AccessData_GenerateDynarrayLengthAttrib(EvaluationResult &eres)
+void AGS::Parser::AccessData_GenerateDynarrayLengthAttrib(EvaluationResult &eval_result)
 {
-    // eres.Vartype should be a "dynamic array of T"
-    Symbol const array_struct = eres.Vartype;
+    // eval_result.Vartype should be a "dynamic array of T"
+    Symbol const array_struct = eval_result.Vartype;
     std::string const &struct_name = _sym[array_struct].Name;
     std::string const unqualified_attrib_name = "Length"; // fixme, use global constant
     std::string const qualified_attrib_name = struct_name + "::" + unqualified_attrib_name;
@@ -2751,24 +2752,24 @@ void AGS::Parser::AccessData_GenerateDynarrayLengthAttrib(EvaluationResult &eres
     Symbol const dynarray_len_func = _sym.FindOrAdd(_builtinDynArrayLength);
     if (!_sym.IsFunction(dynarray_len_func))
     {
-        TypeQualifierSet tqs;
-        tqs[TQ::kImport] = true;
+        TypeQualifierSet qualifiers;
+        qualifiers[TQ::kImport] = true;
         Symbol const no_struct = kKW_NoSymbol;
         bool const body_follows = false;
-        ParseFuncdecl_MasterData2Sym(tqs, kKW_Int, no_struct, dynarray_len_func, body_follows);
+        ParseFuncdecl_MasterData2Sym(qualifiers, kKW_Int, no_struct, dynarray_len_func, body_follows);
         _sym[dynarray_len_func].FunctionD->Parameters.push_back({});
-        _sym[dynarray_len_func].FunctionD->Parameters[1u].Vartype = eres.Vartype;
+        _sym[dynarray_len_func].FunctionD->Parameters[1u].Vartype = eval_result.Vartype;
         _sym[dynarray_len_func].FunctionD->Offset = _scrip.FindOrAddImport(_sym.GetName(dynarray_len_func));
         _sym.SetDeclared(dynarray_len_func, _src.GetCursor());
     }
 
     // Generate pseudo-attribute beloging to this type
     Symbol const sym_attrib = _sym.FindOrAdd(unqualified_attrib_name);
-    TypeQualifierSet tqs;
-    tqs[TQ::kImport] = true;
-    tqs[TQ::kReadonly] = true;
+    TypeQualifierSet qualifiers;
+    qualifiers[TQ::kImport] = true;
+    qualifiers[TQ::kReadonly] = true;
     // Cheat and replace getter's symbol with our universal array length getter
-    ParseStruct_MasterAttribute2SymbolTable(tqs, kKW_Int, array_struct, sym_attrib, false, dynarray_len_func);
+    ParseStruct_MasterAttribute2SymbolTable(qualifiers, kKW_Int, array_struct, sym_attrib, false, dynarray_len_func);
 }
 
 
@@ -3030,18 +3031,18 @@ void AGS::Parser::AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bo
         {
             auto &arg_expr = arg_exprs[idx];
 
-            EvaluationResult eres;
-            ParseExpression_Term(arg_expr, eres, true, true);
-            EvaluationResultToAx(eres);
-            arg_vartype = eres.Vartype;
+            EvaluationResult eval_result;
+            ParseExpression_Term(arg_expr, eval_result, true, true);
+            EvaluationResultToAx(eval_result);
+            arg_vartype = eval_result.Vartype;
             if (idx < param_descs.size())
             {
-                if (IsVartypeMismatch_Oneway(eres.Vartype, param_desc.Vartype))
+                if (IsVartypeMismatch_Oneway(eval_result.Vartype, param_desc.Vartype))
                     UserError(ReferenceMsgSym((ctfp + "Cannot convert '%s' to '%s'").c_str(), name_of_func).c_str(),
-                              _sym.GetName(eres.Vartype).c_str(), _sym.GetName(param_desc.Vartype).c_str());
+                              _sym.GetName(eval_result.Vartype).c_str(), _sym.GetName(param_desc.Vartype).c_str());
 
-                ConvertAXStringToStringObject(param_desc.Vartype, eres.Vartype);
-                if (_sym.GetStringStructSym() == _sym.VartypeWithout(VTT::kDynpointer, eres.Vartype) &&
+                ConvertAXStringToStringObject(param_desc.Vartype, eval_result.Vartype);
+                if (_sym.GetStringStructSym() == _sym.VartypeWithout(VTT::kDynpointer, eval_result.Vartype) &&
                     kKW_String == _sym.VartypeWithout(VTT::kConst, param_desc.Vartype))
                     // Must make sure that NULL isn't passed at runtime
                     WriteCmd(SCMD_CHECKNULLREG, SREG_AX);
@@ -3166,7 +3167,7 @@ void AGS::Parser::AccessData_FunctionCall_Arguments(Symbol const name_of_func, b
     arguments.SetCursor(arguments.Length());
 }
 
-void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, EvaluationResult &eres)
+void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, EvaluationResult &eval_result)
 {
     // Get the arguments of the call
     size_t const arguments_begin = expression.GetCursor();
@@ -3176,8 +3177,8 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expressi
     size_t const arguments_end = expression.GetCursor();
     SrcList arguments = SrcList(expression, arguments_begin, arguments_end - arguments_begin);
 
-    auto const function_tqs = _sym[name_of_func].FunctionD->TypeQualifiers;
-    bool const func_is_import = function_tqs[TQ::kImport];
+    auto const function_qualifiers = _sym[name_of_func].FunctionD->TypeQualifiers;
+    bool const func_is_import = function_qualifiers[TQ::kImport];
     // If function uses normal stack, we need to do stack calculations to get at certain elements
     bool const func_uses_normal_stack = !func_is_import;
     bool const calling_func_uses_this = (kKW_NoSymbol != _sym.GetVartype(kKW_This));
@@ -3193,7 +3194,7 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expressi
     }
 
     bool const called_func_uses_this =
-        std::string::npos != _sym.GetName(name_of_func).find("::") && !function_tqs[TQ::kStatic];
+        std::string::npos != _sym.GetName(name_of_func).find("::") && !function_qualifiers[TQ::kStatic];
 
     bool mar_pushed = false;
     if (called_func_uses_this)
@@ -3235,12 +3236,12 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expressi
 
     AccessData_FunctionCall_EmitCall(name_of_func, args_count, func_is_import);
 
-    eres.Type = eres.kTY_RunTimeValue;
-    eres.Location = eres.kLOC_AX;
-    eres.Symbol = kKW_NoSymbol;
-    eres.Vartype = _sym.FuncReturnVartype(name_of_func);
-    eres.SideEffects = true; // A function call is a side effect
-    eres.Modifiable = false;
+    eval_result.Type = eval_result.kTY_RunTimeValue;
+    eval_result.Location = eval_result.kLOC_AX;
+    eval_result.Symbol = kKW_NoSymbol;
+    eval_result.Vartype = _sym.FuncReturnVartype(name_of_func);
+    eval_result.SideEffects = true; // A function call is a side effect
+    eval_result.Modifiable = false;
 
     if (mar_pushed)
     {
@@ -3254,11 +3255,11 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expressi
     expression.SetCursor(arguments_end);
 }
 
-bool AGS::Parser::ParseExpression_CompileTime(Symbol const op_sym, EvaluationResult const &eres_lhs,
-                                              EvaluationResult const &eres_rhs, EvaluationResult &eres)
+bool AGS::Parser::ParseExpression_CompileTime(Symbol const op_sym, EvaluationResult const &lhs_result,
+                                              EvaluationResult const &rhs_result, EvaluationResult &eval_result)
 {
-    Vartype const vartype_lhs = _sym[eres_lhs.Symbol].LiteralD->Vartype;
-    Vartype const vartype_rhs = _sym[eres_rhs.Symbol].LiteralD->Vartype;
+    Vartype const vartype_lhs = _sym[lhs_result.Symbol].LiteralD->Vartype;
+    Vartype const vartype_rhs = _sym[rhs_result.Symbol].LiteralD->Vartype;
 
     CompileTimeFunc *ctf;
     if ((kKW_Float == vartype_lhs) && (kKW_Float == vartype_rhs))
@@ -3274,30 +3275,30 @@ bool AGS::Parser::ParseExpression_CompileTime(Symbol const op_sym, EvaluationRes
     Symbol symbol;
     try
     {
-        ctf->Evaluate(eres_lhs.Symbol, eres_rhs.Symbol, symbol);
+        ctf->Evaluate(lhs_result.Symbol, rhs_result.Symbol, symbol);
     }
     catch (CompileTimeFunc::CompileTimeError &e)
     {
         UserError(e.what());
     }
 
-    eres.Type = eres.kTY_Literal;
-    eres.Location = eres.kLOC_SymbolTable;
-    eres.Symbol = symbol;
-    eres.Vartype = _sym.IsBooleanOperator(op_sym) ? kKW_Int : vartype_lhs;
+    eval_result.Type = eval_result.kTY_Literal;
+    eval_result.Location = eval_result.kLOC_SymbolTable;
+    eval_result.Symbol = symbol;
+    eval_result.Vartype = _sym.IsBooleanOperator(op_sym) ? kKW_Int : vartype_lhs;
     return true;
 }
 
-void AGS::Parser::ParseExpression_NoOps(SrcList &expression, EvaluationResult &eres, bool const result_used)
+void AGS::Parser::ParseExpression_NoOps(SrcList &expression, EvaluationResult &eval_result, bool const result_used)
 {
     if (kKW_OpenParenthesis == expression[0u])
-        return ParseExpression_InParens(expression, eres, result_used);
+        return ParseExpression_InParens(expression, eval_result, result_used);
 
-    AccessData(VAC::kReading, expression, eres);
+    AccessData(VAC::kReading, expression, eval_result);
     ParseExpression_CheckUsedUp(expression);
 }
 
-void AGS::Parser::ParseExpression_Term(SrcList &expression, EvaluationResult &eres, bool const result_used,
+void AGS::Parser::ParseExpression_Term(SrcList &expression, EvaluationResult &eval_result, bool const result_used,
                                        bool const classic_array_ok)
 {
     size_t const exp_length = expression.Length();
@@ -3307,45 +3308,45 @@ void AGS::Parser::ParseExpression_Term(SrcList &expression, EvaluationResult &er
     int const least_binding_op_idx = IndexOfLeastBondingOperator(expression); // can be < 0
 
     if (0 > least_binding_op_idx)
-        ParseExpression_NoOps(expression, eres, result_used);
+        ParseExpression_NoOps(expression, eval_result, result_used);
     else if (0 == least_binding_op_idx)
-        ParseExpression_Prefix(expression, eres);
+        ParseExpression_Prefix(expression, eval_result);
     else if (expression.Length() - 1u == least_binding_op_idx)
-        ParseExpression_Postfix(expression, eres, result_used);
+        ParseExpression_Postfix(expression, eval_result, result_used);
     else if (kKW_Tern == expression[least_binding_op_idx])
-        ParseExpression_Ternary(least_binding_op_idx, expression, result_used, eres);
+        ParseExpression_Ternary(least_binding_op_idx, expression, result_used, eval_result);
     else
-        ParseExpression_Binary(least_binding_op_idx, expression, eres);
+        ParseExpression_Binary(least_binding_op_idx, expression, eval_result);
 
     expression.SetCursor(std::max(least_binding_op_idx, 1));
 
-    if (_sym.IsArrayVartype(eres.Vartype))
+    if (_sym.IsArrayVartype(eval_result.Vartype))
     {
         if (!classic_array_ok)
             UserError("Cannot access this array as a whole (did you forget to add \"[0]\"?)");
 
-        if (eres.kLOC_MemoryAtMAR == eres.Location)
+        if (eval_result.kLOC_MemoryAtMAR == eval_result.Location)
         {
             // Must move to AX or else 'array[0u]' will be returned
             _marMgr.UpdateMAR(_src.GetLineno(), _scrip);
             WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
             _reg_track.SetRegister(SREG_AX);
-            eres.Location = eres.kLOC_AX;
+            eval_result.Location = eval_result.kLOC_AX;
         }
     }
 
-    if (_sym.IsAtomicVartype(eres.Vartype) && _sym.IsStructVartype(eres.Vartype))
+    if (_sym.IsAtomicVartype(eval_result.Vartype) && _sym.IsStructVartype(eval_result.Vartype))
     {
-        if (_sym.IsManagedVartype(eres.Vartype))
+        if (_sym.IsManagedVartype(eval_result.Vartype))
         {
             // Interpret the memory address as the result
             // We don't have a way of saying, "MAR _is_ the value"
             // so we move the value to AX, we _can_ say "AX _is_ the value".
-            eres.Vartype = _sym.VartypeWithDynpointer(eres.Vartype);
+            eval_result.Vartype = _sym.VartypeWithDynpointer(eval_result.Vartype);
             _marMgr.UpdateMAR(_src.GetLineno(), _scrip);
             WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
             _reg_track.SetRegister(SREG_AX);
-            eres.Location = eres.kLOC_AX;
+            eval_result.Location = eval_result.kLOC_AX;
             return;
         }
 
@@ -3355,23 +3356,24 @@ void AGS::Parser::ParseExpression_Term(SrcList &expression, EvaluationResult &er
 
 // We access a component of a struct in order to read or write it.
 void AGS::Parser::AccessData_StructMember(Symbol component, VariableAccess access_type, bool access_via_this,
-                                          SrcList &expression, EvaluationResult &eres)
+                                          SrcList &expression, EvaluationResult &eval_result)
 {
     expression.GetNext(); // Eat component
     SymbolTableEntry &entry = _sym[component];
-    auto const compo_tqs = entry.VariableD->TypeQualifiers;
+    auto const compo_qualifiers = entry.VariableD->TypeQualifiers;
 
-    if (VAC::kReading != access_type && compo_tqs[TQ::kWriteprotected] && !access_via_this)
+    if (VAC::kReading != access_type && compo_qualifiers[TQ::kWriteprotected] && !access_via_this)
         UserError("Writeprotected component '%s' must not be modified from outside", _sym.GetName(component).c_str());
-    if (compo_tqs[TQ::kProtected] && !access_via_this)
+    if (compo_qualifiers[TQ::kProtected] && !access_via_this)
         UserError("Protected component '%s' must not be accessed from outside", _sym.GetName(component).c_str());
 
     _marMgr.AddComponentOffset(entry.ComponentD->Offset);
-    eres.Type = eres.kTY_RunTimeValue;
-    eres.Location = eres.kLOC_MemoryAtMAR;
-    eres.Vartype = _sym.GetVartype(component);
-    eres.Modifiable = eres.Modifiable && !compo_tqs[TQ::kReadonly] &&
-                      (access_via_this || (!compo_tqs[TQ::kWriteprotected] && !compo_tqs[TQ::kProtected]));
+    eval_result.Type = eval_result.kTY_RunTimeValue;
+    eval_result.Location = eval_result.kLOC_MemoryAtMAR;
+    eval_result.Vartype = _sym.GetVartype(component);
+    eval_result.Modifiable =
+        eval_result.Modifiable && !compo_qualifiers[TQ::kReadonly] &&
+        (access_via_this || (!compo_qualifiers[TQ::kWriteprotected] && !compo_qualifiers[TQ::kProtected]));
 }
 
 Symbol AGS::Parser::ConstructAttributeFuncName(Symbol attribsym, bool is_setter, bool is_indexed)
@@ -3435,11 +3437,11 @@ void AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &expressi
         // The index to be set is in the [...] clause; push it as the first parameter
         if (attrib_uses_this)
             PushReg(SREG_MAR); // must not be clobbered
-        EvaluationResult eres;
+        EvaluationResult eval_result;
         Expect(kKW_OpenBracket, _src.GetNext());
-        ParseIntegerExpression(expression, eres);
+        ParseIntegerExpression(expression, eval_result);
         Expect(kKW_CloseBracket, _src.GetNext());
-        EvaluationResultToAx(eres);
+        EvaluationResultToAx(eval_result);
 
         if (attrib_uses_this)
             PopReg(SREG_MAR);
@@ -3463,14 +3465,14 @@ void AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &expressi
 }
 
 
-void AGS::Parser::AccessData_Dereference(EvaluationResult &eres)
+void AGS::Parser::AccessData_Dereference(EvaluationResult &eval_result)
 {
-    if (EvaluationResult::kLOC_AX == eres.Location)
+    if (EvaluationResult::kLOC_AX == eval_result.Location)
     {
         WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
         _reg_track.SetRegister(SREG_MAR);
         WriteCmd(SCMD_CHECKNULL);
-        eres.Location = EvaluationResult::kLOC_MemoryAtMAR;
+        eval_result.Location = EvaluationResult::kLOC_MemoryAtMAR;
         _marMgr.Reset();
     }
     else
@@ -3485,7 +3487,7 @@ void AGS::Parser::AccessData_Dereference(EvaluationResult &eres)
 }
 
 void AGS::Parser::AccessData_ProcessArrayIndex(size_t const dim, size_t const factor, bool const is_dynarray,
-                                               SrcList &index_expr, EvaluationResult &eres)
+                                               SrcList &index_expr, EvaluationResult &eval_result)
 {
     index_expr.StartRead();
     // If all ops are pending on the MAR register, it hasn't been set yet at all.
@@ -3495,14 +3497,14 @@ void AGS::Parser::AccessData_ProcessArrayIndex(size_t const dim, size_t const fa
     RegisterGuard(guard_mar_register ? RegisterList{SREG_MAR} : RegisterList{},
                   [&]
                   {
-                      ParseIntegerExpression(index_expr, eres);
+                      ParseIntegerExpression(index_expr, eval_result);
                       // We need the result of the array index expression (i.e., the offset to
                       // add to the location of the base variable) in AX unless it is a literal.
                       // That's the only location we can use. We can't use the address that MAR
                       // points to as the location because MAR will be clobbered by the 'POP(MAR)'
                       // that will be generated at the end of 'RegisterGuard()'.
-                      if (eres.kTY_Literal != eres.Type)
-                          EvaluationResultToAx(eres);
+                      if (eval_result.kTY_Literal != eval_result.Type)
+                          EvaluationResultToAx(eval_result);
                   });
 
     // Restore the state that the MAR register has been in
@@ -3514,10 +3516,10 @@ void AGS::Parser::AccessData_ProcessArrayIndex(size_t const dim, size_t const fa
     if (!index_expr.ReachedEOF())
         UserError("Unexpected '%s' after array index", _sym.GetName(index_expr.GetNext()).c_str());
 
-    if (eres.kTY_Literal == eres.Type)
+    if (eval_result.kTY_Literal == eval_result.Type)
     {
         // The arrax index is known at compile time, so check it as far as possible
-        int const index_value = _sym[eres.Symbol].LiteralD->Value;
+        int const index_value = _sym[eval_result.Symbol].LiteralD->Value;
         if (index_value < 0)
             UserError("Array index is %d, thus too low (minimum is 0)", index_value);
         if (dim > 0u && static_cast<size_t>(index_value) >= dim)
@@ -3558,19 +3560,20 @@ void AGS::Parser::AccessData_ProcessArrayIndex(size_t const dim, size_t const fa
     _reg_track.SetRegister(SREG_MAR);
 }
 
-void AGS::Parser::AccessData_ProcessArrayIndexes(SrcList &expression, EvaluationResult &eres)
+void AGS::Parser::AccessData_ProcessArrayIndexes(SrcList &expression, EvaluationResult &eval_result)
 {
     while (kKW_OpenBracket == expression.PeekNext())
     {
-        if (!_sym.IsAnyArrayVartype(eres.Vartype))
-            UserError("An array index cannot follow an expression of type '%s'", _sym.GetName(eres.Vartype).c_str());
+        if (!_sym.IsAnyArrayVartype(eval_result.Vartype))
+            UserError("An array index cannot follow an expression of type '%s'",
+                      _sym.GetName(eval_result.Vartype).c_str());
 
-        Vartype const array_vartype = eres.Vartype;
+        Vartype const array_vartype = eval_result.Vartype;
         Vartype const element_vartype = _sym[array_vartype].VartypeD->BaseVartype;
         bool const is_dynarray = _sym.IsDynarrayVartype(array_vartype);
 
         if (is_dynarray)
-            AccessData_Dereference(eres);
+            AccessData_Dereference(eval_result);
 
         std::vector<size_t> dynarray_dims = {
             0u,
@@ -3597,10 +3600,10 @@ void AGS::Parser::AccessData_ProcessArrayIndexes(SrcList &expression, Evaluation
             if (0u == index_expr.Length())
                 UserError("Array index must not be empty");
 
-            EvaluationResult eres_index;
-            AccessData_ProcessArrayIndex(dims[dim_idx], factors[dim_idx], is_dynarray, index_expr, eres_index);
-            if (eres_index.SideEffects)
-                eres.SideEffects = true;
+            EvaluationResult index_result;
+            AccessData_ProcessArrayIndex(dims[dim_idx], factors[dim_idx], is_dynarray, index_expr, index_result);
+            if (index_result.SideEffects)
+                eval_result.SideEffects = true;
 
             Symbol const divider = expression.GetNext();
             if (dim_idx + 1u == dims.size())
@@ -3615,36 +3618,37 @@ void AGS::Parser::AccessData_ProcessArrayIndexes(SrcList &expression, Evaluation
             }
         }
 
-        eres.Vartype = element_vartype;
+        eval_result.Vartype = element_vartype;
     }
 }
 
-void AGS::Parser::AccessData_Variable(VariableAccess access_type, SrcList &expression, EvaluationResult &eres)
+void AGS::Parser::AccessData_Variable(VariableAccess access_type, SrcList &expression, EvaluationResult &eval_result)
 {
     Symbol varname = expression.GetNext();
     SymbolTableEntry &entry = _sym[varname];
     CodeCell const soffs = entry.VariableD->Offset;
-    auto const var_tqs = entry.VariableD->TypeQualifiers;
+    auto const var_qualifiers = entry.VariableD->TypeQualifiers;
     auto const scope_type = _sym.GetScopeType(varname);
 
-    if (var_tqs[TQ::kImport])
+    if (var_qualifiers[TQ::kImport])
         MarkAcessed(varname);
 
-    if (VAC::kReading != access_type && var_tqs[TQ::kReadonly])
+    if (VAC::kReading != access_type && var_qualifiers[TQ::kReadonly])
         UserError("Cannot modify the readonly '%s'", _sym.GetName(varname).c_str());
 
     _marMgr.Reset();
     _marMgr.SetStart(scope_type, soffs);
     // Note, no instructions are generated, so MAR is not set here
 
-    eres.Type = eres.kTY_RunTimeValue;
-    eres.Location = eres.kLOC_MemoryAtMAR;
-    eres.Symbol = kKW_NoSymbol;
-    eres.Vartype = _sym.GetVartype(varname);
-    eres.LocalNonParameter = (ScT::kLocal == scope_type && entry.Scope != _sym.kParameterScope);
-    eres.Modifiable = !var_tqs[TQ::kReadonly];
+    eval_result.Type = eval_result.kTY_RunTimeValue;
+    eval_result.Location = eval_result.kLOC_MemoryAtMAR;
+    eval_result.Symbol = kKW_NoSymbol;
+    eval_result.Vartype = _sym.GetVartype(varname);
+    eval_result.LocalNonParameter = (ScT::kLocal == scope_type && entry.Scope != _sym.kParameterScope);
+    eval_result.Modifiable = !var_qualifiers[TQ::kReadonly];
 
-    if (_sym.kParameterScope == _sym[varname].Scope && _sym.VartypeWithout(VTT::kConst, eres.Vartype) == kKW_String)
+    if (_sym.kParameterScope == _sym[varname].Scope &&
+        _sym.VartypeWithout(VTT::kConst, eval_result.Vartype) == kKW_String)
     {
         // "string" parameters are passed as _pointers_ to the
         // actual string, so we need to dereference here.
@@ -3655,17 +3659,17 @@ void AGS::Parser::AccessData_Variable(VariableAccess access_type, SrcList &expre
         _reg_track.SetRegister(SREG_MAR);
     }
 
-    return AccessData_ProcessArrayIndexes(expression, eres);
+    return AccessData_ProcessArrayIndexes(expression, eval_result);
 }
 
-void AGS::Parser::AccessData_This(EvaluationResult &eres)
+void AGS::Parser::AccessData_This(EvaluationResult &eval_result)
 {
     // The expression returned is "this"
-    eres.Type = eres.kTY_RunTimeValue;
-    eres.Location = eres.kLOC_MemoryAtMAR;
-    eres.Symbol = kKW_NoSymbol;
-    eres.Vartype = _sym.GetVartype(kKW_This);
-    eres.Modifiable = true;
+    eval_result.Type = eval_result.kTY_RunTimeValue;
+    eval_result.Location = eval_result.kLOC_MemoryAtMAR;
+    eval_result.Symbol = kKW_NoSymbol;
+    eval_result.Vartype = _sym.GetVartype(kKW_This);
+    eval_result.Modifiable = true;
 
     WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
     _reg_track.SetRegister(SREG_MAR);
@@ -3673,22 +3677,22 @@ void AGS::Parser::AccessData_This(EvaluationResult &eres)
     _marMgr.Reset();
 }
 
-void AGS::Parser::AccessData_StructVartype(Vartype const vartype, EvaluationResult &eres)
+void AGS::Parser::AccessData_StructVartype(Vartype const vartype, EvaluationResult &eval_result)
 {
     // Return the struct itself, static access
-    eres.Type = eres.kTY_StructName;
-    eres.Location = eres.kLOC_SymbolTable;
-    eres.Symbol = vartype;
-    eres.Vartype = kKW_NoSymbol;
+    eval_result.Type = eval_result.kTY_StructName;
+    eval_result.Location = eval_result.kLOC_SymbolTable;
+    eval_result.Symbol = vartype;
+    eval_result.Vartype = kKW_NoSymbol;
     _marMgr.Reset();
 }
 
-void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &expression, EvaluationResult &eres,
+void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &expression, EvaluationResult &eval_result,
                                          bool &inside_access, bool &implied_dot)
 {
     implied_dot = false;
 
-    eres.SideEffects = false; // This is almost alwways correct
+    eval_result.SideEffects = false; // This is almost alwways correct
 
     Symbol const first_sym = expression.PeekNext();
 
@@ -3701,7 +3705,7 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
         Symbol lit = first_sym;
         while (_sym.IsConstant(lit))
             lit = _sym[lit].ConstantD->ValueSym;
-        SetCompileTimeLiteral(lit, eres);
+        SetCompileTimeLiteral(lit, eval_result);
         return;
     }
 
@@ -3711,17 +3715,17 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
         if (kKW_OpenParenthesis != expression.PeekNext())
         {
             // Return the function symbol as-is
-            eres.Type = eres.kTY_FunctionName;
-            eres.Location = eres.kLOC_SymbolTable;
-            eres.Symbol = first_sym;
-            eres.Vartype = kKW_NoSymbol;
-            eres.Modifiable = false;
+            eval_result.Type = eval_result.kTY_FunctionName;
+            eval_result.Location = eval_result.kLOC_SymbolTable;
+            eval_result.Symbol = first_sym;
+            eval_result.Vartype = kKW_NoSymbol;
+            eval_result.Modifiable = false;
             return;
         }
 
-        AccessData_FunctionCall(first_sym, expression, eres);
-        if (_sym.IsDynarrayVartype(eres.Vartype))
-            AccessData_ProcessArrayIndexes(expression, eres);
+        AccessData_FunctionCall(first_sym, expression, eval_result);
+        if (_sym.IsDynarrayVartype(eval_result.Vartype))
+            AccessData_ProcessArrayIndexes(expression, eval_result);
         return;
     }
 
@@ -3734,14 +3738,14 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
 
         SkipNextSymbol(expression, kKW_This);
 
-        AccessData_This(eres);
+        AccessData_This(eval_result);
         inside_access = true;
         return;
     }
 
     if (_sym.IsVariable(first_sym))
     {
-        AccessData_Variable(access_type, expression, eres);
+        AccessData_Variable(access_type, expression, eval_result);
         return;
     }
 
@@ -3749,7 +3753,7 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
     {
         SkipNextSymbol(expression, first_sym);
         inside_access = true;
-        return AccessData_StructVartype(first_sym, eres);
+        return AccessData_StructVartype(first_sym, eval_result);
     }
 
     // Can this unknown symbol be interpreted as a component of 'this'
@@ -3767,9 +3771,9 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
             expression.GetNext();
 
             if (_sym[kKW_This].VariableD->TypeQualifiers[TQ::kStatic])
-                AccessData_StructVartype(this_vartype, eres);
+                AccessData_StructVartype(this_vartype, eval_result);
             else
-                AccessData_This(eres);
+                AccessData_This(eval_result);
             inside_access = true;
 
             // Going forward, the code should imply the '.' already read in.
@@ -3787,14 +3791,14 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
 }
 
 void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool access_via_this, SrcList &expression,
-                                              EvaluationResult &eres)
+                                              EvaluationResult &eval_result)
 {
-    bool const static_access = (eres.kTY_StructName == eres.Type);
-    Vartype const vartype = static_access ? eres.Symbol : eres.Vartype;
+    bool const static_access = (eval_result.kTY_StructName == eval_result.Type);
+    Vartype const vartype = static_access ? eval_result.Symbol : eval_result.Vartype;
     Symbol const unqualified_component = expression.PeekNext();
     Symbol const qualified_component = FindComponentInStruct(vartype, unqualified_component);
 
-    // Note: Don't unconditionally reset 'eres.LocalNonParameter', 'eres.SideEffects'
+    // Note: Don't unconditionally reset 'eval_result.LocalNonParameter', 'eval_result.SideEffects'
     // if they are true, the true should stick
 
     if (kKW_NoSymbol == qualified_component)
@@ -3815,10 +3819,10 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
         if (VAC::kWriting == access_type)
         {
             // We cannot process the attribute here so return the attribute itself
-            eres.Type = eres.kTY_AttributeName;
-            eres.Location = eres.kLOC_SymbolTable;
-            eres.Symbol = qualified_component;
-            eres.Vartype = _sym[qualified_component].AttributeD->Vartype;
+            eval_result.Type = eval_result.kTY_AttributeName;
+            eval_result.Location = eval_result.kLOC_SymbolTable;
+            eval_result.Symbol = qualified_component;
+            eval_result.Vartype = _sym[qualified_component].AttributeD->Vartype;
             if (kKW_NoSymbol == _sym[qualified_component].AttributeD->Setter)
                 UserError(ReferenceMsgSym("Attribute '%s' is readonly", qualified_component).c_str(),
                           _sym.GetName(unqualified_component).c_str());
@@ -3826,11 +3830,11 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
         }
         bool const is_setter = false;
         AccessData_CallAttributeFunc(is_setter, expression, vartype);
-        eres.Type = eres.kTY_RunTimeValue;
-        eres.Location = eres.kLOC_AX;
-        eres.Symbol = kKW_NoSymbol;
-        eres.Vartype = _sym[qualified_component].AttributeD->Vartype;
-        eres.SideEffects = true; // Calling an attribute is a side-effect
+        eval_result.Type = eval_result.kTY_RunTimeValue;
+        eval_result.Location = eval_result.kLOC_AX;
+        eval_result.Symbol = kKW_NoSymbol;
+        eval_result.Vartype = _sym[qualified_component].AttributeD->Vartype;
+        eval_result.SideEffects = true; // Calling an attribute is a side-effect
         return;
     }
 
@@ -3838,11 +3842,11 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
     {
         SkipNextSymbol(expression, unqualified_component); // Eat the constant symbol
 
-        eres.Type = eres.kTY_Literal;
-        eres.Location = eres.kLOC_SymbolTable;
-        eres.Symbol = _sym[qualified_component].ConstantD->ValueSym;
-        eres.Vartype = _sym[eres.Symbol].LiteralD->Vartype;
-        eres.Modifiable = false;
+        eval_result.Type = eval_result.kTY_Literal;
+        eval_result.Location = eval_result.kLOC_SymbolTable;
+        eval_result.Symbol = _sym[qualified_component].ConstantD->ValueSym;
+        eval_result.Vartype = _sym[eval_result.Symbol].LiteralD->Vartype;
+        eval_result.Modifiable = false;
         return;
     }
 
@@ -3884,17 +3888,17 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
         if (kKW_OpenParenthesis != expression.PeekNext())
         {
             // Return the function symbol as-is
-            eres.Type = eres.kTY_FunctionName;
-            eres.Location = eres.kLOC_SymbolTable;
-            eres.Symbol = qualified_component;
-            eres.Vartype = kKW_NoSymbol;
-            eres.Modifiable = false;
+            eval_result.Type = eval_result.kTY_FunctionName;
+            eval_result.Location = eval_result.kLOC_SymbolTable;
+            eval_result.Symbol = qualified_component;
+            eval_result.Vartype = kKW_NoSymbol;
+            eval_result.Modifiable = false;
             return;
         }
 
-        AccessData_FunctionCall(qualified_component, expression, eres);
+        AccessData_FunctionCall(qualified_component, expression, eval_result);
         if (_sym.IsDynarrayVartype(vartype))
-            return AccessData_ProcessArrayIndexes(expression, eres);
+            return AccessData_ProcessArrayIndexes(expression, eval_result);
         return;
     }
 
@@ -3905,8 +3909,8 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
                           .c_str(),
                       _sym.GetName(qualified_component).c_str());
 
-        AccessData_StructMember(qualified_component, access_type, access_via_this, expression, eres);
-        return AccessData_ProcessArrayIndexes(expression, eres);
+        AccessData_StructMember(qualified_component, access_type, access_via_this, expression, eval_result);
+        return AccessData_ProcessArrayIndexes(expression, eval_result);
     }
 
     InternalError("Unknown kind of component of '%s'", _sym.GetName(vartype).c_str());
@@ -3945,7 +3949,7 @@ bool AGS::Parser::AccessData_IsClauseLast(SrcList &expression)
     return is_last;
 }
 
-void AGS::Parser::AccessData(VariableAccess access_type, SrcList &expression, EvaluationResult &eres)
+void AGS::Parser::AccessData(VariableAccess access_type, SrcList &expression, EvaluationResult &eval_result)
 {
     expression.StartRead();
     if (0u == expression.Length())
@@ -3957,7 +3961,7 @@ void AGS::Parser::AccessData(VariableAccess access_type, SrcList &expression, Ev
     // If we are reading, then all the accesses are for reading.
     // If we are writing, then all the accesses except for the last one
     // are for reading and the last one will be for writing.
-    AccessData_FirstClause(AccessData_IsClauseLast(expression) ? access_type : VAC::kReading, expression, eres,
+    AccessData_FirstClause(AccessData_IsClauseLast(expression) ? access_type : VAC::kReading, expression, eval_result,
                            inside_access, implied_dot);
 
     Vartype outer_vartype = kKW_NoSymbol;
@@ -3970,36 +3974,36 @@ void AGS::Parser::AccessData(VariableAccess access_type, SrcList &expression, Ev
             SkipNextSymbol(expression, kKW_Dot);
         implied_dot = false;
 
-        // Here, if EvaluationResult::kLOC_MemoryAtMAR == eres.location then the first byte of outer is at m[MAR + mar_offset].
-        outer_vartype = eres.kTY_StructName == eres.Type ? eres.Symbol : eres.Vartype;
-        if (eres.kTY_StructName == eres.Type)
+        // Here, if EvaluationResult::kLOC_MemoryAtMAR == eval_result.location then the first byte of outer is at m[MAR + mar_offset].
+        outer_vartype = eval_result.kTY_StructName == eval_result.Type ? eval_result.Symbol : eval_result.Vartype;
+        if (eval_result.kTY_StructName == eval_result.Type)
         {
-            outer_vartype = eres.Symbol; // Static access
+            outer_vartype = eval_result.Symbol; // Static access
         }
         else
         {
-            if (_sym.IsDynpointerVartype(eres.Vartype))
+            if (_sym.IsDynpointerVartype(eval_result.Vartype))
             {
-                AccessData_Dereference(eres);
-                eres.Vartype = _sym.VartypeWithout(VTT::kDynpointer, eres.Vartype);
+                AccessData_Dereference(eval_result);
+                eval_result.Vartype = _sym.VartypeWithout(VTT::kDynpointer, eval_result.Vartype);
             }
 
             bool array_attribute_handled = false;
-            if (_sym.IsDynarrayVartype(eres.Vartype) && _sym.FindOrAdd("Length") == expression.PeekNext())
+            if (_sym.IsDynarrayVartype(eval_result.Vartype) && _sym.FindOrAdd("Length") == expression.PeekNext())
             {
                 // Pseudo attribute 'Length' will get the length of the dynarray
-                AccessData_Dereference(eres);
+                AccessData_Dereference(eval_result);
 
-                AccessData_GenerateDynarrayLengthAttrib(eres);
+                AccessData_GenerateDynarrayLengthAttrib(eval_result);
                 array_attribute_handled = true;
             }
 
-            if (_sym.IsAnyArrayVartype(eres.Vartype))
+            if (_sym.IsAnyArrayVartype(eval_result.Vartype))
             {
                 if (!array_attribute_handled)
                     UserError("Expected a struct in front of '.' but found an array instead");
             }
-            else if (!_sym.IsStructVartype(eres.Vartype))
+            else if (!_sym.IsStructVartype(eval_result.Vartype))
             {
                 UserError("Expected a struct in front of '.' but found an expression of type '%s' instead",
                           _sym.GetName(outer_vartype).c_str());
@@ -4012,7 +4016,7 @@ void AGS::Parser::AccessData(VariableAccess access_type, SrcList &expression, Ev
         // If we are writing, then all the accesses except for the last one
         // are for reading and the last one will be for writing.
         AccessData_SubsequentClause(AccessData_IsClauseLast(expression) ? access_type : VAC::kReading, inside_access,
-                                    expression, eres);
+                                    expression, eval_result);
 
         // Next component access, if there is any, is dependent on the current access, no longer on "this".
         inside_access = false;
@@ -4047,54 +4051,54 @@ void AGS::Parser::AccessData_StrCpy(size_t count)
     _reg_track.SetAllRegisters();
 }
 
-void AGS::Parser::AccessData_AssignTo(SrcList &expression, EvaluationResult const &eres)
+void AGS::Parser::AccessData_AssignTo(SrcList &expression, EvaluationResult const &eval_result)
 {
     // We'll evaluate 'expression' later on, which will
     // move the cursor, so save it here and restore it later
     size_t const end_of_rhs_cursor = _src.GetCursor();
 
-    EvaluationResult rhs_eres = eres;
-    if (EvaluationResult::kTY_Literal != rhs_eres.Type)
-        EvaluationResultToAx(rhs_eres);
+    EvaluationResult rhs_result = eval_result;
+    if (EvaluationResult::kTY_Literal != rhs_result.Type)
+        EvaluationResultToAx(rhs_result);
 
     // Get the LHS of the assignment for writing.
     // Protect the register from being clobbered that contains the result of the RHS.
-    EvaluationResult lhs_eres;
-    RegisterGuard(EvaluationResult::kLOC_AX == rhs_eres.Location            ? RegisterList{SREG_AX}
-                  : EvaluationResult::kLOC_MemoryAtMAR == rhs_eres.Location ? RegisterList{SREG_MAR}
-                                                                            : RegisterList{},
+    EvaluationResult lhs_result;
+    RegisterGuard(EvaluationResult::kLOC_AX == rhs_result.Location            ? RegisterList{SREG_AX}
+                  : EvaluationResult::kLOC_MemoryAtMAR == rhs_result.Location ? RegisterList{SREG_MAR}
+                                                                              : RegisterList{},
                   [&]
                   {
-                      AccessData(VAC::kWriting, expression, lhs_eres);
-                      if (!expression.ReachedEOF() && lhs_eres.kTY_AttributeName != lhs_eres.Type)
+                      AccessData(VAC::kWriting, expression, lhs_result);
+                      if (!expression.ReachedEOF() && lhs_result.kTY_AttributeName != lhs_result.Type)
                           // Spurious characters follow the LHS in front of the assignment symbol, e.g., 'var 77 = 9;'
                           UserError("Unexpected '%s'", _sym.GetName(expression.PeekNext()).c_str());
 
-                      if (EvaluationResult::kLOC_AX == lhs_eres.Location)
+                      if (EvaluationResult::kLOC_AX == lhs_result.Location)
                       {
-                          if (!_sym.IsManagedVartype(lhs_eres.Vartype))
+                          if (!_sym.IsManagedVartype(lhs_result.Vartype))
                               UserError("Cannot modify this value");
 
                           WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
                           _reg_track.SetRegister(SREG_MAR);
                           WriteCmd(SCMD_CHECKNULL);
-                          rhs_eres.Location = EvaluationResult::kLOC_MemoryAtMAR;
+                          rhs_result.Location = EvaluationResult::kLOC_MemoryAtMAR;
                       }
                   });
 
-    EvaluationResultToAx(rhs_eres);
+    EvaluationResultToAx(rhs_result);
 
-    if (EvaluationResult::kTY_AttributeName == lhs_eres.Type)
+    if (EvaluationResult::kTY_AttributeName == lhs_result.Type)
     {
         // We need to call the attribute setter
-        Symbol const attribute = lhs_eres.Symbol;
+        Symbol const attribute = lhs_result.Symbol;
 
-        ConvertAXStringToStringObject(lhs_eres.Vartype, rhs_eres.Vartype);
-        if (IsVartypeMismatch_Oneway(rhs_eres.Vartype, lhs_eres.Vartype))
+        ConvertAXStringToStringObject(lhs_result.Vartype, rhs_result.Vartype);
+        if (IsVartypeMismatch_Oneway(rhs_result.Vartype, lhs_result.Vartype))
             UserError(ReferenceMsgSym("Attribute '%s' has type '%s'; cannot assign a type '%s' value to it", attribute)
                           .c_str(),
-                      _sym.GetName(attribute).c_str(), _sym.GetName(lhs_eres.Vartype).c_str(),
-                      _sym.GetName(rhs_eres.Vartype).c_str());
+                      _sym.GetName(attribute).c_str(), _sym.GetName(lhs_result.Vartype).c_str(),
+                      _sym.GetName(rhs_result.Vartype).c_str());
 
         Vartype struct_of_attribute = _sym[attribute].ComponentD->Parent;
         bool const is_setter = true;
@@ -4106,7 +4110,7 @@ void AGS::Parser::AccessData_AssignTo(SrcList &expression, EvaluationResult cons
     // At this point, the result of the RHS must be moved to the place MAR points to
     _marMgr.UpdateMAR(_src.GetLineno(), _scrip);
 
-    if (kKW_String == lhs_eres.Vartype && kKW_String == _sym.VartypeWithout(VTT::kConst, rhs_eres.Vartype))
+    if (kKW_String == lhs_result.Vartype && kKW_String == _sym.VartypeWithout(VTT::kConst, rhs_result.Vartype))
     {
         // copy the string contents over.
         AccessData_StrCpy(STRINGBUFFER_LENGTH);
@@ -4114,13 +4118,14 @@ void AGS::Parser::AccessData_AssignTo(SrcList &expression, EvaluationResult cons
         return;
     }
 
-    ConvertAXStringToStringObject(lhs_eres.Vartype, rhs_eres.Vartype);
-    if (IsVartypeMismatch_Oneway(rhs_eres.Vartype, lhs_eres.Vartype))
-        UserError("Cannot assign a type '%s' value to a type '%s' variable", _sym.GetName(rhs_eres.Vartype).c_str(),
-                  _sym.GetName(lhs_eres.Vartype).c_str());
+    ConvertAXStringToStringObject(lhs_result.Vartype, rhs_result.Vartype);
+    if (IsVartypeMismatch_Oneway(rhs_result.Vartype, lhs_result.Vartype))
+        UserError("Cannot assign a type '%s' value to a type '%s' variable", _sym.GetName(rhs_result.Vartype).c_str(),
+                  _sym.GetName(lhs_result.Vartype).c_str());
 
-    CodeCell const opcode =
-        _sym.IsDynVartype(lhs_eres.Vartype) ? SCMD_MEMWRITEPTR : GetWriteCommandForSize(_sym.GetSize(lhs_eres.Vartype));
+    CodeCell const opcode = _sym.IsDynVartype(lhs_result.Vartype)
+                                ? SCMD_MEMWRITEPTR
+                                : GetWriteCommandForSize(_sym.GetSize(lhs_result.Vartype));
     WriteCmd(opcode, SREG_AX);
     _reg_track.SetRegister(SREG_AX);
     _src.SetCursor(end_of_rhs_cursor); // move cursor back to end of RHS
@@ -4227,7 +4232,7 @@ void AGS::Parser::SkipToEndOfExpression(SrcList &src)
         InternalError("Nesting corrupted");
 }
 
-void AGS::Parser::ParseExpression(SrcList &src, EvaluationResult &eres)
+void AGS::Parser::ParseExpression(SrcList &src, EvaluationResult &eval_result)
 {
     size_t const expr_start = src.GetCursor();
     SkipToEndOfExpression(src);
@@ -4243,43 +4248,43 @@ void AGS::Parser::ParseExpression(SrcList &src, EvaluationResult &eres)
         UserError("Expected an expression, found '%s' instead", _sym.GetName(next_sym).c_str());
 
     size_t const expr_end = src.GetCursor();
-    ParseExpression_Term(expression, eres);
+    ParseExpression_Term(expression, eval_result);
     src.SetCursor(expr_end);
     return;
 }
 
-void AGS::Parser::ParseIntegerExpression(SrcList &src, EvaluationResult &eres, std::string const &msg)
+void AGS::Parser::ParseIntegerExpression(SrcList &src, EvaluationResult &eval_result, std::string const &msg)
 {
-    ParseExpression(src, eres);
+    ParseExpression(src, eval_result);
 
-    return CheckVartypeMismatch(eres.Vartype, kKW_Int, true, msg);
+    return CheckVartypeMismatch(eval_result.Vartype, kKW_Int, true, msg);
 }
 
-void AGS::Parser::ParseDelimitedExpression(SrcList &src, Symbol const opener, EvaluationResult &eres)
+void AGS::Parser::ParseDelimitedExpression(SrcList &src, Symbol const opener, EvaluationResult &eval_result)
 {
     Expect(opener, src.GetNext());
-    ParseExpression(src, eres);
+    ParseExpression(src, eval_result);
     Symbol const closer = _sym[opener].DelimeterD->Partner;
     return Expect(closer, src.GetNext());
 }
 
-void AGS::Parser::ParseAssignment_ReadLHSForModification(SrcList &expression, EvaluationResult &eres)
+void AGS::Parser::ParseAssignment_ReadLHSForModification(SrcList &expression, EvaluationResult &eval_result)
 {
-    AccessData(VAC::kReadingForLaterWriting, expression, eres);
+    AccessData(VAC::kReadingForLaterWriting, expression, eval_result);
     ParseExpression_CheckUsedUp(expression);
 
     // Also put the value into AX so that it can be read/modified as well as written
-    EvaluationResult eres_dummy = eres;
-    EvaluationResultToAx(eres_dummy); // Don't clobber eres
+    EvaluationResult unused_result = eval_result;
+    EvaluationResultToAx(unused_result); // Don't clobber eval_result
 }
 
 void AGS::Parser::ParseAssignment_Assign(SrcList &lhs)
 {
     SkipNextSymbol(_src, kKW_Assign);
-    EvaluationResult eres;
-    ParseExpression(_src, eres); // RHS of the assignment
+    EvaluationResult eval_result;
+    ParseExpression(_src, eval_result); // RHS of the assignment
 
-    return AccessData_AssignTo(lhs, eres);
+    return AccessData_AssignTo(lhs, eval_result);
 }
 
 void AGS::Parser::ParseAssignment_MAssign(Symbol const ass_symbol, SrcList &lhs)
@@ -4287,53 +4292,53 @@ void AGS::Parser::ParseAssignment_MAssign(Symbol const ass_symbol, SrcList &lhs)
     SkipNextSymbol(_src, ass_symbol);
 
     // Parse RHS
-    EvaluationResult rhs_eres;
-    ParseExpression(_src, rhs_eres);
-    EvaluationResultToAx(rhs_eres);
+    EvaluationResult rhs_result;
+    ParseExpression(_src, rhs_result);
+    EvaluationResultToAx(rhs_result);
     PushReg(SREG_AX);
 
     // Parse LHS (moves the cursor to end of LHS, so save it and restore it afterwards)
     size_t const end_of_rhs_cursor = _src.GetCursor();
-    EvaluationResult lhs_eres;
-    ParseAssignment_ReadLHSForModification(lhs, lhs_eres);
+    EvaluationResult lhs_result;
+    ParseAssignment_ReadLHSForModification(lhs, lhs_result);
     _src.SetCursor(end_of_rhs_cursor);
 
     // Use the operator on LHS and RHS
-    CodeCell const opcode = GetOpcode(ass_symbol, lhs_eres.Vartype, rhs_eres.Vartype);
+    CodeCell const opcode = GetOpcode(ass_symbol, lhs_result.Vartype, rhs_result.Vartype);
     PopReg(SREG_BX); // Note, we've pushed AX but we're popping BX
     _reg_track.SetRegister(SREG_BX);
     WriteCmd(opcode, SREG_AX, SREG_BX);
     _reg_track.SetRegister(SREG_AX);
 
-    if (EvaluationResult::kLOC_MemoryAtMAR == lhs_eres.Location)
+    if (EvaluationResult::kLOC_MemoryAtMAR == lhs_result.Location)
     {
         // Shortcut: Write the result directly back to memory
-        CodeCell memwrite = GetWriteCommandForSize(_sym.GetSize(lhs_eres.Vartype));
+        CodeCell memwrite = GetWriteCommandForSize(_sym.GetSize(lhs_result.Vartype));
         WriteCmd(memwrite, SREG_AX);
         return;
     }
 
-    AccessData_AssignTo(lhs, rhs_eres);
+    AccessData_AssignTo(lhs, rhs_result);
 }
 
 void AGS::Parser::ParseVardecl_InitialValAssignment_IntOrFloatVartype(Vartype const wanted_vartype,
                                                                       std::vector<char> &initial_val)
 {
-    EvaluationResult eres;
+    EvaluationResult eval_result;
     // Parse an expression making sure that no code is generated,
     // not even LINUM directives (we are outside of a function body)
     RestorePoint rp(_scrip);
-    ParseExpression(_src, eres);
+    ParseExpression(_src, eval_result);
     rp.Restore(false);
 
-    if (eres.kTY_Literal != eres.Type)
+    if (eval_result.kTY_Literal != eval_result.Type)
         UserError("Cannot evaluate this expression at compile time, it cannot be used as initializer");
 
-    CodeCell const litval = _sym[eres.Symbol].LiteralD->Value;
+    CodeCell const litval = _sym[eval_result.Symbol].LiteralD->Value;
 
-    if ((kKW_Float == wanted_vartype) != (kKW_Float == eres.Vartype))
+    if ((kKW_Float == wanted_vartype) != (kKW_Float == eval_result.Vartype))
         UserError("Expected a '%s' value as an initializer but found a '%s' value instead",
-                  _sym.GetName(wanted_vartype).c_str(), _sym.GetName(eres.Vartype).c_str());
+                  _sym.GetName(wanted_vartype).c_str(), _sym.GetName(eval_result.Vartype).c_str());
 
     size_t const wanted_size = _sym.GetSize(wanted_vartype);
     initial_val.resize(wanted_size);
@@ -4462,15 +4467,15 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_Struct(Vartype const vartype
 bool AGS::Parser::ParseVardecl_InitialValAssignment_PeekArrayNamed()
 {
     // Get the index 'N:'
-    EvaluationResult eres;
+    EvaluationResult eval_result;
     size_t const array_index_start = _src.GetCursor();
     // Parse an integer expression making sure that no code is generated
     // not even LINUM directives (we are outside of a function body)
     RestorePoint rp(_scrip);
-    ParseExpression(_src, eres);
+    ParseExpression(_src, eval_result);
     rp.Restore(false);
-    const bool is_named_assignment = (EvaluationResult::kLOC_SymbolTable == eres.Location &&
-                                      _sym.IsLiteral(eres.Symbol) && _src.PeekNext() == kKW_Colon);
+    const bool is_named_assignment = (EvaluationResult::kLOC_SymbolTable == eval_result.Location &&
+                                      _sym.IsLiteral(eval_result.Symbol) && _src.PeekNext() == kKW_Colon);
     _src.SetCursor(array_index_start);
     return is_named_assignment;
 }
@@ -4488,22 +4493,22 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_Array_Named(size_t const fir
     while (kKW_CloseBrace != _src.PeekNext())
     {
         // Get the index 'N:'
-        EvaluationResult eres;
+        EvaluationResult eval_result;
         size_t const array_index_start = _src.GetCursor();
         // Parse an integer expression making sure that no code is generated
         // not even LINUM directives (we are outside of a function body)
         RestorePoint rp(_scrip);
-        ParseIntegerExpression(_src, eres, "Expected an array index");
+        ParseIntegerExpression(_src, eval_result, "Expected an array index");
         rp.Restore(false);
-        if (EvaluationResult::kLOC_SymbolTable != eres.Location)
+        if (EvaluationResult::kLOC_SymbolTable != eval_result.Location)
         {
             _src.SetCursor(array_index_start);
             UserError("Cannot evaluate the array index expression at compile time that starts with '%s'",
                       _sym.GetName(_src.PeekNext()).c_str());
         }
-        if (!_sym.IsLiteral(eres.Symbol))
-            InternalError("Cannot retrieve literal '%s'", _sym.GetName(eres.Symbol).c_str());
-        int const idx_as_int = _sym[eres.Symbol].LiteralD->Value;
+        if (!_sym.IsLiteral(eval_result.Symbol))
+            InternalError("Cannot retrieve literal '%s'", _sym.GetName(eval_result.Symbol).c_str());
+        int const idx_as_int = _sym[eval_result.Symbol].LiteralD->Value;
         if (idx_as_int < 0)
             UserError("Array index '%d' is too low (minimum is '0')", idx_as_int);
         size_t const idx = static_cast<size_t>(idx_as_int);
@@ -4883,14 +4888,14 @@ void AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
 
     // "readonly" vars cannot be assigned to, so don't use standard assignment function here.
     SkipNextSymbol(_src, kKW_Assign);
-    EvaluationResult rhs_eres;
-    ParseExpression(_src, rhs_eres);
-    EvaluationResultToAx(rhs_eres);
+    EvaluationResult rhs_result;
+    ParseExpression(_src, rhs_result);
+    EvaluationResultToAx(rhs_result);
 
     // Vartypes must match. This is true even if the lhs is readonly.
     // As a special case, a string may be assigned a const string
     //  because the const string will be copied, not modified.
-    Vartype rhsvartype = rhs_eres.Vartype;
+    Vartype rhsvartype = rhs_result.Vartype;
     Vartype const lhsvartype = vartype;
 
     if (IsVartypeMismatch_Oneway(rhsvartype, lhsvartype) &&
@@ -4920,7 +4925,7 @@ void AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
     _scrip.OffsetToLocalVarBlock += var_size;
 }
 
-void AGS::Parser::ParseVardecl0(Symbol var_name, Vartype vartype, ScopeType scope_type, TypeQualifierSet tqs)
+void AGS::Parser::ParseVardecl0(Symbol var_name, Vartype vartype, ScopeType scope_type, TypeQualifierSet qualifiers)
 {
     if (kKW_OpenBracket == _src.PeekNext())
         ParseArrayDecl(var_name, vartype);
@@ -4931,7 +4936,7 @@ void AGS::Parser::ParseVardecl0(Symbol var_name, Vartype vartype, ScopeType scop
 
     // Enter the variable into the symbol table
     ParseVardecl_Var2SymTable(vartype, var_name);
-    _sym[var_name].VariableD->TypeQualifiers = tqs;
+    _sym[var_name].VariableD->TypeQualifiers = qualifiers;
 
     switch (scope_type)
     {
@@ -5007,7 +5012,7 @@ void AGS::Parser::ParseVardecl_CheckAndStashOldDefn(Symbol var_name)
     _sym[var_name].Clear();
 }
 
-void AGS::Parser::ParseVardecl(TypeQualifierSet tqs, Vartype vartype, Symbol var_name, ScopeType scope_type)
+void AGS::Parser::ParseVardecl(TypeQualifierSet qualifiers, Vartype vartype, Symbol var_name, ScopeType scope_type)
 {
     ParseVardecl_CheckIllegalCombis(vartype, scope_type);
 
@@ -5015,7 +5020,7 @@ void AGS::Parser::ParseVardecl(TypeQualifierSet tqs, Vartype vartype, Symbol var
         ParseVardecl_CheckAndStashOldDefn(var_name);
 
     SymbolTableEntry known_info = _sym[var_name];
-    ParseVardecl0(var_name, vartype, scope_type, tqs);
+    ParseVardecl0(var_name, vartype, scope_type, qualifiers);
     if (ScT::kLocal != scope_type)
         return ParseVardecl_CheckThatKnownInfoMatches(&_sym[var_name], &known_info, false);
 }
@@ -5116,37 +5121,37 @@ void AGS::Parser::HandleEndOfFuncBody(Symbol &struct_of_current_func, Symbol &na
     _scrip.OffsetToLocalVarBlock -= SIZE_OF_STACK_CELL;
 }
 
-void AGS::Parser::ParseStruct_GenerateForwardDeclError(Symbol stname, TypeQualifierSet tqs, TypeQualifier tq,
+void AGS::Parser::ParseStruct_GenerateForwardDeclError(Symbol stname, TypeQualifierSet qualifiers, TypeQualifier tq,
                                                        VartypeFlag vtf)
 {
     // Name of the type qualifier, e.g. 'builtin'
-    std::string const tq_name = _sym.GetName(tqs.TQ2Symbol(tq));
+    std::string const tq_name = _sym.GetName(qualifiers.TQ2Symbol(tq));
 
     std::string const struct_name = _sym.GetName(stname).c_str();
 
-    std::string const msg = tqs[tq] ? "Struct '%s' is '%s' here, not '%s' in a declaration elsewhere"
-                                    : "Struct '%s' is not '%s' here, '%s' in a declaration elsewhere";
+    std::string const msg = qualifiers[tq] ? "Struct '%s' is '%s' here, not '%s' in a declaration elsewhere"
+                                           : "Struct '%s' is not '%s' here, '%s' in a declaration elsewhere";
 
     UserError(ReferenceMsgSym(msg.c_str(), stname).c_str(), struct_name.c_str(), tq_name.c_str(), tq_name.c_str());
 }
 
-void AGS::Parser::ParseStruct_CheckForwardDecls(Symbol stname, TypeQualifierSet tqs)
+void AGS::Parser::ParseStruct_CheckForwardDecls(Symbol stname, TypeQualifierSet qualifiers)
 {
     if (!_sym.IsVartype(stname))
         return;
 
     SymbolTableEntry &entry = _sym[stname];
     auto &flags = _sym[stname].VartypeD->Flags;
-    if (flags[VTF::kAutoptr] != tqs[TQ::kAutoptr])
-        return ParseStruct_GenerateForwardDeclError(stname, tqs, TQ::kAutoptr, VTF::kAutoptr);
-    if (flags[VTF::kBuiltin] != tqs[TQ::kBuiltin])
-        return ParseStruct_GenerateForwardDeclError(stname, tqs, TQ::kBuiltin, VTF::kBuiltin);
-    if (!tqs[TQ::kManaged])
+    if (flags[VTF::kAutoptr] != qualifiers[TQ::kAutoptr])
+        return ParseStruct_GenerateForwardDeclError(stname, qualifiers, TQ::kAutoptr, VTF::kAutoptr);
+    if (flags[VTF::kBuiltin] != qualifiers[TQ::kBuiltin])
+        return ParseStruct_GenerateForwardDeclError(stname, qualifiers, TQ::kBuiltin, VTF::kBuiltin);
+    if (!qualifiers[TQ::kManaged])
         UserError(ReferenceMsgSym("The struct '%s' has been forward-declared, so it must be 'managed'", stname).c_str(),
                   _sym.GetName(stname).c_str());
 }
 
-void AGS::Parser::ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierSet tqs)
+void AGS::Parser::ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierSet qualifiers)
 {
     SymbolTableEntry &entry = _sym[stname];
     _sym.MakeEntryVartype(stname);
@@ -5158,11 +5163,11 @@ void AGS::Parser::ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierS
     auto &flags = entry.VartypeD->Flags;
     flags[VTF::kUndefined] = true; // Not completely defined yet
     flags[VTF::kStruct] = true;
-    if (tqs[TQ::kManaged])
+    if (qualifiers[TQ::kManaged])
         flags[VTF::kManaged] = true;
-    if (tqs[TQ::kBuiltin])
+    if (qualifiers[TQ::kBuiltin])
         flags[VTF::kBuiltin] = true;
-    if (tqs[TQ::kAutoptr])
+    if (qualifiers[TQ::kAutoptr])
         flags[VTF::kAutoptr] = true;
 
     // Default managed types to have 'managedbase' as a parent (if one is identified)
@@ -5196,97 +5201,102 @@ void AGS::Parser::ParseStruct_ExtendsClause(Symbol stname)
     _sym[stname].VartypeD->Parent = parent;
 }
 
-void AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl)
+void AGS::Parser::Parse_CheckTQ(TypeQualifierSet qualifiers, bool in_func_body, bool in_struct_decl)
 {
     if (in_struct_decl)
     {
         TypeQualifier error_tq;
-        if (tqs[(error_tq = TQ::kAutoptr)] || tqs[(error_tq = TQ::kBuiltin)] || tqs[(error_tq = TQ::kInternalstring)])
-            UserError("Cannot use '%s' within a struct declaration", _sym.GetName(tqs.TQ2Symbol(error_tq)).c_str());
+        if (qualifiers[(error_tq = TQ::kAutoptr)] || qualifiers[(error_tq = TQ::kBuiltin)] ||
+            qualifiers[(error_tq = TQ::kInternalstring)])
+            UserError("Cannot use '%s' within a struct declaration",
+                      _sym.GetName(qualifiers.TQ2Symbol(error_tq)).c_str());
     }
     else // !in_struct_decl
     {
         TypeQualifier error_tq;
-        if (tqs[(error_tq = TQ::kProtected)] || tqs[(error_tq = TQ::kStatic)] || tqs[(error_tq = TQ::kWriteprotected)])
+        if (qualifiers[(error_tq = TQ::kProtected)] || qualifiers[(error_tq = TQ::kStatic)] ||
+            qualifiers[(error_tq = TQ::kWriteprotected)])
         {
-            UserError("Can only use '%s' within a struct declaration", _sym.GetName(tqs.TQ2Symbol(error_tq)).c_str());
+            UserError("Can only use '%s' within a struct declaration",
+                      _sym.GetName(qualifiers.TQ2Symbol(error_tq)).c_str());
         }
     }
 
     if (in_func_body)
     {
         TypeQualifier error_tq;
-        if (tqs[(error_tq = TQ::kAutoptr)] || tqs[(error_tq = TQ::kBuiltin)] || tqs[(error_tq = TQ::kImport)] ||
-            tqs[(error_tq = TQ::kInternalstring)] || tqs[(error_tq = TQ::kManaged)] ||
-            tqs[(error_tq = TQ::kManagedBase)] || tqs[(error_tq = TQ::kStatic)])
+        if (qualifiers[(error_tq = TQ::kAutoptr)] || qualifiers[(error_tq = TQ::kBuiltin)] ||
+            qualifiers[(error_tq = TQ::kImport)] || qualifiers[(error_tq = TQ::kInternalstring)] ||
+            qualifiers[(error_tq = TQ::kManaged)] || qualifiers[(error_tq = TQ::kManagedBase)] ||
+            qualifiers[(error_tq = TQ::kStatic)])
         {
-            UserError("Cannot use '%s' within a function body", _sym.GetName(tqs.TQ2Symbol(error_tq)).c_str());
+            UserError("Cannot use '%s' within a function body", _sym.GetName(qualifiers.TQ2Symbol(error_tq)).c_str());
         }
     }
 
-    if (1 < tqs[TQ::kProtected] + tqs[TQ::kWriteprotected] + tqs[TQ::kReadonly])
+    if (1 < qualifiers[TQ::kProtected] + qualifiers[TQ::kWriteprotected] + qualifiers[TQ::kReadonly])
         UserError("Can only use one out of 'protected', 'readonly', and 'writeprotected'");
 
-    if (tqs[TQ::kAutoptr])
+    if (qualifiers[TQ::kAutoptr])
     {
-        if (!tqs[TQ::kManaged])
+        if (!qualifiers[TQ::kManaged])
             UserError("'autoptr' must be combined with 'managed'");
     }
 
-    if (tqs[TQ::kManagedBase])
+    if (qualifiers[TQ::kManagedBase])
     {
-        if (!tqs[TQ::kManaged])
+        if (!qualifiers[TQ::kManaged])
             UserError("'managedbase' must be combined with 'managed'");
     }
 
     // Note: 'builtin' does not always presuppose 'managed'
-    if (tqs[TQ::kInternalstring] && (!tqs[TQ::kAutoptr]))
+    if (qualifiers[TQ::kInternalstring] && (!qualifiers[TQ::kAutoptr]))
         UserError("'internalstring' must be combined with 'autoptr'");
-    if (tqs[TQ::kImport] && tqs[TQ::kInternalstring])
+    if (qualifiers[TQ::kImport] && qualifiers[TQ::kInternalstring])
         UserError("Cannot combine 'import' and 'internalstring'");
 }
 
-void AGS::Parser::Parse_CheckTQSIsEmpty(TypeQualifierSet tqs)
+void AGS::Parser::Parse_CheckTQSIsEmpty(TypeQualifierSet qualifiers)
 {
-    for (auto it = tqs.begin(); it != tqs.end(); it++)
+    for (auto it = qualifiers.begin(); it != qualifiers.end(); it++)
     {
-        if (!tqs[it->first])
+        if (!qualifiers[it->first])
             continue;
         UserError("Unexpected '%s' before a command", _sym.GetName(it->second).c_str());
     }
 }
 
-void AGS::Parser::ParseQualifiers(TypeQualifierSet &tqs)
+void AGS::Parser::ParseQualifiers(TypeQualifierSet &qualifiers)
 {
     bool istd_found = false;
     bool itry_found = false;
-    tqs = {};
+    qualifiers = {};
     while (!_src.ReachedEOF())
     {
         Symbol peeksym = _src.PeekNext();
         switch (peeksym)
         {
         default: return;
-        case kKW_Autoptr: tqs[TQ::kAutoptr] = true; break;
-        case kKW_Builtin: tqs[TQ::kBuiltin] = true; break;
+        case kKW_Autoptr: qualifiers[TQ::kAutoptr] = true; break;
+        case kKW_Builtin: qualifiers[TQ::kBuiltin] = true; break;
         case kKW_ImportStd:
-            tqs[TQ::kImport] = true;
+            qualifiers[TQ::kImport] = true;
             istd_found = true;
             break;
         case kKW_ImportTry:
-            tqs[TQ::kImport] = true;
+            qualifiers[TQ::kImport] = true;
             itry_found = true;
             break;
-        case kKW_Internalstring: tqs[TQ::kInternalstring] = true; break;
-        case kKW_Managed: tqs[TQ::kManaged] = true; break;
+        case kKW_Internalstring: qualifiers[TQ::kInternalstring] = true; break;
+        case kKW_Managed: qualifiers[TQ::kManaged] = true; break;
         case kKW_ManagedBase:
-            tqs[TQ::kManaged] = true; // auto treat 'managedbase' as 'managed'
-            tqs[TQ::kManagedBase] = true;
+            qualifiers[TQ::kManaged] = true; // auto treat 'managedbase' as 'managed'
+            qualifiers[TQ::kManagedBase] = true;
             break;
-        case kKW_Protected: tqs[TQ::kProtected] = true; break;
-        case kKW_Readonly: tqs[TQ::kReadonly] = true; break;
-        case kKW_Static: tqs[TQ::kStatic] = true; break;
-        case kKW_Writeprotected: tqs[TQ::kWriteprotected] = true; break;
+        case kKW_Protected: qualifiers[TQ::kProtected] = true; break;
+        case kKW_Readonly: qualifiers[TQ::kReadonly] = true; break;
+        case kKW_Static: qualifiers[TQ::kStatic] = true; break;
+        case kKW_Writeprotected: qualifiers[TQ::kWriteprotected] = true; break;
         } // switch (_sym.GetSymbolType(peeksym))
 
         _src.GetNext();
@@ -5295,14 +5305,14 @@ void AGS::Parser::ParseQualifiers(TypeQualifierSet &tqs)
     };
 }
 
-void AGS::Parser::ParseStruct_FuncDecl(TypeQualifierSet tqs, Symbol struct_of_func, Vartype vartype,
+void AGS::Parser::ParseStruct_FuncDecl(TypeQualifierSet qualifiers, Symbol struct_of_func, Vartype vartype,
                                        Symbol name_of_func)
 {
-    if (tqs[TQ::kWriteprotected])
+    if (qualifiers[TQ::kWriteprotected])
         UserError("Cannot apply 'writeprotected' to this function declaration");
 
     SkipNextSymbol(_src, kKW_OpenParenthesis);
-    ParseFuncdecl(tqs, vartype, struct_of_func, name_of_func, false, false);
+    ParseFuncdecl(qualifiers, vartype, struct_of_func, name_of_func, false, false);
 
     // Can't code a body behind the function, so the next symbol must be ';'
     return Expect(kKW_Semicolon, _src.PeekNext());
@@ -5372,7 +5382,7 @@ void AGS::Parser::ParseStruct_Attribute_ParamList(Symbol struct_of_func, Symbol 
     }
 }
 
-void AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol strct, Symbol qualified_name,
+void AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet qualifiers, Symbol strct, Symbol qualified_name,
                                                     Symbol unqualified_name, bool is_setter, bool is_indexed,
                                                     Vartype vartype)
 {
@@ -5385,14 +5395,14 @@ void AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol
     if (_sym.IsFunction(qualified_name))
         ParseStruct_Attribute_CheckFunc(qualified_name, is_setter, is_indexed, vartype);
 
-    tqs[TQ::kImport] = true; // Assume that attribute functions are imported
-    if (tqs[TQ::kImport] && _sym.IsFunction(qualified_name) &&
+    qualifiers[TQ::kImport] = true; // Assume that attribute functions are imported
+    if (qualifiers[TQ::kImport] && _sym.IsFunction(qualified_name) &&
         !_sym[qualified_name].FunctionD->TypeQualifiers[TQ::kImport])
     {
         if (FlagIsSet(_options, SCOPT_NOIMPORTOVERRIDE))
             UserError(
                 ReferenceMsgSym("In here, attribute functions may not be defined locally", qualified_name).c_str());
-        tqs[TQ::kImport] = false;
+        qualifiers[TQ::kImport] = false;
     }
 
     // Store the fact that this function has been declared within the struct declaration
@@ -5402,22 +5412,22 @@ void AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol
     _sym[strct].VartypeD->Components[unqualified_name] = qualified_name;
 
     Vartype const return_vartype = is_setter ? kKW_Void : vartype;
-    ParseFuncdecl_MasterData2Sym(tqs, return_vartype, strct, qualified_name, false);
+    ParseFuncdecl_MasterData2Sym(qualifiers, return_vartype, strct, qualified_name, false);
 
     ParseStruct_Attribute_ParamList(strct, qualified_name, is_setter, is_indexed, vartype);
 
     bool const body_follows = false; // we are within a struct definition
-    return ParseFuncdecl_HandleFunctionOrImportIndex(tqs, strct, qualified_name, body_follows);
+    return ParseFuncdecl_HandleFunctionOrImportIndex(qualifiers, strct, qualified_name, body_follows);
 }
 
-void AGS::Parser::ParseStruct_Attribute2SymbolTable(TypeQualifierSet tqs, Vartype const vartype,
+void AGS::Parser::ParseStruct_Attribute2SymbolTable(TypeQualifierSet qualifiers, Vartype const vartype,
                                                     Symbol const name_of_struct, Symbol const unqualified_attribute,
                                                     bool const is_indexed)
 {
-    ParseStruct_MasterAttribute2SymbolTable(tqs, vartype, name_of_struct, unqualified_attribute, is_indexed);
+    ParseStruct_MasterAttribute2SymbolTable(qualifiers, vartype, name_of_struct, unqualified_attribute, is_indexed);
 }
 
-void AGS::Parser::ParseStruct_MasterAttribute2SymbolTable(TypeQualifierSet tqs, Vartype const vartype,
+void AGS::Parser::ParseStruct_MasterAttribute2SymbolTable(TypeQualifierSet qualifiers, Vartype const vartype,
                                                           Symbol const name_of_struct,
                                                           Symbol const unqualified_attribute, bool const is_indexed,
                                                           Symbol getter_func, Symbol setter_func)
@@ -5426,8 +5436,8 @@ void AGS::Parser::ParseStruct_MasterAttribute2SymbolTable(TypeQualifierSet tqs, 
     size_t const declaration_start = _src.GetCursor();
 
     // Not a proper function qualifier: Only signifies that a setter won't be defined
-    bool const is_readonly = tqs[TQ::kReadonly];
-    tqs[TQ::kReadonly] = false;
+    bool const is_readonly = qualifiers[TQ::kReadonly];
+    qualifiers[TQ::kReadonly] = false;
 
 
     // Mustn't be in struct already
@@ -5450,7 +5460,7 @@ void AGS::Parser::ParseStruct_MasterAttribute2SymbolTable(TypeQualifierSet tqs, 
 
     _sym.MakeEntryAttribute(qualified_attribute);
     _sym[qualified_attribute].AttributeD->IsIndexed = is_indexed;
-    _sym[qualified_attribute].AttributeD->IsStatic = tqs[TQ::kStatic];
+    _sym[qualified_attribute].AttributeD->IsStatic = qualifiers[TQ::kStatic];
     _sym[qualified_attribute].AttributeD->Vartype = vartype;
 
     // Declare attribute getter, e.g. get_ATTRIB()
@@ -5459,8 +5469,8 @@ void AGS::Parser::ParseStruct_MasterAttribute2SymbolTable(TypeQualifierSet tqs, 
     {
         Symbol const qualified_getter = MangleStructAndComponent(name_of_struct, unqualified_getter);
         _sym[qualified_attribute].AttributeD->Getter = qualified_getter;
-        ParseStruct_Attribute_DeclareFunc(tqs, name_of_struct, qualified_getter, unqualified_getter, false, is_indexed,
-                                          vartype);
+        ParseStruct_Attribute_DeclareFunc(qualifiers, name_of_struct, qualified_getter, unqualified_getter, false,
+                                          is_indexed, vartype);
         _sym.SetDeclared(qualified_getter, declaration_start);
     }
     else
@@ -5477,7 +5487,7 @@ void AGS::Parser::ParseStruct_MasterAttribute2SymbolTable(TypeQualifierSet tqs, 
         {
             Symbol const qualified_setter = MangleStructAndComponent(name_of_struct, unqualified_setter);
             _sym[qualified_attribute].AttributeD->Setter = qualified_setter;
-            ParseStruct_Attribute_DeclareFunc(tqs, name_of_struct, qualified_setter, unqualified_setter, true,
+            ParseStruct_Attribute_DeclareFunc(qualifiers, name_of_struct, qualified_setter, unqualified_setter, true,
                                               is_indexed, vartype);
             _sym.SetDeclared(qualified_setter, declaration_start);
         }
@@ -5489,11 +5499,12 @@ void AGS::Parser::ParseStruct_MasterAttribute2SymbolTable(TypeQualifierSet tqs, 
     }
 }
 
-void AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol const name_of_struct)
+void AGS::Parser::ParseStruct_Attribute(TypeQualifierSet qualifiers, Symbol const name_of_struct)
 {
     TypeQualifier error_tq;
-    if (tqs[error_tq = TQ::kManaged] || tqs[error_tq = TQ::kProtected] || tqs[error_tq = TQ::kWriteprotected])
-        UserError("Cannot use '%s' in front of 'attribute'", _sym.GetName(tqs.TQ2Symbol(error_tq)).c_str());
+    if (qualifiers[error_tq = TQ::kManaged] || qualifiers[error_tq = TQ::kProtected] ||
+        qualifiers[error_tq = TQ::kWriteprotected])
+        UserError("Cannot use '%s' in front of 'attribute'", _sym.GetName(qualifiers.TQ2Symbol(error_tq)).c_str());
 
     bool const is_const_vartype = kKW_Const == _src.PeekNext();
     if (is_const_vartype)
@@ -5521,7 +5532,7 @@ void AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol const name_
             Expect(kKW_CloseBracket, _src.GetNext());
         }
 
-        ParseStruct_Attribute2SymbolTable(tqs, vartype, name_of_struct, attribute, is_indexed);
+        ParseStruct_Attribute2SymbolTable(qualifiers, vartype, name_of_struct, attribute, is_indexed);
 
         Symbol const punctuation = _src.GetNext();
         Expect(SymbolList{kKW_Comma, kKW_Semicolon}, punctuation);
@@ -5567,22 +5578,22 @@ void AGS::Parser::ParseArrayDecl(Symbol vname, Vartype &vartype)
     std::vector<size_t> dims;
     while (true)
     {
-        EvaluationResult eres;
+        EvaluationResult eval_result;
         int const dim_start = _src.GetCursor();
         _src.SkipTo(kKW_Comma);
         SrcList expression = SrcList(_src, dim_start, _src.GetCursor() - dim_start);
         if (0u == expression.Length())
             UserError("Expected an integer expression for array dimension #%u, did not find any", dims.size() + 1);
         expression.StartRead();
-        ParseIntegerExpression(expression, eres);
-        if (eres.kTY_Literal != eres.Type)
+        ParseIntegerExpression(expression, eval_result);
+        if (eval_result.kTY_Literal != eval_result.Type)
             UserError("Cannot evaluate the integer expression for array dimension #%u at compile time",
                       dims.size() + 1u);
         if (!expression.ReachedEOF())
             UserError("Unexpected '%s' after the integer expression for array dimension #%u",
                       _sym.GetName(expression.GetNext()).c_str(), dims.size() + 1u);
 
-        CodeCell const dimension_as_int = _sym[eres.Symbol].LiteralD->Value;
+        CodeCell const dimension_as_int = _sym[eval_result.Symbol].LiteralD->Value;
         if (dimension_as_int < 1)
             UserError("Array dimension #%u must be at least 1 but is %d instead", dims.size() + 1u, dimension_as_int);
 
@@ -5600,16 +5611,17 @@ void AGS::Parser::ParseArrayDecl(Symbol vname, Vartype &vartype)
     _src.SetCursor(array_expr_end);
 }
 
-void AGS::Parser::ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype vartype, Symbol name_of_struct, Symbol vname)
+void AGS::Parser::ParseStruct_VariableDefn(TypeQualifierSet qualifiers, Vartype vartype, Symbol name_of_struct,
+                                           Symbol vname)
 {
     if (PP::kMain != _pp)
         return _src.SkipTo(SymbolList{kKW_Comma, kKW_Semicolon});
 
     if (_sym.IsDynarrayVartype(vartype)) // e.g., 'int [] zonk;', disallowed
         Expect(kKW_OpenParenthesis, _src.PeekNext());
-    if (tqs[TQ::kStatic]) // e.g. 'static int zonk;': No static struct variables in AGS
+    if (qualifiers[TQ::kStatic]) // e.g. 'static int zonk;': No static struct variables in AGS
         UserError("Static variables are not supported");
-    if (tqs[TQ::kImport])
+    if (qualifiers[TQ::kImport])
         UserError("Cannot import struct component variables; import the whole struct instead");
 
     if (!FlagIsSet(_options, SCOPT_RTTIOPS) &&
@@ -5627,7 +5639,7 @@ void AGS::Parser::ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype vartype
 
     _sym.MakeEntryVariable(vname);
     entry.VariableD->Vartype = vartype;
-    entry.VariableD->TypeQualifiers = tqs.WithoutTypedefQualifiers();
+    entry.VariableD->TypeQualifiers = qualifiers.WithoutTypedefQualifiers();
 
     if (_src.PeekNext() == kKW_OpenBracket)
     {
@@ -5639,7 +5651,8 @@ void AGS::Parser::ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype vartype
     _sym[name_of_struct].VartypeD->Size += _sym.GetSize(vname);
 }
 
-void AGS::Parser::ParseStruct_VariableOrFunctionDefn(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype)
+void AGS::Parser::ParseStruct_VariableOrFunctionDefn(Symbol name_of_struct, TypeQualifierSet qualifiers,
+                                                     Vartype vartype)
 {
     size_t const declaration_start = _src.GetCursor();
 
@@ -5669,9 +5682,9 @@ void AGS::Parser::ParseStruct_VariableOrFunctionDefn(Symbol name_of_struct, Type
     _sym[name_of_struct].VartypeD->Components[unqualified_component] = qualified_component;
 
     if (is_function)
-        ParseStruct_FuncDecl(tqs, name_of_struct, vartype, qualified_component);
+        ParseStruct_FuncDecl(qualifiers, name_of_struct, vartype, qualified_component);
     else
-        ParseStruct_VariableDefn(tqs, vartype, name_of_struct, qualified_component);
+        ParseStruct_VariableDefn(qualifiers, vartype, name_of_struct, qualified_component);
 
     if (_sym.IsConstructor(qualified_component))
         _sym[name_of_struct].VartypeD->Constructor = qualified_component;
@@ -5692,11 +5705,11 @@ void AGS::Parser::EatDynpointerSymbolIfPresent(SrcList src, Vartype vartype)
     UserError("Cannot use '*' on the non-managed type '%s'", _sym.GetName(vartype).c_str());
 }
 
-void AGS::Parser::ParseStruct_Vartype_MemberList(TypeQualifierSet tqs, Symbol name_of_struct, Vartype vartype)
+void AGS::Parser::ParseStruct_Vartype_MemberList(TypeQualifierSet qualifiers, Symbol name_of_struct, Vartype vartype)
 {
     while (true)
     {
-        ParseStruct_VariableOrFunctionDefn(name_of_struct, tqs, vartype);
+        ParseStruct_VariableOrFunctionDefn(name_of_struct, qualifiers, vartype);
 
         Symbol const punctuation = _src.GetNext();
         Expect(SymbolList{kKW_Comma, kKW_Semicolon}, punctuation);
@@ -5725,7 +5738,7 @@ void AGS::Parser::ParseStruct_CheckComponentVartype(Symbol const stname, Vartype
     }
 }
 
-void AGS::Parser::ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs)
+void AGS::Parser::ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet qualifiers)
 {
     _src.BackUp();
     Vartype vartype = ParseVartype(_src);
@@ -5742,10 +5755,10 @@ void AGS::Parser::ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tq
         UserError("Cannot use 'noloopcheck' here");
 
     // We've accepted a type expression and are now reading vars or one func that should have this type.
-    ParseStruct_Vartype_MemberList(tqs, name_of_struct, vartype);
+    ParseStruct_Vartype_MemberList(qualifiers, name_of_struct, vartype);
 }
 
-void AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func)
+void AGS::Parser::ParseStruct(TypeQualifierSet qualifiers, Symbol &struct_of_current_func, Symbol &name_of_current_func)
 {
     size_t const start_of_struct_decl = _src.GetCursor();
 
@@ -5754,15 +5767,15 @@ void AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_fu
     if (!(_sym.IsVartype(stname) && _sym[stname].VartypeD->Flags[VTF::kUndefined]) && _sym.IsInUse(stname))
         UserError(ReferenceMsgSym("'%s' is already defined", stname).c_str(), _sym.GetName(stname).c_str());
 
-    ParseStruct_CheckForwardDecls(stname, tqs);
+    ParseStruct_CheckForwardDecls(stname, qualifiers);
 
     if (name_of_current_func > 0)
         UserError("Cannot define a struct type within a function");
 
-    ParseStruct_SetTypeInSymboltable(stname, tqs);
+    ParseStruct_SetTypeInSymboltable(stname, qualifiers);
 
     // Declare the struct type that implements new strings
-    if (tqs[TQ::kInternalstring])
+    if (qualifiers[TQ::kInternalstring])
     {
         if (_sym.GetStringStructSym() > 0 && stname != _sym.GetStringStructSym())
             UserError("The stringstruct type is already defined to be %s",
@@ -5770,7 +5783,7 @@ void AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_fu
         _sym.SetStringStructSym(stname);
     }
     // Declare the struct type that is a implicit managed struct base
-    if (tqs[TQ::kManagedBase])
+    if (qualifiers[TQ::kManagedBase])
     {
         if (_sym.GetManagedBaseSym() > 0 && stname != _sym.GetManagedBaseSym())
         {
@@ -5801,7 +5814,7 @@ void AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_fu
     // forward-declaration of struct type
     if (kKW_Semicolon == _src.PeekNext())
     {
-        if (!tqs[TQ::kManaged])
+        if (!qualifiers[TQ::kManaged])
             UserError("Forward-declared 'struct's must be 'managed'");
         SkipNextSymbol(_src, kKW_Semicolon);
         return;
@@ -5813,32 +5826,32 @@ void AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_fu
     while (kKW_CloseBrace != _src.PeekNext())
     {
         currentline = _src.GetLinenoAt(_src.GetCursor());
-        TypeQualifierSet tqs = {};
-        ParseQualifiers(tqs);
+        TypeQualifierSet qualifiers = {};
+        ParseQualifiers(qualifiers);
         bool const in_func_body = false;
         bool const in_struct_decl = true;
-        Parse_CheckTQ(tqs, in_func_body, in_struct_decl);
+        Parse_CheckTQ(qualifiers, in_func_body, in_struct_decl);
 
         Symbol const leading_sym = _src.GetNext();
         switch (leading_sym)
         {
-        case kKW_Attribute: ParseStruct_Attribute(tqs, stname); continue;
+        case kKW_Attribute: ParseStruct_Attribute(qualifiers, stname); continue;
 
         case kKW_Const:
         {
             if (kKW_String == _src.PeekNext())
                 break; // Vartype, treated below
 
-            TypeQualifierSet tqs_without_static = tqs;
-            tqs_without_static[TQ::kStatic] = false;
-            Parse_CheckTQSIsEmpty(tqs_without_static);
+            TypeQualifierSet qualifiers_without_static = qualifiers;
+            qualifiers_without_static[TQ::kStatic] = false;
+            Parse_CheckTQSIsEmpty(qualifiers_without_static);
             ParseStruct_ConstantDefn(stname);
             continue;
         }
 
         } // switch (leading_sym)
 
-        ParseStruct_Vartype(stname, tqs);
+        ParseStruct_Vartype(stname, qualifiers);
     }
 
     if (PP::kMain == _pp)
@@ -5858,7 +5871,7 @@ void AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_fu
     Symbol const nextsym = _src.PeekNext();
     if (kKW_Semicolon == nextsym)
     {
-        if (tqs[TQ::kReadonly])
+        if (qualifiers[TQ::kReadonly])
         {
             // Only now do we find out that there isn't any following declaration
             // so "readonly" was incorrect.
@@ -5884,20 +5897,21 @@ void AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_fu
     // Take struct that has just been defined as the vartype of a declaration
     // Those type qualifiers that are used to define the struct type
     // have been used up, so reset them
-    TypeQualifierSet vardecl_tqs = tqs;
-    vardecl_tqs[TQ::kAutoptr] = false;
-    vardecl_tqs[TQ::kBuiltin] = false;
-    vardecl_tqs[TQ::kManaged] = false;
-    vardecl_tqs[TQ::kManagedBase] = false;
-    vardecl_tqs[TQ::kInternalstring] = false;
+    TypeQualifierSet vardecl_qualifiers = qualifiers;
+    vardecl_qualifiers[TQ::kAutoptr] = false;
+    vardecl_qualifiers[TQ::kBuiltin] = false;
+    vardecl_qualifiers[TQ::kManaged] = false;
+    vardecl_qualifiers[TQ::kManagedBase] = false;
+    vardecl_qualifiers[TQ::kInternalstring] = false;
 
     Vartype vartype = stname;
     SetDynpointerInManagedVartype(vartype);
     EatDynpointerSymbolIfPresent(_src, vartype);
     ParseDynArrayMarkersIfPresent(_src, vartype);
-    ScopeType const scope_type = (vardecl_tqs[TQ::kImport]) ? ScT::kImport : ScT::kGlobal;
+    ScopeType const scope_type = (vardecl_qualifiers[TQ::kImport]) ? ScT::kImport : ScT::kGlobal;
 
-    ParseVartype_MemberList(vardecl_tqs, vartype, scope_type, false, struct_of_current_func, name_of_current_func);
+    ParseVartype_MemberList(vardecl_qualifiers, vartype, scope_type, false, struct_of_current_func,
+                            name_of_current_func);
 }
 
 void AGS::Parser::ParseEnum_AssignedValue(Symbol vname, CodeCell &value)
@@ -5971,12 +5985,12 @@ AGS::Symbol AGS::Parser::ParseVartype(SrcList &src, bool const with_dynpointer_h
     return vartype;
 }
 
-void AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func)
+void AGS::Parser::ParseEnum(TypeQualifierSet qualifiers, Symbol &struct_of_current_func, Symbol &name_of_current_func)
 {
     size_t const start_of_enum_decl = _src.GetCursor();
     if (kKW_NoSymbol != name_of_current_func)
         UserError("Cannot define an enum type within a function");
-    if (tqs[TQ::kBuiltin])
+    if (qualifiers[TQ::kBuiltin])
         UserError("Can only use 'builtin' when declaring a struct");
 
     // Get name of the enum, enter it into the symbol table
@@ -6032,7 +6046,7 @@ void AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func
     if (kKW_Semicolon == nextsym)
     {
         SkipNextSymbol(_src, kKW_Semicolon);
-        if (tqs[TQ::kReadonly])
+        if (qualifiers[TQ::kReadonly])
         {
             // Only now do we find out that there isn't any following declaration
             // so "readonly" was incorrect.
@@ -6055,21 +6069,22 @@ void AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func
     // Take enum that has just been defined as the vartype of a declaration
     Vartype vartype = enum_name;
     ParseDynArrayMarkersIfPresent(_src, vartype);
-    ScopeType const scope_type = tqs[TQ::kImport] ? ScT::kImport : ScT::kGlobal;
-    ParseVartype_MemberList(tqs, vartype, scope_type, false, struct_of_current_func, name_of_current_func);
+    ScopeType const scope_type = qualifiers[TQ::kImport] ? ScT::kImport : ScT::kGlobal;
+    ParseVartype_MemberList(qualifiers, vartype, scope_type, false, struct_of_current_func, name_of_current_func);
 }
 
-void AGS::Parser::ParseAttribute(TypeQualifierSet tqs, Symbol const name_of_current_func)
+void AGS::Parser::ParseAttribute(TypeQualifierSet qualifiers, Symbol const name_of_current_func)
 {
     if (kKW_NoSymbol != name_of_current_func)
         UserError("Cannot define an attribute within a function body");
 
     TypeQualifier error_tq;
-    if (tqs[error_tq = TQ::kAutoptr] || tqs[error_tq = TQ::kBuiltin] || tqs[error_tq = TQ::kInternalstring] ||
-        tqs[error_tq = TQ::kManaged] || tqs[error_tq = TQ::kManagedBase] || tqs[error_tq = TQ::kProtected] ||
-        tqs[error_tq = TQ::kWriteprotected])
-        UserError("Cannot use '%s' in front of 'attribute'", _sym.GetName(tqs.TQ2Symbol(error_tq)).c_str());
-    if (tqs[TQ::kStatic])
+    if (qualifiers[error_tq = TQ::kAutoptr] || qualifiers[error_tq = TQ::kBuiltin] ||
+        qualifiers[error_tq = TQ::kInternalstring] || qualifiers[error_tq = TQ::kManaged] ||
+        qualifiers[error_tq = TQ::kManagedBase] || qualifiers[error_tq = TQ::kProtected] ||
+        qualifiers[error_tq = TQ::kWriteprotected])
+        UserError("Cannot use '%s' in front of 'attribute'", _sym.GetName(qualifiers.TQ2Symbol(error_tq)).c_str());
+    if (qualifiers[TQ::kStatic])
         UserError("Can only declare 'static attribute' within a 'struct' declaration (use extender syntax 'attribute "
                   "... (static STRUCT)')");
 
@@ -6089,11 +6104,11 @@ void AGS::Parser::ParseAttribute(TypeQualifierSet tqs, Symbol const name_of_curr
         Expect(kKW_OpenParenthesis, _src.GetNext());
         Symbol const static_or_this = _src.GetNext();
         Expect(SymbolList{kKW_Static, kKW_This}, static_or_this);
-        tqs[TQ::kStatic] = static_or_this == kKW_Static;
+        qualifiers[TQ::kStatic] = static_or_this == kKW_Static;
         Symbol const name_of_struct = _src.GetNext();
         if (!_sym.IsStructVartype(name_of_struct))
             UserError("Expected a struct type instead of '%s'", _sym.GetName(name_of_struct).c_str());
-        if (!tqs[TQ::kStatic])
+        if (!qualifiers[TQ::kStatic])
         {
             if (!_sym.IsManagedVartype(name_of_struct))
                 UserError(ReferenceMsgSym("Cannot use 'this' with the unmanaged struct '%s'", name_of_struct).c_str(),
@@ -6103,7 +6118,7 @@ void AGS::Parser::ParseAttribute(TypeQualifierSet tqs, Symbol const name_of_curr
         }
         Expect(kKW_CloseParenthesis, _src.GetNext());
 
-        ParseStruct_Attribute2SymbolTable(tqs, vartype, name_of_struct, attribute, is_indexed);
+        ParseStruct_Attribute2SymbolTable(qualifiers, vartype, name_of_struct, attribute, is_indexed);
 
         Symbol const punctuation = _src.GetNext();
         Expect(SymbolList{kKW_Comma, kKW_Semicolon}, punctuation);
@@ -6192,23 +6207,23 @@ void AGS::Parser::ParseVartype_CheckForIllegalContext()
     UserError("A declaration cannot be the sole body of an 'if', 'else' or loop clause");
 }
 
-void AGS::Parser::ParseVartype_CheckIllegalCombis(bool is_function, TypeQualifierSet tqs)
+void AGS::Parser::ParseVartype_CheckIllegalCombis(bool is_function, TypeQualifierSet qualifiers)
 {
-    if (tqs[TQ::kStatic] && !is_function)
+    if (qualifiers[TQ::kStatic] && !is_function)
         UserError("Outside of a 'struct' declaration, 'static' can only be applied to functions");
 
     // Note: 'protected' is valid for struct functions; those can be defined directly,
     // as in 'int strct::function(){}' or extender, as int 'function(this strct *){}'// We cannot know at this point whether the function is extender, so we cannot
     // check  at this point whether 'protected' is allowed.
 
-    if (tqs[TQ::kReadonly] && is_function)
+    if (qualifiers[TQ::kReadonly] && is_function)
         UserError("Cannot apply 'readonly' to a function");
-    if (tqs[TQ::kWriteprotected] && is_function)
+    if (qualifiers[TQ::kWriteprotected] && is_function)
         UserError("Cannot apply 'writeprotected' to a function");
 }
 
-void AGS::Parser::ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype vartype, Symbol struct_name, Symbol func_name,
-                                        bool no_loop_check, Symbol &struct_of_current_func,
+void AGS::Parser::ParseVartype_FuncDecl(TypeQualifierSet qualifiers, Vartype vartype, Symbol struct_name,
+                                        Symbol func_name, bool no_loop_check, Symbol &struct_of_current_func,
                                         Symbol &name_of_current_func, bool &body_follows)
 {
     size_t const declaration_start = _src.GetCursor();
@@ -6223,14 +6238,14 @@ void AGS::Parser::ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype vartype, S
             UserError("Cannot use extender syntax with a function name that follows '::'");
 
         // Rewrite extender function as a component function of the corresponding struct.
-        ParseFuncdecl_ExtenderPreparations(func_is_static_extender, struct_name, func_name, tqs);
+        ParseFuncdecl_ExtenderPreparations(func_is_static_extender, struct_name, func_name, qualifiers);
     }
 
     // Do not set .Extends or the Component flag here. These denote that the
     // func has been either declared within the struct definition or as extender.
 
     body_follows = ParseFuncdecl_DoesBodyFollow();
-    ParseFuncdecl(tqs, vartype, struct_name, func_name, no_loop_check, body_follows);
+    ParseFuncdecl(qualifiers, vartype, struct_name, func_name, no_loop_check, body_follows);
     _sym.SetDeclared(func_name, declaration_start);
 
     if (!body_follows)
@@ -6264,25 +6279,26 @@ void AGS::Parser::ParseVartype_VarDecl_PreAnalyze(Symbol var_name, ScopeType sco
     _src.SkipTo(SymbolList{kKW_Comma, kKW_Semicolon});
 }
 
-void AGS::Parser::ParseVartype_VariableDefn(TypeQualifierSet tqs, Vartype vartype, Symbol vname, ScopeType scope_type)
+void AGS::Parser::ParseVartype_VariableDefn(TypeQualifierSet qualifiers, Vartype vartype, Symbol vname,
+                                            ScopeType scope_type)
 {
     if (PP::kPreAnalyze == _pp)
         return ParseVartype_VarDecl_PreAnalyze(vname, scope_type);
 
-    Parse_CheckTQ(tqs, (_nest.TopLevel() > _sym.kParameterScope), _sym.IsComponent(vname));
+    Parse_CheckTQ(qualifiers, (_nest.TopLevel() > _sym.kParameterScope), _sym.IsComponent(vname));
 
     // Note: Don't make a variable here yet; we haven't checked yet whether we may do so.
 
-    TypeQualifierSet variable_tqs = tqs;
+    TypeQualifierSet variable_qualifiers = qualifiers;
     // "autoptr", "managed" and "builtin" are aspects of the vartype, not of the variable having the vartype.
-    variable_tqs[TQ::kAutoptr] = false;
-    variable_tqs[TQ::kManaged] = false;
-    variable_tqs[TQ::kBuiltin] = false;
+    variable_qualifiers[TQ::kAutoptr] = false;
+    variable_qualifiers[TQ::kManaged] = false;
+    variable_qualifiers[TQ::kBuiltin] = false;
 
-    return ParseVardecl(variable_tqs, vartype, vname, scope_type);
+    return ParseVardecl(variable_qualifiers, vartype, vname, scope_type);
 }
 
-void AGS::Parser::ParseVartype_MemberList(TypeQualifierSet tqs, Vartype vartype, ScopeType scope_type,
+void AGS::Parser::ParseVartype_MemberList(TypeQualifierSet qualifiers, Vartype vartype, ScopeType scope_type,
                                           bool no_loop_check, Symbol &struct_of_current_func,
                                           Symbol &name_of_current_func)
 {
@@ -6296,7 +6312,7 @@ void AGS::Parser::ParseVartype_MemberList(TypeQualifierSet tqs, Vartype vartype,
         bool const is_function = (kKW_OpenParenthesis == _src.PeekNext());
 
         // certain qualifiers, such as "static" only go with certain kinds of definitions.
-        ParseVartype_CheckIllegalCombis(is_function, tqs);
+        ParseVartype_CheckIllegalCombis(is_function, qualifiers);
 
         if (is_function)
         {
@@ -6304,8 +6320,8 @@ void AGS::Parser::ParseVartype_MemberList(TypeQualifierSet tqs, Vartype vartype,
             // func has been either declared within the struct definition or as extender,
             // so they are NOT set unconditionally
             bool body_follows = false;
-            ParseVartype_FuncDecl(tqs, vartype, struct_name, var_or_func_name, no_loop_check, struct_of_current_func,
-                                  name_of_current_func, body_follows);
+            ParseVartype_FuncDecl(qualifiers, vartype, struct_name, var_or_func_name, no_loop_check,
+                                  struct_of_current_func, name_of_current_func, body_follows);
             if (body_follows)
                 return;
         }
@@ -6319,7 +6335,7 @@ void AGS::Parser::ParseVartype_MemberList(TypeQualifierSet tqs, Vartype vartype,
             if (kKW_NoSymbol != struct_name)
                 UserError("Variable may not contain '::'");
 
-            ParseVartype_VariableDefn(tqs, vartype, var_or_func_name, scope_type);
+            ParseVartype_VariableDefn(qualifiers, vartype, var_or_func_name, scope_type);
         }
 
         Symbol const punctuation = _src.GetNext();
@@ -6329,16 +6345,17 @@ void AGS::Parser::ParseVartype_MemberList(TypeQualifierSet tqs, Vartype vartype,
     }
 }
 
-void AGS::Parser::ParseVartypeClause(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func)
+void AGS::Parser::ParseVartypeClause(TypeQualifierSet qualifiers, Symbol &struct_of_current_func,
+                                     Symbol &name_of_current_func)
 {
     if (_src.ReachedEOF())
         UserError("Unexpected end of input (did you forget ';'?)");
-    if (tqs[TQ::kBuiltin])
+    if (qualifiers[TQ::kBuiltin])
         UserError("Can only use 'builtin' when declaring a 'struct'");
     ParseVartype_CheckForIllegalContext();
 
     ScopeType const scope_type = (kKW_NoSymbol != name_of_current_func) ? ScT::kLocal
-                                 : (tqs[TQ::kImport])                   ? ScT::kImport
+                                 : (qualifiers[TQ::kImport])            ? ScT::kImport
                                                                         : ScT::kGlobal;
 
     _src.BackUp();
@@ -6366,7 +6383,8 @@ void AGS::Parser::ParseVartypeClause(TypeQualifierSet tqs, Symbol &struct_of_cur
         _src.GetNext();
 
     // We've accepted a vartype expression and are now reading vars or one func that should have this type.
-    ParseVartype_MemberList(tqs, vartype, scope_type, no_loop_check, struct_of_current_func, name_of_current_func);
+    ParseVartype_MemberList(qualifiers, vartype, scope_type, no_loop_check, struct_of_current_func,
+                            name_of_current_func);
 }
 
 void AGS::Parser::HandleEndOfCompoundStmts()
@@ -6406,23 +6424,23 @@ void AGS::Parser::ParseReturn(Symbol name_of_current_func)
     if (kKW_Semicolon != _src.PeekNext())
     {
         // parse what is being returned
-        EvaluationResult eres;
-        ParseExpression(_src, eres);
-        EvaluationResultToAx(eres);
+        EvaluationResult eval_result;
+        ParseExpression(_src, eval_result);
+        EvaluationResultToAx(eval_result);
 
         if (functionReturnType == kKW_Void)
         {
             // A 'void' function may return a 'void' expression, e.g., 'return voidfunc();'
-            if (kKW_Void != eres.Vartype)
+            if (kKW_Void != eval_result.Vartype)
                 UserError("Cannot return a value from a 'void' function");
         }
         else
         {
-            ConvertAXStringToStringObject(functionReturnType, eres.Vartype);
+            ConvertAXStringToStringObject(functionReturnType, eval_result.Vartype);
 
             // check whether the return type is correct
-            CheckVartypeMismatch(eres.Vartype, functionReturnType, true, "");
-            if (_sym.IsOldstring(eres.Vartype) && eres.LocalNonParameter)
+            CheckVartypeMismatch(eval_result.Vartype, functionReturnType, true, "");
+            if (_sym.IsOldstring(eval_result.Vartype) && eval_result.LocalNonParameter)
                 UserError("Cannot return a local 'string' variable");
         }
     }
@@ -6464,13 +6482,13 @@ void AGS::Parser::ParseReturn(Symbol name_of_current_func)
 
 void AGS::Parser::ParseIf()
 {
-    EvaluationResult eres;
-    ParseDelimitedExpression(_src, kKW_OpenParenthesis, eres);
-    if (!_sym.IsAnyIntegerVartype(eres.Vartype) && !_sym.IsDynVartype(eres.Vartype))
+    EvaluationResult eval_result;
+    ParseDelimitedExpression(_src, kKW_OpenParenthesis, eval_result);
+    if (!_sym.IsAnyIntegerVartype(eval_result.Vartype) && !_sym.IsDynVartype(eval_result.Vartype))
         UserError(
             "Expected an integer or dynamic array or dynamic pointer expression after 'if', found type '%s' instead",
-            _sym.GetName(eres.Vartype).c_str());
-    EvaluationResultToAx(eres);
+            _sym.GetName(eval_result.Vartype).c_str());
+    EvaluationResultToAx(eval_result);
 
     _nest.Push(NSType::kIf);
 
@@ -6512,19 +6530,19 @@ void AGS::Parser::ParseWhile()
     // point to the start of the code that evaluates the condition
     CodeLoc const condition_eval_loc = _scrip.Codesize_i32();
 
-    EvaluationResult eres;
-    ParseDelimitedExpression(_src, kKW_OpenParenthesis, eres);
-    if (!_sym.IsAnyIntegerVartype(eres.Vartype) && !_sym.IsDynVartype(eres.Vartype))
+    EvaluationResult eval_result;
+    ParseDelimitedExpression(_src, kKW_OpenParenthesis, eval_result);
+    if (!_sym.IsAnyIntegerVartype(eval_result.Vartype) && !_sym.IsDynVartype(eval_result.Vartype))
         UserError(
             "Expected an integer or dynamic array or dynamic pointer expression after 'while', found type '%s' instead",
-            _sym.GetName(eres.Vartype).c_str());
+            _sym.GetName(eval_result.Vartype).c_str());
 
     _nest.Push(NSType::kWhile);
 
-    if (!(eres.kTY_Literal == eres.Type && eres.kLOC_SymbolTable == eres.Location &&
-          0 != _sym[eres.Symbol].LiteralD->Value))
+    if (!(eval_result.kTY_Literal == eval_result.Type && eval_result.kLOC_SymbolTable == eval_result.Location &&
+          0 != _sym[eval_result.Symbol].LiteralD->Value))
     {
-        EvaluationResultToAx(eres);
+        EvaluationResultToAx(eval_result);
         // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
         WriteCmd(SCMD_JZ, kDestinationPlaceholder);
         _nest.JumpOut().AddParam();
@@ -6591,15 +6609,15 @@ void AGS::Parser::ParseAssignmentOrExpression()
     default:
     {
         // No assignment symbol following: This is an isolated expression, e.g., a function call
-        EvaluationResult eres;
+        EvaluationResult eval_result;
         size_t const expr_end = _src.GetCursor();
-        ParseExpression_Term(expression, eres, false);
+        ParseExpression_Term(expression, eval_result, false);
         _src.SetCursor(expr_end);
-        if (eres.kTY_FunctionName == eres.Type)
+        if (eval_result.kTY_FunctionName == eval_result.Type)
             Expect(kKW_OpenParenthesis, next_sym);
-        if (eres.kTY_StructName == eres.Type)
+        if (eval_result.kTY_StructName == eval_result.Type)
             Expect(kKW_Dot, next_sym);
-        if (!eres.SideEffects)
+        if (!eval_result.SideEffects)
             Warning("This expression doesn't have any effect");
 
         return;
@@ -6661,10 +6679,10 @@ void AGS::Parser::ParseFor_WhileClause()
 
     // Make sure that a linenumber bytecode is emitted
     _scrip.InvalidateLastEmittedLineno();
-    EvaluationResult eres;
-    ParseExpression(_src, eres);
-    EvaluationResultToAx(eres);
-    CheckVartypeMismatch(eres.Vartype, kKW_Int, true, "Second clause in 'for' statement");
+    EvaluationResult eval_result;
+    ParseExpression(_src, eval_result);
+    EvaluationResultToAx(eval_result);
+    CheckVartypeMismatch(eval_result.Vartype, kKW_Int, true, "Second clause in 'for' statement");
 }
 
 void AGS::Parser::ParseFor_IterateClause()
@@ -6752,8 +6770,8 @@ void AGS::Parser::ParseFor()
 void AGS::Parser::ParseSwitch()
 {
     // Get the switch expression
-    EvaluationResult eres;
-    ParseDelimitedExpression(_src, kKW_OpenParenthesis, eres);
+    EvaluationResult eval_result;
+    ParseDelimitedExpression(_src, kKW_OpenParenthesis, eval_result);
 
     Expect(kKW_OpenBrace, _src.GetNext());
     if (kKW_CloseBrace == _src.PeekNext())
@@ -6766,12 +6784,12 @@ void AGS::Parser::ParseSwitch()
     }
 
     // Copy the result to the BX register, ready for case statements
-    EvaluationResultToAx(eres);
+    EvaluationResultToAx(eval_result);
     WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_BX);
     _reg_track.SetRegister(SREG_BX);
 
     _nest.Push(NSType::kSwitch);
-    _nest.SetSwitchExprVartype(eres.Vartype);
+    _nest.SetSwitchExprVartype(eval_result.Vartype);
 
     // Jump to the jump table
     _scrip.WriteCmd(SCMD_JMP, kDestinationPlaceholder);
@@ -6833,16 +6851,16 @@ void AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
         // Compile a comparison of the switch expression result (which is in SREG_BX)
         // to the current case
 
-        EvaluationResult eres;
+        EvaluationResult eval_result;
         RegisterGuard(SREG_BX,
                       [&]
                       {
-                          ParseExpression(_src, eres);
-                          EvaluationResultToAx(eres);
+                          ParseExpression(_src, eval_result);
+                          EvaluationResultToAx(eval_result);
                       });
 
         // Vartypes of the "case" expression and the "switch" expression must match
-        CheckVartypeMismatch(eres.Vartype, _nest.SwitchExprVartype(), false, "");
+        CheckVartypeMismatch(eval_result.Vartype, _nest.SwitchExprVartype(), false, "");
     }
 
     // Rip out the already generated code for the case expression and store it with the switch
@@ -6868,20 +6886,20 @@ void AGS::Parser::RemoveLocalsFromStack(size_t nesting_level)
     }
 }
 
-void AGS::Parser::SetCompileTimeLiteral(Symbol const lit, EvaluationResult &eres)
+void AGS::Parser::SetCompileTimeLiteral(Symbol const lit, EvaluationResult &eval_result)
 {
     if (!_sym.IsLiteral(lit))
         InternalError("'%s' isn't literal", _sym.GetName(lit).c_str());
 
-    eres.Type = eres.kTY_Literal;
-    eres.Location = eres.kLOC_SymbolTable;
-    eres.Symbol = lit;
-    eres.Vartype = _sym[lit].LiteralD->Vartype;
-    eres.Modifiable = false;
-    eres.LocalNonParameter = false;
+    eval_result.Type = eval_result.kTY_Literal;
+    eval_result.Location = eval_result.kLOC_SymbolTable;
+    eval_result.Symbol = lit;
+    eval_result.Vartype = _sym[lit].LiteralD->Vartype;
+    eval_result.Modifiable = false;
+    eval_result.LocalNonParameter = false;
 
-    if (kKW_String == _sym.VartypeWithout(VTT::kConst, eres.Vartype))
-        EvaluationResultToAx(eres); // Cannot handle string literals
+    if (kKW_String == _sym.VartypeWithout(VTT::kConst, eval_result.Vartype))
+        EvaluationResultToAx(eval_result); // Cannot handle string literals
 }
 
 void AGS::Parser::FindOrAddIntLiteral(CodeCell value, Symbol &symb)
@@ -7130,7 +7148,7 @@ void AGS::Parser::ParseInput()
     Symbol name_of_current_func = kKW_NoSymbol;
 
     // Collects vartype qualifiers such as 'readonly'
-    TypeQualifierSet tqs = {};
+    TypeQualifierSet qualifiers = {};
 
     while (!_src.ReachedEOF())
     {
@@ -7138,7 +7156,7 @@ void AGS::Parser::ParseInput()
         HandleSrcSectionChangeAt(next_pos);
         currentline = _src.GetLinenoAt(next_pos);
 
-        ParseQualifiers(tqs);
+        ParseQualifiers(qualifiers);
 
         Symbol const leading_sym = _src.GetNext();
 
@@ -7146,29 +7164,29 @@ void AGS::Parser::ParseInput()
 
         switch (leading_sym)
         {
-        case kKW_Attribute: ParseAttribute(tqs, name_of_current_func); continue;
+        case kKW_Attribute: ParseAttribute(qualifiers, name_of_current_func); continue;
 
         case kKW_Const:
             if (kKW_String == _src.PeekNext())
                 break; // Vartype, treated below
 
-            Parse_CheckTQSIsEmpty(tqs);
+            Parse_CheckTQSIsEmpty(qualifiers);
             ParseConstantDefn();
             continue;
 
         case kKW_Enum:
-            Parse_CheckTQ(tqs, (name_of_current_func > 0), false);
-            ParseEnum(tqs, struct_of_current_func, name_of_current_func);
+            Parse_CheckTQ(qualifiers, (name_of_current_func > 0), false);
+            ParseEnum(qualifiers, struct_of_current_func, name_of_current_func);
             continue;
 
         case kKW_Export:
-            Parse_CheckTQSIsEmpty(tqs);
+            Parse_CheckTQSIsEmpty(qualifiers);
             ParseExport();
             continue;
 
         case kKW_Struct:
-            Parse_CheckTQ(tqs, (name_of_current_func > 0), false);
-            ParseStruct(tqs, struct_of_current_func, name_of_current_func);
+            Parse_CheckTQ(qualifiers, (name_of_current_func > 0), false);
+            ParseStruct(qualifiers, struct_of_current_func, name_of_current_func);
             continue;
         } // switch (leading_sym)
 
@@ -7176,7 +7194,7 @@ void AGS::Parser::ParseInput()
         {
             // Note: We cannot check yet whether the TQS are legal because we don't know whether the
             // var / func names that will be defined will be composite.
-            ParseVartypeClause(tqs, struct_of_current_func, name_of_current_func);
+            ParseVartypeClause(qualifiers, struct_of_current_func, name_of_current_func);
             continue;
         }
 
@@ -7185,7 +7203,7 @@ void AGS::Parser::ParseInput()
         if (kKW_NoSymbol == name_of_current_func)
             UserError("Cannot start a definition or declaration with '%s'", _sym.GetName(leading_sym).c_str());
 
-        Parse_CheckTQSIsEmpty(tqs);
+        Parse_CheckTQSIsEmpty(qualifiers);
         ParseCommand(leading_sym, struct_of_current_func, name_of_current_func);
     } // while (!targ.reached_eof())
 }
