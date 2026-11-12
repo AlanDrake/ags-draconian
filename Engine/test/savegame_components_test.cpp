@@ -31,6 +31,7 @@
 #include "ac/characterextras.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
+#include "ac/view.h"
 #include "game/savegame.h"
 #include "game/savegame_components.h"
 #include "game/savegame_internal.h"
@@ -42,6 +43,7 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern std::vector<CharacterExtras> charextra;
+extern std::vector<ViewStruct> views;
 
 namespace
 {
@@ -66,10 +68,37 @@ const SaveCmpSelection kCharactersAndItems = static_cast<SaveCmpSelection>(kSave
 // Fixture for the savegame components with game content. The engine globals it touches, all reset in TearDown:
 // - game.chars, game.numcharacters, charextra, play.charProps: the characters
 // - game.invinfo, game.numinvitems, play.invProps: the inventory items
+// - views, game.numviews: the views
 class SavegameContent : public ::testing::Test
 {
 protected:
-    void TearDown() override { SetCounts(0, 0); }
+    void TearDown() override
+    {
+        SetCounts(0, 0);
+        SetViews(0, 0, 0);
+    }
+
+    // Makes the game's views, each with the same number of loops and frames; every frame has a sprite and
+    // an event name, so that a save has frame data and strings to step over
+    static void SetViews(int view_count, int loop_count, int frame_count)
+    {
+        views.clear();
+        views.resize(view_count);
+        game.numviews = view_count;
+        for (auto &view : views)
+        {
+            view.Initialize(loop_count);
+            for (auto &loop : view.loops)
+            {
+                loop.Initialize(frame_count);
+                for (int frame = 0; frame < frame_count; ++frame)
+                {
+                    loop.frames[frame].pic = 10 + frame;
+                    loop.frames[frame].event_name = String::FromFormat("step%d", frame);
+                }
+            }
+        }
+    }
 
     // Resizes the game's characters and inventory items, all in their default state
     static void SetCounts(int characters, int items)
@@ -281,6 +310,24 @@ TEST_F(SavegameContent, PrescanCountsWithoutRestoring)
     // the game is untouched
     EXPECT_EQ(0, game.chars[0].x);
     EXPECT_TRUE(game.invinfo[0].name.IsEmpty());
+}
+
+TEST_F(SavegameContent, PrescanStepsOverViewFrames)
+{
+    // the prescan skips each loop's frames and their event names, and counts every loop of every view
+    SetViews(2, 3, 4);
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_Views, saved, error)) << error;
+
+    Stream in(std::make_unique<VectorStream>(saved));
+    PreservedParams pp;
+    RestoredData r_data;
+    HSaveError err = SavegameComponents::PrescanAll(&in, kSvgVersion_Current, kSaveCmp_Views, pp, r_data);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    EXPECT_EQ(2u, r_data.DataCounts.Views);
+    EXPECT_EQ((std::vector<uint32_t>{3u, 3u}), r_data.DataCounts.ViewLoops);
+    EXPECT_EQ((std::vector<uint32_t>{12u, 12u}), r_data.DataCounts.ViewFrames);
 }
 
 TEST_F(SavegameContent, UnselectedComponentsAreSkipped)

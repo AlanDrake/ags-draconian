@@ -1246,11 +1246,13 @@ HSaveError ReadViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pre
     return err;
 }
 
-// TODO: skips every frame as sound, pic, flags, speed and offsets (the kViewSvgVersion_4000018 layout), ignoring cmp_ver
-// and the frame event names that follow each loop's frames since kViewSvgVersion_4000024
-HSaveError PrescanViews(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams & /*pp*/,
+HSaveError PrescanViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const PreservedParams & /*pp*/,
                         RestoredData &r_data)
 {
+    // a frame as ReadViews reads it: sound and pic, then flags, speed and offsets since kViewSvgVersion_4000018
+    const soff_t frame_size = (cmp_ver >= kViewSvgVersion_4000018)
+                                  ? sizeof(int32_t) * 2 + sizeof(int32_t) + sizeof(int16_t) * 3
+                                  : sizeof(int32_t) * 2;
     HSaveError err;
     const uint32_t views_read = in->ReadInt32();
     if (!AssertGameContent(err, views_read, game.numviews, "Views", r_data.Result, r_data.DataCounts.Views))
@@ -1273,7 +1275,13 @@ HSaveError PrescanViews(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, co
                 return err;
 
             r_data.DataCounts.ViewFrames[view] += frames_read;
-            in->Seek(frames_read * (sizeof(int32_t) * 2 + sizeof(int32_t) + sizeof(int16_t) * 3));
+            in->Seek(frames_read * frame_size);
+            // the frames' event names follow each loop's frames since kViewSvgVersion_4000024
+            if (cmp_ver >= kViewSvgVersion_4000024)
+            {
+                for (uint32_t frame = 0; frame < frames_read; ++frame)
+                    StrUtil::ReadCStr(in);
+            }
         }
     }
     return HSaveError::None();
