@@ -417,6 +417,7 @@ void unload_old_room()
         roomBackgroundBmp = nullptr;
     }
 
+    // FIXME: croom was already dereferenced above (croom->numobj), so a null croom would have crashed there
     if (croom == nullptr)
         ;
     else if (roomscript)
@@ -522,7 +523,7 @@ static void update_all_viewcams_with_newroom()
     }
 }
 
-// Looks up for the room script available as a separate asset.
+// Looks for the room script available as a separate asset (room<N>.o).
 // This is optional, so no error is raised if one is not found.
 // If found however, it will replace room script if one had been loaded
 // from the room file itself.
@@ -546,8 +547,8 @@ static void reset_temp_room()
     troom = RoomStatus();
 }
 
-// Initializes object states in the current RoomState object,
-// copying default properties from RoomData, in the element range [start, end).
+// Initializes object states in the current RoomStatus object (croom),
+// copying default properties from thisroom's objects, in the element range [start, end).
 static void init_object_states(size_t start, size_t end)
 {
     for (uint32_t i = start; i < end; ++i)
@@ -599,7 +600,6 @@ HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr,
     return HError::None();
 }
 
-// forchar = playerchar on NewRoom, or NULL if restore saved game
 void load_new_room(int room_id, CharacterInfo *ch)
 {
     debug_script_log("Loading room %d", room_id);
@@ -657,14 +657,15 @@ void load_new_room(int room_id, CharacterInfo *ch)
     if (play.bg_frame < 0 || static_cast<size_t>(play.bg_frame) >= thisroom.BgFrameCount)
         play.bg_frame = 0;
 
-    // do the palette
+    // Set up the 8-bit palettes: a color the game marks as PAL_BACKGROUND takes the room's palette;
+    // for every other color the game-wide one is copied into each background frame's palette
     for (size_t pal_index = 0; pal_index < 256; pal_index++)
     {
         if (game.paluses[pal_index] == PAL_BACKGROUND)
             palette[pal_index] = thisroom.Palette[pal_index];
         else
         {
-            // copy the gamewide colours into the room palette
+            // copy the game-wide colours into the room palette
             for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
                 thisroom.BgFrames[i].Palette[pal_index] = palette[pal_index];
         }
@@ -696,7 +697,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
     // Make a backup copy of the walkable areas prior to
     // any RemoveWalkableArea commands
     delete walkareabackup;
-    // copy the walls screen
+    // copy of the walkable area mask
     walkareabackup = BitmapHelper::CreateBitmapCopy(thisroom.WalkAreaMask.get());
 
     set_our_eip(204);
@@ -704,13 +705,13 @@ void load_new_room(int room_id, CharacterInfo *ch)
     walkbehinds_recalc();
 
     set_our_eip(205);
-    // setup objects
     if (ch != nullptr)
     {
         // if not restoring a game, always reset temp room
         reset_temp_room();
     }
 
+    // A room with a valid number has its own saveable RoomStatus, any other one (e.g. the intro) uses troom
     if ((room_id >= 0) & (room_id < MAX_ROOMS))
         croom = GetRoomState(room_id);
     else
@@ -1026,7 +1027,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
             ch->set_enabled(false);
             disable_cursor_mode(game.GetModeWalk());
             // remember which character we turned off, in case they
-            // use SetPlyaerChracter within this room (so we re-enable
+            // use SetPlayerCharacter within this room (so we re-enable
             // the correct character when leaving the room)
             play.temporarily_turned_off_character = game.playercharacter;
         }
@@ -1076,7 +1077,6 @@ void load_new_room(int room_id, CharacterInfo *ch)
     pl_run_plugin_hooks(kPluginEvt_EnterRoom, displayed_room);
 }
 
-// new_room: changes the current room number, and loads the new room from disk
 void new_room(int room_id, CharacterInfo *ch)
 {
     EndSkippingUntilCharStops();
@@ -1222,6 +1222,7 @@ void croom_ptr_clear()
 ScriptDrawingSurface *get_room_bg_surface(uint32_t bg_index)
 {
     assert(bg_index >= 0 && bg_index < RoomBgDS.size());
+    // FIXME: the bare "bg_index &&" makes this return null for background 0 even if it has a surface attached
     if (bg_index >= 0 && bg_index && RoomBgDS[bg_index] > 0)
     {
         ScriptDrawingSurface *surface =

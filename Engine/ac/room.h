@@ -19,36 +19,67 @@
 #include "game/roomstruct.h"
 #include "script/runtimescriptvalue.h"
 
+// Script function: returns a DrawingSurface for the given room background (SCR_NO_VALUE: the current one);
+// reuses the surface already attached to it, if any. Returns null for an invalid index.
 ScriptDrawingSurface *Room_GetDrawingSurfaceForBackground(int bg_index);
+// Script function: returns a DrawingSurface for the given room mask; null for an invalid mask
 ScriptDrawingSurface *Room_GetDrawingSurfaceForMask(RoomAreaMask mask);
+// Script function: the number of objects in the current room
 int Room_GetObjectCount();
+// Script function: the room's width, in room coordinates
 int Room_GetWidth();
+// Script function: the room's height, in room coordinates
 int Room_GetHeight();
+// Script function: the color depth of the room's first background
 int Room_GetColorDepth();
+// Script function: the room's left edge, as set in the room's edge settings
 int Room_GetLeftEdge();
+// Script function: the room's right edge
 int Room_GetRightEdge();
+// Script function: the room's top edge
 int Room_GetTopEdge();
+// Script function: the room's bottom edge
 int Room_GetBottomEdge();
+// Script function: the text value of a custom room property, as a new script string
 const char *Room_GetTextProperty(const char *property);
+// Script function: the integer value of a custom room property
 int Room_GetProperty(const char *property);
+// Script API wrapper of Room_GetProperty, called from other files
 RuntimeScriptValue Sc_Room_GetProperty(const RuntimeScriptValue *params, int32_t param_count);
+// Script function: a DrawingSurface for the room's walkable area mask
 ScriptDrawingSurface *GetDrawingSurfaceForWalkableArea();
+// Script function: a DrawingSurface for the room's walk-behind mask
 ScriptDrawingSurface *GetDrawingSurfaceForWalkbehind();
+// Script function: a DrawingSurface for the room's hotspot mask
 ScriptDrawingSurface *Hotspot_GetDrawingSurface();
+// Script function: a DrawingSurface for the room's region mask
 ScriptDrawingSurface *Region_GetDrawingSurface();
 
 //=============================================================================
 
+// Copies the room script's global data into the current room status, so that it is kept with the room
 void save_room_data_segment();
+// Runs the room-leaving events and disposes the current room's state; does nothing when no room is
+// displayed (e.g. when switching games on restore)
 void unload_old_room();
+// Loads room room_id from its file and makes it the current room. ch is the character entering the room
+// (the player on NewRoom), who gets placed at the entry position; nullptr when restoring a saved game
 void load_new_room(int room_id, CharacterInfo *ch);
+// Changes the current room: runs the room-leaving events (their scripts may change the destination),
+// unloads the old room and loads the new one with load_new_room()
 void new_room(int room_id, CharacterInfo *ch);
 // Sets up a placeholder room object; this is used to avoid occasional crashes
 // in case an API function was called that needs to access a room, while no real room is loaded
 void set_room_placeholder();
+// Prepares the state for the first room of a game: starts the room transition, forgets the player's
+// previous room and resets the background frame state
 void first_room_initialization();
+// If a new room was just entered (and not restored from a save), runs its "before fade-in" event
 void check_new_room();
+// Creates the runtime room script from thisroom's compiled script, registers its exports and resolves
+// its imports; quits on error
 void compile_room_script();
+// Updates the screen and the palette after the current background frame was changed
 void on_background_frame_change();
 // Clear the current room pointer if room status is no longer valid
 void croom_ptr_clear();
@@ -70,7 +101,9 @@ void detach_room_bg_surfaces();
 void on_room_bg_surface_release(uint32_t bg_index, bool modified);
 // Notifies room that its mask's drawing surface was released
 void on_room_mask_surface_release(RoomAreaMask mask, bool modified);
+// Creates the room pathfinder object, if it does not exist yet
 void init_room_pathfinder();
+// Destroys the room pathfinder object
 void dispose_room_pathfinder();
 // Gets current room's pathfinder object
 AGS::Engine::MaskRouteFinder *get_room_pathfinder();
