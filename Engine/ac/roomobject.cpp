@@ -221,6 +221,10 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         in->ReadInt32();
         in->ReadInt32();
     }
+    else
+    {
+        audio_speed = 0; // default: normal speed
+    }
 
     blend_mode = (BlendMode)in->ReadInt32();
     // Reserved for colour options

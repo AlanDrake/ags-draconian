@@ -200,6 +200,10 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *ch, Stream *in, CharacterS
         in->ReadInt32();
         in->ReadInt32();
     }
+    else
+    {
+        audio_speed = 1000; // default: normal speed
+    }
 
     blend_mode = (BlendMode)in->ReadInt32();
     // Reserved for colour options
@@ -272,6 +276,8 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *ch, Stream *in, CharacterS
     {
         spr_anchor = Pointf(0.5f, 1.f); // default: middle-bottom
         spr_offset = Point();
+        view_anchor = CharacterInfo::GetDefaultSpriteAnchor(); // as SetUnlockedView
+        view_offset = Point();
     }
 
     if (save_ver >= kCharSvgVersion_400_29)
