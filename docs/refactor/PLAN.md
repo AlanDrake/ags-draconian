@@ -80,7 +80,7 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **The user's decisions on 4.1's findings, then the upstream PR of 4.1's bugs** (the user, 2026-11-12: one PR once 4.1 is finished; the list is under "4.1, upstream" below): fix or not `Speech.SkipStyle`'s read-back and the built-in dialogs' push button, `[delete]` the global-messages write | 4.1 is done; the PR was waiting for it | Sonnet 5.5, `medium` for the fixes and their tests; the PR text with the user |
+| 1 | **The bugs found in 4.1, by upstream branch** (the user, 2026-11-12; the list is "4.1's bugs by upstream branch" below): fix the open ones in the fork, one commit each with a test where one can reach it; then one upstream PR for `master` and one for `ags4`, each fix ported to upstream's style and names (C++11) | 4.1 is done; the PRs were waiting for it | Sonnet 5.5, `medium` for the fixes; the PR texts with the user |
 | 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` with upstream's draft names where they overlap | Files move once (4.4 rides along) | Fable 5.1, `high` for the move map, subagents for the moves |
 | 3 | **4.5 + 3.6 on what had no comment pass:** the compiler (7,440-line parser: its own plan, by function groups), the files with only stray renames in batches 6 and 7, then the untouched files most-churned first; the brief `.compare/briefs/brief-41-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | Comments before the 5.3 moves | Sonnet 5.5, `medium`, parallel subagents |
 | 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3187–#3189), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
@@ -115,21 +115,31 @@ Open items from finished tasks (details in LOG.md "Open items"):
   (`ReadAndConvertArrayOfInt24`); the `DEBUG_SPRITECACHE` and `DEBUG_PATHFINDER` builds fail; `= delete` or keep for the
   unused copy/move members (`RoomData`, `OpenAlSource`, `SDLDecoder`, `Bitmap::operator=`); leftovers constant now
   (`RunEventInModules`' last parameter, the write-only `SPRCACHEFLAG_LOCKED` and `DebugManager::_freeGroupID`).
-- 4.1 (character): `start_character_turning`'s `kScTurnOrder_FaceDown` tie-break passes a `turnlooporder` index to
-  `is_loop_in_left_half` and has its sign inverted for that table; the two cancel for Left, Right and DownRight starts,
-  but a 180° turn from DownLeft, UpLeft or UpRight passed through Up instead of Down. Fixed in `63da172bd`
-  (2026-11-09, checked visually by the user), a test pending; upstream `ags4` has the same line (a U.x candidate; LOG.md "4.1 +
-  4.5 + 3.6 per file").
-- 4.1, upstream: **one upstream PR with all the bugs found in this stage, once 4.1 is finished** (the user, 2026-11-12).
-  So far: the `DisplayTopBar` read time and font (`ea271ea5d`, `0becab61f`), the pivot of older saves (`d228d1baa`),
-  `Joystick.GetHat` (`4b1ce87fb`), `InventoryItem.CursorHotspotAlignment` (`a3e21a6e3`), `Overlay.Tint` (`9d81c631c`),
-  the save prescan of views (`edadb75aa`), the defaults for older saves' audio speed and view anchor (`8a25d5732`),
-  `start_character_turning` (`63da172bd`, above); upstream `ags4` has each. 4.1 finished on 2026-11-12: the PR is due.
-- 4.1 (batch 6, decisions for the user; LOG.md "Batch 6"): `Speech.SkipStyle` reads back `kSkipSpeechTime` or
-  `kSkipSpeechNone` for every style with key or mouse (the gamepad and touch flags are not masked in
-  `internal_skip_speech_to_user`; upstream too); the built-in dialogs' push button tracks the press position, not the
-  mouse (`MyPushButton::pressedon`); `WriteGlobalMessagesBlock` writes what the reader skips since `kGameVersion_400_33`
-  (unreachable: a `[delete]`); `lzwcompress`'s unaligned host-order `short` store; `ListBox_AddItem`'s dead `< 0` test.
+- **4.1's bugs by upstream branch** (checked 2026-11-12 by reading each function on `upstream/master` and
+  `upstream/ags4`; details in LOG.md "4.1 + 4.5 + 3.6 per file"). A bug on both goes to `master` (upstream merges it up);
+  one in an AGS 4 feature to `ags4`. The fork's commits use the fork's names: a port renames back.
+  - `master`, fixed in the fork: `is_pos_in_sprite` with a zero size (`df791c714`), `File.ReadRawChar` (`f04c500e3`),
+    `DynamicSprite.Tint` / `Width`, `Height`, `ColorDepth` / `GetDrawingSurface` on a deleted sprite (`9ce810048`,
+    `2b1389a2e`, `964ffb429`), `DisplayTopBar`'s time and font (`ea271ea5d`, `0becab61f`),
+    `InventoryItem.CursorHotspotAlignment` (`a3e21a6e3`), older saves' `audio_speed` (the half of `8a25d5732` without
+    the view anchor), the `FaceDown` turn (`63da172bd`, a test pending), a point above the room (`6e8d72c93`); cosmetic:
+    the `SetPixels` and `Overlay.Height` warning names (`599acd6fd`, `6b718c3d1`), `|`/`&` for `||`/`&&`
+    (`6c237db78`, `c2c23c177`, `0fd70e037`'s `CSCIWaitMessage`, `a8ee0fa4b`).
+  - `master`, open: voice lip-sync with a voice pack other than `speech.vox` (sync data read once at startup; the
+    compared name carries the pack path, `get_cue_filename`; fix: reload in `init_voicepak`, compare the bare name),
+    `MyPushButton::pressedon` tracks the press position not the mouse, 4-bit `BitmapData::GetPixel`/`SetPixel`
+    (shift and mask), `GetDiskFreeSpaceMB` ignores the API result, `lzwcompress`'s unaligned host-order `short` store,
+    the uninitialised `DataUtil::GameSettings` scalars (the tools; 1.2 below), `ListBox_AddItem`'s dead `< 0` test.
+  - `ags4`, fixed in the fork: `DrawingColor` after `Release()` (`1c83f49aa`; `master` guards it), the scanner's
+    `IsHexDigit` (`b59fd4b94`), `SetScale` registered twice (`9846f97d4`, `ac3bc8730`), the pivot of older saves
+    (`d228d1baa`), `Joystick.GetHat` (`4b1ce87fb`), `Overlay.Tint` on a removed overlay (`9d81c631c`),
+    `UpdateOverlayState`'s assert (`578f83fb2`), the save prescan of views (`edadb75aa`), older saves' view anchor (the
+    other half of `8a25d5732`).
+  - `ags4`, open: `Speech.SkipStyle` reads back `kSkipSpeechTime`/`kSkipSpeechNone` for every key or mouse style
+    (`internal_skip_speech_to_user` does not mask `SKIP_GAMEPAD`/`SKIP_TOUCH`; `master` has no such flags); the data
+    writer's `WriteGlobalMessagesBlock`, dead since `kGameVersion_400_33` (`master`'s engine still reads them).
+  - Fork only: the editor's palette leak (below), `agfreader` without `<Settings>` (1.4 below); Ctrl+D's "trnsp" and
+    the Opacity range checks were fork problems, fixed (`603365067`, `c81711ba6`, `e903548c7`).
 - Sprite placement (2026-11-12, LOG.md "Sprite placement and the Direct3D 9 half-pixel offset"), in long-term
   testing by the user: the software renderer's scaling, hit tests on the truncated scaled size, truncated frame
   offsets, and a camera stretch by integer maths (exact agreement of all renderers at any zoom) are left. The
