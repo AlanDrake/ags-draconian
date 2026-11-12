@@ -1002,7 +1002,8 @@ U.5, U.7, U.9) are only there.
   1165/1165 at first, 1182/1182 at batch 5). Not run for any set: macOS, iOS, Android, the auto-test game.
 - **Status (2026-11-12): 4.1 done** (batch 7): 909 watchlist names, all of them the 5.1 globals (`thisroom`, `croom`,
   `objs`, `scsystem`, `usetup`). 4.5 and 3.6 stay open for the files that had a rename-only pass (the compiler, the
-  stray names of batches 6 and 7) and the files no batch touched.
+  stray names of batches 6 and 7) and the files no batch touched: 770 files on 2026-11-12, 9 pairs fewer after batch 8
+  (2026-11-13).
 
 **Naming conventions set here** (STYLE.md "Naming"):
 - One name per type: `ch` `CharacterInfo *` (also `CharacterInfo &`), `chex` `CharacterExtras`, `obj` `ScriptObject *`,
@@ -1308,6 +1309,56 @@ combined branch, the user's rule):
   minutes for all stages. Not run: macOS, iOS, Android, the auto-test game.
 - Left for later: the `Sc_*` signature comments keep the old names (5.2 moves them; the metric skips comments); the
   compiler's comment pass (4.5, 3.6) and the camelCase parameters of files that had no full pass.
+
+**Batch 8, 4.5 + 3.6 on the most-churned engine files** (2026-11-12/13; PLAN.md "Next up" 3; four worktrees from
+`3a88a5fb6`, brief `.compare/briefs/brief-45-fileset.md`: 4.1 is done, so a `[rename]` commit now takes the camelCase
+and run-together names and the comment pass is the larger part). 770 first-party files (~280k lines) never had a
+comment pass; this batch takes the top of a churn ranking (commits since 2024), leaving out the compiler (its own
+plan) and the D3D/OpenGL drivers (they need the GL and emscripten builds to verify).
+- `game`, `gamestate` (`5db5878ca`, `7f0207fb9`): 497 renames (`slotNum`/`slotn`/`slnum` → `slot`, `view_index` →
+  `viewport_id`, `charat`/`hsat`/`objat` → `char_id`/`hotspot_id`/`obj_id`, `kgn`/`mbut`/`gbut` → `key`/`mouse_button`/
+  `gamepad_button`); `GamePlayState` documents which fields `Read`/`WriteForSavegame` leave out and which other
+  components save.
+- `room`, `dialog` (`59acb1933`, `128fc241e`, `ba1766fe8`, `e198805b5`): 703 renames (`dlg`/`dlgnum`/`dialogID` →
+  `dialog_id`, `sd` → `script_dialog` beside the global `dialog`, `write_dialog_options`' parameters spelled out); the
+  `DialogOptions` members stay (4.3), so some parameters now differ from the field they feed. The parser's F3 CHECKME
+  answered (it appends the missing tail of the previous entry).
+- `savegame`, `game_init`, `script` (`8036cddd0`..`b1d6fdf73`): 351 renames; the save file's format block, bitmap
+  block, header and plugin data documented against the readers; `b1d6fdf73` deletes the unused `TempEip`, the
+  undefined `post_script_cleanup` declaration and a `SaveGameState` declaration with no definition.
+- `guimain`, `engine` (`7205218c9`..`0d9a1d745`): 331 renames; the `RebuildGUI` CHECKMEs answered (controls cannot
+  update their graphic space while game data is read, sprite info may not be loaded yet).
+- Every `[rename]`, `[comment]` and `[delete]` commit `compare_objects.py`-identical (640 objects; the delete commit 2
+  in bytes, not in code). The agents ran one comparison per stage and split it into per-file commits afterwards.
+- Tooling (`58b6da252`, `fb2836de7`): `check_helpers.py` read `Game.StopAudio` in a comment as a missing member of the
+  Editor's `Game` class (9 findings); it now accepts what `agsdefns.sh` declares on a struct of that name or as its
+  extender. `tidy_diff.py` leaves out a rewritten line whose code without its `//` comment and spacing is that of a
+  line the hunk removes: a fixed comment on a legacy field put the field's name under the gate.
+- `c04c4a073`: the gate's 14 findings on renamed lines (named casts, `make_unique`, `empty()`, unnamed unused
+  parameters, `(-3053)`, `{false}`) and the first first-party `NOLINT`: `RunScriptFunction`'s `cached_error` is a copy
+  on purpose (`cc_get_error()` returns the global the run changes; the copy is what is restored).
+- Verification (`3a88a5fb6..c04c4a073`): `prepush.py --auto` format, helpers, build + ctest, tidy, headers, libcxx
+  341, emscripten, linux ctest 1196/1196; msbuild (5 solutions + Editor NUnit) passed at `0d9a1d745`, not rerun after
+  `c04c4a073` (orphaned MSBuild nodes of the interrupted run held its log). Not run: macOS, iOS, Android, the auto-test
+  game, the `BUILD_STR` branch of `get_engine_version_and_build` (renamed by reading).
+- **Found, not fixed** (all on upstream `master` and `ags4`, checked 2026-11-13; PLAN.md open items):
+  - `GameState::DeleteRoomViewport`/`DeleteRoomCamera` renumber the remaining script objects through
+    `_scViewportHandles[index]`/`_scCameraHandles[index]`, not `[i]` (`gamestate.cpp:326`, `:406`): with two or more
+    after the deleted one, their script objects get wrong IDs.
+  - `Game_SetAudioTypeVolume` indexes `change_str[change_type - VOL_CHANGEEXISTING]` before checking `change_type`
+    (`game.cpp:301`): an invalid value from script reads past the array and hands it to `printf` as a string.
+  - `DialogOptions::RunKey`'s text-input branch fills `runDialogOptionTextInputHandlerFunc`'s parameters and then runs
+    `runDialogOptionKeyPressHandlerFunc` (`dialog.cpp:1524`): `dialog_options_text_input` is never called from there and
+    the key handler runs twice.
+  - `get_room_bg_surface` tests `bg_index >= 0 && bg_index && ...` (`room.cpp:1226`): background 0's attached surface
+    (only a restored save attaches one) is never found.
+  - `MakeSaveGameDir`'s "remapped to" warning prints the path after clearing it (cosmetic).
+  - Smaller: `unload_old_room`'s `croom == nullptr` test after `croom` was used; `DialogOptions::End` sets the overlay
+    id to 0 where "none" is -1; `inv_item_wid` has no initializer; `FreeProperties` leaves `guicontrolProps`;
+    `GUIMain::SkipSavestate` without `ctrl_refs` leaves the stream misaligned (no caller does that); `InitGameState`
+    `std::move`s from a `const` (copies); `moduleRepExecAddr` is written, never read.
+  - Not a bug, though reported as one: `WriteBitmap`'s `Seek(end_pos, kSeekEnd)` (`savegame.cpp:234`) would leave a
+    hole, but the save is a `BufferedStream`, whose `Seek` clamps to the end; `kSeekBegin` would say what is meant.
 
 ### 7.3 Ports
 

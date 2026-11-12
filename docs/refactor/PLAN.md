@@ -82,7 +82,7 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 |---|---|---|---|
 | 1 | **The bugs found in 4.1, by upstream branch** (the user, 2026-11-12; the list is "4.1's bugs by upstream branch" below): all fixed in the fork (2026-11-12, `d90b789ab`..`98a7dae87`, `4c07f1e11`; lip-sync and the push button still want a run in a game); ported to `master-41-fixes` and `ags4-41-fixes`, trial merge of the first into the second on `ags4-41-mergecheck` (`docs/UPSTREAM.md`, worktrees `../ags-up-master`, `../ags-up-ags4`, `../ags-up-merge`); left: a review of every port against its fork commit and of the merge resolution, the PR texts (`.compare/pr-description.md` in each worktree), then push and open the two PRs (the user, 2026-11-12: double-check before opening) | 4.1 is done; the PRs were waiting for it | Fable 5.1, `high` for the review; the user opens the PRs |
 | 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` with upstream's draft names where they overlap | Files move once (4.4 rides along) | Fable 5.1, `high` for the move map, subagents for the moves |
-| 3 | **4.5 + 3.6 on what had no comment pass:** the compiler (7,440-line parser: its own plan, by function groups), the files with only stray renames in batches 6 and 7, then the untouched files most-churned first; the brief `.compare/briefs/brief-41-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | Comments before the 5.3 moves | Sonnet 5.5, `medium`, parallel subagents |
+| 3 | **4.5 + 3.6 on what had no comment pass** (770 first-party files, ~280k lines): batch 8 done (2026-11-13, LOG.md: `game`, `gamestate`, `room`, `dialog`, `savegame`, `game_init`, `script`, `guimain`, `engine`); next, the untouched files most-churned first (a ranking by commits since 2024, the batch-6 stray-rename files among them), then the D3D/OpenGL drivers with the `emscripten` and `linux` stages, and the compiler (7,440-line parser: its own plan, by function groups). Brief `.compare/briefs/brief-45-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | Comments before the 5.3 moves | Sonnet 5.5, `medium`, parallel subagents; the parser plan Fable 5.1 |
 | 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3188, #3189; #3187 merged), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
 Open items from finished tasks (details in LOG.md "Open items"):
@@ -140,6 +140,12 @@ Open items from finished tasks (details in LOG.md "Open items"):
     writes it).
   - Fork only, all fixed: the editor's palette leak and `agfreader` without `<Settings>` (2026-11-12, below), Ctrl+D's
     "trnsp" and the Opacity range checks (`603365067`, `c81711ba6`, `e903548c7`).
+- Bugs found by the comment pass (task 3; LOG.md "Batch 8"), open in the fork, all on upstream `master` and `ags4` too
+  (so for the `master` PR of task 1, or one after it; the user decides): the viewport/camera renumbering in
+  `DeleteRoomViewport`/`DeleteRoomCamera` (`[index]` for `[i]`), `Game.SetAudioTypeVolume`'s unchecked `change_type`
+  (out-of-bounds read), the dialog options' text-input key running the key-press handler instead of
+  `dialog_options_text_input`, `get_room_bg_surface` never finding background 0, `MakeSaveGameDir`'s empty "remapped
+  to" path; smaller ones listed there.
 - Sprite placement (2026-11-12, LOG.md "Sprite placement and the Direct3D 9 half-pixel offset"), in long-term
   testing by the user: the software renderer's scaling, hit tests on the truncated scaled size, truncated frame
   offsets, and a camera stretch by integer maths (exact agreement of all renderers at any zoom) are left. The
