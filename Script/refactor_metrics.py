@@ -63,6 +63,9 @@ def tracked_files():
 
 
 def strip_comments_and_strings(src):
+    # raw string literals first (the shaders' source in the graphics drivers): they may hold // and /*
+    src = re.sub(r'(?<![\w])(?:u8|u|U|L)?R"([^()\\\s]{0,16})\((.*?)\)\1"',
+                 lambda m: '""' + '\n' * m.group(0).count('\n'), src, flags=re.S)
     src = re.sub(r'/\*.*?\*/', lambda m: '\n' * m.group(0).count('\n'), src, flags=re.S)
     src = re.sub(r'//[^\n]*', '', src)
     src = re.sub(r'"(\\.|[^"\\\n])*"', '""', src)
