@@ -96,8 +96,8 @@ const Rect &GamePlayState::GetUIViewport() const
 
 SpriteTransform GamePlayState::GetGlobalTransform(bool full_frame_rend) const
 {
-    // NOTE: shake_screen is not applied to the sprite batches,
-    // but only as a final render factor (optimization)
+    // NOTE: the screen shake is a part of the sprite batches' transform only when the whole frame is redrawn
+    // each time (full_frame_rend); otherwise it is applied as a final render offset (optimization)
     // TODO: also add global flip to the same transform, instead of passing separately?
     return SpriteTransform(_mainViewport.Left,
                            _mainViewport.Top + shake_screen_yoff * static_cast<int>(full_frame_rend));
@@ -856,8 +856,8 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
 
 void GamePlayState::WriteForSavegame(Stream *out) const
 {
-    // NOTE: following parameters are never saved:
-    // recording, playback, gamestep, screen_is_faded_out, room_changes
+    // NOTE: the fields that are never saved here are listed above the GamePlayState struct;
+    // the order below is the save layout, ReadFromSavegame reads the same
     out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(usedmode);
     out->WriteInt32(disabled_user_interface);

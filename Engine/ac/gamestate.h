@@ -100,7 +100,15 @@ public:
 };
 
 
-// Runtime game state
+// Runtime game state, the global "play".
+// ReadFromSavegame and WriteForSavegame keep the save layout of the fields below; it is not the order of the
+// fields here, and has gaps for removed fields, so it changes only with a new GameStateSvgVersion.
+// Not saved by them: stop_dialog_at_end, screen_is_faded_out, wait_skipped_by, wait_skipped_by_data,
+// enable_antialiasing, voice_avail, std_gui_textheight, swap_portrait_lastlastchar, room_changes,
+// speech_in_post_state, overlay_count, complete_overlay_on, text_overlay_on, speech_text_schandle,
+// speech_face_schandle, shake_screen_yoff, get_loc_name_last_time, get_loc_name_save_cursor and gui_draw_order.
+// Saved by other save components: room_bg_modified, room_mask_modified, default_audio_type_volumes and the custom
+// property vectors (charProps, dialogProps, guiProps, guicontrolProps, invProps); audioclipProps are not saved.
 struct GamePlayState
 {
     // TODO: this is left purely to load older save version, revise later
@@ -112,7 +120,7 @@ struct GamePlayState
 
     int usedmode = 0;                                   // set by ProcessClick to last cursor mode used
     int disabled_user_interface = 0;                    // >0 while in cutscene/etc
-    int gscript_timer = 0;                              // obsolete
+    int gscript_timer = 0;                              // obsolete; counts down each update while above 0
     int debug_mode = 0;                                 // whether we're in debug mode
     int messagetime = 0;                                // time left for auto-remove messages
     int usedinv = 0;                                    // inventory item last used
@@ -125,7 +133,7 @@ struct GamePlayState
     int follow_change_room_timer = 0;                   // delay before moving following characters into new room
     SkipSpeechStyle skip_display = kSkipSpeechKeyMouse; // how the user can skip normal Display windows
     int no_multiloop_repeat = 0;                        // for backwards compatibility
-    int roomscript_finished = 0;                        // on_call finished in room; CHECKME: what is its use case?
+    int roomscript_finished = 0;                        // 0 while the room's on_call runs (CallRoomScript), 1 after
     int used_inv_on = 0;                                // inv item they clicked on
     int no_textbg_when_voice = 0;                       // no textwindow bgrnd when voice speech is used
     int max_dialogoption_width = 0;                     // max width of dialog options text window
@@ -145,8 +153,8 @@ struct GamePlayState
     int dialog_options_pad_y = 0; // dialog options y padding within the gui
     int narrator_speech = 0;
     int lipsync_speed = 0;
-    int close_mouth_speech_time = 0; // stop speech animation at (messagetime - close_mouth_speech_time)
-                                     // (this is designed to work in text-only mode)
+    int close_mouth_speech_time = 0; // the speech animation closes the mouth once messagetime falls below this
+                                     // (this is designed to work in text-only mode); 0 animates until the end
     int disable_antialiasing = 0;
     int text_speed_modifier = 0;
     HorAlignment text_align = kHAlignNone;
@@ -174,7 +182,9 @@ struct GamePlayState
     int keep_screen_during_instant_transition = 0;
     int read_dialog_option_colour = 0;
     int stop_dialog_at_end = 0; // used to record state-changing commands inside "dialog_request" callback
-        // FIXME: find another solution, possibly merge with handling of scheduled RunDialog/NewRoom etc commands
+        // (a DIALOG_* value, see dialog.cpp)
+        // FIXME: StopDialog, RunDialog and NewRoom called inside "dialog_request" are recorded here, and only the first
+        // one counts, unlike the other scheduled script commands that are queued; merge with that handling
     int speech_portrait_placement = 0;   // speech portrait placement mode (automatic/custom)
     int speech_portrait_x = 0;           // a speech portrait x offset from corresponding screen side
     int speech_portrait_y = 0;           // a speech portrait y offset
@@ -226,7 +236,7 @@ struct GamePlayState
     // if it's used in debugging menus or whatever other purposes.
     bool mouse_input_enabled = true;
     bool mouse_cursor_shown = true;
-    uint32_t shakesc_delay = 0; // unsigned to match loopcounter
+    uint32_t shakesc_delay = 0; // unsigned to match the loop counter (get_loop_counter)
     int shakesc_amount = 0;
     int shakesc_length = 0;
     int rtint_red = 0;
@@ -317,17 +327,19 @@ struct GamePlayState
     // Current set game text language; this may be set either by the base game,
     // or by the loaded translation.
     const AGS::Common::String &GetTextLanguage() const { return _gameTextLanguage; }
-    // Current game texts locale; used for lexographical string comparison.
+    // Current game texts locale; used for lexicographical string comparison.
     const AGS::Common::String &GetTextLocaleName() const { return _localeNameUTF8; }
     // Custom error text, to use when displaying a quit message (may be translated)
     const AGS::Common::String &GetGameErrorText() const { return _gameErrorText; }
 
+    // Sets the game text language, finds the matching UTF-8 locale for it and gives that to the GUI context.
     void SetGameTextLanguage(const AGS::Common::String &language);
     void SetGameErrorText(const AGS::Common::String &text) { _gameErrorText = text; }
 
     // Runtime behavior switches: allow to configure engine behavior
     // for modern and backwards-compatibility mode on a per-operation basis.
     const std::array<bool, kNum_RBS> &GetRBSwitches() const { return _rbSwitches; }
+    // Replaces all the switches with the given ones.
     void SetRBSwitches(const std::array<bool, kNum_RBS> &overrides);
 
     //
@@ -339,15 +351,16 @@ struct GamePlayState
     const Rect &GetMainViewport() const;
     // Returns UI viewport position on screen, within the main viewport
     const Rect &GetUIViewport() const;
-    // Returns SpriteTransform corresponding to the global screen offsets
+    // Returns SpriteTransform corresponding to the global screen offsets: the main viewport's position, and
+    // the shaking screen's y offset if full_frame_rend is set
     AGS::Engine::SpriteTransform GetGlobalTransform(bool full_frame_rend) const;
     // Tells if the room viewport should be adjusted automatically each time a new room is loaded
     bool IsAutoRoomViewport() const;
-    // Returns Room viewport object by it's main index
+    // Returns Room viewport object by its main index
     PViewport GetRoomViewport(int index) const;
-    // Returns Room viewport object by index in z-order
+    // Returns the Room viewports in z-order, the bottom one first
     const std::vector<PViewport> &GetRoomViewportsZOrdered() const;
-    // Finds room viewport at the given screen coordinates; returns nullptr if non found
+    // Finds the topmost visible room viewport at the given screen coordinates; returns nullptr if none found
     PViewport GetRoomViewportAt(int x, int y) const;
     // Returns Room viewport position in absolute coordinates (with main viewport offset);
     // this is a helper function, meant for peculiar cases.
@@ -356,6 +369,7 @@ struct GamePlayState
     void SetAutoRoomViewport(bool on);
     // Main viewport defines the location of all things drawn and interactable on the game screen.
     // Other viewports are defined relative to the main viewports.
+    // Also updates the mouse's graphic area and the viewport size in the script's system struct.
     void SetMainViewport(const Rect &viewport);
     // UI viewport is a formal dummy viewport for GUI and Overlays (like speech).
     void SetUIViewport(const Rect &viewport);
@@ -367,7 +381,8 @@ struct GamePlayState
     void InvalidateViewportZOrder();
     // Returns room camera object chosen by index
     PCamera GetRoomCamera(int index) const;
-    // Runs cameras behaviors
+    // Runs cameras behaviors: a camera that does not show the whole room and is not locked follows
+    // the player character, if it is enabled
     void UpdateRoomCameras();
     // Converts room coordinates to the game screen coordinates through the room viewport
     // This group of functions always tries to pass a point through the **primary** room viewport
@@ -378,23 +393,27 @@ struct GamePlayState
     // Tries to find if there is any viewport at the given coords.
     // If "clip_viewport" parameter is true, then not finding a viewport results in failure,
     // if it is false, proceeds converting through the primary viewport.
+    // A game made for a script API older than kScriptAPI_v3507 ignores clip_viewport: it always converts through
+    // the primary viewport, without failing.
     VpPoint ScreenToRoom(int screen_x, int screen_y, bool clip_viewport = true);
 
     // Makes sure primary viewport and camera are created and linked together
     void CreatePrimaryViewportAndCamera();
-    // Creates new room viewport
+    // Creates new room viewport, with the size of the main viewport; its ID is its index
     PViewport CreateRoomViewport();
-    // Register camera in the managed system; optionally links to existing handle
+    // Register viewport in the managed system; optionally links to existing handle
     ScriptViewport *RegisterRoomViewport(int index, int32_t handle = 0);
-    // Deletes existing room viewport
+    // Deletes existing room viewport: invalidates its script object, unlinks its camera and numbers
+    // the viewports after it anew
     void DeleteRoomViewport(int index);
     // Get number of room viewports
     int GetRoomViewportCount() const;
-    // Creates new room camera
+    // Creates new room camera, with the size of the main viewport; its ID is its index
     PCamera CreateRoomCamera();
     // Register camera in the managed system; optionally links to existing handle
     ScriptCamera *RegisterRoomCamera(int index, int32_t handle = 0);
-    // Deletes existing room camera
+    // Deletes existing room camera: invalidates its script object, unlinks it from the viewports and numbers
+    // the cameras after it anew
     void DeleteRoomCamera(int index);
     // Get number of room cameras
     int GetRoomCameraCount() const;
@@ -405,10 +424,12 @@ struct GamePlayState
     // because script interpreter does this when acquiring managed pointer.
     ScriptCamera *GetScriptCamera(int index);
 
+    // The shader (ID and managed handle) applied to the whole screen
     int GetScreenShaderID() const { return _screenShaderID; }
     int GetScreenShaderHandle() const { return _screenShaderHandle; }
     void SetScreenShader(int shader_id, int shader_handle);
 
+    // The shader (ID and managed handle) applied to the mouse cursor
     int GetCursorShaderID() const { return _cursorShaderID; }
     int GetCursorShaderHandle() const { return _cursorShaderHandle; }
     void SetCursorShader(int shader_id, int shader_handle);
@@ -434,14 +455,19 @@ struct GamePlayState
     //
     // Wait and blocking action state
     //
+    // Tells if a blocking wait is running now (the wait counter is not 0, whether it has a timeout or not)
     bool IsInWait() const;
-    // Set how the last blocking wait was skipped
+    // Set how the last blocking wait was skipped; ends the wait (resets the wait counter)
     void SetWaitSkipResult(int skipped_by, int data = 0);
+    // Ends the wait as skipped by the given key press
     void SetWaitKeySkip(const KeyInput &key_input)
     {
         SetWaitSkipResult(SKIP_KEYPRESS, AGSKeyToScriptKey(key_input.Key) | key_input.Mod);
     }
+    // Returns the wait counter: above 0 for a wait with a timeout (the ticks left), below 0 for a wait without
+    // a timeout, 0 if there is no wait
     int GetWaitCounter() const;
+    // Returns which kinds of input may skip the current wait (the SKIP_* flags, key_skip_wait)
     int GetWaitSkipType() const;
     // Returns the information about how the latest blocking wait was skipped.
     // The information is packed into int32 value like this:
@@ -456,27 +482,40 @@ struct GamePlayState
     bool IsBlockingVoiceSpeech() const;
     // Tells whether we have to finalize voice speech when stopping or reusing the channel
     bool IsNonBlockingVoiceSpeech() const;
-    // Speech helpers
+    // Speech helpers: tell if the speech voice-over should be played, which it should not while fast-forwarding or
+    // if the voice is not available; the first one also not in the text-only speech mode
     bool ShouldPlayVoiceSpeech() const;
     bool ShouldPlayVoiceSpeechNonBlocking() const;
 
     //
     // Script Timers
     //
+    // Starts the timer (re-starts if it is running), to count down timeout game ticks; timer_id must not be
+    // negative and timeout must be positive
     void StartScriptTimer(int timer_id, int timeout);
+    // Stops the timer, if it is running
     void StopScriptTimer(int timer_id);
+    // Returns the ticks left on the timer, 0 if it is not running
     int GetScriptTimerPos(int timer_id);
+    // Tells if the timer has run out, which it does only once: the timer is stopped when it is found run out
     bool CheckScriptTimer(int timer_id);
+    // Counts all the running timers down by one tick; a timer stops at 1 and stays there until it is checked
     void UpdateScriptTimers();
 
     //
     // Serialization
     //
+    // Reads the state from a save, written by WriteForSavegame (or by an older save version, see the
+    // GameStateSvgVersion checks). Skips the legacy fields that are no longer used. data_ver and r_data are not used.
     void ReadFromSavegame(AGS::Common::Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver,
                           AGS::Engine::RestoredData &r_data);
+    // Writes the state into a save; the fields that are not written are listed above the struct.
     void WriteForSavegame(AGS::Common::Stream *out) const;
-    // This is required for freeing only particular parts when restoring the game;
-    // FIXME: investigate and refactor to be able to simply reset whole object
+    // These are required for freeing only particular parts when restoring the game: FreeProperties clears the custom
+    // property values of audio clips, characters, dialogs, GUIs and inventory items, FreeViewportsAndCameras removes
+    // all the room viewports and cameras with their script objects;
+    // TODO: restoring a game resets the state part by part (see DoBeforeRestore in savegame.cpp), reset the whole
+    // object instead
     void FreeProperties();
     void FreeViewportsAndCameras();
 

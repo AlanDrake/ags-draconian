@@ -104,7 +104,7 @@ std::unique_ptr<AssetManager> AssetMgr;
 GamePlayState play;
 GameSetup usetup;
 GameSetupStruct game;
-RoomStatus troom; // used for non-saveable rooms, eg. intro
+RoomStatus troom; // state of the current room if it is a temporary one (number >= MAX_ROOMS), e.g. an intro room
 RoomObject *objs = nullptr;
 RoomStatus *croom = nullptr;
 RoomStruct thisroom;
@@ -166,8 +166,8 @@ ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
 
 std::vector<ViewStruct> views;
 std::vector<CharacterExtras> charextra;
-// MoveLists for characters and room objects; NOTE: 1-based array!
-// object sprites begin with index 1, characters are after MAX_ROOM_OBJECTS + 1
+// MoveLists of the moving characters and room objects, addressed by their index; NOTE: slot 0 is never used,
+// as 0 means "no movelist". A slot freed by remove_movelist is queued in movelist_free_ids and used again.
 std::vector<MoveList> movelists;
 std::queue<uint32_t> movelist_free_ids;
 
@@ -327,7 +327,7 @@ void Game_SetAudioTypeVolume(int audio_type, int volume, int change_type)
 }
 
 //=============================================================================
-// ---
+// Game state, save games
 //=============================================================================
 
 int Game_GetDialogCount()
@@ -354,6 +354,7 @@ float get_game_speed()
 extern int cbuttfont;
 extern int acdialog_font;
 
+// The cursor look from before setup_for_dialog
 int oldmouse;
 void setup_for_dialog(int use_font)
 {
@@ -1378,9 +1379,9 @@ void save_game(int slot, const String &description, std::unique_ptr<Bitmap> &&im
         usetup.CompressSaves);
     if (!err)
     {
-        // FIXME: left this original Display call for the time being,
-        // but this is wrong. Figure out how to use event callback for this instead:
-        // either pass error code to kScriptEvent_GameSaved, or have a separate event for errors
+        // FIXME: on a failed save the player gets this hardcoded English message and the script gets no event, so a
+        // game can neither translate nor replace it. Either pass the error code to kScriptEvent_GameSaved, or have a
+        // separate event for errors.
         Display("ERROR: Unable to open savegame file for writing!");
         Debug::Printf(kDbgMsg_Error, "Save game failed: %s", err->FullMessage().GetCStr());
         return;
@@ -1411,7 +1412,9 @@ void schedule_save_game(int slot, const String &description, int sprite_num)
     save_game(slot, description, std::move(image));
 }
 
+// Counts the restore attempts, so that a script run that was in progress can tell that one happened (script.cpp)
 int gameHasBeenRestored = 0;
+// The script position (eip) from before load_game, put back after a successful restore
 int oldeip;
 
 bool read_savedgame_description(const String &filename, String &description)
@@ -1474,6 +1477,9 @@ bool test_game_guid(const String &filepath, const String &guid, int legacy_id)
     return legacy_id == loaded_game.uniqueid;
 }
 
+// Restores the game from the save file. If the save belongs to another game (by GUID, or by the main file name when
+// there is none), schedules running that game and restoring the save there, and returns no error. Sets
+// data_overwritten once RestoreSavegame has run, after which an error means the game state is lost.
 HSaveError load_game(const String &path, int slot, bool startup, bool &data_overwritten)
 {
     data_overwritten = false;
@@ -1485,10 +1491,12 @@ HSaveError load_game(const String &path, int slot, bool startup, bool &data_over
     SavegameDescription desc;
     desc.Slot = slot;
     HSaveError err = ReadSaveDescription(path, desc, (SavegameDescElem)(kSvgDesc_EnvInfo | kSvgDesc_UserText));
-    // saved in incompatible enviroment
+    // saved in incompatible environment
     if (!err)
         return err;
-    // CHECKME: is this color depth test still essential? if yes, is there possible workaround?
+    // The bitmaps in a save (dynamic sprites, room backgrounds, drawing surfaces) are read at the color depth they were
+    // saved with, so a save made at another depth is refused.
+    // TODO: convert the bitmaps while restoring, if saves must survive a change of the game's color depth
     else if (desc.ColorDepth != game.GetColorDepth())
         return new SavegameError(kSvgErr_DifferentColorDepth, "Running: %d-bit, saved in: %d-bit.",
                                  game.GetColorDepth(), desc.ColorDepth);
@@ -1634,7 +1642,7 @@ void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot,
             debug_script_log("Prescan save slot %d: failed to open save: %s", save.Slot, err->FullMessage().GetCStr());
             continue;
         }
-        // CHECKME: is this color depth test still essential? if yes, is there possible workaround?
+        // Same test as in load_game: a save made at another color depth cannot be restored
         else if (desc.ColorDepth != game.GetColorDepth())
         {
             debug_script_log("Prescan save slot %d: mismatching game color depth (game: %d-bit, save: %d-bit)",
@@ -1726,8 +1734,6 @@ bool check_skip_cutscene_gamepad(int gamepad_button)
     return false;
 }
 
-// Helper functions used by StartCutscene/EndCutscene, but also
-// by SkipUntilCharacterStops
 void initialize_skippable_cutscene()
 {
     // TODO: move related variable init here
@@ -1735,7 +1741,6 @@ void initialize_skippable_cutscene()
 
 void stop_fast_forwarding()
 {
-    // when the skipping of a cutscene comes to an end, update things
     play.fast_forward = 0;
     setpal();
 
@@ -1866,8 +1871,6 @@ void display_switch_out_suspend()
 
     platform->PauseApplication();
 
-    // TODO: find out if anything has to be done here for SDL backend
-
     video_single_pause();
     // Pause all the sounds
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++)
@@ -1917,8 +1920,6 @@ void display_switch_in_resume()
     // clear the screen if necessary
     if (gfxDriver && gfxDriver->UsesMemoryBackBuffer())
         gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, nullptr);
-
-    // TODO: find out if anything has to be done here for SDL backend
 
     platform->ResumeApplication();
     game_update_suspend = false;
@@ -2015,7 +2016,8 @@ bool load_game_font(int at_index, const FontInfo &font_info, GameDataVersion dat
 }
 void fixup_game_fonts()
 {
-    // CLNUP: perhaps following is not necessary in AGS 4
+    // TODO: this workaround may not be needed any more with the FreeType the engine is built with; test with the
+    // LucasFan font before removing it
     for (int i = 0; i < game.numfonts; ++i)
     {
         if (!is_bitmap_font(i))
