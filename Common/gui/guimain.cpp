@@ -32,6 +32,8 @@
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 
+// A special value of _mouseOverCtrl: a mouse button is held pressed on a control (_mouseDownCtrl),
+// which has taken over the mouse until the button is released
 #define MOVER_MOUSEDOWNLOCKED -4000
 
 namespace AGS
@@ -494,6 +496,7 @@ HError GUIMain::RebuildArray(GUIRefCollection &gui_objs)
     return HError::None();
 }
 
+// Tells if the first control is drawn below the second one
 bool GUIControlZOrder(const GUIControl *e1, const GUIControl *e2)
 {
     return e1->GetZOrder() < e2->GetZOrder();
@@ -606,8 +609,8 @@ void GUIMain::OnMouseButtonDown(int mx, int my)
 
 void GUIMain::OnMouseButtonUp()
 {
-    // _focusCtrl was locked - reset it back to normal, but On the
-    // locked object so that a OnMouseLeave gets fired if necessary
+    // _mouseOverCtrl was locked by the pressed control - reset it back to normal, but on the
+    // control that was pressed, so that an OnMouseLeave gets fired if necessary
     if (_mouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
     {
         _mouseOverCtrl = _mouseDownCtrl;
@@ -621,6 +624,10 @@ void GUIMain::OnMouseButtonUp()
     _mouseDownCtrl = -1;
 }
 
+// Game data layout of one GUI: name, OnClick handler name, x, y, width, height, control count,
+// popup style, popup-at-mouse-Y, background color, background image, foreground color, flags,
+// opacity, z-order, id, padding (all int32), then one packed int32 per control ref:
+// control type in the high 16 bits, index in the global array of that type in the low 16 bits.
 void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     _name = StrUtil::ReadString(in);
@@ -747,12 +754,18 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver, std::v
     UpdateGraphicSpace();
 }
 
+// Skips one GUI's data in a save, mirroring ReadFromSavegame; the control refs are read
+// into ctrl_refs. The layout, as int32 values: 18 properties and dynamic values, the control
+// count and refs, 4 values since kGuiSvgVersion_40026, 15 values (blend mode, reserved
+// colour and transform options), 4 values since kGuiSvgVersion_40018 (shader).
 void GUIMain::SkipSavestate(Stream *in, GuiSvgVersion svg_ver, std::vector<ControlRef> *ctrl_refs)
 {
     in->Seek(18 * sizeof(int32_t));
 
     // FIXME: ReadFromSavegame reads control refs since kGuiSvgVersion_40010 only, so a save of 4000000
     // to 4000009 (which has none) is misread here
+    // FIXME: with ctrl_refs == nullptr only the control refs are skipped, and the values after
+    // them are not; the only caller (PrescanGUI) always passes ctrl_refs
     if (!ctrl_refs)
     {
         in->Seek(in->ReadInt32() * sizeof(int32_t));
@@ -1049,6 +1062,8 @@ String ResolveMacroTokens(const String &text)
     return AGS::Common::ResolveMacroTokens(text, fn_resolve);
 }
 
+// Connects every GUI to its child controls in gui_objs, numbers the controls within
+// their GUIs, sorts them by z-order and recalculates the graphic space of GUIs and controls
 HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &gui_objs)
 {
     // set up the reverse-lookup array
@@ -1062,14 +1077,19 @@ HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &gui_objs)
             GUIControl *gui_ctrl = gui.GetControl(ctrl_index);
             gui_ctrl->SetParentID(gui.GetID());
             gui_ctrl->SetID(ctrl_index);
-            gui_ctrl->UpdateGraphicSpace(); // CHECKME: should be a runtime-only operation
+            // The graphic space depends on sprite sizes, which may not be loaded yet
+            // when the controls are read from the game data
+            gui_ctrl->UpdateGraphicSpace();
         }
         gui.ResortZOrder();
-        gui.UpdateGraphicSpace(); // CHECKME: should be a runtime-only operation
+        gui.UpdateGraphicSpace();
     }
     return HError::None();
 }
 
+// Game data layout: GUIMAGIC, GUI format version, GUI count, the GUIs; then the count and
+// the array of each control type in this order: buttons, labels, inventory windows, sliders,
+// text boxes, list boxes
 HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVersion &gui_version,
                GUIRefCollection &gui_objs, Stream *in)
 {

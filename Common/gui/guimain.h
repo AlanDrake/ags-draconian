@@ -91,6 +91,9 @@ enum GUIEventID
     kNumGUIEvents
 };
 
+// GUIMain is a GUI window: a background with the child controls on it. It is read from the
+// game data (ReadFromFile) and from saves (ReadFromSavegame); the controls themselves are
+// stored in the global per-type arrays, and the GUIMain only refers to them.
 class GUIMain : public GUIObject
 {
 public:
@@ -132,16 +135,21 @@ public:
     // Sets whether GUI is allowed to be displayed on screen
     void SetVisible(bool on) override;
 
+    // Background color; 0 means that the background is not filled
     int GetBgColor() const { return _bgColor; }
     void SetBgColor(int color);
+    // Foreground color: the border color of a normal GUI, the text color of a text window
     int GetFgColor() const { return _fgColor; }
     void SetFgColor(int color);
+    // Background sprite index; 0 or less means no image
     int GetBgImage() const { return _bgImage; }
     void SetBgImage(int image);
     GUIPopupStyle GetPopupStyle() const { return _popupStyle; }
     void SetPopupStyle(GUIPopupStyle style);
+    // Mouse cursor Y coordinate, above which a kGUIPopupMouseY GUI pops up
     int GetPopupAtY() const { return _popupAtMouseY; }
     void SetPopupAtY(int popup_at_y);
+    // Padding between the text window's edge and its text
     int GetPadding() const { return _padding; }
     void SetPadding(int padding);
 
@@ -198,23 +206,32 @@ public:
     void RemoveAllControls();
 
     // Operations
+    // Moves the control to the top of the z-order; returns if z-order changed
     bool BringControlToFront(int index);
+    // Draws the GUI's own background and border, without controls
     void DrawSelf(Bitmap *ds);
+    // Draws the GUI with all its visible controls
     void DrawWithControls(Bitmap *ds);
+    // Draws only the visible controls, in the z-order
     void DrawControls(Bitmap *ds);
     // Polls GUI state, providing current cursor (mouse) coordinates.
     // If GUI has focus, then it will trigger OnEnter events for controls.
     void Poll(int mx, int my, bool has_focus);
     // Reconnects this GUIMain with the child controls from the global guiobject collection
     HError RebuildArray(GUIRefCollection &gui_objs);
+    // Rebuilds the draw order of controls from their z-order values
     void ResortZOrder();
+    // Moves the control to the bottom of the z-order; returns if z-order changed
     bool SendControlToBack(int index);
 
     // Events
+    // Presses the control under the mouse, if it is enabled, visible and clickable
     void OnMouseButtonDown(int mx, int my);
+    // Releases the pressed control, if any
     void OnMouseButtonUp();
 
     // Serialization
+    // Reads the GUI from the game data
     void ReadFromFile(Stream *in, GuiVersion gui_version);
     // Savegame reading and writing
     // TODO: move to engine, but will require to split GUI into data and runtime classes
@@ -225,6 +242,8 @@ public:
     // Perhaps review this later (maybe when there's a split runtime GUI class).
     void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver, std::vector<ControlRef> &ctrl_refs);
     void WriteToSavegame(Stream *out) const;
+    // Skips one GUI's data in a save (same layout as ReadFromSavegame reads), optionally
+    // returning the control refs
     static void SkipSavestate(Stream *in, GuiSvgVersion svg_ver, std::vector<ControlRef> *ctrl_refs);
 
 private:
@@ -249,7 +268,7 @@ private:
     int _popupAtMouseY = -1;                     // popup when mousey < this
 
     bool _wasFocused = false;     // whether GUI was focused during last Poll
-    int _focusCtrl = -1;          // which control has the focus
+    int _focusCtrl = -1;          // which control has the focus (saved, but not used by GUIMain itself)
     int _highlightCtrl = -1;      // which control has the bounding selection rect
     int _mouseOverCtrl = -1;      // which control has the mouse cursor over it
     int _mouseDownCtrl = -1;      // which control has the mouse button pressed on it
@@ -453,7 +472,7 @@ int CalcFontGraphicalHExtent(int font);
 // which is a top and bottom offsets in zero-based coordinates.
 // NOTE: this applies font size fixups.
 Line CalcFontGraphicalVExtent(int font);
-// Draw standart "shading" effect over rectangle
+// Draw standard "shading" effect over rectangle
 void DrawDisabledEffect(Bitmap *ds, const Rect &rc);
 // Draw text aligned inside rectangle
 void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
@@ -481,7 +500,7 @@ String TransformTextForDrawing(const String &text, bool translate, bool apply_di
 size_t SplitLinesForDrawing(const String &text, bool apply_direction, SplitLines &lines, int font, int width,
                             size_t max_lines = -1);
 
-// Reads all GUIs and their controls. Fills guis, guiobjs arrays and gui_version on success.
+// Reads all GUIs and their controls. Fills guis, gui_objs arrays and gui_version on success.
 HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVersion &gui_version,
                GUIRefCollection &gui_objs, Stream *in);
 
