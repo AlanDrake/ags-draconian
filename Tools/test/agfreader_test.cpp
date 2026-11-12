@@ -541,7 +541,8 @@ TEST_F(AGFReaderBlocks, GameSettings)
     EXPECT_EQ(Common::kGuiDis_Blackout, s.WhenInterfaceDisabled);
 }
 
-// The scalar defaults of AGS.Types.Settings (Editor)
+// The scalar defaults of AGS.Types.Settings (Editor), except RunGameLoopsWhileDialogOptionsDisplayed,
+// which is not the same in a new game and in one read from a Game.agf without the element
 static void ExpectEditorScalarDefaults(const DataUtil::GameSettings &s)
 {
     EXPECT_FALSE(s.AllowRelativeAssetResolutions);
@@ -581,7 +582,6 @@ static void ExpectEditorScalarDefaults(const DataUtil::GameSettings &s)
     EXPECT_TRUE(s.OptimizeSpriteStorage);
     EXPECT_TRUE(s.PixelPerfect);
     EXPECT_EQ(0, s.PlaySoundOnScore);
-    EXPECT_TRUE(s.RunGameLoopsWhileDialogOptionsDisplayed);
     EXPECT_FALSE(s.SaveScreenshots);
     EXPECT_TRUE(s.ScaleCharacterSpriteOffsets);
     EXPECT_FALSE(s.ScaleMovementSpeedWithMaskResolution);
@@ -605,6 +605,7 @@ TEST_F(AGFReaderBlocks, GameSettingsDefaultConstructed)
     memset(storage, 0xA5, sizeof(storage));
     DataUtil::GameSettings *s = new (storage) DataUtil::GameSettings;
     ExpectEditorScalarDefaults(*s);
+    EXPECT_TRUE(s->RunGameLoopsWhileDialogOptionsDisplayed); // the field's initializer in Settings.cs
     s->~GameSettings();
 }
 
@@ -616,10 +617,11 @@ TEST_F(AGFReaderBlocks, GameSettingsDefaults)
     DataUtil::GameSettings s;
     AGF::ReadGameSettings(s, game);
 
-    // (DebugMode and NumberDialogOptions are left out: their defaults are not the same in all readers)
-    EXPECT_FALSE(s.PixelPerfect);
+    ExpectEditorScalarDefaults(s);
+    // Settings.FromXml sets this one to false before reading, so the Editor does not turn it on
+    // in a project from before the setting existed
+    EXPECT_FALSE(s.RunGameLoopsWhileDialogOptionsDisplayed);
     EXPECT_STREQ("", s.GameName.GetCStr());
-    EXPECT_EQ(40, s.GameFPS);
     EXPECT_EQ(DataUtil::kAndroidBuild_ApkEmbedded, s.AndroidBuildFormat);
     EXPECT_EQ(DataUtil::kGameColorDepth_TrueColor, s.ColorDepth);
     EXPECT_EQ(Common::kSprCompress_None, s.CompressSpritesType);
@@ -648,7 +650,7 @@ TEST_F(AGFReaderBlocks, GameSettingsUnknownEnumNamesGiveTheDefault)
     EXPECT_EQ(kScrTran_Fade, s.RoomTransition);
     EXPECT_EQ(DataUtil::kSpeechStyle_Lucasarts, s.SpeechStyle);
     EXPECT_EQ(Common::kGuiDis_Greyout, s.WhenInterfaceDisabled);
-    EXPECT_EQ(40, s.GameFPS);
+    EXPECT_EQ(60, s.GameFPS);
 }
 
 TEST_F(AGFReaderBlocks, CustomDataDirectories)
