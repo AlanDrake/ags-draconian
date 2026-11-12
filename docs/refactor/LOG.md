@@ -1364,8 +1364,9 @@ combined branch, the user's rule):
 *Moved from PLAN.md "Next up" on 2026-11-07* (details in the tasks' sections):
 
 - 0.4: the CodeQL setting, the `D3DCOMPILER_47`/Windows 7 question and the macOS 10.9 deployment target.
-- 1.4: the unfixed `agfreader` crash on a project without `<Settings>` (still there 2026-11-12); `StrUtil::Unescape`
-  reading past the end (gone with its rewrite in `28badf14b`, U.3).
+- 1.4: the `agfreader` crash on a project without `<Settings>` (fixed 2026-11-12: `AGFReader::Open` refuses the
+  project, `ReadFields` a missing element; test `AGFReader.OpenReportsMissingSettings` failed before the fix);
+  `StrUtil::Unescape` reading past the end (gone with its rewrite in `28badf14b`, U.3).
 - 1.2: the uninitialised `DataUtil::GameSettings`: 47 `bool`/`int` fields have no initializer, so a `Game.agf` element
   that is absent (an older Editor's project) leaves garbage in `agsbuild` and `ReadCustomDataDirectories` instead of
   the default from `AGS.Types/Settings.cs` (several are `true`, so `{}` is not the fix); only `PixelPerfect` got its
