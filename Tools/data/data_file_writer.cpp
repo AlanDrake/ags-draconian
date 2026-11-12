@@ -761,19 +761,6 @@ void WriteLipSyncBlock(const DataUtil::GameData &game, Stream *out)
         StrUtil::WriteFixedString(i < static_cast<int>(game.LipSyncFrames.size()) ? game.LipSyncFrames[i] : String(), 50, out);
 }
 
-// Read by GameSetupStruct::read_messages() in Common/ac/gamesetupstruct.cpp.
-void WriteGlobalMessagesBlock(const DataUtil::GameData &game, Stream *out)
-{
-    for (const auto &message : game.GlobalMessages)
-    {
-        if (!message.IsEmpty())
-        {
-            String escaped_message = TextProperty(message);
-            WriteStringEncrypt(out, escaped_message.GetCStr());
-        }
-    }
-}
-
 // Read by GUI::ReadGUI() in Common/gui/guimain.cpp; that dispatches to
 // GUIMain and each concrete GUI control's ReadFromFile().
 void WriteGuiBlock(const DataUtil::GameData &game, Stream *out)
@@ -1279,7 +1266,6 @@ HError WriteGameData28(const GameData &game, std::unique_ptr<Stream> &&out)
     WriteViewsBlock(game, stream);
     WriteCharactersBlock(game, stream);
     WriteLipSyncBlock(game, stream);
-    WriteGlobalMessagesBlock(game, stream);
     WriteGuiBlock(game, stream);
     WritePluginsBlock(game, stream);
     WriteCustomPropertiesBlock(game, stream);

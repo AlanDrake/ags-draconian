@@ -48,7 +48,6 @@ void WriteInventoryBlock(const DataUtil::GameData &game, Stream *out);
 void WriteCursorBlock(const DataUtil::GameData &game, Stream *out);
 void WriteViewsBlock(const DataUtil::GameData &game, Stream *out);
 void WriteCharactersBlock(const DataUtil::GameData &game, Stream *out);
-void WriteGlobalMessagesBlock(const DataUtil::GameData &game, Stream *out);
 void WriteCustomPropertiesBlock(const DataUtil::GameData &game, Stream *out);
 void WriteAudioBlock(const DataUtil::GameData &game, Stream *out);
 void WriteFontBlock(const DataUtil::GameData &game, Stream *out);

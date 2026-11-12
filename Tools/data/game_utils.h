@@ -773,7 +773,6 @@ struct GameData : GameRef
     std::vector<String> LipSyncFrames;
     int LipSyncDefaultFrame = 0;
     LipSyncType LipSync = kLipSync_None;
-    std::vector<String> GlobalMessages;
     std::vector<PluginData> Plugins;
     String EditorVersion;
 };
