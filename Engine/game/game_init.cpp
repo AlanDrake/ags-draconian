@@ -461,6 +461,10 @@ enum LipsyncDatVersion
 
 void LoadLipsyncData()
 {
+    splipsync.clear();
+    numLipLines = 0;
+    curLipLine = -1;
+
     auto speechsync = AssetMgr->OpenAsset("syncdata.dat", "voice");
     if (!speechsync)
         return;

@@ -19,6 +19,7 @@
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
+#include "ac/lipsync.h"
 #include "ac/runtime_defines.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
@@ -153,6 +154,8 @@ bool init_voicepak(const String &name)
     ResPaths.VoiceDirSub = speech_subdir;
     AssetMgr->AddLibrary(ResPaths.VoiceDirSub, "voice");
     AssetMgr->AddLibrary(ResPaths.SpeechPak.Path, "voice");
+    // each voice pack has its own lip-sync data
+    AGS::Engine::LoadLipsyncData();
     return ResPaths.VoiceAvail;
 }
 

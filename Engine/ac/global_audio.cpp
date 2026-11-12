@@ -28,6 +28,7 @@
 #include "main/engine.h"
 #include "media/audio/audio_core.h"
 #include "media/audio/audio_system.h"
+#include "util/path.h"
 #include "util/string_compat.h"
 #include "util/time_util.h"
 
@@ -183,10 +184,12 @@ bool play_voice_speech(int char_id, int cue_id)
     // compare the voice file name to the lip-sync lines' file names
     curLipLine = -1;
     curLipLinePhoneme = -1;
+    // (the sync data names the clips without the voice pack's folder)
+    const String clip_name = Path::GetFilename(voice_file);
     int line_id;
     for (line_id = 0; line_id < numLipLines; line_id++)
     {
-        if (voice_file.CompareNoCase(splipsync[line_id].filename) == 0)
+        if (clip_name.CompareNoCase(splipsync[line_id].filename) == 0)
         {
             curLipLine = line_id;
             break;
