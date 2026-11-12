@@ -4316,6 +4316,58 @@ subagents at `medium` in parallel, worktrees from `79e0d4a86` (batch 3's tip), t
   `Common/util/lzw.cpp` 6 and the compiler's `eres`/`tqs` (669), `char1` 13. 1,872 watchlist names in all, 963 without
   the 5.1 globals.
 
+**`global_api.cpp`, `game/savegame_components.cpp/.h`, `main/game_run.cpp/.h`, `global_audio.cpp/.h`** (2026-11-12;
+four Sonnet 5.5 subagents at `medium` in parallel, worktrees from `a241df4d1`; reviewed and assembled on
+`wt-41-batch5`):
+- **`game_run`** (`56e42b338` `[rename]`, `08277469f` `[delete]` a duplicate `cur_mode` extern, `17dcedcff`
+  `[comment]`): `objid`, `charid`, `guin` to 0, `mwasatx` → `mouse_was_x`, `agscombokey` → `ags_combo_key`, `gbn` →
+  `gamepad_button`, `untilwhat` → `until_what`. The function-local statics `offsetxWas`/`offsetyWas` stay: a local
+  static's name is part of its mangled symbol, so the rename was not object-identical. Comments: commented-out
+  `FOR_ANIMATION`/`FOR_SCRIPT` cases, the stale "backward input mode" and `old_keyhandle` notes, two CHECKMEs answered
+  (the region update after a blocking action; `UpdateSavedCursorOverLocation` needs `GetLocationName`, as
+  `UpdateGUIContext` calls it only at the end of the tick), FIXMEs made TODOs.
+- **`global_api`** (`4b33e4137`, `9c5784b48`, `3fb808e7d` `[delete]`): the five `ScPl_*` functions' `texx` → `format`,
+  `xxp`/`yyp`/`widd` → `x`/`y`/`width`; the `DisplayAtY` CHECKME answered (one registration serves pre-3.6.1 scripts:
+  `ASSERT_PARAM_COUNT` takes `>=`); the undefined `Sc_Said` extern and a doubled `MoveSaveSlot` row deleted. The
+  remaining `texx`/`xx`/`yy` are in `Sc_*` signature comments (5.2).
+- **`global_audio`** (`57e9b345c`, `b48210153`): `charid` 9 to 0, `sndid` → `cue_id`, `ii` → `line_id`; comments on
+  the cue name rule and the cutscene-skip and lip-sync state checked against `gamestate.cpp`.
+- **`savegame_components`** (`6e8cd9cf7`, `c729d942e`, `a2d3fe098`): `chi` 11 to 0, `abut` → `anim_button`, `mlist` →
+  `move_list`, `rb` → `rtti_builder`; renamed names inside the `#if (DEBUG_SAVECOMPONENTS)` blocks (off, so no
+  compiler sees them) checked by reading. The rename put `ReadRTTI`'s `kType_Generated` (a type flag) in a field's
+  flags under the gate: `kField_Generated`, the same value. The agent looked for batch 3's kind of gap (a field neither
+  read nor defaulted for old saves): none here, `RestoredData` defaults them.
+- **Verification:** `compare_objects.py` per commit: the 9 `[rename]`/`[comment]` commits and the `[delete]`s of
+  declarations identical, the code changes in their own functions. `prepush.py --auto --base a241df4d1 --emsdk ...`:
+  every stage passes after two tidy findings on renamed lines were fixed (`09b8cd946` `make_unique`, `7eef32c49`
+  `[delete]` a redundant `cur_cursor` extern); linux ctest 1182/1182. The agents' parallel builds were slow enough that
+  one agent stopped waiting for its build stage; the combined run covers it. Not run: macOS, iOS, Android, the
+  auto-test game.
+- **Found and fixed:**
+  - `edadb75aa`: the save prescan (`PrescanViews`) skipped 18 bytes per frame whatever the component version, and not
+    the frame event names `WriteViews` writes after each loop's frames since 4000024. In a save with a two-loop view
+    it read the next frame count from a name and failed, so `Game.ScanSaveSlots` left compatible saves out. New test
+    `SavegameContent.PrescanStepsOverViewFrames`: failed before the fix (frame count 1885697139, the bytes "step"),
+    passes after. From `dcd2870cc`; upstream `ags4` has it (U.x candidate).
+  - `603365067` the Ctrl+D object list labelled opacity "trnsp"; `a8ee0fa4b` `||` in `SetSpeechVolume`; `[delete]`s:
+    `a1e9f1ef7` `GameLoopUntilState::GetDisabledFor` (no caller), `fb692f132` an unused `scrAudioChannel` extern,
+    `84fd23f6e` `ReadAudio`'s `Speed = 1000` overwritten on the next line.
+- **Open, for the user:** voice lip-sync works only with the default `speech.vox`: `LoadLipsyncData` reads
+  `syncdata.dat` once at startup, and `play_voice_speech` compares the clip's asset name, which carries a voice pack's
+  path (`<name>/EGO.1` for `sp_<name>.vox`), with the bare names the editor writes; so after `Game.ChangeSpeechVox` no
+  line matches and the pack's own sync data is never read (older than `71aba62e4`; upstream too). A pre-3.6.1 script's
+  `DisplayAtY(y, text)` goes through `ScriptSprintf` with the text as the format (a `%` in it is read as a format
+  spec; not tested).
+- **Noted, not changed:** `ReadScriptModules`/`PrescanScriptModules` repeat ~40 lines; `kSaveRestore_AllowMismatchExtra`
+  is never set (with it the readers would index past the game arrays; the test file says so);
+  `check_gamepad_controls` sends no gamepad event to scripts; `stop_voice_nonblocking` ignores a voice played with
+  `as_speech` false.
+- **Left for the next file sets:** the engine tail: `gui/mylistbox.cpp` 7, `listbox.cpp` 6, `speech.cpp` 5,
+  `invwindow.cpp` 5, `plugin/agsplugin.cpp` 4, `gui/mytextbox.cpp`, `gui/mypushbutton.cpp` 4 each; outside it
+  `Tools/data/data_file_writer.cpp` (`chinfo` 40), `Common/gfx/image_pcx.cpp` 7, `Common/util/lzw.cpp` 6,
+  `Common/game/main_game_file.cpp` 5 and the compiler (`eres`/`tqs` 669, `char1` 13). 1,826 watchlist names in all,
+  917 without the 5.1 globals.
+
 ### 7.3 Ports
 
 **7.3, the macOS Xcode source list** (2026-11-09; a slice of 7.3, the other ports are open; a Sonnet 5.5 subagent):
