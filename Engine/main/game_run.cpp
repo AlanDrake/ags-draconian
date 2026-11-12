@@ -579,7 +579,7 @@ bool run_service_key_controls(KeyInput &out_key)
             if (obj_id >= 8)
                 break; // TODO: measure the graphical size of the text instead of counting objects
             buffer.AppendFmt(
-                "\nObject %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%s slot:%d trnsp:%d clkble:%d", obj_id,
+                "\nObject %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%s slot:%d opacity:%d clkble:%d", obj_id,
                 objs[obj_id].x, objs[obj_id].y,
                 (spriteset.DoesSpriteExist(objs[obj_id].num) ? game.SpriteInfos[objs[obj_id].num].Width : 0),
                 (spriteset.DoesSpriteExist(objs[obj_id].num) ? game.SpriteInfos[objs[obj_id].num].Height : 0),
