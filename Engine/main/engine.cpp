@@ -132,6 +132,7 @@ bool engine_init_backend()
     return true;
 }
 
+// Called when the player closes the game window: makes the engine quit
 void winclosehook()
 {
     want_exit = true;
@@ -172,8 +173,10 @@ static void fill_game_properties(StringOrderMap &map)
                                  : (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled ? 1 : 0));
 }
 
-// Starts up setup application, if capable.
-// Returns TRUE if should continue running the game, otherwise FALSE.
+// Runs the setup application, if the platform has one built in (Windows only).
+// There the result is always FALSE: when the player chose to run the game, it is started
+// in a new process, and this one should end either way.
+// Other platforms have no setup application, and the result is TRUE (continue running the game).
 bool engine_run_setup(const ConfigTree &cfg, const ConfigTree &def_cfg)
 {
 #if AGS_PLATFORM_OS_WINDOWS
@@ -440,6 +443,7 @@ void engine_init_debug()
     }
 }
 
+// Reports an exit that did not go through the engine's own quit procedure
 void atexit_handler()
 {
     if (proper_exit == 0)
@@ -504,7 +508,8 @@ void engine_init_user_directories()
     SetDefaultSaveDirectory();
 }
 
-// TODO: remake/remove this nonsense
+// Checks that the save game directory has at least 2 MB of free space and that
+// a file can be created and deleted in it. Returns 1 if so, otherwise 0.
 int check_write_access()
 {
     set_our_eip(-1895);
@@ -548,7 +553,7 @@ int engine_check_disk_space()
     return 0;
 }
 
-// Do the preload graphic if available
+// Shows the "preload" image from the game assets, if there is one, for half a second
 void show_preload()
 {
     UStream stream;
@@ -597,6 +602,7 @@ void show_preload()
     }
 }
 
+// Opens the sprite file and sets up the sprite cache
 HError engine_init_sprites()
 {
     spriteset.Reset();
@@ -623,6 +629,7 @@ HError engine_init_sprites()
     return HError::None();
 }
 
+// Sets the runtime game state defaults and applies the game options to it
 // TODO: this should not be a part of "engine_" function group,
 // move this elsewhere (InitGameState?).
 void engine_init_game_settings()
@@ -888,8 +895,9 @@ void engine_init_game_settings()
         (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined && usetup.RenderAtScreenRes) ||
         game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled;
 
-    // FIXME: this should be done once in InitGameState, but the code for default game settings
-    // is spread across 2 or more functions; keep this extra call here until this nonsense is fixed.
+    // TODO: InitGameState already applies these once, but the defaults set above come after it
+    // and overwrite part of them; the default game settings are spread across several
+    // functions, and this repeated call stays until they are gathered in one place.
     ApplyAccessibilityOptions(play, usetup);
     // Applies behavior options, also hacks and backwards compatibility fixes
     ApplyBehaviorOptions(game, play, usetup);
@@ -1019,7 +1027,7 @@ bool engine_init_gamedata()
         return false;
     }
 
-    // Setup ResPaths, so that we know out main locations further
+    // Setup ResPaths, so that we know our main locations further
     ResPaths.GamePak.Path = usetup.MainDataFile;
     ResPaths.GamePak.Name = Path::GetFilename(usetup.MainDataFile);
     ResPaths.DataDir =
@@ -1125,6 +1133,8 @@ static bool print_info_needs_game(const std::set<String> &keys)
            keys.count("data") > 0 || keys.count("filepath") > 0 || keys.count("gameproperties") > 0;
 }
 
+// Prints the requested engine and game info (the --tell keys) to stdout as an ini text;
+// user_cfg is the game configuration, and the "config" key prints nothing without it
 static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg)
 {
     const bool all = keys.count("all") > 0;
@@ -1190,6 +1200,8 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
     platform->WriteStdOut("%s", full.GetCStr());
 }
 
+// Connects to the Editor's debugger, if the configuration asks for it, and waits for
+// half a second for its initial messages (breakpoints)
 void engine_init_editor_debugging(const ConfigTree &cfg)
 {
     set_our_eip(-201);
