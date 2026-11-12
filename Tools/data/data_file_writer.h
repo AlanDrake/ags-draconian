@@ -57,13 +57,10 @@ int ParseGameTextEncodingCodePage(const Common::String &value);
 // Block-level writers used by WriteGameData28, one per section of the main data
 // in file order (the names say which). These are exposed separately so
 // that their count, ordering and reserved-slot framing may be unit-tested.
-// WriteGlobalMessagesBlock: the legacy global messages, which the reader does not read at the current
-// data version (see the .cpp).
 void WriteInventoryBlock(const DataUtil::GameData &game, Stream *out);
 void WriteCursorBlock(const DataUtil::GameData &game, Stream *out);
 void WriteViewsBlock(const DataUtil::GameData &game, Stream *out);
 void WriteCharactersBlock(const DataUtil::GameData &game, Stream *out);
-void WriteGlobalMessagesBlock(const DataUtil::GameData &game, Stream *out);
 void WriteCustomPropertiesBlock(const DataUtil::GameData &game, Stream *out);
 void WriteAudioBlock(const DataUtil::GameData &game, Stream *out);
 void WriteFontBlock(const DataUtil::GameData &game, Stream *out);

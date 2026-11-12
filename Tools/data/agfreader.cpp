@@ -2073,16 +2073,6 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
     if (DocElem lipsync = root->FirstChildElement("LipSync"))
         ReadFields(lipsync, game, kLipSyncFields, UnknownElements::Report);
 
-    game.GlobalMessages.resize(500);
-    DocElem messages = root->FirstChildElement("GlobalMessages");
-    for (DocElem msg = messages ? messages->FirstChildElement("Message") : nullptr; msg;
-         msg = msg->NextSiblingElement("Message"))
-    {
-        const int id = msg->IntAttribute("ID", 500) - 500;
-        if (id >= 0 && id < 500)
-            game.GlobalMessages[id] = msg->GetText() ? msg->GetText() : "";
-    }
-
     game.Palette.resize(256);
     ReadGamePalette(game.Palette, root);
 

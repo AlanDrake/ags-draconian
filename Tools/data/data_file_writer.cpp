@@ -803,16 +803,6 @@ void WriteLipSyncBlock(const DataUtil::GameData &game, Stream *out)
                                   50, out);
 }
 
-// The legacy global messages. ReadGameData() reads them (GameSetupStruct::skip_messages()) only for data
-// versions before kGameVersion_400_33, and this writer targets kGameVersion_Current, which has no
-// message flags in the header: a non-empty message here would not be read back.
-void WriteGlobalMessagesBlock(const DataUtil::GameData &game, Stream *out)
-{
-    for (const auto &message : game.GlobalMessages)
-        if (!message.IsEmpty())
-            WriteStringEncrypt(out, message.GetCStr());
-}
-
 // Read by GUI::ReadGUI() in Common/gui/guimain.cpp; that dispatches to
 // GUIMain and each concrete GUI control's ReadFromFile().
 void WriteGuiBlock(const DataUtil::GameData &game, Stream *out)
@@ -1576,7 +1566,6 @@ HError WriteGameData28(const GameData &game, std::unique_ptr<Stream> &&out)
     WriteViewsBlock(game, stream);
     WriteCharactersBlock(game, stream);
     WriteLipSyncBlock(game, stream);
-    WriteGlobalMessagesBlock(game, stream);
     WriteGuiBlock(game, stream);
     WritePluginsBlock(game, stream);
     WriteCustomPropertiesBlock(game, stream);
