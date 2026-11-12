@@ -67,6 +67,13 @@ int user_to_internal_skip_speech(SkipSpeechStyle userval)
 
 SkipSpeechStyle internal_skip_speech_to_user(int internal_val)
 {
+    // Gamepad buttons count as keys, touch as mouse (see user_to_internal_skip_speech)
+    if (internal_val & SKIP_GAMEPAD)
+        internal_val |= SKIP_KEYPRESS;
+    if (internal_val & SKIP_TOUCH)
+        internal_val |= SKIP_MOUSECLICK;
+    internal_val &= ~(SKIP_GAMEPAD | SKIP_TOUCH);
+
     if (internal_val & SKIP_AUTOTIMER)
     {
         internal_val &= ~SKIP_AUTOTIMER;

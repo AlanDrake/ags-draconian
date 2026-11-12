@@ -629,6 +629,7 @@ if(AGS_TESTS)
         test/movelist_test.cpp
         test/savegame_components_test.cpp
         test/scsprintf_test.cpp
+        test/speech_test.cpp
         test/systemimports_test.cpp
     )
     set_target_properties(engine_test PROPERTIES
