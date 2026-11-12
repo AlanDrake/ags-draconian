@@ -87,6 +87,36 @@ void MakeTestPalette(PALETTE pal, unsigned seed)
     }
 }
 
+// How an RGB_MAP made by create_rgb_table compares with bestfit_color, over all its cells
+struct RgbMapQuality
+{
+    int ZeroCells = 0;  // cells that chose index 0
+    int WorseCells = 0; // cells whose colour is farther than bestfit_color's
+};
+
+RgbMapQuality MeasureRgbMap(const RGB_MAP &map, const PALETTE pal)
+{
+    RgbMapQuality quality;
+    // One cell per 5-bit r, g, b triple: 32 * 32 * 32 cells
+    for (int cell = 0; cell < 32 * 32 * 32; ++cell)
+    {
+        const int r = cell / (32 * 32), g = (cell / 32) % 32, b = cell % 32;
+        const int idx = map.data[r][g][b];
+        if (idx == 0)
+        {
+            quality.ZeroCells++;
+        }
+        const int best = bestfit_color(pal, r * 8, g * 8, b * 8);
+        const int d_map = ColorDistance(pal[idx], r * 8, g * 8, b * 8);
+        const int d_best = ColorDistance(pal[best], r * 8, g * 8, b * 8);
+        if (d_map > d_best)
+        {
+            quality.WorseCells++;
+        }
+    }
+    return quality;
+}
+
 } // namespace
 
 // create_rgb_table used to work on 6-bit components with a distance table of its own layout,
@@ -104,24 +134,9 @@ TEST(PaletteMatch, RgbTableAfterBestfitColor)
 
         // The fill is an approximation: a cell may get a colour a little farther than the nearest
         // (measured on these palettes: 0.8-1% of cells), never index 0 unless it is pink
-        int worse = 0;
-        for (int r = 0; r < 32; ++r)
-        {
-            for (int g = 0; g < 32; ++g)
-            {
-                for (int b = 0; b < 32; ++b)
-                {
-                    const int idx = map.data[r][g][b];
-                    ASSERT_NE(idx, 0) << "only a pink index 0 may be chosen";
-                    const int best = bestfit_color(pal, r * 8, g * 8, b * 8);
-                    const int d_map = ColorDistance(pal[idx], r * 8, g * 8, b * 8);
-                    const int d_best = ColorDistance(pal[best], r * 8, g * 8, b * 8);
-                    if (d_map > d_best)
-                        worse++;
-                }
-            }
-        }
-        EXPECT_LE(worse, 32 * 32 * 32 / 50) << "seed " << seed;
+        const RgbMapQuality quality = MeasureRgbMap(map, pal);
+        EXPECT_EQ(quality.ZeroCells, 0) << "only a pink index 0 may be chosen; seed " << seed;
+        EXPECT_LE(quality.WorseCells, 32 * 32 * 32 / 50) << "seed " << seed;
     }
 }
 
