@@ -19,7 +19,7 @@
 struct MyPushButton : public NewControl
 {
     char text[50];
-    MyPushButton(int xx, int yy, int wi, int hi, const char *tex);
+    MyPushButton(int left, int top, int width, int height, const char *caption);
     void draw(AGS::Common::Bitmap *ds) override;
     int pressedon(int mx, int my) override;
     int processmessage(int mcode, int wParam, intptr_t ipParam) override;

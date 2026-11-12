@@ -22,7 +22,7 @@ struct MyTextBox : public NewControl
     char text[TEXTBOX_MAXLEN + 1];
     int textheight; // TODO: use font instead
 
-    MyTextBox(int xx, int yy, int wii, const char *tee, int textheight);
+    MyTextBox(int left, int top, int width, const char *initial_text, int textheight);
     void draw(AGS::Common::Bitmap *ds) override;
     int pressedon(int mx, int my) override;
     int processmessage(int mcode, int wParam, intptr_t ipParam) override;

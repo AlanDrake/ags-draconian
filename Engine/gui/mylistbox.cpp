@@ -30,12 +30,12 @@ extern int windowbackgroundcolor;
 extern int cbuttfont;
 extern int smcode;
 
-MyListBox::MyListBox(int xx, int yy, int wii, int hii, int textheight_)
+MyListBox::MyListBox(int left, int top, int width, int height, int textheight_)
 {
-    x = xx;
-    y = yy;
-    wid = wii;
-    hit = hii;
+    x = left;
+    y = top;
+    wid = width;
+    hit = height;
     textheight = textheight_;
     hit -= (hit - 4) % textheight; // resize to multiple of text height
     numonscreen = (hit - 4) / textheight;
@@ -47,8 +47,8 @@ MyListBox::MyListBox(int xx, int yy, int wii, int hii, int textheight_)
 
 void MyListBox::clearlist()
 {
-    for (int kk = 0; kk < items; kk++)
-        free(itemnames[kk]);
+    for (int item_id = 0; item_id < items; item_id++)
+        free(itemnames[item_id]);
 
     items = 0;
 }
@@ -65,47 +65,47 @@ void MyListBox::draw(Bitmap *ds)
     draw_color = GUI::GetStandardColorForBitmap(0);
     ds->DrawRect(Rect(x, y, x + wid, y + hit), draw_color);
 
-    int widwas = wid;
+    int old_width = wid;
     wid -= ARROWWIDTH;
     ds->DrawLine(Line(x + wid, y, x + wid, y + hit), draw_color); // draw the up/down arrows
-    ds->DrawLine(Line(x + wid, y + hit / 2, x + widwas, y + hit / 2), draw_color);
+    ds->DrawLine(Line(x + wid, y + hit / 2, x + old_width, y + hit / 2), draw_color);
 
-    int xmidd = x + wid + (widwas - wid) / 2;
+    int mid_x = x + wid + (old_width - wid) / 2;
     if (topitem < 1)
         draw_color = GUI::GetStandardColorForBitmap(7);
 
-    ds->DrawLine(Line(xmidd, y + 2, xmidd, y + 10), draw_color); // up arrow
-    ds->DrawLine(Line(xmidd - 1, y + 3, xmidd + 1, y + 3), draw_color);
-    ds->DrawLine(Line(xmidd - 2, y + 4, xmidd + 2, y + 4), draw_color);
+    ds->DrawLine(Line(mid_x, y + 2, mid_x, y + 10), draw_color); // up arrow
+    ds->DrawLine(Line(mid_x - 1, y + 3, mid_x + 1, y + 3), draw_color);
+    ds->DrawLine(Line(mid_x - 2, y + 4, mid_x + 2, y + 4), draw_color);
     draw_color = GUI::GetStandardColorForBitmap(0);
     if (topitem + numonscreen >= items)
         draw_color = GUI::GetStandardColorForBitmap(7);
 
-    ds->DrawLine(Line(xmidd, y + hit - 10, xmidd, y + hit - 3), draw_color); // down arrow
-    ds->DrawLine(Line(xmidd - 1, y + hit - 4, xmidd + 1, y + hit - 4), draw_color);
-    ds->DrawLine(Line(xmidd - 2, y + hit - 5, xmidd + 2, y + hit - 5), draw_color);
+    ds->DrawLine(Line(mid_x, y + hit - 10, mid_x, y + hit - 3), draw_color); // down arrow
+    ds->DrawLine(Line(mid_x - 1, y + hit - 4, mid_x + 1, y + hit - 4), draw_color);
+    ds->DrawLine(Line(mid_x - 2, y + hit - 5, mid_x + 2, y + hit - 5), draw_color);
     draw_color = GUI::GetStandardColorForBitmap(0);
 
-    for (int tt = 0; tt < numonscreen; tt++)
+    for (int row = 0; row < numonscreen; row++)
     {
-        int inum = tt + topitem;
-        if (inum >= items)
+        int item_id = row + topitem;
+        if (item_id >= items)
             break;
 
-        int thisypos = y + 2 + tt * textheight;
+        int item_y = y + 2 + row * textheight;
         color_t text_color;
-        if (inum == selected)
+        if (item_id == selected)
         {
             draw_color = GUI::GetStandardColorForBitmap(0);
-            ds->FillRect(Rect(x, thisypos, x + wid, thisypos + textheight - 1), draw_color);
+            ds->FillRect(Rect(x, item_y, x + wid, item_y + textheight - 1), draw_color);
             text_color = GUI::GetStandardColorForBitmap(7);
         }
         else
             text_color = GUI::GetStandardColorForBitmap(0);
 
-        wouttextxy(ds, x + 2, thisypos, cbuttfont, text_color, itemnames[inum]);
+        wouttextxy(ds, x + 2, item_y, cbuttfont, text_color, itemnames[item_id]);
     }
-    wid = widwas;
+    wid = old_width;
 }
 
 int MyListBox::pressedon(int mx, int my)
@@ -129,12 +129,12 @@ int MyListBox::pressedon(int mx, int my)
     return 0;
 }
 
-void MyListBox::additem(char *texx)
+void MyListBox::additem(char *text)
 {
     if (items >= MAXLISTITEM)
         quit("!CSCIUSER16: Too many items added to listbox");
-    itemnames[items] = (char *)malloc(strlen(texx) + 1);
-    strcpy(itemnames[items], texx);
+    itemnames[items] = (char *)malloc(strlen(text) + 1);
+    strcpy(itemnames[items], text);
     items++;
     needredraw = 1;
 }
@@ -166,9 +166,9 @@ int MyListBox::processmessage(int mcode, int wParam, intptr_t ipParam)
         if (wParam < items)
             free(itemnames[wParam]);
 
-        char *newstri = (char *)ipParam;
-        itemnames[wParam] = (char *)malloc(strlen(newstri) + 2);
-        strcpy(itemnames[wParam], newstri);
+        char *new_text = (char *)ipParam;
+        itemnames[wParam] = (char *)malloc(strlen(new_text) + 2);
+        strcpy(itemnames[wParam], new_text);
     }
     else if (mcode == CTB_KEYPRESS)
     {

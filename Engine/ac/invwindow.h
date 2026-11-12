@@ -23,11 +23,11 @@
 
 using AGS::Common::GUIInvWindow;
 
-void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *chaa);
+void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *ch);
 CharacterInfo *InvWindow_GetCharacterToUse(GUIInvWindow *guii);
-void InvWindow_SetItemWidth(GUIInvWindow *guii, int newwidth);
+void InvWindow_SetItemWidth(GUIInvWindow *guii, int new_width);
 int InvWindow_GetItemWidth(GUIInvWindow *guii);
-void InvWindow_SetItemHeight(GUIInvWindow *guii, int newhit);
+void InvWindow_SetItemHeight(GUIInvWindow *guii, int new_height);
 int InvWindow_GetItemHeight(GUIInvWindow *guii);
 void InvWindow_SetTopItem(GUIInvWindow *guii, int topitem);
 int InvWindow_GetTopItem(GUIInvWindow *guii);

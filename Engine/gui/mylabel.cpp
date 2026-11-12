@@ -26,28 +26,28 @@ using namespace AGS::Common;
 
 extern int acdialog_font;
 
-MyLabel::MyLabel(int xx, int yy, int wii, const char *tee, int textheight_)
+MyLabel::MyLabel(int left, int top, int width, const char *label, int textheight_)
 {
-    snprintf(text, sizeof(text), "%s", tee);
-    x = xx;
-    y = yy;
-    wid = wii;
+    snprintf(text, sizeof(text), "%s", label);
+    x = left;
+    y = top;
+    wid = width;
     textheight = textheight_;
     hit = textheight;
 }
 
 void MyLabel::draw(Bitmap *ds)
 {
-    int cyp = y;
+    int line_y = y;
     color_t text_color = GUI::GetStandardColorForBitmap(0);
 
     const char *draw_text = skip_voiceover_token(text);
     if (break_up_text_into_lines(draw_text, Lines, wid, acdialog_font) == 0)
         return;
-    for (size_t ee = 0; ee < Lines.Count(); ee++)
+    for (size_t line_id = 0; line_id < Lines.Count(); line_id++)
     {
-        wouttext_outline(ds, x, cyp, acdialog_font, text_color, Lines[ee].GetCStr());
-        cyp += textheight;
+        wouttext_outline(ds, x, line_y, acdialog_font, text_color, Lines[line_id].GetCStr());
+        line_y += textheight;
     }
 }
 

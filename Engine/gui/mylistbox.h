@@ -25,12 +25,12 @@ struct MyListBox : public NewControl
     char *itemnames[MAXLISTITEM];
     int textheight; // TODO: use font instead
 
-    MyListBox(int xx, int yy, int wii, int hii, int textheight);
+    MyListBox(int left, int top, int width, int height, int textheight);
     void clearlist();
     ~MyListBox() override;
 
     void draw(AGS::Common::Bitmap *ds) override;
     int pressedon(int mx, int my) override;
-    void additem(char *texx);
+    void additem(char *text);
     int processmessage(int mcode, int wParam, intptr_t ipParam) override;
 };

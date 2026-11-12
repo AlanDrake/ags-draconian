@@ -32,14 +32,14 @@ extern int windowbackgroundcolor, pushbuttondarkcolor;
 extern int pushbuttonlightcolor;
 extern int cbuttfont;
 
-MyPushButton::MyPushButton(int xx, int yy, int wi, int hi, const char *tex)
+MyPushButton::MyPushButton(int left, int top, int width, int height, const char *caption)
 { //wlevel=2;
-    x = xx;
-    y = yy;
-    wid = wi;
-    hit = hi + 1; //hit=hi;
+    x = left;
+    y = top;
+    wid = width;
+    hit = height + 1; //hit=hi;
     state = 0;
-    snprintf(text, sizeof(text), "%s", tex);
+    snprintf(text, sizeof(text), "%s", caption);
 };
 
 void MyPushButton::draw(Bitmap *ds)
@@ -71,13 +71,13 @@ void MyPushButton::draw(Bitmap *ds)
 
 int MyPushButton::pressedon(int mx, int my)
 {
-    int wasstat;
+    int old_state;
     while (!ags_misbuttondown(kMouseLeft) == 0)
     {
-        wasstat = state;
+        old_state = state;
         state = mouseisinarea(mx, my);
         update_polled_stuff();
-        if (wasstat != state)
+        if (old_state != state)
         {
             draw(get_gui_screen());
         }
@@ -86,10 +86,10 @@ int MyPushButton::pressedon(int mx, int my)
 
         WaitForNextFrame();
     }
-    wasstat = state;
+    old_state = state;
     state = 0;
     draw(get_gui_screen());
-    return wasstat;
+    return old_state;
 }
 
 int MyPushButton::processmessage(int /*mcode*/, int /*wParam*/, intptr_t /*lParam*/)

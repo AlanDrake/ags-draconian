@@ -226,7 +226,7 @@ void RegisterAllGUIControls(const GameSetupStruct &game)
         auto const &gui = guis[i];
         for (int j = 0; j < gui.GetControlCount(); j++)
         {
-            GUIControl *guio = gui.GetControl(j);
+            GUIControl *control = gui.GetControl(j);
             IScriptObject *mgr;
             switch (gui.GetControlType(j))
             {
@@ -241,10 +241,10 @@ void RegisterAllGUIControls(const GameSetupStruct &game)
 
             if (!mgr)
                 continue;
-            StaticGUIControlsHandles[i][j] = ccRegisterPersistentObject(guio, mgr); // add ref for engine
-            if (!guio->GetName().IsEmpty())
+            StaticGUIControlsHandles[i][j] = ccRegisterPersistentObject(control, mgr); // add ref for engine
+            if (!control->GetName().IsEmpty())
             {
-                ccAddExternalScriptObjectHandle(guio->GetName(), &StaticGUIControlsHandles[i][j]);
+                ccAddExternalScriptObjectHandle(control->GetName(), &StaticGUIControlsHandles[i][j]);
             }
         }
     }

@@ -27,13 +27,13 @@ using namespace AGS::Common;
 extern int windowbackgroundcolor;
 extern int cbuttfont;
 
-MyTextBox::MyTextBox(int xx, int yy, int wii, const char *tee, int textheight_)
+MyTextBox::MyTextBox(int left, int top, int width, const char *initial_text, int textheight_)
 {
-    x = xx;
-    y = yy;
-    wid = wii;
-    if (tee != nullptr)
-        strcpy(text, tee);
+    x = left;
+    y = top;
+    wid = width;
+    if (initial_text != nullptr)
+        strcpy(text, initial_text);
     else
         text[0] = 0;
 
@@ -51,8 +51,8 @@ void MyTextBox::draw(Bitmap *ds)
     color_t text_color = GUI::GetStandardColorForBitmap(0);
     wouttextxy(ds, x + 2, y + 1, cbuttfont, text_color, text);
 
-    char tbu[2] = "_";
-    wouttextxy(ds, x + 2 + get_text_width(text, cbuttfont), y + 1, cbuttfont, text_color, tbu);
+    char cursor[2] = "_";
+    wouttextxy(ds, x + 2 + get_text_width(text, cbuttfont), y + 1, cbuttfont, text_color, cursor);
     ds->ResetClip();
 }
 

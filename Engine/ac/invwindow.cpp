@@ -50,12 +50,12 @@ extern CCInventory ccDynamicInv;
 
 // *** INV WINDOW FUNCTIONS
 
-void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *chaa)
+void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *ch)
 {
-    if (chaa == nullptr)
+    if (ch == nullptr)
         guii->SetCharacterID(-1);
     else
-        guii->SetCharacterID(chaa->index_id);
+        guii->SetCharacterID(ch->index_id);
     // reset to top of list
     guii->SetTopItem(0);
 }
@@ -68,9 +68,9 @@ CharacterInfo *InvWindow_GetCharacterToUse(GUIInvWindow *guii)
     return &game.chars[guii->GetCharacterID()];
 }
 
-void InvWindow_SetItemWidth(GUIInvWindow *guii, int newwidth)
+void InvWindow_SetItemWidth(GUIInvWindow *guii, int new_width)
 {
-    guii->SetItemWidth(newwidth);
+    guii->SetItemWidth(new_width);
     guii->OnResized();
 }
 
@@ -79,9 +79,9 @@ int InvWindow_GetItemWidth(GUIInvWindow *guii)
     return guii->GetItemWidth();
 }
 
-void InvWindow_SetItemHeight(GUIInvWindow *guii, int newhit)
+void InvWindow_SetItemHeight(GUIInvWindow *guii, int new_height)
 {
-    guii->SetItemHeight(newhit);
+    guii->SetItemHeight(new_height);
     guii->OnResized();
 }
 

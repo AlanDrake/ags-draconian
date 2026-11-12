@@ -21,7 +21,7 @@ struct MyLabel : public NewControl
     char text[150];
     int textheight; // TODO: use font instead
 
-    MyLabel(int xx, int yy, int wii, const char *tee, int textheight);
+    MyLabel(int left, int top, int width, const char *label, int textheight);
 
     void draw(AGS::Common::Bitmap *ds) override;
 
