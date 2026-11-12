@@ -203,8 +203,6 @@ int get_walkable_area_at_location(int x, int y)
     {
         // the point is outside the mask, e.g. the character has walked off the edge of the room: take the
         // area at the nearest edge, so that the scaling does not jump to full size when leaving
-        // TODO: the top edge reads row 1, the other edges their own edge pixel (0 / size - 1): check
-        // whether row 1 is intended
         if (x >= thisroom.Width)
             area_id = get_walkable_area_pixel(thisroom.Width - 1, y);
         else if (x < 0)
@@ -212,7 +210,7 @@ int get_walkable_area_at_location(int x, int y)
         else if (y >= thisroom.Height)
             area_id = get_walkable_area_pixel(x, thisroom.Height - 1);
         else if (y < 0)
-            area_id = get_walkable_area_pixel(x, 1);
+            area_id = get_walkable_area_pixel(x, 0);
     }
     if (area_id == 0)
     {
