@@ -4267,6 +4267,55 @@ assembled here on `wt-41-batch3`, with two `[delete]`s split out of the agents' 
   engine `Tools/data/data_file_writer.cpp` (`chinfo` 40) and the compiler's `eres`/`tqs` (669). 1,949 watchlist names in
   all (`refactor_metrics.py`), 1,040 without the 5.1 globals.
 
+**`inventoryitem.cpp/.h`, `gui/cscidialog.cpp/.h`, `joystick.cpp/.h`, `overlay.cpp/.h`** (2026-11-12; four Sonnet 5.5
+subagents at `medium` in parallel, worktrees from `79e0d4a86` (batch 3's tip), the brief with batch 3's lessons: no
+`[format]` or code deletion left for the supervisor to split this time; reviewed and assembled on `wt-41-batch4`):
+- **`cscidialog`** (`da073204e` `[rename]`, `3028c7818` `[comment]`, `4a975eeb0` `[rename]`): `xx`/`yy` 24 to 0, with
+  `wid`/`hit` → `width`/`height`, `drawit`/`handl` → `win_id`, `usec`/`haa` → `ctrl_id`, `wPar`/`ipPar` → `w_param`/
+  `ip_param`. Every header function documented (5 windows, control ids from 1 so 19 controls, the 2-pixel border).
+  The tidy gate flagged `__my_wbutt` (a reserved name): `DrawWindowFrame`, file-local; the object comparison shows the
+  symbol renamed and its one caller changed, nothing else.
+- **`joystick`** (`932fd6412`, `4925730a7`, `4aa50d396` `[format]`): `butt` 15 to 0 (`button`; the type says which
+  kind), `gbn`, `scriptJoystick` → `script_joy`, `newJoy` → `new_joy`; the rename put two C-style downcasts from
+  `void *` under the gate (`static_cast`, retitled from the agent's `[cleanup]`). Comments: the stale "need to do
+  something with the script reference" (the code invalidates and releases it) replaced, the six header functions.
+- **`inventoryitem`** (`5d8dced46`, `59cbeb90a`, `83809e607` `[format]`): `invi` 11, `iit` 9, `guio` 5 to 0; a
+  `ScriptInvItem *` is `item` (was `iitem`, `scii`, `invitem`, `invi`), an index `item_id`, `ongui` → `gui_id`. Header
+  comments checked against `properties.cpp` (default values, a missing property).
+- **`overlay`** (`a0d7c3856`, `f85f8d0c3`): `charid` 11, `texx` 2 to 0; `scover`/`sco` → `script_over`, `fontid` →
+  `font`, `colour` → `text_color` (as `display.cpp`), `tdxp`/`tdyp` → `over_x`/`over_y`, `piccy`/`screeno` → `image`.
+  All 30 header declarations documented; the `get_overlays()` FIXME became a TODO naming the five files that write
+  through the non-const reference.
+- **Verification:** `compare_objects.py` for every commit against its parent: the 10 `[rename]`/`[comment]`/`[format]`
+  commits identical, `DrawWindowFrame` as above, the code changes differ in their own functions only (the assert fix
+  is identical in Release). `prepush.py --auto --base 79e0d4a86 --emsdk ...`: every selected stage passes (linux ctest
+  1181/1181, msbuild + Editor NUnit). The agents' builds had one `compat_restore` timeout under load (passes alone).
+  Not run: macOS, iOS, Android, the auto-test game.
+- **Found and fixed, one commit each** (the first three are in upstream `ags4` too: U.x candidates):
+  - `4b1ce87fb`: `Joystick.GetHat` passed the hat *index* through `Joystick_Hat_AGStoSDL`, a hat *direction* mapping:
+    indices 5, 7, 10, 11 and 13 on are no `eAGSJoystick_Hat` value, became 0 and read hat 0. Since the joystick script
+    API (`ac83c3e86`, 2023). `89c2c1d6f` `[delete]`s the mapping, without a caller since.
+  - `a3e21a6e3`: `InventoryItem.CursorHotspotAlignment` returned `hotx`, the X hotspot, since it came in (upstream
+    `11e52329b`, 2026-09).
+  - `9d81c631c`: `Overlay.Tint` on a removed overlay called `SetTint` through null (`GetOverlayValidate` logs and
+    returns null; every other `Overlay` function checks it).
+  - `6b718c3d1` `Overlay.Height`'s warning said "SetWidth" and `AnimatedOverlay.Animating` reported errors as
+    "Animate"; `0fd70e037` `&&`/`||` for bitwise tests (`CSCIWaitMessage` called `finddefaultcontrol` for every key;
+    `Overlay_SetOpacity`); `578f83fb2` `UpdateOverlayState`'s assert allowed the ID one past the end.
+  - `d16516831` `[delete]` cscidialog's write-only `windowcount` and unused `curswas`; `516989d26` `[delete]`
+    `set_inv_item_pic`'s second store of the same sprite; `3482377ff` four file-local `inventoryitem.cpp` helpers
+    `static` (code identical).
+- **Noted, not changed:** `checkcontrols` ignores the window level; `CSCISendControlMessage`/`CSCIDeleteControl` do not
+  range-check `ctrl_id` (callers pass ids from `CSCICreateControl`); `add_joystick` skips every later device for good once
+  one fails to open (`_joysticks.size() != device_index`); `Joystick_IsGamepadButtonDown`/`GetGamepadAxis` call SDL with
+  a null controller for a plain joystick (SDL returns 0); `overlay.h` uses `std::unique_ptr` without `<memory>`;
+  `Overlay_CreateGraphicCore`'s `SIZE_MAX` check is dead.
+- **Left for the next file sets:** the engine's tail is small: `global_api.cpp` 12, `game/savegame_components.cpp` 11,
+  `main/game_run.cpp` 10, `global_audio.cpp` 9, `gui/mylistbox.cpp` 7, `listbox.cpp` 6, `speech.cpp` 5,
+  `invwindow.cpp` 5; outside it `Tools/data/data_file_writer.cpp` (`chinfo` 40), `Common/gfx/image_pcx.cpp` 7,
+  `Common/util/lzw.cpp` 6 and the compiler's `eres`/`tqs` (669), `char1` 13. 1,872 watchlist names in all, 963 without
+  the 5.1 globals.
+
 ### 7.3 Ports
 
 **7.3, the macOS Xcode source list** (2026-11-09; a slice of 7.3, the other ports are open; a Sonnet 5.5 subagent):
