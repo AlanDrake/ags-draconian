@@ -145,7 +145,6 @@ public:
     }
 
     int GetUntilType() const { return _untilType; }
-    int GetDisabledFor() const { return _disabledFor; }
     const void *GetDataPtr() const { return _dataPtr; }
     int GetData1() const { return _data1; }
     int GetData2() const { return _data2; }
