@@ -53,7 +53,7 @@ struct InteractionsXml
 struct RoomObjectXml
 {
     int Image = 0;
-    int BlendMode = 0; // AGS.Types BlendMode, same values as Common::BlendMode
+    Common::BlendMode BlendMode = Common::kBlend_Normal;
     int Opacity = 255; // 0-255; read from Transparency (0-100) in older formats
     Pointf GraphicAnchor = Pointf(0.f, 1.f);
     Point GraphicOffset;

@@ -490,12 +490,13 @@ String Cursor::ReadScriptName(DocElem elem)
     return BuildMouseCursorPrefixedScriptID(ReadString(elem, "Name"));
 }
 
-static bool ParseCursorRole(const char *text, int &value)
+static bool ParseCursorRole(const char *text, CursorRole &value)
 {
+    // in the order of CursorRole, from kCursorRole_Walk
     static const char *const kCursorRoleNames[] = {"Walk", "Look", "Interact", "", "UseInv", "", "Pointer", "Wait"};
     if (std::strcmp(text, "None") == 0)
     {
-        value = -1;
+        value = kCursorRole_None;
         return true;
     }
     return ParseXmlEnum(text, kCursorRoleNames, std::size(kCursorRoleNames), value);
@@ -666,9 +667,9 @@ static HorAlignment ReadLeftHorAlignment(const String &value)
     return ReadHorizontalAlignment(value, kHAlignLeft);
 }
 
-static int ReadBlendModeName(const String &value)
+static BlendMode ReadBlendModeName(const String &value)
 {
-    int mode = 0;
+    BlendMode mode = kBlend_Normal;
     ParseBlendMode(value.GetCStr(), mode);
     return mode;
 }
@@ -1673,9 +1674,10 @@ void Character::ReadAllData(DocElem elem, DataUtil::CharacterData &data)
     ReadInteractions(elem, data.ScriptModule, data.InteractionEvents);
 }
 
+// in the order of GraphicFlip
 static const CstrArr<4> kSpriteFlipStyleNames = {{"None", "Horizontal", "Vertical", "Both"}};
 
-static bool ParseSpriteFlipStyle(const char *text, int &value)
+static bool ParseSpriteFlipStyle(const char *text, GraphicFlip &value)
 {
     return ParseXmlEnum(text, kSpriteFlipStyleNames, value);
 }

@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <iterator>
 
+#include "util/math.h"
 #include "util/stdio_compat.h"
 
 using namespace AGS::Common;
@@ -164,11 +165,11 @@ bool ParseGraphicAnchor(const char *text, Pointf &value)
     float x = 0.f, y = 0.f;
     ParseXmlValue(parts[0].GetCStr(), x);
     ParseXmlValue(parts[1].GetCStr(), y);
-    value = Pointf(std::min(std::max(x, 0.f), 1.f), std::min(std::max(y, 0.f), 1.f));
+    value = Pointf(Math::Clamp(x, 0.f, 1.f), Math::Clamp(y, 0.f, 1.f));
     return true;
 }
 
-bool ParseBlendMode(const char *text, int &value)
+bool ParseBlendMode(const char *text, BlendMode &value)
 {
     static const char *const kBlendModeNames[] = {"Normal", "Add",     "Darken",   "Lighten",   "Multiply",
                                                   "Screen", "Burn",    "Subtract", "Exclusion", "Dodge",

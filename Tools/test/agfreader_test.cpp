@@ -922,11 +922,11 @@ TEST_F(AGFReaderBlocks, View)
     EXPECT_EQ(0u, view.Loops[1].Frames.size());
     ASSERT_EQ(2u, view.Loops[0].Frames.size());
     EXPECT_EQ(3, view.Loops[0].Frames[0].Delay);
-    EXPECT_EQ(0, view.Loops[0].Frames[0].Flip);
+    EXPECT_EQ(Common::kFlip_None, view.Loops[0].Frames[0].Flip);
     EXPECT_EQ(100, view.Loops[0].Frames[0].Image);
     EXPECT_EQ(5, view.Loops[0].Frames[0].Sound);
     EXPECT_EQ(4, view.Loops[0].Frames[1].Delay);
-    EXPECT_EQ(1, view.Loops[0].Frames[1].Flip); // horizontal
+    EXPECT_EQ(Common::kFlip_Horizontal, view.Loops[0].Frames[1].Flip);
     EXPECT_EQ(101, view.Loops[0].Frames[1].Image);
     EXPECT_EQ(-1, view.Loops[0].Frames[1].Sound);
 }

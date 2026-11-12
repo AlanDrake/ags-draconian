@@ -36,10 +36,12 @@
 #include <array>
 #include <cstdint>
 #include <cstring>
+#include <type_traits>
 #include <vector>
 
 #include <tinyxml2.h>
 
+#include "gfx/gfx_def.h"
 #include "util/error.h"
 #include "util/geometry.h"
 #include "util/string.h"
@@ -106,16 +108,26 @@ bool ParseXmlValue(const char *text, Point &value); // "x,y"
 bool ParseXmlValue(const char *text, XmlRect &value);
 // Parses an enum value written by its name; names[i] is the name of value i
 bool ParseXmlEnum(const char *text, const char *const names[], size_t count, int &value);
-template <size_t N>
-bool ParseXmlEnum(const char *text, const std::array<const char *, N> &names, int &value)
+// The same, into a member of an enum type
+template <typename E, std::enable_if_t<std::is_enum_v<E>, int> = 0>
+bool ParseXmlEnum(const char *text, const char *const names[], size_t count, E &value)
+{
+    int number = 0;
+    if (!ParseXmlEnum(text, names, count, number))
+        return false;
+    value = static_cast<E>(number);
+    return true;
+}
+template <size_t N, typename T>
+bool ParseXmlEnum(const char *text, const std::array<const char *, N> &names, T &value)
 {
     return ParseXmlEnum(text, names.data(), N, value);
 }
 
 // AGS.Types GraphicAnchor: "x, y"; numbers that don't parse read as 0, both are clamped to 0-1
 bool ParseGraphicAnchor(const char *text, Pointf &value);
-// AGS.Types BlendMode, which has the values of Common::BlendMode
-bool ParseBlendMode(const char *text, int &value);
+// AGS.Types BlendMode, which has the names of Common::BlendMode
+bool ParseBlendMode(const char *text, Common::BlendMode &value);
 
 // Compares "X.Y.Z.W" version strings numerically (missing parts count as 0);
 // returns a negative, zero or positive value like strcmp

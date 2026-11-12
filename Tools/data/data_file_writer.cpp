@@ -182,8 +182,8 @@ void WriteView(Stream *out, const DataUtil::GameData &game, const DataUtil::View
             out->WriteInt16(static_cast<int16_t>(frame.XOffset));
             out->WriteInt16(static_cast<int16_t>(frame.YOffset));
             out->WriteInt16(static_cast<int16_t>(frame.Delay));
-            out->WriteInt16(0);          // struct alignment padding
-            out->WriteInt32(frame.Flip); // SpriteFlipStyle values are the sprite transform flags
+            out->WriteInt16(0); // struct alignment padding
+            out->WriteInt32(GfxDef::GetFlagsFromFlip(frame.Flip));
             out->WriteInt32(GetAudioID(game, frame.Sound));
             out->WriteInt32(0);
             out->WriteInt32(0);

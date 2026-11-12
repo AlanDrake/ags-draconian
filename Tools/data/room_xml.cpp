@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cctype>
 
+#include "game/roomdata.h"
 #include "util/math.h"
 #include "util/string_types.h"
 #include "util/string_utils.h"
@@ -33,13 +34,6 @@ const char *ROOM_XML_FIRST_VERSION = "3.99.99.01";
 const char *ROOM_XML_LATEST_VERSION = "4.0.0.34";
 // Region light level and tint values moved to the 0-255 range (Room.XML_VERSION_VALUE_RANGES)
 static const char *ROOM_XML_VERSION_VALUE_RANGES = "4.0.0.34";
-
-// The editor reads at most this many items of each kind (Room.MAX_*)
-static const size_t MAX_XML_OBJECTS = 256;
-static const size_t MAX_XML_HOTSPOTS = 50;
-static const size_t MAX_XML_WALKABLE_AREAS = 16;
-static const size_t MAX_XML_WALK_BEHINDS = 16;
-static const size_t MAX_XML_REGIONS = 16;
 
 //-----------------------------------------------------------------------------
 // Value parsers, following the AGS.Types property setters
@@ -223,27 +217,27 @@ static const XmlField<RoomRegionXml> kRoomRegionFields[] = {
 
 static HError ReadObjects(const XMLElement *elem, std::vector<RoomObjectXml> &items)
 {
-    return ReadList(elem, "RoomObject", items, kRoomObjectFields, MAX_XML_OBJECTS);
+    return ReadList(elem, "RoomObject", items, kRoomObjectFields, MAX_ROOM_OBJECTS);
 }
 
 static HError ReadHotspots(const XMLElement *elem, std::vector<RoomHotspotXml> &items)
 {
-    return ReadList(elem, "RoomHotspot", items, kRoomHotspotFields, MAX_XML_HOTSPOTS);
+    return ReadList(elem, "RoomHotspot", items, kRoomHotspotFields, MAX_ROOM_HOTSPOTS);
 }
 
 static HError ReadWalkableAreas(const XMLElement *elem, std::vector<RoomWalkableAreaXml> &items)
 {
-    return ReadList(elem, "RoomWalkableArea", items, kRoomWalkableAreaFields, MAX_XML_WALKABLE_AREAS);
+    return ReadList(elem, "RoomWalkableArea", items, kRoomWalkableAreaFields, MAX_WALK_AREAS);
 }
 
 static HError ReadWalkBehinds(const XMLElement *elem, std::vector<RoomWalkBehindXml> &items)
 {
-    return ReadList(elem, "RoomWalkBehind", items, kRoomWalkBehindFields, MAX_XML_WALK_BEHINDS);
+    return ReadList(elem, "RoomWalkBehind", items, kRoomWalkBehindFields, MAX_WALK_BEHINDS);
 }
 
 static HError ReadRegions(const XMLElement *elem, std::vector<RoomRegionXml> &items)
 {
-    return ReadList(elem, "RoomRegion", items, kRoomRegionFields, MAX_XML_REGIONS);
+    return ReadList(elem, "RoomRegion", items, kRoomRegionFields, MAX_ROOM_REGIONS);
 }
 
 static const XmlField<RoomXml> kRoomFields[] = {
@@ -312,7 +306,7 @@ static void RemapIndexedFunctions(std::map<int, String> &functions, const std::v
     functions = std::move(remapped);
 }
 
-// RoomObject.ConvertOldInteractionEvents
+// RoomObject.LoadAndConvertInteractionEvents
 static void ConvertOldEvents(RoomObjectXml &obj)
 {
     auto &functions = obj.Interactions.ByIndex;
@@ -323,7 +317,7 @@ static void ConvertOldEvents(RoomObjectXml &obj)
     RemapIndexedFunctions(functions, {-1, 0, 1, 2, 3, 5, -1, -1, 6, 7});
 }
 
-// RoomHotspot.ConvertOldInteractionEvents
+// RoomHotspot.LoadAndConvertInteractionEvents
 static void ConvertOldEvents(RoomHotspotXml &hotspot)
 {
     auto &functions = hotspot.Interactions.ByIndex;

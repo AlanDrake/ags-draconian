@@ -79,7 +79,7 @@ TEST(RoomXml, UpgradesOlderFormats)
     EXPECT_EQ(153, room.Objects[0].Opacity); // (100 - 40) * 255 / 100
     EXPECT_FLOAT_EQ(0.5f, room.Objects[0].GraphicAnchor.X);
     EXPECT_FLOAT_EQ(1.f, room.Objects[0].GraphicAnchor.Y); // clamped
-    EXPECT_EQ(5, room.Objects[0].BlendMode);
+    EXPECT_EQ(kBlend_Screen, room.Objects[0].BlendMode);
     ASSERT_EQ(1u, room.Regions.size());
     EXPECT_EQ(127, room.Regions[0].LightLevel); // (150 - 100) * 255 / 100
     EXPECT_EQ(127, room.Regions[0].TintSaturation);

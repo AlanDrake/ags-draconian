@@ -335,7 +335,7 @@ HError ConvertRoomXml(RoomXml room, const RoomBuildGame &game, RoomData &data)
         dst.ScriptName = obj.ScriptName;
         dst.Sprite = obj.Image;
         dst.Opacity = obj.Opacity;
-        dst.BlendMode = static_cast<BlendMode>(obj.BlendMode);
+        dst.BlendMode = obj.BlendMode;
         dst.X = obj.StartX;
         dst.Y = obj.StartY;
         dst.Baseline = obj.Baseline;

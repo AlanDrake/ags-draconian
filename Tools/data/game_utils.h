@@ -18,8 +18,10 @@
 #include <vector>
 
 #include "ac/gamestructdefines.h"
+#include "ac/mousecursor.h"
 #include "ac/spritefile.h"
 #include "game/customproperties.h"
+#include "gfx/gfx_def.h"
 #include "gui/guidefines.h"
 #include "util/geometry.h"
 #include "util/ini_util.h"
@@ -265,7 +267,7 @@ struct CharacterData : EntityRef
     bool UniformMovementSpeed = true;
     bool UseRoomAreaLighting = true;
     bool UseRoomAreaScaling = true;
-    int BlendMode{}; // AGS.Types BlendMode, same values as Common::BlendMode
+    Common::BlendMode BlendMode = Common::kBlend_Normal;
     Pointf GraphicAnchor = Pointf(0.5f, 1.f);
     Point GraphicOffset;
     String OnAnyClick;
@@ -279,7 +281,7 @@ struct ViewFrameData
 {
     int Delay{};
     String EventName;
-    int Flip{}; // SpriteFlipStyle: 1 horizontal, 2 vertical, 3 both
+    Common::GraphicFlip Flip = Common::kFlip_None;
     int Image{};
     int Sound{}; // stable audio clip index in the AGF
     int XOffset{};
@@ -424,7 +426,7 @@ struct GUIControlData : EntityRef
     int PaddingX{};
     int PaddingY{};
     int Opacity = 255;
-    int BlendMode{};
+    Common::BlendMode BlendMode = Common::kBlend_Normal;
     std::vector<CustomPropertyValue> Properties;
 };
 
@@ -534,7 +536,7 @@ struct GUIData : EntityRef
     int ZOrder{};
     int Padding = TEXTWINDOW_PADDING_DEFAULT;
     int TextColor{};
-    int BlendMode{};
+    Common::BlendMode BlendMode = Common::kBlend_Normal;
     std::vector<CustomPropertyValue> Properties;
     std::vector<std::shared_ptr<GUIControlData>> Controls;
 };
@@ -727,7 +729,7 @@ struct CursorData : EntityRef
     bool AnimateOnlyWhenMoving = false;
     bool StandardMode = false;
     int AnimationDelay = 5;
-    int StandardRole = -1;    // AGS.Types CursorRole
+    CursorRole StandardRole = kCursorRole_None;
     bool CreateEvent = false; // the cursor has an interaction event
 };
 
