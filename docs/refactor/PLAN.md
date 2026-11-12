@@ -80,10 +80,10 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **The bugs found in 4.1, by upstream branch** (the user, 2026-11-12; the list is "4.1's bugs by upstream branch" below): fix the open ones in the fork, one commit each with a test where one can reach it; then one upstream PR for `master` and one for `ags4`, each fix ported to upstream's style and names (C++11) | 4.1 is done; the PRs were waiting for it | Sonnet 5.5, `medium` for the fixes; the PR texts with the user |
+| 1 | **The bugs found in 4.1, by upstream branch** (the user, 2026-11-12; the list is "4.1's bugs by upstream branch" below): all fixed in the fork (2026-11-12, `d90b789ab`..`98a7dae87`, `4c07f1e11`; lip-sync and the push button still want a run in a game); ported to `master-41-fixes` and `ags4-41-fixes`, trial merge of the first into the second on `ags4-41-mergecheck` (`docs/UPSTREAM.md`, worktrees `../ags-up-master`, `../ags-up-ags4`, `../ags-up-merge`); left: a review of every port against its fork commit and of the merge resolution, the PR texts (`.compare/pr-description.md` in each worktree), then push and open the two PRs (the user, 2026-11-12: double-check before opening) | 4.1 is done; the PRs were waiting for it | Fable 5.1, `high` for the review; the user opens the PRs |
 | 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` with upstream's draft names where they overlap | Files move once (4.4 rides along) | Fable 5.1, `high` for the move map, subagents for the moves |
 | 3 | **4.5 + 3.6 on what had no comment pass:** the compiler (7,440-line parser: its own plan, by function groups), the files with only stray renames in batches 6 and 7, then the untouched files most-churned first; the brief `.compare/briefs/brief-41-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | Comments before the 5.3 moves | Sonnet 5.5, `medium`, parallel subagents |
-| 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3187–#3189), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
+| 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3188, #3189; #3187 merged), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
 Open items from finished tasks (details in LOG.md "Open items"):
 - 0.4: the CodeQL setting, `D3DCOMPILER_47` on Windows 7, the macOS 10.9 deployment target.
@@ -91,17 +91,15 @@ Open items from finished tasks (details in LOG.md "Open items"):
   refuses a missing element (2026-11-12, test `AGFReader.OpenReportsMissingSettings`); `StrUtil::Unescape`'s read past
   the end went with its rewrite in `28badf14b` (U.3). Left: the `ReadAllData` wrappers drop `ReadFields`' error, so an
   invalid value or an unknown element under `UnknownElements::Fail` goes unreported there.
-- 1.2: 47 `DataUtil::GameSettings` fields have no initializer, so an absent `Game.agf` element leaves
-  garbage instead of `Settings.cs`'s default (`{}` is not the fix); the open PR #3187 still has the wrong
-  `EXPECT_FALSE(s.PixelPerfect)` in `AGFReaderBlocks.GameSettingsDefaults`.
+- 1.2: the `DataUtil::GameSettings` scalars start at `Settings.cs`'s defaults (`1bfcbfbb6`, `GameFPS` 60 in
+  `5edb9f059`); upstream `ags4` (#3187, merged 2026-11-12) has the wrong `EXPECT_FALSE(s.PixelPerfect)` (should be
+  `EXPECT_TRUE`) in `AGFReaderBlocks.GameSettingsDefaults`: fixed by the `ags4` PR of task 1.
 - The editor writes the last-opened room's colours into the game palette (2026-11-12, LOG.md 7.1f): `RoomsComponent.
   CopyGamePalette` copies the `PaletteEntry` references (a class), so `CopyToAGSBackgroundPalette` sets the game's
   Background slots, and a save puts them in `Game.agf`; an 8-bit game's `game28.dta` then depends on the room opened
   last (by the reference editor at build time too). Upstream `ags4` has the same line. Fixed in the fork only, for build
   parity (the user, 2026-11-12: low priority upstream, no effect on a real game): `PaletteEntry.Clone`, tests
   `PaletteEntryTests`. A project saved before the fix keeps the room colours it already has in its Background slots.
-- 3.1: unchecked `GetDiskFreeSpaceExW` result in `AGSWin32::GetDiskFreeSpaceMB`.
-- 1.5a: the 4-bit pixel write in `Common/gfx/bitmapdata.cpp` (wrong mask and shift, untested).
 - 3.4-1: constants left behind (`GUI::DataVersion`, always-on behaviour switches, three dialog option
   offsets, `FindNearestWalkablePoint`'s old method).
 - 3.4-2: the editor's project upgrade steps below the 3.99.99.01 floor, unreachable now and kept for L.1
@@ -125,22 +123,21 @@ Open items from finished tasks (details in LOG.md "Open items"):
     `DynamicSprite.Tint` / `Width`, `Height`, `ColorDepth` / `GetDrawingSurface` on a deleted sprite (`9ce810048`,
     `2b1389a2e`, `964ffb429`), `DisplayTopBar`'s time and font (`ea271ea5d`, `0becab61f`),
     `InventoryItem.CursorHotspotAlignment` (`a3e21a6e3`), older saves' `audio_speed` (the half of `8a25d5732` without
-    the view anchor), the `FaceDown` turn (`63da172bd`, a test pending), a point above the room (`6e8d72c93`); cosmetic:
-    the `SetPixels` and `Overlay.Height` warning names (`599acd6fd`, `6b718c3d1`), `|`/`&` for `||`/`&&`
-    (`6c237db78`, `c2c23c177`, `0fd70e037`'s `CSCIWaitMessage`, `a8ee0fa4b`).
-  - `master`, open: voice lip-sync with a voice pack other than `speech.vox` (sync data read once at startup; the
-    compared name carries the pack path, `get_cue_filename`; fix: reload in `init_voicepak`, compare the bare name),
-    `MyPushButton::pressedon` tracks the press position not the mouse, 4-bit `BitmapData::GetPixel`/`SetPixel`
-    (shift and mask), `GetDiskFreeSpaceMB` ignores the API result, `lzwcompress`'s unaligned host-order `short` store,
-    the uninitialised `DataUtil::GameSettings` scalars (the tools; 1.2 below), `ListBox_AddItem`'s dead `< 0` test.
+    the view anchor), the `FaceDown` turn (`63da172bd`, test `818449240`), a point above the room (`6e8d72c93`), voice
+    lip-sync with a pack other than `speech.vox` (`405cb0086`: `init_voicepak` reloads the sync data, the bare clip name
+    is compared; `4c07f1e11`: a named pack's `syncdata.dat` is under its folder), the dialogs' push button follows the mouse (`14c94fcc9`), 4-bit `BitmapData` pixels (`d90b789ab`),
+    `GetDiskFreeSpaceMB`'s failed call (`96493c8ce`), `lzwcompress`'s little-endian store (`a0085f0fa`), the
+    `DataUtil::GameSettings` defaults (the tools, part of #3187's code: `1bfcbfbb6`, `5edb9f059`); cosmetic: the
+    `SetPixels` and `Overlay.Height` warning names (`599acd6fd`, `6b718c3d1`), `|`/`&` for `||`/`&&` (`6c237db78`,
+    `c2c23c177`, `0fd70e037`'s `CSCIWaitMessage`, `a8ee0fa4b`), `ListBox_AddItem`'s dead check (`f21086076`).
   - `ags4`, fixed in the fork: `DrawingColor` after `Release()` (`1c83f49aa`; `master` guards it), the scanner's
     `IsHexDigit` (`b59fd4b94`), `SetScale` registered twice (`9846f97d4`, `ac3bc8730`), the pivot of older saves
     (`d228d1baa`), `Joystick.GetHat` (`4b1ce87fb`), `Overlay.Tint` on a removed overlay (`9d81c631c`),
     `UpdateOverlayState`'s assert (`578f83fb2`), the save prescan of views (`edadb75aa`), older saves' view anchor (the
-    other half of `8a25d5732`).
-  - `ags4`, open: `Speech.SkipStyle` reads back `kSkipSpeechTime`/`kSkipSpeechNone` for every key or mouse style
-    (`internal_skip_speech_to_user` does not mask `SKIP_GAMEPAD`/`SKIP_TOUCH`; `master` has no such flags); the data
-    writer's `WriteGlobalMessagesBlock`, dead since `kGameVersion_400_33` (`master`'s engine still reads them).
+    other half of `8a25d5732`), `Speech.SkipStyle`'s read-back with the gamepad/touch flags (`e036d4ade`), the tools'
+    `WriteGlobalMessagesBlock` (`f161028ac`: not dead but harmful: the engine does not skip the block for 400_33+, so
+    a `Game.agf` with any global message gave a game that did not start; the tools only, `ags4`'s editor no longer
+    writes it).
   - Fork only, all fixed: the editor's palette leak and `agfreader` without `<Settings>` (2026-11-12, below), Ctrl+D's
     "trnsp" and the Opacity range checks (`603365067`, `c81711ba6`, `e903548c7`).
 - Sprite placement (2026-11-12, LOG.md "Sprite placement and the Direct3D 9 half-pixel offset"), in long-term
@@ -148,12 +145,6 @@ Open items from finished tasks (details in LOG.md "Open items"):
   offsets, and a camera stretch by integer maths (exact agreement of all renderers at any zoom) are left. The
   auto-test's expectations are in `ags-test-games` tag `draconian-auto-test-2`. The D3D9 fix is prepared for upstream
   (`docs/UPSTREAM.md`, `ags4-d3d9-halfpixel`).
-- 4.1 (batch 5, a decision for the user): voice lip-sync works only with the default `speech.vox`. Checked on
-  2026-11-12: the editor writes a `syncdata.dat` with bare clip names (`EGO.1`) in every `Speech` folder, `agsbuild`
-  packs a folder's files as `<folder>/<file>` in `sp_<folder>.vox`, the engine reads `syncdata.dat` once at startup (the
-  default pack's) and `play_voice_speech` compares the clip's asset name, which carries the pack path (`<folder>/EGO.1`),
-  so after `Game.ChangeSpeechVox` no line matches and the pack's own sync data is never read. Upstream `ags4` and
-  `master` (3.6) have the same code. Fix: reload the sync data in `init_voicepak`, compare the bare clip name.
 - Scripts in a git worktree: `refactor_metrics.py`, `prepush.py`'s `linux` and `msbuild` stages fail there.
 - Stale: `Tools/test/directory_test.cpp`'s googletest comment; `FetchGoogleTest.cmake`'s pin for GCC < 5.
 
@@ -580,7 +571,8 @@ and without fork-only features, built in the worktree `E:\Projects\ags\ags4-upst
   `agsbuild`'s diagnostics move onto the Common log system (`debug::out`, #2530, ivan-mogilko's preference), so
   `--json` is a log sink. Follow-ups for the same milestone: `--version` (#3068), `agscc -I` (#3070).
   *Done when:* the pieces have no open review comments about structure.
-  *Status:* #3187–#3189 open, review round 3 answered and force-pushed 2026-11-12 (`docs/UPSTREAM.md`);
+  *Status:* #3187 merged 2026-11-12 (`140b7d7de`); #3188, #3189 open, review round 3 answered and force-pushed
+  2026-11-12 (`docs/UPSTREAM.md`);
   `--json`, cancel and the stage split wait for #2530.
 - [x] **U.4 Agent docs upstream** (PR #3185, base `master`). Review changes are made in the
   worktree first and carried over here; the fork's copy leaves out AGS 3 (`master`, 3.x).
