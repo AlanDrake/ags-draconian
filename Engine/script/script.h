@@ -51,9 +51,9 @@ struct ObjectEvent
     // An event without additional parameters
     ObjectEvent(ScriptType sc_type) : ScType(sc_type) {}
     // An interaction event without additional parameters
-    ObjectEvent(ScriptType sc_type, int objtype_id, int obj_id)
+    ObjectEvent(ScriptType sc_type, int object_type_id, int obj_id)
         : ScType(sc_type),
-          ObjectTypeID(objtype_id),
+          ObjectTypeID(object_type_id),
           ObjectID(obj_id)
     {
     }
@@ -64,18 +64,18 @@ struct ObjectEvent
         Params[0] = dyn_obj;
     }
     // An interaction event with a dynamic object reference
-    ObjectEvent(ScriptType sc_type, int objtype_id, int obj_id, const RuntimeScriptValue &dyn_obj)
+    ObjectEvent(ScriptType sc_type, int object_type_id, int obj_id, const RuntimeScriptValue &dyn_obj)
         : ScType(sc_type),
-          ObjectTypeID(objtype_id),
+          ObjectTypeID(object_type_id),
           ObjectID(obj_id)
     {
         ParamCount = 1u;
         Params[0] = dyn_obj;
     }
     // An event with a dynamic object reference and interaction mode
-    ObjectEvent(ScriptType sc_type, int objtype_id, int obj_id, const RuntimeScriptValue &dyn_obj, int mode)
+    ObjectEvent(ScriptType sc_type, int object_type_id, int obj_id, const RuntimeScriptValue &dyn_obj, int mode)
         : ScType(sc_type),
-          ObjectTypeID(objtype_id),
+          ObjectTypeID(object_type_id),
           ObjectID(obj_id)
     {
         ParamCount = 2u;
@@ -110,17 +110,18 @@ struct NonBlockingScriptFunction
 };
 
 // Run a script function on a non-blocking script thread
-void run_function_on_non_blocking_thread(NonBlockingScriptFunction *funcToRun);
+void run_function_on_non_blocking_thread(NonBlockingScriptFunction *func_to_run);
 // Runs new-style interaction event handler in script.
-// Runs the ObjectEvent using a script callback of 'evnt' index,
-// or alternatively of 'any_evt' index, if previous does not exist
+// Runs the ObjectEvent using a script callback of 'event_id' index,
+// or alternatively of 'any_event_id' index, if previous does not exist
 // Returns 0 normally, or -1 telling of a game state change (eg. a room change occured).
-int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt,
-                     ScriptEventsBase *chkany_handlers, int any_evt, bool do_unhandled_event);
-int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt, bool do_unhandled_event = false);
+int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int event_id,
+                     ScriptEventsBase *any_handlers, int any_event_id, bool do_unhandled_event);
+int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int event_id,
+                     bool do_unhandled_event = false);
 // Runs event handler, optionally choosing to run on a non-blocking thread if the main thread is busy.
-int run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt);
-void run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
+int run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int event_id);
+void run_unhandled_event(const ObjectEvent &obj_evt, int mode);
 
 enum RunScFuncResult
 {
@@ -144,15 +145,15 @@ void TryRunScriptHandler(ScriptType sc_type, const AGS::Common::String &script_m
                          const AGS::Common::ScriptEventHandler &handler, size_t param_count = 0,
                          const RuntimeScriptValue *params = nullptr);
 // Try to run a script function on the main script thread
-RunScFuncResult RunScriptFunction(const AGS::Engine::RuntimeScript *script, const String &tsname,
+RunScFuncResult RunScriptFunction(const AGS::Engine::RuntimeScript *script, const String &fn_name,
                                   size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
 // Run a script function in all the regular script modules, in order, where available
 // includes globalscript, but not the current room script.
 // returns if at least one instance of a function was run successfully.
-bool RunScriptFunctionInModules(const String &tsname, size_t param_count = 0,
+bool RunScriptFunctionInModules(const String &fn_name, size_t param_count = 0,
                                 const RuntimeScriptValue *params = nullptr);
 // Run a script function in the current room script; returns if a function was run successfully.
-bool RunScriptFunctionInRoom(const String &tsname, size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
+bool RunScriptFunctionInRoom(const String &fn_name, size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
 // Try to run a script function, guessing the behavior by its name and script instance type;
 // depending on the type may run a claimable callback chain;
 // returns if at least one instance of a function was run successfully.
@@ -169,8 +170,8 @@ void InitScriptExec();
 void ShutdownScriptExec();
 // Create runtime script instances
 // TODO: pick out a struct for holding only game scripts
-HError CreateRuntimeScripts(const ccScript *glscript, const std::vector<ccScript *> &scmodules,
-                            const std::vector<String> &scmodule_names, const ccScript *dlgscript);
+HError CreateRuntimeScripts(const ccScript *global_script, const std::vector<ccScript *> &script_modules,
+                            const std::vector<String> &script_module_names, const ccScript *dialog_script);
 // Link all script modules into a single program,
 // registers script exports in a global symbol table
 HError LinkGlobalScripts();
