@@ -727,36 +727,36 @@ RuntimeScriptValue Sc_SkipWait(const RuntimeScriptValue *params, int32_t param_c
 //
 //=============================================================================
 
-// void (char*texx, ...)
-void ScPl_sc_AbortGame(const char *texx, ...)
+// void (char*format, ...)
+void ScPl_sc_AbortGame(const char *format, ...)
 {
-    API_PLUGIN_SCRIPT_SPRINTF(texx);
+    API_PLUGIN_SCRIPT_SPRINTF(format);
     _sc_AbortGame(scsf_buffer);
 }
 
-void ScPl_Display(char *texx, ...)
+void ScPl_Display(char *format, ...)
 {
-    API_PLUGIN_SCRIPT_SPRINTF(texx);
+    API_PLUGIN_SCRIPT_SPRINTF(format);
     DisplaySimple(scsf_buffer);
 }
 
-void ScPl_DisplayAt(int xxp, int yyp, int widd, char *texx, ...)
+void ScPl_DisplayAt(int x, int y, int width, char *format, ...)
 {
-    API_PLUGIN_SCRIPT_SPRINTF(texx);
-    DisplayAt(xxp, yyp, widd, scsf_buffer);
+    API_PLUGIN_SCRIPT_SPRINTF(format);
+    DisplayAt(x, y, width, scsf_buffer);
 }
 
-void ScPl_DisplayAtY(int ypos, char *texx, ...)
+void ScPl_DisplayAtY(int ypos, char *format, ...)
 {
-    API_PLUGIN_SCRIPT_SPRINTF(texx);
+    API_PLUGIN_SCRIPT_SPRINTF(format);
     DisplayAtY(ypos, scsf_buffer);
 }
 
-// void (int ypos, int ttexcol, int backcol, char *title, char*texx, ...)
-void ScPl_DisplayTopBar(int ypos, int ttexcol, int backcol, char *title, char *texx, ...)
+// void (int ypos, int text_color, int back_color, char *title, char*format, ...)
+void ScPl_DisplayTopBar(int ypos, int text_color, int back_color, char *title, char *format, ...)
 {
-    API_PLUGIN_SCRIPT_SPRINTF(texx);
-    DisplayTopBar(ypos, ttexcol, backcol, title, scsf_buffer);
+    API_PLUGIN_SCRIPT_SPRINTF(format);
+    DisplayTopBar(ypos, text_color, back_color, title, scsf_buffer);
 }
 
 
