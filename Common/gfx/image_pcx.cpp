@@ -39,8 +39,8 @@ bool SavePCX(const BitmapData &bmp, bool /* skip_alpha */, const RGB *pal, Strea
     char value;
 
     /* we really need a palette */
-    // FIXME: it seems like hi-color images can be saved without one,
-    // so perhaps provide a dummy palette in this case instead of quitting?
+    // TODO: only 8-bit images need the palette; a hi-color image could be saved without one,
+    // by writing a dummy palette instead of failing
     if (!pal)
     {
         return false;
