@@ -683,10 +683,10 @@ inline float Hill(float x)
     const float a0 = 1.0f;
     const float a2 = 2.0f / PI - 12.0f / (pisquared);
     const float a3 = 16.0f / (picubed)-4.0f / (pisquared);
-    const float xx = x * x;
-    const float xxx = xx * x;
+    const float x_squared = x * x;
+    const float x_cubed = x_squared * x;
 
-    return a0 + a2 * xx + a3 * xxx;
+    return a0 + a2 * x_squared + a3 * x_cubed;
 }
 
 float FastSin(float x)
