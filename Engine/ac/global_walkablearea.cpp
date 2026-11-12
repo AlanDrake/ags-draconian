@@ -32,7 +32,7 @@ int GetScalingAt(int x, int y)
     if (onarea < 0)
         return 100;
 
-    return get_area_scaling(onarea, x, y);
+    return get_area_scaling(onarea, y);
 }
 
 void SetAreaScaling(int area, int min, int max)

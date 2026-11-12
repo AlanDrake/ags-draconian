@@ -1511,7 +1511,7 @@ void update_object_scale(int &res_zoom, int &res_width, int &res_height, int obj
         int onarea = get_walkable_area_at_location(objx, objy);
         if ((onarea > 0) || (thisroom.WalkAreas[0].ScalingFar != 0))
         {
-            zoom = get_area_scaling(onarea, objx, objy);
+            zoom = get_area_scaling(onarea, objy);
         }
     }
 

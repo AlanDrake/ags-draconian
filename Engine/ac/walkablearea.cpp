@@ -67,11 +67,9 @@ int get_walkable_area_pixel(int x, int y)
     return thisroom.WalkAreaMask->GetPixel(room_to_mask_coord(x), room_to_mask_coord(y));
 }
 
-int get_area_scaling(int area_id, int x, int y)
+int get_area_scaling(int area_id, int y)
 {
     int zoom_level = 100;
-    // TODO: x is converted and never read, the scaling depends on the row only (the conversion could go)
-    x = room_to_mask_coord(x);
     y = room_to_mask_coord(y); // WalkArea Top and Bottom are mask rows
 
     if ((area_id >= 0) && (area_id < MAX_WALK_AREAS) && (thisroom.WalkAreas[area_id].ScalingNear != NOT_VECTOR_SCALED))

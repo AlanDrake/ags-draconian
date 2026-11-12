@@ -36,8 +36,7 @@ int get_walkable_area_pixel(int x, int y);
 // Returns the scaling of the walkable area area_id at the room row y, as a percentage of normal size (100).
 // A vector-scaled area interpolates between its far (top) and near (bottom) scaling over its rows,
 // any other valid area has one scaling; an invalid area_id gives 100. Never returns 0 (that gives 100).
-// The x parameter is not used.
-int get_area_scaling(int area_id, int x, int y);
+int get_area_scaling(int area_id, int y);
 // Scales the sprite's size by zoom_level (a percentage) into new_width and new_height, each at least 1.
 void scale_sprite_size(int sprite_id, int zoom_level, int *new_width, int *new_height);
 // Erases the room-coordinate rectangle area from the temporary walkable bitmap (see prepare_walkable_areas).
