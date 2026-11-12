@@ -765,14 +765,14 @@ HError GameDataExtReader::ReadCharacterInventories(Stream *in, LoadedGameEntitie
     HError err;
     if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(ents.Game.chars.size()), err))
         return err;
-    for (auto &chin : ents.Game.chars)
+    for (auto &ch : ents.Game.chars)
     {
         int start_inv_count = in->ReadInt32();
         for (int i = 0; i < start_inv_count; ++i)
         {
             int item_id = in->ReadInt32();
             int item_q = in->ReadInt32();
-            chin.set_item_quantity(item_id, item_q);
+            ch.set_item_quantity(item_id, item_q);
         }
     }
     return HError::None();
@@ -825,9 +825,9 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
             return err;
         for (int i = 0; i < _ents.Game.numcharacters; ++i)
         {
-            auto &chinfo = _ents.Game.chars[i];
-            chinfo.scrname = StrUtil::ReadString(in);
-            chinfo.name = StrUtil::ReadString(in);
+            auto &ch = _ents.Game.chars[i];
+            ch.scrname = StrUtil::ReadString(in);
+            ch.name = StrUtil::ReadString(in);
         }
         if (!ReadAndAssertCount(in, "inventory items", static_cast<uint32_t>(_ents.Game.numinvitems), err))
             return err;

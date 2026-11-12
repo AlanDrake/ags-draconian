@@ -169,7 +169,7 @@ public:
     // Notify GUI about any of its controls changing its location.
     void NotifyControlPosition();
     // Notify GUI about one of its controls changing its interactive state.
-    void NotifyControlState(int objid, bool mark_changed);
+    void NotifyControlState(int ctrl_id, bool mark_changed);
     // Resets control-under-mouse detection.
     void ResetOverControl();
 
@@ -516,7 +516,7 @@ extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfon
 extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont, color_t text_color,
                              AGS::Common::BlendMode blend_mode, const char *text);
 extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont, color_t text_color,
-                             color_t outline_color, AGS::Common::BlendMode blend_mode, const char *texx);
+                             color_t outline_color, AGS::Common::BlendMode blend_mode, const char *text);
 
 extern void set_our_eip(int eip);
 extern void set_eip_guiobj(int eip);

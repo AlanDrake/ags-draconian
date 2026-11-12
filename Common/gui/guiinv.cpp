@@ -40,11 +40,11 @@ void GUIInvWindow::SetItemDimensions(int itemw, int itemh)
     }
 }
 
-void GUIInvWindow::SetCharacterID(int charid)
+void GUIInvWindow::SetCharacterID(int char_id)
 {
-    if (_charID != charid)
+    if (_charID != char_id)
     {
-        _charID = charid;
+        _charID = char_id;
         MarkChanged();
     }
 }

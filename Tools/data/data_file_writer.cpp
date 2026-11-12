@@ -195,64 +195,64 @@ void WriteView(Stream *out, const DataUtil::GameData &game, const DataUtil::View
 // through GameSetupStruct::ReadCharacters().
 void WriteCharacter(Stream *out, const DataUtil::GameData &game, const DataUtil::CharacterData &ref, int index)
 {
-    CharacterInfo chinfo;
+    CharacterInfo ch;
 
-    chinfo.index_id = ref.ID >= 0 ? ref.ID : index;
-    chinfo.defview = ref.NormalView - 1;
-    chinfo.talkview = ref.SpeechView - 1;
-    chinfo.view = ref.NormalView - 1;
-    chinfo.room = ref.StartingRoom;
-    chinfo.x = ref.StartX;
-    chinfo.y = ref.StartY;
-    chinfo.idleview = ref.IdleView - 1;
-    chinfo.idledelay = static_cast<int16_t>(ref.IdleDelay);
-    chinfo.opacity = static_cast<int16_t>(ref.Opacity);
-    chinfo.baseline = static_cast<int16_t>(ref.Baseline);
-    chinfo.talkcolor = ref.SpeechColor;
-    chinfo.thinkview = ref.ThinkingView - 1;
-    chinfo.blinkview = static_cast<int16_t>(ref.BlinkingView - 1);
-    chinfo.walkspeed_y = static_cast<int16_t>(ref.UniformMovementSpeed ? UNIFORM_WALK_SPEED : ref.MovementSpeedY);
-    chinfo.speech_anim_speed = static_cast<int16_t>(ref.SpeechAnimationDelay);
-    chinfo.idle_anim_speed = static_cast<int16_t>(ref.IdleAnimationDelay);
-    chinfo.blocking_width = static_cast<int16_t>(ref.BlockingWidth);
-    chinfo.blocking_height = static_cast<int16_t>(ref.BlockingHeight);
-    chinfo.walkspeed = static_cast<int16_t>(ref.UniformMovementSpeed ? ref.MovementSpeed : ref.MovementSpeedX);
-    chinfo.animspeed = static_cast<int16_t>(ref.AnimationDelay);
+    ch.index_id = ref.ID >= 0 ? ref.ID : index;
+    ch.defview = ref.NormalView - 1;
+    ch.talkview = ref.SpeechView - 1;
+    ch.view = ref.NormalView - 1;
+    ch.room = ref.StartingRoom;
+    ch.x = ref.StartX;
+    ch.y = ref.StartY;
+    ch.idleview = ref.IdleView - 1;
+    ch.idledelay = static_cast<int16_t>(ref.IdleDelay);
+    ch.opacity = static_cast<int16_t>(ref.Opacity);
+    ch.baseline = static_cast<int16_t>(ref.Baseline);
+    ch.talkcolor = ref.SpeechColor;
+    ch.thinkview = ref.ThinkingView - 1;
+    ch.blinkview = static_cast<int16_t>(ref.BlinkingView - 1);
+    ch.walkspeed_y = static_cast<int16_t>(ref.UniformMovementSpeed ? UNIFORM_WALK_SPEED : ref.MovementSpeedY);
+    ch.speech_anim_speed = static_cast<int16_t>(ref.SpeechAnimationDelay);
+    ch.idle_anim_speed = static_cast<int16_t>(ref.IdleAnimationDelay);
+    ch.blocking_width = static_cast<int16_t>(ref.BlockingWidth);
+    ch.blocking_height = static_cast<int16_t>(ref.BlockingHeight);
+    ch.walkspeed = static_cast<int16_t>(ref.UniformMovementSpeed ? ref.MovementSpeed : ref.MovementSpeedX);
+    ch.animspeed = static_cast<int16_t>(ref.AnimationDelay);
     if (ref.Enabled)
-        chinfo.flags |= CHF_ENABLED;
+        ch.flags |= CHF_ENABLED;
     if (ref.Visible)
-        chinfo.flags |= CHF_VISIBLE;
+        ch.flags |= CHF_VISIBLE;
     if (ref.AdjustSpeedWithScaling)
-        chinfo.flags |= CHF_SCALEMOVESPEED;
+        ch.flags |= CHF_SCALEMOVESPEED;
     if (ref.AdjustVolumeWithScaling)
-        chinfo.flags |= CHF_SCALEVOLUME;
+        ch.flags |= CHF_SCALEVOLUME;
     if (!ref.Clickable)
-        chinfo.flags |= CHF_NOINTERACT;
+        ch.flags |= CHF_NOINTERACT;
     if (!ref.DiagonalLoops)
-        chinfo.flags |= CHF_NODIAGONAL;
+        ch.flags |= CHF_NODIAGONAL;
     if (ref.MovementLinkedToAnimation)
-        chinfo.flags |= CHF_ANTIGLIDE;
+        ch.flags |= CHF_ANTIGLIDE;
     if (!ref.Solid)
-        chinfo.flags |= CHF_NOBLOCKING;
+        ch.flags |= CHF_NOBLOCKING;
     if (!ref.TurnBeforeWalking)
-        chinfo.flags |= CHF_NOTURNWHENWALK;
+        ch.flags |= CHF_NOTURNWHENWALK;
     if (ref.TurnWhenFacing)
-        chinfo.flags |= CHF_TURNWHENFACE;
+        ch.flags |= CHF_TURNWHENFACE;
     if (!ref.UseRoomAreaLighting)
-        chinfo.flags |= CHF_NOLIGHTING;
+        ch.flags |= CHF_NOLIGHTING;
     if (!ref.UseRoomAreaScaling)
-        chinfo.flags |= CHF_MANUALSCALING;
+        ch.flags |= CHF_MANUALSCALING;
     if ((ref.ID >= 0 ? ref.ID : index) == game.PlayerCharacter)
         for (const auto &item : game.Inventory)
             if (item.PlayerStartsWith && item.ID >= 0)
-                chinfo.invq[item.ID] = 1;
-    chinfo.blocking_x = ref.BlockingX;
-    chinfo.blocking_y = ref.BlockingY;
+                ch.invq[item.ID] = 1;
+    ch.blocking_x = ref.BlockingX;
+    ch.blocking_y = ref.BlockingY;
 
-    chinfo.name = TextProperty(ref.RealName);
-    chinfo.scrname = ref.ScriptName;
+    ch.name = TextProperty(ref.RealName);
+    ch.scrname = ref.ScriptName;
 
-    chinfo.WriteToFile(out);
+    ch.WriteToFile(out);
 }
 
 // Read by InventoryItemInfo::ReadFromFile() in

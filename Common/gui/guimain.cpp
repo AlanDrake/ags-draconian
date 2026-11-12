@@ -187,14 +187,14 @@ void GUIMain::NotifyControlPosition()
     _hasControlsChanged = true; // for software render, and in case of shape change
 }
 
-void GUIMain::NotifyControlState(int objid, bool mark_changed)
+void GUIMain::NotifyControlState(int ctrl_id, bool mark_changed)
 {
     _mouseWasAt.X = -1;
     _mouseWasAt.Y = -1;
     _hasControlsChanged |= mark_changed;
     // Update cursor-over-control state, if necessary
     const int overctrl = _mouseOverCtrl;
-    if (!_polling && (objid >= 0) && (objid == overctrl) && ((size_t)objid < _controls.size()) &&
+    if (!_polling && (ctrl_id >= 0) && (ctrl_id == overctrl) && ((size_t)ctrl_id < _controls.size()) &&
         (!_controls[overctrl]->IsClickable() || !_controls[overctrl]->IsVisible() || !_controls[overctrl]->IsEnabled()))
     {
         _mouseOverCtrl = -1;
