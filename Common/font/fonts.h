@@ -60,7 +60,7 @@ const std::vector<int> *get_font_valid_char_codes(int font_number);
 // Get font's name, if it's available, otherwise returns empty string
 const char *get_font_name(int font_number);
 // Calculate actual width of a line of text
-int get_text_width(const char *texx, int font_number);
+int get_text_width(const char *text, int font_number);
 // Get the maximal width of the line of text, with corresponding outlining
 int get_text_width_outlined(const char *text, int font_number);
 // Get font's height; this value is used for logical arrangement of UI elements;
@@ -119,7 +119,7 @@ void freefont(int font_number);
 void free_all_fonts();
 
 // Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
-void wouttextxy(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t text_color, const char *texx);
+void wouttextxy(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t text_color, const char *text);
 // Outputs a single line of text, using blend mode
 void wouttextxy(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t text_color,
                 AGS::Common::BlendMode blend_mode, const char *text);
@@ -166,7 +166,7 @@ private:
 
 // Break up the text into lines restricted by the given width;
 // returns number of lines, or 0 if text cannot be split well to fit in this width
-size_t split_lines(const char *texx, SplitLines &lines, int width, int font_number, size_t max_lines = -1);
+size_t split_lines(const char *text, SplitLines &lines, int width, int font_number, size_t max_lines = -1);
 
 namespace AGS
 {

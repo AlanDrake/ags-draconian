@@ -90,7 +90,7 @@ void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont, colo
 {
 }
 void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont, color_t text_color, color_t outline_color,
-                      AGS::Common::BlendMode blend_mode, const char *texx)
+                      AGS::Common::BlendMode blend_mode, const char *text)
 {
 }
 

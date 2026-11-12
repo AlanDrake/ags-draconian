@@ -316,11 +316,11 @@ const char *get_font_name(int font_number)
     return name ? name : "";
 }
 
-int get_text_width(const char *texx, int font_number)
+int get_text_width(const char *text, int font_number)
 {
     if (!assert_font_renderer(font_number))
         return 0;
-    return fonts[font_number].Renderer->GetTextWidth(texx, font_number);
+    return fonts[font_number].Renderer->GetTextWidth(text, font_number);
 }
 
 int get_text_width_outlined(const char *text, int font_number)
