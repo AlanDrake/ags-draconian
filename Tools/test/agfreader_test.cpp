@@ -628,7 +628,7 @@ TEST_F(AGFReaderBlocks, GameSettingsDefaults)
     ExpectEditorScalarDefaults(s);
     EXPECT_TRUE(s.PixelPerfect);
     EXPECT_STREQ("", s.GameName.GetCStr());
-    EXPECT_EQ(40, s.GameFPS);
+    EXPECT_EQ(60, s.GameFPS);
     EXPECT_EQ(DataUtil::kAndroidBuild_ApkEmbedded, s.AndroidBuildFormat);
     EXPECT_EQ(DataUtil::kGameColorDepth_TrueColor, s.ColorDepth);
     EXPECT_EQ(Common::kSprCompress_None, s.CompressSpritesType);
@@ -657,7 +657,7 @@ TEST_F(AGFReaderBlocks, GameSettingsUnknownEnumNamesGiveTheDefault)
     EXPECT_EQ(kScrTran_Fade, s.RoomTransition);
     EXPECT_EQ(DataUtil::kSpeechStyle_Lucasarts, s.SpeechStyle);
     EXPECT_EQ(Common::kGuiDis_Greyout, s.WhenInterfaceDisabled);
-    EXPECT_EQ(40, s.GameFPS);
+    EXPECT_EQ(60, s.GameFPS);
 }
 
 TEST_F(AGFReaderBlocks, CustomDataDirectories)
