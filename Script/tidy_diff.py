@@ -18,7 +18,8 @@ one is edited. That is the intent: legacy code is cleaned up by tasks of its own
 parameters also changes the first line without making the function new, so a function-size or
 function-name diagnostic is dropped when the base revision's copy of the file already has a function
 of that name (PLAN.md phase 4 touches every declaration; function names are 4.2, lengths are 5.4).
-A new or renamed function is checked in full.
+A new or renamed function is checked in full. A line whose code did not change, only its // comment or
+its spacing (the comment pass, PLAN.md 4.5), is not a changed line.
 
 clang-tidy's naming check knows case styles, not words, so a new "CharacterInfo *chaa" would pass it.
 The banned abbreviations (CRYPTIC_WATCHLIST in refactor_metrics.py; STYLE.md "Naming") are found through
@@ -53,6 +54,8 @@ DIAGNOSTIC = re.compile(r'^(?P<file>.+?):(?P<line>\d+):(?P<col>\d+): (?P<kind>wa
                         r' \[(?P<check>[A-Za-z0-9_.,-]+)\]$')
 ANSI = re.compile('\x1b\\[[0-9;]*m')
 HUNK = re.compile(r'^@@ -\S+ \+(\d+)(?:,(\d+))? @@')
+# A // comment to the end of the line, not inside a string literal (good enough to compare two lines' code)
+LINE_COMMENT = re.compile(r'//(?=(?:[^"]*"[^"]*")*[^"]*$).*$')
 # The check that lists the declared names (see the docstring), and the name in its message
 DECLARED_CHECK = 'readability-identifier-length'
 DECLARED_NAME = re.compile(r"name '(\w+)' is too short")
@@ -87,21 +90,55 @@ def default_base():
     sys.exit('no --base given and no upstream branch to compare with')
 
 
+def code_of(line):
+    """The code of a source line with its // comment and all whitespace taken out ('' for a comment line)."""
+    return re.sub(r'\s+', '', LINE_COMMENT.sub('', line))
+
+
 def changed_lines(base):
-    """{repo-relative path: [(first, last), ...]} of the added and rewritten lines, base to working tree."""
-    result = {}
+    """{repo-relative path: [(first, last), ...]} of the added and rewritten lines, base to working tree.
+
+    A rewritten line whose code is that of a line the same hunk removes (only its // comment or its
+    spacing changed) is left out: a comment pass does not put the legacy code beside it under the gate."""
+    lines = {}
     path = None
+    removed, added = set(), []
+
+    def flush():
+        if path is not None:
+            for number, code in added:
+                if not code or code not in removed:
+                    lines.setdefault(path, []).append(number)
+        removed.clear()
+        added.clear()
+
     for line in git('diff', '-U0', '--no-color', '--no-ext-diff', '--diff-filter=AMR', base).splitlines():
         if line.startswith('+++ '):
+            flush()
             path = line[6:] if line.startswith('+++ b/') else None
             if path is not None and not is_checked(path):
                 path = None
             continue
         m = HUNK.match(line)
-        if m and path is not None:
-            first, count = int(m.group(1)), int(m.group(2) or '1')
-            if count > 0:
-                result.setdefault(path, []).append((first, first + count - 1))
+        if m:
+            flush()
+            number = int(m.group(1))
+        elif line.startswith('-') and not line.startswith('--- '):
+            code = code_of(line[1:])
+            if code:
+                removed.add(code)
+        elif line.startswith('+'):
+            added.append((number, code_of(line[1:])))
+            number += 1
+    flush()
+    result = {}
+    for path, numbers in lines.items():
+        for number in numbers:
+            ranges = result.setdefault(path, [])
+            if ranges and ranges[-1][1] == number - 1:
+                ranges[-1] = (ranges[-1][0], number)
+            else:
+                ranges.append((number, number))
     for path in git('ls-files', '--others', '--exclude-standard').splitlines():
         if is_checked(path):
             with open(os.path.join(REPO, path), 'rb') as f:
