@@ -19,7 +19,8 @@ Two checks, both on the lines a change adds to first-party C and C++ files:
   references  a comment that names a member of an Editor class, "(Translation.EscapeText)", which
               that class does not have in this tree. The tools mirror the Editor of the repository
               they are in: a branch for upstream that cites a member only the fork's Editor has
-              carries fork behaviour (upstream PR #3190).
+              carries fork behaviour (upstream PR #3190). A member the script API header
+              (agsdefns.sh) declares on a struct of that name is a script function, not a finding.
 
 The first check reads names, not code: it cannot see a loop that does by hand what a helper does.
 It is the reminder to look, at the moment a helper is written. Exit code 1 if anything is found.
@@ -69,6 +70,10 @@ PLAIN_WORDS = set('''
 # "(Type.Member)" in a comment, where Editor/**/Type.cs exists
 CITED_MEMBER = re.compile(r'\b([A-Z][A-Za-z0-9]+)\.([A-Z][A-Za-z0-9_]+)\b')
 COMMENT = re.compile(r'//(.*)$')
+# The script API: a cited member that a script struct of that name has is not an Editor reference
+SCRIPT_API_HEADER = 'Editor/AGS.Editor/Resources/agsdefns.sh'
+SCRIPT_STRUCT = re.compile(r'^(?:builtin\s+)?(?:managed\s+)?struct\s+(\w+)\b[^;]*$')
+SCRIPT_EXTENDER = re.compile(r'\b(\w+)\s*\(\s*(?:static\s+|this\s+)(\w+)\b')
 
 repo = REPO
 
@@ -216,11 +221,35 @@ def check_helpers(lines, shared, telling, base=None):
     return findings
 
 
+def script_api_members():
+    """{struct: member names} of the script API header: a struct's block and its extender functions"""
+    members = {}
+    path = os.path.join(repo, SCRIPT_API_HEADER)
+    if not os.path.exists(path):
+        return members
+    struct = None
+    for line in read(path).splitlines():
+        m = SCRIPT_STRUCT.match(line)
+        if m:
+            struct = m.group(1)
+            continue
+        if struct and line.startswith('}'):
+            struct = None
+            continue
+        m = SCRIPT_EXTENDER.search(line)
+        if m:
+            members.setdefault(m.group(2), set()).add(m.group(1))
+        elif struct:
+            members.setdefault(struct, set()).update(re.findall(r'[A-Za-z_]\w*', line))
+    return members
+
+
 def check_references(lines):
     editor_files = {}
     for path in git('ls-files', '--', 'Editor').splitlines():
         if path.endswith('.cs'):
             editor_files.setdefault(os.path.basename(path)[:-3], []).append(path)
+    script_members = script_api_members()
     texts = {}
     findings = []
     for path, number, text in lines:
@@ -229,6 +258,9 @@ def check_references(lines):
             continue
         for type_name, member in CITED_MEMBER.findall(m.group(1)):
             if type_name not in editor_files:
+                continue
+            # Game.StopAudio: the script API's struct of the same name, not the Editor's class
+            if member in script_members.get(type_name, ()):
                 continue
             if type_name not in texts:
                 texts[type_name] = '\n'.join(read(p) for p in editor_files[type_name])
