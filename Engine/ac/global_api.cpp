@@ -778,9 +778,9 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         {"DisableInterface", API_FN_PAIR(DisableInterface)},
         {"Display", Sc_Display, ScPl_Display},
         {"DisplayAt", Sc_DisplayAt, ScPl_DisplayAt},
-        // CHECKME: this function was non-variadic prior to 3.6.1, but AGS compiler does
-        // not produce "name^argnum" symbol id for non-member functions for some reason :/
-        // do we have to do anything about this here? like, test vs script API version...
+        // This function was non-variadic prior to 3.6.1, and the script compiler gives non-member
+        // functions no "name^argnum" symbol id, so one entry serves both: a call from an older
+        // script passes the two fixed parameters, which Sc_DisplayAtY accepts (param_count >= 2).
         {"DisplayAtY", Sc_DisplayAtY, ScPl_DisplayAtY},
         {"DisplayTopBar", Sc_DisplayTopBar, ScPl_DisplayTopBar},
         {"EnableGroundLevelAreas", API_FN_PAIR(EnableGroundLevelAreas)},
@@ -903,8 +903,8 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
     }
 
     // Ultimate base managed class
-    // NOTE: put it here so that i wont have to make a separate cpp just for
-    // this small section. Move it elsewhere later if a better place is found.
+    // TODO: it is registered here only to avoid a separate .cpp for this one function;
+    // move it if a better place appears.
     ScFnRegister anything_api[] = {
         {"Anything::get_TypeName", API_FN_PAIR(Anything_GetTypeName)},
     };
