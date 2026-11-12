@@ -1294,9 +1294,9 @@ worktrees from `a241df4d1`):
     and hit tests agree for unscaled flips. 5 unit tests (`SpritePlacement.*`).
   - Measured with a probe in the auto-test (frames 31x50 to 48x77, zoom 50-150%, camera x1-x3, flip; 40 cases per
     driver), cases that move / worst game pixels: D3D9 37/4 -> 6/1, D3D11 37/4 -> 6/1, OpenGL 36/4 -> 3/1.
-  - `ags-test-games` `d8d301b` (branch `ags4-draconian`, not pushed): the h-flipped character frames (even width) are
-    expected one pixel right; push it with the engine commits, or CI's OpenGL and Software auto-test runs fail 4
-    tests. Auto-test 2414 of 2414 on D3D9, D3D11, OpenGL and Software; `ctest` 1187.
+  - `ags-test-games` `f71a8e0` (branch `ags4-draconian`, tag `draconian-auto-test-2`, which CI checks out): the
+    h-flipped character frames (even width) are expected one pixel right; with the older tag CI's OpenGL and Software
+    auto-test runs fail 4 tests. Auto-test 2414 of 2414 on D3D9, D3D11, OpenGL and Software; `ctest` 1187.
 - **Not done:** the software renderer still scales with Allegro's stretch (scaled frames still drift there);
   `GraphicSpace` uses the truncated scaled size for hit tests (up to a pixel off the drawn sprite); frame offsets are
   scaled with truncating division (`draw.cpp`); the camera's own nearest-texel ties at x1.5 and x2 (1 pixel). Not run:

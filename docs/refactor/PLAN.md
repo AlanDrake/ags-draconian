@@ -121,8 +121,8 @@ Open items from finished tasks (details in LOG.md "Open items"):
   `start_character_turning` (`63da172bd`, above); upstream `ags4` has each.
 - Sprite placement (2026-11-12, LOG.md "Sprite placement and the Direct3D 9 half-pixel offset"), in long-term
   testing by the user: the software renderer's scaling, hit tests on the truncated scaled size, truncated frame
-  offsets, and a camera stretch by integer maths (exact agreement of all renderers at any zoom) are left;
-  `ags-test-games` `d8d301b` must be pushed with the engine commits. The D3D9 fix is prepared for upstream
+  offsets, and a camera stretch by integer maths (exact agreement of all renderers at any zoom) are left. The
+  auto-test's expectations are in `ags-test-games` tag `draconian-auto-test-2`. The D3D9 fix is prepared for upstream
   (`docs/UPSTREAM.md`, `ags4-d3d9-halfpixel`).
 - 4.1 (batch 5, a decision for the user): voice lip-sync works only with the default `speech.vox`. Checked on
   2026-11-12: the editor writes a `syncdata.dat` with bare clip names (`EGO.1`) in every `Speech` folder, `agsbuild`
