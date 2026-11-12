@@ -627,6 +627,7 @@ if(AGS_TESTS)
         engine_test
         test/game_test.cpp
         test/movelist_test.cpp
+        test/savegame_components_test.cpp
         test/scsprintf_test.cpp
         test/systemimports_test.cpp
     )
