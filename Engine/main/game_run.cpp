@@ -135,8 +135,8 @@ static void GameTick();
 class GameLoopUntilState : public GameState
 {
 public:
-    GameLoopUntilState(int untilwhat, const void *data_ptr = nullptr, int data1 = 0, int data2 = 0)
-        : _untilType(untilwhat),
+    GameLoopUntilState(int until_what, const void *data_ptr = nullptr, int data1 = 0, int data2 = 0)
+        : _untilType(until_what),
           _disabledFor(FOR_EXITLOOP),
           _dataPtr(data_ptr),
           _data1(data1),
@@ -305,26 +305,26 @@ static void GameUpdateCheckGroundInteractions()
     else
     {
         // check if he's standing on a hotspot
-        int hotspotThere = GetHotspotIDAtRoom(playerchar->x, playerchar->y, kHit_Interactable);
+        int hotspot_there = GetHotspotIDAtRoom(playerchar->x, playerchar->y, kHit_Interactable);
         // run Stands on Hotspot event;
         // NOTE: this runs even for hotspot 0 (no hotspot), in case one has a script function attached
-        setevent(AGSEvent_Object(kObjEventType_Hotspot, hotspotThere, kHotspotEvent_StandOn));
+        setevent(AGSEvent_Object(kObjEventType_Hotspot, hotspot_there, kHotspotEvent_StandOn));
 
         // check current region
-        int onRegion = GetRegionIDAtRoom(playerchar->x, playerchar->y, kHit_Interactable);
-        if (onRegion != play.player_on_region)
+        int on_region = GetRegionIDAtRoom(playerchar->x, playerchar->y, kHit_Interactable);
+        if (on_region != play.player_on_region)
         {
             // we need to save this and set play.player_on_region
             // now, so it's correct going into RunRegionInteraction
-            int oldRegion = play.player_on_region;
+            int old_region = play.player_on_region;
 
-            play.player_on_region = onRegion;
+            play.player_on_region = on_region;
             // Walks Off last region
-            if (oldRegion > 0)
-                setevent(AGSEvent_Object(kObjEventType_Region, oldRegion, kRegionEvent_WalkOff));
+            if (old_region > 0)
+                setevent(AGSEvent_Object(kObjEventType_Region, old_region, kRegionEvent_WalkOff));
             // Walks Onto new region
-            if (onRegion > 0)
-                setevent(AGSEvent_Object(kObjEventType_Region, onRegion, kRegionEvent_WalkOn));
+            if (on_region > 0)
+                setevent(AGSEvent_Object(kObjEventType_Region, on_region, kRegionEvent_WalkOn));
         }
 
         if (play.player_on_region > 0) // player stands on region
@@ -545,24 +545,24 @@ bool run_service_key_controls(KeyInput &out_key)
 
     // Use backward-compatible combined key for special controls,
     // because game variables may store old-style key + mod codes
-    const eAGSKeyCode agscombokey = AGSKeyToScriptKey(ki.CompatKey);
+    const eAGSKeyCode ags_combo_key = AGSKeyToScriptKey(ki.CompatKey);
 
     // LAlt or RAlt + Enter/Return
-    if ((ki.Mod & eAGSModAlt) && (agscombokey == eAGSKeyCodeReturn))
+    if ((ki.Mod & eAGSModAlt) && (ags_combo_key == eAGSKeyCodeReturn))
     {
         engine_try_switch_windowed_gfxmode();
         return false;
     }
 
     // Alt+X, abort (but only once game is loaded)
-    if ((displayed_room >= 0) && (play.abort_key > 0) && (agscombokey == play.abort_key))
+    if ((displayed_room >= 0) && (play.abort_key > 0) && (ags_combo_key == play.abort_key))
     {
         Debug::Printf("Abort key pressed");
         check_dynamic_sprites_at_exit = 0;
         quit("!|");
     }
 
-    if ((agscombokey == eAGSKeyCodeCtrlE) && (display_fps == kFPS_Forced))
+    if ((ags_combo_key == eAGSKeyCodeCtrlE) && (display_fps == kFPS_Forced))
     {
         // if --fps parameter is used, Ctrl+E will toggle maxed out frame rate
         setTimerFps(frames_per_second, !isTimerFpsMaxed());
@@ -570,7 +570,7 @@ bool run_service_key_controls(KeyInput &out_key)
     }
 
     // FIXME: review this command! - practically inconvenient
-    if ((agscombokey == eAGSKeyCodeCtrlD) && (play.debug_mode > 0))
+    if ((ags_combo_key == eAGSKeyCodeCtrlD) && (play.debug_mode > 0))
     {
         // ctrl+D - show info
         String buffer = String::FromFormat("In room %d %s\nPlayer at %d, %d (view %d, loop %d, frame %d)%s%s%s",
@@ -579,24 +579,25 @@ bool run_service_key_controls(KeyInput &out_key)
                                            playerchar->frame, (IsGamePaused() == 0) ? "" : "\nGame paused.",
                                            (play.ground_level_areas_disabled == 0) ? "" : "\nGround areas disabled.",
                                            (IsInterfaceEnabled() == 0) ? "\nGame in Wait state" : "");
-        for (uint32_t ff = 0; ff < croom->numobj; ff++)
+        for (uint32_t obj_id = 0; obj_id < croom->numobj; obj_id++)
         {
-            if (ff >= 8)
+            if (obj_id >= 8)
                 break; // FIXME: measure graphical size instead?
             buffer.AppendFmt(
-                "\nObject %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%s slot:%d trnsp:%d clkble:%d", ff,
-                objs[ff].x, objs[ff].y,
-                (spriteset.DoesSpriteExist(objs[ff].num) ? game.SpriteInfos[objs[ff].num].Width : 0),
-                (spriteset.DoesSpriteExist(objs[ff].num) ? game.SpriteInfos[objs[ff].num].Height : 0),
-                objs[ff].is_enabled(), objs[ff].is_moving() ? "yes" : "no", objs[ff].is_animating() ? "yes" : "no",
-                objs[ff].num, objs[ff].opacity, ((objs[ff].flags & OBJF_NOINTERACT) != 0) ? 0 : 1);
+                "\nObject %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%s slot:%d trnsp:%d clkble:%d", obj_id,
+                objs[obj_id].x, objs[obj_id].y,
+                (spriteset.DoesSpriteExist(objs[obj_id].num) ? game.SpriteInfos[objs[obj_id].num].Width : 0),
+                (spriteset.DoesSpriteExist(objs[obj_id].num) ? game.SpriteInfos[objs[obj_id].num].Height : 0),
+                objs[obj_id].is_enabled(), objs[obj_id].is_moving() ? "yes" : "no",
+                objs[obj_id].is_animating() ? "yes" : "no", objs[obj_id].num, objs[obj_id].opacity,
+                ((objs[obj_id].flags & OBJF_NOINTERACT) != 0) ? 0 : 1);
         }
         DisplayMB(buffer.GetCStr());
-        int chd = game.playercharacter;
+        int listed_char_id = game.playercharacter;
         buffer = "CHARACTERS IN THIS ROOM:\n";
-        for (int ff = 0; ff < game.numcharacters; ff++)
+        for (int char_id = 0; char_id < game.numcharacters; char_id++)
         {
-            if (game.chars[ff].room != displayed_room)
+            if (game.chars[char_id].room != displayed_room)
                 continue;
             if (buffer.GetLength() > 430)
             { // FIXME: why 430? measure graphical size instead?
@@ -604,21 +605,23 @@ bool run_service_key_controls(KeyInput &out_key)
                 DisplayMB(buffer.GetCStr());
                 buffer = "CHARACTERS IN THIS ROOM (cont'd):\n";
             }
-            chd = ff;
+            listed_char_id = char_id;
             buffer.AppendFmt("%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%s anim:%s "
                              "follow:%d flags:%X wait:%d zoom:%d)\n",
-                             game.chars[chd].scrname.GetCStr(), game.chars[chd].view + 1, game.chars[chd].loop,
-                             game.chars[chd].frame, game.chars[chd].x, game.chars[chd].y, game.chars[chd].z,
-                             game.chars[chd].idleview, game.chars[chd].idledelay, game.chars[chd].idleleft,
-                             game.chars[chd].is_moving() ? "yes" : "no", charextra[chd].IsAnimating() ? "yes" : "no",
-                             charextra[chd].following, game.chars[chd].flags, game.chars[chd].wait,
-                             charextra[chd].zoom);
+                             game.chars[listed_char_id].scrname.GetCStr(), game.chars[listed_char_id].view + 1,
+                             game.chars[listed_char_id].loop, game.chars[listed_char_id].frame,
+                             game.chars[listed_char_id].x, game.chars[listed_char_id].y, game.chars[listed_char_id].z,
+                             game.chars[listed_char_id].idleview, game.chars[listed_char_id].idledelay,
+                             game.chars[listed_char_id].idleleft, game.chars[listed_char_id].is_moving() ? "yes" : "no",
+                             charextra[listed_char_id].IsAnimating() ? "yes" : "no",
+                             charextra[listed_char_id].following, game.chars[listed_char_id].flags,
+                             game.chars[listed_char_id].wait, charextra[listed_char_id].zoom);
         }
         DisplayMB(buffer.GetCStr());
         return false;
     }
 
-    if (((agscombokey == eAGSKeyCodeCtrlV) && (ki.Mod & eAGSModAlt) != 0) && (play.wait_counter < 1) &&
+    if (((ags_combo_key == eAGSKeyCodeCtrlV) && (ki.Mod & eAGSModAlt) != 0) && (play.wait_counter < 1) &&
         (play.text_overlay_on == 0) && (!restrict_until))
     {
         // make sure we can't interrupt a Wait()
@@ -647,20 +650,20 @@ static void check_keyboard_controls()
     // AGS script key will depend on the current "key handling mode";
     // in case of mod+key combinations it will be either individual key (new mode)
     // or combo-key code (old mode).
-    const eAGSKeyCode agskey = AGSKeyToScriptKey(ki.Key);
+    const eAGSKeyCode ags_key = AGSKeyToScriptKey(ki.Key);
     // Use backward-compatible combined key for special controls,
     // because game variables may store old-style key + mod codes
-    const eAGSKeyCode agscombokey = AGSKeyToScriptKey(ki.CompatKey);
+    const eAGSKeyCode ags_combo_key = AGSKeyToScriptKey(ki.CompatKey);
 
     // Suggest a key to the plugins
-    if (pl_run_plugin_hooks(kPluginEvt_KeyPress, agskey))
+    if (pl_run_plugin_hooks(kPluginEvt_KeyPress, ags_key))
     {
-        debug_script_log("Keypress code %d claimed by plugin", agskey);
+        debug_script_log("Keypress code %d claimed by plugin", ags_key);
         return;
     }
 
     // Cutscene skip
-    check_skip_cutscene_keypress(agscombokey);
+    check_skip_cutscene_keypress(ags_combo_key);
     if (play.fast_forward)
     {
         return;
@@ -678,7 +681,7 @@ static void check_keyboard_controls()
         if (IsGamePaused() == 0)
         {
             // check if it requires a specific keypress
-            if ((play.skip_speech_specific_key == 0) || (agscombokey == play.skip_speech_specific_key))
+            if ((play.skip_speech_specific_key == 0) || (ags_combo_key == play.skip_speech_specific_key))
             {
                 remove_screen_overlay(play.text_overlay_on);
                 play.SetWaitKeySkip(ki);
@@ -697,58 +700,58 @@ static void check_keyboard_controls()
     // Don't queue up another keypress if it can't be run instantly
     if (is_inside_script())
     {
-        debug_script_log("Keypress %d ignored (game blocked)", agskey);
+        debug_script_log("Keypress %d ignored (game blocked)", ags_key);
         return;
     }
 
-    bool keywasprocessed = false;
+    bool key_was_processed = false;
     // First pass the key/text events to any active Text Box control
     if (GUI::IsEnabledState())
     {
-        GUITextBox *guitex = gui_get_active_textbox();
-        if (guitex)
+        GUITextBox *textbox = gui_get_active_textbox();
+        if (textbox)
         {
-            const bool handled = guitex->OnKeyPress(ki);
+            const bool handled = textbox->OnKeyPress(ki);
             switch (game.options[OPT_TEXTBOXCLAIMSKEYS])
             {
-            case kScTextBoxClaim_Handled: keywasprocessed |= handled; break;
-            case kScTextBoxClaim_TextOnly: keywasprocessed |= (ki.UChar > 0); break;
+            case kScTextBoxClaim_Handled: key_was_processed |= handled; break;
+            case kScTextBoxClaim_TextOnly: key_was_processed |= (ki.UChar > 0); break;
             case kScTextBoxClaim_Classic:
             default:
-                keywasprocessed = (ki.UChar > 0) || ((agskey >= 32) && (agskey <= 255)) ||
-                                  (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace);
+                key_was_processed = (ki.UChar > 0) || ((ags_key >= 32) && (ags_key <= 255)) ||
+                                    (ags_key == eAGSKeyCodeReturn) || (ags_key == eAGSKeyCodeBackspace);
                 break;
             }
 
-            if (guitex->IsActivated())
+            if (textbox->IsActivated())
             {
-                guitex->SetActivated(false);
+                textbox->SetActivated(false);
                 // FIXME: review this, are we abusing "mouse button" arg here in order to pass a different data?
-                setevent(AGSEvent_GUI(guitex->GetParentID(), guitex->GetID(), static_cast<eAGSMouseButton>(1)));
+                setevent(AGSEvent_GUI(textbox->GetParentID(), textbox->GetID(), static_cast<eAGSMouseButton>(1)));
             }
         }
     }
 
-    if (keywasprocessed)
+    if (key_was_processed)
         return;
 
     // Built-in key-presses
-    if ((usetup.Override.KeySaveGame > 0) && (agscombokey == usetup.Override.KeySaveGame))
+    if ((usetup.Override.KeySaveGame > 0) && (ags_combo_key == usetup.Override.KeySaveGame))
     {
         do_save_game_dialog(0, TOP_SAVESLOT - 1, play.normal_font); // ignore special slot 999
         return;
     }
-    else if ((usetup.Override.KeyRestoreGame > 0) && (agscombokey == usetup.Override.KeyRestoreGame))
+    else if ((usetup.Override.KeyRestoreGame > 0) && (ags_combo_key == usetup.Override.KeyRestoreGame))
     {
         do_restore_game_dialog(0, TOP_SAVESLOT - 1, play.normal_font); // ignore special slot 999
         return;
     }
-    else if ((usetup.Override.KeyDebugWalkable > 0) && (agscombokey == usetup.Override.KeyDebugWalkable))
+    else if ((usetup.Override.KeyDebugWalkable > 0) && (ags_combo_key == usetup.Override.KeyDebugWalkable))
     {
         script_debug(2, kRoomAreaWalkable);
         return;
     }
-    else if ((usetup.Override.KeyDebugPathfind > 0) && (agscombokey == usetup.Override.KeyDebugPathfind))
+    else if ((usetup.Override.KeyDebugPathfind > 0) && (ags_combo_key == usetup.Override.KeyDebugPathfind))
     {
         script_debug(5, playerchar->index_id);
         return;
@@ -757,9 +760,9 @@ static void check_keyboard_controls()
     // Pass the key event to the script.
     if (ki.UChar == 0)
     {
-        const int agskeymod = ki.Mod;
-        debug_script_log("Running on_key_press keycode %d, mod %d", agskey, agskeymod);
-        setevent(AGSEvent_Script(kTS_KeyPress, agskey, agskeymod));
+        const int ags_key_mod = ki.Mod;
+        debug_script_log("Running on_key_press keycode %d, mod %d", ags_key, ags_key_mod);
+        setevent(AGSEvent_Script(kTS_KeyPress, ags_key, ags_key_mod));
     }
     if (ki.UChar > 0)
     {
@@ -799,9 +802,9 @@ static void check_gamepad_controls()
     {
         return;
     }
-    eAGSGamepad_Button gbn = gi.Button;
+    eAGSGamepad_Button gamepad_button = gi.Button;
     // Then, check cutscene skip
-    check_skip_cutscene_gamepad(gbn);
+    check_skip_cutscene_gamepad(gamepad_button);
     if (play.fast_forward)
     {
         return;
@@ -818,7 +821,7 @@ static void check_gamepad_controls()
         if (IsGamePaused() == 0)
         {
             remove_screen_overlay(play.text_overlay_on);
-            play.SetWaitSkipResult(SKIP_GAMEPAD, gbn);
+            play.SetWaitSkipResult(SKIP_GAMEPAD, gamepad_button);
         }
 
         return;
@@ -826,14 +829,14 @@ static void check_gamepad_controls()
 
     if ((play.wait_counter != 0) && (play.key_skip_wait & SKIP_KEYPRESS) != 0)
     {
-        play.SetWaitSkipResult(SKIP_GAMEPAD, gbn);
+        play.SetWaitSkipResult(SKIP_GAMEPAD, gamepad_button);
         return;
     }
 
     if (is_inside_script())
     {
         // Don't queue up another button press if it can't be run instantly
-        debug_script_log("Gamepad button %d ignored (game blocked)", gbn);
+        debug_script_log("Gamepad button %d ignored (game blocked)", gamepad_button);
         return;
     }
 }
@@ -940,30 +943,30 @@ static void GameUpdateCheckRoomEdges()
     {
         // Only allow walking off edges if not in wait mode, and
         // if not in Player Enters Screen (allow walking in from off-screen)
-        int edgesActivated[4] = {0, 0, 0, 0};
+        int edges_activated[4] = {0, 0, 0, 0};
         if (playerchar->x <= thisroom.Edges.Left)
-            edgesActivated[0] = 1;
+            edges_activated[0] = 1;
         else if (playerchar->x >= thisroom.Edges.Right)
-            edgesActivated[1] = 1;
+            edges_activated[1] = 1;
         if (playerchar->y >= thisroom.Edges.Bottom)
-            edgesActivated[2] = 1;
+            edges_activated[2] = 1;
         else if (playerchar->y <= thisroom.Edges.Top)
-            edgesActivated[3] = 1;
+            edges_activated[3] = 1;
 
         if ((play.entered_edge >= 0) && (play.entered_edge <= 3))
         {
             // once the player is no longer outside the edge, forget the stored edge
-            if (edgesActivated[play.entered_edge] == 0)
+            if (edges_activated[play.entered_edge] == 0)
                 play.entered_edge = -10;
             // if we are walking in from off-screen, don't activate edges
             else
-                edgesActivated[play.entered_edge] = 0;
+                edges_activated[play.entered_edge] = 0;
         }
 
-        for (int ii = 0; ii < 4; ii++)
+        for (int edge = 0; edge < 4; edge++)
         {
-            if (edgesActivated[ii])
-                setevent(AGSEvent_Object(kObjEventType_Room, 0, ii));
+            if (edges_activated[edge])
+                setevent(AGSEvent_Object(kObjEventType_Room, 0, edge));
         }
     }
 }
@@ -1035,14 +1038,14 @@ static void update_objects_scale()
     if (displayed_room < 0)
         return;
 
-    for (uint32_t objid = 0; objid < croom->numobj; ++objid)
+    for (uint32_t obj_id = 0; obj_id < croom->numobj; ++obj_id)
     {
-        update_object_scale(objid);
+        update_object_scale(obj_id);
     }
 
-    for (int charid = 0; charid < game.numcharacters; ++charid)
+    for (int char_id = 0; char_id < game.numcharacters; ++char_id)
     {
-        update_character_scale(charid);
+        update_character_scale(char_id);
     }
 }
 
@@ -1175,7 +1178,7 @@ static void UpdateGUIContext()
 }
 
 // Detect mouse move over hotspot, and run respective event if necessary
-static void update_cursor_over_location(int mwasatx, int mwasaty)
+static void update_cursor_over_location(int mouse_was_x, int mouse_was_y)
 {
     if (play.fast_forward)
         return;
@@ -1192,10 +1195,10 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
     // TODO: do not use static variables!
     // TODO: if we support rotation then we also need to compare full transform!
     static int offsetxWas = -1000, offsetyWas = -1000;
-    int offsetx = cam->GetRect().Left;
-    int offsety = cam->GetRect().Top;
+    int offset_x = cam->GetRect().Left;
+    int offset_y = cam->GetRect().Top;
 
-    if (((mwasatx != mousex) || (mwasaty != mousey) || (offsetxWas != offsetx) || (offsetyWas != offsety)))
+    if (((mouse_was_x != mousex) || (mouse_was_y != mousey) || (offsetxWas != offset_x) || (offsetyWas != offset_y)))
     {
         // mouse moves over hotspot
         int getloctype_index = -1;
@@ -1206,11 +1209,11 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
         }
     }
 
-    offsetxWas = offsetx;
-    offsetyWas = offsety;
+    offsetxWas = offset_x;
+    offsetyWas = offset_y;
 }
 
-static void UpdateDrawableObjectStates(bool do_cursor, int mwasatx, int mwasaty)
+static void UpdateDrawableObjectStates(bool do_cursor, int mouse_was_x, int mouse_was_y)
 {
     if (displayed_room < 0)
         return;
@@ -1223,7 +1226,7 @@ static void UpdateDrawableObjectStates(bool do_cursor, int mwasatx, int mwasaty)
     update_overlay_positions();
     if (do_cursor)
     {
-        update_cursor_over_location(mwasatx, mwasaty);
+        update_cursor_over_location(mouse_was_x, mouse_was_y);
         update_cursor_view();
     }
 }
@@ -1400,7 +1403,7 @@ void UpdateGameOnce(bool do_controls, AGS::Engine::IDriverDependantBitmap *extra
 
     // Handle player's input
     // remember old mouse pos, needed for update_cursor_over_location() later
-    const int mwasatx = mousex, mwasaty = mousey;
+    const int mouse_was_x = mousex, mouse_was_y = mousey;
     mouse_on_iface = -1; // FIXME: why is this here? move to a related update function!
     // update mouse position (mousex, mousey)
     ags_domouse();
@@ -1430,7 +1433,7 @@ void UpdateGameOnce(bool do_controls, AGS::Engine::IDriverDependantBitmap *extra
     update_audio_system_on_game_loop();
     // Update drawable object states, which depend on their positions,
     // room region properties, or other object positions
-    UpdateDrawableObjectStates(true /* cursor-related update */, mwasatx, mwasaty);
+    UpdateDrawableObjectStates(true /* cursor-related update */, mouse_was_x, mouse_was_y);
 
     set_our_eip(1008);
 
@@ -1551,7 +1554,7 @@ static void GameTick()
 
 // This function is called from lot of various functions
 // in the game core, character, room object etc
-static void GameLoopUntilEvent(int untilwhat, const void *data_ptr = nullptr, int data1 = 0, int data2 = 0)
+static void GameLoopUntilEvent(int until_what, const void *data_ptr = nullptr, int data1 = 0, int data2 = 0)
 {
     // blocking cutscene - end skipping
     EndSkippingUntilCharStops();
@@ -1563,7 +1566,7 @@ static void GameLoopUntilEvent(int untilwhat, const void *data_ptr = nullptr, in
     bool cached_restrict_until_in_script = restrict_until_in_script;
 
     restrict_until_in_script = is_inside_script();
-    restrict_until.reset(new GameLoopUntilState(untilwhat, data_ptr, data1, data2));
+    restrict_until.reset(new GameLoopUntilState(until_what, data_ptr, data1, data2));
     restrict_until->Begin();
     while (restrict_until->Run())
         ;
@@ -1610,9 +1613,9 @@ void GameLoopUntilNoOverlay()
     GameLoopUntilEvent(UNTIL_NOOVERLAY);
 }
 
-void GameLoopUntilButAnimEnd(int guin, int objn)
+void GameLoopUntilButAnimEnd(int gui_id, int btn_id)
 {
-    GameLoopUntilEvent(UNTIL_ANIMBTNEND, nullptr, guin, objn);
+    GameLoopUntilEvent(UNTIL_ANIMBTNEND, nullptr, gui_id, btn_id);
 }
 
 void GameLoopUntilOverlayAnimEnd(int over_id)
@@ -1651,13 +1654,13 @@ void RunGameUntilAborted()
 
 void UpdateCursorAndDrawables()
 {
-    const int mwasatx = mousex, mwasaty = mousey;
+    const int mouse_was_x = mousex, mouse_was_y = mousey;
     ags_domouse();
     update_cursor_over_gui();
     // TODO: following does not have to be called every frame while in a
     // fully blocking state (like Display() func), refactor to only call it
     // once the blocking state begins.
-    UpdateDrawableObjectStates(true /* cursor-related update */, mwasatx, mwasaty);
+    UpdateDrawableObjectStates(true /* cursor-related update */, mouse_was_x, mouse_was_y);
 }
 
 void SyncDrawablesState()

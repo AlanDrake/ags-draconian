@@ -37,7 +37,7 @@ void GameLoopUntilValueIsNegative(const short *value);
 void GameLoopUntilValueIsNegative(const int *value);
 void GameLoopUntilNotMoving(const short *move);
 void GameLoopUntilNoOverlay();
-void GameLoopUntilButAnimEnd(int guin, int objn);
+void GameLoopUntilButAnimEnd(int gui_id, int btn_id);
 void GameLoopUntilOverlayAnimEnd(int over_id);
 void GameLoopUntilFlagUnset(const int *flagset, int flagbit);
 void GameLoopUntilViewAnimEnd(const ViewAnimateParams *anim);
@@ -87,10 +87,10 @@ uint32_t get_runtime_ms();
 
 // Runs service key controls, returns false if no key was pressed or key input was claimed by the engine,
 // otherwise returns true and provides a keycode.
-bool run_service_key_controls(KeyInput &kgn);
+bool run_service_key_controls(KeyInput &out_key);
 // Runs service mouse controls, returns false if mouse input was claimed by the engine,
 // otherwise returns true and provides mouse button code.
-bool run_service_mb_controls(eAGSMouseButton &mbut, Point *mpos = nullptr);
+bool run_service_mb_controls(eAGSMouseButton &out_mbut, Point *out_mpos = nullptr);
 // Runs service gamepad controls, returns false if no button was pressed or if button input was claimed by the engine,
 // otherwise returns true and provides the gamepad input.
 bool run_service_gamepad_controls(GamepadInput &out_key);
