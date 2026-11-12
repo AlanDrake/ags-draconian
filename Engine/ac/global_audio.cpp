@@ -40,6 +40,7 @@ extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 
+// Script function: sets the voice-over volume (0-255), applied to the playing voice clip too
 void SetSpeechVolume(int volume)
 {
     if ((volume < 0) | (volume > 255))
@@ -65,15 +66,15 @@ int IsMusicVoxAvailable()
 
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
-// Construct an asset name for the voice-over clip for the given character and cue id
+// Construct an asset name for the voice-over clip for the given character (-1 is the narrator) and cue id;
+// the name is placed under the voice pack's path (get_voice_assetpath)
 static String get_cue_filename(int char_id, int cue_id)
 {
     // Clip name generation rule:
-    // Cut a small case 'c' prefix from the character's script name,
-    // this is a ugly hack, but is still done, because in AGS
-    // characters were traditionally named as 'cEgo'.
-    // Naming format: use full script name (past the prefix),
-    //            clip number (X) is separated by a dot:
+    // Cut a lower case 'c' prefix from the character's script name (whatever follows it),
+    // because in AGS characters were traditionally named as 'cEgo'.
+    // Naming format: the script name without the prefix,
+    //            the cue id is separated by a dot:
     //            "CHARNAME.X"
     const char *char_name = (char_id >= 0) ? game.chars[char_id].scrname.GetCStr() : "narrator";
     size_t from = (char_name[0] == 'c') ? 1 : 0u;
@@ -84,6 +85,8 @@ static String get_cue_filename(int char_id, int cue_id)
     return Path::ConcatPaths(get_voice_assetpath(), asset_filename);
 }
 
+// Looks for the voice-over asset of the given bare clip name, trying the extensions in the order of the list below;
+// returns an empty path (and logs a script warning) if none exists
 static AssetPath find_voice_clip(const String &voice_name)
 {
     // TODO: perhaps a better algorithm, allow any extension / sound format?
@@ -108,8 +111,9 @@ static AssetPath find_voice_clip(const String &voice_name)
     return apath;
 }
 
-// Play voice-over clip on the common channel;
-// voice_name should be bare clip name without extension
+// Play voice-over clip on the speech channel, first stopping whatever plays there;
+// voice_name should be bare clip name without extension;
+// returns false if the clip is not found, cannot be loaded or cannot start playing
 static bool play_voice_clip_on_channel(const String &voice_name)
 {
     stop_and_destroy_channel(SCHAN_SPEECH);
@@ -138,7 +142,8 @@ static bool play_voice_clip_on_channel(const String &voice_name)
     return true;
 }
 
-// Play voice-over clip and adjust audio volumes;
+// Play voice-over clip; if as_speech, also mark the speech as voiced (blocking or not by is_blocking)
+// and apply the volume drop to the other audio;
 // voice_name should be bare clip name without extension
 static bool play_voice_clip_impl(const String &voice_name, bool as_speech, bool is_blocking)
 {
@@ -166,7 +171,8 @@ static void stop_voice_clip_impl()
 
 bool play_voice_speech(int char_id, int cue_id)
 {
-    // don't play speech if we're skipping a cutscene
+    // don't play speech if we're skipping a cutscene (fast-forward), in text-only speech mode,
+    // or if the voice-over is not available
     if (!play.ShouldPlayVoiceSpeech())
         return false;
 
@@ -174,9 +180,11 @@ bool play_voice_speech(int char_id, int cue_id)
     if (!play_voice_clip_impl(voice_file, true, true))
         return false;
 
-    int line_id;     // Compare the base file name to the .pam file name
-    curLipLine = -1; // See if we have voice lip sync for this line
+    // See if we have voice lip sync for this line:
+    // compare the voice file name to the lip-sync lines' file names
+    curLipLine = -1;
     curLipLinePhoneme = -1;
+    int line_id;
     for (line_id = 0; line_id < numLipLines; line_id++)
     {
         if (voice_file.CompareNoCase(splipsync[line_id].filename) == 0)
@@ -185,13 +193,13 @@ bool play_voice_speech(int char_id, int cue_id)
             break;
         }
     }
-    // if the lip-sync is being used for voice sync, disable
-    // the text-related lipsync
+    // if the game has any voice lip-sync data, disable the text-related lipsync
+    // (even if this line has no match)
     if (numLipLines > 0)
         game.options[OPT_LIPSYNCTEXT] = 0;
 
-    // change Sierra w/bgrnd  to Sierra without background when voice
-    // is available (for Tierra)
+    // change Sierra w/bgrnd to Sierra without background when the game asks for that
+    // with voice speech (no_textbg_when_voice; 2 marks the switch, stop_voice_speech reverts it)
     if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_SierraBackground) && (play.no_textbg_when_voice > 0))
     {
         game.options[OPT_SPEECHTYPE] = kSpeechStyle_SierraTransparent;
@@ -202,7 +210,7 @@ bool play_voice_speech(int char_id, int cue_id)
 
 bool play_voice_nonblocking(int char_id, int cue_id, bool as_speech)
 {
-    // don't play voice if we're skipping a cutscene
+    // don't play voice if we're skipping a cutscene (fast-forward) or the voice-over is not available
     if (!play.ShouldPlayVoiceSpeechNonBlocking())
         return false;
     // don't play voice if there's a blocking speech with voice-over already
@@ -215,7 +223,7 @@ bool play_voice_nonblocking(int char_id, int cue_id, bool as_speech)
 
 const ScriptAudioChannel *play_voice_clip_as_type(int char_id, int cue_id, int type, int chan, int priority, int repeat)
 {
-    // don't play voice if we're skipping a cutscene
+    // don't play voice if we're skipping a cutscene (fast-forward) or the voice-over is not available
     if (!play.ShouldPlayVoiceSpeechNonBlocking())
         return nullptr;
 
@@ -240,7 +248,7 @@ void stop_voice_speech()
 
     // Reset lipsync
     curLipLine = -1;
-    // Set back to Sierra w/bgrnd
+    // Set back to Sierra w/bgrnd, if play_voice_speech switched it
     if (play.no_textbg_when_voice == 2)
     {
         play.no_textbg_when_voice = 1;
