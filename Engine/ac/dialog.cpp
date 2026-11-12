@@ -78,7 +78,9 @@ std::unique_ptr<DialogOptions> dialogOpts; // current running dialog options
 
 int said_speech_line; // used while in dialog to track whether screen needs updating
 
+// Set when a character said a line of speech; the text window options use it for the QFG4-style layout
 int said_text = 0;
+// The width of the widest line found by the last break_up_text_into_lines() call (or display code)
 int longestline = 0;
 
 
@@ -127,8 +129,9 @@ void SetDialogOption(int dialog_id, int option, int state, bool dlg_script = fal
         quit("!SetDialogOption: Invalid topic number specified");
     if ((option < 1) || (option > dialog[dialog_id].GetOptionCount()))
     {
-        // Pre-3.1.1 games had "dialog scripts" that were written in different language and
-        // parsed differently; its "option-on/off" commands were more permissive.
+        // TODO: no caller passes dlg_script = true any more (pre-3.1.1 games had "dialog scripts" in a
+        // different language, whose "option-on/off" commands were more permissive); this branch and the
+        // parameter can go.
         if (dlg_script)
         {
             Debug::Printf(kDbgGroup_Game, kDbgMsg_Error, "SetDialogOption: Invalid option number specified (%d : %d)",
@@ -171,7 +174,10 @@ void Dialog_StartOption(ScriptDialog *script_dialog, int option)
     RunDialogOption(script_dialog->id, option);
 }
 
-#define CHOSE_TEXTPARSER  -3053
+// Returned by show_dialog_options() when the text parser input was used
+#define CHOSE_TEXTPARSER -3053
+// Values of Dialog.DisplayOptions' sayChosenOption: say the chosen option's text unless it has the
+// no-repeat flag, always say it, never say it
 #define SAYCHOSEN_USEFLAG 1
 #define SAYCHOSEN_YES     2
 #define SAYCHOSEN_NO      3
@@ -475,10 +481,14 @@ bool Dialog_SetTextProperty(ScriptDialog *script_dialog, const char *property, c
 //=============================================================================
 // dialog manager stuff
 
+// Results of running a dialog entry or option: show the same options again, end the dialog, or return to
+// the previous topic; a value >= 0 is the number of a topic to go to
 #define RUN_DIALOG_STAY          -1
 #define RUN_DIALOG_STOP_DIALOG   -2
 #define RUN_DIALOG_GOTO_PREVIOUS -4
 
+// Runs the game script's dialog_request(param) callback (called when text parser input was committed);
+// returns a RUN_DIALOG_* code, or the number of the topic the callback asked to go to
 static int run_dialog_request(int param)
 {
     play.stop_dialog_at_end = DIALOG_RUNNING;
@@ -507,6 +517,9 @@ static int run_dialog_request(int param)
     return RUN_DIALOG_STAY;
 }
 
+// Runs the dialog script function of the given dialog for an option (0 is the starting entry) and returns
+// a RUN_DIALOG_* code or the topic number to go to; entry_point is not used, the function is found by
+// dialog_id
 int run_dialog_script(int dialog_id, int entry_point, int option_index)
 {
     said_speech_line = 0;
@@ -533,7 +546,7 @@ int run_dialog_script(int dialog_id, int entry_point, int option_index)
         // the line below fixes the problem with the close-up face remaining on the
         // screen after they finish talking; however, it makes the dialog options
         // area flicker when going between topics.
-        // FIXME: find a better solution rather than disable/enable iface?
+        // TODO: find a better solution rather than disable/enable iface?
         // this causes all gui texture reupdate twice, and other things...
         DisableInterface();
         UpdateGameOnce(); // redraw the screen to make sure it looks right
@@ -546,6 +559,8 @@ int run_dialog_script(int dialog_id, int entry_point, int option_index)
     return result;
 }
 
+// A displayed dialog option: OptionID is its index in the topic's options (0-based), Position is its
+// rectangle in the options area, set when the options are drawn (empty before that)
 // TODO: make this a member of DialogOptions class
 struct DialogOptionItem
 {
@@ -556,6 +571,9 @@ struct DialogOptionItem
     DialogOptionItem(int option_id) : OptionID(option_id) {}
 };
 
+// Draws the displayed options (items) onto dst, starting at at_x, at_y and wrapped to area_width, and stores
+// each item's Position; mouse_over_item is the highlighted one. Returns the Y coordinate where the next
+// line would start, below the last option.
 // TODO: make this a member of DialogOptions class
 // TODO: don't use global variables inside this function
 // TODO: gather parameters into struct(s)
@@ -572,7 +590,7 @@ static int write_dialog_options(Bitmap *dst, int at_x, int at_y, int area_width,
     const HorAlignment text_align = play.dialog_options_textalign;
     const std::pair<int, int> wrap_range = std::make_pair(at_x + bullet_width, at_x + area_width - 1);
     // Extra offset for 2nd, 3rd etc lines of the same option, *relative* to the first line
-    // FIXME: make this value dynamic, based on sizes etc?
+    // TODO: make this value dynamic, based on sizes etc?
     const int min_multiline_off = 9;
     int first_line_off = 0, multiline_off = 0;
     switch (text_align)
@@ -633,7 +651,7 @@ static int write_dialog_options(Bitmap *dst, int at_x, int at_y, int area_width,
         if (mouse_over_item == item_index)
         {
             // If the normal colour is the same as highlight col, then fallback to another
-            // FIXME: don't use hardcoded color 13 as a fallback; maybe don't do this fallback at all?
+            // TODO: don't use hardcoded color 13 as a fallback; maybe don't do this fallback at all?
             if (text_color == dst->GetCompatibleColor(selected_color))
                 text_color = GUI::GetStandardColorForBitmap(13);
             else
@@ -691,6 +709,7 @@ static int write_dialog_options(Bitmap *dst, int at_x, int at_y, int area_width,
     return cur_y;
 }
 
+// Draws the background color and image of the template GUI onto dst at x, y (its controls are not drawn)
 void draw_gui_for_dialog_options(Bitmap *dst, GUIMain *gui, int x, int y)
 {
     if (gui->GetBgColor() != 0)
@@ -702,6 +721,8 @@ void draw_gui_for_dialog_options(Bitmap *dst, GUIMain *gui, int x, int y)
         GfxUtil::DrawSpriteWithTransparency(dst, spriteset[gui->GetBgImage()], x, y);
 }
 
+// Runs the script's dialog_options_get_dimensions for the dialog; returns true if it gave a non-empty area,
+// which means the custom options rendering is used
 bool get_custom_dialog_options_dimensions(ScriptDialogOptionsRendering *opt_render, int dialog_id)
 {
     opt_render->Reset();
@@ -712,6 +733,7 @@ bool get_custom_dialog_options_dimensions(ScriptDialogOptionsRendering *opt_rend
     return ((opt_render->width > 0) && (opt_render->height > 0));
 }
 
+// A special value of the active (hovered or chosen) option: the parser text box
 #define DLG_OPTION_PARSER 99
 
 // Dialog options state
@@ -772,6 +794,7 @@ private:
     int usingfont;
     int lineheight;
     int linespacing;
+    // the cursor look before the options opened; restored in End()
     int curswas;
     int bullet_wid;    // full width of bullet sprite + numbering
     int bullet_picwid; // bullet sprite width
@@ -800,7 +823,8 @@ private:
 
     // number of displayed options
     int numdisp;
-    // last chosen option
+    // chosen option: an index into the topic's options, DLG_OPTION_PARSER when the parser was used (End() then
+    // turns it into CHOSE_TEXTPARSER), -1 while nothing is chosen
     int chose;
     bool doStop = false;
 
@@ -811,7 +835,7 @@ private:
     bool is_textwindow;
     bool is_normalgui;
     bool usingCustomRendering;
-    bool newCustomRender; // using newer (post-3.5.0 render API)
+    bool newCustomRender; // using the newer custom render API (OPT_DIALOGOPTIONSAPI >= 0, not the pre-3.4.0 one)
     bool redrawOnMouseMove;
     // width of a region within the gui where options are arranged;
     // includes internal gui padding (from both sides)
@@ -941,7 +965,7 @@ void DialogOptions::Begin()
     parserInput = nullptr;
     said_text = 0;
 
-    // FIXME: the option arrangement logic here is a tremendous mess.
+    // TODO: the option arrangement logic here is a tremendous mess.
     // need to strictly define the terms and rules of this arrangement,
     // with defined text area and general padding, and any additional shifts,
     // and make sure that it's consistent.
@@ -1040,7 +1064,7 @@ void DialogOptions::Begin()
             // needs to draw the right text window, not the default
             text_window = draw_text_window(&text_off_x, &text_off_y, &win_x, &win_y, &areawid, nullptr, needheight,
                                            game.options[OPT_DIALOGIFACE], DisplayVars());
-            // since draw_text_window incrases the width, restore the inner placement
+            // since draw_text_window increases the width, restore the inner placement
             areawid = saved_width;
             position = RectWH(win_x, win_y, text_window->GetWidth(), text_window->GetHeight());
             text_window_offset = Point(text_off_x, text_off_y);
@@ -1086,7 +1110,7 @@ void DialogOptions::Begin()
     newCustomRender = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
     redrawOnMouseMove = !usingCustomRendering;
     needRedraw = false;
-    mouseison = INT32_MIN; // this "hack" forces a redraw at a first update even if mouse cursor did not move yet
+    mouseison = INT32_MIN; // forces a redraw at the first update even if the mouse cursor did not move yet
 
     CreateOverlay();
 
@@ -1257,7 +1281,7 @@ bool DialogOptions::Run()
             WaitForNextFrame();
     }
 
-    // Stop the dialog options if wsa requested from script
+    // Stop the dialog options if it was requested from script
     if (doStop)
         return false;
 
@@ -1271,7 +1295,7 @@ bool DialogOptions::Run()
         return false;
     }
 
-    // For >= 3.4.0 custom options rendering: run "dialog_options_repexec"
+    // For the newer custom options rendering API: run "dialog_options_repexec"
     if (newCustomRender)
     {
         runDialogOptionRepExecFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
@@ -1462,8 +1486,8 @@ bool DialogOptions::RunKey(const KeyInput &key_input)
             // write previous contents into textbox (F3 or Space when box is empty)
             size_t last_len = ustrlen(play.lastParserEntry);
             size_t cur_len = ustrlen(parserInput->GetText().GetCStr());
-            // [ikm] CHECKME: tbh I don't quite get the logic here (it was like this in original code);
-            // but what we do is copying only the last part of the previous string
+            // Like F3 in a DOS command line: the typed text is taken to be the start of the previous entry,
+            // and only the rest of the previous entry is appended (it is not checked to be a real prefix)
             if (cur_len < last_len)
             {
                 const char *entry = play.lastParserEntry;
@@ -1718,7 +1742,7 @@ public:
     int GetExecutedOption() const { return _executedOption; }
     bool AreOptionsDisplayed() const { return _areOptionsDisplayed; }
 
-    // FIXME: this is a hack, see also the comment below
+    // TODO: a hack, see also the comment below
     ScriptPosition &GetSavedDialogRequestScPos() { return _savedDialogRequestScriptPos; }
 
     // Runs Dialog state
@@ -1740,7 +1764,9 @@ private:
     int _startOpt = -1;
     // Tells if the dialog process is running the very first entry overall
     // (not just the starting entry of any topic)
-    // CHECKME: this may be unnecessary, investigate later
+    // TODO: do_conversation() uses this to remove the full-screen overlay and decrement play.in_conversation
+    // when the dialog stopped on its start entry; check if that is still needed, because the matching
+    // increment is made only when the dialog options are shown
     bool _isFirstEntry = true;
     // Dialog topics history, used by "goto-previous" command
     std::stack<int> _topicHist;
@@ -1752,7 +1778,7 @@ private:
     // A position in script saved by certain API function calls in "dialog_request" callback;
     // used purely for error reporting when the script has 2+ calls to gamestate-changing
     // functions such as StartDialog or ChangeRoom.
-    // FIXME: this is horrible, review this and make consistent with error reporting
+    // TODO: this is horrible, review this and make consistent with error reporting
     // for regular calls in normal script.
     ScriptPosition _savedDialogRequestScriptPos;
 };
@@ -1836,7 +1862,7 @@ void DialogExec::Run()
             if (said_speech_line > 0)
             {
                 // fix the problem with the close-up face remaining on screen
-                // FIXME: find a better solution rather than disable/enable iface?
+                // TODO: find a better solution rather than disable/enable iface?
                 // this causes all gui texture reupdate twice, and other things...
                 DisableInterface();
                 UpdateGameOnce(); // redraw the screen to make sure it looks right
@@ -1902,7 +1928,8 @@ void do_conversation(int dialog_id, int start_opt)
 
     dialogExec.reset(new DialogExec(dialog_id, start_opt));
     dialogExec->Run();
-    // CHECKME: find out if this is safe to do always, regardless of number of iterations
+    // TODO: this is done only when the dialog never went past its start entry; check if it is safe (and
+    // needed) to do always, regardless of the number of iterations
     if (dialogExec->IsFirstEntry())
     {
         // bail out from first startup script
@@ -1930,10 +1957,10 @@ bool is_in_dialogoptions()
 bool is_dialog_executing_script()
 {
     return dialogExec && (dialogExec->GetExecutedOption() >= 0) &&
-           scriptExecutor; // scriptExecutor is tested for safety, because we need it for a hack below
+           scriptExecutor; // a dialog script cannot be running without the script executor
 }
 
-// TODO: this is ugly, but I could not come to a better solution at the time...
+// TODO: this is ugly: the dialog script's goto request reaches the state object through a global function
 void set_dialog_result_goto(int dialog_id, int start_opt)
 {
     assert(is_dialog_executing_script());
