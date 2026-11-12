@@ -252,9 +252,13 @@ uint64_t AGSWin32::GetDiskFreeSpaceMB(const String &path)
 {
     WCHAR wstr[MAX_PATH_SZ] = L"";
     StrUtil::ConvertUtf8ToWstr(path.GetCStr(), wstr, MAX_PATH_SZ);
-    // TODO: the result is not checked, a failed call returns an uninitialised value
     ULARGE_INTEGER free_bytes_to_caller;
-    GetDiskFreeSpaceExW(wstr, &free_bytes_to_caller, nullptr, nullptr);
+    if (!GetDiskFreeSpaceExW(wstr, &free_bytes_to_caller, nullptr, nullptr))
+    {
+        // Unknown: report plenty, as the other platforms' placeholders do (the callers refuse
+        // to save below 2 MB); a write that really fails is reported by the write itself
+        return 100;
+    }
     return free_bytes_to_caller.QuadPart / 1000000;
 }
 
