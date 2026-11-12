@@ -4405,6 +4405,33 @@ four Sonnet 5.5 subagents at `medium` in parallel, worktrees from `a241df4d1`; r
   definitions. The check also compares with a Windows CMake tree, so macOS-only CMake sources (what `if(MACOS)`
   adds besides `alplmac.mm`) are not seen.
 
+### Sprite placement and the Direct3D 9 half-pixel offset (outside the plan)
+
+*Definition (the user, 2026-11-12):* find why a maintainer's viewport test is off by a pixel at some zooms
+and window sizes, and why animation frames of different sizes jump at the game resolution; bring both
+fixes into the fork for long-term testing.
+*Status, 2026-11-12:* done, two engine commits on `wt-41-batch5` and one in `ags-test-games`.
+- `4e94f0c5f` Direct3D 9: its half-pixel offset came from the game-to-window ratio and was added before
+  the batch transform, so it was wrong on the native surface and render textures, depended on the window
+  size and grew with the camera's zoom (29 of 320 columns off at 200% with a window of the game's size).
+  Now set per render target with the viewport and applied after the batch transform; D3D9 picks the same
+  texels as D3D11. Ported from the branch prepared for upstream, `ags4-d3d9-halfpixel` (`docs/UPSTREAM.md`).
+- `c232e1aab` sprite placement: the hardware renderers rounded the origin on each frame's truncated scaled
+  size and mirrored even-width flips around half a pixel, so frames of different sizes drifted (up to 4 game
+  pixels under a x3 camera). `Common::GetSpriteQuadEdge` puts the origin texel on the position, draws at the
+  exact zoom (`IDriverDependantBitmap::SetScaleRatio`, characters and room objects) and mirrors flips around
+  that texel, moving off texel-edge ties by half the edges' grid; `GraphicSpace` takes the view frame's flip,
+  so the software renderer and hit tests agree for unscaled flips. 5 unit tests (`SpritePlacement.*`).
+  Measured with a probe in the auto-test (frames 31x50 to 48x77, zoom 50-150%, camera x1-x3, flip; 40 cases
+  per driver), cases that move / worst game pixels: D3D9 37/4 -> 6/1, D3D11 37/4 -> 6/1, OpenGL 36/4 -> 3/1.
+- `ags-test-games` `d8d301b` (branch `ags4-draconian`, not pushed): the h-flipped character frames
+  (even width) are expected one pixel right; push it with the engine commits, or CI's OpenGL and Software
+  auto-test runs fail 4 tests. Auto-test 2414 of 2414 on D3D9, D3D11, OpenGL and Software; `ctest` 1187.
+- Not done: the software renderer still scales with Allegro's stretch (scaled frames still drift there);
+  `GraphicSpace` uses the truncated scaled size for hit tests (up to a pixel off the drawn sprite); frame
+  offsets are scaled with truncating division (`draw.cpp`); the camera's own nearest-texel ties at x1.5 and
+  x2 (1 pixel). Not run: the `linux`, `emscripten` and other prepush stages.
+
 ### Open items from finished tasks
 
 *Moved from PLAN.md "Next up" on 2026-11-07:*
