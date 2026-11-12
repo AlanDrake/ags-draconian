@@ -52,7 +52,8 @@ typedef std::shared_ptr<Stream> PStream;
 // 3060300  3.6.3: the file format block (offsets, flags) and compressed components
 // 4000000  the first 4.0 format; the 3.99.99 engines before it wrote 20 and 3999999
 // 4000018  sync with 3.6.3 (the file format block and compression)
-// This engine reads 4.0 saves only (from 4000000 on).
+// This engine reads saves from 4000000 on (kSvgVersion_LowestSupported); an older one is refused with
+// kSvgErr_FormatVersionNotSupported. A save is always written in the current version.
 //-----------------------------------------------------------------------------
 enum SavegameVersion
 {
@@ -92,6 +93,7 @@ enum SavegameErrorType
     kNumSavegameError
 };
 
+// Returns the message for a savegame error code
 String GetSavegameErrorText(SavegameErrorType err);
 
 typedef TypedCodeError<SavegameErrorType, GetSavegameErrorText> SavegameError;
@@ -100,18 +102,21 @@ typedef ErrorHandle<SavegameError> HSaveError;
 enum SaveFileFormatFlags
 {
     // Compress save components (whenever applicable);
-    // note that the save's meta-data is never compressed, only game data
-    // and user appendages, such as screenshots
+    // note that the save's description (header, environment info, user text) is never compressed;
+    // the screenshot in it is always deflated, which its own flag (kSvgImage_Deflate) tells
     kSvgFmt_DeflateComponents = 0x0001
 };
 
-// File content info
+// The file format block, which follows the version number in the save header (since 4000018):
+// five 32-bit values, FileFormatSize, Flags and the three offsets, in this order.
+// FileFormatOffset is not stored in the file, it is the position where the block starts.
+// All offsets count from the start of the file (the signature included).
 struct SavegameFileFormat
 {
-    uint32_t FileFormatSize = 0u;
-    uint32_t Flags = 0u;            // reserved
-    uint32_t FileFormatOffset = 0u; // offset of the file format in header
-    uint32_t EnvInfoOffset = 0u;    // offset of the enviroment info block
+    uint32_t FileFormatSize = 0u;   // size of the block, up to the environment info
+    uint32_t Flags = 0u;            // SaveFileFormatFlags
+    uint32_t FileFormatOffset = 0u; // offset of the file format block in the header
+    uint32_t EnvInfoOffset = 0u;    // offset of the environment info block
     uint32_t UserDescOffset = 0u;   // offset of the user description block
     uint32_t GameDataOffset = 0u;   // offset of the game state data in file
 };
@@ -129,6 +134,7 @@ struct SavegameSource
     // A pointer to the opened stream
     std::unique_ptr<Stream> InputStream;
 
+    // File format block of the save
     SavegameFileFormat Format;
 
     SavegameSource();
@@ -146,7 +152,7 @@ enum SavegameDescElem
     kSvgDesc_All = 0xFFFF
 };
 
-// SavegameDescription describes savegame with information about the enviroment
+// SavegameDescription describes savegame with information about the environment
 // it was created in, and custom data provided by user
 struct SavegameDescription
 {
@@ -229,13 +235,15 @@ enum SaveCmpSelection
 
 struct RestoreGameStateOptions
 {
-    //SavegameVersion SaveVersion = kSvgVersion_Undefined;
+    // Which components to restore from the save
     SaveCmpSelection SelectedComponents = kSaveCmp_All;
+    // Tells that the game data is in its initial state (the game has just started or was reset);
+    // this goes to the restoration flags as kSaveRestore_ClearData
     bool IsGameClear = false;
 
     RestoreGameStateOptions() = default;
-    RestoreGameStateOptions(/*SavegameVersion svg_ver,*/ SaveCmpSelection select_cmp, bool game_clear)
-        : /*SaveVersion(svg_ver),*/ SelectedComponents(select_cmp),
+    RestoreGameStateOptions(SaveCmpSelection select_cmp, bool game_clear)
+        : SelectedComponents(select_cmp),
           IsGameClear(game_clear)
     {
     }
@@ -245,7 +253,11 @@ struct RestoreGameStateOptions
 // after trying to restore a save.
 struct SaveRestoreFeedback
 {
+    // Set when the game's "validate_restored_save" callback asked for a retry:
+    // the caller restarts the game and restores the save again
     bool RetryWithClearGame = false;
+    // The components that the retry must not restore (what the callback set in
+    // RestoredSaveInfo.RetryWithoutComponents)
     SaveCmpSelection RetryWithoutComponents = kSaveCmp_None;
 };
 
@@ -254,22 +266,30 @@ struct SaveRestoreFeedback
 // NOTE: this function is a pure formality now, made in case we'll have something
 // like a virtual save files at some point (so you can't use File::IsFile).
 bool DoesSavegameExist(const String &filename);
-// Opens savegame for reading; optionally reads description, if any is provided
+// Opens savegame for reading, and reads the save signature, version and the parts of the description
+// selected by 'elems' into 'desc'; 'src' receives the open stream, positioned at the game data.
 HSaveError OpenSavegame(const String &filename, SavegameSource &src, SavegameDescription &desc,
                         SavegameDescElem elems = kSvgDesc_All);
-// Opens savegame and reads the savegame description
+// Opens savegame, reads the savegame description (only the parts selected by 'elems'),
+// and closes the file again
 HSaveError OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 // Reads the game data from the save stream and reinitializes game state;
-// fills in SaveRestoreFeedback struct.
+// the stream must be positioned at the game data (see OpenSavegame).
+// Fills in SaveRestoreFeedback struct, also when it fails.
+// WARNING: this frees the scripts and some other runtime data before reading the save,
+// so it cannot be called to just try a save.
 HSaveError RestoreGameState(Stream *in, SavegameVersion save_ver, const SavegameDescription &desc,
                             const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback);
-// Prescans the game data from the save stream without affecting current runtime data
+// Prescans the game data from the save stream, collecting what the save contains without
+// changing the game state; if the game script has "validate_restored_save", runs it on the result.
 HSaveError PrescanSaveState(Stream *in, SavegameVersion save_ver, const SavegameDescription &desc,
                             const RestoreGameStateOptions &options);
-// Opens savegame for writing and puts in savegame description
+// Creates the save file and writes the signature and the description (version, file format block,
+// environment info, user text and image); fills in 'file_format' with the offsets known so far.
+// Returns null if the file cannot be created. The game data goes next (SaveGameState).
 std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image,
                                       SavegameFileFormat &file_format);
-// Prepares game for saving state and writes game data into the save stream
+// Prepares game for saving state and writes the selected components into the save stream
 void SaveGameState(Stream *out, SaveCmpSelection select_cmp);
 
 // Reads savegame's description out of the given file
@@ -280,7 +300,8 @@ HSaveError ReadSaveDescription(const String &filename, SavegameDescription &desc
 HSaveError RestoreSavegame(const String &filename, const RestoreGameStateOptions &options,
                            SaveRestoreFeedback &feedback);
 
-// Write a save file, using user description, and optionally restricting game data to selected components
+// Writes a save file, using user description, and optionally restricting game data to selected components;
+// 'compress_data' deflates the components that support it (sets kSvgFmt_DeflateComponents)
 HSaveError SaveGame(const String &filename, const String &user_text, const Bitmap *user_image,
                     SaveCmpSelection select_cmp, bool compress_data = false);
 

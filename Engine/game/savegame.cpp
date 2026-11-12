@@ -159,6 +159,12 @@ String GetSavegameErrorText(SavegameErrorType err)
     }
 }
 
+// A bitmap in a save is stored as width, height and color depth (three int32), followed by either
+// the pixel data as they are (not compressed), or by a reserved int32, the size of the deflated data (int32)
+// and the deflated pixel data (compressed). The reader must be told which one it is: components are
+// stored uncompressed, because the whole component is compressed on its own, while the user's screenshot
+// has a flag of its own (kSvgImage_Deflate).
+// Returns null if a bitmap of such size cannot be created; the pixel data is not skipped then.
 Bitmap *ReadBitmap(Stream *in, bool compressed)
 {
     const int width = in->ReadInt32();
@@ -184,6 +190,7 @@ Bitmap *ReadBitmap(Stream *in, bool compressed)
     return bmp;
 }
 
+// Skips a bitmap block written by WriteBitmap (see ReadBitmap for the layout)
 void SkipBitmap(Stream *in, bool compressed)
 {
     int width = in->ReadInt32();
@@ -203,6 +210,8 @@ void SkipBitmap(Stream *in, bool compressed)
     }
 }
 
+// Writes a bitmap block (see ReadBitmap for the layout). A compressed bitmap needs a seekable stream,
+// because its data size is written back after the data.
 void WriteBitmap(const Common::Bitmap *bmp, Stream *out, bool compressed)
 {
     assert(bmp);
@@ -230,6 +239,8 @@ void WriteBitmap(const Common::Bitmap *bmp, Stream *out, bool compressed)
     }
 }
 
+// The user image (screenshot) is stored as a flags int32 (kSvgImage_*), followed by a bitmap block if
+// the "present" flag is set. Returns null if there is none.
 Bitmap *RestoreUserImage(Stream *in)
 {
     uint32_t flags = in->ReadInt32();
@@ -245,6 +256,11 @@ void SkipUserImage(Stream *in)
         SkipBitmap(in, (flags & kSvgImage_Deflate) != 0);
 }
 
+// Reads the save header, which follows the signature: the format version (int32), the file format block
+// (since kSvgVersion_400_18), the environment info (engine name and version, game GUID and title, name and
+// version of the main data file, color depth, legacy game id), and the user description (text and image).
+// The parts not selected by 'elems' are skipped. Leaves the stream at the start of the game data.
+// The offsets of the file format block, where it is present, let a reader skip what it does not know.
 HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescription &desc, SavegameDescElem elems)
 {
     svg_ver = (SavegameVersion)in->ReadInt32();
@@ -269,9 +285,9 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
     if (desc.Format.EnvInfoOffset > 0)
         in->Seek(desc.Format.EnvInfoOffset, kSeekBegin);
 
-    // Enviroment information
+    // Environment information
     const soff_t env_info_pos = in->GetPosition();
-    const uint32_t env_info_size = in->ReadInt32(); // header size
+    const uint32_t env_info_size = in->ReadInt32(); // size of the whole environment info block
     desc.EngineName = StrUtil::ReadString(in);
     desc.EngineVersion.SetFromString(StrUtil::ReadString(in));
     desc.GameGuid = StrUtil::ReadString(in);
@@ -292,13 +308,13 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
         desc.UserText = StrUtil::ReadString(in);
     else
         StrUtil::SkipString(in);
-    //
+
     if (elems & kSvgDesc_UserImage)
         desc.UserImage.reset(RestoreUserImage(in));
     else
         SkipUserImage(in);
 
-    // Assign backward-compatible file format values
+    // Saves before kSvgVersion_400_18 have no file format block: derive its values from what was read
     if (!has_fileformat)
     {
         desc.Format.Flags = 0u;
@@ -324,6 +340,8 @@ bool CheckSaveSignature(Stream *in)
     return svg_sig.Compare(SavegameSource::Signature) == 0;
 }
 
+// Opens the save file, checks the signature and reads the header. 'src', if given, takes the open stream;
+// otherwise the file is closed on return. 'desc', if given, receives the parts selected by 'elems'.
 HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, SavegameDescription *desc,
                             SavegameDescElem elems)
 {
@@ -401,7 +419,8 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     play.text_overlay_on = 0;
 
     // cleanup dynamic sprites
-    // NOTE: sprite 0 is a special constant sprite that cannot be dynamic (? is this actually true)
+    // NOTE: sprite 0 is reserved for the "empty sprite" and is never allocated as a dynamic one
+    // (SpriteCache::MIN_SPRITE_INDEX)
     for (size_t i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
     {
         if (game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC)
@@ -430,15 +449,15 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     ResetRoomStates();
     // reset temp room state
     troom = RoomStatus();
-    // reset (some of the?) GameState data
-    // FIXME: investigate and refactor to be able to just reset whole object
+    // Free what GameState owns outside of its plain fields (properties, viewports and cameras, do-once tokens);
+    // the plain fields are overwritten by the GameState component
+    // TODO: reset the whole GameState object here instead, once it is clear nothing in it must survive
     play.FreeProperties();
     play.FreeViewportsAndCameras();
     free_do_once_tokens();
 
     RemoveAllButtonAnimations();
-    // this may be a remainer of an old code or engine logic which is no longer necessary
-    // Clear the managed object pool
+    // Clear the managed object pool; the saved objects are read back from the save
     ccUnregisterAllObjects();
 
     if ((select_cmp & kSaveCmp_Audio) != 0)
@@ -465,10 +484,9 @@ void FillPreservedParams(PreservedParams &pp)
 
 static HSaveError RestoreAudio(const RestoredData &r_data)
 {
-    // recache queued clips
-    // FIXME: this looks wrong, investigate if these
-    // a) have to be deleted instead of resetting to null (store in unique_ptr!)
-    // b) perhaps this should be done in DoBeforeRestore instead
+    // Drop the preloaded clips of the music queue (they are unique_ptr, so this frees them);
+    // the queue itself comes from the save, without the loaded clips
+    // TODO: perhaps this should be done in DoBeforeRestore instead, with the rest of the cleanup
     for (int i = 0; i < play.new_music_queue_size; ++i)
     {
         play.new_music_queue[i].cachedClip = nullptr;
@@ -505,9 +523,10 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
 
             int audio_type = chan_info.AudioType != AUDIOTYPE_UNDEFINED ? chan_info.AudioType
                                                                         : game.audioClips[chan_info.ClipID].type;
+            // TODO: queueIfNoChannel is set here only because play_audio_clip then does not remove the clips of
+            // this audio type from the queue, which was just restored; a parameter of its own would say it
             play_audio_clip(AudioPlayback(&game.audioClips[chan_info.ClipID], audio_type), i, chan_info.Priority,
-                            chan_info.Repeat, chan_info.Pos,
-                            true /* HACK: pass "queue" to avoid deleting existing queue */);
+                            chan_info.Repeat, chan_info.Pos, true /* queueIfNoChannel */);
         }
         else
         {
@@ -589,7 +608,8 @@ static void RestoreViewportsAndCameras(const RestoredData &r_data)
     play.InvalidateViewportZOrder();
 }
 
-// Resets a number of options that are not supposed to be changed at runtime
+// Resets the options that are not supposed to be changed at runtime (the restricted and the preserved ones)
+// to the values the running game had before the restoration (see DoBeforeRestore)
 static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedParams &pp)
 {
     const auto restricted_opts = GameSetupStructBase::GetRestrictedOptions();
@@ -600,8 +620,8 @@ static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedPar
         gs.options[opt] = pp.GameOptions[opt];
 }
 
-// A callback that tests if DynamicSprite refers a valid sprite in cache.
-// Used in a call to ccTraverseManagedObjects.
+// A callback that tests if DynamicSprite refers a valid dynamic sprite in cache, and resets it to
+// sprite 0 if it does not. Used in a call to ccTraverseManagedObjects.
 static void ValidateDynamicSprite(int handle, IScriptObject *obj)
 {
     ScriptDynamicSprite *dynsprite = static_cast<ScriptDynamicSprite *>(obj);
@@ -612,7 +632,8 @@ static void ValidateDynamicSprite(int handle, IScriptObject *obj)
     }
 }
 
-// Call a scripting event to let user validate the restored save
+// Call a scripting event to let user validate the restored save: returns an error if the script cancels
+// the restoration, and asks for a retry through 'feedback' if the script sets components to skip
 static HSaveError ValidateRestoredSave(const SavegameDescription &save_desc, const RestoredData &r_data,
                                        SaveRestoreFeedback &feedback)
 {
@@ -644,22 +665,23 @@ static HSaveError ValidateRestoredSave(const SavegameDescription &save_desc, con
     return HSaveError::None();
 }
 
-// Final processing after successfully restoring from save
+// Final processing after the save components were read: applies the restored data to the engine
+// (scripts, room, audio, GUI, viewports), runs the validation callback and the post-restore plugin event
 HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveCmpSelection select_cmp)
 {
-    // Fixup game options for older games, in case the save was made by a advanced engine
-    // Preserve whether the music vox is available
+    // Put back what the running game had before the restoration: whether the speech pack and the
+    // separate music library are available
     play.voice_avail = pp.SpeechVOX;
     play.separate_music_lib = pp.MusicVOX;
 
-    // Restore particular game options that must not change at runtime
+    // Put back the game options that must not change at runtime, whatever the save had
     CopyPreservedGameOptions(game, pp);
 
-    // Restore debug flags
+    // Keep the debug mode on if the engine was started in it, whatever the save had
     if (debug_flags & DBG_DEBUGMODE)
         play.debug_mode = 1;
 
-    // Restore dynamic surfaces
+    // Move the restored dynamic surfaces to where the engine keeps them
     const size_t dynamic_surface_count = std::min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());
     for (size_t i = 0; i < dynamic_surface_count; ++i)
     {
@@ -673,20 +695,20 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // Register any static script objects missing from the restored managed pool
     RegisterMissingManagedObjects(game);
 
+    // Link the scripts again, DoBeforeRestore unlinked them
     HError err = LinkGlobalScripts();
-    // this may be a remainer of an old code or engine logic which is no longer necessary
     if (!err)
     {
         return new SavegameError(err, kSvgErr_GameObjectInitFailed, "Failed to link script modules");
     }
 
-    // read the global data into the newly created script
+    // copy the saved global data into the global script
     if (!r_data.GlobalScript.Data.empty())
     {
         gamescript->CopyGlobalData(r_data.GlobalScript.Data);
     }
 
-    // restore the script module data
+    // copy the saved data into the script modules, which are found by name
     for (auto &script_entry : r_data.ScriptModules)
     {
         const String &name = script_entry.first;
@@ -767,7 +789,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         }
 
         in_new_room = kEnterRoom_RestoredSave; // don't run "enters screen" events
-        // now that room has loaded, copy saved light levels in
+        // now that room has loaded, copy saved region light and tint levels in
         for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
         {
             thisroom.Regions[i].Light = r_data.RoomLightLevels[i];
@@ -775,6 +797,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         }
         generate_light_table();
 
+        // and the walkable areas' scaling (the far and the near zoom levels)
         for (size_t i = 0; i < MAX_WALK_AREAS; ++i)
         {
             thisroom.WalkAreas[i].ScalingFar = r_data.RoomZoomLevels1[i];
@@ -814,7 +837,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
 
     // After all of the game logical state is initialized and reapplied values from save,
     // call a "validate" script callback, to let user check the restored save
-    // and make final decision: whether to continue with the game, or cancel and quit.
+    // and make final decision: whether to continue with the game, or cancel the restoration.
     HSaveError validate_err = ValidateRestoredSave(pp.Desc, r_data, r_data.Result.Feedback);
     if (!validate_err)
         return validate_err;
@@ -848,8 +871,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
 // substitute something internally.
 static SaveCmpSelection FixupCmpSelection(SaveCmpSelection select_cmp)
 {
-    // If kSaveCmp_DynamicSprites is not set, then set kSaveCmp_ObjectSprites
-    //     ensure that object-owned images are still serialized.
+    // If kSaveCmp_DynamicSprites is not set, then set kSaveCmp_ObjectSprites,
+    // to ensure that object-owned images are still serialized.
     return (SaveCmpSelection)(select_cmp | kSaveCmp_ObjectSprites * ((select_cmp & kSaveCmp_DynamicSprites) == 0));
 }
 
@@ -926,6 +949,7 @@ HSaveError RestoreSavegame(const String &filename, const RestoreGameStateOptions
     return err;
 }
 
+// Writes the user image block (see RestoreUserImage): the flags, and the bitmap if there is one
 void WriteUserImage(Stream *out, const Bitmap *screenshot, bool compress)
 {
     uint32_t flags = (screenshot != nullptr) * kSvgImage_Present | compress * kSvgImage_Deflate;
@@ -935,6 +959,8 @@ void WriteUserImage(Stream *out, const Bitmap *screenshot, bool compress)
         WriteBitmap(screenshot, out, compress);
 }
 
+// Writes the file format block (see SavegameFileFormat): at FileFormatOffset if it is set (which seeks there),
+// at the current position otherwise. The stream is left after the block.
 void WriteFileFormat(Stream *out, const SavegameFileFormat &file_format)
 {
     if (file_format.FileFormatOffset > 0)
@@ -947,16 +973,21 @@ void WriteFileFormat(Stream *out, const SavegameFileFormat &file_format)
     out->WriteInt32(file_format.GameDataOffset);
 }
 
+// Writes the save header that follows the signature (see ReadDescription for the layout). The file format
+// block is only a placeholder here, since the offset of the game data is not known yet: 'file_format'
+// receives the offsets known so far, and the caller writes the block again when the save is finished.
+// The screenshot is always compressed.
 void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_image, SavegameFileFormat &file_format)
 {
-    // Data file_format version
+    // Data format version
     out->WriteInt32(kSvgVersion_Current);
     soff_t file_format_pos = out->GetPosition();
     WriteFileFormat(out, SavegameFileFormat()); // write placeholder
-    // Enviroment information
+    // Environment information
     soff_t env_info_pos = out->GetPosition();
     out->WriteInt32(0); // size placeholder
-    // FIXME: pass as argument, do not reference global game objects here!
+    // TODO: the environment info is read from global objects (game, engine version, resource paths);
+    // pass it as arguments instead
     StrUtil::WriteString(get_engine_name(), out);
     StrUtil::WriteString(EngineVersion.LongString, out);
     StrUtil::WriteString(game.guid, out);
@@ -965,7 +996,7 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     out->WriteInt32(loaded_game_file_version);
     out->WriteInt32(game.GetColorDepth());
     out->WriteInt32(game.uniqueid);
-    // Write env info offset field
+    // Write the size of the environment info block into its placeholder
     soff_t env_info_end_pos = out->GetPosition();
     out->Seek(env_info_pos, kSeekBegin);
     out->WriteInt32(env_info_end_pos - env_info_pos);
@@ -1014,6 +1045,9 @@ void SaveGameState(Stream *out, SaveCmpSelection select_cmp, bool compress)
     SavegameComponents::WriteAllCommon(out, select_cmp, compress);
 }
 
+// Reads the layout written by WritePluginSaveData (kPluginSvgVersion_36115 and later), giving each
+// plugin its own data by name. Before that version a plugin's data was not delimited, so every plugin
+// subscribed to the restore event is given a stream section that runs to the end of the component.
 HSaveError ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
 {
     const soff_t start_pos = in->GetPosition();
@@ -1080,6 +1114,8 @@ HSaveError ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_s
     return HSaveError::None();
 }
 
+// Layout: the number of plugins (int32), then for each of them its name (string), the data size (int32)
+// and the data. The plugins are the ones subscribed to the save event, in the order the plugin engine lists them.
 HSaveError WritePluginSaveData(Stream *out)
 {
     uint32_t num_plugins_wrote = 0;
@@ -1090,7 +1126,7 @@ HSaveError WritePluginSaveData(Stream *out)
         // but count them so long as they subscribed to AGSE_SAVEGAME
         num_plugins_wrote++;
     }
-    out->WriteInt32(num_plugins_wrote); // number of plugins which wrote data
+    out->WriteInt32(num_plugins_wrote); // number of plugins subscribed to the save event
 
     // IMPORTANT: we have to use an intermediate vector here for plugin data,
     // because we need to prepend its size, but the savegame stream is
@@ -1098,8 +1134,8 @@ HSaveError WritePluginSaveData(Stream *out)
     std::vector<uint8_t> plugin_data;
     for (uint32_t pl_index = 0; pl_query_next_plugin_for_event(kPluginEvt_SaveGame, pl_index, pl_name); ++pl_index)
     {
-        // Create a stream section and write plugin data
-        // FIXME: implement a size limit for plugin data:
+        // Let the plugin write its data into a memory stream
+        // TODO: implement a size limit for plugin data (now it is not limited, a plugin may write any amount):
         // * support a limit in VectorStream
         // * define a reasonable default limit (e.g. 16-32 MB)
         // * compare with system memory?
@@ -1139,7 +1175,7 @@ HSaveError SaveGame(const String &filename, const String &user_text, const Bitma
     file_format.GameDataOffset = out->GetPosition();
     SaveGameState(out.get(), select_cmp, compress_data);
 
-    // Finalize the save file, write composed file file_format
+    // Finalize the save file, write the composed file format block over its placeholder
     WriteFileFormat(out.get(), file_format);
     return HSaveError::None();
 }
