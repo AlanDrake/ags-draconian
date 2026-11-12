@@ -840,7 +840,6 @@ void RegisterGUIControlAPI()
         { "GUIControl::get_ScaleY",       API_FN_PAIR(GUIControl_GetScaleY) },
         { "GUIControl::set_ScaleY",       API_FN_PAIR(GUIControl_SetScaleY) },
         { "GUIControl::SetScale",         API_FN_PAIR(GUIControl_SetScale) },
-        { "GUIControl::SetScale",         API_FN_PAIR(GUIControl_SetScale) },
         { "GUIControl::get_ZOrder",       API_FN_PAIR(GUIControl_GetZOrder) },
         { "GUIControl::set_ZOrder",       API_FN_PAIR(GUIControl_SetZOrder) },
         { "GUIControl::get_Translated",   API_FN_PAIR(GUIControl_GetTranslated) },
