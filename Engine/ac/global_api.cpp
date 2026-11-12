@@ -487,8 +487,6 @@ RuntimeScriptValue Sc_RunAGSGame(const RuntimeScriptValue *params, int32_t param
     API_SCALL_INT_POBJ_PINT2(RunAGSGame, const char);
 }
 
-extern RuntimeScriptValue Sc_Said(const RuntimeScriptValue *params, int32_t param_count);
-
 // void ()
 RuntimeScriptValue Sc_save_game_dialog(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -825,7 +823,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         {"IsSpeechVoxAvailable", API_FN_PAIR(IsSpeechVoxAvailable)},
         {"IsTimerExpired", API_FN_PAIR(IsTimerExpired)},
         {"IsTranslationAvailable", API_FN_PAIR(IsTranslationAvailable)},
-        {"MoveSaveSlot", API_FN_PAIR(MoveSaveSlot)},
         {"MoveSaveSlot", API_FN_PAIR(MoveSaveSlot)},
         {"PauseGame", API_FN_PAIR(PauseGame)},
         {"PlayFlic", API_FN_PAIR(PlayFlic)},
