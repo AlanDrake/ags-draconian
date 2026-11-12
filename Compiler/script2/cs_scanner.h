@@ -188,7 +188,7 @@ private:
 
 protected:
     inline static bool IsDigit(int ch) { return (ch >= '0' && ch <= '9'); }
-    inline static bool IsHexDigit(int ch) { return IsDigit(ch) || (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'); }
+    inline static bool IsHexDigit(int ch) { return IsDigit(ch) || (ch >= 'A' && ch <= 'F') || (ch >= 'a' && ch <= 'f'); }
     inline static bool IsAlpha(int ch) { return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'); }
     inline static bool IsSpace(int ch) { return (std::strchr(" \t\n\v\f\r", ch) != 0); }
 
