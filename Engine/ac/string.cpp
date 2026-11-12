@@ -60,20 +60,20 @@ const char *CreateNewScriptString(const char *text)
 // Gets a offset corresponding to a character index in a script String;
 // tries to speed up utf-8 offset calculation by using recorded previous result
 // of a offset search from the header. Updates header on success.
-size_t GetStringCharOff(const char *thisString, int index)
+size_t GetStringCharOff(const char *this_string, int index)
 {
-    auto &header = ScriptString::GetHeader((void *)thisString);
+    auto &header = ScriptString::GetHeader((void *)this_string);
     assert((index >= 0) && (static_cast<uint32_t>(index) < header.ULength));
 
     int off;
     if (header.LastCharIdx <= index)
     {
-        off = uoffset(thisString + header.LastCharOff, index - header.LastCharIdx) + header.LastCharOff;
+        off = uoffset(this_string + header.LastCharOff, index - header.LastCharIdx) + header.LastCharOff;
     }
     // TODO: support faster reverse iteration too? that would require reverse-dir uoffset
     else
     {
-        off = uoffset(thisString, index);
+        off = uoffset(this_string, index);
     }
     // NOTE: works up to 64k chars/bytes, then stops; this is intentional to save a bit of mem
     if (off <= UINT16_MAX)
@@ -84,9 +84,9 @@ size_t GetStringCharOff(const char *thisString, int index)
     return off;
 }
 
-int String_IsNullOrEmpty(const char *thisString)
+int String_IsNullOrEmpty(const char *this_string)
 {
-    if ((thisString == nullptr) || (thisString[0] == 0))
+    if ((this_string == nullptr) || (this_string[0] == 0))
         return 1;
 
     return 0;
@@ -154,73 +154,73 @@ const char *String_Join(void *arrobj, const char *separator)
     return CreateNewScriptString(std::move(buf));
 }
 
-const char *String_Copy(const char *srcString)
+const char *String_Copy(const char *src_string)
 {
-    return CreateNewScriptString(srcString);
+    return CreateNewScriptString(src_string);
 }
 
-const char *String_Append(const char *thisString, const char *extrabit)
+const char *String_Append(const char *this_string, const char *extra_text)
 {
-    const auto &header = ScriptString::GetHeader(thisString);
+    const auto &header = ScriptString::GetHeader(this_string);
     int str2_len, str2_ulen;
-    ustrlen2(extrabit, &str2_len, &str2_ulen);
+    ustrlen2(extra_text, &str2_len, &str2_ulen);
     auto buf = ScriptString::CreateBuffer(header.Length + str2_len, header.ULength + str2_ulen);
-    memcpy(buf.Get(), thisString, header.Length);
-    memcpy(buf.Get() + header.Length, extrabit, str2_len + 1);
+    memcpy(buf.Get(), this_string, header.Length);
+    memcpy(buf.Get() + header.Length, extra_text, str2_len + 1);
     return CreateNewScriptString(std::move(buf));
 }
 
-const char *String_AppendChar(const char *thisString, int extraOne)
+const char *String_AppendChar(const char *this_string, int extra_char)
 {
     char chr[5]{};
-    const auto &header = ScriptString::GetHeader(thisString);
-    size_t new_chw = usetc(chr, extraOne);
+    const auto &header = ScriptString::GetHeader(this_string);
+    size_t new_chw = usetc(chr, extra_char);
     auto buf = ScriptString::CreateBuffer(header.Length + new_chw, header.ULength + 1);
-    memcpy(buf.Get(), thisString, header.Length);
+    memcpy(buf.Get(), this_string, header.Length);
     memcpy(buf.Get() + header.Length, chr, new_chw + 1);
     return CreateNewScriptString(std::move(buf));
 }
 
-const char *String_ReplaceCharAt(const char *thisString, int index, int newChar)
+const char *String_ReplaceCharAt(const char *this_string, int index, int new_char)
 {
-    const auto &header = ScriptString::GetHeader(thisString);
+    const auto &header = ScriptString::GetHeader(this_string);
     if ((index < 0) || ((size_t)index >= header.ULength))
         quit("!String.ReplaceCharAt: index outside range of string");
 
-    size_t off = uoffset(thisString, index);
-    int old_char = ugetc(thisString + off);
+    size_t off = uoffset(this_string, index);
+    int old_char = ugetc(this_string + off);
     size_t old_chw = ucwidth(old_char);
     char new_chr[5]{};
-    size_t new_chw = usetc(new_chr, newChar);
+    size_t new_chw = usetc(new_chr, new_char);
     size_t new_len = header.Length + new_chw - old_chw;
     auto buf = ScriptString::CreateBuffer(new_len, header.ULength); // text length is the same
-    memcpy(buf.Get(), thisString, off);
+    memcpy(buf.Get(), this_string, off);
     memcpy(buf.Get() + off, new_chr, new_chw);
-    memcpy(buf.Get() + off + new_chw, thisString + off + old_chw, header.Length - off - old_chw + 1);
+    memcpy(buf.Get() + off + new_chw, this_string + off + old_chw, header.Length - off - old_chw + 1);
     return CreateNewScriptString(std::move(buf));
 }
 
-const char *String_Reverse(const char *thisString)
+const char *String_Reverse(const char *this_string)
 {
     // TODO: i was in a rush when writing this, optimize to do with less copying?
     // we might have string algorithms separated from String class and shared used
     // by both String and these script api handlers.
-    String str = thisString;
+    String str = this_string;
     (get_uformat() == U_UTF8) ? str.ReverseUTF8() : str.Reverse();
     return CreateNewScriptString(str);
 }
 
-const char *String_Truncate(const char *thisString, int length)
+const char *String_Truncate(const char *this_string, int length)
 {
     if (length < 0)
         quit("!String.Truncate: invalid length");
-    const auto &header = ScriptString::GetHeader(thisString);
+    const auto &header = ScriptString::GetHeader(this_string);
     if ((size_t)length >= header.ULength)
-        return thisString;
+        return this_string;
 
-    size_t new_len = uoffset(thisString, length);
+    size_t new_len = uoffset(this_string, length);
     auto buf = ScriptString::CreateBuffer(new_len, length); // arg is a text length
-    memcpy(buf.Get(), thisString, new_len);
+    memcpy(buf.Get(), this_string, new_len);
     buf.Get()[new_len] = 0;
     return CreateNewScriptString(std::move(buf));
 }
@@ -247,10 +247,10 @@ const char *TrimBack(const char *front, const char *back)
     return back;
 }
 
-const char *String_Trim(const char *thisString)
+const char *String_Trim(const char *this_string)
 {
-    const auto &this_header = ScriptString::GetHeader(thisString);
-    const char *front = thisString;
+    const auto &this_header = ScriptString::GetHeader(this_string);
+    const char *front = this_string;
     const char *back = front + this_header.Length;
 
     front = TrimFront(front, back);
@@ -263,7 +263,7 @@ const char *String_Trim(const char *thisString)
     size_t copylen = back - front;
     // if no trim happened, we can return the same string as AGS String is immutable
     if (copylen == this_header.Length)
-        return thisString;
+        return this_string;
 
     auto buf = ScriptString::CreateBuffer(copylen, 0);
     memcpy(buf.Get(), front, copylen);
@@ -271,25 +271,25 @@ const char *String_Trim(const char *thisString)
     return CreateNewScriptString(std::move(buf));
 }
 
-const char *String_Substring(const char *thisString, int index, int length)
+const char *String_Substring(const char *this_string, int index, int length)
 {
     if (length < 0)
         quit("!String.Substring: invalid length");
-    const auto &header = ScriptString::GetHeader(thisString);
+    const auto &header = ScriptString::GetHeader(this_string);
     if ((index < 0) || ((size_t)index > header.ULength))
         quit("!String.Substring: invalid index");
-    size_t sublen = std::min<uint32_t>(length, header.ULength - index);
-    size_t start = uoffset(thisString, index);
-    size_t end = uoffset(thisString + start, sublen) + start;
+    size_t sub_len = std::min<uint32_t>(length, header.ULength - index);
+    size_t start = uoffset(this_string, index);
+    size_t end = uoffset(this_string + start, sub_len) + start;
     size_t copylen = end - start;
 
-    auto buf = ScriptString::CreateBuffer(copylen, sublen);
-    memcpy(buf.Get(), thisString + start, copylen);
+    auto buf = ScriptString::CreateBuffer(copylen, sub_len);
+    memcpy(buf.Get(), this_string + start, copylen);
     buf.Get()[copylen] = 0;
     return CreateNewScriptString(std::move(buf));
 }
 
-int String_CompareTo(const char *thisString, const char *otherString, int compare_style)
+int String_CompareTo(const char *this_string, const char *other_string, int compare_style)
 {
     compare_style = ValidateStringComparison("String.CompareTo", compare_style);
     const bool case_sensitive = (compare_style & kScCaseSensitiveFlag) != 0;
@@ -297,130 +297,130 @@ int String_CompareTo(const char *thisString, const char *otherString, int compar
     if (locale_aware)
     {
         if (case_sensitive)
-            return StrUtil::LexographicalCompare(thisString, otherString, play.GetTextLocaleName().GetCStr());
+            return StrUtil::LexographicalCompare(this_string, other_string, play.GetTextLocaleName().GetCStr());
         else
-            return StrUtil::LexographicalCompareNoCase(thisString, otherString, play.GetTextLocaleName().GetCStr());
+            return StrUtil::LexographicalCompareNoCase(this_string, other_string, play.GetTextLocaleName().GetCStr());
     }
     else
     {
         if (case_sensitive)
-            return strcmp(thisString, otherString);
+            return strcmp(this_string, other_string);
         else
-            return ustricmp(thisString, otherString);
+            return ustricmp(this_string, other_string);
     }
 }
 
-int String_StartsWith(const char *thisString, const char *checkForString, int compare_style)
+int String_StartsWith(const char *this_string, const char *check_for_string, int compare_style)
 {
     compare_style = ValidateStringComparison("String.CompareTo", compare_style);
     const bool case_sensitive = (compare_style & kScCaseSensitiveFlag) != 0;
     if (case_sensitive)
     {
-        return (strncmp(thisString, checkForString, strlen(checkForString)) == 0) ? 1 : 0;
+        return (strncmp(this_string, check_for_string, strlen(check_for_string)) == 0) ? 1 : 0;
     }
     else
     {
-        return (ustrnicmp(thisString, checkForString, ustrlen(checkForString)) == 0) ? 1 : 0;
+        return (ustrnicmp(this_string, check_for_string, ustrlen(check_for_string)) == 0) ? 1 : 0;
     }
 }
 
-int String_EndsWith(const char *thisString, const char *checkForString, int compare_style)
+int String_EndsWith(const char *this_string, const char *check_for_string, int compare_style)
 {
     compare_style = ValidateStringComparison("String.CompareTo", compare_style);
 
     // NOTE: we need size in bytes here
-    const auto &header = ScriptString::GetHeader(thisString);
-    size_t checklen = strlen(checkForString);
-    if (checklen > header.Length)
+    const auto &header = ScriptString::GetHeader(this_string);
+    size_t check_len = strlen(check_for_string);
+    if (check_len > header.Length)
         return 0;
 
     const bool case_sensitive = (compare_style & kScCaseSensitiveFlag) != 0;
     if (case_sensitive)
     {
-        return (strcmp(thisString + (header.Length - checklen), checkForString) == 0) ? 1 : 0;
+        return (strcmp(this_string + (header.Length - check_len), check_for_string) == 0) ? 1 : 0;
     }
     else
     {
-        return (ustricmp(thisString + (header.Length - checklen), checkForString) == 0) ? 1 : 0;
+        return (ustricmp(this_string + (header.Length - check_len), check_for_string) == 0) ? 1 : 0;
     }
 }
 
-const char *String_Replace(const char *thisString, const char *lookForText, const char *replaceWithText,
+const char *String_Replace(const char *this_string, const char *look_for_text, const char *replace_with_text,
                            int compare_style)
 {
     compare_style = ValidateStringComparison("String.CompareTo", compare_style);
     const bool case_sensitive = (compare_style & kScCaseSensitiveFlag) != 0;
 
-    const auto &this_header = ScriptString::GetHeader(thisString);
+    const auto &this_header = ScriptString::GetHeader(this_string);
     // For case-sensitive search select simple ascii "strstr", for strict byte-to-byte comparison;
     // For case-insensitive search select no-case unicode-compatible variant
     typedef const char *(*fn_strstr)(const char *, const char *);
     fn_strstr pfn_strstr =
         case_sensitive ? reinterpret_cast<fn_strstr>(ags_strstr) : reinterpret_cast<fn_strstr>(ustrcasestr);
     int match_len, match_ulen;
-    ustrlen2(lookForText, &match_len, &match_ulen);
+    ustrlen2(look_for_text, &match_len, &match_ulen);
 
     // Record positions of matches
     std::vector<size_t> matches; // TODO: use optimized container to avoid extra allocs on heap
-    for (const char *match_ptr = pfn_strstr(thisString, lookForText); match_ptr;
-         matches.push_back(match_ptr - thisString), match_ptr = pfn_strstr(match_ptr + match_len, lookForText))
+    for (const char *match_ptr = pfn_strstr(this_string, look_for_text); match_ptr;
+         matches.push_back(match_ptr - this_string), match_ptr = pfn_strstr(match_ptr + match_len, look_for_text))
         ;
 
     if (matches.size() == 0)
-        return thisString; // nothing to replace, return original string
+        return this_string; // nothing to replace, return original string
 
     int replace_len, replace_ulen;
-    ustrlen2(replaceWithText, &replace_len, &replace_ulen);
+    ustrlen2(replace_with_text, &replace_len, &replace_ulen);
     size_t final_len = this_header.Length - match_len * matches.size() + replace_len * matches.size();
     size_t final_ulen = this_header.ULength - match_ulen * matches.size() + replace_ulen * matches.size();
     auto buf = ScriptString::CreateBuffer(final_len, final_ulen);
 
     // For each found match...
     char *write_ptr = buf.Get();
-    const char *prev_ptr = thisString;
+    const char *prev_ptr = this_string;
     for (const auto &m : matches)
     {
-        write_ptr = std::copy(prev_ptr, thisString + m, write_ptr);                       // copy unchanged part
-        write_ptr = std::copy(replaceWithText, replaceWithText + replace_len, write_ptr); // copy replacement
-        prev_ptr = thisString + m + match_len;
+        write_ptr = std::copy(prev_ptr, this_string + m, write_ptr);                          // copy unchanged part
+        write_ptr = std::copy(replace_with_text, replace_with_text + replace_len, write_ptr); // copy replacement
+        prev_ptr = this_string + m + match_len;
     }
-    std::copy(prev_ptr, thisString + this_header.Length, write_ptr); // copy unchanged part (if any left)
-    buf.Get()[final_len] = 0;                                        // terminate
+    std::copy(prev_ptr, this_string + this_header.Length, write_ptr); // copy unchanged part (if any left)
+    buf.Get()[final_len] = 0;                                         // terminate
     return CreateNewScriptString(std::move(buf));
 }
 
-const char *String_LowerCase(const char *thisString)
+const char *String_LowerCase(const char *this_string)
 {
-    const auto &header = ScriptString::GetHeader(thisString);
+    const auto &header = ScriptString::GetHeader(this_string);
     auto buf = ScriptString::CreateBuffer(header.Length, header.ULength);
-    memcpy(buf.Get(), thisString, header.Length + 1);
+    memcpy(buf.Get(), this_string, header.Length + 1);
     ustrlwr(buf.Get());
     return CreateNewScriptString(std::move(buf));
 }
 
-const char *String_UpperCase(const char *thisString)
+const char *String_UpperCase(const char *this_string)
 {
-    const auto &header = ScriptString::GetHeader(thisString);
+    const auto &header = ScriptString::GetHeader(this_string);
     auto buf = ScriptString::CreateBuffer(header.Length, header.ULength);
-    memcpy(buf.Get(), thisString, header.Length + 1);
+    memcpy(buf.Get(), this_string, header.Length + 1);
     ustrupr(buf.Get());
     return CreateNewScriptString(std::move(buf));
 }
 
-void *String_Split(const char *thisString, const char *separator, int splitOptions)
+void *String_Split(const char *this_string, const char *separator, int split_options)
 {
-    if (thisString == nullptr)
+    if (this_string == nullptr)
         return nullptr;
 
-    bool removeEmpty = (splitOptions & 0x0001) != 0;
-    bool trim = (splitOptions & 0x0002) != 0;
-    auto const &header = ScriptString::GetHeader((void *)thisString);
+    bool remove_empty = (split_options & 0x0001) != 0;
+    bool trim = (split_options & 0x0002) != 0;
+    auto const &header = ScriptString::GetHeader((void *)this_string);
 
-    if ((thisString[0] == 0) || (separator == nullptr) || (separator[0] == 0) || strlen(separator) > header.Length)
+    if ((this_string[0] == 0) || (separator == nullptr) || (separator[0] == 0) || strlen(separator) > header.Length)
     {
         std::vector<DynObjectRef> objs{};
-        const char *front = thisString;
-        const char *back = thisString + header.Length;
+        const char *front = this_string;
+        const char *back = this_string + header.Length;
 
         if (trim)
         {
@@ -434,9 +434,9 @@ void *String_Split(const char *thisString, const char *separator, int splitOptio
         auto buf = ScriptString::CreateBuffer(len, 0);
         std::copy(front, back, buf.Get());
         buf.Get()[len] = 0;
-        if (!(removeEmpty && len == 0))
+        if (!(remove_empty && len == 0))
         {
-            objs.push_back(ScriptString::Create(thisString));
+            objs.push_back(ScriptString::Create(this_string));
         }
         DynObjectRef arr = DynamicArrayHelpers::CreateScriptArray(std::move(objs));
         return arr.Obj();
@@ -444,8 +444,8 @@ void *String_Split(const char *thisString, const char *separator, int splitOptio
 
     std::vector<ScriptString::Buffer> items{};
     size_t seplen = strlen(separator);
-    const char *ptr = thisString;
-    const char *end = thisString + header.Length;
+    const char *ptr = this_string;
+    const char *end = this_string + header.Length;
     size_t len = 0;
     while (ptr <= end)
     {
@@ -470,7 +470,7 @@ void *String_Split(const char *thisString, const char *separator, int splitOptio
         len = back - front;
 
         ptr = found_cstr + seplen;
-        if (removeEmpty && len == 0)
+        if (remove_empty && len == 0)
             continue;
 
         auto buf = ScriptString::CreateBuffer(len, 0);
@@ -483,35 +483,35 @@ void *String_Split(const char *thisString, const char *separator, int splitOptio
     return arr.Obj();
 }
 
-int String_GetChars(const char *thisString, int index)
+int String_GetChars(const char *this_string, int index)
 {
-    auto &header = ScriptString::GetHeader((void *)thisString);
+    auto &header = ScriptString::GetHeader((void *)this_string);
     if ((index < 0) || (static_cast<uint32_t>(index) >= header.ULength))
         return 0;
 
-    int off = GetStringCharOff(thisString, index);
-    return ugetc(thisString + off);
+    int off = GetStringCharOff(this_string, index);
+    return ugetc(this_string + off);
 }
 
-int String_AsInt(const char *stino)
+int String_AsInt(const char *str)
 {
-    return atoi(stino);
+    return atoi(str);
 }
 
-float String_AsFloat(const char *theString)
+float String_AsFloat(const char *str)
 {
-    return static_cast<float>(atof(theString));
+    return static_cast<float>(atof(str));
 }
 
-int String_IndexOf(const char *thisString, const char *lookForText, bool caseSensitive, int startIndex, int count)
+int String_IndexOf(const char *this_string, const char *look_for_text, bool case_sensitive, int start_index, int count)
 {
-    VALIDATE_STRING(thisString);
-    VALIDATE_STRING(lookForText);
+    VALIDATE_STRING(this_string);
+    VALIDATE_STRING(look_for_text);
 
-    const auto &header = ScriptString::GetHeader(thisString);
-    if ((startIndex != 0) && ((startIndex < 0) || ((size_t)startIndex >= header.ULength)))
+    const auto &header = ScriptString::GetHeader(this_string);
+    if ((start_index != 0) && ((start_index < 0) || ((size_t)start_index >= header.ULength)))
     {
-        debug_script_warn("String.IndexOf: invalid start index %d, string length is %u.", startIndex, header.ULength);
+        debug_script_warn("String.IndexOf: invalid start index %d, string length is %u.", start_index, header.ULength);
         return -1;
     }
 
@@ -522,37 +522,37 @@ int String_IndexOf(const char *thisString, const char *lookForText, bool caseSen
     }
 
     // Empty strings will never contain anything, empty input won't be found
-    if (header.ULength == 0 || lookForText[0] == 0)
+    if (header.ULength == 0 || look_for_text[0] == 0)
     {
         return -1;
     }
 
-    if (count == 0 || static_cast<uint32_t>(count) >= (header.ULength - startIndex))
-        count = header.ULength - startIndex;
+    if (count == 0 || static_cast<uint32_t>(count) >= (header.ULength - start_index))
+        count = header.ULength - start_index;
 
     // Use GetStringCharOff to possibly speed up start offset search in utf-8
-    size_t start = GetStringCharOff(thisString, startIndex);
-    size_t end = (startIndex + count == header.ULength)
+    size_t start = GetStringCharOff(this_string, start_index);
+    size_t end = (start_index + count == header.ULength)
                      ? header.Length
-                     : uoffset(thisString + start, count); // end offset searched from the found start
+                     : uoffset(this_string + start, count); // end offset searched from the found start
 
-    auto thistmpbuf = StrUtil::Substring(thisString, start, end - start);
-    auto looktmpbuf = StrUtil::Duplicate(lookForText);
+    auto this_tmp_buf = StrUtil::Substring(this_string, start, end - start);
+    auto look_tmp_buf = StrUtil::Duplicate(look_for_text);
 
-    if (!caseSensitive)
+    if (!case_sensitive)
     {
-        ustrlwr(thistmpbuf.get());
-        ustrlwr(looktmpbuf.get());
+        ustrlwr(this_tmp_buf.get());
+        ustrlwr(look_tmp_buf.get());
     }
 
-    char *offs = ustrstr(thistmpbuf.get(), looktmpbuf.get());
+    char *offs = ustrstr(this_tmp_buf.get(), look_tmp_buf.get());
 
     // return -1 if it can't find it
     if (offs == nullptr)
         return -1;
 
     *offs = 0;
-    return startIndex + ustrlen(thistmpbuf.get());
+    return start_index + ustrlen(this_tmp_buf.get());
 }
 
 int String_IndexOf1(const char *s1, const char *s2)
@@ -560,9 +560,9 @@ int String_IndexOf1(const char *s1, const char *s2)
     return String_IndexOf(s1, s2, false, 0, 0);
 }
 
-int String_GetLength(const char *thisString)
+int String_GetLength(const char *this_string)
 {
-    return ScriptString::GetHeader(thisString).ULength;
+    return ScriptString::GetHeader(this_string).ULength;
 }
 
 //=============================================================================
@@ -781,9 +781,9 @@ RuntimeScriptValue Sc_String_GetLength(void *self, const RuntimeScriptValue *par
 //=============================================================================
 
 // const char* (const char *texx, ...)
-const char *ScPl_String_Format(const char *texx, ...)
+const char *ScPl_String_Format(const char *format, ...)
 {
-    API_PLUGIN_SCRIPT_SPRINTF(texx);
+    API_PLUGIN_SCRIPT_SPRINTF(format);
     return CreateNewScriptString(scsf_buffer);
 }
 

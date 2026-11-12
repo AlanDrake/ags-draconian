@@ -123,8 +123,8 @@ struct EnginePlugin
     void (*engineStartup)(IAGSEngine *) = nullptr;
     void (*engineShutdown)() = nullptr;
     intptr_t (*onEvent)(int evt, intptr_t param) = nullptr;
-    void (*initGfxHook)(const char *driverName, void *data) = nullptr;
-    int (*debugHook)(const char *whichscript, int lineNumber, int reserved) = nullptr;
+    void (*initGfxHook)(const char *driver_name, void *data) = nullptr;
+    int (*debugHook)(const char *script_name, int line_number, int reserved) = nullptr;
     IAGSEngine eiface;
     bool builtin = false;
 
@@ -317,13 +317,13 @@ int IAGSEngine::FWrite(void *buffer, int32 len, int32 handle)
     return stream->Write(buffer, len);
 }
 
-void IAGSEngine::DrawTextWrapped(int32 xx, int32 yy, int32 wid, int32 font, int32 color, const char *text)
+void IAGSEngine::DrawTextWrapped(int32 x, int32 y, int32 width, int32 font, int32 color, const char *text)
 {
     // TODO: use generic function from the engine instead of having copy&pasted code here
     const int linespacing = get_font_linespacing(font);
 
     const char *draw_text = skip_voiceover_token(text);
-    if (break_up_text_into_lines(draw_text, Lines, wid, font) == 0)
+    if (break_up_text_into_lines(draw_text, Lines, width, font) == 0)
         return;
 
     Bitmap *ds = gfxDriver->GetStageBackBuffer(true);
@@ -331,7 +331,7 @@ void IAGSEngine::DrawTextWrapped(int32 xx, int32 yy, int32 wid, int32 font, int3
         return;
     color_t text_color = ds->GetCompatibleColor(color);
     for (size_t i = 0; i < Lines.Count(); i++)
-        draw_and_invalidate_text(ds, xx, yy + linespacing * i, font, text_color, Lines[i].GetCStr());
+        draw_and_invalidate_text(ds, x, y + linespacing * i, font, text_color, Lines[i].GetCStr());
 }
 
 Bitmap glVirtualScreenWrap;
@@ -524,9 +524,9 @@ int IAGSEngine::GetWalkbehindBaseline(int32 wa)
         quit("!IAGSEngine::GetWalkBehindBase: invalid walk-behind area specified");
     return croom->walkbehind_base[wa];
 }
-void *IAGSEngine::GetScriptFunctionAddress(const char *funcName)
+void *IAGSEngine::GetScriptFunctionAddress(const char *func_name)
 {
-    return ccGetSymbolAddressForPlugin(funcName);
+    return ccGetSymbolAddressForPlugin(func_name);
 }
 int IAGSEngine::GetBitmapTransparentColor(BITMAP *bmp)
 {
@@ -573,7 +573,7 @@ int IAGSEngine::IsChannelPlaying(int32 channel)
 {
     return AudioChans::ChannelIsPlaying(channel) ? 1 : 0;
 }
-void IAGSEngine::PlaySoundChannel(int32 channel, int32 soundType, int32 volume, int32 loop, const char *filename)
+void IAGSEngine::PlaySoundChannel(int32 channel, int32 sound_type, int32 volume, int32 loop, const char *filename)
 {
     stop_and_destroy_channel(channel);
     // Not sure if it's right to let it play on *any* channel, but this is plugin so let it go...
@@ -583,7 +583,7 @@ void IAGSEngine::PlaySoundChannel(int32 channel, int32 soundType, int32 volume, 
 
     AssetPath asset_name(filename, "audio");
     const char *ext = "";
-    switch (soundType)
+    switch (sound_type)
     {
     case PSND_WAVE: ext = "wav"; break;
     case PSND_MP3STREAM:
@@ -593,7 +593,7 @@ void IAGSEngine::PlaySoundChannel(int32 channel, int32 soundType, int32 volume, 
     case PSND_MIDI: ext = "mid"; break;
     case PSND_MOD: ext = "mod"; break;
     case PSND_FLAC: ext = "flac"; break;
-    default: debug_script_warn("IAGSEngine::PlaySoundChannel: unknown sound type %d", soundType); return;
+    default: debug_script_warn("IAGSEngine::PlaySoundChannel: unknown sound type %d", sound_type); return;
     }
 
     std::unique_ptr<SoundClip> newcha(load_sound_clip(asset_name, ext, (loop != 0)));
@@ -633,12 +633,12 @@ int IAGSEngine::MakeRawColorPixel(int32 coldepth, int32 red, int32 green, int32 
 {
     return makeacol_depth(coldepth, red, green, blue, alpha);
 }
-int IAGSEngine::GetFontType(int32 fontNum)
+int IAGSEngine::GetFontType(int32 font_id)
 {
-    if ((fontNum < 0) || (fontNum >= game.numfonts))
+    if ((font_id < 0) || (font_id >= game.numfonts))
         return FNT_INVALID;
 
-    if (is_bitmap_font(fontNum))
+    if (is_bitmap_font(font_id))
         return FNT_TTF;
 
     return FNT_SCI;
@@ -680,14 +680,14 @@ int IAGSEngine::CanRunScriptFunctionNow()
     return 1; // always allowed now
 }
 
-int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, intptr_t arg1,
+int IAGSEngine::CallGameScriptFunction(const char *name, int32 global_script, int32 num_args, intptr_t arg1,
                                        intptr_t arg2, intptr_t arg3)
 {
-    RuntimeScript *run_script = GetScriptInstance(globalScript ? kScTypeGame : kScTypeRoom);
+    RuntimeScript *run_script = GetScriptInstance(global_script ? kScTypeGame : kScTypeRoom);
     RuntimeScriptValue params[]{RuntimeScriptValue().SetPluginArgOrPtr(arg1),
                                 RuntimeScriptValue().SetPluginArgOrPtr(arg2),
                                 RuntimeScriptValue().SetPluginArgOrPtr(arg3)};
-    return RunScriptFunction(run_script, name, numArgs, params);
+    return RunScriptFunction(run_script, name, num_args, params);
 }
 
 void IAGSEngine::NotifySpriteUpdated(int32 slot)
@@ -695,17 +695,17 @@ void IAGSEngine::NotifySpriteUpdated(int32 slot)
     game_sprite_updated(slot);
 }
 
-void IAGSEngine::SetSpriteAlphaBlended(int32 /*slot*/, int32 /*isAlphaBlended*/)
+void IAGSEngine::SetSpriteAlphaBlended(int32 /*slot*/, int32 /*is_alpha_blended*/)
 {
     // [DEPRECATED]
     debug_script_warn("SetSpriteAlphaBlended: this function is deprecated and won't have any effect.");
 }
 
-void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, intptr_t arg1,
+void IAGSEngine::QueueGameScriptFunction(const char *name, int32 global_script, int32 num_args, intptr_t arg1,
                                          intptr_t arg2)
 {
     // There's no queueing now, function will be run immediately on a separate script thread.
-    this->CallGameScriptFunction(name, globalScript, numArgs, arg1, arg2, 0);
+    this->CallGameScriptFunction(name, global_script, num_args, arg1, arg2, 0);
 }
 
 int IAGSEngine::RegisterManagedObject(void *object, IAGSScriptManagedObject *callback)
@@ -717,19 +717,19 @@ int IAGSEngine::RegisterManagedObject(void *object, IAGSScriptManagedObject *cal
     return ccRegisterManagedObject(object, pl_obj, kScValPluginObject);
 }
 
-void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectReader *reader)
+void IAGSEngine::AddManagedObjectReader(const char *type_name, IAGSManagedObjectReader *reader)
 {
-    if ((typeName == nullptr) || (typeName[0] == 0))
+    if ((type_name == nullptr) || (type_name[0] == 0))
         quit("Plugin error: IAGSEngine::AddObjectReader: invalid name for type");
 
     for (const auto &pr : pluginReaders)
     {
-        if (pr.Type == typeName)
+        if (pr.Type == type_name)
             quitprintf("Plugin error: IAGSEngine::AddObjectReader: type '%s' has been registered already",
                        pr.Type.GetCStr());
     }
 
-    pluginReaders.push_back(PluginObjectReader(typeName, reinterpret_cast<ICCObjectReader *>(reader)));
+    pluginReaders.push_back(PluginObjectReader(type_name, reinterpret_cast<ICCObjectReader *>(reader)));
 }
 
 void IAGSEngine::RegisterUnserializedObject(int key, void *object, IAGSScriptManagedObject *callback)
@@ -751,9 +751,9 @@ void *IAGSEngine::GetManagedObjectAddressByKey(int key)
     return object;
 }
 
-const char *IAGSEngine::CreateScriptString(const char *fromText)
+const char *IAGSEngine::CreateScriptString(const char *from_text)
 {
-    const char *string = CreateNewScriptString(fromText);
+    const char *string = CreateNewScriptString(from_text);
     // Should be standard dynamic object, because not managed by plugin
     return string;
 }
@@ -779,26 +779,26 @@ void IAGSEngine::SimulateMouseClick(int32 button)
     Mouse_SimulateClick(button);
 }
 
-int IAGSEngine::GetMovementPathWaypointCount(int32 pathId)
+int IAGSEngine::GetMovementPathWaypointCount(int32 path_id)
 {
-    return get_movelist(pathId)->GetNumStages();
+    return get_movelist(path_id)->GetNumStages();
 }
 
-int IAGSEngine::GetMovementPathLastWaypoint(int32 pathId)
+int IAGSEngine::GetMovementPathLastWaypoint(int32 path_id)
 {
-    return get_movelist(pathId)->GetStage();
+    return get_movelist(path_id)->GetStage();
 }
 
-void IAGSEngine::GetMovementPathWaypointLocation(int32 pathId, int32 waypoint, int32 *x, int32 *y)
+void IAGSEngine::GetMovementPathWaypointLocation(int32 path_id, int32 waypoint, int32 *x, int32 *y)
 {
-    *x = get_movelist(pathId)->GetStagePos(waypoint).X;
-    *y = get_movelist(pathId)->GetStagePos(waypoint).Y;
+    *x = get_movelist(path_id)->GetStagePos(waypoint).X;
+    *y = get_movelist(path_id)->GetStagePos(waypoint).Y;
 }
 
-void IAGSEngine::GetMovementPathWaypointSpeed(int32 pathId, int32 waypoint, int32 *xSpeed, int32 *ySpeed)
+void IAGSEngine::GetMovementPathWaypointSpeed(int32 path_id, int32 waypoint, int32 *x_speed, int32 *y_speed)
 {
-    *xSpeed = get_movelist(pathId)->GetStageSpeed(waypoint).X;
-    *ySpeed = get_movelist(pathId)->GetStageSpeed(waypoint).Y;
+    *x_speed = get_movelist(path_id)->GetStageSpeed(waypoint).X;
+    *y_speed = get_movelist(path_id)->GetStageSpeed(waypoint).Y;
 }
 
 int IAGSEngine::IsRunningUnderDebugger()
@@ -806,10 +806,10 @@ int IAGSEngine::IsRunningUnderDebugger()
     return (editor_debugging_initialized != 0) ? 1 : 0;
 }
 
-void IAGSEngine::GetPathToFileInCompiledFolder(const char *fileName, char *buffer)
+void IAGSEngine::GetPathToFileInCompiledFolder(const char *file_name, char *buffer)
 {
     // TODO: this is very unsafe, deprecate in the future
-    strcpy(buffer, PathFromInstallDir(fileName).GetCStr());
+    strcpy(buffer, PathFromInstallDir(file_name).GetCStr());
 }
 
 void IAGSEngine::BreakIntoDebugger()
@@ -817,10 +817,10 @@ void IAGSEngine::BreakIntoDebugger()
     break_on_next_script_step = 1;
 }
 
-IAGSFontRenderer *IAGSEngine::ReplaceFontRenderer(int fontNumber, IAGSFontRenderer *newRenderer)
+IAGSFontRenderer *IAGSEngine::ReplaceFontRenderer(int font_id, IAGSFontRenderer *new_renderer)
 {
-    auto *old_render = font_replace_renderer(fontNumber, newRenderer);
-    GUIE::MarkForFontUpdate(fontNumber);
+    auto *old_render = font_replace_renderer(font_id, new_renderer);
+    GUIE::MarkForFontUpdate(font_id);
     return old_render;
 }
 
@@ -842,17 +842,17 @@ void IAGSEngine::GetGameInfo(AGSGameInfo *ginfo)
     }
 }
 
-IAGSFontRenderer *IAGSEngine::ReplaceFontRenderer2(int fontNumber, IAGSFontRenderer2 *newRenderer)
+IAGSFontRenderer *IAGSEngine::ReplaceFontRenderer2(int font_id, IAGSFontRenderer2 *new_renderer)
 {
-    auto *old_render = font_replace_renderer(fontNumber, newRenderer);
-    GUIE::MarkForFontUpdate(fontNumber);
+    auto *old_render = font_replace_renderer(font_id, new_renderer);
+    GUIE::MarkForFontUpdate(font_id);
     return old_render;
 }
 
-void IAGSEngine::NotifyFontUpdated(int fontNumber)
+void IAGSEngine::NotifyFontUpdated(int font_id)
 {
-    font_recalc_metrics(fontNumber);
-    GUIE::MarkForFontUpdate(fontNumber);
+    font_recalc_metrics(font_id);
+    GUIE::MarkForFontUpdate(font_id);
 }
 
 size_t IAGSEngine::ResolveFilePath(const char *script_path, char *buf, size_t buf_len)
@@ -1028,13 +1028,13 @@ intptr_t pl_run_plugin_hook_by_name(Common::String &pl_name, int event, intptr_t
     return 0;
 }
 
-void pl_run_plugin_init_gfx_hooks(const char *driverName, void *data)
+void pl_run_plugin_init_gfx_hooks(const char *driver_name, void *data)
 {
     for (auto &plugin : plugins)
     {
         if (plugin.initGfxHook != nullptr)
         {
-            plugin.initGfxHook(driverName, data);
+            plugin.initGfxHook(driver_name, data);
         }
     }
 }

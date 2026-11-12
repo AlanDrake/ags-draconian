@@ -19,7 +19,7 @@
 
 #include "ac/dynobj/scriptobjects.h"
 
-void Hotspot_SetEnabled(ScriptHotspot *hss, int newval);
+void Hotspot_SetEnabled(ScriptHotspot *hss, int new_value);
 int Hotspot_GetEnabled(ScriptHotspot *hss);
 int Hotspot_GetID(ScriptHotspot *hss);
 int Hotspot_GetWalkToX(ScriptHotspot *hss);

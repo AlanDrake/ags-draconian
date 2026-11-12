@@ -299,15 +299,15 @@ SkipSpeechStyle Speech_GetSkipStyle()
     return internal_skip_speech_to_user(play.speech_skip_style);
 }
 
-void Speech_SetSkipStyle(SkipSpeechStyle newval)
+void Speech_SetSkipStyle(SkipSpeechStyle new_value)
 {
-    if ((newval < kSkipSpeechFirst) || (newval > kSkipSpeechLast))
+    if ((new_value < kSkipSpeechFirst) || (new_value > kSkipSpeechLast))
         quit("!SetSkipSpeech: invalid skip mode specified");
 
     if (usetup.Access.SpeechSkipStyle == kSkipSpeechNone)
     {
-        debug_script_log("SkipSpeech style set to %d", newval);
-        play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)newval);
+        debug_script_log("SkipSpeech style set to %d", new_value);
+        play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)new_value);
     }
 }
 

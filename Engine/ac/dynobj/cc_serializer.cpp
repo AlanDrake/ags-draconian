@@ -192,8 +192,8 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     }
     else if (strcmp(objectType, "DrawingSurface") == 0)
     {
-        ScriptDrawingSurface *sds = new ScriptDrawingSurface();
-        sds->Unserialize(index, &mems, data_sz);
+        ScriptDrawingSurface *surface = new ScriptDrawingSurface();
+        surface->Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "DialogOptionsRendering") == 0 || // old historical name
              strcmp(objectType, "DialogOptionsRenderingInfo") == 0)

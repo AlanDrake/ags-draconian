@@ -116,7 +116,7 @@ bool JPSRouteFinder::FindRouteImpl(std::vector<Point> &nav_path, int srcx, int s
         nav_path.push_back(nav_path[0]);
 
 #ifdef DEBUG_PATHFINDER
-    AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %d stages", srcx, srcy, xx, yy, (int)nav_path.size());
+    AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %d stages", srcx, srcy, dstx, dsty, (int)nav_path.size());
 #endif
     return true;
 }

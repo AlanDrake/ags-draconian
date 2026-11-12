@@ -43,24 +43,24 @@ inline const char *CreateNewScriptString(ScriptString::Buffer &&buf)
     return static_cast<const char *>(ScriptString::Create(std::move(buf)).Obj());
 }
 
-int String_IsNullOrEmpty(const char *thisString);
-const char *String_Copy(const char *srcString);
-const char *String_Append(const char *thisString, const char *extrabit);
-const char *String_AppendChar(const char *thisString, int extraOne);
-const char *String_ReplaceCharAt(const char *thisString, int index, int newChar);
-const char *String_Truncate(const char *thisString, int length);
-const char *String_Substring(const char *thisString, int index, int length);
-int String_CompareTo(const char *thisString, const char *otherString, int compareStyle);
-int String_StartsWith(const char *thisString, const char *checkForString, int compareStyle);
-int String_EndsWith(const char *thisString, const char *checkForString, int compareStyle);
-const char *String_Replace(const char *thisString, const char *lookForText, const char *replaceWithText,
-                           int compareStyle);
-const char *String_LowerCase(const char *thisString);
-const char *String_UpperCase(const char *thisString);
-int String_GetChars(const char *texx, int index);
-int String_AsInt(const char *stino);
-float String_AsFloat(const char *theString);
-int String_IndexOf(const char *thisString, const char *lookForText, bool caseSensitive, int startIndex, int count);
+int String_IsNullOrEmpty(const char *this_string);
+const char *String_Copy(const char *src_string);
+const char *String_Append(const char *this_string, const char *extra_text);
+const char *String_AppendChar(const char *this_string, int extra_char);
+const char *String_ReplaceCharAt(const char *this_string, int index, int new_char);
+const char *String_Truncate(const char *this_string, int length);
+const char *String_Substring(const char *this_string, int index, int length);
+int String_CompareTo(const char *this_string, const char *other_string, int compare_style);
+int String_StartsWith(const char *this_string, const char *check_for_string, int compare_style);
+int String_EndsWith(const char *this_string, const char *check_for_string, int compare_style);
+const char *String_Replace(const char *this_string, const char *look_for_text, const char *replace_with_text,
+                           int compare_style);
+const char *String_LowerCase(const char *this_string);
+const char *String_UpperCase(const char *this_string);
+int String_GetChars(const char *this_string, int index);
+int String_AsInt(const char *str);
+float String_AsFloat(const char *str);
+int String_IndexOf(const char *this_string, const char *look_for_text, bool case_sensitive, int start_index, int count);
 int String_IndexOf2(const char *s1, const char *s2);
 
 //=============================================================================

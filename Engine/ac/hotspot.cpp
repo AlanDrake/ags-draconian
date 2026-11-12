@@ -58,9 +58,9 @@ void EnableHotspot(int hsnum)
     debug_script_log("Hotspot %d re-enabled", hsnum);
 }
 
-void Hotspot_SetEnabled(ScriptHotspot *hss, int newval)
+void Hotspot_SetEnabled(ScriptHotspot *hss, int new_value)
 {
-    if (newval)
+    if (new_value)
         EnableHotspot(hss->id);
     else
         DisableHotspot(hss->id);

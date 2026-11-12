@@ -38,8 +38,8 @@ size_t CCCharacter::CalcSerializeSize(const void * /*address*/)
 
 void CCCharacter::Serialize(const void *address, Stream *out)
 {
-    const CharacterInfo *chaa = static_cast<const CharacterInfo *>(address);
-    out->WriteInt32(chaa->index_id);
+    const CharacterInfo *ch = static_cast<const CharacterInfo *>(address);
+    out->WriteInt32(ch->index_id);
 }
 
 void CCCharacter::Unserialize(int index, Stream *in, size_t /*data_sz*/)
