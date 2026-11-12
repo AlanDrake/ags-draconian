@@ -293,6 +293,8 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
     {
         spr_anchor = Pointf(0.5f, 1.f); // default: middle-bottom
         spr_offset = Point();
+        view_anchor = CharacterInfo::GetDefaultSpriteAnchor(); // as SetUnlockedView
+        view_offset = Point();
     }
 
     if (save_ver >= kCharSvgVersion_400_29)
