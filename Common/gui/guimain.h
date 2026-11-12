@@ -58,24 +58,24 @@ struct GUIRefCollection
     std::vector<GUISlider> &Sliders;
     std::vector<GUITextBox> &TextBoxes;
 
-    GUIRefCollection(std::vector<GUIButton> &guibuts, std::vector<GUIInvWindow> &guiinv,
-                     std::vector<GUILabel> &guilabels, std::vector<GUIListBox> &guilist,
-                     std::vector<GUISlider> &guislider, std::vector<GUITextBox> &guitext)
-        : Buttons(guibuts),
-          InvWindows(guiinv),
-          Labels(guilabels),
-          ListBoxes(guilist),
-          Sliders(guislider),
-          TextBoxes(guitext)
+    GUIRefCollection(std::vector<GUIButton> &buttons, std::vector<GUIInvWindow> &inv_windows,
+                     std::vector<GUILabel> &labels, std::vector<GUIListBox> &list_boxes,
+                     std::vector<GUISlider> &sliders, std::vector<GUITextBox> &text_boxes)
+        : Buttons(buttons),
+          InvWindows(inv_windows),
+          Labels(labels),
+          ListBoxes(list_boxes),
+          Sliders(sliders),
+          TextBoxes(text_boxes)
     {
     }
-    GUIRefCollection(GUICollection &guiobjs)
-        : Buttons(guiobjs.Buttons),
-          InvWindows(guiobjs.InvWindows),
-          Labels(guiobjs.Labels),
-          ListBoxes(guiobjs.ListBoxes),
-          Sliders(guiobjs.Sliders),
-          TextBoxes(guiobjs.TextBoxes)
+    GUIRefCollection(GUICollection &gui_objs)
+        : Buttons(gui_objs.Buttons),
+          InvWindows(gui_objs.InvWindows),
+          Labels(gui_objs.Labels),
+          ListBoxes(gui_objs.ListBoxes),
+          Sliders(gui_objs.Sliders),
+          TextBoxes(gui_objs.TextBoxes)
     {
     }
 };
@@ -141,12 +141,12 @@ public:
     GUIPopupStyle GetPopupStyle() const { return _popupStyle; }
     void SetPopupStyle(GUIPopupStyle style);
     int GetPopupAtY() const { return _popupAtMouseY; }
-    void SetPopupAtY(int popup_aty);
+    void SetPopupAtY(int popup_at_y);
     int GetPadding() const { return _padding; }
     void SetPadding(int padding);
 
     // Attempts to change control's zorder; returns if zorder changed
-    bool SetControlZOrder(int index, int zorder);
+    bool SetControlZOrder(int index, int z_order);
     // Changes GUI style to the text window or back
     void SetTextWindow(bool on);
     // Sets highlighted control index
@@ -176,7 +176,7 @@ public:
     // Finds a control under given screen coordinates, returns control's child ID.
     // Optionally allows extra leeway (offset in all directions) to let the user grab tiny controls.
     // Optionally only allows clickable controls, ignoring non-clickable ones.
-    int FindControlAt(int atx, int aty, int leeway = 0, bool must_be_clickable = true) const;
+    int FindControlAt(int at_x, int at_y, int leeway = 0, bool must_be_clickable = true) const;
     // Returns the last control which was under mouse cursor, or -1 if none
     int GetControlUnderMouse() const;
     // Gets the number of the GUI child controls
@@ -206,7 +206,7 @@ public:
     // If GUI has focus, then it will trigger OnEnter events for controls.
     void Poll(int mx, int my, bool has_focus);
     // Reconnects this GUIMain with the child controls from the global guiobject collection
-    HError RebuildArray(GUIRefCollection &guiobjs);
+    HError RebuildArray(GUIRefCollection &gui_objs);
     void ResortZOrder();
     bool SendControlToBack(int index);
 
@@ -230,7 +230,7 @@ public:
 private:
     void DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);
     // Same as FindControlAt but expects local space coordinates
-    int FindControlAtLocal(int atx, int aty, int leeway, bool must_be_clickable) const;
+    int FindControlAtLocal(int at_x, int at_y, int leeway, bool must_be_clickable) const;
     // Resets control under mouse and/or pressed by mouse
     void ResetActiveControl();
 
@@ -352,52 +352,52 @@ inline bool IsEnabledState()
 }
 
 // Tells if the GUI should be drawn, taking global disabled interface state into account
-inline bool IsGUIVisible(const GUIMain *g)
+inline bool IsGUIVisible(const GUIMain *gui)
 {
-    return g->IsDisplayed() &&
+    return gui->IsDisplayed() &&
            // If GUI is excluded from the disabled interface, then don't check the disabled state
-           ((GUI::Context.GuiExcludedFromDisabled == g->GetID()) ||
+           ((GUI::Context.GuiExcludedFromDisabled == gui->GetID()) ||
             // If GUI is in a disabled state, which tells to hide guis, and current gui
             // does not have a "persistent" property, then it should not be visible
-            !((GUI::Context.DisabledState == kGuiDis_Off) && (g->GetPopupStyle() != kGUIPopupNoAutoRemove)));
+            !((GUI::Context.DisabledState == kGuiDis_Off) && (gui->GetPopupStyle() != kGUIPopupNoAutoRemove)));
 }
 
 // Tells if the gui control should be excluded from the disabled state check
-inline bool IsExcludedFromDisabled(const GUIControl *g)
+inline bool IsExcludedFromDisabled(const GUIControl *control)
 {
-    return (g->GetID() == GUI::Context.GuiControlExcludedFromDisabled) &&
-           (g->GetParentID() == GUI::Context.GuiExcludedFromDisabled);
+    return (control->GetID() == GUI::Context.GuiControlExcludedFromDisabled) &&
+           (control->GetParentID() == GUI::Context.GuiExcludedFromDisabled);
 }
 
 // Tells if the gui control is considered enabled, taking global disabled interface state into account
-inline bool IsGUIEnabled(const GUIObject *g)
+inline bool IsGUIEnabled(const GUIObject *object)
 {
-    return g->IsEnabled() && (GUI::Context.DisabledState == kGuiDis_Undefined);
+    return object->IsEnabled() && (GUI::Context.DisabledState == kGuiDis_Undefined);
 }
 
 // Tells if the gui control is considered visible, taking global disabled interface state into account
-inline bool IsGUIVisible(const GUIControl *g)
+inline bool IsGUIVisible(const GUIControl *control)
 {
-    return g->IsVisible() &&
+    return control->IsVisible() &&
            // If control is excluded from the disabled interface, then don't check the disabled state
-           (IsExcludedFromDisabled(g) ||
+           (IsExcludedFromDisabled(control) ||
             // Control is also not shown if...
             // If interface is globally disabled and all controls should be hidden
             (!(GUI::Context.DisabledState == kGuiDis_Blackout) &&
              // If control is individually disabled AND controls should be hidden when disabled
-             !(!g->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout))));
+             !(!control->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout))));
 }
 
 // Tells if the gui control should be drawn with disabled effect
-inline bool ShouldDrawDisabled(const GUIControl *g)
+inline bool ShouldDrawDisabled(const GUIControl *control)
 {
     return
         // If control is excluded from the disabled interface, then don't check the disabled state
-        !IsExcludedFromDisabled(g) &&
+        !IsExcludedFromDisabled(control) &&
         // If either whole interface is disabled with "grey out" style,
         // or this control is individually disabled, and "grey out" style is set
         ((GUI::Context.DisabledState == kGuiDis_Greyout) ||
-         (!g->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Greyout)));
+         (!control->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Greyout)));
 }
 
 // Tells if the inventory window should be drawn with disabled effect;
@@ -411,9 +411,9 @@ inline bool ShouldDrawDisabled(const GUIInvWindow *inv)
 }
 
 // Tells if the child gui controls should not be drawn, because of the disabled state
-inline bool ShouldSkipControls(const GUIMain *g)
+inline bool ShouldSkipControls(const GUIMain *gui)
 {
-    return (g->GetID() != GUI::Context.GuiExcludedFromDisabled) && (GUI::Context.DisabledState == kGuiDis_Blackout);
+    return (gui->GetID() != GUI::Context.GuiExcludedFromDisabled) && (GUI::Context.DisabledState == kGuiDis_Blackout);
 }
 
 // Gets a default hardcoded color value for the given index.
@@ -445,7 +445,7 @@ Rect CalcTextGraphicalRect(const String &text, int font, const Point &at);
 Rect CalcTextGraphicalRect(const String &text, int font, const Rect &frame, FrameAlignment align);
 // Calculates the graphical rect that the multiline text would occupy
 // if drawn aligned to the given frame
-Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, int font, int linespace,
+Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, int font, int line_spacing,
                            const Rect &frame, FrameAlignment align, bool limit_by_frame = true);
 // Returns max potential negative offset position of a font's glyphs.
 int CalcFontGraphicalHExtent(int font);
@@ -465,7 +465,7 @@ void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_c
                         BlendMode blend_mode, int x1, int x2, int y, FrameAlignment align);
 // Draw wrapped text aligned inside rectangle:
 // a block of text is aligned vertically, while each line is aligned horizontally.
-void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t item_count, int font, int linespace,
+void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t item_count, int font, int line_spacing,
                           color_t text_color, color_t outline_color, const Rect &frame, FrameAlignment align,
                           bool limit_by_frame = true);
 
@@ -483,14 +483,14 @@ size_t SplitLinesForDrawing(const String &text, bool apply_direction, SplitLines
 
 // Reads all GUIs and their controls. Fills guis, guiobjs arrays and gui_version on success.
 HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVersion &gui_version,
-               GUIRefCollection &guiobjs, Stream *in);
+               GUIRefCollection &gui_objs, Stream *in);
 
 // Rebuilds GUIs, connecting them to the child controls in memory.
-HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs);
+HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &gui_objs);
 
 // Exclude the given gui control from disabled state. This means that it will not
 // be applied any "disabled" effect, nor will its parent GUI (if it matters).
-void SetExcludedFromDisabled(GUIControl *gc, bool on);
+void SetExcludedFromDisabled(GUIControl *control, bool on);
 } // namespace GUI
 
 } // namespace Common

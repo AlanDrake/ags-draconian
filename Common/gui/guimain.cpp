@@ -78,9 +78,9 @@ void GUIMain::SetPopupStyle(GUIPopupStyle style)
     _popupStyle = style;
 }
 
-void GUIMain::SetPopupAtY(int popup_aty)
+void GUIMain::SetPopupAtY(int popup_at_y)
 {
-    _popupAtMouseY = popup_aty;
+    _popupAtMouseY = popup_at_y;
 }
 
 void GUIMain::SetPadding(int padding)
@@ -88,14 +88,14 @@ void GUIMain::SetPadding(int padding)
     _padding = padding;
 }
 
-int GUIMain::FindControlAt(int atx, int aty, int leeway, bool must_be_clickable) const
+int GUIMain::FindControlAt(int at_x, int at_y, int leeway, bool must_be_clickable) const
 {
     // translate to GUI's local coordinates
-    Point pt = _gs.WorldToLocal(atx, aty);
+    Point pt = _gs.WorldToLocal(at_x, at_y);
     return FindControlAtLocal(pt.X, pt.Y, leeway, must_be_clickable);
 }
 
-int GUIMain::FindControlAtLocal(int atx, int aty, int leeway, bool must_be_clickable) const
+int GUIMain::FindControlAtLocal(int at_x, int at_y, int leeway, bool must_be_clickable) const
 {
     for (size_t i = _controls.size(); i-- > 0;)
     {
@@ -104,7 +104,7 @@ int GUIMain::FindControlAtLocal(int atx, int aty, int leeway, bool must_be_click
             continue;
         if (!_controls[ctrl_index]->IsClickable() && must_be_clickable)
             continue;
-        if (_controls[ctrl_index]->IsOverControl(atx, aty, leeway))
+        if (_controls[ctrl_index]->IsOverControl(at_x, at_y, leeway))
             return ctrl_index;
     }
     return -1;
@@ -193,12 +193,13 @@ void GUIMain::NotifyControlState(int ctrl_id, bool mark_changed)
     _mouseWasAt.Y = -1;
     _hasControlsChanged |= mark_changed;
     // Update cursor-over-control state, if necessary
-    const int overctrl = _mouseOverCtrl;
-    if (!_polling && (ctrl_id >= 0) && (ctrl_id == overctrl) && ((size_t)ctrl_id < _controls.size()) &&
-        (!_controls[overctrl]->IsClickable() || !_controls[overctrl]->IsVisible() || !_controls[overctrl]->IsEnabled()))
+    const int over_ctrl = _mouseOverCtrl;
+    if (!_polling && (ctrl_id >= 0) && (ctrl_id == over_ctrl) && ((size_t)ctrl_id < _controls.size()) &&
+        (!_controls[over_ctrl]->IsClickable() || !_controls[over_ctrl]->IsVisible() ||
+         !_controls[over_ctrl]->IsEnabled()))
     {
         _mouseOverCtrl = -1;
-        _controls[overctrl]->OnMouseLeave();
+        _controls[over_ctrl]->OnMouseLeave();
     }
 }
 
@@ -296,88 +297,88 @@ void GUIMain::DrawControls(Bitmap *ds)
     if (GUI::ShouldSkipControls(this))
         return; // don't draw GUI controls
 
-    Bitmap tbmp, tbmp2, tbmp3; // in case we need transforms
+    Bitmap temp_bmp, temp_bmp2, temp_bmp3; // in case we need transforms
     for (size_t ctrl_index = 0; ctrl_index < _controls.size(); ++ctrl_index)
     {
         set_eip_guiobj(_ctrlDrawOrder[ctrl_index]);
 
-        GUIControl *objToDraw = _controls[_ctrlDrawOrder[ctrl_index]];
-        Size obj_size = objToDraw->GetSize();
+        GUIControl *control = _controls[_ctrlDrawOrder[ctrl_index]];
+        Size control_size = control->GetSize();
 
         // Note that the control is invisible not only when Visible property is false,
         // but also according to a combination of being disabled and some disabled gui modes
-        if (!GUI::IsGUIVisible(objToDraw))
+        if (!GUI::IsGUIVisible(control))
             continue;
         // Control's size is empty, no sense in drawing it
-        if (obj_size.IsNull())
+        if (control_size.IsNull())
             continue;
 
-        if (GUI::Options.ClipControls && objToDraw->IsContentClipped())
-            ds->SetClip(objToDraw->GetGraphicSpace().AABB());
+        if (GUI::Options.ClipControls && control->IsContentClipped())
+            ds->SetClip(control->GetGraphicSpace().AABB());
         else
             ds->ResetClip();
 
-        const int objx = objToDraw->GetX();
-        const int objy = objToDraw->GetY();
+        const int control_x = control->GetX();
+        const int control_y = control->GetY();
 
         // Depending on draw properties - draw directly on the gui surface, or use a buffer
-        if (objToDraw->GetOpacity() == 255 && objToDraw->GetBlendMode() == kBlend_Normal &&
-            objToDraw->GetScale() == Pointf(1.f, 1.f) && objToDraw->GetRotation() == 0.f)
+        if (control->GetOpacity() == 255 && control->GetBlendMode() == kBlend_Normal &&
+            control->GetScale() == Pointf(1.f, 1.f) && control->GetRotation() == 0.f)
         {
-            objToDraw->Draw(ds, objx, objy);
+            control->Draw(ds, control_x, control_y);
             // Reset clip, in case control does temporary surface clipping
             ds->ResetClip();
         }
         else
         {
-            const Rect rc = objToDraw->CalcGraphicRect(GUI::Options.ClipControls && objToDraw->IsContentClipped());
-            tbmp.CreateTransparent(rc.GetWidth(), rc.GetHeight());
-            objToDraw->Draw(&tbmp, -rc.Left, -rc.Top);
-            Bitmap *src_bmp = &tbmp;
-            if (objToDraw->GetScale() != Pointf(1.f, 1.f))
+            const Rect rc = control->CalcGraphicRect(GUI::Options.ClipControls && control->IsContentClipped());
+            temp_bmp.CreateTransparent(rc.GetWidth(), rc.GetHeight());
+            control->Draw(&temp_bmp, -rc.Left, -rc.Top);
+            Bitmap *src_bmp = &temp_bmp;
+            if (control->GetScale() != Pointf(1.f, 1.f))
             {
                 const Rect scaled_rc =
-                    RectWH(0, 0, rc.GetWidth() * objToDraw->GetScale().X, rc.GetHeight() * objToDraw->GetScale().Y);
-                tbmp2.CreateTransparent(scaled_rc.GetWidth(), scaled_rc.GetHeight());
-                tbmp2.StretchBlt(src_bmp, RectWH(scaled_rc.GetSize()));
-                src_bmp = &tbmp2;
+                    RectWH(0, 0, rc.GetWidth() * control->GetScale().X, rc.GetHeight() * control->GetScale().Y);
+                temp_bmp2.CreateTransparent(scaled_rc.GetWidth(), scaled_rc.GetHeight());
+                temp_bmp2.StretchBlt(src_bmp, RectWH(scaled_rc.GetSize()));
+                src_bmp = &temp_bmp2;
             }
-            if (objToDraw->GetRotation() != 0.f)
+            if (control->GetRotation() != 0.f)
             {
-                const Size rot_sz = RotateSize(src_bmp->GetSize(), objToDraw->GetRotation());
-                tbmp3.CreateTransparent(rot_sz.Width, rot_sz.Height);
+                const Size rot_sz = RotateSize(src_bmp->GetSize(), control->GetRotation());
+                temp_bmp3.CreateTransparent(rot_sz.Width, rot_sz.Height);
                 // (+ width%2 fixes one pixel offset problem)
-                tbmp3.RotateBlt(src_bmp, rot_sz.Width / 2 + rot_sz.Width % 2, rot_sz.Height / 2,
-                                src_bmp->GetWidth() / 2, src_bmp->GetHeight() / 2,
-                                objToDraw->GetRotation()); // clockwise
-                src_bmp = &tbmp3;
+                temp_bmp3.RotateBlt(src_bmp, rot_sz.Width / 2 + rot_sz.Width % 2, rot_sz.Height / 2,
+                                    src_bmp->GetWidth() / 2, src_bmp->GetHeight() / 2,
+                                    control->GetRotation()); // clockwise
+                src_bmp = &temp_bmp3;
             }
-            Point obj_at = objToDraw->GetGraphicSpace().AABB().GetLT();
-            draw_gui_sprite(ds, obj_at.X, obj_at.Y, src_bmp, objToDraw->GetBlendMode(), objToDraw->GetOpacity());
+            Point control_at = control->GetGraphicSpace().AABB().GetLT();
+            draw_gui_sprite(ds, control_at.X, control_at.Y, src_bmp, control->GetBlendMode(), control->GetOpacity());
         }
 
         const bool is_highlighted = _highlightCtrl == _ctrlDrawOrder[ctrl_index];
         if (is_highlighted)
         {
             color_t draw_color = GUI::GetStandardColorForBitmap(13);
-            DrawBlob(ds, objx + obj_size.Width - 1 - 1, objy, draw_color);
-            DrawBlob(ds, objx, objy + obj_size.Height - 1 - 1, draw_color);
-            DrawBlob(ds, objx, objy, draw_color);
-            DrawBlob(ds, objx + obj_size.Width - 1 - 1, objy + obj_size.Height - 1 - 1, draw_color);
+            DrawBlob(ds, control_x + control_size.Width - 1 - 1, control_y, draw_color);
+            DrawBlob(ds, control_x, control_y + control_size.Height - 1 - 1, draw_color);
+            DrawBlob(ds, control_x, control_y, draw_color);
+            DrawBlob(ds, control_x + control_size.Width - 1 - 1, control_y + control_size.Height - 1 - 1, draw_color);
         }
         if (GUI::Options.OutlineControls)
         {
             // draw a dotted outline round all objects
             color_t draw_color = GUI::GetStandardColorForBitmap(is_highlighted ? 13 : 14);
-            for (int i = 0; i < obj_size.Width; i += 2)
+            for (int i = 0; i < control_size.Width; i += 2)
             {
-                ds->PutPixel(i + objx, objy, draw_color);
-                ds->PutPixel(i + objx, objy + obj_size.Height - 1, draw_color);
+                ds->PutPixel(i + control_x, control_y, draw_color);
+                ds->PutPixel(i + control_x, control_y + control_size.Height - 1, draw_color);
             }
-            for (int i = 0; i < obj_size.Height; i += 2)
+            for (int i = 0; i < control_size.Height; i += 2)
             {
-                ds->PutPixel(objx, i + objy, draw_color);
-                ds->PutPixel(objx + obj_size.Width - 1, i + objy, draw_color);
+                ds->PutPixel(control_x, i + control_y, draw_color);
+                ds->PutPixel(control_x + control_size.Width - 1, i + control_y, draw_color);
             }
         }
     }
@@ -456,34 +457,34 @@ void GUIMain::Poll(int mx, int my, bool has_focus)
     _polling = false;
 }
 
-HError GUIMain::RebuildArray(GUIRefCollection &guiobjs)
+HError GUIMain::RebuildArray(GUIRefCollection &gui_objs)
 {
-    GUIControlType thistype;
-    int thisnum;
+    GUIControlType ctrl_type;
+    int array_index;
 
     _controls.resize(_ctrlRefs.size());
     for (size_t i = 0; i < _controls.size(); ++i)
     {
-        thistype = _ctrlRefs[i].first;
-        thisnum = _ctrlRefs[i].second;
+        ctrl_type = _ctrlRefs[i].first;
+        array_index = _ctrlRefs[i].second;
 
-        if (thisnum < 0)
-            return new Error("GUIMain (%d): invalid control _id %d in ref #%zu", _id, thisnum, i);
+        if (array_index < 0)
+            return new Error("GUIMain (%d): invalid control _id %d in ref #%zu", _id, array_index, i);
 
-        if (thistype == kGUIButton)
-            _controls[i] = &guiobjs.Buttons[thisnum];
-        else if (thistype == kGUILabel)
-            _controls[i] = &guiobjs.Labels[thisnum];
-        else if (thistype == kGUIInvWindow)
-            _controls[i] = &guiobjs.InvWindows[thisnum];
-        else if (thistype == kGUISlider)
-            _controls[i] = &guiobjs.Sliders[thisnum];
-        else if (thistype == kGUITextBox)
-            _controls[i] = &guiobjs.TextBoxes[thisnum];
-        else if (thistype == kGUIListBox)
-            _controls[i] = &guiobjs.ListBoxes[thisnum];
+        if (ctrl_type == kGUIButton)
+            _controls[i] = &gui_objs.Buttons[array_index];
+        else if (ctrl_type == kGUILabel)
+            _controls[i] = &gui_objs.Labels[array_index];
+        else if (ctrl_type == kGUIInvWindow)
+            _controls[i] = &gui_objs.InvWindows[array_index];
+        else if (ctrl_type == kGUISlider)
+            _controls[i] = &gui_objs.Sliders[array_index];
+        else if (ctrl_type == kGUITextBox)
+            _controls[i] = &gui_objs.TextBoxes[array_index];
+        else if (ctrl_type == kGUIListBox)
+            _controls[i] = &gui_objs.ListBoxes[array_index];
         else
-            return new Error("GUIMain (%d): unknown control type %d in ref #%zu", _id, thistype, i);
+            return new Error("GUIMain (%d): unknown control type %d in ref #%zu", _id, ctrl_type, i);
 
         _controls[i]->SetParentID(_id);
         _controls[i]->SetID(i);
@@ -531,33 +532,33 @@ bool GUIMain::SendControlToBack(int index)
     return SetControlZOrder(index, 0);
 }
 
-bool GUIMain::SetControlZOrder(int index, int zorder)
+bool GUIMain::SetControlZOrder(int index, int z_order)
 {
     if (index < 0 || (size_t)index >= _controls.size())
         return false; // no such control
 
-    zorder = Math::Clamp(zorder, 0, (int)_controls.size() - 1);
-    const int old_zorder = _controls[index]->GetZOrder();
-    if (old_zorder == zorder)
+    z_order = Math::Clamp(z_order, 0, (int)_controls.size() - 1);
+    const int old_z_order = _controls[index]->GetZOrder();
+    if (old_z_order == z_order)
         return false; // no change
 
-    const bool move_back = zorder < old_zorder; // back is at zero index
-    const int left = move_back ? zorder : old_zorder;
-    const int right = move_back ? old_zorder : zorder;
+    const bool move_back = z_order < old_z_order; // back is at zero index
+    const int left = move_back ? z_order : old_z_order;
+    const int right = move_back ? old_z_order : z_order;
     for (size_t i = 0; i < _controls.size(); ++i)
     {
-        const int i_zorder = _controls[i]->GetZOrder();
-        if (i_zorder == old_zorder)
+        const int i_z_order = _controls[i]->GetZOrder();
+        if (i_z_order == old_z_order)
         {
-            _controls[i]->SetZOrder(zorder); // the control we are moving
+            _controls[i]->SetZOrder(z_order); // the control we are moving
         }
-        else if (i_zorder >= left && i_zorder <= right)
+        else if (i_z_order >= left && i_z_order <= right)
         {
             // controls in between old and new positions shift towards free place
             if (move_back)
-                _controls[i]->SetZOrder(i_zorder + 1); // move to front
+                _controls[i]->SetZOrder(i_z_order + 1); // move to front
             else
-                _controls[i]->SetZOrder(i_zorder - 1); // move to back
+                _controls[i]->SetZOrder(i_z_order - 1); // move to back
         }
     }
     ResortZOrder();
@@ -746,7 +747,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver, std::v
     UpdateGraphicSpace();
 }
 
-void GUIMain::SkipSavestate(Stream *in, GuiSvgVersion svg_version, std::vector<ControlRef> *ctrl_refs)
+void GUIMain::SkipSavestate(Stream *in, GuiSvgVersion svg_ver, std::vector<ControlRef> *ctrl_refs)
 {
     in->Seek(18 * sizeof(int32_t));
 
@@ -767,13 +768,13 @@ void GUIMain::SkipSavestate(Stream *in, GuiSvgVersion svg_version, std::vector<C
         (*ctrl_refs)[i].second = ref_packed & 0xFFFF;
     }
 
-    if (svg_version >= kGuiSvgVersion_40026)
+    if (svg_ver >= kGuiSvgVersion_40026)
     {
         in->Seek(4 * sizeof(int32_t));
     }
 
     in->Seek(15 * sizeof(int32_t));
-    if (svg_version >= kGuiSvgVersion_40018)
+    if (svg_ver >= kGuiSvgVersion_40018)
     {
         in->Seek(4 * sizeof(int32_t));
     }
@@ -926,7 +927,7 @@ Rect CalcTextGraphicalRect(const String &text, int font, const Rect &frame, Fram
     return gr_rect;
 }
 
-Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, int font, int linespace,
+Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, int font, int line_spacing,
                            const Rect &frame, FrameAlignment align, bool limit_by_frame)
 {
     item_count = std::min(item_count, text.size()); // safety check
@@ -937,13 +938,13 @@ Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, i
     size_t line_idx = 0u;
     if (limit_by_frame && at_y < frame.Top)
     {
-        int skip_lines = (frame.Top - at_y) / linespace + 1;
-        at_y += linespace * skip_lines;
+        int skip_lines = (frame.Top - at_y) / line_spacing + 1;
+        at_y += line_spacing * skip_lines;
         line_idx += skip_lines;
     }
 
     Line max_line;
-    for (; line_idx < item_count && (!limit_by_frame || at_y <= frame.Bottom); ++line_idx, at_y += linespace)
+    for (; line_idx < item_count && (!limit_by_frame || at_y <= frame.Bottom); ++line_idx, at_y += line_spacing)
     {
         Line lpos = GUI::CalcTextPositionHor(text[line_idx], font, frame.Left, frame.Right, at_y, align);
         max_line.X2 = std::max(max_line.X2, lpos.X2);
@@ -953,7 +954,7 @@ Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, i
     int h_ext = CalcFontGraphicalHExtent(font);
     Line vextent = GUI::CalcFontGraphicalVExtent(font);
     Rect text_rc = RectWH(h_ext, vextent.Y1, max_line.X2 - max_line.X1 + 1 + (-h_ext) * 2,
-                          at_y - linespace + (vextent.Y2 - vextent.Y1 + 1));
+                          at_y - line_spacing + (vextent.Y2 - vextent.Y1 + 1));
     return text_rc;
 }
 
@@ -990,7 +991,7 @@ void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_c
     wouttext_outline(ds, line.X1, y, font, text_color, outline_color, blend_mode, text.GetCStr());
 }
 
-void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t item_count, int font, int linespace,
+void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t item_count, int font, int line_spacing,
                           color_t text_color, color_t outline_color, const Rect &frame, FrameAlignment align,
                           bool limit_by_frame)
 {
@@ -998,18 +999,18 @@ void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t it
     if (item_count <= 0)
         return;
 
-    int total_height = (item_count - 1) * linespace + get_font_height(font);
+    int total_height = (item_count - 1) * line_spacing + get_font_height(font);
     int at_y = AlignInVRange(frame.Top, frame.Bottom, 0, total_height, align);
     size_t line_idx = 0u;
 
     if (limit_by_frame && at_y < frame.Top)
     {
-        int skip_lines = (frame.Top - at_y) / linespace + 1;
-        at_y += linespace * skip_lines;
+        int skip_lines = (frame.Top - at_y) / line_spacing + 1;
+        at_y += line_spacing * skip_lines;
         line_idx += skip_lines;
     }
 
-    for (; (line_idx < item_count) && (!limit_by_frame || at_y < frame.Bottom); ++line_idx, at_y += linespace)
+    for (; (line_idx < item_count) && (!limit_by_frame || at_y < frame.Bottom); ++line_idx, at_y += line_spacing)
     {
         GUI::DrawTextAlignedHor(ds, text[line_idx], font, text_color, outline_color, frame.Left, frame.Right, at_y,
                                 align);
@@ -1048,12 +1049,12 @@ String ResolveMacroTokens(const String &text)
     return AGS::Common::ResolveMacroTokens(text, fn_resolve);
 }
 
-HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs)
+HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &gui_objs)
 {
     // set up the reverse-lookup array
     for (auto &gui : guis)
     {
-        HError err = gui.RebuildArray(guiobjs);
+        HError err = gui.RebuildArray(gui_objs);
         if (!err)
             return err;
         for (int ctrl_index = 0; ctrl_index < gui.GetControlCount(); ++ctrl_index)
@@ -1070,7 +1071,7 @@ HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs)
 }
 
 HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVersion &gui_version,
-               GUIRefCollection &guiobjs, Stream *in)
+               GUIRefCollection &gui_objs, Stream *in)
 {
     if (in->ReadInt32() != (int)GUIMAGIC)
         return new Error("ReadGUI: unknown format or file is corrupt");
@@ -1109,63 +1110,63 @@ HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVe
     }
 
     // buttons
-    size_t numguibuts = static_cast<uint32_t>(in->ReadInt32());
-    auto &guibuts = guiobjs.Buttons;
-    guibuts.resize(numguibuts);
-    for (size_t i = 0; i < numguibuts; ++i)
+    size_t button_count = static_cast<uint32_t>(in->ReadInt32());
+    auto &buttons = gui_objs.Buttons;
+    buttons.resize(button_count);
+    for (size_t i = 0; i < button_count; ++i)
     {
-        guibuts[i].ReadFromFile(in, GameGuiVersion);
+        buttons[i].ReadFromFile(in, GameGuiVersion);
     }
     // labels
-    size_t numguilabels = static_cast<uint32_t>(in->ReadInt32());
-    auto &guilabels = guiobjs.Labels;
-    guilabels.resize(numguilabels);
-    for (size_t i = 0; i < numguilabels; ++i)
+    size_t label_count = static_cast<uint32_t>(in->ReadInt32());
+    auto &labels = gui_objs.Labels;
+    labels.resize(label_count);
+    for (size_t i = 0; i < label_count; ++i)
     {
-        guilabels[i].ReadFromFile(in, GameGuiVersion);
+        labels[i].ReadFromFile(in, GameGuiVersion);
     }
     // inv controls
-    size_t numguiinv = static_cast<uint32_t>(in->ReadInt32());
-    auto &guiinv = guiobjs.InvWindows;
-    guiinv.resize(numguiinv);
-    for (size_t i = 0; i < numguiinv; ++i)
+    size_t inv_window_count = static_cast<uint32_t>(in->ReadInt32());
+    auto &inv_windows = gui_objs.InvWindows;
+    inv_windows.resize(inv_window_count);
+    for (size_t i = 0; i < inv_window_count; ++i)
     {
-        guiinv[i].ReadFromFile(in, GameGuiVersion);
+        inv_windows[i].ReadFromFile(in, GameGuiVersion);
     }
     // sliders
-    size_t numguislider = static_cast<uint32_t>(in->ReadInt32());
-    auto &guislider = guiobjs.Sliders;
-    guislider.resize(numguislider);
-    for (size_t i = 0; i < numguislider; ++i)
+    size_t slider_count = static_cast<uint32_t>(in->ReadInt32());
+    auto &sliders = gui_objs.Sliders;
+    sliders.resize(slider_count);
+    for (size_t i = 0; i < slider_count; ++i)
     {
-        guislider[i].ReadFromFile(in, GameGuiVersion);
+        sliders[i].ReadFromFile(in, GameGuiVersion);
     }
     // text boxes
-    size_t numguitext = static_cast<uint32_t>(in->ReadInt32());
-    auto &guitext = guiobjs.TextBoxes;
-    guitext.resize(numguitext);
-    for (size_t i = 0; i < numguitext; ++i)
+    size_t text_box_count = static_cast<uint32_t>(in->ReadInt32());
+    auto &text_boxes = gui_objs.TextBoxes;
+    text_boxes.resize(text_box_count);
+    for (size_t i = 0; i < text_box_count; ++i)
     {
-        guitext[i].ReadFromFile(in, GameGuiVersion);
+        text_boxes[i].ReadFromFile(in, GameGuiVersion);
     }
     // list boxes
-    size_t numguilist = static_cast<uint32_t>(in->ReadInt32());
-    auto &guilist = guiobjs.ListBoxes;
-    guilist.resize(numguilist);
-    for (size_t i = 0; i < numguilist; ++i)
+    size_t list_box_count = static_cast<uint32_t>(in->ReadInt32());
+    auto &list_boxes = gui_objs.ListBoxes;
+    list_boxes.resize(list_box_count);
+    for (size_t i = 0; i < list_box_count; ++i)
     {
-        guilist[i].ReadFromFile(in, GameGuiVersion);
+        list_boxes[i].ReadFromFile(in, GameGuiVersion);
     }
 
     return HError::None();
 }
 
-void SetExcludedFromDisabled(GUIControl *gc, bool on)
+void SetExcludedFromDisabled(GUIControl *control, bool on)
 {
     if (on)
     {
-        Context.GuiControlExcludedFromDisabled = gc->GetID();
-        Context.GuiExcludedFromDisabled = gc->GetParentID();
+        Context.GuiControlExcludedFromDisabled = control->GetID();
+        Context.GuiExcludedFromDisabled = control->GetParentID();
     }
     else
     {
@@ -1174,7 +1175,7 @@ void SetExcludedFromDisabled(GUIControl *gc, bool on)
     }
 
     if (Context.DisabledState != kGuiDis_Undefined && Context.DisabledState != kGuiDis_Unchanged)
-        gc->MarkChanged();
+        control->MarkChanged();
 }
 
 } // namespace GUI
