@@ -266,7 +266,7 @@ void change_sprite_numbers(const std::vector<int> &oldNumbers, const std::vector
 int crop_sprite_edges(const std::vector<int> &sprites, bool symmetric, Rect *crop_rect) {
   // this function has passed in a list of sprites, all the
   // same size, to crop to the size of the smallest
-  int xx, yy;
+  int x, y;
   int width = spriteset[sprites[0]]->GetWidth();
   int height = spriteset[sprites[0]]->GetHeight();
   int left = width, right = 0;
@@ -277,45 +277,45 @@ int crop_sprite_edges(const std::vector<int> &sprites, bool symmetric, Rect *cro
     int maskcol = sprit->GetMaskColor();
 
     // find the left hand side
-    for (xx = 0; xx < width; xx++) {
-      for (yy = 0; yy < height; yy++) {
-        if (sprit->GetPixel(xx, yy) != maskcol) {
-          if (xx < left)
-            left = xx;
-          xx = width + 10;
+    for (x = 0; x < width; x++) {
+      for (y = 0; y < height; y++) {
+        if (sprit->GetPixel(x, y) != maskcol) {
+          if (x < left)
+            left = x;
+          x = width + 10;
           break;
         }
       }
     }
     // find the right hand side
-    for (xx = width - 1; xx >= 0; xx--) {
-      for (yy = 0; yy < height; yy++) {
-        if (sprit->GetPixel(xx, yy) != maskcol) {
-          if (xx > right)
-            right = xx;
-          xx = -10;
+    for (x = width - 1; x >= 0; x--) {
+      for (y = 0; y < height; y++) {
+        if (sprit->GetPixel(x, y) != maskcol) {
+          if (x > right)
+            right = x;
+          x = -10;
           break;
         }
       }
     }
     // find the top side
-    for (yy = 0; yy < height; yy++) {
-      for (xx = 0; xx < width; xx++) {
-        if (sprit->GetPixel(xx, yy) != maskcol) {
-          if (yy < top)
-            top = yy;
-          yy = height + 10;
+    for (y = 0; y < height; y++) {
+      for (x = 0; x < width; x++) {
+        if (sprit->GetPixel(x, y) != maskcol) {
+          if (y < top)
+            top = y;
+          y = height + 10;
           break;
         }
       }
     }
     // find the bottom side
-    for (yy = height - 1; yy >= 0; yy--) {
-      for (xx = 0; xx < width; xx++) {
-        if (sprit->GetPixel(xx, yy) != maskcol) {
-          if (yy > bottom)
-            bottom = yy;
-          yy = -10;
+    for (y = height - 1; y >= 0; y--) {
+      for (x = 0; x < width; x++) {
+        if (sprit->GetPixel(x, y) != maskcol) {
+          if (y > bottom)
+            bottom = y;
+          y = -10;
           break;
         }
       }
@@ -836,14 +836,14 @@ void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum, bool right
         drawBlock(hdc, tempblock.get(), dc_atx, dc_aty);
 }
 
-void proportionalDraw (int newwid, int sprnum, int*newx, int*newy) {
-  int newhit = newwid;
+void proportionalDraw (int new_width, int sprnum, int*newx, int*newy) {
+  int new_height = new_width;
 
-  int newsizx=newwid,newsizy=newhit;
+  int newsizx=new_width,newsizy=new_height;
   int twid=get_sprite(sprnum)->GetWidth(),thit = get_sprite(sprnum)->GetHeight();
 
-  double ratioX = ((double) newwid) / ((double) twid);
-  double ratioY = ((double) newhit )/ ((double) thit);
+  double ratioX = ((double) new_width) / ((double) twid);
+  double ratioY = ((double) new_height )/ ((double) thit);
   double ratio = MIN(ratioX, ratioY);
 
   newsizx = (int)(twid * ratio);
@@ -1348,12 +1348,12 @@ void validate_mask(Common::Bitmap *toValidate, const char *name, int maxColour) 
   }
 
   bool errFound = false;
-  int xx, yy;
-  for (yy = 0; yy < toValidate->GetHeight(); yy++) {
-    for (xx = 0; xx < toValidate->GetWidth(); xx++) {
-      if (toValidate->GetScanLine(yy)[xx] >= maxColour) {
+  int x, y;
+  for (y = 0; y < toValidate->GetHeight(); y++) {
+    for (x = 0; x < toValidate->GetWidth(); x++) {
+      if (toValidate->GetScanLine(y)[x] >= maxColour) {
         errFound = true;
-        toValidate->GetScanLineForWriting(yy)[xx] = 0;
+        toValidate->GetScanLineForWriting(y)[x] = 0;
       }
     }
   }
@@ -2678,17 +2678,17 @@ void CompileCustomProperties(AGS::Types::CustomProperties ^convertFrom, AGS::Com
 }
 
 char charScriptNameBuf[100];
-const char *GetCharacterScriptName(int charid, AGS::Types::Game ^game) 
+const char *GetCharacterScriptName(int char_id, AGS::Types::Game ^game) 
 {
-	if ((charid >= 0) && (game != nullptr) &&
-    (charid < game->Characters->Count) &&
-		(game->Characters[charid]->ScriptName->Length > 0))
+	if ((char_id >= 0) && (game != nullptr) &&
+    (char_id < game->Characters->Count) &&
+		(game->Characters[char_id]->ScriptName->Length > 0))
 	{
-		TextHelper::ConvertASCIIToArray(game->Characters[charid]->ScriptName, charScriptNameBuf, 100); 
+		TextHelper::ConvertASCIIToArray(game->Characters[char_id]->ScriptName, charScriptNameBuf, 100); 
 	}
 	else
 	{
-		sprintf(charScriptNameBuf, "character[%d]", charid);
+		sprintf(charScriptNameBuf, "character[%d]", char_id);
 	}
 	return charScriptNameBuf;
 }
