@@ -616,7 +616,6 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
             in->ReadInt32(); // was redundant data
             chan_info.VolAsPercent = in->ReadInt32();
             chan_info.Pan = in->ReadInt32();
-            chan_info.Speed = 1000;
             chan_info.Speed = in->ReadInt32();
             chan_info.XSource = in->ReadInt32();
             chan_info.YSource = in->ReadInt32();
