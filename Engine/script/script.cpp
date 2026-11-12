@@ -66,7 +66,9 @@ PRuntimeScript dialogScriptsScript;
 PRuntimeScript roomscript;
 
 int inside_script = 0;
-int no_blocking_functions = 0; // set to 1 while in rep_Exec_always
+// Counts the script functions being run on the non-blocking thread (see DoRunScriptFuncCantBlock), which
+// may nest; the commands that block are not allowed while it is above 0
+int no_blocking_functions = 0;
 
 NonBlockingScriptFunction repExecAlways(REP_EXEC_ALWAYS_NAME, 0);
 NonBlockingScriptFunction lateRepExecAlways(LATE_REP_EXEC_ALWAYS_NAME, 0);
@@ -95,6 +97,8 @@ static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScr
                                      bool has_func);
 
 
+// Runs the function in every script module, then in the global script, then in the room script,
+// skipping the scripts known not to have it (and noting those that do not); stops as soon as the room changes.
 void run_function_on_non_blocking_thread(NonBlockingScriptFunction *func_to_run)
 {
     update_script_mouse_coords();
@@ -154,7 +158,12 @@ static bool test_interaction_handler(ScriptEventsBase *handlers, int event_id, b
     return handler.IsEnabled();
 }
 
-// Runs new-style interaction event handler in script
+// Runs new-style interaction event handler in script.
+// If there is no enabled handler for 'event_id', runs nothing and returns 0: when 'any_handlers' has an
+// enabled one for 'any_event_id' the caller is expected to run it (the "Any Click" case), otherwise
+// the "unhandled_event" callback is run if 'do_unhandled_event' is set.
+// Returns -1 if the handler was found while play.check_interaction_only is set (it does not run then),
+// or if the room changed while it ran; 0 otherwise.
 int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int event_id,
                      ScriptEventsBase *any_handlers, int any_event_id, bool do_unhandled_event)
 {
@@ -177,11 +186,11 @@ int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int
         return 0;
     }
 
-    // FIXME: refactor this nonsense! check_interaction_only here is used as
-    // both function argument and return value!
+    // TODO: check_interaction_only is both the request (1, set by the caller) and the answer
+    // (2, set here: an enabled handler was found); return the answer from this function instead
     if (play.check_interaction_only)
     {
-        play.check_interaction_only = 2; // CHECKME: wth is "2"?
+        play.check_interaction_only = 2;
         return -1;
     }
 
@@ -202,6 +211,9 @@ int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int
     return run_event_script(obj_evt, handlers, event_id, nullptr, -1, do_unhandled_event);
 }
 
+// Runs the handler for 'event_id' if there is an enabled one: unlike run_event_script, it does not look
+// at play.check_interaction_only, and has no "Any Click" or "unhandled_event" fallback.
+// Returns -1 if the room changed while it ran, 0 otherwise.
 int run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int event_id)
 {
     assert(handlers);
@@ -225,7 +237,8 @@ int run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handle
 
 static void AllocScriptFuncRefs()
 {
-    // NOTE: this preallocation possibly required to safeguard some algorithms
+    // Size the per-module arrays to the module count; until a function is known to be missing from a module
+    // ("has function" is true), it is tried there
     moduleRepExecAddr.resize(numScriptModules);
     repExecAlways.ModuleHasFunction.resize(numScriptModules, true);
     lateRepExecAlways.ModuleHasFunction.resize(numScriptModules, true);
@@ -243,6 +256,8 @@ static void AllocScriptFuncRefs()
     }
 }
 
+// Creates the runtime instances of the global script, the modules and the (optional) dialog script
+// from the compiled ones; the module names are used in error messages only
 HError CreateRuntimeScripts(const ccScript *global_script, const std::vector<ccScript *> &script_modules,
                             const std::vector<String> &script_module_names, const ccScript *dialog_script)
 {
@@ -282,6 +297,7 @@ HError CreateRuntimeScripts(const ccScript *global_script, const std::vector<ccS
     return HError::None();
 }
 
+// Registers aliases for the engine API types and for the types of every registered plugin
 void SetupBuiltinTypeAliases()
 {
     // Add aliases for the location "ags":
@@ -298,7 +314,8 @@ HError LinkGlobalScripts()
 {
     ccSetOption(SCOPT_AUTOIMPORT, 1);
 
-    // NOTE: this function assumes that the module lists have their elements preallocated!
+    // NOTE: this function assumes that the module lists have their elements preallocated
+    // (see CreateRuntimeScripts)
 
     std::vector<RuntimeScript *> all_insts; // gather all to resolve exports below
     for (size_t i = 0; i < numScriptModules; ++i)
@@ -329,7 +346,7 @@ HError LinkGlobalScripts()
     }
 
     // Record addresses for 'repeatedly_execute'
-    // TODO: find out why do we have to do that here
+    // TODO: nothing reads moduleRepExecAddr any more, delete it together with this loop
     for (size_t i = 0; i < numScriptModules; ++i)
     {
         moduleRepExecAddr[i] = scriptModules[i]->GetSymbolAddress(REP_EXEC_NAME);
@@ -360,6 +377,8 @@ void AbortAllScripts()
     executingScripts = std::stack<std::unique_ptr<ExecutingScript>>();
 }
 
+// Returns the room script for the room type; otherwise the module with the given name, or the global
+// script if the name is empty or its own. Returns null if there is no such module (or no room script).
 RuntimeScript *GetScriptInstance(ScriptType sc_type, const String &script_module)
 {
     if (sc_type == kScTypeRoom)
@@ -411,7 +430,9 @@ void TryRunScriptHandler(ScriptType sc_type, const String &script_module, const 
         RunScriptFunctionAuto(sc_type, ScriptFunctionRef(script_module, handler.FunctionName), param_count, params);
 }
 
-// Run a script function on a non-blocking script thread
+// Runs the function in one script on the non-blocking thread, unless 'has_func' says the script is known
+// not to have it. Returns the new "has function" state, which is false once the function turned out
+// to be missing. Any other script error quits the game.
 static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScriptFunction *func_to_run, bool has_func)
 {
     if (!has_func)
@@ -423,7 +444,7 @@ static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScr
 
     if (result == kScExecErr_FuncNotFound)
     {
-        // the function doens't exist, so don't try and run it again
+        // the function doesn't exist, so don't try and run it again
         has_func = false;
     }
     else if ((result != kScExecErr_None) && (result != kScExecErr_Aborted))
@@ -440,6 +461,8 @@ static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScr
     return (has_func);
 }
 
+// Checks that the function can be run now (the executor is free, the script has the function), and makes
+// a new ExecutingScript the current one for it
 static RunScFuncResult PrepareTextScript(const RuntimeScript *script, const String &fn_name)
 {
     assert(script);
@@ -463,6 +486,7 @@ static RunScFuncResult PrepareTextScript(const RuntimeScript *script, const Stri
 
 void PostScriptProcessing();
 
+// Pushes a new thread on the stack of callback threads, for a function run while the main thread is busy
 ScriptThread *AllocateDynamicScriptThread()
 {
     scriptThreadCallbacks.push(
@@ -470,6 +494,7 @@ ScriptThread *AllocateDynamicScriptThread()
     return scriptThreadCallbacks.top().get();
 }
 
+// Pops the thread from the stack of callback threads; it must be the topmost one
 void FreeDynamicScriptThread(ScriptThread *script_thread)
 {
     assert(script_thread == scriptThreadCallbacks.top().get());
@@ -477,6 +502,9 @@ void FreeDynamicScriptThread(ScriptThread *script_thread)
         scriptThreadCallbacks.pop();
 }
 
+// Runs a function in the script on the main thread, or on a new callback thread if the main one is busy,
+// then performs the post-script actions. Returns kScFnRes_NotFound if there is no such function,
+// kScFnRes_Done if it ran (even if aborted); other results quit the game.
 RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &fn_name, size_t param_count,
                                   const RuntimeScriptValue *params)
 {
@@ -561,8 +589,10 @@ bool RunScriptFunctionInRoom(const String &fn_name, size_t param_count, const Ru
     return RunScriptFunction(roomscript.get(), fn_name, param_count, params) == kScFnRes_Done;
 }
 
-// Run non-claimable event in all script modules, *excluding* room;
-// break if certain changes occured to the game state
+// Run an event in all script modules in order, and then in the global script, *excluding* room;
+// stop before the global script if a module ran it and the room changed or a save was restored since the start,
+// or if it failed to run, or if 'break_after_first' is set and a module had the function.
+// Returns whether the function ran successfully in the last script it was tried in.
 static bool RunEventInModules(const String &fn_name, size_t param_count, const RuntimeScriptValue *params,
                               bool break_after_first)
 {
@@ -585,8 +615,8 @@ static bool RunEventInModules(const String &fn_name, size_t param_count, const R
     return RunScriptFunction(gamescript.get(), fn_name, param_count, params) == kScFnRes_Done;
 }
 
-// Run non-claimable event in all script modules, *excluding* room;
-// break if certain changes occured to the game state
+// Run non-claimable event (without parameters) in all script modules, *excluding* room;
+// it is not stopped by any script, only by a room change or a save restoration (see RunEventInModules)
 static bool RunUnclaimableEvent(const String &fn_name)
 {
     return RunEventInModules(fn_name, 0, nullptr, false);
@@ -610,9 +640,10 @@ static bool RunEventInModule(const ScriptFunctionRef &fn_ref, size_t param_count
     return RunScriptFunction(gamescript.get(), fn_ref.FuncName, param_count, params) == kScFnRes_Done;
 }
 
-// Run claimable event in all script modules, *including* room;
+// Run claimable event in the room script, all script modules, and then the global script;
 // break if event was claimed by any of the run callbacks.
-// CHECKME: should not this also break on room change / save restore, like RunUnclaimableEvent?
+// TODO: unlike RunEventInModules, a room change does not stop the chain; a save restoration does, because
+// RunScriptFunction then marks the event as claimed. Decide if a room change should stop it too.
 static bool RunClaimableEvent(const String &fn_name, size_t param_count, const RuntimeScriptValue *params)
 {
     // Run claimable event chain in script modules and room script
@@ -647,6 +678,7 @@ bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, 
 
     // Unclaimable event means it is run in all modules except room,
     // and cannot be stopped from propagating
+    // NOTE: only 'repeatedly_execute' is one (see ScriptEventCb), which is why its name is used here
     if (propagate == kScCallback_CommonUnClaimable)
     {
         return RunUnclaimableEvent(REP_EXEC_NAME);
@@ -662,6 +694,7 @@ bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, 
     return RunEventInModule(fn_ref, param_count, params);
 }
 
+// Creates the script executor and the main and non-blocking threads, and sets the script alive timer
 void InitScriptExec()
 {
     scriptExecutor = std::make_unique<ScriptExecutor>();
@@ -721,9 +754,11 @@ void FreeAllScripts()
 
 //=============================================================================
 
+// Called when a script function has returned to the engine: quits if the script left an error, pops its
+// ExecutingScript, and then either hands its queued post-script actions (new room, restoring or saving
+// a game, dialogs and so on) to the script below it in the stack, or, if none is left, runs them.
 void PostScriptProcessing()
 {
-    // should do any post-script stuff here, like go to new room
     if (cc_has_error())
         quit(cc_get_error().ErrorString);
 
@@ -754,7 +789,8 @@ void PostScriptProcessing()
         return;
     }
 
-    // FIXME: sync audio in case any screen changing or time-consuming post-script actions were scheduled
+    // TODO: audio is synced whenever any action is scheduled (and again after running them), while only
+    // screen changing or time-consuming ones need it
     if (finished_script->PostScriptActions.size() > 0)
     {
         sync_audio_playback();
@@ -830,6 +866,8 @@ void PostScriptProcessing()
     }
 }
 
+// Quits the game reporting the current script error and the name of the function that was running;
+// the call stack is added unless it is a user error (the "!" kind)
 void quit_with_script_error(const String &fn_name)
 {
     // TODO: clean up the error reporting logic. Now engine will append call
@@ -865,6 +903,9 @@ bool get_can_run_delayed_command()
     return no_blocking_functions == 0;
 }
 
+// Runs the game's "unhandled_event" callback for an interaction that had no handler, giving it the location
+// type (hotspot 0 counts as "no location") and the interaction mode. Does nothing if interactions are only
+// being checked, or for the walk mode.
 void run_unhandled_event(const ObjectEvent &obj_evt, int mode)
 {
     // FIXME: do not use a global variable here, pass as a function argument!

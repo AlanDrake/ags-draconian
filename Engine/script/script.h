@@ -87,8 +87,8 @@ struct ObjectEvent
     operator bool() const { return IsValid(); }
 };
 
-// NonBlockingScriptFunction struct contains a cached information about
-// a non-blocking script callback, which script modules is this callback present in.
+// NonBlockingScriptFunction struct contains a script callback that is run on the non-blocking thread,
+// and the cached information on which scripts have it: a script is tried until it turns out not to have it.
 struct NonBlockingScriptFunction
 {
     String FunctionName;
@@ -109,18 +109,27 @@ struct NonBlockingScriptFunction
     }
 };
 
-// Run a script function on a non-blocking script thread
+// Runs a script function on a non-blocking script thread, in every script that has it
+// (script modules, the global script, the room script); stops as soon as the room changes
 void run_function_on_non_blocking_thread(NonBlockingScriptFunction *func_to_run);
 // Runs new-style interaction event handler in script.
-// Runs the ObjectEvent using a script callback of 'event_id' index,
-// or alternatively of 'any_event_id' index, if previous does not exist
-// Returns 0 normally, or -1 telling of a game state change (eg. a room change occured).
+// If there is no enabled handler for 'event_id', runs nothing and returns 0: when 'any_handlers' has an
+// enabled one for 'any_event_id' the caller is expected to run it (the "Any Click" case), otherwise
+// the "unhandled_event" callback is run if 'do_unhandled_event' is set.
+// Returns -1 if the handler was found while play.check_interaction_only is set (it does not run then),
+// or if the room changed while it ran; 0 otherwise.
 int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int event_id,
                      ScriptEventsBase *any_handlers, int any_event_id, bool do_unhandled_event);
+// The same, with no "Any Click" handlers to fall back to
 int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int event_id,
                      bool do_unhandled_event = false);
-// Runs event handler, optionally choosing to run on a non-blocking thread if the main thread is busy.
+// Runs the handler for 'event_id' if there is an enabled one: unlike run_event_script, it does not look
+// at play.check_interaction_only, and has no "Any Click" or "unhandled_event" fallback.
+// Returns -1 if the room changed while it ran, 0 otherwise.
 int run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int event_id);
+// Runs the game's "unhandled_event" callback for an interaction that had no handler, giving it the location
+// type (hotspot 0 counts as "no location") and the interaction mode. Does nothing if interactions are only
+// being checked, or for the walk mode.
 void run_unhandled_event(const ObjectEvent &obj_evt, int mode);
 
 enum RunScFuncResult
@@ -131,12 +140,15 @@ enum RunScFuncResult
     kScFnRes_ScriptBusy = -3,       // script is already being executed
 };
 
+// Returns the room script for the room type; otherwise the module with the given name, or the global
+// script if the name is empty or its own. Returns null if there is no such module (or no room script).
 AGS::Engine::RuntimeScript *GetScriptInstance(ScriptType sc_type, const String &script_module = {});
 // Tests if a function exists in the given script module
 bool DoesScriptFunctionExist(const AGS::Engine::RuntimeScript *script, const String &fn_name);
-// Tests if a function exists in any of the regular script module, *except* room script
+// Tests if a function exists in any of the regular script modules or the global script, *except* room script
 bool DoesScriptFunctionExistInModules(const String &fn_name);
-// Tests if a function exists in a particular script module (except room script)
+// Tests if a function exists in a particular script module (except room script);
+// an empty module name means the global script
 bool DoesScriptFunctionExistInModule(const String &script_module, const String &fn_name);
 // Tries to execute a script handler, which is a script function associated with some event.
 // The function is identified by its name and script module, and will be run by RunScriptFunctionAuto().
@@ -144,19 +156,24 @@ bool DoesScriptFunctionExistInModule(const String &script_module, const String &
 void TryRunScriptHandler(ScriptType sc_type, const AGS::Common::String &script_module,
                          const AGS::Common::ScriptEventHandler &handler, size_t param_count = 0,
                          const RuntimeScriptValue *params = nullptr);
-// Try to run a script function on the main script thread
+// Runs a function in the script on the main script thread, or on a new callback thread if the main one is
+// busy, then performs the post-script actions. Returns kScFnRes_NotFound if there is no such function,
+// kScFnRes_Done if it ran (even if aborted); other results quit the game.
 RunScFuncResult RunScriptFunction(const AGS::Engine::RuntimeScript *script, const String &fn_name,
                                   size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
-// Run a script function in all the regular script modules, in order, where available
-// includes globalscript, but not the current room script.
-// returns if at least one instance of a function was run successfully.
+// Run a script function in all the regular script modules, in order, where available;
+// includes globalscript (last), but not the current room script.
+// Returns if at least one instance of a function was run successfully.
 bool RunScriptFunctionInModules(const String &fn_name, size_t param_count = 0,
                                 const RuntimeScriptValue *params = nullptr);
-// Run a script function in the current room script; returns if a function was run successfully.
+// Run a script function in the current room script; returns if a function was run successfully
+// (false if no room is loaded).
 bool RunScriptFunctionInRoom(const String &fn_name, size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
 // Try to run a script function, guessing the behavior by its name and script instance type;
-// depending on the type may run a claimable callback chain;
-// returns if at least one instance of a function was run successfully.
+// depending on the type may run a claimable callback chain (room script, modules, global script, stopping
+// at the first one that claims the event), or run it in all the modules (repeatedly_execute).
+// Returns if the function was run successfully in the last script it was tried in (for a claimable
+// event, true if some script claimed it). For the room type runs it in the room script only.
 bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
                            const RuntimeScriptValue *params = nullptr);
 // Same as above, but the function is identified by the function name only,
@@ -164,11 +181,12 @@ bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, 
 bool RunScriptFunctionAuto(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
                            const RuntimeScriptValue *params = nullptr);
 
-// Allocates script executor and standard threads
+// Allocates script executor and standard threads (main and non-blocking), and sets the script alive timer
 void InitScriptExec();
 // Frees script executor and all threads
 void ShutdownScriptExec();
-// Create runtime script instances
+// Creates the runtime instances of the global script, the modules and the (optional) dialog script
+// from the compiled ones; the module names are used in error messages only
 // TODO: pick out a struct for holding only game scripts
 HError CreateRuntimeScripts(const ccScript *global_script, const std::vector<ccScript *> &script_modules,
                             const std::vector<String> &script_module_names, const ccScript *dialog_script);
@@ -191,21 +209,26 @@ void FreeAllScripts();
 // Executes scheduled commands and does changes that are not executed immediately during script
 // (either for logical reasons, and for optimization).
 void post_script_cleanup();
+// Quits the game reporting the current script error and the name of the function that was running;
+// the call stack is added unless it is a user error (the "!" kind)
 void quit_with_script_error(const String &fn_name);
-// Assert and abort game if the script is currently inside the rep_exec_always function
+// Quits the game with an error if a script function is currently run on the non-blocking thread
+// (such as repeatedly_execute_always), where the commands that block are not allowed
 void can_run_delayed_command();
-// Tells whether the script is currently NOT inside the rep_exec_always function
+// Tells whether no script function is currently run on the non-blocking thread (see can_run_delayed_command)
 bool get_can_run_delayed_command();
 
-// Gets current running script position
+// Gets current running script position; returns false if there is no script executor
 bool get_script_position(AGS::Engine::ScriptPosition &script_pos);
+// Formats the call stack of the running script, at most 'max_lines' lines; empty if there is no executor
 String cc_get_callstack(int max_lines = INT_MAX);
 
 // Tells if there's a script running right now
 bool is_inside_script();
-// Gets current ExecutingScript object
+// Gets current ExecutingScript object (null if no script function is running)
 ExecutingScript *get_executingscript();
 
+// The script callbacks that run on the non-blocking thread
 extern NonBlockingScriptFunction repExecAlways;
 extern NonBlockingScriptFunction lateRepExecAlways;
 extern NonBlockingScriptFunction getDialogOptionsDimensionsFunc;
