@@ -328,7 +328,7 @@ struct GamePlayState
     // Runtime behavior switches: allow to configure engine behavior
     // for modern and backwards-compatibility mode on a per-operation basis.
     const std::array<bool, kNum_RBS> &GetRBSwitches() const { return _rbSwitches; }
-    void SetRBSwitches(const std::array<bool, kNum_RBS> &rbs);
+    void SetRBSwitches(const std::array<bool, kNum_RBS> &overrides);
 
     //
     // Viewport and camera control.
@@ -372,13 +372,13 @@ struct GamePlayState
     // Converts room coordinates to the game screen coordinates through the room viewport
     // This group of functions always tries to pass a point through the **primary** room viewport
     // TODO: also support using arbitrary viewport (for multiple viewports).
-    Point RoomToScreen(int roomx, int roomy);
-    int RoomToScreenX(int roomx);
+    Point RoomToScreen(int room_x, int room_y);
+    int RoomToScreenX(int room_x);
     // Converts game screen coordinates to the room coordinates through the room viewport.
     // Tries to find if there is any viewport at the given coords.
     // If "clip_viewport" parameter is true, then not finding a viewport results in failure,
     // if it is false, proceeds converting through the primary viewport.
-    VpPoint ScreenToRoom(int scrx, int scry, bool clip_viewport = true);
+    VpPoint ScreenToRoom(int screen_x, int screen_y, bool clip_viewport = true);
 
     // Makes sure primary viewport and camera are created and linked together
     void CreatePrimaryViewportAndCamera();
@@ -436,8 +436,11 @@ struct GamePlayState
     //
     bool IsInWait() const;
     // Set how the last blocking wait was skipped
-    void SetWaitSkipResult(int how, int data = 0);
-    void SetWaitKeySkip(const KeyInput &kp) { SetWaitSkipResult(SKIP_KEYPRESS, AGSKeyToScriptKey(kp.Key) | kp.Mod); }
+    void SetWaitSkipResult(int skipped_by, int data = 0);
+    void SetWaitKeySkip(const KeyInput &key_input)
+    {
+        SetWaitSkipResult(SKIP_KEYPRESS, AGSKeyToScriptKey(key_input.Key) | key_input.Mod);
+    }
     int GetWaitCounter() const;
     int GetWaitSkipType() const;
     // Returns the information about how the latest blocking wait was skipped.
@@ -478,7 +481,7 @@ struct GamePlayState
     void FreeViewportsAndCameras();
 
 private:
-    VpPoint ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport);
+    VpPoint ScreenToRoomImpl(int screen_x, int screen_y, int viewport_id, bool clip_viewport);
     void UpdateRoomCamera(int index);
 
     AGS::Common::String _gameTextLanguage;

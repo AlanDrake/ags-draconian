@@ -57,10 +57,10 @@ enum CutsceneSkipStyle
 #define VOL_SETFUTUREDEFAULT 1679
 #define VOL_BOTH             1680
 
-void Game_StopAudio(int audioType);
-int Game_IsAudioPlaying(int audioType);
-void Game_SetAudioTypeSpeechVolumeDrop(int audioType, int volumeDrop);
-void Game_SetAudioTypeVolume(int audioType, int volume, int changeType);
+void Game_StopAudio(int audio_type);
+int Game_IsAudioPlaying(int audio_type);
+void Game_SetAudioTypeSpeechVolumeDrop(int audio_type, int volume_drop);
+void Game_SetAudioTypeVolume(int audio_type, int volume, int change_type);
 
 //=============================================================================
 // ---
@@ -70,26 +70,26 @@ int Game_GetDialogCount();
 // Sets a default save directory, based on platform driver settings and user config
 void SetDefaultSaveDirectory();
 // Sets a new save directory within the save parent; copies "restart" slot if available
-int Game_SetSaveGameDirectory(const char *newFolder);
-const char *Game_GetSaveSlotDescription(int slnum);
+int Game_SetSaveGameDirectory(const char *new_folder);
+const char *Game_GetSaveSlotDescription(int slot);
 
 // Various sort parameter validation.
-ScriptFileSortStyle ValidateFileSort(const char *apiname, int file_sort);
-ScriptSaveGameSortStyle ValidateSaveGameSort(const char *apiname, int save_sort);
-ScriptSortStyle ValidateSortStyle(const char *apiname, int sort_style);
-ScriptSortDirection ValidateSortDirection(const char *apiname, int sort_dir);
-ScriptStringComparison ValidateStringComparison(const char *apiname, int compare_style);
+ScriptFileSortStyle ValidateFileSort(const char *api_name, int file_sort);
+ScriptSaveGameSortStyle ValidateSaveGameSort(const char *api_name, int save_sort);
+ScriptSortStyle ValidateSortStyle(const char *api_name, int sort_style);
+ScriptSortDirection ValidateSortDirection(const char *api_name, int sort_dir);
+ScriptStringComparison ValidateStringComparison(const char *api_name, int compare_style);
 // Save slot range validation; fixups min and max slots, returns if the resulting range is non-empty
 bool ValidateSaveSlotRange(const char *api_name, int &min_slot, int &max_slot);
 // Graphic parameter validation.
-AGS::Common::GraphicFlip ValidateFlip(const char *apiname, int flip);
+AGS::Common::GraphicFlip ValidateFlip(const char *api_name, int flip);
 
 // View, loop, frame parameter assertions.
 // WARNING: these functions assume that view is already in an internal 0-based range.
-void AssertView(const char *apiname, const char *objname, int view);
-void AssertViewHasLoops(const char *apiname, const char *objname, int view);
-void AssertLoop(const char *apiname, const char *objname, int view, int loop);
-void AssertFrame(const char *apiname, const char *objname, int view, int loop, int frame);
+void AssertView(const char *api_name, const char *obj_name, int view);
+void AssertViewHasLoops(const char *api_name, const char *obj_name, int view);
+void AssertLoop(const char *api_name, const char *obj_name, int view, int loop);
+void AssertFrame(const char *api_name, const char *obj_name, int view, int loop, int frame);
 
 int Game_GetInventoryItemCount();
 int Game_GetFontCount();
@@ -97,28 +97,28 @@ int Game_GetMouseCursorCount();
 int Game_GetCharacterCount();
 int Game_GetGUICount();
 int Game_GetViewCount();
-int Game_GetSpriteWidth(int spriteNum);
-int Game_GetSpriteHeight(int spriteNum);
-int Game_GetLoopCountForView(int viewNumber);
-int Game_GetRunNextSettingForLoop(int viewNumber, int loopNumber);
-int Game_GetFrameCountForLoop(int viewNumber, int loopNumber);
-ScriptViewFrame *Game_GetViewFrame(int viewNumber, int loopNumber, int frame);
+int Game_GetSpriteWidth(int sprite_num);
+int Game_GetSpriteHeight(int sprite_num);
+int Game_GetLoopCountForView(int view);
+int Game_GetRunNextSettingForLoop(int view, int loop);
+int Game_GetFrameCountForLoop(int view, int loop);
+ScriptViewFrame *Game_GetViewFrame(int view, int loop, int frame);
 int Game_DoOnceOnly(const char *token);
 
 int Game_GetTextReadingSpeed();
-void Game_SetTextReadingSpeed(int newTextSpeed);
+void Game_SetTextReadingSpeed(int new_text_speed);
 int Game_GetMinimumTextDisplayTimeMs();
-void Game_SetMinimumTextDisplayTimeMs(int newTextMinTime);
+void Game_SetMinimumTextDisplayTimeMs(int new_text_min_time);
 int Game_GetIgnoreUserInputAfterTextTimeoutMs();
-void Game_SetIgnoreUserInputAfterTextTimeoutMs(int newValueMs);
+void Game_SetIgnoreUserInputAfterTextTimeoutMs(int new_value_ms);
 const char *Game_GetFileName();
 const char *Game_GetName();
-void Game_SetName(const char *newName);
+void Game_SetName(const char *new_name);
 
 int Game_GetSkippingCutscene();
 int Game_GetInSkippableCutscene();
 
-int Game_GetColorFromRGB(int red, int grn, int blu);
+int Game_GetColorFromRGB(int red, int green, int blue);
 const char *Game_InputBox(const char *msg);
 const char *Game_GetLocationName(int x, int y, int hit_options);
 
@@ -128,9 +128,9 @@ void Game_SetNormalFont(int font);
 void Game_SetSpeechFont(int font);
 
 const char *Game_GetTranslationFilename();
-int Game_ChangeTranslation(const char *newFilename);
+int Game_ChangeTranslation(const char *new_filename);
 const char *Game_GetSpeechVoxFilename();
-bool Game_ChangeSpeechVox(const char *newFilename);
+bool Game_ChangeSpeechVox(const char *new_filename);
 
 //=============================================================================
 
@@ -145,7 +145,7 @@ AGS::Common::String get_save_game_directory();
 AGS::Common::String get_save_game_suffix();
 void set_save_game_suffix(const AGS::Common::String &suffix);
 // Returns full path to the save for the given slot number
-AGS::Common::String get_save_game_path(int slotNum);
+AGS::Common::String get_save_game_path(int slot);
 // Parses an input filepath and retrieves final path and respective save slot number, if possible.
 // * if input contains an absolute filepath, then uses it directly;
 // * if input contains a relative filename, then tests both cwd and game's save directory;
@@ -168,8 +168,9 @@ void free_do_once_tokens();
 void shutdown_game_state();
 // Free all the memory associated with the game
 void unload_game();
-void save_game(int slotn, const AGS::Common::String &descript, std::unique_ptr<AGS::Common::Bitmap> &&image = nullptr);
-void schedule_save_game(int slotn, const AGS::Common::String &descript, int spritenum = -1);
+void save_game(int slot, const AGS::Common::String &description,
+               std::unique_ptr<AGS::Common::Bitmap> &&image = nullptr);
+void schedule_save_game(int slot, const AGS::Common::String &description, int sprite_num = -1);
 std::unique_ptr<AGS::Common::Bitmap> create_game_screenshot(int width, int height, int layers);
 bool read_savedgame_description(const AGS::Common::String &filename, AGS::Common::String &description);
 std::unique_ptr<AGS::Common::Bitmap> read_savedgame_screenshot(const AGS::Common::String &filename);
@@ -182,9 +183,9 @@ void prescan_save_slots(int dest_arr_handle, int min_slot, int max_slot, int fil
 bool is_in_cutscene();
 CutsceneSkipStyle get_cutscene_skipstyle();
 void start_skipping_cutscene();
-bool check_skip_cutscene_keypress(int kgn);
-bool check_skip_cutscene_mclick(int mbut);
-bool check_skip_cutscene_gamepad(int gbut);
+bool check_skip_cutscene_keypress(int key);
+bool check_skip_cutscene_mclick(int mouse_button);
+bool check_skip_cutscene_gamepad(int gamepad_button);
 void initialize_skippable_cutscene();
 void stop_fast_forwarding();
 
@@ -210,12 +211,12 @@ void display_switch_in_resume();
 
 // Notifies the game objects that certain sprite was updated.
 // This make them update their render states, caches, and so on.
-void game_sprite_updated(int sprnum, bool deleted = false);
+void game_sprite_updated(int sprite_num, bool deleted = false);
 // Precaches sprites for a view, within a selected range of loops.
 void precache_view(int view, int first_loop = 0, int last_loop = INT32_MAX, bool with_sounds = false);
 
 // Loads and initializes font at certain index using given properties
-bool load_game_font(int at_index, const FontInfo &finfo, GameDataVersion data_ver);
+bool load_game_font(int at_index, const FontInfo &font_info, GameDataVersion data_ver);
 // Do additional fixups to the game fonts. This requires *all fonts* to be loaded,
 // as some fixups depend on relation between the main font and its outline font.
 void fixup_game_fonts();
@@ -223,9 +224,9 @@ void fixup_game_fonts();
 class MoveList;
 // Allocates a movelist slot and moves data over; returns new movelist's index,
 // or 0 if not possible to allocate one.
-uint32_t add_movelist(MoveList &&mlist);
+uint32_t add_movelist(MoveList &&move_list);
 // Allocates a movelist slot at the given index and assigns new data.
-uint32_t add_movelist(MoveList &&mlist, uint32_t at_index);
+uint32_t add_movelist(MoveList &&move_list, uint32_t at_index);
 // Removes a movelist, frees the occupied slot
 void remove_movelist(uint32_t index);
 // Returns movelist by its index, or null if no such valid movelist exists
