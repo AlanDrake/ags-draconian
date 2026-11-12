@@ -17,6 +17,7 @@
 //=============================================================================
 #include "util/lzw.h"
 
+#include <algorithm>
 #include <cstdlib>
 
 #include "util/bbop.h"
@@ -28,10 +29,9 @@ using namespace AGS::Common;
 int insert(int, int);
 void _delete(int);
 
-#define N                  4096
-#define F                  16
-#define THRESHOLD          3
-#define min(first, second) ((second < first) ? second : first)
+#define N         4096
+#define F         16
+#define THRESHOLD 3
 
 #define dad  (node + 1)
 #define lson (node + 1 + N)
@@ -57,7 +57,7 @@ int insert(int i, int run)
     lson[i] = rson[i] = NIL;
     while ((j = *p) != NIL)
     {
-        for (n = min(k, l); n < run && (c = (lzbuffer[j + n] - lzbuffer[i + n])) == 0; n++)
+        for (n = std::min(k, l); n < run && (c = (lzbuffer[j + n] - lzbuffer[i + n])) == 0; n++)
             ;
 
         if (n > match)
@@ -133,7 +133,7 @@ bool lzwcompress(Stream *lzw_in, Stream *out)
     int value, i, run, len, match, size, mask;
     uint8_t buf[17];
 
-    lzbuffer = (uint8_t *)malloc(N + F + (N + 1 + N + N + 256) * sizeof(int));
+    lzbuffer = static_cast<uint8_t *>(malloc(N + F + (N + 1 + N + N + 256) * sizeof(int)));
     if (lzbuffer == nullptr)
     {
         return false;
@@ -224,7 +224,7 @@ bool lzwexpand(const uint8_t *src, size_t src_sz, uint8_t *dst, size_t dst_sz)
     if (dst_sz == 0)
         return false; // nowhere to expand to
 
-    lzbuffer = (uint8_t *)malloc(N);
+    lzbuffer = static_cast<uint8_t *>(malloc(N));
     if (lzbuffer == nullptr)
     {
         return false; // not enough memory

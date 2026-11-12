@@ -133,7 +133,7 @@ void MyListBox::additem(char *text)
 {
     if (items >= MAXLISTITEM)
         quit("!CSCIUSER16: Too many items added to listbox");
-    itemnames[items] = (char *)malloc(strlen(text) + 1);
+    itemnames[items] = static_cast<char *>(malloc(strlen(text) + 1));
     strcpy(itemnames[items], text);
     items++;
     needredraw = 1;
@@ -143,7 +143,7 @@ int MyListBox::processmessage(int mcode, int wParam, intptr_t ipParam)
 {
     if (mcode == CLB_ADDITEM)
     {
-        additem((char *)ipParam);
+        additem(reinterpret_cast<char *>(ipParam));
     }
     else if (mcode == CLB_CLEAR)
         clearlist();
@@ -160,14 +160,14 @@ int MyListBox::processmessage(int mcode, int wParam, intptr_t ipParam)
             topitem = (selected + 1) - numonscreen;
     }
     else if (mcode == CLB_GETTEXT)
-        strcpy((char *)ipParam, itemnames[wParam]);
+        strcpy(reinterpret_cast<char *>(ipParam), itemnames[wParam]);
     else if (mcode == CLB_SETTEXT)
     {
         if (wParam < items)
             free(itemnames[wParam]);
 
-        char *new_text = (char *)ipParam;
-        itemnames[wParam] = (char *)malloc(strlen(new_text) + 2);
+        char *new_text = reinterpret_cast<char *>(ipParam);
+        itemnames[wParam] = static_cast<char *>(malloc(strlen(new_text) + 2));
         strcpy(itemnames[wParam], new_text);
     }
     else if (mcode == CTB_KEYPRESS)

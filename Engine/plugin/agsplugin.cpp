@@ -727,7 +727,7 @@ void IAGSEngine::AddManagedObjectReader(const char *type_name, IAGSManagedObject
                        pr.Type.GetCStr());
     }
 
-    pluginReaders.push_back(PluginObjectReader(type_name, reinterpret_cast<ICCObjectReader *>(reader)));
+    pluginReaders.emplace_back(type_name, reinterpret_cast<ICCObjectReader *>(reader));
 }
 
 void IAGSEngine::RegisterUnserializedObject(int key, void *object, IAGSScriptManagedObject *callback)

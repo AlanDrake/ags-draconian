@@ -65,11 +65,12 @@ int MyTextBox::processmessage(int mcode, int wParam, intptr_t ipParam)
 {
     if (mcode == CTB_SETTEXT)
     {
-        snprintf(text, sizeof(text), "%s", (const char *)ipParam);
+        snprintf(text, sizeof(text), "%s", reinterpret_cast<const char *>(ipParam));
         needredraw = 1;
     }
     else if (mcode == CTB_GETTEXT)
-        strcpy((char *)ipParam, text); // TODO: the caller's buffer size is not known, so this can overflow it
+        strcpy(reinterpret_cast<char *>(ipParam),
+               text); // TODO: the caller's buffer size is not known, so this can overflow it
     else if (mcode == CTB_KEYPRESS)
     {
         // NOTE: this deprecated control does not support UTF-8
