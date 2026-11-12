@@ -216,37 +216,38 @@ void InitAndRegisterDialogs(const GameSetupStruct &game)
 void RegisterAllGUIControls(const GameSetupStruct &game)
 {
     StaticGUIControlsHandles.resize(game.numgui);
-    for (int i = 0; i < game.numgui; ++i)
+    for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
     {
-        auto const &gui = guis[i];
-        StaticGUIControlsHandles[i] = std::vector<int>();
-        StaticGUIControlsHandles[i].resize(gui.GetControlCount());
+        auto const &gui = guis[gui_id];
+        StaticGUIControlsHandles[gui_id] = std::vector<int>();
+        StaticGUIControlsHandles[gui_id].resize(gui.GetControlCount());
     }
 
-    for (int i = 0; i < game.numgui; ++i)
+    for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
     {
-        auto const &gui = guis[i];
-        for (int j = 0; j < gui.GetControlCount(); j++)
+        auto const &gui = guis[gui_id];
+        for (int ctrl_id = 0; ctrl_id < gui.GetControlCount(); ctrl_id++)
         {
-            GUIControl *control = gui.GetControl(j);
-            IScriptObject *mgr;
-            switch (gui.GetControlType(j))
+            GUIControl *control = gui.GetControl(ctrl_id);
+            IScriptObject *manager;
+            switch (gui.GetControlType(ctrl_id))
             {
-            case kGUIButton: mgr = &ccDynamicGUIButton; break;
-            case kGUILabel: mgr = &ccDynamicGUILabel; break;
-            case kGUIInvWindow: mgr = &ccDynamicGUIInvWindow; break;
-            case kGUISlider: mgr = &ccDynamicGUISlider; break;
-            case kGUITextBox: mgr = &ccDynamicGUITextBox; break;
-            case kGUIListBox: mgr = &ccDynamicGUIListBox; break;
-            default: mgr = nullptr; break;
+            case kGUIButton: manager = &ccDynamicGUIButton; break;
+            case kGUILabel: manager = &ccDynamicGUILabel; break;
+            case kGUIInvWindow: manager = &ccDynamicGUIInvWindow; break;
+            case kGUISlider: manager = &ccDynamicGUISlider; break;
+            case kGUITextBox: manager = &ccDynamicGUITextBox; break;
+            case kGUIListBox: manager = &ccDynamicGUIListBox; break;
+            default: manager = nullptr; break;
             }
 
-            if (!mgr)
+            if (!manager)
                 continue;
-            StaticGUIControlsHandles[i][j] = ccRegisterPersistentObject(control, mgr); // add ref for engine
+            StaticGUIControlsHandles[gui_id][ctrl_id] =
+                ccRegisterPersistentObject(control, manager); // add ref for engine
             if (!control->GetName().IsEmpty())
             {
-                ccAddExternalScriptObjectHandle(control->GetName(), &StaticGUIControlsHandles[i][j]);
+                ccAddExternalScriptObjectHandle(control->GetName(), &StaticGUIControlsHandles[gui_id][ctrl_id]);
             }
         }
     }
@@ -259,26 +260,26 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
     // ensure at least 1 element, we must register buffer
     StaticGUIArray.resize(std::max(1, game.numgui));
 
-    for (int i = 0; i < game.numgui; ++i)
+    for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
     {
-        scrGui[i].id = -1;
+        scrGui[gui_id].id = -1;
     }
 
-    GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
-    for (int i = 0; i < game.numgui; ++i)
+    GUIRefCollection gui_control_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
+    for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
     {
         // link controls to their parent guis
-        HError err = guis[i].RebuildArray(guictrl_refs);
+        HError err = guis[gui_id].RebuildArray(gui_control_refs);
         if (!err)
             return err;
-        scrGui[i].id = i;
+        scrGui[gui_id].id = gui_id;
         // register and save handle
-        IScriptObject *mgr = guis[i].IsTextWindow() ? &ccDynamicTextWindowGUI : &ccDynamicGUI;
-        StaticGUIArray[i] = ccRegisterPersistentObject(&scrGui[i], mgr);
+        IScriptObject *manager = guis[gui_id].IsTextWindow() ? &ccDynamicTextWindowGUI : &ccDynamicGUI;
+        StaticGUIArray[gui_id] = ccRegisterPersistentObject(&scrGui[gui_id], manager);
 
         // export the gui script object
-        if (!guis[i].GetName().IsEmpty())
-            ccAddExternalScriptObjectHandle(guis[i].GetName(), &StaticGUIArray[i]);
+        if (!guis[gui_id].GetName().IsEmpty())
+            ccAddExternalScriptObjectHandle(guis[gui_id].GetName(), &StaticGUIArray[gui_id]);
     }
     // register and export all the GUI's controls at once
     RegisterAllGUIControls(game);
@@ -309,28 +310,28 @@ void InitAndRegisterInvItems(const GameSetupStruct &game)
 // so we only need to fill missing elements.
 static void RegisterMissingGUIControls(GameSetupStruct &game)
 {
-    for (int i = 0; i < game.numgui; ++i)
+    for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
     {
-        auto const &gui = guis[i];
-        for (int j = 0; j < gui.GetControlCount(); j++)
+        auto const &gui = guis[gui_id];
+        for (int ctrl_id = 0; ctrl_id < gui.GetControlCount(); ctrl_id++)
         {
-            GUIControl *control = gui.GetControl(j);
-            IScriptObject *mgr;
-            switch (gui.GetControlType(j))
+            GUIControl *control = gui.GetControl(ctrl_id);
+            IScriptObject *manager;
+            switch (gui.GetControlType(ctrl_id))
             {
-            case kGUIButton: mgr = &ccDynamicGUIButton; break;
-            case kGUILabel: mgr = &ccDynamicGUILabel; break;
-            case kGUIInvWindow: mgr = &ccDynamicGUIInvWindow; break;
-            case kGUISlider: mgr = &ccDynamicGUISlider; break;
-            case kGUITextBox: mgr = &ccDynamicGUITextBox; break;
-            case kGUIListBox: mgr = &ccDynamicGUIListBox; break;
-            default: mgr = nullptr; break;
+            case kGUIButton: manager = &ccDynamicGUIButton; break;
+            case kGUILabel: manager = &ccDynamicGUILabel; break;
+            case kGUIInvWindow: manager = &ccDynamicGUIInvWindow; break;
+            case kGUISlider: manager = &ccDynamicGUISlider; break;
+            case kGUITextBox: manager = &ccDynamicGUITextBox; break;
+            case kGUIListBox: manager = &ccDynamicGUIListBox; break;
+            default: manager = nullptr; break;
             }
 
-            if (mgr)
+            if (manager)
             {
-                StaticGUIControlsHandles[i][j] =
-                    ccRegisterPersistentObjectIfMissing(control, mgr); // add ref for engine
+                StaticGUIControlsHandles[gui_id][ctrl_id] =
+                    ccRegisterPersistentObjectIfMissing(control, manager); // add ref for engine
             }
         }
     }
@@ -468,30 +469,30 @@ void LoadLipsyncData()
     curLipLine = -1;
 
     // a named voice pack has its files, the sync data included, under the pack's name
-    auto speechsync = AssetMgr->OpenAsset(Path::ConcatPaths(get_voice_assetpath(), "syncdata.dat"), "voice");
-    if (!speechsync)
+    auto speech_sync = AssetMgr->OpenAsset(Path::ConcatPaths(get_voice_assetpath(), "syncdata.dat"), "voice");
+    if (!speech_sync)
         return;
     // this game has voice lip sync
-    int lipsync_fmt = speechsync->ReadInt32();
-    if (lipsync_fmt < kLipSyncVersion_321 || lipsync_fmt > kLipSyncVersion_362)
+    int lipsync_format = speech_sync->ReadInt32();
+    if (lipsync_format < kLipSyncVersion_321 || lipsync_format > kLipSyncVersion_362)
     {
-        Debug::Printf(kDbgMsg_Warn, "Unknown speech lip sync format (%d).\nLip sync disabled.", lipsync_fmt);
+        Debug::Printf(kDbgMsg_Warn, "Unknown speech lip sync format (%d).\nLip sync disabled.", lipsync_format);
         return;
     }
 
-    numLipLines = speechsync->ReadInt32();
+    numLipLines = speech_sync->ReadInt32();
     splipsync.resize(numLipLines);
-    for (int ee = 0; ee < numLipLines; ee++)
+    for (int line_id = 0; line_id < numLipLines; line_id++)
     {
-        splipsync[ee].numPhonemes = speechsync->ReadInt16();
-        if (lipsync_fmt < kLipSyncVersion_362)
-            splipsync[ee].filename.ReadCount(speechsync.get(), 14);
+        splipsync[line_id].numPhonemes = speech_sync->ReadInt16();
+        if (lipsync_format < kLipSyncVersion_362)
+            splipsync[line_id].filename.ReadCount(speech_sync.get(), 14);
         else
-            splipsync[ee].filename.Read(speechsync.get());
-        splipsync[ee].endtimeoffs.resize(splipsync[ee].numPhonemes);
-        speechsync->ReadArrayOfInt32(splipsync[ee].endtimeoffs.data(), splipsync[ee].numPhonemes);
-        splipsync[ee].frame.resize(splipsync[ee].numPhonemes);
-        speechsync->ReadArrayOfInt16(splipsync[ee].frame.data(), splipsync[ee].numPhonemes);
+            splipsync[line_id].filename.Read(speech_sync.get());
+        splipsync[line_id].endtimeoffs.resize(splipsync[line_id].numPhonemes);
+        speech_sync->ReadArrayOfInt32(splipsync[line_id].endtimeoffs.data(), splipsync[line_id].numPhonemes);
+        splipsync[line_id].frame.resize(splipsync[line_id].numPhonemes);
+        speech_sync->ReadArrayOfInt16(splipsync[line_id].frame.data(), splipsync[line_id].numPhonemes);
     }
     Debug::Printf(kDbgMsg_Info, "Lipsync data found and loaded");
 }
@@ -552,8 +553,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     guitext = std::move(ents.GuiControls.TextBoxes);
     GUI::Context.GameColorDepth = game.GetColorDepth();
     GUI::Context.Spriteset = &spriteset;
-    GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
-    GUI::RebuildGUI(guis, guictrl_refs);
+    GUIRefCollection gui_control_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
+    GUI::RebuildGUI(guis, gui_control_refs);
     views = std::move(ents.Views);
     play.audioclipProps.resize(game.audioClips.size());
     play.charProps.resize(game.numcharacters);
@@ -627,10 +628,11 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // script symbols too.
     //
 
-    std::vector<ccScript *> sc_modules;
-    for (const auto &us : ents.ScriptModules)
-        sc_modules.push_back(us.get());
-    err = CreateRuntimeScripts(ents.GlobalScript.get(), sc_modules, ents.ScriptModuleNames, ents.DialogScript.get());
+    std::vector<ccScript *> script_modules;
+    for (const auto &script : ents.ScriptModules)
+        script_modules.push_back(script.get());
+    err =
+        CreateRuntimeScripts(ents.GlobalScript.get(), script_modules, ents.ScriptModuleNames, ents.DialogScript.get());
     if (!err)
         return new GameInitError(err, kGameInitErr_ScriptInitFailed);
     err = LinkGlobalScripts();
@@ -682,19 +684,19 @@ void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const Game
     // CLNUP: remove in AGS 4 (all of the below relate to running pre-3.6.3 versions)
 
     // First designate the default behavior settings: games older than 3.6.3 had them off, 3.99+ data has them on
-    std::array<bool, kNum_RBS> rbo = {0};
-    rbo[kRBO_SmoothWalkTransition] = true;
-    rbo[kRBO_ApplyGUITextDirection] = true;
-    rbo[kRBO_ApplyDialogOptionTextAlignment] = true;
-    rbo[kRBO_NoTextPropertyAutoTranslate] = true;
+    std::array<bool, kNum_RBS> behavior_switches = {0};
+    behavior_switches[kRBO_SmoothWalkTransition] = true;
+    behavior_switches[kRBO_ApplyGUITextDirection] = true;
+    behavior_switches[kRBO_ApplyDialogOptionTextAlignment] = true;
+    behavior_switches[kRBO_NoTextPropertyAutoTranslate] = true;
 
     // Now apply overrides from config, *BUT* these only enable disabled options,
     // and never disable enabled ones (because that might break or "downgrade" modern games).
     for (size_t i = 0; i < kNum_RBS; ++i)
     {
-        rbo[i] |= setup.BehaviorOverrides[i];
+        behavior_switches[i] |= setup.BehaviorOverrides[i];
     }
-    play.SetRBSwitches(rbo);
+    play.SetRBSwitches(behavior_switches);
 
     GUI::Options.ApplyTextDirection = play.GetRBSwitches()[kRBO_ApplyGUITextDirection];
 }
