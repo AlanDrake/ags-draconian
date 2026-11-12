@@ -103,7 +103,7 @@ bool IsMainGameLibrary(const String &filename)
 // Scans given directory for game data libraries, returns first found or none.
 // Uses fn_testfile callback to test the file.
 // Tracks files with standard AGS package names:
-// - *.ags is a standart cross-platform file pattern for AGS games,
+// - *.ags is a standard cross-platform file pattern for AGS games,
 // - ac2game.dat is a legacy file name for very old games,
 // - agsgame.dat is a legacy file name used in some non-Windows releases,
 // - *.exe is a MS Win executable; it is included to this case because
@@ -783,11 +783,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
 {
     HError err;
     read_next = true;
-    // Add extensions here checking ext_id, which is an up to 16-chars name, for example:
-    // if (ext_id.CompareNoCase("GUI_NEWPROPS") == 0)
-    // {
-    //     // read new gui properties
-    // }
+    // ext_id is the extension's name, up to 16 chars; each extension is a branch below
     if (ext_id.CompareNoCase("v360_fonts") == 0)
     {
         // NOTE: font number assertion was missed in this extension
@@ -1133,7 +1129,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     //-------------------------------------------------------------------------
     GameSetupStruct::SerializeInfo sinfo;
     game.GameSetupStructBase::ReadFromFile(in, data_ver, sinfo);
-    game.read_savegame_info(in, data_ver); // here we also read GUID in v3.* games
+    game.read_savegame_info(in, data_ver); // the game GUID, save file extension and save folder name
 
     Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename.GetCStr());
     Debug::Printf(kDbgMsg_Info, "Game uid (old format): `%d`", game.uniqueid);
@@ -1205,7 +1201,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
         return HGameFileError::None();
 
     //-------------------------------------------------------------------------
-    // All the extended data, for AGS 3.6.0+.
+    // All the extended data: a list of named extension blocks.
     //-------------------------------------------------------------------------
     GameDataExtReader reader(ents, data_ver, std::move(s_in));
     HError ext_err = reader.Read();
@@ -1235,7 +1231,7 @@ void PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&s_in, Game
     Stream *in = s_in.get(); // for convenience
     GameSetupStruct::SerializeInfo sinfo;
     game.GameSetupStructBase::ReadFromFile(in, data_ver, sinfo);
-    game.read_savegame_info(in, data_ver); // here we also read GUID in v3.* games
+    game.read_savegame_info(in, data_ver); // the game GUID, save file extension and save folder name
     game.gamedataver = data_ver;
     game.compiled_with = compiled_with;
 

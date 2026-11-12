@@ -70,6 +70,7 @@ enum MainGameFileErrorType
     kMGFErr_ExtUnknown,
 };
 
+// Returns the message text for a main game file error code
 String GetMainGameFileErrorText(MainGameFileErrorType err);
 
 typedef TypedCodeError<MainGameFileErrorType, GetMainGameFileErrorText> MainGameFileError;
@@ -79,7 +80,7 @@ typedef std::unique_ptr<Stream> UStream;
 // MainGameSource defines a successfully opened main game file
 struct MainGameSource
 {
-    // Standart main game file names for 3.* and 2.* games respectively
+    // Standard main game file names for 3.* and 2.* games respectively
     static const String DefaultFilename_v3;
     static const String DefaultFilename_v2;
     // Signature of the current game format
@@ -94,7 +95,7 @@ struct MainGameSource
     // Extended engine capabilities required by the game; their primary use
     // currently is to let "alternate" game formats indicate themselves
     std::set<String> Caps;
-    // A ponter to the opened stream
+    // A pointer to the opened stream
     UStream InputStream;
 
     MainGameSource();
@@ -166,7 +167,7 @@ void FixupSaveDirectory(GameSetupStruct &game);
 // Remaps color number from legacy to new format:
 // * palette index in 8-bit game,
 // * encoded 32-bit A8R8G8B8 in 32-bit game.
-// is_bg parameter lets differentate the meaning of certain special numeric values
+// is_bg parameter lets differentiate the meaning of certain special numeric values
 // between "background" and "foreground" color, depending on a context.
 int RemapFromLegacyColourNumber(const GameSetupStruct &game, int color, bool is_bg = false);
 

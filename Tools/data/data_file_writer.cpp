@@ -13,19 +13,19 @@
 //=============================================================================
 #include "data_file_writer.h"
 
-// This implements the current game28.dta layout used by DataFileWriter.cs,
-// including parser words, views and characters, sprite/font data, lip-sync and
-// global messages, plugins and custom properties, audio metadata, palette and
-// game options, GUI appearance data, and the complete extension list.
+// This writes the current game28.dta layout, the one Common/game/main_game_file.cpp
+// reads: parser words, views and characters, sprite/font data, lip-sync, plugins
+// and custom properties, audio metadata, palette and game options, GUI data,
+// and the extension blocks.
 //
-// Deliberate differences from the Editor writer:
+// Differences from the layout the pre-6.7d editor wrote:
 //
 //  * compiled global/dialog scripts and script modules are not embedded. The
 //    legacy HasCCScript flag is clear, and the engine loads them as separate
-//    files (GlobalScript.o, __DialogScripts.o, ScriptModules.lst) since 3.6.1,
+//    files (GlobalScript.o, __DialogScripts.o, ScriptModules.lst),
 //    so v362_interevent2 names no embedded scripts either;
 //  * settings that are absent from Game.agf/GameData (notably the legacy
-//    letterbox-resolution value) still use the modern/default representation.
+//    letterbox-resolution value) are written in their default form.
 
 #include <algorithm>
 #include <cstdio>
@@ -56,13 +56,13 @@ namespace AGS
 namespace DataFileWriter
 {
 
-// The editor's DataFileWriter.TextProperty: resolves escapes in a text shown to the player
+// Resolves escapes in a text shown to the player
 String TextProperty(const String &text)
 {
     return StrUtil::Unescape(text);
 }
 
-// Views by ID, as the editor writes them: slot i holds the view with ID i + 1, or null;
+// Views by ID: slot i holds the view with ID i + 1, or null;
 // the list runs up to the highest view ID
 std::vector<const DataUtil::ViewData *> GetViewsByID(const DataUtil::GameData &game)
 {
@@ -152,8 +152,8 @@ void WritePropertyValues(Stream *out, const std::vector<DataUtil::CustomProperty
     }
 }
 
-// Read by InteractionEvents::CreateFromStream_v361() in
-// Common/game/interactions.cpp, called from read_interaction_scripts().
+// Read by ScriptEventHandlers::Read_v361() in Common/game/scripteventtable.cpp, called from
+// GameSetupStruct::read_interaction_scripts(): a handler count, here always 0.
 void WriteEmptyInteractionEvents(Stream *out)
 {
     out->WriteInt32(0);
@@ -305,7 +305,7 @@ int GetGuiPopupStyle(DataUtil::GUIPopupStyle style)
 
 // The only writer of the GUI data: the GUI classes in Common only read it. A writer
 // there would pull their runtime implementations into libtools and dependencies,
-// new GUIObjects cannot initialize serialized event-handler slots through the
+// new GUI controls cannot initialize serialized event-handler slots through the
 // public API, and v363_guictrls2 has no writer there either.
 // Keep this until Common is refactored to include a data-only GUI writer.
 // Read by GUIMain::ReadFromFile() in Common/gui/guimain.cpp, called from
@@ -357,7 +357,7 @@ int GetGuiControlFlags(const DataUtil::GUIControlData &control)
     return flags;
 }
 
-// Read by GUIObject::ReadFromFile() in Common/gui/guiobject.cpp as the common
+// Read by GUIControl::ReadFromFile() in Common/gui/guicontrol.cpp as the common
 // prefix of each concrete GUI control's ReadFromFile().
 void WriteGuiControl(Stream *out, const DataUtil::GUIControlData &control, int extra_flags)
 {
@@ -803,7 +803,9 @@ void WriteLipSyncBlock(const DataUtil::GameData &game, Stream *out)
                                   50, out);
 }
 
-// Read by GameSetupStruct::read_messages() in Common/ac/gamesetupstruct.cpp.
+// The legacy global messages. ReadGameData() reads them (GameSetupStruct::skip_messages()) only for data
+// versions before kGameVersion_400_33, and this writer targets kGameVersion_Current, which has no
+// message flags in the header: a non-empty message here would not be read back.
 void WriteGlobalMessagesBlock(const DataUtil::GameData &game, Stream *out)
 {
     for (const auto &message : game.GlobalMessages)
@@ -955,8 +957,8 @@ void WriteRoomNamesBlock(const DataUtil::GameData &game, Stream *out)
         WriteRoomName(out, room.first, room.second);
 }
 
-// Read by InteractionEvents::CreateFromStream_v362() in
-// Common/game/interactions.cpp, called by ReadInteractionScriptModules().
+// Read by ScriptEventHandlers::Read() in Common/game/scripteventtable.cpp, called through the
+// `interactions` member of characters and inventory items by ReadInteractionScriptModules().
 void WriteInteractionEvents(Stream *out, const String &module, const std::vector<String> &events)
 {
     out->WriteInt32(kEventsTable_v362);
@@ -966,7 +968,7 @@ void WriteInteractionEvents(Stream *out, const String &module, const std::vector
         StrUtil::WriteString(event, out);
 }
 
-// Read by GUIObject::ReadFromFile_Ext363() in Common/gui/guiobject.cpp as the
+// Read by GUIControl::ReadFromFile_Ext363() in Common/gui/guicontrol.cpp as the
 // common prefix of each concrete GUI control's extension reader.
 void WriteGuiControlLooks363(Stream *out, const DataUtil::GUIControlData &control)
 {
@@ -1039,7 +1041,7 @@ void WriteExt361ObjNames(Stream *out, const DataUtil::GameData &game)
     }
 }
 
-// An object's interaction table as the editor writes it (SerializeInteractionScripts): one slot per
+// An object's interaction table: one slot per
 // event index of the interaction schema, which has an event for each cursor with CreateEvent, at
 // the cursor's ID; empty if the object has no handlers
 static std::vector<String> MakeInteractionTable(const DataUtil::GameData &game, const std::vector<String> &events)
@@ -1253,7 +1255,7 @@ void WriteExt363Dialogs(Stream *out, const DataUtil::GameData &game)
     }
 }
 
-// The AGS 4 extensions, written as DataFileWriter.cs writes them
+// The AGS 4 extensions
 
 // Reserved space after the blend mode of characters, GUIs and GUI controls:
 // colour options (flags, tint RGB, light level) and transform options
@@ -1356,7 +1358,7 @@ struct EventHandlers
     std::vector<String> Functions;
 };
 
-// The editor's SerializeEventsTables: an event "schema" (the event names), then each object's
+// An events table: an event "schema" (the event names), then each object's
 // script module and handlers in the schema's order
 static void WriteEventsTables(Stream *out, const std::vector<const char *> &events,
                               const std::vector<const EventHandlers *> &objects)
