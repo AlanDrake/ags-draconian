@@ -19,6 +19,8 @@
 #define MAXLISTITEM 300
 #define ARROWWIDTH  8
 
+// A list box of the legacy built-in dialogs: up to MAXLISTITEM items in rows of textheight pixels,
+// with a scroll arrow pair of ARROWWIDTH pixels at the right. Handles the CLB_* messages and CTB_KEYPRESS.
 struct MyListBox : public NewControl
 {
     int items, topitem, numonscreen, selected;
@@ -26,11 +28,13 @@ struct MyListBox : public NewControl
     int textheight; // TODO: use font instead
 
     MyListBox(int left, int top, int width, int height, int textheight);
+    // Frees all item texts and empties the list.
     void clearlist();
     ~MyListBox() override;
 
     void draw(AGS::Common::Bitmap *ds) override;
     int pressedon(int mx, int my) override;
+    // Appends a copy of the text; quits when MAXLISTITEM items are already there.
     void additem(char *text);
     int processmessage(int mcode, int wParam, intptr_t ipParam) override;
 };

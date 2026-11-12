@@ -16,11 +16,14 @@
 
 #include "gui/newcontrol.h"
 
+// A static text label of the legacy built-in dialogs (see cscidialog.cpp): the text is broken into lines to
+// the control's width and drawn in the dialog font.
 struct MyLabel : public NewControl
 {
     char text[150];
     int textheight; // TODO: use font instead
 
+    // The height of the control is the text height: it is not recomputed for more than one line.
     MyLabel(int left, int top, int width, const char *label, int textheight);
 
     void draw(AGS::Common::Bitmap *ds) override;

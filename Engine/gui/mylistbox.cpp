@@ -37,7 +37,7 @@ MyListBox::MyListBox(int left, int top, int width, int height, int textheight_)
     wid = width;
     hit = height;
     textheight = textheight_;
-    hit -= (hit - 4) % textheight; // resize to multiple of text height
+    hit -= (hit - 4) % textheight; // so that the height less the 4 border pixels is a whole number of rows
     numonscreen = (hit - 4) / textheight;
     items = 0;
     topitem = 0;

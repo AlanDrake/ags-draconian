@@ -33,14 +33,14 @@ extern int pushbuttonlightcolor;
 extern int cbuttfont;
 
 MyPushButton::MyPushButton(int left, int top, int width, int height, const char *caption)
-{ //wlevel=2;
+{
     x = left;
     y = top;
     wid = width;
-    hit = height + 1; //hit=hi;
+    hit = height + 1;
     state = 0;
     snprintf(text, sizeof(text), "%s", caption);
-};
+}
 
 void MyPushButton::draw(Bitmap *ds)
 {

@@ -17,6 +17,8 @@
 #include "gui/newcontrol.h"
 
 #define TEXTBOX_MAXLEN 49
+// A single-line text box of the legacy built-in dialogs: a framed field holding up to TEXTBOX_MAXLEN characters
+// and a trailing "_" as the cursor. Handles CTB_SETTEXT, CTB_GETTEXT and CTB_KEYPRESS.
 struct MyTextBox : public NewControl
 {
     char text[TEXTBOX_MAXLEN + 1];

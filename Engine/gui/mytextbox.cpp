@@ -69,7 +69,7 @@ int MyTextBox::processmessage(int mcode, int wParam, intptr_t ipParam)
         needredraw = 1;
     }
     else if (mcode == CTB_GETTEXT)
-        strcpy((char *)ipParam, text); // FIXME! dangerous
+        strcpy((char *)ipParam, text); // TODO: the caller's buffer size is not known, so this can overflow it
     else if (mcode == CTB_KEYPRESS)
     {
         // NOTE: this deprecated control does not support UTF-8
@@ -85,7 +85,7 @@ int MyTextBox::processmessage(int mcode, int wParam, intptr_t ipParam)
         }
 
         if (len >= TEXTBOX_MAXLEN - 1)
-            return 0; // buffer full;
+            return 0; // buffer full
         if (uchar == 0)
             return 0; // not a textual event
         if ((uchar >= 128) && (!font_supports_extended_characters(cbuttfont)))
