@@ -74,7 +74,7 @@ Recorded 2026-10-31.
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
-0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 6.7d, 7.1 (but 7.1n), U.1, U.2, U.4, U.5, U.9 (LOG.md); 3.2 with 3.2c
+0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 6.7d, 7.1 (but 7.1n) (LOG.md); 3.2 with 3.2c
 (CI-confirmed 2026-11-08). The fork does not wait for upstream review (the user, 2026-11-09): a fork-only
 move that would conflict with an open offer is preceded by a tag of the pre-move tree for `port.py`.
 
@@ -82,13 +82,14 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 |---|---|---|---|
 | 1 | **4.1 + 4.5 + 3.6 per file:** parameter and local names, comments, comment debris, `Engine/ac/` most-churned files first; one `[rename]` commit per file checked by `compare_objects.py`, then a `[comment]` commit. Done: `character.cpp/.h`, `object.cpp/.h`, `guicontrol.cpp/.h`, `drawingsurface.cpp/.h`, `button.cpp/.h`, `characterinfo_engine.cpp` (2026-11-09), `viewport_script`, `dynamicsprite`, `file`, `slider`, `display`, `gui`, `draw`, `characterextras`, `global_game`, `walkablearea`, `global_display` (2026-11-11), `inventoryitem`, `gui/cscidialog`, `joystick`, `overlay`, `global_api`, `savegame_components`, `game_run`, `global_audio` (2026-11-12). Next: the engine's tail in one or two sets (`gui/my*.cpp`, `listbox`, `speech`, `invwindow`, `plugin/agsplugin.cpp`), then `Common` (`image_pcx`, `lzw`, `main_game_file`) and `Tools/data/data_file_writer.cpp`; the compiler's `eres`/`tqs` (669) want their own plan (LOG.md); independent sets run as parallel subagents with `.compare/briefs/brief-41-fileset.md`, one worktree each (googletest submodule initialised; WSL `linux` and `msbuild` once on the combined branch). camelCase parameters go to `snake_case` in the same pass; no brace commit since `266c8dfe2` | Phase 5 needs phase 4; mechanical and verifiable | Sonnet 5.5, `medium`, one file set per session |
 | 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` with upstream's draft names where they overlap | Files move once (4.4 rides along) | Fable 5.1, `high` for the move map, subagents for the moves |
-| 3 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); U.3 (#3186–#3190, #3185, #3191), U.6, U.7 (#3193) under review | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
+| 3 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3187–#3189), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
 Open items from finished tasks (details in LOG.md "Open items"):
 - 0.4: the CodeQL setting, `D3DCOMPILER_47` on Windows 7, the macOS 10.9 deployment target.
 - 1.4: `agfreader` crashes on a project without `<Settings>`; `StrUtil::Unescape` reads past the end.
 - 1.2: 47 `DataUtil::GameSettings` fields have no initializer, so an absent `Game.agf` element leaves
-  garbage instead of `Settings.cs`'s default (`{}` is not the fix); #3147's test has a wrong `EXPECT_FALSE`.
+  garbage instead of `Settings.cs`'s default (`{}` is not the fix); the open PR #3187 still has the wrong
+  `EXPECT_FALSE(s.PixelPerfect)` in `AGFReaderBlocks.GameSettingsDefaults`.
 - 7.1f: parity measured on one test project; 8-bit games and old indexed interactions unexercised.
 - 3.1: unchecked `GetDiskFreeSpaceExW` result in `AGSWin32::GetDiskFreeSpaceMB`.
 - 1.5a: the 4-bit pixel write in `Common/gfx/bitmapdata.cpp` (wrong mask and shift, untested).
@@ -155,9 +156,9 @@ Ignored until the refactor is done: the iOS port (7.3, 2026-11-09).
 - [x] **1.1 Own the auto-test game:** fork `ags-test-games` with tests for fork-only features
   (2026-11-01; since 1.7 built from source).
 - [x] **1.2 Contract guard tests**, one per contract row C1–C5 (2026-11-04; LOG.md). Left: sending
-  `ags4-agfreader-tests` (#3147) and `ags4-save-roundtrip` (#2814) upstream.
+  `ags4-save-roundtrip` (#2814) upstream (#3147's tests went into #3187).
 - [x] **1.3 Engine unit tests** (2026-11-05): 12 → 162 engine test cases, seven engine bugs fixed
-  (LOG.md; upstream: U.7).
+  (LOG.md).
 - [x] **1.4 Game corpus regression:** `ci/corpus/run.py` builds a private game and runs every room
   (2026-11-02). Game paths come from arguments or a git-ignored file under `.compare/`, never the
   repo; the script works on a copy.
@@ -262,17 +263,9 @@ optionally a `[comments]` commit.
   (`CharacterInfo*`), `obj` (`ScriptObject*`; `room_obj` for a `RoomObject` beside it), `gui` (`GUIMain*`), `btn` (`GUIButton*`), `dst`
   (destination bitmaps), `err` (error results). IDE or clang-based renaming, never search-and-replace.
   *Done when:* cryptic names = 0, except the globals of 5.1.
-  *Progress:* `character.cpp/.h` done with 4.5 and 3.6 (2026-11-09, LOG.md "4.1 + 4.5 + 3.6 per file": 1,324
-  names to 0, camelCase parameters too; a turn-order bug found and fixed), `object.cpp/.h` (2026-11-09, 359 to 0),
-  `guicontrol.cpp/.h` (2026-11-09, 249 to 0), `drawingsurface.cpp/.h` (2026-11-09, 196 to 0),
-  `button.cpp/.h` (2026-11-09, 195 to 0), `characterinfo_engine.cpp` (2026-11-09, 186 to 0). A naming review of these six sets (2026-11-09) made a playing
-  `SoundClip` a `playback`, indices `<thing>_id`, and put `charid`, `objid`, `invi`, `tehobj`, `newval`, `newwid`,
-  `newhit` on the watchlist (2,641 now, the seven new names 144 of them). `viewport_script.cpp` (138 to 0),
-  `dynamicsprite.cpp/.h` (91 to 0), `file.cpp/.h` (86 to 0, with `update.cpp`'s `followingAsSheep` and `chi`)
-  (2026-11-11, three subagents in parallel; 2,354 now, 714 without the 5.1 globals). `slider.cpp/.h` (62),
-  `display.cpp/.h` (68), `gui.cpp/.h` (66), `draw.cpp/.h` (62) to 0 (2026-11-11, four in parallel; 2,118 now, 456
-  without the 5.1 globals). Next: `characterextras.cpp/.h` 52, `global_game.cpp` 37, `walkablearea.cpp` 35,
-  `global_display.cpp` 30.
+  *Progress (2026-11-12):* 1,826 names, 917 without the 5.1 globals (the watchlist grew by seven names on
+  2026-11-09); 24 file sets done, each in LOG.md "4.1 + 4.5 + 3.6 per file" with the naming conventions it set;
+  the next sets are in "Next up".
 - [ ] **4.2 Function names.** Engine free functions: `snake_case` 949, `PascalCase` 1,094,
   `Type_Method` 3,119 (script API). Rename snake_case to PascalCase as phase 5 restructures their
   files, not before (many will be deleted or become methods).
@@ -559,35 +552,23 @@ Work upstream (`ags4`) can use goes back as PRs on branches off `upstream/ags4`,
 and without fork-only features, built in the worktree `E:\Projects\ags\ags4-upstream` with
 `.compare/helpers/upstream_build.py` into `.compare/up-build`, recorded in `docs/UPSTREAM.md`.
 
-- [x] **U.1 `ags4-bugfixes`** merged as #3181 (2026-11-02).
-- [x] **U.2 `ags4-buildtools`** (#3182, 2026-11-03): the 7.1 work in upstream's formats, parity with
-  the upstream editor; superseded by U.3's five branches.
-- [ ] **U.3 Pieces for #2316.** Split #3182 along two of #2316's open items (4.0 room compiler,
-  PO translation compiler) into PRs of reviewable size. The PO compiler goes upstream as the new
-  tool `po2tra` (decided 2026-11-03); upstream's `trac` keeps compiling TRS and is removed only if
-  the maintainers agree. `agsbuild`'s diagnostics move onto the Common log system (`debug::out`,
-  #2530, ivan-mogilko's preference), so `--json` is a log sink. Follow-ups for the same milestone:
-  `--version` (#3068), `agscc -I` (#3070).
+- [ ] **U.3 Pieces for #2316**: the 7.1 tools as PRs of reviewable size, along #2316's open items (4.0 room
+  compiler, PO translation compiler). Upstream's `trac` stays unless the maintainers agree to remove it.
+  `agsbuild`'s diagnostics move onto the Common log system (`debug::out`, #2530, ivan-mogilko's preference), so
+  `--json` is a log sink. Follow-ups for the same milestone: `--version` (#3068), `agscc -I` (#3070).
   *Done when:* the pieces have no open review comments about structure.
-  *Status:* opened as #3186–#3190 (2026-11-03), awaiting review; `--json`, cancel and the stage split
-  wait for #2530 (LOG.md).
+  *Status:* #3187–#3189 open, review round 3 answered and force-pushed 2026-11-12 (`docs/UPSTREAM.md`);
+  `--json`, cancel and the stage split wait for #2530.
 - [x] **U.4 Agent docs upstream** (PR #3185, base `master`). Review changes are made in the
   worktree first and carried over here; the fork's copy leaves out AGS 3 (`master`, 3.x).
-- [x] **U.5 Save fix** (PR #3191, 2026-11-04, `ags4-fixcharinvsave`): 4.0 saves before 4.0.0.28
-  load again (LOG.md 1.2, U.5).
 - [ ] **U.6 `AGS.Types` property grid out (#1092, part 1).** 6.0 step 1 on `upstream/ags4`, in C# 7.3
   / .NET Framework 4.7 as upstream builds: string-form `[Editor]`/`[PropertyTab]` attributes, the UI
   editor classes and `PropertyTabEvents` into `AGS.Editor`, direct calls instead of the static GUI
   delegates, unused usings removed, the attribute-resolution guard test. No behaviour change in the
   editor and no plugin API change, which is what ericoporto asked for in #1092 and ivan-mogilko
   confirmed in #3177. Step 2 (the plugin-facing interfaces) is posted on #1092 as a design question,
-  not as a PR. *Decided 2026-11-04 (EDITOR-SPLIT.md §5).* *Status:* v2 force-pushed 2026-11-04
-  (editors in `AGS.Controls`, static delegates kept), awaiting review (LOG.md).
-- [ ] **U.7 The 1.3 engine fixes** (PR #3193, branch `ags4-fixes-1.3`, 2026-11-05): the seven bugs
-  the fork's engine tests found, one commit each, two tests ported into `common_test`; the five
-  engine-side tests stay in the fork until upstream has a full-engine test target (LOG.md U.7).
-- [x] **U.9 Sprite import overrun** merged as #3196 into `master` (2026-11-07); `NDEBUG` for upstream's
-  tool projects dropped (LOG.md U.9).
+  not as a PR. *Decided 2026-11-04 (EDITOR-SPLIT.md §5).* *Status:* #3192 open (editors in
+  `AGS.Controls`, static delegates kept).
 
 ---
 
