@@ -657,6 +657,7 @@ if(AGS_TESTS)
     # engine_test replaces some engine symbols with stubs, so they cannot be linked there
     add_executable(
         engine_full_test
+        test/character_turn_test.cpp
         test/gui_layout_test.cpp
         test/managed_pool_test.cpp
         test/overlay_test.cpp

@@ -31,6 +31,9 @@
     <ClCompile Include="..\..\Compiler\script\cs_scanner.cpp">
       <Filter>Compiler</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\test\character_turn_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Engine\test\gui_layout_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
