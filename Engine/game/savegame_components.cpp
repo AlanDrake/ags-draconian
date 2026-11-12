@@ -1946,7 +1946,7 @@ HSaveError ReadRTTI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserve
         for (uint32_t off_index = 0; off_index < num_offs; ++off_index)
         {
             uint32_t off = in->ReadInt32();
-            rtti_builder.AddField(i, "", off, 0u, RTTI::kField_ManagedPtr | RTTI::kType_Generated, 0u);
+            rtti_builder.AddField(i, "", off, 0u, RTTI::kField_ManagedPtr | RTTI::kField_Generated, 0u);
         }
     }
 
