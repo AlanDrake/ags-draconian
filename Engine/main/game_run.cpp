@@ -92,7 +92,6 @@ extern int cur_mode;
 extern RoomObject *objs;
 extern RoomStatus *croom;
 extern SpriteCache spriteset;
-extern int cur_cursor;
 extern char check_dynamic_sprites_at_exit;
 
 // Checks if wait mode should continue until condition is met
