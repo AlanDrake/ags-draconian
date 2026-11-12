@@ -311,7 +311,7 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     }
     else
     {
-        pivot = Point(0.5f, 0.5f); // default: center
+        pivot = Pointf(0.5f, 0.5f); // default: center
         pivot_offset = Point();
     }
 
