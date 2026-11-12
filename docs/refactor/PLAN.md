@@ -95,7 +95,8 @@ Open items from finished tasks (details in LOG.md "Open items"):
 - The editor writes the last-opened room's colours into the game palette (2026-11-12, LOG.md 7.1f): `RoomsComponent.
   CopyGamePalette` copies the `PaletteEntry` references (a class), so `CopyToAGSBackgroundPalette` sets the game's
   Background slots, and a save puts them in `Game.agf`; an 8-bit game's `game28.dta` then depends on the room opened
-  last (by the reference editor at build time too). Upstream `ags4` has the same line. Fix: copy the entries.
+  last (by the reference editor at build time too). Upstream `ags4` has the same line. Fix: copy the entries. Fixed in
+  the fork only, for build parity (the user, 2026-11-12: low priority upstream, no effect on a real game).
 - 3.1: unchecked `GetDiskFreeSpaceExW` result in `AGSWin32::GetDiskFreeSpaceMB`.
 - 1.5a: the 4-bit pixel write in `Common/gfx/bitmapdata.cpp` (wrong mask and shift, untested).
 - 3.4-1: constants left behind (`GUI::DataVersion`, always-on behaviour switches, three dialog option
