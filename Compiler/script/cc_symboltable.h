@@ -15,6 +15,7 @@
 
 #include <bitset>
 #include <climits>
+#include <initializer_list>
 #include <map>
 #include <memory>
 #include <string>
@@ -101,6 +102,20 @@ public:
     // This ugly, ugly piece of C++ clumsiness is needed so that you can assign through the [] operator ))-:
     inline std::bitset<16u>::reference operator[](TypeQualifier f) { return _flags[static_cast<size_t>(f)]; }
     inline bool operator[](TypeQualifier f) const { return _flags[static_cast<size_t>(f)]; }
+
+    // Tells if the set holds one of candidates; found gets the first of them that it holds
+    inline bool HasAnyOf(std::initializer_list<TypeQualifier> candidates, TypeQualifier &found) const
+    {
+        for (TypeQualifier tq : candidates)
+        {
+            if ((*this)[tq])
+            {
+                found = tq;
+                return true;
+            }
+        }
+        return false;
+    }
 
     inline bool operator==(TypeQualifierSet const &other) const { return this->_flags == other._flags; }
     inline bool operator!=(TypeQualifierSet const &other) const { return !(*this == other); }

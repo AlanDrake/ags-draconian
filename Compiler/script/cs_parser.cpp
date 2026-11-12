@@ -1405,7 +1405,7 @@ void AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet qualifiers, Symbol struc
     }
 }
 
-void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet qualifiers, Symbol struct_of_func,
+void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet qualifiers, Symbol /*struct_of_func*/,
                                                             Symbol name_of_func, bool body_follows)
 {
     if (PP::kMain == _pp)
@@ -5206,16 +5206,14 @@ void AGS::Parser::Parse_CheckTQ(TypeQualifierSet qualifiers, bool in_func_body, 
     if (in_struct_decl)
     {
         TypeQualifier error_tq;
-        if (qualifiers[(error_tq = TQ::kAutoptr)] || qualifiers[(error_tq = TQ::kBuiltin)] ||
-            qualifiers[(error_tq = TQ::kInternalstring)])
+        if (qualifiers.HasAnyOf({TQ::kAutoptr, TQ::kBuiltin, TQ::kInternalstring}, error_tq))
             UserError("Cannot use '%s' within a struct declaration",
                       _sym.GetName(qualifiers.TQ2Symbol(error_tq)).c_str());
     }
     else // !in_struct_decl
     {
         TypeQualifier error_tq;
-        if (qualifiers[(error_tq = TQ::kProtected)] || qualifiers[(error_tq = TQ::kStatic)] ||
-            qualifiers[(error_tq = TQ::kWriteprotected)])
+        if (qualifiers.HasAnyOf({TQ::kProtected, TQ::kStatic, TQ::kWriteprotected}, error_tq))
         {
             UserError("Can only use '%s' within a struct declaration",
                       _sym.GetName(qualifiers.TQ2Symbol(error_tq)).c_str());
@@ -5225,10 +5223,9 @@ void AGS::Parser::Parse_CheckTQ(TypeQualifierSet qualifiers, bool in_func_body, 
     if (in_func_body)
     {
         TypeQualifier error_tq;
-        if (qualifiers[(error_tq = TQ::kAutoptr)] || qualifiers[(error_tq = TQ::kBuiltin)] ||
-            qualifiers[(error_tq = TQ::kImport)] || qualifiers[(error_tq = TQ::kInternalstring)] ||
-            qualifiers[(error_tq = TQ::kManaged)] || qualifiers[(error_tq = TQ::kManagedBase)] ||
-            qualifiers[(error_tq = TQ::kStatic)])
+        if (qualifiers.HasAnyOf({TQ::kAutoptr, TQ::kBuiltin, TQ::kImport, TQ::kInternalstring, TQ::kManaged,
+                                 TQ::kManagedBase, TQ::kStatic},
+                                error_tq))
         {
             UserError("Cannot use '%s' within a function body", _sym.GetName(qualifiers.TQ2Symbol(error_tq)).c_str());
         }
@@ -5502,8 +5499,7 @@ void AGS::Parser::ParseStruct_MasterAttribute2SymbolTable(TypeQualifierSet quali
 void AGS::Parser::ParseStruct_Attribute(TypeQualifierSet qualifiers, Symbol const name_of_struct)
 {
     TypeQualifier error_tq;
-    if (qualifiers[error_tq = TQ::kManaged] || qualifiers[error_tq = TQ::kProtected] ||
-        qualifiers[error_tq = TQ::kWriteprotected])
+    if (qualifiers.HasAnyOf({TQ::kManaged, TQ::kProtected, TQ::kWriteprotected}, error_tq))
         UserError("Cannot use '%s' in front of 'attribute'", _sym.GetName(qualifiers.TQ2Symbol(error_tq)).c_str());
 
     bool const is_const_vartype = kKW_Const == _src.PeekNext();
@@ -6079,10 +6075,9 @@ void AGS::Parser::ParseAttribute(TypeQualifierSet qualifiers, Symbol const name_
         UserError("Cannot define an attribute within a function body");
 
     TypeQualifier error_tq;
-    if (qualifiers[error_tq = TQ::kAutoptr] || qualifiers[error_tq = TQ::kBuiltin] ||
-        qualifiers[error_tq = TQ::kInternalstring] || qualifiers[error_tq = TQ::kManaged] ||
-        qualifiers[error_tq = TQ::kManagedBase] || qualifiers[error_tq = TQ::kProtected] ||
-        qualifiers[error_tq = TQ::kWriteprotected])
+    if (qualifiers.HasAnyOf({TQ::kAutoptr, TQ::kBuiltin, TQ::kInternalstring, TQ::kManaged, TQ::kManagedBase,
+                             TQ::kProtected, TQ::kWriteprotected},
+                            error_tq))
         UserError("Cannot use '%s' in front of 'attribute'", _sym.GetName(qualifiers.TQ2Symbol(error_tq)).c_str());
     if (qualifiers[TQ::kStatic])
         UserError("Can only declare 'static attribute' within a 'struct' declaration (use extender syntax 'attribute "
