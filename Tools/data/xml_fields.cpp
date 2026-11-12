@@ -236,6 +236,11 @@ HError UnknownElement(const tinyxml2::XMLElement *parent, const tinyxml2::XMLEle
                                         elem->Name(), parent->Name(), elem->GetLineNum()));
 }
 
+HError NoElement()
+{
+    return new Error("Cannot read an element that is not in the project");
+}
+
 } // namespace XmlDetail
 
 } // namespace AGF

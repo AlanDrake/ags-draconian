@@ -148,6 +148,7 @@ struct MemberPtr<V C::*>
 const char *ElementText(const tinyxml2::XMLElement *elem);
 Common::HError InvalidValue(const tinyxml2::XMLElement *elem);
 Common::HError UnknownElement(const tinyxml2::XMLElement *parent, const tinyxml2::XMLElement *elem);
+Common::HError NoElement();
 } // namespace XmlDetail
 
 // Row reader that parses the element's text into a member, with the parser for its type
@@ -197,6 +198,8 @@ Common::HError ReadFields(const tinyxml2::XMLElement *elem, T &obj, const XmlFie
                           UnknownElements unknown = UnknownElements::Fail,
                           bool (*known_elsewhere)(const char *element) = nullptr)
 {
+    if (!elem)
+        return XmlDetail::NoElement();
     for (const tinyxml2::XMLElement *child = elem->FirstChildElement(); child; child = child->NextSiblingElement())
     {
         const XmlField<T> *field = nullptr;

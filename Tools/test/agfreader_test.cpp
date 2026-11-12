@@ -38,7 +38,7 @@ static Common::HError OpenAgfWithRoot(const char *root_attributes)
     {
         std::ofstream f(path);
         f << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<AGSEditorDocument " << root_attributes
-          << ">\n  <Game />\n</AGSEditorDocument>\n";
+          << ">\n  <Game><Settings /></Game>\n</AGSEditorDocument>\n";
     }
     AGF::AGFReader reader;
     Common::HError err = reader.Open(path.c_str());
@@ -61,6 +61,34 @@ static std::string VersionAttribute(const char *version, int number = 3, int ste
     char attribute[64];
     snprintf(attribute, sizeof(attribute), "Version=\"%d.%d.%d.%d\"", v[0], v[1], v[2], v[3]);
     return attribute;
+}
+
+// A Game.agf without <Settings>: reported by Open, not a crash in the readers of the settings
+TEST(AGFReader, OpenReportsMissingSettings)
+{
+    const std::string path =
+        std::string("agfreader_test_") + ::testing::UnitTest::GetInstance()->current_test_info()->name() + ".agf";
+    {
+        std::ofstream f(path);
+        f << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<AGSEditorDocument "
+          << VersionAttribute(AGF::LATEST_XML_VERSION) << ">\n  <Game />\n</AGSEditorDocument>\n";
+    }
+    AGF::AGFReader reader;
+    const Common::HError err = reader.Open(path.c_str());
+    ASSERT_FALSE(err);
+    EXPECT_NE(nullptr, strstr(err->FullMessage().GetCStr(), "<Settings>")) << err->FullMessage().GetCStr();
+
+    // The readers given the missing element leave the defaults
+    tinyxml2::XMLDocument doc;
+    ASSERT_EQ(tinyxml2::XML_SUCCESS, doc.Parse("<Game />"));
+    DataUtil::GameSettings settings;
+    AGF::ReadGameSettings(settings, doc.RootElement());
+    std::vector<Common::String> dirs;
+    AGF::ReadCustomDataDirectories(dirs, doc.RootElement());
+    EXPECT_TRUE(dirs.empty());
+
+    reader.Close();
+    std::remove(path.c_str());
 }
 
 TEST(AGFReader, OpenAcceptsCurrentProjectFormat)

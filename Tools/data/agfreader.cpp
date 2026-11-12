@@ -166,6 +166,9 @@ HError AGFReader::Open(const char *filename)
     DocElem game = _doc->RootElement()->FirstChildElement("Game");
     if (!game)
         return new Error("<Game> element not found");
+    // The tables read it as a whole; every editor writes it, even with all the defaults
+    if (!game->FirstChildElement("Settings"))
+        return new Error("Game.agf has no <Settings> element");
     _gameRoot = game;
     return HError::None();
 }
