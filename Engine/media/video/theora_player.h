@@ -47,7 +47,7 @@ private:
     // Retrieves next video frame, implementation-specific
     bool NextVideoFrame(Common::Bitmap *dst, float &ts) override;
     // Retrieves next audio frame, implementation-specific
-    bool NextAudioFrame(SoundBuffer &abuf) override;
+    bool NextAudioFrame(SoundBuffer &audio_buf) override;
     // Checks the next video frame in stream and returns its timestamp.
     float PeekVideoFrame() override;
     // Drop next video frame from stream.

@@ -844,10 +844,10 @@ void quit_with_script_error(const String &fn_name)
 struct TempEip
 {
     int oldval;
-    TempEip(int newval)
+    TempEip(int new_value)
     {
         oldval = get_our_eip();
-        set_our_eip(newval);
+        set_our_eip(new_value);
     }
     ~TempEip() { set_our_eip(oldval); }
 };

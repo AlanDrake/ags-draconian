@@ -206,7 +206,7 @@ bool TheoraPlayer::NextVideoFrame(Bitmap *dst, float &ts)
     return true;
 }
 
-bool TheoraPlayer::NextAudioFrame(SoundBuffer &abuf)
+bool TheoraPlayer::NextAudioFrame(SoundBuffer &audio_buf)
 {
     assert(_apegStream);
     assert((_apegStream->flags & APEG_HAS_AUDIO) != 0);
@@ -222,8 +222,8 @@ bool TheoraPlayer::NextAudioFrame(SoundBuffer &abuf)
     if (ret == APEG_ERROR || ret == APEG_EOF)
         return false;
 
-    abuf.AssignData(buf, count, -1.f,
-                    SoundHelper::MillisecondsFromBytes(count, _audioFormat, _audioChannels, _audioFreq));
+    audio_buf.AssignData(buf, count, -1.f,
+                         SoundHelper::MillisecondsFromBytes(count, _audioFormat, _audioChannels, _audioFreq));
     return true;
 }
 

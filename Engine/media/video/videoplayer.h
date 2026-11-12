@@ -165,7 +165,7 @@ protected:
     // Retrieves next audio frame, implementation-specific
     // TODO: change return type to a proper allocated buffer
     // when we support a proper audio queue here.
-    virtual bool NextAudioFrame(SoundBuffer &abuf) { return false; };
+    virtual bool NextAudioFrame(SoundBuffer &audio_buf) { return false; };
     // Checks the next video frame in stream and returns its timestamp;
     // returns -1 if no more frames are available.
     // The implementation is required to do as less job as possible,

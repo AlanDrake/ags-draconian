@@ -59,9 +59,9 @@ ScriptCamera *Camera_Unserialize(int handle, Stream *in, size_t /*data_sz*/)
     const int id = in->ReadInt32();
     if (id >= 0)
     {
-        auto scam = play.RegisterRoomCamera(id, handle);
-        if (scam)
-            return scam;
+        auto script_cam = play.RegisterRoomCamera(id, handle);
+        if (script_cam)
+            return script_cam;
     }
     return new ScriptCamera(-1); // make invalid reference
 }
