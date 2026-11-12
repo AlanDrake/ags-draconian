@@ -77,8 +77,10 @@ Entry points, in reading order:
   preprocessor are gone, so `docs/context/repository.md`'s `DataFileWriter.cs` steps do not apply: a
   project property the engine needs goes to `Tools/data/agfreader.cpp` and `data_file_writer.cpp` only.
   `Script/compare_builds.py` proves byte parity between the Editor's build and a plain `agsbuild` run
-  (CI's `Windows Build Parity` job), and with `--tools-editor` against the reference editor from the
-  tag `pre-6.7d`, the last one with the C# build.
+  (CI's `Windows Build Parity` job), and against the reference editor from the tag `pre-6.7d`, the last
+  one with the C# build: `--editor <reference> --api-header pre-6.7d`, since an editor compiles with its
+  own build's `agsdefns.sh` and a later header changes the compiled scripts (`--tools-editor` cannot be
+  compared with the reference any more for that reason).
 - Windows 7+ only; PSP is gone (3.1; `eOS_PSP` and the `"psp"` config name stay for the script ABI
   and engine config).
 - Game data from 3.99 on (D1; 3.4-1, 2026-11-07; upstream loads 3.6.0.21+): `kGameVersion_LowSupported =

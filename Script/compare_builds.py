@@ -31,6 +31,15 @@ Options:
                     build the agsbuild side with this editor's /compile (an editor that builds through
                     agsbuild, PLAN.md 6.7d-9) instead of a plain agsbuild run: compares that editor's
                     Compiled/Data with the one of --editor (the reference editor, built from pre-6.7d)
+  --api-header FILE|REV
+                    the script API header (agsdefns.sh) of the agsbuild side: a file, or a git revision
+                    whose Editor/AGS.Editor/Resources/agsdefns.sh is used. An editor compiles with the
+                    header of its own build, so a run against the reference editor needs
+                    `--api-header pre-6.7d`: a later header that declares the same functions in another
+                    order changes their import indices in every compiled script (upstream 6f1dbd09f,
+                    taken 2026-11-07, moved four DrawingSurface functions and broke parity in the
+                    scripts of game28.dta and every room). Not with --tools-editor, which compiles with
+                    the agsdefns.sh next to that editor
   --engine PATH     also run the auto-test on the agsbuild output with this engine (Software driver)
   --incremental     on the agsbuild side, build the copy with one room's script and one script
                     module changed, change them back, then compare the build that follows (agsbuild
@@ -75,7 +84,25 @@ def run(cmd, log_path, timeout, cwd=None):
     return code, time.time() - start
 
 
-def collect_tools(build_dir, sys_dir):
+def write_api_header(spec, sys_dir):
+    """Puts the script API header agsbuild compiles with into sys_dir: the repository's by default, else
+    the file `spec` or, if no such file exists, agsdefns.sh as of the git revision `spec`."""
+    dst = os.path.join(sys_dir, os.path.basename(API_HEADER))
+    if not spec:
+        shutil.copy2(API_HEADER, dst)
+        return
+    if os.path.isfile(spec):
+        shutil.copy2(spec, dst)
+        return
+    path = os.path.relpath(API_HEADER, REPO).replace(os.sep, '/')
+    res = subprocess.run(['git', 'show', f'{spec}:{path}'], cwd=REPO, capture_output=True)
+    if res.returncode != 0:
+        sys.exit(f'--api-header {spec}: neither a file nor a revision with {path}')
+    with open(dst, 'wb') as f:
+        f.write(res.stdout)
+
+
+def collect_tools(build_dir, sys_dir, api_header=None):
     os.makedirs(sys_dir, exist_ok=True)
     found = {}
     for name in TOOLS + ['agscc']:
@@ -84,7 +111,7 @@ def collect_tools(build_dir, sys_dir):
         if candidates:
             shutil.copy2(candidates[0], sys_dir)
             found[name] = candidates[0]
-    shutil.copy2(API_HEADER, sys_dir)
+    write_api_header(api_header, sys_dir)
     missing = [t for t in ['agsbuild', 'agscc', 'agspak'] if t not in found]
     if missing:
         sys.exit(f'Tools not found in {build_dir}: {", ".join(missing)} (build with -DAGS_BUILD_TOOLS=1)')
@@ -586,6 +613,8 @@ def main():
     ap.add_argument('--all-rows', action='store_true')
     ap.add_argument('--build-dir', default=os.path.join(REPO, '.tidy', 'build'))
     ap.add_argument('--tools-editor', help='an AGSEditor.exe that builds through agsbuild, for the agsbuild side')
+    ap.add_argument('--api-header', help='script API header for the agsbuild side: a file, or a git revision '
+                    'whose agsdefns.sh is used (e.g. pre-6.7d against the reference editor)')
     ap.add_argument('--engine', help='engine executable for the auto-test run')
     ap.add_argument('--incremental', action='store_true',
                     help='compare agsbuild\'s incremental builds (a room and a module changed and back, '
@@ -601,13 +630,16 @@ def main():
         return 0
     if not args.project or not args.editor:
         ap.error('the project and --editor are required')
+    if args.api_header and args.tools_editor:
+        ap.error('--api-header sets the header of a plain agsbuild run; --tools-editor compiles with the '
+                 'agsdefns.sh next to that editor')
     project = os.path.abspath(args.project)
     if not os.path.isfile(os.path.join(project, 'Game.agf')):
         sys.exit(f'No Game.agf in {project}')
     work = os.path.abspath(args.work_dir)
     os.makedirs(work, exist_ok=True)
     sys_dir = os.path.join(work, 'tools')
-    collect_tools(os.path.abspath(args.build_dir), sys_dir)
+    collect_tools(os.path.abspath(args.build_dir), sys_dir, args.api_header)
 
     if not args.variants:
         return 0 if compare(project, work, sys_dir, args, engine=args.engine)[0] else 1
