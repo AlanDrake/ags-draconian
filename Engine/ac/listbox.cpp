@@ -42,8 +42,7 @@ extern GameSetupStruct game;
 
 int ListBox_AddItem(GUIListBox *listbox, const char *text)
 {
-    if (listbox->AddItem(text) < 0)
-        return 0;
+    listbox->AddItem(text);
     return 1;
 }
 
