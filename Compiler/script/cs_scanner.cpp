@@ -548,8 +548,8 @@ void AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, std::string 
 
 void AGS::Scanner::ReadInCharLit_utf8(int const first_char, std::string &symstring, int &converted)
 {
-    unsigned int const char0 = first_char & 0xff;
-    if (char0 <= 0x7f)
+    unsigned int const byte0 = first_char & 0xff;
+    if (byte0 <= 0x7f)
     {
         // No UTF-8 sequence
         symstring.push_back(first_char);
@@ -557,10 +557,10 @@ void AGS::Scanner::ReadInCharLit_utf8(int const first_char, std::string &symstri
         return;
     }
 
-    if (char0 < 0xc2 || char0 > 0xf4)
+    if (byte0 < 0xc2 || byte0 > 0xf4)
         UserError("After the quote mark, found the byte '0x%02X'; "
                   "a legal UTF-8 sequence cannot start this way (file corrupt?)",
-                  char0);
+                  byte0);
 
     do // exactly 1 time
     {
@@ -568,39 +568,39 @@ void AGS::Scanner::ReadInCharLit_utf8(int const first_char, std::string &symstri
         if (EOFReached() || Failed())
             break; // to error msg
         symstring.push_back(next_char);
-        unsigned int const char1 = next_char & 0xff;
+        unsigned int const byte1 = next_char & 0xff;
 
         // Strictly going by the algo, you can encode some characters
         // in different ways, but the standard doesn't allow this:
         // You must always use the shortest encoding possible.
         // Thus, some combinations of first and second byte are forbidden.
-        if (char1 < 0x80 || char1 > 0xbf || char0 == 0xe0 && char1 <= 0x9f || char0 == 0xed && char1 >= 0xa0 ||
-            char0 == 0xf0 && char1 <= 0x8f || char0 == 0xf4 && char1 >= 0x90)
+        if (byte1 < 0x80 || byte1 > 0xbf || byte0 == 0xe0 && byte1 <= 0x9f || byte0 == 0xed && byte1 >= 0xa0 ||
+            byte0 == 0xf0 && byte1 <= 0x8f || byte0 == 0xf4 && byte1 >= 0x90)
             UserError("After the quote mark, found the bytes '0x%02X%02X'; "
                       "a legal UTF-8 sequence cannot start this way (file corrupt?)",
-                      char0, char1);
+                      byte0, byte1);
 
-        if (char0 <= 0xdf)
+        if (byte0 <= 0xdf)
         {
             // 2-byte sequence
-            converted = ((char0 & 0x1f) << 6) + (char1 & 0x3f);
+            converted = ((byte0 & 0x1f) << 6) + (byte1 & 0x3f);
             return;
         }
 
         next_char = Get();
         if (EOFReached() || Failed())
             break; // to error msg
-        unsigned int const char2 = next_char & 0xff;
-        if (char2 < 0x80 || char2 > 0xbf)
+        unsigned int const byte2 = next_char & 0xff;
+        if (byte2 < 0x80 || byte2 > 0xbf)
             UserError("After the quote mark, found the bytes '0x%02X%02X%02X'; "
                       "a legal UTF-8 sequence cannot start this way (file corrupt?)",
-                      char0, char1, char2);
+                      byte0, byte1, byte2);
         symstring.push_back(next_char);
 
-        if (char0 <= 0xef)
+        if (byte0 <= 0xef)
         {
             // 3-byte sequence
-            converted = ((char0 & 0x0F) << 12) | ((char1 & 0x3F) << 6) | (char2 & 0x3F);
+            converted = ((byte0 & 0x0F) << 12) | ((byte1 & 0x3F) << 6) | (byte2 & 0x3F);
             return;
         }
 
@@ -608,14 +608,14 @@ void AGS::Scanner::ReadInCharLit_utf8(int const first_char, std::string &symstri
         next_char = Get();
         if (EOFReached() || Failed())
             break; // to error msg
-        unsigned int const char3 = next_char & 0xff;
-        if (char3 < 0x80 || char3 > 0xbf)
+        unsigned int const byte3 = next_char & 0xff;
+        if (byte3 < 0x80 || byte3 > 0xbf)
             UserError("After the quote mark, found the bytes '0x%02X%02X%02X%02X' "
                       "a legal UTF-8 sequence cannot start this way (file corrupt?)",
-                      char0, char1, char2, char3);
+                      byte0, byte1, byte2, byte3);
         symstring.push_back(next_char);
 
-        converted = ((char0 & 0x07) << 18) | ((char1 & 0x3F) << 12) | ((char2 & 0x3F) << 6) | (char3 & 0x3F);
+        converted = ((byte0 & 0x07) << 18) | ((byte1 & 0x3F) << 12) | ((byte2 & 0x3F) << 6) | (byte3 & 0x3F);
         return;
     } while (false);
 
