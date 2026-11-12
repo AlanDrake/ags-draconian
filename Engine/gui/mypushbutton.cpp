@@ -16,6 +16,7 @@
 #include <cstring>
 
 #include "ac/common.h"
+#include "ac/mouse.h"
 #include "ac/sys_events.h"
 #include "ac/timer.h"
 #include "font/fonts.h"
@@ -31,6 +32,7 @@ using namespace AGS::Common;
 extern int windowbackgroundcolor, pushbuttondarkcolor;
 extern int pushbuttonlightcolor;
 extern int cbuttfont;
+extern int win_x, win_y;
 
 MyPushButton::MyPushButton(int left, int top, int width, int height, const char *caption)
 {
@@ -69,13 +71,15 @@ void MyPushButton::draw(Bitmap *ds)
     ds->DrawRect(Rect(x - 1, y - 1, x + wid + 1, y + hit + 1), draw_color);
 }
 
-int MyPushButton::pressedon(int mx, int my)
+int MyPushButton::pressedon(int /*mx*/, int /*my*/)
 {
     int old_state;
-    while (!ags_misbuttondown(kMouseLeft) == 0)
+    while (ags_misbuttondown(kMouseLeft))
     {
         old_state = state;
-        state = mouseisinarea(mx, my);
+        // the button is pressed only while the mouse is over it, as it moves
+        ags_domouse();
+        state = mouseisinarea(::mousex - win_x, ::mousey - win_y);
         update_polled_stuff();
         if (old_state != state)
         {
