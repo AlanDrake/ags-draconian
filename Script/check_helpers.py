@@ -10,7 +10,8 @@ Finds new code that repeats what the tree already has (docs/refactor/STYLE.md, "
 Two checks, both on the lines a change adds to first-party C and C++ files:
 
   helpers     a new function outside the shared headers (SHARED below: Common/util, data_helpers.h)
-              whose name is the name of a shared function, or shares a telling word with one
+              (one its file did not have at the base revision: a function whose first line a rename
+              changed is not new) whose name is the name of a shared function, or shares a telling word with one
               ("Escape", "Utf8", "Base64", "Trim", "Split"): `static String UnescapeText(...)` next to
               StrUtil::Unescape. The shared function is used, or extended where it falls short; a new
               one that is general goes into the shared header. A finding that is neither is listed
@@ -181,7 +182,17 @@ def all_lines():
     return lines
 
 
-def check_helpers(lines, shared, telling):
+def defined_at(base, path, cache={}):
+    """The names of the functions that path defines or declares at revision base (empty for a new file)."""
+    if (base, path) not in cache:
+        r = subprocess.run(['git', 'show', '%s:%s' % (base, path)], cwd=repo, capture_output=True, text=True,
+                           encoding='utf-8', errors='replace')
+        text = r.stdout if r.returncode == 0 else ''
+        cache[(base, path)] = {name for name in map(function_on, text.splitlines()) if name}
+    return cache[(base, path)]
+
+
+def check_helpers(lines, shared, telling, base=None):
     findings = []
     for path, number, text in lines:
         if is_shared(path) or TESTS.search(path):
@@ -189,6 +200,8 @@ def check_helpers(lines, shared, telling):
         name = function_on(text)
         if name is None or (path, name) in KNOWN:
             continue
+        if base and name in defined_at(base, path):
+            continue  # an existing function whose first line changed (renamed parameters), not a new one
         if name in shared and set(words_of(name)) - PLAIN_WORDS:
             alike = [name]
         else:
@@ -247,8 +260,9 @@ def main():
         print('\n'.join(findings))
         print('check_helpers: %d file-local function(s) resemble a shared helper' % len(findings))
         return 0
-    lines = added_lines(args.base or default_base())
-    helpers = check_helpers(lines, shared, telling)
+    base = args.base or default_base()
+    lines = added_lines(base)
+    helpers = check_helpers(lines, shared, telling, base)
     references = check_references(lines)
     for finding in helpers + references:
         print(finding)
