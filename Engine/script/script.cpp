@@ -517,7 +517,8 @@ RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &fn_
     // background.
     // If CallInstance here has an error, it would otherwise
     // also abort Script A because ccError is a global variable.
-    ScriptError cached_error = cc_get_error();
+    // A copy, not a reference: cc_get_error() returns that global, which the calls below change
+    ScriptError cached_error = cc_get_error(); // NOLINT(performance-unnecessary-copy-initialization)
 
     const RunScFuncResult res = PrepareTextScript(script, fn_name);
     if (res != kScFnRes_Done)
@@ -791,7 +792,7 @@ void PostScriptProcessing()
 
     // TODO: audio is synced whenever any action is scheduled (and again after running them), while only
     // screen changing or time-consuming ones need it
-    if (finished_script->PostScriptActions.size() > 0)
+    if (!finished_script->PostScriptActions.empty())
     {
         sync_audio_playback();
     }
@@ -860,7 +861,7 @@ void PostScriptProcessing()
         }
     }
 
-    if (finished_script->PostScriptActions.size() > 0)
+    if (!finished_script->PostScriptActions.empty())
     {
         sync_audio_playback();
     }

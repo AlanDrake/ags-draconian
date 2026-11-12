@@ -303,7 +303,7 @@ void GamePlayState::DeleteRoomViewport(int index)
 
     // Invalidate script object
     auto handle = _scViewportHandles[index];
-    auto script_obj = (ScriptViewport *)ccGetObjectAddressFromHandle(handle);
+    auto script_obj = static_cast<ScriptViewport *>(ccGetObjectAddressFromHandle(handle));
     if (script_obj)
     {
         script_obj->Invalidate();
@@ -324,7 +324,7 @@ void GamePlayState::DeleteRoomViewport(int index)
     {
         _roomViewports[i]->SetID(i);
         handle = _scViewportHandles[index];
-        script_obj = (ScriptViewport *)ccGetObjectAddressFromHandle(handle);
+        script_obj = static_cast<ScriptViewport *>(ccGetObjectAddressFromHandle(handle));
         if (script_obj)
             script_obj->SetID(i);
     }
@@ -380,7 +380,7 @@ void GamePlayState::DeleteRoomCamera(int index)
 
     // Invalidate script object
     auto handle = _scCameraHandles[index];
-    auto script_obj = (ScriptCamera *)ccGetObjectAddressFromHandle(handle);
+    auto script_obj = static_cast<ScriptCamera *>(ccGetObjectAddressFromHandle(handle));
     if (script_obj)
     {
         script_obj->Invalidate();
@@ -404,7 +404,7 @@ void GamePlayState::DeleteRoomCamera(int index)
     {
         _roomCameras[i]->SetID(i);
         handle = _scCameraHandles[index];
-        script_obj = (ScriptCamera *)ccGetObjectAddressFromHandle(handle);
+        script_obj = static_cast<ScriptCamera *>(ccGetObjectAddressFromHandle(handle));
         if (script_obj)
             script_obj->SetID(i);
     }
@@ -419,14 +419,14 @@ ScriptViewport *GamePlayState::GetScriptViewport(int index)
 {
     if (index < 0 || (size_t)index >= _roomViewports.size())
         return nullptr;
-    return (ScriptViewport *)ccGetObjectAddressFromHandle(_scViewportHandles[index]);
+    return static_cast<ScriptViewport *>(ccGetObjectAddressFromHandle(_scViewportHandles[index]));
 }
 
 ScriptCamera *GamePlayState::GetScriptCamera(int index)
 {
     if (index < 0 || (size_t)index >= _roomCameras.size())
         return nullptr;
-    return (ScriptCamera *)ccGetObjectAddressFromHandle(_scCameraHandles[index]);
+    return static_cast<ScriptCamera *>(ccGetObjectAddressFromHandle(_scCameraHandles[index]));
 }
 
 void GamePlayState::SetScreenShader(int shader_id, int shader_handle)
@@ -1092,7 +1092,7 @@ void GamePlayState::FreeViewportsAndCameras()
     _roomViewportsSorted.clear();
     for (auto handle : _scViewportHandles)
     {
-        auto script_view = (ScriptViewport *)ccGetObjectAddressFromHandle(handle);
+        auto script_view = static_cast<ScriptViewport *>(ccGetObjectAddressFromHandle(handle));
         if (script_view)
         {
             script_view->Invalidate();
@@ -1103,7 +1103,7 @@ void GamePlayState::FreeViewportsAndCameras()
     _roomCameras.clear();
     for (auto handle : _scCameraHandles)
     {
-        auto script_cam = (ScriptCamera *)ccGetObjectAddressFromHandle(handle);
+        auto script_cam = static_cast<ScriptCamera *>(ccGetObjectAddressFromHandle(handle));
         if (script_cam)
         {
             script_cam->Invalidate();

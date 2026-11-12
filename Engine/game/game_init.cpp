@@ -693,7 +693,7 @@ void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const Game
     // engine does not load any more, and 3.99+ data has them all on
     // TODO: the four switches start on and the overrides below only turn switches on, so they are always
     // on; remove the switches together with the old-behavior code that tests them
-    std::array<bool, kNum_RBS> behavior_switches = {0};
+    std::array<bool, kNum_RBS> behavior_switches = {false};
     behavior_switches[kRBO_SmoothWalkTransition] = true;
     behavior_switches[kRBO_ApplyGUITextDirection] = true;
     behavior_switches[kRBO_ApplyDialogOptionTextAlignment] = true;

@@ -1990,7 +1990,7 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
                   sprite_cache_after / 1024u, texture_cache_before / 1024u, texture_cache_after / 1024u);
 }
 
-bool load_game_font(int at_index, const FontInfo &font_info, GameDataVersion data_ver)
+bool load_game_font(int at_index, const FontInfo &font_info, GameDataVersion /*data_ver*/)
 {
     if (font_info.Filename.IsEmpty())
     {

@@ -175,7 +175,7 @@ void Dialog_StartOption(ScriptDialog *script_dialog, int option)
 }
 
 // Returned by show_dialog_options() when the text parser input was used
-#define CHOSE_TEXTPARSER -3053
+#define CHOSE_TEXTPARSER (-3053)
 // Values of Dialog.DisplayOptions' sayChosenOption: say the chosen option's text unless it has the
 // no-repeat flag, always say it, never say it
 #define SAYCHOSEN_USEFLAG 1
@@ -520,7 +520,7 @@ static int run_dialog_request(int param)
 // Runs the dialog script function of the given dialog for an option (0 is the starting entry) and returns
 // a RUN_DIALOG_* code or the topic number to go to; entry_point is not used, the function is found by
 // dialog_id
-int run_dialog_script(int dialog_id, int entry_point, int option_index)
+int run_dialog_script(int dialog_id, int /*entry_point*/, int option_index)
 {
     said_speech_line = 0;
     int result = RUN_DIALOG_STAY;
@@ -913,7 +913,7 @@ void DialogOptions::CreateOverlay()
     }
 }
 
-void DialogOptions::OnOverlayRemoved(ScreenOverlay &overlay)
+void DialogOptions::OnOverlayRemoved(ScreenOverlay & /*overlay*/)
 {
     options_overlay_schandle = ccRemoveObjectHandle(options_overlay_schandle);
     options_overlay_id = -1;
@@ -1717,7 +1717,7 @@ int show_dialog_options(int dialog_id, bool run_game_loops_in_background)
     // Run the global DialogOptionsOpen event
     run_on_event(kScriptEvent_DialogOptionsOpen, dialog_id);
 
-    dialogOpts.reset(new DialogOptions(topic, dialog_id, run_game_loops_in_background));
+    dialogOpts = std::make_unique<DialogOptions>(topic, dialog_id, run_game_loops_in_background);
     dialogOpts->Show();
 
     // Run the global DialogOptionsClose event
@@ -1926,7 +1926,7 @@ void do_conversation(int dialog_id, int start_opt)
     // Run the global DialogStart event
     run_on_event(kScriptEvent_DialogStart, dialog_id);
 
-    dialogExec.reset(new DialogExec(dialog_id, start_opt));
+    dialogExec = std::make_unique<DialogExec>(dialog_id, start_opt);
     dialogExec->Run();
     // TODO: this is done only when the dialog never went past its start entry; check if it is safe (and
     // needed) to do always, regardless of the number of iterations
