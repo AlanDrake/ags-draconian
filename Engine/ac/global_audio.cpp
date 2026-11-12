@@ -64,7 +64,6 @@ int IsMusicVoxAvailable()
     return play.separate_music_lib ? 1 : 0;
 }
 
-extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
 // Construct an asset name for the voice-over clip for the given character (-1 is the narrator) and cue id;
 // the name is placed under the voice pack's path (get_voice_assetpath)
