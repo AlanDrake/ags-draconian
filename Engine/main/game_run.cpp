@@ -169,13 +169,7 @@ public:
         switch (_disabledFor)
         {
         case FOR_EXITLOOP: break;
-        // These other types are obsolete since at least v2.5
-        // FOR_SCRIPT is for v2.1 and earlier.
-        // case FOR_ANIMATION:
-        //     run_animation((FullAnimation*)user_disabled_data2,user_disabled_data3);
-        //     break;
-        // case FOR_SCRIPT:
-        //     break;
+        // The other FOR_* reasons (FOR_ANIMATION, FOR_SCRIPT) are not supported: obsolete since at least v2.5
         default: quit("Unknown reason to disable user input in the Wait state."); break;
         }
     }
@@ -239,8 +233,8 @@ static void GameUpdateCheckProblems()
     }
 
     // If we're not fading in, don't count the fadeouts
-    // FIXME: find a better place for this fixup, probably should be done
-    // after restoring a save, and after 'no_hicolor_fadein' or OPT_FADETYPE is changed?
+    // TODO: this fixup does not belong to the per-frame check; it should be done once, after restoring
+    // a save, and after 'no_hicolor_fadein' or OPT_FADETYPE is changed
     if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == kScrTran_Fade))
         play.screen_is_faded_out = false;
 }
@@ -296,10 +290,10 @@ static void GameUpdateCheckGroundInteractions()
     // (That was pretty unreliable though.)
     if (IsInBlockingAction())
     {
-        // NOTE: if we do update play.player_on_region here, then player might
-        // trigger "walk on/off region" after finishing blocking walk if
-        // it was walking back and forth the region and with the last step
-        // has crossed the region's border. CHECKME: should we do this...?
+        // NOTE: play.player_on_region is not updated here; the change is detected by the first update
+        // after the blocking action ends. Updating it here would instead let the player trigger
+        // "walk on/off region" after finishing a blocking walk, if it was walking back and forth
+        // the region and the last step has crossed the region's border.
         return;
     }
     else
@@ -452,8 +446,9 @@ static void check_mouse_controls(const int was_mouse_on_iface)
         {
             if (wasbutdown == kMouseNone)
             {
-                // FIXME: logically should pass recorded mpos.X, mpos.Y, but first must investigate
-                // how that will affect other GUI processing (mouse up and motion)
+                // FIXME: passes the current mousex, mousey, which differ from mpos (the position recorded
+                // with the click event) when the cursor moved after the click was queued; passing mpos needs
+                // a check of how it affects other GUI processing (mouse up and motion)
                 gui_on_mouse_down(was_mouse_on_iface, mbut, mousex, mousey);
             }
             wasongui = was_mouse_on_iface;
@@ -467,9 +462,8 @@ static void check_mouse_controls(const int was_mouse_on_iface)
 // Runs service key controls, returns false if service key combinations were handled
 // and no more processing required, otherwise returns true and provides current keycode and key shifts.
 //
-// * old_keyhandle mode is a backward compatible input handling mode, where
-//   - lone mod keys are not passed further into the engine;
-//   - key + mod combos are merged into one key code for the script callback.
+// * The special controls compare the backward-compatible combined key (KeyInput::CompatKey: key + mod),
+//   because game variables may store old-style key + mod codes.
 bool run_service_key_controls(KeyInput &out_key)
 {
     out_key = KeyInput(); // clear the output
@@ -535,7 +529,7 @@ bool run_service_key_controls(KeyInput &out_key)
     sys_modkeys = cur_mod;
     sys_modkeys_fired = sys_modkeys_fired && (cur_mod != 0);
 
-    // If mods are handled, or is in backward input mode, then stop here
+    // If a service key combination was handled, then stop here
     if (handled)
         return false;
 
@@ -569,7 +563,8 @@ bool run_service_key_controls(KeyInput &out_key)
         return false;
     }
 
-    // FIXME: review this command! - practically inconvenient
+    // FIXME: the info is incomplete in a game with many objects or characters (at most 8 objects are listed;
+    // the characters list is split into message boxes by a fixed text length), which makes it inconvenient
     if ((ags_combo_key == eAGSKeyCodeCtrlD) && (play.debug_mode > 0))
     {
         // ctrl+D - show info
@@ -582,7 +577,7 @@ bool run_service_key_controls(KeyInput &out_key)
         for (uint32_t obj_id = 0; obj_id < croom->numobj; obj_id++)
         {
             if (obj_id >= 8)
-                break; // FIXME: measure graphical size instead?
+                break; // TODO: measure the graphical size of the text instead of counting objects
             buffer.AppendFmt(
                 "\nObject %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%s slot:%d trnsp:%d clkble:%d", obj_id,
                 objs[obj_id].x, objs[obj_id].y,
@@ -600,7 +595,7 @@ bool run_service_key_controls(KeyInput &out_key)
             if (game.chars[char_id].room != displayed_room)
                 continue;
             if (buffer.GetLength() > 430)
-            { // FIXME: why 430? measure graphical size instead?
+            { // TODO: the limit is a text length in characters; measure the graphical size instead
                 buffer.Append("and more...");
                 DisplayMB(buffer.GetCStr());
                 buffer = "CHARACTERS IN THIS ROOM (cont'd):\n";
@@ -668,7 +663,7 @@ static void check_keyboard_controls()
     {
         return;
     }
-    // Cancel if temporarily ignoring input (the cutscenes are still handled in this case?)
+    // Cancel if temporarily ignoring input (cutscene skipping was already checked above)
     if (play.IsIgnoringInput())
     {
         return;
@@ -726,7 +721,8 @@ static void check_keyboard_controls()
             if (textbox->IsActivated())
             {
                 textbox->SetActivated(false);
-                // FIXME: review this, are we abusing "mouse button" arg here in order to pass a different data?
+                // TODO: the "mouse button" argument is abused here: 1 (kMouseLeft) is passed, though no mouse
+                // button was used
                 setevent(AGSEvent_GUI(textbox->GetParentID(), textbox->GetID(), static_cast<eAGSMouseButton>(1)));
             }
         }
@@ -796,7 +792,7 @@ bool run_service_gamepad_controls(GamepadInput &out_key)
 // Runs default gamepad handling
 static void check_gamepad_controls()
 {
-    // First check for service engine's combinations (mouse lock, display mode switch, and so forth)
+    // Read the gamepad button press
     GamepadInput gi;
     if (!run_service_gamepad_controls(gi))
     {
@@ -1014,7 +1010,7 @@ static void GameUpdateGameState()
     game_loop_update_game_counters();
 }
 
-// Updated objects that do not auto-pause when the game is paused
+// Updates objects that do not auto-pause when the game is paused
 static void GameUpdatePersistentAnimations()
 {
     // Update animating GUI buttons and overlays
@@ -1125,8 +1121,8 @@ static void UpdateSavedCursorOverLocation()
 
     // Call GetLocationName - it will internally force a GUI refresh
     // if the result it returns has changed from last time
-    // CHECKME: this is also likely called in the main game update function,
-    // so it may be not necessary here.
+    // The comparison below needs this: GetLocationName() is what updates get_loc_name_last_time. UpdateGUIContext()
+    // calls it again, but at the end of the tick, after the input and the script events.
     GetLocationName(mousex, mousey, kHit_Interactable);
 
     if ((play.get_loc_name_save_cursor.IsDefined()) && (play.get_loc_name_save_cursor != play.get_loc_name_last_time) &&
@@ -1404,7 +1400,8 @@ void UpdateGameOnce(bool do_controls, AGS::Engine::IDriverDependantBitmap *extra
     // Handle player's input
     // remember old mouse pos, needed for update_cursor_over_location() later
     const int mouse_was_x = mousex, mouse_was_y = mousey;
-    mouse_on_iface = -1; // FIXME: why is this here? move to a related update function!
+    // TODO: move this reset to a related update function; check_mouse_state() sets it, unless mouse input is disabled
+    mouse_on_iface = -1;
     // update mouse position (mousex, mousey)
     ags_domouse();
     // update gui under mouse; this also updates gui control focus;
@@ -1479,9 +1476,8 @@ bool IsInBlockingAction()
 }
 
 // Checks if wait mode should continue until condition is met
-// FIXME: should be a private method of GameLoopUntilState,
-// but is called elsewhere for some strange reason;
-// investigate and move to GameLoopUntilState.
+// TODO: should be a private method of GameLoopUntilState; it is only called by GameLoopUntilState::Run()
+// (hence the declaration at the top of the file, the class being defined before this function)
 static bool ShouldStayInWaitMode()
 {
     assert(restrict_until);
@@ -1552,8 +1548,8 @@ static void GameTick()
     UpdateGameOnce(true);
 }
 
-// This function is called from lot of various functions
-// in the game core, character, room object etc
+// Runs game loops until the condition of the given UNTIL_* type is met;
+// called by the GameLoopUntil*() functions, which are called from the game core, character, room object etc
 static void GameLoopUntilEvent(int until_what, const void *data_ptr = nullptr, int data1 = 0, int data2 = 0)
 {
     // blocking cutscene - end skipping
@@ -1632,7 +1628,6 @@ void GameLoopUntilViewAnimEnd(const ViewAnimateParams *anim)
 {
     GameLoopUntilEvent(UNTIL_VIEWANIM, anim);
 }
-
 
 extern unsigned int load_new_game;
 void RunGameUntilAborted()

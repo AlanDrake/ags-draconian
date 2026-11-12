@@ -29,24 +29,33 @@ struct TouchInput;
 
 // Loops game frames until certain event takes place (for blocking actions)
 // TODO: reimplement these using a function pointer?
-// FIXME: replace arg types with intX_t types
+// TODO: the argument types are those of the game variables being watched (script-facing fields of
+// char, short and int types); replace them with intX_t types
+// Until the pointed value becomes 0
 void GameLoopUntilValueIsZero(const char *value);
 void GameLoopUntilValueIsZero(const short *value);
 void GameLoopUntilValueIsZero(const int *value);
+// Until the pointed value becomes negative
 void GameLoopUntilValueIsNegative(const short *value);
 void GameLoopUntilValueIsNegative(const int *value);
+// Until the pointed move counter drops below 1 (a character or object stops moving)
 void GameLoopUntilNotMoving(const short *move);
+// Until there is no speech or text overlay on screen (play.text_overlay_on is 0)
 void GameLoopUntilNoOverlay();
+// Until the GUI button's animation is over (button btn_id on GUI gui_id)
 void GameLoopUntilButAnimEnd(int gui_id, int btn_id);
+// Until the overlay's animation is over
 void GameLoopUntilOverlayAnimEnd(int over_id);
+// Until the bit(s) flagbit are no longer set in *flagset
 void GameLoopUntilFlagUnset(const int *flagset, int flagbit);
+// Until the view animation described by anim is over (no longer valid)
 void GameLoopUntilViewAnimEnd(const ViewAnimateParams *anim);
 
 // Run the actual game until it ends, or aborted by player/error; loops GameTick() internally
 void RunGameUntilAborted();
 // Update everything game related; wait for the next frame
 // * do_controls - tells whether to handle player input this time
-// * extra_ddb, x and y - adds an additional arbitrary texture to the render list,
+// * extra_ddb, extra_x and extra_y - adds an additional arbitrary texture to the render list,
 //       rendered on top of everything else (except cursor).
 //       This is a leftover used only for built-in dialogs, and must be replaced eventually.
 void UpdateGameOnce(bool do_controls = false, AGS::Engine::IDriverDependantBitmap *extra_ddb = nullptr, int extra_x = 0,
@@ -85,17 +94,17 @@ bool is_runtime_set();
 // Gets real runtime duration in ms, for diagnostic purposes
 uint32_t get_runtime_ms();
 
-// Runs service key controls, returns false if no key was pressed or key input was claimed by the engine,
-// otherwise returns true and provides a keycode.
+// Runs service key controls, returns false if there was no key event, if it was claimed by the engine
+// or has no key and text, otherwise returns true and provides the key input.
 bool run_service_key_controls(KeyInput &out_key);
-// Runs service mouse controls, returns false if mouse input was claimed by the engine,
-// otherwise returns true and provides mouse button code.
+// Runs service mouse controls, returns false if there was no mouse event or it was not a button press,
+// otherwise returns true and provides the mouse button code and, if out_mpos is given, the position.
 bool run_service_mb_controls(eAGSMouseButton &out_mbut, Point *out_mpos = nullptr);
 // Runs service gamepad controls, returns false if no button was pressed or if button input was claimed by the engine,
 // otherwise returns true and provides the gamepad input.
 bool run_service_gamepad_controls(GamepadInput &out_key);
-// Runs service touch controls, returns false if not touch is active or if its event was claimed by the engine,
-// otherwise returns true and provides TouchInput data
+// Runs service touch controls, returns false if there was no touch event or it was not a pointer down, up
+// or motion, otherwise returns true and provides TouchInput data
 bool run_service_touch_controls(TouchInput &out_touch);
 // Polls few things (exit flag and debugger messages)
 // TODO: refactor this
