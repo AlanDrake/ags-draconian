@@ -43,7 +43,7 @@ extern int numLipLines, curLipLine, curLipLinePhoneme;
 // Script function: sets the voice-over volume (0-255), applied to the playing voice clip too
 void SetSpeechVolume(int volume)
 {
-    if ((volume < 0) | (volume > 255))
+    if ((volume < 0) || (volume > 255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
 
     auto *playback = AudioChans::GetChannel(SCHAN_SPEECH);
