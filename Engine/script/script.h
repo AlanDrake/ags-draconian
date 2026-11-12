@@ -205,10 +205,6 @@ void FreeAllScripts();
 
 //=============================================================================
 
-// Performs various updates to the game after script interpreter returns control to the engine.
-// Executes scheduled commands and does changes that are not executed immediately during script
-// (either for logical reasons, and for optimization).
-void post_script_cleanup();
 // Quits the game reporting the current script error and the name of the function that was running;
 // the call stack is added unless it is a user error (the "!" kind)
 void quit_with_script_error(const String &fn_name);

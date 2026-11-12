@@ -881,17 +881,6 @@ void quit_with_script_error(const String &fn_name)
                    error.CallStack.GetCStr());
 }
 
-struct TempEip
-{
-    int oldval;
-    TempEip(int new_value)
-    {
-        oldval = get_our_eip();
-        set_our_eip(new_value);
-    }
-    ~TempEip() { set_our_eip(oldval); }
-};
-
 void can_run_delayed_command()
 {
     if (no_blocking_functions)

@@ -289,8 +289,9 @@ HSaveError PrescanSaveState(Stream *in, SavegameVersion save_ver, const Savegame
 // Returns null if the file cannot be created. The game data goes next (SaveGameState).
 std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image,
                                       SavegameFileFormat &file_format);
-// Prepares game for saving state and writes the selected components into the save stream
-void SaveGameState(Stream *out, SaveCmpSelection select_cmp);
+// Prepares game for saving state and writes the selected components into the save stream;
+// 'compress' deflates the components that support it
+void SaveGameState(Stream *out, SaveCmpSelection select_cmp, bool compress);
 
 // Reads savegame's description out of the given file
 HSaveError ReadSaveDescription(const String &filename, SavegameDescription &desc,
