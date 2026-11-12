@@ -19,6 +19,8 @@
 
 #include "util/stream.h"
 
+// Compresses all data read from lzw_in until its end, and writes the result to out.
+// Returns false if the working memory could not be allocated.
 bool lzwcompress(AGS::Common::Stream *lzw_in, AGS::Common::Stream *out);
 // Expands lzw-compressed data from src to dst.
 // the dst buffer should be large enough, or the uncompression will not be complete.

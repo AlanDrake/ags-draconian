@@ -133,7 +133,7 @@ bool lzwcompress(Stream *lzw_in, Stream *out)
     int value, i, run, len, match, size, mask;
     uint8_t buf[17];
 
-    lzbuffer = (uint8_t *)malloc(N + F + (N + 1 + N + N + 256) * sizeof(int)); // 28.5 k !
+    lzbuffer = (uint8_t *)malloc(N + F + (N + 1 + N + N + 256) * sizeof(int));
     if (lzbuffer == nullptr)
     {
         return false;
@@ -184,7 +184,6 @@ bool lzwcompress(Stream *lzw_in, Stream *out)
             if (match >= THRESHOLD)
             {
                 buf[0] |= mask;
-                // possible fix: change int* to short* ??
                 *(short *)(buf + size) = static_cast<short>(((match - 3) << 12) | ((i - pos - 1) & (N - 1)));
                 size += 2;
                 len -= match;
