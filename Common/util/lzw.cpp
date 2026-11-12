@@ -28,10 +28,10 @@ using namespace AGS::Common;
 int insert(int, int);
 void _delete(int);
 
-#define N           4096
-#define F           16
-#define THRESHOLD   3
-#define min(xx, yy) ((yy < xx) ? yy : xx)
+#define N                  4096
+#define F                  16
+#define THRESHOLD          3
+#define min(first, second) ((second < first) ? second : first)
 
 #define dad  (node + 1)
 #define lson (node + 1 + N)
