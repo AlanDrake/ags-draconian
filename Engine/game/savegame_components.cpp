@@ -695,37 +695,37 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
     const CharacterSvgVersion svg_ver = static_cast<CharacterSvgVersion>(cmp_ver);
     for (uint32_t i = 0; i < characters_read; ++i)
     {
-        auto &chi = game.chars[i];
+        auto &ch = game.chars[i];
         auto &chex = charextra[i];
         // TODO: this is ugly reading old fields like that, might either join Read methods in one, or drop old format at some point
         CharacterInfo::LegacyFields old_fields;
-        chi.ReadFromSavegame(in, old_fields, svg_ver);
+        ch.ReadFromSavegame(in, old_fields, svg_ver);
         chex.view_offset = old_fields.view_offset;
-        chex.ReadFromSavegame(&chi, in, svg_ver);
+        chex.ReadFromSavegame(&ch, in, svg_ver);
         Properties::ReadValues(play.charProps[i], in);
 
         // Upgrade legacy turning mask
         if (svg_ver < kCharSvgVersion_400_16)
         {
-            int turns = (chi.walking % LEGACY_CHAR_TURNING_BACKWARDS) / LEGACY_CHAR_TURNING_AROUND;
-            bool turn_ccw = chi.walking % LEGACY_CHAR_TURNING_BACKWARDS;
+            int turns = (ch.walking % LEGACY_CHAR_TURNING_BACKWARDS) / LEGACY_CHAR_TURNING_AROUND;
+            bool turn_ccw = ch.walking % LEGACY_CHAR_TURNING_BACKWARDS;
             if (turns > 0)
             {
                 chex.SetTurning(true, turn_ccw, turns);
             }
-            chi.walking = chi.walking % LEGACY_CHAR_TURNING_AROUND;
+            ch.walking = ch.walking % LEGACY_CHAR_TURNING_AROUND;
         }
 
         // Upgrade legacy transparency, tint and light ranges
         if (svg_ver < kCharSvgVersion_400_34)
         {
-            chi.opacity = static_cast<int16_t>(GfxDef::LegacyTrans255ToAlpha255(chi.opacity));
-            if (chi.has_explicit_tint())
+            ch.opacity = static_cast<int16_t>(GfxDef::LegacyTrans255ToAlpha255(ch.opacity));
+            if (ch.has_explicit_tint())
             {
                 chex.tint_level = static_cast<short>(GfxDef::Value100ToValue255(chex.tint_level));
                 chex.tint_light = static_cast<short>(GfxDef::Value250ToValue255(chex.tint_light));
             }
-            else if (chi.has_explicit_light())
+            else if (ch.has_explicit_light())
             {
                 chex.tint_light = static_cast<short>(GfxDef::Value100ToValue255(chex.tint_light));
             }
@@ -861,9 +861,9 @@ HSaveError WriteGUI(Stream *out)
 
     // Animated buttons
     WriteFormatTag(out, "AnimatedButtons");
-    size_t num_abuts = GetAnimatingButtonCount();
-    out->WriteInt32(num_abuts);
-    for (size_t i = 0; i < num_abuts; ++i)
+    size_t anim_button_count = GetAnimatingButtonCount();
+    out->WriteInt32(anim_button_count);
+    for (size_t i = 0; i < anim_button_count; ++i)
         GetAnimatingButtonByIndex(i)->WriteToSavegame(out);
     return HSaveError::None();
 }
@@ -1024,9 +1024,9 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
     int anim_count = in->ReadInt32();
     for (int i = 0; i < anim_count; ++i)
     {
-        AnimatingGUIButton abut;
-        abut.ReadFromSavegame(in, cmp_ver);
-        AddButtonAnimation(abut);
+        AnimatingGUIButton anim_button;
+        anim_button.ReadFromSavegame(in, cmp_ver);
+        AddButtonAnimation(anim_button);
     }
     return err;
 }
@@ -1555,11 +1555,11 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const
                 return err;
         }
 
-        RestoredData::ScriptData scdata;
-        scdata.Data.resize(data_len);
+        RestoredData::ScriptData script_data;
+        script_data.Data.resize(data_len);
         if (data_len > 0u)
-            in->Read(scdata.Data.data(), data_len);
-        r_data.ScriptModules[module_name] = std::move(scdata);
+            in->Read(script_data.Data.data(), data_len);
+        r_data.ScriptModules[module_name] = std::move(script_data);
     }
 
     // Assert that all game's script modules were read from the save
@@ -1836,11 +1836,11 @@ HSaveError ReadMoveLists(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
     uint32_t movelist_count = in->ReadInt32();
     for (uint32_t i = 0; i < movelist_count; ++i)
     {
-        MoveList mlist;
-        err = mlist.ReadFromSavegame(in, cmp_ver);
+        MoveList move_list;
+        err = move_list.ReadFromSavegame(in, cmp_ver);
         if (!err)
             return err;
-        add_movelist(std::move(mlist), i);
+        add_movelist(std::move(move_list), i);
     }
     return err;
 }
@@ -1913,14 +1913,14 @@ HSaveError ReadRTTI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserve
 {
     // Restore the minimal necessary RTTI data, enough to resolve types when restoring a save
     // Create a pseudo-RTTI with "generated" types, and fields only for managed pointers
-    RTTIBuilder rb;
+    RTTIBuilder rtti_builder;
     char buf[256];
     uint32_t num_locs = in->ReadInt32();
     for (uint32_t i = 0; i < num_locs; ++i)
     {
         StrUtil::ReadCStr(buf, in, sizeof(buf));
         uint32_t flags = in->ReadInt32();
-        rb.AddLocation(buf, i, flags | RTTI::kLoc_Generated);
+        rtti_builder.AddLocation(buf, i, flags | RTTI::kLoc_Generated);
     }
     uint32_t num_types = in->ReadInt32();
     for (uint32_t i = 0; i < num_types; ++i)
@@ -1937,17 +1937,17 @@ HSaveError ReadRTTI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserve
             base_id = in->ReadInt32();
             dim_num = in->ReadInt32();
         }
-        rb.AddType(buf, i, loc_id, base_id, parent_id, flags | RTTI::kType_Generated, size, dim_num);
+        rtti_builder.AddType(buf, i, loc_id, base_id, parent_id, flags | RTTI::kType_Generated, size, dim_num);
         // Read managed ptrs offsets and generate pseudo-fields for these
         uint32_t num_offs = in->ReadInt32();
-        for (uint32_t oi = 0; oi < num_offs; ++oi)
+        for (uint32_t off_index = 0; off_index < num_offs; ++off_index)
         {
             uint32_t off = in->ReadInt32();
-            rb.AddField(i, "", off, 0u, RTTI::kField_ManagedPtr | RTTI::kType_Generated, 0u);
+            rtti_builder.AddField(i, "", off, 0u, RTTI::kField_ManagedPtr | RTTI::kType_Generated, 0u);
         }
     }
 
-    r_data.GenRTTI = std::move(rb.Finalize());
+    r_data.GenRTTI = std::move(rtti_builder.Finalize());
     return HSaveError::None();
 }
 
@@ -2241,15 +2241,15 @@ HSaveError PrescanAll(Stream *in, SavegameVersion svg_version, SaveCmpSelection 
     return ReadAllImpl(in, svg_version, select_cmp, pp, r_data);
 }
 
-HSaveError WriteComponent(Stream *out, ComponentHandler &hdlr, bool compress)
+HSaveError WriteComponent(Stream *out, ComponentHandler &handler, bool compress)
 {
     uint32_t flags = kSvgCmp_Deflate * compress;
 
-    WriteFormatTag(out, hdlr.Name, true);
+    WriteFormatTag(out, handler.Name, true);
     soff_t header_pos = out->GetPosition();
     out->WriteInt32(0);     // header size placeholder
     out->WriteInt32(flags); // flags
-    out->WriteInt32(hdlr.Version);
+    out->WriteInt32(handler.Version);
     soff_t data_sz_pos = out->GetPosition();
     out->WriteInt32(0); // component size placeholder
     out->WriteInt32(0); // uncompressed size
@@ -2258,7 +2258,7 @@ HSaveError WriteComponent(Stream *out, ComponentHandler &hdlr, bool compress)
     soff_t data_begin_pos = out->GetPosition();
 
 #if (DEBUG_SAVECOMPONENTS)
-    Debug::Printf("Save: WriteComponent: %s: data begins at: %lld", hdlr.Name.GetCStr(), data_begin_pos);
+    Debug::Printf("Save: WriteComponent: %s: data begins at: %lld", handler.Name.GetCStr(), data_begin_pos);
 #endif
 
     uint32_t uncomp_data_sz = 0u;
@@ -2266,7 +2266,7 @@ HSaveError WriteComponent(Stream *out, ComponentHandler &hdlr, bool compress)
     {
         auto deflate_s = std::make_unique<DeflateStream>(out->ReleaseStreamBase(), kStream_Write);
         auto deflate_out = std::make_unique<Stream>(std::move(deflate_s));
-        HSaveError err = hdlr.Serialize(deflate_out.get());
+        HSaveError err = handler.Serialize(deflate_out.get());
         if (!err)
             return err;
 
@@ -2278,7 +2278,7 @@ HSaveError WriteComponent(Stream *out, ComponentHandler &hdlr, bool compress)
     }
     else
     {
-        HSaveError err = hdlr.Serialize(out);
+        HSaveError err = handler.Serialize(out);
         if (!err)
             return err;
     }
@@ -2286,10 +2286,10 @@ HSaveError WriteComponent(Stream *out, ComponentHandler &hdlr, bool compress)
     soff_t data_end_pos = out->GetPosition();
 
 #if (DEBUG_SAVECOMPONENTS)
-    Debug::Printf("Save: WriteComponent: %s: data ends at: %lld", hdlr.Name.GetCStr(), data_end_pos);
-    Debug::Printf("Save: WriteComponent: %s: data size: %u", hdlr.Name.GetCStr(),
+    Debug::Printf("Save: WriteComponent: %s: data ends at: %lld", handler.Name.GetCStr(), data_end_pos);
+    Debug::Printf("Save: WriteComponent: %s: data size: %u", handler.Name.GetCStr(),
                   static_cast<uint32_t>(data_end_pos - data_begin_pos));
-    Debug::Printf("Save: WriteComponent: %s: uncompressed size: %u", hdlr.Name.GetCStr(),
+    Debug::Printf("Save: WriteComponent: %s: uncompressed size: %u", handler.Name.GetCStr(),
                   static_cast<uint32_t>(compress ? uncomp_data_sz : (data_end_pos - data_begin_pos)));
 #endif
 
@@ -2300,7 +2300,7 @@ HSaveError WriteComponent(Stream *out, ComponentHandler &hdlr, bool compress)
     out->WriteInt32(compress ? uncomp_data_sz : (data_end_pos - data_begin_pos)); // uncompressed size
     out->WriteInt32(0);                                                           // checksum (?)
     out->Seek(data_end_pos, kSeekBegin);
-    WriteFormatTag(out, hdlr.Name, false);
+    WriteFormatTag(out, handler.Name, false);
     return HSaveError::None();
 }
 
