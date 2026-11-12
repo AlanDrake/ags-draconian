@@ -87,11 +87,15 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 
 Open items from finished tasks (details in LOG.md "Open items"):
 - 0.4: the CodeQL setting, `D3DCOMPILER_47` on Windows 7, the macOS 10.9 deployment target.
-- 1.4: `agfreader` crashes on a project without `<Settings>`; `StrUtil::Unescape` reads past the end.
+- 1.4: `agfreader` crashes on a project without `<Settings>` (`ReadFields` dereferences the missing element; checked
+  2026-11-12). `StrUtil::Unescape`'s read past the end went with its rewrite in `28badf14b` (U.3).
 - 1.2: 47 `DataUtil::GameSettings` fields have no initializer, so an absent `Game.agf` element leaves
   garbage instead of `Settings.cs`'s default (`{}` is not the fix); the open PR #3187 still has the wrong
   `EXPECT_FALSE(s.PixelPerfect)` in `AGFReaderBlocks.GameSettingsDefaults`.
-- 7.1f: parity measured on one test project; 8-bit games and old indexed interactions unexercised.
+- The editor writes the last-opened room's colours into the game palette (2026-11-12, LOG.md 7.1f): `RoomsComponent.
+  CopyGamePalette` copies the `PaletteEntry` references (a class), so `CopyToAGSBackgroundPalette` sets the game's
+  Background slots, and a save puts them in `Game.agf`; an 8-bit game's `game28.dta` then depends on the room opened
+  last (by the reference editor at build time too). Upstream `ags4` has the same line. Fix: copy the entries.
 - 3.1: unchecked `GetDiskFreeSpaceExW` result in `AGSWin32::GetDiskFreeSpaceMB`.
 - 1.5a: the 4-bit pixel write in `Common/gfx/bitmapdata.cpp` (wrong mask and shift, untested).
 - 3.4-1: constants left behind (`GUI::DataVersion`, always-on behaviour switches, three dialog option

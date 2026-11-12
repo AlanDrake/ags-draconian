@@ -1364,13 +1364,20 @@ combined branch, the user's rule):
 *Moved from PLAN.md "Next up" on 2026-11-07* (details in the tasks' sections):
 
 - 0.4: the CodeQL setting, the `D3DCOMPILER_47`/Windows 7 question and the macOS 10.9 deployment target.
-- 1.4: the unfixed `agfreader` crash on a project without `<Settings>`; `StrUtil::Unescape` reading past the end.
+- 1.4: the unfixed `agfreader` crash on a project without `<Settings>` (still there 2026-11-12); `StrUtil::Unescape`
+  reading past the end (gone with its rewrite in `28badf14b`, U.3).
 - 1.2: the uninitialised `DataUtil::GameSettings`: 47 `bool`/`int` fields have no initializer, so a `Game.agf` element
   that is absent (an older Editor's project) leaves garbage in `agsbuild` and `ReadCustomDataDirectories` instead of
   the default from `AGS.Types/Settings.cs` (several are `true`, so `{}` is not the fix); only `PixelPerfect` got its
   default, after CI failed on it. The open upstream PR #3187 (branch `ags4-tools-2-agfreader`, which took #3147's tests)
   still has the wrong `EXPECT_FALSE(s.PixelPerfect)` in `AGFReaderBlocks.GameSettingsDefaults` (checked 2026-11-12).
-- 7.1f's "left open" notes: one test project measures parity; 8-bit games and old indexed interactions unexercised.
+- 7.1f's "left open" notes: closed on 2026-11-12. The private 8-bit game builds byte-identical with the `pre-6.7d`
+  reference editor in all ten variants (`compare_builds.py --editor <reference> --api-header pre-6.7d`, today's
+  `agsbuild`), once its 63 Background palette slots hold what the reference editor writes: that editor loads a room
+  while it builds and writes that room's colours into the slots, and the project's `Game.agf` (saved 2026-11-11) held
+  another room's. Old indexed interactions do not exist in the 4.0 projects the tools read (D1). Found: the editor's
+  `CopyGamePalette` shares the `PaletteEntry` objects with the game, so opening a room changes the game palette and
+  the next save writes it (fork and upstream `ags4`; PLAN.md open items).
 - 3.1: the unchecked `GetDiskFreeSpaceExW` result in `AGSWin32::GetDiskFreeSpaceMB`.
 - 1.5a: the 4-bit pixel write in `Common/gfx/bitmapdata.cpp` (wrong mask and shift, untested).
 - 3.4-1's leftovers that are constant now: the write-only `GUI::DataVersion`, the always-on runtime behaviour
