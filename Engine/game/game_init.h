@@ -45,17 +45,20 @@ enum GameInitErrorType
     kGameInitErr_ScriptInitFailed
 };
 
+// Returns the message for a game init error code
 Common::String GetGameInitErrorText(GameInitErrorType err);
 
 typedef Common::TypedCodeError<GameInitErrorType, GetGameInitErrorText> GameInitError;
 typedef Common::ErrorHandle<GameInitError> HGameInitError;
 
-// Sets up game state for play using preloaded data
+// Sets up game state for play using preloaded data: puts the GUIs, views and dialogs into the engine's
+// globals, registers the game entities and the engine API in the script system, loads fonts and lip sync data,
+// starts up the plugins, and creates and links the scripts
 HGameInitError InitGameState(const Common::LoadedGameEntities &ents, GameDataVersion data_ver);
 // Applies accessibility options, some of them may override game settings
 void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup);
-// Applies configurable behavior options for this game, including option overrides,
-// such as hacks and backwards compatibility fixes
+// Applies configurable behavior options for this game, which are the runtime behavior switches
+// (the engine's defaults, plus the overrides from the config)
 void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const GameSetup &setup);
 // Prints behavior options to the log
 void PrintBehaviorOptions(const GameSetupStruct &game, const GamePlayState &play);

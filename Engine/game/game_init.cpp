@@ -145,9 +145,7 @@ void InitAndRegisterAudioObjects(GameSetupStruct &game)
     StaticAudioClipArray.resize(game.audioClips.size());
     for (size_t i = 0; i < game.audioClips.size(); ++i)
     {
-        // Note that as of 3.5.0 data format the clip IDs are still restricted
-        // to actual item index in array, so we don't make any difference
-        // between game versions, for now.
+        // A clip's ID is its index in the array
         game.audioClips[i].id = i;
         int handle = ccRegisterPersistentObject(&game.audioClips[i], &ccDynamicAudioClip); // add internal ref
         StaticAudioClipArray[i] = handle;
@@ -195,7 +193,7 @@ void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &
     }
 }
 
-// Initializes dialog and registers them in the script system
+// Initializes dialogs and registers them in the script system
 void InitAndRegisterDialogs(const GameSetupStruct &game)
 {
     scrDialog.resize(game.numdialog);
@@ -213,6 +211,8 @@ void InitAndRegisterDialogs(const GameSetupStruct &game)
     }
 }
 
+// Registers all the controls of all GUIs in the script system, and exports the named ones;
+// their handles are stored in StaticGUIControlsHandles
 void RegisterAllGUIControls(const GameSetupStruct &game)
 {
     StaticGUIControlsHandles.resize(game.numgui);
@@ -253,7 +253,7 @@ void RegisterAllGUIControls(const GameSetupStruct &game)
     }
 }
 
-// Initializes gui and registers them in the script system
+// Initializes GUIs (including their controls) and registers them in the script system
 HError InitAndRegisterGUI(const GameSetupStruct &game)
 {
     scrGui.resize(game.numgui);
@@ -305,7 +305,7 @@ void InitAndRegisterInvItems(const GameSetupStruct &game)
     }
 }
 
-// Register any gui controls that are not present in the managed pool.
+// Register any GUI controls that are not present in the managed pool.
 // We assume that handle arrays are already created of proper size when the game was loaded,
 // so we only need to fill missing elements.
 static void RegisterMissingGUIControls(GameSetupStruct &game)
@@ -370,7 +370,8 @@ void RegisterMissingManagedObjects(GameSetupStruct &game)
     RegisterMissingGUIControls(game);
 }
 
-// Register room script entity of a given type
+// Registers an array of 'count' room script entities of a given type (hotspots, objects and so on),
+// and stores their handles in 'static_arr'
 template <typename TScriptType>
 void RegisterRoomEntities(std::vector<int> &static_arr, TScriptType scr_objs[], size_t count, AGSCCDynamicObject &mgr)
 {
@@ -432,6 +433,7 @@ HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
     return HError::None();
 }
 
+// Loads all the game fonts, then lets the font module fix them up
 void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
     set_gamedata_version(data_ver);
@@ -462,6 +464,8 @@ enum LipsyncDatVersion
     kLipSyncVersion_362 = 3060200
 };
 
+// Reads the speech lip sync data ("syncdata.dat") of the voice pack; leaves lip sync disabled if there is none,
+// or if it has an unknown format
 void LoadLipsyncData()
 {
     splipsync.clear();
@@ -472,7 +476,7 @@ void LoadLipsyncData()
     auto speech_sync = AssetMgr->OpenAsset(Path::ConcatPaths(get_voice_assetpath(), "syncdata.dat"), "voice");
     if (!speech_sync)
         return;
-    // this game has voice lip sync
+    // the voice pack has lip sync data
     int lipsync_format = speech_sync->ReadInt32();
     if (lipsync_format < kLipSyncVersion_321 || lipsync_format > kLipSyncVersion_362)
     {
@@ -497,6 +501,8 @@ void LoadLipsyncData()
     Debug::Printf(kDbgMsg_Info, "Lipsync data found and loaded");
 }
 
+// Reports the game resolution, and sets up the main and UI viewports and the script system's
+// resolution variables from it
 void InitGameResolution(GameSetupStruct &game, GameDataVersion data_ver)
 {
     const Size game_size = game.GetGameRes();
@@ -540,10 +546,12 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         return new GameInitError(kGameInitErr_NoFonts);
 
     //
-    // 3. Allocate and init game objects
+    // 2. Allocate and init game objects
     //
     spriteset.EnlargeTo(ents.SpriteCount - 1);
     charextra.resize(game.numcharacters);
+    // TODO: 'ents' is const, so the std::move calls below copy the GUIs, views and dialogs; take it by
+    // a non-const reference to move them (its Game member is a reference, which is why this compiles)
     guis = std::move(ents.Guis);
     guibuts = std::move(ents.GuiControls.Buttons);
     guiinv = std::move(ents.GuiControls.InvWindows);
@@ -568,7 +576,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     play.guicontrolProps[kGUIListBox].resize(guilist.size());
     play.invProps.resize(game.numinvitems);
     dialog = std::move(ents.Dialogs);
-    // Set number of game channels corresponding to the loaded game version
+    // Set the number of game channels (the same for all the supported game versions)
     game.numGameChannels = MAX_GAME_CHANNELS;
     game.numCompatGameChannels = MAX_GAME_CHANNELS;
     HError err = InitAndRegisterGameEntities(ents);
@@ -578,7 +586,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     LoadLipsyncData();
 
     //
-    // 4. Initialize certain runtime variables
+    // 3. Initialize certain runtime variables
     //
     // TODO: merge this with engine_init_game_settings()
     game_paused = 0; // reset the game paused flag
@@ -599,7 +607,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     SetTranslationTextParser(CreateTextParser(game.dict.get(), true, play.GetTextLocaleName()));
 
     //
-    // 5. Initialize runtime state of certain game objects
+    // 4. Initialize runtime state of certain game objects
     //
     InitGameResolution(game, data_ver);
     prepare_gui_runtime(true /* startup */);
@@ -609,7 +617,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     init_game_drawdata();
 
     //
-    // 6. Register engine API exports
+    // 5. Register engine API exports
     // NOTE: we must do this before plugin start, because some plugins may
     // require access to script API at initialization time.
     //
@@ -617,13 +625,13 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     setup_script_exports(base_api, compat_api);
 
     //
-    // 7. Start up plugins
+    // 6. Start up plugins
     //
     pl_register_plugins(ents.PluginInfos, !usetup.Override.NoPlugins);
     pl_startup_plugins();
 
     //
-    // 8. Create script modules
+    // 7. Create script modules and link the scripts
     // NOTE: we must do this after plugins, because some plugins may export
     // script symbols too.
     //
@@ -642,7 +650,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // Apply accessibility options, must be done last, because some
     // may override startup game settings.
     ApplyAccessibilityOptions(play, usetup);
-    // Applies behavior options, also hacks and backwards compatibility fixes
+    // Applies behavior options (the runtime behavior switches)
     ApplyBehaviorOptions(game, play, usetup);
 
     // Optionally dump joint RTTI into the log
@@ -681,9 +689,10 @@ void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup)
 
 void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const GameSetup &setup)
 {
-    // CLNUP: remove in AGS 4 (all of the below relate to running pre-3.6.3 versions)
-
-    // First designate the default behavior settings: games older than 3.6.3 had them off, 3.99+ data has them on
+    // First designate the default behavior settings: games older than 3.6.3 had them off, which this
+    // engine does not load any more, and 3.99+ data has them all on
+    // TODO: the four switches start on and the overrides below only turn switches on, so they are always
+    // on; remove the switches together with the old-behavior code that tests them
     std::array<bool, kNum_RBS> behavior_switches = {0};
     behavior_switches[kRBO_SmoothWalkTransition] = true;
     behavior_switches[kRBO_ApplyGUITextDirection] = true;
