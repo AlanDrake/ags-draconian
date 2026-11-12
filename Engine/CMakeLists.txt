@@ -667,6 +667,7 @@ if(AGS_TESTS)
         test/savegame_components_test.cpp
         test/savegame_file_test.cpp
         test/savegame_test.cpp
+        test/speech_test.cpp
     )
     # The script VM tests compile their scripts in memory: the script compiler's own sources are
     # built in, without the compiler library's copies of Common, which the engine already links

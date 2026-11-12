@@ -42,6 +42,7 @@
     <ClCompile Include="..\..\Engine\test\savegame_components_test.cpp" />
     <ClCompile Include="..\..\Engine\test\savegame_file_test.cpp" />
     <ClCompile Include="..\..\Engine\test\savegame_test.cpp" />
+    <ClCompile Include="..\..\Engine\test\speech_test.cpp" />
     <ClCompile Include="..\..\Engine\test\script_bytecode_test.cpp" />
     <ClCompile Include="..\..\Engine\test\script_exports_test.cpp" />
     <ClCompile Include="..\..\Engine\test\script_vm_test.cpp" />

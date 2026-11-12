@@ -49,6 +49,9 @@
     <ClCompile Include="..\..\Engine\test\savegame_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\test\speech_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Engine\test\script_bytecode_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
