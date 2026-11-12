@@ -23,7 +23,9 @@ Exit code 0 means no unexpected difference. A differing object in a GoogleTest f
 (*_test.cpp) is reported but tolerated, because the test macros record __LINE__.
 An object that differs only in its debug-info section or in the order of its functions (which is what
 reordering includes does) is told apart by comparing the disassembly, function by function (needs
-dumpbin, so MSVC only); it is reported as "code identical" and tolerated.
+dumpbin, so MSVC only); it is reported as "code identical" and tolerated. The disassembly is compared with
+MSVC's lambda names (<lambda_hash>, a hash of the lambda's body) read as one name, <lambda>: renaming a local
+that a lambda uses changes the hash, not the code.
 Expected, by design, to differ: renamed functions, types or globals (their symbol names are in
 the objects), and changed string literals.
 A [delete] commit of unreferenced functions changes objects by exactly the functions it removes: when no
@@ -151,7 +153,10 @@ def disassembly_blocks(dumpbin, env, obj_path):
     the functions and the debug-info section do not matter."""
     text = subprocess.run([dumpbin, '/nologo', '/disasm:nobytes', obj_path], env=env, capture_output=True,
                           text=True, errors='replace').stdout
-    blocks, label = {}, '<start>'
+    # MSVC names a lambda's type after a hash of its body (<lambda_1f0c...>), so renaming a local that a lambda
+    # uses renames the lambda and everything instantiated for it: compare the code under one name, <lambda>
+    text = re.sub(r'<lambda_[0-9a-f]{32}>', '<lambda>', text)
+    found, label = [], '<start>'
     for line in text.splitlines():
         if line.startswith('Dump of file') or not line.strip():
             continue
@@ -160,19 +165,30 @@ def disassembly_blocks(dumpbin, env, obj_path):
             break
         # a compiler-generated local label inside a function ($LN<n>, numbered per object, so removing a function
         # renumbers the labels of the functions after it): part of the function, without its number
+        if not found:
+            found.append((label, []))
         if re.match(r'^\$LN\d+:$', line):
-            blocks.setdefault(label, []).append('$LN:')
+            found[-1][1].append('$LN:')
             continue
         line = re.sub(r'\$LN\d+\b', '$LN', line)
         if re.match(r'^[^\s:]+:$', line) or re.match(r'^\S+ \(.*\):$', line):  # a symbol's label
             label = line
-            blocks.setdefault(label, [])
+            found.append((label, []))
             continue
         if re.match(r'^[0-9A-F]+ \.[\w$]+$', line):  # the section sizes of the summary: layout, not code
             continue
         line = re.sub(r'^[0-9A-F]{8}:\s*', '', line)
         line = re.sub(r'\b[0-9A-F]{8}\b', 'ADDR', line)  # jump targets and offsets inside the object
-        blocks.setdefault(label, []).append(line)
+        found[-1][1].append(line)
+    # Labels that occur more than once (the lambdas of one function, now under one name) keep their code apart:
+    # sorted, so that the order the compiler put them in does not matter
+    grouped = {}
+    for label, lines in found:
+        grouped.setdefault(label, []).append(lines)
+    blocks = {}
+    for label, bodies in grouped.items():
+        for i, lines in enumerate(sorted(bodies)):
+            blocks[label if i == 0 else f'{label} #{i + 1}'] = lines
     return blocks
 
 
