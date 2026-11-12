@@ -248,6 +248,11 @@ public:
     Size GetStretch() const override { return _scaledSize; }
     bool GetUseResampler() const override { return false; }
     void SetStretch(int width, int height, bool /*useResampler*/) override { _scaledSize = Size(width, height); }
+    void SetScaleRatio(int num, int den) override
+    {
+        _scaleNum = (num > 0 && den > 0) ? num : 0;
+        _scaleDen = (num > 0 && den > 0) ? den : 0;
+    }
     Common::GraphicFlip GetFlip() const override { return _flip; }
     void SetFlip(Common::GraphicFlip flip) override { _flip = flip; }
     // Rotation input is in degrees clockwise, but the implementation may store it in radians internally
@@ -283,6 +288,9 @@ public:
     int GetWidthToRender() const { return _scaledSize.Width; }
     int GetHeightToRender() const { return _scaledSize.Height; }
     const Size &GetSizeToRender() const { return _scaledSize; }
+    // Gets the quad to draw this texture at, with its origin at (x, y): the left-top corner and the size,
+    // in the coordinates of the sprite batch; see SetScaleRatio and Common::GetSpriteQuadEdge
+    void GetQuad(int x, int y, float &left, float &top, float &width, float &height) const;
 
 protected:
     BaseDDB() = default;
@@ -297,6 +305,8 @@ protected:
     int _txFlags = 0; // TextureFlags
     Pointf _origin;
     Size _scaledSize;
+    int _scaleNum = 0; // exact scale ratio, 0 if none (see SetScaleRatio)
+    int _scaleDen = 0;
     Common::GraphicFlip _flip = Common::kFlip_None;
     float _rotation = 0.f; // either in degrees or radians, depending on impl
     Pointf _pivot = Pointf(.5f, .5f);

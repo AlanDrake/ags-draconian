@@ -18,6 +18,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/gfx_util.h"
 #include "gfx/gfxfilter.h"
+#include "gfx/graphicspace.h"
 
 using namespace AGS::Common;
 
@@ -25,6 +26,26 @@ namespace AGS
 {
 namespace Engine
 {
+
+void BaseDDB::GetQuad(int x, int y, float &left, float &top, float &width, float &height) const
+{
+    const bool flip_x = (_flip & kFlip_Horizontal) != 0;
+    const bool flip_y = (_flip & kFlip_Vertical) != 0;
+    if (_scaleDen > 0)
+    {
+        width = static_cast<float>(_size.Width * _scaleNum) / static_cast<float>(_scaleDen);
+        height = static_cast<float>(_size.Height * _scaleNum) / static_cast<float>(_scaleDen);
+        left = GetSpriteQuadEdge(x, _size.Width, _scaleNum, _scaleDen, _origin.X, flip_x);
+        top = GetSpriteQuadEdge(y, _size.Height, _scaleNum, _scaleDen, _origin.Y, flip_y);
+    }
+    else
+    {
+        width = static_cast<float>(_scaledSize.Width);
+        height = static_cast<float>(_scaledSize.Height);
+        left = static_cast<float>(x - GetSpriteOriginTexel(_scaledSize.Width, _origin.X, flip_x));
+        top = static_cast<float>(y - GetSpriteOriginTexel(_scaledSize.Height, _origin.Y, flip_y));
+    }
+}
 
 GraphicsDriverBase::GraphicsDriverBase() : _spriteEvtCallback(nullptr), _initGfxCallback(nullptr)
 {

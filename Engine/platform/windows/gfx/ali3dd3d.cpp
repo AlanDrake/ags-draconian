@@ -1450,8 +1450,9 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
         throw Ali3DException("IDirect3DDevice9::SetStreamSource failed");
     }
 
-    float width = bmpToDraw->GetWidthToRender();
-    float height = bmpToDraw->GetHeightToRender();
+    // The whole sprite's quad, placed by its origin
+    float quad_x, quad_y, width, height;
+    bmpToDraw->GetQuad(draw_x, draw_y, quad_x, quad_y, width, height);
     float xProportion = width / (float)bmpToDraw->GetWidth();
     float yProportion = height / (float)bmpToDraw->GetHeight();
 
@@ -1468,8 +1469,8 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
             yOffs = (bmpToDraw->GetHeight() - (txdata->_tiles[ti].y + txdata->_tiles[ti].height)) * yProportion;
         else
             yOffs = txdata->_tiles[ti].y * yProportion;
-        float thisX = draw_x + xOffs;
-        float thisY = draw_y + yOffs;
+        float thisX = quad_x + xOffs;
+        float thisY = quad_y + yOffs;
 
         //Setup translation and scaling matrices
         float widthToScale = width;
@@ -1487,9 +1488,6 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
             heightToScale = -heightToScale;
             thisY += height;
         }
-        // Apply sprite origin, rounded to keep pixel precision
-        thisX -= std::roundf((abs(widthToScale) - 1.f) * bmpToDraw->GetOrigin().X);
-        thisY -= std::roundf((abs(heightToScale) - 1.f) * bmpToDraw->GetOrigin().Y);
         // Center inside a rendering rect
         // FIXME: this should be a part of a projection matrix, afaik
         thisX = (-(rend_sz.Width / 2.0f)) + thisX;

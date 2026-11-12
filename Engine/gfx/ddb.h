@@ -99,6 +99,11 @@ public:
     virtual Size GetStretch() const = 0;
     virtual bool GetUseResampler() const = 0;
     virtual void SetStretch(int width, int height, bool useResampler = true) = 0;
+    // Sets an exact scale as a ratio of whole numbers (a zoom percent over 100), or 0 for none.
+    // With it the texture is drawn at its size times the scale and placed by its origin texel
+    // (Common::GetSpriteQuadEdge), which keeps differently sized animation frames from drifting;
+    // without it, at the whole size given to SetStretch.
+    virtual void SetScaleRatio(int num, int den) = 0;
     virtual Common::GraphicFlip GetFlip() const = 0;
     virtual void SetFlip(Common::GraphicFlip flip) = 0;
     virtual float GetRotation() const = 0;        // in degrees

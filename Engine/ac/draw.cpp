@@ -2209,6 +2209,8 @@ void prepare_and_add_object_gfx(const ObjectCache &objsav, ObjTexture &actsp, bo
     if (hw_accel)
     {
         actsp.Ddb->SetStretch(scale_size.Width, scale_size.Height);
+        // draw at the exact zoom, so that frames of different sizes keep their pixels around the origin
+        actsp.Ddb->SetScaleRatio(objsav.zoom, 100);
         actsp.Ddb->SetRotation(objsav.rotation);
         actsp.Ddb->SetPivot(objsav.pivotx, objsav.pivoty);
         actsp.Ddb->SetFlip(objsav.flip);

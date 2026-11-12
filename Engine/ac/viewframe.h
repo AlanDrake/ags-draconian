@@ -22,6 +22,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/view.h"
 #include "gfx/bitmap.h"
+#include "gfx/gfx_def.h"
 
 namespace AGS
 {
@@ -60,3 +61,6 @@ bool RunViewFrameEvent(int view, int loop, int frame, const ObjectEvent &obj_evt
                        AGS::Common::ScriptEventsBase *handlers, int evnt);
 // draws a view frame, flipped if appropriate
 void DrawViewFrame(AGS::Common::Bitmap *ds, const ViewFrame *vframe, int x, int y);
+// Gets the flip a view frame is drawn with: none if the view, loop or frame does not exist, or if
+// the sprite drawn is not the frame's (pic, as in draw.cpp; pass -1 to skip this check)
+AGS::Common::GraphicFlip GetViewFrameFlip(int view, int loop, int frame, int pic = -1);

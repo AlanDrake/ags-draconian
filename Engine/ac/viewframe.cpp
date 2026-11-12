@@ -230,6 +230,19 @@ void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y)
     }
 }
 
+GraphicFlip GetViewFrameFlip(int view, int loop, int frame, int pic)
+{
+    if (view < 0 || static_cast<size_t>(view) >= views.size())
+        return kFlip_None;
+    const ViewStruct &vs = views[view];
+    if (loop < 0 || loop >= vs.numLoops || frame < 0 || frame >= vs.loops[loop].numFrames)
+        return kFlip_None;
+    const ViewFrame &vf = vs.loops[loop].frames[frame];
+    if (pic >= 0 && vf.pic != pic)
+        return kFlip_None;
+    return GfxDef::GetFlipFromFlags(vf.flags);
+}
+
 //=============================================================================
 //
 // Script API Functions
