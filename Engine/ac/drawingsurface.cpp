@@ -220,6 +220,8 @@ void DrawingSurface_BlendSurface(ScriptDrawingSurface* target, ScriptDrawingSurf
 
 void DrawingSurface_SetDrawingColor(ScriptDrawingSurface *sds, int newColour) 
 {
+    if (!AssertBitmapSurface(sds->GetBitmapSurface(), "DrawingSurface.DrawingColor"))
+        return;
     sds->SetDrawingColor(newColour);
 }
 
