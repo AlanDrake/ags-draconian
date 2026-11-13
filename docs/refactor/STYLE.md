@@ -41,6 +41,11 @@ git ls-files '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hpp' '*.inl' | xargs clang-fo
 python Script/tidy_diff.py --build build
 ```
 
+A changed line is one whose code is new: a line that only moved or was copied from a file the change
+also touches (a function moved to another file, a renamed file) is not checked again, and a function
+that one of those files already had under that name is not checked for size or name (`tidy_diff.py`
+docstring).
+
 ## C++
 
 **C++17** for all first-party targets. No compiler extensions or platform intrinsics outside
@@ -156,8 +161,9 @@ reviews of upstream PR #3190 asked for the same thing: a private `UnescapeText` 
 - The same holds for a second reader or writer of a format: one function, two callers. If the input
   differs, convert the input.
 - `Script/check_helpers.py` (prepush stage `helpers`) reports a new function named like a shared one
-  and lists the candidates. It reads names only, so it reminds, it does not prove. An accepted
-  finding goes into its `KNOWN` table with the reason. `--all` lists the whole tree.
+  and lists the candidates; a function that moved from a file the change touches is not new. It
+  reads names only, so it reminds, it does not prove. An accepted finding goes into its `KNOWN`
+  table with the reason. `--all` lists the whole tree.
 
 | For | Look in |
 |---|---|

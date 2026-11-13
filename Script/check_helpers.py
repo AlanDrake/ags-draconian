@@ -10,8 +10,9 @@ Finds new code that repeats what the tree already has (docs/refactor/STYLE.md, "
 Two checks, both on the lines a change adds to first-party C and C++ files:
 
   helpers     a new function outside the shared headers (SHARED below: Common/util, data_helpers.h)
-              (one its file did not have at the base revision: a function whose first line a rename
-              changed is not new) whose name is the name of a shared function, or shares a telling word with one
+              (one that no file the change modifies, deletes or renames defined at the base revision:
+              a function whose first line a rename changed, or that moved to another file or a new
+              one, is not new) whose name is the name of a shared function, or shares a telling word with one
               ("Escape", "Utf8", "Base64", "Trim", "Split"): `static String UnescapeText(...)` next to
               StrUtil::Unescape. The shared function is used, or extended where it falls short; a new
               one that is general goes into the shared header. A finding that is neither is listed
@@ -30,6 +31,8 @@ import os
 import re
 import subprocess
 import sys
+
+import tidy_diff
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 FIRST_PARTY = ('Common/', 'Engine/', 'Compiler/', 'Tools/', 'Plugins/')
@@ -187,26 +190,24 @@ def all_lines():
     return lines
 
 
-def defined_at(base, path, cache={}):
-    """The names of the functions that path defines or declares at revision base (empty for a new file)."""
-    if (base, path) not in cache:
-        r = subprocess.run(['git', 'show', '%s:%s' % (base, path)], cwd=repo, capture_output=True, text=True,
-                           encoding='utf-8', errors='replace')
-        text = r.stdout if r.returncode == 0 else ''
-        cache[(base, path)] = {name for name in map(function_on, text.splitlines()) if name}
-    return cache[(base, path)]
+def defined_at(base):
+    """The names of the functions defined at revision base in the files the diff from base modifies,
+    deletes or renames: a function moved to another file, or into a new one, is not a new function."""
+    return {name for text in tidy_diff.base_texts(base, repo).values()
+            for name in map(function_on, text.splitlines()) if name}
 
 
 def check_helpers(lines, shared, telling, base=None):
     findings = []
+    existing = defined_at(base) if base else set()
     for path, number, text in lines:
         if is_shared(path) or TESTS.search(path):
             continue
         name = function_on(text)
         if name is None or (path, name) in KNOWN:
             continue
-        if base and name in defined_at(base, path):
-            continue  # an existing function whose first line changed (renamed parameters), not a new one
+        if name in existing:
+            continue  # an existing function whose first line changed (renamed parameters) or that moved
         if name in shared and set(words_of(name)) - PLAIN_WORDS:
             alike = [name]
         else:
