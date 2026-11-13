@@ -707,6 +707,7 @@
     <ClInclude Include="..\..\Engine\ac\overlay.h" />
     <ClInclude Include="..\..\Engine\ac\parser.h" />
     <ClInclude Include="..\..\Engine\ac\path_helper.h" />
+    <ClInclude Include="..\..\Engine\ac\pathfinder_script.h" />
     <ClInclude Include="..\..\Engine\ac\shader_script.h" />
     <ClInclude Include="..\..\Engine\ac\touch.h" />
     <ClInclude Include="..\..\Engine\ac\properties.h" />

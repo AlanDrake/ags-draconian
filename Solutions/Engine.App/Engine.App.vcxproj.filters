@@ -1640,6 +1640,9 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptshader.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\pathfinder_script.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Engine\ac\shader_script.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
