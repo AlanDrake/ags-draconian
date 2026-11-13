@@ -477,6 +477,7 @@
     <ClCompile Include="..\..\Engine\game\script_api\drawing_surface_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\dynamic_array_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\dynamic_sprite_api.cpp" />
+    <ClCompile Include="..\..\Engine\game\script_api\file_api.cpp" />
     <ClCompile Include="..\..\Engine\game\viewport.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dogl.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dsw.cpp" />

@@ -865,6 +865,7 @@
 		82A3F0DD282FC4B1E43A3579 /* ftglyph.c in Sources */ = {isa = PBXBuildFile; fileRef = 3DEE810BAC4289B3733EFE31 /* ftglyph.c */; };
 		883DB1BC58849097C162D9D8 /* ftgxval.c in Sources */ = {isa = PBXBuildFile; fileRef = 072C4F6578AA15AEF14EBD94 /* ftgxval.c */; };
 		89F9F15D880A8BA2E843EA93 /* scriptshader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 412D60EA903C47549A0E89F3 /* scriptshader.cpp */; };
+		8B73D86D61DEC8F1B89C819B /* file_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431F3F3A4EA662082DAB4C97 /* file_api.cpp */; };
 		8B8904F8C519A43C69FEA96A /* scripteventtable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3790F066EC353E435E79CBF5 /* scripteventtable.cpp */; };
 		8F719493B02BFC5116FE6342 /* ftwinfnt.c in Sources */ = {isa = PBXBuildFile; fileRef = C3598D53DD9936F8FFADC0C9 /* ftwinfnt.c */; };
 		90066E119D603EC22FE95C5B /* cc_reflect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDEB122D2278EC35051B875C /* cc_reflect.cpp */; };
@@ -1315,6 +1316,7 @@
 		40642FE83665FE9B733374BC /* sprite_data_fmt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sprite_data_fmt.cpp; sourceTree = "<group>"; };
 		412D60EA903C47549A0E89F3 /* scriptshader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scriptshader.cpp; sourceTree = "<group>"; };
 		42403FF37060D075B3F0F70C /* image_pcx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = image_pcx.cpp; sourceTree = "<group>"; };
+		431F3F3A4EA662082DAB4C97 /* file_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = file_api.cpp; sourceTree = "<group>"; };
 		48EFC8D1A08BC706233BFD4F /* ftcid.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftcid.c; sourceTree = "<group>"; };
 		4E6E615CB9654FE693E1FF08 /* shader_script.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = shader_script.cpp; sourceTree = "<group>"; };
 		502DD07F3D73973026AD95A8 /* stb_image.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stb_image.c; sourceTree = "<group>"; };
@@ -3599,6 +3601,7 @@
 				6540AC9011C790C7219E4A2A /* drawing_surface_api.cpp */,
 				506E9222AF6EBECC3E148480 /* dynamic_sprite_api.cpp */,
 				90767842D8F6B1E706D886C9 /* dynamic_array_api.cpp */,
+				431F3F3A4EA662082DAB4C97 /* file_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4638,6 +4641,7 @@
 				06E8F6EE81E21BC83D9D7041 /* drawing_surface_api.cpp in Sources */,
 				D5A68E7012F3152B3166A9B0 /* dynamic_sprite_api.cpp in Sources */,
 				CE1BA72BE9686508409993C7 /* dynamic_array_api.cpp in Sources */,
+				8B73D86D61DEC8F1B89C819B /* file_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
