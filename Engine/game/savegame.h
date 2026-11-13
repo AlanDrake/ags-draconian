@@ -308,3 +308,83 @@ HSaveError SaveGame(const String &filename, const String &user_text, const Bitma
 
 } // namespace Engine
 } // namespace AGS
+
+class ScriptRestoredSaveInfo;
+
+// Script API: RestoredSaveInfo::get_Cancel
+bool SaveInfo_GetCancel(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::set_Cancel
+void SaveInfo_SetCancel(ScriptRestoredSaveInfo *info, bool cancel);
+
+// Script API: RestoredSaveInfo::get_RetryWithoutComponents
+int SaveInfo_GetRetryWithoutComponents(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::set_RetryWithoutComponents
+void SaveInfo_SetRetryWithoutComponents(ScriptRestoredSaveInfo *info, int cmp_selection);
+
+// Script API: RestoredSaveInfo::get_HasExtraData
+bool SaveInfo_HasExtraData(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::get_HasMissingData
+bool SaveInfo_HasMissingData(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::get_IsPrescan
+bool SaveInfo_IsPrescan(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::get_Slot
+int SaveInfo_GetSlot(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::get_Description
+const char *SaveInfo_GetDescription(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::get_EngineVersion
+const char *SaveInfo_GetEngineVersion(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::get_GameVersion
+const char *SaveInfo_GetGameVersion(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::get_AudioClipTypeCount
+int SaveInfo_GetAudioClipTypeCount(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::get_CharacterCount
+int SaveInfo_GetCharacterCount(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::get_DialogCount
+int SaveInfo_GetDialogCount(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::get_GUICount
+int SaveInfo_GetGUICount(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::geti_GUIControlCount
+int SaveInfo_GetGUIControlCount(ScriptRestoredSaveInfo *info, int index);
+
+// Script API: RestoredSaveInfo::get_InventoryItemCount
+int SaveInfo_GetInventoryItemCount(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::get_CursorCount
+int SaveInfo_GetCursorCount(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::get_ViewCount
+int SaveInfo_GetViewCount(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::geti_ViewLoopCount
+int SaveInfo_GetViewLoopCount(ScriptRestoredSaveInfo *info, int index);
+
+// Script API: RestoredSaveInfo::geti_ViewFrameCount
+int SaveInfo_GetViewFrameCount(ScriptRestoredSaveInfo *info, int index);
+
+// Script API: RestoredSaveInfo::get_GlobalScriptDataSize
+int SaveInfo_GetGlobalScriptDataSize(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::get_ScriptModuleCount
+int SaveInfo_GetScriptModuleCount(ScriptRestoredSaveInfo *info);
+
+// Script API: RestoredSaveInfo::geti_ScriptModuleNames
+const char *SaveInfo_GetScriptModuleNames(ScriptRestoredSaveInfo *info, int index);
+
+// Script API: RestoredSaveInfo::geti_ScriptModuleDataSizes
+int SaveInfo_GetScriptModuleDataSizes(ScriptRestoredSaveInfo *info, int index);
+
+// Script API: RestoredSaveInfo::get_Room
+int SaveInfo_GetRoom(ScriptRestoredSaveInfo *info);
