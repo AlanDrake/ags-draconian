@@ -148,11 +148,11 @@ const char *Hotspot_GetName_New(ScriptHotspot *hss)
     return CreateNewScriptString(croom->hotspot[hss->id].Name);
 }
 
-void Hotspot_SetName(ScriptHotspot *hss, const char *newName)
+void Hotspot_SetName(ScriptHotspot *hss, const char *new_name)
 {
     if ((hss->id < 0) || (hss->id >= MAX_ROOM_HOTSPOTS))
         quit("!Hotspot.Name: invalid hotspot number");
-    croom->hotspot[hss->id].Name = newName;
+    croom->hotspot[hss->id].Name = new_name;
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 

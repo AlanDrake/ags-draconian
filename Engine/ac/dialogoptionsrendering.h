@@ -40,7 +40,7 @@ int DialogOptionsRendering_GetActiveOptionID(ScriptDialogOptionsRendering *dlgOp
 void DialogOptionsRendering_SetActiveOptionID(ScriptDialogOptionsRendering *dlgOptRender, int activeOptionID);
 
 // Script API: DialogOptionsRenderingInfo::Update^0
-void DialogOptionsRendering_Update(ScriptDialogOptionsRendering *dlgOptRender);
+void DialogOptionsRendering_Update(ScriptDialogOptionsRendering *opt_render);
 
 // Script API: DialogOptionsRenderingInfo::RunActiveOption^0
-bool DialogOptionsRendering_RunActiveOption(ScriptDialogOptionsRendering *dlgOptRender);
+bool DialogOptionsRendering_RunActiveOption(ScriptDialogOptionsRendering *opt_render);

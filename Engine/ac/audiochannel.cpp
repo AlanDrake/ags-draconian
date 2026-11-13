@@ -249,7 +249,7 @@ void AudioChannel_SetRoomLocation(ScriptAudioChannel *channel, int xPos, int yPo
     }
 }
 
-void AudioChannel_SetRoomLocation2(ScriptAudioChannel *channel, int xPos, int yPos)
+void AudioChannel_SetRoomLocation2(ScriptAudioChannel *channel, int x, int y)
 {
-    AudioChannel_SetRoomLocation(channel, xPos, yPos, 0);
+    AudioChannel_SetRoomLocation(channel, x, y, 0);
 }

@@ -22,15 +22,15 @@
 
 // ** SCRIPT DIALOGOPTIONSRENDERING OBJECT
 
-void DialogOptionsRendering_Update(ScriptDialogOptionsRendering *dlgOptRender)
+void DialogOptionsRendering_Update(ScriptDialogOptionsRendering *opt_render)
 {
-    dlgOptRender->needRepaint = true;
+    opt_render->needRepaint = true;
 }
 
-bool DialogOptionsRendering_RunActiveOption(ScriptDialogOptionsRendering *dlgOptRender)
+bool DialogOptionsRendering_RunActiveOption(ScriptDialogOptionsRendering *opt_render)
 {
-    dlgOptRender->chosenOptionID = dlgOptRender->activeOptionID;
-    return dlgOptRender->chosenOptionID >= 0;
+    opt_render->chosenOptionID = opt_render->activeOptionID;
+    return opt_render->chosenOptionID >= 0;
 }
 
 int DialogOptionsRendering_GetX(ScriptDialogOptionsRendering *dlgOptRender)

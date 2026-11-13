@@ -57,7 +57,7 @@ ScriptHotspot *Hotspot_GetAtScreenXY2(int x, int y);
 ScriptHotspot *Hotspot_GetByName(const char *name);
 
 // Script API: Hotspot::set_DisplayName, Hotspot::set_Name
-void Hotspot_SetName(ScriptHotspot *hss, const char *newName);
+void Hotspot_SetName(ScriptHotspot *hss, const char *new_name);
 
 // Script API: Hotspot::SetProperty^2
 bool Hotspot_SetProperty(ScriptHotspot *hss, const char *property, int value);

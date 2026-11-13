@@ -52,4 +52,4 @@ void AudioChannel_Pause(ScriptAudioChannel *channel);
 void AudioChannel_Resume(ScriptAudioChannel *channel);
 
 // Script API: AudioChannel::SetRoomLocation^2
-void AudioChannel_SetRoomLocation2(ScriptAudioChannel *channel, int xPos, int yPos);
+void AudioChannel_SetRoomLocation2(ScriptAudioChannel *channel, int x, int y);
