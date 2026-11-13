@@ -37,11 +37,14 @@ jobs:
         with:
           persist-credentials: false
 
-      # Image names must be lowercase, but the repository owner may not be (e.g. "AlanDrake")
+      # Image names must be lowercase, but the repository owner may not be (e.g. "AlanDrake").
+      # The name differs from upstream's ags-linux-builder-image: upstream branches pushed to
+      # the fork run upstream's build-linux-docker.yml, which would overwrite a same-named
+      # Debian 10 image with its Debian 8 one under the same ags4-<arch> tags.
       - name: Set image name
         run: |
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          echo "IMAGE_NAME=ghcr.io/$OWNER/ags-linux-builder-image" >> "$GITHUB_ENV"
+          echo "IMAGE_NAME=ghcr.io/$OWNER/ags-draconian-linux-builder-image" >> "$GITHUB_ENV"
 
       - name: Log in to GHCR
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 #v4

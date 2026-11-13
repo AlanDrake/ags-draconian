@@ -1007,7 +1007,7 @@ jobs:
         run: |
           TAG_NAME=${{ env.BASE_BRANCH }}-${{ matrix.platform.arch }}
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE="ghcr.io/$OWNER/ags-linux-builder-image:$TAG_NAME"
+          IMAGE="ghcr.io/$OWNER/ags-draconian-linux-builder-image:$TAG_NAME"
           if [ "${{matrix.platform.rpath}}" = "true" ]; then
             PREFIX=lib
           else
@@ -1104,7 +1104,7 @@ jobs:
         run: |
           TAG_NAME=${{ env.BASE_BRANCH }}-${{ matrix.platform.arch }}
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE="ghcr.io/$OWNER/ags-linux-builder-image:$TAG_NAME"
+          IMAGE="ghcr.io/$OWNER/ags-draconian-linux-builder-image:$TAG_NAME"
 
           # RelWithDebInfo is -O2 -g without LTO, as the Makefiles built these. A failed step fails the job.
           # The image's libraries, as debian/rules: the tools need none of them, but the configure step
