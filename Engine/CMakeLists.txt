@@ -254,6 +254,7 @@ target_sources(engine
     ac/viewframe.cpp
     ac/viewframe.h
     ac/viewport_script.cpp
+    ac/viewport_script.h
     ac/walkablearea.cpp
     ac/walkablearea.h
     ac/walkbehind.cpp

@@ -1700,6 +1700,9 @@
     <ClInclude Include="..\..\Engine\ac\video_script.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\viewport_script.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Engine\main\def_version.h">
       <Filter>Header Files\main</Filter>
     </ClInclude>

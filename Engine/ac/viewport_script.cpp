@@ -16,6 +16,8 @@
 //
 //=============================================================================
 
+#include "ac/viewport_script.h"
+
 #include "ac/draw.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptcamera.h"
