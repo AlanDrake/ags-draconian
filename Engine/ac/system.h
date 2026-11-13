@@ -72,3 +72,33 @@ bool GetEngineInteger(int &value, EngineValueID value_id, int index = 0);
 bool GetEngineString(AGS::Common::String &value, EngineValueID value_id, int index = 0);
 // Returns a engine value's description
 AGS::Common::String GetEngineValueName(EngineValueID value_id);
+
+// Script API: System::get_HasInputFocus
+bool System_GetHasInputFocus();
+
+// Script API: System::get_FPS
+int System_GetFPS();
+
+// Script API: System::get_LocaleName
+const char *System_GetLocaleName();
+
+// Script API: System::set_Windowed
+void System_SetWindowed(int windowed);
+
+// Script API: System::get_RenderAtScreenResolution
+int System_GetRenderAtScreenResolution();
+
+// Script API: System::set_RenderAtScreenResolution
+void System_SetRenderAtScreenResolution(int enable);
+
+// Script API: System::GetEngineInteger^2
+int System_GetEngineInteger(int value_id, int index);
+
+// Script API: System::GetEngineString^2
+const char *System_GetEngineString(int value_id, int index);
+
+// Script API: System::get_DisplayFPS
+bool System_GetDisplayFPS();
+
+// Script API: System::set_DisplayFPS
+void System_SetDisplayFPS(bool show_fps);
