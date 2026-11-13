@@ -98,3 +98,38 @@ void close_file_stream(int32_t fhandle, const char *operation_name);
 AGS::Common::Stream *get_file_stream(int32_t fhandle, const char *operation_name);
 // The same, but returns the stream's underlying IStreamBase.
 AGS::Common::IStreamBase *get_file_stream_iface(int32_t fhandle, const char *operation_name);
+
+struct ScriptDateTime;
+
+// Script API: File::GetFileTime^1
+ScriptDateTime *File_GetFileTime(const char *filename);
+
+// Script API: File::Copy^2
+int File_Copy(const char *old_name, const char *new_name);
+
+// Script API: File::Rename^2
+int File_Rename(const char *old_name, const char *new_name);
+
+// Script API: File::GetFiles^3
+void *File_GetFiles(const char *filemask, int file_sort, int sort_dir);
+
+// Script API: File::WriteFloat^1
+void File_WriteFloat(sc_File *file, float towrite);
+
+// Script API: File::WriteRawFloat^1
+void File_WriteRawFloat(sc_File *file, float towrite);
+
+// Script API: File::ReadFloat^0
+float File_ReadFloat(sc_File *file);
+
+// Script API: File::ReadRawFloat^0
+float File_ReadRawFloat(sc_File *file);
+
+// Script API: File::ReadRawBytes^3
+int File_ReadRawBytes(sc_File *file, void *arr_obj, int index, int count);
+
+// Script API: File::WriteRawBytes^3
+int File_WriteRawBytes(sc_File *file, void *arr_obj, int index, int count);
+
+// Script API: File::get_Path
+const char *File_GetPath(sc_File *file);
