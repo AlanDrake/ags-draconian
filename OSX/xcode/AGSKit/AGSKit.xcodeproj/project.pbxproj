@@ -881,6 +881,7 @@
 		AC6B33043E419DE1536513AA /* memory_inspect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75D11D73F002B02A7758CBCE /* memory_inspect.cpp */; };
 		ACEE0A901CFEBEE3B6B5D882 /* bdf.c in Sources */ = {isa = PBXBuildFile; fileRef = C9CBBD82677A2FD7325FCD4F /* bdf.c */; };
 		AE4C18096F720C5A7C7DFF11 /* utils_script.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EF61359C48373BE523FA2F37 /* utils_script.cpp */; };
+		AF56EDBE5821D7B9488AB3E6 /* inventory_item_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 63286838FA6DCBF3B1FA9147 /* inventory_item_api.cpp */; };
 		B11B14DA0DAB8B41B206A669 /* tra_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7A844FEA59C0776A4F450377 /* tra_file.cpp */; };
 		BB9D438DE236C03EC2945F38 /* ftpatent.c in Sources */ = {isa = PBXBuildFile; fileRef = 7CC59E0C2FBD6F9D59BB4A59 /* ftpatent.c */; };
 		BC2C293E09233F8B1E9B66AA /* audio_channel_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20BC6BAD8051658576AE008 /* audio_channel_api.cpp */; };
@@ -1773,6 +1774,7 @@
 		580CEEFC7CC2866BD52241C0 /* ftlzw.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftlzw.c; sourceTree = "<group>"; };
 		5E6FC94C102CB3EFA2B7966B /* type1cid.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = type1cid.c; sourceTree = "<group>"; };
 		60C60797B8FB10A4E7BBF32F /* aarot.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = aarot.c; sourceTree = "<group>"; };
+		63286838FA6DCBF3B1FA9147 /* inventory_item_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inventory_item_api.cpp; sourceTree = "<group>"; };
 		6540AC9011C790C7219E4A2A /* drawing_surface_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = drawing_surface_api.cpp; sourceTree = "<group>"; };
 		667F01794F89805239809766 /* ftbdf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftbdf.c; sourceTree = "<group>"; };
 		6B2503BFE11DEFF4E8364BD4 /* ftdebug.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftdebug.c; sourceTree = "<group>"; };
@@ -3614,6 +3616,7 @@
 				E3A98E6D51124DA9866E5329 /* gui_api.cpp */,
 				79F1D96EE84BF138CF11ABD2 /* gui_control_api.cpp */,
 				D6709585E1E045AD5956018E /* hotspot_api.cpp */,
+				63286838FA6DCBF3B1FA9147 /* inventory_item_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4658,6 +4661,7 @@
 				7C89AECE6A7C5B443738F7E3 /* gui_api.cpp in Sources */,
 				E8DCDEC5471B780F31CBEF49 /* gui_control_api.cpp in Sources */,
 				694B54758387AA31CC7B5163 /* hotspot_api.cpp in Sources */,
+				AF56EDBE5821D7B9488AB3E6 /* inventory_item_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
