@@ -702,6 +702,9 @@
     <ClCompile Include="..\..\Engine\game\script_api\region_api.cpp">
       <Filter>Source Files\game\script_api</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\game\script_api\room_api.cpp">
+      <Filter>Source Files\game\script_api</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\draw_software.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>

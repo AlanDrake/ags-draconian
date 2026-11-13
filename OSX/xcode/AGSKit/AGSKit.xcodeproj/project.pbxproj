@@ -889,6 +889,7 @@
 		9FD23522DBE456CF789FAD4D /* scriptjoystick.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6207D2C60F531932AE5F1DC /* scriptjoystick.cpp */; };
 		AC6B33043E419DE1536513AA /* memory_inspect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75D11D73F002B02A7758CBCE /* memory_inspect.cpp */; };
 		ACEE0A901CFEBEE3B6B5D882 /* bdf.c in Sources */ = {isa = PBXBuildFile; fileRef = C9CBBD82677A2FD7325FCD4F /* bdf.c */; };
+		AD2479DFE5A268FC9940CAFF /* room_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 525B3A19D504CB164E0A7B86 /* room_api.cpp */; };
 		AE4C18096F720C5A7C7DFF11 /* utils_script.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EF61359C48373BE523FA2F37 /* utils_script.cpp */; };
 		AF56EDBE5821D7B9488AB3E6 /* inventory_item_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 63286838FA6DCBF3B1FA9147 /* inventory_item_api.cpp */; };
 		B11B14DA0DAB8B41B206A669 /* tra_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7A844FEA59C0776A4F450377 /* tra_file.cpp */; };
@@ -1352,6 +1353,7 @@
 		521C569A1D1E5ADA00BD619E /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		521C569C1D1E5AE300BD619E /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		521C569E1D1E5AE900BD619E /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		525B3A19D504CB164E0A7B86 /* room_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = room_api.cpp; sourceTree = "<group>"; };
 		526F211C1D3B5C4800EF4E1F /* audiocliptype.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audiocliptype.cpp; sourceTree = "<group>"; };
 		526F211D1D3B5C4800EF4E1F /* audiocliptype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audiocliptype.h; sourceTree = "<group>"; };
 		526F211E1D3B5C4800EF4E1F /* characterinfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = characterinfo.h; sourceTree = "<group>"; };
@@ -3652,6 +3654,7 @@
 				A0CB5413B00E9D4CBD354E67 /* parser_api.cpp */,
 				51E1CF2E40A59235C72231C2 /* pathfinder_api.cpp */,
 				6691E2155F0DC1784B7BBD11 /* region_api.cpp */,
+				525B3A19D504CB164E0A7B86 /* room_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4708,6 +4711,7 @@
 				1B7A384A2C2FA7D73EB58D33 /* parser_api.cpp in Sources */,
 				E524CF849D9D07D61F7BE4F7 /* pathfinder_api.cpp in Sources */,
 				3BE07DDB601F26C9A35A13CA /* region_api.cpp in Sources */,
+				AD2479DFE5A268FC9940CAFF /* room_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
