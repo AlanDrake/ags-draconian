@@ -18,13 +18,13 @@
 #include "ac/dynobj/cc_walkablearea.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_walkablearea.h"
 #include "ac/object.h"
 #include "ac/properties.h"
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
+#include "debug/debug_log.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 #include "script/script_runtime.h"
@@ -326,3 +326,73 @@ bool Walkarea_SetTextProperty(ScriptWalkableArea *wa, const char *property, cons
 }
 
 #include "script/script_runtime.h"
+
+int GetScalingAt(int x, int y)
+{
+    int onarea = get_walkable_area_pixel(x, y);
+    if (onarea < 0)
+        return 100;
+
+    return get_area_scaling(onarea, y);
+}
+
+void SetAreaScaling(int area, int min, int max)
+{
+    if ((area < 0) || (area >= MAX_WALK_AREAS))
+        quit("!SetAreaScaling: invalid walkalbe area");
+
+    if (min > max)
+        quit("!SetAreaScaling: min > max");
+
+    if ((min < 5) || (max < 5) || (min > 200) || (max > 200))
+        quit("!SetAreaScaling: min and max must be in range 5-200");
+
+    // the values are stored differently
+    min -= 100;
+    max -= 100;
+
+    if (min == max)
+    {
+        thisroom.WalkAreas[area].ScalingFar = min;
+        thisroom.WalkAreas[area].ScalingNear = NOT_VECTOR_SCALED;
+    }
+    else
+    {
+        thisroom.WalkAreas[area].ScalingFar = min;
+        thisroom.WalkAreas[area].ScalingNear = max;
+    }
+}
+
+void RemoveWalkableArea(int areanum)
+{
+    if ((areanum < 1) || (areanum >= MAX_WALK_AREAS))
+        quitprintf("!RemoveWalkableArea: invalid area number specified (1-%d).", MAX_WALK_AREAS - 1);
+    play.walkable_areas_on[areanum] = 0;
+    redo_walkable_areas();
+    debug_script_log("Walkable area %d removed", areanum);
+}
+
+void RestoreWalkableArea(int areanum)
+{
+    if ((areanum < 1) || (areanum >= MAX_WALK_AREAS))
+        quitprintf("!RestoreWalkableArea: invalid area number specified (1-%d).", MAX_WALK_AREAS - 1);
+    play.walkable_areas_on[areanum] = 1;
+    redo_walkable_areas();
+    debug_script_log("Walkable area %d restored", areanum);
+}
+
+int GetWalkableAreaAtScreen(int x, int y)
+{
+    VpPoint vpt = play.ScreenToRoom(x, y);
+    if (vpt.second < 0)
+        return -1;
+    return GetWalkableAreaAtRoom(vpt.first.X, vpt.first.Y);
+}
+
+int GetWalkableAreaAtRoom(int x, int y)
+{
+    int area = get_walkable_area_pixel(x, y);
+    // IMPORTANT: disabled walkable areas are actually erased completely from the mask;
+    // see: RemoveWalkableArea() and RestoreWalkableArea().
+    return (area >= 0 && area < MAX_WALK_AREAS) ? area : 0;
+}

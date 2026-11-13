@@ -104,3 +104,16 @@ bool Walkarea_SetProperty(ScriptWalkableArea *wa, const char *property, int valu
 
 // Script API: WalkableArea::SetTextProperty^2
 bool Walkarea_SetTextProperty(ScriptWalkableArea *wa, const char *property, const char *value);
+
+int GetScalingAt(int x, int y);
+void SetAreaScaling(int area, int min, int max);
+void RemoveWalkableArea(int areanum);
+void RestoreWalkableArea(int areanum);
+// Gets walkable area at the given room coordinates;
+// if area is disabled, returns 0 (empty area)
+int GetWalkableAreaAtRoom(int x, int y);
+// Gets walkable area at the given screen coordinates
+// if area is disabled, returns 0 (empty area);
+// NOTE: if there's no room viewport under screen coordinates,
+// then returns -1 (no area)
+int GetWalkableAreaAtScreen(int x, int y);

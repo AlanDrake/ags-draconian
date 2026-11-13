@@ -638,8 +638,6 @@
 		526F273B1D3B5CC300EF4E1F /* global_translation.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24B81D3B5CC300EF4E1F /* global_translation.h */; };
 		526F273C1D3B5CC300EF4E1F /* global_video.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24B91D3B5CC300EF4E1F /* global_video.cpp */; };
 		526F273D1D3B5CC300EF4E1F /* global_video.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24BA1D3B5CC300EF4E1F /* global_video.h */; };
-		526F27421D3B5CC300EF4E1F /* global_walkablearea.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24BF1D3B5CC300EF4E1F /* global_walkablearea.cpp */; };
-		526F27431D3B5CC300EF4E1F /* global_walkablearea.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24C01D3B5CC300EF4E1F /* global_walkablearea.h */; };
 		526F27461D3B5CC300EF4E1F /* gui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24C31D3B5CC300EF4E1F /* gui.cpp */; };
 		526F27471D3B5CC300EF4E1F /* gui.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24C41D3B5CC300EF4E1F /* gui.h */; };
 		526F27481D3B5CC300EF4E1F /* guicontrol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24C51D3B5CC300EF4E1F /* guicontrol.cpp */; };
@@ -1590,8 +1588,6 @@
 		526F24B81D3B5CC300EF4E1F /* global_translation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_translation.h; sourceTree = "<group>"; };
 		526F24B91D3B5CC300EF4E1F /* global_video.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_video.cpp; sourceTree = "<group>"; };
 		526F24BA1D3B5CC300EF4E1F /* global_video.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_video.h; sourceTree = "<group>"; };
-		526F24BF1D3B5CC300EF4E1F /* global_walkablearea.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_walkablearea.cpp; sourceTree = "<group>"; };
-		526F24C01D3B5CC300EF4E1F /* global_walkablearea.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_walkablearea.h; sourceTree = "<group>"; };
 		526F24C31D3B5CC300EF4E1F /* gui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gui.cpp; sourceTree = "<group>"; };
 		526F24C41D3B5CC300EF4E1F /* gui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gui.h; sourceTree = "<group>"; };
 		526F24C51D3B5CC300EF4E1F /* guicontrol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = guicontrol.cpp; sourceTree = "<group>"; };
@@ -3084,8 +3080,6 @@
 				526F24B81D3B5CC300EF4E1F /* global_translation.h */,
 				526F24B91D3B5CC300EF4E1F /* global_video.cpp */,
 				526F24BA1D3B5CC300EF4E1F /* global_video.h */,
-				526F24BF1D3B5CC300EF4E1F /* global_walkablearea.cpp */,
-				526F24C01D3B5CC300EF4E1F /* global_walkablearea.h */,
 				526F24C31D3B5CC300EF4E1F /* gui.cpp */,
 				526F24C41D3B5CC300EF4E1F /* gui.h */,
 				526F24C51D3B5CC300EF4E1F /* guicontrol.cpp */,
@@ -3823,7 +3817,6 @@
 				526F28DB1D3B5CC300EF4E1F /* library_dummy.h in Headers */,
 				20E67DA328F1BDE000B95C00 /* alosxcfg.h in Headers */,
 				20402A732A227CE5001C7642 /* scriptgame.h in Headers */,
-				526F27431D3B5CC300EF4E1F /* global_walkablearea.h in Headers */,
 				20E684D128F20CC700B95C00 /* internal.h in Headers */,
 				526F230D1D3B5C4900EF4E1F /* theora.h in Headers */,
 				526F23101D3B5C4900EF4E1F /* codec.h in Headers */,
@@ -4539,7 +4532,6 @@
 				20E67D9728F1BDE000B95C00 /* vtable24.c in Sources */,
 				20402A712A227CE5001C7642 /* scriptmouse.cpp in Sources */,
 				20E310F02B9B4A77000D7C38 /* theora_player.cpp in Sources */,
-				526F27421D3B5CC300EF4E1F /* global_walkablearea.cpp in Sources */,
 				202609912E438B88001A87E5 /* ags_snowrain.cpp in Sources */,
 				20522A1D28E8F81C00589E91 /* stdio_compat.c in Sources */,
 				526F28091D3B5CC300EF4E1F /* dct64.c in Sources */,
