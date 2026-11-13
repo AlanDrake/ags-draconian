@@ -8,59 +8,18 @@ namespace AGS.Editor.Panes.Room
     [TestFixture]
     public class RoomLayerTreeTests
     {
-        private class FakeLayer : IRoomLayer
-        {
-            public FakeLayer(string name, string displayName, RoomAreaMaskType mask, bool supportVisibleItems,
-                params string[] itemIDs)
-            {
-                Name = name;
-                DisplayName = displayName;
-                MaskToDraw = mask;
-                SupportVisibleItems = supportVisibleItems;
-                DesignItems = new SortedDictionary<string, DesignTimeProperties>();
-                foreach (string id in itemIDs)
-                {
-                    DesignItems.Add(id, new DesignTimeProperties());
-                    ItemNames[id] = "Item " + id;
-                }
-            }
-
-            public string Name { get; }
-            public string DisplayName { get; }
-            public RoomAreaMaskType MaskToDraw { get; }
-            public bool SupportVisibleItems { get; }
-            public bool Visible { get; set; }
-            public bool Locked { get; set; }
-            public bool Modified { get; set; }
-            public SortedDictionary<string, DesignTimeProperties> DesignItems { get; }
-            public Dictionary<string, string> ItemNames { get; } = new Dictionary<string, string>();
-            public Dictionary<string, RoomLayerItemState> ItemStates { get; } = new Dictionary<string, RoomLayerItemState>();
-
-            public string GetItemName(string id)
-            {
-                string name;
-                return ItemNames.TryGetValue(id, out name) ? name : null;
-            }
-
-            public RoomLayerItemState GetItemState(string id)
-            {
-                RoomLayerItemState state;
-                return ItemStates.TryGetValue(id, out state) ? state : RoomLayerItemState.Normal;
-            }
-        }
-
-        private FakeLayer _objects;
-        private FakeLayer _hotspots;
-        private FakeLayer _walkBehinds;
+        private FakeRoomLayer _objects;
+        private FakeRoomLayer _hotspots;
+        private FakeRoomLayer _walkBehinds;
         private RoomLayerTree _tree;
 
         [SetUp]
         public void SetUp()
         {
-            _objects = new FakeLayer("Objects", "Objects", RoomAreaMaskType.None, true, "0000", "0001");
-            _hotspots = new FakeLayer("Hotspots", "Hotspots", RoomAreaMaskType.Hotspots, false,
+            _objects = new FakeRoomLayer("Objects", "Objects", RoomAreaMaskType.None, true, "0000", "0001");
+            _hotspots = new FakeRoomLayer("Hotspots", "Hotspots", RoomAreaMaskType.Hotspots, false,
                 "0000", "0001", "0002", "0003");
-            _walkBehinds = new FakeLayer("WalkBehinds", "Walk-behinds", RoomAreaMaskType.WalkBehinds, false,
+            _walkBehinds = new FakeRoomLayer("WalkBehinds", "Walk-behinds", RoomAreaMaskType.WalkBehinds, false,
                 "0000", "0001");
             _tree = new RoomLayerTree(new IRoomLayer[] { _objects, _hotspots, _walkBehinds });
         }
@@ -151,6 +110,17 @@ namespace AGS.Editor.Panes.Room
             Assert.That(_tree.FindNearest("Gone"), Is.SameAs(_tree.Root));
             Assert.That(_tree.FindNearest(null), Is.SameAs(_tree.Root));
             Assert.That(_tree.Find(null), Is.Null);
+        }
+
+        [Test]
+        public void FindItem()
+        {
+            _hotspots.ItemStates["0003"] = RoomLayerItemState.Unused;
+            _tree.Rebuild();
+            Assert.That(_tree.FindItem(_hotspots, "0001").Key, Is.EqualTo("Hotspots/0001"));
+            Assert.That(_tree.FindItem(_hotspots, "0003").Key, Is.EqualTo("Hotspots/0003"), "in the unused group");
+            Assert.That(_tree.FindItem(_objects, "0003"), Is.Null);
+            Assert.That(_tree.FindItem(_objects, null), Is.Null);
         }
 
         [Test]

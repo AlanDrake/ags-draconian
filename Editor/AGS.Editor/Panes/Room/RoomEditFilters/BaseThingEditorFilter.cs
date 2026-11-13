@@ -141,6 +141,11 @@ namespace AGS.Editor
             return null;
         }
 
+        public RoomLayerItemState GetItemState(string id)
+        {
+            return RoomLayerItemState.Normal;
+        }
+
         public void SelectItem(string id)
         {
             if (id != null)

@@ -107,7 +107,7 @@ namespace AGS.Editor.Components
                 string selpath = selectedObject.Attributes[XML_SELITEM_ATTRIB_PATH].InnerText;
                 if (!string.IsNullOrEmpty(selpath))
                 {
-                    editor.TrySelectNodeUsingDesignIDPath(selpath.Split('/'));
+                    editor.TrySelectNodeByPath(selpath);
                 }
             }
             node = node.SelectSingleNode(XML_ROOM_LAYERS_NODE);
@@ -197,16 +197,8 @@ namespace AGS.Editor.Components
             // so we do this part by hand for now, trying to be compliant with SerializeUtils.
             writer.WriteStartElement(XML_ROOM_NODE);
 
-            var node = editor.CurrentNode as AGS.Editor.Panes.Room.RoomEditNode;
-            string nodepath = "";
-            while (node != null)
-            {
-                string id = string.IsNullOrEmpty(node.RoomItemID) ? node.UniqueID.ToString() : node.RoomItemID;
-                nodepath = id + (string.IsNullOrEmpty(nodepath) ? "" : ("/" + nodepath));
-                node = node.Parent as AGS.Editor.Panes.Room.RoomEditNode;
-            }
             writer.WriteStartElement(XML_ROOM_SELECTION);
-            writer.WriteAttributeString(XML_SELITEM_ATTRIB_PATH, nodepath);
+            writer.WriteAttributeString(XML_SELITEM_ATTRIB_PATH, editor.SelectedNodePath);
             writer.WriteEndElement(); // Layer node
 
             writer.WriteStartElement(XML_ROOM_LAYERS_NODE);

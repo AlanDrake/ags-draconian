@@ -40,6 +40,8 @@ namespace AGS.Editor
         {
             IToXml item;
             IToXml fresh;
+            // A new hotspot or region subscribes its Interactions to the global schema
+            Interactions freshInteractions = null;
             switch (mask)
             {
                 case RoomAreaMaskType.Hotspots:
@@ -53,6 +55,7 @@ namespace AGS.Editor
                         freshHotspot.DisplayName = hotspot.DisplayName;
                     item = hotspot;
                     fresh = freshHotspot;
+                    freshInteractions = freshHotspot.Interactions;
                     break;
                 case RoomAreaMaskType.WalkableAreas:
                     item = room.WalkableAreas[area];
@@ -64,12 +67,25 @@ namespace AGS.Editor
                     break;
                 case RoomAreaMaskType.Regions:
                     item = room.Regions[area];
-                    fresh = new RoomRegion(room) { ID = area };
+                    RoomRegion freshRegion = new RoomRegion(room) { ID = area };
+                    fresh = freshRegion;
+#pragma warning disable 0612 // obsolete for scripts, but a region still subscribes through it
+                    freshInteractions = freshRegion.Interactions;
+#pragma warning restore 0612
                     break;
                 default:
                     throw new ArgumentException($"Illegal mask type, mask {mask} has no areas");
             }
-            return item.ToXmlDocument().OuterXml == fresh.ToXmlDocument().OuterXml;
+            try
+            {
+                return item.ToXmlDocument().OuterXml == fresh.ToXmlDocument().OuterXml;
+            }
+            finally
+            {
+                // Unsubscribe, or the schema would keep every area made here
+                if (freshInteractions != null)
+                    freshInteractions.Schema = null;
+            }
         }
 
         public static string LegacyHotspotScriptName(int area)

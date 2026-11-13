@@ -406,7 +406,7 @@ namespace AGS.Editor
             if (_selectedObject != null &&
                 OnSelectedItemChanged != null)
             {
-                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetNavbarItemTitle(_selectedObject)));
+                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetItemID(_selectedObject)));
             }
             ClearMovingState();
         }

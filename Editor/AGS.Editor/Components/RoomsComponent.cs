@@ -1597,6 +1597,7 @@ namespace AGS.Editor.Components
                     return;
             }
             ((IRoomController)this).AdjustMaskResolution(newValue);
+            (_roomSettings?.Control as RoomSettingsEditor)?.MasksChanged();
         }
 
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
@@ -2575,6 +2576,7 @@ namespace AGS.Editor.Components
 
             SetMaskDirect(_loadedRoom, mask, LoadMask(_loadedRoom, mask), false);
             ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
+            ((RoomSettingsEditor)_roomSettings.Control).MasksChanged();
             _loadedRoom.Modified = true;
         }
 

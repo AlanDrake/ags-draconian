@@ -155,6 +155,14 @@ namespace AGS.Editor.Panes.Room
         }
 
         /// <summary>
+        /// Finds the node of an item of a layer, or returns null.
+        /// </summary>
+        public RoomLayerNode FindItem(IRoomLayer layer, string itemID)
+        {
+            return itemID == null ? null : Find(MakeKey(layer, itemID));
+        }
+
+        /// <summary>
         /// Finds the node with this key; if it is gone, its layer's node; if that is gone too,
         /// the root. Used to keep the selection over a rebuild.
         /// </summary>

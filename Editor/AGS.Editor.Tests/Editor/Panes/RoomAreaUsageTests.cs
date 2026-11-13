@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using AGS.Types;
 using NUnit.Framework;
 
@@ -129,6 +130,27 @@ namespace AGS.Editor
             Assert.That(RoomAreaUsage.HasDefaultProperties(room, RoomAreaMaskType.WalkBehinds, 2), Is.False);
             Assert.That(RoomAreaUsage.HasDefaultProperties(room, RoomAreaMaskType.Regions, 3), Is.False);
             Assert.That(RoomAreaUsage.HasDefaultProperties(room, RoomAreaMaskType.Regions, 4), Is.False);
+        }
+
+        [Test]
+        public void HasDefaultPropertiesLeavesNoSubscriberOnTheInteractionSchema()
+        {
+            Room room = new Room(1);
+            FieldInfo changed = typeof(InteractionSchema).GetField("Changed",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(changed, Is.Not.Null, "the event's backing field");
+            Func<int> subscribers = () =>
+            {
+                Delegate handlers = (Delegate)changed.GetValue(InteractionSchema.Instance);
+                return handlers == null ? 0 : handlers.GetInvocationList().Length;
+            };
+            int before = subscribers();
+            foreach (RoomAreaMaskType mask in AreaMasks)
+            {
+                for (int area = 0; area < Room.GetMaskMaxColor(mask); ++area)
+                    RoomAreaUsage.HasDefaultProperties(room, mask, area);
+            }
+            Assert.That(subscribers(), Is.EqualTo(before));
         }
 
         [Test]

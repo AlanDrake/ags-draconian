@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
@@ -49,6 +50,8 @@ namespace AGS.Editor
         private int _mouseDownX, _mouseDownY;
         private int _currentMouseX, _currentMouseY;
         private Bitmap _undoBufferMask;
+        // Which area numbers have pixels in the mask; null until counted
+        private bool[] _drawnAreas;
 
         // FIXME: why these are "static"? investigate, and change what's possible to to regular (except icons?)
         // Active draw mode, may be modified by temporary states or actions
@@ -116,10 +119,10 @@ namespace AGS.Editor
             get;
         }
 
-// currently we don't raise these events at BaseAreasEditorFilter but we do raise for specific layers.
-// this quiets the "event is never used" warning for both events below
-#pragma warning disable 67
         public event EventHandler OnItemsChanged;
+// currently we don't raise this event at BaseAreasEditorFilter but we do raise for specific layers.
+// this quiets the "event is never used" warning
+#pragma warning disable 67
         public event EventHandler<RoomFilterContextMenuArgs> OnContextMenu;
 #pragma warning restore 67
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
@@ -134,7 +137,7 @@ namespace AGS.Editor
                 _selectedArea = value;
                 if (OnSelectedItemChanged != null)
                 {
-                    OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetValidItemName(_selectedArea)));
+                    OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetItemID(_selectedArea)));
                 }
             }
 		}
@@ -289,6 +292,7 @@ namespace AGS.Editor
                 FillAreaOntoMask(x, y);
                 _room.Modified = true;
                 UpdateUndoButtonEnabledState();
+                UpdateDrawnAreas();
             }
             else if (drawMode == AreaDrawMode.Select)
             {
@@ -338,7 +342,14 @@ namespace AGS.Editor
                 _panel.Invalidate();
                 UpdateUndoButtonEnabledState();
             }
-            else return false;
+            else
+            {
+                // A freehand stroke drew on every mouse move: count once, at its end
+                if (drawMode == AreaDrawMode.Freehand)
+                    UpdateDrawnAreas();
+                return false;
+            }
+            UpdateDrawnAreas();
             return true;
         }
 
@@ -465,6 +476,7 @@ namespace AGS.Editor
                 UndoBufferMask = null;
 				_panel.Invalidate();
 				UpdateUndoButtonEnabledState();
+                UpdateDrawnAreas();
 			}
 			else if (command == IMPORT_MASK_COMMAND)
 			{
@@ -545,6 +557,7 @@ namespace AGS.Editor
 
                 _panel.Invalidate();
                 UpdateUndoButtonEnabledState();
+                UpdateDrawnAreas();
             }
             catch (Exception ex)
             {
@@ -638,6 +651,51 @@ namespace AGS.Editor
             if (id != null && RoomItemRefs.TryGetValue(id, out area))
                 return GetValidItemName(area);
             return null;
+        }
+
+        public RoomLayerItemState GetItemState(string id)
+        {
+            int area;
+            if (id == null || !RoomItemRefs.TryGetValue(id, out area))
+                return RoomLayerItemState.Normal;
+            if (_drawnAreas == null)
+                _drawnAreas = FindDrawnAreas();
+            return RoomAreaUsage.GetItemState(area, _drawnAreas[area],
+                RoomAreaUsage.HasDefaultProperties(_room, MaskToDraw, area));
+        }
+
+        /// <summary>
+        /// Forgets which areas are drawn, after the mask was replaced outside this filter;
+        /// they are counted again when the layer tree asks. Raises no event: the caller
+        /// refreshes the tree.
+        /// </summary>
+        public void ForgetDrawnAreas()
+        {
+            _drawnAreas = null;
+        }
+
+        /// <summary>
+        /// Counts the drawn areas after this filter changed the mask, and raises
+        /// OnItemsChanged if an area became drawn or empty.
+        /// </summary>
+        private void UpdateDrawnAreas()
+        {
+            bool[] drawn = FindDrawnAreas();
+            bool changed = _drawnAreas == null || !drawn.SequenceEqual(_drawnAreas);
+            _drawnAreas = drawn;
+            if (changed)
+                OnItemsChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private bool[] FindDrawnAreas()
+        {
+            using (Bitmap mask = _roomController.GetMask(MaskToDraw))
+            {
+                // The editor keeps masks as 8-bit images; anything else lists every area
+                if (mask.PixelFormat != PixelFormat.Format8bppIndexed)
+                    return Enumerable.Repeat(true, RoomAreaUsage.MASK_VALUES).ToArray();
+                return RoomAreaUsage.FindDrawnAreas(mask.GetRawData(), mask.Width, mask.Height, mask.GetStride());
+            }
         }
 
         public void SelectItem(string id)

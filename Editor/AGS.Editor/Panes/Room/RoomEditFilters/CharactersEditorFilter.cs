@@ -393,7 +393,7 @@ namespace AGS.Editor
             _selectedObject = character;
             if (OnSelectedItemChanged != null)
             {
-                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetNavbarItemTitle(character)));
+                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetItemID(character)));
             }
             ClearMovingState();
         }
