@@ -503,6 +503,7 @@
     <ClCompile Include="..\..\Engine\game\script_api\string_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\system_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\text_box_api.cpp" />
+    <ClCompile Include="..\..\Engine\game\script_api\touch_api.cpp" />
     <ClCompile Include="..\..\Engine\game\viewport.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dogl.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dsw.cpp" />
