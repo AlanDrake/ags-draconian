@@ -364,3 +364,8 @@ extern int displayed_room;
 extern int frames_per_second; // fixed game fps, set by script
 // Pause nesting level, above 0 while the game is paused.
 extern int game_paused;
+
+struct CCAudioClip;
+
+// Used by the script bindings in game/script_api/audio_channel_api.cpp
+extern CCAudioClip ccDynamicAudioClip;

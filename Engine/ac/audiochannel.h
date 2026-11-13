@@ -35,3 +35,21 @@ void AudioChannel_Stop(ScriptAudioChannel *channel);
 void AudioChannel_Seek(ScriptAudioChannel *channel, int newPosition);
 void AudioChannel_SeekMs(ScriptAudioChannel *channel, int newPosition);
 void AudioChannel_SetRoomLocation(ScriptAudioChannel *channel, int xPos, int yPos, int maxDist);
+
+// Script API: AudioChannel::get_IsPaused
+bool AudioChannel_GetIsPaused(ScriptAudioChannel *channel);
+
+// Script API: AudioChannel::get_Speed
+int AudioChannel_GetSpeed(ScriptAudioChannel *channel);
+
+// Script API: AudioChannel::set_Speed, AudioChannel::SetSpeed^1
+void AudioChannel_SetSpeed(ScriptAudioChannel *channel, int new_speed);
+
+// Script API: AudioChannel::Pause^0
+void AudioChannel_Pause(ScriptAudioChannel *channel);
+
+// Script API: AudioChannel::Resume^0
+void AudioChannel_Resume(ScriptAudioChannel *channel);
+
+// Script API: AudioChannel::SetRoomLocation^2
+void AudioChannel_SetRoomLocation2(ScriptAudioChannel *channel, int xPos, int yPos);
