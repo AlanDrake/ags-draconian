@@ -489,6 +489,7 @@
     <ClCompile Include="..\..\Engine\game\script_api\list_box_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\math_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\mouse_api.cpp" />
+    <ClCompile Include="..\..\Engine\game\script_api\object_api.cpp" />
     <ClCompile Include="..\..\Engine\game\viewport.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dogl.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dsw.cpp" />
