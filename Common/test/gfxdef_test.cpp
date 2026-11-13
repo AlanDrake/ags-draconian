@@ -28,10 +28,11 @@ const int kZooms[] = {50, 60, 73, 75, 85, 100, 125, 150, 200, 300}; // percents
 const int kPos = 100;                                               // the sprite's position on the axis
 
 // Samples one axis of a sprite as a GPU does with nearest filtering: for each pixel whose centre lies in the
-// quad, the texel of the original image (flipped back); counts the pixel centres within 1e-3 of a texel edge
+// quad, the texel of the original image (flipped back); counts the pixel centres within 1e-3 of a texel edge.
+// Uses the rule of characters and room objects, the sprites drawn at an exact zoom
 std::map<int, int> SampleSprite(int src_len, int zoom, float origin, bool flipped, int &centres_on_edges)
 {
-    const float edge = GetSpriteQuadEdge(kPos, src_len, zoom, 100, origin, flipped);
+    const float edge = GetSpriteQuadEdge(kPos, src_len, zoom, 100, origin, flipped, kOriginRule_MirrorAround);
     const double scale = zoom / 100.0;
     std::map<int, int> texels;
     centres_on_edges = 0;
@@ -51,13 +52,14 @@ std::map<int, int> SampleSprite(int src_len, int zoom, float origin, bool flippe
 // The origin texel as an index into the original image
 int OriginTexel(int src_len, float origin, bool flipped)
 {
-    const int t = GetSpriteOriginTexel(src_len, origin, flipped);
+    const int t = GetSpriteOriginTexel(src_len, origin, flipped, kOriginRule_MirrorAround);
     return flipped ? (src_len - 1 - t) : t;
 }
 
 } // namespace
 
-// Unscaled and unflipped, sprites land where the engine has always put them
+// Unscaled, sprites land where the engine has always put them (the origin rounded half up, the same quad flipped
+// or not); with kOriginRule_MirrorAround, an unflipped one whose origin falls between two texels takes the first
 TEST(SpritePlacement, UnscaledAsBefore)
 {
     for (int len = 1; len <= 64; ++len)
@@ -65,11 +67,20 @@ TEST(SpritePlacement, UnscaledAsBefore)
         for (float origin : {0.f, 0.25f, 0.5f, 1.f})
         {
             const float before = kPos - std::roundf((len - 1) * origin);
-            EXPECT_EQ(GetSpriteQuadEdge(kPos, len, 1, 1, origin, false), before) << len << " " << origin;
-            EXPECT_EQ(GetSpriteQuadEdge(kPos, len, 100, 100, origin, false), before) << len << " " << origin;
-            // flipped: the same, except where the origin falls between two texels, which now mirrors
             const bool between = std::fabs((len - 1) * origin - std::floor((len - 1) * origin) - 0.5f) < 1e-6f;
-            EXPECT_EQ(GetSpriteQuadEdge(kPos, len, 1, 1, origin, true), between ? before + 1.f : before)
+            for (bool flipped : {false, true})
+            {
+                EXPECT_EQ(GetSpriteQuadEdge(kPos, len, 1, 1, origin, flipped, kOriginRule_Classic), before)
+                    << len << " " << origin << " " << flipped;
+                EXPECT_EQ(GetSpriteQuadEdge(kPos, len, 100, 100, origin, flipped, kOriginRule_Classic), before)
+                    << len << " " << origin << " " << flipped;
+            }
+            const float plain = between ? before + 1.f : before;
+            EXPECT_EQ(GetSpriteQuadEdge(kPos, len, 1, 1, origin, false, kOriginRule_MirrorAround), plain)
+                << len << " " << origin;
+            EXPECT_EQ(GetSpriteQuadEdge(kPos, len, 100, 100, origin, false, kOriginRule_MirrorAround), plain)
+                << len << " " << origin;
+            EXPECT_EQ(GetSpriteQuadEdge(kPos, len, 1, 1, origin, true, kOriginRule_MirrorAround), before)
                 << len << " " << origin;
         }
     }

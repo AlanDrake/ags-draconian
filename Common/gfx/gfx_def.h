@@ -36,6 +36,18 @@ enum GraphicFlip
     kFlip_Both = (kFlip_Horizontal | kFlip_Vertical) // mirror over diagonal
 };
 
+// Which texel of a sprite is drawn on its position when the origin falls between two texels
+// (a centred origin on an even size); see GetSpriteOriginTexel in gfx/graphicspace.h
+enum SpriteOriginRule
+{
+    // the second of the two; a flipped sprite keeps the same quad and is mirrored inside it,
+    // as AGS has always placed sprites (overlays, GUIs and the rest)
+    kOriginRule_Classic = 0,
+    // the first of the two; a flipped sprite turns around that same texel of its image, so that
+    // a loop and its mirrored copy line up (characters and room objects)
+    kOriginRule_MirrorAround
+};
+
 // Blend modes for object sprites
 // This matches the blend modes in script API
 enum BlendMode

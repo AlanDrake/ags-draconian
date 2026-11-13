@@ -41,7 +41,7 @@ void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *ch)
                        Size(width, height),         // destination size (scaled)
                        // real graphical aabb (maybe with extra offsets)
                        RectWH((eff_offset.X + frame_xoff), (-ch->z + eff_offset.Y + frame_yoff), spr_width, spr_height),
-                       rotation, pivot, pivot_offset, (flip & kFlip_Horizontal) != 0, (flip & kFlip_Vertical) != 0);
+                       rotation, pivot, pivot_offset, kOriginRule_MirrorAround, flip);
 }
 
 void CharacterExtras::SetTurning(bool on, bool ccw, int turn_steps)

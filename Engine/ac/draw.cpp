@@ -2211,6 +2211,8 @@ void prepare_and_add_object_gfx(const ObjectCache &objsav, ObjTexture &actsp, bo
         actsp.Ddb->SetStretch(scale_size.Width, scale_size.Height);
         // draw at the exact zoom, so that frames of different sizes keep their pixels around the origin
         actsp.Ddb->SetScaleRatio(objsav.zoom, 100);
+        // a loop and its mirrored copy turn around the same texel (as CharacterExtras and RoomObject place them)
+        actsp.Ddb->SetOriginRule(kOriginRule_MirrorAround);
         actsp.Ddb->SetRotation(objsav.rotation);
         actsp.Ddb->SetPivot(objsav.pivotx, objsav.pivoty);
         actsp.Ddb->SetFlip(objsav.flip);

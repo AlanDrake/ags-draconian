@@ -35,15 +35,15 @@ void BaseDDB::GetQuad(int x, int y, float &left, float &top, float &width, float
     {
         width = static_cast<float>(_size.Width * _scaleNum) / static_cast<float>(_scaleDen);
         height = static_cast<float>(_size.Height * _scaleNum) / static_cast<float>(_scaleDen);
-        left = GetSpriteQuadEdge(x, _size.Width, _scaleNum, _scaleDen, _origin.X, flip_x);
-        top = GetSpriteQuadEdge(y, _size.Height, _scaleNum, _scaleDen, _origin.Y, flip_y);
+        left = GetSpriteQuadEdge(x, _size.Width, _scaleNum, _scaleDen, _origin.X, flip_x, _originRule);
+        top = GetSpriteQuadEdge(y, _size.Height, _scaleNum, _scaleDen, _origin.Y, flip_y, _originRule);
     }
     else
     {
         width = static_cast<float>(_scaledSize.Width);
         height = static_cast<float>(_scaledSize.Height);
-        left = static_cast<float>(x - GetSpriteOriginTexel(_scaledSize.Width, _origin.X, flip_x));
-        top = static_cast<float>(y - GetSpriteOriginTexel(_scaledSize.Height, _origin.Y, flip_y));
+        left = static_cast<float>(x - GetSpriteOriginTexel(_scaledSize.Width, _origin.X, flip_x, _originRule));
+        top = static_cast<float>(y - GetSpriteOriginTexel(_scaledSize.Height, _origin.Y, flip_y, _originRule));
     }
 }
 

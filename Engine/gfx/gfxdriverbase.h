@@ -253,6 +253,7 @@ public:
         _scaleNum = (num > 0 && den > 0) ? num : 0;
         _scaleDen = (num > 0 && den > 0) ? den : 0;
     }
+    void SetOriginRule(Common::SpriteOriginRule rule) override { _originRule = rule; }
     Common::GraphicFlip GetFlip() const override { return _flip; }
     void SetFlip(Common::GraphicFlip flip) override { _flip = flip; }
     // Rotation input is in degrees clockwise, but the implementation may store it in radians internally
@@ -307,6 +308,7 @@ protected:
     Size _scaledSize;
     int _scaleNum = 0; // exact scale ratio, 0 if none (see SetScaleRatio)
     int _scaleDen = 0;
+    Common::SpriteOriginRule _originRule = Common::kOriginRule_Classic;
     Common::GraphicFlip _flip = Common::kFlip_None;
     float _rotation = 0.f; // either in degrees or radians, depending on impl
     Pointf _pivot = Pointf(.5f, .5f);

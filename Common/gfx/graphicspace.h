@@ -29,6 +29,7 @@
 #include <numeric>
 #include <vector>
 
+#include "gfx/gfx_def.h"
 #include "util/geometry.h"
 #include "util/matrix.h"
 
@@ -37,16 +38,20 @@ namespace AGS
 namespace Common
 {
 
-// The texel of a sprite src_len texels long that a relative origin [0;1] picks on one axis:
-// (src_len - 1) * origin, rounded half away from zero, as the engine has always placed sprites.
-// A flipped sprite picks the mirror of the texel that the mirrored origin picks, so that an image
-// and its mirror turn around the same texel. Returns the index in the image as drawn (flipped or not).
-inline int GetSpriteOriginTexel(int src_len, float origin, bool flipped)
+// The texel of a sprite src_len texels long that a relative origin [0;1] picks on one axis, as an
+// index in the image as drawn (flipped or not): (src_len - 1) * origin, rounded by the rule.
+// kOriginRule_Classic rounds half up, whatever the flip. kOriginRule_MirrorAround rounds half down,
+// and a flipped sprite picks the mirror of the texel that the mirrored origin picks, so that an
+// image and its mirror turn around the same texel of the image.
+inline int GetSpriteOriginTexel(int src_len, float origin, bool flipped, SpriteOriginRule rule)
 {
     const float last = static_cast<float>(src_len - 1);
-    if (!flipped)
+    if (rule == kOriginRule_Classic)
         return static_cast<int>(std::roundf(last * origin));
-    return (src_len - 1) - static_cast<int>(std::roundf(last * (1.f - origin)));
+    const auto round_half_down = [](float v) { return static_cast<int>(std::ceil(v - 0.5f)); };
+    if (!flipped)
+        return round_half_down(last * origin);
+    return (src_len - 1) - round_half_down(last * (1.f - origin));
 }
 
 // The first edge (left or top) on one axis of the quad of a sprite src_len texels long, drawn at the
@@ -58,7 +63,8 @@ inline int GetSpriteOriginTexel(int src_len, float origin, bool flipped)
 // If that would put texel edges on pixel centres, where the GPU's rounding picks the pixel, the
 // quad moves by half the step of the edges' grid (1 / 2den for the reduced ratio), towards keeping
 // the origin texel over pixel pos.
-inline float GetSpriteQuadEdge(int pos, int src_len, int scale_num, int scale_den, float origin, bool flipped)
+inline float GetSpriteQuadEdge(int pos, int src_len, int scale_num, int scale_den, float origin, bool flipped,
+                               SpriteOriginRule rule)
 {
     const int den = scale_den / std::gcd(scale_num, scale_den);
     const float scale = static_cast<float>(scale_num) / static_cast<float>(scale_den);
@@ -70,7 +76,8 @@ inline float GetSpriteQuadEdge(int pos, int src_len, int scale_num, int scale_de
         const auto covers_pos = [scale](float at) { return (at <= 0.5f) && (0.5f < at + scale); };
         phase = (covers_pos(phase + step) || !covers_pos(phase - step)) ? phase + step : phase - step;
     }
-    return static_cast<float>(pos) + phase - static_cast<float>(GetSpriteOriginTexel(src_len, origin, flipped)) * scale;
+    return static_cast<float>(pos) + phase -
+           static_cast<float>(GetSpriteOriginTexel(src_len, origin, flipped, rule)) * scale;
 }
 
 // GraphicSpace provides information about object's graphic location and basic shape on screen;
@@ -99,17 +106,18 @@ public:
     // rot      - rotation, clockwise, in degrees
     // pivot    - pivot of rotation, in *relative* position (center is default)
     // pivot_off - extra pivot offset, in local coordinates (zero is default)
-    // flip_x,flip_y - the image is drawn mirrored on that axis, which moves it by a pixel when the
-    //          origin falls between two pixels (GetSpriteOriginTexel), as the renderers draw it
+    // rule, flip - which texel the origin puts on the position (GetSpriteOriginTexel), as the
+    //          renderers draw the sprite; the flip only matters to kOriginRule_MirrorAround
     GraphicSpace(const int ox, const int oy, const Pointf &origin, const Size &src_size, const Size &dst_size,
                  const Rect &g_aabb, const float rot, const Pointf pivot = Pointf(.5f, .5f),
-                 const Point pivot_off = Point(), const bool flip_x = false, const bool flip_y = false)
+                 const Point pivot_off = Point(), const SpriteOriginRule rule = kOriginRule_Classic,
+                 const GraphicFlip flip = kFlip_None)
     {
         const int src_w = src_size.Width;
         const int src_h = src_size.Height;
         const float sx = src_w != 0 ? static_cast<float>(dst_size.Width) / src_w : 1.f;
         const float sy = src_h != 0 ? static_cast<float>(dst_size.Height) / src_h : 1.f;
-        Init(ox, oy, origin, src_size, dst_size, g_aabb, sx, sy, rot, pivot, pivot_off, flip_x, flip_y);
+        Init(ox, oy, origin, src_size, dst_size, g_aabb, sx, sy, rot, pivot, pivot_off, rule, flip);
     }
 
     // ox,oy    - position of the object's origin in world coordinates
@@ -128,7 +136,7 @@ public:
     {
         Init(ox, oy, origin, src_size,
              Size(static_cast<int>(src_size.Width * sx), static_cast<int>(src_size.Height * sy)), g_aabb, sx, sy, rot,
-             pivot, pivot_off, false, false);
+             pivot, pivot_off, kOriginRule_Classic, kFlip_None);
     }
 
     // Get position of the top-left corner of this object in the world coordinates;
@@ -176,17 +184,18 @@ public:
 private:
     void Init(const int ox, const int oy, const Pointf &origin, const Size &src_size, const Size &dst_size,
               const Rect &g_aabb, const float sx, const float sy, const float rot, const Pointf pivot,
-              const Point pivot_off, const bool flip_x, const bool flip_y)
+              const Point pivot_off, const SpriteOriginRule rule, const GraphicFlip flip)
     {
-        // a mirrored image whose origin falls between two pixels is placed by the other one
+        // the corner below lands where the classic rule puts it; move it to the texel that the
+        // renderers put on the origin with this rule (GetSpriteOriginTexel), which may be the other one
         const int dst_w = std::abs(dst_size.Width);
         const int dst_h = std::abs(dst_size.Height);
-        const int flip_off_x =
-            flip_x ? GetSpriteOriginTexel(dst_w, origin.X, false) - GetSpriteOriginTexel(dst_w, origin.X, true) : 0;
-        const int flip_off_y =
-            flip_y ? GetSpriteOriginTexel(dst_h, origin.Y, false) - GetSpriteOriginTexel(dst_h, origin.Y, true) : 0;
-        const float world_x = static_cast<float>(ox) - (dst_w - 1) * origin.X + flip_off_x;
-        const float world_y = static_cast<float>(oy) - (dst_h - 1) * origin.Y + flip_off_y;
+        const int off_x = GetSpriteOriginTexel(dst_w, origin.X, false, kOriginRule_Classic) -
+                          GetSpriteOriginTexel(dst_w, origin.X, (flip & kFlip_Horizontal) != 0, rule);
+        const int off_y = GetSpriteOriginTexel(dst_h, origin.Y, false, kOriginRule_Classic) -
+                          GetSpriteOriginTexel(dst_h, origin.Y, (flip & kFlip_Vertical) != 0, rule);
+        const float world_x = static_cast<float>(ox) - (dst_w - 1) * origin.X + off_x;
+        const float world_y = static_cast<float>(oy) - (dst_h - 1) * origin.Y + off_y;
         const float sx_inv = std::fabs(sx) < std::numeric_limits<float>::epsilon() ? 0.f : 1.f / sx;
         const float sy_inv = std::fabs(sy) < std::numeric_limits<float>::epsilon() ? 0.f : 1.f / sy;
         // Pivot is relative to the local coordinate center;

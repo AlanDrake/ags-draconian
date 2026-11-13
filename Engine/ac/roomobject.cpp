@@ -423,5 +423,5 @@ void RoomObject::UpdateGraphicSpace()
                        Size(width, height),         // destination size (scaled)
                        // real graphical aabb (maybe with extra offsets)
                        RectWH(frame_xoff + spr_offset.X, frame_yoff + spr_offset.Y, spr_width, spr_height), rotation,
-                       pivot, pivot_offset, (flip & kFlip_Horizontal) != 0, (flip & kFlip_Vertical) != 0);
+                       pivot, pivot_offset, kOriginRule_MirrorAround, flip);
 }

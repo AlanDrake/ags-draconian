@@ -104,6 +104,9 @@ public:
     // (Common::GetSpriteQuadEdge), which keeps differently sized animation frames from drifting;
     // without it, at the whole size given to SetStretch.
     virtual void SetScaleRatio(int num, int den) = 0;
+    // Sets which texel goes on the position when the origin falls between two (Common::SpriteOriginRule;
+    // kOriginRule_Classic by default)
+    virtual void SetOriginRule(Common::SpriteOriginRule rule) = 0;
     virtual Common::GraphicFlip GetFlip() const = 0;
     virtual void SetFlip(Common::GraphicFlip flip) = 0;
     virtual float GetRotation() const = 0;        // in degrees
