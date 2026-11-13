@@ -904,6 +904,7 @@
 		E7680CB92F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E7680CB82F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.cpp */; };
 		E7680CBA2F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.h in Headers */ = {isa = PBXBuildFile; fileRef = E7680CB72F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.h */; };
 		E7680CBC2F09E88E00F864E2 /* time_util.h in Headers */ = {isa = PBXBuildFile; fileRef = E7680CBB2F09E88E00F864E2 /* time_util.h */; };
+		E8DCDEC5471B780F31CBEF49 /* gui_control_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 79F1D96EE84BF138CF11ABD2 /* gui_control_api.cpp */; };
 		EC629E15BB07B2CCED7CAE2A /* scriptvideoplayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DABAD6F70CD06A894353A5D9 /* scriptvideoplayer.cpp */; };
 		EE3ED2A5789E246FD61AE498 /* ftinit.c in Sources */ = {isa = PBXBuildFile; fileRef = 76E2E0D000E5710DFA2AE586 /* ftinit.c */; };
 		EFC70E7CD3333A7812797FE1 /* dialog_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6B93928C083C67DAB8313950 /* dialog_api.cpp */; };
@@ -1783,6 +1784,7 @@
 		75D11D73F002B02A7758CBCE /* memory_inspect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = memory_inspect.cpp; sourceTree = "<group>"; };
 		76E2E0D000E5710DFA2AE586 /* ftinit.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftinit.c; sourceTree = "<group>"; };
 		7777FCE0AEFF93FA6147EC1C /* data_helpers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = data_helpers.cpp; sourceTree = "<group>"; };
+		79F1D96EE84BF138CF11ABD2 /* gui_control_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gui_control_api.cpp; sourceTree = "<group>"; };
 		7A844FEA59C0776A4F450377 /* tra_file.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tra_file.cpp; sourceTree = "<group>"; };
 		7AEB00D414591381CAE19C48 /* ftfstype.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftfstype.c; sourceTree = "<group>"; };
 		7C51BAA4FE720AD90C429122 /* svg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = svg.c; sourceTree = "<group>"; };
@@ -3608,6 +3610,7 @@
 				431F3F3A4EA662082DAB4C97 /* file_api.cpp */,
 				B3512A2D6AB8F4FA794B8ABF /* game_api.cpp */,
 				E3A98E6D51124DA9866E5329 /* gui_api.cpp */,
+				79F1D96EE84BF138CF11ABD2 /* gui_control_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4650,6 +4653,7 @@
 				8B73D86D61DEC8F1B89C819B /* file_api.cpp in Sources */,
 				F1188E8E3821E74E5317B7C4 /* game_api.cpp in Sources */,
 				7C89AECE6A7C5B443738F7E3 /* gui_api.cpp in Sources */,
+				E8DCDEC5471B780F31CBEF49 /* gui_control_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
