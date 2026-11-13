@@ -28,3 +28,21 @@ int TextBox_GetTextColor(GUITextBox *guit);
 void TextBox_SetTextColor(GUITextBox *guit, int colr);
 int TextBox_GetFont(GUITextBox *guit);
 void TextBox_SetFont(GUITextBox *guit, int fontnum);
+
+// Script API: TextBox::get_TextAlignment
+int TextBox_GetTextAlignment(GUITextBox *guit);
+
+// Script API: TextBox::set_TextAlignment
+void TextBox_SetTextAlignment(GUITextBox *guit, int align);
+
+// Script API: TextBox::get_TextOutlineColor
+int TextBox_GetTextOutlineColor(GUITextBox *guit);
+
+// Script API: TextBox::set_TextOutlineColor
+void TextBox_SetTextOutlineColor(GUITextBox *guit, int color);
+
+// Script API: TextBox::get_ShowBorder
+bool TextBox_GetShowBorder(GUITextBox *guit);
+
+// Script API: TextBox::set_ShowBorder
+void TextBox_SetShowBorder(GUITextBox *guit, bool on);
