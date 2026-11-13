@@ -909,6 +909,7 @@
 		D792571F3A3C9840E56981EC /* cc_guicontrol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FF718A487818D40BFD23044D /* cc_guicontrol.cpp */; };
 		DE75B2C0F2E0B7502C2284C3 /* cc_walkbehind.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 92E55E71F0A5D5DA1E0C84F9 /* cc_walkbehind.cpp */; };
 		E3B629F5EF559918D486B38B /* agsflashlight.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A5FF6346DBC0F2DF182F3F5B /* agsflashlight.cpp */; };
+		E524CF849D9D07D61F7BE4F7 /* pathfinder_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 51E1CF2E40A59235C72231C2 /* pathfinder_api.cpp */; };
 		E5AFC0CBE3EF27B67DAF3D15 /* ftlzw.c in Sources */ = {isa = PBXBuildFile; fileRef = 580CEEFC7CC2866BD52241C0 /* ftlzw.c */; };
 		E7680CB62F09E80D00F864E2 /* indexedobjectpool.h in Headers */ = {isa = PBXBuildFile; fileRef = E7680CB52F09E80D00F864E2 /* indexedobjectpool.h */; };
 		E7680CB92F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E7680CB82F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.cpp */; };
@@ -1338,6 +1339,7 @@
 		4E6E615CB9654FE693E1FF08 /* shader_script.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = shader_script.cpp; sourceTree = "<group>"; };
 		502DD07F3D73973026AD95A8 /* stb_image.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stb_image.c; sourceTree = "<group>"; };
 		506E9222AF6EBECC3E148480 /* dynamic_sprite_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dynamic_sprite_api.cpp; sourceTree = "<group>"; };
+		51E1CF2E40A59235C72231C2 /* pathfinder_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pathfinder_api.cpp; sourceTree = "<group>"; };
 		521C3BEA1D1E545100BD619E /* AGSKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AGSKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		521C3BED1D1E545100BD619E /* AGSKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AGSKit.h; sourceTree = "<group>"; };
 		521C3BEF1D1E545100BD619E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -3646,6 +3648,7 @@
 				98C417F7A46D6217125457A6 /* object_api.cpp */,
 				18BF57C7A65D8B88EC2E3AB7 /* overlay_api.cpp */,
 				A0CB5413B00E9D4CBD354E67 /* parser_api.cpp */,
+				51E1CF2E40A59235C72231C2 /* pathfinder_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4700,6 +4703,7 @@
 				125B5A34FEDD3C71674EA85D /* object_api.cpp in Sources */,
 				FF05E309681BB9188056368C /* overlay_api.cpp in Sources */,
 				1B7A384A2C2FA7D73EB58D33 /* parser_api.cpp in Sources */,
+				E524CF849D9D07D61F7BE4F7 /* pathfinder_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
