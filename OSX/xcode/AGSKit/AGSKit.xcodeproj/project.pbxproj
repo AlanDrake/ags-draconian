@@ -618,8 +618,6 @@
 		526F26FC1D3B5CC300EF4E1F /* global_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24791D3B5CC200EF4E1F /* global_api.cpp */; };
 		526F26FD1D3B5CC300EF4E1F /* global_audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F247A1D3B5CC200EF4E1F /* global_audio.cpp */; };
 		526F26FE1D3B5CC300EF4E1F /* global_audio.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F247B1D3B5CC200EF4E1F /* global_audio.h */; };
-		526F27091D3B5CC300EF4E1F /* global_display.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24861D3B5CC200EF4E1F /* global_display.cpp */; };
-		526F270A1D3B5CC300EF4E1F /* global_display.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24871D3B5CC200EF4E1F /* global_display.h */; };
 		526F27111D3B5CC300EF4E1F /* global_game.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F248E1D3B5CC200EF4E1F /* global_game.cpp */; };
 		526F27121D3B5CC300EF4E1F /* global_game.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F248F1D3B5CC200EF4E1F /* global_game.h */; };
 		526F27131D3B5CC300EF4E1F /* global_gui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24901D3B5CC200EF4E1F /* global_gui.cpp */; };
@@ -1554,8 +1552,6 @@
 		526F24791D3B5CC200EF4E1F /* global_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_api.cpp; sourceTree = "<group>"; };
 		526F247A1D3B5CC200EF4E1F /* global_audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_audio.cpp; sourceTree = "<group>"; };
 		526F247B1D3B5CC200EF4E1F /* global_audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_audio.h; sourceTree = "<group>"; };
-		526F24861D3B5CC200EF4E1F /* global_display.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_display.cpp; sourceTree = "<group>"; };
-		526F24871D3B5CC200EF4E1F /* global_display.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_display.h; sourceTree = "<group>"; };
 		526F248E1D3B5CC200EF4E1F /* global_game.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_game.cpp; sourceTree = "<group>"; };
 		526F248F1D3B5CC200EF4E1F /* global_game.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_game.h; sourceTree = "<group>"; };
 		526F24901D3B5CC200EF4E1F /* global_gui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_gui.cpp; sourceTree = "<group>"; };
@@ -3032,8 +3028,6 @@
 				526F24791D3B5CC200EF4E1F /* global_api.cpp */,
 				526F247A1D3B5CC200EF4E1F /* global_audio.cpp */,
 				526F247B1D3B5CC200EF4E1F /* global_audio.h */,
-				526F24861D3B5CC200EF4E1F /* global_display.cpp */,
-				526F24871D3B5CC200EF4E1F /* global_display.h */,
 				526F248E1D3B5CC200EF4E1F /* global_game.cpp */,
 				526F248F1D3B5CC200EF4E1F /* global_game.h */,
 				526F24901D3B5CC200EF4E1F /* global_gui.cpp */,
@@ -3980,7 +3974,6 @@
 				20E683E028F20C7200B95C00 /* bitrate.h in Headers */,
 				2034CAAB2A201E4F00824C80 /* SDL_sound.h in Headers */,
 				20522A8328E8F98400589E91 /* glad.h in Headers */,
-				526F270A1D3B5CC300EF4E1F /* global_display.h in Headers */,
 				526F27C21D3B5CC300EF4E1F /* gfxfilter_aad3d.h in Headers */,
 				526F22EA1D3B5C4900EF4E1F /* guiobject.h in Headers */,
 				20522A6A28E8F92100589E91 /* savegame_components.h in Headers */,
@@ -4491,7 +4484,6 @@
 				20E6822928F1D2B400B95C00 /* load_far.c in Sources */,
 				526F23181D3B5C4900EF4E1F /* aautil.c in Sources */,
 				52F5D84F1DA120A0006F8F4B /* characterinfo.cpp in Sources */,
-				526F27091D3B5CC300EF4E1F /* global_display.cpp in Sources */,
 				526F277F1D3B5CC300EF4E1F /* slider.cpp in Sources */,
 				526F27C91D3B5CC300EF4E1F /* gfxfilter_ogl.cpp in Sources */,
 				526F28691D3B5CC300EF4E1F /* main.cpp in Sources */,

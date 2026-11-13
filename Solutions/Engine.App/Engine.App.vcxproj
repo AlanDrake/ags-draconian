@@ -407,7 +407,6 @@
     <ClCompile Include="..\..\Engine\ac\gamestate.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_api.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_audio.cpp" />
-    <ClCompile Include="..\..\Engine\ac\global_display.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_game.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_gui.cpp" />
     <ClCompile Include="..\..\Engine\ac\gui.cpp" />
@@ -690,7 +689,6 @@
     <ClInclude Include="..\..\Engine\ac\gamesetup.h" />
     <ClInclude Include="..\..\Engine\ac\gamestate.h" />
     <ClInclude Include="..\..\Engine\ac\global_audio.h" />
-    <ClInclude Include="..\..\Engine\ac\global_display.h" />
     <ClInclude Include="..\..\Engine\ac\global_game.h" />
     <ClInclude Include="..\..\Engine\ac\global_gui.h" />
     <ClInclude Include="..\..\Engine\ac\gui.h" />

@@ -14,6 +14,7 @@
 #include "ac/display.h"
 
 #include <cmath>
+#include <cstdarg>
 #include <cstdio>
 
 #include "ac/character.h"
@@ -37,6 +38,7 @@
 #include "ac/system.h"
 #include "ac/timer.h"
 #include "ac/touch.h"
+#include "ac/translation.h"
 #include "debug/debug_log.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
@@ -1044,4 +1046,139 @@ std::unique_ptr<Bitmap> draw_text_window_and_bar(const TopBarSettings *topbar, c
     }
 
     return text_window_bmp;
+}
+
+void DisplayAtYImpl(int ypos, const char *text, const TopBarSettings *topbar, bool as_speech);
+
+void Display(AGS_FORMAT_STRING_ARG const char *format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    String text = String::FromFormatV(get_translation(format), ap);
+    va_end(ap);
+    DisplayAtY(-1, text.GetCStr());
+}
+
+void DisplaySimple(const char *text)
+{
+    DisplayAtY(-1, text);
+}
+
+void DisplayMB(const char *text)
+{
+    DisplayAtYImpl(-1, text, nullptr, false);
+}
+
+void DisplayTopBar(int ypos, int text_color, int back_color, const char *title, const char *text)
+{
+    if (ypos > 0)
+        play.top_bar_ypos = ypos;
+    if (text_color > 0)
+        play.top_bar_textcolor = text_color;
+    if (back_color > 0)
+        play.top_bar_backcolor = back_color;
+
+    int font;
+    // the font set by the game (play.top_bar_font), or the normal one
+    if (play.top_bar_font >= 0)
+        font = play.top_bar_font;
+    else
+        font = FONT_NORMAL;
+    int height = get_font_height_outlined(font) + play.top_bar_borderwidth * 2 + 1;
+
+    // get_translation sets source_text_length, which GetTextDisplayTime below reads for the text: keep the text's.
+    // FIXME: refactor source_text_length and get rid of this hack (see display.h)
+    const int text_source_length = source_text_length;
+    const TopBarSettings topbar(get_translation(title), font, height);
+    source_text_length = text_source_length;
+
+    // DisplaySpeech normally sets this up, but since we're not going via it...
+    if (play.speech_skip_style & SKIP_AUTOTIMER)
+        play.messagetime = GetTextDisplayTime(text);
+
+    DisplayAtYImpl(play.top_bar_ypos, text, &topbar, game.options[OPT_ALWAYSSPCH] != 0);
+}
+
+void DisplayAt(int x, int y, int width, const char *text)
+{
+    if (play.screen_is_faded_out)
+        debug_script_warn("Blocking Display call during fade-out.");
+
+    if (width < 1)
+        width = play.GetUIViewport().GetWidth() / 2;
+    if (x < 0)
+        x = play.GetUIViewport().GetWidth() / 2 - width / 2;
+    display_at(x, y, width, text, nullptr);
+}
+
+// Shows the text at the vertical position ypos (-1: automatic) as a message box, or as speech of the player
+// character if as_speech is set; topbar is an optional top bar of the message box (ignored for speech).
+// Translates the text.
+void DisplayAtYImpl(int ypos, const char *text, const TopBarSettings *topbar, bool as_speech)
+{
+    const Rect &ui_view = play.GetUIViewport();
+    if ((ypos < -1) || (ypos >= ui_view.GetHeight()))
+        quitprintf("!DisplayAtY: invalid Y co-ordinate supplied (used: %d; valid: 0..%d)", ypos, ui_view.GetHeight());
+    if (play.screen_is_faded_out)
+        debug_script_warn("Blocking Display call during fade-out.");
+
+    // Display("") ... a bit of a stupid thing to do, so ignore it
+    if (text[0] == 0)
+        return;
+
+    if (as_speech)
+    {
+        // Message displayed as speech, using current speech style
+        DisplaySpeechAt(-1, ypos, -1, game.playercharacter, text);
+    }
+    else
+    {
+        // Normal "Display" in text box
+        display_at(-1, ypos, ui_view.GetWidth() / 2 + ui_view.GetWidth() / 4, get_translation(text), topbar);
+    }
+}
+
+void DisplayAtY(int ypos, const char *text)
+{
+    DisplayAtYImpl(ypos, text, nullptr, game.options[OPT_ALWAYSSPCH] != 0);
+}
+
+void DisplaySpeechAt(int x, int y, int width, int char_id, const char *text)
+{
+    display_speech(get_translation(text), char_id, x, y, width, true /*not auto-pos*/, false /* not thought */);
+}
+
+// [DEPRECATED] left only for use in Display, replace/merge with modern function
+static int CreateTextOverlay(int x, int y, int width, int font, int text_color, const char *text, int over_type,
+                             DisplayTextStyle style, int speech_for_char)
+{
+    // allow DisplaySpeechBackground to be shrunk
+    DisplayTextShrink allow_shrink = (speech_for_char >= 0) ? kDisplayTextShrink_Left : kDisplayTextShrink_None;
+    auto *over = Overlay_CreateTextCore(false, x, y, width, font, text_color, text, over_type, style, allow_shrink,
+                                        speech_for_char);
+    return over ? over->GetID() : 0;
+}
+
+// [DEPRECATED] but still used by Character_SayBackground, might merge since there are no other instances
+int DisplaySpeechBackground(int char_id, const char *text)
+{
+    // remove any previous background speech for this character
+    // TODO: have a map character -> bg speech over?
+    const auto &overs = get_overlays();
+    for (size_t i = 0; i < overs.size(); ++i)
+    {
+        if (overs[i].GetCharacterRef() == char_id)
+        {
+            remove_screen_overlay(i);
+            break;
+        }
+    }
+
+    int over_id =
+        CreateTextOverlay(0, 0, play.GetUIViewport().GetWidth() / 2, FONT_SPEECH, game.chars[char_id].talkcolor,
+                          get_translation(text), OVER_CUSTOM, kDisplayTextStyle_Overchar, char_id);
+
+    auto *over = get_overlay(over_id);
+    over->SetAsSpeech(char_id, GetTextDisplayTime(text, 1));
+    return over_id;
 }

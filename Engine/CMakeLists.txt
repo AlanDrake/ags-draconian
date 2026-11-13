@@ -146,8 +146,6 @@ target_sources(engine
     ac/global_api.cpp
     ac/global_audio.cpp
     ac/global_audio.h
-    ac/global_display.cpp
-    ac/global_display.h
     ac/global_game.cpp
     ac/global_game.h
     ac/global_gui.cpp
