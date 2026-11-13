@@ -234,6 +234,7 @@ target_sources(engine
     ac/dynobj/cc_staticarray.cpp
     ac/dynobj/cc_staticarray.h
     ac/pathfinder_script.h
+    ac/scriptcontainers.h
     ac/string.cpp
     ac/string.h
     ac/sys_events.cpp

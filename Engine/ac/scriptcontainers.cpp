@@ -15,6 +15,8 @@
 // Containers script API.
 //
 //=============================================================================
+#include "ac/scriptcontainers.h"
+
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/cc_scriptobject.h"
 #include "ac/dynobj/dynobj_manager.h"

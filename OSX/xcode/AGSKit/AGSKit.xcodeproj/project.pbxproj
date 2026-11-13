@@ -1325,6 +1325,7 @@
 		22AF0B1DA5A142DF4988DFC0 /* autofit.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = autofit.c; sourceTree = "<group>"; };
 		26585E49ABF5E46A21471C87 /* assetmanager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = assetmanager.cpp; sourceTree = "<group>"; };
 		2678360010FD9D56EB0D84BB /* scripttouchpointer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scripttouchpointer.cpp; sourceTree = "<group>"; };
+		2947F64120F297866766BEE5 /* scriptcontainers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = scriptcontainers.h; sourceTree = "<group>"; };
 		2983E0E054F411FA909804E6 /* type42.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = type42.c; sourceTree = "<group>"; };
 		2A0AEDD6BEBB8912C0333504 /* joystick.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = joystick.cpp; sourceTree = "<group>"; };
 		2DA008409EED7B1237B212EB /* guitextbasedcontrol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = guitextbasedcontrol.cpp; sourceTree = "<group>"; };
@@ -3130,6 +3131,7 @@
 				EF61359C48373BE523FA2F37 /* utils_script.cpp */,
 				B4E841B245E7C89895801685 /* video_script.cpp */,
 				34A7616622B8A8104A1150EF /* pathfinder_script.h */,
+				2947F64120F297866766BEE5 /* scriptcontainers.h */,
 			);
 			path = ac;
 			sourceTree = "<group>";
