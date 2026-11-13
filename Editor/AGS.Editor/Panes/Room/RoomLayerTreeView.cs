@@ -36,13 +36,15 @@ namespace AGS.Editor.Panes.Room
         private const string TIP_UNUSED = "Unused: nothing drawn and no properties set";
         private const string TIP_UNUSED_GROUP = "Areas with nothing drawn and no properties set";
 
-        private readonly HashSet<string> _expanded = new HashSet<string> { RoomLayerTree.ROOT_KEY };
+        private readonly HashSet<string> _expanded = new HashSet<string>();
         private readonly Image _eyeOpen = global::AGS.Editor.Properties.Resources.eye;
         private readonly Image _eyeClosed = global::AGS.Editor.Properties.Resources.eye_closed;
         private readonly Image _lockClosed = global::AGS.Editor.Properties.Resources.lockResource;
         private readonly Image _lockOpen = global::AGS.Editor.Properties.Resources.lock_open;
         private RoomLayerTree _tree;
         private Font _italicFont;
+        // The client width the toggle columns were last drawn for
+        private int _paintedWidth;
         // Set while the nodes are replaced or selected from code: no NodeSelected then
         private bool _updating;
 
@@ -98,9 +100,14 @@ namespace AGS.Editor.Panes.Room
                 Nodes.Clear();
                 if (_tree == null)
                     return null;
-                TreeNode root = CreateNode(_tree.Root);
-                Nodes.Add(root);
-                Expand(root);
+                // The room is a leaf beside its layers, which need no indentation under it
+                Nodes.Add(CreateNode(_tree.Root, false));
+                foreach (RoomLayerNode layer in _tree.Root.Children)
+                {
+                    TreeNode layerNode = CreateNode(layer, true);
+                    Nodes.Add(layerNode);
+                    Expand(layerNode);
+                }
                 SelectedNode = FindNode(_tree.FindNearest(selectedKey).Key);
                 TreeNode top = FindNode(topKey);
                 if (top != null)
@@ -234,6 +241,13 @@ namespace AGS.Editor.Panes.Room
                 return;
             }
 
+            // The vertical scroll bar comes and goes without a resize: the columns move with
+            // it, so every row must be drawn again, or some keep the icons at the old place
+            if (ClientSize.Width != _paintedWidth)
+            {
+                _paintedWidth = ClientSize.Width;
+                Invalidate();
+            }
             int togglesLeft = TogglesLeft;
             bool selected = (e.State & TreeNodeStates.Selected) != 0;
             bool active = selected && Focused;
@@ -338,7 +352,7 @@ namespace AGS.Editor.Panes.Room
             return null;
         }
 
-        private TreeNode CreateNode(RoomLayerNode node)
+        private TreeNode CreateNode(RoomLayerNode node, bool withChildren)
         {
             TreeNode treeNode = new TreeNode(node.Text) { Name = node.Key, Tag = node };
             if (node.Kind == RoomLayerNodeKind.UnusedGroup)
@@ -347,8 +361,11 @@ namespace AGS.Editor.Panes.Room
                 treeNode.ToolTipText = TIP_NOTHING_DRAWN;
             else if (node.ItemState == RoomLayerItemState.Unused)
                 treeNode.ToolTipText = TIP_UNUSED;
-            foreach (RoomLayerNode child in node.Children)
-                treeNode.Nodes.Add(CreateNode(child));
+            if (withChildren)
+            {
+                foreach (RoomLayerNode child in node.Children)
+                    treeNode.Nodes.Add(CreateNode(child, true));
+            }
             return treeNode;
         }
 

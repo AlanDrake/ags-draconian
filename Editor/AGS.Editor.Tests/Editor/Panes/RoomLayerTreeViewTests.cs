@@ -74,13 +74,15 @@ namespace AGS.Editor.Panes.Room
         }
 
         [Test]
-        public void ShowsTheTreeWithTheRoomSelectedAndExpanded()
+        public void ShowsTheRoomAndItsLayersAtTheTopWithTheRoomSelected()
         {
-            Assert.That(_view.Nodes.Count, Is.EqualTo(1));
-            TreeNode root = _view.Nodes[0];
-            Assert.That(root.Text, Is.EqualTo("Room"));
-            Assert.That(root.IsExpanded, Is.True);
-            Assert.That(root.Nodes.Count, Is.EqualTo(3));
+            Assert.That(_view.Nodes.Count, Is.EqualTo(4));
+            TreeNode room = _view.Nodes[0];
+            Assert.That(room.Text, Is.EqualTo("Room"));
+            Assert.That(room.Nodes.Count, Is.EqualTo(0), "the room is a leaf");
+            Assert.That(_view.Nodes[1].Name, Is.EqualTo("Objects"));
+            Assert.That(_view.Nodes[3].Name, Is.EqualTo("Regions"));
+            Assert.That(_view.Nodes[1].IsExpanded, Is.False, "layers start collapsed");
             Assert.That(_view.SelectedLayerNode.Key, Is.EqualTo("Room"));
             Assert.That(NodeOf("Hotspots/#unused").Text, Is.EqualTo("Unused (1)"));
             Assert.That(NodeOf("Hotspots/#unused").Parent, Is.SameAs(NodeOf("Hotspots")));
