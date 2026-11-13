@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using AGS.Controls;
 
 namespace AGS.Editor.Panes.Room
 {
@@ -22,8 +23,6 @@ namespace AGS.Editor.Panes.Room
     /// </summary>
     public class RoomLayerTreeView : TreeView
     {
-        // Not TVS_EX_DOUBLEBUFFER: with it, the rows a collapse leaves empty showed garbage
-        // for a moment (2026-11-13)
         private const int TVS_NOHSCROLL = 0x8000;
         private const int WM_LBUTTONDOWN = 0x0201;
         private const int WM_LBUTTONDBLCLK = 0x0203;
@@ -153,6 +152,10 @@ namespace AGS.Editor.Panes.Room
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
+            // As the project tree and the sprite folders (TreeViewWithDragDrop); without it the
+            // tree flickers. Under test (2026-11-13): an earlier version with it showed striped
+            // garbage for a moment in the rows a collapse left empty, cause not found
+            this.EnableDoubleBuffering();
             UpdateItemHeight();
         }
 
@@ -240,11 +243,12 @@ namespace AGS.Editor.Panes.Room
             }
 
             // The vertical scroll bar comes and goes without a resize: the columns move with
-            // it, so every row must be drawn again, or some keep the icons at the old place
+            // it, so every row must be drawn again, or some keep the icons at the old place.
+            // The repaint is requested once this one is over, not in the middle of it.
             if (ClientSize.Width != _paintedWidth)
             {
                 _paintedWidth = ClientSize.Width;
-                Invalidate();
+                BeginInvoke((MethodInvoker)(() => Invalidate()));
             }
             int togglesLeft = TogglesLeft;
             bool selected = (e.State & TreeNodeStates.Selected) != 0;
