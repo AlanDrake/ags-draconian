@@ -881,6 +881,7 @@
 		8B8904F8C519A43C69FEA96A /* scripteventtable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3790F066EC353E435E79CBF5 /* scripteventtable.cpp */; };
 		8F719493B02BFC5116FE6342 /* ftwinfnt.c in Sources */ = {isa = PBXBuildFile; fileRef = C3598D53DD9936F8FFADC0C9 /* ftwinfnt.c */; };
 		90066E119D603EC22FE95C5B /* cc_reflect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDEB122D2278EC35051B875C /* cc_reflect.cpp */; };
+		91BC053F1830650FE4107BDA /* shader_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4B96AE45F52C9F10C1916C3 /* shader_api.cpp */; };
 		940FEA9D1F7D465EF6F527A4 /* pshinter.c in Sources */ = {isa = PBXBuildFile; fileRef = CBDD11D13CDD2F7D3A7E4BF2 /* pshinter.c */; };
 		94ECF0E537016231C42D3609 /* assetmanager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26585E49ABF5E46A21471C87 /* assetmanager.cpp */; };
 		95C671AF6F350B5EECF26B40 /* inv_window_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 558C08372A4E0F9E5D1A47E9 /* inv_window_api.cpp */; };
@@ -1860,6 +1861,7 @@
 		DFE2BA4DBEBF50C683932D02 /* smooth.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = smooth.c; sourceTree = "<group>"; };
 		E20BC6BAD8051658576AE008 /* audio_channel_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_channel_api.cpp; sourceTree = "<group>"; };
 		E3A98E6D51124DA9866E5329 /* gui_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gui_api.cpp; sourceTree = "<group>"; };
+		E4B96AE45F52C9F10C1916C3 /* shader_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = shader_api.cpp; sourceTree = "<group>"; };
 		E4E05D962D605A02160B3FD8 /* dialog_options_rendering_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dialog_options_rendering_api.cpp; sourceTree = "<group>"; };
 		E66ACDBAF47E6525354BEBB7 /* scriptmotionpath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scriptmotionpath.cpp; sourceTree = "<group>"; };
 		E6EA0E08841D08B1EB9560A1 /* ftmm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftmm.c; sourceTree = "<group>"; };
@@ -3663,6 +3665,7 @@
 				525B3A19D504CB164E0A7B86 /* room_api.cpp */,
 				00A539E5AF355FABD4153447 /* screen_api.cpp */,
 				4D6DE313FC1145073FB7916D /* containers_api.cpp */,
+				E4B96AE45F52C9F10C1916C3 /* shader_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4722,6 +4725,7 @@
 				AD2479DFE5A268FC9940CAFF /* room_api.cpp in Sources */,
 				75DF01FCEFB5ADEEE5B8B79F /* screen_api.cpp in Sources */,
 				28B9BE28E501365E6761FD60 /* containers_api.cpp in Sources */,
+				91BC053F1830650FE4107BDA /* shader_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
