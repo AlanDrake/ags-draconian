@@ -160,8 +160,6 @@ target_sources(engine
     ac/global_screen.h
     ac/global_translation.cpp
     ac/global_translation.h
-    ac/global_video.cpp
-    ac/global_video.h
     ac/gui.cpp
     ac/gui.h
     ac/guicontrol.cpp

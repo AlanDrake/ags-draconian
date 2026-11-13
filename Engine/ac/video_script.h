@@ -84,3 +84,6 @@ int VideoPlayer_GetVolume(ScriptVideoPlayer *sc_video);
 
 // Script API: VideoPlayer::set_Volume
 void VideoPlayer_SetVolume(ScriptVideoPlayer *sc_video, int volume);
+
+void PlayFlic(int numb, int flags);
+void PlayVideo(const char *name, int skip, int flags);
