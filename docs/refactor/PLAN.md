@@ -75,7 +75,7 @@ Recorded 2026-10-31.
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
 0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 6.7d, 7.1 (but 7.1n) (LOG.md); 3.2 with 3.2c
-(CI-confirmed 2026-11-08). The fork does not wait for upstream review (the user, 2026-11-09): a fork-only
+(CI-confirmed 2026-11-08); 6.9 on branch `room-layer-tree`, for the user to merge (2026-11-13). The fork does not wait for upstream review (the user, 2026-11-09): a fork-only
 move that would conflict with an open offer is preceded by a tag of the pre-move tree for `port.py`.
 
 | # | Task | Why now | Model / effort |
@@ -84,7 +84,6 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 | 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` with upstream's draft names where they overlap | Files move once (4.4 rides along) | Fable 5.1, `high` for the move map, subagents for the moves |
 | 3 | **4.5 + 3.6 on what had no comment pass** (770 first-party files, ~280k lines): batch 8 done (2026-11-13, LOG.md: `game`, `gamestate`, `room`, `dialog`, `savegame`, `game_init`, `script`, `guimain`, `engine`); next, the untouched files most-churned first (a ranking by commits since 2024, the batch-6 stray-rename files among them), then the D3D/OpenGL drivers with the `emscripten` and `linux` stages, and the compiler (7,440-line parser: its own plan, by function groups). Brief `.compare/briefs/brief-45-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | Comments before the 5.3 moves | Sonnet 5.5, `medium`, parallel subagents; the parser plan Fable 5.1 |
 | 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3188, #3189; #3187 merged), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
-| 5 | **6.9 Room editor layer tree** (branch `room-layer-tree`): steps 1-4 done 2026-11-13, `prepush` `msbuild` passes; left: the user's check of the room pane in the running editor (the checklist is step 3's behaviours), then LOG.md, the merge into `ags4draconianr21` and the task closes | The last planned WinForms UI change; must land before 6.8 (the user, 2026-11-13) | Fixes from the check: Fable 5.1, `medium` |
 
 Open items from finished tasks (details in LOG.md "Open items"):
 - 0.4: the CodeQL setting, `D3DCOMPILER_47` on Windows 7, the macOS 10.9 deployment target.
@@ -154,6 +153,10 @@ Open items from finished tasks (details in LOG.md "Open items"):
   one stands a pixel right of earlier versions). The auto-test's expectations are in `ags-test-games` tag
   `draconian-auto-test-3`, which must be pushed with the engine commits. The D3D9 fix is prepared for upstream
   (`docs/UPSTREAM.md`, `ags4-d3d9-halfpixel`).
+- 6.9 (LOG.md), both on `upstream/ags4` too: every loaded room's hotspots and regions subscribe to
+  `InteractionSchema.Instance.Changed` and are never detached; `IRoomController.GetAreaMaskPixel` checks
+  `x > mask.Width`/`y > mask.Height` (should be `>=`; one mask column past the edge reads the next row, on the last
+  row past the array) and copies the whole mask for each pixel.
 - Scripts in a git worktree: `refactor_metrics.py`, `prepush.py`'s `linux` and `msbuild` stages fail there.
 - Stale: `Tools/test/directory_test.cpp`'s googletest comment; `FetchGoogleTest.cmake`'s pin for GCC < 5.
 
@@ -517,54 +520,10 @@ Framework-only.
   Linux and macOS, and `AGS.Editor.Core` loads it on Windows and Linux in CI.
 - [ ] **6.8 Avalonia front end** (after 6.3, 6.7 and 6.9), on a branch over `AGS.Editor.Core`, read-only
   views first (project tree, room viewer). Planned in its own document once the core exists.
-- [ ] **6.9 Room editor layer tree** (the user, 2026-11-13; branch `room-layer-tree`). The last planned WinForms UI
-  change, done before 6.8 so the Avalonia front end ports one settled design instead of redoing the room pane
-  later; its logic goes in a UI-free model so 6.3/6.8 take it as it is. The breadcrumb
-  bar (`AddressBarExt` + `RoomEditNode`/`RoomNodeControl`/`VisibleLayerRadioGroup`) becomes a tree on the left of
-  the room pane, in a `SplitContainer` like the sprite manager's: root "Room", the 7 layers, their items; eye and
-  lock drawn right-aligned in each row, a click on them toggles, elsewhere selects.
-  1. **Model + tests** (`Panes/Room/RoomLayerTree.cs`, tests in `AGS.Editor.Tests/Editor/Panes`): layers, items,
-     visible/locked, one visible area layer at a time, emptiness. Nodes keyed by layer `Name` + `RoomItemID`, not by
-     display name (drops `SelectOldNode`'s rename guess). The tests are ground rule 3's net before step 4.
-  2. **Empty area slots:** empty = no pixels in the mask *and* default properties. Pixels: a histogram of the 8-bit
-     mask (`GetMask()` + `BitmapExtensions.GetRawData`), for one layer after each `SetMask` (stroke end, undo,
-     mask import). Defaults: `ToXml()` equals a new instance's with the same ID (no hand-kept property list).
-     Area 0 always listed; a slot with properties but no pixels listed in italics, tooltip "nothing drawn"; the
-     empty ones in one collapsed "Unused (n)" node at the end of the layer, in ID order, leaving it once drawn on
-     or given properties (selection follows the key). Older editors' slot names count as defaults: script name
-     `hHotspot<n>` and description `Hotspot <n>` / `HOTSPOT<n>` are on nearly every hotspot of real projects
-     (corpus, 2026-11-13); region ranges are compared after `UpgradeRoomFeatures` has converted them.
-  Steps 1 and 2 done 2026-11-13 (`46de67761`, `4410e1e97`). On the corpus (a private AGS 4 game, a private 8-bit
-  game, the auto-test game) the only "nothing drawn" slots are real ones (a baseline, scaling or an event on an
-  undrawn area).
-  3. **View** (`RoomLayerTreeView`: a native `TreeView`, `OwnerDrawText`, the eye and lock columns at the right
-     edge; `LoadColorTheme` like `SpriteSelector`, falling back to the bar's drop-down colours): behaviour of the
-     bar kept: selecting a layer shows it and turns its filter on, an item selects it in the filter, the root shows
-     the room; a canvas click moves the tree selection; area items have a lock but no eye; a changed selection is
-     `DesignModified`; `RoomsComponent`'s `RefreshLayersTree` calls; the `.user` selection path
-     `Room/<layer>/<item id>` unchanged. Focus goes to the canvas only when the selection came from it (today
-     `SelectLayer` always takes it, which would break arrow keys in the tree); with the tree focused its navigation
-     keys stay in it, every other key reaches the room as before, Enter gives the focus back to the room. Rebuilds
-     keep expansion and scroll. The area filters count their drawn areas once per mask edit (stroke end, fill,
-     undo, import) and raise `OnItemsChanged` only when an area becomes drawn or empty; masks replaced elsewhere
-     (background import, mask resolution, a mask file changed on disk) go through `RoomSettingsEditor.MasksChanged`.
-     Done 2026-11-13 (`f3887a1bd`) but the manual check; 12 view tests (`RoomLayerTreeViewTests`, toggles by window
-     message). Cost: a mask scan takes 0.2 ms at 320x200 to 5 ms at 3840x2160; a rebuild checks the 98 areas'
-     properties in about 20 ms (caching a new area's XML would cut it, if it shows). After the user's first look
-     (2026-11-13, `97997b13e`..`ebadd461b`): a layer shown only for the selection is hidden again when it leaves;
-     the room is a leaf beside its layers; strokes recount at most every 4 s (a first use is listed at once); the
-     transparency slider is shorter; the tree repaints when the scroll bar changes its width.
-  4. **`[delete]`** the bar's classes and `AGS.Controls/AdressBarEx` (no other user), with their `.csproj` entries;
-     `AdressBarEx` is listed as vendored code, so also its row in STYLE.md's third-party table, its `.editorconfig`
-     glob and `Script/refactor_metrics.py`'s third-party pattern (no `.clang-format` stub: C# only). Done
-     2026-11-13 (`2070cd010`, with the two drop-down helpers only the bar used; `de2d09acf` renames
-     `GetNavbarItemTitle`).
-  Found on the way, open (both on `upstream/ags4` too): every loaded room's hotspots and regions subscribe to
-  `InteractionSchema.Instance.Changed` and are never detached (`RoomAreaUsage` detaches its own);
-  `IRoomController.GetAreaMaskPixel` checks `x > mask.Width`/`y > mask.Height` (should be `>=`: a click one mask
-  column past the edge reads the next row, on the last row past the array) and copies the whole mask per pixel.
-  *Done when:* the model tests pass, `prepush.py --auto` (`msbuild`) passes, and a manual checklist of step 3's
-  behaviours passes on the test game's rooms (no automated UI test covers the room pane; say so in LOG.md).
+- [x] **6.9 Room editor layer tree** (the user, 2026-11-13; done 2026-11-13 on branch `room-layer-tree`, LOG.md).
+  The last planned WinForms UI change, done before 6.8 so the Avalonia front end ports one settled design: the
+  breadcrumb bar became a tree on the left of the room pane (`RoomLayerTree` without UI, `RoomLayerTreeView`), the
+  unused area slots in a collapsed "Unused (n)" group (`RoomAreaUsage`), the bar and `AdressBarEx` deleted.
 
 ## Phase 7: Build tools, plugins and ports
 

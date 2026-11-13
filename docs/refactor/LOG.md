@@ -963,6 +963,55 @@ U.5, U.7, U.9) are only there.
   - A Debug/Release switch now relies on the cache's inputs instead of the time stamp (not verified).
   - Linux and macOS (the harness needs the editor).
 
+### 6.9 Room editor layer tree
+
+- **Definition** (the user, 2026-11-13): the room editor's breadcrumb bar (a drop-down per level, with eye and lock
+  toggles) becomes a tree on the left of the room pane, like the sprite manager's; the many empty hotspot and area
+  slots must not fill it. The last planned WinForms UI change, done before 6.8 so the Avalonia front end ports one
+  settled design. *Done when:* model tests, `prepush` `msbuild`, and the user's check in the running editor.
+- **Result** (2026-11-13, branch `room-layer-tree`, 12 commits `46de67761`..`ec0365375`):
+  - Model without UI: `RoomLayerTree` / `RoomLayerNode` over `IRoomLayer` (the part of `IRoomEditorFilter` the tree
+    uses). Nodes keyed by layer `Name` + item ID (the bar keyed them by display name and guessed renames). One layer
+    with a mask visible at a time; a hidden layer selected is shown while it stays selected, then hidden again with
+    the mask layers it hid shown again, unless the user toggled them (the bar left them on: the user's first look).
+    The `.user` file keeps the user's visibility and the same `BreadcrumbPath` selection path.
+  - Empty slots: `RoomAreaUsage`. Unused = no pixel in the 8-bit mask and properties equal to a new area's (compared
+    through `ToXml`, so a new property is compared too); listed in a collapsed "Unused (n)" group at the end of the
+    layer; properties without pixels are listed in italics ("nothing drawn"); area 0 always listed. Older editors named
+    every hotspot slot `hHotspot<n>` / `Hotspot <n>` (`HOTSPOT<n>` in an older project): on a private AGS 4 game 2560
+    of 2597 hotspots, on a private 8-bit game 475 of 490, so these names count as defaults. Over the two games and the
+    auto-test game the "nothing drawn" slots left are real (a baseline, scaling or an event on an undrawn area).
+  - View: `RoomLayerTreeView`, a native `TreeView` with `OwnerDrawText`; eye and lock in two columns at the right
+    edge (the user chose right over a Photoshop-like left column, which would need `OwnerDrawAll`); a click there is
+    taken in `WndProc` before the native tree selects or expands. The room is a leaf beside its layers. With the tree
+    focused its navigation keys stay in it (the pane takes keys through the main form's key preview), Enter gives the
+    focus back to the room. Theme keys `room-editor/tree/*`, falling back to the bar's drop-down colours.
+  - Area usage: a stroke or fill lists a first-used area at once; the count over the mask runs at most every 4 s
+    (`TickOnceTimer`, waits during a stroke; the user's suggestion); undo, mask import, background import, mask
+    resolution and a mask file changed on disk count at once. Costs (Release): a scan 0.2 ms at 320x200 to 5 ms at
+    3840x2160; a rebuild's property check of the 98 areas about 20 ms.
+  - Deleted: `AGS.Controls/AdressBarEx` (listed as third-party), `ToolStripDropDownMenuEx` and
+    `ToolStripDropDownButtonEx` (added for the bar), `RoomEditNode`, `RoomNodeControl`, `VisibleLayerRadioGroup`.
+  - Tests: 63 NUnit (model, area usage, the view through window messages); `prepush` `msbuild` passes.
+- **Found:**
+  - Creating a hotspot or region subscribes it to the global `InteractionSchema.Instance.Changed`; the default check
+    would have kept every area it made (98 per tree rebuild), so it detaches them (test). Every loaded room's own
+    hotspots and regions are never detached either: open, on `upstream/ags4` too.
+  - `IRoomController.GetAreaMaskPixel` checks `x > mask.Width` and `y > mask.Height` (should be `>=`: one column past
+    the mask reads the next row, on the last row past the array) and copies the whole mask for each pixel it reads:
+    open, on `upstream/ags4` too.
+  - The bar's "design modified" test compared boxed strings by reference, so a rebuild alone marked the room's design
+    data modified.
+  - `TVS_EX_DOUBLEBUFFER` with the owner-drawn tree showed striped garbage for a moment in the rows a collapse left
+    empty (the user's video); removed. The vertical scroll bar changes the client width without a resize, so the tree
+    repaints when the width it drew for changes.
+  - Moving the canvas into the bar's row put it under the 45-pixel transparency slider (now 26, no ticks).
+- **Lesson:** a command chain that greps the build output for a summary hides a failed build; check the build's exit
+  code (the user's running editor locked `SDL2.dll` in the output folder; `ec0365375` was verified after the user
+  closed it).
+- **Not verified:** the editor's room pane at high DPI and with a dark theme file that defines the new
+  `room-editor/tree/*` keys (none exists); the double-buffer removal by the user's eye after the commit.
+
 ### 7.1k Incremental room builds in `agsbuild`
 
 - **Definition** (redefined 2026-11-07 after 6.7d-10's Run cost): a room whose inputs did not change keeps its `room<n>.crm` in `_obj/`, compared by content hashes, never time stamps. *Done when:* a Run with nothing changed on the private AGS 4 game is near the reference editor's 1.9 s, a one-room change rebuilds that room only, a test per input kind, incremental output byte-identical to a clean build everywhere, a halfway failure leaves nothing stale.
