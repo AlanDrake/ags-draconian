@@ -34,7 +34,6 @@
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
-#include "ac/global_screen.h"
 #include "ac/guicontrol.h"
 #include "ac/inventoryitem.h"
 #include "ac/invwindow.h"

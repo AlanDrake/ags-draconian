@@ -23,7 +23,6 @@
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_room.h"
-#include "ac/global_screen.h"
 #include "ac/gui.h"
 #include "ac/roomstatus.h"
 #include "ac/screen.h"

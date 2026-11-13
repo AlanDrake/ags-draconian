@@ -628,8 +628,6 @@
 		526F27141D3B5CC300EF4E1F /* global_gui.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24911D3B5CC200EF4E1F /* global_gui.h */; };
 		526F272E1D3B5CC300EF4E1F /* global_room.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24AB1D3B5CC200EF4E1F /* global_room.cpp */; };
 		526F272F1D3B5CC300EF4E1F /* global_room.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24AC1D3B5CC200EF4E1F /* global_room.h */; };
-		526F27301D3B5CC300EF4E1F /* global_screen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24AD1D3B5CC200EF4E1F /* global_screen.cpp */; };
-		526F27311D3B5CC300EF4E1F /* global_screen.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24AE1D3B5CC200EF4E1F /* global_screen.h */; };
 		526F27461D3B5CC300EF4E1F /* gui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24C31D3B5CC300EF4E1F /* gui.cpp */; };
 		526F27471D3B5CC300EF4E1F /* gui.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24C41D3B5CC300EF4E1F /* gui.h */; };
 		526F27481D3B5CC300EF4E1F /* guicontrol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24C51D3B5CC300EF4E1F /* guicontrol.cpp */; };
@@ -1570,8 +1568,6 @@
 		526F24911D3B5CC200EF4E1F /* global_gui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_gui.h; sourceTree = "<group>"; };
 		526F24AB1D3B5CC200EF4E1F /* global_room.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_room.cpp; sourceTree = "<group>"; };
 		526F24AC1D3B5CC200EF4E1F /* global_room.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_room.h; sourceTree = "<group>"; };
-		526F24AD1D3B5CC200EF4E1F /* global_screen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_screen.cpp; sourceTree = "<group>"; };
-		526F24AE1D3B5CC200EF4E1F /* global_screen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_screen.h; sourceTree = "<group>"; };
 		526F24C31D3B5CC300EF4E1F /* gui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gui.cpp; sourceTree = "<group>"; };
 		526F24C41D3B5CC300EF4E1F /* gui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gui.h; sourceTree = "<group>"; };
 		526F24C51D3B5CC300EF4E1F /* guicontrol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = guicontrol.cpp; sourceTree = "<group>"; };
@@ -3054,8 +3050,6 @@
 				526F24911D3B5CC200EF4E1F /* global_gui.h */,
 				526F24AB1D3B5CC200EF4E1F /* global_room.cpp */,
 				526F24AC1D3B5CC200EF4E1F /* global_room.h */,
-				526F24AD1D3B5CC200EF4E1F /* global_screen.cpp */,
-				526F24AE1D3B5CC200EF4E1F /* global_screen.h */,
 				526F24C31D3B5CC300EF4E1F /* gui.cpp */,
 				526F24C41D3B5CC300EF4E1F /* gui.h */,
 				526F24C51D3B5CC300EF4E1F /* guicontrol.cpp */,
@@ -3895,7 +3889,6 @@
 				20E6847F28F20CC700B95C00 /* huffdec.h in Headers */,
 				526F27491D3B5CC300EF4E1F /* guicontrol.h in Headers */,
 				526F285E1D3B5CC300EF4E1F /* engine.h in Headers */,
-				526F27311D3B5CC300EF4E1F /* global_screen.h in Headers */,
 				526F28DC1D3B5CC300EF4E1F /* library_posix.h in Headers */,
 				526F28C61D3B5CC300EF4E1F /* runtimescriptvalue.h in Headers */,
 				526F22D01D3B5C4900EF4E1F /* ttffontrenderer.h in Headers */,
@@ -4422,7 +4415,6 @@
 				20E6810728F1BE5D00B95C00 /* mojoal.c in Sources */,
 				526F28181D3B5CC300EF4E1F /* getpic.c in Sources */,
 				20E6823F28F1D2B400B95C00 /* load_stm.c in Sources */,
-				526F27301D3B5CC300EF4E1F /* global_screen.cpp in Sources */,
 				526F23CB1D3B5C4900EF4E1F /* compress.cpp in Sources */,
 				526F26E11D3B5CC300EF4E1F /* scriptfile.cpp in Sources */,
 				20522A5D28E8F8DD00589E91 /* viewport_script.cpp in Sources */,

@@ -82,3 +82,13 @@ ScriptUserObject *Screen_ScreenToRoomPoint2(int scrx, int scry);
 
 // Script API: Screen::RoomToScreenPoint
 ScriptUserObject *Screen_RoomToScreenPoint(int roomx, int roomy);
+
+void FlipScreen(int direction);
+void ShakeScreen(int severe);
+void ShakeScreenBackground(int delay, int amount, int length);
+void TintScreen(int red, int grn, int blu);
+void SetScreenTransition(int newtrans);
+void SetNextScreenTransition(int newtrans);
+void SetFadeColor(int red, int green, int blue);
+void FadeIn(int sppd);
+void FadeOut(int sppd);
