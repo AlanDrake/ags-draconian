@@ -51,3 +51,26 @@ bool walkbehinds_cropout(AGS::Common::Bitmap *sprit, int sprx, int spry, int bas
 extern bool noWalkBehindsAtAll;
 extern int walkBehindsCachedForBgNum;
 extern bool walk_behind_baselines_changed;
+
+struct ScriptWalkbehind;
+
+// Script API: Walkbehind::GetAtRoomXY^2
+ScriptWalkbehind *Walkbehind_GetAtRoomXY(int x, int y);
+
+// Script API: Walkbehind::GetAtScreenXY^2
+ScriptWalkbehind *Walkbehind_GetAtScreenXY(int x, int y);
+
+// Script API: Walkbehind::GetByScriptName^1
+ScriptWalkbehind *Walkbehind_GetByName(const char *name);
+
+// Script API: Walkbehind::get_ID
+int Walkbehind_GetID(ScriptWalkbehind *wb);
+
+// Script API: Walkbehind::get_Baseline
+int Walkbehind_GetBaseline(ScriptWalkbehind *wb);
+
+// Script API: Walkbehind::set_Baseline
+void Walkbehind_SetBaseline(ScriptWalkbehind *wb, int baseline);
+
+// Script API: Walkbehind::get_ScriptName
+const char *Walkbehind_GetScriptName(ScriptWalkbehind *wb);
