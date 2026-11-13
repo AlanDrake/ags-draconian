@@ -128,15 +128,17 @@ namespace AGS.Editor
             // 
             // sldTransparency
             // 
+            this.sldTransparency.AutoSize = false;
             this.sldTransparency.LargeChange = 20;
-            this.sldTransparency.Location = new System.Drawing.Point(558, 50);
+            this.sldTransparency.Location = new System.Drawing.Point(558, 48);
             this.sldTransparency.Margin = new System.Windows.Forms.Padding(1);
             this.sldTransparency.Maximum = 100;
             this.sldTransparency.Name = "sldTransparency";
-            this.sldTransparency.Size = new System.Drawing.Size(91, 45);
+            this.sldTransparency.Size = new System.Drawing.Size(91, 26);
             this.sldTransparency.SmallChange = 5;
             this.sldTransparency.TabIndex = 14;
             this.sldTransparency.TickFrequency = 20;
+            this.sldTransparency.TickStyle = System.Windows.Forms.TickStyle.None;
             this.sldTransparency.Value = 70;
             this.sldTransparency.Visible = false;
             this.sldTransparency.Scroll += new System.EventHandler(this.sldTransparency_Scroll);
