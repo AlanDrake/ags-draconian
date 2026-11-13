@@ -549,8 +549,11 @@ Framework-only.
      undo, import) and raise `OnItemsChanged` only when an area becomes drawn or empty; masks replaced elsewhere
      (background import, mask resolution, a mask file changed on disk) go through `RoomSettingsEditor.MasksChanged`.
      Done 2026-11-13 (`f3887a1bd`) but the manual check; 12 view tests (`RoomLayerTreeViewTests`, toggles by window
-     message). Cost: one mask scan per stroke, 0.2 ms at 320x200 to 5 ms at 3840x2160; a rebuild checks the 98
-     areas' properties in about 20 ms (caching a new area's XML would cut it, if it shows).
+     message). Cost: a mask scan takes 0.2 ms at 320x200 to 5 ms at 3840x2160; a rebuild checks the 98 areas'
+     properties in about 20 ms (caching a new area's XML would cut it, if it shows). After the user's first look
+     (2026-11-13, `97997b13e`..`ebadd461b`): a layer shown only for the selection is hidden again when it leaves;
+     the room is a leaf beside its layers; strokes recount at most every 4 s (a first use is listed at once); the
+     transparency slider is shorter; the tree repaints when the scroll bar changes its width.
   4. **`[delete]`** the bar's classes and `AGS.Controls/AdressBarEx` (no other user), with their `.csproj` entries;
      `AdressBarEx` is listed as vendored code, so also its row in STYLE.md's third-party table, its `.editorconfig`
      glob and `Script/refactor_metrics.py`'s third-party pattern (no `.clang-format` stub: C# only). Done
