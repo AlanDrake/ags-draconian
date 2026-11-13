@@ -876,6 +876,7 @@
 		7B9C39F289015C65EB530225 /* smooth.c in Sources */ = {isa = PBXBuildFile; fileRef = DFE2BA4DBEBF50C683932D02 /* smooth.c */; };
 		7BB84CF146F2F92A7F35B36B /* video_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 511B83368FB0729AB431B586 /* video_api.cpp */; };
 		7C89AECE6A7C5B443738F7E3 /* gui_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E3A98E6D51124DA9866E5329 /* gui_api.cpp */; };
+		7C97D261788789B06E25E0E3 /* viewport_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 017B3F922CF4BEF9E8B6E062 /* viewport_api.cpp */; };
 		7ED631779EBDC228C89467C5 /* joystick.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2A0AEDD6BEBB8912C0333504 /* joystick.cpp */; };
 		7FEF3E1B933F94B00E1ABDB9 /* type1cid.c in Sources */ = {isa = PBXBuildFile; fileRef = 5E6FC94C102CB3EFA2B7966B /* type1cid.c */; };
 		80662369704A353DAE2308D0 /* raster.c in Sources */ = {isa = PBXBuildFile; fileRef = DEB1BEDBB8009A32A2D5B672 /* raster.c */; };
@@ -960,6 +961,7 @@
 /* Begin PBXFileReference section */
 		00A539E5AF355FABD4153447 /* screen_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = screen_api.cpp; sourceTree = "<group>"; };
 		012B5A209ED8DEEB98520B41 /* utils_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = utils_api.cpp; sourceTree = "<group>"; };
+		017B3F922CF4BEF9E8B6E062 /* viewport_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = viewport_api.cpp; sourceTree = "<group>"; };
 		03C3C621E9309539271C8EE0 /* ftbitmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftbitmap.c; sourceTree = "<group>"; };
 		047BCD1ABBFAD5CA171AF2E4 /* ftsystem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftsystem.c; sourceTree = "<group>"; };
 		072C4F6578AA15AEF14EBD94 /* ftgxval.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftgxval.c; sourceTree = "<group>"; };
@@ -3699,6 +3701,7 @@
 				012B5A209ED8DEEB98520B41 /* utils_api.cpp */,
 				511B83368FB0729AB431B586 /* video_api.cpp */,
 				0EBDBB4551BC528FEAA5D81F /* view_frame_api.cpp */,
+				017B3F922CF4BEF9E8B6E062 /* viewport_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4768,6 +4771,7 @@
 				B09D8C13ABC87F87AF068F90 /* utils_api.cpp in Sources */,
 				7BB84CF146F2F92A7F35B36B /* video_api.cpp in Sources */,
 				4F3FF08A5E56E46AB99273D6 /* view_frame_api.cpp in Sources */,
+				7C97D261788789B06E25E0E3 /* viewport_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
