@@ -318,6 +318,7 @@ target_sources(engine
     game/script_api/video_api.cpp
     game/script_api/view_frame_api.cpp
     game/script_api/viewport_api.cpp
+    game/script_api/walk_behind_api.cpp
     game/script_api/walkable_area_api.cpp
     game/viewport.cpp
     game/viewport.h

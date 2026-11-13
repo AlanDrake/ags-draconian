@@ -744,6 +744,9 @@
     <ClCompile Include="..\..\Engine\game\script_api\viewport_api.cpp">
       <Filter>Source Files\game\script_api</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\game\script_api\walk_behind_api.cpp">
+      <Filter>Source Files\game\script_api</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Engine\game\script_api\walkable_area_api.cpp">
       <Filter>Source Files\game\script_api</Filter>
     </ClCompile>

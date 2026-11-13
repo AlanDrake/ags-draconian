@@ -406,6 +406,7 @@
 		3C674C7E59611FB0FCBF99E2 /* scriptexecutor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EE68358A02E784F42146834 /* scriptexecutor.cpp */; };
 		3E4760575CC697950B62A622 /* autofit.c in Sources */ = {isa = PBXBuildFile; fileRef = 22AF0B1DA5A142DF4988DFC0 /* autofit.c */; };
 		3F651B8B1FD1CD1938B039EE /* mouse_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E29F2560BDA38EBBF9A8C68 /* mouse_api.cpp */; };
+		3F7ECC8BFBC5E865B64CC14E /* walk_behind_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 714EBA20D94B7868F13BECD1 /* walk_behind_api.cpp */; };
 		3F995B865A8D053AA14BD63F /* fttype1.c in Sources */ = {isa = PBXBuildFile; fileRef = 0BB7E9301BBAD9A9F8800167 /* fttype1.c */; };
 		446905E849DD61FF38D3DDB1 /* guitextbasedcontrol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2DA008409EED7B1237B212EB /* guitextbasedcontrol.cpp */; };
 		47A6B24A7B6BF4194DEA92F4 /* ftotval.c in Sources */ = {isa = PBXBuildFile; fileRef = F5EF87B10D4F11856775A329 /* ftotval.c */; };
@@ -1825,6 +1826,7 @@
 		6E29F2560BDA38EBBF9A8C68 /* mouse_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mouse_api.cpp; sourceTree = "<group>"; };
 		6EE68358A02E784F42146834 /* scriptexecutor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scriptexecutor.cpp; sourceTree = "<group>"; };
 		6F5542CF1DC34A9F19D96E2B /* touch_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = touch_api.cpp; sourceTree = "<group>"; };
+		714EBA20D94B7868F13BECD1 /* walk_behind_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = walk_behind_api.cpp; sourceTree = "<group>"; };
 		7167B8345D1267AB4ECDDE26 /* ftpfr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftpfr.c; sourceTree = "<group>"; };
 		71BFBE0471ACC056D9FAE4AF /* room_file_blocks.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = room_file_blocks.cpp; sourceTree = "<group>"; };
 		72FCC73127C5385E7647A318 /* ftcache.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftcache.c; sourceTree = "<group>"; };
@@ -3705,6 +3707,7 @@
 				0EBDBB4551BC528FEAA5D81F /* view_frame_api.cpp */,
 				017B3F922CF4BEF9E8B6E062 /* viewport_api.cpp */,
 				EEEDA262097EC41FEAD6785B /* walkable_area_api.cpp */,
+				714EBA20D94B7868F13BECD1 /* walk_behind_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4776,6 +4779,7 @@
 				4F3FF08A5E56E46AB99273D6 /* view_frame_api.cpp in Sources */,
 				7C97D261788789B06E25E0E3 /* viewport_api.cpp in Sources */,
 				FB88A53D0DA40B0DA305B49C /* walkable_area_api.cpp in Sources */,
+				3F7ECC8BFBC5E865B64CC14E /* walk_behind_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
