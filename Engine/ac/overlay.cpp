@@ -498,13 +498,13 @@ void Overlay_SetOpacity(ScriptOverlay *script_over, int alpha)
 }
 
 // [OBSOLETE] the AGS 4.0 Transparency, for compiled 4.0 games
-static int Overlay_GetTransparency(ScriptOverlay *script_over)
+int Overlay_GetTransparency(ScriptOverlay *script_over)
 {
     auto *over = GetOverlayValidate("Overlay.Transparency", script_over);
     return over ? GfxDef::OpacityToTrans100(over->GetOpacity()) : 0;
 }
 
-static void Overlay_SetTransparency(ScriptOverlay *script_over, int trans)
+void Overlay_SetTransparency(ScriptOverlay *script_over, int trans)
 {
     auto *over = GetOverlayValidate("Overlay.Transparency", script_over);
     if ((trans < 0) || (trans > 100))

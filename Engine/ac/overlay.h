@@ -123,3 +123,237 @@ void UpdateOverlayAnimations();
 // Removes the animation of the overlay with the given ID; does nothing if it has none
 void RemoveAnimatedOverlay(int over_id);
 void RemoveAllAnimatedOverlays();
+
+class ScriptShaderInstance;
+
+// Script API: Overlay::get_AutoSize
+bool Overlay_GetAutoSize(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_AutoSize
+void Overlay_SetAutoSize(ScriptOverlay *script_over, bool auto_size);
+
+// Script API: Overlay::get_Graphic
+int Overlay_GetGraphic(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_Graphic
+void Overlay_SetGraphic(ScriptOverlay *script_over, int slot);
+
+// Script API: Overlay::get_InRoom
+bool Overlay_InRoom(ScriptOverlay *script_over);
+
+// Script API: Overlay::get_Width
+int Overlay_GetWidth(ScriptOverlay *script_over);
+
+// Script API: Overlay::get_Height
+int Overlay_GetHeight(ScriptOverlay *script_over);
+
+// Script API: Overlay::get_GraphicWidth
+int Overlay_GetGraphicWidth(ScriptOverlay *script_over);
+
+// Script API: Overlay::get_GraphicHeight
+int Overlay_GetGraphicHeight(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_Width
+void Overlay_SetWidth(ScriptOverlay *script_over, int width);
+
+// Script API: Overlay::set_Height
+void Overlay_SetHeight(ScriptOverlay *script_over, int height);
+
+// Script API: Overlay::get_Flip
+int Overlay_GetFlip(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_Flip
+void Overlay_SetFlip(ScriptOverlay *script_over, int flip);
+
+// Script API: Overlay::get_GraphicAnchorX
+float Overlay_GetGraphicAnchorX(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_GraphicAnchorX
+void Overlay_SetGraphicAnchorX(ScriptOverlay *script_over, float x);
+
+// Script API: Overlay::get_GraphicAnchorY
+float Overlay_GetGraphicAnchorY(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_GraphicAnchorY
+void Overlay_SetGraphicAnchorY(ScriptOverlay *script_over, float y);
+
+// Script API: Overlay::get_GraphicOffsetX
+int Overlay_GetGraphicOffsetX(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_GraphicOffsetX
+void Overlay_SetGraphicOffsetX(ScriptOverlay *script_over, int x);
+
+// Script API: Overlay::get_GraphicOffsetY
+int Overlay_GetGraphicOffsetY(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_GraphicOffsetY
+void Overlay_SetGraphicOffsetY(ScriptOverlay *script_over, int y);
+
+// Script API: Overlay::GetGraphicPosition^0
+void *Overlay_GetGraphicPosition(ScriptOverlay *script_over);
+
+// Script API: Overlay::GetGraphicBoundBox^0
+void *Overlay_GetGraphicBoundBox(ScriptOverlay *script_over);
+
+// Script API: Overlay::CreateGraphical^5
+ScriptOverlay *Overlay_CreateGraphical5(int x, int y, int slot, bool /* dummy */, bool clone);
+
+// Script API: Overlay::CreateRoomGraphical^4
+ScriptOverlay *Overlay_CreateRoomGraphical(int x, int y, int slot, bool clone);
+
+// Script API: Overlay::CreateRoomGraphical^5
+ScriptOverlay *Overlay_CreateRoomGraphical5(int x, int y, int slot, bool /*dummy*/, bool clone);
+
+// Script API: Overlay::CreateRoomTextual^106
+ScriptOverlay *Overlay_CreateRoomTextual(int x, int y, int width, int font, int text_color, const char *text);
+
+// Script API: Overlay::get_Text
+const char *Overlay_GetTextProperty(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_Text
+void Overlay_SetTextProperty(ScriptOverlay *script_over, const char *text);
+
+// Script API: Overlay::get_BlendMode
+int Overlay_GetBlendMode(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_BlendMode
+void Overlay_SetBlendMode(ScriptOverlay *script_over, int blend_mode);
+
+// Script API: Overlay::get_Shader
+ScriptShaderInstance *Overlay_GetShader(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_Shader
+void Overlay_SetShader(ScriptOverlay *script_over, ScriptShaderInstance *shader_inst);
+
+// Script API: Overlay::get_Opacity
+int Overlay_GetOpacity(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_Opacity
+void Overlay_SetOpacity(ScriptOverlay *script_over, int alpha);
+
+// Script API: Overlay::get_Transparency
+int Overlay_GetTransparency(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_Transparency
+void Overlay_SetTransparency(ScriptOverlay *script_over, int trans);
+
+// Script API: Overlay::get_Visible
+bool Overlay_GetVisible(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_Visible
+void Overlay_SetVisible(ScriptOverlay *script_over, bool visible);
+
+// Script API: Overlay::get_Rotation
+float Overlay_GetRotation(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_Rotation
+void Overlay_SetRotation(ScriptOverlay *script_over, float degrees);
+
+// Script API: Overlay::get_GraphicPivotX
+float Overlay_GetGraphicPivotX(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_GraphicPivotX
+void Overlay_SetGraphicPivotX(ScriptOverlay *script_over, float pivot_x);
+
+// Script API: Overlay::get_GraphicPivotY
+float Overlay_GetGraphicPivotY(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_GraphicPivotY
+void Overlay_SetGraphicPivotY(ScriptOverlay *script_over, float pivot_y);
+
+// Script API: Overlay::get_GraphicPivotOffsetX
+int Overlay_GetGraphicPivotOffsetX(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_GraphicPivotOffsetX
+void Overlay_SetGraphicPivotOffsetX(ScriptOverlay *script_over, int pivot_offset_x);
+
+// Script API: Overlay::get_GraphicPivotOffsetY
+int Overlay_GetGraphicPivotOffsetY(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_GraphicPivotOffsetY
+void Overlay_SetGraphicPivotOffsetY(ScriptOverlay *script_over, int pivot_offset_y);
+
+// Script API: Overlay::get_ZOrder
+int Overlay_GetZOrder(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_ZOrder
+void Overlay_SetZOrder(ScriptOverlay *script_over, int zorder);
+
+// Script API: Overlay::SetPosition^4
+void Overlay_SetPosition(ScriptOverlay *script_over, int x, int y, int width, int height);
+
+// Script API: Overlay::SetSize^2
+void Overlay_SetSize(ScriptOverlay *script_over, int width, int height);
+
+// Script API: Overlay::SetScale^2
+void Overlay_SetScale(ScriptOverlay *script_over, float scale_x, float scale_y);
+
+// Script API: Overlay::get_ScaleX
+float Overlay_GetScaleX(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_ScaleX
+void Overlay_SetScaleX(ScriptOverlay *script_over, float scale_x);
+
+// Script API: Overlay::get_ScaleY
+float Overlay_GetScaleY(ScriptOverlay *script_over);
+
+// Script API: Overlay::set_ScaleY
+void Overlay_SetScaleY(ScriptOverlay *script_over, float scale_y);
+
+// Script API: Overlay::Tint^5
+void Overlay_Tint(ScriptOverlay *script_over, int red, int green, int blue, int opacity, int luminance);
+
+// Script API: Overlay::SetLightLevel^1
+void Overlay_SetLightLevel(ScriptOverlay *script_over, int light_level);
+
+// Script API: Overlay::RemoveTint^0
+void Overlay_RemoveTint(ScriptOverlay *script_over);
+
+// Script API: Overlay::get_HasLightLevel
+bool Overlay_GetHasLight(ScriptOverlay *script_over);
+
+// Script API: Overlay::get_HasTint
+bool Overlay_GetHasTint(ScriptOverlay *script_over);
+
+// Script API: Overlay::get_LightLevel
+int Overlay_GetLightLevel(ScriptOverlay *script_over);
+
+// Script API: Overlay::get_TintRed
+int Overlay_GetTintRed(ScriptOverlay *script_over);
+
+// Script API: Overlay::get_TintGreen
+int Overlay_GetTintGreen(ScriptOverlay *script_over);
+
+// Script API: Overlay::get_TintBlue
+int Overlay_GetTintBlue(ScriptOverlay *script_over);
+
+// Script API: Overlay::get_TintSaturation
+int Overlay_GetTintSaturation(ScriptOverlay *script_over);
+
+// Script API: Overlay::get_TintLuminance
+int Overlay_GetTintLuminance(ScriptOverlay *script_over);
+
+// Script API: AnimatedOverlay::CreateAnimated
+ScriptAnimatedOverlay *AnimatedOverlay_CreateAnimated(int x, int y, int slot, bool pause_with_game);
+
+// Script API: AnimatedOverlay::CreateRoomAnimated
+ScriptAnimatedOverlay *AnimatedOverlay_CreateRoomAnimated(int x, int y, int slot, bool pause_with_game);
+
+// Script API: AnimatedOverlay::Animate
+void AnimatedOverlay_Animate(ScriptAnimatedOverlay *script_over, int view, int loop, int speed, int repeat,
+                             int blocking, int direction, int start_frame, int volume);
+
+// Script API: AnimatedOverlay::get_Animating
+bool AnimatedOverlay_GetAnimating(ScriptAnimatedOverlay *script_over);
+
+// Script API: AnimatedOverlay::get_Frame
+int AnimatedOverlay_GetFrame(ScriptAnimatedOverlay *script_over);
+
+// Script API: AnimatedOverlay::get_Loop
+int AnimatedOverlay_GetLoop(ScriptAnimatedOverlay *script_over);
+
+// Script API: AnimatedOverlay::get_PauseWithGame
+bool AnimatedOverlay_GetPauseWithGame(ScriptAnimatedOverlay *script_over);
+
+// Script API: AnimatedOverlay::get_View
+int AnimatedOverlay_GetView(ScriptAnimatedOverlay *script_over);
