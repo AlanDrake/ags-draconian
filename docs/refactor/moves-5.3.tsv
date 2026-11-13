@@ -1,6 +1,8 @@
 # PLAN.md 5.3: where each file goes. Read by Script/apply_moves.py and by port.py as its path table.
 # old path<TAB>new path<TAB>note. Paths are relative to the repository root.
 # The script-binding files of 5.2 are created in Engine/game/script_api/ and are not listed.
+# No row: Engine/ac/dynobj/scriptcontainers.h (merged into Engine/ac/scriptcontainers.h before the move),
+# Common/ac/def_version.h (named by CI and packaging on every platform: decided at the end of 5.3).
 Common/ac/audiocliptype.cpp	Common/game/audio_clip_type.cpp
 Common/ac/audiocliptype.h	Common/game/audio_clip_type.h
 Common/ac/characterinfo.cpp	Common/game/character_info.cpp
@@ -102,7 +104,6 @@ Engine/ac/dynobj/managedobjectpool.cpp	Engine/script/dynobj/managed_object_pool.
 Engine/ac/dynobj/managedobjectpool.h	Engine/script/dynobj/managed_object_pool.h
 Engine/ac/dynobj/scriptcamera.cpp	Engine/game/dynobj/script_camera.cpp
 Engine/ac/dynobj/scriptcamera.h	Engine/game/dynobj/script_camera.h
-Engine/ac/dynobj/scriptcontainers.h	Engine/game/lib/script_containers.h
 Engine/ac/dynobj/scriptdatetime.cpp	Engine/game/dynobj/script_date_time.cpp
 Engine/ac/dynobj/scriptdatetime.h	Engine/game/dynobj/script_date_time.h
 Engine/ac/dynobj/scriptdialogoptionsrendering.cpp	Engine/game/dynobj/script_dialog_options_rendering.cpp
@@ -215,6 +216,7 @@ Engine/ac/parser.cpp	Engine/game/dialog/parser.cpp
 Engine/ac/parser.h	Engine/game/dialog/parser.h
 Engine/ac/path_helper.h	Engine/util/path_helper.h
 Engine/ac/pathfinder_script.cpp	Engine/game/navigation/pathfinder_script.cpp
+Engine/ac/pathfinder_script.h	Engine/game/navigation/pathfinder_script.h
 Engine/ac/properties.cpp	Engine/game/world/properties.cpp
 Engine/ac/properties.h	Engine/game/world/properties.h
 Engine/ac/region.cpp	Engine/game/world/region.cpp
@@ -236,6 +238,7 @@ Engine/ac/screen.h	Engine/game/render/screen.h
 Engine/ac/screenoverlay.cpp	Engine/game/render/screen_overlay.cpp
 Engine/ac/screenoverlay.h	Engine/game/render/screen_overlay.h
 Engine/ac/scriptcontainers.cpp	Engine/game/lib/script_containers.cpp
+Engine/ac/scriptcontainers.h	Engine/game/lib/script_containers.h
 Engine/ac/shader_script.cpp	Engine/game/render/shader_script.cpp
 Engine/ac/shader_script.h	Engine/game/render/shader_script.h
 Engine/ac/slider.cpp	Engine/game/ui/slider.cpp
@@ -257,10 +260,13 @@ Engine/ac/touch.h	Engine/game/input/touch.h
 Engine/ac/translation.cpp	Engine/game/translation.cpp
 Engine/ac/translation.h	Engine/game/translation.h
 Engine/ac/utils_script.cpp	Engine/game/lib/utils_script.cpp
+Engine/ac/utils_script.h	Engine/game/lib/utils_script.h
 Engine/ac/video_script.cpp	Engine/game/video/video_script.cpp
+Engine/ac/video_script.h	Engine/game/video/video_script.h
 Engine/ac/viewframe.cpp	Engine/game/world/view_frame.cpp
 Engine/ac/viewframe.h	Engine/game/world/view_frame.h
 Engine/ac/viewport_script.cpp	Engine/game/render/viewport_script.cpp
+Engine/ac/viewport_script.h	Engine/game/render/viewport_script.h
 Engine/ac/walkablearea.cpp	Engine/game/world/walkable_area.cpp
 Engine/ac/walkablearea.h	Engine/game/world/walkable_area.h
 Engine/ac/walkbehind.cpp	Engine/game/world/walk_behind.cpp
