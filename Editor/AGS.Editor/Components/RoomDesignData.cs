@@ -30,7 +30,7 @@ namespace AGS.Editor.Components
         private const string XML_DATA_ROOT_NODE = "AGSRoomUserData";
         private const string XML_ROOM_NODE = "Room";
         private const string XML_ROOM_SELECTION = "SelectedItem";
-        private const string XML_SELITEM_ATTRIB_PATH = "BreadcrumbPath";
+        private const string XML_SELITEM_ATTRIB_PATH = "BreadcrumbPath"; // named for the bar before the layer tree; kept for existing files
         private const string XML_ROOM_LAYERS_NODE = "Layers";
         private const string XML_LAYER_ELEM_VISIBLE = "Visible";
         private const string XML_LAYER_ELEM_LOCKED = "Locked";

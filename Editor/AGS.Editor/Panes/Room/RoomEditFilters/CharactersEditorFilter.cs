@@ -305,7 +305,7 @@ namespace AGS.Editor
         /// <summary>
         /// Forms a object's label for the Navigation bar.
         /// </summary>
-        protected override string GetNavbarItemTitle(Character obj)
+        protected override string GetTreeItemTitle(Character obj)
         {
             return MakeLayerItemName("Character", obj.ScriptName, obj.DisplayName, obj.ID);
         }
