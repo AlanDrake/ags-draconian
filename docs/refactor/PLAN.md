@@ -84,7 +84,7 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 | 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` with upstream's draft names where they overlap | Files move once (4.4 rides along) | Fable 5.1, `high` for the move map, subagents for the moves |
 | 3 | **4.5 + 3.6 on what had no comment pass** (770 first-party files, ~280k lines): batch 8 done (2026-11-13, LOG.md: `game`, `gamestate`, `room`, `dialog`, `savegame`, `game_init`, `script`, `guimain`, `engine`); next, the untouched files most-churned first (a ranking by commits since 2024, the batch-6 stray-rename files among them), then the D3D/OpenGL drivers with the `emscripten` and `linux` stages, and the compiler (7,440-line parser: its own plan, by function groups). Brief `.compare/briefs/brief-45-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | Comments before the 5.3 moves | Sonnet 5.5, `medium`, parallel subagents; the parser plan Fable 5.1 |
 | 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3188, #3189; #3187 merged), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
-| 5 | **6.9 Room editor layer tree** (branch `room-layer-tree`): the breadcrumb bar becomes a tree, empty area slots in an "Unused (n)" node; model and tests first | The last planned WinForms UI change; must land before 6.8 (the user, 2026-11-13) | Fable 5.1, `high` for the model and view; the deletion by a subagent |
+| 5 | **6.9 Room editor layer tree** (branch `room-layer-tree`): steps 1-4 done 2026-11-13, `prepush` `msbuild` passes; left: the user's check of the room pane in the running editor (the checklist is step 3's behaviours), then LOG.md, the merge into `ags4draconianr21` and the task closes | The last planned WinForms UI change; must land before 6.8 (the user, 2026-11-13) | Fixes from the check: Fable 5.1, `medium` |
 
 Open items from finished tasks (details in LOG.md "Open items"):
 - 0.4: the CodeQL setting, `D3DCOMPILER_47` on Windows 7, the macOS 10.9 deployment target.
@@ -534,19 +534,32 @@ Framework-only.
      or given properties (selection follows the key). Older editors' slot names count as defaults: script name
      `hHotspot<n>` and description `Hotspot <n>` / `HOTSPOT<n>` are on nearly every hotspot of real projects
      (corpus, 2026-11-13); region ranges are compared after `UpgradeRoomFeatures` has converted them.
-  Steps 1 and 2 done 2026-11-13, uncommitted (`IRoomLayer`, `RoomLayerTree`, `RoomAreaUsage`, 42 tests). On the
-  corpus (a private AGS 4 game, a private 8-bit game, the auto-test game) the only "nothing drawn" slots are
-  real ones (a baseline, scaling or an event on an undrawn area). Open for step 3: the eye/lock column on the
-  right (recommended: native tree, `OwnerDrawText`) or on the left (`OwnerDrawAll`).
-  3. **View** (`TreeView` subclass, owner-drawn icons, `LoadColorTheme` like `SpriteSelector`): behaviour of the
+  Steps 1 and 2 done 2026-11-13 (`46de67761`, `4410e1e97`). On the corpus (a private AGS 4 game, a private 8-bit
+  game, the auto-test game) the only "nothing drawn" slots are real ones (a baseline, scaling or an event on an
+  undrawn area).
+  3. **View** (`RoomLayerTreeView`: a native `TreeView`, `OwnerDrawText`, the eye and lock columns at the right
+     edge; `LoadColorTheme` like `SpriteSelector`, falling back to the bar's drop-down colours): behaviour of the
      bar kept: selecting a layer shows it and turns its filter on, an item selects it in the filter, the root shows
      the room; a canvas click moves the tree selection; area items have a lock but no eye; a changed selection is
      `DesignModified`; `RoomsComponent`'s `RefreshLayersTree` calls; the `.user` selection path
      `Room/<layer>/<item id>` unchanged. Focus goes to the canvas only when the selection came from it (today
-     `SelectLayer` always takes it, which would break arrow keys in the tree). Rebuilds keep expansion and scroll.
+     `SelectLayer` always takes it, which would break arrow keys in the tree); with the tree focused its navigation
+     keys stay in it, every other key reaches the room as before, Enter gives the focus back to the room. Rebuilds
+     keep expansion and scroll. The area filters count their drawn areas once per mask edit (stroke end, fill,
+     undo, import) and raise `OnItemsChanged` only when an area becomes drawn or empty; masks replaced elsewhere
+     (background import, mask resolution, a mask file changed on disk) go through `RoomSettingsEditor.MasksChanged`.
+     Done 2026-11-13 (`f3887a1bd`) but the manual check; 12 view tests (`RoomLayerTreeViewTests`, toggles by window
+     message). Cost: one mask scan per stroke, 0.2 ms at 320x200 to 5 ms at 3840x2160; a rebuild checks the 98
+     areas' properties in about 20 ms (caching a new area's XML would cut it, if it shows).
   4. **`[delete]`** the bar's classes and `AGS.Controls/AdressBarEx` (no other user), with their `.csproj` entries;
-     `AdressBarEx` is listed as vendored code, so also its row in STYLE.md's third-party table, its
-     `.editorconfig` entry and its `.clang-format` stub.
+     `AdressBarEx` is listed as vendored code, so also its row in STYLE.md's third-party table, its `.editorconfig`
+     glob and `Script/refactor_metrics.py`'s third-party pattern (no `.clang-format` stub: C# only). Done
+     2026-11-13 (`2070cd010`, with the two drop-down helpers only the bar used; `de2d09acf` renames
+     `GetNavbarItemTitle`).
+  Found on the way, open (both on `upstream/ags4` too): every loaded room's hotspots and regions subscribe to
+  `InteractionSchema.Instance.Changed` and are never detached (`RoomAreaUsage` detaches its own);
+  `IRoomController.GetAreaMaskPixel` checks `x > mask.Width`/`y > mask.Height` (should be `>=`: a click one mask
+  column past the edge reads the next row, on the last row past the array) and copies the whole mask per pixel.
   *Done when:* the model tests pass, `prepush.py --auto` (`msbuild`) passes, and a manual checklist of step 3's
   behaviours passes on the test game's rooms (no automated UI test covers the room pane; say so in LOG.md).
 
