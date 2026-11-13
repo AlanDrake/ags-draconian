@@ -481,6 +481,7 @@
     <ClCompile Include="..\..\Engine\game\script_api\game_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\gui_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\gui_control_api.cpp" />
+    <ClCompile Include="..\..\Engine\game\script_api\hotspot_api.cpp" />
     <ClCompile Include="..\..\Engine\game\viewport.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dogl.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dsw.cpp" />
