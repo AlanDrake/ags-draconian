@@ -194,3 +194,13 @@ ScriptWalkbehind *Room_GetiWalkbehinds(int idx);
 
 // Script API: Room::get_PathFinder
 ScriptPathfinder *Room_GetPathFinder();
+
+void SetAmbientTint(int red, int green, int blue, int opacity, int luminance);
+void SetAmbientLightLevel(int light_level);
+void NewRoom(int nrnum); // still widely used
+void ResetRoom(int nrnum);
+int HasPlayerBeenInRoom(int roomnum);
+void CallRoomScript(int value);
+
+void SetBackgroundFrame(int frnum);
+int GetBackgroundFrame();

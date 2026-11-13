@@ -18,6 +18,7 @@
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/common.h"
+#include "ac/dialog.h"
 #include "ac/draw.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/managedobjectpool.h"
@@ -1341,3 +1342,144 @@ int mask_to_room_coord(int coord)
 #include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
 #include "script/script_runtime.h"
+
+void SetAmbientTint(int red, int green, int blue, int opacity, int luminance)
+{
+    if ((red < 0) || (green < 0) || (blue < 0) || (red > 255) || (green > 255) || (blue > 255) || (opacity < 0) ||
+        (opacity > 255) || (luminance < 0) || (luminance > 255))
+        quit("!SetTint: invalid parameter. R,G,B must be 0-255, opacity & luminance 0-255");
+
+    debug_script_log("Set ambient tint RGB(%d,%d,%d) %d", red, green, blue, opacity);
+
+    play.rtint_enabled = opacity > 0;
+    play.rtint_red = red;
+    play.rtint_green = green;
+    play.rtint_blue = blue;
+    play.rtint_level = opacity;
+    play.rtint_light = luminance;
+}
+
+void SetAmbientLightLevel(int light_level)
+{
+    light_level = Math::Clamp(light_level, -255, 255);
+
+    play.rtint_enabled = light_level != 0;
+    play.rtint_level = 0;
+    play.rtint_light = light_level;
+}
+
+void NewRoom(int nrnum)
+{
+    if (nrnum < 0)
+        quitprintf("!NewRoom: room change requested to invalid room number %d.", nrnum);
+
+    if (displayed_room < 0)
+    {
+        // called from game_start; change the room where the game will start
+        playerchar->room = nrnum;
+        return;
+    }
+
+
+    debug_script_log("Room change requested to room %d", nrnum);
+    EndSkippingUntilCharStops();
+
+    can_run_delayed_command();
+
+    if (handle_state_change_in_dialog_request("NewRoom", DIALOG_NEWROOM + nrnum))
+        return; // handled
+
+    if (in_leaves_screen >= 0)
+    {
+        // NewRoom called from the Player Leaves Screen event -- just
+        // change which room it will go to
+        in_leaves_screen = nrnum;
+    }
+    else if (in_enters_screen)
+    {
+        setevent(AGSEvent_NewRoom(nrnum));
+        return;
+    }
+    else if (!is_inside_script())
+    {
+        new_room(nrnum, playerchar);
+        return;
+    }
+    else if (is_inside_script())
+    {
+        get_executingscript()->QueueAction(PostScriptAction(ePSANewRoom, nrnum, "NewRoom"));
+        // we might be within a MoveCharacterBlocking -- the room
+        // change should abort it
+        if (is_char_walking_ndirect(playerchar))
+        {
+            // stop the character, but doesn't fix the character to a walkable area
+            Character_StopMovingEx(playerchar, false);
+        }
+    }
+}
+
+void ResetRoom(int nrnum)
+{
+    if (nrnum == displayed_room)
+        quitprintf("!ResetRoom: cannot reset current room  %d", nrnum);
+    if ((nrnum < 0) || (nrnum >= MAX_ROOMS))
+        quitprintf("!ResetRoom: invalid room number %d", nrnum);
+
+    ResetRoomState(nrnum);
+
+    debug_script_log("Room %d reset to original state", nrnum);
+}
+
+int HasPlayerBeenInRoom(int roomnum)
+{
+    if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
+        return 0;
+    RoomStatus *roomstat = GetRoomStateIfExists(roomnum);
+    return (roomstat != nullptr) && (roomstat->beenhere != 0);
+}
+
+void CallRoomScript(int value)
+{
+    can_run_delayed_command();
+
+    if (!is_inside_script())
+        quit("!CallRoomScript: not inside a script???");
+
+    play.roomscript_finished = 0;
+    RuntimeScriptValue params[]{value, RuntimeScriptValue()};
+    RunScriptFunctionAuto(kScTypeRoom, "on_call", 1, params);
+    play.roomscript_finished = 1;
+}
+
+void SetBackgroundFrame(int frnum)
+{
+    if ((frnum < -1) || (frnum != -1 && (size_t)frnum >= thisroom.BgFrameCount))
+    {
+        debug_script_error(
+            "SetBackgrondFrame: invalid background number specified: %d, valid range in this room is 0..%u", frnum,
+            thisroom.BgFrameCount - 1);
+        return;
+    }
+
+    if (frnum < 0)
+    {
+        play.bg_frame_locked = 0;
+        return;
+    }
+
+    play.bg_frame_locked = 1;
+
+    if (frnum == play.bg_frame)
+    {
+        // already on this frame, do nothing
+        return;
+    }
+
+    play.bg_frame = frnum;
+    on_background_frame_change();
+}
+
+int GetBackgroundFrame()
+{
+    return play.bg_frame;
+}
