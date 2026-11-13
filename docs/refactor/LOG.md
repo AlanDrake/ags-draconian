@@ -1011,13 +1011,15 @@ U.5, U.7, U.9) are only there.
     visibility or lock change, the shown nodes updated in place when a rebuild moves none. The icons still
     flickered; the garbage came only with the expand and collapse animation (the user), which no `TVS_EX` style turns
     off, so `83fa72596` keeps the buffer and freezes drawing from `BeforeExpand` to `AfterExpand` (`BeginUpdate`, a
-    posted thaw as a safety net). Fallback if it shows again: drawing whole rows (`OwnerDrawAll`). The vertical scroll bar changes the client width without a resize, so the tree repaints
+    posted thaw as a safety net); the user saw neither garbage nor flicker. `352d8cf10` then drops the in-place update
+    (74 lines, not needed under the buffer: a rebuild is drawn once off screen). Fallback if the garbage shows
+    again: drawing whole rows (`OwnerDrawAll`). The vertical scroll bar changes the client width without a resize, so the tree repaints
     when the width it drew for changes.
   - Moving the canvas into the bar's row put it under the 45-pixel transparency slider (now 26, no ticks).
 - **Lesson:** a command chain that greps the build output for a summary hides a failed build; check the build's exit
   code (`ec0365375` was committed after such a failure and verified by a second run).
 - **Not verified:** the editor's room pane at high DPI and with a dark theme file that defines the new
-  `room-editor/tree/*` keys (none exists); `83fa72596` by the user's eye (garbage on expanding, flicker).
+  `room-editor/tree/*` keys (none exists); `352d8cf10` by the user's eye (no flicker on an area property edit or an area going in or out of "Unused").
 
 ### 7.1k Incremental room builds in `agsbuild`
 
