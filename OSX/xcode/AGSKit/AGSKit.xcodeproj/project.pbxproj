@@ -887,6 +887,7 @@
 		C5F25081F7E893290ED763B4 /* ftcid.c in Sources */ = {isa = PBXBuildFile; fileRef = 48EFC8D1A08BC706233BFD4F /* ftcid.c */; };
 		C6D7FDEF27E0E25779D60471 /* shader_script.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4E6E615CB9654FE693E1FF08 /* shader_script.cpp */; };
 		CCBF84533572D6DB4C99354A /* ftbdf.c in Sources */ = {isa = PBXBuildFile; fileRef = 667F01794F89805239809766 /* ftbdf.c */; };
+		CED738899510DEA093A071EC /* dialog_options_rendering_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4E05D962D605A02160B3FD8 /* dialog_options_rendering_api.cpp */; };
 		CF0ECD2F66879083ACF35D37 /* truetype.c in Sources */ = {isa = PBXBuildFile; fileRef = CB92FF6FE4511AF0B1AE9E7A /* truetype.c */; };
 		D52DF548735FEBED6FDF96B0 /* ftbbox.c in Sources */ = {isa = PBXBuildFile; fileRef = B6111CF9EB7723A1023CFC93 /* ftbbox.c */; };
 		D606B7ACC30BAA47C1DDE757 /* scriptpathfinder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6D9D218445ACC5FC64519EBB /* scriptpathfinder.cpp */; };
@@ -1811,6 +1812,7 @@
 		DFD007C4036D080BF3A5B0EE /* cc_walkablearea.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cc_walkablearea.cpp; sourceTree = "<group>"; };
 		DFE2BA4DBEBF50C683932D02 /* smooth.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = smooth.c; sourceTree = "<group>"; };
 		E20BC6BAD8051658576AE008 /* audio_channel_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_channel_api.cpp; sourceTree = "<group>"; };
+		E4E05D962D605A02160B3FD8 /* dialog_options_rendering_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dialog_options_rendering_api.cpp; sourceTree = "<group>"; };
 		E66ACDBAF47E6525354BEBB7 /* scriptmotionpath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scriptmotionpath.cpp; sourceTree = "<group>"; };
 		E6EA0E08841D08B1EB9560A1 /* ftmm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftmm.c; sourceTree = "<group>"; };
 		E7680CB52F09E80D00F864E2 /* indexedobjectpool.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = indexedobjectpool.h; sourceTree = "<group>"; };
@@ -3587,6 +3589,7 @@
 				9164661E1C45D12F053F3DAE /* character_api.cpp */,
 				D1951FD077B9BD92B865D508 /* date_time_api.cpp */,
 				6B93928C083C67DAB8313950 /* dialog_api.cpp */,
+				E4E05D962D605A02160B3FD8 /* dialog_options_rendering_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4622,6 +4625,7 @@
 				01F1DF6AC7EECF0D9B3E89EB /* character_api.cpp in Sources */,
 				03980617FE3F3F99D4199AF3 /* date_time_api.cpp in Sources */,
 				EFC70E7CD3333A7812797FE1 /* dialog_api.cpp in Sources */,
+				CED738899510DEA093A071EC /* dialog_options_rendering_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

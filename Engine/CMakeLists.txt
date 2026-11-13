@@ -278,6 +278,7 @@ target_sources(engine
     game/script_api/character_api.cpp
     game/script_api/date_time_api.cpp
     game/script_api/dialog_api.cpp
+    game/script_api/dialog_options_rendering_api.cpp
     game/viewport.cpp
     game/viewport.h
     gfx/ali3dexception.h
