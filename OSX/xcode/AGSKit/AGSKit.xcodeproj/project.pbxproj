@@ -630,8 +630,6 @@
 		526F272F1D3B5CC300EF4E1F /* global_room.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24AC1D3B5CC200EF4E1F /* global_room.h */; };
 		526F27301D3B5CC300EF4E1F /* global_screen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24AD1D3B5CC200EF4E1F /* global_screen.cpp */; };
 		526F27311D3B5CC300EF4E1F /* global_screen.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24AE1D3B5CC200EF4E1F /* global_screen.h */; };
-		526F273A1D3B5CC300EF4E1F /* global_translation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24B71D3B5CC300EF4E1F /* global_translation.cpp */; };
-		526F273B1D3B5CC300EF4E1F /* global_translation.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24B81D3B5CC300EF4E1F /* global_translation.h */; };
 		526F27461D3B5CC300EF4E1F /* gui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24C31D3B5CC300EF4E1F /* gui.cpp */; };
 		526F27471D3B5CC300EF4E1F /* gui.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24C41D3B5CC300EF4E1F /* gui.h */; };
 		526F27481D3B5CC300EF4E1F /* guicontrol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24C51D3B5CC300EF4E1F /* guicontrol.cpp */; };
@@ -1574,8 +1572,6 @@
 		526F24AC1D3B5CC200EF4E1F /* global_room.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_room.h; sourceTree = "<group>"; };
 		526F24AD1D3B5CC200EF4E1F /* global_screen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_screen.cpp; sourceTree = "<group>"; };
 		526F24AE1D3B5CC200EF4E1F /* global_screen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_screen.h; sourceTree = "<group>"; };
-		526F24B71D3B5CC300EF4E1F /* global_translation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_translation.cpp; sourceTree = "<group>"; };
-		526F24B81D3B5CC300EF4E1F /* global_translation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_translation.h; sourceTree = "<group>"; };
 		526F24C31D3B5CC300EF4E1F /* gui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gui.cpp; sourceTree = "<group>"; };
 		526F24C41D3B5CC300EF4E1F /* gui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gui.h; sourceTree = "<group>"; };
 		526F24C51D3B5CC300EF4E1F /* guicontrol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = guicontrol.cpp; sourceTree = "<group>"; };
@@ -3060,8 +3056,6 @@
 				526F24AC1D3B5CC200EF4E1F /* global_room.h */,
 				526F24AD1D3B5CC200EF4E1F /* global_screen.cpp */,
 				526F24AE1D3B5CC200EF4E1F /* global_screen.h */,
-				526F24B71D3B5CC300EF4E1F /* global_translation.cpp */,
-				526F24B81D3B5CC300EF4E1F /* global_translation.h */,
 				526F24C31D3B5CC300EF4E1F /* gui.cpp */,
 				526F24C41D3B5CC300EF4E1F /* gui.h */,
 				526F24C51D3B5CC300EF4E1F /* guicontrol.cpp */,
@@ -4012,7 +4006,6 @@
 				526F22EA1D3B5C4900EF4E1F /* guiobject.h in Headers */,
 				20522A6A28E8F92100589E91 /* savegame_components.h in Headers */,
 				20522A7628E8F94100589E91 /* ogl_headers.h in Headers */,
-				526F273B1D3B5CC300EF4E1F /* global_translation.h in Headers */,
 				52F5D8551DA120D9006F8F4B /* plugininfo.h in Headers */,
 				20402A6C2A227C86001C7642 /* dynobj_manager.h in Headers */,
 				205229B028E8EBE500589E91 /* roomstruct.h in Headers */,
@@ -4272,7 +4265,6 @@
 				526F281C1D3B5CC300EF4E1F /* ogg.c in Sources */,
 				526F27DA1D3B5CC300EF4E1F /* mylabel.cpp in Sources */,
 				20E683D228F20C7200B95C00 /* floor0.c in Sources */,
-				526F273A1D3B5CC300EF4E1F /* global_translation.cpp in Sources */,
 				526F27921D3B5CC300EF4E1F /* timer.cpp in Sources */,
 				20522A5928E8F8CB00589E91 /* route_finder_impl.cpp in Sources */,
 				52F5D8611DA1219D006F8F4B /* inventoryiteminfo.cpp in Sources */,

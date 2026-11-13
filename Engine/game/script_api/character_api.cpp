@@ -23,7 +23,7 @@
 #include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/game.h"
-#include "ac/global_translation.h"
+#include "ac/translation.h"
 #include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

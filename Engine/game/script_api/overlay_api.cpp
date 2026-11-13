@@ -18,8 +18,8 @@
 #include "ac/characterextras.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/scriptshader.h"
-#include "ac/global_translation.h"
 #include "ac/overlay.h"
+#include "ac/translation.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

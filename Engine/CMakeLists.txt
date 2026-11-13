@@ -158,8 +158,6 @@ target_sources(engine
     ac/global_room.h
     ac/global_screen.cpp
     ac/global_screen.h
-    ac/global_translation.cpp
-    ac/global_translation.h
     ac/gui.cpp
     ac/gui.h
     ac/guicontrol.cpp

@@ -19,7 +19,6 @@
 #include "ac/event.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_translation.h"
 #include "ac/gui.h"
 #include "ac/invwindow.h"
 #include "ac/mouse.h"

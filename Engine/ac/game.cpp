@@ -37,7 +37,6 @@
 #include "ac/global_display.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
-#include "ac/global_translation.h"
 #include "ac/gui.h"
 #include "ac/hotspot.h"
 #include "ac/inventoryitem.h"

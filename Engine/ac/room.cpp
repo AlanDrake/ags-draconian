@@ -33,7 +33,6 @@
 #include "ac/global_audio.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
-#include "ac/global_translation.h"
 #include "ac/gui.h"
 #include "ac/mouse.h"
 #include "ac/movelist.h"

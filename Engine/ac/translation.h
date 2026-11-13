@@ -28,3 +28,11 @@ bool init_translation(const String &lang, const String &fallback_lang);
 String get_translation_name();
 // Returns translation map for reading only
 const StringMap &get_translation_tree();
+
+// Use the provided text as a key and returns the mapped translation.
+// Returns the original text back if no matching translation found.
+// WARNING: get_translation returns original char* ptr if no translation is found;
+// for that reason make sure that you don't pass temporary buffer there, unless
+// you use returned value immediately or save it in another buffer.
+const char *get_translation(const char *text);
+int IsTranslationAvailable();

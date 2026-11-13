@@ -21,7 +21,6 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_translation.h"
 #include "ac/path_helper.h"
 #include "ac/spritecache.h"
 #include "ac/system.h"

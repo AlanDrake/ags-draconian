@@ -17,6 +17,7 @@
 
 #include "ac/asset_helper.h"
 #include "ac/common.h"
+#include "ac/display.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -28,6 +29,7 @@
 #include "data/tra_file.h"
 #include "debug/out.h"
 #include "font/fonts.h"
+#include "plugin/plugin_engine.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 
@@ -251,4 +253,34 @@ String get_translation_name()
 const StringMap &get_translation_tree()
 {
     return trans.Dict;
+}
+
+const char *get_translation(const char *text)
+{
+    if (!text)
+        text = "";
+    // FIXME: dont use global variable, remake into the function parameter!
+    source_text_length = GetTextDisplayLength(text);
+    if (text[0] == 0)
+        return ""; // don't try translating an empty line
+
+    // check if a plugin wants to translate it - if so, return that
+    const char *pl_result =
+        reinterpret_cast<const char *>(pl_run_plugin_hooks(kPluginEvt_TranslateText, reinterpret_cast<intptr_t>(text)));
+    if (pl_result)
+        return pl_result;
+
+    const auto &transtree = get_translation_tree();
+    const auto it = transtree.find(String::Wrapper(text));
+    if (it != transtree.end())
+        return it->second.GetCStr();
+    // return the original text
+    return text;
+}
+
+int IsTranslationAvailable()
+{
+    if (get_translation_tree().size() > 0)
+        return 1;
+    return 0;
 }

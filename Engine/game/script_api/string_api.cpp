@@ -19,8 +19,8 @@
 
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/scriptstring.h"
-#include "ac/global_translation.h"
 #include "ac/string.h"
+#include "ac/translation.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

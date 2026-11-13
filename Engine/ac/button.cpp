@@ -21,7 +21,6 @@
 #include "ac/dynobj/cc_guicontrol.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/global_translation.h"
 #include "ac/gui.h"
 #include "ac/object.h"
 #include "ac/string.h"

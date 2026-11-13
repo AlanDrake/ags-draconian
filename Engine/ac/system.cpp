@@ -23,7 +23,6 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_debug.h"
-#include "ac/global_translation.h"
 #include "ac/mouse.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"

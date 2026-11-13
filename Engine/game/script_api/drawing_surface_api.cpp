@@ -18,7 +18,7 @@
 #include "ac/drawingsurface.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/gamestate.h"
-#include "ac/global_translation.h"
+#include "ac/translation.h"
 #include "gfx/gfx_def.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

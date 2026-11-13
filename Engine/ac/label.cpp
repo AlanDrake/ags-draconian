@@ -17,7 +17,6 @@
 
 #include "ac/common.h" // quit
 #include "ac/gamesetupstruct.h"
-#include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 
