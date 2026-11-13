@@ -900,6 +900,7 @@
 		AD2479DFE5A268FC9940CAFF /* room_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 525B3A19D504CB164E0A7B86 /* room_api.cpp */; };
 		AE4C18096F720C5A7C7DFF11 /* utils_script.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EF61359C48373BE523FA2F37 /* utils_script.cpp */; };
 		AF56EDBE5821D7B9488AB3E6 /* inventory_item_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 63286838FA6DCBF3B1FA9147 /* inventory_item_api.cpp */; };
+		B09D8C13ABC87F87AF068F90 /* utils_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 012B5A209ED8DEEB98520B41 /* utils_api.cpp */; };
 		B11B14DA0DAB8B41B206A669 /* tra_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7A844FEA59C0776A4F450377 /* tra_file.cpp */; };
 		BB9D438DE236C03EC2945F38 /* ftpatent.c in Sources */ = {isa = PBXBuildFile; fileRef = 7CC59E0C2FBD6F9D59BB4A59 /* ftpatent.c */; };
 		BC2C293E09233F8B1E9B66AA /* audio_channel_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20BC6BAD8051658576AE008 /* audio_channel_api.cpp */; };
@@ -956,6 +957,7 @@
 
 /* Begin PBXFileReference section */
 		00A539E5AF355FABD4153447 /* screen_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = screen_api.cpp; sourceTree = "<group>"; };
+		012B5A209ED8DEEB98520B41 /* utils_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = utils_api.cpp; sourceTree = "<group>"; };
 		03C3C621E9309539271C8EE0 /* ftbitmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftbitmap.c; sourceTree = "<group>"; };
 		047BCD1ABBFAD5CA171AF2E4 /* ftsystem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftsystem.c; sourceTree = "<group>"; };
 		072C4F6578AA15AEF14EBD94 /* ftgxval.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftgxval.c; sourceTree = "<group>"; };
@@ -3686,6 +3688,7 @@
 				932DE99AE06FAA1CEBF2F295 /* system_api.cpp */,
 				C1B40BB1EC36F6837CF48E8C /* text_box_api.cpp */,
 				6F5542CF1DC34A9F19D96E2B /* touch_api.cpp */,
+				012B5A209ED8DEEB98520B41 /* utils_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4752,6 +4755,7 @@
 				F9D2DCE1CA75A9344D671445 /* system_api.cpp in Sources */,
 				5FDC4A2ADF6760A37C749D73 /* text_box_api.cpp in Sources */,
 				032177421B64409950CDF968 /* touch_api.cpp in Sources */,
+				B09D8C13ABC87F87AF068F90 /* utils_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

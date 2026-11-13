@@ -312,6 +312,7 @@ target_sources(engine
     game/script_api/system_api.cpp
     game/script_api/text_box_api.cpp
     game/script_api/touch_api.cpp
+    game/script_api/utils_api.cpp
     game/viewport.cpp
     game/viewport.h
     gfx/ali3dexception.h

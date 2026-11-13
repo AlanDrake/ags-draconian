@@ -19,8 +19,6 @@
 #include "ac/gamestate.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
-#include "script/script_api.h"
-#include "script/script_runtime.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -97,30 +95,4 @@ void Utils_SortFloats(void *arrobj, int sort_dir)
         std::sort(float_begin, float_end);
     else
         std::sort(float_begin, float_end, std::greater<float>());
-}
-
-RuntimeScriptValue Sc_Utils_SortStrings(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_POBJ_PINT2(Utils_SortStrings, void);
-}
-
-RuntimeScriptValue Sc_Utils_SortInts(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_POBJ_PINT(Utils_SortInts, void);
-}
-
-RuntimeScriptValue Sc_Utils_SortFloats(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_POBJ_PINT(Utils_SortFloats, void);
-}
-
-void RegisterUtilsAPI()
-{
-    ScFnRegister utils_api[] = {
-        {"Utils::SortStrings^3", API_FN_PAIR(Utils_SortStrings)},
-        {"Utils::SortInts^2", API_FN_PAIR(Utils_SortInts)},
-        {"Utils::SortFloats^2", API_FN_PAIR(Utils_SortFloats)},
-    };
-
-    ccAddExternalFunctions(utils_api);
 }
