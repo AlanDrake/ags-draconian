@@ -263,7 +263,7 @@ def plan(changed, build):
 def run_one(tidy, build, path, line_filter):
     # -Wno-error: a build with warnings as errors (AGS_WARNINGS_AS_ERRORS) must not turn clang's own
     # warnings, such as an MSVC or GCC flag it does not use, into errors that stop the analysis
-    cmd = [tidy, '-p', build, '--quiet', '--line-filter=' + line_filter, '--checks=' + DECLARED_CHECK,
+    cmd = [tidy, '-p', build, '--quiet', line_filter, '--checks=' + DECLARED_CHECK,
            '--extra-arg=-Wno-unknown-warning-option', '--extra-arg=-Wno-error', '--extra-arg=-fno-color-diagnostics',
            path]
     r = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True, encoding='utf-8', errors='replace')
@@ -302,6 +302,13 @@ def main():
                               for p, rs in sorted(changed.items())])
     print('tidy_diff: %d files, %d changed lines since %s (%d added lines left out as moved or copied)' %
           (len(files), sum(b - a + 1 for rs in changed.values() for a, b in rs), base[:12], kept), flush=True)
+
+    # A diff of a few hundred files makes a filter longer than a Windows command line may be (32k), so it
+    # goes into a response file, written as one quoted argument
+    response = os.path.join(build, 'tidy_diff_line_filter.rsp')
+    with open(response, 'w', encoding='utf-8') as fh:
+        fh.write('"--line-filter=%s"' % line_filter.replace('"', '\\"'))
+    line_filter = '@' + response
 
     found = {}
     broken = []
