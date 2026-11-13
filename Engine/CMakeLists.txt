@@ -308,6 +308,7 @@ target_sources(engine
     game/script_api/slider_api.cpp
     game/script_api/speech_api.cpp
     game/script_api/string_api.cpp
+    game/script_api/system_api.cpp
     game/viewport.cpp
     game/viewport.h
     gfx/ali3dexception.h
