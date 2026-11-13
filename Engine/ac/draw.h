@@ -281,3 +281,7 @@ AGS::Common::Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src
 // TODO: hide these behind some kind of an interface
 // Stores cloned surfaces (see DrawingSurface.CreateCopy)
 extern std::unique_ptr<AGS::Common::Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
+
+void CyclePalette(int strt, int eend);
+void SetPalRGB(int inndx, int rr, int gg, int bb);
+void UpdatePalette();

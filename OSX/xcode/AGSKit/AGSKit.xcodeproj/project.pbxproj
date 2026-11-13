@@ -626,8 +626,6 @@
 		526F27121D3B5CC300EF4E1F /* global_game.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F248F1D3B5CC200EF4E1F /* global_game.h */; };
 		526F27131D3B5CC300EF4E1F /* global_gui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24901D3B5CC200EF4E1F /* global_gui.cpp */; };
 		526F27141D3B5CC300EF4E1F /* global_gui.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24911D3B5CC200EF4E1F /* global_gui.h */; };
-		526F27251D3B5CC300EF4E1F /* global_palette.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24A21D3B5CC200EF4E1F /* global_palette.cpp */; };
-		526F27261D3B5CC300EF4E1F /* global_palette.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24A31D3B5CC200EF4E1F /* global_palette.h */; };
 		526F272E1D3B5CC300EF4E1F /* global_room.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24AB1D3B5CC200EF4E1F /* global_room.cpp */; };
 		526F272F1D3B5CC300EF4E1F /* global_room.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24AC1D3B5CC200EF4E1F /* global_room.h */; };
 		526F27301D3B5CC300EF4E1F /* global_screen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24AD1D3B5CC200EF4E1F /* global_screen.cpp */; };
@@ -1576,8 +1574,6 @@
 		526F248F1D3B5CC200EF4E1F /* global_game.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_game.h; sourceTree = "<group>"; };
 		526F24901D3B5CC200EF4E1F /* global_gui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_gui.cpp; sourceTree = "<group>"; };
 		526F24911D3B5CC200EF4E1F /* global_gui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_gui.h; sourceTree = "<group>"; };
-		526F24A21D3B5CC200EF4E1F /* global_palette.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_palette.cpp; sourceTree = "<group>"; };
-		526F24A31D3B5CC200EF4E1F /* global_palette.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_palette.h; sourceTree = "<group>"; };
 		526F24AB1D3B5CC200EF4E1F /* global_room.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_room.cpp; sourceTree = "<group>"; };
 		526F24AC1D3B5CC200EF4E1F /* global_room.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_room.h; sourceTree = "<group>"; };
 		526F24AD1D3B5CC200EF4E1F /* global_screen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_screen.cpp; sourceTree = "<group>"; };
@@ -3068,8 +3064,6 @@
 				526F248F1D3B5CC200EF4E1F /* global_game.h */,
 				526F24901D3B5CC200EF4E1F /* global_gui.cpp */,
 				526F24911D3B5CC200EF4E1F /* global_gui.h */,
-				526F24A21D3B5CC200EF4E1F /* global_palette.cpp */,
-				526F24A31D3B5CC200EF4E1F /* global_palette.h */,
 				526F24AB1D3B5CC200EF4E1F /* global_room.cpp */,
 				526F24AC1D3B5CC200EF4E1F /* global_room.h */,
 				526F24AD1D3B5CC200EF4E1F /* global_screen.cpp */,
@@ -3991,7 +3985,6 @@
 				526F22EE1D3B5C4900EF4E1F /* guitextbox.h in Headers */,
 				526F27DB1D3B5CC300EF4E1F /* mylabel.h in Headers */,
 				526F26E21D3B5CC300EF4E1F /* scriptfile.h in Headers */,
-				526F27261D3B5CC300EF4E1F /* global_palette.h in Headers */,
 				526F275B1D3B5CC300EF4E1F /* math.h in Headers */,
 				526F230A1D3B5C4900EF4E1F /* codec.h in Headers */,
 				526F286A1D3B5CC300EF4E1F /* main.h in Headers */,
@@ -4332,7 +4325,6 @@
 				526F26B91D3B5CC300EF4E1F /* cc_agsdynamicobject.cpp in Sources */,
 				20E67D8828F1BDE000B95C00 /* cmisc.c in Sources */,
 				20E684EA28F20E0700B95C00 /* decinfo.c in Sources */,
-				526F27251D3B5CC300EF4E1F /* global_palette.cpp in Sources */,
 				526F23EC1D3B5C4900EF4E1F /* string_utils.cpp in Sources */,
 				526F22A61D3B5C4900EF4E1F /* scriptaudioclip.cpp in Sources */,
 				526F26FC1D3B5CC300EF4E1F /* global_api.cpp in Sources */,

@@ -3395,3 +3395,45 @@ void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extr
         }
     }
 }
+
+void CyclePalette(int strt, int eend)
+{
+    // Any non-8-bit game must invalidate screen since the palette changes
+    // the effect of the drawing operations
+    // FIXME: this is likely wrong, it should also/instead test the graphic driver capabilities?
+    if (game.color_depth > 1)
+        invalidate_screen();
+
+    if ((strt < 0) || (strt > 255) || (eend < 0) || (eend > 255))
+        quit("!CyclePalette: start and end must be 0-255");
+
+    if (eend > strt)
+    {
+        // forwards
+        PaletteOp::Rotate(palette, strt, eend, true);
+        set_palette_range(palette, strt, eend, 0);
+    }
+    else
+    {
+        // backwards
+        PaletteOp::Rotate(palette, eend, strt, false);
+        set_palette_range(palette, eend, strt, 0);
+    }
+}
+void SetPalRGB(int inndx, int rr, int gg, int bb)
+{
+    if (game.color_depth > 1)
+        invalidate_screen();
+
+    PaletteOp::SetRGB(palette, inndx, rr, gg, bb);
+    set_palette_range(palette, inndx, inndx, 0);
+}
+
+void UpdatePalette()
+{
+    if (game.color_depth > 1)
+        invalidate_screen();
+
+    if (!play.fast_forward)
+        setpal();
+}
