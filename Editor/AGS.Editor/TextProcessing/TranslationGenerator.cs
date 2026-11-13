@@ -15,11 +15,15 @@ namespace AGS.Editor
             get { return _linesForTranslation; }
         }
 
-        public CompileMessages CreateTranslationList(Game game)
+        /// <summary>
+        /// Gathers the game's texts for translation; given the functions that take a format
+        /// string, marks the texts that scripts pass to them as the format.
+        /// </summary>
+        public CompileMessages CreateTranslationList(Game game, ScriptFormatFunctions formatFunctions)
         {
             CompileMessages errors = new CompileMessages();
 
-            TranslationSourceProcessor processor = new TranslationSourceProcessor(game, errors);
+            TranslationSourceProcessor processor = new TranslationSourceProcessor(game, errors, formatFunctions);
 
             TextProcessingHelper.ProcessAllGameText(processor, game, errors);
 

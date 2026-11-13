@@ -1027,5 +1027,110 @@ msgstr ""réplique active""
             Assert.AreEqual("Display(\"Bonjour à tous\"); Display(\"Salut\"); Display(\"Adieu\");",
                 processor.ProcessText(GameTextLine.MakeScript("Display(\"Hi\"); Display(\"A long goodbye\"); Display(\"Bye\");", "GlobalScript.asc"), GameTextType.Script));
         }
+
+        private const string FormatFunctionsHeader = @"
+import void Display(__format const string message, ...);
+import void DisplayTopBar(int y, int textColor, int backColor, const string title, __format const string text, ...);
+import void Log(const string text);
+builtin managed struct String {
+  import static String Format(__format const string format, ...);
+};
+builtin managed struct Character {
+  import void Say(__format const string message, ...);
+  import void SayAt(int x, int y, int width, __format const string message, ...);
+};
+import void Shout(this Character*, __format const string message, ...);
+";
+
+        private const string FormatCallsScript = @"
+function f(int score, String name)
+{
+  Display(""Score: %d"", score);
+  Log(""Score: %d"");
+  cEgo.Say(""Hello"");
+  player.SayAt(10, 20, 100, ""%s waves"", name);
+  DisplayTopBar(0, 15, 0, ""Title %d"", ""Text %d"", score);
+  String s = String.Format(""%d%%"", score);
+  Display(""50% off"");
+  Log(""Log %d"");
+  Display(score > 0 ? ""Win %d"" : ""Lose %d"", score);
+  cEgo.Shout(/* the format */ ""Shout %d"", score);
+}
+";
+
+        [Test]
+        public void GatherFormatStrings_Test()
+        {
+            // Format strings are those passed as the format argument, and with a placeholder;
+            // a text is one if it's used as such anywhere
+            var formatFunctions = ScriptFormatFunctions.FromHeaders(new Script[] { new Script("Test.ash", FormatFunctionsHeader, true) });
+            var processor = new TranslationSourceProcessor(new Game(), new CompileMessages(), formatFunctions);
+            processor.ProcessText(GameTextLine.MakeScript(UniformTestString(FormatCallsScript), "GlobalScript.asc"), GameTextType.Script);
+
+            Assert.AreEqual(11, processor.LinesForTranslation.Count);
+            CollectionAssert.AreEquivalent(new string[] { "Score: %d", "%s waves", "Text %d", "%d%%", "Shout %d" },
+                processor.LinesForTranslation.Where(l => l.IsFormat).Select(l => l.Text));
+        }
+
+        [Test]
+        public void FormatFunctionsOfScriptAPI_Test()
+        {
+            var header = new Script("_BuiltInScriptHeader.ash", Resources.ResourceManager.GetResourceAsString("agsdefns.sh"), true);
+            var functions = ScriptFormatFunctions.FromHeaders(new Script[] { header });
+            Assert.IsTrue(functions.IsFormatArgument("Display", 0));
+            Assert.IsTrue(functions.IsFormatArgument("DisplayTopBar", 4));
+            Assert.IsFalse(functions.IsFormatArgument("DisplayTopBar", 3));
+            Assert.IsTrue(functions.IsFormatArgument("String.Format", 0));
+            Assert.IsTrue(functions.IsFormatArgument("System.Log", 1));
+            Assert.IsTrue(functions.IsFormatArgument("player.Say", 0));
+            Assert.IsTrue(functions.IsFormatArgument("cEgo.SayAt", 3));
+            Assert.IsTrue(functions.IsFormatArgument("Overlay.CreateTextual", 5));
+            Assert.IsTrue(functions.IsFormatArgument("surface.DrawString", 3));
+            Assert.IsFalse(functions.IsFormatArgument("Game.ChangeTranslation", 0));
+        }
+
+        [Test]
+        public void UpdateSetsFormatFlag_Test()
+        {
+            Translation translation = CreateTranslationForTest();
+            var score = CreateEntry("Score: %d", "Points : %d");
+            score.IsFuzzy = true;
+            translation.TranslatedEntries.Add(score.Key, score);
+            var formerFormat = CreateEntry("Was %d", "Était %d");
+            formerFormat.IsCFormat = true;
+            translation.TranslatedEntries.Add(formerFormat.Key, formerFormat);
+            var optedOut = CreateEntry("%d%%", "%d %%");
+            optedOut.Flags.Add(TranslationEntry.FLAG_NO_C_FORMAT);
+            translation.TranslatedEntries.Add(optedOut.Key, optedOut);
+
+            var lines = new GameTextLine[] {
+                new GameTextLine("Score: %d"),
+                new GameTextLine("Was %d"),
+                new GameTextLine("%d%%"),
+                new GameTextLine("Lives: %d"),
+            };
+            lines[0].IsFormat = lines[2].IsFormat = lines[3].IsFormat = true;
+            TranslationsComponent.UpdateTranslation(translation, lines);
+
+            CollectionAssert.AreEqual(new string[] { "fuzzy", "c-format" }, score.Flags);
+            CollectionAssert.IsEmpty(formerFormat.Flags);
+            CollectionAssert.AreEqual(new string[] { "no-c-format" }, optedOut.Flags);
+            CollectionAssert.AreEqual(new string[] { "c-format" }, translation.TranslatedEntries["Lives: %d"].Flags);
+            StringAssert.Contains("#, fuzzy, c-format\nmsgid \"Score: %d\"\n", SaveTranslationToString(translation));
+        }
+
+        [TestCase("Score: %d", ExpectedResult = true)]
+        [TestCase("%-5.2f", ExpectedResult = true)]
+        [TestCase("%%%s", ExpectedResult = true)]
+        [TestCase("%q then %c", ExpectedResult = true)]
+        [TestCase("no placeholder", ExpectedResult = false)]
+        [TestCase("100%%", ExpectedResult = false)]
+        [TestCase("%%d", ExpectedResult = false)]
+        [TestCase("50% off", ExpectedResult = false)]
+        [TestCase("100%", ExpectedResult = false)]
+        public bool HasPlaceholders_Test(string format)
+        {
+            return ScriptFormatFunctions.HasPlaceholders(format);
+        }
     }
 }

@@ -12,14 +12,21 @@ namespace AGS.Editor
         private Dictionary<string, List<string>> _sourceRefs;
         // all the translator hints made for each text
         private Dictionary<string, List<string>> _comments;
+        // the texts used as a format string, with placeholders, anywhere
+        private HashSet<string> _formats;
         private string _includeScriptPrefix;
         private string _excludeScriptPrefix;
         private string[] _excludeFunctionCalls;
 
-        public TranslationSourceProcessor(Game game, CompileMessages errors) 
+        /// <summary>
+        /// Creates the processor; given the functions that take a format string, it marks the
+        /// texts that scripts pass to them as the format (GameTextLine.IsFormat).
+        /// </summary>
+        public TranslationSourceProcessor(Game game, CompileMessages errors, ScriptFormatFunctions formatFunctions = null)
             : base(game, errors, makesChanges: false, processHotspotAndObjectDescriptions: true,
                   lookupForFunctionCalls: true, lookupForOuterFunctionCalls: true)
         {
+            FormatFunctions = formatFunctions;
             _includeScriptPrefix = game.Settings.TranslationIncludeScriptPrefix;
             _excludeScriptPrefix = game.Settings.TranslationExcludeScriptPrefix;
             _excludeFunctionCalls = game.Settings.TranslationExcludeFunctionCall.Split(',')
@@ -31,6 +38,7 @@ namespace AGS.Editor
             _linesProcessed = new Dictionary<string, GameTextLine>();
             _sourceRefs = new Dictionary<string, List<string>>();
             _comments = new Dictionary<string, List<string>>();
+            _formats = new HashSet<string>();
         }
 
         public ICollection<GameTextLine> LinesForTranslation
@@ -111,8 +119,13 @@ namespace AGS.Editor
                         foreach (var comment in textLine.Comment.Split('\n'))
                             AddDistinct(_comments[key], comment.Trim());
                     }
+                    // A text without placeholders is not marked, so that translators may write
+                    // a percent sign as is: the engine keeps a '%' without an argument as it is
+                    if (textLine.IsFormat && ScriptFormatFunctions.HasPlaceholders(key))
+                        _formats.Add(key);
                     line.SourceRef = string.Join(" ", _sourceRefs[key]);
                     line.Comment = string.Join("\n", _comments[key]);
+                    line.IsFormat = _formats.Contains(key);
                     _linesProcessed[key] = line;
                 }
             }

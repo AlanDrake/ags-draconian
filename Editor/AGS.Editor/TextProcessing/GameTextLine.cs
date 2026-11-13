@@ -17,6 +17,11 @@ namespace AGS.Editor
         /// A hint for translators about the text's purpose; may contain multiple lines.
         /// </summary>
         public string Comment;
+        /// <summary>
+        /// The text is a format string: a script passes it to a function's parameter
+        /// marked "__format", so the engine formats its translation with the call's arguments.
+        /// </summary>
+        public bool IsFormat;
 
         public GameTextLine(string text, int srcline = -1)
         {
@@ -27,6 +32,7 @@ namespace AGS.Editor
             SourceRef = string.Empty;
             SrcLine = srcline;
             Comment = string.Empty;
+            IsFormat = false;
         }
 
         public GameTextLine(string text, string sourceRef, int srcline = -1)
@@ -38,6 +44,7 @@ namespace AGS.Editor
             SourceRef = sourceRef;
             SrcLine = srcline;
             Comment = string.Empty;
+            IsFormat = false;
         }
 
         public static GameTextLine MakeScript(string text, string scriptName, int srcline = -1)

@@ -1358,6 +1358,7 @@
       <DependentUpon>RoomSettingsEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Plugins\NativePluginCallbacks.cs" />
+    <Compile Include="TextProcessing\ScriptFormatFunctions.cs" />
     <Compile Include="TextProcessing\SpeechLineProcessor.cs" />
     <Compile Include="TextProcessing\SpeechLinesNumbering.cs" />
     <Compile Include="TextProcessing\SpeechOnlyProcessor.cs" />

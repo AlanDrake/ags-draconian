@@ -13,6 +13,8 @@ namespace AGS.Types
         private const string CONTEXT_OBSOLETE = "OBSOLETE";
         private const string CONTEXT_PARSERWORD = "PARSERWORD";
         public const string FLAG_FUZZY = "fuzzy";
+        public const string FLAG_C_FORMAT = "c-format";
+        public const string FLAG_NO_C_FORMAT = "no-c-format";
 
         private string _context = null;
         private List<string> _sourceRefs = new List<string>();
@@ -137,6 +139,23 @@ namespace AGS.Types
                     _flags.Insert(0, FLAG_FUZZY);
                 else if (!value)
                     _flags.Remove(FLAG_FUZZY);
+            }
+        }
+
+        /// <summary>
+        /// Whether the text is a format string, whose placeholders (like "%d") translations
+        /// must keep; translators' tools check them. The Editor sets it when it updates
+        /// the translation, unless the entry is marked "no-c-format".
+        /// </summary>
+        public bool IsCFormat
+        {
+            get { return _flags.Contains(FLAG_C_FORMAT); }
+            set
+            {
+                if (value && !_flags.Contains(FLAG_C_FORMAT))
+                    _flags.Add(FLAG_C_FORMAT);
+                else if (!value)
+                    _flags.Remove(FLAG_C_FORMAT);
             }
         }
 

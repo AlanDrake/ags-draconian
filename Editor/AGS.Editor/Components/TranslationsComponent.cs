@@ -72,7 +72,8 @@ namespace AGS.Editor.Components
         {
             List<Translation> translations = (List<Translation>)translationList;
             TranslationGenerator generator = new TranslationGenerator();
-            CompileMessages messages = generator.CreateTranslationList(_agsEditor.CurrentGame);
+            CompileMessages messages = generator.CreateTranslationList(_agsEditor.CurrentGame,
+                ScriptFormatFunctions.FromHeaders(_agsEditor.GetAllScriptHeaders()));
             if (messages.HasErrors)
                 return messages; // abort for avoiding corrupting translations
 
@@ -139,6 +140,7 @@ namespace AGS.Editor.Components
                     // this also revives the entry if it was marked obsolete earlier
                     existingEntry.SourceReference = line.SourceRef;
                     existingEntry.ExtractedComments = SplitComment(line.Comment);
+                    existingEntry.IsCFormat = line.IsFormat && !existingEntry.Flags.Contains(TranslationEntry.FLAG_NO_C_FORMAT);
                     existingEntry.IsObsolete = false;
                     if (line.ParserWordID >= 0)
                         existingEntry.ParserWordID = line.ParserWordID;
@@ -152,6 +154,7 @@ namespace AGS.Editor.Components
                     var entry = new TranslationEntry(line.Text);
                     entry.SourceReference = line.SourceRef;
                     entry.ExtractedComments = SplitComment(line.Comment);
+                    entry.IsCFormat = line.IsFormat;
                     // For parser words, set respective context
                     // FIXME: this is not good, the PO format allows to have a combined key made of
                     // a msgid + msgctxt pair. Context could serve to distinguish parser words here.

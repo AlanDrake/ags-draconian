@@ -358,6 +358,87 @@ namespace AGS.Editor
         }
 
         /// <summary>
+        /// Assumes that the given section of script (from sectionStart to sectionEnd, inclusive)
+        /// is an expression inside a function's argument list, and finds that function's name, as
+        /// written in the call, and the index of the argument. Fails if the section is only a part
+        /// of the argument, or is not inside a call.
+        ///
+        /// For example:
+        ///  - Input script:
+        ///      DisplayAt(10, Max(1, 2), 100, "text arg");
+        ///  - For the section of "text arg" (with its quotes) gives "DisplayAt" and 3
+        ///  - For the section of "2" gives "Max" and 1
+        /// </summary>
+        public static bool GetFunctionCallArgument(ParserState state, int sectionStart, int sectionEnd,
+            out string functionName, out int argIndex)
+        {
+            string script = state.Script;
+            functionName = string.Empty;
+            argIndex = -1;
+            int openBracket = BacktraceToOpenBracket(state, sectionStart);
+            if (openBracket < 0)
+                return false;
+            functionName = ReadCompositeSymbolAccess(script, BacktraceScriptSymbolComposite(script, openBracket));
+            if (functionName.Length == 0)
+                return false; // brackets that are not a call
+
+            // Count the arguments that precede, skipping nested brackets, literals and comments
+            int index = 0, depth = 0;
+            bool argumentBegun = false; // the current argument has something before the section
+            for (int i = openBracket + 1; i < sectionStart; ++i)
+            {
+                char c = script[i];
+                if (c == '/' && i + 1 < sectionStart && script[i + 1] == '/')
+                {
+                    for (; i < sectionStart && script[i] != SYM_LINEFEED; ++i) ;
+                    continue;
+                }
+                if (c == '/' && i + 1 < sectionStart && script[i + 1] == '*')
+                {
+                    for (i += 2; i + 1 < sectionStart && !(script[i] == '*' && script[i + 1] == '/'); ++i) ;
+                    ++i;
+                    continue;
+                }
+                if (char.IsWhiteSpace(c))
+                    continue;
+                if (c == ',' && depth == 0)
+                {
+                    index++;
+                    argumentBegun = false;
+                    continue;
+                }
+                argumentBegun = true;
+                if (c == '(' || c == '[' || c == '{')
+                {
+                    depth++;
+                }
+                else if (c == ')' || c == ']' || c == '}')
+                {
+                    depth--;
+                }
+                else if (c == '"' || c == '\'')
+                {
+                    // skip to the literal's end, past the escaped characters
+                    for (++i; i < sectionStart && script[i] != c; ++i)
+                    {
+                        if (script[i] == '\\')
+                            ++i;
+                    }
+                }
+            }
+            if (depth != 0 || argumentBegun)
+                return false;
+
+            // The argument must end with the section
+            int after = sectionEnd + 1;
+            for (; after < script.Length && char.IsWhiteSpace(script[after]); ++after) ;
+            if (after == script.Length || (script[after] != ',' && script[after] != ')'))
+                return false;
+            argIndex = index;
+            return true;
+        }
+
+        /// <summary>
         /// Starting from the given position, assumes that we are inside a function parameter list,
         /// and backtraces to find either the nearest, or the outermost function's name (depending
         /// on lookupForOuterCall parameter).
@@ -485,12 +566,24 @@ namespace AGS.Editor
         {
             for (int index = backFromIndex - 1; index >= scriptStartAt; --index)
             {
-                if (script[index] == '\"')
+                if (script[index] == '\"' && !IsEscapedAt(script, index, scriptStartAt))
                 {
                     return index;
                 }
             }
             return -1;
+        }
+
+        /// <summary>
+        /// Tells whether the character at the given index is escaped in a literal, that is
+        /// preceded by an odd number of backslashes (an even number escape themselves).
+        /// </summary>
+        public static bool IsEscapedAt(string script, int index, int scriptStartAt = 0)
+        {
+            int backslashes = 0;
+            for (int i = index - 1; i >= scriptStartAt && script[i] == '\\'; --i)
+                backslashes++;
+            return backslashes % 2 == 1;
         }
     }
 }

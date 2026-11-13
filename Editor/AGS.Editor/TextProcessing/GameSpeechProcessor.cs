@@ -53,6 +53,12 @@ namespace AGS.Editor
             set { _lookupForOuterFunctionCalls = value; }
         }
 
+        /// <summary>
+        /// The functions that take a format string; when set, the strings that scripts pass
+        /// to them as the format are marked with GameTextLine.IsFormat.
+        /// </summary>
+        protected ScriptFormatFunctions FormatFunctions { get; set; }
+
         public string ProcessText(string text, GameTextType textType)
         {
             return ProcessText(new GameTextLine(text), textType);
@@ -113,19 +119,19 @@ namespace AGS.Editor
             return textType == GameTextType.Script ? text : text.Replace("\\\"", "\"");
         }
 
+        // Tells whether the string literal at the given section is the whole format argument of a call
+        private bool IsFormatArgument(ScriptParsing.ParserState state, int literalStart, int literalEnd)
+        {
+            string functionName;
+            int argIndex;
+            return FormatFunctions != null &&
+                ScriptParsing.GetFunctionCallArgument(state, literalStart, literalEnd, out functionName, out argIndex) &&
+                FormatFunctions.IsFormatArgument(functionName, argIndex);
+        }
+
         private bool DoesStringTerminateHere(ScriptParsing.ParserState state, char stringTerminator)
         {
-            if (state.Char == stringTerminator)
-            {
-                // We must make sure that this quotemark is not escaped, so count
-                // number of backslashes before it. Should be either 0, or even number
-                // (in the latter case they escape themselves and don't affect quotemark).
-                int backslashes = 0;
-                for (int index = state.CharIndex - 1; index >= 0 && state.Script[index] == '\\'; --index)
-                    backslashes++;
-                return (backslashes == 0) || (backslashes % 2 == 0);
-            }
-            return false;
+            return state.Char == stringTerminator && !ScriptParsing.IsEscapedAt(state.Script, state.CharIndex);
         }
 
         private string ProcessScript(string script, string scriptName, string contextName, int originalLine = -1)
@@ -179,6 +185,7 @@ namespace AGS.Editor
                             string mainString = script.Substring(stringStartIndex + 1, (stringEndIndex - stringStartIndex) - 1);
                             var textLine = GameTextLine.MakeSpeechLine(charID, mainString, contextName, state.FindLineForCharIndex(stringStartIndex));
                             textLine.ScriptFileName = scriptName;
+                            textLine.IsFormat = IsFormatArgument(state, stringStartIndex, stringEndIndex);
                             string modifiedString = CreateSpeechLine(textLine, GameTextType.Script);
                             if (_makesChanges)
                             {

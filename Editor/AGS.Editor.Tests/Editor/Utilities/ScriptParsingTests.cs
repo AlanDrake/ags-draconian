@@ -249,5 +249,39 @@ function f()
             Assert.AreEqual("Object.InnerCall", functionNames[0]);
             Assert.AreEqual("Object.Call", functionNames[1]);
         }
+
+        // The section is the first occurrence of the given text in the script;
+        // returns "<function name> <argument index>", or nothing if not found
+        [TestCase("Display(\"text\");", "\"text\"", ExpectedResult = "Display 0")]
+        [TestCase("DisplayAt(10, Max(1, 2), 100, \"text\");", "\"text\"", ExpectedResult = "DisplayAt 3")]
+        [TestCase("DisplayAt(10, Max(1, 2), 100, \"text\");", "2", ExpectedResult = "Max 1")]
+        [TestCase("Say(\"a, b\", \"(c\", ',', \"text\");", "\"text\"", ExpectedResult = "Say 3")]
+        [TestCase("Say(\"a \\\"(b\\\\\", \"text\");", "\"text\"", ExpectedResult = "Say 1")]
+        [TestCase("cEgo . Say ( /* a, b */ 1, // c, d\n  \"text\" );", "\"text\"", ExpectedResult = "cEgo.Say 1")]
+        [TestCase("Display(x ? \"text\" : \"other\");", "\"text\"", ExpectedResult = "")]
+        [TestCase("Display(\"text\" + s);", "\"text\"", ExpectedResult = "")]
+        [TestCase("Display((\"text\"));", "\"text\"", ExpectedResult = "")]
+        [TestCase("String s = \"text\";", "\"text\"", ExpectedResult = "")]
+        public string GetFunctionCallArgument_Test(string script, string section)
+        {
+            ScriptParsing.ParserState state = new ScriptParsing.ParserState(script);
+            ScriptParsing.FillCommentSections(state);
+            int start = script.IndexOf(section);
+            string functionName;
+            int argIndex;
+            if (!ScriptParsing.GetFunctionCallArgument(state, start, start + section.Length - 1, out functionName, out argIndex))
+                return string.Empty;
+            return $"{functionName} {argIndex}";
+        }
+
+        [Test]
+        public void SkipStringLiteralBackwards_Test()
+        {
+            // Escaped quotes do not end a literal, escaped backslashes do not escape the quote
+            string script = "f(\"a \\\"b\\\" c\\\\\", 1)";
+            Assert.AreEqual(2, ScriptParsing.SkipStringLiteralBackwards(script, script.IndexOf(", 1") - 1));
+            Assert.IsTrue(ScriptParsing.IsEscapedAt(script, script.IndexOf("\\\"") + 1));
+            Assert.IsFalse(ScriptParsing.IsEscapedAt(script, script.IndexOf(", 1") - 1));
+        }
     }
 }
