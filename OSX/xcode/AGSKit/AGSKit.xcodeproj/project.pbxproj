@@ -924,6 +924,7 @@
 		F542B5049D3655740ED0D40D /* sdl2_util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2FDEC420CFD5783176F81572 /* sdl2_util.cpp */; };
 		F8FAB288CF8C3B0E03C69820 /* blender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D3C90916902283B2FC3E6203 /* blender.cpp */; };
 		FCB795C554AB867A32477F4A /* cc_reflecthelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 98EFE5C1E99E54D8E1CBB8E7 /* cc_reflecthelper.cpp */; };
+		FF05E309681BB9188056368C /* overlay_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BF57C7A65D8B88EC2E3AB7 /* overlay_api.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -948,6 +949,7 @@
 		0BB7E9301BBAD9A9F8800167 /* fttype1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fttype1.c; sourceTree = "<group>"; };
 		0E69BDF9DB1FFA92A7D5FFD8 /* image_bmp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = image_bmp.cpp; sourceTree = "<group>"; };
 		0E9F4F89D8E1401C57041003 /* psaux.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = psaux.c; sourceTree = "<group>"; };
+		18BF57C7A65D8B88EC2E3AB7 /* overlay_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = overlay_api.cpp; sourceTree = "<group>"; };
 		1F7791EEFFF2C66959789C06 /* cff.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cff.c; sourceTree = "<group>"; };
 		2026097E2E438AB4001A87E5 /* ags_palrender.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ags_palrender.cpp; sourceTree = "<group>"; };
 		2026097F2E438AB4001A87E5 /* agspalrender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = agspalrender.h; sourceTree = "<group>"; };
@@ -3638,6 +3640,7 @@
 				D3EFBA766D06458AA74A70C6 /* math_api.cpp */,
 				6E29F2560BDA38EBBF9A8C68 /* mouse_api.cpp */,
 				98C417F7A46D6217125457A6 /* object_api.cpp */,
+				18BF57C7A65D8B88EC2E3AB7 /* overlay_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4690,6 +4693,7 @@
 				4E3D64B3718D94FAA82B6B69 /* math_api.cpp in Sources */,
 				3F651B8B1FD1CD1938B039EE /* mouse_api.cpp in Sources */,
 				125B5A34FEDD3C71674EA85D /* object_api.cpp in Sources */,
+				FF05E309681BB9188056368C /* overlay_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
