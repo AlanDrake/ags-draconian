@@ -28,8 +28,8 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_audio.h"
 #include "ac/path_helper.h"
+#include "ac/speech.h"
 #include "ac/timer.h"
 #include "ac/view.h"
 #include "data/assetmanager.h"
@@ -721,4 +721,9 @@ void update_audio_system_on_game_loop()
 
     // Sync logical game channels with the audio backend again
     sync_audio_playback();
+}
+
+int IsMusicVoxAvailable()
+{
+    return play.separate_music_lib ? 1 : 0;
 }

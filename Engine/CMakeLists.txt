@@ -144,8 +144,6 @@ target_sources(engine
     ac/gamestate.cpp
     ac/gamestate.h
     ac/global_api.cpp
-    ac/global_audio.cpp
-    ac/global_audio.h
     ac/global_game.cpp
     ac/global_game.h
     ac/global_gui.cpp

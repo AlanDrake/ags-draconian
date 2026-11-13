@@ -104,3 +104,6 @@ void update_audio_system_on_game_loop();
 extern void cancel_scheduled_music_update();
 extern void schedule_music_update_at(AGS::Engine::Clock::time_point);
 extern void postpone_scheduled_music_update_by(std::chrono::milliseconds);
+
+// Script function: tells whether the game has a separate music library (1 or 0)
+int IsMusicVoxAvailable();

@@ -23,7 +23,6 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_audio.h"
 #include "ac/joystick.h"
 #include "ac/spritecache.h"
 #include "ac/sys_events.h"

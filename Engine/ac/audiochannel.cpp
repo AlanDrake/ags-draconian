@@ -16,7 +16,7 @@
 #include "ac/common.h" // quitprintf
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_audio.h"
+#include "ac/speech.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
 #include "media/audio/audio_system.h"
