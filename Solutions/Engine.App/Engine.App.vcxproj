@@ -744,6 +744,7 @@
     <ClInclude Include="..\..\Engine\ac\topbarsettings.h" />
     <ClInclude Include="..\..\Engine\ac\translation.h" />
     <ClInclude Include="..\..\Engine\ac\utils_script.h" />
+    <ClInclude Include="..\..\Engine\ac\video_script.h" />
     <ClInclude Include="..\..\Engine\ac\viewframe.h" />
     <ClInclude Include="..\..\Engine\ac\walkablearea.h" />
     <ClInclude Include="..\..\Engine\ac\walkbehind.h" />

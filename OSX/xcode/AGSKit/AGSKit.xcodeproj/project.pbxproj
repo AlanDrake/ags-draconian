@@ -1858,6 +1858,7 @@
 		C3598D53DD9936F8FFADC0C9 /* ftwinfnt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftwinfnt.c; sourceTree = "<group>"; };
 		C6FA3A6AFC0998497092E44D /* list_box_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = list_box_api.cpp; sourceTree = "<group>"; };
 		C92854E7FF01676C8F8DA0E3 /* ftstroke.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftstroke.c; sourceTree = "<group>"; };
+		C95FF051879F73A3602D4032 /* video_script.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = video_script.h; sourceTree = "<group>"; };
 		C9CBBD82677A2FD7325FCD4F /* bdf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bdf.c; sourceTree = "<group>"; };
 		CB92FF6FE4511AF0B1AE9E7A /* truetype.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = truetype.c; sourceTree = "<group>"; };
 		CBDD11D13CDD2F7D3A7E4BF2 /* pshinter.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pshinter.c; sourceTree = "<group>"; };
@@ -3152,6 +3153,7 @@
 				34A7616622B8A8104A1150EF /* pathfinder_script.h */,
 				2947F64120F297866766BEE5 /* scriptcontainers.h */,
 				AA13FE1BFD127104A98698D4 /* utils_script.h */,
+				C95FF051879F73A3602D4032 /* video_script.h */,
 			);
 			path = ac;
 			sourceTree = "<group>";

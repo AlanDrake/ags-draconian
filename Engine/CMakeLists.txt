@@ -250,6 +250,7 @@ target_sources(engine
     ac/utils_script.cpp
     ac/utils_script.h
     ac/video_script.cpp
+    ac/video_script.h
     ac/viewframe.cpp
     ac/viewframe.h
     ac/viewport_script.cpp
