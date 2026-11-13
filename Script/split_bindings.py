@@ -775,15 +775,7 @@ def analyse_names(repo, index, plan, dest):
             index.closure(path)
     for path in API_INCLUDES:
         index.closure(path)
-    used_moved = index.expand_macros(identifiers(moved_code))
-    # a global the moved text uses needs its type complete there (ccDynamicCharacter.GetType()): the names of the
-    # type in its extern declaration, in the source or in a header, count as used
-    for it in items:
-        if it.kind == 'code' and it.header.startswith('extern ') and it.name in used_moved:
-            used_moved |= identifiers(re.sub(r'\[[^\]]*\]', '', it.header)) - {it.name}
-    for name in sorted(used_moved):
-        for _, decl in extern_decls(repo, name)[:1]:
-            used_moved |= identifiers(re.sub(r'\[[^\]]*\]', '', decl)) - {name}
+    used_moved = used_names(repo, index, moved_code, [it for it in items if it.kind == 'code'])
     # names the source defines at top level (outside the moved text) and the ones its externs declare
     defined = {}
     externs = {}
@@ -865,23 +857,7 @@ def analyse_names(repo, index, plan, dest):
             used_remaining |= identifiers(re.sub(r'\[[^\]]*\]', '', items[k].header)) - {name}
     # API file includes: greedy cover of the moved names by the candidates, direct declarations first
     cand_paths = [(k, n, p) for k, n, p in candidates if p]
-
-    def cover(need, sets):
-        """Greedy set cover: the candidate giving most of the names still needed, ties to the earlier one."""
-        uncovered = {x for x in need if any(x in s for _, s in sets)}
-        picked = []
-        while uncovered:
-            best = max(range(len(sets)), key=lambda i: (len(sets[i][1] & uncovered), -i))
-            picked.append(sets[best][0])
-            uncovered -= sets[best][1]
-        return picked
-
-    chosen = cover(used_moved, [((k, n, p), index.direct(p)) for k, n, p in cand_paths])
-    covered = set()
-    for c in chosen:
-        covered |= index.closure(c[2])
-    rest = used_moved - covered
-    chosen += [c for c in cover(rest, [((k, n, p), index.closure(p)) for k, n, p in cand_paths]) if c not in chosen]
+    chosen = derive_includes(index, used_moved, cand_paths)
     names = [n for _, n, _ in chosen]
     for hdr in plan.extern_headers:
         name = '"%s"' % include_path(hdr)
@@ -894,15 +870,7 @@ def analyse_names(repo, index, plan, dest):
             names.remove(own)
             names.insert(0, own)
     # system headers of the source
-    std_used = used_moved
-    for k, name, path in all_inc:
-        if name and name.startswith('<') and k in inc_items:
-            known = SYSTEM_NAMES.get(name)
-            if known is None:
-                plan.notes.append('kept the unlisted system header %s' % name)
-                names.append(name)
-            elif known & std_used:
-                names.append(name)
+    names += system_includes([name for k, name, path in all_inc if k in inc_items], used_moved, plan.notes)
     plan.api_includes = names
     # source includes to drop: used by the moved text (directly) or in the binding group, and nothing the remaining
     # text needs comes from them that the kept includes do not give
@@ -931,6 +899,62 @@ def analyse_names(repo, index, plan, dest):
     plan.includes_after = len(all_inc) - len(drop)
     plan.defined = defined
     plan.used_moved = used_moved
+
+
+def used_names(repo, index, code, code_items):
+    """The names comment-free code needs: its identifiers, the names the macros among them use, and the names of
+    the types of the globals it uses (ccDynamicCharacter.GetType() needs the type complete), read from an `extern`
+    declaration among code_items (Items whose header starts with extern) or else from a header."""
+    used = index.expand_macros(identifiers(code))
+    for it in code_items:
+        if it.header.startswith('extern ') and it.name in used:
+            used |= identifiers(re.sub(r'\[[^\]]*\]', '', it.header)) - {it.name}
+    for name in sorted(used):
+        for _, decl in extern_decls(repo, name)[:1]:
+            used |= identifiers(re.sub(r'\[[^\]]*\]', '', decl)) - {name}
+    return used
+
+
+def include_cover(need, sets):
+    """Greedy set cover: [(key, names)] -> the keys giving most of the names still needed, ties to the earlier one.
+    Names no set has are left out."""
+    uncovered = {x for x in need if any(x in s for _, s in sets)}
+    picked = []
+    while uncovered:
+        best = max(range(len(sets)), key=lambda i: (len(sets[i][1] & uncovered), -i))
+        picked.append(sets[best][0])
+        uncovered -= sets[best][1]
+    return picked
+
+
+def derive_includes(index, used, candidates, direct=None, closure=None):
+    """The candidates (tuples whose last element is a header's repository path) that cover the used names: first
+    by what each declares itself, then what is left by what each brings through its includes. direct and closure
+    (path -> names) replace the index's where given (a header with declarations still to be added)."""
+    direct = direct or index.direct
+    closure = closure or index.closure
+    chosen = include_cover(used, [(c, direct(c[-1])) for c in candidates])
+    covered = set()
+    for c in chosen:
+        covered |= closure(c[-1])
+    rest = used - covered
+    chosen += [c for c in include_cover(rest, [(c, closure(c[-1])) for c in candidates]) if c not in chosen]
+    return chosen
+
+
+def system_includes(names, used, notes):
+    """The system headers among include names (<...>) that the used names need (SYSTEM_NAMES); an unlisted one is
+    kept and noted."""
+    out = []
+    for name in names:
+        if name and name.startswith('<'):
+            known = SYSTEM_NAMES.get(name)
+            if known is None:
+                notes.append('kept the unlisted system header %s' % name)
+                out.append(name)
+            elif known & used:
+                out.append(name)
+    return out
 
 
 def include_path(repo_path):
@@ -1408,20 +1432,27 @@ def register_names(plan):
     return [n for n in plan.functions if re.match(r'^Register\w*API$', n)]
 
 
-def api_file_text(plan, licence):
-    """The API file's text before clang-format, and the moved text it must keep verbatim."""
-    lines, items = plan.lines, plan.items
-    moved_text = ''
+def joined_text(lines, items, indexes):
+    """The text of the items at the given indexes (ascending), in order: the blank lines between two of them are
+    kept where nothing else separates them in the file, one blank line stands for what was between them."""
+    text = ''
     prev = None
-    for k in plan.moved_idx:
+    for k in indexes:
         if prev is not None:
             gap = range(items[prev].end, items[k].start)
             if all(not lines[i].strip() for i in gap) and all(items[j].kind == 'blank' for j in range(prev + 1, k)):
-                moved_text += ''.join(lines[i] for i in gap)
+                text += ''.join(lines[i] for i in gap)
             else:
-                moved_text += '\n'
-        moved_text += item_text(lines, items[k])
+                text += '\n'
+        text += item_text(lines, items[k])
         prev = k
+    return text
+
+
+def api_file_text(plan, licence):
+    """The API file's text before clang-format, and the moved text it must keep verbatim."""
+    lines, items = plan.lines, plan.items
+    moved_text = joined_text(lines, items, plan.moved_idx)
     regs = register_names(plan)
     if regs:
         desc = '// Script bindings registered by %s.\n' % ' and '.join('%s()' % r for r in regs)

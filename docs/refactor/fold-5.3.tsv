@@ -1,0 +1,171 @@
+# 5.3 step 2: fold of the 13 Engine/ac/global_*.cpp/.h pairs into their domain files (reviewed map, 2026-11-13).
+# Read by Script/move_functions.py (its docstring has the format).
+# Columns: kind, name, source, destination .cpp (today's path) | NEW:<path>, destination header ("-": file-local or none), note.
+# One row per top-level definition of the .cpp files; a function row also covers its declaration in the global_*.h.
+# Rows of kind declaration-only are header (or file-scope) declarations with no definition of their own.
+# The file-scope "extern" lines of the sources (43) are not definitions: see global-fold-report.md "Externs".
+# Destinations outside Engine/ac/ are files that moves-5.3.tsv sends into Engine/game/ (media/audio/audio.cpp, script/script.cpp).
+#
+# --- global_audio (voice-over playback): speech.cpp, one function to the game half of audio
+function	SetSpeechVolume(int)	Engine/ac/global_audio.cpp	Engine/ac/speech.cpp	Engine/ac/speech.h	speech voice volume (play.speech_volume, speech channel); script API
+function	IsSpeechVoxAvailable()	Engine/ac/global_audio.cpp	Engine/ac/speech.cpp	Engine/ac/speech.h	speech.vox flag (play.voice_avail); speech.cpp owns init_voicepak; script API
+function	IsMusicVoxAvailable()	Engine/ac/global_audio.cpp	Engine/media/audio/audio.cpp	Engine/media/audio/audio.h	audio.vox flag (play.separate_music_lib), not voice; contentious: alternative speech.cpp beside IsSpeechVoxAvailable; script API
+static function	get_cue_filename(int,int)	Engine/ac/global_audio.cpp	Engine/ac/speech.cpp	-	helper of the voice unit; uses get_voice_assetpath (speech.cpp)
+static function	find_voice_clip(const String&)	Engine/ac/global_audio.cpp	Engine/ac/speech.cpp	-	helper of the voice unit
+static function	play_voice_clip_on_channel(const String&)	Engine/ac/global_audio.cpp	Engine/ac/speech.cpp	-	helper of the voice unit
+static function	play_voice_clip_impl(const String&,bool,bool)	Engine/ac/global_audio.cpp	Engine/ac/speech.cpp	-	helper of the voice unit
+static function	stop_voice_clip_impl()	Engine/ac/global_audio.cpp	Engine/ac/speech.cpp	-	helper of the voice unit
+function	play_voice_speech(int,int)	Engine/ac/global_audio.cpp	Engine/ac/speech.cpp	Engine/ac/speech.h	voice-over + lip-sync of blocking speech; caller display.cpp
+function	play_voice_nonblocking(int,int,bool)	Engine/ac/global_audio.cpp	Engine/ac/speech.cpp	Engine/ac/speech.h	caller game.cpp (Game_PlayVoiceClip, a twin wrapper)
+function	play_voice_clip_as_type(int,int,int,int,int,int)	Engine/ac/global_audio.cpp	Engine/ac/speech.cpp	Engine/ac/speech.h	caller game.cpp (Game_PlayVoiceClipAsType)
+function	stop_voice_speech()	Engine/ac/global_audio.cpp	Engine/ac/speech.cpp	Engine/ac/speech.h	callers character.cpp, display.cpp
+function	stop_voice_nonblocking()	Engine/ac/global_audio.cpp	Engine/ac/speech.cpp	Engine/ac/speech.h	callers audiochannel.cpp, media/audio/audio.cpp, plugin/agsplugin.cpp (plugin API)
+declaration-only	struct CharacterInfo; (forward)	Engine/ac/global_audio.h	-	-	unused by the header's declarations; speech.h already forward-declares it: drop
+declaration-only	struct ScriptAudioChannel; (forward)	Engine/ac/global_audio.h	-	Engine/ac/speech.h	needed by play_voice_clip_as_type's return type: add the forward declaration to speech.h
+#
+# --- global_debug: system.cpp and game.cpp
+variable	debugLastRoomMask	Engine/ac/global_debug.cpp	Engine/ac/game.cpp	-	state of script_debug only; no extern elsewhere (could become static later, not in the [move])
+variable	debugLastMoveChar	Engine/ac/global_debug.cpp	Engine/ac/game.cpp	-	state of script_debug only; no extern elsewhere (could become static later, not in the [move])
+function	GetRuntimeInfo()	Engine/ac/global_debug.cpp	Engine/ac/system.cpp	Engine/ac/system.h	only caller System_GetRuntimeInfo (system.cpp), its script twin
+function	script_debug(int,int)	Engine/ac/global_debug.cpp	Engine/ac/game.cpp	Engine/ac/game.h	debug commands; next to set_debug_mode; callers global_api (Debug), main/game_run.cpp debug keys
+#
+# --- global_display: display.cpp
+declaration-only	DisplayAtYImpl (file-scope forward declaration)	Engine/ac/global_display.cpp	Engine/ac/display.cpp	-	keep above Display/DisplayMB/DisplayTopBar, or the tool orders DisplayAtYImpl first and drops it
+function	Display(const char*,...)	Engine/ac/global_display.cpp	Engine/ac/display.cpp	Engine/ac/display.h	message box; callers game.cpp, global_game.cpp (SaveGameSlot); script API
+function	DisplaySimple(const char*)	Engine/ac/global_display.cpp	Engine/ac/display.cpp	Engine/ac/display.h	script API Display (bound in global_api)
+function	DisplayMB(const char*)	Engine/ac/global_display.cpp	Engine/ac/display.cpp	Engine/ac/display.h	callers global_debug.cpp, main/game_run.cpp
+function	DisplayTopBar(int,int,int,const char*,const char*)	Engine/ac/global_display.cpp	Engine/ac/display.cpp	Engine/ac/display.h	uses display_at, TopBarSettings (display.h); script API
+function	DisplayAt(int,int,int,const char*)	Engine/ac/global_display.cpp	Engine/ac/display.cpp	Engine/ac/display.h	script API
+function	DisplayAtYImpl(int,const char*,const TopBarSettings*,bool)	Engine/ac/global_display.cpp	Engine/ac/display.cpp	-	non-static, declared only in its .cpp; used by the Display* unit
+function	DisplayAtY(int,const char*)	Engine/ac/global_display.cpp	Engine/ac/display.cpp	Engine/ac/display.h	script API
+function	DisplaySpeechAt(int,int,int,int,const char*)	Engine/ac/global_display.cpp	Engine/ac/display.cpp	Engine/ac/display.h	only caller Character_SayAt (character.cpp), a pure-forward twin; alternative character.cpp beside display_speech
+static function	CreateTextOverlay(...)	Engine/ac/global_display.cpp	Engine/ac/display.cpp	-	helper of DisplaySpeechBackground only
+function	DisplaySpeechBackground(int,const char*)	Engine/ac/global_display.cpp	Engine/ac/display.cpp	Engine/ac/display.h	only caller Character_SayBackground (character.cpp); alternative character.cpp
+#
+# --- global_game: game.cpp mostly; room.cpp, system.cpp, script/script.cpp, NEW keyboard.cpp
+function	AbortGame()	Engine/ac/global_game.cpp	Engine/script/script.cpp	Engine/script/script.h	one-line forward to AbortAllScripts (script.cpp); only caller main/engine.cpp; not the script's AbortGame (that is _sc_AbortGame): misnamed
+function	restart_game()	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	try_restore_save lives in game.cpp; callers global_api, script/script.cpp
+function	CopySaveSlot(int,int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	save slots: get_save_game_path is in game.cpp; script API
+function	MoveSaveSlot(int,int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	save slots; script API
+function	RestoreGameSlot(int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	save slots; script API
+function	SaveGameSlot(int,const char*,int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	schedule_save_game is in game.cpp; script API; also Engine/test/script_exports_test.cpp
+function	SaveGameSlot2(int,const char*)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	arity forwarder to SaveGameSlot (script API overload)
+function	DeleteSaveSlot(int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	save slots; script API
+function	PauseGame()	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	game_paused is defined in game.cpp; twin Game_Pause forwards to it
+function	UnPauseGame()	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	game_paused; twin Game_Resume forwards to it
+function	IsGamePaused()	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	game_paused; Game_GetIsPaused duplicates it (returns game_paused > 0 itself)
+static function	GetSaveSlotDescription(int,String&)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	-	helper of FillSaveList; no clash with Game_GetSaveSlotDescription
+function	FillSaveList(vector<SaveListItem>&,unsigned,unsigned,bool)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	save list; callers game.cpp, listbox.cpp, gui/guidialog.cpp
+static function	SortSaveList(vector<SaveListItem>&,ScriptSaveGameSortStyle,ScriptSortDirection)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	-	helper of the FillSaveList unit
+function	FillSaveList(vector<SaveListItem>&,unsigned,unsigned,bool,ScriptSaveGameSortStyle,ScriptSortDirection)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	save list unit
+function	FillSaveList(const vector<int>&,vector<SaveListItem>&,bool,ScriptSaveGameSortStyle,ScriptSortDirection)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	save list unit (default arguments stay on the declaration)
+function	GetLastSaveSlot()	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	save list unit; caller main/engine.cpp
+function	RunAGSGame(const String&,unsigned,int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	callers game.cpp, main/game_run.cpp; calls main/ (engine_init_*, load_game_file, start_game): ring violation already today, check_layers baseline
+function	QuitGame(int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	quit dialog (setup_for_dialog is in game.cpp); script API
+function	SetRestartPoint()	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	schedule_save_game; script API
+function	SetGameSpeed(int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	set_game_speed is in game.cpp; twin Game_SetSpeed forwards to it
+function	GetGameSpeed()	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	twin Game_GetSpeed forwards to it; callers characterinfo_engine.cpp, global_screen.cpp
+function	SetGameOption(int,int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	game.options (game is defined in game.cpp); script API
+function	GetGameOption(int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	game.options; script API
+function	SkipUntilCharacterStops(int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	cutscene/skip unit (initialize_skippable_cutscene in game.cpp); script API
+function	EndSkippingUntilCharStops()	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	cutscene/skip unit (stop_fast_forwarding); 13 callers in 9 files
+function	StartCutscene(int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	cutscene unit (is_in_cutscene in game.cpp); function-local static last_cutscene_script_pos moves with it
+function	SkipCutscene()	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	cutscene unit; script API
+function	EndCutscene()	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	cutscene unit; script API
+function	ShowInputBox(const char*,char*)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	input box; script API (old char-buffer form)
+function	ShowInputBoxImpl(const char*)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	caller Game_InputBox (game.cpp)
+function	GetLocationType(int,int,int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	GetLocationTypeImpl is in game.cpp; callers global_api, main/game_run.cpp
+function	GetLocationType2(int,int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	arity form of GetLocationType (script API overload)
+static function	GetLocationNameAndRef(SceneLocationRef&,int,int,int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	-	helper of GetLocationName
+function	GetLocationName(int,int,int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	callers game.cpp (Game_GetLocationName), mouse.cpp, main/game_run.cpp
+new-file	Keyboard state for the script API: which keys are held down.	Engine/ac/global_game.cpp	NEW:Engine/ac/keyboard.cpp	NEW:Engine/ac/keyboard.h	description of the new pair (the comment block under its licence)
+function	IsKeyPressed(int)	Engine/ac/global_game.cpp	NEW:Engine/ac/keyboard.cpp	NEW:Engine/ac/keyboard.h	keyboard state script API; no game-ring input file for keys (sys_events is host); future Engine/game/input/keyboard.cpp; alternative game.cpp (Game_SimulateKeyPress)
+function	IsAnyKeyPressed()	Engine/ac/global_game.cpp	NEW:Engine/ac/keyboard.cpp	NEW:Engine/ac/keyboard.h	keyboard unit
+function	GetPressedKeys()	Engine/ac/global_game.cpp	NEW:Engine/ac/keyboard.cpp	NEW:Engine/ac/keyboard.h	keyboard unit (dynamic array of script key codes)
+function	SaveScreenShot4(const char*,int,int,int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	create_game_screenshot is in game.cpp; script API
+function	SaveScreenShot1(const char*)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	arity forwarder to SaveScreenShot4
+function	SetMultitasking(int)	Engine/ac/global_game.cpp	Engine/ac/system.cpp	Engine/ac/system.h	window/background mode beside System_Get/SetWindowed, Vsync; callers main/engine.cpp, engine_setup.cpp; alternative game.cpp (display_switch_*)
+function	RoomProcessClick(int,int,int)	Engine/ac/global_game.cpp	Engine/ac/room.cpp	Engine/ac/room.h	bound as Room::ProcessClick (room_api.cpp): misnamed for room.cpp (Room_ProcessClick); alternative game.cpp
+function	IsInteractionAvailable(int,int,int)	Engine/ac/global_game.cpp	Engine/ac/room.cpp	Engine/ac/room.h	same click logic as RoomProcessClick in check mode: kept with it; script API
+function	_sc_AbortGame(const char*)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	the script's AbortGame (global_api); misnamed (_sc_ prefix)
+static function	WaitImplPre360(int,int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	-	wait unit (Game_InBlockingWait etc. are in game.cpp)
+function	WaitImpl(int,int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	-	non-static, declared nowhere else; wait unit
+function	scrWait(int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	script Wait; wait unit
+function	WaitKey(int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	wait unit; script API
+function	WaitMouse(int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	wait unit; script API
+function	WaitMouseKey(int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	wait unit; script API
+function	WaitInput(int,int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	wait unit; script API
+function	SkipWait0()	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	arity forwarder to SkipWait
+function	SkipWait(int)	Engine/ac/global_game.cpp	Engine/ac/game.cpp	Engine/ac/game.h	wait unit; script API
+type	SaveListItem	Engine/ac/global_game.h	-	Engine/ac/game.h	save list type; users game.cpp, listbox.cpp, gui/guidialog.cpp; game.h then needs <ctime>, <vector>, util/string_types.h
+type	SaveItemCmpByNumber	Engine/ac/global_game.h	-	Engine/ac/game.h	only user SortSaveList (could be file-local later)
+type	SaveItemCmpByTime	Engine/ac/global_game.h	-	Engine/ac/game.h	users SortSaveList, GetLastSaveSlot, gui/guidialog.cpp
+type	SaveItemCmpByDesc	Engine/ac/global_game.h	-	Engine/ac/game.h	only user SortSaveList (could be file-local later)
+#
+# --- global_gui: gui.cpp; the four font metric functions to game.cpp
+function	FindGUIID(const char*)	Engine/ac/global_gui.cpp	Engine/ac/gui.cpp	Engine/ac/gui.h	guis[]; script API (editor macro generation)
+function	InterfaceOn(int)	Engine/ac/global_gui.cpp	Engine/ac/gui.cpp	Engine/ac/gui.h	twin GUI_SetVisible calls it; script API
+function	InterfaceOff(int)	Engine/ac/global_gui.cpp	Engine/ac/gui.cpp	Engine/ac/gui.h	twin GUI_SetVisible calls it; script API
+function	GetTextWidth(const char*,int)	Engine/ac/global_gui.cpp	Engine/ac/game.cpp	Engine/ac/game.h	font metrics, beside Game_GetFontCount/Game_SetNormalFont/load_game_font; contentious: alternative gui.cpp (one destination) or a new font file
+function	GetTextHeight(const char*,int,int)	Engine/ac/global_gui.cpp	Engine/ac/game.cpp	Engine/ac/game.h	font metrics (break_up_text_into_lines in string.cpp)
+function	GetFontHeight(int)	Engine/ac/global_gui.cpp	Engine/ac/game.cpp	Engine/ac/game.h	font metrics
+function	GetFontLineSpacing(int)	Engine/ac/global_gui.cpp	Engine/ac/game.cpp	Engine/ac/game.h	font metrics
+function	DisableInterfaceEx(bool)	Engine/ac/global_gui.cpp	Engine/ac/gui.cpp	Engine/ac/gui.h	play.disabled_user_interface, GUI redraw; callers dialog.cpp, room.cpp, main/game_run.cpp
+function	DisableInterface()	Engine/ac/global_gui.cpp	Engine/ac/gui.cpp	Engine/ac/gui.h	forwarder to DisableInterfaceEx(true); script API
+function	EnableInterfaceEx(bool)	Engine/ac/global_gui.cpp	Engine/ac/gui.cpp	Engine/ac/gui.h	interface unit
+function	EnableInterface()	Engine/ac/global_gui.cpp	Engine/ac/gui.cpp	Engine/ac/gui.h	forwarder to EnableInterfaceEx(true); script API
+function	IsInterfaceEnabled()	Engine/ac/global_gui.cpp	Engine/ac/gui.cpp	Engine/ac/gui.h	callers gui.cpp, main/game_run.cpp
+function	SetTextWindowGUI(int)	Engine/ac/global_gui.cpp	Engine/ac/gui.cpp	Engine/ac/gui.h	text window GUI option; script API
+#
+# --- global_palette: draw.cpp (defines RGB palette[256] and setpal)
+function	CyclePalette(int,int)	Engine/ac/global_palette.cpp	Engine/ac/draw.cpp	Engine/ac/draw.h	palette is defined in draw.cpp; script API
+function	SetPalRGB(int,int,int,int)	Engine/ac/global_palette.cpp	Engine/ac/draw.cpp	Engine/ac/draw.h	palette; script API
+function	UpdatePalette()	Engine/ac/global_palette.cpp	Engine/ac/draw.cpp	Engine/ac/draw.h	setpal (draw.cpp); script API
+#
+# --- global_room: room.cpp
+function	SetAmbientTint(int,int,int,int,int)	Engine/ac/global_room.cpp	Engine/ac/room.cpp	Engine/ac/room.h	room ambient tint (play.rtint_*); script API; alternative draw.cpp (reads rtint)
+function	SetAmbientLightLevel(int)	Engine/ac/global_room.cpp	Engine/ac/room.cpp	Engine/ac/room.h	room ambient light; script API
+function	NewRoom(int)	Engine/ac/global_room.cpp	Engine/ac/room.cpp	Engine/ac/room.h	new_room is in room.cpp; callers character.cpp, dialog.cpp, event.cpp, global_debug.cpp
+function	ResetRoom(int)	Engine/ac/global_room.cpp	Engine/ac/room.cpp	Engine/ac/room.h	ResetRoomState (roomstatus.cpp); script API; alternative roomstatus.cpp
+function	HasPlayerBeenInRoom(int)	Engine/ac/global_room.cpp	Engine/ac/room.cpp	Engine/ac/room.h	GetRoomStateIfExists (roomstatus.cpp); script API; alternative roomstatus.cpp
+function	CallRoomScript(int)	Engine/ac/global_room.cpp	Engine/ac/room.cpp	Engine/ac/room.h	runs the room script's on_call; script API
+function	SetBackgroundFrame(int)	Engine/ac/global_room.cpp	Engine/ac/room.cpp	Engine/ac/room.h	on_background_frame_change is in room.cpp; script API
+function	GetBackgroundFrame()	Engine/ac/global_room.cpp	Engine/ac/room.cpp	Engine/ac/room.h	play.bg_frame; script API
+#
+# --- global_screen: screen.cpp
+function	FlipScreen(int)	Engine/ac/global_screen.cpp	Engine/ac/screen.cpp	Engine/ac/screen.h	play.screen_flipped; script API
+type	ShakeScreenState (class : GameState)	Engine/ac/global_screen.cpp	Engine/ac/screen.cpp	-	file-local class (not in an anonymous namespace), used by ShakeScreen only; no other class of that name in the engine
+function	ShakeScreen(int)	Engine/ac/global_screen.cpp	Engine/ac/screen.cpp	Engine/ac/screen.h	script API
+function	ShakeScreenBackground(int,int,int)	Engine/ac/global_screen.cpp	Engine/ac/screen.cpp	Engine/ac/screen.h	script API
+function	TintScreen(int,int,int)	Engine/ac/global_screen.cpp	Engine/ac/screen.cpp	Engine/ac/screen.h	script API
+function	FadeOut(int)	Engine/ac/global_screen.cpp	Engine/ac/screen.cpp	Engine/ac/screen.h	run_fade_out_effect is in screen.cpp; script API
+function	SetScreenTransition(int)	Engine/ac/global_screen.cpp	Engine/ac/screen.cpp	Engine/ac/screen.h	script API
+function	SetNextScreenTransition(int)	Engine/ac/global_screen.cpp	Engine/ac/screen.cpp	Engine/ac/screen.h	script API
+function	SetFadeColor(int,int,int)	Engine/ac/global_screen.cpp	Engine/ac/screen.cpp	Engine/ac/screen.h	script API
+function	FadeIn(int)	Engine/ac/global_screen.cpp	Engine/ac/screen.cpp	Engine/ac/screen.h	run_fade_in_effect; script API
+#
+# --- global_timer: game.cpp (timer.cpp is host: util/)
+function	AssertTimerID(const char*,int)	Engine/ac/global_timer.cpp	Engine/ac/game.cpp	-	non-static, declared nowhere; helper of the timer unit
+function	SetTimer(int,int)	Engine/ac/global_timer.cpp	Engine/ac/game.cpp	Engine/ac/game.h	script timers on play (defined in game.cpp); alternative gamestate.cpp (StartScriptTimer); script API
+function	GetTimerPos(int)	Engine/ac/global_timer.cpp	Engine/ac/game.cpp	Engine/ac/game.h	timer unit; script API
+function	IsTimerExpired(int)	Engine/ac/global_timer.cpp	Engine/ac/game.cpp	Engine/ac/game.h	timer unit; script API
+#
+# --- global_translation: translation.cpp
+function	get_translation(const char*)	Engine/ac/global_translation.cpp	Engine/ac/translation.cpp	Engine/ac/translation.h	get_translation_tree is in translation.cpp; calls plugin hooks (plugin/, composition ring): check_layers baseline; 8 caller files + script_api.h
+function	IsTranslationAvailable()	Engine/ac/global_translation.cpp	Engine/ac/translation.cpp	Engine/ac/translation.h	script API
+#
+# --- global_video: video_script.cpp
+function	PlayFlic(int,int)	Engine/ac/global_video.cpp	Engine/ac/video_script.cpp	Engine/ac/video_script.h	script video API file (game/video/); alternative media/video/video.cpp (play_flc_video); script API
+function	PlayVideo(const char*,int,int)	Engine/ac/global_video.cpp	Engine/ac/video_script.cpp	Engine/ac/video_script.h	script API
+#
+# --- global_walkablearea: walkablearea.cpp
+function	GetScalingAt(int,int)	Engine/ac/global_walkablearea.cpp	Engine/ac/walkablearea.cpp	Engine/ac/walkablearea.h	get_area_scaling; also plugin API IAGSEngine::GetAreaScaling
+function	SetAreaScaling(int,int,int)	Engine/ac/global_walkablearea.cpp	Engine/ac/walkablearea.cpp	Engine/ac/walkablearea.h	twin Walkarea_SetScaling forwards to it
+function	RemoveWalkableArea(int)	Engine/ac/global_walkablearea.cpp	Engine/ac/walkablearea.cpp	Engine/ac/walkablearea.h	redo_walkable_areas; twin Walkarea_SetEnabled calls it; caller room.cpp
+function	RestoreWalkableArea(int)	Engine/ac/global_walkablearea.cpp	Engine/ac/walkablearea.cpp	Engine/ac/walkablearea.h	twin Walkarea_SetEnabled calls it
+function	GetWalkableAreaAtScreen(int,int)	Engine/ac/global_walkablearea.cpp	Engine/ac/walkablearea.cpp	Engine/ac/walkablearea.h	caller Walkarea_GetAtScreenXY
+function	GetWalkableAreaAtRoom(int,int)	Engine/ac/global_walkablearea.cpp	Engine/ac/walkablearea.cpp	Engine/ac/walkablearea.h	caller Walkarea_GetAtRoomXY
+#
+# --- global_walkbehind: walkbehind.cpp
+function	SetWalkBehindBase(int,int)	Engine/ac/global_walkbehind.cpp	Engine/ac/walkbehind.cpp	Engine/ac/walkbehind.h	croom->walkbehind_base; duplicate of Walkbehind_SetBaseline, which does not set walk_behind_baselines_changed (behaviour difference, not touched)
+function	GetWalkBehindBase(int)	Engine/ac/global_walkbehind.cpp	Engine/ac/walkbehind.cpp	Engine/ac/walkbehind.h	duplicate of Walkbehind_GetBaseline (and of IAGSEngine::GetWalkbehindBaseline); script API
