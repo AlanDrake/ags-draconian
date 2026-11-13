@@ -28,3 +28,15 @@ int Label_GetTextColor(GUILabel *labl);
 void Label_SetTextColor(GUILabel *labl, int colr);
 int Label_GetFont(GUILabel *labl);
 void Label_SetFont(GUILabel *guil, int fontnum);
+
+// Script API: Label::get_TextAlignment
+int Label_GetTextAlignment(GUILabel *labl);
+
+// Script API: Label::set_TextAlignment
+void Label_SetTextAlignment(GUILabel *labl, int align);
+
+// Script API: Label::get_TextOutlineColor
+int Label_GetTextOutlineColor(GUILabel *labl);
+
+// Script API: Label::set_TextOutlineColor
+void Label_SetTextOutlineColor(GUILabel *labl, int color);
