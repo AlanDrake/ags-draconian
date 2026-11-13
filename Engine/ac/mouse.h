@@ -125,3 +125,39 @@ extern int mousex, mousey;
 extern int ignore_bounds;
 extern int cur_mode;
 extern int cur_cursor;
+
+class ScriptShaderInstance;
+struct ScriptUserObject;
+
+// Script API: Mouse::GetModeHotspot^1
+ScriptUserObject *Mouse_GetModeHotspot(int curs);
+
+// Script API: Mouse::ChangeModeView^2
+void Mouse_ChangeModeView2(int curs, int newview);
+
+// Script API: Mouse::SelectPreviousMode^0
+void Mouse_SetPreviousCursor();
+
+// Script API: Mouse::IsAnyButtonDown^0
+bool IsAnyButtonDown();
+
+// Script API: Mouse::IsModeEnabled^1
+int Mouse_IsModeEnabled(int which);
+
+// Script API: Mouse::get_AutoLock
+bool Mouse_GetAutoLock();
+
+// Script API: Mouse::set_AutoLock
+void Mouse_SetAutoLock(bool on);
+
+// Script API: Mouse::get_Enabled
+bool Mouse_GetEnabled();
+
+// Script API: Mouse::set_Enabled
+void Mouse_SetEnabled(bool on);
+
+// Script API: Mouse::get_CursorShader
+ScriptShaderInstance *Mouse_GetCursorShader();
+
+// Script API: Mouse::set_CursorShader
+void Mouse_SetCursorShader(ScriptShaderInstance *shader_inst);
