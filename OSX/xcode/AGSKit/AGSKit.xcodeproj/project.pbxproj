@@ -861,6 +861,7 @@
 		5C6EA92BD9AA619A710C2D1B /* slider_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DD953244E350E3486149F540 /* slider_api.cpp */; };
 		5D318A1A88692661572CC68F /* ftsystem.c in Sources */ = {isa = PBXBuildFile; fileRef = 047BCD1ABBFAD5CA171AF2E4 /* ftsystem.c */; };
 		5D7D7ECDCEB457A25746C607 /* scripttouchpointer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2678360010FD9D56EB0D84BB /* scripttouchpointer.cpp */; };
+		5FDC4A2ADF6760A37C749D73 /* text_box_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C1B40BB1EC36F6837CF48E8C /* text_box_api.cpp */; };
 		66169D57CD09517F3E4C47CB /* sprite_data_fmt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 40642FE83665FE9B733374BC /* sprite_data_fmt.cpp */; };
 		694B54758387AA31CC7B5163 /* hotspot_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6709585E1E045AD5956018E /* hotspot_api.cpp */; };
 		6E491E3FF5680C5EDF2ED552 /* ftbase.c in Sources */ = {isa = PBXBuildFile; fileRef = D1B84DAA861E34E425449546 /* ftbase.c */; };
@@ -1847,6 +1848,7 @@
 		B813B1122549270CABB99372 /* pfr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pfr.c; sourceTree = "<group>"; };
 		B89C424B9E31923834D23648 /* video_core.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = video_core.cpp; sourceTree = "<group>"; };
 		C1630A3746FAB722822AE847 /* type1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = type1.c; sourceTree = "<group>"; };
+		C1B40BB1EC36F6837CF48E8C /* text_box_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = text_box_api.cpp; sourceTree = "<group>"; };
 		C2A8E26D84B91E392F1FF46F /* audio_clip_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_clip_api.cpp; sourceTree = "<group>"; };
 		C3598D53DD9936F8FFADC0C9 /* ftwinfnt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftwinfnt.c; sourceTree = "<group>"; };
 		C6FA3A6AFC0998497092E44D /* list_box_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = list_box_api.cpp; sourceTree = "<group>"; };
@@ -3678,6 +3680,7 @@
 				361B51844D0B8DC4A2C2478E /* speech_api.cpp */,
 				A8812F62955A82445709D875 /* string_api.cpp */,
 				932DE99AE06FAA1CEBF2F295 /* system_api.cpp */,
+				C1B40BB1EC36F6837CF48E8C /* text_box_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4742,6 +4745,7 @@
 				7021A56CA8FD4CBA96B05238 /* speech_api.cpp in Sources */,
 				7A4FD0C7B8457DBE6747A5F4 /* string_api.cpp in Sources */,
 				F9D2DCE1CA75A9344D671445 /* system_api.cpp in Sources */,
+				5FDC4A2ADF6760A37C749D73 /* text_box_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
