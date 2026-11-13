@@ -101,6 +101,8 @@ namespace AGS.Editor.Components
             node = node.SelectSingleNode(XML_ROOM_NODE);
             if (node == null)
                 return;
+            // The layers first: selecting a hidden layer shows it while it stays selected
+            LoadLayersFromXML(editor, node.SelectSingleNode(XML_ROOM_LAYERS_NODE));
             XmlNode selectedObject = node.SelectSingleNode(XML_ROOM_SELECTION);
             if (selectedObject != null && selectedObject.Attributes[XML_SELITEM_ATTRIB_PATH] != null)
             {
@@ -110,7 +112,10 @@ namespace AGS.Editor.Components
                     editor.TrySelectNodeByPath(selpath);
                 }
             }
-            node = node.SelectSingleNode(XML_ROOM_LAYERS_NODE);
+        }
+
+        private static void LoadLayersFromXML(RoomSettingsEditor editor, XmlNode node)
+        {
             if (node == null)
                 return;
             // Search for the layer node, if they exist then read layer preferences
@@ -205,7 +210,7 @@ namespace AGS.Editor.Components
             foreach (IRoomEditorFilter layer in editor.Layers)
             {
                 writer.WriteStartElement(layer.Name);
-                writer.WriteElementString(XML_LAYER_ELEM_VISIBLE, layer.Visible.ToString());
+                writer.WriteElementString(XML_LAYER_ELEM_VISIBLE, editor.IsLayerVisibleByUser(layer).ToString());
                 writer.WriteElementString(XML_LAYER_ELEM_LOCKED, layer.Locked.ToString());
                 writer.WriteStartElement(XML_LAYER_ITEMS_NODE);
                 foreach (var item in layer.DesignItems)

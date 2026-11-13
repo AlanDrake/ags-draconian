@@ -97,6 +97,10 @@ namespace AGS.Editor.Panes.Room
 
         private readonly List<IRoomLayer> _layers;
         private readonly Dictionary<string, RoomLayerNode> _nodes = new Dictionary<string, RoomLayerNode>();
+        // A hidden layer shown because it was selected, and the layers with a mask showing it hid:
+        // they get their visibility back when the selection leaves the layer
+        private IRoomLayer _shownForSelection;
+        private readonly List<IRoomLayer> _hiddenForSelection = new List<IRoomLayer>();
 
         public RoomLayerTree(IEnumerable<IRoomLayer> layers)
         {
@@ -205,9 +209,9 @@ namespace AGS.Editor.Panes.Room
         }
 
         /// <summary>
-        /// Shows or hides a layer or item. Showing a layer with a mask hides the other layers
-        /// with a mask. Returns whether anything changed; a node without a visible toggle
-        /// changes nothing.
+        /// Shows or hides a layer or item, as the user's choice. Showing a layer with a mask
+        /// hides the other layers with a mask. Returns whether anything changed; a node without
+        /// a visible toggle changes nothing.
         /// </summary>
         public bool SetVisible(RoomLayerNode node, bool visible)
         {
@@ -215,27 +219,87 @@ namespace AGS.Editor.Panes.Room
                 return false;
             if (node.Kind == RoomLayerNodeKind.Layer)
             {
-                node.Layer.Visible = visible;
-                if (visible && node.Layer.MaskToDraw != RoomAreaMaskType.None)
+                // A layer the selection showed or hid is the user's from now on
+                if (node.Layer == _shownForSelection || _hiddenForSelection.Contains(node.Layer) ||
+                    (visible && node.Layer.MaskToDraw != RoomAreaMaskType.None &&
+                     _shownForSelection != null && _shownForSelection.MaskToDraw != RoomAreaMaskType.None))
                 {
-                    foreach (IRoomLayer other in _layers)
-                    {
-                        if (other == node.Layer || other.MaskToDraw == RoomAreaMaskType.None || !other.Visible)
-                            continue;
-                        other.Visible = false;
-                        other.Modified = true;
-                    }
+                    _shownForSelection = null;
+                    _hiddenForSelection.Clear();
                 }
+                SetLayerVisible(node.Layer, visible, null);
+                return true;
             }
-            else
-            {
-                DesignTimeProperties props = GetItemProperties(node);
-                if (props == null)
-                    return false;
-                props.Visible = visible;
-            }
+            DesignTimeProperties props = GetItemProperties(node);
+            if (props == null)
+                return false;
+            props.Visible = visible;
             node.Layer.Modified = true;
             return true;
+        }
+
+        /// <summary>
+        /// Shows the layer of a newly selected node while it stays selected. A hidden layer is
+        /// shown; when the selection moves to another layer or to the room, it is hidden again
+        /// and the layers with a mask that showing it hid are shown again, unless the user
+        /// toggled them in between. Returns whether a layer's visibility changed.
+        /// </summary>
+        public bool ShowForSelection(RoomLayerNode node)
+        {
+            IRoomLayer layer = node.Layer;
+            bool changed = false;
+            if (_shownForSelection != null && _shownForSelection != layer)
+            {
+                SetLayerVisible(_shownForSelection, false, null);
+                foreach (IRoomLayer hidden in _hiddenForSelection)
+                    SetLayerVisible(hidden, true, null);
+                _shownForSelection = null;
+                _hiddenForSelection.Clear();
+                changed = true;
+            }
+            if (layer != null && !layer.Visible)
+            {
+                _hiddenForSelection.Clear();
+                SetLayerVisible(layer, true, _hiddenForSelection);
+                _shownForSelection = layer;
+                changed = true;
+            }
+            return changed;
+        }
+
+        /// <summary>
+        /// Tells whether a layer is visible by the user's choice: false for a layer only the
+        /// selection shows, true for a layer with a mask only the selection hid. This is what
+        /// the room's design-time user file keeps.
+        /// </summary>
+        public bool IsVisibleByUser(IRoomLayer layer)
+        {
+            if (layer == _shownForSelection)
+                return false;
+            return layer.Visible || _hiddenForSelection.Contains(layer);
+        }
+
+        /// <summary>
+        /// Shows or hides a layer; showing a layer with a mask hides the other visible ones,
+        /// which are added to hiddenMasks if it is given.
+        /// </summary>
+        private void SetLayerVisible(IRoomLayer layer, bool visible, List<IRoomLayer> hiddenMasks)
+        {
+            if (layer.Visible != visible)
+            {
+                layer.Visible = visible;
+                layer.Modified = true;
+            }
+            if (!visible || layer.MaskToDraw == RoomAreaMaskType.None)
+                return;
+            foreach (IRoomLayer other in _layers)
+            {
+                if (other == layer || other.MaskToDraw == RoomAreaMaskType.None || !other.Visible)
+                    continue;
+                other.Visible = false;
+                other.Modified = true;
+                hiddenMasks?.Add(other);
+            }
         }
 
         /// <summary>

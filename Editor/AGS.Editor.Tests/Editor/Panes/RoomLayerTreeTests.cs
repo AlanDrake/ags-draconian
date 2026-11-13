@@ -184,6 +184,88 @@ namespace AGS.Editor.Panes.Room
         }
 
         [Test]
+        public void SelectionShowsAHiddenLayerUntilItLeaves()
+        {
+            Assert.That(_tree.ShowForSelection(_tree.Find("Objects/0001")), Is.True);
+            Assert.That(_objects.Visible, Is.True);
+            Assert.That(_tree.ShowForSelection(_tree.Find("Objects")), Is.False, "the same layer");
+            Assert.That(_objects.Visible, Is.True);
+            Assert.That(_tree.ShowForSelection(_tree.Find("Hotspots/0001")), Is.True);
+            Assert.That(_objects.Visible, Is.False, "hidden again");
+            Assert.That(_hotspots.Visible, Is.True);
+            Assert.That(_tree.ShowForSelection(_tree.Root), Is.True);
+            Assert.That(_hotspots.Visible, Is.False);
+        }
+
+        [Test]
+        public void SelectionLeavesAVisibleLayerVisible()
+        {
+            _objects.Visible = true;
+            Assert.That(_tree.ShowForSelection(_tree.Find("Objects")), Is.False);
+            _tree.ShowForSelection(_tree.Find("Hotspots"));
+            Assert.That(_objects.Visible, Is.True);
+        }
+
+        [Test]
+        public void MaskLayersHiddenBySelectionComeBack()
+        {
+            _walkBehinds.Visible = true;
+            _tree.ShowForSelection(_tree.Find("Hotspots"));
+            Assert.That(_hotspots.Visible, Is.True);
+            Assert.That(_walkBehinds.Visible, Is.False, "one mask at a time");
+            Assert.That(_tree.IsVisibleByUser(_walkBehinds), Is.True);
+            Assert.That(_tree.IsVisibleByUser(_hotspots), Is.False);
+            _tree.ShowForSelection(_tree.Find("Objects"));
+            Assert.That(_hotspots.Visible, Is.False);
+            Assert.That(_walkBehinds.Visible, Is.True);
+        }
+
+        [Test]
+        public void SelectingTheShownMaskLayerKeepsIt()
+        {
+            _walkBehinds.Visible = true;
+            _tree.ShowForSelection(_tree.Find("Hotspots"));
+            _tree.ShowForSelection(_tree.Find("WalkBehinds"));
+            Assert.That(_hotspots.Visible, Is.False);
+            Assert.That(_walkBehinds.Visible, Is.True);
+            _tree.ShowForSelection(_tree.Root);
+            Assert.That(_walkBehinds.Visible, Is.True, "it was the user's");
+        }
+
+        [Test]
+        public void TogglingALayerTheSelectionShowedMakesItTheUsers()
+        {
+            _tree.ShowForSelection(_tree.Find("Objects"));
+            _tree.SetVisible(_tree.Find("Objects"), false);
+            _tree.SetVisible(_tree.Find("Objects"), true);
+            Assert.That(_tree.IsVisibleByUser(_objects), Is.True);
+            _tree.ShowForSelection(_tree.Find("Hotspots"));
+            Assert.That(_objects.Visible, Is.True);
+        }
+
+        [Test]
+        public void ShowingAnotherMaskLayerKeepsTheUsersChoice()
+        {
+            _walkBehinds.Visible = true;
+            _tree.ShowForSelection(_tree.Find("Hotspots"));
+            _tree.SetVisible(_tree.Find("WalkBehinds"), true); // the user shows it again
+            Assert.That(_hotspots.Visible, Is.False);
+            _tree.ShowForSelection(_tree.Find("Objects"));
+            Assert.That(_walkBehinds.Visible, Is.True);
+            Assert.That(_hotspots.Visible, Is.False);
+        }
+
+        [Test]
+        public void TogglingAnotherLayerKeepsTheSelectionsLayer()
+        {
+            _tree.ShowForSelection(_tree.Find("Objects"));
+            _tree.SetVisible(_tree.Find("Hotspots"), true);
+            _tree.ShowForSelection(_tree.Root);
+            Assert.That(_objects.Visible, Is.False);
+            Assert.That(_hotspots.Visible, Is.True);
+        }
+
+        [Test]
         public void SetVisibleOnAnItem()
         {
             RoomLayerNode item = _tree.Find("Objects/0001");

@@ -57,6 +57,15 @@ namespace AGS.Editor
             get { return _layerTree.GetPath(_layerTreeView.SelectedLayerNode ?? _layerTree.Root); }
         }
 
+        /// <summary>
+        /// Tells whether a layer is visible by the user's choice, not only for the selection:
+        /// what the room's design-time user file keeps.
+        /// </summary>
+        public bool IsLayerVisibleByUser(IRoomEditorFilter layer)
+        {
+            return _layerTree.IsVisibleByUser(layer);
+        }
+
         internal static Cursor LockedCursor { get; private set; }
 
         /// <summary>
@@ -203,16 +212,17 @@ namespace AGS.Editor
         /// </summary>
         private void ApplyNodeSelection(RoomLayerNode node, bool focusCanvas)
         {
+            // A hidden layer is shown while selected (a hidden layer cannot be edited)
+            if (_layerTree.ShowForSelection(node))
+            {
+                _layerTreeView.Invalidate();
+                bufferedPanel1.Invalidate();
+            }
             if (node.Layer == null)
             {
                 SetPropertyGridObject(_room);
                 SelectLayer(null, focusCanvas);
                 return;
-            }
-            if (_layerTree.SetVisible(_layerTree.GetLayerNode(node), true))
-            {
-                _layerTreeView.Invalidate();
-                bufferedPanel1.Invalidate();
             }
             IRoomEditorFilter layer = (IRoomEditorFilter)node.Layer;
             SelectLayer(layer, focusCanvas);
