@@ -1003,13 +1003,17 @@ U.5, U.7, U.9) are only there.
   - The bar's "design modified" test compared boxed strings by reference, so a rebuild alone marked the room's design
     data modified.
   - `TVS_EX_DOUBLEBUFFER` with the owner-drawn tree showed striped garbage for a moment in the rows a collapse left
-    empty (the user's video); removed. The vertical scroll bar changes the client width without a resize, so the tree
-    repaints when the width it drew for changes.
+    empty (the user's video); removed in `ec0365375`, whose message wrongly says the sprite manager's tree does
+    without it: the project tree and the sprite folders have it (`TreeViewWithDragDrop`,
+    `TreeViewExtensions.EnableDoubleBuffering`). Without it the tree flickered, so `9dda6781c` turns it back on
+    through that helper and posts the width-change repaint instead of requesting it during painting; cause of the
+    garbage not known. The vertical scroll bar changes the client width without a resize, so the tree repaints
+    when the width it drew for changes.
   - Moving the canvas into the bar's row put it under the 45-pixel transparency slider (now 26, no ticks).
 - **Lesson:** a command chain that greps the build output for a summary hides a failed build; check the build's exit
   code (`ec0365375` was committed after such a failure and verified by a second run).
 - **Not verified:** the editor's room pane at high DPI and with a dark theme file that defines the new
-  `room-editor/tree/*` keys (none exists); the double-buffer removal by the user's eye after the commit.
+  `room-editor/tree/*` keys (none exists); `9dda6781c` by the user's eye (garbage on collapse, flicker).
 
 ### 7.1k Incremental room builds in `agsbuild`
 
