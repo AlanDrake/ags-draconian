@@ -142,3 +142,117 @@ void MarkDisabledGUIForUpdate();
 } // namespace GUIE
 } // namespace Engine
 } // namespace AGS
+
+class ScriptShaderInstance;
+struct ScriptUserObject;
+
+// Script API: GUI::set_PopupStyle
+void GUI_SetPopupStyle(ScriptGUI *sgui, int popup_style);
+
+// Script API: GUI::get_Shown
+bool GUI_GetShown(ScriptGUI *sgui);
+
+// Script API: GUI::GetGraphicPosition^0
+void *GUI_GetGraphicPosition(ScriptGUI *sgui);
+
+// Script API: GUI::GetGraphicBoundBox^0
+void *GUI_GetGraphicBoundBox(ScriptGUI *sgui);
+
+// Script API: GUI::get_ScriptName
+const char *GUI_GetScriptName(ScriptGUI *sgui);
+
+// Script API: GUI::set_Transparency
+void GUI_SetTransparency(ScriptGUI *sgui, int trans);
+
+// Script API: GUI::get_Transparency
+int GUI_GetTransparency(ScriptGUI *sgui);
+
+// Script API: TextWindowGUI::get_LeftGraphic
+int GUI_GetLeftGraphic(ScriptGUI *sgui);
+
+// Script API: TextWindowGUI::get_TopLeftGraphic
+int GUI_GetTopLeftGraphic(ScriptGUI *sgui);
+
+// Script API: TextWindowGUI::get_TopGraphic
+int GUI_GetTopGraphic(ScriptGUI *sgui);
+
+// Script API: TextWindowGUI::get_TopRightGraphic
+int GUI_GetTopRightGraphic(ScriptGUI *sgui);
+
+// Script API: TextWindowGUI::get_RightGraphic
+int GUI_GetRightGraphic(ScriptGUI *sgui);
+
+// Script API: TextWindowGUI::get_BottomRightGraphic
+int GUI_GetBottomRightGraphic(ScriptGUI *sgui);
+
+// Script API: TextWindowGUI::get_BottomGraphic
+int GUI_GetBottomGraphic(ScriptGUI *sgui);
+
+// Script API: TextWindowGUI::get_BottomLeftGraphic
+int GUI_GetBottomLeftGraphic(ScriptGUI *sgui);
+
+// Script API: GUI::GetAtScreenXY^2
+ScriptGUI *GUI_GetAtScreenXY2(int x, int y);
+
+// Script API: GUI::Click^1
+void GUI_Click(ScriptGUI *sgui, int mbut);
+
+// Script API: GUI::ProcessClick^3
+void GUI_ProcessClick(int x, int y, int mbut);
+
+// Script API: GUI::get_BlendMode
+int GUI_GetBlendMode(ScriptGUI *sgui);
+
+// Script API: GUI::set_BlendMode
+void GUI_SetBlendMode(ScriptGUI *sgui, int blend_mode);
+
+// Script API: GUI::get_Shader
+ScriptShaderInstance *GUI_GetShader(ScriptGUI *sgui);
+
+// Script API: GUI::set_Shader
+void GUI_SetShader(ScriptGUI *sgui, ScriptShaderInstance *shader_inst);
+
+// Script API: GUI::get_Rotation
+float GUI_GetRotation(ScriptGUI *sgui);
+
+// Script API: GUI::set_Rotation
+void GUI_SetRotation(ScriptGUI *sgui, float rotation);
+
+// Script API: GUI::get_ScaleX
+float GUI_GetScaleX(ScriptGUI *sgui);
+
+// Script API: GUI::set_ScaleX
+void GUI_SetScaleX(ScriptGUI *sgui, float scale_x);
+
+// Script API: GUI::get_ScaleY
+float GUI_GetScaleY(ScriptGUI *sgui);
+
+// Script API: GUI::set_ScaleY
+void GUI_SetScaleY(ScriptGUI *sgui, float scale_y);
+
+// Script API: GUI::SetScale
+void GUI_SetScale(ScriptGUI *sgui, float scale_x, float scale_y);
+
+// Script API: GUI::GetProperty^1
+int GUI_GetProperty(ScriptGUI *sgui, const char *property);
+
+// Script API: GUI::GetTextProperty^1
+const char *GUI_GetTextProperty(ScriptGUI *sgui, const char *property);
+
+// Script API: GUI::SetProperty^2
+bool GUI_SetProperty(ScriptGUI *sgui, const char *property, int value);
+
+// Script API: GUI::SetTextProperty^2
+bool GUI_SetTextProperty(ScriptGUI *sgui, const char *property, const char *value);
+
+// Script API: GUI::GetByName^1, GUI::GetByScriptName^1
+ScriptGUI *GUI_GetByName(const char *name);
+
+// Script API: GUI::GetActiveTextInputControl^0
+AGS::Common::GUITextBox *GUI_GetActiveTextInputControl();
+
+// Script API: GUI::ScreenToGUIPoint
+ScriptUserObject *GUI_ScreenToGUIPoint(ScriptGUI *sgui, int screen_x, int screen_y, bool clip_to_gui);
+
+// Script API: GUI::GUIToScreenPoint
+ScriptUserObject *GUI_GUIToScreenPoint(ScriptGUI *sgui, int gui_x, int gui_y, bool clip_to_gui);

@@ -417,7 +417,7 @@ int GUI_GetOpacity(ScriptGUI *sgui)
 }
 
 // [OBSOLETE] the AGS 4.0 Transparency, for compiled 4.0 games
-static void GUI_SetTransparency(ScriptGUI *sgui, int trans)
+void GUI_SetTransparency(ScriptGUI *sgui, int trans)
 {
     if ((trans < 0) || (trans > 100))
         quit("!SetGUITransparency: transparency value must be between 0 and 100");
@@ -425,7 +425,7 @@ static void GUI_SetTransparency(ScriptGUI *sgui, int trans)
     guis[sgui->id].SetOpacity(GfxDef::Trans100ToOpacity(trans));
 }
 
-static int GUI_GetTransparency(ScriptGUI *sgui)
+int GUI_GetTransparency(ScriptGUI *sgui)
 {
     return GfxDef::OpacityToTrans100(guis[sgui->id].GetOpacity());
 }

@@ -564,3 +564,8 @@ ScriptDateTime *GameInfo_GetReleaseDate();
 
 // Script API: GameInfo::get_Version
 const char *GameInfo_GetVersion();
+
+struct CCGUIControl;
+
+// Used by the script bindings in game/script_api/gui_api.cpp
+extern CCGUIControl ccDynamicGUIControl;
