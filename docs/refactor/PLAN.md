@@ -371,7 +371,7 @@ Each task is a series of small PRs.
   | Ring | Folders | May include |
   |---|---|---|
   | Host | `platform/`, `device/`, `gfx/`, `media/`, `util/`, `debug/` | Common |
-  | Script VM | `script/`; `script/dynobj/` (pool, arrays, user and plugin objects); `script/lib/` (String, Math, DateTime, Dictionary, Set: logic that needs no game state) | host `util`, Common |
+  | Script VM | `script/`; `script/dynobj/` (the eight managed-object files the VM itself uses: pool, manager, base object, arrays, user and plugin objects) | host `util`, Common |
   | Game module | `game/` (below) | host, VM, Common |
   | Composition | `main/`, `plugin/` | everything |
 
@@ -386,19 +386,23 @@ Each task is a series of small PRs.
   | `audio/`, `video/` | audio_channel, audio_clip, global_audio, and the game logic in `media/audio/audio.cpp`, `media/video/video.cpp` |
   | `input/` | joystick, touch (`sys_events` is host: `device/`) |
   | `save/` | `Engine/game/savegame*` |
-  | `dynobj/` | the managed objects of game types (`cc_character` ... `cc_serializer`) |
+  | `lib/` | the script library: date_time, math, string, script_containers, utils_script. String, the containers and utils read game state today (translation, fonts, options), so the library is not VM code yet |
+  | `dynobj/` | the managed objects of game and library types (`cc_character` ... `cc_serializer`, `script_string`) |
   | `script_api/` | every `<type>_api.cpp` (5.2), `global_api.cpp`, `exports.cpp`: the only includers of `script_api.h` |
 
   Why nested: the boundary that matters is host / VM / game / composition, and upstream's draft has it
   ("game: game logic, may have subdirs such as room and gui", "Script VM: only Utils", renderers with "no
   game logic"). Measured 2026-11-13: about 40 host files include `ac/`, nearly all through seven headers
   that are not game logic (`timer`, `sys_events`, `gamesetup`, `runtime_defines`, `asset_helper`,
-  `path_helper`, `datetime`): the per-file map places them in the host. The VM includes the game through
+  `path_helper`, `datetime`): the map sends `timer` and `path_helper` to `util/`, `sys_events` to
+  `device/`, `gamesetup` to `main/`; `runtime_defines` and `asset_helper` mix both sides and stay in
+  `game/` as baseline entries until they are split. The VM includes the game through
   `script/script.cpp` (running game events: it joins `game/`), `exports.cpp` and six generic `dynobj`
   headers. So `dynobj` splits by dependency, and about 35 files outside `ac/` move too (`Engine/gui`,
   `Engine/game`, `script/script.cpp`, the game halves of audio and video; the user, 2026-11-13).
 
-  1. The per-file map (old path, new path, with the 4.4 `snake_case` names) is a checked-in table;
+  1. The per-file map is `docs/refactor/moves-5.3.tsv` (old path, new path, note; 298 files, 158 of them
+     with a 4.4 `snake_case` name; checked: one row per file, destinations and `.obj` names unique);
      `Script/apply_moves.py --repo --map` applies it (`git mv`, includes, CMake, `.vcxproj` + `.filters`,
      Xcode, scripts, docs), one `[move]` commit per destination folder, each proved by
      `compare_objects.py`. `port.py` reads the same table (it has no path map today), and the tools can
