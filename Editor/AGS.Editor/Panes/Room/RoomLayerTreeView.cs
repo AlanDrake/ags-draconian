@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using AGS.Controls;
 
 namespace AGS.Editor.Panes.Room
 {
@@ -89,6 +88,8 @@ namespace AGS.Editor.Panes.Room
         /// </summary>
         public RoomLayerNode Reload()
         {
+            if (_tree != null && UpdateInPlace())
+                return SelectedLayerNode;
             string selectedKey = SelectedLayerNode?.Key;
             string topKey = (TopNode?.Tag as RoomLayerNode)?.Key;
             _updating = true;
@@ -117,6 +118,74 @@ namespace AGS.Editor.Panes.Room
                 _updating = false;
             }
             return SelectedLayerNode;
+        }
+
+        /// <summary>
+        /// Repaints the eye and lock columns, after a visibility or a lock changed.
+        /// </summary>
+        public void InvalidateToggles()
+        {
+            int left = TogglesLeft;
+            Invalidate(new Rectangle(left, 0, ClientSize.Width - left, ClientSize.Height));
+        }
+
+        /// <summary>
+        /// If the tree has the same nodes in the same places as the ones shown, gives the shown
+        /// nodes their new text, tooltip and look, redrawing only the rows whose look changed,
+        /// and returns true. The common case: an area's property changed nothing it shows.
+        /// </summary>
+        private bool UpdateInPlace()
+        {
+            List<KeyValuePair<RoomLayerNode, string>> layout = Layout();
+            List<TreeNode> shown = new List<TreeNode>();
+            CollectShown(Nodes, shown);
+            if (shown.Count != layout.Count)
+                return false;
+            for (int i = 0; i < shown.Count; ++i)
+            {
+                if (shown[i].Name != layout[i].Key.Key || shown[i].Parent?.Name != layout[i].Value)
+                    return false;
+            }
+            for (int i = 0; i < shown.Count; ++i)
+            {
+                RoomLayerNode old = shown[i].Tag as RoomLayerNode;
+                RoomLayerNode node = layout[i].Key;
+                bool restyle = old == null || old.ItemState != node.ItemState;
+                SetLook(shown[i], node);
+                if (restyle && !shown[i].Bounds.IsEmpty)
+                    Invalidate(new Rectangle(0, shown[i].Bounds.Top, ClientSize.Width, shown[i].Bounds.Height));
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// The tree's nodes as the view places them, in order: each with the key of the node it
+        /// is shown under (null for the room and the layers, at the top).
+        /// </summary>
+        private List<KeyValuePair<RoomLayerNode, string>> Layout()
+        {
+            List<KeyValuePair<RoomLayerNode, string>> layout = new List<KeyValuePair<RoomLayerNode, string>>();
+            layout.Add(new KeyValuePair<RoomLayerNode, string>(_tree.Root, null));
+            foreach (RoomLayerNode layer in _tree.Root.Children)
+                AddToLayout(layer, null, layout);
+            return layout;
+        }
+
+        private static void AddToLayout(RoomLayerNode node, string parentKey,
+            List<KeyValuePair<RoomLayerNode, string>> layout)
+        {
+            layout.Add(new KeyValuePair<RoomLayerNode, string>(node, parentKey));
+            foreach (RoomLayerNode child in node.Children)
+                AddToLayout(child, node.Key, layout);
+        }
+
+        private static void CollectShown(TreeNodeCollection nodes, List<TreeNode> shown)
+        {
+            foreach (TreeNode node in nodes)
+            {
+                shown.Add(node);
+                CollectShown(node.Nodes, shown);
+            }
         }
 
         /// <summary>
@@ -152,10 +221,10 @@ namespace AGS.Editor.Panes.Room
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
-            // As the project tree and the sprite folders (TreeViewWithDragDrop); without it the
-            // tree flickers. Under test (2026-11-13): an earlier version with it showed striped
-            // garbage for a moment in the rows a collapse left empty, cause not found
-            this.EnableDoubleBuffering();
+            // No TVS_EX_DOUBLEBUFFER (TreeViewExtensions.EnableDoubleBuffering), unlike the
+            // project tree: with this owner-drawn tree it showed striped garbage for a moment in
+            // the rows an expand or collapse changes (2026-11-13, cause not found). Flicker is
+            // kept down by repainting only what changes (InvalidateToggles, UpdateInPlace).
             UpdateItemHeight();
         }
 
@@ -224,7 +293,7 @@ namespace AGS.Editor.Panes.Room
                         _tree.SetLocked(node, !_tree.IsLocked(node));
                     if (changed)
                     {
-                        Invalidate(); // showing a layer with a mask hides the others
+                        InvalidateToggles(); // showing a layer with a mask hides the others
                         NodeToggled?.Invoke(this, new RoomLayerNodeEventArgs(node));
                     }
                     return; // the click neither selects nor expands
@@ -356,19 +425,33 @@ namespace AGS.Editor.Panes.Room
 
         private TreeNode CreateNode(RoomLayerNode node, bool withChildren)
         {
-            TreeNode treeNode = new TreeNode(node.Text) { Name = node.Key, Tag = node };
-            if (node.Kind == RoomLayerNodeKind.UnusedGroup)
-                treeNode.ToolTipText = TIP_UNUSED_GROUP;
-            else if (node.ItemState == RoomLayerItemState.NothingDrawn)
-                treeNode.ToolTipText = TIP_NOTHING_DRAWN;
-            else if (node.ItemState == RoomLayerItemState.Unused)
-                treeNode.ToolTipText = TIP_UNUSED;
+            TreeNode treeNode = new TreeNode { Name = node.Key };
+            SetLook(treeNode, node);
             if (withChildren)
             {
                 foreach (RoomLayerNode child in node.Children)
                     treeNode.Nodes.Add(CreateNode(child, true));
             }
             return treeNode;
+        }
+
+        /// <summary>
+        /// Gives a shown node the model node's text and tooltip, and the model node itself;
+        /// the text is only set if it changed (setting it repaints the row).
+        /// </summary>
+        private static void SetLook(TreeNode treeNode, RoomLayerNode node)
+        {
+            treeNode.Tag = node;
+            if (treeNode.Text != node.Text)
+                treeNode.Text = node.Text;
+            string tip = string.Empty;
+            if (node.Kind == RoomLayerNodeKind.UnusedGroup)
+                tip = TIP_UNUSED_GROUP;
+            else if (node.ItemState == RoomLayerItemState.NothingDrawn)
+                tip = TIP_NOTHING_DRAWN;
+            else if (node.ItemState == RoomLayerItemState.Unused)
+                tip = TIP_UNUSED;
+            treeNode.ToolTipText = tip;
         }
 
         private void Expand(TreeNode node)

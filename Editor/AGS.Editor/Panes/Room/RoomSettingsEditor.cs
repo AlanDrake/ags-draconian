@@ -215,7 +215,7 @@ namespace AGS.Editor
             // A hidden layer is shown while selected (a hidden layer cannot be edited)
             if (_layerTree.ShowForSelection(node))
             {
-                _layerTreeView.Invalidate();
+                _layerTreeView.InvalidateToggles();
                 bufferedPanel1.Invalidate();
             }
             if (node.Layer == null)
