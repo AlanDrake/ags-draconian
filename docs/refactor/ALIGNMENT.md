@@ -44,7 +44,10 @@ on 2026-11-02; references are issue/PR numbers there.
   refactor") is `system/main/script/data/game/gfx/audio/video/util`; the fork's is
   `world/navigation/dialog/presentation/ui/input/audio/script_api/runtime`. Neither is decided
   upstream. Moving files is the change that hurts ports most (hunk matching by path). Either adopt
-  upstream's draft names or postpone 5.3 until the `U.x` offers are closed.
+  upstream's draft names or postpone 5.3 until the `U.x` offers are closed. *Decided 2026-11-13:*
+  upstream's top-level names and dependency rules (the draft's "Script VM: only Utils", renderers
+  with "no game logic", `game` with subdirs), the fork's domain folders nested under `Engine/game/`
+  (PLAN.md 5.3); the move map is a table, so the same moves can be offered or replayed upstream.
 - **5.6 `quit()` → errors.** Upstream #1833 wants the same for Common ("replace with returning an
   error"); portable if done in Common first, in upstream style.
 - **6.7d/7.1l scripts as separate assets.** Upstream suggested exactly this for the room compiler

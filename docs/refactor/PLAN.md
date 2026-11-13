@@ -81,7 +81,7 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
 | 1 | **The bugs found in 4.1, by upstream branch** (the user, 2026-11-12; the list is "4.1's bugs by upstream branch" below): all fixed in the fork (2026-11-12, `d90b789ab`..`98a7dae87`, `4c07f1e11`; lip-sync and the push button still want a run in a game); ported to `master-41-fixes` and `ags4-41-fixes`, trial merge of the first into the second on `ags4-41-mergecheck` (`docs/UPSTREAM.md`, worktrees `../ags-up-master`, `../ags-up-ags4`, `../ags-up-merge`); double-checked, fixed, rebased and pushed to `origin` 2026-11-13 (`53a55451d` on `upstream/master` `fc4c47a7f`, `9d32c9654`; what the check found is in `docs/UPSTREAM.md`); left: open the two PRs (texts in `.compare/pr-description.md` of each worktree), the trial merge is from the first version and not redone, and the fork's reader still gives `RunGameLoopsWhileDialogOptionsDisplayed` true for an absent element where `Settings.FromXml` gives false (no effect on 4.0 projects) | 4.1 is done; the PRs were waiting for it | Fable 5.1, `high` for the review; the user opens the PRs |
-| 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` with upstream's draft names where they overlap | Files move once (4.4 rides along) | Fable 5.1, `high` for the move map, subagents for the moves |
+| 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` into the four rings of 5.3 (layout decided 2026-11-13). In progress on `wip-5.2-bindings` (worktree `.compare/wt-52`): the tools first (`compare_objects.py` move verdicts, `Script/split_bindings.py`; briefs `.compare/briefs/brief-52-*.md`), then the split by one agent, then the per-file map and `Script/apply_moves.py` | Files move once (4.4 rides along) | Fable 5.2, `high` for the design, the per-file map and the `global_*` function map; `medium` to supervise the scripted moves; Opus 5.5 subagents for the tools and the moves, one at a time on the build lists |
 | 3 | **4.5 + 3.6 on what had no comment pass** (770 first-party files, ~280k lines): batch 8 done (2026-11-13, LOG.md: `game`, `gamestate`, `room`, `dialog`, `savegame`, `game_init`, `script`, `guimain`, `engine`); next, the untouched files most-churned first (a ranking by commits since 2024, the batch-6 stray-rename files among them), then the D3D/OpenGL drivers with the `emscripten` and `linux` stages, and the compiler (7,440-line parser: its own plan, by function groups). Brief `.compare/briefs/brief-45-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | Comments before the 5.3 moves | Sonnet 5.5, `medium`, parallel subagents; the parser plan Fable 5.1 |
 | 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3188, #3189; #3187 merged), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
@@ -353,36 +353,71 @@ Each task is a series of small PRs.
 - [ ] **5.2 Script bindings apart from logic.** 1,598 hand-written `Sc_*` wrappers from 147 `API_*`
   macros (`script_api.h`), interleaved with logic (`character.cpp`, 5,092 lines: the last ~1,400 are
   bindings and a 228-line `RegisterCharacterAPI`).
-  1. Move each file's `Sc_*` block and `Register*API` to `Engine/script_api/<type>_api.cpp` (`[move]`).
+  1. Move each file's `Sc_*` block and `Register*API` to `Engine/game/script_api/<script type>_api.cpp`
+     (`[move]`; `character_api.cpp`, `inv_window_api.cpp`), with `Script/split_bindings.py`, which finds the
+     binding functions by name and takes `--repo`, so the split can be replayed on an upstream tree. Proof:
+     `compare_objects.py`'s move verdict, `ScriptExports.*`. After it no file outside `script_api/` includes
+     `script/script_api.h`. Measured 2026-11-13: 43 files, 1,571 wrappers, the block is one tail of the file in
+     39 of them; 11 `static` functions it calls get a declaration first (their own commit).
   2. Replace the macros with a C++17 template binder deducing arguments from the signature
      (`api.Method<&Character_AddInventory>("Character::AddInventory^2")`), parameter-count check
      generated; guarded by the C3 snapshot.
 
   *Done when:* no `Sc_` function remains and `script_api.h` holds only the binder.
-- [ ] **5.3 Reorganise `Engine/ac/`** (145 files, 64k lines; "ac" = *Adventure Creator*). One folder
-  per domain, logic apart from bindings; proposed:
+- [ ] **5.3 Reorganise `Engine/ac/`** (145 files, 64k lines; "ac" = *Adventure Creator*). Four rings
+  in `Engine/`, each a directory boundary and later a CMake target (the user, 2026-11-13; it replaces
+  the flat list of ten domain folders):
 
-  | New folder in `Engine/` | From `Engine/ac/` |
+  | Ring | Folders | May include |
+  |---|---|---|
+  | Host | `platform/`, `device/`, `gfx/`, `media/`, `util/`, `debug/` | Common |
+  | Script VM | `script/`; `script/dynobj/` (pool, arrays, user and plugin objects); `script/lib/` (String, Math, DateTime, Dictionary, Set: logic that needs no game state) | host `util`, Common |
+  | Game module | `game/` (below) | host, VM, Common |
+  | Composition | `main/`, `plugin/` | everything |
+
+  | Folder in `Engine/game/` | Holds |
   |---|---|
-  | `world/` | character*, object, roomobject, roomstatus, room, hotspot, region, walkablearea, walkbehind, inventoryitem, properties, movelist |
-  | `navigation/` | route_finder*, path_helper, pathfinder_script |
-  | `dialog/` | dialog, dialogoptionsrendering, parser |
-  | `presentation/` | display, speech, overlay, screenoverlay, draw*, screen, viewframe, lipsync, dynamicsprite, drawingsurface |
-  | `ui/` | gui, guicontrol, button, label, listbox, slider, textbox, invwindow, guiinv, mouse |
-  | `input/` | sys_events, joystick, touch |
-  | `script/dynobj/` | `ac/dynobj/*`, scriptcontainers |
-  | `audio/` | audiochannel, audioclip, global_audio (next to `Engine/media/audio`) |
-  | `script_api/` | all `Sc_*`/`Register*API` (5.2), `global_api.cpp`, `utils_script`, `video_script`, `viewport_script`, `shader_script` |
-  | `runtime/` | game, gamestate, event, timer, system, translation, file, datetime, math, string |
+  | (root) | game, game_state, game_init, event, system, file, translation |
+  | `world/` | character*, object, room_object, room_status, room, hotspot, region, walkable_area, walk_behind, inventory_item, properties, move_list, view_frame |
+  | `navigation/` | route_finder*, the pathfinder logic |
+  | `dialog/` | dialog, dialog options rendering, parser, display, speech, lipsync |
+  | `ui/` | gui, gui_control, button, label, listbox, slider, textbox, inv_window, gui_inv, mouse, and `Engine/gui/*` |
+  | `render/` | draw*, screen, overlay, screen_overlay, dynamic_sprite, drawing_surface, viewport |
+  | `audio/`, `video/` | audio_channel, audio_clip, global_audio, and the game logic in `media/audio/audio.cpp`, `media/video/video.cpp` |
+  | `input/` | joystick, touch (`sys_events` is host: `device/`) |
+  | `save/` | `Engine/game/savegame*` |
+  | `dynobj/` | the managed objects of game types (`cc_character` ... `cc_serializer`) |
+  | `script_api/` | every `<type>_api.cpp` (5.2), `global_api.cpp`, `exports.cpp`: the only includers of `script_api.h` |
 
-  The 14 `global_*.cpp` files (the old flat API: `Display()`, `SetGlobalInt()`) fold into their
-  domain or go. `Common/ac/` likewise (`Common/game/`, `Common/assets/`). *Upstream (2026-11-03):*
-  the wiki draft "AGS 4 Draft: major engine refactor" proposes
-  `system/main/script/data/game/gfx/audio/video/util`, undecided. File moves hurt `port.py` most:
-  tag the pre-move tree `pre-5.3` so ports have a fixed base (no waiting for U.3; the user,
-  2026-11-09), and prefer upstream's names where they overlap (`game/`, `script/`, `gfx/`, `audio/`,
-  `util/`); `navigation/`, `dialog/`, `ui/` stay fork-only.
-  *Done when:* `Engine/ac/` no longer exists.
+  Why nested: the boundary that matters is host / VM / game / composition, and upstream's draft has it
+  ("game: game logic, may have subdirs such as room and gui", "Script VM: only Utils", renderers with "no
+  game logic"). Measured 2026-11-13: about 40 host files include `ac/`, nearly all through seven headers
+  that are not game logic (`timer`, `sys_events`, `gamesetup`, `runtime_defines`, `asset_helper`,
+  `path_helper`, `datetime`): the per-file map places them in the host. The VM includes the game through
+  `script/script.cpp` (running game events: it joins `game/`), `exports.cpp` and six generic `dynobj`
+  headers. So `dynobj` splits by dependency, and about 35 files outside `ac/` move too (`Engine/gui`,
+  `Engine/game`, `script/script.cpp`, the game halves of audio and video; the user, 2026-11-13).
+
+  1. The per-file map (old path, new path, with the 4.4 `snake_case` names) is a checked-in table;
+     `Script/apply_moves.py --repo --map` applies it (`git mv`, includes, CMake, `.vcxproj` + `.filters`,
+     Xcode, scripts, docs), one `[move]` commit per destination folder, each proved by
+     `compare_objects.py`. `port.py` reads the same table (it has no path map today), and the tools can
+     replay the reorganisation on `upstream/ags4` or `master`: that is what a later AGS 3 game module
+     beside this one would start from.
+  2. The 14 `global_*.cpp` files (the flat API: `Display()`, `SetGlobalInt()`) fold into their domain
+     files, function by function, from a reviewed function map.
+  3. `Common/ac/` likewise (`Common/game/`, `Common/gfx/`), as its own step: it reaches the tools and
+     `AGS.Native`. `def_version.h` is named by CI and packaging scripts on every platform: last, with a
+     probe branch, or it stays.
+  4. `Script/check_layers.py` (prepush stage) checks the include direction against a baseline of the
+     known violations, which may only shrink; each folder gets its `README.md` (4.5).
+
+  Limits found by the inventory (`.compare/5.3/blast-radius.md`: 293 files, 1,812 includes in 357
+  files): MSBuild object names are flat per project, so a `.cpp` stem is unique in its `.vcxproj`;
+  `header_check_libcxx.py` names two probe sources; 33 includes sit in platform `#if` branches (the
+  `emscripten` and `linux` stages; macOS, iOS and Android are not built locally). File moves hurt
+  `port.py` most: tag the pre-move tree `pre-5.3` so ports have a fixed base (the user, 2026-11-09).
+  *Done when:* `Engine/ac/` no longer exists and `check_layers.py` runs in prepush.
 - [ ] **5.4 Split the longest functions** (BASELINE.md list), tests first:
   - `display_speech` (489 lines, nesting 8): text layout, portrait/bubble placement, lip-sync setup,
     blocking wait loop.
