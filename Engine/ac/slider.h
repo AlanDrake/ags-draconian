@@ -48,3 +48,15 @@ void Slider_SetHandleGraphic(GUISlider *slider, int new_image);
 int Slider_GetHandleOffset(GUISlider *slider);
 // Sets the offset of the handle in pixels, see Slider_GetHandleOffset.
 void Slider_SetHandleOffset(GUISlider *slider, int new_offset);
+
+// Script API: Slider::get_BorderShadeColor
+int Slider_GetBorderShadeColor(GUISlider *slider);
+
+// Script API: Slider::set_BorderShadeColor
+void Slider_SetBorderShadeColor(GUISlider *slider, int color);
+
+// Script API: Slider::get_HandleColor
+int Slider_GetHandleColor(GUISlider *slider);
+
+// Script API: Slider::set_HandleColor
+void Slider_SetHandleColor(GUISlider *slider, int color);
