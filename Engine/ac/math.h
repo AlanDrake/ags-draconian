@@ -50,3 +50,9 @@ float Math_Sqrt(float value);
 float Math_Round(float value, int roundDirection);
 // Returns a random number from 0 to upto *inclusive*
 int Random(int upto);
+
+// Script API: Maths::Random^1
+int Math_Random(int limit);
+
+// Script API: Maths::RandomFloat^0
+float Math_RandomFloat();
