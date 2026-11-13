@@ -992,7 +992,7 @@ U.5, U.7, U.9) are only there.
     3840x2160; a rebuild's property check of the 98 areas about 20 ms.
   - Deleted: `AGS.Controls/AdressBarEx` (listed as third-party), `ToolStripDropDownMenuEx` and
     `ToolStripDropDownButtonEx` (added for the bar), `RoomEditNode`, `RoomNodeControl`, `VisibleLayerRadioGroup`.
-  - Tests: 63 NUnit (model, area usage, the view through window messages); `prepush` `msbuild` passes.
+  - Tests: 65 NUnit (model, area usage, the view through window messages); `prepush` `msbuild` passes.
 - **Found:**
   - Creating a hotspot or region subscribes it to the global `InteractionSchema.Instance.Changed`; the default check
     would have kept every area it made (98 per tree rebuild), so it detaches them (test). Every loaded room's own
@@ -1012,14 +1012,18 @@ U.5, U.7, U.9) are only there.
     flickered; the garbage came only with the expand and collapse animation (the user), which no `TVS_EX` style turns
     off, so `83fa72596` keeps the buffer and freezes drawing from `BeforeExpand` to `AfterExpand` (`BeginUpdate`, a
     posted thaw as a safety net); the user saw neither garbage nor flicker. `352d8cf10` then drops the in-place update
-    (74 lines, not needed under the buffer: a rebuild is drawn once off screen). Fallback if the garbage shows
-    again: drawing whole rows (`OwnerDrawAll`). The vertical scroll bar changes the client width without a resize, so the tree repaints
-    when the width it drew for changes.
+    (74 lines, not needed under the buffer: a rebuild is drawn once off screen). `d400d0637` drops the freeze too:
+    the double-buffered native tree leaves `WM_ERASEBKGND` unpainted, so the tree fills its background itself there
+    (swallowing the message kept the garbage, the user's tests); the user sees no garbage, and a flicker only while
+    a node expands, which they accept. Fallback if the garbage shows again: the freeze (`83fa72596`), or
+    drawing whole rows (`OwnerDrawAll`). The vertical scroll bar changes the client width without a resize, so the
+    tree repaints when the width it drew for changes.
   - Moving the canvas into the bar's row put it under the 45-pixel transparency slider (now 26, no ticks).
 - **Lesson:** a command chain that greps the build output for a summary hides a failed build; check the build's exit
   code (`ec0365375` was committed after such a failure and verified by a second run).
 - **Not verified:** the editor's room pane at high DPI and with a dark theme file that defines the new
-  `room-editor/tree/*` keys (none exists); `352d8cf10` by the user's eye (no flicker on an area property edit or an area going in or out of "Unused").
+  `room-editor/tree/*` keys (none exists); flicker on a rebuild by the user's eye (an area property edit, an area
+  going in or out of "Unused"; toggles, layer switches and expansion were checked on `d400d0637`'s code).
 
 ### 7.1k Incremental room builds in `agsbuild`
 
