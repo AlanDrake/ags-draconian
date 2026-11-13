@@ -42,3 +42,43 @@ void run_fade_out_effect(ScreenTransitionStyle style, int speed);
 void current_fade_in_effect();
 // Runs fade-out transition using default settings
 void current_fade_out_effect();
+
+class ScriptShaderInstance;
+struct ScriptUserObject;
+struct ScriptViewport;
+
+// Script API: Screen::get_Width
+int Screen_GetScreenWidth();
+
+// Script API: Screen::get_Height
+int Screen_GetScreenHeight();
+
+// Script API: Screen::get_AutoSizeViewportOnRoomLoad
+bool Screen_GetAutoSizeViewport();
+
+// Script API: Screen::set_AutoSizeViewportOnRoomLoad
+void Screen_SetAutoSizeViewport(bool on);
+
+// Script API: Screen::get_Viewport
+ScriptViewport *Screen_GetViewport();
+
+// Script API: Screen::get_ViewportCount
+int Screen_GetViewportCount();
+
+// Script API: Screen::geti_Viewports
+ScriptViewport *Screen_GetAnyViewport(int index);
+
+// Script API: Screen::get_Shader
+ScriptShaderInstance *Screen_GetShader();
+
+// Script API: Screen::set_Shader
+void Screen_SetShader(ScriptShaderInstance *shader_inst);
+
+// Script API: Screen::ScreenToRoomPoint^3
+ScriptUserObject *Screen_ScreenToRoomPoint(int scrx, int scry, bool restrict);
+
+// Script API: Screen::ScreenToRoomPoint^2
+ScriptUserObject *Screen_ScreenToRoomPoint2(int scrx, int scry);
+
+// Script API: Screen::RoomToScreenPoint
+ScriptUserObject *Screen_RoomToScreenPoint(int roomx, int roomy);
