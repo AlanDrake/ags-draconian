@@ -898,6 +898,7 @@
 		EC629E15BB07B2CCED7CAE2A /* scriptvideoplayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DABAD6F70CD06A894353A5D9 /* scriptvideoplayer.cpp */; };
 		EE3ED2A5789E246FD61AE498 /* ftinit.c in Sources */ = {isa = PBXBuildFile; fileRef = 76E2E0D000E5710DFA2AE586 /* ftinit.c */; };
 		F238FD03EAE1C74C5CF6886C /* roomdata.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A17C846FC4B5D823F835404A /* roomdata.cpp */; };
+		F26232A7FD2E30DE9ABA78F5 /* audio_clip_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C2A8E26D84B91E392F1FF46F /* audio_clip_api.cpp */; };
 		F46C53EA11215A97AB8B9DAE /* touch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9CEE01E9AA59CA3BB5333D59 /* touch.cpp */; };
 		F542B5049D3655740ED0D40D /* sdl2_util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2FDEC420CFD5783176F81572 /* sdl2_util.cpp */; };
 		F8FAB288CF8C3B0E03C69820 /* blender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D3C90916902283B2FC3E6203 /* blender.cpp */; };
@@ -1786,6 +1787,7 @@
 		B813B1122549270CABB99372 /* pfr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pfr.c; sourceTree = "<group>"; };
 		B89C424B9E31923834D23648 /* video_core.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = video_core.cpp; sourceTree = "<group>"; };
 		C1630A3746FAB722822AE847 /* type1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = type1.c; sourceTree = "<group>"; };
+		C2A8E26D84B91E392F1FF46F /* audio_clip_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_clip_api.cpp; sourceTree = "<group>"; };
 		C3598D53DD9936F8FFADC0C9 /* ftwinfnt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftwinfnt.c; sourceTree = "<group>"; };
 		C92854E7FF01676C8F8DA0E3 /* ftstroke.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftstroke.c; sourceTree = "<group>"; };
 		C9CBBD82677A2FD7325FCD4F /* bdf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bdf.c; sourceTree = "<group>"; };
@@ -3572,6 +3574,7 @@
 			isa = PBXGroup;
 			children = (
 				E20BC6BAD8051658576AE008 /* audio_channel_api.cpp */,
+				C2A8E26D84B91E392F1FF46F /* audio_clip_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4602,6 +4605,7 @@
 				0089435B67D4F7640BA515B2 /* stb_image.c in Sources */,
 				5D318A1A88692661572CC68F /* ftsystem.c in Sources */,
 				BC2C293E09233F8B1E9B66AA /* audio_channel_api.cpp in Sources */,
+				F26232A7FD2E30DE9ABA78F5 /* audio_clip_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
