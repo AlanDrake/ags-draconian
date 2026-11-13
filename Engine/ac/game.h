@@ -574,3 +574,8 @@ struct CCHotspot;
 
 // Used by the script bindings in game/script_api/hotspot_api.cpp
 extern CCHotspot ccDynamicHotspot;
+
+struct CCObject;
+
+// Used by the script bindings in game/script_api/object_api.cpp
+extern CCObject ccDynamicObject;

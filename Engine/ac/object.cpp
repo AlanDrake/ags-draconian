@@ -419,14 +419,14 @@ int Object_GetOpacity(ScriptObject *obj)
 }
 
 // [OBSOLETE] the AGS 4.0 Transparency, for compiled 4.0 games
-static void Object_SetTransparency(ScriptObject *obj, int trans)
+void Object_SetTransparency(ScriptObject *obj, int trans)
 {
     if ((trans < 0) || (trans > 100))
         quit("!SetObjectTransparency: transparency value must be between 0 and 100");
     SetObjectAlpha(obj->id, GfxDef::Trans100ToOpacity(trans));
 }
 
-static int Object_GetTransparency(ScriptObject *obj)
+int Object_GetTransparency(ScriptObject *obj)
 {
     if (!AssertObject("Object.Transparency", obj->id))
     {
