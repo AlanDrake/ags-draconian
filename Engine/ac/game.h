@@ -569,3 +569,8 @@ struct CCGUIControl;
 
 // Used by the script bindings in game/script_api/gui_api.cpp
 extern CCGUIControl ccDynamicGUIControl;
+
+struct CCHotspot;
+
+// Used by the script bindings in game/script_api/hotspot_api.cpp
+extern CCHotspot ccDynamicHotspot;

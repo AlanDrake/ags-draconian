@@ -37,3 +37,30 @@ const char *Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property);
 // Gets hotspot ID at the given room coordinates;
 // if hotspot is disabled or non-existing, returns 0 (no area)
 int GetHotspotIDAtRoom(int x, int y, int hit_options);
+
+// Script API: Hotspot::get_ScriptName
+const char *Hotspot_GetScriptName(ScriptHotspot *hss);
+
+// Script API: Hotspot::GetAtRoomXY^3
+ScriptHotspot *Hotspot_GetAtRoomXY(int x, int y, int hit_options);
+
+// Script API: Hotspot::GetAtRoomXY^2
+ScriptHotspot *Hotspot_GetAtRoomXY2(int x, int y);
+
+// Script API: Hotspot::GetAtScreenXY^3
+ScriptHotspot *Hotspot_GetAtScreenXY(int x, int y, int hit_options);
+
+// Script API: Hotspot::GetAtScreenXY^2
+ScriptHotspot *Hotspot_GetAtScreenXY2(int x, int y);
+
+// Script API: Hotspot::GetByName, Hotspot::GetByScriptName
+ScriptHotspot *Hotspot_GetByName(const char *name);
+
+// Script API: Hotspot::set_DisplayName, Hotspot::set_Name
+void Hotspot_SetName(ScriptHotspot *hss, const char *newName);
+
+// Script API: Hotspot::SetProperty^2
+bool Hotspot_SetProperty(ScriptHotspot *hss, const char *property, int value);
+
+// Script API: Hotspot::SetTextProperty^2
+bool Hotspot_SetTextProperty(ScriptHotspot *hss, const char *property, const char *value);
