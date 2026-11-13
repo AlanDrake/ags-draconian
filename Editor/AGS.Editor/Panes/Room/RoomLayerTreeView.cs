@@ -354,24 +354,11 @@ namespace AGS.Editor.Panes.Room
             int togglesLeft = TogglesLeft;
             if (point.X < togglesLeft || point.X >= ClientSize.Width)
                 return null;
-            RoomLayerNode node = FindRowAt(point.Y)?.Tag as RoomLayerNode;
+            RoomLayerNode node = GetNodeAt(point)?.Tag as RoomLayerNode;
             if (node == null)
                 return null;
             onEye = point.X < togglesLeft + TOGGLE_WIDTH;
             return (onEye ? node.HasVisibleToggle : node.HasLockToggle) ? node : null;
-        }
-
-        private TreeNode FindRowAt(int y)
-        {
-            for (TreeNode node = TopNode; node != null; node = node.NextVisibleNode)
-            {
-                Rectangle bounds = node.Bounds;
-                if (bounds.Top > ClientSize.Height)
-                    break;
-                if (y >= bounds.Top && y < bounds.Bottom)
-                    return node;
-            }
-            return null;
         }
 
         private TreeNode CreateNode(RoomLayerNode node, bool withChildren)
