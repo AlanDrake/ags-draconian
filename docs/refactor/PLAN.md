@@ -80,7 +80,7 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **The bugs found in 4.1, by upstream branch** (the user, 2026-11-12; the list is "4.1's bugs by upstream branch" below): all fixed in the fork (2026-11-12, `d90b789ab`..`98a7dae87`, `4c07f1e11`; lip-sync and the push button still want a run in a game); ported to `master-41-fixes` and `ags4-41-fixes`, trial merge of the first into the second on `ags4-41-mergecheck` (`docs/UPSTREAM.md`, worktrees `../ags-up-master`, `../ags-up-ags4`, `../ags-up-merge`); left: a review of every port against its fork commit and of the merge resolution, the PR texts (`.compare/pr-description.md` in each worktree), then push and open the two PRs (the user, 2026-11-12: double-check before opening) | 4.1 is done; the PRs were waiting for it | Fable 5.1, `high` for the review; the user opens the PRs |
+| 1 | **The bugs found in 4.1, by upstream branch** (the user, 2026-11-12; the list is "4.1's bugs by upstream branch" below): all fixed in the fork (2026-11-12, `d90b789ab`..`98a7dae87`, `4c07f1e11`; lip-sync and the push button still want a run in a game); ported to `master-41-fixes` and `ags4-41-fixes`, trial merge of the first into the second on `ags4-41-mergecheck` (`docs/UPSTREAM.md`, worktrees `../ags-up-master`, `../ags-up-ags4`, `../ags-up-merge`); double-checked, fixed, rebased and pushed to `origin` 2026-11-13 (`53a55451d` on `upstream/master` `fc4c47a7f`, `9d32c9654`; what the check found is in `docs/UPSTREAM.md`); left: open the two PRs (texts in `.compare/pr-description.md` of each worktree), the trial merge is from the first version and not redone, and the fork's reader still gives `RunGameLoopsWhileDialogOptionsDisplayed` true for an absent element where `Settings.FromXml` gives false (no effect on 4.0 projects) | 4.1 is done; the PRs were waiting for it | Fable 5.1, `high` for the review; the user opens the PRs |
 | 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` with upstream's draft names where they overlap | Files move once (4.4 rides along) | Fable 5.1, `high` for the move map, subagents for the moves |
 | 3 | **4.5 + 3.6 on what had no comment pass** (770 first-party files, ~280k lines): batch 8 done (2026-11-13, LOG.md: `game`, `gamestate`, `room`, `dialog`, `savegame`, `game_init`, `script`, `guimain`, `engine`); next, the untouched files most-churned first (a ranking by commits since 2024, the batch-6 stray-rename files among them), then the D3D/OpenGL drivers with the `emscripten` and `linux` stages, and the compiler (7,440-line parser: its own plan, by function groups). Brief `.compare/briefs/brief-45-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | Comments before the 5.3 moves | Sonnet 5.5, `medium`, parallel subagents; the parser plan Fable 5.1 |
 | 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3188, #3189; #3187 merged), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
@@ -589,8 +589,14 @@ and without fork-only features, built in the worktree `E:\Projects\ags\ags4-upst
   `--json` is a log sink. Follow-ups for the same milestone: `--version` (#3068), `agscc -I` (#3070).
   *Done when:* the pieces have no open review comments about structure.
   *Status:* #3187 merged 2026-11-12 (`140b7d7de`); #3188, #3189 open, review round 3 answered and force-pushed
-  2026-11-12 (`docs/UPSTREAM.md`);
+  2026-11-12 (`docs/UPSTREAM.md`); rebased on `140b7d7de` and pushed again 2026-11-13 (`d8cf4ef42`, `b75cf43e4`):
+  `agfexport` writes `acsetup.cfg` with `IniUtil::WriteToString` again (ivan-mogilko's review: `Merge` on a deleted file
+  merges nothing), the game info texts unescaped as upstream's tool has them, the dialog option texts too;
   `--json`, cancel and the stage split wait for #2530.
+  *Later (the user, 2026-11-13; agreed with ivan-mogilko on #3188):* one line format in `IniUtil`, a separate change off
+  `master`: `IniUtil::Write` and `WriteToString` give `key = value` (`WriteToString` with `\n`), `IniFile`, which `Merge`
+  and so the Editor's `acsetup.cfg` go through, gives `key=value` with the platform's line break. Until then the tools'
+  `acsetup.cfg` differs from the Editor's in spaces and line breaks only.
 - [x] **U.4 Agent docs upstream** (PR #3185, base `master`). Review changes are made in the
   worktree first and carried over here; the fork's copy leaves out AGS 3 (`master`, 3.x).
 - [ ] **U.6 `AGS.Types` property grid out (#1092, part 1).** 6.0 step 1 on `upstream/ags4`, in C# 7.3
