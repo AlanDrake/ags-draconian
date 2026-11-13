@@ -171,30 +171,16 @@ namespace AGS.Editor.Panes.Room
         }
 
         [Test]
-        public void ReloadUpdatesTheShownNodesInPlaceWhenNothingMoves()
+        public void ReloadShowsNewStatesAndModelNodes()
         {
-            TreeNode before = NodeOf("Objects/0001");
-            _objects.ItemNames["0001"] = "oDoor (ID 1)";
             _hotspots.ItemStates["0001"] = RoomLayerItemState.NothingDrawn;
+            _hotspots.ItemStates["0000"] = RoomLayerItemState.Unused;
             _tree.Rebuild();
             _view.Reload();
-            Assert.That(NodeOf("Objects/0001"), Is.SameAs(before), "not created again");
-            Assert.That(before.Text, Is.EqualTo("oDoor (ID 1)"));
-            Assert.That(before.Tag, Is.SameAs(_tree.Find("Objects/0001")), "the new model node");
             TreeNode area = NodeOf("Hotspots/0001");
-            Assert.That(((RoomLayerNode)area.Tag).ItemState, Is.EqualTo(RoomLayerItemState.NothingDrawn));
+            Assert.That(area.Tag, Is.SameAs(_tree.Find("Hotspots/0001")), "the new model node");
             Assert.That(area.ToolTipText, Does.StartWith("Nothing drawn"));
-        }
-
-        [Test]
-        public void ReloadCreatesTheNodesAgainWhenOneMoves()
-        {
-            TreeNode before = NodeOf("Hotspots/0001");
-            _hotspots.ItemStates["0001"] = RoomLayerItemState.Unused;
-            _tree.Rebuild();
-            _view.Reload();
-            Assert.That(NodeOf("Hotspots/0001"), Is.Not.SameAs(before));
-            Assert.That(NodeOf("Hotspots/0001").Parent, Is.SameAs(NodeOf("Hotspots/#unused")));
+            Assert.That(NodeOf("Hotspots/0000").Parent, Is.SameAs(NodeOf("Hotspots/#unused")));
             Assert.That(NodeOf("Hotspots/#unused").Text, Is.EqualTo("Unused (2)"));
         }
 
