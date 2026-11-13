@@ -1685,6 +1685,9 @@
     <ClInclude Include="..\..\Engine\ac\shader_script.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\utils_script.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Engine\main\def_version.h">
       <Filter>Header Files\main</Filter>
     </ClInclude>

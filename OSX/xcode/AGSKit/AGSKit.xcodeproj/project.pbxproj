@@ -1840,6 +1840,7 @@
 		A5FF6346DBC0F2DF182F3F5B /* agsflashlight.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = agsflashlight.cpp; sourceTree = "<group>"; };
 		A6A1C065E650D91D6A21B34F /* winfnt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = winfnt.c; sourceTree = "<group>"; };
 		A8812F62955A82445709D875 /* string_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = string_api.cpp; sourceTree = "<group>"; };
+		AA13FE1BFD127104A98698D4 /* utils_script.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = utils_script.h; sourceTree = "<group>"; };
 		AB5D53B3C979410BAB23535B /* button_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = button_api.cpp; sourceTree = "<group>"; };
 		ADDC74EAF35AAD83AA37E428 /* ftgzip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftgzip.c; sourceTree = "<group>"; };
 		AED2A0C62958B0AB18892BF4 /* label_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = label_api.cpp; sourceTree = "<group>"; };
@@ -3148,6 +3149,7 @@
 				B4E841B245E7C89895801685 /* video_script.cpp */,
 				34A7616622B8A8104A1150EF /* pathfinder_script.h */,
 				2947F64120F297866766BEE5 /* scriptcontainers.h */,
+				AA13FE1BFD127104A98698D4 /* utils_script.h */,
 			);
 			path = ac;
 			sourceTree = "<group>";

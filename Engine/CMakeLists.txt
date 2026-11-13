@@ -248,6 +248,7 @@ target_sources(engine
     ac/translation.cpp
     ac/translation.h
     ac/utils_script.cpp
+    ac/utils_script.h
     ac/video_script.cpp
     ac/viewframe.cpp
     ac/viewframe.h
