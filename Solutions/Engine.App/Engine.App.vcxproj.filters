@@ -56,6 +56,9 @@
     <Filter Include="Source Files\game">
       <UniqueIdentifier>{c0ec3579-115c-40be-8a7b-d59abd533b3b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\game\script_api">
+      <UniqueIdentifier>{f3275722-4d78-5c7e-8541-1f51e3bb65e7}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
@@ -617,6 +620,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\savegame_components.cpp">
       <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\game\script_api\audio_channel_api.cpp">
+      <Filter>Source Files\game\script_api</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\draw_software.cpp">
       <Filter>Source Files\ac</Filter>
