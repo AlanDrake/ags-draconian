@@ -168,8 +168,6 @@ target_sources(engine
     ac/global_video.h
     ac/global_walkablearea.cpp
     ac/global_walkablearea.h
-    ac/global_walkbehind.cpp
-    ac/global_walkbehind.h
     ac/gui.cpp
     ac/gui.h
     ac/guicontrol.cpp

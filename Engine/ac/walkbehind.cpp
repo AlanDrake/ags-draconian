@@ -22,6 +22,7 @@
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
+#include "debug/debug_log.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "script/script_runtime.h"
@@ -231,3 +232,32 @@ const char *Walkbehind_GetScriptName(ScriptWalkbehind *wb)
 }
 
 #include "script/script_runtime.h"
+
+void SetWalkBehindBase(int wa, int bl)
+{
+    if ((wa < 1) || (wa >= MAX_WALK_BEHINDS))
+    {
+        debug_script_error("SetWalkBehindBase: invalid walk-behind area specified: %d, range is 1..%d", wa,
+                           MAX_WALK_BEHINDS - 1);
+        return;
+    }
+
+    if (bl != croom->walkbehind_base[wa])
+    {
+        walk_behind_baselines_changed = 1;
+        croom->walkbehind_base[wa] = bl;
+        debug_script_log("Walk-behind %d baseline changed to %d", wa, bl);
+    }
+}
+
+int GetWalkBehindBase(int wa)
+{
+    if ((wa < 1) || (wa >= MAX_WALK_BEHINDS))
+    {
+        debug_script_error("SetWalkBehindBase: invalid walk-behind area specified: %d, range is 1..%d", wa,
+                           MAX_WALK_BEHINDS - 1);
+        return 0;
+    }
+
+    return croom->walkbehind_base[wa];
+}

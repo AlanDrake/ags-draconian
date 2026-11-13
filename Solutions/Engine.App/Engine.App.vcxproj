@@ -418,7 +418,6 @@
     <ClCompile Include="..\..\Engine\ac\global_translation.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_video.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_walkablearea.cpp" />
-    <ClCompile Include="..\..\Engine\ac\global_walkbehind.cpp" />
     <ClCompile Include="..\..\Engine\ac\gui.cpp" />
     <ClCompile Include="..\..\Engine\ac\guicontrol.cpp" />
     <ClCompile Include="..\..\Engine\ac\guiinv.cpp" />
@@ -710,7 +709,6 @@
     <ClInclude Include="..\..\Engine\ac\global_translation.h" />
     <ClInclude Include="..\..\Engine\ac\global_video.h" />
     <ClInclude Include="..\..\Engine\ac\global_walkablearea.h" />
-    <ClInclude Include="..\..\Engine\ac\global_walkbehind.h" />
     <ClInclude Include="..\..\Engine\ac\gui.h" />
     <ClInclude Include="..\..\Engine\ac\guicontrol.h" />
     <ClInclude Include="..\..\Engine\ac\hotspot.h" />

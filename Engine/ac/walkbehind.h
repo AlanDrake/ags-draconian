@@ -74,3 +74,6 @@ void Walkbehind_SetBaseline(ScriptWalkbehind *wb, int baseline);
 
 // Script API: Walkbehind::get_ScriptName
 const char *Walkbehind_GetScriptName(ScriptWalkbehind *wb);
+
+void SetWalkBehindBase(int wa, int bl);
+int GetWalkBehindBase(int wa);
