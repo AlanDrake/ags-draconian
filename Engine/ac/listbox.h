@@ -69,3 +69,60 @@ int ListBox_GetRowCount(GUIListBox *listbox);
 void ListBox_ScrollDown(GUIListBox *listbox);
 // Scrolls up by one item, unless the first item is already shown.
 void ListBox_ScrollUp(GUIListBox *listbox);
+
+// Script API: ListBox::FillDirList^3
+void ListBox_FillDirList3(GUIListBox *listbox, const char *file_mask, int file_sort, int sort_dir);
+
+// Script API: ListBox::FillSaveGameList^2
+int ListBox_FillSaveGameList2(GUIListBox *listbox, int min_slot, int max_slot);
+
+// Script API: ListBox::FillSaveGameSlots^3
+void ListBox_FillSaveGameSlots(GUIListBox *listbox, void *src_arr, int save_sort, int sort_dir);
+
+// Script API: ListBox::SortItems^2
+void ListBox_SortItems(GUIListBox *listbox, int compare_style, int sort_dir);
+
+// Script API: ListBox::get_ShowBorder
+bool ListBox_GetShowBorder(GUIListBox *listbox);
+
+// Script API: ListBox::set_ShowBorder
+void ListBox_SetShowBorder(GUIListBox *listbox, bool new_value);
+
+// Script API: ListBox::get_ShowScrollArrows
+bool ListBox_GetShowScrollArrows(GUIListBox *listbox);
+
+// Script API: ListBox::set_ShowScrollArrows
+void ListBox_SetShowScrollArrows(GUIListBox *listbox, bool new_value);
+
+// Script API: ListBox::get_SelectedBackColor
+int ListBox_GetSelectedBackColor(GUIListBox *listbox);
+
+// Script API: ListBox::set_SelectedBackColor
+void ListBox_SetSelectedBackColor(GUIListBox *listbox, int color);
+
+// Script API: ListBox::get_SelectedTextColor
+int ListBox_GetSelectedTextColor(GUIListBox *listbox);
+
+// Script API: ListBox::set_SelectedTextColor
+void ListBox_SetSelectedTextColor(GUIListBox *listbox, int color);
+
+// Script API: ListBox::get_TextAlignment
+int ListBox_GetTextAlignment(GUIListBox *listbox);
+
+// Script API: ListBox::set_TextAlignment
+void ListBox_SetTextAlignment(GUIListBox *listbox, int align);
+
+// Script API: ListBox::get_TextColor
+int ListBox_GetTextColor(GUIListBox *listbox);
+
+// Script API: ListBox::set_TextColor
+void ListBox_SetTextColor(GUIListBox *listbox, int color);
+
+// Script API: ListBox::get_TextOutlineColor
+int ListBox_GetTextOutlineColor(GUIListBox *listbox);
+
+// Script API: ListBox::set_TextOutlineColor
+void ListBox_SetTextOutlineColor(GUIListBox *listbox, int color);
+
+// Script API: ListBox::get_RowHeight
+int ListBox_GetRowHeight(GUIListBox *listbox);
