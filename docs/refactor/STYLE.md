@@ -298,5 +298,13 @@ Extends `CONTRIBUTING.md` (one program per commit, prefixes like `Engine:`, 72-c
    type or global, or changing a string literal, changes objects **by design**, so review such a
    commit as a code change. A `[delete]` commit of unreferenced functions must get "deletion: N
    functions removed, 0 changed, 0 added (mechanical)": the changed objects lost those functions and
-   nothing else (MSVC only; data such as string literals is not compared).
+   nothing else (MSVC only; data such as string literals is not compared). A `[move]` commit that
+   moves or renames source files must get "move: K objects moved, code identical (mechanical)": each
+   moved object is paired with its old one through `git diff -M`, or through `--map <tsv>` (old path,
+   tab, new path) where git guesses wrong, and has the same code. A `[move]` commit of functions
+   between files must get "move: N functions moved between objects, 0 changed, 0 added, 0 removed
+   (mechanical)": the functions of the changed, added and removed objects are the same before and
+   after, with the same code, and an ordinary function has exactly one copy before and after. Both
+   are MSVC only and compare code, not data: the `Register*API` tables are covered by the engine
+   tests `ScriptExports.*`.
 5. Every commit builds and passes the tests.
