@@ -59,3 +59,99 @@ bool init_voicepak(const AGS::Common::String &name = "");
 AGS::Common::String get_voicepak_name();
 // Gets an asset's parent path for voice-over clips and data files
 AGS::Common::String get_voice_assetpath();
+
+struct CharacterInfo;
+struct ScriptOverlay;
+
+// Script API: Speech::get_TextOverlay
+ScriptOverlay *Speech_GetTextOverlay();
+
+// Script API: Speech::get_PortraitOverlay
+ScriptOverlay *Speech_GetPortraitOverlay();
+
+// Script API: Speech::get_SpeakingCharacter
+CharacterInfo *Speech_GetSpeakingCharacter();
+
+// Script API: Speech::get_OverlayZOrder
+int Speech_GetOverlayZOrder();
+
+// Script API: Speech::set_OverlayZOrder
+void Speech_SetOverlayZOrder(int zorder);
+
+// Script API: Speech::get_AlwaysWaitForText
+bool Speech_GetAlwaysWaitForText();
+
+// Script API: Speech::set_AlwaysWaitForText
+void Speech_SetAlwaysWaitForText(bool on);
+
+// Script API: Speech::get_AnimationStopTimeMargin
+int Speech_GetAnimationStopTimeMargin();
+
+// Script API: Speech::set_AnimationStopTimeMargin
+void Speech_SetAnimationStopTimeMargin(int time);
+
+// Script API: Speech::get_CustomPortraitPlacement
+int Speech_GetCustomPortraitPlacement();
+
+// Script API: Speech::set_CustomPortraitPlacement
+void Speech_SetCustomPortraitPlacement(int placement);
+
+// Script API: Speech::get_DisplayPostTimeMs
+int Speech_GetDisplayPostTimeMs();
+
+// Script API: Speech::set_DisplayPostTimeMs
+void Speech_SetDisplayPostTimeMs(int time_ms);
+
+// Script API: Speech::get_GlobalSpeechAnimationDelay
+int Speech_GetGlobalSpeechAnimationDelay();
+
+// Script API: Speech::set_GlobalSpeechAnimationDelay
+void Speech_SetGlobalSpeechAnimationDelay(int delay);
+
+// Script API: Speech::get_PortraitXOffset
+int Speech_GetPortraitXOffset();
+
+// Script API: Speech::set_PortraitXOffset
+void Speech_SetPortraitXOffset(int x);
+
+// Script API: Speech::get_PortraitY
+int Speech_GetPortraitY();
+
+// Script API: Speech::set_PortraitY
+void Speech_SetPortraitY(int y);
+
+// Script API: Speech::get_Style
+int Speech_GetStyle();
+
+// Script API: Speech::set_Style
+void Speech_SetStyle(int newstyle);
+
+// Script API: Speech::get_SkipStyle
+SkipSpeechStyle Speech_GetSkipStyle();
+
+// Script API: Speech::set_SkipStyle
+void Speech_SetSkipStyle(SkipSpeechStyle new_value);
+
+// Script API: Speech::get_SkipKey
+int Speech_GetSkipKey();
+
+// Script API: Speech::set_SkipKey
+void Speech_SetSkipKey(int key);
+
+// Script API: Speech::get_TextAlignment
+int Speech_GetTextAlignment();
+
+// Script API: Speech::set_TextAlignment
+void Speech_SetTextAlignment(int alignment);
+
+// Script API: Speech::get_UseGlobalSpeechAnimationDelay
+int Speech_GetUseGlobalSpeechAnimationDelay();
+
+// Script API: Speech::set_UseGlobalSpeechAnimationDelay
+void Speech_SetUseGlobalSpeechAnimationDelay(int delay);
+
+// Script API: Speech::set_VoiceMode
+void Speech_SetVoiceMode(int newmod);
+
+// Script API: Speech::get_VoiceMode
+int Speech_GetVoiceMode();
