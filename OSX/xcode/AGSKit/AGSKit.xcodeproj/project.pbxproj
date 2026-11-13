@@ -412,6 +412,7 @@
 		47DF6172F87069F968D76FE2 /* runtimescript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D801C943CE1144C62BE3ED31 /* runtimescript.cpp */; };
 		4E3D64B3718D94FAA82B6B69 /* math_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D3EFBA766D06458AA74A70C6 /* math_api.cpp */; };
 		4E953C8C403C3B941987E67A /* ftgzip.c in Sources */ = {isa = PBXBuildFile; fileRef = ADDC74EAF35AAD83AA37E428 /* ftgzip.c */; };
+		4F3FF08A5E56E46AB99273D6 /* view_frame_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0EBDBB4551BC528FEAA5D81F /* view_frame_api.cpp */; };
 		4F806FEC6A8F0B30205FDCB6 /* ftfstype.c in Sources */ = {isa = PBXBuildFile; fileRef = 7AEB00D414591381CAE19C48 /* ftfstype.c */; };
 		521C3BEE1D1E545100BD619E /* AGSKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 521C3BED1D1E545100BD619E /* AGSKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		521C56911D1E5AAC00BD619E /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 521C56901D1E5AAC00BD619E /* Cocoa.framework */; };
@@ -966,6 +967,7 @@
 		0BB7E9301BBAD9A9F8800167 /* fttype1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fttype1.c; sourceTree = "<group>"; };
 		0E69BDF9DB1FFA92A7D5FFD8 /* image_bmp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = image_bmp.cpp; sourceTree = "<group>"; };
 		0E9F4F89D8E1401C57041003 /* psaux.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = psaux.c; sourceTree = "<group>"; };
+		0EBDBB4551BC528FEAA5D81F /* view_frame_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = view_frame_api.cpp; sourceTree = "<group>"; };
 		18BF57C7A65D8B88EC2E3AB7 /* overlay_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = overlay_api.cpp; sourceTree = "<group>"; };
 		1F7791EEFFF2C66959789C06 /* cff.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cff.c; sourceTree = "<group>"; };
 		2026097E2E438AB4001A87E5 /* ags_palrender.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ags_palrender.cpp; sourceTree = "<group>"; };
@@ -3694,6 +3696,7 @@
 				6F5542CF1DC34A9F19D96E2B /* touch_api.cpp */,
 				012B5A209ED8DEEB98520B41 /* utils_api.cpp */,
 				511B83368FB0729AB431B586 /* video_api.cpp */,
+				0EBDBB4551BC528FEAA5D81F /* view_frame_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4762,6 +4765,7 @@
 				032177421B64409950CDF968 /* touch_api.cpp in Sources */,
 				B09D8C13ABC87F87AF068F90 /* utils_api.cpp in Sources */,
 				7BB84CF146F2F92A7F35B36B /* video_api.cpp in Sources */,
+				4F3FF08A5E56E46AB99273D6 /* view_frame_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -738,6 +738,9 @@
     <ClCompile Include="..\..\Engine\game\script_api\video_api.cpp">
       <Filter>Source Files\game\script_api</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\game\script_api\view_frame_api.cpp">
+      <Filter>Source Files\game\script_api</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\draw_software.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
