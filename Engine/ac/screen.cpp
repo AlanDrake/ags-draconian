@@ -33,7 +33,6 @@
 #include "main/game_run.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
-#include "script/script_runtime.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -907,84 +906,4 @@ ScriptUserObject *Screen_RoomToScreenPoint(int roomx, int roomy)
 {
     Point pt = play.RoomToScreen(roomx, roomy);
     return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
-}
-
-RuntimeScriptValue Sc_Screen_GetScreenHeight(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Screen_GetScreenHeight);
-}
-
-RuntimeScriptValue Sc_Screen_GetScreenWidth(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Screen_GetScreenWidth);
-}
-
-RuntimeScriptValue Sc_Screen_GetAutoSizeViewport(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_BOOL(Screen_GetAutoSizeViewport);
-}
-
-RuntimeScriptValue Sc_Screen_SetAutoSizeViewport(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PBOOL(Screen_SetAutoSizeViewport);
-}
-
-RuntimeScriptValue Sc_Screen_GetViewport(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO(ScriptViewport, Screen_GetViewport);
-}
-
-RuntimeScriptValue Sc_Screen_GetViewportCount(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Screen_GetViewportCount);
-}
-
-RuntimeScriptValue Sc_Screen_GetAnyViewport(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO_PINT(ScriptViewport, Screen_GetAnyViewport);
-}
-
-RuntimeScriptValue Sc_Screen_GetShader(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO(ScriptShaderInstance, Screen_GetShader);
-}
-
-RuntimeScriptValue Sc_Screen_SetShader(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_POBJ(Screen_SetShader, ScriptShaderInstance);
-}
-
-RuntimeScriptValue Sc_Screen_ScreenToRoomPoint2(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Screen_ScreenToRoomPoint2);
-}
-
-RuntimeScriptValue Sc_Screen_ScreenToRoomPoint(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO_PINT2_PBOOL(ScriptUserObject, Screen_ScreenToRoomPoint);
-}
-
-RuntimeScriptValue Sc_Screen_RoomToScreenPoint(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Screen_RoomToScreenPoint);
-}
-
-void RegisterScreenAPI()
-{
-    ScFnRegister screen_api[] = {
-        {"Screen::get_Height", API_FN_PAIR(Screen_GetScreenHeight)},
-        {"Screen::get_Width", API_FN_PAIR(Screen_GetScreenWidth)},
-        {"Screen::get_AutoSizeViewportOnRoomLoad", API_FN_PAIR(Screen_GetAutoSizeViewport)},
-        {"Screen::set_AutoSizeViewportOnRoomLoad", API_FN_PAIR(Screen_SetAutoSizeViewport)},
-        {"Screen::get_Viewport", API_FN_PAIR(Screen_GetViewport)},
-        {"Screen::get_ViewportCount", API_FN_PAIR(Screen_GetViewportCount)},
-        {"Screen::geti_Viewports", API_FN_PAIR(Screen_GetAnyViewport)},
-        {"Screen::get_Shader", API_FN_PAIR(Screen_GetShader)},
-        {"Screen::set_Shader", API_FN_PAIR(Screen_SetShader)},
-        {"Screen::ScreenToRoomPoint^2", API_FN_PAIR(Screen_ScreenToRoomPoint2)},
-        {"Screen::ScreenToRoomPoint^3", API_FN_PAIR(Screen_ScreenToRoomPoint)},
-        {"Screen::RoomToScreenPoint", API_FN_PAIR(Screen_RoomToScreenPoint)},
-    };
-
-    ccAddExternalFunctions(screen_api);
 }

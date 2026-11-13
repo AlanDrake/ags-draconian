@@ -863,6 +863,7 @@
 		694B54758387AA31CC7B5163 /* hotspot_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6709585E1E045AD5956018E /* hotspot_api.cpp */; };
 		6E491E3FF5680C5EDF2ED552 /* ftbase.c in Sources */ = {isa = PBXBuildFile; fileRef = D1B84DAA861E34E425449546 /* ftbase.c */; };
 		6E758C7EF1970EDD1CA9E0CA /* list_box_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C6FA3A6AFC0998497092E44D /* list_box_api.cpp */; };
+		75DF01FCEFB5ADEEE5B8B79F /* screen_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A539E5AF355FABD4153447 /* screen_api.cpp */; };
 		7B190D9D0A9F544BF209BA1E /* data_helpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7777FCE0AEFF93FA6147EC1C /* data_helpers.cpp */; };
 		7B47A81206D98FB8FA0464A4 /* svg.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C51BAA4FE720AD90C429122 /* svg.c */; };
 		7B9C39F289015C65EB530225 /* smooth.c in Sources */ = {isa = PBXBuildFile; fileRef = DFE2BA4DBEBF50C683932D02 /* smooth.c */; };
@@ -946,6 +947,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		00A539E5AF355FABD4153447 /* screen_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = screen_api.cpp; sourceTree = "<group>"; };
 		03C3C621E9309539271C8EE0 /* ftbitmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftbitmap.c; sourceTree = "<group>"; };
 		047BCD1ABBFAD5CA171AF2E4 /* ftsystem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftsystem.c; sourceTree = "<group>"; };
 		072C4F6578AA15AEF14EBD94 /* ftgxval.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftgxval.c; sourceTree = "<group>"; };
@@ -3655,6 +3657,7 @@
 				51E1CF2E40A59235C72231C2 /* pathfinder_api.cpp */,
 				6691E2155F0DC1784B7BBD11 /* region_api.cpp */,
 				525B3A19D504CB164E0A7B86 /* room_api.cpp */,
+				00A539E5AF355FABD4153447 /* screen_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4712,6 +4715,7 @@
 				E524CF849D9D07D61F7BE4F7 /* pathfinder_api.cpp in Sources */,
 				3BE07DDB601F26C9A35A13CA /* region_api.cpp in Sources */,
 				AD2479DFE5A268FC9940CAFF /* room_api.cpp in Sources */,
+				75DF01FCEFB5ADEEE5B8B79F /* screen_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

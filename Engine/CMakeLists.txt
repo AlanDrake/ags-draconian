@@ -301,6 +301,7 @@ target_sources(engine
     game/script_api/pathfinder_api.cpp
     game/script_api/region_api.cpp
     game/script_api/room_api.cpp
+    game/script_api/screen_api.cpp
     game/viewport.cpp
     game/viewport.h
     gfx/ali3dexception.h
