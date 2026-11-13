@@ -36,3 +36,23 @@ void OnTouchPointerMotion(int pointer_id, const Point &position);
 void OnTouchPointerUp(int pointer_id, const Point &position);
 // Reset all the registered touch pointer states; use this when resetting input state
 void ResetAllTouchPointers();
+
+struct ScriptTouchPointer;
+
+// Script API: Touch::get_TouchPointerCount
+int Touch_GetTouchPointerCount();
+
+// Script API: Touch::geti_TouchPointers
+ScriptTouchPointer *Touch_GetTouchPointers(int pointer_id);
+
+// Script API: TouchPointer::get_ID
+int TouchPointer_GetID(ScriptTouchPointer *tp);
+
+// Script API: TouchPointer::get_IsDown
+bool TouchPointer_GetIsDown(ScriptTouchPointer *tp);
+
+// Script API: TouchPointer::get_X
+int TouchPointer_GetX(ScriptTouchPointer *tp);
+
+// Script API: TouchPointer::get_Y
+int TouchPointer_GetY(ScriptTouchPointer *tp);
