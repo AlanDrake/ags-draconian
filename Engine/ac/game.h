@@ -392,3 +392,175 @@ extern CCGUI ccDynamicGUI;
 
 // Used by the script bindings in game/script_api/dialog_api.cpp
 extern CCDialog ccDynamicDialog;
+
+struct CharacterInfo;
+struct ScriptAudioChannel;
+struct ScriptAudioClip;
+struct ScriptCamera;
+struct ScriptDateTime;
+
+// Script API: Game::GetAudioTypeCrossfadeSpeed^1
+int Game_GetAudioTypeCrossfadeSpeed(int audio_type);
+
+// Script API: Game::SetAudioTypeCrossfadeSpeed^2
+void Game_SetAudioTypeCrossfadeSpeed(int audio_type, int crossfade_speed);
+
+// Script API: Game::GetAudioTypeSpeechVolumeDrop^1
+int Game_GetAudioTypeSpeechVolumeDrop(int audio_type);
+
+// Script API: Game::GetAudioTypeVolume^1
+int Game_GetAudioTypeVolume(int audio_type);
+
+// Script API: Game::GetSaveSlotTime^1
+ScriptDateTime *Game_GetSaveSlotTime(int slot);
+
+// Script API: Game::get_InventoryCursorHotspotGraphic
+int Game_GetInventoryCursorHotspotGraphic();
+
+// Script API: Game::set_InventoryCursorHotspotGraphic
+void Game_SetInventoryCursorHotspotGraphic(int graphic);
+
+// Script API: Game::get_InventoryCursorHotspotColor
+int Game_GetInventoryCursorHotspotColor();
+
+// Script API: Game::set_InventoryCursorHotspotColor
+void Game_SetInventoryCursorHotspotColor(int color);
+
+// Script API: Game::get_InventoryCursorHotspotCrossColor
+int Game_GetInventoryCursorHotspotCrossColor();
+
+// Script API: Game::set_InventoryCursorHotspotCrossColor
+void Game_SetInventoryCursorHotspotCrossColor(int color);
+
+// Script API: Game::get_IsPaused
+bool Game_GetIsPaused();
+
+// Script API: Game::get_UseActiveInventoryGraphicForCursor
+bool Game_GetUseActiveInventoryGraphicForCursor();
+
+// Script API: Game::set_UseActiveInventoryGraphicForCursor
+void Game_SetUseActiveInventoryGraphicForCursor(bool use_inv_graphic);
+
+// Script API: Game::get_TopSpriteNumber
+int Game_GetTopSpriteNumber();
+
+// Script API: Game::geti_SpriteColorDepth
+int Game_GetSpriteDepth(int sprite_num);
+
+// Script API: Game::geti_IsSpriteDynamic
+bool Game_GetIsSpriteDynamic(int sprite_num);
+
+// Script API: Game::ResetDoOnceOnly
+void Game_ResetDoOnceOnly();
+
+// Script API: Game::get_TickCounter
+int Game_GetTickCounter();
+
+// Script API: Game::GetColorFromRGBA^4
+int Game_GetColorFromRGBA(int red, int green, int blue, int alpha);
+
+// Script API: Game::GetLocationName^2
+const char *Game_GetLocationName2(int x, int y);
+
+// Script API: Game::get_Speed
+int Game_GetSpeed();
+
+// Script API: Game::set_Speed
+void Game_SetSpeed(int speed);
+
+// Script API: Game::get_AudioClipCount
+int Game_GetAudioClipCount();
+
+// Script API: Game::geti_AudioClips
+ScriptAudioClip *Game_GetAudioClip(int index);
+
+// Script API: Game::get_Camera
+ScriptCamera *Game_GetCamera();
+
+// Script API: Game::get_CameraCount
+int Game_GetCameraCount();
+
+// Script API: Game::geti_Cameras
+ScriptCamera *Game_GetAnyCamera(int index);
+
+// Script API: Game::SimulateKeyPress^2
+void Game_SimulateKeyPress(int key, int mod);
+
+// Script API: Game::SimulateKeyPress^1
+void Game_SimulateKeyPressOld(int key);
+
+// Script API: Game::get_BlockingWaitCounter
+int Game_BlockingWaitCounter();
+
+// Script API: Game::get_BlockingWaitSkipped
+int Game_BlockingWaitSkipped();
+
+// Script API: Game::get_BlockingWaitSkipType
+int Game_BlockingWaitSkipType();
+
+// Script API: Game::get_InBlockingAction
+int Game_InBlockingAction();
+
+// Script API: Game::get_InBlockingWait
+int Game_InBlockingWait();
+
+// Script API: Game::Pause
+void Game_Pause();
+
+// Script API: Game::Resume
+void Game_Resume();
+
+// Script API: Game::PlayVoiceClip
+ScriptAudioChannel *Game_PlayVoiceClip(CharacterInfo *ch, int sound_id, bool as_speech);
+
+// Script API: Game::PlayVoiceClipAsType
+ScriptAudioChannel *Game_PlayVoiceClipAsType(CharacterInfo *ch, int sound_id, int audio_type, int chan_id, int priority,
+                                             int repeat);
+
+// Script API: Game::PrecacheSprite
+void Game_PrecacheSprite(int sprite_num);
+
+// Script API: Game::PrecacheView
+void Game_PrecacheView(int view, int first_loop, int last_loop);
+
+// Script API: Game::get_FaceDirectionRatio
+float Game_GetFaceDirectionRatio();
+
+// Script API: Game::set_FaceDirectionRatio
+void Game_SetFaceDirectionRatio(float ratio);
+
+// Script API: Game::get_RoomCount
+int Game_GetRoomCount();
+
+// Script API: Game::geti_RoomNumbers
+int Game_GetRoomNumber(int index);
+
+// Script API: Game::geti_RoomNames
+const char *Game_GetRoomName(int room_number);
+
+// Script API: Game::GetSaveSlots^4
+void *Game_GetSaveSlots(int min_slot, int max_slot, int save_sort, int sort_dir);
+
+// Script API: Game::ScanSaveSlots^6
+void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int save_sort, int sort_dir, int user_param);
+
+// Script API: GameInfo::get_Title
+const char *GameInfo_GetTitle();
+
+// Script API: GameInfo::get_Description
+const char *GameInfo_GetDescription();
+
+// Script API: GameInfo::get_DeveloperName
+const char *GameInfo_GetDeveloperName();
+
+// Script API: GameInfo::get_DeveloperURL
+const char *GameInfo_GetDeveloperURL();
+
+// Script API: GameInfo::get_Genre
+const char *GameInfo_GetGenre();
+
+// Script API: GameInfo::get_ReleaseDate
+ScriptDateTime *GameInfo_GetReleaseDate();
+
+// Script API: GameInfo::get_Version
+const char *GameInfo_GetVersion();
