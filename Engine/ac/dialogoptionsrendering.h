@@ -38,3 +38,9 @@ ScriptDialog *DialogOptionsRendering_GetDialogToRender(ScriptDialogOptionsRender
 ScriptDrawingSurface *DialogOptionsRendering_GetSurface(ScriptDialogOptionsRendering *dlgOptRender);
 int DialogOptionsRendering_GetActiveOptionID(ScriptDialogOptionsRendering *dlgOptRender);
 void DialogOptionsRendering_SetActiveOptionID(ScriptDialogOptionsRendering *dlgOptRender, int activeOptionID);
+
+// Script API: DialogOptionsRenderingInfo::Update^0
+void DialogOptionsRendering_Update(ScriptDialogOptionsRendering *dlgOptRender);
+
+// Script API: DialogOptionsRenderingInfo::RunActiveOption^0
+bool DialogOptionsRendering_RunActiveOption(ScriptDialogOptionsRendering *dlgOptRender);
