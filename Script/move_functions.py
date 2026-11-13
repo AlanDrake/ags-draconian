@@ -187,7 +187,8 @@ class File:
         return it.kind == 'code' and it.header.startswith('extern ') and not it.function
 
     def is_using(self, it):
-        return it.kind == 'code' and it.header.startswith('using namespace') and not it.namespace
+        """A using-directive or using-declaration at file scope (not an alias: using X = Y)."""
+        return it.kind == 'code' and not it.namespace and using_target(it.header + ';') is not None
 
     def include_items(self):
         return [k for k, it in enumerate(self.items) if it.kind == 'pp' and self.lines[it.start].startswith('#include')]
@@ -547,14 +548,172 @@ def add_includes(index, p, path, need, options, direct, closure, existing):
 
 
 def reach_of(index, fold, path, includes):
-    """The headers a file reaches through the given repository paths and include names (new files left out)."""
+    """The headers a file reaches through the given repository paths and include names; a header this run creates
+    counts with the includes the run gives it."""
     files = set()
     for r in includes:
+        if r and r.startswith('<'):
+            continue
         if r and r.startswith('"'):
             r = index.resolve(r[1:-1], os.path.dirname(path))
-        if r and not (r in fold.parts and fold.parts[r].new):
+        if not r or r in files:
+            continue
+        if r in fold.parts and fold.parts[r].new:
+            files.add(r)
+            files |= reach_of(index, fold, r, [i for i in fold.parts[r].includes if i[0] == '"'])
+        else:
             files |= index.closure_files(r)
     return files
+
+
+def prime_macros(index, path, includes):
+    """Reads the macros of a file and of every header it reaches into the index, so that expand_macros sees the
+    names a macro invocation brings (API_OBJCALL_* name get_translation)."""
+    index.direct(path)
+    for r in includes:
+        if r:
+            index.closure(r)
+
+
+class NamespaceIndex:
+    """What the headers of CODE_DIRS declare per namespace: openers[ns] = headers that open it, members[ns] = the
+    names declared directly in it (types, functions, globals, nested namespaces, constants of unscoped enums).
+    A reading of clang-formatted declarations, not a parser: it decides which using-directives a moved text needs
+    and which header makes a namespace known."""
+
+    TOKEN = re.compile(r'\bnamespace\s+([\w:]+)\s*\{|[{};]')
+
+    def __init__(self, repo):
+        self.openers = {}
+        self.members = {}
+        for h in sb.code_files(repo, '.h'):
+            code = re.sub(r'^\s*#.*$', '', sb.strip_code(sb.read_text(os.path.join(repo, h))), flags=re.M)
+            self.read(h, code)
+
+    def read(self, h, code):
+        stack = []          # ('ns', name) or ('block', enum body start or -1)
+        start = 0
+        for m in self.TOKEN.finditer(code):
+            at_ns = all(s[0] == 'ns' for s in stack)
+            ns = '::'.join(s[1] for s in stack if s[0] == 'ns')
+            if m.group(1):
+                # namespace A::B { is one entry closed by one brace
+                full = ns
+                for part in m.group(1).split('::'):
+                    self.members.setdefault(full, set()).add(part)
+                    full = part if not full else full + '::' + part
+                    self.openers.setdefault(full, set()).add(h)
+                stack.append(('ns', m.group(1)))
+                start = m.end()
+                continue
+            stmt = code[start:m.start()]
+            if m.group(0) == '{':
+                if at_ns:
+                    self.declare(ns, stmt)
+                enum = at_ns and re.match(r'\s*(?:typedef\s+)?enum\b(?!\s+(?:class|struct)\b)', stmt)
+                stack.append(('block', m.end() if enum else -1, ns))
+            elif m.group(0) == '}':
+                if stack:
+                    top = stack.pop()
+                    if top[0] == 'block' and top[1] >= 0:
+                        for part in code[top[1]:m.start()].split(','):
+                            mm = re.match(r'\s*([A-Za-z_]\w*)', part)
+                            if mm:
+                                self.members.setdefault(top[2], set()).add(mm.group(1))
+            elif at_ns:
+                self.declare(ns, stmt)
+            start = m.end()
+
+    def declare(self, ns, stmt):
+        stmt = re.sub(r'^\s*template\s*<[^{;]*?>\s*', '', stmt).strip()
+        if not stmt:
+            return
+        m = re.match(r'(?:typedef\s+)?(?:struct|class|union|enum(?:\s+class|\s+struct)?)\s+(?:alignas\([^)]*\)\s*)?(\w+)',
+                     stmt)
+        names = set()
+        if m and not stmt.startswith('typedef') and not re.match(r'(?:struct|class|union|enum)\s+\w+\s*\*', stmt):
+            names.add(m.group(1))
+        if stmt.startswith('typedef'):
+            mm = re.search(r'(\w+)\s*(?:\[[^\]]*\])?\s*$', stmt) or re.search(r'\(\s*\*\s*(\w+)\s*\)', stmt)
+            if mm:
+                names.add(mm.group(1))
+        elif re.match(r'using\s+(\w+)\s*=', stmt):
+            names.add(re.match(r'using\s+(\w+)', stmt).group(1))
+        elif not m and not stmt.startswith(('using', 'friend', 'static_assert')):
+            head = stmt.split('=')[0]
+            mm = re.search(r'([A-Za-z_]\w*)\s*\(', head) if '(' in head else \
+                re.search(r'([A-Za-z_]\w*)\s*(?:\[[^\]]*\])*\s*$', head)
+            if mm:
+                names.add(mm.group(1))
+        self.members.setdefault(ns, set()).update(names - sb.KEYWORDS)
+
+    def needed(self, ns, code):
+        """Whether comment-free code names, unqualified, something declared directly in namespace ns."""
+        unqualified = {m.group(1) for m in re.finditer(r'(?<![\w.])(?<!::)(?<!->)([A-Za-z_]\w*)', code)}
+        return bool(unqualified & self.members.get(ns, set()))
+
+
+def using_target(line):
+    """(kind, namespace) of a file-scope using line: ('directive', 'A::B') for using namespace A::B;
+    ('declaration', 'A::B') for using A::B::Y; None otherwise (an alias, or not a using line)."""
+    m = re.match(r'\s*using\s+namespace\s+(?:::)?([\w:]+)\s*;', line)
+    if m:
+        return 'directive', m.group(1)
+    m = re.match(r'\s*using\s+(?:::)?([\w:]+)::(\w+)\s*;', line)
+    if m:
+        return 'declaration', m.group(1)
+    return None
+
+
+def namespace_index(repo, index):
+    """The NamespaceIndex of the tree the HeaderIndex reads (made again with it after a fold writes)."""
+    if not hasattr(index, 'namespaces'):
+        index.namespaces = NamespaceIndex(repo)
+    return index.namespaces
+
+
+def using_needed(nsx, line, code, used):
+    """Whether a using line is needed by comment-free code: a directive when the code names a member of its
+    namespace unqualified, a declaration when the code names what it declares."""
+    t = using_target(line)
+    if not t:
+        return True
+    if t[0] == 'directive':
+        return nsx.needed(t[1], code)
+    return re.match(r'\s*using\s+[\w:]+::(\w+)', line).group(1) in used
+
+
+def add_namespace_openers(nsx, fold, path, p, usings, reach_files, candidates, existing):
+    """For each using line, a header that opens its namespace must be reached: else the candidate (a header the
+    old code reached) that reaches an opener is included, the opener itself where it is a candidate."""
+    added = []
+    for line in usings:
+        t = using_target(line)
+        if not t:
+            continue
+        ns = t[1]
+        openers = nsx.openers.get(ns, set())
+        if openers & reach_files:
+            continue
+        pick = None
+        for c, closure_files in candidates:
+            if c in openers:
+                pick = (c, closure_files)
+                break
+        if pick is None:
+            for c, closure_files in candidates:
+                if openers & closure_files:
+                    pick = (c, closure_files)
+                    break
+        if pick is None:
+            raise Fail('%s: %s needs a header that declares namespace %s, and none of the old includes has one'
+                       % (path, line.strip(), ns))
+        inc = '"%s"' % sb.include_path(pick[0])
+        if inc not in existing and inc not in p:
+            p.append(inc)
+            added.append((inc, ns))
+        reach_files |= pick[1]
+    return added
 
 
 def add_overload_includes(index, fold, p, path, used, dest_inc, src_cands, existing):
@@ -610,9 +769,12 @@ def plan_sources(repo, index, fold):
             continue
         dest = File(repo, path)
         code = sb.strip_code(p.text)
+        dest_inc = [r for _, r in dest.quoted_includes(index)]
+        prime_macros(index, fold.source, src_cands + dest_inc)
+        if dest.exists:
+            prime_macros(index, path, [])
         used = sb.used_names(repo, index, code, code_items)
         have = dest.defined() | set(dest.externs()) | p.names
-        dest_inc = [r for _, r in dest.quoted_includes(index)]
         own = header_of(path)
         if p.new and own in fold.parts:
             p.includes.append('"%s"' % sb.include_path(own))
@@ -626,9 +788,18 @@ def plan_sources(repo, index, fold):
         add_includes(index, p, path, need, options, direct, closure, existing)
         add_overload_includes(index, fold, p, path, used, dest_inc, src_cands, existing)
         add_system_includes(p, src.include_names(), used, existing)
-        # using-directives of the source that the destination lacks
+        # the source's using lines that the moved text needs and the destination lacks; each needs a header that
+        # declares its namespace
+        nsx = namespace_index(repo, index)
         dest_usings = {sb.item_text(dest.lines, it) for _, it in dest.code() if dest.is_using(it)}
-        p.usings = [u for u in usings if u not in dest_usings]
+        p.usings = [u for u in usings if u not in dest_usings and using_needed(nsx, u, code, used)]
+        dropped = [u.strip() for u in usings if u not in dest_usings and u not in p.usings]
+        if dropped:
+            p.notes.append('using lines of the source the moved text does not need: %s' % ' '.join(dropped))
+        cands = [(c, index.closure_files(c)) for c in src_cands]
+        for inc, ns in add_namespace_openers(nsx, fold, path, p.includes, p.usings,
+                                             reach_of(index, fold, path, dest_inc + p.includes), cands, existing):
+            p.why[inc] = ['namespace %s' % ns]
         # externs of the source that the moved text uses
         reach = set()
         for r in dest_inc + [index.resolve(n[1:-1], os.path.dirname(path)) for n in p.includes if n[0] == '"']:
@@ -701,10 +872,13 @@ def plan_includers(repo, index, fold):
         # not parsed: an includer need not follow the parser's layout; its includes and names are enough
         text = sb.read_text(os.path.join(repo, f))
         code = sb.strip_code(text)
-        used = sb.identifiers(code)
         incs = [index.resolve(m.group(1), os.path.dirname(f))
                 for m in re.finditer(r'^#\s*include\s+"([^"]+)"', text, re.M)]
         incs = [r for r in incs if r and r != fold.header]
+        # the names it uses directly and through the macros it invokes (the API_* macros of script_api.h name
+        # get_translation)
+        prime_macros(index, f, incs)
+        used = index.expand_macros(sb.identifiers(code))
         named = [h for h in headers if h != f and used & moved_names(fold, h)]
         new = [h for h in named if h not in incs]
         after = set()
@@ -712,6 +886,14 @@ def plan_includers(repo, index, fold):
             after |= closure(r)
         lost = (used & passed) - after
         extra = [c for (c,) in sb.derive_includes(index, lost, [(t,) for t in through if t not in incs])]
+        # its using lines keep a header that declares their namespace
+        usings = [l for l in text.split('\n') if using_target(l)]
+        names = ['"%s"' % sb.include_path(h) for h in new + extra]
+        reach = reach_of(index, fold, f, incs + names)
+        cands = [(t, index.closure_files(t)) for t in through]
+        existing = {'"%s"' % sb.include_path(r) for r in incs}
+        opened = add_namespace_openers(namespace_index(repo, index), fold, f, names, usings, reach, cands, existing)
+        extra += [index.resolve(inc[1:-1], os.path.dirname(f)) for inc, _ in opened]
         out.append((f, ['"%s"' % sb.include_path(h) for h in new], ['"%s"' % sb.include_path(h) for h in extra],
                     ['"%s"' % sb.include_path(h) for h in named if h in incs]))
     fold.includers = out
