@@ -91,3 +91,21 @@ inline const char *skip_voiceover_token(const char *text)
 {
     return parse_voiceover_token(text, nullptr);
 }
+
+// Script API: String::Join^2
+const char *String_Join(void *arrobj, const char *separator);
+
+// Script API: String::Reverse^0
+const char *String_Reverse(const char *this_string);
+
+// Script API: String::Trim^0
+const char *String_Trim(const char *this_string);
+
+// Script API: String::Split^2
+void *String_Split(const char *this_string, const char *separator, int split_options);
+
+// Script API: String::Contains^1, String::IndexOf^1
+int String_IndexOf1(const char *s1, const char *s2);
+
+// Script API: String::get_Length
+int String_GetLength(const char *this_string);
