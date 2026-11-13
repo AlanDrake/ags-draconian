@@ -274,6 +274,7 @@ target_sources(engine
     game/savegame_internal.h
     game/script_api/audio_channel_api.cpp
     game/script_api/audio_clip_api.cpp
+    game/script_api/button_api.cpp
     game/viewport.cpp
     game/viewport.h
     gfx/ali3dexception.h
