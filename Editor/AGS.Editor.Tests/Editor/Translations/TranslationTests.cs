@@ -4,6 +4,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using static System.Net.Mime.MediaTypeNames;
@@ -976,6 +977,41 @@ msgstr ""réplique active""
             Assert.AreEqual("PARSERWORD:7", word.Context);
             word.IsObsolete = false;
             Assert.AreEqual("PARSERWORD:7", word.Context);
+        }
+
+        [Test]
+        public void GameTextsAreNotEscapedAgain_Test()
+        {
+            // The editor keeps texts escaped, as script strings are: a label's line break is "\n"
+            // in the project, which the build resolves; only quotes may be bare outside of scripts
+            var processor = new TranslationSourceProcessor(new Game(), new CompileMessages());
+            processor.ProcessText(TextProcessingHelper.MakeItemLine("Line 1\\nLine 2", "GUI:gMain/lblInfo", "GUI label, 80 px wide"), GameTextType.ItemDescription);
+            processor.ProcessText(GameTextLine.MakeScript("Display(\"Line 1\\nLine 2\");", "GlobalScript.asc"), GameTextType.Script);
+            processor.ProcessText(new GameTextLine("Open \"C:\\\\\"", "Dialog:dTest/Option1"), GameTextType.DialogOption);
+
+            var lines = processor.LinesForTranslation.ToDictionary(l => l.Text);
+            CollectionAssert.AreEquivalent(new string[] { "Line 1\\nLine 2", "Open \\\"C:\\\\\\\"" }, lines.Keys);
+            Assert.AreEqual("GUI:gMain/lblInfo GlobalScript.asc:1", lines["Line 1\\nLine 2"].SourceRef);
+
+            Translation translation = CreateTranslationForTest();
+            TranslationsComponent.UpdateTranslation(translation, processor.LinesForTranslation);
+            string result = SaveTranslationToString(translation);
+            StringAssert.Contains("msgid \"Line 1\\nLine 2\"\n", result);
+            StringAssert.Contains("msgid \"Open \\\"C:\\\\\\\"\"\n", result);
+        }
+
+        [Test]
+        public void ReplaceGameTextWithTranslation_Test()
+        {
+            // The translation is put back in the form that each text is kept in
+            var entries = new Dictionary<string, TranslationEntry>();
+            entries.Add("Line 1\\nLine 2", new TranslationEntry("Line 1\\nLine 2", "Ligne 1\\n\\\"Ligne 2\\\""));
+            var processor = new TextImportProcessor(new Game(), new CompileMessages(), entries);
+
+            Assert.AreEqual("Ligne 1\\n\"Ligne 2\"",
+                processor.ProcessText(new GameTextLine("Line 1\\nLine 2", "GUI:gMain/lblInfo"), GameTextType.ItemDescription));
+            Assert.AreEqual("Display(\"Ligne 1\\n\\\"Ligne 2\\\"\");",
+                processor.ProcessText(GameTextLine.MakeScript("Display(\"Line 1\\nLine 2\");", "GlobalScript.asc"), GameTextType.Script));
         }
 
         [Test]

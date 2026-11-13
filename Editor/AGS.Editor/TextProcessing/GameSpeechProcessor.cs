@@ -93,19 +93,15 @@ namespace AGS.Editor
         /// <summary>
         /// Converts game text into the form used as a translation key, which is
         /// the escaped string, same as found in the script string literals.
+        /// Every game text is already escaped: script strings as written, and the
+        /// other texts as the editor keeps them (a line break typed in a property
+        /// is stored as "\n", and the build resolves the escapes); only double quotes
+        /// may be left bare outside of scripts. Escaping them all again would make
+        /// keys that no longer match the game's texts.
         /// </summary>
         protected static string MakeTranslationKey(string text, GameTextType textType)
         {
-            switch (textType)
-            {
-                case GameTextType.Script:
-                    return text; // already escaped
-                case GameTextType.DialogScript:
-                    // Dialog speech is converted into script strings with only quotes escaped
-                    return Translation.EscapeUnescapedQuotes(text);
-                default:
-                    return Translation.EscapeText(text);
-            }
+            return textType == GameTextType.Script ? text : Translation.EscapeUnescapedQuotes(text);
         }
 
         /// <summary>
@@ -114,15 +110,7 @@ namespace AGS.Editor
         /// </summary>
         protected static string MakeTextFromTranslation(string text, GameTextType textType)
         {
-            switch (textType)
-            {
-                case GameTextType.Script:
-                    return text;
-                case GameTextType.DialogScript:
-                    return text.Replace("\\\"", "\"");
-                default:
-                    return Translation.UnescapeText(text);
-            }
+            return textType == GameTextType.Script ? text : text.Replace("\\\"", "\"");
         }
 
         private bool DoesStringTerminateHere(ScriptParsing.ParserState state, char stringTerminator)
