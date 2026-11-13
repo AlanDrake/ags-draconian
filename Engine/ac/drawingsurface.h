@@ -71,3 +71,71 @@ void DrawingSurface_DrawLine(ScriptDrawingSurface *surface, int fromx, int fromy
 void DrawingSurface_DrawPixel(ScriptDrawingSurface *surface, int x, int y);
 // Returns the pixel's colour as a script colour number, 0 if the surface is not valid.
 int DrawingSurface_GetPixel(ScriptDrawingSurface *surface, int x, int y);
+
+// Script API: DrawingSurface::DrawImage^10
+void DrawingSurface_DrawImage(ScriptDrawingSurface *surface, int dst_x, int dst_y, int slot, int alpha, int dst_width,
+                              int dst_height, int src_x, int src_y, int src_width, int src_height);
+
+// Script API: DrawingSurface::BlendImage^11
+void DrawingSurface_BlendImage(ScriptDrawingSurface *surface, int dst_x, int dst_y, int slot,
+                               AGS::Common::BlendMode mode, int alpha, int dst_width, int dst_height, int src_x,
+                               int src_y, int src_width, int src_height);
+
+// Script API: DrawingSurface::BlendSurface^11
+void DrawingSurface_BlendSurface(ScriptDrawingSurface *target, ScriptDrawingSurface *source,
+                                 AGS::Common::BlendMode mode, int alpha, int dst_x, int dst_y, int dst_width,
+                                 int dst_height, int src_x, int src_y, int src_width, int src_height);
+
+// Script API: DrawingSurface::set_BlendMode
+void DrawingSurface_SetBlendMode(ScriptDrawingSurface *surface, int blend_mode);
+
+// Script API: DrawingSurface::get_BlendMode
+int DrawingSurface_GetBlendMode(ScriptDrawingSurface *surface);
+
+// Script API: DrawingSurface::get_Valid
+bool DrawingSurface_GetValid(ScriptDrawingSurface *surface);
+
+// Script API: DrawingSurface::get_ColorDepth
+int DrawingSurface_GetColorDepth(ScriptDrawingSurface *surface);
+
+// Script API: DrawingSurface::DrawArc^5
+void DrawingSurface_DrawArc(ScriptDrawingSurface *surface, int x, int y, int radius, int angle1, int angle2);
+
+// Script API: DrawingSurface::DrawCircleOutline^3
+void DrawingSurface_DrawCircleOutline(ScriptDrawingSurface *surface, int x, int y, int radius);
+
+// Script API: DrawingSurface::DrawEllipse^4
+void DrawingSurface_DrawEllipse(ScriptDrawingSurface *surface, int x, int y, int radiusx, int radiusy);
+
+// Script API: DrawingSurface::DrawEllipseOutline^4
+void DrawingSurface_DrawEllipseOutline(ScriptDrawingSurface *surface, int x, int y, int radiusx, int radiusy);
+
+// Script API: DrawingSurface::DrawPie^5
+void DrawingSurface_DrawPie(ScriptDrawingSurface *surface, int x, int y, int radius, int angle1, int angle2);
+
+// Script API: DrawingSurface::DrawPieOutline^5
+void DrawingSurface_DrawPieOutline(ScriptDrawingSurface *surface, int x, int y, int radius, int angle1, int angle2);
+
+// Script API: DrawingSurface::DrawRectangleOutline^4
+void DrawingSurface_DrawRectangleOutline(ScriptDrawingSurface *surface, int x1, int y1, int x2, int y2);
+
+// Script API: DrawingSurface::DrawTriangleOutline^6
+void DrawingSurface_DrawTriangleOutline(ScriptDrawingSurface *surface, int x1, int y1, int x2, int y2, int x3, int y3);
+
+// Script API: DrawingSurface::FloodFill^2
+void DrawingSurface_FloodFill(ScriptDrawingSurface *surface, int x, int y);
+
+// Script API: DrawingSurface::SetPixel^3
+void DrawingSurface_SetPixel(ScriptDrawingSurface *surface, int x, int y, int color);
+
+// Script API: DrawingSurface::GetPixelsCopy^4
+void *DrawingSurface_GetPixelsCopy(ScriptDrawingSurface *surface, int x, int y, int width, int height);
+
+// Script API: DrawingSurface::GetPixelsCopy32^4
+void *DrawingSurface_GetPixelsCopy32(ScriptDrawingSurface *surface, int x, int y, int width, int height);
+
+// Script API: DrawingSurface::SetPixels^5
+void DrawingSurface_SetPixels(ScriptDrawingSurface *surface, void *arrobj, int x, int y, int width, int height);
+
+// Script API: DrawingSurface::SetPixels32^5
+void DrawingSurface_SetPixels32(ScriptDrawingSurface *surface, void *arrobj, int x, int y, int width, int height);
