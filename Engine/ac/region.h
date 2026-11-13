@@ -39,3 +39,36 @@ void DisableGroundLevelAreas(int alsoEffects);
 void EnableGroundLevelAreas();
 
 void generate_light_table();
+
+// Script API: Region::GetAtRoomXY^3
+ScriptRegion *Region_GetAtRoomXY(int x, int y, int hit_options);
+
+// Script API: Region::GetAtRoomXY^2
+ScriptRegion *Region_GetAtRoomXY2(int x, int y);
+
+// Script API: Region::GetAtScreenXY^3
+ScriptRegion *Region_GetAtScreenXY(int x, int y, int hit_options);
+
+// Script API: Region::GetAtScreenXY^2
+ScriptRegion *Region_GetAtScreenXY2(int x, int y);
+
+// Script API: Region::GetByScriptName^1
+ScriptRegion *Region_GetByName(const char *name);
+
+// Script API: Region::get_ScriptName
+const char *Region_GetScriptName(ScriptRegion *ssr);
+
+// Script API: Region::Tint^4
+void Region_TintNoLum(ScriptRegion *srr, int red, int green, int blue, int amount);
+
+// Script API: Region::GetProperty^1
+int Region_GetProperty(ScriptRegion *ssr, const char *property);
+
+// Script API: Region::GetTextProperty^1
+const char *Region_GetTextProperty(ScriptRegion *ssr, const char *property);
+
+// Script API: Region::SetProperty^2
+bool Region_SetProperty(ScriptRegion *ssr, const char *property, int value);
+
+// Script API: Region::SetTextProperty^2
+bool Region_SetTextProperty(ScriptRegion *ssr, const char *property, const char *value);
