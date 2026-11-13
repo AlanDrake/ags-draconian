@@ -383,3 +383,12 @@ extern CCCharacter ccDynamicCharacter;
 
 // Used by the script bindings in game/script_api/character_api.cpp
 extern CCInventory ccDynamicInv;
+
+struct CCDialog;
+struct CCGUI;
+
+// Used by the script bindings in game/script_api/dialog_api.cpp
+extern CCGUI ccDynamicGUI;
+
+// Used by the script bindings in game/script_api/dialog_api.cpp
+extern CCDialog ccDynamicDialog;

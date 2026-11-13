@@ -74,3 +74,167 @@ void shutdown_dialog_state();
 extern std::vector<ScriptDialog> scrDialog;
 // Dialog topics of the game, by dialog number
 extern std::vector<DialogTopic> dialog;
+
+struct ScriptOverlay;
+
+// Script API: Dialog::StartOption^1
+void Dialog_StartOption(ScriptDialog *script_dialog, int option);
+
+// Script API: Dialog::SetHasOptionBeenChosen^2
+void Dialog_SetHasOptionBeenChosen(ScriptDialog *script_dialog, int option, bool chosen);
+
+// Script API: Dialog::SetOptionText^2
+void Dialog_SetOptionText(ScriptDialog *script_dialog, int option, const char *text);
+
+// Script API: Dialog::get_ScriptName
+const char *Dialog_GetScriptName(ScriptDialog *script_dialog);
+
+// Script API: DialogOptions::get_AreDisplayed
+int DialogOptions_GetAreDisplayed();
+
+// Script API: DialogOptions::get_BulletGraphic
+int DialogOptions_GetBulletGraphic();
+
+// Script API: DialogOptions::set_BulletGraphic
+void DialogOptions_SetBulletGraphic(int sprite);
+
+// Script API: DialogOptions::get_DrawMode
+int DialogOptions_GetDrawMode();
+
+// Script API: DialogOptions::set_DrawMode
+void DialogOptions_SetDrawMode(int draw_mode);
+
+// Script API: DialogOptions::get_Font
+int DialogOptions_GetFont();
+
+// Script API: DialogOptions::set_Font
+void DialogOptions_SetFont(int font_id);
+
+// Script API: DialogOptions::get_ItemNumbering
+int DialogOptions_GetItemNumbering();
+
+// Script API: DialogOptions::set_ItemNumbering
+void DialogOptions_SetItemNumbering(int style);
+
+// Script API: DialogOptions::get_HighlightColor
+int DialogOptions_GetHighlightColor();
+
+// Script API: DialogOptions::set_HighlightColor
+void DialogOptions_SetHighlightColor(int color);
+
+// Script API: DialogOptions::get_ReadColor
+int DialogOptions_GetReadColor();
+
+// Script API: DialogOptions::set_ReadColor
+void DialogOptions_SetReadColor(int color);
+
+// Script API: DialogOptions::get_TextAlignment
+int DialogOptions_GetTextAlignment();
+
+// Script API: DialogOptions::set_TextAlignment
+void DialogOptions_SetTextAlignment(int align);
+
+// Script API: DialogOptions::get_ZOrder
+int DialogOptions_GetZOrder();
+
+// Script API: DialogOptions::set_ZOrder
+void DialogOptions_SetZOrder(int zorder);
+
+// Script API: DialogOptions::get_ItemGap
+int DialogOptions_GetItemGap();
+
+// Script API: DialogOptions::set_ItemGap
+void DialogOptions_SetItemGap(int gap);
+
+// Script API: DialogOptions::get_TemplateGUI
+ScriptGUI *DialogOptions_GetTemplateGUI();
+
+// Script API: DialogOptions::set_TemplateGUI
+void DialogOptions_SetTemplateGUI(ScriptGUI *sgui);
+
+// Script API: DialogOptions::get_GUIX
+int DialogOptions_GetGUIX();
+
+// Script API: DialogOptions::set_GUIX
+void DialogOptions_SetGUIX(int x);
+
+// Script API: DialogOptions::get_GUIY
+int DialogOptions_GetGUIY();
+
+// Script API: DialogOptions::set_GUIY
+void DialogOptions_SetGUIY(int y);
+
+// Script API: DialogOptions::get_PaddingX
+int DialogOptions_GetPaddingX();
+
+// Script API: DialogOptions::set_PaddingX
+void DialogOptions_SetPaddingX(int x);
+
+// Script API: DialogOptions::get_PaddingY
+int DialogOptions_GetPaddingY();
+
+// Script API: DialogOptions::set_PaddingY
+void DialogOptions_SetPaddingY(int y);
+
+// Script API: DialogOptions::get_MaxGUIWidth
+int DialogOptions_GetMaxGUIWidth();
+
+// Script API: DialogOptions::set_MaxGUIWidth
+void DialogOptions_SetMaxGUIWidth(int width);
+
+// Script API: DialogOptions::get_MinGUIWidth
+int DialogOptions_GetMinGUIWidth();
+
+// Script API: DialogOptions::set_MinGUIWidth
+void DialogOptions_SetMinGUIWidth(int width);
+
+// Script API: Dialog::GetProperty^1
+int Dialog_GetProperty(ScriptDialog *script_dialog, const char *property);
+
+// Script API: Dialog::GetTextProperty^1
+const char *Dialog_GetTextProperty(ScriptDialog *script_dialog, const char *property);
+
+// Script API: Dialog::SetProperty^2
+bool Dialog_SetProperty(ScriptDialog *script_dialog, const char *property, int value);
+
+// Script API: Dialog::SetTextProperty^2
+bool Dialog_SetTextProperty(ScriptDialog *script_dialog, const char *property, const char *value);
+
+// Script API: DialogOptions::get_HasCustomRender
+bool DialogOptions_GetHasCustomRender();
+
+// Script API: DialogOptions::get_ItemCount
+int DialogOptions_GetItemCount();
+
+// Script API: DialogOptions::geti_ItemOptionID
+int DialogOptions_GetItemOptionID(int index);
+
+// Script API: DialogOptions::geti_ItemX
+int DialogOptions_GetItemX(int index);
+
+// Script API: DialogOptions::geti_ItemY
+int DialogOptions_GetItemY(int index);
+
+// Script API: DialogOptions::geti_ItemWidth
+int DialogOptions_GetItemWidth(int index);
+
+// Script API: DialogOptions::geti_ItemHeight
+int DialogOptions_GetItemHeight(int index);
+
+// Script API: Dialog::GetByName, Dialog::GetByScriptName
+ScriptDialog *Dialog_GetByName(const char *name);
+
+// Script API: Dialog::Stop
+void Dialog_Stop();
+
+// Script API: Dialog::get_CurrentDialog
+ScriptDialog *Dialog_GetCurrentDialog();
+
+// Script API: Dialog::get_ExecutedOption
+int Dialog_GetExecutedOption();
+
+// Script API: DialogOptions::get_Overlay
+ScriptOverlay *DialogOptions_GetOverlay();
+
+// Script API: Dialog::get_AreOptionsDisplayed
+bool Dialog_GetAreOptionsDisplayed();
