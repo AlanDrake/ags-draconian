@@ -302,9 +302,6 @@ bool DynamicArrayHelpers::ResolvePointerArray(const void *arrobj, std::vector<Dy
     return true;
 }
 
-#include "script/script_api.h"
-#include "script/script_runtime.h"
-
 int32_t DynamicArray_Length(void *untyped_dynarray)
 {
     if (!untyped_dynarray)
@@ -314,22 +311,4 @@ int32_t DynamicArray_Length(void *untyped_dynarray)
     }
     const CCDynamicArray::Header &hdr = CCDynamicArray::GetHeader(untyped_dynarray);
     return hdr.GetElemCount();
-}
-
-// Deprecated variant of DynamicArray.Length, which emulates a static function;
-// was replaced in script compilers around Editor v4.0.0.11, but is kept for backwards compat.
-RuntimeScriptValue Sc_DynamicArray_Static_Length(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_POBJ(DynamicArray_Length, void);
-}
-
-RuntimeScriptValue Sc_DynamicArray_Length(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(void, DynamicArray_Length);
-}
-
-void RegisterDynamicArrayAPI()
-{
-    ccAddExternalStaticFunction("__Builtin_DynamicArrayLength^1", Sc_DynamicArray_Static_Length);
-    ccAddExternalObjectFunction("__Builtin_DynamicArray::get_Length", Sc_DynamicArray_Length);
 }
