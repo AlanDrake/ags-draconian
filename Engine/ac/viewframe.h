@@ -64,3 +64,27 @@ void DrawViewFrame(AGS::Common::Bitmap *ds, const ViewFrame *vframe, int x, int 
 // Gets the flip a view frame is drawn with: none if the view, loop or frame does not exist, or if
 // the sprite drawn is not the frame's (pic, as in draw.cpp; pass -1 to skip this check)
 AGS::Common::GraphicFlip GetViewFrameFlip(int view, int loop, int frame, int pic = -1);
+
+// Script API: ViewFrame::get_EventName
+const char *ViewFrame_GetEventName(ScriptViewFrame *svf);
+
+// Script API: ViewFrame::set_EventName
+void ViewFrame_SetEventName(ScriptViewFrame *svf, const char *name);
+
+// Script API: ViewFrame::set_Flipped
+void ViewFrame_SetFlipped(ScriptViewFrame *svf, int flip);
+
+// Script API: ViewFrame::set_Speed
+void ViewFrame_SetSpeed(ScriptViewFrame *svf, int speed);
+
+// Script API: ViewFrame::get_XOffset
+int ViewFrame_GetXOffset(ScriptViewFrame *svf);
+
+// Script API: ViewFrame::set_XOffset
+void ViewFrame_SetXOffset(ScriptViewFrame *svf, int xoff);
+
+// Script API: ViewFrame::get_YOffset
+int ViewFrame_GetYOffset(ScriptViewFrame *svf);
+
+// Script API: ViewFrame::set_YOffset
+void ViewFrame_SetYOffset(ScriptViewFrame *svf, int yoff);
