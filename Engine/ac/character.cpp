@@ -2131,12 +2131,12 @@ void Character_SetOpacity(CharacterInfo *ch, int opacity)
 }
 
 // [OBSOLETE] the AGS 4.0 Transparency, for compiled 4.0 games
-static int Character_GetTransparency(CharacterInfo *ch)
+int Character_GetTransparency(CharacterInfo *ch)
 {
     return GfxDef::OpacityToTrans100(ch->opacity);
 }
 
-static void Character_SetTransparency(CharacterInfo *ch, int trans)
+void Character_SetTransparency(CharacterInfo *ch, int trans)
 {
     if ((trans < 0) || (trans > 100))
         quit("!SetCharTransparent: transparency value must be between 0 and 100");

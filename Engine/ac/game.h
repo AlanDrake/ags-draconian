@@ -374,3 +374,12 @@ struct CCAudioChannel;
 
 // Used by the script bindings in game/script_api/audio_clip_api.cpp
 extern CCAudioChannel ccDynamicAudio;
+
+struct CCCharacter;
+struct CCInventory;
+
+// Used by the script bindings in game/script_api/character_api.cpp
+extern CCCharacter ccDynamicCharacter;
+
+// Used by the script bindings in game/script_api/character_api.cpp
+extern CCInventory ccDynamicInv;

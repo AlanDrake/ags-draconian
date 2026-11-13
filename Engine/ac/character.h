@@ -333,3 +333,262 @@ extern int32_t _sc_PlayerCharPtr;
 
 // Order of loops to turn the character through, in a circle from down, clockwise
 extern const int turnlooporder[8];
+
+class ScriptMotionPath;
+class ScriptShaderInstance;
+
+// Script API: Character::Animate^6
+void Character_Animate6(CharacterInfo *ch, int loop, int delay, int repeat, int blocking, int direction, int sframe);
+
+// Script API: Character::get_Following
+CharacterInfo *Character_GetFollowing(CharacterInfo *ch);
+
+// Script API: Character::LockViewAnchored^6
+void Character_LockViewAnchored(CharacterInfo *ch, int view, float x_anchor, float y_anchor, int x_off, int y_off,
+                                int stop_moving);
+
+// Script API: Character::LoseInventoryAt^1
+void Character_LoseInventoryAt(CharacterInfo *ch, int inv_index);
+
+// Script API: Character::get_HasExplicitLight
+bool Character_GetHasExplicitLight(CharacterInfo *ch);
+
+// Script API: Character::get_LightLevel
+int Character_GetLightLevel(CharacterInfo *ch);
+
+// Script API: Character::SetLightLevel^1
+void Character_SetLightLevel(CharacterInfo *ch, int light_level);
+
+// Script API: Character::get_TintRed
+int Character_GetTintRed(CharacterInfo *ch);
+
+// Script API: Character::get_TintGreen
+int Character_GetTintGreen(CharacterInfo *ch);
+
+// Script API: Character::get_TintBlue
+int Character_GetTintBlue(CharacterInfo *ch);
+
+// Script API: Character::get_TintSaturation
+int Character_GetTintSaturation(CharacterInfo *ch);
+
+// Script API: Character::get_TintLuminance
+int Character_GetTintLuminance(CharacterInfo *ch);
+
+// Script API: Character::MoveStraight^3
+void Character_MoveStraight(CharacterInfo *ch, int x, int y, int blocking);
+
+// Script API: Character::WalkPath^4
+void Character_WalkPath(CharacterInfo *ch, void *path_arr, int blocking, int repeat, int direction);
+
+// Script API: Character::MovePath^4
+void Character_MovePath(CharacterInfo *ch, void *path_arr, int blocking, int repeat, int direction);
+
+// Script API: Character::RunFrameEvent^3
+bool Character_RunFrameEvent(CharacterInfo *ch, int view, int loop, int frame);
+
+// Script API: Character::GetGraphicPosition^0
+void *Character_GetGraphicPosition(CharacterInfo *ch);
+
+// Script API: Character::GetGraphicBoundBox^0
+void *Character_GetGraphicBoundBox(CharacterInfo *ch);
+
+// Script API: Character::SetProperty^2
+bool Character_SetProperty(CharacterInfo *ch, const char *property, int value);
+
+// Script API: Character::SetTextProperty^2
+bool Character_SetTextProperty(CharacterInfo *ch, const char *property, const char *value);
+
+// Script API: Character::get_AudioPanning
+int Character_GetAudioPanning(CharacterInfo *ch);
+
+// Script API: Character::set_AudioPanning
+void Character_SetAudioPanning(CharacterInfo *ch, int new_value);
+
+// Script API: Character::get_AudioSpeed
+int Character_GetAudioSpeed(CharacterInfo *ch);
+
+// Script API: Character::set_AudioSpeed
+void Character_SetAudioSpeed(CharacterInfo *ch, int new_value);
+
+// Script API: Character::get_AnimationVolume, Character::get_AudioVolume
+int Character_GetAudioVolume(CharacterInfo *ch);
+
+// Script API: Character::set_AnimationVolume, Character::set_AudioVolume
+void Character_SetAudioVolume(CharacterInfo *ch, int new_value);
+
+// Script API: Character::get_BlockingRectX
+int Character_GetBlockingRectX(CharacterInfo *ch);
+
+// Script API: Character::set_BlockingRectX
+void Character_SetBlockingRectX(CharacterInfo *ch, int x);
+
+// Script API: Character::get_BlockingRectY
+int Character_GetBlockingRectY(CharacterInfo *ch);
+
+// Script API: Character::set_BlockingRectY
+void Character_SetBlockingRectY(CharacterInfo *ch, int y);
+
+// Script API: Character::get_ScriptName
+const char *Character_GetScriptName(CharacterInfo *ch);
+
+// Script API: Character::get_Enabled
+bool Character_GetEnabled(CharacterInfo *ch);
+
+// Script API: Character::set_Enabled
+void Character_SetEnabled(CharacterInfo *ch, bool new_value);
+
+// Script API: Character::get_IdleDelay
+int Character_GetIdleDelay(CharacterInfo *ch);
+
+// Script API: Character::get_IdleTime
+int Character_GetIdleTime(CharacterInfo *ch);
+
+// Script API: Character::get_ManualScaling
+int Character_GetManualScaling(CharacterInfo *ch);
+
+// Script API: Character::get_InventoryCount
+int Character_GetInventoryCount(CharacterInfo *ch);
+
+// Script API: Character::geti_Inventory
+ScriptInvItem *Character_GetInventory(CharacterInfo *ch, int index);
+
+// Script API: Character::get_DestinationX
+int Character_GetDestinationX(CharacterInfo *ch);
+
+// Script API: Character::get_DestinationY
+int Character_GetDestinationY(CharacterInfo *ch);
+
+// Script API: Character::get_IdleAnimationDelay
+int Character_GetIdleAnimationDelay(CharacterInfo *ch);
+
+// Script API: Character::set_IdleAnimationDelay
+void Character_SetIdleAnimationDelay(CharacterInfo *ch, int delay);
+
+// Script API: Character::get_Thinking
+bool Character_GetThinking(CharacterInfo *ch);
+
+// Script API: Character::get_ThinkingFrame
+int Character_GetThinkingFrame(CharacterInfo *ch);
+
+// Script API: Character::get_Transparency
+int Character_GetTransparency(CharacterInfo *ch);
+
+// Script API: Character::set_Transparency
+void Character_SetTransparency(CharacterInfo *ch, int trans);
+
+// Script API: Character::get_Visible
+bool Character_GetVisible(CharacterInfo *ch);
+
+// Script API: Character::set_Visible
+void Character_SetVisible(CharacterInfo *ch, bool new_value);
+
+// Script API: Character::get_GraphicAnchorX
+float Character_GetGraphicAnchorX(CharacterInfo *ch);
+
+// Script API: Character::set_GraphicAnchorX
+void Character_SetGraphicAnchorX(CharacterInfo *ch, float x);
+
+// Script API: Character::get_GraphicAnchorY
+float Character_GetGraphicAnchorY(CharacterInfo *ch);
+
+// Script API: Character::set_GraphicAnchorY
+void Character_SetGraphicAnchorY(CharacterInfo *ch, float y);
+
+// Script API: Character::get_GraphicOffsetX
+int Character_GetGraphicOffsetX(CharacterInfo *ch);
+
+// Script API: Character::set_GraphicOffsetX
+void Character_SetGraphicOffsetX(CharacterInfo *ch, int x);
+
+// Script API: Character::get_GraphicOffsetY
+int Character_GetGraphicOffsetY(CharacterInfo *ch);
+
+// Script API: Character::set_GraphicOffsetY
+void Character_SetGraphicOffsetY(CharacterInfo *ch, int y);
+
+// Script API: Character::get_Shader
+ScriptShaderInstance *Character_GetShader(CharacterInfo *ch);
+
+// Script API: Character::set_Shader
+void Character_SetShader(CharacterInfo *ch, ScriptShaderInstance *shader_inst);
+
+// Script API: Character::get_GraphicRotation
+float Character_GetRotation(CharacterInfo *ch);
+
+// Script API: Character::set_GraphicRotation
+void Character_SetRotation(CharacterInfo *ch, float degrees);
+
+// Script API: Character::get_GraphicPivotX
+float Character_GetGraphicPivotX(CharacterInfo *ch);
+
+// Script API: Character::set_GraphicPivotX
+void Character_SetGraphicPivotX(CharacterInfo *ch, float pivotx);
+
+// Script API: Character::get_GraphicPivotY
+float Character_GetGraphicPivotY(CharacterInfo *ch);
+
+// Script API: Character::set_GraphicPivotY
+void Character_SetGraphicPivotY(CharacterInfo *ch, float pivoty);
+
+// Script API: Character::get_GraphicPivotOffsetX
+int Character_GetGraphicPivotOffsetX(CharacterInfo *ch);
+
+// Script API: Character::set_GraphicPivotOffsetX
+void Character_SetGraphicPivotOffsetX(CharacterInfo *ch, int px);
+
+// Script API: Character::get_GraphicPivotOffsetY
+int Character_GetGraphicPivotOffsetY(CharacterInfo *ch);
+
+// Script API: Character::set_GraphicPivotOffsetY
+void Character_SetGraphicPivotOffsetY(CharacterInfo *ch, int py);
+
+// Script API: Character::get_FaceDirectionRatio
+float Character_GetFaceDirectionRatio(CharacterInfo *ch);
+
+// Script API: Character::set_FaceDirectionRatio
+void Character_SetFaceDirectionRatio(CharacterInfo *ch, float ratio);
+
+// Script API: Character::get_Turning
+bool Character_GetTurning(CharacterInfo *ch);
+
+// Script API: Character::get_TurnWhenFacing
+int Character_GetTurnWhenFacing(CharacterInfo *ch);
+
+// Script API: Character::set_TurnWhenFacing
+void Character_SetTurnWhenFacing(CharacterInfo *ch, int on);
+
+// Script API: Character::get_UseRegionTint
+bool Character_GetUseRegionTint(CharacterInfo *ch);
+
+// Script API: Character::set_UseRegionTint
+void Character_SetUseRegionTint(CharacterInfo *ch, int yesorno);
+
+// Script API: Character::get_ViewAnchorX
+float Character_GetViewAnchorX(CharacterInfo *ch);
+
+// Script API: Character::get_ViewAnchorY
+float Character_GetViewAnchorY(CharacterInfo *ch);
+
+// Script API: Character::get_ViewOffsetX
+int Character_GetViewOffsetX(CharacterInfo *ch);
+
+// Script API: Character::get_ViewOffsetY
+int Character_GetViewOffsetY(CharacterInfo *ch);
+
+// Script API: Character::get_MotionPath
+ScriptMotionPath *Character_GetMotionPath(CharacterInfo *ch);
+
+// Script API: Character::GetAtScreenXY^3
+CharacterInfo *Character_GetAtScreenXY(int x, int y, int hit_options);
+
+// Script API: Character::GetAtScreenXY^2
+CharacterInfo *Character_GetAtScreenXY2(int x, int y);
+
+// Script API: Character::GetAtRoomXY^3
+CharacterInfo *Character_GetAtRoomXY(int x, int y, int hit_options);
+
+// Script API: Character::GetAtRoomXY^2
+CharacterInfo *Character_GetAtRoomXY2(int x, int y);
+
+// Script API: Character::GetByName, Character::GetByScriptName
+CharacterInfo *Character_GetByName(const char *name);
