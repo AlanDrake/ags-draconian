@@ -92,7 +92,7 @@ indent_size = 4
 trim_trailing_whitespace = false
 
 # Third-party code: keep upstream formatting, no analyzers
-[{libsrc/**,Common/libsrc/**,Common/libinclude/**,Engine/libsrc/**,Editor/scintilla/**,Editor/AGS.Controls/ScintillaNET/**,Editor/AGS.Controls/AdressBarEx/**,Plugins/agslua/**}]
+[{libsrc/**,Common/libsrc/**,Common/libinclude/**,Engine/libsrc/**,Editor/scintilla/**,Editor/AGS.Controls/ScintillaNET/**,Plugins/agslua/**}]
 generated_code = true
 trim_trailing_whitespace = false
 insert_final_newline = unset

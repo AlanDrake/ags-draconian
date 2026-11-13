@@ -15,7 +15,7 @@ a new version. Each directory below has a `.clang-format` with `DisableFormat: t
 | `libsrc/` | allegro (trimmed 4.x), freetype, glm, miniz, mojoAL, sdl_ttf, stb, tinyxml2 |
 | `Common/libsrc/`, `Common/libinclude/` | aastr, googletest, ogg/theora/vorbis headers |
 | `Engine/libsrc/` | apeg, glad, ogg, theora, vorbis |
-| `Editor/scintilla/`, `Editor/AGS.Controls/ScintillaNET/`, `Editor/AGS.Controls/AdressBarEx/` | Scintilla and the .NET wrappers |
+| `Editor/scintilla/`, `Editor/AGS.Controls/ScintillaNET/` | Scintilla and its .NET wrapper |
 | `Plugins/agslua/` | Lua plugin with bundled Lua/zlib (removal candidate, PLAN.md 7.2) |
 
 A new vendored library gets the same stub, an entry in the `.editorconfig` third-party section and

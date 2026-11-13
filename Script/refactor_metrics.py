@@ -21,7 +21,7 @@ import sys
 
 # Third-party / generated code: never measured, never reformatted
 THIRD_PARTY = re.compile(r'(^|/)(libsrc|libinclude|googletest|_deps|build|bin|obj|packages|References'
-                         r'|scintilla|ScintillaNET|AdressBarEx)(/|$)'
+                         r'|scintilla|ScintillaNET)(/|$)'
                          r'|^Plugins/agslua/agslua/(lualibhelp|zlib)')
 CPP_EXT = ('.cpp', '.c', '.h', '.hpp', '.inl')
 MODULES = ['Common', 'Engine', 'Compiler', 'Tools', 'Plugins', 'Editor']
