@@ -1,0 +1,74 @@
+using System.Collections.Generic;
+using AGS.Types;
+
+namespace AGS.Editor
+{
+    /// <summary>
+    /// How an item of a room layer is listed in the room editor's layer tree.
+    /// </summary>
+    public enum RoomLayerItemState
+    {
+        /// <summary>
+        /// Listed in the layer.
+        /// </summary>
+        Normal,
+        /// <summary>
+        /// An area with properties set but no pixels in its mask: listed in the layer, marked.
+        /// </summary>
+        NothingDrawn,
+        /// <summary>
+        /// An area with no pixels in its mask and default properties: listed in the layer's
+        /// "Unused" group.
+        /// </summary>
+        Unused
+    }
+
+    /// <summary>
+    /// The part of a room editor layer that the layer tree reads and writes. It has no UI types,
+    /// so the tree's model can be tested and shared with another front end.
+    /// </summary>
+    public interface IRoomLayer
+    {
+        /// <summary>
+        /// Internal ID of the layer; also its element in the room's design-time user file.
+        /// </summary>
+        string Name { get; }
+        /// <summary>
+        /// Displayed name of the layer.
+        /// </summary>
+        string DisplayName { get; }
+        /// <summary>
+        /// Which room's mask is associated with this layer. Only one layer with a mask
+        /// is visible at a time.
+        /// </summary>
+        RoomAreaMaskType MaskToDraw { get; }
+        /// <summary>
+        /// Whether layer items may be shown/hidden in the editor.
+        /// </summary>
+        bool SupportVisibleItems { get; }
+        /// <summary>
+        /// Gets/sets if this layer is visible.
+        /// </summary>
+        bool Visible { get; set; }
+        /// <summary>
+        /// Gets/sets if this layer is locked (cannot be modified).
+        /// </summary>
+        bool Locked { get; set; }
+        /// <summary>
+        /// Gets/sets whether the design-time properties of the layer or items were modified.
+        /// </summary>
+        bool Modified { get; set; }
+        /// <summary>
+        /// The dictionary that maps an item ID to its design-time properties.
+        /// </summary>
+        SortedDictionary<string, DesignTimeProperties> DesignItems { get; }
+        /// <summary>
+        /// Gets a human-readable room item's name.
+        /// </summary>
+        string GetItemName(string id);
+        /// <summary>
+        /// Tells how the item is listed in the layer tree.
+        /// </summary>
+        RoomLayerItemState GetItemState(string id);
+    }
+}
