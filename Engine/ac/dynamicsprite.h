@@ -94,3 +94,6 @@ void detach_dynsprite_surface(int slot);
 // Called when a drawing surface of the sprite is released: if "modified", notifies the game objects that use
 // the sprite, then detaches the surfaces and clears the sprite's "surface acquired" flag.
 void on_dynsprite_surface_release(int slot, bool modified);
+
+// Script API: DynamicSprite::CreateFromScreenShot^2
+ScriptDynamicSprite *DynamicSprite_CreateFromScreenShot2(int width, int height);
