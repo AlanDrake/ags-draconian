@@ -413,7 +413,6 @@
     <ClCompile Include="..\..\Engine\ac\global_gui.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_room.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_screen.cpp" />
-    <ClCompile Include="..\..\Engine\ac\global_timer.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_translation.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_video.cpp" />
     <ClCompile Include="..\..\Engine\ac\gui.cpp" />
@@ -702,7 +701,6 @@
     <ClInclude Include="..\..\Engine\ac\global_gui.h" />
     <ClInclude Include="..\..\Engine\ac\global_room.h" />
     <ClInclude Include="..\..\Engine\ac\global_screen.h" />
-    <ClInclude Include="..\..\Engine\ac\global_timer.h" />
     <ClInclude Include="..\..\Engine\ac\global_translation.h" />
     <ClInclude Include="..\..\Engine\ac\global_video.h" />
     <ClInclude Include="..\..\Engine\ac\gui.h" />

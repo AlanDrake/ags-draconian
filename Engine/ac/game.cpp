@@ -2166,3 +2166,50 @@ const char *GameInfo_GetVersion()
 
 #include "debug/out.h"
 #include "script/script_runtime.h"
+
+bool AssertTimerID(const char *api_name, int tnum)
+{
+    if (tnum < 0)
+    {
+        debug_script_error("%s: invalid timer id %d, must be a number >= 0", api_name, tnum);
+        return false;
+    }
+    return true;
+}
+
+void SetTimer(int tnum, int timeout)
+{
+    if (!AssertTimerID("SetTimer", tnum))
+        return;
+
+    if (timeout > 0)
+    {
+        play.StartScriptTimer(tnum, timeout);
+    }
+    else if (timeout == 0)
+    {
+        play.StopScriptTimer(tnum);
+    }
+    else
+    {
+        debug_script_warn("SetTimer: invalid timeout %d for timer id %d, timeout must be a positive number to start "
+                          "the timer, or 0 to stop the timer",
+                          timeout, tnum);
+    }
+}
+
+int GetTimerPos(int tnum)
+{
+    if (!AssertTimerID("GetTimerPos", tnum))
+        return -1;
+
+    return play.GetScriptTimerPos(tnum);
+}
+
+int IsTimerExpired(int tnum)
+{
+    if (!AssertTimerID("IsTimerExpired", tnum))
+        return 0;
+
+    return play.CheckScriptTimer(tnum);
+}

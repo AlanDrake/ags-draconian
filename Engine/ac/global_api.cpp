@@ -33,7 +33,6 @@
 #include "ac/global_gui.h"
 #include "ac/global_room.h"
 #include "ac/global_screen.h"
-#include "ac/global_timer.h"
 #include "ac/global_translation.h"
 #include "ac/global_video.h"
 #include "ac/math.h"

@@ -593,3 +593,7 @@ extern CCWalkableArea ccDynamicWalkarea;
 
 // Used by the script bindings in game/script_api/room_api.cpp
 extern CCWalkbehind ccDynamicWalkbehind;
+
+void SetTimer(int tnum, int timeout);
+int GetTimerPos(int tnum);
+int IsTimerExpired(int tnum);
