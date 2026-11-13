@@ -88,3 +88,125 @@ void GUIControl_SetSize(GUIControl *control, int new_width, int new_height);
 // GUIControl.SendToBack and BringToFront: move the control to the bottom or the top of its GUI's drawing order.
 void GUIControl_SendToBack(GUIControl *control);
 void GUIControl_BringToFront(GUIControl *control);
+
+class ScriptShaderInstance;
+
+// Script API: GUIControl::GetAtScreenXY^2
+AGS::Common::GUIObject *GUIControl_GetAtScreenXY2(int x, int y);
+
+// Script API: GUIControl::get_ScriptName
+const char *GUIControl_GetScriptName(GUIControl *control);
+
+// Script API: GUIControl::get_Rotation
+float GUIControl_GetRotation(GUIControl *control);
+
+// Script API: GUIControl::set_Rotation
+void GUIControl_SetRotation(GUIControl *control, float rotation);
+
+// Script API: GUIControl::get_ScaleX
+float GUIControl_GetScaleX(GUIControl *control);
+
+// Script API: GUIControl::set_ScaleX
+void GUIControl_SetScaleX(GUIControl *control, float scalex);
+
+// Script API: GUIControl::get_ScaleY
+float GUIControl_GetScaleY(GUIControl *control);
+
+// Script API: GUIControl::set_ScaleY
+void GUIControl_SetScaleY(GUIControl *control, float scaley);
+
+// Script API: GUIControl::SetScale
+void GUIControl_SetScale(GUIControl *control, float scalex, float scaley);
+
+// Script API: GUIControl::GetGraphicPosition^0
+void *GUIControl_GetGraphicPosition(GUIControl *control);
+
+// Script API: GUIControl::GetGraphicBoundBox^0
+void *GUIControl_GetGraphicBoundBox(GUIControl *control);
+
+// Script API: GUIControl::get_BackgroundColor
+int GUIControl_GetBackgroundColor(GUIControl *control);
+
+// Script API: GUIControl::set_BackgroundColor
+void GUIControl_SetBackgroundColor(GUIControl *control, int color);
+
+// Script API: GUIControl::get_BorderColor
+int GUIControl_GetBorderColor(GUIControl *control);
+
+// Script API: GUIControl::set_BorderColor
+void GUIControl_SetBorderColor(GUIControl *control, int color);
+
+// Script API: GUIControl::get_BorderWidth
+int GUIControl_GetBorderWidth(GUIControl *control);
+
+// Script API: GUIControl::set_BorderWidth
+void GUIControl_SetBorderWidth(GUIControl *control, int size);
+
+// Script API: GUIControl::get_PaddingX
+int GUIControl_GetPaddingX(GUIControl *control);
+
+// Script API: GUIControl::set_PaddingX
+void GUIControl_SetPaddingX(GUIControl *control, int padding);
+
+// Script API: GUIControl::get_PaddingY
+int GUIControl_GetPaddingY(GUIControl *control);
+
+// Script API: GUIControl::set_PaddingY
+void GUIControl_SetPaddingY(GUIControl *control, int padding);
+
+// Script API: GUIControl::get_ShowBorder
+bool GUIControl_GetShowBorder(GUIControl *control);
+
+// Script API: GUIControl::set_ShowBorder
+void GUIControl_SetShowBorder(GUIControl *control, bool on);
+
+// Script API: GUIControl::get_SolidBackground
+bool GUIControl_GetSolidBackground(GUIControl *control);
+
+// Script API: GUIControl::set_SolidBackground
+void GUIControl_SetSolidBackground(GUIControl *control, bool on);
+
+// Script API: GUIControl::get_Translated
+bool GUIControl_GetTranslated(GUIControl *control);
+
+// Script API: GUIControl::set_Translated
+void GUIControl_SetTranslated(GUIControl *control, bool is_translated);
+
+// Script API: GUIControl::get_Opacity
+int GUIControl_GetOpacity(GUIControl *control);
+
+// Script API: GUIControl::set_Opacity
+void GUIControl_SetOpacity(GUIControl *control, int alpha);
+
+// Script API: GUIControl::get_Transparency
+int GUIControl_GetTransparency(GUIControl *control);
+
+// Script API: GUIControl::set_Transparency
+void GUIControl_SetTransparency(GUIControl *control, int trans);
+
+// Script API: GUIControl::get_BlendMode
+int GUIControl_GetBlendMode(GUIControl *control);
+
+// Script API: GUIControl::set_BlendMode
+void GUIControl_SetBlendMode(GUIControl *control, int blend_mode);
+
+// Script API: GUIControl::GetProperty^1
+int GUIControl_GetProperty(GUIControl *control, const char *property);
+
+// Script API: GUIControl::GetTextProperty^1
+const char *GUIControl_GetTextProperty(GUIControl *control, const char *property);
+
+// Script API: GUIControl::SetProperty^2
+bool GUIControl_SetProperty(GUIControl *control, const char *property, int value);
+
+// Script API: GUIControl::SetTextProperty^2
+bool GUIControl_SetTextProperty(GUIControl *control, const char *property, const char *value);
+
+// Script API: GUIControl::get_Shader
+ScriptShaderInstance *GUIControl_GetShader(GUIControl *control);
+
+// Script API: GUIControl::set_Shader
+void GUIControl_SetShader(GUIControl *control, ScriptShaderInstance *shader_inst);
+
+// Script API: GUIControl::GetByName, GUIControl::GetByScriptName
+GUIControl *GUIControl_GetByName(const char *name);

@@ -417,12 +417,12 @@ void GUIControl_SetOpacity(GUIControl *control, int alpha)
 }
 
 // [OBSOLETE] the AGS 4.0 Transparency, for compiled 4.0 games
-static int GUIControl_GetTransparency(GUIControl *control)
+int GUIControl_GetTransparency(GUIControl *control)
 {
     return GfxDef::OpacityToTrans100(control->GetOpacity());
 }
 
-static void GUIControl_SetTransparency(GUIControl *control, int trans)
+void GUIControl_SetTransparency(GUIControl *control, int trans)
 {
     if ((trans < 0) || (trans > 100))
         quit("!SetGUITransparency: transparency value must be between 0 and 100");
