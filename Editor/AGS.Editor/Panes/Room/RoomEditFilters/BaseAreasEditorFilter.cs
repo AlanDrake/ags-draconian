@@ -52,6 +52,9 @@ namespace AGS.Editor
         private Bitmap _undoBufferMask;
         // Which area numbers have pixels in the mask; null until counted
         private bool[] _drawnAreas;
+        // The recount after strokes, pending; strokes recount at most this often
+        private TickOnceTimer _drawnAreasRecount;
+        private const int DRAWN_AREAS_RECOUNT_MS = 4000;
 
         // FIXME: why these are "static"? investigate, and change what's possible to to regular (except icons?)
         // Active draw mode, may be modified by temporary states or actions
@@ -292,7 +295,7 @@ namespace AGS.Editor
                 FillAreaOntoMask(x, y);
                 _room.Modified = true;
                 UpdateUndoButtonEnabledState();
-                UpdateDrawnAreas();
+                StrokeDrawn(_drawingWithArea);
             }
             else if (drawMode == AreaDrawMode.Select)
             {
@@ -344,12 +347,12 @@ namespace AGS.Editor
             }
             else
             {
-                // A freehand stroke drew on every mouse move: count once, at its end
+                // A freehand stroke drew on every mouse move: account for it once, at its end
                 if (drawMode == AreaDrawMode.Freehand)
-                    UpdateDrawnAreas();
+                    StrokeDrawn(_drawingWithArea);
                 return false;
             }
-            UpdateDrawnAreas();
+            StrokeDrawn(_drawingWithArea);
             return true;
         }
 
@@ -641,6 +644,9 @@ namespace AGS.Editor
 
         public void Dispose()
         {
+            // The room may be gone when it would tick
+            _drawnAreasRecount?.Dispose();
+            _drawnAreasRecount = null;
             _tooltip.Dispose();
             UndoBufferMask = null; // Dispose is invoked inside the property setter
         }
@@ -672,6 +678,35 @@ namespace AGS.Editor
         public void ForgetDrawnAreas()
         {
             _drawnAreas = null;
+        }
+
+        /// <summary>
+        /// After a stroke (or a fill) drew with an area: an area drawn for the first time is
+        /// listed as used at once, without a count. The count, which also finds the areas a
+        /// stroke erased or drew over, runs at most every few seconds, never during a stroke.
+        /// </summary>
+        private void StrokeDrawn(int area)
+        {
+            if (area != 0 && _drawnAreas != null && !_drawnAreas[area])
+            {
+                _drawnAreas[area] = true;
+                OnItemsChanged?.Invoke(this, EventArgs.Empty);
+            }
+            ScheduleDrawnAreasRecount();
+        }
+
+        private void ScheduleDrawnAreasRecount()
+        {
+            if (_drawnAreasRecount != null)
+                return;
+            _drawnAreasRecount = TickOnceTimer.CreateAndStart(DRAWN_AREAS_RECOUNT_MS, (sender, e) =>
+            {
+                _drawnAreasRecount = null;
+                if (_mouseDown)
+                    ScheduleDrawnAreasRecount();
+                else
+                    UpdateDrawnAreas();
+            });
         }
 
         /// <summary>
