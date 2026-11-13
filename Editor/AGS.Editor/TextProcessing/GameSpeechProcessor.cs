@@ -151,6 +151,10 @@ namespace AGS.Editor
             _scriptName = scriptName;
             _parserState = state;
 
+            // The parser reads the original script; the replaced strings go into a copy,
+            // so that every index stays in the original
+            StringBuilder result = _makesChanges ? new StringBuilder(script.Length) : null;
+            int copiedUpTo = 0;
             while (state.CharIndex < script.Length)
             {
 				ScriptParsing.SkipComments(state);
@@ -190,21 +194,19 @@ namespace AGS.Editor
                             string modifiedString = CreateSpeechLine(textLine, GameTextType.Script);
                             if (_makesChanges)
                             {
-                                string scriptBeforeString = script.Substring(0, stringStartIndex + 1);
-                                string scriptAfterString = script.Substring(stringEndIndex);
-                                script = scriptBeforeString + modifiedString + scriptAfterString;
-                                state.SetAt(stringStartIndex + modifiedString.Length + 1);
-                            }
-                            else
-                            {
-                                state.SetAt(stringStartIndex + mainString.Length + 1);
+                                result.Append(script, copiedUpTo, stringStartIndex + 1 - copiedUpTo);
+                                result.Append(modifiedString);
+                                copiedUpTo = stringEndIndex;
                             }
                         }
                     }
                 }
                 state.Forward();
             }
-            return script;
+            if (!_makesChanges)
+                return script;
+            result.Append(script, copiedUpTo, script.Length - copiedUpTo);
+            return result.ToString();
         }
 
         private static bool IsRealScriptLineInDialog(string theLine)

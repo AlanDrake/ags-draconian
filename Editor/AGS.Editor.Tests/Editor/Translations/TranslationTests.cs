@@ -977,5 +977,19 @@ msgstr ""réplique active""
             word.IsObsolete = false;
             Assert.AreEqual("PARSERWORD:7", word.Context);
         }
+
+        [Test]
+        public void ReplaceScriptStringsOfOtherLengths_Test()
+        {
+            // Each string is replaced where it is in the script, whatever the length of the ones before it
+            var entries = new Dictionary<string, TranslationEntry>();
+            entries.Add("Hi", new TranslationEntry("Hi", "Bonjour à tous"));
+            entries.Add("A long goodbye", new TranslationEntry("A long goodbye", "Salut"));
+            entries.Add("Bye", new TranslationEntry("Bye", "Adieu"));
+            var processor = new TextImportProcessor(new Game(), new CompileMessages(), entries);
+
+            Assert.AreEqual("Display(\"Bonjour à tous\"); Display(\"Salut\"); Display(\"Adieu\");",
+                processor.ProcessText(GameTextLine.MakeScript("Display(\"Hi\"); Display(\"A long goodbye\"); Display(\"Bye\");", "GlobalScript.asc"), GameTextType.Script));
+        }
     }
 }
