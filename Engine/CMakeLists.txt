@@ -292,6 +292,7 @@ target_sources(engine
     game/script_api/joystick_api.cpp
     game/script_api/label_api.cpp
     game/script_api/list_box_api.cpp
+    game/script_api/math_api.cpp
     game/viewport.cpp
     game/viewport.h
     gfx/ali3dexception.h

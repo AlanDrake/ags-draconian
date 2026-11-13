@@ -404,6 +404,7 @@
 		446905E849DD61FF38D3DDB1 /* guitextbasedcontrol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2DA008409EED7B1237B212EB /* guitextbasedcontrol.cpp */; };
 		47A6B24A7B6BF4194DEA92F4 /* ftotval.c in Sources */ = {isa = PBXBuildFile; fileRef = F5EF87B10D4F11856775A329 /* ftotval.c */; };
 		47DF6172F87069F968D76FE2 /* runtimescript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D801C943CE1144C62BE3ED31 /* runtimescript.cpp */; };
+		4E3D64B3718D94FAA82B6B69 /* math_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D3EFBA766D06458AA74A70C6 /* math_api.cpp */; };
 		4E953C8C403C3B941987E67A /* ftgzip.c in Sources */ = {isa = PBXBuildFile; fileRef = ADDC74EAF35AAD83AA37E428 /* ftgzip.c */; };
 		4F806FEC6A8F0B30205FDCB6 /* ftfstype.c in Sources */ = {isa = PBXBuildFile; fileRef = 7AEB00D414591381CAE19C48 /* ftfstype.c */; };
 		521C3BEE1D1E545100BD619E /* AGSKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 521C3BED1D1E545100BD619E /* AGSKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -1828,6 +1829,7 @@
 		D1951FD077B9BD92B865D508 /* date_time_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = date_time_api.cpp; sourceTree = "<group>"; };
 		D1B84DAA861E34E425449546 /* ftbase.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftbase.c; sourceTree = "<group>"; };
 		D3C90916902283B2FC3E6203 /* blender.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = blender.cpp; sourceTree = "<group>"; };
+		D3EFBA766D06458AA74A70C6 /* math_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = math_api.cpp; sourceTree = "<group>"; };
 		D6207D2C60F531932AE5F1DC /* scriptjoystick.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scriptjoystick.cpp; sourceTree = "<group>"; };
 		D6709585E1E045AD5956018E /* hotspot_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = hotspot_api.cpp; sourceTree = "<group>"; };
 		D801C943CE1144C62BE3ED31 /* runtimescript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = runtimescript.cpp; sourceTree = "<group>"; };
@@ -3629,6 +3631,7 @@
 				08B5D07F9D6726C875E79B61 /* joystick_api.cpp */,
 				AED2A0C62958B0AB18892BF4 /* label_api.cpp */,
 				C6FA3A6AFC0998497092E44D /* list_box_api.cpp */,
+				D3EFBA766D06458AA74A70C6 /* math_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4678,6 +4681,7 @@
 				881BA9B7CEFFC1E682E93236 /* joystick_api.cpp in Sources */,
 				067426243EC32E87D4D82906 /* label_api.cpp in Sources */,
 				6E758C7EF1970EDD1CA9E0CA /* list_box_api.cpp in Sources */,
+				4E3D64B3718D94FAA82B6B69 /* math_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
