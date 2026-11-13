@@ -1007,8 +1007,7 @@ U.5, U.7, U.9) are only there.
     repaints when the width it drew for changes.
   - Moving the canvas into the bar's row put it under the 45-pixel transparency slider (now 26, no ticks).
 - **Lesson:** a command chain that greps the build output for a summary hides a failed build; check the build's exit
-  code (the user's running editor locked `SDL2.dll` in the output folder; `ec0365375` was verified after the user
-  closed it).
+  code (`ec0365375` was committed after such a failure and verified by a second run).
 - **Not verified:** the editor's room pane at high DPI and with a dark theme file that defines the new
   `room-editor/tree/*` keys (none exists); the double-buffer removal by the user's eye after the commit.
 
