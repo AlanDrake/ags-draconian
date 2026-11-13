@@ -278,6 +278,7 @@ target_sources(engine
     game/script_api/audio_clip_api.cpp
     game/script_api/button_api.cpp
     game/script_api/character_api.cpp
+    game/script_api/containers_api.cpp
     game/script_api/date_time_api.cpp
     game/script_api/dialog_api.cpp
     game/script_api/dialog_options_rendering_api.cpp
