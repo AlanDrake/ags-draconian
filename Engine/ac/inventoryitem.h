@@ -55,3 +55,39 @@ void set_inv_item_cursorpic(int item_id, int sprite);
 
 // Subscribes to changes of the dynamic sprites that items use, to update the inventory GUIs.
 void InvItems_RegisterDynamicSpriteCallbacks();
+
+// Script API: InventoryItem::get_CursorHotspotAlignment
+int InventoryItem_GetCursorHotspotAlignment(ScriptInvItem *item);
+
+// Script API: InventoryItem::set_CursorHotspotAlignment
+void InventoryItem_SetCursorHotspotAlignment(ScriptInvItem *item, int align);
+
+// Script API: InventoryItem::get_CursorHotspotX
+int InventoryItem_GetCursorHotspotX(ScriptInvItem *item);
+
+// Script API: InventoryItem::set_CursorHotspotX
+void InventoryItem_SetCursorHotspotX(ScriptInvItem *item, int hotspot_x);
+
+// Script API: InventoryItem::get_CursorHotspotY
+int InventoryItem_GetCursorHotspotY(ScriptInvItem *item);
+
+// Script API: InventoryItem::set_CursorHotspotY
+void InventoryItem_SetCursorHotspotY(ScriptInvItem *item, int hotspot_y);
+
+// Script API: InventoryItem::get_ScriptName
+const char *InventoryItem_GetScriptName(ScriptInvItem *item);
+
+// Script API: InventoryItem::GetAtScreenXY^4
+ScriptInvItem *InventoryItem_GetAtScreenXY(int x, int y, int gui_hitoptions, int inv_hitoptions);
+
+// Script API: InventoryItem::GetAtScreenXY^2
+ScriptInvItem *InventoryItem_GetAtScreenXY2(int x, int y);
+
+// Script API: InventoryItem::SetProperty^2
+bool InventoryItem_SetProperty(ScriptInvItem *item, const char *property, int value);
+
+// Script API: InventoryItem::SetTextProperty^2
+bool InventoryItem_SetTextProperty(ScriptInvItem *item, const char *property, const char *value);
+
+// Script API: InventoryItem::GetByName, InventoryItem::GetByScriptName
+ScriptInvItem *InventoryItem_GetByName(const char *name);
