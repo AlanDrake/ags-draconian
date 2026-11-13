@@ -13,6 +13,7 @@
 //=============================================================================
 #pragma once
 
+#include <cstdint>
 #include <unordered_map>
 #include <vector>
 
@@ -113,3 +114,6 @@ bool ResolvePointerArray(const void *arrobj, std::vector<void *> &objects);
 // which define object address, manager and handle
 bool ResolvePointerArray(const void *arrobj, std::vector<DynObjectRef> &objects);
 }; // namespace DynamicArrayHelpers
+
+// Used by the script bindings in game/script_api/dynamic_array_api.cpp
+int32_t DynamicArray_Length(void *untyped_dynarray);
