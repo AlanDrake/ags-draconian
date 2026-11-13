@@ -969,7 +969,8 @@ U.5, U.7, U.9) are only there.
   toggles) becomes a tree on the left of the room pane, like the sprite manager's; the many empty hotspot and area
   slots must not fill it. The last planned WinForms UI change, done before 6.8 so the Avalonia front end ports one
   settled design. *Done when:* model tests, `prepush` `msbuild`, and the user's check in the running editor.
-- **Result** (2026-11-13, branch `room-layer-tree`, 12 commits `46de67761`..`ec0365375`):
+- **Result** (2026-11-13, branch `room-layer-tree`, 12 commits `46de67761`..`ec0365375` and the fixes below;
+  merged into `ags4draconianr21` the same day):
   - Model without UI: `RoomLayerTree` / `RoomLayerNode` over `IRoomLayer` (the part of `IRoomEditorFilter` the tree
     uses). Nodes keyed by layer `Name` + item ID (the bar keyed them by display name and guessed renames). One layer
     with a mask visible at a time; a hidden layer selected is shown while it stays selected, then hidden again with

@@ -74,8 +74,8 @@ Recorded 2026-10-31.
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
-0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 6.7d, 7.1 (but 7.1n) (LOG.md); 3.2 with 3.2c
-(CI-confirmed 2026-11-08); 6.9 on branch `room-layer-tree`, for the user to merge (2026-11-13). The fork does not wait for upstream review (the user, 2026-11-09): a fork-only
+0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 6.7d, 6.9, 7.1 (but 7.1n) (LOG.md); 3.2 with 3.2c
+(CI-confirmed 2026-11-08). The fork does not wait for upstream review (the user, 2026-11-09): a fork-only
 move that would conflict with an open offer is preceded by a tag of the pre-move tree for `port.py`.
 
 | # | Task | Why now | Model / effort |
@@ -520,7 +520,7 @@ Framework-only.
   Linux and macOS, and `AGS.Editor.Core` loads it on Windows and Linux in CI.
 - [ ] **6.8 Avalonia front end** (after 6.3, 6.7 and 6.9), on a branch over `AGS.Editor.Core`, read-only
   views first (project tree, room viewer). Planned in its own document once the core exists.
-- [x] **6.9 Room editor layer tree** (the user, 2026-11-13; done 2026-11-13 on branch `room-layer-tree`, LOG.md).
+- [x] **6.9 Room editor layer tree** (the user, 2026-11-13; done and merged 2026-11-13, LOG.md).
   The last planned WinForms UI change, done before 6.8 so the Avalonia front end ports one settled design: the
   breadcrumb bar became a tree on the left of the room pane (`RoomLayerTree` without UI, `RoomLayerTreeView`), the
   unused area slots in a collapsed "Unused (n)" group (`RoomAreaUsage`), the bar and `AdressBarEx` deleted.
