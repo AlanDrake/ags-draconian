@@ -122,3 +122,75 @@ int mask_to_room_coord(int coord);
 
 // The single global "current room" instance
 extern AGS::Common::RoomStruct thisroom;
+
+class ScriptPathfinder;
+class ScriptShaderInstance;
+struct ScriptHotspot;
+struct ScriptObject;
+struct ScriptRegion;
+struct ScriptUserObject;
+struct ScriptWalkableArea;
+struct ScriptWalkbehind;
+
+// Script API: Room::get_HotspotCount
+int Room_GetHotspotCount();
+
+// Script API: Room::get_RegionCount
+int Room_GetRegionCount();
+
+// Script API: Room::get_WalkableAreaCount
+int Room_GetWalkableAreaCount();
+
+// Script API: Room::get_WalkbehindCount
+int Room_GetWalkbehindCount();
+
+// Script API: Room::get_BackgroundCount
+int Room_GetBackgroundCount();
+
+// Script API: Room::get_BackgroundShader
+ScriptShaderInstance *Room_GetBackgroundShader();
+
+// Script API: Room::set_BackgroundShader
+void Room_SetBackgroundShader(ScriptShaderInstance *shader_inst);
+
+// Script API: Room::SetProperty^2
+bool Room_SetProperty(const char *property, int value);
+
+// Script API: Room::SetTextProperty^2
+bool Room_SetTextProperty(const char *property, const char *value);
+
+// Script API: Room::get_FaceDirectionRatio
+float Room_GetFaceDirectionRatio();
+
+// Script API: Room::set_FaceDirectionRatio
+void Room_SetFaceDirectionRatio(float ratio);
+
+// Script API: Room::get_Name
+const char *Room_GetName();
+
+// Script API: Room::get_Number
+int Room_GetNumber();
+
+// Script API: Room::Exists
+bool Room_Exists(int room);
+
+// Script API: Room::NearestWalkableArea^2
+ScriptUserObject *Room_NearestWalkableArea(int x, int y);
+
+// Script API: Room::geti_Hotspots
+ScriptHotspot *Room_GetiHotspots(int idx);
+
+// Script API: Room::geti_Objects
+ScriptObject *Room_GetiObjects(int idx);
+
+// Script API: Room::geti_Regions
+ScriptRegion *Room_GetiRegions(int idx);
+
+// Script API: Room::geti_WalkableAreas
+ScriptWalkableArea *Room_GetiWalkableAreas(int idx);
+
+// Script API: Room::geti_Walkbehinds
+ScriptWalkbehind *Room_GetiWalkbehinds(int idx);
+
+// Script API: Room::get_PathFinder
+ScriptPathfinder *Room_GetPathFinder();

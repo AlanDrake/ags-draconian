@@ -584,3 +584,12 @@ struct CCRegion;
 
 // Used by the script bindings in game/script_api/region_api.cpp
 extern CCRegion ccDynamicRegion;
+
+struct CCWalkableArea;
+struct CCWalkbehind;
+
+// Used by the script bindings in game/script_api/room_api.cpp
+extern CCWalkableArea ccDynamicWalkarea;
+
+// Used by the script bindings in game/script_api/room_api.cpp
+extern CCWalkbehind ccDynamicWalkbehind;
