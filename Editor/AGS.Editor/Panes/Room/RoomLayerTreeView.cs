@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace AGS.Editor.Panes.Room
@@ -23,9 +22,9 @@ namespace AGS.Editor.Panes.Room
     /// </summary>
     public class RoomLayerTreeView : TreeView
     {
+        // Not TVS_EX_DOUBLEBUFFER: with it, the rows a collapse leaves empty showed garbage
+        // for a moment (2026-11-13)
         private const int TVS_NOHSCROLL = 0x8000;
-        private const int TVM_SETEXTENDEDSTYLE = 0x1100 + 44;
-        private const int TVS_EX_DOUBLEBUFFER = 0x0004;
         private const int WM_LBUTTONDOWN = 0x0201;
         private const int WM_LBUTTONDBLCLK = 0x0203;
         // Width of one toggle column, and the gap between the labels and the columns
@@ -154,7 +153,6 @@ namespace AGS.Editor.Panes.Room
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
-            SendMessage(Handle, TVM_SETEXTENDEDSTYLE, (IntPtr)TVS_EX_DOUBLEBUFFER, (IntPtr)TVS_EX_DOUBLEBUFFER);
             UpdateItemHeight();
         }
 
@@ -385,8 +383,5 @@ namespace AGS.Editor.Panes.Room
             TreeNode[] found = Nodes.Find(key, true);
             return found.Length > 0 ? found[0] : null;
         }
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
     }
 }
