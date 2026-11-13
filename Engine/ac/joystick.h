@@ -17,6 +17,8 @@
 //=============================================================================
 #pragma once
 
+#include <cstdint>
+
 #include "SDL_events.h"
 #include "SDL_gamecontroller.h"
 #include "ac/dynobj/scriptjoystick.h"
@@ -99,3 +101,45 @@ SDL_GameControllerAxis Gamepad_Axis_AGStoSDL(eAGSGamepad_Axis ags_axis);
 SDL_GameControllerButton Gamepad_Button_AGStoSDL(eAGSGamepad_Button ags_button);
 // Converts the SDL gamepad button to the AGS one; an unknown value gives the invalid button.
 eAGSGamepad_Button Gamepad_Button_SDLtoAGS(SDL_GameControllerButton sdl_button);
+
+// Script API: Joystick::get_JoystickCount
+int32_t Joystick_GetJoystickCount();
+
+// Script API: Joystick::geti_Joysticks
+ScriptJoystick *Joystick_GetiJoysticks(int i);
+
+// Script API: Joystick::get_IsAnyButtonDown
+bool Joystick_IsAnyButtonDown(ScriptJoystick *joy);
+
+// Script API: Joystick::get_IsConnected
+int Joystick_IsConnected(ScriptJoystick *joy);
+
+// Script API: Joystick::get_IsGamepad
+int Joystick_IsGamepad(ScriptJoystick *joy);
+
+// Script API: Joystick::get_Name
+const char *Joystick_GetName(ScriptJoystick *joy);
+
+// Script API: Joystick::IsGamepadButtonDown^1
+int Joystick_IsGamepadButtonDown(ScriptJoystick *joy, int button);
+
+// Script API: Joystick::GetGamepadAxis^2
+float Joystick_GetGamepadAxis(ScriptJoystick *joy, int axis, float dead_zone);
+
+// Script API: Joystick::GetAxis^2
+float Joystick_GetAxis(ScriptJoystick *joy, int axis, float dead_zone);
+
+// Script API: Joystick::IsButtonDown^1
+int Joystick_IsButtonDown(ScriptJoystick *joy, int button);
+
+// Script API: Joystick::GetHat^1
+int Joystick_GetHat(ScriptJoystick *joy, int hat);
+
+// Script API: Joystick::get_AxisCount
+int Joystick_GetAxisCount(ScriptJoystick *joy);
+
+// Script API: Joystick::get_ButtonCount
+int Joystick_GetButtonCount(ScriptJoystick *joy);
+
+// Script API: Joystick::get_HatCount
+int Joystick_GetHatCount(ScriptJoystick *joy);
