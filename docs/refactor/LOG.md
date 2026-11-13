@@ -1007,15 +1007,17 @@ U.5, U.7, U.9) are only there.
     without it: the project tree and the sprite folders have it (`TreeViewWithDragDrop`,
     `TreeViewExtensions.EnableDoubleBuffering`). Without it the tree flickered; `9dda6781c` turned it back on through
     that helper (posting the width-change repaint instead of requesting it during painting) and the garbage came
-    back on expanding, so `2ae49b08e` turns it off and repaints only what changes: the eye and lock columns for a
-    visibility or lock change, the shown nodes updated in place when a rebuild moves none. Cause of the garbage not
-    known; drawing whole rows (`OwnerDrawAll`) would keep all drawing inside the rows the native buffer expects. The vertical scroll bar changes the client width without a resize, so the tree repaints
+    back on expanding, so `2ae49b08e` turned it off and repaints only what changes: the eye and lock columns for a
+    visibility or lock change, the shown nodes updated in place when a rebuild moves none. The icons still
+    flickered; the garbage came only with the expand and collapse animation (the user), which no `TVS_EX` style turns
+    off, so `83fa72596` keeps the buffer and freezes drawing from `BeforeExpand` to `AfterExpand` (`BeginUpdate`, a
+    posted thaw as a safety net). Fallback if it shows again: drawing whole rows (`OwnerDrawAll`). The vertical scroll bar changes the client width without a resize, so the tree repaints
     when the width it drew for changes.
   - Moving the canvas into the bar's row put it under the 45-pixel transparency slider (now 26, no ticks).
 - **Lesson:** a command chain that greps the build output for a summary hides a failed build; check the build's exit
   code (`ec0365375` was committed after such a failure and verified by a second run).
 - **Not verified:** the editor's room pane at high DPI and with a dark theme file that defines the new
-  `room-editor/tree/*` keys (none exists); `2ae49b08e` by the user's eye (how much flicker is left).
+  `room-editor/tree/*` keys (none exists); `83fa72596` by the user's eye (garbage on expanding, flicker).
 
 ### 7.1k Incremental room builds in `agsbuild`
 
