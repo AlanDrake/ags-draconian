@@ -54,3 +54,53 @@ AGS::Common::Bitmap *prepare_walkable_areas(int source_char_id);
 int get_walkable_area_at_location(int x, int y);
 // Same for the position of the character char_id.
 int get_walkable_area_at_character(int char_id);
+
+struct ScriptWalkableArea;
+
+// Script API: WalkableArea::GetAtRoomXY^2
+ScriptWalkableArea *Walkarea_GetAtRoomXY(int x, int y);
+
+// Script API: WalkableArea::GetAtScreenXY^2
+ScriptWalkableArea *Walkarea_GetAtScreenXY(int x, int y);
+
+// Script API: WalkableArea::GetByScriptName^1
+ScriptWalkableArea *Walkarea_GetByName(const char *name);
+
+// Script API: WalkableArea::get_ID
+int Walkarea_GetID(ScriptWalkableArea *wa);
+
+// Script API: WalkableArea::get_Enabled
+int Walkarea_GetEnabled(ScriptWalkableArea *wa);
+
+// Script API: WalkableArea::set_Enabled
+void Walkarea_SetEnabled(ScriptWalkableArea *wa, int enable);
+
+// Script API: WalkableArea::SetScaling^2
+void Walkarea_SetScaling(ScriptWalkableArea *wa, int scale_min, int scale_max);
+
+// Script API: WalkableArea::get_ScalingMin
+int Walkarea_GetScalingMin(ScriptWalkableArea *wa);
+
+// Script API: WalkableArea::get_ScalingMax
+int Walkarea_GetScalingMax(ScriptWalkableArea *wa);
+
+// Script API: WalkableArea::get_ScriptName
+const char *Walkarea_GetScriptName(ScriptWalkableArea *wa);
+
+// Script API: WalkableArea::get_FaceDirectionRatio
+float Walkarea_GetFaceDirectionRatio(ScriptWalkableArea *wa);
+
+// Script API: WalkableArea::set_FaceDirectionRatio
+void Walkarea_SetFaceDirectionRatio(ScriptWalkableArea *wa, float ratio);
+
+// Script API: WalkableArea::GetProperty^1
+int Walkarea_GetProperty(ScriptWalkableArea *wa, const char *property);
+
+// Script API: WalkableArea::GetTextProperty^1
+const char *Walkarea_GetTextProperty(ScriptWalkableArea *wa, const char *property);
+
+// Script API: WalkableArea::SetProperty^2
+bool Walkarea_SetProperty(ScriptWalkableArea *wa, const char *property, int value);
+
+// Script API: WalkableArea::SetTextProperty^2
+bool Walkarea_SetTextProperty(ScriptWalkableArea *wa, const char *property, const char *value);
