@@ -833,7 +833,11 @@ def apply_includer(repo, index, fold, path, new, extra):
         lines[i:i + 1] = add if i == hits[0] else []
         if i != hits[0] or not add:
             merge_blank(lines, i)
-    first = hits[0]
+    # an include that was the last line of the file (one that stood above a block moved earlier) leaves
+    # blank lines at the end
+    while lines and not lines[-1].strip():
+        lines.pop()
+    first = min(hits[0], len(lines) - 1)
     if add:
         ranges.append(include_range(lines, first))
     else:
