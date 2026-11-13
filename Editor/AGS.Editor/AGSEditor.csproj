@@ -1189,6 +1189,7 @@
     </Compile>
     <Compile Include="Panes\Room\RoomEditFilters\SelectedRoomItemEventArgs.cs" />
     <Compile Include="Panes\Room\RoomEditNode.cs" />
+    <Compile Include="Panes\Room\RoomAreaUsage.cs" />
     <Compile Include="Panes\Room\RoomLayerTree.cs" />
     <Compile Include="Panes\Room\RoomNodeControl.cs">
       <SubType>UserControl</SubType>
