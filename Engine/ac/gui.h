@@ -256,3 +256,19 @@ ScriptUserObject *GUI_ScreenToGUIPoint(ScriptGUI *sgui, int screen_x, int screen
 
 // Script API: GUI::GUIToScreenPoint
 ScriptUserObject *GUI_GUIToScreenPoint(ScriptGUI *sgui, int gui_x, int gui_y, bool clip_to_gui);
+
+// This is an internal script function, and is undocumented.
+// It is used by the editor's automatic macro generation.
+int FindGUIID(const char *GUIName);
+// Sets GUI visible property on
+void InterfaceOn(int ifn);
+// Sets GUI visible property off
+void InterfaceOff(int ifn);
+
+void DisableInterface();
+void EnableInterface();
+void DisableInterfaceEx(bool update_cursor);
+void EnableInterfaceEx(bool update_cursor);
+// Returns 1 if user interface is enabled, 0 if disabled
+int IsInterfaceEnabled();
+void SetTextWindowGUI(int guinum);

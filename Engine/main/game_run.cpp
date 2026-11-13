@@ -36,7 +36,6 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
-#include "ac/global_gui.h"
 #include "ac/gui.h"
 #include "ac/hotspot.h"
 #include "ac/joystick.h"

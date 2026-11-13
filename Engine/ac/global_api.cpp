@@ -27,7 +27,7 @@
 #include "ac/game.h"
 #include "ac/gamestructdefines.h"
 #include "ac/global_game.h"
-#include "ac/global_gui.h"
+#include "ac/gui.h"
 #include "ac/math.h"
 #include "ac/mouse.h"
 #include "ac/object.h"

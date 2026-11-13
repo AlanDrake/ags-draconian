@@ -146,8 +146,6 @@ target_sources(engine
     ac/global_api.cpp
     ac/global_game.cpp
     ac/global_game.h
-    ac/global_gui.cpp
-    ac/global_gui.h
     ac/gui.cpp
     ac/gui.h
     ac/guicontrol.cpp

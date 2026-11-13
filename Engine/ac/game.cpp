@@ -35,7 +35,6 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
-#include "ac/global_gui.h"
 #include "ac/gui.h"
 #include "ac/hotspot.h"
 #include "ac/inventoryitem.h"
@@ -2279,4 +2278,35 @@ void script_debug(int cmdd, int dataa)
     {
         debug_script_warn("Debug: unknown command code %d", cmdd);
     }
+}
+
+int GetTextWidth(const char *text, int fontnum)
+{
+    VALIDATE_STRING(text);
+    fontnum = ValidateFontNumber("GetTextWidth", fontnum);
+
+    return get_text_width_outlined(text, fontnum);
+}
+
+int GetTextHeight(const char *text, int fontnum, int width)
+{
+    VALIDATE_STRING(text);
+    fontnum = ValidateFontNumber("GetTextHeight", fontnum);
+
+    const char *draw_text = skip_voiceover_token(text);
+    if (break_up_text_into_lines(draw_text, Lines, width, fontnum) == 0)
+        return 0;
+    return get_text_lines_height(fontnum, Lines.Count());
+}
+
+int GetFontHeight(int fontnum)
+{
+    fontnum = ValidateFontNumber("GetFontHeight", fontnum);
+    return get_font_height_outlined(fontnum);
+}
+
+int GetFontLineSpacing(int fontnum)
+{
+    fontnum = ValidateFontNumber("GetFontLineSpacing", fontnum);
+    return get_font_linespacing(fontnum);
 }

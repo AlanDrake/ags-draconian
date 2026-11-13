@@ -599,3 +599,8 @@ int GetTimerPos(int tnum);
 int IsTimerExpired(int tnum);
 
 void script_debug(int cmdd, int dataa);
+
+int GetTextWidth(const char *text, int fontnum);
+int GetTextHeight(const char *text, int fontnum, int width);
+int GetFontHeight(int fontnum);
+int GetFontLineSpacing(int fontnum);
