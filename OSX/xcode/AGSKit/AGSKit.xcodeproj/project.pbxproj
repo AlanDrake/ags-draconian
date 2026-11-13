@@ -12,6 +12,7 @@
 		01F1DF6AC7EECF0D9B3E89EB /* character_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9164661E1C45D12F053F3DAE /* character_api.cpp */; };
 		03980617FE3F3F99D4199AF3 /* date_time_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1951FD077B9BD92B865D508 /* date_time_api.cpp */; };
 		0400CFCEEFBB4FB8B0076D07 /* ftmm.c in Sources */ = {isa = PBXBuildFile; fileRef = E6EA0E08841D08B1EB9560A1 /* ftmm.c */; };
+		06E8F6EE81E21BC83D9D7041 /* drawing_surface_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6540AC9011C790C7219E4A2A /* drawing_surface_api.cpp */; };
 		0A1FC67866E95B3C50F4721E /* type42.c in Sources */ = {isa = PBXBuildFile; fileRef = 2983E0E054F411FA909804E6 /* type42.c */; };
 		0E5407446CA19CFEAF6AEB7C /* pathfinder_script.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EEA872BC9FEC92169B874C31 /* pathfinder_script.cpp */; };
 		14B76FD4C170A650F01AB94F /* type1.c in Sources */ = {isa = PBXBuildFile; fileRef = C1630A3746FAB722822AE847 /* type1.c */; };
@@ -1763,6 +1764,7 @@
 		580CEEFC7CC2866BD52241C0 /* ftlzw.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftlzw.c; sourceTree = "<group>"; };
 		5E6FC94C102CB3EFA2B7966B /* type1cid.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = type1cid.c; sourceTree = "<group>"; };
 		60C60797B8FB10A4E7BBF32F /* aarot.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = aarot.c; sourceTree = "<group>"; };
+		6540AC9011C790C7219E4A2A /* drawing_surface_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = drawing_surface_api.cpp; sourceTree = "<group>"; };
 		667F01794F89805239809766 /* ftbdf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftbdf.c; sourceTree = "<group>"; };
 		6B2503BFE11DEFF4E8364BD4 /* ftdebug.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftdebug.c; sourceTree = "<group>"; };
 		6B93928C083C67DAB8313950 /* dialog_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dialog_api.cpp; sourceTree = "<group>"; };
@@ -3590,6 +3592,7 @@
 				D1951FD077B9BD92B865D508 /* date_time_api.cpp */,
 				6B93928C083C67DAB8313950 /* dialog_api.cpp */,
 				E4E05D962D605A02160B3FD8 /* dialog_options_rendering_api.cpp */,
+				6540AC9011C790C7219E4A2A /* drawing_surface_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4626,6 +4629,7 @@
 				03980617FE3F3F99D4199AF3 /* date_time_api.cpp in Sources */,
 				EFC70E7CD3333A7812797FE1 /* dialog_api.cpp in Sources */,
 				CED738899510DEA093A071EC /* dialog_options_rendering_api.cpp in Sources */,
+				06E8F6EE81E21BC83D9D7041 /* drawing_surface_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
