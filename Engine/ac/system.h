@@ -102,3 +102,5 @@ bool System_GetDisplayFPS();
 
 // Script API: System::set_DisplayFPS
 void System_SetDisplayFPS(bool show_fps);
+
+AGS::Common::String GetRuntimeInfo();

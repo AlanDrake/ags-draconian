@@ -22,10 +22,10 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_debug.h"
 #include "ac/mouse.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
+#include "ac/translation.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "gfx/gfxfilter.h"
@@ -328,4 +328,42 @@ void System_SetDisplayFPS(bool show_fps)
 {
     if (display_fps != kFPS_Forced)
         display_fps = show_fps ? kFPS_Display : kFPS_Hide;
+}
+
+String GetRuntimeInfo()
+{
+    DisplayMode mode = gfxDriver->GetDisplayMode();
+    Rect render_frame = gfxDriver->GetRenderDestination();
+    PGfxFilter filter = gfxDriver->GetGraphicsFilter();
+    const size_t total_normspr = spriteset.GetCacheSize();
+    const size_t total_lockspr = spriteset.GetLockedSize();
+    const size_t total_extspr = spriteset.GetExternalSize();
+    const size_t max_normspr = spriteset.GetMaxCacheSize();
+    const unsigned norm_spr_filled = max_normspr > 0 ? (uint64_t)total_normspr * 100 / max_normspr : 0;
+    size_t max_txcached, total_txcached, total_txlocked, total_txext;
+    texturecache_get_state(max_txcached, total_txcached, total_txlocked, total_txext);
+    const unsigned tx_filled = max_txcached > 0 ? (uint64_t)total_txcached * 100 / max_txcached : 0;
+    String runtimeInfo = String::FromFormat(
+        "%s\nEngine version %s\n"
+        "Game resolution %d x %d (%d-bit)\n"
+        "Running %d x %d at %d-bit%s\nGFX: %s; %s\nDraw frame %d x %d\n"
+        "Sprite cache KB: %zu / %zu (%u%%), locked: %zu, ext: %zu\n"
+        "Texture cache KB: %zu / %zu (%u%%)",
+        get_engine_name(), get_engine_version_and_build().GetCStr(), game.GetGameRes().Width, game.GetGameRes().Height,
+        game.GetColorDepth(), mode.Width, mode.Height, mode.ColorDepth,
+        (mode.IsWindowed() ? " W" : (mode.IsRealFullscreen() ? " F" : " FD")), gfxDriver->GetDriverName(),
+        filter->GetInfo().Name.GetCStr(), render_frame.GetWidth(), render_frame.GetHeight(), total_normspr / 1024,
+        max_normspr / 1024, norm_spr_filled, total_lockspr / 1024, total_extspr / 1024, total_txcached / 1024,
+        max_txcached / 1024, tx_filled);
+    if (play.separate_music_lib)
+        runtimeInfo.Append("\nAUDIO.VOX enabled");
+    if (play.voice_avail)
+        runtimeInfo.Append("\nSPEECH.VOX enabled");
+    if (get_translation_tree().size() > 0)
+    {
+        runtimeInfo.Append("\nUsing translation ");
+        runtimeInfo.Append(get_translation_name());
+    }
+
+    return runtimeInfo;
 }

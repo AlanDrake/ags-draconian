@@ -597,3 +597,5 @@ extern CCWalkbehind ccDynamicWalkbehind;
 void SetTimer(int tnum, int timeout);
 int GetTimerPos(int tnum);
 int IsTimerExpired(int tnum);
+
+void script_debug(int cmdd, int dataa);

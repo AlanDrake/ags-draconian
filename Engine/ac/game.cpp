@@ -51,10 +51,12 @@
 #include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/sys_events.h"
+#include "ac/system.h"
 #include "ac/translation.h"
 #include "ac/view.h"
 #include "data/data_helpers.h"
 #include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "font/fonts.h"
@@ -2211,4 +2213,70 @@ int IsTimerExpired(int tnum)
         return 0;
 
     return play.CheckScriptTimer(tnum);
+}
+
+RoomAreaMask debugLastRoomMask = kRoomAreaNone;
+int debugLastMoveChar = -1;
+
+void script_debug(int cmdd, int dataa)
+{
+    if (play.debug_mode == 0)
+        return;
+
+    if (cmdd == 0)
+    {
+        for (int i = 0; i < game.numinvitems; ++i)
+            playerchar->set_item_quantity(i, std::max<int16_t>(1, playerchar->get_item_quantity(i)));
+        UpdateInventory();
+    }
+    else if (cmdd == 1)
+    {
+        String toDisplay = GetRuntimeInfo();
+        DisplayMB(toDisplay.GetCStr());
+    }
+    else if (cmdd == 2)
+    {
+        // show room mask
+        auto mask = static_cast<RoomAreaMask>(dataa);
+        if ((mask < kRoomAreaNone) || (mask > kRoomAreaRegion) ||
+            (debugLastRoomMask == mask)) // also act like toggling last mask off
+            debugLastRoomMask = kRoomAreaNone;
+        else
+            debugLastRoomMask = mask;
+        debug_draw_room_mask(debugLastRoomMask);
+    }
+    else if (cmdd == 3)
+    {
+        int goToRoom = -1;
+        if (game.roomNames.size() == 0)
+        {
+            String inroomtex = String::FromFormat("!Enter new room: (in room %d)", displayed_room);
+            setup_for_dialog(play.normal_font);
+            goToRoom = enternumberwindow(inroomtex.GetCStr());
+            restore_after_dialog();
+        }
+        else
+        {
+            setup_for_dialog(play.normal_font);
+            goToRoom = roomSelectorWindow(displayed_room, game.roomNames);
+            restore_after_dialog();
+        }
+        if (goToRoom >= 0)
+            NewRoom(goToRoom);
+    }
+    else if (cmdd == 4)
+    {
+        if (display_fps != kFPS_Forced)
+            display_fps = (FPSDisplayMode)dataa;
+    }
+    else if (cmdd == 5)
+    {
+        // show the given character's pathfinding; act like a on/off toggle
+        debugLastMoveChar = dataa == debugLastMoveChar ? -1 : dataa;
+        debug_draw_movelist(debugLastMoveChar);
+    }
+    else
+    {
+        debug_script_warn("Debug: unknown command code %d", cmdd);
+    }
 }

@@ -27,7 +27,6 @@
 #include "ac/game.h"
 #include "ac/gamestructdefines.h"
 #include "ac/global_audio.h"
-#include "ac/global_debug.h"
 #include "ac/global_display.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
