@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using AGS.Controls;
 
 namespace AGS.Editor.Panes.Room
 {
@@ -40,6 +41,8 @@ namespace AGS.Editor.Panes.Room
         private readonly Image _lockOpen = global::AGS.Editor.Properties.Resources.lock_open;
         private RoomLayerTree _tree;
         private Font _italicFont;
+        // Expansions in progress with drawing frozen (an expand can select, which can expand)
+        private int _frozenExpansions;
         // The client width the toggle columns were last drawn for
         private int _paintedWidth;
         // Set while the nodes are replaced or selected from code: no NodeSelected then
@@ -221,10 +224,11 @@ namespace AGS.Editor.Panes.Room
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
-            // No TVS_EX_DOUBLEBUFFER (TreeViewExtensions.EnableDoubleBuffering), unlike the
-            // project tree: with this owner-drawn tree it showed striped garbage for a moment in
-            // the rows an expand or collapse changes (2026-11-13, cause not found). Flicker is
-            // kept down by repainting only what changes (InvalidateToggles, UpdateInPlace).
+            // Double buffered, as the project tree and the sprite folders. With this owner-drawn
+            // tree the native expand and collapse animation showed striped garbage in the rows it
+            // moves (2026-11-13): drawing is frozen while a node expands or collapses (below), so
+            // the animation draws nothing and the tree is drawn once, at the end.
+            this.EnableDoubleBuffering();
             UpdateItemHeight();
         }
 
@@ -250,16 +254,30 @@ namespace AGS.Editor.Panes.Room
                 NodeSelected?.Invoke(this, new RoomLayerNodeEventArgs(node));
         }
 
+        protected override void OnBeforeExpand(TreeViewCancelEventArgs e)
+        {
+            base.OnBeforeExpand(e);
+            FreezeForExpansion(e);
+        }
+
+        protected override void OnBeforeCollapse(TreeViewCancelEventArgs e)
+        {
+            base.OnBeforeCollapse(e);
+            FreezeForExpansion(e);
+        }
+
         protected override void OnAfterExpand(TreeViewEventArgs e)
         {
             base.OnAfterExpand(e);
             _expanded.Add(e.Node.Name);
+            ThawAfterExpansion();
         }
 
         protected override void OnAfterCollapse(TreeViewEventArgs e)
         {
             base.OnAfterCollapse(e);
             _expanded.Remove(e.Node.Name);
+            ThawAfterExpansion();
         }
 
         protected override bool IsInputKey(Keys keyData)
@@ -358,6 +376,38 @@ namespace AGS.Editor.Panes.Room
                 _italicFont = null;
             }
             base.Dispose(disposing);
+        }
+
+        /// <summary>
+        /// Freezes drawing for a node that is about to expand or collapse, unless that was
+        /// cancelled: the native animation then has nothing to draw.
+        /// </summary>
+        private void FreezeForExpansion(TreeViewCancelEventArgs e)
+        {
+            if (e.Cancel || !IsHandleCreated)
+                return;
+            BeginUpdate();
+            ++_frozenExpansions;
+            // Should no After event follow (an expand that does nothing), the tree must not
+            // stay frozen: this runs after the expand's message
+            BeginInvoke((MethodInvoker)ThawAllExpansions);
+        }
+
+        private void ThawAllExpansions()
+        {
+            while (_frozenExpansions > 0)
+                ThawAfterExpansion();
+        }
+
+        /// <summary>
+        /// Thaws drawing after an expand or collapse; EndUpdate draws the tree again.
+        /// </summary>
+        private void ThawAfterExpansion()
+        {
+            if (_frozenExpansions == 0)
+                return;
+            --_frozenExpansions;
+            EndUpdate();
         }
 
         private int TogglesLeft

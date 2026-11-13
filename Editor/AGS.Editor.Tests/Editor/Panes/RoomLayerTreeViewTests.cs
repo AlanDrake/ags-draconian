@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
@@ -215,6 +216,29 @@ namespace AGS.Editor.Panes.Room
             Assert.That(_view.Reload().Key, Is.EqualTo("Hotspots/0002"));
             Assert.That(NodeOf("Hotspots/0002").Parent, Is.SameAs(NodeOf("Hotspots")));
             Assert.That(_view.Nodes.Find("Hotspots/#unused", true), Is.Empty);
+        }
+
+        private int FrozenExpansions()
+        {
+            FieldInfo field = typeof(RoomLayerTreeView).GetField("_frozenExpansions",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null);
+            return (int)field.GetValue(_view);
+        }
+
+        [Test]
+        public void ExpandAndCollapseLeaveTheDrawingThawed()
+        {
+            NodeOf("Hotspots").Expand();
+            Assert.That(NodeOf("Hotspots").IsExpanded, Is.True);
+            Assert.That(FrozenExpansions(), Is.EqualTo(0));
+            NodeOf("Hotspots").Collapse();
+            Assert.That(FrozenExpansions(), Is.EqualTo(0));
+            _view.SelectKey("Hotspots/0002"); // expands two levels
+            Assert.That(FrozenExpansions(), Is.EqualTo(0));
+            NodeOf("Room").Expand(); // a leaf: whatever is raised, nothing stays frozen
+            Application.DoEvents();
+            Assert.That(FrozenExpansions(), Is.EqualTo(0));
         }
 
         [Test]
