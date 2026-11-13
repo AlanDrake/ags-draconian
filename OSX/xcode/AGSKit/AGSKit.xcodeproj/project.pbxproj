@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0089435B67D4F7640BA515B2 /* stb_image.c in Sources */ = {isa = PBXBuildFile; fileRef = 502DD07F3D73973026AD95A8 /* stb_image.c */; };
 		0109FC37993416D43A8DA737 /* image_png.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCDCF3666BFDB8624ABC1963 /* image_png.cpp */; };
+		01F1DF6AC7EECF0D9B3E89EB /* character_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9164661E1C45D12F053F3DAE /* character_api.cpp */; };
 		0400CFCEEFBB4FB8B0076D07 /* ftmm.c in Sources */ = {isa = PBXBuildFile; fileRef = E6EA0E08841D08B1EB9560A1 /* ftmm.c */; };
 		0A1FC67866E95B3C50F4721E /* type42.c in Sources */ = {isa = PBXBuildFile; fileRef = 2983E0E054F411FA909804E6 /* type42.c */; };
 		0E5407446CA19CFEAF6AEB7C /* pathfinder_script.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EEA872BC9FEC92169B874C31 /* pathfinder_script.cpp */; };
@@ -1775,6 +1776,7 @@
 		7CC59E0C2FBD6F9D59BB4A59 /* ftpatent.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftpatent.c; sourceTree = "<group>"; };
 		7DFC9823342CB96BAE2332AB /* psmodule.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = psmodule.c; sourceTree = "<group>"; };
 		8508B63DA5D6C3E2D57DFFEF /* ftgasp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftgasp.c; sourceTree = "<group>"; };
+		9164661E1C45D12F053F3DAE /* character_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = character_api.cpp; sourceTree = "<group>"; };
 		92E55E71F0A5D5DA1E0C84F9 /* cc_walkbehind.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cc_walkbehind.cpp; sourceTree = "<group>"; };
 		98EFE5C1E99E54D8E1CBB8E7 /* cc_reflecthelper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cc_reflecthelper.cpp; sourceTree = "<group>"; };
 		9CEE01E9AA59CA3BB5333D59 /* touch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = touch.cpp; sourceTree = "<group>"; };
@@ -3578,6 +3580,7 @@
 				E20BC6BAD8051658576AE008 /* audio_channel_api.cpp */,
 				C2A8E26D84B91E392F1FF46F /* audio_clip_api.cpp */,
 				AB5D53B3C979410BAB23535B /* button_api.cpp */,
+				9164661E1C45D12F053F3DAE /* character_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4610,6 +4613,7 @@
 				BC2C293E09233F8B1E9B66AA /* audio_channel_api.cpp in Sources */,
 				F26232A7FD2E30DE9ABA78F5 /* audio_clip_api.cpp in Sources */,
 				39D359B7AB23268791FA0554 /* button_api.cpp in Sources */,
+				01F1DF6AC7EECF0D9B3E89EB /* character_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

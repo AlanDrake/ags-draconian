@@ -470,6 +470,7 @@
     <ClCompile Include="..\..\Engine\game\script_api\audio_channel_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\audio_clip_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\button_api.cpp" />
+    <ClCompile Include="..\..\Engine\game\script_api\character_api.cpp" />
     <ClCompile Include="..\..\Engine\game\viewport.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dogl.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dsw.cpp" />
