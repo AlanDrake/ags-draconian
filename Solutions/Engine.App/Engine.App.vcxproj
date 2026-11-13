@@ -498,6 +498,7 @@
     <ClCompile Include="..\..\Engine\game\script_api\room_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\screen_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\shader_api.cpp" />
+    <ClCompile Include="..\..\Engine\game\script_api\slider_api.cpp" />
     <ClCompile Include="..\..\Engine\game\viewport.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dogl.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dsw.cpp" />
