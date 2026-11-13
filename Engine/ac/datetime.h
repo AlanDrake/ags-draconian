@@ -29,3 +29,6 @@ int DateTime_GetHour(ScriptDateTime *sdt);
 int DateTime_GetMinute(ScriptDateTime *sdt);
 int DateTime_GetSecond(ScriptDateTime *sdt);
 int DateTime_GetRawTime(ScriptDateTime *sdt);
+
+// Script API: DateTime::get_Millisecond
+int DateTime_GetMillisecond(ScriptDateTime *sdt);
