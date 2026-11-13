@@ -492,48 +492,5 @@ void MergeParserDictionary(WordsDictionary *dst_dict, const WordsDictionary *src
     }
 }
 
-//=============================================================================
-//
-// Script API Functions
-//
-//=============================================================================
-
 #include "ac/dynobj/scriptstring.h"
-#include "debug/out.h"
-#include "script/script_api.h"
 #include "script/script_runtime.h"
-
-// int (const char *wordToFind)
-RuntimeScriptValue Sc_Parser_FindWordID(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_POBJ(Parser_FindWordID, const char);
-}
-
-// void  (char*text)
-RuntimeScriptValue Sc_ParseText(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_POBJ(ParseText, /*const*/ char);
-}
-
-// const char* ()
-RuntimeScriptValue Sc_Parser_SaidUnknownWord(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJ(const char, myScriptStringImpl, Parser_SaidUnknownWord);
-}
-
-RuntimeScriptValue Sc_Parser_Said(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_POBJ(Parser_Said, const char);
-}
-
-void RegisterParserAPI()
-{
-    ScFnRegister parser_api[] = {
-        {"Parser::FindWordID^1", API_FN_PAIR(Parser_FindWordID)},
-        {"Parser::ParseText^1", API_FN_PAIR(ParseText)},
-        {"Parser::SaidUnknownWord^0", API_FN_PAIR(Parser_SaidUnknownWord)},
-        {"Parser::Said^1", API_FN_PAIR(Parser_Said)},
-    };
-
-    ccAddExternalFunctions(parser_api);
-}
