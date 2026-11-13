@@ -891,6 +891,7 @@
 		CED738899510DEA093A071EC /* dialog_options_rendering_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4E05D962D605A02160B3FD8 /* dialog_options_rendering_api.cpp */; };
 		CF0ECD2F66879083ACF35D37 /* truetype.c in Sources */ = {isa = PBXBuildFile; fileRef = CB92FF6FE4511AF0B1AE9E7A /* truetype.c */; };
 		D52DF548735FEBED6FDF96B0 /* ftbbox.c in Sources */ = {isa = PBXBuildFile; fileRef = B6111CF9EB7723A1023CFC93 /* ftbbox.c */; };
+		D5A68E7012F3152B3166A9B0 /* dynamic_sprite_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 506E9222AF6EBECC3E148480 /* dynamic_sprite_api.cpp */; };
 		D606B7ACC30BAA47C1DDE757 /* scriptpathfinder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6D9D218445ACC5FC64519EBB /* scriptpathfinder.cpp */; };
 		D792571F3A3C9840E56981EC /* cc_guicontrol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FF718A487818D40BFD23044D /* cc_guicontrol.cpp */; };
 		DE75B2C0F2E0B7502C2284C3 /* cc_walkbehind.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 92E55E71F0A5D5DA1E0C84F9 /* cc_walkbehind.cpp */; };
@@ -1316,6 +1317,7 @@
 		48EFC8D1A08BC706233BFD4F /* ftcid.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftcid.c; sourceTree = "<group>"; };
 		4E6E615CB9654FE693E1FF08 /* shader_script.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = shader_script.cpp; sourceTree = "<group>"; };
 		502DD07F3D73973026AD95A8 /* stb_image.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stb_image.c; sourceTree = "<group>"; };
+		506E9222AF6EBECC3E148480 /* dynamic_sprite_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dynamic_sprite_api.cpp; sourceTree = "<group>"; };
 		521C3BEA1D1E545100BD619E /* AGSKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AGSKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		521C3BED1D1E545100BD619E /* AGSKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AGSKit.h; sourceTree = "<group>"; };
 		521C3BEF1D1E545100BD619E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -3593,6 +3595,7 @@
 				6B93928C083C67DAB8313950 /* dialog_api.cpp */,
 				E4E05D962D605A02160B3FD8 /* dialog_options_rendering_api.cpp */,
 				6540AC9011C790C7219E4A2A /* drawing_surface_api.cpp */,
+				506E9222AF6EBECC3E148480 /* dynamic_sprite_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4630,6 +4633,7 @@
 				EFC70E7CD3333A7812797FE1 /* dialog_api.cpp in Sources */,
 				CED738899510DEA093A071EC /* dialog_options_rendering_api.cpp in Sources */,
 				06E8F6EE81E21BC83D9D7041 /* drawing_surface_api.cpp in Sources */,
+				D5A68E7012F3152B3166A9B0 /* dynamic_sprite_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
