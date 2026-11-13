@@ -858,6 +858,7 @@
 		7B190D9D0A9F544BF209BA1E /* data_helpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7777FCE0AEFF93FA6147EC1C /* data_helpers.cpp */; };
 		7B47A81206D98FB8FA0464A4 /* svg.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C51BAA4FE720AD90C429122 /* svg.c */; };
 		7B9C39F289015C65EB530225 /* smooth.c in Sources */ = {isa = PBXBuildFile; fileRef = DFE2BA4DBEBF50C683932D02 /* smooth.c */; };
+		7C89AECE6A7C5B443738F7E3 /* gui_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E3A98E6D51124DA9866E5329 /* gui_api.cpp */; };
 		7ED631779EBDC228C89467C5 /* joystick.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2A0AEDD6BEBB8912C0333504 /* joystick.cpp */; };
 		7FEF3E1B933F94B00E1ABDB9 /* type1cid.c in Sources */ = {isa = PBXBuildFile; fileRef = 5E6FC94C102CB3EFA2B7966B /* type1cid.c */; };
 		80662369704A353DAE2308D0 /* raster.c in Sources */ = {isa = PBXBuildFile; fileRef = DEB1BEDBB8009A32A2D5B672 /* raster.c */; };
@@ -1822,6 +1823,7 @@
 		DFD007C4036D080BF3A5B0EE /* cc_walkablearea.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cc_walkablearea.cpp; sourceTree = "<group>"; };
 		DFE2BA4DBEBF50C683932D02 /* smooth.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = smooth.c; sourceTree = "<group>"; };
 		E20BC6BAD8051658576AE008 /* audio_channel_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_channel_api.cpp; sourceTree = "<group>"; };
+		E3A98E6D51124DA9866E5329 /* gui_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gui_api.cpp; sourceTree = "<group>"; };
 		E4E05D962D605A02160B3FD8 /* dialog_options_rendering_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dialog_options_rendering_api.cpp; sourceTree = "<group>"; };
 		E66ACDBAF47E6525354BEBB7 /* scriptmotionpath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scriptmotionpath.cpp; sourceTree = "<group>"; };
 		E6EA0E08841D08B1EB9560A1 /* ftmm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftmm.c; sourceTree = "<group>"; };
@@ -3605,6 +3607,7 @@
 				90767842D8F6B1E706D886C9 /* dynamic_array_api.cpp */,
 				431F3F3A4EA662082DAB4C97 /* file_api.cpp */,
 				B3512A2D6AB8F4FA794B8ABF /* game_api.cpp */,
+				E3A98E6D51124DA9866E5329 /* gui_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4646,6 +4649,7 @@
 				CE1BA72BE9686508409993C7 /* dynamic_array_api.cpp in Sources */,
 				8B73D86D61DEC8F1B89C819B /* file_api.cpp in Sources */,
 				F1188E8E3821E74E5317B7C4 /* game_api.cpp in Sources */,
+				7C89AECE6A7C5B443738F7E3 /* gui_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

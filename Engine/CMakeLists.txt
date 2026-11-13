@@ -284,6 +284,7 @@ target_sources(engine
     game/script_api/dynamic_sprite_api.cpp
     game/script_api/file_api.cpp
     game/script_api/game_api.cpp
+    game/script_api/gui_api.cpp
     game/viewport.cpp
     game/viewport.h
     gfx/ali3dexception.h
