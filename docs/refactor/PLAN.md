@@ -66,7 +66,7 @@ Recorded 2026-10-31.
 | D1 | Oldest game version loaded (C1) | **3.99 and later** (`kGameVersion_399`) | All 3.x upgrade paths can go; room versions need care (3.4). *2026-11-08:* the editor follows: the one `.crm` reader is Common's, so after 3.4-2 the editor opens and imports **AGS 4.0 projects and rooms only**; a 3.x project is upgraded with upstream's 4.0 editor first. Legacy importers are rebuilt, if wanted, after the planned phases (L.1), not kept through them | 3.4 |
 | D2 | Platforms | **Windows, Linux, macOS, Android, Web, iOS.** PSP goes; FreeBSD stays for now (shares the POSIX code) | iOS has no CI, no Mac and no project file on `ags4`: ignored until the refactor is done (7.3, 2026-11-09) | 3.1, 7.3 |
 | D3 | Legacy script compiler | **Removed**; `script2` is the only compiler | 3.3 | 3.3 |
-| D4 | Editor UI | **Avalonia is the main candidate**; WinForms goes into maintenance. *2026-11-03:* upstream plans no cross-platform editor but welcomes the core split (#1092, #3177); a-riddle-fan's `ags-for-mac` (3.6.x, .NET 10 + Avalonia, `AGS.Native` replaced by a CMake C library) is studied before 6.7c | Work goes into a UI-free core and replacing the C++/CLI bridge, which Avalonia can't use (phase 6) | 6.x |
+| D4 | Editor UI | **Avalonia is the main candidate**; WinForms goes into maintenance. *2026-11-03:* upstream plans no cross-platform editor but welcomes the core split (#1092, #3177); a-riddle-fan's `ags-for-mac` (3.6.x, .NET 10 + Avalonia, `AGS.Native` replaced by a CMake C library) is studied before 6.7c. *2026-11-13:* the room layer tree (6.9) is the last WinForms UI change, done before 6.8 to avoid designing the room pane twice | Work goes into a UI-free core and replacing the C++/CLI bridge, which Avalonia can't use (phase 6) | 6.x |
 | D5 | Native build system | **CMake**; MSBuild for the C# projects and the hand-written Windows solutions, which stay (re-decided 2026-11-07, 3.2c) | Makefiles go; the `Solutions/*.vcxproj` are checked against the CMake targets (3.2c) | 3.2 |
 | D6 | Minimum Windows | **Windows 7+** | No `v141_xp`; `AGS.Native` targets `0x0601`; no newer APIs without a runtime check | 0.4, 3.1 |
 | D7 | How games are built | **One implementation, in C++: the tools in `Tools/`** (`agsbuild` running `agf2dta`, `agscc`, `crmbuild`, `po2tra`, `agspak`, ...). The editor saves and runs `agsbuild` or single tools. The C# build code (`DataFileWriter.cs`, `DialogScriptConverter.cs`, script-header generation, translation writer, C# preprocessor) is deleted at parity. *Revised 2026-11-01 after maintainer review* (replaced a C# build core argued from commit counts) | Builds need only a C++ toolchain (Linux i386, FreeBSD, CI without the editor); the data writer sits next to the engine's reader. Cost: `Game.agf` has a C# and a C++ reader, so a new property needs both; 7.1g makes a missed one fail tests | 1.7, 3.3, 6.3, 6.7d, 7.1 |
@@ -84,6 +84,7 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 | 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` with upstream's draft names where they overlap | Files move once (4.4 rides along) | Fable 5.1, `high` for the move map, subagents for the moves |
 | 3 | **4.5 + 3.6 on what had no comment pass** (770 first-party files, ~280k lines): batch 8 done (2026-11-13, LOG.md: `game`, `gamestate`, `room`, `dialog`, `savegame`, `game_init`, `script`, `guimain`, `engine`); next, the untouched files most-churned first (a ranking by commits since 2024, the batch-6 stray-rename files among them), then the D3D/OpenGL drivers with the `emscripten` and `linux` stages, and the compiler (7,440-line parser: its own plan, by function groups). Brief `.compare/briefs/brief-45-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | Comments before the 5.3 moves | Sonnet 5.5, `medium`, parallel subagents; the parser plan Fable 5.1 |
 | 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3188, #3189; #3187 merged), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
+| 5 | **6.9 Room editor layer tree** (branch `room-layer-tree`): the breadcrumb bar becomes a tree, empty area slots in an "Unused (n)" node; model and tests first | The last planned WinForms UI change; must land before 6.8 (the user, 2026-11-13) | Fable 5.1, `high` for the model and view; the deletion by a subagent |
 
 Open items from finished tasks (details in LOG.md "Open items"):
 - 0.4: the CodeQL setting, `D3DCOMPILER_47` on Windows 7, the macOS 10.9 deployment target.
@@ -406,7 +407,8 @@ Each task is a series of small PRs.
 ## Phase 6: Editor
 
 ~107k lines of C# on .NET Framework 4.7 / C# 6, plus the C++/CLI bridge `AGS.Native`
-(`agsnative.cpp` 3,668 lines). Per D4, WinForms gets bug fixes only; the work is a UI-free core for a
+(`agsnative.cpp` 3,668 lines). Per D4, WinForms gets bug fixes only (after 6.9, the last planned UI change, so
+the Avalonia port starts from a settled design); the work is a UI-free core for a
 future Avalonia front end. Two blockers, removed by 6.0, 6.1, 6.3 and 6.7: `AGS.Types` and the
 editor logic target .NET Framework (Avalonia needs modern .NET), and C++/CLI is Windows- and
 Framework-only.
@@ -513,8 +515,40 @@ Framework-only.
 
   *Done when:* no C++/CLI left; the native dependency is one C library built by CMake for Windows,
   Linux and macOS, and `AGS.Editor.Core` loads it on Windows and Linux in CI.
-- [ ] **6.8 Avalonia front end** (after 6.3 and 6.7), on a branch over `AGS.Editor.Core`, read-only
+- [ ] **6.8 Avalonia front end** (after 6.3, 6.7 and 6.9), on a branch over `AGS.Editor.Core`, read-only
   views first (project tree, room viewer). Planned in its own document once the core exists.
+- [ ] **6.9 Room editor layer tree** (the user, 2026-11-13; branch `room-layer-tree`). The last planned WinForms UI
+  change, done before 6.8 so the Avalonia front end ports one settled design instead of redoing the room pane
+  later; its logic goes in a UI-free model so 6.3/6.8 take it as it is. The breadcrumb
+  bar (`AddressBarExt` + `RoomEditNode`/`RoomNodeControl`/`VisibleLayerRadioGroup`) becomes a tree on the left of
+  the room pane, in a `SplitContainer` like the sprite manager's: root "Room", the 7 layers, their items; eye and
+  lock drawn right-aligned in each row, a click on them toggles, elsewhere selects.
+  1. **Model + tests** (`Panes/Room/RoomLayerTree.cs`, tests in `AGS.Editor.Tests/Editor/Panes`): layers, items,
+     visible/locked, one visible area layer at a time, emptiness. Nodes keyed by layer `Name` + `RoomItemID`, not by
+     display name (drops `SelectOldNode`'s rename guess). The tests are ground rule 3's net before step 4.
+  2. **Empty area slots:** empty = no pixels in the mask *and* default properties. Pixels: a histogram of the 8-bit
+     mask (`GetMask()` + `BitmapExtensions.GetRawData`), for one layer after each `SetMask` (stroke end, undo,
+     mask import). Defaults: `ToXml()` equals a new instance's with the same ID (no hand-kept property list).
+     Area 0 always listed; a slot with properties but no pixels listed in italics, tooltip "nothing drawn"; the
+     empty ones in one collapsed "Unused (n)" node at the end of the layer, in ID order, leaving it once drawn on
+     or given properties (selection follows the key). Older editors' slot names count as defaults: script name
+     `hHotspot<n>` and description `Hotspot <n>` / `HOTSPOT<n>` are on nearly every hotspot of real projects
+     (corpus, 2026-11-13); region ranges are compared after `UpgradeRoomFeatures` has converted them.
+  Steps 1 and 2 done 2026-11-13, uncommitted (`IRoomLayer`, `RoomLayerTree`, `RoomAreaUsage`, 42 tests). On the
+  corpus (a private AGS 4 game, a private 8-bit game, the auto-test game) the only "nothing drawn" slots are
+  real ones (a baseline, scaling or an event on an undrawn area). Open for step 3: the eye/lock column on the
+  right (recommended: native tree, `OwnerDrawText`) or on the left (`OwnerDrawAll`).
+  3. **View** (`TreeView` subclass, owner-drawn icons, `LoadColorTheme` like `SpriteSelector`): behaviour of the
+     bar kept: selecting a layer shows it and turns its filter on, an item selects it in the filter, the root shows
+     the room; a canvas click moves the tree selection; area items have a lock but no eye; a changed selection is
+     `DesignModified`; `RoomsComponent`'s `RefreshLayersTree` calls; the `.user` selection path
+     `Room/<layer>/<item id>` unchanged. Focus goes to the canvas only when the selection came from it (today
+     `SelectLayer` always takes it, which would break arrow keys in the tree). Rebuilds keep expansion and scroll.
+  4. **`[delete]`** the bar's classes and `AGS.Controls/AdressBarEx` (no other user), with their `.csproj` entries;
+     `AdressBarEx` is listed as vendored code, so also its row in STYLE.md's third-party table, its
+     `.editorconfig` entry and its `.clang-format` stub.
+  *Done when:* the model tests pass, `prepush.py --auto` (`msbuild`) passes, and a manual checklist of step 3's
+  behaviours passes on the test game's rooms (no automated UI test covers the room pane; say so in LOG.md).
 
 ## Phase 7: Build tools, plugins and ports
 
