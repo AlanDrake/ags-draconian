@@ -84,3 +84,115 @@ int FindButtonAnimation(int gui_id, int btn_id);
 void FindAndRemoveButtonAnimation(int gui_id, int btn_id);
 // Removes all the animations (a loaded save starts from none).
 void RemoveAllButtonAnimations();
+
+// Script API: Button::Animate^7
+void Button_Animate7(GUIButton *btn, int view, int loop, int speed, int repeat, int blocking, int direction,
+                     int sframe);
+
+// Script API: Button::get_ColorStyle
+int Button_GetColorStyle(GUIButton *btn);
+
+// Script API: Button::set_ColorStyle
+void Button_SetColorStyle(GUIButton *btn, int style);
+
+// Script API: Button::get_GraphicFlip
+int Button_GetGraphicFlip(GUIButton *btn);
+
+// Script API: Button::set_GraphicFlip
+void Button_SetGraphicFlip(GUIButton *btn, int flip);
+
+// Script API: Button::get_IsHighlighted
+bool Button_GetIsHighlighted(GUIButton *btn);
+
+// Script API: Button::get_IsPushed
+bool Button_GetIsPushed(GUIButton *btn);
+
+// Script API: Button::get_MouseOverBackgroundColor
+int Button_GetMouseOverBackgroundColor(GUIButton *btn);
+
+// Script API: Button::set_MouseOverBackgroundColor
+void Button_SetMouseOverBackgroundColor(GUIButton *btn, int color);
+
+// Script API: Button::get_PushedBackgroundColor
+int Button_GetPushedBackgroundColor(GUIButton *btn);
+
+// Script API: Button::set_PushedBackgroundColor
+void Button_SetPushedBackgroundColor(GUIButton *btn, int color);
+
+// Script API: Button::get_MouseOverBorderColor
+int Button_GetMouseOverBorderColor(GUIButton *btn);
+
+// Script API: Button::set_MouseOverBorderColor
+void Button_SetMouseOverBorderColor(GUIButton *btn, int color);
+
+// Script API: Button::get_PushedBorderColor
+int Button_GetPushedBorderColor(GUIButton *btn);
+
+// Script API: Button::set_PushedBorderColor
+void Button_SetPushedBorderColor(GUIButton *btn, int color);
+
+// Script API: Button::get_BorderShadeColor
+int Button_GetBorderShadeColor(GUIButton *btn);
+
+// Script API: Button::set_BorderShadeColor
+void Button_SetBorderShadeColor(GUIButton *btn, int color);
+
+// Script API: Button::get_TextOutlineColor
+int Button_GetTextOutlineColor(GUIButton *btn);
+
+// Script API: Button::set_TextOutlineColor
+void Button_SetTextOutlineColor(GUIButton *btn, int color);
+
+// Script API: Button::get_MouseOverTextColor
+int Button_GetMouseOverTextColor(GUIButton *btn);
+
+// Script API: Button::set_MouseOverTextColor
+void Button_SetMouseOverTextColor(GUIButton *btn, int color);
+
+// Script API: Button::get_PushedTextColor
+int Button_GetPushedTextColor(GUIButton *btn);
+
+// Script API: Button::set_PushedTextColor
+void Button_SetPushedTextColor(GUIButton *btn, int color);
+
+// Script API: Button::Click^1
+void Button_Click(GUIButton *btn, int mbut);
+
+// Script API: Button::RunFrameEvent^3
+bool Button_RunFrameEvent(GUIButton *btn, int view, int loop, int frame);
+
+// Script API: Button::get_Animating
+bool Button_IsAnimating(GUIButton *btn);
+
+// Script API: Button::get_View
+int Button_GetAnimView(GUIButton *btn);
+
+// Script API: Button::get_Loop
+int Button_GetAnimLoop(GUIButton *btn);
+
+// Script API: Button::get_Frame
+int Button_GetAnimFrame(GUIButton *btn);
+
+// Script API: Button::get_TextAlignment
+int Button_GetTextAlignment(GUIButton *btn);
+
+// Script API: Button::set_TextAlignment
+void Button_SetTextAlignment(GUIButton *btn, int align);
+
+// Script API: Button::get_TextPaddingHorizontal
+int Button_GetTextPaddingHorizontal(GUIButton *btn);
+
+// Script API: Button::set_TextPaddingHorizontal
+void Button_SetTextPaddingHorizontal(GUIButton *btn, int pad);
+
+// Script API: Button::get_TextPaddingVertical
+int Button_GetTextPaddingVertical(GUIButton *btn);
+
+// Script API: Button::set_TextPaddingVertical
+void Button_SetTextPaddingVertical(GUIButton *btn, int pad);
+
+// Script API: Button::get_WrapText
+bool Button_GetWrapText(GUIButton *btn);
+
+// Script API: Button::set_WrapText
+void Button_SetWrapText(GUIButton *btn, bool wrap);
