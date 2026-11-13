@@ -148,8 +148,10 @@ Open items from finished tasks (details in LOG.md "Open items"):
   to" path; smaller ones listed there.
 - Sprite placement (2026-11-12, LOG.md "Sprite placement and the Direct3D 9 half-pixel offset"), in long-term
   testing by the user: the software renderer's scaling, hit tests on the truncated scaled size, truncated frame
-  offsets, and a camera stretch by integer maths (exact agreement of all renderers at any zoom) are left. The
-  auto-test's expectations are in `ags-test-games` tag `draconian-auto-test-2`. The D3D9 fix is prepared for upstream
+  offsets, and a camera stretch by integer maths (exact agreement of all renderers at any zoom) are left. Characters
+  and room objects use their own origin rule since 2026-11-13 (`Common::SpriteOriginRule`; an unflipped even-width
+  one stands a pixel right of earlier versions). The auto-test's expectations are in `ags-test-games` tag
+  `draconian-auto-test-3`, which must be pushed with the engine commits. The D3D9 fix is prepared for upstream
   (`docs/UPSTREAM.md`, `ags4-d3d9-halfpixel`).
 - Scripts in a git worktree: `refactor_metrics.py`, `prepush.py`'s `linux` and `msbuild` stages fail there.
 - Stale: `Tools/test/directory_test.cpp`'s googletest comment; `FetchGoogleTest.cmake`'s pin for GCC < 5.

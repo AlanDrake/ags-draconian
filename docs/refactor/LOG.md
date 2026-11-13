@@ -1405,6 +1405,18 @@ plan) and the D3D/OpenGL drivers (they need the GL and emscripten builds to veri
   - `ags-test-games` `f71a8e0` (branch `ags4-draconian`, tag `draconian-auto-test-2`, which CI checks out): the
     h-flipped character frames (even width) are expected one pixel right; with the older tag CI's OpenGL and Software
     auto-test runs fail 4 tests. Auto-test 2414 of 2414 on D3D9, D3D11, OpenGL and Software; `ctest` 1187.
+- **Follow-up (2026-11-13, the user testing in a game with scaled characters):** with `c232e1aab`, odd-width frames
+  stood a pixel off even-width ones in flipped loops. Tried: the flip of the original placement for every sprite
+  (flipped loops right, unflipped off the other way), then the per-flip rule below for every sprite (both right).
+  Kept, `e9a465e20`: `Common::SpriteOriginRule`. `kOriginRule_Classic`, the default, rounds the origin half up and
+  mirrors a flip inside the same quad, as AGS always did; overlays, GUIs and the rest keep it, so `x - width / 2`
+  centres exactly and a flipped overlay does not move (`c232e1aab` had moved those on the hardware renderers only).
+  `kOriginRule_MirrorAround`, for characters and room objects (`IDriverDependantBitmap::SetOriginRule` in `draw.cpp`,
+  and `GraphicSpace`, which takes the rule and a `GraphicFlip`), rounds half down and turns a flipped sprite around
+  that same texel of its image. Visible change against every earlier version: an unflipped character or object of
+  even width with a centred origin stands one pixel right. `ags-test-games` `b10d691`, tag `draconian-auto-test-3`
+  (`aa6be98ad` points CI at it). Verified: prepush without `linux`, `ctest` 1196; the auto-test game was not run on the
+  final version (2414 of 2414 on four drivers on the first try); the user checked the characters in the game.
 - **Not done:** the software renderer still scales with Allegro's stretch (scaled frames still drift there);
   `GraphicSpace` uses the truncated scaled size for hit tests (up to a pixel off the drawn sprite); frame offsets are
   scaled with truncating division (`draw.cpp`); the camera's own nearest-texel ties at x1.5 and x2 (1 pixel). Not run:
