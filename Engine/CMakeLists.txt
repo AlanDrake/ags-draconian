@@ -289,6 +289,7 @@ target_sources(engine
     game/script_api/hotspot_api.cpp
     game/script_api/inv_window_api.cpp
     game/script_api/inventory_item_api.cpp
+    game/script_api/joystick_api.cpp
     game/viewport.cpp
     game/viewport.h
     gfx/ali3dexception.h

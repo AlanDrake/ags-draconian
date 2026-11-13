@@ -865,6 +865,7 @@
 		80662369704A353DAE2308D0 /* raster.c in Sources */ = {isa = PBXBuildFile; fileRef = DEB1BEDBB8009A32A2D5B672 /* raster.c */; };
 		8158B635F0CCC77CC2CDD007 /* multifilelib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 403443D602F645F04E8CEF60 /* multifilelib.cpp */; };
 		82A3F0DD282FC4B1E43A3579 /* ftglyph.c in Sources */ = {isa = PBXBuildFile; fileRef = 3DEE810BAC4289B3733EFE31 /* ftglyph.c */; };
+		881BA9B7CEFFC1E682E93236 /* joystick_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08B5D07F9D6726C875E79B61 /* joystick_api.cpp */; };
 		883DB1BC58849097C162D9D8 /* ftgxval.c in Sources */ = {isa = PBXBuildFile; fileRef = 072C4F6578AA15AEF14EBD94 /* ftgxval.c */; };
 		89F9F15D880A8BA2E843EA93 /* scriptshader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 412D60EA903C47549A0E89F3 /* scriptshader.cpp */; };
 		8B73D86D61DEC8F1B89C819B /* file_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431F3F3A4EA662082DAB4C97 /* file_api.cpp */; };
@@ -938,6 +939,7 @@
 		03C3C621E9309539271C8EE0 /* ftbitmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftbitmap.c; sourceTree = "<group>"; };
 		047BCD1ABBFAD5CA171AF2E4 /* ftsystem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftsystem.c; sourceTree = "<group>"; };
 		072C4F6578AA15AEF14EBD94 /* ftgxval.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftgxval.c; sourceTree = "<group>"; };
+		08B5D07F9D6726C875E79B61 /* joystick_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = joystick_api.cpp; sourceTree = "<group>"; };
 		0BB7E9301BBAD9A9F8800167 /* fttype1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fttype1.c; sourceTree = "<group>"; };
 		0E69BDF9DB1FFA92A7D5FFD8 /* image_bmp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = image_bmp.cpp; sourceTree = "<group>"; };
 		0E9F4F89D8E1401C57041003 /* psaux.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = psaux.c; sourceTree = "<group>"; };
@@ -3620,6 +3622,7 @@
 				D6709585E1E045AD5956018E /* hotspot_api.cpp */,
 				63286838FA6DCBF3B1FA9147 /* inventory_item_api.cpp */,
 				558C08372A4E0F9E5D1A47E9 /* inv_window_api.cpp */,
+				08B5D07F9D6726C875E79B61 /* joystick_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4666,6 +4669,7 @@
 				694B54758387AA31CC7B5163 /* hotspot_api.cpp in Sources */,
 				AF56EDBE5821D7B9488AB3E6 /* inventory_item_api.cpp in Sources */,
 				95C671AF6F350B5EECF26B40 /* inv_window_api.cpp in Sources */,
+				881BA9B7CEFFC1E682E93236 /* joystick_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
