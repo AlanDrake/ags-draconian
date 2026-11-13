@@ -12,6 +12,7 @@
 		01F1DF6AC7EECF0D9B3E89EB /* character_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9164661E1C45D12F053F3DAE /* character_api.cpp */; };
 		03980617FE3F3F99D4199AF3 /* date_time_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1951FD077B9BD92B865D508 /* date_time_api.cpp */; };
 		0400CFCEEFBB4FB8B0076D07 /* ftmm.c in Sources */ = {isa = PBXBuildFile; fileRef = E6EA0E08841D08B1EB9560A1 /* ftmm.c */; };
+		067426243EC32E87D4D82906 /* label_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AED2A0C62958B0AB18892BF4 /* label_api.cpp */; };
 		06E8F6EE81E21BC83D9D7041 /* drawing_surface_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6540AC9011C790C7219E4A2A /* drawing_surface_api.cpp */; };
 		0A1FC67866E95B3C50F4721E /* type42.c in Sources */ = {isa = PBXBuildFile; fileRef = 2983E0E054F411FA909804E6 /* type42.c */; };
 		0E5407446CA19CFEAF6AEB7C /* pathfinder_script.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EEA872BC9FEC92169B874C31 /* pathfinder_script.cpp */; };
@@ -1808,6 +1809,7 @@
 		A6A1C065E650D91D6A21B34F /* winfnt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = winfnt.c; sourceTree = "<group>"; };
 		AB5D53B3C979410BAB23535B /* button_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = button_api.cpp; sourceTree = "<group>"; };
 		ADDC74EAF35AAD83AA37E428 /* ftgzip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftgzip.c; sourceTree = "<group>"; };
+		AED2A0C62958B0AB18892BF4 /* label_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = label_api.cpp; sourceTree = "<group>"; };
 		B1EB73185BF535DCE9D599DB /* SDL_ttf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SDL_ttf.c; sourceTree = "<group>"; };
 		B3512A2D6AB8F4FA794B8ABF /* game_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = game_api.cpp; sourceTree = "<group>"; };
 		B4E841B245E7C89895801685 /* video_script.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = video_script.cpp; sourceTree = "<group>"; };
@@ -3623,6 +3625,7 @@
 				63286838FA6DCBF3B1FA9147 /* inventory_item_api.cpp */,
 				558C08372A4E0F9E5D1A47E9 /* inv_window_api.cpp */,
 				08B5D07F9D6726C875E79B61 /* joystick_api.cpp */,
+				AED2A0C62958B0AB18892BF4 /* label_api.cpp */,
 			);
 			path = script_api;
 			sourceTree = "<group>";
@@ -4670,6 +4673,7 @@
 				AF56EDBE5821D7B9488AB3E6 /* inventory_item_api.cpp in Sources */,
 				95C671AF6F350B5EECF26B40 /* inv_window_api.cpp in Sources */,
 				881BA9B7CEFFC1E682E93236 /* joystick_api.cpp in Sources */,
+				067426243EC32E87D4D82906 /* label_api.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
