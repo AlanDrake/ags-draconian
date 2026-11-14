@@ -15,28 +15,15 @@
 // Script bindings registered by RegisterDynamicArrayAPI().
 //
 //=============================================================================
-#include "script/dynobj/cc_dynamic_array.h"
-#include "script/script_api.h"
+#include "game/script_api/bindings.h"
 #include "script/script_runtime.h"
 
 using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-// Deprecated variant of DynamicArray.Length, which emulates a static function;
-// was replaced in script compilers around Editor v4.0.0.11, but is kept for backwards compat.
-RuntimeScriptValue Sc_DynamicArray_Static_Length(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_POBJ(DynamicArray_Length, void);
-}
-
-RuntimeScriptValue Sc_DynamicArray_Length(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(void, DynamicArray_Length);
-}
-
 void RegisterDynamicArrayAPI()
 {
-    ccAddExternalStaticFunction("__Builtin_DynamicArrayLength^1", Sc_DynamicArray_Static_Length);
-    ccAddExternalObjectFunction("__Builtin_DynamicArray::get_Length", Sc_DynamicArray_Length);
+    ccAddExternalStaticFunction("__Builtin_DynamicArrayLength^1", ScStaticWrapper<&DynamicArray_Length>());
+    ccAddExternalObjectFunction("__Builtin_DynamicArray::get_Length", ScMethodWrapper<&DynamicArray_Length>());
 }
