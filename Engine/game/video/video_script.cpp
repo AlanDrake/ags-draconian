@@ -17,7 +17,6 @@
 //=============================================================================
 #include "game/video/video_script.h"
 
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
@@ -26,6 +25,7 @@
 #include "game/dynobj/script_video_player.h"
 #include "game/video/video.h"
 #include "media/video/videoplayer.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/path.h"
 
 using namespace AGS::Common;

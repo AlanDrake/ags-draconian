@@ -15,7 +15,7 @@
 // Script bindings registered by RegisterDynamicArrayAPI().
 //
 //=============================================================================
-#include "ac/dynobj/cc_dynamicarray.h"
+#include "script/dynobj/cc_dynamic_array.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

@@ -15,7 +15,7 @@
 
 #include <cstring> // for memcpy()
 
-#include "ac/dynobj/cc_scriptobject.h"
+#include "script/dynobj/cc_script_object.h"
 #include "util/memory.h"
 
 using namespace AGS::Common;

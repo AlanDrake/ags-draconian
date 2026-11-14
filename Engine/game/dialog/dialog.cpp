@@ -19,7 +19,6 @@
 #include "ac/characterinfo.h"
 #include "ac/common.h"
 #include "ac/dialogtopic.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
@@ -50,6 +49,7 @@
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "script/script.h"
 #include "script/scriptexecutor.h"
 

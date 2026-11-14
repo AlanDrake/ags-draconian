@@ -18,8 +18,6 @@
 #include <queue>
 
 #include "ac/common.h"
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
@@ -77,6 +75,8 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "plugin/plugin_engine.h"
+#include "script/dynobj/cc_dynamic_array.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "util/directory.h"

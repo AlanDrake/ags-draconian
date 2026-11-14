@@ -17,8 +17,6 @@
 #include <queue>
 
 #include "ac/common.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -39,6 +37,8 @@
 #include "gfx/gfx_def.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
+#include "script/dynobj/dynobj_manager.h"
+#include "script/dynobj/script_user_object.h"
 #include "script/runtimescriptvalue.h"
 
 using namespace AGS::Common;

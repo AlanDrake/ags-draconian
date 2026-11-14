@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/dynobj/cc_agsdynamicobject.h"
+#include "script/dynobj/cc_ags_dynamic_object.h"
 
 #include <cstring> // memcpy
 

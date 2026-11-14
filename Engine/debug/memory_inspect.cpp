@@ -35,8 +35,8 @@
 
 #include <algorithm>
 
-#include "ac/dynobj/dynobj_manager.h"
 #include "script/cc_common.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "script/runtimescript.h"
 #include "script/script_runtime.h"
 #include "script/scriptexecutor.h"

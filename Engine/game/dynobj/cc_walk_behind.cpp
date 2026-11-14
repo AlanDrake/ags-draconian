@@ -14,9 +14,9 @@
 #include "game/dynobj/cc_walk_behind.h"
 
 #include "ac/common_defines.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "game/dynobj/script_objects.h"
 #include "game/roomstruct.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

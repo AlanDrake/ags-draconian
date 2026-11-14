@@ -19,8 +19,6 @@
 #include <vector>
 
 #include "ac/common.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
@@ -50,6 +48,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
+#include "script/dynobj/dynobj_manager.h"
+#include "script/dynobj/script_user_object.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
@@ -1098,7 +1098,7 @@ GUITextBox *gui_get_active_textbox()
 //
 //=============================================================================
 
-#include "ac/dynobj/scriptuserobject.h"
+#include "script/dynobj/script_user_object.h"
 #include "script/script_runtime.h"
 
 

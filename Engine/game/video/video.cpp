@@ -16,7 +16,6 @@
 #ifndef AGS_NO_VIDEO_PLAYER
 #include <cinttypes>
 
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -32,6 +31,7 @@
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
 #include "media/video/video_core.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/memory_compat.h"
 #include "util/path.h"
 

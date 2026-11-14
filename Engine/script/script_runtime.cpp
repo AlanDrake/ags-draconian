@@ -17,9 +17,9 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "script/cc_common.h"
+#include "script/dynobj/cc_dynamic_array.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "script/script.h"
 #include "script/systemimports.h"
 

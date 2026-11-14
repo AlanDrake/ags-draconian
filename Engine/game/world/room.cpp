@@ -16,9 +16,6 @@
 #include <cctype> // for toupper
 
 #include "ac/common.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/managedobjectpool.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
@@ -64,6 +61,9 @@
 #include "platform/platform.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
+#include "script/dynobj/dynobj_manager.h"
+#include "script/dynobj/managed_object_pool.h"
+#include "script/dynobj/script_user_object.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "util/stream.h"

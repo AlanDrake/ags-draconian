@@ -15,10 +15,10 @@
 // Script bindings registered by RegisterScreenAPI().
 //
 //=============================================================================
-#include "ac/dynobj/scriptuserobject.h"
 #include "game/dynobj/script_shader.h"
 #include "game/dynobj/script_viewport.h"
 #include "game/render/screen.h"
+#include "script/dynobj/script_user_object.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

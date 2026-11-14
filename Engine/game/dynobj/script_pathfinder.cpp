@@ -13,10 +13,10 @@
 //=============================================================================
 #include "game/dynobj/script_pathfinder.h"
 
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/spritecache.h"
 #include "game/world/room.h"
 #include "game/world/walkable_area.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

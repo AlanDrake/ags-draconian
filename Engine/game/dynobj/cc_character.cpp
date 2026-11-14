@@ -14,10 +14,10 @@
 #include "game/dynobj/cc_character.h"
 
 #include "ac/characterinfo.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/gamesetupstruct.h"
 #include "script/cc_common.h" // cc_error
 #include "script/cc_common.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

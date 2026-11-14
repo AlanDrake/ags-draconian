@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/dynobj/managedobjectpool.h"
+#include "script/dynobj/managed_object_pool.h"
 
 #include <cinttypes>
 #include <cstring>

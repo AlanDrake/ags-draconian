@@ -13,9 +13,9 @@
 //=============================================================================
 #include "game/lib/date_time.h"
 
-#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "platform/base/agsplatformdriver.h"
+#include "script/dynobj/dynobj_manager.h"
 
 
 ScriptDateTime *DateTime_Now()

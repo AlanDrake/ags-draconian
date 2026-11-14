@@ -15,11 +15,11 @@
 // Script bindings registered by RegisterDrawingSurfaceAPI().
 //
 //=============================================================================
-#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/gamestate.h"
 #include "ac/translation.h"
 #include "game/render/drawing_surface.h"
 #include "gfx/gfx_def.h"
+#include "script/dynobj/cc_dynamic_array.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

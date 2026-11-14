@@ -13,9 +13,9 @@
 //=============================================================================
 #include "game/dynobj/script_motion_path.h"
 
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "game/navigation/route_finder.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

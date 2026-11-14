@@ -21,9 +21,6 @@
 #endif
 
 #include "ac/common.h" // quit
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/cc_pluginobject.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
@@ -58,6 +55,9 @@
 #include "media/audio/audio_system.h"
 #include "plugin/plugin_builtin.h"
 #include "plugin/plugin_engine.h"
+#include "script/dynobj/cc_dynamic_array.h"
+#include "script/dynobj/cc_plugin_object.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
 #include "script/script_runtime.h"

@@ -13,12 +13,12 @@
 //=============================================================================
 #include "game/lib/utils_script.h"
 
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
 #include "debug/debug_log.h"
 #include "game/lib/string.h"
+#include "script/dynobj/cc_dynamic_array.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;

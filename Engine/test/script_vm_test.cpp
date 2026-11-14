@@ -24,11 +24,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "ac/dynobj/managedobjectpool.h"
 #include "gtest/gtest.h"
 #include "script/cc_common.h"
 #include "script/cc_reflect.h"
 #include "script/cs_compiler.h"
+#include "script/dynobj/managed_object_pool.h"
 #include "script/runtimescript.h"
 #include "script/script_runtime.h"
 #include "script/scriptexecutor.h"

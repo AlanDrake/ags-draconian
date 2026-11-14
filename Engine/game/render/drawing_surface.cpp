@@ -14,8 +14,6 @@
 #include "game/render/drawing_surface.h"
 
 #include "ac/common.h"
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -33,6 +31,8 @@
 #include "gfx/gfx_def.h"
 #include "gfx/gfx_util.h"
 #include "gui/guimain.h"
+#include "script/dynobj/cc_dynamic_array.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "script/runtimescriptvalue.h"
 
 using namespace AGS::Common;

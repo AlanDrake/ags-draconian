@@ -15,7 +15,6 @@
 
 #include <algorithm>
 
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game_version.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/timer.h"
@@ -31,6 +30,7 @@
 #include "gfx/gfx_def.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;

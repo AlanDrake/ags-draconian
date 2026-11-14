@@ -17,7 +17,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/cc_agsdynamicobject.h"
+#include "script/dynobj/cc_ags_dynamic_object.h"
 
 struct ScriptMouse : public AGSCCStaticObject
 {

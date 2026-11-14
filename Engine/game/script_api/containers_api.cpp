@@ -15,11 +15,11 @@
 // Script bindings registered by RegisterContainerAPI().
 //
 //=============================================================================
-#include "ac/dynobj/cc_dynamicarray.h"
 #include "game/dynobj/script_dict.h"
 #include "game/dynobj/script_set.h"
 #include "game/dynobj/script_string.h"
 #include "game/lib/script_containers.h"
+#include "script/dynobj/cc_dynamic_array.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

@@ -15,13 +15,13 @@
 // Script bindings registered by RegisterObjectAPI().
 //
 //=============================================================================
-#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/game.h"
 #include "game/dynobj/cc_object.h"
 #include "game/dynobj/script_motion_path.h"
 #include "game/dynobj/script_shader.h"
 #include "game/dynobj/script_string.h"
 #include "game/world/object.h"
+#include "script/dynobj/cc_dynamic_array.h"
 #include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

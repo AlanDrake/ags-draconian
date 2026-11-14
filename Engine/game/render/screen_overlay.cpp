@@ -13,7 +13,6 @@
 //=============================================================================
 #include "game/render/screen_overlay.h"
 
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
@@ -21,6 +20,7 @@
 #include "game/world/object.h"
 #include "game/world/view_frame.h"
 #include "gfx/bitmap.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 

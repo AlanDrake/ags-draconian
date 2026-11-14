@@ -15,8 +15,8 @@
 
 #include <ctime>
 
-#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

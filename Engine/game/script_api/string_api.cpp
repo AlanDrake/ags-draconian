@@ -17,10 +17,10 @@
 //=============================================================================
 #include <allegro.h>
 
-#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/translation.h"
 #include "game/dynobj/script_string.h"
 #include "game/lib/string.h"
+#include "script/dynobj/cc_dynamic_array.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

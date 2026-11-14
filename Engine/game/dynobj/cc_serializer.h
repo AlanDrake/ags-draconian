@@ -13,7 +13,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/cc_scriptobject.h"
+#include "script/dynobj/cc_script_object.h"
 #include "util/stream.h"
 
 struct AGSDeSerializer : ICCObjectCollectionReader

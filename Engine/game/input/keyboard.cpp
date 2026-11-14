@@ -17,9 +17,9 @@
 //=============================================================================
 #include "game/input/keyboard.h"
 
-#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/keycode.h"
 #include "ac/sys_events.h"
+#include "script/dynobj/cc_dynamic_array.h"
 
 int IsKeyPressed(int keycode)
 {

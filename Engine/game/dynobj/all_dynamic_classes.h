@@ -17,7 +17,6 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/cc_agsdynamicobject.h"
 #include "game/dynobj/cc_audio_channel.h"
 #include "game/dynobj/cc_audio_clip.h"
 #include "game/dynobj/cc_character.h"
@@ -31,3 +30,4 @@
 #include "game/dynobj/cc_serializer.h"
 #include "game/dynobj/cc_walk_behind.h"
 #include "game/dynobj/cc_walkable_area.h"
+#include "script/dynobj/cc_ags_dynamic_object.h"

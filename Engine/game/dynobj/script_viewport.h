@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "ac/dynobj/cc_agsdynamicobject.h"
+#include "script/dynobj/cc_ags_dynamic_object.h"
 
 // ScriptViewport keeps a reference to actual room Viewport in script.
 struct ScriptViewport final : AGSCCDynamicObject

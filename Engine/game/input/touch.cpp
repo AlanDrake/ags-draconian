@@ -16,12 +16,12 @@
 #include <vector>
 
 #include "ac/common.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/gamestate.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/dynobj/script_touch_pointer.h"
 #include "main/graphics_mode.h"
+#include "script/dynobj/dynobj_manager.h"
 
 // A state of an arbitrary pointer performing a touch
 struct TouchPointer

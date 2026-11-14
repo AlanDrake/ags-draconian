@@ -15,9 +15,9 @@
 // Script bindings registered by RegisterSaveInfoAPI().
 //
 //=============================================================================
-#include "ac/dynobj/cc_dynamicarray.h"
 #include "game/dynobj/script_restored_save_info.h"
 #include "game/save/savegame.h"
+#include "script/dynobj/cc_dynamic_array.h"
 #include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

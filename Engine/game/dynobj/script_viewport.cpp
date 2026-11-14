@@ -13,8 +13,8 @@
 //=============================================================================
 #include "game/dynobj/script_viewport.h"
 
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/gamestate.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

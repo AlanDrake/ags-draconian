@@ -11,9 +11,9 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/dynobj/cc_staticarray.h"
+#include "script/dynobj/cc_static_array.h"
 
-#include "ac/dynobj/cc_scriptobject.h"
+#include "script/dynobj/cc_script_object.h"
 
 void CCStaticObjectArray::Create(IScriptObject *mgr, size_t elem_script_size, size_t elem_mem_size, size_t elem_count)
 {

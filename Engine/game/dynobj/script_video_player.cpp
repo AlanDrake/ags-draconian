@@ -13,8 +13,8 @@
 //=============================================================================
 #include "game/dynobj/script_video_player.h"
 
-#include "ac/dynobj/dynobj_manager.h"
 #include "game/video/video.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

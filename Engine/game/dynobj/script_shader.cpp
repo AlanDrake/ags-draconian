@@ -13,9 +13,9 @@
 //=============================================================================
 #include "game/dynobj/script_shader.h"
 
-#include "ac/dynobj/dynobj_manager.h"
 #include "game/render/draw.h"
 #include "gfx/graphicsdriver.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/path.h"
 #include "util/stl_utils.h"
 #include "util/stream.h"

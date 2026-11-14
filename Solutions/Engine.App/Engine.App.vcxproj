@@ -346,12 +346,6 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_agsdynamicobject.cpp" />
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicarray.cpp" />
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_staticarray.cpp" />
-    <ClCompile Include="..\..\Engine\ac\dynobj\dynobj_manager.cpp" />
-    <ClCompile Include="..\..\Engine\ac\dynobj\managedobjectpool.cpp" />
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptuserobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\event.cpp" />
     <ClCompile Include="..\..\Engine\ac\file.cpp" />
     <ClCompile Include="..\..\Engine\ac\game.cpp" />
@@ -576,6 +570,12 @@
     <ClCompile Include="..\..\Engine\plugin\agsplugin.cpp" />
     <ClCompile Include="..\..\Engine\plugin\plugin_stubs.cpp" />
     <ClCompile Include="..\..\Engine\script\cc_reflecthelper.cpp" />
+    <ClCompile Include="..\..\Engine\script\dynobj\cc_ags_dynamic_object.cpp" />
+    <ClCompile Include="..\..\Engine\script\dynobj\cc_dynamic_array.cpp" />
+    <ClCompile Include="..\..\Engine\script\dynobj\cc_static_array.cpp" />
+    <ClCompile Include="..\..\Engine\script\dynobj\dynobj_manager.cpp" />
+    <ClCompile Include="..\..\Engine\script\dynobj\managed_object_pool.cpp" />
+    <ClCompile Include="..\..\Engine\script\dynobj\script_user_object.cpp" />
     <ClCompile Include="..\..\Engine\script\executingscript.cpp" />
     <ClCompile Include="..\..\Engine\script\runtimescript.cpp" />
     <ClCompile Include="..\..\Engine\script\runtimescriptvalue.cpp" />
@@ -620,14 +620,6 @@
     <ClInclude Include="..\..\Common\util\misc.h" />
     <ClInclude Include="..\..\Common\util\string_utils.h" />
     <ClInclude Include="..\..\Engine\ac\asset_helper.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_agsdynamicobject.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicarray.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_scriptobject.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_pluginobject.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_staticarray.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\dynobj_manager.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\managedobjectpool.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptuserobject.h" />
     <ClInclude Include="..\..\Engine\ac\event.h" />
     <ClInclude Include="..\..\Engine\ac\file.h" />
     <ClInclude Include="..\..\Engine\ac\game.h" />
@@ -826,6 +818,14 @@
     <ClInclude Include="..\..\Engine\plugin\plugin_engine.h" />
     <ClInclude Include="..\..\Engine\resource\resource.h" />
     <ClInclude Include="..\..\Engine\script\cc_reflecthelper.h" />
+    <ClInclude Include="..\..\Engine\script\dynobj\cc_ags_dynamic_object.h" />
+    <ClInclude Include="..\..\Engine\script\dynobj\cc_dynamic_array.h" />
+    <ClInclude Include="..\..\Engine\script\dynobj\cc_plugin_object.h" />
+    <ClInclude Include="..\..\Engine\script\dynobj\cc_script_object.h" />
+    <ClInclude Include="..\..\Engine\script\dynobj\cc_static_array.h" />
+    <ClInclude Include="..\..\Engine\script\dynobj\dynobj_manager.h" />
+    <ClInclude Include="..\..\Engine\script\dynobj\managed_object_pool.h" />
+    <ClInclude Include="..\..\Engine\script\dynobj\script_user_object.h" />
     <ClInclude Include="..\..\Engine\script\executingscript.h" />
     <ClInclude Include="..\..\Engine\script\runtimescript.h" />
     <ClInclude Include="..\..\Engine\script\runtimescriptvalue.h" />

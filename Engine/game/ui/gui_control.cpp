@@ -16,8 +16,6 @@
 #include <vector>
 
 #include "ac/common.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "debug/debug_log.h"
@@ -30,6 +28,8 @@
 #include "game/world/object.h"
 #include "game/world/properties.h"
 #include "gfx/gfx_def.h"
+#include "script/dynobj/dynobj_manager.h"
+#include "script/dynobj/script_user_object.h"
 #include "script/runtimescriptvalue.h"
 
 using namespace AGS::Common;

@@ -17,14 +17,14 @@
 //=============================================================================
 #include "game/lib/script_containers.h"
 
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/cc_scriptobject.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
 #include "game/dynobj/script_dict.h"
 #include "game/dynobj/script_set.h"
 #include "game/lib/string.h"
+#include "script/dynobj/cc_dynamic_array.h"
+#include "script/dynobj/cc_script_object.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/bbop.h"
 
 //=============================================================================

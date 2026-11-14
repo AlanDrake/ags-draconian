@@ -14,7 +14,6 @@
 #include "game/dynobj/script_drawing_surface.h"
 
 #include "ac/common.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
@@ -26,6 +25,7 @@
 #include "game/world/room.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
+#include "script/dynobj/dynobj_manager.h"
 
 using namespace AGS::Common;
 

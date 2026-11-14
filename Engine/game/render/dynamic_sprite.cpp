@@ -17,7 +17,6 @@
 #include <map>
 
 #include "ac/common.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -32,6 +31,7 @@
 #include "game/world/room_status.h"
 #include "gfx/graphicsdriver.h"
 #include "gui/guibutton.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "script/runtimescriptvalue.h"
 
 using namespace AGS;

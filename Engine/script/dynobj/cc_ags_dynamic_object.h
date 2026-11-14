@@ -29,7 +29,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/cc_scriptobject.h"
+#include "script/dynobj/cc_script_object.h"
 
 namespace AGS
 {

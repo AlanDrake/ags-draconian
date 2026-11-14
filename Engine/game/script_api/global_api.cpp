@@ -15,8 +15,6 @@
 // Script API Functions
 //
 //=============================================================================
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamestructdefines.h"
@@ -46,6 +44,8 @@
 #include "game/world/walk_behind.h"
 #include "game/world/walkable_area.h"
 #include "media/audio/audio_system.h"
+#include "script/dynobj/cc_dynamic_array.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "script/runtimescript.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

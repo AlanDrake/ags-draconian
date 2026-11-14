@@ -13,7 +13,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/cc_agsdynamicobject.h"
+#include "script/dynobj/cc_ags_dynamic_object.h"
 
 // TODO: make a shared parent class for the script objects which serve
 // as simple wrappers over an object index, and implement AGSCCDynamicObject.

@@ -15,11 +15,11 @@
 // Script bindings registered by RegisterOverlayAPI().
 //
 //=============================================================================
-#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/translation.h"
 #include "game/dynobj/script_shader.h"
 #include "game/render/overlay.h"
 #include "game/world/character_extras.h"
+#include "script/dynobj/cc_dynamic_array.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

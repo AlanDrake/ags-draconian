@@ -16,8 +16,6 @@
 #include <algorithm>
 
 #include "ac/common.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -33,6 +31,8 @@
 #include "main/game_run.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
+#include "script/dynobj/dynobj_manager.h"
+#include "script/dynobj/script_user_object.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

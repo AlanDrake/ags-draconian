@@ -16,7 +16,7 @@
 #include <queue>
 #include <unordered_set>
 
-#include "ac/dynobj/cc_agsdynamicobject.h"
+#include "script/dynobj/cc_ags_dynamic_object.h"
 #include "util/string.h"
 #include "util/string_types.h"
 

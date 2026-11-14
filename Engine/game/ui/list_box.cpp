@@ -19,7 +19,6 @@
 #include <allegro.h> // find files
 
 #include "ac/common.h"
-#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
@@ -30,6 +29,7 @@
 #include "debug/debug_log.h"
 #include "game/lib/string.h"
 #include "game/ui/gui.h"
+#include "script/dynobj/cc_dynamic_array.h"
 #include "util/directory.h"
 #include "util/path.h"
 

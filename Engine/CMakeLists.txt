@@ -20,18 +20,6 @@ target_include_directories(engine PUBLIC .)
 target_sources(engine
     PRIVATE
     ac/asset_helper.h
-    ac/dynobj/cc_agsdynamicobject.cpp
-    ac/dynobj/cc_agsdynamicobject.h
-    ac/dynobj/cc_dynamicarray.cpp
-    ac/dynobj/cc_dynamicarray.h
-    ac/dynobj/cc_scriptobject.h
-    ac/dynobj/cc_pluginobject.h
-    ac/dynobj/dynobj_manager.cpp
-    ac/dynobj/dynobj_manager.h
-    ac/dynobj/managedobjectpool.cpp
-    ac/dynobj/managedobjectpool.h
-    ac/dynobj/scriptuserobject.cpp
-    ac/dynobj/scriptuserobject.h
     ac/event.cpp
     ac/event.h
     ac/file.cpp
@@ -43,8 +31,6 @@ target_sources(engine
     ac/gamestate.h
     ac/path_helper.h
     ac/runtime_defines.h
-    ac/dynobj/cc_staticarray.cpp
-    ac/dynobj/cc_staticarray.h
     ac/sys_events.cpp
     ac/sys_events.h
     ac/system.cpp
@@ -415,6 +401,20 @@ target_sources(engine
     resource/resource.h
     script/cc_reflecthelper.cpp
     script/cc_reflecthelper.h
+    script/dynobj/cc_ags_dynamic_object.cpp
+    script/dynobj/cc_ags_dynamic_object.h
+    script/dynobj/cc_dynamic_array.cpp
+    script/dynobj/cc_dynamic_array.h
+    script/dynobj/cc_plugin_object.h
+    script/dynobj/cc_script_object.h
+    script/dynobj/cc_static_array.cpp
+    script/dynobj/cc_static_array.h
+    script/dynobj/dynobj_manager.cpp
+    script/dynobj/dynobj_manager.h
+    script/dynobj/managed_object_pool.cpp
+    script/dynobj/managed_object_pool.h
+    script/dynobj/script_user_object.cpp
+    script/dynobj/script_user_object.h
     script/executingscript.cpp
     script/executingscript.h
     script/runtimescript.cpp

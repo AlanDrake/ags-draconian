@@ -15,7 +15,6 @@
 // Script bindings registered by RegisterCharacterAPI().
 //
 //=============================================================================
-#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/game.h"
 #include "ac/translation.h"
 #include "game/dynobj/cc_character.h"
@@ -24,6 +23,7 @@
 #include "game/dynobj/script_shader.h"
 #include "game/dynobj/script_string.h"
 #include "game/world/character.h"
+#include "script/dynobj/cc_dynamic_array.h"
 #include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

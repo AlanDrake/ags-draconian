@@ -19,8 +19,6 @@
 #include <allegro.h>
 
 #include "ac/common.h"
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -29,6 +27,8 @@
 #include "font/fonts.h"
 #include "game/dialog/display.h"
 #include "game/dynobj/script_string.h"
+#include "script/dynobj/cc_dynamic_array.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "script/runtimescriptvalue.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"

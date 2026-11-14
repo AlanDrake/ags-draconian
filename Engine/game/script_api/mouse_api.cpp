@@ -15,10 +15,10 @@
 // Script bindings registered by RegisterMouseAPI().
 //
 //=============================================================================
-#include "ac/dynobj/scriptuserobject.h"
 #include "device/mousew32.h"
 #include "game/dynobj/script_shader.h"
 #include "game/ui/mouse.h"
+#include "script/dynobj/script_user_object.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

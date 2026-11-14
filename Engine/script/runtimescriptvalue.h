@@ -17,8 +17,8 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/cc_scriptobject.h"
-#include "ac/dynobj/cc_staticarray.h"
+#include "script/dynobj/cc_script_object.h"
+#include "script/dynobj/cc_static_array.h"
 #include "script/script_api.h" // FIXME: find a way to not include this big header
 #include "util/memory.h"
 

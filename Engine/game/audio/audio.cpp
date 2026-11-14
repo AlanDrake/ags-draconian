@@ -18,7 +18,6 @@
 
 #include "ac/audiocliptype.h"
 #include "ac/common.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
@@ -40,6 +39,7 @@
 #include "media/audio/sound.h"
 #include "platform/base/sys_main.h"
 #include "platform/platform.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "script/script_runtime.h"
 #include "util/stream.h"
 

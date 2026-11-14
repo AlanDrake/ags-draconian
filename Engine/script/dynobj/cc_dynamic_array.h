@@ -17,8 +17,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "ac/dynobj/cc_agsdynamicobject.h"
 #include "game/dynobj/script_string.h"
+#include "script/dynobj/cc_ags_dynamic_object.h"
 #include "util/string.h"
 
 

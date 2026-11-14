@@ -13,10 +13,10 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/cc_agsdynamicobject.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
+#include "script/dynobj/cc_ags_dynamic_object.h"
 #include "util/stream.h"
 
 struct ScriptDrawingSurface final : AGSCCDynamicObject

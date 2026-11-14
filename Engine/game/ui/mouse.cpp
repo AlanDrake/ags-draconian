@@ -15,8 +15,6 @@
 
 #include "ac/characterinfo.h"
 #include "ac/common.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -37,6 +35,8 @@
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "platform/base/agsplatformdriver.h"
+#include "script/dynobj/dynobj_manager.h"
+#include "script/dynobj/script_user_object.h"
 
 using namespace AGS;
 using namespace AGS::Common;

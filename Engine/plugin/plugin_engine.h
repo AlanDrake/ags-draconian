@@ -19,9 +19,9 @@
 
 #include <vector>
 
-#include "ac/dynobj/cc_scriptobject.h"
 #include "game/game_init.h"
 #include "game/plugininfo.h"
+#include "script/dynobj/cc_script_object.h"
 #include "util/string.h"
 //
 // PluginObjectReader is a managed object unserializer registered by plugin.

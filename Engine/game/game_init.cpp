@@ -16,7 +16,6 @@
 #include <array>
 #include <vector>
 
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
@@ -49,6 +48,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "util/memory_compat.h"

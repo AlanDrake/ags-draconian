@@ -13,7 +13,7 @@
 //=============================================================================
 #include "game/dynobj/script_dict.h"
 
-#include "ac/dynobj/dynobj_manager.h"
+#include "script/dynobj/dynobj_manager.h"
 
 using namespace AGS;
 using namespace AGS::Common;

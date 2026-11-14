@@ -18,8 +18,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "ac/dynobj/cc_scriptobject.h" // IScriptObject
 #include "platform/platform.h"
+#include "script/dynobj/cc_script_object.h" // IScriptObject
 #include "script/runtimescriptvalue.h"
 #include "util/indexedobjectpool.h"
 #include "util/string.h"

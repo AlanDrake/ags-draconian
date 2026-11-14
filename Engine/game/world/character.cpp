@@ -21,8 +21,6 @@
 #include <math.h>
 
 #include "ac/common.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
@@ -60,6 +58,8 @@
 #include "main/game_run.h"
 #include "main/update.h"
 #include "media/audio/audio_system.h"
+#include "script/dynobj/dynobj_manager.h"
+#include "script/dynobj/script_user_object.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
 #include "script/script_runtime.h"

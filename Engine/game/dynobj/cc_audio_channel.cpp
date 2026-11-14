@@ -13,9 +13,9 @@
 //=============================================================================
 #include "game/dynobj/cc_audio_channel.h"
 
-#include "ac/dynobj/dynobj_manager.h"
 #include "game/dynobj/script_objects.h"
 #include "media/audio/audio_system.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

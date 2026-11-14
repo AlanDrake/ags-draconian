@@ -25,14 +25,14 @@
 #include <string>
 #include <vector>
 
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/managedobjectpool.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "game/dynobj/cc_serializer.h"
 #include "gtest/gtest.h"
 #include "script/cc_common.h"
 #include "script/cc_reflect.h"
+#include "script/dynobj/cc_dynamic_array.h"
+#include "script/dynobj/dynobj_manager.h"
+#include "script/dynobj/managed_object_pool.h"
+#include "script/dynobj/script_user_object.h"
 #include "util/memory.h"
 #include "util/memorystream.h"
 #include "util/stream.h"

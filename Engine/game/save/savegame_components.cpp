@@ -17,7 +17,6 @@
 
 #include "ac/audiocliptype.h"
 #include "ac/common.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -52,6 +51,7 @@
 #include "media/audio/audio_system.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "script/script.h"
 #include "util/deflatestream.h"
 #include "util/memory_compat.h"

@@ -14,8 +14,6 @@
 #include "game/world/object.h"
 
 #include "ac/common.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
@@ -42,6 +40,8 @@
 #include "gfx/gfx_def.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
+#include "script/dynobj/dynobj_manager.h"
+#include "script/dynobj/script_user_object.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
 

@@ -11,15 +11,15 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/dynobj/dynobj_manager.h"
+#include "script/dynobj/dynobj_manager.h"
 
 #include <cstdlib>
 #include <cstring>
 
-#include "ac/dynobj/managedobjectpool.h"
 #include "debug/out.h"
 #include "game/dynobj/script_shader.h"
 #include "script/cc_common.h"
+#include "script/dynobj/managed_object_pool.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

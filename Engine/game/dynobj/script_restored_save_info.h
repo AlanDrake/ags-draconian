@@ -13,9 +13,9 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/cc_agsdynamicobject.h"
 #include "game/save/savegame.h"
 #include "game/save/savegame_internal.h"
+#include "script/dynobj/cc_ags_dynamic_object.h"
 
 class ScriptRestoredSaveInfo final : public CCBasicObject
 {

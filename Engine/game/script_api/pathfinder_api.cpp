@@ -15,11 +15,11 @@
 // Script bindings registered by RegisterPathfinderAPI().
 //
 //=============================================================================
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "game/dynobj/script_motion_path.h"
 #include "game/dynobj/script_pathfinder.h"
 #include "game/navigation/pathfinder_script.h"
+#include "script/dynobj/cc_dynamic_array.h"
+#include "script/dynobj/script_user_object.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

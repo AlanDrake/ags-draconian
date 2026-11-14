@@ -13,9 +13,9 @@
 //=============================================================================
 #include "game/dynobj/cc_audio_clip.h"
 
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/gamesetupstruct.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

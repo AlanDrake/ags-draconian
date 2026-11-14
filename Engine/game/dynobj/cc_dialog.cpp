@@ -14,9 +14,9 @@
 #include "game/dynobj/cc_dialog.h"
 
 #include "ac/dialogtopic.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/gamestructdefines.h"
 #include "game/dialog/dialog.h"
+#include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
