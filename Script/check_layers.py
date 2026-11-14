@@ -19,7 +19,7 @@ The rings, each a set of directories, and what a file of a ring may include:
 
 So the game logic is a module on top of a host (window, graphics, audio, files) and a script VM that know
 nothing about it, and Engine/main puts them together. Two rules on single headers come with the rings (HEADER_RULES):
-script/script_api.h, the macros that build the script bindings, is for the VM and Engine/game/script_api only.
+script/script_api.h, the text formatting of the script bindings, is for the VM and Engine/game/script_api only.
 
 The tree does not satisfy the rules yet. The includes that break them today are listed in
 Script/check_layers_baseline.txt, one "includer<TAB>included" per line. The check fails on a violation that is

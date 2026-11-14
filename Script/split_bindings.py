@@ -137,7 +137,6 @@ DROP_BANNERS = ('Script API Functions',)
 # headers whose files may include script/script_api.h after the split, and why
 SCRIPT_API_INCLUDERS = {
     'Engine/script/script_api.cpp': 'the implementation of script_api.h',
-    'Engine/script/runtimescriptvalue.h': 'includes it for ScriptAPIVersion and the macros (its own FIXME)',
 }
 # identifiers that tell a system header is needed; an unlisted system header is kept when the moved text names
 # anything from the C or C++ library, and reported
