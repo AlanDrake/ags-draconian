@@ -18,177 +18,42 @@
 #include "game/dynobj/script_restored_save_info.h"
 #include "game/save/savegame.h"
 #include "game/script.h"
-#include "script/dynobj/cc_dynamic_array.h"
-#include "script/script_api.h"
+#include "game/script_api/bindings.h"
 #include "script/script_runtime.h"
 
 using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-RuntimeScriptValue Sc_SaveInfo_GetCancel(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_BOOL(ScriptRestoredSaveInfo, SaveInfo_GetCancel);
-}
-
-RuntimeScriptValue Sc_SaveInfo_SetCancel(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PBOOL(ScriptRestoredSaveInfo, SaveInfo_SetCancel);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetRetryWithoutComponents(void *self, const RuntimeScriptValue *params,
-                                                         int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetRetryWithoutComponents);
-}
-
-RuntimeScriptValue Sc_SaveInfo_SetRetryWithoutComponents(void *self, const RuntimeScriptValue *params,
-                                                         int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(ScriptRestoredSaveInfo, SaveInfo_SetRetryWithoutComponents);
-}
-
-RuntimeScriptValue Sc_SaveInfo_HasExtraData(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_BOOL(ScriptRestoredSaveInfo, SaveInfo_HasExtraData);
-}
-
-RuntimeScriptValue Sc_SaveInfo_HasMissingData(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_BOOL(ScriptRestoredSaveInfo, SaveInfo_HasMissingData);
-}
-
-RuntimeScriptValue Sc_SaveInfo_IsPrescan(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_BOOL(ScriptRestoredSaveInfo, SaveInfo_IsPrescan);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetSlot(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetSlot);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetDescription(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(ScriptRestoredSaveInfo, const char, myScriptStringImpl, SaveInfo_GetDescription);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetEngineVersion(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(ScriptRestoredSaveInfo, const char, myScriptStringImpl, SaveInfo_GetEngineVersion);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetGameVersion(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(ScriptRestoredSaveInfo, const char, myScriptStringImpl, SaveInfo_GetGameVersion);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetAudioClipTypeCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetAudioClipTypeCount);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetCharacterCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetCharacterCount);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetDialogCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetDialogCount);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetGUICount(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetGUICount);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetGUIControlCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetGUIControlCount);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetInventoryItemCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetInventoryItemCount);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetCursorCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetCursorCount);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetViewCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetViewCount);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetViewLoopCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetViewLoopCount);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetViewFrameCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetViewFrameCount);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetGlobalScriptDataSize(void *self, const RuntimeScriptValue *params,
-                                                       int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetGlobalScriptDataSize);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetScriptModuleCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetScriptModuleCount);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetScriptModuleNames(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ_PINT(ScriptRestoredSaveInfo, const char, myScriptStringImpl, SaveInfo_GetScriptModuleNames);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetScriptModuleDataSizes(void *self, const RuntimeScriptValue *params,
-                                                        int32_t param_count)
-{
-    API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetScriptModuleDataSizes);
-}
-
-RuntimeScriptValue Sc_SaveInfo_GetRoom(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetRoom);
-}
-
 void RegisterSaveInfoAPI()
 {
     ScFnRegister saveinfo_api[] = {
-        {"RestoredSaveInfo::get_Cancel", API_FN_PAIR(SaveInfo_GetCancel)},
-        {"RestoredSaveInfo::set_Cancel", API_FN_PAIR(SaveInfo_SetCancel)},
-        {"RestoredSaveInfo::get_RetryWithoutComponents", API_FN_PAIR(SaveInfo_GetRetryWithoutComponents)},
-        {"RestoredSaveInfo::set_RetryWithoutComponents", API_FN_PAIR(SaveInfo_SetRetryWithoutComponents)},
-        {"RestoredSaveInfo::get_IsPrescan", API_FN_PAIR(SaveInfo_IsPrescan)},
-        {"RestoredSaveInfo::get_HasExtraData", API_FN_PAIR(SaveInfo_HasExtraData)},
-        {"RestoredSaveInfo::get_HasMissingData", API_FN_PAIR(SaveInfo_HasMissingData)},
-        {"RestoredSaveInfo::get_Slot", API_FN_PAIR(SaveInfo_GetSlot)},
-        {"RestoredSaveInfo::get_Description", API_FN_PAIR(SaveInfo_GetDescription)},
-        {"RestoredSaveInfo::get_EngineVersion", API_FN_PAIR(SaveInfo_GetEngineVersion)},
-        {"RestoredSaveInfo::get_GameVersion", API_FN_PAIR(SaveInfo_GetGameVersion)},
-        {"RestoredSaveInfo::get_AudioClipTypeCount", API_FN_PAIR(SaveInfo_GetAudioClipTypeCount)},
-        {"RestoredSaveInfo::get_CharacterCount", API_FN_PAIR(SaveInfo_GetCharacterCount)},
-        {"RestoredSaveInfo::get_DialogCount", API_FN_PAIR(SaveInfo_GetDialogCount)},
-        {"RestoredSaveInfo::get_GUICount", API_FN_PAIR(SaveInfo_GetGUICount)},
-        {"RestoredSaveInfo::geti_GUIControlCount", API_FN_PAIR(SaveInfo_GetGUIControlCount)},
-        {"RestoredSaveInfo::get_InventoryItemCount", API_FN_PAIR(SaveInfo_GetInventoryItemCount)},
-        {"RestoredSaveInfo::get_CursorCount", API_FN_PAIR(SaveInfo_GetCursorCount)},
-        {"RestoredSaveInfo::get_ViewCount", API_FN_PAIR(SaveInfo_GetViewCount)},
-        {"RestoredSaveInfo::geti_ViewLoopCount", API_FN_PAIR(SaveInfo_GetViewLoopCount)},
-        {"RestoredSaveInfo::geti_ViewFrameCount", API_FN_PAIR(SaveInfo_GetViewFrameCount)},
-        {"RestoredSaveInfo::get_GlobalScriptDataSize", API_FN_PAIR(SaveInfo_GetGlobalScriptDataSize)},
-        {"RestoredSaveInfo::get_ScriptModuleCount", API_FN_PAIR(SaveInfo_GetScriptModuleCount)},
-        {"RestoredSaveInfo::geti_ScriptModuleNames", API_FN_PAIR(SaveInfo_GetScriptModuleNames)},
-        {"RestoredSaveInfo::geti_ScriptModuleDataSizes", API_FN_PAIR(SaveInfo_GetScriptModuleDataSizes)},
-        {"RestoredSaveInfo::get_Room", API_FN_PAIR(SaveInfo_GetRoom)},
+        ScMethod<&SaveInfo_GetCancel>("RestoredSaveInfo::get_Cancel"),
+        ScMethod<&SaveInfo_SetCancel>("RestoredSaveInfo::set_Cancel"),
+        ScMethod<&SaveInfo_GetRetryWithoutComponents>("RestoredSaveInfo::get_RetryWithoutComponents"),
+        ScMethod<&SaveInfo_SetRetryWithoutComponents>("RestoredSaveInfo::set_RetryWithoutComponents"),
+        ScMethod<&SaveInfo_IsPrescan>("RestoredSaveInfo::get_IsPrescan"),
+        ScMethod<&SaveInfo_HasExtraData>("RestoredSaveInfo::get_HasExtraData"),
+        ScMethod<&SaveInfo_HasMissingData>("RestoredSaveInfo::get_HasMissingData"),
+        ScMethod<&SaveInfo_GetSlot>("RestoredSaveInfo::get_Slot"),
+        ScMethod<&SaveInfo_GetDescription>("RestoredSaveInfo::get_Description"),
+        ScMethod<&SaveInfo_GetEngineVersion>("RestoredSaveInfo::get_EngineVersion"),
+        ScMethod<&SaveInfo_GetGameVersion>("RestoredSaveInfo::get_GameVersion"),
+        ScMethod<&SaveInfo_GetAudioClipTypeCount>("RestoredSaveInfo::get_AudioClipTypeCount"),
+        ScMethod<&SaveInfo_GetCharacterCount>("RestoredSaveInfo::get_CharacterCount"),
+        ScMethod<&SaveInfo_GetDialogCount>("RestoredSaveInfo::get_DialogCount"),
+        ScMethod<&SaveInfo_GetGUICount>("RestoredSaveInfo::get_GUICount"),
+        ScMethod<&SaveInfo_GetGUIControlCount>("RestoredSaveInfo::geti_GUIControlCount"),
+        ScMethod<&SaveInfo_GetInventoryItemCount>("RestoredSaveInfo::get_InventoryItemCount"),
+        ScMethod<&SaveInfo_GetCursorCount>("RestoredSaveInfo::get_CursorCount"),
+        ScMethod<&SaveInfo_GetViewCount>("RestoredSaveInfo::get_ViewCount"),
+        ScMethod<&SaveInfo_GetViewLoopCount>("RestoredSaveInfo::geti_ViewLoopCount"),
+        ScMethod<&SaveInfo_GetViewFrameCount>("RestoredSaveInfo::geti_ViewFrameCount"),
+        ScMethod<&SaveInfo_GetGlobalScriptDataSize>("RestoredSaveInfo::get_GlobalScriptDataSize"),
+        ScMethod<&SaveInfo_GetScriptModuleCount>("RestoredSaveInfo::get_ScriptModuleCount"),
+        ScMethod<&SaveInfo_GetScriptModuleNames>("RestoredSaveInfo::geti_ScriptModuleNames"),
+        ScMethod<&SaveInfo_GetScriptModuleDataSizes>("RestoredSaveInfo::geti_ScriptModuleDataSizes"),
+        ScMethod<&SaveInfo_GetRoom>("RestoredSaveInfo::get_Room"),
     };
 
     ccAddExternalFunctions(saveinfo_api);
