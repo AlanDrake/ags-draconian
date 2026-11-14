@@ -568,7 +568,7 @@ struct GameSettings
     String AndroidApplicationId;
     DataUtil::AndroidBuildFormat AndroidBuildFormat = kAndroidBuild_ApkEmbedded;
     bool AntiAliasFonts = false;
-    bool AntiGlideMode = true;
+    bool AntiGlideMode = false;
     bool AttachDataToExe = false;
     int AudioIndexer = 1;
     bool AutoMoveInWalkMode = true;
@@ -579,7 +579,7 @@ struct GameSettings
     SpriteCompression CompressSpritesType = AGS::Common::kSprCompress_None;
     String CustomDataDir;
     String CustomResolution;
-    bool DebugMode = true;
+    bool DebugMode = false;
     int DefaultRoomMaskResolution = 1;
     String Description;
     String DeveloperErrorText;

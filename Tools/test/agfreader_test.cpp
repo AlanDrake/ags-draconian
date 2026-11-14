@@ -558,13 +558,13 @@ static void ExpectEditorScalarDefaults(const DataUtil::GameSettings &s)
     EXPECT_FALSE(s.AlwaysDisplayTextAsSpeech);
     EXPECT_EQ(1, s.AndroidAppVersionCode);
     EXPECT_FALSE(s.AntiAliasFonts);
-    EXPECT_TRUE(s.AntiGlideMode);
+    EXPECT_FALSE(s.AntiGlideMode);
     EXPECT_FALSE(s.AttachDataToExe);
     EXPECT_EQ(1, s.AudioIndexer); // AudioClip.FixedIndexBase
     EXPECT_TRUE(s.AutoMoveInWalkMode);
     EXPECT_FALSE(s.BackwardsText);
     EXPECT_TRUE(s.ClipGUIControls);
-    EXPECT_TRUE(s.DebugMode);
+    EXPECT_FALSE(s.DebugMode);
     EXPECT_EQ(1, s.DefaultRoomMaskResolution);
     EXPECT_FALSE(s.DialogOptionsBackwards);
     EXPECT_EQ(0, s.DialogOptionsBullet);
