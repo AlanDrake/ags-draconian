@@ -26,7 +26,7 @@
 // **** CHARACTER: FUNCTIONS ****
 //
 // A Character_<Name> function implements the script function Character.<Name> of the same name, which scripts
-// reach through the Sc_Character_<Name> wrapper registered in RegisterCharacterAPI (character_api.cpp). A comment
+// reach through the binding registered in RegisterCharacterAPI (character_api.cpp). A comment
 // tells where the script name differs, or the function is not a script function at all.
 
 // Tells if the character ID is valid
