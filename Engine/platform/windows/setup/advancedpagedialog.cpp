@@ -19,7 +19,7 @@
 
 #include <shlwapi.h>
 
-#include "ac/speech.h"
+#include "game/dialog/speech.h"
 #include "platform/windows/setup/advancedpagedialog.h"
 #include "platform/windows/setup/winapihelpers.h"
 #include "resource/resource.h"

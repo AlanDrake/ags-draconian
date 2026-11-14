@@ -350,9 +350,6 @@
     <ClCompile Include="..\..\Engine\ac\character.cpp" />
     <ClCompile Include="..\..\Engine\ac\characterextras.cpp" />
     <ClCompile Include="..\..\Engine\ac\characterinfo_engine.cpp" />
-    <ClCompile Include="..\..\Engine\ac\dialog.cpp" />
-    <ClCompile Include="..\..\Engine\ac\dialogoptionsrendering.cpp" />
-    <ClCompile Include="..\..\Engine\ac\display.cpp" />
     <ClCompile Include="..\..\Engine\ac\draw.cpp" />
     <ClCompile Include="..\..\Engine\ac\drawingsurface.cpp" />
     <ClCompile Include="..\..\Engine\ac\draw_software.cpp" />
@@ -414,7 +411,6 @@
     <ClCompile Include="..\..\Engine\ac\movelist.cpp" />
     <ClCompile Include="..\..\Engine\ac\object.cpp" />
     <ClCompile Include="..\..\Engine\ac\overlay.cpp" />
-    <ClCompile Include="..\..\Engine\ac\parser.cpp" />
     <ClCompile Include="..\..\Engine\ac\properties.cpp" />
     <ClCompile Include="..\..\Engine\ac\shader_script.cpp" />
     <ClCompile Include="..\..\Engine\ac\sys_events.cpp" />
@@ -425,7 +421,6 @@
     <ClCompile Include="..\..\Engine\ac\screen.cpp" />
     <ClCompile Include="..\..\Engine\ac\screenoverlay.cpp" />
     <ClCompile Include="..\..\Engine\ac\slider.cpp" />
-    <ClCompile Include="..\..\Engine\ac\speech.cpp" />
     <ClCompile Include="..\..\Engine\ac\system.cpp" />
     <ClCompile Include="..\..\Engine\ac\textbox.cpp" />
     <ClCompile Include="..\..\Engine\ac\timer.cpp" />
@@ -441,6 +436,11 @@
     <ClCompile Include="..\..\Engine\game\audio\audio.cpp" />
     <ClCompile Include="..\..\Engine\game\audio\audio_channel.cpp" />
     <ClCompile Include="..\..\Engine\game\audio\audio_clip.cpp" />
+    <ClCompile Include="..\..\Engine\game\dialog\dialog.cpp" />
+    <ClCompile Include="..\..\Engine\game\dialog\dialog_options_rendering.cpp" />
+    <ClCompile Include="..\..\Engine\game\dialog\display.cpp" />
+    <ClCompile Include="..\..\Engine\game\dialog\parser.cpp" />
+    <ClCompile Include="..\..\Engine\game\dialog\speech.cpp" />
     <ClCompile Include="..\..\Engine\game\game_init.cpp" />
     <ClCompile Include="..\..\Engine\game\input\joystick.cpp" />
     <ClCompile Include="..\..\Engine\game\input\keyboard.cpp" />
@@ -623,9 +623,6 @@
     <ClInclude Include="..\..\Engine\ac\button.h" />
     <ClInclude Include="..\..\Engine\ac\character.h" />
     <ClInclude Include="..\..\Engine\ac\characterextras.h" />
-    <ClInclude Include="..\..\Engine\ac\dialog.h" />
-    <ClInclude Include="..\..\Engine\ac\dialogoptionsrendering.h" />
-    <ClInclude Include="..\..\Engine\ac\display.h" />
     <ClInclude Include="..\..\Engine\ac\draw.h" />
     <ClInclude Include="..\..\Engine\ac\drawingsurface.h" />
     <ClInclude Include="..\..\Engine\ac\draw_software.h" />
@@ -687,13 +684,11 @@
     <ClInclude Include="..\..\Engine\ac\inventoryitem.h" />
     <ClInclude Include="..\..\Engine\ac\invwindow.h" />
     <ClInclude Include="..\..\Engine\ac\label.h" />
-    <ClInclude Include="..\..\Engine\ac\lipsync.h" />
     <ClInclude Include="..\..\Engine\ac\listbox.h" />
     <ClInclude Include="..\..\Engine\ac\mouse.h" />
     <ClInclude Include="..\..\Engine\ac\movelist.h" />
     <ClInclude Include="..\..\Engine\ac\object.h" />
     <ClInclude Include="..\..\Engine\ac\overlay.h" />
-    <ClInclude Include="..\..\Engine\ac\parser.h" />
     <ClInclude Include="..\..\Engine\ac\path_helper.h" />
     <ClInclude Include="..\..\Engine\ac\shader_script.h" />
     <ClInclude Include="..\..\Engine\ac\properties.h" />
@@ -706,7 +701,6 @@
     <ClInclude Include="..\..\Engine\ac\screen.h" />
     <ClInclude Include="..\..\Engine\ac\screenoverlay.h" />
     <ClInclude Include="..\..\Engine\ac\slider.h" />
-    <ClInclude Include="..\..\Engine\ac\speech.h" />
     <ClInclude Include="..\..\Engine\ac\system.h" />
     <ClInclude Include="..\..\Engine\ac\textbox.h" />
     <ClInclude Include="..\..\Engine\ac\timer.h" />
@@ -726,6 +720,12 @@
     <ClInclude Include="..\..\Engine\game\audio\audio.h" />
     <ClInclude Include="..\..\Engine\game\audio\audio_channel.h" />
     <ClInclude Include="..\..\Engine\game\audio\audio_clip.h" />
+    <ClInclude Include="..\..\Engine\game\dialog\dialog.h" />
+    <ClInclude Include="..\..\Engine\game\dialog\dialog_options_rendering.h" />
+    <ClInclude Include="..\..\Engine\game\dialog\display.h" />
+    <ClInclude Include="..\..\Engine\game\dialog\lipsync.h" />
+    <ClInclude Include="..\..\Engine\game\dialog\parser.h" />
+    <ClInclude Include="..\..\Engine\game\dialog\speech.h" />
     <ClInclude Include="..\..\Engine\game\game_init.h" />
     <ClInclude Include="..\..\Engine\game\input\joystick.h" />
     <ClInclude Include="..\..\Engine\game\input\keyboard.h" />

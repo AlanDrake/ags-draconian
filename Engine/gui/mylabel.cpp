@@ -15,9 +15,9 @@
 
 #include <cstring>
 
-#include "ac/display.h"
 #include "ac/gamesetup.h"
 #include "font/fonts.h"
+#include "game/dialog/display.h"
 #include "game/lib/string.h"
 #include "gui/guidialogdefines.h"
 

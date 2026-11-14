@@ -21,7 +21,6 @@
 
 #include "ac/character.h"
 #include "ac/common.h"
-#include "ac/dialog.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
@@ -33,6 +32,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "game/dialog/dialog.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "plugin/plugin_engine.h"

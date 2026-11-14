@@ -27,12 +27,6 @@ target_sources(engine
     ac/characterextras.cpp
     ac/characterextras.h
     ac/characterinfo_engine.cpp
-    ac/dialog.cpp
-    ac/dialog.h
-    ac/dialogoptionsrendering.cpp
-    ac/dialogoptionsrendering.h
-    ac/display.cpp
-    ac/display.h
     ac/draw.cpp
     ac/draw.h
     ac/draw_software.cpp
@@ -148,7 +142,6 @@ target_sources(engine
     ac/invwindow.h
     ac/label.cpp
     ac/label.h
-    ac/lipsync.h
     ac/listbox.cpp
     ac/listbox.h
     ac/mouse.cpp
@@ -159,8 +152,6 @@ target_sources(engine
     ac/object.h
     ac/overlay.cpp
     ac/overlay.h
-    ac/parser.cpp
-    ac/parser.h
     ac/path_helper.h
     ac/properties.cpp
     ac/properties.h
@@ -181,8 +172,6 @@ target_sources(engine
     ac/shader_script.h
     ac/slider.cpp
     ac/slider.h
-    ac/speech.cpp
-    ac/speech.h
     ac/dynobj/scriptgame.cpp
     ac/dynobj/scriptgame.h
     ac/dynobj/cc_staticarray.cpp
@@ -222,6 +211,17 @@ target_sources(engine
     game/audio/audio_channel.h
     game/audio/audio_clip.cpp
     game/audio/audio_clip.h
+    game/dialog/dialog.cpp
+    game/dialog/dialog.h
+    game/dialog/dialog_options_rendering.cpp
+    game/dialog/dialog_options_rendering.h
+    game/dialog/display.cpp
+    game/dialog/display.h
+    game/dialog/lipsync.h
+    game/dialog/parser.cpp
+    game/dialog/parser.h
+    game/dialog/speech.cpp
+    game/dialog/speech.h
     game/game_init.cpp
     game/game_init.h
     game/input/joystick.cpp

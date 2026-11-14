@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/dialog.h"
+#include "game/dialog/dialog.h"
 
 #include <cstdio>
 #include <stack>
@@ -20,7 +20,6 @@
 #include "ac/characterinfo.h"
 #include "ac/common.h"
 #include "ac/dialogtopic.h"
-#include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/dynobj/dynobj_manager.h"
@@ -34,7 +33,6 @@
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/overlay.h"
-#include "ac/parser.h"
 #include "ac/properties.h"
 #include "ac/room.h"
 #include "ac/spritecache.h"
@@ -43,6 +41,8 @@
 #include "ac/translation.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
+#include "game/dialog/display.h"
+#include "game/dialog/parser.h"
 #include "game/lib/string.h"
 #include "gfx/ddb.h"
 #include "gfx/gfx_util.h"

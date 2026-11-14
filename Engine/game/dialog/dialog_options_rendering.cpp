@@ -11,13 +11,13 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/dialogoptionsrendering.h"
+#include "game/dialog/dialog_options_rendering.h"
 
 #include "ac/common.h" // quitprintf
-#include "ac/dialog.h"
 #include "ac/dialogtopic.h"
 #include "ac/gamestructdefines.h"
 #include "debug/debug_log.h"
+#include "game/dialog/dialog.h"
 #include "script/runtimescriptvalue.h"
 
 // ** SCRIPT DIALOGOPTIONSRENDERING OBJECT

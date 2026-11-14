@@ -18,9 +18,9 @@
 #pragma once
 #include <vector>
 
-#include "ac/display.h"
 #include "ac/dynobj/scriptoverlay.h"
 #include "ac/screenoverlay.h"
+#include "game/dialog/display.h"
 #include "util/geometry.h"
 #include "util/indexedobjectpool.h"
 

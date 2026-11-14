@@ -20,7 +20,6 @@
 
 #include "ac/character.h"
 #include "ac/common.h"
-#include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guicontrol.h"
@@ -43,6 +42,7 @@
 #include "ac/system.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
+#include "game/dialog/display.h"
 #include "game/lib/string.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"

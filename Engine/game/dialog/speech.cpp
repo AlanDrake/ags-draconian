@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/speech.h"
+#include "game/dialog/speech.h"
 
 #include "ac/asset_helper.h"
 #include "ac/common.h"
@@ -19,11 +19,11 @@
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
-#include "ac/lipsync.h"
 #include "ac/runtime_defines.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "game/audio/audio.h"
+#include "game/dialog/lipsync.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
 #include "util/directory.h"

@@ -548,8 +548,8 @@
 		526F26A91D3B5CC300EF4E1F /* date_time.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24251D3B5CC200EF4E1F /* date_time.h */; };
 		526F26AA1D3B5CC300EF4E1F /* dialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24261D3B5CC200EF4E1F /* dialog.cpp */; };
 		526F26AB1D3B5CC300EF4E1F /* dialog.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24271D3B5CC200EF4E1F /* dialog.h */; };
-		526F26AC1D3B5CC300EF4E1F /* dialogoptionsrendering.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24281D3B5CC200EF4E1F /* dialogoptionsrendering.cpp */; };
-		526F26AD1D3B5CC300EF4E1F /* dialogoptionsrendering.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24291D3B5CC200EF4E1F /* dialogoptionsrendering.h */; };
+		526F26AC1D3B5CC300EF4E1F /* dialog_options_rendering.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24281D3B5CC200EF4E1F /* dialog_options_rendering.cpp */; };
+		526F26AD1D3B5CC300EF4E1F /* dialog_options_rendering.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24291D3B5CC200EF4E1F /* dialog_options_rendering.h */; };
 		526F26AF1D3B5CC300EF4E1F /* display.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F242B1D3B5CC200EF4E1F /* display.cpp */; };
 		526F26B01D3B5CC300EF4E1F /* display.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F242C1D3B5CC200EF4E1F /* display.h */; };
 		526F26B11D3B5CC300EF4E1F /* draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F242D1D3B5CC200EF4E1F /* draw.cpp */; };
@@ -1476,8 +1476,8 @@
 		526F24251D3B5CC200EF4E1F /* date_time.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = date_time.h; sourceTree = "<group>"; };
 		526F24261D3B5CC200EF4E1F /* dialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dialog.cpp; sourceTree = "<group>"; };
 		526F24271D3B5CC200EF4E1F /* dialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dialog.h; sourceTree = "<group>"; };
-		526F24281D3B5CC200EF4E1F /* dialogoptionsrendering.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dialogoptionsrendering.cpp; sourceTree = "<group>"; };
-		526F24291D3B5CC200EF4E1F /* dialogoptionsrendering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dialogoptionsrendering.h; sourceTree = "<group>"; };
+		526F24281D3B5CC200EF4E1F /* dialog_options_rendering.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dialog_options_rendering.cpp; sourceTree = "<group>"; };
+		526F24291D3B5CC200EF4E1F /* dialog_options_rendering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dialog_options_rendering.h; sourceTree = "<group>"; };
 		526F242B1D3B5CC200EF4E1F /* display.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = display.cpp; sourceTree = "<group>"; };
 		526F242C1D3B5CC200EF4E1F /* display.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = display.h; sourceTree = "<group>"; };
 		526F242D1D3B5CC200EF4E1F /* draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = draw.cpp; sourceTree = "<group>"; };
@@ -2477,6 +2477,24 @@
 			path = pfr;
 			sourceTree = "<group>";
 		};
+		38192C8BDBDBB4A11187B9FA /* dialog */ = {
+			isa = PBXGroup;
+			children = (
+				526F24261D3B5CC200EF4E1F /* dialog.cpp */,
+				526F24271D3B5CC200EF4E1F /* dialog.h */,
+				526F24281D3B5CC200EF4E1F /* dialog_options_rendering.cpp */,
+				526F24291D3B5CC200EF4E1F /* dialog_options_rendering.h */,
+				526F242B1D3B5CC200EF4E1F /* display.cpp */,
+				526F242C1D3B5CC200EF4E1F /* display.h */,
+				526F24D41D3B5CC300EF4E1F /* lipsync.h */,
+				526F24E21D3B5CC300EF4E1F /* parser.cpp */,
+				526F24E31D3B5CC300EF4E1F /* parser.h */,
+				526F24FE1D3B5CC300EF4E1F /* speech.cpp */,
+				526F24FF1D3B5CC300EF4E1F /* speech.h */,
+			);
+			path = dialog;
+			sourceTree = "<group>";
+		};
 		43397D22F52EB3FE66EB5BED /* cid */ = {
 			isa = PBXGroup;
 			children = (
@@ -3006,12 +3024,6 @@
 				526F24211D3B5CC200EF4E1F /* characterextras.cpp */,
 				526F24221D3B5CC200EF4E1F /* characterextras.h */,
 				52F5D85A1DA1211B006F8F4B /* characterinfo_engine.cpp */,
-				526F24261D3B5CC200EF4E1F /* dialog.cpp */,
-				526F24271D3B5CC200EF4E1F /* dialog.h */,
-				526F24281D3B5CC200EF4E1F /* dialogoptionsrendering.cpp */,
-				526F24291D3B5CC200EF4E1F /* dialogoptionsrendering.h */,
-				526F242B1D3B5CC200EF4E1F /* display.cpp */,
-				526F242C1D3B5CC200EF4E1F /* display.h */,
 				526F242D1D3B5CC200EF4E1F /* draw.cpp */,
 				526F242E1D3B5CC200EF4E1F /* draw.h */,
 				526F242F1D3B5CC200EF4E1F /* drawingsurface.cpp */,
@@ -3041,7 +3053,6 @@
 				526F24D01D3B5CC300EF4E1F /* invwindow.h */,
 				526F24D21D3B5CC300EF4E1F /* label.cpp */,
 				526F24D31D3B5CC300EF4E1F /* label.h */,
-				526F24D41D3B5CC300EF4E1F /* lipsync.h */,
 				526F24D51D3B5CC300EF4E1F /* listbox.cpp */,
 				526F24D61D3B5CC300EF4E1F /* listbox.h */,
 				526F24D91D3B5CC300EF4E1F /* mouse.cpp */,
@@ -3052,8 +3063,6 @@
 				526F24DE1D3B5CC300EF4E1F /* object.h */,
 				526F24E01D3B5CC300EF4E1F /* overlay.cpp */,
 				526F24E11D3B5CC300EF4E1F /* overlay.h */,
-				526F24E21D3B5CC300EF4E1F /* parser.cpp */,
-				526F24E31D3B5CC300EF4E1F /* parser.h */,
 				526F24E61D3B5CC300EF4E1F /* properties.cpp */,
 				526F24E71D3B5CC300EF4E1F /* properties.h */,
 				526F24EA1D3B5CC300EF4E1F /* region.cpp */,
@@ -3071,8 +3080,6 @@
 				526F24FB1D3B5CC300EF4E1F /* screenoverlay.h */,
 				526F24FC1D3B5CC300EF4E1F /* slider.cpp */,
 				526F24FD1D3B5CC300EF4E1F /* slider.h */,
-				526F24FE1D3B5CC300EF4E1F /* speech.cpp */,
-				526F24FF1D3B5CC300EF4E1F /* speech.h */,
 				526F250C1D3B5CC300EF4E1F /* system.cpp */,
 				526F250D1D3B5CC300EF4E1F /* system.h */,
 				526F250E1D3B5CC300EF4E1F /* textbox.cpp */,
@@ -3506,6 +3513,7 @@
 				DC120E31C271A148E419A755 /* audio */,
 				0A7049AB89557BCF4651F791 /* save */,
 				961D8454A8F243EE8D29496E /* lib */,
+				38192C8BDBDBB4A11187B9FA /* dialog */,
 			);
 			path = game;
 			sourceTree = "<group>";
@@ -4009,7 +4017,7 @@
 				52F5D8551DA120D9006F8F4B /* plugininfo.h in Headers */,
 				20402A6C2A227C86001C7642 /* dynobj_manager.h in Headers */,
 				205229B028E8EBE500589E91 /* roomstruct.h in Headers */,
-				526F26AD1D3B5CC300EF4E1F /* dialogoptionsrendering.h in Headers */,
+				526F26AD1D3B5CC300EF4E1F /* dialog_options_rendering.h in Headers */,
 				526F27751D3B5CC300EF4E1F /* roomobject.h in Headers */,
 				20E6853828F2219B00B95C00 /* AGSSpriteFont.h in Headers */,
 				526F27C01D3B5CC300EF4E1F /* gfxfilter.h in Headers */,
@@ -4321,7 +4329,7 @@
 				526F22E11D3B5C4900EF4E1F /* guiinv.cpp in Sources */,
 				526F26CD1D3B5CC300EF4E1F /* cc_inventory.cpp in Sources */,
 				20E6837128F20BFD00B95C00 /* framing.c in Sources */,
-				526F26AC1D3B5CC300EF4E1F /* dialogoptionsrendering.cpp in Sources */,
+				526F26AC1D3B5CC300EF4E1F /* dialog_options_rendering.cpp in Sources */,
 				20522A6B28E8F92100589E91 /* savegame_components.cpp in Sources */,
 				20522A6C28E8F92100589E91 /* viewport.cpp in Sources */,
 				526F28C21D3B5CC300EF4E1F /* exports.cpp in Sources */,

@@ -18,7 +18,7 @@
 #pragma once
 
 #include "ac/gamesetup.h"
-#include "ac/speech.h"
+#include "game/dialog/speech.h"
 #include "main/graphics_mode.h"
 #include "util/ini_util.h"
 

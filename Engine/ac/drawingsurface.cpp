@@ -14,7 +14,6 @@
 #include "ac/drawingsurface.h"
 
 #include "ac/common.h"
-#include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/dynobj/cc_dynamicarray.h"
@@ -29,6 +28,7 @@
 #include "ac/walkbehind.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
+#include "game/dialog/display.h"
 #include "game/lib/string.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfx_util.h"

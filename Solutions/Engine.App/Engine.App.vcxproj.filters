@@ -59,6 +59,9 @@
     <Filter Include="Source Files\game\audio">
       <UniqueIdentifier>{5710342e-69c5-5c57-bfe2-993e80322450}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\game\dialog">
+      <UniqueIdentifier>{7286219e-3145-5809-82ca-8dba930a245f}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\game\input">
       <UniqueIdentifier>{5347bf60-41c2-596f-9382-c78a5286ca5e}</UniqueIdentifier>
     </Filter>
@@ -138,6 +141,9 @@
     <Filter Include="Header Files\game\audio">
       <UniqueIdentifier>{cdcc7d9c-0f20-5c7f-b63a-28bf16994b58}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\game\dialog">
+      <UniqueIdentifier>{0631d270-f2e5-5261-be44-d91a5a7fe08d}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files\game\input">
       <UniqueIdentifier>{edbbd7a3-df97-55d2-834f-06b6f17a0a8d}</UniqueIdentifier>
     </Filter>
@@ -216,14 +222,14 @@
     <ClCompile Include="..\..\Engine\game\lib\date_time.cpp">
       <Filter>Source Files\game\lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dialog.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\dialog\dialog.cpp">
+      <Filter>Source Files\game\dialog</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dialogoptionsrendering.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\dialog\dialog_options_rendering.cpp">
+      <Filter>Source Files\game\dialog</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\display.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\dialog\display.cpp">
+      <Filter>Source Files\game\dialog</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\draw.cpp">
       <Filter>Source Files\ac</Filter>
@@ -291,8 +297,8 @@
     <ClCompile Include="..\..\Engine\ac\overlay.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\parser.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\dialog\parser.cpp">
+      <Filter>Source Files\game\dialog</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\input\touch.cpp">
       <Filter>Source Files\game\input</Filter>
@@ -327,8 +333,8 @@
     <ClCompile Include="..\..\Engine\ac\slider.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\speech.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\dialog\speech.cpp">
+      <Filter>Source Files\game\dialog</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\lib\string.cpp">
       <Filter>Source Files\game\lib</Filter>
@@ -941,14 +947,14 @@
     <ClInclude Include="..\..\Engine\game\lib\date_time.h">
       <Filter>Header Files\game\lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dialog.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\dialog\dialog.h">
+      <Filter>Header Files\game\dialog</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dialogoptionsrendering.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\dialog\dialog_options_rendering.h">
+      <Filter>Header Files\game\dialog</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\display.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\dialog\display.h">
+      <Filter>Header Files\game\dialog</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\draw.h">
       <Filter>Header Files\ac</Filter>
@@ -995,8 +1001,8 @@
     <ClInclude Include="..\..\Engine\ac\label.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\lipsync.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\dialog\lipsync.h">
+      <Filter>Header Files\game\dialog</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\listbox.h">
       <Filter>Header Files\ac</Filter>
@@ -1016,8 +1022,8 @@
     <ClInclude Include="..\..\Engine\ac\overlay.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\parser.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\dialog\parser.h">
+      <Filter>Header Files\game\dialog</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\path_helper.h">
       <Filter>Header Files\ac</Filter>
@@ -1058,8 +1064,8 @@
     <ClInclude Include="..\..\Engine\ac\slider.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\speech.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\dialog\speech.h">
+      <Filter>Header Files\game\dialog</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\lib\string.h">
       <Filter>Header Files\game\lib</Filter>

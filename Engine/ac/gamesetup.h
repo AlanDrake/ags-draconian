@@ -17,8 +17,8 @@
 
 #include "ac/game_version.h"
 #include "ac/runtime_defines.h"
-#include "ac/speech.h"
 #include "ac/sys_events.h"
+#include "game/dialog/speech.h"
 #include "main/graphics_mode.h"
 #include "util/string.h"
 

@@ -19,7 +19,7 @@
 #include "ac/dynobj/scriptoverlay.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
-#include "ac/speech.h"
+#include "game/dialog/speech.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
