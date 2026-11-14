@@ -120,7 +120,7 @@ void WritePropertySchemaBlock(Stream *out, const std::vector<DataUtil::CustomPro
 }
 
 // Read inline by GameSetupStruct::read_font_infos() in
-// Common/ac/gamesetupstruct.cpp.
+// Common/game/game_setup_struct.cpp.
 void WriteFontInfo(Stream *out, const DataUtil::FontData &font)
 {
     int flags = 0;
@@ -169,7 +169,7 @@ int GetAudioID(const DataUtil::GameData &game, int fixed_index)
     return -1;
 }
 
-// Read by ViewStruct::ReadFromFile() in Common/ac/view.cpp, called from
+// Read by ViewStruct::ReadFromFile() in Common/game/view.cpp, called from
 // ReadViews() in Common/game/main_game_file.cpp.
 void WriteView(Stream *out, const DataUtil::GameData &game, const DataUtil::ViewData &view)
 {
@@ -193,7 +193,7 @@ void WriteView(Stream *out, const DataUtil::GameData &game, const DataUtil::View
     }
 }
 
-// Read by CharacterInfo::ReadFromFile() in Common/ac/characterinfo.cpp,
+// Read by CharacterInfo::ReadFromFile() in Common/game/character_info.cpp,
 // through GameSetupStruct::ReadCharacters().
 void WriteCharacter(Stream *out, const DataUtil::GameData &game, const DataUtil::CharacterData &ref, int index)
 {
@@ -258,7 +258,7 @@ void WriteCharacter(Stream *out, const DataUtil::GameData &game, const DataUtil:
 }
 
 // Read by InventoryItemInfo::ReadFromFile() in
-// Common/ac/inventoryiteminfo.cpp.
+// Common/game/inventory_item_info.cpp.
 void WriteInventoryItem(Stream *out, const DataUtil::InventoryItemData &ref)
 {
     InventoryItemInfo item{};
@@ -272,7 +272,7 @@ void WriteInventoryItem(Stream *out, const DataUtil::InventoryItemData &ref)
     item.WriteToFile(out);
 }
 
-// Read by MouseCursor::ReadFromFile() in Common/ac/mousecursor.cpp.
+// Read by MouseCursor::ReadFromFile() in Common/game/mouse_cursor.cpp.
 void WriteCursor(Stream *out, const DataUtil::CursorData &ref)
 {
     MouseCursor cur;
@@ -459,7 +459,7 @@ void WriteGuiListBox(Stream *out, const DataUtil::GUIListBoxData &list_box)
     out->WriteInt32(list_box.SelectedBackgroundColor);
 }
 
-// Read by AudioClipType::ReadFromFile() in Common/ac/audiocliptype.cpp.
+// Read by AudioClipType::ReadFromFile() in Common/game/audio_clip_type.cpp.
 void WriteAudioType(Stream *out, const DataUtil::AudioTypeData &type, int id)
 {
     out->WriteInt32(id);
@@ -470,7 +470,7 @@ void WriteAudioType(Stream *out, const DataUtil::AudioTypeData &type, int id)
 }
 
 // Read by ScriptAudioClip::ReadFromFile() in
-// Common/ac/dynobj/scriptaudioclip.cpp.
+// Common/game/script_audio_clip.cpp.
 void WriteAudioClip(Stream *out, const DataUtil::AudioClipData &ref, int index)
 {
     const String &name = ref.ScriptName.IsEmpty() ? ref.TypeName : ref.ScriptName;
@@ -493,7 +493,7 @@ void WriteAudioClip(Stream *out, const DataUtil::AudioClipData &ref, int index)
 }
 
 // Read inline by GameSetupStruct::read_room_names() in
-// Common/ac/gamesetupstruct.cpp.
+// Common/game/game_setup_struct.cpp.
 void WriteRoomName(Stream *out, int number, const String &description)
 {
     out->WriteInt32(number);
@@ -583,7 +583,7 @@ std::vector<int32_t> BuildGameOptions(const DataUtil::GameData &game)
 }
 
 // Read by GameSetupStructBase::ReadFromFile() in
-// Common/ac/gamesetupstructbase.cpp, at the start of ReadGameData().
+// Common/game/game_setup_struct_base.cpp, at the start of ReadGameData().
 void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData &data, Stream *out,
                               soff_t &ext_offset_pos)
 {
@@ -681,7 +681,7 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData
 }
 
 // Read by GameSetupStruct::read_savegame_info() in
-// Common/ac/gamesetupstruct.cpp.
+// Common/game/game_setup_struct.cpp.
 void WriteSaveGameInfo(const DataUtil::GameData &game, Stream *out)
 {
     String guid = game.Settings.GUIDAsString;
@@ -691,7 +691,7 @@ void WriteSaveGameInfo(const DataUtil::GameData &game, Stream *out)
 }
 
 // Read by GameSetupStruct::read_font_infos() in
-// Common/ac/gamesetupstruct.cpp.
+// Common/game/game_setup_struct.cpp.
 void WriteFontBlock(const DataUtil::GameData &game, Stream *out)
 {
     for (const auto &font : game.Fonts)
@@ -717,7 +717,7 @@ void WriteSpriteFlags(const DataUtil::GameData &game, Stream *out)
         out->Write(flags.data(), flags.size());
 }
 
-// Read by GameSetupStruct::ReadInvInfo() in Common/ac/gamesetupstruct.cpp,
+// Read by GameSetupStruct::ReadInvInfo() in Common/game/game_setup_struct.cpp,
 // which calls InventoryItemInfo::ReadFromFile().
 void WriteInventoryBlock(const DataUtil::GameData &game, Stream *out)
 {
@@ -726,7 +726,7 @@ void WriteInventoryBlock(const DataUtil::GameData &game, Stream *out)
 }
 
 // Read by GameSetupStruct::read_cursors()/ReadMouseCursors() in
-// Common/ac/gamesetupstruct.cpp.
+// Common/game/game_setup_struct.cpp.
 void WriteCursorBlock(const DataUtil::GameData &game, Stream *out)
 {
     for (const auto &cursor_ref : game.Cursors)
@@ -734,7 +734,7 @@ void WriteCursorBlock(const DataUtil::GameData &game, Stream *out)
 }
 
 // Read by GameSetupStruct::read_interaction_scripts() in
-// Common/ac/gamesetupstruct.cpp. Its inventory loop intentionally starts at
+// Common/game/game_setup_struct.cpp. Its inventory loop intentionally starts at
 // slot 1, unlike the v361_objnames extension, which includes unused slot 0.
 void WriteInteractionScriptsBlock(const DataUtil::GameData &game, Stream *out)
 {
@@ -745,7 +745,7 @@ void WriteInteractionScriptsBlock(const DataUtil::GameData &game, Stream *out)
 }
 
 // Read by GameSetupStruct::read_words_dictionary(), then
-// WordsDictionary::ReadFromFile() in Common/ac/wordsdictionary.cpp.
+// WordsDictionary::ReadFromFile() in Common/game/words_dictionary.cpp.
 void WriteTextParserDictionary(const DataUtil::GameData &game, Stream *out)
 {
     std::vector<DataUtil::TextParserWordData> words;
@@ -791,14 +791,14 @@ void WriteViewsBlock(const DataUtil::GameData &game, const CompiledData &data, S
 }
 
 // Read by GameSetupStruct::read_characters()/ReadCharacters() in
-// Common/ac/gamesetupstruct.cpp.
+// Common/game/game_setup_struct.cpp.
 void WriteCharactersBlock(const DataUtil::GameData &game, Stream *out)
 {
     for (size_t i = 0; i < game.Characters.size(); ++i)
         WriteCharacter(out, game, game.Characters[i], static_cast<int>(i));
 }
 
-// Read by GameSetupStruct::read_lipsync() in Common/ac/gamesetupstruct.cpp.
+// Read by GameSetupStruct::read_lipsync() in Common/game/game_setup_struct.cpp.
 void WriteLipSyncBlock(const DataUtil::GameData &game, Stream *out)
 {
     for (int i = 0; i < MAXLIPSYNCFRAMES; ++i)
@@ -902,7 +902,7 @@ void WritePluginsBlock(const DataUtil::GameData &game, Stream *out)
 }
 
 // Read by the schema/property-values portion of
-// GameSetupStruct::read_customprops() in Common/ac/gamesetupstruct.cpp.
+// GameSetupStruct::read_customprops() in Common/game/game_setup_struct.cpp.
 void WriteCustomPropertiesBlock(const DataUtil::GameData &game, Stream *out)
 {
     WritePropertySchemaBlock(out, game.PropertySchema);
@@ -913,7 +913,7 @@ void WriteCustomPropertiesBlock(const DataUtil::GameData &game, Stream *out)
 }
 
 // Read by the trailing viewNames/invScriptNames/dialogScriptNames portion of
-// GameSetupStruct::read_customprops() in Common/ac/gamesetupstruct.cpp.
+// GameSetupStruct::read_customprops() in Common/game/game_setup_struct.cpp.
 void WriteLegacyScriptNamesBlock(const DataUtil::GameData &game, const CompiledData &data, Stream *out)
 {
     for (const auto *view : data.ViewsByID)
@@ -922,7 +922,7 @@ void WriteLegacyScriptNamesBlock(const DataUtil::GameData &game, const CompiledD
         StrUtil::WriteCStr(item.ScriptName, out);
 }
 
-// Read by GameSetupStruct::read_audio() in Common/ac/gamesetupstruct.cpp.
+// Read by GameSetupStruct::read_audio() in Common/game/game_setup_struct.cpp.
 void WriteAudioBlock(const DataUtil::GameData &game, Stream *out)
 {
     // Add a fixed voice-over audio type at index 0
@@ -942,7 +942,7 @@ void WriteAudioBlock(const DataUtil::GameData &game, Stream *out)
 }
 
 // Read by GameSetupStruct::read_room_names() in
-// Common/ac/gamesetupstruct.cpp, in release mode too since data version 4.00.00.13.
+// Common/game/game_setup_struct.cpp, in release mode too since data version 4.00.00.13.
 void WriteRoomNamesBlock(const DataUtil::GameData &game, Stream *out)
 {
     out->WriteInt32(static_cast<int32_t>(game.Rooms.size()));
@@ -1217,7 +1217,7 @@ void WriteExtension(Stream *out, const char *id, const DataUtil::GameData &game,
 }
 
 // Read by GameDataExtReader::ReadBlock()'s "v363_dialogsnew" branch, then
-// DialogTopic::ReadFromFile_v363() in Common/ac/dialogtopic.cpp.
+// DialogTopic::ReadFromFile_v363() in Common/game/dialog_topic.cpp.
 void WriteExt363Dialogs(Stream *out, const DataUtil::GameData &game)
 {
     out->WriteInt32(static_cast<int32_t>(game.Dialogs.size()));
