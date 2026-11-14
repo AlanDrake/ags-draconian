@@ -346,7 +346,6 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Engine\ac\timer.cpp" />
     <ClCompile Include="..\..\Engine\debug\debug.cpp" />
     <ClCompile Include="..\..\Engine\debug\logfile.cpp" />
     <ClCompile Include="..\..\Engine\debug\memory_inspect.cpp" />
@@ -584,6 +583,7 @@
     <ClCompile Include="..\..\Engine\script\script_api.cpp" />
     <ClCompile Include="..\..\Engine\script\script_runtime.cpp" />
     <ClCompile Include="..\..\Engine\script\systemimports.cpp" />
+    <ClCompile Include="..\..\Engine\util\timer.cpp" />
     <ClCompile Include="..\..\libsrc\mojoAL\mojoal.c" />
   </ItemGroup>
   <ItemGroup>
@@ -620,8 +620,6 @@
     <ClInclude Include="..\..\Common\util\misc.h" />
     <ClInclude Include="..\..\Common\util\string_utils.h" />
     <ClInclude Include="..\..\Engine\ac\gamesetup.h" />
-    <ClInclude Include="..\..\Engine\ac\path_helper.h" />
-    <ClInclude Include="..\..\Engine\ac\timer.h" />
     <ClInclude Include="..\..\Engine\ac\topbarsettings.h" />
     <ClInclude Include="..\..\Engine\debug\agseditordebugger.h" />
     <ClInclude Include="..\..\Engine\debug\debugger.h" />
@@ -837,8 +835,10 @@
     <ClInclude Include="..\..\Engine\test\test_all.h" />
     <ClInclude Include="..\..\Engine\util\library.h" />
     <ClInclude Include="..\..\Engine\util\library_windows.h" />
+    <ClInclude Include="..\..\Engine\util\path_helper.h" />
     <ClInclude Include="..\..\Engine\util\threading.h" />
     <ClInclude Include="..\..\Engine\util\time_util.h" />
+    <ClInclude Include="..\..\Engine\util\timer.h" />
     <ClInclude Include="..\..\libsrc\mojoAL\AL\al.h" />
     <ClInclude Include="..\..\libsrc\mojoAL\AL\alc.h" />
   </ItemGroup>

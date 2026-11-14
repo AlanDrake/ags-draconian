@@ -20,9 +20,6 @@ target_include_directories(engine PUBLIC .)
 target_sources(engine
     PRIVATE
     ac/gamesetup.h
-    ac/path_helper.h
-    ac/timer.cpp
-    ac/timer.h
     debug/agseditordebugger.h
     debug/debug.cpp
     debug/debug_log.h
@@ -434,7 +431,10 @@ target_sources(engine
     util/library.h
     util/library_dummy.h
     util/library_posix.h
+    util/path_helper.h
     util/threading.h
+    util/timer.cpp
+    util/timer.h
 
     platform/windows/acplwin.cpp
     platform/windows/debug/namedpipesagsdebugger.cpp

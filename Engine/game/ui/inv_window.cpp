@@ -17,7 +17,6 @@
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
-#include "ac/timer.h"
 #include "debug/debug_log.h"
 #include "device/sys_events.h"
 #include "game/event.h"
@@ -32,6 +31,7 @@
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "script/runtimescriptvalue.h"
+#include "util/timer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

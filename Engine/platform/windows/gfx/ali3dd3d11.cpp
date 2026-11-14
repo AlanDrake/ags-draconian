@@ -23,7 +23,6 @@
 #include <SDL.h>
 #include <glm/ext.hpp>
 
-#include "ac/timer.h"
 #include "debug/out.h"
 #include "device/sys_events.h"
 #include "gfx/ali3dexception.h"
@@ -34,6 +33,7 @@
 #include "platform/base/sys_main.h"
 #include "platform/windows/gfx/ali3dd3d11.h"
 #include "util/matrix.h"
+#include "util/timer.h"
 
 
 using namespace AGS::Common;

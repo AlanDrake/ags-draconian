@@ -21,7 +21,6 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/keycode.h"
-#include "ac/path_helper.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
 #include "data/data_helpers.h"
@@ -82,6 +81,7 @@
 #include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"
+#include "util/path_helper.h"
 #include "util/string_compat.h"
 
 using namespace AGS;

@@ -5,9 +5,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Source Files\ac">
-      <UniqueIdentifier>{7dd8b6f7-92b0-41ee-9a23-6377606a2092}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\gfx">
       <UniqueIdentifier>{46b61b5a-1e8d-44df-a3fc-d0ca7527f804}</UniqueIdentifier>
     </Filter>
@@ -366,8 +363,8 @@
     <ClCompile Include="..\..\Engine\game\ui\text_box.cpp">
       <Filter>Source Files\game\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\timer.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\util\timer.cpp">
+      <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\translation.cpp">
       <Filter>Source Files\game</Filter>
@@ -1046,8 +1043,8 @@
     <ClInclude Include="..\..\Engine\game\dialog\parser.h">
       <Filter>Header Files\game\dialog</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\path_helper.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\util\path_helper.h">
+      <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\input\touch.h">
       <Filter>Header Files\game\input</Filter>
@@ -1097,8 +1094,8 @@
     <ClInclude Include="..\..\Engine\game\ui\text_box.h">
       <Filter>Header Files\game\ui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\timer.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\util\timer.h">
+      <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\topbarsettings.h">
       <Filter>Header Files\ac</Filter>

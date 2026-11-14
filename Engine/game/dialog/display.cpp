@@ -20,7 +20,6 @@
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
-#include "ac/timer.h"
 #include "debug/debug_log.h"
 #include "device/sys_events.h"
 #include "font/agsfontrenderer.h"
@@ -48,6 +47,7 @@
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/string_utils.h"
+#include "util/timer.h"
 
 using namespace AGS;
 using namespace AGS::Common;

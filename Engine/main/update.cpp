@@ -23,7 +23,6 @@
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
-#include "ac/timer.h"
 #include "device/sys_events.h"
 #include "game/dialog/lipsync.h"
 #include "game/game.h"
@@ -42,6 +41,7 @@
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
+#include "util/timer.h"
 
 
 using namespace AGS::Common;

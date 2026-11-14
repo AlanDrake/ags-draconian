@@ -16,7 +16,6 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/timer.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_hotspot.h"
 #include "game/dynobj/cc_region.h"
@@ -36,6 +35,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
+#include "util/timer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

@@ -47,13 +47,13 @@
 #include <memory>
 #include <stack>
 
-#include "ac/timer.h"
 #include "gfx/bitmap.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/openalsource.h"
 #include "util/error.h"
 #include "util/stream.h"
 #include "util/time_util.h"
+#include "util/timer.h"
 
 namespace AGS
 {

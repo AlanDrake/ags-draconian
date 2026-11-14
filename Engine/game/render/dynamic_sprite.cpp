@@ -18,7 +18,6 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/path_helper.h"
 #include "ac/spritecache.h"
 #include "debug/debug_log.h"
 #include "game/game.h"
@@ -33,6 +32,7 @@
 #include "gui/guibutton.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/runtimescriptvalue.h"
+#include "util/path_helper.h"
 
 using namespace AGS;
 using namespace AGS::Common;

@@ -20,7 +20,6 @@
 
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/path_helper.h"
 #include "ac/spritecache.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -33,6 +32,7 @@
 #include "util/directory.h"
 #include "util/ini_util.h"
 #include "util/path.h"
+#include "util/path_helper.h"
 #include "util/string_utils.h"
 #include "util/textstreamreader.h"
 

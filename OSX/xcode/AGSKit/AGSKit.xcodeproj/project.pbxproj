@@ -3044,10 +3044,7 @@
 		526F24151D3B5CC200EF4E1F /* ac */ = {
 			isa = PBXGroup;
 			children = (
-				20522A4E28E8F8CA00589E91 /* path_helper.h */,
 				526F24761D3B5CC200EF4E1F /* gamesetup.h */,
-				526F25101D3B5CC300EF4E1F /* timer.cpp */,
-				526F25111D3B5CC300EF4E1F /* timer.h */,
 			);
 			path = ac;
 			sourceTree = "<group>";
@@ -3338,6 +3335,9 @@
 				526F26891D3B5CC300EF4E1F /* library_dummy.h */,
 				526F268A1D3B5CC300EF4E1F /* library_posix.h */,
 				526F268C1D3B5CC300EF4E1F /* library_windows.h */,
+				20522A4E28E8F8CA00589E91 /* path_helper.h */,
+				526F25101D3B5CC300EF4E1F /* timer.cpp */,
+				526F25111D3B5CC300EF4E1F /* timer.h */,
 			);
 			path = util;
 			sourceTree = "<group>";

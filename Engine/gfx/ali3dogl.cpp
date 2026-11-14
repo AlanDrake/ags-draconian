@@ -20,7 +20,6 @@
 
 #include <SDL.h>
 
-#include "ac/timer.h"
 #include "debug/out.h"
 #include "device/sys_events.h"
 #include "gfx/ali3dexception.h"
@@ -31,6 +30,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "util/matrix.h"
+#include "util/timer.h"
 
 // OpenGL Mathematics Library. We could include only the features we need to decrease compilation time.
 #include "glad/glad.h"

@@ -17,7 +17,6 @@
 
 #include "ac/game_version.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/timer.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/customproperties.h"
@@ -32,6 +31,7 @@
 #include "media/audio/audio_system.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/string_utils.h"
+#include "util/timer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

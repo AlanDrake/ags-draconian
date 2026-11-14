@@ -18,7 +18,6 @@
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/keycode.h"
-#include "ac/timer.h"
 #include "device/sys_events.h"
 #include "font/fonts.h"
 #include "game/game_state.h"
@@ -34,6 +33,7 @@
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
+#include "util/timer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

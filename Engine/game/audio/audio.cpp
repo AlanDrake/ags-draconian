@@ -20,8 +20,6 @@
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/path_helper.h"
-#include "ac/timer.h"
 #include "ac/view.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
@@ -41,7 +39,9 @@
 #include "platform/platform.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/script_runtime.h"
+#include "util/path_helper.h"
 #include "util/stream.h"
+#include "util/timer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

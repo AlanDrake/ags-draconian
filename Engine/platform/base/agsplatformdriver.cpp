@@ -23,7 +23,6 @@
 #include <SDL.h>
 
 #include "ac/common.h"
-#include "ac/timer.h"
 #include "game/runtime_defines.h"
 #include "gfx/bitmap.h"
 #include "media/audio/audio_system.h"
@@ -31,6 +30,7 @@
 #include "util/memory_compat.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
+#include "util/timer.h"
 
 using namespace AGS;
 using namespace AGS::Common;

@@ -22,7 +22,6 @@
 #include "ac/characterinfo.h"
 #include "ac/gamestructdefines.h"
 #include "ac/keycode.h"
-#include "ac/timer.h"
 #include "game/dialog/speech.h"
 #include "game/render/viewport.h"
 #include "game/roomstruct.h"
@@ -35,6 +34,7 @@
 #include "util/geometry.h"
 #include "util/string.h"
 #include "util/string_types.h"
+#include "util/timer.h"
 
 // Forward declaration
 namespace AGS

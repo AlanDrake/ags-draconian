@@ -21,7 +21,6 @@
 
 #include "ac/common.h"
 #include "ac/keycode.h"
-#include "ac/timer.h"
 #include "device/mousew32.h"
 #include "game/input/joystick.h"
 #include "game/input/touch.h"
@@ -32,6 +31,7 @@
 #include "platform/platform.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
+#include "util/timer.h"
 #include "util/utf8.h"
 
 using namespace AGS::Common;

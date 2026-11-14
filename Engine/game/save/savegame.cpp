@@ -17,7 +17,6 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
-#include "ac/timer.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
@@ -75,6 +74,7 @@
 #include "util/memorystream.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
+#include "util/timer.h"
 
 using namespace AGS;
 using namespace AGS::Common;

@@ -21,7 +21,6 @@
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/path_helper.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "game/file.h"
@@ -32,6 +31,7 @@
 #include "script/dynobj/cc_dynamic_array.h"
 #include "util/directory.h"
 #include "util/path.h"
+#include "util/path_helper.h"
 
 using namespace AGS::Common;
 

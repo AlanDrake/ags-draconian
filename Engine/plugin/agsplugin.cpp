@@ -22,7 +22,6 @@
 
 #include "ac/common.h" // quit
 #include "ac/gamesetupstruct.h"
-#include "ac/path_helper.h"
 #include "ac/spritecache.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -62,6 +61,7 @@
 #include "script/runtimescriptvalue.h"
 #include "script/script_runtime.h"
 #include "util/library.h"
+#include "util/path_helper.h"
 
 // hide internal constants conflicting with plugin API
 #undef OBJF_NOINTERACT
