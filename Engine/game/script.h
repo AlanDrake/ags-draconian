@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "game/dynobj/script_system.h"
+#include "game/runtime_defines.h"
 #include "game/scripteventtable.h"
 #include "script/executingscript.h"
 #include "script/runtimescript.h"

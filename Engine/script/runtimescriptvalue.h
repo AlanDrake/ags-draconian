@@ -17,10 +17,19 @@
 //=============================================================================
 #pragma once
 
+#include <cassert>
+
 #include "script/dynobj/cc_script_object.h"
 #include "script/dynobj/cc_static_array.h"
-#include "script/script_api.h" // FIXME: find a way to not include this big header
 #include "util/memory.h"
+
+struct RuntimeScriptValue;
+
+// The function the script VM calls for a script API function (script/script_binder.h generates them), and for
+// a method of the object self
+// TODO: replace void* with base object class when possible; also put array class for parameters
+typedef RuntimeScriptValue ScriptAPIFunction(const RuntimeScriptValue *params, int32_t param_count);
+typedef RuntimeScriptValue ScriptAPIObjectFunction(void *self, const RuntimeScriptValue *params, int32_t param_count);
 
 enum ScriptValueType
 {

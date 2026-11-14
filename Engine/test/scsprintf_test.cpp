@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 
+#include "debug/out.h"
 #include "game/game_version.h"
 #include "gtest/gtest.h"
 #include "script/runtimescriptvalue.h"

@@ -122,7 +122,6 @@ Engine/script/dynobj/cc_dynamic_array.cpp	Engine/game/dynobj/script_string.h
 Engine/script/dynobj/cc_dynamic_array.h	Engine/game/dynobj/script_string.h
 Engine/script/dynobj/dynobj_manager.cpp	Engine/game/dynobj/script_shader.h
 Engine/script/executingscript.cpp	Engine/game/script.h
-Engine/script/script_api.h	Engine/game/runtime_defines.h
 Engine/script/script_runtime.cpp	Engine/game/script.h
 Engine/script/scriptexecutor.cpp	Engine/device/sys_events.h
 Engine/util/timer.cpp	Engine/device/sys_events.h

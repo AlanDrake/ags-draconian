@@ -12,23 +12,19 @@
 //
 //=============================================================================
 //
-// The script API's text formatting and function types. ScriptSprintf formats a script text with script
-// values or with a plugin's C variadic arguments. The bindings themselves are generated from the signature
-// of the function they call by script/script_binder.h.
+// The script API's text formatting: ScriptSprintf formats a script text with script values or with a
+// plugin's C variadic arguments. The bindings themselves are generated from the signature of the function
+// they call by script/script_binder.h; the function types the VM calls are in script/runtimescriptvalue.h.
 //
 //=============================================================================
 #pragma once
 
 #include <stdarg.h>
-
-#include "debug/out.h"
-#include "game/runtime_defines.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <vector>
 
 struct RuntimeScriptValue;
-
-// TODO: replace void* with base object class when possible; also put array class for parameters
-typedef RuntimeScriptValue ScriptAPIFunction(const RuntimeScriptValue *params, int32_t param_count);
-typedef RuntimeScriptValue ScriptAPIObjectFunction(void *self, const RuntimeScriptValue *params, int32_t param_count);
 
 // Sprintf that takes either script values or common argument list from plugin.
 // Uses EITHER sc_args/sc_argc or varg_ptr as parameter list, whichever is not
