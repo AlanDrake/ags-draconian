@@ -204,3 +204,9 @@ void CallRoomScript(int value);
 
 void SetBackgroundFrame(int frnum);
 int GetBackgroundFrame();
+
+// Processes a click at the given screen coordinates with the given cursor mode, as if the player clicked in the room.
+void RoomProcessClick(int x, int y, int mood);
+// Returns 1 if a click at the given screen coordinates with the given cursor mode would do something (a walk
+// mode always does), else 0.
+int IsInteractionAvailable(int x, int y, int mood);

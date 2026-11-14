@@ -244,3 +244,6 @@ extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 extern size_t numScriptModules;
 
 extern std::unique_ptr<AGS::Engine::ScriptExecutor> scriptExecutor;
+
+// Stops all running scripts at their next step.
+void AbortGame();

@@ -26,7 +26,6 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_game.h"
 #include "ac/invwindow.h"
 #include "ac/mouse.h"
 #include "ac/room.h"
@@ -946,4 +945,10 @@ String cc_format_error(const String &message)
         return String::FromFormat("Error (line %d): %s", currentline, message.GetCStr());
     else
         return String::FromFormat("Error (line unknown): %s", message.GetCStr());
+}
+
+void AbortGame()
+{
+    // make sure scripts stop at the next step
+    AbortAllScripts();
 }

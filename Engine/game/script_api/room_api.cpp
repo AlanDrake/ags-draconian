@@ -22,7 +22,6 @@
 #include "ac/dynobj/scriptstring.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/game.h"
-#include "ac/global_game.h"
 #include "ac/room.h"
 #include "script/script.h"
 #include "script/script_api.h"

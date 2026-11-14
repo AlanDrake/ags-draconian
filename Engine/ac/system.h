@@ -104,3 +104,7 @@ bool System_GetDisplayFPS();
 void System_SetDisplayFPS(bool show_fps);
 
 AGS::Common::String GetRuntimeInfo();
+
+// Sets whether the game runs when its window is in the background (mode 1) or not (0); the user's config, a connected
+// editor debugger and exclusive fullscreen can override the request. Quits on another mode value.
+void SetMultitasking(int mode);

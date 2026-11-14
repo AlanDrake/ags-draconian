@@ -19,9 +19,9 @@
 
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptvideoplayer.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
-#include "ac/global_game.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "media/video/video.h"

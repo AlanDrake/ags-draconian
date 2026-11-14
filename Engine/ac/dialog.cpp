@@ -30,7 +30,6 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_game.h"
 #include "ac/gui.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"

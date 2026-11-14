@@ -144,8 +144,6 @@ target_sources(engine
     ac/gamestate.cpp
     ac/gamestate.h
     ac/global_api.cpp
-    ac/global_game.cpp
-    ac/global_game.h
     ac/gui.cpp
     ac/gui.h
     ac/guicontrol.cpp
@@ -209,6 +207,8 @@ target_sources(engine
     ac/dynobj/scriptgame.h
     ac/dynobj/cc_staticarray.cpp
     ac/dynobj/cc_staticarray.h
+    ac/keyboard.cpp
+    ac/keyboard.h
     ac/pathfinder_script.h
     ac/scriptcontainers.h
     ac/string.cpp

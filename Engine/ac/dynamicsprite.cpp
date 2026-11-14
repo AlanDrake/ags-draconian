@@ -22,7 +22,6 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_game.h"
 #include "ac/math.h" // M_PI
 #include "ac/path_helper.h"
 #include "ac/roomobject.h"

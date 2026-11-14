@@ -216,9 +216,6 @@
     <ClCompile Include="..\..\Engine\ac\global_api.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\global_game.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\gui.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -876,6 +873,9 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptshader.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\keyboard.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\utils_script.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -939,9 +939,6 @@
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\gamestate.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\global_game.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\gui.h">
@@ -1624,6 +1621,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptshader.h">
       <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\keyboard.h">
+      <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\pathfinder_script.h">
       <Filter>Header Files\ac</Filter>

@@ -36,6 +36,7 @@
 #include "main/main.h"
 #include "media/audio/audio_core.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/sys_main.h"
 #include "util/string_compat.h"
 
 using namespace AGS::Common;
@@ -366,4 +367,46 @@ String GetRuntimeInfo()
     }
 
     return runtimeInfo;
+}
+
+void SetMultitasking(int mode)
+{
+    if ((mode < 0) || (mode > 1))
+        quit("!SetMultitasking: invalid mode parameter");
+    // Save requested setting
+    usetup.RunInBackground = mode != 0;
+
+    // Account for the override config option (must be checked first!)
+    if ((usetup.Override.Multitasking >= 0) && (mode != usetup.Override.Multitasking))
+    {
+        Debug::Printf("SetMultitasking: overridden by user config: %d -> %d", mode, usetup.Override.Multitasking);
+        mode = usetup.Override.Multitasking;
+    }
+
+    // Must run on background if debugger is connected
+    if ((mode == 0) && (editor_debugging_initialized != 0))
+    {
+        Debug::Printf("SetMultitasking: overridden by the external debugger: %d -> 1", mode);
+        mode = 1;
+    }
+
+    // Regardless, don't allow background running if exclusive full screen
+    if ((mode == 1) && gfxDriver && gfxDriver->GetDisplayMode().IsRealFullscreen())
+    {
+        Debug::Printf("SetMultitasking: overridden by fullscreen: %d -> 0", mode);
+        mode = 0;
+    }
+
+    // Install engine callbacks for switching in and out the window
+    Debug::Printf(kDbgMsg_Info, "Multitasking mode set: %d", mode);
+    if (mode == 0)
+    {
+        sys_set_background_mode(false);
+        sys_evt_set_focus_callbacks(display_switch_in_resume, display_switch_out_suspend);
+    }
+    else
+    {
+        sys_set_background_mode(true);
+        sys_evt_set_focus_callbacks(display_switch_in, display_switch_out);
+    }
 }

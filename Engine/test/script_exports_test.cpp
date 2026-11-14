@@ -32,7 +32,6 @@
 
 #include "ac/game.h"
 #include "ac/gamestructdefines.h"
-#include "ac/global_game.h"
 #include "data/data_helpers.h"
 #include "gtest/gtest.h"
 #include "script/exports.h"

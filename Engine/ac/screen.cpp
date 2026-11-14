@@ -24,7 +24,6 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_game.h"
 #include "ac/sys_events.h"
 #include "debug/debug_log.h"
 #include "gfx/bitmap.h"

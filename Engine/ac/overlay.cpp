@@ -27,7 +27,6 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_game.h"
 #include "ac/object.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"

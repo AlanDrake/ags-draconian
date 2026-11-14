@@ -31,10 +31,11 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_game.h"
 #include "ac/gui.h"
+#include "ac/hotspot.h"
 #include "ac/mouse.h"
 #include "ac/movelist.h"
+#include "ac/object.h"
 #include "ac/overlay.h"
 #include "ac/properties.h"
 #include "ac/region.h"
@@ -1480,4 +1481,100 @@ void SetBackgroundFrame(int frnum)
 int GetBackgroundFrame()
 {
     return play.bg_frame;
+}
+
+void RoomProcessClick(int x, int y, int mood)
+{
+    int loc_id = -1;
+    int loc_type = GetLocationTypeImpl(&loc_id, x, y, kHit_Interactable, true /* click-through gui */,
+                                       false /* not allow hotspot0 */);
+    VpPoint vpt = play.ScreenToRoom(x, y);
+    if (vpt.second < 0)
+        return;
+    x = vpt.first.X;
+    y = vpt.first.Y;
+
+    if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.options[OPT_NOWALKMODE] == 0))
+    {
+        int hotspot_id = GetHotspotIDAtRoom(x, y, kHit_Interactable);
+        if (hotspot_id < 1)
+            ;
+        else if (thisroom.Hotspots[hotspot_id].WalkTo.X < 1)
+            ;
+        else if (play.auto_use_walkto_points == 0)
+            ;
+        else
+        {
+            x = thisroom.Hotspots[hotspot_id].WalkTo.X;
+            y = thisroom.Hotspots[hotspot_id].WalkTo.Y;
+            debug_script_log("Move to walk-to point hotspot %d", hotspot_id);
+        }
+        walk_character(playerchar, x, y, false /* walk areas */);
+        return;
+    }
+    play.usedmode = mood;
+
+    if (loc_type == 0)
+    {
+        // click on nothing -> hotspot 0
+        loc_id = 0;
+        loc_type = LOCTYPE_HOTSPOT;
+    }
+
+    if (loc_type == LOCTYPE_CHAR)
+    {
+        if (check_click_on_character(x, y, mood))
+            return;
+    }
+    else if (loc_type == LOCTYPE_OBJ)
+    {
+        if (check_click_on_object(x, y, mood))
+            return;
+    }
+    else if (loc_type == LOCTYPE_HOTSPOT)
+        RunHotspotInteraction(loc_id, mood);
+}
+
+int IsInteractionAvailable(int x, int y, int mood)
+{
+    int loc_id = -1;
+    int loc_type = GetLocationTypeImpl(&loc_id, x, y, kHit_Interactable, true /* click-through gui */,
+                                       false /* not allow hotspot0 */);
+    VpPoint vpt = play.ScreenToRoom(x, y);
+    if (vpt.second < 0)
+        return 0;
+    x = vpt.first.X;
+    y = vpt.first.Y;
+
+    // You can always walk places
+    if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.options[OPT_NOWALKMODE] == 0))
+        return 1;
+
+    play.check_interaction_only = 1;
+
+    if (loc_type == 0)
+    {
+        // click on nothing -> hotspot 0
+        loc_id = 0;
+        loc_type = LOCTYPE_HOTSPOT;
+    }
+
+    if (loc_type == LOCTYPE_CHAR)
+    {
+        check_click_on_character(x, y, mood);
+    }
+    else if (loc_type == LOCTYPE_OBJ)
+    {
+        check_click_on_object(x, y, mood);
+    }
+    else if (loc_type == LOCTYPE_HOTSPOT)
+        RunHotspotInteraction(loc_id, mood);
+
+    int check_result = play.check_interaction_only;
+    play.check_interaction_only = 0;
+
+    if (check_result == 2)
+        return 1;
+
+    return 0;
 }
