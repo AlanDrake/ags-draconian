@@ -21,7 +21,6 @@
 #include "device/sys_events.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
-#include "game/dialog/display.h"
 #include "game/dialog/speech.h"
 #include "game/game.h"
 #include "game/game_setup_struct.h"

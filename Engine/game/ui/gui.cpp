@@ -1098,7 +1098,6 @@ GUITextBox *gui_get_active_textbox()
 //
 //=============================================================================
 
-#include "script/dynobj/script_user_object.h"
 #include "script/script_runtime.h"
 
 

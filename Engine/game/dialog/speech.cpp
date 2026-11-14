@@ -180,7 +180,6 @@ String get_voice_assetpath()
 
 #include "debug/out.h"
 #include "game/game_setup_struct.h"
-#include "game/game_state.h"
 #include "script/dynobj/dynobj_manager.h"
 
 extern GameSetupStruct game;

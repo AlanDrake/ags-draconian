@@ -33,7 +33,6 @@
 #include "game/dynobj/script_camera.h"
 #include "game/dynobj/script_motion_path.h"
 #include "game/event.h"
-#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
