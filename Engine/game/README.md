@@ -45,15 +45,24 @@ New code goes in the folder of its domain. A new file is also added to `Engine/C
 
 ## Script bindings
 
-A script API function is three pieces:
+A script API function is two pieces:
 
 1. The logic, `Type_Member` or a plain function, in the domain file of its type (`world/character.cpp`),
    declared in that file's header.
-2. The `Sc_*` wrapper that unpacks the VM's arguments, written with the `API_*` macros of
-   `script/script_api.h`.
-3. The row that registers the wrapper under its script name, in `Register<Type>API()`.
+2. The row that binds it under its script name, in `Register<Type>API()`:
+   `ScMethod<&Character_AddInventory>("Character::AddInventory^2")` for a function whose first parameter is
+   the object the script calls it on, `ScStatic<&Character_GetAtScreenXY>("Character::GetAtScreenXY^2")` for
+   one without.
 
-The wrapper and the row go in `script_api/<type>_api.cpp` (`character_api.cpp`, `button_api.cpp`). The flat
-functions of the old script API (`Display()`, `SetGlobalInt()`) are in `global_api.cpp`; `exports.cpp` and
-`exports.h` register all the tables. The files of `script_api/` are the only ones in the game ring that
-include `script/script_api.h` directly (`check_layers.py` enforces it); a wrapper holds no logic.
+The wrapper the VM calls is generated from the function's signature by `script/script_binder.h`. Where the
+script expects something the signature does not say, the row says it with a tag (`ScVoidResult`,
+`ScBoolArg<1>`; the list is in `script_binder.h`). `script_api/bindings.h` names the managers of the objects
+the API returns and has the rows of the functions whose last parameter is a formatted text (`ScMethodFormat`,
+`ScStaticFormat`, with a C variadic `ScPl_*` function for plugins). An `Sc_*` wrapper is written by hand only
+for what no row can say (`Sc_System_Log`, whose format is not translated).
+
+The rows go in `script_api/<type>_api.cpp` (`character_api.cpp`, `button_api.cpp`). The flat functions of the
+old script API (`Display()`, `SetGlobalInt()`) are in `global_api.cpp`; `exports.cpp` and `exports.h`
+register all the tables. The files of `script_api/` are the only ones in the game ring that include
+`script/script_api.h` (the text formatting of the `ScPl_*` functions) directly (`check_layers.py` enforces
+it).

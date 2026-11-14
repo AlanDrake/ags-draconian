@@ -24,9 +24,9 @@ What must not depend on what:
 - The host (window, input, graphics, audio, files) and the script VM know nothing about the game logic: they
   do not include `game/` or `main/`, and not each other.
 - `game/` does not include `main/` or `plugin/`. `main/` and `plugin/` join the other rings.
-- That is the rule, not yet the tree: 129 includes break it today (the baseline, below).
-- `script/script_api.h` (the macros that build script bindings) is included only by `script/` and
-  `game/script_api/`.
+- That is the rule, not yet the tree: 128 includes break it today (the baseline, below).
+- `script/script_api.h` (the text formatting of the script bindings that take a format) is included only by
+  `script/` and `game/script_api/`.
 - A new include that breaks a rule fails `check_layers.py`. The includes that break the rules today are
   listed in `Script/check_layers_baseline.txt`: the list can only shrink, so whoever removes such an include
   removes its line in the same commit (`python Script/check_layers.py --list` groups them).
@@ -50,7 +50,8 @@ What must not depend on what:
 - `media/`: `audio/` (OpenAL mixing, decoders, sound clips) and `video/` (players, FLIC, Theora); the engine
   side of both, with no game logic.
 - `resource/`: Windows resources (icon, version), shaders.
-- `script/`: the script VM (`scriptexecutor`, `runtimescript`, `systemimports`, `script_api.h`) and
+- `script/`: the script VM (`scriptexecutor`, `runtimescript`, `systemimports`, `script_api.h`), the binder
+  that generates the script bindings from the signatures of the functions they call (`script_binder.h`) and
   `script/dynobj/`, the managed-object files the VM itself uses (pool, manager, base object, arrays, user and
   plugin objects).
 - `game/`: the game logic, see `game/README.md`.
