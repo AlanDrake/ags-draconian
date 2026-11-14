@@ -381,7 +381,8 @@ Each task is a series of small PRs.
   `input`, `save`, `lib`, `dynobj` and `script_api` beside its root files. `Engine/README.md` and
   `Engine/game/README.md` describe the layout. Tag `pre-5.3` is the last tree with the old paths.
   Left open from it:
-  - `Common/ac/def_version.h` stays: CI and the packaging scripts of every platform name it (the user decides).
+  - `Common/ac/def_version.h` stays: CI and the packaging scripts of every platform name it (the user, 2026-11-14:
+    it stays; phase 7 may move it when the packaging scripts are reworked).
   - The layering baseline, `Script/check_layers_baseline.txt`, 129 includes, only shrinks. 5.1's contexts take
     out the ones that carry `usetup` (`main/game_setup.h`, 18); the rest (`main/game_run.h` 22,
     `plugin/plugin_engine.h` 12, the `debug` and `util` files) is for later tasks. Two small follow-ups: split `runtime_defines.h` and `asset_helper.h` into their host and game parts, and cut

@@ -1492,7 +1492,7 @@ plan) and the D3D/OpenGL drivers (they need the GL and emscripten builds to veri
   instead of ten flat folders, the domain folders nested under `Engine/game/`.
 - **Status:** done 2026-11-14, pushed as `dfdee4868..cd0e7010a` (221 commits, with what was waiting), the tag
   `pre-5.3` on `b0777d74d` (local). `Engine/ac/` and `Engine/gui/` no longer exist; `Common/ac/` holds
-  `def_version.h` alone, which CI and the packaging scripts of every platform name (left; the user decides).
+  `def_version.h` alone, which CI and the packaging scripts of every platform name (it stays: the user, 2026-11-14).
 - **The rings** (`Script/check_layers.py` has the table): Common; base (`Engine/util`, `debug`); host (`platform`,
   `device`, `gfx`, `media`); the script VM (`Engine/script`, with the eight managed-object files it uses in
   `script/dynobj`); the game module (`Engine/game`: `world`, `navigation`, `dialog`, `ui`, `render`, `audio`,
