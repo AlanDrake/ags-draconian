@@ -15,366 +15,72 @@
 // Script bindings registered by RegisterButtonAPI().
 //
 //=============================================================================
-#include "game/dynobj/script_string.h"
 #include "game/script.h"
+#include "game/script_api/bindings.h"
 #include "game/ui/button.h"
-#include "script/script_api.h"
 #include "script/script_runtime.h"
 
 using namespace AGS::Common;
 
-// void | GUIButton *btn, int view, int loop, int speed, int repeat
-RuntimeScriptValue Sc_Button_Animate4(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT4(GUIButton, Button_Animate4);
-}
-
-RuntimeScriptValue Sc_Button_Animate7(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT7(GUIButton, Button_Animate7);
-}
-
-RuntimeScriptValue Sc_Button_Animate(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT8(GUIButton, Button_Animate);
-}
-
-// const char* | GUIButton *btn
-RuntimeScriptValue Sc_Button_GetText_New(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(GUIButton, const char, myScriptStringImpl, Button_GetText_New);
-}
-
-// void | GUIButton *btn, char *buffer
-RuntimeScriptValue Sc_Button_GetText(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_POBJ(GUIButton, Button_GetText, char);
-}
-
-// void | GUIButton *btn, const char *newtx
-RuntimeScriptValue Sc_Button_SetText(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_POBJ(GUIButton, Button_SetText, const char);
-}
-
-// void | GUIButton *btn, int new_font
-RuntimeScriptValue Sc_Button_SetFont(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetFont);
-}
-
-// int | GUIButton *btn
-RuntimeScriptValue Sc_Button_GetFont(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetFont);
-}
-
-RuntimeScriptValue Sc_Button_GetColorStyle(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetColorStyle);
-}
-
-RuntimeScriptValue Sc_Button_SetColorStyle(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetColorStyle);
-}
-
-// int | GUIButton *btn
-RuntimeScriptValue Sc_Button_GetClipImage(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetClipImage);
-}
-
-// void | GUIButton *btn, int newval
-RuntimeScriptValue Sc_Button_SetClipImage(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetClipImage);
-}
-
-// int | GUIButton *btn
-RuntimeScriptValue Sc_Button_GetGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetGraphic);
-}
-
-RuntimeScriptValue Sc_Button_GetGraphicFlip(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetGraphicFlip);
-}
-
-RuntimeScriptValue Sc_Button_SetGraphicFlip(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetGraphicFlip);
-}
-
-
-RuntimeScriptValue Sc_Button_GetIsHighlighted(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_BOOL(GUIButton, Button_GetIsHighlighted);
-}
-
-RuntimeScriptValue Sc_Button_GetIsPushed(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_BOOL(GUIButton, Button_GetIsPushed);
-}
-
-RuntimeScriptValue Sc_Button_GetMouseOverBackgroundColor(void *self, const RuntimeScriptValue *params,
-                                                         int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetMouseOverBackgroundColor);
-}
-
-RuntimeScriptValue Sc_Button_SetMouseOverBackgroundColor(void *self, const RuntimeScriptValue *params,
-                                                         int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetMouseOverBackgroundColor);
-}
-
-RuntimeScriptValue Sc_Button_GetPushedBackgroundColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetPushedBackgroundColor);
-}
-
-RuntimeScriptValue Sc_Button_SetPushedBackgroundColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetPushedBackgroundColor);
-}
-
-RuntimeScriptValue Sc_Button_GetMouseOverBorderColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetMouseOverBorderColor);
-}
-
-RuntimeScriptValue Sc_Button_SetMouseOverBorderColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetMouseOverBorderColor);
-}
-
-RuntimeScriptValue Sc_Button_GetPushedBorderColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetPushedBorderColor);
-}
-
-RuntimeScriptValue Sc_Button_SetPushedBorderColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetPushedBorderColor);
-}
-
-// int | GUIButton *btn
-RuntimeScriptValue Sc_Button_GetMouseOverGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetMouseOverGraphic);
-}
-
-// void | GUIButton *btn, int slotn
-RuntimeScriptValue Sc_Button_SetMouseOverGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetMouseOverGraphic);
-}
-
-// int | GUIButton *btn
-RuntimeScriptValue Sc_Button_GetNormalGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetNormalGraphic);
-}
-
-// void | GUIButton *btn, int slotn
-RuntimeScriptValue Sc_Button_SetNormalGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetNormalGraphic);
-}
-
-// int | GUIButton *btn
-RuntimeScriptValue Sc_Button_GetPushedGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetPushedGraphic);
-}
-
-// void | GUIButton *btn, int slotn
-RuntimeScriptValue Sc_Button_SetPushedGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetPushedGraphic);
-}
-
-RuntimeScriptValue Sc_Button_GetBorderShadeColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetBorderShadeColor);
-}
-
-RuntimeScriptValue Sc_Button_SetBorderShadeColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetBorderShadeColor);
-}
-
-RuntimeScriptValue Sc_Button_GetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetTextColor);
-}
-
-RuntimeScriptValue Sc_Button_SetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetTextColor);
-}
-
-RuntimeScriptValue Sc_Button_GetTextOutlineColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetTextOutlineColor);
-}
-
-RuntimeScriptValue Sc_Button_SetTextOutlineColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetTextOutlineColor);
-}
-
-RuntimeScriptValue Sc_Button_GetMouseOverTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetMouseOverTextColor);
-}
-
-RuntimeScriptValue Sc_Button_SetMouseOverTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetMouseOverTextColor);
-}
-
-RuntimeScriptValue Sc_Button_GetPushedTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetPushedTextColor);
-}
-
-RuntimeScriptValue Sc_Button_SetPushedTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetPushedTextColor);
-}
-
-RuntimeScriptValue Sc_Button_Click(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_Click);
-}
-
-RuntimeScriptValue Sc_Button_RunFrameEvent(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT3(GUIButton, Button_RunFrameEvent);
-}
-
-RuntimeScriptValue Sc_Button_IsAnimating(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_BOOL(GUIButton, Button_IsAnimating);
-}
-
-RuntimeScriptValue Sc_Button_GetTextAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetTextAlignment);
-}
-
-RuntimeScriptValue Sc_Button_SetTextAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetTextAlignment);
-}
-
-RuntimeScriptValue Sc_Button_GetWrapText(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_BOOL(GUIButton, Button_GetWrapText);
-}
-
-RuntimeScriptValue Sc_Button_SetWrapText(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PBOOL(GUIButton, Button_SetWrapText);
-}
-
-RuntimeScriptValue Sc_Button_GetTextPaddingHorizontal(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetTextPaddingHorizontal);
-}
-
-RuntimeScriptValue Sc_Button_SetTextPaddingHorizontal(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetTextPaddingHorizontal);
-}
-
-RuntimeScriptValue Sc_Button_GetTextPaddingVertical(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetTextPaddingVertical);
-}
-
-RuntimeScriptValue Sc_Button_SetTextPaddingVertical(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetTextPaddingVertical);
-}
-
-RuntimeScriptValue Sc_Button_GetAnimFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetAnimFrame);
-}
-
-RuntimeScriptValue Sc_Button_GetAnimLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetAnimLoop);
-}
-
-RuntimeScriptValue Sc_Button_GetAnimView(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIButton, Button_GetAnimView);
-}
-
 void RegisterButtonAPI()
 {
     ScFnRegister button_api[] = {
-        {"Button::Animate^4", API_FN_PAIR(Button_Animate4)},
-        {"Button::Animate^7", API_FN_PAIR(Button_Animate7)},
-        {"Button::Animate^8", API_FN_PAIR(Button_Animate)},
-        {"Button::Click^1", API_FN_PAIR(Button_Click)},
-        {"Button::RunFrameEvent^3", API_FN_PAIR(Button_RunFrameEvent)},
-        {"Button::GetText^1", API_FN_PAIR(Button_GetText)},
-        {"Button::SetText^1", API_FN_PAIR(Button_SetText)},
-        {"Button::get_TextAlignment", API_FN_PAIR(Button_GetTextAlignment)},
-        {"Button::set_TextAlignment", API_FN_PAIR(Button_SetTextAlignment)},
-        {"Button::get_TextPaddingHorizontal", API_FN_PAIR(Button_GetTextPaddingHorizontal)},
-        {"Button::set_TextPaddingHorizontal", API_FN_PAIR(Button_SetTextPaddingHorizontal)},
-        {"Button::get_TextPaddingVertical", API_FN_PAIR(Button_GetTextPaddingVertical)},
-        {"Button::set_TextPaddingVertical", API_FN_PAIR(Button_SetTextPaddingVertical)},
-        {"Button::get_WrapText", API_FN_PAIR(Button_GetWrapText)},
-        {"Button::set_WrapText", API_FN_PAIR(Button_SetWrapText)},
-        {"Button::get_Animating", API_FN_PAIR(Button_IsAnimating)},
-        {"Button::get_ColorStyle", API_FN_PAIR(Button_GetColorStyle)},
-        {"Button::set_ColorStyle", API_FN_PAIR(Button_SetColorStyle)},
-        {"Button::get_ClipImage", API_FN_PAIR(Button_GetClipImage)},
-        {"Button::set_ClipImage", API_FN_PAIR(Button_SetClipImage)},
-        {"Button::get_Font", API_FN_PAIR(Button_GetFont)},
-        {"Button::set_Font", API_FN_PAIR(Button_SetFont)},
-        {"Button::get_Frame", API_FN_PAIR(Button_GetAnimFrame)},
-        {"Button::get_Graphic", API_FN_PAIR(Button_GetGraphic)},
-        {"Button::get_GraphicFlip", API_FN_PAIR(Button_GetGraphicFlip)},
-        {"Button::set_GraphicFlip", API_FN_PAIR(Button_SetGraphicFlip)},
-        {"Button::get_IsHighlighted", API_FN_PAIR(Button_GetIsHighlighted)},
-        {"Button::get_IsPushed", API_FN_PAIR(Button_GetIsPushed)},
-        {"Button::get_Loop", API_FN_PAIR(Button_GetAnimLoop)},
-        {"Button::get_BorderShadeColor", API_FN_PAIR(Button_GetBorderShadeColor)},
-        {"Button::set_BorderShadeColor", API_FN_PAIR(Button_SetBorderShadeColor)},
-        {"Button::get_MouseOverBackgroundColor", API_FN_PAIR(Button_GetMouseOverBackgroundColor)},
-        {"Button::set_MouseOverBackgroundColor", API_FN_PAIR(Button_SetMouseOverBackgroundColor)},
-        {"Button::get_PushedBackgroundColor", API_FN_PAIR(Button_GetPushedBackgroundColor)},
-        {"Button::set_PushedBackgroundColor", API_FN_PAIR(Button_SetPushedBackgroundColor)},
-        {"Button::get_MouseOverBorderColor", API_FN_PAIR(Button_GetMouseOverBorderColor)},
-        {"Button::set_MouseOverBorderColor", API_FN_PAIR(Button_SetMouseOverBorderColor)},
-        {"Button::get_PushedBorderColor", API_FN_PAIR(Button_GetPushedBorderColor)},
-        {"Button::set_PushedBorderColor", API_FN_PAIR(Button_SetPushedBorderColor)},
-        {"Button::get_MouseOverGraphic", API_FN_PAIR(Button_GetMouseOverGraphic)},
-        {"Button::set_MouseOverGraphic", API_FN_PAIR(Button_SetMouseOverGraphic)},
-        {"Button::get_NormalGraphic", API_FN_PAIR(Button_GetNormalGraphic)},
-        {"Button::set_NormalGraphic", API_FN_PAIR(Button_SetNormalGraphic)},
-        {"Button::get_PushedGraphic", API_FN_PAIR(Button_GetPushedGraphic)},
-        {"Button::set_PushedGraphic", API_FN_PAIR(Button_SetPushedGraphic)},
-        {"Button::get_Text", API_FN_PAIR(Button_GetText_New)},
-        {"Button::set_Text", API_FN_PAIR(Button_SetText)},
-        {"Button::get_TextColor", API_FN_PAIR(Button_GetTextColor)},
-        {"Button::set_TextColor", API_FN_PAIR(Button_SetTextColor)},
-        {"Button::get_TextOutlineColor", API_FN_PAIR(Button_GetTextOutlineColor)},
-        {"Button::set_TextOutlineColor", API_FN_PAIR(Button_SetTextOutlineColor)},
-        {"Button::get_MouseOverTextColor", API_FN_PAIR(Button_GetMouseOverTextColor)},
-        {"Button::set_MouseOverTextColor", API_FN_PAIR(Button_SetMouseOverTextColor)},
-        {"Button::get_PushedTextColor", API_FN_PAIR(Button_GetPushedTextColor)},
-        {"Button::set_PushedTextColor", API_FN_PAIR(Button_SetPushedTextColor)},
-        {"Button::get_View", API_FN_PAIR(Button_GetAnimView)},
+        ScMethod<&Button_Animate4>("Button::Animate^4"),
+        ScMethod<&Button_Animate7>("Button::Animate^7"),
+        ScMethod<&Button_Animate>("Button::Animate^8"),
+        ScMethod<&Button_Click>("Button::Click^1"),
+        ScMethod<&Button_RunFrameEvent, ScVoidResult>("Button::RunFrameEvent^3"),
+        ScMethod<&Button_GetText>("Button::GetText^1"),
+        ScMethod<&Button_SetText>("Button::SetText^1"),
+        ScMethod<&Button_GetTextAlignment>("Button::get_TextAlignment"),
+        ScMethod<&Button_SetTextAlignment>("Button::set_TextAlignment"),
+        ScMethod<&Button_GetTextPaddingHorizontal>("Button::get_TextPaddingHorizontal"),
+        ScMethod<&Button_SetTextPaddingHorizontal>("Button::set_TextPaddingHorizontal"),
+        ScMethod<&Button_GetTextPaddingVertical>("Button::get_TextPaddingVertical"),
+        ScMethod<&Button_SetTextPaddingVertical>("Button::set_TextPaddingVertical"),
+        ScMethod<&Button_GetWrapText>("Button::get_WrapText"),
+        ScMethod<&Button_SetWrapText>("Button::set_WrapText"),
+        ScMethod<&Button_IsAnimating>("Button::get_Animating"),
+        ScMethod<&Button_GetColorStyle>("Button::get_ColorStyle"),
+        ScMethod<&Button_SetColorStyle>("Button::set_ColorStyle"),
+        ScMethod<&Button_GetClipImage>("Button::get_ClipImage"),
+        ScMethod<&Button_SetClipImage>("Button::set_ClipImage"),
+        ScMethod<&Button_GetFont>("Button::get_Font"),
+        ScMethod<&Button_SetFont>("Button::set_Font"),
+        ScMethod<&Button_GetAnimFrame>("Button::get_Frame"),
+        ScMethod<&Button_GetGraphic>("Button::get_Graphic"),
+        ScMethod<&Button_GetGraphicFlip>("Button::get_GraphicFlip"),
+        ScMethod<&Button_SetGraphicFlip>("Button::set_GraphicFlip"),
+        ScMethod<&Button_GetIsHighlighted>("Button::get_IsHighlighted"),
+        ScMethod<&Button_GetIsPushed>("Button::get_IsPushed"),
+        ScMethod<&Button_GetAnimLoop>("Button::get_Loop"),
+        ScMethod<&Button_GetBorderShadeColor>("Button::get_BorderShadeColor"),
+        ScMethod<&Button_SetBorderShadeColor>("Button::set_BorderShadeColor"),
+        ScMethod<&Button_GetMouseOverBackgroundColor>("Button::get_MouseOverBackgroundColor"),
+        ScMethod<&Button_SetMouseOverBackgroundColor>("Button::set_MouseOverBackgroundColor"),
+        ScMethod<&Button_GetPushedBackgroundColor>("Button::get_PushedBackgroundColor"),
+        ScMethod<&Button_SetPushedBackgroundColor>("Button::set_PushedBackgroundColor"),
+        ScMethod<&Button_GetMouseOverBorderColor>("Button::get_MouseOverBorderColor"),
+        ScMethod<&Button_SetMouseOverBorderColor>("Button::set_MouseOverBorderColor"),
+        ScMethod<&Button_GetPushedBorderColor>("Button::get_PushedBorderColor"),
+        ScMethod<&Button_SetPushedBorderColor>("Button::set_PushedBorderColor"),
+        ScMethod<&Button_GetMouseOverGraphic>("Button::get_MouseOverGraphic"),
+        ScMethod<&Button_SetMouseOverGraphic>("Button::set_MouseOverGraphic"),
+        ScMethod<&Button_GetNormalGraphic>("Button::get_NormalGraphic"),
+        ScMethod<&Button_SetNormalGraphic>("Button::set_NormalGraphic"),
+        ScMethod<&Button_GetPushedGraphic>("Button::get_PushedGraphic"),
+        ScMethod<&Button_SetPushedGraphic>("Button::set_PushedGraphic"),
+        ScMethod<&Button_GetText_New>("Button::get_Text"),
+        ScMethod<&Button_SetText>("Button::set_Text"),
+        ScMethod<&Button_GetTextColor>("Button::get_TextColor"),
+        ScMethod<&Button_SetTextColor>("Button::set_TextColor"),
+        ScMethod<&Button_GetTextOutlineColor>("Button::get_TextOutlineColor"),
+        ScMethod<&Button_SetTextOutlineColor>("Button::set_TextOutlineColor"),
+        ScMethod<&Button_GetMouseOverTextColor>("Button::get_MouseOverTextColor"),
+        ScMethod<&Button_SetMouseOverTextColor>("Button::set_MouseOverTextColor"),
+        ScMethod<&Button_GetPushedTextColor>("Button::get_PushedTextColor"),
+        ScMethod<&Button_SetPushedTextColor>("Button::set_PushedTextColor"),
+        ScMethod<&Button_GetAnimView>("Button::get_View"),
     };
 
     ccAddExternalFunctions(button_api);
