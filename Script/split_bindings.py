@@ -71,66 +71,66 @@ DEST = 'Engine/game/script_api'
 
 # source file -> API file stem (the script type in snake_case); the file is <DEST>/<stem>_api.cpp
 API_FILES = {
-    'Engine/ac/audiochannel.cpp': 'audio_channel',
-    'Engine/ac/audioclip.cpp': 'audio_clip',
-    'Engine/ac/button.cpp': 'button',
-    'Engine/ac/character.cpp': 'character',
-    'Engine/ac/datetime.cpp': 'date_time',
-    'Engine/ac/dialog.cpp': 'dialog',
-    'Engine/ac/dialogoptionsrendering.cpp': 'dialog_options_rendering',
-    'Engine/ac/drawingsurface.cpp': 'drawing_surface',
-    'Engine/ac/dynamicsprite.cpp': 'dynamic_sprite',
-    'Engine/ac/dynobj/cc_dynamicarray.cpp': 'dynamic_array',
-    'Engine/ac/file.cpp': 'file',
-    'Engine/ac/game.cpp': 'game',
-    'Engine/ac/gui.cpp': 'gui',
-    'Engine/ac/guicontrol.cpp': 'gui_control',
-    'Engine/ac/hotspot.cpp': 'hotspot',
-    'Engine/ac/inventoryitem.cpp': 'inventory_item',
-    'Engine/ac/invwindow.cpp': 'inv_window',
-    'Engine/ac/joystick.cpp': 'joystick',
-    'Engine/ac/label.cpp': 'label',
-    'Engine/ac/listbox.cpp': 'list_box',
-    'Engine/ac/math.cpp': 'math',
-    'Engine/ac/mouse.cpp': 'mouse',
-    'Engine/ac/object.cpp': 'object',
-    'Engine/ac/overlay.cpp': 'overlay',
-    'Engine/ac/parser.cpp': 'parser',
-    'Engine/ac/pathfinder_script.cpp': 'pathfinder',
-    'Engine/ac/region.cpp': 'region',
-    'Engine/ac/room.cpp': 'room',
-    'Engine/ac/screen.cpp': 'screen',
-    'Engine/ac/scriptcontainers.cpp': 'containers',
-    'Engine/ac/shader_script.cpp': 'shader',
-    'Engine/ac/slider.cpp': 'slider',
-    'Engine/ac/speech.cpp': 'speech',
-    'Engine/ac/string.cpp': 'string',
-    'Engine/ac/system.cpp': 'system',
-    'Engine/ac/textbox.cpp': 'text_box',
-    'Engine/ac/touch.cpp': 'touch',
-    'Engine/ac/utils_script.cpp': 'utils',
-    'Engine/ac/video_script.cpp': 'video',
-    'Engine/ac/viewframe.cpp': 'view_frame',
-    'Engine/ac/viewport_script.cpp': 'viewport',
-    'Engine/ac/walkablearea.cpp': 'walkable_area',
-    'Engine/ac/walkbehind.cpp': 'walk_behind',
-    'Engine/game/savegame.cpp': 'save_info',
+    'Engine/game/audio/audio_channel.cpp': 'audio_channel',
+    'Engine/game/audio/audio_clip.cpp': 'audio_clip',
+    'Engine/game/dialog/dialog.cpp': 'dialog',
+    'Engine/game/dialog/dialog_options_rendering.cpp': 'dialog_options_rendering',
+    'Engine/game/dialog/parser.cpp': 'parser',
+    'Engine/game/dialog/speech.cpp': 'speech',
+    'Engine/game/file.cpp': 'file',
+    'Engine/game/game.cpp': 'game',
+    'Engine/game/input/joystick.cpp': 'joystick',
+    'Engine/game/input/touch.cpp': 'touch',
+    'Engine/game/lib/date_time.cpp': 'date_time',
+    'Engine/game/lib/math.cpp': 'math',
+    'Engine/game/lib/script_containers.cpp': 'containers',
+    'Engine/game/lib/string.cpp': 'string',
+    'Engine/game/lib/utils_script.cpp': 'utils',
+    'Engine/game/navigation/pathfinder_script.cpp': 'pathfinder',
+    'Engine/game/render/drawing_surface.cpp': 'drawing_surface',
+    'Engine/game/render/dynamic_sprite.cpp': 'dynamic_sprite',
+    'Engine/game/render/overlay.cpp': 'overlay',
+    'Engine/game/render/screen.cpp': 'screen',
+    'Engine/game/render/shader_script.cpp': 'shader',
+    'Engine/game/render/viewport_script.cpp': 'viewport',
+    'Engine/game/save/savegame.cpp': 'save_info',
+    'Engine/game/system.cpp': 'system',
+    'Engine/game/ui/button.cpp': 'button',
+    'Engine/game/ui/gui.cpp': 'gui',
+    'Engine/game/ui/gui_control.cpp': 'gui_control',
+    'Engine/game/ui/inv_window.cpp': 'inv_window',
+    'Engine/game/ui/label.cpp': 'label',
+    'Engine/game/ui/list_box.cpp': 'list_box',
+    'Engine/game/ui/mouse.cpp': 'mouse',
+    'Engine/game/ui/slider.cpp': 'slider',
+    'Engine/game/ui/text_box.cpp': 'text_box',
+    'Engine/game/video/video_script.cpp': 'video',
+    'Engine/game/world/character.cpp': 'character',
+    'Engine/game/world/hotspot.cpp': 'hotspot',
+    'Engine/game/world/inventory_item.cpp': 'inventory_item',
+    'Engine/game/world/object.cpp': 'object',
+    'Engine/game/world/region.cpp': 'region',
+    'Engine/game/world/room.cpp': 'room',
+    'Engine/game/world/view_frame.cpp': 'view_frame',
+    'Engine/game/world/walk_behind.cpp': 'walk_behind',
+    'Engine/game/world/walkable_area.cpp': 'walkable_area',
+    'Engine/script/dynobj/cc_dynamic_array.cpp': 'dynamic_array',
 }
 
 # source file -> the header that gets the declarations of --export-statics, where it is not <same name>.h
 HEADERS = {
-    'Engine/ac/dynobj/cc_dynamicarray.cpp': 'Engine/ac/dynobj/cc_dynamicarray.h',
-    'Engine/game/savegame.cpp': 'Engine/game/savegame.h',
+    'Engine/script/dynobj/cc_dynamic_array.cpp': 'Engine/script/dynobj/cc_dynamic_array.h',
+    'Engine/game/save/savegame.cpp': 'Engine/game/save/savegame.h',
 }
 
 # files with bindings that are not split, and why (--all lists the others it finds with no API_FILES row)
 SKIP = {
-    'Engine/ac/global_api.cpp': 'bindings only (the global functions); it moves whole in 5.3',
+    'Engine/game/script_api/global_api.cpp': 'bindings only (the global functions)',
     'Engine/plugin/plugin_stubs.cpp': 'the stand-in functions of missing plugins, registered by name, not a script type',
 }
 
 # top-level functions that are bindings (RegisterStaticObjects: game.cpp's registration of the script objects
-# game, mouse and palette, called from script/exports.cpp next to the Register*API functions)
+# game, mouse and palette, called from game/script_api/exports.cpp next to the Register*API functions)
 BINDING = re.compile(r'^(?:Sc_\w+|ScPl_\w+|Register\w*API|RegisterStaticObjects)$')
 # banners that head the binding block; the API file has its own description, so they are deleted
 DROP_BANNERS = ('Script API Functions',)
@@ -194,7 +194,7 @@ ENGINE_CMAKE = 'Engine/CMakeLists.txt'
 ENGINE_VCXPROJ = 'Solutions/Engine.App/Engine.App.vcxproj'
 XCODE_PROJECT = 'OSX/xcode/AGSKit/AGSKit.xcodeproj/project.pbxproj'
 # the Xcode target whose Sources phase compiles the engine (the one that lists this file)
-XCODE_ANCHOR = 'game/savegame.cpp'
+XCODE_ANCHOR = 'game/save/savegame.cpp'
 # namespace of the uuid5 GUIDs and Xcode IDs this tool derives
 ID_NAMESPACE = uuid.UUID('6f0b6a52-7c1e-4b0e-9a55-5a2b1e5d3c21')
 
