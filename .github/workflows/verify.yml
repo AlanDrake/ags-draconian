@@ -54,6 +54,11 @@ jobs:
           git ls-files '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hpp' '*.inl' \
             | xargs clang-format --dry-run -Werror
 
+      # The include direction between the rings of the engine, against the baseline of known violations
+      # (Script/prepush.py runs the same script, stage layers)
+      - name: Check the include layers
+        run: python3 Script/check_layers.py
+
   linux:
     name: Linux (GCC)
     runs-on: ubuntu-latest

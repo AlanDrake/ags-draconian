@@ -15,6 +15,8 @@ Stages, in the order they run (a failed stage does not stop the later ones; the 
   helpers  the lines that differ from the upstream branch (Script/check_helpers.py, STYLE.md "Shared
            helpers"): a new function named like one of Common/util, and a comment that cites a member
            the Editor's class does not have; no build needed
+  layers   the direction of the #include lines between the rings of the engine (Script/check_layers.py,
+           PLAN.md 5.3) against the baseline of known violations, which may only shrink; no build needed
   buildlists  the source lists of the .vcxproj against the CMake targets of the build stage's tree
            (Script/check_build_lists.py, PLAN.md 3.2c), as the CI's Windows job does; configures the tree
   build    CMake + Ninja (MSVC) Release build with tools and tests, then ctest
@@ -89,7 +91,7 @@ SOURCE_GLOBS = ['*.c', '*.cc', '*.cpp', '*.cxx', '*.h', '*.hpp', '*.inl']
 SOLUTIONS = ['Compiler.Lib', 'Tests', 'Engine', 'Tools', 'AGS.Editor.Full']  # Tools.sln builds agscc too
 TEST_RUNNERS = ['Compiler.Lib.Test.exe', 'Common.Lib.Test.exe', 'Engine.App.Test.exe', 'Engine.Full.Test.exe',
                 'Tools.Test.exe']
-STAGES = ['format', 'helpers', 'buildlists', 'build', 'tidy', 'headers', 'libcxx', 'emscripten', 'linux', 'msbuild']
+STAGES = ['format', 'helpers', 'layers', 'buildlists', 'build', 'tidy', 'headers', 'libcxx', 'emscripten', 'linux', 'msbuild']
 # Run only when named in --only: long, and a report more than a gate (analysis.yml is on demand too)
 ON_DEMAND = ['sanitizers', 'coverage']
 # --auto: (pattern of a repository path, the stages a change there needs, what no stage verifies or None).
@@ -99,7 +101,7 @@ ON_DEMAND = ['sanitizers', 'coverage']
 # Tools (`ninja -t deps`); MSBuild reads no CMake file; only MSBuild builds the editor; the tests of the
 # compiler and the tools read the script API header.
 SOURCE_EXTENSIONS = tuple(g[1:] for g in SOURCE_GLOBS)
-COMPILED = ['build', 'headers', 'libcxx', 'emscripten', 'linux', 'msbuild']
+COMPILED = ['layers', 'build', 'headers', 'libcxx', 'emscripten', 'linux', 'msbuild']
 CMAKE_BUILDS = ['build', 'headers', 'libcxx', 'emscripten', 'linux']
 NOT_IN_THE_WEB_BUILD = ['build', 'headers', 'libcxx', 'linux', 'msbuild']
 AUTO_RULES = [
@@ -118,6 +120,7 @@ AUTO_RULES = [
     (r'^Script/header_check_libcxx\.py$', ['libcxx'], None),
     (r'^Script/check_build_lists\.py$', ['buildlists'], None),
     (r'^Script/check_helpers\.py$', ['helpers'], None),
+    (r'^Script/check_layers(_baseline)?\.(py|txt)$', ['layers'], None),
     (r'^Script/', [], 'scripts: no stage runs this one'),
     (r'^ci/', [], 'CI support files: the on-demand stages, or a CI run'),
     (r'^(Android|iOS|OSX|Windows|debian)/', [], 'platform packaging: a full CI run (ci.yml, macos.yml)'),
@@ -222,6 +225,15 @@ def stage_helpers():
         e.note = '%s, see %s' % (last_match('helpers', 'check_helpers: '), os.path.relpath(log_path('helpers'), REPO))
         raise
     return last_match('helpers', 'check_helpers: ')
+
+
+def stage_layers():
+    try:
+        run('layers', [sys.executable, os.path.join(REPO, 'Script', 'check_layers.py')])
+    except subprocess.CalledProcessError as e:
+        e.note = '%s, see %s' % (last_match('layers', 'check_layers: '), os.path.relpath(log_path('layers'), REPO))
+        raise
+    return last_match('layers', 'check_layers: ')
 
 
 def is_configured(build_dir):
@@ -596,7 +608,7 @@ def print_auto_plan(base, paths, needed, uncovered):
         print('  no stage verifies %s%s (%s)' % (', '.join(group[:3]), more, note))
 
 
-RUNNERS = {'format': stage_format, 'helpers': stage_helpers, 'buildlists': stage_buildlists, 'build': stage_build, 'tidy': stage_tidy,
+RUNNERS = {'format': stage_format, 'helpers': stage_helpers, 'layers': stage_layers, 'buildlists': stage_buildlists, 'build': stage_build, 'tidy': stage_tidy,
            'headers': stage_headers, 'libcxx': stage_libcxx, 'emscripten': stage_emscripten, 'linux': stage_linux,
            'msbuild': stage_msbuild,
            'sanitizers': stage_sanitizers, 'coverage': stage_coverage}
