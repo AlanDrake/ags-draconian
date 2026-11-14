@@ -33,8 +33,8 @@
 #include "ac/game.h"
 #include "ac/gamestructdefines.h"
 #include "data/data_helpers.h"
+#include "game/script_api/exports.h"
 #include "gtest/gtest.h"
-#include "script/exports.h"
 #include "script/script_runtime.h"
 #include "script/systemimports.h"
 

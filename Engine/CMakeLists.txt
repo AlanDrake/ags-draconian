@@ -113,7 +113,6 @@ target_sources(engine
     ac/gamesetup.h
     ac/gamestate.cpp
     ac/gamestate.h
-    ac/global_api.cpp
     ac/path_helper.h
     ac/runtime_defines.h
     ac/dynobj/scriptgame.cpp
@@ -217,8 +216,11 @@ target_sources(engine
     game/script_api/drawing_surface_api.cpp
     game/script_api/dynamic_array_api.cpp
     game/script_api/dynamic_sprite_api.cpp
+    game/script_api/exports.cpp
+    game/script_api/exports.h
     game/script_api/file_api.cpp
     game/script_api/game_api.cpp
+    game/script_api/global_api.cpp
     game/script_api/gui_api.cpp
     game/script_api/gui_control_api.cpp
     game/script_api/hotspot_api.cpp
@@ -415,8 +417,6 @@ target_sources(engine
     script/cc_reflecthelper.h
     script/executingscript.cpp
     script/executingscript.h
-    script/exports.cpp
-    script/exports.h
     script/runtimescript.cpp
     script/runtimescript.h
     script/runtimescriptvalue.cpp

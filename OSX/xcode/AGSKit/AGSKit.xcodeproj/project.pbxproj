@@ -3058,7 +3058,6 @@
 				526F24761D3B5CC200EF4E1F /* gamesetup.h */,
 				526F24771D3B5CC200EF4E1F /* gamestate.cpp */,
 				526F24781D3B5CC200EF4E1F /* gamestate.h */,
-				526F24791D3B5CC200EF4E1F /* global_api.cpp */,
 				526F24F71D3B5CC300EF4E1F /* runtime_defines.h */,
 				526F250C1D3B5CC300EF4E1F /* system.cpp */,
 				526F250D1D3B5CC300EF4E1F /* system.h */,
@@ -3413,8 +3412,6 @@
 				98EFE5C1E99E54D8E1CBB8E7 /* cc_reflecthelper.cpp */,
 				526F266C1D3B5CC300EF4E1F /* executingscript.cpp */,
 				526F266D1D3B5CC300EF4E1F /* executingscript.h */,
-				526F266E1D3B5CC300EF4E1F /* exports.cpp */,
-				526F266F1D3B5CC300EF4E1F /* exports.h */,
 				D801C943CE1144C62BE3ED31 /* runtimescript.cpp */,
 				526F26711D3B5CC300EF4E1F /* runtimescriptvalue.cpp */,
 				526F26721D3B5CC300EF4E1F /* runtimescriptvalue.h */,
@@ -3623,6 +3620,9 @@
 				EEEDA262097EC41FEAD6785B /* walkable_area_api.cpp */,
 				714EBA20D94B7868F13BECD1 /* walk_behind_api.cpp */,
 				A178F253A054B9335DC79857 /* save_info_api.cpp */,
+				526F24791D3B5CC200EF4E1F /* global_api.cpp */,
+				526F266E1D3B5CC300EF4E1F /* exports.cpp */,
+				526F266F1D3B5CC300EF4E1F /* exports.h */,
 			);
 			path = script_api;
 			sourceTree = "<group>";

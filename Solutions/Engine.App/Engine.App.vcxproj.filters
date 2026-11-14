@@ -162,6 +162,9 @@
     <Filter Include="Header Files\game\save">
       <UniqueIdentifier>{ef1d53ef-43a6-5cf6-b3aa-93eb7a21fb85}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\game\script_api">
+      <UniqueIdentifier>{1793f826-4225-590b-bd48-d52d5762f090}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files\game\ui">
       <UniqueIdentifier>{a0a10cd9-bf97-5238-bb83-2bbc69517fd3}</UniqueIdentifier>
     </Filter>
@@ -267,8 +270,8 @@
     <ClCompile Include="..\..\Engine\ac\gamestate.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\global_api.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\script_api\global_api.cpp">
+      <Filter>Source Files\game\script_api</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\ui\gui.cpp">
       <Filter>Source Files\game\ui</Filter>
@@ -504,8 +507,8 @@
     <ClCompile Include="..\..\Engine\script\executingscript.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\script\exports.cpp">
-      <Filter>Source Files\script</Filter>
+    <ClCompile Include="..\..\Engine\game\script_api\exports.cpp">
+      <Filter>Source Files\game\script_api</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\script\runtimescriptvalue.cpp">
       <Filter>Source Files\script</Filter>
@@ -1250,8 +1253,8 @@
     <ClInclude Include="..\..\Engine\script\executingscript.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\script\exports.h">
-      <Filter>Header Files\script</Filter>
+    <ClInclude Include="..\..\Engine\game\script_api\exports.h">
+      <Filter>Header Files\game\script_api</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\script\runtimescriptvalue.h">
       <Filter>Header Files\script</Filter>
