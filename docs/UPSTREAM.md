@@ -14,6 +14,14 @@ The `upstream` remote stays configured for reading only.
    renamed, moved or reformatted.
 3. Add a row below. Skipped changes get a row too, with the reason, so nobody reviews them twice.
 
+Since 5.3 (2026-11-14) 278 files have another path in the fork than in upstream: `docs/refactor/moves-5.3.tsv` is the
+map (old path = upstream's, new path = the fork's), and `.compare/helpers/port.py` reads it, so `apply`, `check` and
+`rows` find the upstream file of a fork path; `port.py where <upstream commit or range>` is a dry run that lists each
+file's fork path. Two cases the map cannot answer are reported for porting by hand: a script binding (`Sc_*`,
+`Register*API`) of an `Engine/ac/<type>.cpp` lives in `Engine/game/script_api/<type>_api.cpp` (pairs: `API_FILES` in
+`Script/split_bindings.py`), and a function of one of the 13 `Engine/ac/global_*.cpp` files went into a domain file
+(`docs/refactor/fold-5.3.tsv`).
+
 The readers of `Game.agf` and room `data.xml` (`Tools/data/agfreader.cpp`, `room_xml.cpp`) do not
 cherry-pick in either direction since 2026-11-08: upstream reads one `ValueParser` line per property
 (ericoporto's review of #3187), the fork reads through tables (`xml_fields.h`) with the drift guard, a

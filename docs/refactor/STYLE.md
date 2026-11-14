@@ -29,6 +29,7 @@ in `THIRD_PARTY` in `Script/refactor_metrics.py`.
 | clang-tidy | 19.1.0 (`pip install clang-tidy==19.1.0`) | `/.clang-tidy` | C/C++ naming and bug-prone patterns, changed lines (CI gate: PLAN.md 2.4) |
 | dotnet format / IDE analyzers | .NET SDK 8+ | `/.editorconfig` | C# layout and naming (suggestions until PLAN.md 6.2) |
 | `Script/check_helpers.py` | Python 3.8+ | `KNOWN` in the script | new functions named like a shared helper, comments citing a missing Editor member, changed lines (`prepush.py` stage `helpers`; "Shared helpers" below) |
+| `Script/check_layers.py` | Python 3.8+ | `RINGS` in the script, `Script/check_layers_baseline.txt` | the include direction between the engine's rings (`Engine/README.md`): a new include against the rules fails, the baseline only shrinks (`prepush.py` stage `layers`, `verify.yml`) |
 | `Script/refactor_metrics.py` | Python 3.8+ | — | progress tracking, `BASELINE.md` |
 
 Use the pinned versions: other clang-format versions format differently, and old system installs
@@ -185,7 +186,8 @@ reviews of upstream PR #3190 asked for the same thing: a private `UnescapeText` 
 - **No new `quit()` in library-level code** (`Common/`, engine subsystems): return `HError` /
   `HGameFileError`, or log and recover. Only the top-level engine loop decides to abort.
 - `Sc_*` wrappers only marshal arguments; logic goes in the `Type_Member` function, or better a
-  member of the engine object.
+  member of the engine object. The logic lives in the domain file under `Engine/game/` and is declared in
+  its header; the wrapper and its table row go in `Engine/game/script_api/<type>_api.cpp`.
 
 ### Portability
 
@@ -210,7 +212,7 @@ and do not count (2026-11-06). A fix for a sanitizer report, a warning or a lint
 change. What the first case taught is marked [1.5b-3] (LOG.md).
 
 - **Hot paths:** the script VM (`Engine/script/`) and what it calls per instruction; the loops over
-  pixels (`Common/gfx/`, `Engine/gfx/`, `Engine/ac/draw*`); `Common/util/` (memory, streams, `String`,
+  pixels (`Common/gfx/`, `Engine/gfx/`, `Engine/game/render/draw*`); `Common/util/` (memory, streams, `String`,
   the decompressors); the sprite cache; audio decoding and mixing (`Engine/media/audio/`). The commit
   message of a change there says what it costs in the Release builds and how that was measured.
 - **Measure the objects that use the code, not the code on its own.** `compare_objects.py` names the
@@ -286,7 +288,7 @@ Extends `CONTRIBUTING.md` (one program per commit, prefixes like `Engine:`, 72-c
 1. **Mechanical and behavioural changes never share a commit**: a commit is format-only,
    rename-only, move-only, delete-only, or a behaviour change.
 2. Titles name the kind: `Engine: [rename] chaa -> ch in character.cpp`, `Common: [format] util/`,
-   `Engine: [move] ac/route_finder -> navigation/`.
+   `Engine: [move] route_finder -> game/navigation/`.
 3. Every format-only commit's hash goes into `.git-blame-ignore-revs`.
 4. Format-only and rename-only commits are checked by **comparing object code** with
    `Script/compare_objects.py`: it builds both revisions (optimized, no debug info, no LTO) in one

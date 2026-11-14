@@ -1485,6 +1485,84 @@ plan) and the D3D/OpenGL drivers (they need the GL and emscripten builds to veri
   scaled with truncating division (`draw.cpp`); the camera's own nearest-texel ties at x1.5 and x2 (1 pixel). Not run:
   the `linux`, `emscripten` and other prepush stages.
 
+### 5.2 step 1 and 5.3: bindings apart, `Engine/ac/` reorganised
+
+- **Definition:** PLAN.md 5.2 step 1 (each file's `Sc_*` block and `Register*API` to its own file, `[move]`) and
+  5.3 (`Engine/ac/` into folders by domain). The layout was redesigned first (the user, 2026-11-13): four rings
+  instead of ten flat folders, the domain folders nested under `Engine/game/`.
+- **Status:** done 2026-11-14, pushed as `dfdee4868..cd0e7010a` (221 commits, with what was waiting), the tag
+  `pre-5.3` on `b0777d74d` (local). `Engine/ac/` and `Engine/gui/` no longer exist; `Common/ac/` holds
+  `def_version.h` alone, which CI and the packaging scripts of every platform name (left; the user decides).
+- **The rings** (`Script/check_layers.py` has the table): Common; base (`Engine/util`, `debug`); host (`platform`,
+  `device`, `gfx`, `media`); the script VM (`Engine/script`, with the eight managed-object files it uses in
+  `script/dynobj`); the game module (`Engine/game`: `world`, `navigation`, `dialog`, `ui`, `render`, `audio`,
+  `video`, `input`, `save`, `lib`, `dynobj`, `script_api`, and `game`, `game_state`, `event`, `system`, `file`,
+  `translation`, `script` at its root); composition (`main`, `plugin`). Upstream's draft names and rules where they
+  exist ("Script VM: only Utils", renderers with "no game logic", `game` with subdirs). Two changes against the
+  first sketch, both from the include graph: no `script/lib` in the VM (String, the containers and utils read game
+  state: the script library is `game/lib`), and `script/dynobj` gets only what the VM includes (73 other `dynobj`
+  files are game types).
+- **Tools, all in `Script/`, all with `--repo`** so that the work can be replayed on an upstream tree:
+  `split_bindings.py` (bindings found by name, moved byte for byte, includes derived from the identifiers the text
+  names, the declarations the bindings need added to the headers first), `move_functions.py` (folds functions from
+  one file into others from a map), `apply_moves.py` (whole-file moves from a map: `git mv`, every `#include`,
+  three CMake files, ten `.vcxproj` + `.filters`, the Xcode project), `compare_objects.py` (two new verdicts:
+  functions moved between objects, moved or renamed files), `check_layers.py`. The decisions are tables:
+  `docs/refactor/moves-5.3.tsv` (278 files, 154 renamed: also the path table for ports) and
+  `docs/refactor/fold-5.3.tsv` (137 rows).
+- **5.2 step 1** (86 commits): 44 files split, 1,547 functions and 8,618 lines moved to
+  `Engine/game/script_api/<type>_api.cpp`, about 885 declarations added first (a declare commit per file: the
+  wrappers were the only callers of some 650 API functions, which no header declared; 10 `static` functions became
+  external; five files got a header). `compare_objects.py` over the range: 1,573 functions moved, 1 changed
+  (`RegisterCharacterAPI`: same source, the same symbols referenced, MSVC builds its table with different inlining
+  in the new translation unit). `ScriptExports.*` covers the tables, which the object comparison does not.
+  Outside `script_api/`, `script/script_api.h` is still included by `script/runtimescriptvalue.h`, so nearly every
+  engine file gets it transitively: cutting that include is a change of its own.
+- **5.3, the fold** (13 commits): the thirteen `global_*.cpp` pairs (the flat API by topic) folded into their
+  domain files, one new pair (`keyboard`). Range: 215 functions moved, 3 changed, each with unchanged source:
+  `SkipUntilCharacterStops` and `StartCutscene` lose a call to the empty `initialize_skippable_cutscene()`, now in
+  their file; `remove_popup_interface` calls `IsInterfaceEnabled()` once instead of twice, its one-line body now
+  visible. Every fold commit builds and passes `ctest`.
+- **5.3, the moves** (20 commits, one per destination folder, each built and tested before it was committed):
+  278 files, 1,999 include lines in 397 files. Range: `move: 144 objects moved, code identical (mechanical)`.
+- **Verification of the final tree:** `prepush.py`, every stage (MSVC, GCC 13 in WSL with `ctest` 1197 of 1197,
+  Emscripten, libc++ headers, MSBuild with the Editor's NUnit tests); the auto-test game 2414 of 2414 on Software
+  and D3D9, built by `agsbuild` from this tree. Not built: macOS, iOS, Android (five rewritten includes are in
+  their platform files; the Xcode list is checked by `check_build_lists.py` only).
+- **Performance** (STYLE.md "Performance"): a wrapper and the function it calls are now in two translation units.
+  With LTO nothing changes: MSVC Release (CMake and MSBuild), all 1,620 wrappers identical instruction for
+  instruction before and after; GCC 13 `-O3 -flto`, cheap wrappers identical, benchmark within 0.05 ns. Without
+  LTO, GCC 13 `-O2`: 455 cheap wrappers call instead of inlining, `Sc_Math_GetPi` 1.41 → 2.16 ns a call,
+  `Sc_Math_DegreesToRadians` 1.59 → 2.62 ns (called through a function pointer in a loop, not through the VM). That
+  was the build of `debian/rules`, which also makes the Linux bundle: it now passes
+  `CMAKE_INTERPROCEDURAL_OPTIMIZATION=ON` (`bcd220a96`; checked in WSL: no call again; **not** tried on the Debian
+  10 image with GCC 8, by the user's choice: the next full CI run shows it). Emscripten has no LTO and was not
+  measured.
+- **Layering debt, measured:** 129 includes break the ring rules and are the baseline of `check_layers.py`
+  (prepush stage `layers`, `verify.yml`), which may only shrink: game → composition 70 (`main/game_run.h` 22: the
+  blocking script calls that run the game loop; `main/game_setup.h` 18: `usetup`; `plugin/plugin_engine.h` 12:
+  plugin hooks), host → composition 16, host → game 15 (`runtime_defines.h`, `asset_helper.h`: both mix host and
+  game content), base → above 21 (`debug/debug.cpp`, `memory_inspect.cpp`, `util/timer.cpp`), VM → game 6, VM →
+  host 1. `game_setup.h` was tried in `util/` and put back: it includes `main/graphics_mode.h` and game headers,
+  so it is composition data that the game reads, which 5.1's contexts are for.
+- **Gates changed on the way:** `tidy_diff.py` and `check_helpers.py` do not count a moved or copied line as new
+  (an added line whose code is in the base copy of a file the diff touches; 1,216 diagnostics → the 5 real ones on
+  the split), and `tidy_diff.py` passes its line filter in a response file (a 114-file diff exceeded the Windows
+  command line). Known limits: a new line equal to an existing line of a touched file is not checked, nor a new
+  function with the name of one that existed in a touched file.
+- **Found on the way, not fixed:** `Walkbehind_SetBaseline` does not set `walk_behind_baselines_changed`, its
+  older twin `SetWalkBehindBase` does; six script API methods only forward to a flat function (`Game_Pause`,
+  `Game_Resume`, `Game_GetSpeed`, `Game_SetSpeed`, `Character_SayAt`, `Walkarea_SetScaling`); camelCase parameters
+  left in `AudioChannel_SetRoomLocation` and `dialog_options_rendering` (4.1 missed them);
+  `Solutions/Engine.App/Engine.App.vcxproj` lists `Engine\main\def_version.h`, which does not exist; the comments
+  above the `extern` declarations in `game.h` name the API file that first needed them.
+- **Lessons:** a tool proved on three cases is not proved (the fold broke the build on the ten that were only
+  dry-run: names reached through macros, `using` lines left without their header; since then every `[move]` commit
+  is built and tested before it is committed); an MSBuild tree from before the moves fails to link
+  `Engine.Full.Test` (it links every object in Engine.App's folder, the old names included): delete
+  `.obj/x64/Release/Engine.App`; `prepush.py`'s `linux` and `msbuild` stages do not run from a linked worktree, so
+  the supervisor's prepush runs in the main tree after the fast-forward.
+
 ### Open items from finished tasks
 
 *Moved from PLAN.md "Next up" on 2026-11-07* (details in the tasks' sections):

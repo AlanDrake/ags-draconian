@@ -99,6 +99,9 @@ Entry points, in reading order:
   (+ `.filters`); the `buildlists` stage checks that the two agree. Release builds link SDL2
   dynamically (`SDL2.dll`, the Linux bundle's `libSDL2`). Two standalone plugin Makefiles stay
   (`Plugins/agslua`, `Plugins/agspalrender`, phase 7).
+- The engine's layout is the fork's own (5.3, 2026-11-14): upstream keeps the flat `Engine/ac/`, `Engine/gui/`
+  and `Common/ac/`, the fork has rings and domain folders (below). A path of upstream's tree maps to the
+  fork's through `docs/refactor/moves-5.3.tsv`; a port goes through `port.py`, which reads that map.
 - Upstream is read-only: `git fetch upstream`, cherry-pick with `-x`, record in `docs/UPSTREAM.md`.
 
 ## Where things are (fork)
@@ -115,6 +118,19 @@ Entry points, in reading order:
 `prepush.py`). Local-only helpers and build trees live in the git-ignored
 `.compare/` and `.tidy/`.
 
+**The engine's layout** (`Engine/README.md`, `Engine/game/README.md`): four rings, each a set of directories
+that may include only its own ring and the ones below it: host (`util`, `debug`, `platform`, `device`, `gfx`,
+`media`, `resource`), script VM (`script`), game (`game`), composition (`main`, `plugin`); Common is under all.
+`Script/check_layers.py` checks the includes against `Script/check_layers_baseline.txt`, which only shrinks.
+`Engine/game/` holds the game logic in `world`, `navigation`, `dialog`, `ui`, `render`, `audio`, `video`,
+`input`, `save`, `lib` and `dynobj`, and the script bindings in `script_api/`. `docs/context/repository.md`
+describes upstream's tree, so its `Engine/ac/` and `Common/ac/` paths map through
+`docs/refactor/moves-5.3.tsv` (old path = upstream's, new path = the fork's; the functions of the old
+`global_*.cpp` files are in `docs/refactor/fold-5.3.tsv`). A new script API function: the logic in the
+domain file under `Engine/game/` and its declaration in that file's header; the `Sc_*` wrapper and the
+table row in `Engine/game/script_api/<type>_api.cpp`. The tools that did the move, with `--repo`:
+`Script/split_bindings.py`, `Script/move_functions.py`, `Script/apply_moves.py`.
+
 ## Verify before you report done
 
 `python Script/prepush.py --auto` before a push runs the stages that the changed files need, by the
@@ -123,7 +139,8 @@ but `emscripten`; Common, Engine, Plugins: every stage; an unknown path: every s
 changed files that no stage verifies (workflows, packaging, most scripts). `--dry-run` shows the choice.
 Without `--auto` every stage runs, which a repository-wide change needs (`--list`, `--only`, `--skip`,
 `--base`, `--emsdk <dir>`): `format`, `helpers` (`Script/check_helpers.py` on the changed lines: functions
-named like a shared helper, comments citing an Editor member that is not there), `buildlists` (`Script/check_build_lists.py`: every `.vcxproj`'s and the macOS Xcode project's
+named like a shared helper, comments citing an Editor member that is not there), `layers`
+(`Script/check_layers.py`: an include against the engine's ring rules that is not in the baseline), `buildlists` (`Script/check_build_lists.py`: every `.vcxproj`'s and the macOS Xcode project's
 (`OSX/xcode/AGSKit`) sources against its CMake targets, deliberate differences listed with reasons in the script), `build`
 (+ `ctest`), `tidy` (clang-tidy on changed lines), `headers`, `libcxx`, `emscripten` (engine as GLES2, then
 a syntax check of the Linux-only code), `linux` (the CI's GCC job: build, header check, `ctest`), `msbuild`.

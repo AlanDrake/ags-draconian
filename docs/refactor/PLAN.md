@@ -8,7 +8,7 @@ numbers: [BASELINE.md](BASELINE.md) (`python Script/refactor_metrics.py`). How f
 ## How to use this plan
 
 Phases 0–2 come first, in order (safety net and tooling); phases 3–7 then overlap **module by
-module** (`Engine/ac/overlay.cpp` can be in phase 4 while the Editor is in phase 6). Phase 5 needs
+module** (`Engine/game/render/overlay.cpp` can be in phase 4 while the Editor is in phase 6). Phase 5 needs
 3 and 4; 7.1 (the C++ build tools, D7) needs only phase 2, and 6.7d waits for it. Every task has a
 **done when** line a machine can check. Each phase is useful on its own.
 
@@ -46,9 +46,9 @@ Frozen unless a task explicitly versions it; each row gets a guard test in phase
 
 | # | Interface | Where it lives | Why it's frozen |
 |---|---|---|---|
-| C1 | Game data: `.ags`, `.crm`, sprite file + index, `.tra`, `.wfn`, **from 3.99 onward** (D1) | `Common/game/*`, `Common/ac/spritefile.*`, `Common/data/*` | Games built with 3.99/4.x editors must keep loading |
-| C2 | Savegames written by 3.99+ engines | `Engine/game/savegame*.cpp` | Players' saves |
-| C3 | Script ABI: exported API names and signatures, `game.*`/`system.*` field offsets, bytecode | `Register*API()`, `Engine/ac/dynobj/scriptgame.cpp` and friends, `Engine/script/scriptexecutor.cpp`, `Editor/AGS.Editor/Resources/agsdefns.sh` | Compiled scripts link by name and offset |
+| C1 | Game data: `.ags`, `.crm`, sprite file + index, `.tra`, `.wfn`, **from 3.99 onward** (D1) | `Common/game/*`, `Common/gfx/sprite_file.*`, `Common/data/*` | Games built with 3.99/4.x editors must keep loading |
+| C2 | Savegames written by 3.99+ engines | `Engine/game/save/*` | Players' saves |
+| C3 | Script ABI: exported API names and signatures, `game.*`/`system.*` field offsets, bytecode | `Register*API()` in `Engine/game/script_api/`, `Engine/game/dynobj/script_game.cpp` and friends, `Engine/script/scriptexecutor.cpp`, `Editor/AGS.Editor/Resources/agsdefns.sh` | Compiled scripts link by name and offset |
 | C4 | Plugin API: `IAGSEngine` vtable order, `AGS_Engine*` exports | `Engine/plugin/agsplugin.h` | Binary plugins |
 | C5 | Editor project format (`Game.agf`, `.user`, room sources) | `Editor/AGS.Types` | Existing projects. *The editor plugin API left this row on 2026-11-04:* a new editor is a big step and the plugin surface (`EditorContentPanel`, `MenuCommand`, `IGUIController`, `IRoomController`, `IAGSEditor`) follows the better design; plugins recompile against the new `AGS.Types` (6.0 step 2, EDITOR-SPLIT.md §3) |
 | C6 | Engine command line and `acsetup.cfg` keys | `Engine/main/main.cpp`, `Engine/main/config.cpp` | Launchers, store builds, players' configs |
@@ -74,15 +74,16 @@ Recorded 2026-10-31.
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
-0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 6.7d, 6.9, 7.1 (but 7.1n) (LOG.md); 3.2 with 3.2c
+0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 5.2 step 1, 5.3 (2026-11-14), 6.7d, 6.9, 7.1 (but
+7.1n) (LOG.md); 3.2 with 3.2c
 (CI-confirmed 2026-11-08). The fork does not wait for upstream review (the user, 2026-11-09): a fork-only
 move that would conflict with an open offer is preceded by a tag of the pre-move tree for `port.py`.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
 | 1 | **The bugs found in 4.1, by upstream branch** (the user, 2026-11-12; the list is "4.1's bugs by upstream branch" below): all fixed in the fork (2026-11-12, `d90b789ab`..`98a7dae87`, `4c07f1e11`; lip-sync and the push button still want a run in a game); ported to `master-41-fixes` and `ags4-41-fixes`, trial merge of the first into the second on `ags4-41-mergecheck` (`docs/UPSTREAM.md`, worktrees `../ags-up-master`, `../ags-up-ags4`, `../ags-up-merge`); double-checked, fixed, rebased and pushed to `origin` 2026-11-13 (`53a55451d` on `upstream/master` `fc4c47a7f`, `9d32c9654`; what the check found is in `docs/UPSTREAM.md`); left: open the two PRs (texts in `.compare/pr-description.md` of each worktree), the trial merge is from the first version and not redone, and the fork's reader still gives `RunGameLoopsWhileDialogOptionsDisplayed` true for an absent element where `Settings.FromXml` gives false (no effect on 4.0 projects) | 4.1 is done; the PRs were waiting for it | Fable 5.1, `high` for the review; the user opens the PRs |
-| 2 | **5.2 step 1, then 5.3:** `Sc_*` blocks and `Register*API` out of the logic files (`[move]`, C3 snapshot); tag `pre-5.3`, then reorganise `Engine/ac/` into the four rings of 5.3 (layout decided 2026-11-13). In progress on `wip-5.2-bindings` (worktree `.compare/wt-52`): the tools first (`compare_objects.py` move verdicts, `Script/split_bindings.py`; briefs `.compare/briefs/brief-52-*.md`), then the split by one agent, then the per-file map and `Script/apply_moves.py` | Files move once (4.4 rides along) | Fable 5.2, `high` for the design, the per-file map and the `global_*` function map; `medium` to supervise the scripted moves; Opus 5.5 subagents for the tools and the moves, one at a time on the build lists |
-| 3 | **4.5 + 3.6 on what had no comment pass** (770 first-party files, ~280k lines): batch 8 done (2026-11-13, LOG.md: `game`, `gamestate`, `room`, `dialog`, `savegame`, `game_init`, `script`, `guimain`, `engine`); next, the untouched files most-churned first (a ranking by commits since 2024, the batch-6 stray-rename files among them), then the D3D/OpenGL drivers with the `emscripten` and `linux` stages, and the compiler (7,440-line parser: its own plan, by function groups). Brief `.compare/briefs/brief-45-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | Comments before the 5.3 moves | Sonnet 5.5, `medium`, parallel subagents; the parser plan Fable 5.1 |
+| 2 | **5.2 step 2: the template binder** (proposed, 2026-11-14): `Engine/game/script_api/*_api.cpp` and `global_api.cpp` replace the 147 `API_*` macros of `script/script_api.h` with a C++17 template binder, then `script_api.h` is cut from `script/runtimescriptvalue.h` (nearly every engine file gets it from there) and `runtime_defines.h` and `asset_helper.h` are split into their host and game halves (LOG.md "5.2 step 1 and 5.3" lists these small follow-ups). The C3 snapshot and `ScriptExports.*` guard it; the wrappers are on the script VM's call path, so the generated code is compared (MSVC Release, GCC `-O2` and `-O3 -flto`) before and after | 5.2 step 1 is done and every wrapper now sits in one folder; 5.1 and 5.1a follow (5.1's contexts take `usetup`, 18 of the 129 baseline includes, out of `main/game_setup.h`) | Fable 5.2, `high` for the binder's design and the code comparison; Opus 5.5 subagents for converting the files, one set at a time |
+| 3 | **4.5 + 3.6 on what had no comment pass** (770 first-party files, ~280k lines): batch 8 done (2026-11-13, LOG.md: `game`, `gamestate`, `room`, `dialog`, `savegame`, `game_init`, `script`, `guimain`, `engine`); next, the untouched files most-churned first (a ranking by commits since 2024, the batch-6 stray-rename files among them), then the D3D/OpenGL drivers with the `emscripten` and `linux` stages, and the compiler (7,440-line parser: its own plan, by function groups). Brief `.compare/briefs/brief-45-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | The files have their final paths since 5.3 (map: `docs/refactor/moves-5.3.tsv`; the brief's file lists use the old ones), and a comment pass is cheaper before 5.1 and 5.2 step 2 edit them again | Sonnet 5.5, `medium`, parallel subagents; the parser plan Fable 5.1 |
 | 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3188, #3189; #3187 merged), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
 Open items from finished tasks (details in LOG.md "Open items"):
@@ -299,11 +300,18 @@ optionally a `[comments]` commit.
   `usedmode`, `disabled_user_interface`, `messagetime`) to the STYLE.md form, per struct. Safe under
   C3 (offsets); keep the script-facing name in a trailing comment when it differs.
 - [ ] **4.4 File names** to `snake_case` after their main class (`gamesetupstruct.cpp` →
-  `game_setup_struct.cpp`), as `[move]` commits together with 5.3 so files move once.
+  `game_setup_struct.cpp`), as `[move]` commits together with 5.3 so files move once. *Part done 2026-11-14:* 5.3
+  renamed 154 of its 278 moved files (`docs/refactor/moves-5.3.tsv`). Left: files in place that keep a glued name,
+  for instance `Common/gui/guibutton.cpp`, `Common/util/textstreamreader.cpp`, `Common/data/assetmanager.cpp`,
+  `Engine/script/scriptexecutor.cpp`, `Engine/gfx/gfxdriverbase.cpp`, `Engine/media/audio/audioplayer.cpp`,
+  `Engine/platform/base/agsplatformdriver.cpp`, `Tools/agsbuild/taskmanager.cpp`: at least 65 files by a scan for
+  names of ten or more lowercase letters with no underscore (shorter ones, such as `guibutton`, are missed).
 - [ ] **4.5 Comments.** For each file of 4.1: remove history notes and author tags, fix comments
   describing old behaviour (DOS, palettes in 32-bit paths, removed functions, old versions), add a
   header comment to every public function. Each top-level directory gets a `README.md`: purpose,
-  entry points, what must not depend on it.
+  entry points, what must not depend on it. *Part done 2026-11-14:* `Engine/README.md` (the rings, entry points,
+  one line per directory) and `Engine/game/README.md` (the subfolders, where new code goes, the rules for script
+  bindings) carry the engine; the other top-level directories stay open.
 
 ## Phase 5: Structure
 
@@ -345,83 +353,40 @@ Each task is a series of small PRs.
   4. Variables: a runtime object is `ch`/`obj`/`gui`, a design record `info` (STYLE.md "Reserved names").
      Class names are chosen at the split, not before (a type rename changes every object by design).
 
-  *When:* after 5.2 step 1 and 5.3 (so the files move once) and after 4.1 on the files it touches; before 5.4.
+  *When:* after 5.2 step 1 and 5.3 (so the files move once; both done 2026-11-14) and after 4.1 on the files it touches; before 5.4.
   *Guard:* a CMake target that compiles `Common/game` with no `Engine/` on the include path (the build
   tools link the design structs without the extras: that is the point of the split), the C2 round-trip
   tests, the auto-test game. *Done when:* no `Common` struct has a field the engine writes during play,
   `charextra` is gone, and `agf2dta`/`crmbuild` link no Engine object.
 - [ ] **5.2 Script bindings apart from logic.** 1,598 hand-written `Sc_*` wrappers from 147 `API_*`
-  macros (`script_api.h`), interleaved with logic (`character.cpp`, 5,092 lines: the last ~1,400 are
-  bindings and a 228-line `RegisterCharacterAPI`).
-  1. Move each file's `Sc_*` block and `Register*API` to `Engine/game/script_api/<script type>_api.cpp`
-     (`[move]`; `character_api.cpp`, `inv_window_api.cpp`), with `Script/split_bindings.py`, which finds the
-     binding functions by name and takes `--repo`, so the split can be replayed on an upstream tree. Proof:
-     `compare_objects.py`'s move verdict, `ScriptExports.*`. After it no file outside `script_api/` includes
-     `script/script_api.h`. Measured 2026-11-13: 43 files, 1,571 wrappers, the block is one tail of the file in
-     39 of them; 11 `static` functions it calls get a declaration first (their own commit).
+  macros (`script_api.h`), which sat interleaved with the logic.
+  1. [x] **Each file's `Sc_*` block and `Register*API` in `Engine/game/script_api/<type>_api.cpp`** (2026-11-14,
+     LOG.md "5.2 step 1 and 5.3"): 44 files split, 1,547 functions moved byte for byte by
+     `Script/split_bindings.py` (`--repo`, so it can be replayed on an upstream tree), proved by
+     `compare_objects.py`'s move verdict and `ScriptExports.*`. Left: `script/runtimescriptvalue.h` still
+     includes `script_api.h`, so nearly every engine file gets it (`HEADER_RULES` in `check_layers.py` lets
+     only `script/` and `game/script_api/` include it directly).
   2. Replace the macros with a C++17 template binder deducing arguments from the signature
      (`api.Method<&Character_AddInventory>("Character::AddInventory^2")`), parameter-count check
      generated; guarded by the C3 snapshot.
 
   *Done when:* no `Sc_` function remains and `script_api.h` holds only the binder.
-- [ ] **5.3 Reorganise `Engine/ac/`** (145 files, 64k lines; "ac" = *Adventure Creator*). Four rings
-  in `Engine/`, each a directory boundary and later a CMake target (the user, 2026-11-13; it replaces
-  the flat list of ten domain folders):
-
-  | Ring | Folders | May include |
-  |---|---|---|
-  | Host | `platform/`, `device/`, `gfx/`, `media/`, `util/`, `debug/` | Common |
-  | Script VM | `script/`; `script/dynobj/` (the eight managed-object files the VM itself uses: pool, manager, base object, arrays, user and plugin objects) | host `util`, Common |
-  | Game module | `game/` (below) | host, VM, Common |
-  | Composition | `main/`, `plugin/` | everything |
-
-  | Folder in `Engine/game/` | Holds |
-  |---|---|
-  | (root) | game, game_state, game_init, event, system, file, translation |
-  | `world/` | character*, object, room_object, room_status, room, hotspot, region, walkable_area, walk_behind, inventory_item, properties, move_list, view_frame |
-  | `navigation/` | route_finder*, the pathfinder logic |
-  | `dialog/` | dialog, dialog options rendering, parser, display, speech, lipsync |
-  | `ui/` | gui, gui_control, button, label, listbox, slider, textbox, inv_window, gui_inv, mouse, and `Engine/gui/*` |
-  | `render/` | draw*, screen, overlay, screen_overlay, dynamic_sprite, drawing_surface, viewport |
-  | `audio/`, `video/` | audio_channel, audio_clip, global_audio, and the game logic in `media/audio/audio.cpp`, `media/video/video.cpp` |
-  | `input/` | joystick, touch (`sys_events` is host: `device/`) |
-  | `save/` | `Engine/game/savegame*` |
-  | `lib/` | the script library: date_time, math, string, script_containers, utils_script. String, the containers and utils read game state today (translation, fonts, options), so the library is not VM code yet |
-  | `dynobj/` | the managed objects of game and library types (`cc_character` ... `cc_serializer`, `script_string`) |
-  | `script_api/` | every `<type>_api.cpp` (5.2), `global_api.cpp`, `exports.cpp`: the only includers of `script_api.h` |
-
-  Why nested: the boundary that matters is host / VM / game / composition, and upstream's draft has it
-  ("game: game logic, may have subdirs such as room and gui", "Script VM: only Utils", renderers with "no
-  game logic"). Measured 2026-11-13: about 40 host files include `ac/`, nearly all through seven headers
-  that are not game logic (`timer`, `sys_events`, `gamesetup`, `runtime_defines`, `asset_helper`,
-  `path_helper`, `datetime`): the map sends `timer` and `path_helper` to `util/`, `sys_events` to
-  `device/`, `gamesetup` to `main/`; `runtime_defines` and `asset_helper` mix both sides and stay in
-  `game/` as baseline entries until they are split. The VM includes the game through
-  `script/script.cpp` (running game events: it joins `game/`), `exports.cpp` and six generic `dynobj`
-  headers. So `dynobj` splits by dependency, and about 35 files outside `ac/` move too (`Engine/gui`,
-  `Engine/game`, `script/script.cpp`, the game halves of audio and video; the user, 2026-11-13).
-
-  1. The per-file map is `docs/refactor/moves-5.3.tsv` (old path, new path, note; 298 files, 158 of them
-     with a 4.4 `snake_case` name; checked: one row per file, destinations and `.obj` names unique);
-     `Script/apply_moves.py --repo --map` applies it (`git mv`, includes, CMake, `.vcxproj` + `.filters`,
-     Xcode, scripts, docs), one `[move]` commit per destination folder, each proved by
-     `compare_objects.py`. `port.py` reads the same table (it has no path map today), and the tools can
-     replay the reorganisation on `upstream/ags4` or `master`: that is what a later AGS 3 game module
-     beside this one would start from.
-  2. The 14 `global_*.cpp` files (the flat API: `Display()`, `SetGlobalInt()`) fold into their domain
-     files, function by function, from a reviewed function map.
-  3. `Common/ac/` likewise (`Common/game/`, `Common/gfx/`), as its own step: it reaches the tools and
-     `AGS.Native`. `def_version.h` is named by CI and packaging scripts on every platform: last, with a
-     probe branch, or it stays.
-  4. `Script/check_layers.py` (prepush stage) checks the include direction against a baseline of the
-     known violations, which may only shrink; each folder gets its `README.md` (4.5).
-
-  Limits found by the inventory (`.compare/5.3/blast-radius.md`: 293 files, 1,812 includes in 357
-  files): MSBuild object names are flat per project, so a `.cpp` stem is unique in its `.vcxproj`;
-  `header_check_libcxx.py` names two probe sources; 33 includes sit in platform `#if` branches (the
-  `emscripten` and `linux` stages; macOS, iOS and Android are not built locally). File moves hurt
-  `port.py` most: tag the pre-move tree `pre-5.3` so ports have a fixed base (the user, 2026-11-09).
-  *Done when:* `Engine/ac/` no longer exists and `check_layers.py` runs in prepush.
+- [x] **5.3 Reorganise `Engine/ac/`** (2026-11-14; LOG.md "5.2 step 1 and 5.3"; the full definition is there).
+  `Engine/ac/` and `Engine/gui/` are gone and `Common/ac/` holds `def_version.h` alone: 278 files moved by
+  `docs/refactor/moves-5.3.tsv` (154 renamed to `snake_case`; also the path table for ports), the thirteen `global_*` file pairs folded into
+  their domain files (`docs/refactor/fold-5.3.tsv`). `Engine/` is four rings, checked by `Script/check_layers.py`
+  (prepush stage `layers`, `verify.yml`; the ring table is in its docstring): host (`util`, `debug`, `platform`,
+  `device`, `gfx`, `media`, `resource`), the script VM (`script`), the game module (`game`) and composition
+  (`main`, `plugin`). `Engine/game/` has `world`, `navigation`, `dialog`, `ui`, `render`, `audio`, `video`,
+  `input`, `save`, `lib`, `dynobj` and `script_api` beside its root files. `Engine/README.md` and
+  `Engine/game/README.md` describe the layout. Tag `pre-5.3` is the last tree with the old paths.
+  Left open from it:
+  - `Common/ac/def_version.h` stays: CI and the packaging scripts of every platform name it (the user decides).
+  - The layering baseline, `Script/check_layers_baseline.txt`, 129 includes, only shrinks. 5.1's contexts take
+    out the ones that carry `usetup` (`main/game_setup.h`, 18); the rest (`main/game_run.h` 22,
+    `plugin/plugin_engine.h` 12, the `debug` and `util` files) is for later tasks. Two small follow-ups: split `runtime_defines.h` and `asset_helper.h` into their host and game parts, and cut
+    `script/script_api.h` from `script/runtimescriptvalue.h` (with 5.2 step 2).
+  - Per-folder READMEs (4.5) are two files for the engine, as above.
 - [ ] **5.4 Split the longest functions** (BASELINE.md list), tests first:
   - `display_speech` (489 lines, nesting 8): text layout, portrait/bubble placement, lip-sync setup,
     blocking wait loop.
