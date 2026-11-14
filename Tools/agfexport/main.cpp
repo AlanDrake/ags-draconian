@@ -357,12 +357,20 @@ HError GameCfgCommand(AGF::AGFReader &reader, const String &dst, const String &b
     ConfigTree cfg;
     WriteConfig(setup, &settings, cfg);
 
-    // Write the config tree as the editor does (BuildTargetBase.GenerateConfigFile): into a new
-    // file, or into a copy of the base file, with IniUtil::Merge, which keeps the lines it does not
-    // set and formats the rest as an ini file of its own
     if (File::IsFile(dst))
         File::DeleteFile(dst);
-    if (!base_cfg.IsEmpty() && !File::CopyFile(base_cfg, dst))
+    if (base_cfg.IsEmpty())
+    {
+        // A new file: the config tree as it is (upstream #3188)
+        std::unique_ptr<Stream> out(File::CreateFile(dst));
+        if (!out)
+            return new Error(String::FromFormat("Failed to open output file '%s' for writing.", dst.GetCStr()));
+        IniUtil::Write(std::move(out), cfg);
+        return HError::None();
+    }
+    // A copy of the base file, merged with the config tree: IniUtil::Merge keeps the lines it does
+    // not set
+    if (!File::CopyFile(base_cfg, dst))
     {
         return new Error(String::FromFormat("Failed to copy %s to %s", base_cfg.GetCStr(), dst.GetCStr()));
     }
