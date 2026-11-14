@@ -44,8 +44,6 @@ int Room_GetBottomEdge();
 const char *Room_GetTextProperty(const char *property);
 // Script function: the integer value of a custom room property
 int Room_GetProperty(const char *property);
-// Script API wrapper of Room_GetProperty, called from other files
-RuntimeScriptValue Sc_Room_GetProperty(const RuntimeScriptValue *params, int32_t param_count);
 // Script function: a DrawingSurface for the room's walkable area mask
 ScriptDrawingSurface *GetDrawingSurfaceForWalkableArea();
 // Script function: a DrawingSurface for the room's walk-behind mask
