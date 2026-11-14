@@ -15,7 +15,7 @@
 
 #include "ac/runtime_defines.h" // RunPathParams
 #include "debug/assert.h"
-#include "game/savegame.h"
+#include "game/save/savegame.h"
 #include "util/geometry.h"
 
 // Forward declaration

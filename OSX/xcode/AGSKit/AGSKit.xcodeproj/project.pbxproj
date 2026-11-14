@@ -1887,6 +1887,18 @@
 			path = autofit;
 			sourceTree = "<group>";
 		};
+		0A7049AB89557BCF4651F791 /* save */ = {
+			isa = PBXGroup;
+			children = (
+				52D12C1C1D61C0950077B784 /* savegame.cpp */,
+				52D12C1D1D61C0950077B784 /* savegame.h */,
+				20522A6628E8F92000589E91 /* savegame_components.cpp */,
+				20522A6528E8F92000589E91 /* savegame_components.h */,
+				52D12C1E1D61C0950077B784 /* savegame_internal.h */,
+			);
+			path = save;
+			sourceTree = "<group>";
+		};
 		0B1AF705666D069B3F7BD65E /* pshinter */ = {
 			isa = PBXGroup;
 			children = (
@@ -3493,20 +3505,16 @@
 		52D12C1B1D61C0950077B784 /* game */ = {
 			isa = PBXGroup;
 			children = (
-				20522A6628E8F92000589E91 /* savegame_components.cpp */,
-				20522A6528E8F92000589E91 /* savegame_components.h */,
 				20522A6728E8F92000589E91 /* viewport.cpp */,
 				20522A6428E8F92000589E91 /* viewport.h */,
 				52F5D8561DA120F1006F8F4B /* game_init.cpp */,
 				52F5D8571DA120F1006F8F4B /* game_init.h */,
-				52D12C1C1D61C0950077B784 /* savegame.cpp */,
-				52D12C1D1D61C0950077B784 /* savegame.h */,
-				52D12C1E1D61C0950077B784 /* savegame_internal.h */,
 				9EC599C9D2F06E9C6B9F884C /* script_api */,
 				5599F5BF25D0EDD38B214A80 /* navigation */,
 				29A5B920BF77171604D4650F /* input */,
 				758ABC2607543CDCE31C2B94 /* video */,
 				DC120E31C271A148E419A755 /* audio */,
+				0A7049AB89557BCF4651F791 /* save */,
 			);
 			path = game;
 			sourceTree = "<group>";

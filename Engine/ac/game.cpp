@@ -59,7 +59,7 @@
 #include "device/mousew32.h"
 #include "font/fonts.h"
 #include "game/audio/audio_channel.h"
-#include "game/savegame.h"
+#include "game/save/savegame.h"
 #include "game/video/video.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"

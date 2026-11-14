@@ -22,7 +22,7 @@
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/gamesetupstructbase.h"
 #include "game/roomstruct.h"
-#include "game/savegame.h"
+#include "game/save/savegame.h"
 #include "gfx/bitmap.h"
 #include "media/audio/audiodefines.h"
 #include "util/string.h"

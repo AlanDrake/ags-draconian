@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "game/savegame_components.h"
+#include "game/save/savegame_components.h"
 
 #include <map>
 
@@ -37,7 +37,7 @@
 #include "ac/system.h"
 #include "ac/view.h"
 #include "debug/out.h"
-#include "game/savegame_internal.h"
+#include "game/save/savegame_internal.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "gui/animatingguibutton.h"

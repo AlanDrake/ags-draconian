@@ -65,6 +65,9 @@
     <Filter Include="Source Files\game\navigation">
       <UniqueIdentifier>{b605902f-b8f7-58e0-b522-c89d4e23169f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\game\save">
+      <UniqueIdentifier>{2ec433ea-1fe3-5806-8efc-0e02bdbede1f}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\game\script_api">
       <UniqueIdentifier>{f3275722-4d78-5c7e-8541-1f51e3bb65e7}</UniqueIdentifier>
     </Filter>
@@ -137,6 +140,9 @@
     </Filter>
     <Filter Include="Header Files\game\navigation">
       <UniqueIdentifier>{80b0982b-32bb-5747-b3e0-61c5effbd31e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\game\save">
+      <UniqueIdentifier>{ef1d53ef-43a6-5cf6-b3aa-93eb7a21fb85}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\game\video">
       <UniqueIdentifier>{b677d900-fa88-51b9-9e50-22a5c2295dee}</UniqueIdentifier>
@@ -564,8 +570,8 @@
     <ClCompile Include="..\..\Engine\game\game_init.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\game\savegame.cpp">
-      <Filter>Source Files\game</Filter>
+    <ClCompile Include="..\..\Engine\game\save\savegame.cpp">
+      <Filter>Source Files\game\save</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\audio\aaudio.c">
       <Filter>Library Sources\apeg</Filter>
@@ -603,8 +609,8 @@
     <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\recon.c">
       <Filter>Library Sources\apeg</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\game\savegame_components.cpp">
-      <Filter>Source Files\game</Filter>
+    <ClCompile Include="..\..\Engine\game\save\savegame_components.cpp">
+      <Filter>Source Files\game\save</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\script_api\audio_channel_api.cpp">
       <Filter>Source Files\game\script_api</Filter>
@@ -1355,11 +1361,11 @@
     <ClInclude Include="..\..\Engine\game\game_init.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\game\savegame.h">
-      <Filter>Header Files\game</Filter>
+    <ClInclude Include="..\..\Engine\game\save\savegame.h">
+      <Filter>Header Files\game\save</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\game\savegame_internal.h">
-      <Filter>Header Files\game</Filter>
+    <ClInclude Include="..\..\Engine\game\save\savegame_internal.h">
+      <Filter>Header Files\game\save</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\resource\resource.h">
       <Filter>Resource Files</Filter>
@@ -1466,8 +1472,8 @@
     <ClInclude Include="..\..\Engine\gfx\ogl_headers.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\game\savegame_components.h">
-      <Filter>Header Files\game</Filter>
+    <ClInclude Include="..\..\Engine\game\save\savegame_components.h">
+      <Filter>Header Files\game\save</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\viewport.h">
       <Filter>Header Files\game</Filter>

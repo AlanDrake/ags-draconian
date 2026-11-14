@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "game/savegame.h"
+#include "game/save/savegame.h"
 
 #include "ac/button.h"
 #include "ac/character.h"
@@ -53,8 +53,8 @@
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "font/fonts.h"
-#include "game/savegame_components.h"
-#include "game/savegame_internal.h"
+#include "game/save/savegame_components.h"
+#include "game/save/savegame_internal.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"

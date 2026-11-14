@@ -20,7 +20,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/game_version.h"
 #include "game/customproperties.h"
-#include "game/savegame_components.h"
+#include "game/save/savegame_components.h"
 #include "util/string_utils.h"
 
 using namespace AGS;

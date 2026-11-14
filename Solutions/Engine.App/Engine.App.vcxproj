@@ -453,8 +453,8 @@
     <ClCompile Include="..\..\Engine\game\navigation\pathfinder_script.cpp" />
     <ClCompile Include="..\..\Engine\game\navigation\route_finder.cpp" />
     <ClCompile Include="..\..\Engine\game\navigation\route_finder_impl.cpp" />
-    <ClCompile Include="..\..\Engine\game\savegame.cpp" />
-    <ClCompile Include="..\..\Engine\game\savegame_components.cpp" />
+    <ClCompile Include="..\..\Engine\game\save\savegame.cpp" />
+    <ClCompile Include="..\..\Engine\game\save\savegame_components.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\audio_channel_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\audio_clip_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\button_api.cpp" />
@@ -738,9 +738,9 @@
     <ClInclude Include="..\..\Engine\game\navigation\pathfinder_script.h" />
     <ClInclude Include="..\..\Engine\game\navigation\route_finder.h" />
     <ClInclude Include="..\..\Engine\game\navigation\route_finder_impl.h" />
-    <ClInclude Include="..\..\Engine\game\savegame.h" />
-    <ClInclude Include="..\..\Engine\game\savegame_components.h" />
-    <ClInclude Include="..\..\Engine\game\savegame_internal.h" />
+    <ClInclude Include="..\..\Engine\game\save\savegame.h" />
+    <ClInclude Include="..\..\Engine\game\save\savegame_components.h" />
+    <ClInclude Include="..\..\Engine\game\save\savegame_internal.h" />
     <ClInclude Include="..\..\Engine\game\video\video.h" />
     <ClInclude Include="..\..\Engine\game\video\video_script.h" />
     <ClInclude Include="..\..\Engine\game\viewport.h" />

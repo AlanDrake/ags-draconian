@@ -13,7 +13,7 @@
 //=============================================================================
 #pragma once
 
-#include "game/savegame.h"
+#include "game/save/savegame.h"
 #include "util/stream.h"
 
 namespace AGS

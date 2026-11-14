@@ -247,11 +247,11 @@ target_sources(engine
     game/navigation/route_finder_impl.cpp
     game/navigation/route_finder_impl.h
     game/navigation/route_finder_jps.inl
-    game/savegame.cpp
-    game/savegame.h
-    game/savegame_components.cpp
-    game/savegame_components.h
-    game/savegame_internal.h
+    game/save/savegame.cpp
+    game/save/savegame.h
+    game/save/savegame_components.cpp
+    game/save/savegame_components.h
+    game/save/savegame_internal.h
     game/script_api/audio_channel_api.cpp
     game/script_api/audio_clip_api.cpp
     game/script_api/button_api.cpp

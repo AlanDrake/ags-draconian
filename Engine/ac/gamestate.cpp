@@ -27,7 +27,7 @@
 #include "device/mousew32.h"
 #include "game/customproperties.h"
 #include "game/roomstruct.h"
-#include "game/savegame_internal.h"
+#include "game/save/savegame_internal.h"
 #include "gfx/gfx_def.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"

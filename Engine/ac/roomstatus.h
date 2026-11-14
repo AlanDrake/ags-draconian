@@ -15,7 +15,7 @@
 
 #include "ac/roomobject.h"
 #include "game/roomstruct.h"
-#include "game/savegame.h"
+#include "game/save/savegame.h"
 #include "game/scripteventtable.h"
 #include "util/string_types.h"
 
