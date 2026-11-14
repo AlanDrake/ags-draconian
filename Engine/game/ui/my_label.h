@@ -16,7 +16,7 @@
 
 #include "game/ui/new_control.h"
 
-// A static text label of the legacy built-in dialogs (see cscidialog.cpp): the text is broken into lines to
+// A static text label of the legacy built-in dialogs (see csci_dialog.cpp): the text is broken into lines to
 // the control's width and drawn in the dialog font.
 struct MyLabel : public NewControl
 {

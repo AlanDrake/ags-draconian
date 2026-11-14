@@ -26,7 +26,7 @@
 // **** CHARACTER: FUNCTIONS ****
 //
 // A Character_<Name> function implements the script function Character.<Name> of the same name, which scripts
-// reach through the Sc_Character_<Name> wrapper registered in RegisterCharacterAPI (character.cpp). A comment
+// reach through the Sc_Character_<Name> wrapper registered in RegisterCharacterAPI (character_api.cpp). A comment
 // tells where the script name differs, or the function is not a script function at all.
 
 // Tells if the character ID is valid
@@ -301,7 +301,7 @@ Rect GetCharacterRoomBBox(int char_id, bool use_frame_0 = false);
 PViewport FindNearestViewport(int char_id);
 
 //
-// Character update functions, defined in characterinfo_engine.cpp and called from the game update.
+// Character update functions, defined in character_info_engine.cpp and called from the game update.
 // TODO: move these into a runtime Character class, when there will be a proper one,
 // merging CharacterInfo and CharacterExtras.
 //

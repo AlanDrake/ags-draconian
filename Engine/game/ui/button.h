@@ -21,9 +21,9 @@ struct AnimatingGUIButton;
 // **** BUTTON: FUNCTIONS ****
 //
 // A Button_<Name> function implements the script function Button.<Name>, which scripts reach through the
-// Sc_Button_<Name> wrapper registered in RegisterButtonAPI (button.cpp); a pair Button_Get<Name> and Button_Set<Name>
-// implements the script property Button.<Name> (get_<Name> and set_<Name>). btn is the script button the function is
-// called on. A comment tells where the script name or behaviour differs.
+// Sc_Button_<Name> wrapper registered in RegisterButtonAPI (button_api.cpp); a pair Button_Get<Name> and
+// Button_Set<Name> implements the script property Button.<Name> (get_<Name> and set_<Name>). btn is the script button
+// the function is called on. A comment tells where the script name or behaviour differs.
 
 // Button.Animate: starts the animation of a view loop on the button, replacing the one it already has. The view is
 // 1-based as in the script; with a non-zero blocking the call returns when the animation ends, and the button stays

@@ -23,10 +23,10 @@
 //
 // A DrawingSurface_<Name> function implements the script function DrawingSurface.<Name> of the same name, which
 // scripts reach through the Sc_DrawingSurface_<Name> wrapper registered in RegisterDrawingSurfaceAPI
-// (drawingsurface.cpp); a pair DrawingSurface_Get<Name> and DrawingSurface_Set<Name> implements the script property
-// DrawingSurface.<Name> (get_<Name> and set_<Name>). surface is the script surface the function is called on. A
-// comment tells where the script name differs. The functions that draw, read pixels or report the size warn in the
-// script log and do nothing (a getter returns 0 or nullptr) when the surface is not valid: its source image was
+// (drawing_surface_api.cpp); a pair DrawingSurface_Get<Name> and DrawingSurface_Set<Name> implements the script
+// property DrawingSurface.<Name> (get_<Name> and set_<Name>). surface is the script surface the function is called
+// on. A comment tells where the script name differs. The functions that draw, read pixels or report the size warn in
+// the script log and do nothing (a getter returns 0 or nullptr) when the surface is not valid: its source image was
 // disposed or Release() was called. Colours are script colour numbers. The outline variants of the Draw functions are
 // not declared here.
 
