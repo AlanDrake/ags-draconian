@@ -74,7 +74,7 @@ Recorded 2026-10-31.
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
-0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 5.2 step 1, 5.3 (2026-11-14), 6.7d, 6.9, 7.1 (but
+0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 5.2, 5.3 (2026-11-14), 6.7d, 6.9, 7.1 (but
 7.1n) (LOG.md); 3.2 with 3.2c
 (CI-confirmed 2026-11-08). The fork does not wait for upstream review (the user, 2026-11-09): a fork-only
 move that would conflict with an open offer is preceded by a tag of the pre-move tree for `port.py`.
@@ -82,7 +82,7 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
 | 1 | **The bugs found in 4.1, by upstream branch** (the user, 2026-11-12; the list is "4.1's bugs by upstream branch" below): all fixed in the fork (2026-11-12, `d90b789ab`..`98a7dae87`, `4c07f1e11`; lip-sync and the push button still want a run in a game); ported to `master-41-fixes` and `ags4-41-fixes`, trial merge of the first into the second on `ags4-41-mergecheck` (`docs/UPSTREAM.md`, worktrees `../ags-up-master`, `../ags-up-ags4`, `../ags-up-merge`); double-checked, fixed, rebased and pushed to `origin` 2026-11-13 (`53a55451d` on `upstream/master` `fc4c47a7f`, `9d32c9654`; what the check found is in `docs/UPSTREAM.md`); left: open the two PRs (texts in `.compare/pr-description.md` of each worktree), the trial merge is from the first version and not redone, and the fork's reader still gives `RunGameLoopsWhileDialogOptionsDisplayed` true for an absent element where `Settings.FromXml` gives false (no effect on 4.0 projects) | 4.1 is done; the PRs were waiting for it | Fable 5.1, `high` for the review; the user opens the PRs |
-| 2 | **5.2 step 2: the template binder** (proposed, 2026-11-14): `Engine/game/script_api/*_api.cpp` and `global_api.cpp` replace the 147 `API_*` macros of `script/script_api.h` with a C++17 template binder, then `script_api.h` is cut from `script/runtimescriptvalue.h` (nearly every engine file gets it from there) and `runtime_defines.h` and `asset_helper.h` are split into their host and game halves (LOG.md "5.2 step 1 and 5.3" lists these small follow-ups). The C3 snapshot and `ScriptExports.*` guard it; the wrappers are on the script VM's call path, so the generated code is compared (MSVC Release, GCC `-O2` and `-O3 -flto`) before and after | 5.2 step 1 is done and every wrapper now sits in one folder; 5.1 and 5.1a follow (5.1's contexts take `usetup`, 18 of the 129 baseline includes, out of `main/game_setup.h`) | Fable 5.2, `high` for the binder's design and the code comparison; Opus 5.5 subagents for converting the files, one set at a time |
+| 2 | **5.1 step 1: every global declared once** (proposed, 2026-11-14): the 596 `extern` declarations inside engine `.cpp` files go to their module's header, which is mechanical and provable with `compare_objects.py`; then the design of the context structs of step 2 (`GameData`, runtime `Game`, the current room, `EngineServices`), with 5.1a's split of design data from runtime state decided at the same time since both shape the same structs. Small follow-ups left by 5.2 and 5.3 that fit the same session: split `runtime_defines.h` and `asset_helper.h` into their host and game halves; the signature fixes that 5.2 step 2's tags mark (LOG.md "5.2 step 2", each a behaviour change to decide) | 5.2 and 5.3 are done, so the files have their final places and the bindings no longer hide which globals the logic uses; 5.1's contexts take `usetup`, 18 of the 128 baseline includes, out of `main/game_setup.h` | Fable 5.2, `high` for the context design; Sonnet 5.5 or Opus 5.5 subagents for step 1, in batches built once per batch |
 | 3 | **4.5 + 3.6 on what had no comment pass** (770 first-party files, ~280k lines): batch 8 done (2026-11-13, LOG.md: `game`, `gamestate`, `room`, `dialog`, `savegame`, `game_init`, `script`, `guimain`, `engine`); next, the untouched files most-churned first (a ranking by commits since 2024, the batch-6 stray-rename files among them), then the D3D/OpenGL drivers with the `emscripten` and `linux` stages, and the compiler (7,440-line parser: its own plan, by function groups). Brief `.compare/briefs/brief-45-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | The files have their final paths since 5.3 (map: `docs/refactor/moves-5.3.tsv`; the brief's file lists use the old ones), and a comment pass is cheaper before 5.1 and 5.2 step 2 edit them again | Sonnet 5.5, `medium`, parallel subagents; the parser plan Fable 5.1 |
 | 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3188, #3189; #3187 merged), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
@@ -358,7 +358,7 @@ Each task is a series of small PRs.
   tools link the design structs without the extras: that is the point of the split), the C2 round-trip
   tests, the auto-test game. *Done when:* no `Common` struct has a field the engine writes during play,
   `charextra` is gone, and `agf2dta`/`crmbuild` link no Engine object.
-- [ ] **5.2 Script bindings apart from logic.** 1,598 hand-written `Sc_*` wrappers from 147 `API_*`
+- [x] **5.2 Script bindings apart from logic.** 1,598 hand-written `Sc_*` wrappers from 147 `API_*`
   macros (`script_api.h`), which sat interleaved with the logic.
   1. [x] **Each file's `Sc_*` block and `Register*API` in `Engine/game/script_api/<type>_api.cpp`** (2026-11-14,
      LOG.md "5.2 step 1 and 5.3"): 44 files split, 1,547 functions moved byte for byte by
@@ -366,11 +366,17 @@ Each task is a series of small PRs.
      `compare_objects.py`'s move verdict and `ScriptExports.*`. Left: `script/runtimescriptvalue.h` still
      includes `script_api.h`, so nearly every engine file gets it (`HEADER_RULES` in `check_layers.py` lets
      only `script/` and `game/script_api/` include it directly).
-  2. Replace the macros with a C++17 template binder deducing arguments from the signature
-     (`api.Method<&Character_AddInventory>("Character::AddInventory^2")`), parameter-count check
-     generated; guarded by the C3 snapshot.
+  2. [x] **The macros replaced by a C++17 template binder** (2026-11-14, LOG.md "5.2 step 2"):
+     `Engine/script/script_binder.h` generates each wrapper from the function's signature, a row is
+     `ScMethod<&Character_AddInventory>("Character::AddInventory^2")`; 1,644 of 1,645 rows converted by
+     `Script/convert_bindings.py`, each generated wrapper proved identical to the macro wrapper it replaced by
+     `Script/compare_bindings.py` (1,600 of 1,600 pairs, MSVC objects). `script_api.h` went from 840 to 81 lines
+     and is no longer included by `runtimescriptvalue.h`. 69 rows carry a tag that keeps a contract differing
+     from the signature; each is a candidate for a signature fix (listed in LOG.md).
 
-  *Done when:* no `Sc_` function remains and `script_api.h` holds only the binder.
+  *Done* (2026-11-14), with two things kept on purpose: `Sc_System_Log` is hand-written (it formats without
+  translating, which no row form does), and `script_api.h` keeps `ScriptSprintf` and the two macros of the plugins'
+  C-variadic functions (contract C4).
 - [x] **5.3 Reorganise `Engine/ac/`** (2026-11-14; LOG.md "5.2 step 1 and 5.3"; the full definition is there).
   `Engine/ac/` and `Engine/gui/` are gone and `Common/ac/` holds `def_version.h` alone: 278 files moved by
   `docs/refactor/moves-5.3.tsv` (154 renamed to `snake_case`; also the path table for ports), the thirteen `global_*` file pairs folded into
@@ -383,10 +389,10 @@ Each task is a series of small PRs.
   Left open from it:
   - `Common/ac/def_version.h` stays: CI and the packaging scripts of every platform name it (the user, 2026-11-14:
     it stays; phase 7 may move it when the packaging scripts are reworked).
-  - The layering baseline, `Script/check_layers_baseline.txt`, 129 includes, only shrinks. 5.1's contexts take
+  - The layering baseline, `Script/check_layers_baseline.txt`, 129 includes (128 since 5.2 step 2), only shrinks. 5.1's contexts take
     out the ones that carry `usetup` (`main/game_setup.h`, 18); the rest (`main/game_run.h` 22,
     `plugin/plugin_engine.h` 12, the `debug` and `util` files) is for later tasks. Two small follow-ups: split `runtime_defines.h` and `asset_helper.h` into their host and game parts, and cut
-    `script/script_api.h` from `script/runtimescriptvalue.h` (with 5.2 step 2).
+    `script/script_api.h` from `script/runtimescriptvalue.h` (the cut is done, 5.2 step 2; the two splits are open).
   - Per-folder READMEs (4.5) are two files for the engine, as above.
 - [ ] **5.4 Split the longest functions** (BASELINE.md list), tests first:
   - `display_speech` (489 lines, nesting 8): text layout, portrait/bubble placement, lip-sync setup,

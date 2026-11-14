@@ -1563,6 +1563,71 @@ plan) and the D3D/OpenGL drivers (they need the GL and emscripten builds to veri
   `.obj/x64/Release/Engine.App`; `prepush.py`'s `linux` and `msbuild` stages do not run from a linked worktree, so
   the supervisor's prepush runs in the main tree after the fast-forward.
 
+### 5.2 step 2: the template binder
+
+*Definition:* replace the `API_*` macros and the hand-written `Sc_*` wrappers with a C++17 binder that generates
+each wrapper from the signature of the function it calls, without changing what any wrapper does or the code the
+script VM runs.
+
+**Status (2026-11-14): done**, 54 commits.
+
+- **What a binding is now:** one table row, `ScMethod<&Character_AddInventory>("Character::AddInventory^2")` or
+  `ScStatic<...>`; `ScMethodFormat` and `ScStaticFormat` for the 18 functions that take a format and its arguments.
+  `Engine/script/script_binder.h` (VM ring) reads each parameter and returns the result as the C++ type says;
+  `Engine/game/script_api/bindings.h` (game ring) names the manager of each returned type (`ScriptManagerOf<T>`)
+  and holds the format rows, which translate the format. A returned type without a manager must be an
+  `IScriptObject`, else the row does not compile; a `void *` result must be tagged.
+- **Before the design, measured:** 1,603 wrappers; 1,574 a single plain macro, 16 sprintf-style, 13 hand-written.
+  In 1,552 of the 1,574 the macro said what the signature says. A probe of six made-up functions compiled to
+  identical code with MSVC at `/O1` and `/O2` in five cases, the sixth a probe artefact.
+- **Conversion:** `Script/convert_bindings.py` rewrote 1,644 of 1,645 rows in 45 files, one commit per file. The
+  first 8 files were built and tested one by one (about 3 minutes each), the other 37 in batches of 7 with one
+  build and `ctest` per batch (about 35 s per file; the build is about 165 s whatever the batch size), so those
+  commits were not built singly.
+- **Tags, 69 rows:** where the old wrapper differed from the signature, the row keeps the old contract with a
+  tag: `ScUndefinedResult` 35 (setters whose macro returned an undefined value, not 0), `ScManagedBy<globalDynamicArray>`
+  21 (`void *` arrays), `ScVoidResult` 3 (`*_RunFrameEvent` return a `bool` the script never sees), `ScBoolResult` 3
+  (an `int` returned as a script bool), `ScBoolArg` 3 (`String.EndsWith`, `StartsWith`, `Replace` take `int`), `ScIntArg`
+  2 (`Overlay.set_AutoSize`, `VideoPlayer.Open` take `bool`), `ScResultAs<sc_File>` 1 (`File.Open` returns `void *`),
+  `ScManagedBy<ccDynamicGUIControl>` 1 (below). Each is a candidate for a signature fix, which would be a
+  behaviour change and is not done.
+- **Proof, generated wrapper against the macro wrapper it replaced** (`Script/compare_bindings.py`, pairs by table
+  row; the tables' names, order and plugin functions unchanged in every run; `ScriptExports.*` unchanged):
+
+  | Build | Identical | Different |
+  |---|---|---|
+  | MSVC `/O1 /Ob1` objects | 1,600 of 1,600 | 0 |
+  | MSVC Release `/O2 /GL` LTCG, `ags.exe` | 1,599 | 1: `RunAGSGame`, one store with base and index registers swapped |
+  | GCC 13.3 `-O3 -flto` | 1,600 | 0 |
+  | GCC 13.3 `-O2`, no LTO | 1,584 | 16: the 15 format wrappers and `RunAGSGame` |
+
+  The 16 with GCC `-O2` are the same up to the last `ret`; the exception landing pad sits at the function's end
+  where the old wrapper had it in a `.cold` part (2 instructions fewer each). No cost on the normal path.
+- **The design change that the proof forced:** the first binder called an inner helper per call; MSVC at
+  `/O1 /Ob1` did not inline it for 2 of the first 144 wrappers. Each binding is now one function template that
+  reads its parameters in its own body, and no `__forceinline` is needed.
+- **After the conversion:** `script_api.h` holds `ScriptSprintf`, `ScriptVSprintf` and the two macros of the
+  plugins' C-variadic functions (840 lines to 81); `runtimescriptvalue.h` no longer includes it (the layering
+  baseline 129 to 128). `Sc_System_Log` is written by hand: it formats without translating.
+- **Cost** (MSVC Release, three runs each, old and new alternated in one source and build directory, idle
+  machine): clean engine build 56.8–58.2 s before, 53.8–58.3 s after; LTCG link 35.4–38.4 s before, 34.9–41.5 s
+  after: no measurable difference. `ags.exe` 6,962,688 to 6,959,104 bytes. The 46 API objects grow from 2.2 MB
+  to 5.3 MB (unreferenced template copies and longer names, which the linker drops).
+- **Compilers:** MSVC 19.44, GCC 13.3, Clang 20 with libc++ (47 files clean). Not compiled: GCC 8 (the Debian 10
+  builder; the binder uses `template <auto>`, `if constexpr` and fold expressions, no partial specialisation on an
+  `auto` parameter), macOS, iOS, Android.
+- **Verified on the merged tree:** `prepush.py` with every stage (format, helpers, layers, build lists, MSVC build
+  and `ctest`, tidy, headers, libc++, Emscripten, the Linux GCC job with 1,207 tests, MSBuild with the Editor's
+  NUnit tests); the first run failed the tidy gate on `<stddef.h>` and `<stdint.h>` in the rewritten
+  `script_api.h`, fixed. The auto-test game 2414 of 2414 on Software and D3D9.
+- **Found, not fixed:** `GUIControl.OwningGUI` returns a `ScriptGUI *` with the GUI control manager, probably a
+  defect, kept by its tag; three macros asserted the wrong parameter count (`LockViewAnchored` 1 of 6,
+  `BlendSurface` 10 of 11, `SetConstantF4` 3 of 5), the binder asserts the real one (Debug builds only).
+- **Lessons:** build time compared across two source directories is not a fair test (7% difference on unchanged
+  files; use one source and one build directory, alternate the trees, idle machine); batches of 7 files per build
+  cut the conversion from about 2 hours to 25 minutes at the price of commits not built singly; a long agent run
+  is split at a phase boundary with a written handoff note, and the second agent did the proof phase from it.
+
 ### Open items from finished tasks
 
 *Moved from PLAN.md "Next up" on 2026-11-07* (details in the tasks' sections):

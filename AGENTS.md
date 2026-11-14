@@ -127,8 +127,10 @@ that may include only its own ring and the ones below it: host (`util`, `debug`,
 describes upstream's tree, so its `Engine/ac/` and `Common/ac/` paths map through
 `docs/refactor/moves-5.3.tsv` (old path = upstream's, new path = the fork's; the functions of the old
 `global_*.cpp` files are in `docs/refactor/fold-5.3.tsv`). A new script API function: the logic in the
-domain file under `Engine/game/` and its declaration in that file's header; the `Sc_*` wrapper and the
-table row in `Engine/game/script_api/<type>_api.cpp`. The tools that did the move, with `--repo`:
+domain file under `Engine/game/` and its declaration in that file's header; one table row in `Engine/game/script_api/<type>_api.cpp`,
+`ScMethod<&Type_Name>("Type::Name^2")` or `ScStatic<...>`: the wrapper is generated from the function's signature
+(`Engine/script/script_binder.h`, 5.2 step 2; no `Sc_*` wrappers and no `API_*` macros any more, a tag in the row
+where the script's contract differs from the signature). The tools that did the move, with `--repo`:
 `Script/split_bindings.py`, `Script/move_functions.py`, `Script/apply_moves.py`.
 
 ## Verify before you report done
