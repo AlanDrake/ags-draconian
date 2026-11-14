@@ -35,7 +35,10 @@ one-commit-per-destination-folder runs of `Engine/game` itself). Without --only 
    a module folder that does not resolve, stops the run. The include blocks that changed are re-sorted with the
    pinned clang-format (AGS_CLANG_FORMAT, 19.1.7; `--lines` on those blocks only, so the rest of the file is not
    touched) and the result is checked: the file without its #include lines (blank lines collapsed) is unchanged and
-   the include lines are the rewritten ones; a file that is not format-clean afterwards is reported.
+   the include lines are the rewritten ones; a file that is not format-clean afterwards is reported. A renamed
+   file whose includes do not change is re-sorted the same way, all its include blocks, when it is format-clean
+   under its old name and not under its new one: clang-format puts the main header first by the file's name, so
+   `gui/guiinv.h` is main for guiinv.cpp and an ordinary include for gui_inv.cpp.
 4. Build descriptions (tracked first-party CMakeLists.txt and *.cmake, every .vcxproj and .vcxproj.filters, every
    project.pbxproj), each read with its line ends and BOM kept:
    - CMake: every token that names a source file (relative to the file's folder or to a ${...SOURCE_DIR}) is
@@ -238,6 +241,7 @@ class Report:
         self.platform = []           # (path, line, old include, new include, why)
         self.platform_moved = []     # moved files with platform branches
         self.format_unclean = []
+        self.resorted = []           # renamed files whose unchanged includes were re-sorted for the new name
         self.build = collections.Counter()  # build file -> entries changed
         self.filters_added = collections.defaultdict(list)
         self.filters_removed = collections.defaultdict(list)
@@ -432,7 +436,7 @@ def rewrite_includes(repo, files, post, texts, rep, do_format):
     pending = rep.pending
     pre_res, post_res = Resolver(set(files)), Resolver(post)
     module_dirs = {p.split('/')[1] for p in files if p.startswith(MODULE_ROOTS) and p.count('/') >= 2}
-    jobs = []
+    jobs, renamed = [], []
     for path in files:
         if not path.endswith(SOURCE_EXTS):
             continue
@@ -491,6 +495,8 @@ def rewrite_includes(repo, files, post, texts, rep, do_format):
         if path in pending and NON_WINDOWS.search(path):
             rep.platform_moved.append((path, 'platform folder'))
         if not changed:
+            if do_format and path.endswith(FORMAT_EXTS) and posixpath.basename(path) != posixpath.basename(new_path):
+                renamed.append((path, new_path, t, lines))
             continue
         text = '\n'.join(lines)
         if path.endswith('.rc'):
@@ -504,6 +510,15 @@ def rewrite_includes(repo, files, post, texts, rep, do_format):
         if do_format and path.endswith(FORMAT_EXTS):
             jobs.append((path, new_path, t, include_blocks(lines, changed)))
     with ThreadPoolExecutor(max_workers=os.cpu_count() or 4) as pool:
+        # a renamed file: its main header is found by name, so the new name may sort its includes differently
+        def dirty(r):
+            return not format_clean(repo, r[1], r[2].text) and format_clean(repo, r[0], r[2].text)
+        for (path, new_path, t, lines), d in zip(renamed, pool.map(dirty, renamed)):
+            if d:
+                texts[path] = t
+                rep.resorted.append(path)
+                jobs.append((path, new_path, t, include_blocks(lines, [i for i, l in enumerate(lines)
+                                                                       if INCLUDE.match(l)])))
         for path, msg, unclean in pool.map(lambda j: sort_includes(repo, *j), jobs):
             if msg:
                 rep.stop('%s: %s' % (path, msg))
@@ -1179,6 +1194,10 @@ def print_report(rep, dry, verbose):
     w('scripts rewritten: %d' % len(rep.scripts))
     for p, n in sorted(rep.scripts.items()):
         w('  %s: %d' % (p, n))
+    if rep.resorted:
+        w('includes re-sorted for a new file name (main header): %d' % len(rep.resorted))
+        for p in rep.resorted:
+            w('  %s' % p)
     if rep.format_unclean:
         w('not format-clean after the include sort (were clean before): %d' % len(rep.format_unclean))
         for p in rep.format_unclean:
