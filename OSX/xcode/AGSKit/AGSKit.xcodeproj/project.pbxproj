@@ -534,10 +534,10 @@
 		526F23F11D3B5C4900EF4E1F /* textstreamwriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F22991D3B5C4900EF4E1F /* textstreamwriter.cpp */; };
 		526F23F21D3B5C4900EF4E1F /* textstreamwriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F229A1D3B5C4900EF4E1F /* textstreamwriter.h */; };
 		526F23F31D3B5C4900EF4E1F /* textwriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F229B1D3B5C4900EF4E1F /* textwriter.h */; };
-		526F269A1D3B5CC300EF4E1F /* audiochannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24161D3B5CC200EF4E1F /* audiochannel.cpp */; };
-		526F269B1D3B5CC300EF4E1F /* audiochannel.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24171D3B5CC200EF4E1F /* audiochannel.h */; };
-		526F269C1D3B5CC300EF4E1F /* audioclip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24181D3B5CC200EF4E1F /* audioclip.cpp */; };
-		526F269D1D3B5CC300EF4E1F /* audioclip.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24191D3B5CC200EF4E1F /* audioclip.h */; };
+		526F269A1D3B5CC300EF4E1F /* audio_channel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24161D3B5CC200EF4E1F /* audio_channel.cpp */; };
+		526F269B1D3B5CC300EF4E1F /* audio_channel.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24171D3B5CC200EF4E1F /* audio_channel.h */; };
+		526F269C1D3B5CC300EF4E1F /* audio_clip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24181D3B5CC200EF4E1F /* audio_clip.cpp */; };
+		526F269D1D3B5CC300EF4E1F /* audio_clip.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24191D3B5CC200EF4E1F /* audio_clip.h */; };
 		526F269E1D3B5CC300EF4E1F /* button.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F241A1D3B5CC200EF4E1F /* button.cpp */; };
 		526F269F1D3B5CC300EF4E1F /* button.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F241B1D3B5CC200EF4E1F /* button.h */; };
 		526F26A21D3B5CC300EF4E1F /* character.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F241E1D3B5CC200EF4E1F /* character.cpp */; };
@@ -1462,10 +1462,10 @@
 		526F22991D3B5C4900EF4E1F /* textstreamwriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = textstreamwriter.cpp; sourceTree = "<group>"; };
 		526F229A1D3B5C4900EF4E1F /* textstreamwriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = textstreamwriter.h; sourceTree = "<group>"; };
 		526F229B1D3B5C4900EF4E1F /* textwriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = textwriter.h; sourceTree = "<group>"; };
-		526F24161D3B5CC200EF4E1F /* audiochannel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audiochannel.cpp; sourceTree = "<group>"; };
-		526F24171D3B5CC200EF4E1F /* audiochannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audiochannel.h; sourceTree = "<group>"; };
-		526F24181D3B5CC200EF4E1F /* audioclip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audioclip.cpp; sourceTree = "<group>"; };
-		526F24191D3B5CC200EF4E1F /* audioclip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audioclip.h; sourceTree = "<group>"; };
+		526F24161D3B5CC200EF4E1F /* audio_channel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_channel.cpp; sourceTree = "<group>"; };
+		526F24171D3B5CC200EF4E1F /* audio_channel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio_channel.h; sourceTree = "<group>"; };
+		526F24181D3B5CC200EF4E1F /* audio_clip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_clip.cpp; sourceTree = "<group>"; };
+		526F24191D3B5CC200EF4E1F /* audio_clip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio_clip.h; sourceTree = "<group>"; };
 		526F241A1D3B5CC200EF4E1F /* button.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = button.cpp; sourceTree = "<group>"; };
 		526F241B1D3B5CC200EF4E1F /* button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = button.h; sourceTree = "<group>"; };
 		526F241E1D3B5CC200EF4E1F /* character.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = character.cpp; sourceTree = "<group>"; };
@@ -2980,10 +2980,6 @@
 			isa = PBXGroup;
 			children = (
 				526F24331D3B5CC200EF4E1F /* dynobj */,
-				526F24161D3B5CC200EF4E1F /* audiochannel.cpp */,
-				526F24171D3B5CC200EF4E1F /* audiochannel.h */,
-				526F24181D3B5CC200EF4E1F /* audioclip.cpp */,
-				526F24191D3B5CC200EF4E1F /* audioclip.h */,
 				526F241A1D3B5CC200EF4E1F /* button.cpp */,
 				526F241B1D3B5CC200EF4E1F /* button.h */,
 				20522A5C28E8F8DD00589E91 /* sys_events.cpp */,
@@ -3371,8 +3367,6 @@
 				20E6827E28F1D32D00B95C00 /* openalsource.h */,
 				20E6827A28F1D32C00B95C00 /* sdldecoder.cpp */,
 				20E6827D28F1D32D00B95C00 /* sdldecoder.h */,
-				526F260F1D3B5CC300EF4E1F /* audio.cpp */,
-				526F26101D3B5CC300EF4E1F /* audio.h */,
 				526F26111D3B5CC300EF4E1F /* audiodefines.h */,
 				526F26231D3B5CC300EF4E1F /* queuedaudioitem.cpp */,
 				526F26241D3B5CC300EF4E1F /* queuedaudioitem.h */,
@@ -3512,6 +3506,7 @@
 				5599F5BF25D0EDD38B214A80 /* navigation */,
 				29A5B920BF77171604D4650F /* input */,
 				758ABC2607543CDCE31C2B94 /* video */,
+				DC120E31C271A148E419A755 /* audio */,
 			);
 			path = game;
 			sourceTree = "<group>";
@@ -3703,6 +3698,19 @@
 			path = cache;
 			sourceTree = "<group>";
 		};
+		DC120E31C271A148E419A755 /* audio */ = {
+			isa = PBXGroup;
+			children = (
+				526F24161D3B5CC200EF4E1F /* audio_channel.cpp */,
+				526F24171D3B5CC200EF4E1F /* audio_channel.h */,
+				526F24181D3B5CC200EF4E1F /* audio_clip.cpp */,
+				526F24191D3B5CC200EF4E1F /* audio_clip.h */,
+				526F260F1D3B5CC300EF4E1F /* audio.cpp */,
+				526F26101D3B5CC300EF4E1F /* audio.h */,
+			);
+			path = audio;
+			sourceTree = "<group>";
+		};
 		E0B5564EEE7E27A51216127E /* builds */ = {
 			isa = PBXGroup;
 			children = (
@@ -3838,7 +3846,7 @@
 				20522A3128E8F81C00589E91 /* aasset_stream.h in Headers */,
 				20E67DB028F1BDE000B95C00 /* palette.h in Headers */,
 				526F26D21D3B5CC300EF4E1F /* cc_region.h in Headers */,
-				526F269B1D3B5CC300EF4E1F /* audiochannel.h in Headers */,
+				526F269B1D3B5CC300EF4E1F /* audio_channel.h in Headers */,
 				20E6840D28F20C7300B95C00 /* misc.h in Headers */,
 				526F269F1D3B5CC300EF4E1F /* button.h in Headers */,
 				20E6823A28F1D2B400B95C00 /* tables.h in Headers */,
@@ -4057,7 +4065,7 @@
 				202609952E438BCC001A87E5 /* agsblend.h in Headers */,
 				526F230F1D3B5C4900EF4E1F /* theoraenc.h in Headers */,
 				20E683C628F20C7200B95C00 /* psy.h in Headers */,
-				526F269D1D3B5CC300EF4E1F /* audioclip.h in Headers */,
+				526F269D1D3B5CC300EF4E1F /* audio_clip.h in Headers */,
 				205229B128E8EBE500589E91 /* room_version.h in Headers */,
 				526F27BF1D3B5CC300EF4E1F /* gfxdriverfactorybase.h in Headers */,
 				2052299628E8EAE700589E91 /* spritefile.h in Headers */,
@@ -4348,7 +4356,7 @@
 				20E683FA28F20C7300B95C00 /* registry.c in Sources */,
 				20E6822528F1D2B400B95C00 /* load_amf.c in Sources */,
 				20E683F828F20C7300B95C00 /* window.c in Sources */,
-				526F269C1D3B5CC300EF4E1F /* audioclip.cpp in Sources */,
+				526F269C1D3B5CC300EF4E1F /* audio_clip.cpp in Sources */,
 				20E67D7628F1BDE000B95C00 /* colblend.c in Sources */,
 				526F28151D3B5CC300EF4E1F /* getbits.c in Sources */,
 				526F28771D3B5CC300EF4E1F /* audio.cpp in Sources */,
@@ -4549,7 +4557,7 @@
 				526F26D51D3B5CC300EF4E1F /* managedobjectpool.cpp in Sources */,
 				526F23F11D3B5C4900EF4E1F /* textstreamwriter.cpp in Sources */,
 				526F26A21D3B5CC300EF4E1F /* character.cpp in Sources */,
-				526F269A1D3B5CC300EF4E1F /* audiochannel.cpp in Sources */,
+				526F269A1D3B5CC300EF4E1F /* audio_channel.cpp in Sources */,
 				526F23151D3B5C4900EF4E1F /* AAROT.c in Sources */,
 				526F27951D3B5CC300EF4E1F /* translation.cpp in Sources */,
 				526F26DB1D3B5CC300EF4E1F /* scriptdialogoptionsrendering.cpp in Sources */,

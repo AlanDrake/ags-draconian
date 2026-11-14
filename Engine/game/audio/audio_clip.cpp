@@ -11,9 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/audioclip.h"
+#include "game/audio/audio_clip.h"
 
-#include "ac/audiochannel.h"
 #include "ac/common.h" // quitprintf
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/game.h"
@@ -22,6 +21,7 @@
 #include "ac/properties.h"
 #include "ac/string.h"
 #include "data/assetmanager.h"
+#include "game/audio/audio_channel.h"
 #include "media/audio/audio_system.h"
 #include "script/runtimescriptvalue.h"
 

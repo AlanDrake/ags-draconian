@@ -13,7 +13,7 @@
 //=============================================================================
 #pragma once
 
-#include "media/audio/audio.h"
+#include "game/audio/audio.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/queuedaudioitem.h"
 #include "media/audio/sound.h"

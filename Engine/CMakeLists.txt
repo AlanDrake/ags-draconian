@@ -20,10 +20,6 @@ target_include_directories(engine PUBLIC .)
 target_sources(engine
     PRIVATE
     ac/asset_helper.h
-    ac/audiochannel.cpp
-    ac/audiochannel.h
-    ac/audioclip.cpp
-    ac/audioclip.h
     ac/button.cpp
     ac/button.h
     ac/character.cpp
@@ -230,6 +226,12 @@ target_sources(engine
     debug/memory_inspect.h
     device/mousew32.cpp
     device/mousew32.h
+    game/audio/audio.cpp
+    game/audio/audio.h
+    game/audio/audio_channel.cpp
+    game/audio/audio_channel.h
+    game/audio/audio_clip.cpp
+    game/audio/audio_clip.h
     game/game_init.cpp
     game/game_init.h
     game/input/joystick.cpp
@@ -373,8 +375,6 @@ target_sources(engine
     main/update.h
     media/audio/audio_core.cpp
     media/audio/audio_core.h
-    media/audio/audio.cpp
-    media/audio/audio.h
     media/audio/audio_system.h
     media/audio/audiodefines.h
     media/audio/audioplayer.cpp

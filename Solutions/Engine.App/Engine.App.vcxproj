@@ -346,8 +346,6 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Engine\ac\audiochannel.cpp" />
-    <ClCompile Include="..\..\Engine\ac\audioclip.cpp" />
     <ClCompile Include="..\..\Engine\ac\button.cpp" />
     <ClCompile Include="..\..\Engine\ac\character.cpp" />
     <ClCompile Include="..\..\Engine\ac\characterextras.cpp" />
@@ -445,6 +443,9 @@
     <ClCompile Include="..\..\Engine\debug\logfile.cpp" />
     <ClCompile Include="..\..\Engine\debug\memory_inspect.cpp" />
     <ClCompile Include="..\..\Engine\device\mousew32.cpp" />
+    <ClCompile Include="..\..\Engine\game\audio\audio.cpp" />
+    <ClCompile Include="..\..\Engine\game\audio\audio_channel.cpp" />
+    <ClCompile Include="..\..\Engine\game\audio\audio_clip.cpp" />
     <ClCompile Include="..\..\Engine\game\game_init.cpp" />
     <ClCompile Include="..\..\Engine\game\input\joystick.cpp" />
     <ClCompile Include="..\..\Engine\game\input\keyboard.cpp" />
@@ -546,7 +547,6 @@
     <ClCompile Include="..\..\Engine\main\main_sdl2.cpp" />
     <ClCompile Include="..\..\Engine\main\quit.cpp" />
     <ClCompile Include="..\..\Engine\main\update.cpp" />
-    <ClCompile Include="..\..\Engine\media\audio\audio.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\audioplayer.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\audio_core.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\openalsource.cpp" />
@@ -620,8 +620,6 @@
     <ClInclude Include="..\..\Common\util\misc.h" />
     <ClInclude Include="..\..\Common\util\string_utils.h" />
     <ClInclude Include="..\..\Engine\ac\asset_helper.h" />
-    <ClInclude Include="..\..\Engine\ac\audiochannel.h" />
-    <ClInclude Include="..\..\Engine\ac\audioclip.h" />
     <ClInclude Include="..\..\Engine\ac\button.h" />
     <ClInclude Include="..\..\Engine\ac\character.h" />
     <ClInclude Include="..\..\Engine\ac\characterextras.h" />
@@ -730,6 +728,9 @@
     <ClInclude Include="..\..\Engine\debug\logfile.h" />
     <ClInclude Include="..\..\Engine\debug\memory_inspect.h" />
     <ClInclude Include="..\..\Engine\device\mousew32.h" />
+    <ClInclude Include="..\..\Engine\game\audio\audio.h" />
+    <ClInclude Include="..\..\Engine\game\audio\audio_channel.h" />
+    <ClInclude Include="..\..\Engine\game\audio\audio_clip.h" />
     <ClInclude Include="..\..\Engine\game\game_init.h" />
     <ClInclude Include="..\..\Engine\game\input\joystick.h" />
     <ClInclude Include="..\..\Engine\game\input\keyboard.h" />
@@ -792,7 +793,6 @@
     <ClInclude Include="..\..\Engine\main\main.h" />
     <ClInclude Include="..\..\Engine\main\quit.h" />
     <ClInclude Include="..\..\Engine\main\update.h" />
-    <ClInclude Include="..\..\Engine\media\audio\audio.h" />
     <ClInclude Include="..\..\Engine\media\audio\audiodefines.h" />
     <ClInclude Include="..\..\Engine\media\audio\audioplayer.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio_core.h" />

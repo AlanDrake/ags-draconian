@@ -17,7 +17,6 @@
 #include <cstdio>
 #include <queue>
 
-#include "ac/audiochannel.h"
 #include "ac/button.h"
 #include "ac/character.h"
 #include "ac/common.h"
@@ -59,6 +58,7 @@
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "font/fonts.h"
+#include "game/audio/audio_channel.h"
 #include "game/savegame.h"
 #include "game/video/video.h"
 #include "gfx/bitmap.h"

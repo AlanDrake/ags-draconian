@@ -56,6 +56,9 @@
     <Filter Include="Source Files\game">
       <UniqueIdentifier>{c0ec3579-115c-40be-8a7b-d59abd533b3b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\game\audio">
+      <UniqueIdentifier>{5710342e-69c5-5c57-bfe2-993e80322450}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\game\input">
       <UniqueIdentifier>{5347bf60-41c2-596f-9382-c78a5286ca5e}</UniqueIdentifier>
     </Filter>
@@ -126,6 +129,9 @@
     <Filter Include="Header Files\game">
       <UniqueIdentifier>{ceb5b7a1-6682-4e55-ad63-6917990c9157}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\game\audio">
+      <UniqueIdentifier>{cdcc7d9c-0f20-5c7f-b63a-28bf16994b58}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files\game\input">
       <UniqueIdentifier>{edbbd7a3-df97-55d2-834f-06b6f17a0a8d}</UniqueIdentifier>
     </Filter>
@@ -177,11 +183,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Engine\ac\audiochannel.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\audio\audio_channel.cpp">
+      <Filter>Source Files\game\audio</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\audioclip.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\audio\audio_clip.cpp">
+      <Filter>Source Files\game\audio</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\button.cpp">
       <Filter>Source Files\ac</Filter>
@@ -486,8 +492,8 @@
     <ClCompile Include="..\..\Engine\script\systemimports.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\media\audio\audio.cpp">
-      <Filter>Source Files\media\audio</Filter>
+    <ClCompile Include="..\..\Engine\game\audio\audio.cpp">
+      <Filter>Source Files\game\audio</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\media\audio\queuedaudioitem.cpp">
       <Filter>Source Files\media\audio</Filter>
@@ -905,11 +911,11 @@
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\audiochannel.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\audio\audio_channel.h">
+      <Filter>Header Files\game\audio</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\audioclip.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\audio\audio_clip.h">
+      <Filter>Header Files\game\audio</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\button.h">
       <Filter>Header Files\ac</Filter>
@@ -1235,8 +1241,8 @@
     <ClInclude Include="..\..\Engine\platform\base\agsplatformdriver.h">
       <Filter>Header Files\platform\base</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\audio.h">
-      <Filter>Header Files\media\audio</Filter>
+    <ClInclude Include="..\..\Engine\game\audio\audio.h">
+      <Filter>Header Files\game\audio</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\audiodefines.h">
       <Filter>Header Files\media\audio</Filter>

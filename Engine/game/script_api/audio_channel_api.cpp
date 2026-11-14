@@ -15,9 +15,9 @@
 // Script bindings registered by RegisterAudioChannelAPI().
 //
 //=============================================================================
-#include "ac/audiochannel.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/game.h"
+#include "game/audio/audio_channel.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

@@ -26,11 +26,11 @@
 #include "ac/gamestate.h"
 #include "ac/sys_events.h"
 #include "debug/debug_log.h"
+#include "game/audio/audio.h"
 #include "gfx/bitmap.h"
 #include "gfx/bitmapdata.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
-#include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
 
