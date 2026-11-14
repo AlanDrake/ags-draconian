@@ -22,7 +22,6 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "ac/view.h"
 #include "debug/debug_log.h"
 #include "game/dialog/display.h"
@@ -55,6 +54,7 @@
 #include "game/world/walkable_area.h"
 #include "gfx/gfx_def.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/sprite_cache.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
 #include "main/update.h"

@@ -23,7 +23,6 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "data/assetmanager.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
@@ -38,6 +37,7 @@
 #include "game/world/room_status.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/sprite_cache.h"
 #include "main/config.h"
 #include "main/engine.h"
 #include "main/game_setup.h"

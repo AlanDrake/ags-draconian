@@ -14,9 +14,9 @@
 #include "gui/guibutton.h"
 
 #include "ac/gamestructdefines.h"
-#include "ac/spritecache.h"
 #include "ac/view.h"
 #include "font/fonts.h"
+#include "gfx/sprite_cache.h"
 #include "gui/guimain.h" // TODO: extract helper functions
 #include "util/stream.h"
 #include "util/string_utils.h"

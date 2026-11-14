@@ -17,7 +17,6 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "game/dynobj/script_system.h"
@@ -29,6 +28,7 @@
 #include "game/ui/mouse.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/sprite_cache.h"
 #include "main/engine.h"
 #include "main/game_run.h"
 #include "main/game_setup.h"

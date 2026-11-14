@@ -22,7 +22,6 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "device/sys_events.h"
 #include "game/dialog/lipsync.h"
 #include "game/game.h"
@@ -39,6 +38,7 @@
 #include "game/world/walkable_area.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/sprite_cache.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "util/timer.h"

@@ -19,7 +19,6 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "debug/debug_log.h"
 #include "device/sys_events.h"
 #include "font/agsfontrenderer.h"
@@ -41,6 +40,7 @@
 #include "game/world/character.h"
 #include "gfx/blender.h"
 #include "gfx/gfx_util.h"
+#include "gfx/sprite_cache.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"

@@ -17,7 +17,6 @@
 #include <cinttypes>
 
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "device/sys_events.h"
@@ -29,6 +28,7 @@
 #include "game/render/draw.h"
 #include "game/render/dynamic_sprite.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/sprite_cache.h"
 #include "main/game_run.h"
 #include "media/video/video_core.h"
 #include "script/dynobj/dynobj_manager.h"

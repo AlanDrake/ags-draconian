@@ -15,7 +15,6 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
@@ -53,6 +52,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/sprite_cache.h"
 #include "main/engine.h"
 #include "main/game_run.h"
 #include "main/game_setup.h"

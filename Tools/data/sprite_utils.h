@@ -19,9 +19,9 @@
 
 #include <allegro.h>
 
-#include "ac/spritefile.h"
 #include "data/game_utils.h"
 #include "gfx/bitmapdata.h"
+#include "gfx/sprite_file.h"
 #include "util/error.h"
 #include "util/string.h"
 

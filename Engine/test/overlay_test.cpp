@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "ac/view.h"
 #include "game/game_state.h"
 #include "game/render/overlay.h"
@@ -31,6 +30,7 @@
 #include "game/roomstruct.h"
 #include "game/world/character_extras.h"
 #include "gfx/bitmap.h"
+#include "gfx/sprite_cache.h"
 #include "gtest/gtest.h"
 
 using namespace AGS::Common;

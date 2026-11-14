@@ -193,6 +193,9 @@
     <Filter Include="Common Header Files\ac\dynobj">
       <UniqueIdentifier>{3a54716a-ffb1-46bd-9bc6-cbc227bc953c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Common Header Files\gfx">
+      <UniqueIdentifier>{1b82e36c-8ebb-5d26-9771-a639e6c43d1d}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Common Header Files\script">
       <UniqueIdentifier>{8a223340-64d8-4760-9172-a2fb4bc53c03}</UniqueIdentifier>
     </Filter>
@@ -1454,8 +1457,8 @@
     <ClInclude Include="..\..\Common\ac\roomstruct.h">
       <Filter>Common Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\spritecache.h">
-      <Filter>Common Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\gfx\sprite_cache.h">
+      <Filter>Common Header Files\gfx</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\view.h">
       <Filter>Common Header Files\ac</Filter>

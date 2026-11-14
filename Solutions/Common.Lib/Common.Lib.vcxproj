@@ -459,8 +459,6 @@
     <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp" />
     <ClCompile Include="..\..\Common\ac\keycode.cpp" />
     <ClCompile Include="..\..\Common\ac\mousecursor.cpp" />
-    <ClCompile Include="..\..\Common\ac\spritecache.cpp" />
-    <ClCompile Include="..\..\Common\ac\spritefile.cpp" />
     <ClCompile Include="..\..\Common\ac\view.cpp" />
     <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp" />
     <ClCompile Include="..\..\Common\data\assetmanager.cpp" />
@@ -488,7 +486,9 @@
     <ClCompile Include="..\..\Common\gfx\image_file.cpp" />
     <ClCompile Include="..\..\Common\gfx\image_pcx.cpp" />
     <ClCompile Include="..\..\Common\gfx\image_png.cpp" />
+    <ClCompile Include="..\..\Common\gfx\sprite_cache.cpp" />
     <ClCompile Include="..\..\Common\gfx\sprite_data_fmt.cpp" />
+    <ClCompile Include="..\..\Common\gfx\sprite_file.cpp" />
     <ClCompile Include="..\..\Common\gui\guibutton.cpp" />
     <ClCompile Include="..\..\Common\gui\guiinv.cpp" />
     <ClCompile Include="..\..\Common\gui\guilabel.cpp" />
@@ -651,8 +651,6 @@
     <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h" />
     <ClInclude Include="..\..\Common\ac\keycode.h" />
     <ClInclude Include="..\..\Common\ac\mousecursor.h" />
-    <ClInclude Include="..\..\Common\ac\spritecache.h" />
-    <ClInclude Include="..\..\Common\ac\spritefile.h" />
     <ClInclude Include="..\..\Common\ac\view.h" />
     <ClInclude Include="..\..\Common\ac\wordsdictionary.h" />
     <ClInclude Include="..\..\Common\data\asset.h" />
@@ -687,7 +685,9 @@
     <ClInclude Include="..\..\Common\gfx\bitmapdata.h" />
     <ClInclude Include="..\..\Common\gfx\graphicspace.h" />
     <ClInclude Include="..\..\Common\gfx\image_file.h" />
+    <ClInclude Include="..\..\Common\gfx\sprite_cache.h" />
     <ClInclude Include="..\..\Common\gfx\sprite_data_fmt.h" />
+    <ClInclude Include="..\..\Common\gfx\sprite_file.h" />
     <ClInclude Include="..\..\Common\gui\guibutton.h" />
     <ClInclude Include="..\..\Common\gui\guidefines.h" />
     <ClInclude Include="..\..\Common\gui\guiinv.h" />

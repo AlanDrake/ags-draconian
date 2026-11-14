@@ -13,9 +13,9 @@
 //=============================================================================
 #include "game/dynobj/script_pathfinder.h"
 
-#include "ac/spritecache.h"
 #include "game/world/room.h"
 #include "game/world/walkable_area.h"
+#include "gfx/sprite_cache.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 

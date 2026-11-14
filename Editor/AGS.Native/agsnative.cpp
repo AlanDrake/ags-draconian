@@ -27,7 +27,7 @@ extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 #include "ac/common.h" // quit
 #include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
+#include "gfx/sprite_cache.h"
 #include "ac/view.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"

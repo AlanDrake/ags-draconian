@@ -14,7 +14,7 @@
 #pragma once
 
 #include <memory>
-#include "ac/spritefile.h"
+#include "gfx/sprite_file.h"
 #include "gfx/bitmap.h"
 
 namespace AGS

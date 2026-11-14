@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "ac/gamestructdefines.h"
-#include "ac/spritecache.h"
+#include "gfx/sprite_cache.h"
 #include "gtest/gtest.h"
 #include "util/memory_compat.h"
 #include "util/memorystream.h"

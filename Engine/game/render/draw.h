@@ -16,11 +16,11 @@
 #include <memory>
 
 #include "ac/common_defines.h"
-#include "ac/spritecache.h"
 #include "game/roomstruct.h"
 #include "game/runtime_defines.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
+#include "gfx/sprite_cache.h"
 
 namespace AGS
 {

@@ -18,7 +18,6 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "debug/debug_log.h"
 #include "game/game.h"
 #include "game/game_state.h"
@@ -29,6 +28,7 @@
 #include "game/world/room_object.h"
 #include "game/world/room_status.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/sprite_cache.h"
 #include "gui/guibutton.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/runtimescriptvalue.h"

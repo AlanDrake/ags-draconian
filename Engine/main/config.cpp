@@ -19,12 +19,12 @@
 #include <cctype> // toupper
 
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "device/mousew32.h"
 #include "game/game_state.h"
 #include "game/system.h"
+#include "gfx/sprite_cache.h"
 #include "main/game_setup.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"

@@ -17,7 +17,6 @@
 #include <vector>
 
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "ac/view.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
@@ -42,6 +41,7 @@
 #include "game/world/move_list.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
+#include "gfx/sprite_cache.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"
 #include "main/game_setup.h"

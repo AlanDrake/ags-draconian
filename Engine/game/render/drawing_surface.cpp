@@ -15,7 +15,6 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "game/dialog/display.h"
@@ -30,6 +29,7 @@
 #include "game/world/walk_behind.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfx_util.h"
+#include "gfx/sprite_cache.h"
 #include "gui/guimain.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"

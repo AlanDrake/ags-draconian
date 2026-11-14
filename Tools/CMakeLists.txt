@@ -12,8 +12,6 @@ target_include_directories(libtools PUBLIC .)
 # we could link to AGS::Common, but this provides much faster LTO times with Release builds
 target_include_directories(libtools PUBLIC ../Common)
 set(TOOLS_COMMON_SOURCES
-        ../Common/ac/spritefile.cpp
-        ../Common/ac/spritefile.h
         ../Common/ac/characterinfo.cpp
         ../Common/ac/inventoryiteminfo.cpp
         ../Common/ac/mousecursor.cpp
@@ -49,6 +47,8 @@ set(TOOLS_COMMON_SOURCES
         ../Common/gfx/image_png.cpp
         ../Common/gfx/sprite_data_fmt.cpp
         ../Common/gfx/sprite_data_fmt.h
+        ../Common/gfx/sprite_file.cpp
+        ../Common/gfx/sprite_file.h
         ../Common/script/cc_common.cpp
         ../Common/script/cc_common.h
         ../Common/script/cc_reflect.cpp
@@ -307,7 +307,7 @@ if(AGS_TESTS)
       ../Common/ac/dynobj/scriptaudioclip.cpp # needed by data_file_writer_test
       ../Common/ac/dialogtopic.cpp # needed by data_file_writer_test
       ../Common/ac/common.cpp # needed by GUI readers in data_file_writer_test
-      ../Common/ac/spritecache.cpp # needed by GUI readers in data_file_writer_test
+      ../Common/gfx/sprite_cache.cpp # needed by GUI readers in data_file_writer_test
       ../Common/data/assetmanager.cpp # needed by Common font renderers
       ../Common/data/data_helpers.cpp
       ../Common/font/fonts.cpp # needed by GUI readers in data_file_writer_test

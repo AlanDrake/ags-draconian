@@ -40,8 +40,8 @@
 #include <memory>
 #include <vector>
 
-#include "ac/spritefile.h"
 #include "gfx/bitmap.h"
+#include "gfx/sprite_file.h"
 #include "platform/platform.h"
 #include "util/resourcecache.h"
 

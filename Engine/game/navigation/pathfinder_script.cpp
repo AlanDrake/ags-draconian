@@ -17,13 +17,13 @@
 //=============================================================================
 #include "game/navigation/pathfinder_script.h"
 
-#include "ac/spritecache.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/script_motion_path.h"
 #include "game/dynobj/script_pathfinder.h"
 #include "game/game.h"
 #include "game/navigation/route_finder.h"
 #include "game/world/object.h"
+#include "gfx/sprite_cache.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/dynobj/script_user_object.h"

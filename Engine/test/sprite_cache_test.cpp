@@ -26,10 +26,10 @@
 #include <vector>
 
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "game/render/dynamic_sprite.h"
 #include "gfx/ali3dsw.h"
 #include "gfx/bitmap.h"
+#include "gfx/sprite_cache.h"
 #include "gtest/gtest.h"
 #include "util/memorystream.h"
 #include "util/stream.h"

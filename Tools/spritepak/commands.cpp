@@ -15,9 +15,9 @@
 
 #include <allegro.h>
 
-#include "ac/spritefile.h"
 #include "data/sprite_utils.h"
 #include "gfx/image_file.h"
+#include "gfx/sprite_file.h"
 #include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"

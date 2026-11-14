@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/spritefile.h"
+#include "gfx/sprite_file.h"
 
 #include <algorithm>
 #include <array>

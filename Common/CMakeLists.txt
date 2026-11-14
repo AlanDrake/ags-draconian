@@ -39,10 +39,6 @@ target_sources(common
     ac/keycode.h
     ac/mousecursor.cpp
     ac/mousecursor.h
-    ac/spritecache.cpp
-    ac/spritecache.h
-    ac/spritefile.cpp
-    ac/spritefile.h
     ac/view.cpp
     ac/view.h
     ac/wordsdictionary.cpp
@@ -104,8 +100,12 @@ target_sources(common
     gfx/image_file.h
     gfx/image_pcx.cpp
     gfx/image_png.cpp
+    gfx/sprite_cache.cpp
+    gfx/sprite_cache.h
     gfx/sprite_data_fmt.cpp
     gfx/sprite_data_fmt.h
+    gfx/sprite_file.cpp
+    gfx/sprite_file.h
     gui/guibutton.cpp
     gui/guibutton.h
     gui/guicontrol.cpp

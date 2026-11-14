@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/spritecache.h"
+#include "gfx/sprite_cache.h"
 
 #include "ac/gamestructdefines.h"
 #include "debug/out.h"

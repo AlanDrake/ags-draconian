@@ -22,7 +22,6 @@
 
 #include "ac/common.h" // quit
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/debugmanager.h"
@@ -49,6 +48,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/sprite_cache.h"
 #include "main/engine.h"
 #include "main/game_run.h"
 #include "main/main.h"

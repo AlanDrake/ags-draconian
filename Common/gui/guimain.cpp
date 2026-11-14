@@ -17,11 +17,11 @@
 
 #include "ac/common.h"
 #include "ac/game_version.h"
-#include "ac/spritecache.h"
 #include "data/data_helpers.h"
 #include "debug/out.h"
 #include "font/fonts.h"
 #include "gfx/gfx_def.h"
+#include "gfx/sprite_cache.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"

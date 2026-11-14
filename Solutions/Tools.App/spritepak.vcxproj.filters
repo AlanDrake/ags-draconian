@@ -31,7 +31,7 @@
     <ClCompile Include="..\..\Tools\spritepak\commands.cpp">
       <Filter>spritepak</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\spritefile.cpp">
+    <ClCompile Include="..\..\Common\gfx\sprite_file.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\gfx\image_file.cpp">
@@ -123,7 +123,7 @@
     <ClInclude Include="..\..\Tools\spritepak\commands.h">
       <Filter>spritepak</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\spritefile.h">
+    <ClInclude Include="..\..\Common\gfx\sprite_file.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\gfx\image_file.h">

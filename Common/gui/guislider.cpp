@@ -15,7 +15,7 @@
 
 #include <algorithm>
 
-#include "ac/spritecache.h"
+#include "gfx/sprite_cache.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
 

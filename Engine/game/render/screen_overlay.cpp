@@ -14,12 +14,12 @@
 #include "game/render/screen_overlay.h"
 
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "game/game.h"
 #include "game/render/dynamic_sprite.h"
 #include "game/world/object.h"
 #include "game/world/view_frame.h"
 #include "gfx/bitmap.h"
+#include "gfx/sprite_cache.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 #include "util/string_utils.h"

@@ -22,7 +22,6 @@
     <ClCompile Include="..\..\Common\ac\characterinfo.cpp" />
     <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp" />
     <ClCompile Include="..\..\Common\ac\mousecursor.cpp" />
-    <ClCompile Include="..\..\Common\ac\spritefile.cpp" />
     <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp" />
     <ClCompile Include="..\..\Common\data\data_ext.cpp" />
     <ClCompile Include="..\..\Common\data\data_helpers.cpp" />
@@ -38,6 +37,7 @@
     <ClCompile Include="..\..\Common\gfx\image_pcx.cpp" />
     <ClCompile Include="..\..\Common\gfx\image_png.cpp" />
     <ClCompile Include="..\..\Common\gfx\sprite_data_fmt.cpp" />
+    <ClCompile Include="..\..\Common\gfx\sprite_file.cpp" />
     <ClCompile Include="..\..\Common\script\cc_common.cpp" />
     <ClCompile Include="..\..\Common\script\cc_reflect.cpp" />
     <ClCompile Include="..\..\Common\script\cc_script.cpp" />
@@ -85,7 +85,6 @@
     <ClInclude Include="..\..\Common\ac\def_version.h" />
     <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h" />
     <ClInclude Include="..\..\Common\ac\mousecursor.h" />
-    <ClInclude Include="..\..\Common\ac\spritefile.h" />
     <ClInclude Include="..\..\Common\data\data_ext.h" />
     <ClInclude Include="..\..\Common\data\data_helpers.h" />
     <ClInclude Include="..\..\Common\debug\debugmanager.h" />
@@ -98,6 +97,7 @@
     <ClInclude Include="..\..\Common\gfx\bitmapdata.h" />
     <ClInclude Include="..\..\Common\gfx\image_file.h" />
     <ClInclude Include="..\..\Common\gfx\sprite_data_fmt.h" />
+    <ClInclude Include="..\..\Common\gfx\sprite_file.h" />
     <ClInclude Include="..\..\Common\script\cc_common.h" />
     <ClInclude Include="..\..\Common\script\cc_reflect.h" />
     <ClInclude Include="..\..\Common\script\cc_script.h" />

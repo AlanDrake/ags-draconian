@@ -25,8 +25,8 @@
 
 #include "ac/common.h" // quit
 #include "ac/common_defines.h"
-#include "ac/spritecache.h"
 #include "debug/out.h"
+#include "gfx/sprite_cache.h"
 #include "main/main.h"
 #include "platform/base/sys_main.h"
 #include "script/cc_common.h"

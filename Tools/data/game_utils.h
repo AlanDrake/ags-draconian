@@ -19,9 +19,9 @@
 
 #include "ac/gamestructdefines.h"
 #include "ac/mousecursor.h"
-#include "ac/spritefile.h"
 #include "game/customproperties.h"
 #include "gfx/gfx_def.h"
+#include "gfx/sprite_file.h"
 #include "gui/guidefines.h"
 #include "util/geometry.h"
 #include "util/ini_util.h"

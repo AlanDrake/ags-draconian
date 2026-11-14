@@ -15,7 +15,6 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/render/drawing_surface.h"
@@ -25,6 +24,7 @@
 #include "game/world/room.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
+#include "gfx/sprite_cache.h"
 #include "script/dynobj/dynobj_manager.h"
 
 using namespace AGS::Common;

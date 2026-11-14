@@ -18,7 +18,6 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "ac/view.h"
 #include "debug/debug_log.h"
 #include "game/dialog/display.h"
@@ -36,6 +35,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/sprite_cache.h"
 #include "main/game_run.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/dynobj/script_user_object.h"

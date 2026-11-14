@@ -17,7 +17,6 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/spritecache.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -54,6 +53,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/sprite_cache.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
 #include "main/game_setup.h"
