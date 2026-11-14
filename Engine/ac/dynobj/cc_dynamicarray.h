@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
-#include "scriptstring.h"
+#include "game/dynobj/script_string.h"
 #include "util/string.h"
 
 

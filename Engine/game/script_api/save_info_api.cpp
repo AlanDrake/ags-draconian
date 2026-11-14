@@ -16,7 +16,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/scriptrestoredsaveinfo.h"
+#include "game/dynobj/script_restored_save_info.h"
 #include "game/save/savegame.h"
 #include "script/script.h"
 #include "script/script_api.h"

@@ -14,10 +14,7 @@
 #include "game/world/object.h"
 
 #include "ac/common.h"
-#include "ac/dynobj/cc_object.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptmotionpath.h"
-#include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/event.h"
 #include "ac/game.h"
@@ -27,6 +24,9 @@
 #include "ac/system.h"
 #include "ac/view.h"
 #include "debug/debug_log.h"
+#include "game/dynobj/cc_object.h"
+#include "game/dynobj/script_motion_path.h"
+#include "game/dynobj/script_shader.h"
 #include "game/lib/string.h"
 #include "game/navigation/route_finder.h"
 #include "game/render/draw.h"
@@ -1876,7 +1876,7 @@ void ValidateMoveParams(const char *apiname, const char *objname, int &blocking,
 //
 //=============================================================================
 
-#include "ac/dynobj/scriptstring.h"
+#include "game/dynobj/script_string.h"
 #include "script/script_runtime.h"
 
 

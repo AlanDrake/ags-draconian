@@ -15,7 +15,7 @@
 // Script bindings registered by RegisterTextBoxAPI().
 //
 //=============================================================================
-#include "ac/dynobj/scriptstring.h"
+#include "game/dynobj/script_string.h"
 #include "game/ui/text_box.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

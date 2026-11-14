@@ -16,15 +16,15 @@
 #include <algorithm>
 
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptcamera.h"
-#include "ac/dynobj/scriptsystem.h"
-#include "ac/dynobj/scriptviewport.h"
 #include "ac/game_version.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/timer.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/customproperties.h"
+#include "game/dynobj/script_camera.h"
+#include "game/dynobj/script_system.h"
+#include "game/dynobj/script_viewport.h"
 #include "game/render/draw.h"
 #include "game/roomstruct.h"
 #include "game/save/savegame_internal.h"

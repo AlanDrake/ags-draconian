@@ -15,11 +15,11 @@
 // Script bindings registered by RegisterSpeechAPI().
 //
 //=============================================================================
-#include "ac/dynobj/cc_character.h"
-#include "ac/dynobj/scriptoverlay.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
 #include "game/dialog/speech.h"
+#include "game/dynobj/cc_character.h"
+#include "game/dynobj/script_overlay.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

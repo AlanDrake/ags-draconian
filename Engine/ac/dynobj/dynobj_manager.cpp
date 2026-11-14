@@ -17,8 +17,8 @@
 #include <cstring>
 
 #include "ac/dynobj/managedobjectpool.h"
-#include "ac/dynobj/scriptshader.h"
 #include "debug/out.h"
+#include "game/dynobj/script_shader.h"
 #include "script/cc_common.h"
 #include "util/stream.h"
 

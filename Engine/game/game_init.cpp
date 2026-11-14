@@ -16,8 +16,6 @@
 #include <array>
 #include <vector>
 
-#include "ac/dynobj/all_dynamicclasses.h"
-#include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/file.h"
 #include "ac/game.h"
@@ -36,6 +34,8 @@
 #include "game/dialog/lipsync.h"
 #include "game/dialog/parser.h"
 #include "game/dialog/speech.h"
+#include "game/dynobj/all_dynamic_classes.h"
+#include "game/dynobj/all_script_classes.h"
 #include "game/render/draw.h"
 #include "game/script_api/exports.h"
 #include "game/ui/gui.h"

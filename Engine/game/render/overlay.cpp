@@ -18,7 +18,6 @@
 
 #include "ac/common.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
@@ -29,6 +28,7 @@
 #include "ac/view.h"
 #include "debug/debug_log.h"
 #include "game/dialog/display.h"
+#include "game/dynobj/script_shader.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/render/screen_overlay.h"

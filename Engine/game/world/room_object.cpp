@@ -15,12 +15,12 @@
 
 #include "ac/common.h"
 #include "ac/common_defines.h"
-#include "ac/dynobj/cc_object.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
 #include "debug/debug_log.h"
+#include "game/dynobj/cc_object.h"
 #include "game/world/object.h"
 #include "game/world/room_status.h"
 #include "game/world/view_frame.h"

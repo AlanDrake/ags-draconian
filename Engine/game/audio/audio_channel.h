@@ -18,7 +18,7 @@
 #pragma once
 
 #include "ac/dynobj/scriptaudioclip.h"
-#include "ac/dynobj/scriptobjects.h"
+#include "game/dynobj/script_objects.h"
 
 int AudioChannel_GetID(ScriptAudioChannel *channel);
 int AudioChannel_GetIsPlaying(ScriptAudioChannel *channel);

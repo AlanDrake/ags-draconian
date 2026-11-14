@@ -15,7 +15,7 @@
 // Script bindings registered by RegisterShaderAPI().
 //
 //=============================================================================
-#include "ac/dynobj/scriptshader.h"
+#include "game/dynobj/script_shader.h"
 #include "game/render/shader_script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

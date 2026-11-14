@@ -17,8 +17,8 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/scriptdialogoptionsrendering.h"
-#include "ac/dynobj/scriptobjects.h"
+#include "game/dynobj/script_dialog_options_rendering.h"
+#include "game/dynobj/script_objects.h"
 
 int DialogOptionsRendering_GetX(ScriptDialogOptionsRendering *dlgOptRender);
 void DialogOptionsRendering_SetX(ScriptDialogOptionsRendering *dlgOptRender, int newX);

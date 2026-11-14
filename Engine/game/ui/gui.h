@@ -13,7 +13,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/scriptobjects.h"
+#include "game/dynobj/script_objects.h"
 #include "gui/guidefines.h"
 #include "gui/guimain.h"
 

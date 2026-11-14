@@ -19,11 +19,7 @@
 #include <vector>
 
 #include "ac/common.h"
-#include "ac/dynobj/cc_gui.h"
-#include "ac/dynobj/cc_guicontrol.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptobjects.h"
-#include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/event.h"
 #include "ac/game.h"
@@ -35,6 +31,10 @@
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/dialog/display.h"
+#include "game/dynobj/cc_gui.h"
+#include "game/dynobj/cc_gui_control.h"
+#include "game/dynobj/script_objects.h"
+#include "game/dynobj/script_shader.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/ui/gui_control.h"

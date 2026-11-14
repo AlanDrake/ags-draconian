@@ -17,9 +17,9 @@
 
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/managedobjectpool.h"
-#include "ac/dynobj/scriptstring.h"
 #include "cc_dynamicarray.h"
 #include "debug/debug_log.h"
+#include "game/dynobj/script_string.h"
 #include "script/runtimescript.h"
 #include "util/memorystream.h"
 

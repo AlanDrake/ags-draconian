@@ -19,12 +19,12 @@
 #include "game/render/viewport_script.h"
 
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptcamera.h"
-#include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
-#include "ac/dynobj/scriptviewport.h"
 #include "ac/gamestate.h"
 #include "debug/debug_log.h"
+#include "game/dynobj/script_camera.h"
+#include "game/dynobj/script_shader.h"
+#include "game/dynobj/script_viewport.h"
 #include "game/render/draw.h"
 
 using namespace AGS::Common;

@@ -17,7 +17,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/scriptshader.h"
+#include "game/dynobj/script_shader.h"
 
 // Creates a new shader and registers a ScriptShaderProgram object
 ScriptShaderProgram *CreateScriptShaderProgram(const char *filename);

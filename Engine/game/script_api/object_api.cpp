@@ -16,11 +16,11 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/cc_object.h"
-#include "ac/dynobj/scriptmotionpath.h"
-#include "ac/dynobj/scriptshader.h"
-#include "ac/dynobj/scriptstring.h"
 #include "ac/game.h"
+#include "game/dynobj/cc_object.h"
+#include "game/dynobj/script_motion_path.h"
+#include "game/dynobj/script_shader.h"
+#include "game/dynobj/script_string.h"
 #include "game/world/object.h"
 #include "script/script.h"
 #include "script/script_api.h"

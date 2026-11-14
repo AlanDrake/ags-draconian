@@ -14,7 +14,7 @@
 #pragma once
 
 #include "ac/common_defines.h"
-#include "ac/dynobj/scriptobjects.h"
+#include "game/dynobj/script_objects.h"
 #include "game/world/room_object.h"
 #include "gfx/gfx_def.h"
 

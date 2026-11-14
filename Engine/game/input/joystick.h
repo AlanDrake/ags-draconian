@@ -21,7 +21,7 @@
 
 #include "SDL_events.h"
 #include "SDL_gamecontroller.h"
-#include "ac/dynobj/scriptjoystick.h"
+#include "game/dynobj/script_joystick.h"
 
 enum eAGSJoystick_Hat
 {

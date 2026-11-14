@@ -15,7 +15,6 @@
 
 #include "ac/asset_helper.h"
 #include "ac/common.h"
-#include "ac/dynobj/scriptoverlay.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
@@ -24,6 +23,7 @@
 #include "debug/debug_log.h"
 #include "game/audio/audio.h"
 #include "game/dialog/lipsync.h"
+#include "game/dynobj/script_overlay.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
 #include "util/directory.h"

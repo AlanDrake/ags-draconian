@@ -18,9 +18,9 @@
 #pragma once
 
 #include "ac/dynobj/scriptaudioclip.h"
-#include "ac/dynobj/scriptviewframe.h"
 #include "ac/runtime_defines.h"
 #include "ac/view.h"
+#include "game/dynobj/script_view_frame.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 

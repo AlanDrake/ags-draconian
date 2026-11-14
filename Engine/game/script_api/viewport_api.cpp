@@ -15,10 +15,10 @@
 // Script bindings registered by RegisterViewportAPI().
 //
 //=============================================================================
-#include "ac/dynobj/scriptcamera.h"
-#include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
-#include "ac/dynobj/scriptviewport.h"
+#include "game/dynobj/script_camera.h"
+#include "game/dynobj/script_shader.h"
+#include "game/dynobj/script_viewport.h"
 #include "game/render/viewport_script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

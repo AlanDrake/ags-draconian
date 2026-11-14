@@ -19,7 +19,7 @@
 #pragma once
 
 #include "ac/characterinfo.h"
-#include "ac/dynobj/scriptobjects.h"
+#include "game/dynobj/script_objects.h"
 #include "gui/guiinv.h"
 
 using AGS::Common::GUIInvWindow;

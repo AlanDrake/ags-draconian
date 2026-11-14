@@ -21,9 +21,9 @@
 #include <memory>
 #include <vector>
 
-#include "ac/dynobj/scriptobjects.h"
 #include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
+#include "game/dynobj/script_objects.h"
 #include "game/ui/gui.h"
 #include "gtest/gtest.h"
 #include "gui/guibutton.h"

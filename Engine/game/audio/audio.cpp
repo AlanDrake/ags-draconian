@@ -18,8 +18,6 @@
 
 #include "ac/audiocliptype.h"
 #include "ac/common.h"
-#include "ac/dynobj/cc_audiochannel.h"
-#include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/file.h"
 #include "ac/game.h"
@@ -35,6 +33,8 @@
 #include "game/audio/audio_channel.h"
 #include "game/audio/audio_clip.h"
 #include "game/dialog/speech.h"
+#include "game/dynobj/cc_audio_channel.h"
+#include "game/dynobj/cc_audio_clip.h"
 #include "main/game_run.h"
 #include "media/audio/audio_core.h"
 #include "media/audio/sound.h"

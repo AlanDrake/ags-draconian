@@ -17,8 +17,8 @@
 //=============================================================================
 #include <locale>
 
-#include "ac/dynobj/scriptstring.h"
 #include "game/dialog/parser.h"
+#include "game/dynobj/script_string.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

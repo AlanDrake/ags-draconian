@@ -20,8 +20,6 @@
 #include "ac/common.h"
 #include "ac/dialogtopic.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptdialogoptionsrendering.h"
-#include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
@@ -35,6 +33,8 @@
 #include "font/fonts.h"
 #include "game/dialog/display.h"
 #include "game/dialog/parser.h"
+#include "game/dynobj/script_dialog_options_rendering.h"
+#include "game/dynobj/script_drawing_surface.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/render/dynamic_sprite.h"
@@ -2084,9 +2084,9 @@ int DialogOptions_GetItemHeight(int index)
 //
 //=============================================================================
 
-#include "ac/dynobj/cc_dialog.h"
-#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
+#include "game/dynobj/cc_dialog.h"
+#include "game/dynobj/script_string.h"
 #include "script/script_runtime.h"
 
 extern CCDialog ccDynamicDialog;

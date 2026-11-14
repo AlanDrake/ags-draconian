@@ -17,7 +17,6 @@
 #include <cinttypes>
 
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptvideoplayer.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -26,6 +25,7 @@
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "game/audio/audio.h"
+#include "game/dynobj/script_video_player.h"
 #include "game/input/joystick.h"
 #include "game/render/draw.h"
 #include "game/render/dynamic_sprite.h"

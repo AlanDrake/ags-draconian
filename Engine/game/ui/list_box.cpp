@@ -355,4 +355,4 @@ void ListBox_ScrollUp(GUIListBox *listbox)
 }
 
 
-#include "ac/dynobj/scriptstring.h"
+#include "game/dynobj/script_string.h"

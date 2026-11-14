@@ -15,7 +15,7 @@
 // Script bindings registered by RegisterTouchAPI().
 //
 //=============================================================================
-#include "ac/dynobj/scripttouchpointer.h"
+#include "game/dynobj/script_touch_pointer.h"
 #include "game/input/touch.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

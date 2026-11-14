@@ -20,10 +20,10 @@
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/cc_scriptobject.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptdict.h"
-#include "ac/dynobj/scriptset.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
+#include "game/dynobj/script_dict.h"
+#include "game/dynobj/script_set.h"
 #include "game/lib/string.h"
 #include "util/bbop.h"
 

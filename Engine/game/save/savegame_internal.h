@@ -18,9 +18,9 @@
 #include <vector>
 
 #include "ac/common_defines.h"
-#include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/gamesetupstructbase.h"
+#include "game/dynobj/cc_serializer.h"
 #include "game/roomstruct.h"
 #include "game/save/savegame.h"
 #include "gfx/bitmap.h"

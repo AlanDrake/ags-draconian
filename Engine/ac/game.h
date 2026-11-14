@@ -21,10 +21,10 @@
 #include <memory>
 #include <time.h>
 
-#include "ac/dynobj/scriptviewframe.h"
 #include "ac/game_version.h"
 #include "ac/gamestructdefines.h"
 #include "ac/runtime_defines.h"
+#include "game/dynobj/script_view_frame.h"
 #include "gfx/bitmap.h"
 #include "main/game_file.h"
 #include "util/string.h"

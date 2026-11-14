@@ -17,7 +17,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/scriptobjects.h"
+#include "game/dynobj/script_objects.h"
 #include "gui/guibutton.h"
 #include "gui/guicontrol.h"
 #include "gui/guiinv.h"

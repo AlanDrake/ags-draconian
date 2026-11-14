@@ -16,9 +16,9 @@
 //
 //=============================================================================
 #include "ac/characterinfo.h"
-#include "ac/dynobj/cc_character.h"
-#include "ac/dynobj/cc_inventory.h"
 #include "ac/game.h"
+#include "game/dynobj/cc_character.h"
+#include "game/dynobj/cc_inventory.h"
 #include "game/ui/inv_window.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

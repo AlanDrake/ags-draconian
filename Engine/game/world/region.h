@@ -17,7 +17,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/scriptobjects.h"
+#include "game/dynobj/script_objects.h"
 
 int GetRegionIDAtRoom(int x, int y, int hit_options);
 void Region_SetLightLevel(ScriptRegion *ssr, int brightness);

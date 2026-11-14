@@ -26,10 +26,10 @@
 #include <vector>
 
 #include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/scriptuserobject.h"
+#include "game/dynobj/cc_serializer.h"
 #include "gtest/gtest.h"
 #include "script/cc_common.h"
 #include "script/cc_reflect.h"

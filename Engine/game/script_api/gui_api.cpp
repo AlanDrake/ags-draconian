@@ -18,13 +18,13 @@
 #include <numeric>
 
 #include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/cc_gui.h"
-#include "ac/dynobj/cc_guicontrol.h"
-#include "ac/dynobj/scriptobjects.h"
-#include "ac/dynobj/scriptshader.h"
-#include "ac/dynobj/scriptstring.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/game.h"
+#include "game/dynobj/cc_gui.h"
+#include "game/dynobj/cc_gui_control.h"
+#include "game/dynobj/script_objects.h"
+#include "game/dynobj/script_shader.h"
+#include "game/dynobj/script_string.h"
 #include "game/ui/gui.h"
 #include "script/script.h"
 #include "script/script_api.h"

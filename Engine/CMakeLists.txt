@@ -20,90 +20,18 @@ target_include_directories(engine PUBLIC .)
 target_sources(engine
     PRIVATE
     ac/asset_helper.h
-    ac/dynobj/all_dynamicclasses.h
-    ac/dynobj/all_scriptclasses.h
     ac/dynobj/cc_agsdynamicobject.cpp
     ac/dynobj/cc_agsdynamicobject.h
-    ac/dynobj/cc_audiochannel.cpp
-    ac/dynobj/cc_audiochannel.h
-    ac/dynobj/cc_audioclip.cpp
-    ac/dynobj/cc_audioclip.h
-    ac/dynobj/cc_character.cpp
-    ac/dynobj/cc_character.h
-    ac/dynobj/cc_dialog.cpp
-    ac/dynobj/cc_dialog.h
     ac/dynobj/cc_dynamicarray.cpp
     ac/dynobj/cc_dynamicarray.h
     ac/dynobj/cc_scriptobject.h
-    ac/dynobj/cc_gui.cpp
-    ac/dynobj/cc_gui.h
-    ac/dynobj/cc_guicontrol.cpp
-    ac/dynobj/cc_guicontrol.h
-    ac/dynobj/cc_hotspot.cpp
-    ac/dynobj/cc_hotspot.h
-    ac/dynobj/cc_inventory.cpp
-    ac/dynobj/cc_inventory.h
-    ac/dynobj/cc_object.cpp
-    ac/dynobj/cc_object.h
     ac/dynobj/cc_pluginobject.h
-    ac/dynobj/cc_region.cpp
-    ac/dynobj/cc_region.h
-    ac/dynobj/cc_serializer.cpp
-    ac/dynobj/cc_serializer.h
-    ac/dynobj/cc_walkablearea.cpp
-    ac/dynobj/cc_walkablearea.h
-    ac/dynobj/cc_walkbehind.cpp
-    ac/dynobj/cc_walkbehind.h
     ac/dynobj/dynobj_manager.cpp
     ac/dynobj/dynobj_manager.h
     ac/dynobj/managedobjectpool.cpp
     ac/dynobj/managedobjectpool.h
-    ac/dynobj/scriptcamera.cpp
-    ac/dynobj/scriptcamera.h
-    ac/dynobj/scriptdatetime.cpp
-    ac/dynobj/scriptdatetime.h
-    ac/dynobj/scriptdialogoptionsrendering.cpp
-    ac/dynobj/scriptdialogoptionsrendering.h
-    ac/dynobj/scriptdict.cpp
-    ac/dynobj/scriptdict.h
-    ac/dynobj/scriptdrawingsurface.cpp
-    ac/dynobj/scriptdrawingsurface.h
-    ac/dynobj/scriptdynamicsprite.cpp
-    ac/dynobj/scriptdynamicsprite.h
-    ac/dynobj/scriptfile.cpp
-    ac/dynobj/scriptfile.h
-    ac/dynobj/scriptjoystick.cpp
-    ac/dynobj/scriptjoystick.h
-    ac/dynobj/scriptmotionpath.cpp
-    ac/dynobj/scriptmotionpath.h
-    ac/dynobj/scriptmouse.cpp
-    ac/dynobj/scriptmouse.h
-    ac/dynobj/scriptmouse.cpp
-    ac/dynobj/scriptobjects.h
-    ac/dynobj/scriptoverlay.cpp
-    ac/dynobj/scriptoverlay.h
-    ac/dynobj/scriptpathfinder.cpp
-    ac/dynobj/scriptpathfinder.h
-    ac/dynobj/scriptrestoredsaveinfo.h
-    ac/dynobj/scriptset.cpp
-    ac/dynobj/scriptset.h
-    ac/dynobj/scriptshader.cpp
-    ac/dynobj/scriptshader.h
-    ac/dynobj/scriptstring.cpp
-    ac/dynobj/scriptstring.h
-    ac/dynobj/scriptsystem.cpp
-    ac/dynobj/scriptsystem.h
-    ac/dynobj/scriptsystem.cpp
-    ac/dynobj/scripttouchpointer.cpp
-    ac/dynobj/scripttouchpointer.h
     ac/dynobj/scriptuserobject.cpp
     ac/dynobj/scriptuserobject.h
-    ac/dynobj/scriptvideoplayer.cpp
-    ac/dynobj/scriptvideoplayer.h
-    ac/dynobj/scriptviewframe.cpp
-    ac/dynobj/scriptviewframe.h
-    ac/dynobj/scriptviewport.cpp
-    ac/dynobj/scriptviewport.h
     ac/event.cpp
     ac/event.h
     ac/file.cpp
@@ -115,8 +43,6 @@ target_sources(engine
     ac/gamestate.h
     ac/path_helper.h
     ac/runtime_defines.h
-    ac/dynobj/scriptgame.cpp
-    ac/dynobj/scriptgame.h
     ac/dynobj/cc_staticarray.cpp
     ac/dynobj/cc_staticarray.h
     ac/sys_events.cpp
@@ -155,6 +81,80 @@ target_sources(engine
     game/dialog/parser.h
     game/dialog/speech.cpp
     game/dialog/speech.h
+    game/dynobj/all_dynamic_classes.h
+    game/dynobj/all_script_classes.h
+    game/dynobj/cc_audio_channel.cpp
+    game/dynobj/cc_audio_channel.h
+    game/dynobj/cc_audio_clip.cpp
+    game/dynobj/cc_audio_clip.h
+    game/dynobj/cc_character.cpp
+    game/dynobj/cc_character.h
+    game/dynobj/cc_dialog.cpp
+    game/dynobj/cc_dialog.h
+    game/dynobj/cc_gui.cpp
+    game/dynobj/cc_gui.h
+    game/dynobj/cc_gui_control.cpp
+    game/dynobj/cc_gui_control.h
+    game/dynobj/cc_hotspot.cpp
+    game/dynobj/cc_hotspot.h
+    game/dynobj/cc_inventory.cpp
+    game/dynobj/cc_inventory.h
+    game/dynobj/cc_object.cpp
+    game/dynobj/cc_object.h
+    game/dynobj/cc_region.cpp
+    game/dynobj/cc_region.h
+    game/dynobj/cc_serializer.cpp
+    game/dynobj/cc_serializer.h
+    game/dynobj/cc_walk_behind.cpp
+    game/dynobj/cc_walk_behind.h
+    game/dynobj/cc_walkable_area.cpp
+    game/dynobj/cc_walkable_area.h
+    game/dynobj/script_camera.cpp
+    game/dynobj/script_camera.h
+    game/dynobj/script_date_time.cpp
+    game/dynobj/script_date_time.h
+    game/dynobj/script_dialog_options_rendering.cpp
+    game/dynobj/script_dialog_options_rendering.h
+    game/dynobj/script_dict.cpp
+    game/dynobj/script_dict.h
+    game/dynobj/script_drawing_surface.cpp
+    game/dynobj/script_drawing_surface.h
+    game/dynobj/script_dynamic_sprite.cpp
+    game/dynobj/script_dynamic_sprite.h
+    game/dynobj/script_file.cpp
+    game/dynobj/script_file.h
+    game/dynobj/script_game.cpp
+    game/dynobj/script_game.h
+    game/dynobj/script_joystick.cpp
+    game/dynobj/script_joystick.h
+    game/dynobj/script_motion_path.cpp
+    game/dynobj/script_motion_path.h
+    game/dynobj/script_mouse.cpp
+    game/dynobj/script_mouse.cpp
+    game/dynobj/script_mouse.h
+    game/dynobj/script_objects.h
+    game/dynobj/script_overlay.cpp
+    game/dynobj/script_overlay.h
+    game/dynobj/script_pathfinder.cpp
+    game/dynobj/script_pathfinder.h
+    game/dynobj/script_restored_save_info.h
+    game/dynobj/script_set.cpp
+    game/dynobj/script_set.h
+    game/dynobj/script_shader.cpp
+    game/dynobj/script_shader.h
+    game/dynobj/script_string.cpp
+    game/dynobj/script_string.h
+    game/dynobj/script_system.cpp
+    game/dynobj/script_system.cpp
+    game/dynobj/script_system.h
+    game/dynobj/script_touch_pointer.cpp
+    game/dynobj/script_touch_pointer.h
+    game/dynobj/script_video_player.cpp
+    game/dynobj/script_video_player.h
+    game/dynobj/script_view_frame.cpp
+    game/dynobj/script_view_frame.h
+    game/dynobj/script_viewport.cpp
+    game/dynobj/script_viewport.h
     game/game_init.cpp
     game/game_init.h
     game/input/joystick.cpp

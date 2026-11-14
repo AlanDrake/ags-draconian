@@ -18,7 +18,7 @@
 
 #include "ac/common_defines.h"
 #include "ac/dynobj/scriptaudioclip.h"
-#include "ac/dynobj/scriptobjects.h"
+#include "game/dynobj/script_objects.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/soundclip.h"
 #include "util/string.h"

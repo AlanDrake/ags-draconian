@@ -21,10 +21,7 @@
 #include <math.h>
 
 #include "ac/common.h"
-#include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptmotionpath.h"
-#include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/event.h"
 #include "ac/game.h"
@@ -38,6 +35,9 @@
 #include "game/dialog/display.h"
 #include "game/dialog/lipsync.h"
 #include "game/dialog/speech.h"
+#include "game/dynobj/cc_character.h"
+#include "game/dynobj/script_motion_path.h"
+#include "game/dynobj/script_shader.h"
 #include "game/lib/string.h"
 #include "game/navigation/route_finder.h"
 #include "game/render/draw.h"
@@ -4007,7 +4007,7 @@ void UpdateInventory()
 //
 //=============================================================================
 
-#include "ac/dynobj/scriptstring.h"
+#include "game/dynobj/script_string.h"
 #include "script/script_runtime.h"
 
 CharacterInfo *Character_GetByName(const char *name)

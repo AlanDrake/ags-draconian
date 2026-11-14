@@ -16,9 +16,9 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/scriptmotionpath.h"
-#include "ac/dynobj/scriptpathfinder.h"
 #include "ac/dynobj/scriptuserobject.h"
+#include "game/dynobj/script_motion_path.h"
+#include "game/dynobj/script_pathfinder.h"
 #include "game/navigation/pathfinder_script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

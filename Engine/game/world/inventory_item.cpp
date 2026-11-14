@@ -14,12 +14,12 @@
 #include "game/world/inventory_item.h"
 
 #include "ac/characterinfo.h"
-#include "ac/dynobj/cc_inventory.h"
 #include "ac/event.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
 #include "debug/debug_log.h"
+#include "game/dynobj/cc_inventory.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/ui/gui.h"

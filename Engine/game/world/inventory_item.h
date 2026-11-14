@@ -13,7 +13,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/scriptobjects.h"
+#include "game/dynobj/script_objects.h"
 
 // Tells if item_id is a valid inventory item index; if not, writes a script warning naming apiname.
 bool AssertInvItem(const char *apiname, int item_id);

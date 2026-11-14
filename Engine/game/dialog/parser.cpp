@@ -492,5 +492,5 @@ void MergeParserDictionary(WordsDictionary *dst_dict, const WordsDictionary *src
     }
 }
 
-#include "ac/dynobj/scriptstring.h"
+#include "game/dynobj/script_string.h"
 #include "script/script_runtime.h"

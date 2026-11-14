@@ -15,10 +15,10 @@
 // Script bindings registered by RegisterWalkbehindAPI().
 //
 //=============================================================================
-#include "ac/dynobj/cc_walkbehind.h"
-#include "ac/dynobj/scriptobjects.h"
-#include "ac/dynobj/scriptstring.h"
 #include "ac/game.h"
+#include "game/dynobj/cc_walk_behind.h"
+#include "game/dynobj/script_objects.h"
+#include "game/dynobj/script_string.h"
 #include "game/world/room.h"
 #include "game/world/walk_behind.h"
 #include "script/script_api.h"

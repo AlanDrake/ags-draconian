@@ -15,7 +15,7 @@
 // Script bindings registered by RegisterVideoAPI().
 //
 //=============================================================================
-#include "ac/dynobj/scriptvideoplayer.h"
+#include "game/dynobj/script_video_player.h"
 #include "game/video/video_script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

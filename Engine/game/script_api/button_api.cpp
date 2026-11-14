@@ -15,7 +15,7 @@
 // Script bindings registered by RegisterButtonAPI().
 //
 //=============================================================================
-#include "ac/dynobj/scriptstring.h"
+#include "game/dynobj/script_string.h"
 #include "game/ui/button.h"
 #include "script/script.h"
 #include "script/script_api.h"

@@ -59,6 +59,9 @@
     <Filter Include="Source Files\game\dialog">
       <UniqueIdentifier>{7286219e-3145-5809-82ca-8dba930a245f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\game\dynobj">
+      <UniqueIdentifier>{1db302f8-7fc3-5e61-a2ce-d13b1599afd0}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\game\input">
       <UniqueIdentifier>{5347bf60-41c2-596f-9382-c78a5286ca5e}</UniqueIdentifier>
     </Filter>
@@ -146,6 +149,9 @@
     </Filter>
     <Filter Include="Header Files\game\dialog">
       <UniqueIdentifier>{0631d270-f2e5-5261-be44-d91a5a7fe08d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\game\dynobj">
+      <UniqueIdentifier>{ce61ef3f-11fd-56d5-9b2c-b71f1188243d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\game\input">
       <UniqueIdentifier>{edbbd7a3-df97-55d2-834f-06b6f17a0a8d}</UniqueIdentifier>
@@ -378,74 +384,74 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_agsdynamicobject.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_audiochannel.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\cc_audio_channel.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_audioclip.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\cc_audio_clip.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_character.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\cc_character.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_dialog.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\cc_dialog.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicarray.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_gui.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\cc_gui.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_guicontrol.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\cc_gui_control.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_hotspot.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\cc_hotspot.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_inventory.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\cc_inventory.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_object.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\cc_object.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_region.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\cc_region.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_serializer.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\cc_serializer.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\managedobjectpool.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptdatetime.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_date_time.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_dialog_options_rendering.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptdrawingsurface.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_drawing_surface.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptdynamicsprite.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_dynamic_sprite.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptfile.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_file.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptjoystick.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_joystick.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptoverlay.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_overlay.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptstring.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_string.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptuserobject.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewframe.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_view_frame.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\platform\windows\gfx\ali3dd3d.cpp">
       <Filter>Source Files\gfx</Filter>
@@ -774,17 +780,17 @@
     <ClCompile Include="..\..\Engine\game\render\draw_software.cpp">
       <Filter>Source Files\game\render</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewport.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_viewport.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptcamera.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_camera.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptmouse.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_mouse.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptsystem.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_system.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\libsrc\glad\src\glad.c">
       <Filter>Library Sources\glad</Filter>
@@ -798,11 +804,11 @@
     <ClCompile Include="..\..\Engine\game\lib\script_containers.cpp">
       <Filter>Source Files\game\lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptset.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_set.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptdict.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_dict.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\platform\windows\minidump.cpp">
       <Filter>Source Files\platform\windows</Filter>
@@ -843,26 +849,26 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\dynobj_manager.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptgame.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_game.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_staticarray.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptmouse.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_mouse.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptsystem.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_system.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\plugin\plugin_stubs.cpp">
       <Filter>Source Files\plugin</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_walkablearea.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\cc_walkable_area.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_walkbehind.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\cc_walk_behind.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\media\audio\audioplayer.cpp">
       <Filter>Source Files\media\audio</Filter>
@@ -882,14 +888,14 @@
     <ClCompile Include="..\..\Engine\game\video\video_script.cpp">
       <Filter>Source Files\game\video</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptvideoplayer.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_video_player.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\debug\memory_inspect.cpp">
       <Filter>Source Files\debug</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptpathfinder.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_pathfinder.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\navigation\pathfinder_script.cpp">
       <Filter>Source Files\game\navigation</Filter>
@@ -918,17 +924,17 @@
     <ClCompile Include="..\..\Engine\script\scriptexecutor.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptmotionpath.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_motion_path.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scripttouchpointer.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_touch_pointer.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\render\shader_script.cpp">
       <Filter>Source Files\game\render</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptshader.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Engine\game\dynobj\script_shader.cpp">
+      <Filter>Source Files\game\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\input\keyboard.cpp">
       <Filter>Source Files\game\input</Filter>
@@ -1109,89 +1115,89 @@
     <ClInclude Include="..\..\Engine\game\world\walk_behind.h">
       <Filter>Header Files\game\world</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\all_dynamicclasses.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\all_dynamic_classes.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\all_scriptclasses.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\all_script_classes.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_agsdynamicobject.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_audiochannel.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\cc_audio_channel.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_audioclip.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\cc_audio_clip.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_character.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\cc_character.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dialog.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\cc_dialog.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicarray.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_gui.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\cc_gui.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_guicontrol.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\cc_gui_control.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_hotspot.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\cc_hotspot.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_inventory.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\cc_inventory.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_object.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\cc_object.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_region.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\cc_region.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_serializer.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\cc_serializer.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\managedobjectpool.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptdatetime.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_date_time.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_dialog_options_rendering.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptdrawingsurface.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_drawing_surface.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptdynamicsprite.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_dynamic_sprite.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptfile.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_file.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptjoystick.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_joystick.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptmouse.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_mouse.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptoverlay.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_overlay.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptstring.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_string.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptsystem.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_system.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptuserobject.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptviewframe.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_view_frame.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\plugin\agsplugin.h">
       <Filter>Header Files\plugin</Filter>
@@ -1508,20 +1514,20 @@
     <ClInclude Include="..\..\Engine\game\render\draw_software.h">
       <Filter>Header Files\game\render</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptviewport.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_viewport.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptcamera.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_camera.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\audio_system.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptset.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_set.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptdict.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_dict.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\plugin\plugin_builtin.h">
       <Filter>Header Files\plugin</Filter>
@@ -1595,20 +1601,20 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_staticarray.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptgame.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_game.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_scriptobject.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptobjects.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_objects.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_walkbehind.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\cc_walk_behind.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_walkablearea.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\cc_walkable_area.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\audioplayer.h">
       <Filter>Header Files\media\audio</Filter>
@@ -1628,11 +1634,11 @@
     <ClInclude Include="..\..\Engine\util\threading.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptvideoplayer.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_video_player.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptpathfinder.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_pathfinder.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\debug\memory_inspect.h">
       <Filter>Header Files\debug</Filter>
@@ -1652,8 +1658,8 @@
     <ClInclude Include="..\..\Engine\platform\windows\setup\advancedpagedialog.h">
       <Filter>Header Files\setup</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptrestoredsaveinfo.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_restored_save_info.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_aa_sdl_renderer.h">
       <Filter>Header Files\gfx</Filter>
@@ -1667,14 +1673,14 @@
     <ClInclude Include="..\..\Engine\script\scriptexecutor.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptmotionpath.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_motion_path.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scripttouchpointer.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_touch_pointer.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptshader.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Engine\game\dynobj\script_shader.h">
+      <Filter>Header Files\game\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\input\keyboard.h">
       <Filter>Header Files\game\input</Filter>

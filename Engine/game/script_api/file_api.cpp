@@ -16,8 +16,8 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/scriptstring.h"
 #include "ac/file.h"
+#include "game/dynobj/script_string.h"
 #include "platform/base/agsplatformdriver.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

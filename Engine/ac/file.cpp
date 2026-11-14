@@ -1049,5 +1049,5 @@ IStreamBase *get_file_stream_iface(int32_t fhandle, const char *operation_name)
     return fh ? fh->GetStream()->GetStreamBase() : nullptr;
 }
 
-#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
+#include "game/dynobj/script_string.h"

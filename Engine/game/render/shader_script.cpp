@@ -18,9 +18,9 @@
 #include "game/render/shader_script.h"
 
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptshader.h"
 #include "ac/path_helper.h"
 #include "debug/debug_log.h"
+#include "game/dynobj/script_shader.h"
 #include "game/render/draw.h"
 #include "gfx/graphicsdriver.h"
 #include "util/ini_util.h"

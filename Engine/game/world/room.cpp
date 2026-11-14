@@ -18,9 +18,6 @@
 #include "ac/common.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/managedobjectpool.h"
-#include "ac/dynobj/scriptobjects.h"
-#include "ac/dynobj/scriptpathfinder.h"
-#include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/event.h"
 #include "ac/game.h"
@@ -35,6 +32,9 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "game/dialog/dialog.h"
+#include "game/dynobj/script_objects.h"
+#include "game/dynobj/script_pathfinder.h"
+#include "game/dynobj/script_shader.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/render/overlay.h"
@@ -1338,8 +1338,8 @@ int mask_to_room_coord(int coord)
     return coord * thisroom.MaskResolution;
 }
 
-#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
+#include "game/dynobj/script_string.h"
 #include "script/script_runtime.h"
 
 void SetAmbientTint(int red, int green, int blue, int opacity, int luminance)

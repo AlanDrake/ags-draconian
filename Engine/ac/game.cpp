@@ -18,11 +18,8 @@
 #include <queue>
 
 #include "ac/common.h"
-#include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptcamera.h"
-#include "ac/dynobj/scriptmotionpath.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
@@ -46,6 +43,9 @@
 #include "game/dialog/display.h"
 #include "game/dialog/lipsync.h"
 #include "game/dialog/speech.h"
+#include "game/dynobj/all_dynamic_classes.h"
+#include "game/dynobj/script_camera.h"
+#include "game/dynobj/script_motion_path.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/render/dynamic_sprite.h"

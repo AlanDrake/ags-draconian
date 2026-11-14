@@ -18,7 +18,7 @@
 #pragma once
 
 #include "ac/dynobj/scriptaudioclip.h"
-#include "ac/dynobj/scriptobjects.h"
+#include "game/dynobj/script_objects.h"
 
 int AudioClip_GetFileType(ScriptAudioClip *clip);
 int AudioClip_GetType(ScriptAudioClip *clip);

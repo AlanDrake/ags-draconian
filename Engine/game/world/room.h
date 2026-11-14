@@ -14,7 +14,7 @@
 #pragma once
 
 #include "ac/characterinfo.h"
-#include "ac/dynobj/scriptdrawingsurface.h"
+#include "game/dynobj/script_drawing_surface.h"
 #include "game/navigation/route_finder.h"
 #include "game/roomstruct.h"
 #include "script/runtimescriptvalue.h"

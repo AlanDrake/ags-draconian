@@ -17,7 +17,6 @@
 
 #include "ac/audiocliptype.h"
 #include "ac/common.h"
-#include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
@@ -27,6 +26,7 @@
 #include "ac/view.h"
 #include "debug/out.h"
 #include "game/dialog/dialog.h"
+#include "game/dynobj/cc_serializer.h"
 #include "game/render/draw.h"
 #include "game/render/dynamic_sprite.h"
 #include "game/render/overlay.h"

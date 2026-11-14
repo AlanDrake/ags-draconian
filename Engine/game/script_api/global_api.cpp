@@ -17,7 +17,6 @@
 //=============================================================================
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptstring.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamestructdefines.h"
@@ -29,6 +28,7 @@
 #include "game/dialog/display.h"
 #include "game/dialog/parser.h"
 #include "game/dialog/speech.h"
+#include "game/dynobj/script_string.h"
 #include "game/input/keyboard.h"
 #include "game/lib/math.h"
 #include "game/lib/string.h"

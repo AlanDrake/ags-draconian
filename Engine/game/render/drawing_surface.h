@@ -17,7 +17,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/scriptdrawingsurface.h"
+#include "game/dynobj/script_drawing_surface.h"
 
 // **** DRAWINGSURFACE: FUNCTIONS ****
 //

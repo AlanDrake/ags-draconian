@@ -17,7 +17,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/scriptdatetime.h"
+#include "game/dynobj/script_date_time.h"
 
 ScriptDateTime *DateTime_Now();
 ScriptDateTime *DateTime_CreateFromDate(int year, int month, int day, int hour, int minute, int second);

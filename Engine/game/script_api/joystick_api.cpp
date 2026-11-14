@@ -15,7 +15,7 @@
 // Script bindings registered by RegisterJoystickAPI().
 //
 //=============================================================================
-#include "ac/dynobj/scriptstring.h"
+#include "game/dynobj/script_string.h"
 #include "game/input/joystick.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

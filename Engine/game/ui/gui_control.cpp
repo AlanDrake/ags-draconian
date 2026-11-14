@@ -16,14 +16,14 @@
 #include <vector>
 
 #include "ac/common.h"
-#include "ac/dynobj/cc_gui.h"
-#include "ac/dynobj/cc_guicontrol.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "debug/debug_log.h"
+#include "game/dynobj/cc_gui.h"
+#include "game/dynobj/cc_gui_control.h"
+#include "game/dynobj/script_shader.h"
 #include "game/lib/string.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"

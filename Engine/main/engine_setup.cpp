@@ -16,7 +16,6 @@
 #include <SDL.h>
 
 #include "ac/common.h"
-#include "ac/dynobj/scriptsystem.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
@@ -25,6 +24,7 @@
 #include "device/mousew32.h"
 #include "font/fonts.h"
 #include "game/dialog/display.h"
+#include "game/dynobj/script_system.h"
 #include "game/render/draw.h"
 #include "game/ui/mouse.h"
 #include "game/video/video.h"

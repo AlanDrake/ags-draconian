@@ -16,7 +16,6 @@
 #include <SDL.h>
 
 #include "ac/common.h"
-#include "ac/dynobj/scriptsystem.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -25,6 +24,7 @@
 #include "ac/translation.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "game/dynobj/script_system.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/ui/mouse.h"

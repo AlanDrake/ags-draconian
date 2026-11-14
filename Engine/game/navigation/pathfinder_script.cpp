@@ -19,12 +19,12 @@
 
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptmotionpath.h"
-#include "ac/dynobj/scriptpathfinder.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/game.h"
 #include "ac/spritecache.h"
 #include "debug/debug_log.h"
+#include "game/dynobj/script_motion_path.h"
+#include "game/dynobj/script_pathfinder.h"
 #include "game/navigation/route_finder.h"
 #include "game/world/object.h"
 
