@@ -14,8 +14,8 @@
 
 #include "ac/dynobj/scriptjoystick.h"
 
-#include "ac/joystick.h"
 #include "dynobj_manager.h"
+#include "game/input/joystick.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

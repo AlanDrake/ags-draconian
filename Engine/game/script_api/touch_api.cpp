@@ -16,7 +16,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scripttouchpointer.h"
-#include "ac/touch.h"
+#include "game/input/touch.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

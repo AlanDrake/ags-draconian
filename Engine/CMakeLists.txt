@@ -137,8 +137,6 @@ target_sources(engine
     ac/file.h
     ac/game.cpp
     ac/game.h
-    ac/joystick.cpp
-    ac/joystick.h
     ac/gamesetup.h
     ac/gamestate.cpp
     ac/gamestate.h
@@ -172,8 +170,6 @@ target_sources(engine
     ac/parser.cpp
     ac/parser.h
     ac/path_helper.h
-    ac/touch.cpp
-    ac/touch.h
     ac/properties.cpp
     ac/properties.h
     ac/region.cpp
@@ -200,8 +196,6 @@ target_sources(engine
     ac/dynobj/scriptgame.h
     ac/dynobj/cc_staticarray.cpp
     ac/dynobj/cc_staticarray.h
-    ac/keyboard.cpp
-    ac/keyboard.h
     ac/scriptcontainers.h
     ac/string.cpp
     ac/string.h
@@ -240,6 +234,12 @@ target_sources(engine
     device/mousew32.h
     game/game_init.cpp
     game/game_init.h
+    game/input/joystick.cpp
+    game/input/joystick.h
+    game/input/keyboard.cpp
+    game/input/keyboard.h
+    game/input/touch.cpp
+    game/input/touch.h
     game/navigation/pathfinder_script.cpp
     game/navigation/pathfinder_script.h
     game/navigation/route_finder.cpp

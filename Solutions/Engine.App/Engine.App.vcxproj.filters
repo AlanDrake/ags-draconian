@@ -56,6 +56,9 @@
     <Filter Include="Source Files\game">
       <UniqueIdentifier>{c0ec3579-115c-40be-8a7b-d59abd533b3b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\game\input">
+      <UniqueIdentifier>{5347bf60-41c2-596f-9382-c78a5286ca5e}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\game\navigation">
       <UniqueIdentifier>{b605902f-b8f7-58e0-b522-c89d4e23169f}</UniqueIdentifier>
     </Filter>
@@ -119,6 +122,9 @@
     </Filter>
     <Filter Include="Header Files\game">
       <UniqueIdentifier>{ceb5b7a1-6682-4e55-ad63-6917990c9157}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\game\input">
+      <UniqueIdentifier>{edbbd7a3-df97-55d2-834f-06b6f17a0a8d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\game\navigation">
       <UniqueIdentifier>{80b0982b-32bb-5747-b3e0-61c5effbd31e}</UniqueIdentifier>
@@ -213,8 +219,8 @@
     <ClCompile Include="..\..\Engine\ac\game.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\joystick.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\input\joystick.cpp">
+      <Filter>Source Files\game\input</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\gamestate.cpp">
       <Filter>Source Files\ac</Filter>
@@ -264,8 +270,8 @@
     <ClCompile Include="..\..\Engine\ac\parser.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\touch.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\input\touch.cpp">
+      <Filter>Source Files\game\input</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\properties.cpp">
       <Filter>Source Files\ac</Filter>
@@ -879,8 +885,8 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptshader.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\keyboard.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\input\keyboard.cpp">
+      <Filter>Source Files\game\input</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\utils_script.cpp">
       <Filter>Source Files\ac</Filter>
@@ -938,8 +944,8 @@
     <ClInclude Include="..\..\Engine\ac\game.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\joystick.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\input\joystick.h">
+      <Filter>Header Files\game\input</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\gamesetup.h">
       <Filter>Header Files\ac</Filter>
@@ -992,8 +998,8 @@
     <ClInclude Include="..\..\Engine\ac\path_helper.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\touch.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\input\touch.h">
+      <Filter>Header Files\game\input</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\properties.h">
       <Filter>Header Files\ac</Filter>
@@ -1625,8 +1631,8 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptshader.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\keyboard.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\input\keyboard.h">
+      <Filter>Header Files\game\input</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\navigation\pathfinder_script.h">
       <Filter>Header Files\game\navigation</Filter>

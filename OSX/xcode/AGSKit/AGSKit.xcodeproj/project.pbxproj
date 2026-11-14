@@ -2430,6 +2430,17 @@
 			path = agspalrender;
 			sourceTree = "<group>";
 		};
+		29A5B920BF77171604D4650F /* input */ = {
+			isa = PBXGroup;
+			children = (
+				2A0AEDD6BEBB8912C0333504 /* joystick.cpp */,
+				1F1246077A88EDE86315785F /* keyboard.cpp */,
+				741DFA5451D6F5EA86DCBCCF /* keyboard.h */,
+				9CEE01E9AA59CA3BB5333D59 /* touch.cpp */,
+			);
+			path = input;
+			sourceTree = "<group>";
+		};
 		2EC62CF7E9D28CCB466882D8 /* psnames */ = {
 			isa = PBXGroup;
 			children = (
@@ -3075,17 +3086,13 @@
 				526F251C1D3B5CC300EF4E1F /* walkablearea.h */,
 				526F251D1D3B5CC300EF4E1F /* walkbehind.cpp */,
 				526F251E1D3B5CC300EF4E1F /* walkbehind.h */,
-				2A0AEDD6BEBB8912C0333504 /* joystick.cpp */,
 				4E6E615CB9654FE693E1FF08 /* shader_script.cpp */,
-				9CEE01E9AA59CA3BB5333D59 /* touch.cpp */,
 				EF61359C48373BE523FA2F37 /* utils_script.cpp */,
 				B4E841B245E7C89895801685 /* video_script.cpp */,
 				2947F64120F297866766BEE5 /* scriptcontainers.h */,
 				AA13FE1BFD127104A98698D4 /* utils_script.h */,
 				C95FF051879F73A3602D4032 /* video_script.h */,
 				2F9A74E7AA7EC0FD0274F666 /* viewport_script.h */,
-				1F1246077A88EDE86315785F /* keyboard.cpp */,
-				741DFA5451D6F5EA86DCBCCF /* keyboard.h */,
 			);
 			path = ac;
 			sourceTree = "<group>";
@@ -3507,6 +3514,7 @@
 				52D12C1E1D61C0950077B784 /* savegame_internal.h */,
 				9EC599C9D2F06E9C6B9F884C /* script_api */,
 				5599F5BF25D0EDD38B214A80 /* navigation */,
+				29A5B920BF77171604D4650F /* input */,
 			);
 			path = game;
 			sourceTree = "<group>";

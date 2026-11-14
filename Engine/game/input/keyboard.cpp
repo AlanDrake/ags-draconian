@@ -15,7 +15,7 @@
 // Keyboard state for the script API: which keys are held down.
 //
 //=============================================================================
-#include "ac/keyboard.h"
+#include "game/input/keyboard.h"
 
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/keycode.h"

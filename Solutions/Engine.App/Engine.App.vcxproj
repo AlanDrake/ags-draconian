@@ -403,7 +403,6 @@
     <ClCompile Include="..\..\Engine\ac\event.cpp" />
     <ClCompile Include="..\..\Engine\ac\file.cpp" />
     <ClCompile Include="..\..\Engine\ac\game.cpp" />
-    <ClCompile Include="..\..\Engine\ac\joystick.cpp" />
     <ClCompile Include="..\..\Engine\ac\gamestate.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_api.cpp" />
     <ClCompile Include="..\..\Engine\ac\gui.cpp" />
@@ -412,7 +411,6 @@
     <ClCompile Include="..\..\Engine\ac\hotspot.cpp" />
     <ClCompile Include="..\..\Engine\ac\inventoryitem.cpp" />
     <ClCompile Include="..\..\Engine\ac\invwindow.cpp" />
-    <ClCompile Include="..\..\Engine\ac\keyboard.cpp" />
     <ClCompile Include="..\..\Engine\ac\label.cpp" />
     <ClCompile Include="..\..\Engine\ac\listbox.cpp" />
     <ClCompile Include="..\..\Engine\ac\math.cpp" />
@@ -437,7 +435,6 @@
     <ClCompile Include="..\..\Engine\ac\system.cpp" />
     <ClCompile Include="..\..\Engine\ac\textbox.cpp" />
     <ClCompile Include="..\..\Engine\ac\timer.cpp" />
-    <ClCompile Include="..\..\Engine\ac\touch.cpp" />
     <ClCompile Include="..\..\Engine\ac\translation.cpp" />
     <ClCompile Include="..\..\Engine\ac\utils_script.cpp" />
     <ClCompile Include="..\..\Engine\ac\video_script.cpp" />
@@ -450,6 +447,9 @@
     <ClCompile Include="..\..\Engine\debug\memory_inspect.cpp" />
     <ClCompile Include="..\..\Engine\device\mousew32.cpp" />
     <ClCompile Include="..\..\Engine\game\game_init.cpp" />
+    <ClCompile Include="..\..\Engine\game\input\joystick.cpp" />
+    <ClCompile Include="..\..\Engine\game\input\keyboard.cpp" />
+    <ClCompile Include="..\..\Engine\game\input\touch.cpp" />
     <ClCompile Include="..\..\Engine\game\navigation\pathfinder_script.cpp" />
     <ClCompile Include="..\..\Engine\game\navigation\route_finder.cpp" />
     <ClCompile Include="..\..\Engine\game\navigation\route_finder_impl.cpp" />
@@ -682,7 +682,6 @@
     <ClInclude Include="..\..\Engine\ac\event.h" />
     <ClInclude Include="..\..\Engine\ac\file.h" />
     <ClInclude Include="..\..\Engine\ac\game.h" />
-    <ClInclude Include="..\..\Engine\ac\joystick.h" />
     <ClInclude Include="..\..\Engine\ac\gamesetup.h" />
     <ClInclude Include="..\..\Engine\ac\gamestate.h" />
     <ClInclude Include="..\..\Engine\ac\gui.h" />
@@ -690,7 +689,6 @@
     <ClInclude Include="..\..\Engine\ac\hotspot.h" />
     <ClInclude Include="..\..\Engine\ac\inventoryitem.h" />
     <ClInclude Include="..\..\Engine\ac\invwindow.h" />
-    <ClInclude Include="..\..\Engine\ac\keyboard.h" />
     <ClInclude Include="..\..\Engine\ac\label.h" />
     <ClInclude Include="..\..\Engine\ac\lipsync.h" />
     <ClInclude Include="..\..\Engine\ac\listbox.h" />
@@ -702,7 +700,6 @@
     <ClInclude Include="..\..\Engine\ac\parser.h" />
     <ClInclude Include="..\..\Engine\ac\path_helper.h" />
     <ClInclude Include="..\..\Engine\ac\shader_script.h" />
-    <ClInclude Include="..\..\Engine\ac\touch.h" />
     <ClInclude Include="..\..\Engine\ac\properties.h" />
     <ClInclude Include="..\..\Engine\ac\sys_events.h" />
     <ClInclude Include="..\..\Engine\ac\region.h" />
@@ -735,6 +732,9 @@
     <ClInclude Include="..\..\Engine\debug\memory_inspect.h" />
     <ClInclude Include="..\..\Engine\device\mousew32.h" />
     <ClInclude Include="..\..\Engine\game\game_init.h" />
+    <ClInclude Include="..\..\Engine\game\input\joystick.h" />
+    <ClInclude Include="..\..\Engine\game\input\keyboard.h" />
+    <ClInclude Include="..\..\Engine\game\input\touch.h" />
     <ClInclude Include="..\..\Engine\game\navigation\pathfinder_script.h" />
     <ClInclude Include="..\..\Engine\game\navigation\route_finder.h" />
     <ClInclude Include="..\..\Engine\game\navigation\route_finder_impl.h" />

@@ -16,7 +16,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptstring.h"
-#include "ac/joystick.h"
+#include "game/input/joystick.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
