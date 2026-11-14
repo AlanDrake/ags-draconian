@@ -16,32 +16,17 @@
 //
 //=============================================================================
 #include "game/lib/utils_script.h"
-#include "script/script_api.h"
+#include "game/script_api/bindings.h"
 #include "script/script_runtime.h"
 
 using namespace AGS::Common;
 
-RuntimeScriptValue Sc_Utils_SortStrings(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_POBJ_PINT2(Utils_SortStrings, void);
-}
-
-RuntimeScriptValue Sc_Utils_SortInts(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_POBJ_PINT(Utils_SortInts, void);
-}
-
-RuntimeScriptValue Sc_Utils_SortFloats(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_POBJ_PINT(Utils_SortFloats, void);
-}
-
 void RegisterUtilsAPI()
 {
     ScFnRegister utils_api[] = {
-        {"Utils::SortStrings^3", API_FN_PAIR(Utils_SortStrings)},
-        {"Utils::SortInts^2", API_FN_PAIR(Utils_SortInts)},
-        {"Utils::SortFloats^2", API_FN_PAIR(Utils_SortFloats)},
+        ScStatic<&Utils_SortStrings>("Utils::SortStrings^3"),
+        ScStatic<&Utils_SortInts>("Utils::SortInts^2"),
+        ScStatic<&Utils_SortFloats>("Utils::SortFloats^2"),
     };
 
     ccAddExternalFunctions(utils_api);
