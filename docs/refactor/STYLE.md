@@ -185,9 +185,15 @@ reviews of upstream PR #3190 asked for the same thing: a private `UnescapeText` 
   (`readability-function-size`); early returns over nested `if` pyramids; no new `goto`.
 - **No new `quit()` in library-level code** (`Common/`, engine subsystems): return `HError` /
   `HGameFileError`, or log and recover. Only the top-level engine loop decides to abort.
-- `Sc_*` wrappers only marshal arguments; logic goes in the `Type_Member` function, or better a
-  member of the engine object. The logic lives in the domain file under `Engine/game/` and is declared in
-  its header; the wrapper and its table row go in `Engine/game/script_api/<type>_api.cpp`.
+- A script API function is a plain function, `Type_Member` (or better a member of the engine object), in the
+  domain file under `Engine/game/`, declared in its header. One row of the table in
+  `Engine/game/script_api/<type>_api.cpp` binds it: `ScMethod<&Character_AddInventory>("Character::AddInventory^2")`
+  when its first parameter is the object the script calls it on, `ScStatic<&Random>("Random")` when there is
+  none. The binder (`script/script_binder.h`) makes the wrapper the VM calls from the function's signature, so
+  there is no wrapper to write. Where the script expects something the signature does not say, the row says so
+  with a tag (`ScVoidResult`, `ScBoolArg<1>`; the list is in `script_binder.h`). A function whose last parameter
+  is a formatted text is bound with `ScMethodFormat` or `ScStaticFormat` and a C variadic `ScPl_*` function for
+  plugins. An `Sc_*` function is written by hand only for what no row can say (`Sc_System_Log`).
 
 ### Portability
 
