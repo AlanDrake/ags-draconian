@@ -16,7 +16,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptvideoplayer.h"
-#include "ac/video_script.h"
+#include "game/video/video_script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

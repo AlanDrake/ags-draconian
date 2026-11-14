@@ -15,7 +15,7 @@
 // VideoPlayer script API.
 //
 //=============================================================================
-#include "ac/video_script.h"
+#include "game/video/video_script.h"
 
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptvideoplayer.h"
@@ -24,7 +24,7 @@
 #include "ac/gamestate.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
-#include "media/video/video.h"
+#include "game/video/video.h"
 #include "media/video/videoplayer.h"
 #include "util/path.h"
 

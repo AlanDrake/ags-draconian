@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "media/video/video.h"
+#include "game/video/video.h"
 
 #ifndef AGS_NO_VIDEO_PLAYER
 #include <cinttypes>

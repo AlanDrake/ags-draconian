@@ -211,8 +211,6 @@ target_sources(engine
     ac/translation.h
     ac/utils_script.cpp
     ac/utils_script.h
-    ac/video_script.cpp
-    ac/video_script.h
     ac/viewframe.cpp
     ac/viewframe.h
     ac/viewport_script.cpp
@@ -296,6 +294,10 @@ target_sources(engine
     game/script_api/viewport_api.cpp
     game/script_api/walk_behind_api.cpp
     game/script_api/walkable_area_api.cpp
+    game/video/video.cpp
+    game/video/video.h
+    game/video/video_script.cpp
+    game/video/video_script.h
     game/viewport.cpp
     game/viewport.h
     gfx/ali3dexception.h
@@ -392,8 +394,6 @@ target_sources(engine
     media/video/flic_player.h
     media/video/theora_player.cpp
     media/video/theora_player.h
-    media/video/video.cpp
-    media/video/video.h
     media/video/video_core.cpp
     media/video/video_core.h
     media/video/videoplayer.cpp

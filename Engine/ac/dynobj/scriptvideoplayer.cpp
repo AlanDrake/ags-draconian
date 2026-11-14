@@ -14,7 +14,7 @@
 #include "ac/dynobj/scriptvideoplayer.h"
 
 #include "ac/dynobj/dynobj_manager.h"
-#include "media/video/video.h"
+#include "game/video/video.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

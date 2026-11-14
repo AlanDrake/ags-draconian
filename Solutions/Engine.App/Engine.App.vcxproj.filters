@@ -65,6 +65,9 @@
     <Filter Include="Source Files\game\script_api">
       <UniqueIdentifier>{f3275722-4d78-5c7e-8541-1f51e3bb65e7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\game\video">
+      <UniqueIdentifier>{588b0037-3403-5854-8d04-688f19bbb07f}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
@@ -128,6 +131,9 @@
     </Filter>
     <Filter Include="Header Files\game\navigation">
       <UniqueIdentifier>{80b0982b-32bb-5747-b3e0-61c5effbd31e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\game\video">
+      <UniqueIdentifier>{b677d900-fa88-51b9-9e50-22a5c2295dee}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
@@ -492,8 +498,8 @@
     <ClCompile Include="..\..\Engine\media\audio\soundclip.cpp">
       <Filter>Source Files\media\audio</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\media\video\video.cpp">
-      <Filter>Source Files\media\video</Filter>
+    <ClCompile Include="..\..\Engine\game\video\video.cpp">
+      <Filter>Source Files\game\video</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\debug\debug.cpp">
       <Filter>Source Files\debug</Filter>
@@ -834,8 +840,8 @@
     <ClCompile Include="..\..\Engine\media\video\video_core.cpp">
       <Filter>Source Files\media\video</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\video_script.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\video\video_script.cpp">
+      <Filter>Source Files\game\video</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptvideoplayer.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
@@ -1244,8 +1250,8 @@
     <ClInclude Include="..\..\Engine\media\audio\soundclip.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\media\video\video.h">
-      <Filter>Header Files\media\video</Filter>
+    <ClInclude Include="..\..\Engine\game\video\video.h">
+      <Filter>Header Files\game\video</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\debug\agseditordebugger.h">
       <Filter>Header Files\debug</Filter>
@@ -1646,8 +1652,8 @@
     <ClInclude Include="..\..\Engine\ac\utils_script.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\video_script.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\video\video_script.h">
+      <Filter>Header Files\game\video</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\viewport_script.h">
       <Filter>Header Files\ac</Filter>

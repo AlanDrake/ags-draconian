@@ -3088,10 +3088,8 @@
 				526F251E1D3B5CC300EF4E1F /* walkbehind.h */,
 				4E6E615CB9654FE693E1FF08 /* shader_script.cpp */,
 				EF61359C48373BE523FA2F37 /* utils_script.cpp */,
-				B4E841B245E7C89895801685 /* video_script.cpp */,
 				2947F64120F297866766BEE5 /* scriptcontainers.h */,
 				AA13FE1BFD127104A98698D4 /* utils_script.h */,
-				C95FF051879F73A3602D4032 /* video_script.h */,
 				2F9A74E7AA7EC0FD0274F666 /* viewport_script.h */,
 			);
 			path = ac;
@@ -3395,8 +3393,6 @@
 				20E310ED2B9B4A77000D7C38 /* theora_player.h */,
 				20E310EE2B9B4A77000D7C38 /* videoplayer.cpp */,
 				20E310EF2B9B4A77000D7C38 /* videoplayer.h */,
-				526F262C1D3B5CC300EF4E1F /* video.cpp */,
-				526F262D1D3B5CC300EF4E1F /* video.h */,
 				B89C424B9E31923834D23648 /* video_core.cpp */,
 			);
 			path = video;
@@ -3515,6 +3511,7 @@
 				9EC599C9D2F06E9C6B9F884C /* script_api */,
 				5599F5BF25D0EDD38B214A80 /* navigation */,
 				29A5B920BF77171604D4650F /* input */,
+				758ABC2607543CDCE31C2B94 /* video */,
 			);
 			path = game;
 			sourceTree = "<group>";
@@ -3576,6 +3573,17 @@
 				BE77BF2BB16577C98D16CD19 /* winfonts */,
 			);
 			path = src;
+			sourceTree = "<group>";
+		};
+		758ABC2607543CDCE31C2B94 /* video */ = {
+			isa = PBXGroup;
+			children = (
+				B4E841B245E7C89895801685 /* video_script.cpp */,
+				C95FF051879F73A3602D4032 /* video_script.h */,
+				526F262C1D3B5CC300EF4E1F /* video.cpp */,
+				526F262D1D3B5CC300EF4E1F /* video.h */,
+			);
+			path = video;
 			sourceTree = "<group>";
 		};
 		776B3CACFF65943F99CA69E4 /* type1 */ = {

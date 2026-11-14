@@ -437,7 +437,6 @@
     <ClCompile Include="..\..\Engine\ac\timer.cpp" />
     <ClCompile Include="..\..\Engine\ac\translation.cpp" />
     <ClCompile Include="..\..\Engine\ac\utils_script.cpp" />
-    <ClCompile Include="..\..\Engine\ac\video_script.cpp" />
     <ClCompile Include="..\..\Engine\ac\viewframe.cpp" />
     <ClCompile Include="..\..\Engine\ac\viewport_script.cpp" />
     <ClCompile Include="..\..\Engine\ac\walkablearea.cpp" />
@@ -499,6 +498,8 @@
     <ClCompile Include="..\..\Engine\game\script_api\viewport_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\walk_behind_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\walkable_area_api.cpp" />
+    <ClCompile Include="..\..\Engine\game\video\video.cpp" />
+    <ClCompile Include="..\..\Engine\game\video\video_script.cpp" />
     <ClCompile Include="..\..\Engine\game\viewport.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dogl.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dsw.cpp" />
@@ -555,7 +556,6 @@
     <ClCompile Include="..\..\Engine\media\audio\soundclip.cpp" />
     <ClCompile Include="..\..\Engine\media\video\flic_player.cpp" />
     <ClCompile Include="..\..\Engine\media\video\theora_player.cpp" />
-    <ClCompile Include="..\..\Engine\media\video\video.cpp" />
     <ClCompile Include="..\..\Engine\media\video\videoplayer.cpp" />
     <ClCompile Include="..\..\Engine\media\video\video_core.cpp" />
     <ClCompile Include="..\..\Engine\platform\base\agsplatformdriver.cpp" />
@@ -719,7 +719,6 @@
     <ClInclude Include="..\..\Engine\ac\topbarsettings.h" />
     <ClInclude Include="..\..\Engine\ac\translation.h" />
     <ClInclude Include="..\..\Engine\ac\utils_script.h" />
-    <ClInclude Include="..\..\Engine\ac\video_script.h" />
     <ClInclude Include="..\..\Engine\ac\viewframe.h" />
     <ClInclude Include="..\..\Engine\ac\viewport_script.h" />
     <ClInclude Include="..\..\Engine\ac\walkablearea.h" />
@@ -741,6 +740,8 @@
     <ClInclude Include="..\..\Engine\game\savegame.h" />
     <ClInclude Include="..\..\Engine\game\savegame_components.h" />
     <ClInclude Include="..\..\Engine\game\savegame_internal.h" />
+    <ClInclude Include="..\..\Engine\game\video\video.h" />
+    <ClInclude Include="..\..\Engine\game\video\video_script.h" />
     <ClInclude Include="..\..\Engine\game\viewport.h" />
     <ClInclude Include="..\..\Engine\gfx\ali3dexception.h" />
     <ClInclude Include="..\..\Engine\gfx\ali3dogl.h" />
@@ -804,7 +805,6 @@
     <ClInclude Include="..\..\Engine\media\audio\soundclip.h" />
     <ClInclude Include="..\..\Engine\media\video\flic_player.h" />
     <ClInclude Include="..\..\Engine\media\video\theora_player.h" />
-    <ClInclude Include="..\..\Engine\media\video\video.h" />
     <ClInclude Include="..\..\Engine\media\video\videoplayer.h" />
     <ClInclude Include="..\..\Engine\media\video\video_core.h" />
     <ClInclude Include="..\..\Engine\platform\base\agsplatformdriver.h" />
