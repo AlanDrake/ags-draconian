@@ -36,8 +36,8 @@ ccAddExternal*Function none). --tables-only checks this from the sources without
 
 --release compares the executable users get instead: MSVC Release (/O2 /GL, LTCG) of the engine target, linked
 with a map file, in <work-dir>/release; each wrapper is paired as above through the map file's decorated names and
-read from the executable's disassembly, from its address to the next symbol's (absolute addresses read as symbol
-names). --reuse compares the objects of the last run again, without checkout or build.
+read from the executable's disassembly, from its address to the next symbol's, without the int 3 padding at the
+end (absolute addresses read as symbol names). --reuse compares the objects of the last run again, without checkout or build.
 
     python Script/compare_bindings.py --self-test
 """
@@ -321,6 +321,8 @@ class Executable:
             out.append(re.sub(r'\b([0-9A-F]{16})h?\b', lambda m: self.address_name(int(m.group(1), 16), start, end),
                               self.code[self.code_addresses[j]]))
             j += 1
+        while out and out[-1] == 'int 3':  # the padding up to the next function depends on where this one is
+            out.pop()
         return tuple(out)
 
     def address_name(self, address, start, end):
