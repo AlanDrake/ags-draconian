@@ -158,32 +158,6 @@ Engine/ac/gamesetup.h	Engine/main/game_setup.h
 Engine/ac/gamestate.cpp	Engine/game/game_state.cpp
 Engine/ac/gamestate.h	Engine/game/game_state.h
 Engine/ac/global_api.cpp	Engine/game/script_api/global_api.cpp
-Engine/ac/global_audio.cpp	Engine/game/audio/global_audio.cpp	folded into its domain files before the move (5.3 step 2): row dropped then
-Engine/ac/global_audio.h	Engine/game/audio/global_audio.h
-Engine/ac/global_debug.cpp	Engine/game/global_debug.cpp	folded into its domain files before the move (5.3 step 2): row dropped then
-Engine/ac/global_debug.h	Engine/game/global_debug.h
-Engine/ac/global_display.cpp	Engine/game/dialog/global_display.cpp	folded into its domain files before the move (5.3 step 2): row dropped then
-Engine/ac/global_display.h	Engine/game/dialog/global_display.h
-Engine/ac/global_game.cpp	Engine/game/global_game.cpp	folded into its domain files before the move (5.3 step 2): row dropped then
-Engine/ac/global_game.h	Engine/game/global_game.h
-Engine/ac/global_gui.cpp	Engine/game/ui/global_gui.cpp	folded into its domain files before the move (5.3 step 2): row dropped then
-Engine/ac/global_gui.h	Engine/game/ui/global_gui.h
-Engine/ac/global_palette.cpp	Engine/game/render/global_palette.cpp	folded into its domain files before the move (5.3 step 2): row dropped then
-Engine/ac/global_palette.h	Engine/game/render/global_palette.h
-Engine/ac/global_room.cpp	Engine/game/world/global_room.cpp	folded into its domain files before the move (5.3 step 2): row dropped then
-Engine/ac/global_room.h	Engine/game/world/global_room.h
-Engine/ac/global_screen.cpp	Engine/game/render/global_screen.cpp	folded into its domain files before the move (5.3 step 2): row dropped then
-Engine/ac/global_screen.h	Engine/game/render/global_screen.h
-Engine/ac/global_timer.cpp	Engine/game/global_timer.cpp	folded into its domain files before the move (5.3 step 2): row dropped then
-Engine/ac/global_timer.h	Engine/game/global_timer.h
-Engine/ac/global_translation.cpp	Engine/game/global_translation.cpp	folded into its domain files before the move (5.3 step 2): row dropped then
-Engine/ac/global_translation.h	Engine/game/global_translation.h
-Engine/ac/global_video.cpp	Engine/game/video/global_video.cpp	folded into its domain files before the move (5.3 step 2): row dropped then
-Engine/ac/global_video.h	Engine/game/video/global_video.h
-Engine/ac/global_walkablearea.cpp	Engine/game/world/global_walkable_area.cpp	folded into its domain files before the move (5.3 step 2): row dropped then
-Engine/ac/global_walkablearea.h	Engine/game/world/global_walkable_area.h
-Engine/ac/global_walkbehind.cpp	Engine/game/world/global_walk_behind.cpp	folded into its domain files before the move (5.3 step 2): row dropped then
-Engine/ac/global_walkbehind.h	Engine/game/world/global_walk_behind.h
 Engine/ac/gui.cpp	Engine/game/ui/gui.cpp
 Engine/ac/gui.h	Engine/game/ui/gui.h
 Engine/ac/guicontrol.cpp	Engine/game/ui/gui_control.cpp
@@ -197,6 +171,8 @@ Engine/ac/invwindow.cpp	Engine/game/ui/inv_window.cpp
 Engine/ac/invwindow.h	Engine/game/ui/inv_window.h
 Engine/ac/joystick.cpp	Engine/game/input/joystick.cpp
 Engine/ac/joystick.h	Engine/game/input/joystick.h
+Engine/ac/keyboard.cpp	Engine/game/input/keyboard.cpp
+Engine/ac/keyboard.h	Engine/game/input/keyboard.h
 Engine/ac/label.cpp	Engine/game/ui/label.cpp
 Engine/ac/label.h	Engine/game/ui/label.h
 Engine/ac/lipsync.h	Engine/game/dialog/lipsync.h
