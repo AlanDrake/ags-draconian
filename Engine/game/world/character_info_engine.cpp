@@ -13,10 +13,10 @@
 //=============================================================================
 #include "ac/characterinfo.h"
 #include "ac/common.h"
-#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "debug/debug_log.h"
+#include "game/game.h"
+#include "game/game_state.h"
 #include "game/lib/math.h"
 #include "game/roomstruct.h"
 #include "game/world/character.h"

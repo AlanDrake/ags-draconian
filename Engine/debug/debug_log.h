@@ -15,8 +15,8 @@
 
 #include <cstdarg>
 
-#include "ac/runtime_defines.h"
 #include "debug/out.h"
+#include "game/runtime_defines.h"
 #include "util/ini_util.h"
 #include "util/string.h"
 

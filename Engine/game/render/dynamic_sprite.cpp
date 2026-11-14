@@ -17,16 +17,16 @@
 #include <map>
 
 #include "ac/common.h"
-#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "ac/path_helper.h"
 #include "ac/spritecache.h"
-#include "ac/system.h"
 #include "debug/debug_log.h"
+#include "game/game.h"
+#include "game/game_state.h"
 #include "game/lib/math.h" // M_PI
 #include "game/render/draw.h"
 #include "game/roomstruct.h"
+#include "game/system.h"
 #include "game/world/room_object.h"
 #include "game/world/room_status.h"
 #include "gfx/graphicsdriver.h"

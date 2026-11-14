@@ -13,9 +13,9 @@
 //=============================================================================
 #include "game/render/screen_overlay.h"
 
-#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
+#include "game/game.h"
 #include "game/render/dynamic_sprite.h"
 #include "game/world/object.h"
 #include "game/world/view_frame.h"

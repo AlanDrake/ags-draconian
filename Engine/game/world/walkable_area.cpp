@@ -15,9 +15,9 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_walkable_area.h"
+#include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/roomstruct.h"
 #include "game/world/character.h"

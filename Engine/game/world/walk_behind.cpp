@@ -15,10 +15,10 @@
 
 #include <algorithm>
 
-#include "ac/gamestate.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_walk_behind.h"
 #include "game/dynobj/script_objects.h"
+#include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/world/room.h"

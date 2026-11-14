@@ -17,11 +17,11 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_gui.h"
 #include "game/dynobj/cc_gui_control.h"
 #include "game/dynobj/script_shader.h"
+#include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"

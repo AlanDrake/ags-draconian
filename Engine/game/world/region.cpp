@@ -16,16 +16,16 @@
 #include "ac/common.h"
 #include "ac/common_defines.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_region.h"
+#include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/roomstruct.h"
+#include "game/script.h"
 #include "game/world/properties.h"
 #include "game/world/room.h"
 #include "game/world/room_status.h"
 #include "script/runtimescriptvalue.h"
-#include "script/script.h"
 #include "script/script_runtime.h"
 
 using namespace AGS::Common;

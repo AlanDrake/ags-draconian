@@ -20,8 +20,8 @@
 
 #include <stdarg.h>
 
-#include "ac/runtime_defines.h"
 #include "debug/out.h"
+#include "game/runtime_defines.h"
 
 struct RuntimeScriptValue;
 

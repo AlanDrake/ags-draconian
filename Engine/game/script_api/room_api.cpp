@@ -15,15 +15,15 @@
 // Script bindings registered by RegisterRoomAPI().
 //
 //=============================================================================
-#include "ac/game.h"
 #include "game/dynobj/all_dynamic_classes.h"
 #include "game/dynobj/script_objects.h"
 #include "game/dynobj/script_pathfinder.h"
 #include "game/dynobj/script_shader.h"
 #include "game/dynobj/script_string.h"
+#include "game/game.h"
+#include "game/script.h"
 #include "game/world/room.h"
 #include "script/dynobj/script_user_object.h"
-#include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

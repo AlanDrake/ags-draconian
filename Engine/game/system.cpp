@@ -11,22 +11,22 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/system.h"
+#include "game/system.h"
 
 #include <SDL.h>
 
 #include "ac/common.h"
-#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "ac/spritecache.h"
-#include "ac/translation.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "game/dynobj/script_system.h"
+#include "game/game.h"
+#include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
+#include "game/translation.h"
 #include "game/ui/mouse.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"

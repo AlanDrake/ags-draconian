@@ -11,24 +11,19 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/game.h"
+#include "game/game.h"
 
 #include <algorithm>
 #include <cstdio>
 #include <queue>
 
 #include "ac/common.h"
-#include "ac/event.h"
-#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "ac/keycode.h"
 #include "ac/path_helper.h"
 #include "ac/spritecache.h"
 #include "ac/sys_events.h"
-#include "ac/system.h"
-#include "ac/translation.h"
 #include "ac/view.h"
 #include "data/data_helpers.h"
 #include "debug/debug_log.h"
@@ -44,11 +39,17 @@
 #include "game/dynobj/all_dynamic_classes.h"
 #include "game/dynobj/script_camera.h"
 #include "game/dynobj/script_motion_path.h"
+#include "game/event.h"
+#include "game/game.h"
+#include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/render/dynamic_sprite.h"
 #include "game/render/overlay.h"
 #include "game/save/savegame.h"
+#include "game/script.h"
+#include "game/system.h"
+#include "game/translation.h"
 #include "game/ui/button.h"
 #include "game/ui/gui.h"
 #include "game/ui/gui_dialog.h"
@@ -77,7 +78,6 @@
 #include "plugin/plugin_engine.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"
-#include "script/script.h"
 #include "script/script_runtime.h"
 #include "util/directory.h"
 #include "util/file.h"

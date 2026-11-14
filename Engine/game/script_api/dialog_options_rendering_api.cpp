@@ -15,9 +15,9 @@
 // Script bindings registered by RegisterDialogOptionsRenderingAPI().
 //
 //=============================================================================
-#include "ac/game.h"
 #include "game/dialog/dialog_options_rendering.h"
 #include "game/dynobj/cc_dialog.h"
+#include "game/game.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

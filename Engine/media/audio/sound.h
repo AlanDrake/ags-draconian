@@ -19,7 +19,7 @@
 
 #include <memory>
 
-#include "ac/asset_helper.h"
+#include "game/asset_helper.h"
 #include "media/audio/soundclip.h"
 
 // Threshold in bytes for loading sounds immediately, in KB

@@ -15,8 +15,8 @@
 // Script bindings registered by RegisterFileAPI().
 //
 //=============================================================================
-#include "ac/file.h"
 #include "game/dynobj/script_string.h"
+#include "game/file.h"
 #include "platform/base/agsplatformdriver.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/script_api.h"

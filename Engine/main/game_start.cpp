@@ -22,22 +22,22 @@
 
 #include "ac/characterinfo.h"
 #include "ac/common.h"
-#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "ac/timer.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
+#include "game/game.h"
+#include "game/game_state.h"
 #include "game/render/screen.h"
+#include "game/script.h"
 #include "game/ui/mouse.h"
 #include "game/world/room.h"
 #include "gfx/ali3dexception.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
-#include "script/script.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

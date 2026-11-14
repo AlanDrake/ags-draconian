@@ -17,11 +17,11 @@
 //=============================================================================
 #include <SDL.h>
 
-#include "ac/game.h"
-#include "ac/system.h"
 #include "debug/out.h"
 #include "game/dynobj/cc_audio_channel.h"
 #include "game/dynobj/script_string.h"
+#include "game/game.h"
+#include "game/system.h"
 #include "main/config.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

@@ -15,9 +15,9 @@
 // Script bindings registered by RegisterWalkareaAPI().
 //
 //=============================================================================
-#include "ac/game.h"
 #include "game/dynobj/cc_walkable_area.h"
 #include "game/dynobj/script_string.h"
+#include "game/game.h"
 #include "game/world/character.h"
 #include "game/world/room.h"
 #include "game/world/walkable_area.h"

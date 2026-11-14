@@ -21,13 +21,13 @@
 #include <math.h>
 
 #include "ac/common.h"
-#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "ac/spritecache.h"
 #include "ac/sys_events.h"
 #include "ac/timer.h"
 #include "game/dialog/lipsync.h"
+#include "game/game.h"
+#include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/render/overlay.h"
 #include "game/render/screen_overlay.h"

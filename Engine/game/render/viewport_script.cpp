@@ -18,11 +18,11 @@
 
 #include "game/render/viewport_script.h"
 
-#include "ac/gamestate.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/script_camera.h"
 #include "game/dynobj/script_shader.h"
 #include "game/dynobj/script_viewport.h"
+#include "game/game_state.h"
 #include "game/render/draw.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/dynobj/script_user_object.h"

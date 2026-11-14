@@ -17,8 +17,8 @@
 
 #include "ac/common.h" // quit
 #include "ac/gamesetupstruct.h"
-#include "ac/runtime_defines.h"
 #include "game/lib/string.h"
+#include "game/runtime_defines.h"
 
 extern GameSetupStruct game;
 

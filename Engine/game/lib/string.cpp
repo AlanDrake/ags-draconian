@@ -19,14 +19,14 @@
 #include <allegro.h>
 
 #include "ac/common.h"
-#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
-#include "ac/runtime_defines.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "game/dialog/display.h"
 #include "game/dynobj/script_string.h"
+#include "game/game.h"
+#include "game/game_state.h"
+#include "game/runtime_defines.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/runtimescriptvalue.h"

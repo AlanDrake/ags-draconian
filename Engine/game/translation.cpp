@@ -11,23 +11,23 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/translation.h"
+#include "game/translation.h"
 
 #include <cstdio>
 
-#include "ac/asset_helper.h"
 #include "ac/common.h"
-#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
-#include "ac/runtime_defines.h"
 #include "data/assetmanager.h"
 #include "data/tra_file.h"
 #include "debug/out.h"
 #include "font/fonts.h"
+#include "game/asset_helper.h"
 #include "game/dialog/display.h"
 #include "game/dialog/parser.h"
+#include "game/game.h"
+#include "game/game_state.h"
+#include "game/runtime_defines.h"
 #include "plugin/plugin_engine.h"
 #include "util/stream.h"
 #include "util/string_utils.h"

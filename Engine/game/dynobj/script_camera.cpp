@@ -13,7 +13,7 @@
 //=============================================================================
 #include "game/dynobj/script_camera.h"
 
-#include "ac/gamestate.h"
+#include "game/game_state.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 

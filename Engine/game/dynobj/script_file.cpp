@@ -13,7 +13,7 @@
 //=============================================================================
 #include "game/dynobj/script_file.h"
 
-#include "ac/file.h"
+#include "game/file.h"
 
 // CHECKME: actually NULLs here will be equal to kFile_Open & kStream_Read
 using namespace AGS;

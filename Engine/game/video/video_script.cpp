@@ -17,12 +17,12 @@
 //=============================================================================
 #include "game/video/video_script.h"
 
-#include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamestate.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "game/dynobj/script_video_player.h"
+#include "game/game.h"
+#include "game/game_state.h"
 #include "game/video/video.h"
 #include "media/video/videoplayer.h"
 #include "script/dynobj/dynobj_manager.h"

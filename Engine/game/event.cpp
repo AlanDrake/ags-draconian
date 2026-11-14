@@ -12,18 +12,19 @@
 //
 //=============================================================================
 
-#include "event.h"
+#include "game/event.h"
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "ac/timer.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_hotspot.h"
 #include "game/dynobj/cc_region.h"
 #include "game/dynobj/script_objects.h"
+#include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/render/screen.h"
+#include "game/script.h"
 #include "game/ui/gui.h"
 #include "game/world/room.h"
 #include "game/world/room_status.h"
@@ -35,7 +36,6 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
-#include "script/script.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

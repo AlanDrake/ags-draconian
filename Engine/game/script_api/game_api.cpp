@@ -15,17 +15,17 @@
 // Script bindings registered by RegisterGameAPI().
 //
 //=============================================================================
-#include "ac/game.h"
-#include "ac/gamestate.h"
 #include "game/dynobj/all_dynamic_classes.h"
 #include "game/dynobj/all_script_classes.h"
 #include "game/dynobj/script_camera.h"
 #include "game/dynobj/script_game.h"
+#include "game/game.h"
+#include "game/game_state.h"
 #include "game/render/draw.h"
+#include "game/script.h"
 #include "game/ui/mouse.h"
 #include "plugin/plugin_engine.h"
 #include "script/dynobj/cc_dynamic_array.h"
-#include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

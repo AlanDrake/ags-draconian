@@ -17,8 +17,8 @@
 #include "ac/gamesetupstruct.h"
 #include "game/dynobj/cc_character.h"
 #include "game/dynobj/script_string.h"
+#include "game/script.h"
 #include "game/world/view_frame.h"
-#include "script/script.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 

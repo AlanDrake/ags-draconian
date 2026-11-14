@@ -15,11 +15,11 @@
 // Script bindings registered by RegisterAudioClipAPI().
 //
 //=============================================================================
-#include "ac/game.h"
 #include "game/audio/audio_clip.h"
 #include "game/dynobj/cc_audio_channel.h"
 #include "game/dynobj/cc_audio_clip.h"
 #include "game/dynobj/script_string.h"
+#include "game/game.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

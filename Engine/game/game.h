@@ -23,8 +23,8 @@
 
 #include "ac/game_version.h"
 #include "ac/gamestructdefines.h"
-#include "ac/runtime_defines.h"
 #include "game/dynobj/script_view_frame.h"
+#include "game/runtime_defines.h"
 #include "gfx/bitmap.h"
 #include "main/game_file.h"
 #include "util/string.h"

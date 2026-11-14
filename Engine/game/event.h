@@ -18,7 +18,7 @@
 #pragma once
 
 #include "ac/keycode.h" // eAGSMouseButton
-#include "ac/runtime_defines.h"
+#include "game/runtime_defines.h"
 #include "script/runtimescriptvalue.h"
 #include "util/string.h"
 

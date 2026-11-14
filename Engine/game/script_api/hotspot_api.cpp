@@ -15,12 +15,12 @@
 // Script bindings registered by RegisterHotspotAPI().
 //
 //=============================================================================
-#include "ac/game.h"
 #include "game/dynobj/cc_hotspot.h"
+#include "game/game.h"
 #include "game/lib/string.h"
+#include "game/script.h"
 #include "game/world/hotspot.h"
 #include "game/world/room.h"
-#include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

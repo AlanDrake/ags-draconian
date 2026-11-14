@@ -14,7 +14,7 @@
 #pragma once
 
 #include "ac/keycode.h"
-#include "ac/runtime_defines.h"
+#include "game/runtime_defines.h"
 #include "util/geometry.h"
 
 namespace AGS

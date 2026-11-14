@@ -15,8 +15,8 @@
 
 #ifndef AGS_NO_VIDEO_PLAYER
 
-#include "ac/asset_helper.h"
 #include "debug/out.h"
+#include "game/asset_helper.h"
 
 namespace AGS
 {

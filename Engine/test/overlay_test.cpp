@@ -22,9 +22,9 @@
 #include <vector>
 
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
+#include "game/game_state.h"
 #include "game/render/overlay.h"
 #include "game/render/screen_overlay.h"
 #include "game/render/viewport.h"

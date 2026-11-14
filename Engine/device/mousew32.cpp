@@ -24,9 +24,9 @@
 
 #include <SDL.h>
 
-#include "ac/gamestate.h"
 #include "ac/sys_events.h"
 #include "debug/out.h"
+#include "game/game_state.h"
 #include "gfx/bitmap.h"
 #include "main/graphics_mode.h"
 #include "platform/base/sys_main.h"

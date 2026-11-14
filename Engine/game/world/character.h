@@ -16,10 +16,10 @@
 #include <vector>
 
 #include "ac/characterinfo.h"
-#include "ac/runtime_defines.h"
 #include "game/dynobj/script_objects.h"
 #include "game/dynobj/script_overlay.h"
 #include "game/render/viewport.h"
+#include "game/runtime_defines.h"
 #include "game/world/character_extras.h"
 #include "util/geometry.h"
 

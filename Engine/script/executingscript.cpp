@@ -17,7 +17,7 @@
 
 #include "ac/game_version.h"
 #include "debug/debug_log.h"
-#include "script/script.h"
+#include "game/script.h"
 
 using namespace AGS::Common;
 

@@ -15,11 +15,11 @@
 // Script bindings registered by RegisterInventoryItemAPI().
 //
 //=============================================================================
-#include "ac/game.h"
 #include "game/dynobj/cc_inventory.h"
 #include "game/dynobj/script_string.h"
+#include "game/game.h"
+#include "game/script.h"
 #include "game/world/inventory_item.h"
-#include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

@@ -14,13 +14,14 @@
 #include "game/world/hotspot.h"
 
 #include "ac/common.h"
-#include "ac/event.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_hotspot.h"
+#include "game/event.h"
+#include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/roomstruct.h"
+#include "game/script.h"
 #include "game/ui/gui.h"
 #include "game/world/character.h"
 #include "game/world/properties.h"
@@ -28,7 +29,6 @@
 #include "game/world/room_status.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
-#include "script/script.h"
 #include "script/script_runtime.h"
 
 using namespace AGS::Common;

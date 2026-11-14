@@ -27,7 +27,7 @@
 #include <string.h>
 #include <unordered_set>
 
-#include "ac/runtime_defines.h"
+#include "game/runtime_defines.h"
 #include "script/dynobj/cc_ags_dynamic_object.h"
 #include "util/stream.h"
 #include "util/string.h"

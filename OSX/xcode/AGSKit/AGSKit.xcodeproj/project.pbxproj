@@ -613,8 +613,8 @@
 		526F26F61D3B5CC300EF4E1F /* game.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24731D3B5CC200EF4E1F /* game.cpp */; };
 		526F26F71D3B5CC300EF4E1F /* game.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24741D3B5CC200EF4E1F /* game.h */; };
 		526F26F91D3B5CC300EF4E1F /* gamesetup.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24761D3B5CC200EF4E1F /* gamesetup.h */; };
-		526F26FA1D3B5CC300EF4E1F /* gamestate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24771D3B5CC200EF4E1F /* gamestate.cpp */; };
-		526F26FB1D3B5CC300EF4E1F /* gamestate.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24781D3B5CC200EF4E1F /* gamestate.h */; };
+		526F26FA1D3B5CC300EF4E1F /* game_state.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24771D3B5CC200EF4E1F /* game_state.cpp */; };
+		526F26FB1D3B5CC300EF4E1F /* game_state.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24781D3B5CC200EF4E1F /* game_state.h */; };
 		526F26FC1D3B5CC300EF4E1F /* global_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24791D3B5CC200EF4E1F /* global_api.cpp */; };
 		526F27461D3B5CC300EF4E1F /* gui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24C31D3B5CC300EF4E1F /* gui.cpp */; };
 		526F27471D3B5CC300EF4E1F /* gui.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24C41D3B5CC300EF4E1F /* gui.h */; };
@@ -1541,8 +1541,8 @@
 		526F24731D3B5CC200EF4E1F /* game.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = game.cpp; sourceTree = "<group>"; };
 		526F24741D3B5CC200EF4E1F /* game.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = game.h; sourceTree = "<group>"; };
 		526F24761D3B5CC200EF4E1F /* gamesetup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gamesetup.h; sourceTree = "<group>"; };
-		526F24771D3B5CC200EF4E1F /* gamestate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gamestate.cpp; sourceTree = "<group>"; };
-		526F24781D3B5CC200EF4E1F /* gamestate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gamestate.h; sourceTree = "<group>"; };
+		526F24771D3B5CC200EF4E1F /* game_state.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = game_state.cpp; sourceTree = "<group>"; };
+		526F24781D3B5CC200EF4E1F /* game_state.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = game_state.h; sourceTree = "<group>"; };
 		526F24791D3B5CC200EF4E1F /* global_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_api.cpp; sourceTree = "<group>"; };
 		526F24C31D3B5CC300EF4E1F /* gui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gui.cpp; sourceTree = "<group>"; };
 		526F24C41D3B5CC300EF4E1F /* gui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gui.h; sourceTree = "<group>"; };
@@ -3047,23 +3047,9 @@
 				20522A5C28E8F8DD00589E91 /* sys_events.cpp */,
 				20522A5B28E8F8DD00589E91 /* sys_events.h */,
 				20522A4E28E8F8CA00589E91 /* path_helper.h */,
-				20522A4828E8F8AA00589E91 /* asset_helper.h */,
-				526F246F1D3B5CC200EF4E1F /* event.cpp */,
-				526F24701D3B5CC200EF4E1F /* event.h */,
-				526F24711D3B5CC200EF4E1F /* file.cpp */,
-				526F24721D3B5CC200EF4E1F /* file.h */,
-				526F24731D3B5CC200EF4E1F /* game.cpp */,
-				526F24741D3B5CC200EF4E1F /* game.h */,
 				526F24761D3B5CC200EF4E1F /* gamesetup.h */,
-				526F24771D3B5CC200EF4E1F /* gamestate.cpp */,
-				526F24781D3B5CC200EF4E1F /* gamestate.h */,
-				526F24F71D3B5CC300EF4E1F /* runtime_defines.h */,
-				526F250C1D3B5CC300EF4E1F /* system.cpp */,
-				526F250D1D3B5CC300EF4E1F /* system.h */,
 				526F25101D3B5CC300EF4E1F /* timer.cpp */,
 				526F25111D3B5CC300EF4E1F /* timer.h */,
-				526F25131D3B5CC300EF4E1F /* translation.cpp */,
-				526F25141D3B5CC300EF4E1F /* translation.h */,
 			);
 			path = ac;
 			sourceTree = "<group>";
@@ -3332,8 +3318,6 @@
 				D801C943CE1144C62BE3ED31 /* runtimescript.cpp */,
 				526F26711D3B5CC300EF4E1F /* runtimescriptvalue.cpp */,
 				526F26721D3B5CC300EF4E1F /* runtimescriptvalue.h */,
-				526F26731D3B5CC300EF4E1F /* script.cpp */,
-				526F26741D3B5CC300EF4E1F /* script.h */,
 				526F26751D3B5CC300EF4E1F /* script_api.cpp */,
 				526F26761D3B5CC300EF4E1F /* script_api.h */,
 				526F26781D3B5CC300EF4E1F /* script_runtime.cpp */,
@@ -3375,6 +3359,22 @@
 				A194AAB8551CFFAC6B5A1FCD /* render */,
 				291BF21977E2E7634E5BA553 /* world */,
 				B68CEDEB5B44171BDED3CAF6 /* dynobj */,
+				20522A4828E8F8AA00589E91 /* asset_helper.h */,
+				526F246F1D3B5CC200EF4E1F /* event.cpp */,
+				526F24701D3B5CC200EF4E1F /* event.h */,
+				526F24711D3B5CC200EF4E1F /* file.cpp */,
+				526F24721D3B5CC200EF4E1F /* file.h */,
+				526F24731D3B5CC200EF4E1F /* game.cpp */,
+				526F24741D3B5CC200EF4E1F /* game.h */,
+				526F24771D3B5CC200EF4E1F /* game_state.cpp */,
+				526F24781D3B5CC200EF4E1F /* game_state.h */,
+				526F24F71D3B5CC300EF4E1F /* runtime_defines.h */,
+				526F250C1D3B5CC300EF4E1F /* system.cpp */,
+				526F250D1D3B5CC300EF4E1F /* system.h */,
+				526F25131D3B5CC300EF4E1F /* translation.cpp */,
+				526F25141D3B5CC300EF4E1F /* translation.h */,
+				526F26731D3B5CC300EF4E1F /* script.cpp */,
+				526F26741D3B5CC300EF4E1F /* script.h */,
 			);
 			path = game;
 			sourceTree = "<group>";
@@ -3933,7 +3933,7 @@
 				526F28DC1D3B5CC300EF4E1F /* library_posix.h in Headers */,
 				526F28C61D3B5CC300EF4E1F /* runtimescriptvalue.h in Headers */,
 				526F22D01D3B5C4900EF4E1F /* ttffontrenderer.h in Headers */,
-				526F26FB1D3B5CC300EF4E1F /* gamestate.h in Headers */,
+				526F26FB1D3B5CC300EF4E1F /* game_state.h in Headers */,
 				526F27B11D3B5CC300EF4E1F /* ali3dogl.h in Headers */,
 				526F26D91D3B5CC300EF4E1F /* script_date_time.h in Headers */,
 				526F27BA1D3B5CC300EF4E1F /* gfxdefines.h in Headers */,
@@ -4511,7 +4511,7 @@
 				526F278E1D3B5CC300EF4E1F /* system.cpp in Sources */,
 				20E67D6428F1BDE000B95C00 /* gfx.c in Sources */,
 				20E681F628F1D2A800B95C00 /* SDL_sound_mp3.c in Sources */,
-				526F26FA1D3B5CC300EF4E1F /* gamestate.cpp in Sources */,
+				526F26FA1D3B5CC300EF4E1F /* game_state.cpp in Sources */,
 				20E684AE28F20CC700B95C00 /* bitpack.c in Sources */,
 				526F22EB1D3B5C4900EF4E1F /* guislider.cpp in Sources */,
 				526F269E1D3B5CC300EF4E1F /* button.cpp in Sources */,

@@ -29,8 +29,8 @@
 #include <vector>
 
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "ac/view.h"
+#include "game/game_state.h"
 #include "game/save/savegame.h"
 #include "game/save/savegame_components.h"
 #include "game/save/savegame_internal.h"

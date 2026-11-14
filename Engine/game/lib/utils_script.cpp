@@ -13,9 +13,9 @@
 //=============================================================================
 #include "game/lib/utils_script.h"
 
-#include "ac/game.h"
-#include "ac/gamestate.h"
 #include "debug/debug_log.h"
+#include "game/game.h"
+#include "game/game_state.h"
 #include "game/lib/string.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"

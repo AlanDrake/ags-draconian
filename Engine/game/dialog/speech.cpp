@@ -13,17 +13,17 @@
 //=============================================================================
 #include "game/dialog/speech.h"
 
-#include "ac/asset_helper.h"
 #include "ac/common.h"
-#include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamestate.h"
-#include "ac/runtime_defines.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
+#include "game/asset_helper.h"
 #include "game/audio/audio.h"
 #include "game/dialog/lipsync.h"
 #include "game/dynobj/script_overlay.h"
+#include "game/game.h"
+#include "game/game_state.h"
+#include "game/runtime_defines.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
 #include "util/directory.h"
@@ -179,8 +179,8 @@ String get_voice_assetpath()
 //=============================================================================
 
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "debug/out.h"
+#include "game/game_state.h"
 #include "script/dynobj/dynobj_manager.h"
 
 extern GameSetupStruct game;

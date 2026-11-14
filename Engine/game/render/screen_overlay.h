@@ -31,8 +31,8 @@
 #include <functional>
 #include <memory>
 
-#include "ac/runtime_defines.h"
 #include "game/dynobj/script_overlay.h"
+#include "game/runtime_defines.h"
 #include "gfx/gfx_def.h"
 #include "gfx/graphicspace.h"
 #include "util/string.h"

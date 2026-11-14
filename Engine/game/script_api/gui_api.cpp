@@ -17,16 +17,16 @@
 //=============================================================================
 #include <numeric>
 
-#include "ac/game.h"
 #include "game/dynobj/cc_gui.h"
 #include "game/dynobj/cc_gui_control.h"
 #include "game/dynobj/script_objects.h"
 #include "game/dynobj/script_shader.h"
 #include "game/dynobj/script_string.h"
+#include "game/game.h"
+#include "game/script.h"
 #include "game/ui/gui.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/script_user_object.h"
-#include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

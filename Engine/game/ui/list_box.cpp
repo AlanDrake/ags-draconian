@@ -19,14 +19,14 @@
 #include <allegro.h> // find files
 
 #include "ac/common.h"
-#include "ac/file.h"
-#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "ac/path_helper.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
+#include "game/file.h"
+#include "game/game.h"
+#include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/ui/gui.h"
 #include "script/dynobj/cc_dynamic_array.h"

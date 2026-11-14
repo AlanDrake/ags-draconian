@@ -21,10 +21,10 @@
 #include "game/dynobj/script_string.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
+#include "game/script.h"
 #include "gfx/bitmap.h"
 #include "media/audio/audio_system.h"
 #include "script/runtimescriptvalue.h"
-#include "script/script.h"
 #include "util/math.h"
 
 using namespace AGS;

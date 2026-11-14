@@ -16,7 +16,6 @@
 #include <cstring>
 
 #include "ac/common.h" // quitprintf
-#include "ac/game.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/all_dynamic_classes.h"
 #include "game/dynobj/all_script_classes.h"
@@ -26,6 +25,7 @@
 #include "game/dynobj/script_motion_path.h"
 #include "game/dynobj/script_shader.h"
 #include "game/dynobj/script_viewport.h"
+#include "game/game.h"
 #include "game/lib/script_containers.h"
 #include "game/ui/gui.h"
 #include "plugin/plugin_engine.h"

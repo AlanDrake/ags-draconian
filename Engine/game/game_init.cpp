@@ -16,11 +16,8 @@
 #include <array>
 #include <vector>
 
-#include "ac/file.h"
-#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
 #include "data/assetmanager.h"
@@ -35,7 +32,11 @@
 #include "game/dialog/speech.h"
 #include "game/dynobj/all_dynamic_classes.h"
 #include "game/dynobj/all_script_classes.h"
+#include "game/file.h"
+#include "game/game.h"
+#include "game/game_state.h"
 #include "game/render/draw.h"
+#include "game/script.h"
 #include "game/script_api/exports.h"
 #include "game/ui/gui.h"
 #include "game/world/character.h"
@@ -49,7 +50,6 @@
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
 #include "script/dynobj/dynobj_manager.h"
-#include "script/script.h"
 #include "script/script_runtime.h"
 #include "util/memory_compat.h"
 #include "util/path.h"

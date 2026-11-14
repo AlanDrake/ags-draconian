@@ -13,8 +13,8 @@
 //=============================================================================
 #include "game/render/viewport.h"
 
-#include "ac/gamestate.h"
 #include "debug/debug_log.h"
+#include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/roomstruct.h"
 

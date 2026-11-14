@@ -261,20 +261,20 @@
     <ClCompile Include="..\..\Engine\game\render\dynamic_sprite.cpp">
       <Filter>Source Files\game\render</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\event.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\event.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\file.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\file.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\game.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\game.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\input\joystick.cpp">
       <Filter>Source Files\game\input</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\gamestate.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\game_state.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\script_api\global_api.cpp">
       <Filter>Source Files\game\script_api</Filter>
@@ -360,8 +360,8 @@
     <ClCompile Include="..\..\Engine\game\lib\string.cpp">
       <Filter>Source Files\game\lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\system.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\system.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\ui\text_box.cpp">
       <Filter>Source Files\game\ui</Filter>
@@ -369,8 +369,8 @@
     <ClCompile Include="..\..\Engine\ac\timer.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\translation.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\translation.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\world\view_frame.cpp">
       <Filter>Source Files\game\world</Filter>
@@ -519,8 +519,8 @@
     <ClCompile Include="..\..\Engine\script\runtimescriptvalue.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\script\script.cpp">
-      <Filter>Source Files\script</Filter>
+    <ClCompile Include="..\..\Engine\game\script.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\script\script_api.cpp">
       <Filter>Source Files\script</Filter>
@@ -947,8 +947,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Engine\ac\asset_helper.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\asset_helper.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\audio\audio_channel.h">
       <Filter>Header Files\game\audio</Filter>
@@ -986,14 +986,14 @@
     <ClInclude Include="..\..\Engine\game\render\dynamic_sprite.h">
       <Filter>Header Files\game\render</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\event.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\event.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\file.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\file.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\game.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\game.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\input\joystick.h">
       <Filter>Header Files\game\input</Filter>
@@ -1001,8 +1001,8 @@
     <ClInclude Include="..\..\Engine\ac\gamesetup.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\gamestate.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\game_state.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\ui\gui.h">
       <Filter>Header Files\game\ui</Filter>
@@ -1073,8 +1073,8 @@
     <ClInclude Include="..\..\Engine\game\navigation\route_finder.h">
       <Filter>Header Files\game\navigation</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\runtime_defines.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\runtime_defines.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\render\screen.h">
       <Filter>Header Files\game\render</Filter>
@@ -1091,8 +1091,8 @@
     <ClInclude Include="..\..\Engine\game\lib\string.h">
       <Filter>Header Files\game\lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\system.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\system.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\ui\text_box.h">
       <Filter>Header Files\game\ui</Filter>
@@ -1103,8 +1103,8 @@
     <ClInclude Include="..\..\Engine\ac\topbarsettings.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\translation.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\translation.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\world\view_frame.h">
       <Filter>Header Files\game\world</Filter>
@@ -1265,8 +1265,8 @@
     <ClInclude Include="..\..\Engine\script\runtimescriptvalue.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\script\script.h">
-      <Filter>Header Files\script</Filter>
+    <ClInclude Include="..\..\Engine\game\script.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\script\script_api.h">
       <Filter>Header Files\script</Filter>

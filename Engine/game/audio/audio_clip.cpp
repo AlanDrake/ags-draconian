@@ -14,12 +14,12 @@
 #include "game/audio/audio_clip.h"
 
 #include "ac/common.h" // quitprintf
-#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "data/assetmanager.h"
 #include "game/audio/audio_channel.h"
 #include "game/dynobj/cc_audio_clip.h"
+#include "game/game.h"
+#include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/world/properties.h"
 #include "media/audio/audio_system.h"

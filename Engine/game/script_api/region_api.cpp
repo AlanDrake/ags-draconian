@@ -15,13 +15,13 @@
 // Script bindings registered by RegisterRegionAPI().
 //
 //=============================================================================
-#include "ac/game.h"
 #include "game/dynobj/cc_region.h"
 #include "game/dynobj/script_drawing_surface.h"
 #include "game/dynobj/script_string.h"
+#include "game/game.h"
+#include "game/script.h"
 #include "game/world/region.h"
 #include "game/world/room.h"
-#include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

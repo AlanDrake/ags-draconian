@@ -17,10 +17,10 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
-#include "ac/translation.h"
 #include "debug/debug_log.h"
+#include "game/game_state.h"
 #include "game/lib/string.h"
+#include "game/translation.h"
 #include "util/string.h"
 #include "util/string_compat.h"
 #include "util/utf8.h"

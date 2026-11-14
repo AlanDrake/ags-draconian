@@ -14,10 +14,10 @@
 #include "game/dynobj/script_overlay.h"
 
 #include "ac/common.h"
-#include "ac/runtime_defines.h"
 #include "debug/debug_log.h"
 #include "game/render/overlay.h"
 #include "game/render/screen_overlay.h"
+#include "game/runtime_defines.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 

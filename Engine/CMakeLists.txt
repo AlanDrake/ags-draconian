@@ -19,26 +19,12 @@ target_include_directories(engine PUBLIC .)
 
 target_sources(engine
     PRIVATE
-    ac/asset_helper.h
-    ac/event.cpp
-    ac/event.h
-    ac/file.cpp
-    ac/file.h
-    ac/game.cpp
-    ac/game.h
     ac/gamesetup.h
-    ac/gamestate.cpp
-    ac/gamestate.h
     ac/path_helper.h
-    ac/runtime_defines.h
     ac/sys_events.cpp
     ac/sys_events.h
-    ac/system.cpp
-    ac/system.h
     ac/timer.cpp
     ac/timer.h
-    ac/translation.cpp
-    ac/translation.h
     debug/agseditordebugger.h
     debug/debug.cpp
     debug/debug_log.h
@@ -50,6 +36,7 @@ target_sources(engine
     debug/memory_inspect.h
     device/mousew32.cpp
     device/mousew32.h
+    game/asset_helper.h
     game/audio/audio.cpp
     game/audio/audio.h
     game/audio/audio_channel.cpp
@@ -141,8 +128,16 @@ target_sources(engine
     game/dynobj/script_view_frame.h
     game/dynobj/script_viewport.cpp
     game/dynobj/script_viewport.h
+    game/event.cpp
+    game/event.h
+    game/file.cpp
+    game/file.h
+    game/game.cpp
+    game/game.h
     game/game_init.cpp
     game/game_init.h
+    game/game_state.cpp
+    game/game_state.h
     game/input/joystick.cpp
     game/input/joystick.h
     game/input/keyboard.cpp
@@ -186,11 +181,14 @@ target_sources(engine
     game/render/viewport.h
     game/render/viewport_script.cpp
     game/render/viewport_script.h
+    game/runtime_defines.h
     game/save/savegame.cpp
     game/save/savegame.h
     game/save/savegame_components.cpp
     game/save/savegame_components.h
     game/save/savegame_internal.h
+    game/script.cpp
+    game/script.h
     game/script_api/audio_channel_api.cpp
     game/script_api/audio_clip_api.cpp
     game/script_api/button_api.cpp
@@ -238,6 +236,10 @@ target_sources(engine
     game/script_api/viewport_api.cpp
     game/script_api/walk_behind_api.cpp
     game/script_api/walkable_area_api.cpp
+    game/system.cpp
+    game/system.h
+    game/translation.cpp
+    game/translation.h
     game/ui/animating_gui_button.cpp
     game/ui/animating_gui_button.h
     game/ui/button.cpp
@@ -421,8 +423,6 @@ target_sources(engine
     script/runtimescript.h
     script/runtimescriptvalue.cpp
     script/runtimescriptvalue.h
-    script/script.cpp
-    script/script.h
     script/script_api.cpp
     script/script_api.h
     script/script_runtime.cpp
@@ -566,7 +566,7 @@ if (WIN32 OR LINUX)
     target_compile_definitions(engine PRIVATE AGS_HAS_CD_AUDIO)
 endif ()
 
-# Common sets this for itself; ac/file.cpp in the engine needs it too (the Linux Makefile build had it
+# Common sets this for itself; game/file.cpp in the engine needs it too (the Linux Makefile build had it
 # for every file)
 if (LINUX)
     target_compile_definitions(engine PRIVATE AGS_CASE_SENSITIVE_FILESYSTEM)

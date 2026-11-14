@@ -21,7 +21,7 @@
 #include <allegro.h>
 
 #include "ac/gamesetup.h"
-#include "ac/runtime_defines.h"
+#include "game/runtime_defines.h"
 #include "main/config.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/mobile_base.h"

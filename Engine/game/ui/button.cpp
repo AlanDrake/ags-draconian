@@ -17,19 +17,19 @@
 #include <cstdio>
 
 #include "ac/common.h"
-#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_gui_control.h"
+#include "game/game.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
+#include "game/script.h"
 #include "game/ui/animating_gui_button.h"
 #include "game/ui/gui.h"
 #include "game/world/object.h"
 #include "game/world/view_frame.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
-#include "script/script.h"
 
 using namespace AGS::Common;
 

@@ -25,7 +25,7 @@
 #include <emscripten.h>
 
 #include "SDL.h"
-#include "ac/system.h"
+#include "game/system.h"
 #include "gfx/graphicsdriver.h"
 #include "main/engine.h"
 #include "main/graphics_mode.h"

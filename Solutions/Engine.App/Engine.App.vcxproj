@@ -346,14 +346,8 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Engine\ac\event.cpp" />
-    <ClCompile Include="..\..\Engine\ac\file.cpp" />
-    <ClCompile Include="..\..\Engine\ac\game.cpp" />
-    <ClCompile Include="..\..\Engine\ac\gamestate.cpp" />
     <ClCompile Include="..\..\Engine\ac\sys_events.cpp" />
-    <ClCompile Include="..\..\Engine\ac\system.cpp" />
     <ClCompile Include="..\..\Engine\ac\timer.cpp" />
-    <ClCompile Include="..\..\Engine\ac\translation.cpp" />
     <ClCompile Include="..\..\Engine\debug\debug.cpp" />
     <ClCompile Include="..\..\Engine\debug\logfile.cpp" />
     <ClCompile Include="..\..\Engine\debug\memory_inspect.cpp" />
@@ -400,7 +394,11 @@
     <ClCompile Include="..\..\Engine\game\dynobj\script_video_player.cpp" />
     <ClCompile Include="..\..\Engine\game\dynobj\script_view_frame.cpp" />
     <ClCompile Include="..\..\Engine\game\dynobj\script_viewport.cpp" />
+    <ClCompile Include="..\..\Engine\game\event.cpp" />
+    <ClCompile Include="..\..\Engine\game\file.cpp" />
+    <ClCompile Include="..\..\Engine\game\game.cpp" />
     <ClCompile Include="..\..\Engine\game\game_init.cpp" />
+    <ClCompile Include="..\..\Engine\game\game_state.cpp" />
     <ClCompile Include="..\..\Engine\game\input\joystick.cpp" />
     <ClCompile Include="..\..\Engine\game\input\keyboard.cpp" />
     <ClCompile Include="..\..\Engine\game\input\touch.cpp" />
@@ -424,6 +422,7 @@
     <ClCompile Include="..\..\Engine\game\render\viewport_script.cpp" />
     <ClCompile Include="..\..\Engine\game\save\savegame.cpp" />
     <ClCompile Include="..\..\Engine\game\save\savegame_components.cpp" />
+    <ClCompile Include="..\..\Engine\game\script.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\audio_channel_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\audio_clip_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\button_api.cpp" />
@@ -470,6 +469,8 @@
     <ClCompile Include="..\..\Engine\game\script_api\viewport_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\walk_behind_api.cpp" />
     <ClCompile Include="..\..\Engine\game\script_api\walkable_area_api.cpp" />
+    <ClCompile Include="..\..\Engine\game\system.cpp" />
+    <ClCompile Include="..\..\Engine\game\translation.cpp" />
     <ClCompile Include="..\..\Engine\game\ui\animating_gui_button.cpp" />
     <ClCompile Include="..\..\Engine\game\ui\button.cpp" />
     <ClCompile Include="..\..\Engine\game\ui\csci_dialog.cpp" />
@@ -579,7 +580,6 @@
     <ClCompile Include="..\..\Engine\script\executingscript.cpp" />
     <ClCompile Include="..\..\Engine\script\runtimescript.cpp" />
     <ClCompile Include="..\..\Engine\script\runtimescriptvalue.cpp" />
-    <ClCompile Include="..\..\Engine\script\script.cpp" />
     <ClCompile Include="..\..\Engine\script\scriptexecutor.cpp" />
     <ClCompile Include="..\..\Engine\script\script_api.cpp" />
     <ClCompile Include="..\..\Engine\script\script_runtime.cpp" />
@@ -619,19 +619,11 @@
     <ClInclude Include="..\..\Common\util\lzw.h" />
     <ClInclude Include="..\..\Common\util\misc.h" />
     <ClInclude Include="..\..\Common\util\string_utils.h" />
-    <ClInclude Include="..\..\Engine\ac\asset_helper.h" />
-    <ClInclude Include="..\..\Engine\ac\event.h" />
-    <ClInclude Include="..\..\Engine\ac\file.h" />
-    <ClInclude Include="..\..\Engine\ac\game.h" />
     <ClInclude Include="..\..\Engine\ac\gamesetup.h" />
-    <ClInclude Include="..\..\Engine\ac\gamestate.h" />
     <ClInclude Include="..\..\Engine\ac\path_helper.h" />
     <ClInclude Include="..\..\Engine\ac\sys_events.h" />
-    <ClInclude Include="..\..\Engine\ac\runtime_defines.h" />
-    <ClInclude Include="..\..\Engine\ac\system.h" />
     <ClInclude Include="..\..\Engine\ac\timer.h" />
     <ClInclude Include="..\..\Engine\ac\topbarsettings.h" />
-    <ClInclude Include="..\..\Engine\ac\translation.h" />
     <ClInclude Include="..\..\Engine\debug\agseditordebugger.h" />
     <ClInclude Include="..\..\Engine\debug\debugger.h" />
     <ClInclude Include="..\..\Engine\debug\debug_log.h" />
@@ -639,6 +631,7 @@
     <ClInclude Include="..\..\Engine\debug\logfile.h" />
     <ClInclude Include="..\..\Engine\debug\memory_inspect.h" />
     <ClInclude Include="..\..\Engine\device\mousew32.h" />
+    <ClInclude Include="..\..\Engine\game\asset_helper.h" />
     <ClInclude Include="..\..\Engine\game\audio\audio.h" />
     <ClInclude Include="..\..\Engine\game\audio\audio_channel.h" />
     <ClInclude Include="..\..\Engine\game\audio\audio_clip.h" />
@@ -686,7 +679,11 @@
     <ClInclude Include="..\..\Engine\game\dynobj\script_video_player.h" />
     <ClInclude Include="..\..\Engine\game\dynobj\script_view_frame.h" />
     <ClInclude Include="..\..\Engine\game\dynobj\script_viewport.h" />
+    <ClInclude Include="..\..\Engine\game\event.h" />
+    <ClInclude Include="..\..\Engine\game\file.h" />
+    <ClInclude Include="..\..\Engine\game\game.h" />
     <ClInclude Include="..\..\Engine\game\game_init.h" />
+    <ClInclude Include="..\..\Engine\game\game_state.h" />
     <ClInclude Include="..\..\Engine\game\input\joystick.h" />
     <ClInclude Include="..\..\Engine\game\input\keyboard.h" />
     <ClInclude Include="..\..\Engine\game\input\touch.h" />
@@ -708,10 +705,14 @@
     <ClInclude Include="..\..\Engine\game\render\shader_script.h" />
     <ClInclude Include="..\..\Engine\game\render\viewport.h" />
     <ClInclude Include="..\..\Engine\game\render\viewport_script.h" />
+    <ClInclude Include="..\..\Engine\game\runtime_defines.h" />
     <ClInclude Include="..\..\Engine\game\save\savegame.h" />
     <ClInclude Include="..\..\Engine\game\save\savegame_components.h" />
     <ClInclude Include="..\..\Engine\game\save\savegame_internal.h" />
+    <ClInclude Include="..\..\Engine\game\script.h" />
     <ClInclude Include="..\..\Engine\game\script_api\exports.h" />
+    <ClInclude Include="..\..\Engine\game\system.h" />
+    <ClInclude Include="..\..\Engine\game\translation.h" />
     <ClInclude Include="..\..\Engine\game\ui\animating_gui_button.h" />
     <ClInclude Include="..\..\Engine\game\ui\button.h" />
     <ClInclude Include="..\..\Engine\game\ui\csci_dialog.h" />
@@ -829,7 +830,6 @@
     <ClInclude Include="..\..\Engine\script\executingscript.h" />
     <ClInclude Include="..\..\Engine\script\runtimescript.h" />
     <ClInclude Include="..\..\Engine\script\runtimescriptvalue.h" />
-    <ClInclude Include="..\..\Engine\script\script.h" />
     <ClInclude Include="..\..\Engine\script\scriptexecutor.h" />
     <ClInclude Include="..\..\Engine\script\script_api.h" />
     <ClInclude Include="..\..\Engine\script\script_runtime.h" />

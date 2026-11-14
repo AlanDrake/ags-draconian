@@ -15,10 +15,10 @@
 // Script bindings registered by RegisterGUIControlAPI().
 //
 //=============================================================================
-#include "ac/game.h"
 #include "game/dynobj/cc_gui_control.h"
 #include "game/dynobj/script_shader.h"
 #include "game/dynobj/script_string.h"
+#include "game/game.h"
 #include "game/ui/gui_control.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/script_api.h"

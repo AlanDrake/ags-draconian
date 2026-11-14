@@ -20,8 +20,8 @@
 #include <memory>
 #include <vector>
 
-#include "ac/runtime_defines.h"
 #include "game/dynobj/script_file.h"
+#include "game/runtime_defines.h"
 #include "util/stream.h"
 #include "util/string.h"
 

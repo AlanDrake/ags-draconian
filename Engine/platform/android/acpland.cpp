@@ -24,8 +24,8 @@
 #include <jni.h>
 #include <unistd.h>
 
-#include "ac/runtime_defines.h"
 #include "game/main_game_file.h"
+#include "game/runtime_defines.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/mobile_base.h"
 #include "util/android_file.h"

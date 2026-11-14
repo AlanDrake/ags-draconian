@@ -16,9 +16,9 @@
 #include <list>
 #include <unordered_map>
 
-#include "ac/game.h"
 #include "data/assetmanager.h"
 #include "debug/out.h"
+#include "game/game.h"
 #include "media/audio/audio_core.h"
 #include "media/audio/audiodefines.h"
 #include "util/path.h"

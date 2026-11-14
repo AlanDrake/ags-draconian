@@ -18,8 +18,8 @@
 //=============================================================================
 #include <gtest/gtest.h>
 
-#include "ac/runtime_defines.h"
 #include "game/dialog/speech.h"
+#include "game/runtime_defines.h"
 
 TEST(Speech, SkipStyleRoundTrip)
 {

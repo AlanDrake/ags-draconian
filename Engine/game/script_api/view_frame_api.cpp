@@ -15,11 +15,11 @@
 // Script bindings registered by RegisterViewFrameAPI().
 //
 //=============================================================================
-#include "ac/game.h"
 #include "game/dynobj/cc_audio_clip.h"
 #include "game/dynobj/script_string.h"
+#include "game/game.h"
+#include "game/script.h"
 #include "game/world/view_frame.h"
-#include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
