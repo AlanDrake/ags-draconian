@@ -15,7 +15,7 @@
 // Script bindings registered by RegisterDateTimeAPI().
 //
 //=============================================================================
-#include "ac/datetime.h"
+#include "game/lib/date_time.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

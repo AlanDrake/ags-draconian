@@ -19,7 +19,7 @@
 #include "ac/game.h"
 #include "ac/hotspot.h"
 #include "ac/room.h"
-#include "ac/string.h"
+#include "game/lib/string.h"
 #include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

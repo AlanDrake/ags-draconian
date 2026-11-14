@@ -27,8 +27,8 @@
 #include "ac/mouse.h"
 #include "ac/object.h"
 #include "ac/properties.h"
-#include "ac/string.h"
 #include "debug/debug_log.h"
+#include "game/lib/string.h"
 #include "gfx/gfx_def.h"
 #include "script/runtimescriptvalue.h"
 

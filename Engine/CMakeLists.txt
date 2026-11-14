@@ -27,8 +27,6 @@ target_sources(engine
     ac/characterextras.cpp
     ac/characterextras.h
     ac/characterinfo_engine.cpp
-    ac/datetime.cpp
-    ac/datetime.h
     ac/dialog.cpp
     ac/dialog.h
     ac/dialogoptionsrendering.cpp
@@ -153,8 +151,6 @@ target_sources(engine
     ac/lipsync.h
     ac/listbox.cpp
     ac/listbox.h
-    ac/math.cpp
-    ac/math.h
     ac/mouse.cpp
     ac/mouse.h
     ac/movelist.cpp
@@ -181,7 +177,6 @@ target_sources(engine
     ac/screen.h
     ac/screenoverlay.cpp
     ac/screenoverlay.h
-    ac/scriptcontainers.cpp
     ac/shader_script.cpp
     ac/shader_script.h
     ac/slider.cpp
@@ -192,9 +187,6 @@ target_sources(engine
     ac/dynobj/scriptgame.h
     ac/dynobj/cc_staticarray.cpp
     ac/dynobj/cc_staticarray.h
-    ac/scriptcontainers.h
-    ac/string.cpp
-    ac/string.h
     ac/sys_events.cpp
     ac/sys_events.h
     ac/system.cpp
@@ -205,8 +197,6 @@ target_sources(engine
     ac/timer.h
     ac/translation.cpp
     ac/translation.h
-    ac/utils_script.cpp
-    ac/utils_script.h
     ac/viewframe.cpp
     ac/viewframe.h
     ac/viewport_script.cpp
@@ -240,6 +230,16 @@ target_sources(engine
     game/input/keyboard.h
     game/input/touch.cpp
     game/input/touch.h
+    game/lib/date_time.cpp
+    game/lib/date_time.h
+    game/lib/math.cpp
+    game/lib/math.h
+    game/lib/script_containers.cpp
+    game/lib/script_containers.h
+    game/lib/string.cpp
+    game/lib/string.h
+    game/lib/utils_script.cpp
+    game/lib/utils_script.h
     game/navigation/pathfinder_script.cpp
     game/navigation/pathfinder_script.h
     game/navigation/route_finder.cpp

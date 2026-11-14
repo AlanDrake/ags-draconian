@@ -17,8 +17,8 @@
 
 #include "ac/display.h"
 #include "ac/gamesetup.h"
-#include "ac/string.h"
 #include "font/fonts.h"
+#include "game/lib/string.h"
 #include "gui/guidialogdefines.h"
 
 using namespace AGS;

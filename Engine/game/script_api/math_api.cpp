@@ -15,7 +15,7 @@
 // Script bindings registered by RegisterMathAPI().
 //
 //=============================================================================
-#include "ac/math.h"
+#include "game/lib/math.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

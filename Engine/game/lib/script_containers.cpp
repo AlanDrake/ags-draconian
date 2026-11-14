@@ -15,7 +15,7 @@
 // Containers script API.
 //
 //=============================================================================
-#include "ac/scriptcontainers.h"
+#include "game/lib/script_containers.h"
 
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/cc_scriptobject.h"
@@ -24,7 +24,7 @@
 #include "ac/dynobj/scriptset.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
-#include "ac/string.h"
+#include "game/lib/string.h"
 #include "util/bbop.h"
 
 //=============================================================================

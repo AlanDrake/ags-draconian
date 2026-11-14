@@ -62,6 +62,9 @@
     <Filter Include="Source Files\game\input">
       <UniqueIdentifier>{5347bf60-41c2-596f-9382-c78a5286ca5e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\game\lib">
+      <UniqueIdentifier>{e50733b5-ffc1-5ba0-beba-a766477908a1}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\game\navigation">
       <UniqueIdentifier>{b605902f-b8f7-58e0-b522-c89d4e23169f}</UniqueIdentifier>
     </Filter>
@@ -138,6 +141,9 @@
     <Filter Include="Header Files\game\input">
       <UniqueIdentifier>{edbbd7a3-df97-55d2-834f-06b6f17a0a8d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\game\lib">
+      <UniqueIdentifier>{4197b4b6-ee31-5d96-825e-2434c6838c10}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files\game\navigation">
       <UniqueIdentifier>{80b0982b-32bb-5747-b3e0-61c5effbd31e}</UniqueIdentifier>
     </Filter>
@@ -207,8 +213,8 @@
     <ClCompile Include="..\..\Engine\ac\characterinfo_engine.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\datetime.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\lib\date_time.cpp">
+      <Filter>Source Files\game\lib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dialog.cpp">
       <Filter>Source Files\ac</Filter>
@@ -270,8 +276,8 @@
     <ClCompile Include="..\..\Engine\ac\listbox.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\math.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\lib\math.cpp">
+      <Filter>Source Files\game\lib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\mouse.cpp">
       <Filter>Source Files\ac</Filter>
@@ -324,8 +330,8 @@
     <ClCompile Include="..\..\Engine\ac\speech.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\string.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\lib\string.cpp">
+      <Filter>Source Files\game\lib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\system.cpp">
       <Filter>Source Files\ac</Filter>
@@ -768,8 +774,8 @@
     <ClCompile Include="..\..\Engine\ac\viewport_script.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\scriptcontainers.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\lib\script_containers.cpp">
+      <Filter>Source Files\game\lib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptset.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
@@ -906,8 +912,8 @@
     <ClCompile Include="..\..\Engine\game\input\keyboard.cpp">
       <Filter>Source Files\game\input</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\utils_script.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\lib\utils_script.cpp">
+      <Filter>Source Files\game\lib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\platform\windows\gfx\ali3dd3d11.cpp">
       <Filter>Source Files\gfx</Filter>
@@ -932,8 +938,8 @@
     <ClInclude Include="..\..\Engine\ac\characterextras.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\datetime.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\lib\date_time.h">
+      <Filter>Header Files\game\lib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dialog.h">
       <Filter>Header Files\ac</Filter>
@@ -995,8 +1001,8 @@
     <ClInclude Include="..\..\Engine\ac\listbox.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\math.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\lib\math.h">
+      <Filter>Header Files\game\lib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\mouse.h">
       <Filter>Header Files\ac</Filter>
@@ -1055,8 +1061,8 @@
     <ClInclude Include="..\..\Engine\ac\speech.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\string.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\lib\string.h">
+      <Filter>Header Files\game\lib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\system.h">
       <Filter>Header Files\ac</Filter>
@@ -1655,14 +1661,14 @@
     <ClInclude Include="..\..\Engine\game\navigation\pathfinder_script.h">
       <Filter>Header Files\game\navigation</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\scriptcontainers.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\lib\script_containers.h">
+      <Filter>Header Files\game\lib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\shader_script.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\utils_script.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\lib\utils_script.h">
+      <Filter>Header Files\game\lib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\video\video_script.h">
       <Filter>Header Files\game\video</Filter>

@@ -15,7 +15,7 @@
 // Script bindings registered by RegisterUtilsAPI().
 //
 //=============================================================================
-#include "ac/utils_script.h"
+#include "game/lib/utils_script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

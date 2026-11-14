@@ -18,7 +18,7 @@
 #include "ac/common.h" // quit
 #include "ac/gamesetupstruct.h"
 #include "ac/runtime_defines.h"
-#include "ac/string.h"
+#include "game/lib/string.h"
 
 using namespace AGS::Common;
 

@@ -19,7 +19,7 @@
 #include <allegro.h>
 
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/string.h"
+#include "game/lib/string.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

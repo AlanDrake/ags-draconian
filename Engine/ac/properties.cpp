@@ -18,7 +18,7 @@
 #include "ac/common.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/string.h"
+#include "game/lib/string.h"
 #include "script/runtimescriptvalue.h"
 #include "util/string_utils.h"
 

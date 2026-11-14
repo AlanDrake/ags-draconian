@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/math.h"
+#include "game/lib/math.h"
 
 #include <cmath>
 

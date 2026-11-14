@@ -19,9 +19,9 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/properties.h"
-#include "ac/string.h"
 #include "data/assetmanager.h"
 #include "game/audio/audio_channel.h"
+#include "game/lib/string.h"
 #include "media/audio/audio_system.h"
 #include "script/runtimescriptvalue.h"
 

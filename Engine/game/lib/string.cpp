@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/string.h"
+#include "game/lib/string.h"
 
 #include <algorithm>
 #include <cctype>

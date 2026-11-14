@@ -27,9 +27,9 @@
 #include "ac/gamestate.h"
 #include "ac/gui.h"
 #include "ac/path_helper.h"
-#include "ac/string.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
+#include "game/lib/string.h"
 #include "util/directory.h"
 #include "util/path.h"
 

@@ -19,7 +19,7 @@
 #include "ac/dynobj/scriptdict.h"
 #include "ac/dynobj/scriptset.h"
 #include "ac/dynobj/scriptstring.h"
-#include "ac/scriptcontainers.h"
+#include "game/lib/script_containers.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

@@ -20,8 +20,8 @@
 #include "SDL_joystick.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/gamestructdefines.h"
-#include "ac/string.h"
 #include "debug/debug_log.h"
+#include "game/lib/string.h"
 
 bool is_default_gamepad_skip_button_pressed(eAGSGamepad_Button button)
 {

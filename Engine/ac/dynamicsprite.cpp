@@ -22,13 +22,13 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/math.h" // M_PI
 #include "ac/path_helper.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/spritecache.h"
 #include "ac/system.h"
 #include "debug/debug_log.h"
+#include "game/lib/math.h" // M_PI
 #include "game/roomstruct.h"
 #include "gfx/graphicsdriver.h"
 #include "gui/guibutton.h"
