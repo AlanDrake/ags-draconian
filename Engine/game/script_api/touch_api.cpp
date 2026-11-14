@@ -17,49 +17,19 @@
 //=============================================================================
 #include "game/dynobj/script_touch_pointer.h"
 #include "game/input/touch.h"
-#include "script/script_api.h"
+#include "game/script_api/bindings.h"
 #include "script/script_runtime.h"
-
-RuntimeScriptValue Sc_Touch_GetTouchPointerCount(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Touch_GetTouchPointerCount);
-}
-
-RuntimeScriptValue Sc_Touch_GetTouchPointers(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO_PINT(ScriptTouchPointer, Touch_GetTouchPointers);
-}
-
-RuntimeScriptValue Sc_TouchPointer_GetID(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptTouchPointer, TouchPointer_GetID);
-}
-
-RuntimeScriptValue Sc_TouchPointer_GetIsDown(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_BOOL(ScriptTouchPointer, TouchPointer_GetIsDown);
-}
-
-RuntimeScriptValue Sc_TouchPointer_GetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptTouchPointer, TouchPointer_GetX);
-}
-
-RuntimeScriptValue Sc_TouchPointer_GetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptTouchPointer, TouchPointer_GetY);
-}
 
 void RegisterTouchAPI()
 {
     ScFnRegister touch_api[] = {
-        {"Touch::get_TouchPointerCount", API_FN_PAIR(Touch_GetTouchPointerCount)},
-        {"Touch::geti_TouchPointers", API_FN_PAIR(Touch_GetTouchPointers)},
+        ScStatic<&Touch_GetTouchPointerCount>("Touch::get_TouchPointerCount"),
+        ScStatic<&Touch_GetTouchPointers>("Touch::geti_TouchPointers"),
 
-        {"TouchPointer::get_ID", API_FN_PAIR(TouchPointer_GetID)},
-        {"TouchPointer::get_IsDown", API_FN_PAIR(TouchPointer_GetIsDown)},
-        {"TouchPointer::get_X", API_FN_PAIR(TouchPointer_GetX)},
-        {"TouchPointer::get_Y", API_FN_PAIR(TouchPointer_GetY)},
+        ScMethod<&TouchPointer_GetID>("TouchPointer::get_ID"),
+        ScMethod<&TouchPointer_GetIsDown>("TouchPointer::get_IsDown"),
+        ScMethod<&TouchPointer_GetX>("TouchPointer::get_X"),
+        ScMethod<&TouchPointer_GetY>("TouchPointer::get_Y"),
     };
 
     ccAddExternalFunctions(touch_api);
