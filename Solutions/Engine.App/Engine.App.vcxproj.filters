@@ -995,8 +995,8 @@
     <ClInclude Include="..\..\Engine\game\input\joystick.h">
       <Filter>Header Files\game\input</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\gamesetup.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\main\game_setup.h">
+      <Filter>Header Files\main</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\game_state.h">
       <Filter>Header Files\game</Filter>

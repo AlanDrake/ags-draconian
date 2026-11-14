@@ -15,7 +15,6 @@
 
 #include "ac/characterinfo.h"
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
 #include "debug/debug_log.h"
@@ -34,6 +33,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
+#include "main/game_setup.h"
 #include "platform/base/agsplatformdriver.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/dynobj/script_user_object.h"

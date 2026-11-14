@@ -16,7 +16,6 @@
 #include <array>
 #include <vector>
 
-#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
@@ -45,6 +44,7 @@
 #include "gfx/ddb.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"
+#include "main/game_setup.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"

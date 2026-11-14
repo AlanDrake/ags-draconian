@@ -19,7 +19,6 @@ target_include_directories(engine PUBLIC .)
 
 target_sources(engine
     PRIVATE
-    ac/gamesetup.h
     debug/agseditordebugger.h
     debug/debug.cpp
     debug/debug_log.h
@@ -350,6 +349,7 @@ target_sources(engine
     main/game_file.h
     main/game_run.cpp
     main/game_run.h
+    main/game_setup.h
     main/game_start.cpp
     main/game_start.h
     main/graphics_mode.cpp

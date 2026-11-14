@@ -16,7 +16,6 @@
 #include <cctype>
 
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "ac/keycode.h"
 #include "device/sys_events.h"
 #include "font/fonts.h"
@@ -31,6 +30,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
+#include "main/game_setup.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/timer.h"

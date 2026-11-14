@@ -16,7 +16,6 @@
 #include <cctype> // for toupper
 
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
 #include "data/assetmanager.h"
@@ -57,6 +56,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
+#include "main/game_setup.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/platform.h"

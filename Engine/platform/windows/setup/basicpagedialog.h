@@ -21,10 +21,10 @@
 #include <memory>
 #include <vector>
 
-#include "ac/gamesetup.h"
 #include "ac/gamestructdefines.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/gfxmodelist.h"
+#include "main/game_setup.h"
 #include "main/graphics_mode.h"
 #include "platform/windows/setup/winpagedialog.h"
 #include "resource/resource.h"

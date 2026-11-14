@@ -22,7 +22,6 @@
 #include <allegro.h> // find files, allegro_exit
 
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
 #include "data/assetmanager.h"
@@ -41,6 +40,7 @@
 #include "gfx/graphicsdriver.h"
 #include "main/config.h"
 #include "main/engine.h"
+#include "main/game_setup.h"
 #include "main/main.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"

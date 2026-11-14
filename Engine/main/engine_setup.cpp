@@ -16,7 +16,6 @@
 #include <SDL.h>
 
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "font/fonts.h"
@@ -34,6 +33,7 @@
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
+#include "main/game_setup.h"
 #include "main/graphics_mode.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"

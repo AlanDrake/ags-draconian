@@ -24,8 +24,8 @@
 #include <shlwapi.h>
 
 #include "ac/common.h" // quit
-#include "ac/gamesetup.h"
 #include "main/engine.h"
+#include "main/game_setup.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "platform/windows/setup/winsetup.h"

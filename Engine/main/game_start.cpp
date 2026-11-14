@@ -22,7 +22,6 @@
 
 #include "ac/characterinfo.h"
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -36,6 +35,7 @@
 #include "game/world/room.h"
 #include "gfx/ali3dexception.h"
 #include "main/game_run.h"
+#include "main/game_setup.h"
 #include "media/audio/audio_system.h"
 #include "util/timer.h"
 

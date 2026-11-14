@@ -14,7 +14,6 @@
 #include "game/save/savegame.h"
 
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
 #include "debug/debugger.h"
@@ -56,6 +55,7 @@
 #include "gfx/graphicsdriver.h"
 #include "main/engine.h"
 #include "main/game_run.h"
+#include "main/game_setup.h"
 #include "main/main.h"
 #include "main/update.h"
 #include "media/audio/audio_system.h"

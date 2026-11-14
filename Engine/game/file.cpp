@@ -15,7 +15,6 @@
 
 #include "ac/audiocliptype.h"
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "data/asset.h"
 #include "data/assetmanager.h"
@@ -28,6 +27,7 @@
 #include "game/runtime_defines.h"
 #include "main/engine.h"
 #include "main/game_file.h"
+#include "main/game_setup.h"
 #include "platform/base/agsplatformdriver.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"

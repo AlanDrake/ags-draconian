@@ -18,7 +18,6 @@
 
 #include "ac/audiocliptype.h"
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/view.h"
 #include "data/assetmanager.h"
@@ -33,6 +32,7 @@
 #include "game/game.h"
 #include "game/game_state.h"
 #include "main/game_run.h"
+#include "main/game_setup.h"
 #include "media/audio/audio_core.h"
 #include "media/audio/sound.h"
 #include "platform/base/sys_main.h"

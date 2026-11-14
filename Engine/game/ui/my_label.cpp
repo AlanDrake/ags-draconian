@@ -15,11 +15,11 @@
 
 #include <cstring>
 
-#include "ac/gamesetup.h"
 #include "font/fonts.h"
 #include "game/dialog/display.h"
 #include "game/lib/string.h"
 #include "game/ui/gui_dialog_defines.h"
+#include "main/game_setup.h"
 
 using namespace AGS;
 using namespace AGS::Common;

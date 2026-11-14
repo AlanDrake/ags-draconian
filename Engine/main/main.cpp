@@ -25,7 +25,6 @@
 
 #include "ac/common.h"
 #include "ac/def_version.h"
-#include "ac/gamesetup.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -35,6 +34,7 @@
 #include "game/navigation/route_finder.h"
 #include "main/config.h"
 #include "main/engine.h"
+#include "main/game_setup.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "platform/platform.h"

@@ -13,12 +13,12 @@
 //=============================================================================
 #include "game/dynobj/script_game.h"
 
-#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "game/game.h"
 #include "game/game_state.h"
 #include "game/ui/gui.h"
+#include "main/game_setup.h"
 #include "script/cc_common.h" // cc_error
 
 using namespace AGS::Engine;

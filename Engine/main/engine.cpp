@@ -28,7 +28,6 @@
 
 #include "ac/characterinfo.h"
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
 #include "data/assetmanager.h"
@@ -66,6 +65,7 @@
 #include "main/engine.h"
 #include "main/engine_setup.h"
 #include "main/game_file.h"
+#include "main/game_setup.h"
 #include "main/game_start.h"
 #include "main/graphics_mode.h"
 #include "main/main.h"

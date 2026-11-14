@@ -20,7 +20,6 @@
 
 #include "ac/common.h"
 #include "ac/dialogtopic.h"
-#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestructdefines.h"
 #include "data/assetmanager.h"
@@ -37,6 +36,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"
 #include "gui/guilabel.h"
+#include "main/game_setup.h"
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
 #include "script/cc_common.h"

@@ -25,7 +25,6 @@
 
 #include "ac/characterinfo.h"
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/keycode.h"
 #include "ac/spritecache.h"
@@ -62,6 +61,7 @@
 #include "gui/guimain.h"
 #include "gui/guitextbox.h"
 #include "main/engine.h"
+#include "main/game_setup.h"
 #include "main/update.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
