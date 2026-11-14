@@ -64,7 +64,7 @@ String TextProperty(const String &text)
 
 // Views by ID: slot i holds the view with ID i + 1, or null;
 // the list runs up to the highest view ID
-std::vector<const DataUtil::ViewData *> GetViewsByID(const DataUtil::GameData &game)
+static std::vector<const DataUtil::ViewData *> GetViewsByID(const DataUtil::GameData &game)
 {
     int max_id = 0;
     for (const auto &view : game.Views)
@@ -77,6 +77,8 @@ std::vector<const DataUtil::ViewData *> GetViewsByID(const DataUtil::GameData &g
     }
     return views;
 }
+
+CompiledData::CompiledData(const DataUtil::GameData &game) : ViewsByID(GetViewsByID(game)) {}
 
 
 bool ParseResolution(const String &text, int &width, int &height)
@@ -582,7 +584,8 @@ std::vector<int32_t> BuildGameOptions(const DataUtil::GameData &game)
 
 // Read by GameSetupStructBase::ReadFromFile() in
 // Common/ac/gamesetupstructbase.cpp, at the start of ReadGameData().
-void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_t &ext_offset_pos)
+void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData &data, Stream *out,
+                              soff_t &ext_offset_pos)
 {
     String game_name = game.Settings.GameName;
     if (game_name.IsEmpty())
@@ -611,7 +614,7 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
         out->WriteByte(255); // opaque
     }
 
-    const int num_views = static_cast<int>(GetViewsByID(game).size());
+    const int num_views = static_cast<int>(data.ViewsByID.size());
     const int num_characters = static_cast<int>(game.Characters.size());
     const int num_inventory = static_cast<int>(game.Inventory.size());
     const int num_dialogs = 0; // old dialog block is not used by this tool
@@ -776,9 +779,9 @@ void WriteTextParserDictionary(const DataUtil::GameData &game, Stream *out)
 
 // Read by ReadViews() in Common/game/main_game_file.cpp, which calls
 // ViewStruct::ReadFromFile().
-void WriteViewsBlock(const DataUtil::GameData &game, Stream *out)
+void WriteViewsBlock(const DataUtil::GameData &game, const CompiledData &data, Stream *out)
 {
-    for (const auto *view : GetViewsByID(game))
+    for (const auto *view : data.ViewsByID)
     {
         if (view)
             WriteView(out, game, *view);
@@ -911,9 +914,9 @@ void WriteCustomPropertiesBlock(const DataUtil::GameData &game, Stream *out)
 
 // Read by the trailing viewNames/invScriptNames/dialogScriptNames portion of
 // GameSetupStruct::read_customprops() in Common/ac/gamesetupstruct.cpp.
-void WriteLegacyScriptNamesBlock(const DataUtil::GameData &game, Stream *out)
+void WriteLegacyScriptNamesBlock(const DataUtil::GameData &game, const CompiledData &data, Stream *out)
 {
-    for (const auto *view : GetViewsByID(game))
+    for (const auto *view : data.ViewsByID)
         StrUtil::WriteCStr(view ? view->ScriptName : String(), out); // no view: a single NUL byte
     for (const auto &item : game.Inventory)
         StrUtil::WriteCStr(item.ScriptName, out);
@@ -1433,11 +1436,10 @@ void WriteExt400EventTables(Stream *out, const DataUtil::GameData &game)
 
 // Read by GameDataExtReader::ReadBlock()'s "v400_viewevents" branch: the frame event names,
 // laid out like the views block
-void WriteExt400ViewFrameEvents(Stream *out, const DataUtil::GameData &game)
+void WriteExt400ViewFrameEvents(Stream *out, const CompiledData &data)
 {
-    const auto views = GetViewsByID(game);
-    out->WriteInt32(static_cast<int32_t>(views.size()));
-    for (const auto *view : views)
+    out->WriteInt32(static_cast<int32_t>(data.ViewsByID.size()));
+    for (const auto *view : data.ViewsByID)
     {
         out->WriteInt32(view ? static_cast<int32_t>(view->Loops.size()) : 0);
         if (!view)
@@ -1494,7 +1496,7 @@ void WriteExt400CharacterInventory(Stream *out, const DataUtil::GameData &game)
 // Read by DataExtReader::Read() through GameDataExtReader in
 // Common/game/main_game_file.cpp. The patched offset is read earlier by
 // GameSetupStructBase::ReadFromFile().
-void WriteExtensions(Stream *out, const DataUtil::GameData &game, soff_t ext_offset_pos)
+void WriteExtensions(Stream *out, const DataUtil::GameData &game, const CompiledData &data, soff_t ext_offset_pos)
 {
     const soff_t ext_offset = out->GetPosition();
     out->Seek(ext_offset_pos, kSeekBegin);
@@ -1513,7 +1515,8 @@ void WriteExtensions(Stream *out, const DataUtil::GameData &game, soff_t ext_off
     WriteExtension(out, "v400_fontfiles", game, WriteExt400FontFiles);
     WriteExtension(out, "v400_guictrlgfx", game, WriteExt400GuiControlGraphics);
     WriteExtension(out, "v400_eventtables", game, WriteExt400EventTables);
-    WriteExtension(out, "v400_viewevents", game, WriteExt400ViewFrameEvents);
+    WriteExtension(out, "v400_viewevents", game,
+                   [&data](Stream *ext_out, const DataUtil::GameData &) { WriteExt400ViewFrameEvents(ext_out, data); });
     WriteExtension(out, "v400_charopts2", game, WriteExt400CharacterOptions2);
     WriteExtension(out, "v400_charinv", game, WriteExt400CharacterInventory);
     out->WriteInt8(static_cast<uint8_t>(0xff));
@@ -1530,8 +1533,14 @@ void WriteHeaderBlock(const DataUtil::GameData &game, Stream *out)
     // NOTE: the version found in the Game.agf is the version of app which saved the project last;
     // it cannot be applied here, as it may be significantly older, and mismatch the data format
     // that we use when compiling the game.
-    // the editor writes its own version, which is the engine version
-    const String compiled_with = ACI_VERSION_STR;
+    // the editor writes its own version, which is the engine version; a build that names itself
+    // (SPECIAL_VERSION) tags the data it compiles with that name
+    String compiled_with = ACI_VERSION_STR;
+    if (SPECIAL_VERSION[0] != 0)
+    {
+        compiled_with.AppendChar(' ');
+        compiled_with.Append(SPECIAL_VERSION);
+    }
     StrUtil::WriteString(compiled_with, out);
 
     out->WriteInt32(0); // no extended capabilities
@@ -1554,8 +1563,9 @@ HError WriteGameData28(const GameData &game, std::unique_ptr<Stream> &&out)
     Stream *stream = out.get();
 
     WriteHeaderBlock(game, stream);
+    const CompiledData data(game);
     soff_t ext_offset_pos = 0;
-    WriteGameSetupStructBase(game, stream, ext_offset_pos);
+    WriteGameSetupStructBase(game, data, stream, ext_offset_pos);
     WriteSaveGameInfo(game, stream);
     WriteFontBlock(game, stream);
     WriteSpriteFlags(game, stream);
@@ -1563,16 +1573,16 @@ HError WriteGameData28(const GameData &game, std::unique_ptr<Stream> &&out)
     WriteCursorBlock(game, stream);
     WriteInteractionScriptsBlock(game, stream);
     WriteTextParserDictionary(game, stream);
-    WriteViewsBlock(game, stream);
+    WriteViewsBlock(game, data, stream);
     WriteCharactersBlock(game, stream);
     WriteLipSyncBlock(game, stream);
     WriteGuiBlock(game, stream);
     WritePluginsBlock(game, stream);
     WriteCustomPropertiesBlock(game, stream);
-    WriteLegacyScriptNamesBlock(game, stream);
+    WriteLegacyScriptNamesBlock(game, data, stream);
     WriteAudioBlock(game, stream);
     WriteRoomNamesBlock(game, stream);
-    WriteExtensions(stream, game, ext_offset_pos);
+    WriteExtensions(stream, game, data, ext_offset_pos);
 
     if (!out->Flush())
         return new Error("WriteGameData28: Failed to flush game data output stream.");

@@ -134,7 +134,7 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     std::vector<uint8_t> buffer;
     auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
     soff_t extension_offset_pos = 0;
-    DataFileWriter::WriteGameSetupStructBase(game, out.get(), extension_offset_pos);
+    DataFileWriter::WriteGameSetupStructBase(game, DataFileWriter::CompiledData(game), out.get(), extension_offset_pos);
     out.reset();
 
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
@@ -414,7 +414,7 @@ TEST(DataFileWriter, RoundTripViewsBlock)
 
     std::vector<uint8_t> buffer;
     auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
-    DataFileWriter::WriteViewsBlock(game, out.get());
+    DataFileWriter::WriteViewsBlock(game, DataFileWriter::CompiledData(game), out.get());
     out.reset();
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
@@ -860,7 +860,11 @@ TEST(DataFileWriter, RoundTripLegacyScriptNamesBlock)
     DataUtil::InventoryItemData coin;
     coin.TypeName = "CoinItem";
     game.Inventory = {key, coin};
-    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteLegacyScriptNamesBlock);
+    std::vector<uint8_t> buffer;
+    {
+        auto out = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer, kStream_Write));
+        DataFileWriter::WriteLegacyScriptNamesBlock(game, DataFileWriter::CompiledData(game), out.get());
+    }
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
     EXPECT_STREQ("vFirst", String::FromStream(in.get()).GetCStr());
