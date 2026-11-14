@@ -8,7 +8,7 @@ and with the C++ tools (agsbuild), then compares the results file by file.
 Both builds start from fresh copies of the project (Compiled/ and _Debug/ are left out). The game
 packages (*.ags) are unpacked with agspak, so the table shows each packed file: game28.dta, rooms,
 sprite file and index, audio, fonts, custom data; a "(package)" row compares each .ags package
-itself (part names, asset order, ender). Exit code 0 means every file is identical.
+itself (part names, asset order, a missing ender). Exit code 0 means every file is identical.
 A package split into parts (SplitResources) is compared by its assets only.
 
 The editor builds through agsbuild since 6.7d-9, so both sides pack the compiled scripts as separate
@@ -292,8 +292,10 @@ def compare_packages(ed_path, tool_path):
         return None
     if e[0] != t[0]:
         return f'part names {e[0]} and {t[0]}'
-    if e[2] != t[2]:
-        return 'ender only in the ' + ('editor\'s' if e[2] else 'agsbuild\'s')
+    if e[2] and not t[2]:
+        # agspak ends every library with an ender (upstream #3188); an editor from before 6.7d wrote
+        # none in a file of its own, which is the one difference allowed
+        return 'ender only in the editor\'s'
     shared = set(e[1]) & set(t[1])
     if [a for a in e[1] if a in shared] != [a for a in t[1] if a in shared]:
         return 'assets in another order'

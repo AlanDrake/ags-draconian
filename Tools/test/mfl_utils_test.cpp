@@ -62,12 +62,12 @@ bool FileHasEnder(const String &path)
 
 } // namespace
 
-TEST(MflUtils, StandaloneLibraryHasNoEnder)
+TEST(MflUtils, StandaloneLibraryHasEnder)
 {
-    // A file of its own begins with the library, so it needs no ender, as the editor writes it
+    // A file of its own begins with the library and ends with the ender all the same
     const String lib_file = "mfl_test_standalone.vox";
     ASSERT_TRUE(PackTwoAssets(lib_file, false));
-    EXPECT_FALSE(FileHasEnder(lib_file));
+    EXPECT_TRUE(FileHasEnder(lib_file));
     EXPECT_TRUE(TestLibraryFile(lib_file, nullptr));
     File::DeleteFile(lib_file);
 }
