@@ -18,42 +18,18 @@
 #include <locale>
 
 #include "game/dialog/parser.h"
-#include "game/dynobj/script_string.h"
-#include "script/script_api.h"
+#include "game/script_api/bindings.h"
 #include "script/script_runtime.h"
 
 using namespace AGS::Common;
 
-// int (const char *wordToFind)
-RuntimeScriptValue Sc_Parser_FindWordID(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_POBJ(Parser_FindWordID, const char);
-}
-
-// void  (char*text)
-RuntimeScriptValue Sc_ParseText(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_POBJ(ParseText, /*const*/ char);
-}
-
-// const char* ()
-RuntimeScriptValue Sc_Parser_SaidUnknownWord(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJ(const char, myScriptStringImpl, Parser_SaidUnknownWord);
-}
-
-RuntimeScriptValue Sc_Parser_Said(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_POBJ(Parser_Said, const char);
-}
-
 void RegisterParserAPI()
 {
     ScFnRegister parser_api[] = {
-        {"Parser::FindWordID^1", API_FN_PAIR(Parser_FindWordID)},
-        {"Parser::ParseText^1", API_FN_PAIR(ParseText)},
-        {"Parser::SaidUnknownWord^0", API_FN_PAIR(Parser_SaidUnknownWord)},
-        {"Parser::Said^1", API_FN_PAIR(Parser_Said)},
+        ScStatic<&Parser_FindWordID>("Parser::FindWordID^1"),
+        ScStatic<&ParseText>("Parser::ParseText^1"),
+        ScStatic<&Parser_SaidUnknownWord>("Parser::SaidUnknownWord^0"),
+        ScStatic<&Parser_Said>("Parser::Said^1"),
     };
 
     ccAddExternalFunctions(parser_api);
