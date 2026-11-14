@@ -16,149 +16,38 @@
 //
 //=============================================================================
 #include "game/dynobj/script_video_player.h"
+#include "game/script_api/bindings.h"
 #include "game/video/video_script.h"
-#include "script/script_api.h"
 #include "script/script_runtime.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-RuntimeScriptValue Sc_VideoPlayer_Open(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO_POBJ_PINT2(ScriptVideoPlayer, VideoPlayer_Open, const char);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_Play(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID(ScriptVideoPlayer, VideoPlayer_Play);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_Pause(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID(ScriptVideoPlayer, VideoPlayer_Pause);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_NextFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID(ScriptVideoPlayer, VideoPlayer_NextFrame);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_SeekFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT_PINT(ScriptVideoPlayer, VideoPlayer_SeekFrame);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_SeekMs(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT_PINT(ScriptVideoPlayer, VideoPlayer_SeekMs);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_Stop(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID(ScriptVideoPlayer, VideoPlayer_Stop);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_GetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptVideoPlayer, VideoPlayer_GetFrame);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_GetFrameCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptVideoPlayer, VideoPlayer_GetFrameCount);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_GetFrameHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptVideoPlayer, VideoPlayer_GetFrameHeight);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_GetFrameRate(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_FLOAT(ScriptVideoPlayer, VideoPlayer_GetFrameRate);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_GetFrameWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptVideoPlayer, VideoPlayer_GetFrameWidth);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_GetGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptVideoPlayer, VideoPlayer_GetGraphic);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_GetLengthMs(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptVideoPlayer, VideoPlayer_GetLengthMs);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_GetLooping(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptVideoPlayer, VideoPlayer_GetLooping);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_SetLooping(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PBOOL(ScriptVideoPlayer, VideoPlayer_SetLooping);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_GetPositionMs(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptVideoPlayer, VideoPlayer_GetPositionMs);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_GetSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_FLOAT(ScriptVideoPlayer, VideoPlayer_GetSpeed);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_SetSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PFLOAT(ScriptVideoPlayer, VideoPlayer_SetSpeed);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_GetState(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptVideoPlayer, VideoPlayer_GetState);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_GetVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptVideoPlayer, VideoPlayer_GetVolume);
-}
-
-RuntimeScriptValue Sc_VideoPlayer_SetVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(ScriptVideoPlayer, VideoPlayer_SetVolume);
-}
-
-
 void RegisterVideoAPI()
 {
-    ScFnRegister video_api[] = {{"VideoPlayer::Open", API_FN_PAIR(VideoPlayer_Open)},
-                                {"VideoPlayer::Play", API_FN_PAIR(VideoPlayer_Play)},
-                                {"VideoPlayer::Pause", API_FN_PAIR(VideoPlayer_Pause)},
-                                {"VideoPlayer::NextFrame", API_FN_PAIR(VideoPlayer_NextFrame)},
-                                {"VideoPlayer::SeekFrame", API_FN_PAIR(VideoPlayer_SeekFrame)},
-                                {"VideoPlayer::SeekMs", API_FN_PAIR(VideoPlayer_SeekMs)},
-                                {"VideoPlayer::Stop", API_FN_PAIR(VideoPlayer_Stop)},
+    ScFnRegister video_api[] = {ScStatic<&VideoPlayer_Open, ScIntArg<1>>("VideoPlayer::Open"),
+                                ScMethod<&VideoPlayer_Play>("VideoPlayer::Play"),
+                                ScMethod<&VideoPlayer_Pause>("VideoPlayer::Pause"),
+                                ScMethod<&VideoPlayer_NextFrame>("VideoPlayer::NextFrame"),
+                                ScMethod<&VideoPlayer_SeekFrame>("VideoPlayer::SeekFrame"),
+                                ScMethod<&VideoPlayer_SeekMs>("VideoPlayer::SeekMs"),
+                                ScMethod<&VideoPlayer_Stop>("VideoPlayer::Stop"),
 
-                                {"VideoPlayer::get_Frame", API_FN_PAIR(VideoPlayer_GetFrame)},
-                                {"VideoPlayer::get_FrameCount", API_FN_PAIR(VideoPlayer_GetFrameCount)},
-                                {"VideoPlayer::get_FrameHeight", API_FN_PAIR(VideoPlayer_GetFrameHeight)},
-                                {"VideoPlayer::get_FrameRate", API_FN_PAIR(VideoPlayer_GetFrameRate)},
-                                {"VideoPlayer::get_FrameWidth", API_FN_PAIR(VideoPlayer_GetFrameWidth)},
-                                {"VideoPlayer::get_Graphic", API_FN_PAIR(VideoPlayer_GetGraphic)},
-                                {"VideoPlayer::get_LengthMs", API_FN_PAIR(VideoPlayer_GetLengthMs)},
-                                {"VideoPlayer::get_Looping", API_FN_PAIR(VideoPlayer_GetLooping)},
-                                {"VideoPlayer::set_Looping", API_FN_PAIR(VideoPlayer_SetLooping)},
-                                {"VideoPlayer::get_PositionMs", API_FN_PAIR(VideoPlayer_GetPositionMs)},
-                                {"VideoPlayer::get_Speed", API_FN_PAIR(VideoPlayer_GetSpeed)},
-                                {"VideoPlayer::set_Speed", API_FN_PAIR(VideoPlayer_SetSpeed)},
-                                {"VideoPlayer::get_State", API_FN_PAIR(VideoPlayer_GetState)},
-                                {"VideoPlayer::get_Volume", API_FN_PAIR(VideoPlayer_GetVolume)},
-                                {"VideoPlayer::set_Volume", API_FN_PAIR(VideoPlayer_SetVolume)}};
+                                ScMethod<&VideoPlayer_GetFrame>("VideoPlayer::get_Frame"),
+                                ScMethod<&VideoPlayer_GetFrameCount>("VideoPlayer::get_FrameCount"),
+                                ScMethod<&VideoPlayer_GetFrameHeight>("VideoPlayer::get_FrameHeight"),
+                                ScMethod<&VideoPlayer_GetFrameRate>("VideoPlayer::get_FrameRate"),
+                                ScMethod<&VideoPlayer_GetFrameWidth>("VideoPlayer::get_FrameWidth"),
+                                ScMethod<&VideoPlayer_GetGraphic>("VideoPlayer::get_Graphic"),
+                                ScMethod<&VideoPlayer_GetLengthMs>("VideoPlayer::get_LengthMs"),
+                                ScMethod<&VideoPlayer_GetLooping>("VideoPlayer::get_Looping"),
+                                ScMethod<&VideoPlayer_SetLooping>("VideoPlayer::set_Looping"),
+                                ScMethod<&VideoPlayer_GetPositionMs>("VideoPlayer::get_PositionMs"),
+                                ScMethod<&VideoPlayer_GetSpeed>("VideoPlayer::get_Speed"),
+                                ScMethod<&VideoPlayer_SetSpeed, ScUndefinedResult>("VideoPlayer::set_Speed"),
+                                ScMethod<&VideoPlayer_GetState>("VideoPlayer::get_State"),
+                                ScMethod<&VideoPlayer_GetVolume>("VideoPlayer::get_Volume"),
+                                ScMethod<&VideoPlayer_SetVolume>("VideoPlayer::set_Volume")};
 
     ccAddExternalFunctions(video_api);
 }
