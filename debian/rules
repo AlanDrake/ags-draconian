@@ -9,12 +9,15 @@ GENCONTROL_SUBSTVARS = -Vbuildinfo:Date="$(shell date -R)" -Vbuildinfo:Git-Objec
 # The engine is built with CMake, out of the source tree. SDL2, SDL_sound, ogg, theora and vorbis are the
 # installed ones (what the Makefile build took through pkg-config and sdl2-config); the rest comes from the
 # sources in the repository. FETCHCONTENT_FULLY_DISCONNECTED makes a library that was missed an error
-# instead of a download. RelWithDebInfo is -O2 -g -DNDEBUG, without LTO: the flags of the Makefile build,
-# and the -g that ags-dbg is made from.
+# instead of a download. RelWithDebInfo is -O2 -g -DNDEBUG, the flags of the Makefile build, and the -g
+# that ags-dbg is made from. Link-time optimisation is on, as in every other build given to users: the
+# script bindings are in files of their own (Engine/game/script_api), and without it each of the 455
+# cheap ones calls the function it wraps instead of inlining it (0.7 to 1.0 ns a call, GCC 13 -O2).
 BUILD_DIR = build-debian
 JOBS = $(or $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS))),$(shell nproc))
 CMAKE_ARGS = \
 	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
 	-DCMAKE_INSTALL_PREFIX=/usr \
 	-DAGS_USE_LOCAL_SDL2=ON \
 	-DAGS_USE_LOCAL_SDL2_SOUND=ON \
