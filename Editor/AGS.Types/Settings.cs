@@ -49,8 +49,8 @@ namespace AGS.Types
         private string _gameTextEncoding = Encoding.UTF8.WebName;
         private string _gameTextLanguage = "en-US";
         private int _gameFPS = 60;
-        private bool _debugMode = true;
-        private bool _antiGlideMode = true;
+        private bool _debugMode = false;
+        private bool _antiGlideMode = false;
         private bool _walkInLookMode = false;
         private InterfaceDisabledAction _whenInterfaceDisabled = InterfaceDisabledAction.GreyOut;
         private bool _clipGuiControls = true;

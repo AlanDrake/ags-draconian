@@ -51,7 +51,7 @@ namespace AGS.Types
         private bool _diagonalLoops = true;
         private bool _adjustSpeedWithScaling;
         private bool _adjustVolumeWithScaling;
-        private bool _movementLinkedToAnimation = true;
+        private bool _movementLinkedToAnimation = false;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Characters);
         // Game Events
         private string _scriptModule = Script.GLOBAL_SCRIPT_FILE_NAME;
