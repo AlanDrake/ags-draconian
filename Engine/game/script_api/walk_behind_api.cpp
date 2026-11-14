@@ -15,68 +15,29 @@
 // Script bindings registered by RegisterWalkbehindAPI().
 //
 //=============================================================================
-#include "game/dynobj/cc_walk_behind.h"
 #include "game/dynobj/script_objects.h"
-#include "game/dynobj/script_string.h"
 #include "game/game.h"
+#include "game/script_api/bindings.h"
 #include "game/world/room.h"
 #include "game/world/walk_behind.h"
-#include "script/script_api.h"
 #include "script/script_runtime.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern RuntimeScriptValue Sc_GetDrawingSurfaceForWalkbehind(const RuntimeScriptValue *params, int32_t param_count);
-
-RuntimeScriptValue Sc_Walkbehind_GetAtRoomXY(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJ_PINT2(ScriptWalkbehind, ccDynamicWalkbehind, Walkbehind_GetAtRoomXY);
-}
-
-RuntimeScriptValue Sc_Walkbehind_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJ_PINT2(ScriptWalkbehind, ccDynamicWalkbehind, Walkbehind_GetAtScreenXY);
-}
-
-RuntimeScriptValue Sc_Walkbehind_GetByName(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJ_POBJ(ScriptWalkbehind, ccDynamicWalkbehind, Walkbehind_GetByName, const char);
-}
-
-RuntimeScriptValue Sc_Walkbehind_GetBaseline(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptWalkbehind, Walkbehind_GetBaseline);
-}
-
-RuntimeScriptValue Sc_Walkbehind_SetBaseline(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(ScriptWalkbehind, Walkbehind_SetBaseline);
-}
-
-RuntimeScriptValue Sc_Walkbehind_GetID(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptWalkbehind, Walkbehind_GetID);
-}
-
-RuntimeScriptValue Sc_Walkbehind_GetScriptName(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(ScriptWalkbehind, const char, myScriptStringImpl, Walkbehind_GetScriptName);
-}
-
 
 void RegisterWalkbehindAPI()
 {
     ScFnRegister walkbehind_api[] = {
-        {"Walkbehind::GetAtRoomXY^2", API_FN_PAIR(Walkbehind_GetAtRoomXY)},
-        {"Walkbehind::GetAtScreenXY^2", API_FN_PAIR(Walkbehind_GetAtScreenXY)},
-        {"Walkbehind::GetByScriptName^1", API_FN_PAIR(Walkbehind_GetByName)},
-        {"Walkbehind::GetDrawingSurface", API_FN_PAIR(GetDrawingSurfaceForWalkbehind)},
+        ScStatic<&Walkbehind_GetAtRoomXY>("Walkbehind::GetAtRoomXY^2"),
+        ScStatic<&Walkbehind_GetAtScreenXY>("Walkbehind::GetAtScreenXY^2"),
+        ScStatic<&Walkbehind_GetByName>("Walkbehind::GetByScriptName^1"),
+        ScStatic<&GetDrawingSurfaceForWalkbehind>("Walkbehind::GetDrawingSurface"),
 
-        {"Walkbehind::get_Baseline", API_FN_PAIR(Walkbehind_GetBaseline)},
-        {"Walkbehind::set_Baseline", API_FN_PAIR(Walkbehind_SetBaseline)},
-        {"Walkbehind::get_ID", API_FN_PAIR(Walkbehind_GetID)},
-        {"Walkbehind::get_ScriptName", API_FN_PAIR(Walkbehind_GetScriptName)},
+        ScMethod<&Walkbehind_GetBaseline>("Walkbehind::get_Baseline"),
+        ScMethod<&Walkbehind_SetBaseline>("Walkbehind::set_Baseline"),
+        ScMethod<&Walkbehind_GetID>("Walkbehind::get_ID"),
+        ScMethod<&Walkbehind_GetScriptName>("Walkbehind::get_ScriptName"),
     };
 
     ccAddExternalFunctions(walkbehind_api);

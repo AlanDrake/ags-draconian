@@ -81,11 +81,6 @@ RuntimeScriptValue Sc_GetDrawingSurfaceForWalkableArea(const RuntimeScriptValue 
     API_SCALL_OBJAUTO(ScriptDrawingSurface, GetDrawingSurfaceForWalkableArea);
 }
 
-RuntimeScriptValue Sc_GetDrawingSurfaceForWalkbehind(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO(ScriptDrawingSurface, GetDrawingSurfaceForWalkbehind);
-}
-
 //=============================================================================
 //
 // Exclusive variadic API implementation for Plugins
