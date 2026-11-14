@@ -223,7 +223,7 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     }
     else
     {
-        audio_speed = 0; // default: normal speed
+        audio_speed = 1000; // default: normal speed
     }
 
     blend_mode = (BlendMode)in->ReadInt32();

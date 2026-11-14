@@ -68,7 +68,7 @@ public:
     int16_t blocking_width = 0, blocking_height = 0, blocking_x = 0, blocking_y = 0;
     int audio_volume = 100; // default animation sounds volume (relative factor)
     int audio_panning = 0;  // animation sounds panning (-100 to +100)
-    int audio_speed = 0;    // animation sounds speed, ms per second
+    int audio_speed = 1000; // animation sounds speed, ms per second
     AGS::Common::String name;
     AGS::Common::BlendMode blend_mode;
     int shader_id = 0;
