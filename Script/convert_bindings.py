@@ -675,6 +675,8 @@ def sc_references(repo):
                 continue  # a declaration goes with the definition
             for m in re.finditer(r'\bSc_\w+', line):
                 found[m.group(0)].append((path, n))
+            for m in re.finditer(r'\bAPI_FN_PAIR\(\s*(\w+)\s*\)', line):  # names Sc_<its argument>
+                found['Sc_' + m.group(1)].append((path, n))
     return found
 
 
