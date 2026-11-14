@@ -11,13 +11,13 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/characterextras.h"
+#include "game/world/character_extras.h"
 
 #include "ac/characterinfo.h"
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/viewframe.h"
+#include "game/world/view_frame.h"
 #include "script/script.h"
 #include "util/stream.h"
 #include "util/string_utils.h"

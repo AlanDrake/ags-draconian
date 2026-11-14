@@ -13,8 +13,8 @@
 //=============================================================================
 #pragma once
 
-#include "ac/movelist.h"
 #include "game/navigation/route_finder.h"
+#include "game/world/move_list.h"
 #include "util/geometry.h"
 
 namespace AGS

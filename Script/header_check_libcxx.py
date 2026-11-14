@@ -27,7 +27,7 @@ REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 # One translation unit per module, to take the compiler flags from
 MODULES = {
     'Common': 'Common/ac/spritecache.cpp',
-    'Engine': 'Engine/ac/character.cpp',
+    'Engine': 'Engine/game/world/character.cpp',
     'Compiler': 'Compiler/main.cpp',
     'Tools': 'Tools/agsbuild/main.cpp',
 }

@@ -11,21 +11,21 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/walkablearea.h"
+#include "game/world/walkable_area.h"
 
-#include "ac/character.h"
 #include "ac/common.h"
 #include "ac/dynobj/cc_walkablearea.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/object.h"
-#include "ac/properties.h"
-#include "ac/room.h"
-#include "ac/roomobject.h"
-#include "ac/roomstatus.h"
 #include "debug/debug_log.h"
 #include "game/lib/string.h"
 #include "game/roomstruct.h"
+#include "game/world/character.h"
+#include "game/world/object.h"
+#include "game/world/properties.h"
+#include "game/world/room.h"
+#include "game/world/room_object.h"
+#include "game/world/room_status.h"
 #include "gfx/bitmap.h"
 #include "script/script_runtime.h"
 

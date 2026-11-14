@@ -20,11 +20,6 @@ target_include_directories(engine PUBLIC .)
 target_sources(engine
     PRIVATE
     ac/asset_helper.h
-    ac/character.cpp
-    ac/character.h
-    ac/characterextras.cpp
-    ac/characterextras.h
-    ac/characterinfo_engine.cpp
     ac/dynobj/all_dynamicclasses.h
     ac/dynobj/all_scriptclasses.h
     ac/dynobj/cc_agsdynamicobject.cpp
@@ -119,25 +114,7 @@ target_sources(engine
     ac/gamestate.cpp
     ac/gamestate.h
     ac/global_api.cpp
-    ac/hotspot.cpp
-    ac/hotspot.h
-    ac/inventoryitem.cpp
-    ac/inventoryitem.h
-    ac/movelist.cpp
-    ac/movelist.h
-    ac/object.cpp
-    ac/object.h
     ac/path_helper.h
-    ac/properties.cpp
-    ac/properties.h
-    ac/region.cpp
-    ac/region.h
-    ac/room.cpp
-    ac/room.h
-    ac/roomobject.cpp
-    ac/roomobject.h
-    ac/roomstatus.cpp
-    ac/roomstatus.h
     ac/runtime_defines.h
     ac/dynobj/scriptgame.cpp
     ac/dynobj/scriptgame.h
@@ -151,12 +128,6 @@ target_sources(engine
     ac/timer.h
     ac/translation.cpp
     ac/translation.h
-    ac/viewframe.cpp
-    ac/viewframe.h
-    ac/walkablearea.cpp
-    ac/walkablearea.h
-    ac/walkbehind.cpp
-    ac/walkbehind.h
     debug/agseditordebugger.h
     debug/debug.cpp
     debug/debug_log.h
@@ -321,6 +292,35 @@ target_sources(engine
     game/video/video.h
     game/video/video_script.cpp
     game/video/video_script.h
+    game/world/character.cpp
+    game/world/character.h
+    game/world/character_extras.cpp
+    game/world/character_extras.h
+    game/world/character_info_engine.cpp
+    game/world/hotspot.cpp
+    game/world/hotspot.h
+    game/world/inventory_item.cpp
+    game/world/inventory_item.h
+    game/world/move_list.cpp
+    game/world/move_list.h
+    game/world/object.cpp
+    game/world/object.h
+    game/world/properties.cpp
+    game/world/properties.h
+    game/world/region.cpp
+    game/world/region.h
+    game/world/room.cpp
+    game/world/room.h
+    game/world/room_object.cpp
+    game/world/room_object.h
+    game/world/room_status.cpp
+    game/world/room_status.h
+    game/world/view_frame.cpp
+    game/world/view_frame.h
+    game/world/walk_behind.cpp
+    game/world/walk_behind.h
+    game/world/walkable_area.cpp
+    game/world/walkable_area.h
     gfx/ali3dexception.h
     gfx/ali3dogl.cpp
     gfx/ali3dogl.h

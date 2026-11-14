@@ -18,7 +18,6 @@
 #include <numeric>
 #include <vector>
 
-#include "ac/character.h"
 #include "ac/common.h"
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guicontrol.h"
@@ -31,9 +30,6 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/inventoryitem.h"
-#include "ac/object.h"
-#include "ac/properties.h"
 #include "ac/runtime_defines.h"
 #include "ac/system.h"
 #include "debug/debug_log.h"
@@ -44,6 +40,10 @@
 #include "game/ui/gui_control.h"
 #include "game/ui/inv_window.h"
 #include "game/ui/mouse.h"
+#include "game/world/character.h"
+#include "game/world/inventory_item.h"
+#include "game/world/object.h"
+#include "game/world/properties.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfxfilter.h"

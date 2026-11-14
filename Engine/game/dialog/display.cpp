@@ -17,7 +17,6 @@
 #include <cstdarg>
 #include <cstdio>
 
-#include "ac/character.h"
 #include "ac/common.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
@@ -40,6 +39,7 @@
 #include "game/render/screen_overlay.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
+#include "game/world/character.h"
 #include "gfx/blender.h"
 #include "gfx/gfx_util.h"
 #include "gui/guibutton.h"

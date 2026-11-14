@@ -28,13 +28,13 @@
 #include <string>
 #include <vector>
 
-#include "ac/characterextras.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/view.h"
 #include "game/save/savegame.h"
 #include "game/save/savegame_components.h"
 #include "game/save/savegame_internal.h"
+#include "game/world/character_extras.h"
 #include "gtest/gtest.h"
 #include "util/memorystream.h"
 

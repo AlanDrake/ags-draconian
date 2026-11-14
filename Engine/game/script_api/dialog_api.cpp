@@ -15,12 +15,12 @@
 // Script bindings registered by RegisterDialogAPI().
 //
 //=============================================================================
-#include "ac/character.h"
 #include "ac/dynobj/cc_dialog.h"
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/game.h"
 #include "game/dialog/dialog.h"
+#include "game/world/character.h"
 #include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

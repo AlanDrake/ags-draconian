@@ -16,7 +16,6 @@
 #include <array>
 #include <vector>
 
-#include "ac/character.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/dynobj_manager.h"
@@ -25,7 +24,6 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/movelist.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
 #include "data/assetmanager.h"
@@ -40,6 +38,8 @@
 #include "game/dialog/speech.h"
 #include "game/render/draw.h"
 #include "game/ui/gui.h"
+#include "game/world/character.h"
+#include "game/world/move_list.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gui/guiinv.h"

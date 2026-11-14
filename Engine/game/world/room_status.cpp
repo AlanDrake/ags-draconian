@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/roomstatus.h"
+#include "game/world/room_status.h"
 
 #include <cstdlib> // free
 #include <cstring> // memset

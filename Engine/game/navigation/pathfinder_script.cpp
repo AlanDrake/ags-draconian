@@ -23,10 +23,10 @@
 #include "ac/dynobj/scriptpathfinder.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/game.h"
-#include "ac/object.h"
 #include "ac/spritecache.h"
 #include "debug/debug_log.h"
 #include "game/navigation/route_finder.h"
+#include "game/world/object.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

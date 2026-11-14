@@ -18,14 +18,12 @@
 
 #include "main/game_file.h"
 
-#include "ac/character.h"
 #include "ac/common.h"
 #include "ac/dialogtopic.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestructdefines.h"
-#include "ac/viewframe.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
@@ -33,6 +31,8 @@
 #include "game/main_game_file.h"
 #include "game/render/draw.h"
 #include "game/ui/gui.h"
+#include "game/world/character.h"
+#include "game/world/view_frame.h"
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"
 #include "gui/guilabel.h"

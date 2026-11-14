@@ -11,21 +11,21 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/hotspot.h"
+#include "game/world/hotspot.h"
 
-#include "ac/character.h"
 #include "ac/common.h"
 #include "ac/dynobj/cc_hotspot.h"
 #include "ac/event.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/properties.h"
-#include "ac/room.h"
-#include "ac/roomstatus.h"
 #include "debug/debug_log.h"
 #include "game/lib/string.h"
 #include "game/roomstruct.h"
 #include "game/ui/gui.h"
+#include "game/world/character.h"
+#include "game/world/properties.h"
+#include "game/world/room.h"
+#include "game/world/room_status.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"

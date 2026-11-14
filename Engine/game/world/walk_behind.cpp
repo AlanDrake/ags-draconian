@@ -11,18 +11,18 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/walkbehind.h"
+#include "game/world/walk_behind.h"
 
 #include <algorithm>
 
 #include "ac/dynobj/cc_walkbehind.h"
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/gamestate.h"
-#include "ac/room.h"
-#include "ac/roomstatus.h"
 #include "debug/debug_log.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
+#include "game/world/room.h"
+#include "game/world/room_status.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "script/script_runtime.h"

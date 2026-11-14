@@ -22,7 +22,7 @@
 #include <cmath>
 #include <vector>
 
-#include "ac/movelist.h"
+#include "game/world/move_list.h"
 #include "gtest/gtest.h"
 
 using namespace AGS::Common;

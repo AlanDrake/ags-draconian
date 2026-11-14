@@ -11,14 +11,13 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/inventoryitem.h"
+#include "game/world/inventory_item.h"
 
 #include "ac/characterinfo.h"
 #include "ac/dynobj/cc_inventory.h"
 #include "ac/event.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/properties.h"
 #include "ac/runtime_defines.h"
 #include "debug/debug_log.h"
 #include "game/lib/string.h"
@@ -26,6 +25,7 @@
 #include "game/ui/gui.h"
 #include "game/ui/inv_window.h"
 #include "game/ui/mouse.h"
+#include "game/world/properties.h"
 #include "gui/guidefines.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"

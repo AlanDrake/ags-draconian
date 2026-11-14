@@ -21,7 +21,7 @@
 #include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/game.h"
-#include "ac/object.h"
+#include "game/world/object.h"
 #include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

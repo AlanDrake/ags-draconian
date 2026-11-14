@@ -21,7 +21,6 @@
 #include <memory>
 #include <vector>
 
-#include "ac/characterextras.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/spritecache.h"
@@ -30,6 +29,7 @@
 #include "game/render/screen_overlay.h"
 #include "game/render/viewport.h"
 #include "game/roomstruct.h"
+#include "game/world/character_extras.h"
 #include "gfx/bitmap.h"
 #include "gtest/gtest.h"
 

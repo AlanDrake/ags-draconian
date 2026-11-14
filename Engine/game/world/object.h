@@ -15,7 +15,7 @@
 
 #include "ac/common_defines.h"
 #include "ac/dynobj/scriptobjects.h"
-#include "ac/roomobject.h"
+#include "game/world/room_object.h"
 #include "gfx/gfx_def.h"
 
 namespace AGS

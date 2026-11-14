@@ -18,7 +18,7 @@
 #include "ac/dynobj/cc_inventory.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/game.h"
-#include "ac/inventoryitem.h"
+#include "game/world/inventory_item.h"
 #include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

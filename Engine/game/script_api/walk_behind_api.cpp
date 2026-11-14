@@ -19,8 +19,8 @@
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/game.h"
-#include "ac/room.h"
-#include "ac/walkbehind.h"
+#include "game/world/room.h"
+#include "game/world/walk_behind.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

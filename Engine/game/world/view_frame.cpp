@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/viewframe.h"
+#include "game/world/view_frame.h"
 
 #include "ac/common.h" // quitprintf
 #include "ac/dynobj/scriptstring.h"

@@ -15,7 +15,7 @@
 // AGS Character functions
 //
 //=============================================================================
-#include "ac/character.h"
+#include "game/world/character.h"
 
 #include <cstdio>
 #include <math.h>
@@ -30,19 +30,10 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/inventoryitem.h"
-#include "ac/movelist.h"
-#include "ac/object.h"
-#include "ac/properties.h"
-#include "ac/region.h"
-#include "ac/room.h"
-#include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
 #include "ac/spritecache.h"
 #include "ac/system.h"
 #include "ac/view.h"
-#include "ac/viewframe.h"
-#include "ac/walkablearea.h"
 #include "debug/debug_log.h"
 #include "game/dialog/display.h"
 #include "game/dialog/lipsync.h"
@@ -54,6 +45,15 @@
 #include "game/render/screen_overlay.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
+#include "game/world/inventory_item.h"
+#include "game/world/move_list.h"
+#include "game/world/object.h"
+#include "game/world/properties.h"
+#include "game/world/region.h"
+#include "game/world/room.h"
+#include "game/world/room_status.h"
+#include "game/world/view_frame.h"
+#include "game/world/walkable_area.h"
 #include "gfx/gfx_def.h"
 #include "gfx/graphicsdriver.h"
 #include "gui/guimain.h"

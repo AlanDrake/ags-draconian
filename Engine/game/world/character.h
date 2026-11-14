@@ -15,12 +15,12 @@
 
 #include <vector>
 
-#include "ac/characterextras.h"
 #include "ac/characterinfo.h"
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptoverlay.h"
 #include "ac/runtime_defines.h"
 #include "game/render/viewport.h"
+#include "game/world/character_extras.h"
 #include "util/geometry.h"
 
 // **** CHARACTER: FUNCTIONS ****

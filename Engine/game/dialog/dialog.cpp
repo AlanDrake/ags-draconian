@@ -16,7 +16,6 @@
 #include <cstdio>
 #include <stack>
 
-#include "ac/character.h"
 #include "ac/characterinfo.h"
 #include "ac/common.h"
 #include "ac/dialogtopic.h"
@@ -28,8 +27,6 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/keycode.h"
-#include "ac/properties.h"
-#include "ac/room.h"
 #include "ac/spritecache.h"
 #include "ac/sys_events.h"
 #include "ac/system.h"
@@ -44,6 +41,9 @@
 #include "game/render/overlay.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
+#include "game/world/character.h"
+#include "game/world/properties.h"
+#include "game/world/room.h"
 #include "gfx/ddb.h"
 #include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"

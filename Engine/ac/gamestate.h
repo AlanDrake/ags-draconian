@@ -19,16 +19,16 @@
 #include <unordered_set>
 #include <vector>
 
-#include "ac/characterextras.h"
 #include "ac/characterinfo.h"
 #include "ac/gamestructdefines.h"
 #include "ac/keycode.h"
-#include "ac/movelist.h"
 #include "ac/runtime_defines.h"
 #include "ac/timer.h"
 #include "game/dialog/speech.h"
 #include "game/render/viewport.h"
 #include "game/roomstruct.h"
+#include "game/world/character_extras.h"
+#include "game/world/move_list.h"
 #include "gfx/graphicsdriver.h"
 #include "gui/guidefines.h"
 #include "media/audio/queuedaudioitem.h"

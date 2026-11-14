@@ -22,7 +22,7 @@
     <ClCompile Include="..\..\Engine\test\game_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\movelist.cpp">
+    <ClCompile Include="..\..\Engine\game\world\move_list.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\navigation\route_finder.cpp">

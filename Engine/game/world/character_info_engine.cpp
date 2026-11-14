@@ -11,18 +11,18 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/character.h"
-#include "ac/characterextras.h"
 #include "ac/characterinfo.h"
 #include "ac/common.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/object.h"
-#include "ac/viewframe.h"
 #include "debug/debug_log.h"
 #include "game/lib/math.h"
 #include "game/roomstruct.h"
+#include "game/world/character.h"
+#include "game/world/character_extras.h"
+#include "game/world/object.h"
+#include "game/world/view_frame.h"
 #include "main/game_run.h"
 #include "main/update.h"
 #include "media/audio/audio_system.h"

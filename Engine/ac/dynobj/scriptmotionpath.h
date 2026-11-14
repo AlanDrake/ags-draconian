@@ -16,8 +16,8 @@
 #include <memory>
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
-#include "ac/movelist.h"
 #include "ac/runtime_defines.h"
+#include "game/world/move_list.h"
 
 
 class ScriptMotionPath : public AGSCCDynamicObject

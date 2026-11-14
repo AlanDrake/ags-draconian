@@ -83,6 +83,9 @@
     <Filter Include="Source Files\game\video">
       <UniqueIdentifier>{588b0037-3403-5854-8d04-688f19bbb07f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\game\world">
+      <UniqueIdentifier>{a67240fb-de09-5858-a551-64d5efc7a7a8}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
@@ -165,6 +168,9 @@
     <Filter Include="Header Files\game\video">
       <UniqueIdentifier>{b677d900-fa88-51b9-9e50-22a5c2295dee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\game\world">
+      <UniqueIdentifier>{dea7aeec-5865-5857-be19-4fb3bfa65af6}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
@@ -216,14 +222,14 @@
     <ClCompile Include="..\..\Engine\game\ui\button.cpp">
       <Filter>Source Files\game\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\character.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\world\character.cpp">
+      <Filter>Source Files\game\world</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\characterextras.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\world\character_extras.cpp">
+      <Filter>Source Files\game\world</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\characterinfo_engine.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\world\character_info_engine.cpp">
+      <Filter>Source Files\game\world</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\lib\date_time.cpp">
       <Filter>Source Files\game\lib</Filter>
@@ -273,11 +279,11 @@
     <ClCompile Include="..\..\Engine\game\ui\gui_inv.cpp">
       <Filter>Source Files\game\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\hotspot.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\world\hotspot.cpp">
+      <Filter>Source Files\game\world</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\inventoryitem.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\world\inventory_item.cpp">
+      <Filter>Source Files\game\world</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\ui\inv_window.cpp">
       <Filter>Source Files\game\ui</Filter>
@@ -294,11 +300,11 @@
     <ClCompile Include="..\..\Engine\game\ui\mouse.cpp">
       <Filter>Source Files\game\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\movelist.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\world\move_list.cpp">
+      <Filter>Source Files\game\world</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\object.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\world\object.cpp">
+      <Filter>Source Files\game\world</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\render\overlay.cpp">
       <Filter>Source Files\game\render</Filter>
@@ -309,23 +315,23 @@
     <ClCompile Include="..\..\Engine\game\input\touch.cpp">
       <Filter>Source Files\game\input</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\properties.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\world\properties.cpp">
+      <Filter>Source Files\game\world</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\sys_events.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\region.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\world\region.cpp">
+      <Filter>Source Files\game\world</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\room.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\world\room.cpp">
+      <Filter>Source Files\game\world</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\roomobject.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\world\room_object.cpp">
+      <Filter>Source Files\game\world</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\roomstatus.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\world\room_status.cpp">
+      <Filter>Source Files\game\world</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\navigation\route_finder.cpp">
       <Filter>Source Files\game\navigation</Filter>
@@ -357,14 +363,14 @@
     <ClCompile Include="..\..\Engine\ac\translation.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\viewframe.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\world\view_frame.cpp">
+      <Filter>Source Files\game\world</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\walkablearea.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\world\walkable_area.cpp">
+      <Filter>Source Files\game\world</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\walkbehind.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\world\walk_behind.cpp">
+      <Filter>Source Files\game\world</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_agsdynamicobject.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
@@ -944,11 +950,11 @@
     <ClInclude Include="..\..\Engine\game\ui\button.h">
       <Filter>Header Files\game\ui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\character.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\world\character.h">
+      <Filter>Header Files\game\world</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\characterextras.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\world\character_extras.h">
+      <Filter>Header Files\game\world</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\lib\date_time.h">
       <Filter>Header Files\game\lib</Filter>
@@ -995,11 +1001,11 @@
     <ClInclude Include="..\..\Engine\game\ui\gui_control.h">
       <Filter>Header Files\game\ui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\hotspot.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\world\hotspot.h">
+      <Filter>Header Files\game\world</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\inventoryitem.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\world\inventory_item.h">
+      <Filter>Header Files\game\world</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\ui\inv_window.h">
       <Filter>Header Files\game\ui</Filter>
@@ -1019,11 +1025,11 @@
     <ClInclude Include="..\..\Engine\game\ui\mouse.h">
       <Filter>Header Files\game\ui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\movelist.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\world\move_list.h">
+      <Filter>Header Files\game\world</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\object.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\world\object.h">
+      <Filter>Header Files\game\world</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\render\overlay.h">
       <Filter>Header Files\game\render</Filter>
@@ -1037,23 +1043,23 @@
     <ClInclude Include="..\..\Engine\game\input\touch.h">
       <Filter>Header Files\game\input</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\properties.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\world\properties.h">
+      <Filter>Header Files\game\world</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\sys_events.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\region.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\world\region.h">
+      <Filter>Header Files\game\world</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\room.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\world\room.h">
+      <Filter>Header Files\game\world</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\roomobject.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\world\room_object.h">
+      <Filter>Header Files\game\world</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\roomstatus.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\world\room_status.h">
+      <Filter>Header Files\game\world</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\navigation\route_finder.h">
       <Filter>Header Files\game\navigation</Filter>
@@ -1091,14 +1097,14 @@
     <ClInclude Include="..\..\Engine\ac\translation.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\viewframe.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\world\view_frame.h">
+      <Filter>Header Files\game\world</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\walkablearea.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\world\walkable_area.h">
+      <Filter>Header Files\game\world</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\walkbehind.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\world\walk_behind.h">
+      <Filter>Header Files\game\world</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\all_dynamicclasses.h">
       <Filter>Header Files\ac\dynobj</Filter>

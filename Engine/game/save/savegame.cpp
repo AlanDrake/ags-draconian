@@ -13,7 +13,6 @@
 //=============================================================================
 #include "game/save/savegame.h"
 
-#include "ac/character.h"
 #include "ac/common.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "ac/dynobj/cc_audioclip.h"
@@ -33,9 +32,6 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/region.h"
-#include "ac/room.h"
-#include "ac/roomstatus.h"
 #include "ac/spritecache.h"
 #include "ac/system.h"
 #include "ac/timer.h"
@@ -55,6 +51,10 @@
 #include "game/ui/button.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
+#include "game/world/character.h"
+#include "game/world/region.h"
+#include "game/world/room.h"
+#include "game/world/room_status.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"

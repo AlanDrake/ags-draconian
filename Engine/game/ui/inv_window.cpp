@@ -13,7 +13,6 @@
 //=============================================================================
 #include "game/ui/inv_window.h"
 
-#include "ac/characterextras.h"
 #include "ac/characterinfo.h"
 #include "ac/common.h"
 #include "ac/event.h"
@@ -27,6 +26,7 @@
 #include "game/ui/gui.h"
 #include "game/ui/gui_dialog.h"
 #include "game/ui/mouse.h"
+#include "game/world/character_extras.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"

@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/roomobject.h"
+#include "game/world/room_object.h"
 
 #include "ac/common.h"
 #include "ac/common_defines.h"
@@ -19,11 +19,11 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/object.h"
-#include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
-#include "ac/viewframe.h"
 #include "debug/debug_log.h"
+#include "game/world/object.h"
+#include "game/world/room_status.h"
+#include "game/world/view_frame.h"
 #include "gfx/gfx_def.h"
 #include "main/update.h"
 #include "script/script.h"

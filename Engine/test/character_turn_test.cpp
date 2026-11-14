@@ -20,10 +20,10 @@
 #include <algorithm>
 #include <vector>
 
-#include "ac/character.h"
-#include "ac/characterextras.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/view.h"
+#include "game/world/character.h"
+#include "game/world/character_extras.h"
 #include "gtest/gtest.h"
 
 extern GameSetupStruct game;

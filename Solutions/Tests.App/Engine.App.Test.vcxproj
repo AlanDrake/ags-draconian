@@ -21,9 +21,9 @@
   <ItemGroup>
     <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest-all.cc" />
     <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest_main.cc" />
-    <ClCompile Include="..\..\Engine\ac\movelist.cpp" />
     <ClCompile Include="..\..\Engine\game\navigation\route_finder.cpp" />
     <ClCompile Include="..\..\Engine\game\navigation\route_finder_impl.cpp" />
+    <ClCompile Include="..\..\Engine\game\world\move_list.cpp" />
     <ClCompile Include="..\..\Engine\script\script_api.cpp" />
     <ClCompile Include="..\..\Engine\script\systemimports.cpp" />
     <ClCompile Include="..\..\Engine\test\game_test.cpp" />

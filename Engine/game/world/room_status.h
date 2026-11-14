@@ -13,10 +13,10 @@
 //=============================================================================
 #pragma once
 
-#include "ac/roomobject.h"
 #include "game/roomstruct.h"
 #include "game/save/savegame.h"
 #include "game/scripteventtable.h"
+#include "game/world/room_object.h"
 #include "util/string_types.h"
 
 // Forward declaration

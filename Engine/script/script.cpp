@@ -19,20 +19,20 @@
 #include <stack>
 #include <vector>
 
-#include "ac/character.h"
 #include "ac/common.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/room.h"
-#include "ac/roomobject.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "game/dialog/dialog.h"
 #include "game/ui/inv_window.h"
 #include "game/ui/mouse.h"
+#include "game/world/character.h"
+#include "game/world/room.h"
+#include "game/world/room_object.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "plugin/plugin_engine.h"

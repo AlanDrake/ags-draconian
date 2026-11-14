@@ -16,8 +16,6 @@
 #include <algorithm>
 #include <queue>
 
-#include "ac/character.h"
-#include "ac/characterextras.h"
 #include "ac/common.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptshader.h"
@@ -25,7 +23,6 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/object.h"
 #include "ac/runtime_defines.h"
 #include "ac/spritecache.h"
 #include "ac/translation.h"
@@ -35,6 +32,9 @@
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/render/screen_overlay.h"
+#include "game/world/character.h"
+#include "game/world/character_extras.h"
+#include "game/world/object.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "gfx/graphicsdriver.h"

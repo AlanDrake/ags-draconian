@@ -18,7 +18,7 @@
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/game.h"
-#include "ac/viewframe.h"
+#include "game/world/view_frame.h"
 #include "script/script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

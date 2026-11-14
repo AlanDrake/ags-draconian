@@ -14,9 +14,9 @@
 #include "ac/dynobj/scriptpathfinder.h"
 
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/room.h"
 #include "ac/spritecache.h"
-#include "ac/walkablearea.h"
+#include "game/world/room.h"
+#include "game/world/walkable_area.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
