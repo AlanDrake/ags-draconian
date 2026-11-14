@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/guicontrol.h"
+#include "game/ui/gui_control.h"
 
 #include <vector>
 
@@ -23,12 +23,12 @@
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/gui.h"
-#include "ac/mouse.h"
 #include "ac/object.h"
 #include "ac/properties.h"
 #include "debug/debug_log.h"
 #include "game/lib/string.h"
+#include "game/ui/gui.h"
+#include "game/ui/mouse.h"
 #include "gfx/gfx_def.h"
 #include "script/runtimescriptvalue.h"
 

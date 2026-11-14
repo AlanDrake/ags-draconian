@@ -17,7 +17,7 @@
 //=============================================================================
 #pragma once
 
-#include "gui/guidialogdefines.h"
+#include "game/ui/gui_dialog_defines.h"
 #include "platform/types.h"
 
 // Opens a window on the GUI screen and returns its id; the area drawn is 2 pixels larger than

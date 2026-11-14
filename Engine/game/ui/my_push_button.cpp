@@ -11,18 +11,18 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gui/mypushbutton.h"
+#include "game/ui/my_push_button.h"
 
 #include <cstring>
 
 #include "ac/common.h"
-#include "ac/mouse.h"
 #include "ac/sys_events.h"
 #include "ac/timer.h"
 #include "font/fonts.h"
+#include "game/ui/gui_dialog.h"
+#include "game/ui/gui_dialog_defines.h"
+#include "game/ui/mouse.h"
 #include "gfx/bitmap.h"
-#include "gui/guidialog.h"
-#include "gui/guidialogdefines.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
 #include "platform/base/agsplatformdriver.h"

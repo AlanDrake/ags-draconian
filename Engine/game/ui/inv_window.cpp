@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/invwindow.h"
+#include "game/ui/inv_window.h"
 
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
@@ -20,13 +20,13 @@
 #include "ac/event.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/gui.h"
-#include "ac/mouse.h"
 #include "ac/spritecache.h"
 #include "ac/sys_events.h"
 #include "ac/timer.h"
 #include "debug/debug_log.h"
-#include "gui/guidialog.h"
+#include "game/ui/gui.h"
+#include "game/ui/gui_dialog.h"
+#include "game/ui/mouse.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"

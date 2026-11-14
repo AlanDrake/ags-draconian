@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/label.h"
+#include "game/ui/label.h"
 
 #include <cstdio>
 

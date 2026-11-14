@@ -20,7 +20,7 @@
 #include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/game.h"
-#include "ac/guicontrol.h"
+#include "game/ui/gui_control.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

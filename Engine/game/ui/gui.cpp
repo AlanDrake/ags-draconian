@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/gui.h"
+#include "game/ui/gui.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -32,10 +32,7 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/guicontrol.h"
 #include "ac/inventoryitem.h"
-#include "ac/invwindow.h"
-#include "ac/mouse.h"
 #include "ac/object.h"
 #include "ac/properties.h"
 #include "ac/runtime_defines.h"
@@ -44,6 +41,9 @@
 #include "device/mousew32.h"
 #include "game/dialog/display.h"
 #include "game/lib/string.h"
+#include "game/ui/gui_control.h"
+#include "game/ui/inv_window.h"
+#include "game/ui/mouse.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfxfilter.h"

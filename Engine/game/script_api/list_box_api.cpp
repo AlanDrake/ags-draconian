@@ -18,7 +18,7 @@
 #include <allegro.h>
 
 #include "ac/dynobj/scriptstring.h"
-#include "ac/listbox.h"
+#include "game/ui/list_box.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

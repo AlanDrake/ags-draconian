@@ -23,8 +23,8 @@
 
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/gamestate.h"
-#include "ac/gui.h"
 #include "ac/runtime_defines.h"
+#include "game/ui/gui.h"
 #include "gtest/gtest.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"

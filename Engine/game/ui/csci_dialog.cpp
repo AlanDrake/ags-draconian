@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gui/cscidialog.h"
+#include "game/ui/csci_dialog.h"
 
 #include <cctype>
 
@@ -19,18 +19,18 @@
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
-#include "ac/gui.h"
 #include "ac/keycode.h"
-#include "ac/mouse.h"
 #include "ac/runtime_defines.h"
 #include "ac/sys_events.h"
 #include "ac/timer.h"
 #include "font/fonts.h"
+#include "game/ui/gui.h"
+#include "game/ui/gui_dialog.h"
+#include "game/ui/mouse.h"
+#include "game/ui/my_controls.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
-#include "gui/guidialog.h"
 #include "gui/guimain.h"
-#include "gui/mycontrols.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"

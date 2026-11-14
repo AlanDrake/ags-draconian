@@ -11,15 +11,15 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gui/mytextbox.h"
+#include "game/ui/my_text_box.h"
 
 #include <cstdio>
 #include <cstring>
 
 #include "ac/keycode.h"
 #include "font/fonts.h"
+#include "game/ui/gui_dialog_defines.h"
 #include "gfx/bitmap.h"
-#include "gui/guidialogdefines.h"
 #include "gui/guimain.h"
 
 using namespace AGS::Common;

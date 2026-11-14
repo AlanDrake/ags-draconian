@@ -13,7 +13,6 @@
 //=============================================================================
 #include "game/save/savegame.h"
 
-#include "ac/button.h"
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -36,8 +35,6 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/gui.h"
-#include "ac/mouse.h"
 #include "ac/overlay.h"
 #include "ac/region.h"
 #include "ac/room.h"
@@ -55,6 +52,9 @@
 #include "game/lib/string.h"
 #include "game/save/savegame_components.h"
 #include "game/save/savegame_internal.h"
+#include "game/ui/button.h"
+#include "game/ui/gui.h"
+#include "game/ui/mouse.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"

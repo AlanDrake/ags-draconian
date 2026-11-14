@@ -11,10 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gui/newcontrol.h"
+#include "game/ui/new_control.h"
 
-#include "gui/guidialog.h"
-#include "gui/guidialogdefines.h"
+#include "game/ui/gui_dialog.h"
+#include "game/ui/gui_dialog_defines.h"
 
 extern int topwindowhandle;
 

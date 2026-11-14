@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/button.h"
+#include "game/ui/button.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -21,12 +21,12 @@
 #include "ac/dynobj/cc_guicontrol.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gui.h"
 #include "ac/object.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
 #include "game/lib/string.h"
-#include "gui/animatingguibutton.h"
+#include "game/ui/animating_gui_button.h"
+#include "game/ui/gui.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
 #include "script/script.h"

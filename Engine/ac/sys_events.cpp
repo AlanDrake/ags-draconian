@@ -21,11 +21,11 @@
 
 #include "ac/common.h"
 #include "ac/keycode.h"
-#include "ac/mouse.h"
 #include "ac/timer.h"
 #include "device/mousew32.h"
 #include "game/input/joystick.h"
 #include "game/input/touch.h"
+#include "game/ui/mouse.h"
 #include "main/engine.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"

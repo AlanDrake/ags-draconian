@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gui/mylistbox.h"
+#include "game/ui/my_list_box.h"
 
 #include <cstring>
 
@@ -19,9 +19,9 @@
 #include "ac/gamesetup.h"
 #include "ac/keycode.h"
 #include "font/fonts.h"
+#include "game/ui/gui_dialog.h"
+#include "game/ui/gui_dialog_defines.h"
 #include "gfx/bitmap.h"
-#include "gui/guidialog.h"
-#include "gui/guidialogdefines.h"
 #include "gui/guimain.h"
 
 using namespace AGS::Common;

@@ -16,7 +16,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptstring.h"
-#include "ac/textbox.h"
+#include "game/ui/text_box.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

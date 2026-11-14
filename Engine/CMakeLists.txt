@@ -20,8 +20,6 @@ target_include_directories(engine PUBLIC .)
 target_sources(engine
     PRIVATE
     ac/asset_helper.h
-    ac/button.cpp
-    ac/button.h
     ac/character.cpp
     ac/character.h
     ac/characterextras.cpp
@@ -129,23 +127,10 @@ target_sources(engine
     ac/gamestate.cpp
     ac/gamestate.h
     ac/global_api.cpp
-    ac/gui.cpp
-    ac/gui.h
-    ac/guicontrol.cpp
-    ac/guicontrol.h
-    ac/guiinv.cpp
     ac/hotspot.cpp
     ac/hotspot.h
     ac/inventoryitem.cpp
     ac/inventoryitem.h
-    ac/invwindow.cpp
-    ac/invwindow.h
-    ac/label.cpp
-    ac/label.h
-    ac/listbox.cpp
-    ac/listbox.h
-    ac/mouse.cpp
-    ac/mouse.h
     ac/movelist.cpp
     ac/movelist.h
     ac/object.cpp
@@ -170,8 +155,6 @@ target_sources(engine
     ac/screenoverlay.h
     ac/shader_script.cpp
     ac/shader_script.h
-    ac/slider.cpp
-    ac/slider.h
     ac/dynobj/scriptgame.cpp
     ac/dynobj/scriptgame.h
     ac/dynobj/cc_staticarray.cpp
@@ -180,8 +163,6 @@ target_sources(engine
     ac/sys_events.h
     ac/system.cpp
     ac/system.h
-    ac/textbox.cpp
-    ac/textbox.h
     ac/timer.cpp
     ac/timer.h
     ac/translation.cpp
@@ -296,6 +277,44 @@ target_sources(engine
     game/script_api/viewport_api.cpp
     game/script_api/walk_behind_api.cpp
     game/script_api/walkable_area_api.cpp
+    game/ui/animating_gui_button.cpp
+    game/ui/animating_gui_button.h
+    game/ui/button.cpp
+    game/ui/button.h
+    game/ui/csci_dialog.cpp
+    game/ui/csci_dialog.h
+    game/ui/gui.cpp
+    game/ui/gui.h
+    game/ui/gui_control.cpp
+    game/ui/gui_control.h
+    game/ui/gui_dialog.cpp
+    game/ui/gui_dialog.h
+    game/ui/gui_dialog_defines.h
+    game/ui/gui_engine.cpp
+    game/ui/gui_inv.cpp
+    game/ui/inv_window.cpp
+    game/ui/inv_window.h
+    game/ui/label.cpp
+    game/ui/label.h
+    game/ui/list_box.cpp
+    game/ui/list_box.h
+    game/ui/mouse.cpp
+    game/ui/mouse.h
+    game/ui/my_controls.h
+    game/ui/my_label.cpp
+    game/ui/my_label.h
+    game/ui/my_list_box.cpp
+    game/ui/my_list_box.h
+    game/ui/my_push_button.cpp
+    game/ui/my_push_button.h
+    game/ui/my_text_box.cpp
+    game/ui/my_text_box.h
+    game/ui/new_control.cpp
+    game/ui/new_control.h
+    game/ui/slider.cpp
+    game/ui/slider.h
+    game/ui/text_box.cpp
+    game/ui/text_box.h
     game/video/video.cpp
     game/video/video.h
     game/video/video_script.cpp
@@ -334,25 +353,6 @@ target_sources(engine
     gfx/gfxmodelist.h
     gfx/graphicsdriver.h
     gfx/ogl_headers.h
-    gui/animatingguibutton.cpp
-    gui/animatingguibutton.h
-    gui/cscidialog.cpp
-    gui/cscidialog.h
-    gui/gui_engine.cpp
-    gui/guidialog.cpp
-    gui/guidialog.h
-    gui/guidialogdefines.h
-    gui/mycontrols.h
-    gui/mylabel.cpp
-    gui/mylabel.h
-    gui/mylistbox.cpp
-    gui/mylistbox.h
-    gui/mypushbutton.cpp
-    gui/mypushbutton.h
-    gui/mytextbox.cpp
-    gui/mytextbox.h
-    gui/newcontrol.cpp
-    gui/newcontrol.h
     main/config.cpp
     main/config.h
     main/engine.cpp

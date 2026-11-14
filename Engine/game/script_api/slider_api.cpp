@@ -15,7 +15,7 @@
 // Script bindings registered by RegisterSliderAPI().
 //
 //=============================================================================
-#include "ac/slider.h"
+#include "game/ui/slider.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

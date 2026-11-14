@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/listbox.h"
+#include "game/ui/list_box.h"
 
 #include <algorithm>
 #include <vector>
@@ -25,11 +25,11 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/gui.h"
 #include "ac/path_helper.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "game/lib/string.h"
+#include "game/ui/gui.h"
 #include "util/directory.h"
 #include "util/path.h"
 

@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gui/mylabel.h"
+#include "game/ui/my_label.h"
 
 #include <cstring>
 
@@ -19,7 +19,7 @@
 #include "font/fonts.h"
 #include "game/dialog/display.h"
 #include "game/lib/string.h"
-#include "gui/guidialogdefines.h"
+#include "game/ui/gui_dialog_defines.h"
 
 using namespace AGS;
 using namespace AGS::Common;

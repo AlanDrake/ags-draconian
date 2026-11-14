@@ -18,12 +18,12 @@
 #include <cctype>
 
 #include "ac/gamesetupstruct.h"
-#include "ac/gui.h"
 #include "ac/spritecache.h"
 #include "ac/system.h"
 #include "ac/translation.h"
 #include "font/fonts.h"
 #include "game/lib/string.h"
+#include "game/ui/gui.h"
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"
 

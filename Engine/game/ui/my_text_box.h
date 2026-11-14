@@ -14,27 +14,18 @@
 
 #pragma once
 
-#include "gui/newcontrol.h"
+#include "game/ui/new_control.h"
 
-#define MAXLISTITEM 300
-#define ARROWWIDTH  8
-
-// A list box of the legacy built-in dialogs: up to MAXLISTITEM items in rows of textheight pixels,
-// with a scroll arrow pair of ARROWWIDTH pixels at the right. Handles the CLB_* messages and CTB_KEYPRESS.
-struct MyListBox : public NewControl
+#define TEXTBOX_MAXLEN 49
+// A single-line text box of the legacy built-in dialogs: a framed field holding up to TEXTBOX_MAXLEN characters
+// and a trailing "_" as the cursor. Handles CTB_SETTEXT, CTB_GETTEXT and CTB_KEYPRESS.
+struct MyTextBox : public NewControl
 {
-    int items, topitem, numonscreen, selected;
-    char *itemnames[MAXLISTITEM];
+    char text[TEXTBOX_MAXLEN + 1];
     int textheight; // TODO: use font instead
 
-    MyListBox(int left, int top, int width, int height, int text_height);
-    // Frees all item texts and empties the list.
-    void clearlist();
-    ~MyListBox() override;
-
+    MyTextBox(int left, int top, int width, const char *initial_text, int text_height);
     void draw(AGS::Common::Bitmap *ds) override;
     int pressedon(int mx, int my) override;
-    // Appends a copy of the text; quits when MAXLISTITEM items are already there.
-    void additem(char *text);
     int processmessage(int mcode, int wParam, intptr_t ipParam) override;
 };

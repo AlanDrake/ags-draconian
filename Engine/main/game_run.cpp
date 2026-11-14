@@ -23,7 +23,6 @@
 
 #include <SDL.h>
 
-#include "ac/button.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
@@ -34,10 +33,8 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/gui.h"
 #include "ac/hotspot.h"
 #include "ac/keycode.h"
-#include "ac/mouse.h"
 #include "ac/object.h"
 #include "ac/overlay.h"
 #include "ac/region.h"
@@ -55,8 +52,11 @@
 #include "game/dialog/display.h"
 #include "game/input/joystick.h"
 #include "game/input/touch.h"
+#include "game/ui/animating_gui_button.h"
+#include "game/ui/button.h"
+#include "game/ui/gui.h"
+#include "game/ui/mouse.h"
 #include "game/video/video.h"
-#include "gui/animatingguibutton.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
 #include "gui/guitextbox.h"

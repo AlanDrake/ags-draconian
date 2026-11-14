@@ -11,14 +11,13 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gui/guiinv.h"
-
 #include "ac/characterextras.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
+#include "gui/guiinv.h"
 #include "gui/guimain.h"
 
 

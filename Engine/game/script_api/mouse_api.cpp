@@ -17,8 +17,8 @@
 //=============================================================================
 #include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
-#include "ac/mouse.h"
 #include "device/mousew32.h"
+#include "game/ui/mouse.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

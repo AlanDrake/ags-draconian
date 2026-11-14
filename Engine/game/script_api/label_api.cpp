@@ -16,7 +16,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptstring.h"
-#include "ac/label.h"
+#include "game/ui/label.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gui/guidialog.h"
+#include "game/ui/gui_dialog.h"
 
 #include <algorithm>
 #include <cctype> //isdigit()
@@ -25,9 +25,9 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "debug/debug_log.h"
+#include "game/ui/csci_dialog.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
-#include "gui/cscidialog.h"
 #include "main/game_run.h"
 #include "util/path.h"
 #include "util/string_compat.h"

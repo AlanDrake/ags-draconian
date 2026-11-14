@@ -14,18 +14,16 @@
 
 #pragma once
 
-#include "gui/newcontrol.h"
+#include "game/ui/new_control.h"
 
-#define TEXTBOX_MAXLEN 49
-// A single-line text box of the legacy built-in dialogs: a framed field holding up to TEXTBOX_MAXLEN characters
-// and a trailing "_" as the cursor. Handles CTB_SETTEXT, CTB_GETTEXT and CTB_KEYPRESS.
-struct MyTextBox : public NewControl
+// A push button of the legacy built-in dialogs: draws a raised or pressed frame and a centred caption.
+struct MyPushButton : public NewControl
 {
-    char text[TEXTBOX_MAXLEN + 1];
-    int textheight; // TODO: use font instead
-
-    MyTextBox(int left, int top, int width, const char *initial_text, int text_height);
+    char text[50];
+    MyPushButton(int left, int top, int width, int height, const char *caption);
     void draw(AGS::Common::Bitmap *ds) override;
+    // Runs the press until the left mouse button is released, redrawing when the state changes;
+    // returns the state before it was reset to 0, that is whether the button counted as pressed.
     int pressedon(int mx, int my) override;
     int processmessage(int mcode, int wParam, intptr_t ipParam) override;
 };

@@ -17,7 +17,7 @@
 //=============================================================================
 #pragma once
 
-#include "gui/mylabel.h"
-#include "gui/mylistbox.h"
-#include "gui/mypushbutton.h"
-#include "gui/mytextbox.h"
+#include "game/ui/my_label.h"
+#include "game/ui/my_list_box.h"
+#include "game/ui/my_push_button.h"
+#include "game/ui/my_text_box.h"

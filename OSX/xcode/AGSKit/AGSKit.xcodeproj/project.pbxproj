@@ -618,20 +618,20 @@
 		526F26FC1D3B5CC300EF4E1F /* global_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24791D3B5CC200EF4E1F /* global_api.cpp */; };
 		526F27461D3B5CC300EF4E1F /* gui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24C31D3B5CC300EF4E1F /* gui.cpp */; };
 		526F27471D3B5CC300EF4E1F /* gui.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24C41D3B5CC300EF4E1F /* gui.h */; };
-		526F27481D3B5CC300EF4E1F /* guicontrol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24C51D3B5CC300EF4E1F /* guicontrol.cpp */; };
-		526F27491D3B5CC300EF4E1F /* guicontrol.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24C61D3B5CC300EF4E1F /* guicontrol.h */; };
-		526F274A1D3B5CC300EF4E1F /* guiinv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24C71D3B5CC300EF4E1F /* guiinv.cpp */; };
+		526F27481D3B5CC300EF4E1F /* gui_control.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24C51D3B5CC300EF4E1F /* gui_control.cpp */; };
+		526F27491D3B5CC300EF4E1F /* gui_control.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24C61D3B5CC300EF4E1F /* gui_control.h */; };
+		526F274A1D3B5CC300EF4E1F /* gui_inv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24C71D3B5CC300EF4E1F /* gui_inv.cpp */; };
 		526F274B1D3B5CC300EF4E1F /* hotspot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24C81D3B5CC300EF4E1F /* hotspot.cpp */; };
 		526F274C1D3B5CC300EF4E1F /* hotspot.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24C91D3B5CC300EF4E1F /* hotspot.h */; };
 		526F274F1D3B5CC300EF4E1F /* inventoryitem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24CC1D3B5CC300EF4E1F /* inventoryitem.cpp */; };
 		526F27501D3B5CC300EF4E1F /* inventoryitem.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24CD1D3B5CC300EF4E1F /* inventoryitem.h */; };
-		526F27521D3B5CC300EF4E1F /* invwindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24CF1D3B5CC300EF4E1F /* invwindow.cpp */; };
-		526F27531D3B5CC300EF4E1F /* invwindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24D01D3B5CC300EF4E1F /* invwindow.h */; };
+		526F27521D3B5CC300EF4E1F /* inv_window.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24CF1D3B5CC300EF4E1F /* inv_window.cpp */; };
+		526F27531D3B5CC300EF4E1F /* inv_window.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24D01D3B5CC300EF4E1F /* inv_window.h */; };
 		526F27551D3B5CC300EF4E1F /* label.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24D21D3B5CC300EF4E1F /* label.cpp */; };
 		526F27561D3B5CC300EF4E1F /* label.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24D31D3B5CC300EF4E1F /* label.h */; };
 		526F27571D3B5CC300EF4E1F /* lipsync.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24D41D3B5CC300EF4E1F /* lipsync.h */; };
-		526F27581D3B5CC300EF4E1F /* listbox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24D51D3B5CC300EF4E1F /* listbox.cpp */; };
-		526F27591D3B5CC300EF4E1F /* listbox.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24D61D3B5CC300EF4E1F /* listbox.h */; };
+		526F27581D3B5CC300EF4E1F /* list_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24D51D3B5CC300EF4E1F /* list_box.cpp */; };
+		526F27591D3B5CC300EF4E1F /* list_box.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24D61D3B5CC300EF4E1F /* list_box.h */; };
 		526F275A1D3B5CC300EF4E1F /* math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24D71D3B5CC300EF4E1F /* math.cpp */; };
 		526F275B1D3B5CC300EF4E1F /* math.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24D81D3B5CC300EF4E1F /* math.h */; };
 		526F275C1D3B5CC300EF4E1F /* mouse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24D91D3B5CC300EF4E1F /* mouse.cpp */; };
@@ -669,8 +669,8 @@
 		526F278D1D3B5CC300EF4E1F /* string.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F250B1D3B5CC300EF4E1F /* string.h */; };
 		526F278E1D3B5CC300EF4E1F /* system.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F250C1D3B5CC300EF4E1F /* system.cpp */; };
 		526F278F1D3B5CC300EF4E1F /* system.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F250D1D3B5CC300EF4E1F /* system.h */; };
-		526F27901D3B5CC300EF4E1F /* textbox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F250E1D3B5CC300EF4E1F /* textbox.cpp */; };
-		526F27911D3B5CC300EF4E1F /* textbox.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F250F1D3B5CC300EF4E1F /* textbox.h */; };
+		526F27901D3B5CC300EF4E1F /* text_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F250E1D3B5CC300EF4E1F /* text_box.cpp */; };
+		526F27911D3B5CC300EF4E1F /* text_box.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F250F1D3B5CC300EF4E1F /* text_box.h */; };
 		526F27921D3B5CC300EF4E1F /* timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25101D3B5CC300EF4E1F /* timer.cpp */; };
 		526F27931D3B5CC300EF4E1F /* timer.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25111D3B5CC300EF4E1F /* timer.h */; };
 		526F27951D3B5CC300EF4E1F /* translation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25131D3B5CC300EF4E1F /* translation.cpp */; };
@@ -715,25 +715,25 @@
 		526F27CC1D3B5CC300EF4E1F /* gfxfilter_scaling.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F254E1D3B5CC300EF4E1F /* gfxfilter_scaling.h */; };
 		526F27CD1D3B5CC300EF4E1F /* gfxmodelist.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F254F1D3B5CC300EF4E1F /* gfxmodelist.h */; };
 		526F27CE1D3B5CC300EF4E1F /* graphicsdriver.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25501D3B5CC300EF4E1F /* graphicsdriver.h */; };
-		526F27D01D3B5CC300EF4E1F /* animatingguibutton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25531D3B5CC300EF4E1F /* animatingguibutton.cpp */; };
-		526F27D11D3B5CC300EF4E1F /* animatingguibutton.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25541D3B5CC300EF4E1F /* animatingguibutton.h */; };
-		526F27D21D3B5CC300EF4E1F /* cscidialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25551D3B5CC300EF4E1F /* cscidialog.cpp */; };
-		526F27D31D3B5CC300EF4E1F /* cscidialog.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25561D3B5CC300EF4E1F /* cscidialog.h */; };
+		526F27D01D3B5CC300EF4E1F /* animating_gui_button.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25531D3B5CC300EF4E1F /* animating_gui_button.cpp */; };
+		526F27D11D3B5CC300EF4E1F /* animating_gui_button.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25541D3B5CC300EF4E1F /* animating_gui_button.h */; };
+		526F27D21D3B5CC300EF4E1F /* csci_dialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25551D3B5CC300EF4E1F /* csci_dialog.cpp */; };
+		526F27D31D3B5CC300EF4E1F /* csci_dialog.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25561D3B5CC300EF4E1F /* csci_dialog.h */; };
 		526F27D41D3B5CC300EF4E1F /* gui_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25571D3B5CC300EF4E1F /* gui_engine.cpp */; };
-		526F27D51D3B5CC300EF4E1F /* guidialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25581D3B5CC300EF4E1F /* guidialog.cpp */; };
-		526F27D61D3B5CC300EF4E1F /* guidialog.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25591D3B5CC300EF4E1F /* guidialog.h */; };
-		526F27D71D3B5CC300EF4E1F /* guidialogdefines.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F255A1D3B5CC300EF4E1F /* guidialogdefines.h */; };
-		526F27D91D3B5CC300EF4E1F /* mycontrols.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F255C1D3B5CC300EF4E1F /* mycontrols.h */; };
-		526F27DA1D3B5CC300EF4E1F /* mylabel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F255D1D3B5CC300EF4E1F /* mylabel.cpp */; };
-		526F27DB1D3B5CC300EF4E1F /* mylabel.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F255E1D3B5CC300EF4E1F /* mylabel.h */; };
-		526F27DC1D3B5CC300EF4E1F /* mylistbox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F255F1D3B5CC300EF4E1F /* mylistbox.cpp */; };
-		526F27DD1D3B5CC300EF4E1F /* mylistbox.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25601D3B5CC300EF4E1F /* mylistbox.h */; };
-		526F27DE1D3B5CC300EF4E1F /* mypushbutton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25611D3B5CC300EF4E1F /* mypushbutton.cpp */; };
-		526F27DF1D3B5CC300EF4E1F /* mypushbutton.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25621D3B5CC300EF4E1F /* mypushbutton.h */; };
-		526F27E01D3B5CC300EF4E1F /* mytextbox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25631D3B5CC300EF4E1F /* mytextbox.cpp */; };
-		526F27E11D3B5CC300EF4E1F /* mytextbox.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25641D3B5CC300EF4E1F /* mytextbox.h */; };
-		526F27E21D3B5CC300EF4E1F /* newcontrol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25651D3B5CC300EF4E1F /* newcontrol.cpp */; };
-		526F27E31D3B5CC300EF4E1F /* newcontrol.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25661D3B5CC300EF4E1F /* newcontrol.h */; };
+		526F27D51D3B5CC300EF4E1F /* gui_dialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25581D3B5CC300EF4E1F /* gui_dialog.cpp */; };
+		526F27D61D3B5CC300EF4E1F /* gui_dialog.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25591D3B5CC300EF4E1F /* gui_dialog.h */; };
+		526F27D71D3B5CC300EF4E1F /* gui_dialog_defines.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F255A1D3B5CC300EF4E1F /* gui_dialog_defines.h */; };
+		526F27D91D3B5CC300EF4E1F /* my_controls.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F255C1D3B5CC300EF4E1F /* my_controls.h */; };
+		526F27DA1D3B5CC300EF4E1F /* my_label.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F255D1D3B5CC300EF4E1F /* my_label.cpp */; };
+		526F27DB1D3B5CC300EF4E1F /* my_label.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F255E1D3B5CC300EF4E1F /* my_label.h */; };
+		526F27DC1D3B5CC300EF4E1F /* my_list_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F255F1D3B5CC300EF4E1F /* my_list_box.cpp */; };
+		526F27DD1D3B5CC300EF4E1F /* my_list_box.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25601D3B5CC300EF4E1F /* my_list_box.h */; };
+		526F27DE1D3B5CC300EF4E1F /* my_push_button.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25611D3B5CC300EF4E1F /* my_push_button.cpp */; };
+		526F27DF1D3B5CC300EF4E1F /* my_push_button.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25621D3B5CC300EF4E1F /* my_push_button.h */; };
+		526F27E01D3B5CC300EF4E1F /* my_text_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25631D3B5CC300EF4E1F /* my_text_box.cpp */; };
+		526F27E11D3B5CC300EF4E1F /* my_text_box.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25641D3B5CC300EF4E1F /* my_text_box.h */; };
+		526F27E21D3B5CC300EF4E1F /* new_control.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25651D3B5CC300EF4E1F /* new_control.cpp */; };
+		526F27E31D3B5CC300EF4E1F /* new_control.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25661D3B5CC300EF4E1F /* new_control.h */; };
 		526F28051D3B5CC300EF4E1F /* adisplay.c in Sources */ = {isa = PBXBuildFile; fileRef = 526F25921D3B5CC300EF4E1F /* adisplay.c */; };
 		526F28071D3B5CC300EF4E1F /* aaudio.c in Sources */ = {isa = PBXBuildFile; fileRef = 526F25951D3B5CC300EF4E1F /* aaudio.c */; };
 		526F28081D3B5CC300EF4E1F /* apegcommon.c in Sources */ = {isa = PBXBuildFile; fileRef = 526F25961D3B5CC300EF4E1F /* apegcommon.c */; };
@@ -1546,20 +1546,20 @@
 		526F24791D3B5CC200EF4E1F /* global_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_api.cpp; sourceTree = "<group>"; };
 		526F24C31D3B5CC300EF4E1F /* gui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gui.cpp; sourceTree = "<group>"; };
 		526F24C41D3B5CC300EF4E1F /* gui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gui.h; sourceTree = "<group>"; };
-		526F24C51D3B5CC300EF4E1F /* guicontrol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = guicontrol.cpp; sourceTree = "<group>"; };
-		526F24C61D3B5CC300EF4E1F /* guicontrol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = guicontrol.h; sourceTree = "<group>"; };
-		526F24C71D3B5CC300EF4E1F /* guiinv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = guiinv.cpp; sourceTree = "<group>"; };
+		526F24C51D3B5CC300EF4E1F /* gui_control.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gui_control.cpp; sourceTree = "<group>"; };
+		526F24C61D3B5CC300EF4E1F /* gui_control.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gui_control.h; sourceTree = "<group>"; };
+		526F24C71D3B5CC300EF4E1F /* gui_inv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gui_inv.cpp; sourceTree = "<group>"; };
 		526F24C81D3B5CC300EF4E1F /* hotspot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = hotspot.cpp; sourceTree = "<group>"; };
 		526F24C91D3B5CC300EF4E1F /* hotspot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hotspot.h; sourceTree = "<group>"; };
 		526F24CC1D3B5CC300EF4E1F /* inventoryitem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inventoryitem.cpp; sourceTree = "<group>"; };
 		526F24CD1D3B5CC300EF4E1F /* inventoryitem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inventoryitem.h; sourceTree = "<group>"; };
-		526F24CF1D3B5CC300EF4E1F /* invwindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = invwindow.cpp; sourceTree = "<group>"; };
-		526F24D01D3B5CC300EF4E1F /* invwindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = invwindow.h; sourceTree = "<group>"; };
+		526F24CF1D3B5CC300EF4E1F /* inv_window.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inv_window.cpp; sourceTree = "<group>"; };
+		526F24D01D3B5CC300EF4E1F /* inv_window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inv_window.h; sourceTree = "<group>"; };
 		526F24D21D3B5CC300EF4E1F /* label.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = label.cpp; sourceTree = "<group>"; };
 		526F24D31D3B5CC300EF4E1F /* label.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = label.h; sourceTree = "<group>"; };
 		526F24D41D3B5CC300EF4E1F /* lipsync.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lipsync.h; sourceTree = "<group>"; };
-		526F24D51D3B5CC300EF4E1F /* listbox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = listbox.cpp; sourceTree = "<group>"; };
-		526F24D61D3B5CC300EF4E1F /* listbox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = listbox.h; sourceTree = "<group>"; };
+		526F24D51D3B5CC300EF4E1F /* list_box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = list_box.cpp; sourceTree = "<group>"; };
+		526F24D61D3B5CC300EF4E1F /* list_box.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = list_box.h; sourceTree = "<group>"; };
 		526F24D71D3B5CC300EF4E1F /* math.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = math.cpp; sourceTree = "<group>"; };
 		526F24D81D3B5CC300EF4E1F /* math.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = math.h; sourceTree = "<group>"; };
 		526F24D91D3B5CC300EF4E1F /* mouse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mouse.cpp; sourceTree = "<group>"; };
@@ -1597,8 +1597,8 @@
 		526F250B1D3B5CC300EF4E1F /* string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = string.h; sourceTree = "<group>"; };
 		526F250C1D3B5CC300EF4E1F /* system.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system.cpp; sourceTree = "<group>"; };
 		526F250D1D3B5CC300EF4E1F /* system.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = system.h; sourceTree = "<group>"; };
-		526F250E1D3B5CC300EF4E1F /* textbox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = textbox.cpp; sourceTree = "<group>"; };
-		526F250F1D3B5CC300EF4E1F /* textbox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = textbox.h; sourceTree = "<group>"; };
+		526F250E1D3B5CC300EF4E1F /* text_box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = text_box.cpp; sourceTree = "<group>"; };
+		526F250F1D3B5CC300EF4E1F /* text_box.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = text_box.h; sourceTree = "<group>"; };
 		526F25101D3B5CC300EF4E1F /* timer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = timer.cpp; sourceTree = "<group>"; };
 		526F25111D3B5CC300EF4E1F /* timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = timer.h; sourceTree = "<group>"; };
 		526F25131D3B5CC300EF4E1F /* translation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = translation.cpp; sourceTree = "<group>"; };
@@ -1643,25 +1643,25 @@
 		526F254E1D3B5CC300EF4E1F /* gfxfilter_scaling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfxfilter_scaling.h; sourceTree = "<group>"; };
 		526F254F1D3B5CC300EF4E1F /* gfxmodelist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfxmodelist.h; sourceTree = "<group>"; };
 		526F25501D3B5CC300EF4E1F /* graphicsdriver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = graphicsdriver.h; sourceTree = "<group>"; };
-		526F25531D3B5CC300EF4E1F /* animatingguibutton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = animatingguibutton.cpp; sourceTree = "<group>"; };
-		526F25541D3B5CC300EF4E1F /* animatingguibutton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = animatingguibutton.h; sourceTree = "<group>"; };
-		526F25551D3B5CC300EF4E1F /* cscidialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cscidialog.cpp; sourceTree = "<group>"; };
-		526F25561D3B5CC300EF4E1F /* cscidialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cscidialog.h; sourceTree = "<group>"; };
+		526F25531D3B5CC300EF4E1F /* animating_gui_button.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = animating_gui_button.cpp; sourceTree = "<group>"; };
+		526F25541D3B5CC300EF4E1F /* animating_gui_button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = animating_gui_button.h; sourceTree = "<group>"; };
+		526F25551D3B5CC300EF4E1F /* csci_dialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = csci_dialog.cpp; sourceTree = "<group>"; };
+		526F25561D3B5CC300EF4E1F /* csci_dialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = csci_dialog.h; sourceTree = "<group>"; };
 		526F25571D3B5CC300EF4E1F /* gui_engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gui_engine.cpp; sourceTree = "<group>"; };
-		526F25581D3B5CC300EF4E1F /* guidialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = guidialog.cpp; sourceTree = "<group>"; };
-		526F25591D3B5CC300EF4E1F /* guidialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = guidialog.h; sourceTree = "<group>"; };
-		526F255A1D3B5CC300EF4E1F /* guidialogdefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = guidialogdefines.h; sourceTree = "<group>"; };
-		526F255C1D3B5CC300EF4E1F /* mycontrols.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mycontrols.h; sourceTree = "<group>"; };
-		526F255D1D3B5CC300EF4E1F /* mylabel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mylabel.cpp; sourceTree = "<group>"; };
-		526F255E1D3B5CC300EF4E1F /* mylabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mylabel.h; sourceTree = "<group>"; };
-		526F255F1D3B5CC300EF4E1F /* mylistbox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mylistbox.cpp; sourceTree = "<group>"; };
-		526F25601D3B5CC300EF4E1F /* mylistbox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mylistbox.h; sourceTree = "<group>"; };
-		526F25611D3B5CC300EF4E1F /* mypushbutton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mypushbutton.cpp; sourceTree = "<group>"; };
-		526F25621D3B5CC300EF4E1F /* mypushbutton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mypushbutton.h; sourceTree = "<group>"; };
-		526F25631D3B5CC300EF4E1F /* mytextbox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mytextbox.cpp; sourceTree = "<group>"; };
-		526F25641D3B5CC300EF4E1F /* mytextbox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mytextbox.h; sourceTree = "<group>"; };
-		526F25651D3B5CC300EF4E1F /* newcontrol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = newcontrol.cpp; sourceTree = "<group>"; };
-		526F25661D3B5CC300EF4E1F /* newcontrol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = newcontrol.h; sourceTree = "<group>"; };
+		526F25581D3B5CC300EF4E1F /* gui_dialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gui_dialog.cpp; sourceTree = "<group>"; };
+		526F25591D3B5CC300EF4E1F /* gui_dialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gui_dialog.h; sourceTree = "<group>"; };
+		526F255A1D3B5CC300EF4E1F /* gui_dialog_defines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gui_dialog_defines.h; sourceTree = "<group>"; };
+		526F255C1D3B5CC300EF4E1F /* my_controls.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_controls.h; sourceTree = "<group>"; };
+		526F255D1D3B5CC300EF4E1F /* my_label.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = my_label.cpp; sourceTree = "<group>"; };
+		526F255E1D3B5CC300EF4E1F /* my_label.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_label.h; sourceTree = "<group>"; };
+		526F255F1D3B5CC300EF4E1F /* my_list_box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = my_list_box.cpp; sourceTree = "<group>"; };
+		526F25601D3B5CC300EF4E1F /* my_list_box.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_list_box.h; sourceTree = "<group>"; };
+		526F25611D3B5CC300EF4E1F /* my_push_button.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = my_push_button.cpp; sourceTree = "<group>"; };
+		526F25621D3B5CC300EF4E1F /* my_push_button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_push_button.h; sourceTree = "<group>"; };
+		526F25631D3B5CC300EF4E1F /* my_text_box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = my_text_box.cpp; sourceTree = "<group>"; };
+		526F25641D3B5CC300EF4E1F /* my_text_box.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_text_box.h; sourceTree = "<group>"; };
+		526F25651D3B5CC300EF4E1F /* new_control.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = new_control.cpp; sourceTree = "<group>"; };
+		526F25661D3B5CC300EF4E1F /* new_control.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = new_control.h; sourceTree = "<group>"; };
 		526F25921D3B5CC300EF4E1F /* adisplay.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = adisplay.c; sourceTree = "<group>"; };
 		526F25951D3B5CC300EF4E1F /* aaudio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = aaudio.c; sourceTree = "<group>"; };
 		526F25961D3B5CC300EF4E1F /* apegcommon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = apegcommon.c; sourceTree = "<group>"; };
@@ -2621,7 +2621,6 @@
 				526F252B1D3B5CC300EF4E1F /* device */,
 				52D12C1B1D61C0950077B784 /* game */,
 				526F25301D3B5CC300EF4E1F /* gfx */,
-				526F25521D3B5CC300EF4E1F /* gui */,
 				526F25671D3B5CC300EF4E1F /* libsrc */,
 				526F25F01D3B5CC300EF4E1F /* main */,
 				526F260B1D3B5CC300EF4E1F /* media */,
@@ -3010,8 +3009,6 @@
 			isa = PBXGroup;
 			children = (
 				526F24331D3B5CC200EF4E1F /* dynobj */,
-				526F241A1D3B5CC200EF4E1F /* button.cpp */,
-				526F241B1D3B5CC200EF4E1F /* button.h */,
 				20522A5C28E8F8DD00589E91 /* sys_events.cpp */,
 				20522A5B28E8F8DD00589E91 /* sys_events.h */,
 				20522A5A28E8F8DD00589E91 /* viewport_script.cpp */,
@@ -3040,23 +3037,10 @@
 				526F24771D3B5CC200EF4E1F /* gamestate.cpp */,
 				526F24781D3B5CC200EF4E1F /* gamestate.h */,
 				526F24791D3B5CC200EF4E1F /* global_api.cpp */,
-				526F24C31D3B5CC300EF4E1F /* gui.cpp */,
-				526F24C41D3B5CC300EF4E1F /* gui.h */,
-				526F24C51D3B5CC300EF4E1F /* guicontrol.cpp */,
-				526F24C61D3B5CC300EF4E1F /* guicontrol.h */,
-				526F24C71D3B5CC300EF4E1F /* guiinv.cpp */,
 				526F24C81D3B5CC300EF4E1F /* hotspot.cpp */,
 				526F24C91D3B5CC300EF4E1F /* hotspot.h */,
 				526F24CC1D3B5CC300EF4E1F /* inventoryitem.cpp */,
 				526F24CD1D3B5CC300EF4E1F /* inventoryitem.h */,
-				526F24CF1D3B5CC300EF4E1F /* invwindow.cpp */,
-				526F24D01D3B5CC300EF4E1F /* invwindow.h */,
-				526F24D21D3B5CC300EF4E1F /* label.cpp */,
-				526F24D31D3B5CC300EF4E1F /* label.h */,
-				526F24D51D3B5CC300EF4E1F /* listbox.cpp */,
-				526F24D61D3B5CC300EF4E1F /* listbox.h */,
-				526F24D91D3B5CC300EF4E1F /* mouse.cpp */,
-				526F24DA1D3B5CC300EF4E1F /* mouse.h */,
 				526F24DB1D3B5CC300EF4E1F /* movelist.cpp */,
 				526F24DC1D3B5CC300EF4E1F /* movelist.h */,
 				526F24DD1D3B5CC300EF4E1F /* object.cpp */,
@@ -3078,12 +3062,8 @@
 				526F24F91D3B5CC300EF4E1F /* screen.h */,
 				526F24FA1D3B5CC300EF4E1F /* screenoverlay.cpp */,
 				526F24FB1D3B5CC300EF4E1F /* screenoverlay.h */,
-				526F24FC1D3B5CC300EF4E1F /* slider.cpp */,
-				526F24FD1D3B5CC300EF4E1F /* slider.h */,
 				526F250C1D3B5CC300EF4E1F /* system.cpp */,
 				526F250D1D3B5CC300EF4E1F /* system.h */,
-				526F250E1D3B5CC300EF4E1F /* textbox.cpp */,
-				526F250F1D3B5CC300EF4E1F /* textbox.h */,
 				526F25101D3B5CC300EF4E1F /* timer.cpp */,
 				526F25111D3B5CC300EF4E1F /* timer.h */,
 				526F25131D3B5CC300EF4E1F /* translation.cpp */,
@@ -3243,32 +3223,6 @@
 				526F25501D3B5CC300EF4E1F /* graphicsdriver.h */,
 			);
 			path = gfx;
-			sourceTree = "<group>";
-		};
-		526F25521D3B5CC300EF4E1F /* gui */ = {
-			isa = PBXGroup;
-			children = (
-				526F25531D3B5CC300EF4E1F /* animatingguibutton.cpp */,
-				526F25541D3B5CC300EF4E1F /* animatingguibutton.h */,
-				526F25551D3B5CC300EF4E1F /* cscidialog.cpp */,
-				526F25561D3B5CC300EF4E1F /* cscidialog.h */,
-				526F25571D3B5CC300EF4E1F /* gui_engine.cpp */,
-				526F25581D3B5CC300EF4E1F /* guidialog.cpp */,
-				526F25591D3B5CC300EF4E1F /* guidialog.h */,
-				526F255A1D3B5CC300EF4E1F /* guidialogdefines.h */,
-				526F255C1D3B5CC300EF4E1F /* mycontrols.h */,
-				526F255D1D3B5CC300EF4E1F /* mylabel.cpp */,
-				526F255E1D3B5CC300EF4E1F /* mylabel.h */,
-				526F255F1D3B5CC300EF4E1F /* mylistbox.cpp */,
-				526F25601D3B5CC300EF4E1F /* mylistbox.h */,
-				526F25611D3B5CC300EF4E1F /* mypushbutton.cpp */,
-				526F25621D3B5CC300EF4E1F /* mypushbutton.h */,
-				526F25631D3B5CC300EF4E1F /* mytextbox.cpp */,
-				526F25641D3B5CC300EF4E1F /* mytextbox.h */,
-				526F25651D3B5CC300EF4E1F /* newcontrol.cpp */,
-				526F25661D3B5CC300EF4E1F /* newcontrol.h */,
-			);
-			path = gui;
 			sourceTree = "<group>";
 		};
 		526F25671D3B5CC300EF4E1F /* libsrc */ = {
@@ -3514,6 +3468,7 @@
 				0A7049AB89557BCF4651F791 /* save */,
 				961D8454A8F243EE8D29496E /* lib */,
 				38192C8BDBDBB4A11187B9FA /* dialog */,
+				F908DD4357522DCCAEF38BA1 /* ui */,
 			);
 			path = game;
 			sourceTree = "<group>";
@@ -3751,6 +3706,51 @@
 			path = sfnt;
 			sourceTree = "<group>";
 		};
+		F908DD4357522DCCAEF38BA1 /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				526F241A1D3B5CC200EF4E1F /* button.cpp */,
+				526F241B1D3B5CC200EF4E1F /* button.h */,
+				526F24C31D3B5CC300EF4E1F /* gui.cpp */,
+				526F24C41D3B5CC300EF4E1F /* gui.h */,
+				526F24C51D3B5CC300EF4E1F /* gui_control.cpp */,
+				526F24C61D3B5CC300EF4E1F /* gui_control.h */,
+				526F24C71D3B5CC300EF4E1F /* gui_inv.cpp */,
+				526F24CF1D3B5CC300EF4E1F /* inv_window.cpp */,
+				526F24D01D3B5CC300EF4E1F /* inv_window.h */,
+				526F24D21D3B5CC300EF4E1F /* label.cpp */,
+				526F24D31D3B5CC300EF4E1F /* label.h */,
+				526F24D51D3B5CC300EF4E1F /* list_box.cpp */,
+				526F24D61D3B5CC300EF4E1F /* list_box.h */,
+				526F24D91D3B5CC300EF4E1F /* mouse.cpp */,
+				526F24DA1D3B5CC300EF4E1F /* mouse.h */,
+				526F24FC1D3B5CC300EF4E1F /* slider.cpp */,
+				526F24FD1D3B5CC300EF4E1F /* slider.h */,
+				526F250E1D3B5CC300EF4E1F /* text_box.cpp */,
+				526F250F1D3B5CC300EF4E1F /* text_box.h */,
+				526F25531D3B5CC300EF4E1F /* animating_gui_button.cpp */,
+				526F25541D3B5CC300EF4E1F /* animating_gui_button.h */,
+				526F25551D3B5CC300EF4E1F /* csci_dialog.cpp */,
+				526F25561D3B5CC300EF4E1F /* csci_dialog.h */,
+				526F25571D3B5CC300EF4E1F /* gui_engine.cpp */,
+				526F25581D3B5CC300EF4E1F /* gui_dialog.cpp */,
+				526F25591D3B5CC300EF4E1F /* gui_dialog.h */,
+				526F255A1D3B5CC300EF4E1F /* gui_dialog_defines.h */,
+				526F255C1D3B5CC300EF4E1F /* my_controls.h */,
+				526F255D1D3B5CC300EF4E1F /* my_label.cpp */,
+				526F255E1D3B5CC300EF4E1F /* my_label.h */,
+				526F255F1D3B5CC300EF4E1F /* my_list_box.cpp */,
+				526F25601D3B5CC300EF4E1F /* my_list_box.h */,
+				526F25611D3B5CC300EF4E1F /* my_push_button.cpp */,
+				526F25621D3B5CC300EF4E1F /* my_push_button.h */,
+				526F25631D3B5CC300EF4E1F /* my_text_box.cpp */,
+				526F25641D3B5CC300EF4E1F /* my_text_box.h */,
+				526F25651D3B5CC300EF4E1F /* new_control.cpp */,
+				526F25661D3B5CC300EF4E1F /* new_control.h */,
+			);
+			path = ui;
+			sourceTree = "<group>";
+		};
 		FBA6C78FD857ECD999B6B887 /* smooth */ = {
 			isa = PBXGroup;
 			children = (
@@ -3773,7 +3773,7 @@
 				521C3BEE1D1E545100BD619E /* AGSKit.h in Headers */,
 				526F27561D3B5CC300EF4E1F /* label.h in Headers */,
 				20E67D9B28F1BDE000B95C00 /* allegro.h in Headers */,
-				526F27D61D3B5CC300EF4E1F /* guidialog.h in Headers */,
+				526F27D61D3B5CC300EF4E1F /* gui_dialog.h in Headers */,
 				20E684AA28F20CC700B95C00 /* huffman.h in Headers */,
 				20E6840328F20C7300B95C00 /* registry.h in Headers */,
 				526F23F21D3B5C4900EF4E1F /* textstreamwriter.h in Headers */,
@@ -3834,7 +3834,7 @@
 				526F26CC1D3B5CC300EF4E1F /* cc_hotspot.h in Headers */,
 				20522A9328E8FD7700589E91 /* sys_main.h in Headers */,
 				526F26F31D3B5CC300EF4E1F /* event.h in Headers */,
-				526F27D11D3B5CC300EF4E1F /* animatingguibutton.h in Headers */,
+				526F27D11D3B5CC300EF4E1F /* animating_gui_button.h in Headers */,
 				20E67DB428F1BDE000B95C00 /* draw.h in Headers */,
 				526F28781D3B5CC300EF4E1F /* audio.h in Headers */,
 				20E6852828F2219A00B95C00 /* VariableWidthFont.h in Headers */,
@@ -3863,7 +3863,7 @@
 				526F22A81D3B5C4900EF4E1F /* game_version.h in Headers */,
 				526F22BF1D3B5C4900EF4E1F /* wordsdictionary.h in Headers */,
 				20E6811528F1C98400B95C00 /* l2tables.h in Headers */,
-				526F27E31D3B5CC300EF4E1F /* newcontrol.h in Headers */,
+				526F27E31D3B5CC300EF4E1F /* new_control.h in Headers */,
 				526F27B91D3B5CC300EF4E1F /* gfx_util.h in Headers */,
 				20E683E128F20C7200B95C00 /* masking.h in Headers */,
 				20522A3C28E8F86400589E91 /* scriptviewport.h in Headers */,
@@ -3893,7 +3893,7 @@
 				526F22CA1D3B5C4900EF4E1F /* out.h in Headers */,
 				20E6822F28F1D2B400B95C00 /* libmodplug.h in Headers */,
 				526F28701D3B5CC300EF4E1F /* quit.h in Headers */,
-				526F27D31D3B5CC300EF4E1F /* cscidialog.h in Headers */,
+				526F27D31D3B5CC300EF4E1F /* csci_dialog.h in Headers */,
 				526F22B41D3B5C4900EF4E1F /* mousecursor.h in Headers */,
 				526F28721D3B5CC300EF4E1F /* update.h in Headers */,
 				526F28CD1D3B5CC300EF4E1F /* script_runtime.h in Headers */,
@@ -3904,7 +3904,7 @@
 				526F22DC1D3B5C4900EF4E1F /* bitmap.h in Headers */,
 				526F22DA1D3B5C4900EF4E1F /* allegrobitmap.h in Headers */,
 				20E6847F28F20CC700B95C00 /* huffdec.h in Headers */,
-				526F27491D3B5CC300EF4E1F /* guicontrol.h in Headers */,
+				526F27491D3B5CC300EF4E1F /* gui_control.h in Headers */,
 				526F285E1D3B5CC300EF4E1F /* engine.h in Headers */,
 				526F28DC1D3B5CC300EF4E1F /* library_posix.h in Headers */,
 				526F28C61D3B5CC300EF4E1F /* runtimescriptvalue.h in Headers */,
@@ -3929,7 +3929,7 @@
 				20E683D428F20C7200B95C00 /* highlevel.h in Headers */,
 				20E6811728F1C98400B95C00 /* mpg123.h in Headers */,
 				E7680CBC2F09E88E00F864E2 /* time_util.h in Headers */,
-				526F27D91D3B5CC300EF4E1F /* mycontrols.h in Headers */,
+				526F27D91D3B5CC300EF4E1F /* my_controls.h in Headers */,
 				526F27B31D3B5CC300EF4E1F /* ali3dsw.h in Headers */,
 				20E67D9428F1BDE000B95C00 /* cdefs8.h in Headers */,
 				20E67D9028F1BDE000B95C00 /* cspr.h in Headers */,
@@ -3952,7 +3952,7 @@
 				2026099F2E438C47001A87E5 /* agstouch.h in Headers */,
 				20522A4B28E8F8AA00589E91 /* asset_helper.h in Headers */,
 				526F28661D3B5CC300EF4E1F /* game_start.h in Headers */,
-				526F27531D3B5CC300EF4E1F /* invwindow.h in Headers */,
+				526F27531D3B5CC300EF4E1F /* inv_window.h in Headers */,
 				526F26DC1D3B5CC300EF4E1F /* scriptdialogoptionsrendering.h in Headers */,
 				526F22D41D3B5C4900EF4E1F /* wfnfontrenderer.h in Headers */,
 				20E6840228F20C7300B95C00 /* lsp.h in Headers */,
@@ -3965,14 +3965,14 @@
 				526F23141D3B5C4900EF4E1F /* vorbisfile.h in Headers */,
 				526F26BA1D3B5CC300EF4E1F /* cc_agsdynamicobject.h in Headers */,
 				20E6840A28F20C7300B95C00 /* codebook.h in Headers */,
-				526F27911D3B5CC300EF4E1F /* textbox.h in Headers */,
+				526F27911D3B5CC300EF4E1F /* text_box.h in Headers */,
 				20E6828628F1D32D00B95C00 /* openalsource.h in Headers */,
 				20522A7428E8F94100589E91 /* gfxfilter_aaogl.h in Headers */,
 				20522A1F28E8F81C00589E91 /* memorystream.h in Headers */,
 				526F26B71D3B5CC300EF4E1F /* all_dynamicclasses.h in Headers */,
 				20E683C528F20C7200B95C00 /* window.h in Headers */,
 				526F22EE1D3B5C4900EF4E1F /* guitextbox.h in Headers */,
-				526F27DB1D3B5CC300EF4E1F /* mylabel.h in Headers */,
+				526F27DB1D3B5CC300EF4E1F /* my_label.h in Headers */,
 				526F26E21D3B5CC300EF4E1F /* scriptfile.h in Headers */,
 				526F275B1D3B5CC300EF4E1F /* math.h in Headers */,
 				526F230A1D3B5C4900EF4E1F /* codec.h in Headers */,
@@ -4029,7 +4029,7 @@
 				526F27A01D3B5CC300EF4E1F /* walkbehind.h in Headers */,
 				526F22A41D3B5C4900EF4E1F /* common_defines.h in Headers */,
 				20522A2E28E8F81C00589E91 /* cmdlineopts.h in Headers */,
-				526F27D71D3B5CC300EF4E1F /* guidialogdefines.h in Headers */,
+				526F27D71D3B5CC300EF4E1F /* gui_dialog_defines.h in Headers */,
 				205229AC28E8EBE500589E91 /* room_file.h in Headers */,
 				20E6848628F20CC700B95C00 /* bitpack.h in Headers */,
 				526F23D81D3B5C4900EF4E1F /* ini_util.h in Headers */,
@@ -4042,10 +4042,10 @@
 				526F23D01D3B5C4900EF4E1F /* directory.h in Headers */,
 				20E310F52B9B4A77000D7C38 /* videoplayer.h in Headers */,
 				526F23EB1D3B5C4900EF4E1F /* string_types.h in Headers */,
-				526F27E11D3B5CC300EF4E1F /* mytextbox.h in Headers */,
+				526F27E11D3B5CC300EF4E1F /* my_text_box.h in Headers */,
 				526F27771D3B5CC300EF4E1F /* roomstatus.h in Headers */,
 				526F22E61D3B5C4900EF4E1F /* guilistbox.h in Headers */,
-				526F27591D3B5CC300EF4E1F /* listbox.h in Headers */,
+				526F27591D3B5CC300EF4E1F /* list_box.h in Headers */,
 				526F23CA1D3B5C4900EF4E1F /* bbop.h in Headers */,
 				20522A1E28E8F81C00589E91 /* stdio_compat.h in Headers */,
 				20E6827528F1D2C400B95C00 /* readmidi.h in Headers */,
@@ -4098,7 +4098,7 @@
 				526F22EC1D3B5C4900EF4E1F /* guislider.h in Headers */,
 				526F22EF1D3B5C4900EF4E1F /* aastr.h in Headers */,
 				205229A028E8EBA900589E91 /* debugmanager.h in Headers */,
-				526F27DF1D3B5CC300EF4E1F /* mypushbutton.h in Headers */,
+				526F27DF1D3B5CC300EF4E1F /* my_push_button.h in Headers */,
 				2026099A2E438C0E001A87E5 /* agsflashlight.h in Headers */,
 				20E67DB328F1BDE000B95C00 /* system.h in Headers */,
 				526F23131D3B5C4900EF4E1F /* vorbisenc.h in Headers */,
@@ -4119,7 +4119,7 @@
 				526F22AD1D3B5C4900EF4E1F /* gamestructdefines.h in Headers */,
 				20E6852628F2219A00B95C00 /* VariableWidthSpriteFont.h in Headers */,
 				20E684BA28F20CC700B95C00 /* apiwrapper.h in Headers */,
-				526F27DD1D3B5CC300EF4E1F /* mylistbox.h in Headers */,
+				526F27DD1D3B5CC300EF4E1F /* my_list_box.h in Headers */,
 				526F26A91D3B5CC300EF4E1F /* date_time.h in Headers */,
 				526F23DE1D3B5C4900EF4E1F /* memory.h in Headers */,
 				526F26A61D3B5CC300EF4E1F /* characterextras.h in Headers */,
@@ -4225,7 +4225,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				526F274A1D3B5CC300EF4E1F /* guiinv.cpp in Sources */,
+				526F274A1D3B5CC300EF4E1F /* gui_inv.cpp in Sources */,
 				526F274B1D3B5CC300EF4E1F /* hotspot.cpp in Sources */,
 				20E67D6628F1BDE000B95C00 /* blit.c in Sources */,
 				526F26A81D3B5CC300EF4E1F /* date_time.cpp in Sources */,
@@ -4241,14 +4241,14 @@
 				52F5D8521DA120CB006F8F4B /* main_game_file.cpp in Sources */,
 				20522A4A28E8F8AA00589E91 /* draw_software.cpp in Sources */,
 				526F26D81D3B5CC300EF4E1F /* scriptdatetime.cpp in Sources */,
-				526F27D21D3B5CC300EF4E1F /* cscidialog.cpp in Sources */,
+				526F27D21D3B5CC300EF4E1F /* csci_dialog.cpp in Sources */,
 				20E67D8928F1BDE000B95C00 /* cgfx32.c in Sources */,
 				20E6823528F1D2B400B95C00 /* snd_fx.c in Sources */,
 				526F285B1D3B5CC300EF4E1F /* config.cpp in Sources */,
 				526F28161D3B5CC300EF4E1F /* getblk.c in Sources */,
 				20A5CCE82AC09016002AE475 /* miniz.c in Sources */,
 				20E67D6528F1BDE000B95C00 /* unicode.c in Sources */,
-				526F27DE1D3B5CC300EF4E1F /* mypushbutton.cpp in Sources */,
+				526F27DE1D3B5CC300EF4E1F /* my_push_button.cpp in Sources */,
 				526F229F1D3B5C4900EF4E1F /* audiocliptype.cpp in Sources */,
 				526F23CF1D3B5C4900EF4E1F /* directory.cpp in Sources */,
 				205229B328E8EBE500589E91 /* roomstruct.cpp in Sources */,
@@ -4257,7 +4257,7 @@
 				20E67D8228F1BDE000B95C00 /* cblit16.c in Sources */,
 				20E6826028F1D2C400B95C00 /* common.c in Sources */,
 				526F28AF1D3B5CC300EF4E1F /* agsplugin.cpp in Sources */,
-				526F27E01D3B5CC300EF4E1F /* mytextbox.cpp in Sources */,
+				526F27E01D3B5CC300EF4E1F /* my_text_box.cpp in Sources */,
 				20E6840E28F20C7300B95C00 /* envelope.c in Sources */,
 				526F27761D3B5CC300EF4E1F /* roomstatus.cpp in Sources */,
 				20E683DD28F20C7200B95C00 /* res0.c in Sources */,
@@ -4271,7 +4271,7 @@
 				526F28971D3B5CC300EF4E1F /* agsplatformdriver.cpp in Sources */,
 				526F27BD1D3B5CC300EF4E1F /* gfxdriverfactory.cpp in Sources */,
 				526F281C1D3B5CC300EF4E1F /* ogg.c in Sources */,
-				526F27DA1D3B5CC300EF4E1F /* mylabel.cpp in Sources */,
+				526F27DA1D3B5CC300EF4E1F /* my_label.cpp in Sources */,
 				20E683D228F20C7200B95C00 /* floor0.c in Sources */,
 				526F27921D3B5CC300EF4E1F /* timer.cpp in Sources */,
 				20522A5928E8F8CB00589E91 /* route_finder_impl.cpp in Sources */,
@@ -4335,7 +4335,7 @@
 				526F28C21D3B5CC300EF4E1F /* exports.cpp in Sources */,
 				20E67D7728F1BDE000B95C00 /* dither.c in Sources */,
 				20E161242C09477100538E45 /* image_file.cpp in Sources */,
-				526F27481D3B5CC300EF4E1F /* guicontrol.cpp in Sources */,
+				526F27481D3B5CC300EF4E1F /* gui_control.cpp in Sources */,
 				20E684C328F20CC700B95C00 /* info.c in Sources */,
 				209139322A5072AF006AC67A /* plugin_stubs.cpp in Sources */,
 				20E6849D28F20CC700B95C00 /* internal.c in Sources */,
@@ -4419,7 +4419,7 @@
 				20E67D8128F1BDE000B95C00 /* cspr16.c in Sources */,
 				526F286F1D3B5CC300EF4E1F /* quit.cpp in Sources */,
 				526F26F01D3B5CC300EF4E1F /* scriptviewframe.cpp in Sources */,
-				526F27E21D3B5CC300EF4E1F /* newcontrol.cpp in Sources */,
+				526F27E21D3B5CC300EF4E1F /* new_control.cpp in Sources */,
 				526F281A1D3B5CC300EF4E1F /* motion.c in Sources */,
 				20E67D8F28F1BDE000B95C00 /* cgfx24.c in Sources */,
 				526F274F1D3B5CC300EF4E1F /* inventoryitem.cpp in Sources */,
@@ -4469,7 +4469,7 @@
 				526F279F1D3B5CC300EF4E1F /* walkbehind.cpp in Sources */,
 				526F27B81D3B5CC300EF4E1F /* gfx_util.cpp in Sources */,
 				20E6827328F1D2C400B95C00 /* mix.c in Sources */,
-				526F27D51D3B5CC300EF4E1F /* guidialog.cpp in Sources */,
+				526F27D51D3B5CC300EF4E1F /* gui_dialog.cpp in Sources */,
 				20E6822828F1D2B400B95C00 /* load_ult.c in Sources */,
 				52F5D85D1DA12147006F8F4B /* dialogtopic.cpp in Sources */,
 				20522A4528E8F86400589E91 /* scriptdict.cpp in Sources */,
@@ -4542,19 +4542,19 @@
 				20E6822728F1D2B400B95C00 /* load_mtm.c in Sources */,
 				526F26CF1D3B5CC300EF4E1F /* cc_object.cpp in Sources */,
 				20E684A128F20CC700B95C00 /* state.c in Sources */,
-				526F27901D3B5CC300EF4E1F /* textbox.cpp in Sources */,
+				526F27901D3B5CC300EF4E1F /* text_box.cpp in Sources */,
 				20E6827028F1D2C400B95C00 /* resample.c in Sources */,
 				20E681F828F1D2A800B95C00 /* SDL_sound_flac.c in Sources */,
 				20E6823E28F1D2B400B95C00 /* load_mod.c in Sources */,
 				20E6837328F20BFD00B95C00 /* bitwise.c in Sources */,
 				526F22DB1D3B5C4900EF4E1F /* bitmap.cpp in Sources */,
 				526F23E31D3B5C4900EF4E1F /* path.cpp in Sources */,
-				526F27521D3B5CC300EF4E1F /* invwindow.cpp in Sources */,
+				526F27521D3B5CC300EF4E1F /* inv_window.cpp in Sources */,
 				20E6826428F1D2C400B95C00 /* readmidi.c in Sources */,
 				20E681F328F1D2A800B95C00 /* SDL_sound_coreaudio.c in Sources */,
 				526F27461D3B5CC300EF4E1F /* gui.cpp in Sources */,
 				526F28A01D3B5CC300EF4E1F /* acplmac.cpp in Sources */,
-				526F27581D3B5CC300EF4E1F /* listbox.cpp in Sources */,
+				526F27581D3B5CC300EF4E1F /* list_box.cpp in Sources */,
 				20E6827428F1D2C400B95C00 /* playmidi.c in Sources */,
 				526F27811D3B5CC300EF4E1F /* speech.cpp in Sources */,
 				526F27B21D3B5CC300EF4E1F /* ali3dsw.cpp in Sources */,
@@ -4589,10 +4589,10 @@
 				20E67D8028F1BDE000B95C00 /* cspr8.c in Sources */,
 				526F28A31D3B5CC300EF4E1F /* libc.c in Sources */,
 				526F27691D3B5CC300EF4E1F /* properties.cpp in Sources */,
-				526F27DC1D3B5CC300EF4E1F /* mylistbox.cpp in Sources */,
+				526F27DC1D3B5CC300EF4E1F /* my_list_box.cpp in Sources */,
 				526F27CB1D3B5CC300EF4E1F /* gfxfilter_scaling.cpp in Sources */,
 				526F27711D3B5CC300EF4E1F /* room.cpp in Sources */,
-				526F27D01D3B5CC300EF4E1F /* animatingguibutton.cpp in Sources */,
+				526F27D01D3B5CC300EF4E1F /* animating_gui_button.cpp in Sources */,
 				20E684B328F20CC700B95C00 /* quant.c in Sources */,
 				526F27B01D3B5CC300EF4E1F /* ali3dogl.cpp in Sources */,
 				20402A722A227CE5001C7642 /* scriptsystem.cpp in Sources */,

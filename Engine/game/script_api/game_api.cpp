@@ -23,7 +23,7 @@
 #include "ac/dynobj/scriptgame.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
-#include "ac/mouse.h"
+#include "game/ui/mouse.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/script_api.h"

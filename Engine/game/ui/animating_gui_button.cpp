@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gui/animatingguibutton.h"
+#include "game/ui/animating_gui_button.h"
 
 #include "gui/guidefines.h"
 #include "util/stream.h"

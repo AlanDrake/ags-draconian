@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/mouse.h"
+#include "game/ui/mouse.h"
 
 #include "ac/characterinfo.h"
 #include "ac/common.h"
@@ -25,13 +25,13 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/gui.h"
 #include "ac/spritecache.h"
 #include "ac/sys_events.h"
 #include "ac/system.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
+#include "game/ui/gui.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"
 #include "gui/guibutton.h"
