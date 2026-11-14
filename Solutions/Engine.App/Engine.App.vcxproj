@@ -656,7 +656,6 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\dynobj_manager.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\managedobjectpool.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptcamera.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptcontainers.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdatetime.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdict.h" />

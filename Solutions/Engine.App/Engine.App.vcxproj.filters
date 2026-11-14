@@ -1466,9 +1466,6 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdict.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptcontainers.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\plugin\plugin_builtin.h">
       <Filter>Header Files\plugin</Filter>
     </ClInclude>

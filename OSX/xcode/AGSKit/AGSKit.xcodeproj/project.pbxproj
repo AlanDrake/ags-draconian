@@ -92,7 +92,6 @@
 		20522A3C28E8F86400589E91 /* scriptviewport.h in Headers */ = {isa = PBXBuildFile; fileRef = 20522A3228E8F86200589E91 /* scriptviewport.h */; };
 		20522A3D28E8F86400589E91 /* scriptcamera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20522A3328E8F86200589E91 /* scriptcamera.cpp */; };
 		20522A3F28E8F86400589E91 /* scriptcamera.h in Headers */ = {isa = PBXBuildFile; fileRef = 20522A3528E8F86200589E91 /* scriptcamera.h */; };
-		20522A4028E8F86400589E91 /* scriptcontainers.h in Headers */ = {isa = PBXBuildFile; fileRef = 20522A3628E8F86200589E91 /* scriptcontainers.h */; };
 		20522A4128E8F86400589E91 /* scriptdict.h in Headers */ = {isa = PBXBuildFile; fileRef = 20522A3728E8F86300589E91 /* scriptdict.h */; };
 		20522A4228E8F86400589E91 /* scriptset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20522A3828E8F86300589E91 /* scriptset.cpp */; };
 		20522A4328E8F86400589E91 /* scriptset.h in Headers */ = {isa = PBXBuildFile; fileRef = 20522A3928E8F86300589E91 /* scriptset.h */; };
@@ -1020,7 +1019,6 @@
 		20522A3228E8F86200589E91 /* scriptviewport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = scriptviewport.h; sourceTree = "<group>"; };
 		20522A3328E8F86200589E91 /* scriptcamera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scriptcamera.cpp; sourceTree = "<group>"; };
 		20522A3528E8F86200589E91 /* scriptcamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = scriptcamera.h; sourceTree = "<group>"; };
-		20522A3628E8F86200589E91 /* scriptcontainers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = scriptcontainers.h; sourceTree = "<group>"; };
 		20522A3728E8F86300589E91 /* scriptdict.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = scriptdict.h; sourceTree = "<group>"; };
 		20522A3828E8F86300589E91 /* scriptset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scriptset.cpp; sourceTree = "<group>"; };
 		20522A3928E8F86300589E91 /* scriptset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = scriptset.h; sourceTree = "<group>"; };
@@ -3114,7 +3112,6 @@
 				20402A672A227C86001C7642 /* dynobj_manager.h */,
 				20522A3328E8F86200589E91 /* scriptcamera.cpp */,
 				20522A3528E8F86200589E91 /* scriptcamera.h */,
-				20522A3628E8F86200589E91 /* scriptcontainers.h */,
 				20522A3B28E8F86400589E91 /* scriptdict.cpp */,
 				20522A3728E8F86300589E91 /* scriptdict.h */,
 				20522A3828E8F86300589E91 /* scriptset.cpp */,
@@ -3799,7 +3796,6 @@
 				20E67D8E28F1BDE000B95C00 /* cdefs24.h in Headers */,
 				526F28B71D3B5CC300EF4E1F /* resource.h in Headers */,
 				526F27641D3B5CC300EF4E1F /* overlay.h in Headers */,
-				20522A4028E8F86400589E91 /* scriptcontainers.h in Headers */,
 				20E67D9328F1BDE000B95C00 /* cdefs15.h in Headers */,
 				20522A0528E8F7FE00589E91 /* cc_common.h in Headers */,
 				20E6828528F1D32D00B95C00 /* sdldecoder.h in Headers */,

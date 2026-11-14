@@ -87,7 +87,6 @@ target_sources(engine
     ac/dynobj/managedobjectpool.h
     ac/dynobj/scriptcamera.cpp
     ac/dynobj/scriptcamera.h
-    ac/dynobj/scriptcontainers.h
     ac/dynobj/scriptdatetime.cpp
     ac/dynobj/scriptdatetime.h
     ac/dynobj/scriptdialogoptionsrendering.cpp

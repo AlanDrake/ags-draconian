@@ -17,11 +17,24 @@
 //=============================================================================
 #pragma once
 
+#include <cstddef>
+
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
+
 class ScriptDictBase;
 class ScriptSetBase;
 
 // Script API: Dictionary::Create
 ScriptDictBase *Dict_Create(int sort_style, int compare_style);
+
+// Unserialize dictionary from the memory stream
+ScriptDictBase *Dict_Unserialize(int index, AGS::Common::Stream *in, size_t data_sz);
 
 // Script API: Dictionary::Clear
 void Dict_Clear(ScriptDictBase *dic);
@@ -55,6 +68,9 @@ void *Dict_GetValuesAsArray(ScriptDictBase *dic);
 
 // Script API: Set::Create
 ScriptSetBase *Set_Create(int sort_style, int compare_style);
+
+// Unserialize set from the memory stream
+ScriptSetBase *Set_Unserialize(int index, AGS::Common::Stream *in, size_t data_sz);
 
 // Script API: Set::Add
 bool Set_Add(ScriptSetBase *set, const char *item);
