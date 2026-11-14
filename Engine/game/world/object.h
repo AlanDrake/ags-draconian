@@ -46,7 +46,7 @@ AGS::Common::Bitmap *GetObjectSourceImage(int obj_id);
 // **** OBJECT: FUNCTIONS ****
 //
 // An Object_<Name> function implements the script function Object.<Name> of the same name, which scripts reach through
-// the Sc_Object_<Name> wrapper registered in RegisterObjectAPI (object_api.cpp); a pair Object_Get<Name> and
+// the binding registered in RegisterObjectAPI (object_api.cpp); a pair Object_Get<Name> and
 // Object_Set<Name> implements the script property Object.<Name> (get_<Name> and set_<Name>). obj is the script object
 // the function is called on. A comment tells where the script name differs. Most of them warn about an invalid object
 // ID (AssertObject) and then do nothing: they return 0, false or nullptr.
