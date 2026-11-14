@@ -19,8 +19,8 @@
 #include <vector>
 
 #include "ac/dynobj/scriptoverlay.h"
-#include "ac/screenoverlay.h"
 #include "game/dialog/display.h"
+#include "game/render/screen_overlay.h"
 #include "util/geometry.h"
 #include "util/indexedobjectpool.h"
 

@@ -11,13 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/dynamicsprite.h"
+#include "game/render/dynamic_sprite.h"
 
 #include <cmath>
 #include <map>
 
 #include "ac/common.h"
-#include "ac/draw.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
@@ -29,6 +28,7 @@
 #include "ac/system.h"
 #include "debug/debug_log.h"
 #include "game/lib/math.h" // M_PI
+#include "game/render/draw.h"
 #include "game/roomstruct.h"
 #include "gfx/graphicsdriver.h"
 #include "gui/guibutton.h"

@@ -21,8 +21,6 @@
 #endif
 
 #include "ac/common.h" // quit
-#include "ac/draw.h"
-#include "ac/dynamicsprite.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/cc_pluginobject.h"
 #include "ac/dynobj/dynobj_manager.h"
@@ -46,6 +44,8 @@
 #include "game/dialog/parser.h"
 #include "game/dialog/speech.h"
 #include "game/lib/string.h"
+#include "game/render/draw.h"
+#include "game/render/dynamic_sprite.h"
 #include "game/roomstruct.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"

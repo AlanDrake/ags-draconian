@@ -15,7 +15,7 @@
 // Script bindings registered by RegisterDynamicSpriteAPI().
 //
 //=============================================================================
-#include "ac/dynamicsprite.h"
+#include "game/render/dynamic_sprite.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

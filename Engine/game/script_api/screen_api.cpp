@@ -18,7 +18,7 @@
 #include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/scriptviewport.h"
-#include "ac/screen.h"
+#include "game/render/screen.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

@@ -17,7 +17,6 @@
 #include <vector>
 
 #include "ac/character.h"
-#include "ac/draw.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/dynobj_manager.h"
@@ -39,6 +38,7 @@
 #include "game/dialog/lipsync.h"
 #include "game/dialog/parser.h"
 #include "game/dialog/speech.h"
+#include "game/render/draw.h"
 #include "game/ui/gui.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"

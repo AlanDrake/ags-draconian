@@ -15,7 +15,6 @@
 
 #include <algorithm>
 
-#include "ac/draw.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptsystem.h"
@@ -26,6 +25,7 @@
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/customproperties.h"
+#include "game/render/draw.h"
 #include "game/roomstruct.h"
 #include "game/save/savegame_internal.h"
 #include "gfx/gfx_def.h"

@@ -12,10 +12,10 @@
 //
 //=============================================================================
 #include "ac/characterextras.h"
-#include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/spritecache.h"
+#include "game/render/draw.h"
 #include "gfx/bitmap.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"

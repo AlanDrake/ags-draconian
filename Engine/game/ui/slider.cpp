@@ -14,8 +14,8 @@
 #include "game/ui/slider.h"
 
 #include "ac/common.h"
-#include "ac/draw.h"
 #include "debug/debug_log.h"
+#include "game/render/draw.h"
 
 using namespace AGS::Common;
 

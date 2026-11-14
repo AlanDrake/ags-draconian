@@ -14,13 +14,13 @@
 #include "ac/viewframe.h"
 
 #include "ac/common.h" // quitprintf
-#include "ac/draw.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/game_version.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
 #include "debug/debug_log.h"
 #include "game/lib/string.h"
+#include "game/render/draw.h"
 #include "gfx/bitmap.h"
 #include "media/audio/audio_system.h"
 #include "script/runtimescriptvalue.h"

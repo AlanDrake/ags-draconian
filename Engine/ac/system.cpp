@@ -16,7 +16,6 @@
 #include <SDL.h>
 
 #include "ac/common.h"
-#include "ac/draw.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
@@ -27,6 +26,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "game/lib/string.h"
+#include "game/render/draw.h"
 #include "game/ui/mouse.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"

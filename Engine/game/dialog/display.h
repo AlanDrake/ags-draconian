@@ -17,7 +17,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/screenoverlay.h"
+#include "game/render/screen_overlay.h"
 #include "gfx/bitmap.h"
 #include "gui/guimain.h"
 #include "util/string.h"

@@ -25,9 +25,9 @@
 #include <memory>
 #include <vector>
 
-#include "ac/dynamicsprite.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
+#include "game/render/dynamic_sprite.h"
 #include "gfx/ali3dsw.h"
 #include "gfx/bitmap.h"
 #include "gtest/gtest.h"

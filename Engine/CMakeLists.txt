@@ -25,14 +25,6 @@ target_sources(engine
     ac/characterextras.cpp
     ac/characterextras.h
     ac/characterinfo_engine.cpp
-    ac/draw.cpp
-    ac/draw.h
-    ac/draw_software.cpp
-    ac/draw_software.h
-    ac/drawingsurface.cpp
-    ac/drawingsurface.h
-    ac/dynamicsprite.cpp
-    ac/dynamicsprite.h
     ac/dynobj/all_dynamicclasses.h
     ac/dynobj/all_scriptclasses.h
     ac/dynobj/cc_agsdynamicobject.cpp
@@ -135,8 +127,6 @@ target_sources(engine
     ac/movelist.h
     ac/object.cpp
     ac/object.h
-    ac/overlay.cpp
-    ac/overlay.h
     ac/path_helper.h
     ac/properties.cpp
     ac/properties.h
@@ -149,12 +139,6 @@ target_sources(engine
     ac/roomstatus.cpp
     ac/roomstatus.h
     ac/runtime_defines.h
-    ac/screen.cpp
-    ac/screen.h
-    ac/screenoverlay.cpp
-    ac/screenoverlay.h
-    ac/shader_script.cpp
-    ac/shader_script.h
     ac/dynobj/scriptgame.cpp
     ac/dynobj/scriptgame.h
     ac/dynobj/cc_staticarray.cpp
@@ -169,8 +153,6 @@ target_sources(engine
     ac/translation.h
     ac/viewframe.cpp
     ac/viewframe.h
-    ac/viewport_script.cpp
-    ac/viewport_script.h
     ac/walkablearea.cpp
     ac/walkablearea.h
     ac/walkbehind.cpp
@@ -228,6 +210,26 @@ target_sources(engine
     game/navigation/route_finder_impl.cpp
     game/navigation/route_finder_impl.h
     game/navigation/route_finder_jps.inl
+    game/render/draw.cpp
+    game/render/draw.h
+    game/render/draw_software.cpp
+    game/render/draw_software.h
+    game/render/drawing_surface.cpp
+    game/render/drawing_surface.h
+    game/render/dynamic_sprite.cpp
+    game/render/dynamic_sprite.h
+    game/render/overlay.cpp
+    game/render/overlay.h
+    game/render/screen.cpp
+    game/render/screen.h
+    game/render/screen_overlay.cpp
+    game/render/screen_overlay.h
+    game/render/shader_script.cpp
+    game/render/shader_script.h
+    game/render/viewport.cpp
+    game/render/viewport.h
+    game/render/viewport_script.cpp
+    game/render/viewport_script.h
     game/save/savegame.cpp
     game/save/savegame.h
     game/save/savegame_components.cpp
@@ -319,8 +321,6 @@ target_sources(engine
     game/video/video.h
     game/video/video_script.cpp
     game/video/video_script.h
-    game/viewport.cpp
-    game/viewport.h
     gfx/ali3dexception.h
     gfx/ali3dogl.cpp
     gfx/ali3dogl.h

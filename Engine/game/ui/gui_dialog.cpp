@@ -20,11 +20,11 @@
 #include <allegro.h> // find files
 
 #include "ac/common.h"
-#include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "debug/debug_log.h"
+#include "game/render/draw.h"
 #include "game/ui/csci_dialog.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"

@@ -20,7 +20,7 @@
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptoverlay.h"
 #include "ac/runtime_defines.h"
-#include "game/viewport.h"
+#include "game/render/viewport.h"
 #include "util/geometry.h"
 
 // **** CHARACTER: FUNCTIONS ****

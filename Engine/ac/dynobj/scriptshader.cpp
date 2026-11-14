@@ -13,8 +13,8 @@
 //=============================================================================
 #include "ac/dynobj/scriptshader.h"
 
-#include "ac/draw.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "game/render/draw.h"
 #include "gfx/graphicsdriver.h"
 #include "util/path.h"
 #include "util/stl_utils.h"

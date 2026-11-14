@@ -16,7 +16,6 @@
 #include <cctype>
 
 #include "ac/common.h"
-#include "ac/draw.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "ac/keycode.h"
@@ -24,6 +23,7 @@
 #include "ac/sys_events.h"
 #include "ac/timer.h"
 #include "font/fonts.h"
+#include "game/render/draw.h"
 #include "game/ui/gui.h"
 #include "game/ui/gui_dialog.h"
 #include "game/ui/mouse.h"

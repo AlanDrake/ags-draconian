@@ -11,12 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/screen.h"
+#include "game/render/screen.h"
 
 #include <algorithm>
 
 #include "ac/common.h"
-#include "ac/draw.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
@@ -27,6 +26,7 @@
 #include "ac/sys_events.h"
 #include "debug/debug_log.h"
 #include "game/audio/audio.h"
+#include "game/render/draw.h"
 #include "gfx/bitmap.h"
 #include "gfx/bitmapdata.h"
 #include "gfx/graphicsdriver.h"

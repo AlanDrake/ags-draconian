@@ -16,8 +16,6 @@
 //
 //=============================================================================
 #include "ac/character.h"
-#include "ac/draw.h"
-#include "ac/dynamicsprite.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptstring.h"
@@ -27,7 +25,6 @@
 #include "ac/object.h"
 #include "ac/region.h"
 #include "ac/room.h"
-#include "ac/screen.h"
 #include "ac/system.h"
 #include "ac/translation.h"
 #include "ac/walkablearea.h"
@@ -41,6 +38,9 @@
 #include "game/input/keyboard.h"
 #include "game/lib/math.h"
 #include "game/lib/string.h"
+#include "game/render/draw.h"
+#include "game/render/dynamic_sprite.h"
+#include "game/render/screen.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
 #include "game/video/video.h"

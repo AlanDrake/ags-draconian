@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/overlay.h"
+#include "game/render/overlay.h"
 
 #include <algorithm>
 #include <queue>
@@ -19,7 +19,6 @@
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/common.h"
-#include "ac/draw.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
@@ -28,13 +27,14 @@
 #include "ac/gamestate.h"
 #include "ac/object.h"
 #include "ac/runtime_defines.h"
-#include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
 #include "ac/translation.h"
 #include "ac/view.h"
 #include "debug/debug_log.h"
 #include "game/dialog/display.h"
 #include "game/lib/string.h"
+#include "game/render/draw.h"
+#include "game/render/screen_overlay.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "gfx/graphicsdriver.h"

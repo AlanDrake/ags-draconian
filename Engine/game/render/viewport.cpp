@@ -11,11 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "game/viewport.h"
+#include "game/render/viewport.h"
 
-#include "ac/draw.h"
 #include "ac/gamestate.h"
 #include "debug/debug_log.h"
+#include "game/render/draw.h"
 #include "game/roomstruct.h"
 
 using namespace AGS::Common;

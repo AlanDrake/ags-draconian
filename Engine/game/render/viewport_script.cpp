@@ -16,9 +16,8 @@
 //
 //=============================================================================
 
-#include "ac/viewport_script.h"
+#include "game/render/viewport_script.h"
 
-#include "ac/draw.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptshader.h"
@@ -26,6 +25,7 @@
 #include "ac/dynobj/scriptviewport.h"
 #include "ac/gamestate.h"
 #include "debug/debug_log.h"
+#include "game/render/draw.h"
 
 using namespace AGS::Common;
 

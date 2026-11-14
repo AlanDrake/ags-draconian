@@ -16,8 +16,6 @@
 #ifndef AGS_NO_VIDEO_PLAYER
 #include <cinttypes>
 
-#include "ac/draw.h"
-#include "ac/dynamicsprite.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptvideoplayer.h"
 #include "ac/game.h"
@@ -29,6 +27,8 @@
 #include "debug/debug_log.h"
 #include "game/audio/audio.h"
 #include "game/input/joystick.h"
+#include "game/render/draw.h"
+#include "game/render/dynamic_sprite.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
 #include "media/video/video_core.h"

@@ -17,7 +17,7 @@
 //=============================================================================
 #pragma once
 
-#include "gamestate.h"
+#include "ac/gamestate.h"
 
 namespace AGS
 {

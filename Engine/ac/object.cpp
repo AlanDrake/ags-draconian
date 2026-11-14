@@ -15,7 +15,6 @@
 
 #include "ac/character.h"
 #include "ac/common.h"
-#include "ac/draw.h"
 #include "ac/dynobj/cc_object.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptmotionpath.h"
@@ -37,6 +36,7 @@
 #include "debug/debug_log.h"
 #include "game/lib/string.h"
 #include "game/navigation/route_finder.h"
+#include "game/render/draw.h"
 #include "game/ui/gui.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"

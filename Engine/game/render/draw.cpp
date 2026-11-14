@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/draw.h"
+#include "game/render/draw.h"
 
 #include <algorithm>
 #include <cmath>
@@ -21,19 +21,16 @@
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
 #include "ac/common.h"
-#include "ac/draw_software.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/movelist.h"
-#include "ac/overlay.h"
 #include "ac/region.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
-#include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
 #include "ac/sys_events.h"
 #include "ac/system.h"
@@ -46,6 +43,9 @@
 #include "font/fonts.h"
 #include "game/dialog/display.h"
 #include "game/lib/string.h"
+#include "game/render/draw_software.h"
+#include "game/render/overlay.h"
+#include "game/render/screen_overlay.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
 #include "gfx/ali3dexception.h"

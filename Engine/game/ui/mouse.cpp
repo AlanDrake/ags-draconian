@@ -15,7 +15,6 @@
 
 #include "ac/characterinfo.h"
 #include "ac/common.h"
-#include "ac/draw.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptmouse.h"
 #include "ac/dynobj/scriptshader.h"
@@ -31,6 +30,7 @@
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
+#include "game/render/draw.h"
 #include "game/ui/gui.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"

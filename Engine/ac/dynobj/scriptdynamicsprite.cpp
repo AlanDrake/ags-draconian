@@ -13,8 +13,8 @@
 //=============================================================================
 #include "ac/dynobj/scriptdynamicsprite.h"
 
-#include "ac/dynamicsprite.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "game/render/dynamic_sprite.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

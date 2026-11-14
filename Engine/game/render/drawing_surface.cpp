@@ -11,11 +11,9 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/drawingsurface.h"
+#include "game/render/drawing_surface.h"
 
 #include "ac/common.h"
-#include "ac/draw.h"
-#include "ac/dynamicsprite.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
@@ -30,6 +28,8 @@
 #include "font/fonts.h"
 #include "game/dialog/display.h"
 #include "game/lib/string.h"
+#include "game/render/draw.h"
+#include "game/render/dynamic_sprite.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfx_util.h"
 #include "gui/guimain.h"

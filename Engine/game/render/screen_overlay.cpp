@@ -11,15 +11,15 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/screenoverlay.h"
+#include "game/render/screen_overlay.h"
 
-#include "ac/dynamicsprite.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/object.h"
 #include "ac/spritecache.h"
 #include "ac/viewframe.h"
+#include "game/render/dynamic_sprite.h"
 #include "gfx/bitmap.h"
 #include "util/stream.h"
 #include "util/string_utils.h"

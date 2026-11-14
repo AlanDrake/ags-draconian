@@ -22,9 +22,9 @@
 
 #include <SDL.h>
 
-#include "ac/draw.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "game/render/draw.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfxdriverfactory.h"
