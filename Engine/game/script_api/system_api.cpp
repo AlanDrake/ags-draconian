@@ -15,6 +15,9 @@
 // Script bindings registered by RegisterSystemAPI().
 //
 //=============================================================================
+#include <cassert>
+#include <vector>
+
 #include <SDL.h>
 
 #include "debug/out.h"
@@ -28,11 +31,15 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
+// System.Log(type, format, ...) formats its text without translating the format, which the binder's format rows
+// (ScStaticFormat) always do: so it is written out by hand
 RuntimeScriptValue Sc_System_Log(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_SCRIPT_SPRINTF_PURE(Sc_System_Log, 2);
-    Debug::Printf(kDbgGroup_Script, (MessageType)params[0].IValue, "%s", scsf_buffer);
-    return RuntimeScriptValue((int32_t)0);
+    assert((params != nullptr && param_count >= 2) && "Not enough parameters in call to API function");
+    std::vector<char> buffer;
+    const char *text = ScriptSprintf(buffer, params[1].CStr, params + 2, param_count - 2);
+    Debug::Printf(kDbgGroup_Script, static_cast<MessageType>(params[0].IValue), "%s", text);
+    return RuntimeScriptValue(int32_t{0});
 }
 
 //=============================================================================
