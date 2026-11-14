@@ -17,464 +17,91 @@
 //=============================================================================
 #include "game/dynobj/cc_gui_control.h"
 #include "game/dynobj/script_shader.h"
-#include "game/dynobj/script_string.h"
 #include "game/game.h"
+#include "game/script_api/bindings.h"
 #include "game/ui/gui_control.h"
 #include "script/dynobj/cc_dynamic_array.h"
-#include "script/script_api.h"
 #include "script/script_runtime.h"
 
 using namespace AGS::Common;
 
-RuntimeScriptValue Sc_GUIControl_GetByName(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJ_POBJ(GUIControl, ccDynamicGUIControl, GUIControl_GetByName, const char);
-}
-
-// void (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_BringToFront(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID(GUIControl, GUIControl_BringToFront);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJ_PINT2(GUIObject, ccDynamicGUIControl, GUIControl_GetAtScreenXY2);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJ_PINT4(GUIObject, ccDynamicGUIControl, GUIControl_GetAtScreenXY);
-}
-
-// void (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_SendToBack(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID(GUIControl, GUIControl_SendToBack);
-}
-
-// void (GUIControl *control, int x, int y)
-RuntimeScriptValue Sc_GUIControl_SetPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT2(GUIControl, GUIControl_SetPosition);
-}
-
-// void (GUIControl *control, int newwid, int newhit)
-RuntimeScriptValue Sc_GUIControl_SetSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT2(GUIControl, GUIControl_SetSize);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetGraphicPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(GUIControl, void, globalDynamicArray, GUIControl_GetGraphicPosition);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetGraphicBoundBox(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(GUIControl, void, globalDynamicArray, GUIControl_GetGraphicBoundBox);
-}
-
-// GUIButton* (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_GetAsButton(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(GUIControl, GUIButton, ccDynamicGUIControl, GUIControl_GetAsButton);
-}
-
-// GUIInvWindow* (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_GetAsInvWindow(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(GUIControl, GUIInvWindow, ccDynamicGUIControl, GUIControl_GetAsInvWindow);
-}
-
-// GUILabel* (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_GetAsLabel(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(GUIControl, GUILabel, ccDynamicGUIControl, GUIControl_GetAsLabel);
-}
-
-// GUIListBox* (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_GetAsListBox(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(GUIControl, GUIListBox, ccDynamicGUIControl, GUIControl_GetAsListBox);
-}
-
-// GUISlider* (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_GetAsSlider(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(GUIControl, GUISlider, ccDynamicGUIControl, GUIControl_GetAsSlider);
-}
-
-// GUITextBox* (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_GetAsTextBox(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(GUIControl, GUITextBox, ccDynamicGUIControl, GUIControl_GetAsTextBox);
-}
-
-// int (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_GetClickable(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetClickable);
-}
-
-// void (GUIControl *control, int enabled)
-RuntimeScriptValue Sc_GUIControl_SetClickable(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetClickable);
-}
-
-// int (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_GetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetEnabled);
-}
-
-// void (GUIControl *control, int enabled)
-RuntimeScriptValue Sc_GUIControl_SetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetEnabled);
-}
-
-// int (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_GetHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetHeight);
-}
-
-// void (GUIControl *control, int newhit)
-RuntimeScriptValue Sc_GUIControl_SetHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetHeight);
-}
-
-// int (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_GetID(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetID);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetScriptName(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(GUIControl, const char, myScriptStringImpl, GUIControl_GetScriptName);
-}
-
-// ScriptGUI* (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_GetOwningGUI(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(GUIControl, ScriptGUI, ccDynamicGUIControl, GUIControl_GetOwningGUI);
-}
-
-// int (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_GetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetVisible);
-}
-
-// void (GUIControl *control, int visible)
-RuntimeScriptValue Sc_GUIControl_SetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetVisible);
-}
-
-// int (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_GetWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetWidth);
-}
-
-// void (GUIControl *control, int newwid)
-RuntimeScriptValue Sc_GUIControl_SetWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetWidth);
-}
-
-// int (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_GetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetX);
-}
-
-// void (GUIControl *control, int x)
-RuntimeScriptValue Sc_GUIControl_SetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetX);
-}
-
-// int (GUIControl *control)
-RuntimeScriptValue Sc_GUIControl_GetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetY);
-}
-
-// void (GUIControl *control, int y)
-RuntimeScriptValue Sc_GUIControl_SetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetY);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_FLOAT(GUIControl, GUIControl_GetRotation);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PFLOAT(GUIControl, GUIControl_SetRotation);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetScaleX(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_FLOAT(GUIControl, GUIControl_GetScaleX);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetScaleX(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PFLOAT(GUIControl, GUIControl_SetScaleX);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetScaleY(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_FLOAT(GUIControl, GUIControl_GetScaleY);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetScaleY(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PFLOAT(GUIControl, GUIControl_SetScaleY);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetScale(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PFLOAT2(GUIControl, GUIControl_SetScale);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetZOrder(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetZOrder);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetZOrder(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetZOrder);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetTranslated(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_BOOL(GUIControl, GUIControl_GetTranslated);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetTranslated(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PBOOL(GUIControl, GUIControl_SetTranslated);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetOpacity);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetOpacity);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetTransparency);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetTransparency);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetBackgroundColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetBackgroundColor);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetBackgroundColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetBackgroundColor);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetBorderColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetBorderColor);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetBorderColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetBorderColor);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetBorderWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetBorderWidth);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetBorderWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetBorderWidth);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetPaddingX(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetPaddingX);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetPaddingX(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetPaddingX);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetPaddingY(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetPaddingY);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetPaddingY(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetPaddingY);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetShowBorder(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_BOOL(GUIControl, GUIControl_GetShowBorder);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetShowBorder(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PBOOL(GUIControl, GUIControl_SetShowBorder);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetSolidBackground(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_BOOL(GUIControl, GUIControl_GetSolidBackground);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetSolidBackground(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PBOOL(GUIControl, GUIControl_SetSolidBackground);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIControl, GUIControl_GetBlendMode);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetBlendMode);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJAUTO(GUIControl, ScriptShaderInstance, GUIControl_GetShader);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_POBJ(GUIControl, GUIControl_SetShader, ScriptShaderInstance);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT_POBJ(GUIControl, GUIControl_GetProperty, const char);
-}
-
-RuntimeScriptValue Sc_GUIControl_GetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ_POBJ(GUIControl, const char, myScriptStringImpl, GUIControl_GetTextProperty, const char);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_BOOL_POBJ_PINT(GUIControl, GUIControl_SetProperty, const char);
-}
-
-RuntimeScriptValue Sc_GUIControl_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_BOOL_POBJ2(GUIControl, GUIControl_SetTextProperty, const char, const char);
-}
-
-
 void RegisterGUIControlAPI()
 {
     ScFnRegister guicontrol_api[] = {
-        {"GUIControl::GetAtScreenXY^2", API_FN_PAIR(GUIControl_GetAtScreenXY2)},
-        {"GUIControl::GetAtScreenXY^4", API_FN_PAIR(GUIControl_GetAtScreenXY)},
+        ScStatic<&GUIControl_GetAtScreenXY2>("GUIControl::GetAtScreenXY^2"),
+        ScStatic<&GUIControl_GetAtScreenXY>("GUIControl::GetAtScreenXY^4"),
         // [OBSOLETE] GetByName => GetByScriptName
-        {"GUIControl::GetByName", API_FN_PAIR(GUIControl_GetByName)},
-        {"GUIControl::GetByScriptName", API_FN_PAIR(GUIControl_GetByName)},
+        ScStatic<&GUIControl_GetByName>("GUIControl::GetByName"),
+        ScStatic<&GUIControl_GetByName>("GUIControl::GetByScriptName"),
 
-        {"GUIControl::BringToFront^0", API_FN_PAIR(GUIControl_BringToFront)},
-        {"GUIControl::SendToBack^0", API_FN_PAIR(GUIControl_SendToBack)},
-        {"GUIControl::SetPosition^2", API_FN_PAIR(GUIControl_SetPosition)},
-        {"GUIControl::SetSize^2", API_FN_PAIR(GUIControl_SetSize)},
-        {"GUIControl::GetGraphicPosition^0", API_FN_PAIR(GUIControl_GetGraphicPosition)},
-        {"GUIControl::GetGraphicBoundBox^0", API_FN_PAIR(GUIControl_GetGraphicBoundBox)},
-        {"GUIControl::GetProperty^1", API_FN_PAIR(GUIControl_GetProperty)},
-        {"GUIControl::GetTextProperty^1", API_FN_PAIR(GUIControl_GetTextProperty)},
-        {"GUIControl::SetProperty^2", API_FN_PAIR(GUIControl_SetProperty)},
-        {"GUIControl::SetTextProperty^2", API_FN_PAIR(GUIControl_SetTextProperty)},
-        {"GUIControl::get_AsButton", API_FN_PAIR(GUIControl_GetAsButton)},
-        {"GUIControl::get_AsInvWindow", API_FN_PAIR(GUIControl_GetAsInvWindow)},
-        {"GUIControl::get_AsLabel", API_FN_PAIR(GUIControl_GetAsLabel)},
-        {"GUIControl::get_AsListBox", API_FN_PAIR(GUIControl_GetAsListBox)},
-        {"GUIControl::get_AsSlider", API_FN_PAIR(GUIControl_GetAsSlider)},
-        {"GUIControl::get_AsTextBox", API_FN_PAIR(GUIControl_GetAsTextBox)},
-        {"GUIControl::get_Clickable", API_FN_PAIR(GUIControl_GetClickable)},
-        {"GUIControl::set_Clickable", API_FN_PAIR(GUIControl_SetClickable)},
-        {"GUIControl::get_Enabled", API_FN_PAIR(GUIControl_GetEnabled)},
-        {"GUIControl::set_Enabled", API_FN_PAIR(GUIControl_SetEnabled)},
-        {"GUIControl::get_Height", API_FN_PAIR(GUIControl_GetHeight)},
-        {"GUIControl::set_Height", API_FN_PAIR(GUIControl_SetHeight)},
-        {"GUIControl::get_ID", API_FN_PAIR(GUIControl_GetID)},
-        {"GUIControl::get_OwningGUI", API_FN_PAIR(GUIControl_GetOwningGUI)},
-        {"GUIControl::get_ScriptName", API_FN_PAIR(GUIControl_GetScriptName)},
-        {"GUIControl::get_Visible", API_FN_PAIR(GUIControl_GetVisible)},
-        {"GUIControl::set_Visible", API_FN_PAIR(GUIControl_SetVisible)},
-        {"GUIControl::get_Width", API_FN_PAIR(GUIControl_GetWidth)},
-        {"GUIControl::set_Width", API_FN_PAIR(GUIControl_SetWidth)},
-        {"GUIControl::get_X", API_FN_PAIR(GUIControl_GetX)},
-        {"GUIControl::set_X", API_FN_PAIR(GUIControl_SetX)},
-        {"GUIControl::get_Y", API_FN_PAIR(GUIControl_GetY)},
-        {"GUIControl::set_Y", API_FN_PAIR(GUIControl_SetY)},
-        {"GUIControl::get_Rotation", API_FN_PAIR(GUIControl_GetRotation)},
-        {"GUIControl::set_Rotation", API_FN_PAIR(GUIControl_SetRotation)},
-        {"GUIControl::get_ScaleX", API_FN_PAIR(GUIControl_GetScaleX)},
-        {"GUIControl::set_ScaleX", API_FN_PAIR(GUIControl_SetScaleX)},
-        {"GUIControl::get_ScaleY", API_FN_PAIR(GUIControl_GetScaleY)},
-        {"GUIControl::set_ScaleY", API_FN_PAIR(GUIControl_SetScaleY)},
-        {"GUIControl::SetScale", API_FN_PAIR(GUIControl_SetScale)},
-        {"GUIControl::get_ZOrder", API_FN_PAIR(GUIControl_GetZOrder)},
-        {"GUIControl::set_ZOrder", API_FN_PAIR(GUIControl_SetZOrder)},
-        {"GUIControl::get_Translated", API_FN_PAIR(GUIControl_GetTranslated)},
-        {"GUIControl::set_Translated", API_FN_PAIR(GUIControl_SetTranslated)},
-        {"GUIControl::get_Opacity", API_FN_PAIR(GUIControl_GetOpacity)},
-        {"GUIControl::set_Opacity", API_FN_PAIR(GUIControl_SetOpacity)},
+        ScMethod<&GUIControl_BringToFront>("GUIControl::BringToFront^0"),
+        ScMethod<&GUIControl_SendToBack>("GUIControl::SendToBack^0"),
+        ScMethod<&GUIControl_SetPosition>("GUIControl::SetPosition^2"),
+        ScMethod<&GUIControl_SetSize>("GUIControl::SetSize^2"),
+        ScMethod<&GUIControl_GetGraphicPosition, ScManagedBy<globalDynamicArray>>("GUIControl::GetGraphicPosition^0"),
+        ScMethod<&GUIControl_GetGraphicBoundBox, ScManagedBy<globalDynamicArray>>("GUIControl::GetGraphicBoundBox^0"),
+        ScMethod<&GUIControl_GetProperty>("GUIControl::GetProperty^1"),
+        ScMethod<&GUIControl_GetTextProperty>("GUIControl::GetTextProperty^1"),
+        ScMethod<&GUIControl_SetProperty>("GUIControl::SetProperty^2"),
+        ScMethod<&GUIControl_SetTextProperty>("GUIControl::SetTextProperty^2"),
+        ScMethod<&GUIControl_GetAsButton>("GUIControl::get_AsButton"),
+        ScMethod<&GUIControl_GetAsInvWindow>("GUIControl::get_AsInvWindow"),
+        ScMethod<&GUIControl_GetAsLabel>("GUIControl::get_AsLabel"),
+        ScMethod<&GUIControl_GetAsListBox>("GUIControl::get_AsListBox"),
+        ScMethod<&GUIControl_GetAsSlider>("GUIControl::get_AsSlider"),
+        ScMethod<&GUIControl_GetAsTextBox>("GUIControl::get_AsTextBox"),
+        ScMethod<&GUIControl_GetClickable>("GUIControl::get_Clickable"),
+        ScMethod<&GUIControl_SetClickable>("GUIControl::set_Clickable"),
+        ScMethod<&GUIControl_GetEnabled>("GUIControl::get_Enabled"),
+        ScMethod<&GUIControl_SetEnabled>("GUIControl::set_Enabled"),
+        ScMethod<&GUIControl_GetHeight>("GUIControl::get_Height"),
+        ScMethod<&GUIControl_SetHeight>("GUIControl::set_Height"),
+        ScMethod<&GUIControl_GetID>("GUIControl::get_ID"),
+        ScMethod<&GUIControl_GetOwningGUI, ScManagedBy<ccDynamicGUIControl>>("GUIControl::get_OwningGUI"),
+        ScMethod<&GUIControl_GetScriptName>("GUIControl::get_ScriptName"),
+        ScMethod<&GUIControl_GetVisible>("GUIControl::get_Visible"),
+        ScMethod<&GUIControl_SetVisible>("GUIControl::set_Visible"),
+        ScMethod<&GUIControl_GetWidth>("GUIControl::get_Width"),
+        ScMethod<&GUIControl_SetWidth>("GUIControl::set_Width"),
+        ScMethod<&GUIControl_GetX>("GUIControl::get_X"),
+        ScMethod<&GUIControl_SetX>("GUIControl::set_X"),
+        ScMethod<&GUIControl_GetY>("GUIControl::get_Y"),
+        ScMethod<&GUIControl_SetY>("GUIControl::set_Y"),
+        ScMethod<&GUIControl_GetRotation>("GUIControl::get_Rotation"),
+        ScMethod<&GUIControl_SetRotation, ScUndefinedResult>("GUIControl::set_Rotation"),
+        ScMethod<&GUIControl_GetScaleX>("GUIControl::get_ScaleX"),
+        ScMethod<&GUIControl_SetScaleX, ScUndefinedResult>("GUIControl::set_ScaleX"),
+        ScMethod<&GUIControl_GetScaleY>("GUIControl::get_ScaleY"),
+        ScMethod<&GUIControl_SetScaleY, ScUndefinedResult>("GUIControl::set_ScaleY"),
+        ScMethod<&GUIControl_SetScale, ScUndefinedResult>("GUIControl::SetScale"),
+        ScMethod<&GUIControl_GetZOrder>("GUIControl::get_ZOrder"),
+        ScMethod<&GUIControl_SetZOrder>("GUIControl::set_ZOrder"),
+        ScMethod<&GUIControl_GetTranslated>("GUIControl::get_Translated"),
+        ScMethod<&GUIControl_SetTranslated>("GUIControl::set_Translated"),
+        ScMethod<&GUIControl_GetOpacity>("GUIControl::get_Opacity"),
+        ScMethod<&GUIControl_SetOpacity>("GUIControl::set_Opacity"),
         // [OBSOLETE] Transparency => Opacity
-        {"GUIControl::get_Transparency", API_FN_PAIR(GUIControl_GetTransparency)},
-        {"GUIControl::set_Transparency", API_FN_PAIR(GUIControl_SetTransparency)},
+        ScMethod<&GUIControl_GetTransparency>("GUIControl::get_Transparency"),
+        ScMethod<&GUIControl_SetTransparency>("GUIControl::set_Transparency"),
 
-        {"GUIControl::get_BackgroundColor", API_FN_PAIR(GUIControl_GetBackgroundColor)},
-        {"GUIControl::set_BackgroundColor", API_FN_PAIR(GUIControl_SetBackgroundColor)},
-        {"GUIControl::get_BorderColor", API_FN_PAIR(GUIControl_GetBorderColor)},
-        {"GUIControl::set_BorderColor", API_FN_PAIR(GUIControl_SetBorderColor)},
-        {"GUIControl::get_BorderWidth", API_FN_PAIR(GUIControl_GetBorderWidth)},
-        {"GUIControl::set_BorderWidth", API_FN_PAIR(GUIControl_SetBorderWidth)},
-        {"GUIControl::get_PaddingX", API_FN_PAIR(GUIControl_GetPaddingX)},
-        {"GUIControl::set_PaddingX", API_FN_PAIR(GUIControl_SetPaddingX)},
-        {"GUIControl::get_PaddingY", API_FN_PAIR(GUIControl_GetPaddingY)},
-        {"GUIControl::set_PaddingY", API_FN_PAIR(GUIControl_SetPaddingY)},
-        {"GUIControl::get_ShowBorder", API_FN_PAIR(GUIControl_GetShowBorder)},
-        {"GUIControl::set_ShowBorder", API_FN_PAIR(GUIControl_SetShowBorder)},
-        {"GUIControl::get_SolidBackground", API_FN_PAIR(GUIControl_GetSolidBackground)},
-        {"GUIControl::set_SolidBackground", API_FN_PAIR(GUIControl_SetSolidBackground)},
-        {"GUIControl::get_BlendMode", API_FN_PAIR(GUIControl_GetBlendMode)},
-        {"GUIControl::set_BlendMode", API_FN_PAIR(GUIControl_SetBlendMode)},
-        {"GUIControl::get_Shader", API_FN_PAIR(GUIControl_GetShader)},
-        {"GUIControl::set_Shader", API_FN_PAIR(GUIControl_SetShader)},
+        ScMethod<&GUIControl_GetBackgroundColor>("GUIControl::get_BackgroundColor"),
+        ScMethod<&GUIControl_SetBackgroundColor>("GUIControl::set_BackgroundColor"),
+        ScMethod<&GUIControl_GetBorderColor>("GUIControl::get_BorderColor"),
+        ScMethod<&GUIControl_SetBorderColor>("GUIControl::set_BorderColor"),
+        ScMethod<&GUIControl_GetBorderWidth>("GUIControl::get_BorderWidth"),
+        ScMethod<&GUIControl_SetBorderWidth>("GUIControl::set_BorderWidth"),
+        ScMethod<&GUIControl_GetPaddingX>("GUIControl::get_PaddingX"),
+        ScMethod<&GUIControl_SetPaddingX>("GUIControl::set_PaddingX"),
+        ScMethod<&GUIControl_GetPaddingY>("GUIControl::get_PaddingY"),
+        ScMethod<&GUIControl_SetPaddingY>("GUIControl::set_PaddingY"),
+        ScMethod<&GUIControl_GetShowBorder>("GUIControl::get_ShowBorder"),
+        ScMethod<&GUIControl_SetShowBorder>("GUIControl::set_ShowBorder"),
+        ScMethod<&GUIControl_GetSolidBackground>("GUIControl::get_SolidBackground"),
+        ScMethod<&GUIControl_SetSolidBackground>("GUIControl::set_SolidBackground"),
+        ScMethod<&GUIControl_GetBlendMode>("GUIControl::get_BlendMode"),
+        ScMethod<&GUIControl_SetBlendMode>("GUIControl::set_BlendMode"),
+        ScMethod<&GUIControl_GetShader>("GUIControl::get_Shader"),
+        ScMethod<&GUIControl_SetShader>("GUIControl::set_Shader"),
     };
 
     ccAddExternalFunctions(guicontrol_api);

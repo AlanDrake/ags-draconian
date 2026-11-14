@@ -42,7 +42,7 @@ AGS::Common::GUIObject *GUIControl_GetAtScreenXY(int x, int y, int gui_hitoption
 // **** GUICONTROL: FUNCTIONS ****
 //
 // A GUIControl_<Name> function implements the script function GUIControl.<Name> of the same name, which scripts reach
-// through the Sc_GUIControl_<Name> wrapper registered in RegisterGUIControlAPI (gui_control_api.cpp); a pair
+// through the binding registered in RegisterGUIControlAPI (gui_control_api.cpp); a pair
 // GUIControl_Get<Name> and GUIControl_Set<Name> implements the script property GUIControl.<Name> (get_<Name> and
 // set_<Name>). control is the script control the function is called on. A comment tells where the script name differs.
 // The setters of Visible, Clickable and Enabled take any non-zero value as "on".
