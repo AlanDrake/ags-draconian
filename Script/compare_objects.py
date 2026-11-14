@@ -389,14 +389,15 @@ def move_verdict(dumpbin, env, old_objects, new_objects, files_moved):
 
 
 def parse_map(text):
-    """{old path: new path} from a --map file: one 'old<TAB>new' per line, # comments, blank lines."""
+    """{old path: new path} from a --map file: one 'old<TAB>new' per line, # comments, blank lines; a third
+    column (a note, as in docs/refactor/moves-5.3.tsv) is ignored."""
     result = {}
     for n, line in enumerate(text.splitlines(), 1):
         line = line.strip()
         if not line or line.startswith('#'):
             continue
         fields = [f.strip() for f in line.split('\t')]
-        if len(fields) != 2 or not all(fields):
+        if len(fields) not in (2, 3) or not all(fields[:2]):
             sys.exit(f'--map line {n}: expected "old path<TAB>new path", got {line!r}')
         result[fields[0].replace('\\', '/')] = fields[1].replace('\\', '/')
     return result
