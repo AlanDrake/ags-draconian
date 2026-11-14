@@ -13,7 +13,6 @@
 //=============================================================================
 #include "game/save/savegame.h"
 
-#include "ac/gamesetupstruct.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
@@ -31,6 +30,7 @@
 #include "game/event.h"
 #include "game/file.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"

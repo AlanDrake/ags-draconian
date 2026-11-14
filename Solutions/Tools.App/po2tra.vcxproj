@@ -19,11 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp" />
     <ClCompile Include="..\..\Common\data\data_ext.cpp" />
     <ClCompile Include="..\..\Common\data\data_helpers.cpp" />
     <ClCompile Include="..\..\Common\data\tra_file.cpp" />
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp" />
+    <ClCompile Include="..\..\Common\game\words_dictionary.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\cmdlineopts.cpp" />
     <ClCompile Include="..\..\Common\util\file.cpp" />
@@ -49,9 +49,9 @@
     <ClCompile Include="..\..\Tools\po2tra\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Common\ac\wordsdictionary.h" />
     <ClInclude Include="..\..\Common\data\data_helpers.h" />
     <ClInclude Include="..\..\Common\data\tra_file.h" />
+    <ClInclude Include="..\..\Common\game\words_dictionary.h" />
     <ClInclude Include="..\..\Common\util\cmdlineopts.h" />
     <ClInclude Include="..\..\Common\util\textstreamreader.h" />
     <ClInclude Include="..\..\Common\util\textstreamwriter.h" />

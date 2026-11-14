@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include "ac/audiocliptype.h"
+#include "game/audio_clip_type.h"
 
 #include "util/stream.h"
 

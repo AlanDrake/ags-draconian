@@ -18,7 +18,7 @@
 
 #pragma unmanaged
 
-#include "ac/gamesetupstruct.h"
+#include "game/game_setup_struct.h"
 #include "font/fonts.h"
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"

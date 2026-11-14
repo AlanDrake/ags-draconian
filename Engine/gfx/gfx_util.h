@@ -23,7 +23,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/common_defines.h"
+#include "game/common_defines.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 

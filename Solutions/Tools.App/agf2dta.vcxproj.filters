@@ -46,13 +46,13 @@
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\characterinfo.cpp">
+    <ClCompile Include="..\..\Common\game\character_info.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp">
+    <ClCompile Include="..\..\Common\game\inventory_item_info.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\mousecursor.cpp">
+    <ClCompile Include="..\..\Common\game\mouse_cursor.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\cmdlineopts.cpp">
@@ -82,7 +82,7 @@
     <ClCompile Include="..\..\Common\util\path.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp">
+    <ClCompile Include="..\..\Common\game\words_dictionary.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Tools\data\data_file_writer.cpp">
@@ -123,13 +123,13 @@
     <ClInclude Include="..\..\Common\debug\out.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\characterinfo.h">
+    <ClInclude Include="..\..\Common\game\character_info.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h">
+    <ClInclude Include="..\..\Common\game\inventory_item_info.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\mousecursor.h">
+    <ClInclude Include="..\..\Common\game\mouse_cursor.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\cmdlineopts.h">

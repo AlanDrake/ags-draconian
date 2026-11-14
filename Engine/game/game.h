@@ -21,9 +21,9 @@
 #include <memory>
 #include <time.h>
 
-#include "ac/game_version.h"
-#include "ac/gamestructdefines.h"
 #include "game/dynobj/script_view_frame.h"
+#include "game/game_struct_defines.h"
+#include "game/game_version.h"
 #include "game/runtime_defines.h"
 #include "gfx/bitmap.h"
 #include "main/game_file.h"

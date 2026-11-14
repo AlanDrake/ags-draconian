@@ -15,7 +15,6 @@
 // Script API Functions
 //
 //=============================================================================
-#include "ac/gamestructdefines.h"
 #include "debug/out.h"
 #include "game/audio/audio.h"
 #include "game/dialog/dialog.h"
@@ -25,6 +24,7 @@
 #include "game/dynobj/script_string.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_struct_defines.h"
 #include "game/input/keyboard.h"
 #include "game/lib/math.h"
 #include "game/lib/string.h"

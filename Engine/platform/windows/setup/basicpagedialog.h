@@ -21,7 +21,7 @@
 #include <memory>
 #include <vector>
 
-#include "ac/gamestructdefines.h"
+#include "game/game_struct_defines.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/gfxmodelist.h"
 #include "main/game_setup.h"

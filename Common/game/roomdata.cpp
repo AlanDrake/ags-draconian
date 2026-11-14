@@ -13,7 +13,7 @@
 //=============================================================================
 #include "game/roomdata.h"
 
-#include "ac/common_defines.h"
+#include "game/common_defines.h"
 #include "game/room_version.h"
 #include "gfx/gfx_def.h"
 

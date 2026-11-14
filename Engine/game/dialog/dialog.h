@@ -15,7 +15,7 @@
 
 #include <vector>
 
-#include "ac/dialogtopic.h"
+#include "game/dialog_topic.h"
 #include "game/dynobj/script_objects.h"
 
 // Script function: the dialog's number

@@ -15,8 +15,8 @@
 
 #include <array>
 
-#include "ac/common_defines.h"
-#include "ac/game_version.h"
+#include "game/common_defines.h"
+#include "game/game_version.h"
 
 // Max old-style script string length
 #define MAX_MAXSTRLEN 200

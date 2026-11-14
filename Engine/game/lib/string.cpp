@@ -18,12 +18,12 @@
 
 #include <allegro.h>
 
-#include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "game/dialog/display.h"
 #include "game/dynobj/script_string.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/runtime_defines.h"
 #include "script/dynobj/cc_dynamic_array.h"

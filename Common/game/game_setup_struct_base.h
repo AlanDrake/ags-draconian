@@ -22,9 +22,9 @@
 
 #include <allegro.h> // RGB
 
-#include "ac/game_version.h"
-#include "ac/gamestructdefines.h"
-#include "ac/wordsdictionary.h"
+#include "game/game_struct_defines.h"
+#include "game/game_version.h"
+#include "game/words_dictionary.h"
 #include "util/string.h"
 
 // Forward declaration

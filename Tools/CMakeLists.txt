@@ -12,11 +12,6 @@ target_include_directories(libtools PUBLIC .)
 # we could link to AGS::Common, but this provides much faster LTO times with Release builds
 target_include_directories(libtools PUBLIC ../Common)
 set(TOOLS_COMMON_SOURCES
-        ../Common/ac/characterinfo.cpp
-        ../Common/ac/inventoryiteminfo.cpp
-        ../Common/ac/mousecursor.cpp
-        ../Common/ac/wordsdictionary.cpp
-        ../Common/ac/wordsdictionary.h
         ../Common/data/asset.h
         ../Common/data/data_helpers.cpp
         ../Common/data/data_helpers.h
@@ -28,8 +23,11 @@ set(TOOLS_COMMON_SOURCES
         ../Common/data/tra_file.h
         ../Common/debug/debugmanager.cpp
         ../Common/debug/debugmanager.h
+        ../Common/game/character_info.cpp
         ../Common/game/customproperties.cpp
         ../Common/game/customproperties.h
+        ../Common/game/inventory_item_info.cpp
+        ../Common/game/mouse_cursor.cpp
         ../Common/game/room_file.cpp
         ../Common/game/room_file.h
         ../Common/game/room_file_blocks.h
@@ -38,6 +36,8 @@ set(TOOLS_COMMON_SOURCES
         ../Common/game/roomdata.h
         ../Common/game/scripteventtable.cpp
         ../Common/game/scripteventtable.h
+        ../Common/game/words_dictionary.cpp
+        ../Common/game/words_dictionary.h
         ../Common/gfx/bitmapdata.cpp
         ../Common/gfx/bitmapdata.h
         ../Common/gfx/image_bmp.cpp
@@ -301,11 +301,11 @@ endif ()
 if(AGS_TESTS)
    add_executable(tools_test
       ${CMAKE_SOURCE_DIR}/Common/test/common_stubs.cpp # GUI reader runtime stubs used by data_file_writer_test
-      ../Common/ac/gamesetupstructbase.cpp # needed by data_file_writer_test
-      ../Common/ac/view.cpp # needed by data_file_writer_test
-      ../Common/ac/audiocliptype.cpp # needed by data_file_writer_test
-      ../Common/ac/dynobj/scriptaudioclip.cpp # needed by data_file_writer_test
-      ../Common/ac/dialogtopic.cpp # needed by data_file_writer_test
+      ../Common/game/game_setup_struct_base.cpp # needed by data_file_writer_test
+      ../Common/game/view.cpp # needed by data_file_writer_test
+      ../Common/game/audio_clip_type.cpp # needed by data_file_writer_test
+      ../Common/game/script_audio_clip.cpp # needed by data_file_writer_test
+      ../Common/game/dialog_topic.cpp # needed by data_file_writer_test
       ../Common/util/common.cpp # needed by GUI readers in data_file_writer_test
       ../Common/gfx/sprite_cache.cpp # needed by GUI readers in data_file_writer_test
       ../Common/data/assetmanager.cpp # needed by Common font renderers

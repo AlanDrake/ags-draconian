@@ -17,7 +17,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/wordsdictionary.h"
+#include "game/words_dictionary.h"
 
 int Parser_FindWordID(const char *wordToFind);
 const char *Parser_SaidUnknownWord();

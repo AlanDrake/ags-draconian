@@ -28,12 +28,12 @@
 #include <string>
 #include <vector>
 
-#include "ac/gamesetupstruct.h"
-#include "ac/view.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/save/savegame.h"
 #include "game/save/savegame_components.h"
 #include "game/save/savegame_internal.h"
+#include "game/view.h"
 #include "game/world/character_extras.h"
 #include "gtest/gtest.h"
 #include "util/memorystream.h"

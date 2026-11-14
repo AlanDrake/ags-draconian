@@ -5,12 +5,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Source Files\ac">
-      <UniqueIdentifier>{0958abdd-c8bb-4b14-a389-01cb61cd0cc4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\ac\dynobj">
-      <UniqueIdentifier>{a09dd323-d8ae-489b-afa7-e25097df08f2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\font">
       <UniqueIdentifier>{5f8d572e-94fb-435d-bf97-c2ea9753a17c}</UniqueIdentifier>
     </Filter>
@@ -35,12 +29,6 @@
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Header Files\ac">
-      <UniqueIdentifier>{2966e3a7-61cc-47ed-ac6f-30e37bcf5de4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\ac\dynobj">
-      <UniqueIdentifier>{36a39d20-106b-49e5-8be2-68ed20024ee5}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\font">
       <UniqueIdentifier>{e0ee9c49-aef4-45e7-9deb-0f0bbabc6f28}</UniqueIdentifier>
@@ -107,41 +95,41 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Common\ac\audiocliptype.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Common\game\audio_clip_type.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\characterinfo.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Common\game\character_info.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\common.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\dialogtopic.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Common\game\dialog_topic.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\gamesetupstruct.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Common\game\game_setup_struct.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\gamesetupstructbase.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Common\game\game_setup_struct_base.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Common\game\inventory_item_info.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\mousecursor.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Common\game\mouse_cursor.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\gfx\sprite_cache.cpp">
       <Filter>Source Files\gfx</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\view.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Common\game\view.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Common\game\words_dictionary.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\dynobj\scriptaudioclip.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
+    <ClCompile Include="..\..\Common\game\script_audio_clip.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\font\fonts.cpp">
       <Filter>Source Files\font</Filter>
@@ -607,50 +595,50 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Common\ac\audiocliptype.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\audio_clip_type.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\characterinfo.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\character_info.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\common.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\common_defines.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\common_defines.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\dialogtopic.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\dialog_topic.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\game_version.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\game_version.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\gamesetupstruct.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\game_setup_struct.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\gamesetupstructbase.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\game_setup_struct_base.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\gamestructdefines.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\game_struct_defines.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\inventory_item_info.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\mousecursor.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\mouse_cursor.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\gfx\sprite_cache.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\view.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\view.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\wordsdictionary.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\words_dictionary.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\dynobj\scriptaudioclip.h">
-      <Filter>Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Common\game\script_audio_clip.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\font\agsfontrenderer.h">
       <Filter>Header Files\font</Filter>

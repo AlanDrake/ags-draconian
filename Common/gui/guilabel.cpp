@@ -15,8 +15,8 @@
 
 #include <algorithm>
 
-#include "ac/game_version.h"
 #include "font/fonts.h"
+#include "game/game_version.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
 #include "util/string_utils.h"

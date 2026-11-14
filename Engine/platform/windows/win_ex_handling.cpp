@@ -23,8 +23,8 @@
 #include <Psapi.h>
 #include <new.h>
 
-#include "ac/common_defines.h"
 #include "debug/out.h"
+#include "game/common_defines.h"
 #include "gfx/sprite_cache.h"
 #include "main/main.h"
 #include "platform/base/sys_main.h"

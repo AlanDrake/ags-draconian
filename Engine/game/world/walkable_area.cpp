@@ -13,9 +13,9 @@
 //=============================================================================
 #include "game/world/walkable_area.h"
 
-#include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_walkable_area.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/roomstruct.h"

@@ -13,10 +13,10 @@
 //=============================================================================
 #include "game/world/hotspot.h"
 
-#include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_hotspot.h"
 #include "game/event.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/roomstruct.h"

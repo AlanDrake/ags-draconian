@@ -15,7 +15,7 @@
 // Script bindings registered by RegisterInventoryWindowAPI().
 //
 //=============================================================================
-#include "ac/characterinfo.h"
+#include "game/character_info.h"
 #include "game/dynobj/cc_character.h"
 #include "game/dynobj/cc_inventory.h"
 #include "game/game.h"

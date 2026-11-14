@@ -15,9 +15,9 @@
 
 #include <array>
 
-#include "ac/game_version.h"
 #include "device/sys_events.h"
 #include "game/dialog/speech.h"
+#include "game/game_version.h"
 #include "game/runtime_defines.h"
 #include "main/graphics_mode.h"
 #include "util/string.h"

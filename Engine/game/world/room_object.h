@@ -17,7 +17,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/common_defines.h"
+#include "game/common_defines.h"
 #include "game/runtime_defines.h"
 #include "gfx/gfx_def.h"
 #include "gfx/graphicspace.h"

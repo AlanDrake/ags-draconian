@@ -15,8 +15,8 @@
 
 #include <vector>
 
-#include "ac/common_defines.h" // TODO: split out gui drawing helpers
-#include "ac/game_version.h"
+#include "game/common_defines.h" // TODO: split out gui drawing helpers
+#include "game/game_version.h"
 #include "gfx/gfx_def.h" // TODO: split out gui drawing helpers
 #include "gui/guibutton.h"
 #include "gui/guidefines.h"

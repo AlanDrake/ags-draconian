@@ -17,8 +17,8 @@
 //=============================================================================
 #include <cctype>
 
-#include "ac/gamesetupstruct.h"
 #include "font/fonts.h"
+#include "game/game_setup_struct.h"
 #include "game/lib/string.h"
 #include "game/system.h"
 #include "game/translation.h"

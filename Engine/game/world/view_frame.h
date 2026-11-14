@@ -17,10 +17,10 @@
 //=============================================================================
 #pragma once
 
-#include "ac/dynobj/scriptaudioclip.h"
-#include "ac/view.h"
 #include "game/dynobj/script_view_frame.h"
 #include "game/runtime_defines.h"
+#include "game/script_audio_clip.h"
+#include "game/view.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 

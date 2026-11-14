@@ -21,13 +21,13 @@
 #include <memory>
 #include <vector>
 
-#include "ac/gamesetupstruct.h"
-#include "ac/view.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/render/overlay.h"
 #include "game/render/screen_overlay.h"
 #include "game/render/viewport.h"
 #include "game/roomstruct.h"
+#include "game/view.h"
 #include "game/world/character_extras.h"
 #include "gfx/bitmap.h"
 #include "gfx/sprite_cache.h"

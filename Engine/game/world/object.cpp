@@ -13,14 +13,13 @@
 //=============================================================================
 #include "game/world/object.h"
 
-#include "ac/gamesetupstruct.h"
-#include "ac/view.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_object.h"
 #include "game/dynobj/script_motion_path.h"
 #include "game/dynobj/script_shader.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/navigation/route_finder.h"
@@ -29,6 +28,7 @@
 #include "game/script.h"
 #include "game/system.h"
 #include "game/ui/gui.h"
+#include "game/view.h"
 #include "game/world/character.h"
 #include "game/world/move_list.h"
 #include "game/world/properties.h"

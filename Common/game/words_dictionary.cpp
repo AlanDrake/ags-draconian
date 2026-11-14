@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/wordsdictionary.h"
+#include "game/words_dictionary.h"
 
 #include <algorithm>
 #include <map>

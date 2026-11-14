@@ -11,11 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/gamesetupstruct.h"
+#include "game/game_setup_struct.h"
 
-#include "ac/audiocliptype.h"
-#include "ac/dynobj/scriptaudioclip.h"
 #include "data/data_helpers.h"
+#include "game/audio_clip_type.h"
+#include "game/script_audio_clip.h"
 #include "util/string_utils.h"
 
 using namespace AGS;

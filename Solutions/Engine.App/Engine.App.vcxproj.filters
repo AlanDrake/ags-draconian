@@ -190,8 +190,8 @@
     <Filter Include="Common Header Files\ac">
       <UniqueIdentifier>{1f265db8-28e4-4c11-a8c0-c758936bb2fc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Common Header Files\ac\dynobj">
-      <UniqueIdentifier>{3a54716a-ffb1-46bd-9bc6-cbc227bc953c}</UniqueIdentifier>
+    <Filter Include="Common Header Files\game">
+      <UniqueIdentifier>{3caf828f-a60e-522e-81ce-8f00ac293547}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common Header Files\gfx">
       <UniqueIdentifier>{1b82e36c-8ebb-5d26-9771-a639e6c43d1d}</UniqueIdentifier>
@@ -1406,32 +1406,32 @@
     <ClInclude Include="..\..\Common\ac\animationstruct.h">
       <Filter>Common Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\audiocliptype.h">
-      <Filter>Common Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\audio_clip_type.h">
+      <Filter>Common Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\characterinfo.h">
-      <Filter>Common Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\character_info.h">
+      <Filter>Common Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\common.h">
       <Filter>Common Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\common_defines.h">
-      <Filter>Common Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\common_defines.h">
+      <Filter>Common Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\customproperties.h">
       <Filter>Common Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\dialogtopic.h">
-      <Filter>Common Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\dialog_topic.h">
+      <Filter>Common Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\gamesetupstruct.h">
-      <Filter>Common Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\game_setup_struct.h">
+      <Filter>Common Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\gamesetupstructbase.h">
-      <Filter>Common Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\game_setup_struct_base.h">
+      <Filter>Common Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\gamestructdefines.h">
-      <Filter>Common Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\game_struct_defines.h">
+      <Filter>Common Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\interaction.h">
       <Filter>Common Header Files\ac</Filter>
@@ -1442,14 +1442,14 @@
     <ClInclude Include="..\..\Common\ac\interfaceelement.h">
       <Filter>Common Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h">
-      <Filter>Common Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\inventory_item_info.h">
+      <Filter>Common Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\messageinfo.h">
       <Filter>Common Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\mousecursor.h">
-      <Filter>Common Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\mouse_cursor.h">
+      <Filter>Common Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\point.h">
       <Filter>Common Header Files\ac</Filter>
@@ -1460,14 +1460,14 @@
     <ClInclude Include="..\..\Common\gfx\sprite_cache.h">
       <Filter>Common Header Files\gfx</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\view.h">
-      <Filter>Common Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\view.h">
+      <Filter>Common Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\wordsdictionary.h">
-      <Filter>Common Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\game\words_dictionary.h">
+      <Filter>Common Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\dynobj\scriptaudioclip.h">
-      <Filter>Common Header Files\ac\dynobj</Filter>
+    <ClInclude Include="..\..\Common\game\script_audio_clip.h">
+      <Filter>Common Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_error.h">
       <Filter>Common Header Files\script</Filter>

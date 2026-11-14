@@ -15,14 +15,14 @@
 
 #include <algorithm>
 
-#include "ac/game_version.h"
-#include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/customproperties.h"
 #include "game/dynobj/script_camera.h"
 #include "game/dynobj/script_system.h"
 #include "game/dynobj/script_viewport.h"
+#include "game/game_setup_struct.h"
+#include "game/game_version.h"
 #include "game/render/draw.h"
 #include "game/roomstruct.h"
 #include "game/save/savegame_internal.h"

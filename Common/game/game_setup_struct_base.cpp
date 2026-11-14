@@ -11,10 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/gamesetupstructbase.h"
+#include "game/game_setup_struct_base.h"
 
-#include "ac/characterinfo.h"
-#include "ac/game_version.h"
+#include "game/character_info.h"
+#include "game/game_version.h"
 #include "script/cc_script.h"
 #include "util/stream.h"
 #include "util/string_utils.h"

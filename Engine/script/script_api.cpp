@@ -18,8 +18,8 @@
 
 #include <allegro.h>
 
-#include "ac/game_version.h"
 #include "debug/debug_log.h"
+#include "game/game_version.h"
 #include "script/cc_common.h"
 #include "script/runtimescriptvalue.h"
 

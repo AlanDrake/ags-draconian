@@ -15,8 +15,8 @@
 
 #include <cstdio>
 
-#include "ac/gamesetupstruct.h"
 #include "game/dynobj/script_string.h"
+#include "game/game_setup_struct.h"
 #include "game/lib/string.h"
 #include "script/runtimescriptvalue.h"
 #include "util/common.h"

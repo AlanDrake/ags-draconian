@@ -17,8 +17,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "ac/common_defines.h" // constants
-#include "ac/game_version.h"
+#include "game/common_defines.h" // constants
+#include "game/game_version.h"
 #include "game/scripteventtable.h"
 #include "util/bbop.h"
 #include "util/geometry.h"

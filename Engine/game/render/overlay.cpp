@@ -16,18 +16,18 @@
 #include <algorithm>
 #include <queue>
 
-#include "ac/gamesetupstruct.h"
-#include "ac/view.h"
 #include "debug/debug_log.h"
 #include "game/dialog/display.h"
 #include "game/dynobj/script_shader.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/render/screen_overlay.h"
 #include "game/runtime_defines.h"
 #include "game/translation.h"
+#include "game/view.h"
 #include "game/world/character.h"
 #include "game/world/character_extras.h"
 #include "game/world/object.h"

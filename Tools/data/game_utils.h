@@ -17,9 +17,9 @@
 #include <memory>
 #include <vector>
 
-#include "ac/gamestructdefines.h"
-#include "ac/mousecursor.h"
 #include "game/customproperties.h"
+#include "game/game_struct_defines.h"
+#include "game/mouse_cursor.h"
 #include "gfx/gfx_def.h"
 #include "gfx/sprite_file.h"
 #include "gui/guidefines.h"

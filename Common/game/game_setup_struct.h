@@ -19,14 +19,14 @@
 
 #include <vector>
 
-#include "ac/audiocliptype.h"
-#include "ac/characterinfo.h" // TODO: constants to separate header
-#include "ac/dynobj/scriptaudioclip.h"
-#include "ac/gamesetupstructbase.h"
-#include "ac/inventoryiteminfo.h"
-#include "ac/mousecursor.h"
+#include "game/audio_clip_type.h"
+#include "game/character_info.h" // TODO: constants to separate header
 #include "game/customproperties.h"
+#include "game/game_setup_struct_base.h"
+#include "game/inventory_item_info.h"
 #include "game/main_game_file.h" // TODO: constants to separate header or split out reading functions
+#include "game/mouse_cursor.h"
+#include "game/script_audio_clip.h"
 #include "game/scripteventtable.h"
 #include "gui/guidefines.h"
 

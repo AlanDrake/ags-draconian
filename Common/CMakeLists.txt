@@ -15,30 +15,7 @@ target_include_directories(common PUBLIC .)
 
 target_sources(common 
     PRIVATE
-    ac/audiocliptype.cpp
-    ac/audiocliptype.h
-    ac/characterinfo.cpp
-    ac/characterinfo.h
-    ac/common_defines.h
     ac/def_version.h
-    ac/dialogtopic.cpp
-    ac/dialogtopic.h
-    ac/dynobj/scriptaudioclip.cpp
-    ac/dynobj/scriptaudioclip.h
-    ac/game_version.h
-    ac/gamesetupstruct.cpp
-    ac/gamesetupstruct.h
-    ac/gamesetupstructbase.cpp
-    ac/gamesetupstructbase.h
-    ac/gamestructdefines.h
-    ac/inventoryiteminfo.cpp
-    ac/inventoryiteminfo.h
-    ac/mousecursor.cpp
-    ac/mousecursor.h
-    ac/view.cpp
-    ac/view.h
-    ac/wordsdictionary.cpp
-    ac/wordsdictionary.h
     data/asset.h
     data/assetmanager.cpp
     data/assetmanager.h
@@ -65,10 +42,27 @@ target_sources(common
     font/wfnfont.h
     font/wfnfontrenderer.cpp
     font/wfnfontrenderer.h
+    game/audio_clip_type.cpp
+    game/audio_clip_type.h
+    game/character_info.cpp
+    game/character_info.h
+    game/common_defines.h
     game/customproperties.cpp
     game/customproperties.h
+    game/dialog_topic.cpp
+    game/dialog_topic.h
+    game/game_setup_struct.cpp
+    game/game_setup_struct.h
+    game/game_setup_struct_base.cpp
+    game/game_setup_struct_base.h
+    game/game_struct_defines.h
+    game/game_version.h
+    game/inventory_item_info.cpp
+    game/inventory_item_info.h
     game/main_game_file.cpp
     game/main_game_file.h
+    game/mouse_cursor.cpp
+    game/mouse_cursor.h
     game/plugininfo.h
     game/room_file.cpp
     game/room_file.h
@@ -79,8 +73,14 @@ target_sources(common
     game/roomdata.h
     game/roomstruct.cpp
     game/roomstruct.h
+    game/script_audio_clip.cpp
+    game/script_audio_clip.h
     game/scripteventtable.cpp
     game/scripteventtable.h
+    game/view.cpp
+    game/view.h
+    game/words_dictionary.cpp
+    game/words_dictionary.h
     gfx/allegrobitmap.cpp
     gfx/allegrobitmap.h
     gfx/bitmap.cpp

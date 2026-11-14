@@ -15,13 +15,12 @@
 
 #include <map>
 
-#include "ac/audiocliptype.h"
-#include "ac/gamesetupstruct.h"
-#include "ac/view.h"
 #include "debug/out.h"
+#include "game/audio_clip_type.h"
 #include "game/dialog/dialog.h"
 #include "game/dynobj/cc_serializer.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/render/dynamic_sprite.h"
@@ -34,6 +33,7 @@
 #include "game/ui/button.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
+#include "game/view.h"
 #include "game/world/character.h"
 #include "game/world/move_list.h"
 #include "game/world/room_status.h"

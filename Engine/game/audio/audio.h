@@ -16,9 +16,9 @@
 #include <array>
 #include <memory>
 
-#include "ac/common_defines.h"
-#include "ac/dynobj/scriptaudioclip.h"
+#include "game/common_defines.h"
 #include "game/dynobj/script_objects.h"
+#include "game/script_audio_clip.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/soundclip.h"
 #include "util/string.h"

@@ -18,8 +18,8 @@
 //=============================================================================
 #pragma once
 
-#include "ac/gamestructdefines.h"
-#include "ac/wordsdictionary.h"
+#include "game/game_struct_defines.h"
+#include "game/words_dictionary.h"
 #include "util/error.h"
 #include "util/stream.h"
 #include "util/string_types.h"

@@ -13,8 +13,8 @@
 //=============================================================================
 #include "gfx/sprite_cache.h"
 
-#include "ac/gamestructdefines.h"
 #include "debug/out.h"
+#include "game/game_struct_defines.h"
 #include "gfx/bitmap.h"
 #include "platform/platform.h"
 #include "util/memory_compat.h"

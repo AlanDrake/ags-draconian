@@ -15,7 +15,6 @@
 
 #include <cctype> // for toupper
 
-#include "ac/gamesetupstruct.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -27,6 +26,7 @@
 #include "game/dynobj/script_shader.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"

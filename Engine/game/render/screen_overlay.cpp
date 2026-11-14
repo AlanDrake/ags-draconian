@@ -13,8 +13,8 @@
 //=============================================================================
 #include "game/render/screen_overlay.h"
 
-#include "ac/gamesetupstruct.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/render/dynamic_sprite.h"
 #include "game/world/object.h"
 #include "game/world/view_frame.h"

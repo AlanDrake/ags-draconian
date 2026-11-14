@@ -15,7 +15,6 @@
 
 #include <cstdio>
 
-#include "ac/gamesetupstruct.h"
 #include "data/assetmanager.h"
 #include "data/tra_file.h"
 #include "debug/out.h"
@@ -24,6 +23,7 @@
 #include "game/dialog/display.h"
 #include "game/dialog/parser.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/runtime_defines.h"
 #include "main/game_setup.h"

@@ -15,13 +15,13 @@
 
 #include <algorithm>
 
-#include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "device/sys_events.h"
 #include "game/audio/audio.h"
 #include "game/dynobj/script_shader.h"
 #include "game/dynobj/script_viewport.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "gfx/bitmap.h"

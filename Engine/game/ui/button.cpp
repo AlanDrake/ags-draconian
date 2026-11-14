@@ -16,10 +16,10 @@
 #include <algorithm>
 #include <cstdio>
 
-#include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_gui_control.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/script.h"

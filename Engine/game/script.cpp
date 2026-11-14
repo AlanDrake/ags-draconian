@@ -19,13 +19,13 @@
 #include <stack>
 #include <vector>
 
-#include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "game/dialog/dialog.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/ui/inv_window.h"
 #include "game/ui/mouse.h"

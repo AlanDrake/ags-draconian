@@ -16,20 +16,20 @@
 #include <cmath>
 #include <cstdio>
 
-#include "ac/audiocliptype.h"
-#include "ac/gamesetupstruct.h"
-#include "ac/view.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "game/audio/audio_channel.h"
 #include "game/audio/audio_clip.h"
+#include "game/audio_clip_type.h"
 #include "game/dialog/speech.h"
 #include "game/dynobj/cc_audio_channel.h"
 #include "game/dynobj/cc_audio_clip.h"
 #include "game/file.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
+#include "game/view.h"
 #include "main/game_run.h"
 #include "main/game_setup.h"
 #include "media/audio/audio_core.h"

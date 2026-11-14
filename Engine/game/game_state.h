@@ -19,9 +19,9 @@
 #include <unordered_set>
 #include <vector>
 
-#include "ac/characterinfo.h"
-#include "ac/gamestructdefines.h"
+#include "game/character_info.h"
 #include "game/dialog/speech.h"
+#include "game/game_struct_defines.h"
 #include "game/render/viewport.h"
 #include "game/roomstruct.h"
 #include "game/runtime_defines.h"

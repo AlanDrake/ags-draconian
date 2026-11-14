@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/gamesetupstruct.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/world/character_extras.h"

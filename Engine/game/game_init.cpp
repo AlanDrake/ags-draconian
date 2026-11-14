@@ -16,8 +16,6 @@
 #include <array>
 #include <vector>
 
-#include "ac/gamesetupstruct.h"
-#include "ac/view.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
@@ -32,11 +30,13 @@
 #include "game/dynobj/all_script_classes.h"
 #include "game/file.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/script.h"
 #include "game/script_api/exports.h"
 #include "game/ui/gui.h"
+#include "game/view.h"
 #include "game/world/character.h"
 #include "game/world/move_list.h"
 #include "gfx/bitmap.h"

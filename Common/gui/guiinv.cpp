@@ -15,7 +15,7 @@
 
 #include <math.h>
 
-#include "ac/game_version.h"
+#include "game/game_version.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
 

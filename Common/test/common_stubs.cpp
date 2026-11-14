@@ -15,7 +15,7 @@
 // Stubs for the functions in Common.lib that expect implementations elsewhere.
 //
 //=============================================================================
-#include "ac/game_version.h"
+#include "game/game_version.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"

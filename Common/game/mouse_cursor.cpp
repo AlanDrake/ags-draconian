@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/mousecursor.h"
+#include "game/mouse_cursor.h"
 
 #include "util/stream.h"
 #include "util/string_utils.h"

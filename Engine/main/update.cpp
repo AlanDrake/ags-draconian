@@ -20,10 +20,10 @@
 
 #include <math.h>
 
-#include "ac/gamesetupstruct.h"
 #include "device/sys_events.h"
 #include "game/dialog/lipsync.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/render/overlay.h"

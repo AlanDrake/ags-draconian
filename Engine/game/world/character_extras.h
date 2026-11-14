@@ -27,7 +27,7 @@
 
 #include <vector>
 
-#include "ac/characterinfo.h"
+#include "game/character_info.h"
 #include "game/runtime_defines.h"
 #include "gfx/gfx_def.h"
 #include "gfx/graphicspace.h"

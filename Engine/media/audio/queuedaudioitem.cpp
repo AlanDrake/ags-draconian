@@ -14,7 +14,7 @@
 
 #include "media/audio/queuedaudioitem.h"
 
-#include "ac/common_defines.h"
+#include "game/common_defines.h"
 #include "util/stream.h"
 
 using AGS::Common::Stream;

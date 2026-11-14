@@ -15,7 +15,7 @@
 
 #include <vector>
 
-#include "ac/characterinfo.h"
+#include "game/character_info.h"
 #include "game/dynobj/script_objects.h"
 #include "game/dynobj/script_overlay.h"
 #include "game/render/viewport.h"

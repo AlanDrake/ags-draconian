@@ -15,9 +15,9 @@
 
 #include <SDL_ttf.h>
 
-#include "ac/game_version.h"
 #include "data/assetmanager.h"
 #include "font/fonts.h"
+#include "game/game_version.h"
 #include "gfx/blender.h"
 #include "platform/platform.h"
 #include "util/sdl2_util.h"

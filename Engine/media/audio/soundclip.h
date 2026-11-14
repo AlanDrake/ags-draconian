@@ -35,7 +35,7 @@
 //
 //=============================================================================
 #pragma once
-#include "ac/dynobj/scriptaudioclip.h"
+#include "game/script_audio_clip.h"
 #include "media/audio/audiodefines.h"
 #include "util/math.h"
 #include "util/string.h"

@@ -17,12 +17,12 @@
 #include <unordered_map>
 #include <vector>
 
-#include "ac/common_defines.h"
-#include "ac/dynobj/scriptaudioclip.h"
-#include "ac/gamesetupstructbase.h"
+#include "game/common_defines.h"
 #include "game/dynobj/cc_serializer.h"
+#include "game/game_setup_struct_base.h"
 #include "game/roomstruct.h"
 #include "game/save/savegame.h"
+#include "game/script_audio_clip.h"
 #include "gfx/bitmap.h"
 #include "media/audio/audiodefines.h"
 #include "util/string.h"

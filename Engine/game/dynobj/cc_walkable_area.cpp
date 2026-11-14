@@ -13,7 +13,7 @@
 //=============================================================================
 #include "game/dynobj/cc_walkable_area.h"
 
-#include "ac/common_defines.h"
+#include "game/common_defines.h"
 #include "game/dynobj/script_objects.h"
 #include "game/roomstruct.h"
 #include "script/dynobj/dynobj_manager.h"

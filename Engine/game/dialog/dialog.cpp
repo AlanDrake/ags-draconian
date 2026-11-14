@@ -16,18 +16,18 @@
 #include <cstdio>
 #include <stack>
 
-#include "ac/characterinfo.h"
-#include "ac/dialogtopic.h"
-#include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "device/sys_events.h"
 #include "font/fonts.h"
+#include "game/character_info.h"
 #include "game/dialog/display.h"
 #include "game/dialog/parser.h"
+#include "game/dialog_topic.h"
 #include "game/dynobj/script_dialog_options_rendering.h"
 #include "game/dynobj/script_drawing_surface.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"

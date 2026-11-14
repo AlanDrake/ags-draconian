@@ -17,8 +17,6 @@
 #include <cstdio>
 #include <queue>
 
-#include "ac/gamesetupstruct.h"
-#include "ac/view.h"
 #include "data/data_helpers.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -36,6 +34,7 @@
 #include "game/dynobj/script_motion_path.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
@@ -50,6 +49,7 @@
 #include "game/ui/gui_dialog.h"
 #include "game/ui/mouse.h"
 #include "game/video/video.h"
+#include "game/view.h"
 #include "game/world/character.h"
 #include "game/world/hotspot.h"
 #include "game/world/inventory_item.h"

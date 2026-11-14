@@ -13,12 +13,12 @@
 //=============================================================================
 #include "game/room_file.h"
 
-#include "ac/common_defines.h"
-#include "ac/gamestructdefines.h"
 #include "data/data_ext.h"
 #include "data/data_helpers.h"
 #include "debug/out.h"
+#include "game/common_defines.h"
 #include "game/customproperties.h"
+#include "game/game_struct_defines.h"
 #include "game/room_file_blocks.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"

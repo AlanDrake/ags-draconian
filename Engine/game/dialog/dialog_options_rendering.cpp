@@ -13,10 +13,10 @@
 //=============================================================================
 #include "game/dialog/dialog_options_rendering.h"
 
-#include "ac/dialogtopic.h"
-#include "ac/gamestructdefines.h"
 #include "debug/debug_log.h"
 #include "game/dialog/dialog.h"
+#include "game/dialog_topic.h"
+#include "game/game_struct_defines.h"
 #include "script/runtimescriptvalue.h"
 #include "util/common.h" // quitprintf
 

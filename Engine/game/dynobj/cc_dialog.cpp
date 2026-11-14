@@ -13,9 +13,9 @@
 //=============================================================================
 #include "game/dynobj/cc_dialog.h"
 
-#include "ac/dialogtopic.h"
-#include "ac/gamestructdefines.h"
 #include "game/dialog/dialog.h"
+#include "game/dialog_topic.h"
+#include "game/game_struct_defines.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 

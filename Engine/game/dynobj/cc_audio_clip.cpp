@@ -13,8 +13,8 @@
 //=============================================================================
 #include "game/dynobj/cc_audio_clip.h"
 
-#include "ac/dynobj/scriptaudioclip.h"
-#include "ac/gamesetupstruct.h"
+#include "game/game_setup_struct.h"
+#include "game/script_audio_clip.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 

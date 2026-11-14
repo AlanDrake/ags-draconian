@@ -20,8 +20,6 @@
 #include <cstdio>
 #include <math.h>
 
-#include "ac/gamesetupstruct.h"
-#include "ac/view.h"
 #include "debug/debug_log.h"
 #include "game/dialog/display.h"
 #include "game/dialog/lipsync.h"
@@ -31,6 +29,7 @@
 #include "game/dynobj/script_shader.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/navigation/route_finder.h"
@@ -42,6 +41,7 @@
 #include "game/system.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
+#include "game/view.h"
 #include "game/world/inventory_item.h"
 #include "game/world/move_list.h"
 #include "game/world/object.h"

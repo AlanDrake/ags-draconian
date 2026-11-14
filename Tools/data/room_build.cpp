@@ -15,11 +15,11 @@
 
 #include <algorithm>
 
-#include "ac/common_defines.h"
 #include "data/agfreader.h"
 #include "data/data_file_writer.h"
 #include "data/sprite_utils.h"
 #include "data/xml_fields.h"
+#include "game/common_defines.h"
 #include "gfx/image_file.h"
 #include "util/file.h"
 #include "util/path.h"

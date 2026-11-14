@@ -23,15 +23,15 @@
 
 #include <SDL.h>
 
-#include "ac/characterinfo.h"
-#include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "device/mousew32.h"
 #include "device/sys_events.h"
+#include "game/character_info.h"
 #include "game/dialog/display.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/input/joystick.h"
 #include "game/input/touch.h"

@@ -15,8 +15,8 @@
 
 #include <memory>
 
-#include "ac/mousecursor.h"
 #include "game/dynobj/script_mouse.h"
+#include "game/mouse_cursor.h"
 
 void Mouse_SetVisible(int isOn);
 int Mouse_GetVisible();

@@ -18,10 +18,10 @@
 #include <set>
 #include <unordered_map>
 
-#include "ac/game_version.h"
-#include "ac/wordsdictionary.h"
 #include "data/data_ext.h"
 #include "data/data_helpers.h"
+#include "game/game_version.h"
+#include "game/words_dictionary.h"
 #include "util/string_utils.h"
 #include "util/textstreamreader.h"
 #include "util/textstreamwriter.h"

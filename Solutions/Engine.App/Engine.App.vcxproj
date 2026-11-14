@@ -588,25 +588,25 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\animationstruct.h" />
-    <ClInclude Include="..\..\Common\ac\audiocliptype.h" />
-    <ClInclude Include="..\..\Common\ac\characterinfo.h" />
-    <ClInclude Include="..\..\Common\ac\common_defines.h" />
     <ClInclude Include="..\..\Common\ac\customproperties.h" />
-    <ClInclude Include="..\..\Common\ac\dialogtopic.h" />
-    <ClInclude Include="..\..\Common\ac\dynobj\scriptaudioclip.h" />
-    <ClInclude Include="..\..\Common\ac\gamesetupstruct.h" />
-    <ClInclude Include="..\..\Common\ac\gamesetupstructbase.h" />
-    <ClInclude Include="..\..\Common\ac\gamestructdefines.h" />
     <ClInclude Include="..\..\Common\ac\interaction.h" />
     <ClInclude Include="..\..\Common\ac\interfacebutton.h" />
     <ClInclude Include="..\..\Common\ac\interfaceelement.h" />
-    <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h" />
     <ClInclude Include="..\..\Common\ac\messageinfo.h" />
-    <ClInclude Include="..\..\Common\ac\mousecursor.h" />
     <ClInclude Include="..\..\Common\ac\point.h" />
     <ClInclude Include="..\..\Common\ac\roomstruct.h" />
-    <ClInclude Include="..\..\Common\ac\view.h" />
-    <ClInclude Include="..\..\Common\ac\wordsdictionary.h" />
+    <ClInclude Include="..\..\Common\game\audio_clip_type.h" />
+    <ClInclude Include="..\..\Common\game\character_info.h" />
+    <ClInclude Include="..\..\Common\game\common_defines.h" />
+    <ClInclude Include="..\..\Common\game\dialog_topic.h" />
+    <ClInclude Include="..\..\Common\game\game_setup_struct.h" />
+    <ClInclude Include="..\..\Common\game\game_setup_struct_base.h" />
+    <ClInclude Include="..\..\Common\game\game_struct_defines.h" />
+    <ClInclude Include="..\..\Common\game\inventory_item_info.h" />
+    <ClInclude Include="..\..\Common\game\mouse_cursor.h" />
+    <ClInclude Include="..\..\Common\game\script_audio_clip.h" />
+    <ClInclude Include="..\..\Common\game\view.h" />
+    <ClInclude Include="..\..\Common\game\words_dictionary.h" />
     <ClInclude Include="..\..\Common\gfx\sprite_cache.h" />
     <ClInclude Include="..\..\Common\script\cc_error.h" />
     <ClInclude Include="..\..\Common\script\cc_instance.h" />

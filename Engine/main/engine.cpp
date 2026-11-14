@@ -26,8 +26,6 @@
 #endif
 #include <allegro.h> // allegro_install and _exit
 
-#include "ac/characterinfo.h"
-#include "ac/gamesetupstruct.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -37,12 +35,14 @@
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "game/asset_helper.h"
+#include "game/character_info.h"
 #include "game/dialog/lipsync.h"
 #include "game/dialog/speech.h"
 #include "game/dynobj/script_objects.h"
 #include "game/dynobj/script_system.h"
 #include "game/game.h"
 #include "game/game_init.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/input/joystick.h"
 #include "game/navigation/route_finder.h"

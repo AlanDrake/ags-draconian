@@ -15,10 +15,10 @@
 
 #include <algorithm>
 
-#include "ac/game_version.h"
 #include "data/data_helpers.h"
 #include "debug/out.h"
 #include "font/fonts.h"
+#include "game/game_version.h"
 #include "gfx/gfx_def.h"
 #include "gfx/sprite_cache.h"
 #include "gui/guibutton.h"

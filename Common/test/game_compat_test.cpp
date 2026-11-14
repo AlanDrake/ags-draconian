@@ -22,13 +22,13 @@
 #include <memory>
 #include <utility>
 
-#include "ac/dialogtopic.h"
-#include "ac/gamesetupstruct.h"
-#include "ac/view.h"
 #include "data/assetmanager.h"
+#include "game/dialog_topic.h"
+#include "game/game_setup_struct.h"
 #include "game/main_game_file.h"
 #include "game/room_file.h"
 #include "game/roomstruct.h"
+#include "game/view.h"
 #include "gtest/gtest.h"
 #include "gui/guimain.h"
 #include "script/cc_common.h"

@@ -20,8 +20,8 @@
 #include <algorithm>
 #include <vector>
 
-#include "ac/gamesetupstruct.h"
-#include "ac/view.h"
+#include "game/game_setup_struct.h"
+#include "game/view.h"
 #include "game/world/character.h"
 #include "game/world/character_extras.h"
 #include "gtest/gtest.h"

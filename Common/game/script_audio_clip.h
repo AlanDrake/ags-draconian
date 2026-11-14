@@ -17,7 +17,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/common_defines.h"
+#include "game/common_defines.h"
 #include "util/string.h"
 
 namespace AGS

@@ -18,14 +18,14 @@
 
 #include "main/game_file.h"
 
-#include "ac/dialogtopic.h"
-#include "ac/gamesetupstruct.h"
-#include "ac/gamestructdefines.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
+#include "game/dialog_topic.h"
 #include "game/game.h"
 #include "game/game_init.h"
+#include "game/game_setup_struct.h"
+#include "game/game_struct_defines.h"
 #include "game/main_game_file.h"
 #include "game/render/draw.h"
 #include "game/script.h"

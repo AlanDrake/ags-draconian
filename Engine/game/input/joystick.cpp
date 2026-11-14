@@ -18,8 +18,8 @@
 
 #include "SDL_gamecontroller.h"
 #include "SDL_joystick.h"
-#include "ac/gamestructdefines.h"
 #include "debug/debug_log.h"
+#include "game/game_struct_defines.h"
 #include "game/lib/string.h"
 #include "script/dynobj/dynobj_manager.h"
 

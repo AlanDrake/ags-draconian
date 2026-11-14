@@ -13,15 +13,15 @@
 //=============================================================================
 #include "game/ui/mouse.h"
 
-#include "ac/characterinfo.h"
-#include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "device/sys_events.h"
+#include "game/character_info.h"
 #include "game/dynobj/script_mouse.h"
 #include "game/dynobj/script_shader.h"
 #include "game/dynobj/script_system.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/system.h"

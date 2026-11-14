@@ -15,17 +15,17 @@
 
 #include <cstdio>
 
-#include "ac/audiocliptype.h"
-#include "ac/dialogtopic.h"
-#include "ac/dynobj/scriptaudioclip.h"
-#include "ac/gamesetupstruct.h"
-#include "ac/view.h"
 #include "data/asset.h"
 #include "data/assetmanager.h"
 #include "data/data_ext.h"
 #include "data/data_helpers.h"
 #include "debug/out.h"
 #include "font/fonts.h"
+#include "game/audio_clip_type.h"
+#include "game/dialog_topic.h"
+#include "game/game_setup_struct.h"
+#include "game/script_audio_clip.h"
+#include "game/view.h"
 #include "gfx/gfx_def.h"
 #include "gfx/sprite_cache.h"
 #include "gui/guibutton.h"

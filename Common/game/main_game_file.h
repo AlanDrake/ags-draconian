@@ -29,7 +29,7 @@
 #include <set>
 #include <vector>
 
-#include "ac/game_version.h"
+#include "game/game_version.h"
 #include "game/plugininfo.h"
 #include "gfx/gfx_def.h"
 #include "gui/guimain.h"

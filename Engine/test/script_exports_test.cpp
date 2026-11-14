@@ -30,9 +30,9 @@
 #include <utility>
 #include <vector>
 
-#include "ac/gamestructdefines.h"
 #include "data/data_helpers.h"
 #include "game/game.h"
+#include "game/game_struct_defines.h"
 #include "game/script_api/exports.h"
 #include "gtest/gtest.h"
 #include "script/script_runtime.h"

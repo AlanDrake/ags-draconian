@@ -18,7 +18,7 @@
 #include <functional>
 #include <vector>
 
-#include "ac/gamestructdefines.h"
+#include "game/game_struct_defines.h"
 #include "game/scripteventtable.h"
 #include "util/error.h"
 #include "util/stream.h"

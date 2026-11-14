@@ -15,10 +15,10 @@
 
 #include <cstring>
 
-#include "ac/game_version.h"
 #include "data/data_ext.h"
 #include "data/data_helpers.h"
 #include "debug/out.h"
+#include "game/game_version.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 

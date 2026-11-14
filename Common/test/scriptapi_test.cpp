@@ -14,8 +14,8 @@
 #include <cstring>
 #include <iterator>
 
-#include "ac/gamestructdefines.h"
 #include "data/data_helpers.h"
+#include "game/game_struct_defines.h"
 #include "gtest/gtest.h"
 
 using AGS::Common::kScriptAPISourceNames;

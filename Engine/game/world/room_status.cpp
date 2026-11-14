@@ -16,8 +16,8 @@
 #include <cstdlib> // free
 #include <cstring> // memset
 
-#include "ac/game_version.h"
 #include "game/customproperties.h"
+#include "game/game_version.h"
 #include "game/save/savegame_components.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/common.h"

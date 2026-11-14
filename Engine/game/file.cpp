@@ -13,14 +13,14 @@
 //=============================================================================
 #include "game/file.h"
 
-#include "ac/audiocliptype.h"
-#include "ac/gamesetupstruct.h"
 #include "data/asset.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "game/asset_helper.h"
+#include "game/audio_clip_type.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/runtime_defines.h"

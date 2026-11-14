@@ -18,7 +18,6 @@
 #include <numeric>
 #include <vector>
 
-#include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/dialog/display.h"
@@ -28,6 +27,7 @@
 #include "game/dynobj/script_shader.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"

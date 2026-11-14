@@ -13,10 +13,10 @@
 //=============================================================================
 #include "game/world/character_extras.h"
 
-#include "ac/characterinfo.h"
-#include "ac/gamesetupstruct.h"
+#include "game/character_info.h"
 #include "game/dynobj/cc_character.h"
 #include "game/dynobj/script_string.h"
+#include "game/game_setup_struct.h"
 #include "game/script.h"
 #include "game/world/view_frame.h"
 #include "util/stream.h"

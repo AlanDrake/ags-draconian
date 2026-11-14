@@ -18,7 +18,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/characterinfo.h"
+#include "game/character_info.h"
 #include "game/dynobj/script_objects.h"
 #include "gui/guiinv.h"
 

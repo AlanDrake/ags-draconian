@@ -11,9 +11,9 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/inventoryiteminfo.h"
+#include "game/inventory_item_info.h"
 
-#include "ac/common_defines.h"
+#include "game/common_defines.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 

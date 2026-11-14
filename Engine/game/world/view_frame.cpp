@@ -13,10 +13,10 @@
 //=============================================================================
 #include "game/world/view_frame.h"
 
-#include "ac/game_version.h"
-#include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/script_string.h"
+#include "game/game_setup_struct.h"
+#include "game/game_version.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/script.h"

@@ -16,13 +16,13 @@
 #ifndef AGS_NO_VIDEO_PLAYER
 #include <cinttypes>
 
-#include "ac/gamesetupstruct.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "device/sys_events.h"
 #include "game/audio/audio.h"
 #include "game/dynobj/script_video_player.h"
 #include "game/game.h"
+#include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/input/joystick.h"
 #include "game/render/draw.h"

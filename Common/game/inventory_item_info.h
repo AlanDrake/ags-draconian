@@ -13,7 +13,7 @@
 //=============================================================================
 #pragma once
 
-#include "ac/game_version.h"
+#include "game/game_version.h"
 #include "game/scripteventtable.h"
 #include "util/geometry.h"
 #include "util/stream.h"
