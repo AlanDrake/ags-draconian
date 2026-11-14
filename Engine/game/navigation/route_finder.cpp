@@ -11,9 +11,9 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/route_finder.h"
+#include "game/navigation/route_finder.h"
 
-#include "ac/route_finder_impl.h"
+#include "game/navigation/route_finder_impl.h"
 #include "gfx/bitmap.h"
 #include "util/memory_compat.h"
 

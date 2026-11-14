@@ -2979,9 +2979,6 @@
 				20522A5B28E8F8DD00589E91 /* sys_events.h */,
 				20522A5A28E8F8DD00589E91 /* viewport_script.cpp */,
 				20522A4E28E8F8CA00589E91 /* path_helper.h */,
-				20522A5228E8F8CB00589E91 /* route_finder_impl.cpp */,
-				20522A5028E8F8CA00589E91 /* route_finder_impl.h */,
-				20522A4F28E8F8CA00589E91 /* route_finder_jps.inl */,
 				20522A5128E8F8CA00589E91 /* scriptcontainers.cpp */,
 				20522A4828E8F8AA00589E91 /* asset_helper.h */,
 				20522A4728E8F8A900589E91 /* draw_software.cpp */,
@@ -3053,8 +3050,6 @@
 				526F24F21D3B5CC300EF4E1F /* roomobject.h */,
 				526F24F31D3B5CC300EF4E1F /* roomstatus.cpp */,
 				526F24F41D3B5CC300EF4E1F /* roomstatus.h */,
-				526F24F51D3B5CC300EF4E1F /* route_finder.cpp */,
-				526F24F61D3B5CC300EF4E1F /* route_finder.h */,
 				526F24F71D3B5CC300EF4E1F /* runtime_defines.h */,
 				526F24F81D3B5CC300EF4E1F /* screen.cpp */,
 				526F24F91D3B5CC300EF4E1F /* screen.h */,
@@ -3081,12 +3076,10 @@
 				526F251D1D3B5CC300EF4E1F /* walkbehind.cpp */,
 				526F251E1D3B5CC300EF4E1F /* walkbehind.h */,
 				2A0AEDD6BEBB8912C0333504 /* joystick.cpp */,
-				EEA872BC9FEC92169B874C31 /* pathfinder_script.cpp */,
 				4E6E615CB9654FE693E1FF08 /* shader_script.cpp */,
 				9CEE01E9AA59CA3BB5333D59 /* touch.cpp */,
 				EF61359C48373BE523FA2F37 /* utils_script.cpp */,
 				B4E841B245E7C89895801685 /* video_script.cpp */,
-				34A7616622B8A8104A1150EF /* pathfinder_script.h */,
 				2947F64120F297866766BEE5 /* scriptcontainers.h */,
 				AA13FE1BFD127104A98698D4 /* utils_script.h */,
 				C95FF051879F73A3602D4032 /* video_script.h */,
@@ -3513,6 +3506,7 @@
 				52D12C1D1D61C0950077B784 /* savegame.h */,
 				52D12C1E1D61C0950077B784 /* savegame_internal.h */,
 				9EC599C9D2F06E9C6B9F884C /* script_api */,
+				5599F5BF25D0EDD38B214A80 /* navigation */,
 			);
 			path = game;
 			sourceTree = "<group>";
@@ -3523,6 +3517,20 @@
 				2983E0E054F411FA909804E6 /* type42.c */,
 			);
 			path = type42;
+			sourceTree = "<group>";
+		};
+		5599F5BF25D0EDD38B214A80 /* navigation */ = {
+			isa = PBXGroup;
+			children = (
+				EEA872BC9FEC92169B874C31 /* pathfinder_script.cpp */,
+				34A7616622B8A8104A1150EF /* pathfinder_script.h */,
+				526F24F51D3B5CC300EF4E1F /* route_finder.cpp */,
+				526F24F61D3B5CC300EF4E1F /* route_finder.h */,
+				20522A5228E8F8CB00589E91 /* route_finder_impl.cpp */,
+				20522A5028E8F8CA00589E91 /* route_finder_impl.h */,
+				20522A4F28E8F8CA00589E91 /* route_finder_jps.inl */,
+			);
+			path = navigation;
 			sourceTree = "<group>";
 		};
 		55BCEA2DEE9FA514E3B4F018 /* svg */ = {

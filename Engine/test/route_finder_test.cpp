@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 
-#include "ac/route_finder.h"
+#include "game/navigation/route_finder.h"
 #include "gfx/bitmap.h"
 #include "gtest/gtest.h"
 

@@ -25,10 +25,10 @@
     <ClCompile Include="..\..\Engine\ac\movelist.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\route_finder.cpp">
+    <ClCompile Include="..\..\Engine\game\navigation\route_finder.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\route_finder_impl.cpp">
+    <ClCompile Include="..\..\Engine\game\navigation\route_finder_impl.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\test\movelist_test.cpp">

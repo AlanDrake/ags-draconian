@@ -14,7 +14,7 @@
 #pragma once
 
 #include "ac/movelist.h"
-#include "ac/route_finder.h"
+#include "game/navigation/route_finder.h"
 #include "util/geometry.h"
 
 namespace AGS

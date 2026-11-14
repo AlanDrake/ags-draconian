@@ -56,6 +56,9 @@
     <Filter Include="Source Files\game">
       <UniqueIdentifier>{c0ec3579-115c-40be-8a7b-d59abd533b3b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\game\navigation">
+      <UniqueIdentifier>{b605902f-b8f7-58e0-b522-c89d4e23169f}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\game\script_api">
       <UniqueIdentifier>{f3275722-4d78-5c7e-8541-1f51e3bb65e7}</UniqueIdentifier>
     </Filter>
@@ -116,6 +119,9 @@
     </Filter>
     <Filter Include="Header Files\game">
       <UniqueIdentifier>{ceb5b7a1-6682-4e55-ad63-6917990c9157}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\game\navigation">
+      <UniqueIdentifier>{80b0982b-32bb-5747-b3e0-61c5effbd31e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
@@ -279,8 +285,8 @@
     <ClCompile Include="..\..\Engine\ac\roomstatus.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\route_finder.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\navigation\route_finder.cpp">
+      <Filter>Source Files\game\navigation</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\screen.cpp">
       <Filter>Source Files\ac</Filter>
@@ -753,8 +759,8 @@
     <ClCompile Include="..\..\Engine\platform\windows\win_ex_handling.cpp">
       <Filter>Source Files\platform\windows</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\route_finder_impl.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\navigation\route_finder_impl.cpp">
+      <Filter>Source Files\game\navigation</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\mojoAL\mojoal.c">
       <Filter>Library Sources\MojoAL</Filter>
@@ -834,8 +840,8 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptpathfinder.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\pathfinder_script.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\game\navigation\pathfinder_script.cpp">
+      <Filter>Source Files\game\navigation</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\platform\windows\setup\windialog.cpp">
       <Filter>Source Files\setup</Filter>
@@ -1007,8 +1013,8 @@
     <ClInclude Include="..\..\Engine\ac\roomstatus.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\route_finder.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\navigation\route_finder.h">
+      <Filter>Header Files\game\navigation</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\runtime_defines.h">
       <Filter>Header Files\ac</Filter>
@@ -1475,8 +1481,8 @@
     <ClInclude Include="..\..\Engine\platform\windows\win_ex_handling.h">
       <Filter>Header Files\platform\windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\route_finder_impl.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\navigation\route_finder_impl.h">
+      <Filter>Header Files\game\navigation</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libsrc\mojoAL\AL\al.h">
       <Filter>Library Sources\MojoAL\AL</Filter>
@@ -1622,8 +1628,8 @@
     <ClInclude Include="..\..\Engine\ac\keyboard.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\pathfinder_script.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\game\navigation\pathfinder_script.h">
+      <Filter>Header Files\game\navigation</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\scriptcontainers.h">
       <Filter>Header Files\ac</Filter>
@@ -1656,8 +1662,8 @@
     <None Include="..\..\Engine\resource\tintshader.fxo">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\..\Engine\ac\route_finder_jps.inl">
-      <Filter>Header Files\ac</Filter>
+    <None Include="..\..\Engine\game\navigation\route_finder_jps.inl">
+      <Filter>Header Files\game\navigation</Filter>
     </None>
     <None Include="$(AGS_SDL_DLL)" />
     <None Include="$(AGS_SDL_DLL)" />

@@ -16,7 +16,7 @@
 #include <memory>
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
-#include "ac/route_finder.h"
+#include "game/navigation/route_finder.h"
 
 
 class ScriptPathfinder : public AGSCCDynamicObject

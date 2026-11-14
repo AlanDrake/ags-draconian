@@ -15,7 +15,7 @@
 
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
-#include "ac/route_finder.h"
+#include "game/navigation/route_finder.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

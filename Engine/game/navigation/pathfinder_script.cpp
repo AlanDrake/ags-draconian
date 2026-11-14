@@ -15,7 +15,7 @@
 // Pathfinder script API.
 //
 //=============================================================================
-#include "ac/pathfinder_script.h"
+#include "game/navigation/pathfinder_script.h"
 
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/dynobj_manager.h"
@@ -24,9 +24,9 @@
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/game.h"
 #include "ac/object.h"
-#include "ac/route_finder.h"
 #include "ac/spritecache.h"
 #include "debug/debug_log.h"
+#include "game/navigation/route_finder.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

@@ -19,7 +19,7 @@
 #include "ac/dynobj/scriptmotionpath.h"
 #include "ac/dynobj/scriptpathfinder.h"
 #include "ac/dynobj/scriptuserobject.h"
-#include "ac/pathfinder_script.h"
+#include "game/navigation/pathfinder_script.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

@@ -15,7 +15,7 @@
 
 #include "ac/characterinfo.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
-#include "ac/route_finder.h"
+#include "game/navigation/route_finder.h"
 #include "game/roomstruct.h"
 #include "script/runtimescriptvalue.h"
 

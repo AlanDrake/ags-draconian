@@ -172,7 +172,6 @@ target_sources(engine
     ac/parser.cpp
     ac/parser.h
     ac/path_helper.h
-    ac/pathfinder_script.cpp
     ac/touch.cpp
     ac/touch.h
     ac/properties.cpp
@@ -185,11 +184,6 @@ target_sources(engine
     ac/roomobject.h
     ac/roomstatus.cpp
     ac/roomstatus.h
-    ac/route_finder.cpp
-    ac/route_finder.h
-    ac/route_finder_impl.cpp
-    ac/route_finder_impl.h
-    ac/route_finder_jps.inl
     ac/runtime_defines.h
     ac/screen.cpp
     ac/screen.h
@@ -208,7 +202,6 @@ target_sources(engine
     ac/dynobj/cc_staticarray.h
     ac/keyboard.cpp
     ac/keyboard.h
-    ac/pathfinder_script.h
     ac/scriptcontainers.h
     ac/string.cpp
     ac/string.h
@@ -247,6 +240,13 @@ target_sources(engine
     device/mousew32.h
     game/game_init.cpp
     game/game_init.h
+    game/navigation/pathfinder_script.cpp
+    game/navigation/pathfinder_script.h
+    game/navigation/route_finder.cpp
+    game/navigation/route_finder.h
+    game/navigation/route_finder_impl.cpp
+    game/navigation/route_finder_impl.h
+    game/navigation/route_finder_jps.inl
     game/savegame.cpp
     game/savegame.h
     game/savegame_components.cpp
