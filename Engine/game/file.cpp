@@ -14,7 +14,6 @@
 #include "game/file.h"
 
 #include "ac/audiocliptype.h"
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "data/asset.h"
 #include "data/assetmanager.h"
@@ -31,6 +30,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"
+#include "util/common.h"
 #include "util/directory.h"
 #include "util/path.h"
 #include "util/path_helper.h"

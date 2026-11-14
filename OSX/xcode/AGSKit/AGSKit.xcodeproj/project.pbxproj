@@ -2769,8 +2769,6 @@
 				526F211D1D3B5C4800EF4E1F /* audiocliptype.h */,
 				52F5D84E1DA120A0006F8F4B /* characterinfo.cpp */,
 				526F211E1D3B5C4800EF4E1F /* characterinfo.h */,
-				526F211F1D3B5C4800EF4E1F /* common.cpp */,
-				526F21201D3B5C4800EF4E1F /* common.h */,
 				526F21211D3B5C4800EF4E1F /* common_defines.h */,
 				52F5D85C1DA12147006F8F4B /* dialogtopic.cpp */,
 				526F21221D3B5C4800EF4E1F /* dialogtopic.h */,
@@ -2782,8 +2780,6 @@
 				526F212B1D3B5C4800EF4E1F /* gamestructdefines.h */,
 				52F5D8601DA1219D006F8F4B /* inventoryiteminfo.cpp */,
 				526F212E1D3B5C4800EF4E1F /* inventoryiteminfo.h */,
-				2052299328E8EAE600589E91 /* keycode.cpp */,
-				2052299528E8EAE600589E91 /* keycode.h */,
 				526F21311D3B5C4800EF4E1F /* mousecursor.cpp */,
 				526F21321D3B5C4800EF4E1F /* mousecursor.h */,
 				526F213A1D3B5C4800EF4E1F /* view.cpp */,
@@ -3036,6 +3032,10 @@
 				52F5D8621DA121CC006F8F4B /* version.cpp */,
 				52F5D8631DA121CC006F8F4B /* version.h */,
 				2FDEC420CFD5783176F81572 /* sdl2_util.cpp */,
+				526F211F1D3B5C4800EF4E1F /* common.cpp */,
+				526F21201D3B5C4800EF4E1F /* common.h */,
+				2052299328E8EAE600589E91 /* keycode.cpp */,
+				2052299528E8EAE600589E91 /* keycode.h */,
 			);
 			path = util;
 			sourceTree = "<group>";

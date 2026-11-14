@@ -13,7 +13,6 @@
 //=============================================================================
 #include "game/save/savegame.h"
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
@@ -68,6 +67,7 @@
 #include "script/dynobj/managed_object_pool.h"
 #include "script/dynobj/script_user_object.h"
 #include "script/script_runtime.h"
+#include "util/common.h"
 #include "util/compress.h"
 #include "util/file.h"
 #include "util/memory_compat.h"

@@ -15,10 +15,10 @@
 
 #include <cstdio>
 
-#include "ac/common.h" // quit
 #include "ac/gamesetupstruct.h"
 #include "game/lib/string.h"
 #include "game/runtime_defines.h"
+#include "util/common.h" // quit
 
 using namespace AGS::Common;
 

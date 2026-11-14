@@ -21,7 +21,6 @@
 #include <cstdio>
 
 #include "ac/characterinfo.h"
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -37,6 +36,7 @@
 #include "main/game_run.h"
 #include "main/game_setup.h"
 #include "media/audio/audio_system.h"
+#include "util/common.h"
 #include "util/timer.h"
 
 using namespace AGS::Common;

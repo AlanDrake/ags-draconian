@@ -15,14 +15,14 @@
 
 #include <cstring>
 
-#include "ac/common.h"
-#include "ac/keycode.h"
 #include "font/fonts.h"
 #include "game/ui/gui_dialog.h"
 #include "game/ui/gui_dialog_defines.h"
 #include "gfx/bitmap.h"
 #include "gui/guimain.h"
 #include "main/game_setup.h"
+#include "util/common.h"
+#include "util/keycode.h"
 
 using namespace AGS::Common;
 

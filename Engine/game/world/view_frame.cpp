@@ -13,7 +13,6 @@
 //=============================================================================
 #include "game/world/view_frame.h"
 
-#include "ac/common.h" // quitprintf
 #include "ac/game_version.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
@@ -25,6 +24,7 @@
 #include "gfx/sprite_cache.h"
 #include "media/audio/audio_system.h"
 #include "script/runtimescriptvalue.h"
+#include "util/common.h" // quitprintf
 #include "util/math.h"
 
 using namespace AGS;

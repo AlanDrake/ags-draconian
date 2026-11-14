@@ -20,7 +20,6 @@
 #include <cstdio>
 #include <math.h>
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/view.h"
 #include "debug/debug_log.h"
@@ -63,6 +62,7 @@
 #include "script/dynobj/script_user_object.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script_runtime.h"
+#include "util/common.h"
 #include "util/string_compat.h"
 
 using namespace AGS::Common;

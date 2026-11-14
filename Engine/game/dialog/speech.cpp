@@ -13,7 +13,6 @@
 //=============================================================================
 #include "game/dialog/speech.h"
 
-#include "ac/common.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "game/asset_helper.h"
@@ -26,6 +25,7 @@
 #include "main/engine.h"
 #include "main/game_setup.h"
 #include "media/audio/audio_system.h"
+#include "util/common.h"
 #include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"

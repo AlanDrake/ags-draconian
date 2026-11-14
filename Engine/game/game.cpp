@@ -17,9 +17,7 @@
 #include <cstdio>
 #include <queue>
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/keycode.h"
 #include "ac/view.h"
 #include "data/data_helpers.h"
 #include "debug/debug_log.h"
@@ -78,8 +76,10 @@
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/script_runtime.h"
+#include "util/common.h"
 #include "util/directory.h"
 #include "util/file.h"
+#include "util/keycode.h"
 #include "util/path.h"
 #include "util/path_helper.h"
 #include "util/string_compat.h"

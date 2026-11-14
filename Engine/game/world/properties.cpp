@@ -15,11 +15,11 @@
 
 #include <cstdio>
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "game/dynobj/script_string.h"
 #include "game/lib/string.h"
 #include "script/runtimescriptvalue.h"
+#include "util/common.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;

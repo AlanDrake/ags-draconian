@@ -17,12 +17,12 @@
 #include <cstdio>
 #include <vector>
 
-#include "ac/common.h" // set_our_eip
 #include "debug/out.h"
 #include "font/ttffontrenderer.h"
 #include "font/wfnfontrenderer.h"
 #include "gfx/bitmap.h"
 #include "gui/guidefines.h" // MAXLINE
+#include "util/common.h"    // set_our_eip
 #include "util/path.h"
 #include "util/string_utils.h"
 #include "util/utf8.h"

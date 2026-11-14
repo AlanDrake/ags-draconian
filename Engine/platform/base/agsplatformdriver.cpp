@@ -22,11 +22,11 @@
 
 #include <SDL.h>
 
-#include "ac/common.h"
 #include "game/runtime_defines.h"
 #include "gfx/bitmap.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/sys_main.h"
+#include "util/common.h"
 #include "util/memory_compat.h"
 #include "util/stream.h"
 #include "util/string_utils.h"

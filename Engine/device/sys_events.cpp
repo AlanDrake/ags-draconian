@@ -19,8 +19,6 @@
 
 #include <SDL.h>
 
-#include "ac/common.h"
-#include "ac/keycode.h"
 #include "device/mousew32.h"
 #include "game/input/joystick.h"
 #include "game/input/touch.h"
@@ -29,6 +27,8 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "platform/platform.h"
+#include "util/common.h"
+#include "util/keycode.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 #include "util/timer.h"

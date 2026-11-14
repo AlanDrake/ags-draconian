@@ -27,7 +27,6 @@
 #include <allegro.h> // allegro_install and _exit
 
 #include "ac/characterinfo.h"
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
@@ -74,6 +73,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "script/script_runtime.h"
+#include "util/common.h"
 #include "util/directory.h"
 #include "util/error.h"
 #include "util/path.h"

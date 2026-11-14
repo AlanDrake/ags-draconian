@@ -20,7 +20,6 @@
 #include "platform/windows/windows.h"
 #endif
 
-#include "ac/common.h" // quit
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -60,6 +59,7 @@
 #include "script/dynobj/dynobj_manager.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script_runtime.h"
+#include "util/common.h" // quit
 #include "util/library.h"
 #include "util/path_helper.h"
 

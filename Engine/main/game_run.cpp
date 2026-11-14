@@ -24,9 +24,7 @@
 #include <SDL.h>
 
 #include "ac/characterinfo.h"
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/keycode.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "device/mousew32.h"
@@ -67,6 +65,8 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
 #include "script/script_runtime.h"
+#include "util/common.h"
+#include "util/keycode.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

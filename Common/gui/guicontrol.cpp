@@ -13,9 +13,9 @@
 //=============================================================================
 #include "gui/guicontrol.h"
 
-#include "ac/common.h" // quit // FIXME: don't use quit here!!
 #include "gfx/gfx_def.h"
 #include "gui/guimain.h"
+#include "util/common.h" // quit // FIXME: don't use quit here!!
 #include "util/stream.h"
 
 namespace AGS

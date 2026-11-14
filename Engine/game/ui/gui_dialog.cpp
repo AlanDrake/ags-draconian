@@ -19,7 +19,6 @@
 
 #include <allegro.h> // find files
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "game/game.h"
@@ -29,6 +28,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
+#include "util/common.h"
 #include "util/path.h"
 #include "util/string_compat.h"
 

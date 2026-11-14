@@ -13,7 +13,6 @@
 //=============================================================================
 #include "game/world/region.h"
 
-#include "ac/common.h"
 #include "ac/common_defines.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
@@ -27,6 +26,7 @@
 #include "game/world/room_status.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script_runtime.h"
+#include "util/common.h"
 
 using namespace AGS::Common;
 

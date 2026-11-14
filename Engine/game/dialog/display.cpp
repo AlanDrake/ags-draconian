@@ -17,7 +17,6 @@
 #include <cstdarg>
 #include <cstdio>
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "device/sys_events.h"
@@ -46,6 +45,7 @@
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
+#include "util/common.h"
 #include "util/string_utils.h"
 #include "util/timer.h"
 

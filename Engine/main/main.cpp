@@ -23,7 +23,6 @@
 
 #include <allegro.h> // allegro_exit
 
-#include "ac/common.h"
 #include "ac/def_version.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
@@ -38,6 +37,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "platform/platform.h"
+#include "util/common.h"
 #include "util/directory.h"
 #include "util/path.h"
 #include "util/string_compat.h"

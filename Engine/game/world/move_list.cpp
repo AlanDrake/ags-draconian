@@ -17,7 +17,7 @@
 #include <cmath>
 #include <cstdlib>
 
-#include "ac/common.h"
+#include "util/common.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

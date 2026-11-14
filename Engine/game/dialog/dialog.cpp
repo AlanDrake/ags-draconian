@@ -17,10 +17,8 @@
 #include <stack>
 
 #include "ac/characterinfo.h"
-#include "ac/common.h"
 #include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/keycode.h"
 #include "debug/debug_log.h"
 #include "device/sys_events.h"
 #include "font/fonts.h"
@@ -52,6 +50,8 @@
 #include "platform/base/agsplatformdriver.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/scriptexecutor.h"
+#include "util/common.h"
+#include "util/keycode.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

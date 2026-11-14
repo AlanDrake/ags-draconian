@@ -19,8 +19,6 @@ target_sources(common
     ac/audiocliptype.h
     ac/characterinfo.cpp
     ac/characterinfo.h
-    ac/common.cpp
-    ac/common.h
     ac/common_defines.h
     ac/def_version.h
     ac/dialogtopic.cpp
@@ -35,8 +33,6 @@ target_sources(common
     ac/gamestructdefines.h
     ac/inventoryiteminfo.cpp
     ac/inventoryiteminfo.h
-    ac/keycode.cpp
-    ac/keycode.h
     ac/mousecursor.cpp
     ac/mousecursor.h
     ac/view.cpp
@@ -143,6 +139,8 @@ target_sources(common
     util/bufferedstream.h
     util/cmdlineopts.cpp
     util/cmdlineopts.h
+    util/common.cpp
+    util/common.h
     util/compress.cpp
     util/compress.h
     util/deflatestream.cpp
@@ -162,6 +160,8 @@ target_sources(common
     util/ini_util.h
     util/inifile.cpp
     util/inifile.h
+    util/keycode.cpp
+    util/keycode.h
     util/lzw.cpp
     util/lzw.h
     util/math.h

@@ -15,8 +15,6 @@
 
 #include <cctype>
 
-#include "ac/common.h"
-#include "ac/keycode.h"
 #include "device/sys_events.h"
 #include "font/fonts.h"
 #include "game/game_state.h"
@@ -33,6 +31,8 @@
 #include "main/game_setup.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
+#include "util/common.h"
+#include "util/keycode.h"
 #include "util/timer.h"
 
 using namespace AGS::Common;

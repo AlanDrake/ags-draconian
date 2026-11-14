@@ -15,7 +15,6 @@
 
 #include <cstring>
 
-#include "ac/common.h" // quitprintf
 #include "debug/debug_log.h"
 #include "game/dynobj/all_dynamic_classes.h"
 #include "game/dynobj/all_script_classes.h"
@@ -32,6 +31,7 @@
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/dynobj/script_user_object.h"
+#include "util/common.h" // quitprintf
 #include "util/memory_compat.h"
 #include "util/memorystream.h"
 

@@ -21,7 +21,6 @@
 
 #include "ac/characterinfo.h"
 #include "ac/gamestructdefines.h"
-#include "ac/keycode.h"
 #include "game/dialog/speech.h"
 #include "game/render/viewport.h"
 #include "game/roomstruct.h"
@@ -32,6 +31,7 @@
 #include "gui/guidefines.h"
 #include "media/audio/queuedaudioitem.h"
 #include "util/geometry.h"
+#include "util/keycode.h"
 #include "util/string.h"
 #include "util/string_types.h"
 #include "util/timer.h"

@@ -13,7 +13,6 @@
 //=============================================================================
 #include "game/audio/audio_clip.h"
 
-#include "ac/common.h" // quitprintf
 #include "ac/gamesetupstruct.h"
 #include "data/assetmanager.h"
 #include "game/audio/audio_channel.h"
@@ -24,6 +23,7 @@
 #include "game/world/properties.h"
 #include "media/audio/audio_system.h"
 #include "script/runtimescriptvalue.h"
+#include "util/common.h" // quitprintf
 
 using namespace AGS::Common;
 

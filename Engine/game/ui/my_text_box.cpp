@@ -16,11 +16,11 @@
 #include <cstdio>
 #include <cstring>
 
-#include "ac/keycode.h"
 #include "font/fonts.h"
 #include "game/ui/gui_dialog_defines.h"
 #include "gfx/bitmap.h"
 #include "gui/guimain.h"
+#include "util/keycode.h"
 
 using namespace AGS::Common;
 

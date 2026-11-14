@@ -15,7 +15,6 @@
 
 #include <cstdio>
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "data/assetmanager.h"
 #include "data/tra_file.h"
@@ -29,6 +28,7 @@
 #include "game/runtime_defines.h"
 #include "main/game_setup.h"
 #include "plugin/plugin_engine.h"
+#include "util/common.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 

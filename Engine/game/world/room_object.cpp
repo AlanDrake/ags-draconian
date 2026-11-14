@@ -13,7 +13,6 @@
 //=============================================================================
 #include "game/world/room_object.h"
 
-#include "ac/common.h"
 #include "ac/common_defines.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
@@ -27,6 +26,7 @@
 #include "game/world/view_frame.h"
 #include "gfx/gfx_def.h"
 #include "main/update.h"
+#include "util/common.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 

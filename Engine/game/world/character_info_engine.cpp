@@ -12,7 +12,6 @@
 //
 //=============================================================================
 #include "ac/characterinfo.h"
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "game/game.h"
@@ -26,6 +25,7 @@
 #include "main/game_run.h"
 #include "main/update.h"
 #include "media/audio/audio_system.h"
+#include "util/common.h"
 
 using namespace AGS::Common;
 

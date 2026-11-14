@@ -15,8 +15,8 @@
 
 #include <cmath>
 
-#include "ac/common.h" // quit
 #include "debug/debug_log.h"
+#include "util/common.h" // quit
 #include "util/math.h"
 
 using namespace AGS::Common;

@@ -15,7 +15,6 @@
 
 #include <algorithm>
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "device/sys_events.h"
@@ -33,6 +32,7 @@
 #include "plugin/plugin_engine.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/dynobj/script_user_object.h"
+#include "util/common.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

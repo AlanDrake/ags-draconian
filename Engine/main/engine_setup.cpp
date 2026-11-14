@@ -15,7 +15,6 @@
 
 #include <SDL.h>
 
-#include "ac/common.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "font/fonts.h"
@@ -38,6 +37,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "platform/platform.h"
+#include "util/common.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

@@ -18,7 +18,6 @@
 #include <numeric>
 #include <vector>
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
@@ -53,6 +52,7 @@
 #include "script/dynobj/script_user_object.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script_runtime.h"
+#include "util/common.h"
 #include "util/geometry.h"
 #include "util/string_compat.h"
 

@@ -16,11 +16,11 @@
 #include <cstdlib> // free
 #include <cstring> // memset
 
-#include "ac/common.h"
 #include "ac/game_version.h"
 #include "game/customproperties.h"
 #include "game/save/savegame_components.h"
 #include "script/dynobj/dynobj_manager.h"
+#include "util/common.h"
 #include "util/string_utils.h"
 
 using namespace AGS;

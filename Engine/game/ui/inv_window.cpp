@@ -14,7 +14,6 @@
 #include "game/ui/inv_window.h"
 
 #include "ac/characterinfo.h"
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "device/sys_events.h"
@@ -31,6 +30,7 @@
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "script/runtimescriptvalue.h"
+#include "util/common.h"
 #include "util/timer.h"
 
 using namespace AGS::Common;

@@ -16,7 +16,6 @@
 #include <map>
 
 #include "ac/audiocliptype.h"
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/view.h"
 #include "debug/out.h"
@@ -53,6 +52,7 @@
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
 #include "script/dynobj/dynobj_manager.h"
+#include "util/common.h"
 #include "util/deflatestream.h"
 #include "util/memory_compat.h"
 #include "util/string_utils.h"

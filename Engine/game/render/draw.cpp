@@ -19,7 +19,6 @@
 
 #include "aastr.h"
 #include "ac/characterinfo.h"
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/view.h"
 #include "debug/debug_log.h"
@@ -59,6 +58,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/platform.h"
 #include "plugin/plugin_engine.h"
+#include "util/common.h"
 #include "util/compress.h"
 #include "util/delegate.h"
 

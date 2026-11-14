@@ -13,9 +13,9 @@
 //=============================================================================
 #pragma once
 
-#include "ac/keycode.h"
 #include "game/runtime_defines.h"
 #include "util/geometry.h"
+#include "util/keycode.h"
 
 namespace AGS
 {

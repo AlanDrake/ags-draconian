@@ -18,7 +18,6 @@
 
 #include "main/game_file.h"
 
-#include "ac/common.h"
 #include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestructdefines.h"
@@ -40,6 +39,7 @@
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
 #include "script/cc_common.h"
+#include "util/common.h"
 #include "util/stream.h"
 #include "util/textstreamreader.h"
 

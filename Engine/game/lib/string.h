@@ -19,8 +19,8 @@
 
 #include <stdarg.h>
 
-#include "ac/common.h" // quit
 #include "game/dynobj/script_string.h"
+#include "util/common.h" // quit
 #include "util/string.h"
 
 // Check that a supplied buffer from a text script function was not null

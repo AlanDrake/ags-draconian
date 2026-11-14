@@ -113,8 +113,8 @@
     <ClCompile Include="..\..\Common\ac\characterinfo.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\common.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Common\util\common.cpp">
+      <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\ac\dialogtopic.cpp">
       <Filter>Source Files\ac</Filter>
@@ -272,8 +272,8 @@
     <ClCompile Include="..\..\Common\util\string_compat.c">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\keycode.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Common\util\keycode.cpp">
+      <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\allegro.c">
       <Filter>Library Sources\allegro</Filter>
@@ -613,8 +613,8 @@
     <ClInclude Include="..\..\Common\ac\characterinfo.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\common.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\util\common.h">
+      <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\common_defines.h">
       <Filter>Header Files\ac</Filter>
@@ -811,8 +811,8 @@
     <ClInclude Include="..\..\Common\util\string_compat.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\keycode.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\util\keycode.h">
+      <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libsrc\allegro\src\c\cblit.h">
       <Filter>Library Sources\allegro\c</Filter>

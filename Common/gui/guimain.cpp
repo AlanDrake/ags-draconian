@@ -15,7 +15,6 @@
 
 #include <algorithm>
 
-#include "ac/common.h"
 #include "ac/game_version.h"
 #include "data/data_helpers.h"
 #include "debug/out.h"
@@ -28,6 +27,7 @@
 #include "gui/guilistbox.h"
 #include "gui/guislider.h"
 #include "gui/guitextbox.h"
+#include "util/common.h"
 #include "util/stream.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"

@@ -17,7 +17,6 @@
 #include <cstdio>
 
 #include "ac/audiocliptype.h"
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/view.h"
 #include "data/assetmanager.h"
@@ -39,6 +38,7 @@
 #include "platform/platform.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/script_runtime.h"
+#include "util/common.h"
 #include "util/path_helper.h"
 #include "util/stream.h"
 #include "util/timer.h"

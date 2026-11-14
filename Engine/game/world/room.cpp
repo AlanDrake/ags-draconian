@@ -15,7 +15,6 @@
 
 #include <cctype> // for toupper
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
@@ -66,6 +65,7 @@
 #include "script/dynobj/managed_object_pool.h"
 #include "script/dynobj/script_user_object.h"
 #include "script/script_runtime.h"
+#include "util/common.h"
 #include "util/stream.h"
 #include "util/string_utils.h" //strlwr()
 

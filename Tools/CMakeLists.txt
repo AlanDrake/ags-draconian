@@ -306,7 +306,7 @@ if(AGS_TESTS)
       ../Common/ac/audiocliptype.cpp # needed by data_file_writer_test
       ../Common/ac/dynobj/scriptaudioclip.cpp # needed by data_file_writer_test
       ../Common/ac/dialogtopic.cpp # needed by data_file_writer_test
-      ../Common/ac/common.cpp # needed by GUI readers in data_file_writer_test
+      ../Common/util/common.cpp # needed by GUI readers in data_file_writer_test
       ../Common/gfx/sprite_cache.cpp # needed by GUI readers in data_file_writer_test
       ../Common/data/assetmanager.cpp # needed by Common font renderers
       ../Common/data/data_helpers.cpp

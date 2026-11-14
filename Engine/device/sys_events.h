@@ -21,8 +21,8 @@
 #include <SDL_events.h>
 #include <SDL_keyboard.h>
 
-#include "ac/keycode.h"
 #include "util/geometry.h"
+#include "util/keycode.h"
 
 // Internal AGS device and event type, made as flags
 // NOTE: this matches InputType in script (with a 24-bit shift)

@@ -14,7 +14,6 @@
 #include "game/ui/mouse.h"
 
 #include "ac/characterinfo.h"
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
@@ -37,6 +36,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/dynobj/script_user_object.h"
+#include "util/common.h"
 
 using namespace AGS;
 using namespace AGS::Common;

@@ -19,7 +19,6 @@
 #include <stack>
 #include <vector>
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -38,6 +37,7 @@
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
 #include "script/script_runtime.h"
+#include "util/common.h"
 #include "util/memory_compat.h"
 #include "util/string_compat.h"
 

@@ -20,7 +20,6 @@
 
 #include <math.h>
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "device/sys_events.h"
 #include "game/dialog/lipsync.h"
@@ -41,6 +40,7 @@
 #include "gfx/sprite_cache.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
+#include "util/common.h"
 #include "util/timer.h"
 
 

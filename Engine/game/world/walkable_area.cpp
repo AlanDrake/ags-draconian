@@ -13,7 +13,6 @@
 //=============================================================================
 #include "game/world/walkable_area.h"
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_walkable_area.h"
@@ -28,6 +27,7 @@
 #include "game/world/room_status.h"
 #include "gfx/bitmap.h"
 #include "script/script_runtime.h"
+#include "util/common.h"
 
 using namespace AGS::Common;
 

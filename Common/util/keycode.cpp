@@ -11,33 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/common.h"
+#include "util/keycode.h"
 
-#include "util/string.h"
-
-using namespace AGS::Common;
-int our_eip = 0;
-
-void quit(const String &str)
+eAGSKeyCode AGSKeyToScriptKey(eAGSKeyCode keycode)
 {
-    quit(str.GetCStr());
-}
-
-void quitprintf(AGS_FORMAT_STRING_ARG const char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    String text = String::FromFormatV(fmt, ap);
-    va_end(ap);
-    quit(text);
-}
-
-void set_our_eip(int eip)
-{
-    our_eip = eip;
-}
-
-int get_our_eip()
-{
-    return our_eip;
+    // Script API requires strictly capital letters, if this is a small letter - capitalize it
+    return (keycode >= 'a' && keycode <= 'z') ? static_cast<eAGSKeyCode>(keycode - 'a' + 'A') : keycode;
 }

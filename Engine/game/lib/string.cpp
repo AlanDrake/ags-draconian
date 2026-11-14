@@ -18,7 +18,6 @@
 
 #include <allegro.h>
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
@@ -30,6 +29,7 @@
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/runtimescriptvalue.h"
+#include "util/common.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 #include "util/utf8.h"

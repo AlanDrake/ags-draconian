@@ -18,12 +18,12 @@
 #include <cstring>
 #include <vector>
 
-#include "ac/common.h" // our_eip
 #include "data/assetmanager.h"
 #include "debug/out.h"
 #include "font/wfnfont.h"
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"
+#include "util/common.h" // our_eip
 #include "util/stream.h"
 
 using namespace AGS::Common;

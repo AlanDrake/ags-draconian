@@ -16,7 +16,6 @@
 #include <algorithm>
 #include <cstdio>
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_gui_control.h"
@@ -30,6 +29,7 @@
 #include "game/world/view_frame.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
+#include "util/common.h"
 
 using namespace AGS::Common;
 

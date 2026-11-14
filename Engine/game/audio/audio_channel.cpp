@@ -13,7 +13,6 @@
 //=============================================================================
 #include "game/audio/audio_channel.h"
 
-#include "ac/common.h" // quitprintf
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "game/dialog/speech.h"
@@ -21,6 +20,7 @@
 #include "game/roomstruct.h"
 #include "media/audio/audio_system.h"
 #include "script/runtimescriptvalue.h"
+#include "util/common.h" // quitprintf
 
 using namespace AGS::Common;
 

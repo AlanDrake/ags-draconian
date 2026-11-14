@@ -1412,8 +1412,8 @@
     <ClInclude Include="..\..\Common\ac\characterinfo.h">
       <Filter>Common Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\common.h">
-      <Filter>Common Header Files\ac</Filter>
+    <ClInclude Include="..\..\Common\util\common.h">
+      <Filter>Common Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\common_defines.h">
       <Filter>Common Header Files\ac</Filter>

@@ -21,7 +21,6 @@
 
 #include <allegro.h> // find files, allegro_exit
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "data/assetmanager.h"
 #include "debug/agseditordebugger.h"
@@ -49,6 +48,7 @@
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
 #include "script/dynobj/dynobj_manager.h"
+#include "util/common.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

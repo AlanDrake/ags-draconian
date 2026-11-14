@@ -13,7 +13,6 @@
 //=============================================================================
 #include "game/world/hotspot.h"
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_hotspot.h"
@@ -30,6 +29,7 @@
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script_runtime.h"
+#include "util/common.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

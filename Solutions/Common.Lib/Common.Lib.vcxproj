@@ -451,13 +451,11 @@
   <ItemGroup>
     <ClCompile Include="..\..\Common\ac\audiocliptype.cpp" />
     <ClCompile Include="..\..\Common\ac\characterinfo.cpp" />
-    <ClCompile Include="..\..\Common\ac\common.cpp" />
     <ClCompile Include="..\..\Common\ac\dialogtopic.cpp" />
     <ClCompile Include="..\..\Common\ac\dynobj\scriptaudioclip.cpp" />
     <ClCompile Include="..\..\Common\ac\gamesetupstruct.cpp" />
     <ClCompile Include="..\..\Common\ac\gamesetupstructbase.cpp" />
     <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp" />
-    <ClCompile Include="..\..\Common\ac\keycode.cpp" />
     <ClCompile Include="..\..\Common\ac\mousecursor.cpp" />
     <ClCompile Include="..\..\Common\ac\view.cpp" />
     <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp" />
@@ -507,6 +505,7 @@
     <ClCompile Include="..\..\Common\script\cc_script.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\cmdlineopts.cpp" />
+    <ClCompile Include="..\..\Common\util\common.cpp" />
     <ClCompile Include="..\..\Common\util\compress.cpp" />
     <ClCompile Include="..\..\Common\util\directory.cpp" />
     <ClCompile Include="..\..\Common\util\file.cpp" />
@@ -528,6 +527,7 @@
     <ClCompile Include="..\..\Common\util\transformstream.cpp" />
     <ClCompile Include="..\..\Common\util\version.cpp" />
     <ClCompile Include="..\..\Common\util\deflatestream.cpp" />
+    <ClCompile Include="..\..\Common\util\keycode.cpp" />
     <ClCompile Include="..\..\libsrc\freetype\builds\windows\ftdebug.c" />
     <ClCompile Include="..\..\libsrc\freetype\builds\windows\ftsystem.c" />
     <ClCompile Include="..\..\libsrc\freetype\src\autofit\autofit.c" />
@@ -640,7 +640,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h" />
     <ClInclude Include="..\..\Common\ac\characterinfo.h" />
-    <ClInclude Include="..\..\Common\ac\common.h" />
     <ClInclude Include="..\..\Common\ac\common_defines.h" />
     <ClInclude Include="..\..\Common\ac\dialogtopic.h" />
     <ClInclude Include="..\..\Common\ac\dynobj\scriptaudioclip.h" />
@@ -649,7 +648,6 @@
     <ClInclude Include="..\..\Common\ac\gamestructdefines.h" />
     <ClInclude Include="..\..\Common\ac\game_version.h" />
     <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h" />
-    <ClInclude Include="..\..\Common\ac\keycode.h" />
     <ClInclude Include="..\..\Common\ac\mousecursor.h" />
     <ClInclude Include="..\..\Common\ac\view.h" />
     <ClInclude Include="..\..\Common\ac\wordsdictionary.h" />
@@ -712,6 +710,7 @@
     <ClInclude Include="..\..\Common\util\bbop.h" />
     <ClInclude Include="..\..\Common\util\bufferedstream.h" />
     <ClInclude Include="..\..\Common\util\cmdlineopts.h" />
+    <ClInclude Include="..\..\Common\util\common.h" />
     <ClInclude Include="..\..\Common\util\compress.h" />
     <ClInclude Include="..\..\Common\util\directory.h" />
     <ClInclude Include="..\..\Common\util\error.h" />
@@ -748,6 +747,7 @@
     <ClInclude Include="..\..\Common\util\utf8.h" />
     <ClInclude Include="..\..\Common\util\version.h" />
     <ClInclude Include="..\..\Common\util\deflatestream.h" />
+    <ClInclude Include="..\..\Common\util\keycode.h" />
     <ClInclude Include="..\..\libsrc\allegro\include\allegro.h" />
     <ClInclude Include="..\..\libsrc\allegro\include\allegro\base.h" />
     <ClInclude Include="..\..\libsrc\allegro\include\allegro\colblend.h" />

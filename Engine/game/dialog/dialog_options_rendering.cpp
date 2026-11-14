@@ -13,12 +13,12 @@
 //=============================================================================
 #include "game/dialog/dialog_options_rendering.h"
 
-#include "ac/common.h" // quitprintf
 #include "ac/dialogtopic.h"
 #include "ac/gamestructdefines.h"
 #include "debug/debug_log.h"
 #include "game/dialog/dialog.h"
 #include "script/runtimescriptvalue.h"
+#include "util/common.h" // quitprintf
 
 // ** SCRIPT DIALOGOPTIONSRENDERING OBJECT
 

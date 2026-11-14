@@ -23,13 +23,13 @@
 #include <shlobj.h>
 #include <shlwapi.h>
 
-#include "ac/common.h" // quit
 #include "main/engine.h"
 #include "main/game_setup.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "platform/windows/setup/winsetup.h"
-struct BITMAP; // we need it only as a placeholder here
+#include "util/common.h" // quit
+struct BITMAP;           // we need it only as a placeholder here
 #include "plugin/agsplugin.h"
 #include "resource/resource.h"
 #include "util/stdio_compat.h"

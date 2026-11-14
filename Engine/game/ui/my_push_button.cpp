@@ -15,7 +15,6 @@
 
 #include <cstring>
 
-#include "ac/common.h"
 #include "device/sys_events.h"
 #include "font/fonts.h"
 #include "game/ui/gui_dialog.h"
@@ -25,6 +24,7 @@
 #include "gui/guimain.h"
 #include "main/game_run.h"
 #include "platform/base/agsplatformdriver.h"
+#include "util/common.h"
 #include "util/timer.h"
 
 using namespace AGS::Common;

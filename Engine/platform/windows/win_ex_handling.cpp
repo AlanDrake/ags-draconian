@@ -23,13 +23,13 @@
 #include <Psapi.h>
 #include <new.h>
 
-#include "ac/common.h" // quit
 #include "ac/common_defines.h"
 #include "debug/out.h"
 #include "gfx/sprite_cache.h"
 #include "main/main.h"
 #include "platform/base/sys_main.h"
 #include "script/cc_common.h"
+#include "util/common.h" // quit
 #include "util/ini_util.h"
 
 #if !AGS_PLATFORM_DEBUG

@@ -21,7 +21,6 @@
 #endif
 #include <SDL.h>
 
-#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
@@ -41,6 +40,7 @@
 #include "platform/base/sys_main.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
+#include "util/common.h"
 #include "util/memory_compat.h"
 #include "util/path.h"
 #include "util/string_utils.h"
