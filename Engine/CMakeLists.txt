@@ -187,6 +187,7 @@ target_sources(engine
     game/script.h
     game/script_api/audio_channel_api.cpp
     game/script_api/audio_clip_api.cpp
+    game/script_api/bindings.h
     game/script_api/button_api.cpp
     game/script_api/character_api.cpp
     game/script_api/containers_api.cpp
@@ -422,6 +423,7 @@ target_sources(engine
     script/runtimescriptvalue.h
     script/script_api.cpp
     script/script_api.h
+    script/script_binder.h
     script/script_runtime.cpp
     script/script_runtime.h
     script/scriptexecutor.cpp
@@ -686,6 +688,7 @@ if(AGS_TESTS)
         test/managed_pool_test.cpp
         test/overlay_test.cpp
         test/script_exports_test.cpp
+        test/script_binder_test.cpp
         test/script_bytecode_test.cpp
         test/script_vm_test.cpp
         test/sprite_cache_test.cpp

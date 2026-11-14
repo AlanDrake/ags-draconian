@@ -1259,6 +1259,9 @@
     <ClInclude Include="..\..\Engine\script\executingscript.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\game\script_api\bindings.h">
+      <Filter>Header Files\game\script_api</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Engine\game\script_api\exports.h">
       <Filter>Header Files\game\script_api</Filter>
     </ClInclude>
@@ -1269,6 +1272,9 @@
       <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\script\script_api.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\script\script_binder.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\script\script_runtime.h">

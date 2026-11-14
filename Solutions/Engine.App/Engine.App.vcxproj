@@ -707,6 +707,7 @@
     <ClInclude Include="..\..\Engine\game\save\savegame_components.h" />
     <ClInclude Include="..\..\Engine\game\save\savegame_internal.h" />
     <ClInclude Include="..\..\Engine\game\script.h" />
+    <ClInclude Include="..\..\Engine\game\script_api\bindings.h" />
     <ClInclude Include="..\..\Engine\game\script_api\exports.h" />
     <ClInclude Include="..\..\Engine\game\system.h" />
     <ClInclude Include="..\..\Engine\game\translation.h" />
@@ -830,6 +831,7 @@
     <ClInclude Include="..\..\Engine\script\runtimescriptvalue.h" />
     <ClInclude Include="..\..\Engine\script\scriptexecutor.h" />
     <ClInclude Include="..\..\Engine\script\script_api.h" />
+    <ClInclude Include="..\..\Engine\script\script_binder.h" />
     <ClInclude Include="..\..\Engine\script\script_runtime.h" />
     <ClInclude Include="..\..\Engine\script\systemimports.h" />
     <ClInclude Include="..\..\Engine\test\test_all.h" />
