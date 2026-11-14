@@ -21,8 +21,6 @@ target_sources(engine
     PRIVATE
     ac/gamesetup.h
     ac/path_helper.h
-    ac/sys_events.cpp
-    ac/sys_events.h
     ac/timer.cpp
     ac/timer.h
     debug/agseditordebugger.h
@@ -36,6 +34,8 @@ target_sources(engine
     debug/memory_inspect.h
     device/mousew32.cpp
     device/mousew32.h
+    device/sys_events.cpp
+    device/sys_events.h
     game/asset_helper.h
     game/audio/audio.cpp
     game/audio/audio.h

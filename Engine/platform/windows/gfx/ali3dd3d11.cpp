@@ -23,9 +23,9 @@
 #include <SDL.h>
 #include <glm/ext.hpp>
 
-#include "ac/sys_events.h"
 #include "ac/timer.h"
 #include "debug/out.h"
+#include "device/sys_events.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfxfilter_aad3d.h"

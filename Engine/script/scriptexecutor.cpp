@@ -15,7 +15,7 @@
 
 #include <vector>
 
-#include "ac/sys_events.h"
+#include "device/sys_events.h"
 #include "script/cc_common.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"

@@ -20,7 +20,7 @@
 
 #include <allegro/internal/aintern.h> // for blenders
 
-#include "ac/sys_events.h"
+#include "device/sys_events.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/blender.h" // for blenders
 #include "gfx/gfx_util.h"

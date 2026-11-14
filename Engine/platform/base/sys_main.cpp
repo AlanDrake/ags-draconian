@@ -16,8 +16,8 @@
 #include <SDL.h>
 #include <SDL_syswm.h>
 
-#include "ac/sys_events.h"
 #include "debug/out.h"
+#include "device/sys_events.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/geometry.h"
 #include "util/string.h"

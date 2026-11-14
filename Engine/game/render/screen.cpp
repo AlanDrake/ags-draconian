@@ -17,8 +17,8 @@
 
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/sys_events.h"
 #include "debug/debug_log.h"
+#include "device/sys_events.h"
 #include "game/audio/audio.h"
 #include "game/dynobj/script_shader.h"
 #include "game/dynobj/script_viewport.h"

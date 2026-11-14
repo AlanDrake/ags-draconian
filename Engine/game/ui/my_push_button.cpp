@@ -16,8 +16,8 @@
 #include <cstring>
 
 #include "ac/common.h"
-#include "ac/sys_events.h"
 #include "ac/timer.h"
+#include "device/sys_events.h"
 #include "font/fonts.h"
 #include "game/ui/gui_dialog.h"
 #include "game/ui/gui_dialog_defines.h"

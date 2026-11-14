@@ -18,9 +18,9 @@
 
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
-#include "ac/sys_events.h"
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
+#include "device/sys_events.h"
 #include "game/audio/audio.h"
 #include "game/dynobj/script_video_player.h"
 #include "game/game.h"

@@ -327,8 +327,8 @@
     <ClCompile Include="..\..\Engine\game\world\properties.cpp">
       <Filter>Source Files\game\world</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\sys_events.cpp">
-      <Filter>Source Files\ac</Filter>
+    <ClCompile Include="..\..\Engine\device\sys_events.cpp">
+      <Filter>Source Files\device</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\world\region.cpp">
       <Filter>Source Files\game\world</Filter>
@@ -1055,8 +1055,8 @@
     <ClInclude Include="..\..\Engine\game\world\properties.h">
       <Filter>Header Files\game\world</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\sys_events.h">
-      <Filter>Header Files\ac</Filter>
+    <ClInclude Include="..\..\Engine\device\sys_events.h">
+      <Filter>Header Files\device</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\world\region.h">
       <Filter>Header Files\game\world</Filter>

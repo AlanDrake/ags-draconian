@@ -346,12 +346,12 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Engine\ac\sys_events.cpp" />
     <ClCompile Include="..\..\Engine\ac\timer.cpp" />
     <ClCompile Include="..\..\Engine\debug\debug.cpp" />
     <ClCompile Include="..\..\Engine\debug\logfile.cpp" />
     <ClCompile Include="..\..\Engine\debug\memory_inspect.cpp" />
     <ClCompile Include="..\..\Engine\device\mousew32.cpp" />
+    <ClCompile Include="..\..\Engine\device\sys_events.cpp" />
     <ClCompile Include="..\..\Engine\game\audio\audio.cpp" />
     <ClCompile Include="..\..\Engine\game\audio\audio_channel.cpp" />
     <ClCompile Include="..\..\Engine\game\audio\audio_clip.cpp" />
@@ -621,7 +621,6 @@
     <ClInclude Include="..\..\Common\util\string_utils.h" />
     <ClInclude Include="..\..\Engine\ac\gamesetup.h" />
     <ClInclude Include="..\..\Engine\ac\path_helper.h" />
-    <ClInclude Include="..\..\Engine\ac\sys_events.h" />
     <ClInclude Include="..\..\Engine\ac\timer.h" />
     <ClInclude Include="..\..\Engine\ac\topbarsettings.h" />
     <ClInclude Include="..\..\Engine\debug\agseditordebugger.h" />
@@ -631,6 +630,7 @@
     <ClInclude Include="..\..\Engine\debug\logfile.h" />
     <ClInclude Include="..\..\Engine\debug\memory_inspect.h" />
     <ClInclude Include="..\..\Engine\device\mousew32.h" />
+    <ClInclude Include="..\..\Engine\device\sys_events.h" />
     <ClInclude Include="..\..\Engine\game\asset_helper.h" />
     <ClInclude Include="..\..\Engine\game\audio\audio.h" />
     <ClInclude Include="..\..\Engine\game\audio\audio_channel.h" />

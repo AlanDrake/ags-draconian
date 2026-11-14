@@ -20,9 +20,9 @@
 
 #include <SDL.h>
 
-#include "ac/sys_events.h"
 #include "ac/timer.h"
 #include "debug/out.h"
+#include "device/sys_events.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/ali3dogl.h"
 #include "gfx/gfx_def.h"
