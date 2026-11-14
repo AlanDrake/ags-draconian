@@ -75,13 +75,6 @@ const char *Anything_GetTypeName(void *obj)
 }
 
 //=============================================================================
-
-RuntimeScriptValue Sc_GetDrawingSurfaceForWalkableArea(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO(ScriptDrawingSurface, GetDrawingSurfaceForWalkableArea);
-}
-
-//=============================================================================
 //
 // Exclusive variadic API implementation for Plugins
 //
