@@ -16,207 +16,48 @@
 //
 //=============================================================================
 #include "game/dialog/speech.h"
-#include "game/dynobj/cc_character.h"
 #include "game/dynobj/script_overlay.h"
 #include "game/game.h"
 #include "game/game_state.h"
-#include "script/script_api.h"
+#include "game/script_api/bindings.h"
 #include "script/script_runtime.h"
 
 using namespace AGS::Common;
 
-RuntimeScriptValue Sc_Speech_GetAlwaysWaitForText(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_BOOL(Speech_GetAlwaysWaitForText);
-}
-
-RuntimeScriptValue Sc_Speech_SetAlwaysWaitForText(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PBOOL(Speech_SetAlwaysWaitForText);
-}
-
-RuntimeScriptValue Sc_Speech_GetAnimationStopTimeMargin(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Speech_GetAnimationStopTimeMargin);
-}
-
-RuntimeScriptValue Sc_Speech_SetAnimationStopTimeMargin(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Speech_SetAnimationStopTimeMargin);
-}
-
-RuntimeScriptValue Sc_Speech_GetCustomPortraitPlacement(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Speech_GetCustomPortraitPlacement);
-}
-
-RuntimeScriptValue Sc_Speech_SetCustomPortraitPlacement(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Speech_SetCustomPortraitPlacement);
-}
-
-RuntimeScriptValue Sc_Speech_GetDisplayPostTimeMs(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Speech_GetDisplayPostTimeMs);
-}
-
-RuntimeScriptValue Sc_Speech_SetDisplayPostTimeMs(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Speech_SetDisplayPostTimeMs);
-}
-
-RuntimeScriptValue Sc_Speech_GetGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Speech_GetGlobalSpeechAnimationDelay);
-}
-
-RuntimeScriptValue Sc_Speech_SetGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Speech_SetGlobalSpeechAnimationDelay);
-}
-
-RuntimeScriptValue Sc_Speech_GetPortraitXOffset(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Speech_GetPortraitXOffset);
-}
-
-RuntimeScriptValue Sc_Speech_SetPortraitXOffset(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Speech_SetPortraitXOffset);
-}
-
-RuntimeScriptValue Sc_Speech_GetPortraitY(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Speech_GetPortraitY);
-}
-
-RuntimeScriptValue Sc_Speech_SetPortraitY(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Speech_SetPortraitY);
-}
-
-RuntimeScriptValue Sc_Speech_GetStyle(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Speech_GetStyle);
-}
-
-RuntimeScriptValue Sc_Speech_SetStyle(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Speech_SetStyle);
-}
-
-RuntimeScriptValue Sc_Speech_GetSkipKey(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Speech_GetSkipKey);
-}
-
-RuntimeScriptValue Sc_Speech_SetSkipKey(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Speech_SetSkipKey);
-}
-
-RuntimeScriptValue Sc_Speech_GetSkipStyle(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Speech_GetSkipStyle);
-}
-
-extern RuntimeScriptValue Sc_Speech_SetSkipStyle(const RuntimeScriptValue *params, int32_t param_count)
-{
-    ASSERT_PARAM_COUNT(SetSkipSpeech, 1);
-    Speech_SetSkipStyle((SkipSpeechStyle)params[0].IValue);
-    return RuntimeScriptValue((int32_t)0);
-}
-
-RuntimeScriptValue Sc_Speech_GetTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Speech_GetTextAlignment);
-}
-
-RuntimeScriptValue Sc_Speech_SetTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Speech_SetTextAlignment);
-}
-
-RuntimeScriptValue Sc_Speech_GetUseGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Speech_GetUseGlobalSpeechAnimationDelay);
-}
-
-RuntimeScriptValue Sc_Speech_SetUseGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Speech_SetUseGlobalSpeechAnimationDelay);
-}
-
-RuntimeScriptValue Sc_Speech_GetVoiceMode(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Speech_GetVoiceMode);
-}
-
-RuntimeScriptValue Sc_Speech_SetVoiceMode(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Speech_SetVoiceMode);
-}
-
-RuntimeScriptValue Sc_Speech_GetTextOverlay(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO(ScriptOverlay, Speech_GetTextOverlay);
-}
-
-RuntimeScriptValue Sc_Speech_GetPortraitOverlay(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO(ScriptOverlay, Speech_GetPortraitOverlay);
-}
-
-RuntimeScriptValue Sc_Speech_GetSpeakingCharacter(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJ(CharacterInfo, ccDynamicCharacter, Speech_GetSpeakingCharacter);
-}
-
-RuntimeScriptValue Sc_Speech_GetOverlayZOrder(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Speech_GetOverlayZOrder);
-}
-
-RuntimeScriptValue Sc_Speech_SetOverlayZOrder(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Speech_SetOverlayZOrder);
-}
-
-
 void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
 {
     ScFnRegister speech_api[] = {
-        {"Speech::get_AlwaysWaitForText", API_FN_PAIR(Speech_GetAlwaysWaitForText)},
-        {"Speech::set_AlwaysWaitForText", API_FN_PAIR(Speech_SetAlwaysWaitForText)},
-        {"Speech::get_AnimationStopTimeMargin", API_FN_PAIR(Speech_GetAnimationStopTimeMargin)},
-        {"Speech::set_AnimationStopTimeMargin", API_FN_PAIR(Speech_SetAnimationStopTimeMargin)},
-        {"Speech::get_CustomPortraitPlacement", API_FN_PAIR(Speech_GetCustomPortraitPlacement)},
-        {"Speech::set_CustomPortraitPlacement", API_FN_PAIR(Speech_SetCustomPortraitPlacement)},
-        {"Speech::get_DisplayPostTimeMs", API_FN_PAIR(Speech_GetDisplayPostTimeMs)},
-        {"Speech::set_DisplayPostTimeMs", API_FN_PAIR(Speech_SetDisplayPostTimeMs)},
-        {"Speech::get_GlobalSpeechAnimationDelay", API_FN_PAIR(Speech_GetGlobalSpeechAnimationDelay)},
-        {"Speech::set_GlobalSpeechAnimationDelay", API_FN_PAIR(Speech_SetGlobalSpeechAnimationDelay)},
-        {"Speech::get_PortraitOverlay", API_FN_PAIR(Speech_GetPortraitOverlay)},
-        {"Speech::get_PortraitXOffset", API_FN_PAIR(Speech_GetPortraitXOffset)},
-        {"Speech::set_PortraitXOffset", API_FN_PAIR(Speech_SetPortraitXOffset)},
-        {"Speech::get_PortraitY", API_FN_PAIR(Speech_GetPortraitY)},
-        {"Speech::set_PortraitY", API_FN_PAIR(Speech_SetPortraitY)},
-        {"Speech::get_SkipKey", API_FN_PAIR(Speech_GetSkipKey)},
-        {"Speech::set_SkipKey", API_FN_PAIR(Speech_SetSkipKey)},
-        {"Speech::get_SkipStyle", API_FN_PAIR(Speech_GetSkipStyle)},
-        {"Speech::set_SkipStyle", API_FN_PAIR(Speech_SetSkipStyle)},
-        {"Speech::get_SpeakingCharacter", API_FN_PAIR(Speech_GetSpeakingCharacter)},
-        {"Speech::get_OverlayZOrder", API_FN_PAIR(Speech_GetOverlayZOrder)},
-        {"Speech::set_OverlayZOrder", API_FN_PAIR(Speech_SetOverlayZOrder)},
-        {"Speech::get_Style", API_FN_PAIR(Speech_GetStyle)},
-        {"Speech::set_Style", API_FN_PAIR(Speech_SetStyle)},
-        {"Speech::get_TextAlignment", API_FN_PAIR(Speech_GetTextAlignment)},
-        {"Speech::set_TextAlignment", API_FN_PAIR(Speech_SetTextAlignment)},
-        {"Speech::get_TextOverlay", API_FN_PAIR(Speech_GetTextOverlay)},
-        {"Speech::get_UseGlobalSpeechAnimationDelay", API_FN_PAIR(Speech_GetUseGlobalSpeechAnimationDelay)},
-        {"Speech::set_UseGlobalSpeechAnimationDelay", API_FN_PAIR(Speech_SetUseGlobalSpeechAnimationDelay)},
-        {"Speech::get_VoiceMode", API_FN_PAIR(Speech_GetVoiceMode)},
-        {"Speech::set_VoiceMode", API_FN_PAIR(Speech_SetVoiceMode)},
+        ScStatic<&Speech_GetAlwaysWaitForText>("Speech::get_AlwaysWaitForText"),
+        ScStatic<&Speech_SetAlwaysWaitForText>("Speech::set_AlwaysWaitForText"),
+        ScStatic<&Speech_GetAnimationStopTimeMargin>("Speech::get_AnimationStopTimeMargin"),
+        ScStatic<&Speech_SetAnimationStopTimeMargin>("Speech::set_AnimationStopTimeMargin"),
+        ScStatic<&Speech_GetCustomPortraitPlacement>("Speech::get_CustomPortraitPlacement"),
+        ScStatic<&Speech_SetCustomPortraitPlacement>("Speech::set_CustomPortraitPlacement"),
+        ScStatic<&Speech_GetDisplayPostTimeMs>("Speech::get_DisplayPostTimeMs"),
+        ScStatic<&Speech_SetDisplayPostTimeMs>("Speech::set_DisplayPostTimeMs"),
+        ScStatic<&Speech_GetGlobalSpeechAnimationDelay>("Speech::get_GlobalSpeechAnimationDelay"),
+        ScStatic<&Speech_SetGlobalSpeechAnimationDelay>("Speech::set_GlobalSpeechAnimationDelay"),
+        ScStatic<&Speech_GetPortraitOverlay>("Speech::get_PortraitOverlay"),
+        ScStatic<&Speech_GetPortraitXOffset>("Speech::get_PortraitXOffset"),
+        ScStatic<&Speech_SetPortraitXOffset>("Speech::set_PortraitXOffset"),
+        ScStatic<&Speech_GetPortraitY>("Speech::get_PortraitY"),
+        ScStatic<&Speech_SetPortraitY>("Speech::set_PortraitY"),
+        ScStatic<&Speech_GetSkipKey>("Speech::get_SkipKey"),
+        ScStatic<&Speech_SetSkipKey>("Speech::set_SkipKey"),
+        ScStatic<&Speech_GetSkipStyle>("Speech::get_SkipStyle"),
+        ScStatic<&Speech_SetSkipStyle>("Speech::set_SkipStyle"),
+        ScStatic<&Speech_GetSpeakingCharacter>("Speech::get_SpeakingCharacter"),
+        ScStatic<&Speech_GetOverlayZOrder>("Speech::get_OverlayZOrder"),
+        ScStatic<&Speech_SetOverlayZOrder>("Speech::set_OverlayZOrder"),
+        ScStatic<&Speech_GetStyle>("Speech::get_Style"),
+        ScStatic<&Speech_SetStyle>("Speech::set_Style"),
+        ScStatic<&Speech_GetTextAlignment>("Speech::get_TextAlignment"),
+        ScStatic<&Speech_SetTextAlignment>("Speech::set_TextAlignment"),
+        ScStatic<&Speech_GetTextOverlay>("Speech::get_TextOverlay"),
+        ScStatic<&Speech_GetUseGlobalSpeechAnimationDelay>("Speech::get_UseGlobalSpeechAnimationDelay"),
+        ScStatic<&Speech_SetUseGlobalSpeechAnimationDelay>("Speech::set_UseGlobalSpeechAnimationDelay"),
+        ScStatic<&Speech_GetVoiceMode>("Speech::get_VoiceMode"),
+        ScStatic<&Speech_SetVoiceMode>("Speech::set_VoiceMode"),
     };
 
     ccAddExternalFunctions(speech_api);
