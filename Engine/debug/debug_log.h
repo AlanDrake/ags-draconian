@@ -16,7 +16,6 @@
 #include <cstdarg>
 
 #include "debug/out.h"
-#include "game/runtime_defines.h"
 #include "util/ini_util.h"
 #include "util/string.h"
 

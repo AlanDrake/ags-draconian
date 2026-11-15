@@ -31,7 +31,6 @@
 #include "game/world/character.h"
 #include "game/world/room.h"
 #include "gfx/gfx_def.h"
-#include "main/engine.h"
 #include "media/audio/audio_system.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/string_utils.h"

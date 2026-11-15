@@ -20,7 +20,7 @@
 #include "game/lib/string.h"
 #include "game/ui/csci_dialog.h"
 #include "game/ui/gui_dialog_defines.h"
-#include "main/game_setup.h"
+#include "platform/base/engine_config.h"
 
 using namespace AGS;
 using namespace AGS::Common;

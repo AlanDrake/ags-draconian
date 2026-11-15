@@ -48,7 +48,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
-#include "main/game_setup.h"
+#include "platform/base/engine_config.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/dynobj/script_user_object.h"
 #include "script/runtimescriptvalue.h"

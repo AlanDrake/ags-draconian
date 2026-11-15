@@ -612,7 +612,7 @@
 		526F26F51D3B5CC300EF4E1F /* file.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24721D3B5CC200EF4E1F /* file.h */; };
 		526F26F61D3B5CC300EF4E1F /* game.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24731D3B5CC200EF4E1F /* game.cpp */; };
 		526F26F71D3B5CC300EF4E1F /* game.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24741D3B5CC200EF4E1F /* game.h */; };
-		526F26F91D3B5CC300EF4E1F /* game_setup.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24761D3B5CC200EF4E1F /* game_setup.h */; };
+		526F26F91D3B5CC300EF4E1F /* engine_config.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24761D3B5CC200EF4E1F /* engine_config.h */; };
 		526F26FA1D3B5CC300EF4E1F /* game_state.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24771D3B5CC200EF4E1F /* game_state.cpp */; };
 		526F26FB1D3B5CC300EF4E1F /* game_state.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24781D3B5CC200EF4E1F /* game_state.h */; };
 		526F26FC1D3B5CC300EF4E1F /* global_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24791D3B5CC200EF4E1F /* global_api.cpp */; };
@@ -1540,7 +1540,7 @@
 		526F24721D3B5CC200EF4E1F /* file.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = file.h; sourceTree = "<group>"; };
 		526F24731D3B5CC200EF4E1F /* game.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = game.cpp; sourceTree = "<group>"; };
 		526F24741D3B5CC200EF4E1F /* game.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = game.h; sourceTree = "<group>"; };
-		526F24761D3B5CC200EF4E1F /* game_setup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = game_setup.h; sourceTree = "<group>"; };
+		526F24761D3B5CC200EF4E1F /* engine_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = engine_config.h; sourceTree = "<group>"; };
 		526F24771D3B5CC200EF4E1F /* game_state.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = game_state.cpp; sourceTree = "<group>"; };
 		526F24781D3B5CC200EF4E1F /* game_state.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = game_state.h; sourceTree = "<group>"; };
 		526F24791D3B5CC200EF4E1F /* global_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_api.cpp; sourceTree = "<group>"; };
@@ -3168,7 +3168,6 @@
 				526F26061D3B5CC300EF4E1F /* quit.h */,
 				526F26071D3B5CC300EF4E1F /* update.cpp */,
 				526F26081D3B5CC300EF4E1F /* update.h */,
-				526F24761D3B5CC200EF4E1F /* game_setup.h */,
 			);
 			path = main;
 			sourceTree = "<group>";
@@ -3237,6 +3236,7 @@
 				20522A9128E8FD7600589E91 /* sys_main.h */,
 				526F26331D3B5CC300EF4E1F /* agsplatformdriver.cpp */,
 				526F26341D3B5CC300EF4E1F /* agsplatformdriver.h */,
+				526F24761D3B5CC200EF4E1F /* engine_config.h */,
 			);
 			path = base;
 			sourceTree = "<group>";
@@ -4115,7 +4115,7 @@
 				526F27801D3B5CC300EF4E1F /* slider.h in Headers */,
 				526F27471D3B5CC300EF4E1F /* gui.h in Headers */,
 				526F27A61D3B5CC300EF4E1F /* debugger.h in Headers */,
-				526F26F91D3B5CC300EF4E1F /* game_setup.h in Headers */,
+				526F26F91D3B5CC300EF4E1F /* engine_config.h in Headers */,
 				526F22AD1D3B5C4900EF4E1F /* game_struct_defines.h in Headers */,
 				20E6852628F2219A00B95C00 /* VariableWidthSpriteFont.h in Headers */,
 				20E684BA28F20CC700B95C00 /* apiwrapper.h in Headers */,

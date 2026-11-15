@@ -20,10 +20,10 @@
 #include <SDL.h>
 #include <allegro.h>
 
-#include "game/runtime_defines.h"
 #include "main/config.h"
-#include "main/game_setup.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/engine_config.h"
+#include "platform/base/engine_defines.h"
 #include "platform/base/mobile_base.h"
 #include "util/directory.h"
 #include "util/file.h"

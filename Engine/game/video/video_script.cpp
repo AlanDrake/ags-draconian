@@ -23,8 +23,8 @@
 #include "game/game.h"
 #include "game/game_state.h"
 #include "game/video/video.h"
-#include "main/game_setup.h"
 #include "media/video/videoplayer.h"
+#include "platform/base/engine_config.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/path.h"
 

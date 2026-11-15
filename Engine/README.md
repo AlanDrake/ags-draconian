@@ -37,7 +37,7 @@ What must not depend on what:
   modes such as help and setup).
 - `main/engine.cpp`: the engine's start-up steps (backend, window, setup dialog, fonts, asset paths).
 - `main/game_run.cpp`: the game loop (input, updates, drawing, the blocking script calls).
-- `main/config.cpp`, `main/game_setup.h`: `acsetup.cfg` and the `usetup` settings (contract C6).
+- `main/config.cpp`, `platform/base/engine_config.h`: `acsetup.cfg` and the `usetup` settings (contract C6).
 
 ## Directories
 

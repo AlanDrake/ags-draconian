@@ -750,6 +750,7 @@
     <ClInclude Include="..\..\Engine\gfx\ali3dogl.h" />
     <ClInclude Include="..\..\Engine\gfx\ali3dsw.h" />
     <ClInclude Include="..\..\Engine\gfx\ddb.h" />
+    <ClInclude Include="..\..\Engine\gfx\display_setup.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxdefines.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxdriverbase.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxdriverfactory.h" />
@@ -780,7 +781,6 @@
     <ClInclude Include="..\..\Engine\main\engine_setup.h" />
     <ClInclude Include="..\..\Engine\main\game_file.h" />
     <ClInclude Include="..\..\Engine\main\game_run.h" />
-    <ClInclude Include="..\..\Engine\main\game_setup.h" />
     <ClInclude Include="..\..\Engine\main\game_start.h" />
     <ClInclude Include="..\..\Engine\main\graphics_mode.h" />
     <ClInclude Include="..\..\Engine\main\main.h" />
@@ -801,6 +801,8 @@
     <ClInclude Include="..\..\Engine\media\video\videoplayer.h" />
     <ClInclude Include="..\..\Engine\media\video\video_core.h" />
     <ClInclude Include="..\..\Engine\platform\base\agsplatformdriver.h" />
+    <ClInclude Include="..\..\Engine\platform\base\engine_config.h" />
+    <ClInclude Include="..\..\Engine\platform\base\engine_defines.h" />
     <ClInclude Include="..\..\Engine\platform\base\sys_main.h" />
     <ClInclude Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h" />
     <ClInclude Include="..\..\Engine\platform\windows\gfx\ali3dd3d11.h" />

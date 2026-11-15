@@ -21,7 +21,7 @@
 #include "game/ui/gui_dialog_defines.h"
 #include "gfx/bitmap.h"
 #include "gui/guimain.h"
-#include "main/game_setup.h"
+#include "platform/base/engine_config.h"
 #include "util/common.h"
 #include "util/keycode.h"
 

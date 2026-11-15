@@ -29,7 +29,6 @@
 #include "game/system.h"
 #include "gfx/graphicsdriver.h"
 #include "main/engine.h"
-#include "main/graphics_mode.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/filestream.h"
 #include "util/time_util.h"

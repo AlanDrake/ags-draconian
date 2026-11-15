@@ -17,6 +17,7 @@
 
 #include "game/common_defines.h"
 #include "game/game_version.h"
+#include "platform/base/engine_defines.h"
 
 // Max old-style script string length
 #define MAX_MAXSTRLEN 200
@@ -313,21 +314,6 @@ enum ScriptTextBoxClaimStyle
     kScTextBoxClaim_TextOnly = 2,
 };
 
-enum eScriptSystemOSID
-{
-    eOS_Unknown = 0,
-    eOS_DOS,
-    eOS_Win,
-    eOS_Linux,
-    eOS_Mac,
-    eOS_Android,
-    eOS_iOS,
-    eOS_PSP,
-    eOS_Web,
-    eOS_FreeBSD,
-    eNumOS
-};
-
 // Plugin system event IDs;
 // must correspond to the declarations in plugin API.
 // These event ids are defined as flags to let plugins combine them into
@@ -354,25 +340,6 @@ enum PluginEventID
     kPluginEvt_PreSaveGame = 0x00020000,
     kPluginEvt_PostRestoreGame = 0x00040000,
     kPluginEvt_PostRoomDraw = 0x00080000,
-};
-
-// Runtime behavior switches.
-// The purpose is differentiating between modern and backwards-compatible behavior
-// on a per-operation basis.
-enum RuntimeBehaviorSwitch
-{
-    // Is here to have at least one valid constant
-    kRBS_Dummy = 0,
-    // CLNUP: remove in AGS 4 (all of the below relate to running pre-3.6.3 versions)
-    // Enables smooth transition between two consecutive walk orders
-    kRBO_SmoothWalkTransition,
-    // Apply text direction for GUI controls (except Labels, where it's always applied)
-    kRBO_ApplyGUITextDirection,
-    // Apply text alignment for dialog options (and auto-switch when translation changes)
-    kRBO_ApplyDialogOptionTextAlignment,
-    // Do not auto-translate values of text properties; only translate displayed text
-    kRBO_NoTextPropertyAutoTranslate,
-    kNum_RBS
 };
 
 extern std::array<const char *, kNum_RBS> RBSwitchNames;

@@ -19,7 +19,6 @@
 #include "device/mousew32.h"
 #include "game/dynobj/script_touch_pointer.h"
 #include "game/game_state.h"
-#include "main/graphics_mode.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/common.h"
 

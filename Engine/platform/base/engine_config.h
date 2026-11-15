@@ -16,10 +16,8 @@
 #include <array>
 
 #include "device/sys_events.h"
-#include "game/dialog/speech.h"
-#include "game/game_version.h"
-#include "game/runtime_defines.h"
-#include "main/graphics_mode.h"
+#include "gfx/display_setup.h"
+#include "platform/base/engine_defines.h"
 #include "util/string.h"
 
 

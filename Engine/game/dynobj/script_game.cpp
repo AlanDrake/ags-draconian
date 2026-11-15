@@ -18,7 +18,7 @@
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/ui/gui.h"
-#include "main/game_setup.h"
+#include "platform/base/engine_config.h"
 #include "script/cc_common.h" // cc_error
 
 using namespace AGS::Engine;

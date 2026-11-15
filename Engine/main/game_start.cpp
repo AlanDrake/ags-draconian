@@ -35,8 +35,8 @@
 #include "game/world/room.h"
 #include "gfx/ali3dexception.h"
 #include "main/game_run.h"
-#include "main/game_setup.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/engine_config.h"
 #include "util/common.h"
 #include "util/timer.h"
 

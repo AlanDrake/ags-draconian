@@ -998,9 +998,6 @@
     <ClInclude Include="..\..\Engine\game\input\joystick.h">
       <Filter>Header Files\game\input</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\main\game_setup.h">
-      <Filter>Header Files\main</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\game\game_state.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
@@ -1220,6 +1217,9 @@
     <ClInclude Include="..\..\Engine\gfx\ddb.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\gfx\display_setup.h">
+      <Filter>Header Files\gfx</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Engine\gfx\gfx_util.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
@@ -1284,6 +1284,12 @@
       <Filter>Header Files\script</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\platform\base\agsplatformdriver.h">
+      <Filter>Header Files\platform\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\platform\base\engine_config.h">
+      <Filter>Header Files\platform\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\platform\base\engine_defines.h">
       <Filter>Header Files\platform\base</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\audio\audio.h">

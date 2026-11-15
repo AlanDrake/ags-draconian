@@ -26,7 +26,7 @@
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/runtime_defines.h"
-#include "main/game_setup.h"
+#include "platform/base/engine_config.h"
 #include "plugin/plugin_engine.h"
 #include "util/common.h"
 #include "util/stream.h"

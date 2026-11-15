@@ -25,8 +25,8 @@
 #include <unistd.h>
 
 #include "game/main_game_file.h"
-#include "game/runtime_defines.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/engine_defines.h"
 #include "platform/base/mobile_base.h"
 #include "util/android_file.h"
 #include "util/directory.h"

@@ -26,7 +26,7 @@
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/ui/gui.h"
-#include "main/game_setup.h"
+#include "platform/base/engine_config.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "util/common.h"
 #include "util/directory.h"

@@ -314,6 +314,7 @@ target_sources(engine
     gfx/ali3dsw.cpp
     gfx/ali3dsw.h
     gfx/ddb.h
+    gfx/display_setup.h
     gfx/gfx_util.cpp
     gfx/gfx_util.h
     gfx/gfxdefines.h
@@ -350,7 +351,6 @@ target_sources(engine
     main/game_file.h
     main/game_run.cpp
     main/game_run.h
-    main/game_setup.h
     main/game_start.cpp
     main/game_start.h
     main/graphics_mode.cpp
@@ -388,6 +388,8 @@ target_sources(engine
     media/video/videoplayer.h
     platform/base/agsplatformdriver.cpp
     platform/base/agsplatformdriver.h
+    platform/base/engine_config.h
+    platform/base/engine_defines.h
     platform/base/agsplatform_xdg_unix.cpp
     platform/base/agsplatform_xdg_unix.h
     platform/base/sys_main.cpp

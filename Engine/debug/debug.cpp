@@ -33,7 +33,6 @@
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/render/dynamic_sprite.h"
-#include "game/runtime_defines.h"
 #include "game/script.h"
 #include "game/world/room.h"
 #include "main/config.h"

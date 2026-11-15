@@ -20,7 +20,6 @@
 
 #include <SDL.h>
 
-#include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/common.h"
 #include "util/directory.h"

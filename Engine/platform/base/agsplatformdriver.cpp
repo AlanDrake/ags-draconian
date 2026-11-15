@@ -22,7 +22,6 @@
 
 #include <SDL.h>
 
-#include "game/runtime_defines.h"
 #include "gfx/bitmap.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/sys_main.h"
