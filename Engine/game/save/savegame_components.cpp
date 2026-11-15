@@ -17,11 +17,17 @@
 
 #include "debug/out.h"
 #include "game/audio_clip_type.h"
+#include "game/character_info.h"
+#include "game/common_defines.h"
 #include "game/dialog/dialog.h"
+#include "game/dialog_topic.h"
 #include "game/dynobj/cc_serializer.h"
 #include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
+#include "game/inventory_item_info.h"
+#include "game/main_game_file.h"
+#include "game/mouse_cursor.h"
 #include "game/render/draw.h"
 #include "game/render/dynamic_sprite.h"
 #include "game/render/overlay.h"
@@ -55,6 +61,7 @@
 #include "script/dynobj/dynobj_manager.h"
 #include "util/common.h"
 #include "util/deflatestream.h"
+#include "util/geometry.h"
 #include "util/memory_compat.h"
 #include "util/string_utils.h"
 
@@ -63,6 +70,339 @@ using namespace AGS::Common;
 
 // Set to 1 to print each component's offsets and sizes while reading and writing
 #define DEBUG_SAVECOMPONENTS (0)
+
+//-----------------------------------------------------------------------------
+//
+// The save format of the game records that Common defines.
+//
+//-----------------------------------------------------------------------------
+
+void CharacterInfo::ReadFromSavegame(Stream *in, LegacyFields &old_fields, CharacterSvgVersion save_ver)
+{
+    defview = in->ReadInt32();
+    talkview = in->ReadInt32();
+    view = in->ReadInt32();
+    room = in->ReadInt32();
+    prevroom = in->ReadInt32();
+    x = in->ReadInt32();
+    y = in->ReadInt32();
+    wait = in->ReadInt32();
+    flags = in->ReadInt32();
+    in->ReadInt16(); // legacy following
+    in->ReadInt16(); // legacy followinginfo
+    idleview = in->ReadInt32();
+    idledelay = in->ReadInt16();
+    idleleft = in->ReadInt16();
+    opacity = in->ReadInt16();
+    baseline = in->ReadInt16();
+    activeinv = in->ReadInt32();
+    talkcolor = in->ReadInt32();
+    thinkview = in->ReadInt32();
+    blinkview = in->ReadInt16();
+    blinkinterval = in->ReadInt16();
+    blinktimer = in->ReadInt16();
+    blinkframe = in->ReadInt16();
+    walkspeed_y = in->ReadInt16();
+    old_fields.view_offset.Y = in->ReadInt16(); // legacy 16-bit view offset
+    z = in->ReadInt32();
+    walkwait = in->ReadInt32();
+    speech_anim_speed = in->ReadInt16();
+    idle_anim_speed = in->ReadInt16();
+    blocking_width = in->ReadInt16();
+    blocking_height = in->ReadInt16();
+    index_id = in->ReadInt32();
+    old_fields.view_offset.X = in->ReadInt16(); // legacy 16-bit view offset
+    walkwaitcounter = in->ReadInt16();
+    loop = in->ReadInt16();
+    frame = in->ReadInt16();
+    walking = in->ReadInt16();
+    in->ReadInt16(); // legacy animating
+    walkspeed = in->ReadInt16();
+    animspeed = in->ReadInt16();
+    if (save_ver < kCharSvgVersion_400_33)
+    {
+        int16_t legacy_invq[LEGACY_MAX_INV];
+        in->ReadArrayOfInt16(legacy_invq, LEGACY_MAX_INV);
+        for (int i = 0; i < LEGACY_MAX_INV; ++i)
+            if (legacy_invq[i] > 0)
+                invq[i] = legacy_invq[i];
+    }
+    else
+    {
+        int invitems = in->ReadInt32();
+        for (int i = 0; i < invitems; ++i)
+        {
+            int itemid = in->ReadInt32();
+            int itemq = in->ReadInt32();
+            invq[itemid] = itemq;
+        }
+    }
+    in->ReadInt16(); // actx__
+    in->ReadInt16(); // acty__
+
+    if (save_ver < kCharSvgVersion_400_03)
+    { // Fixed-size name and scriptname
+        name.ReadCount(in, LEGACY_MAX_CHAR_NAME_LEN);
+        in->Seek(LEGACY_MAX_SCRIPT_NAME_LEN); // skip legacy scriptname
+                                              // (don't overwrite static data from save!)
+    }
+    else
+    {
+        name = StrUtil::ReadString(in);
+    }
+
+    if (save_ver >= kCharSvgVersion_400_03)
+    {
+        in->ReadInt8(); // [OBSOLETE] old enabled + visible flag
+    }
+    else
+    {
+        uint8_t on = in->ReadInt8(); // old enabled + visible flag
+        // Only treat "on" as visible and make characters from old saves all enabled
+        flags |= CHF_ENABLED | (CHF_VISIBLE)*on;
+    }
+
+    if (save_ver >= kCharSvgVersion_400_26)
+    {
+        blocking_x = in->ReadInt16();
+        blocking_y = in->ReadInt16();
+    }
+    else
+    {
+        blocking_x = 0;
+        blocking_y = 0;
+    }
+}
+
+void CharacterInfo::WriteToSavegame(Stream *out) const
+{
+    out->WriteInt32(defview);
+    out->WriteInt32(talkview);
+    out->WriteInt32(view);
+    out->WriteInt32(room);
+    out->WriteInt32(prevroom);
+    out->WriteInt32(x);
+    out->WriteInt32(y);
+    out->WriteInt32(wait);
+    out->WriteInt32(flags);
+    out->WriteInt16(0); // legacy following
+    out->WriteInt16(0); // legacy followinfo
+    out->WriteInt32(idleview);
+    out->WriteInt16(idledelay);
+    out->WriteInt16(idleleft);
+    out->WriteInt16(opacity);
+    out->WriteInt16(baseline);
+    out->WriteInt32(activeinv);
+    out->WriteInt32(talkcolor);
+    out->WriteInt32(thinkview);
+    out->WriteInt16(blinkview);
+    out->WriteInt16(blinkinterval);
+    out->WriteInt16(blinktimer);
+    out->WriteInt16(blinkframe);
+    out->WriteInt16(walkspeed_y);
+    out->WriteInt16(0); // legacy view offset y
+    out->WriteInt32(z);
+    out->WriteInt32(walkwait);
+    out->WriteInt16(speech_anim_speed);
+    out->WriteInt16(idle_anim_speed);
+    out->WriteInt16(blocking_width);
+    out->WriteInt16(blocking_height);
+    out->WriteInt32(index_id);
+    out->WriteInt16(0); // old view offset x
+    out->WriteInt16(walkwaitcounter);
+    out->WriteInt16(loop);
+    out->WriteInt16(frame);
+    out->WriteInt16(walking);
+    out->WriteInt16(0); // legacy animating
+    out->WriteInt16(walkspeed);
+    out->WriteInt16(animspeed);
+    // new inv item quantity format since kCharSvgVersion_400_33;
+    // written in the order of item IDs, so that the same inventory always gives the same bytes
+    std::vector<std::pair<int, int>> items(invq.begin(), invq.end());
+    std::sort(items.begin(), items.end());
+    out->WriteInt32(items.size());
+    for (const auto &iq : items)
+    {
+        out->WriteInt32(iq.first);
+        out->WriteInt32(iq.second);
+    }
+    out->WriteInt16(0); // actx__
+    out->WriteInt16(0); // acty__
+
+    StrUtil::WriteString(name, out); // kCharSvgVersion_400_03
+    out->WriteInt8(0);               // [OBSOLETE], old enabled + visible flag
+    // kCharSvgVersion_400_26
+    out->WriteInt16(blocking_x);
+    out->WriteInt16(blocking_y);
+}
+
+void InventoryItemInfo::ReadFromSavegame(Stream *in, InvitemSvgVersion svg_ver)
+{
+    name = StrUtil::ReadString(in);
+    pic = in->ReadInt32();
+    cursorPic = in->ReadInt32();
+    if (svg_ver >= kInvitemSvgVersion_36304)
+    {
+        hotx = in->ReadInt16();
+        hoty = in->ReadInt16();
+    }
+
+    if (svg_ver < kInvitemSvgVersion_36304)
+    {
+        hotAlign = ((hotx == 0) && (hoty == 0)) ? kAlignMiddleCenter : kAlignTopLeft;
+    }
+    else
+    {
+        hotAlign = kAlignTopLeft;
+    }
+
+    if (svg_ver >= kInvitemSvgVersion_36314)
+    {
+        hotAlign = static_cast<FrameAlignment>(in->ReadInt32());
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+    }
+}
+
+void InventoryItemInfo::WriteToSavegame(Stream *out) const
+{
+    StrUtil::WriteString(name, out);
+    out->WriteInt32(pic);
+    out->WriteInt32(cursorPic);
+    // kInvitemSvgVersion_36304
+    out->WriteInt16(hotx);
+    out->WriteInt16(hoty);
+    // kInvitemSvgVersion_36314
+    out->WriteInt32(hotAlign);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+}
+
+void MouseCursor::ReadFromSavegame(Stream *in, int /*cmp_ver*/)
+{
+    pic = in->ReadInt32();
+    hotx = static_cast<int16_t>(in->ReadInt32());
+    hoty = static_cast<int16_t>(in->ReadInt32());
+    view = static_cast<int16_t>(in->ReadInt32());
+    flags = static_cast<int8_t>(in->ReadInt32());
+    animdelay = in->ReadInt32();
+}
+
+void MouseCursor::WriteToSavegame(Stream *out) const
+{
+    out->WriteInt32(pic);
+    out->WriteInt32(hotx);
+    out->WriteInt32(hoty);
+    out->WriteInt32(view);
+    out->WriteInt32(flags);
+    out->WriteInt32(animdelay);
+}
+
+void DialogTopic::ReadOptionFromSavegame(DialogOption &opt, Stream *in, DialogTopicSvgVersion svg_ver)
+{
+    opt.Text = StrUtil::ReadString(in);
+    opt.Flags = in->ReadInt32();
+    if ((opt.Flags & DFLG_TEXTSET) == 0)
+        opt.Text = opt.OriginalText;
+}
+
+void DialogTopic::ReadFromSavegame(Common::Stream *in, DialogTopicSvgVersion svg_ver, uint32_t *read_opt_count)
+{
+    if ((svg_ver <= kDialogTopicSvgVer_Initial) || (svg_ver == kDialogTopicSvgVer_40008))
+    {
+        uint32_t opt_idx = 0;
+        for (; opt_idx < LEGACY_MAXTOPICOPTIONS && opt_idx < Options.size(); ++opt_idx)
+            Options[opt_idx].Flags = in->ReadInt32();
+        // skip if there's any mismatched count (?)
+        for (; opt_idx < LEGACY_MAXTOPICOPTIONS; ++opt_idx)
+            in->ReadInt32();
+
+        if (read_opt_count)
+            *read_opt_count = std::min<uint32_t>(Options.size(), LEGACY_MAXTOPICOPTIONS);
+    }
+    else
+    {
+        uint32_t option_records = in->ReadInt32();
+        uint32_t opt_idx = 0;
+        for (opt_idx = 0; opt_idx < option_records && opt_idx < Options.size(); ++opt_idx)
+            ReadOptionFromSavegame(Options[opt_idx], in, svg_ver);
+        // skip if there's any mismatched count (?)
+        DialogOption dummy;
+        for (; opt_idx < option_records; ++opt_idx)
+            ReadOptionFromSavegame(dummy, in, svg_ver);
+
+        if (read_opt_count)
+            *read_opt_count = option_records;
+    }
+}
+
+void DialogTopic::WriteToSavegame(Common::Stream *out) const
+{
+    out->WriteInt32(Options.size());
+    for (auto &opt : Options)
+    {
+        if ((opt.Flags & DFLG_TEXTSET) != 0)
+            StrUtil::WriteString(opt.Text, out);
+        else
+            StrUtil::WriteString(nullptr, 0, out);
+        out->WriteInt32(opt.Flags);
+    }
+}
+
+void AudioClipType::ReadFromSavegame(Common::Stream *in)
+{
+    volume_reduction_while_speech_playing = in->ReadInt32();
+    crossfadeSpeed = in->ReadInt32();
+}
+
+void AudioClipType::WriteToSavegame(Common::Stream *out) const
+{
+    out->WriteInt32(volume_reduction_while_speech_playing);
+    out->WriteInt32(crossfadeSpeed);
+}
+
+void GameSetupStruct::ReadFromSavegame(Stream *in, GameStateSvgVersion svg_ver)
+{
+    // of GameSetupStruct
+    in->ReadArrayOfInt32(options, OPT_HIGHESTOPTION_321 + 1);
+    options[OPT_LIPSYNCTEXT] = in->ReadInt32();
+    // of GameSetupStructBase
+    playercharacter = in->ReadInt32();
+    dialog_bullet = in->ReadInt32();
+    // legacy uint16 values of a inv cursor hotdot and cross colors
+    inv_hot_color = RemapFromLegacyColourNumber(*this, in->ReadInt16());
+    inv_hot_cross_color = RemapFromLegacyColourNumber(*this, in->ReadInt16());
+    inv_hot_sprite = in->ReadInt32();
+    default_lipsync_frame = in->ReadInt32();
+    if (svg_ver >= kGSSvgVersion_400_27)
+    {
+        inv_hot_color = in->ReadInt32();
+        inv_hot_cross_color = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+    }
+}
+
+void GameSetupStruct::WriteForSavegame(Stream *out)
+{
+    // of GameSetupStruct
+    out->WriteArrayOfInt32(options, OPT_HIGHESTOPTION_321 + 1);
+    out->WriteInt32(options[OPT_LIPSYNCTEXT]);
+    // of GameSetupStructBase
+    out->WriteInt32(playercharacter);
+    out->WriteInt32(dialog_bullet);
+    out->WriteInt16(0); // [DEPRECATED] uint16 value of a inv cursor hotdot color
+    out->WriteInt16(0); // [DEPRECATED] uint16 value of a inv cursor hot cross color
+    out->WriteInt32(inv_hot_sprite);
+    out->WriteInt32(default_lipsync_frame);
+    // kGSSvgVersion_400_27
+    out->WriteInt32(inv_hot_color);
+    out->WriteInt32(inv_hot_cross_color);
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+}
 
 namespace AGS
 {
