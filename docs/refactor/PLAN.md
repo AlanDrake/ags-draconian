@@ -78,7 +78,7 @@ Recorded 2026-10-31.
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
-0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 5.1 step 1 (2026-11-15), 2.10a (2026-11-15), 5.2, 5.3 (2026-11-14), 6.7d,
+0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 5.1 steps 1 and 2 (2026-11-15; step 2 not committed), 2.10a (2026-11-15), 5.2, 5.3 (2026-11-14), 6.7d,
 6.9, 7.1 (but 7.1n) (LOG.md); 3.2 with 3.2c
 (CI-confirmed 2026-11-08). The fork does not wait for upstream review (the user, 2026-11-09): a fork-only
 move that would conflict with an open offer is preceded by a tag of the pre-move tree for `port.py`.
@@ -86,7 +86,7 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
 | 1 | **The bugs found in 4.1, by upstream branch** (the user, 2026-11-12; the list is "4.1's bugs by upstream branch" below): all fixed in the fork (2026-11-12, `d90b789ab`..`98a7dae87`, `4c07f1e11`; lip-sync and the push button still want a run in a game); ported to `master-41-fixes` and `ags4-41-fixes`, trial merge of the first into the second on `ags4-41-mergecheck` (`docs/UPSTREAM.md`, worktrees `../ags-up-master`, `../ags-up-ags4`; the trial merge's worktree is gone, its branch stays); double-checked, fixed, rebased and pushed to `origin` 2026-11-13 (`53a55451d` on `upstream/master` `fc4c47a7f`, `9d32c9654`; what the check found is in `docs/UPSTREAM.md`); left: open the two PRs (texts in `.compare/pr-description.md` of each worktree), the trial merge is from the first version and not redone, and the fork's reader still gives `RunGameLoopsWhileDialogOptionsDisplayed` true for an absent element where `Settings.FromXml` gives false (no effect on 4.0 projects) | 4.1 is done; the PRs were waiting for it | Fable 5.1, `high` for the review; the user opens the PRs |
-| 2 | **5.1 and 5.1a, by the design of 2026-11-15** (`RUNTIME-SPLIT.md`, reviewed with the user; LOG.md "5.1 step 2 and 5.1a: the design" lists what was decided and what each task still has to design). The order: **(a)** 2.10a, the compile-time metric (done 2026-11-15, BASELINE.md "compile time"), then the three save defects of RUNTIME-SPLIT.md 11 with a test each; **(b)** 5.1 step 2, `EngineServices`: no disputed name, and it removes the 15 includes step 1 exposed (the exit flags in `util/timer.cpp`, `debug/debug.cpp`, `device/mousew32.cpp`; `palette` and `gfxDriver` in the graphics drivers; `scriptExecutor` in the VM; the `main.cpp` flags in the game ring) and the 21 that carry `usetup`; **(c)** 5.8 step 1, Common's save code into the engine, and 6.7a, which takes the old-game import out of `AGS.Native` before the renames reach it; **(d)** 5.1 step 3, `GameDef`, `Game`, `Room`; **(e)** 5.1a step 1 (`Character`), 5.9 on it, then 5.1a steps 2 to 4; **(f)** 5.11 and 5.12, the restore into a second `Game` and the new save format; **(g)** 5.1a step 5 (GUI) with 6.7c. Any time after (d): 5.8 step 2. After (e): 5.10. Any time: 2.10b. Small follow-ups left by 5.2 and 5.3 that fit (b): split `runtime_defines.h` and `asset_helper.h` into their host and game halves; the signature fixes that 5.2 step 2's tags mark (LOG.md "5.2 step 2", each a behaviour change to decide) | Step 1 is done, so each global has one declaration to replace and the compiler checks it against the definition; the design settles what the globals become before 1,860 uses of `game` are touched | Fable 5.2, `high` to supervise and for 5.9, 5.11 and 5.12's designs; Sonnet 5.5 or Opus 5.5 subagents for the conversions, in batches built once per batch |
+| 2 | **5.1 and 5.1a, by the design of 2026-11-15** (`RUNTIME-SPLIT.md`, reviewed with the user; LOG.md "5.1 step 2 and 5.1a: the design" lists what was decided and what each task still has to design). The order: **(a)** done 2026-11-15: 2.10a, the compile-time metric (BASELINE.md "compile time"), and the three save defects of RUNTIME-SPLIT.md 11 with a test each (not committed); **(b)** done 2026-11-15, not committed: 5.1 step 2, `EngineServices` (LOG.md "5.1 step 2": baseline 143 to 94; the sprite cache is left to (d)); **next: (c)** 5.8 step 1, Common's save code into the engine, and 6.7a, which takes the old-game import out of `AGS.Native` before the renames reach it; **(d)** 5.1 step 3, `GameDef`, `Game`, `Room`; **(e)** 5.1a step 1 (`Character`), 5.9 on it, then 5.1a steps 2 to 4; **(f)** 5.11 and 5.12, the restore into a second `Game` and the new save format; **(g)** 5.1a step 5 (GUI) with 6.7c. Any time after (d): 5.8 step 2. After (e): 5.10. Any time: 2.10b. Small follow-ups left by 5.2 and 5.3: the host half of `asset_helper.h` (that of `runtime_defines.h` is done, `platform/base/engine_defines.h`); the signature fixes that 5.2 step 2's tags mark (LOG.md "5.2 step 2", each a behaviour change to decide). | Steps 1 and 2 are done: each remaining global has one declaration, the process-wide ones are out of the way, and `Script/use_context.py` converts the uses of a context; the design settles what the globals become before 1,860 uses of `game` are touched | Fable 5.2, `high` to supervise and for 5.9, 5.11 and 5.12's designs; Sonnet 5.5 or Opus 5.5 subagents for the conversions, in batches built once per batch |
 | 3 | **4.5 + 3.6 on what had no comment pass** (770 first-party files, ~280k lines): batch 8 done (2026-11-13, LOG.md: `game`, `gamestate`, `room`, `dialog`, `savegame`, `game_init`, `script`, `guimain`, `engine`); next, the untouched files most-churned first (a ranking by commits since 2024, the batch-6 stray-rename files among them), then the D3D/OpenGL drivers with the `emscripten` and `linux` stages, and the compiler (7,440-line parser: its own plan, by function groups). Brief `.compare/briefs/brief-45-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | The files have their final paths since 5.3 (map: `docs/refactor/moves-5.3.tsv`; the brief's file lists use the old ones), and a comment pass is cheaper before 5.1 and 5.2 step 2 edit them again | Sonnet 5.5, `medium`, parallel subagents; the parser plan Fable 5.1 |
 | 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3188, #3189; #3187 merged), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
@@ -95,11 +95,17 @@ Open items from finished tasks (details in LOG.md "Open items"):
 - 2.5, found by 5.1 step 1 (2026-11-15): no script or workflow checks `#pragma once`; nine headers lacked it and
   have it now (`9078a8c83`), the two `resource.h` files of Visual Studio's resource editor are left. A check in
   the `format` stage would make "enforced" true.
-- 5.1's design (2026-11-15, RUNTIME-SPLIT.md 11), read in the code, not fixed: a character's animation volume is
-  lost on load (`CharacterExtras::ReadFromSavegame` rebuilds the animation with 100), an animated overlay's wait
-  counter is not restored, `RoomStatus` reads the walk-area and walk-behind counts in the other order than it
-  writes them (harmless while the limits are equal); three more reported and not checked (listed there).
-  Upstream `master` and `ags4` not checked for them.
+- 5.1's design (2026-11-15, RUNTIME-SPLIT.md 11): the three save defects are fixed, a test each (a character's
+  animation volume lost on load, an animated overlay's wait counter not restored, `RoomStatus` reading the
+  walk-area and walk-behind counts in the other order than it writes them; no existing save loads differently).
+  Open, found on the way: `move_object` on an object that is already moving leaks its move list and leaves
+  `Object.MotionPath` on the earlier path; `GetObjectIDAtRoom` tests against the scaled size; `RoomStatus::
+  ReadFromSavegame` does not check its counts against the fixed arrays. Upstream `master` and `ags4` not
+  checked for any of the six.
+- 5.1 step 2 (2026-11-15): `ApplyBehaviorOptions` no longer uses its `GameSetupStruct &` parameter (its name is
+  commented out; three callers pass `game`); `util/timer.cpp` is frame pacing that needs the host (five baseline
+  lines) and belongs in the host ring; `Game_ChangeSpeechVox` and `ResourcePaths::VoiceAvail` keep two
+  meanings of "voice available" (`EngineServices::VoiceAvail` is the one the game reads).
 - 1.4: the `agfreader` items are closed: a project without `<Settings>` is refused by `AGFReader::Open` and `ReadFields`
   refuses a missing element (2026-11-12, test `AGFReader.OpenReportsMissingSettings`); `StrUtil::Unescape`'s read past
   the end went with its rewrite in `28badf14b` (U.3). Left: the `ReadAllData` wrappers drop `ReadFields`' error, so an
@@ -379,7 +385,7 @@ Each task is a series of small PRs.
   function that uses one more than once takes a local reference at its top (`Game &game = Game::Current();`),
   which step 4 turns into the parameter.
 
-  2. **`EngineServices`**: the graphics driver, platform, asset manager, sprite cache, the engine config
+  2. [x] **`EngineServices`**: the graphics driver, platform, asset manager, sprite cache, the engine config
      (`usetup`, its class renamed `EngineConfig`), `ResPaths`, the loop flags (`want_exit`, `abort_engine`,
      `switched_away`, `game_update_suspend`, `proper_exit`), the `main.cpp` flags the game ring reads. It lives
      in the host ring and names the higher rings' types by forward declaration only, so every ring can include
@@ -394,6 +400,21 @@ Each task is a series of small PRs.
      of the 15 that step 1 exposed (`debug/debug.cpp` keeps its three until step 3: it reads the game's options
      and the room number, which are game state); these globals are reached only through
      `EngineServices::Current()`.
+     *Done 2026-11-15* (LOG.md "5.1 step 2"; not committed): `platform/base/engine_services.h`, a struct with
+     the config (`EngineConfig`, by value), `ResPaths`, the engine version, the platform and graphics drivers,
+     the asset manager, the loop flags, the two script-log flags, and the voice, music-pack and text-language
+     values that were in `GamePlayState`; 656 uses of 14 globals converted by `Script/use_context.py` (148
+     direct, 508 through a `services` local in 113 functions), which step 3 runs again for `Game` and `Room`.
+     `scriptExecutor` is a global of the script ring, the crash marks are in `debug`, the drivers are given a
+     pointer to the palette once (`IGraphicsDriver::SetIndexedPalette`). The layering baseline is 94 (143
+     before). **Not done as written: the sprite cache stays a global** until step 3: it is built on a reference
+     to `game.SpriteInfos` and `draw.cpp`'s texture cache binds to it during static initialization. The two
+     base-ring files that read the loop flags (`util/timer.cpp`, `debug/debug.cpp`) include the host's
+     `engine_services.h`: two new baseline lines, beside the ones they had for the platform driver. Measured
+     (MSVC `/O2` objects before and after): `draw.cpp` +1.0% instructions, `screen.cpp` +1.3%, the per-object
+     draw functions byte-identical, the instance pointer loaded once per function that has the local; two loops
+     reloaded it per iteration (the GUI loop of `draw_gui_and_overlays`, `ShakeScreen`'s condition), about 0.2 ns
+     each by a micro-benchmark, and were given the services from outside the loop (the user, 2026-11-15).
   3. **`GameDef`, `Game` and `Room`.** `GameSetupStruct` and its base become `GameDef`, with `views`,
      `dialog`, the GUI lists and the compiled scripts as loaded (a `[rename]`; `AGS.Native` compiles the
      struct, so with the `msbuild` stage). The member `GameInfo` (the game's descriptive texts, also the
@@ -403,7 +424,10 @@ Each task is a series of small PRs.
      arrays); `thisroom`, `croom`, `objs` and the room-loaded globals become `Room`; the room fields of
      `GamePlayState` go to `Room` and `RoomState`, its viewports and cameras to `Game` (RUNTIME-SPLIT.md 5).
      `game/game.h` is included by about 335 files and must not become the header that includes every entity:
-     the mechanism is chosen here and judged by 2.10's numbers.
+     the mechanism is chosen here and judged by 2.10's numbers. Left by step 2: the sprite cache
+     (`spriteset`, 165 uses) goes to `EngineServices` once the sprite table has its owner (the loaded
+     `SpriteInfos` in `GameDef`, the live ones, which the cache resizes for dynamic sprites, in `Game`), and
+     the texture cache of `draw.cpp` stops binding to it during static initialization.
      *Done when:* no `extern` of mutable state is left in an `Engine/` header but the contexts and a list of
      exceptions kept in `Script/check_layers.py` (constants, stateless managers); the median compile time per
      file is not higher than before the step.
@@ -505,10 +529,12 @@ Each task is a series of small PRs.
   - `Common/ac/def_version.h` stays: CI and the packaging scripts of every platform name it (the user, 2026-11-14:
     it stays; phase 7 may move it when the packaging scripts are reworked).
   - The layering baseline, `Script/check_layers_baseline.txt`, 129 includes (128 since 5.2 step 2; 143 since 5.1
-    step 1, which made 15 hidden ones visible), only shrinks. 5.1's contexts take
-    out the ones that carry `usetup` (`main/game_setup.h`, 18); the rest (`main/game_run.h` 22,
+    step 1, which made 15 hidden ones visible; 94 since 5.1 step 2), only shrinks. 5.1 step 2 took
+    out the ones that carried `usetup` (`main/game_setup.h`, 21); the rest (`main/game_run.h` 22,
     `plugin/plugin_engine.h` 12, the `debug` and `util` files) is for later tasks. Two small follow-ups: split `runtime_defines.h` and `asset_helper.h` into their host and game parts, and cut
-    `script/script_api.h` from `script/runtimescriptvalue.h` (the cut is done, 5.2 step 2; the two splits are open).
+    `script/script_api.h` from `script/runtimescriptvalue.h` (the cut is done, 5.2 step 2; the host's part of
+    `runtime_defines.h` is `platform/base/engine_defines.h` since 5.1 step 2, and no host file includes
+    `runtime_defines.h` any more; `asset_helper.h` is open: `media/audio/sound.h` and `media/video/flic_player.cpp`).
   - Per-folder READMEs (4.5) are two files for the engine, as above.
 - [ ] **5.4 Split the longest functions** (BASELINE.md list), tests first:
   - `display_speech` (489 lines, nesting 8): text layout, portrait/bubble placement, lip-sync setup,
@@ -832,7 +858,7 @@ and without fork-only features, built in the worktree `E:\Projects\ags\ags4-upst
 | cryptic names (total) | 4,855 | | | ~0 (globals excluded) | 0 |
 | extern decls in Engine .cpp files | 596 | | | | 0 |
 | extern decls in Engine headers (5.1 step 3) | 203 (2026-11-15) | | | | the contexts and the listed exceptions |
-| layering baseline includes (5.1 step 2) | 143 (2026-11-15) | | | | ≤ 110 |
+| layering baseline includes (5.1 step 2) | 143 (2026-11-15) | | | | 94 (2026-11-15, step 2 done; the target was ≤ 110) |
 | `Savegame` methods in `Common/` (5.8) | 14 files | | | | 0 |
 | compile time, total and median per file (2.10) | MSVC 1676 to 1731 s, 2.6 to 2.7 s; GCC 1585 to 1604 s, 2.4 s (2026-11-15, two readings each) | | | | not higher |
 | functions > 200 lines | 19 | | | | ≤ 3 |

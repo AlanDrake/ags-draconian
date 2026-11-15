@@ -1797,6 +1797,180 @@ and their order in "Next up".
   (5.11), matching lists by script name in a savestate (5.12), a precompiled header or unity builds (2.10b).
 - **Found:** three defects in today's save code, read in the code and not fixed (PLAN.md open items).
 
+### The three save defects of the design pass
+
+*Definition:* PLAN.md "Next up" item 2 (a): fix the three defects of RUNTIME-SPLIT.md 11, a test each.
+
+**Status (2026-11-15): done, not committed.** By an Opus 5.5 subagent in a worktree, the patch read and applied
+by the supervisor.
+
+- A character's animation volume is restored (`CharacterExtras::ReadFromSavegame` read it into a member nothing
+  used and rebuilt the animation with 100; the member `cur_audio_volume` is gone); an animated overlay's wait
+  counter is restored (`AnimatedOverlay::ReadFromSavegame` read it into a local); `RoomStatus::ReadFromSavegame`
+  reads the walk-area count before the walk-behind count, as the writer writes them. The stream's bytes are the
+  same in all three.
+- Tests, in `Engine/test/savegame_components_test.cpp`, each seen failing before its fix:
+  `SavegameContent.CharacterAnimationVolumeIsRestored`, `SavegameState.AnimatedOverlayWaitIsRestored`,
+  `SavegameState.RoomStatusReadsTheCountsInTheWrittenOrder` (a stream with 1 walk area and 2 walk-behinds, which
+  no engine writes: both limits are 16).
+- **No existing save loads differently through the third fix:** the counts came with `ddc9d21b7` (2024-02-15),
+  the writer has had no version branch since, and `MAX_WALK_AREAS` went from 15 to 16 a month before; read in
+  the history, not tried with saves. Through the first two, a save now restores what it holds.
+- **Checked on the way** (RUNTIME-SPLIT.md 11): `init_object_states`' double assignment is redundant, not a
+  defect; `move_object` on a moving object leaks the move list and leaves `Object.MotionPath` stale;
+  `GetObjectIDAtRoom` tests against the scaled size; `RoomStatus::ReadFromSavegame` does not check its counts
+  against the fixed arrays. Open (PLAN.md open items).
+
+### 5.1 step 2: `EngineServices`
+
+*Definition:* the globals that live as long as the process become members of one struct reached through
+`EngineServices::Current()`; the engine's config moves to the host ring with it. *Done when:* the layering
+baseline is 110 or less and these globals are reached only through the accessor.
+
+**Status (2026-11-15): done, not committed** (the working tree; the stages are kept as snapshots, below).
+Designed and supervised by Fable 5.2, the batches by four Opus 5.5 subagents and one Sonnet 5.5 (the
+measurement), each batch built once.
+
+- **The design, where it differs from PLAN.md's text.**
+  - `EngineServices` is a plain struct in `Engine/platform/base/engine_services.h` (host ring, global namespace
+    like `EngineConfig` and `AGSPlatformDriver`): `Version`, `Config` (the `EngineConfig`, by value), `ResPaths`,
+    `VoiceAvail`, `SeparateMusicLib`, `TextLanguage`, `TextLocaleName`, `Platform`, `GfxDriver`, `Assets`, the
+    loop flags (`SwitchingAwayFromGame`, `SwitchedAway`, `GameUpdateSuspend`, `WantExit`, `AbortEngine`,
+    `ProperExit`), `LogScriptRTTI`, `LogScriptTOC`. The engine's own instance is a static of
+    `engine_services.cpp` and `_current` is initialized with its address, a constant, so `Current()` is valid
+    before any dynamic initialization, as the globals were; `SetCurrent()` is for tests.
+  - **"Every ring can include it" was wrong for two rings.** The host ring is above `util` and `debug` and beside
+    the script VM. The VM does not need it. `util/timer.cpp` (the frame wait loops read the loop flags) and
+    `debug/debug.cpp` include it: two new baseline lines, with the reason that both already include the host's
+    `agsplatformdriver.h`. A struct of forward-declared pointers in the base ring would have had no such lines,
+    and could not have held the config by value.
+  - **The sprite cache stays a global until step 3.** `SpriteCache spriteset(game.SpriteInfos, ...)` keeps a
+    reference to a vector of the game struct, which it resizes and writes for dynamic sprites, and
+    `texturecache(spriteset)` in `draw.cpp` binds to it during static initialization: a pointer in the struct
+    would be null at that moment, and an owner in the struct would have to own the sprite table too, which is
+    step 3's question (`GameDef` and `Game`) and 5.11's (dynamic sprites per `Game`).
+  - **The palette: a pointer given once, not a call per change.** `IGraphicsDriver::SetIndexedPalette(const RGB
+    *)`, stored in `GraphicsDriverBase`, called in `main/graphics_mode.cpp` where the driver is created. The
+    three hardware drivers convert 8-bit bitmaps with it and no longer include `game/render/draw.h`. About ten
+    places change the palette in place; a call at each would be ten chances of a stale copy.
+  - **Use sites:** one use in a function is `EngineServices::Current().Member`; more than one,
+    `EngineServices &services = EngineServices::Current();` as the first statement and `services.Member`.
+    Always the reference to the struct, never a copy of a member pointer (the drivers and the asset manager are
+    created and destroyed while the engine runs).
+- **The batches**, each a snapshot `refs/wip/51s2/<name>` made with `git stash create` (no branch, index or
+  working tree change), so that the commits can be cut along them:
+  1. `prep`: the display setup types (`WindowSetup`, `DisplayModeSetup`...) from `main/graphics_mode.h` to
+     `gfx/display_setup.h`; `eScriptSystemOSID`, `RuntimeBehaviorSwitch`, `SkipSpeechStyle`, `SpeechMode` to
+     `platform/base/engine_defines.h`; `[rename]` `GameSetup` to `EngineConfig`; `[move]` `main/game_setup.h` to
+     `platform/base/engine_config.h`; 11 includes of lower-ring files switched or dropped. Baseline 143 to 111.
+  2. `moves`: `scriptExecutor` defined in `script/scriptexecutor.cpp`; `eip_guinum`, `eip_guiobj` in
+     `debug/debug.cpp`, declared in `debug/debugger.h`. Baseline 107.
+  3. `services`: the struct, `Script/use_context.py`, 656 uses of 14 globals in 41 files (148 direct, 508
+     through the local in 113 functions), the definitions and `extern` lines deleted. Baseline 97.
+  4. `savefix`: the three save fixes above, applied on top.
+  5. `state`: the palette; `voice_avail`, `separate_music_lib`, `enable_antialiasing` and the text language out
+     of `GamePlayState`. Baseline 94.
+  6. `final`: four lines for the tidy gate and one for `check_helpers.py` (below).
+- **`Script/use_context.py`** (864 lines): a tokenizer that skips comments, literals and preprocessor lines, a
+  brace tracker that tells function bodies from namespace, class and initializer blocks and follows `#if`
+  branches; a use in a `[&]` lambda goes through the local, in any other lambda or in a class defined inside a
+  function it is direct; parameters, locals and class members of the same name are left alone; `--dry-run`,
+  `--check`, `--self-test`. The context's type, accessor, local name, header and name map are one table entry:
+  step 3 adds `Game` and `Room`. **A tool proved on three files was not proved here either:** on the whole tree
+  it turned the member `SavegameDescription::EngineVersion` into the global's replacement in a copy
+  constructor; found by reading the diff, and the tool knows class members since.
+- **What left `GamePlayState`.** `voice_avail` and `separate_music_lib` described the running engine's packs
+  and were carried around a restore by `PreservedParams::SpeechVOX` and `MusicVOX`, which are gone. The save
+  keeps its slot: the reader reads `separate_music_lib` and drops it, the writer writes the engine's value
+  (test `SavegameContent.RestoreKeepsTheRunningEnginesMusicPack`). `enable_antialiasing` was a copy of
+  `Config.AntialiasSprites`, which nothing writes after the config is loaded: `ShouldAASprites()` reads the
+  config and is out of line (`game_state.h` must not include the config, which brings SDL). The text language
+  and its locale name are members; `SetGameTextLanguage` is a function of `game/translation.cpp`.
+  Two edges: a plugin whose restore callback asks whether the music pack is there now gets the engine's answer,
+  not the save's (no engine code does); after a failed restore the engine's value stays instead of the save's.
+  `unload_game` no longer resets the four values; `InitGameState` and `engine_init_game_settings` set them when
+  the next game starts.
+- **Proof of the mechanical batches, MSVC** (`compare_objects.py`, `/O1`, 674 objects). `prep` against HEAD: 19
+  objects differ, exactly the 19 sources that name `usetup`, because MSVC puts a variable's type into its
+  symbol (`?usetup@@3UGameSetup@@A`). Against "HEAD with only the word renamed" (a commit object made by
+  `.compare/helpers/mk_rename_ref.py`): 652 identical, 22 with the same code, "mechanical change". `moves`
+  against `prep`: "move: 0 functions changed" (the global's initializer went from one object to the other).
+- **The conversion is not mechanical, by design:** 39 objects, 337 functions changed at `/O1`. Not among them:
+  the script VM, `Engine/gfx` and `Common/gfx` (the software renderer and the blenders), `Common/util`, the
+  sprite cache, the audio mixing.
+- **Measured, MSVC x64 `/O2` without `/GL`** (cl 19.44; the four changed objects on or near a hot path,
+  compiled from the `moves` and `services` snapshots with the Release flags, `dumpbin /disasm` compared function
+  by function; scripts and tables in `.compare/perf51`):
+
+  | Object | Instructions | Bytes | Functions changed |
+  |---|---|---|---|
+  | `game/render/draw.cpp` | 37,271 to 37,660 (+1.04%) | 136,149 to 137,763 (+1.19%) | 66 of 2,131 |
+  | `game/render/screen.cpp` | 3,552 to 3,599 (+1.32%) | 13,252 to 13,544 (+2.20%) | 23 of 205 |
+  | `util/timer.cpp` | 643 to 647 (+0.62%) | 2,440 to 2,454 | `WaitForNextFrame` |
+  | `media/audio/sound.cpp` | 5,329 to 5,333 (+0.08%) | 18,373 to 18,395 | 2 of 458 |
+
+  The functions that run once per drawn object (`prepare_objects_for_drawing`, `prepare_characters_for_drawing`,
+  `prepare_and_add_object_gfx`, `construct_object_gfx`, `sync_object_texture`, `add_to_sprite_list`,
+  `draw_sprite_list`) are byte-identical. A function with the local loads `_current` once at entry and reads
+  members through a register; in `render_to_screen`, `put_sprite_list_on_screen` and `draw_gui_controls_batch`
+  that replaced a load of the global inside the loop by none. **Two loops reload `_current` per iteration:** the
+  per-GUI loop of `draw_gui_and_overlays` (two uses, from single-use helpers inlined into it) and the loop
+  condition of `ShakeScreen`. A micro-benchmark of the pattern (100 million virtual calls, the pointee in
+  another translation unit): the global 1.42 to 1.45 ns per call, `Current().Member` per iteration 1.64 to 1.71,
+  a held reference 1.43 to 1.46. So the cost was about 0.2 ns per reload, twice per GUI per frame. **Moved out
+  of the loops** (the user, 2026-11-15): a helper inlined into a loop loads the pointer again, whatever local
+  its caller has, so the helpers take the services from the caller: `recycle_render_target`,
+  `recreate_drawobj_bitmap` and a second `CreateCompatBitmap` have an `EngineServices &` first parameter, and
+  `ShakeScreenState` holds the reference as a member. Checked in the `/O2` object
+  (`.compare/perf51/verify_loops.py`): `draw_gui_and_overlays` loads `_current` once, at its entry, and none of
+  its three loops does (491 instructions; 488 before the conversion, 494 after it); `ShakeScreen` loads it
+  once, before its loop. This is the first use of what step 4 makes the rule: the context as a parameter.
+  Most of the growth in instructions is not loads: MSVC now inlines
+  `recycle_ddb_bitmap` and `CreateCompatBitmap` at six sites (+23 to +46 instructions each, the executed path
+  about the same); why its inliner decided so was not found.
+- **Measured, GCC 13.3 `-O3` with LTO** (the linked `ags` of `moves` and of `final`, in WSL): text 7,942,301 to
+  7,945,361 bytes (+0.04%); 1,470,249 to 1,470,758 instructions over all functions (+0.035%).
+  `ScriptExecutor::Run(int)` has 2,718 instructions in both, and its diff is the name of the neighbour of its
+  jump tables. 902 functions differ in instructions by `.compare/helpers/gcc_exe_code_51s2.py`, many with equal
+  counts: the new virtual method moves the vtable offset of every later `IGraphicsDriver` call, and LTO moves a
+  few dozen functions with any change of input (5.1 step 1). The functions that differ have 487 instructions
+  fewer in all.
+- **Compile time** (2.10; BASELINE.md "compile time", "After 5.1 step 2"; two clean builds each): MSVC total
+  1685.5 and 1687.8 s against 1731.4 and 1676.4 before, median per object 2.62 and 2.57 s against 2.70 and
+  2.59: inside the spread. GCC: the first reading was disturbed (`Common`, untouched, 10% slower than in the
+  second); the second is 1625.4 s against 1603.9 and 1585.3 (+1.3% to +2.5%), `Engine/game` 460.6 s against
+  464.8 and 459.6. `script_api` took 123.2 s against 108.4 and 108.9 with GCC, which the step does not explain
+  (none of its files includes the new header): to read again in 2.10b. 47 source files and no header include
+  `engine_services.h`.
+- **Verified:** `prepush.py --auto` with every stage: format, helpers, layers (94), build lists, the MSVC build
+  and `ctest`, tidy, headers, libc++ (338 headers), Emscripten (`ags.wasm` linked), the Linux GCC job (1,211
+  tests), MSBuild with the Editor's NUnit tests; `--only sanitizers` (ASan, UBSan and leaks on the unit tests and
+  the auto-test game): no finding. The auto-test game 2414 of 2414 on Software, Direct3D 9, Direct3D 11 and
+  OpenGL, with the project at tag `draconian-auto-test-3`.
+- **The first prepush run failed two stages**, both fixed: `helpers` took `EngineServices::Current()` for a
+  copy of `Directory`'s (listed in `check_helpers.py`'s `KNOWN`: the accessors of the contexts); `tidy` reported
+  four old lines that the conversion touched (`push_back(make_pair)`, `reset(new)`, a C-style cast, the unused
+  parameter `game` of `ApplyBehaviorOptions`, whose name is commented out now).
+- **A false alarm worth knowing:** the first auto-test run showed 5 failures in the character placement tests
+  on every renderer. The local export of the test project (`.compare/proj/ags4/auto-test`) was older than the
+  tag; `.compare/helpers/run_autotest4.sh` now takes the project directory, exported from the tag.
+- **Not compiled by any local build:** `platform/ios/acplios.cpp` (1 use, 2 includes), `platform/android/
+  acpland.cpp` and `platform/osx/acplmac.cpp` (an include each), the `BUILD_STR` and
+  `AGS_SEARCH_FOR_GAME_ON_LAUNCH` branches of `main/engine.cpp` and `main/main.cpp` (4 uses), the mobile branch
+  of `main/graphics_mode.cpp` (1 use); the Xcode project's edit (`engine_services.cpp` added,
+  `game_setup.h` renamed) was not opened in Xcode. Not run: a game with 8-bit colour on the hardware drivers
+  (the path `SetIndexedPalette` serves), the corpus game.
+- **Left:** `util/timer.cpp` is frame pacing that needs the host (five baseline lines) and would be at home in
+  the host ring; `asset_helper.h`'s host half; `ApplyBehaviorOptions`' unused parameter; `ResourcePaths::
+  VoiceAvail` beside `EngineServices::VoiceAvail`; `AGSPlatformDriver::GetDriver()` beside
+  `EngineServices::Platform`.
+- **Lessons:** a ring table has to be read before a sentence like "every ring can include it" is written; a
+  global whose constructor takes a reference to another global is not a service until that reference has an
+  owner; a rename of a type shows up in every object that names a variable of that type (MSVC), so a
+  `[rename]` is proved against a base with the rename applied; snapshots by `git stash create` under
+  `refs/wip/` let several agents build on one working tree in turn and keep the batches apart for the commits;
+  the tidy gate reads a reformatted old line as new, so a conversion pays for the lines it touches.
+
 ### Open items from finished tasks
 
 *Moved from PLAN.md "Next up" on 2026-11-07* (details in the tasks' sections):

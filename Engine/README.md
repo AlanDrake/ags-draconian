@@ -24,7 +24,11 @@ What must not depend on what:
 - The host (window, input, graphics, audio, files) and the script VM know nothing about the game logic: they
   do not include `game/` or `main/`, and not each other.
 - `game/` does not include `main/` or `plugin/`. `main/` and `plugin/` join the other rings.
-- That is the rule, not yet the tree: 128 includes break it today (the baseline, below).
+- That is the rule, not yet the tree: 94 includes break it today (the baseline, below).
+- What lives as long as the process (the configuration, the platform and graphics drivers, the game's files,
+  the loop flags) is in `EngineServices` (`platform/base/engine_services.h`, host ring), reached through
+  `EngineServices::Current()`; a function that uses it more than once takes
+  `EngineServices &services = EngineServices::Current();` at its top.
 - `script/script_api.h` (the text formatting of the script bindings that take a format) is included only by
   `script/` and `game/script_api/`.
 - A new include that breaks a rule fails `check_layers.py`. The includes that break the rules today are
@@ -37,7 +41,8 @@ What must not depend on what:
   modes such as help and setup).
 - `main/engine.cpp`: the engine's start-up steps (backend, window, setup dialog, fonts, asset paths).
 - `main/game_run.cpp`: the game loop (input, updates, drawing, the blocking script calls).
-- `main/config.cpp`, `platform/base/engine_config.h`: `acsetup.cfg` and the `usetup` settings (contract C6).
+- `main/config.cpp`, `platform/base/engine_config.h`: `acsetup.cfg` and the `EngineConfig` settings,
+  `EngineServices::Config` (contract C6).
 
 ## Directories
 

@@ -170,6 +170,29 @@ that. The other directories (Common, Compiler, Plugins, Tools) are in the script
 155 files of `Engine/game`: about 2.4 s fixed plus 1.06 ms per line with MSVC, about 2.3 s plus 2.0 ms per line
 with GCC (the first reading of 2026-11-15 gave 2.4 s plus 1.3 ms with MSVC).
 
+**After 5.1 step 2** (2026-11-15, the working tree with `EngineServices`; same machine, configuration and
+compilers; 559 objects, one more: `platform/base/engine_services.cpp`):
+
+| | MSVC reading 1 | MSVC reading 2 | GCC reading 1 | GCC reading 2 |
+|---|---:|---:|---:|---:|
+| all: total s | 1685.5 | 1687.8 | 1706.5 | 1625.4 |
+| all: median s per object | 2.62 | 2.57 | 2.45 | 2.40 |
+| `Engine` (254 objects): total s | 739.2 | 743.0 | 769.1 | 740.2 |
+| `Engine` median s | 2.67 | 2.68 | 2.60 | 2.63 |
+| `Engine/game` (155 objects): total s | 439.2 | 449.8 | 485.1 | 460.6 |
+| `Engine/game` median s | 2.77 | 2.79 | 2.59 | 2.63 |
+| `Engine/game/script_api` (46 objects): total s | 120.2 | 126.4 | 127.0 | 123.2 |
+| `Engine/game/script_api` median s | 2.51 | 2.70 | 2.54 | 2.34 |
+| wall-clock of the whole build, s | 203.0 | 204.6 | 215 | 200 |
+
+MSVC: inside the spread of the first two readings everywhere. GCC: reading 1 was disturbed (`Common`, which the
+step did not touch, took 522.7 s against 475.1 s in reading 2), so reading 2 is the one to compare: the total is
+1.3% to 2.5% above the baseline's, `Engine` and `Engine/game` are inside the baseline's two readings, and
+`script_api` is 13% above (123.2 s against 108.4 and 108.9) with GCC only (MSVC: 120.2 and 126.4 against 124.6
+and 122.0). That is not explained by the step: no file of `script_api` and no header includes
+`platform/base/engine_services.h` (47 source files do), and the rest of `Engine/game` is as much faster as
+`script_api` is slower, which points at the order in which the parallel steps ran. To read again in 2.10b.
+
 To reproduce: build as `compare_objects.py` does (`cmake -S . -B <dir> -G Ninja -DCMAKE_BUILD_TYPE=MinSizeRel
 -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON`, from a developer prompt for MSVC, then
 `cmake --build <dir>`), then `python Script/refactor_metrics.py --ninja-log <dir>/.ninja_log` (`--json` for the

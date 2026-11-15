@@ -125,6 +125,13 @@ that may include only its own ring and the ones below it: host (`util`, `debug`,
 `Script/check_layers.py` checks the includes against `Script/check_layers_baseline.txt`, which only shrinks, and
 fails on an `extern` declaration in an engine source file (5.1 step 1, 2026-11-15): a global is declared once, in
 the header of its module, and its users include that header (`Script/collect_externs.py` rewrites them).
+What lives as long as the process is not a global any more (5.1 step 2, 2026-11-15): the configuration
+(`EngineConfig`, upstream's `GameSetup usetup`), `ResPaths`, the platform and graphics drivers, the asset manager,
+the engine version and the loop flags (`want_exit`...) are members of `EngineServices`
+(`Engine/platform/base/engine_services.h`, host ring), reached through `EngineServices::Current()`; a function
+that uses it more than once takes `EngineServices &services = EngineServices::Current();` as its first statement.
+A new process-wide value is a member there, not a global; `Script/use_context.py` converts the uses of a global
+to a context's member (`--check` fails on a converted global that is named again).
 `Engine/game/` holds the game logic in `world`, `navigation`, `dialog`, `ui`, `render`, `audio`, `video`,
 `input`, `save`, `lib` and `dynobj`, and the script bindings in `script_api/`. `docs/context/repository.md`
 describes upstream's tree, so its `Engine/ac/` and `Common/ac/` paths map through
