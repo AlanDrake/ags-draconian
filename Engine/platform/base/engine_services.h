@@ -62,7 +62,8 @@ struct ResourcePaths
 // graphics, platform, game files). The game logic reaches them through EngineServices::Current(); a function
 // that uses them more than once takes a reference at its top:
 //     EngineServices &services = EngineServices::Current();
-// The members describing the loaded game's files (ResPaths, Assets) are set again when another game is run.
+// The members describing the loaded game and its files (ResPaths, VoiceAvail, SeparateMusicLib, Assets,
+// TextLanguage, TextLocaleName) are set again when another game is run; restoring a save does not change them.
 struct EngineServices
 {
     EngineServices();
@@ -82,6 +83,13 @@ struct EngineServices
     // and storing certain runtime variables. Perhaps the two groups should be separated at some point.
     EngineConfig Config;
     ResourcePaths ResPaths; // where the game's packages and directories are
+    // Whether voice-over can be played. engine_init_game_settings sets it from ResPaths.VoiceAvail, or to false
+    // when the audio is disabled (ResPaths.VoiceAvail only tells whether the files are there);
+    // Game_ChangeSpeechVox sets it again from the speech pack it switches to.
+    bool VoiceAvail = false;
+    // Whether the game's music and sounds come from a separate audio pack (ResPaths.AudioPak) and the audio is
+    // enabled; set by engine_init_game_settings
+    bool SeparateMusicLib = false;
 
     // The OS-specific driver; not owned.
     // TODO: AGSPlatformDriver::GetDriver() returns the same instance: one of the two ways could go.
@@ -89,6 +97,12 @@ struct EngineServices
     // The graphics driver in use, nullptr before the graphics mode is set; owned by its factory
     AGS::Engine::IGraphicsDriver *GfxDriver = nullptr;
     std::unique_ptr<AGS::Common::AssetManager> Assets; // the game's files
+
+    // The game text language: the game's own or the loaded translation's; set by SetGameTextLanguage
+    // (game/translation.h) when the game is initialized and when the translation changes
+    AGS::Common::String TextLanguage;
+    // The UTF-8 locale found for TextLanguage; used for lexicographical string comparison
+    AGS::Common::String TextLocaleName;
 
     // The state of the game loop that the host changes and reads:
     // above 0 while display_switch_out_suspend is pausing the game after it lost the input focus

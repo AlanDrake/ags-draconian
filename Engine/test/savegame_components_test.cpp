@@ -17,7 +17,8 @@
 // items with non-default state are saved, cleared and restored; a save made
 // for a game with a different number of them is refused, or accepted with the
 // restore flags that allow it; prescanning a save counts its content without
-// changing the game. Single objects restored from a hand-made stream: an
+// changing the game; a restored game state leaves the running engine's own
+// audio pack flag alone. Single objects restored from a hand-made stream: an
 // animated overlay and a room state.
 //
 // Not tested: kSaveRestore_AllowMismatchExtra (more objects in the save than in
@@ -41,6 +42,7 @@
 #include "game/world/character_extras.h"
 #include "game/world/room_status.h"
 #include "gtest/gtest.h"
+#include "platform/base/engine_services.h"
 #include "util/memorystream.h"
 
 using namespace AGS::Common;
@@ -70,14 +72,20 @@ const SaveCmpSelection kCharactersAndItems = static_cast<SaveCmpSelection>(kSave
 // - game.chars, game.numcharacters, charextra, play.charProps: the characters
 // - game.invinfo, game.numinvitems, play.invProps: the inventory items
 // - views, game.numviews: the views
+// - EngineServices::Current().SeparateMusicLib
 class SavegameContent : public ::testing::Test
 {
 protected:
+    void SetUp() override { _separateMusicLib = EngineServices::Current().SeparateMusicLib; }
+
     void TearDown() override
     {
         SetCounts(0, 0);
         SetViews(0, 0, 0);
+        EngineServices::Current().SeparateMusicLib = _separateMusicLib;
     }
+
+    bool _separateMusicLib = false;
 
     // Makes the game's views, each with the same number of loops and frames; every frame has a sprite and
     // an event name, so that a save has frame data and strings to step over
@@ -350,6 +358,22 @@ TEST_F(SavegameContent, UnselectedComponentsAreSkipped)
     EXPECT_EQ(0, game.chars[0].x);
     EXPECT_TRUE(game.invinfo[0].name.IsEmpty());
     play.messagetime = 0;
+}
+
+TEST_F(SavegameContent, RestoreKeepsTheRunningEnginesMusicPack)
+{
+    // the game state holds whether the saving engine had a separate audio pack; the restoring engine keeps its own
+    EngineServices &services = EngineServices::Current();
+    services.SeparateMusicLib = true;
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_GameState, saved, error)) << error;
+
+    services.SeparateMusicLib = false;
+    RestoredData r_data;
+    HSaveError err = Restore(saved, kSaveCmp_GameState, r_data);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    EXPECT_FALSE(services.SeparateMusicLib);
 }
 
 TEST_F(SavegameContent, RestoredCharactersSaveTheSameBytes)

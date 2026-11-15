@@ -156,21 +156,22 @@ static void FillDirList(std::vector<FileEntry> &files, const FSLocation &loc, co
 void FillDirList(std::vector<String> &files, const String &pattern, ScriptFileSortStyle file_sort,
                  ScriptSortDirection sort_dir)
 {
+    EngineServices &services = EngineServices::Current();
     ResolvedPath rp = ResolveScriptPath(pattern, true);
     if (!rp)
         return;
 
     std::vector<FileEntry> fileents;
     const FileEntryCmpByNameAuto fileent_name_less(
-        StrUtil::GetStrCmpImplFor(true, true, play.GetTextLocaleName().GetCStr()));
+        StrUtil::GetStrCmpImplFor(true, true, services.TextLocaleName.GetCStr()));
     const FileEntryEqByNameAuto fileent_name_eq(
-        StrUtil::GetStrCmpImplFor(true, true, play.GetTextLocaleName().GetCStr()));
+        StrUtil::GetStrCmpImplFor(true, true, services.TextLocaleName.GetCStr()));
 
     if (rp.AssetMgr)
     {
         // AssetManager returns asset entries with possibly parent paths,
         // but FillDirList must return strictly filenames, so we ensure that here.
-        EngineServices::Current().Assets->FindAssets(fileents, rp.FullPath, "*");
+        services.Assets->FindAssets(fileents, rp.FullPath, "*");
         for (auto &fe : fileents)
             fe.Name = Path::GetFilename(fe.Name);
     }

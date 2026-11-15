@@ -22,6 +22,7 @@
 #include "game/game.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/cc_script_object.h"
 #include "script/dynobj/dynobj_manager.h"
@@ -41,6 +42,7 @@ using namespace AGS::Common;
 
 ScriptDictBase *Dict_CreateImpl(ScriptSortStyle sort_style, ScriptStringComparison compare_style)
 {
+    EngineServices &services = EngineServices::Current();
     const bool sorted = sort_style == kScSorted;
     const bool case_sensitive = (compare_style & kScCaseSensitiveFlag) != 0;
     const bool locale_aware = (compare_style & kScLocaleAwareFlag) != 0;
@@ -50,11 +52,11 @@ ScriptDictBase *Dict_CreateImpl(ScriptSortStyle sort_style, ScriptStringComparis
     {
         if (case_sensitive)
             dic = locale_aware ? (ScriptDictBase *)new ScriptDictLocaleAware(
-                                     LexographicalStrLess(play.GetTextLocaleName().GetCStr()))
+                                     LexographicalStrLess(services.TextLocaleName.GetCStr()))
                                : new ScriptDict();
         else
             dic = locale_aware ? (ScriptDictBase *)new ScriptDictLocaleAwareCI(
-                                     LexographicalStrLessNoCase(play.GetTextLocaleName().GetCStr()))
+                                     LexographicalStrLessNoCase(services.TextLocaleName.GetCStr()))
                                : new ScriptDictUtf8CI();
     }
     else
@@ -160,6 +162,7 @@ void *Dict_GetValuesAsArray(ScriptDictBase *dic)
 // calculate hash, which does not care about order of letters in alphabet.
 ScriptSetBase *Set_CreateImpl(ScriptSortStyle sort_style, ScriptStringComparison compare_style)
 {
+    EngineServices &services = EngineServices::Current();
     const bool sorted = sort_style == kScSorted;
     const bool case_sensitive = (compare_style & kScCaseSensitiveFlag) != 0;
     const bool locale_aware = (compare_style & kScLocaleAwareFlag) != 0;
@@ -168,12 +171,13 @@ ScriptSetBase *Set_CreateImpl(ScriptSortStyle sort_style, ScriptStringComparison
     if (sorted)
     {
         if (case_sensitive)
-            set = locale_aware ? (ScriptSetBase *)new ScriptSetLocaleAware(
-                                     LexographicalStrLess(play.GetTextLocaleName().GetCStr()))
-                               : new ScriptSet();
+            set =
+                locale_aware
+                    ? (ScriptSetBase *)new ScriptSetLocaleAware(LexographicalStrLess(services.TextLocaleName.GetCStr()))
+                    : new ScriptSet();
         else
             set = locale_aware ? (ScriptSetBase *)new ScriptSetLocaleAwareCI(
-                                     LexographicalStrLessNoCase(play.GetTextLocaleName().GetCStr()))
+                                     LexographicalStrLessNoCase(services.TextLocaleName.GetCStr()))
                                : new ScriptSetUtf8CI();
     }
     else

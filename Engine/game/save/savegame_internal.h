@@ -45,9 +45,6 @@ struct PreservedParams
 {
     SavegameDescription Desc;
 
-    // Whether speech and audio packages available
-    bool SpeechVOX = false;
-    bool MusicVOX = false;
     // Game options, to preserve ones that must not change at runtime
     int GameOptions[GameSetupStructBase::MAX_OPTIONS]{};
     // Script global data sizes

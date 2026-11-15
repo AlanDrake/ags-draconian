@@ -720,5 +720,5 @@ void update_audio_system_on_game_loop()
 
 int IsMusicVoxAvailable()
 {
-    return play.separate_music_lib ? 1 : 0;
+    return EngineServices::Current().SeparateMusicLib ? 1 : 0;
 }

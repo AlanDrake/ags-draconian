@@ -643,13 +643,13 @@ void engine_init_game_settings()
 
     if (services.Config.AudioEnabled)
     {
-        play.separate_music_lib = !services.ResPaths.AudioPak.Name.IsEmpty();
-        play.voice_avail = services.ResPaths.VoiceAvail;
+        services.SeparateMusicLib = !services.ResPaths.AudioPak.Name.IsEmpty();
+        services.VoiceAvail = services.ResPaths.VoiceAvail;
     }
     else
     {
-        play.voice_avail = false;
-        play.separate_music_lib = false;
+        services.VoiceAvail = false;
+        services.SeparateMusicLib = false;
     }
 
     // Since 4.0 AGS engine always works in UTF-8 mode

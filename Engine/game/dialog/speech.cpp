@@ -376,7 +376,7 @@ void SetSpeechVolume(int volume)
 
 int IsSpeechVoxAvailable()
 {
-    return play.voice_avail ? 1 : 0;
+    return EngineServices::Current().VoiceAvail ? 1 : 0;
 }
 
 // Construct an asset name for the voice-over clip for the given character (-1 is the narrator) and cue id;

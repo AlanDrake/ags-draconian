@@ -25,8 +25,8 @@
 #include "game/dynobj/script_string.h"
 #include "game/game.h"
 #include "game/game_setup_struct.h"
-#include "game/game_state.h"
 #include "game/runtime_defines.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/runtimescriptvalue.h"
@@ -287,15 +287,16 @@ const char *String_Substring(const char *this_string, int index, int length)
 
 int String_CompareTo(const char *this_string, const char *other_string, int compare_style)
 {
+    EngineServices &services = EngineServices::Current();
     compare_style = ValidateStringComparison("String.CompareTo", compare_style);
     const bool case_sensitive = (compare_style & kScCaseSensitiveFlag) != 0;
     const bool locale_aware = (compare_style & kScLocaleAwareFlag) != 0;
     if (locale_aware)
     {
         if (case_sensitive)
-            return StrUtil::LexographicalCompare(this_string, other_string, play.GetTextLocaleName().GetCStr());
+            return StrUtil::LexographicalCompare(this_string, other_string, services.TextLocaleName.GetCStr());
         else
-            return StrUtil::LexographicalCompareNoCase(this_string, other_string, play.GetTextLocaleName().GetCStr());
+            return StrUtil::LexographicalCompareNoCase(this_string, other_string, services.TextLocaleName.GetCStr());
     }
     else
     {

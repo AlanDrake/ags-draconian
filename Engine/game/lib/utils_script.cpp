@@ -15,8 +15,8 @@
 
 #include "debug/debug_log.h"
 #include "game/game.h"
-#include "game/game_state.h"
 #include "game/lib/string.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/string_utils.h"
@@ -54,7 +54,7 @@ void Utils_SortStrings(void *arrobj, int compare_style, int sort_dir)
     compare_style = ValidateStringComparison("Utils.SortStrings", compare_style);
     DynStrCmpAuto dynstr_less(StrUtil::GetStrCmpImplFor(
         true, (compare_style & kScCaseSensitiveFlag) == 0,
-        (compare_style & kScLocaleAwareFlag) != 0 ? play.GetTextLocaleName().GetCStr() : nullptr));
+        (compare_style & kScLocaleAwareFlag) != 0 ? EngineServices::Current().TextLocaleName.GetCStr() : nullptr));
     if (scsort_dir == kScSortAscending)
         std::sort(string_objs.begin(), string_objs.end(), dynstr_less);
     else

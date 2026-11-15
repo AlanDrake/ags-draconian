@@ -396,8 +396,6 @@ HSaveError OpenSavegame(const String &filename, SavegameDescription &desc, Saveg
 // Prepares engine for actual save restore (stops processes, cleans up memory)
 void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
 {
-    pp.SpeechVOX = play.voice_avail;
-    pp.MusicVOX = play.separate_music_lib;
     memcpy(pp.GameOptions, game.options, GameSetupStruct::MAX_OPTIONS * sizeof(int));
 
     unload_old_room();
@@ -657,11 +655,6 @@ static HSaveError ValidateRestoredSave(const SavegameDescription &save_desc, con
 HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveCmpSelection select_cmp)
 {
     EngineServices &services = EngineServices::Current();
-    // Put back what the running game had before the restoration: whether the speech pack and the
-    // separate music library are available
-    play.voice_avail = pp.SpeechVOX;
-    play.separate_music_lib = pp.MusicVOX;
-
     // Put back the game options that must not change at runtime, whatever the save had
     CopyPreservedGameOptions(game, pp);
 

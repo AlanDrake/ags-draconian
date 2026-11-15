@@ -32,6 +32,7 @@
 #include "game/world/room.h"
 #include "gfx/gfx_def.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/string_utils.h"
 #include "util/timer.h"
@@ -48,15 +49,6 @@ std::array<const char *, kNum_RBS> RBSwitchNames = {{
 }};
 
 GamePlayState::GamePlayState() {}
-
-void GamePlayState::SetGameTextLanguage(const String &language)
-{
-    _gameTextLanguage = language;
-    _localeNameUTF8 = StrUtil::FindCompatibleUTF8LocaleName(language.GetCStr());
-    GUI::Context.TextLocaleName = _localeNameUTF8;
-    Debug::Printf("Set game text language: %s", _gameTextLanguage.GetCStr());
-    Debug::Printf("Set locale: %s", _localeNameUTF8.GetCStr());
-}
 
 void GamePlayState::SetRBSwitches(const std::array<bool, kNum_RBS> &overrides)
 {
@@ -499,12 +491,17 @@ bool GamePlayState::IsNonBlockingVoiceSpeech() const
 
 bool GamePlayState::ShouldPlayVoiceSpeech() const
 {
-    return !play.fast_forward && (play.speech_mode != kSpeech_TextOnly) && (play.voice_avail);
+    return !play.fast_forward && (play.speech_mode != kSpeech_TextOnly) && EngineServices::Current().VoiceAvail;
 }
 
 bool GamePlayState::ShouldPlayVoiceSpeechNonBlocking() const
 {
-    return !play.fast_forward && (play.voice_avail);
+    return !play.fast_forward && EngineServices::Current().VoiceAvail;
+}
+
+bool GamePlayState::ShouldAASprites() const
+{
+    return EngineServices::Current().Config.AntialiasSprites && (disable_antialiasing == 0);
 }
 
 void GamePlayState::StartScriptTimer(int timer_id, int timeout)
@@ -685,7 +682,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     speech_font = in->ReadInt32();
     key_skip_wait = in->ReadInt8();
     swap_portrait_lastchar = in->ReadInt32();
-    separate_music_lib = in->ReadInt32() != 0;
+    in->ReadInt32(); // separate_music_lib: says which packs the saving engine had, not kept
     in_conversation = in->ReadInt32();
     screen_tint = in->ReadInt32();
     // TODO: investigate if parsed words should be serialized at all
@@ -968,7 +965,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(speech_font);
     out->WriteInt8(key_skip_wait);
     out->WriteInt32(swap_portrait_lastchar);
-    out->WriteInt32(separate_music_lib ? 1 : 0);
+    out->WriteInt32(EngineServices::Current().SeparateMusicLib ? 1 : 0);
     out->WriteInt32(in_conversation);
     out->WriteInt32(screen_tint);
     // TODO: investigate if parsed words should be serialized at all

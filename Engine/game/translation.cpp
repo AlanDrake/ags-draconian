@@ -26,6 +26,7 @@
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/runtime_defines.h"
+#include "gui/guimain.h"
 #include "platform/base/engine_config.h"
 #include "platform/base/engine_services.h"
 #include "plugin/plugin_engine.h"
@@ -148,8 +149,18 @@ void close_translation()
     trans_name = "";
     trans_filename = "";
 
-    play.SetGameTextLanguage(game.GameTextLanguage);
-    SetTranslationTextParser(CreateTextParser(game.dict.get(), true, play.GetTextLocaleName()));
+    SetGameTextLanguage(game.GameTextLanguage);
+    SetTranslationTextParser(CreateTextParser(game.dict.get(), true, EngineServices::Current().TextLocaleName));
+}
+
+void SetGameTextLanguage(const String &language)
+{
+    EngineServices &services = EngineServices::Current();
+    services.TextLanguage = language;
+    services.TextLocaleName = StrUtil::FindCompatibleUTF8LocaleName(language.GetCStr());
+    GUI::Context.TextLocaleName = services.TextLocaleName;
+    Debug::Printf("Set game text language: %s", services.TextLanguage.GetCStr());
+    Debug::Printf("Set locale: %s", services.TextLocaleName.GetCStr());
 }
 
 bool init_translation(const String &lang, const String &fallback_lang)
@@ -225,18 +236,18 @@ bool init_translation(const String &lang, const String &fallback_lang)
         Debug::Printf(kDbgMsg_Warn,
                       "WARNING: translation's text encoding is not UTF-8, and may be displayed incorrectly");
 
-    play.SetGameTextLanguage(language);
+    SetGameTextLanguage(language);
     if (trans.ParserDict.GetWords().size() > 0)
     {
         // The parser dictionary must contain all expected word groups, so if any are not
         // found in the translated dict, then add base ones directly there.
         if (game.dict.get())
             MergeParserDictionary(&trans.ParserDict, game.dict.get());
-        SetTranslationTextParser(CreateTextParser(&trans.ParserDict, true, play.GetTextLocaleName()));
+        SetTranslationTextParser(CreateTextParser(&trans.ParserDict, true, services.TextLocaleName));
     }
     else
     {
-        SetTranslationTextParser(CreateTextParser(game.dict.get(), true, play.GetTextLocaleName()));
+        SetTranslationTextParser(CreateTextParser(game.dict.get(), true, services.TextLocaleName));
     }
 
     Debug::Printf(kDbgMsg_Info, "Translation initialized: %s (format: %s)", trans_name.GetCStr(),

@@ -1094,12 +1094,13 @@ const char *Game_GetSpeechVoxFilename()
 
 bool Game_ChangeSpeechVox(const char *new_filename)
 {
-    play.voice_avail = init_voicepak(new_filename);
-    if (!play.voice_avail)
+    EngineServices &services = EngineServices::Current();
+    services.VoiceAvail = init_voicepak(new_filename);
+    if (!services.VoiceAvail)
     {
         // if failed (and was not default)- fallback to default
         if (strlen(new_filename) > 0)
-            play.voice_avail = init_voicepak();
+            services.VoiceAvail = init_voicepak();
         return false;
     }
     return true;
@@ -2455,7 +2456,8 @@ static void SortSaveList(std::vector<SaveListItem> &saves, ScriptSaveGameSortSty
         break;
     case kScSaveGameSort_Description:
     {
-        SaveItemCmpByDesc cmp_by_desc(StrUtil::GetStrCmpImplFor(true, false, play.GetTextLocaleName().GetCStr()));
+        SaveItemCmpByDesc cmp_by_desc(
+            StrUtil::GetStrCmpImplFor(true, false, EngineServices::Current().TextLocaleName.GetCStr()));
         if (ascending)
             std::sort(saves.begin(), saves.end(), cmp_by_desc);
         else

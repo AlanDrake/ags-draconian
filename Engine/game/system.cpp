@@ -77,7 +77,7 @@ int System_GetHardwareAcceleration()
 
 const char *System_GetLocaleName()
 {
-    return CreateNewScriptString(play.GetTextLocaleName());
+    return CreateNewScriptString(EngineServices::Current().TextLocaleName);
 }
 
 int System_GetNumLock()
@@ -355,9 +355,9 @@ String GetRuntimeInfo()
         filter->GetInfo().Name.GetCStr(), render_frame.GetWidth(), render_frame.GetHeight(), total_normspr / 1024,
         max_normspr / 1024, norm_spr_filled, total_lockspr / 1024, total_extspr / 1024, total_txcached / 1024,
         max_txcached / 1024, tx_filled);
-    if (play.separate_music_lib)
+    if (services.SeparateMusicLib)
         runtimeInfo.Append("\nAUDIO.VOX enabled");
-    if (play.voice_avail)
+    if (services.VoiceAvail)
         runtimeInfo.Append("\nSPEECH.VOX enabled");
     if (get_translation_tree().size() > 0)
     {

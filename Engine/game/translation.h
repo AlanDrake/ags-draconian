@@ -24,6 +24,9 @@ using AGS::Common::StringMap;
 
 void close_translation();
 bool init_translation(const String &lang, const String &fallback_lang);
+// Sets the game text language (EngineServices::TextLanguage), finds the matching UTF-8 locale for it
+// (EngineServices::TextLocaleName) and gives that to the GUI context
+void SetGameTextLanguage(const String &language);
 // Returns current translation name, or empty string if default translation is used
 String get_translation_name();
 // Returns translation map for reading only

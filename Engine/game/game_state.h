@@ -104,7 +104,7 @@ public:
 // ReadFromSavegame and WriteForSavegame keep the save layout of the fields below; it is not the order of the
 // fields here, and has gaps for removed fields, so it changes only with a new GameStateSvgVersion.
 // Not saved by them: stop_dialog_at_end, screen_is_faded_out, wait_skipped_by, wait_skipped_by_data,
-// enable_antialiasing, voice_avail, std_gui_textheight, swap_portrait_lastlastchar, room_changes,
+// std_gui_textheight, swap_portrait_lastlastchar, room_changes,
 // speech_in_post_state, overlay_count, complete_overlay_on, text_overlay_on, speech_text_schandle,
 // speech_face_schandle, shake_screen_yoff, get_loc_name_last_time, get_loc_name_save_cursor and gui_draw_order.
 // Saved by other save components: room_bg_modified, room_mask_modified, default_audio_type_volumes and the custom
@@ -206,11 +206,9 @@ struct GamePlayState
     int audio_master_volume = 0; // in 0-100
     char walkable_areas_on[MAX_WALK_AREAS]{};
     short screen_flipped = 0;
-    bool enable_antialiasing = false; // enable sprite AA (linear) scaling
     int entered_at_x = 0;
     int entered_at_y = 0;
     int entered_edge = 0;
-    bool voice_avail = false;                  // whether voice-over is available
     SpeechMode speech_mode = kSpeech_TextOnly; // speech mode (text, voice, or both)
     int speech_skip_style = 0;                 // stores SKIP_* flags
     bool speech_always_wait_for_text = false;
@@ -222,7 +220,6 @@ struct GamePlayState
     char key_skip_wait = 0;
     int swap_portrait_lastchar = 0;
     int swap_portrait_lastlastchar = 0;
-    bool separate_music_lib = false;
     int in_conversation = 0;
     int screen_tint = 0;
     std::vector<uint16_t> parsed_words;
@@ -324,16 +321,9 @@ struct GamePlayState
 
     GamePlayState();
 
-    // Current set game text language; this may be set either by the base game,
-    // or by the loaded translation.
-    const AGS::Common::String &GetTextLanguage() const { return _gameTextLanguage; }
-    // Current game texts locale; used for lexicographical string comparison.
-    const AGS::Common::String &GetTextLocaleName() const { return _localeNameUTF8; }
     // Custom error text, to use when displaying a quit message (may be translated)
     const AGS::Common::String &GetGameErrorText() const { return _gameErrorText; }
 
-    // Sets the game text language, finds the matching UTF-8 locale for it and gives that to the GUI context.
-    void SetGameTextLanguage(const AGS::Common::String &language);
     void SetGameErrorText(const AGS::Common::String &text) { _gameErrorText = text; }
 
     // Runtime behavior switches: allow to configure engine behavior
@@ -434,8 +424,9 @@ struct GamePlayState
     int GetCursorShaderHandle() const { return _cursorShaderHandle; }
     void SetCursorShader(int shader_id, int shader_handle);
 
-    // Tells if engine should apply AA (linear) scaling to the game sprites
-    bool ShouldAASprites() const { return enable_antialiasing && (disable_antialiasing == 0); }
+    // Tells if engine should apply AA (linear) scaling to the game sprites: the config allows it and the game
+    // has not disabled it
+    bool ShouldAASprites() const;
 
     // Tells if the mouse cursor should be drawn on screen
     bool ShouldDrawMouseCursor() const { return mouse_input_enabled && mouse_cursor_shown; }
@@ -523,9 +514,6 @@ private:
     VpPoint ScreenToRoomImpl(int screen_x, int screen_y, int viewport_id, bool clip_viewport);
     void UpdateRoomCamera(int index);
 
-    AGS::Common::String _gameTextLanguage;
-    // Name of the current used locale for UTF8 text mode
-    AGS::Common::String _localeNameUTF8;
     AGS::Common::String _gameErrorText;
 
     std::array<bool, kNum_RBS> _rbSwitches = {{0}};

@@ -36,6 +36,7 @@
 #include "game/render/draw.h"
 #include "game/script.h"
 #include "game/script_api/exports.h"
+#include "game/translation.h"
 #include "game/ui/gui.h"
 #include "game/view.h"
 #include "game/world/character.h"
@@ -571,12 +572,11 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
 
     play.fade_effect = game.options[OPT_FADETYPE];
     play.std_gui_textheight = get_font_height_outlined(0) + 1;
-    play.enable_antialiasing = services.Config.AntialiasSprites;
-    play.SetGameTextLanguage(game.GameTextLanguage);
+    SetGameTextLanguage(game.GameTextLanguage);
     if (game.GameInfo.count("dev_error_text") > 0)
         play.SetGameErrorText(game.GameInfo["dev_error_text"]);
-    SetBaseTextParser(CreateTextParser(game.dict.get(), true, play.GetTextLocaleName()));
-    SetTranslationTextParser(CreateTextParser(game.dict.get(), true, play.GetTextLocaleName()));
+    SetBaseTextParser(CreateTextParser(game.dict.get(), true, services.TextLocaleName));
+    SetTranslationTextParser(CreateTextParser(game.dict.get(), true, services.TextLocaleName));
 
     //
     // 4. Initialize runtime state of certain game objects
