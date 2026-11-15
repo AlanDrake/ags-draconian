@@ -14,6 +14,7 @@
 #pragma once
 
 #include <deque>
+#include <memory>
 
 #include "script/runtimescript.h"
 #include "util/timer.h"
@@ -300,3 +301,6 @@ private:
 
 } // namespace Engine
 } // namespace AGS
+
+// The engine's script executor, made by InitScriptExec (game/script.h)
+extern std::unique_ptr<AGS::Engine::ScriptExecutor> scriptExecutor;

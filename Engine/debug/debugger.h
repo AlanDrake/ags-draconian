@@ -68,3 +68,7 @@ enum FPSDisplayMode
 
 extern FPSDisplayMode display_fps;
 extern int debug_flags;
+
+// What was being drawn last, for crash reports: the index of a GUI, room object or character in eip_guinum,
+// the mark that the GUI drawing code leaves through set_eip_guiobj in eip_guiobj.
+extern int eip_guinum, eip_guiobj;

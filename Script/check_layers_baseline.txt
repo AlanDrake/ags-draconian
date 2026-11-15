@@ -97,15 +97,11 @@ Engine/platform/windows/setup/basicpagedialog.cpp	Engine/main/config.h
 Engine/platform/windows/setup/basicpagedialog.h	Engine/main/graphics_mode.h
 Engine/platform/windows/setup/winsetup.cpp	Engine/main/config.h
 Engine/platform/windows/win_ex_handling.cpp	Engine/game/game.h
-Engine/platform/windows/win_ex_handling.cpp	Engine/game/ui/gui.h
 Engine/platform/windows/win_ex_handling.cpp	Engine/main/main.h
 Engine/script/dynobj/cc_dynamic_array.cpp	Engine/game/dynobj/script_string.h
 Engine/script/dynobj/cc_dynamic_array.h	Engine/game/dynobj/script_string.h
 Engine/script/dynobj/dynobj_manager.cpp	Engine/game/dynobj/script_shader.h
-Engine/script/executingscript.cpp	Engine/game/script.h
-Engine/script/script_runtime.cpp	Engine/game/script.h
 Engine/script/scriptexecutor.cpp	Engine/device/sys_events.h
-Engine/script/scriptexecutor.cpp	Engine/game/script.h
 Engine/util/timer.cpp	Engine/device/sys_events.h
 Engine/util/timer.cpp	Engine/game/game.h
 Engine/util/timer.cpp	Engine/media/audio/audio_core.h

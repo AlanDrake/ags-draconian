@@ -17,10 +17,10 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "game/script.h"
 #include "script/cc_common.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"
+#include "script/scriptexecutor.h"
 #include "script/systemimports.h"
 
 using namespace AGS::Engine;

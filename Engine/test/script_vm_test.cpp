@@ -24,7 +24,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "game/script.h"
 #include "gtest/gtest.h"
 #include "script/cc_common.h"
 #include "script/cc_reflect.h"

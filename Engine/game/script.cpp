@@ -76,7 +76,6 @@ std::vector<AGS::Engine::PRuntimeScript> scriptModules;
 std::vector<RuntimeScriptValue> moduleRepExecAddr;
 size_t numScriptModules = 0;
 
-std::unique_ptr<ScriptExecutor> scriptExecutor;
 std::unique_ptr<ScriptThread> scriptThreadMain;
 std::unique_ptr<ScriptThread> scriptThreadNonBlocking;
 std::stack<std::unique_ptr<ScriptThread>> scriptThreadCallbacks;

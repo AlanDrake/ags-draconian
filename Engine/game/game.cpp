@@ -80,6 +80,7 @@
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/script_runtime.h"
+#include "script/scriptexecutor.h"
 #include "util/common.h"
 #include "util/directory.h"
 #include "util/file.h"

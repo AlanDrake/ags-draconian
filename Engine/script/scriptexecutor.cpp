@@ -16,7 +16,6 @@
 #include <vector>
 
 #include "device/sys_events.h"
-#include "game/script.h"
 #include "script/cc_common.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"
@@ -33,7 +32,9 @@ using namespace AGS::Common;
 using namespace AGS::Common::Memory;
 using namespace AGS::Engine;
 
-// FIXME: don't use the globals new_line_hook (script_runtime.h) and scriptExecutor (game/script.h) here
+// FIXME: don't use the globals new_line_hook (script_runtime.h) and scriptExecutor here
+
+std::unique_ptr<ScriptExecutor> scriptExecutor;
 
 namespace AGS
 {

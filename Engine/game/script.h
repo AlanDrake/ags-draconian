@@ -244,8 +244,6 @@ extern AGS::Engine::PRuntimeScript roomscript;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 extern size_t numScriptModules;
 
-extern std::unique_ptr<AGS::Engine::ScriptExecutor> scriptExecutor;
-
 // The script object "System".
 extern ScriptSystem scsystem;
 

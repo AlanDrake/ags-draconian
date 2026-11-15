@@ -17,6 +17,7 @@
 //=============================================================================
 #include <cctype>
 
+#include "debug/debugger.h"
 #include "font/fonts.h"
 #include "game/game.h"
 #include "game/game_setup_struct.h"

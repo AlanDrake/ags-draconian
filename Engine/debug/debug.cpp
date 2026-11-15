@@ -76,6 +76,8 @@ int debug_flags = 0;
 
 FPSDisplayMode display_fps = kFPS_Hide;
 
+int eip_guinum, eip_guiobj;
+
 void send_message_to_debugger(IAGSEditorDebugger *ide_debugger,
                               const std::vector<std::pair<String, String>> &tag_values, const String &command)
 {

@@ -65,8 +65,6 @@ using namespace AGS::Engine;
 int ifacepopped = -1;    // currently displayed pop-up GUI (-1 if none)
 int mouse_on_iface = -1; // mouse cursor is over this interface
 
-int eip_guinum, eip_guiobj;
-
 
 namespace AGS
 {

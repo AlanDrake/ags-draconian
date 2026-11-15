@@ -16,8 +16,8 @@
 #include <cstring>
 
 #include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "game/game_version.h"
-#include "game/script.h"
 
 using namespace AGS::Common;
 
