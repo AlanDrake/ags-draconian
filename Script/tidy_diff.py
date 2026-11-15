@@ -42,7 +42,9 @@ clang-tidy's naming check knows case styles, not words, so a new "CharacterInfo 
 The banned abbreviations (CRYPTIC_WATCHLIST in refactor_metrics.py; STYLE.md "Naming") are found through
 readability-identifier-length, which .clang-tidy sets up to report every variable and parameter declared
 on a changed line: the ones on the watchlist are reported as [ags-cryptic-name], the rest dropped. Only
-a declaration is flagged; a changed line that uses a legacy "chaa" is not. The same list serves the
+a declaration is flagged; a changed line that uses a legacy "chaa" is not, and neither is an `extern`
+declaration of a global, which repeats the name its definition has (5.1 step 1 moved the declarations of
+`croom`, `objs` and `scsystem` into headers; a new global is flagged where it is defined). The same list serves the
 reserved names (STYLE.md "Naming": `ch` is a character, `chex` a CharacterExtras, `btn` a GUIButton):
 a declaration of one of them is read from the source line and reported as [ags-reserved-name] when
 the type written there is not the reserved one. A declaration by `auto` is not checked.
@@ -208,6 +210,16 @@ class BaseFunctions:
         return self._known[name]
 
 
+def is_extern_declaration(path, line):
+    """Whether that source line is an `extern` declaration of a global: it names nothing new, the definition did."""
+    try:
+        with open(os.path.join(REPO, path), encoding='utf-8', errors='replace') as f:
+            text = f.read().splitlines()[line - 1]
+    except (OSError, IndexError):
+        return False
+    return re.match(r'\s*extern\s+(?!"C")', text) is not None
+
+
 def reserved_name_misuse(path, line, name):
     """The type a reserved name is declared with on that source line, if it is not an allowed one; else None."""
     try:
@@ -332,6 +344,8 @@ def main():
                 elif m.group('check') == DECLARED_CHECK:
                     declared = DECLARED_NAME.search(m.group('text'))
                     if declared and declared.group(1) in CRYPTIC_WATCHLIST:
+                        if is_extern_declaration(name, int(m.group('line'))):
+                            continue  # the name was given where the global is defined; this line declares it
                         text = "banned abbreviation '%s' in a new name (STYLE.md \"Naming\")" % declared.group(1)
                         found[(name, int(m.group('line')), CRYPTIC_CHECK, text)] = True
                     elif declared and declared.group(1) in RESERVED_NAMES:
