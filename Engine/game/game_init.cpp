@@ -659,7 +659,7 @@ void ApplyAccessibilityOptions(GamePlayState &play, const EngineConfig &setup)
     }
 }
 
-void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const EngineConfig &setup)
+void ApplyBehaviorOptions(GameSetupStruct & /*game*/, GamePlayState &play, const EngineConfig &setup)
 {
     // First designate the default behavior settings: games older than 3.6.3 had them off, which this
     // engine does not load any more, and 3.99+ data has them all on

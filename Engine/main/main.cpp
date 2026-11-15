@@ -19,6 +19,7 @@
 #include "main/main.h"
 
 #include <cstdio>
+#include <memory>
 #include <set>
 
 #include <allegro.h> // allegro_exit
@@ -91,7 +92,7 @@ void main_init(int argc, char *argv[])
     services.Platform->SetCommandArgs(argv, argc);
     services.Platform->MainInit();
 
-    services.Assets.reset(new AssetManager());
+    services.Assets = std::make_unique<AssetManager>();
     services.Assets->SetSearchPriority(Common::kAssetPriorityDir);
 }
 

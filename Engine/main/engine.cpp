@@ -1039,7 +1039,7 @@ bool engine_init_gamedata()
                                     : Path::MakeAbsolutePath(services.Config.OptInstallDir);
     for (const auto &opt_dir : services.Config.OptDataDirs)
     {
-        services.ResPaths.OptDataDirs.push_back(std::make_pair(Path::MakeAbsolutePath(opt_dir.first), opt_dir.second));
+        services.ResPaths.OptDataDirs.emplace_back(Path::MakeAbsolutePath(opt_dir.first), opt_dir.second);
     }
 
     Debug::Printf(kDbgMsg_Info, "Startup directory: %s", services.Config.StartupDir.GetCStr());

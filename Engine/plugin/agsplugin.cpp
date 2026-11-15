@@ -821,7 +821,7 @@ void IAGSEngine::GetRenderStageDesc(AGSRenderStageDesc *desc)
 {
     if (desc->Version >= 25)
     {
-        EngineServices::Current().GfxDriver->GetStageMatrixes((RenderMatrixes &)desc->Matrixes);
+        EngineServices::Current().GfxDriver->GetStageMatrixes(reinterpret_cast<RenderMatrixes &>(desc->Matrixes));
     }
 }
 
