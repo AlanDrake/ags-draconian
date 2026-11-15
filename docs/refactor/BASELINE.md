@@ -139,6 +139,42 @@ Not captured by the script, measured by hand for this snapshot:
 | Engine C++ test files | 3 |
 | C# test files | 22 |
 
+## compile time (2026-11-15, PLAN.md 2.10a)
+
+Compile time of the first-party objects (the tests included; SDL, allegro, googletest and the other fetched or
+`libsrc` code left out), read from the ninja log of a clean, full build. Each step's time is the wall-clock time
+of one compiler run while about ten ran in parallel, so the numbers compare builds made the same way; they are not
+CPU seconds of a single run. Every build was made twice from scratch in a fresh directory (the two readings below),
+on `ags4draconianr21` at `698243cf2` with the documentation changes of the working tree, one build at a time and
+nothing else heavy running. Same configuration as `Script/compare_objects.py`: `MinSizeRel` (optimised, `NDEBUG`,
+no debug info, no LTO), `-DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1`, no compiler launcher (no ccache); MSVC with `/Brepro`,
+GCC with `-g0`. Machine: 8 logical cores, Ninja's default of 10 jobs. MSVC: `cl` 19.44.35230 (Visual Studio 2022)
+on Windows 10; GCC: g++ 13.3.0, CMake 3.28.3, Ninja 1.11.1 in the WSL 2 distro `Ubuntu-24.04`, building on the
+distro's own disk. Objects: 558 per build; a source compiled into several targets counts once per object.
+
+| | MSVC reading 1 | MSVC reading 2 | GCC reading 1 | GCC reading 2 |
+|---|---:|---:|---:|---:|
+| all: total s | 1731.4 | 1676.4 | 1603.9 | 1585.3 |
+| all: median s per object | 2.70 | 2.59 | 2.37 | 2.36 |
+| `Engine` (253 objects): total s | 757.9 | 727.8 | 751.8 | 724.8 |
+| `Engine` median s | 2.79 | 2.66 | 2.68 | 2.52 |
+| `Engine/game` (155 objects): total s | 443.9 | 434.0 | 464.8 | 459.6 |
+| `Engine/game` median s | 2.79 | 2.72 | 2.71 | 2.56 |
+| `Engine/game/script_api` (46 objects): total s | 124.6 | 122.0 | 108.4 | 108.9 |
+| `Engine/game/script_api` median s | 2.57 | 2.61 | 2.28 | 2.26 |
+| wall-clock of the whole build, s | 209.8 | 202.5 | 198 | 196 |
+
+The spread between the two readings of the same code: total 3.2% (MSVC) and 1.2% (GCC); `Engine/game` 2.2% and
+1.1%; the median per object 4% and 0.4%. A change in a batch of phase 5 is real when it is clearly larger than
+that. The other directories (Common, Compiler, Plugins, Tools) are in the script's output. A line fit over the
+155 files of `Engine/game`: about 2.4 s fixed plus 1.06 ms per line with MSVC, about 2.3 s plus 2.0 ms per line
+with GCC (the first reading of 2026-11-15 gave 2.4 s plus 1.3 ms with MSVC).
+
+To reproduce: build as `compare_objects.py` does (`cmake -S . -B <dir> -G Ninja -DCMAKE_BUILD_TYPE=MinSizeRel
+-DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON`, from a developer prompt for MSVC, then
+`cmake --build <dir>`), then `python Script/refactor_metrics.py --ninja-log <dir>/.ninja_log` (`--json` for the
+numbers as data). The script maps each object to its source through the `compile_commands.json` beside the log.
+
 ## longest functions (top 25)
 
 | lines | nesting | location |

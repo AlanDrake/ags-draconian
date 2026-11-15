@@ -13,6 +13,7 @@ Entry points, in reading order:
 | [docs/refactor/PLAN.md](docs/refactor/PLAN.md) "Next up" and the task's section | the refactor plan: phases, decisions D1-D7, task status | starting a plan task (read only the task, not the whole file: it is ~10k tokens) |
 | [docs/refactor/STYLE.md](docs/refactor/STYLE.md) | fork code style and commit rules | writing or formatting code |
 | [docs/refactor/LOG.md](docs/refactor/LOG.md) | finished tasks' definitions and dated status: measurements, bugs found on the way | looking up how a task went |
+| [docs/refactor/RUNTIME-SPLIT.md](docs/refactor/RUNTIME-SPLIT.md) | the design of the engine's contexts (`GameDef`, `Game`, `Room`, `EngineServices`), definitions and live objects (`XDef`, `X`, `XState`), where serialisation goes, the savestate format | working on 5.1, 5.1a, 5.8 to 5.12, or adding a global, a game struct or save code |
 | [docs/context/](docs/context/README.md) | upstream knowledge about `ags4` (AGS 3 left out): repository map, workflows, decisions, roadmap, sources | changing engine/editor/tools code, designing, or preparing an upstream PR |
 | [docs/UPSTREAM.md](docs/UPSTREAM.md) | cherry-pick ledger and the branches sent upstream | taking or sending upstream changes |
 

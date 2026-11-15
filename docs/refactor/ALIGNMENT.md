@@ -37,6 +37,12 @@ on 2026-11-02; references are issue/PR numbers there.
   only, `GameSetupStruct` data only, a `GameData` holding lists) and runtime classes in Engine
   (`Character` = data + `CharacterExtras`, `Game` = `GameSetupStruct` + `GameState` + runtime
   lists). **Use upstream's names** where they exist so that the two trees stay recognisable.
+  *2026-11-15 (`RUNTIME-SPLIT.md`):* the definitions take the suffix `Def` (`GameDef`, `CharacterDef`), where
+  #2058 says "`CharacterInfo` or `CharacterData`" and "`GameInfo` or `GameData`": `GameInfo` is already the
+  script type and member for the game's descriptive texts, and the Tools have `DataUtil::GameData`. A port
+  maps the names. `Character` for the runtime class as upstream; and one difference in
+  substance: upstream's runtime `Game` inherits the loaded data and disposes of the loaded instances, the fork
+  keeps the definitions unwritten and builds the runtime from them, so that a restore can fill a second `Game`.
 - **5.2 template binder** replacing `Sc_*`/`API_*`. Upstream #1223 lists the options; ericoporto
   prefers templates and rejects a runtime switch. The fork's C++17 `auto` binder cannot be ported
   (C++11), so this is fork-only; keep the registered names identical (they are the ABI).

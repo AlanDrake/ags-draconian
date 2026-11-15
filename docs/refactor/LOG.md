@@ -372,6 +372,30 @@ U.5, U.7, U.9) are only there.
   - 2.9d: the installer installed and run, the editor window opened by hand, an upgrade over an x86 install, the 25
     ignored NUnit tests compared with x86.
 
+### 2.10a Compile time as a metric
+
+- **Definition:** added 2026-11-15 (PLAN.md 2.10, RUNTIME-SPLIT.md 9). `Script/refactor_metrics.py --ninja-log
+  <path>` reports the compile time of the first-party objects of a ninja log: the total, the median per object,
+  and the same per top-level directory, `Engine/game` and `Engine/game/script_api`; `--json` carries it too.
+  2.10 stays open for 2.10b (a precompiled header, unity builds).
+- **How it reads:** only objects (`.obj`, `.o`) of the CMake `compile_commands.json` beside the log count; a
+  step's time is its end minus its start, and the last entry of an output wins. The source of an object comes
+  from that database (its `output` and `file` fields, relative to the source directory in `CMakeCache.txt`);
+  sources under `libsrc`, `_deps` and the like, and anything under the build directory, are left out. Without
+  the database the object's path decides (checked equal on a copy of a log: same 558 objects, same totals).
+- **Result (2026-11-15):** numbers, configuration and compilers in BASELINE.md "compile time". 558 objects:
+  MSVC 1731 and 1676 s (median 2.70 and 2.59 s), GCC 1604 and 1585 s (2.37 and 2.36 s). `Engine/game`: MSVC 444 and
+  434 s, GCC 465 and 460 s; `script_api`: MSVC 125 and 122 s, GCC 108 and 109 s. Builds took 3.3 to 3.5 minutes
+  each. The first reading of PLAN.md (446 s and 122 s, MinSizeRel MSVC) is confirmed. A fit over the files of
+  `Engine/game` gives 2.4 s fixed plus 1.06 ms per line with MSVC (the first reading said 1.3 ms) and 2.3 s plus
+  2.0 ms with GCC.
+- **Found on the way:** the resource compile of `Engine/resource/version.rc` is a compile edge in the database
+  with a `.res` output; the script counts objects only. A build directory inside the source tree (as in
+  `.compare/`) makes its fetched sources look first-party unless the build directory is excluded.
+- **Not verified:** the numbers come from one machine with a parallel build, so a step's time includes load from
+  its neighbours; one MSVC and one GCC version; no other configuration (Release with LTO moves the compile work into
+  the link and is not measured by this).
+
 ### 3.1 Dead platforms
 
 - **Definition** (D2, D6): remove `PSP/`, `Engine/Makefile.psp`, the plugins' `Makefile.psp` and `psp.c`,
@@ -1734,6 +1758,44 @@ passes every stage; not pushed.
   by its relocations; GCC's objects are byte-identical when only declarations move, so a hash comparison in
   WSL is a cheap second proof, but a Release build there is LTO and only its linked programs can be compared,
   where a few dozen functions move with the input order whatever the change.
+
+### 5.1 step 2 and 5.1a: the design
+
+*Definition:* decide what the 203 globals become and how design data is kept apart from runtime state, before
+any conversion.
+
+**Status (2026-11-15): designed with the user, no code changed, not committed.** The design and its evidence are
+`RUNTIME-SPLIT.md`; PLAN.md has the tasks (5.1 steps 2 to 4 and 5.1a rewritten; 2.10, 5.8 to 5.12 and L.3 new)
+and their order in "Next up".
+
+- **Decided:** globals are placed by lifetime (`GameDef`, `Game`, `Room`, `EngineServices`); the definitions
+  are kept as loaded and a live object is built from its definition; three words, `XDef`, `X`, `XState`, with
+  each field declared once in a struct; the Editor's class name as the stem, room entities with the `Room`
+  prefix; `GUI` with the namespace renamed `GUIUtil`, `EngineConfig`, `GameState` once `GamePlayState` is sorted
+  by owner, `RoomDef` for `RoomData` with `RoomStruct` merged into `Room`; the accessors `X::Current()`; a
+  component describes itself (game file methods on the records, the new savestate format from property rows)
+  and today's save code is gathered into one legacy reader; the savestate format is free to change, with a
+  legacy routine for older saves (C2 constrains reading only); the editor's C library stays (6.7c).
+- **Changed during the review:** deriving the live class from its record instead of redeclaring fields
+  (the user: fields are a struct's job); no file per save component (the user: compile time; measured at 2.4 s
+  per file); the game file's methods stay on the records instead of moving to free functions (the user:
+  components serialise themselves); the suffix `Def` instead of `Info` (below); no base type for the tools'
+  part of the room (the two room types are a definition and its runtime
+  form, not two definitions).
+- **Found by a last review against the code, and corrected in both files:** `GameSetupStruct` has a member
+  named `GameInfo` (the game's descriptive texts), which is also a script type frozen by C3, so the first
+  draft's class `GameInfo` would have shared its name: the user chose the suffix `Def` for every definition
+  (`GameDef`, `CharacterDef`...), which leaves `Info` to mean facts about a thing; the sprite cache writes `game.SpriteInfos` through a reference; the audio clip
+  needs a live object because scripts hold its address; `CharacterInfo` and `CharacterExtras` both have
+  `flags`; `RoomObject` repeats `RoomObjectInfo`'s fields under other types; the palette is game state, so the
+  drivers are given it instead of it moving down a ring; `debug/debug.cpp` reads game state, so 12 of the 15
+  exposed includes go with `EngineServices`, not 15, and 21 carry `usetup`, not 18 (the target of 110 holds);
+  an in-place exchange of two `Game` objects conflicts with the pool's address map (left to 5.11); the engine
+  structs' and private-member classes' save methods stay where they are until 5.12.
+- **Left for the tasks:** how far the property rows go towards data-driven code (opens 5.9), the shared parts'
+  names (5.1a step 2), dynamic sprites with two `Game` objects and `RestartGame()` without a restart point
+  (5.11), matching lists by script name in a savestate (5.12), a precompiled header or unity builds (2.10b).
+- **Found:** three defects in today's save code, read in the code and not fixed (PLAN.md open items).
 
 ### Open items from finished tasks
 

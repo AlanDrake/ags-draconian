@@ -18,7 +18,8 @@ script). A session reads `AGENTS.md`, "Next up" and the task's section (not this
 STYLE.md. It ends a task by ticking the box, moving the task's definition and a dated status to
 LOG.md, leaving a one-line result here, and updating "Next up". Commits and PRs name the task ID (`3.2`). Upstream's intent is in
 `docs/context/` (on par with upstream PR #3185, AGS 4 only); the fork's plan against it is
-`ALIGNMENT.md`; the evidence behind the editor split (6.0, 6.7c, U.6) is `EDITOR-SPLIT.md`.
+`ALIGNMENT.md`; the evidence behind the editor split (6.0, 6.7c, U.6) is `EDITOR-SPLIT.md`; the design of the
+engine's contexts, definitions and live objects (5.1, 5.1a, 5.8 to 5.12) is `RUNTIME-SPLIT.md`.
 
 ## Ground rules
 
@@ -57,6 +58,9 @@ C3 is defined by offsets and names, **not** C++ layout: `GamePlayState` fields a
 offset switch in `CCScriptGame::ReadInt32`, so renaming or reordering them is safe while that table
 stays correct.
 
+C2 constrains **reading** only (the user, 2026-11-15): the engine may write a new save format, and saves of
+3.99+ engines in the current one load through a legacy routine (5.12).
+
 ## Decisions
 
 Recorded 2026-10-31.
@@ -74,15 +78,15 @@ Recorded 2026-10-31.
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
-0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 5.1 step 1 (2026-11-15), 5.2, 5.3 (2026-11-14), 6.7d,
+0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 5.1 step 1 (2026-11-15), 2.10a (2026-11-15), 5.2, 5.3 (2026-11-14), 6.7d,
 6.9, 7.1 (but 7.1n) (LOG.md); 3.2 with 3.2c
 (CI-confirmed 2026-11-08). The fork does not wait for upstream review (the user, 2026-11-09): a fork-only
 move that would conflict with an open offer is preceded by a tag of the pre-move tree for `port.py`.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
-| 1 | **The bugs found in 4.1, by upstream branch** (the user, 2026-11-12; the list is "4.1's bugs by upstream branch" below): all fixed in the fork (2026-11-12, `d90b789ab`..`98a7dae87`, `4c07f1e11`; lip-sync and the push button still want a run in a game); ported to `master-41-fixes` and `ags4-41-fixes`, trial merge of the first into the second on `ags4-41-mergecheck` (`docs/UPSTREAM.md`, worktrees `../ags-up-master`, `../ags-up-ags4`, `../ags-up-merge`); double-checked, fixed, rebased and pushed to `origin` 2026-11-13 (`53a55451d` on `upstream/master` `fc4c47a7f`, `9d32c9654`; what the check found is in `docs/UPSTREAM.md`); left: open the two PRs (texts in `.compare/pr-description.md` of each worktree), the trial merge is from the first version and not redone, and the fork's reader still gives `RunGameLoopsWhileDialogOptionsDisplayed` true for an absent element where `Settings.FromXml` gives false (no effect on 4.0 projects) | 4.1 is done; the PRs were waiting for it | Fable 5.1, `high` for the review; the user opens the PRs |
-| 2 | **5.1 step 2, the design first** (step 1 done 2026-11-15, LOG.md "5.1 step 1"): the context structs (`GameData`, runtime `Game`, the current room, `EngineServices`), with 5.1a's split of design data from runtime state decided at the same time since both shape the same structs. Step 1 left the inventory: 203 `extern` declarations, all in headers and one per global (`game/game.h` 38, `game/script.h` 18, `game/world/character.h` 14), and the 15 includes from a lower ring to a higher one that the `extern` lines had hidden, now in the layering baseline (LOG.md lists them): the frame-wait and exit flags that `util/timer.cpp`, `debug/debug.cpp` and `device/mousew32.cpp` read, `palette` and `gfxDriver` in the graphics drivers, `scriptExecutor` in the VM, the `--print-rtti` and `--print-scripttoc` flags of `main.cpp` in the game ring. They are the first members of `EngineServices`, or globals to move down a ring. Small follow-ups left by 5.2 and 5.3 that fit the same session: split `runtime_defines.h` and `asset_helper.h` into their host and game halves; the signature fixes that 5.2 step 2's tags mark (LOG.md "5.2 step 2", each a behaviour change to decide) | Step 1 is done, so each global has one declaration to replace and the compiler checks it against the definition; 5.1's contexts take `usetup`, 18 of the 143 baseline includes, out of `main/game_setup.h` | Fable 5.2, `high` for the design; Sonnet 5.5 or Opus 5.5 subagents for the conversion to accessors, in batches built once per batch |
+| 1 | **The bugs found in 4.1, by upstream branch** (the user, 2026-11-12; the list is "4.1's bugs by upstream branch" below): all fixed in the fork (2026-11-12, `d90b789ab`..`98a7dae87`, `4c07f1e11`; lip-sync and the push button still want a run in a game); ported to `master-41-fixes` and `ags4-41-fixes`, trial merge of the first into the second on `ags4-41-mergecheck` (`docs/UPSTREAM.md`, worktrees `../ags-up-master`, `../ags-up-ags4`; the trial merge's worktree is gone, its branch stays); double-checked, fixed, rebased and pushed to `origin` 2026-11-13 (`53a55451d` on `upstream/master` `fc4c47a7f`, `9d32c9654`; what the check found is in `docs/UPSTREAM.md`); left: open the two PRs (texts in `.compare/pr-description.md` of each worktree), the trial merge is from the first version and not redone, and the fork's reader still gives `RunGameLoopsWhileDialogOptionsDisplayed` true for an absent element where `Settings.FromXml` gives false (no effect on 4.0 projects) | 4.1 is done; the PRs were waiting for it | Fable 5.1, `high` for the review; the user opens the PRs |
+| 2 | **5.1 and 5.1a, by the design of 2026-11-15** (`RUNTIME-SPLIT.md`, reviewed with the user; LOG.md "5.1 step 2 and 5.1a: the design" lists what was decided and what each task still has to design). The order: **(a)** 2.10a, the compile-time metric (done 2026-11-15, BASELINE.md "compile time"), then the three save defects of RUNTIME-SPLIT.md 11 with a test each; **(b)** 5.1 step 2, `EngineServices`: no disputed name, and it removes the 15 includes step 1 exposed (the exit flags in `util/timer.cpp`, `debug/debug.cpp`, `device/mousew32.cpp`; `palette` and `gfxDriver` in the graphics drivers; `scriptExecutor` in the VM; the `main.cpp` flags in the game ring) and the 21 that carry `usetup`; **(c)** 5.8 step 1, Common's save code into the engine, and 6.7a, which takes the old-game import out of `AGS.Native` before the renames reach it; **(d)** 5.1 step 3, `GameDef`, `Game`, `Room`; **(e)** 5.1a step 1 (`Character`), 5.9 on it, then 5.1a steps 2 to 4; **(f)** 5.11 and 5.12, the restore into a second `Game` and the new save format; **(g)** 5.1a step 5 (GUI) with 6.7c. Any time after (d): 5.8 step 2. After (e): 5.10. Any time: 2.10b. Small follow-ups left by 5.2 and 5.3 that fit (b): split `runtime_defines.h` and `asset_helper.h` into their host and game halves; the signature fixes that 5.2 step 2's tags mark (LOG.md "5.2 step 2", each a behaviour change to decide) | Step 1 is done, so each global has one declaration to replace and the compiler checks it against the definition; the design settles what the globals become before 1,860 uses of `game` are touched | Fable 5.2, `high` to supervise and for 5.9, 5.11 and 5.12's designs; Sonnet 5.5 or Opus 5.5 subagents for the conversions, in batches built once per batch |
 | 3 | **4.5 + 3.6 on what had no comment pass** (770 first-party files, ~280k lines): batch 8 done (2026-11-13, LOG.md: `game`, `gamestate`, `room`, `dialog`, `savegame`, `game_init`, `script`, `guimain`, `engine`); next, the untouched files most-churned first (a ranking by commits since 2024, the batch-6 stray-rename files among them), then the D3D/OpenGL drivers with the `emscripten` and `linux` stages, and the compiler (7,440-line parser: its own plan, by function groups). Brief `.compare/briefs/brief-45-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | The files have their final paths since 5.3 (map: `docs/refactor/moves-5.3.tsv`; the brief's file lists use the old ones), and a comment pass is cheaper before 5.1 and 5.2 step 2 edit them again | Sonnet 5.5, `medium`, parallel subagents; the parser plan Fable 5.1 |
 | 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3188, #3189; #3187 merged), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
@@ -91,6 +95,11 @@ Open items from finished tasks (details in LOG.md "Open items"):
 - 2.5, found by 5.1 step 1 (2026-11-15): no script or workflow checks `#pragma once`; nine headers lacked it and
   have it now (`9078a8c83`), the two `resource.h` files of Visual Studio's resource editor are left. A check in
   the `format` stage would make "enforced" true.
+- 5.1's design (2026-11-15, RUNTIME-SPLIT.md 11), read in the code, not fixed: a character's animation volume is
+  lost on load (`CharacterExtras::ReadFromSavegame` rebuilds the animation with 100), an animated overlay's wait
+  counter is not restored, `RoomStatus` reads the walk-area and walk-behind counts in the other order than it
+  writes them (harmless while the limits are equal); three more reported and not checked (listed there).
+  Upstream `master` and `ags4` not checked for them.
 - 1.4: the `agfreader` items are closed: a project without `<Settings>` is refused by `AGFReader::Open` and `ReadFields`
   refuses a missing element (2026-11-12, test `AGFReader.OpenReportsMissingSettings`); `StrUtil::Unescape`'s read past
   the end went with its rewrite in `28badf14b` (U.3). Left: the `ReadAllData` wrappers drop `ReadFields`' error, so an
@@ -225,6 +234,29 @@ folders.
   *Done when:* CI confirms a push that changes a few files in under 10 minutes. The first push measured
   12 min 15 s on a fast runner, the usual one gives about 13 (LOG.md 2.9, 2026-11-09); with LTO and the
   game where they are, the 10 minutes need another saving or a new target.
+- [ ] **2.10 Compile time as a metric, then the cost per file** (2026-11-15, RUNTIME-SPLIT.md 9). A first
+  reading of the ninja log of a full MSVC MinSizeRel build: a file of `Engine/game` costs about 2.4 s plus
+  1.3 ms per line (no precompiled header, no unity build), so the 46 small files of `script_api/` take 122 s of
+  the directory's 446 s.
+  a. **Done 2026-11-15.** `Script/refactor_metrics.py` reads a ninja log and reports the total
+     compile time and the median per first-party file; both go into BASELINE.md (MSVC and GCC), and each batch
+     of phase 5 reports them before and after. Before 5.1 step 2. Result: all 558 first-party objects take
+     1676 to 1731 s with MSVC and 1585 to 1604 s with GCC (median 2.6 to 2.7 s and 2.4 s per object); the
+     run-to-run spread is 1 to 3%, 4% on the MSVC median (BASELINE.md "compile time", LOG.md 2.10a).
+  b. Lower the fixed cost: a precompiled header for the engine targets, unity builds where
+     `compare_objects.py` does not need one object per file (it compares per file, so not in its build).
+     Measured both ways; the user decides. The fixed cost is about 2.4 s of a file's 2.7 s (2.10a), so first
+     a trace of what it is made of (`-ftime-trace`, `/d1reportTime`): standard and SDL headers argue for a
+     precompiled header (stable content only: std, SDL, gtest for the tests; one CI job built with
+     `CMAKE_DISABLE_PRECOMPILE_HEADERS=ON` so missing includes still fail; phase 5's readings taken without
+     it), game headers for the `game.h` design of 5.1 step 3. Unity builds only for `script_api/`, after
+     phase 5 and against the precompiled header's result. Not pursued (the user, 2026-11-15): C++20 modules
+     (the Debian 10 image's GCC 8, the hand-written projects, include-based tools and ports), ThinLTO (Clang
+     only and already CMake's choice there; the slow links are MSVC `/GL` and GCC, which runs `-flto=auto`
+     on 11+), a precompiled header for the vendored libraries (almost all C, built once, ccache).
+
+  *Done when:* the two numbers are in BASELINE.md and in `refactor_metrics.py`; (b) is decided with its
+  measurements.
 
 ## Phase 3: Dead code removal
 
@@ -336,42 +368,111 @@ Each task is a series of small PRs.
      on a hot path); the first comparison caught `TRUE` turning into -1 in the Direct3D drivers through a new
      include, fixed. The layering baseline went from 128 to 143: the 15 dependencies on a higher ring that the
      `extern` lines hid.
-  2. Group them into context structs named as upstream's #2058: `GameData` (static data:
-     `GameSetupStruct` plus the data lists), runtime `Game` (`GameData` + `GameState` + runtime
-     object lists, e.g. `Character` = `CharacterInfo` + `CharacterExtras`), the current room, and
-     `EngineServices` (gfx driver, audio, platform, sprite cache; no upstream name yet), each with
-     one accessor.
-  3. New and refactored functions take their context as a parameter; phase 1 fixtures construct the
+
+  The design for steps 2 to 4, 5.1a and 5.8 to 5.12 is `RUNTIME-SPLIT.md` (2026-11-15, reviewed with the user).
+  Globals are placed by when they die: `GameDef`
+  (the loaded game file, never written after load), `Game` (one play-through: everything a save holds), `Room`
+  (the loaded room, owned by `Game`), `EngineServices` (the process). `GameDef` replaces this plan's earlier
+  `GameData`: one suffix for every definition, and the Tools already have `DataUtil::GameData`. Each context has
+  one accessor that returns the current instance through a pointer, so a test or a restore can make another
+  instance current: `Game::Current()`, `GameDef::Current()`, `Room::Current()`, `EngineServices::Current()`. A
+  function that uses one more than once takes a local reference at its top (`Game &game = Game::Current();`),
+  which step 4 turns into the parameter.
+
+  2. **`EngineServices`**: the graphics driver, platform, asset manager, sprite cache, the engine config
+     (`usetup`, its class renamed `EngineConfig`), `ResPaths`, the loop flags (`want_exit`, `abort_engine`,
+     `switched_away`, `game_update_suspend`, `proper_exit`), the `main.cpp` flags the game ring reads. It lives
+     in the host ring and names the higher rings' types by forward declaration only, so every ring can include
+     it; `EngineConfig` moves down from `main/` with it. `scriptExecutor` moves down to the `script` ring, the
+     crash counters `eip_guinum` and `eip_guiobj` to `debug`. The palette is game state (a savestate holds it)
+     and stays with `Game`: the three graphics drivers stop reading the global and are given the palette when
+     it changes. The fields of `GamePlayState` that outlive a restore (`voice_avail`, `separate_music_lib`,
+     `enable_antialiasing`, the text language) come here; those that describe the loaded game's packs and
+     translation are reset by `RunAGSGame`. No name in it is in dispute, so it goes first. The pointer load of
+     the accessor is measured on the draw loops before the first batch lands (STYLE.md "Performance").
+     *Done when:* the layering baseline is 110 or less: 143 less the 21 includes of `main/game_setup.h` and 12
+     of the 15 that step 1 exposed (`debug/debug.cpp` keeps its three until step 3: it reads the game's options
+     and the room number, which are game state); these globals are reached only through
+     `EngineServices::Current()`.
+  3. **`GameDef`, `Game` and `Room`.** `GameSetupStruct` and its base become `GameDef`, with `views`,
+     `dialog`, the GUI lists and the compiled scripts as loaded (a `[rename]`; `AGS.Native` compiles the
+     struct, so with the `msbuild` stage). The member `GameInfo` (the game's descriptive texts, also the
+     script type of that name) keeps its name: it is why the suffix is `Def` (5.1a). The globals of one
+     play-through become members of `Game`, a batch per domain
+     (`world`, `ui`, `dialog`, `audio`, `render`, the script heap: managed pool, script global data, handle
+     arrays); `thisroom`, `croom`, `objs` and the room-loaded globals become `Room`; the room fields of
+     `GamePlayState` go to `Room` and `RoomState`, its viewports and cameras to `Game` (RUNTIME-SPLIT.md 5).
+     `game/game.h` is included by about 335 files and must not become the header that includes every entity:
+     the mechanism is chosen here and judged by 2.10's numbers.
+     *Done when:* no `extern` of mutable state is left in an `Engine/` header but the contexts and a list of
+     exceptions kept in `Script/check_layers.py` (constants, stateless managers); the median compile time per
+     file is not higher than before the step.
+  4. New and refactored functions take their context as a parameter; phase 1 fixtures construct the
      contexts, which makes engine code unit-testable.
 
   *Done when:* `extern decls in Engine .cpp files` = 0 and the top 12 globals are reached only
   through the accessors.
-- [ ] **5.1a Design data apart from runtime state** (the user, 2026-11-09). Today `CharacterInfo` holds the
-  design record *and* the runtime state (`x`, `y`, `room`, `walking`, `frame`, `loop`, `idleleft`, the `CHF_*`
-  flags), while `CharacterExtras` holds the rest of the state in a parallel array reached by
-  `charextra[ch->index_id]` (111 sites in `character.cpp` alone); `RoomObject`/`RoomStatus` repeat the pattern.
-  The split makes three layers explicit, with upstream #2058's names where they exist:
+- [ ] **5.1a Definitions apart from live objects** (the user, 2026-11-09; redesigned 2026-11-15,
+  RUNTIME-SPLIT.md 2 and 3). Nearly every field the game file holds is also changed during play and saved (37 of
+  `CharacterInfo`'s 40), so the split is not by field: the **definition** is kept as loaded and never written,
+  and the **live object** is built from it. Three words, confirmed by the user:
 
-  | Layer | Lives in | Linked by | Pattern | Example |
-  |---|---|---|---|---|
-  | Project (`Game.agf`, `data.xml`) | `Tools/data`, `AGS.Types` | editor, tools | `AGF::X`, `DataUtil::XData` | as today |
-  | Game data (`.dta`/`.crm` records) | `Common/game` | **tools and engine** | `XInfo`: design-time only, serialises itself, no engine include | `CharacterInfo`, `RoomObjectInfo` |
-  | Runtime | `Engine` | engine only | `X`: owns or references its `XInfo` plus the state | `Character` (= today's `CharacterInfo` state + `CharacterExtras`), `RoomObject` |
+  | Word | What | Lives in | Example |
+  |---|---|---|---|
+  | `XDef` | the definition: the record the game or room file holds; a plain struct that reads and writes itself in that file; no save code, no engine include | `Common/game`, linked by tools and engine | `CharacterDef`, `RoomObjectDef` (today `CharacterInfo`, `RoomObjectInfo`) |
+  | `XState` | the fields that exist only during play; a plain struct | `Engine` | `CharacterState` (today's `CharacterExtras` and the play-only fields of `CharacterInfo`) |
+  | `X` | the live object: `class Character : public CharacterDef, public CharacterState`, plus behaviour | `Engine` | `Character`, `RoomObject` |
 
-  1. `Character` first: one runtime list replaces `game.chars` + `charextra`; the `Character_*` functions
-     take the runtime object; `CharacterInfo` keeps only what the game file holds. Then `RoomObject`.
-  2. The save stream stays byte-identical (C2): the serialisers walk the two structs in the old field order,
-     generated from one field list (the 5.4 item, done here instead). The script API sees the same handles
-     (C3); plugins get the same opaque `AGSCharacter *` with a stable address (C4).
-  3. 4.3 (struct field names) is done here, per struct, so each field is renamed once, in its final struct.
-  4. Variables: a runtime object is `ch`/`obj`/`gui`, a design record `info` (STYLE.md "Reserved names").
-     Class names are chosen at the split, not before (a type rename changes every object by design).
+  Fields are declared once, in a struct, never twice. The stem is the Editor's class name; room entities carry
+  the `Room` prefix; the project side keeps `AGF::X` and `DataUtil::XData`. `Def` and not `Info`: `GameInfo` is
+  already the script type and the member that hold the game's descriptive texts (C3), and `Info` means facts
+  about a thing elsewhere too (`SpriteInfo`, `PluginInfo`, which keep the suffix); `CharacterInfo`,
+  `InventoryItemInfo`, `RoomObjectInfo` and `FontInfo` are renamed. The full name table is RUNTIME-SPLIT.md 3.
 
-  *When:* after 5.2 step 1 and 5.3 (so the files move once; both done 2026-11-14) and after 4.1 on the files it touches; before 5.4.
-  *Guard:* a CMake target that compiles `Common/game` with no `Engine/` on the include path (the build
-  tools link the design structs without the extras: that is the point of the split), the C2 round-trip
-  tests, the auto-test game. *Done when:* no `Common` struct has a field the engine writes during play,
-  `charextra` is gone, and `agf2dta`/`crmbuild` link no Engine object.
+  1. **`Character`**: one live list in `Game` replaces `game.chars` + `charextra` (171 uses); the `Character_*`
+     functions take `Character *`; `GameDef`'s characters are not written after load. First an alias
+     (`using Character = CharacterInfo`) and the signatures, a `[rename]` that `compare_objects.py` proves, then
+     the class; `CharacterInfo` becomes `CharacterDef` once the engine no longer names it (about 25 uses in
+     Common and 5 in the Tools are left by then). Both structs have a member `flags` with different meanings (the `CHF_` bits and the
+     `kCharf_` turning bits): the second is renamed before the two become bases of one class.
+  2. **`RoomObject` and the room entities**, `RoomStatus` → `RoomState`, `RoomData` → `RoomDef`, `RoomObjectInfo` → `RoomObjectDef`
+     (`RoomStruct`, its subclass with the Allegro bitmaps, is the bitmap half of the live `Room` and merges
+     into it once `AGS.Native` no longer compiles it, 6.7e): region light and tint, walk-area scaling and the
+     face ratio leave `thisroom` for the live objects; masks and backgrounds the script draws on are working
+     copies in `Room`. Unlike the character, today's `RoomObject` repeats its record's fields under other names
+     and types (`x`/`X` as `int`/`int32_t`, `num`/`Sprite` as `uint16_t`/`int32_t`, `baseline`/`Baseline` as
+     `int16_t`/`int32_t`, four `blocking_` fields against a `Rect`): deriving from `RoomObjectInfo` removes the
+     copies, and each type difference is a behaviour commit with a test. A field group that `Character` already
+     has with the same meaning is declared once here, as a shared struct (RUNTIME-SPLIT.md 7: graphic
+     properties, view animation, movement, blocking rectangle, frame sound); the logic stays per type until
+     5.10.
+  3. **The plain entities**: inventory item, cursor, audio clip, audio type, view, dialog, the options and
+     palette, and the sprite infos. Each gets a live copy in `Game`; none has a `State` struct. The audio clip
+     never changes but scripts hold a handle to it and the engine writes its id, so it has a live object too.
+     The sprite cache is constructed on a reference to `game.SpriteInfos` and writes it (dynamic sprites,
+     `SPF_SURFACEACQUIRED`): the live list belongs to the sprite cache, the loaded one stays in `GameDef`.
+     The fix-ups the engine applies to the loaded data today (`OPT_GLOBALTALKANIMSPD`, the cursors' views in
+     `engine_init_game_settings`) move into the loader or onto the live copies. After this step
+     `GameDef::Current()` returns a `const GameDef &`.
+  4. **What is left of `GamePlayState`**: the per-object property lists go to the live objects; the rest is the
+     game's own state and is renamed `GameState`, the blocking-loop base class of that name renamed in the same
+     commit.
+  5. **GUI**: the data of `GUIMain` and the controls as plain records (`GUIDef`, `GUIButtonDef`, one struct
+     per level of the hierarchy), the drawing as functions over the records with an interface for sprites and
+     fonts in place of the hooks each host implements (`draw_gui_sprite`, `wouttext_outline`), the live classes
+     in the engine. The editor's C library draws previews with the same functions (6.7c). After 6.7a. Until
+     this step the definition list and the live list hold the same class, which is enough for steps 3 and
+     5.11.
+  6. 4.3 (struct field names) is done here, per struct, so each field is renamed once, in its final struct.
+     Variables: a live object is `ch`/`obj`/`gui`, a definition `def` (STYLE.md "Reserved names").
+
+  The script API sees the same handles (C3); plugins get the same opaque `AGSCharacter *` with a stable
+  address (C4). Saves made before the split load through the legacy reader (5.8 step 1, 5.12).
+  *When:* after 5.1 step 3 and 5.8 step 1; 5.9 starts after step 1.
+  *Guard:* a CMake target that compiles `Common/game` with no `Engine/` on the include path, the save
+  round-trip tests and the `compat_restore` fixtures, the auto-test game.
+  *Done when:* `GameDef::Current()` is `const` and nothing casts it away, `charextra` is gone, no `Common` struct has
+  a field the engine writes during play, and `agf2dta`/`crmbuild` link no Engine object.
 - [x] **5.2 Script bindings apart from logic.** 1,598 hand-written `Sc_*` wrappers from 147 `API_*`
   macros (`script_api.h`), which sat interleaved with the logic.
   1. [x] **Each file's `Sc_*` block and `Register*API` in `Engine/game/script_api/<type>_api.cpp`** (2026-11-14,
@@ -416,8 +517,8 @@ Each task is a series of small PRs.
   - `ScriptExecutor::Run` (1,161): the long switch is expected; opcode families into inline
     handlers, benchmarked before and after against the corpus run.
   - `GamePlayState::ReadFromSavegame`/`WriteForSavegame` (303/215) and the `RoomObject`,
-    `CharacterExtras`, `ScreenOverlay` serialisers: generated from one field list (helper or
-    X-macro), guarded by the C2 round trip.
+    `CharacterExtras`, `ScreenOverlay` serialisers: not split here any more. They become the legacy reader
+    as they are (5.12), and the new save format is written from the property rows (5.9, 5.12).
   - `engine_init_game_settings` (265), `DialogOptions::Begin/Run`.
 
   *Done when:* functions over 200 lines 19 → ≤ 3 (interpreter loop a documented exception);
@@ -432,6 +533,77 @@ Each task is a series of small PRs.
 - [ ] **5.7 C leftovers.** Fixed `char[N]` buffers (123) and `sprintf`/`strcpy`/`strcat` (63) → `String`;
   `new[]`/`delete[]` (76) and `malloc`/`free` (51) → containers or smart pointers, except at
   commented C API boundaries (plugin API, SDL, OpenAL).
+- [ ] **5.8 Each format described once, in its layer** (2026-11-15, RUNTIME-SPLIT.md 4). A component describes
+  itself in the formats that live with it: the game file through the record's own methods, as today, and the
+  new save format through its property rows (5.9, 5.12). Today's save code is the exception: it becomes the
+  record of a dead format, so it is gathered in one place. No step here adds a file (a file costs about 2.4 s
+  to compile, 2.10).
+  1. **Common's save code into `Engine/game/save/savegame_components.cpp`**: the `...Savegame` methods of the
+     six `Common/game` files (`character_info`, `inventory_item_info`, `mouse_cursor`, `dialog_topic`,
+     `audio_clip_type`, `game_setup_struct`), whose fields are public. First the definitions as they are (a
+     `[move]` that `compare_objects.py` proves), then as functions of the save file, their declarations out of
+     the Common headers (the save round-trip tests). The tools compile this code today without using it.
+     Before 5.1a: `CharacterInfo` and `CharacterExtras` both have `ReadFromSavegame` and `WriteToSavegame`,
+     which one class cannot inherit twice. The eight `Common/gui` files keep theirs until 5.1a step 5 (private
+     members). The engine's own structs (`GamePlayState`, `RoomStatus`, `RoomObject`, `CharacterExtras`,
+     `ScreenOverlay`) keep theirs until 5.12, when what is left of them joins the legacy reader.
+  2. **The game file's missing writers into Common**, beside their readers, as methods on the records (as
+     characters, inventory items and cursors have them): views first, then the header, written by hand in the
+     tools today. `Tools/data/data_file_writer.cpp` becomes the conversion from the project structs to a
+     `GameDef`. Proved by `compare_builds.py`; a new read-then-write test in Common guards C1 without the
+     engine. After 5.1 step 3; the GUI part after 5.1a step 5.
+  3. Optional: layout rows for the game file (RUNTIME-SPLIT.md 6), when a record's code is touched anyway.
+
+  *Done when:* no `Savegame` method is left in `Common/game` (in `Common/gui` after 5.1a step 5);
+  `data_file_writer.cpp` writes no stream; build parity holds; the engine's and Common's file counts are not
+  higher than before.
+- [ ] **5.9 Property rows** (2026-11-15, RUNTIME-SPLIT.md 6). One row per field beside its struct
+  (`Prop<&CharacterDef::Baseline>("Baseline")`), in the style of `xml_fields.h` and `script_binder.h`. From the
+  rows: comparison and dump of two objects (tests, the check of a restore, later an inspector), the new save
+  format (5.12), the script API's plain getters and setters, a drift check of `agsdefns.sh`. `Character` first,
+  after 5.1a step 1; then each struct as 5.1a splits it. The task opens with a design pass on how far to take
+  data-driven code (the user, 2026-11-15: left for this session): what a row carries beyond name and member
+  (range, default, script exposure), whether a row can drive behaviour (a change hook), and whether a schema
+  file should generate the rows; decided against a real `Character` and `CharacterState`.
+  *Done when:* every `Info` and `State` struct has its rows (a test fails for a field without one), and a test
+  compares two `Game` objects built from the same `GameDef` as equal.
+- [ ] **5.10 Shared parts, the logic** (2026-11-15, RUNTIME-SPLIT.md 7). After 5.1a step 2 has made the shared
+  structs: one implementation each of the view animation tick and its start, the move along a path, the graphic
+  property setters (tint, light, opacity, scaling, rotation), the blocking rectangle and the
+  `Run...Interaction` dispatch, used by characters, room objects, and where they have the part animated
+  buttons, overlays and GUI objects. The types differ today (scale as percent or factor, flag polarity, the
+  "none" values, default anchors, which setters mark the object changed), so each part starts with tests that
+  pin today's behaviour per type (ground rule 3), and each difference removed is a behaviour commit the user
+  decides. The script functions stay per type (C3) and call the shared code.
+  *Done when:* each operation above has one implementation; the pinned tests pass or their change is recorded.
+- [ ] **5.11 Restore into a second `Game`; a new game from `GameDef`** (2026-11-15, RUNTIME-SPLIT.md 8; the
+  reason for the split, the user). After 5.1 step 3 and 5.1a steps 1 to 3.
+  1. `Game(const GameDef &)` builds the whole starting state: what `InitGameState`,
+     `engine_init_game_settings` and the `GamePlayState` constructor do in three places today.
+  2. A restore reads into a second `Game`, validates, and makes it the live one; a refused
+     `validate_restored_save` goes back to the first. One managed pool per `Game`. Two things are designed
+     here, not settled: how the second `Game` becomes live (exchanging the contents element by element keeps
+     the addresses plugins hold, C4, but the pool that was filled during the read maps handles to the second
+     instance's addresses and must be rebound; switching the current pointer keeps the pool right and moves the
+     addresses), and who owns the dynamic sprites while two instances exist.
+  3. `RetryWithClearGame`, the `IsGameClear` checks, `PreservedParams::GameOptions` and
+     `DialogOption::OriginalText` go. For the user: whether `RestartGame()` without a restart point starts a
+     new game from the `GameDef` (it fails today).
+
+  *Done when:* a test restores a truncated save and the game goes on; a test builds two `Game` objects, runs
+  one, restores a save into the other and compares; `RunAGSGame` is the only path that reloads the game file.
+- [ ] **5.12 A new save format, the current one read by a legacy routine** (the user, 2026-11-15:
+  the save format need not be kept; RUNTIME-SPLIT.md 6a). After 5.9, and 5.11 step 1. Written from the property
+  rows: per type the saved field names once, then the values; the reader matches names, so a field the save
+  lacks keeps the definition's value and a field the engine dropped is skipped, with no version number per
+  field. Only what differs from the definition is written (today each save holds every frame of every view and
+  every GUI in full). What rows cannot describe keeps a writer of its own inside the new container: managed
+  objects (their managers serialise them already), script global data, plugin data, bitmaps, the lists that
+  grow during play (overlays, move lists, room states). The code of 5.8 step 1 and the engine structs' save
+  methods become the legacy reader, never extended; the old writers are deleted. To decide here: matching lists by script name, so that a save survives a game patch that adds a
+  character or a GUI.
+  *Done when:* the engine writes the new format only; the `compat_restore` fixtures and one written by the last
+  engine with the old format load; save size and time on the corpus game are recorded against today's.
 
 ## Phase 6: Editor
 
@@ -513,7 +685,9 @@ Framework-only.
   | Script compiler glue (`ScriptCompiler.cpp`) | 300 | Gone (6.7d-12) |
 
   Separate PRs, the bridge working until the last:
-  - [ ] **6.7a Delete the old-game import** and its menu entries.
+  - [ ] **6.7a Delete the old-game import** and its menu entries. Before 5.1a step 5, and best before 5.1
+    step 3: `AGS.Native` compiles `GUIMain`, `RoomStruct` and a `GameSetupStruct` (`thisgame`, 189 uses), part
+    of it for this import, so every rename of those types has to build there until it is gone.
   - [ ] **6.7b Editor-only utilities to C#.** Templates are AGS multi-file libraries: test the C#
     reader against templates the C++ code wrote. Icons via `BeginUpdateResource`/`UpdateResource`
     P/Invoke, Windows-only.
@@ -600,6 +774,10 @@ Wanted, but not before phases 3–7 are done; nothing is kept in the code to mak
     name and the user does a replace-all. Source projects only.
   - *A compatibility plugin* (ivan-mogilko): registers the old functions through the plugin API (C4).
     Could also serve games already compiled at an old level; native code on every port.
+- [ ] **L.3 What the contract keeps out of phase 5** (2026-11-15, RUNTIME-SPLIT.md 10; recorded, not designed):
+  identity by a stable id instead of the array index in the script ABI (C3), handles instead of addresses for
+  plugins (C4), blocking calls as script coroutines instead of nested game loops, one schema that generates
+  both the C++ property rows and the C# properties of `AGS.Types`.
 
 ---
 
@@ -653,6 +831,10 @@ and without fork-only features, built in the worktree `E:\Projects\ags\ags4-upst
 | commented-out code lines | 83 | | 0 | | |
 | cryptic names (total) | 4,855 | | | ~0 (globals excluded) | 0 |
 | extern decls in Engine .cpp files | 596 | | | | 0 |
+| extern decls in Engine headers (5.1 step 3) | 203 (2026-11-15) | | | | the contexts and the listed exceptions |
+| layering baseline includes (5.1 step 2) | 143 (2026-11-15) | | | | ≤ 110 |
+| `Savegame` methods in `Common/` (5.8) | 14 files | | | | 0 |
+| compile time, total and median per file (2.10) | MSVC 1676 to 1731 s, 2.6 to 2.7 s; GCC 1585 to 1604 s, 2.4 s (2026-11-15, two readings each) | | | | not higher |
 | functions > 200 lines | 19 | | | | ≤ 3 |
 | nesting depth ≥ 6 | 10 | | | | 0 |
 | script API wrappers (Sc_*) | 1,598 | | | | 0 |
