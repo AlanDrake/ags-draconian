@@ -6,6 +6,7 @@ Run from the repository root:
     python Script/refactor_metrics.py            # markdown report to stdout
     python Script/refactor_metrics.py --json     # machine-readable, for diffing between runs
     python Script/refactor_metrics.py --list-long 40 --list-dead 200
+    python Script/refactor_metrics.py --ninja-log <build dir>/.ninja_log   # + compile time per directory
 
 All analysis is heuristic (regex + brace matching, no real C++ parser). Numbers are meant
 for tracking trends between runs, not as exact truth. Dead-code candidates in particular
@@ -15,10 +16,14 @@ import argparse
 import collections
 import json
 import os
+import posixpath
 import re
+import statistics
 import subprocess
 import sys
 
+# Directories below the top level that --ninja-log reports besides the top-level ones (phase 5 works there)
+COMPILE_TIME_DIRS = ['Engine/game', 'Engine/game/script_api']
 # Third-party / generated code: never measured, never reformatted
 THIRD_PARTY = re.compile(r'(^|/)(libsrc|libinclude|googletest|_deps|build|bin|obj|packages|References'
                          r'|scintilla|ScintillaNET)(/|$)'
@@ -249,9 +254,114 @@ def dead_candidates(raw, cpp, files):
     return listed, kept
 
 
+def read_ninja_log(path):
+    """{output path: milliseconds} of the compile steps in a ninja log (v5 and v6: start, end, mtime, output,
+    hash, tab-separated). A log has one line per run of a step; the last one of an output wins."""
+    times = {}
+    with open(path, encoding='utf-8', errors='replace') as fh:
+        for line in fh:
+            parts = line.rstrip('\n').split('\t')
+            if line.startswith('#') or len(parts) < 4 or not (parts[0].isdigit() and parts[1].isdigit()):
+                continue
+            times[parts[3].replace('\\', '/')] = int(parts[1]) - int(parts[0])
+    return times
+
+
+def object_sources(build_dir):
+    """{object path relative to the build directory: (source path relative to the source directory)} from
+    the compile_commands.json CMake wrote there (-DCMAKE_EXPORT_COMPILE_COMMANDS=ON). A source outside the
+    source directory (generated, fetched into the build tree) maps to None. Plain string work, so that a log
+    and a database made on another system (a WSL build read on Windows) read the same. Returns None without
+    the database."""
+    db = os.path.join(build_dir, 'compile_commands.json')
+    if not os.path.isfile(db):
+        return None
+    root = top = ''
+    cache = os.path.join(build_dir, 'CMakeCache.txt')
+    if os.path.isfile(cache):
+        with open(cache, encoding='utf-8', errors='replace') as fh:
+            for line in fh:
+                if line.startswith('CMAKE_HOME_DIRECTORY:'):
+                    root = line.split('=', 1)[1].strip().replace('\\', '/').rstrip('/') + '/'
+                elif line.startswith('CMAKE_CACHEFILE_DIR:'):
+                    top = line.split('=', 1)[1].strip().replace('\\', '/').rstrip('/') + '/'
+    root = root or os.getcwd().replace('\\', '/').rstrip('/') + '/'
+
+    def under(path, base):
+        # a drive letter means a Windows path: its case does not count
+        windows = ':' in base[:3]
+        if path.lower().startswith(base.lower()) if windows else path.startswith(base):
+            return path[len(base):]
+        return None
+
+    with open(db, encoding='utf-8') as fh:
+        entries = json.load(fh)
+    sources = {}
+    for e in entries:
+        if 'output' not in e:
+            return None
+        base = e['directory'].replace('\\', '/').rstrip('/') + '/'
+        out = e['output'].replace('\\', '/')
+        out = under(out, base) or out
+        src = e['file'].replace('\\', '/')
+        if not (src.startswith('/') or ':' in src[:3]):
+            src = base + src
+        # fetched and generated sources live under the build directory, which may sit inside the source one
+        sources[out] = None if under(src, top or base) is not None else under(src, root)
+    return sources
+
+
+def compile_times(log_path):
+    """Compile time of the first-party objects in a ninja log, from the CMake build directory next to it.
+    A step counts when it is an object of compile_commands.json whose source is under the source directory
+    and not third-party code (THIRD_PARTY); links, archives and generated steps are not objects of it. Without
+    the database, the path of the object decides: CMake puts the object of <dir>/<file>.cpp, for a target
+    defined in <tdir>, at <tdir>/CMakeFiles/<target>.dir/<dir>/<file>.cpp.<obj|o> (a source outside <tdir>,
+    `../Common/x.cpp`, as `__/Common/x.cpp`); a target of a fetched dependency is under _deps/. The source is
+    then <tdir>/<dir>/<file>.cpp, right for the source tree CMake builds here and not otherwise (a source
+    given by an absolute path elsewhere has no relative path: it is left out). Only sources under the
+    MODULES directories count, which leaves out the targets of fetched dependencies (`<name>_content-build/`).
+    A source compiled into several targets counts once per object: the unit is the object."""
+    times = read_ninja_log(log_path)
+    sources = object_sources(os.path.dirname(os.path.abspath(log_path)))
+    objects = []  # (source path, milliseconds)
+    if sources is None:
+        sys.stderr.write('no usable compile_commands.json next to the log: sources guessed from object paths\n')
+        for out, ms in times.items():
+            m = re.match(r'(?:(.*)/)?CMakeFiles/[^/]+\.dir/(.+)\.(?:obj|o)$', out)
+            if not m or out.startswith('_deps/'):
+                continue
+            # the target's directory + the source's path in it, `__/` standing for `../`
+            src = posixpath.normpath(posixpath.join(m.group(1) or '', m.group(2).replace('__/', '../')))
+            if src.split('/', 1)[0] in MODULES and not THIRD_PARTY.search(src):  # not a fetched dependency's target
+                objects.append((src, ms))
+    else:
+        objects = [(src, times[out]) for out, src in sources.items()
+                   if out in times and src and out.endswith(('.obj', '.o')) and not THIRD_PARTY.search(src)]
+    seconds = collections.defaultdict(list)
+    for src, ms in objects:
+        seconds[src].append(ms / 1000)
+
+    def row(values):
+        return {'objects': len(values), 'total_s': round(sum(values), 1),
+                'median_s': round(statistics.median(values), 2)} if values else None
+
+    allv = [v for vs in seconds.values() for v in vs]
+    result = {'all': row(allv), 'directories': {}}
+    # every top-level directory, and the ones phase 5 works on
+    names = sorted({p.split('/', 1)[0] for p in seconds if '/' in p}) + COMPILE_TIME_DIRS
+    for d in names:
+        r = row([v for p, vs in seconds.items() if p.startswith(d + '/') for v in vs])
+        if r:
+            result['directories'][d] = r
+    return result
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--json', action='store_true')
+    ap.add_argument('--ninja-log', help='.ninja_log of a CMake/Ninja build (with its compile_commands.json beside '
+                                        'it): report the compile time of the first-party objects')
     ap.add_argument('--list-long', type=int, default=25, help='how many longest functions to list')
     ap.add_argument('--list-dead', type=int, default=0, help='how many dead-code candidates to list')
     args = ap.parse_args()
@@ -265,7 +375,11 @@ def main():
     metrics['functions']['dead-code exceptions (documented)'] = len(kept)
     commit = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], capture_output=True, text=True).stdout.strip()
 
+    ctime = compile_times(args.ninja_log) if args.ninja_log else None
+
     if args.json:
+        if ctime:
+            metrics['compile_time'] = ctime
         metrics['commit'] = commit
         metrics['longest'] = [dict(lines=l, nesting=d, file=f, line=ln, name=n) for l, d, f, ln, n in funcs[:args.list_long]]
         print(json.dumps(metrics, indent=2))
@@ -277,6 +391,12 @@ def main():
         print('| metric | value |\n|---|---:|')
         for k, v in values.items():
             print(f'| {k} | {v} |')
+        print()
+    if ctime:
+        print('## compile time (first-party objects of the ninja log, seconds of each step)\n')
+        print('| directory | objects | total s | median s |\n|---|---:|---:|---:|')
+        for name, r in [('all', ctime['all']), *ctime['directories'].items()]:
+            print(f"| {name} | {r['objects']} | {r['total_s']} | {r['median_s']} |")
         print()
     print(f'## longest functions (top {args.list_long})\n')
     print('| lines | nesting | location |\n|---:|---:|---|')
