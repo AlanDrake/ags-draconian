@@ -88,6 +88,9 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 
 Open items from finished tasks (details in LOG.md "Open items"):
 - 0.4: the CodeQL setting, `D3DCOMPILER_47` on Windows 7, the macOS 10.9 deployment target.
+- 2.5, found by 5.1 step 1 (2026-11-15): no script or workflow checks `#pragma once`; nine headers lacked it and
+  have it now (`9078a8c83`), the two `resource.h` files of Visual Studio's resource editor are left. A check in
+  the `format` stage would make "enforced" true.
 - 1.4: the `agfreader` items are closed: a project without `<Settings>` is refused by `AGFReader::Open` and `ReadFields`
   refuses a missing element (2026-11-12, test `AGFReader.OpenReportsMissingSettings`); `StrUtil::Unescape`'s read past
   the end went with its rewrite in `28badf14b` (U.3). Left: the `ReadAllData` wrappers drop `ReadFields`' error, so an
@@ -298,7 +301,10 @@ optionally a `[comments]` commit.
   files, not before (many will be deleted or become methods).
 - [ ] **4.3 Legacy struct fields** (`GamePlayState`, `GameSetupStruct`, `CharacterInfo`, `RoomStatus`:
   `usedmode`, `disabled_user_interface`, `messagetime`) to the STYLE.md form, per struct. Safe under
-  C3 (offsets); keep the script-facing name in a trailing comment when it differs.
+  C3 (offsets); keep the script-facing name in a trailing comment when it differs. Done with 5.1a, per struct
+  (its point 3). *Started 2026-11-15:* `audio_speed` → `AudioSpeed` in `RoomObject` and `CharacterExtras`
+  (`632e3fec5`), ahead of the rest because the tidy gate asked for it on a changed line; a legacy field whose
+  declaration line a commit changes gets its STYLE.md name in that commit or a `[rename]` beside it.
 - [ ] **4.4 File names** to `snake_case` after their main class (`gamesetupstruct.cpp` →
   `game_setup_struct.cpp`), as `[move]` commits together with 5.3 so files move once. *Part done 2026-11-14:* 5.3
   renamed 154 of its 278 moved files (`docs/refactor/moves-5.3.tsv`). Left: files in place that keep a glued name,

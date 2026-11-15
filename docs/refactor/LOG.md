@@ -1634,7 +1634,8 @@ script VM runs.
 header, the file that defines it includes that header, and the files that use it include it too. No function's
 code changes.
 
-**Status (2026-11-15): done**, 5 commits (`92a98be06`..`9078a8c83` and the one with this entry), not pushed.
+**Status (2026-11-15): done**, 5 commits (`92a98be06`..`3c0a21a65`) and the rename `632e3fec5`; prepush
+passes every stage; not pushed.
 
 - **Before, measured:** 552 `extern` lines in 107 source files of `Engine/` (533 without the tests; BASELINE.md
   had 596 at the start of the refactor), naming 190 globals and functions. 39 of the names had a header
@@ -1702,11 +1703,12 @@ code changes.
   Software, Direct3D 9, Direct3D 11 and OpenGL.
 - **The tidy gate, two things.** It reported `croom`, `objs` and `scsystem` as banned abbreviations "in a new
   name": their `extern` lines were new header lines. `Script/tidy_diff.py` no longer applies that check to an
-  `extern` declaration, which repeats the name of its definition. One finding is left and is not from this
-  task: `game/world/room_object.h:71`, "invalid case style for public member `audio_speed`", on the line whose
-  initializer `0b94d780b` (unpushed) changed from 0 to 1000. The gate reads a changed declaration line as a
-  new name; for the user to decide (rename the member, or let the gate pass a declaration that differs from
-  the base line only after its `=`).
+  `extern` declaration, which repeats the name of its definition. One finding was not from this task:
+  `game/world/room_object.h:71`, "invalid case style for public member `audio_speed`", on the line whose
+  initializer `0b94d780b` changed from 0 to 1000 (the gate reads a changed declaration line as a new name).
+  The member is `AudioSpeed` now, in `RoomObject` and in `CharacterExtras`, which has the same thing for a
+  character (the user, 2026-11-15; `632e3fec5`, a first piece of 4.3; 674 objects identical). With it
+  `prepush.py --auto` passes every stage.
 - **Not compiled by any local build:** `platform/ios/acplios.cpp` (the keyword of one forward declaration
   removed), and the macOS and Android builds, whose changed files are the shared engine sources that the Linux
   and Emscripten stages compile.
