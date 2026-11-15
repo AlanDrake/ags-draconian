@@ -925,7 +925,6 @@ public:
     // returns if the state should continue, or ends instantly
     void Begin() override
     {
-        EngineServices &services = EngineServices::Current();
         // TODO: support shaking room viewport separately
         // TODO: rely on game speed setting? and/or provide frequency and duration args
         // TODO: unify blocking and non-blocking shake update
@@ -942,18 +941,18 @@ public:
 
         // Optimized variant for software render: create game scene once and shake it
         // TODO: split implementations into two state classes?
-        if (!services.GfxDriver->RequiresFullRedrawEachFrame())
+        if (!_services.GfxDriver->RequiresFullRedrawEachFrame())
         {
-            services.GfxDriver->ClearDrawLists();
+            _services.GfxDriver->ClearDrawLists();
             construct_game_scene();
-            services.GfxDriver->RenderToBackBuffer();
+            _services.GfxDriver->RenderToBackBuffer();
         }
     }
     // End the state, does final actions, releases all resources;
     // should NOT be called if Begin returned FALSE.
     void End() override
     {
-        if (!EngineServices::Current().GfxDriver->RequiresFullRedrawEachFrame())
+        if (!_services.GfxDriver->RequiresFullRedrawEachFrame())
         {
             clear_letterbox_borders();
             render_to_screen();
@@ -970,7 +969,7 @@ public:
     bool Run() override
     {
         // TODO: split implementations into two state classes?
-        if (EngineServices::Current().GfxDriver->RequiresFullRedrawEachFrame())
+        if (_services.GfxDriver->RequiresFullRedrawEachFrame())
         {
             increment_loop_counter();
             render_graphics();
@@ -989,6 +988,8 @@ public:
     }
 
 private:
+    // Held for the life of the state: Run() is the body of a loop
+    EngineServices &_services = EngineServices::Current();
     int _severe = 0;
     int _step = 0;
 };

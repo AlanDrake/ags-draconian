@@ -55,6 +55,7 @@ int MakeColor(int color_index);
 
 class Viewport;
 class Camera;
+struct EngineServices;
 
 // The current palette of an 8-bit game.
 extern RGB palette[256];
@@ -178,8 +179,10 @@ AGS::Engine::IDriverDependantBitmap *recycle_ddb_bitmap(AGS::Engine::IDriverDepe
 // is used if the sprite is not in the cache yet), a software one makes a DDB from the bitmap
 AGS::Engine::IDriverDependantBitmap *recycle_ddb_sprite(AGS::Engine::IDriverDependantBitmap *ddb, uint32_t sprite_id,
                                                         AGS::Common::Bitmap *source, bool opaque = false);
-// Returns ddb if it is a render target of the requested size, otherwise destroys it and creates a new one
-AGS::Engine::IDriverDependantBitmap *recycle_render_target(AGS::Engine::IDriverDependantBitmap *ddb, int width,
+// Returns ddb if it is a render target of the requested size, otherwise destroys it and creates a new one.
+// Takes the services from its caller, which calls it once per GUI or camera in a frame.
+AGS::Engine::IDriverDependantBitmap *recycle_render_target(EngineServices &services,
+                                                           AGS::Engine::IDriverDependantBitmap *ddb, int width,
                                                            int height, int col_depth, bool opaque = false);
 
 // Draw everything
@@ -264,6 +267,8 @@ void setpal();
 // Creates bitmap of a format compatible with the gfxdriver;
 // if col_depth is 0, uses game's native color depth.
 AGS::Common::Bitmap *CreateCompatBitmap(int width, int height, int col_depth = 0);
+// The same for a caller that holds the services already (a loop)
+AGS::Common::Bitmap *CreateCompatBitmap(EngineServices &services, int width, int height, int col_depth = 0);
 // Performs any kind of conversions over bitmap if they are necessary for it
 // to be be used in AGS sprite operations. Returns either old or new bitmap.
 // Original bitmap **gets deleted** if a new bitmap had to be created.

@@ -516,9 +516,13 @@ void setpal()
 
 Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
 {
+    return CreateCompatBitmap(EngineServices::Current(), width, height, col_depth);
+}
+
+Bitmap *CreateCompatBitmap(EngineServices &services, int width, int height, int col_depth)
+{
     return new Bitmap(width, height,
-                      EngineServices::Current().GfxDriver->GetCompatibleBitmapFormat(
-                          col_depth == 0 ? game.GetColorDepth() : col_depth));
+                      services.GfxDriver->GetCompatibleBitmapFormat(col_depth == 0 ? game.GetColorDepth() : col_depth));
 }
 
 // PrepareSpriteForUseImpl converts input bitmap to format which may be used
@@ -1525,10 +1529,9 @@ IDriverDependantBitmap *recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t
     return ddb;
 }
 
-IDriverDependantBitmap *recycle_render_target(IDriverDependantBitmap *ddb, int width, int height, int col_depth,
-                                              bool opaque)
+IDriverDependantBitmap *recycle_render_target(EngineServices &services, IDriverDependantBitmap *ddb, int width,
+                                              int height, int col_depth, bool opaque)
 {
-    EngineServices &services = EngineServices::Current();
     if (ddb && (ddb->GetWidth() == width) && (ddb->GetHeight() == height))
         return ddb;
     if (ddb)
@@ -1716,8 +1719,9 @@ void recycle_bitmap(std::unique_ptr<Common::Bitmap> &bimp, int coldep, int wid, 
     bimp.reset(recycle_bitmap(bimp.release(), coldep, wid, hit, make_transparent));
 }
 
-// Allocates texture for the GUI
-void recreate_drawobj_bitmap(Bitmap *&raw, IDriverDependantBitmap *&ddb, int width, int height, int rot_degrees)
+// Allocates texture for the GUI; takes the services from its caller, which calls it in the loop over the GUIs
+void recreate_drawobj_bitmap(EngineServices &services, Bitmap *&raw, IDriverDependantBitmap *&ddb, int width,
+                             int height, int rot_degrees)
 {
     // Calculate all supported GUI transforms
     Size final_sz = drawstate.SoftwareRender ? RotateSize(Size(width, height), rot_degrees) : Size(width, height);
@@ -1725,10 +1729,10 @@ void recreate_drawobj_bitmap(Bitmap *&raw, IDriverDependantBitmap *&ddb, int wid
     if (raw && raw->GetSize() == final_sz)
         return; // all is fine
     delete raw;
-    raw = CreateCompatBitmap(final_sz.Width, final_sz.Height);
+    raw = CreateCompatBitmap(services, final_sz.Width, final_sz.Height);
     if (ddb != nullptr)
     {
-        EngineServices::Current().GfxDriver->DestroyDDB(ddb);
+        services.GfxDriver->DestroyDDB(ddb);
         ddb = nullptr;
     }
 }
@@ -2709,8 +2713,9 @@ static void draw_gui_controls_batch(int gui_id)
 // Draw GUI and overlays of all kinds, anything outside the room space
 void draw_gui_and_overlays()
 {
+    EngineServices &services = EngineServices::Current();
     if (pl_any_want_hook(kPluginEvt_PreGUIDraw))
-        EngineServices::Current().GfxDriver->AddRenderEvent(kPluginEvt_PreGUIDraw, 0); // render stage
+        services.GfxDriver->AddRenderEvent(kPluginEvt_PreGUIDraw, 0); // render stage
 
     clear_sprite_list();
 
@@ -2761,7 +2766,7 @@ void draw_gui_and_overlays()
                 {
                     auto &gbg = guibg[index];
                     Bitmap *bmp = gbg.Bmp.release();
-                    recreate_drawobj_bitmap(bmp, gbg.Ddb, gui.GetWidth(), gui.GetHeight(), gui.GetRotation());
+                    recreate_drawobj_bitmap(services, bmp, gbg.Ddb, gui.GetWidth(), gui.GetHeight(), gui.GetRotation());
                     gbg.Bmp.reset(bmp);
                     Bitmap *guibg_final = gbg.Bmp.get();
                     Bitmap *draw_at = guibg_final;
@@ -2833,7 +2838,7 @@ void draw_gui_and_overlays()
                 continue;
             if (draw_controls_as_textures)
             {
-                gui_render_tex[index] = recycle_render_target(gui_render_tex[index], gui_ddb->GetWidth(),
+                gui_render_tex[index] = recycle_render_target(services, gui_render_tex[index], gui_ddb->GetWidth(),
                                                               gui_ddb->GetHeight(), gui_ddb->GetColorDepth(), false);
                 // Render control textures onto the GUI texture
                 draw_gui_controls_batch(index);
@@ -2919,7 +2924,7 @@ static void construct_roomview_hw(const Viewport *viewport)
                                         camera->GetEffectivePivot());
 
         auto &cam_data = CameraDrawData[viewport->GetID()];
-        cam_data.CamRenderTarget = recycle_render_target(cam_data.CamRenderTarget, cam_rc.GetWidth(),
+        cam_data.CamRenderTarget = recycle_render_target(services, cam_data.CamRenderTarget, cam_rc.GetWidth(),
                                                          cam_rc.GetHeight(), game.GetColorDepth());
         services.GfxDriver->BeginSpriteBatch(cam_data.CamRenderTarget, Rect(), cam_trans, kFlip_None,
                                              RENDER_BATCH_ROOM_LAYER);
@@ -2934,7 +2939,7 @@ static void construct_roomview_hw(const Viewport *viewport)
         // Optional camera post-fx, done if both viewport's and camera's shaders are set
         if (viewport->GetShaderID() > 0 && camera->GetShaderID() > 0)
         {
-            cam_data.ViewRenderTarget = recycle_render_target(cam_data.ViewRenderTarget, cam_rc.GetWidth(),
+            cam_data.ViewRenderTarget = recycle_render_target(services, cam_data.ViewRenderTarget, cam_rc.GetWidth(),
                                                               cam_rc.GetHeight(), game.GetColorDepth());
             services.GfxDriver->BeginSpriteBatch(cam_data.ViewRenderTarget, Rect(), SpriteTransform(), kFlip_None,
                                                  RENDER_BATCH_ROOM_LAYER);
