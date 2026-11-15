@@ -1972,6 +1972,50 @@ measurement), each batch built once.
   `refs/wip/` let several agents build on one working tree in turn and keep the batches apart for the commits;
   the tidy gate reads a reformatted old line as new, so a conversion pays for the lines it touches.
 
+### 5.8 step 1: Common's save code into the engine
+
+*Definition:* PLAN.md 5.8 step 1: the `...Savegame` methods of six `Common/game` files go to
+`Engine/game/save/savegame_components.cpp`, first as they are (a `[move]`), then as functions of that file with
+their declarations out of the Common headers. *Done when* (of step 1): no `Savegame` method is left in
+`Common/game`.
+
+**Status (2026-11-15): done**, 4 commits (`c61a37714` tests, `413a9ee3e` `[move]`, `c91c001cc` free functions,
+`970aa19cf` `[move]` of the enums), not pushed. By Opus 5.5 alone, no subagents: each step was one script over a few known places.
+
+- **Tests first** (ground rule 3): the save tests covered characters and inventory items only. Added to
+  `Engine/test/savegame_components_test.cpp`: `DialogOptionsAreRestored` (flags of every option, the text only of
+  one with `DFLG_TEXTSET`, the custom properties), `SaveWithFewerDialogOptionsIsRefused`,
+  `MouseCursorsAreRestored`, `AudioTypesAreRestored` (the reserved channels are game data and stay),
+  `GameSetupIsRestored` (options 0 to 39 and `OPT_LIPSYNCTEXT`, the player, the dialog bullet, the inventory
+  cursor's marker colours and sprite, the default lip-sync frame). They pass before and after.
+- **The `[move]`** (`.compare/helpers/move_58s1.py`, the 13 definitions verbatim before the file's namespaces):
+  `compare_objects.py` says "NOT a purely mechanical change" for a reason it does not model: `tools_test`
+  compiles five of the six Common sources itself, so 11 methods (and 6 unwind funclets) had two copies before and
+  have one after. All 17 are listed as removed with the same code before and after (the script calls a
+  difference of code "changed", and there is none); the two `GameSetupStruct` methods, with one copy before, are
+  "moved". The tools stop compiling the save code, as the task meant.
+- **Free functions** (`.compare/helpers/free_58s1.py` and `free_58s1_block.cpp`): `ReadCharacterInfo`,
+  `WriteCharacterInfo`, `ReadInventoryItemInfo`... named after the record type, since `Tools/data/
+  data_file_writer.cpp` has a `WriteInventoryItem` of its own; in an anonymous namespace before the component
+  code. `CharacterInfo::LegacyFields` is the file's `CharacterLegacyFields`; the unused version parameters of
+  the cursor and dialog option readers are gone. Three includes the moved code alone used leave
+  `character_info.cpp` and `inventory_item_info.cpp`.
+- **The save version enums leave Common** (`.compare/helpers/enums_58s1.py`, a `[move]`, objects identical):
+  `CharacterSvgVersion` to `game/world/character_extras.h`, `GameStateSvgVersion` to `game/game_state.h` (both
+  had a TODO saying so), `InvitemSvgVersion`, `DialogTopicSvgVersion` and `CursorSvgVersion` to
+  `savegame_components.cpp`, their only user. At global scope, so no symbol changes. The dialog enum's comment
+  said "RoomStatus runtime save format", a copy slip.
+- **Verified:** `prepush.py --auto`, every stage passes except `tidy`, which found nine names on changed lines
+  (CamelCase members for the test's `GameSetupFields` and `CharacterLegacyFields`, an unused `cmp_size`);
+  after the fixes `format`, `build` (with `ctest`) and `tidy` pass again, the other stages were not rerun for
+  three renames and a commented parameter name. `linux`: 1216 tests. Auto-test game 2414 of 2414 on Software,
+  D3D9, D3D11 and OpenGL. The fixes are in the commits they belong to (the `refs/wip/5.8s1/*` snapshots were
+  patched with `.compare/helpers/resnap_58s1.sh` before the commits were cut from them).
+- **Left in Common:** the eight `Common/gui` classes' save methods and `GuiSvgVersion`, until 5.1a step 5 (private
+  members). No file was added; the engine's and Common's file counts are unchanged.
+- **Lesson:** the working tree is CRLF and the repository LF; a script that writes files must keep each file's
+  line ending (the first run of `move_58s1.py` left one lone CR and git saw the whole file as rewritten).
+
 ### Open items from finished tasks
 
 *Moved from PLAN.md "Next up" on 2026-11-07* (details in the tasks' sections):
