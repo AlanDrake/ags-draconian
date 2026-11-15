@@ -46,31 +46,6 @@ void engine_on_window_changed(const Size &size);
 // Shutdown graphics mode (used before shutting down the application)
 void engine_shutdown_gfxmode();
 
-using AGS::Common::String;
-// Defines a package file location
-struct PackLocation
-{
-    String Name; // filename, for the reference or to use as an ID
-    String Path; // full path
-};
-// Game resource paths
-// TODO: the asset path configuration should certainly be revamped at some
-// point, with uniform method of configuring auxiliary paths and packages.
-struct ResourcePaths
-{
-    PackLocation GamePak;    // main game package
-    PackLocation AudioPak;   // audio package
-    PackLocation SpeechPak;  // voice-over package
-    String DataDir;          // path to the data directory
-    bool VoiceAvail = false; // tells whether voice files available in either location
-    // Optional directories are represented by pairs of "path" and "filter".
-    // Currently are only set for compatibility with Editor (game test runs from IDE),
-    // see "--runfromide" command line arg.
-    std::vector<std::pair<String, String>> OptDataDirs; // optional data directories
-    String VoiceDirSub;                                 // full voice-over directory with optional sub-dir
-};
-extern ResourcePaths ResPaths;
-
 // (Re-)Assign all known asset search paths to the AssetManager
 void engine_assign_assetpaths();
 

@@ -41,7 +41,6 @@ using namespace AGS::Engine;
 const auto MaximumDelayBetweenPolling = std::chrono::milliseconds(16);
 
 std::unique_ptr<AGSPlatformDriver> AGSPlatformDriver::_instance;
-AGSPlatformDriver *platform = nullptr;
 
 // ******** DEFAULT IMPLEMENTATIONS *******
 

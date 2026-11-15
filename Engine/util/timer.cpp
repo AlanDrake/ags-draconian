@@ -16,8 +16,8 @@
 #include <thread>
 
 #include "device/sys_events.h"
-#include "game/game.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/engine_services.h"
 #include "platform/platform.h"
 #if defined(AGS_DISABLE_THREADS)
 #include "media/audio/audio_core.h"
@@ -73,6 +73,7 @@ bool isTimerFpsMaxed()
 
 void WaitForNextFrame()
 {
+    EngineServices &services = EngineServices::Current();
     // Do the last polls on this frame, if necessary
 #if defined(AGS_DISABLE_THREADS)
     audio_core_entry_poll();
@@ -89,10 +90,10 @@ void WaitForNextFrame()
         next_frame_timestamp = now;
 
         // suspend while the game is being switched out
-        while (game_update_suspend && (!want_exit) && (!abort_engine))
+        while (services.GameUpdateSuspend && (!services.WantExit) && (!services.AbortEngine))
         {
             sys_evt_process_pending();
-            platform->YieldCPU();
+            services.Platform->YieldCPU();
         }
         return;
     }
@@ -108,7 +109,7 @@ void WaitForNextFrame()
     {
 #if AGS_PLATFORM_OS_EMSCRIPTEN
         // pass the time as negative in Emscripten Platform Driver
-        platform->Delay(-ToMilliseconds(frame_time_remaining));
+        services.Platform->Delay(-ToMilliseconds(frame_time_remaining));
 #else
         std::this_thread::sleep_for(frame_time_remaining);
 #endif
@@ -118,10 +119,10 @@ void WaitForNextFrame()
     next_frame_timestamp += frameDuration;
 
     // suspend while the game is being switched out
-    while (game_update_suspend && (!want_exit) && (!abort_engine))
+    while (services.GameUpdateSuspend && (!services.WantExit) && (!services.AbortEngine))
     {
         sys_evt_process_pending();
-        platform->YieldCPU();
+        services.Platform->YieldCPU();
     }
 }
 

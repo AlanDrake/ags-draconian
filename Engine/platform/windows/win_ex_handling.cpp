@@ -28,7 +28,7 @@
 #include "game/common_defines.h"
 #include "game/game.h"
 #include "gfx/sprite_cache.h"
-#include "main/main.h"
+#include "platform/base/engine_services.h"
 #include "platform/base/sys_main.h"
 #include "platform/windows/minidump.h"
 #include "script/cc_common.h"
@@ -58,7 +58,8 @@ static void DisplayException()
              "Most versions of Windows allow you to press Ctrl+C now to copy this entire message to the clipboard for "
              "easy reporting.\n\n%s (code %d)",
              excinfo.ExceptionCode, (int)sizeof(intptr_t) * 2, (intptr_t)excinfo.ExceptionAddress, get_our_eip(),
-             EngineVersion.LongString.GetCStr(), eip_guinum, eip_guiobj, sc_error.CallStack.GetCStr(),
+             EngineServices::Current().Version.LongString.GetCStr(), eip_guinum, eip_guiobj,
+             sc_error.CallStack.GetCStr(),
              (miniDumpResultCode == 0) ? "An error file CrashInfo.dmp has been created. You may be asked to upload "
                                          "this file when reporting this problem on the AGS Forums."
                                        : "Unable to create an error dump file.",
@@ -77,7 +78,7 @@ int initialize_engine_with_exception_handling(int(initialize_engine)(const AGS::
     __except (CustomExceptionHandler(GetExceptionInformation()))
     {
         DisplayException();
-        proper_exit = 1;
+        EngineServices::Current().ProperExit = 1;
     }
     return EXIT_CRASH;
 }

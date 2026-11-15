@@ -588,6 +588,9 @@
     <ClCompile Include="..\..\Engine\platform\base\agsplatformdriver.cpp">
       <Filter>Source Files\platform\base</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\platform\base\engine_services.cpp">
+      <Filter>Source Files\platform\base</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Engine\platform\windows\acplwin.cpp">
       <Filter>Source Files\platform\windows</Filter>
     </ClCompile>
@@ -1290,6 +1293,9 @@
       <Filter>Header Files\platform\base</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\platform\base\engine_defines.h">
+      <Filter>Header Files\platform\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\platform\base\engine_services.h">
       <Filter>Header Files\platform\base</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\audio\audio.h">

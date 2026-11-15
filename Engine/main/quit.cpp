@@ -42,10 +42,10 @@
 #include "gfx/sprite_cache.h"
 #include "main/config.h"
 #include "main/engine.h"
-#include "main/main.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "platform/base/sys_main.h"
 #include "platform/platform.h"
 #include "plugin/plugin_engine.h"
@@ -173,7 +173,7 @@ QuitReason quit_check_for_error_state(const char *qmsg, const String &error_text
             else
                 fullmsg.AppendFmt("\n");
 
-            fullmsg.AppendFmt("\nAGS engine version: %s", EngineVersion.LongString.GetCStr());
+            fullmsg.AppendFmt("\nAGS engine version: %s", EngineServices::Current().Version.LongString.GetCStr());
             if (!game_version.IsEmpty())
                 fullmsg.AppendFmt("\nGame version: %s", game_version.GetCStr());
             if (!errmsg.IsEmpty())
@@ -199,6 +199,7 @@ QuitReason quit_check_for_error_state(const char *qmsg, const String &error_text
 // "!|" is a special code used to mean that the player has aborted (Alt+X)
 void quit(const char *quitmsg)
 {
+    EngineServices &services = EngineServices::Current();
     Debug::Printf(kDbgMsg_Info, "Quitting the game...");
 
     // Generate two error message: simple and full.
@@ -228,18 +229,18 @@ void quit(const char *quitmsg)
     quit_check_dynamic_sprites(qreason);
     shutdown_game_state();
     unload_game();
-    AssetMgr.reset();
+    services.Assets.reset();
 
     // Be sure to unlock mouse on exit, or users will hate us
     sys_window_lock_mouse(false);
     engine_shutdown_gfxmode();
 
-    platform->PreBackendExit();
+    services.Platform->PreBackendExit();
 
     // On abnormal exit: display the message (at this point the window still exists)
     if ((qreason & kQuitKind_NormalExit) == 0 && !handledErrorInEditor)
     {
-        platform->DisplayAlert("%s", fullmsg.GetCStr());
+        services.Platform->DisplayAlert("%s", fullmsg.GetCStr());
     }
 
     // release backed library
@@ -249,11 +250,11 @@ void quit(const char *quitmsg)
     allegro_exit();
     sys_main_shutdown();
 
-    platform->PostBackendExit();
+    services.Platform->PostBackendExit();
 
     set_our_eip(9903);
 
-    proper_exit = 1;
+    services.ProperExit = 1;
 
     Debug::Printf(kDbgMsg_Alert, "***** ENGINE HAS SHUTDOWN");
 

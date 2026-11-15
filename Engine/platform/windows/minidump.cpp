@@ -26,7 +26,7 @@
 #include <crtdbg.h>
 #include <windows.h>
 
-#include "main/main.h"
+#include "platform/base/engine_services.h"
 
 CONTEXT cpustate;
 EXCEPTION_RECORD excinfo;
@@ -80,7 +80,7 @@ void CreateMiniDump(EXCEPTION_POINTERS *pep)
     }
 
     char fileName[80];
-    snprintf(fileName, sizeof(fileName), "CrashInfo.%s.dmp", EngineVersion.LongString.GetCStr());
+    snprintf(fileName, sizeof(fileName), "CrashInfo.%s.dmp", EngineServices::Current().Version.LongString.GetCStr());
     HANDLE hFile =
         CreateFileA(fileName, GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 

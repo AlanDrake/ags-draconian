@@ -54,6 +54,7 @@
 #include "main/game_run.h"
 #include "main/main.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/engine_services.h"
 #include "plugin/plugin_builtin.h"
 #include "plugin/plugin_engine.h"
 #include "script/dynobj/cc_dynamic_array.h"
@@ -146,25 +147,27 @@ void IAGSEngine::RegisterScriptFunction(const char *name, void *addy)
 }
 const char *IAGSEngine::GetGraphicsDriverID()
 {
-    if (gfxDriver == nullptr)
+    EngineServices &services = EngineServices::Current();
+    if (services.GfxDriver == nullptr)
         return nullptr;
 
-    return gfxDriver->GetDriverID();
+    return services.GfxDriver->GetDriverID();
 }
 
 BITMAP *IAGSEngine::GetScreen()
 {
+    EngineServices &services = EngineServices::Current();
     // TODO: we could actually return stage buffer here, will that make a difference?
-    if (!gfxDriver->UsesMemoryBackBuffer())
+    if (!services.GfxDriver->UsesMemoryBackBuffer())
         quit("!This plugin requires software graphics driver.");
 
-    Bitmap *buffer = gfxDriver->GetMemoryBackBuffer();
+    Bitmap *buffer = services.GfxDriver->GetMemoryBackBuffer();
     return buffer ? (BITMAP *)buffer->GetAllegroBitmap() : nullptr;
 }
 
 BITMAP *IAGSEngine::GetVirtualScreen()
 {
-    Bitmap *stage = gfxDriver->GetStageBackBuffer(true);
+    Bitmap *stage = EngineServices::Current().GfxDriver->GetStageBackBuffer(true);
     return stage ? (BITMAP *)stage->GetAllegroBitmap() : nullptr;
 }
 
@@ -221,7 +224,7 @@ int IAGSEngine::GetSavedData(char *buffer, int32 bufsize)
 
 void IAGSEngine::DrawText(int32 x, int32 y, int32 font, int32 color, char *text)
 {
-    Bitmap *ds = gfxDriver->GetStageBackBuffer(true);
+    Bitmap *ds = EngineServices::Current().GfxDriver->GetStageBackBuffer(true);
     if (!ds)
         return;
     color_t text_color = ds->GetCompatibleColor(color);
@@ -240,7 +243,7 @@ void IAGSEngine::GetScreenDimensions(int32 *width, int32 *height, int32 *coldept
 
 unsigned char **IAGSEngine::GetRawBitmapSurface(BITMAP *bmp)
 {
-    Bitmap *stage = gfxDriver->GetStageBackBuffer(true);
+    Bitmap *stage = EngineServices::Current().GfxDriver->GetStageBackBuffer(true);
     if (stage && bmp == stage->GetAllegroBitmap())
         plugins[this->pluginId].invalidatedRegion = 0;
 
@@ -249,7 +252,7 @@ unsigned char **IAGSEngine::GetRawBitmapSurface(BITMAP *bmp)
 
 void IAGSEngine::ReleaseBitmapSurface(BITMAP *bmp)
 {
-    Bitmap *stage = gfxDriver->GetStageBackBuffer(true);
+    Bitmap *stage = EngineServices::Current().GfxDriver->GetStageBackBuffer(true);
     if (stage && bmp == stage->GetAllegroBitmap())
     {
         // plugin does not manaually invalidate stuff, so
@@ -316,7 +319,7 @@ void IAGSEngine::DrawTextWrapped(int32 x, int32 y, int32 width, int32 font, int3
     if (break_up_text_into_lines(draw_text, Lines, width, font) == 0)
         return;
 
-    Bitmap *ds = gfxDriver->GetStageBackBuffer(true);
+    Bitmap *ds = EngineServices::Current().GfxDriver->GetStageBackBuffer(true);
     if (!ds)
         return;
     color_t text_color = ds->GetCompatibleColor(color);
@@ -327,7 +330,8 @@ void IAGSEngine::DrawTextWrapped(int32 x, int32 y, int32 width, int32 font, int3
 Bitmap glVirtualScreenWrap;
 void IAGSEngine::SetVirtualScreen(BITMAP *bmp)
 {
-    if (!gfxDriver->UsesMemoryBackBuffer())
+    EngineServices &services = EngineServices::Current();
+    if (!services.GfxDriver->UsesMemoryBackBuffer())
     {
         debug_script_warn("SetVirtualScreen: this plugin requires software graphics driver to work correctly.");
         return;
@@ -336,12 +340,12 @@ void IAGSEngine::SetVirtualScreen(BITMAP *bmp)
     if (bmp)
     {
         glVirtualScreenWrap.WrapAllegroBitmap(bmp, true);
-        gfxDriver->SetStageBackBuffer(&glVirtualScreenWrap);
+        services.GfxDriver->SetStageBackBuffer(&glVirtualScreenWrap);
     }
     else
     {
         glVirtualScreenWrap.Destroy();
-        gfxDriver->SetStageBackBuffer(nullptr);
+        services.GfxDriver->SetStageBackBuffer(nullptr);
     }
 }
 
@@ -355,7 +359,7 @@ int IAGSEngine::LookupParserWord(const char *word)
 
 void IAGSEngine::BlitBitmap(int32 x, int32 y, BITMAP *bmp, int32 masked)
 {
-    Bitmap *ds = gfxDriver->GetStageBackBuffer(true);
+    Bitmap *ds = EngineServices::Current().GfxDriver->GetStageBackBuffer(true);
     if (!ds)
         return;
     BitmapHelper::BlitAllegroBitmap(ds, x, y, bmp, masked != 0);
@@ -364,11 +368,12 @@ void IAGSEngine::BlitBitmap(int32 x, int32 y, BITMAP *bmp, int32 masked)
 
 void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 trans)
 {
-    Bitmap *ds = gfxDriver->GetStageBackBuffer(true);
+    EngineServices &services = EngineServices::Current();
+    Bitmap *ds = services.GfxDriver->GetStageBackBuffer(true);
     if (!ds)
         return;
     Bitmap wrap(bmp, true);
-    if (gfxDriver->UsesMemoryBackBuffer())
+    if (services.GfxDriver->UsesMemoryBackBuffer())
         GfxUtil::DrawSpriteWithTransparency(ds, &wrap, x, y, trans);
     else
         GfxUtil::DrawSpriteBlend(ds, Point(x, y), &wrap, kBlend_Normal, trans);
@@ -376,7 +381,7 @@ void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 tran
 
 void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle)
 {
-    Bitmap *ds = gfxDriver->GetStageBackBuffer(true);
+    Bitmap *ds = EngineServices::Current().GfxDriver->GetStageBackBuffer(true);
     if (!ds)
         return;
     // TODO: draw through the engine's graphics code instead of calling allegro directly
@@ -816,7 +821,7 @@ void IAGSEngine::GetRenderStageDesc(AGSRenderStageDesc *desc)
 {
     if (desc->Version >= 25)
     {
-        gfxDriver->GetStageMatrixes((RenderMatrixes &)desc->Matrixes);
+        EngineServices::Current().GfxDriver->GetStageMatrixes((RenderMatrixes &)desc->Matrixes);
     }
 }
 
@@ -1159,10 +1164,11 @@ HError pl_load_plugin(EnginePlugin *apl, const std::vector<String> lookup_dirs)
 
 GameInitError pl_register_plugins(const std::vector<PluginInfo> &infos, bool enable_load)
 {
+    EngineServices &services = EngineServices::Current();
     std::vector<String> lookup_dirs;
     lookup_dirs.push_back(appDirectory);
-    if (ResPaths.DataDir != appDirectory)
-        lookup_dirs.push_back(ResPaths.DataDir);
+    if (services.ResPaths.DataDir != appDirectory)
+        lookup_dirs.push_back(services.ResPaths.DataDir);
 
     for (size_t inf_index = 0; inf_index < infos.size(); ++inf_index)
     {

@@ -24,7 +24,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-// TODO: I do not like having IGraphicsDriver dependency in here (gfxDriver, game/render/draw.h),
+// TODO: I do not like having IGraphicsDriver dependency in here (EngineServices::GfxDriver, game/render/draw.h),
 // consider another way to order shader instance deletion?
 
 const char *ScriptShaderProgram::TypeID = "ShaderProgram";

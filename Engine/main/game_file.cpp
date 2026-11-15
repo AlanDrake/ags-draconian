@@ -38,6 +38,7 @@
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "script/cc_common.h"
 #include "util/common.h"
 #include "util/stream.h"
@@ -76,7 +77,7 @@ String get_caps_list(const std::set<String> &caps)
 // it logs information on data version and reports first found errors, if any.
 HGameFileError game_file_first_open(MainGameSource &src)
 {
-    HGameFileError err = OpenMainGameFileFromDefaultAsset(src, AssetMgr.get());
+    HGameFileError err = OpenMainGameFileFromDefaultAsset(src, EngineServices::Current().Assets.get());
     if (err || err->Code() == kMGFErr_SignatureFailed || err->Code() == kMGFErr_FormatVersionNotSupported)
     {
         // Log data description for debugging
@@ -120,7 +121,7 @@ HError preload_game_data()
 UScript TryLoadScriptAsset(UScript &&existing_script, const String &script_obj_name, bool is_requested)
 {
     // Don't error here, as the script asset is optional
-    auto in = AssetMgr->OpenAsset(script_obj_name);
+    auto in = EngineServices::Current().Assets->OpenAsset(script_obj_name);
     if (in)
     {
         UScript script(
@@ -152,7 +153,7 @@ void TryLoadGameScripts(LoadedGameEntities &ents)
     // Script modules
     // First load a modules list
     std::vector<String> modules;
-    auto in = AssetMgr->OpenAsset(ScriptModulesList);
+    auto in = EngineServices::Current().Assets->OpenAsset(ScriptModulesList);
     if (in)
     {
         TextStreamReader reader(std::move(in));
@@ -178,7 +179,7 @@ HError load_game_file()
 {
     MainGameSource src;
     LoadedGameEntities ents(game);
-    HError err = (HError)OpenMainGameFileFromDefaultAsset(src, AssetMgr.get());
+    HError err = (HError)OpenMainGameFileFromDefaultAsset(src, EngineServices::Current().Assets.get());
     if (!err)
         return err;
     err = (HError)ReadGameData(ents, std::move(src.InputStream), src.DataVersion, src.CompiledWith);
@@ -211,7 +212,8 @@ HError load_game_file()
 
 void display_game_file_error(HError err)
 {
-    platform->DisplayAlert("Loading game failed with error:\n%s\n\nThe game files may be incomplete, corrupt or from "
-                           "unsupported version of AGS.",
-                           err->FullMessage().GetCStr());
+    EngineServices::Current().Platform->DisplayAlert(
+        "Loading game failed with error:\n%s\n\nThe game files may be incomplete, corrupt or from "
+        "unsupported version of AGS.",
+        err->FullMessage().GetCStr());
 }

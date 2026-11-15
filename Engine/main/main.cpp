@@ -35,6 +35,7 @@
 #include "main/engine.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "platform/base/sys_main.h"
 #include "platform/platform.h"
 #include "util/common.h"
@@ -68,34 +69,30 @@ bool justRunSetup = false;
 bool justTellInfo = false;
 bool attachToParentConsole = false;
 bool hideMessageBoxes = false;
-bool logScriptRTTI = false;
-bool logScriptTOC = false;
 std::set<String> tellInfoKeys;
 String loadSaveGameOnStartup;
 
-// CLNUP check this stuff
-// Current engine version
-AGS::Common::Version EngineVersion;
 
 void main_init(int argc, char *argv[])
 {
+    EngineServices &services = EngineServices::Current();
     set_our_eip(-999);
 
     // Init libraries: set text encoding
     set_uformat(U_UTF8);
     set_filename_encoding(U_UNICODE);
 
-    EngineVersion = Version(ACI_VERSION_STR " " SPECIAL_VERSION);
+    services.Version = Version(ACI_VERSION_STR " " SPECIAL_VERSION);
 #if defined(BUILD_STR)
-    EngineVersion.BuildInfo = BUILD_STR;
+    services.Version.BuildInfo = BUILD_STR;
 #endif
 
-    platform = AGSPlatformDriver::GetDriver();
-    platform->SetCommandArgs(argv, argc);
-    platform->MainInit();
+    services.Platform = AGSPlatformDriver::GetDriver();
+    services.Platform->SetCommandArgs(argv, argc);
+    services.Platform->MainInit();
 
-    AssetMgr.reset(new AssetManager());
-    AssetMgr->SetSearchPriority(Common::kAssetPriorityDir);
+    services.Assets.reset(new AssetManager());
+    services.Assets->SetSearchPriority(Common::kAssetPriorityDir);
 }
 
 String get_engine_string()
@@ -103,122 +100,125 @@ String get_engine_string()
     return String::FromFormat("Adventure Game Studio v%s Interpreter\n"
                               "Copyright (c) 1999-2011 Chris Jones and " ACI_COPYRIGHT_YEARS " others\n"
                               "Engine version %s\n",
-                              EngineVersion.ShortString.GetCStr(), get_engine_version_and_build().GetCStr());
+                              EngineServices::Current().Version.ShortString.GetCStr(),
+                              get_engine_version_and_build().GetCStr());
 }
 
 void main_print_help()
 {
-    platform->WriteStdOut("%s", "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
-                                //--------------------------------------------------------------------------------|
-                                "Options:\n"
-                                "  --audiodriver <id>           Request audio driver. Available options:\n"
+    EngineServices::Current().Platform->WriteStdOut(
+        "%s", "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
+              //--------------------------------------------------------------------------------|
+              "Options:\n"
+              "  --audiodriver <id>           Request audio driver. Available options:\n"
 #if AGS_PLATFORM_OS_WINDOWS
-                                "                                 default, wasapi, directsound, winmm, disk,\n"
-                                "                                 dummy\n"
+              "                                 default, wasapi, directsound, winmm, disk,\n"
+              "                                 dummy\n"
 #elif AGS_PLATFORM_OS_MACOS
-                                "                                 default, coreaudio, disk, dummy\n"
+              "                                 default, coreaudio, disk, dummy\n"
 #else
-                                "                                 default, pulseaudio, alsa, arts, esd, jack,\n"
-                                "                                 pipewire, dsp, disk, dummy\n"
+              "                                 default, pulseaudio, alsa, arts, esd, jack,\n"
+              "                                 pipewire, dsp, disk, dummy\n"
 #endif
-                                "  --background                 Keeps game running in background\n"
-                                "                               (this does not work in exclusive fullscreen)\n"
-                                "  --clear-cache-on-room-change Clears sprite cache on every room change\n"
-                                "  --conf FILEPATH              Specify explicit config file to read on startup\n"
+              "  --background                 Keeps game running in background\n"
+              "                               (this does not work in exclusive fullscreen)\n"
+              "  --clear-cache-on-room-change Clears sprite cache on every room change\n"
+              "  --conf FILEPATH              Specify explicit config file to read on startup\n"
 #if AGS_PLATFORM_OS_WINDOWS
-                                "  --console-attach             Write output to the parent process's console\n"
+              "  --console-attach             Write output to the parent process's console\n"
 #endif
-                                "  --display <number>           1-based index of system display to start on.\n"
-                                "  --fps                        Display fps counter\n"
-                                "  --fullscreen                 Force display mode to fullscreen\n"
-                                "  --gfxdriver <id>             Request graphics driver. Available options:\n"
+              "  --display <number>           1-based index of system display to start on.\n"
+              "  --fps                        Display fps counter\n"
+              "  --fullscreen                 Force display mode to fullscreen\n"
+              "  --gfxdriver <id>             Request graphics driver. Available options:\n"
 #if AGS_PLATFORM_OS_WINDOWS
-                                "                                 d3d9, d3d11, ogl, software\n"
+              "                                 d3d9, d3d11, ogl, software\n"
 #else
-                                "                                 ogl, software\n"
+              "                                 ogl, software\n"
 #endif
-                                //--------------------------------------------------------------------------------|
-                                "  --gfxfilter FILTER [SCALING]\n"
-                                "                               Request graphics filter. Available options:\n"
-                                "                                 stdscale, linear\n"
-                                "                               (support may differ between graphic drivers);\n"
-                                "                               Scaling is specified as:\n"
-                                "                                 proportional, round, stretch,\n"
-                                "                                 or an explicit integer multiplier.\n"
-                                "  --help                       Print this help message and stop\n"
-                                "  --loadsavedgame <FILEPATH or NUMBER>\n"
-                                "                               Load game save on startup\n"
-                                "  --localuserconf              Read and write user config in the game's \n"
-                                "                               directory rather than using standard system path.\n"
-                                "                               Game directory must be writeable.\n"
-                                "  --log-OUTPUT=GROUP[:LEVEL][,GROUP[:LEVEL]][,...]\n"
-                                "  --log-OUTPUT=+GROUPLIST[:LEVEL]\n"
-                                "                               Setup logging to the chosen OUTPUT with given\n"
-                                "                               log groups and verbosity levels. Groups may\n"
-                                "                               be also defined by a LIST of one-letter IDs,\n"
-                                "                               preceded by '+', e.g. +ABCD:LEVEL. Verbosity may\n"
-                                "                               be also defined by a numberic ID.\n"
-                                "                               OUTPUTs are\n"
-                                "                                 stdout, file, console\n"
-                                "                               (where \"console\" is internal engine's console)\n"
-                                "                               GROUPs are:\n"
-                                "                                 all, main (m), game (g), manobj (o),\n"
-                                "                                 plugin (p), script (s), sdl(l), sprcache (c)\n"
-                                "                               LEVELs are:\n"
-                                "                                 all, alert (1), fatal (2), error (3), warn (4),\n"
-                                "                                 info (5), debug (6)\n"
-                                "                               Examples:\n"
-                                "                                 --log-stdout=+mgs:debug\n"
-                                "                                 --log-file=all:warn\n"
-                                "  --log-file-path=PATH         Define custom path for the log file\n"
-                                //--------------------------------------------------------------------------------|
-                                "  --no-message-box             Disable alerts as modal message boxes\n"
-                                "  --no-plugins                 Disable plugin loading\n"
-                                "  --no-translation             Use default game language on start\n"
-                                "  --noiface                    Don't draw game GUI\n"
-                                "  --noscript                   Don't run room scripts; *WARNING:* unreliable\n"
-                                "  --nospr                      Don't draw room objects and characters\n"
-                                "  --noupdate                   Don't run game update\n"
-                                "  --novideo                    Don't play game videos\n"
-                                "  --rotation <MODE>            Screen rotation preferences. MODEs are:\n"
-                                "                                 unlocked (0), portrait (1), landscape (2)\n"
-                                "  --sdl-log=LEVEL              Setup SDL backend logging level\n"
-                                "                               LEVELs are:\n"
-                                "                                 verbose (1), debug (2), info (3), warn (4),\n"
-                                "                                 error (5), critical (6)\n"
-                                "  --script-log                 Log executed script instructions in 'script.log'\n"
-                                "                                 WARNING: extremely verbose, may slow app down\n"
+              //--------------------------------------------------------------------------------|
+              "  --gfxfilter FILTER [SCALING]\n"
+              "                               Request graphics filter. Available options:\n"
+              "                                 stdscale, linear\n"
+              "                               (support may differ between graphic drivers);\n"
+              "                               Scaling is specified as:\n"
+              "                                 proportional, round, stretch,\n"
+              "                                 or an explicit integer multiplier.\n"
+              "  --help                       Print this help message and stop\n"
+              "  --loadsavedgame <FILEPATH or NUMBER>\n"
+              "                               Load game save on startup\n"
+              "  --localuserconf              Read and write user config in the game's \n"
+              "                               directory rather than using standard system path.\n"
+              "                               Game directory must be writeable.\n"
+              "  --log-OUTPUT=GROUP[:LEVEL][,GROUP[:LEVEL]][,...]\n"
+              "  --log-OUTPUT=+GROUPLIST[:LEVEL]\n"
+              "                               Setup logging to the chosen OUTPUT with given\n"
+              "                               log groups and verbosity levels. Groups may\n"
+              "                               be also defined by a LIST of one-letter IDs,\n"
+              "                               preceded by '+', e.g. +ABCD:LEVEL. Verbosity may\n"
+              "                               be also defined by a numberic ID.\n"
+              "                               OUTPUTs are\n"
+              "                                 stdout, file, console\n"
+              "                               (where \"console\" is internal engine's console)\n"
+              "                               GROUPs are:\n"
+              "                                 all, main (m), game (g), manobj (o),\n"
+              "                                 plugin (p), script (s), sdl(l), sprcache (c)\n"
+              "                               LEVELs are:\n"
+              "                                 all, alert (1), fatal (2), error (3), warn (4),\n"
+              "                                 info (5), debug (6)\n"
+              "                               Examples:\n"
+              "                                 --log-stdout=+mgs:debug\n"
+              "                                 --log-file=all:warn\n"
+              "  --log-file-path=PATH         Define custom path for the log file\n"
+              //--------------------------------------------------------------------------------|
+              "  --no-message-box             Disable alerts as modal message boxes\n"
+              "  --no-plugins                 Disable plugin loading\n"
+              "  --no-translation             Use default game language on start\n"
+              "  --noiface                    Don't draw game GUI\n"
+              "  --noscript                   Don't run room scripts; *WARNING:* unreliable\n"
+              "  --nospr                      Don't draw room objects and characters\n"
+              "  --noupdate                   Don't run game update\n"
+              "  --novideo                    Don't play game videos\n"
+              "  --rotation <MODE>            Screen rotation preferences. MODEs are:\n"
+              "                                 unlocked (0), portrait (1), landscape (2)\n"
+              "  --sdl-log=LEVEL              Setup SDL backend logging level\n"
+              "                               LEVELs are:\n"
+              "                                 verbose (1), debug (2), info (3), warn (4),\n"
+              "                                 error (5), critical (6)\n"
+              "  --script-log                 Log executed script instructions in 'script.log'\n"
+              "                                 WARNING: extremely verbose, may slow app down\n"
 #if AGS_PLATFORM_OS_WINDOWS
-                                "  --setup                      Run setup application\n"
+              "  --setup                      Run setup application\n"
 #endif
-                                "  --shared-data-dir DIR        Set the shared game data directory\n"
-                                "  --startr <room_number>       Start game by loading certain room.\n"
-                                "  --tell                       Print various information concerning engine\n"
-                                "                                 and the game; for selected output use:\n"
-                                "  --tell-config                Print contents of merged game config\n"
-                                "  --tell-configpath            Print paths to available config files\n"
-                                "  --tell-data                  Print information on game data and its location\n"
-                                "  --tell-gameproperties        Print information on game general settings\n"
-                                "  --tell-engine                Print engine name and version\n"
-                                "  --tell-filepath              Print all filepaths engine uses for the game\n"
-                                "  --tell-graphicdriver         Print list of supported graphic drivers\n"
-                                "\n"
-                                "  --test                       Run game in the test mode\n"
-                                "  --translation <name>         Select the given translation on start\n"
-                                "  --version                    Print engine's version and stop\n"
-                                "  --user-data-dir DIR          Set the save game directory\n"
-                                "  --windowed                   Force display mode to windowed\n"
-                                "\n"
-                                "Gamefile options:\n"
-                                "  /dir/path/game/              Launch the game in specified directory\n"
-                                "  /dir/path/game/penguin.ags   Launch penguin.ags\n"
-                                "  [nothing]                    Launch the game in the current directory\n"
-                          //--------------------------------------------------------------------------------|
+              "  --shared-data-dir DIR        Set the shared game data directory\n"
+              "  --startr <room_number>       Start game by loading certain room.\n"
+              "  --tell                       Print various information concerning engine\n"
+              "                                 and the game; for selected output use:\n"
+              "  --tell-config                Print contents of merged game config\n"
+              "  --tell-configpath            Print paths to available config files\n"
+              "  --tell-data                  Print information on game data and its location\n"
+              "  --tell-gameproperties        Print information on game general settings\n"
+              "  --tell-engine                Print engine name and version\n"
+              "  --tell-filepath              Print all filepaths engine uses for the game\n"
+              "  --tell-graphicdriver         Print list of supported graphic drivers\n"
+              "\n"
+              "  --test                       Run game in the test mode\n"
+              "  --translation <name>         Select the given translation on start\n"
+              "  --version                    Print engine's version and stop\n"
+              "  --user-data-dir DIR          Set the save game directory\n"
+              "  --windowed                   Force display mode to windowed\n"
+              "\n"
+              "Gamefile options:\n"
+              "  /dir/path/game/              Launch the game in specified directory\n"
+              "  /dir/path/game/penguin.ags   Launch penguin.ags\n"
+              "  [nothing]                    Launch the game in the current directory\n"
+        //--------------------------------------------------------------------------------|
     );
 }
 
 static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
 {
+    EngineServices &services = EngineServices::Current();
     int datafile_argv = 0;
     for (int ee = 1; ee < argc; ++ee)
     {
@@ -245,7 +245,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         }
         else if (ags_stricmp(arg, "--noexceptionhandler") == 0)
         {
-            usetup.DisableExceptionHandling = true;
+            services.Config.DisableExceptionHandling = true;
         }
         else if (ags_stricmp(arg, "--setup") == 0)
         {
@@ -265,21 +265,21 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         }
         else if (ags_stricmp(arg, "--conf") == 0 && (argc > ee + 1))
         {
-            usetup.UserConfPath = argv[++ee];
+            services.Config.UserConfPath = argv[++ee];
         }
         else if (ags_stricmp(arg, "--localuserconf") == 0)
         {
-            usetup.UserConfDir = ".";
+            services.Config.UserConfDir = ".";
         }
         else if ((ags_stricmp(arg, "--user-conf-dir") == 0) && (argc > ee + 1))
         {
-            usetup.UserConfDir = argv[++ee];
+            services.Config.UserConfDir = argv[++ee];
         }
         else if (ags_stricmp(arg, "--runfromide") == 0 && (argc > ee + 2))
         {
-            usetup.OptInstallDir = argv[ee + 1];
+            services.Config.OptInstallDir = argv[ee + 1];
             String opt_dirs = argv[ee + 2];
-            parse_asset_dirs(opt_dirs, usetup.OptDataDirs);
+            parse_asset_dirs(opt_dirs, services.Config.OptDataDirs);
             ee += 2;
         }
         else if (ags_stricmp(arg, "--clear-cache-on-room-change") == 0)
@@ -382,9 +382,9 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         else if (ags_stricmp(arg, "--no-message-box") == 0)
             hideMessageBoxes = true;
         else if (ags_stricmp(arg, "--print-rtti") == 0)
-            logScriptRTTI = true;
+            services.LogScriptRTTI = true;
         else if (ags_stricmp(arg, "--print-scripttoc") == 0)
-            logScriptTOC = true;
+            services.LogScriptTOC = true;
         //
         // Special case: data file location
         //
@@ -394,7 +394,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
 
     if (datafile_argv > 0)
     {
-        cmdGameDataPath = platform->GetCommandArg(datafile_argv);
+        cmdGameDataPath = services.Platform->GetCommandArg(datafile_argv);
     }
 
     if (tellInfoKeys.size() > 0)
@@ -405,6 +405,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
 
 int ags_entry_point(int argc, char *argv[])
 {
+    EngineServices &services = EngineServices::Current();
     main_init(argc, argv);
 
 #if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_WINDOWS_MINGW
@@ -420,11 +421,11 @@ int ags_entry_point(int argc, char *argv[])
         return res;
 
     if (attachToParentConsole)
-        platform->AttachToParentConsole();
+        services.Platform->AttachToParentConsole();
 
     if (justDisplayVersion)
     {
-        platform->WriteStdOut("%s", get_engine_string().GetCStr());
+        services.Platform->WriteStdOut("%s", get_engine_string().GetCStr());
         return EXIT_NORMAL;
     }
 
@@ -435,12 +436,12 @@ int ags_entry_point(int argc, char *argv[])
     }
 
     if (!justTellInfo && !hideMessageBoxes)
-        platform->SetGUIMode(true);
+        services.Platform->SetGUIMode(true);
 
     Debug::Printf(kDbgMsg_Alert, get_engine_string());
     init_debug(startup_opts, justTellInfo);
 
-    appPath = Path::MakeAbsolutePath(platform->GetCommandArg(0));
+    appPath = Path::MakeAbsolutePath(services.Platform->GetCommandArg(0));
     appDirectory = Path::GetDirectoryPath(appPath);
 
     // Update shell associations and exit
@@ -449,7 +450,7 @@ int ags_entry_point(int argc, char *argv[])
 
     int result = 0;
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
-    if (usetup.DisableExceptionHandling)
+    if (services.Config.DisableExceptionHandling)
 #endif
     {
         result = initialize_engine(startup_opts);

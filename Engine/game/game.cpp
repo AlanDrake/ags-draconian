@@ -75,6 +75,7 @@
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "platform/base/sys_main.h"
 #include "plugin/plugin_engine.h"
 #include "script/dynobj/cc_dynamic_array.h"
@@ -94,19 +95,13 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 //=============================================================================
-std::unique_ptr<AssetManager> AssetMgr;
 GamePlayState play;
-EngineConfig usetup;
 GameSetupStruct game;
 RoomStatus troom; // state of the current room if it is a temporary one (number >= MAX_ROOMS), e.g. an intro room
 RoomObject *objs = nullptr;
 RoomStatus *croom = nullptr;
 RoomStruct thisroom;
 
-volatile int switching_away_from_game = 0;
-volatile bool switched_away = false;
-volatile bool game_update_suspend = false;
-volatile bool want_exit = false, abort_engine = false;
 GameDataVersion loaded_game_file_version = kGameVersion_Undefined;
 int frames_per_second = 40;
 int displayed_room = -10;
@@ -115,7 +110,6 @@ int new_room_pos = 0;
 int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;
 int new_room_loop = SCR_NO_VALUE;
 bool new_room_placeonwalkable = false;
-int proper_exit = 0;
 
 AGS::Common::SpriteCache::Callbacks spritecallbacks = {nullptr, initialize_sprite, post_init_sprite, nullptr};
 SpriteCache spriteset(game.SpriteInfos, spritecallbacks);
@@ -509,8 +503,9 @@ void restore_game_dialog()
 
 void restore_game_dialog2(int min_slot, int max_slot)
 {
+    EngineServices &services = EngineServices::Current();
     // Optionally override the max slot
-    max_slot = usetup.Override.MaxSaveSlot > 0 ? usetup.Override.MaxSaveSlot : max_slot;
+    max_slot = services.Config.Override.MaxSaveSlot > 0 ? services.Config.Override.MaxSaveSlot : max_slot;
 
     can_run_delayed_command();
     if (is_inside_script())
@@ -540,8 +535,9 @@ void save_game_dialog()
 
 void save_game_dialog2(int min_slot, int max_slot)
 {
+    EngineServices &services = EngineServices::Current();
     // Optionally override the max slot
-    max_slot = usetup.Override.MaxSaveSlot > 0 ? usetup.Override.MaxSaveSlot : max_slot;
+    max_slot = services.Config.Override.MaxSaveSlot > 0 ? services.Config.Override.MaxSaveSlot : max_slot;
 
     can_run_delayed_command();
     if (is_inside_script())
@@ -922,7 +918,7 @@ void Game_SetTextReadingSpeed(int new_text_speed)
     if (new_text_speed < 1)
         quitprintf("!Game.TextReadingSpeed: %d is an invalid speed", new_text_speed);
 
-    if (usetup.Access.TextReadSpeed <= 0)
+    if (EngineServices::Current().Config.Access.TextReadSpeed <= 0)
         play.text_speed = new_text_speed;
 }
 
@@ -942,7 +938,7 @@ int Game_GetMinimumTextDisplayTimeMs()
 
 void Game_SetMinimumTextDisplayTimeMs(int new_text_min_time)
 {
-    if (usetup.Access.TextReadSpeed <= 0)
+    if (EngineServices::Current().Config.Access.TextReadSpeed <= 0)
         play.text_min_display_time_ms = new_text_min_time;
 }
 
@@ -958,7 +954,7 @@ void Game_SetIgnoreUserInputAfterTextTimeoutMs(int new_value_ms)
 
 const char *Game_GetFileName()
 {
-    return CreateNewScriptString(ResPaths.GamePak.Name);
+    return CreateNewScriptString(EngineServices::Current().ResPaths.GamePak.Name);
 }
 
 const char *Game_GetName()
@@ -969,7 +965,7 @@ const char *Game_GetName()
 void Game_SetName(const char *new_name)
 {
     play.game_name = new_name;
-    platform->SetWindowTitle(play.game_name);
+    EngineServices::Current().Platform->SetWindowTitle(play.game_name);
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Gamename);
 }
 
@@ -1071,10 +1067,11 @@ const char *Game_GetTranslationFilename()
 
 int Game_ChangeTranslation(const char *new_filename)
 {
+    EngineServices &services = EngineServices::Current();
     if ((new_filename == nullptr) || (new_filename[0] == 0))
     { // switch back to default translation
         close_translation();
-        usetup.Translation = "";
+        services.Config.Translation = "";
         GUIE::MarkForTranslationUpdate();
         return 1;
     }
@@ -1085,7 +1082,7 @@ int Game_ChangeTranslation(const char *new_filename)
 
     if (game.GameInfo.count("dev_error_text") > 0)
         play.SetGameErrorText(get_translation(game.GameInfo["dev_error_text"].GetCStr()));
-    usetup.Translation = new_filename;
+    services.Config.Translation = new_filename;
     GUIE::MarkForTranslationUpdate();
     return 1;
 }
@@ -1367,7 +1364,7 @@ void save_game(int slot, const String &description, std::unique_ptr<Bitmap> &&im
     HSaveError err = SaveGame(
         save_path, description, image.get(),
         (SaveCmpSelection)(kSaveCmp_All & ~(game.options[OPT_SAVECOMPONENTSIGNORE] & kSaveCmp_ScriptIgnoreMask)),
-        usetup.CompressSaves);
+        EngineServices::Current().Config.CompressSaves);
     if (!err)
     {
         // FIXME: on a failed save the player gets this hardcoded English message and the script gets no event, so a
@@ -1473,6 +1470,7 @@ bool test_game_guid(const String &filepath, const String &guid, int legacy_id)
 // data_overwritten once RestoreSavegame has run, after which an error means the game state is lost.
 HSaveError load_game(const String &path, int slot, bool startup, bool &data_overwritten)
 {
+    EngineServices &services = EngineServices::Current();
     data_overwritten = false;
     gameHasBeenRestored++;
 
@@ -1498,7 +1496,7 @@ HSaveError load_game(const String &path, int slot, bool startup, bool &data_over
         if (desc.GameGuid.Compare(game.guid) != 0 && desc.LegacyID != game.uniqueid)
         {
             // Try to find wanted game's data using game id
-            String game_file = FindGameData(ResPaths.DataDir, [&desc](const String &filepath)
+            String game_file = FindGameData(services.ResPaths.DataDir, [&desc](const String &filepath)
                                             { return test_game_guid(filepath, desc.GameGuid, desc.LegacyID); });
             if (!game_file.IsEmpty())
             {
@@ -1512,9 +1510,9 @@ HSaveError load_game(const String &path, int slot, bool startup, bool &data_over
     // A save without a game GUID and legacy ID: match the game data by its file name. Saves before
     // 3.5.1 had neither (they are refused now); a 4.0 save has none only if its game has none.
     // TODO: remove the filename test if every game is given a GUID
-    else if (desc.MainDataFilename.Compare(ResPaths.GamePak.Name))
+    else if (desc.MainDataFilename.Compare(services.ResPaths.GamePak.Name))
     {
-        String game_file = Path::ConcatPaths(ResPaths.DataDir, desc.MainDataFilename);
+        String game_file = Path::ConcatPaths(services.ResPaths.DataDir, desc.MainDataFilename);
         if (IsMainGameLibrary(game_file))
         {
             RunAGSGame(desc.MainDataFilename.GetCStr(), 0, 0);
@@ -1546,7 +1544,7 @@ HSaveError load_game(const String &path, int slot, bool startup, bool &data_over
         if (feedback.RetryWithClearGame)
         {
             // Schedule same game file re-run and save restore
-            RunAGSGame(ResPaths.GamePak.Path, 0, 0);
+            RunAGSGame(services.ResPaths.GamePak.Path, 0, 0);
             load_new_game_restore = slot;
             load_new_game_restore_cmp = feedback.RetryWithoutComponents;
             return HSaveError::None();
@@ -1846,7 +1844,7 @@ int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool c
 void display_switch_out()
 {
     Debug::Printf("Switching out from the game");
-    switched_away = true;
+    EngineServices::Current().SwitchedAway = true;
     ags_clear_input_state();
     // Always unlock mouse when switching out from the game
     Mouse::UnlockFromWindow();
@@ -1855,12 +1853,13 @@ void display_switch_out()
 // Called when game loses input focus and must pause until focus is returned
 void display_switch_out_suspend()
 {
+    EngineServices &services = EngineServices::Current();
     Debug::Printf("Suspending the game on switch out");
-    switching_away_from_game++;
-    game_update_suspend = true;
+    services.SwitchingAwayFromGame++;
+    services.GameUpdateSuspend = true;
     display_switch_out();
 
-    platform->PauseApplication();
+    services.Platform->PauseApplication();
 
     video_single_pause();
     // Pause all the sounds
@@ -1873,23 +1872,25 @@ void display_switch_out_suspend()
         }
     }
 
-    switching_away_from_game--;
+    services.SwitchingAwayFromGame--;
 }
 
 // Called whenever game gets input focus
 void display_switch_in()
 {
+    EngineServices &services = EngineServices::Current();
     Debug::Printf("Switching back into the game");
     ags_clear_input_state();
     // If fullscreen, or auto lock option is set, lock mouse to the game window
-    if ((scsystem.windowed == 0) || usetup.MouseAutoLock)
+    if ((scsystem.windowed == 0) || services.Config.MouseAutoLock)
         Mouse::TryLockToWindow();
-    switched_away = false;
+    services.SwitchedAway = false;
 }
 
 // Called when game gets input focus and must resume after pause
 void display_switch_in_resume()
 {
+    EngineServices &services = EngineServices::Current();
     Debug::Printf("Resuming the game on switch in");
     display_switch_in();
 
@@ -1906,14 +1907,14 @@ void display_switch_in_resume()
 
     // release render targets if switching back to the full screen mode;
     // unfortunately, otherwise Direct3D fails to reset device when restoring fullscreen.
-    if (gfxDriver && gfxDriver->GetDisplayMode().IsRealFullscreen())
+    if (services.GfxDriver && services.GfxDriver->GetDisplayMode().IsRealFullscreen())
         release_drawobj_rendertargets();
     // clear the screen if necessary
-    if (gfxDriver && gfxDriver->UsesMemoryBackBuffer())
-        gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, nullptr);
+    if (services.GfxDriver && services.GfxDriver->UsesMemoryBackBuffer())
+        services.GfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, nullptr);
 
-    platform->ResumeApplication();
-    game_update_suspend = false;
+    services.Platform->ResumeApplication();
+    services.GameUpdateSuspend = false;
 }
 
 void game_sprite_updated(int sprite_num, bool deleted)
@@ -2354,7 +2355,7 @@ void SaveGameSlot(int slot, const char *description, int sprite_id)
 {
     VALIDATE_STRING(description);
 
-    if (platform->GetDiskFreeSpaceMB(get_save_game_directory()) < 2)
+    if (EngineServices::Current().Platform->GetDiskFreeSpaceMB(get_save_game_directory()) < 2)
     {
         Display("ERROR: There is not enough disk space free to save the game. Clear some disk space and try again.");
         return;
@@ -2503,6 +2504,7 @@ int GetLastSaveSlot()
 
 int RunAGSGame(const String &new_game, unsigned int mode, int data)
 {
+    EngineServices &services = EngineServices::Current();
     can_run_delayed_command();
 
     int allowed_modes = RAGMODE_LOADNOW;
@@ -2518,8 +2520,8 @@ int RunAGSGame(const String &new_game, unsigned int mode, int data)
 
     if ((mode & RAGMODE_LOADNOW) == 0)
     {
-        ResPaths.GamePak.Path = PathFromInstallDir(new_game);
-        ResPaths.GamePak.Name = new_game;
+        services.ResPaths.GamePak.Path = PathFromInstallDir(new_game);
+        services.ResPaths.GamePak.Name = new_game;
         play.takeover_data = data;
         load_new_game_restore = -1;
 
@@ -2545,13 +2547,13 @@ int RunAGSGame(const String &new_game, unsigned int mode, int data)
     unload_game();
 
     // Adjust config (NOTE: normally, RunAGSGame would need a redesign to allow separate config etc per each game)
-    usetup.Translation = ""; // reset to default, prevent from trying translation file of game A in game B
+    services.Config.Translation = ""; // reset to default, prevent from trying translation file of game A in game B
 
-    AssetMgr->RemoveAllLibraries();
+    services.Assets->RemoveAllLibraries();
 
     // TODO: this repeats the engine's startup steps (main/engine.cpp); share them
-    if (AssetMgr->AddLibrary(ResPaths.GamePak.Path) != Common::kAssetNoError)
-        quitprintf("!RunAGSGame: unable to load new game file '%s'", ResPaths.GamePak.Path.GetCStr());
+    if (services.Assets->AddLibrary(services.ResPaths.GamePak.Path) != Common::kAssetNoError)
+        quitprintf("!RunAGSGame: unable to load new game file '%s'", services.ResPaths.GamePak.Path.GetCStr());
     engine_assign_assetpaths();
 
     show_preload();

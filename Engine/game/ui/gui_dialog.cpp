@@ -28,6 +28,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
+#include "platform/base/engine_services.h"
 #include "util/common.h"
 #include "util/path.h"
 #include "util/string_compat.h"
@@ -108,7 +109,7 @@ Bitmap *get_gui_screen()
 void clear_gui_screen()
 {
     if (dialogDDB)
-        gfxDriver->DestroyDDB(dialogDDB);
+        EngineServices::Current().GfxDriver->DestroyDDB(dialogDDB);
     dialogDDB = nullptr;
     delete windowBuffer;
     windowBuffer = nullptr;
@@ -117,7 +118,7 @@ void clear_gui_screen()
 void refresh_gui_screen()
 {
     if (dialogDDB)
-        gfxDriver->UpdateDDBFromBitmap(dialogDDB, windowBuffer);
+        EngineServices::Current().GfxDriver->UpdateDDBFromBitmap(dialogDDB, windowBuffer);
     UpdateCursorAndDrawables();
     render_graphics(dialogDDB, windowPosX, windowPosY);
 }

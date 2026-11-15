@@ -390,6 +390,8 @@ target_sources(engine
     platform/base/agsplatformdriver.h
     platform/base/engine_config.h
     platform/base/engine_defines.h
+    platform/base/engine_services.cpp
+    platform/base/engine_services.h
     platform/base/agsplatform_xdg_unix.cpp
     platform/base/agsplatform_xdg_unix.h
     platform/base/sys_main.cpp

@@ -23,6 +23,7 @@
 #include "game/lib/string.h"
 #include "game/world/properties.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/engine_services.h"
 #include "script/runtimescriptvalue.h"
 #include "util/common.h" // quitprintf
 
@@ -65,7 +66,10 @@ int AudioClip_GetType(ScriptAudioClip *clip)
 
 int AudioClip_GetIsAvailable(ScriptAudioClip *clip)
 {
-    return AssetMgr->DoesAssetExist(get_audio_clip_assetpath(clip->bundlingType, clip->fileName)) ? 1 : 0;
+    return EngineServices::Current().Assets->DoesAssetExist(
+               get_audio_clip_assetpath(clip->bundlingType, clip->fileName))
+               ? 1
+               : 0;
 }
 
 void AudioClip_Stop(ScriptAudioClip *clip)

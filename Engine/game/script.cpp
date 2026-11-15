@@ -34,8 +34,8 @@
 #include "game/world/room.h"
 #include "game/world/room_object.h"
 #include "main/game_run.h"
-#include "main/main.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/engine_services.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
 #include "script/script_runtime.h"
@@ -347,7 +347,7 @@ HError LinkGlobalScripts()
     SetupBuiltinTypeAliases();
 
     // Optionally dump script's TOC into the log
-    if (logScriptTOC)
+    if (EngineServices::Current().LogScriptTOC)
     {
         for (const auto &inst : all_insts)
         {

@@ -19,6 +19,7 @@
 #include "game/game_state.h"
 #include "game/ui/gui.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "script/cc_common.h" // cc_error
 
 using namespace AGS::Engine;
@@ -120,6 +121,7 @@ int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
 
 void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
 {
+    EngineServices &services = EngineServices::Current();
     const int index = offset / sizeof(int32_t);
     if (index >= 5 && index < 5 + GamePlayState::LEGACY_MAXGLOBALVARS)
         return; // [DEPRECATED]
@@ -141,7 +143,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 59: break; // [DEPRECATED]
     case 60: break; // [DEPRECATED]
     case 61:
-        if (usetup.Access.TextReadSpeed <= 0)
+        if (services.Config.Access.TextReadSpeed <= 0)
             play.text_speed = val;
         break;
     case 62: break; // [DEPRECATED]
@@ -154,7 +156,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 69: play.follow_change_room_timer = val; break;
     case 70: break; // [DEPRECATED]
     case 71:
-        if (usetup.Access.TextSkipStyle == kSkipSpeechNone)
+        if (services.Config.Access.TextSkipStyle == kSkipSpeechNone)
             play.skip_display = static_cast<SkipSpeechStyle>(val);
         break;
     case 72: play.no_multiloop_repeat = val; break;

@@ -64,6 +64,7 @@
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "plugin/plugin_engine.h"
 #include "script/script_runtime.h"
 #include "util/common.h"
@@ -183,8 +184,9 @@ bool restrict_until_in_script = false;
 // Schedules a normal exit from the game
 static void ProperExit()
 {
-    want_exit = false;
-    proper_exit = 1;
+    EngineServices &services = EngineServices::Current();
+    services.WantExit = false;
+    services.ProperExit = 1;
     quit("||exit!");
 }
 
@@ -307,7 +309,7 @@ static void GameUpdateCheckGroundInteractions()
 static void lock_mouse_on_click()
 {
     // Only update when in windowed mode, as always locked in fullscreen
-    if (usetup.MouseAutoLock && scsystem.windowed != 0)
+    if (EngineServices::Current().Config.MouseAutoLock && scsystem.windowed != 0)
         Mouse::TryLockToWindow();
 }
 
@@ -611,6 +613,7 @@ bool run_service_key_controls(KeyInput &out_key)
 // Runs default keyboard handling
 static void check_keyboard_controls()
 {
+    EngineServices &services = EngineServices::Current();
     // First check for service engine's combinations (mouse lock, display mode switch, and so forth)
     KeyInput ki;
     if (!run_service_key_controls(ki))
@@ -708,22 +711,25 @@ static void check_keyboard_controls()
         return;
 
     // Built-in key-presses
-    if ((usetup.Override.KeySaveGame > 0) && (ags_combo_key == usetup.Override.KeySaveGame))
+    if ((services.Config.Override.KeySaveGame > 0) && (ags_combo_key == services.Config.Override.KeySaveGame))
     {
         do_save_game_dialog(0, TOP_SAVESLOT - 1, play.normal_font); // ignore special slot 999
         return;
     }
-    else if ((usetup.Override.KeyRestoreGame > 0) && (ags_combo_key == usetup.Override.KeyRestoreGame))
+    else if ((services.Config.Override.KeyRestoreGame > 0) &&
+             (ags_combo_key == services.Config.Override.KeyRestoreGame))
     {
         do_restore_game_dialog(0, TOP_SAVESLOT - 1, play.normal_font); // ignore special slot 999
         return;
     }
-    else if ((usetup.Override.KeyDebugWalkable > 0) && (ags_combo_key == usetup.Override.KeyDebugWalkable))
+    else if ((services.Config.Override.KeyDebugWalkable > 0) &&
+             (ags_combo_key == services.Config.Override.KeyDebugWalkable))
     {
         script_debug(2, kRoomAreaWalkable);
         return;
     }
-    else if ((usetup.Override.KeyDebugPathfind > 0) && (ags_combo_key == usetup.Override.KeyDebugPathfind))
+    else if ((services.Config.Override.KeyDebugPathfind > 0) &&
+             (ags_combo_key == services.Config.Override.KeyDebugPathfind))
     {
         script_debug(5, playerchar->index_id);
         return;
@@ -1333,7 +1339,7 @@ void UpdateGameOnce(bool do_controls, AGS::Engine::IDriverDependantBitmap *extra
 
     sys_evt_process_pending();
 
-    if (want_exit)
+    if (EngineServices::Current().WantExit)
     {
         ProperExit();
         return;
@@ -1605,7 +1611,7 @@ void RunGameUntilAborted()
     // skip ticks to account for time spent starting game.
     skipMissedTicks();
 
-    while (!abort_engine)
+    while (!EngineServices::Current().AbortEngine)
     {
         GameTick();
 
@@ -1641,9 +1647,10 @@ void ShutGameWaitState()
 
 void update_polled_stuff()
 {
-    if (want_exit)
+    EngineServices &services = EngineServices::Current();
+    if (services.WantExit)
     {
-        want_exit = false;
+        services.WantExit = false;
         quit("||exit!");
     }
 

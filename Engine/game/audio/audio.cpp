@@ -36,6 +36,7 @@
 #include "media/audio/audio_core.h"
 #include "media/audio/sound.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "platform/base/sys_main.h"
 #include "platform/platform.h"
 #include "script/dynobj/dynobj_manager.h"
@@ -224,7 +225,7 @@ static int find_free_audio_channel(const AudioPlayback &aplay, int priority, boo
 
 bool is_audiotype_allowed_to_play(AudioFileType /*type*/)
 { // TODO: this is a remnant of an old audio logic, think this function over
-    return usetup.AudioEnabled;
+    return EngineServices::Current().Config.AudioEnabled;
 }
 
 std::unique_ptr<SoundClip> load_sound_clip(const AudioPlayback &aplay, bool repeat)
@@ -608,7 +609,7 @@ void shutdown_sound()
     audio_core_shutdown();      // audio core system
     soundcache_clear();         // clear cached data
     sys_audio_shutdown();       // backend; NOTE: sys_main will know if it's required
-    usetup.AudioEnabled = false;
+    EngineServices::Current().Config.AudioEnabled = false;
 }
 
 

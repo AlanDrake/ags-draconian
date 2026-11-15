@@ -21,6 +21,7 @@
 #include "game/game.h"
 #include "media/audio/audio_core.h"
 #include "media/audio/audiodefines.h"
+#include "platform/base/engine_services.h"
 #include "util/path.h"
 #include "util/resourcecache.h"
 #include "util/stream.h"
@@ -72,7 +73,7 @@ void soundcache_precache(const AssetPath &apath)
         return; // cache is disabled
     if (SndCache.Exists(apath.Name))
         return; // already in cache
-    auto s_in = AssetMgr->OpenAsset(apath);
+    auto s_in = EngineServices::Current().Assets->OpenAsset(apath);
     if (!s_in)
         return; // failed to open asset
     size_t asset_size = static_cast<size_t>(s_in->GetLength());
@@ -95,7 +96,7 @@ std::unique_ptr<SoundClip> load_sound_clip(const AssetPath &apath, const char *e
     }
     else
     {
-        s_in = AssetMgr->OpenAsset(apath);
+        s_in = EngineServices::Current().Assets->OpenAsset(apath);
         if (!s_in)
             return nullptr;
         asset_size = static_cast<size_t>(s_in->GetLength());

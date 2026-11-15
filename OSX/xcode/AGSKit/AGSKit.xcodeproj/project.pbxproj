@@ -789,6 +789,7 @@
 		526F28931D3B5CC300EF4E1F /* video.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F262C1D3B5CC300EF4E1F /* video.cpp */; };
 		526F28941D3B5CC300EF4E1F /* video.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F262D1D3B5CC300EF4E1F /* video.h */; };
 		526F28971D3B5CC300EF4E1F /* agsplatformdriver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F26331D3B5CC300EF4E1F /* agsplatformdriver.cpp */; };
+		526F2C011D3B5CC300EF4E1F /* engine_services.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F2C001D3B5CC300EF4E1F /* engine_services.cpp */; };
 		526F28981D3B5CC300EF4E1F /* agsplatformdriver.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F26341D3B5CC300EF4E1F /* agsplatformdriver.h */; };
 		526F28A01D3B5CC300EF4E1F /* acplmac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F26411D3B5CC300EF4E1F /* acplmac.cpp */; };
 		526F28A11D3B5CC300EF4E1F /* alplmac.mm in Sources */ = {isa = PBXBuildFile; fileRef = 526F26421D3B5CC300EF4E1F /* alplmac.mm */; };
@@ -1718,6 +1719,7 @@
 		526F262D1D3B5CC300EF4E1F /* video.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = video.h; sourceTree = "<group>"; };
 		526F26331D3B5CC300EF4E1F /* agsplatformdriver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = agsplatformdriver.cpp; sourceTree = "<group>"; };
 		526F26341D3B5CC300EF4E1F /* agsplatformdriver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agsplatformdriver.h; sourceTree = "<group>"; };
+		526F2C001D3B5CC300EF4E1F /* engine_services.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = engine_services.cpp; sourceTree = "<group>"; };
 		526F26411D3B5CC300EF4E1F /* acplmac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = acplmac.cpp; sourceTree = "<group>"; };
 		526F26421D3B5CC300EF4E1F /* alplmac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = alplmac.mm; sourceTree = "<group>"; };
 		526F26461D3B5CC300EF4E1F /* libc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = libc.c; sourceTree = "<group>"; };
@@ -3237,6 +3239,7 @@
 				526F26331D3B5CC300EF4E1F /* agsplatformdriver.cpp */,
 				526F26341D3B5CC300EF4E1F /* agsplatformdriver.h */,
 				526F24761D3B5CC200EF4E1F /* engine_config.h */,
+				526F2C001D3B5CC300EF4E1F /* engine_services.cpp */,
 			);
 			path = base;
 			sourceTree = "<group>";
@@ -4269,6 +4272,7 @@
 				526F26EB1D3B5CC300EF4E1F /* script_string.cpp in Sources */,
 				526F22BA1D3B5C4900EF4E1F /* sprite_cache.cpp in Sources */,
 				526F28971D3B5CC300EF4E1F /* agsplatformdriver.cpp in Sources */,
+				526F2C011D3B5CC300EF4E1F /* engine_services.cpp in Sources */,
 				526F27BD1D3B5CC300EF4E1F /* gfxdriverfactory.cpp in Sources */,
 				526F281C1D3B5CC300EF4E1F /* ogg.c in Sources */,
 				526F27DA1D3B5CC300EF4E1F /* my_label.cpp in Sources */,

@@ -137,7 +137,7 @@ ScriptViewFrame *Game_GetViewFrame(int view, int loop, int frame);
 int Game_DoOnceOnly(const char *token);
 
 // Script API: the text reading speed, which sets how long a message stays on screen. The setter quits for a value
-// below 1, and is ignored if the player's config sets the speed (usetup.Access.TextReadSpeed).
+// below 1, and is ignored if the player's config sets the speed (EngineServices::Config.Access.TextReadSpeed).
 int Game_GetTextReadingSpeed();
 void Game_SetTextReadingSpeed(int new_text_speed);
 // Script API: the least time a message is shown, in milliseconds. The setter is ignored if the player's config sets
@@ -218,7 +218,7 @@ bool get_save_filepath_and_slot(const AGS::Common::String &input_savepath, AGS::
 // Try calling built-in restore game dialog;
 // NOTE: this is a script command; may be aborted according to the game & room settings
 void restore_game_dialog();
-// The same for a range of slots: max_slot is replaced by the config's override (usetup.Override.MaxSaveSlot) if set.
+// The same for a range of slots: max_slot is replaced by the config's override (EngineServices::Config.Override.MaxSaveSlot) if set.
 // When called from a script, queues the dialog to run after the script ends.
 void restore_game_dialog2(int min_slot, int max_slot);
 // Unconditionally display a built-in restore game dialog; restores the save the player chose. Returns true if the
@@ -227,7 +227,7 @@ bool do_restore_game_dialog(int min_slot, int max_slot, int use_font);
 // Try calling built-in save game dialog;
 // NOTE: this is a script command; may be aborted according to the game & room settings
 void save_game_dialog();
-// The same for a range of slots: max_slot is replaced by the config's override (usetup.Override.MaxSaveSlot) if set.
+// The same for a range of slots: max_slot is replaced by the config's override (EngineServices::Config.Override.MaxSaveSlot) if set.
 // When called from a script, queues the dialog to run after the script ends.
 void save_game_dialog2(int min_slot, int max_slot);
 // Unconditionally display a built-in save game dialog; saves the game into the slot the player chose. Returns true if
@@ -338,8 +338,6 @@ std::vector<MoveList> &get_movelists();
 // Releases a script movelist's reference and invalidates the script object.
 void release_script_movelist(int handle);
 
-// Global AssetManager instance.
-extern std::unique_ptr<AGS::Common::AssetManager> AssetMgr;
 
 struct GameSetupStruct;
 struct ViewStruct;
@@ -358,16 +356,6 @@ extern std::vector<ViewStruct> views;
 // The game's sprites.
 extern AGS::Common::SpriteCache spriteset;
 
-// Above 0 while display_switch_out_suspend is pausing the game after it lost the input focus.
-extern volatile int switching_away_from_game;
-// Whether the game does not have the input focus now.
-extern volatile bool switched_away;
-// Whether the game is suspended after losing the input focus; the frame wait loops spin while it is set.
-extern volatile bool game_update_suspend;
-// Requests to stop: set together when the window is closed or the debugger asks to exit.
-extern volatile bool want_exit, abort_engine;
-// Set to 1 when the engine exits through its own quit procedure; atexit_handler reports an exit without it.
-extern int proper_exit;
 // A request to run another game (the mode and flags given to RunAGSGame), served by the game loop; 0 when none.
 extern unsigned int load_new_game;
 // Counts the restore attempts, so that a script run that was in progress can tell that one happened (script.cpp)

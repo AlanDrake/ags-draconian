@@ -43,6 +43,8 @@ TESTS = re.compile(r'(^|/)test\d*/')
 SHARED = ('Common/util/', 'Common/data/data_helpers.h')
 # (path, function) of the accepted findings, each with the reason why the shared helper does not do
 KNOWN = {
+    # The accessor of an engine context (PLAN.md 5.1): the instance in use, not Directory's current directory
+    ('Engine/platform/base/engine_services.h', 'Current'),
 }
 HUNK = re.compile(r'^@@ -\S+ \+(\d+)(?:,(\d+))? @@')
 # The first line of a function definition or declaration: at most one level of indentation

@@ -33,10 +33,10 @@
 #include "main/engine.h"
 #include "main/game_run.h"
 #include "main/graphics_mode.h"
-#include "main/main.h"
 #include "media/audio/audio_core.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "platform/base/sys_main.h"
 #include "util/common.h"
 #include "util/string_compat.h"
@@ -46,7 +46,7 @@ using namespace AGS::Engine;
 
 bool System_GetHasInputFocus()
 {
-    return !switched_away;
+    return !EngineServices::Current().SwitchedAway;
 }
 
 int System_GetColorDepth()
@@ -67,12 +67,12 @@ int System_GetOS()
 
 const char *System_GetVersion()
 {
-    return CreateNewScriptString(EngineVersion.LongString);
+    return CreateNewScriptString(EngineServices::Current().Version.LongString);
 }
 
 int System_GetHardwareAcceleration()
 {
-    return gfxDriver->HasAcceleratedTransform() ? 1 : 0;
+    return EngineServices::Current().GfxDriver->HasAcceleratedTransform() ? 1 : 0;
 }
 
 const char *System_GetLocaleName()
@@ -105,7 +105,7 @@ int System_GetVsync()
 
 void System_SetVsync(int newValue)
 {
-    if (gfxDriver->DoesSupportVsyncToggle())
+    if (EngineServices::Current().GfxDriver->DoesSupportVsyncToggle())
     {
         System_SetVSyncInternal(newValue != 0);
     }
@@ -114,7 +114,7 @@ void System_SetVsync(int newValue)
 void System_SetVSyncInternal(bool vsync)
 {
     scsystem.vsync = vsync;
-    usetup.Display.VSync = vsync;
+    EngineServices::Current().Config.Display.VSync = vsync;
 }
 
 int System_GetWindowed()
@@ -130,7 +130,7 @@ void System_SetWindowed(int windowed)
 
 int System_GetSupportsGammaControl()
 {
-    return gfxDriver->SupportsGammaControl();
+    return EngineServices::Current().GfxDriver->SupportsGammaControl();
 }
 
 int System_GetGamma()
@@ -140,6 +140,7 @@ int System_GetGamma()
 
 void System_SetGamma(int newValue)
 {
+    EngineServices &services = EngineServices::Current();
     if ((newValue < 0) || (newValue > 200))
         quitprintf("!System.Gamma: value must be between 0-200 (not %d)", newValue);
 
@@ -148,8 +149,8 @@ void System_SetGamma(int newValue)
         debug_script_log("Gamma control set to %d", newValue);
         play.gamma_adjustment = newValue;
 
-        if (gfxDriver->SupportsGammaControl())
-            gfxDriver->SetGamma(newValue);
+        if (services.GfxDriver->SupportsGammaControl())
+            services.GfxDriver->SetGamma(newValue);
     }
 }
 
@@ -194,12 +195,12 @@ const char *System_GetRuntimeInfo()
 
 int System_GetRenderAtScreenResolution()
 {
-    return usetup.RenderAtScreenRes;
+    return EngineServices::Current().Config.RenderAtScreenRes;
 }
 
 void System_SetRenderAtScreenResolution(int enable)
 {
-    usetup.RenderAtScreenRes = enable != 0;
+    EngineServices::Current().Config.RenderAtScreenRes = enable != 0;
 }
 
 int System_GetEngineInteger(int value_id, int index)
@@ -252,27 +253,30 @@ bool GetEngineInteger(int &value, EngineValueID value_id, int index)
 
 bool GetEngineString(AGS::Common::String &value, EngineValueID value_id, int index)
 {
+    EngineServices &services = EngineServices::Current();
     switch (value_id)
     {
     case ENGINE_VALUE_SI_VALUENAME: value = GetEngineValueName(static_cast<EngineValueID>(index)); return true;
     case ENGINE_VALUE_S_ENGINE_NAME: value = get_engine_name(); return true;
-    case ENGINE_VALUE_S_ENGINE_VERSION: value = EngineVersion.LongString; return true;
+    case ENGINE_VALUE_S_ENGINE_VERSION: value = services.Version.LongString; return true;
     case ENGINE_VALUE_S_ENGINE_VERSION_FULL: value = get_engine_version_and_build(); return true;
     case ENGINE_VALUE_S_DISPLAY_MODE_STR:
         value = "";
-        if (gfxDriver)
+        if (services.GfxDriver)
         {
-            DisplayMode mode = gfxDriver->GetDisplayMode();
+            DisplayMode mode = services.GfxDriver->GetDisplayMode();
             value = String::FromFormat("%d x %d %d-bit %s", mode.Width, mode.Height, mode.ColorDepth,
                                        (mode.IsWindowed() ? " W" : (mode.IsRealFullscreen() ? " F" : " FD")));
         }
         return true;
-    case ENGINE_VALUE_S_GFXRENDERER: value = (gfxDriver ? gfxDriver->GetDriverName() : ""); return true;
+    case ENGINE_VALUE_S_GFXRENDERER:
+        value = (services.GfxDriver ? services.GfxDriver->GetDriverName() : "");
+        return true;
     case ENGINE_VALUE_S_GFXFILTER:
         value = "";
-        if (gfxDriver)
+        if (services.GfxDriver)
         {
-            auto filter = gfxDriver->GetGraphicsFilter();
+            auto filter = services.GfxDriver->GetGraphicsFilter();
             if (filter)
                 value = filter->GetInfo().Name;
         }
@@ -327,9 +331,10 @@ void System_SetDisplayFPS(bool show_fps)
 
 String GetRuntimeInfo()
 {
-    DisplayMode mode = gfxDriver->GetDisplayMode();
-    Rect render_frame = gfxDriver->GetRenderDestination();
-    PGfxFilter filter = gfxDriver->GetGraphicsFilter();
+    EngineServices &services = EngineServices::Current();
+    DisplayMode mode = services.GfxDriver->GetDisplayMode();
+    Rect render_frame = services.GfxDriver->GetRenderDestination();
+    PGfxFilter filter = services.GfxDriver->GetGraphicsFilter();
     const size_t total_normspr = spriteset.GetCacheSize();
     const size_t total_lockspr = spriteset.GetLockedSize();
     const size_t total_extspr = spriteset.GetExternalSize();
@@ -346,7 +351,7 @@ String GetRuntimeInfo()
         "Texture cache KB: %zu / %zu (%u%%)",
         get_engine_name(), get_engine_version_and_build().GetCStr(), game.GetGameRes().Width, game.GetGameRes().Height,
         game.GetColorDepth(), mode.Width, mode.Height, mode.ColorDepth,
-        (mode.IsWindowed() ? " W" : (mode.IsRealFullscreen() ? " F" : " FD")), gfxDriver->GetDriverName(),
+        (mode.IsWindowed() ? " W" : (mode.IsRealFullscreen() ? " F" : " FD")), services.GfxDriver->GetDriverName(),
         filter->GetInfo().Name.GetCStr(), render_frame.GetWidth(), render_frame.GetHeight(), total_normspr / 1024,
         max_normspr / 1024, norm_spr_filled, total_lockspr / 1024, total_extspr / 1024, total_txcached / 1024,
         max_txcached / 1024, tx_filled);
@@ -365,16 +370,18 @@ String GetRuntimeInfo()
 
 void SetMultitasking(int mode)
 {
+    EngineServices &services = EngineServices::Current();
     if ((mode < 0) || (mode > 1))
         quit("!SetMultitasking: invalid mode parameter");
     // Save requested setting
-    usetup.RunInBackground = mode != 0;
+    services.Config.RunInBackground = mode != 0;
 
     // Account for the override config option (must be checked first!)
-    if ((usetup.Override.Multitasking >= 0) && (mode != usetup.Override.Multitasking))
+    if ((services.Config.Override.Multitasking >= 0) && (mode != services.Config.Override.Multitasking))
     {
-        Debug::Printf("SetMultitasking: overridden by user config: %d -> %d", mode, usetup.Override.Multitasking);
-        mode = usetup.Override.Multitasking;
+        Debug::Printf("SetMultitasking: overridden by user config: %d -> %d", mode,
+                      services.Config.Override.Multitasking);
+        mode = services.Config.Override.Multitasking;
     }
 
     // Must run on background if debugger is connected
@@ -385,7 +392,7 @@ void SetMultitasking(int mode)
     }
 
     // Regardless, don't allow background running if exclusive full screen
-    if ((mode == 1) && gfxDriver && gfxDriver->GetDisplayMode().IsRealFullscreen())
+    if ((mode == 1) && services.GfxDriver && services.GfxDriver->GetDisplayMode().IsRealFullscreen())
     {
         Debug::Printf("SetMultitasking: overridden by fullscreen: %d -> 0", mode);
         mode = 0;

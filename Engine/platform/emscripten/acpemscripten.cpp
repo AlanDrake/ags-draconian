@@ -25,11 +25,11 @@
 #include <emscripten.h>
 
 #include "SDL.h"
-#include "game/render/draw.h"
 #include "game/system.h"
 #include "gfx/graphicsdriver.h"
 #include "main/engine.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/engine_services.h"
 #include "util/filestream.h"
 #include "util/time_util.h"
 
@@ -48,13 +48,13 @@ extern "C"
 {
     EMSCRIPTEN_KEEPALIVE int ext_gfxmode_get_width()
     {
-        DisplayMode rdm = gfxDriver->GetDisplayMode();
+        DisplayMode rdm = EngineServices::Current().GfxDriver->GetDisplayMode();
         return rdm.Width;
     }
 
     EMSCRIPTEN_KEEPALIVE int ext_gfxmode_get_height()
     {
-        DisplayMode rdm = gfxDriver->GetDisplayMode();
+        DisplayMode rdm = EngineServices::Current().GfxDriver->GetDisplayMode();
         return rdm.Height;
     }
 

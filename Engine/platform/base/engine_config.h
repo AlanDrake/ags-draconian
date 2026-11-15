@@ -181,8 +181,3 @@ struct EngineConfig : public GameConfig
 
     EngineConfig() = default;
 };
-
-// TODO: setup object is used for two purposes: temporarily storing config
-// options before engine is initialized, and storing certain runtime variables.
-// Perhaps it makes sense to separate those two group of vars at some point.
-extern EngineConfig usetup;

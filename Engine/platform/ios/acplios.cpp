@@ -24,6 +24,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
 #include "platform/base/engine_defines.h"
+#include "platform/base/engine_services.h"
 #include "platform/base/mobile_base.h"
 #include "util/directory.h"
 #include "util/file.h"
@@ -215,7 +216,7 @@ void startEngine(const char *filename, const char *directory, int loadLastSave)
 
 static void MakeGameSaveDirectory()
 {
-    String gamename = Path::RemoveExtension(Path::GetFilename(usetup.MainDataFile));
+    String gamename = Path::RemoveExtension(Path::GetFilename(EngineServices::Current().Config.MainDataFile));
     if (gamename.IsNullOrSpace() || gamename.IsEmpty())
     {
         gamename = "save";

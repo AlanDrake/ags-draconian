@@ -27,6 +27,7 @@
 #include "game/game_state.h"
 #include "game/runtime_defines.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "plugin/plugin_engine.h"
 #include "util/common.h"
 #include "util/stream.h"
@@ -153,12 +154,13 @@ void close_translation()
 
 bool init_translation(const String &lang, const String &fallback_lang)
 {
+    EngineServices &services = EngineServices::Current();
     if (lang.IsEmpty())
         return false;
     trans_name = lang;
     trans_filename = String::FromFormat("%s.tra", lang.GetCStr());
 
-    auto in = AssetMgr->OpenAsset(trans_filename);
+    auto in = services.Assets->OpenAsset(trans_filename);
     if (in == nullptr)
     {
         Debug::Printf(kDbgMsg_Error, "Cannot open translation: %s", trans_filename.GetCStr());
@@ -172,7 +174,7 @@ bool init_translation(const String &lang, const String &fallback_lang)
     if (err)
     {
         // If successful, then read translation data fully
-        in = AssetMgr->OpenAsset(trans_filename);
+        in = services.Assets->OpenAsset(trans_filename);
         err = ReadTraData(trans, std::move(in));
     }
 

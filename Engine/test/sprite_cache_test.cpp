@@ -27,12 +27,12 @@
 
 #include "game/game.h"
 #include "game/game_setup_struct.h"
-#include "game/render/draw.h"
 #include "game/render/dynamic_sprite.h"
 #include "gfx/ali3dsw.h"
 #include "gfx/bitmap.h"
 #include "gfx/sprite_cache.h"
 #include "gtest/gtest.h"
+#include "platform/base/engine_services.h"
 #include "util/memorystream.h"
 #include "util/stream.h"
 
@@ -57,7 +57,7 @@ color_t SpriteColor(int index)
 //   the cache limit is changed by the tests
 // - game.SpriteInfos: filled from the sprite file
 // - game.color_depth: 32-bit, so the engine's sprite initialization keeps the sprites as they are
-// - gfxDriver: a software driver, not initialized: sprite initialization only asks it for the
+// - EngineServices::GfxDriver: a software driver, not initialized: sprite initialization only asks it for the
 //   bitmap format it can use
 class EngineSpriteCache : public ::testing::Test
 {
@@ -66,7 +66,7 @@ protected:
     {
         game.color_depth = 4;
         _driver = std::make_unique<ALSW::SDLRendererGraphicsDriver>();
-        gfxDriver = _driver.get();
+        EngineServices::Current().GfxDriver = _driver.get();
         {
             std::vector<SpriteInfo> infos;
             SpriteCache source(infos, SpriteCache::Callbacks());
@@ -96,7 +96,7 @@ protected:
         spriteset.SetMaxCacheSize(DEFAULTCACHESIZE_KB * 1024u);
         game.SpriteInfos.clear();
         game.color_depth = 0;
-        gfxDriver = nullptr;
+        EngineServices::Current().GfxDriver = nullptr;
         _driver.reset();
     }
 

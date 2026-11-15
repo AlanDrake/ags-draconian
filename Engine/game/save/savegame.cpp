@@ -55,11 +55,11 @@
 #include "gfx/sprite_cache.h"
 #include "main/engine.h"
 #include "main/game_run.h"
-#include "main/main.h"
 #include "main/update.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "platform/base/sys_main.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
@@ -656,6 +656,7 @@ static HSaveError ValidateRestoredSave(const SavegameDescription &save_desc, con
 // (scripts, room, audio, GUI, viewports), runs the validation callback and the post-restore plugin event
 HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveCmpSelection select_cmp)
 {
+    EngineServices &services = EngineServices::Current();
     // Put back what the running game had before the restoration: whether the speech pack and the
     // separate music library are available
     play.voice_avail = pp.SpeechVOX;
@@ -746,7 +747,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // precache current cursor
     spriteset.PrecacheSprite(game.mcurs[r_data.CursorID].pic);
 
-    platform->SetWindowTitle(play.game_name);
+    services.Platform->SetWindowTitle(play.game_name);
 
     if (displayed_room >= 0)
     {
@@ -844,9 +845,9 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
 
     // Apply accessibility options, must be done last, because some
     // may override restored game settings
-    ApplyAccessibilityOptions(play, usetup);
+    ApplyAccessibilityOptions(play, services.Config);
     // Applies behavior options, also hacks and backwards compatibility fixes
-    ApplyBehaviorOptions(game, play, usetup);
+    ApplyBehaviorOptions(game, play, services.Config);
 
     play.ClearIgnoreInput(); // don't keep ignored input after save restore
     update_polled_stuff();
@@ -966,6 +967,7 @@ void WriteFileFormat(Stream *out, const SavegameFileFormat &file_format)
 // The screenshot is always compressed.
 void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_image, SavegameFileFormat &file_format)
 {
+    EngineServices &services = EngineServices::Current();
     // Data format version
     out->WriteInt32(kSvgVersion_Current);
     soff_t file_format_pos = out->GetPosition();
@@ -976,10 +978,10 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     // TODO: the environment info is read from global objects (game, engine version, resource paths);
     // pass it as arguments instead
     StrUtil::WriteString(get_engine_name(), out);
-    StrUtil::WriteString(EngineVersion.LongString, out);
+    StrUtil::WriteString(services.Version.LongString, out);
     StrUtil::WriteString(game.guid, out);
     StrUtil::WriteString(game.gamename, out);
-    StrUtil::WriteString(ResPaths.GamePak.Name, out);
+    StrUtil::WriteString(services.ResPaths.GamePak.Name, out);
     out->WriteInt32(loaded_game_file_version);
     out->WriteInt32(game.GetColorDepth());
     out->WriteInt32(game.uniqueid);

@@ -51,10 +51,10 @@
 #include "gfx/sprite_cache.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"
-#include "main/main.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
 #include "script/dynobj/cc_ags_dynamic_object.h"
@@ -443,7 +443,8 @@ void LoadLipsyncData()
     curLipLine = -1;
 
     // a named voice pack has its files, the sync data included, under the pack's name
-    auto speech_sync = AssetMgr->OpenAsset(Path::ConcatPaths(get_voice_assetpath(), "syncdata.dat"), "voice");
+    auto speech_sync =
+        EngineServices::Current().Assets->OpenAsset(Path::ConcatPaths(get_voice_assetpath(), "syncdata.dat"), "voice");
     if (!speech_sync)
         return;
     // the voice pack has lip sync data
@@ -494,6 +495,7 @@ void InitGameResolution(GameSetupStruct &game, GameDataVersion data_ver)
 
 HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
+    EngineServices &services = EngineServices::Current();
     GameSetupStruct &game = ents.Game;
     const ScriptAPIVersion base_api = (ScriptAPIVersion)game.options[OPT_BASESCRIPTAPI];
     const ScriptAPIVersion compat_api = (ScriptAPIVersion)game.options[OPT_SCRIPTCOMPATLEV];
@@ -505,7 +507,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // If the game was compiled using unsupported version of the script API,
     // we warn about potential incompatibilities but proceed further.
     if (game.options[OPT_BASESCRIPTAPI] > kScriptAPI_Current)
-        platform->DisplayAlert(
+        services.Platform->DisplayAlert(
             "Warning: this game requests a higher version of AGS script API, it may not run correctly or run at all.");
 
     //
@@ -569,7 +571,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
 
     play.fade_effect = game.options[OPT_FADETYPE];
     play.std_gui_textheight = get_font_height_outlined(0) + 1;
-    play.enable_antialiasing = usetup.AntialiasSprites;
+    play.enable_antialiasing = services.Config.AntialiasSprites;
     play.SetGameTextLanguage(game.GameTextLanguage);
     if (game.GameInfo.count("dev_error_text") > 0)
         play.SetGameErrorText(game.GameInfo["dev_error_text"]);
@@ -597,7 +599,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 6. Start up plugins
     //
-    pl_register_plugins(ents.PluginInfos, !usetup.Override.NoPlugins);
+    pl_register_plugins(ents.PluginInfos, !services.Config.Override.NoPlugins);
     pl_startup_plugins();
 
     //
@@ -619,12 +621,12 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
 
     // Apply accessibility options, must be done last, because some
     // may override startup game settings.
-    ApplyAccessibilityOptions(play, usetup);
+    ApplyAccessibilityOptions(play, services.Config);
     // Applies behavior options (the runtime behavior switches)
-    ApplyBehaviorOptions(game, play, usetup);
+    ApplyBehaviorOptions(game, play, services.Config);
 
     // Optionally dump joint RTTI into the log
-    if (logScriptRTTI && RuntimeScript::GetJointRTTI())
+    if (services.LogScriptRTTI && RuntimeScript::GetJointRTTI())
     {
         Debug::Printf(PrintRTTI(RuntimeScript::GetJointRTTI()->AsConstRTTI()));
     }

@@ -39,6 +39,7 @@
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/engine_services.h"
 #include "platform/base/sys_main.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
@@ -156,9 +157,10 @@ static std::unique_ptr<IOutputHandler> create_log_output(const String &name, con
                                                          const String &filename = "",
                                                          LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
 {
+    EngineServices &services = EngineServices::Current();
     if (name.CompareNoCase(OutputSystemID) == 0)
     {
-        return platform->GetStdOut();
+        return services.Platform->GetStdOut();
     }
     else if (name.CompareNoCase(OutputFileID) == 0)
     {
@@ -166,11 +168,11 @@ static std::unique_ptr<IOutputHandler> create_log_output(const String &name, con
         String logfile_dir = dir;
         if (dir.IsEmpty())
         {
-            FSLocation fs = platform->GetAppOutputDirectory();
+            FSLocation fs = services.Platform->GetAppOutputDirectory();
             CreateFSDirs(fs);
             logfile_dir = fs.FullDir;
         }
-        else if (Path::IsRelativePath(dir) && platform->IsLocalDirRestricted())
+        else if (Path::IsRelativePath(dir) && services.Platform->IsLocalDirRestricted())
         {
             FSLocation fs = GetGameUserDataDir();
             CreateFSDirs(fs);
@@ -294,7 +296,7 @@ void init_debug(const ConfigTree &cfg, bool stderr_only)
     SDL_LogSetAllPriority(priority);
 
     // Init platform's stdout setting
-    platform->SetOutputToErr(stderr_only);
+    EngineServices::Current().Platform->SetOutputToErr(stderr_only);
 
     // Register outputs
     apply_debug_config(cfg, false);
@@ -439,7 +441,7 @@ bool init_editor_debugging(const ConfigTree &cfg)
         // and then its READY message
         while (check_for_messages_from_debugger() != kDbgResponse_Ready)
         {
-            platform->Delay(10);
+            EngineServices::Current().Platform->Delay(10);
         }
 
         send_state_to_debugger("START");
@@ -455,6 +457,7 @@ bool init_editor_debugging(const ConfigTree &cfg)
 
 DebuggerResponse check_for_messages_from_debugger()
 {
+    EngineServices &services = EngineServices::Current();
     if (editor_debugger->IsMessageAvailable())
     {
         char *msg = editor_debugger->GetNextMessage();
@@ -539,8 +542,8 @@ DebuggerResponse check_for_messages_from_debugger()
         else if (strncmp(msgPtr, "EXIT", 4) == 0)
         {
             Debug::Printf(kDbgMsg_Info, "Debugger: shutdown engine");
-            want_exit = true;
-            abort_engine = true;
+            services.WantExit = true;
+            services.AbortEngine = true;
             check_dynamic_sprites_at_exit = 0;
             response = kDbgResponse_Exit;
         }
@@ -596,7 +599,7 @@ DebuggerResponse check_for_messages_from_debugger()
 bool send_exception_to_debugger(const char *qmsg)
 {
 #if AGS_PLATFORM_OS_WINDOWS
-    want_exit = false;
+    EngineServices::Current().WantExit = false;
     // allow the editor to break with the error message
     if (editor_window_handle != nullptr)
         SetForegroundWindow(editor_window_handle);
@@ -605,10 +608,10 @@ bool send_exception_to_debugger(const char *qmsg)
         return false;
 
     for (DebuggerResponse resp = check_for_messages_from_debugger();
-         resp != kDbgResponse_Resume && resp != kDbgResponse_Exit && (!want_exit);
+         resp != kDbgResponse_Resume && resp != kDbgResponse_Exit && (!EngineServices::Current().WantExit);
          resp = check_for_messages_from_debugger())
     {
-        platform->Delay(10);
+        EngineServices::Current().Platform->Delay(10);
     }
 #else
     (void)qmsg;
@@ -632,7 +635,7 @@ void break_into_debugger()
     while (game_paused_in_debugger)
     {
         update_polled_stuff();
-        platform->YieldCPU();
+        EngineServices::Current().Platform->YieldCPU();
     }
 
 #endif

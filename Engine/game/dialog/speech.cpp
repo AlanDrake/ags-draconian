@@ -23,9 +23,9 @@
 #include "game/game_state.h"
 #include "game/runtime_defines.h"
 #include "game/world/character.h"
-#include "main/engine.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "util/common.h"
 #include "util/directory.h"
 #include "util/file.h"
@@ -109,24 +109,25 @@ SkipSpeechStyle internal_skip_speech_to_user(int internal_val)
 
 bool init_voicepak(const String &name)
 {
-    if (!usetup.UseVoicePack)
+    EngineServices &services = EngineServices::Current();
+    if (!services.Config.UseVoicePack)
         return false; // voice-over disabled
 
     String speech_file = name.IsEmpty() ? "speech.vox" : String::FromFormat("sp_%s.vox", name.GetCStr());
-    if (ResPaths.SpeechPak.Name.CompareNoCase(speech_file) == 0)
+    if (services.ResPaths.SpeechPak.Name.CompareNoCase(speech_file) == 0)
         return true; // same pak already assigned
 
     // First remove existing voice packs
-    ResPaths.VoiceAvail = false;
-    AssetMgr->RemoveLibrary(ResPaths.SpeechPak.Path);
-    AssetMgr->RemoveLibrary(ResPaths.VoiceDirSub);
+    services.ResPaths.VoiceAvail = false;
+    services.Assets->RemoveLibrary(services.ResPaths.SpeechPak.Path);
+    services.Assets->RemoveLibrary(services.ResPaths.VoiceDirSub);
 
     // Now check for the new packs and add if they exist
     String speech_filepath = find_assetlib(speech_file);
     if (!speech_filepath.IsEmpty())
     {
         Debug::Printf(kDbgMsg_Info, "Voice pack found: %s", speech_file.GetCStr());
-        ResPaths.VoiceAvail = true;
+        services.ResPaths.VoiceAvail = true;
     }
     else
     {
@@ -136,7 +137,7 @@ bool init_voicepak(const String &name)
 
     String speech_subdir = "";
     // Look up in the alternative locations that include "voice" filter
-    for (const auto &opt_dir : ResPaths.OptDataDirs)
+    for (const auto &opt_dir : services.ResPaths.OptDataDirs)
     {
         if (opt_dir.second.FindSection("voice", ',') != String::NoIndex)
         {
@@ -145,7 +146,7 @@ bool init_voicepak(const String &name)
             if (File::IsDirectory(speech_subdir) && Directory::HasAnyFiles(speech_subdir))
             {
                 Debug::Printf(kDbgMsg_Info, "Optional voice directory is defined: %s", speech_subdir.GetCStr());
-                ResPaths.VoiceAvail = true;
+                services.ResPaths.VoiceAvail = true;
             }
         }
     }
@@ -153,14 +154,14 @@ bool init_voicepak(const String &name)
     // Save new resource locations and register asset libraries
     VoicePakName = name;
     VoiceAssetPath = name;
-    ResPaths.SpeechPak.Name = speech_file;
-    ResPaths.SpeechPak.Path = speech_filepath;
-    ResPaths.VoiceDirSub = speech_subdir;
-    AssetMgr->AddLibrary(ResPaths.VoiceDirSub, "voice");
-    AssetMgr->AddLibrary(ResPaths.SpeechPak.Path, "voice");
+    services.ResPaths.SpeechPak.Name = speech_file;
+    services.ResPaths.SpeechPak.Path = speech_filepath;
+    services.ResPaths.VoiceDirSub = speech_subdir;
+    services.Assets->AddLibrary(services.ResPaths.VoiceDirSub, "voice");
+    services.Assets->AddLibrary(services.ResPaths.SpeechPak.Path, "voice");
     // each voice pack has its own lip-sync data
     AGS::Engine::LoadLipsyncData();
-    return ResPaths.VoiceAvail;
+    return services.ResPaths.VoiceAvail;
 }
 
 String get_voicepak_name()
@@ -215,7 +216,7 @@ bool Speech_GetAlwaysWaitForText()
 
 void Speech_SetAlwaysWaitForText(bool on)
 {
-    if (!usetup.Access.AlwaysWaitForText)
+    if (!EngineServices::Current().Config.Access.AlwaysWaitForText)
         play.speech_always_wait_for_text = on;
 }
 
@@ -307,7 +308,7 @@ void Speech_SetSkipStyle(SkipSpeechStyle new_value)
     if ((new_value < kSkipSpeechFirst) || (new_value > kSkipSpeechLast))
         quit("!SetSkipSpeech: invalid skip mode specified");
 
-    if (usetup.Access.SpeechSkipStyle == kSkipSpeechNone)
+    if (EngineServices::Current().Config.Access.SpeechSkipStyle == kSkipSpeechNone)
     {
         debug_script_log("SkipSpeech style set to %d", new_value);
         play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)new_value);
@@ -348,7 +349,7 @@ void Speech_SetVoiceMode(int newmod)
 {
     if ((newmod < kSpeech_First) | (newmod > kSpeech_Last))
         quitprintf("!SetVoiceMode: invalid mode number %d", newmod);
-    if (usetup.Access.SpeechMode == kSpeech_None)
+    if (EngineServices::Current().Config.Access.SpeechMode == kSpeech_None)
         play.speech_mode = (SpeechMode)newmod;
 }
 
@@ -409,7 +410,7 @@ static AssetPath find_voice_clip(const String &voice_name)
     for (auto *ext : exts)
     {
         apath.Name.Format("%s.%s", voice_name.GetCStr(), ext);
-        found = AssetMgr->DoesAssetExist(apath);
+        found = EngineServices::Current().Assets->DoesAssetExist(apath);
         if (found)
             break;
     }

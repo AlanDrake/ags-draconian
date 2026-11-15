@@ -24,10 +24,10 @@
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/runtime_defines.h"
-#include "main/engine.h"
 #include "main/game_file.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/common.h"
@@ -69,7 +69,7 @@ int File_Exists(const char *filename)
         return 0;
 
     if (rp.AssetMgr)
-        return AssetMgr->DoesAssetExist(rp.FullPath, "*") ? 1 : 0;
+        return EngineServices::Current().Assets->DoesAssetExist(rp.FullPath, "*") ? 1 : 0;
     return 1; // was found in fs
 }
 
@@ -82,7 +82,7 @@ ScriptDateTime *File_GetFileTime(const char *filename)
     time_t ft;
     if (rp.AssetMgr)
     {
-        if (!AssetMgr->GetAssetTime(rp.FullPath, ft, "*"))
+        if (!EngineServices::Current().Assets->GetAssetTime(rp.FullPath, ft, "*"))
             return nullptr;
     }
     else
@@ -120,7 +120,7 @@ int File_Copy(const char *old_name, const char *new_name)
     if (!old_rp.AssetMgr)
         return File::CopyFile(old_rp.FullPath, new_rp.FullPath, true) ? 1 : 0;
 
-    auto in = AssetMgr->OpenAsset(old_rp.FullPath, "*");
+    auto in = EngineServices::Current().Assets->OpenAsset(old_rp.FullPath, "*");
     auto out = File::CreateFile(new_rp.FullPath);
     if (!in || !out)
         return 0;
@@ -170,7 +170,7 @@ void FillDirList(std::vector<String> &files, const String &pattern, ScriptFileSo
     {
         // AssetManager returns asset entries with possibly parent paths,
         // but FillDirList must return strictly filenames, so we ensure that here.
-        AssetMgr->FindAssets(fileents, rp.FullPath, "*");
+        EngineServices::Current().Assets->FindAssets(fileents, rp.FullPath, "*");
         for (auto &fe : fileents)
             fe.Name = Path::GetFilename(fe.Name);
     }
@@ -599,7 +599,7 @@ const String UserConfigFileToken = "$CONFIGFILE$";
 String PathFromInstallDir(const String &path)
 {
     if (Path::IsRelativePath(path))
-        return Path::ConcatPaths(ResPaths.DataDir, path);
+        return Path::ConcatPaths(EngineServices::Current().ResPaths.DataDir, path);
     return path;
 }
 
@@ -612,19 +612,21 @@ String PreparePathForWriting(const FSLocation &fsloc, const String &filename)
 
 FSLocation GetGlobalUserConfigDir()
 {
-    FSLocation dir = platform->GetUserGlobalConfigDirectory();
+    EngineServices &services = EngineServices::Current();
+    FSLocation dir = services.Platform->GetUserGlobalConfigDirectory();
     if (Path::IsRelativePath(dir.FullDir)) // relative dir is resolved relative to the game data dir
-        return FSLocation(ResPaths.DataDir).Concat(dir.FullDir);
+        return FSLocation(services.ResPaths.DataDir).Concat(dir.FullDir);
     return dir;
 }
 
 FSLocation GetGameUserConfigDir()
 {
-    FSLocation dir = platform->GetUserConfigDirectory();
-    if (!usetup.UserConfDir.IsEmpty()) // directive to use custom userconf location
-        return FSLocation(usetup.UserConfDir);
+    EngineServices &services = EngineServices::Current();
+    FSLocation dir = services.Platform->GetUserConfigDirectory();
+    if (!services.Config.UserConfDir.IsEmpty()) // directive to use custom userconf location
+        return FSLocation(services.Config.UserConfDir);
     else if (Path::IsRelativePath(dir.FullDir)) // relative dir is resolved relative to the game data dir
-        return FSLocation(ResPaths.DataDir).Concat(dir.FullDir);
+        return FSLocation(services.ResPaths.DataDir).Concat(dir.FullDir);
     // For absolute dir, we assume it's a special directory prepared for AGS engine
     // and therefore append a game's own subdir
     return dir.Concat(game.saveGameFolderName);
@@ -635,7 +637,7 @@ inline FSLocation MakeDefaultDataDir(const FSLocation &def_dir)
 {
     // Relative dir is resolved relative to the game data dir
     if (Path::IsRelativePath(def_dir.FullDir))
-        return FSLocation(ResPaths.DataDir).Concat(def_dir.FullDir);
+        return FSLocation(EngineServices::Current().ResPaths.DataDir).Concat(def_dir.FullDir);
     // For absolute dir, we assume it's a special directory prepared for AGS engine
     // and therefore amend it with a game's own subdir (to separate files from different games)
     return def_dir.Concat(game.saveGameFolderName);
@@ -646,23 +648,25 @@ inline FSLocation MakeUserDataDir(const String &user_dir)
 {
     // If user-set location is inside game dir, then form a relative path
     if (Path::IsRelativePath(user_dir))
-        return FSLocation(ResPaths.DataDir).Concat(user_dir);
+        return FSLocation(EngineServices::Current().ResPaths.DataDir).Concat(user_dir);
     // Otherwise treat it as an absolute path
     return FSLocation(Path::MakeAbsolutePath(user_dir));
 }
 
 FSLocation GetGameAppDataDir()
 {
-    if (usetup.AppDataDir.IsEmpty())
-        return MakeDefaultDataDir(platform->GetAllUsersDataDirectory());
-    return MakeUserDataDir(usetup.AppDataDir);
+    EngineServices &services = EngineServices::Current();
+    if (services.Config.AppDataDir.IsEmpty())
+        return MakeDefaultDataDir(services.Platform->GetAllUsersDataDirectory());
+    return MakeUserDataDir(services.Config.AppDataDir);
 }
 
 FSLocation GetGameUserDataDir()
 {
-    if (usetup.UserSaveDir.IsEmpty())
-        return MakeDefaultDataDir(platform->GetUserSavedgamesDirectory());
-    return MakeUserDataDir(usetup.UserSaveDir);
+    EngineServices &services = EngineServices::Current();
+    if (services.Config.UserSaveDir.IsEmpty())
+        return MakeDefaultDataDir(services.Platform->GetUserSavedgamesDirectory());
+    return MakeUserDataDir(services.Config.UserSaveDir);
 }
 
 bool CreateFSDirs(const FSLocation &fs)
@@ -672,6 +676,7 @@ bool CreateFSDirs(const FSLocation &fs)
 
 ResolvedPath ResolveScriptPath(const String &orig_sc_path, bool read_only)
 {
+    EngineServices &services = EngineServices::Current();
     // Make sure that the script path has a system-portable form;
     String sc_path = orig_sc_path;
     sc_path.Replace('\\', '/');
@@ -721,7 +726,7 @@ ResolvedPath ResolveScriptPath(const String &orig_sc_path, bool read_only)
                               sc_path.GetCStr());
             return {};
         }
-        parent_dir = FSLocation(ResPaths.DataDir);
+        parent_dir = FSLocation(services.ResPaths.DataDir);
         child_path = sc_path.Mid(GameInstallRootToken.GetLength());
     }
     else if (sc_path.CompareLeft(GameSavedgamesDirToken) == 0)
@@ -747,7 +752,7 @@ ResolvedPath ResolveScriptPath(const String &orig_sc_path, bool read_only)
                               sc_path.GetCStr());
             return {};
         }
-        parent_dir = FSLocation(ResPaths.DataDir);
+        parent_dir = FSLocation(services.ResPaths.DataDir);
         child_path = sc_path;
     }
 
@@ -857,7 +862,8 @@ std::unique_ptr<Stream> ResolveScriptPathAndOpen(const String &sc_path, FileOpen
 
     if (!rp)
         return nullptr;
-    auto s = rp.AssetMgr ? AssetMgr->OpenAsset(rp.FullPath, "*") : File::OpenFile(rp.FullPath, open_mode, work_mode);
+    auto s = rp.AssetMgr ? EngineServices::Current().Assets->OpenAsset(rp.FullPath, "*")
+                         : File::OpenFile(rp.FullPath, open_mode, work_mode);
     if (!s)
         debug_script_warn("FileOpen: failed to open: %s", rp.FullPath.GetCStr());
     return s;
@@ -945,13 +951,14 @@ PACKFILE *PackfileFromStream(std::unique_ptr<Stream> stream)
 
 String find_assetlib(const String &filename)
 {
-    String libname = File::FindFileCI(ResPaths.DataDir, filename);
+    EngineServices &services = EngineServices::Current();
+    String libname = File::FindFileCI(services.ResPaths.DataDir, filename);
     if (!libname.IsEmpty() && AssetManager::IsDataFile(libname))
         return libname;
 
     // Look up in the alternative locations;
     // Test only locations that include "general data" filter (= empty filter)
-    for (const auto &opt_dir : ResPaths.OptDataDirs)
+    for (const auto &opt_dir : services.ResPaths.OptDataDirs)
     {
         if (opt_dir.second.FindSection("", ',') != String::NoIndex)
         {

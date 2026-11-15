@@ -61,6 +61,7 @@
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "platform/platform.h"
 #include "plugin/plugin_engine.h"
 #include "util/common.h"
@@ -126,7 +127,6 @@ DrawState drawstate;
 RGB palette[256];
 COLOR_MAP maincoltable;
 
-IGraphicsDriver *gfxDriver = nullptr;
 IDriverDependantBitmap *blankImage = nullptr;
 IDriverDependantBitmap *blankSidebarImage = nullptr;
 
@@ -170,11 +170,12 @@ struct ObjTexture
     ObjTexture(ObjTexture &&o) { *this = std::move(o); }
     ~ObjTexture()
     {
+        EngineServices &services = EngineServices::Current();
         Bmp.reset();
         if (Ddb)
         {
-            assert(gfxDriver);
-            gfxDriver->DestroyDDB(Ddb);
+            assert(services.GfxDriver);
+            services.GfxDriver->DestroyDDB(Ddb);
         }
     }
 
@@ -183,12 +184,13 @@ struct ObjTexture
 
     ObjTexture &operator=(ObjTexture &&o)
     {
+        EngineServices &services = EngineServices::Current();
         SpriteID = o.SpriteID;
         DrawIndex = o.DrawIndex;
         if (Ddb)
         {
-            assert(gfxDriver);
-            gfxDriver->DestroyDDB(Ddb);
+            assert(services.GfxDriver);
+            services.GfxDriver->DestroyDDB(Ddb);
         }
         Bmp = std::move(o.Bmp);
         Ddb = o.Ddb;
@@ -320,7 +322,7 @@ public:
                 return nullptr;
         }
 
-        txdata.reset(gfxDriver->CreateTexture(bitmap, kTxFlags_Opaque * opaque));
+        txdata.reset(EngineServices::Current().GfxDriver->CreateTexture(bitmap, kTxFlags_Opaque * opaque));
         if (!txdata)
             return nullptr;
 
@@ -408,7 +410,7 @@ ObjTexture cursor_tx;
 
 // Custom Shaders collection
 // TODO: RAII wrapper around IGraphicShader and IShaderInstance,
-// should dispose using gfxDriver->DeleteShaderProgram etc.
+// should dispose using EngineServices::GfxDriver->DeleteShaderProgram etc.
 std::vector<IGraphicShader *> customShaders;
 std::vector<IShaderInstance *> shaderInstances;
 
@@ -449,10 +451,11 @@ struct RoomCameraDrawData
 
 RoomCameraDrawData::~RoomCameraDrawData()
 {
+    EngineServices &services = EngineServices::Current();
     if (CamRenderTarget)
-        gfxDriver->DestroyDDB(CamRenderTarget);
+        services.GfxDriver->DestroyDDB(CamRenderTarget);
     if (ViewRenderTarget)
-        gfxDriver->DestroyDDB(ViewRenderTarget);
+        services.GfxDriver->DestroyDDB(ViewRenderTarget);
 }
 
 std::vector<RoomCameraDrawData> CameraDrawData;
@@ -514,7 +517,8 @@ void setpal()
 Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
 {
     return new Bitmap(width, height,
-                      gfxDriver->GetCompatibleBitmapFormat(col_depth == 0 ? game.GetColorDepth() : col_depth));
+                      EngineServices::Current().GfxDriver->GetCompatibleBitmapFormat(
+                          col_depth == 0 ? game.GetColorDepth() : col_depth));
 }
 
 // PrepareSpriteForUseImpl converts input bitmap to format which may be used
@@ -531,6 +535,7 @@ Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
 static Bitmap *PrepareSpriteForUseImpl(Bitmap *bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask,
                                        const RGB *bm_palette)
 {
+    EngineServices &services = EngineServices::Current();
     // sprite must be converted to game's color depth;
     // this behavior is hardcoded in the current engine version
     const int bmp_col_depth = bitmap->GetColorDepth();
@@ -555,7 +560,8 @@ static Bitmap *PrepareSpriteForUseImpl(Bitmap *bitmap, bool conv_to_gamedepth, b
             BitmapHelper::ReplaceHalfAlphaWithRGBMask(bitmap);
         }
 
-        new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(game_col_depth), keep_mask);
+        new_bitmap =
+            GfxUtil::ConvertBitmap(bitmap, services.GfxDriver->GetCompatibleBitmapFormat(game_col_depth), keep_mask);
         was_conv_to_gamedepth = true;
     }
 
@@ -578,8 +584,8 @@ static Bitmap *PrepareSpriteForUseImpl(Bitmap *bitmap, bool conv_to_gamedepth, b
 
     // Finally, if we did not create a new copy already, - ensure gfxdriver compatible format
     if (new_bitmap == bitmap)
-        new_bitmap =
-            GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()), keep_mask);
+        new_bitmap = GfxUtil::ConvertBitmap(
+            bitmap, services.GfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()), keep_mask);
 
     if (must_switch_palette)
         unselect_palette();
@@ -606,16 +612,18 @@ PBitmap PrepareSpriteForUse(PBitmap bitmap, bool conv_to_gamedepth, bool make_op
 Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect, bool at_native_res,
                              uint32_t batch_skip_filter)
 {
+    EngineServices &services = EngineServices::Current();
     Bitmap *dst = new Bitmap(width, height, game.GetColorDepth());
     GraphicResolution want_fmt;
     // If the size and color depth are supported, then we may copy right into our final bitmap
-    if (gfxDriver->GetCopyOfScreenIntoBitmap(dst, src_rect, at_native_res, &want_fmt, batch_skip_filter))
+    if (services.GfxDriver->GetCopyOfScreenIntoBitmap(dst, src_rect, at_native_res, &want_fmt, batch_skip_filter))
         return dst;
 
     // Otherwise we might need to copy between few bitmaps...
     // Get screenshot in the suitable format
     std::unique_ptr<Bitmap> buf_screenfmt(new Bitmap(want_fmt.Width, want_fmt.Height, want_fmt.ColorDepth));
-    gfxDriver->GetCopyOfScreenIntoBitmap(buf_screenfmt.get(), src_rect, at_native_res, nullptr, batch_skip_filter);
+    services.GfxDriver->GetCopyOfScreenIntoBitmap(buf_screenfmt.get(), src_rect, at_native_res, nullptr,
+                                                  batch_skip_filter);
     // If color depth does not match, and we must stretch-blit, then we need another helper bmp,
     // because Allegro does not support stretching with mismatching color depths
     std::unique_ptr<Bitmap> buf_fixdepth;
@@ -641,18 +649,20 @@ Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect, bool a
 
 void create_blank_image(int coldepth)
 {
+    EngineServices &services = EngineServices::Current();
     std::unique_ptr<Bitmap> blank(CreateCompatBitmap(16, 16, coldepth));
     blank->Clear();
-    blankImage = gfxDriver->CreateDDBFromBitmap(blank.get(), kTxFlags_Opaque);
-    blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank.get(), kTxFlags_Opaque);
+    blankImage = services.GfxDriver->CreateDDBFromBitmap(blank.get(), kTxFlags_Opaque);
+    blankSidebarImage = services.GfxDriver->CreateDDBFromBitmap(blank.get(), kTxFlags_Opaque);
 }
 
 void destroy_blank_image()
 {
+    EngineServices &services = EngineServices::Current();
     if (blankImage)
-        gfxDriver->DestroyDDB(blankImage);
+        services.GfxDriver->DestroyDDB(blankImage);
     if (blankSidebarImage)
-        gfxDriver->DestroyDDB(blankSidebarImage);
+        services.GfxDriver->DestroyDDB(blankSidebarImage);
     blankImage = nullptr;
     blankSidebarImage = nullptr;
 }
@@ -664,14 +674,15 @@ int MakeColor(int color_index)
 
 void init_draw_method()
 {
+    EngineServices &services = EngineServices::Current();
     dispose_draw_method(); // ensure that previous draw resources are disposed
 
-    drawstate.SoftwareRender = !gfxDriver->HasAcceleratedTransform();
-    drawstate.FullFrameRedraw = gfxDriver->RequiresFullRedrawEachFrame();
+    drawstate.SoftwareRender = !services.GfxDriver->HasAcceleratedTransform();
+    drawstate.FullFrameRedraw = services.GfxDriver->RequiresFullRedrawEachFrame();
     GUI::Context.SoftwareRender = drawstate.SoftwareRender;
 
     // Must init this as early as possible, as this affects bitmap->texture conv
-    gfxDriver->UseSmoothScaling(play.ShouldAASprites());
+    services.GfxDriver->UseSmoothScaling(play.ShouldAASprites());
 
     if (drawstate.SoftwareRender)
     {
@@ -681,10 +692,10 @@ void init_draw_method()
     {
         drawstate.WalkBehindMethod = DrawAsSeparateSprite;
         create_blank_image(game.GetColorDepth());
-        size_t tx_cache_size = usetup.TextureCacheSize * 1024;
+        size_t tx_cache_size = services.Config.TextureCacheSize * 1024;
         // If graphics driver can report available texture memory,
         // then limit the setting by, let's say, 66% of it (we use it for other things)
-        uint64_t avail_tx_mem = gfxDriver->GetAvailableTextureMemory();
+        uint64_t avail_tx_mem = services.GfxDriver->GetAvailableTextureMemory();
         if (avail_tx_mem > 0)
             tx_cache_size = std::min<size_t>(SIZE_MAX, std::min<uint64_t>(tx_cache_size, avail_tx_mem * 0.66));
         texturecache.SetMaxCacheSize(tx_cache_size);
@@ -693,8 +704,8 @@ void init_draw_method()
 
     on_mainviewport_changed();
     init_room_drawdata();
-    if (gfxDriver->UsesMemoryBackBuffer())
-        gfxDriver->GetMemoryBackBuffer()->Clear();
+    if (services.GfxDriver->UsesMemoryBackBuffer())
+        services.GfxDriver->GetMemoryBackBuffer()->Clear();
 
     // Allocate a single shader and shader instance slot for default "null" shader
     add_custom_shader(nullptr, 0u);
@@ -806,7 +817,7 @@ void clear_drawobj_cache(bool keep_sprite_callbacks)
     for (auto &tex : gui_render_tex)
     {
         if (tex)
-            gfxDriver->DestroyDDB(tex);
+            EngineServices::Current().GfxDriver->DestroyDDB(tex);
         tex = nullptr;
     }
     for (auto &o : guiobjbg)
@@ -838,23 +849,24 @@ void clear_drawobj_cache(bool keep_sprite_callbacks)
 
 void release_drawobj_rendertargets()
 {
-    if (!gfxDriver->ShouldReleaseRenderTargets())
+    EngineServices &services = EngineServices::Current();
+    if (!services.GfxDriver->ShouldReleaseRenderTargets())
         return;
 
-    gfxDriver->ClearDrawLists(); // force clear to ensure nothing stays cached
+    services.GfxDriver->ClearDrawLists(); // force clear to ensure nothing stays cached
     for (auto &camdata : CameraDrawData)
     {
         if (camdata.CamRenderTarget)
-            gfxDriver->DestroyDDB(camdata.CamRenderTarget);
+            services.GfxDriver->DestroyDDB(camdata.CamRenderTarget);
         camdata.CamRenderTarget = nullptr;
         if (camdata.ViewRenderTarget)
-            gfxDriver->DestroyDDB(camdata.ViewRenderTarget);
+            services.GfxDriver->DestroyDDB(camdata.ViewRenderTarget);
         camdata.ViewRenderTarget = nullptr;
     }
     for (auto &tex : gui_render_tex)
     {
         if (tex)
-            gfxDriver->DestroyDDB(tex);
+            services.GfxDriver->DestroyDDB(tex);
         tex = nullptr;
     }
 }
@@ -901,7 +913,8 @@ void prepare_roomview_frame(Viewport *view)
             // Allocate new buffer bitmap with an extra size in case they will want to zoom out
             Size alloc_sz = Size::Clamp(cam_sz * 2, Size(1, 1), Size(thisroom.Width, thisroom.Height));
             camera_buffer.reset(
-                new Bitmap(alloc_sz.Width, alloc_sz.Height, gfxDriver->GetMemoryBackBuffer()->GetColorDepth()));
+                new Bitmap(alloc_sz.Width, alloc_sz.Height,
+                           EngineServices::Current().GfxDriver->GetMemoryBackBuffer()->GetColorDepth()));
         }
 
         if (!camera_frame || camera_frame->GetSize() != cam_sz)
@@ -973,13 +986,14 @@ void on_roomviewport_deleted(int index)
 
 void on_roomviewport_changed(Viewport *view)
 {
+    EngineServices &services = EngineServices::Current();
     // Following update is only interesting for the software renderer
     if (drawstate.FullFrameRedraw || (displayed_room < 0))
         return;
     if (!view->IsVisible() || view->GetCamera() == nullptr)
         return;
     CameraDrawData[view->GetID()].IsOffscreen =
-        !IsRectInsideRect(RectWH(gfxDriver->GetMemoryBackBuffer()->GetSize()), view->GetRect());
+        !IsRectInsideRect(RectWH(services.GfxDriver->GetMemoryBackBuffer()->GetSize()), view->GetRect());
     // Always resync, because dirty rects store viewport's screen position too:
     // if left stale, they will blit the room onto the old position when drawing
     // directly to the screen, and may write past the backbuffer's bounds.
@@ -987,7 +1001,7 @@ void on_roomviewport_changed(Viewport *view)
     // TODO: don't have to do this all the time, perhaps do "dirty rect" method
     // and only clear previous viewport location?
     invalidate_screen();
-    gfxDriver->GetMemoryBackBuffer()->Clear();
+    services.GfxDriver->GetMemoryBackBuffer()->Clear();
 }
 
 void detect_roomviewport_overlaps(size_t z_index)
@@ -1196,7 +1210,7 @@ void update_shared_texture(uint32_t sprite_id)
     const auto &res = txdata->Res;
     if (res.Width == game.SpriteInfos[sprite_id].Width && res.Height == game.SpriteInfos[sprite_id].Height)
     {
-        gfxDriver->UpdateTexture(txdata.get(), spriteset[sprite_id], false);
+        EngineServices::Current().GfxDriver->UpdateTexture(txdata.get(), spriteset[sprite_id], false);
     }
     else
     {
@@ -1240,7 +1254,7 @@ void delete_custom_shader(uint32_t shader_id)
 {
     if (shader_id < customShaders.size() && customShaders[shader_id] != nullptr)
     {
-        gfxDriver->DeleteShaderProgram(customShaders[shader_id]);
+        EngineServices::Current().GfxDriver->DeleteShaderProgram(customShaders[shader_id]);
         customShaders[shader_id] = {};
     }
 }
@@ -1270,23 +1284,24 @@ void delete_shader_instance(uint32_t shader_inst_id)
 {
     if (shader_inst_id < shaderInstances.size() && shaderInstances[shader_inst_id] != nullptr)
     {
-        gfxDriver->DeleteShaderInstance(shaderInstances[shader_inst_id]);
+        EngineServices::Current().GfxDriver->DeleteShaderInstance(shaderInstances[shader_inst_id]);
         shaderInstances[shader_inst_id] = {};
     }
 }
 
 void dispose_all_custom_shaders()
 {
+    EngineServices &services = EngineServices::Current();
     for (auto &shinst : shaderInstances)
     {
         if (shinst)
-            gfxDriver->DeleteShaderInstance(shinst);
+            services.GfxDriver->DeleteShaderInstance(shinst);
     }
     shaderInstances.clear();
     for (auto &sh : customShaders)
     {
         if (sh)
-            gfxDriver->DeleteShaderProgram(sh);
+            services.GfxDriver->DeleteShaderProgram(sh);
     }
     customShaders.clear();
 }
@@ -1299,7 +1314,7 @@ static void update_global_shader_constants()
     auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
     constants.Time = static_cast<float>(now_ms) / 1000.f;
     constants.GameFrame = get_loop_counter();
-    gfxDriver->SetGlobalShaderConstants(constants);
+    EngineServices::Current().GfxDriver->SetGlobalShaderConstants(constants);
 }
 
 Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
@@ -1348,33 +1363,35 @@ void draw_and_invalidate_text(Bitmap *ds, int x1, int y1, int font, color_t text
 // where whole game screen changes size between large and small rooms
 static void render_black_borders()
 {
+    EngineServices &services = EngineServices::Current();
     const Rect &viewport = play.GetMainViewport();
     if (viewport.Top > 0)
     {
         // letterbox borders
         blankImage->SetStretch(game.GetGameRes().Width, viewport.Top, false);
-        gfxDriver->DrawSprite(0, 0, blankImage);
-        gfxDriver->DrawSprite(0, viewport.Bottom + 1, blankImage);
+        services.GfxDriver->DrawSprite(0, 0, blankImage);
+        services.GfxDriver->DrawSprite(0, viewport.Bottom + 1, blankImage);
     }
     if (viewport.Left > 0)
     {
         // sidebar borders for widescreen
         blankSidebarImage->SetStretch(viewport.Left, viewport.GetHeight(), false);
-        gfxDriver->DrawSprite(0, 0, blankSidebarImage);
-        gfxDriver->DrawSprite(viewport.Right + 1, 0, blankSidebarImage);
+        services.GfxDriver->DrawSprite(0, 0, blankSidebarImage);
+        services.GfxDriver->DrawSprite(viewport.Right + 1, 0, blankSidebarImage);
     }
 }
 
 
 void render_to_screen()
 {
+    EngineServices &services = EngineServices::Current();
     // Stage: final plugin callback (still drawn on game screen)
     if (pl_any_want_hook(kPluginEvt_FinalScreenDraw))
     {
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
-                                    (GraphicFlip)play.screen_flipped);
-        gfxDriver->AddRenderEvent(kPluginEvt_FinalScreenDraw, 0);
-        gfxDriver->EndSpriteBatch();
+        services.GfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
+                                             (GraphicFlip)play.screen_flipped);
+        services.GfxDriver->AddRenderEvent(kPluginEvt_FinalScreenDraw, 0);
+        services.GfxDriver->EndSpriteBatch();
     }
     // Stage: engine overlay
     construct_engine_overlay();
@@ -1382,11 +1399,11 @@ void render_to_screen()
     // Try set new vsync value, and remember the actual result
     if (isTimerFpsMaxed())
     {
-        gfxDriver->SetVsync(false);
+        services.GfxDriver->SetVsync(false);
     }
     else
     {
-        bool new_vsync = gfxDriver->SetVsync(scsystem.vsync > 0);
+        bool new_vsync = services.GfxDriver->SetVsync(scsystem.vsync > 0);
         if (new_vsync != (scsystem.vsync != 0))
             System_SetVSyncInternal(new_vsync);
     }
@@ -1395,13 +1412,13 @@ void render_to_screen()
     update_global_shader_constants();
 
     bool succeeded = false;
-    while (!succeeded && !want_exit && !abort_engine)
+    while (!succeeded && !services.WantExit && !services.AbortEngine)
     {
         try
         {
             if (drawstate.FullFrameRedraw)
             {
-                gfxDriver->Render();
+                services.GfxDriver->Render();
             }
             else
             {
@@ -1413,10 +1430,10 @@ void render_to_screen()
                 if (play.shake_screen_yoff > 0)
                 {
                     const Rect &viewport = play.GetMainViewport();
-                    gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1,
-                                              play.shake_screen_yoff, nullptr);
+                    services.GfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1,
+                                                       play.shake_screen_yoff, nullptr);
                 }
-                gfxDriver->Render(0, play.shake_screen_yoff, (GraphicFlip)play.screen_flipped);
+                services.GfxDriver->Render(0, play.shake_screen_yoff, (GraphicFlip)play.screen_flipped);
             }
             succeeded = true;
         }
@@ -1426,8 +1443,8 @@ void render_to_screen()
             do
             {
                 sys_evt_process_pending();
-                platform->Delay(300);
-            } while (game_update_suspend && (!want_exit) && (!abort_engine));
+                services.Platform->Delay(300);
+            } while (services.GameUpdateSuspend && (!services.WantExit) && (!services.AbortEngine));
         }
     }
 }
@@ -1435,10 +1452,11 @@ void render_to_screen()
 // Blanks out borders around main viewport in case it became smaller (e.g. after loading another room)
 void clear_letterbox_borders()
 {
+    EngineServices &services = EngineServices::Current();
     const Rect &viewport = play.GetMainViewport();
-    gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, viewport.Top - 1, nullptr);
-    gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1,
-                              nullptr);
+    services.GfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, viewport.Top - 1, nullptr);
+    services.GfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1,
+                                       game.GetGameRes().Height - 1, nullptr);
 }
 
 void draw_sprite_support_alpha(Bitmap *ds, int xpos, int ypos, Bitmap *image, BlendMode blend_mode, int alpha)
@@ -1456,6 +1474,7 @@ void draw_sprite_slot_support_alpha(Bitmap *ds, int xpos, int ypos, int src_slot
 
 IDriverDependantBitmap *recycle_ddb_bitmap(IDriverDependantBitmap *ddb, Common::Bitmap *source, bool opaque)
 {
+    EngineServices &services = EngineServices::Current();
     const int txflags = opaque * kTxFlags_Opaque;
 
     assert(source);
@@ -1463,17 +1482,18 @@ IDriverDependantBitmap *recycle_ddb_bitmap(IDriverDependantBitmap *ddb, Common::
         (drawstate.SoftwareRender ||         // is software renderer, or...
          ((ddb->GetRefID() == UINT32_MAX) && // the texture is *not identified*, and...
           (ddb->MatchesFormat(source)))))    // existing DDB format matches
-        gfxDriver->UpdateDDBFromBitmap(ddb, source);
+        services.GfxDriver->UpdateDDBFromBitmap(ddb, source);
     else if (ddb) // if existing texture format does not match, then create a new texture
-        ddb->AttachData(std::shared_ptr<Texture>(gfxDriver->CreateTexture(source, txflags)), txflags);
+        ddb->AttachData(std::shared_ptr<Texture>(services.GfxDriver->CreateTexture(source, txflags)), txflags);
     else // ...else allocated new DDB
-        ddb = gfxDriver->CreateDDBFromBitmap(source, txflags);
+        ddb = services.GfxDriver->CreateDDBFromBitmap(source, txflags);
     return ddb;
 }
 
 IDriverDependantBitmap *recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t sprite_id, Common::Bitmap *source,
                                            bool opaque)
 {
+    EngineServices &services = EngineServices::Current();
     // If sprite_id is not cachable, then fallback to a simpler variant
     if (drawstate.SoftwareRender || sprite_id == UINT32_MAX)
     {
@@ -1493,7 +1513,7 @@ IDriverDependantBitmap *recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t
         if (ddb)
             ddb->DetachData();
         else
-            ddb = gfxDriver->CreateDDB();
+            ddb = services.GfxDriver->CreateDDB();
         return ddb;
     }
 
@@ -1501,18 +1521,20 @@ IDriverDependantBitmap *recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t
     if (ddb)
         ddb->AttachData(txdata, txflags);
     else
-        ddb = gfxDriver->CreateDDB(txdata, txflags);
+        ddb = services.GfxDriver->CreateDDB(txdata, txflags);
     return ddb;
 }
 
 IDriverDependantBitmap *recycle_render_target(IDriverDependantBitmap *ddb, int width, int height, int col_depth,
                                               bool opaque)
 {
+    EngineServices &services = EngineServices::Current();
     if (ddb && (ddb->GetWidth() == width) && (ddb->GetHeight() == height))
         return ddb;
     if (ddb)
-        gfxDriver->DestroyDDB(ddb);
-    return gfxDriver->CreateRenderTargetDDB(width, height, col_depth, opaque ? kTxFlags_Opaque : kTxFlags_None);
+        services.GfxDriver->DestroyDDB(ddb);
+    return services.GfxDriver->CreateRenderTargetDDB(width, height, col_depth,
+                                                     opaque ? kTxFlags_Opaque : kTxFlags_None);
 }
 
 // FIXME: make opaque a property of ObjTexture?!
@@ -1706,7 +1728,7 @@ void recreate_drawobj_bitmap(Bitmap *&raw, IDriverDependantBitmap *&ddb, int wid
     raw = CreateCompatBitmap(final_sz.Width, final_sz.Height);
     if (ddb != nullptr)
     {
-        gfxDriver->DestroyDDB(ddb);
+        EngineServices::Current().GfxDriver->DestroyDDB(ddb);
         ddb = nullptr;
     }
 }
@@ -2495,7 +2517,7 @@ void draw_preroom_background()
 {
     if (drawstate.FullFrameRedraw)
         return;
-    update_black_invreg_and_reset(gfxDriver->GetMemoryBackBuffer());
+    update_black_invreg_and_reset(EngineServices::Current().GfxDriver->GetMemoryBackBuffer());
 }
 
 // Draws the room background on the given surface.
@@ -2515,7 +2537,7 @@ static PBitmap draw_room_background(const Viewport *view)
     // StretchBlt between different colour depths, but that one may be not relevant now.
     // See Also: comment inside ALSoftwareGraphicsDriver::RenderToBackBuffer().
     const int view_index = view->GetID();
-    Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
+    Bitmap *ds = EngineServices::Current().GfxDriver->GetMemoryBackBuffer();
     // If separate bitmap was prepared for this view/camera pair then use it, draw untransformed
     // and blit transformed whole surface later.
     const bool draw_to_camsurf = CameraDrawData[view_index].Frame != nullptr;
@@ -2549,7 +2571,7 @@ void dispose_engine_overlay()
 {
     gl_DrawFPS.bmp.reset();
     if (gl_DrawFPS.ddb)
-        gfxDriver->DestroyDDB(gl_DrawFPS.ddb);
+        EngineServices::Current().GfxDriver->DestroyDDB(gl_DrawFPS.ddb);
     gl_DrawFPS.ddb = nullptr;
     gl_DrawFPS.font = -1;
 }
@@ -2603,7 +2625,7 @@ void draw_fps(const Rect &viewport)
 
     gl_DrawFPS.ddb = recycle_ddb_bitmap(gl_DrawFPS.ddb, gl_DrawFPS.bmp.get());
     int yp = viewport.GetHeight() - fps_display->GetHeight();
-    gfxDriver->DrawSprite(1, yp, gl_DrawFPS.ddb);
+    EngineServices::Current().GfxDriver->DrawSprite(1, yp, gl_DrawFPS.ddb);
     invalidate_sprite_glob(1, yp, gl_DrawFPS.ddb);
 }
 
@@ -2637,20 +2659,21 @@ static void construct_guictrl_tex(GUIMain &gui)
 // Push gui bg & controls textures for the render to the corresponding render target
 static void draw_gui_controls_batch(int gui_id)
 {
+    EngineServices &services = EngineServices::Current();
     auto *gui_rtex = gui_render_tex[gui_id];
     assert(gui_rtex);
     const auto &gui = guis[gui_id];
     auto *gui_bg = guibg[gui_id].Ddb;
     // Create a sub-batch
-    gfxDriver->BeginSpriteBatch(gui_rtex, RectWH(0, 0, gui_bg->GetWidth(), gui_bg->GetHeight()), SpriteTransform(),
-                                kFlip_None);
+    services.GfxDriver->BeginSpriteBatch(gui_rtex, RectWH(0, 0, gui_bg->GetWidth(), gui_bg->GetHeight()),
+                                         SpriteTransform(), kFlip_None);
     // Add GUI itself
-    gfxDriver->DrawSprite(0, 0, gui_bg);
+    services.GfxDriver->DrawSprite(0, 0, gui_bg);
 
     // Don't draw child controls at all if disabled with kGuiDis_Blackout style
     if (GUI::ShouldSkipControls(&gui))
     {
-        gfxDriver->EndSpriteBatch();
+        services.GfxDriver->EndSpriteBatch();
         return;
     }
 
@@ -2678,16 +2701,16 @@ static void draw_gui_controls_batch(int gui_id)
         // also see fixme comment to GraphicSpace struct.
         const int objx = obj->GetX() + obj_tx.Off.X * obj->GetScale().X;
         const int objy = obj->GetY() + obj_tx.Off.Y * obj->GetScale().Y;
-        gfxDriver->DrawSprite(objx, objy, obj_ddb);
+        services.GfxDriver->DrawSprite(objx, objy, obj_ddb);
     }
-    gfxDriver->EndSpriteBatch();
+    services.GfxDriver->EndSpriteBatch();
 }
 
 // Draw GUI and overlays of all kinds, anything outside the room space
 void draw_gui_and_overlays()
 {
     if (pl_any_want_hook(kPluginEvt_PreGUIDraw))
-        gfxDriver->AddRenderEvent(kPluginEvt_PreGUIDraw, 0); // render stage
+        EngineServices::Current().GfxDriver->AddRenderEvent(kPluginEvt_PreGUIDraw, 0); // render stage
 
     clear_sprite_list();
 
@@ -2838,6 +2861,7 @@ void draw_gui_and_overlays()
 // Push the gathered list of sprites into the active graphic renderer
 void put_sprite_list_on_screen(bool in_room)
 {
+    EngineServices &services = EngineServices::Current();
     for (const auto &t : thingsToDrawList)
     {
         assert(t.DDB || (t.RenderStage >= 0));
@@ -2850,12 +2874,12 @@ void put_sprite_list_on_screen(bool in_room)
             // mark the image's region as dirty
             invalidate_sprite(t.AABB.Left, t.AABB.Top, t.DDB, in_room);
             // push to the graphics driver
-            gfxDriver->DrawSprite(t.X, t.Y, t.AABB.Left, t.AABB.Top, t.DDB);
+            services.GfxDriver->DrawSprite(t.X, t.Y, t.AABB.Left, t.AABB.Top, t.DDB);
         }
         else if (t.RenderStage >= 0)
         {
             // meta entry to run the plugin hook
-            gfxDriver->AddRenderEvent(t.RenderStage, 0);
+            services.GfxDriver->AddRenderEvent(t.RenderStage, 0);
         }
     }
 
@@ -2874,12 +2898,13 @@ bool GfxDriverSpriteEvtCallback(int evt, intptr_t data)
 
 void GfxDriverOnInitCallback(void *data)
 {
-    pl_run_plugin_init_gfx_hooks(gfxDriver->GetDriverID(), data);
+    pl_run_plugin_init_gfx_hooks(EngineServices::Current().GfxDriver->GetDriverID(), data);
 }
 
 // Renders room viewport: hardware gfx driver version
 static void construct_roomview_hw(const Viewport *viewport)
 {
+    EngineServices &services = EngineServices::Current();
     assert(viewport->GetID() < CameraDrawData.size());
     Camera *camera = viewport->GetCamera().get();
     const Rect &view_rc = viewport->GetRect();
@@ -2896,11 +2921,12 @@ static void construct_roomview_hw(const Viewport *viewport)
         auto &cam_data = CameraDrawData[viewport->GetID()];
         cam_data.CamRenderTarget = recycle_render_target(cam_data.CamRenderTarget, cam_rc.GetWidth(),
                                                          cam_rc.GetHeight(), game.GetColorDepth());
-        gfxDriver->BeginSpriteBatch(cam_data.CamRenderTarget, Rect(), cam_trans, kFlip_None, RENDER_BATCH_ROOM_LAYER);
-        gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
+        services.GfxDriver->BeginSpriteBatch(cam_data.CamRenderTarget, Rect(), cam_trans, kFlip_None,
+                                             RENDER_BATCH_ROOM_LAYER);
+        services.GfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
         // Put all the accumulated room sprites onto the viewport texture
         put_sprite_list_on_screen(true);
-        gfxDriver->EndSpriteBatch();
+        services.GfxDriver->EndSpriteBatch();
 
         IDriverDependantBitmap *final_cam_ddb = cam_data.CamRenderTarget;
         int final_shader = viewport->GetShaderID() > 0 ? viewport->GetShaderID() : camera->GetShaderID();
@@ -2910,12 +2936,12 @@ static void construct_roomview_hw(const Viewport *viewport)
         {
             cam_data.ViewRenderTarget = recycle_render_target(cam_data.ViewRenderTarget, cam_rc.GetWidth(),
                                                               cam_rc.GetHeight(), game.GetColorDepth());
-            gfxDriver->BeginSpriteBatch(cam_data.ViewRenderTarget, Rect(), SpriteTransform(), kFlip_None,
-                                        RENDER_BATCH_ROOM_LAYER);
+            services.GfxDriver->BeginSpriteBatch(cam_data.ViewRenderTarget, Rect(), SpriteTransform(), kFlip_None,
+                                                 RENDER_BATCH_ROOM_LAYER);
             cam_data.CamRenderTarget->SetStretch(cam_rc.GetWidth(), cam_rc.GetHeight());
             cam_data.CamRenderTarget->SetShader(shaderInstances[camera->GetShaderID()]);
-            gfxDriver->DrawSprite(0, 0, cam_data.CamRenderTarget);
-            gfxDriver->EndSpriteBatch();
+            services.GfxDriver->DrawSprite(0, 0, cam_data.CamRenderTarget);
+            services.GfxDriver->EndSpriteBatch();
 
             final_cam_ddb = cam_data.ViewRenderTarget;
         }
@@ -2924,7 +2950,7 @@ static void construct_roomview_hw(const Viewport *viewport)
         // and using final shader (either viewport's or camera's, depending on which shaders are set).
         final_cam_ddb->SetStretch(view_rc.GetWidth(), view_rc.GetHeight());
         final_cam_ddb->SetShader(shaderInstances[final_shader]);
-        gfxDriver->DrawSprite(view_rc.Left, view_rc.Top, final_cam_ddb);
+        services.GfxDriver->DrawSprite(view_rc.Left, view_rc.Top, final_cam_ddb);
     }
     else
     {
@@ -2935,18 +2961,19 @@ static void construct_roomview_hw(const Viewport *viewport)
         const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f, camera->GetRotation(),
                                         camera->GetEffectivePivot());
 
-        gfxDriver->BeginSpriteBatch(view_rc, view_trans, RENDER_BATCH_ROOM_LAYER);
-        gfxDriver->BeginSpriteBatch(Rect(), cam_trans, cam_rc.GetSize());
-        gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
+        services.GfxDriver->BeginSpriteBatch(view_rc, view_trans, RENDER_BATCH_ROOM_LAYER);
+        services.GfxDriver->BeginSpriteBatch(Rect(), cam_trans, cam_rc.GetSize());
+        services.GfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
         put_sprite_list_on_screen(true);
-        gfxDriver->EndSpriteBatch();
-        gfxDriver->EndSpriteBatch();
+        services.GfxDriver->EndSpriteBatch();
+        services.GfxDriver->EndSpriteBatch();
     }
 }
 
 // Renders room viewport: software gfx driver version
 static void construct_roomview_sw(const Viewport *viewport)
 {
+    EngineServices &services = EngineServices::Current();
     assert(viewport->GetID() < CameraDrawData.size());
     Camera *camera = viewport->GetCamera().get();
     const Rect &view_rc = viewport->GetRect();
@@ -2962,7 +2989,7 @@ static void construct_roomview_sw(const Viewport *viewport)
     // For software renderer - combine viewport and camera in one batch,
     // due to how the room drawing is implemented currently in the software mode.
     // TODO: review this later?
-    gfxDriver->BeginSpriteBatch(view_p, view_trans, RENDER_BATCH_ROOM_LAYER);
+    services.GfxDriver->BeginSpriteBatch(view_p, view_trans, RENDER_BATCH_ROOM_LAYER);
 
     if (CameraDrawData[viewport->GetID()].Frame == nullptr && CameraDrawData[viewport->GetID()].IsOverlap)
     { // room background is prepended to the sprite stack
@@ -2974,17 +3001,17 @@ static void construct_roomview_sw(const Viewport *viewport)
         // coordinates (cam1 -> screen -> cam2).
         // It's not clear whether this is worth the effort, but if it is,
         // then we'd need to optimise view/cam data first.
-        gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
-        gfxDriver->DrawSprite(0, 0, roomBackgroundBmp);
+        services.GfxDriver->BeginSpriteBatch(Rect(), cam_trans);
+        services.GfxDriver->DrawSprite(0, 0, roomBackgroundBmp);
     }
     else
     { // room background is drawn by dirty rects system
         PBitmap bg_surface = draw_room_background(viewport);
-        gfxDriver->BeginSpriteBatch(Rect(), cam_trans, kFlip_None, bg_surface);
+        services.GfxDriver->BeginSpriteBatch(Rect(), cam_trans, kFlip_None, bg_surface);
     }
     put_sprite_list_on_screen(true);
-    gfxDriver->EndSpriteBatch();
-    gfxDriver->EndSpriteBatch();
+    services.GfxDriver->EndSpriteBatch();
+    services.GfxDriver->EndSpriteBatch();
 }
 
 // Schedule room rendering: background, objects, characters
@@ -3018,9 +3045,10 @@ static void construct_room_view()
 // Schedule ui rendering
 static void construct_ui_view()
 {
-    gfxDriver->BeginSpriteBatch(play.GetUIViewport(), SpriteTransform(), RENDER_BATCH_UI_LAYER);
+    EngineServices &services = EngineServices::Current();
+    services.GfxDriver->BeginSpriteBatch(play.GetUIViewport(), SpriteTransform(), RENDER_BATCH_UI_LAYER);
     draw_gui_and_overlays();
-    gfxDriver->EndSpriteBatch();
+    services.GfxDriver->EndSpriteBatch();
     clear_draw_list();
 }
 
@@ -3124,12 +3152,13 @@ static void construct_overlays()
 
 void construct_game_scene(bool full_redraw)
 {
+    EngineServices &services = EngineServices::Current();
     set_our_eip(3);
 
     // React to changes to viewports and cameras (possibly from script) just before the render
     play.UpdateViewports();
 
-    gfxDriver->RenderSpritesAtScreenResolution(usetup.RenderAtScreenRes);
+    services.GfxDriver->RenderSpritesAtScreenResolution(services.Config.RenderAtScreenRes);
 
     pl_run_plugin_hooks(kPluginEvt_PreRender, 0);
 
@@ -3141,8 +3170,8 @@ void construct_game_scene(bool full_redraw)
     construct_overlays();
 
     // Begin with the parent scene node, defining global offset and flip
-    gfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
-                                (GraphicFlip)play.screen_flipped);
+    services.GfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
+                                         (GraphicFlip)play.screen_flipped);
 
     // Stage: room viewports
     if (!play.screen_is_faded_out && play.complete_overlay_on == 0)
@@ -3155,7 +3184,7 @@ void construct_game_scene(bool full_redraw)
         {
             // black it out so we don't get cursor trails
             // TODO: this is possible to do with dirty rects system now too (it can paint black rects outside of room viewport)
-            gfxDriver->GetMemoryBackBuffer()->Fill(0);
+            services.GfxDriver->GetMemoryBackBuffer()->Fill(0);
         }
     }
 
@@ -3168,18 +3197,19 @@ void construct_game_scene(bool full_redraw)
     }
 
     // End the parent scene node
-    gfxDriver->EndSpriteBatch();
+    services.GfxDriver->EndSpriteBatch();
 
-    gfxDriver->SetScreenShader(shaderInstances[play.GetScreenShaderID()]);
+    services.GfxDriver->SetScreenShader(shaderInstances[play.GetScreenShaderID()]);
 }
 
 void construct_game_screen_overlay(bool draw_cursor)
 {
-    gfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
-                                (GraphicFlip)play.screen_flipped);
+    EngineServices &services = EngineServices::Current();
+    services.GfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
+                                         (GraphicFlip)play.screen_flipped);
     if (pl_any_want_hook(kPluginEvt_PostScreenDraw))
     {
-        gfxDriver->AddRenderEvent(kPluginEvt_PostScreenDraw, 0);
+        services.GfxDriver->AddRenderEvent(kPluginEvt_PostScreenDraw, 0);
     }
 
     // Mouse cursor
@@ -3204,42 +3234,44 @@ void construct_game_screen_overlay(bool draw_cursor)
             cursor_tx.Ddb->SetShader(shaderInstances[play.GetCursorShaderID()]);
 
             // Exclusive sub-batch for mouse cursor, to let filter it out (see RENDER_SHOT_SKIP_ON_FADE)
-            gfxDriver->BeginSpriteBatch(Rect(), SpriteTransform(), kFlip_None, nullptr, RENDER_BATCH_MOUSE_CURSOR);
-            gfxDriver->DrawSprite(mousex - mouse_hotx, mousey - mouse_hoty, cursor_tx.Ddb);
+            services.GfxDriver->BeginSpriteBatch(Rect(), SpriteTransform(), kFlip_None, nullptr,
+                                                 RENDER_BATCH_MOUSE_CURSOR);
+            services.GfxDriver->DrawSprite(mousex - mouse_hotx, mousey - mouse_hoty, cursor_tx.Ddb);
             invalidate_sprite(mousex - mouse_hotx, mousey - mouse_hoty, cursor_tx.Ddb, false);
-            gfxDriver->EndSpriteBatch();
+            services.GfxDriver->EndSpriteBatch();
         }
     }
 
     // Full screen tint fx, covers everything except for fade fx(?) and engine overlay
     if ((play.screen_tint >= 1) && (!play.screen_is_faded_out))
-        gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff,
-                                 (play.screen_tint >> 16) & 0xff);
-    gfxDriver->EndSpriteBatch();
+        services.GfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff,
+                                          (play.screen_tint >> 16) & 0xff);
+    services.GfxDriver->EndSpriteBatch();
 
     // For hardware-accelerated renderers: legacy letterbox and global screen fade effect
     if (drawstate.FullFrameRedraw)
     {
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
+        services.GfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
         // Stage: legacy letterbox mode borders
         if (!play.screen_is_faded_out)
             render_black_borders();
         // Stage: full screen fade fx
         if (play.screen_is_faded_out)
-            gfxDriver->SetScreenFade(play.fade_to_red, play.fade_to_green, play.fade_to_blue);
-        gfxDriver->EndSpriteBatch();
+            services.GfxDriver->SetScreenFade(play.fade_to_red, play.fade_to_green, play.fade_to_blue);
+        services.GfxDriver->EndSpriteBatch();
     }
 }
 
 void construct_engine_overlay()
 {
+    EngineServices &services = EngineServices::Current();
     const Rect &viewport = RectWH(game.GetGameRes());
-    gfxDriver->BeginSpriteBatch(viewport, SpriteTransform(), kFlip_None, nullptr, RENDER_BATCH_ENGINE_OVERLAY);
+    services.GfxDriver->BeginSpriteBatch(viewport, SpriteTransform(), kFlip_None, nullptr, RENDER_BATCH_ENGINE_OVERLAY);
 
     if (display_fps != kFPS_Hide)
         draw_fps(viewport);
 
-    gfxDriver->EndSpriteBatch();
+    services.GfxDriver->EndSpriteBatch();
 }
 
 void update_shakescreen()
@@ -3335,6 +3367,7 @@ void update_room_debug()
 // Draw everything
 void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extra_y)
 {
+    EngineServices &services = EngineServices::Current();
     // Don't render if skipping cutscene
     if (play.fast_forward)
         return;
@@ -3349,18 +3382,18 @@ void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extr
     // this prevents sprites getting deleted while they are part of the draw lists.
     spriteset.EnableAutoFreeMem(false);
 
-    gfxDriver->ClearDrawLists();
+    services.GfxDriver->ClearDrawLists();
     construct_game_scene(false);
     set_our_eip(5);
     // TODO: extra_bitmap is a hack, used to place an additional gui element
     // on top of the screen. Normally this should be a part of the game UI stage.
     if (extra_bitmap != nullptr)
     {
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
-                                    (GraphicFlip)play.screen_flipped);
+        services.GfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
+                                             (GraphicFlip)play.screen_flipped);
         invalidate_sprite(extra_x, extra_y, extra_bitmap, false);
-        gfxDriver->DrawSprite(extra_x, extra_y, extra_bitmap);
-        gfxDriver->EndSpriteBatch();
+        services.GfxDriver->DrawSprite(extra_x, extra_y, extra_bitmap);
+        services.GfxDriver->EndSpriteBatch();
     }
     construct_game_screen_overlay(!in_room_transition);
     render_to_screen();

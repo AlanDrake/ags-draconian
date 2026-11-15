@@ -25,6 +25,7 @@
 #include "game/video/video.h"
 #include "media/video/videoplayer.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/path.h"
 
@@ -313,7 +314,7 @@ void PlayVideo(const char *name, int skip, int scr_flags)
     }
 
     // if audio is disabled, then don't play any sound on the video either
-    if (!usetup.AudioEnabled)
+    if (!EngineServices::Current().Config.AudioEnabled)
         video_flags &= ~kVideo_EnableAudio;
 
     // for old versions: allow slightly offset video frames

@@ -31,6 +31,7 @@
 #include "gfx/sprite_cache.h"
 #include "main/game_run.h"
 #include "media/video/video_core.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/memory_compat.h"
 #include "util/path.h"
@@ -120,8 +121,9 @@ BlockingVideoPlayer::~BlockingVideoPlayer()
 
 void BlockingVideoPlayer::Begin()
 {
+    EngineServices &services = EngineServices::Current();
     assert(_playerID >= 0);
-    assert(gfxDriver);
+    assert(services.GfxDriver);
 
     // Optionally stop the game audio
     if ((_stateFlags & kVideoState_StopGameAudio) != 0)
@@ -135,9 +137,9 @@ void BlockingVideoPlayer::Begin()
     // in order to draw first partial FLIC frames onto that.
     if ((_stateFlags & kVideoState_ClearScreen) != 0)
     {
-        if (gfxDriver->UsesMemoryBackBuffer())
+        if (services.GfxDriver->UsesMemoryBackBuffer())
         {
-            gfxDriver->GetMemoryBackBuffer()->Clear();
+            services.GfxDriver->GetMemoryBackBuffer()->Clear();
         }
     }
 
@@ -155,7 +157,7 @@ void BlockingVideoPlayer::Begin()
     // Setup video
     if ((_videoFlags & kVideo_EnableVideo) != 0)
     {
-        _isSoftwareRender = !gfxDriver->HasAcceleratedTransform();
+        _isSoftwareRender = !services.GfxDriver->HasAcceleratedTransform();
         Size frame_sz = player->GetFrameSize();
         Rect dest = PlaceInRect(play.GetMainViewport(), RectWH(frame_sz),
                                 ((_stateFlags & kVideoState_Stretch) == 0) ? kPlaceCenter : kPlaceStretchProportional);
@@ -175,11 +177,11 @@ void BlockingVideoPlayer::Begin()
         const int dst_depth = player->GetTargetDepth();
         if (!_isSoftwareRender || ((_stateFlags & kVideoState_Stretch) == 0))
         {
-            _videoDDB = gfxDriver->CreateDDB(frame_sz.Width, frame_sz.Height, dst_depth, kTxFlags_Opaque);
+            _videoDDB = services.GfxDriver->CreateDDB(frame_sz.Width, frame_sz.Height, dst_depth, kTxFlags_Opaque);
         }
         else
         {
-            _videoDDB = gfxDriver->CreateDDB(dest.GetWidth(), dest.GetHeight(), dst_depth, kTxFlags_Opaque);
+            _videoDDB = services.GfxDriver->CreateDDB(dest.GetWidth(), dest.GetHeight(), dst_depth, kTxFlags_Opaque);
         }
         _dstRect = dest;
     }
@@ -195,6 +197,7 @@ void BlockingVideoPlayer::Begin()
 
 void BlockingVideoPlayer::End()
 {
+    EngineServices &services = EngineServices::Current();
     StopVideo();
 
     set_game_speed(_oldFps);
@@ -202,9 +205,9 @@ void BlockingVideoPlayer::End()
     // Clear the screen after stopping playback
     if ((_stateFlags & kVideoState_ClearScreen) != 0)
     {
-        if (gfxDriver->UsesMemoryBackBuffer())
+        if (services.GfxDriver->UsesMemoryBackBuffer())
         {
-            gfxDriver->GetMemoryBackBuffer()->Clear();
+            services.GfxDriver->GetMemoryBackBuffer()->Clear();
         }
     }
 
@@ -262,7 +265,7 @@ bool BlockingVideoPlayer::Run()
         if (frame)
         {
             const auto start_tp = Clock::now();
-            gfxDriver->UpdateDDBFromBitmap(_videoDDB, frame.get());
+            EngineServices::Current().GfxDriver->UpdateDDBFromBitmap(_videoDDB, frame.get());
             _videoDDB->SetStretch(_dstRect.GetWidth(), _dstRect.GetHeight(), false);
             const auto end_tp = Clock::now();
 
@@ -302,12 +305,13 @@ bool BlockingVideoPlayer::Run()
 
 void BlockingVideoPlayer::Draw()
 {
+    EngineServices &services = EngineServices::Current();
     const auto start_tp = Clock::now();
     if (_videoDDB && _videoDDB->IsValid())
     {
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
-        gfxDriver->DrawSprite(_dstRect.Left, _dstRect.Top, _videoDDB);
-        gfxDriver->EndSpriteBatch();
+        services.GfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
+        services.GfxDriver->DrawSprite(_dstRect.Left, _dstRect.Top, _videoDDB);
+        services.GfxDriver->EndSpriteBatch();
     }
     render_to_screen();
 
@@ -330,7 +334,7 @@ void BlockingVideoPlayer::StopVideo()
     }
 
     if (_videoDDB)
-        gfxDriver->DestroyDDB(_videoDDB);
+        EngineServices::Current().GfxDriver->DestroyDDB(_videoDDB);
     _videoDDB = nullptr;
 
     PrintStats();
@@ -400,7 +404,7 @@ static bool video_check_user_input(VideoSkipType skip)
 
 static HError video_single_run(const String &asset_name, int video_flags, int state_flags, VideoSkipType skip)
 {
-    auto video_stream = AssetMgr->OpenAsset(asset_name);
+    auto video_stream = EngineServices::Current().Assets->OpenAsset(asset_name);
     if (!video_stream)
     {
         return new Error("Failed to open file: %s", asset_name.GetCStr());
@@ -429,12 +433,13 @@ static HError video_single_run(const String &asset_name, int video_flags, int st
 
 HError play_flc_video(int numb, int video_flags, int state_flags, VideoSkipType skip)
 {
+    EngineServices &services = EngineServices::Current();
     // Try couple of various filename formats
     String flicname = String::FromFormat("flic%d.flc", numb);
-    if (!AssetMgr->DoesAssetExist(flicname))
+    if (!services.Assets->DoesAssetExist(flicname))
     {
         flicname.Format("flic%d.fli", numb);
-        if (!AssetMgr->DoesAssetExist(flicname))
+        if (!services.Assets->DoesAssetExist(flicname))
             return new Error("FLIC animation flic%d.flc nor flic%d.fli were found", numb, numb);
     }
 
@@ -663,7 +668,7 @@ std::unordered_map<int, std::unique_ptr<VideoControl>> gl_VideoObjects;
 
 HError open_video(const char *name, int video_flags, int &video_id)
 {
-    std::unique_ptr<Stream> video_stream(AssetMgr->OpenAsset(name));
+    std::unique_ptr<Stream> video_stream(EngineServices::Current().Assets->OpenAsset(name));
     if (!video_stream)
         return new Error(String::FromFormat("Failed to open file: %s", name));
 

@@ -26,10 +26,10 @@
 
 #include "debug/out.h"
 #include "device/sys_events.h"
-#include "game/game.h"
 #include "game/game_state.h"
 #include "gfx/bitmap.h"
 #include "main/graphics_mode.h"
+#include "platform/base/engine_services.h"
 #include "platform/base/sys_main.h"
 
 using namespace AGS::Common;
@@ -88,7 +88,7 @@ void Mouse::Poll()
 
     // CHECKME: disabled, to let Poll work with emulated mouse movement,
     // which might also run in background while the window does not has a focus.
-    //if (switched_away)
+    //if (EngineServices::Current().SwitchedAway)
     //return;
 
     // Save absolute cursor coordinates provided by system
@@ -118,7 +118,7 @@ void Mouse::SetSysPosition(int x, int y)
     real_mouse_y = y;
 
     // move the real system cursor, but only if the game has a focus
-    if (!switched_away)
+    if (!EngineServices::Current().SwitchedAway)
         sys_window_set_mouse(real_mouse_x, real_mouse_y);
 }
 

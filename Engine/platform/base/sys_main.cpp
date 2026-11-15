@@ -19,6 +19,7 @@
 #include "debug/out.h"
 #include "device/sys_events.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/engine_services.h"
 #include "util/geometry.h"
 #include "util/string.h"
 #include "util/string_compat.h"
@@ -318,7 +319,7 @@ void sys_window_set_style(WindowMode mode, Size size)
 {
     if (!window)
         return;
-    if (mode != kWnd_Windowed && !platform->FullscreenSupported())
+    if (mode != kWnd_Windowed && !EngineServices::Current().Platform->FullscreenSupported())
         mode = kWnd_Windowed;
     // NOTE: depending on which mode we are switching to, the order of
     // actions may be different; e.g. if we are going windowed mode, then
@@ -412,7 +413,7 @@ void sys_window_set_icon()
 {
     if (window)
     {
-        SDL_Surface *icon = platform->CreateWindowIcon();
+        SDL_Surface *icon = EngineServices::Current().Platform->CreateWindowIcon();
         if (!icon)
             return; // no icon
         SDL_SetWindowIcon(window, icon);

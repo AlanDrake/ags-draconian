@@ -36,6 +36,7 @@
 #include "gui/guimain.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/dynobj/script_user_object.h"
 #include "util/common.h"
@@ -494,24 +495,26 @@ void Mouse_SimulateClick(int button_id)
 
 void Mouse_EnableControl(bool on)
 {
-    bool should_control_mouse = usetup.MouseCtrlWhen == kMouseCtrl_Always ||
-                                (usetup.MouseCtrlWhen == kMouseCtrl_Fullscreen && (scsystem.windowed == 0));
+    EngineServices &services = EngineServices::Current();
+    bool should_control_mouse = services.Config.MouseCtrlWhen == kMouseCtrl_Always ||
+                                (services.Config.MouseCtrlWhen == kMouseCtrl_Fullscreen && (scsystem.windowed == 0));
     Mouse::SetMovementControl(should_control_mouse & on);
-    usetup.MouseCtrlEnabled = on; // remember setting in config
+    services.Config.MouseCtrlEnabled = on; // remember setting in config
 }
 
 bool Mouse_GetAutoLock()
 {
-    return usetup.MouseAutoLock;
+    return EngineServices::Current().Config.MouseAutoLock;
 }
 
 void Mouse_SetAutoLock(bool on)
 {
-    usetup.MouseAutoLock = on;
+    EngineServices &services = EngineServices::Current();
+    services.Config.MouseAutoLock = on;
     // Only update when in windowed mode, as always locked in fullscreen
     if (scsystem.windowed)
     {
-        if (usetup.MouseAutoLock)
+        if (services.Config.MouseAutoLock)
             Mouse::TryLockToWindow();
         else
             Mouse::UnlockFromWindow();

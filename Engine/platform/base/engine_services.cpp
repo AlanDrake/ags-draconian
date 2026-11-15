@@ -1,0 +1,37 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// https://opensource.org/license/artistic-2-0/
+//
+//=============================================================================
+#include "platform/base/engine_services.h"
+
+#include "data/assetmanager.h"
+
+namespace
+{
+// The engine's own instance
+EngineServices engineServices;
+} // namespace
+
+// The address of a static object is a constant initializer: Current() is valid before any dynamic
+// initialization, as the globals that the members replace were
+EngineServices *EngineServices::_current = &engineServices;
+
+EngineServices::EngineServices() = default;
+
+EngineServices::~EngineServices() = default;
+
+EngineServices *EngineServices::SetCurrent(EngineServices *services)
+{
+    EngineServices *was = _current;
+    _current = services ? services : &engineServices;
+    return was;
+}

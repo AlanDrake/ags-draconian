@@ -29,6 +29,7 @@
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "platform/platform.h"
 #include "util/directory.h"
 #include "util/ini_util.h"
@@ -181,7 +182,7 @@ uint32_t convert_scaling_to_fp(int scale_factor)
 
 String find_default_cfg_file()
 {
-    return Path::ConcatPaths(usetup.StartupDir, DefaultConfigFileName);
+    return Path::ConcatPaths(EngineServices::Current().Config.StartupDir, DefaultConfigFileName);
 }
 
 String find_user_global_cfg_file()
@@ -221,7 +222,7 @@ void config_defaults(EngineConfig &setup)
 
 void override_config_ext(ConfigTree &cfg)
 {
-    platform->ReadConfiguration(cfg);
+    EngineServices::Current().Platform->ReadConfiguration(cfg);
 }
 
 void load_common_config(const ConfigTree &cfg, GameConfig &setup)
@@ -406,15 +407,16 @@ void save_common_config(const GameConfig &setup, ConfigTree &cfg)
 
 void save_runtime_config_file()
 {
+    EngineServices &services = EngineServices::Current();
     ConfigTree cfg;
     // Last display mode
     cfg["graphics"]["windowed"] = String::FromFormat("%d", System_GetWindowed() != 0 ? 1 : 0);
     // Other game options that could be changed at runtime
     if (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined)
-        cfg["graphics"]["render_at_screenres"] = String::FromFormat("%d", usetup.RenderAtScreenRes ? 1 : 0);
-    cfg["mouse"]["control_enabled"] = String::FromFormat("%d", usetup.MouseCtrlEnabled ? 1 : 0);
+        cfg["graphics"]["render_at_screenres"] = String::FromFormat("%d", services.Config.RenderAtScreenRes ? 1 : 0);
+    cfg["mouse"]["control_enabled"] = String::FromFormat("%d", services.Config.MouseCtrlEnabled ? 1 : 0);
     cfg["mouse"]["speed"] = String::FromFormat("%f", Mouse::GetSpeed());
-    cfg["language"]["translation"] = usetup.Translation;
+    cfg["language"]["translation"] = services.Config.Translation;
 
     String cfg_file = PreparePathForWriting(GetGameUserConfigDir(), DefaultConfigFileName);
     if (!cfg_file.IsEmpty())

@@ -21,6 +21,7 @@
 #include "game/dynobj/script_shader.h"
 #include "game/render/draw.h"
 #include "gfx/graphicsdriver.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/ini_util.h"
 #include "util/path_helper.h"
@@ -62,7 +63,7 @@ IGraphicShader *TryCreateShaderPrecompiled(const String &name, const String &fil
     if (!def_filename.IsEmpty())
         LoadShaderDefinition(def_filename, def);
 
-    return gfxDriver->CreateShaderProgram(name, data, &def);
+    return EngineServices::Current().GfxDriver->CreateShaderProgram(name, data, &def);
 }
 
 IGraphicShader *TryCreateShaderFromSource(const String &name, const String &filename, const String &def_filename)
@@ -79,20 +80,21 @@ IGraphicShader *TryCreateShaderFromSource(const String &name, const String &file
     if (!def_filename.IsEmpty())
         LoadShaderDefinition(def_filename, def);
 
-    return gfxDriver->CreateShaderProgram(name, shader_src.GetCStr(), &def);
+    return EngineServices::Current().GfxDriver->CreateShaderProgram(name, shader_src.GetCStr(), &def);
 }
 
 IGraphicShader *CreateShaderProgram(const String &name, const String &filename)
 {
+    EngineServices &services = EngineServices::Current();
     // Software renderer does not support shaders, so return a dummy shader program
-    if (!gfxDriver->HasAcceleratedTransform())
+    if (!services.GfxDriver->HasAcceleratedTransform())
     {
         return nullptr;
     }
 
-    const String precompiled_ext = gfxDriver->GetShaderPrecompiledExtension();
-    const String source_ext = gfxDriver->GetShaderSourceExtension();
-    const String definition_ext = gfxDriver->GetShaderDefinitionExtension();
+    const String precompiled_ext = services.GfxDriver->GetShaderPrecompiledExtension();
+    const String source_ext = services.GfxDriver->GetShaderSourceExtension();
+    const String definition_ext = services.GfxDriver->GetShaderDefinitionExtension();
 
     const String file_ext = Path::GetFileExtension(filename);
     const String def_filename = definition_ext.IsEmpty() ? "" : Path::ReplaceExtension(filename, definition_ext);
@@ -159,7 +161,7 @@ ScriptShaderInstance *ShaderProgram_CreateInstance(ScriptShaderProgram *sc_shade
     IShaderInstance *shinst = nullptr;
     IGraphicShader *shader = get_custom_shader(sc_shader->GetID());
     if (shader)
-        shinst = gfxDriver->CreateShaderInstance(shader, sc_shinst->GetName());
+        shinst = EngineServices::Current().GfxDriver->CreateShaderInstance(shader, sc_shinst->GetName());
 
     ccRegisterManagedObject(sc_shinst, sc_shinst);
     add_shader_instance(shinst, sc_shinst->GetID()); // NOTE: we allow to register a nullptr at the index
@@ -180,7 +182,7 @@ static bool RecreateShaderInstance(ScriptShaderInstance *sc_shinst)
     {
         IGraphicShader *shader = get_custom_shader(sc_shader->GetID());
         if (shader)
-            shinst = gfxDriver->CreateShaderInstance(shader, sc_shinst->GetName());
+            shinst = EngineServices::Current().GfxDriver->CreateShaderInstance(shader, sc_shinst->GetName());
     }
 
     add_shader_instance(shinst, sc_shinst->GetID()); // NOTE: we allow to register a nullptr at the index

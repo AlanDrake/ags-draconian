@@ -27,6 +27,7 @@
 #include "game/lib/string.h"
 #include "game/ui/gui.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "util/common.h"
 #include "util/directory.h"
@@ -99,8 +100,9 @@ static void ListBox_FillSaveItems(GUIListBox *listbox, const std::vector<SaveLis
 
 int ListBox_FillSaveGameList4(GUIListBox *listbox, int min_slot, int max_slot, int save_sort, int sort_dir)
 {
+    EngineServices &services = EngineServices::Current();
     // Optionally override the max slot
-    max_slot = usetup.Override.MaxSaveSlot > 0 ? usetup.Override.MaxSaveSlot : max_slot;
+    max_slot = services.Config.Override.MaxSaveSlot > 0 ? services.Config.Override.MaxSaveSlot : max_slot;
 
     if (!ValidateSaveSlotRange("ListBox.FillSaveGameList", min_slot, max_slot))
     {

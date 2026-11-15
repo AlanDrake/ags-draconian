@@ -29,6 +29,7 @@
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/engine_services.h"
 #include "plugin/plugin_engine.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/dynobj/script_user_object.h"
@@ -55,19 +56,20 @@ RGB old_palette[256];
 // This special fade-out behavior may be deprecated later if wanted.
 static std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
 {
+    EngineServices &services = EngineServices::Current();
     // The palette the frame is in: the one on screen for a renderer with an 8-bit back buffer;
     // the others draw an 8-bit game in the game palette and never send it to Allegro
-    if (gfxDriver->UsesMemoryBackBuffer())
+    if (services.GfxDriver->UsesMemoryBackBuffer())
         get_palette(old_palette);
     else
         std::copy(palette, palette + PAL_SIZE, old_palette);
     const auto &view = play.GetMainViewport();
     if (for_fadein)
     {
-        gfxDriver->ClearDrawLists();
+        services.GfxDriver->ClearDrawLists();
         construct_game_scene(true);
         construct_game_screen_overlay(false /* no cursor */);
-        gfxDriver->RenderToBackBuffer();
+        services.GfxDriver->RenderToBackBuffer();
     }
     return std::unique_ptr<Bitmap>(CopyScreenIntoBitmap(view.GetWidth(), view.GetHeight(), &view,
                                                         true /* always in native res */, RENDER_SHOT_SKIP_ON_FADE));
@@ -93,7 +95,8 @@ static IDriverDependantBitmap *get_frame_for_transition_in(bool opaque)
                         saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
         saved_viewport_bitmap.reset(fix_frame);
     }
-    return gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap.get(), opaque ? kTxFlags_Opaque : kTxFlags_None);
+    return EngineServices::Current().GfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap.get(),
+                                                                    opaque ? kTxFlags_Opaque : kTxFlags_None);
 }
 
 
@@ -161,28 +164,29 @@ public:
 
         std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
         black_bmp->Clear(_fadeColor);
-        _fade = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), kTxFlags_Opaque);
+        _fade = EngineServices::Current().GfxDriver->CreateDDBFromBitmap(black_bmp.get(), kTxFlags_Opaque);
         _fade->SetStretch(_view.GetWidth(), _view.GetHeight(), false);
 
         _alpha = 1;
     }
     // End the state, release all resources
-    void End() override { gfxDriver->DestroyDDB(_fade); }
+    void End() override { EngineServices::Current().GfxDriver->DestroyDDB(_fade); }
     // Draw the state
     void Draw() override
     {
+        EngineServices &services = EngineServices::Current();
         // Construct scene in order: game screen, fade fx, post game overlay.
         // NOTE: for backwards compatibility we have to redraw last frame
         // when fading out. Please see the note to game_frame_to_bmp() for details.
         if (_fadein)
             construct_game_scene();
         else
-            gfxDriver->RedrawLastFrame(RENDER_SHOT_SKIP_ON_FADE);
+            services.GfxDriver->RedrawLastFrame(RENDER_SHOT_SKIP_ON_FADE);
 
-        gfxDriver->BeginSpriteBatch(_view, _sprTrans, kFlip_None, nullptr, RENDER_SHOT_SKIP_ON_FADE);
+        services.GfxDriver->BeginSpriteBatch(_view, _sprTrans, kFlip_None, nullptr, RENDER_SHOT_SKIP_ON_FADE);
         _fade->SetAlpha(_fadein ? (255 - _alpha) : _alpha);
-        gfxDriver->DrawSprite(0, 0, _fade);
-        gfxDriver->EndSpriteBatch();
+        services.GfxDriver->DrawSprite(0, 0, _fade);
+        services.GfxDriver->EndSpriteBatch();
         render_to_screen();
     }
     // Update the state during a game tick
@@ -219,6 +223,7 @@ public:
     // Begin the state, initialize and prepare any resources
     void Begin() override
     {
+        EngineServices &services = EngineServices::Current();
         // Safety fix: set up some default speed
         if (_speed <= 0)
             _speed = 16;
@@ -242,17 +247,17 @@ public:
             // simulating fade-in or out.
             _bmpFrame = game_frame_to_bmp(_fadein);
 
-            _bmpBuff = gfxDriver->GetMemoryBackBuffer();
+            _bmpBuff = services.GfxDriver->GetMemoryBackBuffer();
             const int col_depth = _bmpBuff->GetColorDepth();
             _clearCol = makecol_depth(col_depth, _fadeCol.r, _fadeCol.g, _fadeCol.b);
         }
         else
         {
             // Prepare game frame to the backbuffer once, but don't present yet
-            gfxDriver->ClearDrawLists();
+            services.GfxDriver->ClearDrawLists();
             construct_game_scene(true);
             construct_game_screen_overlay(false /* no cursor */);
-            gfxDriver->RenderToBackBuffer();
+            services.GfxDriver->RenderToBackBuffer();
 
             Fade256Init(_fadeCol.r, _fadeCol.g, _fadeCol.b);
             if (_fadein)
@@ -376,7 +381,7 @@ public:
         black_bmp->Clear(_fadeColor);
         for (int i = 0; i < (_fadein ? 4 : 1); i++)
         {
-            _fade[i] = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), kTxFlags_Opaque);
+            _fade[i] = EngineServices::Current().GfxDriver->CreateDDBFromBitmap(black_bmp.get(), kTxFlags_Opaque);
             _fade[i]->SetStretch(_view.GetWidth(), _view.GetHeight(), false);
         }
 
@@ -390,34 +395,35 @@ public:
         for (int i = 0; i < 4; i++)
         {
             if (_fade[i])
-                gfxDriver->DestroyDDB(_fade[i]);
+                EngineServices::Current().GfxDriver->DestroyDDB(_fade[i]);
         }
     }
     // Draw the state
     void Draw() override
     {
+        EngineServices &services = EngineServices::Current();
         // NOTE: for backwards compatibility we have to redraw last frame
         // when fading out. Please see the note to game_frame_to_bmp() for details.
         if (_fadein)
             construct_game_scene();
         else
-            gfxDriver->RedrawLastFrame(RENDER_SHOT_SKIP_ON_FADE);
+            services.GfxDriver->RedrawLastFrame(RENDER_SHOT_SKIP_ON_FADE);
 
-        gfxDriver->BeginSpriteBatch(_view, _sprTrans, kFlip_None, nullptr, RENDER_SHOT_SKIP_ON_FADE);
+        services.GfxDriver->BeginSpriteBatch(_view, _sprTrans, kFlip_None, nullptr, RENDER_SHOT_SKIP_ON_FADE);
         if (_fadein)
         {
-            gfxDriver->DrawSprite(_view.GetWidth() / 2 - _boxWidth / 2 - _view.GetWidth(), 0, _fade[0]);
-            gfxDriver->DrawSprite(0, _view.GetHeight() / 2 - _boxHeight / 2 - _view.GetHeight(), _fade[1]);
-            gfxDriver->DrawSprite(_view.GetWidth() / 2 + _boxWidth / 2, 0, _fade[2]);
-            gfxDriver->DrawSprite(0, _view.GetHeight() / 2 + _boxHeight / 2, _fade[3]);
+            services.GfxDriver->DrawSprite(_view.GetWidth() / 2 - _boxWidth / 2 - _view.GetWidth(), 0, _fade[0]);
+            services.GfxDriver->DrawSprite(0, _view.GetHeight() / 2 - _boxHeight / 2 - _view.GetHeight(), _fade[1]);
+            services.GfxDriver->DrawSprite(_view.GetWidth() / 2 + _boxWidth / 2, 0, _fade[2]);
+            services.GfxDriver->DrawSprite(0, _view.GetHeight() / 2 + _boxHeight / 2, _fade[3]);
         }
         else
         {
             _fade[0]->SetStretch(_boxWidth, _boxHeight, false);
-            gfxDriver->DrawSprite(_view.GetWidth() / 2 - _boxWidth / 2, _view.GetHeight() / 2 - _boxHeight / 2,
-                                  _fade[0]);
+            services.GfxDriver->DrawSprite(_view.GetWidth() / 2 - _boxWidth / 2, _view.GetHeight() / 2 - _boxHeight / 2,
+                                           _fade[0]);
         }
-        gfxDriver->EndSpriteBatch();
+        services.GfxDriver->EndSpriteBatch();
         render_to_screen();
     }
     // Update the state during a game tick
@@ -469,7 +475,7 @@ public:
         _yspeed = _view.GetHeight() / (_view.GetWidth() / _speed);
         _boxWidth = _speed;
         _boxHeight = _yspeed;
-        _bmpBuff = gfxDriver->GetMemoryBackBuffer();
+        _bmpBuff = EngineServices::Current().GfxDriver->GetMemoryBackBuffer();
 
         if (_fadein)
         {
@@ -537,7 +543,7 @@ public:
 
         play.screen_is_faded_out = false; // force all game elements to draw
         _view = play.GetMainViewport();
-        _sprTrans = play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame());
+        _sprTrans = play.GetGlobalTransform(EngineServices::Current().GfxDriver->RequiresFullRedrawEachFrame());
         // TODO: crossfade does not need a screen with transparency, it should be opaque;
         // but Software renderer cannot alpha-blend non-masked sprite at the moment,
         // see comment to drawing opaque sprite in SDLRendererGraphicsDriver!
@@ -551,11 +557,12 @@ public:
         saved_viewport_bitmap.reset();
         invalidate_screen();
         set_palette_range(palette, 0, 255, 0);
-        gfxDriver->DestroyDDB(_shot_ddb);
+        EngineServices::Current().GfxDriver->DestroyDDB(_shot_ddb);
     }
     // Draw the state
     void Draw() override
     {
+        EngineServices &services = EngineServices::Current();
         // do the crossfade
         _shot_ddb->SetAlpha(_alpha);
         construct_game_scene(true);
@@ -563,9 +570,9 @@ public:
         // draw old screen on top while alpha > 16
         if (_alpha > 16)
         {
-            gfxDriver->BeginSpriteBatch(_view, _sprTrans);
-            gfxDriver->DrawSprite(0, 0, _shot_ddb);
-            gfxDriver->EndSpriteBatch();
+            services.GfxDriver->BeginSpriteBatch(_view, _sprTrans);
+            services.GfxDriver->DrawSprite(0, 0, _shot_ddb);
+            services.GfxDriver->EndSpriteBatch();
         }
         render_to_screen();
     }
@@ -596,7 +603,7 @@ public:
     {
         play.screen_is_faded_out = false; // force all game elements to draw
         _view = play.GetMainViewport();
-        _sprTrans = play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame());
+        _sprTrans = play.GetGlobalTransform(EngineServices::Current().GfxDriver->RequiresFullRedrawEachFrame());
         // An 8-bit frame of the room that ends is drawn in the palette of the room that comes:
         // its pixels are remapped to the nearest colours there, so that both rooms show in
         // colours of their own during the dissolve (index 0 stays the transparent one)
@@ -616,16 +623,17 @@ public:
         saved_viewport_bitmap.reset();
         invalidate_screen();
         set_palette_range(palette, 0, 255, 0);
-        gfxDriver->DestroyDDB(_shot_ddb);
+        EngineServices::Current().GfxDriver->DestroyDDB(_shot_ddb);
     }
     // Draw the state
     void Draw() override
     {
+        EngineServices &services = EngineServices::Current();
         construct_game_scene(true);
         construct_game_screen_overlay(false /* no cursor */);
-        gfxDriver->BeginSpriteBatch(_view, _sprTrans);
-        gfxDriver->DrawSprite(0, 0, _shot_ddb);
-        gfxDriver->EndSpriteBatch();
+        services.GfxDriver->BeginSpriteBatch(_view, _sprTrans);
+        services.GfxDriver->DrawSprite(0, 0, _shot_ddb);
+        services.GfxDriver->EndSpriteBatch();
         render_to_screen();
     }
     // Update the state during a game tick
@@ -643,7 +651,7 @@ public:
                 saved_viewport_bitmap->PutPixel(x + _pattern[_step] / 4, y + _pattern[_step] % 4, maskCol);
             }
         }
-        gfxDriver->UpdateDDBFromBitmap(_shot_ddb, saved_viewport_bitmap.get());
+        EngineServices::Current().GfxDriver->UpdateDDBFromBitmap(_shot_ddb, saved_viewport_bitmap.get());
 
         // TODO: implement speed parameter, currently unused
         _step = std::min(_step + 1, 16);
@@ -679,7 +687,7 @@ void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)
     if (should_blackout_on_transition(style) && (play.screen_is_faded_out == !fade_in))
         return; // already in the wanted state
 
-    const bool software_mode = gfxDriver->UsesMemoryBackBuffer();
+    const bool software_mode = EngineServices::Current().GfxDriver->UsesMemoryBackBuffer();
     std::unique_ptr<ScreenTransition> scrtr;
     switch (style)
     {
@@ -917,6 +925,7 @@ public:
     // returns if the state should continue, or ends instantly
     void Begin() override
     {
+        EngineServices &services = EngineServices::Current();
         // TODO: support shaking room viewport separately
         // TODO: rely on game speed setting? and/or provide frequency and duration args
         // TODO: unify blocking and non-blocking shake update
@@ -933,18 +942,18 @@ public:
 
         // Optimized variant for software render: create game scene once and shake it
         // TODO: split implementations into two state classes?
-        if (!gfxDriver->RequiresFullRedrawEachFrame())
+        if (!services.GfxDriver->RequiresFullRedrawEachFrame())
         {
-            gfxDriver->ClearDrawLists();
+            services.GfxDriver->ClearDrawLists();
             construct_game_scene();
-            gfxDriver->RenderToBackBuffer();
+            services.GfxDriver->RenderToBackBuffer();
         }
     }
     // End the state, does final actions, releases all resources;
     // should NOT be called if Begin returned FALSE.
     void End() override
     {
-        if (!gfxDriver->RequiresFullRedrawEachFrame())
+        if (!EngineServices::Current().GfxDriver->RequiresFullRedrawEachFrame())
         {
             clear_letterbox_borders();
             render_to_screen();
@@ -961,7 +970,7 @@ public:
     bool Run() override
     {
         // TODO: split implementations into two state classes?
-        if (gfxDriver->RequiresFullRedrawEachFrame())
+        if (EngineServices::Current().GfxDriver->RequiresFullRedrawEachFrame())
         {
             increment_loop_counter();
             render_graphics();

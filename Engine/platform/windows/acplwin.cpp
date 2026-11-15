@@ -26,6 +26,7 @@
 #include "main/engine.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "platform/base/sys_main.h"
 #include "platform/windows/setup/winsetup.h"
 #include "util/common.h" // quit
@@ -281,7 +282,8 @@ void AGSWin32::PostBackendExit()
 SetupReturnValue AGSWin32::RunSetup(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out)
 {
     String version_str = String::FromFormat("Adventure Game Studio v%s setup", get_engine_version());
-    return AGS::Engine::WinSetup(cfg_in, def_cfg_in, cfg_out, usetup.MainDataDir, version_str);
+    return AGS::Engine::WinSetup(cfg_in, def_cfg_in, cfg_out, EngineServices::Current().Config.MainDataDir,
+                                 version_str);
 }
 
 void AGSWin32::WriteStdOut(AGS_FORMAT_STRING_ARG const char *fmt, ...)

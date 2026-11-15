@@ -36,6 +36,7 @@
 #include "main/graphics_mode.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "platform/base/sys_main.h"
 #include "platform/platform.h"
 #include "util/common.h"
@@ -46,7 +47,7 @@ using namespace AGS::Engine;
 
 void engine_adjust_for_rotation_settings()
 {
-    switch (usetup.Rotation)
+    switch (EngineServices::Current().Config.Rotation)
     {
     case ScreenRotation::kScreenRotation_Portrait:
         SDL_SetHint(SDL_HINT_ORIENTATIONS, "Portrait PortraitUpsideDown");
@@ -63,14 +64,15 @@ void engine_adjust_for_rotation_settings()
 // Setup gfx driver callbacks and options
 void engine_post_gfxmode_driver_setup()
 {
-    gfxDriver->SetCallbackOnSpriteEvt(GfxDriverSpriteEvtCallback);
+    EngineServices::Current().GfxDriver->SetCallbackOnSpriteEvt(GfxDriverSpriteEvtCallback);
 }
 
 // Reset gfx driver callbacks
 void engine_pre_gfxmode_driver_cleanup()
 {
-    gfxDriver->SetCallbackOnSpriteEvt(nullptr);
-    gfxDriver->SetMemoryBackBuffer(nullptr);
+    EngineServices &services = EngineServices::Current();
+    services.GfxDriver->SetCallbackOnSpriteEvt(nullptr);
+    services.GfxDriver->SetMemoryBackBuffer(nullptr);
 
     release_drawobj_rendertargets();
 }
@@ -112,12 +114,13 @@ void engine_pre_gfxmode_draw_cleanup()
 // Setup mouse control mode and graphic area
 void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
 {
+    EngineServices &services = EngineServices::Current();
     // Assign mouse control parameters.
     //
     // NOTE that we setup speed and other related properties regardless of
     // whether mouse control was requested because it may be enabled later.
     Mouse::SetSpeedUnit(1.f);
-    if (usetup.MouseSpeedDef == kMouseSpeed_CurrentDisplay)
+    if (services.Config.MouseSpeedDef == kMouseSpeed_CurrentDisplay)
     {
         Size cur_desktop;
         if (sys_get_desktop_resolution(cur_desktop.Width, cur_desktop.Height))
@@ -125,20 +128,23 @@ void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
                                          (float)cur_desktop.Height / (float)init_desktop.Height));
     }
 
-    Mouse_EnableControl(usetup.MouseCtrlEnabled);
+    Mouse_EnableControl(services.Config.MouseCtrlEnabled);
     Debug::Printf(kDbgMsg_Info, "Mouse speed control: %s, unit: %f, user value: %f",
-                  usetup.MouseCtrlEnabled ? "enabled" : "disabled", Mouse::GetSpeedUnit(), Mouse::GetSpeed());
-    Mouse::SetTouch2MouseMode(usetup.TouchEmulateMouse, usetup.TouchMotionRelative, usetup.MouseSpeed);
-    Mouse::SetMouse2Touch(usetup.MouseEmulateTouch);
+                  services.Config.MouseCtrlEnabled ? "enabled" : "disabled", Mouse::GetSpeedUnit(), Mouse::GetSpeed());
+    Mouse::SetTouch2MouseMode(services.Config.TouchEmulateMouse, services.Config.TouchMotionRelative,
+                              services.Config.MouseSpeed);
+    Mouse::SetMouse2Touch(services.Config.MouseEmulateTouch);
     const char *emul_mode_names[] = {"none", "one finger", "two fingers"};
-    Debug::Printf(kDbgMsg_Info, "Touch-to-mouse emulation: %s, motion: %s", emul_mode_names[usetup.TouchEmulateMouse],
-                  usetup.TouchMotionRelative ? "relative" : "absolute");
-    Debug::Printf(kDbgMsg_Info, "Mouse-to-touch emulation: %s", usetup.MouseEmulateTouch ? "enabled" : "disabled");
+    Debug::Printf(kDbgMsg_Info, "Touch-to-mouse emulation: %s, motion: %s",
+                  emul_mode_names[services.Config.TouchEmulateMouse],
+                  services.Config.TouchMotionRelative ? "relative" : "absolute");
+    Debug::Printf(kDbgMsg_Info, "Mouse-to-touch emulation: %s",
+                  services.Config.MouseEmulateTouch ? "enabled" : "disabled");
 
     on_coordinates_scaling_changed();
 
     // If fullscreen, or auto lock option is set, lock mouse to the game window
-    if ((scsystem.windowed == 0) || usetup.MouseAutoLock)
+    if ((scsystem.windowed == 0) || services.Config.MouseAutoLock)
         Mouse::TryLockToWindow();
 }
 
@@ -159,7 +165,8 @@ void engine_setup_scsystem_screen(const DisplayMode &dm)
 
 void engine_post_gfxmode_setup(const Size &init_desktop, const DisplayMode &old_dm)
 {
-    DisplayMode dm = gfxDriver->GetDisplayMode();
+    EngineServices &services = EngineServices::Current();
+    DisplayMode dm = services.GfxDriver->GetDisplayMode();
     // If color depth has changed (or graphics mode was inited for the
     // very first time), we also need to recreate bitmaps
     bool has_driver_changed = old_dm.ColorDepth != dm.ColorDepth;
@@ -174,7 +181,7 @@ void engine_post_gfxmode_setup(const Size &init_desktop, const DisplayMode &old_
     sys_set_display_size_ref(static_cast<Size>(dm));
 
     // reset multitasking (may be overridden by the current display mode)
-    SetMultitasking(usetup.RunInBackground);
+    SetMultitasking(services.Config.RunInBackground);
 
     invalidate_screen();
 }

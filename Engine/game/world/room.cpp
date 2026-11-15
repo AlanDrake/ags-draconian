@@ -56,10 +56,10 @@
 #include "gfx/sprite_cache.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
-#include "main/main.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "platform/platform.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
@@ -253,7 +253,7 @@ bool Room_Exists(int room)
 {
     String room_filename;
     room_filename.Format("room%d.crm", room);
-    return AssetMgr->DoesAssetExist(room_filename);
+    return EngineServices::Current().Assets->DoesAssetExist(room_filename);
 }
 
 ScriptUserObject *Room_NearestWalkableArea(int x, int y)
@@ -378,7 +378,7 @@ void unload_old_room()
 
     if (roomBackgroundBmp != nullptr)
     {
-        gfxDriver->DestroyDDB(roomBackgroundBmp);
+        EngineServices::Current().GfxDriver->DestroyDDB(roomBackgroundBmp);
         roomBackgroundBmp = nullptr;
     }
 
@@ -495,7 +495,7 @@ static void update_all_viewcams_with_newroom()
 HError LoadRoomScript(RoomStruct *room, int room_id)
 {
     String filename = String::FromFormat("room%d.o", room_id);
-    auto in = AssetMgr->OpenAsset(filename);
+    auto in = EngineServices::Current().Assets->OpenAsset(filename);
     if (in)
     {
         auto script = UScript(ccScript::CreateFromStream(in.get()));
@@ -567,6 +567,7 @@ HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr,
 
 void load_new_room(int room_id, CharacterInfo *ch)
 {
+    EngineServices &services = EngineServices::Current();
     debug_script_log("Loading room %d", room_id);
 
     String room_filename;
@@ -579,7 +580,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
     // load the room from disk
     set_our_eip(200);
     thisroom.GameID = NO_GAME_ID_IN_ROOM_FILE;
-    HError err = LoadRoom(room_filename, &thisroom, AssetMgr.get(), game.SpriteInfos);
+    HError err = LoadRoom(room_filename, &thisroom, services.Assets.get(), game.SpriteInfos);
     if (!err)
     {
         quitprintf("Unable to load the room file '%s'. Error: %s", room_filename.GetCStr(),
@@ -599,12 +600,12 @@ void load_new_room(int room_id, CharacterInfo *ch)
     }
 
     // Optionally dump joint RTTI into the log
-    if (logScriptRTTI && RuntimeScript::GetJointRTTI())
+    if (services.LogScriptRTTI && RuntimeScript::GetJointRTTI())
     {
         Debug::Printf(PrintRTTI(RuntimeScript::GetJointRTTI()->AsConstRTTI()));
     }
     // Optionally dump room script's TOC into the log
-    if (logScriptTOC && thisroom.CompiledScript && thisroom.CompiledScript->sctoc)
+    if (services.LogScriptTOC && thisroom.CompiledScript && thisroom.CompiledScript->sctoc)
     {
         Debug::Printf(
             PrintScriptTOC(*thisroom.CompiledScript->sctoc, thisroom.CompiledScript->sectionNames[0].c_str()));
@@ -1073,7 +1074,7 @@ void new_room(int room_id, CharacterInfo *ch)
     // change rooms
     unload_old_room();
 
-    if (usetup.ClearCacheOnRoomChange)
+    if (EngineServices::Current().Config.ClearCacheOnRoomChange)
     {
         // Delete all cached resources
         spriteset.DisposeAllFreeCached();

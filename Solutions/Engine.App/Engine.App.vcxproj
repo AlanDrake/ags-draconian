@@ -554,6 +554,7 @@
     <ClCompile Include="..\..\Engine\media\video\videoplayer.cpp" />
     <ClCompile Include="..\..\Engine\media\video\video_core.cpp" />
     <ClCompile Include="..\..\Engine\platform\base\agsplatformdriver.cpp" />
+    <ClCompile Include="..\..\Engine\platform\base\engine_services.cpp" />
     <ClCompile Include="..\..\Engine\platform\base\sys_main.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\acplwin.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\gfx\ali3dd3d11.cpp" />
@@ -803,6 +804,7 @@
     <ClInclude Include="..\..\Engine\platform\base\agsplatformdriver.h" />
     <ClInclude Include="..\..\Engine\platform\base\engine_config.h" />
     <ClInclude Include="..\..\Engine\platform\base\engine_defines.h" />
+    <ClInclude Include="..\..\Engine\platform\base\engine_services.h" />
     <ClInclude Include="..\..\Engine\platform\base\sys_main.h" />
     <ClInclude Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h" />
     <ClInclude Include="..\..\Engine\platform\windows\gfx\ali3dd3d11.h" />
