@@ -1628,6 +1628,111 @@ script VM runs.
   cut the conversion from about 2 hours to 25 minutes at the price of commits not built singly; a long agent run
   is split at a phase boundary with a written handoff note, and the second agent did the proof phase from it.
 
+### 5.1 step 1: every global declared once
+
+*Definition:* take the `extern` declarations out of the engine's source files: each global is declared in one
+header, the file that defines it includes that header, and the files that use it include it too. No function's
+code changes.
+
+**Status (2026-11-15): done**, 5 commits (`92a98be06`..`9078a8c83` and the one with this entry), not pushed.
+
+- **Before, measured:** 552 `extern` lines in 107 source files of `Engine/` (533 without the tests; BASELINE.md
+  had 596 at the start of the refactor), naming 190 globals and functions. 39 of the names had a header
+  declaration that the files did not include; 151 had none, 47 of them functions.
+- **What was done:** the missing declarations written by hand into the header of each global's domain, with a
+  comment each (86 `extern` and 49 function declarations in 26 headers; `game/game.h` now has 38, `game/script.h`
+  18, `game/world/character.h` 14). Then `Script/collect_externs.py` deleted 549 lines, added 137 includes and
+  took the keyword off 3 forward declarations of functions (`prescan_saves`, `dispose_engine_overlay`, and
+  `main` in the iOS file); it also gives a defining file the include of its declaration when it lacks it (4
+  includes: `game.cpp` for three `scr*` arrays, `minidump.cpp`). The `Register*API` functions are declared in
+  `game/script_api/exports.h`, which `bindings.h` includes. One new header, `platform/windows/minidump.h`.
+  `mousex`, `mousey` and `ignore_bounds` were declared in `game/ui/mouse.h` and defined in
+  `device/mousew32.cpp`: `device/mousew32.h` alone declares them now.
+- **Result:** `extern` declarations in engine source files 552 to 0; in the engine as a whole 652 to 203, all
+  in headers, one per global. `Script/check_layers.py` fails on a new one (prepush stage `layers`,
+  `verify.yml`).
+- **No declaration disagreed with its definition** (MSVC, GCC and Clang compile each definition against its
+  header now).
+- **The 15 dependencies that the `extern` lines hid.** A file of a lower ring that named a global of a higher
+  one broke the ring rules without an include to show it. The includes are in the layering baseline now, 128 to
+  143, and are the first things for step 2 to remove:
+
+  | File (ring) | Global | Now includes |
+  |---|---|---|
+  | `util/timer.cpp` (base) | `game_update_suspend`, `want_exit`, `abort_engine` | `game/game.h` |
+  | `debug/debug.cpp` (base) | `game`, `displayed_room`, `want_exit`, `abort_engine`; `thisroom`; `check_dynamic_sprites_at_exit` | `game/game.h`, `game/world/room.h`, `game/render/dynamic_sprite.h` |
+  | `device/mousew32.cpp` (host) | `switched_away` | `game/game.h` |
+  | `gfx/ali3dogl.cpp`, `platform/windows/gfx/ali3dd3d.cpp`, `ali3dd3d11.cpp` (host) | `palette` | `game/render/draw.h` |
+  | `platform/emscripten/acpemscripten.cpp` (host) | `gfxDriver` | `game/render/draw.h` |
+  | `platform/windows/win_ex_handling.cpp` (host) | `proper_exit`, `spriteset`; `eip_guinum`, `eip_guiobj` | `game/game.h`, `game/ui/gui.h` |
+  | `script/scriptexecutor.cpp` (vm) | `scriptExecutor` | `game/script.h` |
+  | `game/game_init.cpp`, `game/script.cpp`, `game/world/room.cpp` (game) | `logScriptRTTI`, `logScriptTOC` | `main/main.h` |
+
+- **Found by the object comparison: an include changed code.** The first MSVC comparison showed 4 functions of
+  each Direct3D driver compiled differently: `TRUE` had become -1. `<windows.h>` and Allegro each define `TRUE`
+  only if it is not defined yet, as 1 and as -1, and `game/render/draw.h` brought Allegro in ahead of the
+  Direct3D headers, so `SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE)` passed `0xFFFFFFFF`. The two drivers
+  include `platform/windows/windows.h` first now and compile to the code they had. It compiled and linked; only the
+  object comparison showed it. The trap is older than this task and is in
+  STYLE.md ("Headers and includes").
+- **Proof, MSVC** (`compare_objects.py HEAD`, `/O1`, 674 objects): 537 identical, 120 with the same code in
+  another order, 8 test objects that differ as test objects do, and 9 where one compiler helper was added and
+  no function changed (`vector constructor iterator` in 5, `std::locale::id::id<0>` in 4; `dumpbin /relocations`
+  shows that nothing but the helper's own unwind data refers to it). The tool's verdict is "not mechanical"
+  because of those 9 helpers. The `ags.exe` of prepush's Release build is 6,959,104 bytes, the size 5.2 recorded;
+  its functions were not compared.
+- **Proof, GCC 13.3 in WSL** (`.compare/helpers/gcc_cmp_51.sh`: both trees built in one source and build
+  directory, objects hashed, the differing ones compared function by function):
+
+  | Build | Result |
+  |---|---|
+  | `-Os`, no LTO, 708 objects | 697 byte-identical; 8 test objects differ; 3 engine objects differ in bytes: `game.cpp` and `ali3dogl.cpp` in the order of their functions only, `draw.cpp` in one libstdc++ function |
+  | `-O3` with LTO (Release), 17 linked programs | 15 byte-identical (the tools, `agscc`, the other tests); `engine_full_test` differs (a test); `ags`: 33 of 14,530 functions differ, text 7,943,205 to 7,943,461 bytes (+256) |
+
+  The one function at `-Os` is `vector<unique_ptr<Bitmap>>::_M_default_append`: GCC inlined the destructor of
+  the moved-from elements, which does nothing, where it called it before (93 to 85 instructions). The 33 at
+  `-O3` include FreeType (`FT_Stroker_CubicTo`, `cff_get_ros`, `tt_done_blend`), SDL (`DSP_PlayDevice`) and
+  `std::regex` functions, which no changed header reaches: the whole-program optimiser decides by the order of
+  what it is given. None of the 33 is in the script VM, a blender or a pixel loop (the engine's own:
+  `prepare_roomview_frame`, `init_translation`, `video_core_slot_init`, the four `MotionPath_GetStage*` and
+  their bindings, `AssetManager::RemoveLibrary`, `RoomStruct::~RoomStruct`, ...).
+- **Verified:** `prepush.py --auto` with every stage: format, helpers, layers, build lists, MSVC build and
+  `ctest`, headers, libc++ (335 headers), Emscripten (`ags.wasm` linked), the Linux GCC job (1,207 tests),
+  MSBuild with the Editor's NUnit tests: pass. `tidy`: see the next point. The auto-test game 2414 of 2414 on
+  Software, Direct3D 9, Direct3D 11 and OpenGL.
+- **The tidy gate, two things.** It reported `croom`, `objs` and `scsystem` as banned abbreviations "in a new
+  name": their `extern` lines were new header lines. `Script/tidy_diff.py` no longer applies that check to an
+  `extern` declaration, which repeats the name of its definition. One finding is left and is not from this
+  task: `game/world/room_object.h:71`, "invalid case style for public member `audio_speed`", on the line whose
+  initializer `0b94d780b` (unpushed) changed from 0 to 1000. The gate reads a changed declaration line as a
+  new name; for the user to decide (rename the member, or let the gate pass a declaration that differs from
+  the base line only after its `=`).
+- **Not compiled by any local build:** `platform/ios/acplios.cpp` (the keyword of one forward declaration
+  removed), and the macOS and Android builds, whose changed files are the shared engine sources that the Linux
+  and Emscripten stages compile.
+- **`#pragma once` was not everywhere, and nothing checks it.** Nine first-party headers lacked it; one of
+  them had an include guard instead. `device/mousew32.h` and `platform/base/sys_main.h` got it with the engine
+  commit, because their second inclusion failed the build; the other seven in `9078a8c83` (the user,
+  2026-11-15: all of our code uses it): `gfx/ogl_headers.h`, `platform/base/mobile_base.h`,
+  `Common/data/data_helpers.h`, `Compiler/preproc/preprocessor.h`, and `diagnostics.h` (which had a guard),
+  `pipedprocess.h` and `test/spriteimport_env.h` of the tools. `compare_objects.py` on that commit: 657 objects
+  identical, 17 with the same code, "mechanical change"; prepush with every stage ran on the tree that has it.
+  The two `resource.h` files
+  (`Engine/resource`, `Editor/AGS.Native`) are left: Visual Studio's resource editor writes them and `rc.exe`
+  reads them.
+- **Also found:** two source files have a second block of includes in the middle, left by the folds of 5.3
+  (`game/game.cpp`, `game/dialog/speech.cpp`); outside the engine, `extern` in source files:
+  `Editor/AGS.Native` 61, `Common` 5 (4 of them Allegro's blender functions), `Compiler` 2, `Plugins` 2.
+- **Commits**, in the order that keeps each one passing its checks: `92a98be06` the tool and the tidy gate's
+  rule for `extern` declarations; `2805bc661` the engine, its build lists and the 15 baseline lines, with the
+  comparison results in its message; `2356f0c20` the `extern` check of `check_layers.py`; `9078a8c83`
+  `#pragma once`; then the documents.
+- **Lessons:** a change that only adds includes is not mechanical until the objects say so; a helper COMDAT
+  that nothing references shows up as an "added function" in `compare_objects.py`, which could tell it apart
+  by its relocations; GCC's objects are byte-identical when only declarations move, so a hash comparison in
+  WSL is a cheap second proof, but a Release build there is LTO and only its linked programs can be compared,
+  where a few dozen functions move with the input order whatever the change.
+
 ### Open items from finished tasks
 
 *Moved from PLAN.md "Next up" on 2026-11-07* (details in the tasks' sections):

@@ -133,7 +133,15 @@ private:
   headers; other system and third-party headers (`<SDL.h>`, `<shlwapi.h>`); AGS headers (`"..."`).
   A blank line between groups, each sorted; a `#if` splits a group, so conditional includes stay.
 - **No `using namespace` in headers**; in `.cpp` files only after all includes.
-- No `extern` declarations in `.cpp` files: a global belongs in its owning module's header.
+- No `extern` declarations in `.cpp` files: a global belongs in its owning module's header, declared
+  once, and the `.cpp` that defines it includes that header so the compiler compares the two types.
+  **[enforced]** in `Engine/`: `Script/check_layers.py` (an `extern` in a source file hides a dependency
+  from the ring rules).
+- **An include can change code.** `TRUE` is 1 in `<windows.h>` and -1 in Allegro, each defined only if
+  the other was not included first; adding an include that brings Allegro into a file with Windows
+  calls turned `SetRenderState(..., TRUE)` into `-1` in the Direct3D drivers [5.1 step 1]. Such a file
+  includes `platform/windows/windows.h` ahead of the AGS headers, and a commit that only adds includes
+  is still checked with `compare_objects.py`.
 
 ### Memory, strings and types
 

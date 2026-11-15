@@ -121,7 +121,9 @@ Entry points, in reading order:
 **The engine's layout** (`Engine/README.md`, `Engine/game/README.md`): four rings, each a set of directories
 that may include only its own ring and the ones below it: host (`util`, `debug`, `platform`, `device`, `gfx`,
 `media`, `resource`), script VM (`script`), game (`game`), composition (`main`, `plugin`); Common is under all.
-`Script/check_layers.py` checks the includes against `Script/check_layers_baseline.txt`, which only shrinks.
+`Script/check_layers.py` checks the includes against `Script/check_layers_baseline.txt`, which only shrinks, and
+fails on an `extern` declaration in an engine source file (5.1 step 1, 2026-11-15): a global is declared once, in
+the header of its module, and its users include that header (`Script/collect_externs.py` rewrites them).
 `Engine/game/` holds the game logic in `world`, `navigation`, `dialog`, `ui`, `render`, `audio`, `video`,
 `input`, `save`, `lib` and `dynobj`, and the script bindings in `script_api/`. `docs/context/repository.md`
 describes upstream's tree, so its `Engine/ac/` and `Common/ac/` paths map through
@@ -142,7 +144,7 @@ changed files that no stage verifies (workflows, packaging, most scripts). `--dr
 Without `--auto` every stage runs, which a repository-wide change needs (`--list`, `--only`, `--skip`,
 `--base`, `--emsdk <dir>`): `format`, `helpers` (`Script/check_helpers.py` on the changed lines: functions
 named like a shared helper, comments citing an Editor member that is not there), `layers`
-(`Script/check_layers.py`: an include against the engine's ring rules that is not in the baseline), `buildlists` (`Script/check_build_lists.py`: every `.vcxproj`'s and the macOS Xcode project's
+(`Script/check_layers.py`: an include against the engine's ring rules that is not in the baseline, an `extern` in an engine source file), `buildlists` (`Script/check_build_lists.py`: every `.vcxproj`'s and the macOS Xcode project's
 (`OSX/xcode/AGSKit`) sources against its CMake targets, deliberate differences listed with reasons in the script), `build`
 (+ `ctest`), `tidy` (clang-tidy on changed lines), `headers`, `libcxx`, `emscripten` (engine as GLES2, then
 a syntax check of the Linux-only code), `linux` (the CI's GCC job: build, header check, `ctest`), `msbuild`.

@@ -74,15 +74,15 @@ Recorded 2026-10-31.
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
-0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 5.2, 5.3 (2026-11-14), 6.7d, 6.9, 7.1 (but
-7.1n) (LOG.md); 3.2 with 3.2c
+0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 5.1 step 1 (2026-11-15), 5.2, 5.3 (2026-11-14), 6.7d,
+6.9, 7.1 (but 7.1n) (LOG.md); 3.2 with 3.2c
 (CI-confirmed 2026-11-08). The fork does not wait for upstream review (the user, 2026-11-09): a fork-only
 move that would conflict with an open offer is preceded by a tag of the pre-move tree for `port.py`.
 
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
 | 1 | **The bugs found in 4.1, by upstream branch** (the user, 2026-11-12; the list is "4.1's bugs by upstream branch" below): all fixed in the fork (2026-11-12, `d90b789ab`..`98a7dae87`, `4c07f1e11`; lip-sync and the push button still want a run in a game); ported to `master-41-fixes` and `ags4-41-fixes`, trial merge of the first into the second on `ags4-41-mergecheck` (`docs/UPSTREAM.md`, worktrees `../ags-up-master`, `../ags-up-ags4`, `../ags-up-merge`); double-checked, fixed, rebased and pushed to `origin` 2026-11-13 (`53a55451d` on `upstream/master` `fc4c47a7f`, `9d32c9654`; what the check found is in `docs/UPSTREAM.md`); left: open the two PRs (texts in `.compare/pr-description.md` of each worktree), the trial merge is from the first version and not redone, and the fork's reader still gives `RunGameLoopsWhileDialogOptionsDisplayed` true for an absent element where `Settings.FromXml` gives false (no effect on 4.0 projects) | 4.1 is done; the PRs were waiting for it | Fable 5.1, `high` for the review; the user opens the PRs |
-| 2 | **5.1 step 1: every global declared once** (proposed, 2026-11-14): the 596 `extern` declarations inside engine `.cpp` files go to their module's header, which is mechanical and provable with `compare_objects.py`; then the design of the context structs of step 2 (`GameData`, runtime `Game`, the current room, `EngineServices`), with 5.1a's split of design data from runtime state decided at the same time since both shape the same structs. Small follow-ups left by 5.2 and 5.3 that fit the same session: split `runtime_defines.h` and `asset_helper.h` into their host and game halves; the signature fixes that 5.2 step 2's tags mark (LOG.md "5.2 step 2", each a behaviour change to decide) | 5.2 and 5.3 are done, so the files have their final places and the bindings no longer hide which globals the logic uses; 5.1's contexts take `usetup`, 18 of the 128 baseline includes, out of `main/game_setup.h` | Fable 5.2, `high` for the context design; Sonnet 5.5 or Opus 5.5 subagents for step 1, in batches built once per batch |
+| 2 | **5.1 step 2, the design first** (step 1 done 2026-11-15, LOG.md "5.1 step 1"): the context structs (`GameData`, runtime `Game`, the current room, `EngineServices`), with 5.1a's split of design data from runtime state decided at the same time since both shape the same structs. Step 1 left the inventory: 203 `extern` declarations, all in headers and one per global (`game/game.h` 38, `game/script.h` 18, `game/world/character.h` 14), and the 15 includes from a lower ring to a higher one that the `extern` lines had hidden, now in the layering baseline (LOG.md lists them): the frame-wait and exit flags that `util/timer.cpp`, `debug/debug.cpp` and `device/mousew32.cpp` read, `palette` and `gfxDriver` in the graphics drivers, `scriptExecutor` in the VM, the `--print-rtti` and `--print-scripttoc` flags of `main.cpp` in the game ring. They are the first members of `EngineServices`, or globals to move down a ring. Small follow-ups left by 5.2 and 5.3 that fit the same session: split `runtime_defines.h` and `asset_helper.h` into their host and game halves; the signature fixes that 5.2 step 2's tags mark (LOG.md "5.2 step 2", each a behaviour change to decide) | Step 1 is done, so each global has one declaration to replace and the compiler checks it against the definition; 5.1's contexts take `usetup`, 18 of the 143 baseline includes, out of `main/game_setup.h` | Fable 5.2, `high` for the design; Sonnet 5.5 or Opus 5.5 subagents for the conversion to accessors, in batches built once per batch |
 | 3 | **4.5 + 3.6 on what had no comment pass** (770 first-party files, ~280k lines): batch 8 done (2026-11-13, LOG.md: `game`, `gamestate`, `room`, `dialog`, `savegame`, `game_init`, `script`, `guimain`, `engine`); next, the untouched files most-churned first (a ranking by commits since 2024, the batch-6 stray-rename files among them), then the D3D/OpenGL drivers with the `emscripten` and `linux` stages, and the compiler (7,440-line parser: its own plan, by function groups). Brief `.compare/briefs/brief-45-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | The files have their final paths since 5.3 (map: `docs/refactor/moves-5.3.tsv`; the brief's file lists use the old ones), and a comment pass is cheaper before 5.1 and 5.2 step 2 edit them again | Sonnet 5.5, `medium`, parallel subagents; the parser plan Fable 5.1 |
 | 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3188, #3189; #3187 merged), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
@@ -321,7 +321,15 @@ Each task is a series of small PRs.
   Most shared: `game` (67 files), `thisroom` (31), `spriteset` (31), `gfxDriver` (28),
   `displayed_room` (20), `views` (18), `croom` (18), `playerchar` (17), `palette` (15), `platform`
   (13), `scsystem` (10), `objs` (10).
-  1. Every global declared once, in its module's header; `extern` in `.cpp` → 0.
+  1. [x] Every global declared once, in its module's header; `extern` in `.cpp` → 0. *Done 2026-11-15*
+     (LOG.md "5.1 step 1"): 552 `extern` lines out of 107 source files (533 without the tests) by
+     `Script/collect_externs.py`, 86 `extern` and 49 function declarations added to 26 headers by hand, each
+     defining file includes its declaration. `Script/check_layers.py` now fails on an `extern` in an engine
+     source file. Proved with `compare_objects.py` (MSVC `/O1`: no function changed) and a GCC object comparison
+     (`-Os`: one libstdc++ function inlined differently; `-O3` with LTO: 33 of 14,530 functions of `ags`, none
+     on a hot path); the first comparison caught `TRUE` turning into -1 in the Direct3D drivers through a new
+     include, fixed. The layering baseline went from 128 to 143: the 15 dependencies on a higher ring that the
+     `extern` lines hid.
   2. Group them into context structs named as upstream's #2058: `GameData` (static data:
      `GameSetupStruct` plus the data lists), runtime `Game` (`GameData` + `GameState` + runtime
      object lists, e.g. `Character` = `CharacterInfo` + `CharacterExtras`), the current room, and
@@ -389,7 +397,8 @@ Each task is a series of small PRs.
   Left open from it:
   - `Common/ac/def_version.h` stays: CI and the packaging scripts of every platform name it (the user, 2026-11-14:
     it stays; phase 7 may move it when the packaging scripts are reworked).
-  - The layering baseline, `Script/check_layers_baseline.txt`, 129 includes (128 since 5.2 step 2), only shrinks. 5.1's contexts take
+  - The layering baseline, `Script/check_layers_baseline.txt`, 129 includes (128 since 5.2 step 2; 143 since 5.1
+    step 1, which made 15 hidden ones visible), only shrinks. 5.1's contexts take
     out the ones that carry `usetup` (`main/game_setup.h`, 18); the rest (`main/game_run.h` 22,
     `plugin/plugin_engine.h` 12, the `debug` and `util` files) is for later tasks. Two small follow-ups: split `runtime_defines.h` and `asset_helper.h` into their host and game parts, and cut
     `script/script_api.h` from `script/runtimescriptvalue.h` (the cut is done, 5.2 step 2; the two splits are open).
