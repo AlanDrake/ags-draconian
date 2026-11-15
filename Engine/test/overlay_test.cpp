@@ -21,6 +21,7 @@
 #include <memory>
 #include <vector>
 
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/render/overlay.h"
@@ -29,19 +30,13 @@
 #include "game/roomstruct.h"
 #include "game/view.h"
 #include "game/world/character_extras.h"
+#include "game/world/room.h"
 #include "gfx/bitmap.h"
 #include "gfx/sprite_cache.h"
 #include "gtest/gtest.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern SpriteCache spriteset;
-extern RoomStruct thisroom;
-extern std::vector<ViewStruct> views;
-extern std::vector<CharacterExtras> charextra;
-extern int displayed_room;
 
 namespace
 {

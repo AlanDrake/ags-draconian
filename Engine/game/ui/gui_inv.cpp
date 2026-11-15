@@ -11,6 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
@@ -19,9 +20,6 @@
 #include "gfx/sprite_cache.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
-
-
-extern GameSetupStruct game;
 
 
 namespace AGS

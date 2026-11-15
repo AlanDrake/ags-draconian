@@ -16,6 +16,7 @@
 #include <cstdio>
 
 #include "game/dynobj/script_string.h"
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/lib/string.h"
 #include "game/runtime_defines.h"
@@ -24,8 +25,6 @@
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
-
-extern GameSetupStruct game;
 
 // begin custom property functions
 

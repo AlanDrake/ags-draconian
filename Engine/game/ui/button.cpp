@@ -33,10 +33,6 @@
 
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
-extern std::vector<ViewStruct> views;
-extern CCGUIButton ccDynamicGUIButton;
-
 // *** BUTTON FUNCTIONS
 
 std::vector<AnimatingGUIButton> animbuts;

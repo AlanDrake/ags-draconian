@@ -13,10 +13,9 @@
 //=============================================================================
 #include "game/ui/new_control.h"
 
+#include "game/ui/csci_dialog.h"
 #include "game/ui/gui_dialog.h"
 #include "game/ui/gui_dialog_defines.h"
-
-extern int topwindowhandle;
 
 NewControl::NewControl()
 {

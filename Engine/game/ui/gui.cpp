@@ -41,6 +41,7 @@
 #include "game/world/inventory_item.h"
 #include "game/world/object.h"
 #include "game/world/properties.h"
+#include "game/world/room.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfxfilter.h"
@@ -59,16 +60,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-
-extern RoomStruct thisroom;
-extern int cur_mode, cur_cursor;
-extern std::vector<ScriptGUI> scrGui;
-extern GameSetupStruct game;
-extern IGraphicsDriver *gfxDriver;
-
-extern CCGUI ccDynamicGUI;
-extern CCGUIControl ccDynamicGUIControl;
 
 
 int ifacepopped = -1;    // currently displayed pop-up GUI (-1 if none)

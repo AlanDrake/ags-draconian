@@ -38,8 +38,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern IGraphicsDriver *gfxDriver;
-
 
 //-----------------------------------------------------------------------------
 // DIALOG SYSTEM STUFF below

@@ -30,6 +30,8 @@
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/view.h"
+#include "game/world/character.h"
+#include "game/world/room.h"
 #include "main/game_run.h"
 #include "main/game_setup.h"
 #include "media/audio/audio_core.h"
@@ -81,14 +83,6 @@ void AudioChans::DeleteClipOnChannel(int index)
 {
     _channels[index].reset();
 }
-
-extern GameSetupStruct game;
-extern RoomStruct thisroom;
-extern CharacterInfo *playerchar;
-extern CCAudioChannel ccDynamicAudio;
-
-extern volatile int switching_away_from_game;
-extern int frames_per_second; // for queue "hack"
 
 ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 int reserved_channel_count = 0;

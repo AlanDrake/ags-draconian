@@ -34,8 +34,6 @@
 
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
-
 String trans_name;
 String trans_filename;
 Translation trans;

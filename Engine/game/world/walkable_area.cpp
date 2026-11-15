@@ -15,6 +15,7 @@
 
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_walkable_area.h"
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -30,14 +31,6 @@
 #include "util/common.h"
 
 using namespace AGS::Common;
-
-extern RoomStruct thisroom;
-extern GameSetupStruct game;
-extern int displayed_room;
-extern RoomStatus *croom;
-extern RoomObject *objs;
-extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
-extern CCWalkableArea ccDynamicWalkarea;
 
 // The walkable area mask as loaded with the room, before disabled areas are erased from it
 // (thisroom.WalkAreaMask); redo_walkable_areas copies it back. Created by the room loader (room.cpp).

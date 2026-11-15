@@ -18,6 +18,7 @@
 #include <cctype>
 
 #include "font/fonts.h"
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/lib/string.h"
 #include "game/system.h"
@@ -28,11 +29,6 @@
 #include "gfx/sprite_cache.h"
 
 using namespace AGS::Common;
-
-extern int eip_guiobj;
-
-extern SpriteCache spriteset;
-extern GameSetupStruct game;
 
 //=============================================================================
 // Engine-specific implementation split out of acgui.cpp

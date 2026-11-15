@@ -27,10 +27,6 @@
 using namespace AGS;
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
-extern SpriteCache spriteset;
-extern std::vector<ViewStruct> views;
-
 ScreenOverlay::ScreenOverlay(ScreenOverlay &&over)
 {
     *this = std::move(over);

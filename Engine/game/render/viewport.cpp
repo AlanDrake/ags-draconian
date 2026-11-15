@@ -14,15 +14,16 @@
 #include "game/render/viewport.h"
 
 #include "debug/debug_log.h"
+#include "game/game.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/roomstruct.h"
+#include "game/world/room.h"
 
 using namespace AGS::Common;
 
-// FIXME: don't use global variables here, have access to a GameState or some kind of a camera manager etc
-extern int displayed_room;
-extern RoomStruct thisroom;
+// FIXME: don't use global variables here (displayed_room, thisroom), have access to a GameState or some kind of a
+// camera manager etc
 
 void Camera::SetID(int id)
 {

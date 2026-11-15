@@ -31,8 +31,11 @@
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/navigation/route_finder.h"
+#include "game/render/draw.h"
+#include "game/render/dynamic_sprite.h"
 #include "game/translation.h"
 #include "game/video/video.h"
+#include "game/world/room.h"
 #include "game/world/room_status.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
@@ -52,16 +55,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern SpriteCache spriteset;
-extern RoomStruct thisroom;
-extern RoomStatus troom; // used for non-saveable rooms, eg. intro
-extern int proper_exit;
-extern char check_dynamic_sprites_at_exit;
-extern int editor_debugging_initialized;
-extern IAGSEditorDebugger *editor_debugger;
-extern IGraphicsDriver *gfxDriver;
 
 bool handledErrorInEditor;
 

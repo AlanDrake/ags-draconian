@@ -18,6 +18,7 @@
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_walk_behind.h"
 #include "game/dynobj/script_objects.h"
+#include "game/game.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
@@ -30,12 +31,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern RoomStruct thisroom;
-extern IGraphicsDriver *gfxDriver;
-extern RoomStatus *croom;
-extern ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
-extern CCWalkbehind ccDynamicWalkbehind;
 
 // An info on vertical column of walk-behind mask, which may contain WB area
 struct WalkBehindColumn

@@ -29,8 +29,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern IGraphicsDriver *gfxDriver;
-
 void LoadShaderDefinition(const String &filename, ShaderDefinition &def)
 {
     auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);

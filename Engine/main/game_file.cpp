@@ -51,9 +51,6 @@ const String GlobalScriptObj = "GlobalScript.o";
 const String DialogScriptObj = "__DialogScripts.o";
 const String ScriptModulesList = "ScriptModules.lst";
 
-extern GameSetupStruct game;
-extern AGSPlatformDriver *platform;
-
 
 // Test if engine supports extended capabilities required to run the game
 bool test_game_caps(const std::set<String> &caps, std::set<String> &failed_caps)

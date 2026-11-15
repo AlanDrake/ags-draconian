@@ -25,9 +25,12 @@
 
 #include "debug/out.h"
 #include "game/common_defines.h"
+#include "game/game.h"
+#include "game/ui/gui.h"
 #include "gfx/sprite_cache.h"
 #include "main/main.h"
 #include "platform/base/sys_main.h"
+#include "platform/windows/minidump.h"
 #include "script/cc_common.h"
 #include "util/common.h" // quit
 #include "util/ini_util.h"
@@ -38,22 +41,11 @@
 
 using namespace AGS::Common;
 
-extern int eip_guinum;
-extern int eip_guiobj;
-extern int proper_exit;
-extern SpriteCache spriteset;
-
 char tempmsg[2048] = "";
 #define PRINT_WORKSPACE_SIZE (7000u)
 char *printfworkingspace;
 
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
-void CreateMiniDump(EXCEPTION_POINTERS *pep);
-
-extern int CustomExceptionHandler(LPEXCEPTION_POINTERS exinfo);
-extern EXCEPTION_RECORD excinfo;
-extern int miniDumpResultCode;
-
 static void DisplayException()
 {
     const auto &sc_error = cc_get_error();

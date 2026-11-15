@@ -18,12 +18,15 @@
 #include "game/dynobj/cc_hotspot.h"
 #include "game/dynobj/cc_region.h"
 #include "game/dynobj/script_objects.h"
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/render/screen.h"
 #include "game/script.h"
 #include "game/ui/gui.h"
+#include "game/world/hotspot.h"
+#include "game/world/region.h"
 #include "game/world/room.h"
 #include "game/world/room_status.h"
 #include "gfx/bitmap.h"
@@ -40,21 +43,8 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
-extern RoomStruct thisroom;
-extern RoomStatus *croom;
-extern int displayed_room;
-extern RGB palette[256];
-extern IGraphicsDriver *gfxDriver;
-extern AGSPlatformDriver *platform;
-extern int displayed_room;
-extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
-extern CCHotspot ccDynamicHotspot;
-extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
-extern CCRegion ccDynamicRegion;
-
-// FIXME: refactor further to get rid of this extern, maybe move part of the code to screen.cpp?
-extern std::unique_ptr<Bitmap> saved_viewport_bitmap;
+// FIXME: refactor further to stop using saved_viewport_bitmap (screen.h) here, maybe move part of the code to
+// screen.cpp?
 
 // FIXME: change these from global variables into e.g. GamePlayState members
 // TODO: replace these with "current transition state" enum?

@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <time.h>
+#include <vector>
 
 #include "game/dynobj/script_view_frame.h"
 #include "game/game_struct_defines.h"
@@ -340,6 +341,38 @@ void release_script_movelist(int handle);
 // Global AssetManager instance.
 extern std::unique_ptr<AGS::Common::AssetManager> AssetMgr;
 
+struct GameSetupStruct;
+struct ViewStruct;
+namespace AGS
+{
+namespace Common
+{
+class SpriteCache;
+} // namespace Common
+} // namespace AGS
+
+// The game's data, as loaded from the game file.
+extern GameSetupStruct game;
+// The game's views.
+extern std::vector<ViewStruct> views;
+// The game's sprites.
+extern AGS::Common::SpriteCache spriteset;
+
+// Above 0 while display_switch_out_suspend is pausing the game after it lost the input focus.
+extern volatile int switching_away_from_game;
+// Whether the game does not have the input focus now.
+extern volatile bool switched_away;
+// Whether the game is suspended after losing the input focus; the frame wait loops spin while it is set.
+extern volatile bool game_update_suspend;
+// Requests to stop: set together when the window is closed or the debugger asks to exit.
+extern volatile bool want_exit, abort_engine;
+// Set to 1 when the engine exits through its own quit procedure; atexit_handler reports an exit without it.
+extern int proper_exit;
+// A request to run another game (the mode and flags given to RunAGSGame), served by the game loop; 0 when none.
+extern unsigned int load_new_game;
+// Counts the restore attempts, so that a script run that was in progress can tell that one happened (script.cpp)
+extern int gameHasBeenRestored;
+
 // An internal state id, telling how the new room was entered.
 // This defines which events to run after room was loaded.
 enum EnterNewRoomState
@@ -351,6 +384,8 @@ enum EnterNewRoomState
 };
 
 extern EnterNewRoomState in_new_room;
+// The value in_new_room had when the room was entered, kept for the events that run after the fade-in.
+extern EnterNewRoomState new_room_was;
 // Where to put the player character in the room being entered; 0 means no instruction. A value of 1000 or more is an
 // entrance at an edge of the room, set by Character.ChangeRoomAutoPosition: the thousands give the edge (1000 left,
 // 2000 right, 3000 bottom, 4000 top), the rest the coordinate along it (y for the sides, x for bottom and top; 0 is
@@ -571,6 +606,23 @@ struct CCGUIControl;
 
 // Used by the script bindings in game/script_api/gui_api.cpp
 extern CCGUIControl ccDynamicGUIControl;
+
+struct CCGUIButton;
+struct CCGUIInvWindow;
+struct CCGUILabel;
+struct CCGUIListBox;
+struct CCGUISlider;
+struct CCGUITextBox;
+struct CCTextWindowGUI;
+
+// The managers of the GUI control types and of the text window GUIs.
+extern CCGUIButton ccDynamicGUIButton;
+extern CCGUIInvWindow ccDynamicGUIInvWindow;
+extern CCGUILabel ccDynamicGUILabel;
+extern CCGUIListBox ccDynamicGUIListBox;
+extern CCGUISlider ccDynamicGUISlider;
+extern CCGUITextBox ccDynamicGUITextBox;
+extern CCTextWindowGUI ccDynamicTextWindowGUI;
 
 struct CCHotspot;
 

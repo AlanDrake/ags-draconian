@@ -19,6 +19,7 @@
 #include "game/dynobj/cc_gui.h"
 #include "game/dynobj/cc_gui_control.h"
 #include "game/dynobj/script_shader.h"
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -33,16 +34,6 @@
 #include "util/common.h"
 
 using namespace AGS::Common;
-
-extern GameSetupStruct game;
-extern std::vector<ScriptGUI> scrGui;
-
-extern CCGUIButton ccDynamicGUIButton;
-extern CCGUIInvWindow ccDynamicGUIInvWindow;
-extern CCGUILabel ccDynamicGUILabel;
-extern CCGUIListBox ccDynamicGUIListBox;
-extern CCGUISlider ccDynamicGUISlider;
-extern CCGUITextBox ccDynamicGUITextBox;
 
 GUIObject *GUIControl_GetAtScreenXY(int x, int y, int gui_hitoptions, int ctrl_hitoptions)
 {

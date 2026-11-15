@@ -39,10 +39,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 
-extern GameSetupStruct game;
-extern SpriteCache spriteset;
-extern IGraphicsDriver *gfxDriver;
-
 static bool video_check_user_input(VideoSkipType skip);
 
 //-----------------------------------------------------------------------------

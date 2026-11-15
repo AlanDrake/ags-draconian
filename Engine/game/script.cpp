@@ -30,9 +30,11 @@
 #include "game/ui/inv_window.h"
 #include "game/ui/mouse.h"
 #include "game/world/character.h"
+#include "game/world/object.h"
 #include "game/world/room.h"
 #include "game/world/room_object.h"
 #include "main/game_run.h"
+#include "main/main.h"
 #include "media/audio/audio_system.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
@@ -44,13 +46,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern int gameHasBeenRestored, displayed_room;
-extern unsigned int load_new_game;
-extern RoomObject *objs;
-extern CharacterInfo *playerchar;
-extern bool logScriptTOC;
 
 std::stack<std::unique_ptr<ExecutingScript>> executingScripts;
 ExecutingScript *curExecScript = nullptr; // non-owning ptr

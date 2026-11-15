@@ -15,14 +15,13 @@
 
 #include "game/common_defines.h"
 #include "game/dynobj/script_objects.h"
+#include "game/game_init.h"
 #include "game/roomstruct.h"
+#include "game/world/object.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
-extern std::vector<int> StaticObjectArray;
-
-extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 
 // return the type name of the object
 const char *CCObject::GetType()

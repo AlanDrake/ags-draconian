@@ -16,12 +16,11 @@
 #include "game/common_defines.h"
 #include "game/dynobj/script_objects.h"
 #include "game/roomstruct.h"
+#include "game/world/walkable_area.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
-
-extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
 
 // return the type name of the object
 const char *CCWalkableArea::GetType()

@@ -31,6 +31,7 @@
 #include "game/render/screen.h"
 #include "game/script.h"
 #include "game/ui/mouse.h"
+#include "game/world/character.h"
 #include "game/world/room.h"
 #include "gfx/ali3dexception.h"
 #include "main/game_run.h"
@@ -41,10 +42,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern int displayed_room;
-extern GameSetupStruct game;
-extern CharacterInfo *playerchar;
 
 void start_game_load_savegame_on_startup(const String &load_save)
 {

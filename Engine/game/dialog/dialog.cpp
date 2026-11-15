@@ -58,15 +58,6 @@ using namespace AGS::Engine;
 class DialogExec;
 class DialogOptions;
 
-extern GameSetupStruct game;
-extern EnterNewRoomState in_new_room;
-extern CharacterInfo *playerchar;
-extern SpriteCache spriteset;
-extern AGSPlatformDriver *platform;
-extern int cur_mode, cur_cursor;
-extern IGraphicsDriver *gfxDriver;
-extern std::vector<ScriptGUI> scrGui;
-
 std::vector<DialogTopic> dialog;
 std::unique_ptr<DialogExec> dialogExec;    // current running dialog state
 std::unique_ptr<DialogOptions> dialogOpts; // current running dialog options
@@ -2088,8 +2079,6 @@ int DialogOptions_GetItemHeight(int index)
 #include "game/dynobj/cc_dialog.h"
 #include "game/dynobj/script_string.h"
 #include "script/script_runtime.h"
-
-extern CCDialog ccDynamicDialog;
 
 ScriptDialog *Dialog_GetByName(const char *name)
 {

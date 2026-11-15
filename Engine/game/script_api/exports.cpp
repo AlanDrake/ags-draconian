@@ -16,56 +16,9 @@
 //
 //=============================================================================
 
+#include "game/script_api/exports.h"
+
 #include "game/game_struct_defines.h"
-
-extern void RegisterAudioChannelAPI();
-extern void RegisterAudioClipAPI();
-extern void RegisterButtonAPI();
-extern void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api);
-extern void RegisterContainerAPI();
-extern void RegisterDateTimeAPI();
-extern void RegisterDialogAPI();
-extern void RegisterDialogOptionsRenderingAPI();
-extern void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api);
-extern void RegisterDynamicArrayAPI();
-extern void RegisterDynamicSpriteAPI();
-extern void RegisterFileAPI();
-extern void RegisterGameAPI();
-extern void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api);
-extern void RegisterGUIAPI();
-extern void RegisterGUIControlAPI();
-extern void RegisterHotspotAPI();
-extern void RegisterInventoryItemAPI();
-extern void RegisterInventoryWindowAPI();
-extern void RegisterJoystickAPI();
-extern void RegisterLabelAPI();
-extern void RegisterListBoxAPI();
-extern void RegisterMathAPI();
-extern void RegisterMouseAPI();
-extern void RegisterObjectAPI();
-extern void RegisterOverlayAPI();
-extern void RegisterParserAPI();
-extern void RegisterPathfinderAPI();
-extern void RegisterRegionAPI();
-extern void RegisterRoomAPI();
-extern void RegisterSaveInfoAPI();
-extern void RegisterScreenAPI();
-extern void RegisterSliderAPI();
-extern void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api);
-extern void RegisterStringAPI();
-extern void RegisterSystemAPI();
-extern void RegisterTextBoxAPI();
-extern void RegisterTouchAPI();
-extern void RegisterUtilsAPI();
-extern void RegisterViewFrameAPI();
-extern void RegisterViewportAPI();
-extern void RegisterVideoAPI();
-extern void RegisterWalkareaAPI();
-extern void RegisterWalkbehindAPI();
-
-extern void RegisterShaderAPI();
-
-extern void RegisterStaticObjects();
 
 void setup_script_exports(ScriptAPIVersion base_api, ScriptAPIVersion compat_api)
 {

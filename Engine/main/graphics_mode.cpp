@@ -24,6 +24,7 @@
 
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "game/game.h"
 #include "game/render/draw.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/bitmap.h"
@@ -43,10 +44,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern int proper_exit;
-extern AGSPlatformDriver *platform;
-extern IGraphicsDriver *gfxDriver;
 
 
 IGfxDriverFactory *GfxFactory = nullptr;

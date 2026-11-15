@@ -17,7 +17,10 @@
 //=============================================================================
 #pragma once
 
+#include <set>
+
 #include "platform/platform.h"
+#include "util/string.h"
 #include "util/version.h"
 
 // Current engine version
@@ -34,7 +37,13 @@ extern AGS::Common::String cmdGameDataPath;
 
 // Startup flags, set from parameters to engine
 extern int override_start_room;
+extern bool justRunSetup;
 extern bool justTellInfo;
+// Log the script RTTI and the script table of contents when the scripts are loaded
+extern bool logScriptRTTI;
+extern bool logScriptTOC;
+// The keys of the information asked with --tell
+extern std::set<AGS::Common::String> tellInfoKeys;
 extern AGS::Common::String loadSaveGameOnStartup;
 
 void main_print_help();

@@ -35,6 +35,7 @@
 #include "game/dynobj/cc_walkable_area.h"
 #include "game/dynobj/script_string.h"
 #include "game/game.h"
+#include "game/script_api/exports.h"
 #include "game/translation.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/script_api.h"

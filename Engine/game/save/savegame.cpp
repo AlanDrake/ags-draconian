@@ -17,6 +17,7 @@
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "font/fonts.h"
+#include "game/audio/audio.h"
 #include "game/dialog/dialog.h"
 #include "game/dialog/speech.h"
 #include "game/dynobj/cc_audio_channel.h"
@@ -79,20 +80,6 @@
 using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern SpriteCache spriteset;
-extern AGS::Engine::IGraphicsDriver *gfxDriver;
-extern RoomStatus troom;
-extern RoomStatus *croom;
-extern std::vector<ViewStruct> views;
-extern std::vector<ScriptGUI> scrGui;
-extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
-extern CCAudioChannel ccDynamicAudio;
-extern CCAudioClip ccDynamicAudioClip;
-extern CCCharacter ccDynamicCharacter;
-extern CCDialog ccDynamicDialog;
-extern CCGUI ccDynamicGUI;
 
 
 namespace AGS

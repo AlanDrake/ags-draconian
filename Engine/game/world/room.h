@@ -121,6 +121,14 @@ int mask_to_room_coord(int coord);
 // The single global "current room" instance
 extern AGS::Common::RoomStruct thisroom;
 
+class RoomStatus;
+// The state of the current room: the saved state of its number, or troom; nullptr when no room is loaded.
+extern RoomStatus *croom;
+// The state of the current room if it is a temporary one (number >= MAX_ROOMS), e.g. an intro room
+extern RoomStatus troom;
+// Set to 1 when the room's background frame changed, until the next draw updates the background's texture.
+extern int bg_just_changed;
+
 class ScriptPathfinder;
 class ScriptShaderInstance;
 struct ScriptHotspot;

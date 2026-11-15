@@ -36,6 +36,7 @@
 #include "game/view.h"
 #include "game/world/character.h"
 #include "game/world/move_list.h"
+#include "game/world/room.h"
 #include "game/world/room_status.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
@@ -59,14 +60,6 @@
 
 using namespace AGS;
 using namespace AGS::Common;
-
-extern GameSetupStruct game;
-extern SpriteCache spriteset;
-extern RGB palette[256];
-extern std::vector<ViewStruct> views;
-extern std::unique_ptr<Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
-extern RoomStruct thisroom;
-extern RoomStatus troom;
 
 // Set to 1 to print each component's offsets and sizes while reading and writing
 #define DEBUG_SAVECOMPONENTS (0)

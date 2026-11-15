@@ -17,6 +17,8 @@
 //=============================================================================
 #pragma once
 
+#include "game/dynobj/script_objects.h"
+#include "game/roomdata.h"
 #include "util/geometry.h"
 
 // A method of rendering walkbehinds on screen:
@@ -51,6 +53,8 @@ bool walkbehinds_cropout(AGS::Common::Bitmap *sprit, int sprx, int spry, int bas
 extern bool noWalkBehindsAtAll;
 extern int walkBehindsCachedForBgNum;
 extern bool walk_behind_baselines_changed;
+// The script objects of the room's walk-behinds, by walk-behind number.
+extern ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
 
 struct ScriptWalkbehind;
 

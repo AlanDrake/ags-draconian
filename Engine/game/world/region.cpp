@@ -16,9 +16,11 @@
 #include "debug/debug_log.h"
 #include "game/common_defines.h"
 #include "game/dynobj/cc_region.h"
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
+#include "game/render/draw.h"
 #include "game/roomstruct.h"
 #include "game/script.h"
 #include "game/world/properties.h"
@@ -29,14 +31,6 @@
 #include "util/common.h"
 
 using namespace AGS::Common;
-
-extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
-extern RoomStruct thisroom;
-extern RoomStatus *croom;
-extern GameSetupStruct game;
-extern COLOR_MAP maincoltable;
-extern RGB palette[256];
-extern CCRegion ccDynamicRegion;
 
 
 int GetRegionIDAtRoom(int x, int y, int hit_options)

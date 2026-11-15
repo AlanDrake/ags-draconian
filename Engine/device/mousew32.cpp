@@ -26,6 +26,7 @@
 
 #include "debug/out.h"
 #include "device/sys_events.h"
+#include "game/game.h"
 #include "game/game_state.h"
 #include "gfx/bitmap.h"
 #include "main/graphics_mode.h"
@@ -41,7 +42,6 @@ int mousex = 0, mousey = 0;
 static int real_mouse_x = 0, real_mouse_y = 0;
 static Rect mouse_bounds;
 int ignore_bounds = 0; // NOTE: this works as a counter for some reason, review later
-extern volatile bool switched_away;
 
 namespace Mouse
 {

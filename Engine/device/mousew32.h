@@ -11,6 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#pragma once
+
 #include "device/sys_events.h"
 #include "util/geometry.h"
 
@@ -74,4 +76,7 @@ void SetPosition(const Point &p);
 } // namespace Mouse
 
 
+// The cursor's position in game coordinates, updated by Mouse::Poll.
 extern int mousex, mousey;
+// Above 0 while the cursor may leave the movement limits set with Mouse::SetMoveLimit (a counter).
+extern int ignore_bounds;

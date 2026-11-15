@@ -22,6 +22,7 @@
 
 #include "debug/out.h"
 #include "device/sys_events.h"
+#include "game/render/draw.h" // palette: necessary to update textures from 8-bit bitmaps
 #include "gfx/ali3dexception.h"
 #include "gfx/ali3dogl.h"
 #include "gfx/gfx_def.h"
@@ -53,10 +54,6 @@ const char *fbo_extension_string = "GL_OES_framebuffer_object";
 #define GL_COLOR_ATTACHMENT0_EXT    GL_COLOR_ATTACHMENT0
 
 #endif //AGS_OPENGL_ES2
-
-// Necessary to update textures from 8-bit bitmaps
-extern RGB palette[256];
-
 
 namespace AGS
 {

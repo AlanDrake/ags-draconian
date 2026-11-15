@@ -24,6 +24,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "game/script.h"
 #include "gtest/gtest.h"
 #include "script/cc_common.h"
 #include "script/cc_reflect.h"
@@ -36,8 +37,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern std::unique_ptr<ScriptExecutor> scriptExecutor;
 
 namespace
 {

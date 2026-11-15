@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "game/main_game_file.h"
 #include "util/error.h"
 #include "util/string.h"
@@ -26,6 +28,19 @@
 struct GameSetupStruct;
 struct GamePlayState;
 struct GameSetup;
+
+// Static arrays of managed handles for individual game objects, by object index; for the GUI controls, by GUI
+// and then by control index.
+extern std::vector<int> StaticCharacterArray;
+extern std::vector<int> StaticObjectArray;
+extern std::vector<int> StaticGUIArray;
+extern std::vector<int> StaticHotspotArray;
+extern std::vector<int> StaticRegionArray;
+extern std::vector<int> StaticWalkareaArray;
+extern std::vector<int> StaticWalkbehindArray;
+extern std::vector<int> StaticInventoryArray;
+extern std::vector<int> StaticDialogArray;
+extern std::vector<std::vector<int>> StaticGUIControlsHandles;
 
 namespace AGS
 {

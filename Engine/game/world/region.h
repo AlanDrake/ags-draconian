@@ -18,6 +18,10 @@
 #pragma once
 
 #include "game/dynobj/script_objects.h"
+#include "game/roomdata.h"
+
+// The script objects of the room's regions, by region index.
+extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 
 int GetRegionIDAtRoom(int x, int y, int hit_options);
 void Region_SetLightLevel(ScriptRegion *ssr, int brightness);

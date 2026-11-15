@@ -37,8 +37,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern SystemConfig gl_SysConfig;
-
 int sdl_mod_to_ags_mod(const Uint16 mod)
 {
     int ags_mod = 0;

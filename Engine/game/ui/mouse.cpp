@@ -24,8 +24,10 @@
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
+#include "game/script.h"
 #include "game/system.h"
 #include "game/ui/gui.h"
+#include "game/world/character.h"
 #include "game/world/view_frame.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"
@@ -41,12 +43,6 @@
 using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern ScriptSystem scsystem;
-extern SpriteCache spriteset;
-extern CharacterInfo *playerchar;
-extern IGraphicsDriver *gfxDriver;
 
 ScriptMouse scmouse;
 int cur_mode = 0, cur_cursor = 0;   // current mode, and current cursor look

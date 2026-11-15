@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/save/savegame.h"
@@ -43,8 +44,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
 
 namespace
 {

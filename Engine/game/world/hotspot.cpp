@@ -16,6 +16,7 @@
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_hotspot.h"
 #include "game/event.h"
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -33,13 +34,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern RoomStruct thisroom;
-extern RoomStatus *croom;
-extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
-extern CCHotspot ccDynamicHotspot;
-extern CharacterInfo *playerchar;
 
 void DisableHotspot(int hsnum)
 {

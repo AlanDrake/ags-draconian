@@ -21,6 +21,7 @@
 #include <math.h>
 
 #include "debug/debug_log.h"
+#include "game/dialog/dialog.h"
 #include "game/dialog/display.h"
 #include "game/dialog/lipsync.h"
 #include "game/dialog/speech.h"
@@ -67,20 +68,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern int displayed_room;
-extern RoomStruct thisroom;
-extern RoomStatus *croom;
-extern std::vector<ViewStruct> views;
-extern RoomObject *objs;
-extern std::vector<ScriptInvItem> scrInv;
-extern SpriteCache spriteset;
-extern Bitmap *walkable_areas_temp;
-extern IGraphicsDriver *gfxDriver;
-extern int said_speech_line;
-extern int said_text;
-extern CCCharacter ccDynamicCharacter;
 
 //--------------------------------
 
@@ -3144,8 +3131,6 @@ CharacterInfo *Character_GetAtRoomXY2(int x, int y)
 {
     return Character_GetAtRoomXY(x, y, true);
 }
-
-extern int char_lowest_yp, obj_lowest_yp;
 
 void update_character_scale(int char_id)
 {

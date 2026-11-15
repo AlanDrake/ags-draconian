@@ -50,16 +50,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 
-extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
-extern RoomStatus *croom;
-extern RoomObject *objs;
-extern std::vector<ViewStruct> views;
-extern RoomStruct thisroom;
-extern GameSetupStruct game;
-extern Bitmap *walkable_areas_temp;
-extern CCObject ccDynamicObject;
-extern SpriteCache spriteset;
-
 // AreThingsOverlapping takes a character ID, or a room object ID plus this offset, for a "thing"
 // (the script API, C3).
 #define OVERLAPPING_OBJECT 1000

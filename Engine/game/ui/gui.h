@@ -116,6 +116,11 @@ extern std::vector<AGS::Common::GUILabel> guilabels;
 extern std::vector<AGS::Common::GUIListBox> guilist;
 extern std::vector<AGS::Common::GUISlider> guislider;
 extern std::vector<AGS::Common::GUITextBox> guitext;
+// The script objects of the GUIs, by GUI index.
+extern std::vector<ScriptGUI> scrGui;
+// What was being drawn last, for crash reports: the index of a GUI, room object or character in eip_guinum,
+// the mark that the GUI drawing code leaves through set_eip_guiobj in eip_guiobj.
+extern int eip_guinum, eip_guiobj;
 
 namespace AGS
 {

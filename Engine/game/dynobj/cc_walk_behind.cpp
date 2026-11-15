@@ -16,12 +16,11 @@
 #include "game/common_defines.h"
 #include "game/dynobj/script_objects.h"
 #include "game/roomstruct.h"
+#include "game/world/walk_behind.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
-
-extern ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
 
 // return the type name of the object
 const char *CCWalkbehind::GetType()

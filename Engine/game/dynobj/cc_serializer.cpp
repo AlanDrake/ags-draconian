@@ -25,6 +25,7 @@
 #include "game/dynobj/script_shader.h"
 #include "game/dynobj/script_viewport.h"
 #include "game/game.h"
+#include "game/game_init.h"
 #include "game/lib/script_containers.h"
 #include "game/ui/gui.h"
 #include "plugin/plugin_engine.h"
@@ -36,28 +37,6 @@
 #include "util/memorystream.h"
 
 using namespace AGS::Common;
-
-extern CCAudioChannel ccDynamicAudio;
-extern CCAudioClip ccDynamicAudioClip;
-extern CCGUIControl ccDynamicGUIControl;
-extern CCGUIButton ccDynamicGUIButton;
-extern CCGUIInvWindow ccDynamicGUIInvWindow;
-extern CCGUILabel ccDynamicGUILabel;
-extern CCGUIListBox ccDynamicGUIListBox;
-extern CCGUISlider ccDynamicGUISlider;
-extern CCGUITextBox ccDynamicGUITextBox;
-extern CCCharacter ccDynamicCharacter;
-extern CCHotspot ccDynamicHotspot;
-extern CCRegion ccDynamicRegion;
-extern CCWalkableArea ccDynamicWalkarea;
-extern CCWalkbehind ccDynamicWalkbehind;
-extern CCInventory ccDynamicInv;
-extern CCGUI ccDynamicGUI;
-extern CCTextWindowGUI ccDynamicTextWindowGUI;
-extern CCObject ccDynamicObject;
-extern CCDialog ccDynamicDialog;
-extern std::vector<PluginObjectReader> pluginReaders;
-extern std::vector<std::vector<int>> StaticGUIControlsHandles;
 
 // *** De-serialization of script objects
 

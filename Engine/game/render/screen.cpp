@@ -37,12 +37,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
-extern IGraphicsDriver *gfxDriver;
-extern AGSPlatformDriver *platform;
-extern int displayed_room;
-extern RGB palette[256];
-
 std::unique_ptr<Bitmap> saved_viewport_bitmap;
 RGB old_palette[256];
 

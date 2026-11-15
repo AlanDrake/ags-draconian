@@ -17,6 +17,8 @@
 //=============================================================================
 #pragma once
 
+#include "game/dynobj/script_objects.h"
+#include "game/roomdata.h"
 #include "util/geometry.h"
 
 namespace AGS
@@ -26,6 +28,15 @@ namespace Common
 class Bitmap;
 }
 } // namespace AGS
+
+// The script objects of the room's walkable areas, by area number.
+extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
+// The walkable area mask as loaded with the room, before disabled areas are erased from it
+// (thisroom.WalkAreaMask); redo_walkable_areas copies it back. Created by the room loader (room.cpp).
+extern AGS::Common::Bitmap *walkareabackup;
+// Scratch copy of the mask that prepare_walkable_areas fills and hands out to the pathfinder, same size
+// as the mask. Created by the room loader (room.cpp).
+extern AGS::Common::Bitmap *walkable_areas_temp;
 
 // Rebuilds the room's walkable area mask from the backup taken when the room was loaded, erasing the areas
 // that play.walkable_areas_on has switched off. Call after changing which areas are enabled.

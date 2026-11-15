@@ -472,6 +472,7 @@ target_sources(engine
     platform/windows/win_ex_handling.cpp
     platform/windows/win_ex_handling.h
     platform/windows/minidump.cpp
+    platform/windows/minidump.h
     platform/windows/winapi_exclusive.h
 
     platform/base/mobile_base.cpp

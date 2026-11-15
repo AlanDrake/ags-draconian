@@ -18,13 +18,12 @@
 #include "font/fonts.h"
 #include "game/dialog/display.h"
 #include "game/lib/string.h"
+#include "game/ui/csci_dialog.h"
 #include "game/ui/gui_dialog_defines.h"
 #include "main/game_setup.h"
 
 using namespace AGS;
 using namespace AGS::Common;
-
-extern int acdialog_font;
 
 MyLabel::MyLabel(int left, int top, int width, const char *label, int text_height)
 {

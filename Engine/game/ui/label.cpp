@@ -15,14 +15,13 @@
 
 #include <cstdio>
 
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/lib/string.h"
 #include "game/runtime_defines.h"
 #include "util/common.h" // quit
 
 using namespace AGS::Common;
-
-extern GameSetupStruct game;
 
 // ** LABEL FUNCTIONS
 

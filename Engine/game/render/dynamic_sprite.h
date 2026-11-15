@@ -22,6 +22,10 @@ enum ScriptColorFormat
     kScColorFmt_8bit = 8
 };
 
+// Whether quit checks, in a debug-mode game that exits normally, that the script deleted its dynamic sprites;
+// set to 0 when the engine is aborted.
+extern char check_dynamic_sprites_at_exit;
+
 // Validates color format requested by user script, and returns a compatible color depth value
 int ValidateColorFormat(const char *api_name, ScriptColorFormat color_format);
 

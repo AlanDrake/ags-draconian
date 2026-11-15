@@ -31,8 +31,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern SpriteCache spriteset;
-
 //=============================================================================
 //
 // Pathfinder API.

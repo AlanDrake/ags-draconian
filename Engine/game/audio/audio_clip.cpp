@@ -14,6 +14,7 @@
 #include "game/audio/audio_clip.h"
 
 #include "data/assetmanager.h"
+#include "game/audio/audio.h"
 #include "game/audio/audio_channel.h"
 #include "game/dynobj/cc_audio_clip.h"
 #include "game/game.h"
@@ -26,10 +27,6 @@
 #include "util/common.h" // quitprintf
 
 using namespace AGS::Common;
-
-extern GameSetupStruct game;
-extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
-extern CCAudioClip ccDynamicAudioClip;
 
 int AudioClip_GetID(ScriptAudioClip *clip)
 {

@@ -23,6 +23,7 @@
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/runtime_defines.h"
+#include "game/script.h"
 #include "game/system.h"
 #include "game/ui/mouse.h"
 #include "game/video/video.h"
@@ -42,9 +43,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-
-extern ScriptSystem scsystem;
-extern IGraphicsDriver *gfxDriver;
 
 void engine_adjust_for_rotation_settings()
 {

@@ -25,6 +25,7 @@
 #include "game/character_info.h"
 #include "game/dialog/display.h"
 #include "game/dynobj/script_system.h"
+#include "game/event.h"
 #include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
@@ -33,13 +34,17 @@
 #include "game/render/overlay.h"
 #include "game/render/screen_overlay.h"
 #include "game/runtime_defines.h"
+#include "game/script.h"
 #include "game/system.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
 #include "game/view.h"
+#include "game/world/character.h"
 #include "game/world/character_extras.h"
 #include "game/world/move_list.h"
+#include "game/world/object.h"
 #include "game/world/region.h"
+#include "game/world/room.h"
 #include "game/world/room_object.h"
 #include "game/world/room_status.h"
 #include "game/world/view_frame.h"
@@ -65,23 +70,6 @@
 using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern ScriptSystem scsystem;
-extern AGSPlatformDriver *platform;
-extern RoomStruct thisroom;
-extern SpriteCache spriteset;
-extern RoomStatus *croom;
-extern EnterNewRoomState in_new_room;
-extern bool in_room_transition;
-extern RoomObject *objs;
-extern std::vector<ViewStruct> views;
-extern int displayed_room;
-extern CharacterInfo *playerchar;
-extern int eip_guinum;
-extern int cur_mode, cur_cursor;
-extern int mouse_hotx, mouse_hoty;
-extern int bg_just_changed;
 
 
 // SpriteNotifyControl is used to report dynamic sprite change (or deletion)
@@ -761,7 +749,7 @@ void init_game_drawdata()
     alloc_fixed_drawindexes();
 }
 
-extern void dispose_engine_overlay();
+void dispose_engine_overlay();
 
 void dispose_game_drawdata()
 {
@@ -1377,9 +1365,6 @@ static void render_black_borders()
     }
 }
 
-
-extern volatile bool game_update_suspend;
-extern volatile bool want_exit, abort_engine;
 
 void render_to_screen()
 {

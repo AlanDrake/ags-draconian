@@ -17,6 +17,7 @@
 #include "game/character_info.h"
 #include "game/dynobj/cc_inventory.h"
 #include "game/event.h"
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -26,19 +27,13 @@
 #include "game/ui/gui.h"
 #include "game/ui/inv_window.h"
 #include "game/ui/mouse.h"
+#include "game/world/character.h"
 #include "game/world/properties.h"
 #include "gui/guidefines.h"
 #include "script/runtimescriptvalue.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-
-extern GameSetupStruct game;
-extern std::vector<ScriptInvItem> scrInv;
-extern int cur_cursor;
-extern CharacterInfo *playerchar;
-extern CCInventory ccDynamicInv;
 
 
 // TODO: ideally, it's the InvWindow gui controls that should be reacting

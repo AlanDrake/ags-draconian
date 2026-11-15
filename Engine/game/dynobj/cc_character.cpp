@@ -14,6 +14,8 @@
 #include "game/dynobj/cc_character.h"
 
 #include "game/character_info.h"
+#include "game/game.h"
+#include "game/game_init.h"
 #include "game/game_setup_struct.h"
 #include "script/cc_common.h" // cc_error
 #include "script/cc_common.h"
@@ -21,9 +23,6 @@
 #include "util/stream.h"
 
 using namespace AGS::Common;
-extern std::vector<int> StaticCharacterArray;
-
-extern GameSetupStruct game;
 
 // return the type name of the object
 const char *CCCharacter::GetType()

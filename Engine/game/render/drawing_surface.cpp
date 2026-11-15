@@ -22,6 +22,7 @@
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/render/dynamic_sprite.h"
+#include "game/world/object.h"
 #include "game/world/room.h"
 #include "game/world/room_object.h"
 #include "game/world/room_status.h"
@@ -37,11 +38,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern RoomStatus *croom;
-extern RoomObject *objs;
-extern SpriteCache spriteset;
 
 // ** SCRIPT DRAWINGSURFACE OBJECT
 

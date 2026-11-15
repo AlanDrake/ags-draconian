@@ -42,6 +42,8 @@
 #include "game/script.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
+#include "game/world/object.h"
+#include "game/world/room.h"
 #include "game/world/room_status.h"
 #include "game/world/walkable_area.h"
 #include "gfx/bitmap.h"
@@ -87,18 +89,6 @@ using namespace AGS::Engine;
 #endif // AGS_PLATFORM_OS_IOS
 #endif // BUILTIN_PLUGINS
 
-
-extern IGraphicsDriver *gfxDriver;
-extern ScriptSystem scsystem;
-extern int mousex, mousey;
-extern GameSetupStruct game;
-extern SpriteCache spriteset;
-extern std::vector<ViewStruct> views;
-extern RGB palette[256];
-extern int displayed_room;
-extern RoomStruct thisroom;
-extern RoomStatus *croom;
-extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 
 // **************** PLUGIN IMPLEMENTATION ****************
 

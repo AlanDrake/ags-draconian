@@ -21,6 +21,7 @@
 #include "debug/out.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
+#include "game/audio/audio.h"
 #include "game/dialog/dialog.h"
 #include "game/dialog/display.h"
 #include "game/dialog/lipsync.h"
@@ -38,17 +39,25 @@
 #include "game/ui/gui.h"
 #include "game/view.h"
 #include "game/world/character.h"
+#include "game/world/hotspot.h"
+#include "game/world/inventory_item.h"
 #include "game/world/move_list.h"
+#include "game/world/object.h"
+#include "game/world/region.h"
+#include "game/world/walk_behind.h"
+#include "game/world/walkable_area.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/sprite_cache.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"
 #include "main/game_setup.h"
+#include "main/main.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
+#include "script/dynobj/cc_ags_dynamic_object.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/script_runtime.h"
 #include "util/memory_compat.h"
@@ -60,45 +69,6 @@ using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern bool logScriptRTTI;
-
-extern ScriptSystem scsystem;
-extern std::vector<ViewStruct> views;
-extern SpriteCache spriteset;
-
-extern CCCharacter ccDynamicCharacter;
-extern CCHotspot ccDynamicHotspot;
-extern CCRegion ccDynamicRegion;
-extern CCWalkableArea ccDynamicWalkarea;
-extern CCWalkbehind ccDynamicWalkbehind;
-extern CCInventory ccDynamicInv;
-extern CCGUI ccDynamicGUI;
-extern CCTextWindowGUI ccDynamicTextWindowGUI;
-extern CCObject ccDynamicObject;
-extern CCDialog ccDynamicDialog;
-extern CCAudioChannel ccDynamicAudio;
-extern CCAudioClip ccDynamicAudioClip;
-extern CCGUIButton ccDynamicGUIButton;
-extern CCGUIInvWindow ccDynamicGUIInvWindow;
-extern CCGUILabel ccDynamicGUILabel;
-extern CCGUIListBox ccDynamicGUIListBox;
-extern CCGUISlider ccDynamicGUISlider;
-extern CCGUITextBox ccDynamicGUITextBox;
-
-extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
-extern std::vector<ScriptGUI> scrGui;
-extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
-extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
-extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
-extern ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
-extern std::vector<ScriptInvItem> scrInv;
-extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
-
-// Lipsync
-extern std::vector<SpeechLipSyncLine> splipsync;
-extern int numLipLines, curLipLine, curLipLinePhoneme;
-
-extern AGSCCStaticObject GlobalStaticManager;
 CCStaticArray StaticHandlesArray;
 // Static arrays of managed handles for individual game objects
 std::vector<int> StaticCharacterArray;

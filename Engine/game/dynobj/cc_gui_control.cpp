@@ -13,13 +13,12 @@
 //=============================================================================
 #include "game/dynobj/cc_gui_control.h"
 
+#include "game/game_init.h"
 #include "game/ui/gui.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
-
-extern std::vector<std::vector<int>> StaticGUIControlsHandles;
 
 // return the type name of the object
 const char *CCGUIControl::GetType()

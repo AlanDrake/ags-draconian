@@ -13,6 +13,7 @@
 //=============================================================================
 #include "game/dynobj/script_pathfinder.h"
 
+#include "game/game.h"
 #include "game/world/room.h"
 #include "game/world/walkable_area.h"
 #include "gfx/sprite_cache.h"
@@ -21,8 +22,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern SpriteCache spriteset;
 
 //-----------------------------------------------------------------------------
 // ScriptMaskPathfinder

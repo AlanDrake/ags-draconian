@@ -23,8 +23,14 @@
 #include <SDL.h>
 #include <glm/ext.hpp>
 
+// Before the headers that include Allegro (game/render/draw.h): <windows.h> defines TRUE as 1 unless it is
+// defined already, and Allegro does the same with -1, so the first one included decides what the Direct3D
+// calls of this file get.
+#include "platform/windows/windows.h"
+
 #include "debug/out.h"
 #include "device/sys_events.h"
+#include "game/render/draw.h" // palette: necessary to update textures from 8-bit bitmaps
 #include "gfx/ali3dexception.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfxfilter_aad3d.h"
@@ -37,9 +43,6 @@
 
 
 using namespace AGS::Common;
-
-// Necessary to update textures from 8-bit bitmaps
-extern RGB palette[256];
 
 namespace AGS
 {

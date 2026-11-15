@@ -17,13 +17,16 @@
 #include "device/sys_events.h"
 #include "game/character_info.h"
 #include "game/event.h"
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/ui/gui.h"
 #include "game/ui/gui_dialog.h"
 #include "game/ui/mouse.h"
+#include "game/world/character.h"
 #include "game/world/character_extras.h"
+#include "game/world/inventory_item.h"
 #include "gfx/sprite_cache.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
@@ -35,12 +38,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern std::vector<ScriptInvItem> scrInv;
-extern SpriteCache spriteset;
-extern CharacterInfo *playerchar;
-extern AGSPlatformDriver *platform;
 
 // *** INV WINDOW FUNCTIONS
 

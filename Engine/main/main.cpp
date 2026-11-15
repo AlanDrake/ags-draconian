@@ -59,9 +59,6 @@ String appPath;         // engine exe path
 String appDirectory;    // engine dir
 String cmdGameDataPath; // game path received from cmdline
 
-extern int editor_debugging_initialized;
-extern char editor_debugger_instance_token[100];
-
 
 // Startup flags, set from parameters to engine
 int override_start_room = 0;

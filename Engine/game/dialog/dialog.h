@@ -75,6 +75,13 @@ extern std::vector<ScriptDialog> scrDialog;
 // Dialog topics of the game, by dialog number
 extern std::vector<DialogTopic> dialog;
 
+// Used while in dialog to track whether screen needs updating: set when a character said a line of speech
+extern int said_speech_line;
+// Set when a character said a line of speech; the text window options use it for the QFG4-style layout
+extern int said_text;
+// The width of the widest line found by the last break_up_text_into_lines() call (or display code)
+extern int longestline;
+
 struct ScriptOverlay;
 
 // Script API: Dialog::StartOption^1

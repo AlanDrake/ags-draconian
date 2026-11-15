@@ -810,6 +810,7 @@
     <ClInclude Include="..\..\Engine\platform\windows\setup\windialog.h" />
     <ClInclude Include="..\..\Engine\platform\windows\setup\winpagedialog.h" />
     <ClInclude Include="..\..\Engine\platform\windows\win_ex_handling.h" />
+    <ClInclude Include="..\..\Engine\platform\windows\minidump.h" />
     <ClInclude Include="..\..\Engine\platform\windows\gfx\ali3dd3d.h" />
     <ClInclude Include="..\..\Engine\platform\windows\setup\winsetup.h" />
     <ClInclude Include="..\..\Engine\platform\windows\winapi_exclusive.h" />

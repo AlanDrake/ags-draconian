@@ -1,8 +1,11 @@
 # The includes that break the ring rules of Script/check_layers.py today: includer<TAB>included.
 # A new line here needs a reason in its commit message; a fixed include takes its line away.
+Engine/debug/debug.cpp	Engine/game/game.h
 Engine/debug/debug.cpp	Engine/game/game_state.h
+Engine/debug/debug.cpp	Engine/game/render/dynamic_sprite.h
 Engine/debug/debug.cpp	Engine/game/runtime_defines.h
 Engine/debug/debug.cpp	Engine/game/script.h
+Engine/debug/debug.cpp	Engine/game/world/room.h
 Engine/debug/debug.cpp	Engine/main/config.h
 Engine/debug/debug.cpp	Engine/main/game_run.h
 Engine/debug/debug.cpp	Engine/media/audio/audio_system.h
@@ -17,6 +20,7 @@ Engine/debug/memory_inspect.cpp	Engine/script/script_runtime.h
 Engine/debug/memory_inspect.cpp	Engine/script/scriptexecutor.h
 Engine/debug/memory_inspect.cpp	Engine/script/systemimports.h
 Engine/debug/memory_inspect.h	Engine/script/scriptexecutor.h
+Engine/device/mousew32.cpp	Engine/game/game.h
 Engine/device/mousew32.cpp	Engine/game/game_state.h
 Engine/device/mousew32.cpp	Engine/main/graphics_mode.h
 Engine/device/sys_events.cpp	Engine/game/input/joystick.h
@@ -43,6 +47,7 @@ Engine/game/game.cpp	Engine/main/game_start.h
 Engine/game/game.cpp	Engine/plugin/plugin_engine.h
 Engine/game/game.h	Engine/main/game_file.h
 Engine/game/game_init.cpp	Engine/main/game_setup.h
+Engine/game/game_init.cpp	Engine/main/main.h
 Engine/game/game_init.cpp	Engine/plugin/plugin_engine.h
 Engine/game/game_state.cpp	Engine/main/engine.h
 Engine/game/input/touch.cpp	Engine/main/graphics_mode.h
@@ -61,6 +66,7 @@ Engine/game/save/savegame.cpp	Engine/plugin/plugin_engine.h
 Engine/game/save/savegame_components.cpp	Engine/main/game_run.h
 Engine/game/save/savegame_components.cpp	Engine/plugin/plugin_engine.h
 Engine/game/script.cpp	Engine/main/game_run.h
+Engine/game/script.cpp	Engine/main/main.h
 Engine/game/script.cpp	Engine/plugin/plugin_engine.h
 Engine/game/script_api/game_api.cpp	Engine/plugin/plugin_engine.h
 Engine/game/script_api/system_api.cpp	Engine/main/config.h
@@ -91,8 +97,10 @@ Engine/game/world/character_info_engine.cpp	Engine/main/update.h
 Engine/game/world/object.cpp	Engine/main/game_run.h
 Engine/game/world/room.cpp	Engine/main/game_run.h
 Engine/game/world/room.cpp	Engine/main/game_setup.h
+Engine/game/world/room.cpp	Engine/main/main.h
 Engine/game/world/room.cpp	Engine/plugin/plugin_engine.h
 Engine/game/world/room_object.cpp	Engine/main/update.h
+Engine/gfx/ali3dogl.cpp	Engine/game/render/draw.h
 Engine/media/audio/audio_system.h	Engine/game/audio/audio.h
 Engine/media/audio/sound.cpp	Engine/game/game.h
 Engine/media/audio/sound.h	Engine/game/asset_helper.h
@@ -101,6 +109,7 @@ Engine/platform/android/acpland.cpp	Engine/game/runtime_defines.h
 Engine/platform/base/agsplatformdriver.cpp	Engine/game/runtime_defines.h
 Engine/platform/base/agsplatformdriver.h	Engine/game/lib/date_time.h
 Engine/platform/base/agsplatformdriver.h	Engine/game/runtime_defines.h
+Engine/platform/emscripten/acpemscripten.cpp	Engine/game/render/draw.h
 Engine/platform/emscripten/acpemscripten.cpp	Engine/game/system.h
 Engine/platform/emscripten/acpemscripten.cpp	Engine/main/engine.h
 Engine/platform/emscripten/acpemscripten.cpp	Engine/main/graphics_mode.h
@@ -111,12 +120,16 @@ Engine/platform/osx/acplmac.cpp	Engine/main/main.h
 Engine/platform/windows/acplwin.cpp	Engine/main/engine.h
 Engine/platform/windows/acplwin.cpp	Engine/main/game_setup.h
 Engine/platform/windows/acplwin.cpp	Engine/plugin/agsplugin.h
+Engine/platform/windows/gfx/ali3dd3d.cpp	Engine/game/render/draw.h
+Engine/platform/windows/gfx/ali3dd3d11.cpp	Engine/game/render/draw.h
 Engine/platform/windows/minidump.cpp	Engine/main/main.h
 Engine/platform/windows/setup/advancedpagedialog.cpp	Engine/game/dialog/speech.h
 Engine/platform/windows/setup/basicpagedialog.cpp	Engine/main/config.h
 Engine/platform/windows/setup/basicpagedialog.h	Engine/main/game_setup.h
 Engine/platform/windows/setup/basicpagedialog.h	Engine/main/graphics_mode.h
 Engine/platform/windows/setup/winsetup.cpp	Engine/main/config.h
+Engine/platform/windows/win_ex_handling.cpp	Engine/game/game.h
+Engine/platform/windows/win_ex_handling.cpp	Engine/game/ui/gui.h
 Engine/platform/windows/win_ex_handling.cpp	Engine/main/main.h
 Engine/script/dynobj/cc_dynamic_array.cpp	Engine/game/dynobj/script_string.h
 Engine/script/dynobj/cc_dynamic_array.h	Engine/game/dynobj/script_string.h
@@ -124,7 +137,9 @@ Engine/script/dynobj/dynobj_manager.cpp	Engine/game/dynobj/script_shader.h
 Engine/script/executingscript.cpp	Engine/game/script.h
 Engine/script/script_runtime.cpp	Engine/game/script.h
 Engine/script/scriptexecutor.cpp	Engine/device/sys_events.h
+Engine/script/scriptexecutor.cpp	Engine/game/script.h
 Engine/util/timer.cpp	Engine/device/sys_events.h
+Engine/util/timer.cpp	Engine/game/game.h
 Engine/util/timer.cpp	Engine/media/audio/audio_core.h
 Engine/util/timer.cpp	Engine/media/video/video_core.h
 Engine/util/timer.cpp	Engine/platform/base/agsplatformdriver.h

@@ -22,6 +22,7 @@
 #include "game/runtime_defines.h"
 #include "game/script.h"
 #include "game/world/object.h"
+#include "game/world/room.h"
 #include "game/world/room_status.h"
 #include "game/world/view_frame.h"
 #include "gfx/gfx_def.h"
@@ -31,12 +32,6 @@
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
-
-extern std::vector<ViewStruct> views;
-extern GameSetupStruct game;
-extern CCObject ccDynamicObject;
-extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
-extern RoomStruct thisroom;
 
 RoomObject::RoomObject()
 {

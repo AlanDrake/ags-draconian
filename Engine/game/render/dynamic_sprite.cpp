@@ -24,6 +24,8 @@
 #include "game/render/draw.h"
 #include "game/roomstruct.h"
 #include "game/system.h"
+#include "game/world/object.h"
+#include "game/world/room.h"
 #include "game/world/room_object.h"
 #include "game/world/room_status.h"
 #include "gfx/graphicsdriver.h"
@@ -37,15 +39,6 @@
 using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern SpriteCache spriteset;
-extern RoomStruct thisroom;
-extern RoomObject *objs;
-extern RoomStatus *croom;
-
-extern RGB palette[256];
-extern AGS::Engine::IGraphicsDriver *gfxDriver;
 
 char check_dynamic_sprites_at_exit = 1;
 

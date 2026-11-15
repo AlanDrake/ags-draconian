@@ -246,5 +246,8 @@ extern size_t numScriptModules;
 
 extern std::unique_ptr<AGS::Engine::ScriptExecutor> scriptExecutor;
 
+// The script object "System".
+extern ScriptSystem scsystem;
+
 // Stops all running scripts at their next step.
 void AbortGame();

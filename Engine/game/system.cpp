@@ -17,12 +17,14 @@
 
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "game/audio/audio.h"
 #include "game/dynobj/script_system.h"
 #include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
+#include "game/script.h"
 #include "game/translation.h"
 #include "game/ui/mouse.h"
 #include "gfx/gfxfilter.h"
@@ -41,14 +43,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern SpriteCache spriteset;
-extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
-extern ScriptSystem scsystem;
-extern IGraphicsDriver *gfxDriver;
-extern volatile bool switched_away;
-extern FPSDisplayMode display_fps;
 
 bool System_GetHasInputFocus()
 {

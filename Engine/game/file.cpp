@@ -41,10 +41,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
-extern GamePlayState play;
-extern AGSPlatformDriver *platform;
-
 // object-based File routines
 
 int32_t FileOpen(const char *filename, FileOpenMode open_mode, StreamMode work_mode)

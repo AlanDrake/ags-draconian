@@ -17,15 +17,13 @@
 #include <cstring>
 
 #include "font/fonts.h"
+#include "game/ui/csci_dialog.h"
 #include "game/ui/gui_dialog_defines.h"
 #include "gfx/bitmap.h"
 #include "gui/guimain.h"
 #include "util/keycode.h"
 
 using namespace AGS::Common;
-
-extern int windowbackgroundcolor;
-extern int cbuttfont;
 
 MyTextBox::MyTextBox(int left, int top, int width, const char *initial_text, int text_height)
 {

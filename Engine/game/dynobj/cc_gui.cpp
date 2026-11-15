@@ -16,13 +16,12 @@
 #include <vector>
 
 #include "game/dynobj/script_objects.h"
+#include "game/game_init.h"
+#include "game/ui/gui.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
-extern std::vector<int> StaticGUIArray;
-
-extern std::vector<ScriptGUI> scrGui;
 
 // return the type name of the object
 const char *CCGUI::GetType()

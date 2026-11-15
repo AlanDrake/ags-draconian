@@ -15,6 +15,7 @@
 
 #include "debug/debug_log.h"
 #include "game/dynobj/script_string.h"
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_version.h"
 #include "game/lib/string.h"
@@ -29,10 +30,6 @@
 
 using namespace AGS;
 using namespace AGS::Common;
-
-extern GameSetupStruct game;
-extern SpriteCache spriteset;
-extern std::vector<ViewStruct> views;
 
 
 const char *ViewFrame_GetEventName(ScriptViewFrame *svf)

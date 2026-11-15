@@ -21,6 +21,7 @@
 #include "game/world/character.h"
 #include "game/world/character_extras.h"
 #include "game/world/object.h"
+#include "game/world/room.h"
 #include "game/world/view_frame.h"
 #include "main/game_run.h"
 #include "main/update.h"
@@ -28,12 +29,6 @@
 #include "util/common.h"
 
 using namespace AGS::Common;
-
-extern std::vector<ViewStruct> views;
-extern GameSetupStruct game;
-extern int displayed_room;
-extern RoomStruct thisroom;
-extern int char_speaking_anim;
 
 int CharacterInfo::get_baseline() const
 {
@@ -234,8 +229,6 @@ bool UpdateCharacterTurning(CharacterInfo *ch, CharacterExtras *chex)
 
     return false;
 }
-
-extern void reset_character_idling_time(CharacterInfo *ch);
 
 void UpdateCharacterMoving(CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing)
 {

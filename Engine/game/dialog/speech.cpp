@@ -22,6 +22,7 @@
 #include "game/game.h"
 #include "game/game_state.h"
 #include "game/runtime_defines.h"
+#include "game/world/character.h"
 #include "main/engine.h"
 #include "main/game_setup.h"
 #include "media/audio/audio_system.h"
@@ -181,11 +182,6 @@ String get_voice_assetpath()
 #include "debug/out.h"
 #include "game/game_setup_struct.h"
 #include "script/dynobj/dynobj_manager.h"
-
-extern GameSetupStruct game;
-extern int char_speaking;
-extern std::vector<SpeechLipSyncLine> splipsync;
-extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 ScriptOverlay *Speech_GetTextOverlay()
 {

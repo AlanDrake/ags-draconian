@@ -36,6 +36,7 @@
 #include "game/input/joystick.h"
 #include "game/input/touch.h"
 #include "game/render/draw.h"
+#include "game/render/dynamic_sprite.h"
 #include "game/render/overlay.h"
 #include "game/script.h"
 #include "game/ui/animating_gui_button.h"
@@ -70,26 +71,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern int mouse_on_iface; // mouse cursor is over this interface
-extern int ifacepopped;
-extern volatile bool want_exit, abort_engine;
-extern int proper_exit;
-extern int displayed_room;
-extern EnterNewRoomState in_new_room, new_room_was;
-extern ScriptSystem scsystem;
-extern GameSetupStruct game;
-extern RoomStruct thisroom;
-extern int game_paused;
-extern bool in_enters_screen;
-extern bool done_as_error;
-extern int in_leaves_screen;
-extern CharacterInfo *playerchar;
-extern int cur_mode;
-extern RoomObject *objs;
-extern RoomStatus *croom;
-extern SpriteCache spriteset;
-extern char check_dynamic_sprites_at_exit;
 
 // Checks if wait mode should continue until condition is met
 static bool ShouldStayInWaitMode();
@@ -1022,8 +1003,6 @@ static void GameUpdatePersistentAnimations()
     UpdateOverlayAnimations();
 }
 
-extern std::vector<ViewStruct> views;
-
 static void update_objects_scale()
 {
     if (displayed_room < 0)
@@ -1071,9 +1050,6 @@ static void update_cursor_over_gui()
         gui.Poll(mousex, mousey, focused_gui == gui.GetID());
     }
 }
-
-extern int lastmx, lastmy;
-extern int mouse_frame, mouse_delay;
 
 static void update_cursor_view()
 {
@@ -1624,7 +1600,6 @@ void GameLoopUntilViewAnimEnd(const ViewAnimateParams *anim)
     GameLoopUntilEvent(UNTIL_VIEWANIM, anim);
 }
 
-extern unsigned int load_new_game;
 void RunGameUntilAborted()
 {
     // skip ticks to account for time spent starting game.

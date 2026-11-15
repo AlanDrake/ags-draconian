@@ -44,13 +44,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
-extern SpriteCache spriteset;
-extern int displayed_room;
-extern int face_talking;
-extern std::vector<ViewStruct> views;
-extern IGraphicsDriver *gfxDriver;
-
 // All overlays by their IDs; the fixed IDs (OVER_*) are below OVER_FIRSTFREE, custom ones are allocated above
 IndexedObjectPool<ScreenOverlay, int32_t> screenover(OVER_FIRSTFREE);
 // TODO: reimplement AnimatedOverlays storage using IndexedObjectPool, just like regular overlays

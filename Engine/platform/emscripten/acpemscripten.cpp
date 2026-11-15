@@ -25,6 +25,7 @@
 #include <emscripten.h>
 
 #include "SDL.h"
+#include "game/render/draw.h"
 #include "game/system.h"
 #include "gfx/graphicsdriver.h"
 #include "main/engine.h"
@@ -35,8 +36,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern IGraphicsDriver *gfxDriver;
 
 FSLocation CommonDataDirectory;
 FSLocation UserDataDirectory;

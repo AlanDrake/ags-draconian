@@ -23,7 +23,6 @@
 
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
 CCScriptGame GameStaticManager;
 
 

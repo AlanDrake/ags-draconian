@@ -20,15 +20,13 @@
 #include <algorithm>
 #include <vector>
 
+#include "game/game.h"
 #include "game/game_setup_struct.h"
+#include "game/game_state.h"
 #include "game/view.h"
 #include "game/world/character.h"
 #include "game/world/character_extras.h"
 #include "gtest/gtest.h"
-
-extern GameSetupStruct game;
-extern std::vector<ViewStruct> views;
-extern std::vector<CharacterExtras> charextra;
 
 // Fixture: one character with an 8-loop view of one frame per loop
 class CharacterTurning : public ::testing::Test

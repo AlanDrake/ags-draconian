@@ -15,6 +15,7 @@
 
 #include <memory>
 
+#include "device/mousew32.h"
 #include "game/dynobj/script_mouse.h"
 #include "game/mouse_cursor.h"
 
@@ -121,10 +122,15 @@ private:
 extern ScriptMouse scmouse;
 extern CursorGraphicState cursor_gstate;
 
-extern int mousex, mousey;
-extern int ignore_bounds;
+// Current mode, and current cursor look
 extern int cur_mode;
 extern int cur_cursor;
+// In game cursor hotspot offset
+extern int mouse_hotx, mouse_hoty;
+// The frame of the cursor's animation shown now, and the game loops left until the next one.
+extern int mouse_frame, mouse_delay;
+// The cursor's position at the last update of the cursor's animation.
+extern int lastmx, lastmy;
 
 class ScriptShaderInstance;
 struct ScriptUserObject;

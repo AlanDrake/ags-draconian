@@ -32,8 +32,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern std::vector<GUIMain> guis;
-
 namespace
 {
 

@@ -15,6 +15,7 @@
 
 #include "game/common_defines.h"
 #include "game/dynobj/script_objects.h"
+#include "game/roomdata.h"
 #include "game/world/room_object.h"
 #include "gfx/gfx_def.h"
 
@@ -187,6 +188,14 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams
 // Tests if the standard move/walk parameters are in valid range, if not then clamps them and
 // reports a script warning. BLOCKING, IN_BACKGROUND, ANYWHERE and WALKABLE_AREAS are converted to 1 or 0.
 void ValidateMoveParams(const char *apiname, const char *objname, int &blocking, int &ignwal);
+
+// The objects of the current room (the first of croom->obj), nullptr when the room has none or no room is loaded.
+extern RoomObject *objs;
+// The script objects of the room objects, by object index.
+extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
+// The baseline of the object that GetObjectIDAtRoom found last, -1 if none; GetLocationTypeImpl (game.cpp)
+// compares it with char_lowest_yp and the walk-behind's to tell which is in front.
+extern int obj_lowest_yp;
 
 class ScriptMotionPath;
 class ScriptShaderInstance;

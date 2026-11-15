@@ -21,6 +21,7 @@
 #include "device/sys_events.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
+#include "game/dialog/dialog.h"
 #include "game/dialog/speech.h"
 #include "game/game.h"
 #include "game/game_setup_struct.h"
@@ -51,12 +52,6 @@
 using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Common::BitmapHelper;
-
-extern GameSetupStruct game;
-extern int longestline;
-extern AGSPlatformDriver *platform;
-extern int loops_per_character;
-extern SpriteCache spriteset;
 
 bool display_check_user_input(int skip);
 

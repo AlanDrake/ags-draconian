@@ -33,6 +33,7 @@ namespace Engine
 {
 struct Texture;
 class IDriverDependantBitmap;
+class IGraphicsDriver;
 class IGraphicShader;
 class IShaderInstance;
 } // namespace Engine
@@ -54,6 +55,15 @@ int MakeColor(int color_index);
 
 class Viewport;
 class Camera;
+
+// The graphics driver in use, nullptr before the graphics mode is set.
+extern AGS::Engine::IGraphicsDriver *gfxDriver;
+// The current palette of an 8-bit game.
+extern RGB palette[256];
+// The light table of an 8-bit game, built from the palette for the region light levels.
+extern COLOR_MAP maincoltable;
+// Room background sprite
+extern AGS::Engine::IDriverDependantBitmap *roomBackgroundBmp;
 
 // Initializes drawing methods and optimisation
 void init_draw_method();

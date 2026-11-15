@@ -34,6 +34,11 @@ struct PluginObjectReader
     PluginObjectReader(const AGS::Common::String &type, ICCObjectReader *reader) : Type(type), Reader(reader) {}
 };
 
+// The managed object unserializers that the plugins registered.
+extern std::vector<PluginObjectReader> pluginReaders;
+// The number of plugins that asked for the debugging hooks (AGSE_SCRIPTDEBUG).
+extern int pluginsWantingDebugHooks;
+
 
 void pl_stop_plugins();
 void pl_startup_plugins();

@@ -15,17 +15,16 @@
 
 #include "debug/debug_log.h"
 #include "game/dialog/speech.h"
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/roomstruct.h"
+#include "game/world/room.h"
 #include "media/audio/audio_system.h"
 #include "script/runtimescriptvalue.h"
 #include "util/common.h" // quitprintf
 
 using namespace AGS::Common;
-
-extern GameSetupStruct game;
-extern RoomStruct thisroom;
 
 int AudioChannel_GetID(ScriptAudioChannel *channel)
 {

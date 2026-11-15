@@ -35,8 +35,6 @@
 
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
-
 // *** LIST BOX FUNCTIONS
 
 int ListBox_AddItem(GUIListBox *listbox, const char *text)

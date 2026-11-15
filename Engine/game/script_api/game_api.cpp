@@ -33,8 +33,6 @@ using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern RGB palette[256];
-
 void RegisterGameAPI()
 {
     ScFnRegister game_api[] = {

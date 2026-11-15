@@ -17,6 +17,7 @@
 
 #include "device/sys_events.h"
 #include "font/fonts.h"
+#include "game/ui/csci_dialog.h"
 #include "game/ui/gui_dialog.h"
 #include "game/ui/gui_dialog_defines.h"
 #include "game/ui/mouse.h"
@@ -28,11 +29,6 @@
 #include "util/timer.h"
 
 using namespace AGS::Common;
-
-extern int windowbackgroundcolor, pushbuttondarkcolor;
-extern int pushbuttonlightcolor;
-extern int cbuttfont;
-extern int win_x, win_y;
 
 MyPushButton::MyPushButton(int left, int top, int width, int height, const char *caption)
 {

@@ -31,6 +31,8 @@
 #include "game/world/character.h"
 #include "game/world/character_extras.h"
 #include "game/world/move_list.h"
+#include "game/world/object.h"
+#include "game/world/room.h"
 #include "game/world/room_object.h"
 #include "game/world/room_status.h"
 #include "game/world/view_frame.h"
@@ -46,22 +48,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern SpriteCache spriteset;
-extern RoomStatus *croom;
-extern RoomStruct thisroom;
-extern RoomObject *objs;
-extern std::vector<ViewStruct> views;
-extern CharacterInfo *playerchar;
-extern CharacterInfo *facetalkchar;
-extern int face_talking, facetalkview, facetalkwait, facetalkframe;
-extern int facetalkloop, facetalkrepeat, facetalkAllowBlink;
-extern int facetalkBlinkLoop;
-extern bool facetalk_qfg4_override_placement_x, facetalk_qfg4_override_placement_y;
-extern std::vector<SpeechLipSyncLine> splipsync;
-extern int numLipLines, curLipLine, curLipLinePhoneme;
-extern IGraphicsDriver *gfxDriver;
 
 
 // Receives and modifies movelist_id and entity coordinates

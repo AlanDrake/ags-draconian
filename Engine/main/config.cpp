@@ -21,6 +21,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "device/mousew32.h"
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/system.h"
@@ -39,9 +40,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern SpriteCache spriteset;
 
 // Filename of the default config file, the one found in the game installation
 const String DefaultConfigFileName = "acsetup.cfg";

@@ -47,12 +47,14 @@
 #include "game/input/joystick.h"
 #include "game/navigation/route_finder.h"
 #include "game/render/draw.h"
+#include "game/render/dynamic_sprite.h"
 #include "game/script.h"
 #include "game/system.h"
 #include "game/translation.h"
 #include "game/ui/gui.h"
 #include "game/world/character.h"
 #include "game/world/character_extras.h"
+#include "game/world/object.h"
 #include "game/world/room_status.h"
 #include "game/world/view_frame.h"
 #include "gfx/ddb.h"
@@ -83,23 +85,6 @@
 using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern char check_dynamic_sprites_at_exit;
-extern volatile bool want_exit, abort_engine;
-extern bool justRunSetup;
-extern GameSetupStruct game;
-extern int proper_exit;
-extern SpriteCache spriteset;
-extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
-extern std::vector<ViewStruct> views;
-extern int displayed_room;
-extern int eip_guinum;
-extern int eip_guiobj;
-extern int numLipLines, curLipLine, curLipLinePhoneme;
-extern ScriptSystem scsystem;
-extern IGraphicsDriver *gfxDriver;
-extern RGB palette[256];
-extern CharacterInfo *playerchar;
 
 ResourcePaths ResPaths;
 
@@ -1127,7 +1112,6 @@ void engine_set_config(const ConfigTree cfg)
 //
 // --tell command support: printing engine/game info by request
 //
-extern std::set<String> tellInfoKeys;
 static bool print_info_needs_game(const std::set<String> &keys)
 {
     return keys.count("all") > 0 || keys.count("config") > 0 || keys.count("configpath") > 0 ||

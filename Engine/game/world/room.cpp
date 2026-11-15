@@ -26,6 +26,7 @@
 #include "game/dynobj/script_shader.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_init.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -56,6 +57,7 @@
 #include "gui/guimain.h"
 #include "main/game_run.h"
 #include "main/game_setup.h"
+#include "main/main.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/platform.h"
@@ -71,36 +73,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern RoomStatus *croom;
-extern RoomStatus troom; // used for non-saveable rooms, eg. intro
-extern int displayed_room;
-extern RoomObject *objs;
-extern AGSPlatformDriver *platform;
-extern bool done_as_error;
-extern Bitmap *walkareabackup, *walkable_areas_temp;
-extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
-extern SpriteCache spriteset;
-extern EnterNewRoomState in_new_room, new_room_was;
-extern int in_leaves_screen;
-extern CharacterInfo *playerchar;
-extern std::vector<CharacterExtras> charextra;
-extern IDriverDependantBitmap *roomBackgroundBmp;
-extern IGraphicsDriver *gfxDriver;
-extern RGB palette[256];
-extern bool logScriptRTTI, logScriptTOC;
-
-extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
-extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
-extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
-extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
-extern ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
-extern std::vector<int> StaticObjectArray;
-extern std::vector<int> StaticHotspotArray;
-extern std::vector<int> StaticRegionArray;
-extern std::vector<int> StaticWalkareaArray;
-extern std::vector<int> StaticWalkbehindArray;
 
 std::unique_ptr<MaskRouteFinder> room_pathfinder;
 RGB_MAP rgb_table; // for 256-col antialiasing

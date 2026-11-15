@@ -35,10 +35,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern IGraphicsDriver *gfxDriver;
-extern GameSetupStruct game;
-extern GamePlayState play;
-
 namespace
 {
 

@@ -13,14 +13,13 @@
 //=============================================================================
 #include "game/dynobj/cc_audio_channel.h"
 
+#include "game/audio/audio.h"
 #include "game/dynobj/script_objects.h"
 #include "media/audio/audio_system.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
-
-extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
 const char *CCAudioChannel::GetType()
 {

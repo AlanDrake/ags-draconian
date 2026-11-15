@@ -330,6 +330,31 @@ void UpdateInventory();
 // The player character, and its handle for scripts (the script object "player").
 extern CharacterInfo *playerchar;
 extern int32_t _sc_PlayerCharPtr;
+// The baseline of the character that the last search for a character at a room point found, compared with
+// obj_lowest_yp and the walk-behind's to tell which is in front.
+extern int char_lowest_yp;
+
+// Indexes of the currently speaking character and of the one playing a speech animation; -1 when none.
+extern int char_speaking, char_speaking_anim;
+// Sierra-style speech: the speaking character (index in face_talking, -1 when none, and facetalkchar) and the
+// state of its portrait's animation.
+extern int face_talking, facetalkview, facetalkwait, facetalkframe;
+extern int facetalkloop, facetalkrepeat, facetalkAllowBlink;
+extern int facetalkBlinkLoop;
+extern CharacterInfo *facetalkchar;
+// Do override default portrait position during QFG4-style speech overlay update
+extern bool facetalk_qfg4_override_placement_x;
+extern bool facetalk_qfg4_override_placement_y;
+
+struct SpeechLipSyncLine;
+// Lip-sync speech settings: game loops per character of text, the game's lip-sync lines (numLipLines of them),
+// and the line and phoneme being shown, curLipLine -1 when none.
+extern int loops_per_character;
+extern std::vector<SpeechLipSyncLine> splipsync;
+extern int numLipLines, curLipLine, curLipLinePhoneme;
+
+// Resets idling timer, and marks for immediate update (in case its persistent idling)
+void reset_character_idling_time(CharacterInfo *ch);
 
 // Order of loops to turn the character through, in a circle from down, clockwise
 extern const int turnlooporder[8];

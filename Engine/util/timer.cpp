@@ -16,6 +16,7 @@
 #include <thread>
 
 #include "device/sys_events.h"
+#include "game/game.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/platform.h"
 #if defined(AGS_DISABLE_THREADS)
@@ -27,9 +28,6 @@
 #endif
 
 using namespace AGS::Engine;
-
-extern volatile bool game_update_suspend;
-extern volatile bool want_exit, abort_engine;
 
 namespace
 {

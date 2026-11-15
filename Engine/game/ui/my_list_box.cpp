@@ -16,6 +16,7 @@
 #include <cstring>
 
 #include "font/fonts.h"
+#include "game/ui/csci_dialog.h"
 #include "game/ui/gui_dialog.h"
 #include "game/ui/gui_dialog_defines.h"
 #include "gfx/bitmap.h"
@@ -25,10 +26,6 @@
 #include "util/keycode.h"
 
 using namespace AGS::Common;
-
-extern int windowbackgroundcolor;
-extern int cbuttfont;
-extern int smcode;
 
 MyListBox::MyListBox(int left, int top, int width, int height, int text_height)
 {

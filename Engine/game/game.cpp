@@ -24,6 +24,7 @@
 #include "device/mousew32.h"
 #include "device/sys_events.h"
 #include "font/fonts.h"
+#include "game/audio/audio.h"
 #include "game/audio/audio_channel.h"
 #include "game/dialog/dialog.h"
 #include "game/dialog/display.h"
@@ -44,6 +45,7 @@
 #include "game/system.h"
 #include "game/translation.h"
 #include "game/ui/button.h"
+#include "game/ui/csci_dialog.h"
 #include "game/ui/gui.h"
 #include "game/ui/gui_dialog.h"
 #include "game/ui/mouse.h"
@@ -53,8 +55,11 @@
 #include "game/world/hotspot.h"
 #include "game/world/inventory_item.h"
 #include "game/world/object.h"
+#include "game/world/region.h"
 #include "game/world/room.h"
 #include "game/world/room_status.h"
+#include "game/world/walk_behind.h"
+#include "game/world/walkable_area.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/sprite_cache.h"
@@ -86,15 +91,6 @@
 using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern ScriptSystem scsystem;
-extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
-extern std::vector<SpeechLipSyncLine> splipsync;
-extern int numLipLines, curLipLine, curLipLinePhoneme;
-
-extern int obj_lowest_yp, char_lowest_yp;
-
-extern IGraphicsDriver *gfxDriver;
 
 //=============================================================================
 std::unique_ptr<AssetManager> AssetMgr;
@@ -347,9 +343,6 @@ float get_game_speed()
 {
     return frames_per_second;
 }
-
-extern int cbuttfont;
-extern int acdialog_font;
 
 // The cursor look from before setup_for_dialog
 int oldmouse;
@@ -1308,8 +1301,7 @@ void *Game_GetSaveSlots(int min_slot, int max_slot, int save_sort, int sort_dir)
     return arr.Obj();
 }
 
-extern void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot, int file_sort, int sort_dir);
-extern RGB palette[256];
+void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot, int file_sort, int sort_dir);
 
 void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int save_sort, int sort_dir, int user_param)
 {

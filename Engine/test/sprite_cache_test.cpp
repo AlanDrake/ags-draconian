@@ -25,7 +25,9 @@
 #include <memory>
 #include <vector>
 
+#include "game/game.h"
 #include "game/game_setup_struct.h"
+#include "game/render/draw.h"
 #include "game/render/dynamic_sprite.h"
 #include "gfx/ali3dsw.h"
 #include "gfx/bitmap.h"
@@ -36,10 +38,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern SpriteCache spriteset;
-extern IGraphicsDriver *gfxDriver;
 
 namespace
 {

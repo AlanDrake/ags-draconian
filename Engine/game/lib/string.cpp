@@ -20,6 +20,7 @@
 
 #include "debug/debug_log.h"
 #include "font/fonts.h"
+#include "game/dialog/dialog.h"
 #include "game/dialog/display.h"
 #include "game/dynobj/script_string.h"
 #include "game/game.h"
@@ -35,9 +36,6 @@
 #include "util/utf8.h"
 
 using namespace AGS::Common;
-
-extern GameSetupStruct game;
-extern int longestline;
 
 // Tests if a font number is valid, if not then prints a warning and returns a substitution
 int ValidateFontNumber(const char *apiname, int font_num)

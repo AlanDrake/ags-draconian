@@ -21,11 +21,15 @@
 #include "game/dynobj/script_camera.h"
 #include "game/dynobj/script_system.h"
 #include "game/dynobj/script_viewport.h"
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_version.h"
 #include "game/render/draw.h"
 #include "game/roomstruct.h"
 #include "game/save/savegame_internal.h"
+#include "game/script.h"
+#include "game/world/character.h"
+#include "game/world/room.h"
 #include "gfx/gfx_def.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
@@ -35,11 +39,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern RoomStruct thisroom;
-extern CharacterInfo *playerchar;
-extern ScriptSystem scsystem;
 
 std::array<const char *, kNum_RBS> RBSwitchNames = {{
     "dummy",                     // kRBS_Dummy

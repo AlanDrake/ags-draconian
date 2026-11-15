@@ -102,6 +102,8 @@ class ScriptExecutor;
 }
 } // namespace AGS
 typedef void (*new_line_hook_type)(AGS::Engine::ScriptExecutor *, int);
+// The debugger's callback that the executor calls on every new script line; nullptr when none is set.
+extern new_line_hook_type new_line_hook;
 void ccSetDebugHook(new_line_hook_type jibble);
 void ccSetDebugLogging(bool on);
 

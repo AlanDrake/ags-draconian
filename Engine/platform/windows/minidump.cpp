@@ -11,6 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "platform/windows/minidump.h"
+
 #include "platform/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_DEBUG

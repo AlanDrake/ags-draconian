@@ -15,12 +15,12 @@
 
 #include "game/character_info.h"
 #include "game/dynobj/script_objects.h"
+#include "game/game_init.h"
+#include "game/world/inventory_item.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
-extern std::vector<int> StaticInventoryArray;
-extern std::vector<ScriptInvItem> scrInv;
 
 ScriptInvItem CCInventory::_dummy;
 

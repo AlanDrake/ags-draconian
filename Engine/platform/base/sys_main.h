@@ -17,6 +17,8 @@
 // TODO: split up later if it gets filled with functions in all categories.
 //
 //=============================================================================
+#pragma once
+
 #include <vector>
 
 #include "gfx/gfxdefines.h"
@@ -38,6 +40,9 @@ struct SystemConfig
     // Used to tell the current display mode
     Size DisplayMode;
 };
+
+// The system config in use, set by sys_set_config.
+extern SystemConfig gl_SysConfig;
 
 // Initializes main backend system;
 // should be called before anything else backend related.

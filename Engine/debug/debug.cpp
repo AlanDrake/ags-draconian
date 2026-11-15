@@ -29,10 +29,13 @@
 #include "debug/memory_inspect.h"
 #include "debug/messagebuffer.h"
 #include "debug/out.h"
+#include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
+#include "game/render/dynamic_sprite.h"
 #include "game/runtime_defines.h"
 #include "game/script.h"
+#include "game/world/room.h"
 #include "main/config.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
@@ -48,12 +51,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern char check_dynamic_sprites_at_exit;
-extern int displayed_room;
-extern RoomStruct thisroom;
-extern volatile bool want_exit, abort_engine;
-extern GameSetupStruct game;
 
 
 int editor_debugging_enabled = 0;
@@ -641,7 +638,6 @@ void break_into_debugger()
 }
 
 int scrDebugWait = 0;
-extern int pluginsWantingDebugHooks;
 
 // allow LShift to single-step,  RShift to pause flow
 void scriptDebugHook(ScriptExecutor *exec, int linenum)

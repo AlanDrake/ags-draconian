@@ -40,7 +40,7 @@ using namespace AGS::Common;
 String ios_log_directory = "";
 String ios_save_directory = "";
 
-extern int main(int argc, char *argv[]);
+int main(int argc, char *argv[]);
 
 const int CONFIG_IGNORE_ACSETUP = 0;
 const int CONFIG_CLEAR_CACHE = 1;

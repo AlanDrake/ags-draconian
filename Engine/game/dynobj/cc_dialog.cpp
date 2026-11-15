@@ -15,12 +15,12 @@
 
 #include "game/dialog/dialog.h"
 #include "game/dialog_topic.h"
+#include "game/game_init.h"
 #include "game/game_struct_defines.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
-extern std::vector<int> StaticDialogArray;
 
 // return the type name of the object
 const char *CCDialog::GetType()
