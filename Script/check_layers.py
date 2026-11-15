@@ -21,6 +21,10 @@ So the game logic is a module on top of a host (window, graphics, audio, files) 
 nothing about it, and Engine/main puts them together. Two rules on single headers come with the rings (HEADER_RULES):
 script/script_api.h, the text formatting of the script bindings, is for the VM and Engine/game/script_api only.
 
+An `extern` declaration in a source file of the engine reaches a global without an include, which this check
+cannot see, so there is none (5.1 step 1 took out the 552 there were): a global is declared in a header, once,
+and the file that uses it includes the header. `extern "C"` blocks are not that and pass.
+
 The tree does not satisfy the rules yet. The includes that break them today are listed in
 Script/check_layers_baseline.txt, one "includer<TAB>included" per line. The check fails on a violation that is
 not in the list, and also on a line of the list that is no longer a violation, so the list can only get
@@ -75,6 +79,7 @@ HEADER_RULES = {
 SOURCES = ('.cpp', '.h', '.inl', '.c', '.cc', '.mm', '.m')
 THIRD_PARTY = re.compile(r'(^|/)(libsrc|libinclude)/')
 INCLUDE = re.compile(r'^\s*#\s*include\s+"([^"]+)"')
+EXTERN = re.compile(r'^\s*extern\s+(?!"C")')
 
 
 def ring_of(path):
@@ -92,18 +97,23 @@ def tracked_sources(repo):
 
 
 def violations(repo):
-    """Returns ({(includer, included): reason}, number of includes looked at)."""
+    """Returns ({(includer, included): reason}, number of includes looked at, the extern declarations in the
+    engine's source files as (path, line number, text))."""
     files = tracked_sources(repo)
     known = set(files)
     roots = {'Engine': ('Engine/', 'Common/'), 'Common': ('Common/',)}
     found = {}
+    externs = []
     count = 0
     for path in files:
         ring = ring_of(path)
         if ring is None:
             sys.exit('check_layers: %s is in no ring: add its directory to RINGS' % path)
+        is_engine_source = path.startswith('Engine/') and not path.endswith(('.h', '.inl'))
         with open(os.path.join(repo, path), encoding='utf-8', errors='replace') as fh:
-            for line in fh:
+            for number, line in enumerate(fh, 1):
+                if is_engine_source and EXTERN.match(line):
+                    externs.append((path, number, line.strip()))
                 m = INCLUDE.match(line)
                 if not m:
                     continue
@@ -120,7 +130,7 @@ def violations(repo):
                 rule = HEADER_RULES.get(target)
                 if rule and ring != 'test' and not path.startswith(rule):
                     found[(path, target)] = 'only %s may include it' % ' and '.join(rule)
-    return found, count
+    return found, count, externs
 
 
 def read_baseline():
@@ -156,7 +166,7 @@ def main():
     ap.add_argument('--update', action='store_true', help='rewrite the baseline from the tree')
     args = ap.parse_args()
 
-    found, count = violations(os.path.abspath(args.repo))
+    found, count, externs = violations(os.path.abspath(args.repo))
     if args.list:
         print_grouped(found)
         return 0
@@ -174,9 +184,15 @@ def main():
     if new:
         print('An include against the rings: see the table at the top of Script/check_layers.py. Move the '
               'declaration to the ring that owns it, or pass what is needed as a parameter.')
-    print('check_layers: %d includes, %d known violations in the baseline, %d new, %d fixed and still listed'
-          % (count, len(baseline & set(found)), len(new), len(fixed)))
-    return 1 if new or fixed else 0
+    for path, number, text in externs:
+        print('%s:%d: %s' % (path, number, text))
+    if externs:
+        print('An extern declaration in a source file of the engine: declare the global in the header of the '
+              'file that defines it, and include that header (Script/collect_externs.py does the second part).')
+    print('check_layers: %d includes, %d known violations in the baseline, %d new, %d fixed and still listed, '
+          '%d extern declarations in source files'
+          % (count, len(baseline & set(found)), len(new), len(fixed), len(externs)))
+    return 1 if new or fixed or externs else 0
 
 
 if __name__ == '__main__':

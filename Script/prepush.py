@@ -16,7 +16,8 @@ Stages, in the order they run (a failed stage does not stop the later ones; the 
            helpers"): a new function named like one of Common/util, and a comment that cites a member
            the Editor's class does not have; no build needed
   layers   the direction of the #include lines between the rings of the engine (Script/check_layers.py,
-           PLAN.md 5.3) against the baseline of known violations, which may only shrink; no build needed
+           PLAN.md 5.3) against the baseline of known violations, which may only shrink, and no extern
+           declaration in a source file of the engine (PLAN.md 5.1); no build needed
   buildlists  the source lists of the .vcxproj against the CMake targets of the build stage's tree
            (Script/check_build_lists.py, PLAN.md 3.2c), as the CI's Windows job does; configures the tree
   build    CMake + Ninja (MSVC) Release build with tools and tests, then ctest
