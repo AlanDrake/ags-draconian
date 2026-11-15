@@ -59,8 +59,6 @@ struct InventoryItemInfo
 
     void ReadFromFile(AGS::Common::Stream *in, GameDataVersion game_ver);
     void WriteToFile(AGS::Common::Stream *out) const;
-    void ReadFromSavegame(AGS::Common::Stream *in, InvitemSvgVersion svg_ver);
-    void WriteToSavegame(AGS::Common::Stream *out) const;
 
 private:
     // Script events schema

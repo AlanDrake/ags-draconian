@@ -15,7 +15,6 @@
 
 #include "game/common_defines.h"
 #include "util/stream.h"
-#include "util/string_utils.h"
 
 using namespace AGS::Common;
 

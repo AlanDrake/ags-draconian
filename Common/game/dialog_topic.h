@@ -76,10 +76,4 @@ struct DialogTopic
 
     void ReadFromFile_v321(AGS::Common::Stream *in);
     void ReadFromFile_v363(AGS::Common::Stream *in);
-
-    void ReadFromSavegame(AGS::Common::Stream *in, DialogTopicSvgVersion svg_ver, uint32_t *read_opt_count);
-    void WriteToSavegame(AGS::Common::Stream *out) const;
-
-private:
-    void ReadOptionFromSavegame(DialogOption &opt, AGS::Common::Stream *in, DialogTopicSvgVersion svg_ver);
 };

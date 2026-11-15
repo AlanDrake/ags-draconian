@@ -13,7 +13,10 @@
 //=============================================================================
 #include "game/save/savegame_components.h"
 
+#include <algorithm>
 #include <map>
+#include <utility>
+#include <vector>
 
 #include "debug/out.h"
 #include "game/audio_clip_type.h"
@@ -73,59 +76,69 @@ using namespace AGS::Common;
 
 //-----------------------------------------------------------------------------
 //
-// The save format of the game records that Common defines.
+// The save format of the game records that Common defines; the records do not
+// know it.
 //
 //-----------------------------------------------------------------------------
 
-void CharacterInfo::ReadFromSavegame(Stream *in, LegacyFields &old_fields, CharacterSvgVersion save_ver)
+namespace
 {
-    defview = in->ReadInt32();
-    talkview = in->ReadInt32();
-    view = in->ReadInt32();
-    room = in->ReadInt32();
-    prevroom = in->ReadInt32();
-    x = in->ReadInt32();
-    y = in->ReadInt32();
-    wait = in->ReadInt32();
-    flags = in->ReadInt32();
+
+// What a save holds for a character that the character does not have any more
+struct CharacterLegacyFields
+{
+    Point ViewOffset;
+};
+
+void ReadCharacterInfo(CharacterInfo &ch, Stream *in, CharacterLegacyFields &old_fields, CharacterSvgVersion save_ver)
+{
+    ch.defview = in->ReadInt32();
+    ch.talkview = in->ReadInt32();
+    ch.view = in->ReadInt32();
+    ch.room = in->ReadInt32();
+    ch.prevroom = in->ReadInt32();
+    ch.x = in->ReadInt32();
+    ch.y = in->ReadInt32();
+    ch.wait = in->ReadInt32();
+    ch.flags = in->ReadInt32();
     in->ReadInt16(); // legacy following
     in->ReadInt16(); // legacy followinginfo
-    idleview = in->ReadInt32();
-    idledelay = in->ReadInt16();
-    idleleft = in->ReadInt16();
-    opacity = in->ReadInt16();
-    baseline = in->ReadInt16();
-    activeinv = in->ReadInt32();
-    talkcolor = in->ReadInt32();
-    thinkview = in->ReadInt32();
-    blinkview = in->ReadInt16();
-    blinkinterval = in->ReadInt16();
-    blinktimer = in->ReadInt16();
-    blinkframe = in->ReadInt16();
-    walkspeed_y = in->ReadInt16();
-    old_fields.view_offset.Y = in->ReadInt16(); // legacy 16-bit view offset
-    z = in->ReadInt32();
-    walkwait = in->ReadInt32();
-    speech_anim_speed = in->ReadInt16();
-    idle_anim_speed = in->ReadInt16();
-    blocking_width = in->ReadInt16();
-    blocking_height = in->ReadInt16();
-    index_id = in->ReadInt32();
-    old_fields.view_offset.X = in->ReadInt16(); // legacy 16-bit view offset
-    walkwaitcounter = in->ReadInt16();
-    loop = in->ReadInt16();
-    frame = in->ReadInt16();
-    walking = in->ReadInt16();
+    ch.idleview = in->ReadInt32();
+    ch.idledelay = in->ReadInt16();
+    ch.idleleft = in->ReadInt16();
+    ch.opacity = in->ReadInt16();
+    ch.baseline = in->ReadInt16();
+    ch.activeinv = in->ReadInt32();
+    ch.talkcolor = in->ReadInt32();
+    ch.thinkview = in->ReadInt32();
+    ch.blinkview = in->ReadInt16();
+    ch.blinkinterval = in->ReadInt16();
+    ch.blinktimer = in->ReadInt16();
+    ch.blinkframe = in->ReadInt16();
+    ch.walkspeed_y = in->ReadInt16();
+    old_fields.ViewOffset.Y = in->ReadInt16(); // legacy 16-bit view offset
+    ch.z = in->ReadInt32();
+    ch.walkwait = in->ReadInt32();
+    ch.speech_anim_speed = in->ReadInt16();
+    ch.idle_anim_speed = in->ReadInt16();
+    ch.blocking_width = in->ReadInt16();
+    ch.blocking_height = in->ReadInt16();
+    ch.index_id = in->ReadInt32();
+    old_fields.ViewOffset.X = in->ReadInt16(); // legacy 16-bit view offset
+    ch.walkwaitcounter = in->ReadInt16();
+    ch.loop = in->ReadInt16();
+    ch.frame = in->ReadInt16();
+    ch.walking = in->ReadInt16();
     in->ReadInt16(); // legacy animating
-    walkspeed = in->ReadInt16();
-    animspeed = in->ReadInt16();
+    ch.walkspeed = in->ReadInt16();
+    ch.animspeed = in->ReadInt16();
     if (save_ver < kCharSvgVersion_400_33)
     {
         int16_t legacy_invq[LEGACY_MAX_INV];
         in->ReadArrayOfInt16(legacy_invq, LEGACY_MAX_INV);
         for (int i = 0; i < LEGACY_MAX_INV; ++i)
             if (legacy_invq[i] > 0)
-                invq[i] = legacy_invq[i];
+                ch.invq[i] = legacy_invq[i];
     }
     else
     {
@@ -134,7 +147,7 @@ void CharacterInfo::ReadFromSavegame(Stream *in, LegacyFields &old_fields, Chara
         {
             int itemid = in->ReadInt32();
             int itemq = in->ReadInt32();
-            invq[itemid] = itemq;
+            ch.invq[itemid] = itemq;
         }
     }
     in->ReadInt16(); // actx__
@@ -142,13 +155,13 @@ void CharacterInfo::ReadFromSavegame(Stream *in, LegacyFields &old_fields, Chara
 
     if (save_ver < kCharSvgVersion_400_03)
     { // Fixed-size name and scriptname
-        name.ReadCount(in, LEGACY_MAX_CHAR_NAME_LEN);
+        ch.name.ReadCount(in, LEGACY_MAX_CHAR_NAME_LEN);
         in->Seek(LEGACY_MAX_SCRIPT_NAME_LEN); // skip legacy scriptname
                                               // (don't overwrite static data from save!)
     }
     else
     {
-        name = StrUtil::ReadString(in);
+        ch.name = StrUtil::ReadString(in);
     }
 
     if (save_ver >= kCharSvgVersion_400_03)
@@ -159,66 +172,66 @@ void CharacterInfo::ReadFromSavegame(Stream *in, LegacyFields &old_fields, Chara
     {
         uint8_t on = in->ReadInt8(); // old enabled + visible flag
         // Only treat "on" as visible and make characters from old saves all enabled
-        flags |= CHF_ENABLED | (CHF_VISIBLE)*on;
+        ch.flags |= CHF_ENABLED | (CHF_VISIBLE)*on;
     }
 
     if (save_ver >= kCharSvgVersion_400_26)
     {
-        blocking_x = in->ReadInt16();
-        blocking_y = in->ReadInt16();
+        ch.blocking_x = in->ReadInt16();
+        ch.blocking_y = in->ReadInt16();
     }
     else
     {
-        blocking_x = 0;
-        blocking_y = 0;
+        ch.blocking_x = 0;
+        ch.blocking_y = 0;
     }
 }
 
-void CharacterInfo::WriteToSavegame(Stream *out) const
+void WriteCharacterInfo(const CharacterInfo &ch, Stream *out)
 {
-    out->WriteInt32(defview);
-    out->WriteInt32(talkview);
-    out->WriteInt32(view);
-    out->WriteInt32(room);
-    out->WriteInt32(prevroom);
-    out->WriteInt32(x);
-    out->WriteInt32(y);
-    out->WriteInt32(wait);
-    out->WriteInt32(flags);
+    out->WriteInt32(ch.defview);
+    out->WriteInt32(ch.talkview);
+    out->WriteInt32(ch.view);
+    out->WriteInt32(ch.room);
+    out->WriteInt32(ch.prevroom);
+    out->WriteInt32(ch.x);
+    out->WriteInt32(ch.y);
+    out->WriteInt32(ch.wait);
+    out->WriteInt32(ch.flags);
     out->WriteInt16(0); // legacy following
     out->WriteInt16(0); // legacy followinfo
-    out->WriteInt32(idleview);
-    out->WriteInt16(idledelay);
-    out->WriteInt16(idleleft);
-    out->WriteInt16(opacity);
-    out->WriteInt16(baseline);
-    out->WriteInt32(activeinv);
-    out->WriteInt32(talkcolor);
-    out->WriteInt32(thinkview);
-    out->WriteInt16(blinkview);
-    out->WriteInt16(blinkinterval);
-    out->WriteInt16(blinktimer);
-    out->WriteInt16(blinkframe);
-    out->WriteInt16(walkspeed_y);
+    out->WriteInt32(ch.idleview);
+    out->WriteInt16(ch.idledelay);
+    out->WriteInt16(ch.idleleft);
+    out->WriteInt16(ch.opacity);
+    out->WriteInt16(ch.baseline);
+    out->WriteInt32(ch.activeinv);
+    out->WriteInt32(ch.talkcolor);
+    out->WriteInt32(ch.thinkview);
+    out->WriteInt16(ch.blinkview);
+    out->WriteInt16(ch.blinkinterval);
+    out->WriteInt16(ch.blinktimer);
+    out->WriteInt16(ch.blinkframe);
+    out->WriteInt16(ch.walkspeed_y);
     out->WriteInt16(0); // legacy view offset y
-    out->WriteInt32(z);
-    out->WriteInt32(walkwait);
-    out->WriteInt16(speech_anim_speed);
-    out->WriteInt16(idle_anim_speed);
-    out->WriteInt16(blocking_width);
-    out->WriteInt16(blocking_height);
-    out->WriteInt32(index_id);
+    out->WriteInt32(ch.z);
+    out->WriteInt32(ch.walkwait);
+    out->WriteInt16(ch.speech_anim_speed);
+    out->WriteInt16(ch.idle_anim_speed);
+    out->WriteInt16(ch.blocking_width);
+    out->WriteInt16(ch.blocking_height);
+    out->WriteInt32(ch.index_id);
     out->WriteInt16(0); // old view offset x
-    out->WriteInt16(walkwaitcounter);
-    out->WriteInt16(loop);
-    out->WriteInt16(frame);
-    out->WriteInt16(walking);
+    out->WriteInt16(ch.walkwaitcounter);
+    out->WriteInt16(ch.loop);
+    out->WriteInt16(ch.frame);
+    out->WriteInt16(ch.walking);
     out->WriteInt16(0); // legacy animating
-    out->WriteInt16(walkspeed);
-    out->WriteInt16(animspeed);
+    out->WriteInt16(ch.walkspeed);
+    out->WriteInt16(ch.animspeed);
     // new inv item quantity format since kCharSvgVersion_400_33;
     // written in the order of item IDs, so that the same inventory always gives the same bytes
-    std::vector<std::pair<int, int>> items(invq.begin(), invq.end());
+    std::vector<std::pair<int, int>> items(ch.invq.begin(), ch.invq.end());
     std::sort(items.begin(), items.end());
     out->WriteInt32(items.size());
     for (const auto &iq : items)
@@ -229,78 +242,78 @@ void CharacterInfo::WriteToSavegame(Stream *out) const
     out->WriteInt16(0); // actx__
     out->WriteInt16(0); // acty__
 
-    StrUtil::WriteString(name, out); // kCharSvgVersion_400_03
-    out->WriteInt8(0);               // [OBSOLETE], old enabled + visible flag
+    StrUtil::WriteString(ch.name, out); // kCharSvgVersion_400_03
+    out->WriteInt8(0);                  // [OBSOLETE], old enabled + visible flag
     // kCharSvgVersion_400_26
-    out->WriteInt16(blocking_x);
-    out->WriteInt16(blocking_y);
+    out->WriteInt16(ch.blocking_x);
+    out->WriteInt16(ch.blocking_y);
 }
 
-void InventoryItemInfo::ReadFromSavegame(Stream *in, InvitemSvgVersion svg_ver)
+void ReadInventoryItemInfo(InventoryItemInfo &item, Stream *in, InvitemSvgVersion svg_ver)
 {
-    name = StrUtil::ReadString(in);
-    pic = in->ReadInt32();
-    cursorPic = in->ReadInt32();
+    item.name = StrUtil::ReadString(in);
+    item.pic = in->ReadInt32();
+    item.cursorPic = in->ReadInt32();
     if (svg_ver >= kInvitemSvgVersion_36304)
     {
-        hotx = in->ReadInt16();
-        hoty = in->ReadInt16();
+        item.hotx = in->ReadInt16();
+        item.hoty = in->ReadInt16();
     }
 
     if (svg_ver < kInvitemSvgVersion_36304)
     {
-        hotAlign = ((hotx == 0) && (hoty == 0)) ? kAlignMiddleCenter : kAlignTopLeft;
+        item.hotAlign = ((item.hotx == 0) && (item.hoty == 0)) ? kAlignMiddleCenter : kAlignTopLeft;
     }
     else
     {
-        hotAlign = kAlignTopLeft;
+        item.hotAlign = kAlignTopLeft;
     }
 
     if (svg_ver >= kInvitemSvgVersion_36314)
     {
-        hotAlign = static_cast<FrameAlignment>(in->ReadInt32());
+        item.hotAlign = static_cast<FrameAlignment>(in->ReadInt32());
         in->ReadInt32(); // reserved
         in->ReadInt32();
         in->ReadInt32();
     }
 }
 
-void InventoryItemInfo::WriteToSavegame(Stream *out) const
+void WriteInventoryItemInfo(const InventoryItemInfo &item, Stream *out)
 {
-    StrUtil::WriteString(name, out);
-    out->WriteInt32(pic);
-    out->WriteInt32(cursorPic);
+    StrUtil::WriteString(item.name, out);
+    out->WriteInt32(item.pic);
+    out->WriteInt32(item.cursorPic);
     // kInvitemSvgVersion_36304
-    out->WriteInt16(hotx);
-    out->WriteInt16(hoty);
+    out->WriteInt16(item.hotx);
+    out->WriteInt16(item.hoty);
     // kInvitemSvgVersion_36314
-    out->WriteInt32(hotAlign);
+    out->WriteInt32(item.hotAlign);
     out->WriteInt32(0); // reserved
     out->WriteInt32(0);
     out->WriteInt32(0);
 }
 
-void MouseCursor::ReadFromSavegame(Stream *in, int /*cmp_ver*/)
+void ReadMouseCursor(MouseCursor &cursor, Stream *in)
 {
-    pic = in->ReadInt32();
-    hotx = static_cast<int16_t>(in->ReadInt32());
-    hoty = static_cast<int16_t>(in->ReadInt32());
-    view = static_cast<int16_t>(in->ReadInt32());
-    flags = static_cast<int8_t>(in->ReadInt32());
-    animdelay = in->ReadInt32();
+    cursor.pic = in->ReadInt32();
+    cursor.hotx = static_cast<int16_t>(in->ReadInt32());
+    cursor.hoty = static_cast<int16_t>(in->ReadInt32());
+    cursor.view = static_cast<int16_t>(in->ReadInt32());
+    cursor.flags = static_cast<int8_t>(in->ReadInt32());
+    cursor.animdelay = in->ReadInt32();
 }
 
-void MouseCursor::WriteToSavegame(Stream *out) const
+void WriteMouseCursor(const MouseCursor &cursor, Stream *out)
 {
-    out->WriteInt32(pic);
-    out->WriteInt32(hotx);
-    out->WriteInt32(hoty);
-    out->WriteInt32(view);
-    out->WriteInt32(flags);
-    out->WriteInt32(animdelay);
+    out->WriteInt32(cursor.pic);
+    out->WriteInt32(cursor.hotx);
+    out->WriteInt32(cursor.hoty);
+    out->WriteInt32(cursor.view);
+    out->WriteInt32(cursor.flags);
+    out->WriteInt32(cursor.animdelay);
 }
 
-void DialogTopic::ReadOptionFromSavegame(DialogOption &opt, Stream *in, DialogTopicSvgVersion svg_ver)
+void ReadDialogOption(DialogTopic::DialogOption &opt, Stream *in)
 {
     opt.Text = StrUtil::ReadString(in);
     opt.Flags = in->ReadInt32();
@@ -308,40 +321,40 @@ void DialogTopic::ReadOptionFromSavegame(DialogOption &opt, Stream *in, DialogTo
         opt.Text = opt.OriginalText;
 }
 
-void DialogTopic::ReadFromSavegame(Common::Stream *in, DialogTopicSvgVersion svg_ver, uint32_t *read_opt_count)
+void ReadDialogTopic(DialogTopic &topic, Stream *in, DialogTopicSvgVersion svg_ver, uint32_t *read_opt_count)
 {
     if ((svg_ver <= kDialogTopicSvgVer_Initial) || (svg_ver == kDialogTopicSvgVer_40008))
     {
         uint32_t opt_idx = 0;
-        for (; opt_idx < LEGACY_MAXTOPICOPTIONS && opt_idx < Options.size(); ++opt_idx)
-            Options[opt_idx].Flags = in->ReadInt32();
+        for (; opt_idx < LEGACY_MAXTOPICOPTIONS && opt_idx < topic.Options.size(); ++opt_idx)
+            topic.Options[opt_idx].Flags = in->ReadInt32();
         // skip if there's any mismatched count (?)
         for (; opt_idx < LEGACY_MAXTOPICOPTIONS; ++opt_idx)
             in->ReadInt32();
 
         if (read_opt_count)
-            *read_opt_count = std::min<uint32_t>(Options.size(), LEGACY_MAXTOPICOPTIONS);
+            *read_opt_count = std::min<uint32_t>(topic.Options.size(), LEGACY_MAXTOPICOPTIONS);
     }
     else
     {
         uint32_t option_records = in->ReadInt32();
         uint32_t opt_idx = 0;
-        for (opt_idx = 0; opt_idx < option_records && opt_idx < Options.size(); ++opt_idx)
-            ReadOptionFromSavegame(Options[opt_idx], in, svg_ver);
+        for (opt_idx = 0; opt_idx < option_records && opt_idx < topic.Options.size(); ++opt_idx)
+            ReadDialogOption(topic.Options[opt_idx], in);
         // skip if there's any mismatched count (?)
-        DialogOption dummy;
+        DialogTopic::DialogOption dummy;
         for (; opt_idx < option_records; ++opt_idx)
-            ReadOptionFromSavegame(dummy, in, svg_ver);
+            ReadDialogOption(dummy, in);
 
         if (read_opt_count)
             *read_opt_count = option_records;
     }
 }
 
-void DialogTopic::WriteToSavegame(Common::Stream *out) const
+void WriteDialogTopic(const DialogTopic &topic, Stream *out)
 {
-    out->WriteInt32(Options.size());
-    for (auto &opt : Options)
+    out->WriteInt32(topic.Options.size());
+    for (auto &opt : topic.Options)
     {
         if ((opt.Flags & DFLG_TEXTSET) != 0)
             StrUtil::WriteString(opt.Text, out);
@@ -351,58 +364,60 @@ void DialogTopic::WriteToSavegame(Common::Stream *out) const
     }
 }
 
-void AudioClipType::ReadFromSavegame(Common::Stream *in)
+void ReadAudioClipType(AudioClipType &type, Stream *in)
 {
-    volume_reduction_while_speech_playing = in->ReadInt32();
-    crossfadeSpeed = in->ReadInt32();
+    type.volume_reduction_while_speech_playing = in->ReadInt32();
+    type.crossfadeSpeed = in->ReadInt32();
 }
 
-void AudioClipType::WriteToSavegame(Common::Stream *out) const
+void WriteAudioClipType(const AudioClipType &type, Stream *out)
 {
-    out->WriteInt32(volume_reduction_while_speech_playing);
-    out->WriteInt32(crossfadeSpeed);
+    out->WriteInt32(type.volume_reduction_while_speech_playing);
+    out->WriteInt32(type.crossfadeSpeed);
 }
 
-void GameSetupStruct::ReadFromSavegame(Stream *in, GameStateSvgVersion svg_ver)
+void ReadGameSetupStruct(GameSetupStruct &setup, Stream *in, GameStateSvgVersion svg_ver)
 {
     // of GameSetupStruct
-    in->ReadArrayOfInt32(options, OPT_HIGHESTOPTION_321 + 1);
-    options[OPT_LIPSYNCTEXT] = in->ReadInt32();
+    in->ReadArrayOfInt32(setup.options, OPT_HIGHESTOPTION_321 + 1);
+    setup.options[OPT_LIPSYNCTEXT] = in->ReadInt32();
     // of GameSetupStructBase
-    playercharacter = in->ReadInt32();
-    dialog_bullet = in->ReadInt32();
+    setup.playercharacter = in->ReadInt32();
+    setup.dialog_bullet = in->ReadInt32();
     // legacy uint16 values of a inv cursor hotdot and cross colors
-    inv_hot_color = RemapFromLegacyColourNumber(*this, in->ReadInt16());
-    inv_hot_cross_color = RemapFromLegacyColourNumber(*this, in->ReadInt16());
-    inv_hot_sprite = in->ReadInt32();
-    default_lipsync_frame = in->ReadInt32();
+    setup.inv_hot_color = RemapFromLegacyColourNumber(setup, in->ReadInt16());
+    setup.inv_hot_cross_color = RemapFromLegacyColourNumber(setup, in->ReadInt16());
+    setup.inv_hot_sprite = in->ReadInt32();
+    setup.default_lipsync_frame = in->ReadInt32();
     if (svg_ver >= kGSSvgVersion_400_27)
     {
-        inv_hot_color = in->ReadInt32();
-        inv_hot_cross_color = in->ReadInt32();
+        setup.inv_hot_color = in->ReadInt32();
+        setup.inv_hot_cross_color = in->ReadInt32();
         in->ReadInt32(); // reserved
         in->ReadInt32();
     }
 }
 
-void GameSetupStruct::WriteForSavegame(Stream *out)
+void WriteGameSetupStruct(const GameSetupStruct &setup, Stream *out)
 {
     // of GameSetupStruct
-    out->WriteArrayOfInt32(options, OPT_HIGHESTOPTION_321 + 1);
-    out->WriteInt32(options[OPT_LIPSYNCTEXT]);
+    out->WriteArrayOfInt32(setup.options, OPT_HIGHESTOPTION_321 + 1);
+    out->WriteInt32(setup.options[OPT_LIPSYNCTEXT]);
     // of GameSetupStructBase
-    out->WriteInt32(playercharacter);
-    out->WriteInt32(dialog_bullet);
+    out->WriteInt32(setup.playercharacter);
+    out->WriteInt32(setup.dialog_bullet);
     out->WriteInt16(0); // [DEPRECATED] uint16 value of a inv cursor hotdot color
     out->WriteInt16(0); // [DEPRECATED] uint16 value of a inv cursor hot cross color
-    out->WriteInt32(inv_hot_sprite);
-    out->WriteInt32(default_lipsync_frame);
+    out->WriteInt32(setup.inv_hot_sprite);
+    out->WriteInt32(setup.default_lipsync_frame);
     // kGSSvgVersion_400_27
-    out->WriteInt32(inv_hot_color);
-    out->WriteInt32(inv_hot_cross_color);
+    out->WriteInt32(setup.inv_hot_color);
+    out->WriteInt32(setup.inv_hot_cross_color);
     out->WriteInt32(0);
     out->WriteInt32(0);
 }
+
+} // namespace
 
 namespace AGS
 {
@@ -684,7 +699,7 @@ void WriteViewportState(const Viewport &view, Stream *out)
 HSaveError WriteGameState(Stream *out)
 {
     // Game base
-    game.WriteForSavegame(out);
+    WriteGameSetupStruct(game, out);
     // Game palette
     // TODO: probably no need to save this for hi/true-res game
     out->WriteArray(palette, sizeof(RGB), 256);
@@ -771,7 +786,7 @@ HSaveError ReadGameState(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
     HSaveError err;
     GameStateSvgVersion svg_ver = (GameStateSvgVersion)cmp_ver;
     // Game base
-    game.ReadFromSavegame(in, svg_ver);
+    ReadGameSetupStruct(game, in, svg_ver);
     // Game palette
     in->ReadArray(palette, sizeof(RGB), 256);
 
@@ -833,7 +848,7 @@ HSaveError WriteAudio(Stream *out)
     // Audio types
     for (size_t i = 0; i < game.audioClipTypes.size(); ++i)
     {
-        game.audioClipTypes[i].WriteToSavegame(out);
+        WriteAudioClipType(game.audioClipTypes[i], out);
         out->WriteInt32(play.default_audio_type_volumes[i]);
     }
 
@@ -921,7 +936,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
     // Audio types
     for (uint32_t i = 0; i < audiocliptype_read; ++i)
     {
-        game.audioClipTypes[i].ReadFromSavegame(in);
+        ReadAudioClipType(game.audioClipTypes[i], in);
         play.default_audio_type_volumes[i] = in->ReadInt32();
     }
 
@@ -1009,7 +1024,7 @@ HSaveError WriteCharacters(Stream *out)
     out->WriteInt32(game.numcharacters);
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        game.chars[i].WriteToSavegame(out);
+        WriteCharacterInfo(game.chars[i], out);
         charextra[i].WriteToSavegame(out);
         Properties::WriteValues(play.charProps[i], out);
     }
@@ -1031,9 +1046,9 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
         auto &ch = game.chars[i];
         auto &chex = charextra[i];
         // TODO: this is ugly reading old fields like that, might either join Read methods in one, or drop old format at some point
-        CharacterInfo::LegacyFields old_fields;
-        ch.ReadFromSavegame(in, old_fields, svg_ver);
-        chex.view_offset = old_fields.view_offset;
+        CharacterLegacyFields old_fields;
+        ReadCharacterInfo(ch, in, old_fields, svg_ver);
+        chex.view_offset = old_fields.ViewOffset;
         chex.ReadFromSavegame(&ch, in, svg_ver);
         Properties::ReadValues(play.charProps[i], in);
 
@@ -1083,7 +1098,7 @@ HSaveError WriteDialogs(Stream *out)
     out->WriteInt32(game.numdialog);
     for (int i = 0; i < game.numdialog; ++i)
     {
-        dialog[i].WriteToSavegame(out);
+        WriteDialogTopic(dialog[i], out);
         Properties::WriteValues(play.dialogProps[i], out);
     }
     return HSaveError::None();
@@ -1102,7 +1117,7 @@ HSaveError ReadDialogs(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Prese
     for (uint32_t i = 0; i < dialogs_read; ++i)
     {
         uint32_t read_opt_count = 0;
-        dialog[i].ReadFromSavegame(in, svg_ver, &read_opt_count);
+        ReadDialogTopic(dialog[i], in, svg_ver, &read_opt_count);
         if (!AssertGameObjectContent(err, read_opt_count, dialog[i].Options.size(), "Options", "Dialog", i,
                                      r_data.Result, r_data.DataCounts.DialogOptions[i]))
             return err;
@@ -1125,7 +1140,7 @@ HSaveError PrescanDialogs(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, cons
     for (uint32_t i = 0; i < dialogs_read; ++i)
     {
         uint32_t read_opt_count = 0;
-        dummy.ReadFromSavegame(in, static_cast<DialogTopicSvgVersion>(cmp_ver), &read_opt_count);
+        ReadDialogTopic(dummy, in, static_cast<DialogTopicSvgVersion>(cmp_ver), &read_opt_count);
         if (!AssertGameObjectContent(err, read_opt_count, dialog[i].Options.size(), "Options", "Dialog", i,
                                      r_data.Result, r_data.DataCounts.DialogOptions[i]))
             return err;
@@ -1419,7 +1434,7 @@ HSaveError WriteInventory(Stream *out)
     out->WriteInt32(game.numinvitems);
     for (int i = 0; i < game.numinvitems; ++i)
     {
-        game.invinfo[i].WriteToSavegame(out);
+        WriteInventoryItemInfo(game.invinfo[i], out);
         Properties::WriteValues(play.invProps[i], out);
     }
     return HSaveError::None();
@@ -1435,7 +1450,7 @@ HSaveError ReadInventory(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
         return err;
     for (uint32_t i = 0; i < invitems_read; ++i)
     {
-        game.invinfo[i].ReadFromSavegame(in, static_cast<InvitemSvgVersion>(cmp_ver));
+        ReadInventoryItemInfo(game.invinfo[i], in, static_cast<InvitemSvgVersion>(cmp_ver));
         Properties::ReadValues(play.invProps[i], in);
     }
     return err;
@@ -1457,12 +1472,12 @@ HSaveError WriteMouseCursors(Stream *out)
     out->WriteInt32(game.numcursors);
     for (int i = 0; i < game.numcursors; ++i)
     {
-        game.mcurs[i].WriteToSavegame(out);
+        WriteMouseCursor(game.mcurs[i], out);
     }
     return HSaveError::None();
 }
 
-HSaveError ReadMouseCursors(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams & /*pp*/,
+HSaveError ReadMouseCursors(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams & /*pp*/,
                             RestoredData &r_data)
 {
     HSaveError err;
@@ -1472,7 +1487,7 @@ HSaveError ReadMouseCursors(Stream *in, int32_t cmp_ver, soff_t cmp_size, const 
         return err;
     for (uint32_t i = 0; i < cursors_read; ++i)
     {
-        game.mcurs[i].ReadFromSavegame(in, cmp_ver);
+        ReadMouseCursor(game.mcurs[i], in);
     }
     return err;
 }

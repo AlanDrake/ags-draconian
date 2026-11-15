@@ -177,9 +177,6 @@ struct GameSetupStruct : public GameSetupStructBase
     void ReadAudioClips(AGS::Common::Stream *in, size_t count);
     //--------------------------------------------------------------------
 
-    void ReadFromSavegame(AGS::Common::Stream *in, GameStateSvgVersion svg_ver);
-    void WriteForSavegame(AGS::Common::Stream *out);
-
 private:
     std::array<int, kNumCursorRoles> _roleCursors = {{-1, -1, -1, -1, -1, -1, -1, -1}};
 };

@@ -13,14 +13,12 @@
 //=============================================================================
 #include "game/character_info.h"
 
-#include <algorithm>
 #include <cstring>
 #include <utility>
 #include <vector>
 
 #include "game/game_version.h"
 #include "util/stream.h"
-#include "util/string_utils.h"
 
 using namespace AGS::Common;
 

@@ -265,15 +265,6 @@ struct CharacterInfo
     void ReadFromFile(AGS::Common::Stream *in, GameDataVersion data_ver);
     void WriteToFile(AGS::Common::Stream *out) const;
 
-    // TODO: move to runtime-only class and merge with its respective Read/Write save methods
-    struct LegacyFields
-    {
-        Point view_offset;
-    };
-
-    void ReadFromSavegame(AGS::Common::Stream *in, LegacyFields &old_fields, CharacterSvgVersion save_ver);
-    void WriteToSavegame(AGS::Common::Stream *out) const;
-
 private:
     // Script events schema
     static AGS::Common::ScriptEventSchema _eventSchema;

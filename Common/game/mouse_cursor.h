@@ -60,6 +60,4 @@ struct MouseCursor
 
     void ReadFromFile(AGS::Common::Stream *in);
     void WriteToFile(AGS::Common::Stream *out);
-    void ReadFromSavegame(AGS::Common::Stream *in, int cmp_ver);
-    void WriteToSavegame(AGS::Common::Stream *out) const;
 };
