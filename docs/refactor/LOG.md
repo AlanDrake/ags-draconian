@@ -2016,6 +2016,38 @@ their declarations out of the Common headers. *Done when* (of step 1): no `Saveg
 - **Lesson:** the working tree is CRLF and the repository LF; a script that writes files must keep each file's
   line ending (the first run of `move_58s1.py` left one lone CR and git saw the whole file as rewritten).
 
+### 6.7a The old-game import deleted
+
+*Definition:* PLAN.md 6.7a: delete the old compiled-game import (`ImportOldGameFile`, `import_compiled_game_dta`,
+`load_dta_file_into_thisgame`, `init_game_after_import`, the SCI font import) and its menu entries, so that 5.1
+step 3 and 5.1a step 5 do not have to keep it building.
+
+**Status (2026-11-15): done**, 1 commit (`79f6369fc`), not pushed. By Opus 5.5 alone.
+
+- **It was dead code already.** Upstream removed the menu entries, the wizard page and `OldGameImporter.cs` in
+  `a39e6cfc6` ("Editor: remove support for importing 2.* games", 2025); the SCI font import lost its last caller
+  in upstream's Fonts/FontFiles split (`3a3b96dfb`). Nothing called what was left, so the task deletes and
+  changes no behaviour; no test was needed first (ground rule 3 is about code that runs).
+- **C#:** `NativeProxy.ImportOldGame`, `ImportSCIFont`, `LoadSpriteDimensions`; the `ImportedOldGame` event,
+  its raiser, handler and `ComponentController.NotifyImportedOldGame`; `ImportExport.ImportOldEditorDatFile`
+  (the 2.72 `editor.dat` reader) with `ReadGlobalScriptAndScriptHeader`, `ImportRoomList`,
+  `GetRoomNumberFromFileName`, `ImportSpriteFolders`, the fixed-length string reader and
+  `EDITOR_DAT_LATEST_FILE_VERSION`. `ReadNullTerminatedStringAsBytes` loses its fixed-length parameter, which
+  only the sprite-folder reader used.
+- **Native:** `NativeMethods::ImportOldGameFile`, `ImportSCIFont`, `LoadAllSpriteDimensions`; in
+  `agsnative.cpp` the functions above, `load_sprite_dimensions`, `free_old_game_data`, the old-game globals
+  (`dialog`, `guis`, `newViews`, `thisgamePlugins`), `loaded_game_file_version` and `game_compiled_version`
+  (only the import set them; Common does not use them), the unused `GetCharacterScriptName`, and three includes
+  (`dialog_topic.h`, `main_game_file.h`, `plugininfo.h`). The GUI control vectors stay: the GUI preview uses
+  them. `LoadRoomScript` stays: the rooms component uses it. 920 lines out; `thisgame` is named on 73 lines of
+  `agsnative.cpp` instead of 189 (fonts, sprites, palette, GUI preview).
+- **Docs:** 6.7c and EDITOR-SPLIT.md no longer list a SCI import or `LoadAllSpriteDimensions` for the C library.
+- **Left:** `Common/test/common_stubs.cpp` still defines `loaded_game_file_version` and `game_compiled_version`,
+  which nothing in Common uses (harmless; for a Common change).
+- **Verified:** `prepush.py --auto --base HEAD` picks `format` and `msbuild` for these files; both pass (5
+  solutions with `AGS.Native` and the editor, the editor's NUnit tests). Not run: opening a project in the editor
+  (no code path that runs changed), the other stages (no file they verify changed).
+
 ### Open items from finished tasks
 
 *Moved from PLAN.md "Next up" on 2026-11-07* (details in the tasks' sections):
