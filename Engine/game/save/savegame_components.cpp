@@ -81,6 +81,30 @@ using namespace AGS::Common;
 //
 //-----------------------------------------------------------------------------
 
+// Inventory items' save format
+enum InvitemSvgVersion
+{
+    kInvitemSvgVersion_Initial = 0,
+    kInvitemSvgVersion_36304 = 3060304, // hotspot
+    kInvitemSvgVersion_36314 = 3060314, // hotspot align
+    kInvitemSvgVersion_Current = kInvitemSvgVersion_36314
+};
+
+// Dialog topics' save format
+enum DialogTopicSvgVersion
+{
+    kDialogTopicSvgVer_Initial = 0,
+    kDialogTopicSvgVer_363 = 3060304,   // new save format
+    kDialogTopicSvgVer_40008 = 4000008, // custom properties
+    kDialogTopicSvgVer_40026 = 4000026, // sync with kDialogTopicSvgVer_363
+};
+
+// Mouse cursors' save format; 0 (initial) is no longer read
+enum CursorSvgVersion
+{
+    kCursorSvgVersion_36016 = 1, // animation delay
+};
+
 namespace
 {
 

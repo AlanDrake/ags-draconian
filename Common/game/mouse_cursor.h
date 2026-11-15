@@ -39,12 +39,6 @@ enum CursorRole
     kNumCursorRoles
 };
 
-// 0 (initial) is no longer read
-enum CursorSvgVersion
-{
-    kCursorSvgVersion_36016 = 1, // animation delay
-};
-
 struct MouseCursor
 {
     uint8_t flags = 0;

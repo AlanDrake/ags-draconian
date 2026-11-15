@@ -54,6 +54,25 @@ struct ScriptViewport;
 struct ScriptCamera;
 struct ScriptOverlay;
 
+// The game state's save format (GameSetupStruct's saved fields and GamePlayState)
+// Before 4.0: 0 to 3 (3.5.0 to 3.5.0.10), 4 (3.6.1.14), then 3060300, 3060302, 3060304, 3060313 (3.6.3).
+enum GameStateSvgVersion
+{
+    kGSSvgVersion_400 = 4000000,
+    kGSSvgVersion_400_03 = 4000003, // compat w 3.6.1.14 (game name of any length)
+    kGSSvgVersion_400_08 = 4000008, // palette component range 64->256
+    kGSSvgVersion_400_14 = 4000014, // 32-bit ARGB color properties
+    kGSSvgVersion_400_17 = 4000017, // compat w 3.6.3.0 (dialog options position, alignment, font)
+    kGSSvgVersion_400_18 = 4000018, // shaders
+    kGSSvgVersion_400_24 = 4000024, // sync with 3.6.3.2 (dialog options z-order)
+    kGSSvgVersion_400_26 = 4000026, // sync with 3.6.3.4 (script timers of any number)
+    kGSSvgVersion_400_27 = 4000027, // 32-bit inventory cursor hotspot colors
+    kGSSvgVersion_400_29 = 4000029, // rotation pivot
+    kGSSvgVersion_400_33 = 4000033, // sync with 3.6.3.13 (mouse input enabled, speech z-order)
+    kGSSvgVersion_400_34 = 4000034, // full ranges for ambient tint, light level and screen tint
+    kGSSvgVersion_Current = kGSSvgVersion_400_34
+};
+
 // A location reference, used to remember where the mouse cursor was.
 struct SceneLocationRef
 {
