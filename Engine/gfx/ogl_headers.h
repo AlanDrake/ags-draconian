@@ -15,6 +15,7 @@
 // OpenGL includes and definitions for various platforms
 //
 //=============================================================================
+#pragma once
 
 #include "platform/platform.h"
 

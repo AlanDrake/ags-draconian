@@ -11,6 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#pragma once
+
 #include <allegro.h>
 
 #include "gtest/gtest.h"

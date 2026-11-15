@@ -15,6 +15,8 @@
 // Helper functions related to reading or writing game data.
 //
 //=============================================================================
+#pragma once
+
 #include <functional>
 #include <vector>
 

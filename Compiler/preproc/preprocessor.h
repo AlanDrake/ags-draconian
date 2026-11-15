@@ -11,6 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#pragma once
+
 #include <stack>
 
 #include "preproc/cc_macrotable.h"

@@ -37,8 +37,7 @@
 // "cancel" on stdin. Running tools are killed, waiting tasks do not start.
 //
 //=============================================================================
-#ifndef __AGSBUILD_DIAGNOSTICS_H
-#define __AGSBUILD_DIAGNOSTICS_H
+#pragma once
 
 #include <functional>
 #include <string>
@@ -108,5 +107,3 @@ void InstallCancelHandlers();
 
 } // namespace Diag
 } // namespace AGSBuild
-
-#endif // __AGSBUILD_DIAGNOSTICS_H
