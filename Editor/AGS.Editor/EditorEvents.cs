@@ -9,7 +9,6 @@ namespace AGS.Editor
     internal class EditorEvents
     {
         public event Action GameSettingsChanged;
-        public event Action ImportedOldGame;
         public event Action RefreshAllComponentsFromGame;
         public delegate void GameLoadHandler(XmlNode rootNode);
         public event GameLoadHandler GameLoad;
@@ -41,14 +40,6 @@ namespace AGS.Editor
             if (GameSettingsChanged != null)
             {
                 GameSettingsChanged();
-            }
-        }
-
-        public void OnImportedOldGame()
-        {
-            if (ImportedOldGame != null)
-            {
-                ImportedOldGame();
             }
         }
 

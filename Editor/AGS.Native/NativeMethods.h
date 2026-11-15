@@ -80,8 +80,6 @@ namespace Native
 			void ChangeSpriteNumber(Sprite^ sprite, int newNumber);
 			void ChangeSpriteNumbers(array<Sprite^>^ sprites, array<int>^ newNumbers);
 			void Shutdown();
-			Game^ ImportOldGameFile(String^ fileName);
-			void ImportSCIFont(String ^fileName, int fontSlot);
             void ReloadFont(int fontSlot);
             void UnloadFont(int fontSlot);
             // Measures the TTF font from the given file, and tries to find a point size corresponding
@@ -90,7 +88,6 @@ namespace Native
             void OnGameFontAdded(Game^ game, int fontSlot);
             void OnGameFontDeleted(Game^ game, int fontSlot);
             void OnGameFontUpdated(Game^ game, int fontSlot, bool forceUpdate);
-			Dictionary<int,Sprite^>^ LoadAllSpriteDimensions();
 			void LoadNewSpriteFile();
             void ReplaceSpriteFile(String ^srcFileName, String ^srcIndexFileName);
 			String ^LoadRoomScript(String ^roomFileName);

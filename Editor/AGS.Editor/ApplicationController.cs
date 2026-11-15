@@ -38,7 +38,6 @@ namespace AGS.Editor
             _events.GameLoad += _events_GameLoad;
             _events.GamePostLoad += _events_GamePostLoad;
             _events.GameSettingsChanged += _events_GameSettingsChanged;
-            _events.ImportedOldGame += _events_ImportedOldGame;
             _events.RefreshAllComponentsFromGame += _events_RefreshAllComponentsFromGame;
             _events.SavingGame += _events_SavingGame;
             _events.SavingUserData += _events_SavingUserData;
@@ -95,11 +94,6 @@ namespace AGS.Editor
         private void _events_RefreshAllComponentsFromGame()
         {
             _componentController.NotifyDataRefreshNeeded();
-        }
-
-        private void _events_ImportedOldGame()
-        {
-            _componentController.NotifyImportedOldGame();
         }
 
         private void _events_GameSettingsChanged()

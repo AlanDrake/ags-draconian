@@ -238,16 +238,6 @@ namespace AGS.Editor
 			}
         }
 
-        public Game ImportOldGame(string fileName)
-        {
-            return _native.ImportOldGameFile(fileName);
-        }
-
-        public void ImportSCIFont(string fileName, int fontSlot)
-        {
-            _native.ImportSCIFont(fileName, fontSlot);
-        }
-
         public void ReloadFont(int fontSlot)
         {
             _native.ReloadFont(fontSlot);
@@ -280,11 +270,6 @@ namespace AGS.Editor
         public void OnFontUpdated(Game game, int fontSlot, bool forceUpdate)
         {
             _native.OnGameFontUpdated(game, fontSlot, forceUpdate);
-        }
-
-        public Dictionary<int, Sprite> LoadSpriteDimensions()
-        {
-            return _native.LoadAllSpriteDimensions();
         }
 
         public void LoadNewSpriteFile()

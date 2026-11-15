@@ -75,16 +75,6 @@ namespace AGS.Editor
 			}
 		}
 
-		public void NotifyImportedOldGame()
-		{
-			// Ensure that all components are informed that a new game has
-			// been loaded
-			foreach (IEditorComponent component in _components)
-			{
-				component.FromXml(null);
-			}
-		}
-
         public void NotifyLoadedUserData(XmlNode rootNode)
         {
             Dictionary<string, XmlNode> componentNodes = new Dictionary<string, XmlNode>();

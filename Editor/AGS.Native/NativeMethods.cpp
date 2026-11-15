@@ -52,9 +52,6 @@ typedef AGS::Common::HError HAGSError;
 
 extern bool initialize_native();
 extern void shutdown_native();
-extern AGS::Types::Game^ import_compiled_game_dta(const AGSString &filename);
-extern void free_old_game_data();
-extern HAGSError import_sci_font(const AGSString &filename, int fslot);
 extern bool reload_font(int curFont);
 extern void unload_font(int curFont);
 extern bool measure_font_height(const AGSString &filename, int pixel_height, int &formal_height);
@@ -70,7 +67,6 @@ extern void DrawFontAt(HDC hdc, int fontnum, bool only_valid_chars,
 extern void DrawTextUsingFontAt(HDC hdc, String^ text, int fontnum, bool right_to_left, bool draw_outline,
     int dc_atx, int dc_aty, int dc_width, int dc_height,
     int text_atx, int text_aty, int max_width, float scaling);
-extern Dictionary<int, Sprite^>^ load_sprite_dimensions();
 extern void drawGUI(HDC hdc, int x, int y, GUI^ gui, int resolutionFactor, float scale, int control_transparency, int selectedControl);
 extern void drawSprite(HDC hdc, int x,int y, int spriteNum, bool flipImage);
 extern void drawSpriteStretch(HDC hdc, int x,int y, int width, int height, int spriteNum, bool flipImage);
@@ -423,16 +419,6 @@ namespace AGS
             return ::FindNearestFreeSpriteNumber(spriteNumber, numbers);
         }
 
-		void NativeMethods::ImportSCIFont(String ^fileName, int fontSlot) 
-		{
-			AGSString fileNameAnsi = TextHelper::ConvertUTF8(fileName);
-			HAGSError err = import_sci_font(fileNameAnsi, fontSlot);
-			if (!err) 
-			{
-				throw gcnew AGSEditorException(TextHelper::ConvertUTF8(err->FullMessage()));
-			}
-		}
-
     void NativeMethods::ReloadFont(int fontSlot)
     {
       if (!reload_font(fontSlot))
@@ -613,18 +599,6 @@ namespace AGS
 		void NativeMethods::Shutdown()
 		{
 			shutdown_native();
-		}
-
-		AGS::Types::Game^ NativeMethods::ImportOldGameFile(String^ fileName)
-		{
-			AGSString fileNameAnsi = TextHelper::ConvertUTF8(fileName);
-			Game ^game = import_compiled_game_dta(fileNameAnsi);
-			return game;
-		}
-
-		Dictionary<int,Sprite^>^ NativeMethods::LoadAllSpriteDimensions()
-		{
-			return load_sprite_dimensions();
 		}
 
 		String ^NativeMethods::LoadRoomScript(String ^roomFileName) 

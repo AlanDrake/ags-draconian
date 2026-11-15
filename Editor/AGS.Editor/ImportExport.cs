@@ -55,7 +55,6 @@ namespace AGS.Editor
         private const string GUI_XML_SPRITE_HEIGHT = "Height";
         private const string GUI_XML_SPRITE_RESOLUTION = "Resolution";
 
-        private static int EDITOR_DAT_LATEST_FILE_VERSION = 7;
         private static Dictionary<string, ImageFormat> ImageFileTypes = new Dictionary<string, ImageFormat>();
 
         static ImportExport()
@@ -150,81 +149,6 @@ namespace AGS.Editor
             }
 
             return newPalette;
-        }
-
-        public static CompileMessages ImportOldEditorDatFile(string fileName, Game game, Dictionary<int, Sprite> spriteList)
-        {
-            CompileMessages importErrors = new CompileMessages();
-            string editorDatFilename = Path.Combine(Path.GetDirectoryName(fileName), "editor.dat");
-            BinaryReader reader = new BinaryReader(new FileStream(editorDatFilename, FileMode.Open));
-            string fileSig = Encoding.ASCII.GetString(reader.ReadBytes(14));
-            if (fileSig != "AGSEditorInfo\0")
-            {
-                throw new AGS.Types.InvalidDataException("This is not a valid AGS game file.");
-            }
-            int version = reader.ReadInt32();
-            if (version != EDITOR_DAT_LATEST_FILE_VERSION)
-            {
-                throw new AGS.Types.InvalidDataException("This game is from an unsupported version of AGS. This editor can only import games saved with AGS 2.72.");
-            }
-            game.RootScriptFolder.Clear();
-
-            Script globalScript, scriptHeader;
-            ReadGlobalScriptAndScriptHeader(reader, game, out globalScript, out scriptHeader);
-
-            game.RootSpriteFolder = ImportSpriteFolders(reader, spriteList, importErrors);
-
-            ImportRoomList(game, reader, fileName, importErrors);
-
-            if (reader.ReadInt32() != 1)
-            {
-                throw new AGS.Types.InvalidDataException("Error in game files: invalid header for script modules");
-            }
-
-            int moduleCount = reader.ReadInt32();
-            for (int i = 0; i < moduleCount; i++)
-            {
-                string author = ReadNullTerminatedString(reader);
-                string description = ReadNullTerminatedString(reader);
-                string name = ReadNullTerminatedString(reader);
-                string moduleVersion = ReadNullTerminatedString(reader);
-
-                int scriptLength = reader.ReadInt32();
-                string moduleScript = Encoding.Default.GetString(reader.ReadBytes(scriptLength)); // always ANSI
-                reader.ReadByte();  // discard the null terminating byte
-
-                scriptLength = reader.ReadInt32();
-                string moduleHeader = Encoding.Default.GetString(reader.ReadBytes(scriptLength)); // always ANSI
-                reader.ReadByte();  // discard the null terminating byte
-
-                int uniqueKey = reader.ReadInt32();
-
-                ScriptAndHeader scripts = new ScriptAndHeader(
-                        new Script("Module" + i + ".ash", moduleHeader, name, description, author, moduleVersion, uniqueKey, true),
-                        new Script("Module" + i + ".asc", moduleScript, name, description, author, moduleVersion, uniqueKey, false));
-                game.RootScriptFolder.Items.Add(scripts);
-
-                reader.ReadInt32(); ////int permissions = reader.ReadInt32();
-                reader.ReadInt32(); ////int weAreOwner = reader.ReadInt32();
-            }
-
-            game.RootScriptFolder.Items.Add(new ScriptAndHeader(scriptHeader, globalScript));            
-
-            // Ensure that all .asc/.ash files are saved
-            foreach (Script script in game.RootScriptFolder.AllScriptsFlat)
-            {
-                script.Modified = true;
-            }
-
-            int voxFilesListLength = reader.ReadInt32();
-            reader.ReadBytes(voxFilesListLength); // skip over vox file list
-
-            // The final portion of the file contains state data
-            // for COM plugins, but since we no longer support these,
-            // we can ignore it and finish here.
-
-            reader.Close();
-            return importErrors;
         }
 
         public static List<Script> AddImportedScriptModule(ScriptModuleDef module)
@@ -343,48 +267,18 @@ namespace AGS.Editor
             writer.Close();
         }
 
-        private static void ReadGlobalScriptAndScriptHeader(BinaryReader reader, Game game, out Script globalScript, out Script scriptHeader)
-        {
-            // NOTE: old game format: texts are always ANSI/ASCII
-            int scriptHeaderLength = reader.ReadInt32() - 1;
-            string scriptHeaderText = Encoding.Default.GetString(reader.ReadBytes(scriptHeaderLength));
-            scriptHeader = new Script(Script.GLOBAL_HEADER_FILE_NAME, scriptHeaderText, true);
-            reader.ReadByte(); // skip the null terminator
-
-            int globalScriptLength = reader.ReadInt32() - 1;
-            string globalScriptText = Encoding.Default.GetString(reader.ReadBytes(globalScriptLength));
-            globalScript = new Script(Script.GLOBAL_SCRIPT_FILE_NAME, globalScriptText, false);
-            reader.ReadByte(); // skip the null terminator
-        }
-
 		private static string ReadNullTerminatedString(BinaryReader reader)
  		{
-			return Encoding.Default.GetString(ReadNullTerminatedStringAsBytes(reader, 0));
+			return Encoding.Default.GetString(ReadNullTerminatedStringAsBytes(reader));
 		}
 
-		private static string ReadNullTerminatedString(BinaryReader reader, int fixedLength)
-		{
-			return Encoding.Default.GetString(ReadNullTerminatedStringAsBytes(reader, fixedLength));
-		}
-
-        private static byte[] ReadNullTerminatedStringAsBytes(BinaryReader reader, int fixedLength = 0)
+        private static byte[] ReadNullTerminatedStringAsBytes(BinaryReader reader)
         {
 			List<byte> bytes = new List<byte>(100);
-			int bytesToRead = fixedLength;
 			byte thisChar;
 			while ((thisChar = reader.ReadByte()) != 0)
 			{
 				bytes.Add(thisChar);
-				bytesToRead--;
-
-				if ((fixedLength > 0) && (bytesToRead < 1))
-				{
-					break;
-				}
-			}
-			if (bytesToRead > 0)
-			{
-				reader.ReadBytes(bytesToRead - 1);
 			}
 			return bytes.ToArray();
 		}
@@ -402,119 +296,6 @@ namespace AGS.Editor
             writer.Write(enc.GetByteCount(text));
             writer.Write(enc.GetBytes(text));
             writer.Write((byte)0);
-        }
-
-		private static int GetRoomNumberFromFileName(string fileName)
-		{
-			string roomFile = fileName.Substring(4);
-			roomFile = roomFile.Substring(0, roomFile.IndexOf("."));
-			int roomNumber = -1;
-			if (Int32.TryParse(roomFile, out roomNumber))
-			{
-				roomFile = "room" + roomNumber + ".crm";
-				if (string.Compare(roomFile, fileName, true) == 0)
-				{
-					return roomNumber;
-				}
-			}
-			return -1;
-		}
-
-        private static void ImportRoomList(Game game, BinaryReader reader, string fullPathToGameFiles, CompileMessages importErrors)
-        {
-            Dictionary<int, UnloadedRoom> rooms = new Dictionary<int, UnloadedRoom>();
-            foreach (string roomFileFullPath in Utilities.GetDirectoryFileList(Path.GetDirectoryName(fullPathToGameFiles), "room*.crm"))
-            {
-                int roomNumber = GetRoomNumberFromFileName(Path.GetFileName(roomFileFullPath));
-
-				if (roomNumber >= 0)
-                {
-                    try
-                    {
-                        string roomScript = Factory.NativeProxy.LoadRoomScript(roomFileFullPath);
-                        if (roomScript != null)
-                        {
-                            StreamWriter sw = new StreamWriter(roomFileFullPath.Substring(0, roomFileFullPath.Length - 4) + ".asc", false, Encoding.Default);
-                            sw.Write(roomScript);
-                            sw.Close();
-                        }
-                    }
-                    catch (AGSEditorException ex)
-                    {
-                        importErrors.Add(new CompileError("There was an error saving the script for room " + roomNumber + ": " + ex.Message));
-                    }
-
-                    UnloadedRoom newUnloadedRoom = new UnloadedRoom(roomNumber);
-                    rooms.Add(roomNumber, newUnloadedRoom);
-                    game.RootRoomFolder.Items.Add(newUnloadedRoom);
-                }
-                else
-                {
-                    importErrors.Add(new CompileWarning("The room file '" + roomFileFullPath + "' does not have a recognised name and will not be part of the game."));
-                }
-            }
-
-            game.RootRoomFolder.Sort(false);
-
-            int roomCount = reader.ReadInt32();
-            for (int i = 0; i < roomCount; i++)
-            {
-                string roomDescription = ReadNullTerminatedString(reader);
-                if (rooms.ContainsKey(i))
-                {
-                    rooms[i].Description = roomDescription;
-                }
-            }
-        }
-
-        private static SpriteFolder ImportSpriteFolders(BinaryReader reader, Dictionary<int,Sprite> spriteList, CompileMessages importErrors)
-        {
-            const string DUMMY_FOLDER_NAME = "$$TEMPNAME";
-            Dictionary<int, SpriteFolder> spriteFolders = new Dictionary<int, SpriteFolder>();
-            int spriteFolderCount = reader.ReadInt32();
-            // First, create an object for all of them (since folder 2
-            // might have folder 15 as its parent, all objects need
-            // to be there from the start).
-            for (int i = 0; i < spriteFolderCount; i++)
-            {
-                spriteFolders.Add(i, new SpriteFolder(DUMMY_FOLDER_NAME));
-            }
-            for (int i = 0; i < spriteFolderCount; i++)
-            {
-                int numItems = reader.ReadInt32();
-                for (int j = 0; j < 240; j++)
-                {
-                    int spriteNum = reader.ReadInt16();
-                    if ((j < numItems) && (spriteNum >= 0))
-                    {
-                        if (spriteList.ContainsKey(spriteNum))
-                        {
-                            spriteFolders[i].Sprites.Add(spriteList[spriteNum]);
-                            spriteList.Remove(spriteNum);
-                        }
-                        else
-                        {
-                            importErrors.Add(new CompileWarning("Sprite " + spriteNum + " not found whilst importing the sprite folder list"));
-                        }
-                    }
-                }
-                int parentFolder = reader.ReadInt16();
-                if (parentFolder >= 0)
-                {
-                    if (!spriteFolders.ContainsKey(parentFolder))
-                    {
-                        throw new AGS.Types.InvalidDataException("Invalid sprite folder structure found: folder " + i + " has parent " + parentFolder);
-                    }
-                    spriteFolders[parentFolder].SubFolders.Add(spriteFolders[i]);
-                }
-				string folderName = ReadNullTerminatedString(reader, 30);
-                if (folderName.Contains("\0"))
-                {
-                    folderName = folderName.TrimEnd('\0');
-                }
-                spriteFolders[i].Name = folderName;
-            }
-            return spriteFolders[0];
         }
 
         private static void WriteZeros(BinaryWriter writer, int numberOfZeros)
