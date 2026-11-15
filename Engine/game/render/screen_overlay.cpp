@@ -577,7 +577,7 @@ void AnimatedOverlay::ReadFromSavegame(Common::Stream *in, int cmp_ver)
     AnimFlowDirection anim_dir_current = static_cast<AnimFlowDirection>(in->ReadInt8());
     in->ReadInt8(); // reserved to fill int32
     int anim_delay = in->ReadInt16();
-    int wait = in->ReadInt16();
+    _wait = in->ReadInt16();
     int anim_volume = in->ReadInt8();
     in->ReadInt8(); // reserved to fill int32
     in->ReadInt8();

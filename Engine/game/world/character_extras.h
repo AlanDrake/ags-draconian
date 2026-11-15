@@ -90,9 +90,8 @@ public:
     char process_idle_this_time = 0;
     char slow_move_counter = 0;
     ViewAnimateParams anim;
-    short animwait = 0;         // current ticks counter, before advancing an animation
-    int audio_volume = 100;     // default animation volume (relative factor)
-    int cur_audio_volume = 100; // current animation sound volume (relative factor)
+    short animwait = 0;     // current ticks counter, before advancing an animation
+    int audio_volume = 100; // default animation volume (relative factor)
     int audio_panning = 0;
     int AudioSpeed = 1000;
     int following = -1;       // whom do we follow (character id)

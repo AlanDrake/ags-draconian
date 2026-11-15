@@ -17,7 +17,8 @@
 // items with non-default state are saved, cleared and restored; a save made
 // for a game with a different number of them is refused, or accepted with the
 // restore flags that allow it; prescanning a save counts its content without
-// changing the game.
+// changing the game. Single objects restored from a hand-made stream: an
+// animated overlay and a room state.
 //
 // Not tested: kSaveRestore_AllowMismatchExtra (more objects in the save than in
 // the game). The engine never sets it, and with it ReadCharacters writes the
@@ -28,14 +29,17 @@
 #include <string>
 #include <vector>
 
+#include "game/customproperties.h"
 #include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
+#include "game/render/screen_overlay.h"
 #include "game/save/savegame.h"
 #include "game/save/savegame_components.h"
 #include "game/save/savegame_internal.h"
 #include "game/view.h"
 #include "game/world/character_extras.h"
+#include "game/world/room_status.h"
 #include "gtest/gtest.h"
 #include "util/memorystream.h"
 
@@ -362,4 +366,108 @@ TEST_F(SavegameContent, RestoredCharactersSaveTheSameBytes)
     ASSERT_TRUE(Save(kCharactersAndItems, second, error)) << error;
     EXPECT_EQ(first.size(), second.size());
     EXPECT_TRUE(first == second);
+}
+
+TEST_F(SavegameContent, CharacterAnimationVolumeIsRestored)
+{
+    SetCounts(1, 0);
+    charextra[0].audio_volume = 70;
+    charextra[0].SetAnimating(kAnimFlow_Repeat, kAnimDirBackward, 3, 40);
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_Characters, saved, error)) << error;
+
+    SetCounts(1, 0);
+    RestoredData r_data;
+    HSaveError err = Restore(saved, kSaveCmp_Characters, r_data);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    const ViewAnimateParams &anim = charextra[0].GetAnimParams();
+    EXPECT_EQ(kAnimFlow_Repeat, anim.Flow);
+    EXPECT_EQ(kAnimDirBackward, anim.Direction);
+    EXPECT_EQ(3, anim.Delay);
+    EXPECT_EQ(70, charextra[0].audio_volume);
+    EXPECT_EQ(40, anim.AudioVolume);
+}
+
+TEST(SavegameState, AnimatedOverlayWaitIsRestored)
+{
+    // an overlay animation as AnimatedOverlay::WriteToSavegame writes it, 7 ticks before its next frame
+    std::vector<uint8_t> saved;
+    {
+        Stream out(std::make_unique<VectorStream>(saved, kStream_Write));
+        out.WriteInt32(3); // overlay id
+        out.WriteInt32(kAnimOver_PauseWithGame);
+        out.WriteInt16(2); // view
+        out.WriteInt16(1); // loop
+        out.WriteInt16(4); // frame
+        out.WriteInt8(kAnimFlow_Repeat);
+        out.WriteInt8(kAnimDirForward);
+        out.WriteInt8(kAnimDirBackward);
+        out.WriteInt8(0);
+        out.WriteInt16(5); // delay
+        out.WriteInt16(7); // wait
+        out.WriteInt8(60); // audio volume
+        out.WriteInt8(0);
+        out.WriteInt8(0);
+        out.WriteInt8(0);
+    }
+
+    AnimatedOverlay over;
+    {
+        Stream in(std::make_unique<VectorStream>(saved));
+        over.ReadFromSavegame(&in, kAnimOverSvgVersion_40024);
+    }
+    EXPECT_EQ(3, over.GetOverID());
+    EXPECT_EQ(2, over.GetView());
+    EXPECT_EQ(1, over.GetLoop());
+    EXPECT_EQ(4, over.GetFrame());
+    // the wait counter has no getter: the restored overlay must write back the same bytes
+    std::vector<uint8_t> again;
+    {
+        Stream out(std::make_unique<VectorStream>(again, kStream_Write));
+        over.WriteToSavegame(&out);
+    }
+    EXPECT_TRUE(saved == again);
+}
+
+TEST(SavegameState, RoomStatusReadsTheCountsInTheWrittenOrder)
+{
+    // a room state as RoomStatus::WriteToSavegame lays it out, with a walk-area count (1) that differs from
+    // the walk-behind count (2), so that reading the two counts swapped misplaces the data after them
+    std::vector<uint8_t> saved;
+    {
+        Stream out(std::make_unique<VectorStream>(saved, kStream_Write));
+        out.WriteInt8(1);    // beenhere
+        out.WriteInt32(0);   // objects
+        out.WriteInt32(0);   // hotspots
+        out.WriteInt32(0);   // regions
+        out.WriteInt32(1);   // walk areas
+        out.WriteInt32(2);   // walk-behinds
+        out.WriteInt32(111); // walk-behind baselines
+        out.WriteInt32(222);
+        WalkareaState walkarea;
+        walkarea.FaceDirectionRatio = 0.5f;
+        walkarea.WriteToSavegame(&out);
+        Properties::WriteValues(StringIMap(), &out); // room properties
+        out.WriteInt32(0);                           // script data size
+        out.WriteInt32(kRoomStatSvgVersion_Current); // content format
+        out.WriteInt32(0);
+        out.WriteInt32(0);
+        out.WriteInt32(0);
+        out.WriteFloat32(0.25f); // face direction ratio
+        out.WriteInt32(0);       // background shader id
+        out.WriteInt32(0);       // background shader handle
+        out.WriteInt32(0);
+        Properties::WriteValues(StringIMap(), &out); // the walk area's properties
+    }
+
+    RoomStatus room;
+    Stream in(std::make_unique<VectorStream>(saved));
+    room.ReadFromSavegame(&in, kRoomStatSvgVersion_Current);
+    EXPECT_EQ(1, room.beenhere);
+    EXPECT_EQ(111, room.walkbehind_base[0]);
+    EXPECT_EQ(222, room.walkbehind_base[1]);
+    EXPECT_EQ(0.5f, room.walkareas[0].FaceDirectionRatio);
+    EXPECT_EQ(0.25f, room.face_dir_ratio);
+    EXPECT_EQ(static_cast<soff_t>(saved.size()), in.GetPosition());
 }

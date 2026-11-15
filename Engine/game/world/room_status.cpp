@@ -114,8 +114,8 @@ void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
 
     const int num_hotspots = in->ReadInt32();
     const int num_regions = in->ReadInt32();
-    const int num_walkbehinds = in->ReadInt32();
     const int num_walkareas = in->ReadInt32();
+    const int num_walkbehinds = in->ReadInt32();
 
     obj.resize(numobj);
     objProps.resize(numobj);

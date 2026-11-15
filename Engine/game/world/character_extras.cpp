@@ -172,9 +172,8 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *ch, Stream *in, CharacterS
     process_idle_this_time = in->ReadInt8();
     slow_move_counter = in->ReadInt8();
     animwait = in->ReadInt16();
-    int cur_anim_volume = 100;
     audio_volume = static_cast<uint8_t>(in->ReadInt8());
-    cur_audio_volume = static_cast<uint8_t>(in->ReadInt8());
+    const int cur_anim_volume = static_cast<uint8_t>(in->ReadInt8());
     audio_panning = in->ReadInt8();
     in->ReadInt8(); // reserved
 
