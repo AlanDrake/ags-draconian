@@ -13,8 +13,9 @@
 //=============================================================================
 //
 // Savegame components with game content, which savegame_test.cpp leaves in
-// the empty state of an engine without a game: characters and inventory
-// items with non-default state are saved, cleared and restored; a save made
+// the empty state of an engine without a game: characters, inventory items,
+// dialog options, mouse cursors, audio types and the game setup's saved
+// fields with non-default state are saved, cleared and restored; a save made
 // for a game with a different number of them is refused, or accepted with the
 // restore flags that allow it; prescanning a save counts its content without
 // changing the game; a restored game state leaves the running engine's own
@@ -26,11 +27,15 @@
 // extra characters past the end of game.chars.
 //
 //=============================================================================
+#include <algorithm>
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "game/customproperties.h"
+#include "game/dialog/dialog.h"
+#include "game/dialog_topic.h"
 #include "game/game.h"
 #include "game/game_setup_struct.h"
 #include "game/game_state.h"
@@ -72,20 +77,106 @@ const SaveCmpSelection kCharactersAndItems = static_cast<SaveCmpSelection>(kSave
 // - game.chars, game.numcharacters, charextra, play.charProps: the characters
 // - game.invinfo, game.numinvitems, play.invProps: the inventory items
 // - views, game.numviews: the views
+// - dialog, game.numdialog, play.dialogProps: the dialogs
+// - game.mcurs, game.numcursors: the mouse cursors
+// - game.audioClipTypes, play.default_audio_type_volumes: the audio types
+// - the GameSetupStruct fields that the game state saves (GameSetupFields)
 // - EngineServices::Current().SeparateMusicLib
 class SavegameContent : public ::testing::Test
 {
 protected:
-    void SetUp() override { _separateMusicLib = EngineServices::Current().SeparateMusicLib; }
+    void SetUp() override
+    {
+        _separateMusicLib = EngineServices::Current().SeparateMusicLib;
+        _gameSetup = GameSetupFields::Get();
+    }
 
     void TearDown() override
     {
         SetCounts(0, 0);
         SetViews(0, 0, 0);
+        SetDialogs(0, 0);
+        SetCursors(0);
+        SetAudioTypes(0);
+        _gameSetup.Set();
         EngineServices::Current().SeparateMusicLib = _separateMusicLib;
     }
 
+    // The GameSetupStruct fields that the game state component saves
+    struct GameSetupFields
+    {
+        std::array<int, GameSetupStructBase::MAX_OPTIONS> Options = {};
+        int PlayerCharacter = 0;
+        int DialogBullet = 0;
+        int InvHotColor = 0;
+        int InvHotCrossColor = 0;
+        int InvHotSprite = 0;
+        int DefaultLipsyncFrame = 0;
+
+        static GameSetupFields Get()
+        {
+            GameSetupFields fields;
+            std::copy_n(game.options, GameSetupStructBase::MAX_OPTIONS, fields.Options.begin());
+            fields.PlayerCharacter = game.playercharacter;
+            fields.DialogBullet = game.dialog_bullet;
+            fields.InvHotColor = game.inv_hot_color;
+            fields.InvHotCrossColor = game.inv_hot_cross_color;
+            fields.InvHotSprite = game.inv_hot_sprite;
+            fields.DefaultLipsyncFrame = game.default_lipsync_frame;
+            return fields;
+        }
+
+        void Set() const
+        {
+            std::copy(Options.begin(), Options.end(), game.options);
+            game.playercharacter = PlayerCharacter;
+            game.dialog_bullet = DialogBullet;
+            game.inv_hot_color = InvHotColor;
+            game.inv_hot_cross_color = InvHotCrossColor;
+            game.inv_hot_sprite = InvHotSprite;
+            game.default_lipsync_frame = DefaultLipsyncFrame;
+        }
+    };
+
     bool _separateMusicLib = false;
+    GameSetupFields _gameSetup;
+
+    // Makes the game's dialogs, each with the same number of options, all off; option texts are "Dialog d option o"
+    static void SetDialogs(int dialog_count, int option_count)
+    {
+        dialog.clear();
+        dialog.resize(dialog_count);
+        game.numdialog = dialog_count;
+        play.dialogProps.clear();
+        play.dialogProps.resize(dialog_count);
+        for (int d = 0; d < dialog_count; ++d)
+        {
+            dialog[d].Options.resize(option_count);
+            for (int o = 0; o < option_count; ++o)
+            {
+                auto &opt = dialog[d].Options[o];
+                opt.OriginalText = String::FromFormat("Dialog %d option %d", d, o);
+                opt.Text = opt.OriginalText;
+            }
+        }
+    }
+
+    // Resizes the game's mouse cursors, all in their default state
+    static void SetCursors(int count)
+    {
+        game.mcurs.clear();
+        game.mcurs.resize(count);
+        game.numcursors = count;
+    }
+
+    // Resizes the game's audio types, all in their default state with a default volume of 0
+    static void SetAudioTypes(int count)
+    {
+        game.audioClipTypes.clear();
+        game.audioClipTypes.resize(count);
+        play.default_audio_type_volumes.clear();
+        play.default_audio_type_volumes.resize(count);
+    }
 
     // Makes the game's views, each with the same number of loops and frames; every frame has a sprite and
     // an event name, so that a save has frame data and strings to step over
@@ -411,6 +502,152 @@ TEST_F(SavegameContent, CharacterAnimationVolumeIsRestored)
     EXPECT_EQ(3, anim.Delay);
     EXPECT_EQ(70, charextra[0].audio_volume);
     EXPECT_EQ(40, anim.AudioVolume);
+}
+
+TEST_F(SavegameContent, DialogOptionsAreRestored)
+{
+    // the flags of every option; the text only of an option whose text was changed (DFLG_TEXTSET)
+    SetDialogs(2, 3);
+    for (int d = 0; d < 2; ++d)
+    {
+        auto &opts = dialog[d].Options;
+        opts[0].Flags = DFLG_ON | DFLG_HASBEENCHOSEN;
+        opts[1].Flags = DFLG_ON | DFLG_TEXTSET;
+        opts[1].Text = String::FromFormat("Changed %d", d);
+        opts[2].Flags = DFLG_OFFPERM | DFLG_NOREPEAT;
+        play.dialogProps[d]["Topic"] = "weather";
+    }
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_Dialogs, saved, error)) << error;
+
+    SetDialogs(2, 3);
+    RestoredData r_data;
+    HSaveError err = Restore(saved, kSaveCmp_Dialogs, r_data);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    for (int d = 0; d < 2; ++d)
+    {
+        const auto &opts = dialog[d].Options;
+        EXPECT_EQ(DFLG_ON | DFLG_HASBEENCHOSEN, opts[0].Flags);
+        EXPECT_EQ(DFLG_ON | DFLG_TEXTSET, opts[1].Flags);
+        EXPECT_EQ(DFLG_OFFPERM | DFLG_NOREPEAT, opts[2].Flags);
+        EXPECT_STREQ(String::FromFormat("Dialog %d option 0", d).GetCStr(), opts[0].Text.GetCStr());
+        EXPECT_STREQ(String::FromFormat("Changed %d", d).GetCStr(), opts[1].Text.GetCStr());
+        EXPECT_STREQ(String::FromFormat("Dialog %d option 2", d).GetCStr(), opts[2].Text.GetCStr());
+        EXPECT_STREQ("weather", play.dialogProps[d]["Topic"].GetCStr());
+    }
+    EXPECT_EQ(2u, r_data.DataCounts.Dialogs);
+    EXPECT_EQ((std::vector<uint32_t>{3u, 3u}), r_data.DataCounts.DialogOptions);
+}
+
+TEST_F(SavegameContent, SaveWithFewerDialogOptionsIsRefused)
+{
+    SetDialogs(1, 2);
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_Dialogs, saved, error)) << error;
+
+    SetDialogs(1, 3);
+    RestoredData r_data;
+    HSaveError err = Restore(saved, kSaveCmp_Dialogs, r_data);
+    ASSERT_FALSE(err);
+    EXPECT_TRUE(HasErrorCode(err, kSvgErr_GameContentAssertion));
+}
+
+TEST_F(SavegameContent, MouseCursorsAreRestored)
+{
+    // the cursor's script name is game data and not saved
+    SetCursors(2);
+    for (int i = 0; i < 2; ++i)
+    {
+        auto &cur = game.mcurs[i];
+        cur.pic = 30 + i;
+        cur.hotx = static_cast<short>(5 + i);
+        cur.hoty = static_cast<short>(7 + i);
+        cur.view = static_cast<short>(2 + i);
+        cur.flags = static_cast<uint8_t>(0x11 + i);
+        cur.animdelay = 9 + i;
+    }
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_Cursors, saved, error)) << error;
+
+    SetCursors(2);
+    RestoredData r_data;
+    HSaveError err = Restore(saved, kSaveCmp_Cursors, r_data);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    for (int i = 0; i < 2; ++i)
+    {
+        const auto &cur = game.mcurs[i];
+        EXPECT_EQ(30 + i, cur.pic);
+        EXPECT_EQ(5 + i, cur.hotx);
+        EXPECT_EQ(7 + i, cur.hoty);
+        EXPECT_EQ(2 + i, cur.view);
+        EXPECT_EQ(0x11 + i, cur.flags);
+        EXPECT_EQ(9 + i, cur.animdelay);
+    }
+    EXPECT_EQ(2u, r_data.DataCounts.Cursors);
+}
+
+TEST_F(SavegameContent, AudioTypesAreRestored)
+{
+    // the speech volume reduction, the crossfade speed and the default volume; the reserved channels are game data
+    SetAudioTypes(2);
+    for (int i = 0; i < 2; ++i)
+    {
+        game.audioClipTypes[i].reservedChannels = 1;
+        game.audioClipTypes[i].volume_reduction_while_speech_playing = 25 + i;
+        game.audioClipTypes[i].crossfadeSpeed = 3 + i;
+        play.default_audio_type_volumes[i] = 60 + i;
+    }
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_Audio, saved, error)) << error;
+
+    SetAudioTypes(2);
+    RestoredData r_data;
+    HSaveError err = Restore(saved, kSaveCmp_Audio, r_data);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    for (int i = 0; i < 2; ++i)
+    {
+        EXPECT_EQ(0, game.audioClipTypes[i].reservedChannels);
+        EXPECT_EQ(25 + i, game.audioClipTypes[i].volume_reduction_while_speech_playing);
+        EXPECT_EQ(3 + i, game.audioClipTypes[i].crossfadeSpeed);
+        EXPECT_EQ(60 + i, play.default_audio_type_volumes[i]);
+    }
+    EXPECT_EQ(2u, r_data.DataCounts.AudioClipTypes);
+}
+
+TEST_F(SavegameContent, GameSetupIsRestored)
+{
+    // the options up to OPT_HIGHESTOPTION_321 and OPT_LIPSYNCTEXT, the player, the dialog bullet, the inventory
+    // cursor's hotspot marker and the default lip-sync frame
+    for (int i = 0; i <= OPT_HIGHESTOPTION_321; ++i)
+        game.options[i] = 100 + i;
+    game.options[OPT_LIPSYNCTEXT] = 1;
+    game.playercharacter = 2;
+    game.dialog_bullet = 14;
+    game.inv_hot_color = static_cast<int>(0xFF00FF80u);
+    game.inv_hot_cross_color = 0x00123456;
+    game.inv_hot_sprite = 17;
+    game.default_lipsync_frame = 4;
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_GameState, saved, error)) << error;
+
+    GameSetupFields().Set();
+    RestoredData r_data;
+    HSaveError err = Restore(saved, kSaveCmp_GameState, r_data);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    for (int i = 0; i <= OPT_HIGHESTOPTION_321; ++i)
+        EXPECT_EQ(100 + i, game.options[i]) << "option " << i;
+    EXPECT_EQ(1, game.options[OPT_LIPSYNCTEXT]);
+    EXPECT_EQ(2, game.playercharacter);
+    EXPECT_EQ(14, game.dialog_bullet);
+    EXPECT_EQ(static_cast<int>(0xFF00FF80u), game.inv_hot_color);
+    EXPECT_EQ(0x00123456, game.inv_hot_cross_color);
+    EXPECT_EQ(17, game.inv_hot_sprite);
+    EXPECT_EQ(4, game.default_lipsync_frame);
 }
 
 TEST(SavegameState, AnimatedOverlayWaitIsRestored)
