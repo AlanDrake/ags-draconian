@@ -95,7 +95,7 @@ using namespace AGS::Engine;
 //=============================================================================
 std::unique_ptr<AssetManager> AssetMgr;
 GamePlayState play;
-GameSetup usetup;
+EngineConfig usetup;
 GameSetupStruct game;
 RoomStatus troom; // state of the current room if it is a temporary one (number >= MAX_ROOMS), e.g. an intro room
 RoomObject *objs = nullptr;

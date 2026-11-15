@@ -27,7 +27,7 @@
 
 struct GameSetupStruct;
 struct GamePlayState;
-struct GameSetup;
+struct EngineConfig;
 
 // Static arrays of managed handles for individual game objects, by object index; for the GUI controls, by GUI
 // and then by control index.
@@ -71,10 +71,10 @@ typedef Common::ErrorHandle<GameInitError> HGameInitError;
 // starts up the plugins, and creates and links the scripts
 HGameInitError InitGameState(const Common::LoadedGameEntities &ents, GameDataVersion data_ver);
 // Applies accessibility options, some of them may override game settings
-void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup);
+void ApplyAccessibilityOptions(GamePlayState &play, const EngineConfig &setup);
 // Applies configurable behavior options for this game, which are the runtime behavior switches
 // (the engine's defaults, plus the overrides from the config)
-void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const GameSetup &setup);
+void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const EngineConfig &setup);
 // Prints behavior options to the log
 void PrintBehaviorOptions(const GameSetupStruct &game, const GamePlayState &play);
 

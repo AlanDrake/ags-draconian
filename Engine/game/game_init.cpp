@@ -632,7 +632,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     return HGameInitError::None();
 }
 
-void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup)
+void ApplyAccessibilityOptions(GamePlayState &play, const EngineConfig &setup)
 {
     if (setup.Access.SpeechSkipStyle != kSkipSpeechNone)
     {
@@ -657,7 +657,7 @@ void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup)
     }
 }
 
-void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const GameSetup &setup)
+void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const EngineConfig &setup)
 {
     // First designate the default behavior settings: games older than 3.6.3 had them off, which this
     // engine does not load any more, and 3.99+ data has them all on

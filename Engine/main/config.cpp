@@ -194,7 +194,7 @@ String find_user_cfg_file()
     return Path::ConcatPaths(GetGameUserConfigDir().FullDir, DefaultConfigFileName);
 }
 
-void config_defaults(GameSetup &setup)
+void config_defaults(EngineConfig &setup)
 {
 #if AGS_PLATFORM_OS_WINDOWS
     setup.Display.DriverID = "D3D9";
@@ -306,7 +306,7 @@ void load_common_config(const ConfigTree &cfg, GameConfig &setup)
     setup.Access.AlwaysWaitForText = CfgReadBoolInt(cfg, "access", "alwayswaittext");
 }
 
-void apply_config(const ConfigTree &cfg, GameSetup &setup)
+void apply_config(const ConfigTree &cfg, EngineConfig &setup)
 {
     load_common_config(cfg, setup);
 
@@ -353,7 +353,7 @@ void apply_config(const ConfigTree &cfg, GameSetup &setup)
     apply_debug_config(cfg, true);
 }
 
-void post_config(GameSetup &setup)
+void post_config(EngineConfig &setup)
 {
     if (setup.Display.DriverID.IsEmpty() || setup.Display.DriverID.CompareNoCase("DX5") == 0)
     {

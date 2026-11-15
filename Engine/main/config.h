@@ -26,7 +26,7 @@ using AGS::Common::String;
 using AGS::Common::ConfigTree;
 
 // Set up default config settings
-void config_defaults(GameSetup &setup);
+void config_defaults(EngineConfig &setup);
 // Find and default configuration file (usually located in the game installation directory)
 String find_default_cfg_file();
 // Find all-games user configuration file
@@ -36,9 +36,9 @@ String find_user_cfg_file();
 // Apply overriding values from the external config (e.g. for mobile ports)
 void override_config_ext(ConfigTree &cfg);
 // Setup game using final config tree
-void apply_config(const ConfigTree &cfg, GameSetup &setup);
+void apply_config(const ConfigTree &cfg, EngineConfig &setup);
 // Fixup game setup parameters
-void post_config(GameSetup &setup);
+void post_config(EngineConfig &setup);
 
 // Load common configuration from the config tree into GameConfig struct
 void load_common_config(const ConfigTree &cfg, GameConfig &setup);

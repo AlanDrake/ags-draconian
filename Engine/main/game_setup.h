@@ -157,7 +157,7 @@ struct GameConfig
 // before they are used to initialize engine, and as persistent storage
 // for options that may be changed at runtime (and later written back
 // to the config file).
-struct GameSetup : public GameConfig
+struct EngineConfig : public GameConfig
 {
     // Disables handling exceptions and displaying exception message on exit
     bool DisableExceptionHandling = false;
@@ -181,10 +181,10 @@ struct GameSetup : public GameConfig
     // User's overrides and hacks
     OverrideGameConfig Override;
 
-    GameSetup() = default;
+    EngineConfig() = default;
 };
 
 // TODO: setup object is used for two purposes: temporarily storing config
 // options before engine is initialized, and storing certain runtime variables.
 // Perhaps it makes sense to separate those two group of vars at some point.
-extern GameSetup usetup;
+extern EngineConfig usetup;
