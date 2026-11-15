@@ -1764,7 +1764,7 @@ passes every stage; not pushed.
 *Definition:* decide what the 203 globals become and how design data is kept apart from runtime state, before
 any conversion.
 
-**Status (2026-11-15): designed with the user, no code changed, not committed.** The design and its evidence are
+**Status (2026-11-15): designed with the user, no code changed** (`fecc3d7f9`). The design and its evidence are
 `RUNTIME-SPLIT.md`; PLAN.md has the tasks (5.1 steps 2 to 4 and 5.1a rewritten; 2.10, 5.8 to 5.12 and L.3 new)
 and their order in "Next up".
 
@@ -1801,7 +1801,7 @@ and their order in "Next up".
 
 *Definition:* PLAN.md "Next up" item 2 (a): fix the three defects of RUNTIME-SPLIT.md 11, a test each.
 
-**Status (2026-11-15): done, not committed.** By an Opus 5.5 subagent in a worktree, the patch read and applied
+**Status (2026-11-15): done** (`1dc82bb6c`, not pushed). By an Opus 5.5 subagent in a worktree, the patch read and applied
 by the supervisor.
 
 - A character's animation volume is restored (`CharacterExtras::ReadFromSavegame` read it into a member nothing
@@ -1827,7 +1827,8 @@ by the supervisor.
 `EngineServices::Current()`; the engine's config moves to the host ring with it. *Done when:* the layering
 baseline is 110 or less and these globals are reached only through the accessor.
 
-**Status (2026-11-15): done, not committed** (the working tree; the stages are kept as snapshots, below).
+**Status (2026-11-15): done**, 10 commits (`b8ac51d20`..`59b5d7092`, the save fixes among them); prepush
+passes every stage; not pushed.
 Designed and supervised by Fable 5.2, the batches by four Opus 5.5 subagents and one Sonnet 5.5 (the
 measurement), each batch built once.
 
@@ -1857,8 +1858,8 @@ measurement), each batch built once.
     `EngineServices &services = EngineServices::Current();` as the first statement and `services.Member`.
     Always the reference to the struct, never a copy of a member pointer (the drivers and the asset manager are
     created and destroyed while the engine runs).
-- **The batches**, each a snapshot `refs/wip/51s2/<name>` made with `git stash create` (no branch, index or
-  working tree change), so that the commits can be cut along them:
+- **The batches**, each kept as a snapshot `refs/wip/51s2/<name>` made with `git stash create` (no branch,
+  index or working tree change) until the commits were cut along them:
   1. `prep`: the display setup types (`WindowSetup`, `DisplayModeSetup`...) from `main/graphics_mode.h` to
      `gfx/display_setup.h`; `eScriptSystemOSID`, `RuntimeBehaviorSwitch`, `SkipSpeechStyle`, `SpeechMode` to
      `platform/base/engine_defines.h`; `[rename]` `GameSetup` to `EngineConfig`; `[move]` `main/game_setup.h` to
