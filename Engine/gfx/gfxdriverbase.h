@@ -137,6 +137,8 @@ public:
     bool SetVsync(bool enabled) override;
     // Tells if the renderer currently has vsync enabled.
     bool GetVsync() const override;
+    // Sets the 256 colours that 8-bit bitmaps are converted to textures with; not owned.
+    void SetIndexedPalette(const RGB *palette) override { _indexedPalette = palette; }
 
     ///////////////////////////////////////////////////////
     // Preparing a scene
@@ -207,6 +209,10 @@ protected:
 
     // Capability flags
     bool _capsVsync = false; // is vsync available
+
+    // The 256 colours that 8-bit bitmaps are converted to textures with, owned by the caller;
+    // nullptr until SetIndexedPalette is called
+    const RGB *_indexedPalette = nullptr;
 
     // Callbacks
     GFXDRV_CLIENTCALLBACKEVT _spriteEvtCallback;

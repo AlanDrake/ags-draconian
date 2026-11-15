@@ -15,6 +15,7 @@
 
 #if AGS_HAS_OPENGL
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <stack>
 
@@ -22,7 +23,6 @@
 
 #include "debug/out.h"
 #include "device/sys_events.h"
-#include "game/render/draw.h" // palette: necessary to update textures from 8-bit bitmaps
 #include "gfx/ali3dexception.h"
 #include "gfx/ali3dogl.h"
 #include "gfx/gfx_def.h"
@@ -2205,8 +2205,12 @@ void OGLGraphicsDriver::UpdateTexture(Texture *txdata, const Bitmap *bitmap, boo
     if (txdata->Res.Width != bitmap->GetWidth() || txdata->Res.Height != bitmap->GetHeight())
         throw Ali3DException("UpdateDDBFromBitmap: mismatched bitmap size");
 
-    if (color_depth == 8)
-        select_palette(palette);
+    // Converting an 8-bit bitmap without a palette is a programming error; the conversion then uses
+    // whatever palette Allegro has selected
+    assert(color_depth != 8 || _indexedPalette);
+    const bool use_palette = color_depth == 8 && _indexedPalette;
+    if (use_palette)
+        select_palette(_indexedPalette);
 
     auto *ogldata = reinterpret_cast<OGLTexture *>(txdata);
     for (size_t i = 0; i < ogldata->_numTiles; ++i)
@@ -2214,7 +2218,7 @@ void OGLGraphicsDriver::UpdateTexture(Texture *txdata, const Bitmap *bitmap, boo
         UpdateTextureRegion(&ogldata->_tiles[i], bitmap, opaque);
     }
 
-    if (color_depth == 8)
+    if (use_palette)
         unselect_palette();
 }
 

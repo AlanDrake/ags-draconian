@@ -16,6 +16,7 @@
 #if AGS_HAS_DIRECT3D11
 #define NOMINMAX
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <limits>
 #include <stack>
@@ -23,14 +24,13 @@
 #include <SDL.h>
 #include <glm/ext.hpp>
 
-// Before the headers that include Allegro (game/render/draw.h): <windows.h> defines TRUE as 1 unless it is
+// Before the headers that include Allegro: <windows.h> defines TRUE as 1 unless it is
 // defined already, and Allegro does the same with -1, so the first one included decides what the Direct3D
 // calls of this file get.
 #include "platform/windows/windows.h"
 
 #include "debug/out.h"
 #include "device/sys_events.h"
-#include "game/render/draw.h" // palette: necessary to update textures from 8-bit bitmaps
 #include "gfx/ali3dexception.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfxfilter_aad3d.h"
@@ -2611,8 +2611,12 @@ void D3D11GraphicsDriver::UpdateTexture(Texture *txdata, const Bitmap *bitmap, b
     if (txdata->Res.Width != bitmap->GetWidth() || txdata->Res.Height != bitmap->GetHeight())
         throw Ali3DException("UpdateDDBFromBitmap: mismatched bitmap size");
 
-    if (color_depth == 8)
-        select_palette(palette);
+    // Converting an 8-bit bitmap without a palette is a programming error; the conversion then uses
+    // whatever palette Allegro has selected
+    assert(color_depth != 8 || _indexedPalette);
+    const bool use_palette = color_depth == 8 && _indexedPalette;
+    if (use_palette)
+        select_palette(_indexedPalette);
 
     auto *d3ddata = reinterpret_cast<D3D11Texture *>(txdata);
     for (auto &tile : d3ddata->_tiles)
@@ -2620,7 +2624,7 @@ void D3D11GraphicsDriver::UpdateTexture(Texture *txdata, const Bitmap *bitmap, b
         UpdateTextureRegion(&tile, bitmap, opaque);
     }
 
-    if (color_depth == 8)
+    if (use_palette)
         unselect_palette();
 }
 

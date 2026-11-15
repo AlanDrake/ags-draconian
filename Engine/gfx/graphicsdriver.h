@@ -269,6 +269,10 @@ public:
     // Sets values for global shader constants;
     // these will be applied to all shaders at the next render pass.
     virtual void SetGlobalShaderConstants(const GlobalShaderConstants &constants) = 0;
+    // Sets the 256 colours that 8-bit bitmaps are converted to textures with. The driver keeps the pointer
+    // and reads the colours each time it converts one; the caller changes them in place and keeps the
+    // array alive as long as the driver.
+    virtual void SetIndexedPalette(const RGB *palette) = 0;
 
     ///////////////////////////////////////////////////////
     // Texture management

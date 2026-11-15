@@ -71,7 +71,6 @@ Engine/game/world/object.cpp	Engine/main/game_run.h
 Engine/game/world/room.cpp	Engine/main/game_run.h
 Engine/game/world/room.cpp	Engine/plugin/plugin_engine.h
 Engine/game/world/room_object.cpp	Engine/main/update.h
-Engine/gfx/ali3dogl.cpp	Engine/game/render/draw.h
 Engine/media/audio/audio_system.h	Engine/game/audio/audio.h
 Engine/media/audio/sound.cpp	Engine/game/game.h
 Engine/media/audio/sound.h	Engine/game/asset_helper.h
@@ -82,8 +81,6 @@ Engine/platform/emscripten/acpemscripten.cpp	Engine/main/engine.h
 Engine/platform/ios/acplios.cpp	Engine/main/config.h
 Engine/platform/windows/acplwin.cpp	Engine/main/engine.h
 Engine/platform/windows/acplwin.cpp	Engine/plugin/agsplugin.h
-Engine/platform/windows/gfx/ali3dd3d.cpp	Engine/game/render/draw.h
-Engine/platform/windows/gfx/ali3dd3d11.cpp	Engine/game/render/draw.h
 Engine/platform/windows/setup/basicpagedialog.cpp	Engine/main/config.h
 Engine/platform/windows/setup/basicpagedialog.h	Engine/main/graphics_mode.h
 Engine/platform/windows/setup/winsetup.cpp	Engine/main/config.h

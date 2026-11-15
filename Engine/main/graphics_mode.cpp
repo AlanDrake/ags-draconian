@@ -97,6 +97,7 @@ bool create_gfx_driver(const String &gfx_driver_id)
         Debug::Printf(kDbgMsg_Error, "Failed to create graphics driver. Error: %s", SDL_GetError());
         return false;
     }
+    services.GfxDriver->SetIndexedPalette(palette); // the game's palette, changed in place
     Debug::Printf("Created graphics driver: %s", services.GfxDriver->GetDriverName());
     return true;
 }
