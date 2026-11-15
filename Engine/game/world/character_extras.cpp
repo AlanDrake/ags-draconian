@@ -105,7 +105,7 @@ void CharacterExtras::SetUnlockedView(CharacterInfo *ch)
 void CharacterExtras::CheckViewFrame(CharacterInfo *ch)
 {
     ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(ch, &ccDynamicCharacter));
-    ::CheckViewFrame(ch->view, ch->loop, ch->frame, GetFrameSoundVolume(ch), audio_panning, audio_speed, objevt,
+    ::CheckViewFrame(ch->view, ch->loop, ch->frame, GetFrameSoundVolume(ch), audio_panning, AudioSpeed, objevt,
                      &ch->GetEvents(), kCharacterEvent_OnFrameEvent);
 }
 
@@ -141,7 +141,7 @@ void CharacterExtras::UpdateEffectiveValues(const CharacterInfo *ch)
 
 void CharacterExtras::ReadFromSavegame(CharacterInfo *ch, Stream *in, CharacterSvgVersion save_ver)
 {
-    // saves before kCharSvgVersion_400_28 have the legacy inventory (as with audio_speed below)
+    // saves before kCharSvgVersion_400_28 have the legacy inventory (as with AudioSpeed below)
     if (save_ver < kCharSvgVersion_400_28)
     {
         int16_t invorder[LEGACY_MAX_CHAR_INVENTORY];
@@ -193,14 +193,14 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *ch, Stream *in, CharacterS
 
     if (save_ver >= kCharSvgVersion_400_28)
     {
-        audio_speed = in->ReadInt32();
+        AudioSpeed = in->ReadInt32();
         in->ReadInt32(); // reserved
         in->ReadInt32();
         in->ReadInt32();
     }
     else
     {
-        audio_speed = 1000; // default: normal speed
+        AudioSpeed = 1000; // default: normal speed
     }
 
     blend_mode = (BlendMode)in->ReadInt32();
@@ -324,7 +324,7 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     out->WriteInt32(follow_dist);
     out->WriteInt32(follow_eagerness);
     // kCharSvgVersion_400_28
-    out->WriteInt32(audio_speed);
+    out->WriteInt32(AudioSpeed);
     out->WriteInt32(0);
     out->WriteInt32(0);
     out->WriteInt32(0);

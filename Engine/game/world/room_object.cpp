@@ -153,7 +153,7 @@ int RoomObject::GetFrameSoundVolume() const
 void RoomObject::CheckViewFrame()
 {
     ObjectEvent objevt(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrObj[id], &ccDynamicObject));
-    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(), audio_panning, audio_speed, objevt,
+    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(), audio_panning, AudioSpeed, objevt,
                      &thisroom.Objects[id].GetEvents(), kRoomObjectEvent_OnFrameEvent);
 }
 
@@ -211,14 +211,14 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
 
     if (cmp_ver >= kRoomStatSvgVersion_40028)
     {
-        audio_speed = in->ReadInt32();
+        AudioSpeed = in->ReadInt32();
         in->ReadInt32(); // reserved
         in->ReadInt32();
         in->ReadInt32();
     }
     else
     {
-        audio_speed = 1000; // default: normal speed
+        AudioSpeed = 1000; // default: normal speed
     }
 
     blend_mode = (BlendMode)in->ReadInt32();
@@ -367,7 +367,7 @@ void RoomObject::WriteToSavegame(Stream *out) const
     out->WriteInt16(blocking_x);
     out->WriteInt16(blocking_y);
     // kRoomStatSvgVersion_40028
-    out->WriteInt32(audio_speed);
+    out->WriteInt32(AudioSpeed);
     out->WriteInt32(0); // reserved
     out->WriteInt32(0);
     out->WriteInt32(0);

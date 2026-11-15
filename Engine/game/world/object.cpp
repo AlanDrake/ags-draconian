@@ -448,7 +448,7 @@ int Object_GetAudioSpeed(ScriptObject *obj)
     {
         return 0;
     }
-    return objs[obj->id].audio_speed;
+    return objs[obj->id].AudioSpeed;
 }
 
 void Object_SetAudioSpeed(ScriptObject *obj, int new_value)
@@ -457,7 +457,7 @@ void Object_SetAudioSpeed(ScriptObject *obj, int new_value)
     {
         return;
     }
-    objs[obj->id].audio_speed = new_value;
+    objs[obj->id].AudioSpeed = new_value;
 }
 
 int Object_GetAudioVolume(ScriptObject *obj)

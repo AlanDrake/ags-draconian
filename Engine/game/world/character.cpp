@@ -1489,12 +1489,12 @@ void Character_SetAudioPanning(CharacterInfo *ch, int new_value)
 
 int Character_GetAudioSpeed(CharacterInfo *ch)
 {
-    return charextra[ch->index_id].audio_speed;
+    return charextra[ch->index_id].AudioSpeed;
 }
 
 void Character_SetAudioSpeed(CharacterInfo *ch, int new_value)
 {
-    charextra[ch->index_id].audio_speed = std::max(0, new_value);
+    charextra[ch->index_id].AudioSpeed = std::max(0, new_value);
 }
 
 int Character_GetAudioVolume(CharacterInfo *ch)
