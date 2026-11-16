@@ -118,7 +118,7 @@ void InitAndRegisterAudioObjects(Game &game)
 }
 
 // Initializes characters and registers them in the script system
-void InitAndRegisterCharacters(Game &game, const LoadedGameEntities &ents)
+void InitAndRegisterCharacters(Game &game)
 {
     // ensure at least 1 element, we must register buffer
     game.Handles.Characters.resize(std::max(1, game.numcharacters));
@@ -142,17 +142,11 @@ void InitAndRegisterCharacters(Game &game, const LoadedGameEntities &ents)
             ccAddExternalScriptObjectHandle(game.Characters[i].scrname, &game.Handles.Characters[i]);
     }
 
-    // extra character properties (because the characters are split into 2 structs now)
-    if (ents.CharEx.size() > 0)
+    // the blend mode, graphic anchor and offset came with the definitions; the effective values follow from them
+    for (int i = 0; i < game.numcharacters; ++i)
     {
-        for (int i = 0; i < game.numcharacters; ++i)
-        {
-            // TODO: move this to Character's "init" method
-            game.Characters[i].blend_mode = ents.CharEx[i].BlendMode;
-            game.Characters[i].spr_anchor = ents.CharEx[i].GraphicAnchor;
-            game.Characters[i].spr_offset = ents.CharEx[i].GraphicOffset;
-            game.Characters[i].UpdateEffectiveValues();
-        }
+        // TODO: move this to Character's "init" method
+        game.Characters[i].UpdateEffectiveValues();
     }
 }
 
@@ -381,7 +375,7 @@ void RegisterStaticArrays(Game &game)
 HError InitAndRegisterGameEntities(Game &game, const LoadedGameEntities &ents)
 {
     InitAndRegisterAudioObjects(game);
-    InitAndRegisterCharacters(game, ents);
+    InitAndRegisterCharacters(game);
     InitAndRegisterDialogs(game);
     HError err = InitAndRegisterGUI(game);
     if (!err)

@@ -135,8 +135,8 @@ void Character::SetFollowing(int follow_who, int distance, int eagerness, bool s
 
 void Character::UpdateEffectiveValues()
 {
-    eff_offset = is_view_locked() ? view_offset : spr_offset;
-    eff_anchor = is_view_locked() ? view_anchor : spr_anchor;
+    eff_offset = is_view_locked() ? view_offset : GraphicOffset;
+    eff_anchor = is_view_locked() ? view_anchor : GraphicAnchor;
 }
 
 void Character::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
@@ -202,7 +202,7 @@ void Character::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
         AudioSpeed = 1000; // default: normal speed
     }
 
-    blend_mode = (BlendMode)in->ReadInt32();
+    BlendMode = static_cast<AGS::Common::BlendMode>(in->ReadInt32());
     // Reserved for colour options
     in->ReadInt32(); // colour flags
     // Reserved for transform options
@@ -217,7 +217,7 @@ void Character::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     float py = in->ReadFloat32(); // sprite pivot y
     float ax = in->ReadFloat32(); // sprite anchor x
     float ay = in->ReadFloat32(); // sprite anchor y
-    spr_anchor = Pointf(ax, ay);
+    GraphicAnchor = Pointf(ax, ay);
     pivot = Pointf(px, py);
 
     if (save_ver >= kCharSvgVersion_400_03)
@@ -261,7 +261,7 @@ void Character::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     {
         int offx = in->ReadInt32();
         int offy = in->ReadInt32();
-        spr_offset = Point(offx, offy);
+        GraphicOffset = Point(offx, offy);
         float view_ax = in->ReadFloat32();
         float view_ay = in->ReadFloat32();
         view_anchor = Pointf(view_ax, view_ay);
@@ -271,8 +271,8 @@ void Character::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     }
     else
     {
-        spr_anchor = Pointf(0.5f, 1.f); // default: middle-bottom
-        spr_offset = Point();
+        GraphicAnchor = Pointf(0.5f, 1.f); // default: middle-bottom
+        GraphicOffset = Point();
         view_anchor = CharacterInfo::GetDefaultSpriteAnchor(); // as SetUnlockedView
         view_offset = Point();
     }
@@ -328,21 +328,21 @@ void Character::WriteToSavegame(Stream *out) const
     out->WriteInt32(0);
     out->WriteInt32(0);
     // kCharSvgVersion_400
-    out->WriteInt32(blend_mode);
+    out->WriteInt32(BlendMode);
     // Reserved for colour options
     out->WriteInt32(0); // colour flags
     // Reserved for transform options
-    out->WriteInt32(0);              // sprite transform flags1
-    out->WriteInt32(0);              // sprite transform flags2
-    out->WriteInt32(0);              // transform scale x
-    out->WriteInt32(0);              // transform scale y
-    out->WriteInt32(0);              // transform skew x
-    out->WriteInt32(0);              // transform skew y
-    out->WriteFloat32(rotation);     // transform rotate
-    out->WriteFloat32(pivot.X);      // sprite pivot x
-    out->WriteFloat32(pivot.Y);      // sprite pivot y
-    out->WriteFloat32(spr_anchor.X); // sprite anchor x
-    out->WriteFloat32(spr_anchor.Y); // sprite anchor y
+    out->WriteInt32(0);                 // sprite transform flags1
+    out->WriteInt32(0);                 // sprite transform flags2
+    out->WriteInt32(0);                 // transform scale x
+    out->WriteInt32(0);                 // transform scale y
+    out->WriteInt32(0);                 // transform skew x
+    out->WriteInt32(0);                 // transform skew y
+    out->WriteFloat32(rotation);        // transform rotate
+    out->WriteFloat32(pivot.X);         // sprite pivot x
+    out->WriteFloat32(pivot.Y);         // sprite pivot y
+    out->WriteFloat32(GraphicAnchor.X); // sprite anchor x
+    out->WriteFloat32(GraphicAnchor.Y); // sprite anchor y
     // -- kCharSvgVersion_400_03
     out->WriteFloat32(face_dir_ratio);
     out->WriteInt32(movelist_handle);
@@ -359,8 +359,8 @@ void Character::WriteToSavegame(Stream *out) const
     out->WriteInt16(anim.Delay);
     out->WriteInt16(0); // reserved to fill int32
     // kCharSvgVersion_400_26
-    out->WriteInt32(spr_offset.X);
-    out->WriteInt32(spr_offset.Y);
+    out->WriteInt32(GraphicOffset.X);
+    out->WriteInt32(GraphicOffset.Y);
     out->WriteFloat32(view_anchor.X);
     out->WriteFloat32(view_anchor.Y);
     out->WriteInt32(view_offset.X);

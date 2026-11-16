@@ -99,24 +99,12 @@ struct MainGameSource
     MainGameSource();
 };
 
-// Struct contains an extended data loaded for chars.
-// At the runtime it goes into CharacterExtras struct, which is currently
-// not exposed. This may be fixed by future refactoring, such as merging
-// CharacterExtras with CharacterInfo structs.
-struct CharDataEx
-{
-    Common::BlendMode BlendMode = kBlend_Normal;
-    Pointf GraphicAnchor = Pointf(0.5, 1.f);
-    Point GraphicOffset;
-};
-
 // LoadedGameEntities is what the loader needs beside the game while it reads the game file: the game it reads
 // into (the views, dialogs, GUIs and compiled scripts included, which are members of GameDef), and the data
 // that is only needed while loading.
 struct LoadedGameEntities
 {
     GameDef &Game; // FIXME: have an object, not ref, and std::move
-    std::vector<CharDataEx> CharEx;
     GuiVersion LoadedGuiVersion;
     std::vector<PluginInfo> PluginInfos;
 

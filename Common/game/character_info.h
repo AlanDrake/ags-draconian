@@ -20,6 +20,7 @@
 #include "game/common_defines.h" // constants
 #include "game/game_version.h"
 #include "game/scripteventtable.h"
+#include "gfx/gfx_def.h"
 #include "util/bbop.h"
 #include "util/geometry.h"
 #include "util/string.h"
@@ -117,36 +118,26 @@ enum CharacterEventID
     kCharacterEvent_OnFrameEvent,
 };
 
-// Design-time Character data.
-// TODO: must refactor, some parts of it should be in a runtime Character class.
+// A character as the game file defines it. The engine's running character (Character, Engine/game/world) starts
+// as a copy of it and adds the play state.
 struct CharacterInfo
 {
     int defview = 0;
     int talkview = 0;
     int view = 0;
     int room = 0;
-    int prevroom = 0;
     int x = 0;
     int y = 0;
-    int wait = 0;
     int flags = 0;    // CHF_* flags
     int idleview = 0; // idle view number
     // delay in seconds to wait before switching to idle animation (0 = continuous idling)
     int16_t idledelay = 0;
-    int16_t idleleft = 0; // time in seconds left before switching to idle animation
     int16_t opacity = 255;
     int16_t baseline = -1;
-    int activeinv = -1; // selected inventory item
     int talkcolor = 0;
     int thinkview = 0;
     int16_t blinkview = 0;
-    int16_t blinkinterval = 0;
-    int16_t blinktimer = 0;
-    int16_t blinkframe = 0;
     int16_t walkspeed_y = 0;
-    int z = 0;        // z-location, for flying etc
-    int walkwait = 0; // number of frames to wait before advancing a move;
-                      // also used as a turning counter
     int16_t speech_anim_speed = 0;
     int16_t idle_anim_speed = 0; // idle animation delay
     // relative offset of the blocking rect
@@ -155,10 +146,6 @@ struct CharacterInfo
     int16_t blocking_width = 0;
     int16_t blocking_height = 0;
     int index_id = 0; // this character's numeric ID
-    int16_t walkwaitcounter = 0;
-    uint16_t loop = 0;
-    uint16_t frame = 0;
-    int16_t walking = 0; // stores movelist index
     int16_t walkspeed = 0;
     int16_t animspeed = 0;
     // Quantities of inventory items, by item ID;
@@ -168,6 +155,10 @@ struct CharacterInfo
     AGS::Common::String name = {};    // regular name (aka description)
     // Interaction events (cursor-based)
     AGS::Common::ScriptEventHandlers interactions = {};
+    // Graphic options, read from the game file's extensions ("ext_ags399", "v400_charopts2")
+    AGS::Common::BlendMode BlendMode = AGS::Common::kBlend_Normal;
+    Pointf GraphicAnchor = Pointf(0.5f, 1.f); // graphic anchor (relative alignment); default: middle-bottom
+    Point GraphicOffset;                      // fixed sprite offset (translation)
 
     // Gets default sprite anchor for the character
     static Pointf GetDefaultSpriteAnchor() { return Pointf(0.5f, 1.f); /* middle-bottom */ }
@@ -189,11 +180,6 @@ struct CharacterInfo
         walk_speed_y = ((walkspeed_y == UNIFORM_WALK_SPEED) ? walkspeed : walkspeed_y);
     }
 
-    // Gets current character's movelist id
-    inline int get_movelist_id() const { return walking; }
-    // Tells if the character is performing a move, that is - either moving along
-    // a path or turning between move path segments.
-    inline bool is_moving() const { return walking > 0; }
     // Is moving *and* playing walking animation
     // FIXME: would be proper to also test is_moving() in is_moving_walkanim()
     // and in is_moving_no_anim(), but it breaks animation logic;
@@ -205,8 +191,6 @@ struct CharacterInfo
     inline bool has_explicit_tint() const { return (flags & CHF_HASTINT) != 0; }
     inline void set_enabled(bool on) { flags = (flags & ~CHF_ENABLED) | (CHF_ENABLED * on); }
     inline void set_visible(bool on) { flags = (flags & ~CHF_VISIBLE) | (CHF_VISIBLE * on); }
-
-    inline bool is_idling() const { return (idleleft < 0); }
 
     // Gets if character follows another, while being drawn behind
     inline bool get_follow_sort_behind() const { return (flags & CHF_BEHINDSHEPHERD) != 0; }

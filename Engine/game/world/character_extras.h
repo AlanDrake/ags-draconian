@@ -12,11 +12,14 @@
 //
 //=============================================================================
 //
-// The engine's character: Character, a definition from the game file
-// (CharacterInfo) and its play state (CharacterExtras) in one object.
-// The play state was a separate struct historically, because CharacterInfo
-// was exposed to the script API and plugin API in such way that its memory
-// layout could not be changed at all.
+// The engine's character: Character, a copy of its definition from the game
+// file (CharacterInfo: what the file gives, the blend mode, graphic anchor and
+// graphic offset included) and its play state (CharacterExtras: everything
+// that exists only while the game runs, the fields that were unused slots of
+// the game file's record included) in one object. The play state was a
+// separate struct historically, because CharacterInfo was exposed to the
+// script API and plugin API in such way that its memory layout could not be
+// changed at all.
 //
 //=============================================================================
 #pragma once
@@ -70,11 +73,25 @@ enum CharacterRuntimeFlags
 // The play state of a character: what exists only while the game runs. Character holds it with its definition.
 struct CharacterExtras
 {
+    // These were fields of the game file's character record once; the file keeps their slots, unused
+    // (CharacterInfo::ReadFromFile skips them, WriteToFile writes zeros)
+    int prevroom = 0;
+    int wait = 0;
+    int16_t idleleft = 0; // time in seconds left before switching to idle animation
+    int activeinv = -1;   // selected inventory item
+    int16_t blinkinterval = 0;
+    int16_t blinktimer = 0;
+    int16_t blinkframe = 0;
+    int z = 0;        // z-location, for flying etc
+    int walkwait = 0; // number of frames to wait before advancing a move;
+                      // also used as a turning counter
+    int16_t walkwaitcounter = 0;
+    uint16_t loop = 0;
+    uint16_t frame = 0;
+    int16_t walking = 0; // stores movelist index
+
     // FIXME: hide the fields under public interface;
     //        use standard int* types
-    Point spr_offset;         // fixed sprite offset (translation)
-    Pointf spr_anchor         // graphic anchor (relative alignment)
-        = Pointf(0.5f, 1.f);  // default: middle-bottom
     Point view_offset;        // fixed view offset (from locked view)
     Pointf view_anchor        // view anchor (from locked view)
         = Pointf(0.5f, 1.f);  // default: middle-bottom
@@ -112,7 +129,6 @@ struct CharacterExtras
     // Character's inventory, stores item IDs in the order in which items were added.
     // This may include item duplicates if OPT_DUPLICATEINV is enabled.
     std::vector<int> inventory;
-    AGS::Common::BlendMode blend_mode = AGS::Common::kBlend_Normal;
     int shader_id = 0;
     int shader_handle = 0; // script shader handle
     float rotation = 0.f;
@@ -142,6 +158,13 @@ public:
     int get_baseline() const;        // return baseline, or Y if not set
     int get_blocking_top() const;    // return Y - BlockingHeight/2
     int get_blocking_bottom() const; // return Y + BlockingHeight/2
+
+    // Gets current character's movelist id
+    inline int get_movelist_id() const { return walking; }
+    // Tells if the character is performing a move, that is - either moving along
+    // a path or turning between move path segments.
+    inline bool is_moving() const { return walking > 0; }
+    inline bool is_idling() const { return (idleleft < 0); }
 
     // Tells whether the character is turning, and in which direction
     bool IsTurning() const { return (RuntimeFlags & kCharf_Turning) != 0; }

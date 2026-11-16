@@ -189,8 +189,7 @@ struct EventState
 // One play-through: what the game file says (the base, GameDef) and everything that changes while the game
 // runs, which is what a save holds. The definitions and the live state are one object until each entity
 // gets a live copy (PLAN.md 5.1a); the characters have theirs (Characters). The game logic reaches it through
-// Game::Current(); a function that uses
-// it more than once takes a reference at its top:
+// Game::Current(); a function that uses it more than once takes a reference at its top:
 //     Game &game = Game::Current();
 class Game : public GameDef
 {

@@ -2426,7 +2426,7 @@ void prepare_characters_for_drawing()
         const bool actsp_modified = !construct_char_gfx(game, room, services, char_id, false);
         // Prepare the object texture
         prepare_and_add_object_gfx(room, chsav, actsp, actsp_modified, Size(ch.width, ch.height), imgx, imgy, usebasel,
-                                   (ch.flags & CHF_NOWALKBEHINDS) == 0, ch.eff_anchor, ch.opacity, ch.blend_mode,
+                                   (ch.flags & CHF_NOWALKBEHINDS) == 0, ch.eff_anchor, ch.opacity, ch.BlendMode,
                                    ch.shader_id, hw_accel);
 #if (AGS_PLATFORM_DEBUG)
         actsp.Ddb->SetTag(String::FromFormat("CHAR%d:%s", ch.index_id, ch.scrname.GetCStr()));

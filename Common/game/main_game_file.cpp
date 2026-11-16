@@ -955,7 +955,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         // new character properties
         for (size_t i = 0; i < (size_t)_ents.Game.numcharacters; ++i)
         {
-            _ents.CharEx[i].BlendMode = (BlendMode)_in->ReadInt32();
+            _ents.Game.Characters[i].BlendMode = (BlendMode)_in->ReadInt32();
             // Reserved for colour options
             _in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level
             // Reserved for transform options (see brief list in savegame format)
@@ -1061,7 +1061,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     {
         if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(_ents.Game.numcharacters), err))
             return err;
-        for (auto &c : _ents.CharEx)
+        for (auto &c : _ents.Game.Characters)
         {
             c.GraphicAnchor.X = in->ReadFloat32();
             c.GraphicAnchor.Y = in->ReadFloat32();
@@ -1194,8 +1194,6 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     if (!err)
         return err;
     game.read_room_names(in, data_ver);
-
-    ents.CharEx.resize(game.numcharacters);
 
     // Main data complete, try read extensions if there's anything left in stream
     if (s_in->EOS())

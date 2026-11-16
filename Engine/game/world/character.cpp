@@ -2139,55 +2139,55 @@ void Character_SetVisible(Character *ch, bool new_value)
 
 int Character_GetBlendMode(Character *ch)
 {
-    return ch->blend_mode;
+    return ch->BlendMode;
 }
 
 void Character_SetBlendMode(Character *ch, int blend_mode)
 {
-    ch->blend_mode = ValidateBlendMode("Character.BlendMode", ch->scrname.GetCStr(), blend_mode);
+    ch->BlendMode = ValidateBlendMode("Character.BlendMode", ch->scrname.GetCStr(), blend_mode);
 }
 
 float Character_GetGraphicAnchorX(Character *ch)
 {
-    return ch->spr_anchor.X;
+    return ch->GraphicAnchor.X;
 }
 
 void Character_SetGraphicAnchorX(Character *ch, float x)
 {
-    ch->spr_anchor.X = Math::Clamp(x, 0.f, 1.f);
+    ch->GraphicAnchor.X = Math::Clamp(x, 0.f, 1.f);
     ch->UpdateEffectiveValues();
 }
 
 float Character_GetGraphicAnchorY(Character *ch)
 {
-    return ch->spr_anchor.Y;
+    return ch->GraphicAnchor.Y;
 }
 
 void Character_SetGraphicAnchorY(Character *ch, float y)
 {
-    ch->spr_anchor.Y = Math::Clamp(y, 0.f, 1.f);
+    ch->GraphicAnchor.Y = Math::Clamp(y, 0.f, 1.f);
     ch->UpdateEffectiveValues();
 }
 
 int Character_GetGraphicOffsetX(Character *ch)
 {
-    return ch->spr_offset.X;
+    return ch->GraphicOffset.X;
 }
 
 void Character_SetGraphicOffsetX(Character *ch, int x)
 {
-    ch->spr_offset.X = x;
+    ch->GraphicOffset.X = x;
     ch->UpdateEffectiveValues();
 }
 
 int Character_GetGraphicOffsetY(Character *ch)
 {
-    return ch->spr_offset.Y;
+    return ch->GraphicOffset.Y;
 }
 
 void Character_SetGraphicOffsetY(Character *ch, int y)
 {
-    ch->spr_offset.Y = y;
+    ch->GraphicOffset.Y = y;
     ch->UpdateEffectiveValues();
 }
 
