@@ -82,6 +82,9 @@ namespace AGS
 namespace Common
 {
 
+template <typename T>
+struct FieldTable;
+
 // Room event indexes;
 // these are used after resolving events map read from room file
 enum RoomEventID
@@ -135,16 +138,17 @@ enum RegionEventID
 // Various room options
 struct RoomOptions
 {
-    // If player character is turned off in the room
-    bool ShowPlayerCharacter; // the file's byte holds the opposite: 1 when the player character is hidden
+    // Whether the player character is shown in the room; the file's byte holds the opposite: 1 when it is hidden
+    bool ShowPlayerCharacter = true;
     // Apply player character's normal view when entering this room
-    int PlayerView;
+    int PlayerView = 0;
     // Optional character facing dir ratio (y / x), 0 = ignore
-    float FaceDirectionRatio;
+    float FaceDirectionRatio = 0.f;
     // A collection of RoomFlags
-    int Flags;
+    int Flags = 0;
 
-    RoomOptions();
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static FieldTable<RoomOptions> Fields();
 };
 
 // Single room background frame
@@ -167,36 +171,24 @@ struct RoomBgFrame
 // Describes room edges (coordinates of four edges)
 struct RoomEdges
 {
-    int32_t Left;
-    int32_t Right;
-    int32_t Top;
-    int32_t Bottom;
+    int32_t Left = 0;
+    int32_t Right = 0;
+    int32_t Top = 0;
+    int32_t Bottom = 0;
 
-    RoomEdges();
-    RoomEdges(int l, int r, int t, int b);
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static FieldTable<RoomEdges> Fields();
 };
 
-// A (possibly) temporary struct made for sharing event tables;
-// replace or expand later. Also, we have a similar thing for GUIObject,
-// so maybe merge these too.
+// The identity that every entity of a room has: its number and its script name. A definition that has script
+// events declares its own table (Events), with the schema of its type.
 struct RoomObjectBase
 {
-public:
-    RoomObjectBase() {}
-    RoomObjectBase(const ScriptEventSchema *schema) : _events(schema) {}
-
     int ID = -1;
     String ScriptName;
 
-    // Provides a script events table
-    const ScriptEventTable &GetEvents() const { return _events; }
-    ScriptEventTable &GetEvents() { return _events; }
-    // Clears all handlers from assigned functions
-    void ClearEventHandlers() { _events.ClearHandlers(); }
-
-protected:
-    // Common events
-    ScriptEventTable _events = {};
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static FieldTable<RoomObjectBase> Fields();
 };
 
 // Room hotspot description
@@ -211,16 +203,18 @@ struct RoomHotspotDef : public RoomObjectBase
 
     // Player will automatically walk here when interacting with hotspot
     Point WalkTo;
+    // Common events
+    ScriptEventTable Events = ScriptEventTable(&RoomHotspotDef::_eventSchema);
 
-    RoomHotspotDef() : RoomObjectBase(&RoomHotspotDef::_eventSchema) {}
-
-    RoomHotspotDef(const RoomHotspotDef &src) = default;
-    RoomHotspotDef(RoomHotspotDef &&src) = default;
-
-    RoomHotspotDef &operator=(const RoomHotspotDef &src) = default;
-    RoomHotspotDef &operator=(RoomHotspotDef &&src) = default;
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static FieldTable<RoomHotspotDef> Fields();
 
     static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
+    // Provides a script events table
+    const ScriptEventTable &GetEvents() const { return Events; }
+    ScriptEventTable &GetEvents() { return Events; }
+    // Clears all handlers from assigned functions
+    void ClearEventHandlers() { Events.ClearHandlers(); }
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
 
@@ -250,16 +244,18 @@ struct RoomObjectDef : public RoomObjectBase
     StringIMap Properties;
     // Interaction events (cursor-based)
     ScriptEventHandlers Interactions = {};
+    // Common events
+    ScriptEventTable Events = ScriptEventTable(&RoomObjectDef::_eventSchema);
 
-    RoomObjectDef() : RoomObjectBase(&RoomObjectDef::_eventSchema) {}
-
-    RoomObjectDef(const RoomObjectDef &src) = default;
-    RoomObjectDef(RoomObjectDef &&src) = default;
-
-    RoomObjectDef &operator=(const RoomObjectDef &src) = default;
-    RoomObjectDef &operator=(RoomObjectDef &&src) = default;
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static FieldTable<RoomObjectDef> Fields();
 
     static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
+    // Provides a script events table
+    const ScriptEventTable &GetEvents() const { return Events; }
+    ScriptEventTable &GetEvents() { return Events; }
+    // Clears all handlers from assigned functions
+    void ClearEventHandlers() { Events.ClearHandlers(); }
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
 
@@ -279,16 +275,18 @@ struct RoomRegionDef : public RoomObjectBase
     StringIMap Properties;
     // Interaction events (old-style event storage, kept of loading old data)
     ScriptEventHandlers Interactions = {};
+    // Common events
+    ScriptEventTable Events = ScriptEventTable(&RoomRegionDef::_eventSchema);
 
-    RoomRegionDef() : RoomObjectBase(&RoomRegionDef::_eventSchema) {}
-
-    RoomRegionDef(const RoomRegionDef &src) = default;
-    RoomRegionDef(RoomRegionDef &&src) = default;
-
-    RoomRegionDef &operator=(const RoomRegionDef &src) = default;
-    RoomRegionDef &operator=(RoomRegionDef &&src) = default;
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static FieldTable<RoomRegionDef> Fields();
 
     static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
+    // Provides a script events table
+    const ScriptEventTable &GetEvents() const { return Events; }
+    ScriptEventTable &GetEvents() { return Events; }
+    // Clears all handlers from assigned functions
+    void ClearEventHandlers() { Events.ClearHandlers(); }
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
     // Converts light level, or tint saturation and luminance, from the legacy
@@ -320,6 +318,9 @@ struct RoomWalkableAreaDef : public RoomObjectBase
     int32_t Bottom = -1;
     // Custom properties
     StringIMap Properties;
+
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static FieldTable<RoomWalkableAreaDef> Fields();
 };
 
 // Walk-behind description
@@ -327,13 +328,16 @@ struct RoomWalkBehindDef : public RoomObjectBase
 {
     // Object's z-order in the room
     int32_t Baseline = 0;
+
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static FieldTable<RoomWalkBehindDef> Fields();
 };
 
 //
 // Description of a single room, as the room file gives it: the starting values of what the game
 // changes, which the engine copies into the room's live objects and does not write back.
 //
-class RoomDef : public RoomObjectBase
+class RoomDef
 {
 public:
     RoomDef();
@@ -350,6 +354,11 @@ public:
     void InitDefaults();
 
     static const ScriptEventSchema &GetEventSchema() { return _eventSchema; }
+    // Provides a script events table
+    const ScriptEventTable &GetEvents() const { return Events; }
+    ScriptEventTable &GetEvents() { return Events; }
+    // Clears all handlers from assigned functions
+    void ClearEventHandlers() { Events.ClearHandlers(); }
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
 
@@ -428,6 +437,8 @@ public:
     StringIMap Properties;
     // Interaction events (old-style event storage, kept of loading old data)
     ScriptEventHandlers Interactions = {};
+    // Common events
+    ScriptEventTable Events = ScriptEventTable(&RoomDef::_eventSchema);
     // Compiled room script
     UScript CompiledScript;
     // Various extended options with string values, meta-data etc

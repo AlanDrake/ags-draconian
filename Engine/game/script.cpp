@@ -33,7 +33,6 @@
 #include "game/world/object.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"
-#include "game/world/room_object.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/engine_services.h"

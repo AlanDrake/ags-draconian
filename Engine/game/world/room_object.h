@@ -21,9 +21,7 @@
 #include "game/room_def.h"
 #include "game/runtime_defines.h"
 #include "game/world/entity_state.h"
-#include "gfx/gfx_def.h"
 #include "gfx/graphicspace.h"
-#include "util/string.h"
 
 namespace AGS
 {
@@ -54,6 +52,9 @@ struct RoomObjectState : public GraphicState, public ViewAnimState, public MoveS
     // and kept after; a save does not hold them
     int FrameOffsetX = 0, FrameOffsetY = 0;
     uint16_t View = NoView; // only used to track animation - 'Sprite' holds the current sprite
+
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static AGS::Common::FieldTable<RoomObjectState> Fields();
 };
 
 // An object of a room, as the game changes it: its definition's fields, which start as a copy of what the room
@@ -86,7 +87,6 @@ public:
     inline bool is_displayed() const { return is_enabled() && is_visible(); }
     inline bool has_explicit_light() const { return (Flags & OBJF_HASLIGHT) != 0; }
     inline bool has_explicit_tint() const { return (Flags & OBJF_HASTINT) != 0; }
-    inline bool is_moving() const { return MoveListID > 0; }
     inline bool is_animating() const { return Anim.IsValid(); }
     inline int get_anim_repeat() const { return Anim.IsRepeating(); }
     inline bool get_anim_forwards() const { return Anim.IsForward(); }

@@ -433,7 +433,7 @@ void unload_old_room()
     dispose_room_drawdata();
 
     for (uint32_t i = 0; i < room.State->ObjectCount; i++)
-        room.Objects[i].MoveListID = 0;
+        room.Objects[i].MoveListID = MoveState::kNoMoveList;
 
     AbortAllScripts();
     // Invalidate and detach any active DrawingSurfaces connected to this room

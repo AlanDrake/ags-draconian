@@ -21,7 +21,6 @@
 #include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_version.h"
-#include "game/roomstruct.h"
 #include "game/save/savegame_internal.h"
 #include "game/script.h"
 #include "game/world/room.h"

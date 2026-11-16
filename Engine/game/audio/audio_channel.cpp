@@ -19,7 +19,6 @@
 #include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
-#include "game/roomstruct.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"
 #include "media/audio/audio_system.h"

@@ -54,7 +54,6 @@
 #include "game/world/character.h"
 #include "game/world/object.h"
 #include "game/world/room_context.h"
-#include "game/world/room_state.h"
 #include "game/world/view_frame.h"
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactory.h"

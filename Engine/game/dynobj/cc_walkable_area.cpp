@@ -16,7 +16,6 @@
 #include "game/common_defines.h"
 #include "game/dynobj/script_objects.h"
 #include "game/game_context.h"
-#include "game/roomstruct.h"
 #include "game/world/walkable_area.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"

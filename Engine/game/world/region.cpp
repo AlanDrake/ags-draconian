@@ -22,7 +22,6 @@
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
-#include "game/roomstruct.h"
 #include "game/script.h"
 #include "game/world/properties.h"
 #include "game/world/room.h"

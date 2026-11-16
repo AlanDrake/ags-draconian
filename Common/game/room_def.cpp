@@ -13,16 +13,171 @@
 //=============================================================================
 #include "game/room_def.h"
 
+#include <type_traits>
+
 #include "game/common_defines.h"
 #include "game/room_version.h"
 #include "gfx/gfx_def.h"
+#include "util/field_table.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-RoomOptions::RoomOptions() : ShowPlayerCharacter(true), PlayerView(0), FaceDirectionRatio(0.f), Flags(0) {}
+// The structs that get a field table must stay aggregates (util/field_table.h)
+static_assert(std::is_aggregate_v<RoomOptions>, "RoomOptions must stay an aggregate");
+static_assert(std::is_aggregate_v<RoomEdges>, "RoomEdges must stay an aggregate");
+static_assert(std::is_aggregate_v<RoomObjectBase>, "RoomObjectBase must stay an aggregate");
+static_assert(std::is_aggregate_v<RoomHotspotDef>, "RoomHotspotDef must stay an aggregate");
+static_assert(std::is_aggregate_v<RoomObjectDef>, "RoomObjectDef must stay an aggregate");
+static_assert(std::is_aggregate_v<RoomRegionDef>, "RoomRegionDef must stay an aggregate");
+static_assert(std::is_aggregate_v<RoomWalkableAreaDef>, "RoomWalkableAreaDef must stay an aggregate");
+static_assert(std::is_aggregate_v<RoomWalkBehindDef>, "RoomWalkBehindDef must stay an aggregate");
+
+namespace
+{
+
+// The roles are those of the live entity that starts as a copy of the definition (in the engine: RoomObject,
+// RoomHotspot..., their RebindDefinition, RoomState's and RoomObject's save). Saved: a room state keeps the field
+// between visits and a save holds it. FromDefinition: the room file gives the field again at every load
+// (RebindDefinition), whatever the game did to the live entity's. Opaque: the event tables, which have no comparison
+// yet (PLAN.md 5.9 step 2).
+constexpr FieldRow<RoomObjectBase> kRoomObjectBaseFields[] = {
+    // a restored object's id is its index (RoomState::ReadFromSavegame) until the bind gives the definition's
+    Field<&RoomObjectBase::ID>("ID", FieldRole::FromDefinition),
+    Field<&RoomObjectBase::ScriptName>("ScriptName", FieldRole::FromDefinition),
+};
+static_assert(FieldsCoverStruct(kRoomObjectBaseFields), "RoomObjectBase: a field has no row in kRoomObjectBaseFields");
+
+// The custom properties of a definition are taken again at every load: the values the game sets are RoomState's
+// (HotspotProperties...), until PLAN.md 5.1a step 4 moves them
+constexpr FieldRow<RoomHotspotDef> kRoomHotspotDefFields[] = {
+    BaseFields<RoomHotspotDef, RoomObjectBase>("Base"),
+    Field<&RoomHotspotDef::Name>("Name"),
+    Field<&RoomHotspotDef::Properties>("Properties", FieldRole::FromDefinition),
+    OpaqueField<&RoomHotspotDef::Interactions>("Interactions"),
+    Field<&RoomHotspotDef::WalkTo>("WalkTo", FieldRole::FromDefinition),
+    OpaqueField<&RoomHotspotDef::Events>("Events"),
+};
+static_assert(FieldsCoverStruct(kRoomHotspotDefFields), "RoomHotspotDef: a field has no row in kRoomHotspotDefFields");
+
+// The save holds Sprite, Baseline and the four values of BlockingRect in 16 bits (PLAN.md 5.12)
+constexpr FieldRow<RoomObjectDef> kRoomObjectDefFields[] = {
+    BaseFields<RoomObjectDef, RoomObjectBase>("Base"),
+    Field<&RoomObjectDef::Room>("Room", FieldRole::FromDefinition),
+    Field<&RoomObjectDef::X>("X"),
+    Field<&RoomObjectDef::Y>("Y"),
+    Field<&RoomObjectDef::Sprite>("Sprite"),
+    Field<&RoomObjectDef::BlendMode>("BlendMode"),
+    Field<&RoomObjectDef::Baseline>("Baseline"),
+    Field<&RoomObjectDef::Opacity>("Opacity"),
+    Field<&RoomObjectDef::Flags>("Flags"),
+    Field<&RoomObjectDef::Name>("Name"),
+    Field<&RoomObjectDef::BlockingRect>("BlockingRect"),
+    Field<&RoomObjectDef::GraphicAnchor>("GraphicAnchor"),
+    Field<&RoomObjectDef::GraphicOffset>("GraphicOffset"),
+    Field<&RoomObjectDef::Properties>("Properties", FieldRole::FromDefinition),
+    OpaqueField<&RoomObjectDef::Interactions>("Interactions"),
+    OpaqueField<&RoomObjectDef::Events>("Events"),
+};
+static_assert(FieldsCoverStruct(kRoomObjectDefFields), "RoomObjectDef: a field has no row in kRoomObjectDefFields");
+
+constexpr FieldRow<RoomRegionDef> kRoomRegionDefFields[] = {
+    BaseFields<RoomRegionDef, RoomObjectBase>("Base"),
+    // a script's change lasts while the room is loaded: a save also holds them, for the room that is loaded when it is
+    // made only, in the "Loaded Room State" component, not in the room state
+    Field<&RoomRegionDef::Light>("Light", FieldRole::FromDefinition),
+    Field<&RoomRegionDef::Tint>("Tint", FieldRole::FromDefinition),
+    Field<&RoomRegionDef::Properties>("Properties", FieldRole::FromDefinition),
+    OpaqueField<&RoomRegionDef::Interactions>("Interactions"),
+    OpaqueField<&RoomRegionDef::Events>("Events"),
+};
+static_assert(FieldsCoverStruct(kRoomRegionDefFields), "RoomRegionDef: a field has no row in kRoomRegionDefFields");
+
+constexpr FieldRow<RoomWalkableAreaDef> kRoomWalkableAreaDefFields[] = {
+    BaseFields<RoomWalkableAreaDef, RoomObjectBase>("Base"),
+    Field<&RoomWalkableAreaDef::CharacterView>("CharacterView", FieldRole::FromDefinition),
+    // the scaling, as a region's light: a save also holds a script's change, for the loaded room only ("Loaded Room
+    // State")
+    Field<&RoomWalkableAreaDef::ScalingFar>("ScalingFar", FieldRole::FromDefinition),
+    Field<&RoomWalkableAreaDef::ScalingNear>("ScalingNear", FieldRole::FromDefinition),
+    Field<&RoomWalkableAreaDef::PlayerView>("PlayerView", FieldRole::FromDefinition),
+    Field<&RoomWalkableAreaDef::FaceDirectionRatio>("FaceDirectionRatio"),
+    Field<&RoomWalkableAreaDef::Top>("Top", FieldRole::FromDefinition),
+    Field<&RoomWalkableAreaDef::Bottom>("Bottom", FieldRole::FromDefinition),
+    Field<&RoomWalkableAreaDef::Properties>("Properties", FieldRole::FromDefinition),
+};
+static_assert(FieldsCoverStruct(kRoomWalkableAreaDefFields),
+              "RoomWalkableAreaDef: a field has no row in kRoomWalkableAreaDefFields");
+
+constexpr FieldRow<RoomWalkBehindDef> kRoomWalkBehindDefFields[] = {
+    BaseFields<RoomWalkBehindDef, RoomObjectBase>("Base"),
+    // in 16 bits in the save (PLAN.md 5.12)
+    Field<&RoomWalkBehindDef::Baseline>("Baseline"),
+};
+static_assert(FieldsCoverStruct(kRoomWalkBehindDefFields),
+              "RoomWalkBehindDef: a field has no row in kRoomWalkBehindDefFields");
+
+// The room's options and edges have no live copy: the engine reads them from the loaded room, which the room file
+// gives at every load
+constexpr FieldRow<RoomOptions> kRoomOptionsFields[] = {
+    Field<&RoomOptions::ShowPlayerCharacter>("ShowPlayerCharacter", FieldRole::FromDefinition),
+    Field<&RoomOptions::PlayerView>("PlayerView", FieldRole::FromDefinition),
+    Field<&RoomOptions::FaceDirectionRatio>("FaceDirectionRatio", FieldRole::FromDefinition),
+    Field<&RoomOptions::Flags>("Flags", FieldRole::FromDefinition),
+};
+static_assert(FieldsCoverStruct(kRoomOptionsFields), "RoomOptions: a field has no row in kRoomOptionsFields");
+
+constexpr FieldRow<RoomEdges> kRoomEdgesFields[] = {
+    Field<&RoomEdges::Left>("Left", FieldRole::FromDefinition),
+    Field<&RoomEdges::Right>("Right", FieldRole::FromDefinition),
+    Field<&RoomEdges::Top>("Top", FieldRole::FromDefinition),
+    Field<&RoomEdges::Bottom>("Bottom", FieldRole::FromDefinition),
+};
+static_assert(FieldsCoverStruct(kRoomEdgesFields), "RoomEdges: a field has no row in kRoomEdgesFields");
+
+} // namespace
+
+FieldTable<RoomOptions> RoomOptions::Fields()
+{
+    return kRoomOptionsFields;
+}
+
+FieldTable<RoomEdges> RoomEdges::Fields()
+{
+    return kRoomEdgesFields;
+}
+
+FieldTable<RoomObjectBase> RoomObjectBase::Fields()
+{
+    return kRoomObjectBaseFields;
+}
+
+FieldTable<RoomHotspotDef> RoomHotspotDef::Fields()
+{
+    return kRoomHotspotDefFields;
+}
+
+FieldTable<RoomObjectDef> RoomObjectDef::Fields()
+{
+    return kRoomObjectDefFields;
+}
+
+FieldTable<RoomRegionDef> RoomRegionDef::Fields()
+{
+    return kRoomRegionDefFields;
+}
+
+FieldTable<RoomWalkableAreaDef> RoomWalkableAreaDef::Fields()
+{
+    return kRoomWalkableAreaDefFields;
+}
+
+FieldTable<RoomWalkBehindDef> RoomWalkBehindDef::Fields()
+{
+    return kRoomWalkBehindDefFields;
+}
 
 RoomBgFrame::RoomBgFrame()
 {
@@ -41,10 +196,6 @@ RoomBgFrame &RoomBgFrame::operator=(const RoomBgFrame &src)
     GraphicBuf = src.GraphicBuf;
     return *this;
 }
-
-RoomEdges::RoomEdges() : Left(0), Right(0), Top(0), Bottom(0) {}
-
-RoomEdges::RoomEdges(int l, int r, int t, int b) : Left(l), Right(r), Top(t), Bottom(b) {}
 
 /* static */ ScriptEventSchema RoomHotspotDef::_eventSchema = {{{"OnAnyClick", kHotspotEvent_AnyClick},
                                                                 {"OnMouseMove", kHotspotEvent_MouseOver},
@@ -66,11 +217,11 @@ void RoomHotspotDef::RemapOldInteractions()
     new_interactions[STD_MODE_CUSTOM1] = old_interactions[8];
     new_interactions[STD_MODE_CUSTOM2] = old_interactions[9];
     Interactions.SetHandlers(new_interactions);
-    Interactions.SetScriptModule(_events.GetScriptModule());
+    Interactions.SetScriptModule(Events.GetScriptModule());
 
-    _events.SetHandler(kHotspotEvent_StandOn, old_interactions[0].FunctionName);
-    _events.SetHandler(kHotspotEvent_AnyClick, old_interactions[5].FunctionName);
-    _events.SetHandler(kHotspotEvent_MouseOver, old_interactions[6].FunctionName);
+    Events.SetHandler(kHotspotEvent_StandOn, old_interactions[0].FunctionName);
+    Events.SetHandler(kHotspotEvent_AnyClick, old_interactions[5].FunctionName);
+    Events.SetHandler(kHotspotEvent_MouseOver, old_interactions[6].FunctionName);
 }
 
 /* static */ ScriptEventSchema RoomObjectDef::_eventSchema = {{
@@ -94,9 +245,9 @@ void RoomObjectDef::RemapOldInteractions()
     new_interactions[STD_MODE_CUSTOM1] = old_interactions[6];
     new_interactions[STD_MODE_CUSTOM2] = old_interactions[7];
     Interactions.SetHandlers(new_interactions);
-    Interactions.SetScriptModule(_events.GetScriptModule());
+    Interactions.SetScriptModule(Events.GetScriptModule());
 
-    _events.SetHandler(kRoomObjectEvent_AnyClick, old_interactions[4].FunctionName);
+    Events.SetHandler(kRoomObjectEvent_AnyClick, old_interactions[4].FunctionName);
 }
 
 /* static */ ScriptEventSchema RoomRegionDef::_eventSchema = {{
@@ -111,18 +262,18 @@ void RoomRegionDef::RemapOldInteractions()
     // this is just for safety, it's supposed to be that large
     old_interactions.resize(3);
 
-    _events.SetHandler(kRegionEvent_Standing, old_interactions[0].FunctionName);
-    _events.SetHandler(kRegionEvent_WalkOn, old_interactions[1].FunctionName);
-    _events.SetHandler(kRegionEvent_WalkOff, old_interactions[2].FunctionName);
+    Events.SetHandler(kRegionEvent_Standing, old_interactions[0].FunctionName);
+    Events.SetHandler(kRegionEvent_WalkOn, old_interactions[1].FunctionName);
+    Events.SetHandler(kRegionEvent_WalkOff, old_interactions[2].FunctionName);
     Interactions = {};
 }
 
-RoomDef::RoomDef() : RoomObjectBase(&RoomDef::_eventSchema)
+RoomDef::RoomDef()
 {
     InitDefaults();
 }
 
-RoomDef::RoomDef(const RoomDef &src) : RoomObjectBase(src)
+RoomDef::RoomDef(const RoomDef &src)
 {
     *this = src;
 }
@@ -146,7 +297,6 @@ RoomDef &RoomDef::operator=(const RoomDef &src)
 {
     if (this == &src)
         return *this;
-    RoomObjectBase::operator=(src);
 
     GameID = src.GameID;
     Name = src.Name;
@@ -179,6 +329,7 @@ RoomDef &RoomDef::operator=(const RoomDef &src)
 
     Properties = src.Properties;
     Interactions = src.Interactions;
+    Events = src.Events;
     CompiledScript.reset(src.CompiledScript ? new ccScript(*src.CompiledScript) : nullptr);
     StringOptions = src.StringOptions;
     return *this;
@@ -206,7 +357,7 @@ void RoomDef::Free()
     CompiledScript.reset();
 
     Interactions = {};
-    _events.ClearHandlers();
+    Events.ClearHandlers();
     for (uint32_t i = 0; i < HotspotCount; ++i)
     {
         Hotspots[i].Interactions = {};
@@ -234,7 +385,7 @@ void RoomDef::InitDefaults()
     Height = 200;
 
     Options = RoomOptions();
-    Edges = RoomEdges(0, 317, 40, 199);
+    Edges = RoomEdges{0, 317, 40, 199};
 
     BgFrameCount = 1;
     HotspotCount = 0;
@@ -278,16 +429,16 @@ void RoomDef::RemapOldInteractions()
     // this is just for safety, it's supposed to be that large
     old_interactions.resize(10);
 
-    _events.SetHandler(kRoomEvent_EdgeLeft, old_interactions[0].FunctionName);
-    _events.SetHandler(kRoomEvent_EdgeRight, old_interactions[1].FunctionName);
-    _events.SetHandler(kRoomEvent_EdgeBottom, old_interactions[2].FunctionName);
-    _events.SetHandler(kRoomEvent_EdgeTop, old_interactions[3].FunctionName);
-    _events.SetHandler(kRoomEvent_FirstEnter, old_interactions[4].FunctionName);
-    _events.SetHandler(kRoomEvent_BeforeFadein, old_interactions[5].FunctionName);
-    _events.SetHandler(kRoomEvent_Repexec, old_interactions[6].FunctionName);
-    _events.SetHandler(kRoomEvent_AfterFadein, old_interactions[7].FunctionName);
-    _events.SetHandler(kRoomEvent_BeforeFadeout, old_interactions[8].FunctionName);
-    _events.SetHandler(kRoomEvent_AfterFadeout, old_interactions[9].FunctionName);
+    Events.SetHandler(kRoomEvent_EdgeLeft, old_interactions[0].FunctionName);
+    Events.SetHandler(kRoomEvent_EdgeRight, old_interactions[1].FunctionName);
+    Events.SetHandler(kRoomEvent_EdgeBottom, old_interactions[2].FunctionName);
+    Events.SetHandler(kRoomEvent_EdgeTop, old_interactions[3].FunctionName);
+    Events.SetHandler(kRoomEvent_FirstEnter, old_interactions[4].FunctionName);
+    Events.SetHandler(kRoomEvent_BeforeFadein, old_interactions[5].FunctionName);
+    Events.SetHandler(kRoomEvent_Repexec, old_interactions[6].FunctionName);
+    Events.SetHandler(kRoomEvent_AfterFadein, old_interactions[7].FunctionName);
+    Events.SetHandler(kRoomEvent_BeforeFadeout, old_interactions[8].FunctionName);
+    Events.SetHandler(kRoomEvent_AfterFadeout, old_interactions[9].FunctionName);
     Interactions = {};
 }
 

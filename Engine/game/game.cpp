@@ -2741,7 +2741,7 @@ void SkipUntilCharacterStops(int char_id)
                    game.Characters[char_id].ScriptName.GetCStr(), game.DisplayedRoom, game.Characters[char_id].Room);
 
     // if they are not currently moving, do nothing
-    if (!game.Characters[char_id].MoveListID)
+    if (!game.Characters[char_id].IsMoving())
         return;
 
     if (is_in_cutscene())

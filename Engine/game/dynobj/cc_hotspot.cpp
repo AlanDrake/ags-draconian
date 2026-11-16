@@ -17,7 +17,6 @@
 #include "game/dynobj/script_objects.h"
 #include "game/game_context.h"
 #include "game/game_init.h"
-#include "game/roomstruct.h"
 #include "game/world/hotspot.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"

@@ -22,8 +22,9 @@
 // walkable areas keep between visits and take from the room file again; the
 // lists a room reads with no state bound; the 16-bit limits of an
 // object's sprite, baseline, blocking width and animation wait and of a
-// walk-behind's baseline; the setters of an object's blocking rectangle. The
-// room is made by hand: no room file is read.
+// walk-behind's baseline; the setters of an object's blocking rectangle; a later
+// visit's round trip of every field of the five entities, by their field tables.
+// The room is made by hand: no room file is read.
 //
 // Not tested: load_new_room itself (it reads the room file and the room
 // script), and RoomObject::RunFrameEvent (observing which handler runs needs a
@@ -31,6 +32,8 @@
 //
 //=============================================================================
 #include <memory>
+#include <string>
+#include <type_traits>
 #include <vector>
 
 #include "game/customproperties.h"
@@ -61,93 +64,6 @@ using namespace AGS::Engine;
 
 namespace
 {
-
-// The members of a room object in their order, with their types, by part: the definition (RoomObjectBase and
-// RoomObjectDef), the play state (RoomObjectState and its bases), and what RoomObject adds. A field added to any of
-// them changes
-// its size, and the build stops at a static_assert below: add the field here and to ExpectSameObject (a saved field
-// also to SetSavedFields), so that no test passes without looking at it.
-struct RoomObjectBaseMembers
-{
-    int ID;
-    String ScriptName;
-    ScriptEventTable Events;
-};
-static_assert(sizeof(RoomObjectBaseMembers) == sizeof(RoomObjectBase),
-              "RoomObjectBase has a field this test does not know: see RoomObjectBaseMembers");
-
-struct RoomObjectDefMembers : RoomObjectBaseMembers
-{
-    int32_t Room;
-    int32_t X, Y;
-    int32_t Sprite;
-    BlendMode Blending;
-    int32_t Baseline;
-    int32_t Opacity;
-    int32_t Flags;
-    String Name;
-    Rect BlockingRect;
-    Pointf GraphicAnchor;
-    Point GraphicOffset;
-    StringIMap Properties;
-    ScriptEventHandlers Interactions;
-};
-static_assert(sizeof(RoomObjectDefMembers) == sizeof(RoomObjectDef),
-              "RoomObjectDef has a field this test does not know: see RoomObjectDefMembers");
-
-// The parts the play state shares with a character (entity_state.h), its bases in this order
-struct GraphicStateMembers
-{
-    int16_t TintRed, TintGreen, TintBlue, TintLevel, TintLight;
-    int16_t Zoom;
-    float Rotation;
-    Pointf Pivot;
-    Point PivotOffset;
-    int ShaderID, ShaderHandle;
-    int SpriteWidth, SpriteHeight;
-    int16_t Width, Height;
-};
-static_assert(sizeof(GraphicStateMembers) == sizeof(GraphicState),
-              "GraphicState has a field this test does not know: see GraphicStateMembers");
-
-struct ViewAnimStateMembers
-{
-    uint16_t Loop, Frame;
-    int AnimWait;
-    ViewAnimateParams Anim;
-};
-static_assert(sizeof(ViewAnimStateMembers) == sizeof(ViewAnimState),
-              "ViewAnimState has a field this test does not know: see ViewAnimStateMembers");
-
-struct MoveStateMembers
-{
-    int16_t MoveListID;
-    int MoveListHandle;
-};
-static_assert(sizeof(MoveStateMembers) == sizeof(MoveState),
-              "MoveState has a field this test does not know: see MoveStateMembers");
-
-struct FrameSoundStateMembers
-{
-    int AnimationVolume, AudioPanning, AudioSpeed;
-};
-static_assert(sizeof(FrameSoundStateMembers) == sizeof(FrameSoundState),
-              "FrameSoundState has a field this test does not know: see FrameSoundStateMembers");
-
-struct RoomObjectStateMembers : GraphicStateMembers, ViewAnimStateMembers, MoveStateMembers, FrameSoundStateMembers
-{
-    int FrameOffsetX, FrameOffsetY;
-    uint16_t View;
-};
-static_assert(sizeof(RoomObjectStateMembers) == sizeof(RoomObjectState),
-              "RoomObjectState has a field this test does not know: see RoomObjectStateMembers");
-
-struct RoomObjectMembers : RoomObjectDefMembers, RoomObjectStateMembers
-{
-    GraphicSpace Space;
-};
-static_assert(sizeof(RoomObjectMembers) == sizeof(RoomObject),
-              "RoomObject has a field this test does not know: see RoomObjectMembers");
 
 // Compares two event tables or interaction lists: the script module and every handler
 void ExpectSameHandlers(const ScriptEventsBase &expected, const ScriptEventsBase &actual, const char *what)
@@ -365,6 +281,32 @@ void ExpectEntitiesTakeTheDefinition(const RoomState &state, const RoomDef &def)
     }
 }
 
+// The fields in which a live entity of a room differs from the expected one, a line each, by the tables of its two
+// parts: every field but the opaque and the derived ones (computed by the update). State is void for an entity without
+// a play state.
+template <typename Def, typename State = void, typename Entity>
+std::string LostFields(const Entity &expected, const Entity &actual)
+{
+    std::string lines;
+    for (const String &line : DiffFields<Def>(expected, actual, false))
+        lines += std::string(line.GetCStr()) + "\n";
+    if constexpr (!std::is_void_v<State>)
+    {
+        for (const String &line : DiffFields<State>(expected, actual, false))
+            lines += std::string(line.GetCStr()) + "\n";
+    }
+    return lines;
+}
+
+// Changes the fields of a role in both parts of a live entity of a room (AlterFields)
+template <typename Def, typename State = void, typename Entity>
+void AlterEntity(Entity &entity, FieldRole role)
+{
+    AlterFields<Def>(entity, role);
+    if constexpr (!std::is_void_v<State>)
+        AlterFields<State>(entity, role);
+}
+
 } // namespace
 
 // Fixture: a room of its own as Room::Current(), with a definition made by hand (MakeDefinition) and a new state
@@ -487,6 +429,34 @@ protected:
         return obj;
     }
 
+    // A later visit's round trip of the entity that pick finds in a room state: the entity of a new state bound to the
+    // definition (the first visit) gets the saved fields and the fields from the definition of its two parts altered
+    // (AlterFields: what the game changed during the visit), the state is saved and restored into a second one, which
+    // is bound to the definition, unaltered, as a later visit does. Returns the fields of the restored entity that
+    // differ from the expected one (LostFields), which has the altered values in its saved fields and the definition's
+    // in its fields from the definition: a saved field the save lost, or a field from the definition that the bind did
+    // not give again.
+    template <typename Entity, typename Def, typename State = void, typename Pick>
+    std::string RoundTripLosses(Pick pick)
+    {
+        BindRoomState(_room);
+        Entity &entity = pick(_state);
+        Entity expected = entity;
+        AlterEntity<Def, State>(expected, FieldRole::Saved);
+        EXPECT_NE("", (LostFields<Def, State>(entity, expected))) << "the entity has no saved field to alter";
+        AlterEntity<Def, State>(entity, FieldRole::Saved);
+        AlterEntity<Def, State>(entity, FieldRole::FromDefinition);
+        EXPECT_NE("", (LostFields<Def, State>(expected, entity))) << "the entity has no field from the definition";
+
+        RoomState restored;
+        EXPECT_TRUE(ReadState(WriteState(_state), restored)) << "the read did not take the whole stream";
+        _room.SetState(&restored);
+        EXPECT_FALSE(BindRoomState(_room));
+        const std::string lost = LostFields<Def, State>(expected, pick(restored));
+        _room.SetState(&_state);
+        return lost;
+    }
+
     Room _room;
     RoomState _state;
     Room *_wasRoom = nullptr;
@@ -508,7 +478,7 @@ TEST_F(LoadedRoom, FirstVisitTakesTheDefinition)
         ExpectSameObject(FirstVisitObject(i), obj, true);
         // the play state starts as a new object's
         EXPECT_EQ(RoomObject::NoView, obj.View);
-        EXPECT_FALSE(obj.is_moving());
+        EXPECT_FALSE(obj.IsMoving());
         EXPECT_FALSE(obj.is_animating());
         EXPECT_EQ(100, obj.Zoom);
     }
@@ -895,7 +865,7 @@ TEST(RoomObjectStart, MoveListIdIsMinusOne)
 {
     EXPECT_EQ(-1, RoomObject().MoveListID);
     EXPECT_EQ(-1, RoomObject(RoomObjectDef()).MoveListID);
-    EXPECT_EQ(0, MoveState().MoveListID);
+    EXPECT_EQ(MoveState::kNoMoveList, MoveState().MoveListID);
 }
 
 // The save holds the sprite in 16 bits, which the read takes as unsigned: a number above INT16_MAX comes back as it was
@@ -1258,7 +1228,7 @@ TEST_F(LoadedRoom, ObjectDestinationOfAnObjectThatHasNotMoved)
     EXPECT_EQ(obj.X, Object_GetDestinationX(&obj1));
     EXPECT_EQ(obj.Y, Object_GetDestinationY(&obj1));
 
-    obj.MoveListID = 0;
+    obj.MoveListID = MoveState::kNoMoveList;
     EXPECT_EQ(obj.X, Object_GetDestinationX(&obj1));
     EXPECT_EQ(obj.Y, Object_GetDestinationY(&obj1));
 }
@@ -1362,4 +1332,56 @@ TEST_F(LoadedRoom, WalkbehindAtRoomXYReadsTheWalkBehindMask)
     EXPECT_EQ(&game.ScWalkBehinds[3], Walkbehind_GetAtRoomXY(12, 6));
     EXPECT_EQ(&game.ScWalkBehinds[0], Walkbehind_GetAtRoomXY(13, 6));
     EXPECT_EQ(&game.ScWalkBehinds[4], Walkbehind_GetAtRoomXY(30, 16));
+}
+
+// Every field of a live room entity comes back from a later visit: a saved field with the value the game gave it, a
+// field from the definition, which the game changed too, with the room file's. The roles in the field tables of the
+// entity's definition and play state say which fields those are, so a field added to either struct is checked here
+// without a line changing. Alter
+// adds one to a number: from the fixture's values, every saved field stays within what the legacy save holds (the
+// sprite, the baselines and the blocking rectangle in 16 bits, the volumes in 8).
+TEST_F(LoadedRoom, EveryObjectFieldIsRestoredOrTakenAgain)
+{
+    auto object1 = [](RoomState &state) -> RoomObject & { return state.Objects[1]; };
+    EXPECT_EQ("", (RoundTripLosses<RoomObject, RoomObjectDef, RoomObjectState>(object1)));
+}
+
+TEST_F(LoadedRoom, EveryHotspotFieldIsRestoredOrTakenAgain)
+{
+    auto hotspot4 = [](RoomState &state) -> RoomHotspot & { return state.Hotspots[4]; };
+    EXPECT_EQ("", (RoundTripLosses<RoomHotspot, RoomHotspotDef, RoomHotspotState>(hotspot4)));
+}
+
+TEST_F(LoadedRoom, EveryRegionFieldIsRestoredOrTakenAgain)
+{
+    auto region3 = [](RoomState &state) -> RoomRegion & { return state.Regions[3]; };
+    EXPECT_EQ("", (RoundTripLosses<RoomRegion, RoomRegionDef, RoomRegionState>(region3)));
+}
+
+TEST_F(LoadedRoom, EveryWalkableAreaFieldIsRestoredOrTakenAgain)
+{
+    auto area2 = [](RoomState &state) -> RoomWalkableArea & { return state.WalkAreas[2]; };
+    EXPECT_EQ("", (RoundTripLosses<RoomWalkableArea, RoomWalkableAreaDef>(area2)));
+}
+
+TEST_F(LoadedRoom, EveryWalkBehindFieldIsRestoredOrTakenAgain)
+{
+    auto walkbehind6 = [](RoomState &state) -> RoomWalkBehind & { return state.WalkBehinds[6]; };
+    EXPECT_EQ("", (RoundTripLosses<RoomWalkBehind, RoomWalkBehindDef>(walkbehind6)));
+}
+
+// The definitions' tables name each member once
+TEST(RoomFieldTables, EveryRowNamesItsOwnMember)
+{
+    EXPECT_TRUE(FieldsAreDistinct(RoomObjectBase()));
+    EXPECT_TRUE(FieldsAreDistinct(RoomHotspotDef()));
+    EXPECT_TRUE(FieldsAreDistinct(RoomObjectDef()));
+    EXPECT_TRUE(FieldsAreDistinct(RoomRegionDef()));
+    EXPECT_TRUE(FieldsAreDistinct(RoomWalkableAreaDef()));
+    EXPECT_TRUE(FieldsAreDistinct(RoomWalkBehindDef()));
+    EXPECT_TRUE(FieldsAreDistinct(RoomOptions()));
+    EXPECT_TRUE(FieldsAreDistinct(RoomEdges()));
+    EXPECT_TRUE(FieldsAreDistinct<RoomObjectState>(RoomObject()));
+    EXPECT_TRUE(FieldsAreDistinct(RoomHotspotState()));
+    EXPECT_TRUE(FieldsAreDistinct(RoomRegionState()));
 }

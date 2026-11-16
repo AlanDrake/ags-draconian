@@ -21,6 +21,7 @@
 #include "util/field_table.h"
 #include "util/geometry.h"
 #include "util/string.h"
+#include "util/string_types.h"
 
 using namespace AGS::Common;
 
@@ -69,6 +70,26 @@ struct Sample : Kind
     static FieldTable<Sample> Fields();
 };
 
+// A part with a derived field, as the size of the sprite in the graphic part of an entity's state, and a field that the
+// definition gives again at every load, as a room entity's script name
+struct Look
+{
+    int Tint = 0;
+    int Width = 0;
+    int Room = 0;
+
+    static FieldTable<Look> Fields();
+};
+
+// A struct with the part as a base and as a member
+struct Entity : Look
+{
+    int Number = 0;
+    Look Shadow;
+
+    static FieldTable<Entity> Fields();
+};
+
 constexpr FieldRow<Part> kPartFields[] = {
     Field<&Part::Count>("Count"),
     Field<&Part::Ratio>("Ratio"),
@@ -100,6 +121,20 @@ constexpr FieldRow<Sample> kSampleFields[] = {
 // The base is one initializer, the arrays three and two: a table without one of the rows does not build
 static_assert(FieldsCoverStruct(kSampleFields), "Sample: a field has no row");
 
+constexpr FieldRow<Look> kLookFields[] = {
+    Field<&Look::Tint>("Tint"),
+    Field<&Look::Width>("Width", FieldRole::Derived),
+    Field<&Look::Room>("Room", FieldRole::FromDefinition),
+};
+static_assert(FieldsCoverStruct(kLookFields), "Look: a field has no row");
+
+constexpr FieldRow<Entity> kEntityFields[] = {
+    BaseFields<Entity, Look>("Look"),
+    Field<&Entity::Number>("Number"),
+    Field<&Entity::Shadow>("Shadow"),
+};
+static_assert(FieldsCoverStruct(kEntityFields), "Entity: a field has no row");
+
 // The same rows without the last one leave a member out
 constexpr FieldRow<Part> kPartFieldsShort[] = {
     Field<&Part::Count>("Count"),
@@ -119,6 +154,16 @@ FieldTable<Kind> Kind::Fields()
 FieldTable<Sample> Sample::Fields()
 {
     return kSampleFields;
+}
+
+FieldTable<Look> Look::Fields()
+{
+    return kLookFields;
+}
+
+FieldTable<Entity> Entity::Fields()
+{
+    return kEntityFields;
 }
 
 std::string Lines(const std::vector<String> &lines)
@@ -147,11 +192,73 @@ TEST(FieldTable, DiffNamesTheFieldAndBothValues)
     b.Name = "Roger";
     b.Nested.Ratio = 0.5f;
     b.Flow = 3;
-    EXPECT_EQ("Kind: {Flow: 0} != {Flow: 3}\n"
+    EXPECT_EQ("Flow: 0 != 3\n"
               "Small: -1 != 7\n"
               "Name: \"\" != \"Roger\"\n"
-              "Nested: {Count: 1, Ratio: 2} != {Count: 1, Ratio: 0.5}\n",
+              "Nested.Ratio: 2 != 0.5\n",
               Lines(DiffFields(a, b)));
+}
+
+// A base or a member whose type has a table is compared field by field: a line names the field, with the member's
+// name before it (a base's fields are named as the struct's own), and a derived field of the part is left out
+// with the struct's own
+TEST(FieldTable, DiffDescendsIntoAStructWithATable)
+{
+    Entity a;
+    Entity b;
+    b.Tint = 1;
+    b.Shadow.Tint = 2;
+    EXPECT_EQ("Tint: 0 != 1\n"
+              "Shadow.Tint: 0 != 2\n",
+              Lines(DiffFields(a, b, false)));
+
+    Entity c;
+    c.Width = 4;
+    c.Shadow.Width = 5;
+    EXPECT_EQ("", Lines(DiffFields(a, c, false)));
+    EXPECT_EQ("Width: 0 != 4\n"
+              "Shadow.Width: 0 != 5\n",
+              Lines(DiffFields(a, c)));
+}
+
+// A field that the definition gives again is compared as a saved one, also without the derived fields, and in a base
+// and in a member with a table
+TEST(FieldTable, FieldsFromTheDefinitionAreCompared)
+{
+    Entity a;
+    Entity b;
+    b.Room = 1;
+    b.Shadow.Room = 2;
+    const std::string lines = "Room: 0 != 1\n"
+                              "Shadow.Room: 0 != 2\n";
+    EXPECT_EQ(lines, Lines(DiffFields(a, b)));
+    EXPECT_EQ(lines, Lines(DiffFields(a, b, false)));
+}
+
+// AlterFields changes the saved fields unless it is given another role: then the fields of that role, and no other; the
+// role passes down into a base and a member with a table
+TEST(FieldTable, AlterChangesTheFieldsOfOneRole)
+{
+    Entity a;
+    Entity saved;
+    AlterFields(saved);
+    EXPECT_EQ("Tint: 0 != 1\n"
+              "Number: 0 != 1\n"
+              "Shadow.Tint: 0 != 1\n",
+              Lines(DiffFields(a, saved)));
+
+    Entity from_definition;
+    AlterFields(from_definition, FieldRole::FromDefinition);
+    EXPECT_EQ("Room: 0 != 1\n"
+              "Shadow.Room: 0 != 1\n",
+              Lines(DiffFields(a, from_definition)));
+}
+
+TEST(FieldTable, PrintsTheFieldsOfEveryRoleButOpaque)
+{
+    Look look;
+    look.Room = 3;
+    EXPECT_STREQ("{Tint: 0, Width: 0, Room: 3}", PrintFields(look).GetCStr());
 }
 
 TEST(FieldTable, AlterChangesEverySavedFieldAndNoOther)
@@ -159,8 +266,8 @@ TEST(FieldTable, AlterChangesEverySavedFieldAndNoOther)
     Sample a;
     Sample b;
     AlterFields(b);
-    // 15 rows, less the derived one and the opaque one
-    EXPECT_EQ(13u, DiffFields(a, b).size()) << Lines(DiffFields(a, b));
+    // 15 rows, less the derived one and the opaque one; the nested struct gives a line per field (two)
+    EXPECT_EQ(14u, DiffFields(a, b).size()) << Lines(DiffFields(a, b));
     EXPECT_EQ(a.Offset, b.Offset);
     EXPECT_EQ(a.Cache, b.Cache);
     EXPECT_EQ((std::vector<int>{1}), b.List);
@@ -194,6 +301,26 @@ TEST(FieldTable, PrintsContainersInOneOrder)
                  "Anchor: (0.5, 1), Offset: (0, 0), List: [3, 1], Map: {2: 5, 4: 7, 9: 1}, Fixed: [0, 0, 0], "
                  "Corners: [(0, 0), (0, 0)], Nested: {Count: 1, Ratio: 2}}",
                  PrintFields(a).GetCStr());
+}
+
+// A rectangle is one value; a map with a hash and a comparison of its own compares its keys with them
+TEST(FieldTable, RectanglesAndMapsWithoutCase)
+{
+    Rect a = RectWH(10, 20, 30, 40);
+    Rect b = a;
+    FieldValue<Rect>::Alter(b);
+    EXPECT_FALSE(FieldValue<Rect>::Equal(a, b));
+    EXPECT_EQ(RectWH(11, 21, 31, 41), b);
+    EXPECT_STREQ("(11, 21)-(41, 61)", FieldValue<Rect>::Print(b).GetCStr());
+
+    StringIMap tags = {{"Weight", "1"}, {"Colour", "red"}};
+    StringIMap same_tags = {{"WEIGHT", "1"}, {"colour", "red"}};
+    EXPECT_TRUE(FieldValue<StringIMap>::Equal(tags, same_tags));
+    same_tags["colour"] = "Red";
+    EXPECT_FALSE(FieldValue<StringIMap>::Equal(tags, same_tags));
+    EXPECT_STREQ("{\"Colour\": \"red\", \"Weight\": \"1\"}", FieldValue<StringIMap>::Print(tags).GetCStr());
+    FieldValue<StringIMap>::Alter(tags);
+    EXPECT_EQ(3u, tags.size());
 }
 
 // The character's definition: each row names its own member, and the operations reach every one but the two

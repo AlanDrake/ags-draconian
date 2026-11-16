@@ -20,7 +20,7 @@
 #include "game/common_defines.h"
 #include "game/dynobj/cc_serializer.h"
 #include "game/game_def.h"
-#include "game/roomstruct.h"
+#include "game/room_def.h"
 #include "game/save/savegame.h"
 #include "game/script_audio_clip.h"
 #include "gfx/bitmap.h"

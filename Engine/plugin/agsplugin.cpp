@@ -15,6 +15,7 @@
 
 #include <allegro.h>
 
+#include "game/world/room_state.h"
 #include "platform/platform.h"
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/windows.h"
@@ -39,7 +40,6 @@
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/render/dynamic_sprite.h"
-#include "game/roomstruct.h"
 #include "game/script.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
@@ -47,7 +47,6 @@
 #include "game/world/object.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"
-#include "game/world/room_state.h"
 #include "game/world/walkable_area.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_util.h"

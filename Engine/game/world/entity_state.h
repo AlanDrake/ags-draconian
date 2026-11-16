@@ -74,9 +74,18 @@ struct ViewAnimState
 // The entity's move along a path
 struct MoveState
 {
-    // The index of the entity's move list, 0 for none; a room object starts with -1 (RoomObject's constructors)
-    int16_t MoveListID = 0;
+    // No move list: what a finished move and a character's start leave in MoveListID. A valid index is above it
+    static constexpr int16_t kNoMoveList = 0;
+
+    // Which move list the entity is running: its index in the game's move lists (get_movelist), always above
+    // kNoMoveList. Two values mean "none": kNoMoveList, and -1, which a room object starts with (RoomObject's
+    // constructors). Ask IsMoving(); never test it for non-zero.
+    int16_t MoveListID = kNoMoveList;
     int MoveListHandle = 0; // handle to the script movelist
+
+    // Tells whether the entity is running a move list: moving along a path, or (a character) turning between its
+    // segments
+    bool IsMoving() const { return MoveListID > kNoMoveList; }
 
     // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
     static AGS::Common::FieldTable<MoveState> Fields();

@@ -21,7 +21,6 @@
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
-#include "game/roomstruct.h"
 #include "game/script.h"
 #include "game/ui/gui.h"
 #include "game/world/character.h"

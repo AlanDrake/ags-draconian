@@ -583,7 +583,7 @@ void Character_AddWaypoint(Character *ch, int x, int y)
     }
 
     // not already walking, so just do a normal move
-    if (ch->MoveListID <= 0)
+    if (!ch->IsMoving())
     {
         Character_Walk(ch, x, y, IN_BACKGROUND, ANYWHERE);
         return;
@@ -1411,7 +1411,7 @@ void Character_SetIdleView(Character *ch, int iview, int itime)
     ch->IdleTimeLeft = itime;
 
     // if not currently animating, reset the wait counter
-    if ((!ch->IsAnimating()) && (!ch->is_moving()))
+    if ((!ch->IsAnimating()) && (!ch->IsMoving()))
     {
         ch->AnimWait = 0;
     }
@@ -1495,7 +1495,7 @@ void Character_SetSpeed(Character *ch, int xspeed, int yspeed)
     else
         ch->WalkSpeedY = yspeed;
 
-    if (ch->is_moving() && (old_speedx != xspeed || old_speedy != yspeed))
+    if (ch->IsMoving() && (old_speedx != xspeed || old_speedy != yspeed))
     {
         MoveListOp::RecalculateMoveSpeeds(*get_movelist(ch->get_movelist_id()), old_speedx, old_speedy, xspeed, yspeed);
     }
@@ -1503,7 +1503,7 @@ void Character_SetSpeed(Character *ch, int xspeed, int yspeed)
 
 void Character_StopMoving(Character *ch)
 {
-    Character_StopMovingEx(ch, ch->is_moving() && (!get_movelist(ch->get_movelist_id())->IsStageDirect()));
+    Character_StopMovingEx(ch, ch->IsMoving() && (!get_movelist(ch->get_movelist_id())->IsStageDirect()));
 }
 
 void Character_StopMovingEx(Character *ch, bool force_walkable_area)
@@ -1552,11 +1552,11 @@ void Character_StopMovingEx(Character *ch, bool force_walkable_area)
     // Always reset any turning
     ch->StopTurning();
     // If the character is currently moving, stop them and reset their state
-    if (ch->MoveListID > 0)
+    if (ch->IsMoving())
     {
         // Switch character state from walking to standing
         remove_movelist(ch->get_movelist_id());
-        ch->MoveListID = 0;
+        ch->MoveListID = MoveState::kNoMoveList;
         // If the character was animating a walk, then reset their frame to standing
         if (ch->is_moving_walkanim())
         {
@@ -2258,7 +2258,7 @@ void Character_SetLoop(Character *ch, int new_value)
 
 int Character_GetMoving(Character *ch)
 {
-    if (ch->MoveListID)
+    if (ch->IsMoving())
     {
         return 1;
     }
@@ -2868,7 +2868,7 @@ void move_character_impl(Character *ch, const std::vector<Point> *path, int tox,
     // If character was currently walking, then save current "wait" timers
     // and animation frame, and apply later after new walking begins,
     // in order to make it look smoother.
-    if (ch->MoveListID)
+    if (ch->IsMoving())
     {
         walk_wait_init = ch->WalkWait;
         anim_wait_init = ch->WalkAnimWait;
@@ -3127,7 +3127,7 @@ int has_hit_another_character(Game &game, int source_char)
         if (get_char_blocking_rect(game, ww).IsInside(game.Characters[source_char].X, game.Characters[source_char].Y))
         {
             // we are now overlapping character 'ww'
-            if ((game.Characters[ww].MoveListID) && ((game.Characters[ww].Flags & CHF_AWAITINGMOVE) == 0))
+            if ((game.Characters[ww].IsMoving()) && ((game.Characters[ww].Flags & CHF_AWAITINGMOVE) == 0))
                 return ww;
         }
     }
@@ -3139,8 +3139,8 @@ int has_hit_another_character(Game &game, int source_char)
 // otherwise returns 0
 int doNextCharMoveStep(Game &game, Character *ch)
 {
-    assert(ch->MoveListID > 0);
-    if (ch->MoveListID <= 0)
+    assert(ch->IsMoving());
+    if (!ch->IsMoving())
     {
         return 0;
     }
@@ -3186,7 +3186,7 @@ int doNextCharMoveStep(Game &game, Character *ch)
             ch->WalkAnimWait = ch->WalkWait;
         }
 
-        if ((ch->MoveListID < 1) || (ch->Turns > 0))
+        if ((!ch->IsMoving()) || (ch->Turns > 0))
         { /* skip */
         }
         else if (mlist.GetStageDoneSteps() > 0.f)
@@ -3205,7 +3205,7 @@ int doNextCharMoveStep(Game &game, Character *ch)
 
 bool is_char_walking_ndirect(Character *ch)
 {
-    return ch->is_moving() && (!get_movelist(ch->get_movelist_id())->IsStageDirect());
+    return ch->IsMoving() && (!get_movelist(ch->get_movelist_id())->IsStageDirect());
 }
 
 bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
@@ -3851,7 +3851,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
         // the screen.
         set_our_eip(1501);
 
-        if (speaking_char->MoveListID)
+        if (speaking_char->IsMoving())
         {
             Character_StopMoving(speaking_char);
         }

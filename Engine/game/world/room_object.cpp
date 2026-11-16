@@ -30,10 +30,38 @@
 #include "gfx/gfx_def.h"
 #include "main/update.h"
 #include "util/common.h"
+#include "util/field_table.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
+
+namespace
+{
+
+// The roles of RoomObject's play state (the definition's part has its rows in room_def.cpp). RoomObject::_graphicSpace
+// is data the live class declares, not a row here: it moves into the state with the character's (PLAN.md 5.9 step 2).
+constexpr FieldRow<RoomObjectState> kRoomObjectStateFields[] = {
+    // the parts a character has too (entity_state.h; their tables are in object.cpp)
+    BaseFields<RoomObjectState, GraphicState>("Graphic"),
+    BaseFields<RoomObjectState, ViewAnimState>("ViewAnim"),
+    BaseFields<RoomObjectState, MoveState>("Move"),
+    BaseFields<RoomObjectState, FrameSoundState>("FrameSound"),
+    // computed by the update from the view frame, only while the object animates (update_object_scale); a save does
+    // not hold them, so a restored object that no longer animates is drawn without them (a known defect)
+    Field<&RoomObjectState::FrameOffsetX>("FrameOffsetX", FieldRole::Derived),
+    Field<&RoomObjectState::FrameOffsetY>("FrameOffsetY", FieldRole::Derived),
+    Field<&RoomObjectState::View>("View"),
+};
+static_assert(FieldsCoverStruct(kRoomObjectStateFields),
+              "RoomObjectState: a field has no row in kRoomObjectStateFields");
+
+} // namespace
+
+FieldTable<RoomObjectState> RoomObjectState::Fields()
+{
+    return kRoomObjectStateFields;
+}
 
 void RoomObject::RebindDefinition(const RoomObjectDef &def)
 {
@@ -72,7 +100,7 @@ void RoomObject::UpdateCyclingView(Game &game, int ref_id)
 {
     if (!is_enabled())
         return;
-    if (MoveListID > 0)
+    if (IsMoving())
     {
         MoveList &mlist = *get_movelist(MoveListID);
         // If we support smooth walk, then keep moving even across multiple stages,
@@ -84,7 +112,7 @@ void RoomObject::UpdateCyclingView(Game &game, int ref_id)
         {
         }
 
-        if (MoveListID == 0)
+        if (!IsMoving())
             OnStopMoving();
     }
     if (!is_animating())
@@ -118,10 +146,10 @@ void RoomObject::UpdateCyclingView(Game &game, int ref_id)
 void RoomObject::OnStopMoving()
 {
     // Release movelist
-    if (MoveListID > 0)
+    if (IsMoving())
     {
         remove_movelist(MoveListID);
-        MoveListID = 0;
+        MoveListID = kNoMoveList;
     }
     // If we have a movelist reference attached, then invalidate and dec refcount
     if (MoveListHandle > 0)

@@ -13,9 +13,10 @@
 //=============================================================================
 #pragma once
 
-#include "game/roomstruct.h"
-#include "game/save/savegame.h"
-#include "game/scripteventtable.h"
+#include <cstdint>
+#include <vector>
+
+#include "game/room_def.h"
 #include "game/world/room_object.h"
 #include "util/string_types.h"
 
@@ -64,6 +65,9 @@ struct RoomHotspotState
 {
     // Whether the hotspot answers the player (Hotspot.Enabled)
     bool IsEnabled = false;
+
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static AGS::Common::FieldTable<RoomHotspotState> Fields();
 };
 
 // A hotspot of a room, as the game changes it: its definition's fields, which start as a copy of what the room file
@@ -85,6 +89,9 @@ struct RoomRegionState
 {
     // Whether the region answers the player (Region.Enabled): 1 or 0. A char, as the save's byte is read into it whole
     char IsEnabled = 0;
+
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static AGS::Common::FieldTable<RoomRegionState> Fields();
 };
 
 // A region of a room, as the game changes it: its definition's fields, which start as a copy of what the room file

@@ -20,7 +20,6 @@
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
-#include "game/roomstruct.h"
 #include "game/world/character.h"
 #include "game/world/object.h"
 #include "game/world/properties.h"

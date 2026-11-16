@@ -141,9 +141,6 @@ public:
 
     // Gets current character's movelist id
     inline int get_movelist_id() const { return MoveListID; }
-    // Tells if the character is performing a move, that is - either moving along
-    // a path or turning between move path segments.
-    inline bool is_moving() const { return MoveListID > 0; }
     inline bool is_idling() const { return (IdleTimeLeft < 0); }
 
     // Tells whether the character is turning, and in which direction

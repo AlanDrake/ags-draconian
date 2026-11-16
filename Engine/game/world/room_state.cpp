@@ -21,12 +21,41 @@
 #include "game/save/savegame_components.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/common.h"
+#include "util/field_table.h"
 #include "util/string_utils.h"
 
 using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
+namespace
+{
+
+// The roles of the play state of a hotspot and of a region (the definitions' parts have their rows in room_def.cpp):
+// both are kept between visits and saved (RoomState::WriteToSavegame)
+constexpr FieldRow<RoomHotspotState> kRoomHotspotStateFields[] = {
+    Field<&RoomHotspotState::IsEnabled>("IsEnabled"),
+};
+static_assert(FieldsCoverStruct(kRoomHotspotStateFields),
+              "RoomHotspotState: a field has no row in kRoomHotspotStateFields");
+
+constexpr FieldRow<RoomRegionState> kRoomRegionStateFields[] = {
+    Field<&RoomRegionState::IsEnabled>("IsEnabled"),
+};
+static_assert(FieldsCoverStruct(kRoomRegionStateFields),
+              "RoomRegionState: a field has no row in kRoomRegionStateFields");
+
+} // namespace
+
+FieldTable<RoomHotspotState> RoomHotspotState::Fields()
+{
+    return kRoomHotspotStateFields;
+}
+
+FieldTable<RoomRegionState> RoomRegionState::Fields()
+{
+    return kRoomRegionStateFields;
+}
 
 void RoomHotspot::RebindDefinition(const RoomHotspotDef &def)
 {

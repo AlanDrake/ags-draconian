@@ -18,7 +18,6 @@
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/math.h"
-#include "game/roomstruct.h"
 #include "game/world/character.h"
 #include "game/world/object.h"
 #include "game/world/room.h"
@@ -68,7 +67,7 @@ static void ResetFrameIfAtEnd(Game &game, Character *ch)
     const int frames_in_loop = game.Views[ch->View].loops[ch->Loop].numFrames;
     if (ch->Frame >= frames_in_loop)
     {
-        ch->Frame = (ch->is_moving() && frames_in_loop > 1) ? 1 : 0;
+        ch->Frame = (ch->IsMoving() && frames_in_loop > 1) ? 1 : 0;
     }
 }
 
@@ -218,7 +217,7 @@ bool UpdateCharacterTurning(Game &game, Character *ch)
             {
                 ch->WalkWait = ch->AnimationDelay;
             }
-            else if (ch->is_moving())
+            else if (ch->IsMoving())
             {
                 ch->WalkWait = 1; // wait 1 frame to let walking animation advance once
             }
@@ -233,7 +232,7 @@ bool UpdateCharacterTurning(Game &game, Character *ch)
 
 void UpdateCharacterMoving(Game &game, Character *ch, int &doing_nothing)
 {
-    if (ch->is_moving() && (ch->Room == game.DisplayedRoom))
+    if (ch->IsMoving() && (ch->Room == game.DisplayedRoom))
     {
         const bool was_move_direct = get_movelist(ch->get_movelist_id())->IsStageDirect();
 
@@ -265,7 +264,7 @@ void UpdateCharacterMoving(Game &game, Character *ch, int &doing_nothing)
                 {
                     break;
                 }
-                if ((ch->MoveListID == 0) || (ch->Turns > 0))
+                if ((!ch->IsMoving()) || (ch->Turns > 0))
                 {
                     break;
                 }
@@ -297,7 +296,7 @@ void UpdateCharacterMoving(Game &game, Character *ch, int &doing_nothing)
         doing_nothing = 0; // still walking?
 
         const int view = ch->View, loop = ch->Loop;
-        if (ch->MoveListID < 1)
+        if (!ch->IsMoving())
         {
             // Finished walking, stop and reset state
             reset_character_idling_time(ch);
@@ -306,7 +305,7 @@ void UpdateCharacterMoving(Game &game, Character *ch, int &doing_nothing)
             const bool was_walk_anim = ch->is_moving_walkanim();
             Character_StopMovingEx(ch, !was_move_direct);
             // The move list is gone and "MoveListID" is already 0 here (do_movelist_move), so Character_StopMovingEx
-            // skips its "MoveListID > 0" part, which is the one that resets the frame: this is the only place where
+            // skips its "IsMoving()" part, which is the one that resets the frame: this is the only place where
             // the standing frame is set after a finished walk.
             // TODO: Character_StopMoving called by a script on a walking character resets the frame, but not
             // WalkAnimWait, and does not call CheckViewFrame(), unlike here: the same reset could be shared.
@@ -354,7 +353,7 @@ void UpdateCharacterMoving(Game &game, Character *ch, int &doing_nothing)
 bool UpdateCharacterAnimating(Game &game, Character *ch, int &doing_nothing)
 {
     // animating or idling, and not walking with a walk animation
-    if (((ch->IsAnimating()) || (ch->is_idling())) && (!ch->is_moving() || ch->is_moving_no_anim()) &&
+    if (((ch->IsAnimating()) || (ch->is_idling())) && (!ch->IsMoving() || ch->is_moving_no_anim()) &&
         (ch->Room == game.DisplayedRoom))
     {
         doing_nothing = 0;

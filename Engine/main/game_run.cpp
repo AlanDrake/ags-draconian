@@ -578,7 +578,7 @@ bool run_service_key_controls(KeyInput &out_key)
                 (services.Sprites.DoesSpriteExist(room.Objects[obj_id].Sprite)
                      ? game.SpriteInfos[room.Objects[obj_id].Sprite].Height
                      : 0),
-                room.Objects[obj_id].is_enabled(), room.Objects[obj_id].is_moving() ? "yes" : "no",
+                room.Objects[obj_id].is_enabled(), room.Objects[obj_id].IsMoving() ? "yes" : "no",
                 room.Objects[obj_id].is_animating() ? "yes" : "no", room.Objects[obj_id].Sprite,
                 room.Objects[obj_id].Opacity, ((room.Objects[obj_id].Flags & OBJF_NOINTERACT) != 0) ? 0 : 1);
         }
@@ -596,18 +596,17 @@ bool run_service_key_controls(KeyInput &out_key)
                 buffer = "CHARACTERS IN THIS ROOM (cont'd):\n";
             }
             listed_char_id = char_id;
-            buffer.AppendFmt("%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%s anim:%s "
-                             "follow:%d flags:%X wait:%d zoom:%d)\n",
-                             game.Characters[listed_char_id].ScriptName.GetCStr(),
-                             game.Characters[listed_char_id].View + 1, game.Characters[listed_char_id].Loop,
-                             game.Characters[listed_char_id].Frame, game.Characters[listed_char_id].X,
-                             game.Characters[listed_char_id].Y, game.Characters[listed_char_id].Z,
-                             game.Characters[listed_char_id].IdleView, game.Characters[listed_char_id].IdleDelay,
-                             game.Characters[listed_char_id].IdleTimeLeft,
-                             game.Characters[listed_char_id].is_moving() ? "yes" : "no",
-                             game.Characters[listed_char_id].IsAnimating() ? "yes" : "no",
-                             game.Characters[listed_char_id].Following, game.Characters[listed_char_id].Flags,
-                             game.Characters[listed_char_id].AnimWait, game.Characters[listed_char_id].Zoom);
+            buffer.AppendFmt(
+                "%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%s anim:%s "
+                "follow:%d flags:%X wait:%d zoom:%d)\n",
+                game.Characters[listed_char_id].ScriptName.GetCStr(), game.Characters[listed_char_id].View + 1,
+                game.Characters[listed_char_id].Loop, game.Characters[listed_char_id].Frame,
+                game.Characters[listed_char_id].X, game.Characters[listed_char_id].Y, game.Characters[listed_char_id].Z,
+                game.Characters[listed_char_id].IdleView, game.Characters[listed_char_id].IdleDelay,
+                game.Characters[listed_char_id].IdleTimeLeft, game.Characters[listed_char_id].IsMoving() ? "yes" : "no",
+                game.Characters[listed_char_id].IsAnimating() ? "yes" : "no", game.Characters[listed_char_id].Following,
+                game.Characters[listed_char_id].Flags, game.Characters[listed_char_id].AnimWait,
+                game.Characters[listed_char_id].Zoom);
         }
         DisplayMB(buffer.GetCStr());
         return false;
@@ -1512,7 +1511,7 @@ static bool ShouldStayInWaitMode()
     case UNTIL_MOVEEND:
     {
         short *wkptr = (short *)restrict_until->GetDataPtr();
-        return !(wkptr[0] < 1);
+        return wkptr[0] > MoveState::kNoMoveList;
     }
     case UNTIL_CHARIS0:
     {

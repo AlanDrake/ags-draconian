@@ -24,7 +24,6 @@
 #include "game/game_context.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
-#include "game/roomstruct.h"
 #include "game/world/character.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"

@@ -126,7 +126,7 @@ void InitAndRegisterCharacters(Game &game)
     for (int i = 0; i < game.numcharacters; ++i)
     {
         // TODO: move this to Character's "init" method
-        game.Characters[i].MoveListID = 0;
+        game.Characters[i].MoveListID = MoveState::kNoMoveList;
         game.Characters[i].BlinkInterval = 140;
         game.Characters[i].BlinkTimer = game.Characters[i].BlinkInterval;
         game.Characters[i].ID = i;

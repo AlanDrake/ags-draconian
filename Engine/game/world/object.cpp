@@ -791,7 +791,7 @@ int IsObjectMoving(int obj_id)
     {
         return 0;
     }
-    return (Room::Current().Objects[obj_id].MoveListID > 0) ? 1 : 0;
+    return (Room::Current().Objects[obj_id].IsMoving()) ? 1 : 0;
 }
 
 int Object_GetMoving(ScriptObject *obj)
@@ -883,7 +883,7 @@ void SetObjectPosition(int obj_id, int tox, int toy)
         return;
     }
 
-    if (room.Objects[obj_id].MoveListID > 0)
+    if (room.Objects[obj_id].IsMoving())
     {
         debug_script_warn("Object.SetPosition: cannot set position while object is moving");
         return;
@@ -1067,7 +1067,7 @@ int Object_GetDestinationX(ScriptObject *obj)
         return 0;
     }
 
-    if (room.Objects[obj->id].MoveListID > 0)
+    if (room.Objects[obj->id].IsMoving())
     {
         MoveList *cmls = get_movelist(room.Objects[obj->id].MoveListID);
         return cmls->GetLastPos().X;
@@ -1083,7 +1083,7 @@ int Object_GetDestinationY(ScriptObject *obj)
         return 0;
     }
 
-    if (room.Objects[obj->id].MoveListID > 0)
+    if (room.Objects[obj->id].IsMoving())
     {
         MoveList *cmls = get_movelist(room.Objects[obj->id].MoveListID);
         return cmls->GetLastPos().Y;
@@ -1530,7 +1530,7 @@ ScriptMotionPath *Object_GetMotionPath(ScriptObject *obj)
 {
     RoomObject &room_obj = Room::Current().Objects[obj->id];
     const int mslot = room_obj.MoveListID;
-    if (mslot <= 0)
+    if (!room_obj.IsMoving())
         return nullptr;
 
     if (room_obj.MoveListHandle > 0)
