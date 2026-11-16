@@ -363,7 +363,7 @@ static_assert(FieldsCoverStruct(kCharacterDefFields), "CharacterDef: a field has
     `Derived` fields in one function; a test compares them, so a forgotten one fails.
 - **A field without a row does not build.** `FieldsCoverStruct` counts the members of the struct at compile
   time (the largest number of initializers its aggregate initialization takes) against the rows; checked with
-  MSVC, GCC 13 and Clang with libc++, GCC 8 (the Debian 10 image) not yet. So an `XDef` and an `XState` is an
+  MSVC, GCC 13, Clang with libc++ and GCC 8.3 (the Debian 10 builder image). So an `XDef` and an `XState` is an
   **aggregate**: no private data, no constructor written out, no virtual function. `CharacterDef` needed its
   event table public (`Events`) and its five defaulted special members deleted. A struct that keeps
   constructors (`AnimFlowParams`, `ViewAnimateParams`) has a table without the count. The count does not tell

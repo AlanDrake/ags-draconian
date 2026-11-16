@@ -2357,7 +2357,9 @@ steps left are in PLAN.md 5.9.
   special members are gone.
 - **Measured:**
   - *The count works on the real structs* with MSVC 19.4x, GCC 13 (WSL) and Clang 20 with libc++ (emsdk), and
-    a dropped row fails the build on all three. GCC 8 has not compiled it.
+    a dropped row fails the build on all three. GCC 8.3 too, checked after the commits in the Debian 10
+    builder image (`ghcr.io/alandrake/ags-draconian-linux-builder-image:ags4-amd64`, run with Docker in the
+    WSL distro: `-fsyntax-only` on `character_def.cpp` and on a scratch struct, whole and one row short).
   - *Where the table goes:* a file that includes only `character.h` compiles in 0.85 s, with `field_table.h`
     in 0.89 s, with both tables as `inline constexpr` in 0.98 s (MSVC Release flags, the fastest of 7, on a
     machine that was building beside it: rough). 35 files include `character.h`, so the tables are in the
@@ -2383,7 +2385,7 @@ steps left are in PLAN.md 5.9.
 - **Verified:** `prepush.py --auto`, all eleven stages (`format`, `helpers`, `layers`, `buildlists`, `build`
   with `ctest`, `tidy`, `headers`, `libcxx`, `emscripten`, `linux` with 1,226 tests on GCC 13, `msbuild` with
   five solutions and the editor's NUnit tests); the auto-test game, 2414 of 2414 on Software, D3D9, D3D11 and
-  OpenGL. Not verified: GCC 8 (the Debian 10 image), macOS, Android and iOS compilers on the member count;
+  OpenGL. Not verified: the macOS, Android and iOS compilers on the member count;
   `compare_objects.py` was not run (the commits are not mechanical: `CharacterDef` lost its declared special
   members and gained a static function).
 - **Helpers kept** in `.compare/helpers/59`: `classify.py` (the forms of a type's property functions),
