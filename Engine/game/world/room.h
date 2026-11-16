@@ -20,6 +20,7 @@
 #include "script/runtimescriptvalue.h"
 
 class Room;
+using Character = CharacterInfo;
 
 // Script function: returns a DrawingSurface for the given room background (SCR_NO_VALUE: the current one);
 // reuses the surface already attached to it, if any. Returns null for an invalid index.
@@ -64,10 +65,10 @@ void save_room_data_segment();
 void unload_old_room();
 // Loads room room_id from its file and makes it the current room. ch is the character entering the room
 // (the player on NewRoom), who gets placed at the entry position; nullptr when restoring a saved game
-void load_new_room(int room_id, CharacterInfo *ch);
+void load_new_room(int room_id, Character *ch);
 // Changes the current room: runs the room-leaving events (their scripts may change the destination),
 // unloads the old room and loads the new one with load_new_room()
-void new_room(int room_id, CharacterInfo *ch);
+void new_room(int room_id, Character *ch);
 // Sets up a placeholder room object; this is used to avoid occasional crashes
 // in case an API function was called that needs to access a room, while no real room is loaded
 void set_room_placeholder();

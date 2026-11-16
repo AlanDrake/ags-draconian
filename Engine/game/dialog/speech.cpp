@@ -195,7 +195,7 @@ ScriptOverlay *Speech_GetPortraitOverlay()
     return static_cast<ScriptOverlay *>(ccGetObjectAddressFromHandle(Game::Current().Play.speech_face_schandle));
 }
 
-CharacterInfo *Speech_GetSpeakingCharacter()
+Character *Speech_GetSpeakingCharacter()
 {
     Game &game = Game::Current();
     return game.Speech.CharSpeaking >= 0 ? &game.Characters[game.Speech.CharSpeaking] : nullptr;

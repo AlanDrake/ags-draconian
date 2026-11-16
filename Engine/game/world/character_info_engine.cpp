@@ -64,7 +64,7 @@ int CharacterInfo::get_blocking_bottom() const
 // Tests if frame reached or exceeded the loop, and resets frame back
 // to either 1st walking frame if character is walking, or frame 0 otherwise
 // (or if there's less than 2 frames in the current loop).
-static void ResetFrameIfAtEnd(Game &game, CharacterInfo *ch)
+static void ResetFrameIfAtEnd(Game &game, Character *ch)
 {
     const int frames_in_loop = game.Views[ch->view].loops[ch->loop].numFrames;
     if (ch->frame >= frames_in_loop)
@@ -74,7 +74,7 @@ static void ResetFrameIfAtEnd(Game &game, CharacterInfo *ch)
 }
 
 // Fixups loop and frame values, in case any of them are set to a value out of the valid range
-static void FixupCharacterLoopAndFrame(Game &game, CharacterInfo *ch, bool switch_from_bad_loop = true)
+static void FixupCharacterLoopAndFrame(Game &game, Character *ch, bool switch_from_bad_loop = true)
 {
     // If current loop property exceeds number of loops,
     // or if selected loop has no frames, then try select any first loop that has frames.
@@ -111,7 +111,7 @@ static void FixupCharacterLoopAndFrame(Game &game, CharacterInfo *ch, bool switc
     ResetFrameIfAtEnd(game, ch); // test, in case new loop has less frames
 }
 
-void UpdateCharacterMoveAndAnim(Game &game, Room &room, CharacterInfo *ch, CharacterExtras *chex,
+void UpdateCharacterMoveAndAnim(Game &game, Room &room, Character *ch, CharacterExtras *chex,
                                 std::vector<int> &following_as_sheep)
 {
     if (!ch->is_enabled())
@@ -145,7 +145,7 @@ void UpdateCharacterMoveAndAnim(Game &game, Room &room, CharacterInfo *ch, Chara
     chex->process_idle_this_time = 0;
 }
 
-void UpdateFollowingExactlyCharacter(Game &game, CharacterInfo *ch)
+void UpdateFollowingExactlyCharacter(Game &game, Character *ch)
 {
     const auto &following = game.Characters[game.CharExtras[ch->index_id].following];
     ch->x = following.x;
@@ -165,7 +165,7 @@ void UpdateFollowingExactlyCharacter(Game &game, CharacterInfo *ch)
     }
 }
 
-bool UpdateCharacterTurning(Game &game, CharacterInfo *ch, CharacterExtras *chex)
+bool UpdateCharacterTurning(Game &game, Character *ch, CharacterExtras *chex)
 {
     if (chex->IsTurning())
     {
@@ -233,7 +233,7 @@ bool UpdateCharacterTurning(Game &game, CharacterInfo *ch, CharacterExtras *chex
     return false;
 }
 
-void UpdateCharacterMoving(Game &game, CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing)
+void UpdateCharacterMoving(Game &game, Character *ch, CharacterExtras *chex, int &doing_nothing)
 {
     if (ch->is_moving() && (ch->room == game.DisplayedRoom))
     {
@@ -353,7 +353,7 @@ void UpdateCharacterMoving(Game &game, CharacterInfo *ch, CharacterExtras *chex,
     }
 }
 
-bool UpdateCharacterAnimating(Game &game, CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing)
+bool UpdateCharacterAnimating(Game &game, Character *ch, CharacterExtras *chex, int &doing_nothing)
 {
     // animating or idling, and not walking with a walk animation
     if (((chex->IsAnimating()) || (ch->is_idling())) && (!ch->is_moving() || ch->is_moving_no_anim()) &&
@@ -467,7 +467,7 @@ bool UpdateCharacterAnimating(Game &game, CharacterInfo *ch, CharacterExtras *ch
     return false;
 }
 
-void UpdateCharacterFollower(Game &game, Room &room, CharacterInfo *ch, std::vector<int> &following_as_sheep,
+void UpdateCharacterFollower(Game &game, Room &room, Character *ch, std::vector<int> &following_as_sheep,
                              int &doing_nothing)
 {
     const CharacterExtras *chex = &game.CharExtras[ch->index_id];
@@ -577,7 +577,7 @@ void UpdateCharacterFollower(Game &game, Room &room, CharacterInfo *ch, std::vec
     }
 }
 
-void UpdateCharacterIdle(Game &game, CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing)
+void UpdateCharacterIdle(Game &game, Character *ch, CharacterExtras *chex, int &doing_nothing)
 {
     // no idle animation, already playing the idle animation, or not in the current room
     if ((ch->idleview < 1) || ch->is_idling() || (ch->room != game.DisplayedRoom))

@@ -117,7 +117,7 @@ struct CharacterLegacyFields
     Point ViewOffset;
 };
 
-void ReadCharacterInfo(CharacterInfo &ch, Stream *in, CharacterLegacyFields &old_fields, CharacterSvgVersion save_ver)
+void ReadCharacterInfo(Character &ch, Stream *in, CharacterLegacyFields &old_fields, CharacterSvgVersion save_ver)
 {
     ch.defview = in->ReadInt32();
     ch.talkview = in->ReadInt32();
@@ -214,7 +214,7 @@ void ReadCharacterInfo(CharacterInfo &ch, Stream *in, CharacterLegacyFields &old
     }
 }
 
-void WriteCharacterInfo(const CharacterInfo &ch, Stream *out)
+void WriteCharacterInfo(const Character &ch, Stream *out)
 {
     out->WriteInt32(ch.defview);
     out->WriteInt32(ch.talkview);

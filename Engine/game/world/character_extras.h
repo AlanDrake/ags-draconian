@@ -42,6 +42,8 @@ class Stream;
 } // namespace AGS
 
 struct CharacterInfo;
+// The engine's character; a class of its own from PLAN.md 5.1a step 1 on
+using Character = CharacterInfo;
 
 // A character's save format (CharacterInfo and CharacterExtras)
 // Before 4.0: 0 (3.5.0 pre-alpha); 1 (3.5.0) new movelist format (along with pathfinder);
@@ -171,34 +173,34 @@ public:
     // or an offset from the temporarily locked view
     Point GetEffectiveGraphicOffset() const { return eff_offset; }
     // Get visual Y position, which is calculated as Y - Z (Z scaled by zoom_offs)
-    int GetEffectiveY(const CharacterInfo *ch) const;
+    int GetEffectiveY(const Character *ch) const;
     // Calculate wanted frame sound volume based on multiple factors
-    int GetFrameSoundVolume(const CharacterInfo *ch) const;
+    int GetFrameSoundVolume(const Character *ch) const;
     // Set locked view with anchor and offset; also sets the character's view, loop and frame
-    void SetLockedView(CharacterInfo *ch, int view, int loop, int frame, const Pointf &anchor = Pointf(),
+    void SetLockedView(Character *ch, int view, int loop, int frame, const Pointf &anchor = Pointf(),
                        const Point &off = Point());
     // Set unlocked view, revert to common anchor and offset; also sets the character's default view
-    void SetUnlockedView(CharacterInfo *ch);
+    void SetUnlockedView(Character *ch);
     // Process the current animation frame for the character:
     // play linked sounds, run the frame event, and so forth.
-    void CheckViewFrame(CharacterInfo *ch);
+    void CheckViewFrame(Character *ch);
     // Run the arbitrary frame's event if one is associated and character has a handler;
     // returns the result of RunViewFrameEvent
-    bool RunFrameEvent(CharacterInfo *ch, int view, int loop, int frame);
+    bool RunFrameEvent(Character *ch, int view, int loop, int frame);
     // Sets up following another character (follow_who); a negative follow_who stops following.
     // Eagerness is ignored, and sort_behind applies, only when distance is FOLLOW_ALWAYSONTOP
-    void SetFollowing(CharacterInfo *ch, int follow_who, int distance = 0, int eagerness = 0, bool sort_behind = false);
+    void SetFollowing(Character *ch, int follow_who, int distance = 0, int eagerness = 0, bool sort_behind = false);
 
     // Gets the character's graphic space, as of the last UpdateGraphicSpace
     inline const AGS::Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
 
     // Recalculates the effective offset and anchor: the locked view's if the view is locked, else the sprite's
-    void UpdateEffectiveValues(const CharacterInfo *ch);
+    void UpdateEffectiveValues(const Character *ch);
     // Recalculates the graphic space from the character position and the sprite, scaling and rotation fields
-    void UpdateGraphicSpace(const CharacterInfo *ch);
+    void UpdateGraphicSpace(const Character *ch);
 
     // Read character extra data from saves.
-    void ReadFromSavegame(CharacterInfo *ch, AGS::Common::Stream *in, CharacterSvgVersion save_ver);
+    void ReadFromSavegame(Character *ch, AGS::Common::Stream *in, CharacterSvgVersion save_ver);
     // Write character extra data to saves.
     void WriteToSavegame(AGS::Common::Stream *out) const;
 

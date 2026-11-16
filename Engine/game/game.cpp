@@ -1225,14 +1225,14 @@ void Game_Resume()
     UnPauseGame();
 }
 
-ScriptAudioChannel *Game_PlayVoiceClip(CharacterInfo *ch, int sound_id, bool as_speech)
+ScriptAudioChannel *Game_PlayVoiceClip(Character *ch, int sound_id, bool as_speech)
 {
     if (!play_voice_nonblocking(ch ? ch->index_id : -1 /* narrator */, sound_id, as_speech))
         return nullptr;
     return &Game::Current().ScAudioChannels[SCHAN_SPEECH];
 }
 
-ScriptAudioChannel *Game_PlayVoiceClipAsType(CharacterInfo *ch, int sound_id, int audio_type, int chan_id, int priority,
+ScriptAudioChannel *Game_PlayVoiceClipAsType(Character *ch, int sound_id, int audio_type, int chan_id, int priority,
                                              int repeat)
 {
     Game &game = Game::Current();

@@ -24,10 +24,12 @@
 
 using AGS::Common::GUIInvWindow;
 
+using Character = CharacterInfo;
+
 // Sets the character whose inventory is shown (null for none) and scrolls to the top.
-void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *ch);
+void InvWindow_SetCharacterToUse(GUIInvWindow *guii, Character *ch);
 // Returns the character whose inventory is shown, or null if none is set.
-CharacterInfo *InvWindow_GetCharacterToUse(GUIInvWindow *guii);
+Character *InvWindow_GetCharacterToUse(GUIInvWindow *guii);
 // Sets the width of one item cell in pixels and recalculates the layout.
 void InvWindow_SetItemWidth(GUIInvWindow *guii, int new_width);
 // Returns the width of one item cell in pixels.

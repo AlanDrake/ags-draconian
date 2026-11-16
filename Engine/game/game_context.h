@@ -86,7 +86,7 @@ struct SpeechState
     int FaceTalkRepeat = 0;
     int FaceTalkAllowBlink = 1;
     int FaceTalkBlinkLoop = 0;
-    CharacterInfo *FaceTalkChar = nullptr;
+    Character *FaceTalkChar = nullptr;
     // Do override default portrait position during QFG4-style speech overlay update
     bool Qfg4OverridePlacementX = false;
     bool Qfg4OverridePlacementY = false;
@@ -212,10 +212,10 @@ public:
     // The viewports and cameras of the game screen and the room
     GameViewports Viewports;
 
-    // The runtime state of the characters that CharacterInfo does not hold, by character index
+    // The runtime state of the characters that Character does not hold, by character index
     std::vector<CharacterExtras> CharExtras;
     // The player character, and its handle for scripts (the script object "player").
-    CharacterInfo *PlayerChar = nullptr;
+    Character *PlayerChar = nullptr;
     int32_t ScPlayerCharPtr = 0;
     // The baseline of the character that the last search for a character at a room point found, compared with
     // ObjLowestYp and the walk-behind's to tell which is in front.

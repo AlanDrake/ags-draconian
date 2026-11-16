@@ -135,7 +135,7 @@ void update_character_move_and_anim(std::vector<int> &following_as_sheep)
         if (!game.Characters[aa].is_enabled())
             continue;
 
-        CharacterInfo *ch = &game.Characters[aa];
+        Character *ch = &game.Characters[aa];
         CharacterExtras *chex = &game.CharExtras[aa];
 
         UpdateCharacterMoveAndAnim(game, room, ch, chex, following_as_sheep);
@@ -148,7 +148,7 @@ void update_following_exactly_characters(const std::vector<int> &following_as_sh
     // update location of all following_exactly characters
     for (size_t i = 0; i < following_as_sheep.size(); ++i)
     {
-        CharacterInfo *ch = &game.Characters[following_as_sheep[i]];
+        Character *ch = &game.Characters[following_as_sheep[i]];
 
         UpdateFollowingExactlyCharacter(game, ch);
     }

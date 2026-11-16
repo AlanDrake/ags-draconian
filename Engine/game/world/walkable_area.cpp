@@ -225,7 +225,7 @@ int get_walkable_area_at_location(Room &room, int x, int y)
 
 int get_walkable_area_at_character(int char_id)
 {
-    CharacterInfo *ch = &Game::Current().Characters[char_id];
+    Character *ch = &Game::Current().Characters[char_id];
     return get_walkable_area_at_location(Room::Current(), ch->x, ch->y);
 }
 

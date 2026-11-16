@@ -42,6 +42,7 @@
 #include "script/script_binder.h"
 
 struct CharacterInfo;
+using Character = CharacterInfo;
 struct ScriptAudioChannel;
 struct ScriptAudioClip;
 struct ScriptDialog;
@@ -77,7 +78,7 @@ struct ScriptManagerOf<char>
 
 // The handles of the game's entities, one manager each
 template <>
-struct ScriptManagerOf<CharacterInfo>
+struct ScriptManagerOf<Character>
 {
     static IScriptObject *Get() { return &ccDynamicCharacter; }
 };

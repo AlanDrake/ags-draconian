@@ -373,6 +373,7 @@ extern CCGUI ccDynamicGUI;
 extern CCDialog ccDynamicDialog;
 
 struct CharacterInfo;
+using Character = CharacterInfo;
 struct ScriptAudioChannel;
 struct ScriptAudioClip;
 struct ScriptCamera;
@@ -490,10 +491,10 @@ void Game_Pause();
 void Game_Resume();
 
 // Script API: Game::PlayVoiceClip
-ScriptAudioChannel *Game_PlayVoiceClip(CharacterInfo *ch, int sound_id, bool as_speech);
+ScriptAudioChannel *Game_PlayVoiceClip(Character *ch, int sound_id, bool as_speech);
 
 // Script API: Game::PlayVoiceClipAsType
-ScriptAudioChannel *Game_PlayVoiceClipAsType(CharacterInfo *ch, int sound_id, int audio_type, int chan_id, int priority,
+ScriptAudioChannel *Game_PlayVoiceClipAsType(Character *ch, int sound_id, int audio_type, int chan_id, int priority,
                                              int repeat);
 
 // Script API: Game::PrecacheSprite

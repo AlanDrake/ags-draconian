@@ -616,7 +616,7 @@ HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr,
     return HError::None();
 }
 
-void load_new_room(int room_id, CharacterInfo *ch)
+void load_new_room(int room_id, Character *ch)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
@@ -1095,7 +1095,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
     pl_run_plugin_hooks(kPluginEvt_EnterRoom, game.DisplayedRoom);
 }
 
-void new_room(int room_id, CharacterInfo *ch)
+void new_room(int room_id, Character *ch)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();

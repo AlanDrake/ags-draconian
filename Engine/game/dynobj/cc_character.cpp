@@ -38,7 +38,7 @@ size_t CCCharacter::CalcSerializeSize(const void * /*address*/)
 
 void CCCharacter::Serialize(const void *address, Stream *out)
 {
-    const CharacterInfo *ch = static_cast<const CharacterInfo *>(address);
+    const Character *ch = static_cast<const Character *>(address);
     out->WriteInt32(ch->index_id);
 }
 
@@ -52,7 +52,7 @@ void CCCharacter::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 uint8_t CCCharacter::ReadInt8(const void *address, intptr_t offset)
 {
     // The only supported variable remaining in 3.4.*
-    const CharacterInfo *ci = static_cast<const CharacterInfo *>(address);
+    const Character *ci = static_cast<const Character *>(address);
     const int on_offset = 28 * sizeof(int32_t) /* first var group */
                           + 301 * sizeof(int16_t) /* inventory */ + sizeof(int16_t) * 2 /* two shorts */ +
                           40 /* name */ + 20 /* scrname */;
@@ -65,7 +65,7 @@ uint8_t CCCharacter::ReadInt8(const void *address, intptr_t offset)
 void CCCharacter::WriteInt8(void *address, intptr_t offset, uint8_t val)
 {
     // The only supported variable remaining in 3.4.*
-    CharacterInfo *ci = static_cast<CharacterInfo *>(address);
+    Character *ci = static_cast<Character *>(address);
     const int on_offset = 28 * sizeof(int32_t) /* first var group */
                           + 301 * sizeof(int16_t) /* inventory */ + sizeof(int16_t) * 2 /* two shorts */ +
                           40 /* name */ + 20 /* scrname */;

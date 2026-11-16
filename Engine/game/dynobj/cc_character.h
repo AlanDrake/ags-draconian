@@ -13,7 +13,7 @@
 //=============================================================================
 //
 // Wrapper around script "Character" struct, managing access to its variables.
-// Assumes object data contains CharacterInfo object.
+// Assumes object data contains Character object.
 //
 //=============================================================================
 #pragma once

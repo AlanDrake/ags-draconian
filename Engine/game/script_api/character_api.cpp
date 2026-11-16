@@ -35,25 +35,25 @@ using namespace AGS::Engine;
 //
 //=============================================================================
 
-void ScPl_Character_Say(CharacterInfo *ch, const char *text, ...)
+void ScPl_Character_Say(Character *ch, const char *text, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(text);
     Character_Say(ch, scsf_buffer);
 }
 
-void ScPl_Character_SayAt(CharacterInfo *ch, int x, int y, int width, const char *text, ...)
+void ScPl_Character_SayAt(Character *ch, int x, int y, int width, const char *text, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(text);
     Character_SayAt(ch, x, y, width, scsf_buffer);
 }
 
-ScriptOverlay *ScPl_Character_SayBackground(CharacterInfo *ch, const char *text, ...)
+ScriptOverlay *ScPl_Character_SayBackground(Character *ch, const char *text, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(text);
     return Character_SayBackground(ch, scsf_buffer);
 }
 
-void ScPl_Character_Think(CharacterInfo *ch, const char *text, ...)
+void ScPl_Character_Think(Character *ch, const char *text, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(text);
     Character_Think(ch, scsf_buffer);

@@ -2379,7 +2379,7 @@ void tint_image(Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int light
 // assigns parameters, which may further be assigned to a texture.
 bool construct_char_gfx(Game &game, Room &room, EngineServices &services, int char_id, bool force_software)
 {
-    const CharacterInfo &ch = game.Characters[char_id];
+    const Character &ch = game.Characters[char_id];
     const CharacterExtras &chex = game.CharExtras[char_id];
     const ViewFrame *vf = &game.Views[ch.view].loops[ch.loop].frames[ch.frame];
     const int pic = services.Sprites.DoesSpriteExist(vf->pic) ? vf->pic : 0;
@@ -2407,7 +2407,7 @@ void prepare_characters_for_drawing()
     // draw characters
     for (int char_id = 0; char_id < game.numcharacters; ++char_id)
     {
-        const CharacterInfo &ch = game.Characters[char_id];
+        const Character &ch = game.Characters[char_id];
         if (!ch.is_displayed())
             continue; // disabled or not visible
         if (ch.room != game.DisplayedRoom)

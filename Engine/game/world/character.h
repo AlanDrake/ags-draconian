@@ -35,69 +35,69 @@ bool IsValidCharacter(int char_id);
 // if not then prints a warning to the log; returns assertion result
 bool AssertCharacter(const char *apiname, int char_id);
 
-void Character_AddInventory(CharacterInfo *ch, ScriptInvItem *item, int at_index);
-void Character_AddWaypoint(CharacterInfo *ch, int x, int y);
+void Character_AddInventory(Character *ch, ScriptInvItem *item, int at_index);
+void Character_AddWaypoint(Character *ch, int x, int y);
 // Character.Animate with every argument; Animate5 and Animate6 supply the last ones (sframe, volume) by default.
 // Stops an idle animation first, and waits for the animation to end if blocking is set.
-void Character_Animate(CharacterInfo *ch, int loop, int delay, int repeat, int blocking, int direction, int sframe = 0,
+void Character_Animate(Character *ch, int loop, int delay, int repeat, int blocking, int direction, int sframe = 0,
                        int volume = 100);
 // Character.Animate without the first frame and volume: starts at frame 0, at full volume.
-void Character_Animate5(CharacterInfo *ch, int loop, int delay, int repeat, int blocking, int direction);
+void Character_Animate5(Character *ch, int loop, int delay, int repeat, int blocking, int direction);
 // Character.ChangeRoomAutoPosition, the player character only: changes the room and places the character by new_pos,
 // or, if new_pos is 0, at the screen edge opposite to the one it stands at.
-void Character_ChangeRoomAutoPosition(CharacterInfo *ch, int room, int new_pos);
-void Character_ChangeRoom(CharacterInfo *ch, int room, int x, int y);
+void Character_ChangeRoomAutoPosition(Character *ch, int room, int new_pos);
+void Character_ChangeRoom(Character *ch, int room, int x, int y);
 // Character.ChangeRoom with a direction (loop) the character is to face in the new room;
 // Character_ChangeRoom passes SCR_NO_VALUE for none.
-void Character_ChangeRoomSetLoop(CharacterInfo *ch, int room, int x, int y, int direction);
-void Character_ChangeView(CharacterInfo *ch, int view);
+void Character_ChangeRoomSetLoop(Character *ch, int room, int x, int y, int direction);
+void Character_ChangeView(Character *ch, int view);
 // Not a script function: sets the character's current view without changing its default view.
 // The view number is 0-based and is not validated.
-void Character_SetViewDirect(CharacterInfo *ch, int view, bool is_walk_view);
-void Character_FaceDirection(CharacterInfo *ch, int direction, int blocking_style);
-void Character_FaceCharacter(CharacterInfo *ch, CharacterInfo *other, int blocking_style);
-void Character_FaceLocation(CharacterInfo *ch, int x, int y, int blocking_style);
-void Character_FaceObject(CharacterInfo *ch, ScriptObject *obj, int blocking_style);
-void Character_FollowCharacter(CharacterInfo *ch, CharacterInfo *to_follow, int distaway, int eagerness);
-int Character_IsCollidingWithChar(CharacterInfo *ch, CharacterInfo *other);
-int Character_IsCollidingWithObject(CharacterInfo *ch, ScriptObject *obj);
+void Character_SetViewDirect(Character *ch, int view, bool is_walk_view);
+void Character_FaceDirection(Character *ch, int direction, int blocking_style);
+void Character_FaceCharacter(Character *ch, Character *other, int blocking_style);
+void Character_FaceLocation(Character *ch, int x, int y, int blocking_style);
+void Character_FaceObject(Character *ch, ScriptObject *obj, int blocking_style);
+void Character_FollowCharacter(Character *ch, Character *to_follow, int distaway, int eagerness);
+int Character_IsCollidingWithChar(Character *ch, Character *other);
+int Character_IsCollidingWithObject(Character *ch, ScriptObject *obj);
 // Tells if the character has an event handler for the cursor mode (mood), without running it:
 // runs Character_RunInteraction in the check-only mode.
-bool Character_IsInteractionAvailable(CharacterInfo *ch, int mood);
-void Character_LockView(CharacterInfo *ch, int view);
+bool Character_IsInteractionAvailable(Character *ch, int mood);
+void Character_LockView(Character *ch, int view);
 // LockViewEx, LockViewAlignedEx, LockViewFrameEx and LockViewOffsetEx implement the script functions LockView
 // (with the stop_moving argument), LockViewAligned, LockViewFrame and LockViewOffset; the view is 1-based.
-void Character_LockViewEx(CharacterInfo *ch, int view, int stop_moving);
-void Character_LockViewAlignedEx(CharacterInfo *ch, int view, int loop, int align, int stop_moving);
-void Character_LockViewFrameEx(CharacterInfo *ch, int view, int loop, int frame, int stop_moving);
-void Character_LockViewOffsetEx(CharacterInfo *ch, int view, int xoffs, int yoffs, int stop_moving);
-void Character_LoseInventory(CharacterInfo *ch, ScriptInvItem *item);
-void Character_PlaceOnWalkableArea(CharacterInfo *ch);
-void Character_RemoveTint(CharacterInfo *ch);
+void Character_LockViewEx(Character *ch, int view, int stop_moving);
+void Character_LockViewAlignedEx(Character *ch, int view, int loop, int align, int stop_moving);
+void Character_LockViewFrameEx(Character *ch, int view, int loop, int frame, int stop_moving);
+void Character_LockViewOffsetEx(Character *ch, int view, int xoffs, int yoffs, int stop_moving);
+void Character_LoseInventory(Character *ch, ScriptInvItem *item);
+void Character_PlaceOnWalkableArea(Character *ch);
+void Character_RemoveTint(Character *ch);
 // Character.HasExplicitTint.
-int Character_GetHasExplicitTint(CharacterInfo *ch);
-void Character_Say(CharacterInfo *ch, const char *text);
-void Character_SayAt(CharacterInfo *ch, int x, int y, int width, const char *text);
-ScriptOverlay *Character_SayBackground(CharacterInfo *ch, const char *text);
-void Character_SetAsPlayer(CharacterInfo *ch);
-void Character_SetIdleView(CharacterInfo *ch, int iview, int itime);
+int Character_GetHasExplicitTint(Character *ch);
+void Character_Say(Character *ch, const char *text);
+void Character_SayAt(Character *ch, int x, int y, int width, const char *text);
+ScriptOverlay *Character_SayBackground(Character *ch, const char *text);
+void Character_SetAsPlayer(Character *ch);
+void Character_SetIdleView(Character *ch, int iview, int itime);
 // Character.SetWalkSpeed.
-void Character_SetSpeed(CharacterInfo *ch, int xspeed, int yspeed);
-void Character_StopMoving(CharacterInfo *ch);
+void Character_SetSpeed(Character *ch, int xspeed, int yspeed);
+void Character_StopMoving(Character *ch);
 // Not a script function: stops the character's move; if force_walkable_area is set, also moves the character
 // to the nearest walkable area when it ended on a non-walkable pixel.
-void Character_StopMovingEx(CharacterInfo *ch, bool force_walkable_area);
-void Character_Tint(CharacterInfo *ch, int red, int green, int blue, int opacity, int luminance);
-void Character_Think(CharacterInfo *ch, const char *text);
-void Character_UnlockView(CharacterInfo *ch);
-void Character_UnlockViewEx(CharacterInfo *ch, int stop_moving);
-void Character_Walk(CharacterInfo *ch, int x, int y, int blocking, int ignwal);
-void Character_Move(CharacterInfo *ch, int x, int y, int blocking, int ignwal);
-void Character_WalkStraight(CharacterInfo *ch, int x, int y, int blocking);
+void Character_StopMovingEx(Character *ch, bool force_walkable_area);
+void Character_Tint(Character *ch, int red, int green, int blue, int opacity, int luminance);
+void Character_Think(Character *ch, const char *text);
+void Character_UnlockView(Character *ch);
+void Character_UnlockViewEx(Character *ch, int stop_moving);
+void Character_Walk(Character *ch, int x, int y, int blocking, int ignwal);
+void Character_Move(Character *ch, int x, int y, int blocking, int ignwal);
+void Character_WalkStraight(Character *ch, int x, int y, int blocking);
 
 // Character.RunInteraction: runs the character's event for the cursor mode (mood) from the Interactions table,
 // then the "any click" event, unless the first one changed the game state.
-void Character_RunInteraction(CharacterInfo *ch, int mood);
+void Character_RunInteraction(Character *ch, int mood);
 
 // **** CHARACTER: PROPERTIES ****
 //
@@ -105,90 +105,90 @@ void Character_RunInteraction(CharacterInfo *ch, int mood);
 // and set_<Name> in the registration), unless a comment says otherwise.
 
 // Character.GetProperty, GetPropertyText and GetTextProperty: read a custom property of the character.
-int Character_GetProperty(CharacterInfo *ch, const char *property);
-void Character_GetPropertyText(CharacterInfo *ch, const char *property, char *buffer);
-const char *Character_GetTextProperty(CharacterInfo *ch, const char *property);
+int Character_GetProperty(Character *ch, const char *property);
+void Character_GetPropertyText(Character *ch, const char *property, char *buffer);
+const char *Character_GetTextProperty(Character *ch, const char *property);
 
-ScriptInvItem *Character_GetActiveInventory(CharacterInfo *ch);
-void Character_SetActiveInventory(CharacterInfo *ch, ScriptInvItem *item);
+ScriptInvItem *Character_GetActiveInventory(Character *ch);
+void Character_SetActiveInventory(Character *ch, ScriptInvItem *item);
 // [DEPRECATED] the former script function that sets the player character's active inventory item;
 // still called by the engine (gui.cpp, savegame.cpp, Character_SetAsPlayer).
 void SetActiveInventory(int item_id);
-int Character_GetAnimating(CharacterInfo *ch);
-int Character_GetAnimationSpeed(CharacterInfo *ch);
-void Character_SetAnimationSpeed(CharacterInfo *ch, int new_value);
-int Character_GetBaseline(CharacterInfo *ch);
-void Character_SetBaseline(CharacterInfo *ch, int baseline);
-int Character_GetBlinkInterval(CharacterInfo *ch);
-void Character_SetBlinkInterval(CharacterInfo *ch, int interval);
-int Character_GetBlinkView(CharacterInfo *ch);
-void Character_SetBlinkView(CharacterInfo *ch, int view);
-int Character_GetBlinkWhileThinking(CharacterInfo *ch);
-void Character_SetBlinkWhileThinking(CharacterInfo *ch, int yesorno);
-int Character_GetBlockingHeight(CharacterInfo *ch);
-void Character_SetBlockingHeight(CharacterInfo *ch, int hit);
-int Character_GetBlockingWidth(CharacterInfo *ch);
-void Character_SetBlockingWidth(CharacterInfo *ch, int wid);
+int Character_GetAnimating(Character *ch);
+int Character_GetAnimationSpeed(Character *ch);
+void Character_SetAnimationSpeed(Character *ch, int new_value);
+int Character_GetBaseline(Character *ch);
+void Character_SetBaseline(Character *ch, int baseline);
+int Character_GetBlinkInterval(Character *ch);
+void Character_SetBlinkInterval(Character *ch, int interval);
+int Character_GetBlinkView(Character *ch);
+void Character_SetBlinkView(Character *ch, int view);
+int Character_GetBlinkWhileThinking(Character *ch);
+void Character_SetBlinkWhileThinking(Character *ch, int yesorno);
+int Character_GetBlockingHeight(Character *ch);
+void Character_SetBlockingHeight(Character *ch, int hit);
+int Character_GetBlockingWidth(Character *ch);
+void Character_SetBlockingWidth(Character *ch, int wid);
 // Character.DiagonalLoops.
-int Character_GetDiagonalWalking(CharacterInfo *ch);
-void Character_SetDiagonalWalking(CharacterInfo *ch, int yesorno);
-int Character_GetClickable(CharacterInfo *ch);
-void Character_SetClickable(CharacterInfo *ch, int clickable);
-int Character_GetID(CharacterInfo *ch);
-int Character_GetFrame(CharacterInfo *ch);
-void Character_SetFrame(CharacterInfo *ch, int new_value);
-int Character_GetIdleView(CharacterInfo *ch);
+int Character_GetDiagonalWalking(Character *ch);
+void Character_SetDiagonalWalking(Character *ch, int yesorno);
+int Character_GetClickable(Character *ch);
+void Character_SetClickable(Character *ch, int clickable);
+int Character_GetID(Character *ch);
+int Character_GetFrame(Character *ch);
+void Character_SetFrame(Character *ch, int new_value);
+int Character_GetIdleView(Character *ch);
 // Character.InventoryQuantity[] (an indexed property: the index is the inventory item ID).
-int Character_GetIInventoryQuantity(CharacterInfo *ch, int index);
-int Character_HasInventory(CharacterInfo *ch, ScriptInvItem *item);
-void Character_SetIInventoryQuantity(CharacterInfo *ch, int index, int quant);
-int Character_GetIgnoreLighting(CharacterInfo *ch);
-void Character_SetIgnoreLighting(CharacterInfo *ch, int yesorno);
-void Character_SetManualScaling(CharacterInfo *ch, int yesorno);
-int Character_GetMovementLinkedToAnimation(CharacterInfo *ch);
-void Character_SetMovementLinkedToAnimation(CharacterInfo *ch, int yesorno);
-int Character_GetLoop(CharacterInfo *ch);
-void Character_SetLoop(CharacterInfo *ch, int new_value);
-int Character_GetMoving(CharacterInfo *ch);
+int Character_GetIInventoryQuantity(Character *ch, int index);
+int Character_HasInventory(Character *ch, ScriptInvItem *item);
+void Character_SetIInventoryQuantity(Character *ch, int index, int quant);
+int Character_GetIgnoreLighting(Character *ch);
+void Character_SetIgnoreLighting(Character *ch, int yesorno);
+void Character_SetManualScaling(Character *ch, int yesorno);
+int Character_GetMovementLinkedToAnimation(Character *ch);
+void Character_SetMovementLinkedToAnimation(Character *ch, int yesorno);
+int Character_GetLoop(Character *ch);
+void Character_SetLoop(Character *ch, int new_value);
+int Character_GetMoving(Character *ch);
 // Character.DisplayName, and the obsolete Character.Name, which is registered to the same functions.
-const char *Character_GetName(CharacterInfo *ch);
-void Character_SetName(CharacterInfo *ch, const char *name);
-int Character_GetNormalView(CharacterInfo *ch);
-int Character_GetPreviousRoom(CharacterInfo *ch);
-int Character_GetRoom(CharacterInfo *ch);
-int Character_GetScaleMoveSpeed(CharacterInfo *ch);
-void Character_SetScaleMoveSpeed(CharacterInfo *ch, int yesorno);
-int Character_GetScaleVolume(CharacterInfo *ch);
-void Character_SetScaleVolume(CharacterInfo *ch, int yesorno);
-int Character_GetScaling(CharacterInfo *ch);
-void Character_SetScaling(CharacterInfo *ch, int zoomlevel);
-int Character_GetSolid(CharacterInfo *ch);
-void Character_SetSolid(CharacterInfo *ch, int yesorno);
-int Character_GetSpeaking(CharacterInfo *ch);
-int Character_GetSpeechColor(CharacterInfo *ch);
-void Character_SetSpeechColor(CharacterInfo *ch, int ncol);
-int Character_GetSpeechAnimationDelay(CharacterInfo *ch);
-void Character_SetSpeechAnimationDelay(CharacterInfo *ch, int delay);
-int Character_GetSpeechView(CharacterInfo *ch);
-void Character_SetSpeechView(CharacterInfo *ch, int view);
-int Character_GetThinkView(CharacterInfo *ch);
-void Character_SetThinkView(CharacterInfo *ch, int view);
-int Character_GetOpacity(CharacterInfo *ch);
-void Character_SetOpacity(CharacterInfo *ch, int opacity);
-int Character_GetTurnBeforeWalking(CharacterInfo *ch);
-void Character_SetTurnBeforeWalking(CharacterInfo *ch, int on);
-int Character_GetView(CharacterInfo *ch);
-int Character_GetWalkSpeedX(CharacterInfo *ch);
-int Character_GetWalkSpeedY(CharacterInfo *ch);
-int Character_GetX(CharacterInfo *ch);
-void Character_SetX(CharacterInfo *ch, int new_value);
-int Character_GetY(CharacterInfo *ch);
-void Character_SetY(CharacterInfo *ch, int new_value);
-int Character_GetZ(CharacterInfo *ch);
-void Character_SetZ(CharacterInfo *ch, int new_value);
-int Character_GetSpeakingFrame(CharacterInfo *ch);
-int Character_GetBlendMode(CharacterInfo *ch);
-void Character_SetBlendMode(CharacterInfo *ch, int blend_mode);
+const char *Character_GetName(Character *ch);
+void Character_SetName(Character *ch, const char *name);
+int Character_GetNormalView(Character *ch);
+int Character_GetPreviousRoom(Character *ch);
+int Character_GetRoom(Character *ch);
+int Character_GetScaleMoveSpeed(Character *ch);
+void Character_SetScaleMoveSpeed(Character *ch, int yesorno);
+int Character_GetScaleVolume(Character *ch);
+void Character_SetScaleVolume(Character *ch, int yesorno);
+int Character_GetScaling(Character *ch);
+void Character_SetScaling(Character *ch, int zoomlevel);
+int Character_GetSolid(Character *ch);
+void Character_SetSolid(Character *ch, int yesorno);
+int Character_GetSpeaking(Character *ch);
+int Character_GetSpeechColor(Character *ch);
+void Character_SetSpeechColor(Character *ch, int ncol);
+int Character_GetSpeechAnimationDelay(Character *ch);
+void Character_SetSpeechAnimationDelay(Character *ch, int delay);
+int Character_GetSpeechView(Character *ch);
+void Character_SetSpeechView(Character *ch, int view);
+int Character_GetThinkView(Character *ch);
+void Character_SetThinkView(Character *ch, int view);
+int Character_GetOpacity(Character *ch);
+void Character_SetOpacity(Character *ch, int opacity);
+int Character_GetTurnBeforeWalking(Character *ch);
+void Character_SetTurnBeforeWalking(Character *ch, int on);
+int Character_GetView(Character *ch);
+int Character_GetWalkSpeedX(Character *ch);
+int Character_GetWalkSpeedY(Character *ch);
+int Character_GetX(Character *ch);
+void Character_SetX(Character *ch, int new_value);
+int Character_GetY(Character *ch);
+void Character_SetY(Character *ch, int new_value);
+int Character_GetZ(Character *ch);
+void Character_SetZ(Character *ch, int new_value);
+int Character_GetSpeakingFrame(Character *ch);
+int Character_GetBlendMode(Character *ch);
+void Character_SetBlendMode(Character *ch, int blend_mode);
 
 //=============================================================================
 
@@ -205,54 +205,54 @@ class Bitmap;
 } // namespace AGS
 
 // Configures and starts character animation.
-void animate_character(CharacterInfo *ch, int loop, int sppd, int rept, int direction = 0, int sframe = 0,
+void animate_character(Character *ch, int loop, int sppd, int rept, int direction = 0, int sframe = 0,
                        int volume = 100);
 // Clears the character's animation state, which stops the animation started by animate_character
-void stop_character_anim(CharacterInfo *ch);
+void stop_character_anim(Character *ch);
 // Returns the position of the loop in turnlooporder (the order of loops to turn the character through);
 // 0 if the loop is not there.
 int find_looporder_index(int curloop);
 // Tells if character should use diagonal loops;
 // optionally require that diagonal loops have an actual animation (> 1 frame)
-bool should_use_diagloops(CharacterInfo *ch, bool require_animation);
+bool should_use_diagloops(Character *ch, bool require_animation);
 // Tells if the view has frames in both the Down and the Up loops; false if it has only horizontal animations
-bool has_updown_loops(CharacterInfo *ch);
+bool has_updown_loops(Character *ch);
 // Starts turning the character from its current loop to use_loop, one step of turnlooporder per update,
 // in the shorter direction (equal ones are decided by the "turn order priority" game option). Loops that do not
 // exist or have no frames are skipped, so are the diagonal ones if use_diagloops is false; the turning is not
 // started if no step is needed.
-void start_character_turning(CharacterInfo *ch, int use_loop, bool use_diagloops);
+void start_character_turning(Character *ch, int use_loop, bool use_diagloops);
 // Sets the loop of a walking character according to the direction of its current move, either right away or,
 // when the game turns characters while they walk, by turning it step by step. Does nothing if the move has no speed.
-void fix_player_sprite(CharacterInfo *ch, const MoveList &cmls);
+void fix_player_sprite(Character *ch, const MoveList &cmls);
 // Check whether two characters have walked into each other
 int has_hit_another_character(Game &game, int source_char);
 // Does the next move from the character's movelist.
 // Returns 1 if the character is now waiting for another one to move, otherwise 0.
-int doNextCharMoveStep(Game &game, CharacterInfo *ch, CharacterExtras *chex);
+int doNextCharMoveStep(Game &game, Character *ch, CharacterExtras *chex);
 // Tells if character is currently moving, in eWalkableAreas mode
-bool is_char_walking_ndirect(CharacterInfo *ch);
+bool is_char_walking_ndirect(Character *ch);
 // Finds the walkable point nearest to src (src itself if it is walkable) and writes it to dst; returns false if
 // there is none. Room edges limit the search, unless src is already beyond them.
 bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst);
 // Makes sure the character's loop exists in its view and has frames: otherwise takes the default loop, or the first
 // one that has frames. With is_walk_view only the walking loops count (the first 4, or 8 if diagonals are allowed).
-void FindReasonableLoopForCharacter(CharacterInfo *ch, bool is_walk_view);
+void FindReasonableLoopForCharacter(Character *ch, bool is_walk_view);
 // Start character walk or move; calculate path using destination and optionally "ignore walls" flag
-void move_character(CharacterInfo *ch, int tox, int toy, bool ignwal, bool walk_anim);
+void move_character(Character *ch, int tox, int toy, bool ignwal, bool walk_anim);
 // Start character walk or move, using a predefined path
-void move_character(CharacterInfo *ch, const std::vector<Point> &path, bool walk_anim, const RunPathParams &run_params);
+void move_character(Character *ch, const std::vector<Point> &path, bool walk_anim, const RunPathParams &run_params);
 // Start character walk or move along the straight line without pathfinding, until any non-passable area is met
-void move_character_straight(CharacterInfo *ch, int x, int y, bool walk_anim);
+void move_character_straight(Character *ch, int x, int y, bool walk_anim);
 // Start character walk; calculate path using destination and optionally "ignore walls" flag
-void walk_character(CharacterInfo *ch, int tox, int toy, bool ignwal);
+void walk_character(Character *ch, int tox, int toy, bool ignwal);
 // Walks the character to the walk-to point of the hotspot and waits until it stops;
 // does nothing if the hotspot has no walk-to point.
 void MoveCharacterToHotspot(int char_id, int hotsp);
 // Tells how many steps the character makes this update, as its speed scales with its zoom level
 // (CHF_SCALEMOVESPEED): 1 normally, 2 when faster, 0 when it skips the update, and a negative value for
 // abs(value) steps made half-way, with the position saved to be completed on the next update (UpdateCharacterMoving).
-int wantMoveNow(CharacterInfo *ch, CharacterExtras *chex);
+int wantMoveNow(Character *ch, CharacterExtras *chex);
 // Makes the character the player: sets game.playercharacter, Game::PlayerChar and the script pointer to it.
 void setup_player_character(int char_id);
 // Width and height of the character's sprite: the scaled size calculated by update_character_scale, or the size of
@@ -311,29 +311,29 @@ PViewport FindNearestViewport(int char_id);
 // Updates one character for one game tick: turning, moving, animating, following, idling, in this order; does
 // nothing if the character is disabled. Characters following another "always on top" are added to
 // following_as_sheep, to be updated afterwards with UpdateFollowingExactlyCharacter.
-void UpdateCharacterMoveAndAnim(Game &game, Room &room, CharacterInfo *ch, CharacterExtras *chex,
+void UpdateCharacterMoveAndAnim(Game &game, Room &room, Character *ch, CharacterExtras *chex,
                                 std::vector<int> &following_as_sheep);
 // Copies the position, room and previous room of the character it follows "always on top", and puts its baseline
 // one behind or in front of the followed one's.
-void UpdateFollowingExactlyCharacter(Game &game, CharacterInfo *ch);
+void UpdateFollowingExactlyCharacter(Game &game, Character *ch);
 // Makes the next turn step of a turning character; returns true if the character was turning.
-bool UpdateCharacterTurning(Game &game, CharacterInfo *ch, CharacterExtras *chex);
+bool UpdateCharacterTurning(Game &game, Character *ch, CharacterExtras *chex);
 // Makes the move steps of a moving character (see wantMoveNow), and stops it when the move is finished;
 // doing_nothing is cleared while the character is still moving.
-void UpdateCharacterMoving(Game &game, CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing);
+void UpdateCharacterMoving(Game &game, Character *ch, CharacterExtras *chex, int &doing_nothing);
 // Advances the animation of an animating or idling character, including the lip-sync of a speaking one; returns
 // true if the rest of the character's update is to be skipped. doing_nothing is cleared, unless it is an idle animation.
-bool UpdateCharacterAnimating(Game &game, CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing);
+bool UpdateCharacterAnimating(Game &game, Character *ch, CharacterExtras *chex, int &doing_nothing);
 // Counts the idle time of a character that does nothing and starts its idle animation when the time is up.
-void UpdateCharacterIdle(Game &game, CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing);
+void UpdateCharacterIdle(Game &game, Character *ch, CharacterExtras *chex, int &doing_nothing);
 // Makes a character that follows another one walk after it, or change room with it, when it has nothing else to do.
-void UpdateCharacterFollower(Game &game, Room &room, CharacterInfo *ch, std::vector<int> &following_as_sheep,
+void UpdateCharacterFollower(Game &game, Room &room, Character *ch, std::vector<int> &following_as_sheep,
                              int &doing_nothing);
 // Rebuilds every character's list of inventory items (CharacterExtras::inventory) from the item quantities.
 void UpdateInventory();
 
 // Resets idling timer, and marks for immediate update (in case its persistent idling)
-void reset_character_idling_time(CharacterInfo *ch);
+void reset_character_idling_time(Character *ch);
 
 // Order of loops to turn the character through, in a circle from down, clockwise
 extern const int turnlooporder[8];
@@ -342,257 +342,257 @@ class ScriptMotionPath;
 class ScriptShaderInstance;
 
 // Script API: Character::Animate^6
-void Character_Animate6(CharacterInfo *ch, int loop, int delay, int repeat, int blocking, int direction, int sframe);
+void Character_Animate6(Character *ch, int loop, int delay, int repeat, int blocking, int direction, int sframe);
 
 // Script API: Character::get_Following
-CharacterInfo *Character_GetFollowing(CharacterInfo *ch);
+Character *Character_GetFollowing(Character *ch);
 
 // Script API: Character::LockViewAnchored^6
-void Character_LockViewAnchored(CharacterInfo *ch, int view, float x_anchor, float y_anchor, int x_off, int y_off,
+void Character_LockViewAnchored(Character *ch, int view, float x_anchor, float y_anchor, int x_off, int y_off,
                                 int stop_moving);
 
 // Script API: Character::LoseInventoryAt^1
-void Character_LoseInventoryAt(CharacterInfo *ch, int inv_index);
+void Character_LoseInventoryAt(Character *ch, int inv_index);
 
 // Script API: Character::get_HasExplicitLight
-bool Character_GetHasExplicitLight(CharacterInfo *ch);
+bool Character_GetHasExplicitLight(Character *ch);
 
 // Script API: Character::get_LightLevel
-int Character_GetLightLevel(CharacterInfo *ch);
+int Character_GetLightLevel(Character *ch);
 
 // Script API: Character::SetLightLevel^1
-void Character_SetLightLevel(CharacterInfo *ch, int light_level);
+void Character_SetLightLevel(Character *ch, int light_level);
 
 // Script API: Character::get_TintRed
-int Character_GetTintRed(CharacterInfo *ch);
+int Character_GetTintRed(Character *ch);
 
 // Script API: Character::get_TintGreen
-int Character_GetTintGreen(CharacterInfo *ch);
+int Character_GetTintGreen(Character *ch);
 
 // Script API: Character::get_TintBlue
-int Character_GetTintBlue(CharacterInfo *ch);
+int Character_GetTintBlue(Character *ch);
 
 // Script API: Character::get_TintSaturation
-int Character_GetTintSaturation(CharacterInfo *ch);
+int Character_GetTintSaturation(Character *ch);
 
 // Script API: Character::get_TintLuminance
-int Character_GetTintLuminance(CharacterInfo *ch);
+int Character_GetTintLuminance(Character *ch);
 
 // Script API: Character::MoveStraight^3
-void Character_MoveStraight(CharacterInfo *ch, int x, int y, int blocking);
+void Character_MoveStraight(Character *ch, int x, int y, int blocking);
 
 // Script API: Character::WalkPath^4
-void Character_WalkPath(CharacterInfo *ch, void *path_arr, int blocking, int repeat, int direction);
+void Character_WalkPath(Character *ch, void *path_arr, int blocking, int repeat, int direction);
 
 // Script API: Character::MovePath^4
-void Character_MovePath(CharacterInfo *ch, void *path_arr, int blocking, int repeat, int direction);
+void Character_MovePath(Character *ch, void *path_arr, int blocking, int repeat, int direction);
 
 // Script API: Character::RunFrameEvent^3
-bool Character_RunFrameEvent(CharacterInfo *ch, int view, int loop, int frame);
+bool Character_RunFrameEvent(Character *ch, int view, int loop, int frame);
 
 // Script API: Character::GetGraphicPosition^0
-void *Character_GetGraphicPosition(CharacterInfo *ch);
+void *Character_GetGraphicPosition(Character *ch);
 
 // Script API: Character::GetGraphicBoundBox^0
-void *Character_GetGraphicBoundBox(CharacterInfo *ch);
+void *Character_GetGraphicBoundBox(Character *ch);
 
 // Script API: Character::SetProperty^2
-bool Character_SetProperty(CharacterInfo *ch, const char *property, int value);
+bool Character_SetProperty(Character *ch, const char *property, int value);
 
 // Script API: Character::SetTextProperty^2
-bool Character_SetTextProperty(CharacterInfo *ch, const char *property, const char *value);
+bool Character_SetTextProperty(Character *ch, const char *property, const char *value);
 
 // Script API: Character::get_AudioPanning
-int Character_GetAudioPanning(CharacterInfo *ch);
+int Character_GetAudioPanning(Character *ch);
 
 // Script API: Character::set_AudioPanning
-void Character_SetAudioPanning(CharacterInfo *ch, int new_value);
+void Character_SetAudioPanning(Character *ch, int new_value);
 
 // Script API: Character::get_AudioSpeed
-int Character_GetAudioSpeed(CharacterInfo *ch);
+int Character_GetAudioSpeed(Character *ch);
 
 // Script API: Character::set_AudioSpeed
-void Character_SetAudioSpeed(CharacterInfo *ch, int new_value);
+void Character_SetAudioSpeed(Character *ch, int new_value);
 
 // Script API: Character::get_AnimationVolume, Character::get_AudioVolume
-int Character_GetAudioVolume(CharacterInfo *ch);
+int Character_GetAudioVolume(Character *ch);
 
 // Script API: Character::set_AnimationVolume, Character::set_AudioVolume
-void Character_SetAudioVolume(CharacterInfo *ch, int new_value);
+void Character_SetAudioVolume(Character *ch, int new_value);
 
 // Script API: Character::get_BlockingRectX
-int Character_GetBlockingRectX(CharacterInfo *ch);
+int Character_GetBlockingRectX(Character *ch);
 
 // Script API: Character::set_BlockingRectX
-void Character_SetBlockingRectX(CharacterInfo *ch, int x);
+void Character_SetBlockingRectX(Character *ch, int x);
 
 // Script API: Character::get_BlockingRectY
-int Character_GetBlockingRectY(CharacterInfo *ch);
+int Character_GetBlockingRectY(Character *ch);
 
 // Script API: Character::set_BlockingRectY
-void Character_SetBlockingRectY(CharacterInfo *ch, int y);
+void Character_SetBlockingRectY(Character *ch, int y);
 
 // Script API: Character::get_ScriptName
-const char *Character_GetScriptName(CharacterInfo *ch);
+const char *Character_GetScriptName(Character *ch);
 
 // Script API: Character::get_Enabled
-bool Character_GetEnabled(CharacterInfo *ch);
+bool Character_GetEnabled(Character *ch);
 
 // Script API: Character::set_Enabled
-void Character_SetEnabled(CharacterInfo *ch, bool new_value);
+void Character_SetEnabled(Character *ch, bool new_value);
 
 // Script API: Character::get_IdleDelay
-int Character_GetIdleDelay(CharacterInfo *ch);
+int Character_GetIdleDelay(Character *ch);
 
 // Script API: Character::get_IdleTime
-int Character_GetIdleTime(CharacterInfo *ch);
+int Character_GetIdleTime(Character *ch);
 
 // Script API: Character::get_ManualScaling
-int Character_GetManualScaling(CharacterInfo *ch);
+int Character_GetManualScaling(Character *ch);
 
 // Script API: Character::get_InventoryCount
-int Character_GetInventoryCount(CharacterInfo *ch);
+int Character_GetInventoryCount(Character *ch);
 
 // Script API: Character::geti_Inventory
-ScriptInvItem *Character_GetInventory(CharacterInfo *ch, int index);
+ScriptInvItem *Character_GetInventory(Character *ch, int index);
 
 // Script API: Character::get_DestinationX
-int Character_GetDestinationX(CharacterInfo *ch);
+int Character_GetDestinationX(Character *ch);
 
 // Script API: Character::get_DestinationY
-int Character_GetDestinationY(CharacterInfo *ch);
+int Character_GetDestinationY(Character *ch);
 
 // Script API: Character::get_IdleAnimationDelay
-int Character_GetIdleAnimationDelay(CharacterInfo *ch);
+int Character_GetIdleAnimationDelay(Character *ch);
 
 // Script API: Character::set_IdleAnimationDelay
-void Character_SetIdleAnimationDelay(CharacterInfo *ch, int delay);
+void Character_SetIdleAnimationDelay(Character *ch, int delay);
 
 // Script API: Character::get_Thinking
-bool Character_GetThinking(CharacterInfo *ch);
+bool Character_GetThinking(Character *ch);
 
 // Script API: Character::get_ThinkingFrame
-int Character_GetThinkingFrame(CharacterInfo *ch);
+int Character_GetThinkingFrame(Character *ch);
 
 // Script API: Character::get_Transparency
-int Character_GetTransparency(CharacterInfo *ch);
+int Character_GetTransparency(Character *ch);
 
 // Script API: Character::set_Transparency
-void Character_SetTransparency(CharacterInfo *ch, int trans);
+void Character_SetTransparency(Character *ch, int trans);
 
 // Script API: Character::get_Visible
-bool Character_GetVisible(CharacterInfo *ch);
+bool Character_GetVisible(Character *ch);
 
 // Script API: Character::set_Visible
-void Character_SetVisible(CharacterInfo *ch, bool new_value);
+void Character_SetVisible(Character *ch, bool new_value);
 
 // Script API: Character::get_GraphicAnchorX
-float Character_GetGraphicAnchorX(CharacterInfo *ch);
+float Character_GetGraphicAnchorX(Character *ch);
 
 // Script API: Character::set_GraphicAnchorX
-void Character_SetGraphicAnchorX(CharacterInfo *ch, float x);
+void Character_SetGraphicAnchorX(Character *ch, float x);
 
 // Script API: Character::get_GraphicAnchorY
-float Character_GetGraphicAnchorY(CharacterInfo *ch);
+float Character_GetGraphicAnchorY(Character *ch);
 
 // Script API: Character::set_GraphicAnchorY
-void Character_SetGraphicAnchorY(CharacterInfo *ch, float y);
+void Character_SetGraphicAnchorY(Character *ch, float y);
 
 // Script API: Character::get_GraphicOffsetX
-int Character_GetGraphicOffsetX(CharacterInfo *ch);
+int Character_GetGraphicOffsetX(Character *ch);
 
 // Script API: Character::set_GraphicOffsetX
-void Character_SetGraphicOffsetX(CharacterInfo *ch, int x);
+void Character_SetGraphicOffsetX(Character *ch, int x);
 
 // Script API: Character::get_GraphicOffsetY
-int Character_GetGraphicOffsetY(CharacterInfo *ch);
+int Character_GetGraphicOffsetY(Character *ch);
 
 // Script API: Character::set_GraphicOffsetY
-void Character_SetGraphicOffsetY(CharacterInfo *ch, int y);
+void Character_SetGraphicOffsetY(Character *ch, int y);
 
 // Script API: Character::get_Shader
-ScriptShaderInstance *Character_GetShader(CharacterInfo *ch);
+ScriptShaderInstance *Character_GetShader(Character *ch);
 
 // Script API: Character::set_Shader
-void Character_SetShader(CharacterInfo *ch, ScriptShaderInstance *shader_inst);
+void Character_SetShader(Character *ch, ScriptShaderInstance *shader_inst);
 
 // Script API: Character::get_GraphicRotation
-float Character_GetRotation(CharacterInfo *ch);
+float Character_GetRotation(Character *ch);
 
 // Script API: Character::set_GraphicRotation
-void Character_SetRotation(CharacterInfo *ch, float degrees);
+void Character_SetRotation(Character *ch, float degrees);
 
 // Script API: Character::get_GraphicPivotX
-float Character_GetGraphicPivotX(CharacterInfo *ch);
+float Character_GetGraphicPivotX(Character *ch);
 
 // Script API: Character::set_GraphicPivotX
-void Character_SetGraphicPivotX(CharacterInfo *ch, float pivotx);
+void Character_SetGraphicPivotX(Character *ch, float pivotx);
 
 // Script API: Character::get_GraphicPivotY
-float Character_GetGraphicPivotY(CharacterInfo *ch);
+float Character_GetGraphicPivotY(Character *ch);
 
 // Script API: Character::set_GraphicPivotY
-void Character_SetGraphicPivotY(CharacterInfo *ch, float pivoty);
+void Character_SetGraphicPivotY(Character *ch, float pivoty);
 
 // Script API: Character::get_GraphicPivotOffsetX
-int Character_GetGraphicPivotOffsetX(CharacterInfo *ch);
+int Character_GetGraphicPivotOffsetX(Character *ch);
 
 // Script API: Character::set_GraphicPivotOffsetX
-void Character_SetGraphicPivotOffsetX(CharacterInfo *ch, int px);
+void Character_SetGraphicPivotOffsetX(Character *ch, int px);
 
 // Script API: Character::get_GraphicPivotOffsetY
-int Character_GetGraphicPivotOffsetY(CharacterInfo *ch);
+int Character_GetGraphicPivotOffsetY(Character *ch);
 
 // Script API: Character::set_GraphicPivotOffsetY
-void Character_SetGraphicPivotOffsetY(CharacterInfo *ch, int py);
+void Character_SetGraphicPivotOffsetY(Character *ch, int py);
 
 // Script API: Character::get_FaceDirectionRatio
-float Character_GetFaceDirectionRatio(CharacterInfo *ch);
+float Character_GetFaceDirectionRatio(Character *ch);
 
 // Script API: Character::set_FaceDirectionRatio
-void Character_SetFaceDirectionRatio(CharacterInfo *ch, float ratio);
+void Character_SetFaceDirectionRatio(Character *ch, float ratio);
 
 // Script API: Character::get_Turning
-bool Character_GetTurning(CharacterInfo *ch);
+bool Character_GetTurning(Character *ch);
 
 // Script API: Character::get_TurnWhenFacing
-int Character_GetTurnWhenFacing(CharacterInfo *ch);
+int Character_GetTurnWhenFacing(Character *ch);
 
 // Script API: Character::set_TurnWhenFacing
-void Character_SetTurnWhenFacing(CharacterInfo *ch, int on);
+void Character_SetTurnWhenFacing(Character *ch, int on);
 
 // Script API: Character::get_UseRegionTint
-bool Character_GetUseRegionTint(CharacterInfo *ch);
+bool Character_GetUseRegionTint(Character *ch);
 
 // Script API: Character::set_UseRegionTint
-void Character_SetUseRegionTint(CharacterInfo *ch, int yesorno);
+void Character_SetUseRegionTint(Character *ch, int yesorno);
 
 // Script API: Character::get_ViewAnchorX
-float Character_GetViewAnchorX(CharacterInfo *ch);
+float Character_GetViewAnchorX(Character *ch);
 
 // Script API: Character::get_ViewAnchorY
-float Character_GetViewAnchorY(CharacterInfo *ch);
+float Character_GetViewAnchorY(Character *ch);
 
 // Script API: Character::get_ViewOffsetX
-int Character_GetViewOffsetX(CharacterInfo *ch);
+int Character_GetViewOffsetX(Character *ch);
 
 // Script API: Character::get_ViewOffsetY
-int Character_GetViewOffsetY(CharacterInfo *ch);
+int Character_GetViewOffsetY(Character *ch);
 
 // Script API: Character::get_MotionPath
-ScriptMotionPath *Character_GetMotionPath(CharacterInfo *ch);
+ScriptMotionPath *Character_GetMotionPath(Character *ch);
 
 // Script API: Character::GetAtScreenXY^3
-CharacterInfo *Character_GetAtScreenXY(int x, int y, int hit_options);
+Character *Character_GetAtScreenXY(int x, int y, int hit_options);
 
 // Script API: Character::GetAtScreenXY^2
-CharacterInfo *Character_GetAtScreenXY2(int x, int y);
+Character *Character_GetAtScreenXY2(int x, int y);
 
 // Script API: Character::GetAtRoomXY^3
-CharacterInfo *Character_GetAtRoomXY(int x, int y, int hit_options);
+Character *Character_GetAtRoomXY(int x, int y, int hit_options);
 
 // Script API: Character::GetAtRoomXY^2
-CharacterInfo *Character_GetAtRoomXY2(int x, int y);
+Character *Character_GetAtRoomXY2(int x, int y);
 
 // Script API: Character::GetByName, Character::GetByScriptName
-CharacterInfo *Character_GetByName(const char *name);
+Character *Character_GetByName(const char *name);

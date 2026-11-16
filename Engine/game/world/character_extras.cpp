@@ -25,7 +25,7 @@
 
 using namespace AGS::Common;
 
-void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *ch)
+void CharacterExtras::UpdateGraphicSpace(const Character *ch)
 {
     // TODO: zoom_offs is not applied to eff_offset here, while draw.cpp scales the offsets by it on its own.
     // To apply it here, either:
@@ -69,17 +69,17 @@ void CharacterExtras::ResetAnimating()
     anim = ViewAnimateParams();
 }
 
-int CharacterExtras::GetEffectiveY(const CharacterInfo *ch) const
+int CharacterExtras::GetEffectiveY(const Character *ch) const
 {
     return ch->y - (ch->z * zoom_offs) / 100;
 }
 
-int CharacterExtras::GetFrameSoundVolume(const CharacterInfo *ch) const
+int CharacterExtras::GetFrameSoundVolume(const Character *ch) const
 {
     return ::CalcFrameSoundVolume(audio_volume, anim.AudioVolume, (ch->flags & CHF_SCALEVOLUME) ? zoom : 100);
 }
 
-void CharacterExtras::SetLockedView(CharacterInfo *ch, int view, int loop, int frame, const Pointf &anchor,
+void CharacterExtras::SetLockedView(Character *ch, int view, int loop, int frame, const Pointf &anchor,
                                     const Point &off)
 {
     ch->view = view;
@@ -92,7 +92,7 @@ void CharacterExtras::SetLockedView(CharacterInfo *ch, int view, int loop, int f
     UpdateEffectiveValues(ch);
 }
 
-void CharacterExtras::SetUnlockedView(CharacterInfo *ch)
+void CharacterExtras::SetUnlockedView(Character *ch)
 {
     ch->flags &= ~CHF_FIXVIEW;
     ch->view = ch->defview;
@@ -102,20 +102,20 @@ void CharacterExtras::SetUnlockedView(CharacterInfo *ch)
     UpdateEffectiveValues(ch);
 }
 
-void CharacterExtras::CheckViewFrame(CharacterInfo *ch)
+void CharacterExtras::CheckViewFrame(Character *ch)
 {
     ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(ch, &ccDynamicCharacter));
     ::CheckViewFrame(ch->view, ch->loop, ch->frame, GetFrameSoundVolume(ch), audio_panning, AudioSpeed, objevt,
                      &ch->GetEvents(), kCharacterEvent_OnFrameEvent);
 }
 
-bool CharacterExtras::RunFrameEvent(CharacterInfo *ch, int view, int loop, int frame)
+bool CharacterExtras::RunFrameEvent(Character *ch, int view, int loop, int frame)
 {
     ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(ch, &ccDynamicCharacter));
     return ::RunViewFrameEvent(view, loop, frame, objevt, &ch->GetEvents(), kCharacterEvent_OnFrameEvent);
 }
 
-void CharacterExtras::SetFollowing(CharacterInfo *ch, int follow_who, int distance, int eagerness, bool sort_behind)
+void CharacterExtras::SetFollowing(Character *ch, int follow_who, int distance, int eagerness, bool sort_behind)
 {
     if (follow_who < 0)
     {
@@ -133,13 +133,13 @@ void CharacterExtras::SetFollowing(CharacterInfo *ch, int follow_who, int distan
     }
 }
 
-void CharacterExtras::UpdateEffectiveValues(const CharacterInfo *ch)
+void CharacterExtras::UpdateEffectiveValues(const Character *ch)
 {
     eff_offset = ch->is_view_locked() ? view_offset : spr_offset;
     eff_anchor = ch->is_view_locked() ? view_anchor : spr_anchor;
 }
 
-void CharacterExtras::ReadFromSavegame(CharacterInfo *ch, Stream *in, CharacterSvgVersion save_ver)
+void CharacterExtras::ReadFromSavegame(Character *ch, Stream *in, CharacterSvgVersion save_ver)
 {
     // saves before kCharSvgVersion_400_28 have the legacy inventory (as with AudioSpeed below)
     if (save_ver < kCharSvgVersion_400_28)

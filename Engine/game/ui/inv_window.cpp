@@ -42,7 +42,7 @@ using namespace AGS::Engine;
 
 // *** INV WINDOW FUNCTIONS
 
-void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *ch)
+void InvWindow_SetCharacterToUse(GUIInvWindow *guii, Character *ch)
 {
     if (ch == nullptr)
         guii->SetCharacterID(-1);
@@ -52,7 +52,7 @@ void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *ch)
     guii->SetTopItem(0);
 }
 
-CharacterInfo *InvWindow_GetCharacterToUse(GUIInvWindow *guii)
+Character *InvWindow_GetCharacterToUse(GUIInvWindow *guii)
 {
     if (guii->GetCharacterID() < 0)
         return nullptr;

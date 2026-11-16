@@ -31,6 +31,7 @@ AGS::Common::String get_voicepak_name();
 AGS::Common::String get_voice_assetpath();
 
 struct CharacterInfo;
+using Character = CharacterInfo;
 struct ScriptOverlay;
 
 // Script API: Speech::get_TextOverlay
@@ -40,7 +41,7 @@ ScriptOverlay *Speech_GetTextOverlay();
 ScriptOverlay *Speech_GetPortraitOverlay();
 
 // Script API: Speech::get_SpeakingCharacter
-CharacterInfo *Speech_GetSpeakingCharacter();
+Character *Speech_GetSpeakingCharacter();
 
 // Script API: Speech::get_OverlayZOrder
 int Speech_GetOverlayZOrder();
