@@ -19,6 +19,15 @@
 #include "game/game_version.h"
 #include "platform/base/engine_defines.h"
 
+namespace AGS
+{
+namespace Common
+{
+template <typename T>
+struct FieldTable;
+} // namespace Common
+} // namespace AGS
+
 // Max old-style script string length
 #define MAX_MAXSTRLEN 200
 
@@ -201,6 +210,9 @@ struct AnimFlowParams
     AnimFlowDirection InitialDirection = kAnimDirForward;
     AnimFlowDirection Direction = kAnimDirForward;
 
+    // One row per field above (util/field_table.h)
+    static AGS::Common::FieldTable<AnimFlowParams> Fields();
+
     AnimFlowParams() = default;
     AnimFlowParams(AnimFlowStyle flow, AnimFlowDirection dir) : Flow(flow), InitialDirection(dir), Direction(dir) {}
     AnimFlowParams(AnimFlowStyle flow, AnimFlowDirection init_dir, AnimFlowDirection cur_dir)
@@ -241,6 +253,9 @@ struct ViewAnimateParams : public AnimFlowParams
     int Delay = 0;
     // Volume of the frame-linked sounds (relative factor)
     int AudioVolume = 100;
+
+    // One row per field above and one for the base (util/field_table.h)
+    static AGS::Common::FieldTable<ViewAnimateParams> Fields();
 
     ViewAnimateParams() = default;
     ViewAnimateParams(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int avolume)

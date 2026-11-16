@@ -33,7 +33,9 @@ namespace AGS
 namespace Common
 {
 class Stream;
-}
+template <typename T>
+struct FieldTable;
+} // namespace Common
 } // namespace AGS
 
 // A character's save format (CharacterDef and CharacterState)
@@ -139,6 +141,9 @@ struct CharacterState
     //
     // zoom factor of sprite offsets: the character's zoom if OPT_SCALECHAROFFSETS is set, otherwise 100
     int OffsetZoom = 100;
+
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static AGS::Common::FieldTable<CharacterState> Fields();
 };
 
 // A character of the running game: its definition's fields, which start as a copy of what the game file says,

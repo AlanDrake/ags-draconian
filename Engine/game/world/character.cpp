@@ -67,6 +67,7 @@
 #include "script/runtimescriptvalue.h"
 #include "script/script_runtime.h"
 #include "util/common.h"
+#include "util/field_table.h"
 #include "util/stream.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
@@ -190,6 +191,72 @@ void Character::SetFollowing(int follow_who, int distance, int eagerness, bool s
         FollowEagerness = (distance == FOLLOW_ALWAYSONTOP) ? 0 : eagerness;
         set_following_sortbehind(sort_behind && (distance == FOLLOW_ALWAYSONTOP));
     }
+}
+
+namespace
+{
+
+constexpr FieldRow<CharacterState> kCharacterStateFields[] = {
+    Field<&CharacterState::PreviousRoom>("PreviousRoom"),
+    Field<&CharacterState::AnimWait>("AnimWait"),
+    Field<&CharacterState::IdleTimeLeft>("IdleTimeLeft"),
+    Field<&CharacterState::ActiveInventory>("ActiveInventory"),
+    Field<&CharacterState::BlinkInterval>("BlinkInterval"),
+    Field<&CharacterState::BlinkTimer>("BlinkTimer"),
+    Field<&CharacterState::BlinkFrame>("BlinkFrame"),
+    Field<&CharacterState::Z>("Z"),
+    Field<&CharacterState::WalkWait>("WalkWait"),
+    Field<&CharacterState::WalkWaitCounter>("WalkWaitCounter"),
+    Field<&CharacterState::Loop>("Loop"),
+    Field<&CharacterState::Frame>("Frame"),
+    Field<&CharacterState::MoveListID>("MoveListID"),
+    Field<&CharacterState::ViewOffset>("ViewOffset"),
+    Field<&CharacterState::ViewAnchor>("ViewAnchor"),
+    Field<&CharacterState::EffectiveOffset>("EffectiveOffset", FieldRole::Derived),
+    Field<&CharacterState::EffectiveAnchor>("EffectiveAnchor", FieldRole::Derived),
+    Field<&CharacterState::Pivot>("Pivot"),
+    Field<&CharacterState::PivotOffset>("PivotOffset"),
+    Field<&CharacterState::SpriteWidth>("SpriteWidth", FieldRole::Derived),
+    Field<&CharacterState::SpriteHeight>("SpriteHeight", FieldRole::Derived),
+    Field<&CharacterState::FrameOffsetX>("FrameOffsetX", FieldRole::Derived),
+    Field<&CharacterState::FrameOffsetY>("FrameOffsetY", FieldRole::Derived),
+    Field<&CharacterState::Width>("Width"),
+    Field<&CharacterState::Height>("Height"),
+    Field<&CharacterState::Zoom>("Zoom"),
+    Field<&CharacterState::FullStepX>("FullStepX"),
+    Field<&CharacterState::FullStepY>("FullStepY"),
+    Field<&CharacterState::TintRed>("TintRed"),
+    Field<&CharacterState::TintGreen>("TintGreen"),
+    Field<&CharacterState::TintBlue>("TintBlue"),
+    Field<&CharacterState::TintLevel>("TintLevel"),
+    Field<&CharacterState::TintLight>("TintLight"),
+    Field<&CharacterState::ProcessIdleThisTime>("ProcessIdleThisTime"),
+    Field<&CharacterState::SlowMoveCounter>("SlowMoveCounter"),
+    Field<&CharacterState::Anim>("Anim"),
+    Field<&CharacterState::WalkAnimWait>("WalkAnimWait"),
+    Field<&CharacterState::AnimationVolume>("AnimationVolume"),
+    Field<&CharacterState::AudioPanning>("AudioPanning"),
+    Field<&CharacterState::AudioSpeed>("AudioSpeed"),
+    Field<&CharacterState::Following>("Following"),
+    Field<&CharacterState::FollowDistance>("FollowDistance"),
+    Field<&CharacterState::FollowEagerness>("FollowEagerness"),
+    Field<&CharacterState::Inventory>("Inventory"),
+    Field<&CharacterState::ShaderID>("ShaderID"),
+    Field<&CharacterState::ShaderHandle>("ShaderHandle"),
+    Field<&CharacterState::Rotation>("Rotation"),
+    Field<&CharacterState::FaceDirectionRatio>("FaceDirectionRatio"),
+    Field<&CharacterState::MoveListHandle>("MoveListHandle"),
+    Field<&CharacterState::RuntimeFlags>("RuntimeFlags"),
+    Field<&CharacterState::Turns>("Turns"),
+    Field<&CharacterState::OffsetZoom>("OffsetZoom", FieldRole::Derived),
+};
+static_assert(FieldsCoverStruct(kCharacterStateFields), "CharacterState: a field has no row in kCharacterStateFields");
+
+} // namespace
+
+FieldTable<CharacterState> CharacterState::Fields()
+{
+    return kCharacterStateFields;
 }
 
 void Character::UpdateEffectiveValues()

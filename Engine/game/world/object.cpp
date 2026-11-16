@@ -47,6 +47,7 @@
 #include "script/dynobj/script_user_object.h"
 #include "script/runtimescriptvalue.h"
 #include "util/common.h"
+#include "util/field_table.h"
 
 using namespace AGS;
 using namespace AGS::Common;
@@ -1828,6 +1829,34 @@ static bool CycleNextFrame(const ViewStruct *view, uint16_t &loop, uint16_t &fra
 }
 
 // General view animation algorithm: find next loop and frame, depending on anim settings
+namespace
+{
+
+// These two structs have constructors, so their fields cannot be counted (FieldsCoverStruct)
+constexpr FieldRow<AnimFlowParams> kAnimFlowParamsFields[] = {
+    Field<&AnimFlowParams::Flow>("Flow"),
+    Field<&AnimFlowParams::InitialDirection>("InitialDirection"),
+    Field<&AnimFlowParams::Direction>("Direction"),
+};
+
+constexpr FieldRow<ViewAnimateParams> kViewAnimateParamsFields[] = {
+    BaseFields<ViewAnimateParams, AnimFlowParams>("Flow"),
+    Field<&ViewAnimateParams::Delay>("Delay"),
+    Field<&ViewAnimateParams::AudioVolume>("AudioVolume"),
+};
+
+} // namespace
+
+FieldTable<AnimFlowParams> AnimFlowParams::Fields()
+{
+    return kAnimFlowParamsFields;
+}
+
+FieldTable<ViewAnimateParams> ViewAnimateParams::Fields()
+{
+    return kViewAnimateParamsFields;
+}
+
 bool CycleViewAnim(Game &game, int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams &anim_params)
 {
     const ViewStruct *aview = &game.Views[view];

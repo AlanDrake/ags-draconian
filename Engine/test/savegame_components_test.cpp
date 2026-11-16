@@ -49,6 +49,7 @@
 #include "game/world/room_status.h"
 #include "gtest/gtest.h"
 #include "platform/base/engine_services.h"
+#include "util/field_table.h"
 #include "util/memorystream.h"
 
 using namespace AGS::Common;
@@ -332,6 +333,36 @@ TEST_F(SavegameContent, CharactersAndItemsAreRestored)
     }
     EXPECT_EQ(3u, r_data.DataCounts.Characters);
     EXPECT_EQ(2u, r_data.DataCounts.InventoryItems);
+}
+
+// Every field of a character that is a part of the game's state comes back from a save. The rows of
+// CharacterDef and CharacterState say which fields those are, so a field added to either struct is checked
+// here without a line of this test changing.
+TEST_F(SavegameContent, EveryCharacterFieldIsRestored)
+{
+    Game &game = Game::Current();
+    SetCounts(1, 0);
+    AlterFields<CharacterDef>(game.Characters[0]);
+    AlterFields<CharacterState>(game.Characters[0]);
+    const Character before = game.Characters[0];
+    EXPECT_TRUE(FieldsAreDistinct<CharacterState>(before));
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_Characters, saved, error)) << error;
+
+    SetCounts(1, 0);
+    // The script name is the game's: a save does not hold it
+    game.Characters[0].ScriptName = before.ScriptName;
+    RestoredData r_data;
+    HSaveError err = Restore(saved, kSaveCmp_Characters, r_data);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+
+    std::string lost;
+    for (const String &line : DiffFields<CharacterDef>(before, game.Characters[0], false))
+        lost += std::string(line.GetCStr()) + "\n";
+    for (const String &line : DiffFields<CharacterState>(before, game.Characters[0], false))
+        lost += std::string(line.GetCStr()) + "\n";
+    EXPECT_EQ("", lost);
 }
 
 TEST_F(SavegameContent, SaveWithFewerCharactersIsRefused)
