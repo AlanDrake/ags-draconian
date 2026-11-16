@@ -46,6 +46,7 @@
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/engine_services.h"
 #include "util/common.h"
 #include "util/string_utils.h"
 #include "util/timer.h"
@@ -816,7 +817,7 @@ void do_corner(Bitmap *ds, int sprite_id, int x, int y, int off_x, int off_y)
     Game &game = Game::Current();
     if (sprite_id < 0)
         return;
-    if (!spriteset.DoesSpriteExist(sprite_id))
+    if (!EngineServices::Current().Sprites.DoesSpriteExist(sprite_id))
     {
         sprite_id = 0;
     }

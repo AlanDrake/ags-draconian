@@ -398,6 +398,7 @@ HSaveError OpenSavegame(const String &filename, SavegameDescription &desc, Saveg
 // Prepares engine for actual save restore (stops processes, cleans up memory)
 void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     memcpy(pp.GameOptions, game.options, GameDef::MAX_OPTIONS * sizeof(int));
 
@@ -409,7 +410,7 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     // cleanup dynamic sprites
     // NOTE: sprite 0 is reserved for the "empty sprite" and is never allocated as a dynamic one
     // (SpriteCache::MIN_SPRITE_INDEX)
-    for (size_t i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
+    for (size_t i = 1; i < services.Sprites.GetSpriteSlotCount(); ++i)
     {
         if (game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC)
         {
@@ -748,7 +749,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     if (game.HasCursorRole(r_data.CursorID, kCursorRole_UseInv))
         SetActiveInventory(game.PlayerChar->activeinv);
     // precache current cursor
-    spriteset.PrecacheSprite(game.mcurs[r_data.CursorID].pic);
+    services.Sprites.PrecacheSprite(game.mcurs[r_data.CursorID].pic);
 
     services.Platform->SetWindowTitle(game.Play.game_name);
 

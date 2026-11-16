@@ -607,7 +607,7 @@ void show_preload()
 HError engine_init_sprites()
 {
     EngineServices &services = EngineServices::Current();
-    spriteset.Reset();
+    services.Sprites.Reset();
     Debug::Printf(kDbgMsg_Info, "Initialize sprites");
     auto sprite_file = services.Assets->OpenAsset(SpriteFile::DefaultSpriteFileName);
     if (!sprite_file)
@@ -615,19 +615,20 @@ HError engine_init_sprites()
         return new Error("Failed to open spriteset file '%s'.", SpriteFile::DefaultSpriteFileName.GetCStr());
     }
     auto index_file = services.Assets->OpenAsset(SpriteFile::DefaultSpriteIndexName);
-    HError err = spriteset.InitFile(std::move(sprite_file), std::move(index_file));
+    HError err = services.Sprites.InitFile(std::move(sprite_file), std::move(index_file));
     if (!err)
     {
         return err;
     }
 
-    const char *compress_desc = StrUtil::SelectCStr<kNumSprCompressTypes>(
-        CstrArr<kNumSprCompressTypes>{"none", "rle", "lzw", "deflate"}, spriteset.GetSpriteCompression(), "unknown");
+    const char *compress_desc =
+        StrUtil::SelectCStr<kNumSprCompressTypes>(CstrArr<kNumSprCompressTypes>{"none", "rle", "lzw", "deflate"},
+                                                  services.Sprites.GetSpriteCompression(), "unknown");
     Debug::Printf("Sprite file info: compression: %s, storage flags: 0x%08x, total sprites: %zu", compress_desc,
-                  spriteset.GetStoreFlags(), spriteset.GetSpriteSlotCount());
+                  services.Sprites.GetStoreFlags(), services.Sprites.GetSpriteSlotCount());
     if (services.Config.SpriteCacheSize > 0)
-        spriteset.SetMaxCacheSize(services.Config.SpriteCacheSize * 1024);
-    Debug::Printf("Sprite cache set: %zu KB", spriteset.GetMaxCacheSize() / 1024);
+        services.Sprites.SetMaxCacheSize(services.Config.SpriteCacheSize * 1024);
+    Debug::Printf("Sprite cache set: %zu KB", services.Sprites.GetMaxCacheSize() / 1024);
     return HError::None();
 }
 
@@ -683,7 +684,7 @@ void engine_init_game_settings()
         // The cursor graphics are assigned to mousecurs[] and so cannot
         // be removed from memory
         if (game.mcurs[i].pic >= 0)
-            spriteset.PrecacheSprite(game.mcurs[i].pic);
+            services.Sprites.PrecacheSprite(game.mcurs[i].pic);
 
         // just in case they typed an invalid view number in the editor
         if (game.mcurs[i].view >= game.numviews)
@@ -1240,6 +1241,8 @@ void engine_init_editor_debugging(const ConfigTree &cfg)
 int initialize_engine(const ConfigTree &startup_opts)
 {
     EngineServices &services = EngineServices::Current();
+    // The sprite cache writes into the game's sprite table from now on; nothing has made or loaded a sprite yet
+    init_sprite_cache();
     if (engine_pre_init_callback)
     {
         engine_pre_init_callback();

@@ -60,6 +60,51 @@ TEST(SpriteCache, SpriteCounts)
     ASSERT_EQ(sc->GetTopmostSprite(), 10);
 }
 
+TEST(SpriteCache, DefaultConstructedKeepsItsOwnTable)
+{
+    SpriteCache sc;
+    FillSpriteCache(&sc);
+    ASSERT_EQ(sc.GetSpriteSlotCount(), 11);
+    ASSERT_EQ(sc.GetSpriteResolution(1), Size(1, 1));
+    ASSERT_EQ(sc.GetSpriteResolution(2), Size(2, 2));
+    ASSERT_EQ(sc.GetSpriteResolution(10), Size(10, 10));
+    ASSERT_EQ(sc[10]->GetWidth(), 10);
+}
+
+TEST(SpriteCache, TableAttachedAfterConstruction)
+{
+    std::vector<SpriteInfo> spr_infos;
+    SpriteCache sc;
+    sc.SetSpriteInfos(&spr_infos);
+    FillSpriteCache(&sc);
+    ASSERT_EQ(spr_infos.size(), 11);
+    ASSERT_EQ(spr_infos[1].Width, 1);
+    ASSERT_EQ(spr_infos[2].Height, 2);
+    ASSERT_EQ(spr_infos[10].Width, 10);
+    ASSERT_EQ(spr_infos[10].Height, 10);
+    ASSERT_EQ(sc.GetSpriteResolution(10), Size(10, 10));
+
+    // After a Reset, nullptr brings the cache's own table back: the attached one is not written any more
+    sc.Reset();
+    sc.SetSpriteInfos(nullptr);
+    sc.SetSprite(2, std::make_unique<Bitmap>(5, 5, 32));
+    ASSERT_EQ(sc.GetSpriteResolution(2), Size(5, 5));
+    ASSERT_EQ(spr_infos[2].Width, 2);
+
+    // Callbacks set after construction are called: PrewriteSprite once per image saved
+    int prewrites = 0;
+    SpriteCache::Callbacks callbacks;
+    callbacks.PrewriteSprite = [&prewrites](Bitmap *) { prewrites++; };
+    sc.SetCallbacks(callbacks);
+    sc.SetSprite(3, std::make_unique<Bitmap>(3, 3, 32));
+    std::vector<uint8_t> storage;
+    SpriteFileIndex index;
+    HError err = sc.SaveToFile(std::make_unique<Stream>(std::make_unique<VectorStream>(storage, kStream_Write)), 0,
+                               kSprCompress_None, index);
+    ASSERT_TRUE(err);
+    ASSERT_EQ(prewrites, 2);
+}
+
 TEST(SpriteCache, SaveToFileOnlyMemoryBitmaps)
 {
     std::vector<SpriteInfo> spr_infos;

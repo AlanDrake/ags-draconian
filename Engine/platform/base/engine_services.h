@@ -32,7 +32,8 @@ namespace AGS
 namespace Common
 {
 class AssetManager;
-}
+class SpriteCache;
+} // namespace Common
 namespace Engine
 {
 class IGraphicsDriver;
@@ -85,8 +86,13 @@ struct SystemConfig
 // TextLanguage, TextLocaleName) are set again when another game is run; restoring a save does not change them.
 struct EngineServices
 {
+private:
+    // Owns Sprites; declared first, so that it exists when Sprites is bound to it
+    std::unique_ptr<AGS::Common::SpriteCache> _sprites;
+
+public:
     EngineServices();
-    ~EngineServices(); // out of line: AssetManager is incomplete here
+    ~EngineServices(); // out of line: AssetManager and SpriteCache are incomplete here
     EngineServices(const EngineServices &) = delete;
     EngineServices &operator=(const EngineServices &) = delete;
 
@@ -116,6 +122,9 @@ struct EngineServices
     // The graphics driver in use, nullptr before the graphics mode is set; owned by its factory
     AGS::Engine::IGraphicsDriver *GfxDriver = nullptr;
     std::unique_ptr<AGS::Common::AssetManager> Assets; // the game's files
+    // The game's sprites. The game ring gives it the sprite table of the current Game and its callbacks once, at
+    // engine start (init_sprite_cache, game/game.h), before any sprite exists; unload_game resets it.
+    AGS::Common::SpriteCache &Sprites;
 
     // The game text language: the game's own or the loaded translation's; set by SetGameTextLanguage
     // (game/translation.h) when the game is initialized and when the translation changes

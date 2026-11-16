@@ -48,7 +48,7 @@ using namespace AGS::Engine;
 
 Bitmap *CursorGraphicState::GetImage() const
 {
-    return _genImage != nullptr ? _genImage.get() : spriteset[_sprnum];
+    return _genImage != nullptr ? _genImage.get() : EngineServices::Current().Sprites[_sprnum];
 }
 
 void CursorGraphicState::ResetImage()
@@ -163,7 +163,7 @@ void set_cursor_look(int newcurs, bool force_update)
         Rect full_rc = SumRects(cursor_rc, hotspot_rc);
         std::unique_ptr<Bitmap> gen_cursor(
             BitmapHelper::CreateTransparentBitmap(full_rc.GetWidth(), full_rc.GetHeight()));
-        gen_cursor->Blit(spriteset[cur_pic], offx, offy);
+        gen_cursor->Blit(EngineServices::Current().Sprites[cur_pic], offx, offy);
 
         if (hotspot_sprite > 0)
         {
@@ -223,7 +223,7 @@ void Mouse_ChangeCursorGraphic(int curs, int newslot)
     if (game.mcurs[curs].pic != newslot)
     {
         game.mcurs[curs].pic = newslot;
-        spriteset.PrecacheSprite(newslot);
+        EngineServices::Current().Sprites.PrecacheSprite(newslot);
     }
 
     if (curs == game.Cursor.Mode)
@@ -592,7 +592,7 @@ void update_inv_cursor(int invnum)
         auto &mcur = game.mcurs[useinv_cursor];
         mcur.pic = cursorSprite;
         // all cursor images must be pre-cached
-        spriteset.PrecacheSprite(cursorSprite);
+        EngineServices::Current().Sprites.PrecacheSprite(cursorSprite);
 
         Rect spr_rc = RectWH(Size(game.SpriteInfos[cursorSprite].Width, game.SpriteInfos[cursorSprite].Height));
         Point pt = AlignInRect(spr_rc, Point(game.invinfo[invnum].hotx, game.invinfo[invnum].hoty),

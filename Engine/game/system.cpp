@@ -226,12 +226,19 @@ const char *System_GetEngineString(int value_id, int index)
 
 bool GetEngineInteger(int &value, EngineValueID value_id, int index)
 {
+    EngineServices &services = EngineServices::Current();
     switch (value_id)
     {
-    case ENGINE_VALUE_I_SPRCACHE_MAXNORMAL: value = static_cast<int>(spriteset.GetMaxCacheSize() / 1024u); return true;
-    case ENGINE_VALUE_I_SPRCACHE_NORMAL: value = static_cast<int>(spriteset.GetCacheSize() / 1024u); return true;
-    case ENGINE_VALUE_I_SPRCACHE_LOCKED: value = static_cast<int>(spriteset.GetLockedSize() / 1024u); return true;
-    case ENGINE_VALUE_I_SPRCACHE_EXTERNAL: value = static_cast<int>(spriteset.GetExternalSize() / 1024u); return true;
+    case ENGINE_VALUE_I_SPRCACHE_MAXNORMAL:
+        value = static_cast<int>(services.Sprites.GetMaxCacheSize() / 1024u);
+        return true;
+    case ENGINE_VALUE_I_SPRCACHE_NORMAL: value = static_cast<int>(services.Sprites.GetCacheSize() / 1024u); return true;
+    case ENGINE_VALUE_I_SPRCACHE_LOCKED:
+        value = static_cast<int>(services.Sprites.GetLockedSize() / 1024u);
+        return true;
+    case ENGINE_VALUE_I_SPRCACHE_EXTERNAL:
+        value = static_cast<int>(services.Sprites.GetExternalSize() / 1024u);
+        return true;
     case ENGINE_VALUE_I_TEXCACHE_MAXNORMAL: /* fall-through */
     case ENGINE_VALUE_I_TEXCACHE_NORMAL:
     {
@@ -341,10 +348,10 @@ String GetRuntimeInfo()
     DisplayMode mode = services.GfxDriver->GetDisplayMode();
     Rect render_frame = services.GfxDriver->GetRenderDestination();
     PGfxFilter filter = services.GfxDriver->GetGraphicsFilter();
-    const size_t total_normspr = spriteset.GetCacheSize();
-    const size_t total_lockspr = spriteset.GetLockedSize();
-    const size_t total_extspr = spriteset.GetExternalSize();
-    const size_t max_normspr = spriteset.GetMaxCacheSize();
+    const size_t total_normspr = services.Sprites.GetCacheSize();
+    const size_t total_lockspr = services.Sprites.GetLockedSize();
+    const size_t total_extspr = services.Sprites.GetExternalSize();
+    const size_t max_normspr = services.Sprites.GetMaxCacheSize();
     const unsigned norm_spr_filled = max_normspr > 0 ? (uint64_t)total_normspr * 100 / max_normspr : 0;
     size_t max_txcached, total_txcached, total_txlocked, total_txext;
     texturecache_get_state(max_txcached, total_txcached, total_txlocked, total_txext);

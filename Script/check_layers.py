@@ -145,8 +145,6 @@ EXTERN_ALLOWED = {
     # Decided by their users' rings
     'pluginReaders': ('the plugins\' object readers: a vector of PluginObjectReader, a type of the composition ring, '
                       'which EngineServices (host ring) cannot hold since its .cpp cannot see the complete type'),
-    # Until the batch `sprites` of 5.1 step 3
-    'spriteset': 'the sprite cache, until it becomes EngineServices::Sprites',
 }
 
 

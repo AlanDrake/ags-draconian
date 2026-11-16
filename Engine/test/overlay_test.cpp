@@ -36,6 +36,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/sprite_cache.h"
 #include "gtest/gtest.h"
+#include "platform/base/engine_services.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -57,7 +58,8 @@ const int kRoom = 7;
 } // namespace
 
 // Fixture for the overlay layout. The engine globals it touches, all reset in TearDown:
-// - spriteset and game.SpriteInfos: the sprites above
+// - EngineServices::Sprites and game.SpriteInfos: the sprites above; the cache is given the game's sprite table
+//   (init_sprite_cache), which stays attached, as in the engine
 // - game.Play: the main and UI viewports (320x200), one room viewport and its camera
 // - Room::Current(): the room size (640x400, so the camera can scroll)
 // - game.chars, game.numcharacters, Game::CharExtras, Game::Views: one character standing in room kRoom,
@@ -70,6 +72,7 @@ protected:
     {
         Game &game = Game::Current();
         Room &room = Room::Current();
+        init_sprite_cache();
         AddSprite(kSprite20x10, 20, 10);
         AddSprite(kSprite21x11, 21, 11);
         AddSprite(kSprite41x21, 41, 21);
@@ -100,6 +103,7 @@ protected:
 
     void TearDown() override
     {
+        EngineServices &services = EngineServices::Current();
         Game &game = Game::Current();
         Room &room = Room::Current();
         game.DisplayedRoom = -10;
@@ -112,13 +116,13 @@ protected:
         game.Play.SetMainViewport(Rect());
         room.Width = 0;
         room.Height = 0;
-        spriteset.Reset();
+        services.Sprites.Reset();
         game.SpriteInfos.clear();
     }
 
     static void AddSprite(int index, int width, int height)
     {
-        ASSERT_TRUE(spriteset.SetSprite(index, std::make_unique<Bitmap>(width, height, 32)));
+        ASSERT_TRUE(EngineServices::Current().Sprites.SetSprite(index, std::make_unique<Bitmap>(width, height, 32)));
     }
 
     // A speech overlay for the character, placed as the engine places it

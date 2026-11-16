@@ -14,6 +14,7 @@
 #include "platform/base/engine_services.h"
 
 #include "data/assetmanager.h"
+#include "gfx/sprite_cache.h"
 
 namespace
 {
@@ -25,7 +26,7 @@ EngineServices engineServices;
 // initialization, as the globals that the members replace were
 EngineServices *EngineServices::_current = &engineServices;
 
-EngineServices::EngineServices() = default;
+EngineServices::EngineServices() : _sprites(std::make_unique<AGS::Common::SpriteCache>()), Sprites(*_sprites) {}
 
 EngineServices::~EngineServices() = default;
 

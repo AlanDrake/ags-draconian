@@ -1079,6 +1079,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
 
 void new_room(int room_id, CharacterInfo *ch)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     EndSkippingUntilCharStops();
 
@@ -1109,10 +1110,10 @@ void new_room(int room_id, CharacterInfo *ch)
     // change rooms
     unload_old_room();
 
-    if (EngineServices::Current().Config.ClearCacheOnRoomChange)
+    if (services.Config.ClearCacheOnRoomChange)
     {
         // Delete all cached resources
-        spriteset.DisposeAllFreeCached();
+        services.Sprites.DisposeAllFreeCached();
         soundcache_clear();
         texturecache_clear();
     }

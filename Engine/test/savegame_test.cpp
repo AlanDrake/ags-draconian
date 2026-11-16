@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 
+#include "game/game.h"
 #include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
@@ -71,6 +72,8 @@ const SaveCmpSelection kAllWorkingComponents = static_cast<SaveCmpSelection>(kSa
 // Writes the components to a buffer
 bool Save(SaveCmpSelection cmp, bool compress, std::vector<uint8_t> &buf, std::string &error)
 {
+    // the dynamic sprites component reads the sprite table through the sprite cache, as the engine has it
+    init_sprite_cache();
     buf.clear();
     Stream out(std::make_unique<VectorStream>(buf, kStream_Write));
     HSaveError err = SavegameComponents::WriteAllCommon(&out, cmp, compress);
@@ -82,6 +85,7 @@ bool Save(SaveCmpSelection cmp, bool compress, std::vector<uint8_t> &buf, std::s
 // Restores the components from a buffer
 bool Restore(const std::vector<uint8_t> &buf, SaveCmpSelection cmp, std::string &error)
 {
+    init_sprite_cache();
     Stream in(std::make_unique<VectorStream>(buf));
     PreservedParams pp;
     RestoredData r_data;

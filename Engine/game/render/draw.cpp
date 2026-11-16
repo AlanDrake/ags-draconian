@@ -249,10 +249,12 @@ struct ObjectCache
 //   so long as there's at least one object on screen that uses it.
 // NOTE: because of this two-component structure, TextureCache has to override
 // number of ResourceCache's parent methods. This design may probably be improved.
+// The textures are made from the raw sprites of EngineServices::Sprites, which also loads them
+// from the asset file.
 class TextureCache : public ResourceCache<uint32_t, std::shared_ptr<Texture>>
 {
 public:
-    TextureCache(SpriteCache &spriteset) : _spriteset(spriteset) {}
+    TextureCache() = default;
     virtual ~TextureCache() = default;
 
     // Gets existing texture from either MRU cache, or short-term cache
@@ -287,6 +289,7 @@ public:
     // optionally, if "source" bitmap is provided, then use it
     std::shared_ptr<Texture> GetOrLoad(uint32_t sprite_id, Bitmap *source, bool opaque)
     {
+        EngineServices &services = EngineServices::Current();
         assert(sprite_id != UINT32_MAX); // only valid sprite IDs may be stored
         if (sprite_id == UINT32_MAX)
             return nullptr;
@@ -307,22 +310,22 @@ public:
             // - if texture cache's capacity is > 3/4 of raw sprite cache,
             //   then there's little to no practical reason to keep a raw image.
             // This may be adjusted, or added more rules, as seems necessary.
-            bool skip_rawcache = GetMaxCacheSize() > (3 * (_spriteset.GetMaxCacheSize() / 4));
+            bool skip_rawcache = GetMaxCacheSize() > (3 * (services.Sprites.GetMaxCacheSize() / 4));
 
-            if (_spriteset.IsSpriteLoaded(sprite_id) || !skip_rawcache)
+            if (services.Sprites.IsSpriteLoaded(sprite_id) || !skip_rawcache)
             { // if it's already there, or we are not allowed to skip, then cache normally
-                bitmap = _spriteset[sprite_id];
+                bitmap = services.Sprites[sprite_id];
             }
             else
             { // if skipping, ask it to only load, but not keep in raw cache
-                tmp_source = _spriteset.LoadSpriteNoCache(sprite_id);
+                tmp_source = services.Sprites.LoadSpriteNoCache(sprite_id);
                 bitmap = tmp_source.get();
             }
             if (!bitmap)
                 return nullptr;
         }
 
-        txdata.reset(EngineServices::Current().GfxDriver->CreateTexture(bitmap, kTxFlags_Opaque * opaque));
+        txdata.reset(services.GfxDriver->CreateTexture(bitmap, kTxFlags_Opaque * opaque));
         if (!txdata)
             return nullptr;
 
@@ -372,15 +375,12 @@ private:
         }
     }
 
-    // A reference to the raw sprites cache, which is also used to load
-    // sprites from the asset file.
-    SpriteCache &_spriteset;
     // Texture short-term cache:
     // - caches textures while they are in the immediate use;
     // - this lets to share same texture data among multiple sprites on screen.
     typedef std::weak_ptr<Texture> TexDataRef;
     std::unordered_map<uint32_t, TexDataRef> _txRefs;
-} texturecache(spriteset);
+} texturecache;
 
 // actsps is used for temporary storage of the bitmap and texture
 // of the latest version of the sprite (room objects and characters);
@@ -1117,7 +1117,8 @@ void reset_drawobj_for_overlay(int objnum)
 uint32_t add_sprite_changed_callback(int sprnum, ISpriteUser *user)
 {
     // don't register this callback if sprite does not exist, or if it's not dynamic
-    if (!spriteset.DoesSpriteExist(sprnum) || !Game::Current().SpriteInfos[sprnum].IsDynamicSprite())
+    if (!EngineServices::Current().Sprites.DoesSpriteExist(sprnum) ||
+        !Game::Current().SpriteInfos[sprnum].IsDynamicSprite())
         return 0u;
 
     SpriteNotifyControl *notify_ctrl;
@@ -1132,7 +1133,8 @@ uint32_t add_sprite_changed_callback(int sprnum, ISpriteUser *user)
 void remove_sprite_changed_callback(int sprnum, ISpriteUser *user)
 {
     // don't register this callback if sprite does not exist, or if it's not dynamic
-    if (!spriteset.DoesSpriteExist(sprnum) || !Game::Current().SpriteInfos[sprnum].IsDynamicSprite())
+    if (!EngineServices::Current().Sprites.DoesSpriteExist(sprnum) ||
+        !Game::Current().SpriteInfos[sprnum].IsDynamicSprite())
         return;
 
     auto it_notify = drawstate.SpriteNotifyMap.find(sprnum);
@@ -1153,7 +1155,7 @@ void replace_sprite_changed_callback(int old_sprnum, int new_sprnum, ISpriteUser
     }
 
     // NOTE: add_sprite_changed_callback will not add the same callback twice, so it's safe to call always
-    if ((new_sprnum > 0) && spriteset.DoesSpriteExist(new_sprnum) &&
+    if ((new_sprnum > 0) && EngineServices::Current().Sprites.DoesSpriteExist(new_sprnum) &&
         Game::Current().SpriteInfos[new_sprnum].IsDynamicSprite())
     {
         add_sprite_changed_callback(new_sprnum, user);
@@ -1226,6 +1228,7 @@ void texturecache_clear()
 
 void update_shared_texture(uint32_t sprite_id)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     auto txdata = texturecache.Get(sprite_id);
     if (!txdata)
@@ -1234,7 +1237,7 @@ void update_shared_texture(uint32_t sprite_id)
     const auto &res = txdata->Res;
     if (res.Width == game.SpriteInfos[sprite_id].Width && res.Height == game.SpriteInfos[sprite_id].Height)
     {
-        EngineServices::Current().GfxDriver->UpdateTexture(txdata.get(), spriteset[sprite_id], false);
+        services.GfxDriver->UpdateTexture(txdata.get(), services.Sprites[sprite_id], false);
     }
     else
     {
@@ -1497,7 +1500,7 @@ void draw_sprite_support_alpha(Bitmap *ds, int xpos, int ypos, Bitmap *image, Bl
 
 void draw_sprite_slot_support_alpha(Bitmap *ds, int xpos, int ypos, int src_slot, BlendMode blend_mode, int alpha)
 {
-    draw_sprite_support_alpha(ds, xpos, ypos, spriteset[src_slot], blend_mode, alpha);
+    draw_sprite_support_alpha(ds, xpos, ypos, EngineServices::Current().Sprites[src_slot], blend_mode, alpha);
 }
 
 IDriverDependantBitmap *recycle_ddb_bitmap(IDriverDependantBitmap *ddb, Common::Bitmap *source, bool opaque)
@@ -1526,7 +1529,7 @@ IDriverDependantBitmap *recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t
     if (drawstate.SoftwareRender || sprite_id == UINT32_MAX)
     {
         if (!source && (sprite_id < UINT32_MAX))
-            source = spriteset[sprite_id];
+            source = services.Sprites[sprite_id];
         return recycle_ddb_bitmap(ddb, source, opaque);
     }
 
@@ -1664,7 +1667,7 @@ void put_sprite_list_on_screen(bool in_room);
 // with transparency otherwise.
 void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, BlendMode blend_mode)
 {
-    draw_gui_sprite(ds, x, y, spriteset[pic], blend_mode);
+    draw_gui_sprite(ds, x, y, EngineServices::Current().Sprites[pic], blend_mode);
 }
 
 void draw_gui_sprite(Bitmap *ds, int x, int y, Bitmap *sprite, BlendMode blend_mode, int alpha)
@@ -1685,7 +1688,7 @@ void draw_gui_sprite(Bitmap *ds, int x, int y, Bitmap *sprite, BlendMode blend_m
 
 void draw_gui_sprite_flipped(Bitmap *ds, int pic, int x, int y, BlendMode blend_mode, GraphicFlip flip)
 {
-    draw_gui_sprite_flipped(ds, x, y, spriteset[pic], blend_mode, 0xFF, flip);
+    draw_gui_sprite_flipped(ds, x, y, EngineServices::Current().Sprites[pic], blend_mode, 0xFF, flip);
 }
 
 void draw_gui_sprite_flipped(Bitmap *ds, int x, int y, Bitmap *sprite, BlendMode blend_mode, int alpha,
@@ -2033,7 +2036,7 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst, std::
 // Used for software render mode only.
 static bool transform_sprite(ObjTexture &actsp, int sppic, const Size &scale_sz, float rotation, GraphicFlip flip)
 {
-    Bitmap *src = spriteset[sppic];
+    Bitmap *src = EngineServices::Current().Sprites[sppic];
     Bitmap *result = transform_sprite(src, actsp.Bmp, actsp.TempBmp, scale_sz, rotation, flip);
     return result != src;
 }
@@ -2148,7 +2151,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic, const Size &scale
     }
 
     // Not cached, so draw the image
-    Bitmap *sprite = spriteset[pic];
+    Bitmap *sprite = EngineServices::Current().Sprites[pic];
     const int coldept = sprite->GetColorDepth();
     const int src_sprwidth = sprite->GetWidth();
     const int src_sprheight = sprite->GetHeight();
@@ -2268,7 +2271,7 @@ void prepare_and_add_object_gfx(const ObjectCache &objsav, ObjTexture &actsp, bo
 bool construct_object_gfx(int obj_id, bool force_software)
 {
     const RoomObject &obj = Room::Current().Objs[obj_id];
-    const int sprite_id = spriteset.DoesSpriteExist(obj.num) ? obj.num : 0;
+    const int sprite_id = EngineServices::Current().Sprites.DoesSpriteExist(obj.num) ? obj.num : 0;
 
     ObjectCache objsrc(sprite_id, obj.tint_r, obj.tint_g, obj.tint_b, obj.tint_level, obj.tint_light, 0 /* skip */,
                        obj.zoom, obj.rotation, kFlip_None /* skip */, obj.x, obj.y);
@@ -2379,7 +2382,7 @@ bool construct_char_gfx(int char_id, bool force_software)
     const CharacterInfo &ch = game.chars[char_id];
     const CharacterExtras &chex = game.CharExtras[char_id];
     const ViewFrame *vf = &game.Views[ch.view].loops[ch.loop].frames[ch.frame];
-    const int pic = spriteset.DoesSpriteExist(vf->pic) ? vf->pic : 0;
+    const int pic = EngineServices::Current().Sprites.DoesSpriteExist(vf->pic) ? vf->pic : 0;
 
     ObjectCache chsrc(pic, chex.tint_r, chex.tint_g, chex.tint_b, chex.tint_level, chex.tint_light, 0 /* skip */,
                       chex.zoom, chex.rotation, kFlip_None /* skip */, ch.x, ch.y);
@@ -3102,6 +3105,7 @@ static void construct_ui_view()
 // but does not put them on screen yet - that's done in respective construct_*_view functions
 static void construct_overlays()
 {
+    EngineServices &services = EngineServices::Current();
     const bool is_software_mode = drawstate.SoftwareRender;
     const bool crop_walkbehinds = (drawstate.WalkBehindMethod == DrawOverCharSprite);
 
@@ -3137,7 +3141,7 @@ static void construct_overlays()
         }
 
         // Test if must recache the unloaded sprite in software mode
-        has_changed |= (is_software_mode && spriteset.IsAssetUnloaded(over.GetSpriteNum()));
+        has_changed |= (is_software_mode && services.Sprites.IsAssetUnloaded(over.GetSpriteNum()));
 
         if (has_changed || overtx.IsChangeNotified())
         {
@@ -3268,7 +3272,7 @@ void construct_game_screen_overlay(bool draw_cursor)
         if (game.Cursor.GState.HasChanged() || cursor_tx.IsChangeNotified() ||
             // Test if must recache the unloaded sprite in software mode
             (drawstate.SoftwareRender && (game.Cursor.GState.GetSpriteNum() >= 0) &&
-             spriteset.IsAssetUnloaded(game.Cursor.GState.GetSpriteNum())))
+             services.Sprites.IsAssetUnloaded(game.Cursor.GState.GetSpriteNum())))
         {
             cursor_tx.SpriteID = game.Cursor.GState.GetSpriteNum();
             if (cursor_tx.SpriteID != UINT32_MAX)
@@ -3438,7 +3442,7 @@ void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extr
 
     // Disable spritecache's auto disposal for the duration of render;
     // this prevents sprites getting deleted while they are part of the draw lists.
-    spriteset.EnableAutoFreeMem(false);
+    services.Sprites.EnableAutoFreeMem(false);
 
     services.GfxDriver->ClearDrawLists();
     construct_game_scene(false);
@@ -3457,7 +3461,7 @@ void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extr
     construct_game_screen_overlay(!game.Events.InRoomTransition);
     render_to_screen();
 
-    spriteset.EnableAutoFreeMem(true);
+    services.Sprites.EnableAutoFreeMem(true);
 
     if (!game.Play.screen_is_faded_out)
     {

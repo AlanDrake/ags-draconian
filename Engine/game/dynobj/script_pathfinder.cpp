@@ -18,6 +18,7 @@
 #include "game/world/room_context.h"
 #include "game/world/walkable_area.h"
 #include "gfx/sprite_cache.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
@@ -34,7 +35,7 @@ ScriptMaskPathfinder *ScriptMaskPathfinder::CreateFromMaskSprite(int mask_sprite
     pathfind->_finder = Pathfinding::CreateDefaultMaskPathfinder();
     pathfind->_maskSprite = mask_sprite;
     if (mask_sprite > 0)
-        pathfind->_finder->SetWalkableArea(spriteset[mask_sprite]);
+        pathfind->_finder->SetWalkableArea(EngineServices::Current().Sprites[mask_sprite]);
     ccRegisterManagedObject(pathfind, pathfind);
     return pathfind;
 }
@@ -46,14 +47,14 @@ IRouteFinder *ScriptMaskPathfinder::GetRouteFinder()
 
 void ScriptMaskPathfinder::SyncPathfinder()
 {
-    _finder->SetWalkableArea((_maskSprite > 0) ? spriteset[_maskSprite] : nullptr);
+    _finder->SetWalkableArea((_maskSprite > 0) ? EngineServices::Current().Sprites[_maskSprite] : nullptr);
 }
 
 void ScriptMaskPathfinder::SetMaskSprite(int mask_sprite)
 {
     _maskSprite = mask_sprite;
     if (mask_sprite > 0)
-        _finder->SetWalkableArea(spriteset[mask_sprite]);
+        _finder->SetWalkableArea(EngineServices::Current().Sprites[mask_sprite]);
 }
 
 const char *ScriptMaskPathfinder::GetType()
@@ -72,7 +73,7 @@ void ScriptMaskPathfinder::Unserialize(int index, Stream *in, size_t data_sz)
     _maskSprite = in->ReadInt32();
     _finder = Pathfinding::CreateDefaultMaskPathfinder();
     if (_maskSprite > 0)
-        _finder->SetWalkableArea(spriteset[_maskSprite]);
+        _finder->SetWalkableArea(EngineServices::Current().Sprites[_maskSprite]);
     ccRegisterUnserializedObject(index, this, this);
 }
 

@@ -519,7 +519,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 2. Allocate and init game objects
     //
-    spriteset.EnlargeTo(ents.SpriteCount - 1);
+    services.Sprites.EnlargeTo(ents.SpriteCount - 1);
     game.CharExtras.resize(game.numcharacters);
     // TODO: 'ents' is const, so the std::move calls below copy the GUIs, views and dialogs; take it by
     // a non-const reference to move them (its Game member is a reference, which is why this compiles)
@@ -531,7 +531,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     game.GuiSliders = std::move(ents.GuiControls.Sliders);
     game.GuiTextBoxes = std::move(ents.GuiControls.TextBoxes);
     GUI::Context.GameColorDepth = game.GetColorDepth();
-    GUI::Context.Spriteset = &spriteset;
+    GUI::Context.Spriteset = &services.Sprites;
     GUIRefCollection gui_control_refs(game.GuiButtons, game.GuiInvWindows, game.GuiLabels, game.GuiListBoxes,
                                       game.GuiSliders, game.GuiTextBoxes);
     GUI::RebuildGUI(game.Guis, gui_control_refs);

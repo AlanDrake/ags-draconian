@@ -27,6 +27,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "gfx/sprite_cache.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/common.h"
 
@@ -45,7 +46,7 @@ Bitmap *ScriptDrawingSurface::GetBitmapSurface()
     if (roomBackgroundNumber >= 0)
         return room.BgImages[roomBackgroundNumber].get();
     else if (dynamicSpriteNumber >= 0)
-        return spriteset[dynamicSpriteNumber];
+        return EngineServices::Current().Sprites[dynamicSpriteNumber];
     else if (dynamicSurfaceNumber >= 0)
         return Game::Current().DynamicSurfaces[dynamicSurfaceNumber].get();
     else if (linkedBitmapOnly != nullptr)

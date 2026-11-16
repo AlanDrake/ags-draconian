@@ -45,17 +45,33 @@ namespace AGS
 namespace Common
 {
 
-SpriteCache::SpriteCache(std::vector<SpriteInfo> &sprInfos, const Callbacks &callbacks)
-    : ResourceCache(DEFAULTCACHESIZE_KB * 1024u),
-      _sprInfos(sprInfos)
+SpriteCache::SpriteCache() : ResourceCache(DEFAULTCACHESIZE_KB * 1024u)
+{
+    SetCallbacks(Callbacks());
+
+    // Generate a placeholder sprite: 1x1 transparent bitmap
+    _placeholder.reset(BitmapHelper::CreateTransparentBitmap(1, 1));
+}
+
+SpriteCache::SpriteCache(std::vector<SpriteInfo> &sprInfos, const Callbacks &callbacks) : SpriteCache()
+{
+    SetSpriteInfos(&sprInfos);
+    SetCallbacks(callbacks);
+}
+
+SpriteCache::~SpriteCache() = default;
+
+void SpriteCache::SetSpriteInfos(std::vector<SpriteInfo> *infos)
+{
+    _sprInfos = infos ? infos : &_ownSprInfos;
+}
+
+void SpriteCache::SetCallbacks(const Callbacks &callbacks)
 {
     _callbacks.AdjustSize = (callbacks.AdjustSize) ? callbacks.AdjustSize : DummyAdjustSize;
     _callbacks.InitSprite = (callbacks.InitSprite) ? callbacks.InitSprite : DummyInitSprite;
     _callbacks.PostInitSprite = (callbacks.PostInitSprite) ? callbacks.PostInitSprite : DummyPostInitSprite;
     _callbacks.PrewriteSprite = (callbacks.PrewriteSprite) ? callbacks.PrewriteSprite : DummyPrewriteSprite;
-
-    // Generate a placeholder sprite: 1x1 transparent bitmap
-    _placeholder.reset(BitmapHelper::CreateTransparentBitmap(1, 1));
 }
 
 size_t SpriteCache::GetSpriteSlotCount() const
@@ -121,7 +137,7 @@ bool SpriteCache::SetSprite(sprkey_t index, std::unique_ptr<Bitmap> &&image, int
     }
 
     const int spf_flags = flags;
-    _sprInfos[index] = SpriteInfo(image->GetWidth(), image->GetHeight(), image->GetColorDepth(), spf_flags);
+    (*_sprInfos)[index] = SpriteInfo(image->GetWidth(), image->GetHeight(), image->GetColorDepth(), spf_flags);
     _spriteData[index].Flags = SPRCACHEFLAG_EXTERNAL | SPRCACHEFLAG_LOCKED; // NOT from asset file
     Put(index, std::move(image), kCacheItem_External | kCacheItem_Locked);
     _topmostSprite = std::max(_topmostSprite, index);
@@ -180,8 +196,8 @@ sprkey_t SpriteCache::EnlargeTo(sprkey_t topmost)
 
     size_t newsize = topmost + 1;
     // We must remember that spriteinfos are external data, and we should not truncate it
-    if (_sprInfos.size() < newsize)
-        _sprInfos.resize(newsize);
+    if (_sprInfos->size() < newsize)
+        _sprInfos->resize(newsize);
     _spriteData.resize(newsize);
     return topmost;
 }
@@ -200,7 +216,7 @@ sprkey_t SpriteCache::GetFreeIndex()
         // slot empty
         if (!DoesSpriteExist(i))
         {
-            _sprInfos[i] = SpriteInfo();
+            (*_sprInfos)[i] = SpriteInfo();
             _spriteData[i] = SpriteData();
             return i;
         }
@@ -227,7 +243,7 @@ bool SpriteCache::DoesSpriteExist(sprkey_t index) const
 
 Size SpriteCache::GetSpriteResolution(sprkey_t index) const
 {
-    return DoesSpriteExist(index) ? _sprInfos[index].GetResolution() : Size();
+    return DoesSpriteExist(index) ? (*_sprInfos)[index].GetResolution() : Size();
 }
 
 Bitmap *SpriteCache::operator[](sprkey_t index)
@@ -327,7 +343,7 @@ Bitmap *SpriteCache::LoadSprite(sprkey_t index, bool lock)
 
     // Let the external user convert this sprite's image for their needs
     Bitmap *image = new Bitmap(std::move(pxbuf));
-    image = _callbacks.InitSprite(index, image, _sprInfos[index].Flags);
+    image = _callbacks.InitSprite(index, image, (*_sprInfos)[index].Flags);
     if (!image)
     {
         Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Warn,
@@ -337,9 +353,9 @@ Bitmap *SpriteCache::LoadSprite(sprkey_t index, bool lock)
     }
 
     // save the stored sprite info
-    _sprInfos[index].Width = image->GetWidth();
-    _sprInfos[index].Height = image->GetHeight();
-    _sprInfos[index].ColorDepth = image->GetColorDepth();
+    (*_sprInfos)[index].Width = image->GetWidth();
+    (*_sprInfos)[index].Height = image->GetHeight();
+    (*_sprInfos)[index].ColorDepth = image->GetColorDepth();
 
     // Add to the cache, lock if requested or if it's sprite 0
     const bool should_lock = lock || (index == 0);
@@ -361,7 +377,7 @@ void SpriteCache::RemapSpriteToPlaceholder(sprkey_t index)
     assert((index >= 0) && ((size_t)index < _spriteData.size()));
     if ((index >= 0) && ((size_t)index < _spriteData.size()))
     {
-        _sprInfos[index] =
+        (*_sprInfos)[index] =
             SpriteInfo(_placeholder->GetWidth(), _placeholder->GetHeight(), _placeholder->GetColorDepth(), 0);
         _spriteData[index].Flags |= SPRCACHEFLAG_ERROR;
         SprCacheLog("RemapSpriteToPlaceholder: %d", index);
@@ -373,7 +389,7 @@ void SpriteCache::InitNullSprite(sprkey_t index)
     assert((index >= 0) && ((size_t)index < _spriteData.size()));
     if ((index >= 0) && ((size_t)index < _spriteData.size()))
     {
-        _sprInfos[index] = SpriteInfo();
+        (*_sprInfos)[index] = SpriteInfo();
         _spriteData[index] = SpriteData();
     }
 }
@@ -438,8 +454,8 @@ HError SpriteCache::InitFile(std::unique_ptr<Stream> &&sprite_file, std::unique_
     // Initialize sprite infos
     size_t newsize = metrics.size();
     // We must remember that spriteinfos are external data, and we should not truncate it
-    if (_sprInfos.size() < newsize)
-        _sprInfos.resize(newsize);
+    if (_sprInfos->size() < newsize)
+        _sprInfos->resize(newsize);
     _spriteData.resize(newsize);
     for (size_t i = 0; i < metrics.size(); ++i)
     {
@@ -447,12 +463,12 @@ HError SpriteCache::InitFile(std::unique_ptr<Stream> &&sprite_file, std::unique_
         {
             // Existing sprite
             _spriteData[i].Flags = SPRCACHEFLAG_ISASSET;
-            _sprInfos[i].Width = metrics[i].Width;
-            _sprInfos[i].Height = metrics[i].Height;
-            _sprInfos[i].ColorDepth = metrics[i].ColorDepth;
-            Size newsz = _callbacks.AdjustSize(Size(metrics[i].Width, metrics[i].Height), _sprInfos[i].Flags);
-            _sprInfos[i].Width = newsz.Width;
-            _sprInfos[i].Height = newsz.Height;
+            (*_sprInfos)[i].Width = metrics[i].Width;
+            (*_sprInfos)[i].Height = metrics[i].Height;
+            (*_sprInfos)[i].ColorDepth = metrics[i].ColorDepth;
+            Size newsz = _callbacks.AdjustSize(Size(metrics[i].Width, metrics[i].Height), (*_sprInfos)[i].Flags);
+            (*_sprInfos)[i].Width = newsz.Width;
+            (*_sprInfos)[i].Height = newsz.Height;
         }
         else
         {

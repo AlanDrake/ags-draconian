@@ -32,6 +32,7 @@
 #include "gfx/gfx_util.h"
 #include "gfx/sprite_cache.h"
 #include "gui/guimain.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/runtimescriptvalue.h"
@@ -187,25 +188,27 @@ static void DrawingSurface_DrawImageImpl(ScriptDrawingSurface *surface, Bitmap *
 void DrawingSurface_DrawImage(ScriptDrawingSurface *surface, int dst_x, int dst_y, int slot, int alpha, int dst_width,
                               int dst_height, int src_x, int src_y, int src_width, int src_height)
 {
-    if (!spriteset.DoesSpriteExist(slot))
+    EngineServices &services = EngineServices::Current();
+    if (!services.Sprites.DoesSpriteExist(slot))
     {
         debug_script_warn("DrawingSurface.DrawImage: invalid sprite slot number specified: %d", slot);
         slot = 0;
     }
-    DrawingSurface_DrawImageImpl(surface, spriteset[slot], dst_x, dst_y, alpha, kBlend_Normal, dst_width, dst_height,
-                                 src_x, src_y, src_width, src_height, slot);
+    DrawingSurface_DrawImageImpl(surface, services.Sprites[slot], dst_x, dst_y, alpha, kBlend_Normal, dst_width,
+                                 dst_height, src_x, src_y, src_width, src_height, slot);
 }
 
 void DrawingSurface_BlendImage(ScriptDrawingSurface *surface, int dst_x, int dst_y, int slot, BlendMode mode, int alpha,
                                int dst_width, int dst_height, int src_x, int src_y, int src_width, int src_height)
 {
-    if (!spriteset.DoesSpriteExist(slot))
+    EngineServices &services = EngineServices::Current();
+    if (!services.Sprites.DoesSpriteExist(slot))
     {
         debug_script_warn("DrawingSurface.BlendImage: invalid sprite slot number specified: %d", slot);
         slot = 0;
     }
-    DrawingSurface_DrawImageImpl(surface, spriteset[slot], dst_x, dst_y, alpha, mode, dst_width, dst_height, src_x,
-                                 src_y, src_width, src_height, slot);
+    DrawingSurface_DrawImageImpl(surface, services.Sprites[slot], dst_x, dst_y, alpha, mode, dst_width, dst_height,
+                                 src_x, src_y, src_width, src_height, slot);
 }
 
 void DrawingSurface_DrawSurface(ScriptDrawingSurface *target, ScriptDrawingSurface *source, int alpha, int dst_x,

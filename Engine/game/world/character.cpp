@@ -61,6 +61,7 @@
 #include "main/game_run.h"
 #include "main/update.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/dynobj/script_user_object.h"
 #include "script/runtimescriptvalue.h"
@@ -3140,7 +3141,7 @@ Bitmap *GetCharacterSourceImage(int char_id)
     Game &game = Game::Current();
     const CharacterInfo &ch = game.chars[char_id];
     int sppic = game.Views[ch.view].loops[ch.loop].frames[ch.frame].pic;
-    return spriteset[sppic];
+    return EngineServices::Current().Sprites[sppic];
 }
 
 CharacterInfo *Character_GetAtScreenXY(int x, int y, int hit_options)

@@ -25,6 +25,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/sprite_cache.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/engine_services.h"
 #include "script/runtimescriptvalue.h"
 #include "util/common.h" // quitprintf
 #include "util/math.h"
@@ -208,7 +209,7 @@ void CheckViewFrame(int view, int loop, int frame, int sound_volume, int sound_p
 // draws a view frame, flipped if appropriate
 void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y)
 {
-    Bitmap *vf_bmp = spriteset[vframe->pic];
+    Bitmap *vf_bmp = EngineServices::Current().Sprites[vframe->pic];
     if ((ds->GetColorDepth() == 32) && (vf_bmp->GetColorDepth() == 32))
     {
         Bitmap *src = vf_bmp;

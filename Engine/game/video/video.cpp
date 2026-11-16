@@ -576,10 +576,11 @@ float VideoControl::SeekMs(float pos_ms)
 
 std::unique_ptr<Bitmap> VideoControl::SetNewFrame(std::unique_ptr<Bitmap> new_frame)
 {
+    EngineServices &services = EngineServices::Current();
     // FIXME: this is ugly to use different levels of sprite interface here,
     // expand dynamic_sprite group of functions instead!
-    auto old_sprite = spriteset.RemoveSprite(_spriteID);
-    spriteset.SetSprite(_spriteID, std::move(new_frame), SPF_DYNAMICALLOC | SPF_OBJECTOWNED);
+    auto old_sprite = services.Sprites.RemoveSprite(_spriteID);
+    services.Sprites.SetSprite(_spriteID, std::move(new_frame), SPF_DYNAMICALLOC | SPF_OBJECTOWNED);
     game_sprite_updated(_spriteID, false);
     return old_sprite;
 }

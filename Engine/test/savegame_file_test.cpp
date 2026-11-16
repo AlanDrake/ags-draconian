@@ -92,6 +92,8 @@ protected:
     void SetUp() override
     {
         Game &game = Game::Current();
+        // the dynamic sprites component reads the sprite table through the sprite cache, as the engine has it
+        init_sprite_cache();
         // a name of its own, also when ctest runs the tests in parallel processes
         const auto *test = ::testing::UnitTest::GetInstance()->current_test_info();
         _dir = Path::ConcatPaths(TempRoot(),

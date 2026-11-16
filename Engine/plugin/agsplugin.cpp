@@ -490,7 +490,7 @@ void IAGSEngine::FreeBitmap(BITMAP *tofree)
 }
 BITMAP *IAGSEngine::GetSpriteGraphic(int32 num)
 {
-    return (BITMAP *)spriteset[num]->GetAllegroBitmap();
+    return (BITMAP *)EngineServices::Current().Sprites[num]->GetAllegroBitmap();
 }
 BITMAP *IAGSEngine::GetRoomMask(int32 index)
 {

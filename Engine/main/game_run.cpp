@@ -576,8 +576,11 @@ bool run_service_key_controls(KeyInput &out_key)
             buffer.AppendFmt(
                 "\nObject %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%s slot:%d opacity:%d clkble:%d", obj_id,
                 room.Objs[obj_id].x, room.Objs[obj_id].y,
-                (spriteset.DoesSpriteExist(room.Objs[obj_id].num) ? game.SpriteInfos[room.Objs[obj_id].num].Width : 0),
-                (spriteset.DoesSpriteExist(room.Objs[obj_id].num) ? game.SpriteInfos[room.Objs[obj_id].num].Height : 0),
+                (services.Sprites.DoesSpriteExist(room.Objs[obj_id].num) ? game.SpriteInfos[room.Objs[obj_id].num].Width
+                                                                         : 0),
+                (services.Sprites.DoesSpriteExist(room.Objs[obj_id].num)
+                     ? game.SpriteInfos[room.Objs[obj_id].num].Height
+                     : 0),
                 room.Objs[obj_id].is_enabled(), room.Objs[obj_id].is_moving() ? "yes" : "no",
                 room.Objs[obj_id].is_animating() ? "yes" : "no", room.Objs[obj_id].num, room.Objs[obj_id].opacity,
                 ((room.Objs[obj_id].flags & OBJF_NOINTERACT) != 0) ? 0 : 1);

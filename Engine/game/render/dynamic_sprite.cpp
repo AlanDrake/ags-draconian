@@ -33,6 +33,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/sprite_cache.h"
 #include "gui/guibutton.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/runtimescriptvalue.h"
 #include "util/common.h"
@@ -118,7 +119,7 @@ int DynamicSprite_GetColorDepth(ScriptDynamicSprite *dynsprite)
         return 0;
     }
     // A dynamic sprite that was not deleted always has its image
-    return spriteset[dynsprite->slot]->GetColorDepth();
+    return EngineServices::Current().Sprites[dynsprite->slot]->GetColorDepth();
 }
 
 void DynamicSprite_Resize(ScriptDynamicSprite *dynsprite, int width, int height)
@@ -133,7 +134,7 @@ void DynamicSprite_Resize(ScriptDynamicSprite *dynsprite, int width, int height)
         quitprintf("!DynamicSprite.Resize: new size is too large: %d x %d", width, height);
 
     // resize the sprite to the requested size
-    Bitmap *sprite = spriteset[dynsprite->slot];
+    Bitmap *sprite = EngineServices::Current().Sprites[dynsprite->slot];
     std::unique_ptr<Bitmap> new_pic(BitmapHelper::CreateBitmap(width, height, sprite->GetColorDepth()));
     new_pic->StretchBlt(sprite,
                         RectWH(0, 0, game.SpriteInfos[dynsprite->slot].Width, game.SpriteInfos[dynsprite->slot].Height),
@@ -148,7 +149,7 @@ void DynamicSprite_Flip(ScriptDynamicSprite *dynsprite, int direction)
         quit("!DynamicSprite.Flip: sprite has been deleted");
     GraphicFlip flip = ValidateFlip("DynamicSprite.Flip", direction);
 
-    Bitmap *sprite = spriteset[dynsprite->slot];
+    Bitmap *sprite = EngineServices::Current().Sprites[dynsprite->slot];
     std::unique_ptr<Bitmap> new_pic(
         BitmapHelper::CreateTransparentBitmap(sprite->GetWidth(), sprite->GetHeight(), sprite->GetColorDepth()));
 
@@ -160,6 +161,7 @@ void DynamicSprite_Flip(ScriptDynamicSprite *dynsprite, int direction)
 
 void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *dynsprite, int source_sprite)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     if (dynsprite->slot == 0)
         quit("!DynamicSprite.CopyTransparencyMask: sprite has been deleted");
@@ -170,8 +172,8 @@ void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *dynsprite, int sour
         quit("!DynamicSprite.CopyTransparencyMask: sprites are not the same size");
     }
 
-    Bitmap *dst = spriteset[dynsprite->slot];
-    Bitmap *src = spriteset[source_sprite];
+    Bitmap *dst = services.Sprites[dynsprite->slot];
+    Bitmap *src = services.Sprites[source_sprite];
 
     if (dst->GetColorDepth() != src->GetColorDepth())
     {
@@ -190,7 +192,7 @@ void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *dynsprite, int width, i
     if ((width < 1) || (height < 1))
         quit("!DynamicSprite.ChangeCanvasSize: width and height must be greater than zero");
 
-    Bitmap *sprite = spriteset[dynsprite->slot];
+    Bitmap *sprite = EngineServices::Current().Sprites[dynsprite->slot];
     if (sprite->GetWidth() == width && sprite->GetHeight() == height && x == 0 && y == 0)
         return; // same canvas size and no offset: no need to do anything
 
@@ -224,7 +226,7 @@ void DynamicSprite_Crop(ScriptDynamicSprite *dynsprite, int x, int y, int width,
     if (width <= 0 || height <= 0)
         return; // cannot crop to zero size
 
-    Bitmap *sprite = spriteset[dynsprite->slot];
+    Bitmap *sprite = EngineServices::Current().Sprites[dynsprite->slot];
     if (sprite->GetWidth() == width && sprite->GetHeight() == height && x == 0 && y == 0)
         return; // same canvas size and no offset: no need to do anything
 
@@ -255,7 +257,7 @@ void DynamicSprite_Rotate(ScriptDynamicSprite *dynsprite, int angle, int width, 
     }
 
     // draw the sprite onto a new transparent bitmap of the requested size
-    Bitmap *sprite = spriteset[dynsprite->slot];
+    Bitmap *sprite = EngineServices::Current().Sprites[dynsprite->slot];
     std::unique_ptr<Bitmap> new_pic(BitmapHelper::CreateTransparentBitmap(width, height, sprite->GetColorDepth()));
 
     // rotate the sprite about its centre
@@ -271,7 +273,7 @@ void DynamicSprite_Tint(ScriptDynamicSprite *dynsprite, int red, int green, int 
     if (dynsprite->slot == 0)
         quit("!DynamicSprite.Tint: sprite has been deleted");
 
-    Bitmap *src = spriteset[dynsprite->slot];
+    Bitmap *src = EngineServices::Current().Sprites[dynsprite->slot];
     std::unique_ptr<Bitmap> new_pic(
         BitmapHelper::CreateBitmap(src->GetWidth(), src->GetHeight(), src->GetColorDepth()));
 
@@ -292,7 +294,7 @@ int DynamicSprite_SaveToFile(ScriptDynamicSprite *dynsprite, const char *name)
     ResolvedPath rp = ResolveWritePathAndCreateDirs(filename);
     if (!rp)
         return 0;
-    return spriteset[dynsprite->slot]->SaveToFile(rp.FullPath, Game::Current().Palette) ? 1 : 0;
+    return EngineServices::Current().Sprites[dynsprite->slot]->SaveToFile(rp.FullPath, Game::Current().Palette) ? 1 : 0;
 }
 
 ScriptDynamicSprite *DynamicSprite_CreateFromSaveGame(int save_slot, int width, int height)
@@ -355,13 +357,14 @@ ScriptDynamicSprite *DynamicSprite_CreateFromScreenShot2(int width, int height)
 
 ScriptDynamicSprite *DynamicSprite_CreateFromExistingSprite(int slot, int color_fmt)
 {
-    if (!spriteset.DoesSpriteExist(slot))
+    EngineServices &services = EngineServices::Current();
+    if (!services.Sprites.DoesSpriteExist(slot))
         quitprintf("DynamicSprite.CreateFromExistingSprite: sprite %d does not exist", slot);
 
     int dst_color_depth = ValidateColorFormat("DynamicSprite.Create", static_cast<ScriptColorFormat>(color_fmt));
 
     // create a new sprite as a copy of the existing one
-    std::unique_ptr<Bitmap> new_pic(BitmapHelper::CreateBitmapCopy(spriteset[slot], dst_color_depth));
+    std::unique_ptr<Bitmap> new_pic(BitmapHelper::CreateBitmapCopy(services.Sprites[slot], dst_color_depth));
     if (!new_pic)
         return nullptr;
 
@@ -478,17 +481,18 @@ ScriptDynamicSprite *DynamicSprite_CreateFromBackground(int frame, int x1, int y
 int add_dynamic_sprite(std::unique_ptr<Bitmap> image, uint32_t extra_flags)
 {
     uint32_t flags = SPF_DYNAMICALLOC | extra_flags;
-    return spriteset.AddSprite(std::move(image), flags);
+    return EngineServices::Current().Sprites.AddSprite(std::move(image), flags);
 }
 
 int add_dynamic_sprite(int slot, std::unique_ptr<Bitmap> image, uint32_t extra_flags)
 {
-    assert(slot > 0 && !spriteset.IsAssetSprite(slot));
-    if (slot <= 0 || spriteset.IsAssetSprite(slot))
+    EngineServices &services = EngineServices::Current();
+    assert(slot > 0 && !services.Sprites.IsAssetSprite(slot));
+    if (slot <= 0 || services.Sprites.IsAssetSprite(slot))
         return 0; // invalid slot, or reserved for the static sprite
 
     uint32_t flags = SPF_DYNAMICALLOC | extra_flags;
-    if (!spriteset.SetSprite(slot, std::move(image), flags))
+    if (!services.Sprites.SetSprite(slot, std::move(image), flags))
         return 0; // failed to add the sprite, bad image or realloc failed
 
     // Notify a new (normal) dynamic sprite in case some objects
@@ -507,7 +511,7 @@ void free_dynamic_sprite(int slot)
         (game.SpriteInfos[slot].Flags & SPF_DYNAMICALLOC) == 0)
         return;
 
-    spriteset.DeleteSprite(slot);
+    EngineServices::Current().Sprites.DeleteSprite(slot);
     notify_sprite_changed(slot, true);
 }
 

@@ -44,6 +44,7 @@
 #include "gfx/sprite_cache.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/engine_services.h"
 #include "util/common.h"
 #include "util/timer.h"
 
@@ -408,7 +409,7 @@ void update_sierra_speech()
 
             auto *face_over = get_overlay(game.Speech.FaceTalking);
             assert(face_over != nullptr);
-            Bitmap *frame_pic = spriteset[face_over->GetSpriteNum()];
+            Bitmap *frame_pic = EngineServices::Current().Sprites[face_over->GetSpriteNum()];
             if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
             {
                 // QFG4-style fullscreen dialog

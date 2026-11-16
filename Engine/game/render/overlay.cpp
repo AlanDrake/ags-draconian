@@ -37,6 +37,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/sprite_cache.h"
 #include "main/game_run.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/dynobj/script_user_object.h"
 #include "script/runtimescriptvalue.h"
@@ -177,7 +178,7 @@ int Overlay_GetGraphic(ScriptOverlay *script_over)
 void Overlay_SetGraphic(ScriptOverlay *script_over, int slot)
 {
     auto *over = GetOverlayValidate("Overlay.Graphic", script_over);
-    if (!spriteset.DoesSpriteExist(slot))
+    if (!EngineServices::Current().Sprites.DoesSpriteExist(slot))
     {
         debug_script_warn("Overlay.SetGraphic: sprite %d is invalid", slot);
         slot = 0;
@@ -338,8 +339,9 @@ int Overlay_GetValid(ScriptOverlay *script_over)
 
 ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot, bool clone)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    if (!spriteset.DoesSpriteExist(slot))
+    if (!services.Sprites.DoesSpriteExist(slot))
     {
         debug_script_warn("Overlay.CreateGraphical: sprite %d is invalid", slot);
         return nullptr;
@@ -351,7 +353,7 @@ ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot
     {
         std::unique_ptr<Bitmap> image(
             new Bitmap(game.SpriteInfos[slot].Width, game.SpriteInfos[slot].Height, game.GetColorDepth()));
-        image->Blit(spriteset[slot]);
+        image->Blit(services.Sprites[slot]);
         over_id = add_screen_overlay(room_layer, x, y, OVER_CUSTOM, std::move(image));
     }
     else

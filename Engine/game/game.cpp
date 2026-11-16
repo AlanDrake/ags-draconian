@@ -99,7 +99,7 @@ using namespace AGS::Engine;
 //=============================================================================
 namespace
 {
-// The engine's own instance; defined above spriteset, whose constructor keeps a reference to its SpriteInfos
+// The engine's own instance
 Game engineGame;
 } // namespace
 
@@ -118,8 +118,13 @@ Game *Game::SetCurrent(Game *game)
     return was;
 }
 
-AGS::Common::SpriteCache::Callbacks spritecallbacks = {nullptr, initialize_sprite, post_init_sprite, nullptr};
-SpriteCache spriteset(Game::Current().SpriteInfos, spritecallbacks);
+void init_sprite_cache()
+{
+    const SpriteCache::Callbacks callbacks = {nullptr, initialize_sprite, post_init_sprite, nullptr};
+    SpriteCache &sprites = EngineServices::Current().Sprites;
+    sprites.SetSpriteInfos(&Game::Current().SpriteInfos);
+    sprites.SetCallbacks(callbacks);
+}
 
 CCGUIControl ccDynamicGUIControl;
 CCGUIButton ccDynamicGUIButton;
@@ -611,7 +616,7 @@ void unload_game()
 
     // Reset all resource caches
     // IMPORTANT: this is hard reset, including locked items
-    spriteset.Reset();
+    EngineServices::Current().Sprites.Reset();
     soundcache_clear();
 }
 
@@ -718,12 +723,12 @@ void Game_SetUseActiveInventoryGraphicForCursor(bool use_inv_graphic)
 
 int Game_GetTopSpriteNumber()
 {
-    return spriteset.GetTopmostSprite();
+    return EngineServices::Current().Sprites.GetTopmostSprite();
 }
 
 int Game_GetSpriteWidth(int sprite_num)
 {
-    if (!spriteset.DoesSpriteExist(sprite_num))
+    if (!EngineServices::Current().Sprites.DoesSpriteExist(sprite_num))
         return 0;
 
     return Game::Current().SpriteInfos[sprite_num].Width;
@@ -731,7 +736,7 @@ int Game_GetSpriteWidth(int sprite_num)
 
 int Game_GetSpriteHeight(int sprite_num)
 {
-    if (!spriteset.DoesSpriteExist(sprite_num))
+    if (!EngineServices::Current().Sprites.DoesSpriteExist(sprite_num))
         return 0;
 
     return Game::Current().SpriteInfos[sprite_num].Height;
@@ -740,7 +745,7 @@ int Game_GetSpriteHeight(int sprite_num)
 int Game_GetSpriteDepth(int sprite_num)
 {
     Game &game = Game::Current();
-    if (!spriteset.DoesSpriteExist(sprite_num))
+    if (!EngineServices::Current().Sprites.DoesSpriteExist(sprite_num))
         return 0;
 
     // If a sprite's color depth information is missing, then assume it is eq to a game's color depth
@@ -752,7 +757,7 @@ bool Game_GetIsSpriteDynamic(int sprite_num)
     if (sprite_num < 0)
         return false;
 
-    if (!spriteset.DoesSpriteExist(sprite_num))
+    if (!EngineServices::Current().Sprites.DoesSpriteExist(sprite_num))
         return false;
 
     return Game::Current().SpriteInfos[sprite_num].IsDynamicSprite();
@@ -1244,7 +1249,7 @@ ScriptAudioChannel *Game_PlayVoiceClipAsType(CharacterInfo *ch, int sound_id, in
 void Game_PrecacheSprite(int sprite_num)
 {
     const auto tp_start = FastClock::now();
-    spriteset.PrecacheSprite(sprite_num);
+    EngineServices::Current().Sprites.PrecacheSprite(sprite_num);
     const auto tp_filedone = FastClock::now();
     texturecache_precache(sprite_num);
     const auto tp_texturedone = FastClock::now();
@@ -1404,7 +1409,7 @@ void schedule_save_game(int slot, const String &description, int sprite_num)
     // Make a sprite copy, as save process may be scheduled and asynchronous (in theory)
     std::unique_ptr<Bitmap> image;
     if (sprite_num >= 0)
-        image.reset(BitmapHelper::CreateBitmapCopy(spriteset[sprite_num]));
+        image.reset(BitmapHelper::CreateBitmapCopy(EngineServices::Current().Sprites[sprite_num]));
 
     if (is_inside_script())
     {
@@ -1945,6 +1950,7 @@ void game_sprite_updated(int sprite_num, bool deleted)
 
 void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     if (view < 0)
         return;
@@ -1955,7 +1961,7 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
     last_loop = Math::Clamp(last_loop, 0, game.Views[view].GetLastLoop());
 
     // Record cache sizes and timestamps, for diagnostic purposes
-    const size_t sprite_cache_before = spriteset.GetCacheSize();
+    const size_t sprite_cache_before = services.Sprites.GetCacheSize();
     const size_t texture_cache_before = texturecache_get_size();
     int total_frames = 0, total_sounds = 0;
 
@@ -1966,7 +1972,7 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
         {
             const auto &frame = game.Views[view].loops[i].frames[j];
             const auto tp_detail1 = FastClock::now();
-            spriteset.PrecacheSprite(frame.pic);
+            services.Sprites.PrecacheSprite(frame.pic);
             const auto tp_detail2 = FastClock::now();
             texturecache_precache(frame.pic);
             const auto tp_detail3 = FastClock::now();
@@ -1992,7 +1998,7 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
     }
 
     // Print gathered time and size info
-    size_t sprite_cache_after = spriteset.GetCacheSize();
+    size_t sprite_cache_after = services.Sprites.GetCacheSize();
     size_t texture_cache_after = texturecache_get_size();
     Debug::Printf("Precache view %d (loops %d-%d) with %d frames, total = %" PRId64 " ms, average file->mem = %" PRId64
                   " ms, bm->tx = %" PRId64 " ms,"

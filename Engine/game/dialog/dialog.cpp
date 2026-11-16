@@ -710,7 +710,7 @@ void draw_gui_for_dialog_options(Bitmap *dst, GUIMain *gui, int x, int y)
         dst->FillRect(Rect(x, y, x + gui->GetWidth(), y + gui->GetHeight()), draw_color);
     }
     if (gui->GetBgImage() > 0)
-        GfxUtil::DrawSpriteWithTransparency(dst, spriteset[gui->GetBgImage()], x, y);
+        GfxUtil::DrawSpriteWithTransparency(dst, EngineServices::Current().Sprites[gui->GetBgImage()], x, y);
 }
 
 // Runs the script's dialog_options_get_dimensions for the dialog; returns true if it gave a non-empty area,

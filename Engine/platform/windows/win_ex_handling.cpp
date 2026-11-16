@@ -87,6 +87,7 @@ int initialize_engine_with_exception_handling(int(initialize_engine)(const AGS::
 
 int malloc_fail_handler(size_t amountwanted)
 {
+    EngineServices &services = EngineServices::Current();
     char *cur = tempmsg;
     char const *const end = tempmsg + sizeof tempmsg;
     const size_t MB = 1024 * 1024;
@@ -99,10 +100,10 @@ int malloc_fail_handler(size_t amountwanted)
     cur += snprintf(cur, end - cur, "Out of memory: failed to allocate %zu bytes (at PP=%d)\n\n", amountwanted,
                     get_our_eip());
 
-    const size_t total_normspr = spriteset.GetCacheSize();
-    const size_t total_lockspr = spriteset.GetLockedSize();
-    const size_t total_extspr = spriteset.GetExternalSize();
-    const size_t max_normspr = spriteset.GetMaxCacheSize();
+    const size_t total_normspr = services.Sprites.GetCacheSize();
+    const size_t total_lockspr = services.Sprites.GetLockedSize();
+    const size_t total_extspr = services.Sprites.GetExternalSize();
+    const size_t max_normspr = services.Sprites.GetMaxCacheSize();
     const unsigned norm_spr_filled = max_normspr > 0 ? ((uint64_t)total_normspr * 100 / max_normspr) : 0;
 
     cur += snprintf(cur, end - cur, "Sprite cache KB: %zu / %zu (%u%%), locked: %zu, ext: %zu\n\n", total_normspr / KB,

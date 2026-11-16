@@ -339,16 +339,10 @@ std::vector<MoveList> &get_movelists();
 void release_script_movelist(int handle);
 
 
-namespace AGS
-{
-namespace Common
-{
-class SpriteCache;
-} // namespace Common
-} // namespace AGS
-
-// The game's sprites.
-extern AGS::Common::SpriteCache spriteset;
+// Gives the sprite cache (EngineServices::Sprites) the current Game's sprite table and the engine's sprite
+// callbacks (game/render/draw.h). Called once, at engine start, before any sprite is created or loaded; a test
+// that uses the cache calls it in its fixture.
+void init_sprite_cache();
 
 struct CCAudioClip;
 

@@ -85,8 +85,22 @@ public:
     };
 
 
+    // A cache that writes the sprites' infos into a table of its own and has no callbacks
+    SpriteCache();
+    // The same as the default constructor followed by SetSpriteInfos(&sprInfos) and SetCallbacks(callbacks)
     SpriteCache(std::vector<SpriteInfo> &sprInfos, const Callbacks &callbacks);
-    ~SpriteCache() override = default;
+    ~SpriteCache() override;                   // out of line: SpriteInfo is incomplete here
+    SpriteCache(const SpriteCache &) = delete; // the table pointer may point into the object
+    SpriteCache &operator=(const SpriteCache &) = delete;
+
+    // Makes the cache write the sprites' infos (their sizes and flags) into the given table, which it resizes
+    // as sprites are added; nullptr brings back the cache's own table. The table must outlive its use here.
+    // Changing the table while sprites are registered is the caller's business: the infos written so far are
+    // not copied, so the caller sets the table before any sprite exists, or after a Reset().
+    void SetSpriteInfos(std::vector<SpriteInfo> *infos);
+    // Sets the callbacks the cache calls when it loads, initializes and saves a sprite; a callback left empty
+    // does nothing
+    void SetCallbacks(const Callbacks &callbacks);
 
     // Loads sprite reference information and inits sprite stream
     HError InitFile(std::unique_ptr<Stream> &&sprite_file, std::unique_ptr<Stream> &&index_file);
@@ -222,8 +236,11 @@ private:
         bool IsError() const;
     };
 
-    // Provided map of sprite infos, to fill in loaded sprite properties
-    std::vector<SpriteInfo> &_sprInfos;
+    // The cache's own table of sprite infos, used when no table is set
+    std::vector<SpriteInfo> _ownSprInfos;
+    // The table of sprite infos to fill in loaded sprite properties: the one set by SetSpriteInfos or
+    // _ownSprInfos; never null
+    std::vector<SpriteInfo> *_sprInfos = &_ownSprInfos;
     // Array of sprite references
     std::vector<SpriteData> _spriteData;
     // Placeholder sprite, returned from operator[] for a non-existing sprite

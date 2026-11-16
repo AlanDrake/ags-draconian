@@ -61,6 +61,7 @@
 #include "gui/guitextbox.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/engine_services.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
 #include "script/dynobj/dynobj_manager.h"
@@ -1684,10 +1685,11 @@ HSaveError PrescanViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
 
 HSaveError WriteDynamicSpritesImpl(Stream *out, int match_flags)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     int count = 0;
     int top_index = 1;
-    for (size_t i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
+    for (size_t i = 1; i < services.Sprites.GetSpriteSlotCount(); ++i)
     {
         if ((game.SpriteInfos[i].Flags & match_flags) == match_flags)
         {
@@ -1698,13 +1700,13 @@ HSaveError WriteDynamicSpritesImpl(Stream *out, int match_flags)
     out->WriteInt32(count);
     out->WriteInt32(top_index);
 
-    for (size_t i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
+    for (size_t i = 1; i < services.Sprites.GetSpriteSlotCount(); ++i)
     {
         if ((game.SpriteInfos[i].Flags & match_flags) == match_flags)
         {
             out->WriteInt32(i);
             out->WriteInt32(game.SpriteInfos[i].Flags);
-            WriteBitmap(spriteset[i], out, false /* not compressed (expect component is compressed) */);
+            WriteBitmap(services.Sprites[i], out, false /* not compressed (expect component is compressed) */);
         }
     }
     return HSaveError::None();
@@ -1717,7 +1719,7 @@ HSaveError ReadDynamicSpritesImpl(Stream *in, int match_flags)
     // ensure the sprite set is at least large enough
     // to accommodate top dynamic sprite index
     const int top_index = in->ReadInt32();
-    spriteset.EnlargeTo(top_index);
+    EngineServices::Current().Sprites.EnlargeTo(top_index);
     for (int i = 0; i < spr_count; ++i)
     {
         int id = in->ReadInt32();

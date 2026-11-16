@@ -21,6 +21,7 @@
 #include "game/world/view_frame.h"
 #include "gfx/bitmap.h"
 #include "gfx/sprite_cache.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
@@ -55,7 +56,7 @@ Pointf ScreenOverlay::GetEffectivePivot() const
 
 Bitmap *ScreenOverlay::GetImage() const
 {
-    return spriteset[_sprnum];
+    return EngineServices::Current().Sprites[_sprnum];
 }
 
 Size ScreenOverlay::GetGraphicSize() const

@@ -42,6 +42,7 @@
 #include "gfx/gfx_def.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/dynobj/script_user_object.h"
 #include "script/runtimescriptvalue.h"
@@ -162,13 +163,13 @@ Bitmap *GetObjectImage(int obj_id, bool always_original, bool *is_original)
     if (is_original)
         *is_original = pic == nullptr; // if not used cached image, then use original
     if (!pic)
-        pic = spriteset[Room::Current().Objs[obj_id].num];
+        pic = EngineServices::Current().Sprites[Room::Current().Objs[obj_id].num];
     return pic;
 }
 
 Bitmap *GetObjectSourceImage(int obj_id)
 {
-    return spriteset[Room::Current().Objs[obj_id].num];
+    return EngineServices::Current().Sprites[Room::Current().Objs[obj_id].num];
 }
 
 int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
