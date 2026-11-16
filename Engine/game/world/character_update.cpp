@@ -20,7 +20,6 @@
 #include "game/lib/math.h"
 #include "game/roomstruct.h"
 #include "game/world/character.h"
-#include "game/world/character_extras.h"
 #include "game/world/object.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"

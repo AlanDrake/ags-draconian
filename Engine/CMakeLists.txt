@@ -284,9 +284,7 @@ target_sources(engine
     game/video/video_script.h
     game/world/character.cpp
     game/world/character.h
-    game/world/character_extras.cpp
-    game/world/character_extras.h
-    game/world/character_info_engine.cpp
+    game/world/character_update.cpp
     game/world/hotspot.cpp
     game/world/hotspot.h
     game/world/inventory_item.cpp

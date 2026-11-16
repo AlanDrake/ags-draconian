@@ -492,8 +492,7 @@
     <ClCompile Include="..\..\Engine\game\video\video.cpp" />
     <ClCompile Include="..\..\Engine\game\video\video_script.cpp" />
     <ClCompile Include="..\..\Engine\game\world\character.cpp" />
-    <ClCompile Include="..\..\Engine\game\world\character_extras.cpp" />
-    <ClCompile Include="..\..\Engine\game\world\character_info_engine.cpp" />
+    <ClCompile Include="..\..\Engine\game\world\character_update.cpp" />
     <ClCompile Include="..\..\Engine\game\world\hotspot.cpp" />
     <ClCompile Include="..\..\Engine\game\world\inventory_item.cpp" />
     <ClCompile Include="..\..\Engine\game\world\move_list.cpp" />
@@ -736,7 +735,6 @@
     <ClInclude Include="..\..\Engine\game\video\video.h" />
     <ClInclude Include="..\..\Engine\game\video\video_script.h" />
     <ClInclude Include="..\..\Engine\game\world\character.h" />
-    <ClInclude Include="..\..\Engine\game\world\character_extras.h" />
     <ClInclude Include="..\..\Engine\game\world\hotspot.h" />
     <ClInclude Include="..\..\Engine\game\world\inventory_item.h" />
     <ClInclude Include="..\..\Engine\game\world\move_list.h" />

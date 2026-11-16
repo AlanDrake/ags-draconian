@@ -234,10 +234,7 @@
     <ClCompile Include="..\..\Engine\game\world\character.cpp">
       <Filter>Source Files\game\world</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\game\world\character_extras.cpp">
-      <Filter>Source Files\game\world</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\game\world\character_info_engine.cpp">
+    <ClCompile Include="..\..\Engine\game\world\character_update.cpp">
       <Filter>Source Files\game\world</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\lib\date_time.cpp">
@@ -963,9 +960,6 @@
       <Filter>Header Files\game\ui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\world\character.h">
-      <Filter>Header Files\game\world</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\game\world\character_extras.h">
       <Filter>Header Files\game\world</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\lib\date_time.h">

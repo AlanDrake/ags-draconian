@@ -45,7 +45,7 @@ Engine/ac/character.cpp	Engine/game/world/character.cpp
 Engine/ac/character.h	Engine/game/world/character.h
 Engine/ac/characterextras.cpp	Engine/game/world/character_extras.cpp
 Engine/ac/characterextras.h	Engine/game/world/character_extras.h
-Engine/ac/characterinfo_engine.cpp	Engine/game/world/character_info_engine.cpp	5.1a dissolves it into the runtime Character
+Engine/ac/characterinfo_engine.cpp	Engine/game/world/character_update.cpp	5.1a dissolves it into the runtime Character
 Engine/ac/datetime.cpp	Engine/game/lib/date_time.cpp
 Engine/ac/datetime.h	Engine/game/lib/date_time.h
 Engine/ac/dialog.cpp	Engine/game/dialog/dialog.cpp

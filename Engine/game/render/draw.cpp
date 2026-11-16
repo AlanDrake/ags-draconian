@@ -41,7 +41,6 @@
 #include "game/ui/mouse.h"
 #include "game/view.h"
 #include "game/world/character.h"
-#include "game/world/character_extras.h"
 #include "game/world/move_list.h"
 #include "game/world/object.h"
 #include "game/world/region.h"

@@ -30,7 +30,7 @@
 #include "game/render/viewport.h"
 #include "game/roomstruct.h"
 #include "game/view.h"
-#include "game/world/character_extras.h"
+#include "game/world/character.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"
 #include "gfx/bitmap.h"

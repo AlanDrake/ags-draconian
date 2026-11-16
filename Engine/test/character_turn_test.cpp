@@ -26,7 +26,6 @@
 #include "game/game_state.h"
 #include "game/view.h"
 #include "game/world/character.h"
-#include "game/world/character_extras.h"
 #include "gtest/gtest.h"
 
 // Fixture: one character with an 8-loop view of one frame per loop

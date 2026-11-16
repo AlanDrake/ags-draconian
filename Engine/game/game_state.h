@@ -24,7 +24,7 @@
 #include "game/game_struct_defines.h"
 #include "game/roomstruct.h"
 #include "game/runtime_defines.h"
-#include "game/world/character_extras.h"
+#include "game/world/character.h"
 #include "game/world/move_list.h"
 #include "gfx/graphicsdriver.h"
 #include "gui/guidefines.h"

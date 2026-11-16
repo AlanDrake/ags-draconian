@@ -45,7 +45,6 @@
 #include "game/ui/mouse.h"
 #include "game/video/video.h"
 #include "game/world/character.h"
-#include "game/world/character_extras.h"
 #include "game/world/hotspot.h"
 #include "game/world/object.h"
 #include "game/world/region.h"

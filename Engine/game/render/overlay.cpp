@@ -30,7 +30,6 @@
 #include "game/translation.h"
 #include "game/view.h"
 #include "game/world/character.h"
-#include "game/world/character_extras.h"
 #include "game/world/object.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"

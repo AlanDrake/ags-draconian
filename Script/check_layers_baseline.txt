@@ -63,8 +63,8 @@ Engine/game/ui/my_push_button.cpp	Engine/main/game_run.h
 Engine/game/video/video.cpp	Engine/main/game_run.h
 Engine/game/world/character.cpp	Engine/main/game_run.h
 Engine/game/world/character.cpp	Engine/main/update.h
-Engine/game/world/character_info_engine.cpp	Engine/main/game_run.h
-Engine/game/world/character_info_engine.cpp	Engine/main/update.h
+Engine/game/world/character_update.cpp	Engine/main/game_run.h
+Engine/game/world/character_update.cpp	Engine/main/update.h
 Engine/game/world/object.cpp	Engine/main/game_run.h
 Engine/game/world/room.cpp	Engine/main/game_run.h
 Engine/game/world/room.cpp	Engine/plugin/plugin_engine.h

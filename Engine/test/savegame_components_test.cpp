@@ -45,7 +45,7 @@
 #include "game/save/savegame_components.h"
 #include "game/save/savegame_internal.h"
 #include "game/view.h"
-#include "game/world/character_extras.h"
+#include "game/world/character.h"
 #include "game/world/room_status.h"
 #include "gtest/gtest.h"
 #include "platform/base/engine_services.h"

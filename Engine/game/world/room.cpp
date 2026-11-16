@@ -41,7 +41,6 @@
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
 #include "game/world/character.h"
-#include "game/world/character_extras.h"
 #include "game/world/hotspot.h"
 #include "game/world/move_list.h"
 #include "game/world/object.h"

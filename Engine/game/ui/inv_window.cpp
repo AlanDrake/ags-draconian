@@ -26,7 +26,6 @@
 #include "game/ui/gui_dialog.h"
 #include "game/ui/mouse.h"
 #include "game/world/character.h"
-#include "game/world/character_extras.h"
 #include "game/world/inventory_item.h"
 #include "gfx/sprite_cache.h"
 #include "gui/guimain.h"

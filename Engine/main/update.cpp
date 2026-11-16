@@ -30,7 +30,6 @@
 #include "game/render/overlay.h"
 #include "game/render/screen_overlay.h"
 #include "game/world/character.h"
-#include "game/world/character_extras.h"
 #include "game/world/move_list.h"
 #include "game/world/object.h"
 #include "game/world/room.h"

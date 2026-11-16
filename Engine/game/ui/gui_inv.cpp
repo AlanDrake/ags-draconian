@@ -16,7 +16,7 @@
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
-#include "game/world/character_extras.h"
+#include "game/world/character.h"
 #include "gfx/bitmap.h"
 #include "gfx/sprite_cache.h"
 #include "gui/guiinv.h"
