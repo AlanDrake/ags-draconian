@@ -702,6 +702,7 @@ if(AGS_TESTS)
         test/gui_layout_test.cpp
         test/managed_pool_test.cpp
         test/overlay_test.cpp
+        test/room_state_test.cpp
         test/script_exports_test.cpp
         test/script_binder_test.cpp
         test/script_bytecode_test.cpp

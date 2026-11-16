@@ -3158,7 +3158,7 @@ int has_hit_another_character(Game &game, int source_char)
 // otherwise returns 0
 int doNextCharMoveStep(Game &game, Character *ch)
 {
-    assert(ch->walking > 0);
+    assert(ch->MoveListID > 0);
     if (ch->MoveListID <= 0)
     {
         return 0;

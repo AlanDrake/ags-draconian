@@ -92,7 +92,7 @@ ScriptRegion *Region_GetByName(const char *name)
 void SetAreaLightLevel(int area, int brightness)
 {
     Room &room = Room::Current();
-    if ((area < 0) || (area > MAX_ROOM_REGIONS))
+    if ((area < 0) || (area >= MAX_ROOM_REGIONS))
         quit("!SetAreaLightLevel: invalid region");
     if (brightness < -255)
         brightness = -255;

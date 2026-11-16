@@ -561,11 +561,10 @@ static void reset_temp_room()
     Room::Current().TempState = RoomState();
 }
 
-// Initializes object states in the current RoomState object (room.State),
+// Initializes object states in the RoomState object of the given room (room.State),
 // copying default properties from the room's objects (room.Objects), in the element range [start, end).
-static void init_object_states(size_t start, size_t end)
+static void init_object_states(Room &room, size_t start, size_t end)
 {
-    Room &room = Room::Current();
     for (uint32_t i = start; i < end; ++i)
     {
         const auto &obj_info = room.Objects[i];
@@ -613,6 +612,66 @@ HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr,
         return new Error(*err);
     *room = RoomStruct(room_data);
     return HError::None();
+}
+
+bool BindRoomState(Room &room)
+{
+    // Decide what to do if we have been or not in this room before
+    const bool first_visit = room.State->beenhere == 0;
+    if (first_visit)
+    {
+        // If we have not been in this room before, then copy necessary fields from the room's data
+        room.State->numobj = room.Objects.size();
+        room.State->tsdatasize = 0u;
+        room.State->obj.resize(room.State->numobj);
+        room.State->objProps.resize(room.State->numobj);
+        room.State->face_dir_ratio = room.Options.FaceDirectionRatio;
+        init_object_states(room, 0u, room.Objects.size());
+
+        for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
+            room.State->walkbehind_base[i] = room.WalkBehinds[i].Baseline;
+
+        for (int i = 0; i < MAX_ROOM_HOTSPOTS; i++)
+        {
+            room.State->hotspot[i].Enabled = true;
+            room.State->hotspot[i].Name = room.Hotspots[i].Name;
+        }
+        for (int i = 0; i < MAX_ROOM_REGIONS; i++)
+        {
+            room.State->region_enabled[i] = 1;
+        }
+        for (int i = 0; i < MAX_WALK_AREAS; ++i)
+        {
+            room.State->walkareas[i].FaceDirectionRatio = room.WalkAreas[i].FaceDirectionRatio;
+        }
+
+        room.State->beenhere = 1;
+    }
+    else
+    {
+        // We HAD been in this room, so normally we don't have to do anything... but
+        // If the restored number of object states does not match real room,
+        // then adjust the *room state* by either expanding or cutting objects array
+        if (room.State->obj.size() != room.Objects.size())
+        {
+            Debug::Printf(kDbgMsg_Warn,
+                          "WARNING: the restored room state has different number of object states than the current "
+                          "room has objects (%u vs %u).",
+                          room.State->numobj, (uint32_t)room.Objects.size());
+            const size_t was_obj_states = room.State->obj.size();
+            room.State->numobj = room.Objects.size();
+            room.State->obj.resize(room.Objects.size());
+            room.State->objProps.resize(room.Objects.size());
+            if (was_obj_states < room.Objects.size())
+                init_object_states(room, was_obj_states, room.Objects.size());
+        }
+    }
+
+    // Reset contentFormat hint to avoid doing fixups later
+    room.State->contentFormat = kRoomStatSvgVersion_Current;
+
+    room.Objs = !room.State->obj.empty() ? &room.State->obj[0] : nullptr;
+    return first_visit;
 }
 
 void load_new_room(int room_id, Character *ch)
@@ -734,62 +793,9 @@ void load_new_room(int room_id, Character *ch)
     else
         room.State = &room.TempState;
 
-    // Decide what to do if we have been or not in this room before
     const bool been_here = room.State->beenhere > 0;
-    if (room.State->beenhere == 0)
-    {
-        // If we have not been in this room before, then copy necessary fields from the room's data
-        room.State->numobj = room.Objects.size();
-        room.State->tsdatasize = 0u;
-        room.State->obj.resize(room.State->numobj);
-        room.State->objProps.resize(room.State->numobj);
-        room.State->face_dir_ratio = room.Options.FaceDirectionRatio;
-        init_object_states(0u, room.Objects.size());
-
-        for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
-            room.State->walkbehind_base[i] = room.WalkBehinds[i].Baseline;
-
-        for (int i = 0; i < MAX_ROOM_HOTSPOTS; i++)
-        {
-            room.State->hotspot[i].Enabled = true;
-            room.State->hotspot[i].Name = room.Hotspots[i].Name;
-        }
-        for (int i = 0; i < MAX_ROOM_REGIONS; i++)
-        {
-            room.State->region_enabled[i] = 1;
-        }
-        for (int i = 0; i < MAX_WALK_AREAS; ++i)
-        {
-            room.State->walkareas[i].FaceDirectionRatio = room.WalkAreas[i].FaceDirectionRatio;
-        }
-
-        room.State->beenhere = 1;
+    if (BindRoomState(room))
         game.RoomChange.InNewRoom = kEnterRoom_FirstTime;
-    }
-    else
-    {
-        // We HAD been in this room, so normally we don't have to do anything... but
-        // If the restored number of object states does not match real room,
-        // then adjust the *room state* by either expanding or cutting objects array
-        if (room.State->obj.size() != room.Objects.size())
-        {
-            Debug::Printf(kDbgMsg_Warn,
-                          "WARNING: the restored room state has different number of object states than the current "
-                          "room has objects (%u vs %u).",
-                          room.State->numobj, (uint32_t)room.Objects.size());
-            const size_t was_obj_states = room.State->obj.size();
-            room.State->numobj = room.Objects.size();
-            room.State->obj.resize(room.Objects.size());
-            room.State->objProps.resize(room.Objects.size());
-            if (was_obj_states < room.Objects.size())
-                init_object_states(was_obj_states, room.Objects.size());
-        }
-    }
-
-    // Reset contentFormat hint to avoid doing fixups later
-    room.State->contentFormat = kRoomStatSvgVersion_Current;
-
-    room.Objs = !room.State->obj.empty() ? &room.State->obj[0] : nullptr;
 
     // Export named room elements to script
     for (uint32_t i = 0; i < room.Objects.size(); ++i)

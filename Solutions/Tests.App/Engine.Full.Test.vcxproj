@@ -40,6 +40,7 @@
     <ClCompile Include="..\..\Engine\test\gui_layout_test.cpp" />
     <ClCompile Include="..\..\Engine\test\managed_pool_test.cpp" />
     <ClCompile Include="..\..\Engine\test\overlay_test.cpp" />
+    <ClCompile Include="..\..\Engine\test\room_state_test.cpp" />
     <ClCompile Include="..\..\Engine\test\savegame_components_test.cpp" />
     <ClCompile Include="..\..\Engine\test\savegame_file_test.cpp" />
     <ClCompile Include="..\..\Engine\test\savegame_test.cpp" />

@@ -122,6 +122,7 @@ void RoomState::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
     for (uint32_t i = 0; i < numobj; ++i)
     {
         obj[i].ReadFromSavegame(in, cmp_ver);
+        obj[i].id = static_cast<int>(i); // not saved: the object's index
         Properties::ReadValues(objProps[i], in);
     }
     for (int i = 0; i < num_hotspots; ++i)

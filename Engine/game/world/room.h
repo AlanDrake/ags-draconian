@@ -65,6 +65,10 @@ void unload_old_room();
 // Loads room room_id from its file and makes it the current room. ch is the character entering the room
 // (the player on NewRoom), who gets placed at the entry position; nullptr when restoring a saved game
 void load_new_room(int room_id, Character *ch);
+// Brings the state of the loaded room (room.State) in line with the room's definition: at a first visit the
+// state is filled from the definition, at a later one it is kept, with its object list cut or grown to the
+// definition's. Sets room.Objs. Returns whether this was the first visit.
+bool BindRoomState(Room &room);
 // Changes the current room: runs the room-leaving events (their scripts may change the destination),
 // unloads the old room and loads the new one with load_new_room()
 void new_room(int room_id, Character *ch);

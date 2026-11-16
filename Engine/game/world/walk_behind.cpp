@@ -183,8 +183,8 @@ void walkbehinds_recalc()
 
 int get_walkbehind_pixel(int x, int y)
 {
-    Room &room = Room::Current();
-    return room.WalkAreaMask->GetPixel(room_to_mask_coord(room, x), room_to_mask_coord(room, y));
+    // the walk-behind mask has the room's size, unlike the masks scaled by room.MaskResolution
+    return Room::Current().WalkBehindMask->GetPixel(x, y);
 }
 
 ScriptWalkbehind *Walkbehind_GetAtRoomXY(int x, int y)

@@ -43,6 +43,9 @@
     <ClCompile Include="..\..\Engine\test\overlay_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\test\room_state_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Engine\test\savegame_components_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
