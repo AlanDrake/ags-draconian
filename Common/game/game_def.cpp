@@ -25,7 +25,10 @@
 using namespace AGS;
 using namespace AGS::Common;
 
+// Defined here, where the element types of the lists (ViewStruct, DialogTopic) are complete.
 GameDef::GameDef() = default;
+// Not noexcept, as when it was defaulted in the class: moving a std::map or an unordered_map member may allocate
+// NOLINTNEXTLINE(bugprone-exception-escape)
 GameDef::GameDef(GameDef &&gss) = default;
 GameDef::~GameDef() = default;
 GameDef &GameDef::operator=(GameDef &&gss) = default;
