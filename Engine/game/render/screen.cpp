@@ -656,12 +656,12 @@ public:
             return false;
 
         // do the dissolving
-        int maskCol = game.SavedViewportBitmap->GetMaskColor();
+        int mask_col = game.SavedViewportBitmap->GetMaskColor();
         for (int x = 0; x < _view.GetWidth(); x += 4)
         {
             for (int y = 0; y < _view.GetHeight(); y += 4)
             {
-                game.SavedViewportBitmap->PutPixel(x + _pattern[_step] / 4, y + _pattern[_step] % 4, maskCol);
+                game.SavedViewportBitmap->PutPixel(x + _pattern[_step] / 4, y + _pattern[_step] % 4, mask_col);
             }
         }
         _services.GfxDriver->UpdateDDBFromBitmap(_shot_ddb, game.SavedViewportBitmap.get());

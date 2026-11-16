@@ -390,7 +390,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         services.CmdGameDataPath = services.Platform->GetCommandArg(datafile_argv);
     }
 
-    if (services.TellInfoKeys.size() > 0)
+    if (!services.TellInfoKeys.empty())
         services.JustTellInfo = true;
 
     return 0;

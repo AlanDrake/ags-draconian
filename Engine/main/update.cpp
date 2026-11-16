@@ -402,10 +402,10 @@ void update_sierra_speech()
                 CheckViewFrame(game.Speech.FaceTalkChar->blinkview, game.Speech.FaceTalkBlinkLoop,
                                game.Speech.FaceTalkChar->blinkframe, frame_vol);
 
-            int thisPic = game.Views[game.Speech.FaceTalkView]
-                              .loops[game.Speech.FaceTalkLoop]
-                              .frames[game.Speech.FaceTalkFrame]
-                              .pic;
+            int this_pic = game.Views[game.Speech.FaceTalkView]
+                               .loops[game.Speech.FaceTalkLoop]
+                               .frames[game.Speech.FaceTalkFrame]
+                               .pic;
             int view_frame_x = 0;
             int view_frame_y = 0;
 
@@ -425,7 +425,7 @@ void update_sierra_speech()
                 }
                 else
                 {
-                    view_frame_y = (frame_pic->GetHeight() / 2) - (game.SpriteInfos[thisPic].Height / 2);
+                    view_frame_y = (frame_pic->GetHeight() / 2) - (game.SpriteInfos[this_pic].Height / 2);
                 }
                 frame_pic->Clear(0);
             }

@@ -45,6 +45,8 @@ SHARED = ('Common/util/', 'Common/data/data_helpers.h')
 KNOWN = {
     # The accessor of an engine context (PLAN.md 5.1): the instance in use, not Directory's current directory
     ('Engine/platform/base/engine_services.h', 'Current'),
+    ('Engine/game/game_context.h', 'Current'),
+    ('Engine/game/world/room_context.h', 'Current'),
 }
 HUNK = re.compile(r'^@@ -\S+ \+(\d+)(?:,(\d+))? @@')
 # The first line of a function definition or declaration: at most one level of indentation

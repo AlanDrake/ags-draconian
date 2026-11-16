@@ -53,9 +53,9 @@ SpriteCache::SpriteCache() : ResourceCache(DEFAULTCACHESIZE_KB * 1024u)
     _placeholder.reset(BitmapHelper::CreateTransparentBitmap(1, 1));
 }
 
-SpriteCache::SpriteCache(std::vector<SpriteInfo> &sprInfos, const Callbacks &callbacks) : SpriteCache()
+SpriteCache::SpriteCache(std::vector<SpriteInfo> &sprite_infos, const Callbacks &callbacks) : SpriteCache()
 {
-    SetSpriteInfos(&sprInfos);
+    SetSpriteInfos(&sprite_infos);
     SetCallbacks(callbacks);
 }
 

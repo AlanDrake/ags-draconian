@@ -430,7 +430,7 @@ AGSGameOptions *IAGSEngine::GetGameOptions()
 }
 AGSColor *IAGSEngine::GetPalette()
 {
-    return (AGSColor *)&Game::Current().Palette[0];
+    return reinterpret_cast<AGSColor *>(&Game::Current().Palette[0]);
 }
 void IAGSEngine::SetPalette(int32 start, int32 finish, AGSColor *cpl)
 {
@@ -472,7 +472,7 @@ AGSObject *IAGSEngine::GetObject(int32 num)
     if (num < 0 || static_cast<uint32_t>(num) >= Room::Current().State->numobj)
         quit("!IAGSEngine::GetObject: invalid object");
     // IMPORTANT: if we change the script functions object argument type, we must change this return value too!
-    return (AGSObject *)&Game::Current().ScObjects[num];
+    return reinterpret_cast<AGSObject *>(&Game::Current().ScObjects[num]);
 }
 BITMAP *IAGSEngine::CreateBlankBitmap(int32 width, int32 height, int32 coldep)
 {

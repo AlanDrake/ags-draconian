@@ -377,7 +377,7 @@ void enable_cursor_mode(int modd)
         {
             if (game.Guis[uu].GetControlType(ww) != kGUIButton)
                 continue;
-            GUIButton *gbpt = (GUIButton *)game.Guis[uu].GetControl(ww);
+            GUIButton *gbpt = static_cast<GUIButton *>(game.Guis[uu].GetControl(ww));
             if (gbpt->GetClickAction(kGUIClickLeft) != kGUIAction_SetMode)
                 continue;
             if (gbpt->GetClickData(kGUIClickLeft) != modd)
@@ -403,7 +403,7 @@ void disable_cursor_mode(int modd)
         {
             if (game.Guis[uu].GetControlType(ww) != kGUIButton)
                 continue;
-            GUIButton *gbpt = (GUIButton *)game.Guis[uu].GetControl(ww);
+            GUIButton *gbpt = static_cast<GUIButton *>(game.Guis[uu].GetControl(ww));
             if (gbpt->GetClickAction(kGUIClickLeft) != kGUIAction_SetMode)
                 continue;
             if (gbpt->GetClickData(kGUIClickLeft) != modd)

@@ -330,7 +330,7 @@ static void audio_update_polled_stuff()
             int channel = find_free_audio_channel(clip, clip->defaultPriority, false, true);
             if (channel >= 0)
             {
-                QueuedAudioItem itemToPlay = std::move(game.Play.new_music_queue[i]);
+                QueuedAudioItem item_to_play = std::move(game.Play.new_music_queue[i]);
 
                 game.Play.new_music_queue_size--;
                 for (int j = i; j < game.Play.new_music_queue_size; j++)
@@ -338,8 +338,8 @@ static void audio_update_polled_stuff()
                     game.Play.new_music_queue[j] = std::move(game.Play.new_music_queue[j + 1]);
                 }
 
-                play_audio_clip_on_channel(clip, channel, itemToPlay.priority, itemToPlay.repeat, 0,
-                                           std::move(itemToPlay.cachedClip));
+                play_audio_clip_on_channel(clip, channel, item_to_play.priority, item_to_play.repeat, 0,
+                                           std::move(item_to_play.cachedClip));
                 i--;
             }
         }
@@ -571,10 +571,10 @@ void stop_and_destroy_channel(int chid)
 }
 
 
-int get_volume_adjusted_for_distance(Game &game, int volume, int sndX, int sndY, int sndMaxDist)
+int get_volume_adjusted_for_distance(Game &game, int volume, int snd_x, int snd_y, int snd_max_dist)
 {
-    int distx = game.PlayerChar->x - sndX;
-    int disty = game.PlayerChar->y - sndY;
+    int distx = game.PlayerChar->x - snd_x;
+    int disty = game.PlayerChar->y - snd_y;
     int dist = (int)::sqrt((double)(distx * distx + disty * disty));
 
     // if they're quite close, full volume
@@ -583,7 +583,7 @@ int get_volume_adjusted_for_distance(Game &game, int volume, int sndX, int sndY,
     if (dist >= AMBIENCE_FULL_DIST)
     {
         // get the relative volume
-        wantvol = ((dist - AMBIENCE_FULL_DIST) * volume) / sndMaxDist;
+        wantvol = ((dist - AMBIENCE_FULL_DIST) * volume) / snd_max_dist;
         // closer is louder
         wantvol = volume - wantvol;
     }

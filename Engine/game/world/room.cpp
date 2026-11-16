@@ -774,7 +774,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
     // Reset contentFormat hint to avoid doing fixups later
     room.State->contentFormat = kRoomStatSvgVersion_Current;
 
-    room.Objs = room.State->obj.size() > 0 ? &room.State->obj[0] : nullptr;
+    room.Objs = !room.State->obj.empty() ? &room.State->obj[0] : nullptr;
 
     // Export named room elements to script
     for (uint32_t i = 0; i < room.Objects.size(); ++i)

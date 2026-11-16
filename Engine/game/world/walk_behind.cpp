@@ -242,7 +242,7 @@ void SetWalkBehindBase(int wa, int bl)
 
     if (bl != room.State->walkbehind_base[wa])
     {
-        room.WalkBehindBaselinesChanged = 1;
+        room.WalkBehindBaselinesChanged = true;
         room.State->walkbehind_base[wa] = bl;
         debug_script_log("Walk-behind %d baseline changed to %d", wa, bl);
     }

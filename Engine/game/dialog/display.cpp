@@ -613,7 +613,7 @@ int GetTextDisplayLength(const char *text)
 
 // Calculates lipsync frame duration (or duration per character) in game loops.
 // NOTE: historical formula was this:
-//   Game::LipSync.LoopsPerCharacter = (((text_len / game.Play.lipsync_speed) + 1) * fps) / text_len;
+//   the `LoopsPerCharacter` of the game's lip-sync state (`Game::LipSync`) = (((text_len / game.Play.lipsync_speed) + 1) * fps) / text_len;
 // But because of a precision loss due integer division this resulted in "jumping" values.
 // The new formula uses float division, and coefficent found experimentally to make
 // results match the old formula in certain key text lengths, for backwards compatibility.

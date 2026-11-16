@@ -129,11 +129,11 @@ int DialogOptionsRendering_GetActiveOptionID(ScriptDialogOptionsRendering *dlgOp
 void DialogOptionsRendering_SetActiveOptionID(ScriptDialogOptionsRendering *dlgOptRender, int activeOptionID)
 {
     Game &game = Game::Current();
-    int optionCount = game.Dialogs[game.ScDialogs[dlgOptRender->dialogID].id].GetOptionCount();
-    if ((activeOptionID < 0) || (activeOptionID > optionCount))
+    int option_count = game.Dialogs[game.ScDialogs[dlgOptRender->dialogID].id].GetOptionCount();
+    if ((activeOptionID < 0) || (activeOptionID > option_count))
         quitprintf("DialogOptionsRenderingInfo.ActiveOptionID: invalid ID specified for this dialog (specified %d, "
                    "valid range: 1..%d)",
-                   activeOptionID, optionCount);
+                   activeOptionID, option_count);
 
     if (dlgOptRender->activeOptionID != activeOptionID - 1)
     {

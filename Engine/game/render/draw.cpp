@@ -3069,7 +3069,7 @@ static void construct_room_view()
     draw_preroom_background();
     prepare_room_sprites();
     // reset the Baselines Changed flag now that we've drawn stuff
-    Room::Current().WalkBehindBaselinesChanged = 0;
+    Room::Current().WalkBehindBaselinesChanged = false;
 
     for (const auto &viewport : game.Play.GetRoomViewportsZOrdered())
     {

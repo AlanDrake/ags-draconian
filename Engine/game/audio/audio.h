@@ -88,7 +88,7 @@ void stop_and_destroy_channel(int chid);
 
 //=============================================================================
 
-int get_volume_adjusted_for_distance(Game &game, int volume, int sndX, int sndY, int sndMaxDist);
+int get_volume_adjusted_for_distance(Game &game, int volume, int snd_x, int snd_y, int snd_max_dist);
 void update_directional_sound_vol();
 // Tells if the audio type is allowed to play with regards to current sound config
 bool is_audiotype_allowed_to_play(AudioFileType type);

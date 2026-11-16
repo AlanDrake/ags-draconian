@@ -105,7 +105,7 @@ EXTERN_ALLOWED = {
     'GameDataDirToken': _CONSTANT,
     'DefaultConfigFileName': _CONSTANT,
     'ScriptEventCb': _CONSTANT,
-    'RBSwitchNames': _CONSTANT,
+    'kRBSwitchNames': _CONSTANT,
     # Stateless managers
     'ccDynamicAudioClip': _MANAGER,
     'ccDynamicAudio': _MANAGER,

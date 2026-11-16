@@ -471,7 +471,7 @@ void LoadLipsyncData()
 
 // Reports the game resolution, and sets up the main and UI viewports and the script system's
 // resolution variables from it
-void InitGameResolution(Game &game, GameDataVersion data_ver)
+void InitGameResolution(Game &game, GameDataVersion /*data_ver*/)
 {
     const Size game_size = game.GetGameRes();
     Debug::Printf(kDbgMsg_Info, "Game native resolution: %d x %d (%d bit)", game_size.Width, game_size.Height,
@@ -681,7 +681,7 @@ void ApplyBehaviorOptions(GameDef & /*game*/, GamePlayState &play, const EngineC
     GUI::Options.ApplyTextDirection = play.GetRBSwitches()[kRBO_ApplyGUITextDirection];
 }
 
-void PrintBehaviorOptions(const GameDef &game, const GamePlayState &play)
+void PrintBehaviorOptions(const GameDef & /*game*/, const GamePlayState &play)
 {
     // Runtime Behavior Switches
     {
@@ -689,8 +689,8 @@ void PrintBehaviorOptions(const GameDef &game, const GamePlayState &play)
         const auto &rbs_values = play.GetRBSwitches();
         for (size_t i = kRBS_Dummy + 1; i < kNum_RBS; ++i)
         {
-            assert(RBSwitchNames[i] != nullptr);
-            Debug::Printf("\t%s = %d", RBSwitchNames[i], static_cast<int>(rbs_values[i]));
+            assert(kRBSwitchNames[i] != nullptr);
+            Debug::Printf("\t%s = %d", kRBSwitchNames[i], static_cast<int>(rbs_values[i]));
         }
     }
 }

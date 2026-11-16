@@ -24,7 +24,7 @@ namespace AGS
 namespace Engine
 {
 class RuntimeScript;
-typedef std::shared_ptr<RuntimeScript> PRuntimeScript;
+using PRuntimeScript = std::shared_ptr<RuntimeScript>;
 } // namespace Engine
 } // namespace AGS
 

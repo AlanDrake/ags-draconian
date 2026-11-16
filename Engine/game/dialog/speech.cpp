@@ -187,12 +187,12 @@ String get_voice_assetpath()
 
 ScriptOverlay *Speech_GetTextOverlay()
 {
-    return (ScriptOverlay *)ccGetObjectAddressFromHandle(Game::Current().Play.speech_text_schandle);
+    return static_cast<ScriptOverlay *>(ccGetObjectAddressFromHandle(Game::Current().Play.speech_text_schandle));
 }
 
 ScriptOverlay *Speech_GetPortraitOverlay()
 {
-    return (ScriptOverlay *)ccGetObjectAddressFromHandle(Game::Current().Play.speech_face_schandle);
+    return static_cast<ScriptOverlay *>(ccGetObjectAddressFromHandle(Game::Current().Play.speech_face_schandle));
 }
 
 CharacterInfo *Speech_GetSpeakingCharacter()

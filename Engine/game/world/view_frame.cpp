@@ -69,11 +69,11 @@ void ViewFrame_SetGraphic(ScriptViewFrame *svf, int newPic)
 ScriptAudioClip *ViewFrame_GetLinkedAudio(ScriptViewFrame *svf)
 {
     Game &game = Game::Current();
-    int soundIndex = game.Views[svf->view].loops[svf->loop].frames[svf->frame].sound;
-    if (soundIndex < 0)
+    int sound_index = game.Views[svf->view].loops[svf->loop].frames[svf->frame].sound;
+    if (sound_index < 0)
         return nullptr;
 
-    return &game.audioClips[soundIndex];
+    return &game.audioClips[sound_index];
 }
 
 void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip *clip)

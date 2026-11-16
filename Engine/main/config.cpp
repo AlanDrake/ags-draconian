@@ -342,7 +342,7 @@ void apply_config(const ConfigTree &cfg, EngineConfig &setup)
     if (cfg.count("override_behavior") > 0)
     {
         CstrArr<kNum_RBS> names;
-        std::copy(std::begin(RBSwitchNames), std::end(RBSwitchNames), names.begin());
+        std::copy(std::begin(kRBSwitchNames), std::end(kRBSwitchNames), names.begin());
         const auto &rbo_opts = cfg.at("override_behavior");
         for (const auto &opt : rbo_opts)
         {

@@ -157,7 +157,7 @@ int GetTextDisplayLength(const char *text);
 // uses Game::TextLayout.SourceTextLength instead of the text's own length, if that is set (and resets it);
 // can_be_relative is 1 for background speech, which keeps its time relative to a fixed 40 fps
 // when game.Play.bgspeech_game_speed is set.
-// Also stores the lipsync frame duration in Game::LipSync.LoopsPerCharacter.
+// Also stores the lipsync frame duration in the game's lip-sync state (the `Game::LipSync` member), its `LoopsPerCharacter`.
 int GetTextDisplayTime(const char *text, int can_be_relative = 0);
 // Draw an (optionally) outlined text
 void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int font, color_t text_color, color_t outline_color,

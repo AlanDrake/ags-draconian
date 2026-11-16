@@ -227,7 +227,7 @@ HGameFileError ReadScriptModules(std::vector<UScript> &sc_mods, Stream *in, Game
     return HGameFileError::None();
 }
 
-void ReadViews(GameDef &game, std::vector<ViewStruct> &views, Stream *in, GameDataVersion data_ver)
+void ReadViews(GameDef &game, std::vector<ViewStruct> &views, Stream *in, GameDataVersion /*data_ver*/)
 {
     views.resize(game.numviews);
     for (int i = 0; i < game.numviews; ++i)
@@ -273,7 +273,7 @@ HGameFileError ReadPlugins(std::vector<PluginInfo> &infos, Stream *in)
     return HGameFileError::None();
 }
 
-void ApplySpriteData(GameDef &game, const LoadedGameEntities &ents, GameDataVersion data_ver)
+void ApplySpriteData(GameDef &game, const LoadedGameEntities &ents, GameDataVersion /*data_ver*/)
 {
     if (ents.SpriteCount == 0)
         return;

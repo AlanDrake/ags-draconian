@@ -73,7 +73,7 @@ void run_claimable_event(const String &tsname, bool includeRoom, int numParams, 
     // then run the main one
     // We need to remember the Game::Events.Claimed's state, in case
     // this is a nested event
-    int eventClaimedOldValue = game.Events.Claimed;
+    int event_claimed_old_value = game.Events.Claimed;
     game.Events.Claimed = EVENT_INPROGRESS;
 
     if (includeRoom && room.Script)
@@ -81,7 +81,7 @@ void run_claimable_event(const String &tsname, bool includeRoom, int numParams, 
         RunScriptFunction(room.Script.get(), tsname, numParams, params);
         if (game.Events.Claimed == EVENT_CLAIMED)
         {
-            game.Events.Claimed = eventClaimedOldValue;
+            game.Events.Claimed = event_claimed_old_value;
             return;
         }
     }
@@ -92,12 +92,12 @@ void run_claimable_event(const String &tsname, bool includeRoom, int numParams, 
         RunScriptFunction(module_script.get(), tsname, numParams, params);
         if (game.Events.Claimed == EVENT_CLAIMED)
         {
-            game.Events.Claimed = eventClaimedOldValue;
+            game.Events.Claimed = event_claimed_old_value;
             return;
         }
     }
 
-    game.Events.Claimed = eventClaimedOldValue;
+    game.Events.Claimed = event_claimed_old_value;
     *eventWasClaimed = false;
 }
 

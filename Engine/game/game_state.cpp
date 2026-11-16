@@ -42,7 +42,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-const std::array<const char *, kNum_RBS> RBSwitchNames = {{
+const std::array<const char *, kNum_RBS> kRBSwitchNames = {{
     "dummy",                     // kRBS_Dummy
     "smooth_walk",               // kRBO_SmoothWalkTransition
     "gui_text_direction",        // kRBO_ApplyGUITextDirection

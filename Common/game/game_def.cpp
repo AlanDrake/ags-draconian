@@ -135,14 +135,14 @@ void GameDef::ResolveStandardModes()
 //-----------------------------------------------------------------------------
 // Reading Part 1
 
-void GameDef::read_savegame_info(Common::Stream *in, GameDataVersion data_ver)
+void GameDef::read_savegame_info(Common::Stream *in, GameDataVersion /*data_ver*/)
 {
     StrUtil::ReadCStrCount(guid, in, MAX_GUID_LENGTH);
     StrUtil::ReadCStrCount(saveGameFileExtension, in, MAX_SG_EXT_LENGTH);
     saveGameFolderName.ReadCount(in, LEGACY_MAX_SG_FOLDER_LEN);
 }
 
-void GameDef::read_font_infos(Common::Stream *in, GameDataVersion data_ver)
+void GameDef::read_font_infos(Common::Stream *in, GameDataVersion /*data_ver*/)
 {
     fonts.resize(numfonts);
     for (int i = 0; i < numfonts; ++i)
@@ -173,7 +173,7 @@ HGameFileError GameDef::read_cursors(Common::Stream *in)
     return HGameFileError::None();
 }
 
-HError GameDef::read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver)
+HError GameDef::read_interaction_scripts(Common::Stream *in, GameDataVersion /*data_ver*/)
 {
     chars.resize(numcharacters); // safety precaution, because chars may be read later
     HError err;
@@ -217,7 +217,7 @@ void GameDef::read_characters(Common::Stream *in, GameDataVersion data_ver)
     ReadCharacters(in, data_ver);
 }
 
-void GameDef::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
+void GameDef::read_lipsync(Common::Stream *in, GameDataVersion /*data_ver*/)
 {
     in->ReadArray(&lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50);
 }
@@ -244,7 +244,7 @@ void GameDef::ReadCharacters(Stream *in, GameDataVersion data_ver)
 //-----------------------------------------------------------------------------
 // Reading Part 3
 
-HGameFileError GameDef::read_customprops(Common::Stream *in, GameDataVersion data_ver)
+HGameFileError GameDef::read_customprops(Common::Stream *in, GameDataVersion /*data_ver*/)
 {
     if (Properties::ReadSchema(propSchema, in) != kPropertyErr_NoError)
         return new MainGameFileError(kMGFErr_InvalidPropertySchema);
@@ -279,7 +279,7 @@ HGameFileError GameDef::read_customprops(Common::Stream *in, GameDataVersion dat
     return HGameFileError::None();
 }
 
-HGameFileError GameDef::read_audio(Common::Stream *in, GameDataVersion data_ver)
+HGameFileError GameDef::read_audio(Common::Stream *in, GameDataVersion /*data_ver*/)
 {
     size_t audiotype_count = in->ReadInt32();
     audioClipTypes.resize(audiotype_count);

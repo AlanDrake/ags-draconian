@@ -87,8 +87,8 @@ public:
 
     // A cache that writes the sprites' infos into a table of its own and has no callbacks
     SpriteCache();
-    // The same as the default constructor followed by SetSpriteInfos(&sprInfos) and SetCallbacks(callbacks)
-    SpriteCache(std::vector<SpriteInfo> &sprInfos, const Callbacks &callbacks);
+    // The same as the default constructor followed by SetSpriteInfos(&sprite_infos) and SetCallbacks(callbacks)
+    SpriteCache(std::vector<SpriteInfo> &sprite_infos, const Callbacks &callbacks);
     ~SpriteCache() override;                   // out of line: SpriteInfo is incomplete here
     SpriteCache(const SpriteCache &) = delete; // the table pointer may point into the object
     SpriteCache &operator=(const SpriteCache &) = delete;
