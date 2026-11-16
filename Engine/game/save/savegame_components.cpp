@@ -1054,7 +1054,7 @@ HSaveError WriteCharacters(Stream *out)
     out->WriteInt32(game.numcharacters);
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        WriteCharacterInfo(game.chars[i], out);
+        WriteCharacterInfo(game.Characters[i], out);
         game.CharExtras[i].WriteToSavegame(out);
         Properties::WriteValues(game.Play.charProps[i], out);
     }
@@ -1074,7 +1074,7 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
     const CharacterSvgVersion svg_ver = static_cast<CharacterSvgVersion>(cmp_ver);
     for (uint32_t i = 0; i < characters_read; ++i)
     {
-        auto &ch = game.chars[i];
+        auto &ch = game.Characters[i];
         auto &chex = game.CharExtras[i];
         // TODO: this is ugly reading old fields like that, might either join Read methods in one, or drop old format at some point
         CharacterLegacyFields old_fields;

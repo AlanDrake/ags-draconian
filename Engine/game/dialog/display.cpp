@@ -1185,7 +1185,7 @@ int DisplaySpeechBackground(int char_id, const char *text)
     }
 
     int over_id = CreateTextOverlay(0, 0, game.Viewports.GetUIViewport().GetWidth() / 2, game.Play.speech_font,
-                                    game.chars[char_id].talkcolor, get_translation(text), OVER_CUSTOM,
+                                    game.Characters[char_id].talkcolor, get_translation(text), OVER_CUSTOM,
                                     kDisplayTextStyle_Overchar, char_id);
 
     auto *over = get_overlay(over_id);

@@ -905,11 +905,13 @@ void autoposition_overlay(ScreenOverlay &over)
     const int char_id = over.GetCharacterRef();
 
     auto view = FindNearestViewport(char_id);
-    const int char_sprite = game.Views[game.chars[char_id].view].loops[game.chars[char_id].loop].frames[0].pic;
+    const int char_sprite =
+        game.Views[game.Characters[char_id].view].loops[game.Characters[char_id].loop].frames[0].pic;
     const int height =
         (game.CharExtras[char_id].height < 1) ? game.SpriteInfos[char_sprite].Height : game.CharExtras[char_id].height;
     const Point screen_pt =
-        view->RoomToScreen(game.chars[char_id].x, game.CharExtras[char_id].GetEffectiveY(&game.chars[char_id]) - height)
+        view->RoomToScreen(game.Characters[char_id].x,
+                           game.CharExtras[char_id].GetEffectiveY(&game.Characters[char_id]) - height)
             .first;
     const Size pic_size = over.GetGraphicSize();
     int over_x = std::max(0, screen_pt.X - pic_size.Width / 2);
@@ -919,7 +921,7 @@ void autoposition_overlay(ScreenOverlay &over)
 
     if ((over_x + pic_size.Width) >= ui_view.GetWidth())
         over_x = (ui_view.GetWidth() - pic_size.Width) - 1;
-    if (game.chars[char_id].room != game.DisplayedRoom)
+    if (game.Characters[char_id].room != game.DisplayedRoom)
     {
         over_x = ui_view.GetWidth() / 2 - pic_size.Width / 2;
         over_y = ui_view.GetHeight() / 2 - pic_size.Height / 2;

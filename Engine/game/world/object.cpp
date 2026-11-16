@@ -80,13 +80,13 @@ static int GetThingRect(int thing, Rect *rect)
     {
         // FIXME: a disabled character in this room still counts as overlapping, a disabled object does not
         // (below), and neither case looks at visibility
-        if (game.chars[thing].room != game.DisplayedRoom)
+        if (game.Characters[thing].room != game.DisplayedRoom)
             return 0;
 
         const int charw = GetCharacterWidth(game, thing);
         const int charh = GetCharacterHeight(game, thing);
-        *rect = RectWH(game.chars[thing].x - (charw / 2),
-                       game.CharExtras[thing].GetEffectiveY(&game.chars[thing]) - charh + 1, charw, charh);
+        *rect = RectWH(game.Characters[thing].x - (charw / 2),
+                       game.CharExtras[thing].GetEffectiveY(&game.Characters[thing]) - charh + 1, charw, charh);
     }
     else if (IsValidObject(thing - OVERLAPPING_OBJECT))
     {

@@ -57,7 +57,7 @@ CharacterInfo *InvWindow_GetCharacterToUse(GUIInvWindow *guii)
     if (guii->GetCharacterID() < 0)
         return nullptr;
 
-    return &Game::Current().chars[guii->GetCharacterID()];
+    return &Game::Current().Characters[guii->GetCharacterID()];
 }
 
 void InvWindow_SetItemWidth(GUIInvWindow *guii, int new_width)

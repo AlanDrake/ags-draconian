@@ -385,7 +385,7 @@ void UpgradeAudio(GameDef &game, LoadedGameEntities &ents, GameDataVersion data_
 void UpgradeCharacters(GameDef &game, GameDataVersion data_ver)
 {
     const int char_count = game.numcharacters;
-    auto &chars = game.chars;
+    auto &chars = game.Characters;
     // For characters loaded from an older game, mark everything as
     // Enabled, because there's no good way to distinct if it was
     // disabled or only made invisible by setting "on" property.
@@ -613,11 +613,11 @@ HError GameDataExtReader::ReadInteractionScriptModules(Stream *in, LoadedGameEnt
     HError err;
     // Updated InteractionEvents format, which specifies script module
     // for object interaction events
-    if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(ents.Game.chars.size()), err))
+    if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(ents.Game.Characters.size()), err))
         return err;
     for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
     {
-        err = ents.Game.chars[i].interactions.Read(in);
+        err = ents.Game.Characters[i].interactions.Read(in);
         if (!err)
             return err;
     }
@@ -718,7 +718,7 @@ HError GameDataExtReader::ReadExtGUIControlGraphicProperties(Stream *in, LoadedG
 
 HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntities &ents)
 {
-    HError err = ReadScriptEventsTablesForObjects(ents.Game.chars, "characters", in);
+    HError err = ReadScriptEventsTablesForObjects(ents.Game.Characters, "characters", in);
     if (!err)
         return err;
     err = ReadScriptEventsTablesForObjects(ents.Game.invinfo, "inventory items", in);
@@ -763,9 +763,9 @@ HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntitie
 HError GameDataExtReader::ReadCharacterInventories(Stream *in, LoadedGameEntities &ents)
 {
     HError err;
-    if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(ents.Game.chars.size()), err))
+    if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(ents.Game.Characters.size()), err))
         return err;
-    for (auto &ch : ents.Game.chars)
+    for (auto &ch : ents.Game.Characters)
     {
         int start_inv_count = in->ReadInt32();
         for (int i = 0; i < start_inv_count; ++i)
@@ -817,11 +817,11 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         // for object types that had hard name length limits
         _ents.Game.gamename = StrUtil::ReadString(in);
         _ents.Game.saveGameFolderName = StrUtil::ReadString(in);
-        if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(_ents.Game.chars.size()), err))
+        if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(_ents.Game.Characters.size()), err))
             return err;
         for (int i = 0; i < _ents.Game.numcharacters; ++i)
         {
-            auto &ch = _ents.Game.chars[i];
+            auto &ch = _ents.Game.Characters[i];
             ch.scrname = StrUtil::ReadString(in);
             ch.name = StrUtil::ReadString(in);
         }

@@ -744,7 +744,7 @@ void init_game_drawdata()
     for (size_t i = 0; i < (size_t)MAX_ROOM_OBJECTS; ++i)
         objcache[i] = ObjectCache();
 #if (AGS_PLATFORM_DEBUG)
-    for (auto &ch : game.chars)
+    for (auto &ch : game.Characters)
         charcache[ch.index_id].tag.Format("CHAR%d:%s", ch.index_id, ch.scrname.GetCStr());
 #endif
 
@@ -2379,7 +2379,7 @@ void tint_image(Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int light
 // assigns parameters, which may further be assigned to a texture.
 bool construct_char_gfx(Game &game, Room &room, EngineServices &services, int char_id, bool force_software)
 {
-    const CharacterInfo &ch = game.chars[char_id];
+    const CharacterInfo &ch = game.Characters[char_id];
     const CharacterExtras &chex = game.CharExtras[char_id];
     const ViewFrame *vf = &game.Views[ch.view].loops[ch.loop].frames[ch.frame];
     const int pic = services.Sprites.DoesSpriteExist(vf->pic) ? vf->pic : 0;
@@ -2407,7 +2407,7 @@ void prepare_characters_for_drawing()
     // draw characters
     for (int char_id = 0; char_id < game.numcharacters; ++char_id)
     {
-        const CharacterInfo &ch = game.chars[char_id];
+        const CharacterInfo &ch = game.Characters[char_id];
         if (!ch.is_displayed())
             continue; // disabled or not visible
         if (ch.room != game.DisplayedRoom)
@@ -3405,9 +3405,9 @@ void update_room_debug()
             recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(), room.WalkAreaMask->GetWidth(),
                            room.WalkAreaMask->GetHeight(), true);
 
-        if (game.chars[debugMoveListChar].is_moving())
+        if (game.Characters[debugMoveListChar].is_moving())
         {
-            int mlsnum = game.chars[debugMoveListChar].get_movelist_id();
+            int mlsnum = game.Characters[debugMoveListChar].get_movelist_id();
             const MoveList &cmls = *get_movelist(mlsnum);
             for (uint32_t i = 0; i < cmls.GetNumStages() - 1; i++)
             {

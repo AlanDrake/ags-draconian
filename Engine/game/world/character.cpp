@@ -612,12 +612,12 @@ CharacterInfo *Character_GetFollowing(CharacterInfo *ch)
         return nullptr;
     }
 
-    return &game.chars[game.CharExtras[ch->index_id].following];
+    return &game.Characters[game.CharExtras[ch->index_id].following];
 }
 
 int GetCharacterWidth(Game &game, int char_id)
 {
-    CharacterInfo *ch = &game.chars[char_id];
+    CharacterInfo *ch = &game.Characters[char_id];
 
     if (game.CharExtras[char_id].width < 1)
     {
@@ -637,7 +637,7 @@ int GetCharacterWidth(Game &game, int char_id)
 
 int GetCharacterHeight(Game &game, int char_id)
 {
-    CharacterInfo *ch = &game.chars[char_id];
+    CharacterInfo *ch = &game.Characters[char_id];
 
     if (game.CharExtras[char_id].height < 1)
     {
@@ -1338,7 +1338,7 @@ bool Character_RunFrameEvent(CharacterInfo *ch, int view, int loop, int frame)
     Game &game = Game::Current();
     view--; // convert to internal 0-based view ID
     AssertFrame("Character.RunFrameEvent", ch->scrname.GetCStr(), view, loop, frame);
-    return game.CharExtras[ch->index_id].RunFrameEvent(&game.chars[ch->index_id], view, loop, frame);
+    return game.CharExtras[ch->index_id].RunFrameEvent(&game.Characters[ch->index_id], view, loop, frame);
 }
 
 void Character_RunInteraction(CharacterInfo *ch, int mood)
@@ -1362,13 +1362,13 @@ void Character_RunInteraction(CharacterInfo *ch, int mood)
     const auto obj_evt = ObjectEvent(kScTypeGame, LOCTYPE_CHAR, ch->index_id,
                                      RuntimeScriptValue().SetScriptObject(ch, &ccDynamicCharacter), mood);
     if ((evnt >= 0) &&
-        run_event_script(obj_evt, &game.chars[ch->index_id].interactions, evnt, &game.chars[ch->index_id].GetEvents(),
-                         anyclick_evt, true /* do unhandled event */) < 0)
+        run_event_script(obj_evt, &game.Characters[ch->index_id].interactions, evnt,
+                         &game.Characters[ch->index_id].GetEvents(), anyclick_evt, true /* do unhandled event */) < 0)
     {
         return; // game state changed, don't do "any click"
     }
     // any click on char
-    run_event_script(obj_evt, &game.chars[ch->index_id].GetEvents(), anyclick_evt);
+    run_event_script(obj_evt, &game.Characters[ch->index_id].GetEvents(), anyclick_evt);
 }
 
 void *Character_GetGraphicPosition(CharacterInfo *ch)
@@ -1613,22 +1613,22 @@ void Character_SetBlockingWidth(CharacterInfo *ch, int wid)
 
 int Character_GetBlockingRectX(CharacterInfo *ch)
 {
-    return Game::Current().chars[ch->index_id].blocking_x;
+    return Game::Current().Characters[ch->index_id].blocking_x;
 }
 
 void Character_SetBlockingRectX(CharacterInfo *ch, int x)
 {
-    Game::Current().chars[ch->index_id].blocking_x = x;
+    Game::Current().Characters[ch->index_id].blocking_x = x;
 }
 
 int Character_GetBlockingRectY(CharacterInfo *ch)
 {
-    return Game::Current().chars[ch->index_id].blocking_y;
+    return Game::Current().Characters[ch->index_id].blocking_y;
 }
 
 void Character_SetBlockingRectY(CharacterInfo *ch, int y)
 {
-    Game::Current().chars[ch->index_id].blocking_y = y;
+    Game::Current().Characters[ch->index_id].blocking_y = y;
 }
 
 int Character_GetDiagonalWalking(CharacterInfo *ch)
@@ -1673,7 +1673,7 @@ int Character_GetID(CharacterInfo *ch)
 
 const char *Character_GetScriptName(CharacterInfo *ch)
 {
-    return CreateNewScriptString(Game::Current().chars[ch->index_id].scrname);
+    return CreateNewScriptString(Game::Current().Characters[ch->index_id].scrname);
 }
 
 bool Character_GetEnabled(CharacterInfo *ch)
@@ -1916,7 +1916,7 @@ int Character_GetDestinationY(CharacterInfo *ch)
 
 const char *Character_GetName(CharacterInfo *ch)
 {
-    return CreateNewScriptString(Game::Current().chars[ch->index_id].name.GetCStr());
+    return CreateNewScriptString(Game::Current().Characters[ch->index_id].name.GetCStr());
 }
 
 void Character_SetName(CharacterInfo *ch, const char *name)
@@ -2740,28 +2740,28 @@ void fix_player_sprite(CharacterInfo *ch, const MoveList &cmls)
 int has_hit_another_character(Game &game, int source_char)
 {
     // if the character who's moving doesn't block, don't bother checking
-    if (game.chars[source_char].flags & CHF_NOBLOCKING)
+    if (game.Characters[source_char].flags & CHF_NOBLOCKING)
     {
         return -1;
     }
 
     for (int ww = 0; ww < game.numcharacters; ww++)
     {
-        if (!game.chars[ww].is_enabled())
+        if (!game.Characters[ww].is_enabled())
             continue;
-        if (game.chars[ww].room != game.DisplayedRoom)
+        if (game.Characters[ww].room != game.DisplayedRoom)
             continue;
         if (ww == source_char)
         {
             continue;
         }
-        if (game.chars[ww].flags & CHF_NOBLOCKING)
+        if (game.Characters[ww].flags & CHF_NOBLOCKING)
             continue;
 
-        if (get_char_blocking_rect(game, ww).IsInside(game.chars[source_char].x, game.chars[source_char].y))
+        if (get_char_blocking_rect(game, ww).IsInside(game.Characters[source_char].x, game.Characters[source_char].y))
         {
             // we are now overlapping character 'ww'
-            if ((game.chars[ww].walking) && ((game.chars[ww].flags & CHF_AWAITINGMOVE) == 0))
+            if ((game.Characters[ww].walking) && ((game.Characters[ww].flags & CHF_AWAITINGMOVE) == 0))
                 return ww;
         }
     }
@@ -2807,8 +2807,8 @@ int doNextCharMoveStep(Game &game, CharacterInfo *ch, CharacterExtras *chex)
     if (ntf >= 0)
     {
         ch->walkwait = 30;
-        if (game.chars[ntf].walkspeed < 5)
-            ch->walkwait += (5 - game.chars[ntf].walkspeed) * 5;
+        if (game.Characters[ntf].walkspeed < 5)
+            ch->walkwait += (5 - game.Characters[ntf].walkspeed) * 5;
         // we are now waiting for the other char to move, so
         // make sure he doesn't stop for us too
 
@@ -2831,7 +2831,7 @@ int doNextCharMoveStep(Game &game, CharacterInfo *ch, CharacterExtras *chex)
         }
 
         debug_script_log("%s: Bumped into %s, waiting for them to move", ch->scrname.GetCStr(),
-                         game.chars[ntf].scrname.GetCStr());
+                         game.Characters[ntf].scrname.GetCStr());
         return 1;
     }
     return 0;
@@ -2972,9 +2972,9 @@ void MoveCharacterToHotspot(int char_id, int hotsp)
     if (room.Hotspots[hotsp].WalkTo.X < 1)
         return;
 
-    walk_character(&game.chars[char_id], room.Hotspots[hotsp].WalkTo.X, room.Hotspots[hotsp].WalkTo.Y,
+    walk_character(&game.Characters[char_id], room.Hotspots[hotsp].WalkTo.X, room.Hotspots[hotsp].WalkTo.Y,
                    false /* walkable areas */);
-    GameLoopUntilNotMoving(&game.chars[char_id].walking);
+    GameLoopUntilNotMoving(&game.Characters[char_id].walking);
 }
 
 int wantMoveNow(CharacterInfo *ch, CharacterExtras *chex)
@@ -3080,7 +3080,7 @@ void setup_player_character(int char_id)
 {
     Game &game = Game::Current();
     game.playercharacter = char_id;
-    game.PlayerChar = &game.chars[char_id];
+    game.PlayerChar = &game.Characters[char_id];
     game.ScPlayerCharPtr = ccGetObjectHandleFromAddress(game.PlayerChar);
 }
 
@@ -3136,7 +3136,7 @@ Bitmap *GetCharacterImage(int char_id, bool always_original, bool *is_original)
 
 Bitmap *GetCharacterSourceImage(Game &game, EngineServices &services, int char_id)
 {
-    const CharacterInfo &ch = game.chars[char_id];
+    const CharacterInfo &ch = game.Characters[char_id];
     int sppic = game.Views[ch.view].loops[ch.loop].frames[ch.frame].pic;
     return services.Sprites[sppic];
 }
@@ -3150,7 +3150,7 @@ CharacterInfo *Character_GetAtScreenXY(int x, int y, int hit_options)
     int chnum = GetCharIDAtRoom(vpt.first.X, vpt.first.Y, hit_options);
     if (chnum < 0)
         return nullptr;
-    return &game.chars[chnum];
+    return &game.Characters[chnum];
 }
 
 CharacterInfo *Character_GetAtScreenXY2(int x, int y)
@@ -3165,7 +3165,7 @@ CharacterInfo *Character_GetAtRoomXY(int x, int y, int hit_options)
     {
         return nullptr;
     }
-    return &Game::Current().chars[char_id];
+    return &Game::Current().Characters[char_id];
 }
 
 CharacterInfo *Character_GetAtRoomXY2(int x, int y)
@@ -3176,7 +3176,7 @@ CharacterInfo *Character_GetAtRoomXY2(int x, int y)
 void update_character_scale(Game &game, Room &room, int char_id)
 {
     // Test for valid view and loop
-    CharacterInfo &ch = game.chars[char_id];
+    CharacterInfo &ch = game.Characters[char_id];
     if (!ch.is_enabled() || ch.room != game.DisplayedRoom)
     {
         return; // not enabled, or in a different room
@@ -3232,15 +3232,15 @@ int GetCharIDAtRoom(int x, int y, int hit_options)
     int cc, sppic, lowestyp = 0, lowestwas = -1;
     for (cc = 0; cc < game.numcharacters; cc++)
     {
-        if (game.chars[cc].room != game.DisplayedRoom)
+        if (game.Characters[cc].room != game.DisplayedRoom)
             continue;
-        if (!game.chars[cc].is_displayed())
+        if (!game.Characters[cc].is_displayed())
             continue; // disabled or not visible
-        if (only_clickable && (game.chars[cc].flags & CHF_NOINTERACT))
+        if (only_clickable && (game.Characters[cc].flags & CHF_NOINTERACT))
             continue;
-        if (game.chars[cc].view < 0)
+        if (game.Characters[cc].view < 0)
             continue;
-        CharacterInfo *ch = &game.chars[cc];
+        CharacterInfo *ch = &game.Characters[cc];
 
         if ((ch->view < 0) || (ch->loop >= game.Views[ch->view].numLoops) ||
             (ch->frame >= game.Views[ch->view].loops[ch->loop].numFrames))
@@ -3273,7 +3273,7 @@ int GetCharIDAtRoom(int x, int y, int hit_options)
 
 Rect get_char_blocking_rect(Game &game, int char_id)
 {
-    CharacterInfo *ch = &game.chars[char_id];
+    CharacterInfo *ch = &game.Characters[char_id];
 
     int width;
     if (ch->blocking_width < 1)
@@ -3283,9 +3283,9 @@ Rect get_char_blocking_rect(Game &game, int char_id)
     else
         width = ch->blocking_width;
 
-    int x = ch->x - width / 2 + game.chars[ch->index_id].blocking_x;
-    int y1 = ch->get_blocking_top() + game.chars[ch->index_id].blocking_y;
-    int y2 = ch->get_blocking_bottom() + game.chars[ch->index_id].blocking_y;
+    int x = ch->x - width / 2 + game.Characters[ch->index_id].blocking_x;
+    int y1 = ch->get_blocking_top() + game.Characters[ch->index_id].blocking_y;
+    int y2 = ch->get_blocking_bottom() + game.Characters[ch->index_id].blocking_y;
 
     return Rect(x, y1, x + width - 1, y2);
 }
@@ -3295,7 +3295,7 @@ int check_click_on_character(int x, int y, int mood)
     int lowestwas = GetCharIDAtRoom(x, y, kHit_Interactable);
     if (lowestwas >= 0)
     {
-        Character_RunInteraction(&Game::Current().chars[lowestwas], mood);
+        Character_RunInteraction(&Game::Current().Characters[lowestwas], mood);
         return 1;
     }
     return 0;
@@ -3332,7 +3332,7 @@ void DisplayThoughtCore(int char_id, const char *displbuf)
         game.TextLayout.SourceTextLength = len;
 
     int width = -1;
-    if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts) || (game.chars[char_id].thinkview <= 0))
+    if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts) || (game.Characters[char_id].thinkview <= 0))
     {
         // lucasarts-style, so we want a speech bubble actually above
         // their head (or if they have no think anim in Sierra-style)
@@ -3350,7 +3350,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
         return;
     }
 
-    CharacterInfo *speaking_char = &game.chars[char_id];
+    CharacterInfo *speaking_char = &game.Characters[char_id];
     if ((speaking_char->view < 0) || (speaking_char->view >= game.numviews))
     {
         quit("!DisplaySpeech: character has invalid view");
@@ -3566,8 +3566,8 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                         // No previous character been spoken to
                         // therefore, assume it's the player
                         if (game.playercharacter != char_id &&
-                            game.chars[game.playercharacter].room == speaking_char->room &&
-                            game.chars[game.playercharacter].is_enabled())
+                            game.Characters[game.playercharacter].room == speaking_char->room &&
+                            game.Characters[game.playercharacter].is_enabled())
                         {
                             game.Play.swap_portrait_lastchar = game.playercharacter;
                         }
@@ -3577,8 +3577,8 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                             // that it could be
                             for (int ce = 0; ce < game.numcharacters; ce++)
                             {
-                                if ((game.chars[ce].room == speaking_char->room) && (game.chars[ce].is_enabled()) &&
-                                    (ce != char_id))
+                                if ((game.Characters[ce].room == speaking_char->room) &&
+                                    (game.Characters[ce].is_enabled()) && (ce != char_id))
                                 {
                                     game.Play.swap_portrait_lastchar = ce;
                                     break;
@@ -3591,7 +3591,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                     {
                         // if this character is right of the one before, put the
                         // portrait on the right
-                        if (speaking_char->x > game.chars[game.Play.swap_portrait_lastchar].x)
+                        if (speaking_char->x > game.Characters[game.Play.swap_portrait_lastchar].x)
                         {
                             game.Play.swap_portrait_side = -1;
                         }
@@ -3607,7 +3607,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                 // speaking, compare against the previous *previous* character to see where the speech should be
                 if (game.options[OPT_PORTRAITSIDE] == PORTRAIT_XPOSITION && game.Play.swap_portrait_lastlastchar >= 0)
                 {
-                    if (speaking_char->x > game.chars[game.Play.swap_portrait_lastlastchar].x)
+                    if (speaking_char->x > game.Characters[game.Play.swap_portrait_lastlastchar].x)
                     {
                         game.Play.swap_portrait_side = -1;
                     }
@@ -3779,7 +3779,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
             {
                 game.Speech.FaceTalkAllowBlink = 0;
             }
-            game.Speech.FaceTalkChar = &game.chars[char_id];
+            game.Speech.FaceTalkChar = &game.Characters[char_id];
             if (game.Speech.FaceTalkChar->blinktimer < 0)
                 game.Speech.FaceTalkChar->blinktimer = game.Speech.FaceTalkChar->blinkinterval;
             disp_style = kDisplayTextStyle_TextWindow;
@@ -3985,7 +3985,7 @@ Rect GetCharacterRoomBBox(int char_id, bool use_frame_0)
     Game &game = Game::Current();
     int width, height;
     const CharacterExtras &chex = game.CharExtras[char_id];
-    const CharacterInfo &ch = game.chars[char_id];
+    const CharacterInfo &ch = game.Characters[char_id];
     int frame = use_frame_0 ? 0 : ch.frame;
     int pic = game.Views[ch.view].loops[ch.loop].frames[frame].pic;
     scale_sprite_size(game, pic, chex.zoom, &width, &height);
@@ -4030,7 +4030,7 @@ void UpdateInventory()
         // (or multiple times if requested) to the list.
         for (int item = 0; (item < game.numinvitems) && (chex.inventory.size() != MAX_CHAR_INVENTORY); ++item)
         {
-            int item_count = game.chars[cc].get_item_quantity(item);
+            int item_count = game.Characters[cc].get_item_quantity(item);
             if ((game.options[OPT_DUPLICATEINV] == 0) && (item_count > 1))
                 item_count = 1;
 

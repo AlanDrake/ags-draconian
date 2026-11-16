@@ -40,10 +40,10 @@ protected:
         game.Views[0].Initialize(MAX_FACE_DIRECTIONS);
         for (int i = 0; i < MAX_FACE_DIRECTIONS; ++i)
             game.Views[0].loops[i].Initialize(1);
-        game.chars.resize(1);
+        game.Characters.resize(1);
         game.numcharacters = 1;
-        game.chars[0].view = 0;
-        game.chars[0].index_id = 0;
+        game.Characters[0].view = 0;
+        game.Characters[0].index_id = 0;
         game.CharExtras.resize(1);
         _savedPriority = game.options[OPT_TURNORDERPRIORITY];
     }
@@ -53,7 +53,7 @@ protected:
         Game &game = Game::Current();
         game.options[OPT_TURNORDERPRIORITY] = _savedPriority;
         game.CharExtras.clear();
-        game.chars.clear();
+        game.Characters.clear();
         game.numcharacters = 0;
         game.Views.clear();
     }
@@ -64,9 +64,9 @@ protected:
     std::vector<int> Turn(int from_idx, int to_idx)
     {
         Game &game = Game::Current();
-        game.chars[0].loop = turnlooporder[from_idx];
+        game.Characters[0].loop = turnlooporder[from_idx];
         game.CharExtras[0].SetTurning(false, false, 0);
-        start_character_turning(&game.chars[0], turnlooporder[to_idx], true);
+        start_character_turning(&game.Characters[0], turnlooporder[to_idx], true);
         std::vector<int> passed;
         if (!game.CharExtras[0].IsTurning())
             return passed;

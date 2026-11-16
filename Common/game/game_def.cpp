@@ -184,11 +184,11 @@ HGameFileError GameDef::read_cursors(Common::Stream *in)
 
 HError GameDef::read_interaction_scripts(Common::Stream *in, GameDataVersion /*data_ver*/)
 {
-    chars.resize(numcharacters); // safety precaution, because chars may be read later
+    Characters.resize(numcharacters); // safety precaution, because chars may be read later
     HError err;
     for (size_t i = 0; i < (size_t)numcharacters; ++i)
     {
-        err = chars[i].interactions.Read_v361(in);
+        err = Characters[i].interactions.Read_v361(in);
         if (!err)
             return err;
     }
@@ -222,7 +222,7 @@ void GameDef::ReadMouseCursors(Stream *in)
 
 void GameDef::read_characters(Common::Stream *in, GameDataVersion data_ver)
 {
-    chars.resize(numcharacters);
+    Characters.resize(numcharacters);
     ReadCharacters(in, data_ver);
 }
 
@@ -246,7 +246,7 @@ void GameDef::ReadCharacters(Stream *in, GameDataVersion data_ver)
 {
     for (int i = 0; i < numcharacters; ++i)
     {
-        chars[i].ReadFromFile(in, data_ver);
+        Characters[i].ReadFromFile(in, data_ver);
     }
 }
 

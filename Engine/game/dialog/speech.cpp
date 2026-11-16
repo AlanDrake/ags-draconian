@@ -198,7 +198,7 @@ ScriptOverlay *Speech_GetPortraitOverlay()
 CharacterInfo *Speech_GetSpeakingCharacter()
 {
     Game &game = Game::Current();
-    return game.Speech.CharSpeaking >= 0 ? &game.chars[game.Speech.CharSpeaking] : nullptr;
+    return game.Speech.CharSpeaking >= 0 ? &game.Characters[game.Speech.CharSpeaking] : nullptr;
 }
 
 int Speech_GetOverlayZOrder()
@@ -392,7 +392,7 @@ static String get_cue_filename(int char_id, int cue_id)
     // Naming format: the script name without the prefix,
     //            the cue id is separated by a dot:
     //            "CHARNAME.X"
-    const char *char_name = (char_id >= 0) ? Game::Current().chars[char_id].scrname.GetCStr() : "narrator";
+    const char *char_name = (char_id >= 0) ? Game::Current().Characters[char_id].scrname.GetCStr() : "narrator";
     size_t from = (char_name[0] == 'c') ? 1 : 0u;
     String clip_char_name(char_name + from, SIZE_MAX);
 

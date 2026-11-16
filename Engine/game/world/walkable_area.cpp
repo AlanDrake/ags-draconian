@@ -128,31 +128,32 @@ Bitmap *prepare_walkable_areas(int source_char_id)
     room.WalkableAreasTemp->Blit(room.WalkAreaMask.get(), 0, 0, 0, 0, room.WalkAreaMask->GetWidth(),
                                  room.WalkAreaMask->GetHeight());
     // if the character who's moving doesn't block, don't bother checking: it passes through everybody
-    if ((source_char_id >= 0) && (game.chars[source_char_id].flags & CHF_NOBLOCKING))
+    if ((source_char_id >= 0) && (game.Characters[source_char_id].flags & CHF_NOBLOCKING))
         return room.WalkableAreasTemp;
 
     // for each character in the current room, make the area under them unwalkable
     for (int char_id = 0; char_id < game.numcharacters; char_id++)
     {
-        if (!game.chars[char_id].is_enabled())
+        if (!game.Characters[char_id].is_enabled())
             continue;
-        if (game.chars[char_id].room != game.DisplayedRoom)
+        if (game.Characters[char_id].room != game.DisplayedRoom)
             continue;
         if (char_id == source_char_id)
             continue;
-        if (game.chars[char_id].flags & CHF_NOBLOCKING)
+        if (game.Characters[char_id].flags & CHF_NOBLOCKING)
             continue;
-        if (room_to_mask_coord(room, game.chars[char_id].y) >= room.WalkableAreasTemp->GetHeight())
+        if (room_to_mask_coord(room, game.Characters[char_id].y) >= room.WalkableAreasTemp->GetHeight())
             continue;
-        if (room_to_mask_coord(room, game.chars[char_id].x) >= room.WalkableAreasTemp->GetWidth())
+        if (room_to_mask_coord(room, game.Characters[char_id].x) >= room.WalkableAreasTemp->GetWidth())
             continue;
-        if ((game.chars[char_id].y < 0) || (game.chars[char_id].x < 0))
+        if ((game.Characters[char_id].y < 0) || (game.Characters[char_id].x < 0))
             continue;
 
         // If walking character is already inside that other character's blocking rect,
         // then ignore that blocking rect (otherwise character may get stuck forever)
         const Rect blocking_rect = get_char_blocking_rect(game, char_id);
-        if ((source_char_id >= 0) && blocking_rect.IsInside(game.chars[source_char_id].x, game.chars[source_char_id].y))
+        if ((source_char_id >= 0) &&
+            blocking_rect.IsInside(game.Characters[source_char_id].x, game.Characters[source_char_id].y))
             continue;
 
         remove_walkable_areas_from_temp(room, blocking_rect);
@@ -176,7 +177,8 @@ Bitmap *prepare_walkable_areas(int source_char_id)
 
         // if the character is currently standing on the object, ignore
         // it so as to allow him to escape
-        if ((source_char_id >= 0) && blocking_rect.IsInside(game.chars[source_char_id].x, game.chars[source_char_id].y))
+        if ((source_char_id >= 0) &&
+            blocking_rect.IsInside(game.Characters[source_char_id].x, game.Characters[source_char_id].y))
             continue;
 
         remove_walkable_areas_from_temp(room, blocking_rect);
@@ -223,7 +225,7 @@ int get_walkable_area_at_location(Room &room, int x, int y)
 
 int get_walkable_area_at_character(int char_id)
 {
-    CharacterInfo *ch = &Game::Current().chars[char_id];
+    CharacterInfo *ch = &Game::Current().Characters[char_id];
     return get_walkable_area_at_location(Room::Current(), ch->x, ch->y);
 }
 

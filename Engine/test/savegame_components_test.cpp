@@ -24,7 +24,7 @@
 //
 // Not tested: kSaveRestore_AllowMismatchExtra (more objects in the save than in
 // the game). The engine never sets it, and with it ReadCharacters writes the
-// extra characters past the end of game.chars.
+// extra characters past the end of game.Characters.
 //
 //=============================================================================
 #include <algorithm>
@@ -75,7 +75,7 @@ const SaveCmpSelection kCharactersAndItems = static_cast<SaveCmpSelection>(kSave
 } // namespace
 
 // Fixture for the savegame components with game content. The engine globals it touches, all reset in TearDown:
-// - game.chars, game.numcharacters, Game::CharExtras, game.Play.charProps: the characters
+// - game.Characters, game.numcharacters, Game::CharExtras, game.Play.charProps: the characters
 // - game.invinfo, game.numinvitems, game.Play.invProps: the inventory items
 // - Game::Views, game.numviews: the views
 // - Game::Dialogs, game.numdialog, game.Play.dialogProps: the dialogs
@@ -211,8 +211,8 @@ protected:
     static void SetCounts(int characters, int items)
     {
         Game &game = Game::Current();
-        game.chars.clear();
-        game.chars.resize(characters);
+        game.Characters.clear();
+        game.Characters.resize(characters);
         game.numcharacters = characters;
         game.CharExtras.clear();
         game.CharExtras.resize(characters);
@@ -231,7 +231,7 @@ protected:
         Game &game = Game::Current();
         for (int i = 0; i < game.numcharacters; ++i)
         {
-            auto &ch = game.chars[i];
+            auto &ch = game.Characters[i];
             ch.x = 100 + i;
             ch.y = 150 + i;
             ch.room = 3 + i;
@@ -300,7 +300,7 @@ TEST_F(SavegameContent, CharactersAndItemsAreRestored)
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
     for (int i = 0; i < 3; ++i)
     {
-        const auto &ch = game.chars[i];
+        const auto &ch = game.Characters[i];
         EXPECT_EQ(100 + i, ch.x);
         EXPECT_EQ(150 + i, ch.y);
         EXPECT_EQ(3 + i, ch.room);
@@ -397,8 +397,8 @@ TEST_F(SavegameContent, FewerCharactersAllowedOnACleanGame)
     EXPECT_NE(0, clean_data.Result.RestoreFlags & kSaveRestore_MissingDataInSave);
     EXPECT_FALSE(clean_data.Result.FirstMismatchError.IsEmpty());
     EXPECT_EQ(2u, clean_data.DataCounts.Characters);
-    EXPECT_EQ(101, game.chars[1].x);
-    EXPECT_EQ(0, game.chars[2].x);
+    EXPECT_EQ(101, game.Characters[1].x);
+    EXPECT_EQ(0, game.Characters[2].x);
 }
 
 TEST_F(SavegameContent, PrescanCountsWithoutRestoring)
@@ -420,7 +420,7 @@ TEST_F(SavegameContent, PrescanCountsWithoutRestoring)
     EXPECT_EQ(3u, r_data.DataCounts.Characters);
     EXPECT_EQ(2u, r_data.DataCounts.InventoryItems);
     // the game is untouched
-    EXPECT_EQ(0, game.chars[0].x);
+    EXPECT_EQ(0, game.Characters[0].x);
     EXPECT_TRUE(game.invinfo[0].name.IsEmpty());
 }
 
@@ -459,7 +459,7 @@ TEST_F(SavegameContent, UnselectedComponentsAreSkipped)
     HSaveError err = Restore(saved, kSaveCmp_GameState, r_data);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
     EXPECT_EQ(4321, game.Play.messagetime);
-    EXPECT_EQ(0, game.chars[0].x);
+    EXPECT_EQ(0, game.Characters[0].x);
     EXPECT_TRUE(game.invinfo[0].name.IsEmpty());
     game.Play.messagetime = 0;
 }

@@ -496,7 +496,7 @@ void unload_old_room()
     // if Hide Player Character was ticked, restore it to visible
     if (game.Play.temporarily_turned_off_character >= 0)
     {
-        game.chars[game.Play.temporarily_turned_off_character].set_enabled(true);
+        game.Characters[game.Play.temporarily_turned_off_character].set_enabled(true);
         game.Play.temporarily_turned_off_character = -1;
     }
 
@@ -838,14 +838,14 @@ void load_new_room(int room_id, CharacterInfo *ch)
         // previous room, force it out so that the timer resets
         for (int i = 0; i < game.numcharacters; i++)
         {
-            if ((game.CharExtras[i].following >= 0) && (game.chars[i].room < 0))
+            if ((game.CharExtras[i].following >= 0) && (game.Characters[i].room < 0))
             {
                 if ((game.CharExtras[i].following == game.playercharacter) && (ch->prevroom == room_id))
                     // the player went back to the previous room, so make sure
                     // the following character is still there
-                    game.chars[i].room = room_id;
+                    game.Characters[i].room = room_id;
                 else
-                    game.chars[i].room = game.chars[game.CharExtras[i].following].room;
+                    game.Characters[i].room = game.Characters[game.CharExtras[i].following].room;
             }
         }
 
@@ -853,7 +853,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
         ch->room = room_id;
         // only stop moving if it's a new room, not a restore game
         for (int i = 0; i < game.numcharacters; i++)
-            Character_StopMoving(&game.chars[i]);
+            Character_StopMoving(&game.Characters[i]);
     }
 
     room.Script = nullptr;
@@ -1119,7 +1119,7 @@ void new_room(int room_id, CharacterInfo *ch)
     game.Events.InLeavesScreen = -1;
 
     CharacterExtras *player_chex = &game.CharExtras[game.PlayerChar->index_id];
-    if ((player_chex->following >= 0) && (game.chars[player_chex->following].room != room_id))
+    if ((player_chex->following >= 0) && (game.Characters[player_chex->following].room != room_id))
     {
         // the player character is following another character,
         // who is not in the new room. therefore, abort the follow

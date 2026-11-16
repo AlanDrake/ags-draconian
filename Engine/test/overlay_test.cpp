@@ -62,7 +62,7 @@ const int kRoom = 7;
 //   (init_sprite_cache), which stays attached, as in the engine
 // - game.Play: the main and UI viewports (320x200), one room viewport and its camera
 // - Room::Current(): the room size (640x400, so the camera can scroll)
-// - game.chars, game.numcharacters, Game::CharExtras, Game::Views: one character standing in room kRoom,
+// - game.Characters, game.numcharacters, Game::CharExtras, Game::Views: one character standing in room kRoom,
 //   with a one-frame view
 // - Game::DisplayedRoom: kRoom
 class OverlayLayout : public ::testing::Test
@@ -92,11 +92,11 @@ protected:
         game.Views[0].Initialize(1);
         game.Views[0].loops[0].Initialize(1);
         game.Views[0].loops[0].frames[0].pic = kCharacterSprite;
-        game.chars.resize(1);
+        game.Characters.resize(1);
         game.numcharacters = 1;
-        game.chars[0].view = 0;
-        game.chars[0].loop = 0;
-        game.chars[0].room = kRoom;
+        game.Characters[0].view = 0;
+        game.Characters[0].loop = 0;
+        game.Characters[0].room = kRoom;
         game.CharExtras.resize(1);
         game.DisplayedRoom = kRoom;
     }
@@ -108,7 +108,7 @@ protected:
         Room &room = Room::Current();
         game.DisplayedRoom = -10;
         game.CharExtras.clear();
-        game.chars.clear();
+        game.Characters.clear();
         game.numcharacters = 0;
         game.Views.clear();
         game.Viewports.FreeViewportsAndCameras();
@@ -129,8 +129,8 @@ protected:
     static Point AutoPosition(int char_x, int char_y)
     {
         Game &game = Game::Current();
-        game.chars[0].x = char_x;
-        game.chars[0].y = char_y;
+        game.Characters[0].x = char_x;
+        game.Characters[0].y = char_y;
         ScreenOverlay over(1);
         over.SetSpriteNum(kSpeechSprite);
         over.SetAutoPosition(0);
@@ -306,13 +306,13 @@ TEST_F(OverlayLayout, SpeechUsesTheCharacterHeightAndZ)
     EXPECT_EQ(Point(80, 45), AutoPosition(100, 150));
     game.CharExtras[0].height = 0;
     // a flying character
-    game.chars[0].z = 30;
+    game.Characters[0].z = 30;
     EXPECT_EQ(Point(80, 45), AutoPosition(100, 150));
-    game.chars[0].z = 0;
+    game.Characters[0].z = 0;
 }
 
 TEST_F(OverlayLayout, SpeechOfACharacterInAnotherRoomIsCentred)
 {
-    Game::Current().chars[0].room = kRoom + 1;
+    Game::Current().Characters[0].room = kRoom + 1;
     EXPECT_EQ(Point(kScreenWidth / 2 - 20, kScreenHeight / 2 - 10), AutoPosition(100, 150));
 }

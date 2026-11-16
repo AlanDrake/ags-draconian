@@ -588,7 +588,7 @@ bool run_service_key_controls(KeyInput &out_key)
         buffer = "CHARACTERS IN THIS ROOM:\n";
         for (int char_id = 0; char_id < game.numcharacters; char_id++)
         {
-            if (game.chars[char_id].room != game.DisplayedRoom)
+            if (game.Characters[char_id].room != game.DisplayedRoom)
                 continue;
             if (buffer.GetLength() > 430)
             { // TODO: the limit is a text length in characters; measure the graphical size instead
@@ -597,16 +597,17 @@ bool run_service_key_controls(KeyInput &out_key)
                 buffer = "CHARACTERS IN THIS ROOM (cont'd):\n";
             }
             listed_char_id = char_id;
-            buffer.AppendFmt("%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%s anim:%s "
-                             "follow:%d flags:%X wait:%d zoom:%d)\n",
-                             game.chars[listed_char_id].scrname.GetCStr(), game.chars[listed_char_id].view + 1,
-                             game.chars[listed_char_id].loop, game.chars[listed_char_id].frame,
-                             game.chars[listed_char_id].x, game.chars[listed_char_id].y, game.chars[listed_char_id].z,
-                             game.chars[listed_char_id].idleview, game.chars[listed_char_id].idledelay,
-                             game.chars[listed_char_id].idleleft, game.chars[listed_char_id].is_moving() ? "yes" : "no",
-                             game.CharExtras[listed_char_id].IsAnimating() ? "yes" : "no",
-                             game.CharExtras[listed_char_id].following, game.chars[listed_char_id].flags,
-                             game.chars[listed_char_id].wait, game.CharExtras[listed_char_id].zoom);
+            buffer.AppendFmt(
+                "%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%s anim:%s "
+                "follow:%d flags:%X wait:%d zoom:%d)\n",
+                game.Characters[listed_char_id].scrname.GetCStr(), game.Characters[listed_char_id].view + 1,
+                game.Characters[listed_char_id].loop, game.Characters[listed_char_id].frame,
+                game.Characters[listed_char_id].x, game.Characters[listed_char_id].y, game.Characters[listed_char_id].z,
+                game.Characters[listed_char_id].idleview, game.Characters[listed_char_id].idledelay,
+                game.Characters[listed_char_id].idleleft, game.Characters[listed_char_id].is_moving() ? "yes" : "no",
+                game.CharExtras[listed_char_id].IsAnimating() ? "yes" : "no", game.CharExtras[listed_char_id].following,
+                game.Characters[listed_char_id].flags, game.Characters[listed_char_id].wait,
+                game.CharExtras[listed_char_id].zoom);
         }
         DisplayMB(buffer.GetCStr());
         return false;

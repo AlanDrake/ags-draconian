@@ -708,19 +708,19 @@ void engine_init_game_settings()
 
     for (i = 0; i < game.numcharacters; i++)
     {
-        game.chars[i].activeinv = -1;
-        game.chars[i].idleleft = game.chars[i].idledelay;
-        game.chars[i].walkwaitcounter = 0;
-        game.chars[i].z = 0;
+        game.Characters[i].activeinv = -1;
+        game.Characters[i].idleleft = game.Characters[i].idledelay;
+        game.Characters[i].walkwaitcounter = 0;
+        game.Characters[i].z = 0;
         game.CharExtras[i].xwas = INVALID_X;
         game.CharExtras[i].zoom = 100;
-        if (game.chars[i].view >= 0)
+        if (game.Characters[i].view >= 0)
         {
             // set initial loop to 0
-            game.chars[i].loop = 0;
+            game.Characters[i].loop = 0;
             // or to 1 if they don't have up/down frames
-            if (game.Views[game.chars[i].view].loops[0].numFrames < 1)
-                game.chars[i].loop = 1;
+            if (game.Views[game.Characters[i].view].loops[0].numFrames < 1)
+                game.Characters[i].loop = 1;
         }
         game.CharExtras[i].process_idle_this_time = 0;
         game.CharExtras[i].slow_move_counter = 0;

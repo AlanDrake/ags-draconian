@@ -1821,7 +1821,7 @@ int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool c
     // if it's an Ignore Walkbehinds object, then ignore the walkbehind
     if ((obj_id >= 0) && ((room.Objs[obj_id].flags & OBJF_NOWALKBEHINDS) != 0))
         wb_baseline = 0;
-    if ((char_id >= 0) && ((game.chars[char_id].flags & CHF_NOWALKBEHINDS) != 0))
+    if ((char_id >= 0) && ((game.Characters[char_id].flags & CHF_NOWALKBEHINDS) != 0))
         wb_baseline = 0;
 
     if ((char_id >= 0) && (obj_id >= 0))
@@ -2690,9 +2690,9 @@ int SetGameOption(int opt, int new_value)
         for (int i = 0; i < game.numcharacters; i++)
         {
             if (new_value)
-                game.chars[i].flags |= CHF_ANTIGLIDE;
+                game.Characters[i].flags |= CHF_ANTIGLIDE;
             else
-                game.chars[i].flags &= ~CHF_ANTIGLIDE;
+                game.Characters[i].flags &= ~CHF_ANTIGLIDE;
         }
         break;
     case OPT_DISABLEOFF:
@@ -2737,12 +2737,12 @@ void SkipUntilCharacterStops(int char_id)
     Game &game = Game::Current();
     if (!AssertCharacter("SkipUntilCharacterStops", char_id))
         return;
-    if (game.chars[char_id].room != game.DisplayedRoom)
+    if (game.Characters[char_id].room != game.DisplayedRoom)
         quitprintf("!SkipUntilCharacterStops: character %s is not in current room %d (it is in room %d)",
-                   game.chars[char_id].scrname.GetCStr(), game.DisplayedRoom, game.chars[char_id].room);
+                   game.Characters[char_id].scrname.GetCStr(), game.DisplayedRoom, game.Characters[char_id].room);
 
     // if they are not currently moving, do nothing
-    if (!game.chars[char_id].walking)
+    if (!game.Characters[char_id].walking)
         return;
 
     if (is_in_cutscene())
@@ -2864,7 +2864,7 @@ static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y
     // on character
     if (loc_type == LOCTYPE_CHAR)
     {
-        return game.chars[loc_id].name.GetCStr();
+        return game.Characters[loc_id].name.GetCStr();
     }
     // on object
     else if (loc_type == LOCTYPE_OBJ)

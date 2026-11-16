@@ -85,7 +85,7 @@ struct GameDef
     // Base text parser dictionary, contains parser words in the original game language.
     // This may be overridden by the parser dictionary read from translation, if one is applied.
     std::unique_ptr<AGS::Common::WordsDictionary> dict;
-    std::vector<CharacterInfo> chars;
+    std::vector<CharacterInfo> Characters;
 
 
 private:

@@ -126,20 +126,20 @@ void InitAndRegisterCharacters(Game &game, const LoadedGameEntities &ents)
     for (int i = 0; i < game.numcharacters; ++i)
     {
         // TODO: move this to Character's "init" method
-        game.chars[i].walking = 0;
-        game.chars[i].blinkinterval = 140;
-        game.chars[i].blinktimer = game.chars[i].blinkinterval;
-        game.chars[i].index_id = i;
-        game.chars[i].prevroom = -1;
-        game.chars[i].loop = 0;
-        game.chars[i].frame = 0;
-        game.chars[i].walkwait = -1;
+        game.Characters[i].walking = 0;
+        game.Characters[i].blinkinterval = 140;
+        game.Characters[i].blinktimer = game.Characters[i].blinkinterval;
+        game.Characters[i].index_id = i;
+        game.Characters[i].prevroom = -1;
+        game.Characters[i].loop = 0;
+        game.Characters[i].frame = 0;
+        game.Characters[i].walkwait = -1;
         // register and save handle
-        game.Handles.Characters[i] = ccRegisterPersistentObject(&game.chars[i], &ccDynamicCharacter);
+        game.Handles.Characters[i] = ccRegisterPersistentObject(&game.Characters[i], &ccDynamicCharacter);
 
         // export the character's script object
-        if (!game.chars[i].scrname.IsEmpty())
-            ccAddExternalScriptObjectHandle(game.chars[i].scrname, &game.Handles.Characters[i]);
+        if (!game.Characters[i].scrname.IsEmpty())
+            ccAddExternalScriptObjectHandle(game.Characters[i].scrname, &game.Handles.Characters[i]);
     }
 
     // extra character properties (because the characters are split into 2 structs now)
@@ -151,7 +151,7 @@ void InitAndRegisterCharacters(Game &game, const LoadedGameEntities &ents)
             game.CharExtras[i].blend_mode = ents.CharEx[i].BlendMode;
             game.CharExtras[i].spr_anchor = ents.CharEx[i].GraphicAnchor;
             game.CharExtras[i].spr_offset = ents.CharEx[i].GraphicOffset;
-            game.CharExtras[i].UpdateEffectiveValues(&game.chars[i]);
+            game.CharExtras[i].UpdateEffectiveValues(&game.Characters[i]);
         }
     }
 }
@@ -317,7 +317,7 @@ void RegisterMissingManagedObjects(Game &game)
     }
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        game.Handles.Characters[i] = ccRegisterPersistentObjectIfMissing(&game.chars[i], &ccDynamicCharacter);
+        game.Handles.Characters[i] = ccRegisterPersistentObjectIfMissing(&game.Characters[i], &ccDynamicCharacter);
     }
     for (int i = 0; i < game.numdialog; ++i)
     {

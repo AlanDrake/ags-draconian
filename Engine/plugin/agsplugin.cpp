@@ -420,7 +420,7 @@ AGSCharacter *IAGSEngine::GetCharacter(int32 charnum)
     if (charnum >= game.numcharacters)
         quit("!AGSEngine::GetCharacter: invalid character request");
     // IMPORTANT: if we change the script functions object argument type, we must change this return value too!
-    return (AGSCharacter *)&game.chars[charnum];
+    return (AGSCharacter *)&game.Characters[charnum];
 }
 AGSGameOptions *IAGSEngine::GetGameOptions()
 {

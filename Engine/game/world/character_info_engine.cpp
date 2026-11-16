@@ -147,7 +147,7 @@ void UpdateCharacterMoveAndAnim(Game &game, Room &room, CharacterInfo *ch, Chara
 
 void UpdateFollowingExactlyCharacter(Game &game, CharacterInfo *ch)
 {
-    const auto &following = game.chars[game.CharExtras[ch->index_id].following];
+    const auto &following = game.Characters[game.CharExtras[ch->index_id].following];
     ch->x = following.x;
     ch->y = following.y;
     ch->z = following.z;
@@ -484,7 +484,7 @@ void UpdateCharacterFollower(Game &game, Room &room, CharacterInfo *ch, std::vec
     else if ((following >= 0) && (doing_nothing == 1))
     {
         // either of the two characters is disabled: do nothing
-        if (!game.chars[following].is_enabled() || !ch->is_enabled())
+        if (!game.Characters[following].is_enabled() || !ch->is_enabled())
         {
             return;
         }
@@ -497,7 +497,7 @@ void UpdateCharacterFollower(Game &game, Room &room, CharacterInfo *ch, std::vec
             if (ch->room == 0)
             {
                 // appear in the new room
-                ch->room = game.chars[following].room;
+                ch->room = game.Characters[following].room;
                 ch->x = room.EnteredAtX;
                 ch->y = room.EnteredAtY;
             }
@@ -508,10 +508,10 @@ void UpdateCharacterFollower(Game &game, Room &room, CharacterInfo *ch, std::vec
             return;
         }
         // the followed character has changed room
-        else if (ch->room != game.chars[following].room)
+        else if (ch->room != game.Characters[following].room)
         {
             ch->prevroom = ch->room;
-            ch->room = game.chars[following].room;
+            ch->room = game.Characters[following].room;
 
             if (ch->room == game.DisplayedRoom)
             {
@@ -555,8 +555,8 @@ void UpdateCharacterFollower(Game &game, Room &room, CharacterInfo *ch, std::vec
             // if the character is following another character and
             // neither is in the current room, don't try to move
         }
-        else if ((abs(game.chars[following].x - ch->x) > distaway + 30) ||
-                 (abs(game.chars[following].y - ch->y) > distaway + 30) || (eagerness == 0))
+        else if ((abs(game.Characters[following].x - ch->x) > distaway + 30) ||
+                 (abs(game.Characters[following].y - ch->y) > distaway + 30) || (eagerness == 0))
         {
             // in same room
             int goxoffs = (Random(50) - 25);
@@ -569,7 +569,7 @@ void UpdateCharacterFollower(Game &game, Room &room, CharacterInfo *ch, std::vec
             {
                 goxoffs += distaway;
             }
-            walk_character(ch, game.chars[following].x + goxoffs, game.chars[following].y + (Random(50) - 25),
+            walk_character(ch, game.Characters[following].x + goxoffs, game.Characters[following].y + (Random(50) - 25),
                            false /* walk areas */);
 
             doing_nothing = 0;
