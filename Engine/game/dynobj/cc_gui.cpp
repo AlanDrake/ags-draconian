@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "game/dynobj/script_objects.h"
+#include "game/game_context.h"
 #include "game/game_init.h"
 #include "game/ui/gui.h"
 #include "script/dynobj/dynobj_manager.h"
@@ -43,5 +44,5 @@ void CCGUI::Serialize(const void *address, Stream *out)
 void CCGUI::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     int num = in->ReadInt32();
-    StaticGUIArray[num] = ccRegisterUnserializedPersistentObject(index, &scrGui[num], this);
+    StaticGUIArray[num] = ccRegisterUnserializedPersistentObject(index, &Game::Current().ScGuis[num], this);
 }

@@ -152,6 +152,36 @@ CONTEXTS = {
             'curLipLinePhoneme': 'LipSync.CurLinePhoneme',
             'longestline': 'TextLayout.LongestLine',
             'source_text_length': 'TextLayout.SourceTextLength',
+            # batch ui
+            'guis': 'Guis',
+            'guibuts': 'GuiButtons',
+            'guiinv': 'GuiInvWindows',
+            'guilabels': 'GuiLabels',
+            'guilist': 'GuiListBoxes',
+            'guislider': 'GuiSliders',
+            'guitext': 'GuiTextBoxes',
+            'scrGui': 'ScGuis',
+            'ifacepopped': 'IfacePopped',
+            'mouse_on_iface': 'MouseOnIface',
+            'scmouse': 'ScMouse',
+            'cursor_gstate': 'Cursor.GState',
+            'cur_mode': 'Cursor.Mode',
+            'cur_cursor': 'Cursor.Look',
+            'mouse_hotx': 'Cursor.HotX',
+            'mouse_hoty': 'Cursor.HotY',
+            'mouse_frame': 'Cursor.Frame',
+            'mouse_delay': 'Cursor.Delay',
+            'lastmx': 'Cursor.LastX',
+            'lastmy': 'Cursor.LastY',
+            'windowbackgroundcolor': 'BuiltinDialogs.WindowBackgroundColor',
+            'pushbuttondarkcolor': 'BuiltinDialogs.PushButtonDarkColor',
+            'pushbuttonlightcolor': 'BuiltinDialogs.PushButtonLightColor',
+            'topwindowhandle': 'BuiltinDialogs.TopWindowHandle',
+            'cbuttfont': 'BuiltinDialogs.ButtonFont',
+            'acdialog_font': 'BuiltinDialogs.Font',
+            'smcode': 'BuiltinDialogs.PostedMessage',
+            'win_x': 'BuiltinDialogs.WinX',
+            'win_y': 'BuiltinDialogs.WinY',
         },
     },
     # 5.1 step 3: the loaded room (`class Room : public AGS::Common::RoomStruct`)
@@ -522,6 +552,18 @@ def is_declaration(toks, i):
     return False
 
 
+def declares_first(toks, stmt):
+    """Whether the statement made of these token indexes begins with a declaration (`int a = 0, b...`): its first
+    declarator, the first identifier before `=`, `,`, `[` or `;`, is declared there."""
+    for k in stmt:
+        t = toks[k]
+        if t.text == ',':
+            return False
+        if t.kind == 'id' and k + 1 < len(toks) and toks[k + 1].text in ('=', ',', '[', ';'):
+            return is_declaration(toks, k)
+    return False
+
+
 def skip_pp(toks, j):
     while j < len(toks) and toks[j].kind == 'pp':
         j += 1
@@ -812,9 +854,11 @@ def analyse(text, ctx):
                 continue
         if t.text not in names:
             continue
-        # the second declarator of `T a = 1, name;` outside a function
-        later_declarator = func is None and prev is not None and prev.text == ',' and nxt is not None and \
-            nxt.text in (';', '=', ',', '[') and not any(toks[k].text in ('(', '{') for k in stmt)
+        # a later declarator of `T a = 1, name;` (inside a function, only if the statement begins with a
+        # declaration: `a = 1, name = 2;` is a comma expression)
+        later_declarator = prev is not None and prev.text == ',' and nxt is not None and \
+            nxt.text in (';', '=', ',', '[') and not any(toks[k].text in ('(', '{') for k in stmt) and \
+            (func is None or declares_first(toks, stmt))
         if (is_declaration(toks, i) or later_declarator) and not global_q:
             if func is not None:
                 func.shadowed.add(t.text)
@@ -1205,6 +1249,13 @@ void q() { int services = 0; g = h; }
     out, rep = run('void q() { int services = 0; g = h; }\n')
     assert 'void q() { int services = 0; S::Current().G = S::Current().H; }' in out, out
     assert rep.taken and 'declares' in rep.taken[0][3], rep.taken
+
+    # a later declarator of a declaration inside a function is a local (`int a = 0, b = 1, g = 2;` in
+    # DialogOptions::Begin), the same names in a comma expression are the globals
+    ctx['local'] = 's'
+    out, rep = run('void d() { int a = 0, b = 1, g = 2; use(g); }\nvoid e(int a) { a = 1, g = 2; }\n')
+    assert 'void d() { int a = 0, b = 1, g = 2; use(g); }' in out, out
+    assert 'void e(int a) { a = 1, S::Current().G = 2; }' in out, out
 
     self_test_contexts()
     print('self-test passed')

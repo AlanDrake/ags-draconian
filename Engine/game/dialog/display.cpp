@@ -309,7 +309,7 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
         {
             if (!fix_look.PreserveTextColor && (gui_id >= 0) &&
                 ((game.options[OPT_SPEECHTYPE] >= kSpeechStyle_SierraBackground) || (fix_look.AsThought)))
-                text_color = text_window_ds->GetCompatibleColor(guis[gui_id].GetFgColor());
+                text_color = text_window_ds->GetCompatibleColor(game.Guis[gui_id].GetFgColor());
             else
                 text_color = text_window_ds->GetCompatibleColor(text_color);
         }
@@ -829,7 +829,7 @@ void do_corner(Bitmap *ds, int sprite_id, int x, int y, int off_x, int off_y)
 int get_but_pic(GUIMain *gui, GUITextWindowBorder border)
 {
     int btn_id = gui->GetControlID(border);
-    return btn_id >= 0 ? guibuts[btn_id].GetNormalImage() : 0;
+    return btn_id >= 0 ? Game::Current().GuiButtons[btn_id].GetNormalImage() : 0;
 }
 
 void draw_button_background(Bitmap *ds, int x1, int y1, int x2, int y2, GUIMain *gui)
@@ -905,30 +905,31 @@ int get_textwindow_border_width(int gui_id)
     if (gui_id < 0)
         return 0;
 
-    if (!guis[gui_id].IsTextWindow())
+    if (!game.Guis[gui_id].IsTextWindow())
     {
         debug_script_warn("GUI %d is set as text window but is not actually a text window GUI", gui_id);
         return 0;
     }
 
-    int border_width = game.SpriteInfos[get_but_pic(&guis[gui_id], kTW_Left)].Width +
-                       game.SpriteInfos[get_but_pic(&guis[gui_id], kTW_Right)].Width;
+    int border_width = game.SpriteInfos[get_but_pic(&game.Guis[gui_id], kTW_Left)].Width +
+                       game.SpriteInfos[get_but_pic(&game.Guis[gui_id], kTW_Right)].Width;
 
     return border_width;
 }
 
 int get_textwindow_top_border_height(int gui_id)
 {
+    Game &game = Game::Current();
     if (gui_id < 0)
         return 0;
 
-    if (!guis[gui_id].IsTextWindow())
+    if (!game.Guis[gui_id].IsTextWindow())
     {
         debug_script_warn("GUI %d is set as text window but is not actually a text window GUI", gui_id);
         return 0;
     }
 
-    return Game::Current().SpriteInfos[get_but_pic(&guis[gui_id], kTW_Top)].Height;
+    return game.SpriteInfos[get_but_pic(&game.Guis[gui_id], kTW_Top)].Height;
 }
 
 int get_textwindow_padding(int gui_id)
@@ -939,7 +940,7 @@ int get_textwindow_padding(int gui_id)
     if (gui_id < 0)
         gui_id = game.options[OPT_TWCUSTOM];
     if (gui_id > 0 && gui_id < game.numgui)
-        result = guis[gui_id].GetPadding();
+        result = game.Guis[gui_id].GetPadding();
     else
         result = TEXTWINDOW_PADDING_DEFAULT;
 
@@ -963,7 +964,7 @@ std::unique_ptr<Bitmap> draw_text_window(int *text_x, int *text_y, int *x, int *
             debug_script_warn("Invalid GUI %d specified as text window (valid range: 1..%d)", gui_id, game.numgui);
             gui_id = 0;
         }
-        else if (!guis[gui_id].IsTextWindow())
+        else if (!game.Guis[gui_id].IsTextWindow())
         {
             debug_script_warn("GUI %d is set as text window but is not actually a text window GUI", gui_id);
             gui_id = 0;
@@ -988,7 +989,7 @@ std::unique_ptr<Bitmap> draw_text_window(int *text_x, int *text_y, int *x, int *
     }
     else
     {
-        int corner_sprite = get_but_pic(&guis[gui_id], kTW_TopLeft);
+        int corner_sprite = get_but_pic(&game.Guis[gui_id], kTW_TopLeft);
 
         width[0] += get_textwindow_border_width(gui_id);
         x[0] -= game.SpriteInfos[corner_sprite].Width;
@@ -1000,9 +1001,9 @@ std::unique_ptr<Bitmap> draw_text_window(int *text_x, int *text_y, int *x, int *
         Bitmap *ds = text_window.get();
         int xoffs = game.SpriteInfos[corner_sprite].Width, yoffs = game.SpriteInfos[corner_sprite].Height;
         draw_button_background(ds, xoffs, yoffs, (ds->GetWidth() - xoffs) - 1, (ds->GetHeight() - yoffs) - 1,
-                               &guis[gui_id]);
+                               &game.Guis[gui_id]);
         if (set_text_color)
-            *set_text_color = guis[gui_id].GetFgColor();
+            *set_text_color = game.Guis[gui_id].GetFgColor();
         text_x[0] = xoffs + padding;
         text_y[0] = yoffs + padding;
     }

@@ -19,7 +19,7 @@
 
 // Script API functions of the GUI struct. The Get/Set pairs read and write the GUI property of the same name
 // (the Set ones of the colour and padding pair apply to the matching kind of GUI only, see below).
-// A ScriptGUI wraps a GUI index; the GUI itself is guis[sgui->id].
+// A ScriptGUI wraps a GUI index; the GUI itself is Game::Guis[sgui->id].
 // Returns the same GUI if it is a text window, otherwise nullptr.
 ScriptGUI *GUI_AsTextWindow(ScriptGUI *sgui);
 int GUI_GetPopupStyle(ScriptGUI *sgui);
@@ -72,7 +72,7 @@ ScriptGUI *GUI_GetAtScreenXY(int x, int y, int hit_options);
 // Same as GUI_GetAtScreenXY, returns the GUI index or -1.
 int GetGUIAt(int x, int y, int hit_options);
 
-// Hides the pop-up GUI if it is the one currently popped up (ifacepopped), and restores the game state
+// Hides the pop-up GUI if it is the one currently popped up (Game::IfacePopped), and restores the game state
 // (unpauses, mouse cursor look) that popping it up changed.
 void remove_popup_interface(int gui_id);
 // Runs the script handler of a click on a GUI (btn_id < 0: the GUI background) or on one of its controls;
@@ -104,20 +104,6 @@ void gui_on_mouse_down(const int gui_id, const int mbut, const int mx, const int
 
 // Returns the first enabled, visible text box of a displayed GUI, or nullptr (also when GUIs are disabled).
 AGS::Common::GUITextBox *gui_get_active_textbox();
-
-// currently displayed pop-up GUI (-1 if none)
-extern int ifacepopped;
-// index of GUI the cursor was on
-extern int mouse_on_iface;
-extern std::vector<AGS::Common::GUIMain> guis;
-extern std::vector<AGS::Common::GUIButton> guibuts;
-extern std::vector<AGS::Common::GUIInvWindow> guiinv;
-extern std::vector<AGS::Common::GUILabel> guilabels;
-extern std::vector<AGS::Common::GUIListBox> guilist;
-extern std::vector<AGS::Common::GUISlider> guislider;
-extern std::vector<AGS::Common::GUITextBox> guitext;
-// The script objects of the GUIs, by GUI index.
-extern std::vector<ScriptGUI> scrGui;
 
 namespace AGS
 {

@@ -17,6 +17,7 @@
 #include <cstring>
 
 #include "font/fonts.h"
+#include "game/game_context.h"
 #include "game/ui/csci_dialog.h"
 #include "game/ui/gui_dialog_defines.h"
 #include "gfx/bitmap.h"
@@ -41,16 +42,18 @@ MyTextBox::MyTextBox(int left, int top, int width, const char *initial_text, int
 
 void MyTextBox::draw(Bitmap *ds)
 {
+    Game &game = Game::Current();
     ds->SetClip(RectWH(x, y, wid + 1, hit + 1));
-    color_t draw_color = GUI::GetStandardColorForBitmap(windowbackgroundcolor);
+    color_t draw_color = GUI::GetStandardColorForBitmap(game.BuiltinDialogs.WindowBackgroundColor);
     ds->FillRect(Rect(x, y, x + wid, y + hit), draw_color);
     draw_color = GUI::GetStandardColorForBitmap(0);
     ds->DrawRect(Rect(x, y, x + wid, y + hit), draw_color);
     color_t text_color = GUI::GetStandardColorForBitmap(0);
-    wouttextxy(ds, x + 2, y + 1, cbuttfont, text_color, text);
+    wouttextxy(ds, x + 2, y + 1, game.BuiltinDialogs.ButtonFont, text_color, text);
 
     char cursor[2] = "_";
-    wouttextxy(ds, x + 2 + get_text_width(text, cbuttfont), y + 1, cbuttfont, text_color, cursor);
+    wouttextxy(ds, x + 2 + get_text_width(text, game.BuiltinDialogs.ButtonFont), y + 1, game.BuiltinDialogs.ButtonFont,
+               text_color, cursor);
     ds->ResetClip();
 }
 
@@ -61,6 +64,7 @@ int MyTextBox::pressedon(int /*mx*/, int /*my*/)
 
 int MyTextBox::processmessage(int mcode, int wParam, intptr_t ipParam)
 {
+    Game &game = Game::Current();
     if (mcode == CTB_SETTEXT)
     {
         snprintf(text, sizeof(text), "%s", reinterpret_cast<const char *>(ipParam));
@@ -87,9 +91,9 @@ int MyTextBox::processmessage(int mcode, int wParam, intptr_t ipParam)
             return 0; // buffer full
         if (uchar == 0)
             return 0; // not a textual event
-        if ((uchar >= 128) && (!font_supports_extended_characters(cbuttfont)))
+        if ((uchar >= 128) && (!font_supports_extended_characters(game.BuiltinDialogs.ButtonFont)))
             return 0; // unsupported letter
-        if (get_text_width(text, cbuttfont) >= wid - 5)
+        if (get_text_width(text, game.BuiltinDialogs.ButtonFont) >= wid - 5)
             return 0; // not enough control space
         text[len] = uchar;
         text[len + 1] = 0;

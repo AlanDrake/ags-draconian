@@ -20,19 +20,6 @@
 #include "game/ui/gui_dialog_defines.h"
 #include "platform/types.h"
 
-// Colours of the built-in dialogs' windows and push buttons (colour indexes).
-extern int windowbackgroundcolor, pushbuttondarkcolor;
-extern int pushbuttonlightcolor;
-// The id of the window on top, -1 when none is open.
-extern int topwindowhandle;
-// The fonts of the built-in dialogs' controls and of their labels.
-extern int cbuttfont;
-extern int acdialog_font;
-// A message code that a control posts for the next CSCIWaitMessage (CM_SELCHANGE of a list box); 0 when none.
-extern int smcode;
-// Position of the top window on the screen.
-extern int win_x, win_y;
-
 // Opens a window on the GUI screen and returns its id; the area drawn is 2 pixels larger than
 // the given one on each side. Quits if 5 windows are already open. Pair with CSCIEraseWindow.
 int CSCIDrawWindow(int x, int y, int width, int height);

@@ -1076,7 +1076,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
     set_our_eip(220);
     update_polled_stuff();
     debug_script_log("Now in room %d", game.DisplayedRoom);
-    cursor_gstate.MarkChanged();
+    game.Cursor.GState.MarkChanged();
     GUIE::MarkAllGUIForUpdate(true, true);
     pl_run_plugin_hooks(kPluginEvt_EnterRoom, game.DisplayedRoom);
 }

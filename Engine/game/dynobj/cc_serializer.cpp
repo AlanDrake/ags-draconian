@@ -25,6 +25,7 @@
 #include "game/dynobj/script_shader.h"
 #include "game/dynobj/script_viewport.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_init.h"
 #include "game/lib/script_containers.h"
 #include "game/ui/gui.h"
@@ -253,8 +254,9 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
 
 int AGSDeSerializer::RegisterGUIControl(int index, int guinum, int objnum)
 {
-    GUIControl *obj = guis[guinum].GetControl(objnum);
-    switch (guis[guinum].GetControlType(objnum))
+    Game &game = Game::Current();
+    GUIControl *obj = game.Guis[guinum].GetControl(objnum);
+    switch (game.Guis[guinum].GetControlType(objnum))
     {
     case kGUIButton: return ccRegisterUnserializedPersistentObject(index, obj, &ccDynamicGUIButton);
     case kGUILabel: return ccRegisterUnserializedPersistentObject(index, obj, &ccDynamicGUILabel);

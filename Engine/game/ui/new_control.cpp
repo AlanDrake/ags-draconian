@@ -13,6 +13,7 @@
 //=============================================================================
 #include "game/ui/new_control.h"
 
+#include "game/game_context.h"
 #include "game/ui/csci_dialog.h"
 #include "game/ui/gui_dialog.h"
 #include "game/ui/gui_dialog_defines.h"
@@ -29,7 +30,7 @@ NewControl::NewControl()
 }
 int NewControl::mouseisinarea(int mx, int my)
 {
-    if (topwindowhandle != wlevel)
+    if (Game::Current().BuiltinDialogs.TopWindowHandle != wlevel)
         return 0;
 
     if ((mx > x) & (mx < x + wid) & (my > y) & (my < y + hit))
@@ -39,7 +40,7 @@ int NewControl::mouseisinarea(int mx, int my)
 }
 void NewControl::drawifneeded()
 {
-    if (topwindowhandle != wlevel)
+    if (Game::Current().BuiltinDialogs.TopWindowHandle != wlevel)
         return;
     if (needredraw)
     {

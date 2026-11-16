@@ -22,6 +22,7 @@
 #include "debug/debug_log.h"
 #include "game/file.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -153,11 +154,12 @@ void ListBox_FillSaveGameSlots(GUIListBox *listbox, void *src_arr, int save_sort
 
 int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y)
 {
-    if (!guis[listbox->GetParentID()].IsDisplayed())
+    Game &game = Game::Current();
+    if (!game.Guis[listbox->GetParentID()].IsDisplayed())
         return -1;
 
-    x = (x - listbox->GetX()) - guis[listbox->GetParentID()].GetX();
-    y = (y - listbox->GetY()) - guis[listbox->GetParentID()].GetY();
+    x = (x - listbox->GetX()) - game.Guis[listbox->GetParentID()].GetX();
+    y = (y - listbox->GetY()) - game.Guis[listbox->GetParentID()].GetY();
 
     if ((x < 0) || (y < 0) || (x >= listbox->GetWidth()) || (y >= listbox->GetHeight()))
         return -1;

@@ -41,16 +41,19 @@ std::vector<AnimatingGUIButton> animbuts;
 // Update the actual button's image from the current animation frame
 void UpdateButtonState(const AnimatingGUIButton &abtn)
 {
+    Game &game = Game::Current();
     // Assign view frame as normal image and reset all the rest
-    const auto &vf = Game::Current().Views[abtn.view].loops[abtn.loop].frames[abtn.frame];
-    guibuts[abtn.buttonid].SetImages(vf.pic, 0, 0, vf.flags, vf.xoffs, vf.yoffs);
+    const auto &vf = game.Views[abtn.view].loops[abtn.loop].frames[abtn.frame];
+    game.GuiButtons[abtn.buttonid].SetImages(vf.pic, 0, 0, vf.flags, vf.xoffs, vf.yoffs);
 }
 
 void ABut_CheckViewFrame(AnimatingGUIButton &abtn)
 {
-    ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(&guibuts[abtn.buttonid], &ccDynamicGUIButton));
+    Game &game = Game::Current();
+    ObjectEvent objevt(kScTypeGame,
+                       RuntimeScriptValue().SetScriptObject(&game.GuiButtons[abtn.buttonid], &ccDynamicGUIButton));
     CheckViewFrame(abtn.view, abtn.loop, abtn.frame, abtn.anim.AudioVolume, 0, 1000, objevt,
-                   &guibuts[abtn.buttonid].GetEvents(), kButtonEvent_OnFrameEvent);
+                   &game.GuiButtons[abtn.buttonid].GetEvents(), kButtonEvent_OnFrameEvent);
     UpdateButtonState(abtn);
 }
 
@@ -63,6 +66,7 @@ bool Button_RunFrameEventImpl(GUIButton &btn, int view, int loop, int frame)
 void Button_Animate(GUIButton *btn, int view, int loop, int speed, int repeat, int blocking, int direction, int sframe,
                     int volume)
 {
+    Game &game = Game::Current();
     int gui_id = btn->GetParentID();
     int btn_id = btn->GetID();
 
@@ -75,7 +79,7 @@ void Button_Animate(GUIButton *btn, int view, int loop, int speed, int repeat, i
     // if it's already animating, stop it
     FindAndRemoveButtonAnimation(gui_id, btn_id);
 
-    int but_id = guis[gui_id].GetControlID(btn_id);
+    int but_id = game.Guis[gui_id].GetControlID(btn_id);
     AnimatingGUIButton abtn;
     abtn.ongui = gui_id;
     abtn.onguibut = btn_id;
@@ -85,7 +89,7 @@ void Button_Animate(GUIButton *btn, int view, int loop, int speed, int repeat, i
     abtn.anim =
         ViewAnimateParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction), speed, volume);
     abtn.frame = SetFirstAnimFrame(view, loop, sframe, static_cast<AnimFlowDirection>(direction));
-    abtn.wait = abtn.anim.Delay + Game::Current().Views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
+    abtn.wait = abtn.anim.Delay + game.Views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
     // launch into the first frame, and play the first frame's sound
     ABut_CheckViewFrame(abtn);
     animbuts.push_back(std::move(abtn));

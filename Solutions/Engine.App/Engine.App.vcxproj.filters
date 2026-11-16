@@ -1373,6 +1373,9 @@
     <ClInclude Include="..\..\Engine\game\ui\csci_dialog.h">
       <Filter>Header Files\game\ui</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\game\ui\cursor_graphic_state.h">
+      <Filter>Header Files\game\ui</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Engine\game\ui\gui_dialog.h">
       <Filter>Header Files\game\ui</Filter>
     </ClInclude>

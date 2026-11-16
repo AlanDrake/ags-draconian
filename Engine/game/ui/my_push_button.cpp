@@ -17,6 +17,7 @@
 
 #include "device/sys_events.h"
 #include "font/fonts.h"
+#include "game/game_context.h"
 #include "game/ui/csci_dialog.h"
 #include "game/ui/gui_dialog.h"
 #include "game/ui/gui_dialog_defines.h"
@@ -42,40 +43,43 @@ MyPushButton::MyPushButton(int left, int top, int width, int height, const char 
 
 void MyPushButton::draw(Bitmap *ds)
 {
+    Game &game = Game::Current();
     color_t text_color = GUI::GetStandardColorForBitmap(0);
     color_t draw_color = GUI::GetStandardColorForBitmap(COL254);
     ds->FillRect(Rect(x, y, x + wid, y + hit), draw_color);
     if (state == 0)
-        draw_color = GUI::GetStandardColorForBitmap(pushbuttondarkcolor);
+        draw_color = GUI::GetStandardColorForBitmap(game.BuiltinDialogs.PushButtonDarkColor);
     else
-        draw_color = GUI::GetStandardColorForBitmap(pushbuttonlightcolor);
+        draw_color = GUI::GetStandardColorForBitmap(game.BuiltinDialogs.PushButtonLightColor);
 
     ds->DrawRect(Rect(x, y, x + wid, y + hit), draw_color);
     if (state == 0)
-        draw_color = GUI::GetStandardColorForBitmap(pushbuttonlightcolor);
+        draw_color = GUI::GetStandardColorForBitmap(game.BuiltinDialogs.PushButtonLightColor);
     else
-        draw_color = GUI::GetStandardColorForBitmap(pushbuttondarkcolor);
+        draw_color = GUI::GetStandardColorForBitmap(game.BuiltinDialogs.PushButtonDarkColor);
 
     ds->DrawLine(Line(x, y, x + wid - 1, y), draw_color);
     ds->DrawLine(Line(x, y, x, y + hit - 1), draw_color);
-    wouttextxy(ds, x + (wid / 2 - get_text_width(text, cbuttfont) / 2), y + 2, cbuttfont, text_color, text);
+    wouttextxy(ds, x + (wid / 2 - get_text_width(text, game.BuiltinDialogs.ButtonFont) / 2), y + 2,
+               game.BuiltinDialogs.ButtonFont, text_color, text);
     if (typeandflags & CNF_DEFAULT)
         draw_color = GUI::GetStandardColorForBitmap(0);
     else
-        draw_color = GUI::GetStandardColorForBitmap(windowbackgroundcolor);
+        draw_color = GUI::GetStandardColorForBitmap(game.BuiltinDialogs.WindowBackgroundColor);
 
     ds->DrawRect(Rect(x - 1, y - 1, x + wid + 1, y + hit + 1), draw_color);
 }
 
 int MyPushButton::pressedon(int /*mx*/, int /*my*/)
 {
+    Game &game = Game::Current();
     int old_state;
     while (ags_misbuttondown(kMouseLeft))
     {
         old_state = state;
         // the button is pressed only while the mouse is over it, as it moves
         ags_domouse();
-        state = mouseisinarea(::mousex - win_x, ::mousey - win_y);
+        state = mouseisinarea(::mousex - game.BuiltinDialogs.WinX, ::mousey - game.BuiltinDialogs.WinY);
         update_polled_stuff();
         if (old_state != state)
         {

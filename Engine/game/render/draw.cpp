@@ -761,7 +761,7 @@ void init_game_drawdata()
     int guio_num = 0;
     // Prepare GUI cache lists and build the quick reference for controls cache
     guiobjddbref.resize(game.numgui);
-    for (const auto &gui : guis)
+    for (const auto &gui : game.Guis)
     {
         guiobjddbref[gui.GetID()] = guio_num;
         guio_num += gui.GetControlCount();
@@ -2696,7 +2696,7 @@ static void draw_gui_controls_batch(int gui_id)
     EngineServices &services = EngineServices::Current();
     auto *gui_rtex = gui_render_tex[gui_id];
     assert(gui_rtex);
-    const auto &gui = guis[gui_id];
+    const auto &gui = Game::Current().Guis[gui_id];
     auto *gui_bg = guibg[gui_id].Ddb;
     // Create a sub-batch
     services.GfxDriver->BeginSpriteBatch(gui_rtex, RectWH(0, 0, gui_bg->GetWidth(), gui_bg->GetHeight()),
@@ -2781,7 +2781,7 @@ void draw_gui_and_overlays()
         {
             for (int index = 0; index < game.numgui; ++index)
             {
-                auto &gui = guis[index];
+                auto &gui = game.Guis[index];
                 if (!gui.IsDisplayed())
                     continue; // not on screen
                 if (!gui.HasChanged() && !gui.HasControlsChanged())
@@ -2856,7 +2856,7 @@ void draw_gui_and_overlays()
         // Draw the GUIs
         for (int index = 0; index < game.numgui; ++index)
         {
-            GUIMain &gui = guis[index];
+            GUIMain &gui = game.Guis[index];
             // Don't draw GUI if it's not on, or it's a "GUIs Turn Off When Disabled" state
             if (!GUI::IsGUIVisible(&gui))
                 continue;
@@ -3258,17 +3258,17 @@ void construct_game_screen_overlay(bool draw_cursor)
     // Mouse cursor
     if ((!game.Play.screen_is_faded_out) && draw_cursor && game.Play.ShouldDrawMouseCursor())
     {
-        if (cursor_gstate.HasChanged() || cursor_tx.IsChangeNotified() ||
+        if (game.Cursor.GState.HasChanged() || cursor_tx.IsChangeNotified() ||
             // Test if must recache the unloaded sprite in software mode
-            (drawstate.SoftwareRender && (cursor_gstate.GetSpriteNum() >= 0) &&
-             spriteset.IsAssetUnloaded(cursor_gstate.GetSpriteNum())))
+            (drawstate.SoftwareRender && (game.Cursor.GState.GetSpriteNum() >= 0) &&
+             spriteset.IsAssetUnloaded(game.Cursor.GState.GetSpriteNum())))
         {
-            cursor_tx.SpriteID = cursor_gstate.GetSpriteNum();
+            cursor_tx.SpriteID = game.Cursor.GState.GetSpriteNum();
             if (cursor_tx.SpriteID != UINT32_MAX)
                 sync_object_texture(cursor_tx);
             else
-                cursor_tx.Ddb = recycle_ddb_bitmap(cursor_tx.Ddb, cursor_gstate.GetImage());
-            cursor_gstate.ClearChanged();
+                cursor_tx.Ddb = recycle_ddb_bitmap(cursor_tx.Ddb, game.Cursor.GState.GetImage());
+            game.Cursor.GState.ClearChanged();
         }
 
         assert(cursor_tx.Ddb); // Test for missing texture, might happen if not marked for update
@@ -3279,8 +3279,8 @@ void construct_game_screen_overlay(bool draw_cursor)
             // Exclusive sub-batch for mouse cursor, to let filter it out (see RENDER_SHOT_SKIP_ON_FADE)
             services.GfxDriver->BeginSpriteBatch(Rect(), SpriteTransform(), kFlip_None, nullptr,
                                                  RENDER_BATCH_MOUSE_CURSOR);
-            services.GfxDriver->DrawSprite(mousex - mouse_hotx, mousey - mouse_hoty, cursor_tx.Ddb);
-            invalidate_sprite(mousex - mouse_hotx, mousey - mouse_hoty, cursor_tx.Ddb, false);
+            services.GfxDriver->DrawSprite(mousex - game.Cursor.HotX, mousey - game.Cursor.HotY, cursor_tx.Ddb);
+            invalidate_sprite(mousex - game.Cursor.HotX, mousey - game.Cursor.HotY, cursor_tx.Ddb, false);
             services.GfxDriver->EndSpriteBatch();
         }
     }

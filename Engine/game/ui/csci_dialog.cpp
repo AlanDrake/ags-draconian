@@ -43,15 +43,6 @@ using namespace AGS::Engine;
 //-----------------------------------------------------------------------------
 // DIALOG SYSTEM STUFF below
 
-int windowbackgroundcolor = COL254, pushbuttondarkcolor = COL255;
-int pushbuttonlightcolor = COL253;
-int topwindowhandle = -1;
-int cbuttfont;
-
-int acdialog_font;
-
-int smcode = 0;
-
 #define MAXCONTROLS      20
 #define MAXSCREENWINDOWS 5
 NewControl *vobjs[MAXCONTROLS];
@@ -79,10 +70,11 @@ OnScreenWindow::OnScreenWindow()
     oldtop = -1;
 }
 
-int win_x = 0, win_y = 0, win_width = 0, win_height = 0;
+int win_width = 0, win_height = 0;
 // CLNUP dialogs are based on 320x200 coords, will need to at least center them
 int CSCIDrawWindow(int x, int y, int width, int height)
 {
+    Game &game = Game::Current();
     ignore_bounds++;
     int win_id = -1;
     for (int i = 0; i < MAXSCREENWINDOWS; i++)
@@ -105,11 +97,11 @@ int CSCIDrawWindow(int x, int y, int width, int height)
     oswi[win_id].x = x;
     oswi[win_id].y = y;
     DrawWindowFrame(dst, 0, 0, width - 1, height - 1); // fills the whole enlarged area and frames it
-    oswi[win_id].oldtop = topwindowhandle;
-    topwindowhandle = win_id;
-    oswi[win_id].handle = topwindowhandle;
-    win_x = x;
-    win_y = y;
+    oswi[win_id].oldtop = game.BuiltinDialogs.TopWindowHandle;
+    game.BuiltinDialogs.TopWindowHandle = win_id;
+    oswi[win_id].handle = game.BuiltinDialogs.TopWindowHandle;
+    game.BuiltinDialogs.WinX = x;
+    game.BuiltinDialogs.WinY = y;
     win_width = width;
     win_height = height;
     return win_id;
@@ -118,7 +110,7 @@ int CSCIDrawWindow(int x, int y, int width, int height)
 void CSCIEraseWindow(int win_id)
 {
     ignore_bounds--;
-    topwindowhandle = oswi[win_id].oldtop;
+    Game::Current().BuiltinDialogs.TopWindowHandle = oswi[win_id].oldtop;
     oswi[win_id].handle = -1;
     clear_gui_screen();
 }
@@ -134,7 +126,7 @@ int CSCIWaitMessage(CSCIMessage *msg)
         }
     }
 
-    prepare_gui_screen(win_x, win_y, win_width, win_height, true);
+    prepare_gui_screen(game.BuiltinDialogs.WinX, game.BuiltinDialogs.WinY, win_width, win_height, true);
 
     while (1)
     {
@@ -145,7 +137,7 @@ int CSCIWaitMessage(CSCIMessage *msg)
 
         msg->id = -1;
         msg->code = 0;
-        smcode = 0;
+        game.BuiltinDialogs.PostedMessage = 0;
         // NOTE: CSCIWaitMessage is supposed to report only single message,
         // therefore we cannot process all buffered key presses here
         // (unless the whole dialog system is rewritten).
@@ -189,9 +181,9 @@ int CSCIWaitMessage(CSCIMessage *msg)
             }
         }
 
-        if (smcode)
+        if (game.BuiltinDialogs.PostedMessage)
         {
-            msg->code = smcode;
+            msg->code = game.BuiltinDialogs.PostedMessage;
             msg->id = controlid;
         }
 
@@ -224,7 +216,7 @@ int CSCICreateControl(int typeandflags, int x, int y, int width, int height, con
     if (type == CNT_PUSHBUTTON)
     {
         if (width == -1)
-            width = get_text_width(title, cbuttfont) + 20;
+            width = get_text_width(title, game.BuiltinDialogs.ButtonFont) + 20;
 
         vobjs[ctrl_id] = new MyPushButton(x, y, width, height, title);
     }
@@ -244,7 +236,7 @@ int CSCICreateControl(int typeandflags, int x, int y, int width, int height, con
         quit("Unknown control type requested");
 
     vobjs[ctrl_id]->typeandflags = typeandflags;
-    vobjs[ctrl_id]->wlevel = topwindowhandle;
+    vobjs[ctrl_id]->wlevel = game.BuiltinDialogs.TopWindowHandle;
     vobjs[ctrl_id]->draw(get_gui_screen());
     return ctrl_id;
 }
@@ -265,14 +257,15 @@ int CSCISendControlMessage(int ctrl_id, int msg, int w_param, intptr_t ip_param)
 // TODO: this is silly, make a uniform formula
 int checkcontrols()
 {
-    if (!Game::Current().Play.mouse_input_enabled)
+    Game &game = Game::Current();
+    if (!game.Play.mouse_input_enabled)
         return 0;
 
     // NOTE: this is because old code was working with full game screen
-    const int mx = ::mousex - win_x;
-    const int my = ::mousey - win_y;
+    const int mx = ::mousex - game.BuiltinDialogs.WinX;
+    const int my = ::mousey - game.BuiltinDialogs.WinY;
 
-    smcode = 0;
+    game.BuiltinDialogs.PostedMessage = 0;
     for (int i = 0; i < MAXCONTROLS; i++)
     {
         if (vobjs[i] != nullptr)
@@ -289,12 +282,13 @@ int checkcontrols()
 
 int finddefaultcontrol(int flag_mask)
 {
+    Game &game = Game::Current();
     for (int i = 0; i < MAXCONTROLS; i++)
     {
         if (vobjs[i] == nullptr)
             continue;
 
-        if (vobjs[i]->wlevel != topwindowhandle)
+        if (vobjs[i]->wlevel != game.BuiltinDialogs.TopWindowHandle)
             continue;
 
         if (vobjs[i]->typeandflags & flag_mask)

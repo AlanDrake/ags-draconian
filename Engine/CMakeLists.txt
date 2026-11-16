@@ -244,6 +244,7 @@ target_sources(engine
     game/ui/button.h
     game/ui/csci_dialog.cpp
     game/ui/csci_dialog.h
+    game/ui/cursor_graphic_state.h
     game/ui/gui.cpp
     game/ui/gui.h
     game/ui/gui_control.cpp

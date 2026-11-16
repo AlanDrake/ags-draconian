@@ -715,6 +715,7 @@
     <ClInclude Include="..\..\Engine\game\ui\animating_gui_button.h" />
     <ClInclude Include="..\..\Engine\game\ui\button.h" />
     <ClInclude Include="..\..\Engine\game\ui\csci_dialog.h" />
+    <ClInclude Include="..\..\Engine\game\ui\cursor_graphic_state.h" />
     <ClInclude Include="..\..\Engine\game\ui\gui.h" />
     <ClInclude Include="..\..\Engine\game\ui\gui_control.h" />
     <ClInclude Include="..\..\Engine\game\ui\gui_dialog.h" />

@@ -17,6 +17,7 @@
 
 #include "font/fonts.h"
 #include "game/dialog/display.h"
+#include "game/game_context.h"
 #include "game/lib/string.h"
 #include "game/ui/csci_dialog.h"
 #include "game/ui/gui_dialog_defines.h"
@@ -37,15 +38,16 @@ MyLabel::MyLabel(int left, int top, int width, const char *label, int text_heigh
 
 void MyLabel::draw(Bitmap *ds)
 {
+    Game &game = Game::Current();
     int line_y = y;
     color_t text_color = GUI::GetStandardColorForBitmap(0);
 
     const char *draw_text = skip_voiceover_token(text);
-    if (break_up_text_into_lines(draw_text, Lines, wid, acdialog_font) == 0)
+    if (break_up_text_into_lines(draw_text, Lines, wid, game.BuiltinDialogs.Font) == 0)
         return;
     for (size_t line_id = 0; line_id < Lines.Count(); line_id++)
     {
-        wouttext_outline(ds, x, line_y, acdialog_font, text_color, Lines[line_id].GetCStr());
+        wouttext_outline(ds, x, line_y, game.BuiltinDialogs.Font, text_color, Lines[line_id].GetCStr());
         line_y += textheight;
     }
 }

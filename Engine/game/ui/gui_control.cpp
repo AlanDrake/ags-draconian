@@ -38,19 +38,20 @@ using namespace AGS::Common;
 
 GUIObject *GUIControl_GetAtScreenXY(int x, int y, int gui_hitoptions, int ctrl_hitoptions)
 {
+    Game &game = Game::Current();
     int gui_id = GetGUIAt(x, y, gui_hitoptions);
     if (gui_id == -1)
     {
         return nullptr;
     }
 
-    int result = guis[gui_id].FindControlAt(x, y, 0, (ctrl_hitoptions & kHit_Interactable));
+    int result = game.Guis[gui_id].FindControlAt(x, y, 0, (ctrl_hitoptions & kHit_Interactable));
     if (result < 0)
     {
         return nullptr;
     }
 
-    return guis[gui_id].GetControl(result);
+    return game.Guis[gui_id].GetControl(result);
 }
 
 GUIObject *GUIControl_GetAtScreenXY2(int x, int y)
@@ -118,12 +119,12 @@ const char *GUIControl_GetScriptName(GUIControl *control)
 
 ScriptGUI *GUIControl_GetOwningGUI(GUIControl *control)
 {
-    return &scrGui[control->GetParentID()];
+    return &Game::Current().ScGuis[control->GetParentID()];
 }
 
 GUIButton *GUIControl_GetAsButton(GUIControl *control)
 {
-    if (guis[control->GetParentID()].GetControlType(control->GetID()) != kGUIButton)
+    if (Game::Current().Guis[control->GetParentID()].GetControlType(control->GetID()) != kGUIButton)
     {
         return nullptr;
     }
@@ -133,7 +134,7 @@ GUIButton *GUIControl_GetAsButton(GUIControl *control)
 
 GUIInvWindow *GUIControl_GetAsInvWindow(GUIControl *control)
 {
-    if (guis[control->GetParentID()].GetControlType(control->GetID()) != kGUIInvWindow)
+    if (Game::Current().Guis[control->GetParentID()].GetControlType(control->GetID()) != kGUIInvWindow)
     {
         return nullptr;
     }
@@ -143,7 +144,7 @@ GUIInvWindow *GUIControl_GetAsInvWindow(GUIControl *control)
 
 GUILabel *GUIControl_GetAsLabel(GUIControl *control)
 {
-    if (guis[control->GetParentID()].GetControlType(control->GetID()) != kGUILabel)
+    if (Game::Current().Guis[control->GetParentID()].GetControlType(control->GetID()) != kGUILabel)
     {
         return nullptr;
     }
@@ -153,7 +154,7 @@ GUILabel *GUIControl_GetAsLabel(GUIControl *control)
 
 GUIListBox *GUIControl_GetAsListBox(GUIControl *control)
 {
-    if (guis[control->GetParentID()].GetControlType(control->GetID()) != kGUIListBox)
+    if (Game::Current().Guis[control->GetParentID()].GetControlType(control->GetID()) != kGUIListBox)
     {
         return nullptr;
     }
@@ -163,7 +164,7 @@ GUIListBox *GUIControl_GetAsListBox(GUIControl *control)
 
 GUISlider *GUIControl_GetAsSlider(GUIControl *control)
 {
-    if (guis[control->GetParentID()].GetControlType(control->GetID()) != kGUISlider)
+    if (Game::Current().Guis[control->GetParentID()].GetControlType(control->GetID()) != kGUISlider)
     {
         return nullptr;
     }
@@ -173,7 +174,7 @@ GUISlider *GUIControl_GetAsSlider(GUIControl *control)
 
 GUITextBox *GUIControl_GetAsTextBox(GUIControl *control)
 {
-    if (guis[control->GetParentID()].GetControlType(control->GetID()) != kGUITextBox)
+    if (Game::Current().Guis[control->GetParentID()].GetControlType(control->GetID()) != kGUITextBox)
     {
         return nullptr;
     }
@@ -243,7 +244,7 @@ int GUIControl_GetZOrder(GUIControl *control)
 
 void GUIControl_SetZOrder(GUIControl *control, int zorder)
 {
-    guis[control->GetParentID()].SetControlZOrder(control->GetID(), zorder);
+    Game::Current().Guis[control->GetParentID()].SetControlZOrder(control->GetID(), zorder);
 }
 
 void GUIControl_SetPosition(GUIControl *control, int x, int y)
@@ -303,12 +304,12 @@ void *GUIControl_GetGraphicBoundBox(GUIControl *control)
 
 void GUIControl_SendToBack(GUIControl *control)
 {
-    guis[control->GetParentID()].SendControlToBack(control->GetID());
+    Game::Current().Guis[control->GetParentID()].SendControlToBack(control->GetID());
 }
 
 void GUIControl_BringToFront(GUIControl *control)
 {
-    guis[control->GetParentID()].BringControlToFront(control->GetID());
+    Game::Current().Guis[control->GetParentID()].BringControlToFront(control->GetID());
 }
 
 int GUIControl_GetBackgroundColor(GUIControl *control)
@@ -431,8 +432,8 @@ void GUIControl_SetBlendMode(GUIControl *control, int blend_mode)
 int GUIControl_GetProperty(GUIControl *control, const char *property)
 {
     Game &game = Game::Current();
-    int ctrl_type = guis[control->GetParentID()].GetControlType(control->GetID());
-    int ctrl_id = guis[control->GetParentID()].GetControlID(control->GetID());
+    int ctrl_type = game.Guis[control->GetParentID()].GetControlType(control->GetID());
+    int ctrl_id = game.Guis[control->GetParentID()].GetControlID(control->GetID());
     return get_int_property(game.guicontrolProps[ctrl_type][ctrl_id], game.Play.guicontrolProps[ctrl_type][ctrl_id],
                             property);
 }
@@ -440,24 +441,26 @@ int GUIControl_GetProperty(GUIControl *control, const char *property)
 const char *GUIControl_GetTextProperty(GUIControl *control, const char *property)
 {
     Game &game = Game::Current();
-    int ctrl_type = guis[control->GetParentID()].GetControlType(control->GetID());
-    int ctrl_id = guis[control->GetParentID()].GetControlID(control->GetID());
+    int ctrl_type = game.Guis[control->GetParentID()].GetControlType(control->GetID());
+    int ctrl_id = game.Guis[control->GetParentID()].GetControlID(control->GetID());
     return get_text_property_dynamic_string(game.guicontrolProps[ctrl_type][ctrl_id],
                                             game.Play.guicontrolProps[ctrl_type][ctrl_id], property);
 }
 
 bool GUIControl_SetProperty(GUIControl *control, const char *property, int value)
 {
-    int ctrl_type = guis[control->GetParentID()].GetControlType(control->GetID());
-    int ctrl_id = guis[control->GetParentID()].GetControlID(control->GetID());
-    return set_int_property(Game::Current().Play.guicontrolProps[ctrl_type][ctrl_id], property, value);
+    Game &game = Game::Current();
+    int ctrl_type = game.Guis[control->GetParentID()].GetControlType(control->GetID());
+    int ctrl_id = game.Guis[control->GetParentID()].GetControlID(control->GetID());
+    return set_int_property(game.Play.guicontrolProps[ctrl_type][ctrl_id], property, value);
 }
 
 bool GUIControl_SetTextProperty(GUIControl *control, const char *property, const char *value)
 {
-    int ctrl_type = guis[control->GetParentID()].GetControlType(control->GetID());
-    int ctrl_id = guis[control->GetParentID()].GetControlID(control->GetID());
-    return set_text_property(Game::Current().Play.guicontrolProps[ctrl_type][ctrl_id], property, value);
+    Game &game = Game::Current();
+    int ctrl_type = game.Guis[control->GetParentID()].GetControlType(control->GetID());
+    int ctrl_id = game.Guis[control->GetParentID()].GetControlID(control->GetID());
+    return set_text_property(game.Play.guicontrolProps[ctrl_type][ctrl_id], property, value);
 }
 
 ScriptShaderInstance *GUIControl_GetShader(GUIControl *control)

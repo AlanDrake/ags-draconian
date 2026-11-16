@@ -369,7 +369,7 @@ ScriptGUI *DialogOptions_GetTemplateGUI()
     // NOTE: historically 0 meant "no gui", so gui id 0 cannot be used here
     if (game.options[OPT_DIALOGIFACE] <= 0 || game.options[OPT_DIALOGIFACE] >= game.numgui)
         return nullptr;
-    return &scrGui[game.options[OPT_DIALOGIFACE]];
+    return &game.ScGuis[game.options[OPT_DIALOGIFACE]];
 }
 
 void DialogOptions_SetTemplateGUI(ScriptGUI *sgui)
@@ -953,7 +953,7 @@ void DialogOptions::Begin()
 
     lineheight = get_font_height_outlined(usingfont);
     linespacing = get_font_linespacing(usingfont);
-    curswas = cur_cursor;
+    curswas = game.Cursor.Look;
     bullet_wid = 0;
     bullet_picwid = 0;
     number_wid = 0;
@@ -1026,13 +1026,13 @@ void DialogOptions::Begin()
     else if (game.options[OPT_DIALOGIFACE] > 0)
     {
         // Use GUI or TextWindow GUI
-        GUIMain *gui = &guis[game.options[OPT_DIALOGIFACE]];
+        GUIMain *gui = &game.Guis[game.options[OPT_DIALOGIFACE]];
         if (gui->IsTextWindow())
         {
             // Text-window, so do the QFG4-style speech options
             is_textwindow = true;
             forecol = gui->GetFgColor();
-            const int padding = guis[game.options[OPT_DIALOGIFACE]].GetPadding();
+            const int padding = game.Guis[game.options[OPT_DIALOGIFACE]].GetPadding();
             // Find the widest options line that will be in the text window,
             // and adjust the area width to that line's width, while clamping to min,max range
             const int max_width = game.Play.max_dialogoption_width;
@@ -1162,7 +1162,7 @@ void DialogOptions::Draw()
         options_bmp->Blit(text_window.get());
 
         // Text window behind the options
-        const int padding = guis[game.options[OPT_DIALOGIFACE]].GetPadding();
+        const int padding = game.Guis[game.options[OPT_DIALOGIFACE]].GetPadding();
         // Ignore the dialog_options_pad_x/y offsets when using a text window
         // because it has its own padding + border gfx
         inner_position = text_window_offset;
@@ -1192,7 +1192,7 @@ void DialogOptions::Draw()
         else
         {
             // Normal GUI
-            GUIMain *gui = &guis[game.options[OPT_DIALOGIFACE]];
+            GUIMain *gui = &game.Guis[game.options[OPT_DIALOGIFACE]];
             draw_gui_for_dialog_options(dst, gui, 0, 0);
         }
         // FIXME: alignment of the "text options area" here is very broken;

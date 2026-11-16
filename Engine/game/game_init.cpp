@@ -191,14 +191,14 @@ void RegisterAllGUIControls(const GameDef &game)
     StaticGUIControlsHandles.resize(game.numgui);
     for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
     {
-        auto const &gui = guis[gui_id];
+        auto const &gui = Game::Current().Guis[gui_id];
         StaticGUIControlsHandles[gui_id] = std::vector<int>();
         StaticGUIControlsHandles[gui_id].resize(gui.GetControlCount());
     }
 
     for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
     {
-        auto const &gui = guis[gui_id];
+        auto const &gui = Game::Current().Guis[gui_id];
         for (int ctrl_id = 0; ctrl_id < gui.GetControlCount(); ctrl_id++)
         {
             GUIControl *control = gui.GetControl(ctrl_id);
@@ -229,30 +229,32 @@ void RegisterAllGUIControls(const GameDef &game)
 // Initializes GUIs (including their controls) and registers them in the script system
 HError InitAndRegisterGUI(const GameDef &game)
 {
-    scrGui.resize(game.numgui);
+    Game::Current().ScGuis.resize(game.numgui);
     // ensure at least 1 element, we must register buffer
     StaticGUIArray.resize(std::max(1, game.numgui));
 
     for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
     {
-        scrGui[gui_id].id = -1;
+        Game::Current().ScGuis[gui_id].id = -1;
     }
 
-    GUIRefCollection gui_control_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
+    GUIRefCollection gui_control_refs(Game::Current().GuiButtons, Game::Current().GuiInvWindows,
+                                      Game::Current().GuiLabels, Game::Current().GuiListBoxes,
+                                      Game::Current().GuiSliders, Game::Current().GuiTextBoxes);
     for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
     {
         // link controls to their parent guis
-        HError err = guis[gui_id].RebuildArray(gui_control_refs);
+        HError err = Game::Current().Guis[gui_id].RebuildArray(gui_control_refs);
         if (!err)
             return err;
-        scrGui[gui_id].id = gui_id;
+        Game::Current().ScGuis[gui_id].id = gui_id;
         // register and save handle
-        IScriptObject *manager = guis[gui_id].IsTextWindow() ? &ccDynamicTextWindowGUI : &ccDynamicGUI;
-        StaticGUIArray[gui_id] = ccRegisterPersistentObject(&scrGui[gui_id], manager);
+        IScriptObject *manager = Game::Current().Guis[gui_id].IsTextWindow() ? &ccDynamicTextWindowGUI : &ccDynamicGUI;
+        StaticGUIArray[gui_id] = ccRegisterPersistentObject(&Game::Current().ScGuis[gui_id], manager);
 
         // export the gui script object
-        if (!guis[gui_id].GetName().IsEmpty())
-            ccAddExternalScriptObjectHandle(guis[gui_id].GetName(), &StaticGUIArray[gui_id]);
+        if (!Game::Current().Guis[gui_id].GetName().IsEmpty())
+            ccAddExternalScriptObjectHandle(Game::Current().Guis[gui_id].GetName(), &StaticGUIArray[gui_id]);
     }
     // register and export all the GUI's controls at once
     RegisterAllGUIControls(game);
@@ -285,7 +287,7 @@ static void RegisterMissingGUIControls(GameDef &game)
 {
     for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
     {
-        auto const &gui = guis[gui_id];
+        auto const &gui = Game::Current().Guis[gui_id];
         for (int ctrl_id = 0; ctrl_id < gui.GetControlCount(); ctrl_id++)
         {
             GUIControl *control = gui.GetControl(ctrl_id);
@@ -338,7 +340,7 @@ void RegisterMissingManagedObjects(GameDef &game)
     }
     for (int i = 0; i < game.numgui; ++i)
     {
-        StaticGUIArray[i] = ccRegisterPersistentObjectIfMissing(&scrGui[i], &ccDynamicGUI);
+        StaticGUIArray[i] = ccRegisterPersistentObjectIfMissing(&Game::Current().ScGuis[i], &ccDynamicGUI);
     }
     RegisterMissingGUIControls(game);
 }
@@ -533,28 +535,29 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     game.CharExtras.resize(game.numcharacters);
     // TODO: 'ents' is const, so the std::move calls below copy the GUIs, views and dialogs; take it by
     // a non-const reference to move them (its Game member is a reference, which is why this compiles)
-    guis = std::move(ents.Guis);
-    guibuts = std::move(ents.GuiControls.Buttons);
-    guiinv = std::move(ents.GuiControls.InvWindows);
-    guilabels = std::move(ents.GuiControls.Labels);
-    guilist = std::move(ents.GuiControls.ListBoxes);
-    guislider = std::move(ents.GuiControls.Sliders);
-    guitext = std::move(ents.GuiControls.TextBoxes);
+    game.Guis = std::move(ents.Guis);
+    game.GuiButtons = std::move(ents.GuiControls.Buttons);
+    game.GuiInvWindows = std::move(ents.GuiControls.InvWindows);
+    game.GuiLabels = std::move(ents.GuiControls.Labels);
+    game.GuiListBoxes = std::move(ents.GuiControls.ListBoxes);
+    game.GuiSliders = std::move(ents.GuiControls.Sliders);
+    game.GuiTextBoxes = std::move(ents.GuiControls.TextBoxes);
     GUI::Context.GameColorDepth = game.GetColorDepth();
     GUI::Context.Spriteset = &spriteset;
-    GUIRefCollection gui_control_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
-    GUI::RebuildGUI(guis, gui_control_refs);
+    GUIRefCollection gui_control_refs(game.GuiButtons, game.GuiInvWindows, game.GuiLabels, game.GuiListBoxes,
+                                      game.GuiSliders, game.GuiTextBoxes);
+    GUI::RebuildGUI(game.Guis, gui_control_refs);
     game.Views = std::move(ents.Views);
     game.Play.audioclipProps.resize(game.audioClips.size());
     game.Play.charProps.resize(game.numcharacters);
     game.Play.dialogProps.resize(game.numdialog);
     game.Play.guiProps.resize(game.numgui);
-    game.Play.guicontrolProps[kGUIButton].resize(guibuts.size());
-    game.Play.guicontrolProps[kGUILabel].resize(guilabels.size());
-    game.Play.guicontrolProps[kGUIInvWindow].resize(guiinv.size());
-    game.Play.guicontrolProps[kGUISlider].resize(guislider.size());
-    game.Play.guicontrolProps[kGUITextBox].resize(guitext.size());
-    game.Play.guicontrolProps[kGUIListBox].resize(guilist.size());
+    game.Play.guicontrolProps[kGUIButton].resize(game.GuiButtons.size());
+    game.Play.guicontrolProps[kGUILabel].resize(game.GuiLabels.size());
+    game.Play.guicontrolProps[kGUIInvWindow].resize(game.GuiInvWindows.size());
+    game.Play.guicontrolProps[kGUISlider].resize(game.GuiSliders.size());
+    game.Play.guicontrolProps[kGUITextBox].resize(game.GuiTextBoxes.size());
+    game.Play.guicontrolProps[kGUIListBox].resize(game.GuiListBoxes.size());
     game.Play.invProps.resize(game.numinvitems);
     game.Dialogs = std::move(ents.Dialogs);
     // Set the number of game channels (the same for all the supported game versions)
@@ -571,7 +574,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // TODO: merge this with engine_init_game_settings()
     game.Paused = 0; // reset the game paused flag
-    ifacepopped = -1;
+    game.IfacePopped = -1;
 
     String svg_suffix;
     if (game.saveGameFileExtension[0] != 0)

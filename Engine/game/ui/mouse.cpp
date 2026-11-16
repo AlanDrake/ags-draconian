@@ -46,15 +46,6 @@ using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-ScriptMouse scmouse;
-int cur_mode = 0, cur_cursor = 0;   // current mode, and current cursor look
-int mouse_hotx = 0, mouse_hoty = 0; // in game cursor hotspot offset
-int mouse_frame = 0, mouse_delay = 0;
-int lastmx = -1, lastmy = -1;
-
-CursorGraphicState cursor_gstate;
-
-
 Bitmap *CursorGraphicState::GetImage() const
 {
     return _genImage != nullptr ? _genImage.get() : spriteset[_sprnum];
@@ -129,23 +120,24 @@ void set_cursor_look(int newcurs, bool force_update)
     const int hotspotx = game.mcurs[newcurs].hotx, hotspoty = game.mcurs[newcurs].hoty;
 
     // if it's same cursor and there's animation in progress, then don't assign a new pic just yet
-    if (!force_update && newcurs == cur_cursor && game.mcurs[newcurs].view >= 0 && (mouse_frame > 0 || mouse_delay > 0))
+    if (!force_update && newcurs == game.Cursor.Look && game.mcurs[newcurs].view >= 0 &&
+        (game.Cursor.Frame > 0 || game.Cursor.Delay > 0))
     {
         return;
     }
 
     // reset animation timing only if it's another cursor
-    if (newcurs != cur_cursor)
+    if (newcurs != game.Cursor.Look)
     {
-        cur_cursor = newcurs;
-        mouse_frame = 0;
-        mouse_delay = 0;
+        game.Cursor.Look = newcurs;
+        game.Cursor.Frame = 0;
+        game.Cursor.Delay = 0;
     }
 
     // Assign new pic
     const int cur_pic = game.mcurs[newcurs].pic;
     set_new_cursor_graphic(cur_pic);
-    mouse_hotx = hotspotx, mouse_hoty = hotspoty;
+    game.Cursor.HotX = hotspotx, game.Cursor.HotY = hotspoty;
 
     // If it's inventory cursor, draw hotspot crosshair sprite upon it
     if (game.HasCursorRole(newcurs, kCursorRole_UseInv) && (cur_pic > 0) &&
@@ -192,19 +184,19 @@ void set_cursor_look(int newcurs, bool force_update)
             }
         }
 
-        cursor_gstate.SetImage(std::move(gen_cursor));
-        mouse_hotx = hotspotx + offx, mouse_hoty = hotspoty + offy;
+        game.Cursor.GState.SetImage(std::move(gen_cursor));
+        game.Cursor.HotX = hotspotx + offx, game.Cursor.HotY = hotspoty + offy;
     }
 }
 
 void set_default_cursor_look()
 {
-    set_cursor_look(cur_mode);
+    set_cursor_look(Game::Current().Cursor.Mode);
 }
 
 int Mouse_GetCursor()
 {
-    return cur_cursor;
+    return Game::Current().Cursor.Look;
 }
 
 void Mouse_SetCursor(int newcurs)
@@ -234,7 +226,7 @@ void Mouse_ChangeCursorGraphic(int curs, int newslot)
         spriteset.PrecacheSprite(newslot);
     }
 
-    if (curs == cur_mode)
+    if (curs == game.Cursor.Mode)
         set_cursor_look(curs);
 }
 
@@ -254,8 +246,8 @@ void Mouse_ChangeCursorHotspot(int curs, int x, int y)
         quit("!ChangeCursorHotspot: invalid mouse cursor");
     game.mcurs[curs].hotx = x;
     game.mcurs[curs].hoty = y;
-    if (curs == cur_cursor)
-        set_cursor_look(cur_cursor);
+    if (curs == game.Cursor.Look)
+        set_cursor_look(game.Cursor.Look);
 }
 
 ScriptUserObject *Mouse_GetModeHotspot(int curs)
@@ -289,8 +281,8 @@ void Mouse_ChangeModeView(int curs, int newview, int delay)
         game.mcurs[curs].animdelay = delay;
 
     // If it's a current cursor, then force view update
-    if (curs == cur_cursor)
-        mouse_delay = 0;
+    if (curs == game.Cursor.Look)
+        game.Cursor.Delay = 0;
 }
 
 void Mouse_ChangeModeView2(int curs, int newview)
@@ -300,12 +292,12 @@ void Mouse_ChangeModeView2(int curs, int newview)
 
 void Mouse_SetNextCursor()
 {
-    set_cursor_mode(find_next_enabled_cursor(cur_mode + 1));
+    set_cursor_mode(find_next_enabled_cursor(Game::Current().Cursor.Mode + 1));
 }
 
 void Mouse_SetPreviousCursor()
 {
-    set_cursor_mode(find_previous_enabled_cursor(cur_mode - 1));
+    set_cursor_mode(find_previous_enabled_cursor(Game::Current().Cursor.Mode - 1));
 }
 
 void set_cursor_mode(int newmode)
@@ -330,10 +322,10 @@ void set_cursor_mode(int newmode)
         update_inv_cursor(game.PlayerChar->activeinv);
     }
 
-    if (cur_mode !=
+    if (game.Cursor.Mode !=
         newmode) // TODO: actually prevent from running any action here if cursor + activeinv did not change?
         debug_script_log("Cursor mode set to %d", newmode);
-    cur_mode = newmode;
+    game.Cursor.Mode = newmode;
     set_default_cursor_look();
 }
 
@@ -354,12 +346,14 @@ void set_cursor_mode_with_role(CursorRole role, int fallback_mode)
 
 bool is_current_cursor_mode(CursorRole role)
 {
-    return Game::Current().mcurs[cur_mode].role == role;
+    Game &game = Game::Current();
+    return game.mcurs[game.Cursor.Mode].role == role;
 }
 
 bool is_current_cursor_look(CursorRole role)
 {
-    return Game::Current().mcurs[cur_cursor].role == role;
+    Game &game = Game::Current();
+    return game.mcurs[game.Cursor.Look].role == role;
 }
 
 void Mouse_SetCursorMode(int newmode)
@@ -379,11 +373,11 @@ void enable_cursor_mode(int modd)
 
     for (uu = 0; uu < game.numgui; uu++)
     {
-        for (ww = 0; ww < guis[uu].GetControlCount(); ww++)
+        for (ww = 0; ww < game.Guis[uu].GetControlCount(); ww++)
         {
-            if (guis[uu].GetControlType(ww) != kGUIButton)
+            if (game.Guis[uu].GetControlType(ww) != kGUIButton)
                 continue;
-            GUIButton *gbpt = (GUIButton *)guis[uu].GetControl(ww);
+            GUIButton *gbpt = (GUIButton *)game.Guis[uu].GetControl(ww);
             if (gbpt->GetClickAction(kGUIClickLeft) != kGUIAction_SetMode)
                 continue;
             if (gbpt->GetClickData(kGUIClickLeft) != modd)
@@ -405,11 +399,11 @@ void disable_cursor_mode(int modd)
 
     for (uu = 0; uu < game.numgui; uu++)
     {
-        for (ww = 0; ww < guis[uu].GetControlCount(); ww++)
+        for (ww = 0; ww < game.Guis[uu].GetControlCount(); ww++)
         {
-            if (guis[uu].GetControlType(ww) != kGUIButton)
+            if (game.Guis[uu].GetControlType(ww) != kGUIButton)
                 continue;
-            GUIButton *gbpt = (GUIButton *)guis[uu].GetControl(ww);
+            GUIButton *gbpt = (GUIButton *)game.Guis[uu].GetControl(ww);
             if (gbpt->GetClickAction(kGUIClickLeft) != kGUIAction_SetMode)
                 continue;
             if (gbpt->GetClickData(kGUIClickLeft) != modd)
@@ -417,7 +411,7 @@ void disable_cursor_mode(int modd)
             gbpt->SetEnabled(false);
         }
     }
-    if (cur_mode == modd)
+    if (game.Cursor.Mode == modd)
         find_next_enabled_cursor(modd);
 }
 
@@ -456,7 +450,7 @@ void Mouse_SetPosition(int newx, int newy)
 
 int Mouse_GetCursorMode()
 {
-    return cur_mode;
+    return Game::Current().Cursor.Mode;
 }
 
 int Mouse_IsButtonDown(int which)
@@ -564,15 +558,16 @@ void Mouse_SetCursorShader(ScriptShaderInstance *shader_inst)
 
 void update_script_mouse_coords()
 {
-    if (Game::Current().Play.mouse_input_enabled)
+    Game &game = Game::Current();
+    if (game.Play.mouse_input_enabled)
     {
-        scmouse.x = mousex;
-        scmouse.y = mousey;
+        game.ScMouse.x = mousex;
+        game.ScMouse.y = mousey;
     }
     else
     {
-        scmouse.x = -1;
-        scmouse.y = -1;
+        game.ScMouse.x = -1;
+        game.ScMouse.y = -1;
     }
 }
 
@@ -606,14 +601,15 @@ void update_inv_cursor(int invnum)
 
 void set_new_cursor_graphic(int spriteslot)
 {
+    Game &game = Game::Current();
     if (spriteslot < 1)
     {
-        cursor_gstate.SetImage(
-            std::unique_ptr<Bitmap>(BitmapHelper::CreateTransparentBitmap(1, 1, Game::Current().GetColorDepth())));
+        game.Cursor.GState.SetImage(
+            std::unique_ptr<Bitmap>(BitmapHelper::CreateTransparentBitmap(1, 1, game.GetColorDepth())));
     }
     else
     {
-        cursor_gstate.SetSpriteNum(spriteslot);
+        game.Cursor.GState.SetSpriteNum(spriteslot);
     }
 }
 

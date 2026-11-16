@@ -736,12 +736,12 @@ HSaveError WriteGameState(Stream *out)
     // Other dynamic values
     out->WriteInt32(game.FramesPerSecond);
     out->WriteInt32(get_loop_counter());
-    out->WriteInt32(ifacepopped);
+    out->WriteInt32(game.IfacePopped);
     out->WriteInt32(game.Paused);
     // Mouse cursor
-    out->WriteInt32(cur_mode);
-    out->WriteInt32(cur_cursor);
-    out->WriteInt32(mouse_on_iface);
+    out->WriteInt32(game.Cursor.Mode);
+    out->WriteInt32(game.Cursor.Look);
+    out->WriteInt32(game.MouseOnIface);
 
     // Viewports and cameras
     int viewcam_flags = 0;
@@ -824,12 +824,12 @@ HSaveError ReadGameState(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
     // Other dynamic values
     r_data.FPS = in->ReadInt32();
     set_loop_counter(in->ReadInt32());
-    ifacepopped = in->ReadInt32();
+    game.IfacePopped = in->ReadInt32();
     game.Paused = in->ReadInt32();
     // Mouse cursor state
     r_data.CursorMode = in->ReadInt32();
     r_data.CursorID = in->ReadInt32();
-    mouse_on_iface = in->ReadInt32();
+    game.MouseOnIface = in->ReadInt32();
 
     // Viewports and cameras
     {
@@ -1191,55 +1191,55 @@ HSaveError WriteGUI(Stream *out)
     out->WriteInt32(game.numgui);
     for (int i = 0; i < game.numgui; ++i)
     {
-        guis[i].WriteToSavegame(out);
+        game.Guis[i].WriteToSavegame(out);
         Properties::WriteValues(game.Play.guiProps[i], out);
     }
 
     WriteFormatTag(out, "GUIButtons");
-    out->WriteInt32(static_cast<int32_t>(guibuts.size()));
-    for (size_t i = 0; i < guibuts.size(); ++i)
+    out->WriteInt32(static_cast<int32_t>(game.GuiButtons.size()));
+    for (size_t i = 0; i < game.GuiButtons.size(); ++i)
     {
-        guibuts[i].WriteToSavegame(out);
+        game.GuiButtons[i].WriteToSavegame(out);
         Properties::WriteValues(game.Play.guicontrolProps[kGUIButton][i], out);
     }
 
     WriteFormatTag(out, "GUILabels");
-    out->WriteInt32(static_cast<int32_t>(guilabels.size()));
-    for (size_t i = 0; i < guilabels.size(); ++i)
+    out->WriteInt32(static_cast<int32_t>(game.GuiLabels.size()));
+    for (size_t i = 0; i < game.GuiLabels.size(); ++i)
     {
-        guilabels[i].WriteToSavegame(out);
+        game.GuiLabels[i].WriteToSavegame(out);
         Properties::WriteValues(game.Play.guicontrolProps[kGUILabel][i], out);
     }
 
     WriteFormatTag(out, "GUIInvWindows");
-    out->WriteInt32(static_cast<int32_t>(guiinv.size()));
-    for (size_t i = 0; i < guiinv.size(); ++i)
+    out->WriteInt32(static_cast<int32_t>(game.GuiInvWindows.size()));
+    for (size_t i = 0; i < game.GuiInvWindows.size(); ++i)
     {
-        guiinv[i].WriteToSavegame(out);
+        game.GuiInvWindows[i].WriteToSavegame(out);
         Properties::WriteValues(game.Play.guicontrolProps[kGUIInvWindow][i], out);
     }
 
     WriteFormatTag(out, "GUISliders");
-    out->WriteInt32(static_cast<int32_t>(guislider.size()));
-    for (size_t i = 0; i < guislider.size(); ++i)
+    out->WriteInt32(static_cast<int32_t>(game.GuiSliders.size()));
+    for (size_t i = 0; i < game.GuiSliders.size(); ++i)
     {
-        guislider[i].WriteToSavegame(out);
+        game.GuiSliders[i].WriteToSavegame(out);
         Properties::WriteValues(game.Play.guicontrolProps[kGUISlider][i], out);
     }
 
     WriteFormatTag(out, "GUITextBoxes");
-    out->WriteInt32(static_cast<int32_t>(guitext.size()));
-    for (size_t i = 0; i < guitext.size(); ++i)
+    out->WriteInt32(static_cast<int32_t>(game.GuiTextBoxes.size()));
+    for (size_t i = 0; i < game.GuiTextBoxes.size(); ++i)
     {
-        guitext[i].WriteToSavegame(out);
+        game.GuiTextBoxes[i].WriteToSavegame(out);
         Properties::WriteValues(game.Play.guicontrolProps[kGUITextBox][i], out);
     }
 
     WriteFormatTag(out, "GUIListBoxes");
-    out->WriteInt32(static_cast<int32_t>(guilist.size()));
-    for (size_t i = 0; i < guilist.size(); ++i)
+    out->WriteInt32(static_cast<int32_t>(game.GuiListBoxes.size()));
+    for (size_t i = 0; i < game.GuiListBoxes.size(); ++i)
     {
-        guilist[i].WriteToSavegame(out);
+        game.GuiListBoxes[i].WriteToSavegame(out);
         Properties::WriteValues(game.Play.guicontrolProps[kGUIListBox][i], out);
     }
 
@@ -1359,7 +1359,7 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
     std::vector<std::vector<GUIMain::ControlRef>> guictrl_refs_old(guis_read);
     for (uint32_t i = 0; i < guis_read; ++i)
     {
-        guis[i].ReadFromSavegame(in, svg_ver, guictrl_refs_old[i]);
+        game.Guis[i].ReadFromSavegame(in, svg_ver, guictrl_refs_old[i]);
         if (svg_ver >= kGuiSvgVersion_40008)
             Properties::ReadValues(game.Play.guiProps[i], in);
     }
@@ -1370,37 +1370,39 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
     // this lets us know which range of elements in control arrays belong to which GUI.
     // old refs are read from the save, new refs are from the current game data
     std::vector<std::vector<GUIMain::ControlRef>> guictrl_refs_new;
-    for (const auto &gui : guis)
+    for (const auto &gui : game.Guis)
         guictrl_refs_new.push_back(gui.GetControlRefs());
     std::array<std::vector<std::pair<uint32_t, uint32_t>>, kGUIControlTypeNum> ctrlidx_per_gui_new;
     std::array<std::vector<std::pair<uint32_t, uint32_t>>, kGUIControlTypeNum> ctrlidx_per_gui_old;
     BuildGUIControlRangeReference(guictrl_refs_new, ctrlidx_per_gui_new);
     BuildGUIControlRangeReference(guictrl_refs_old, ctrlidx_per_gui_old);
 
-    if (!ReadGUIControlArray<GUIButton, kGUIButton>(guibuts, in, svg_ver, err, "GUIButtons", "GUI Buttons", r_data,
-                                                    ctrlidx_per_gui_old[kGUIButton], ctrlidx_per_gui_new[kGUIButton]))
+    if (!ReadGUIControlArray<GUIButton, kGUIButton>(game.GuiButtons, in, svg_ver, err, "GUIButtons", "GUI Buttons",
+                                                    r_data, ctrlidx_per_gui_old[kGUIButton],
+                                                    ctrlidx_per_gui_new[kGUIButton]))
         return err;
 
-    if (!ReadGUIControlArray<GUILabel, kGUILabel>(guilabels, in, svg_ver, err, "GUILabels", "GUI Labels", r_data,
+    if (!ReadGUIControlArray<GUILabel, kGUILabel>(game.GuiLabels, in, svg_ver, err, "GUILabels", "GUI Labels", r_data,
                                                   ctrlidx_per_gui_old[kGUILabel], ctrlidx_per_gui_new[kGUILabel]))
         return err;
 
-    if (!ReadGUIControlArray<GUIInvWindow, kGUIInvWindow>(guiinv, in, svg_ver, err, "GUIInvWindows", "GUI InvWindows",
-                                                          r_data, ctrlidx_per_gui_old[kGUIInvWindow],
+    if (!ReadGUIControlArray<GUIInvWindow, kGUIInvWindow>(game.GuiInvWindows, in, svg_ver, err, "GUIInvWindows",
+                                                          "GUI InvWindows", r_data, ctrlidx_per_gui_old[kGUIInvWindow],
                                                           ctrlidx_per_gui_new[kGUIInvWindow]))
         return err;
 
-    if (!ReadGUIControlArray<GUISlider, kGUISlider>(guislider, in, svg_ver, err, "GUISliders", "GUI Sliders", r_data,
-                                                    ctrlidx_per_gui_old[kGUISlider], ctrlidx_per_gui_new[kGUISlider]))
+    if (!ReadGUIControlArray<GUISlider, kGUISlider>(game.GuiSliders, in, svg_ver, err, "GUISliders", "GUI Sliders",
+                                                    r_data, ctrlidx_per_gui_old[kGUISlider],
+                                                    ctrlidx_per_gui_new[kGUISlider]))
         return err;
 
-    if (!ReadGUIControlArray<GUITextBox, kGUITextBox>(guitext, in, svg_ver, err, "GUITextBoxes", "GUI TextBoxes",
-                                                      r_data, ctrlidx_per_gui_old[kGUITextBox],
+    if (!ReadGUIControlArray<GUITextBox, kGUITextBox>(game.GuiTextBoxes, in, svg_ver, err, "GUITextBoxes",
+                                                      "GUI TextBoxes", r_data, ctrlidx_per_gui_old[kGUITextBox],
                                                       ctrlidx_per_gui_new[kGUITextBox]))
         return err;
 
-    if (!ReadGUIControlArray<GUIListBox, kGUIListBox>(guilist, in, svg_ver, err, "GUIListBoxes", "GUI ListBoxes",
-                                                      r_data, ctrlidx_per_gui_old[kGUIListBox],
+    if (!ReadGUIControlArray<GUIListBox, kGUIListBox>(game.GuiListBoxes, in, svg_ver, err, "GUIListBoxes",
+                                                      "GUI ListBoxes", r_data, ctrlidx_per_gui_old[kGUIListBox],
                                                       ctrlidx_per_gui_new[kGUIListBox]))
         return err;
 
@@ -1420,12 +1422,13 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
 HSaveError PrescanGUI(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const PreservedParams & /*pp*/,
                       RestoredData &r_data)
 {
+    Game &game = Game::Current();
     HSaveError err;
     // GUI state
     if (!AssertFormatTagStrict(in, err, "GUIs"))
         return err;
     const uint32_t guis_read = in->ReadInt32();
-    if (!AssertGameContent(err, guis_read, Game::Current().numgui, "GUIs", r_data.Result, r_data.DataCounts.GUIs))
+    if (!AssertGameContent(err, guis_read, game.numgui, "GUIs", r_data.Result, r_data.DataCounts.GUIs))
         return err;
 
     r_data.DataCounts.GUIControls.resize(guis_read);
@@ -1440,8 +1443,8 @@ HSaveError PrescanGUI(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pr
             Properties::SkipValues(in);
 
         assert_buf.Format("GUI %u Controls", i);
-        if (i < guis.size() &&
-            !AssertGameContent(err, guictrl_refs_old[i].size(), guis[i].GetControlCount(), assert_buf.GetCStr(),
+        if (i < game.Guis.size() &&
+            !AssertGameContent(err, guictrl_refs_old[i].size(), game.Guis[i].GetControlCount(), assert_buf.GetCStr(),
                                r_data.Result, r_data.DataCounts.GUIControls[i]))
             return err;
     }
@@ -1450,7 +1453,7 @@ HSaveError PrescanGUI(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pr
     for (const auto &refs_arr : guictrl_refs_old)
         for (const auto &ref : refs_arr)
             ctrl_counts_old[ref.first]++;
-    for (const auto &gui : guis)
+    for (const auto &gui : game.Guis)
         for (const auto &ref : gui.GetControlRefs())
             ctrl_counts_new[ref.first]++;
 

@@ -121,14 +121,6 @@ Game *Game::SetCurrent(Game *game)
 AGS::Common::SpriteCache::Callbacks spritecallbacks = {nullptr, initialize_sprite, post_init_sprite, nullptr};
 SpriteCache spriteset(Game::Current().SpriteInfos, spritecallbacks);
 
-std::vector<GUIMain> guis;
-std::vector<GUIButton> guibuts;
-std::vector<GUIInvWindow> guiinv;
-std::vector<GUILabel> guilabels;
-std::vector<GUIListBox> guilist;
-std::vector<GUISlider> guislider;
-std::vector<GUITextBox> guitext;
-
 CCGUIControl ccDynamicGUIControl;
 CCGUIButton ccDynamicGUIButton;
 CCGUIInvWindow ccDynamicGUIInvWindow;
@@ -148,8 +140,6 @@ CCObject ccDynamicObject;
 CCDialog ccDynamicDialog;
 CCAudioClip ccDynamicAudioClip;
 CCAudioChannel ccDynamicAudio;
-
-std::vector<ScriptGUI> scrGui;
 
 // MoveLists of the moving characters and room objects, addressed by their index; NOTE: slot 0 is never used,
 // as 0 means "no movelist". A slot freed by remove_movelist is queued in movelist_free_ids and used again.
@@ -342,10 +332,11 @@ float get_game_speed()
 int oldmouse;
 void setup_for_dialog(int use_font)
 {
-    cbuttfont = use_font;
-    acdialog_font = use_font;
-    oldmouse = cur_cursor;
-    set_cursor_look(Game::Current().GetModePointer());
+    Game &game = Game::Current();
+    game.BuiltinDialogs.ButtonFont = use_font;
+    game.BuiltinDialogs.Font = use_font;
+    oldmouse = game.Cursor.Look;
+    set_cursor_look(game.GetModePointer());
 }
 void restore_after_dialog()
 {
@@ -603,8 +594,8 @@ void unload_game()
     game.Dialogs.clear();
     game.ScDialogs.clear();
 
-    guis.clear();
-    scrGui.clear();
+    game.Guis.clear();
+    game.ScGuis.clear();
 
     get_overlays().Clear();
 
@@ -638,7 +629,7 @@ void Game_SetInventoryCursorHotspotGraphic(int graphic)
         game.inv_hot_sprite = graphic;
         // Update current "use inv" cursor if necessary
         if (is_current_cursor_look(kCursorRole_UseInv))
-            set_cursor_look(cur_cursor, true);
+            set_cursor_look(game.Cursor.Look, true);
     }
 }
 
@@ -654,7 +645,7 @@ void Game_SetInventoryCursorHotspotColor(int color)
     {
         game.inv_hot_color = color;
         if (is_current_cursor_look(kCursorRole_UseInv))
-            set_cursor_look(cur_cursor, true);
+            set_cursor_look(game.Cursor.Look, true);
     }
 }
 
@@ -670,7 +661,7 @@ void Game_SetInventoryCursorHotspotCrossColor(int color)
     {
         game.inv_hot_cross_color = color;
         if (is_current_cursor_look(kCursorRole_UseInv))
-            set_cursor_look(cur_cursor, true);
+            set_cursor_look(game.Cursor.Look, true);
     }
 }
 
@@ -722,7 +713,7 @@ void Game_SetUseActiveInventoryGraphicForCursor(bool use_inv_graphic)
     if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->activeinv >= 0))
     {
         update_inv_cursor(game.PlayerChar->activeinv);
-        set_cursor_look(cur_cursor);
+        set_cursor_look(game.Cursor.Look);
     }
 }
 
@@ -1704,8 +1695,8 @@ void start_skipping_cutscene()
     Game &game = Game::Current();
     game.Play.fast_forward = 1;
     // if a drop-down icon bar is up, remove it as it will pause the game
-    if (ifacepopped >= 0)
-        remove_popup_interface(ifacepopped);
+    if (game.IfacePopped >= 0)
+        remove_popup_interface(game.IfacePopped);
 
     // if a text message is currently displayed, remove it
     if (game.Play.text_overlay_on > 0)
@@ -2707,7 +2698,7 @@ int SetGameOption(int opt, int new_value)
         if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->activeinv >= 0))
         {
             update_inv_cursor(game.PlayerChar->activeinv);
-            set_cursor_look(cur_cursor);
+            set_cursor_look(game.Cursor.Look);
         }
         break;
     case OPT_ANTIALIASFONTS: adjust_fonts_for_render_mode(new_value != 0); break;

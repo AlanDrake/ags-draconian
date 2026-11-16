@@ -132,10 +132,11 @@ public:
     // Begin the state, initialize and prepare any resources
     void Begin() override
     {
+        Game &game = Game::Current();
         assert(_disabledFor == FOR_EXITLOOP);
         // Only change the mouse cursor if it hasn't been specifically changed first
         // (or if it's speech, always change it)
-        bool should_update_cursor = ((cur_cursor == cur_mode) || (_untilType == UNTIL_NOOVERLAY)) &&
+        bool should_update_cursor = ((game.Cursor.Look == game.Cursor.Mode) || (_untilType == UNTIL_NOOVERLAY)) &&
                                     (!is_current_cursor_mode(kCursorRole_Wait));
         DisableInterfaceEx(should_update_cursor);
     }
@@ -356,14 +357,16 @@ static int wasongui = 0;
 // Runs default handling of mouse movement, button state, and wheel
 static void check_mouse_state(int &was_mouse_on_iface)
 {
-    if (!Game::Current().Play.mouse_input_enabled)
+    Game &game = Game::Current();
+    if (!game.Play.mouse_input_enabled)
         return;
 
-    mouse_on_iface = gui_on_mouse_move(mousex, mousey);
-    was_mouse_on_iface = mouse_on_iface;
+    game.MouseOnIface = gui_on_mouse_move(mousex, mousey);
+    was_mouse_on_iface = game.MouseOnIface;
 
-    if ((ifacepopped >= 0) && (mousey >= guis[ifacepopped].GetY() + guis[ifacepopped].GetHeight()))
-        remove_popup_interface(ifacepopped);
+    if ((game.IfacePopped >= 0) &&
+        (mousey >= game.Guis[game.IfacePopped].GetY() + game.Guis[game.IfacePopped].GetHeight()))
+        remove_popup_interface(game.IfacePopped);
 
     // check mouse clicks on GUIs
     if ((wasbutdown > kMouseNone) && (ags_misbuttondown(wasbutdown)))
@@ -903,10 +906,10 @@ static void GameUpdateCheckControls()
 
     // First handle mouse state, which does not depend on down/up events
     // (motion, wheel axis, etc)
-    // FIXME: atm we must save the last mouse_on_iface value *locally* for use
+    // FIXME: atm we must save the last Game::MouseOnIface value *locally* for use
     // further in check_mouse_controls, because there may be 1+ nested
     // check_controls() calls as a result of some triggered script callbacks,
-    // during which some global vars like mouse_on_iface may change...
+    // during which some values like Game::MouseOnIface may change...
     // need to rewrite all this interface interaction ugliness!
     int was_mouse_on_iface;
     check_mouse_state(was_mouse_on_iface); // NOTE: this also polls mousewheel
@@ -1068,7 +1071,7 @@ static void update_cursor_over_gui()
         return; // interface is disabled (by script or blocking action)
     // Poll guis
     int focused_gui = GetGUIAt(mousex, mousey, kHit_Interactable);
-    for (auto &gui : guis)
+    for (auto &gui : game.Guis)
     {
         if (!gui.IsDisplayed())
             continue; // not on screen
@@ -1084,31 +1087,31 @@ static void update_cursor_view()
     // update animating mouse cursor
     // NOTE: we are still doing this even if the in-game mouse input is disabled,
     // or mouse cursor is hidden, the animation logic keeps running in the background.
-    const auto &mcur = game.mcurs[cur_cursor];
+    const auto &mcur = game.mcurs[game.Cursor.Look];
     if (mcur.view >= 0 && mcur.view < game.numviews)
     {
         // only on mousemove, and it's not moving
-        if (((mcur.flags & MCF_ANIMMOVE) != 0) && (mousex == lastmx) && (mousey == lastmy))
+        if (((mcur.flags & MCF_ANIMMOVE) != 0) && (mousex == game.Cursor.LastX) && (mousey == game.Cursor.LastY))
             ;
         // only on hotspot, and it's not on one
         else if (((mcur.flags & MCF_HOTSPOT) != 0) && (GetLocationType(mousex, mousey, kHit_Interactable) == 0))
             set_new_cursor_graphic(mcur.pic);
-        else if (mouse_delay > 0)
-            mouse_delay--;
+        else if (game.Cursor.Delay > 0)
+            game.Cursor.Delay--;
         // only animate if the loop 0 exists and has frames
         else if (game.Views[mcur.view].numLoops > 0 && game.Views[mcur.view].loops[0].numFrames > 0)
         {
             const int viewnum = mcur.view;
             const int loopnum = 0;
-            mouse_frame++;
-            if (mouse_frame >= game.Views[viewnum].loops[loopnum].numFrames)
-                mouse_frame = 0;
-            set_new_cursor_graphic(game.Views[viewnum].loops[loopnum].frames[mouse_frame].pic);
-            mouse_delay = game.Views[viewnum].loops[loopnum].frames[mouse_frame].speed + mcur.animdelay;
-            CheckViewFrame(viewnum, loopnum, mouse_frame);
+            game.Cursor.Frame++;
+            if (game.Cursor.Frame >= game.Views[viewnum].loops[loopnum].numFrames)
+                game.Cursor.Frame = 0;
+            set_new_cursor_graphic(game.Views[viewnum].loops[loopnum].frames[game.Cursor.Frame].pic);
+            game.Cursor.Delay = game.Views[viewnum].loops[loopnum].frames[game.Cursor.Frame].speed + mcur.animdelay;
+            CheckViewFrame(viewnum, loopnum, game.Cursor.Frame);
         }
-        lastmx = mousex;
-        lastmy = mousey;
+        game.Cursor.LastX = mousex;
+        game.Cursor.LastY = mousey;
     }
 }
 
@@ -1126,15 +1129,15 @@ static void UpdateSavedCursorOverLocation()
     GetLocationName(mousex, mousey, kHit_Interactable);
 
     if ((game.Play.get_loc_name_save_cursor.IsDefined()) &&
-        (game.Play.get_loc_name_save_cursor != game.Play.get_loc_name_last_time) && (mouse_on_iface < 0) &&
-        (ifacepopped < 0))
+        (game.Play.get_loc_name_save_cursor != game.Play.get_loc_name_last_time) && (game.MouseOnIface < 0) &&
+        (game.IfacePopped < 0))
     {
         // we have saved the cursor, but the mouse location has changed
         // and it's time to restore it
         game.Play.get_loc_name_save_cursor = {};
         set_cursor_mode(game.Play.restore_cursor_mode_to);
 
-        if (cur_mode == game.Play.restore_cursor_mode_to)
+        if (game.Cursor.Mode == game.Play.restore_cursor_mode_to)
         {
             // make sure it changed -- the new mode might have been disabled
             // in which case don't change the image
@@ -1407,7 +1410,7 @@ void UpdateGameOnce(bool do_controls, AGS::Engine::IDriverDependantBitmap *extra
     // remember old mouse pos, needed for update_cursor_over_location() later
     const int mouse_was_x = mousex, mouse_was_y = mousey;
     // TODO: move this reset to a related update function; check_mouse_state() sets it, unless mouse input is disabled
-    mouse_on_iface = -1;
+    game.MouseOnIface = -1;
     // update mouse position (mousex, mousey)
     ags_domouse();
     // update gui under mouse; this also updates gui control focus;

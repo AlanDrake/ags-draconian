@@ -15,13 +15,29 @@
 
 #include <vector>
 
+#include "game/dynobj/script_mouse.h"
 #include "game/dynobj/script_objects.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
+#include "game/ui/cursor_graphic_state.h"
+#include "game/ui/gui_dialog_defines.h"
 
 struct DialogTopic;
 struct SpeechLipSyncLine;
 struct ViewStruct;
+namespace AGS
+{
+namespace Common
+{
+class GUIButton;
+class GUIInvWindow;
+class GUILabel;
+class GUIListBox;
+class GUIMain;
+class GUISlider;
+class GUITextBox;
+} // namespace Common
+} // namespace AGS
 
 // An internal state id, telling how the new room was entered.
 // This defines which events to run after room was loaded.
@@ -101,6 +117,44 @@ struct TextLayoutState
     int SourceTextLength = -1;
 };
 
+// The mouse cursor's look and animation (game/ui/mouse.cpp, main/game_run.cpp)
+struct CursorState
+{
+    // The cursor's graphic as drawn now
+    CursorGraphicState GState;
+    // Current mode, and current cursor look
+    int Mode = 0;
+    int Look = 0;
+    // In game cursor hotspot offset
+    int HotX = 0;
+    int HotY = 0;
+    // The frame of the cursor's animation shown now, and the game loops left until the next one.
+    int Frame = 0;
+    int Delay = 0;
+    // The cursor's position at the last update of the cursor's animation.
+    int LastX = -1;
+    int LastY = -1;
+};
+
+// The legacy built-in dialogs and their controls (game/ui/csci_dialog.cpp, game/ui/my_*.cpp, game/ui/gui_dialog.cpp)
+struct BuiltinDialogState
+{
+    // Colours of the built-in dialogs' windows and push buttons (colour indexes).
+    int WindowBackgroundColor = COL254;
+    int PushButtonDarkColor = COL255;
+    int PushButtonLightColor = COL253;
+    // The id of the window on top, -1 when none is open.
+    int TopWindowHandle = -1;
+    // The fonts of the built-in dialogs' controls and of their labels.
+    int ButtonFont = 0;
+    int Font = 0;
+    // A message code that a control posts for the next CSCIWaitMessage (CM_SELCHANGE of a list box); 0 when none.
+    int PostedMessage = 0;
+    // Position of the top window on the screen.
+    int WinX = 0;
+    int WinY = 0;
+};
+
 // One play-through: what the game file says (the base, GameDef) and everything that changes while the game
 // runs, which is what a save holds. The definitions and the live state are one object until each entity
 // gets a live copy (PLAN.md 5.1a). The game logic reaches it through Game::Current(); a function that uses
@@ -175,6 +229,27 @@ public:
     LipSyncState LipSync;
     // The results of the last text layout
     TextLayoutState TextLayout;
+
+    // The GUIs and their controls, by GUI index and by control index of each kind
+    std::vector<AGS::Common::GUIMain> Guis;
+    std::vector<AGS::Common::GUIButton> GuiButtons;
+    std::vector<AGS::Common::GUIInvWindow> GuiInvWindows;
+    std::vector<AGS::Common::GUILabel> GuiLabels;
+    std::vector<AGS::Common::GUIListBox> GuiListBoxes;
+    std::vector<AGS::Common::GUISlider> GuiSliders;
+    std::vector<AGS::Common::GUITextBox> GuiTextBoxes;
+    // The script objects of the GUIs, by GUI index.
+    std::vector<ScriptGUI> ScGuis;
+    // currently displayed pop-up GUI (-1 if none)
+    int IfacePopped = -1;
+    // index of GUI the cursor was on
+    int MouseOnIface = -1;
+    // The script object "mouse", registered with the script system by address
+    ScriptMouse ScMouse;
+    // The mouse cursor's look and animation
+    CursorState Cursor;
+    // The legacy built-in dialogs
+    BuiltinDialogState BuiltinDialogs;
 
 private:
     static Game *_current;

@@ -678,8 +678,9 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     }
 
     // Rebuild GUI links to child controls
-    GUIRefCollection gui_control_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
-    GUI::RebuildGUI(guis, gui_control_refs);
+    GUIRefCollection gui_control_refs(game.GuiButtons, game.GuiInvWindows, game.GuiLabels, game.GuiListBoxes,
+                                      game.GuiSliders, game.GuiTextBoxes);
+    GUI::RebuildGUI(game.Guis, gui_control_refs);
 
     // Register any static script objects missing from the restored managed pool
     RegisterMissingManagedObjects(game);

@@ -13,6 +13,7 @@
 //=============================================================================
 #include "game/dynobj/cc_gui_control.h"
 
+#include "game/game_context.h"
 #include "game/game_init.h"
 #include "game/ui/gui.h"
 #include "script/dynobj/dynobj_manager.h"
@@ -42,6 +43,6 @@ void CCGUIControl::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     int guinum = in->ReadInt32();
     int objnum = in->ReadInt32();
-    int handle = ccRegisterUnserializedPersistentObject(index, guis[guinum].GetControl(objnum), this);
+    int handle = ccRegisterUnserializedPersistentObject(index, Game::Current().Guis[guinum].GetControl(objnum), this);
     (StaticGUIControlsHandles[guinum])[objnum] = handle;
 }

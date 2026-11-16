@@ -31,7 +31,7 @@ class Stream;
 
 struct AnimatingGUIButton
 {
-    // index into guibuts array, GUI, button
+    // index into Game::GuiButtons array, GUI, button
     short buttonid = -1, ongui = -1, onguibut = -1;
     // current animation status
     uint16_t view = 0, loop = 0, frame = 0;

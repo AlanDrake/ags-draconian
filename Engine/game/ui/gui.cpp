@@ -63,10 +63,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 
-int ifacepopped = -1;    // currently displayed pop-up GUI (-1 if none)
-int mouse_on_iface = -1; // mouse cursor is over this interface
-
-
 namespace AGS
 {
 namespace Engine
@@ -76,7 +72,8 @@ namespace GUIE
 
 void MarkAllGUIForUpdate(bool redraw, bool reset_over_ctrl)
 {
-    for (auto &gui : guis)
+    Game &game = Game::Current();
+    for (auto &gui : game.Guis)
     {
         if (redraw)
         {
@@ -91,22 +88,23 @@ void MarkAllGUIForUpdate(bool redraw, bool reset_over_ctrl)
 
 void MarkForTranslationUpdate()
 {
-    for (auto &btn : guibuts)
+    Game &game = Game::Current();
+    for (auto &btn : game.GuiButtons)
     {
         if (btn.IsTranslated())
             btn.MarkChanged();
     }
-    for (auto &lbl : guilabels)
+    for (auto &lbl : game.GuiLabels)
     {
         if (lbl.IsTranslated())
             lbl.MarkChanged();
     }
-    for (auto &list : guilist)
+    for (auto &list : game.GuiListBoxes)
     {
         if (list.IsTranslated())
             list.MarkChanged();
     }
-    for (auto &tbox : guitext)
+    for (auto &tbox : game.GuiTextBoxes)
     {
         if (tbox.IsTranslated())
             tbox.MarkChanged();
@@ -115,23 +113,24 @@ void MarkForTranslationUpdate()
 
 void MarkForFontUpdate(int font)
 {
+    Game &game = Game::Current();
     const bool update_all = (font < 0);
-    for (auto &btn : guibuts)
+    for (auto &btn : game.GuiButtons)
     {
         if (update_all || btn.GetFont() == font)
             btn.MarkChanged();
     }
-    for (auto &lbl : guilabels)
+    for (auto &lbl : game.GuiLabels)
     {
         if (update_all || lbl.GetFont() == font)
             lbl.MarkChanged();
     }
-    for (auto &list : guilist)
+    for (auto &list : game.GuiListBoxes)
     {
         if (update_all || list.GetFont() == font)
             list.MarkChanged();
     }
-    for (auto &tb : guitext)
+    for (auto &tb : game.GuiTextBoxes)
     {
         if (update_all || tb.GetFont() == font)
             tb.MarkChanged();
@@ -140,7 +139,8 @@ void MarkForFontUpdate(int font)
 
 void MarkSpecialLabelsForUpdate(GUILabelMacro macro)
 {
-    for (auto &lbl : guilabels)
+    Game &game = Game::Current();
+    for (auto &lbl : game.GuiLabels)
     {
         if ((lbl.GetTextMacros() & macro) != 0)
         {
@@ -151,12 +151,13 @@ void MarkSpecialLabelsForUpdate(GUILabelMacro macro)
 
 void MarkInventoryForUpdate(int char_id, bool is_player)
 {
-    for (auto &btn : guibuts)
+    Game &game = Game::Current();
+    for (auto &btn : game.GuiButtons)
     {
         if (btn.GetPlaceholder() != kButtonPlace_None)
             btn.MarkChanged();
     }
-    for (auto &inv : guiinv)
+    for (auto &inv : game.GuiInvWindows)
     {
         if ((char_id < 0) || (inv.GetCharacterID() == char_id) || (is_player && inv.GetCharacterID() < 0))
         {
@@ -167,7 +168,8 @@ void MarkInventoryForUpdate(int char_id, bool is_player)
 
 void MarkDisabledGUIForUpdate()
 {
-    for (auto &gui : guis)
+    Game &game = Game::Current();
+    for (auto &gui : game.Guis)
     {
         for (int i = 0; i < gui.GetControlCount(); ++i)
         {
@@ -184,22 +186,25 @@ void MarkDisabledGUIForUpdate()
 
 
 ScriptGUI *GUI_AsTextWindow(ScriptGUI *sgui)
-{ // Internally both GUI and TextWindow are implemented by same class
-    return guis[sgui->id].IsTextWindow() ? &scrGui[sgui->id] : nullptr;
+{
+    Game &game = Game::Current();
+    // Internally both GUI and TextWindow are implemented by same class
+    return game.Guis[sgui->id].IsTextWindow() ? &game.ScGuis[sgui->id] : nullptr;
 }
 
 int GUI_GetPopupStyle(ScriptGUI *sgui)
 {
-    return guis[sgui->id].GetPopupStyle();
+    return Game::Current().Guis[sgui->id].GetPopupStyle();
 }
 
 void GUI_SetPopupStyle(ScriptGUI *sgui, int popup_style)
 {
-    const GUIPopupStyle old_style = guis[sgui->id].GetPopupStyle();
+    Game &game = Game::Current();
+    const GUIPopupStyle old_style = game.Guis[sgui->id].GetPopupStyle();
     if (popup_style == old_style)
         return;
 
-    GUIMain &gui = guis[sgui->id];
+    GUIMain &gui = game.Guis[sgui->id];
     gui.SetPopupStyle(static_cast<GUIPopupStyle>(popup_style));
 
     // Conceal or un-conceal when changing to or from PopupAtY
@@ -225,7 +230,7 @@ void GUI_SetPopupStyle(ScriptGUI *sgui, int popup_style)
             UnPauseGame();
         }
 
-        if (gui.IsDisplayed() && Game::Current().Play.mouse_input_enabled)
+        if (gui.IsDisplayed() && game.Play.mouse_input_enabled)
         {
             gui.Poll(mousex, mousey, GetGUIAt(mousex, mousey, kHit_Interactable) == gui.GetID());
         }
@@ -242,37 +247,37 @@ void GUI_SetVisible(ScriptGUI *sgui, int is_visible)
 
 int GUI_GetVisible(ScriptGUI *sgui)
 {
-    return (guis[sgui->id].IsVisible()) ? 1 : 0;
+    return (Game::Current().Guis[sgui->id].IsVisible()) ? 1 : 0;
 }
 
 bool GUI_GetShown(ScriptGUI *sgui)
 {
-    return guis[sgui->id].IsDisplayed();
+    return Game::Current().Guis[sgui->id].IsDisplayed();
 }
 
 int GUI_GetX(ScriptGUI *sgui)
 {
-    return guis[sgui->id].GetX();
+    return Game::Current().Guis[sgui->id].GetX();
 }
 
 void GUI_SetX(ScriptGUI *sgui, int x)
 {
-    guis[sgui->id].SetX(x);
+    Game::Current().Guis[sgui->id].SetX(x);
 }
 
 int GUI_GetY(ScriptGUI *sgui)
 {
-    return guis[sgui->id].GetY();
+    return Game::Current().Guis[sgui->id].GetY();
 }
 
 void GUI_SetY(ScriptGUI *sgui, int y)
 {
-    guis[sgui->id].SetY(y);
+    Game::Current().Guis[sgui->id].SetY(y);
 }
 
 void GUI_SetPosition(ScriptGUI *sgui, int x, int y)
 {
-    guis[sgui->id].SetPosition(x, y);
+    Game::Current().Guis[sgui->id].SetPosition(x, y);
 }
 
 void GUI_SetSize(ScriptGUI *sgui, int w, int h)
@@ -284,18 +289,18 @@ void GUI_SetSize(ScriptGUI *sgui, int w, int h)
         h = std::max(1, h);
     }
 
-    GUIMain *gui = &guis[sgui->id];
+    GUIMain *gui = &Game::Current().Guis[sgui->id];
     gui->SetSize(w, h);
 }
 
 int GUI_GetWidth(ScriptGUI *sgui)
 {
-    return guis[sgui->id].GetWidth();
+    return Game::Current().Guis[sgui->id].GetWidth();
 }
 
 int GUI_GetHeight(ScriptGUI *sgui)
 {
-    return guis[sgui->id].GetHeight();
+    return Game::Current().Guis[sgui->id].GetHeight();
 }
 
 void GUI_SetWidth(ScriptGUI *sgui, int new_width)
@@ -305,7 +310,7 @@ void GUI_SetWidth(ScriptGUI *sgui, int new_width)
         debug_script_warn("GUI.SetWidth: invalid value (tried to set to %d)", new_width);
         new_width = std::max(1, new_width);
     }
-    guis[sgui->id].SetWidth(new_width);
+    Game::Current().Guis[sgui->id].SetWidth(new_width);
 }
 
 void GUI_SetHeight(ScriptGUI *sgui, int new_height)
@@ -315,23 +320,23 @@ void GUI_SetHeight(ScriptGUI *sgui, int new_height)
         debug_script_warn("GUI.SetHeight: invalid value (tried to set to %d)", new_height);
         new_height = std::max(1, new_height);
     }
-    guis[sgui->id].SetHeight(new_height);
+    Game::Current().Guis[sgui->id].SetHeight(new_height);
 }
 
 void GUI_SetZOrder(ScriptGUI *sgui, int z)
 {
-    guis[sgui->id].SetZOrder(z);
+    Game::Current().Guis[sgui->id].SetZOrder(z);
     update_gui_zorder();
 }
 
 int GUI_GetZOrder(ScriptGUI *sgui)
 {
-    return guis[sgui->id].GetZOrder();
+    return Game::Current().Guis[sgui->id].GetZOrder();
 }
 
 void *GUI_GetGraphicPosition(ScriptGUI *sgui)
 {
-    auto &gui = guis[sgui->id];
+    auto &gui = Game::Current().Guis[sgui->id];
     gui.UpdateGraphicSpace();
     std::vector<Point> points;
     gui.GetGraphicSpace().GetTransformedCorners(points, gui.GetSize());
@@ -340,7 +345,7 @@ void *GUI_GetGraphicPosition(ScriptGUI *sgui)
 
 void *GUI_GetGraphicBoundBox(ScriptGUI *sgui)
 {
-    auto &gui = guis[sgui->id];
+    auto &gui = Game::Current().Guis[sgui->id];
     gui.UpdateGraphicSpace();
     std::vector<Point> points;
     gui.GetGraphicSpace().GetAABBPoints(points);
@@ -349,12 +354,12 @@ void *GUI_GetGraphicBoundBox(ScriptGUI *sgui)
 
 void GUI_SetClickable(ScriptGUI *sgui, int clickable)
 {
-    guis[sgui->id].SetClickable(clickable != 0);
+    Game::Current().Guis[sgui->id].SetClickable(clickable != 0);
 }
 
 int GUI_GetClickable(ScriptGUI *sgui)
 {
-    return guis[sgui->id].IsClickable() ? 1 : 0;
+    return Game::Current().Guis[sgui->id].IsClickable() ? 1 : 0;
 }
 
 int GUI_GetID(ScriptGUI *sgui)
@@ -364,30 +369,32 @@ int GUI_GetID(ScriptGUI *sgui)
 
 const char *GUI_GetScriptName(ScriptGUI *sgui)
 {
-    return CreateNewScriptString(guis[sgui->id].GetName());
+    return CreateNewScriptString(Game::Current().Guis[sgui->id].GetName());
 }
 
 GUIControl *GUI_GetiControls(ScriptGUI *sgui, int idx)
 {
-    if ((idx < 0) || (idx >= guis[sgui->id].GetControlCount()))
+    Game &game = Game::Current();
+    if ((idx < 0) || (idx >= game.Guis[sgui->id].GetControlCount()))
         return nullptr;
-    return guis[sgui->id].GetControl(idx);
+    return game.Guis[sgui->id].GetControl(idx);
 }
 
 int GUI_GetControlCount(ScriptGUI *sgui)
 {
-    return guis[sgui->id].GetControlCount();
+    return Game::Current().Guis[sgui->id].GetControlCount();
 }
 
 int GUI_GetPopupYPos(ScriptGUI *sgui)
 {
-    return guis[sgui->id].GetPopupAtY();
+    return Game::Current().Guis[sgui->id].GetPopupAtY();
 }
 
 void GUI_SetPopupYPos(ScriptGUI *sgui, int popup_y)
 {
-    if (!guis[sgui->id].IsTextWindow())
-        guis[sgui->id].SetPopupAtY(popup_y);
+    Game &game = Game::Current();
+    if (!game.Guis[sgui->id].IsTextWindow())
+        game.Guis[sgui->id].SetPopupAtY(popup_y);
 }
 
 void GUI_SetOpacity(ScriptGUI *sgui, int alpha)
@@ -395,12 +402,12 @@ void GUI_SetOpacity(ScriptGUI *sgui, int alpha)
     if ((alpha < 0) || (alpha > 255))
         quit("!GUI.Opacity: alpha value must be between 0 and 255");
 
-    guis[sgui->id].SetOpacity(alpha);
+    Game::Current().Guis[sgui->id].SetOpacity(alpha);
 }
 
 int GUI_GetOpacity(ScriptGUI *sgui)
 {
-    return guis[sgui->id].GetOpacity();
+    return Game::Current().Guis[sgui->id].GetOpacity();
 }
 
 // [OBSOLETE] the AGS 4.0 Transparency, for compiled 4.0 games
@@ -409,18 +416,18 @@ void GUI_SetTransparency(ScriptGUI *sgui, int trans)
     if ((trans < 0) || (trans > 100))
         quit("!SetGUITransparency: transparency value must be between 0 and 100");
 
-    guis[sgui->id].SetOpacity(GfxDef::Trans100ToOpacity(trans));
+    Game::Current().Guis[sgui->id].SetOpacity(GfxDef::Trans100ToOpacity(trans));
 }
 
 int GUI_GetTransparency(ScriptGUI *sgui)
 {
-    return GfxDef::OpacityToTrans100(guis[sgui->id].GetOpacity());
+    return GfxDef::OpacityToTrans100(Game::Current().Guis[sgui->id].GetOpacity());
 }
 
 void GUI_Centre(ScriptGUI *sgui)
 {
     Game &game = Game::Current();
-    GUIMain *gui = &guis[sgui->id];
+    GUIMain *gui = &game.Guis[sgui->id];
     int x = game.Play.GetUIViewport().GetWidth() / 2 - gui->GetWidth() / 2;
     int y = game.Play.GetUIViewport().GetHeight() / 2 - gui->GetHeight() / 2;
     gui->SetPosition(x, y);
@@ -428,106 +435,121 @@ void GUI_Centre(ScriptGUI *sgui)
 
 void GUI_SetBackgroundGraphic(ScriptGUI *sgui, int sprite)
 {
-    const int old_sprite = guis[sgui->id].GetBgImage();
-    guis[sgui->id].SetBgImage(sprite);
+    Game &game = Game::Current();
+    const int old_sprite = game.Guis[sgui->id].GetBgImage();
+    game.Guis[sgui->id].SetBgImage(sprite);
     // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
-    replace_sprite_changed_callback(old_sprite, sprite, &guis[sgui->id]);
+    replace_sprite_changed_callback(old_sprite, sprite, &game.Guis[sgui->id]);
 }
 
 int GUI_GetBackgroundGraphic(ScriptGUI *sgui)
 {
-    if (guis[sgui->id].GetBgImage() < 1) // "no image" is reported to scripts as 0, not as a negative value
+    Game &game = Game::Current();
+    if (game.Guis[sgui->id].GetBgImage() < 1) // "no image" is reported to scripts as 0, not as a negative value
         return 0;
-    return guis[sgui->id].GetBgImage();
+    return game.Guis[sgui->id].GetBgImage();
 }
 
 void GUI_SetBackgroundColor(ScriptGUI *sgui, int color)
 {
-    guis[sgui->id].SetBgColor(color);
+    Game::Current().Guis[sgui->id].SetBgColor(color);
 }
 
 int GUI_GetBackgroundColor(ScriptGUI *sgui)
 {
-    return guis[sgui->id].GetBgColor();
+    return Game::Current().Guis[sgui->id].GetBgColor();
 }
 
 void GUI_SetBorderColor(ScriptGUI *sgui, int color)
 {
-    if (guis[sgui->id].IsTextWindow())
+    Game &game = Game::Current();
+    if (game.Guis[sgui->id].IsTextWindow())
         return;
-    guis[sgui->id].SetFgColor(color);
+    game.Guis[sgui->id].SetFgColor(color);
 }
 
 int GUI_GetBorderColor(ScriptGUI *sgui)
 {
-    if (guis[sgui->id].IsTextWindow())
+    Game &game = Game::Current();
+    if (game.Guis[sgui->id].IsTextWindow())
         return 0;
-    return guis[sgui->id].GetFgColor();
+    return game.Guis[sgui->id].GetFgColor();
 }
 
 void GUI_SetTextColor(ScriptGUI *sgui, int color)
 {
-    if (!guis[sgui->id].IsTextWindow())
+    Game &game = Game::Current();
+    if (!game.Guis[sgui->id].IsTextWindow())
         return;
-    guis[sgui->id].SetFgColor(color);
+    game.Guis[sgui->id].SetFgColor(color);
 }
 
 int GUI_GetTextColor(ScriptGUI *sgui)
 {
-    if (!guis[sgui->id].IsTextWindow())
+    Game &game = Game::Current();
+    if (!game.Guis[sgui->id].IsTextWindow())
         return 0;
-    return guis[sgui->id].GetFgColor();
+    return game.Guis[sgui->id].GetFgColor();
 }
 
 int GUI_GetTextPadding(ScriptGUI *sgui)
 {
-    return guis[sgui->id].GetPadding();
+    return Game::Current().Guis[sgui->id].GetPadding();
 }
 
 void GUI_SetTextPadding(ScriptGUI *sgui, int padding)
 {
-    if (guis[sgui->id].IsTextWindow())
-        guis[sgui->id].SetPadding(padding);
+    Game &game = Game::Current();
+    if (game.Guis[sgui->id].IsTextWindow())
+        game.Guis[sgui->id].SetPadding(padding);
 }
 
 int GUI_GetLeftGraphic(ScriptGUI *sgui)
 {
-    return guis[sgui->id].IsTextWindow() ? get_but_pic(&guis[sgui->id], kTW_Left) : 0;
+    Game &game = Game::Current();
+    return game.Guis[sgui->id].IsTextWindow() ? get_but_pic(&game.Guis[sgui->id], kTW_Left) : 0;
 }
 
 int GUI_GetTopLeftGraphic(ScriptGUI *sgui)
 {
-    return guis[sgui->id].IsTextWindow() ? get_but_pic(&guis[sgui->id], kTW_TopLeft) : 0;
+    Game &game = Game::Current();
+    return game.Guis[sgui->id].IsTextWindow() ? get_but_pic(&game.Guis[sgui->id], kTW_TopLeft) : 0;
 }
 
 int GUI_GetTopGraphic(ScriptGUI *sgui)
 {
-    return guis[sgui->id].IsTextWindow() ? get_but_pic(&guis[sgui->id], kTW_Top) : 0;
+    Game &game = Game::Current();
+    return game.Guis[sgui->id].IsTextWindow() ? get_but_pic(&game.Guis[sgui->id], kTW_Top) : 0;
 }
 
 int GUI_GetTopRightGraphic(ScriptGUI *sgui)
 {
-    return guis[sgui->id].IsTextWindow() ? get_but_pic(&guis[sgui->id], kTW_TopRight) : 0;
+    Game &game = Game::Current();
+    return game.Guis[sgui->id].IsTextWindow() ? get_but_pic(&game.Guis[sgui->id], kTW_TopRight) : 0;
 }
 
 int GUI_GetRightGraphic(ScriptGUI *sgui)
 {
-    return guis[sgui->id].IsTextWindow() ? get_but_pic(&guis[sgui->id], kTW_Right) : 0;
+    Game &game = Game::Current();
+    return game.Guis[sgui->id].IsTextWindow() ? get_but_pic(&game.Guis[sgui->id], kTW_Right) : 0;
 }
 
 int GUI_GetBottomRightGraphic(ScriptGUI *sgui)
 {
-    return guis[sgui->id].IsTextWindow() ? get_but_pic(&guis[sgui->id], kTW_BottomRight) : 0;
+    Game &game = Game::Current();
+    return game.Guis[sgui->id].IsTextWindow() ? get_but_pic(&game.Guis[sgui->id], kTW_BottomRight) : 0;
 }
 
 int GUI_GetBottomGraphic(ScriptGUI *sgui)
 {
-    return guis[sgui->id].IsTextWindow() ? get_but_pic(&guis[sgui->id], kTW_Bottom) : 0;
+    Game &game = Game::Current();
+    return game.Guis[sgui->id].IsTextWindow() ? get_but_pic(&game.Guis[sgui->id], kTW_Bottom) : 0;
 }
 
 int GUI_GetBottomLeftGraphic(ScriptGUI *sgui)
 {
-    return guis[sgui->id].IsTextWindow() ? get_but_pic(&guis[sgui->id], kTW_BottomLeft) : 0;
+    Game &game = Game::Current();
+    return game.Guis[sgui->id].IsTextWindow() ? get_but_pic(&game.Guis[sgui->id], kTW_BottomLeft) : 0;
 }
 
 int GetGUIAt(int x, int y, int hit_options)
@@ -537,12 +559,12 @@ int GetGUIAt(int x, int y, int hit_options)
     // Test in the opposite order (from closer to further)
     for (auto g = game.Play.gui_draw_order.crbegin(); g < game.Play.gui_draw_order.crend(); ++g)
     {
-        if (guis[*g].IsDisplayed())
+        if (game.Guis[*g].IsDisplayed())
         {
             // test in the GUI's own coordinates, which account for its scale and rotation
-            const Point local = guis[*g].GetGraphicSpace().WorldToLocal(x, y);
-            if ((only_clickable && guis[*g].IsInteractableAt(x, y) ||
-                 (!only_clickable && RectWH(guis[*g].GetSize()).IsInside(local))))
+            const Point local = game.Guis[*g].GetGraphicSpace().WorldToLocal(x, y);
+            if ((only_clickable && game.Guis[*g].IsInteractableAt(x, y) ||
+                 (!only_clickable && RectWH(game.Guis[*g].GetSize()).IsInside(local))))
             {
                 return *g;
             }
@@ -556,7 +578,7 @@ ScriptGUI *GUI_GetAtScreenXY(int x, int y, int hit_options)
     int gui_id = GetGUIAt(x, y, hit_options);
     if (gui_id < 0)
         return nullptr;
-    return &scrGui[gui_id];
+    return &Game::Current().ScGuis[gui_id];
 }
 
 ScriptGUI *GUI_GetAtScreenXY2(int x, int y)
@@ -574,7 +596,7 @@ void GUI_ProcessClick(int x, int y, int mbut)
     int gui_id = gui_get_interactable(x, y);
     if (gui_id >= 0)
     { // simulate mouse click at the given coordinates
-        guis[gui_id].Poll(x, y, true);
+        Game::Current().Guis[gui_id].Poll(x, y, true);
         gui_on_mouse_down(gui_id, mbut, x, y);
         gui_on_mouse_up(gui_id, mbut, x, y);
     }
@@ -582,59 +604,64 @@ void GUI_ProcessClick(int x, int y, int mbut)
 
 int GUI_GetBlendMode(ScriptGUI *sgui)
 {
-    return guis[sgui->id].GetBlendMode();
+    return Game::Current().Guis[sgui->id].GetBlendMode();
 }
 
 void GUI_SetBlendMode(ScriptGUI *sgui, int blend_mode)
 {
-    guis[sgui->id].SetBlendMode(ValidateBlendMode("GUI.BlendMode", guis[sgui->id].GetName().GetCStr(), blend_mode));
+    Game &game = Game::Current();
+    game.Guis[sgui->id].SetBlendMode(
+        ValidateBlendMode("GUI.BlendMode", game.Guis[sgui->id].GetName().GetCStr(), blend_mode));
 }
 
 ScriptShaderInstance *GUI_GetShader(ScriptGUI *sgui)
 {
-    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(guis[sgui->id].GetShaderHandle()));
+    return static_cast<ScriptShaderInstance *>(
+        ccGetObjectAddressFromHandle(Game::Current().Guis[sgui->id].GetShaderHandle()));
 }
 
 void GUI_SetShader(ScriptGUI *sgui, ScriptShaderInstance *shader_inst)
 {
-    auto &gui = guis[sgui->id];
+    auto &gui = Game::Current().Guis[sgui->id];
     gui.SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
                   ccReplaceObjectHandle(gui.GetShaderHandle(), shader_inst));
 }
 
 float GUI_GetRotation(ScriptGUI *sgui)
 {
-    return guis[sgui->id].GetRotation();
+    return Game::Current().Guis[sgui->id].GetRotation();
 }
 
 void GUI_SetRotation(ScriptGUI *sgui, float rotation)
 {
-    guis[sgui->id].SetRotation(rotation);
+    Game::Current().Guis[sgui->id].SetRotation(rotation);
 }
 
 float GUI_GetScaleX(ScriptGUI *sgui)
 {
-    return guis[sgui->id].GetScale().X;
+    return Game::Current().Guis[sgui->id].GetScale().X;
 }
 
 void GUI_SetScaleX(ScriptGUI *sgui, float scale_x)
 {
-    guis[sgui->id].SetScale(scale_x, guis[sgui->id].GetScale().Y);
+    Game &game = Game::Current();
+    game.Guis[sgui->id].SetScale(scale_x, game.Guis[sgui->id].GetScale().Y);
 }
 
 float GUI_GetScaleY(ScriptGUI *sgui)
 {
-    return guis[sgui->id].GetScale().Y;
+    return Game::Current().Guis[sgui->id].GetScale().Y;
 }
 
 void GUI_SetScaleY(ScriptGUI *sgui, float scale_y)
 {
-    guis[sgui->id].SetScale(guis[sgui->id].GetScale().X, scale_y);
+    Game &game = Game::Current();
+    game.Guis[sgui->id].SetScale(game.Guis[sgui->id].GetScale().X, scale_y);
 }
 
 void GUI_SetScale(ScriptGUI *sgui, float scale_x, float scale_y)
 {
-    guis[sgui->id].SetScale(scale_x, scale_y);
+    Game::Current().Guis[sgui->id].SetScale(scale_x, scale_y);
 }
 
 int GUI_GetProperty(ScriptGUI *sgui, const char *property)
@@ -664,21 +691,21 @@ bool GUI_SetTextProperty(ScriptGUI *sgui, const char *property, const char *valu
 void remove_popup_interface(int gui_id)
 {
     Game &game = Game::Current();
-    if (ifacepopped != gui_id)
+    if (game.IfacePopped != gui_id)
         return;
-    ifacepopped = -1;
+    game.IfacePopped = -1;
     UnPauseGame();
-    guis[gui_id].SetConceal(true);
-    if (game.Play.mouse_input_enabled && mousey <= guis[gui_id].GetPopupAtY())
-        Mouse::SetPosition(Point(mousex, guis[gui_id].GetPopupAtY() + 2));
-    if ((!IsInterfaceEnabled()) && (cur_cursor == cur_mode))
+    game.Guis[gui_id].SetConceal(true);
+    if (game.Play.mouse_input_enabled && mousey <= game.Guis[gui_id].GetPopupAtY())
+        Mouse::SetPosition(Point(mousex, game.Guis[gui_id].GetPopupAtY() + 2));
+    if ((!IsInterfaceEnabled()) && (game.Cursor.Look == game.Cursor.Mode))
         // Only change the mouse cursor if it hasn't been specifically changed first
         set_cursor_look(game.GetModeWait());
     else if (IsInterfaceEnabled())
         set_default_cursor_look();
 
-    if (gui_id == mouse_on_iface)
-        mouse_on_iface = -1;
+    if (gui_id == game.MouseOnIface)
+        game.MouseOnIface = -1;
 }
 
 static void run_control_event(GUIControl *control, const String &script_module, int evt_index, int mb_param,
@@ -714,11 +741,12 @@ static void run_control_event(GUIControl *control, const String &script_module, 
 
 void process_interface_click(int gui_id, int btn_id, int mbut)
 {
-    const GUIMain &gui = guis[gui_id];
+    Game &game = Game::Current();
+    const GUIMain &gui = game.Guis[gui_id];
     if (btn_id < 0)
     {
         // click on GUI background
-        RuntimeScriptValue params[]{RuntimeScriptValue().SetScriptObject(&scrGui[gui_id], &ccDynamicGUI),
+        RuntimeScriptValue params[]{RuntimeScriptValue().SetScriptObject(&game.ScGuis[gui_id], &ccDynamicGUI),
                                     RuntimeScriptValue().SetInt32(mbut)};
         TryRunScriptHandler(kScTypeGame, gui.GetScriptModule(), gui.GetEvents().GetHandler(kGUIEvent_OnClick), 2,
                             params);
@@ -726,11 +754,11 @@ void process_interface_click(int gui_id, int btn_id, int mbut)
     }
 
     // Decide which event to fire when the control is clicked on
-    GUIControl *control = guis[gui_id].GetControl(btn_id);
+    GUIControl *control = game.Guis[gui_id].GetControl(btn_id);
     if (!control)
         return;
 
-    const GUIControlType ctrl_type = guis[gui_id].GetControlType(btn_id);
+    const GUIControlType ctrl_type = game.Guis[gui_id].GetControlType(btn_id);
     switch (ctrl_type)
     {
     case kGUIButton:
@@ -756,8 +784,9 @@ void process_interface_click(int gui_id, int btn_id, int mbut)
 
 bool sort_gui_less(const int g1, const int g2)
 {
-    return (guis[g1].GetZOrder() < guis[g2].GetZOrder()) ||
-           ((guis[g1].GetZOrder() == guis[g2].GetZOrder()) && (g1 < g2));
+    Game &game = Game::Current();
+    return (game.Guis[g1].GetZOrder() < game.Guis[g2].GetZOrder()) ||
+           ((game.Guis[g1].GetZOrder() == game.Guis[g2].GetZOrder()) && (g1 < g2));
 }
 
 void update_gui_zorder()
@@ -770,7 +799,7 @@ void prepare_gui_runtime(bool startup)
 {
     Game &game = Game::Current();
     // Trigger all guis and controls to recalculate their dynamic state
-    for (auto &gui : guis)
+    for (auto &gui : game.Guis)
     {
         for (int i = 0; i < gui.GetControlCount(); ++i)
         {
@@ -780,19 +809,19 @@ void prepare_gui_runtime(bool startup)
         }
     }
 
-    game.Play.gui_draw_order.resize(guis.size());
+    game.Play.gui_draw_order.resize(game.Guis.size());
     std::iota(game.Play.gui_draw_order.begin(), game.Play.gui_draw_order.end(), 0);
     update_gui_zorder();
 
     // Restore subscription to dynamic sprite notifications
     if (!startup)
     {
-        for (auto &gui : guis)
+        for (auto &gui : game.Guis)
         {
             if (gui.GetBgImage() > 0)
                 add_sprite_changed_callback(gui.GetBgImage(), &gui);
         }
-        for (auto &btn : guibuts)
+        for (auto &btn : game.GuiButtons)
         {
             if (btn.GetNormalImage() > 0)
                 add_sprite_changed_callback(btn.GetNormalImage(), &btn);
@@ -801,7 +830,7 @@ void prepare_gui_runtime(bool startup)
             if (btn.GetMouseOverImage() > 0)
                 add_sprite_changed_callback(btn.GetMouseOverImage(), &btn);
         }
-        for (auto &sld : guislider)
+        for (auto &sld : game.GuiSliders)
         {
             if (sld.GetBgImage() > 0)
                 add_sprite_changed_callback(sld.GetBgImage(), &sld);
@@ -855,7 +884,7 @@ int adjust_x_for_guis(int x, int y, bool assume_blocking)
         return x; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it right a bit
     // TODO: also account for the text's width here, and maybe move the text left when its right part touches a GUI
-    for (const auto &gui : guis)
+    for (const auto &gui : game.Guis)
     {
         if (should_skip_adjust_for_gui(gui))
             continue;
@@ -882,7 +911,7 @@ int adjust_y_for_guis(int y, bool assume_blocking)
         return y; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it down a bit
     // TODO: also account for the text's height here, and maybe move the text up when its lower part touches a GUI below
-    for (const auto &gui : guis)
+    for (const auto &gui : game.Guis)
     {
         if (should_skip_adjust_for_gui(gui))
             continue;
@@ -922,26 +951,26 @@ int gui_on_mouse_move(const int mx, const int my)
     // overlay disables the interface: the GUIs after that one are not tested.
     for (int gui_id : game.Play.gui_draw_order)
     {
-        if (guis[gui_id].IsInteractableAt(mx, my))
+        if (game.Guis[gui_id].IsInteractableAt(mx, my))
             mouse_over_gui = gui_id;
 
-        if (guis[gui_id].GetPopupStyle() != kGUIPopupMouseY)
+        if (game.Guis[gui_id].GetPopupStyle() != kGUIPopupMouseY)
             continue;
         if (game.Play.complete_overlay_on > 0)
             break; // interfaces disabled
-        if (ifacepopped == gui_id)
+        if (game.IfacePopped == gui_id)
             continue;
-        if (!guis[gui_id].IsVisible())
+        if (!game.Guis[gui_id].IsVisible())
             continue;
         // Don't allow it to be popped up while skipping cutscene
         if (game.Play.fast_forward)
             continue;
 
-        if (mousey < guis[gui_id].GetPopupAtY())
+        if (mousey < game.Guis[gui_id].GetPopupAtY())
         {
             set_cursor_look(game.GetModePointer());
-            guis[gui_id].SetConceal(false);
-            ifacepopped = gui_id;
+            game.Guis[gui_id].SetConceal(false);
+            game.IfacePopped = gui_id;
             PauseGame();
             break;
         }
@@ -959,13 +988,14 @@ inline bool gui_control_should_handle_button(int mbut)
 
 void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
 {
-    for (int i = 0; i < guis[wasongui].GetControlCount(); ++i)
+    Game &game = Game::Current();
+    for (int i = 0; i < game.Guis[wasongui].GetControlCount(); ++i)
     {
-        GUIControl *control = guis[wasongui].GetControl(i);
+        GUIControl *control = game.Guis[wasongui].GetControl(i);
         if (!control->IsActivated())
             continue;
         // We only handle "hold" event for Sliders, and only if mouse button is not restricted
-        if (guis[wasongui].GetControlType(i) != kGUISlider)
+        if (game.Guis[wasongui].GetControlType(i) != kGUISlider)
             continue;
         if (!gui_control_should_handle_button(wasbutdown))
             continue;
@@ -979,7 +1009,7 @@ void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
 void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, const int my)
 {
     Game &game = Game::Current();
-    GUIMain &gui = guis[wasongui];
+    GUIMain &gui = game.Guis[wasongui];
     gui.OnMouseButtonUp();
 
     for (int i = 0; i < gui.GetControlCount(); ++i)
@@ -1027,7 +1057,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
                 }
                 else
                 {
-                    RunInventoryInteraction(item_id, cur_mode);
+                    RunInventoryInteraction(item_id, game.Cursor.Mode);
                 }
             }
         }
@@ -1047,35 +1077,37 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
 
 void gui_on_mouse_down(const int gui_id, const int mbut, const int mx, const int my)
 {
+    Game &game = Game::Current();
     debug_script_log("Mouse click over GUI %d", gui_id);
 
     // TODO: redesign this, pass mouse button into GUI OnMouseButtonDown instead,
     // handle the button difference there, per control.
-    int over_ctrl = guis[gui_id].GetControlUnderMouse();
+    int over_ctrl = game.Guis[gui_id].GetControlUnderMouse();
     if (over_ctrl >= 0)
     {
         // NOTE: we make exception for InvWindow control, as it has a special action for RMB
-        if (gui_control_should_handle_button(mbut) || (guis[gui_id].GetControlType(over_ctrl) == kGUIInvWindow))
+        if (gui_control_should_handle_button(mbut) || (game.Guis[gui_id].GetControlType(over_ctrl) == kGUIInvWindow))
         {
-            guis[gui_id].OnMouseButtonDown(mx, my);
+            game.Guis[gui_id].OnMouseButtonDown(mx, my);
         }
     }
     else
     {
         // run GUI click handler if not on any control
-        if (guis[gui_id].GetEvents().GetHandler(kGUIEvent_OnClick).IsEnabled())
+        if (game.Guis[gui_id].GetEvents().GetHandler(kGUIEvent_OnClick).IsEnabled())
             force_event(AGSEvent_GUI(gui_id, -1, static_cast<eAGSMouseButton>(mbut)));
     }
 
-    run_on_event(kScriptEvent_GUIMouseDown, gui_id, mbut, mx - guis[gui_id].GetX(), my - guis[gui_id].GetY());
+    run_on_event(kScriptEvent_GUIMouseDown, gui_id, mbut, mx - game.Guis[gui_id].GetX(), my - game.Guis[gui_id].GetY());
 }
 
 GUITextBox *gui_get_active_textbox()
 {
+    Game &game = Game::Current();
     if (!GUI::IsEnabledState())
         return nullptr;
 
-    for (auto &gui : guis)
+    for (auto &gui : game.Guis)
     {
         if (!gui.IsDisplayed())
             continue;
@@ -1114,7 +1146,7 @@ GUITextBox *GUI_GetActiveTextInputControl()
 
 ScriptUserObject *GUI_ScreenToGUIPoint(ScriptGUI *sgui, int screen_x, int screen_y, bool clip_to_gui)
 {
-    GUIMain &gui = guis[sgui->id];
+    GUIMain &gui = Game::Current().Guis[sgui->id];
     Point pt = gui.GetGraphicSpace().WorldToLocal(screen_x, screen_y);
     if (clip_to_gui && !RectWH(gui.GetX(), gui.GetY(), gui.GetWidth(), gui.GetHeight()).IsInside(pt))
         return nullptr;
@@ -1123,7 +1155,7 @@ ScriptUserObject *GUI_ScreenToGUIPoint(ScriptGUI *sgui, int screen_x, int screen
 
 ScriptUserObject *GUI_GUIToScreenPoint(ScriptGUI *sgui, int gui_x, int gui_y, bool clip_to_gui)
 {
-    GUIMain &gui = guis[sgui->id];
+    GUIMain &gui = Game::Current().Guis[sgui->id];
     if (clip_to_gui && !RectWH(gui.GetX(), gui.GetY(), gui.GetWidth(), gui.GetHeight()).IsInside(gui_x, gui_y))
         return nullptr;
     Point pt = gui.GetGraphicSpace().LocalToWorld(gui_x, gui_y);
@@ -1137,11 +1169,11 @@ int FindGUIID(const char *GUIName)
     Game &game = Game::Current();
     for (int ii = 0; ii < game.numgui; ii++)
     {
-        if (guis[ii].GetName().IsEmpty())
+        if (game.Guis[ii].GetName().IsEmpty())
             continue;
-        if (guis[ii].GetName() == GUIName)
+        if (game.Guis[ii].GetName() == GUIName)
             return ii;
-        if ((guis[ii].GetName()[0u] == 'g') && (ags_stricmp(guis[ii].GetName().GetCStr() + 1, GUIName) == 0))
+        if ((game.Guis[ii].GetName()[0u] == 'g') && (ags_stricmp(game.Guis[ii].GetName().GetCStr() + 1, GUIName) == 0))
             return ii;
     }
     quit("FindGUIID: No matching GUI found: GUI may have been deleted");
@@ -1156,31 +1188,32 @@ void InterfaceOn(int ifn)
 
     EndSkippingUntilCharStops();
 
-    if (guis[ifn].IsVisible())
+    if (game.Guis[ifn].IsVisible())
     {
         return;
     }
-    guis[ifn].SetVisible(true);
+    game.Guis[ifn].SetVisible(true);
     debug_script_log("GUI %d turned on", ifn);
     // modal interface
-    if (guis[ifn].GetPopupStyle() == kGUIPopupModal)
+    if (game.Guis[ifn].GetPopupStyle() == kGUIPopupModal)
         PauseGame();
     if (game.Play.mouse_input_enabled)
-        guis[ifn].Poll(mousex, mousey, GetGUIAt(mousex, mousey, kHit_Interactable) == ifn);
+        game.Guis[ifn].Poll(mousex, mousey, GetGUIAt(mousex, mousey, kHit_Interactable) == ifn);
 }
 
 void InterfaceOff(int ifn)
 {
-    if ((ifn < 0) | (ifn >= Game::Current().numgui))
+    Game &game = Game::Current();
+    if ((ifn < 0) | (ifn >= game.numgui))
         quit("!GUIOff: invalid GUI specified");
-    if (!guis[ifn].IsVisible())
+    if (!game.Guis[ifn].IsVisible())
     {
         return;
     }
     debug_script_log("GUI %d turned off", ifn);
-    guis[ifn].SetVisible(false);
+    game.Guis[ifn].SetVisible(false);
     // modal interface
-    if (guis[ifn].GetPopupStyle() == kGUIPopupModal)
+    if (game.Guis[ifn].GetPopupStyle() == kGUIPopupModal)
         UnPauseGame();
 }
 
@@ -1247,7 +1280,7 @@ void SetTextWindowGUI(int guinum)
 
     if (guinum < 0)
         ; // disable it
-    else if (!guis[guinum].IsTextWindow())
+    else if (!game.Guis[guinum].IsTextWindow())
         quit("!SetTextWindowGUI: specified GUI is not a text window");
 
     if (game.Play.speech_textwindow_gui == game.options[OPT_TWCUSTOM])

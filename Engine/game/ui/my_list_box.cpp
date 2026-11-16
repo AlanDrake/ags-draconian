@@ -16,6 +16,7 @@
 #include <cstring>
 
 #include "font/fonts.h"
+#include "game/game_context.h"
 #include "game/ui/csci_dialog.h"
 #include "game/ui/gui_dialog.h"
 #include "game/ui/gui_dialog_defines.h"
@@ -57,7 +58,8 @@ MyListBox::~MyListBox()
 
 void MyListBox::draw(Bitmap *ds)
 {
-    color_t draw_color = GUI::GetStandardColorForBitmap(windowbackgroundcolor);
+    Game &game = Game::Current();
+    color_t draw_color = GUI::GetStandardColorForBitmap(game.BuiltinDialogs.WindowBackgroundColor);
     ds->FillRect(Rect(x, y, x + wid, y + hit), draw_color);
     draw_color = GUI::GetStandardColorForBitmap(0);
     ds->DrawRect(Rect(x, y, x + wid, y + hit), draw_color);
@@ -100,7 +102,7 @@ void MyListBox::draw(Bitmap *ds)
         else
             text_color = GUI::GetStandardColorForBitmap(0);
 
-        wouttextxy(ds, x + 2, item_y, cbuttfont, text_color, itemnames[item_id]);
+        wouttextxy(ds, x + 2, item_y, game.BuiltinDialogs.ButtonFont, text_color, itemnames[item_id]);
     }
     wid = old_width;
 }
@@ -122,7 +124,7 @@ int MyListBox::pressedon(int mx, int my)
     }
 
     draw(get_gui_screen());
-    smcode = CM_SELCHANGE;
+    Game::Current().BuiltinDialogs.PostedMessage = CM_SELCHANGE;
     return 0;
 }
 
@@ -194,7 +196,7 @@ int MyListBox::processmessage(int mcode, int wParam, intptr_t ipParam)
             topitem = (selected + 1) - numonscreen;
 
         drawandmouse();
-        smcode = CM_SELCHANGE;
+        Game::Current().BuiltinDialogs.PostedMessage = CM_SELCHANGE;
     }
     else
         return -1;

@@ -86,7 +86,7 @@ void set_inv_item_cursorpic(int item_id, int sprite)
     if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->activeinv == item_id))
     {
         update_inv_cursor(item_id);
-        set_cursor_look(cur_cursor);
+        set_cursor_look(game.Cursor.Look);
     }
 }
 
@@ -102,7 +102,7 @@ static void set_inv_item_cursorhotspot(int item_id, int hx, int hy, FrameAlignme
     if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->activeinv == item_id))
     {
         update_inv_cursor(item_id);
-        set_cursor_look(cur_cursor);
+        set_cursor_look(game.Cursor.Look);
     }
 }
 
@@ -192,15 +192,16 @@ const char *InventoryItem_GetScriptName(ScriptInvItem *item)
 
 int GetInvAt(int x, int y, int gui_hitoptions, int inv_hitoptions)
 {
+    Game &game = Game::Current();
     int gui_id = GetGUIAt(x, y, gui_hitoptions);
     if (gui_id >= 0)
     {
-        int control_id = guis[gui_id].FindControlAt(x, y, 0, inv_hitoptions & kHit_Interactable);
-        GUIObject *control = guis[gui_id].GetControl(control_id);
-        if (control && (guis[gui_id].GetControlType(control_id) == kGUIInvWindow))
+        int control_id = game.Guis[gui_id].FindControlAt(x, y, 0, inv_hitoptions & kHit_Interactable);
+        GUIObject *control = game.Guis[gui_id].GetControl(control_id);
+        if (control && (game.Guis[gui_id].GetControlType(control_id) == kGUIInvWindow))
         {
-            const int inv_atx = x - guis[gui_id].GetX() - control->GetX();
-            const int inv_aty = y - guis[gui_id].GetY() - control->GetY();
+            const int inv_atx = x - game.Guis[gui_id].GetX() - control->GetX();
+            const int inv_aty = y - game.Guis[gui_id].GetY() - control->GetY();
             return InvWindow_GetItemAtXY(static_cast<GUIInvWindow *>(control), inv_atx, inv_aty);
         }
     }

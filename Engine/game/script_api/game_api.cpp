@@ -145,7 +145,8 @@ void RegisterGameAPI()
 
 void RegisterStaticObjects()
 {
-    ccAddExternalScriptObject("game", &Game::Current().Play, &GameStaticManager);
-    ccAddExternalScriptObject("mouse", &scmouse, &scmouse);
+    Game &game = Game::Current();
+    ccAddExternalScriptObject("game", &game.Play, &GameStaticManager);
+    ccAddExternalScriptObject("mouse", &game.ScMouse, &game.ScMouse);
     ccAddExternalScriptObject("palette", &palette[0], &GlobalStaticManager);
 }

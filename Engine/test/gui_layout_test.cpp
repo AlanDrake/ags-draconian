@@ -41,8 +41,8 @@ const int kScreenHeight = 200;
 
 } // namespace
 
-// Fixture for the GUI layout. The engine globals it touches, all reset in TearDown:
-// - guis: two GUIs, 0 at (10,20) 100x50 and 1 at (60,40) 100x50, both visible and clickable;
+// Fixture for the GUI layout. The engine state it touches, all reset in TearDown:
+// - game.Guis: two GUIs, 0 at (10,20) 100x50 and 1 at (60,40) 100x50, both visible and clickable;
 //   GUI 0 has two buttons, (10,10) 30x20 and (30,15) 30x20, the second drawn on top
 // - game.Play.gui_draw_order: GUI 0 below GUI 1
 // - game.Play's UI viewport: 320x200
@@ -59,16 +59,16 @@ protected:
         GUI::Context.DisabledState = kGuiDis_Undefined;
         game.Play.SetUIViewport(RectWH(0, 0, kScreenWidth, kScreenHeight));
 
-        guis.resize(2);
+        game.Guis.resize(2);
         for (int i = 0; i < 2; ++i)
         {
-            guis[i].SetID(i);
-            guis[i].SetVisible(true);
-            guis[i].SetClickable(true);
-            guis[i].SetSize(100, 50);
+            game.Guis[i].SetID(i);
+            game.Guis[i].SetVisible(true);
+            game.Guis[i].SetClickable(true);
+            game.Guis[i].SetSize(100, 50);
         }
-        guis[0].SetPosition(10, 20);
-        guis[1].SetPosition(60, 40);
+        game.Guis[0].SetPosition(10, 20);
+        game.Guis[1].SetPosition(60, 40);
         game.Play.gui_draw_order = {0, 1};
 
         for (int i = 0; i < 2; ++i)
@@ -79,17 +79,17 @@ protected:
             _buttons[i].SetClickable(true);
             _buttons[i].SetSize(30, 20);
             _buttons[i].SetZOrder(i);
-            guis[0].AddControl(kGUIButton, i, &_buttons[i]);
+            game.Guis[0].AddControl(kGUIButton, i, &_buttons[i]);
         }
         _buttons[0].SetPosition(10, 10);
         _buttons[1].SetPosition(30, 15);
-        guis[0].ResortZOrder();
+        game.Guis[0].ResortZOrder();
     }
 
     void TearDown() override
     {
         Game &game = Game::Current();
-        guis.clear();
+        game.Guis.clear();
         game.Play.gui_draw_order.clear();
         game.Play.SetUIViewport(Rect());
         GUI::Options.ClipControls = _wasClipControls;
@@ -101,37 +101,40 @@ protected:
 
 TEST_F(GuiLayout, GuiCoversItsRectangle)
 {
-    EXPECT_EQ(Rect(10, 20, 109, 69), guis[0].GetGraphicSpace().AABB());
-    EXPECT_TRUE(guis[0].IsInteractableAt(10, 20));
-    EXPECT_TRUE(guis[0].IsInteractableAt(109, 69));
-    EXPECT_FALSE(guis[0].IsInteractableAt(110, 69));
-    EXPECT_FALSE(guis[0].IsInteractableAt(109, 70));
-    EXPECT_FALSE(guis[0].IsInteractableAt(9, 20));
+    Game &game = Game::Current();
+    EXPECT_EQ(Rect(10, 20, 109, 69), game.Guis[0].GetGraphicSpace().AABB());
+    EXPECT_TRUE(game.Guis[0].IsInteractableAt(10, 20));
+    EXPECT_TRUE(game.Guis[0].IsInteractableAt(109, 69));
+    EXPECT_FALSE(game.Guis[0].IsInteractableAt(110, 69));
+    EXPECT_FALSE(game.Guis[0].IsInteractableAt(109, 70));
+    EXPECT_FALSE(game.Guis[0].IsInteractableAt(9, 20));
 }
 
 TEST_F(GuiLayout, ScaledGuiCoversTheScaledArea)
 {
-    guis[0].SetScale(2.f, 2.f);
-    EXPECT_EQ(Size(100, 50), guis[0].GetSize());
-    const Rect &aabb = guis[0].GetGraphicSpace().AABB();
+    Game &game = Game::Current();
+    game.Guis[0].SetScale(2.f, 2.f);
+    EXPECT_EQ(Size(100, 50), game.Guis[0].GetSize());
+    const Rect &aabb = game.Guis[0].GetGraphicSpace().AABB();
     EXPECT_EQ(10, aabb.Left);
     EXPECT_EQ(20, aabb.Top);
     EXPECT_EQ(10 + 99 * 2, aabb.Right);
     EXPECT_EQ(20 + 49 * 2, aabb.Bottom);
-    EXPECT_TRUE(guis[0].IsInteractableAt(200, 110));
-    EXPECT_FALSE(guis[0].IsInteractableAt(211, 110));
+    EXPECT_TRUE(game.Guis[0].IsInteractableAt(200, 110));
+    EXPECT_FALSE(game.Guis[0].IsInteractableAt(211, 110));
 }
 
 TEST_F(GuiLayout, HiddenOrUnclickableGuiIsNotInteractable)
 {
-    guis[0].SetClickable(false);
-    EXPECT_FALSE(guis[0].IsInteractableAt(50, 30));
-    guis[0].SetClickable(true);
-    guis[0].SetVisible(false);
-    EXPECT_FALSE(guis[0].IsInteractableAt(50, 30));
-    guis[0].SetVisible(true);
-    guis[0].SetConceal(true);
-    EXPECT_FALSE(guis[0].IsInteractableAt(50, 30));
+    Game &game = Game::Current();
+    game.Guis[0].SetClickable(false);
+    EXPECT_FALSE(game.Guis[0].IsInteractableAt(50, 30));
+    game.Guis[0].SetClickable(true);
+    game.Guis[0].SetVisible(false);
+    EXPECT_FALSE(game.Guis[0].IsInteractableAt(50, 30));
+    game.Guis[0].SetVisible(true);
+    game.Guis[0].SetConceal(true);
+    EXPECT_FALSE(game.Guis[0].IsInteractableAt(50, 30));
 }
 
 TEST_F(GuiLayout, GuiAtAPointFollowsTheDrawOrder)
@@ -148,89 +151,97 @@ TEST_F(GuiLayout, GuiAtAPointFollowsTheDrawOrder)
 
 TEST_F(GuiLayout, GuiAtAPointSkipsHiddenAndUnclickableGuis)
 {
-    guis[1].SetClickable(false);
+    Game &game = Game::Current();
+    game.Guis[1].SetClickable(false);
     EXPECT_EQ(0, GetGUIAt(80, 50, kHit_Interactable));
     // "any" hit includes GUIs that are not clickable
     EXPECT_EQ(1, GetGUIAt(80, 50, kHit_Any));
-    guis[1].SetVisible(false);
+    game.Guis[1].SetVisible(false);
     EXPECT_EQ(0, GetGUIAt(80, 50, kHit_Any));
 }
 
 TEST_F(GuiLayout, CentreUsesTheUiViewport)
 {
+    Game &game = Game::Current();
     ScriptGUI sgui;
     sgui.id = 0;
     GUI_Centre(&sgui);
-    EXPECT_EQ(Point(kScreenWidth / 2 - 50, kScreenHeight / 2 - 25), guis[0].GetPosition());
+    EXPECT_EQ(Point(kScreenWidth / 2 - 50, kScreenHeight / 2 - 25), game.Guis[0].GetPosition());
     // odd sizes round down
-    guis[0].SetSize(101, 51);
+    game.Guis[0].SetSize(101, 51);
     GUI_Centre(&sgui);
-    EXPECT_EQ(Point(110, 75), guis[0].GetPosition());
+    EXPECT_EQ(Point(110, 75), game.Guis[0].GetPosition());
     // a GUI larger than the screen goes off its top-left
-    guis[0].SetSize(400, 300);
+    game.Guis[0].SetSize(400, 300);
     GUI_Centre(&sgui);
-    EXPECT_EQ(Point(-40, -50), guis[0].GetPosition());
+    EXPECT_EQ(Point(-40, -50), game.Guis[0].GetPosition());
 }
 
 TEST_F(GuiLayout, ControlAtAPointUsesTheGuiCoordinates)
 {
+    Game &game = Game::Current();
     // button 0 covers GUI-local (10,10)-(39,29), screen (20,30)-(49,49)
-    EXPECT_EQ(0, guis[0].FindControlAt(20, 30));
-    EXPECT_EQ(0, guis[0].FindControlAt(39, 34));
+    EXPECT_EQ(0, game.Guis[0].FindControlAt(20, 30));
+    EXPECT_EQ(0, game.Guis[0].FindControlAt(39, 34));
     // button 1, on top, covers local (30,15)-(59,34), screen (40,35)-(69,54)
-    EXPECT_EQ(1, guis[0].FindControlAt(45, 40));
-    EXPECT_EQ(1, guis[0].FindControlAt(69, 54));
-    EXPECT_EQ(-1, guis[0].FindControlAt(70, 55));
-    EXPECT_EQ(-1, guis[0].FindControlAt(15, 25));
+    EXPECT_EQ(1, game.Guis[0].FindControlAt(45, 40));
+    EXPECT_EQ(1, game.Guis[0].FindControlAt(69, 54));
+    EXPECT_EQ(-1, game.Guis[0].FindControlAt(70, 55));
+    EXPECT_EQ(-1, game.Guis[0].FindControlAt(15, 25));
 }
 
 TEST_F(GuiLayout, ControlAtAPointFollowsTheControlZOrder)
 {
-    EXPECT_EQ(1, guis[0].FindControlAt(45, 40));
-    guis[0].BringControlToFront(0);
-    EXPECT_EQ(0, guis[0].FindControlAt(45, 40));
+    Game &game = Game::Current();
+    EXPECT_EQ(1, game.Guis[0].FindControlAt(45, 40));
+    game.Guis[0].BringControlToFront(0);
+    EXPECT_EQ(0, game.Guis[0].FindControlAt(45, 40));
 }
 
 TEST_F(GuiLayout, ControlAtAPointSkipsHiddenAndUnclickableControls)
 {
+    Game &game = Game::Current();
     _buttons[1].SetVisible(false);
-    EXPECT_EQ(0, guis[0].FindControlAt(45, 40));
+    EXPECT_EQ(0, game.Guis[0].FindControlAt(45, 40));
     _buttons[1].SetVisible(true);
     _buttons[1].SetClickable(false);
-    EXPECT_EQ(0, guis[0].FindControlAt(45, 40));
+    EXPECT_EQ(0, game.Guis[0].FindControlAt(45, 40));
     // unless any control is asked for
-    EXPECT_EQ(1, guis[0].FindControlAt(45, 40, 0, false));
+    EXPECT_EQ(1, game.Guis[0].FindControlAt(45, 40, 0, false));
 }
 
 TEST_F(GuiLayout, ControlsOfAScaledGuiAreScaled)
 {
-    guis[0].SetScale(2.f, 2.f);
+    Game &game = Game::Current();
+    game.Guis[0].SetScale(2.f, 2.f);
     // button 0 at local (10,10) is at screen (10 + 20, 20 + 20)
-    EXPECT_EQ(-1, guis[0].FindControlAt(25, 35));
-    EXPECT_EQ(0, guis[0].FindControlAt(30, 40));
-    EXPECT_EQ(0, guis[0].FindControlAt(68, 58));
+    EXPECT_EQ(-1, game.Guis[0].FindControlAt(25, 35));
+    EXPECT_EQ(0, game.Guis[0].FindControlAt(30, 40));
+    EXPECT_EQ(0, game.Guis[0].FindControlAt(68, 58));
     // button 1 covers local x up to 59: screen up to 10 + 59 * 2 (+1 inside the pixel)
-    EXPECT_EQ(1, guis[0].FindControlAt(129, 89));
-    EXPECT_EQ(-1, guis[0].FindControlAt(131, 91));
+    EXPECT_EQ(1, game.Guis[0].FindControlAt(129, 89));
+    EXPECT_EQ(-1, game.Guis[0].FindControlAt(131, 91));
 }
 
 TEST_F(GuiLayout, ScaledControlCoversMore)
 {
+    Game &game = Game::Current();
     _buttons[0].SetScale(2.f, 2.f);
     // local (10,10) + 2 * (30,20): x up to 10 + 29 * 2, inside the GUI
-    EXPECT_EQ(0, guis[0].FindControlAt(10 + 10 + 58, 20 + 12));
-    EXPECT_EQ(-1, guis[0].FindControlAt(10 + 10 + 62, 20 + 12));
+    EXPECT_EQ(0, game.Guis[0].FindControlAt(10 + 10 + 58, 20 + 12));
+    EXPECT_EQ(-1, game.Guis[0].FindControlAt(10 + 10 + 62, 20 + 12));
 }
 
 TEST_F(GuiLayout, ScaledGuiIsFoundByAnyHit)
 {
+    Game &game = Game::Current();
     // the scaled GUI 0 covers (10,20)-(208,118); (200,110) is outside its unscaled rectangle
-    guis[0].SetScale(2.f, 2.f);
+    game.Guis[0].SetScale(2.f, 2.f);
     EXPECT_EQ(0, GetGUIAt(200, 110, kHit_Interactable));
     EXPECT_EQ(0, GetGUIAt(200, 110, kHit_Any));
     EXPECT_EQ(-1, GetGUIAt(215, 110, kHit_Any));
     // a GUI scaled down is found only in its smaller area
-    guis[0].SetScale(0.5f, 0.5f);
+    game.Guis[0].SetScale(0.5f, 0.5f);
     EXPECT_EQ(0, GetGUIAt(55, 40, kHit_Any));
     EXPECT_EQ(-1, GetGUIAt(30, 60, kHit_Any));
 }
