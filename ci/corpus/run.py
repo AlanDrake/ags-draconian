@@ -60,7 +60,8 @@ def run_room(engine, game_file, room, room_dir, seconds):
     if os.path.isdir(room_dir):
         shutil.rmtree(room_dir)
     os.makedirs(room_dir)
-    cmd = [engine, '--gfxdriver', 'Software', '--windowed', '--no-message-box', '--nosound',
+    # --windowed --background: on a desktop the run must not take the screen, nor stop when its window loses focus
+    cmd = [engine, '--gfxdriver', 'Software', '--windowed', '--background', '--no-message-box', '--nosound',
            '--user-data-dir', room_dir, '--log-file=all', '--log-file-path=' + room_dir,
            '--startr', str(room), game_file]
     proc = subprocess.Popen(cmd, cwd=os.path.dirname(game_file), stdout=subprocess.DEVNULL,

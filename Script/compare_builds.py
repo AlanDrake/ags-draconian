@@ -313,8 +313,10 @@ def run_autotest(engine, files_dir, work_dir, timeout):
     games = glob.glob(os.path.join(run_dir, '*.ags'))
     if not games:
         return 'no game package to run'
-    code, _ = run([os.path.abspath(engine), '--gfxdriver', 'Software', '--no-message-box', '--user-data-dir', '.',
-                   os.path.basename(games[0])], os.path.join(work_dir, 'engine.log'), timeout, cwd=run_dir)
+    # --windowed --background: on a desktop the run must not take the screen, nor stop when its window loses focus
+    code, _ = run([os.path.abspath(engine), '--gfxdriver', 'Software', '--windowed', '--background',
+                   '--no-message-box', '--user-data-dir', '.', os.path.basename(games[0])],
+                  os.path.join(work_dir, 'engine.log'), timeout, cwd=run_dir)
     tap = os.path.join(run_dir, 'agstest.tap')
     if not os.path.isfile(tap):
         return f'engine exit {code}, no agstest.tap'
