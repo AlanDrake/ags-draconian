@@ -33,7 +33,6 @@
 #include "game/game_state.h"
 #include "game/navigation/route_finder.h"
 #include "game/render/draw.h"
-#include "game/render/dynamic_sprite.h"
 #include "game/translation.h"
 #include "game/video/video.h"
 #include "game/world/room.h"
@@ -61,19 +60,21 @@ bool handledErrorInEditor;
 
 void quit_tell_editor_debugger(const String &qmsg, QuitReason qreason)
 {
-    if (editor_debugging_initialized)
+    EngineServices &services = EngineServices::Current();
+    if (services.Debug.EditorDebuggingInitialized)
     {
         if (qreason & kQuitKind_GameException)
             handledErrorInEditor = send_exception_to_debugger(qmsg.GetCStr());
         send_state_to_debugger("EXIT");
-        editor_debugger->Shutdown();
+        services.Debug.EditorDebugger->Shutdown();
     }
 }
 
 void quit_check_dynamic_sprites(QuitReason qreason)
 {
     Game &game = Game::Current();
-    if ((qreason & kQuitKind_NormalExit) && (check_dynamic_sprites_at_exit) && (game.options[OPT_DEBUGMODE] != 0))
+    if ((qreason & kQuitKind_NormalExit) && (EngineServices::Current().CheckDynamicSpritesAtExit) &&
+        (game.options[OPT_DEBUGMODE] != 0))
     {
         // Check that the dynamic sprites have been deleted;
         // ignore those that are owned by the game objects.

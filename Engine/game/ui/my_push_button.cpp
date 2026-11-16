@@ -26,6 +26,7 @@
 #include "gui/guimain.h"
 #include "main/game_run.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/engine_services.h"
 #include "util/common.h"
 #include "util/timer.h"
 
@@ -72,6 +73,7 @@ void MyPushButton::draw(Bitmap *ds)
 
 int MyPushButton::pressedon(int /*mx*/, int /*my*/)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     int old_state;
     while (ags_misbuttondown(kMouseLeft))
@@ -79,7 +81,8 @@ int MyPushButton::pressedon(int /*mx*/, int /*my*/)
         old_state = state;
         // the button is pressed only while the mouse is over it, as it moves
         ags_domouse();
-        state = mouseisinarea(::mousex - game.BuiltinDialogs.WinX, ::mousey - game.BuiltinDialogs.WinY);
+        state = mouseisinarea(services.Input.MouseX - game.BuiltinDialogs.WinX,
+                              services.Input.MouseY - game.BuiltinDialogs.WinY);
         update_polled_stuff();
         if (old_state != state)
         {

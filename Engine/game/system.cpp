@@ -324,13 +324,14 @@ String GetEngineValueName(EngineValueID value_id)
 
 bool System_GetDisplayFPS()
 {
-    return display_fps != kFPS_Hide;
+    return EngineServices::Current().Debug.DisplayFps != kFPS_Hide;
 }
 
 void System_SetDisplayFPS(bool show_fps)
 {
-    if (display_fps != kFPS_Forced)
-        display_fps = show_fps ? kFPS_Display : kFPS_Hide;
+    EngineServices &services = EngineServices::Current();
+    if (services.Debug.DisplayFps != kFPS_Forced)
+        services.Debug.DisplayFps = show_fps ? kFPS_Display : kFPS_Hide;
 }
 
 String GetRuntimeInfo()
@@ -390,7 +391,7 @@ void SetMultitasking(int mode)
     }
 
     // Must run on background if debugger is connected
-    if ((mode == 0) && (editor_debugging_initialized != 0))
+    if ((mode == 0) && (services.Debug.EditorDebuggingInitialized != 0))
     {
         Debug::Printf("SetMultitasking: overridden by the external debugger: %d -> 1", mode);
         mode = 1;

@@ -48,7 +48,6 @@
 #include "game/input/joystick.h"
 #include "game/navigation/route_finder.h"
 #include "game/render/draw.h"
-#include "game/render/dynamic_sprite.h"
 #include "game/script.h"
 #include "game/system.h"
 #include "game/translation.h"
@@ -126,7 +125,7 @@ void winclosehook()
     EngineServices &services = EngineServices::Current();
     services.WantExit = true;
     services.AbortEngine = true;
-    check_dynamic_sprites_at_exit = 0;
+    services.CheckDynamicSpritesAtExit = 0;
     AbortGame();
 }
 
@@ -199,8 +198,8 @@ bool engine_run_setup(const ConfigTree &cfg, const ConfigTree &def_cfg)
             return false;
 
         // Start the game in the new process, and close the current one afterwards
-        String args = String::FromFormat("\"%s\"", appPath.GetCStr());
-        _spawnl(_P_NOWAIT, appPath.GetCStr(), args.GetCStr(), NULL);
+        String args = String::FromFormat("\"%s\"", EngineServices::Current().AppPath.GetCStr());
+        _spawnl(_P_NOWAIT, EngineServices::Current().AppPath.GetCStr(), args.GetCStr(), NULL);
         return false;
     }
 #else
@@ -236,32 +235,33 @@ static String find_game_data_in_config(const String &path)
 // If such config is not found, it scans same location for *any* game data instead.
 String search_for_game_data_file(String &was_searching_in)
 {
+    EngineServices &services = EngineServices::Current();
     Debug::Printf("Looking for the game data.\n Cwd: %s\n Path arg: %s", Directory::GetCurrentDirectory().GetCStr(),
-                  cmdGameDataPath.GetCStr());
+                  services.CmdGameDataPath.GetCStr());
     // 1. From command line argument, which may be a directory or actual file
-    if (!cmdGameDataPath.IsEmpty())
+    if (!services.CmdGameDataPath.IsEmpty())
     {
-        if (File::IsFile(cmdGameDataPath))
-            return cmdGameDataPath; // this path is a file
-        if (!File::IsDirectory(cmdGameDataPath))
+        if (File::IsFile(services.CmdGameDataPath))
+            return services.CmdGameDataPath; // this path is a file
+        if (!File::IsDirectory(services.CmdGameDataPath))
             return ""; // path is neither file nor directory
-        was_searching_in = cmdGameDataPath;
+        was_searching_in = services.CmdGameDataPath;
         Debug::Printf("Searching in (cmd arg): %s", was_searching_in.GetCStr());
         // first scan for config
-        String data_path = find_game_data_in_config(cmdGameDataPath);
+        String data_path = find_game_data_in_config(services.CmdGameDataPath);
         if (!data_path.IsEmpty())
             return data_path;
         // if not found in config, lookup for data in same dir
-        return FindGameData(cmdGameDataPath);
+        return FindGameData(services.CmdGameDataPath);
     }
 
     // 2. Look in other known locations
     // 2.1. Look for attachment in the running executable
-    if (!appPath.IsEmpty() && Common::AssetManager::IsDataFile(appPath))
+    if (!services.AppPath.IsEmpty() && Common::AssetManager::IsDataFile(services.AppPath))
     {
         Debug::Printf("Found game data embedded in executable");
-        was_searching_in = Path::GetDirectoryPath(appPath);
-        return appPath;
+        was_searching_in = Path::GetDirectoryPath(services.AppPath);
+        return services.AppPath;
     }
 
     // 2.2 Look in current working directory
@@ -278,16 +278,16 @@ String search_for_game_data_file(String &was_searching_in)
         return data_path;
 
     // 2.3 Look in executable's directory (if it's different from current dir)
-    if (Path::ComparePaths(appDirectory, cur_dir) == 0)
+    if (Path::ComparePaths(services.AppDirectory, cur_dir) == 0)
         return ""; // no luck
-    was_searching_in = appDirectory;
+    was_searching_in = services.AppDirectory;
     Debug::Printf("Searching in (exe dir): %s", was_searching_in.GetCStr());
     // first scan for config
-    data_path = find_game_data_in_config(appDirectory);
+    data_path = find_game_data_in_config(services.AppDirectory);
     if (!data_path.IsEmpty())
         return data_path;
     // if not found in config, lookup for data in same dir
-    return FindGameData(appDirectory);
+    return FindGameData(services.AppDirectory);
 }
 
 void engine_init_fonts()
@@ -426,8 +426,8 @@ void engine_init_debug()
 {
     EngineServices &services = EngineServices::Current();
     if (services.Config.ShowFps)
-        display_fps = kFPS_Forced;
-    if ((debug_flags & (~(DBG_DEBUGMODE | DBG_DBGSCRIPT))) > 0)
+        services.Debug.DisplayFps = kFPS_Forced;
+    if ((services.Debug.Flags & (~(DBG_DEBUGMODE | DBG_DBGSCRIPT))) > 0)
     {
         services.Platform->DisplayAlert("Engine debugging mode enabled.\n"
                                         "\nNOTE: You have selected to enable one or more engine debugging options. "
@@ -435,7 +435,7 @@ void engine_init_debug()
                                         "may not see the game as you are used to it. The point is to test whether "
                                         "the engine passes a point where it is crashing on you normally.\n"
                                         "[Debug flags enabled: 0x%02X]",
-                                        debug_flags);
+                                        services.Debug.Flags);
     }
 }
 
@@ -868,7 +868,7 @@ void engine_init_game_settings()
     game.Play.lastParserEntry[0] = 0;
     game.Play.follow_change_room_timer = 150;
     game.Play.game_speed_modifier = 0;
-    if (debug_flags & DBG_DEBUGMODE)
+    if (services.Debug.Flags & DBG_DEBUGMODE)
         game.Play.debug_mode = 1;
     game.Play.shake_screen_yoff = 0;
     game.Play.face_dir_ratio = game.faceDirectionRatio;
@@ -889,7 +889,7 @@ void engine_init_game_settings()
     game.DisplayedRoom = -10;
 
     set_our_eip(-4);
-    mousey = 100; // stop icon bar popping up
+    services.Input.MouseY = 100; // stop icon bar popping up
 
     set_game_speed(game.options[OPT_GAMEFPS]);
 
@@ -924,15 +924,16 @@ void engine_setup_scsystem_auxiliary()
 
 void engine_prepare_to_start_game()
 {
+    EngineServices &services = EngineServices::Current();
     Debug::Printf("Prepare to start game");
 
     engine_setup_scsystem_auxiliary();
 
-    if (EngineServices::Current().Config.LoadLatestSave)
+    if (services.Config.LoadLatestSave)
     {
         int slot = GetLastSaveSlot();
         if (slot >= 0)
-            loadSaveGameOnStartup = get_save_game_path(slot);
+            services.LoadSaveGameOnStartup = get_save_game_path(slot);
     }
 }
 
@@ -945,19 +946,20 @@ void engine_prepare_to_start_game()
 // and this is where engine look for all game data.
 HError define_gamedata_location_checkall(String &data_path, String &startup_dir)
 {
+    EngineServices &services = EngineServices::Current();
     // First try if they provided a startup option
-    if (!cmdGameDataPath.IsEmpty())
+    if (!services.CmdGameDataPath.IsEmpty())
     {
         // If not a valid path - bail out
-        if (!File::IsFileOrDir(cmdGameDataPath))
+        if (!File::IsFileOrDir(services.CmdGameDataPath))
             return new Error("Provided game location is not a valid path.\n Cwd: %s\n Path: %s",
-                             Directory::GetCurrentDirectory().GetCStr(), cmdGameDataPath.GetCStr());
+                             Directory::GetCurrentDirectory().GetCStr(), services.CmdGameDataPath.GetCStr());
         // If it's a file, then keep it and proceed
-        if (File::IsFile(cmdGameDataPath))
+        if (File::IsFile(services.CmdGameDataPath))
         {
-            Debug::Printf("Using provided game data path: %s", cmdGameDataPath.GetCStr());
-            startup_dir = Path::GetDirectoryPath(cmdGameDataPath);
-            data_path = cmdGameDataPath;
+            Debug::Printf("Using provided game data path: %s", services.CmdGameDataPath.GetCStr());
+            startup_dir = Path::GetDirectoryPath(services.CmdGameDataPath);
+            data_path = services.CmdGameDataPath;
             return HError::None();
         }
     }
@@ -977,7 +979,7 @@ HError define_gamedata_location_checkall(String &data_path, String &startup_dir)
     Debug::Printf(kDbgMsg_Info, "Located game data pak: %s", data_path.GetCStr());
     return HError::None();
 #else
-    data_path = EngineServices::Current().Platform->GetGameDataFile();
+    data_path = services.Platform->GetGameDataFile();
     if (!data_path.IsEmpty())
     {
         return HError::None();
@@ -1197,7 +1199,7 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
     }
     if (all || keys.count("filepath") > 0)
     {
-        data["filepath"]["exe"] = appPath;
+        data["filepath"]["exe"] = services.AppPath;
         data["filepath"]["cwd"] = Directory::GetCurrentDirectory();
         data["filepath"]["datadir"] = Path::MakePathNoSlash(services.ResPaths.DataDir);
         for (size_t i = 0; i < services.ResPaths.OptDataDirs.size(); ++i)
@@ -1252,16 +1254,16 @@ int initialize_engine(const ConfigTree &startup_opts)
     // Connect to the external debugger, if required;
     // use only startup options here, the full config will be available
     // only after game files location is found
-    if (editor_debugging_enabled && !(justTellInfo || justRunSetup))
+    if (services.Debug.EditorDebuggingEnabled && !(services.JustTellInfo || services.JustRunSetup))
     {
         engine_init_editor_debugging(startup_opts);
     }
 
     //-----------------------------------------------------
     // Locate game data and assemble game config
-    if (justTellInfo && !print_info_needs_game(tellInfoKeys))
+    if (services.JustTellInfo && !print_info_needs_game(services.TellInfoKeys))
     {
-        engine_print_info(tellInfoKeys, nullptr);
+        engine_print_info(services.TellInfoKeys, nullptr);
         return EXIT_NORMAL;
     }
 
@@ -1269,7 +1271,7 @@ int initialize_engine(const ConfigTree &startup_opts)
         return EXIT_ERROR;
 
     // Test if need to run built-in setup program (where available)
-    if (!justTellInfo && justRunSetup)
+    if (!services.JustTellInfo && services.JustRunSetup)
     {
         ConfigTree cfg, def_cfg;
         engine_prepare_config(cfg, &def_cfg, startup_opts);
@@ -1281,9 +1283,9 @@ int initialize_engine(const ConfigTree &startup_opts)
     ConfigTree cfg;
     engine_prepare_config(cfg, nullptr, startup_opts);
     engine_set_config(cfg);
-    if (justTellInfo)
+    if (services.JustTellInfo)
     {
-        engine_print_info(tellInfoKeys, &cfg);
+        engine_print_info(services.TellInfoKeys, &cfg);
         return EXIT_NORMAL;
     }
 
@@ -1370,14 +1372,14 @@ int initialize_engine(const ConfigTree &startup_opts)
         return EXIT_ERROR;
     }
 
-    if ((debug_flags & DBG_DBGSCRIPT) != 0)
+    if ((services.Debug.Flags & DBG_DBGSCRIPT) != 0)
         ccSetDebugLogging(true);
 
     // TODO: move *init_game_settings to game init code unit
     engine_init_game_settings();
     engine_prepare_to_start_game();
 
-    initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
+    initialize_start_and_play_game(services.OverrideStartRoom, services.LoadSaveGameOnStartup);
 
     return EXIT_NORMAL;
 }

@@ -486,9 +486,10 @@ void FreeDynamicScriptThread(ScriptThread *script_thread)
 RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &fn_name, size_t param_count,
                                   const RuntimeScriptValue *params)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     assert(script);
-    int old_restore_count = gameHasBeenRestored;
+    int old_restore_count = services.GameRestoredCount;
     // TODO: research why this is really necessary, and refactor to avoid such hacks!
     // First, save the current ccError state
     // This is necessary because we might be attempting
@@ -542,7 +543,7 @@ RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &fn_
     cc_error(cached_error);
 
     // if the game has been restored, ensure that any further scripts are not run
-    if ((old_restore_count != gameHasBeenRestored) && (game.Events.Claimed == EVENT_INPROGRESS))
+    if ((old_restore_count != services.GameRestoredCount) && (game.Events.Claimed == EVENT_INPROGRESS))
         game.Events.Claimed = EVENT_CLAIMED;
 
     // Convert any instance exec error into RunScriptFunction result;
@@ -578,9 +579,10 @@ bool RunScriptFunctionInRoom(const String &fn_name, size_t param_count, const Ru
 static bool RunEventInModules(const String &fn_name, size_t param_count, const RuntimeScriptValue *params,
                               bool break_after_first)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     const int room_changes_was = game.Play.room_changes;
-    const int restore_game_count_was = gameHasBeenRestored;
+    const int restore_game_count_was = services.GameRestoredCount;
     for (size_t i = 0; i < game.Scripts.NumModules; ++i)
     {
         const RunScFuncResult ret = RunScriptFunction(game.Scripts.Modules[i].get(), fn_name, param_count, params);
@@ -590,7 +592,7 @@ static bool RunEventInModules(const String &fn_name, size_t param_count, const R
             // or if was told to break after the first found callback,
             // or if script execution error occured
             if ((ret != kScFnRes_Done) || break_after_first || (room_changes_was != game.Play.room_changes) ||
-                (restore_game_count_was != gameHasBeenRestored))
+                (restore_game_count_was != services.GameRestoredCount))
                 return ret == kScFnRes_Done; // return if succeeded to run
         }
     }
@@ -748,6 +750,7 @@ void FreeAllScripts()
 // a game, dialogs and so on) to the script below it in the stack, or, if none is left, runs them.
 void PostScriptProcessing()
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     if (cc_has_error())
         quit(cc_get_error().ErrorString);
@@ -806,7 +809,7 @@ void PostScriptProcessing()
             return; // skip any remaining scheduled actions
         case ePSARunAGSGame:
             AbortAllScripts();
-            load_new_game = data1;
+            services.LoadNewGame = data1;
             return; // skip any remaining scheduled actions
         case ePSARunDialog:
             if (is_in_dialog())

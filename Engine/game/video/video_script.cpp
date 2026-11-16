@@ -231,7 +231,7 @@ void PlayFlic(int numb, int scr_flags)
     EndSkippingUntilCharStops();
     if (Game::Current().Play.fast_forward)
         return;
-    if (debug_flags & DBG_NOVIDEO)
+    if (EngineServices::Current().Debug.Flags & DBG_NOVIDEO)
         return;
 
     // Convert PlayFlic flags to common video flags
@@ -279,10 +279,11 @@ void PlayFlic(int numb, int scr_flags)
 
 void PlayVideo(const char *name, int skip, int scr_flags)
 {
+    EngineServices &services = EngineServices::Current();
     EndSkippingUntilCharStops();
     if (Game::Current().Play.fast_forward)
         return;
-    if (debug_flags & DBG_NOVIDEO)
+    if (services.Debug.Flags & DBG_NOVIDEO)
         return;
 
     // Convert PlayVideo flags to common video flags
@@ -315,7 +316,7 @@ void PlayVideo(const char *name, int skip, int scr_flags)
     }
 
     // if audio is disabled, then don't play any sound on the video either
-    if (!EngineServices::Current().Config.AudioEnabled)
+    if (!services.Config.AudioEnabled)
         video_flags &= ~kVideo_EnableAudio;
 
     // for old versions: allow slightly offset video frames

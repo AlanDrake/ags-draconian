@@ -668,7 +668,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     CopyPreservedGameOptions(game, pp);
 
     // Keep the debug mode on if the engine was started in it, whatever the save had
-    if (debug_flags & DBG_DEBUGMODE)
+    if (services.Debug.Flags & DBG_DEBUGMODE)
         game.Play.debug_mode = 1;
 
     // Move the restored dynamic surfaces to where the engine keeps them

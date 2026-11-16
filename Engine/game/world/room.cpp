@@ -843,7 +843,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
     }
 
     room.Script = nullptr;
-    if (debug_flags & DBG_NOSCRIPT)
+    if (services.Debug.Flags & DBG_NOSCRIPT)
         ;
     else if (room.CompiledScript)
     {

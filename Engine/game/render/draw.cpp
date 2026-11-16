@@ -2473,6 +2473,7 @@ static void add_roomovers_for_drawing()
 // Compiles a list of room sprites (characters, objects, background)
 void prepare_room_sprites()
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     Room &room = Room::Current();
     // Background sprite is required for the non-software renderers always,
@@ -2499,13 +2500,13 @@ void prepare_room_sprites()
 
     clear_sprite_list();
 
-    if ((debug_flags & DBG_NOOBJECTS) == 0)
+    if ((services.Debug.Flags & DBG_NOOBJECTS) == 0)
     {
         prepare_objects_for_drawing();
         prepare_characters_for_drawing();
         add_roomovers_for_drawing();
 
-        if ((debug_flags & DBG_NODRAWSPRITES) == 0)
+        if ((services.Debug.Flags & DBG_NODRAWSPRITES) == 0)
         {
             set_our_eip(34);
 
@@ -2769,7 +2770,7 @@ void draw_gui_and_overlays()
 
     // Add GUIs
     set_our_eip(35);
-    if (((debug_flags & DBG_NOIFACE) == 0) && (game.DisplayedRoom >= 0))
+    if (((services.Debug.Flags & DBG_NOIFACE) == 0) && (game.DisplayedRoom >= 0))
     {
         GUI::Options.GreyOutInvWindow = game.Play.inventory_greys_out;
 
@@ -3276,8 +3277,10 @@ void construct_game_screen_overlay(bool draw_cursor)
             // Exclusive sub-batch for mouse cursor, to let filter it out (see RENDER_SHOT_SKIP_ON_FADE)
             services.GfxDriver->BeginSpriteBatch(Rect(), SpriteTransform(), kFlip_None, nullptr,
                                                  RENDER_BATCH_MOUSE_CURSOR);
-            services.GfxDriver->DrawSprite(mousex - game.Cursor.HotX, mousey - game.Cursor.HotY, cursor_tx.Ddb);
-            invalidate_sprite(mousex - game.Cursor.HotX, mousey - game.Cursor.HotY, cursor_tx.Ddb, false);
+            services.GfxDriver->DrawSprite(services.Input.MouseX - game.Cursor.HotX,
+                                           services.Input.MouseY - game.Cursor.HotY, cursor_tx.Ddb);
+            invalidate_sprite(services.Input.MouseX - game.Cursor.HotX, services.Input.MouseY - game.Cursor.HotY,
+                              cursor_tx.Ddb, false);
             services.GfxDriver->EndSpriteBatch();
         }
     }
@@ -3308,7 +3311,7 @@ void construct_engine_overlay()
     const Rect &viewport = RectWH(Game::Current().GetGameRes());
     services.GfxDriver->BeginSpriteBatch(viewport, SpriteTransform(), kFlip_None, nullptr, RENDER_BATCH_ENGINE_OVERLAY);
 
-    if (display_fps != kFPS_Hide)
+    if (services.Debug.DisplayFps != kFPS_Hide)
         draw_fps(viewport);
 
     services.GfxDriver->EndSpriteBatch();

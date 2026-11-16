@@ -480,12 +480,13 @@ int Mouse_IsModeEnabled(int which)
 
 void Mouse_SaveCursorForLocationChange()
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     if (!game.Play.mouse_input_enabled)
         return;
 
     // update the current location name (ignore return value)
-    GetLocationName(mousex, mousey, kHit_Interactable);
+    GetLocationName(services.Input.MouseX, services.Input.MouseY, kHit_Interactable);
 
     if (game.Play.get_loc_name_save_cursor != game.Play.get_loc_name_last_time)
     {
@@ -559,11 +560,12 @@ void Mouse_SetCursorShader(ScriptShaderInstance *shader_inst)
 
 void update_script_mouse_coords()
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     if (game.Play.mouse_input_enabled)
     {
-        game.ScMouse.x = mousex;
-        game.ScMouse.y = mousey;
+        game.ScMouse.x = services.Input.MouseX;
+        game.ScMouse.y = services.Input.MouseY;
     }
     else
     {

@@ -32,7 +32,6 @@
 #include "game/game.h"
 #include "game/game_context.h"
 #include "game/game_def.h"
-#include "game/render/dynamic_sprite.h"
 #include "game/script.h"
 #include "game/world/room.h"
 #include "main/config.h"
@@ -53,11 +52,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 
-int editor_debugging_enabled = 0;
-int editor_debugging_initialized = 0;
-char editor_debugger_instance_token[100];
-IAGSEditorDebugger *editor_debugger = nullptr;
-int break_on_next_script_step = 0;
 volatile int game_paused_in_debugger = 0;
 
 #if AGS_PLATFORM_OS_WINDOWS
@@ -72,10 +66,6 @@ IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 }
 
 #endif
-
-int debug_flags = 0;
-
-FPSDisplayMode display_fps = kFPS_Hide;
 
 int eip_guinum, eip_guiobj;
 
@@ -184,9 +174,9 @@ static std::unique_ptr<IOutputHandler> create_log_output(const String &name, con
             return nullptr;
         return std::move(log_file);
     }
-    else if (name.CompareNoCase(OutputDebuggerLogID) == 0 && editor_debugger != nullptr)
+    else if (name.CompareNoCase(OutputDebuggerLogID) == 0 && services.Debug.EditorDebugger != nullptr)
     {
-        return std::make_unique<DebuggerLogOutputTarget>(editor_debugger);
+        return std::make_unique<DebuggerLogOutputTarget>(services.Debug.EditorDebugger);
     }
     return nullptr;
 }
@@ -345,7 +335,7 @@ void apply_debug_config(const ConfigTree &cfg, bool finalize)
     }
 
     // Engine -> editor logging
-    if (editor_debugging_initialized)
+    if (EngineServices::Current().Debug.EditorDebuggingInitialized)
     {
         apply_log_config(cfg, OutputDebuggerLogID, false, {});
     }
@@ -413,7 +403,7 @@ bool send_state_to_debugger(const String &msg, const String &errorMsg)
         scipt_info.emplace_back("ErrorMessage", errorMsg);
     }
 
-    send_message_to_debugger(editor_debugger, scipt_info, msg);
+    send_message_to_debugger(EngineServices::Current().Debug.EditorDebugger, scipt_info, msg);
     return true;
 }
 
@@ -426,18 +416,18 @@ bool init_editor_debugging(const ConfigTree &cfg)
 {
     EngineServices &services = EngineServices::Current();
 #if AGS_PLATFORM_OS_WINDOWS
-    editor_debugger = GetEditorDebugger(editor_debugger_instance_token);
+    services.Debug.EditorDebugger = GetEditorDebugger(services.Debug.EditorDebuggerInstanceToken);
 #else
     // Editor isn't ported yet
-    editor_debugger = nullptr;
+    services.Debug.EditorDebugger = nullptr;
 #endif
 
-    if (editor_debugger == nullptr)
+    if (services.Debug.EditorDebugger == nullptr)
         quit("editor_debugger is NULL but debugger enabled");
 
-    if (editor_debugger->Initialize())
+    if (services.Debug.EditorDebugger->Initialize())
     {
-        editor_debugging_initialized = 1;
+        services.Debug.EditorDebuggingInitialized = 1;
 
         // Wait for the editor to send the initial breakpoints
         // and then its READY message
@@ -460,9 +450,9 @@ bool init_editor_debugging(const ConfigTree &cfg)
 DebuggerResponse check_for_messages_from_debugger()
 {
     EngineServices &services = EngineServices::Current();
-    if (editor_debugger->IsMessageAvailable())
+    if (services.Debug.EditorDebugger->IsMessageAvailable())
     {
-        char *msg = editor_debugger->GetNextMessage();
+        char *msg = services.Debug.EditorDebugger->GetNextMessage();
         if (msg == nullptr)
         {
             return kDbgResponse_Empty;
@@ -538,7 +528,7 @@ DebuggerResponse check_for_messages_from_debugger()
         {
             Debug::Printf("Debugger: step script");
             game_paused_in_debugger = 0;
-            break_on_next_script_step = 1;
+            services.Debug.BreakOnNextScriptStep = 1;
             response = kDbgResponse_Step;
         }
         else if (strncmp(msgPtr, "EXIT", 4) == 0)
@@ -546,7 +536,7 @@ DebuggerResponse check_for_messages_from_debugger()
             Debug::Printf(kDbgMsg_Info, "Debugger: shutdown engine");
             services.WantExit = true;
             services.AbortEngine = true;
-            check_dynamic_sprites_at_exit = 0;
+            services.CheckDynamicSpritesAtExit = 0;
             response = kDbgResponse_Exit;
         }
         else if (strncmp(msgPtr, "GETVAR", 6) == 0)
@@ -587,7 +577,7 @@ DebuggerResponse check_for_messages_from_debugger()
             {
                 values.push_back(std::make_pair("Error", err->FullMessage()));
             }
-            send_message_to_debugger(editor_debugger, values, "RECVVAR");
+            send_message_to_debugger(services.Debug.EditorDebugger, values, "RECVVAR");
         }
 
         free(msg);
@@ -648,6 +638,7 @@ int scrDebugWait = 0;
 // allow LShift to single-step,  RShift to pause flow
 void scriptDebugHook(ScriptExecutor *exec, int linenum)
 {
+    EngineServices &services = EngineServices::Current();
     if (!exec || !exec->GetRunningScript())
     {
         return; // not inside script
@@ -662,9 +653,9 @@ void scriptDebugHook(ScriptExecutor *exec, int linenum)
     }
 
     // no plugin, use built-in debugger
-    if (break_on_next_script_step)
+    if (services.Debug.BreakOnNextScriptStep)
     {
-        break_on_next_script_step = 0;
+        services.Debug.BreakOnNextScriptStep = 0;
         break_into_debugger();
         return;
     }
@@ -693,7 +684,7 @@ void check_debug_keys()
             scrlockWasDown = 0;
         else if ((ks[SDL_SCANCODE_SCROLLLOCK]) && (!scrlockWasDown))
         {
-            break_on_next_script_step = 1;
+            EngineServices::Current().Debug.BreakOnNextScriptStep = 1;
             scrlockWasDown = 1;
         }
     }

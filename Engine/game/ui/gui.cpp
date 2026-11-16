@@ -50,6 +50,7 @@
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/dynobj/script_user_object.h"
 #include "script/runtimescriptvalue.h"
@@ -199,6 +200,7 @@ int GUI_GetPopupStyle(ScriptGUI *sgui)
 
 void GUI_SetPopupStyle(ScriptGUI *sgui, int popup_style)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     const GUIPopupStyle old_style = game.Guis[sgui->id].GetPopupStyle();
     if (popup_style == old_style)
@@ -232,7 +234,8 @@ void GUI_SetPopupStyle(ScriptGUI *sgui, int popup_style)
 
         if (gui.IsDisplayed() && game.Play.mouse_input_enabled)
         {
-            gui.Poll(mousex, mousey, GetGUIAt(mousex, mousey, kHit_Interactable) == gui.GetID());
+            gui.Poll(services.Input.MouseX, services.Input.MouseY,
+                     GetGUIAt(services.Input.MouseX, services.Input.MouseY, kHit_Interactable) == gui.GetID());
         }
     }
 }
@@ -690,14 +693,15 @@ bool GUI_SetTextProperty(ScriptGUI *sgui, const char *property, const char *valu
 
 void remove_popup_interface(int gui_id)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     if (game.IfacePopped != gui_id)
         return;
     game.IfacePopped = -1;
     UnPauseGame();
     game.Guis[gui_id].SetConceal(true);
-    if (game.Play.mouse_input_enabled && mousey <= game.Guis[gui_id].GetPopupAtY())
-        Mouse::SetPosition(Point(mousex, game.Guis[gui_id].GetPopupAtY() + 2));
+    if (game.Play.mouse_input_enabled && services.Input.MouseY <= game.Guis[gui_id].GetPopupAtY())
+        Mouse::SetPosition(Point(services.Input.MouseX, game.Guis[gui_id].GetPopupAtY() + 2));
     if ((!IsInterfaceEnabled()) && (game.Cursor.Look == game.Cursor.Mode))
         // Only change the mouse cursor if it hasn't been specifically changed first
         set_cursor_look(game.GetModeWait());
@@ -937,6 +941,7 @@ int gui_get_interactable(int x, int y)
 
 int gui_on_mouse_move(const int mx, const int my)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     int mouse_over_gui = -1;
     // If all GUIs are off, no GUI is under the mouse or pops up
@@ -966,7 +971,7 @@ int gui_on_mouse_move(const int mx, const int my)
         if (game.Play.fast_forward)
             continue;
 
-        if (mousey < game.Guis[gui_id].GetPopupAtY())
+        if (services.Input.MouseY < game.Guis[gui_id].GetPopupAtY())
         {
             set_cursor_look(game.GetModePointer());
             game.Guis[gui_id].SetConceal(false);
@@ -1182,6 +1187,7 @@ int FindGUIID(const char *GUIName)
 
 void InterfaceOn(int ifn)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     if ((ifn < 0) | (ifn >= game.numgui))
         quit("!GUIOn: invalid GUI specified");
@@ -1198,7 +1204,8 @@ void InterfaceOn(int ifn)
     if (game.Guis[ifn].GetPopupStyle() == kGUIPopupModal)
         PauseGame();
     if (game.Play.mouse_input_enabled)
-        game.Guis[ifn].Poll(mousex, mousey, GetGUIAt(mousex, mousey, kHit_Interactable) == ifn);
+        game.Guis[ifn].Poll(services.Input.MouseX, services.Input.MouseY,
+                            GetGUIAt(services.Input.MouseX, services.Input.MouseY, kHit_Interactable) == ifn);
 }
 
 void InterfaceOff(int ifn)

@@ -1406,6 +1406,9 @@
     <ClInclude Include="..\..\Engine\device\mousew32.h">
       <Filter>Header Files\device</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\device\input_state.h">
+      <Filter>Header Files\device</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Engine\test\test_all.h">
       <Filter>Header Files\test</Filter>
     </ClInclude>

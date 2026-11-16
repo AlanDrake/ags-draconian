@@ -32,6 +32,7 @@
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/engine_config.h"
+#include "platform/base/engine_services.h"
 #include "util/common.h"
 #include "util/keycode.h"
 #include "util/timer.h"
@@ -75,7 +76,7 @@ int win_width = 0, win_height = 0;
 int CSCIDrawWindow(int x, int y, int width, int height)
 {
     Game &game = Game::Current();
-    ignore_bounds++;
+    EngineServices::Current().Input.IgnoreBounds++;
     int win_id = -1;
     for (int i = 0; i < MAXSCREENWINDOWS; i++)
     {
@@ -109,7 +110,7 @@ int CSCIDrawWindow(int x, int y, int width, int height)
 
 void CSCIEraseWindow(int win_id)
 {
-    ignore_bounds--;
+    EngineServices::Current().Input.IgnoreBounds--;
     Game::Current().BuiltinDialogs.TopWindowHandle = oswi[win_id].oldtop;
     oswi[win_id].handle = -1;
     clear_gui_screen();
@@ -257,13 +258,14 @@ int CSCISendControlMessage(int ctrl_id, int msg, int w_param, intptr_t ip_param)
 // TODO: this is silly, make a uniform formula
 int checkcontrols()
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     if (!game.Play.mouse_input_enabled)
         return 0;
 
     // NOTE: this is because old code was working with full game screen
-    const int mx = ::mousex - game.BuiltinDialogs.WinX;
-    const int my = ::mousey - game.BuiltinDialogs.WinY;
+    const int mx = services.Input.MouseX - game.BuiltinDialogs.WinX;
+    const int my = services.Input.MouseY - game.BuiltinDialogs.WinY;
 
     game.BuiltinDialogs.PostedMessage = 0;
     for (int i = 0; i < MAXCONTROLS; i++)

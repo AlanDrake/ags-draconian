@@ -58,21 +58,11 @@ using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-String appPath;         // engine exe path
-String appDirectory;    // engine dir
-String cmdGameDataPath; // game path received from cmdline
-
-
-// Startup flags, set from parameters to engine
-int override_start_room = 0;
+// Startup flags, set from parameters to engine (the others are EngineServices' members)
 bool justDisplayHelp = false;
 bool justDisplayVersion = false;
-bool justRunSetup = false;
-bool justTellInfo = false;
 bool attachToParentConsole = false;
 bool hideMessageBoxes = false;
-std::set<String> tellInfoKeys;
-String loadSaveGameOnStartup;
 
 
 void main_init(int argc, char *argv[])
@@ -238,11 +228,11 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         }
         else if (ags_stricmp(arg, "--updatereg") == 0)
         {
-            debug_flags |= DBG_REGONLY;
+            services.Debug.Flags |= DBG_REGONLY;
         }
         else if ((ags_stricmp(arg, "--startr") == 0) && (ee < argc - 1))
         {
-            override_start_room = atoi(argv[ee + 1]);
+            services.OverrideStartRoom = atoi(argv[ee + 1]);
             ee++;
         }
         else if (ags_stricmp(arg, "--noexceptionhandler") == 0)
@@ -251,17 +241,18 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         }
         else if (ags_stricmp(arg, "--setup") == 0)
         {
-            justRunSetup = true;
+            services.JustRunSetup = true;
         }
         else if ((ags_stricmp(arg, "--loadsavedgame") == 0) && (argc > ee + 1))
         {
-            loadSaveGameOnStartup = argv[ee + 1];
+            services.LoadSaveGameOnStartup = argv[ee + 1];
             ee++;
         }
         else if ((ags_stricmp(arg, "--enabledebugger") == 0) && (argc > ee + 1))
         {
-            snprintf(editor_debugger_instance_token, sizeof(editor_debugger_instance_token), "%s", argv[ee + 1]);
-            editor_debugging_enabled = 1;
+            snprintf(services.Debug.EditorDebuggerInstanceToken, sizeof(services.Debug.EditorDebuggerInstanceToken),
+                     "%s", argv[ee + 1]);
+            services.Debug.EditorDebuggingEnabled = 1;
             cfg["graphics"]["windowed"] = "1";
             ee++;
         }
@@ -291,9 +282,9 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         else if (ags_strnicmp(arg, "--tell", 6) == 0)
         {
             if (arg[6] == 0)
-                tellInfoKeys.insert(String("all"));
+                services.TellInfoKeys.insert(String("all"));
             else if (arg[6] == '-' && arg[7] != 0)
-                tellInfoKeys.insert(String(arg + 7));
+                services.TellInfoKeys.insert(String(arg + 7));
         }
         //
         // Config overrides
@@ -345,23 +336,23 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         else if (ags_stricmp(arg, "--fps") == 0)
             cfg["misc"]["show_fps"] = "1";
         else if (ags_stricmp(arg, "--test") == 0)
-            debug_flags |= DBG_DEBUGMODE;
+            services.Debug.Flags |= DBG_DEBUGMODE;
         else if (ags_stricmp(arg, "--noiface") == 0)
-            debug_flags |= DBG_NOIFACE;
+            services.Debug.Flags |= DBG_NOIFACE;
         else if (ags_stricmp(arg, "--nosprdisp") == 0)
-            debug_flags |= DBG_NODRAWSPRITES;
+            services.Debug.Flags |= DBG_NODRAWSPRITES;
         else if (ags_stricmp(arg, "--nospr") == 0)
-            debug_flags |= DBG_NOOBJECTS;
+            services.Debug.Flags |= DBG_NOOBJECTS;
         else if (ags_stricmp(arg, "--noupdate") == 0)
-            debug_flags |= DBG_NOUPDATE;
+            services.Debug.Flags |= DBG_NOUPDATE;
         else if (ags_stricmp(arg, "--nosound") == 0)
-            debug_flags |= DBG_NOSFX;
+            services.Debug.Flags |= DBG_NOSFX;
         else if (ags_stricmp(arg, "--nomusic") == 0)
-            debug_flags |= DBG_NOMUSIC;
+            services.Debug.Flags |= DBG_NOMUSIC;
         else if (ags_stricmp(arg, "--noscript") == 0)
-            debug_flags |= DBG_NOSCRIPT;
+            services.Debug.Flags |= DBG_NOSCRIPT;
         else if (ags_stricmp(arg, "--novideo") == 0)
-            debug_flags |= DBG_NOVIDEO;
+            services.Debug.Flags |= DBG_NOVIDEO;
         else if (ags_stricmp(arg, "--rotation") == 0 && (argc > ee + 1))
             cfg["graphics"]["rotation"] = argv[++ee];
         else if (ags_strnicmp(arg, "--log-", 6) == 0 && arg[6] != 0)
@@ -378,7 +369,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             cfg["log"]["sdl"] = arg + 10;
         }
         else if (ags_stricmp(arg, "--script-log") == 0)
-            debug_flags |= DBG_DBGSCRIPT;
+            services.Debug.Flags |= DBG_DBGSCRIPT;
         else if (ags_stricmp(arg, "--console-attach") == 0)
             attachToParentConsole = true;
         else if (ags_stricmp(arg, "--no-message-box") == 0)
@@ -396,11 +387,11 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
 
     if (datafile_argv > 0)
     {
-        cmdGameDataPath = services.Platform->GetCommandArg(datafile_argv);
+        services.CmdGameDataPath = services.Platform->GetCommandArg(datafile_argv);
     }
 
-    if (tellInfoKeys.size() > 0)
-        justTellInfo = true;
+    if (services.TellInfoKeys.size() > 0)
+        services.JustTellInfo = true;
 
     return 0;
 }
@@ -413,7 +404,7 @@ int ags_entry_point(int argc, char *argv[])
 #if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_WINDOWS_MINGW
     setup_malloc_handling();
 #endif
-    debug_flags = 0;
+    services.Debug.Flags = 0;
     // FIXME: this should be in game data init, but currently also set by cmdline
     Game::Current().Play.takeover_data = 0;
 
@@ -437,17 +428,17 @@ int ags_entry_point(int argc, char *argv[])
         return EXIT_NORMAL;
     }
 
-    if (!justTellInfo && !hideMessageBoxes)
+    if (!services.JustTellInfo && !hideMessageBoxes)
         services.Platform->SetGUIMode(true);
 
     Debug::Printf(kDbgMsg_Alert, get_engine_string());
-    init_debug(startup_opts, justTellInfo);
+    init_debug(startup_opts, services.JustTellInfo);
 
-    appPath = Path::MakeAbsolutePath(services.Platform->GetCommandArg(0));
-    appDirectory = Path::GetDirectoryPath(appPath);
+    services.AppPath = Path::MakeAbsolutePath(services.Platform->GetCommandArg(0));
+    services.AppDirectory = Path::GetDirectoryPath(services.AppPath);
 
     // Update shell associations and exit
-    if (debug_flags & DBG_REGONLY)
+    if (services.Debug.Flags & DBG_REGONLY)
         exit(EXIT_NORMAL);
 
     int result = 0;

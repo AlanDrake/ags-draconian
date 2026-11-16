@@ -350,11 +350,6 @@ class SpriteCache;
 // The game's sprites.
 extern AGS::Common::SpriteCache spriteset;
 
-// A request to run another game (the mode and flags given to RunAGSGame), served by the game loop; 0 when none.
-extern unsigned int load_new_game;
-// Counts the restore attempts, so that a script run that was in progress can tell that one happened (script.cpp)
-extern int gameHasBeenRestored;
-
 struct CCAudioClip;
 
 // Used by the script bindings in game/script_api/audio_channel_api.cpp
@@ -686,7 +681,7 @@ void UnPauseGame();
 // Returns 1 if the game is paused, else 0.
 int IsGamePaused();
 // Runs another game file. Without RAGMODE_LOADNOW in mode, only stores the new game and data (game.Play.takeover_data)
-// and schedules the switch: after the script ends if called from a script, else through load_new_game. With it,
+// and schedules the switch: after the script ends if called from a script, else through EngineServices::LoadNewGame. With it,
 // unloads the current game, loads new_game, and starts it or, if load_new_game_restore is set, restores that save.
 // Quits on an unknown mode or when run from the editor's debugger. Always returns 0.
 int RunAGSGame(const AGS::Common::String &new_game, unsigned int mode, int data);

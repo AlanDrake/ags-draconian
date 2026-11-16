@@ -25,6 +25,7 @@
 #include "game/ui/mouse.h"
 #include "main/engine.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/engine_services.h"
 #include "platform/base/sys_main.h"
 #include "platform/platform.h"
 #include "util/common.h"
@@ -361,8 +362,6 @@ KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event)
 static std::deque<SDL_Event> g_inputEvtQueue;
 
 std::vector<SDL_Keysym> sys_keysdown;
-int sys_modkeys = 0;            // saved accumulated key mods
-bool sys_modkeys_fired = false; // saved mod key combination already fired
 
 bool ags_hasinputevent_ready(InputType &type)
 {
@@ -569,12 +568,10 @@ const int MouseButton2Bits[kNumMouseButtons] = {0, MouseBitLeft, MouseBitRight, 
 
 // Latest mouse button state
 static int mouse_button_state = 0;
-// Accumulated absolute and relative mouse device motion.
+// Accumulated absolute and relative mouse device motion (the absolute position and the wheel are
+// EngineServices::Input.SysMouseX, SysMouseY and SysMouseZ).
 // May be retrieved by calling *acquire_absxy and *acquire_relxy functions,
 // after which these are reset, until next motion event is received.
-volatile int sys_mouse_x = 0; // mouse x position
-volatile int sys_mouse_y = 0; // mouse y position
-volatile int sys_mouse_z = 0; // mouse wheel position
 // Relative x and y deltas
 static int mouse_accum_relx = 0, mouse_accum_rely = 0;
 // ID of a device, which mouse events will be ignored (for easier testing)
@@ -619,10 +616,13 @@ static void send_mouse_motion_event(int device, int x, int y, int xrel, int yrel
 
 void ags_simulate_mouseclick(eAGSMouseButton but)
 {
+    EngineServices &services = EngineServices::Current();
     // Simulate using SDL_TOUCH_MOUSEID pseudo-device, in order to distinguish
     // from the real mouse device (we may also allocate our own ID if necessary)
-    send_mouse_button_event(SDL_MOUSEBUTTONDOWN, SDL_TOUCH_MOUSEID, ags_button_to_sdl(but), sys_mouse_x, sys_mouse_y);
-    send_mouse_button_event(SDL_MOUSEBUTTONUP, SDL_TOUCH_MOUSEID, ags_button_to_sdl(but), sys_mouse_x, sys_mouse_y);
+    send_mouse_button_event(SDL_MOUSEBUTTONDOWN, SDL_TOUCH_MOUSEID, ags_button_to_sdl(but), services.Input.SysMouseX,
+                            services.Input.SysMouseY);
+    send_mouse_button_event(SDL_MOUSEBUTTONUP, SDL_TOUCH_MOUSEID, ags_button_to_sdl(but), services.Input.SysMouseX,
+                            services.Input.SysMouseY);
 }
 
 // Syncs all the emulated mouse devices with the real sys_mouse_* coords
@@ -630,11 +630,12 @@ static void sync_sys_mouse_pos();
 
 static void on_sdl_mouse_motion(const SDL_MouseMotionEvent &event)
 {
+    EngineServices &services = EngineServices::Current();
     if (event.which == disabled_mouse_device)
         return;
 
-    sys_mouse_x = event.x;
-    sys_mouse_y = event.y;
+    services.Input.SysMouseX = event.x;
+    services.Input.SysMouseY = event.y;
     mouse_accum_relx += event.xrel;
     mouse_accum_rely += event.yrel;
     sync_sys_mouse_pos();
@@ -642,19 +643,21 @@ static void on_sdl_mouse_motion(const SDL_MouseMotionEvent &event)
 
 static void on_sdl_mouse_down(const SDL_Event &event)
 {
+    EngineServices &services = EngineServices::Current();
     if (event.button.which == disabled_mouse_device)
         return;
 
-    sys_mouse_x = event.button.x;
-    sys_mouse_y = event.button.y;
+    services.Input.SysMouseX = event.button.x;
+    services.Input.SysMouseY = event.button.y;
     mouse_button_state |= sdl_button_to_mask(event.button.button);
     g_inputEvtQueue.push_back(event);
 }
 
 static void on_sdl_mouse_up(const SDL_Event &event)
 {
-    sys_mouse_x = event.button.x;
-    sys_mouse_y = event.button.y;
+    EngineServices &services = EngineServices::Current();
+    services.Input.SysMouseX = event.button.x;
+    services.Input.SysMouseY = event.button.y;
     mouse_button_state &= ~sdl_button_to_mask(event.button.button);
     // Uncomment when need to handle mouse up event in the game states
     //g_inputEvtQueue.push_back(event);
@@ -665,7 +668,7 @@ static void on_sdl_mouse_wheel(const SDL_MouseWheelEvent &event)
     if (event.which == disabled_mouse_device)
         return;
 
-    sys_mouse_z += event.y;
+    EngineServices::Current().Input.SysMouseZ += event.y;
 }
 
 void ags_domouse()
@@ -675,15 +678,16 @@ void ags_domouse()
 
 int ags_check_mouse_wheel()
 {
-    if (sys_mouse_z == mouse_z_was)
+    EngineServices &services = EngineServices::Current();
+    if (services.Input.SysMouseZ == mouse_z_was)
         return 0;
 
     int result = 0;
-    if (sys_mouse_z > mouse_z_was)
+    if (services.Input.SysMouseZ > mouse_z_was)
         result = 1; // eMouseWheelNorth
     else
         result = -1; // eMouseWheelSouth
-    mouse_z_was = sys_mouse_z;
+    mouse_z_was = services.Input.SysMouseZ;
     return result;
 }
 
@@ -857,6 +861,7 @@ static int calc_relative_delta(float value, float scale, float &accum)
 // based on touch position and delta, and t2m emulation settings
 static void set_t2m_pos(float x, float y, float dx, float dy)
 {
+    EngineServices &services = EngineServices::Current();
     // CHECKME: can't we use SDL window size here, or anything similar?
     const int w = gl_SysConfig.DisplayMode.Width;
     const int h = gl_SysConfig.DisplayMode.Height;
@@ -883,7 +888,7 @@ static void set_t2m_pos(float x, float y, float dx, float dy)
     {
         // In relative mode, if no position was init yet, then apply last known sys mouse pos
         if (!t2m.emul_pos_init)
-            t2m.emul_pos = Point(sys_mouse_x, sys_mouse_y);
+            t2m.emul_pos = Point(services.Input.SysMouseX, services.Input.SysMouseY);
         // delta from the last remembered pos
         t2m.emul_pos = t2m.emul_pos + t2m.emul_delta;
     }
@@ -899,9 +904,10 @@ static void set_t2m_pos(float x, float y, float dx, float dy)
 // Syncs all the emulated mouse devices with the real sys_mouse_* coords
 static void sync_sys_mouse_pos()
 {
+    EngineServices &services = EngineServices::Current();
     if (t2m.emul_pos_init)
     {
-        t2m.emul_pos = Point(sys_mouse_x, sys_mouse_y);
+        t2m.emul_pos = Point(services.Input.SysMouseX, services.Input.SysMouseY);
     }
 }
 
@@ -1112,11 +1118,12 @@ static void on_sdl_touch_motion(const SDL_Event &event)
 
 void ags_clear_input_state()
 {
+    EngineServices &services = EngineServices::Current();
     // clear everything related to the input state
     ags_clear_input_queue();
     sys_keysdown.clear();
-    sys_modkeys = 0;
-    sys_modkeys_fired = false;
+    services.Input.ModKeys = 0;
+    services.Input.ModKeysFired = false;
     mouse_button_state = 0;
     ags_clear_mouse_movement();
     ResetAllTouchPointers();

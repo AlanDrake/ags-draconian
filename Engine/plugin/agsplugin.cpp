@@ -54,7 +54,6 @@
 #include "gfx/sprite_cache.h"
 #include "main/engine.h"
 #include "main/game_run.h"
-#include "main/main.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/engine_services.h"
 #include "plugin/plugin_builtin.h"
@@ -267,10 +266,11 @@ void IAGSEngine::ReleaseBitmapSurface(BITMAP *bmp)
 
 void IAGSEngine::GetMousePosition(int32 *x, int32 *y)
 {
+    EngineServices &services = EngineServices::Current();
     if (x)
-        x[0] = mousex;
+        x[0] = services.Input.MouseX;
     if (y)
-        y[0] = mousey;
+        y[0] = services.Input.MouseY;
 }
 int IAGSEngine::GetCurrentRoom()
 {
@@ -802,7 +802,7 @@ void IAGSEngine::GetMovementPathWaypointSpeed(int32 path_id, int32 waypoint, int
 
 int IAGSEngine::IsRunningUnderDebugger()
 {
-    return (editor_debugging_initialized != 0) ? 1 : 0;
+    return (EngineServices::Current().Debug.EditorDebuggingInitialized != 0) ? 1 : 0;
 }
 
 void IAGSEngine::GetPathToFileInCompiledFolder(const char *file_name, char *buffer)
@@ -813,7 +813,7 @@ void IAGSEngine::GetPathToFileInCompiledFolder(const char *file_name, char *buff
 
 void IAGSEngine::BreakIntoDebugger()
 {
-    break_on_next_script_step = 1;
+    EngineServices::Current().Debug.BreakOnNextScriptStep = 1;
 }
 
 IAGSFontRenderer *IAGSEngine::ReplaceFontRenderer(int font_id, IAGSFontRenderer *new_renderer)
@@ -1173,8 +1173,8 @@ GameInitError pl_register_plugins(const std::vector<PluginInfo> &infos, bool ena
 {
     EngineServices &services = EngineServices::Current();
     std::vector<String> lookup_dirs;
-    lookup_dirs.push_back(appDirectory);
-    if (services.ResPaths.DataDir != appDirectory)
+    lookup_dirs.push_back(services.AppDirectory);
+    if (services.ResPaths.DataDir != services.AppDirectory)
         lookup_dirs.push_back(services.ResPaths.DataDir);
 
     for (size_t inf_index = 0; inf_index < infos.size(); ++inf_index)

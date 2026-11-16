@@ -24,12 +24,6 @@ struct ScriptPosition;
 }
 } // namespace AGS
 
-extern int editor_debugging_enabled;
-extern int editor_debugging_initialized;
-extern char editor_debugger_instance_token[100];
-extern IAGSEditorDebugger *editor_debugger;
-extern int break_on_next_script_step;
-
 enum DebuggerResponse
 {
     kDbgResponse_Empty,  // no message, or failed to parse
@@ -66,8 +60,18 @@ enum FPSDisplayMode
     kFPS_Forced = 2   // forced shown by the engine arg
 };
 
-extern FPSDisplayMode display_fps;
-extern int debug_flags;
+// The state of the debugging aids (debug/debug.cpp): the link to the editor's debugger, the debug flags of the
+// command line, the FPS display; held by EngineServices::Debug.
+struct DebugState
+{
+    int EditorDebuggingEnabled = 0;
+    int EditorDebuggingInitialized = 0;
+    char EditorDebuggerInstanceToken[100] = {};
+    IAGSEditorDebugger *EditorDebugger = nullptr;
+    int BreakOnNextScriptStep = 0;
+    FPSDisplayMode DisplayFps = kFPS_Hide;
+    int Flags = 0; // DBG_* flags
+};
 
 // What was being drawn last, for crash reports: the index of a GUI, room object or character in eip_guinum,
 // the mark that the GUI drawing code leaves through set_eip_guiobj in eip_guiobj.

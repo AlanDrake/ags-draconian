@@ -49,6 +49,7 @@
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/engine_services.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "script/scriptexecutor.h"
 #include "util/common.h"
@@ -1253,6 +1254,7 @@ void DialogOptions::Draw()
 
 bool DialogOptions::Run()
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     // Run() can be called in a loop, so keep events going.
     sys_evt_process_pending();
@@ -1315,7 +1317,7 @@ bool DialogOptions::Run()
     else if (usingCustomRendering)
     {
         // Old custom rendering
-        if (game.Play.mouse_input_enabled && position.IsInside(mousex, mousey))
+        if (game.Play.mouse_input_enabled && position.IsInside(services.Input.MouseX, services.Input.MouseY))
         {
             // Run "dialog_options_get_active"
             game.Scripts.GetDialogOptionUnderCursor.Params[0].SetScriptObject(ccDialogOptionsRendering,
@@ -1342,9 +1344,9 @@ bool DialogOptions::Run()
         // Default rendering: detect option under mouse
         if (game.Play.mouse_input_enabled && Rect(position.Left + inner_position.X, position.Top + inner_position.Y,
                                                   position.Left + inner_position.X + areawid, position.Top + curyp)
-                                                 .IsInside(mousex, mousey))
+                                                 .IsInside(services.Input.MouseX, services.Input.MouseY))
         {
-            const int rel_mouse_y = mousey - position.Top;
+            const int rel_mouse_y = services.Input.MouseY - position.Top;
             mouseison = numdisp - 1;
             for (int i = 0; i < numdisp; ++i)
             {
@@ -1362,7 +1364,7 @@ bool DialogOptions::Run()
     // Handle mouse over parser
     if (parserInput)
     {
-        const int rel_mouse_y = mousey - position.Top;
+        const int rel_mouse_y = services.Input.MouseY - position.Top;
         if ((rel_mouse_y > parserInput->GetY()) && (rel_mouse_y < parserInput->GetY() + parserInput->GetHeight()))
             mouseison = DLG_OPTION_PARSER;
     }

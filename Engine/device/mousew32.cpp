@@ -28,7 +28,6 @@
 #include "device/sys_events.h"
 #include "game/game_context.h"
 #include "gfx/bitmap.h"
-#include "main/graphics_mode.h"
 #include "platform/base/engine_services.h"
 #include "platform/base/sys_main.h"
 
@@ -36,12 +35,9 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 
-// virtual mouse cursor coordinates (in game coords)
-int mousex = 0, mousey = 0;
 // real mouse coordinates and bounds (in window coords)
 static int real_mouse_x = 0, real_mouse_y = 0;
 static Rect mouse_bounds;
-int ignore_bounds = 0; // NOTE: this works as a counter for some reason, review later
 
 namespace Mouse
 {
@@ -71,7 +67,7 @@ Point Mouse::SysToGamePos(int sys_mx, int sys_my)
     // Clamp to control rect, and optionally script bounds
     int mx = Math::Clamp(sys_mx, Mouse::ControlRect.Left, Mouse::ControlRect.Right);
     int my = Math::Clamp(sys_my, Mouse::ControlRect.Top, Mouse::ControlRect.Bottom);
-    if (ignore_bounds == 0)
+    if (EngineServices::Current().Input.IgnoreBounds == 0)
     {
         mx = Math::Clamp(mx, mouse_bounds.Left, mouse_bounds.Right);
         my = Math::Clamp(my, mouse_bounds.Top, mouse_bounds.Bottom);
@@ -83,6 +79,7 @@ Point Mouse::SysToGamePos(int sys_mx, int sys_my)
 
 void Mouse::Poll()
 {
+    EngineServices &services = EngineServices::Current();
     // TODO: [sonneveld] find out where Poll is needed, are events polled before that?
     sys_evt_process_pending();
 
@@ -93,32 +90,33 @@ void Mouse::Poll()
 
     // Save absolute cursor coordinates provided by system
     // NOTE: relative motion and the speed factor should already be applied by SDL2 or our custom devices.
-    real_mouse_x = Math::Clamp((int)sys_mouse_x, Mouse::ControlRect.Left, Mouse::ControlRect.Right);
-    real_mouse_y = Math::Clamp((int)sys_mouse_y, Mouse::ControlRect.Top, Mouse::ControlRect.Bottom);
+    real_mouse_x = Math::Clamp((int)services.Input.SysMouseX, Mouse::ControlRect.Left, Mouse::ControlRect.Right);
+    real_mouse_y = Math::Clamp((int)services.Input.SysMouseY, Mouse::ControlRect.Top, Mouse::ControlRect.Bottom);
 
     // Set new in-game cursor position, convert to the in-game logic coordinates
-    mousex = real_mouse_x;
-    mousey = real_mouse_y;
+    services.Input.MouseX = real_mouse_x;
+    services.Input.MouseY = real_mouse_y;
     // Optionally apply script bounds
-    if ((ignore_bounds == 0) && (!mouse_bounds.IsInside(mousex, mousey)))
+    if ((services.Input.IgnoreBounds == 0) && (!mouse_bounds.IsInside(services.Input.MouseX, services.Input.MouseY)))
     {
-        mousex = Math::Clamp(mousex, mouse_bounds.Left, mouse_bounds.Right);
-        mousey = Math::Clamp(mousey, mouse_bounds.Top, mouse_bounds.Bottom);
-        Mouse::SetSysPosition(mousex, mousey);
+        services.Input.MouseX = Math::Clamp(services.Input.MouseX, mouse_bounds.Left, mouse_bounds.Right);
+        services.Input.MouseY = Math::Clamp(services.Input.MouseY, mouse_bounds.Top, mouse_bounds.Bottom);
+        Mouse::SetSysPosition(services.Input.MouseX, services.Input.MouseY);
     }
     // Convert to virtual coordinates
-    Mouse::WindowToGame(mousex, mousey);
+    Mouse::WindowToGame(services.Input.MouseX, services.Input.MouseY);
 }
 
 void Mouse::SetSysPosition(int x, int y)
 {
-    sys_mouse_x = x;
-    sys_mouse_y = y;
+    EngineServices &services = EngineServices::Current();
+    services.Input.SysMouseX = x;
+    services.Input.SysMouseY = y;
     real_mouse_x = x;
     real_mouse_y = y;
 
     // move the real system cursor, but only if the game has a focus
-    if (!EngineServices::Current().SwitchedAway)
+    if (!services.SwitchedAway)
         sys_window_set_mouse(real_mouse_x, real_mouse_y);
 }
 
@@ -131,14 +129,15 @@ int Mouse::GetButtonCount()
 
 void Mouse::WindowToGame(int &x, int &y)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    x = GameScaling.X.UnScalePt(x) - game.Play.GetMainViewport().Left;
-    y = GameScaling.Y.UnScalePt(y) - game.Play.GetMainViewport().Top;
+    x = services.GameScaling.X.UnScalePt(x) - game.Play.GetMainViewport().Left;
+    y = services.GameScaling.Y.UnScalePt(y) - game.Play.GetMainViewport().Top;
 }
 
 void Mouse::UpdateGraphicArea()
 {
-    Mouse::ControlRect = GameScaling.ScaleRange(Game::Current().Play.GetMainViewport());
+    Mouse::ControlRect = EngineServices::Current().GameScaling.ScaleRange(Game::Current().Play.GetMainViewport());
     Debug::Printf("Mouse cursor graphic area: (%d,%d)-(%d,%d) (%dx%d)", Mouse::ControlRect.Left, Mouse::ControlRect.Top,
                   Mouse::ControlRect.Right, Mouse::ControlRect.Bottom, Mouse::ControlRect.GetWidth(),
                   Mouse::ControlRect.GetHeight());
@@ -147,14 +146,15 @@ void Mouse::UpdateGraphicArea()
 void Mouse::SetMoveLimit(const Rect &r)
 {
     Rect src_r = OffsetRect(r, Game::Current().Play.GetMainViewport().GetLT());
-    mouse_bounds = GameScaling.ScaleRange(src_r);
+    mouse_bounds = EngineServices::Current().GameScaling.ScaleRange(src_r);
 }
 
 void Mouse::SetPosition(const Point &p)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    Mouse::SetSysPosition(GameScaling.X.ScalePt(p.X + game.Play.GetMainViewport().Left),
-                          GameScaling.Y.ScalePt(p.Y + game.Play.GetMainViewport().Top));
+    Mouse::SetSysPosition(services.GameScaling.X.ScalePt(p.X + game.Play.GetMainViewport().Left),
+                          services.GameScaling.Y.ScalePt(p.Y + game.Play.GetMainViewport().Top));
 }
 
 bool Mouse::IsLockedToWindow()

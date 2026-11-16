@@ -37,7 +37,6 @@
 #include "game/input/joystick.h"
 #include "game/input/touch.h"
 #include "game/render/draw.h"
-#include "game/render/dynamic_sprite.h"
 #include "game/render/overlay.h"
 #include "game/script.h"
 #include "game/ui/animating_gui_button.h"
@@ -359,15 +358,16 @@ static int wasongui = 0;
 // Runs default handling of mouse movement, button state, and wheel
 static void check_mouse_state(int &was_mouse_on_iface)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     if (!game.Play.mouse_input_enabled)
         return;
 
-    game.MouseOnIface = gui_on_mouse_move(mousex, mousey);
+    game.MouseOnIface = gui_on_mouse_move(services.Input.MouseX, services.Input.MouseY);
     was_mouse_on_iface = game.MouseOnIface;
 
     if ((game.IfacePopped >= 0) &&
-        (mousey >= game.Guis[game.IfacePopped].GetY() + game.Guis[game.IfacePopped].GetHeight()))
+        (services.Input.MouseY >= game.Guis[game.IfacePopped].GetY() + game.Guis[game.IfacePopped].GetHeight()))
         remove_popup_interface(game.IfacePopped);
 
     // check mouse clicks on GUIs
@@ -379,19 +379,20 @@ static void check_mouse_state(int &was_mouse_on_iface)
     {
         eAGSMouseButton mouse_btn_up = wasbutdown;
         wasbutdown = kMouseNone; // reset before event, avoid recursive call of "mouse up"
-        gui_on_mouse_up(wasongui, mouse_btn_up, mousex, mousey);
+        gui_on_mouse_up(wasongui, mouse_btn_up, services.Input.MouseX, services.Input.MouseY);
     }
 
     int mwheelz = ags_check_mouse_wheel();
     if (mwheelz < 0)
-        setevent(AGSEvent_Script(kTS_MouseClick, 9, mousex, mousey));
+        setevent(AGSEvent_Script(kTS_MouseClick, 9, services.Input.MouseX, services.Input.MouseY));
     else if (mwheelz > 0)
-        setevent(AGSEvent_Script(kTS_MouseClick, 8, mousex, mousey));
+        setevent(AGSEvent_Script(kTS_MouseClick, 8, services.Input.MouseX, services.Input.MouseY));
 }
 
 // Runs default mouse button handling
 static void check_mouse_controls(const int was_mouse_on_iface)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     eAGSMouseButton mbut;
     Point mpos;
@@ -436,10 +437,10 @@ static void check_mouse_controls(const int was_mouse_on_iface)
         {
             if (wasbutdown == kMouseNone)
             {
-                // FIXME: passes the current mousex, mousey, which differ from mpos (the position recorded
+                // FIXME: passes the current Input.MouseX, MouseY, which differ from mpos (the position recorded
                 // with the click event) when the cursor moved after the click was queued; passing mpos needs
                 // a check of how it affects other GUI processing (mouse up and motion)
-                gui_on_mouse_down(was_mouse_on_iface, mbut, mousex, mousey);
+                gui_on_mouse_down(was_mouse_on_iface, mbut, services.Input.MouseX, services.Input.MouseY);
             }
             wasongui = was_mouse_on_iface;
             wasbutdown = mbut;
@@ -456,6 +457,7 @@ static void check_mouse_controls(const int was_mouse_on_iface)
 //   because game variables may store old-style key + mod codes.
 bool run_service_key_controls(KeyInput &out_key)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     Room &room = Room::Current();
     out_key = KeyInput(); // clear the output
@@ -479,7 +481,7 @@ bool run_service_key_controls(KeyInput &out_key)
     // * if at least one of those gathered mod-keys was released.
     //
     // TODO: maybe split this mod handling into sep procedure and make it easier to use (not that it's used alot)?
-    int cur_mod = sys_modkeys;
+    int cur_mod = services.Input.ModKeys;
     bool is_only_mod_key = false;
     switch (key_evt.type)
     {
@@ -495,31 +497,31 @@ bool run_service_key_controls(KeyInput &out_key)
 
     // If mods combination have already triggered an action,
     // then do nothing until all the current mods are released
-    if (!sys_modkeys_fired)
+    if (!services.Input.ModKeysFired)
     {
         // If any non-mod key is pressed, add "fired" flag to indicate that
         // this is no longer a pure mod keys combination
-        if ((sys_modkeys != 0) && !is_only_mod_key)
+        if ((services.Input.ModKeys != 0) && !is_only_mod_key)
         {
-            sys_modkeys_fired = true;
+            services.Input.ModKeysFired = true;
         }
         // If some of the previously pressed mods were released, then run key combo action
         // and set "fired" flag to prevent multiple execution
-        else if ((sys_modkeys != 0) && ((sys_modkeys & cur_mod) != sys_modkeys))
+        else if ((services.Input.ModKeys != 0) && ((services.Input.ModKeys & cur_mod) != services.Input.ModKeys))
         {
             // Toggle mouse lock on Ctrl + Alt
-            if (sys_modkeys == (KMOD_CTRL | KMOD_ALT))
+            if (services.Input.ModKeys == (KMOD_CTRL | KMOD_ALT))
             {
                 toggle_mouse_lock();
                 handled = true;
             }
-            sys_modkeys_fired = true;
+            services.Input.ModKeysFired = true;
         }
     }
     // Save new mod flags, keep or erase the "fired" flag,
     // depending on whether there are any mod keys still pressed
-    sys_modkeys = cur_mod;
-    sys_modkeys_fired = sys_modkeys_fired && (cur_mod != 0);
+    services.Input.ModKeys = cur_mod;
+    services.Input.ModKeysFired = services.Input.ModKeysFired && (cur_mod != 0);
 
     // If a service key combination was handled, then stop here
     if (handled)
@@ -544,11 +546,11 @@ bool run_service_key_controls(KeyInput &out_key)
     if ((game.DisplayedRoom >= 0) && (game.Play.abort_key > 0) && (ags_combo_key == game.Play.abort_key))
     {
         Debug::Printf("Abort key pressed");
-        check_dynamic_sprites_at_exit = 0;
+        services.CheckDynamicSpritesAtExit = 0;
         quit("!|");
     }
 
-    if ((ags_combo_key == eAGSKeyCodeCtrlE) && (display_fps == kFPS_Forced))
+    if ((ags_combo_key == eAGSKeyCodeCtrlE) && (services.Debug.DisplayFps == kFPS_Forced))
     {
         // if --fps parameter is used, Ctrl+E will toggle maxed out frame rate
         setTimerFps(game.FramesPerSecond, !isTimerFpsMaxed());
@@ -1002,7 +1004,7 @@ static void game_loop_update_game_counters()
 
 static void GameUpdateGameState()
 {
-    if ((debug_flags & DBG_NOUPDATE) == 0)
+    if ((EngineServices::Current().Debug.Flags & DBG_NOUPDATE) == 0)
     {
         if (Game::Current().Paused == 0)
         {
@@ -1066,25 +1068,27 @@ static void update_overlay_positions()
 // TODO: possibly may be merged with gui_on_mouse_move()
 static void update_cursor_over_gui()
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    if (((debug_flags & DBG_NOIFACE) != 0) || (game.DisplayedRoom < 0))
+    if (((services.Debug.Flags & DBG_NOIFACE) != 0) || (game.DisplayedRoom < 0))
         return; // GUI is disabled (debug flag) or room is not loaded
     if (!IsInterfaceEnabled() || !game.Play.mouse_input_enabled)
         return; // interface is disabled (by script or blocking action)
     // Poll guis
-    int focused_gui = GetGUIAt(mousex, mousey, kHit_Interactable);
+    int focused_gui = GetGUIAt(services.Input.MouseX, services.Input.MouseY, kHit_Interactable);
     for (auto &gui : game.Guis)
     {
         if (!gui.IsDisplayed())
             continue; // not on screen
         if (!gui.IsClickable())
             continue; // don't update non-clickable
-        gui.Poll(mousex, mousey, focused_gui == gui.GetID());
+        gui.Poll(services.Input.MouseX, services.Input.MouseY, focused_gui == gui.GetID());
     }
 }
 
 static void update_cursor_view()
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     // update animating mouse cursor
     // NOTE: we are still doing this even if the in-game mouse input is disabled,
@@ -1093,10 +1097,12 @@ static void update_cursor_view()
     if (mcur.view >= 0 && mcur.view < game.numviews)
     {
         // only on mousemove, and it's not moving
-        if (((mcur.flags & MCF_ANIMMOVE) != 0) && (mousex == game.Cursor.LastX) && (mousey == game.Cursor.LastY))
+        if (((mcur.flags & MCF_ANIMMOVE) != 0) && (services.Input.MouseX == game.Cursor.LastX) &&
+            (services.Input.MouseY == game.Cursor.LastY))
             ;
         // only on hotspot, and it's not on one
-        else if (((mcur.flags & MCF_HOTSPOT) != 0) && (GetLocationType(mousex, mousey, kHit_Interactable) == 0))
+        else if (((mcur.flags & MCF_HOTSPOT) != 0) &&
+                 (GetLocationType(services.Input.MouseX, services.Input.MouseY, kHit_Interactable) == 0))
             set_new_cursor_graphic(mcur.pic);
         else if (game.Cursor.Delay > 0)
             game.Cursor.Delay--;
@@ -1112,14 +1118,15 @@ static void update_cursor_view()
             game.Cursor.Delay = game.Views[viewnum].loops[loopnum].frames[game.Cursor.Frame].speed + mcur.animdelay;
             CheckViewFrame(viewnum, loopnum, game.Cursor.Frame);
         }
-        game.Cursor.LastX = mousex;
-        game.Cursor.LastY = mousey;
+        game.Cursor.LastX = services.Input.MouseX;
+        game.Cursor.LastY = services.Input.MouseY;
     }
 }
 
 // Update the "saved cursor until it leaves location" state
 static void UpdateSavedCursorOverLocation()
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     if (!game.Play.mouse_input_enabled)
         return;
@@ -1128,7 +1135,7 @@ static void UpdateSavedCursorOverLocation()
     // if the result it returns has changed from last time
     // The comparison below needs this: GetLocationName() is what updates get_loc_name_last_time. UpdateGUIContext()
     // calls it again, but at the end of the tick, after the input and the script events.
-    GetLocationName(mousex, mousey, kHit_Interactable);
+    GetLocationName(services.Input.MouseX, services.Input.MouseY, kHit_Interactable);
 
     if ((game.Play.get_loc_name_save_cursor.IsDefined()) &&
         (game.Play.get_loc_name_save_cursor != game.Play.get_loc_name_last_time) && (game.MouseOnIface < 0) &&
@@ -1154,6 +1161,7 @@ static void UpdateSavedCursorOverLocation()
 // This will be required for GUI labels render.
 static void UpdateGUIContext()
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     if (game.Play.fast_forward)
         return;
@@ -1177,19 +1185,20 @@ static void UpdateGUIContext()
     if (!IsInterfaceEnabled() || game.Events.InRoomTransition || !game.Play.mouse_input_enabled)
         GUI::Context.Overhotspot = "";
     else
-        GUI::Context.Overhotspot = GetLocationName(mousex, mousey, kHit_Interactable);
+        GUI::Context.Overhotspot = GetLocationName(services.Input.MouseX, services.Input.MouseY, kHit_Interactable);
 }
 
 // Detect mouse move over hotspot, and run respective event if necessary
 static void update_cursor_over_location(int mouse_was_x, int mouse_was_y)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     if (game.Play.fast_forward)
         return;
     if (game.DisplayedRoom < 0 || !game.Play.mouse_input_enabled)
         return;
 
-    auto view = game.Play.GetRoomViewportAt(mousex, mousey);
+    auto view = game.Play.GetRoomViewportAt(services.Input.MouseX, services.Input.MouseY);
     auto cam = view ? view->GetCamera() : nullptr;
     if (!cam)
         return;
@@ -1202,11 +1211,12 @@ static void update_cursor_over_location(int mouse_was_x, int mouse_was_y)
     int offset_x = cam->GetRect().Left;
     int offset_y = cam->GetRect().Top;
 
-    if (((mouse_was_x != mousex) || (mouse_was_y != mousey) || (offsetxWas != offset_x) || (offsetyWas != offset_y)))
+    if (((mouse_was_x != services.Input.MouseX) || (mouse_was_y != services.Input.MouseY) || (offsetxWas != offset_x) ||
+         (offsetyWas != offset_y)))
     {
         // mouse moves over hotspot
         int getloctype_index = -1;
-        if (GetLocationTypeImpl(&getloctype_index, mousex, mousey, kHit_Interactable,
+        if (GetLocationTypeImpl(&getloctype_index, services.Input.MouseX, services.Input.MouseY, kHit_Interactable,
                                 false /* dont click-through gui */, true /* allow hotspot0 */) == LOCTYPE_HOTSPOT)
         {
             setevent(AGSEvent_Object(kObjEventType_Hotspot, getloctype_index, kHotspotEvent_MouseOver));
@@ -1368,12 +1378,13 @@ uint32_t get_runtime_ms()
 //
 void UpdateGameOnce(bool do_controls, AGS::Engine::IDriverDependantBitmap *extra_ddb, int extra_x, int extra_y)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     set_our_eip(1000);
 
     sys_evt_process_pending();
 
-    if (EngineServices::Current().WantExit)
+    if (services.WantExit)
     {
         ProperExit();
         return;
@@ -1410,10 +1421,10 @@ void UpdateGameOnce(bool do_controls, AGS::Engine::IDriverDependantBitmap *extra
 
     // Handle player's input
     // remember old mouse pos, needed for update_cursor_over_location() later
-    const int mouse_was_x = mousex, mouse_was_y = mousey;
+    const int mouse_was_x = services.Input.MouseX, mouse_was_y = services.Input.MouseY;
     // TODO: move this reset to a related update function; check_mouse_state() sets it, unless mouse input is disabled
     game.MouseOnIface = -1;
-    // update mouse position (mousex, mousey)
+    // update mouse position (EngineServices::Input.MouseX, MouseY)
     ags_domouse();
     // update gui under mouse; this also updates gui control focus;
     // atm we must call this before "check_controls", because GUI interaction
@@ -1650,17 +1661,18 @@ void RunGameUntilAborted()
     {
         GameTick();
 
-        if (load_new_game)
+        if (services.LoadNewGame)
         {
-            RunAGSGame(nullptr, load_new_game, 0);
-            load_new_game = 0;
+            RunAGSGame(nullptr, services.LoadNewGame, 0);
+            services.LoadNewGame = 0;
         }
     }
 }
 
 void UpdateCursorAndDrawables()
 {
-    const int mouse_was_x = mousex, mouse_was_y = mousey;
+    EngineServices &services = EngineServices::Current();
+    const int mouse_was_x = services.Input.MouseX, mouse_was_y = services.Input.MouseY;
     ags_domouse();
     update_cursor_over_gui();
     // TODO: following does not have to be called every frame while in a
@@ -1689,6 +1701,6 @@ void update_polled_stuff()
         quit("||exit!");
     }
 
-    if (editor_debugging_initialized)
+    if (services.Debug.EditorDebuggingInitialized)
         check_for_messages_from_debugger();
 }

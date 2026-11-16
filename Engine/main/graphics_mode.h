@@ -44,12 +44,6 @@ bool find_nearest_supported_mode(const AGS::Engine::IGfxModeList &modes, const S
                                  int *mode_index = nullptr);
 
 
-// The game-to-screen transformation
-// TODO: this is only required for low-level mouse processing;
-// when possible, move to mouse "manager" object, and assign at gfxmode init
-extern AGS::Common::PlaneScaling GameScaling;
-
-
 // Display mode color depth variants suggested for the use
 struct ColorDepthOption
 {

@@ -14,10 +14,14 @@
 #pragma once
 
 #include <memory>
+#include <set>
 #include <utility>
 #include <vector>
 
+#include "debug/debugger.h"
+#include "device/input_state.h"
 #include "platform/base/engine_config.h"
+#include "util/scaling.h"
 #include "util/string.h"
 #include "util/version.h"
 
@@ -120,6 +124,36 @@ struct EngineServices
     // Log the script RTTI and the script table of contents when the scripts are loaded (command line)
     bool LogScriptRTTI = false;
     bool LogScriptTOC = false;
+
+    // The engine's start-up (main/main.cpp):
+    AGS::Common::String AppPath;         // Full path to the engine executable
+    AGS::Common::String AppDirectory;    // Engine executable's directory
+    AGS::Common::String CmdGameDataPath; // Game path from the startup options (before reading config)
+    // Startup flags, set from parameters to engine
+    int OverrideStartRoom = 0;
+    bool JustRunSetup = false;
+    bool JustTellInfo = false;
+    // The keys of the information asked with --tell
+    std::set<AGS::Common::String> TellInfoKeys;
+    AGS::Common::String LoadSaveGameOnStartup;
+
+    // A request to run another game (the mode and flags given to RunAGSGame), served by the game loop; 0 when none.
+    unsigned int LoadNewGame = 0;
+    // Counts the restore attempts, so that a script run that was in progress can tell that one happened (script.cpp)
+    int GameRestoredCount = 0;
+    // Whether quit checks, in a debug-mode game that exits normally, that the script deleted its dynamic sprites;
+    // set to 0 when the engine is aborted.
+    char CheckDynamicSpritesAtExit = 1;
+
+    // The game-to-screen transformation
+    // TODO: this is only required for low-level mouse processing;
+    // when possible, move to mouse "manager" object, and assign at gfxmode init
+    AGS::Common::PlaneScaling GameScaling;
+
+    // The state of the input devices: the cursor's position, the modifier keys (device/)
+    InputState Input;
+    // The link to the editor's debugger, the debug flags, the FPS display (debug/debug.cpp)
+    DebugState Debug;
 
 private:
     static EngineServices *_current;

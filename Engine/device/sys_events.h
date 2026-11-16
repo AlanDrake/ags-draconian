@@ -125,12 +125,6 @@ void ags_simulate_keydown(eAGSKeyCode ags_key);
 // Simulates key up event with the given AGS key
 void ags_simulate_keyup(eAGSKeyCode ags_key);
 
-// TODO: hide these later? (bad design with run_service_key_controls,
-// but also need to clear them in ags_clear_input_state())
-extern int sys_modkeys;        // accumulated mod flags
-extern bool sys_modkeys_fired; // tells whether mod combination had been used for action
-
-
 // Mouse input handling
 // Converts SDL mouse button code to AGS code
 eAGSMouseButton sdl_mbut_to_ags_but(int sdl_mbut);
@@ -145,11 +139,6 @@ void ags_domouse();
 int ags_check_mouse_wheel();
 // Simulates a click with the given mouse button
 void ags_simulate_mouseclick(eAGSMouseButton but);
-
-// TODO: hide these later after refactoring mousew32.cpp
-extern volatile int sys_mouse_x; // mouse x position
-extern volatile int sys_mouse_y; // mouse y position
-extern volatile int sys_mouse_z; // mouse wheel position
 
 // Touch input handling
 // Custom touch event data for using inside AGS own input processing

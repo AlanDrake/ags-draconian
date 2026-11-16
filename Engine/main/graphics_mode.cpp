@@ -57,8 +57,6 @@ ActiveDisplaySetting SavedFullscreenSetting;
 ActiveDisplaySetting SavedWindowedSetting;
 // Current frame scaling setup
 FrameScaleDef CurFrameSetup;
-// The game-to-screen transformation
-PlaneScaling GameScaling;
 
 
 Size get_desktop_size(int display_index)
@@ -363,14 +361,14 @@ void log_out_driver_modes(const int display_index, const int color_depth)
 static bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id, const GraphicResolution &game_res,
                                                 const DisplayModeSetup &setup, const ColorDepthOption &color_depth)
 {
+    EngineServices &services = EngineServices::Current();
     if (!graphics_mode_create_renderer(gfx_driver_id))
         return false;
     if (!sys_is_display_valid(setup.DisplayIndex))
         return false;
 
     const int use_col_depth =
-        color_depth.Forced ? color_depth.Bits
-                           : EngineServices::Current().GfxDriver->GetDisplayDepthForNativeDepth(color_depth.Bits);
+        color_depth.Forced ? color_depth.Bits : services.GfxDriver->GetDisplayDepthForNativeDepth(color_depth.Bits);
     // Log out supported driver modes
     log_out_driver_modes(setup.DisplayIndex, use_col_depth);
 
@@ -380,7 +378,7 @@ static bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id, con
     bool result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter,
                                             DisplayParamsEx(setup.DisplayIndex, setup.RefreshRate, setup.VSync));
     // Try windowed mode if fullscreen failed, and vice versa
-    if (!result && editor_debugging_initialized == 0)
+    if (!result && services.Debug.EditorDebuggingInitialized == 0)
     {
         windowed = !windowed;
         ws = windowed ? setup.WinSetup : setup.FsSetup;
@@ -611,7 +609,7 @@ bool graphics_mode_update_render_frame()
     Debug::Printf("Render frame set, render dest (%d, %d, %d, %d : %d x %d)", dst_rect.Left, dst_rect.Top,
                   dst_rect.Right, dst_rect.Bottom, dst_rect.GetWidth(), dst_rect.GetHeight());
     // init game scaling transformation
-    GameScaling.Init(native_size, services.GfxDriver->GetRenderDestination());
+    services.GameScaling.Init(native_size, services.GfxDriver->GetRenderDestination());
     return true;
 }
 

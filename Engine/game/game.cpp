@@ -152,7 +152,6 @@ String saveGameDirectory = "./";
 
 String saveGameSuffix;
 
-unsigned int load_new_game = 0;
 int load_new_game_restore = -1;
 SaveCmpSelection load_new_game_restore_cmp = kSaveCmp_All;
 
@@ -1417,8 +1416,6 @@ void schedule_save_game(int slot, const String &description, int sprite_num)
     save_game(slot, description, std::move(image));
 }
 
-// Counts the restore attempts, so that a script run that was in progress can tell that one happened (script.cpp)
-int gameHasBeenRestored = 0;
 // The script position (eip) from before load_game, put back after a successful restore
 int oldeip;
 
@@ -1490,7 +1487,7 @@ HSaveError load_game(const String &path, int slot, bool startup, bool &data_over
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     data_overwritten = false;
-    gameHasBeenRestored++;
+    services.GameRestoredCount++;
 
     oldeip = get_our_eip();
     set_our_eip(2050);
@@ -2240,6 +2237,7 @@ int debugLastMoveChar = -1;
 
 void script_debug(int cmdd, int dataa)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     if (game.Play.debug_mode == 0)
         return;
@@ -2287,8 +2285,8 @@ void script_debug(int cmdd, int dataa)
     }
     else if (cmdd == 4)
     {
-        if (display_fps != kFPS_Forced)
-            display_fps = (FPSDisplayMode)dataa;
+        if (services.Debug.DisplayFps != kFPS_Forced)
+            services.Debug.DisplayFps = (FPSDisplayMode)dataa;
     }
     else if (cmdd == 5)
     {
@@ -2543,7 +2541,7 @@ int RunAGSGame(const String &new_game, unsigned int mode, int data)
     if ((mode & (~allowed_modes)) != 0)
         quit("!RunAGSGame: mode value unknown");
 
-    if (editor_debugging_initialized)
+    if (services.Debug.EditorDebuggingInitialized)
     {
         quit("!RunAGSGame cannot be used while running the game from within the AGS Editor. You must build the game "
              "EXE and run it from there to use this function.");
@@ -2563,7 +2561,7 @@ int RunAGSGame(const String &new_game, unsigned int mode, int data)
         }
         else
         {
-            load_new_game = mode | RAGMODE_LOADNOW;
+            services.LoadNewGame = mode | RAGMODE_LOADNOW;
         }
 
         return 0;

@@ -17,29 +17,12 @@
 //=============================================================================
 #pragma once
 
-#include <set>
-
 #include "platform/platform.h"
 #include "util/string.h"
 #include "util/version.h"
 
 
 //=============================================================================
-
-// Full path to the engine executable
-extern AGS::Common::String appPath;
-// Engine executable's directory
-extern AGS::Common::String appDirectory;
-// Game path from the startup options (before reading config)
-extern AGS::Common::String cmdGameDataPath;
-
-// Startup flags, set from parameters to engine
-extern int override_start_room;
-extern bool justRunSetup;
-extern bool justTellInfo;
-// The keys of the information asked with --tell
-extern std::set<AGS::Common::String> tellInfoKeys;
-extern AGS::Common::String loadSaveGameOnStartup;
 
 void main_print_help();
 

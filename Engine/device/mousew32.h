@@ -69,14 +69,8 @@ inline Point SysToGamePos(const Point &sys_pt)
     return SysToGamePos(sys_pt.X, sys_pt.Y);
 }
 
-// Polls the cursor position, updates mousex, mousey
+// Polls the cursor position, updates EngineServices::Input.MouseX and MouseY
 void Poll();
 // Set actual OS cursor position on screen; in native game coordinates
 void SetPosition(const Point &p);
 } // namespace Mouse
-
-
-// The cursor's position in game coordinates, updated by Mouse::Poll.
-extern int mousex, mousey;
-// Above 0 while the cursor may leave the movement limits set with Mouse::SetMoveLimit (a counter).
-extern int ignore_bounds;

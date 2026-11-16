@@ -28,6 +28,7 @@ target_sources(engine
     debug/logfile.h
     debug/memory_inspect.cpp
     debug/memory_inspect.h
+    device/input_state.h
     device/mousew32.cpp
     device/mousew32.h
     device/sys_events.cpp

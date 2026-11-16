@@ -42,8 +42,6 @@ using namespace AGS;
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-char check_dynamic_sprites_at_exit = 1;
-
 int ValidateColorFormat(const char *api_name, ScriptColorFormat color_format)
 {
     Game &game = Game::Current();
