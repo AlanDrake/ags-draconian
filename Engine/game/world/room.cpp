@@ -100,6 +100,8 @@ Room *Room::SetCurrent(Room *room)
 
 void Room::ResetPlayState()
 {
+    LoadedWidth = 0;
+    LoadedHeight = 0;
     ScriptFinished = 0;
     AnimBackgroundSpeed = 0;
     BgFrame = 0;
@@ -663,8 +665,8 @@ void load_new_room(int room_id, CharacterInfo *ch)
 
     set_our_eip(201);
 
-    game.Play.room_width = room.Width;
-    game.Play.room_height = room.Height;
+    room.LoadedWidth = room.Width;
+    room.LoadedHeight = room.Height;
     room.AnimBackgroundSpeed = room.BgAnimSpeed;
     game.Play.bg_anim_delay = room.AnimBackgroundSpeed;
     room.BgModified.resize(room.BgFrameCount);

@@ -350,13 +350,13 @@ void UpgradeGame(GameDef &game, GameDataVersion data_ver)
     }
 }
 
-void UpgradeDialogs(GameDef &game, LoadedGameEntities &ents, GameDataVersion data_ver)
+void UpgradeDialogs(GameDef &game, GameDataVersion data_ver)
 {
     if (data_ver < kGameVersion_400_26)
     {
         for (int i = 0; i < game.numdialog; ++i)
         {
-            ents.Dialogs[i].ScriptName = game.dialogScriptNames[i];
+            game.Dialogs[i].ScriptName = game.dialogScriptNames[i];
         }
         game.dialogScriptNames = std::vector<String>();
     }
@@ -438,24 +438,24 @@ void UpgradeInventoryItems(GameDef &game, GameDataVersion data_ver)
     }
 }
 
-void UpgradeGUI(GameDef &game, LoadedGameEntities &ents, GameDataVersion data_ver)
+void UpgradeGUI(GameDef &game, GameDataVersion data_ver)
 {
     if (data_ver < kGameVersion_400_26)
     {
         // Set default color styles for gui controls
-        for (auto &btn : ents.GuiControls.Buttons)
+        for (auto &btn : game.GuiButtons)
         {
             btn.SetDefaultLooksFor363();
         }
-        for (auto &lbox : ents.GuiControls.ListBoxes)
+        for (auto &lbox : game.GuiListBoxes)
         {
             lbox.SetDefaultLooksFor363();
         }
-        for (auto &sld : ents.GuiControls.Sliders)
+        for (auto &sld : game.GuiSliders)
         {
             sld.SetDefaultLooksFor363();
         }
-        for (auto &tbox : ents.GuiControls.TextBoxes)
+        for (auto &tbox : game.GuiTextBoxes)
         {
             tbox.SetDefaultLooksFor363();
         }
@@ -464,31 +464,31 @@ void UpgradeGUI(GameDef &game, LoadedGameEntities &ents, GameDataVersion data_ve
     // 32-bit color properties
     if (data_ver < kGameVersion_400_09)
     {
-        for (auto &gui : ents.Guis)
+        for (auto &gui : game.Guis)
         {
             gui.SetBgColor(RemapFromLegacyColourNumber(game, gui.GetBgColor(), true));
             gui.SetFgColor(RemapFromLegacyColourNumber(game, gui.GetFgColor(), !gui.IsTextWindow()
                                                        /* right, treat border as background for normal gui */));
         }
 
-        for (auto &btn : ents.GuiControls.Buttons)
+        for (auto &btn : game.GuiButtons)
         {
             btn.SetTextColor(RemapFromLegacyColourNumber(game, btn.GetTextColor()));
         }
 
-        for (auto &lbl : ents.GuiControls.Labels)
+        for (auto &lbl : game.GuiLabels)
         {
             lbl.SetTextColor(RemapFromLegacyColourNumber(game, lbl.GetTextColor()));
         }
 
-        for (auto &list : ents.GuiControls.ListBoxes)
+        for (auto &list : game.GuiListBoxes)
         {
             list.SetTextColor(RemapFromLegacyColourNumber(game, list.GetTextColor()));
             list.SetSelectedBgColor(RemapFromLegacyColourNumber(game, list.GetSelectedBgColor(), true));
             list.SetSelectedTextColor(RemapFromLegacyColourNumber(game, list.GetSelectedTextColor()));
         }
 
-        for (auto &tbox : ents.GuiControls.TextBoxes)
+        for (auto &tbox : game.GuiTextBoxes)
         {
             tbox.SetTextColor(RemapFromLegacyColourNumber(game, tbox.GetTextColor()));
         }
@@ -496,19 +496,19 @@ void UpgradeGUI(GameDef &game, LoadedGameEntities &ents, GameDataVersion data_ve
 
     if (data_ver < kGameVersion_400_24)
     {
-        for (auto &gui : ents.Guis)
+        for (auto &gui : game.Guis)
             gui.RemapOldEvents();
-        for (auto &obj : ents.GuiControls.Buttons)
+        for (auto &obj : game.GuiButtons)
             obj.RemapOldEvents();
-        for (auto &obj : ents.GuiControls.InvWindows)
+        for (auto &obj : game.GuiInvWindows)
             obj.RemapOldEvents();
-        for (auto &obj : ents.GuiControls.Labels)
+        for (auto &obj : game.GuiLabels)
             obj.RemapOldEvents();
-        for (auto &obj : ents.GuiControls.ListBoxes)
+        for (auto &obj : game.GuiListBoxes)
             obj.RemapOldEvents();
-        for (auto &obj : ents.GuiControls.Sliders)
+        for (auto &obj : game.GuiSliders)
             obj.RemapOldEvents();
-        for (auto &obj : ents.GuiControls.TextBoxes)
+        for (auto &obj : game.GuiTextBoxes)
             obj.RemapOldEvents();
     }
 
@@ -516,7 +516,7 @@ void UpgradeGUI(GameDef &game, LoadedGameEntities &ents, GameDataVersion data_ve
     // NOTE: controls are upgraded when reading their extension block
     if (data_ver < kGameVersion_400_34)
     {
-        for (auto &gui : ents.Guis)
+        for (auto &gui : game.Guis)
             gui.SetOpacity(GfxDef::LegacyTrans255ToAlpha255(gui.GetOpacity()));
     }
 }
@@ -634,7 +634,7 @@ HError GameDataExtReader::ReadInteractionScriptModules(Stream *in, LoadedGameEnt
     if (!ReadAndAssertCount(in, "GUI", static_cast<uint32_t>(ents.Game.numgui), err))
         return err;
     for (size_t i = 0; i < (size_t)ents.Game.numgui; ++i)
-        ents.Guis[i].SetScriptModule(StrUtil::ReadString(in));
+        ents.Game.Guis[i].SetScriptModule(StrUtil::ReadString(in));
     return HError::None();
 }
 
@@ -672,44 +672,44 @@ void GameDataExtReader::ReadGUIControlExtGraphics(Stream *in, GUIControl &obj)
 HError GameDataExtReader::ReadExtGUIControlGraphicProperties(Stream *in, LoadedGameEntities &ents)
 {
     HError err;
-    if (!ReadAndAssertCount(in, "GUI buttons", static_cast<uint32_t>(_ents.GuiControls.Buttons.size()), err))
+    if (!ReadAndAssertCount(in, "GUI buttons", static_cast<uint32_t>(_ents.Game.GuiButtons.size()), err))
         return err;
-    for (GUIButton &but : _ents.GuiControls.Buttons)
+    for (GUIButton &but : _ents.Game.GuiButtons)
     {
         ReadGUIControlExtGraphics(in, but);
     }
 
-    if (!ReadAndAssertCount(in, "GUI labels", static_cast<uint32_t>(_ents.GuiControls.Labels.size()), err))
+    if (!ReadAndAssertCount(in, "GUI labels", static_cast<uint32_t>(_ents.Game.GuiLabels.size()), err))
         return err;
-    for (GUILabel &label : _ents.GuiControls.Labels)
+    for (GUILabel &label : _ents.Game.GuiLabels)
     {
         ReadGUIControlExtGraphics(in, label);
     }
 
-    if (!ReadAndAssertCount(in, "GUI invwindows", static_cast<uint32_t>(_ents.GuiControls.InvWindows.size()), err))
+    if (!ReadAndAssertCount(in, "GUI invwindows", static_cast<uint32_t>(_ents.Game.GuiInvWindows.size()), err))
         return err;
-    for (GUIInvWindow &invw : _ents.GuiControls.InvWindows)
+    for (GUIInvWindow &invw : _ents.Game.GuiInvWindows)
     {
         ReadGUIControlExtGraphics(in, invw);
     }
 
-    if (!ReadAndAssertCount(in, "GUI sliders", static_cast<uint32_t>(_ents.GuiControls.Sliders.size()), err))
+    if (!ReadAndAssertCount(in, "GUI sliders", static_cast<uint32_t>(_ents.Game.GuiSliders.size()), err))
         return err;
-    for (GUISlider &slider : _ents.GuiControls.Sliders)
+    for (GUISlider &slider : _ents.Game.GuiSliders)
     {
         ReadGUIControlExtGraphics(in, slider);
     }
 
-    if (!ReadAndAssertCount(in, "GUI textboxes", static_cast<uint32_t>(_ents.GuiControls.TextBoxes.size()), err))
+    if (!ReadAndAssertCount(in, "GUI textboxes", static_cast<uint32_t>(_ents.Game.GuiTextBoxes.size()), err))
         return err;
-    for (GUITextBox &textbox : _ents.GuiControls.TextBoxes)
+    for (GUITextBox &textbox : _ents.Game.GuiTextBoxes)
     {
         ReadGUIControlExtGraphics(in, textbox);
     }
 
-    if (!ReadAndAssertCount(in, "GUI listboxes", static_cast<uint32_t>(_ents.GuiControls.ListBoxes.size()), err))
+    if (!ReadAndAssertCount(in, "GUI listboxes", static_cast<uint32_t>(_ents.Game.GuiListBoxes.size()), err))
         return err;
-    for (GUIListBox &listbox : _ents.GuiControls.ListBoxes)
+    for (GUIListBox &listbox : _ents.Game.GuiListBoxes)
     {
         ReadGUIControlExtGraphics(in, listbox);
     }
@@ -724,25 +724,25 @@ HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntitie
     err = ReadScriptEventsTablesForObjects(ents.Game.invinfo, "inventory items", in);
     if (!err)
         return err;
-    err = ReadScriptEventsTablesForObjects(ents.Guis, "GUIs", in);
+    err = ReadScriptEventsTablesForObjects(ents.Game.Guis, "GUIs", in);
     if (!err)
         return err;
-    err = ReadScriptEventsTablesForObjects(ents.GuiControls.Buttons, "GUI buttons", in);
+    err = ReadScriptEventsTablesForObjects(ents.Game.GuiButtons, "GUI buttons", in);
     if (!err)
         return err;
-    err = ReadScriptEventsTablesForObjects(ents.GuiControls.Labels, "GUI labels", in);
+    err = ReadScriptEventsTablesForObjects(ents.Game.GuiLabels, "GUI labels", in);
     if (!err)
         return err;
-    err = ReadScriptEventsTablesForObjects(ents.GuiControls.InvWindows, "GUI invwindows", in);
+    err = ReadScriptEventsTablesForObjects(ents.Game.GuiInvWindows, "GUI invwindows", in);
     if (!err)
         return err;
-    err = ReadScriptEventsTablesForObjects(ents.GuiControls.Sliders, "GUI sliders", in);
+    err = ReadScriptEventsTablesForObjects(ents.Game.GuiSliders, "GUI sliders", in);
     if (!err)
         return err;
-    err = ReadScriptEventsTablesForObjects(ents.GuiControls.TextBoxes, "GUI textboxes", in);
+    err = ReadScriptEventsTablesForObjects(ents.Game.GuiTextBoxes, "GUI textboxes", in);
     if (!err)
         return err;
-    err = ReadScriptEventsTablesForObjects(ents.GuiControls.ListBoxes, "GUI listboxes", in);
+    err = ReadScriptEventsTablesForObjects(ents.Game.GuiListBoxes, "GUI listboxes", in);
     if (!err)
         return err;
 
@@ -857,20 +857,20 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         // NOTE: that scripts may not be initialized at this time in case they are stored as separate
         // assets within the game package; we still read the names though to keep data format simpler
         String script_name = StrUtil::ReadString(in);
-        if (_ents.GlobalScript)
-            _ents.GlobalScript->SetScriptName(script_name.ToStdString());
+        if (_ents.Game.GlobalScript)
+            _ents.Game.GlobalScript->SetScriptName(script_name.ToStdString());
         script_name = StrUtil::ReadString(in);
-        if (_ents.DialogScript)
-            _ents.DialogScript->SetScriptName(script_name.ToStdString());
-        if (!ReadAndAssertCount(in, "script modules", static_cast<uint32_t>(_ents.ScriptModules.size()), err))
+        if (_ents.Game.DialogScript)
+            _ents.Game.DialogScript->SetScriptName(script_name.ToStdString());
+        if (!ReadAndAssertCount(in, "script modules", static_cast<uint32_t>(_ents.Game.ScriptModules.size()), err))
             return err;
-        _ents.ScriptModuleNames.resize(_ents.ScriptModules.size());
-        for (size_t i = 0; i < _ents.ScriptModules.size(); ++i)
+        _ents.Game.ScriptModuleNames.resize(_ents.Game.ScriptModules.size());
+        for (size_t i = 0; i < _ents.Game.ScriptModules.size(); ++i)
         {
             script_name = StrUtil::ReadString(in);
-            _ents.ScriptModuleNames[i] = script_name;
-            if (_ents.ScriptModules[i])
-                _ents.ScriptModules[i]->SetScriptName(script_name.ToStdString());
+            _ents.Game.ScriptModuleNames[i] = script_name;
+            if (_ents.Game.ScriptModules[i])
+                _ents.Game.ScriptModules[i]->SetScriptName(script_name.ToStdString());
         }
 
         err = ReadInteractionScriptModules(in, _ents);
@@ -879,9 +879,9 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     }
     else if (ext_id.CompareNoCase("v362_guictrls") == 0)
     {
-        if (!ReadAndAssertCount(in, "GUI buttons", static_cast<uint32_t>(_ents.GuiControls.Buttons.size()), err))
+        if (!ReadAndAssertCount(in, "GUI buttons", static_cast<uint32_t>(_ents.Game.GuiButtons.size()), err))
             return err;
-        for (GUIButton &but : _ents.GuiControls.Buttons)
+        for (GUIButton &but : _ents.Game.GuiButtons)
         {
             // button padding
             but.SetPaddingX(in->ReadInt32());
@@ -901,50 +901,50 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         // because the older dialog data format should be skipped completely.
         uint32_t dialog_count = in->ReadInt32();
         _ents.Game.numdialog = dialog_count;
-        _ents.Dialogs.resize(dialog_count);
-        for (auto &dlg : _ents.Dialogs)
+        _ents.Game.Dialogs.resize(dialog_count);
+        for (auto &dlg : _ents.Game.Dialogs)
             dlg.ReadFromFile_v363(in);
     }
     else if (ext_id.CompareNoCase("v363_guictrls2") == 0)
     {
-        if (!ReadAndAssertCount(in, "GUI buttons", static_cast<uint32_t>(_ents.GuiControls.Buttons.size()), err))
+        if (!ReadAndAssertCount(in, "GUI buttons", static_cast<uint32_t>(_ents.Game.GuiButtons.size()), err))
             return err;
-        for (GUIButton &but : _ents.GuiControls.Buttons)
+        for (GUIButton &but : _ents.Game.GuiButtons)
         {
             but.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
         }
 
-        if (!ReadAndAssertCount(in, "GUI labels", static_cast<uint32_t>(_ents.GuiControls.Labels.size()), err))
+        if (!ReadAndAssertCount(in, "GUI labels", static_cast<uint32_t>(_ents.Game.GuiLabels.size()), err))
             return err;
-        for (GUILabel &label : _ents.GuiControls.Labels)
+        for (GUILabel &label : _ents.Game.GuiLabels)
         {
             label.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
         }
 
-        if (!ReadAndAssertCount(in, "GUI invwindows", static_cast<uint32_t>(_ents.GuiControls.InvWindows.size()), err))
+        if (!ReadAndAssertCount(in, "GUI invwindows", static_cast<uint32_t>(_ents.Game.GuiInvWindows.size()), err))
             return err;
-        for (GUIInvWindow &invw : _ents.GuiControls.InvWindows)
+        for (GUIInvWindow &invw : _ents.Game.GuiInvWindows)
         {
             invw.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
         }
 
-        if (!ReadAndAssertCount(in, "GUI sliders", static_cast<uint32_t>(_ents.GuiControls.Sliders.size()), err))
+        if (!ReadAndAssertCount(in, "GUI sliders", static_cast<uint32_t>(_ents.Game.GuiSliders.size()), err))
             return err;
-        for (GUISlider &slider : _ents.GuiControls.Sliders)
+        for (GUISlider &slider : _ents.Game.GuiSliders)
         {
             slider.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
         }
 
-        if (!ReadAndAssertCount(in, "GUI textboxes", static_cast<uint32_t>(_ents.GuiControls.TextBoxes.size()), err))
+        if (!ReadAndAssertCount(in, "GUI textboxes", static_cast<uint32_t>(_ents.Game.GuiTextBoxes.size()), err))
             return err;
-        for (GUITextBox &textbox : _ents.GuiControls.TextBoxes)
+        for (GUITextBox &textbox : _ents.Game.GuiTextBoxes)
         {
             textbox.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
         }
 
-        if (!ReadAndAssertCount(in, "GUI listboxes", static_cast<uint32_t>(_ents.GuiControls.ListBoxes.size()), err))
+        if (!ReadAndAssertCount(in, "GUI listboxes", static_cast<uint32_t>(_ents.Game.GuiListBoxes.size()), err))
             return err;
-        for (GUIListBox &listbox : _ents.GuiControls.ListBoxes)
+        for (GUIListBox &listbox : _ents.Game.GuiListBoxes)
         {
             listbox.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
         }
@@ -963,9 +963,9 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         }
 
         // new gui properties
-        for (size_t i = 0; i < _ents.Guis.size(); ++i)
+        for (size_t i = 0; i < _ents.Game.Guis.size(); ++i)
         {
-            _ents.Guis[i].SetBlendMode((BlendMode)_in->ReadInt32());
+            _ents.Game.Guis[i].SetBlendMode((BlendMode)_in->ReadInt32());
             // Reserved for colour options
             _in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level
             // Reserved for transform options (see list in savegame format)
@@ -998,12 +998,12 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         const char *guictrl_names[kGUIControlTypeNum] = {"",        "gui buttons", "gui labels", "inventory windows",
                                                          "sliders", "text boxes",  "list boxes"};
         size_t guictrl_counts[kGUIControlTypeNum] = {0,
-                                                     _ents.GuiControls.Buttons.size(),
-                                                     _ents.GuiControls.Labels.size(),
-                                                     _ents.GuiControls.InvWindows.size(),
-                                                     _ents.GuiControls.Sliders.size(),
-                                                     _ents.GuiControls.TextBoxes.size(),
-                                                     _ents.GuiControls.ListBoxes.size()};
+                                                     _ents.Game.GuiButtons.size(),
+                                                     _ents.Game.GuiLabels.size(),
+                                                     _ents.Game.GuiInvWindows.size(),
+                                                     _ents.Game.GuiSliders.size(),
+                                                     _ents.Game.GuiTextBoxes.size(),
+                                                     _ents.Game.GuiListBoxes.size()};
         for (int i = kGUIButton; i < kGUIControlTypeNum; ++i)
         {
             err = ReadCustomProperties(in, guictrl_names[i], guictrl_counts[i], game.guicontrolProps[i]);
@@ -1038,7 +1038,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
             return err;
         for (uint32_t view = 0; view < _ents.Game.numviews; ++view)
         {
-            auto &view_s = _ents.Views[view];
+            auto &view_s = _ents.Game.Views[view];
             uint32_t loop_count = in->ReadInt32();
             if (loop_count != view_s.numLoops)
                 return new Error(String::FromFormat("Mismatching number of loops for view %u: read %u expected %u",
@@ -1154,19 +1154,19 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
 
     if (sinfo.HasCCScript)
     {
-        ents.GlobalScript = TryReadScript(in, "GlobalScript", kMGFErr_CreateGlobalScriptFailed, err);
+        game.GlobalScript = TryReadScript(in, "GlobalScript", kMGFErr_CreateGlobalScriptFailed, err);
         if (!err)
             return err;
-        ents.DialogScript = TryReadScript(in, "DialogScript", kMGFErr_CreateDialogScriptFailed, err);
+        game.DialogScript = TryReadScript(in, "DialogScript", kMGFErr_CreateDialogScriptFailed, err);
         if (!err)
             return err;
-        err = ReadScriptModules(ents.ScriptModules, in, data_ver);
+        err = ReadScriptModules(game.ScriptModules, in, data_ver);
         if (!err)
             return err;
-        ents.ScriptModuleNames.resize(ents.ScriptModules.size());
+        game.ScriptModuleNames.resize(game.ScriptModules.size());
     }
 
-    ReadViews(game, ents.Views, in, data_ver);
+    ReadViews(game, game.Views, in, data_ver);
 
     game.read_characters(in, data_ver);
     game.read_lipsync(in, data_ver);
@@ -1175,12 +1175,13 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
         game.skip_messages(in, sinfo.HasMessages, data_ver);
     }
 
-    ReadDialogs(ents.Dialogs, in, data_ver, game.numdialog);
-    GUIRefCollection guictrl_refs(ents.GuiControls);
-    HError err2 = GUI::ReadGUI(ents.Guis, data_ver, ents.LoadedGuiVersion, guictrl_refs, in);
+    ReadDialogs(game.Dialogs, in, data_ver, game.numdialog);
+    GUIRefCollection guictrl_refs(game.GuiButtons, game.GuiInvWindows, game.GuiLabels, game.GuiListBoxes,
+                                  game.GuiSliders, game.GuiTextBoxes);
+    HError err2 = GUI::ReadGUI(game.Guis, data_ver, ents.LoadedGuiVersion, guictrl_refs, in);
     if (!err2)
         return new MainGameFileError(err2, kMGFErr_GameEntityFailed);
-    game.numgui = ents.Guis.size();
+    game.numgui = game.Guis.size();
 
     err = ReadPlugins(ents.PluginInfos, in);
     if (!err)
@@ -1213,12 +1214,12 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     GameDef &game = ents.Game;
     ApplySpriteData(game, ents, data_ver);
     UpgradeGame(game, data_ver);
-    UpgradeDialogs(game, ents, data_ver);
+    UpgradeDialogs(game, data_ver);
     UpgradeFonts(game, data_ver);
     UpgradeAudio(game, ents, data_ver);
     UpgradeCharacters(game, data_ver);
     UpgradeInventoryItems(game, data_ver);
-    UpgradeGUI(game, ents, data_ver);
+    UpgradeGUI(game, data_ver);
     UpgradeMouseCursors(game, data_ver);
     game.ResolveStandardModes();
     FixupSaveDirectory(game);

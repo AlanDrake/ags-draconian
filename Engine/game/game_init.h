@@ -53,9 +53,10 @@ Common::String GetGameInitErrorText(GameInitErrorType err);
 typedef Common::TypedCodeError<GameInitErrorType, GetGameInitErrorText> GameInitError;
 typedef Common::ErrorHandle<GameInitError> HGameInitError;
 
-// Sets up game state for play using preloaded data: puts the GUIs, views and dialogs into the engine's
-// globals, registers the game entities and the engine API in the script system, loads fonts and lip sync data,
-// starts up the plugins, and creates and links the scripts
+// Sets up game state for play using preloaded data (the game's GUIs, views, dialogs and compiled scripts are
+// already in the game, read there by the loader): rebuilds the GUIs, registers the game entities and the engine
+// API in the script system, loads fonts and lip sync data, starts up the plugins, and creates the runtime scripts
+// from the compiled ones and links them
 HGameInitError InitGameState(const Common::LoadedGameEntities &ents, GameDataVersion data_ver);
 // Applies accessibility options, some of them may override game settings
 void ApplyAccessibilityOptions(GamePlayState &play, const EngineConfig &setup);

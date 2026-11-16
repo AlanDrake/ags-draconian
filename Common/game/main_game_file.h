@@ -40,8 +40,6 @@
 #include "util/version.h"
 
 struct GameDef;
-struct DialogTopic;
-struct ViewStruct;
 
 namespace AGS
 {
@@ -112,24 +110,14 @@ struct CharDataEx
     Point GraphicOffset;
 };
 
-// LoadedGameEntities is meant for keeping objects loaded from the game file.
-// Because copying/assignment methods are not properly implemented for some
-// of these objects yet, they have to be attached using references to be read
-// directly. This is temporary solution that has to be resolved by the future
-// code refactoring.
+// LoadedGameEntities is what the loader needs beside the game while it reads the game file: the game it reads
+// into (the views, dialogs, GUIs and compiled scripts included, which are members of GameDef), and the data
+// that is only needed while loading.
 struct LoadedGameEntities
 {
     GameDef &Game; // FIXME: have an object, not ref, and std::move
     std::vector<CharDataEx> CharEx;
     GuiVersion LoadedGuiVersion;
-    std::vector<GUIMain> Guis;
-    GUICollection GuiControls;
-    std::vector<DialogTopic> Dialogs;
-    std::vector<ViewStruct> Views;
-    UScript GlobalScript;
-    UScript DialogScript;
-    std::vector<String> ScriptModuleNames;
-    std::vector<UScript> ScriptModules;
     std::vector<PluginInfo> PluginInfos;
 
     // Original sprite data (when it was read into const-sized arrays)

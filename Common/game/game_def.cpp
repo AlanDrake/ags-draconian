@@ -15,7 +15,9 @@
 
 #include "data/data_helpers.h"
 #include "game/audio_clip_type.h"
+#include "game/dialog_topic.h"
 #include "game/script_audio_clip.h"
+#include "game/view.h"
 #include "script/cc_script.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
@@ -23,6 +25,10 @@
 using namespace AGS;
 using namespace AGS::Common;
 
+GameDef::GameDef() = default;
+GameDef::GameDef(GameDef &&gss) = default;
+GameDef::~GameDef() = default;
+GameDef &GameDef::operator=(GameDef &&gss) = default;
 
 void GameDef::SetGameResolution(Size game_res)
 {

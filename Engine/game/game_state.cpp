@@ -231,8 +231,8 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     speech_music_drop = in->ReadInt32();
     in_cutscene = in->ReadInt32();
     fast_forward = in->ReadInt32();
-    room_width = in->ReadInt32();
-    room_height = in->ReadInt32();
+    room.LoadedWidth = in->ReadInt32();
+    room.LoadedHeight = in->ReadInt32();
     game_speed_modifier = in->ReadInt32();
     in->ReadInt32(); // [DEPRECATED]
     takeover_data = in->ReadInt32();
@@ -525,8 +525,8 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(speech_music_drop);
     out->WriteInt32(in_cutscene);
     out->WriteInt32(fast_forward);
-    out->WriteInt32(room_width);
-    out->WriteInt32(room_height);
+    out->WriteInt32(room.LoadedWidth);
+    out->WriteInt32(room.LoadedHeight);
     out->WriteInt32(game_speed_modifier);
     out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(takeover_data);

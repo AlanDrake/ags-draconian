@@ -81,6 +81,10 @@ public:
     // keeps them at their places in the game state's layout (GamePlayState::ReadFromSavegame, WriteForSavegame,
     // and the room component for BgModified and MaskModified). None is kept per room between visits.
     //
+    // The size of the loaded room as the script's game.room_width/room_height report it, 0 until a room has
+    // been loaded in this game
+    int LoadedWidth = 0;
+    int LoadedHeight = 0;
     // 0 while the room's on_call runs (CallRoomScript), 1 after; the script's game.roomscript_finished
     int ScriptFinished = 0;
     // The game loops between background frames, the room file's BgAnimSpeed when the room is loaded; the script's
@@ -101,7 +105,7 @@ public:
     std::vector<bool> BgModified;
     bool MaskModified[kNumRoomAreaTypes]{};
 
-    // Resets the members above (ScriptFinished ... MaskModified) to their initial values; called where the game
+    // Resets the members above (LoadedWidth ... MaskModified) to their initial values; called where the game
     // state is reset as a whole (unload_game), as these were reset with it.
     void ResetPlayState();
 

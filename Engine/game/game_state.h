@@ -162,8 +162,6 @@ struct GamePlayState
     int speech_music_drop = 0;               // how much to drop music volume by when speech is played
     int in_cutscene = 0;                     // we are between a StartCutscene and EndCutscene
     int fast_forward = 0;                    // player has elected to skip cutscene
-    int room_width = 0;                      // width of current room
-    int room_height = 0;                     // height of current room
     int game_speed_modifier = 0;
     int takeover_data = 0;        // value passed to RunAGSGame in previous game
     int replay_hotkey_unused = 0; // (UNUSED!) StartRecording: not supported

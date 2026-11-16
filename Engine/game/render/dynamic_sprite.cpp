@@ -435,7 +435,6 @@ ScriptDynamicSprite *DynamicSprite_Create(int width, int height, int color_fmt)
 
 ScriptDynamicSprite *DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height)
 {
-    Game &game = Game::Current();
     Room &room = Room::Current();
     if (frame == SCR_NO_VALUE)
     {
@@ -449,9 +448,9 @@ ScriptDynamicSprite *DynamicSprite_CreateFromBackground(int frame, int x1, int y
     if (y1 == SCR_NO_VALUE)
         y1 = 0;
     if (width == SCR_NO_VALUE)
-        width = game.Play.room_width;
+        width = room.LoadedWidth;
     if (height == SCR_NO_VALUE)
-        height = game.Play.room_height;
+        height = room.LoadedHeight;
 
     if (width <= 0 || height <= 0)
     {
@@ -460,7 +459,7 @@ ScriptDynamicSprite *DynamicSprite_CreateFromBackground(int frame, int x1, int y
         height = std::max(1, height);
     }
 
-    if ((x1 < 0) || (y1 < 0) || (x1 + width > game.Play.room_width) || (y1 + height > game.Play.room_height))
+    if ((x1 < 0) || (y1 < 0) || (x1 + width > room.LoadedWidth) || (y1 + height > room.LoadedHeight))
         quit("!DynamicSprite.CreateFromBackground: invalid co-ordinates specified");
 
     // create a new sprite as a copy of the background area

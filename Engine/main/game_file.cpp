@@ -146,12 +146,12 @@ UScript TryLoadScriptAsset(UScript &&existing_script, const String &script_obj_n
 // These are optional, so no error is raised if some of these are not found.
 // For those that do exist, reads them and replaces any scripts of same kind
 // in the already loaded game data.
-void TryLoadGameScripts(LoadedGameEntities &ents)
+void TryLoadGameScripts(GameDef &game)
 {
     // Global script
-    ents.GlobalScript = TryLoadScriptAsset(std::move(ents.GlobalScript), GlobalScriptObj, false);
+    game.GlobalScript = TryLoadScriptAsset(std::move(game.GlobalScript), GlobalScriptObj, false);
     // Dialog script
-    ents.DialogScript = TryLoadScriptAsset(std::move(ents.DialogScript), DialogScriptObj, false);
+    game.DialogScript = TryLoadScriptAsset(std::move(game.DialogScript), DialogScriptObj, false);
     // Script modules
     // First load a modules list
     std::vector<String> modules;
@@ -163,17 +163,17 @@ void TryLoadGameScripts(LoadedGameEntities &ents)
             modules.push_back(reader.ReadLine());
         Debug::Printf(kDbgMsg_Info, "Script modules list '%s' is found and loaded", ScriptModulesList.GetCStr());
     }
-    if (modules.size() > ents.ScriptModules.size())
+    if (modules.size() > game.ScriptModules.size())
     {
-        ents.ScriptModules.resize(modules.size());
-        ents.ScriptModuleNames.resize(modules.size());
+        game.ScriptModules.resize(modules.size());
+        game.ScriptModuleNames.resize(modules.size());
     }
     // Now run by the list and try loading everything
     for (size_t i = 0; i < modules.size(); ++i)
     {
-        ents.ScriptModules[i] = TryLoadScriptAsset(std::move(ents.ScriptModules[i]), modules[i], true);
-        ents.ScriptModuleNames[i] =
-            ents.ScriptModules[i] ? ents.ScriptModules[i]->GetScriptName() : Path::ReplaceExtension(modules[i], "asc");
+        game.ScriptModules[i] = TryLoadScriptAsset(std::move(game.ScriptModules[i]), modules[i], true);
+        game.ScriptModuleNames[i] =
+            game.ScriptModules[i] ? game.ScriptModules[i]->GetScriptName() : Path::ReplaceExtension(modules[i], "asc");
     }
 }
 
@@ -204,7 +204,7 @@ HError load_game_file()
     err = (HError)UpdateGameData(ents, src.DataVersion);
     if (!err)
         return err;
-    TryLoadGameScripts(ents);
+    TryLoadGameScripts(game);
     err = (HError)InitGameState(ents, src.DataVersion);
     if (!err)
         return err;

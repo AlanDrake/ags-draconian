@@ -36,8 +36,13 @@
 #include "game/scripteventtable.h"
 #include "game/words_dictionary.h"
 #include "gui/guidefines.h"
+#include "gui/guimain.h"
+#include "script/cc_script.h"
 #include "util/string.h"
 
+// Complete in game_def.cpp, where GameDef's special member functions are defined
+struct DialogTopic;
+struct ViewStruct;
 
 using AGS::Common::HGameFileError;
 using AGS::Common::HError;
@@ -180,11 +185,35 @@ public:
     // Tells if the given cursor has the specific role
     bool HasCursorRole(int curs, CursorRole role) const { return mcurs[curs].role == role; }
 
-    GameDef() = default;
-    GameDef(GameDef &&gss) = default;
-    ~GameDef() = default;
+    // The game's entities as loaded from the game file (ReadGameData reads into them); the engine's Game inherits
+    // them and changes them while the game runs, until each entity gets a live copy (PLAN.md 5.1a).
+    // The game's views
+    std::vector<ViewStruct> Views;
+    // The dialog topics of the game, by dialog number
+    std::vector<DialogTopic> Dialogs;
+    // The GUIs and their controls, by GUI index and by control index of each kind
+    std::vector<AGS::Common::GUIMain> Guis;
+    std::vector<AGS::Common::GUIButton> GuiButtons;
+    std::vector<AGS::Common::GUIInvWindow> GuiInvWindows;
+    std::vector<AGS::Common::GUILabel> GuiLabels;
+    std::vector<AGS::Common::GUIListBox> GuiListBoxes;
+    std::vector<AGS::Common::GUISlider> GuiSliders;
+    std::vector<AGS::Common::GUITextBox> GuiTextBoxes;
+    // The compiled scripts: the global script, the dialog script, and the script modules with their names, by
+    // module index (the names come from a game data extension, or from the script assets that replace them).
+    // The engine creates its runtime scripts from these (game/game_init.cpp) and keeps them until unload_game.
+    UScript GlobalScript;
+    UScript DialogScript;
+    std::vector<UScript> ScriptModules;
+    std::vector<AGS::Common::String> ScriptModuleNames;
 
-    GameDef &operator=(GameDef &&gss) = default;
+    // The special member functions are out of line (game_def.cpp), where the element types of the vectors
+    // above are complete
+    GameDef();
+    GameDef(GameDef &&gss);
+    ~GameDef();
+
+    GameDef &operator=(GameDef &&gss);
 
     // Tells whether the serialized game data contains certain components
     struct SerializeInfo

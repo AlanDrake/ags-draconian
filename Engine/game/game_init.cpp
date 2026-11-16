@@ -521,21 +521,12 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     services.Sprites.EnlargeTo(ents.SpriteCount - 1);
     game.CharExtras.resize(game.numcharacters);
-    // TODO: 'ents' is const, so the std::move calls below copy the GUIs, views and dialogs; take it by
-    // a non-const reference to move them (its Game member is a reference, which is why this compiles)
-    game.Guis = std::move(ents.Guis);
-    game.GuiButtons = std::move(ents.GuiControls.Buttons);
-    game.GuiInvWindows = std::move(ents.GuiControls.InvWindows);
-    game.GuiLabels = std::move(ents.GuiControls.Labels);
-    game.GuiListBoxes = std::move(ents.GuiControls.ListBoxes);
-    game.GuiSliders = std::move(ents.GuiControls.Sliders);
-    game.GuiTextBoxes = std::move(ents.GuiControls.TextBoxes);
+    // the GUIs, views and dialogs were read into the game (GameDef) by the loader
     GUI::Context.GameColorDepth = game.GetColorDepth();
     GUI::Context.Spriteset = &services.Sprites;
     GUIRefCollection gui_control_refs(game.GuiButtons, game.GuiInvWindows, game.GuiLabels, game.GuiListBoxes,
                                       game.GuiSliders, game.GuiTextBoxes);
     GUI::RebuildGUI(game.Guis, gui_control_refs);
-    game.Views = std::move(ents.Views);
     game.Play.audioclipProps.resize(game.audioClips.size());
     game.Play.charProps.resize(game.numcharacters);
     game.Play.dialogProps.resize(game.numdialog);
@@ -547,7 +538,6 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     game.Play.guicontrolProps[kGUITextBox].resize(game.GuiTextBoxes.size());
     game.Play.guicontrolProps[kGUIListBox].resize(game.GuiListBoxes.size());
     game.Play.invProps.resize(game.numinvitems);
-    game.Dialogs = std::move(ents.Dialogs);
     // Set the number of game channels (the same for all the supported game versions)
     game.numGameChannels = MAX_GAME_CHANNELS;
     game.numCompatGameChannels = MAX_GAME_CHANNELS;
@@ -608,10 +598,10 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
 
     std::vector<ccScript *> script_modules;
-    for (const auto &script : ents.ScriptModules)
+    for (const auto &script : game.ScriptModules)
         script_modules.push_back(script.get());
     err =
-        CreateRuntimeScripts(ents.GlobalScript.get(), script_modules, ents.ScriptModuleNames, ents.DialogScript.get());
+        CreateRuntimeScripts(game.GlobalScript.get(), script_modules, game.ScriptModuleNames, game.DialogScript.get());
     if (!err)
         return new GameInitError(err, kGameInitErr_ScriptInitFailed);
     err = LinkGlobalScripts();

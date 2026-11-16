@@ -75,8 +75,8 @@ int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
     case 82: return game.Play.speech_music_drop;
     case 83: return game.Play.in_cutscene;
     case 84: return game.Play.fast_forward;
-    case 85: return game.Play.room_width;
-    case 86: return game.Play.room_height;
+    case 85: return room.LoadedWidth;
+    case 86: return room.LoadedHeight;
     case 87: return game.Play.game_speed_modifier;
     case 88: return 0; // [DEPRECATED]
     case 89: return game.Play.takeover_data;
@@ -178,8 +178,8 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 82: game.Play.speech_music_drop = val; break;
     case 83: // game.Play.in_cutscene
     case 84: // game.Play.fast_forward;
-    case 85: // game.Play.room_width;
-    case 86: // game.Play.room_height;
+    case 85: // Room::LoadedWidth;
+    case 86: // Room::LoadedHeight;
         debug_script_warn("ScriptGame: attempt to write in readonly variable at offset %" PRIdPTR ", value %d", offset,
                           val);
         break;

@@ -26,22 +26,13 @@
 #include "media/audio/audiodefines.h"
 
 struct AGSEvent;
-struct DialogTopic;
 struct ScriptState;
 struct SpeechLipSyncLine;
-struct ViewStruct;
 namespace AGS
 {
 namespace Common
 {
 class Bitmap;
-class GUIButton;
-class GUIInvWindow;
-class GUILabel;
-class GUIListBox;
-class GUIMain;
-class GUISlider;
-class GUITextBox;
 } // namespace Common
 } // namespace AGS
 
@@ -223,10 +214,6 @@ public:
 
     // The runtime state of the characters that CharacterInfo does not hold, by character index
     std::vector<CharacterExtras> CharExtras;
-    // The game's views.
-    std::vector<ViewStruct> Views;
-    // The dialog topics of the game, by dialog number
-    std::vector<DialogTopic> Dialogs;
     // The player character, and its handle for scripts (the script object "player").
     CharacterInfo *PlayerChar = nullptr;
     int32_t ScPlayerCharPtr = 0;
@@ -274,14 +261,6 @@ public:
     // The results of the last text layout
     TextLayoutState TextLayout;
 
-    // The GUIs and their controls, by GUI index and by control index of each kind
-    std::vector<AGS::Common::GUIMain> Guis;
-    std::vector<AGS::Common::GUIButton> GuiButtons;
-    std::vector<AGS::Common::GUIInvWindow> GuiInvWindows;
-    std::vector<AGS::Common::GUILabel> GuiLabels;
-    std::vector<AGS::Common::GUIListBox> GuiListBoxes;
-    std::vector<AGS::Common::GUISlider> GuiSliders;
-    std::vector<AGS::Common::GUITextBox> GuiTextBoxes;
     // The script objects of the GUIs, by GUI index.
     std::vector<ScriptGUI> ScGuis;
     // currently displayed pop-up GUI (-1 if none)

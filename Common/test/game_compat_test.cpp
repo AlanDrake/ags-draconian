@@ -105,19 +105,19 @@ TEST_P(GameCompat, MainGameData)
     EXPECT_STREQ(game.invScriptNames[1].GetCStr(), "iBlueCup");
     EXPECT_STREQ(game.invScriptNames[2].GetCStr(), "iKey");
     ASSERT_EQ(game.numgui, 9);
-    ASSERT_EQ(ents.Guis.size(), 9u);
-    EXPECT_STREQ(ents.Guis[0].GetName().GetCStr(), "gStatusline");
-    EXPECT_STREQ(ents.Guis[8].GetName().GetCStr(), "gExitGame");
+    ASSERT_EQ(game.Guis.size(), 9u);
+    EXPECT_STREQ(game.Guis[0].GetName().GetCStr(), "gStatusline");
+    EXPECT_STREQ(game.Guis[8].GetName().GetCStr(), "gExitGame");
     EXPECT_EQ(game.numviews, 1);
-    EXPECT_EQ(ents.Views.size(), 1u);
+    EXPECT_EQ(game.Views.size(), 1u);
     EXPECT_EQ(game.numdialog, 0);
     EXPECT_EQ(game.numfonts, 3);
     EXPECT_EQ(game.numcursors, 10);
-    ASSERT_TRUE(ents.GlobalScript);
-    EXPECT_TRUE(ents.DialogScript);
-    ASSERT_EQ(ents.ScriptModules.size(), 1u); // KeyboardMovement
-    ASSERT_EQ(ents.ScriptModuleNames.size(), 1u);
-    EXPECT_STREQ(ents.ScriptModuleNames[0].GetCStr(), "KeyboardMovement.asc");
+    ASSERT_TRUE(game.GlobalScript);
+    EXPECT_TRUE(game.DialogScript);
+    ASSERT_EQ(game.ScriptModules.size(), 1u); // KeyboardMovement
+    ASSERT_EQ(game.ScriptModuleNames.size(), 1u);
+    EXPECT_STREQ(game.ScriptModuleNames[0].GetCStr(), "KeyboardMovement.asc");
 }
 
 TEST_P(GameCompat, Room)
