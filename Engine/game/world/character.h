@@ -24,13 +24,10 @@
 #include "gfx/graphicspace.h"
 #include "util/geometry.h"
 
-// The engine's character: Character, a copy of its definition from the game
-// file (CharacterDef: what the file gives, the blend mode, graphic anchor and
-// graphic offset included) and its play state (CharacterState: everything
-// that exists only while the game runs, the fields that were unused slots of
-// the game file's record included) in one object.
+// The engine's character is one object, Character: its definition's fields (CharacterDef, Common: what the game
+// file says, which the character starts as a copy of) and its play state (CharacterState: what exists only while
+// the game runs). The definitions themselves are kept as loaded in GameDef::Characters and are not written again.
 
-// Forward declaration
 namespace AGS
 {
 namespace Common
@@ -75,7 +72,7 @@ struct CharacterState
     // These were fields of the game file's character record once; the file keeps their slots, unused
     // (CharacterDef::ReadFromFile skips them, WriteToFile writes zeros)
     int PreviousRoom = 0;
-    int AnimWait = 0;
+    int AnimWait = 0;         // game loops left before the next frame of an animation (Animate, idle, speech)
     int16_t IdleTimeLeft = 0; // time in seconds left before switching to idle animation
     int ActiveInventory = -1; // selected inventory item
     int16_t BlinkInterval = 0;
@@ -118,7 +115,7 @@ struct CharacterState
     char ProcessIdleThisTime = 0;
     char SlowMoveCounter = 0;
     ViewAnimateParams Anim;
-    short WalkAnimWait = 0;    // current ticks counter, before advancing an animation
+    short WalkAnimWait = 0;    // game loops left before the next frame of the walking animation
     int AnimationVolume = 100; // default animation volume (relative factor)
     int AudioPanning = 0;
     int AudioSpeed = 1000;

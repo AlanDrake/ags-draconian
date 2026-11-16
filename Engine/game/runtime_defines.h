@@ -232,10 +232,8 @@ typedef AnimFlowParams RunPathParams;
 //
 // TODO: I suggest remaking this into a parent class for objects that
 // do view animations, e.g. a ViewBasedObject class, and inherit runtime
-// Character, RoomObject and AnimatedButton from this. The only thing
-// that prevented from doing this was that the character's definition in Common contained
-// view/loop/frame fields; they are in CharacterState now, so Character could take such a base.
-// When we have a base class, SetFirstAnimFrame() and CycleViewAnim()
+// Character, RoomObject and AnimatedButton from this (PLAN.md 5.1a step 2
+// declares the shared fields once, 5.10 the logic). When we have a base class, SetFirstAnimFrame() and CycleViewAnim()
 // functions naturally become its methods (probably renamed).
 struct ViewAnimateParams : public AnimFlowParams
 {
