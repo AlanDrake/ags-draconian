@@ -19,7 +19,6 @@
 #include "debug/debug_log.h"
 #include "device/sys_events.h"
 #include "font/fonts.h"
-#include "game/character_def.h"
 #include "game/dialog/display.h"
 #include "game/dialog/parser.h"
 #include "game/dialog_topic.h"

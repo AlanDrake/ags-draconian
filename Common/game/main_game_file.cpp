@@ -22,6 +22,7 @@
 #include "debug/out.h"
 #include "font/fonts.h"
 #include "game/audio_clip_type.h"
+#include "game/character_def.h"
 #include "game/dialog_topic.h"
 #include "game/game_def.h"
 #include "game/script_audio_clip.h"

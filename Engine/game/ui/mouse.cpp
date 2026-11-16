@@ -16,7 +16,6 @@
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "device/sys_events.h"
-#include "game/character_def.h"
 #include "game/dynobj/script_mouse.h"
 #include "game/dynobj/script_shader.h"
 #include "game/dynobj/script_system.h"

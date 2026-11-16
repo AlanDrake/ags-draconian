@@ -15,7 +15,6 @@
 
 #include "debug/debug_log.h"
 #include "device/sys_events.h"
-#include "game/character_def.h"
 #include "game/event.h"
 #include "game/game.h"
 #include "game/game_context.h"

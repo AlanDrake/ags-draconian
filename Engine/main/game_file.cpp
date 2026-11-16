@@ -31,7 +31,6 @@
 #include "game/render/draw.h"
 #include "game/script.h"
 #include "game/ui/gui.h"
-#include "game/world/character.h"
 #include "game/world/view_frame.h"
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"

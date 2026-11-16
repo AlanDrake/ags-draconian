@@ -43,6 +43,7 @@
 #include "game/script.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
+#include "game/world/character.h"
 #include "game/world/object.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"

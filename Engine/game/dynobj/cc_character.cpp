@@ -18,6 +18,7 @@
 #include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_init.h"
+#include "game/world/character.h"
 #include "script/cc_common.h" // cc_error
 #include "script/cc_common.h"
 #include "script/dynobj/dynobj_manager.h"

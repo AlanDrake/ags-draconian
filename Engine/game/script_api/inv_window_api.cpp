@@ -15,7 +15,6 @@
 // Script bindings registered by RegisterInventoryWindowAPI().
 //
 //=============================================================================
-#include "game/character_def.h"
 #include "game/game.h"
 #include "game/script_api/bindings.h"
 #include "game/ui/inv_window.h"

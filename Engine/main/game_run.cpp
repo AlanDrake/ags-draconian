@@ -27,7 +27,6 @@
 #include "debug/debugger.h"
 #include "device/mousew32.h"
 #include "device/sys_events.h"
-#include "game/character_def.h"
 #include "game/dialog/display.h"
 #include "game/event.h"
 #include "game/game.h"

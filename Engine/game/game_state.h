@@ -19,12 +19,10 @@
 #include <unordered_set>
 #include <vector>
 
-#include "game/character_def.h"
 #include "game/dialog/speech.h"
 #include "game/game_struct_defines.h"
 #include "game/roomstruct.h"
 #include "game/runtime_defines.h"
-#include "game/world/character.h"
 #include "game/world/move_list.h"
 #include "gfx/graphicsdriver.h"
 #include "gui/guidefines.h"

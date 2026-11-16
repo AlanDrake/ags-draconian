@@ -13,7 +13,6 @@
 //=============================================================================
 #pragma once
 
-#include "game/character_def.h"
 #include "game/dynobj/script_drawing_surface.h"
 #include "game/navigation/route_finder.h"
 #include "game/roomstruct.h"

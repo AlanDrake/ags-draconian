@@ -24,7 +24,6 @@
 #include "game/roomstruct.h"
 #include "game/save/savegame_internal.h"
 #include "game/script.h"
-#include "game/world/character.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"
 #include "gfx/gfx_def.h"

@@ -23,6 +23,7 @@
 #include <utility>
 
 #include "data/assetmanager.h"
+#include "game/character_def.h"
 #include "game/dialog_topic.h"
 #include "game/game_def.h"
 #include "game/main_game_file.h"

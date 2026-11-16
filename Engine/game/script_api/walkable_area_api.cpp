@@ -17,7 +17,6 @@
 //=============================================================================
 #include "game/game.h"
 #include "game/script_api/bindings.h"
-#include "game/world/character.h"
 #include "game/world/room.h"
 #include "game/world/walkable_area.h"
 #include "script/script_runtime.h"

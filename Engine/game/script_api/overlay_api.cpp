@@ -19,7 +19,6 @@
 #include "game/render/overlay.h"
 #include "game/script_api/bindings.h"
 #include "game/translation.h"
-#include "game/world/character.h"
 #include "script/dynobj/cc_dynamic_array.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

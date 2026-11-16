@@ -35,7 +35,6 @@
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "game/asset_helper.h"
-#include "game/character_def.h"
 #include "game/dialog/lipsync.h"
 #include "game/dialog/speech.h"
 #include "game/dynobj/script_objects.h"

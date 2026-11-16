@@ -15,6 +15,7 @@
 
 #include "data/data_helpers.h"
 #include "game/audio_clip_type.h"
+#include "game/character_def.h"
 #include "game/dialog_topic.h"
 #include "game/script_audio_clip.h"
 #include "game/view.h"

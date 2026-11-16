@@ -30,7 +30,6 @@
 #include "game/game_state.h"
 #include "game/ui/inv_window.h"
 #include "game/ui/mouse.h"
-#include "game/world/character.h"
 #include "game/world/object.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"
