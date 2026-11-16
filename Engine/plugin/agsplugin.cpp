@@ -420,8 +420,9 @@ AGSCharacter *IAGSEngine::GetCharacter(int32 charnum)
     Game &game = Game::Current();
     if (charnum >= game.numcharacters)
         quit("!AGSEngine::GetCharacter: invalid character request");
-    // IMPORTANT: if we change the script functions object argument type, we must change this return value too!
-    return (AGSCharacter *)&game.Characters[charnum];
+    // AGSCharacter is opaque to plugins: the pointer is the Character that the script functions take, and a
+    // plugin passes it back to them. If their argument type changes, this return value changes with it.
+    return reinterpret_cast<AGSCharacter *>(&game.Characters[charnum]);
 }
 AGSGameOptions *IAGSEngine::GetGameOptions()
 {
