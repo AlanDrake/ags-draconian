@@ -274,7 +274,7 @@ void IAGSEngine::GetMousePosition(int32 *x, int32 *y)
 }
 int IAGSEngine::GetCurrentRoom()
 {
-    return displayed_room;
+    return Game::Current().DisplayedRoom;
 }
 int IAGSEngine::GetNumBackgrounds()
 {
@@ -472,7 +472,7 @@ AGSObject *IAGSEngine::GetObject(int32 num)
     if (num < 0 || static_cast<uint32_t>(num) >= Room::Current().State->numobj)
         quit("!IAGSEngine::GetObject: invalid object");
     // IMPORTANT: if we change the script functions object argument type, we must change this return value too!
-    return (AGSObject *)&scrObj[num];
+    return (AGSObject *)&Game::Current().ScObjects[num];
 }
 BITMAP *IAGSEngine::CreateBlankBitmap(int32 width, int32 height, int32 coldep)
 {
@@ -540,7 +540,7 @@ int IAGSEngine::GetAreaScaling(int32 x, int32 y)
 }
 int IAGSEngine::IsGamePaused()
 {
-    return game_paused;
+    return Game::Current().Paused;
 }
 int IAGSEngine::GetSpriteWidth(int32 slot)
 {

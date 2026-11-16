@@ -60,7 +60,7 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
     int at_x = leftmost_x;
     int at_y = y + _innerRect.Top;
     int lastItem = _topItem + (_colCount * _rowCount);
-    auto &chex = charextra[GetCharacterID()];
+    auto &chex = game.CharExtras[GetCharacterID()];
     if (lastItem > chex.inventory.size())
         lastItem = chex.inventory.size();
 

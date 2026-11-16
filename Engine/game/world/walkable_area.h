@@ -29,9 +29,6 @@ class Bitmap;
 }
 } // namespace AGS
 
-// The script objects of the room's walkable areas, by area number.
-extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
-
 // Rebuilds the room's walkable area mask from the backup taken when the room was loaded, erasing the areas
 // that game.Play.walkable_areas_on has switched off. Call after changing which areas are enabled.
 void redo_walkable_areas();

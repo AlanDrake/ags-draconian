@@ -244,7 +244,7 @@ bool GetEngineInteger(int &value, EngineValueID value_id, int index)
         default: return false; // should not happen...
         }
     }
-    case ENGINE_VALUE_I_FPS_MAX: value = isTimerFpsMaxed() ? -1 : frames_per_second; return true;
+    case ENGINE_VALUE_I_FPS_MAX: value = isTimerFpsMaxed() ? -1 : Game::Current().FramesPerSecond; return true;
     case ENGINE_VALUE_I_FPS:
     {
         float fps = get_real_fps();

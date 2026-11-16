@@ -109,13 +109,14 @@ int RoomMaskDS[kNumRoomAreaTypes];
 
 ScriptDrawingSurface *Room_GetDrawingSurfaceForBackground(int bg_index)
 {
+    Game &game = Game::Current();
     Room &room = Room::Current();
-    if (displayed_room < 0)
+    if (game.DisplayedRoom < 0)
         quit("!Room.GetDrawingSurfaceForBackground: no room is currently loaded");
 
     if (bg_index == SCR_NO_VALUE)
     {
-        bg_index = Game::Current().Play.bg_frame;
+        bg_index = game.Play.bg_frame;
     }
 
     if ((bg_index < 0) || (static_cast<uint32_t>(bg_index) >= room.BgFrameCount))
@@ -138,7 +139,7 @@ ScriptDrawingSurface *Room_GetDrawingSurfaceForBackground(int bg_index)
 
 ScriptDrawingSurface *Room_GetDrawingSurfaceForMask(RoomAreaMask mask)
 {
-    if (displayed_room < 0)
+    if (Game::Current().DisplayedRoom < 0)
         quit("!Room_GetDrawingSurfaceForMask: no room is currently loaded");
 
     if (mask <= kRoomAreaNone || mask >= kNumRoomAreaTypes)
@@ -275,7 +276,7 @@ const char *Room_GetName()
 
 int Room_GetNumber()
 {
-    return displayed_room;
+    return Game::Current().DisplayedRoom;
 }
 
 bool Room_Exists(int room)
@@ -287,7 +288,7 @@ bool Room_Exists(int room)
 
 ScriptUserObject *Room_NearestWalkableArea(int x, int y)
 {
-    if (displayed_room < 0)
+    if (Game::Current().DisplayedRoom < 0)
         quit("!Room.NearestWalkableArea: no room is currently loaded");
     Point found_pt;
     if (Pathfinding::FindNearestWalkablePoint(Room::Current().WalkAreaMask.get(),
@@ -322,35 +323,35 @@ ScriptHotspot *Room_GetiHotspots(int idx)
 {
     if ((idx < 0) || (idx >= MAX_ROOM_HOTSPOTS))
         return nullptr;
-    return &scrHotspot[idx];
+    return &Game::Current().ScHotspots[idx];
 }
 
 ScriptObject *Room_GetiObjects(int idx)
 {
     if ((idx < 0) || (idx >= MAX_ROOM_OBJECTS))
         return nullptr;
-    return &scrObj[idx];
+    return &Game::Current().ScObjects[idx];
 }
 
 ScriptRegion *Room_GetiRegions(int idx)
 {
     if ((idx < 0) || (idx >= MAX_ROOM_REGIONS))
         return nullptr;
-    return &scrRegion[idx];
+    return &Game::Current().ScRegions[idx];
 }
 
 ScriptWalkableArea *Room_GetiWalkableAreas(int idx)
 {
     if ((idx < 0) || (idx >= MAX_WALK_AREAS))
         return nullptr;
-    return &scrWalkarea[idx];
+    return &Game::Current().ScWalkableAreas[idx];
 }
 
 ScriptWalkbehind *Room_GetiWalkbehinds(int idx)
 {
     if ((idx < 0) || (idx >= MAX_WALK_BEHINDS))
         return nullptr;
-    return &scrWalkbehind[idx];
+    return &Game::Current().ScWalkBehinds[idx];
 }
 
 ScriptPathfinder *Room_GetPathFinder()
@@ -377,7 +378,7 @@ void unload_old_room()
     Game &game = Game::Current();
     Room &room = Room::Current();
     // if switching games on restore, don't do this
-    if (displayed_room < 0)
+    if (game.DisplayedRoom < 0)
         return;
 
     // Set "in_room_transition" right prior to the transition effect,
@@ -393,9 +394,9 @@ void unload_old_room()
     // room unloaded callback
     run_room_event(kRoomEvent_AfterFadeout);
     // global room unloaded event
-    run_on_event(kScriptEvent_RoomAfterFadeout, displayed_room);
+    run_on_event(kScriptEvent_RoomAfterFadeout, game.DisplayedRoom);
 
-    debug_script_log("Unloading room %d", displayed_room);
+    debug_script_log("Unloading room %d", game.DisplayedRoom);
 
     dispose_room_drawdata();
 
@@ -435,7 +436,7 @@ void unload_old_room()
     // ensure that any half-moves (eg. with scaled movement) are stopped
     for (int i = 0; i < game.numcharacters; i++)
     {
-        charextra[i].xwas = INVALID_X;
+        game.CharExtras[i].xwas = INVALID_X;
     }
 
     game.Play.swap_portrait_lastchar = -1;
@@ -487,7 +488,7 @@ void unload_old_room()
 
     pool.PrintStats();
 
-    displayed_room = -10;
+    game.DisplayedRoom = -10;
 }
 
 // Automatically reset primary room viewport and camera to match the new room size
@@ -611,7 +612,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
     String room_filename;
     done_as_error = false;
     game.Play.room_changes++;
-    displayed_room = room_id;
+    game.DisplayedRoom = room_id;
 
     room_filename.Format("room%d.crm", room_id);
 
@@ -688,7 +689,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
     Mouse_SetBounds(0, 0, 0, 0);
 
     set_our_eip(203);
-    in_new_room = kEnterRoom_Normal;
+    game.RoomChange.InNewRoom = kEnterRoom_Normal;
 
 
     // room.WalkableAreasTemp is used by the pathfinder to generate a
@@ -750,7 +751,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
         }
 
         room.State->beenhere = 1;
-        in_new_room = kEnterRoom_FirstTime;
+        game.RoomChange.InNewRoom = kEnterRoom_FirstTime;
     }
     else
     {
@@ -823,14 +824,14 @@ void load_new_room(int room_id, CharacterInfo *ch)
         // previous room, force it out so that the timer resets
         for (int i = 0; i < game.numcharacters; i++)
         {
-            if ((charextra[i].following >= 0) && (game.chars[i].room < 0))
+            if ((game.CharExtras[i].following >= 0) && (game.chars[i].room < 0))
             {
-                if ((charextra[i].following == game.playercharacter) && (ch->prevroom == room_id))
+                if ((game.CharExtras[i].following == game.playercharacter) && (ch->prevroom == room_id))
                     // the player went back to the previous room, so make sure
                     // the following character is still there
                     game.chars[i].room = room_id;
                 else
-                    game.chars[i].room = game.chars[charextra[i].following].room;
+                    game.chars[i].room = game.chars[game.CharExtras[i].following].room;
             }
         }
 
@@ -868,28 +869,28 @@ void load_new_room(int room_id, CharacterInfo *ch)
     set_our_eip(207);
     game.Play.entered_edge = -1;
 
-    if ((new_room_x != SCR_NO_VALUE) && (ch != nullptr))
+    if ((game.RoomChange.X != SCR_NO_VALUE) && (ch != nullptr))
     {
-        ch->x = new_room_x;
-        ch->y = new_room_y;
-        if (new_room_placeonwalkable)
+        ch->x = game.RoomChange.X;
+        ch->y = game.RoomChange.Y;
+        if (game.RoomChange.PlaceOnWalkable)
             Character_PlaceOnWalkableArea(ch);
 
-        if (new_room_loop != SCR_NO_VALUE)
-            ch->loop = new_room_loop;
+        if (game.RoomChange.Loop != SCR_NO_VALUE)
+            ch->loop = game.RoomChange.Loop;
     }
     // reset new_room instructions
-    new_room_x = new_room_y = SCR_NO_VALUE;
-    new_room_loop = SCR_NO_VALUE;
-    new_room_placeonwalkable = false;
+    game.RoomChange.X = game.RoomChange.Y = SCR_NO_VALUE;
+    game.RoomChange.Loop = SCR_NO_VALUE;
+    game.RoomChange.PlaceOnWalkable = false;
 
-    if ((new_room_pos > 0) & (ch != nullptr))
+    if ((game.RoomChange.Pos > 0) & (ch != nullptr))
     {
-        if (new_room_pos >= 4000)
+        if (game.RoomChange.Pos >= 4000)
         {
             game.Play.entered_edge = 3;
             ch->y = room.Edges.Top + 1;
-            ch->x = new_room_pos % 1000;
+            ch->x = game.RoomChange.Pos % 1000;
             if (ch->x == 0)
                 ch->x = room.Width / 2;
             if (ch->x <= room.Edges.Left)
@@ -898,11 +899,11 @@ void load_new_room(int room_id, CharacterInfo *ch)
                 ch->x = room.Edges.Right - 3;
             ch->loop = 0;
         }
-        else if (new_room_pos >= 3000)
+        else if (game.RoomChange.Pos >= 3000)
         {
             game.Play.entered_edge = 2;
             ch->y = room.Edges.Bottom - 1;
-            ch->x = new_room_pos % 1000;
+            ch->x = game.RoomChange.Pos % 1000;
             if (ch->x == 0)
                 ch->x = room.Width / 2;
             if (ch->x <= room.Edges.Left)
@@ -911,11 +912,11 @@ void load_new_room(int room_id, CharacterInfo *ch)
                 ch->x = room.Edges.Right - 3;
             ch->loop = 3;
         }
-        else if (new_room_pos >= 2000)
+        else if (game.RoomChange.Pos >= 2000)
         {
             game.Play.entered_edge = 1;
             ch->x = room.Edges.Right - 1;
-            ch->y = new_room_pos % 1000;
+            ch->y = game.RoomChange.Pos % 1000;
             if (ch->y == 0)
                 ch->y = room.Height / 2;
             if (ch->y <= room.Edges.Top)
@@ -924,11 +925,11 @@ void load_new_room(int room_id, CharacterInfo *ch)
                 ch->y = room.Edges.Bottom - 3;
             ch->loop = 1;
         }
-        else if (new_room_pos >= 1000)
+        else if (game.RoomChange.Pos >= 1000)
         {
             game.Play.entered_edge = 0;
             ch->x = room.Edges.Left + 1;
-            ch->y = new_room_pos % 1000;
+            ch->y = game.RoomChange.Pos % 1000;
             if (ch->y == 0)
                 ch->y = room.Height / 2;
             if (ch->y <= room.Edges.Top)
@@ -940,7 +941,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
         // if starts on un-walkable area
         if (get_walkable_area_pixel(ch->x, ch->y) == 0)
         {
-            if (new_room_pos >= 3000)
+            if (game.RoomChange.Pos >= 3000)
             { // bottom or top of screen
                 int try_left = ch->x - 1, try_right = ch->x + 1;
                 while (1)
@@ -970,7 +971,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
                         break; // no place to go, so leave him
                 }
             }
-            else if (new_room_pos >= 1000)
+            else if (game.RoomChange.Pos >= 1000)
             { // left or right
                 int try_left = ch->y - 1, try_right = ch->y + 1;
                 while (1)
@@ -1001,7 +1002,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
                 }
             }
         }
-        new_room_pos = 0;
+        game.RoomChange.Pos = 0;
     }
     if (ch != nullptr)
     {
@@ -1074,10 +1075,10 @@ void load_new_room(int room_id, CharacterInfo *ch)
 
     set_our_eip(220);
     update_polled_stuff();
-    debug_script_log("Now in room %d", displayed_room);
+    debug_script_log("Now in room %d", game.DisplayedRoom);
     cursor_gstate.MarkChanged();
     GUIE::MarkAllGUIForUpdate(true, true);
-    pl_run_plugin_hooks(kPluginEvt_EnterRoom, displayed_room);
+    pl_run_plugin_hooks(kPluginEvt_EnterRoom, game.DisplayedRoom);
 }
 
 void new_room(int room_id, CharacterInfo *ch)
@@ -1093,20 +1094,20 @@ void new_room(int room_id, CharacterInfo *ch)
     // player leaves screen event
     run_room_event(kRoomEvent_BeforeFadeout);
     // Run the global OnRoomLeave event
-    run_on_event(kScriptEvent_RoomLeave, displayed_room);
+    run_on_event(kScriptEvent_RoomLeave, game.DisplayedRoom);
 
-    pl_run_plugin_hooks(kPluginEvt_LeaveRoom, displayed_room);
+    pl_run_plugin_hooks(kPluginEvt_LeaveRoom, game.DisplayedRoom);
 
     // update the new room number if it has been altered by OnLeave scripts
     room_id = in_leaves_screen;
     in_leaves_screen = -1;
 
-    CharacterExtras *player_chex = &charextra[playerchar->index_id];
+    CharacterExtras *player_chex = &game.CharExtras[game.PlayerChar->index_id];
     if ((player_chex->following >= 0) && (game.chars[player_chex->following].room != room_id))
     {
         // the player character is following another character,
         // who is not in the new room. therefore, abort the follow
-        player_chex->SetFollowing(playerchar, -1);
+        player_chex->SetFollowing(game.PlayerChar, -1);
     }
 
     // change rooms
@@ -1146,7 +1147,7 @@ void first_room_initialization()
 {
     Game &game = Game::Current();
     in_room_transition = true;
-    playerchar->prevroom = -1;
+    game.PlayerChar->prevroom = -1;
     set_loop_counter(0);
     // Reset background frame state
     game.Play.bg_frame = 0;
@@ -1155,21 +1156,21 @@ void first_room_initialization()
 
 void check_new_room()
 {
+    Game &game = Game::Current();
     // if they're in a new room, run Player Enters Screen and on_event(ENTER_ROOM)
-    if ((in_new_room != kEnterRoom_None) && (in_new_room != kEnterRoom_RestoredSave))
+    if ((game.RoomChange.InNewRoom != kEnterRoom_None) && (game.RoomChange.InNewRoom != kEnterRoom_RestoredSave))
     {
-        AGSEvent event(
-            AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_BeforeFadein, Game::Current().playercharacter));
+        AGSEvent event(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_BeforeFadein, game.playercharacter));
         // make sure that any script calls don't re-call enters screen
-        const EnterNewRoomState saved_in_new_room = in_new_room;
-        in_new_room = kEnterRoom_None;
+        const EnterNewRoomState saved_in_new_room = game.RoomChange.InNewRoom;
+        game.RoomChange.InNewRoom = kEnterRoom_None;
         DisableInterfaceEx(true /* update cursor */);
         // sync drawable object states before running event
         // in case they access these properties in a script callback
         SyncDrawablesState();
         process_event(&event);
         EnableInterfaceEx(true /* update cursor */);
-        in_new_room = saved_in_new_room;
+        game.RoomChange.InNewRoom = saved_in_new_room;
     }
 }
 
@@ -1388,13 +1389,14 @@ void SetAmbientLightLevel(int light_level)
 
 void NewRoom(int nrnum)
 {
+    Game &game = Game::Current();
     if (nrnum < 0)
         quitprintf("!NewRoom: room change requested to invalid room number %d.", nrnum);
 
-    if (displayed_room < 0)
+    if (game.DisplayedRoom < 0)
     {
         // called from game_start; change the room where the game will start
-        playerchar->room = nrnum;
+        game.PlayerChar->room = nrnum;
         return;
     }
 
@@ -1420,7 +1422,7 @@ void NewRoom(int nrnum)
     }
     else if (!is_inside_script())
     {
-        new_room(nrnum, playerchar);
+        new_room(nrnum, game.PlayerChar);
         return;
     }
     else if (is_inside_script())
@@ -1428,17 +1430,17 @@ void NewRoom(int nrnum)
         get_executingscript()->QueueAction(PostScriptAction(ePSANewRoom, nrnum, "NewRoom"));
         // we might be within a MoveCharacterBlocking -- the room
         // change should abort it
-        if (is_char_walking_ndirect(playerchar))
+        if (is_char_walking_ndirect(game.PlayerChar))
         {
             // stop the character, but doesn't fix the character to a walkable area
-            Character_StopMovingEx(playerchar, false);
+            Character_StopMovingEx(game.PlayerChar, false);
         }
     }
 }
 
 void ResetRoom(int nrnum)
 {
-    if (nrnum == displayed_room)
+    if (nrnum == Game::Current().DisplayedRoom)
         quitprintf("!ResetRoom: cannot reset current room  %d", nrnum);
     if ((nrnum < 0) || (nrnum >= MAX_ROOMS))
         quitprintf("!ResetRoom: invalid room number %d", nrnum);
@@ -1533,7 +1535,7 @@ void RoomProcessClick(int x, int y, int mood)
             y = room.Hotspots[hotspot_id].WalkTo.Y;
             debug_script_log("Move to walk-to point hotspot %d", hotspot_id);
         }
-        walk_character(playerchar, x, y, false /* walk areas */);
+        walk_character(game.PlayerChar, x, y, false /* walk areas */);
         return;
     }
     game.Play.usedmode = mood;

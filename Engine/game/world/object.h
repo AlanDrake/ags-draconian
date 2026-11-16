@@ -35,8 +35,8 @@ bool AssertObject(const char *apiname, int obj_id);
 // Gets the ID of the object at the given room coordinates, or -1 if there is none. Only objects that are displayed
 // (enabled and visible) count, and with kHit_Interactable in hit_options only clickable ones; with the pixel-perfect
 // game option a transparent pixel of the sprite is a miss. If several objects are there, the one with the highest
-// baseline wins, the last by ID on a tie. The winner's baseline (-1 if none) is also left in the global obj_lowest_yp,
-// which GetLocationTypeImpl (game.cpp) compares with the character's and the walk-behind's.
+// baseline wins, the last by ID on a tie. The winner's baseline (-1 if none) is also left in Game::ObjLowestYp, which
+// GetLocationTypeImpl (game.cpp) compares with the character's and the walk-behind's.
 int GetObjectIDAtRoom(int roomx, int roomy, int hit_options);
 // Gets the object's current image: the last cached (transformed) one, which exists in software render mode only
 // and when always_original is not set, else the source sprite; is_original, if given, tells which one it is.
@@ -188,12 +188,6 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams
 // Tests if the standard move/walk parameters are in valid range, if not then clamps them and
 // reports a script warning. BLOCKING, IN_BACKGROUND, ANYWHERE and WALKABLE_AREAS are converted to 1 or 0.
 void ValidateMoveParams(const char *apiname, const char *objname, int &blocking, int &ignwal);
-
-// The script objects of the room objects, by object index.
-extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
-// The baseline of the object that GetObjectIDAtRoom found last, -1 if none; GetLocationTypeImpl (game.cpp)
-// compares it with char_lowest_yp and the walk-behind's to tell which is in front.
-extern int obj_lowest_yp;
 
 class ScriptMotionPath;
 class ScriptShaderInstance;

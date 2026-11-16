@@ -951,7 +951,7 @@ void sync_roomview(Viewport *view)
 void init_room_drawdata()
 {
     Game &game = Game::Current();
-    if (displayed_room < 0)
+    if (game.DisplayedRoom < 0)
         return; // not loaded yet
 
     // Must realloc, because the ObjTextures are cleared on room change
@@ -983,7 +983,7 @@ void init_room_drawdata()
 
 void on_roomviewport_created(int index)
 {
-    if (displayed_room < 0)
+    if (Game::Current().DisplayedRoom < 0)
         return;
     if ((size_t)index < CameraDrawData.size())
         return;
@@ -992,7 +992,7 @@ void on_roomviewport_created(int index)
 
 void on_roomviewport_deleted(int index)
 {
-    if (displayed_room < 0)
+    if (Game::Current().DisplayedRoom < 0)
         return;
     CameraDrawData.erase(CameraDrawData.begin() + index);
     if (!drawstate.FullFrameRedraw)
@@ -1003,7 +1003,7 @@ void on_roomviewport_changed(Viewport *view)
 {
     EngineServices &services = EngineServices::Current();
     // Following update is only interesting for the software renderer
-    if (drawstate.FullFrameRedraw || (displayed_room < 0))
+    if (drawstate.FullFrameRedraw || (Game::Current().DisplayedRoom < 0))
         return;
     if (!view->IsVisible() || view->GetCamera() == nullptr)
         return;
@@ -1021,11 +1021,12 @@ void on_roomviewport_changed(Viewport *view)
 
 void detect_roomviewport_overlaps(size_t z_index)
 {
+    Game &game = Game::Current();
     // Following update is only interesting for the software renderer
-    if (drawstate.FullFrameRedraw || (displayed_room < 0))
+    if (drawstate.FullFrameRedraw || (game.DisplayedRoom < 0))
         return;
     // Find out if we overlap or are overlapped by anything;
-    const auto &viewports = Game::Current().Play.GetRoomViewportsZOrdered();
+    const auto &viewports = game.Play.GetRoomViewportsZOrdered();
     for (; z_index < viewports.size(); ++z_index)
     {
         auto this_view = viewports[z_index];
@@ -1054,7 +1055,7 @@ void detect_roomviewport_overlaps(size_t z_index)
 void on_roomcamera_changed(Camera *cam)
 {
     // Following update is only interesting for the software renderer
-    if (drawstate.FullFrameRedraw || (displayed_room < 0))
+    if (drawstate.FullFrameRedraw || (Game::Current().DisplayedRoom < 0))
         return;
     if (cam->HasChangedSize())
     {
@@ -1985,8 +1986,8 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst, std::
         // 8-bit support: ensure that anti-aliasing routines have a palette
         // to use for mapping while faded out.
         // FIXME: investigate if this may be moved out and not repeated, or at least passed as a parameter!
-        const bool do_select_palette =
-            (in_new_room != kEnterRoom_None) && game.Play.ShouldAASprites() && (src->GetColorDepth() == 1);
+        const bool do_select_palette = (game.RoomChange.InNewRoom != kEnterRoom_None) && game.Play.ShouldAASprites() &&
+                                       (src->GetColorDepth() == 1);
         if (do_select_palette)
             select_palette(palette);
 
@@ -2268,9 +2269,10 @@ bool construct_object_gfx(int obj_id, bool force_software)
     objsrc.pivotx = obj.pivot.X + (static_cast<float>(obj.pivot_offset.X) / obj.width);
     objsrc.pivoty = obj.pivot.Y + (static_cast<float>(obj.pivot_offset.Y) / obj.height);
 
-    return construct_object_gfx((obj.view != UINT16_MAX) ? &views[obj.view].loops[obj.loop].frames[obj.frame] : nullptr,
-                                sprite_id, Size(obj.width, obj.height), obj.flags & OBJF_TINTLIGHTMASK, objsrc,
-                                objcache[obj_id], actsps[obj_id], true, force_software);
+    return construct_object_gfx(
+        (obj.view != UINT16_MAX) ? &Game::Current().Views[obj.view].loops[obj.loop].frames[obj.frame] : nullptr,
+        sprite_id, Size(obj.width, obj.height), obj.flags & OBJF_TINTLIGHTMASK, objsrc, objcache[obj_id],
+        actsps[obj_id], true, force_software);
 }
 
 void prepare_objects_for_drawing()
@@ -2367,9 +2369,10 @@ void tint_image(Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int light
 // assigns parameters, which may further be assigned to a texture.
 bool construct_char_gfx(int char_id, bool force_software)
 {
-    const CharacterInfo &ch = Game::Current().chars[char_id];
-    const CharacterExtras &chex = charextra[char_id];
-    const ViewFrame *vf = &views[ch.view].loops[ch.loop].frames[ch.frame];
+    Game &game = Game::Current();
+    const CharacterInfo &ch = game.chars[char_id];
+    const CharacterExtras &chex = game.CharExtras[char_id];
+    const ViewFrame *vf = &game.Views[ch.view].loops[ch.loop].frames[ch.frame];
     const int pic = spriteset.DoesSpriteExist(vf->pic) ? vf->pic : 0;
 
     ObjectCache chsrc(pic, chex.tint_r, chex.tint_g, chex.tint_b, chex.tint_level, chex.tint_light, 0 /* skip */,
@@ -2396,11 +2399,11 @@ void prepare_characters_for_drawing()
         const CharacterInfo &ch = game.chars[char_id];
         if (!ch.is_displayed())
             continue; // disabled or not visible
-        if (ch.room != displayed_room)
+        if (ch.room != game.DisplayedRoom)
             continue; // in another room
 
         eip_guinum = char_id;
-        const CharacterExtras &chex = charextra[char_id];
+        const CharacterExtras &chex = game.CharExtras[char_id];
         const ObjectCache &chsav = charcache[char_id];
         ObjTexture &actsp = actsps[char_id + ACTSP_OBJSOFF];
 
@@ -2626,7 +2629,7 @@ void draw_fps(const Rect &viewport)
     char base_buffer[20];
     if (!isTimerFpsMaxed())
     {
-        snprintf(base_buffer, sizeof(base_buffer), "%d", frames_per_second);
+        snprintf(base_buffer, sizeof(base_buffer), "%d", game.FramesPerSecond);
     }
     else
     {
@@ -2769,7 +2772,7 @@ void draw_gui_and_overlays()
 
     // Add GUIs
     set_our_eip(35);
-    if (((debug_flags & DBG_NOIFACE) == 0) && (displayed_room >= 0))
+    if (((debug_flags & DBG_NOIFACE) == 0) && (game.DisplayedRoom >= 0))
     {
         GUI::Options.GreyOutInvWindow = game.Play.inventory_greys_out;
 
@@ -2921,7 +2924,7 @@ void put_sprite_list_on_screen(bool in_room)
 
 bool GfxDriverSpriteEvtCallback(int evt, intptr_t data)
 {
-    if (displayed_room < 0)
+    if (Game::Current().DisplayedRoom < 0)
     {
         // if no room loaded, various stuff won't be initialized yet
         return false;
@@ -3214,7 +3217,7 @@ void construct_game_scene(bool full_redraw)
     // Stage: room viewports
     if (!game.Play.screen_is_faded_out && game.Play.complete_overlay_on == 0)
     {
-        if (displayed_room >= 0)
+        if (game.DisplayedRoom >= 0)
         {
             construct_room_view();
         }
@@ -3418,7 +3421,7 @@ void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extr
     if (game.Play.fast_forward)
         return;
     // Don't render if we've just entered new room and are before fade-in
-    if (in_new_room != kEnterRoom_None)
+    if (game.RoomChange.InNewRoom != kEnterRoom_None)
         return;
 
     // TODO: find out if it's okay to move shake to update function

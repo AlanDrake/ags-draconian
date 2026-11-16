@@ -209,7 +209,7 @@ static int find_free_audio_channel(const AudioPlayback &aplay, int priority, boo
         // TODO: investigate better solutions? may require reimplementation of the sound queue.
         if (for_queue && (playback->sourceClipType == aplay.AudioType))
         { // try to start queued sounds 1 frame earlier
-            const float trigger_pos = (1000.f / frames_per_second) * 1.f;
+            const float trigger_pos = (1000.f / game.FramesPerSecond) * 1.f;
             if (playback->get_pos_ms() >= (playback->get_length_ms() - trigger_pos))
             {
                 lowestPrioritySoFar = priority;
@@ -574,8 +574,9 @@ void stop_and_destroy_channel(int chid)
 
 int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxDist)
 {
-    int distx = playerchar->x - sndX;
-    int disty = playerchar->y - sndY;
+    Game &game = Game::Current();
+    int distx = game.PlayerChar->x - sndX;
+    int disty = game.PlayerChar->y - sndY;
     int dist = (int)::sqrt((double)(distx * distx + disty * disty));
 
     // if they're quite close, full volume

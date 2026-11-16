@@ -50,9 +50,6 @@ void walkbehinds_generate_sprites();
 // returns whether any pixels were updated
 bool walkbehinds_cropout(AGS::Common::Bitmap *sprit, int sprx, int spry, int basel);
 
-// The script objects of the room's walk-behinds, by walk-behind number.
-extern ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
-
 struct ScriptWalkbehind;
 
 // Script API: Walkbehind::GetAtRoomXY^2

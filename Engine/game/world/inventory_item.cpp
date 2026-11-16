@@ -80,9 +80,10 @@ static void set_inv_item_pic(int item_id, int sprite)
 
 void set_inv_item_cursorpic(int item_id, int sprite)
 {
-    Game::Current().invinfo[item_id].cursorPic = sprite;
+    Game &game = Game::Current();
+    game.invinfo[item_id].cursorPic = sprite;
 
-    if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv == item_id))
+    if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->activeinv == item_id))
     {
         update_inv_cursor(item_id);
         set_cursor_look(cur_cursor);
@@ -91,13 +92,14 @@ void set_inv_item_cursorpic(int item_id, int sprite)
 
 static void set_inv_item_cursorhotspot(int item_id, int hx, int hy, FrameAlignment align)
 {
-    auto &item = Game::Current().invinfo[item_id];
+    Game &game = Game::Current();
+    auto &item = game.invinfo[item_id];
     item.hotx = hx;
     item.hoty = hy;
     item.hotAlign = align;
 
     // The cursor image may include hotspot marker, therefore update cursor image
-    if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv == item_id))
+    if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->activeinv == item_id))
     {
         update_inv_cursor(item_id);
         set_cursor_look(cur_cursor);
@@ -210,7 +212,7 @@ ScriptInvItem *InventoryItem_GetAtScreenXY(int x, int y, int gui_hitoptions, int
     int item_id = GetInvAt(x, y, gui_hitoptions, inv_hitoptions);
     if (item_id <= 0)
         return nullptr;
-    return &scrInv[item_id];
+    return &Game::Current().ScInvItems[item_id];
 }
 
 ScriptInvItem *InventoryItem_GetAtScreenXY2(int x, int y)
@@ -243,11 +245,12 @@ void RunInventoryInteraction(int item_id, int mood)
     // For USE verb: remember active inventory
     if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
-        game.Play.usedinv = playerchar->activeinv;
+        game.Play.usedinv = game.PlayerChar->activeinv;
     }
 
-    const auto obj_evt = ObjectEvent(kScTypeGame, LOCTYPE_INVITEM, item_id,
-                                     RuntimeScriptValue().SetScriptObject(&scrInv[item_id], &ccDynamicInv), mood);
+    const auto obj_evt =
+        ObjectEvent(kScTypeGame, LOCTYPE_INVITEM, item_id,
+                    RuntimeScriptValue().SetScriptObject(&game.ScInvItems[item_id], &ccDynamicInv), mood);
     if ((evnt >= 0) &&
         run_event_script(obj_evt, &game.invinfo[item_id].interactions, evnt, &game.invinfo[item_id].GetEvents(),
                          anyclick_evt, true /* do unhandled event */) < 0)

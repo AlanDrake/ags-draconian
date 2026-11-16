@@ -573,5 +573,3 @@ private:
     // Script Timers: simple game tick counters with arbitrary ID
     std::unordered_map<int32_t, int32_t> _scriptTimers;
 };
-
-extern std::vector<CharacterExtras> charextra;

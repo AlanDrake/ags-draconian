@@ -103,6 +103,55 @@ CONTEXTS = {
         'names': {
             'game': '',
             'play': 'Play',
+            # batch world
+            'charextra': 'CharExtras',
+            'views': 'Views',
+            'playerchar': 'PlayerChar',
+            '_sc_PlayerCharPtr': 'ScPlayerCharPtr',
+            'char_lowest_yp': 'CharLowestYp',
+            'obj_lowest_yp': 'ObjLowestYp',
+            'displayed_room': 'DisplayedRoom',
+            'in_new_room': 'RoomChange.InNewRoom',
+            'new_room_was': 'RoomChange.NewRoomWas',
+            'new_room_pos': 'RoomChange.Pos',
+            'new_room_x': 'RoomChange.X',
+            'new_room_y': 'RoomChange.Y',
+            'new_room_loop': 'RoomChange.Loop',
+            'new_room_placeonwalkable': 'RoomChange.PlaceOnWalkable',
+            'frames_per_second': 'FramesPerSecond',
+            'game_paused': 'Paused',
+            'loaded_game_file_version': 'LoadedDataVersion',
+            'scrObj': 'ScObjects',
+            'scrHotspot': 'ScHotspots',
+            'scrRegion': 'ScRegions',
+            'scrWalkarea': 'ScWalkableAreas',
+            'scrWalkbehind': 'ScWalkBehinds',
+            'scrInv': 'ScInvItems',
+            # batch world: the dialog table
+            'dialog': 'Dialogs',
+            'scrDialog': 'ScDialogs',
+            'char_speaking': 'Speech.CharSpeaking',
+            'char_speaking_anim': 'Speech.CharSpeakingAnim',
+            'said_speech_line': 'Speech.SaidSpeechLine',
+            'said_text': 'Speech.SaidText',
+            'face_talking': 'Speech.FaceTalking',
+            'facetalkview': 'Speech.FaceTalkView',
+            'facetalkwait': 'Speech.FaceTalkWait',
+            'facetalkframe': 'Speech.FaceTalkFrame',
+            'facetalkloop': 'Speech.FaceTalkLoop',
+            'facetalkrepeat': 'Speech.FaceTalkRepeat',
+            'facetalkAllowBlink': 'Speech.FaceTalkAllowBlink',
+            'facetalkBlinkLoop': 'Speech.FaceTalkBlinkLoop',
+            'facetalkchar': 'Speech.FaceTalkChar',
+            'facetalk_qfg4_override_placement_x': 'Speech.Qfg4OverridePlacementX',
+            'facetalk_qfg4_override_placement_y': 'Speech.Qfg4OverridePlacementY',
+            'loops_per_character': 'LipSync.LoopsPerCharacter',
+            'splipsync': 'LipSync.Lines',
+            'numLipLines': 'LipSync.NumLines',
+            'curLipLine': 'LipSync.CurLine',
+            'curLipLinePhoneme': 'LipSync.CurLinePhoneme',
+            'longestline': 'TextLayout.LongestLine',
+            'source_text_length': 'TextLayout.SourceTextLength',
         },
     },
     # 5.1 step 3: the loaded room (`class Room : public AGS::Common::RoomStruct`)
@@ -448,6 +497,21 @@ def is_declaration(toks, i):
     def typeish(t):
         return (t.kind == 'id' and t.text not in KEYWORDS_NOT_TYPE) or t.text == '>'
 
+    if prev.text == '>':
+        # `std::vector<T> name`, not a comparison (`option > name[i]`, `static_cast<int>(x) > name`): the `>`
+        # must close a `<` without a parenthesis, a statement or an operator of an expression between them
+        depth = 1
+        for j in range(i - 2, -1, -1):
+            t = toks[j].text
+            if t == '>':
+                depth += 1
+            elif t == '<':
+                depth -= 1
+                if depth == 0:
+                    return True
+            elif t in ('(', ')', ';', '{', '}', '&&', '||', '=', '?', 'return'):
+                return False
+        return False
     if typeish(prev):
         if nxt == '(' and prev.text in ('const',):
             return False

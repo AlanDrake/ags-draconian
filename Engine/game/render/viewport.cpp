@@ -15,6 +15,7 @@
 
 #include "debug/debug_log.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/roomstruct.h"
@@ -23,7 +24,7 @@
 
 using namespace AGS::Common;
 
-// FIXME: don't use global variables here (displayed_room, Room::Current()), have access to a GameState or some kind of a
+// FIXME: don't use global variables here (Game::DisplayedRoom, Room::Current()), have access to a GameState or some kind of a
 // camera manager etc
 
 void Camera::SetID(int id)
@@ -43,7 +44,7 @@ void Camera::SetSize(const Size cam_size)
     Room &room = Room::Current();
     // TODO: currently we don't support having camera larger than room background
     // (or rather - looking outside of the room background); look into this later
-    const Size real_room_sz = (displayed_room >= 0 && (room.Width > 0 && room.Height > 0))
+    const Size real_room_sz = (Game::Current().DisplayedRoom >= 0 && (room.Width > 0 && room.Height > 0))
                                   ? Size(room.Width, room.Height)
                                   : Size(INT32_MAX, INT32_MAX);
 

@@ -720,10 +720,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     const int gscript_timer = game.Play.gscript_timer;
     const Rect mouse_bounds = game.Play.mbounds;
     // load the room the game was saved in
-    displayed_room = r_data.Room;
-    if (displayed_room >= 0)
+    game.DisplayedRoom = r_data.Room;
+    if (game.DisplayedRoom >= 0)
     {
-        load_new_room(displayed_room, nullptr);
+        load_new_room(game.DisplayedRoom, nullptr);
     }
     else
     {
@@ -744,13 +744,13 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     set_cursor_mode(r_data.CursorMode);
     set_cursor_look(r_data.CursorID, true);
     if (game.HasCursorRole(r_data.CursorID, kCursorRole_UseInv))
-        SetActiveInventory(playerchar->activeinv);
+        SetActiveInventory(game.PlayerChar->activeinv);
     // precache current cursor
     spriteset.PrecacheSprite(game.mcurs[r_data.CursorID].pic);
 
     services.Platform->SetWindowTitle(game.Play.game_name);
 
-    if (displayed_room >= 0)
+    if (game.DisplayedRoom >= 0)
     {
         // Fixup the frame index, in case the restored room does not have enough background frames
         if (game.Play.bg_frame < 0 || static_cast<size_t>(game.Play.bg_frame) >= room.BgFrameCount)
@@ -777,7 +777,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
             }
         }
 
-        in_new_room = kEnterRoom_RestoredSave; // don't run "enters screen" events
+        game.RoomChange.InNewRoom = kEnterRoom_RestoredSave; // don't run "enters screen" events
         // now that room has loaded, copy saved region light and tint levels in
         for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
         {
@@ -836,9 +836,9 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
 
     // Next load up any immediately required resources
     // If this is a restart point and no room was loaded, then load startup room
-    if (displayed_room < 0)
+    if (game.DisplayedRoom < 0)
     {
-        load_new_room(playerchar->room, playerchar);
+        load_new_room(game.PlayerChar->room, game.PlayerChar);
         first_room_initialization();
     }
 
@@ -984,7 +984,7 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     StrUtil::WriteString(game.guid, out);
     StrUtil::WriteString(game.gamename, out);
     StrUtil::WriteString(services.ResPaths.GamePak.Name, out);
-    out->WriteInt32(loaded_game_file_version);
+    out->WriteInt32(game.LoadedDataVersion);
     out->WriteInt32(game.GetColorDepth());
     out->WriteInt32(game.uniqueid);
     // Write the size of the environment info block into its placeholder
@@ -1020,7 +1020,7 @@ std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user
 
 void DoBeforeSave()
 {
-    if (displayed_room >= 0)
+    if (Game::Current().DisplayedRoom >= 0)
     {
         // update the current room script's data segment copy
         if (Room::Current().Script)

@@ -15,6 +15,7 @@
 
 #include "game/common_defines.h"
 #include "game/dynobj/script_objects.h"
+#include "game/game_context.h"
 #include "game/game_init.h"
 #include "game/roomstruct.h"
 #include "game/world/hotspot.h"
@@ -43,5 +44,5 @@ void CCHotspot::Serialize(const void *address, Stream *out)
 void CCHotspot::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     int num = in->ReadInt32();
-    StaticHotspotArray[num] = ccRegisterUnserializedPersistentObject(index, &scrHotspot[num], this);
+    StaticHotspotArray[num] = ccRegisterUnserializedPersistentObject(index, &Game::Current().ScHotspots[num], this);
 }

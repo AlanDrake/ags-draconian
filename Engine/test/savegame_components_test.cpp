@@ -75,10 +75,10 @@ const SaveCmpSelection kCharactersAndItems = static_cast<SaveCmpSelection>(kSave
 } // namespace
 
 // Fixture for the savegame components with game content. The engine globals it touches, all reset in TearDown:
-// - game.chars, game.numcharacters, charextra, game.Play.charProps: the characters
+// - game.chars, game.numcharacters, Game::CharExtras, game.Play.charProps: the characters
 // - game.invinfo, game.numinvitems, game.Play.invProps: the inventory items
-// - views, game.numviews: the views
-// - dialog, game.numdialog, game.Play.dialogProps: the dialogs
+// - Game::Views, game.numviews: the views
+// - Game::Dialogs, game.numdialog, game.Play.dialogProps: the dialogs
 // - game.mcurs, game.numcursors: the mouse cursors
 // - game.audioClipTypes, game.Play.default_audio_type_volumes: the audio types
 // - the GameDef fields that the game state saves (GameSetupFields)
@@ -148,17 +148,17 @@ protected:
     static void SetDialogs(int dialog_count, int option_count)
     {
         Game &game = Game::Current();
-        dialog.clear();
-        dialog.resize(dialog_count);
+        game.Dialogs.clear();
+        game.Dialogs.resize(dialog_count);
         game.numdialog = dialog_count;
         game.Play.dialogProps.clear();
         game.Play.dialogProps.resize(dialog_count);
         for (int d = 0; d < dialog_count; ++d)
         {
-            dialog[d].Options.resize(option_count);
+            game.Dialogs[d].Options.resize(option_count);
             for (int o = 0; o < option_count; ++o)
             {
-                auto &opt = dialog[d].Options[o];
+                auto &opt = game.Dialogs[d].Options[o];
                 opt.OriginalText = String::FromFormat("Dialog %d option %d", d, o);
                 opt.Text = opt.OriginalText;
             }
@@ -188,10 +188,11 @@ protected:
     // an event name, so that a save has frame data and strings to step over
     static void SetViews(int view_count, int loop_count, int frame_count)
     {
-        views.clear();
-        views.resize(view_count);
-        Game::Current().numviews = view_count;
-        for (auto &view : views)
+        Game &game = Game::Current();
+        game.Views.clear();
+        game.Views.resize(view_count);
+        game.numviews = view_count;
+        for (auto &view : game.Views)
         {
             view.Initialize(loop_count);
             for (auto &loop : view.loops)
@@ -213,8 +214,8 @@ protected:
         game.chars.clear();
         game.chars.resize(characters);
         game.numcharacters = characters;
-        charextra.clear();
-        charextra.resize(characters);
+        game.CharExtras.clear();
+        game.CharExtras.resize(characters);
         game.Play.charProps.clear();
         game.Play.charProps.resize(characters);
         game.invinfo.clear();
@@ -247,7 +248,7 @@ protected:
             ch.set_item_quantity(1, 2);
             ch.set_item_quantity(4, 1);
             ch.set_item_quantity(9, 7);
-            auto &ex = charextra[i];
+            auto &ex = game.CharExtras[i];
             ex.inventory = {1, 4, 9};
             ex.zoom = 80;
             ex.tint_r = 10;
@@ -317,10 +318,10 @@ TEST_F(SavegameContent, CharactersAndItemsAreRestored)
         EXPECT_EQ(1, ch.get_item_quantity(4));
         EXPECT_EQ(7, ch.get_item_quantity(9));
         EXPECT_EQ(0, ch.get_item_quantity(2));
-        EXPECT_EQ((std::vector<int>{1, 4, 9}), charextra[i].inventory);
-        EXPECT_EQ(80, charextra[i].zoom);
-        EXPECT_EQ(10, charextra[i].tint_r);
-        EXPECT_EQ(50, charextra[i].tint_level);
+        EXPECT_EQ((std::vector<int>{1, 4, 9}), game.CharExtras[i].inventory);
+        EXPECT_EQ(80, game.CharExtras[i].zoom);
+        EXPECT_EQ(10, game.CharExtras[i].tint_r);
+        EXPECT_EQ(50, game.CharExtras[i].tint_level);
         EXPECT_STREQ("angry", game.Play.charProps[i]["Mood"].GetCStr());
     }
     for (int i = 0; i < 2; ++i)
@@ -497,9 +498,10 @@ TEST_F(SavegameContent, RestoredCharactersSaveTheSameBytes)
 
 TEST_F(SavegameContent, CharacterAnimationVolumeIsRestored)
 {
+    Game &game = Game::Current();
     SetCounts(1, 0);
-    charextra[0].audio_volume = 70;
-    charextra[0].SetAnimating(kAnimFlow_Repeat, kAnimDirBackward, 3, 40);
+    game.CharExtras[0].audio_volume = 70;
+    game.CharExtras[0].SetAnimating(kAnimFlow_Repeat, kAnimDirBackward, 3, 40);
     std::vector<uint8_t> saved;
     std::string error;
     ASSERT_TRUE(Save(kSaveCmp_Characters, saved, error)) << error;
@@ -508,11 +510,11 @@ TEST_F(SavegameContent, CharacterAnimationVolumeIsRestored)
     RestoredData r_data;
     HSaveError err = Restore(saved, kSaveCmp_Characters, r_data);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
-    const ViewAnimateParams &anim = charextra[0].GetAnimParams();
+    const ViewAnimateParams &anim = game.CharExtras[0].GetAnimParams();
     EXPECT_EQ(kAnimFlow_Repeat, anim.Flow);
     EXPECT_EQ(kAnimDirBackward, anim.Direction);
     EXPECT_EQ(3, anim.Delay);
-    EXPECT_EQ(70, charextra[0].audio_volume);
+    EXPECT_EQ(70, game.CharExtras[0].audio_volume);
     EXPECT_EQ(40, anim.AudioVolume);
 }
 
@@ -523,7 +525,7 @@ TEST_F(SavegameContent, DialogOptionsAreRestored)
     SetDialogs(2, 3);
     for (int d = 0; d < 2; ++d)
     {
-        auto &opts = dialog[d].Options;
+        auto &opts = game.Dialogs[d].Options;
         opts[0].Flags = DFLG_ON | DFLG_HASBEENCHOSEN;
         opts[1].Flags = DFLG_ON | DFLG_TEXTSET;
         opts[1].Text = String::FromFormat("Changed %d", d);
@@ -540,7 +542,7 @@ TEST_F(SavegameContent, DialogOptionsAreRestored)
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
     for (int d = 0; d < 2; ++d)
     {
-        const auto &opts = dialog[d].Options;
+        const auto &opts = game.Dialogs[d].Options;
         EXPECT_EQ(DFLG_ON | DFLG_HASBEENCHOSEN, opts[0].Flags);
         EXPECT_EQ(DFLG_ON | DFLG_TEXTSET, opts[1].Flags);
         EXPECT_EQ(DFLG_OFFPERM | DFLG_NOREPEAT, opts[2].Flags);

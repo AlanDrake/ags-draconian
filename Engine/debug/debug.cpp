@@ -363,9 +363,10 @@ void shutdown_debug()
 
 void debug_script_event(MessageType mt, const String &msg)
 {
+    Game &game = Game::Current();
     String locinfo;
-    if (displayed_room >= 0)
-        locinfo.AppendFmt("(room:%d)", displayed_room);
+    if (game.DisplayedRoom >= 0)
+        locinfo.AppendFmt("(room:%d)", game.DisplayedRoom);
     // Generate the full log message, prepending current script location
     if (scriptExecutor && scriptExecutor->GetRunningScript())
     {
@@ -379,7 +380,7 @@ void debug_script_event(MessageType mt, const String &msg)
 
     // A (possibly) temporary solution to making script errors stand out more to the game developer or testers:
     // if the game is compiled in debug mode, then quit on script error events.
-    if (Game::Current().options[OPT_DEBUGMODE])
+    if (game.options[OPT_DEBUGMODE])
     {
         if (mt == kDbgMsg_Error || mt == kDbgMsg_Fatal)
         {

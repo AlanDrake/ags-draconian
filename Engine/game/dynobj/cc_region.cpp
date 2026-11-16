@@ -15,6 +15,7 @@
 
 #include "game/common_defines.h"
 #include "game/dynobj/script_objects.h"
+#include "game/game_context.h"
 #include "game/roomstruct.h"
 #include "game/world/region.h"
 #include "script/dynobj/dynobj_manager.h"
@@ -42,5 +43,5 @@ void CCRegion::Serialize(const void *address, Stream *out)
 void CCRegion::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     int num = in->ReadInt32();
-    ccRegisterUnserializedPersistentObject(index, &scrRegion[num], this);
+    ccRegisterUnserializedPersistentObject(index, &Game::Current().ScRegions[num], this);
 }

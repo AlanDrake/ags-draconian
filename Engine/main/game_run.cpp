@@ -199,7 +199,7 @@ static void ProperExit()
 static void GameUpdateCheckProblems()
 {
     Game &game = Game::Current();
-    if (displayed_room < 0)
+    if (game.DisplayedRoom < 0)
     {
         quit("!A blocking function was called before the first room has been loaded");
     }
@@ -226,7 +226,7 @@ static void GameUpdateCheckProblems()
 // schedules global and room's rep-exec events to be run during script event processing.
 static void GameUpdateEarlyRepExec()
 {
-    if (in_new_room == kEnterRoom_None)
+    if (Game::Current().RoomChange.InNewRoom == kEnterRoom_None)
     {
         // Run the room and game script repeatedly_execute
         run_function_on_non_blocking_thread(&repExecAlways);
@@ -238,7 +238,7 @@ static void GameUpdateEarlyRepExec()
 // Runs late-rep-exec-always
 static void GameUpdateLateRepExec()
 {
-    if (in_new_room == kEnterRoom_None)
+    if (Game::Current().RoomChange.InNewRoom == kEnterRoom_None)
     {
         // sync drawable object states before running event
         // in case they access these properties in a script callback
@@ -256,7 +256,7 @@ static void GameUpdateCheckGroundInteractions()
     // Do not check for ground interactions if we are in the process of
     // entering the room (between "load room" and "after fade-in" events).
     // (For backwards compatibility, skip this condition for older games)
-    if (in_new_room != kEnterRoom_None)
+    if (game.RoomChange.InNewRoom != kEnterRoom_None)
         return;
 
     // If ground interactions are disabled completely, then bail out
@@ -283,13 +283,13 @@ static void GameUpdateCheckGroundInteractions()
     else
     {
         // check if he's standing on a hotspot
-        int hotspot_there = GetHotspotIDAtRoom(playerchar->x, playerchar->y, kHit_Interactable);
+        int hotspot_there = GetHotspotIDAtRoom(game.PlayerChar->x, game.PlayerChar->y, kHit_Interactable);
         // run Stands on Hotspot event;
         // NOTE: this runs even for hotspot 0 (no hotspot), in case one has a script function attached
         setevent(AGSEvent_Object(kObjEventType_Hotspot, hotspot_there, kHotspotEvent_StandOn));
 
         // check current region
-        int on_region = GetRegionIDAtRoom(playerchar->x, playerchar->y, kHit_Interactable);
+        int on_region = GetRegionIDAtRoom(game.PlayerChar->x, game.PlayerChar->y, kHit_Interactable);
         if (on_region != game.Play.player_on_region)
         {
             // we need to save this and set game.Play.player_on_region
@@ -536,7 +536,7 @@ bool run_service_key_controls(KeyInput &out_key)
     }
 
     // Alt+X, abort (but only once game is loaded)
-    if ((displayed_room >= 0) && (game.Play.abort_key > 0) && (ags_combo_key == game.Play.abort_key))
+    if ((game.DisplayedRoom >= 0) && (game.Play.abort_key > 0) && (ags_combo_key == game.Play.abort_key))
     {
         Debug::Printf("Abort key pressed");
         check_dynamic_sprites_at_exit = 0;
@@ -546,7 +546,7 @@ bool run_service_key_controls(KeyInput &out_key)
     if ((ags_combo_key == eAGSKeyCodeCtrlE) && (display_fps == kFPS_Forced))
     {
         // if --fps parameter is used, Ctrl+E will toggle maxed out frame rate
-        setTimerFps(frames_per_second, !isTimerFpsMaxed());
+        setTimerFps(game.FramesPerSecond, !isTimerFpsMaxed());
         return false;
     }
 
@@ -555,12 +555,13 @@ bool run_service_key_controls(KeyInput &out_key)
     if ((ags_combo_key == eAGSKeyCodeCtrlD) && (game.Play.debug_mode > 0))
     {
         // ctrl+D - show info
-        String buffer = String::FromFormat(
-            "In room %d %s\nPlayer at %d, %d (view %d, loop %d, frame %d)%s%s%s", displayed_room,
-            (room.NoWalkBehindsAtAll ? "(has no walk-behinds)" : ""), playerchar->x, playerchar->y,
-            playerchar->view + 1, playerchar->loop, playerchar->frame, (IsGamePaused() == 0) ? "" : "\nGame paused.",
-            (game.Play.ground_level_areas_disabled == 0) ? "" : "\nGround areas disabled.",
-            (IsInterfaceEnabled() == 0) ? "\nGame in Wait state" : "");
+        String buffer =
+            String::FromFormat("In room %d %s\nPlayer at %d, %d (view %d, loop %d, frame %d)%s%s%s", game.DisplayedRoom,
+                               (room.NoWalkBehindsAtAll ? "(has no walk-behinds)" : ""), game.PlayerChar->x,
+                               game.PlayerChar->y, game.PlayerChar->view + 1, game.PlayerChar->loop,
+                               game.PlayerChar->frame, (IsGamePaused() == 0) ? "" : "\nGame paused.",
+                               (game.Play.ground_level_areas_disabled == 0) ? "" : "\nGround areas disabled.",
+                               (IsInterfaceEnabled() == 0) ? "\nGame in Wait state" : "");
         for (uint32_t obj_id = 0; obj_id < room.State->numobj; obj_id++)
         {
             if (obj_id >= 8)
@@ -579,7 +580,7 @@ bool run_service_key_controls(KeyInput &out_key)
         buffer = "CHARACTERS IN THIS ROOM:\n";
         for (int char_id = 0; char_id < game.numcharacters; char_id++)
         {
-            if (game.chars[char_id].room != displayed_room)
+            if (game.chars[char_id].room != game.DisplayedRoom)
                 continue;
             if (buffer.GetLength() > 430)
             { // TODO: the limit is a text length in characters; measure the graphical size instead
@@ -595,9 +596,9 @@ bool run_service_key_controls(KeyInput &out_key)
                              game.chars[listed_char_id].x, game.chars[listed_char_id].y, game.chars[listed_char_id].z,
                              game.chars[listed_char_id].idleview, game.chars[listed_char_id].idledelay,
                              game.chars[listed_char_id].idleleft, game.chars[listed_char_id].is_moving() ? "yes" : "no",
-                             charextra[listed_char_id].IsAnimating() ? "yes" : "no",
-                             charextra[listed_char_id].following, game.chars[listed_char_id].flags,
-                             game.chars[listed_char_id].wait, charextra[listed_char_id].zoom);
+                             game.CharExtras[listed_char_id].IsAnimating() ? "yes" : "no",
+                             game.CharExtras[listed_char_id].following, game.chars[listed_char_id].flags,
+                             game.chars[listed_char_id].wait, game.CharExtras[listed_char_id].zoom);
         }
         DisplayMB(buffer.GetCStr());
         return false;
@@ -741,7 +742,7 @@ static void check_keyboard_controls()
     else if ((services.Config.Override.KeyDebugPathfind > 0) &&
              (ags_combo_key == services.Config.Override.KeyDebugPathfind))
     {
-        script_debug(5, playerchar->index_id);
+        script_debug(5, game.PlayerChar->index_id);
         return;
     }
 
@@ -893,7 +894,7 @@ static void check_touch_controls()
 static void GameUpdateCheckControls()
 {
     // don't let the player do anything before the screen fades in
-    if (in_new_room != kEnterRoom_None)
+    if (Game::Current().RoomChange.InNewRoom != kEnterRoom_None)
         return;
 
     set_our_eip(1007);
@@ -930,19 +931,19 @@ static void GameUpdateCheckRoomEdges()
     Game &game = Game::Current();
     Room &room = Room::Current();
     if ((IsInterfaceEnabled()) && (IsGamePaused() == 0) &&
-        ((game.Play.ground_level_areas_disabled & GLED_INTERACTION) == 0) && (in_new_room == kEnterRoom_None) &&
-        (new_room_was == kEnterRoom_None))
+        ((game.Play.ground_level_areas_disabled & GLED_INTERACTION) == 0) &&
+        (game.RoomChange.InNewRoom == kEnterRoom_None) && (game.RoomChange.NewRoomWas == kEnterRoom_None))
     {
         // Only allow walking off edges if not in wait mode, and
         // if not in Player Enters Screen (allow walking in from off-screen)
         int edges_activated[4] = {0, 0, 0, 0};
-        if (playerchar->x <= room.Edges.Left)
+        if (game.PlayerChar->x <= room.Edges.Left)
             edges_activated[0] = 1;
-        else if (playerchar->x >= room.Edges.Right)
+        else if (game.PlayerChar->x >= room.Edges.Right)
             edges_activated[1] = 1;
-        if (playerchar->y >= room.Edges.Bottom)
+        if (game.PlayerChar->y >= room.Edges.Bottom)
             edges_activated[2] = 1;
-        else if (playerchar->y <= room.Edges.Top)
+        else if (game.PlayerChar->y <= room.Edges.Top)
             edges_activated[3] = 1;
 
         if ((game.Play.entered_edge >= 0) && (game.Play.entered_edge <= 3))
@@ -998,7 +999,7 @@ static void GameUpdateGameState()
 {
     if ((debug_flags & DBG_NOUPDATE) == 0)
     {
-        if (game_paused == 0)
+        if (Game::Current().Paused == 0)
         {
             update_game_objects();
             game_loop_update_background_animation();
@@ -1030,7 +1031,7 @@ static void update_objects_scale()
 {
     Game &game = Game::Current();
     Room &room = Room::Current();
-    if (displayed_room < 0)
+    if (game.DisplayedRoom < 0)
         return;
 
     for (uint32_t obj_id = 0; obj_id < room.State->numobj; ++obj_id)
@@ -1060,9 +1061,10 @@ static void update_overlay_positions()
 // TODO: possibly may be merged with gui_on_mouse_move()
 static void update_cursor_over_gui()
 {
-    if (((debug_flags & DBG_NOIFACE) != 0) || (displayed_room < 0))
+    Game &game = Game::Current();
+    if (((debug_flags & DBG_NOIFACE) != 0) || (game.DisplayedRoom < 0))
         return; // GUI is disabled (debug flag) or room is not loaded
-    if (!IsInterfaceEnabled() || !Game::Current().Play.mouse_input_enabled)
+    if (!IsInterfaceEnabled() || !game.Play.mouse_input_enabled)
         return; // interface is disabled (by script or blocking action)
     // Poll guis
     int focused_gui = GetGUIAt(mousex, mousey, kHit_Interactable);
@@ -1094,15 +1096,15 @@ static void update_cursor_view()
         else if (mouse_delay > 0)
             mouse_delay--;
         // only animate if the loop 0 exists and has frames
-        else if (views[mcur.view].numLoops > 0 && views[mcur.view].loops[0].numFrames > 0)
+        else if (game.Views[mcur.view].numLoops > 0 && game.Views[mcur.view].loops[0].numFrames > 0)
         {
             const int viewnum = mcur.view;
             const int loopnum = 0;
             mouse_frame++;
-            if (mouse_frame >= views[viewnum].loops[loopnum].numFrames)
+            if (mouse_frame >= game.Views[viewnum].loops[loopnum].numFrames)
                 mouse_frame = 0;
-            set_new_cursor_graphic(views[viewnum].loops[loopnum].frames[mouse_frame].pic);
-            mouse_delay = views[viewnum].loops[loopnum].frames[mouse_frame].speed + mcur.animdelay;
+            set_new_cursor_graphic(game.Views[viewnum].loops[loopnum].frames[mouse_frame].pic);
+            mouse_delay = game.Views[viewnum].loops[loopnum].frames[mouse_frame].speed + mcur.animdelay;
             CheckViewFrame(viewnum, loopnum, mouse_frame);
         }
         lastmx = mousex;
@@ -1150,17 +1152,17 @@ static void UpdateGUIContext()
     Game &game = Game::Current();
     if (game.Play.fast_forward)
         return;
-    if (displayed_room < 0)
+    if (game.DisplayedRoom < 0)
         return;
 
     // It's easier to update these every game tick, this is simple data and copy is fast,
     // OTOH it may be inconvenient to have this in every place where this data changes.
     GUI::Context.GameTitle = game.Play.game_name;
 
-    if (playerchar->activeinv < 0 || playerchar->activeinv >= game.numinvitems)
+    if (game.PlayerChar->activeinv < 0 || game.PlayerChar->activeinv >= game.numinvitems)
         GUI::Context.InventoryPic = -1;
     else
-        GUI::Context.InventoryPic = game.invinfo[playerchar->activeinv].pic;
+        GUI::Context.InventoryPic = game.invinfo[game.PlayerChar->activeinv].pic;
 
     // Update a location name for the GUI labels. We do this every game
     // tick, because this does not depend only on cursor position, but also
@@ -1179,7 +1181,7 @@ static void update_cursor_over_location(int mouse_was_x, int mouse_was_y)
     Game &game = Game::Current();
     if (game.Play.fast_forward)
         return;
-    if (displayed_room < 0 || !game.Play.mouse_input_enabled)
+    if (game.DisplayedRoom < 0 || !game.Play.mouse_input_enabled)
         return;
 
     auto view = game.Play.GetRoomViewportAt(mousex, mousey);
@@ -1212,11 +1214,12 @@ static void update_cursor_over_location(int mouse_was_x, int mouse_was_y)
 
 static void UpdateDrawableObjectStates(bool do_cursor, int mouse_was_x, int mouse_was_y)
 {
-    if (displayed_room < 0)
+    Game &game = Game::Current();
+    if (game.DisplayedRoom < 0)
         return;
 
     // camera positions may be linked to a player character
-    Game::Current().Play.UpdateRoomCameras();
+    game.Play.UpdateRoomCameras();
 
     update_objects_scale();
     // overlay positions may be linked to a certain character
@@ -1231,25 +1234,26 @@ static void UpdateDrawableObjectStates(bool do_cursor, int mouse_was_x, int mous
 // Process all events scheduled during the last game update
 static void GameUpdateProcessEvents()
 {
-    new_room_was = in_new_room;
+    Game &game = Game::Current();
+    game.RoomChange.NewRoomWas = game.RoomChange.InNewRoom;
     // If we're in the new room (after "room load" event), then queue "fade in" event,
     // it will be processed right away
-    if (in_new_room != kEnterRoom_None)
+    if (game.RoomChange.InNewRoom != kEnterRoom_None)
     {
         setevent({kAGSEvent_FadeIn});
-        in_new_room = kEnterRoom_None;
+        game.RoomChange.InNewRoom = kEnterRoom_None;
     }
 
     processallevents();
 
     // If in a new room, and the room wasn't just changed again in update_events,
     // then queue the Enters Screen scripts run after the room is faded in.
-    if ((new_room_was != kEnterRoom_None) && (in_new_room == kEnterRoom_None))
+    if ((game.RoomChange.NewRoomWas != kEnterRoom_None) && (game.RoomChange.InNewRoom == kEnterRoom_None))
     {
         // After-Fade-in event is run immediately at the same
         // game update right after the Fade-in (transition) event was run (transition).
         // This ensures that there's no extra updates or redraws in between.
-        switch (new_room_was)
+        switch (game.RoomChange.NewRoomWas)
         {
         case kEnterRoom_FirstTime: // first time enters screen
             setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_FirstEnter));
@@ -1296,7 +1300,7 @@ float get_game_fps()
     {
         return GameTimer.FPS;
     }
-    return frames_per_second;
+    return Game::Current().FramesPerSecond;
 }
 
 float get_real_fps()

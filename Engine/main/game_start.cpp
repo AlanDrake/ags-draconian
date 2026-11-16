@@ -65,9 +65,10 @@ void start_game_load_savegame_on_startup(const String &load_save)
 
 void start_game()
 {
+    Game &game = Game::Current();
     set_room_placeholder();
     set_cursor_mode_with_role(kCursorRole_Walk);
-    const auto &screen_sz = Game::Current().GetGameRes();
+    const auto &screen_sz = game.GetGameRes();
     Mouse::SetPosition(Point(screen_sz.Width / 2, screen_sz.Height / 2));
 
     set_our_eip(-42);
@@ -82,10 +83,10 @@ void start_game()
 
     set_our_eip(-3);
 
-    if (displayed_room < 0)
+    if (game.DisplayedRoom < 0)
     {
         current_fade_out_effect();
-        load_new_room(playerchar->room, playerchar);
+        load_new_room(game.PlayerChar->room, game.PlayerChar);
     }
 
     first_room_initialization();
@@ -93,13 +94,14 @@ void start_game()
 
 void initialize_start_and_play_game(int override_start_room, const String &load_save)
 {
+    Game &game = Game::Current();
     try
     { // BEGIN try for ALI3DEXception
 
         set_cursor_mode_with_role(kCursorRole_Walk);
 
         if (override_start_room)
-            playerchar->room = override_start_room;
+            game.PlayerChar->room = override_start_room;
 
         Debug::Printf(kDbgMsg_Info, "Engine initialization complete");
         Debug::Printf(kDbgMsg_Info, "Starting game");
@@ -107,7 +109,7 @@ void initialize_start_and_play_game(int override_start_room, const String &load_
         start_game_load_savegame_on_startup(load_save);
 
         // only start if not restored a save
-        if (displayed_room < 0)
+        if (game.DisplayedRoom < 0)
             start_game();
 
         RunGameUntilAborted();

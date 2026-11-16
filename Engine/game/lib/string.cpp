@@ -569,9 +569,10 @@ int String_GetLength(const char *this_string)
 size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLines &lines, int wii, int fonnt,
                                 size_t max_lines)
 {
+    Game &game = Game::Current();
     lines.Reset();
     // FIXME: stop using the global variable, pass as a reference!
-    longestline = 0;
+    game.TextLayout.LongestLine = 0;
 
     // If empty string - bail out now
     if (todis[0] == 0)
@@ -584,7 +585,7 @@ size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLi
     split_lines(todis, lines, wii, fonnt, max_lines);
 
     // Apply text direction if requested
-    bool rtl_mode = Game::Current().options[OPT_RIGHTLEFTWRITE] != 0;
+    bool rtl_mode = game.options[OPT_RIGHTLEFTWRITE] != 0;
     if (apply_direction)
     {
         for (size_t rr = 0; rr < lines.Count(); rr++)
@@ -594,7 +595,7 @@ size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLi
     for (size_t rr = 0; rr < lines.Count(); rr++)
     {
         int line_length = get_text_width_outlined(lines[rr].GetCStr(), fonnt);
-        longestline = std::max(longestline, line_length);
+        game.TextLayout.LongestLine = std::max(game.TextLayout.LongestLine, line_length);
     }
     return lines.Count();
 }

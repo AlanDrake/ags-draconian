@@ -158,10 +158,10 @@ void InitAndRegisterCharacters(GameDef &game, const LoadedGameEntities &ents)
         for (int i = 0; i < game.numcharacters; ++i)
         {
             // TODO: move this to Character's "init" method
-            charextra[i].blend_mode = ents.CharEx[i].BlendMode;
-            charextra[i].spr_anchor = ents.CharEx[i].GraphicAnchor;
-            charextra[i].spr_offset = ents.CharEx[i].GraphicOffset;
-            charextra[i].UpdateEffectiveValues(&game.chars[i]);
+            Game::Current().CharExtras[i].blend_mode = ents.CharEx[i].BlendMode;
+            Game::Current().CharExtras[i].spr_anchor = ents.CharEx[i].GraphicAnchor;
+            Game::Current().CharExtras[i].spr_offset = ents.CharEx[i].GraphicOffset;
+            Game::Current().CharExtras[i].UpdateEffectiveValues(&game.chars[i]);
         }
     }
 }
@@ -169,18 +169,18 @@ void InitAndRegisterCharacters(GameDef &game, const LoadedGameEntities &ents)
 // Initializes dialogs and registers them in the script system
 void InitAndRegisterDialogs(const GameDef &game)
 {
-    scrDialog.resize(game.numdialog);
+    Game::Current().ScDialogs.resize(game.numdialog);
     // ensure at least 1 element, we must register buffer
     StaticDialogArray.resize(std::max(1, game.numdialog));
 
     for (int i = 0; i < game.numdialog; ++i)
     {
-        scrDialog[i].id = i;
+        Game::Current().ScDialogs[i].id = i;
         // register and save handle
-        StaticDialogArray[i] = ccRegisterPersistentObject(&scrDialog[i], &ccDynamicDialog);
+        StaticDialogArray[i] = ccRegisterPersistentObject(&Game::Current().ScDialogs[i], &ccDynamicDialog);
 
-        if (!dialog[i].ScriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(dialog[i].ScriptName, &StaticDialogArray[i]);
+        if (!Game::Current().Dialogs[i].ScriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(Game::Current().Dialogs[i].ScriptName, &StaticDialogArray[i]);
     }
 }
 
@@ -263,15 +263,15 @@ HError InitAndRegisterGUI(const GameDef &game)
 // Initializes inventory items and registers them in the script system
 void InitAndRegisterInvItems(const GameDef &game)
 {
-    scrInv.resize(game.numinvitems);
+    Game::Current().ScInvItems.resize(game.numinvitems);
     // ensure at least 1 element, we must register buffer
     StaticInventoryArray.resize(std::max<uint16_t>(1, game.numinvitems));
 
     for (int i = 0; i < game.numinvitems; ++i)
     {
-        scrInv[i].id = i;
+        Game::Current().ScInvItems[i].id = i;
         // register and save handle
-        StaticInventoryArray[i] = ccRegisterPersistentObject(&scrInv[i], &ccDynamicInv);
+        StaticInventoryArray[i] = ccRegisterPersistentObject(&Game::Current().ScInvItems[i], &ccDynamicInv);
 
         if (!game.invScriptNames[i].IsEmpty())
             ccAddExternalScriptObjectHandle(game.invScriptNames[i], &StaticInventoryArray[i]);
@@ -330,11 +330,11 @@ void RegisterMissingManagedObjects(GameDef &game)
     }
     for (int i = 0; i < game.numdialog; ++i)
     {
-        StaticDialogArray[i] = ccRegisterPersistentObjectIfMissing(&scrDialog[i], &ccDynamicDialog);
+        StaticDialogArray[i] = ccRegisterPersistentObjectIfMissing(&Game::Current().ScDialogs[i], &ccDynamicDialog);
     }
     for (int i = 0; i < game.numinvitems; ++i)
     {
-        StaticInventoryArray[i] = ccRegisterPersistentObjectIfMissing(&scrInv[i], &ccDynamicInv);
+        StaticInventoryArray[i] = ccRegisterPersistentObjectIfMissing(&Game::Current().ScInvItems[i], &ccDynamicInv);
     }
     for (int i = 0; i < game.numgui; ++i)
     {
@@ -360,11 +360,12 @@ void RegisterRoomEntities(std::vector<int> &static_arr, TScriptType scr_objs[], 
 // Initializes room entities and registers them in the script system
 void InitAndRegisterRoomEntities()
 {
-    RegisterRoomEntities(StaticHotspotArray, scrHotspot, MAX_ROOM_HOTSPOTS, ccDynamicHotspot);
-    RegisterRoomEntities(StaticObjectArray, scrObj, MAX_ROOM_OBJECTS, ccDynamicObject);
-    RegisterRoomEntities(StaticRegionArray, scrRegion, MAX_ROOM_REGIONS, ccDynamicRegion);
-    RegisterRoomEntities(StaticWalkareaArray, scrWalkarea, MAX_WALK_AREAS, ccDynamicWalkarea);
-    RegisterRoomEntities(StaticWalkbehindArray, scrWalkbehind, MAX_WALK_BEHINDS, ccDynamicWalkbehind);
+    Game &game = Game::Current();
+    RegisterRoomEntities(StaticHotspotArray, game.ScHotspots, MAX_ROOM_HOTSPOTS, ccDynamicHotspot);
+    RegisterRoomEntities(StaticObjectArray, game.ScObjects, MAX_ROOM_OBJECTS, ccDynamicObject);
+    RegisterRoomEntities(StaticRegionArray, game.ScRegions, MAX_ROOM_REGIONS, ccDynamicRegion);
+    RegisterRoomEntities(StaticWalkareaArray, game.ScWalkableAreas, MAX_WALK_AREAS, ccDynamicWalkarea);
+    RegisterRoomEntities(StaticWalkbehindArray, game.ScWalkBehinds, MAX_WALK_BEHINDS, ccDynamicWalkbehind);
 }
 
 // Registers static entity arrays in the script system
@@ -402,7 +403,7 @@ HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
     RegisterStaticArrays(game);
 
     setup_player_character(game.playercharacter);
-    ccAddExternalScriptObjectHandle("player", &_sc_PlayerCharPtr);
+    ccAddExternalScriptObjectHandle("player", &Game::Current().ScPlayerCharPtr);
     return HError::None();
 }
 
@@ -441,9 +442,10 @@ enum LipsyncDatVersion
 // or if it has an unknown format
 void LoadLipsyncData()
 {
-    splipsync.clear();
-    numLipLines = 0;
-    curLipLine = -1;
+    Game &game = Game::Current();
+    game.LipSync.Lines.clear();
+    game.LipSync.NumLines = 0;
+    game.LipSync.CurLine = -1;
 
     // a named voice pack has its files, the sync data included, under the pack's name
     auto speech_sync =
@@ -458,19 +460,21 @@ void LoadLipsyncData()
         return;
     }
 
-    numLipLines = speech_sync->ReadInt32();
-    splipsync.resize(numLipLines);
-    for (int line_id = 0; line_id < numLipLines; line_id++)
+    game.LipSync.NumLines = speech_sync->ReadInt32();
+    game.LipSync.Lines.resize(game.LipSync.NumLines);
+    for (int line_id = 0; line_id < game.LipSync.NumLines; line_id++)
     {
-        splipsync[line_id].numPhonemes = speech_sync->ReadInt16();
+        game.LipSync.Lines[line_id].numPhonemes = speech_sync->ReadInt16();
         if (lipsync_format < kLipSyncVersion_362)
-            splipsync[line_id].filename.ReadCount(speech_sync.get(), 14);
+            game.LipSync.Lines[line_id].filename.ReadCount(speech_sync.get(), 14);
         else
-            splipsync[line_id].filename.Read(speech_sync.get());
-        splipsync[line_id].endtimeoffs.resize(splipsync[line_id].numPhonemes);
-        speech_sync->ReadArrayOfInt32(splipsync[line_id].endtimeoffs.data(), splipsync[line_id].numPhonemes);
-        splipsync[line_id].frame.resize(splipsync[line_id].numPhonemes);
-        speech_sync->ReadArrayOfInt16(splipsync[line_id].frame.data(), splipsync[line_id].numPhonemes);
+            game.LipSync.Lines[line_id].filename.Read(speech_sync.get());
+        game.LipSync.Lines[line_id].endtimeoffs.resize(game.LipSync.Lines[line_id].numPhonemes);
+        speech_sync->ReadArrayOfInt32(game.LipSync.Lines[line_id].endtimeoffs.data(),
+                                      game.LipSync.Lines[line_id].numPhonemes);
+        game.LipSync.Lines[line_id].frame.resize(game.LipSync.Lines[line_id].numPhonemes);
+        speech_sync->ReadArrayOfInt16(game.LipSync.Lines[line_id].frame.data(),
+                                      game.LipSync.Lines[line_id].numPhonemes);
     }
     Debug::Printf(kDbgMsg_Info, "Lipsync data found and loaded");
 }
@@ -526,7 +530,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // 2. Allocate and init game objects
     //
     spriteset.EnlargeTo(ents.SpriteCount - 1);
-    charextra.resize(game.numcharacters);
+    game.CharExtras.resize(game.numcharacters);
     // TODO: 'ents' is const, so the std::move calls below copy the GUIs, views and dialogs; take it by
     // a non-const reference to move them (its Game member is a reference, which is why this compiles)
     guis = std::move(ents.Guis);
@@ -540,7 +544,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     GUI::Context.Spriteset = &spriteset;
     GUIRefCollection gui_control_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
     GUI::RebuildGUI(guis, gui_control_refs);
-    views = std::move(ents.Views);
+    game.Views = std::move(ents.Views);
     game.Play.audioclipProps.resize(game.audioClips.size());
     game.Play.charProps.resize(game.numcharacters);
     game.Play.dialogProps.resize(game.numdialog);
@@ -552,7 +556,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     game.Play.guicontrolProps[kGUITextBox].resize(guitext.size());
     game.Play.guicontrolProps[kGUIListBox].resize(guilist.size());
     game.Play.invProps.resize(game.numinvitems);
-    dialog = std::move(ents.Dialogs);
+    game.Dialogs = std::move(ents.Dialogs);
     // Set the number of game channels (the same for all the supported game versions)
     game.numGameChannels = MAX_GAME_CHANNELS;
     game.numCompatGameChannels = MAX_GAME_CHANNELS;
@@ -566,7 +570,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // 3. Initialize certain runtime variables
     //
     // TODO: merge this with engine_init_game_settings()
-    game_paused = 0; // reset the game paused flag
+    game.Paused = 0; // reset the game paused flag
     ifacepopped = -1;
 
     String svg_suffix;

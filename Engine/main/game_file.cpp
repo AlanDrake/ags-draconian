@@ -179,8 +179,9 @@ void TryLoadGameScripts(LoadedGameEntities &ents)
 
 HError load_game_file()
 {
+    Game &game = Game::Current();
     MainGameSource src;
-    LoadedGameEntities ents(Game::Current());
+    LoadedGameEntities ents(game);
     HError err = (HError)OpenMainGameFileFromDefaultAsset(src, EngineServices::Current().Assets.get());
     if (!err)
         return err;
@@ -194,7 +195,7 @@ HError load_game_file()
     // won't be applied correctly.
     if (src.DataVersion == kGameVersion_Undefined)
         return new GameInitError(kGameInitErr_UnknownDataVersion);
-    loaded_game_file_version = src.DataVersion;
+    game.LoadedDataVersion = src.DataVersion;
 
     // ...
 

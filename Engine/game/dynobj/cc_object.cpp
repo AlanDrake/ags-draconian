@@ -15,6 +15,7 @@
 
 #include "game/common_defines.h"
 #include "game/dynobj/script_objects.h"
+#include "game/game_context.h"
 #include "game/game_init.h"
 #include "game/roomstruct.h"
 #include "game/world/object.h"
@@ -43,5 +44,5 @@ void CCObject::Serialize(const void *address, Stream *out)
 void CCObject::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     int num = in->ReadInt32();
-    StaticObjectArray[num] = ccRegisterUnserializedPersistentObject(index, &scrObj[num], this);
+    StaticObjectArray[num] = ccRegisterUnserializedPersistentObject(index, &Game::Current().ScObjects[num], this);
 }

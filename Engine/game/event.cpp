@@ -174,8 +174,9 @@ void process_event(const AGSEvent *evp)
         {
             const int hotspot_id = obj.ObjID;
             obj_events = &room.Hotspots[hotspot_id].GetEvents();
-            obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_HOTSPOT, hotspot_id,
-                                  RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspot_id], &ccDynamicHotspot));
+            obj_evt =
+                ObjectEvent(kScTypeRoom, LOCTYPE_HOTSPOT, hotspot_id,
+                            RuntimeScriptValue().SetScriptObject(&game.ScHotspots[hotspot_id], &ccDynamicHotspot));
             //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
             break;
         }
@@ -184,7 +185,7 @@ void process_event(const AGSEvent *evp)
             const int region_id = obj.ObjID;
             obj_events = &room.Regions[region_id].GetEvents();
             obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_NOTHING, region_id,
-                                  RuntimeScriptValue().SetScriptObject(&scrRegion[region_id], &ccDynamicRegion));
+                                  RuntimeScriptValue().SetScriptObject(&game.ScRegions[region_id], &ccDynamicRegion));
             break;
         }
         case kObjEventType_Room:
@@ -194,7 +195,7 @@ void process_event(const AGSEvent *evp)
             if (obj.ObjEvent == kRoomEvent_BeforeFadein)
             {
                 in_enters_screen = true;
-                run_on_event(kScriptEvent_RoomEnter, displayed_room);
+                run_on_event(kScriptEvent_RoomEnter, game.DisplayedRoom);
             }
             else if (obj.ObjEvent == kRoomEvent_FirstEnter)
             {
@@ -205,7 +206,7 @@ void process_event(const AGSEvent *evp)
             {
                 in_room_transition = false;
                 GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
-                run_on_event(kScriptEvent_RoomAfterFadein, displayed_room);
+                run_on_event(kScriptEvent_RoomAfterFadein, game.DisplayedRoom);
             }
             //Debug::Printf("Running room interaction, event %d", evp->data3);
             break;

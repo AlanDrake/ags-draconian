@@ -189,6 +189,7 @@ void GamePlayState::UpdateRoomCameras()
 
 void GamePlayState::UpdateRoomCamera(int index)
 {
+    Game &game = Game::Current();
     Room &room = Room::Current();
     auto cam = _roomCameras[index];
     const Rect &cam_rect = cam->GetRect();
@@ -196,10 +197,10 @@ void GamePlayState::UpdateRoomCamera(int index)
     if ((real_room_size.Width > cam_rect.GetWidth()) || (real_room_size.Height > cam_rect.GetHeight()))
     {
         // TODO: split out into Camera Behavior
-        if (!cam->IsLocked() && playerchar->is_enabled())
+        if (!cam->IsLocked() && game.PlayerChar->is_enabled())
         {
-            int x = playerchar->x - cam_rect.GetWidth() / 2;
-            int y = playerchar->y - cam_rect.GetHeight() / 2;
+            int x = game.PlayerChar->x - cam_rect.GetWidth() / 2;
+            int y = game.PlayerChar->y - cam_rect.GetHeight() / 2;
             cam->SetAt(x, y);
         }
     }

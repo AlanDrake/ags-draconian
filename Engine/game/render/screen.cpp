@@ -769,7 +769,7 @@ void run_fade_out_effect(ScreenTransitionStyle style, int speed)
 void current_fade_in_effect()
 {
     Game &game = Game::Current();
-    debug_script_log("Transition-in in room %d", displayed_room);
+    debug_script_log("Transition-in in room %d", game.DisplayedRoom);
 
     // determine the transition style
     ScreenTransitionStyle trans_style = static_cast<ScreenTransitionStyle>(game.Play.fade_effect);
@@ -822,7 +822,7 @@ void current_fade_in_effect()
 void current_fade_out_effect()
 {
     Game &game = Game::Current();
-    debug_script_log("Transition-out in room %d", displayed_room);
+    debug_script_log("Transition-out in room %d", game.DisplayedRoom);
     if (pl_run_plugin_hooks(kPluginEvt_TransitionOut, 0))
         return;
 

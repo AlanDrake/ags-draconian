@@ -59,16 +59,8 @@ using namespace AGS::Engine;
 class DialogExec;
 class DialogOptions;
 
-std::vector<DialogTopic> dialog;
 std::unique_ptr<DialogExec> dialogExec;    // current running dialog state
 std::unique_ptr<DialogOptions> dialogOpts; // current running dialog options
-
-int said_speech_line; // used while in dialog to track whether screen needs updating
-
-// Set when a character said a line of speech; the text window options use it for the QFG4-style layout
-int said_text = 0;
-// The width of the widest line found by the last break_up_text_into_lines() call (or display code)
-int longestline = 0;
 
 
 void RunDialogOption(int dialog_id, int option)
@@ -112,9 +104,10 @@ void StopDialog()
 
 void SetDialogOption(int dialog_id, int option, int state, bool dlg_script = false)
 {
-    if ((dialog_id < 0) || (dialog_id >= Game::Current().numdialog))
+    Game &game = Game::Current();
+    if ((dialog_id < 0) || (dialog_id >= game.numdialog))
         quit("!SetDialogOption: Invalid topic number specified");
-    if ((option < 1) || (option > dialog[dialog_id].GetOptionCount()))
+    if ((option < 1) || (option > game.Dialogs[dialog_id].GetOptionCount()))
     {
         // TODO: no caller passes dlg_script = true any more (pre-3.1.1 games had "dialog scripts" in a
         // different language, whose "option-on/off" commands were more permissive); this branch and the
@@ -129,24 +122,25 @@ void SetDialogOption(int dialog_id, int option, int state, bool dlg_script = fal
     }
     option--;
 
-    dialog[dialog_id].Options[option].Flags &= ~DFLG_ON;
-    if ((state == 1) && ((dialog[dialog_id].Options[option].Flags & DFLG_OFFPERM) == 0))
-        dialog[dialog_id].Options[option].Flags |= DFLG_ON;
+    game.Dialogs[dialog_id].Options[option].Flags &= ~DFLG_ON;
+    if ((state == 1) && ((game.Dialogs[dialog_id].Options[option].Flags & DFLG_OFFPERM) == 0))
+        game.Dialogs[dialog_id].Options[option].Flags |= DFLG_ON;
     else if (state == 2)
-        dialog[dialog_id].Options[option].Flags |= DFLG_OFFPERM;
+        game.Dialogs[dialog_id].Options[option].Flags |= DFLG_OFFPERM;
 }
 
 int GetDialogOption(int dialog_id, int option)
 {
-    if ((dialog_id < 0) || (dialog_id >= Game::Current().numdialog))
+    Game &game = Game::Current();
+    if ((dialog_id < 0) || (dialog_id >= game.numdialog))
         quit("!GetDialogOption: Invalid topic number specified");
-    if ((option < 1) || (option > dialog[dialog_id].GetOptionCount()))
+    if ((option < 1) || (option > game.Dialogs[dialog_id].GetOptionCount()))
         quit("!GetDialogOption: Invalid option number specified");
     option--;
 
-    if (dialog[dialog_id].Options[option].Flags & DFLG_OFFPERM)
+    if (game.Dialogs[dialog_id].Options[option].Flags & DFLG_OFFPERM)
         return 2;
-    if (dialog[dialog_id].Options[option].Flags & DFLG_ON)
+    if (game.Dialogs[dialog_id].Options[option].Flags & DFLG_ON)
         return 1;
     return 0;
 }
@@ -200,60 +194,64 @@ int Dialog_GetOptionState(ScriptDialog *script_dialog, int option)
 
 int Dialog_HasOptionBeenChosen(ScriptDialog *script_dialog, int option)
 {
-    if ((option < 1) || (static_cast<uint32_t>(option) > dialog[script_dialog->id].GetOptionCount()))
+    Game &game = Game::Current();
+    if ((option < 1) || (static_cast<uint32_t>(option) > game.Dialogs[script_dialog->id].GetOptionCount()))
         quit("!Dialog.HasOptionBeenChosen: Invalid option number specified");
     option--; // option id is 1-based in script, and 0 is entry point
 
-    if (dialog[script_dialog->id].Options[option].Flags & DFLG_HASBEENCHOSEN)
+    if (game.Dialogs[script_dialog->id].Options[option].Flags & DFLG_HASBEENCHOSEN)
         return 1;
     return 0;
 }
 
 void Dialog_SetHasOptionBeenChosen(ScriptDialog *script_dialog, int option, bool chosen)
 {
-    if (option < 1 || static_cast<uint32_t>(option) > dialog[script_dialog->id].GetOptionCount())
+    Game &game = Game::Current();
+    if (option < 1 || static_cast<uint32_t>(option) > game.Dialogs[script_dialog->id].GetOptionCount())
     {
         quit("!Dialog.HasOptionBeenChosen: Invalid option number specified");
     }
     option--; // option id is 1-based in script, and 0 is entry point
     if (chosen)
     {
-        dialog[script_dialog->id].Options[option].Flags |= DFLG_HASBEENCHOSEN;
+        game.Dialogs[script_dialog->id].Options[option].Flags |= DFLG_HASBEENCHOSEN;
     }
     else
     {
-        dialog[script_dialog->id].Options[option].Flags &= ~DFLG_HASBEENCHOSEN;
+        game.Dialogs[script_dialog->id].Options[option].Flags &= ~DFLG_HASBEENCHOSEN;
     }
 }
 
 int Dialog_GetOptionCount(ScriptDialog *script_dialog)
 {
-    return dialog[script_dialog->id].GetOptionCount();
+    return Game::Current().Dialogs[script_dialog->id].GetOptionCount();
 }
 
 int Dialog_GetShowTextParser(ScriptDialog *script_dialog)
 {
-    return (dialog[script_dialog->id].Flags & DTFLG_SHOWPARSER) ? 1 : 0;
+    return (Game::Current().Dialogs[script_dialog->id].Flags & DTFLG_SHOWPARSER) ? 1 : 0;
 }
 
 const char *Dialog_GetOptionText(ScriptDialog *script_dialog, int option)
 {
-    if ((option < 1) || (static_cast<uint32_t>(option) > dialog[script_dialog->id].GetOptionCount()))
+    Game &game = Game::Current();
+    if ((option < 1) || (static_cast<uint32_t>(option) > game.Dialogs[script_dialog->id].GetOptionCount()))
         quit("!Dialog.GetOptionText: Invalid option number specified");
 
     option--; // option id is 1-based in script, and 0 is entry point
 
-    return CreateNewScriptString(dialog[script_dialog->id].Options[option].Text);
+    return CreateNewScriptString(game.Dialogs[script_dialog->id].Options[option].Text);
 }
 
 void Dialog_SetOptionText(ScriptDialog *script_dialog, int option, const char *text)
 {
-    if ((option < 1) || (static_cast<uint32_t>(option) > dialog[script_dialog->id].GetOptionCount()))
+    Game &game = Game::Current();
+    if ((option < 1) || (static_cast<uint32_t>(option) > game.Dialogs[script_dialog->id].GetOptionCount()))
         quit("!Dialog.GetOptionText: Invalid option number specified");
 
     option--; // option id is 1-based in script, and 0 is entry point
 
-    auto &dialog_option = dialog[script_dialog->id].Options[option];
+    auto &dialog_option = game.Dialogs[script_dialog->id].Options[option];
     dialog_option.Text = text;
     dialog_option.Flags =
         (dialog_option.Flags & ~DFLG_TEXTSET) | (DFLG_TEXTSET * (dialog_option.OriginalText != dialog_option.Text));
@@ -266,7 +264,7 @@ int Dialog_GetID(ScriptDialog *script_dialog)
 
 const char *Dialog_GetScriptName(ScriptDialog *script_dialog)
 {
-    return CreateNewScriptString(dialog[script_dialog->id].ScriptName);
+    return CreateNewScriptString(Game::Current().Dialogs[script_dialog->id].ScriptName);
 }
 
 int DialogOptions_GetAreDisplayed()
@@ -513,7 +511,8 @@ static int run_dialog_request(int param)
 // dialog_id
 int run_dialog_script(int dialog_id, int /*entry_point*/, int option_index)
 {
-    said_speech_line = 0;
+    Game &game = Game::Current();
+    game.Speech.SaidSpeechLine = 0;
     int result = RUN_DIALOG_STAY;
 
     if (dialogScriptsScript)
@@ -526,13 +525,13 @@ int run_dialog_script(int dialog_id, int /*entry_point*/, int option_index)
     }
 
     // Changed room while running the dialog: close the dialog immediately
-    if (in_new_room != kEnterRoom_None)
+    if (game.RoomChange.InNewRoom != kEnterRoom_None)
     {
         schedule_dialog_stop();
         return RUN_DIALOG_STOP_DIALOG;
     }
 
-    if (said_speech_line > 0)
+    if (game.Speech.SaidSpeechLine > 0)
     {
         // the line below fixes the problem with the close-up face remaining on the
         // screen after they finish talking; however, it makes the dialog options
@@ -544,7 +543,7 @@ int run_dialog_script(int dialog_id, int /*entry_point*/, int option_index)
         EnableInterface();
         // if we're not about to abort the dialog, switch back to arrow
         if (result != RUN_DIALOG_STOP_DIALOG)
-            set_cursor_look(Game::Current().GetModePointer());
+            set_cursor_look(game.GetModePointer());
     }
 
     return result;
@@ -637,7 +636,7 @@ static int write_dialog_options(Bitmap *dst, int at_x, int at_y, int area_width,
         else
         {
             // 'unread' colour
-            text_color = dst->GetCompatibleColor(playerchar->talkcolor);
+            text_color = dst->GetCompatibleColor(game.PlayerChar->talkcolor);
         }
 
         if (mouse_over_item == item_index)
@@ -959,7 +958,7 @@ void DialogOptions::Begin()
     bullet_picwid = 0;
     number_wid = 0;
     parserInput = nullptr;
-    said_text = 0;
+    game.Speech.SaidText = 0;
 
     // TODO: the option arrangement logic here is a tremendous mess.
     // need to strictly define the terms and rules of this arrangement,
@@ -1043,7 +1042,7 @@ void DialogOptions::Begin()
                 const char *draw_text =
                     skip_voiceover_token(get_translation(dtop->Options[items[i].OptionID].Text.GetCStr()));
                 break_up_text_into_lines(draw_text, Lines, max_width - ((2 * padding + 2) + bullet_wid), usingfont);
-                max_line_width = std::max(max_line_width, longestline);
+                max_line_width = std::max(max_line_width, game.TextLayout.LongestLine);
             }
             areawid = max_line_width + ((2 * padding + 2 + tw_area_width_mod) + bullet_wid);
             areawid = Math::Clamp(areawid, game.Play.min_dialogoption_width, game.Play.max_dialogoption_width);
@@ -1054,7 +1053,7 @@ void DialogOptions::Begin()
             int text_off_x = 0, text_off_y = 0, win_y = ui_view.GetHeight() / 2 - (2 * padding + needheight) / 2;
             int win_x = ui_view.GetWidth() / 2 - areawid / 2;
             // shift window to the right if QG4-style full-screen pic
-            if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4) && (said_text > 0))
+            if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4) && (game.Speech.SaidText > 0))
                 win_x = (ui_view.GetWidth() - areawid) - 10;
 
             // needs to draw the right text window, not the default
@@ -1220,7 +1219,7 @@ void DialogOptions::Draw()
         // Set up the text box, if present
         parserInput->SetY(curyp + game.options[OPT_DIALOGGAP]);
         parserInput->SetWidth(areawid - 10);
-        parserInput->SetTextColor(playerchar->talkcolor);
+        parserInput->SetTextColor(game.PlayerChar->talkcolor);
         if (mouseison == DLG_OPTION_PARSER)
             parserInput->SetTextColor(forecol);
 
@@ -1642,7 +1641,7 @@ void DialogOptions::End()
 
 int run_dialog_entry(int dialog_id)
 {
-    DialogTopic *dialog_topic = &dialog[dialog_id];
+    DialogTopic *dialog_topic = &Game::Current().Dialogs[dialog_id];
     // Run global event kScriptEvent_DialogRun for the startup entry (index 0)
     run_on_event(kScriptEvent_DialogRun, dialog_id, 0);
     return run_dialog_script(dialog_id, dialog_topic->StartEntryPoint, 0);
@@ -1650,7 +1649,8 @@ int run_dialog_entry(int dialog_id)
 
 int run_dialog_option(int dialog_id, int dialog_choice, int say_chosen_option, bool run_script)
 {
-    DialogTopic *dialog_topic = &dialog[dialog_id];
+    Game &game = Game::Current();
+    DialogTopic *dialog_topic = &game.Dialogs[dialog_id];
     assert(dialog_choice >= 0 && static_cast<uint32_t>(dialog_choice) < dialog_topic->GetOptionCount());
     int &option_flags = dialog_topic->Options[dialog_choice].Flags;
     const String &option_name = dialog_topic->Options[dialog_choice].Text;
@@ -1671,7 +1671,7 @@ int run_dialog_option(int dialog_id, int dialog_choice, int say_chosen_option, b
 
     // Optionally "say" the option's text
     if (say_option)
-        DisplaySpeech(get_translation(option_name.GetCStr()), Game::Current().playercharacter);
+        DisplaySpeech(get_translation(option_name.GetCStr()), game.playercharacter);
 
     // Run the option script
     if (run_script)
@@ -1690,7 +1690,7 @@ int show_dialog_options(int dialog_id, bool run_game_loops_in_background)
 
     can_run_delayed_command();
 
-    DialogTopic *topic = &dialog[dialog_id];
+    DialogTopic *topic = &game.Dialogs[dialog_id];
 
     // First test if there are enough valid options to run DialogOptions
     int opt_count = 0;
@@ -1832,7 +1832,7 @@ void DialogExec::Run()
             quitprintf("!RunDialog: invalid dialog number specified: %d", _dlgNum);
 
         // current dialog object
-        DialogTopic *topic = &dialog[_dlgNum];
+        DialogTopic *topic = &game.Dialogs[_dlgNum];
         int result = 0; // dialog execution result
         // reset global dialog flow instruction to default;
         // unless this is changed by a explicit script command, DialogExec will refer
@@ -1860,9 +1860,9 @@ void DialogExec::Run()
         // Run requested option, or a dialog request in case of a text parser commit
         if (run_option == CHOSE_TEXTPARSER)
         {
-            said_speech_line = 0;
+            game.Speech.SaidSpeechLine = 0;
             result = run_dialog_request(_dlgNum);
-            if (said_speech_line > 0)
+            if (game.Speech.SaidSpeechLine > 0)
             {
                 // fix the problem with the close-up face remaining on screen
                 // TODO: find a better solution rather than disable/enable iface?
@@ -2005,7 +2005,7 @@ bool handle_state_change_in_dialog_request(const char *api_name, int request_res
     {
         debug_script_warn("!%s: more than one NewRoom/RunDialog/StopDialog requests within a dialog '%s' (%d), "
                           "following one(s) will be ignored\n\tfirst was made in \"%s\", line %d",
-                          api_name, dialog[dialogExec->GetDlgNum()].ScriptName.GetCStr(), dialogExec->GetDlgNum(),
+                          api_name, game.Dialogs[dialogExec->GetDlgNum()].ScriptName.GetCStr(), dialogExec->GetDlgNum(),
                           dialogExec->GetSavedDialogRequestScPos().Section.GetCStr(),
                           dialogExec->GetSavedDialogRequestScPos().Line);
     }
@@ -2110,7 +2110,7 @@ void Dialog_Stop()
 
 ScriptDialog *Dialog_GetCurrentDialog()
 {
-    return dialogExec ? &scrDialog[dialogExec->GetDlgNum()] : nullptr;
+    return dialogExec ? &Game::Current().ScDialogs[dialogExec->GetDlgNum()] : nullptr;
 }
 
 int Dialog_GetExecutedOption()

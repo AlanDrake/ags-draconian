@@ -15,6 +15,7 @@
 
 #include "game/dialog/dialog.h"
 #include "game/dialog_topic.h"
+#include "game/game_context.h"
 #include "game/game_init.h"
 #include "game/game_struct_defines.h"
 #include "script/dynobj/dynobj_manager.h"
@@ -42,5 +43,5 @@ void CCDialog::Serialize(const void *address, Stream *out)
 void CCDialog::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     int num = in->ReadInt32();
-    StaticDialogArray[num] = ccRegisterUnserializedPersistentObject(index, &scrDialog[num], this);
+    StaticDialogArray[num] = ccRegisterUnserializedPersistentObject(index, &Game::Current().ScDialogs[num], this);
 }

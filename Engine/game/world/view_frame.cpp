@@ -35,42 +35,44 @@ using namespace AGS::Common;
 
 const char *ViewFrame_GetEventName(ScriptViewFrame *svf)
 {
-    return CreateNewScriptString(views[svf->view].loops[svf->loop].frames[svf->frame].event_name);
+    return CreateNewScriptString(Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].event_name);
 }
 
 void ViewFrame_SetEventName(ScriptViewFrame *svf, const char *name)
 {
-    views[svf->view].loops[svf->loop].frames[svf->frame].event_name = name;
+    Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].event_name = name;
 }
 
 int ViewFrame_GetFlipped(ScriptViewFrame *svf)
 {
     // We can return GraphicFlip here, because old boolean value matches horizontal flip
-    return GfxDef::GetFlipFromFlags(views[svf->view].loops[svf->loop].frames[svf->frame].flags);
+    return GfxDef::GetFlipFromFlags(Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].flags);
 }
 
 void ViewFrame_SetFlipped(ScriptViewFrame *svf, int flip)
 {
-    views[svf->view].loops[svf->loop].frames[svf->frame].flags = GfxDef::GetFlagsFromFlip((GraphicFlip)flip);
+    Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].flags =
+        GfxDef::GetFlagsFromFlip((GraphicFlip)flip);
 }
 
 int ViewFrame_GetGraphic(ScriptViewFrame *svf)
 {
-    return views[svf->view].loops[svf->loop].frames[svf->frame].pic;
+    return Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].pic;
 }
 
 void ViewFrame_SetGraphic(ScriptViewFrame *svf, int newPic)
 {
-    views[svf->view].loops[svf->loop].frames[svf->frame].pic = newPic;
+    Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].pic = newPic;
 }
 
 ScriptAudioClip *ViewFrame_GetLinkedAudio(ScriptViewFrame *svf)
 {
-    int soundIndex = views[svf->view].loops[svf->loop].frames[svf->frame].sound;
+    Game &game = Game::Current();
+    int soundIndex = game.Views[svf->view].loops[svf->loop].frames[svf->frame].sound;
     if (soundIndex < 0)
         return nullptr;
 
-    return &Game::Current().audioClips[soundIndex];
+    return &game.audioClips[soundIndex];
 }
 
 void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip *clip)
@@ -79,37 +81,37 @@ void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip *clip)
     if (clip != nullptr)
         newSoundIndex = clip->id;
 
-    views[svf->view].loops[svf->loop].frames[svf->frame].sound = newSoundIndex;
+    Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].sound = newSoundIndex;
 }
 
 int ViewFrame_GetSpeed(ScriptViewFrame *svf)
 {
-    return views[svf->view].loops[svf->loop].frames[svf->frame].speed;
+    return Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].speed;
 }
 
 void ViewFrame_SetSpeed(ScriptViewFrame *svf, int speed)
 {
-    views[svf->view].loops[svf->loop].frames[svf->frame].speed = speed;
+    Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].speed = speed;
 }
 
 int ViewFrame_GetXOffset(ScriptViewFrame *svf)
 {
-    return views[svf->view].loops[svf->loop].frames[svf->frame].xoffs;
+    return Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].xoffs;
 }
 
 void ViewFrame_SetXOffset(ScriptViewFrame *svf, int xoff)
 {
-    views[svf->view].loops[svf->loop].frames[svf->frame].xoffs = xoff;
+    Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].xoffs = xoff;
 }
 
 int ViewFrame_GetYOffset(ScriptViewFrame *svf)
 {
-    return views[svf->view].loops[svf->loop].frames[svf->frame].xoffs;
+    return Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].xoffs;
 }
 
 void ViewFrame_SetYOffset(ScriptViewFrame *svf, int yoff)
 {
-    views[svf->view].loops[svf->loop].frames[svf->frame].yoffs = yoff;
+    Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].yoffs = yoff;
 }
 
 int ViewFrame_GetView(ScriptViewFrame *svf)
@@ -148,11 +150,12 @@ int CalcFrameSoundVolume(int obj_vol, int anim_vol, int scale)
 
 bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume, int sound_pan, int sound_speed)
 {
-    if (views[view].loops[loop].frames[frame].sound < 0)
+    Game &game = Game::Current();
+    if (game.Views[view].loops[loop].frames[frame].sound < 0)
         return false;
 
     // play this sound (eg. footstep)
-    ScriptAudioChannel *channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
+    ScriptAudioChannel *channel = play_audio_clip_by_index(game.Views[view].loops[loop].frames[frame].sound);
     if (channel)
     {
         auto *playback = AudioChans::GetChannel(channel->id);
@@ -170,13 +173,14 @@ bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume, int sou
 bool RunViewFrameEvent(int view, int loop, int frame, const ObjectEvent &obj_evt, Common::ScriptEventsBase *handlers,
                        int evnt)
 {
-    if (!views[view].loops[loop].frames[frame].event_name.IsEmpty() && obj_evt && handlers->HasHandler(evnt))
+    Game &game = Game::Current();
+    if (!game.Views[view].loops[loop].frames[frame].event_name.IsEmpty() && obj_evt && handlers->HasHandler(evnt))
     {
         ObjectEvent evt_ext = obj_evt;
         evt_ext.Params[1] = RuntimeScriptValue().SetInt32(view);
         evt_ext.Params[2] = RuntimeScriptValue().SetInt32(loop);
         evt_ext.Params[3] = RuntimeScriptValue().SetInt32(frame);
-        auto dyn_str = ScriptString::Create(views[view].loops[loop].frames[frame].event_name.GetCStr());
+        auto dyn_str = ScriptString::Create(game.Views[view].loops[loop].frames[frame].event_name.GetCStr());
         evt_ext.Params[4] = RuntimeScriptValue().SetScriptObject(dyn_str.Obj(), dyn_str.Mgr());
         evt_ext.ParamCount = 5;
         // This event is run on either blocking or non-blocking thread
@@ -228,9 +232,10 @@ void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y)
 
 GraphicFlip GetViewFrameFlip(int view, int loop, int frame, int pic)
 {
-    if (view < 0 || static_cast<size_t>(view) >= views.size())
+    Game &game = Game::Current();
+    if (view < 0 || static_cast<size_t>(view) >= game.Views.size())
         return kFlip_None;
-    const ViewStruct &vs = views[view];
+    const ViewStruct &vs = game.Views[view];
     if (loop < 0 || loop >= vs.numLoops || frame < 0 || frame >= vs.loops[loop].numFrames)
         return kFlip_None;
     const ViewFrame &vf = vs.loops[loop].frames[frame];

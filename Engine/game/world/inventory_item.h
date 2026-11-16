@@ -17,9 +17,6 @@
 
 #include "game/dynobj/script_objects.h"
 
-// The script objects of the inventory items, by item index.
-extern std::vector<ScriptInvItem> scrInv;
-
 // Tells if item_id is a valid inventory item index; if not, writes a script warning naming apiname.
 bool AssertInvItem(const char *apiname, int item_id);
 

@@ -192,7 +192,7 @@ ScriptWalkbehind *Walkbehind_GetAtRoomXY(int x, int y)
 {
     int area = get_walkbehind_pixel(x, y);
     area = area >= 0 && area < (MAX_WALK_BEHINDS) ? area : 0;
-    return &scrWalkbehind[area];
+    return &Game::Current().ScWalkBehinds[area];
 }
 
 ScriptWalkbehind *Walkbehind_GetAtScreenXY(int x, int y)

@@ -734,10 +734,10 @@ HSaveError WriteGameState(Stream *out)
     // Game state
     game.Play.WriteForSavegame(out);
     // Other dynamic values
-    out->WriteInt32(frames_per_second);
+    out->WriteInt32(game.FramesPerSecond);
     out->WriteInt32(get_loop_counter());
     out->WriteInt32(ifacepopped);
-    out->WriteInt32(game_paused);
+    out->WriteInt32(game.Paused);
     // Mouse cursor
     out->WriteInt32(cur_mode);
     out->WriteInt32(cur_cursor);
@@ -819,13 +819,13 @@ HSaveError ReadGameState(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
     in->ReadArray(palette, sizeof(RGB), 256);
 
     // Game state
-    game.Play.ReadFromSavegame(in, loaded_game_file_version, svg_ver, r_data);
+    game.Play.ReadFromSavegame(in, game.LoadedDataVersion, svg_ver, r_data);
 
     // Other dynamic values
     r_data.FPS = in->ReadInt32();
     set_loop_counter(in->ReadInt32());
     ifacepopped = in->ReadInt32();
-    game_paused = in->ReadInt32();
+    game.Paused = in->ReadInt32();
     // Mouse cursor state
     r_data.CursorMode = in->ReadInt32();
     r_data.CursorID = in->ReadInt32();
@@ -1056,7 +1056,7 @@ HSaveError WriteCharacters(Stream *out)
     for (int i = 0; i < game.numcharacters; ++i)
     {
         WriteCharacterInfo(game.chars[i], out);
-        charextra[i].WriteToSavegame(out);
+        game.CharExtras[i].WriteToSavegame(out);
         Properties::WriteValues(game.Play.charProps[i], out);
     }
     return HSaveError::None();
@@ -1076,7 +1076,7 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
     for (uint32_t i = 0; i < characters_read; ++i)
     {
         auto &ch = game.chars[i];
-        auto &chex = charextra[i];
+        auto &chex = game.CharExtras[i];
         // TODO: this is ugly reading old fields like that, might either join Read methods in one, or drop old format at some point
         CharacterLegacyFields old_fields;
         ReadCharacterInfo(ch, in, old_fields, svg_ver);
@@ -1131,7 +1131,7 @@ HSaveError WriteDialogs(Stream *out)
     out->WriteInt32(game.numdialog);
     for (int i = 0; i < game.numdialog; ++i)
     {
-        WriteDialogTopic(dialog[i], out);
+        WriteDialogTopic(game.Dialogs[i], out);
         Properties::WriteValues(game.Play.dialogProps[i], out);
     }
     return HSaveError::None();
@@ -1151,8 +1151,8 @@ HSaveError ReadDialogs(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Prese
     for (uint32_t i = 0; i < dialogs_read; ++i)
     {
         uint32_t read_opt_count = 0;
-        ReadDialogTopic(dialog[i], in, svg_ver, &read_opt_count);
-        if (!AssertGameObjectContent(err, read_opt_count, dialog[i].Options.size(), "Options", "Dialog", i,
+        ReadDialogTopic(game.Dialogs[i], in, svg_ver, &read_opt_count);
+        if (!AssertGameObjectContent(err, read_opt_count, game.Dialogs[i].Options.size(), "Options", "Dialog", i,
                                      r_data.Result, r_data.DataCounts.DialogOptions[i]))
             return err;
         if (cmp_ver >= kDialogTopicSvgVer_40008)
@@ -1164,10 +1164,10 @@ HSaveError ReadDialogs(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Prese
 HSaveError PrescanDialogs(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const PreservedParams & /*pp*/,
                           RestoredData &r_data)
 {
+    Game &game = Game::Current();
     HSaveError err;
     const uint32_t dialogs_read = in->ReadInt32();
-    if (!AssertGameContent(err, dialogs_read, Game::Current().numdialog, "Dialogs", r_data.Result,
-                           r_data.DataCounts.Dialogs))
+    if (!AssertGameContent(err, dialogs_read, game.numdialog, "Dialogs", r_data.Result, r_data.DataCounts.Dialogs))
         return err;
 
     r_data.DataCounts.DialogOptions.resize(dialogs_read);
@@ -1176,7 +1176,7 @@ HSaveError PrescanDialogs(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, cons
     {
         uint32_t read_opt_count = 0;
         ReadDialogTopic(dummy, in, static_cast<DialogTopicSvgVersion>(cmp_ver), &read_opt_count);
-        if (!AssertGameObjectContent(err, read_opt_count, dialog[i].Options.size(), "Options", "Dialog", i,
+        if (!AssertGameObjectContent(err, read_opt_count, game.Dialogs[i].Options.size(), "Options", "Dialog", i,
                                      r_data.Result, r_data.DataCounts.DialogOptions[i]))
             return err;
     }
@@ -1558,13 +1558,13 @@ HSaveError WriteViews(Stream *out)
     out->WriteInt32(game.numviews);
     for (int view = 0; view < game.numviews; ++view)
     {
-        out->WriteInt32(views[view].numLoops);
-        for (int loop = 0; loop < views[view].numLoops; ++loop)
+        out->WriteInt32(game.Views[view].numLoops);
+        for (int loop = 0; loop < game.Views[view].numLoops; ++loop)
         {
-            out->WriteInt32(views[view].loops[loop].numFrames);
-            for (int frame = 0; frame < views[view].loops[loop].numFrames; ++frame)
+            out->WriteInt32(game.Views[view].loops[loop].numFrames);
+            for (int frame = 0; frame < game.Views[view].loops[loop].numFrames; ++frame)
             {
-                auto &vf = views[view].loops[loop].frames[frame];
+                auto &vf = game.Views[view].loops[loop].frames[frame];
                 out->WriteInt32(vf.sound);
                 out->WriteInt32(vf.pic);
                 // ---- kViewSvgVersion_4000018
@@ -1575,9 +1575,9 @@ HSaveError WriteViews(Stream *out)
             }
 
             // ---- kViewSvgVersion_4000024
-            for (int frame = 0; frame < views[view].loops[loop].numFrames; ++frame)
+            for (int frame = 0; frame < game.Views[view].loops[loop].numFrames; ++frame)
             {
-                StrUtil::WriteCStr(views[view].loops[loop].frames[frame].event_name, out);
+                StrUtil::WriteCStr(game.Views[view].loops[loop].frames[frame].event_name, out);
             }
         }
     }
@@ -1587,9 +1587,10 @@ HSaveError WriteViews(Stream *out)
 HSaveError ReadViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const PreservedParams & /*pp*/,
                      RestoredData &r_data)
 {
+    Game &game = Game::Current();
     HSaveError err;
     const uint32_t views_read = in->ReadInt32();
-    if (!AssertGameContent(err, views_read, Game::Current().numviews, "Views", r_data.Result, r_data.DataCounts.Views))
+    if (!AssertGameContent(err, views_read, game.numviews, "Views", r_data.Result, r_data.DataCounts.Views))
         return err;
 
     r_data.DataCounts.ViewLoops.resize(views_read);
@@ -1597,21 +1598,21 @@ HSaveError ReadViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pre
     for (uint32_t view = 0; view < views_read; ++view)
     {
         const uint32_t loops_read = in->ReadInt32();
-        if (!AssertGameObjectContent(err, loops_read, views[view].numLoops, "Loops", "View", view, r_data.Result,
+        if (!AssertGameObjectContent(err, loops_read, game.Views[view].numLoops, "Loops", "View", view, r_data.Result,
                                      r_data.DataCounts.ViewLoops[view]))
             return err;
 
         for (uint32_t loop = 0; loop < loops_read; ++loop)
         {
             const uint32_t frames_read = in->ReadInt32();
-            if (!AssertGameObjectContent2(err, frames_read, views[view].loops[loop].numFrames, "Frame", "View", view,
-                                          "Loop", loop, r_data.Result, r_data.DataCounts.Dummy))
+            if (!AssertGameObjectContent2(err, frames_read, game.Views[view].loops[loop].numFrames, "Frame", "View",
+                                          view, "Loop", loop, r_data.Result, r_data.DataCounts.Dummy))
                 return err;
 
             r_data.DataCounts.ViewFrames[view] += frames_read;
             for (uint32_t frame = 0; frame < frames_read; ++frame)
             {
-                auto &vf = views[view].loops[loop].frames[frame];
+                auto &vf = game.Views[view].loops[loop].frames[frame];
                 vf.sound = in->ReadInt32();
                 vf.pic = in->ReadInt32();
 
@@ -1628,7 +1629,7 @@ HSaveError ReadViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pre
             {
                 for (uint32_t frame = 0; frame < frames_read; ++frame)
                 {
-                    views[view].loops[loop].frames[frame].event_name = StrUtil::ReadCStr(in);
+                    game.Views[view].loops[loop].frames[frame].event_name = StrUtil::ReadCStr(in);
                 }
             }
         }
@@ -1639,13 +1640,14 @@ HSaveError ReadViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pre
 HSaveError PrescanViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const PreservedParams & /*pp*/,
                         RestoredData &r_data)
 {
+    Game &game = Game::Current();
     // a frame as ReadViews reads it: sound and pic, then flags, speed and offsets since kViewSvgVersion_4000018
     const soff_t frame_size = (cmp_ver >= kViewSvgVersion_4000018)
                                   ? sizeof(int32_t) * 2 + sizeof(int32_t) + sizeof(int16_t) * 3
                                   : sizeof(int32_t) * 2;
     HSaveError err;
     const uint32_t views_read = in->ReadInt32();
-    if (!AssertGameContent(err, views_read, Game::Current().numviews, "Views", r_data.Result, r_data.DataCounts.Views))
+    if (!AssertGameContent(err, views_read, game.numviews, "Views", r_data.Result, r_data.DataCounts.Views))
         return err;
 
     r_data.DataCounts.ViewLoops.resize(views_read);
@@ -1653,15 +1655,15 @@ HSaveError PrescanViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
     for (uint32_t view = 0; view < views_read; ++view)
     {
         const uint32_t loops_read = in->ReadInt32();
-        if (!AssertGameObjectContent(err, loops_read, views[view].numLoops, "Loops", "View", view, r_data.Result,
+        if (!AssertGameObjectContent(err, loops_read, game.Views[view].numLoops, "Loops", "View", view, r_data.Result,
                                      r_data.DataCounts.ViewLoops[view]))
             return err;
 
         for (uint32_t loop = 0; loop < loops_read; ++loop)
         {
             const uint32_t frames_read = in->ReadInt32();
-            if (!AssertGameObjectContent2(err, frames_read, views[view].loops[loop].numFrames, "Frame", "View", view,
-                                          "Loop", loop, r_data.Result, r_data.DataCounts.Dummy))
+            if (!AssertGameObjectContent2(err, frames_read, game.Views[view].loops[loop].numFrames, "Frame", "View",
+                                          view, "Loop", loop, r_data.Result, r_data.DataCounts.Dummy))
                 return err;
 
             r_data.DataCounts.ViewFrames[view] += frames_read;
@@ -2104,8 +2106,8 @@ HSaveError WriteThisRoom(Stream *out)
 {
     Game &game = Game::Current();
     Room &room = Room::Current();
-    out->WriteInt32(displayed_room);
-    if (displayed_room < 0)
+    out->WriteInt32(game.DisplayedRoom);
+    if (game.DisplayedRoom < 0)
         return HSaveError::None();
 
     // modified room backgrounds
@@ -2144,7 +2146,7 @@ HSaveError WriteThisRoom(Stream *out)
     out->WriteInt32(0); // [DEPRECATED]
 
     // persistent room's indicator
-    const bool persist = displayed_room < MAX_ROOMS;
+    const bool persist = game.DisplayedRoom < MAX_ROOMS;
     out->WriteBool(persist);
     // write room.TempState, in case they save in temporary room
     if (!persist)

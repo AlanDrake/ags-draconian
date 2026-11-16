@@ -140,7 +140,7 @@ Bitmap *prepare_walkable_areas(int source_char_id)
     {
         if (!game.chars[char_id].is_enabled())
             continue;
-        if (game.chars[char_id].room != displayed_room)
+        if (game.chars[char_id].room != game.DisplayedRoom)
             continue;
         if (char_id == source_char_id)
             continue;
@@ -234,7 +234,7 @@ int get_walkable_area_at_character(int char_id)
 
 ScriptWalkableArea *Walkarea_GetAtRoomXY(int x, int y)
 {
-    return &scrWalkarea[GetWalkableAreaAtRoom(x, y)]; // always a valid index (0 for no area)
+    return &Game::Current().ScWalkableAreas[GetWalkableAreaAtRoom(x, y)]; // always a valid index (0 for no area)
 }
 
 ScriptWalkableArea *Walkarea_GetAtScreenXY(int x, int y)
@@ -242,7 +242,7 @@ ScriptWalkableArea *Walkarea_GetAtScreenXY(int x, int y)
     int area = GetWalkableAreaAtScreen(x, y);
     if (area < 0 || area >= MAX_WALK_AREAS)
         return nullptr;
-    return &scrWalkarea[area];
+    return &Game::Current().ScWalkableAreas[area];
 }
 
 ScriptWalkableArea *Walkarea_GetByName(const char *name)

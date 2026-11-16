@@ -63,7 +63,7 @@ int GetRegionIDAtRoom(int x, int y, int hit_options)
 
 ScriptRegion *Region_GetAtRoomXY(int x, int y, int hit_options)
 {
-    return &scrRegion[GetRegionIDAtRoom(x, y, hit_options)];
+    return &Game::Current().ScRegions[GetRegionIDAtRoom(x, y, hit_options)];
 }
 
 ScriptRegion *Region_GetAtRoomXY2(int x, int y)
@@ -73,9 +73,10 @@ ScriptRegion *Region_GetAtRoomXY2(int x, int y)
 
 ScriptRegion *Region_GetAtScreenXY(int x, int y, int hit_options)
 {
-    VpPoint vpt = Game::Current().Play.ScreenToRoom(x, y);
+    Game &game = Game::Current();
+    VpPoint vpt = game.Play.ScreenToRoom(x, y);
     if (vpt.second < 0)
-        return &scrRegion[0]; // return region[0] for consistency and backwards compatibility
+        return &game.ScRegions[0]; // return region[0] for consistency and backwards compatibility
     return Region_GetAtRoomXY(vpt.first.X, vpt.first.Y, hit_options);
 }
 
@@ -237,8 +238,8 @@ void RunRegionInteraction(int regnum, int mood)
 
     // Regions do not react to cursor modes, but this function
     // was historically executing special region events (see RegionEventID)
-    const auto obj_evt =
-        ObjectEvent(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrRegion[regnum], &ccDynamicRegion));
+    const auto obj_evt = ObjectEvent(
+        kScTypeRoom, RuntimeScriptValue().SetScriptObject(&Game::Current().ScRegions[regnum], &ccDynamicRegion));
     run_event_script(obj_evt, &Room::Current().Regions[regnum].GetEvents(), mood);
 }
 

@@ -106,7 +106,7 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int font, int
     // Recreate overlay image
     int adj_x = x, adj_y = y;
     DisplayTextLooks look(kDisplayTextStyle_TextWindow, (DisplayTextPosition)text_pos, allow_shrink);
-    look.PreserveTextColor = (loaded_game_file_version >= kGameVersion_400_33);
+    look.PreserveTextColor = (game.LoadedDataVersion >= kGameVersion_400_33);
 
     std::unique_ptr<Bitmap> image =
         create_textual_image(draw_text, look, text_color, x, y, adj_x, adj_y, width, font, nullptr);
@@ -365,17 +365,18 @@ ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, 
                                       const char *text, int over_type, DisplayTextStyle style,
                                       DisplayTextShrink allow_shrink, int speech_for_char)
 {
+    Game &game = Game::Current();
     // NOTE: this was not documented, but apparently passing x < 0 or y < 0
     // to Overlay.CreateTextual actually made it centered on screen
     DisplayTextPosition text_pos = get_textpos_from_scriptcoords(x, y, false);
     if (width < 8)
-        width = Game::Current().Play.GetUIViewport().GetWidth() / 2;
+        width = game.Play.GetUIViewport().GetWidth() / 2;
     if (text_color == 0)
         text_color = GUI::GetStandardColor(16);
     // Skip a voice-over token, if present
     const char *draw_text = skip_voiceover_token(text);
     DisplayTextLooks look(style, text_pos, allow_shrink);
-    look.PreserveTextColor = (loaded_game_file_version >= kGameVersion_400_33);
+    look.PreserveTextColor = (game.LoadedDataVersion >= kGameVersion_400_33);
 
     return display_main(x, y, width, draw_text, nullptr, kDisplayText_NormalOverlay, over_type, look, font, text_color,
                         speech_for_char, room_layer);
@@ -779,7 +780,7 @@ void remove_screen_overlay(int type)
     {
         // reset ref for speech face
         game.Play.speech_face_schandle = ccRemoveObjectHandle(game.Play.speech_face_schandle);
-        face_talking = -1;
+        game.Speech.FaceTalking = -1;
     }
     else if (over.GetCharacterRef() >= 0)
     {
@@ -902,11 +903,11 @@ void autoposition_overlay(ScreenOverlay &over)
     const int char_id = over.GetCharacterRef();
 
     auto view = FindNearestViewport(char_id);
-    const int char_sprite = views[game.chars[char_id].view].loops[game.chars[char_id].loop].frames[0].pic;
+    const int char_sprite = game.Views[game.chars[char_id].view].loops[game.chars[char_id].loop].frames[0].pic;
     const int height =
-        (charextra[char_id].height < 1) ? game.SpriteInfos[char_sprite].Height : charextra[char_id].height;
+        (game.CharExtras[char_id].height < 1) ? game.SpriteInfos[char_sprite].Height : game.CharExtras[char_id].height;
     const Point screen_pt =
-        view->RoomToScreen(game.chars[char_id].x, charextra[char_id].GetEffectiveY(&game.chars[char_id]) - height)
+        view->RoomToScreen(game.chars[char_id].x, game.CharExtras[char_id].GetEffectiveY(&game.chars[char_id]) - height)
             .first;
     const Size pic_size = over.GetGraphicSize();
     int over_x = std::max(0, screen_pt.X - pic_size.Width / 2);
@@ -916,7 +917,7 @@ void autoposition_overlay(ScreenOverlay &over)
 
     if ((over_x + pic_size.Width) >= ui_view.GetWidth())
         over_x = (ui_view.GetWidth() - pic_size.Width) - 1;
-    if (game.chars[char_id].room != displayed_room)
+    if (game.chars[char_id].room != game.DisplayedRoom)
     {
         over_x = ui_view.GetWidth() / 2 - pic_size.Width / 2;
         over_y = ui_view.GetHeight() / 2 - pic_size.Height / 2;

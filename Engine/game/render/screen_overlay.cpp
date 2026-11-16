@@ -529,7 +529,7 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
 
 const ViewFrame *AnimatedOverlay::GetViewFrame() const
 {
-    return &views[_view].loops[_loop].frames[_frame];
+    return &Game::Current().Views[_view].loops[_loop].frames[_frame];
 }
 
 void AnimatedOverlay::Begin(int view, int loop, int frame, const ViewAnimateParams &params)
@@ -539,7 +539,7 @@ void AnimatedOverlay::Begin(int view, int loop, int frame, const ViewAnimatePara
     _frame = SetFirstAnimFrame(view, loop, frame, params.InitialDirection);
     _anim = params;
     CheckViewFrame(_view, _loop, _frame, _anim.AudioVolume);
-    _wait = _anim.Delay + views[_view].loops[_loop].frames[_frame].speed;
+    _wait = _anim.Delay + Game::Current().Views[_view].loops[_loop].frames[_frame].speed;
 }
 
 bool AnimatedOverlay::UpdateOnce()
@@ -555,7 +555,7 @@ bool AnimatedOverlay::UpdateOnce()
     if (!CycleViewAnim(_view, _loop, _frame, _anim))
         return false;
     CheckViewFrame(_view, _loop, _frame, _anim.AudioVolume);
-    _wait = _anim.Delay + views[_view].loops[_loop].frames[_frame].speed;
+    _wait = _anim.Delay + Game::Current().Views[_view].loops[_loop].frames[_frame].speed;
     return true;
 }
 

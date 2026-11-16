@@ -116,7 +116,7 @@ void RoomObject::UpdateCyclingView(int ref_id)
         anim = ViewAnimateParams();
     }
 
-    ViewFrame *vfptr = &views[view].loops[loop].frames[frame];
+    ViewFrame *vfptr = &Game::Current().Views[view].loops[loop].frames[frame];
     if (vfptr->pic > UINT16_MAX)
         debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", ref_id,
                           vfptr->pic, UINT16_MAX);
@@ -154,14 +154,16 @@ int RoomObject::GetFrameSoundVolume() const
 
 void RoomObject::CheckViewFrame()
 {
-    ObjectEvent objevt(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrObj[id], &ccDynamicObject));
+    ObjectEvent objevt(kScTypeRoom,
+                       RuntimeScriptValue().SetScriptObject(&Game::Current().ScObjects[id], &ccDynamicObject));
     ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(), audio_panning, AudioSpeed, objevt,
                      &Room::Current().Objects[id].GetEvents(), kRoomObjectEvent_OnFrameEvent);
 }
 
 bool RoomObject::RunFrameEvent(int view, int loop, int frame)
 {
-    ObjectEvent objevt(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrObj[id], &ccDynamicObject));
+    ObjectEvent objevt(kScTypeRoom,
+                       RuntimeScriptValue().SetScriptObject(&Game::Current().ScObjects[id], &ccDynamicObject));
     return ::RunViewFrameEvent(view, loop, frame, objevt, &Room::Current().Objects[id].GetEvents(),
                                kRoomObjectEvent_OnFrameEvent);
 }

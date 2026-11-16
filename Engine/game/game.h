@@ -339,7 +339,6 @@ std::vector<MoveList> &get_movelists();
 void release_script_movelist(int handle);
 
 
-struct ViewStruct;
 namespace AGS
 {
 namespace Common
@@ -348,8 +347,6 @@ class SpriteCache;
 } // namespace Common
 } // namespace AGS
 
-// The game's views.
-extern std::vector<ViewStruct> views;
 // The game's sprites.
 extern AGS::Common::SpriteCache spriteset;
 
@@ -357,35 +354,6 @@ extern AGS::Common::SpriteCache spriteset;
 extern unsigned int load_new_game;
 // Counts the restore attempts, so that a script run that was in progress can tell that one happened (script.cpp)
 extern int gameHasBeenRestored;
-
-// An internal state id, telling how the new room was entered.
-// This defines which events to run after room was loaded.
-enum EnterNewRoomState
-{
-    kEnterRoom_None = 0,
-    kEnterRoom_Normal = 1,       // changed to room and finished fade-in
-    kEnterRoom_FirstTime = 2,    // same as normal, but this is first time this room is visited
-    kEnterRoom_RestoredSave = 3, // loaded a room after restoring a save
-};
-
-extern EnterNewRoomState in_new_room;
-// The value in_new_room had when the room was entered, kept for the events that run after the fade-in.
-extern EnterNewRoomState new_room_was;
-// Where to put the player character in the room being entered; 0 means no instruction. A value of 1000 or more is an
-// entrance at an edge of the room, set by Character.ChangeRoomAutoPosition: the thousands give the edge (1000 left,
-// 2000 right, 3000 bottom, 4000 top), the rest the coordinate along it (y for the sides, x for bottom and top; 0 is
-// the middle). Reset once applied.
-extern int new_room_pos;
-// Position and loop (facing) to give the player character in the room being entered, by Character.ChangeRoom;
-// SCR_NO_VALUE when not set. Reset once applied.
-extern int new_room_x, new_room_y, new_room_loop;
-// Whether to move the player character onto the walkable area after placing it at new_room_x, new_room_y.
-extern bool new_room_placeonwalkable;
-// The number of the room that is loaded now.
-extern int displayed_room;
-extern int frames_per_second; // fixed game fps, set by script
-// Pause nesting level, above 0 while the game is paused.
-extern int game_paused;
 
 struct CCAudioClip;
 

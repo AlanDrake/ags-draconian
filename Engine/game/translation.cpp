@@ -99,7 +99,7 @@ void init_font_overrides(const Translation &trans)
                 Debug::Printf("Init font's %d override using replacement font %d and provided parameters", font_id,
                               use_font_id);
                 FontInfo use_finfo = construct_font_override(&game.fonts[use_font_id], finfo, fields);
-                load_game_font(font_id, use_finfo, loaded_game_file_version);
+                load_game_font(font_id, use_finfo, game.LoadedDataVersion);
             }
             else
             {
@@ -112,7 +112,7 @@ void init_font_overrides(const Translation &trans)
             Debug::Printf("Init font's %d override using file %s and provided parameters", font_id,
                           finfo.FileName.GetCStr());
             FontInfo use_finfo = construct_font_override(nullptr, finfo, fields);
-            load_game_font(font_id, use_finfo, loaded_game_file_version);
+            load_game_font(font_id, use_finfo, game.LoadedDataVersion);
         }
         else
         {
@@ -133,7 +133,7 @@ void restore_game_fonts(const Translation &old_trans)
     {
         const int font_id = font_override.first;
         if (font_id >= 0 && static_cast<uint32_t>(font_id) < game.fonts.size())
-            load_game_font(font_id, game.fonts[font_id], loaded_game_file_version);
+            load_game_font(font_id, game.fonts[font_id], game.LoadedDataVersion);
     }
 
     // Additional fixups - after all the fonts are registered
@@ -276,7 +276,7 @@ const char *get_translation(const char *text)
     if (!text)
         text = "";
     // FIXME: dont use global variable, remake into the function parameter!
-    source_text_length = GetTextDisplayLength(text);
+    Game::Current().TextLayout.SourceTextLength = GetTextDisplayLength(text);
     if (text[0] == 0)
         return ""; // don't try translating an empty line
 

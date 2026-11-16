@@ -154,10 +154,10 @@ bool try_auto_play_speech(const char *text, const char *&replace_text, int char_
 // Calculates meaningful length of the displayed text
 int GetTextDisplayLength(const char *text);
 // Calculates number of game loops for displaying a text on screen;
-// uses source_text_length instead of the text's own length, if that is set (and resets it);
+// uses Game::TextLayout.SourceTextLength instead of the text's own length, if that is set (and resets it);
 // can_be_relative is 1 for background speech, which keeps its time relative to a fixed 40 fps
 // when game.Play.bgspeech_game_speed is set.
-// Also stores the lipsync frame duration in loops_per_character.
+// Also stores the lipsync frame duration in Game::LipSync.LoopsPerCharacter.
 int GetTextDisplayTime(const char *text, int can_be_relative = 0);
 // Draw an (optionally) outlined text
 void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int font, color_t text_color, color_t outline_color,
@@ -200,9 +200,6 @@ std::unique_ptr<AGS::Common::Bitmap> draw_text_window_and_bar(const TopBarSettin
 // Gets the padding of a text window GUI; negative gui_id stands for the game's custom text window,
 // zero or an invalid one gives the default padding
 int get_textwindow_padding(int gui_id);
-
-// The efficient length of the last source text prepared for display
-extern int source_text_length;
 
 // Shows a message box (or player's speech, if the game has OPT_ALWAYSSPCH set) with a printf-style text;
 // the format string is translated, and the result goes through DisplayAtY, which translates it once more.

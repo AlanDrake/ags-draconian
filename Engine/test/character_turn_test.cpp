@@ -36,15 +36,15 @@ protected:
     void SetUp() override
     {
         Game &game = Game::Current();
-        views.resize(1);
-        views[0].Initialize(MAX_FACE_DIRECTIONS);
+        game.Views.resize(1);
+        game.Views[0].Initialize(MAX_FACE_DIRECTIONS);
         for (int i = 0; i < MAX_FACE_DIRECTIONS; ++i)
-            views[0].loops[i].Initialize(1);
+            game.Views[0].loops[i].Initialize(1);
         game.chars.resize(1);
         game.numcharacters = 1;
         game.chars[0].view = 0;
         game.chars[0].index_id = 0;
-        charextra.resize(1);
+        game.CharExtras.resize(1);
         _savedPriority = game.options[OPT_TURNORDERPRIORITY];
     }
 
@@ -52,10 +52,10 @@ protected:
     {
         Game &game = Game::Current();
         game.options[OPT_TURNORDERPRIORITY] = _savedPriority;
-        charextra.clear();
+        game.CharExtras.clear();
         game.chars.clear();
         game.numcharacters = 0;
-        views.clear();
+        game.Views.clear();
     }
 
     // Starts turning from the loop at index from_idx of turnlooporder to the one at to_idx;
@@ -65,14 +65,14 @@ protected:
     {
         Game &game = Game::Current();
         game.chars[0].loop = turnlooporder[from_idx];
-        charextra[0].SetTurning(false, false, 0);
+        game.CharExtras[0].SetTurning(false, false, 0);
         start_character_turning(&game.chars[0], turnlooporder[to_idx], true);
         std::vector<int> passed;
-        if (!charextra[0].IsTurning())
+        if (!game.CharExtras[0].IsTurning())
             return passed;
-        const int step = charextra[0].IsTurningCounterClockwise() ? -1 : 1;
+        const int step = game.CharExtras[0].IsTurningCounterClockwise() ? -1 : 1;
         // turns counts the loops left behind, the start included; the last of them leads to the target
-        for (int i = 1; i < charextra[0].turns; ++i)
+        for (int i = 1; i < game.CharExtras[0].turns; ++i)
             passed.push_back(((from_idx + step * i) % MAX_FACE_DIRECTIONS + MAX_FACE_DIRECTIONS) % MAX_FACE_DIRECTIONS);
         return passed;
     }
@@ -82,13 +82,14 @@ protected:
 
 TEST_F(CharacterTurning, ShorterWayIsTaken)
 {
-    Game::Current().options[OPT_TURNORDERPRIORITY] = kScTurnOrder_Clockwise;
+    Game &game = Game::Current();
+    game.options[OPT_TURNORDERPRIORITY] = kScTurnOrder_Clockwise;
     // two steps clockwise: one loop between
     EXPECT_EQ(std::vector<int>({1}), Turn(0, 2));
-    EXPECT_TRUE(charextra[0].IsTurningClockwise());
+    EXPECT_TRUE(game.CharExtras[0].IsTurningClockwise());
     // three steps the other way: anti-clockwise through two loops
     EXPECT_EQ(std::vector<int>({1, 0}), Turn(2, 7));
-    EXPECT_TRUE(charextra[0].IsTurningCounterClockwise());
+    EXPECT_TRUE(game.CharExtras[0].IsTurningCounterClockwise());
 }
 
 TEST_F(CharacterTurning, FaceDownPassesThroughDownFromEveryStart)

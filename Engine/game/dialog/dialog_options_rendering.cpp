@@ -16,6 +16,7 @@
 #include "debug/debug_log.h"
 #include "game/dialog/dialog.h"
 #include "game/dialog_topic.h"
+#include "game/game_context.h"
 #include "game/game_struct_defines.h"
 #include "script/runtimescriptvalue.h"
 #include "util/common.h" // quitprintf
@@ -105,7 +106,7 @@ void DialogOptionsRendering_SetParserTextboxWidth(ScriptDialogOptionsRendering *
 
 ScriptDialog *DialogOptionsRendering_GetDialogToRender(ScriptDialogOptionsRendering *dlgOptRender)
 {
-    return &scrDialog[dlgOptRender->dialogID];
+    return &Game::Current().ScDialogs[dlgOptRender->dialogID];
 }
 
 ScriptDrawingSurface *DialogOptionsRendering_GetSurface(ScriptDialogOptionsRendering *dlgOptRender)
@@ -127,7 +128,8 @@ int DialogOptionsRendering_GetActiveOptionID(ScriptDialogOptionsRendering *dlgOp
 
 void DialogOptionsRendering_SetActiveOptionID(ScriptDialogOptionsRendering *dlgOptRender, int activeOptionID)
 {
-    int optionCount = dialog[scrDialog[dlgOptRender->dialogID].id].GetOptionCount();
+    Game &game = Game::Current();
+    int optionCount = game.Dialogs[game.ScDialogs[dlgOptRender->dialogID].id].GetOptionCount();
     if ((activeOptionID < 0) || (activeOptionID > optionCount))
         quitprintf("DialogOptionsRenderingInfo.ActiveOptionID: invalid ID specified for this dialog (specified %d, "
                    "valid range: 1..%d)",

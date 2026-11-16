@@ -83,7 +83,7 @@ void WriteAllBytes(const String &path, const std::vector<uint8_t> &bytes)
 
 // Fixture for the savegame file. The engine globals it touches, all reset in TearDown:
 // - game.guid, game.gamename, game.uniqueid, game.color_depth: the game identity in the description
-// - EngineServices::ResPaths.GamePak.Name, loaded_game_file_version: the game data identity in the description
+// - EngineServices::ResPaths.GamePak.Name, Game::LoadedDataVersion: the game data identity in the description
 // - game.Play.messagetime: a value of the game state, to see the components restored
 // It writes save files to a directory of its own under the system's temporary directory.
 class SavegameFile : public ::testing::Test
@@ -104,7 +104,7 @@ protected:
         game.uniqueid = 0x5A5A1234;
         game.color_depth = 4;
         EngineServices::Current().ResPaths.GamePak.Name = "test.ags";
-        loaded_game_file_version = kGameVersion_Current;
+        game.LoadedDataVersion = kGameVersion_Current;
     }
 
     void TearDown() override
@@ -118,7 +118,7 @@ protected:
         game.uniqueid = 0;
         game.color_depth = 0;
         EngineServices::Current().ResPaths.GamePak.Name = {};
-        loaded_game_file_version = kGameVersion_Undefined;
+        game.LoadedDataVersion = kGameVersion_Undefined;
         game.Play.messagetime = 0;
     }
 

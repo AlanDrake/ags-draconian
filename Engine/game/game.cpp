@@ -118,15 +118,6 @@ Game *Game::SetCurrent(Game *game)
     return was;
 }
 
-GameDataVersion loaded_game_file_version = kGameVersion_Undefined;
-int frames_per_second = 40;
-int displayed_room = -10;
-EnterNewRoomState in_new_room = kEnterRoom_None, new_room_was = kEnterRoom_None;
-int new_room_pos = 0;
-int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;
-int new_room_loop = SCR_NO_VALUE;
-bool new_room_placeonwalkable = false;
-
 AGS::Common::SpriteCache::Callbacks spritecallbacks = {nullptr, initialize_sprite, post_init_sprite, nullptr};
 SpriteCache spriteset(Game::Current().SpriteInfos, spritecallbacks);
 
@@ -158,18 +149,8 @@ CCDialog ccDynamicDialog;
 CCAudioClip ccDynamicAudioClip;
 CCAudioChannel ccDynamicAudio;
 
-std::vector<ScriptDialog> scrDialog;
 std::vector<ScriptGUI> scrGui;
-std::vector<ScriptInvItem> scrInv;
-ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
-ScriptObject scrObj[MAX_ROOM_OBJECTS];
-ScriptRegion scrRegion[MAX_ROOM_REGIONS];
-ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
-ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
 
-
-std::vector<ViewStruct> views;
-std::vector<CharacterExtras> charextra;
 // MoveLists of the moving characters and room objects, addressed by their index; NOTE: slot 0 is never used,
 // as 0 means "no movelist". A slot freed by remove_movelist is queued in movelist_free_ids and used again.
 std::vector<MoveList> movelists;
@@ -180,8 +161,6 @@ std::queue<uint32_t> movelist_free_ids;
 String saveGameDirectory = "./";
 
 String saveGameSuffix;
-
-int game_paused = 0;
 
 unsigned int load_new_game = 0;
 int load_new_game_restore = -1;
@@ -350,13 +329,13 @@ void set_debug_mode(bool on)
 
 void set_game_speed(int new_fps)
 {
-    frames_per_second = new_fps;
+    Game::Current().FramesPerSecond = new_fps;
     setTimerFps(new_fps, isTimerFpsMaxed()); // keep the current maxed mode (on/off)
 }
 
 float get_game_speed()
 {
-    return frames_per_second;
+    return Game::Current().FramesPerSecond;
 }
 
 // The cursor look from before setup_for_dialog
@@ -613,16 +592,16 @@ void unload_game()
     FreeAllScripts();
     ShutdownScriptExec();
 
-    charextra.clear();
+    game.CharExtras.clear();
     movelists.clear();
     movelist_free_ids = std::queue<uint32_t>();
-    views.clear();
-    splipsync.clear();
-    numLipLines = 0;
-    curLipLine = -1;
+    game.Views.clear();
+    game.LipSync.Lines.clear();
+    game.LipSync.NumLines = 0;
+    game.LipSync.CurLine = -1;
 
-    dialog.clear();
-    scrDialog.clear();
+    game.Dialogs.clear();
+    game.ScDialogs.clear();
 
     guis.clear();
     scrGui.clear();
@@ -702,7 +681,7 @@ int Game_GetInventoryItemCount()
 
 bool Game_GetIsPaused()
 {
-    return game_paused > 0;
+    return Game::Current().Paused > 0;
 }
 
 int Game_GetFontCount()
@@ -737,11 +716,12 @@ bool Game_GetUseActiveInventoryGraphicForCursor()
 
 void Game_SetUseActiveInventoryGraphicForCursor(bool use_inv_graphic)
 {
-    Game::Current().options[OPT_FIXEDINVCURSOR] = use_inv_graphic ? 0 : 1; // OPT_FIXEDINVCURSOR is inverse
+    Game &game = Game::Current();
+    game.options[OPT_FIXEDINVCURSOR] = use_inv_graphic ? 0 : 1; // OPT_FIXEDINVCURSOR is inverse
     // Update current "use inv" cursor if necessary
-    if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv >= 0))
+    if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->activeinv >= 0))
     {
-        update_inv_cursor(playerchar->activeinv);
+        update_inv_cursor(game.PlayerChar->activeinv);
         set_cursor_look(cur_cursor);
     }
 }
@@ -875,47 +855,49 @@ void AssertView(const char *api_name, const char *obj_name, int view)
 void AssertViewHasLoops(const char *api_name, const char *obj_name, int view)
 {
     AssertView(api_name, obj_name, view);
-    if (views[view].numLoops == 0)
+    if (Game::Current().Views[view].numLoops == 0)
         quitprintf("!%s (%s): view %d does not have any loops.", api_name, obj_name, view + 1);
 }
 
 void AssertLoop(const char *api_name, const char *obj_name, int view, int loop)
 {
+    Game &game = Game::Current();
     AssertViewHasLoops(api_name, obj_name, view);
-    if ((loop < 0) || (loop >= views[view].numLoops))
+    if ((loop < 0) || (loop >= game.Views[view].numLoops))
         quitprintf("!%s (%s): invalid loop number %d for view %d (range is 0..%d).", api_name, obj_name, loop, view + 1,
-                   views[view].GetLastLoop());
+                   game.Views[view].GetLastLoop());
 }
 
 void AssertFrame(const char *api_name, const char *obj_name, int view, int loop, int frame)
 {
+    Game &game = Game::Current();
     AssertLoop(api_name, obj_name, view, loop);
-    if (views[view].loops[loop].numFrames == 0)
+    if (game.Views[view].loops[loop].numFrames == 0)
         quitprintf("!%s (%s): view %d loop %d does not have any frames", api_name, obj_name, view + 1, loop);
-    if ((frame < 0) || (frame >= views[view].loops[loop].numFrames))
+    if ((frame < 0) || (frame >= game.Views[view].loops[loop].numFrames))
         quitprintf("!%s (%s): invalid frame number %d for view %d loop %d (range is 0..%d)", api_name, obj_name, frame,
-                   view + 1, loop, views[view].loops[loop].GetLastFrame());
+                   view + 1, loop, game.Views[view].loops[loop].GetLastFrame());
 }
 
 int Game_GetLoopCountForView(int view)
 {
     view--; // convert to 0-based
     AssertView("Game.GetLoopCountForView", "", view);
-    return views[view].numLoops;
+    return Game::Current().Views[view].numLoops;
 }
 
 int Game_GetRunNextSettingForLoop(int view, int loop)
 {
     view--; // convert to 0-based
     AssertLoop("Game.GetRunNextSettingForLoop", "", view, loop);
-    return (views[view].loops[loop].RunNextLoop()) ? 1 : 0;
+    return (Game::Current().Views[view].loops[loop].RunNextLoop()) ? 1 : 0;
 }
 
 int Game_GetFrameCountForLoop(int view, int loop)
 {
     view--; // convert to 0-based
     AssertLoop("Game.GetFrameCountForLoop", "", view, loop);
-    return views[view].loops[loop].numFrames;
+    return Game::Current().Views[view].loops[loop].numFrames;
 }
 
 ScriptViewFrame *Game_GetViewFrame(int view, int loop, int frame)
@@ -1846,23 +1828,23 @@ int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool c
 
     if ((char_id >= 0) && (obj_id >= 0))
     {
-        if ((wb_baseline > obj_lowest_yp) && (wb_baseline > char_lowest_yp))
+        if ((wb_baseline > game.ObjLowestYp) && (wb_baseline > game.CharLowestYp))
             winner = LOCTYPE_HOTSPOT;
-        else if (obj_lowest_yp > char_lowest_yp)
+        else if (game.ObjLowestYp > game.CharLowestYp)
             winner = LOCTYPE_OBJ;
         else
             winner = LOCTYPE_CHAR;
     }
     else if (char_id >= 0)
     {
-        if (wb_baseline > char_lowest_yp)
+        if (wb_baseline > game.CharLowestYp)
             winner = LOCTYPE_HOTSPOT;
         else
             winner = LOCTYPE_CHAR;
     }
     else if (obj_id >= 0)
     {
-        if (wb_baseline > obj_lowest_yp)
+        if (wb_baseline > game.ObjLowestYp)
             winner = LOCTYPE_HOTSPOT;
         else
             winner = LOCTYPE_OBJ;
@@ -1981,8 +1963,8 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
     if (first_loop > last_loop)
         return;
 
-    first_loop = Math::Clamp(first_loop, 0, views[view].GetLastLoop());
-    last_loop = Math::Clamp(last_loop, 0, views[view].GetLastLoop());
+    first_loop = Math::Clamp(first_loop, 0, game.Views[view].GetLastLoop());
+    last_loop = Math::Clamp(last_loop, 0, game.Views[view].GetLastLoop());
 
     // Record cache sizes and timestamps, for diagnostic purposes
     const size_t sprite_cache_before = spriteset.GetCacheSize();
@@ -1992,9 +1974,9 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
     int64_t dur_sprite_load = 0, dur_texture_make = 0, dur_sound_load = 0;
     for (int i = first_loop; i <= last_loop; ++i)
     {
-        for (int j = 0; j < views[view].loops[i].numFrames; ++j, ++total_frames)
+        for (int j = 0; j < game.Views[view].loops[i].numFrames; ++j, ++total_frames)
         {
-            const auto &frame = views[view].loops[i].frames[j];
+            const auto &frame = game.Views[view].loops[i].frames[j];
             const auto tp_detail1 = FastClock::now();
             spriteset.PrecacheSprite(frame.pic);
             const auto tp_detail2 = FastClock::now();
@@ -2274,7 +2256,7 @@ void script_debug(int cmdd, int dataa)
     if (cmdd == 0)
     {
         for (int i = 0; i < game.numinvitems; ++i)
-            playerchar->set_item_quantity(i, std::max<int16_t>(1, playerchar->get_item_quantity(i)));
+            game.PlayerChar->set_item_quantity(i, std::max<int16_t>(1, game.PlayerChar->get_item_quantity(i)));
         UpdateInventory();
     }
     else if (cmdd == 1)
@@ -2298,7 +2280,7 @@ void script_debug(int cmdd, int dataa)
         int goToRoom = -1;
         if (game.roomNames.size() == 0)
         {
-            String inroomtex = String::FromFormat("!Enter new room: (in room %d)", displayed_room);
+            String inroomtex = String::FromFormat("!Enter new room: (in room %d)", game.DisplayedRoom);
             setup_for_dialog(game.Play.normal_font);
             goToRoom = enternumberwindow(inroomtex.GetCStr());
             restore_after_dialog();
@@ -2306,7 +2288,7 @@ void script_debug(int cmdd, int dataa)
         else
         {
             setup_for_dialog(game.Play.normal_font);
-            goToRoom = roomSelectorWindow(displayed_room, game.roomNames);
+            goToRoom = roomSelectorWindow(game.DisplayedRoom, game.roomNames);
             restore_after_dialog();
         }
         if (goToRoom >= 0)
@@ -2393,7 +2375,7 @@ void MoveSaveSlot(int old_slot, int new_slot)
 
 void RestoreGameSlot(int slot)
 {
-    if (displayed_room < 0)
+    if (Game::Current().DisplayedRoom < 0)
         quit("!RestoreGameSlot: a game cannot be restored from within game_start");
 
     can_run_delayed_command();
@@ -2431,23 +2413,25 @@ void DeleteSaveSlot(int slot)
 
 void PauseGame()
 {
-    game_paused++;
-    debug_script_log("Game paused (%d)", game_paused);
+    Game &game = Game::Current();
+    game.Paused++;
+    debug_script_log("Game paused (%d)", game.Paused);
 }
 
 void UnPauseGame()
 {
-    if (game_paused > 0)
+    Game &game = Game::Current();
+    if (game.Paused > 0)
     {
-        game_paused--;
-        debug_script_log("Game un-paused (%d)", game_paused);
+        game.Paused--;
+        debug_script_log("Game un-paused (%d)", game.Paused);
     }
 }
 
 
 int IsGamePaused()
 {
-    if (game_paused > 0)
+    if (Game::Current().Paused > 0)
         return 1;
     return 0;
 }
@@ -2595,7 +2579,7 @@ int RunAGSGame(const String &new_game, unsigned int mode, int data)
     }
 
     unload_old_room();
-    displayed_room = -10;
+    game.DisplayedRoom = -10;
 
 #if defined(AGS_AUTO_WRITE_USER_CONFIG)
     save_config_file(); // save current user config in case engine fails to run new game
@@ -2720,9 +2704,9 @@ int SetGameOption(int opt, int new_value)
         break;
     case OPT_FIXEDINVCURSOR:
         // Update current "use inv" cursor if necessary
-        if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv >= 0))
+        if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->activeinv >= 0))
         {
-            update_inv_cursor(playerchar->activeinv);
+            update_inv_cursor(game.PlayerChar->activeinv);
             set_cursor_look(cur_cursor);
         }
         break;
@@ -2753,9 +2737,9 @@ void SkipUntilCharacterStops(int char_id)
     Game &game = Game::Current();
     if (!AssertCharacter("SkipUntilCharacterStops", char_id))
         return;
-    if (game.chars[char_id].room != displayed_room)
+    if (game.chars[char_id].room != game.DisplayedRoom)
         quitprintf("!SkipUntilCharacterStops: character %s is not in current room %d (it is in room %d)",
-                   game.chars[char_id].scrname.GetCStr(), displayed_room, game.chars[char_id].room);
+                   game.chars[char_id].scrname.GetCStr(), game.DisplayedRoom, game.chars[char_id].room);
 
     // if they are not currently moving, do nothing
     if (!game.chars[char_id].walking)
@@ -2860,7 +2844,7 @@ static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y
     Game &game = Game::Current();
     Room &room = Room::Current();
     // If no room loaded yet, then return nothing
-    if (displayed_room < 0)
+    if (game.DisplayedRoom < 0)
     {
         loc_ref = {};
         return "";

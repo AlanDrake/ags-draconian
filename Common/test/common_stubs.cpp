@@ -15,7 +15,6 @@
 // Stubs for the functions in Common.lib that expect implementations elsewhere.
 //
 //=============================================================================
-#include "game/game_version.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"
@@ -26,7 +25,6 @@
 
 using namespace AGS::Common;
 
-GameDataVersion loaded_game_file_version = kGameVersion_Current;
 Version game_compiled_version;
 
 namespace AGS

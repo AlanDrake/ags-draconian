@@ -56,11 +56,6 @@ using namespace AGS::Engine;
 // (the script API, C3).
 #define OVERLAPPING_OBJECT 1000
 
-// The baseline of the object that GetObjectIDAtRoom found last, -1 if none; GetLocationTypeImpl (game.cpp)
-// compares it with char_lowest_yp and the walk-behind's to tell which is in front.
-// TODO: return it together with the object ID instead of through a global.
-int obj_lowest_yp;
-
 bool IsValidObject(int obj_id)
 {
     return ((obj_id >= 0) && (static_cast<uint32_t>(obj_id) < Room::Current().State->numobj));
@@ -84,13 +79,13 @@ static int GetThingRect(int thing, Rect *rect)
     {
         // FIXME: a disabled character in this room still counts as overlapping, a disabled object does not
         // (below), and neither case looks at visibility
-        if (game.chars[thing].room != displayed_room)
+        if (game.chars[thing].room != game.DisplayedRoom)
             return 0;
 
         const int charw = GetCharacterWidth(thing);
         const int charh = GetCharacterHeight(thing);
         *rect = RectWH(game.chars[thing].x - (charw / 2),
-                       charextra[thing].GetEffectiveY(&game.chars[thing]) - charh + 1, charw, charh);
+                       game.CharExtras[thing].GetEffectiveY(&game.chars[thing]) - charh + 1, charw, charh);
     }
     else if (IsValidObject(thing - OVERLAPPING_OBJECT))
     {
@@ -178,6 +173,7 @@ Bitmap *GetObjectSourceImage(int obj_id)
 
 int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
 {
+    Game &game = Game::Current();
     Room &room = Room::Current();
     const bool only_clickable = (hit_options & kHit_Interactable) != 0;
     int bestshotyp = -1, bestshotwas = -1;
@@ -199,7 +195,7 @@ int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
         if (room.Objs[obj_id].view != RoomObject::NoView)
         {
             sprite_flags =
-                views[room.Objs[obj_id].view].loops[room.Objs[obj_id].loop].frames[room.Objs[obj_id].frame].flags;
+                game.Views[room.Objs[obj_id].view].loops[room.Objs[obj_id].loop].frames[room.Objs[obj_id].frame].flags;
         }
 
         Bitmap *image = GetObjectSourceImage(obj_id);
@@ -219,14 +215,15 @@ int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
         bestshotwas = obj_id;
         bestshotyp = use_baseline;
     }
-    obj_lowest_yp = bestshotyp;
+    game.ObjLowestYp = bestshotyp;
     return bestshotwas;
 }
 
 ScriptObject *Object_GetAtScreenXY(int x, int y, int hit_options)
 {
+    Game &game = Game::Current();
     // translate screen co-ordinates to room co-ordinates
-    VpPoint vpt = Game::Current().Play.ScreenToRoom(x, y);
+    VpPoint vpt = game.Play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return nullptr;
     int obj_id = GetObjectIDAtRoom(vpt.first.X, vpt.first.Y, hit_options);
@@ -234,7 +231,7 @@ ScriptObject *Object_GetAtScreenXY(int x, int y, int hit_options)
     {
         return nullptr;
     }
-    return &scrObj[obj_id];
+    return &game.ScObjects[obj_id];
 }
 
 ScriptObject *Object_GetAtScreenXY2(int x, int y)
@@ -249,7 +246,7 @@ ScriptObject *Object_GetAtRoomXY(int x, int y, int hit_options)
     {
         return nullptr;
     }
-    return &scrObj[obj_id];
+    return &Game::Current().ScObjects[obj_id];
 }
 ScriptObject *Object_GetAtRoomXY2(int x, int y)
 {
@@ -339,6 +336,7 @@ void SetObjectGraphic(int obj_id, int slot)
 
 bool SetObjectFrameSimple(int obj_id, int view, int loop, int frame)
 {
+    Game &game = Game::Current();
     Room &room = Room::Current();
     if (!AssertObject("SetObjectFrame", obj_id))
     {
@@ -349,16 +347,16 @@ bool SetObjectFrameSimple(int obj_id, int view, int loop, int frame)
 
     auto &room_obj = room.Objs[obj_id];
     // Fixup invalid loop & frame numbers by using default 0 value
-    if (loop < 0 || loop >= views[view].numLoops)
+    if (loop < 0 || loop >= game.Views[view].numLoops)
     {
         debug_script_warn("SetObjectFrame: invalid loop number used for view %d (%d, range is 0 - %d)", view, loop,
-                          views[view].GetLastLoop());
+                          game.Views[view].GetLastLoop());
         loop = 0;
     }
-    if (frame < 0 || frame >= views[view].loops[loop].numFrames)
+    if (frame < 0 || frame >= game.Views[view].loops[loop].numFrames)
     {
         debug_script_warn("SetObjectFrame: frame index out of range (%d, must be 0 - %d)", frame,
-                          views[view].loops[loop].GetLastFrame());
+                          game.Views[view].loops[loop].GetLastFrame());
         frame = 0; // NOTE: we have 1 dummy frame allocated for empty loops
     }
 
@@ -376,7 +374,7 @@ bool SetObjectFrameSimple(int obj_id, int view, int loop, int frame)
     room_obj.loop = static_cast<uint16_t>(loop);
     room_obj.frame = static_cast<uint16_t>(frame);
     room_obj.anim = ViewAnimateParams(); // reset anim
-    int pic = views[view].loops[loop].frames[frame].pic;
+    int pic = game.Views[view].loops[loop].frames[frame].pic;
     room_obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
         debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obj_id, pic,
@@ -532,6 +530,7 @@ int Object_GetBaseline(ScriptObject *obj)
 
 void AnimateObjectImpl(int obj_id, int loop, int spdd, int rept, int direction, int blocking, int sframe, int volume)
 {
+    Game &game = Game::Current();
     Room &room = Room::Current();
     if (!AssertObject("AnimateObject", obj_id))
     {
@@ -570,8 +569,8 @@ void AnimateObjectImpl(int obj_id, int loop, int spdd, int rept, int direction, 
     room_obj.loop = (uint16_t)loop;
     room_obj.frame =
         (uint16_t)SetFirstAnimFrame(room_obj.view, loop, sframe, static_cast<AnimFlowDirection>(direction));
-    room_obj.wait = spdd + views[room_obj.view].loops[loop].frames[room_obj.frame].speed;
-    int pic = views[room_obj.view].loops[loop].frames[room_obj.frame].pic;
+    room_obj.wait = spdd + game.Views[room_obj.view].loops[loop].frames[room_obj.frame].speed;
+    int pic = game.Views[room_obj.view].loops[loop].frames[room_obj.frame].pic;
     room_obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
         debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obj_id, pic,
@@ -943,11 +942,12 @@ void RunObjectInteraction(int obj_id, int mood)
     // For USE verb: remember active inventory
     if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
-        game.Play.usedinv = playerchar->activeinv;
+        game.Play.usedinv = game.PlayerChar->activeinv;
     }
 
-    const auto obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_OBJ, obj_id,
-                                     RuntimeScriptValue().SetScriptObject(&scrObj[obj_id], &ccDynamicObject), mood);
+    const auto obj_evt =
+        ObjectEvent(kScTypeRoom, LOCTYPE_OBJ, obj_id,
+                    RuntimeScriptValue().SetScriptObject(&game.ScObjects[obj_id], &ccDynamicObject), mood);
     if ((evnt >= 0) &&
         run_event_script(obj_evt, &room.Objects[obj_id].Interactions, evnt, &room.Objects[obj_id].GetEvents(),
                          anyclick_evt, true /* do unhandled event */) < 0)
@@ -1591,8 +1591,8 @@ void update_object_scale(int obj_id)
     room_obj.spr_height = game.SpriteInfos[room_obj.num].Height;
     if (room_obj.is_animating())
     {
-        room_obj.frame_xoff = views[room_obj.view].loops[room_obj.loop].frames[room_obj.frame].xoffs;
-        room_obj.frame_yoff = views[room_obj.view].loops[room_obj.loop].frames[room_obj.frame].yoffs;
+        room_obj.frame_xoff = game.Views[room_obj.view].loops[room_obj.loop].frames[room_obj.frame].xoffs;
+        room_obj.frame_yoff = game.Views[room_obj.view].loops[room_obj.loop].frames[room_obj.frame].yoffs;
     }
     room_obj.width = scale_width;
     room_obj.height = scale_height;
@@ -1724,30 +1724,32 @@ void ValidateViewAnimParams(const char *apiname, const char *objname, int &block
 
 void ValidateViewAnimVLF(const char *apiname, const char *objname, int view, int loop, int &sframe)
 {
+    Game &game = Game::Current();
     // NOTE: we assume that the view is already in an internal 0-based range.
     // but when printing an error we will use (view + 1) for compliance with the script API.
     AssertLoop(apiname, objname, view, loop);
 
-    if (views[view].loops[loop].numFrames < 1)
+    if (game.Views[view].loops[loop].numFrames < 1)
         debug_script_warn("%s (%s): view %d loop %d does not have any frames, will use a frame placeholder.", apiname,
                           objname, view + 1, loop);
-    else if (sframe < 0 || sframe >= views[view].loops[loop].numFrames)
+    else if (sframe < 0 || sframe >= game.Views[view].loops[loop].numFrames)
         debug_script_warn("%s (%s): invalid starting frame number %d for view %d loop %d (range is 0..%d)", apiname,
-                          objname, sframe, view + 1, loop, views[view].loops[loop].GetLastFrame());
+                          objname, sframe, view + 1, loop, game.Views[view].loops[loop].GetLastFrame());
     // NOTE: there's always frame 0 allocated for safety
-    sframe = std::max(0, std::min(sframe, views[view].loops[loop].GetLastFrame()));
+    sframe = std::max(0, std::min(sframe, game.Views[view].loops[loop].GetLastFrame()));
 }
 
 int SetFirstAnimFrame(int view, int loop, int sframe, AnimFlowDirection dir)
 {
-    if (views[view].loops[loop].numFrames <= 1)
+    Game &game = Game::Current();
+    if (game.Views[view].loops[loop].numFrames <= 1)
         return 0;
     // reverse animation starts at the *previous frame*
     if (dir == kAnimDirBackward)
     {
         sframe--;
         if (sframe < 0)
-            sframe = views[view].loops[loop].numFrames - (-sframe);
+            sframe = game.Views[view].loops[loop].numFrames - (-sframe);
     }
     return sframe;
 }
@@ -1828,13 +1830,14 @@ static bool CycleNextFrame(const ViewStruct *view, uint16_t &loop, uint16_t &fra
 // General view animation algorithm: find next loop and frame, depending on anim settings
 bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams &anim_params)
 {
-    const ViewStruct *aview = &views[view];
+    Game &game = Game::Current();
+    const ViewStruct *aview = &game.Views[view];
     uint16_t loop = o_loop;
     uint16_t frame = o_frame;
     const bool forward = anim_params.IsForward();
     const AnimFlowStyle flow = anim_params.Flow;
     // Allow multi-loop repeat depending on a game option
-    const bool multi_loop_repeat = (Game::Current().Play.no_multiloop_repeat == 0);
+    const bool multi_loop_repeat = (game.Play.no_multiloop_repeat == 0);
 
     bool is_done = false;
     // Test next frame (fw or bw), if we see that it is past the frame range,

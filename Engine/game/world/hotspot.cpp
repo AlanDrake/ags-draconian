@@ -112,7 +112,7 @@ int Hotspot_GetWalkToY(ScriptHotspot *hss)
 
 ScriptHotspot *Hotspot_GetAtRoomXY(int x, int y, int hit_options)
 {
-    return &scrHotspot[GetHotspotIDAtRoom(x, y, hit_options)];
+    return &Game::Current().ScHotspots[GetHotspotIDAtRoom(x, y, hit_options)];
 }
 
 ScriptHotspot *Hotspot_GetAtRoomXY2(int x, int y)
@@ -122,10 +122,11 @@ ScriptHotspot *Hotspot_GetAtRoomXY2(int x, int y)
 
 ScriptHotspot *Hotspot_GetAtScreenXY(int x, int y, int hit_options)
 {
-    VpPoint vpt = Game::Current().Play.ScreenToRoom(x, y);
+    Game &game = Game::Current();
+    VpPoint vpt = game.Play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return nullptr;
-    return &scrHotspot[GetHotspotIDAtRoom(vpt.first.X, vpt.first.Y, hit_options)];
+    return &game.ScHotspots[GetHotspotIDAtRoom(vpt.first.X, vpt.first.Y, hit_options)];
 }
 
 ScriptHotspot *Hotspot_GetAtScreenXY2(int x, int y)
@@ -167,7 +168,7 @@ void RunHotspotInteraction(int hotspothere, int mood)
     // For USE verb: remember active inventory
     if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
-        game.Play.usedinv = playerchar->activeinv;
+        game.Play.usedinv = game.PlayerChar->activeinv;
     }
 
     if ((game.options[OPT_WALKONLOOK] == 0) && (game.HasCursorRole(mood, kCursorRole_Look)))
@@ -179,7 +180,7 @@ void RunHotspotInteraction(int hotspothere, int mood)
 
     const auto obj_evt =
         ObjectEvent(kScTypeRoom, LOCTYPE_HOTSPOT, hotspothere,
-                    RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspothere], &ccDynamicHotspot), mood);
+                    RuntimeScriptValue().SetScriptObject(&game.ScHotspots[hotspothere], &ccDynamicHotspot), mood);
     if ((evnt >= 0) &&
         run_event_script(obj_evt, &room.Hotspots[hotspothere].Interactions, evnt,
                          &room.Hotspots[hotspothere].GetEvents(), anyclick_evt, true /* do unhandled event */) < 0)

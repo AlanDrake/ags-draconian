@@ -197,7 +197,8 @@ ScriptOverlay *Speech_GetPortraitOverlay()
 
 CharacterInfo *Speech_GetSpeakingCharacter()
 {
-    return char_speaking >= 0 ? &Game::Current().chars[char_speaking] : nullptr;
+    Game &game = Game::Current();
+    return game.Speech.CharSpeaking >= 0 ? &game.chars[game.Speech.CharSpeaking] : nullptr;
 }
 
 int Speech_GetOverlayZOrder()
@@ -500,22 +501,22 @@ bool play_voice_speech(int char_id, int cue_id)
 
     // See if we have voice lip sync for this line:
     // compare the voice file name to the lip-sync lines' file names
-    curLipLine = -1;
-    curLipLinePhoneme = -1;
+    game.LipSync.CurLine = -1;
+    game.LipSync.CurLinePhoneme = -1;
     // (the sync data names the clips without the voice pack's folder)
     const String clip_name = Path::GetFilename(voice_file);
     int line_id;
-    for (line_id = 0; line_id < numLipLines; line_id++)
+    for (line_id = 0; line_id < game.LipSync.NumLines; line_id++)
     {
-        if (clip_name.CompareNoCase(splipsync[line_id].filename) == 0)
+        if (clip_name.CompareNoCase(game.LipSync.Lines[line_id].filename) == 0)
         {
-            curLipLine = line_id;
+            game.LipSync.CurLine = line_id;
             break;
         }
     }
     // if the game has any voice lip-sync data, disable the text-related lipsync
     // (even if this line has no match)
-    if (numLipLines > 0)
+    if (game.LipSync.NumLines > 0)
         game.options[OPT_LIPSYNCTEXT] = 0;
 
     // change Sierra w/bgrnd to Sierra without background when the game asks for that
@@ -569,7 +570,7 @@ void stop_voice_speech()
     stop_voice_clip_impl();
 
     // Reset lipsync
-    curLipLine = -1;
+    game.LipSync.CurLine = -1;
     // Set back to Sierra w/bgrnd, if play_voice_speech switched it
     if (game.Play.no_textbg_when_voice == 2)
     {

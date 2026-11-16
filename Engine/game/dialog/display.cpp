@@ -190,8 +190,8 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
         // ensure that the window is wide enough to display any top bar text
         int top_bar_width = get_text_width_outlined(topbar->Text.GetCStr(), topbar->Font);
         top_bar_width += (game.Play.top_bar_borderwidth + 2) * 2;
-        if (longestline < top_bar_width)
-            longestline = top_bar_width;
+        if (game.TextLayout.LongestLine < top_bar_width)
+            game.TextLayout.LongestLine = top_bar_width;
     }
 
     const Rect &ui_view = game.Play.GetUIViewport();
@@ -229,11 +229,11 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
 
     // If longest line is shorter than the requested width,
     // and shrink is allowed, then shrink the text window
-    if ((look.AllowShrink != kDisplayTextShrink_None) && (longestline < width - padding_doubled_scaled))
+    if ((look.AllowShrink != kDisplayTextShrink_None) && (game.TextLayout.LongestLine < width - padding_doubled_scaled))
     {
         // shrink the width of the dialog box to fit the text
         const int old_width = width;
-        width = longestline + padding_doubled_scaled;
+        width = game.TextLayout.LongestLine + padding_doubled_scaled;
         // shift the dialog box right to align it, if necessary
         if ((look.AllowShrink == kDisplayTextShrink_Right) && (x >= 0))
             x += (old_width - width);
@@ -602,10 +602,6 @@ bool try_auto_play_speech(const char *text, const char *&replace_text, int char_
     return false;
 }
 
-// TODO: refactor this global variable out; currently it is set at the every get_translation call.
-// Be careful: a number of Say/Display functions expect it to be set beforehand.
-int source_text_length = -1;
-
 int GetTextDisplayLength(const char *text)
 {
     // Skip voice-over token from the length calculation if required
@@ -616,7 +612,7 @@ int GetTextDisplayLength(const char *text)
 
 // Calculates lipsync frame duration (or duration per character) in game loops.
 // NOTE: historical formula was this:
-//   loops_per_character = (((text_len / game.Play.lipsync_speed) + 1) * fps) / text_len;
+//   Game::LipSync.LoopsPerCharacter = (((text_len / game.Play.lipsync_speed) + 1) * fps) / text_len;
 // But because of a precision loss due integer division this resulted in "jumping" values.
 // The new formula uses float division, and coefficent found experimentally to make
 // results match the old formula in certain key text lengths, for backwards compatibility.
@@ -636,12 +632,12 @@ int GetTextDisplayTime(const char *text, int can_be_relative)
     if ((can_be_relative == 1) && (game.Play.bgspeech_game_speed == 1))
         fps = 40; // NOTE: should be a fixed constant here, not game speed value
 
-    if (source_text_length >= 0)
+    if (game.TextLayout.SourceTextLength >= 0)
     {
         // sync to length of original text, to make sure any animations
         // and music sync up correctly
-        text_len = source_text_length;
-        source_text_length = -1;
+        text_len = game.TextLayout.SourceTextLength;
+        game.TextLayout.SourceTextLength = -1;
     }
     else
     {
@@ -655,7 +651,7 @@ int GetTextDisplayTime(const char *text, int can_be_relative)
         quit("!Text speed is zero; unable to display text. Check your game.text_speed settings.");
 
     // Store how many game loops per character of text
-    loops_per_character = CalcLipsyncFrameDuration(text_len, fps);
+    game.LipSync.LoopsPerCharacter = CalcLipsyncFrameDuration(text_len, fps);
 
     int display_time_ms = ((text_len / (game.Play.text_speed + game.Play.text_speed_modifier)) + 1) * 1000;
     if (display_time_ms < game.Play.text_min_display_time_ms)
@@ -1095,11 +1091,11 @@ void DisplayTopBar(int ypos, int text_color, int back_color, const char *title, 
         font = game.Play.normal_font;
     int height = get_font_height_outlined(font) + game.Play.top_bar_borderwidth * 2 + 1;
 
-    // get_translation sets source_text_length, which GetTextDisplayTime below reads for the text: keep the text's.
-    // FIXME: refactor source_text_length and get rid of this hack (see display.h)
-    const int text_source_length = source_text_length;
+    // get_translation sets Game::TextLayout.SourceTextLength, which GetTextDisplayTime below reads for the text: keep the text's.
+    // FIXME: refactor Game::TextLayout.SourceTextLength and get rid of this hack (see display.h)
+    const int text_source_length = game.TextLayout.SourceTextLength;
     const TopBarSettings topbar(get_translation(title), font, height);
-    source_text_length = text_source_length;
+    game.TextLayout.SourceTextLength = text_source_length;
 
     // DisplaySpeech normally sets this up, but since we're not going via it...
     if (game.Play.speech_skip_style & SKIP_AUTOTIMER)

@@ -60,9 +60,9 @@ const int kRoom = 7;
 // - spriteset and game.SpriteInfos: the sprites above
 // - game.Play: the main and UI viewports (320x200), one room viewport and its camera
 // - Room::Current(): the room size (640x400, so the camera can scroll)
-// - game.chars, game.numcharacters, charextra, views: one character standing in room kRoom,
+// - game.chars, game.numcharacters, Game::CharExtras, Game::Views: one character standing in room kRoom,
 //   with a one-frame view
-// - displayed_room: kRoom
+// - Game::DisplayedRoom: kRoom
 class OverlayLayout : public ::testing::Test
 {
 protected:
@@ -85,28 +85,28 @@ protected:
         viewport->LinkCamera(camera);
         camera->LinkToViewport(viewport);
 
-        views.resize(1);
-        views[0].Initialize(1);
-        views[0].loops[0].Initialize(1);
-        views[0].loops[0].frames[0].pic = kCharacterSprite;
+        game.Views.resize(1);
+        game.Views[0].Initialize(1);
+        game.Views[0].loops[0].Initialize(1);
+        game.Views[0].loops[0].frames[0].pic = kCharacterSprite;
         game.chars.resize(1);
         game.numcharacters = 1;
         game.chars[0].view = 0;
         game.chars[0].loop = 0;
         game.chars[0].room = kRoom;
-        charextra.resize(1);
-        displayed_room = kRoom;
+        game.CharExtras.resize(1);
+        game.DisplayedRoom = kRoom;
     }
 
     void TearDown() override
     {
         Game &game = Game::Current();
         Room &room = Room::Current();
-        displayed_room = -10;
-        charextra.clear();
+        game.DisplayedRoom = -10;
+        game.CharExtras.clear();
         game.chars.clear();
         game.numcharacters = 0;
-        views.clear();
+        game.Views.clear();
         game.Play.FreeViewportsAndCameras();
         game.Play.SetUIViewport(Rect());
         game.Play.SetMainViewport(Rect());
@@ -296,9 +296,9 @@ TEST_F(OverlayLayout, SpeechUsesTheCharacterHeightAndZ)
 {
     Game &game = Game::Current();
     // a character's height, when known, is used instead of its sprite's
-    charextra[0].height = 80;
+    game.CharExtras[0].height = 80;
     EXPECT_EQ(Point(80, 45), AutoPosition(100, 150));
-    charextra[0].height = 0;
+    game.CharExtras[0].height = 0;
     // a flying character
     game.chars[0].z = 30;
     EXPECT_EQ(Point(80, 45), AutoPosition(100, 150));

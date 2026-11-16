@@ -122,7 +122,7 @@ static void WarnEventFunctionNotFound(const ScriptFunctionRef &fn_ref, bool in_r
 {
     String message = String::FromFormat("WARNING: event script function '%s' not found", fn_ref.FuncName.GetCStr());
     if (in_room)
-        message.AppendFmt(" (Room %d)", displayed_room);
+        message.AppendFmt(" (Room %d)", Game::Current().DisplayedRoom);
     else
         message.AppendFmt(" (%s)", fn_ref.ModuleName.IsEmpty() ? "Global Script" : fn_ref.ModuleName.GetCStr());
     debug_script_warn("%s", message.GetCStr());
@@ -756,6 +756,7 @@ void FreeAllScripts()
 // a game, dialogs and so on) to the script below it in the stack, or, if none is left, runs them.
 void PostScriptProcessing()
 {
+    Game &game = Game::Current();
     if (cc_has_error())
         quit(cc_get_error().ErrorString);
 
@@ -793,7 +794,7 @@ void PostScriptProcessing()
         sync_audio_playback();
     }
 
-    const int old_room_number = displayed_room;
+    const int old_room_number = game.DisplayedRoom;
 
     // run the queued post-script actions
     for (auto &action : finished_script->PostScriptActions)
@@ -803,7 +804,7 @@ void PostScriptProcessing()
 
         switch (action.Type)
         {
-        case ePSANewRoom: new_room(data1, playerchar); return; // skip any remaining scheduled actions
+        case ePSANewRoom: new_room(data1, game.PlayerChar); return; // skip any remaining scheduled actions
         case ePSARestoreGame:
             AbortAllScripts();
             try_restore_save(data1);
@@ -851,7 +852,7 @@ void PostScriptProcessing()
         }
 
         // if the room changed in a conversation, for example, abort
-        if (old_room_number != displayed_room)
+        if (old_room_number != game.DisplayedRoom)
         {
             return;
         }

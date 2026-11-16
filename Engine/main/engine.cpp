@@ -693,14 +693,14 @@ void engine_init_game_settings()
             precache_view(game.mcurs[i].view);
     }
     // may as well preload the character gfx
-    if (playerchar->view >= 0)
-        precache_view(playerchar->view, 0, Character_GetDiagonalWalking(playerchar) ? 8 : 4);
+    if (game.PlayerChar->view >= 0)
+        precache_view(game.PlayerChar->view, 0, Character_GetDiagonalWalking(game.PlayerChar) ? 8 : 4);
 
     set_our_eip(-6);
 
     for (i = 0; i < MAX_ROOM_OBJECTS; i++)
     {
-        scrObj[i].id = i;
+        game.ScObjects[i].id = i;
     }
 
     for (i = 0; i < game.numcharacters; i++)
@@ -709,19 +709,19 @@ void engine_init_game_settings()
         game.chars[i].idleleft = game.chars[i].idledelay;
         game.chars[i].walkwaitcounter = 0;
         game.chars[i].z = 0;
-        charextra[i].xwas = INVALID_X;
-        charextra[i].zoom = 100;
+        game.CharExtras[i].xwas = INVALID_X;
+        game.CharExtras[i].zoom = 100;
         if (game.chars[i].view >= 0)
         {
             // set initial loop to 0
             game.chars[i].loop = 0;
             // or to 1 if they don't have up/down frames
-            if (views[game.chars[i].view].loops[0].numFrames < 1)
+            if (game.Views[game.chars[i].view].loops[0].numFrames < 1)
                 game.chars[i].loop = 1;
         }
-        charextra[i].process_idle_this_time = 0;
-        charextra[i].slow_move_counter = 0;
-        charextra[i].animwait = 0;
+        game.CharExtras[i].process_idle_this_time = 0;
+        game.CharExtras[i].slow_move_counter = 0;
+        game.CharExtras[i].animwait = 0;
     }
 
     set_our_eip(-5);
@@ -729,7 +729,7 @@ void engine_init_game_settings()
     for (i = 0; i < game.numinvitems; i++)
     {
         if (game.invinfo[i].flags & IFLG_STARTWITH)
-            playerchar->set_item_quantity(i, 1);
+            game.PlayerChar->set_item_quantity(i, 1);
     }
 
     //
@@ -873,7 +873,7 @@ void engine_init_game_settings()
     game.Play.shake_screen_yoff = 0;
     game.Play.face_dir_ratio = game.faceDirectionRatio;
 
-    GUI::DataVersion = loaded_game_file_version;
+    GUI::DataVersion = game.LoadedDataVersion;
     GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
     GUI::Options.ClipControls = game.options[OPT_CLIPGUICONTROLS] != 0;
     // Force GUI metrics recalculation, accomodating for loaded fonts
@@ -886,7 +886,7 @@ void engine_init_game_settings()
         Game_ChangeTranslation(services.Config.Translation.GetCStr());
 
     UpdateInventory();
-    displayed_room = -10;
+    game.DisplayedRoom = -10;
 
     set_our_eip(-4);
     mousey = 100; // stop icon bar popping up
@@ -1186,7 +1186,7 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
     if (all || keys.count("data") > 0)
     {
         data["data"]["gamename"] = game.gamename;
-        data["data"]["version"] = StrUtil::IntToString(loaded_game_file_version);
+        data["data"]["version"] = StrUtil::IntToString(game.LoadedDataVersion);
         data["data"]["compiledwith"] = game.compiled_with;
         data["data"]["basepack"] = services.ResPaths.GamePak.Path;
     }

@@ -20,9 +20,6 @@
 #include "game/dynobj/script_objects.h"
 #include "game/roomdata.h"
 
-// The script objects of the room's hotspots, by hotspot index.
-extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
-
 void Hotspot_SetEnabled(ScriptHotspot *hss, int new_value);
 int Hotspot_GetEnabled(ScriptHotspot *hss);
 int Hotspot_GetID(ScriptHotspot *hss);

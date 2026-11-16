@@ -15,6 +15,7 @@
 
 #include "game/character_info.h"
 #include "game/dynobj/script_objects.h"
+#include "game/game_context.h"
 #include "game/game_init.h"
 #include "game/world/inventory_item.h"
 #include "script/dynobj/dynobj_manager.h"
@@ -43,16 +44,17 @@ void CCInventory::Serialize(const void *address, Stream *out)
 
 void CCInventory::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
+    Game &game = Game::Current();
     // NOTE: older versions apparently had MAX_INV script objects registered in managed memory.
     // TODO: share this algorithm with all managed object unserialization (make template function?).
     int num = in->ReadInt32();
-    if (num >= 0 && static_cast<uint32_t>(num) < scrInv.size())
+    if (num >= 0 && static_cast<uint32_t>(num) < game.ScInvItems.size())
     {
-        StaticInventoryArray[num] = ccRegisterUnserializedPersistentObject(index, &scrInv[num], this);
+        StaticInventoryArray[num] = ccRegisterUnserializedPersistentObject(index, &game.ScInvItems[num], this);
     }
     else
     {
-        // WARNING: we must not reallocate StaticInventoryArray or scrInv, because that will break script array
+        // WARNING: we must not reallocate StaticInventoryArray or Game::ScInvItems, because that will break script array
         // and script objects registration respectively.
         ccRegisterUnserializedPersistentObject(index, &_dummy, this);
     }
