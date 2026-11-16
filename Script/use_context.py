@@ -7,21 +7,38 @@ docs/refactor/RUNTIME-SPLIT.md 2): `usetup.Translation` becomes `EngineServices:
     python Script/use_context.py --context services              # rewrite the files (clang-format them after)
     python Script/use_context.py --context services --check      # exit 1 if a mapped global is still named
     python Script/use_context.py --self-test
-    options: --repo <dir>, --files <path>... (default: the engine's sources and headers, third-party code left out)
+    options: --repo <dir> (a git checkout or a plain copy of the tree), --files <path>... (default: the engine's
+    sources and headers, third-party code left out), --names <global>... (convert only these names of the table)
 
 The rule (one per use, counted per function body, all the mapped names together):
   * A function that names the globals once: the direct form, `EngineServices::Current().Platform->YieldCPU()`.
   * A function that names them more than once: `EngineServices &services = EngineServices::Current();` as the
-    first statement of its body, then `services.Config...`.
+    first statement of its body, then `services.Config...`. The locals of several contexts open the body in the
+    order of CONTEXTS (services, game, room), whatever the order of the runs.
+  * A global mapped to '' is the context itself: `thisroom.Width` becomes `Room::Current().Width` or
+    `room.Width`; `game.chars` stays `game.chars` through the local (only the declaration is added).
   * A use outside a function body (a namespace-scope or class-scope initializer, a constructor's initializer
     list, a default argument, a lambda at namespace scope): the direct form; listed in the output, since such an
     initializer runs during the dynamic initialization of the program.
-  * A lambda inside a function: the function's local if the lambda captures by reference by default (`[&]`),
-    the direct form otherwise (no capture is added). A class defined inside a function: the direct form.
+  * A lambda inside a function: the function's local if the lambda captures by reference by default (`[&]`) or
+    captures the local by reference (`[&services]`), the direct form otherwise (no capture is added). A class
+    defined inside a function: the direct form.
+  * The local must be used in every build: if every use that could go through it is under an `#if` inside the
+    body or inside assert(), the function takes the direct form.
   * Not a use: a member access (`.name`, `->name`, `X::name`), a qualifier (`name::`), a member initializer
     (`: name(...)`), a declaration of a variable or parameter that has the name (the function is then left
-    alone for that name and reported), and anything in a comment, a string or a preprocessor line.
-  * A function that already names the local (`services`) is left alone and reported: choose by hand.
+    alone for that name and reported), a class member of the name in a member function of the class, and
+    anything in a comment, a string or a preprocessor line. `::name` is always the global.
+  * The local's name is taken in a function that declares a variable or parameter of that name, in a member
+    function of a class that has a member of that name, and, when the local's name is not a mapped global's
+    (`services`, `room`), in a function that names it at all: every use there takes the direct form, reported
+    as "decided by the rule: the local's name is taken". A parameter or variable of the local's name whose type
+    is `X &` or `const X &`, X the context's type, is the context: the uses go through it, nothing is added.
+  * Incremental runs: a body that holds the declaration (`Game &game = Game::Current();`, recognized by its
+    tokens) takes the local for the new uses; a body without it whose direct forms (`Game::Current()...`, from an
+    earlier run) and new uses make two or more gets the declaration, and its direct forms are rewritten to the
+    local, by the same lambda and #if rules. So a run per batch of names gives what one run over all the names
+    gives. Uses above a declaration that is not the body's first statement take the direct form (reported).
   * A changed file gets `#include "<header>"` in its main include block (clang-format sorts it).
 
 The tokenizer skips comments, string, character and raw string literals and preprocessor lines; the brace
@@ -69,6 +86,39 @@ CONTEXTS = {
             'proper_exit': 'ProperExit',
             'logScriptRTTI': 'LogScriptRTTI',
             'logScriptTOC': 'LogScriptTOC',
+        },
+    },
+    # 5.1 step 3: one play-through (the global `game` is the context itself: `class Game : public GameDef`)
+    'game': {
+        'type': 'Game',
+        'accessor': 'Game::Current()',
+        'local': 'game',
+        'header': 'game/game.h',
+        'own_files': (),
+        'names': {
+            'game': '',
+            'play': 'Play',
+        },
+    },
+    # 5.1 step 3: the loaded room (`class Room : public AGS::Common::RoomStruct`)
+    'room': {
+        'type': 'Room',
+        'accessor': 'Room::Current()',
+        'local': 'room',
+        'header': 'game/world/room.h',
+        'own_files': (),
+        'names': {
+            'thisroom': '',
+            'croom': 'State',
+            'troom': 'TempState',
+            'objs': 'Objs',
+            'roomscript': 'Script',
+            'bg_just_changed': 'BgJustChanged',
+            'walkareabackup': 'WalkAreaBackup',
+            'walkable_areas_temp': 'WalkableAreasTemp',
+            'noWalkBehindsAtAll': 'NoWalkBehindsAtAll',
+            'walkBehindsCachedForBgNum': 'WalkBehindsCachedForBgNum',
+            'walk_behind_baselines_changed': 'WalkBehindBaselinesChanged',
         },
     },
 }
@@ -191,8 +241,14 @@ class Scope:
         self.kind = kind
         self.open_tok = open_tok
         self.func = func  # the Function this block belongs to (body, and blocks and lambdas inside it)
-        self.by_ref = by_ref  # a lambda that captures by reference by default
+        self.by_ref = by_ref  # a lambda that captures by reference by default, or captures the local by reference
         self.name = None  # a class's name
+
+
+# A use in a function body: the token index of the name (of the accessor's first token for an existing direct
+# form), whether it may go through the local (lambda rule), whether it is written `::name`, whether it is an
+# existing direct form `X::Current()`, and the text span the replacement covers.
+Use = collections.namedtuple('Use', 'i allowed global_q existing start end')
 
 
 class Function:
@@ -200,7 +256,7 @@ class Function:
         self.name = name
         self.open_tok = open_tok  # index of the body's `{`
         self.sig = sig  # token indexes of the declaration before the body
-        self.uses = []  # (token index, through_local_allowed, global-qualified)
+        self.uses = []  # Use
         self.shadowed = set()  # mapped names declared as variables or parameters here
         self.names = set()  # every identifier named in it (signature and body)
         self.anomaly = None
@@ -208,6 +264,10 @@ class Function:
         self.branch_of = {}  # use's token index -> the #if branches it is in
         self.in_assert = set()  # uses inside assert(), which a release build does not compile
         self.cls = None  # the class it is a member function of, if known
+        self.ctx_param = False  # a parameter `X &local` or `const X &local`: the context itself
+        self.ctx_decls = []  # (token index, at the body's top level as a statement) variables `X &local = ...`
+        self.local_declared = False  # a parameter or variable named like the local (not a mapped name)
+        self.local_named = False  # the local's name is named (not as a member, not qualified)
 
 
 class Analysis:
@@ -217,6 +277,28 @@ class Analysis:
         self.scope_decls = []  # (token index, scope kind) declarations of a mapped name outside function bodies
         self.anomalies = []  # text
         self.class_members = collections.defaultdict(set)  # class name -> mapped names declared as its members
+        self.ctx_params = []  # token indexes of `X &local` outside bodies (parameters, until the body is met)
+        self.local_decls = []  # token indexes of other declarations of the local's name outside bodies
+
+
+def accessor_tokens(ctx):
+    return [t.text for t in tokenize(ctx['accessor'])]
+
+
+def context_typed(toks, i, ctx_type):
+    """Whether the declaration of the identifier at i has the type `X &` or `const X &`, X the context's type."""
+    return i >= 2 and toks[i - 1].text == '&' and toks[i - 2].kind == 'id' and toks[i - 2].text == ctx_type
+
+
+def lambda_allows(scopes):
+    """Whether a use in the innermost of scopes may go through the function's local: every lambda between it and
+    the body captures by reference by default or captures the local by reference, and no local class."""
+    for s in reversed(scopes):
+        if s.kind == 'body':
+            break
+        if (s.kind == 'lambda' and not s.by_ref) or s.kind == 'localclass':
+            return False
+    return True
 
 
 def statement_head(toks, stmt):
@@ -302,9 +384,19 @@ def classify_scope_brace(toks, stmt):
     return 'body', name
 
 
-def capture_by_ref(toks, open_bracket, close_bracket):
+def capture_by_ref(toks, open_bracket, close_bracket, local=None):
+    """Whether a lambda's capture is by reference by default (`[&]`, `[&, x]`) or names `&local`."""
     inner = [toks[i].text for i in range(open_bracket + 1, close_bracket)]
-    return bool(inner) and inner[0] == '&' and (len(inner) == 1 or inner[1] == ',')
+    if bool(inner) and inner[0] == '&' and (len(inner) == 1 or inner[1] == ','):
+        return True
+    items, item = [], []
+    for x in inner + [',']:
+        if x == ',':
+            items.append(item)
+            item = []
+        else:
+            item.append(x)
+    return local is not None and ['&', local] in items
 
 
 def find_lambda_capture(toks, brace, match):
@@ -361,8 +453,12 @@ def is_declaration(toks, i):
     return False
 
 
-def analyse(text, names, local):
-    """The functions and the uses of the mapped names in a file."""
+def analyse(text, ctx):
+    """The functions and the uses of the mapped names in a file, the existing direct forms of the accessor, and
+    the declarations and namings of the local's name."""
+    names, local, ctx_type = ctx['names'], ctx['local'], ctx['type']
+    acc = accessor_tokens(ctx)
+    decl_head = [ctx_type, '&', local, '=']
     toks = tokenize(text)
     an = Analysis()
     match = {}  # index of ) or ] -> index of its ( or [
@@ -422,7 +518,9 @@ def analyse(text, names, local):
             if func is not None:
                 cap = find_lambda_capture(toks, i, match)
                 if cap:
-                    scopes.append(Scope('lambda', i, func, capture_by_ref(toks, *cap)))
+                    scopes.append(Scope('lambda', i, func, capture_by_ref(toks, cap[0], cap[1], local)))
+                    # a name in the capture list is not a use (`[&game]` captures the local)
+                    func.uses = [u for u in func.uses if not cap[0] < u.i < cap[1]]
                 else:
                     words = [toks[k].text for k in stmt]
                     top = [x for x in words[:3]]
@@ -451,6 +549,13 @@ def analyse(text, names, local):
                 # and its uses in the initializer list are of the parameter
                 for u in [u for u in an.scope_uses if u[0] in in_sig and toks[u[0]].text in f.shadowed]:
                     an.scope_uses.remove(u)
+                # a parameter of the local's name: the context itself (`Game &game`) or something else
+                for k in [k for k in an.ctx_params if k in in_sig]:
+                    f.ctx_param = True
+                    an.ctx_params.remove(k)
+                for k in [k for k in an.local_decls if k in in_sig]:
+                    f.local_declared = True
+                    an.local_decls.remove(k)
                 # the class the function is a member of: `X::f(` or a definition inside the class
                 if '::' in name:
                     f.cls = name.rsplit('::', 1)[0].split('::')[-1]
@@ -497,12 +602,28 @@ def analyse(text, names, local):
             continue
         if func is not None:
             func.names.add(t.text)
-        if t.text not in names:
+        if t.text not in names and t.text != local and t.text != acc[0]:
             continue
         # what the name is here
         prev = toks[i - 1] if i > 0 else None
         nxt = toks[i + 1] if i + 1 < len(toks) else None
         if prev is not None and prev.text in ('.', '->', '.*', '->*'):
+            continue
+        # the accessor: an existing direct form (an earlier run's), or the initializer of the local's declaration
+        if t.text == acc[0] and [x.text for x in toks[i:i + len(acc)]] == acc:
+            if func is not None and [x.text for x in toks[max(i - 4, 0):i]] != decl_head:
+                start = i
+                while start >= 1 and toks[start - 1].text == '::':
+                    if start >= 2 and toks[start - 2].kind == 'id':
+                        start -= 2
+                    else:
+                        start -= 1
+                        break
+                func.uses.append(Use(i, lambda_allows(scopes), False, True, toks[start].start,
+                                     toks[i + len(acc) - 1].end))
+                func.branch_of[i] = tuple(branch)
+                if any(k > 0 and toks[k - 1].text == 'assert' for k in parens):
+                    func.in_assert.add(i)
             continue
         global_q = False
         if prev is not None and prev.text == '::':
@@ -512,6 +633,31 @@ def analyse(text, names, local):
             global_q = True
         if nxt is not None and nxt.text == '::':
             continue
+        # the local's name: a declaration of the context (`Game &game`), another declaration, or a naming
+        if t.text == local and not global_q:
+            if is_declaration(toks, i):
+                if context_typed(toks, i, ctx_type):
+                    if func is not None:
+                        head = [toks[k].text for k in stmt[:-1]]
+                        func.ctx_decls.append((i, inner.kind == 'body' and head in ([ctx_type, '&'],
+                                                                                    ['const', ctx_type, '&'])))
+                    else:
+                        an.ctx_params.append(i)
+                    continue
+                if local not in names:
+                    if func is not None:
+                        func.local_declared = True
+                    else:
+                        an.local_decls.append(i)
+                        if inner is not None and inner.kind == 'class' and inner.name:
+                            an.class_members[inner.name].add(local)
+                    continue
+            elif local not in names:
+                if func is not None:
+                    func.local_named = True
+                continue
+        if t.text not in names:
+            continue
         # the second declarator of `T a = 1, name;` outside a function
         later_declarator = func is None and prev is not None and prev.text == ',' and nxt is not None and \
             nxt.text in (';', '=', ',', '[') and not any(toks[k].text in ('(', '{') for k in stmt)
@@ -519,7 +665,8 @@ def analyse(text, names, local):
             if func is not None:
                 func.shadowed.add(t.text)
             else:
-                an.scope_decls.append((i, inner.kind if inner else 'file'))
+                # inside parentheses: a parameter (of a prototype, or of the definition whose body follows)
+                an.scope_decls.append((i, 'param' if parens else inner.kind if inner else 'file'))
                 if inner is not None and inner.kind == 'class' and inner.name:
                     an.class_members[inner.name].add(t.text)
             continue
@@ -540,13 +687,8 @@ def analyse(text, names, local):
             an.scope_uses.append((i, why, global_q))
             continue
         # through the local only if every lambda between the use and the body captures by reference
-        allowed = True
-        for s in reversed(scopes):
-            if s.kind == 'body':
-                break
-            if (s.kind == 'lambda' and not s.by_ref) or s.kind == 'localclass':
-                allowed = False
-        func.uses.append((i, allowed, global_q))
+        func.uses.append(Use(i, lambda_allows(scopes), global_q, False, toks[i - 1].start if global_q else t.start,
+                             t.end))
         func.branch_of[i] = tuple(branch)
         if any(k > 0 and toks[k - 1].text == 'assert' for k in parens):
             func.in_assert.add(i)
@@ -574,15 +716,19 @@ class Report:
         self.scope_decls = []  # (file, line, name, scope kind)
         self.anomalies = []
         self.conditional = []  # (file, line, function, uses): every use under an #if, so the direct form
+        self.taken = []  # (file, line, function, why, uses): the local's name is taken, so the direct form
+        self.extended = []  # (file, line, function, uses): the body already had the local, new uses go through it
+        self.rewritten = []  # (file, line, function, n): existing direct forms rewritten to the local
         self.changed = {}
 
 
 def class_members(repo, files, ctx):
-    """Class name -> the mapped names that are members of it, from the class definitions in the files (a member
-    function of such a class means its member by the bare name; base classes are not followed)."""
+    """Class name -> the mapped names (and the local's name) that are members of it, from the class definitions
+    in the files (a member function of such a class means its member by the bare name; base classes are not
+    followed)."""
     out = collections.defaultdict(set)
     for f in files:
-        for cls, ms in analyse(read(repo, f), ctx['names'], ctx['local']).class_members.items():
+        for cls, ms in analyse(read(repo, f), ctx).class_members.items():
             out[cls] |= ms
     return out
 
@@ -591,14 +737,52 @@ def member_shadows(an, f, members):
     return (members or {}).get(f.cls, set()) | an.class_members.get(f.cls, set()) if f.cls else set()
 
 
-def rewrite(path, text, ctx, rep, verbose, members=None):
+def body_context(f):
+    """(token index of the local's declaration at the top level of the body or None, whether a declaration of the
+    context's type with the local's name is somewhere else in the body: an inner block, a lambda's parameters)."""
+    top = [k for k, at_top in f.ctx_decls if at_top]
+    return (top[0] if top else None), any(not at_top for _, at_top in f.ctx_decls)
+
+
+def taken_reason(f, local, names, member_shadowed):
+    """Why the local's name is taken in the function (so no local can be declared), or None."""
+    if local in f.shadowed or f.local_declared:
+        return 'declares a variable or parameter named `%s`' % local
+    if local in member_shadowed:
+        return 'a member of %s is named `%s`' % (f.cls, local)
+    if local not in names and f.local_named:
+        return 'names `%s`' % local
+    return None
+
+
+def context_order(registry, ctx):
+    return next((k for k, c in enumerate(registry.values()) if c['type'] == ctx['type']), len(registry))
+
+
+def leading_context_decls(toks, open_tok, registry):
+    """The declarations of context locals that open a body, in order: [(order in the registry, index of the
+    local's token, index of the `;`)]."""
+    pats = [(k, [c['type'], '&', c['local'], '='] + accessor_tokens(c) + [';'])
+            for k, c in enumerate(registry.values())]
+    out = []
+    j = open_tok + 1
+    while True:
+        m = next(((k, p) for k, p in pats if [t.text for t in toks[j:j + len(p)]] == p), None)
+        if m is None:
+            return out
+        out.append((m[0], j + 2, j + len(m[1]) - 1))
+        j += len(m[1])
+
+
+def rewrite(path, text, ctx, rep, verbose, members=None, registry=None):
+    registry = CONTEXTS if registry is None else registry
     names = ctx['names']
     local = ctx['local']
-    an = analyse(text, names, local)
+    an = analyse(text, ctx)
     toks = an.toks
     for f in an.functions:
         ms = member_shadows(an, f, members)
-        if ms & {toks[u[0]].text for u in f.uses}:
+        if ms & {toks[u.i].text for u in f.uses if not u.existing and not u.global_q}:
             rep.manual.append((path, line_of(text, toks[f.open_tok].start), f.name,
                                'a member of %s has the name %s: not converted there' % (f.cls, ', '.join(sorted(ms)))))
         f.member_shadowed = ms
@@ -609,8 +793,8 @@ def rewrite(path, text, ctx, rep, verbose, members=None):
         rep.scope_decls.append((path, line_of(text, toks[i].start), toks[i].text, kind))
 
     def replacement(name, through_local):
-        member = names[name]
-        return ('%s.%s' % (local, member)) if through_local else ('%s.%s' % (ctx['accessor'], member))
+        base = local if through_local else ctx['accessor']
+        return '%s.%s' % (base, names[name]) if names[name] else base
 
     for i, why, global_q in an.scope_uses:
         t = toks[i]
@@ -620,11 +804,14 @@ def rewrite(path, text, ctx, rep, verbose, members=None):
         rep.per_name[t.text]['direct'] += 1
         rep.files_per_name[t.text].add(path)
 
+    order = context_order(registry, ctx)
     for f in an.functions:
         if not f.uses and not f.shadowed:
             continue
         line = line_of(text, toks[f.open_tok].start)
-        uses = [u for u in f.uses if toks[u[0]].text not in f.shadowed | f.member_shadowed]
+        hidden = f.shadowed | f.member_shadowed
+        # a name declared here or a member is not the global, unless written `::name`
+        uses = [u for u in f.uses if u.existing or u.global_q or toks[u.i].text not in hidden]
         if f.shadowed:
             rep.manual.append((path, line, f.name, 'declares a variable or parameter named %s: those names are not '
                                'converted in this function' % ', '.join(sorted(f.shadowed))))
@@ -633,38 +820,84 @@ def rewrite(path, text, ctx, rep, verbose, members=None):
         if f.anomaly:
             rep.manual.append((path, line, f.name, f.anomaly + ': left alone'))
             continue
-        through = [u for u in uses if u[1]]
-        use_local = len(through) >= 2
-        # the local must be used in every build: by a use outside the #if blocks of the body and outside assert()
-        if use_local and not any(f.branch_of[u[0]] == f.branch and u[0] not in f.in_assert for u in through):
-            use_local = False
-            rep.conditional.append((path, line, f.name, len(through)))
-        if use_local and local in f.names:
-            rep.manual.append((path, line, f.name, 'already names `%s`: left alone' % local))
+        decl_at, inner_decl = body_context(f)
+        if inner_decl:
+            rep.manual.append((path, line, f.name, 'declares `%s &%s` in an inner block or a lambda\'s parameters: '
+                               'left alone' % (ctx['type'], local)))
             continue
-        for i, allowed, global_q in uses:
-            t = toks[i]
-            via = use_local and allowed
-            start = toks[i - 1].start if global_q else t.start
-            edits.append((start, t.end, replacement(t.text, via)))
-            rep.per_name[t.text]['local' if via else 'direct'] += 1
-            rep.files_per_name[t.text].add(path)
-        if use_local:
+        has_local = f.ctx_param or decl_at is not None
+        leading = leading_context_decls(toks, f.open_tok, registry)
+        taken = None if has_local else taken_reason(f, local, names, f.member_shadowed)
+        through = [u for u in uses if u.allowed]
+        add_decl = False
+        if has_local:
+            use_local = True
+            if decl_at is not None and decl_at not in [d[1] for d in leading]:
+                above = [u for u in uses if u.i < decl_at]
+                rep.manual.append((path, line, f.name, 'the declaration of `%s` is not the first statement: %d use(s) '
+                                   'above it take the direct form' % (local, len(above))))
+        elif taken:
+            use_local = False
+        else:
+            use_local = len(through) >= 2
+            # the local must be used in every build: by a use outside the #if blocks of the body and outside
+            # assert()
+            if use_local and not any(f.branch_of[u.i] == f.branch and u.i not in f.in_assert for u in through):
+                use_local = False
+                rep.conditional.append((path, line, f.name, len(through)))
+            add_decl = use_local
+        before = len(edits)
+        converted = 0  # uses of the globals converted by this run
+        rewritten = 0  # existing direct forms rewritten to the local
+        notes = []
+        for u in uses:
+            via = use_local and u.allowed and (decl_at is None or u.i > decl_at)
+            if u.existing:
+                if via:
+                    edits.append((u.start, u.end, local))
+                    rewritten += 1
+                    notes.append((u.i, 'direct form -> local'))
+                continue
+            name = toks[u.i].text
+            new = replacement(name, via)
+            if text[u.start:u.end] != new:
+                edits.append((u.start, u.end, new))
+            # `game.x` after the body's own `Game &game` is the local already
+            if has_local and via and name == local and not u.global_q:
+                continue
+            converted += 1
+            rep.per_name[name]['local' if via else 'direct'] += 1
+            rep.files_per_name[name].add(path)
+            notes.append((u.i, name + ('' if via or not use_local else ' (direct: in a lambda or local class, or '
+                                                                         'above the declaration)')))
+        if add_decl:
+            # after the locals of the contexts before this one that open the body, before the later ones'
+            at = f.open_tok
+            for k, _, semi in leading:
+                if k >= order:
+                    break
+                at = semi
             brace = toks[f.open_tok]
             ls = text.rfind('\n', 0, brace.start) + 1
             indent = re.match(r'[ \t]*', text[ls:]).group(0) + '    '
             eol = '\r\n' if '\r\n' in text else '\n'
-            edits.append((brace.end, brace.end, '%s%s%s &%s = %s;' % (eol, indent, ctx['type'], local,
-                                                                       ctx['accessor'])))
+            edits.append((toks[at].end, toks[at].end, '%s%s%s &%s = %s;' % (eol, indent, ctx['type'], local,
+                                                                             ctx['accessor'])))
             rep.locals.append((path, line, f.name, len(through)))
-        else:
-            rep.direct_funcs.append((path, line, f.name, len(uses)))
-        if verbose:
-            print('%s:%d %s: %d use(s), %s' % (path, line, f.name, len(uses),
-                                               'local `%s`' % local if use_local else 'direct'))
-            for i, allowed, _ in uses:
-                print('    %d: %s%s' % (line_of(text, toks[i].start), toks[i].text,
-                                        '' if allowed or not use_local else ' (direct: in a lambda or local class)'))
+        elif has_local and converted:
+            rep.extended.append((path, line, f.name, converted))
+        elif not use_local and converted:
+            rep.direct_funcs.append((path, line, f.name, converted))
+        if taken and len(through) >= 2 and converted:
+            rep.taken.append((path, line, f.name, taken, len(uses)))
+        if rewritten:
+            rep.rewritten.append((path, line, f.name, rewritten))
+        if verbose and (len(edits) > before or converted):
+            how = 'local `%s`%s' % (local, ' (declared)' if add_decl else ' (there already)') if use_local else \
+                'direct' + (' (the local\'s name is taken: %s)' % taken if taken else '')
+            print('%s:%d %s: %d use(s), %s' % (path, line, f.name, len(uses), how))
+            for i, note in notes:
+                print('    %d: %s' % (line_of(text, toks[i].start), note))
     if verbose:
         for i, why, _ in an.scope_uses:
             print('%s:%d (outside a function: %s): %s' % (path, line_of(text, toks[i].start), why, toks[i].text))
@@ -693,14 +926,24 @@ def add_include(text, header):
 
 
 def check_file(path, text, ctx, rep, members=None):
-    """Every remaining use or namespace-scope declaration of a mapped name."""
-    an = analyse(text, ctx['names'], ctx['local'])
+    """Every remaining use or namespace-scope declaration of a mapped name. A use of a mapped name that is the
+    local's name (`game`) is the local, not left, after the body's declaration of it or in a function that has
+    a parameter of the context's type with that name."""
+    an = analyse(text, ctx)
     toks = an.toks
+    local = ctx['local']
     found = []
     for f in an.functions:
-        for i, _, _ in f.uses:
-            if toks[i].text not in f.shadowed | member_shadows(an, f, members):
-                found.append((i, 'use in %s' % f.name))
+        hidden = f.shadowed | member_shadows(an, f, members)
+        decl_at, _ = body_context(f)
+        for u in f.uses:
+            name = toks[u.i].text
+            if u.existing or (name in hidden and not u.global_q):
+                continue
+            if name == local and not u.global_q and u.allowed and \
+                    (f.ctx_param or (decl_at is not None and u.i > decl_at)):
+                continue
+            found.append((u.i, 'use in %s' % f.name))
     for i, why, _ in an.scope_uses:
         found.append((i, 'use outside a function (%s)' % why))
     for i, kind in an.scope_decls:
@@ -710,8 +953,15 @@ def check_file(path, text, ctx, rep, members=None):
 
 
 def engine_files(repo, ctx):
-    out = subprocess.run(['git', '-C', repo, 'ls-files', '--cached', '--others', '--exclude-standard', '--',
-                          'Engine'], capture_output=True, text=True, check=True).stdout.split('\n')
+    """The engine's sources and headers; in a directory that is not a git checkout (a copy of the tree to try
+    the tool on), every such file under Engine/."""
+    git = subprocess.run(['git', '-C', repo, 'rev-parse', '--show-toplevel'], capture_output=True, text=True)
+    if git.returncode == 0 and os.path.samefile(git.stdout.strip(), repo):
+        out = subprocess.run(['git', '-C', repo, 'ls-files', '--cached', '--others', '--exclude-standard', '--',
+                              'Engine'], capture_output=True, text=True, check=True).stdout.split('\n')
+    else:
+        out = [os.path.relpath(os.path.join(d, n), repo).replace(os.sep, '/')
+               for d, _, ns in os.walk(os.path.join(repo, 'Engine')) for n in ns]
     own = set(ctx.get('own_files', ()))
     return sorted({f for f in out if f.endswith(SOURCES) and not THIRD_PARTY.search(f) and f not in own and
                    os.path.exists(os.path.join(repo, f))})
@@ -786,11 +1036,131 @@ void q() { int services = 0; g = h; }
     out, rep = run(src)
     assert ': _a(a), _b{S::Current().G}' in out and 'use(S::Current().H);' in out, out
     assert any('#if' in m[3] for m in rep.manual), rep.manual
+    # a function that declares a variable of the local's name: the direct form (rule "the local's name is taken")
     ctx['local'] = 'services'
     out, rep = run('void q() { int services = 0; g = h; }\n')
-    assert out is None and 'already names' in rep.manual[0][3], rep.manual
+    assert 'void q() { int services = 0; S::Current().G = S::Current().H; }' in out, out
+    assert rep.taken and 'declares' in rep.taken[0][3], rep.taken
+
+    self_test_contexts()
     print('self-test passed')
     return 0
+
+
+def self_test_contexts():
+    """The cases of 5.1 step 3: several contexts, a global that is the context, the local's name taken, runs in
+    several batches."""
+    game, room, services = CONTEXTS['game'], CONTEXTS['room'], CONTEXTS['services']
+
+    def run(src, ctx, members=None):
+        if '#include' not in src:
+            src = '#include "a.h"\n' + src  # where the context's include goes
+        rep = Report()
+        out = rewrite('t.cpp', src, ctx, rep, False, members)
+        return (src if out is None else out), rep
+
+    def runs(src, *ctxs):
+        for c in ctxs:
+            src = run(src, c)[0]
+        return src
+
+    def body(out, name):
+        """The text of a function from its name to the next function or the end."""
+        s = out.index(name)
+        e = out.find('\nvoid ', s + 1)
+        return out[s:] if e == -1 else out[s:e]
+
+    # 1. two contexts, two locals, in the order services, game, room whatever the order of the runs
+    src = '#include "a.h"\nvoid f()\n{\n    usetup.x = play.y;\n    play.z = usetup.w;\n    thisroom.a = croom->b;\n}\n'
+    want = ('void f()\n{\n    EngineServices &services = EngineServices::Current();\n    Game &game = Game::Current();\n'
+            '    Room &room = Room::Current();\n    services.Config.x = game.Play.y;\n    game.Play.z = services.Config.w;\n'
+            '    room.a = room.State->b;\n}\n')
+    for order in ((services, game, room), (room, game, services), (game, room, services), (room, services, game)):
+        out = runs(src, *order)
+        assert body(out, 'void f()') == want, (out, [c['type'] for c in order])
+        assert '#include "game/game.h"' in out and '#include "game/world/room.h"' in out, out
+
+    # 2. a global that is the context itself
+    src = ('void a() { foo(thisroom); }\nvoid b()\n{\n    int w = thisroom.Width;\n    bar(&thisroom);\n}\n'
+           'void c() { x = game.chars[0]; }\nvoid d()\n{\n    x = game.chars[0];\n    y = game.numviews;\n}\n')
+    out = run(src, room)[0]
+    assert 'void a() { foo(Room::Current()); }' in out, out
+    assert 'void b()\n{\n    Room &room = Room::Current();\n    int w = room.Width;\n    bar(&room);\n}' in out, out
+    out = run(src, game)[0]
+    assert 'void c() { x = Game::Current().chars[0]; }' in out, out
+    assert 'void d()\n{\n    Game &game = Game::Current();\n    x = game.chars[0];\n    y = game.numviews;\n}' in out, out
+
+    # 3. the local's name taken: a parameter `int room`, a definition passed as `game`, a member, a naming
+    src = ('void e(int room)\n{\n    thisroom.Width = room;\n    thisroom.Height = 1;\n}\n'
+           'void m(RoomStatus *rs)\n{\n    foo(x.room, A::room);\n    thisroom.a = 1;\n    croom->b = 2;\n}\n'
+           'void n()\n{\n    for (auto &room : rooms)\n        thisroom.a = room;\n    croom->b = 2;\n}\n')
+    out, rep = run(src, room)
+    assert 'void e(int room)\n{\n    Room::Current().Width = room;\n    Room::Current().Height = 1;\n}' in out, out
+    assert 'void m(RoomStatus *rs)\n{\n    Room &room = Room::Current();\n    foo(x.room, A::room);\n    room.a' in out, out
+    assert 'Room::Current().a = room;\n    Room::Current().State->b = 2;' in out, out
+    assert [t[2] for t in rep.taken] == ['e', 'n'], rep.taken
+    src = ('void s(const GameDef &game)\n{\n    play.a = game.x;\n    play.b = 1;\n}\n'
+           'void s2(GameDef &game) { ::game.x = game.y; ::game.z = 1; }\n'
+           'void p(Game &game)\n{\n    play.a = 1;\n    game.b = 2;\n}\n')
+    out, rep = run(src, game)
+    assert 'void s(const GameDef &game)\n{\n    Game::Current().Play.a = game.x;\n    Game::Current().Play.b = 1;' in out, out
+    assert 'void s2(GameDef &game) { Game::Current().x = game.y; Game::Current().z = 1; }' in out, out
+    assert 'void p(Game &game)\n{\n    game.Play.a = 1;\n    game.b = 2;\n}' in out, out
+    assert [t[2] for t in rep.taken] == ['s', 's2'], rep.taken
+    # a member function of a class that has a member `game` or `play`
+    src = ('struct K\n{\n    GameDef *game;\n    void m();\n};\nvoid K::m()\n{\n    play.a = 1;\n    play.b = 2;\n}\n'
+           'struct P\n{\n    int play;\n    void n();\n};\nvoid P::n()\n{\n    play = game.x;\n    game.y = play;\n}\n')
+    out, rep = run(src, game)
+    assert 'void K::m()\n{\n    Game::Current().Play.a = 1;\n    Game::Current().Play.b = 2;\n}' in out, out
+    assert 'void P::n()\n{\n    Game &game = Game::Current();\n    play = game.x;\n    game.y = play;\n}' in out, out
+    assert [t[2] for t in rep.taken] == ['K::m'], rep.taken
+
+    # 4. incremental runs: `play` first, then the whole table, equals one run over the whole table
+    play_only = dict(game, names={'play': 'Play'})
+    src = ('#include "a.h"\nvoid i1()\n{\n    play.a = game.b;\n    play.c = 2;\n}\nvoid i2() { play.a = 1; }\n'
+           'void i3()\n{\n    play.a = 1;\n    x = game.y;\n}\nvoid i4()\n{\n    play.a = 1;\n    play.b = 2;\n}\n'
+           'void i5()\n{\n#if A\n    play.a = 1;\n#endif\n    x = game.y;\n}\n'
+           'void i6()\n{\n    auto f = [=]() { play.a = 1; };\n    x = game.y;\n    z = game.w;\n}\n')
+    once = run(src, game)[0]
+    first = run(src, play_only)[0]
+    assert 'Game::Current().Play.a = game.b;' in first and 'game.Play.a = 1;\n    game.Play.b = 2;' in first, first
+    twice, rep = run(first, game)
+    assert twice == once, (once, twice)
+    assert sum(r[3] for r in rep.rewritten) == 4, rep.rewritten
+    assert run(once, game)[0] == once, 'not idempotent'
+    assert 'void i5()\n{\n    Game &game = Game::Current();\n#if A\n    game.Play.a = 1;' in once, once
+    assert '[=]() { Game::Current().Play.a = 1; }' in once, once
+    # the same code path for services
+    src = 'void sv()\n{\n    EngineServices::Current().Config.a = 1;\n    b = EngineServices::Current().Platform;\n}\n'
+    out = run(src, services)[0]
+    assert body(out, 'void sv()') == ('void sv()\n{\n    EngineServices &services = EngineServices::Current();\n'
+                   '    services.Config.a = 1;\n    b = services.Platform;\n}\n'), out
+    assert run(out, services)[0] == out
+
+    # lambdas in a function that has the declaration; a declaration that is not the first statement
+    src = ('void l()\n{\n    Game &game = Game::Current();\n    auto a = [&]() { play.x = 1; };\n'
+           '    auto b = [=]() { play.y = 2; };\n    auto c = [&game]() { play.z = game.q; };\n    game.w = 0;\n}\n'
+           'void nf()\n{\n    int a = play.x;\n    Game &game = Game::Current();\n    play.y = a;\n}\n')
+    out, rep = run(src, game)
+    assert '[&]() { game.Play.x = 1; }' in out and '[=]() { Game::Current().Play.y = 2; }' in out, out
+    assert '[&game]() { game.Play.z = game.q; }' in out and '    game.w = 0;' in out, out
+    assert 'int a = Game::Current().Play.x;\n    Game &game = Game::Current();\n    game.Play.y = a;' in out, out
+    assert any('not the first statement' in m[3] for m in rep.manual), rep.manual
+
+    # 5. the uses only in different #if branches: the direct form; a member path
+    src = 'void c2()\n{\n#if A\n    play.a = 1;\n#else\n    play.b = 2;\n#endif\n}\nvoid cm() { cur_mode = 1; }\n'
+    out, rep = run(src, dict(game, names={'play': 'Play', 'cur_mode': 'Cursor.Mode'}))
+    assert '    Game::Current().Play.a = 1;\n#else\n    Game::Current().Play.b = 2;' in out, out
+    assert 'void cm() { Game::Current().Cursor.Mode = 1; }' in out and rep.conditional, (out, rep.conditional)
+    out = run('void cm2()\n{\n    cur_mode = 1;\n    x = cur_mode;\n}\n', dict(game, names={'cur_mode': 'Cursor.Mode'}))[0]
+    assert 'game.Cursor.Mode = 1;\n    x = game.Cursor.Mode;' in out, out
+
+    # 6. --check: `game` after the declaration or as a `Game &` parameter is the local, not left
+    src = ('void ck1() { x = game.a; }\nvoid ck2()\n{\n    Game &game = Game::Current();\n    x = game.a;\n}\n'
+           'void ck3(const GameDef &game) { x = game.a; }\nvoid ck4(Game &game) { x = game.a; }\n'
+           'void ck5()\n{\n    Game &game = Game::Current();\n    x = ::game.a;\n}\n')
+    left = check_file('t.cpp', src, game, Report())
+    assert [l[1] for l in left] == [1, 12], left
 
 
 def main():
@@ -800,11 +1170,17 @@ def main():
     ap.add_argument('--files', nargs='*', help='repository paths (default: every source and header of Engine/)')
     ap.add_argument('--dry-run', action='store_true', help='print the changes per function, write nothing')
     ap.add_argument('--check', action='store_true', help='exit 1 if a mapped global is still named')
+    ap.add_argument('--names', nargs='+', help='convert only these globals of the context\'s table (a batch)')
     ap.add_argument('--self-test', action='store_true')
     args = ap.parse_args()
     if args.self_test:
         return self_test()
     ctx = CONTEXTS[args.context]
+    if args.names:
+        unknown = [n for n in args.names if n not in ctx['names']]
+        if unknown:
+            ap.error('not in the table of %s: %s' % (args.context, ', '.join(unknown)))
+        ctx = dict(ctx, names={n: m for n, m in ctx['names'].items() if n in args.names})
     every = engine_files(args.repo, ctx)
     files = args.files or every
     members = class_members(args.repo, every, ctx)
@@ -829,8 +1205,19 @@ def main():
         c = rep.per_name.get(n, {})
         print('  %-26s %4d / %4d  %d files' % (n, c.get('direct', 0), c.get('local', 0),
                                                  len(rep.files_per_name.get(n, ()))))
-    print('functions given the local: %d; functions with the direct form: %d; files: %d'
-          % (len(rep.locals), len(rep.direct_funcs), len(rep.changed)))
+    print('functions given the local: %d; functions that had it and got new uses: %d; functions with the direct '
+          'form: %d; files: %d' % (len(rep.locals), len(rep.extended), len(rep.direct_funcs), len(rep.changed)))
+    print('direct forms rewritten to the local: %d in %d functions; decided by the rule "the local\'s name is '
+          'taken": %d functions, %d uses' % (sum(r[3] for r in rep.rewritten), len(rep.rewritten), len(rep.taken),
+                                             sum(t[4] for t in rep.taken)))
+    if rep.taken:
+        print('decided by the rule: the local\'s name is taken (direct form):')
+        for f, line, fn, why, n in rep.taken:
+            print('  %s:%d %s: %s, %d uses' % (f, line, fn, why, n))
+    if rep.rewritten:
+        print('direct forms rewritten to the local:')
+        for f, line, fn, n in rep.rewritten:
+            print('  %s:%d %s: %d' % (f, line, fn, n))
     if rep.scope_uses:
         print('uses outside a function body:')
         for f, line, n, why in rep.scope_uses:
