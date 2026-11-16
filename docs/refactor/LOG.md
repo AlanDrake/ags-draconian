@@ -1979,14 +1979,16 @@ rest of the process-wide ones and the sprite cache of `EngineServices`; `GameSet
 *Done when:* no `extern` of mutable state in an engine header but the contexts and a list of exceptions in
 `Script/check_layers.py`; the median compile time per file not higher than before.
 
-**Status (2026-11-16): the plan's text is done; not committed.** The work is the working tree and the
-snapshots `refs/wip/51s3/*` (one per batch, made with `git stash create`; `final2` is the last). Designed and
+**Status (2026-11-16): the plan's text is done; committed, not pushed** (`26a9122bb`..`0501021fe`, 20
+commits: the tool, the rename in three, a commit per batch, two for the tidy gate, the documents). The
+commits were cut from one snapshot per batch (`refs/wip/51s3/*`, made with `git stash create`, deleted
+since) by `.compare/helpers/51s3/commit_51s3.py`, which keeps the documents out of the code commits. Designed and
 supervised by Fable 5.2; the batches by Opus 5.5 subagents (the tool, `core`, `room`, `world`, `ui`, `script`,
 `services`, `exceptions` and `sprites`, `hot`, `roomfields` and `viewports`, `gamedef-lists`) and Sonnet 5.5
 ones (the rename, the probe, the code comparison, the tidy fixes), each batch built once. The user built the
-tree and ran a game on it after `hot`. **Left for the user:** the commits; the compile-time cost, which is
-real (median per object +5%, below); the `tidy`, `linux`, `emscripten` and `msbuild` stages on the tidy fixes
-and the last three batches.
+tree and ran a game on it after `hot`. The compile-time cost is real (median per object +5%, below) and
+accepted by the user. **Left:** the `linux`, `emscripten` and `msbuild` stages on the last six commits (the
+tidy fixes and the three batches of 2026-11-16), before the push.
 
 - **The design, where it was decided here** (RUNTIME-SPLIT.md 2 and 9 hold the reasons):
   - `class Game : public GameDef` and `class Room : public RoomStruct`: the definition and the live state stay
@@ -2095,10 +2097,13 @@ and the last three batches.
   headers, format, layers and build lists, by their agents. **The auto-test game on the finished tree: 2414 of
   2414 on Software, Direct3D 9, Direct3D 11 and OpenGL** (the project at tag `draconian-auto-test-3`, built
   with the tree's tools).
-- **Not verified:** the `tidy` stage on the tidy fixes (ten renames, `RBSwitchNames` to `kRBSwitchNames`, six
-  named casts, of which the two `reinterpret_cast`s in `agsplugin.cpp` were chosen without reading the types;
-  they compile with MSVC) and on the last three batches; the `linux`, `emscripten` and `msbuild` stages on
-  both (`Editor/AGS.Native` constructs a `GameDef`, whose special members are out of line now: read in its
+  `format`, `helpers`, `layers` and `tidy` on the final tree (2026-11-16): one tidy finding, on `GameDef`'s
+  move constructor, which is defined out of line now and is read as a function that must not throw; it is not
+  `noexcept`, as before (a `std::map` member's move may allocate), so the line says so and silences the check.
+- **Not verified:** the `linux`, `emscripten` and `msbuild` stages on the tidy fixes (ten renames,
+  `RBSwitchNames` to `kRBSwitchNames`, six named casts, of which the two `reinterpret_cast`s in
+  `agsplugin.cpp` were chosen without reading the types; they compile with MSVC and pass the tidy gate) and on
+  the last three batches (`Editor/AGS.Native` constructs a `GameDef`, whose special members are out of line now: read in its
   project, not built); no sanitizer run; no `compare_objects.py` beyond the rename; the GCC comparison of the
   linked engine; the corpus game; macOS, iOS, Android (one edit in an Android-only branch of
   `main/engine.cpp`); a plugin that asks for the debug hook.
