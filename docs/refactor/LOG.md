@@ -2126,13 +2126,14 @@ tidy fixes and the three batches of 2026-11-16), passed on `ec0098a2a` later tha
 and the signatures, then the class; `CharacterInfo` becomes `CharacterDef`; with 4.3 for the two structs
 (5.1a point 6).
 
-**Status (2026-11-16): done in the working tree, not committed** (snapshots `refs/wip/51a1/*`, one per batch:
+**Status (2026-11-16): done, 17 commits (`f47b8ccb4`..`7347023cb`), not pushed**, cut by
+`.compare/helpers/51a1/commit_51a1.py` from one snapshot per batch (`refs/wip/51a1/*`, deleted since:
 `prep-flags`, `prep-chars`, `prep-alias`, `class`, `fields`, `names-types`, `names-common`, `names-engine`,
-`fieldnames`, `trim`, `cleanup`, `runners`; 86 files, of them 64 under `Common`, `Engine`, `Tools` and
-`Editor`). Designed and supervised by Fable 5.2 (`.compare/briefs/brief-51a1-*.md`); the batches by Sonnet 5.5
+`fieldnames`, `trim`, `cleanup`, `runners`; the tool, the tidy fix, the prepush fix and the documents are
+commits of their own; 88 files, of them 64 under `Common`, `Engine`, `Tools` and `Editor`). Designed and supervised by Fable 5.2 (`.compare/briefs/brief-51a1-*.md`); the batches by Sonnet 5.5
 `medium` (`prep`, `names`, `fieldnames`, `trim`, the code comparison) and Opus 5.5 `high` (`class` and
-`fields`, one agent; the rename tool), each batch built once. **Open:** the compile-time reading against
-BASELINE.md "After 5.1 step 3" (it needs the machine to itself); the GCC comparison of the linked engine.
+`fields`, one agent; the rename tool), each batch built once. **Compile time: no measurable change**
+(below). **Open:** the GCC comparison of the linked engine.
 
 - **The design, where it was decided here** (RUNTIME-SPLIT.md 2, "What 5.1a step 1 built"):
   - **No layout was frozen**, which the old comments still claimed: `AGSCharacter` is opaque to plugins, and
@@ -2216,6 +2217,12 @@ BASELINE.md "After 5.1 step 3" (it needs the machine to itself); the GCC compari
     game load.
   The four `Character_LockView*` script functions grew by about 45 instructions each (a changed inlining
   decision, not traced). GCC was not compared.
+- **Compile time, MSVC** (BASELINE.md "After 5.1a step 1"; `ec0098a2a` against `7347023cb` in worktrees,
+  before, after, before, after, on an idle machine with nothing beside it): total 1,687.6 and 1,658.5 s
+  against 1,703.4 and 1,652.9 s (+0.3% of the averages), median per object 2.59 and 2.58 against 2.63 and
+  2.56 s (+0.3%), wall-clock 202.7 and 198.7 against 204.3 and 197.9 s. The readings of one side differ by
+  1.7% and 3.0%, so there is no measurable change: the class made `character.h` heavier and the trim took it
+  out of 70 translation units. GCC was not measured.
 - **Verified:** per batch, the MSVC build, the header check and `ctest` (1,218). The auto-test game, 2414 of
   2414 on Software, Direct3D 9, Direct3D 11 and OpenGL, on the binaries of `class` and again of `fields`
   (the second run windowed and in the background: the same result). `prepush.py` with every stage on the
@@ -2236,7 +2243,7 @@ BASELINE.md "After 5.1 step 3" (it needs the machine to itself); the GCC compari
     upstream's file.
   - `def` cannot be a reserved name for a definition: older code uses it for a default value
     (`CfgReadInt(..., int def)`). STYLE.md recommends it without enforcing it.
-- **Not verified:** the compile time; the GCC Release comparison of the linked engine; sanitizers; that a
+- **Not verified:** the GCC Release comparison of the linked engine and GCC's compile time; sanitizers; that a
   real game's save and game file are byte-identical before and after (the save round-trip tests, the tools'
   tests and the auto-test game pass; the code was read); the two debug-only lines of `draw.cpp` (the MSBuild
   Debug jobs of a full CI run compile them); the Xcode project's entries; macOS, iOS, Android; the corpus

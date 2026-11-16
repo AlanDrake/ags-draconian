@@ -240,6 +240,32 @@ standard headers the engine uses everywhere 0.38 s, `game_def.h` 0.98 s, `game_s
 precompiled header would be judged by (2.10b): about 1.2 s of a context user's 3.7 s median is headers that
 every one of them parses again.
 
+**After 5.1a step 1** (2026-11-16, MSVC only; `ec0098a2a` before and `7347023cb` after, each in a worktree,
+built in turn, before, after, before, after, on an idle machine with nothing beside it; 560 objects before and
+559 after: `character_extras.cpp` merged into `character.cpp`; `.compare/helpers/51a1/ct_run.sh`, the result
+sets in `.compare/ct/51a1-*`).
+
+| | before 1 | before 2 | after 1 | after 2 | difference of the averages |
+|---|---:|---:|---:|---:|---:|
+| all: total s | 1687.6 | 1658.5 | 1703.4 | 1652.9 | +0.3% |
+| all: median s per object | 2.59 | 2.58 | 2.63 | 2.56 | +0.3% |
+| `Engine` (254 objects): total s | 732.7 | 731.5 | 754.2 | 724.0 | +1.0% |
+| `Engine` median s | 2.64 | 2.75 | 2.78 | 2.60 | -0.1% |
+| `Engine/game` (154 objects): total s | 442.0 | 443.4 | 451.2 | 432.1 | -0.2% |
+| `Engine/game/script_api` (46 objects): total s | 122.4 | 119.8 | 122.1 | 119.5 | -0.2% |
+| `Common` (199 objects): total s | 511.9 | 499.3 | 507.1 | 498.9 | -0.5% |
+| `Tools` (59 objects): total s | 264.3 | 257.8 | 268.0 | 259.7 | +1.1% |
+| wall-clock of the whole build, s | 202.7 | 198.7 | 204.3 | 197.9 | +0.2% |
+
+**No measurable change:** the two readings of a side differ by 1.7% (before) and 3.0% (after) in total, ten
+times the difference between the sides. The 94 engine sources that include a context header: 350.7 to
+353.8 s (+0.9%, median 3.40 to 3.45 s); the 159 other engine sources +1.7%; the sources outside `Engine`
+-0.2%. The step made `game/world/character.h` heavier (the class and its state came into it) and took it out
+of `game_state.h`, so that 34 of the 451 first-party translation units see it where 104 did: the two about
+cancel. This run's "before" is the tree that the morning's reading had as "after" (1,754 and 1,773 s then,
+1,659 and 1,688 s now, about 5% less): readings of different hours are not compared, only the pairs of one
+run. GCC was not measured.
+
 To reproduce: build as `compare_objects.py` does (`cmake -S . -B <dir> -G Ninja -DCMAKE_BUILD_TYPE=MinSizeRel
 -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON`, from a developer prompt for MSVC, then
 `cmake --build <dir>`), then `python Script/refactor_metrics.py --ninja-log <dir>/.ninja_log` (`--json` for the
