@@ -44,9 +44,9 @@ void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *ch)
 void CharacterExtras::SetTurning(bool on, bool ccw, int turn_steps)
 {
     if (on && (turn_steps > 0))
-        flags = (flags & ~kCharf_TurningMask) | kCharf_Turning | (ccw ? kCharf_TurningCCW : 0);
+        RuntimeFlags = (RuntimeFlags & ~kCharf_TurningMask) | kCharf_Turning | (ccw ? kCharf_TurningCCW : 0);
     else
-        flags = (flags & ~kCharf_TurningMask);
+        RuntimeFlags = (RuntimeFlags & ~kCharf_TurningMask);
     turns = turn_steps;
 }
 
@@ -224,14 +224,14 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *ch, Stream *in, CharacterS
     {
         face_dir_ratio = in->ReadFloat32();
         movelist_handle = in->ReadInt32();
-        flags = in->ReadInt32();
+        RuntimeFlags = in->ReadInt32();
         turns = in->ReadInt32();
     }
     else
     {
         face_dir_ratio = 0.f;
         movelist_handle = 0;
-        flags = 0;
+        RuntimeFlags = 0;
         turns = 0;
     }
 
@@ -346,7 +346,7 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     // -- kCharSvgVersion_400_03
     out->WriteFloat32(face_dir_ratio);
     out->WriteInt32(movelist_handle);
-    out->WriteInt32(flags);
+    out->WriteInt32(RuntimeFlags);
     out->WriteInt32(turns);
     // -- kCharSvgVersion_400_18
     out->WriteInt32(shader_id);

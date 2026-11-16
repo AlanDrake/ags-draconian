@@ -487,7 +487,7 @@ void FaceDirectionalLoop(CharacterInfo *ch, int direction, int blocking_style)
 
                     if ((blocking_style == BLOCKING) || (blocking_style == 1))
                     {
-                        GameLoopUntilFlagUnset(&game.CharExtras[ch->index_id].flags, kCharf_TurningMask);
+                        GameLoopUntilFlagUnset(&game.CharExtras[ch->index_id].RuntimeFlags, kCharf_TurningMask);
                     }
                 }
                 else

@@ -130,7 +130,7 @@ public:
     // Optional character face direction ratio, 0 = ignore
     float face_dir_ratio = 0.f;
     int movelist_handle = 0; // handle to the script movelist
-    int flags = 0;           // runtime character flags (CharacterRuntimeFlags)
+    int RuntimeFlags = 0;    // runtime character flags (CharacterRuntimeFlags)
     int turns = 0;           // turning counter
 
     // Following fields are derivatives of the above (calculated from these
@@ -140,9 +140,9 @@ public:
     int zoom_offs = 100;
 
     // Tells whether the character is turning, and in which direction
-    bool IsTurning() const { return (flags & kCharf_Turning) != 0; }
-    bool IsTurningClockwise() const { return IsTurning() && (flags & kCharf_TurningCCW) == 0; }
-    bool IsTurningCounterClockwise() const { return IsTurning() && (flags & kCharf_TurningCCW) != 0; }
+    bool IsTurning() const { return (RuntimeFlags & kCharf_Turning) != 0; }
+    bool IsTurningClockwise() const { return IsTurning() && (RuntimeFlags & kCharf_TurningCCW) == 0; }
+    bool IsTurningCounterClockwise() const { return IsTurning() && (RuntimeFlags & kCharf_TurningCCW) != 0; }
     // Starts (on) or stops turning; turning with no steps (turn_steps <= 0) is stopped
     void SetTurning(bool on, bool ccw, int turn_steps);
     // Counts one turning step; stops turning when none are left
