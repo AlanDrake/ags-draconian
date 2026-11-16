@@ -5,8 +5,8 @@
 # Common/ac/def_version.h (named by CI and packaging on every platform: decided at the end of 5.3).
 Common/ac/audiocliptype.cpp	Common/game/audio_clip_type.cpp
 Common/ac/audiocliptype.h	Common/game/audio_clip_type.h
-Common/ac/characterinfo.cpp	Common/game/character_info.cpp
-Common/ac/characterinfo.h	Common/game/character_info.h
+Common/ac/characterinfo.cpp	Common/game/character_def.cpp
+Common/ac/characterinfo.h	Common/game/character_def.h
 Common/ac/common.cpp	Common/util/common.cpp
 Common/ac/common.h	Common/util/common.h
 Common/ac/common_defines.h	Common/game/common_defines.h

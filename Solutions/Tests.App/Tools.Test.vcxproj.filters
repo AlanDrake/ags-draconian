@@ -3,7 +3,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\Common\test\common_stubs.cpp" />
     <ClCompile Include="..\..\Common\game\audio_clip_type.cpp" />
-    <ClCompile Include="..\..\Common\game\character_info.cpp" />
+    <ClCompile Include="..\..\Common\game\character_def.cpp" />
     <ClCompile Include="..\..\Common\game\dialog_topic.cpp" />
     <ClCompile Include="..\..\Common\game\script_audio_clip.cpp" />
     <ClCompile Include="..\..\Common\game\game_def.cpp" />
@@ -55,7 +55,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\Common\debug\debugmanager.h" />
     <ClInclude Include="..\..\Common\game\audio_clip_type.h" />
-    <ClInclude Include="..\..\Common\game\character_info.h" />
+    <ClInclude Include="..\..\Common\game\character_def.h" />
     <ClInclude Include="..\..\Common\game\customproperties.h" />
     <ClInclude Include="..\..\Common\game\dialog_topic.h" />
     <ClInclude Include="..\..\Common\game\game_def.h" />

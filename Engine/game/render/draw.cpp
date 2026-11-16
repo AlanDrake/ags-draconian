@@ -22,7 +22,7 @@
 #include "debug/debugger.h"
 #include "device/sys_events.h"
 #include "font/fonts.h"
-#include "game/character_info.h"
+#include "game/character_def.h"
 #include "game/dialog/display.h"
 #include "game/dynobj/script_system.h"
 #include "game/event.h"

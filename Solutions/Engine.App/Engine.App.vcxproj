@@ -597,7 +597,7 @@
     <ClInclude Include="..\..\Common\ac\point.h" />
     <ClInclude Include="..\..\Common\ac\roomstruct.h" />
     <ClInclude Include="..\..\Common\game\audio_clip_type.h" />
-    <ClInclude Include="..\..\Common\game\character_info.h" />
+    <ClInclude Include="..\..\Common\game\character_def.h" />
     <ClInclude Include="..\..\Common\game\common_defines.h" />
     <ClInclude Include="..\..\Common\game\dialog_topic.h" />
     <ClInclude Include="..\..\Common\game\game_def.h" />

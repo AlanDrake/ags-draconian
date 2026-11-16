@@ -17,7 +17,7 @@
 #include "data/data_file_writer.h"
 #include "data/data_helpers.h"
 #include "game/audio_clip_type.h"
-#include "game/character_info.h"
+#include "game/character_def.h"
 #include "game/customproperties.h"
 #include "game/dialog_topic.h"
 #include "game/game_def.h"

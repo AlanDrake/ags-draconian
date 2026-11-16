@@ -13,7 +13,7 @@
 //=============================================================================
 #include "game/world/character_extras.h"
 
-#include "game/character_info.h"
+#include "game/character_def.h"
 #include "game/dynobj/cc_character.h"
 #include "game/dynobj/script_string.h"
 #include "game/game.h"

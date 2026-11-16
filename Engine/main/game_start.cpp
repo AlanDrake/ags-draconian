@@ -24,7 +24,7 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
-#include "game/character_info.h"
+#include "game/character_def.h"
 #include "game/game.h"
 #include "game/game_context.h"
 #include "game/game_def.h"

@@ -460,7 +460,7 @@
     <ClCompile Include="..\..\Common\font\wfnfont.cpp" />
     <ClCompile Include="..\..\Common\font\wfnfontrenderer.cpp" />
     <ClCompile Include="..\..\Common\game\audio_clip_type.cpp" />
-    <ClCompile Include="..\..\Common\game\character_info.cpp" />
+    <ClCompile Include="..\..\Common\game\character_def.cpp" />
     <ClCompile Include="..\..\Common\game\customproperties.cpp" />
     <ClCompile Include="..\..\Common\game\dialog_topic.cpp" />
     <ClCompile Include="..\..\Common\game\game_def.cpp" />
@@ -654,7 +654,7 @@
     <ClInclude Include="..\..\Common\font\wfnfont.h" />
     <ClInclude Include="..\..\Common\font\wfnfontrenderer.h" />
     <ClInclude Include="..\..\Common\game\audio_clip_type.h" />
-    <ClInclude Include="..\..\Common\game\character_info.h" />
+    <ClInclude Include="..\..\Common\game\character_def.h" />
     <ClInclude Include="..\..\Common\game\common_defines.h" />
     <ClInclude Include="..\..\Common\game\customproperties.h" />
     <ClInclude Include="..\..\Common\game\dialog_topic.h" />

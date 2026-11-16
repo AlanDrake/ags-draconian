@@ -23,7 +23,7 @@
 
 #include <vector>
 
-#include "game/character_info.h"
+#include "game/character_def.h"
 #include "game/runtime_defines.h"
 #include "gfx/gfx_def.h"
 #include "gfx/graphicspace.h"

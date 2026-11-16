@@ -98,7 +98,7 @@
     <ClCompile Include="..\..\Common\game\audio_clip_type.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\character_info.cpp">
+    <ClCompile Include="..\..\Common\game\character_def.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\common.cpp">
@@ -595,7 +595,7 @@
     <ClInclude Include="..\..\Common\game\audio_clip_type.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\character_info.h">
+    <ClInclude Include="..\..\Common\game\character_def.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\common.h">

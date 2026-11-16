@@ -4,7 +4,7 @@
     <ClCompile Include="..\..\Common\data\data_ext.cpp" />
     <ClCompile Include="..\..\Common\data\data_helpers.cpp" />
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp" />
-    <ClCompile Include="..\..\Common\game\character_info.cpp" />
+    <ClCompile Include="..\..\Common\game\character_def.cpp" />
     <ClCompile Include="..\..\Common\game\customproperties.cpp" />
     <ClCompile Include="..\..\Common\game\inventory_item_info.cpp" />
     <ClCompile Include="..\..\Common\game\mouse_cursor.cpp" />
@@ -63,7 +63,7 @@
     <ClInclude Include="..\..\Common\data\data_helpers.h" />
     <ClInclude Include="..\..\Common\debug\debugmanager.h" />
     <ClInclude Include="..\..\Common\debug\out.h" />
-    <ClInclude Include="..\..\Common\game\character_info.h" />
+    <ClInclude Include="..\..\Common\game\character_def.h" />
     <ClInclude Include="..\..\Common\game\customproperties.h" />
     <ClInclude Include="..\..\Common\game\inventory_item_info.h" />
     <ClInclude Include="..\..\Common\game\mouse_cursor.h" />

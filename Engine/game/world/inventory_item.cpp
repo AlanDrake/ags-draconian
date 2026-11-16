@@ -14,7 +14,7 @@
 #include "game/world/inventory_item.h"
 
 #include "debug/debug_log.h"
-#include "game/character_info.h"
+#include "game/character_def.h"
 #include "game/dynobj/cc_inventory.h"
 #include "game/event.h"
 #include "game/game.h"

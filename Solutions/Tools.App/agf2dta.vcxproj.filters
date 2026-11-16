@@ -46,7 +46,7 @@
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\character_info.cpp">
+    <ClCompile Include="..\..\Common\game\character_def.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\game\inventory_item_info.cpp">
@@ -123,7 +123,7 @@
     <ClInclude Include="..\..\Common\debug\out.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\character_info.h">
+    <ClInclude Include="..\..\Common\game\character_def.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\game\inventory_item_info.h">

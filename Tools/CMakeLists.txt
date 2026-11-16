@@ -23,7 +23,7 @@ set(TOOLS_COMMON_SOURCES
         ../Common/data/tra_file.h
         ../Common/debug/debugmanager.cpp
         ../Common/debug/debugmanager.h
-        ../Common/game/character_info.cpp
+        ../Common/game/character_def.cpp
         ../Common/game/customproperties.cpp
         ../Common/game/customproperties.h
         ../Common/game/inventory_item_info.cpp

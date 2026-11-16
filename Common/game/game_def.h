@@ -25,7 +25,7 @@
 #include <allegro.h> // RGB
 
 #include "game/audio_clip_type.h"
-#include "game/character_info.h" // TODO: constants to separate header
+#include "game/character_def.h" // TODO: constants to separate header
 #include "game/customproperties.h"
 #include "game/game_struct_defines.h"
 #include "game/game_version.h"

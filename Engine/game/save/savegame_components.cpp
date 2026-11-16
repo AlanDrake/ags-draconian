@@ -20,7 +20,7 @@
 
 #include "debug/out.h"
 #include "game/audio_clip_type.h"
-#include "game/character_info.h"
+#include "game/character_def.h"
 #include "game/common_defines.h"
 #include "game/dialog/dialog.h"
 #include "game/dialog_topic.h"

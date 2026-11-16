@@ -44,8 +44,8 @@ target_sources(common
     font/wfnfontrenderer.h
     game/audio_clip_type.cpp
     game/audio_clip_type.h
-    game/character_info.cpp
-    game/character_info.h
+    game/character_def.cpp
+    game/character_def.h
     game/common_defines.h
     game/customproperties.cpp
     game/customproperties.h

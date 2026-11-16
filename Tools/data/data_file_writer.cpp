@@ -35,7 +35,7 @@
 
 #include "ac/def_version.h"
 #include "data/data_helpers.h"
-#include "game/character_info.h"
+#include "game/character_def.h"
 #include "game/customproperties.h"
 #include "game/dialog_topic.h"
 #include "game/game_def.h"
@@ -193,7 +193,7 @@ void WriteView(Stream *out, const DataUtil::GameData &game, const DataUtil::View
     }
 }
 
-// Read by CharacterDef::ReadFromFile() in Common/game/character_info.cpp,
+// Read by CharacterDef::ReadFromFile() in Common/game/character_def.cpp,
 // through GameDef::ReadCharacters().
 void WriteCharacter(Stream *out, const DataUtil::GameData &game, const DataUtil::CharacterData &ref, int index)
 {

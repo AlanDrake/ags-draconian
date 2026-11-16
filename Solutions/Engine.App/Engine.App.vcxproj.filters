@@ -1439,7 +1439,7 @@
     <ClInclude Include="..\..\Common\game\audio_clip_type.h">
       <Filter>Common Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\character_info.h">
+    <ClInclude Include="..\..\Common\game\character_def.h">
       <Filter>Common Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\common.h">

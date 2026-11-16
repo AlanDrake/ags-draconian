@@ -21,7 +21,7 @@
 #include <windows.h>
 #undef BITMAP
 #include <stdlib.h>
-#include "game/character_info.h"
+#include "game/character_def.h"
 #include "game/dialog_topic.h"
 #include "game/game_version.h"
 #include "game/inventory_item_info.h"

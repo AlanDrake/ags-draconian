@@ -13,7 +13,7 @@
 //=============================================================================
 #include "game/dynobj/cc_inventory.h"
 
-#include "game/character_info.h"
+#include "game/character_def.h"
 #include "game/dynobj/script_objects.h"
 #include "game/game_context.h"
 #include "game/game_init.h"

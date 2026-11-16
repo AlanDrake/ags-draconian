@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "debug/debug_log.h"
-#include "game/character_info.h"
+#include "game/character_def.h"
 #include "game/game.h"
 #include "game/game_context.h"
 #include "game/game_def.h"
