@@ -16,6 +16,7 @@
 #include "gui/guibutton.h"
 
 using AGS::Common::GUIButton;
+class Game;
 struct AnimatingGUIButton;
 
 // **** BUTTON: FUNCTIONS ****
@@ -68,7 +69,7 @@ void Button_SetTextColor(GUIButton *btn, int color);
 
 // Advances the animation at index bu by one tick; returns true while it continues, false when it has ended (the caller
 // then removes it with StopButtonAnimation).
-bool UpdateAnimatingButton(int bu);
+bool UpdateAnimatingButton(Game &game, int bu);
 // The number of running animations.
 size_t GetAnimatingButtonCount();
 // The animation at the given index, or nullptr if the index is out of range.

@@ -83,7 +83,7 @@ int RoomObject::get_baseline() const
     return baseline;
 }
 
-void RoomObject::UpdateCyclingView(int ref_id)
+void RoomObject::UpdateCyclingView(Game &game, int ref_id)
 {
     if (!is_enabled())
         return;
@@ -111,12 +111,12 @@ void RoomObject::UpdateCyclingView(int ref_id)
         return;
     }
 
-    if (!CycleViewAnim(view, loop, frame, anim))
+    if (!CycleViewAnim(game, view, loop, frame, anim))
     {
         anim = ViewAnimateParams();
     }
 
-    ViewFrame *vfptr = &Game::Current().Views[view].loops[loop].frames[frame];
+    ViewFrame *vfptr = &game.Views[view].loops[loop].frames[frame];
     if (vfptr->pic > UINT16_MAX)
         debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", ref_id,
                           vfptr->pic, UINT16_MAX);

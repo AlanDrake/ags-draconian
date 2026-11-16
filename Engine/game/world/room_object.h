@@ -31,6 +31,8 @@ class Stream;
 }
 } // namespace AGS
 
+class Game;
+
 // RoomObject's legacy animation constants
 #define LEGACY_OBJANIM_ONCE      (LEGACY_ANIM_ONCE + 1)
 #define LEGACY_OBJANIM_REPEAT    (LEGACY_ANIM_REPEAT + 1)
@@ -106,7 +108,7 @@ public:
     inline const AGS::Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
     void UpdateGraphicSpace();
 
-    void UpdateCyclingView(int ref_id);
+    void UpdateCyclingView(Game &game, int ref_id);
     void OnStopMoving();
     // Calculate wanted frame sound volume based on multiple factors
     int GetFrameSoundVolume() const;

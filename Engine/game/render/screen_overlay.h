@@ -54,6 +54,7 @@ namespace Engine
 class IDriverDependantBitmap;
 }
 } // namespace AGS
+struct EngineServices;
 
 // Overlay behavior flags
 // NOTE: currently serialized as uint16
@@ -135,7 +136,7 @@ public:
     int GetTintLight() const { return _tintLight; }
     int GetZOrder() const { return _zorder; }
     // Gets actual overlay's image
-    AGS::Common::Bitmap *GetImage() const;
+    AGS::Common::Bitmap *GetImage(EngineServices &services) const;
     // Get this overlay's sprite id
     int GetSpriteNum() const { return _sprnum; }
     // Get this overlay's graphic's dimensions (unscaled)
@@ -212,7 +213,7 @@ public:
     // might need to double check the ScreenOverlay's removal from storage
     void OnRemove();
     // Recalculates overlay's transform matrix and AABB
-    void UpdateGraphicSpace();
+    void UpdateGraphicSpace(EngineServices &services);
     // Decrements timeout by one tick
     int UpdateTimeout();
 
@@ -305,6 +306,7 @@ enum AnimOverlaySvgVersion
     kAnimOverSvgVersion_40024 = 4000024, // initial
 };
 
+class Game;
 struct ViewFrame;
 
 class AnimatedOverlay
@@ -319,10 +321,10 @@ public:
     int GetView() const { return _view; }
     int GetLoop() const { return _loop; }
     int GetFrame() const { return _frame; }
-    const ViewFrame *GetViewFrame() const;
+    const ViewFrame *GetViewFrame(Game &game) const;
 
     void Begin(int view, int loop, int frame, const ViewAnimateParams &params);
-    bool UpdateOnce();
+    bool UpdateOnce(Game &game);
     void Reset();
 
     void ReadFromSavegame(AGS::Common::Stream *in, int cmp_ver);

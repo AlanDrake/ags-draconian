@@ -291,7 +291,7 @@ static void GameUpdateCheckGroundInteractions()
         setevent(AGSEvent_Object(kObjEventType_Hotspot, hotspot_there, kHotspotEvent_StandOn));
 
         // check current region
-        int on_region = GetRegionIDAtRoom(game.PlayerChar->x, game.PlayerChar->y, kHit_Interactable);
+        int on_region = GetRegionIDAtRoom(Room::Current(), game.PlayerChar->x, game.PlayerChar->y, kHit_Interactable);
         if (on_region != game.Play.player_on_region)
         {
             // we need to save this and set game.Play.player_on_region
@@ -390,10 +390,8 @@ static void check_mouse_state(int &was_mouse_on_iface)
 }
 
 // Runs default mouse button handling
-static void check_mouse_controls(const int was_mouse_on_iface)
+static void check_mouse_controls(Game &game, EngineServices &services, const int was_mouse_on_iface)
 {
-    EngineServices &services = EngineServices::Current();
-    Game &game = Game::Current();
     eAGSMouseButton mbut;
     Point mpos;
     if (run_service_mb_controls(mbut, &mpos) && mbut > kMouseNone)
@@ -631,10 +629,8 @@ bool run_service_key_controls(KeyInput &out_key)
 }
 
 // Runs default keyboard handling
-static void check_keyboard_controls()
+static void check_keyboard_controls(Game &game, EngineServices &services)
 {
-    EngineServices &services = EngineServices::Current();
-    Game &game = Game::Current();
     // First check for service engine's combinations (mouse lock, display mode switch, and so forth)
     KeyInput ki;
     if (!run_service_key_controls(ki))
@@ -793,9 +789,8 @@ bool run_service_gamepad_controls(GamepadInput &out_key)
 }
 
 // Runs default gamepad handling
-static void check_gamepad_controls()
+static void check_gamepad_controls(Game &game)
 {
-    Game &game = Game::Current();
     // Read the gamepad button press
     GamepadInput gi;
     if (!run_service_gamepad_controls(gi))
@@ -866,9 +861,8 @@ bool run_service_touch_controls(TouchInput &out_touch)
     return out_touch.PointerID >= 0;
 }
 
-static void check_touch_controls()
+static void check_touch_controls(Game &game)
 {
-    Game &game = Game::Current();
     TouchInput ti;
     if (!run_service_touch_controls(ti))
         return;
@@ -903,8 +897,10 @@ static void check_touch_controls()
 // Process player input
 static void GameUpdateCheckControls()
 {
+    EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     // don't let the player do anything before the screen fades in
-    if (Game::Current().RoomChange.InNewRoom != kEnterRoom_None)
+    if (game.RoomChange.InNewRoom != kEnterRoom_None)
         return;
 
     set_our_eip(1007);
@@ -926,10 +922,10 @@ static void GameUpdateCheckControls()
     {
         switch (type)
         {
-        case kInputKeyboard: check_keyboard_controls(); break;
-        case kInputMouse: check_mouse_controls(was_mouse_on_iface); break;
-        case kInputGamepad: check_gamepad_controls(); break;
-        case kInputTouch: check_touch_controls(); break;
+        case kInputKeyboard: check_keyboard_controls(game, services); break;
+        case kInputMouse: check_mouse_controls(game, services, was_mouse_on_iface); break;
+        case kInputGamepad: check_gamepad_controls(game); break;
+        case kInputTouch: check_touch_controls(game); break;
         default: ags_drop_next_inputevent(); break;
         }
     }
@@ -1023,11 +1019,12 @@ static void GameUpdateGameState()
 // Updates objects that do not auto-pause when the game is paused
 static void GameUpdatePersistentAnimations()
 {
+    Game &game = Game::Current();
     // Update animating GUI buttons and overlays
     // The buttons are animated even if the game is paused
     for (size_t i = 0; i < GetAnimatingButtonCount(); ++i)
     {
-        if (!UpdateAnimatingButton(i))
+        if (!UpdateAnimatingButton(game, i))
         {
             StopButtonAnimation(i);
             i--;
@@ -1046,12 +1043,12 @@ static void update_objects_scale()
 
     for (uint32_t obj_id = 0; obj_id < room.State->numobj; ++obj_id)
     {
-        update_object_scale(obj_id);
+        update_object_scale(game, room, obj_id);
     }
 
     for (int char_id = 0; char_id < game.numcharacters; ++char_id)
     {
-        update_character_scale(char_id);
+        update_character_scale(game, room, char_id);
     }
 }
 

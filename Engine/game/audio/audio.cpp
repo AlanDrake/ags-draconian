@@ -571,9 +571,8 @@ void stop_and_destroy_channel(int chid)
 }
 
 
-int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxDist)
+int get_volume_adjusted_for_distance(Game &game, int volume, int sndX, int sndY, int sndMaxDist)
 {
-    Game &game = Game::Current();
     int distx = game.PlayerChar->x - sndX;
     int disty = game.PlayerChar->y - sndY;
     int dist = (int)::sqrt((double)(distx * distx + disty * disty));
@@ -601,7 +600,7 @@ void update_directional_sound_vol()
         if ((playback != nullptr) && (playback->xSource >= 0))
         {
             playback->apply_directional_modifier(
-                get_volume_adjusted_for_distance(playback->get_volume255(), playback->xSource, playback->ySource,
+                get_volume_adjusted_for_distance(game, playback->get_volume255(), playback->xSource, playback->ySource,
                                                  playback->maximumPossibleDistanceAway) -
                 playback->get_volume255());
         }

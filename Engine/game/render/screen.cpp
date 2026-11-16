@@ -135,6 +135,9 @@ public:
 protected:
     virtual bool RunImpl() = 0;
 
+    // Held for the life of the state: Run() is the body of a loop
+    EngineServices &_services = EngineServices::Current();
+    Game &_game = Game::Current();
     ScreenTransitionStyle _style = kScrTran_Instant;
     bool _fadein = false;
     int _speed = 0;
@@ -177,19 +180,18 @@ public:
     // Draw the state
     void Draw() override
     {
-        EngineServices &services = EngineServices::Current();
         // Construct scene in order: game screen, fade fx, post game overlay.
         // NOTE: for backwards compatibility we have to redraw last frame
         // when fading out. Please see the note to game_frame_to_bmp() for details.
         if (_fadein)
             construct_game_scene();
         else
-            services.GfxDriver->RedrawLastFrame(RENDER_SHOT_SKIP_ON_FADE);
+            _services.GfxDriver->RedrawLastFrame(RENDER_SHOT_SKIP_ON_FADE);
 
-        services.GfxDriver->BeginSpriteBatch(_view, _sprTrans, kFlip_None, nullptr, RENDER_SHOT_SKIP_ON_FADE);
+        _services.GfxDriver->BeginSpriteBatch(_view, _sprTrans, kFlip_None, nullptr, RENDER_SHOT_SKIP_ON_FADE);
         _fade->SetAlpha(_fadein ? (255 - _alpha) : _alpha);
-        services.GfxDriver->DrawSprite(0, 0, _fade);
-        services.GfxDriver->EndSpriteBatch();
+        _services.GfxDriver->DrawSprite(0, 0, _fade);
+        _services.GfxDriver->EndSpriteBatch();
         render_to_screen();
     }
     // Update the state during a game tick
@@ -295,7 +297,7 @@ public:
     // Draw the state
     void Draw() override
     {
-        if (Game::Current().color_depth > 1)
+        if (_game.color_depth > 1)
         {
             _bmpBuff->Fill(_clearCol);
             set_trans_blender(0, 0, 0, _fadein ? _alpha : 255 - _alpha);
@@ -310,7 +312,7 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
-        if (Game::Current().color_depth > 1)
+        if (_game.color_depth > 1)
         {
             if (_alpha >= 255)
                 return false;
@@ -408,29 +410,28 @@ public:
     // Draw the state
     void Draw() override
     {
-        EngineServices &services = EngineServices::Current();
         // NOTE: for backwards compatibility we have to redraw last frame
         // when fading out. Please see the note to game_frame_to_bmp() for details.
         if (_fadein)
             construct_game_scene();
         else
-            services.GfxDriver->RedrawLastFrame(RENDER_SHOT_SKIP_ON_FADE);
+            _services.GfxDriver->RedrawLastFrame(RENDER_SHOT_SKIP_ON_FADE);
 
-        services.GfxDriver->BeginSpriteBatch(_view, _sprTrans, kFlip_None, nullptr, RENDER_SHOT_SKIP_ON_FADE);
+        _services.GfxDriver->BeginSpriteBatch(_view, _sprTrans, kFlip_None, nullptr, RENDER_SHOT_SKIP_ON_FADE);
         if (_fadein)
         {
-            services.GfxDriver->DrawSprite(_view.GetWidth() / 2 - _boxWidth / 2 - _view.GetWidth(), 0, _fade[0]);
-            services.GfxDriver->DrawSprite(0, _view.GetHeight() / 2 - _boxHeight / 2 - _view.GetHeight(), _fade[1]);
-            services.GfxDriver->DrawSprite(_view.GetWidth() / 2 + _boxWidth / 2, 0, _fade[2]);
-            services.GfxDriver->DrawSprite(0, _view.GetHeight() / 2 + _boxHeight / 2, _fade[3]);
+            _services.GfxDriver->DrawSprite(_view.GetWidth() / 2 - _boxWidth / 2 - _view.GetWidth(), 0, _fade[0]);
+            _services.GfxDriver->DrawSprite(0, _view.GetHeight() / 2 - _boxHeight / 2 - _view.GetHeight(), _fade[1]);
+            _services.GfxDriver->DrawSprite(_view.GetWidth() / 2 + _boxWidth / 2, 0, _fade[2]);
+            _services.GfxDriver->DrawSprite(0, _view.GetHeight() / 2 + _boxHeight / 2, _fade[3]);
         }
         else
         {
             _fade[0]->SetStretch(_boxWidth, _boxHeight, false);
-            services.GfxDriver->DrawSprite(_view.GetWidth() / 2 - _boxWidth / 2, _view.GetHeight() / 2 - _boxHeight / 2,
-                                           _fade[0]);
+            _services.GfxDriver->DrawSprite(_view.GetWidth() / 2 - _boxWidth / 2,
+                                            _view.GetHeight() / 2 - _boxHeight / 2, _fade[0]);
         }
-        services.GfxDriver->EndSpriteBatch();
+        _services.GfxDriver->EndSpriteBatch();
         render_to_screen();
     }
     // Update the state during a game tick
@@ -572,7 +573,6 @@ public:
     // Draw the state
     void Draw() override
     {
-        EngineServices &services = EngineServices::Current();
         // do the crossfade
         _shot_ddb->SetAlpha(_alpha);
         construct_game_scene(true);
@@ -580,9 +580,9 @@ public:
         // draw old screen on top while alpha > 16
         if (_alpha > 16)
         {
-            services.GfxDriver->BeginSpriteBatch(_view, _sprTrans);
-            services.GfxDriver->DrawSprite(0, 0, _shot_ddb);
-            services.GfxDriver->EndSpriteBatch();
+            _services.GfxDriver->BeginSpriteBatch(_view, _sprTrans);
+            _services.GfxDriver->DrawSprite(0, 0, _shot_ddb);
+            _services.GfxDriver->EndSpriteBatch();
         }
         render_to_screen();
     }
@@ -640,18 +640,18 @@ public:
     // Draw the state
     void Draw() override
     {
-        EngineServices &services = EngineServices::Current();
         construct_game_scene(true);
         construct_game_screen_overlay(false /* no cursor */);
-        services.GfxDriver->BeginSpriteBatch(_view, _sprTrans);
-        services.GfxDriver->DrawSprite(0, 0, _shot_ddb);
-        services.GfxDriver->EndSpriteBatch();
+        _services.GfxDriver->BeginSpriteBatch(_view, _sprTrans);
+        _services.GfxDriver->DrawSprite(0, 0, _shot_ddb);
+        _services.GfxDriver->EndSpriteBatch();
         render_to_screen();
     }
     // Update the state during a game tick
     bool RunImpl() override
     {
-        Game &game = Game::Current();
+        // a local reference: the loop below would load the member again after every PutPixel call
+        Game &game = _game;
         if (_step >= 16)
             return false;
 
@@ -664,7 +664,7 @@ public:
                 game.SavedViewportBitmap->PutPixel(x + _pattern[_step] / 4, y + _pattern[_step] % 4, maskCol);
             }
         }
-        EngineServices::Current().GfxDriver->UpdateDDBFromBitmap(_shot_ddb, game.SavedViewportBitmap.get());
+        _services.GfxDriver->UpdateDDBFromBitmap(_shot_ddb, game.SavedViewportBitmap.get());
 
         // TODO: implement speed parameter, currently unused
         _step = std::min(_step + 1, 16);
@@ -947,7 +947,6 @@ public:
     // returns if the state should continue, or ends instantly
     void Begin() override
     {
-        Game &game = Game::Current();
         // TODO: support shaking room viewport separately
         // TODO: rely on game speed setting? and/or provide frequency and duration args
         // TODO: unify blocking and non-blocking shake update
@@ -957,10 +956,10 @@ public:
         int compat_shake_delay = static_cast<int>(50.f / (1000.f / GetGameSpeed()));
         int compat_duration = static_cast<int>(40 * (50.f / (1000.f / GetGameSpeed())));
 
-        game.Play.shakesc_length = compat_duration;
-        game.Play.shakesc_delay = 2 * compat_shake_delay;
-        game.Play.shakesc_amount = _severe;
-        game.Play.mouse_cursor_shown = false;
+        _game.Play.shakesc_length = compat_duration;
+        _game.Play.shakesc_delay = 2 * compat_shake_delay;
+        _game.Play.shakesc_amount = _severe;
+        _game.Play.mouse_cursor_shown = false;
 
         // Optimized variant for software render: create game scene once and shake it
         // TODO: split implementations into two state classes?
@@ -975,16 +974,15 @@ public:
     // should NOT be called if Begin returned FALSE.
     void End() override
     {
-        Game &game = Game::Current();
         if (!_services.GfxDriver->RequiresFullRedrawEachFrame())
         {
             clear_letterbox_borders();
             render_to_screen();
         }
-        game.Play.mouse_cursor_shown = true;
-        game.Play.shakesc_length = 0;
-        game.Play.shakesc_delay = 0;
-        game.Play.shakesc_amount = 0;
+        _game.Play.mouse_cursor_shown = true;
+        _game.Play.shakesc_length = 0;
+        _game.Play.shakesc_delay = 0;
+        _game.Play.shakesc_amount = 0;
     }
     // Draw the state
     void Draw() override {}
@@ -1008,12 +1006,13 @@ public:
             update_polled_stuff();
             WaitForNextFrame();
         }
-        return ++_step < Game::Current().Play.shakesc_length;
+        return ++_step < _game.Play.shakesc_length;
     }
 
 private:
     // Held for the life of the state: Run() is the body of a loop
     EngineServices &_services = EngineServices::Current();
+    Game &_game = Game::Current();
     int _severe = 0;
     int _step = 0;
 };

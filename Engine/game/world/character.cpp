@@ -390,7 +390,7 @@ float GetFaceDirRatio(CharacterInfo *ch)
     if (chex.face_dir_ratio != 0.f)
         return chex.face_dir_ratio;
     // TODO: cache current area in CharacterExtras somewhere during early char update
-    int onarea = get_walkable_area_at_location(ch->x, ch->y);
+    int onarea = get_walkable_area_at_location(room, ch->x, ch->y);
     if (onarea > 0 && room.WalkAreas[onarea].FaceDirectionRatio != 0.f)
         return room.WalkAreas[onarea].FaceDirectionRatio;
     if (room.State->face_dir_ratio != 0.f)
@@ -615,9 +615,8 @@ CharacterInfo *Character_GetFollowing(CharacterInfo *ch)
     return &game.chars[game.CharExtras[ch->index_id].following];
 }
 
-int GetCharacterWidth(int char_id)
+int GetCharacterWidth(Game &game, int char_id)
 {
-    Game &game = Game::Current();
     CharacterInfo *ch = &game.chars[char_id];
 
     if (game.CharExtras[char_id].width < 1)
@@ -636,9 +635,8 @@ int GetCharacterWidth(int char_id)
         return game.CharExtras[char_id].width;
 }
 
-int GetCharacterHeight(int char_id)
+int GetCharacterHeight(Game &game, int char_id)
 {
-    Game &game = Game::Current();
     CharacterInfo *ch = &game.chars[char_id];
 
     if (game.CharExtras[char_id].height < 1)
@@ -659,6 +657,7 @@ int GetCharacterHeight(int char_id)
 
 int Character_IsCollidingWithChar(CharacterInfo *ch, CharacterInfo *other)
 {
+    Game &game = Game::Current();
     if (other == nullptr)
     {
         quit("!AreCharactersColliding: invalid char2");
@@ -676,8 +675,8 @@ int Character_IsCollidingWithChar(CharacterInfo *ch, CharacterInfo *other)
     else
         return 0;
 
-    int w1 = GetCharacterWidth(ch->index_id);
-    int w2 = GetCharacterWidth(other->index_id);
+    int w1 = GetCharacterWidth(game, ch->index_id);
+    int w2 = GetCharacterWidth(game, other->index_id);
 
     int xps1 = ch->x - w1 / 2;
     int xps2 = other->x - w2 / 2;
@@ -992,7 +991,8 @@ void Character_SetAsPlayer(CharacterInfo *ch)
     if (game.DisplayedRoom != game.PlayerChar->room)
         NewRoom(game.PlayerChar->room);
     else // make sure it doesn't run the region interactions
-        game.Play.player_on_region = GetRegionIDAtRoom(game.PlayerChar->x, game.PlayerChar->y, kHit_Interactable);
+        game.Play.player_on_region =
+            GetRegionIDAtRoom(Room::Current(), game.PlayerChar->x, game.PlayerChar->y, kHit_Interactable);
 
     if ((game.PlayerChar->activeinv >= 0) && !game.PlayerChar->has_any_of_item(game.PlayerChar->activeinv))
         game.PlayerChar->activeinv = -1;
@@ -2737,9 +2737,8 @@ void fix_player_sprite(CharacterInfo *ch, const MoveList &cmls)
 }
 
 // Check whether two characters have walked into each other
-int has_hit_another_character(int source_char)
+int has_hit_another_character(Game &game, int source_char)
 {
-    Game &game = Game::Current();
     // if the character who's moving doesn't block, don't bother checking
     if (game.chars[source_char].flags & CHF_NOBLOCKING)
     {
@@ -2759,7 +2758,7 @@ int has_hit_another_character(int source_char)
         if (game.chars[ww].flags & CHF_NOBLOCKING)
             continue;
 
-        if (get_char_blocking_rect(ww).IsInside(game.chars[source_char].x, game.chars[source_char].y))
+        if (get_char_blocking_rect(game, ww).IsInside(game.chars[source_char].x, game.chars[source_char].y))
         {
             // we are now overlapping character 'ww'
             if ((game.chars[ww].walking) && ((game.chars[ww].flags & CHF_AWAITINGMOVE) == 0))
@@ -2772,9 +2771,8 @@ int has_hit_another_character(int source_char)
 // Does the next move from the character's movelist.
 // Returns 1 if they are now waiting for another char to move,
 // otherwise returns 0
-int doNextCharMoveStep(CharacterInfo *ch, CharacterExtras *chex)
+int doNextCharMoveStep(Game &game, CharacterInfo *ch, CharacterExtras *chex)
 {
-    Game &game = Game::Current();
     assert(ch->walking > 0);
     if (ch->walking <= 0)
     {
@@ -2805,7 +2803,7 @@ int doNextCharMoveStep(CharacterInfo *ch, CharacterExtras *chex)
         }
     }
 
-    int ntf = has_hit_another_character(ch->index_id);
+    int ntf = has_hit_another_character(game, ch->index_id);
     if (ntf >= 0)
     {
         ch->walkwait = 30;
@@ -2847,7 +2845,7 @@ bool is_char_walking_ndirect(CharacterInfo *ch)
 bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
 {
     Room &room = Room::Current();
-    const Point at_pt = Point(room_to_mask_coord(src.X), room_to_mask_coord(src.Y));
+    const Point at_pt = Point(room_to_mask_coord(room, src.X), room_to_mask_coord(room, src.Y));
     const Bitmap *mask = room.WalkAreaMask.get();
 
     int pix_value = 0;
@@ -2866,10 +2864,10 @@ bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
     Rect limits = RectWH(mask->GetSize());
     // Adjust scan area to match historical behavior of Character.PlaceOnWalkableArea()
     // Characters that are within Room Edges cannot be moved outside of them
-    int right_edge = room_to_mask_coord(room.Edges.Right);
-    int left_edge = room_to_mask_coord(room.Edges.Left);
-    int top_edge = room_to_mask_coord(room.Edges.Top);
-    int bottom_edge = room_to_mask_coord(room.Edges.Bottom);
+    int right_edge = room_to_mask_coord(room, room.Edges.Right);
+    int left_edge = room_to_mask_coord(room, room.Edges.Left);
+    int top_edge = room_to_mask_coord(room, room.Edges.Top);
+    int bottom_edge = room_to_mask_coord(room, room.Edges.Bottom);
 
     // Original comment says that edges are ignored if the character is outside,
     // because "people forget to move the edges sometimes".
@@ -2887,7 +2885,7 @@ bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
         return false;
     }
 
-    dst = Point(mask_to_room_coord(dst.X), mask_to_room_coord(dst.Y));
+    dst = Point(mask_to_room_coord(room, dst.X), mask_to_room_coord(room, dst.Y));
     return true;
 }
 
@@ -3132,16 +3130,15 @@ Bitmap *GetCharacterImage(int char_id, bool always_original, bool *is_original)
     if (is_original)
         *is_original = pic == nullptr; // if not used cached image, then use original
     if (!pic)
-        pic = GetCharacterSourceImage(char_id);
+        pic = GetCharacterSourceImage(Game::Current(), EngineServices::Current(), char_id);
     return pic;
 }
 
-Bitmap *GetCharacterSourceImage(int char_id)
+Bitmap *GetCharacterSourceImage(Game &game, EngineServices &services, int char_id)
 {
-    Game &game = Game::Current();
     const CharacterInfo &ch = game.chars[char_id];
     int sppic = game.Views[ch.view].loops[ch.loop].frames[ch.frame].pic;
-    return EngineServices::Current().Sprites[sppic];
+    return services.Sprites[sppic];
 }
 
 CharacterInfo *Character_GetAtScreenXY(int x, int y, int hit_options)
@@ -3176,9 +3173,8 @@ CharacterInfo *Character_GetAtRoomXY2(int x, int y)
     return Character_GetAtRoomXY(x, y, true);
 }
 
-void update_character_scale(int char_id)
+void update_character_scale(Game &game, Room &room, int char_id)
 {
-    Game &game = Game::Current();
     // Test for valid view and loop
     CharacterInfo &ch = game.chars[char_id];
     if (!ch.is_enabled() || ch.room != game.DisplayedRoom)
@@ -3211,7 +3207,7 @@ void update_character_scale(int char_id)
     const ViewFrame &vf = game.Views[ch.view].loops[ch.loop].frames[ch.frame];
     const int pic = vf.pic;
     int zoom, zoom_offs, scale_width, scale_height;
-    update_object_scale(zoom, scale_width, scale_height, ch.x, ch.y, pic, chex.zoom,
+    update_object_scale(game, room, zoom, scale_width, scale_height, ch.x, ch.y, pic, chex.zoom,
                         (ch.flags & CHF_MANUALSCALING) == 0);
     zoom_offs = (game.options[OPT_SCALECHAROFFSETS] != 0) ? zoom : 100;
 
@@ -3229,6 +3225,7 @@ void update_character_scale(int char_id)
 
 int GetCharIDAtRoom(int x, int y, int hit_options)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     const bool only_clickable = (hit_options & kHit_Interactable) != 0;
 
@@ -3256,10 +3253,10 @@ int GetCharIDAtRoom(int x, int y, int hit_options)
         int use_height = game.SpriteInfos[sppic].Height;
         // TODO: support mirrored transformation in GraphicSpace
         SpriteTransformFlags sprite_flags = game.Views[ch->view].loops[ch->loop].frames[ch->frame].flags;
-        Bitmap *image = GetCharacterSourceImage(cc);
+        Bitmap *image = GetCharacterSourceImage(game, services, cc);
         // Convert to local object coordinates
         Point local = game.CharExtras[cc].GetGraphicSpace().WorldToLocal(x, y);
-        if (is_pos_in_sprite(local.X, local.Y, 0, 0, image, use_width, use_height, sprite_flags) == FALSE)
+        if (is_pos_in_sprite(game, local.X, local.Y, 0, 0, image, use_width, use_height, sprite_flags) == FALSE)
         {
             continue;
         }
@@ -3274,15 +3271,14 @@ int GetCharIDAtRoom(int x, int y, int hit_options)
     return lowestwas;
 }
 
-Rect get_char_blocking_rect(int char_id)
+Rect get_char_blocking_rect(Game &game, int char_id)
 {
-    Game &game = Game::Current();
     CharacterInfo *ch = &game.chars[char_id];
 
     int width;
     if (ch->blocking_width < 1)
     {
-        width = GetCharacterWidth(char_id) - 4;
+        width = GetCharacterWidth(game, char_id) - 4;
     }
     else
         width = ch->blocking_width;
@@ -3992,7 +3988,7 @@ Rect GetCharacterRoomBBox(int char_id, bool use_frame_0)
     const CharacterInfo &ch = game.chars[char_id];
     int frame = use_frame_0 ? 0 : ch.frame;
     int pic = game.Views[ch.view].loops[ch.loop].frames[frame].pic;
-    scale_sprite_size(pic, chex.zoom, &width, &height);
+    scale_sprite_size(game, pic, chex.zoom, &width, &height);
     return RectWH(ch.x - width / 2, ch.y - height, width, height);
 }
 

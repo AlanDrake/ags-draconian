@@ -192,7 +192,10 @@ void Character_SetBlendMode(CharacterInfo *ch, int blend_mode);
 
 //=============================================================================
 
+struct EngineServices;
+class Game;
 class MoveList;
+class Room;
 namespace AGS
 {
 namespace Common
@@ -223,10 +226,10 @@ void start_character_turning(CharacterInfo *ch, int use_loop, bool use_diagloops
 // when the game turns characters while they walk, by turning it step by step. Does nothing if the move has no speed.
 void fix_player_sprite(CharacterInfo *ch, const MoveList &cmls);
 // Check whether two characters have walked into each other
-int has_hit_another_character(int source_char);
+int has_hit_another_character(Game &game, int source_char);
 // Does the next move from the character's movelist.
 // Returns 1 if the character is now waiting for another one to move, otherwise 0.
-int doNextCharMoveStep(CharacterInfo *ch, CharacterExtras *chex);
+int doNextCharMoveStep(Game &game, CharacterInfo *ch, CharacterExtras *chex);
 // Tells if character is currently moving, in eWalkableAreas mode
 bool is_char_walking_ndirect(CharacterInfo *ch);
 // Finds the walkable point nearest to src (src itself if it is walkable) and writes it to dst; returns false if
@@ -254,21 +257,21 @@ int wantMoveNow(CharacterInfo *ch, CharacterExtras *chex);
 void setup_player_character(int char_id);
 // Width and height of the character's sprite: the scaled size calculated by update_character_scale, or the size of
 // the current frame until then; 4 and 2 if the frame is invalid.
-int GetCharacterWidth(int char_id);
-int GetCharacterHeight(int char_id);
+int GetCharacterWidth(Game &game, int char_id);
+int GetCharacterHeight(Game &game, int char_id);
 
 // Get current character's image; this may return either source image, or cached transformed image
 AGS::Common::Bitmap *GetCharacterImage(int char_id, bool always_original = false, bool *is_original = nullptr);
 // Gets current source image (untransformed) for the character
-AGS::Common::Bitmap *GetCharacterSourceImage(int char_id);
+AGS::Common::Bitmap *GetCharacterSourceImage(Game &game, EngineServices &services, int char_id);
 // Deduces the character's scale, accounting for both manual scaling and the room region effects;
 // calculates the resulting sprite size. Does nothing for a disabled character or one in another room.
-void update_character_scale(int char_id);
+void update_character_scale(Game &game, Room &room, int char_id);
 // Get character ID at the given room coordinates
 int GetCharIDAtRoom(int x, int y, int hit_options);
 // Returns the character's blocking rectangle in room coordinates: the blocking width (by default the sprite's
 // width less 4) and the blocking top and bottom, with the blocking offsets applied.
-Rect get_char_blocking_rect(int char_id);
+Rect get_char_blocking_rect(Game &game, int char_id);
 // Runs the interaction for the cursor mode (mood) on the character at the given room position, if there is one;
 // returns 1 if there was a character, otherwise 0.
 int check_click_on_character(int x, int y, int mood);
@@ -308,22 +311,24 @@ PViewport FindNearestViewport(int char_id);
 // Updates one character for one game tick: turning, moving, animating, following, idling, in this order; does
 // nothing if the character is disabled. Characters following another "always on top" are added to
 // following_as_sheep, to be updated afterwards with UpdateFollowingExactlyCharacter.
-void UpdateCharacterMoveAndAnim(CharacterInfo *ch, CharacterExtras *chex, std::vector<int> &following_as_sheep);
+void UpdateCharacterMoveAndAnim(Game &game, Room &room, CharacterInfo *ch, CharacterExtras *chex,
+                                std::vector<int> &following_as_sheep);
 // Copies the position, room and previous room of the character it follows "always on top", and puts its baseline
 // one behind or in front of the followed one's.
-void UpdateFollowingExactlyCharacter(CharacterInfo *ch);
+void UpdateFollowingExactlyCharacter(Game &game, CharacterInfo *ch);
 // Makes the next turn step of a turning character; returns true if the character was turning.
-bool UpdateCharacterTurning(CharacterInfo *ch, CharacterExtras *chex);
+bool UpdateCharacterTurning(Game &game, CharacterInfo *ch, CharacterExtras *chex);
 // Makes the move steps of a moving character (see wantMoveNow), and stops it when the move is finished;
 // doing_nothing is cleared while the character is still moving.
-void UpdateCharacterMoving(CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing);
+void UpdateCharacterMoving(Game &game, CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing);
 // Advances the animation of an animating or idling character, including the lip-sync of a speaking one; returns
 // true if the rest of the character's update is to be skipped. doing_nothing is cleared, unless it is an idle animation.
-bool UpdateCharacterAnimating(CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing);
+bool UpdateCharacterAnimating(Game &game, CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing);
 // Counts the idle time of a character that does nothing and starts its idle animation when the time is up.
-void UpdateCharacterIdle(CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing);
+void UpdateCharacterIdle(Game &game, CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing);
 // Makes a character that follows another one walk after it, or change room with it, when it has nothing else to do.
-void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_sheep, int &doing_nothing);
+void UpdateCharacterFollower(Game &game, Room &room, CharacterInfo *ch, std::vector<int> &following_as_sheep,
+                             int &doing_nothing);
 // Rebuilds every character's list of inventory items (CharacterExtras::inventory) from the item quantities.
 void UpdateInventory();
 

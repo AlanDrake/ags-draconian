@@ -19,6 +19,8 @@
 #include "game/roomstruct.h"
 #include "script/runtimescriptvalue.h"
 
+class Room;
+
 // Script function: returns a DrawingSurface for the given room background (SCR_NO_VALUE: the current one);
 // reuses the surface already attached to it, if any. Returns null for an invalid index.
 ScriptDrawingSurface *Room_GetDrawingSurfaceForBackground(int bg_index);
@@ -114,9 +116,9 @@ AGS::Engine::MaskRouteFinder *get_room_pathfinder();
 // and upscale game coordinates.
 //
 // coordinate conversion (room) ---> (room mask)
-int room_to_mask_coord(int coord);
+int room_to_mask_coord(Room &room, int coord);
 // coordinate conversion (room mask) ---> (room)
-int mask_to_room_coord(int coord);
+int mask_to_room_coord(Room &room, int coord);
 
 class ScriptPathfinder;
 class ScriptShaderInstance;

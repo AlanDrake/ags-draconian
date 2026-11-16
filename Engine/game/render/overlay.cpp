@@ -311,7 +311,7 @@ void *Overlay_GetGraphicPosition(ScriptOverlay *script_over)
     auto *over = GetOverlayValidate("Overlay.GetGraphicPosition", script_over);
     if (over)
     {
-        over->UpdateGraphicSpace();
+        over->UpdateGraphicSpace(EngineServices::Current());
         std::vector<Point> points;
         over->GetGraphicSpace().GetTransformedCorners(points, over->GetGraphicSize());
         return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
@@ -324,7 +324,7 @@ void *Overlay_GetGraphicBoundBox(ScriptOverlay *script_over)
     auto *over = GetOverlayValidate("Overlay.GetGraphicBoundBox", script_over);
     if (over)
     {
-        over->UpdateGraphicSpace();
+        over->UpdateGraphicSpace(EngineServices::Current());
         std::vector<Point> points;
         over->GetGraphicSpace().GetAABBPoints(points);
         return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
@@ -955,14 +955,14 @@ void CreateAnimatedOverlay(int over_id, bool pause_with_game)
     AddAnimatedOverlay(AnimatedOverlay(over_id, pause_with_game));
 }
 
-static void UpdateOverlayState(const AnimatedOverlay &aover)
+static void UpdateOverlayState(Game &game, const AnimatedOverlay &aover)
 {
     assert(aover.GetOverID() >= 0 && aover.GetOverID() < screenover.size() && screenover.IsInUse(aover.GetOverID()));
     if (aover.GetOverID() < 0 || aover.GetOverID() >= screenover.size() || !screenover.IsInUse(aover.GetOverID()))
         return;
 
     auto &over = screenover[aover.GetOverID()];
-    const ViewFrame *view_frame = aover.GetViewFrame();
+    const ViewFrame *view_frame = aover.GetViewFrame(game);
     if (view_frame)
     {
         over.SetSpriteNum(view_frame->pic, view_frame->xoffs, view_frame->yoffs);
@@ -977,7 +977,7 @@ void BeginAnimateOverlay(int over_id, int view, int loop, int frame, const ViewA
         return;
 
     aover->Begin(view, loop, frame, params);
-    UpdateOverlayState(*aover);
+    UpdateOverlayState(Game::Current(), *aover);
 }
 
 size_t AddAnimatedOverlay(AnimatedOverlay &&aover)
@@ -1041,6 +1041,7 @@ static void StopOverlayAnimImpl(size_t aover_id)
 
 void UpdateOverlayAnimations()
 {
+    Game &game = Game::Current();
     for (size_t i = 0; i < animovers.size(); ++i)
     {
         auto &aover = animovers[i];
@@ -1049,9 +1050,9 @@ void UpdateOverlayAnimations()
         if (aover.GetPauseWithGame() && IsGamePaused())
             continue;
 
-        if (aover.UpdateOnce())
+        if (aover.UpdateOnce(game))
         {
-            UpdateOverlayState(aover);
+            UpdateOverlayState(game, aover);
         }
         else
         {

@@ -83,8 +83,8 @@ static int GetThingRect(int thing, Rect *rect)
         if (game.chars[thing].room != game.DisplayedRoom)
             return 0;
 
-        const int charw = GetCharacterWidth(thing);
-        const int charh = GetCharacterHeight(thing);
+        const int charw = GetCharacterWidth(game, thing);
+        const int charh = GetCharacterHeight(game, thing);
         *rect = RectWH(game.chars[thing].x - (charw / 2),
                        game.CharExtras[thing].GetEffectiveY(&game.chars[thing]) - charh + 1, charw, charh);
     }
@@ -167,13 +167,14 @@ Bitmap *GetObjectImage(int obj_id, bool always_original, bool *is_original)
     return pic;
 }
 
-Bitmap *GetObjectSourceImage(int obj_id)
+Bitmap *GetObjectSourceImage(Room &room, EngineServices &services, int obj_id)
 {
-    return EngineServices::Current().Sprites[Room::Current().Objs[obj_id].num];
+    return services.Sprites[room.Objs[obj_id].num];
 }
 
 int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     Room &room = Room::Current();
     const bool only_clickable = (hit_options & kHit_Interactable) != 0;
@@ -199,10 +200,10 @@ int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
                 game.Views[room.Objs[obj_id].view].loops[room.Objs[obj_id].loop].frames[room.Objs[obj_id].frame].flags;
         }
 
-        Bitmap *image = GetObjectSourceImage(obj_id);
+        Bitmap *image = GetObjectSourceImage(room, services, obj_id);
         // Convert to local object coordinates
         Point local = room.Objs[obj_id].GetGraphicSpace().WorldToLocal(roomx, roomy);
-        if (is_pos_in_sprite(local.X, local.Y, 0, 0, image, sprite_width, sprite_height, sprite_flags) == FALSE)
+        if (is_pos_in_sprite(game, local.X, local.Y, 0, 0, image, sprite_width, sprite_height, sprite_flags) == FALSE)
         {
             continue;
         }
@@ -1537,20 +1538,19 @@ ScriptMotionPath *Object_GetMotionPath(ScriptObject *obj)
     return static_cast<ScriptMotionPath *>(sc_path.Obj());
 }
 
-void update_object_scale(int &res_zoom, int &res_width, int &res_height, int objx, int objy, int sprnum, int own_zoom,
-                         bool use_region_scaling)
+void update_object_scale(Game &game, Room &room, int &res_zoom, int &res_width, int &res_height, int objx, int objy,
+                         int sprnum, int own_zoom, bool use_region_scaling)
 {
-    Game &game = Game::Current();
     int zoom = own_zoom;
     if (use_region_scaling)
     {
         // Only apply area zoom if we're on a valid area:
         // * either area is > 0, or
         // * area 0 has valid scaling property (<> 0)
-        int onarea = get_walkable_area_at_location(objx, objy);
-        if ((onarea > 0) || (Room::Current().WalkAreas[0].ScalingFar != 0))
+        int onarea = get_walkable_area_at_location(room, objx, objy);
+        if ((onarea > 0) || (room.WalkAreas[0].ScalingFar != 0))
         {
-            zoom = get_area_scaling(onarea, objy);
+            zoom = get_area_scaling(room, onarea, objy);
         }
     }
 
@@ -1565,7 +1565,7 @@ void update_object_scale(int &res_zoom, int &res_width, int &res_height, int obj
     int sprheight = game.SpriteInfos[sprnum].Height;
     if (zoom != 100)
     {
-        scale_sprite_size(sprnum, zoom, &sprwidth, &sprheight);
+        scale_sprite_size(game, sprnum, zoom, &sprwidth, &sprheight);
     }
 
     res_zoom = zoom;
@@ -1573,18 +1573,17 @@ void update_object_scale(int &res_zoom, int &res_width, int &res_height, int obj
     res_height = sprheight;
 }
 
-void update_object_scale(int obj_id)
+void update_object_scale(Game &game, Room &room, int obj_id)
 {
-    Game &game = Game::Current();
-    RoomObject &room_obj = Room::Current().Objs[obj_id];
+    RoomObject &room_obj = room.Objs[obj_id];
     if (!room_obj.is_enabled())
     {
         return; // not enabled
     }
 
     int zoom, scale_width, scale_height;
-    update_object_scale(zoom, scale_width, scale_height, room_obj.x, room_obj.y, room_obj.num, room_obj.zoom,
-                        (room_obj.flags & OBJF_USEROOMSCALING) != 0);
+    update_object_scale(game, room, zoom, scale_width, scale_height, room_obj.x, room_obj.y, room_obj.num,
+                        room_obj.zoom, (room_obj.flags & OBJF_USEROOMSCALING) != 0);
 
     // Save calculated properties and recalc GS
     room_obj.zoom = zoom;
@@ -1600,9 +1599,9 @@ void update_object_scale(int obj_id)
     room_obj.UpdateGraphicSpace();
 }
 
-Rect get_object_blocking_rect(int obj_id)
+Rect get_object_blocking_rect(Room &room, int obj_id)
 {
-    RoomObject *room_obj = &Room::Current().Objs[obj_id];
+    RoomObject *room_obj = &room.Objs[obj_id];
 
     int width;
     if (room_obj->blocking_width < 1)
@@ -1633,7 +1632,7 @@ Rect get_object_blocking_rect(int obj_id)
     return RectWH(x, y1, width, y2 - y1);
 }
 
-int is_pos_in_sprite(int x, int y, int arx, int ary, Bitmap *sprit, int spww, int sphh,
+int is_pos_in_sprite(Game &game, int x, int y, int arx, int ary, Bitmap *sprit, int spww, int sphh,
                      Common::SpriteTransformFlags sprite_flags)
 {
     if (spww == 0)
@@ -1646,7 +1645,7 @@ int is_pos_in_sprite(int x, int y, int arx, int ary, Bitmap *sprit, int spww, in
         return false;
     }
 
-    if (Game::Current().options[OPT_PIXPERFECT])
+    if (game.options[OPT_PIXPERFECT])
     {
         // if it's transparent, or off the edge of the sprite, ignore
         int xpos = x - arx;
@@ -1829,9 +1828,8 @@ static bool CycleNextFrame(const ViewStruct *view, uint16_t &loop, uint16_t &fra
 }
 
 // General view animation algorithm: find next loop and frame, depending on anim settings
-bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams &anim_params)
+bool CycleViewAnim(Game &game, int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams &anim_params)
 {
-    Game &game = Game::Current();
     const ViewStruct *aview = &game.Views[view];
     uint16_t loop = o_loop;
     uint16_t frame = o_frame;

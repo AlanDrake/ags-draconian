@@ -1124,7 +1124,7 @@ void DialogOptions::Draw()
         CreateOverlay();
 
     ScreenOverlay *options_overlay = get_overlay(options_overlay_id);
-    Bitmap *options_bmp = options_overlay->GetImage();
+    Bitmap *options_bmp = options_overlay->GetImage(EngineServices::Current());
 
     for (auto &item : items)
         item.Position = Rect();

@@ -408,7 +408,6 @@ void ReadGameSetupStruct(GameDef &setup, Stream *in, GameStateSvgVersion svg_ver
     // of GameDef
     in->ReadArrayOfInt32(setup.options, OPT_HIGHESTOPTION_321 + 1);
     setup.options[OPT_LIPSYNCTEXT] = in->ReadInt32();
-    // of GameDef
     setup.playercharacter = in->ReadInt32();
     setup.dialog_bullet = in->ReadInt32();
     // legacy uint16 values of a inv cursor hotdot and cross colors
@@ -430,7 +429,6 @@ void WriteGameSetupStruct(const GameDef &setup, Stream *out)
     // of GameDef
     out->WriteArrayOfInt32(setup.options, OPT_HIGHESTOPTION_321 + 1);
     out->WriteInt32(setup.options[OPT_LIPSYNCTEXT]);
-    // of GameDef
     out->WriteInt32(setup.playercharacter);
     out->WriteInt32(setup.dialog_bullet);
     out->WriteInt16(0); // [DEPRECATED] uint16 value of a inv cursor hotdot color

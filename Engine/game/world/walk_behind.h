@@ -42,13 +42,15 @@ class Bitmap;
 }
 } // namespace AGS
 
+class Room;
+
 // Recalculates walk-behind positions
 void walkbehinds_recalc();
 // Generates walk-behinds as separate sprites
 void walkbehinds_generate_sprites();
 // Edits the given game object's sprite, cutting out pixels covered by walk-behinds;
 // returns whether any pixels were updated
-bool walkbehinds_cropout(AGS::Common::Bitmap *sprit, int sprx, int spry, int basel);
+bool walkbehinds_cropout(Room &room, AGS::Common::Bitmap *sprit, int sprx, int spry, int basel);
 
 struct ScriptWalkbehind;
 

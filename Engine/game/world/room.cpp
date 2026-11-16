@@ -288,13 +288,15 @@ bool Room_Exists(int room)
 
 ScriptUserObject *Room_NearestWalkableArea(int x, int y)
 {
+    Room &room = Room::Current();
     if (Game::Current().DisplayedRoom < 0)
         quit("!Room.NearestWalkableArea: no room is currently loaded");
     Point found_pt;
-    if (Pathfinding::FindNearestWalkablePoint(Room::Current().WalkAreaMask.get(),
-                                              Point(room_to_mask_coord(x), room_to_mask_coord(y)), found_pt))
+    if (Pathfinding::FindNearestWalkablePoint(
+            room.WalkAreaMask.get(), Point(room_to_mask_coord(room, x), room_to_mask_coord(room, y)), found_pt))
     {
-        return ScriptStructHelpers::CreatePoint(mask_to_room_coord(found_pt.X), mask_to_room_coord(found_pt.Y));
+        return ScriptStructHelpers::CreatePoint(mask_to_room_coord(room, found_pt.X),
+                                                mask_to_room_coord(room, found_pt.Y));
     }
     return nullptr;
 }
@@ -935,19 +937,19 @@ void load_new_room(int room_id, CharacterInfo *ch)
             ch->loop = 2;
         }
         // if starts on un-walkable area
-        if (get_walkable_area_pixel(ch->x, ch->y) == 0)
+        if (get_walkable_area_pixel(room, ch->x, ch->y) == 0)
         {
             if (game.RoomChange.Pos >= 3000)
             { // bottom or top of screen
                 int try_left = ch->x - 1, try_right = ch->x + 1;
                 while (1)
                 {
-                    if (get_walkable_area_pixel(try_left, ch->y) > 0)
+                    if (get_walkable_area_pixel(room, try_left, ch->y) > 0)
                     {
                         ch->x = try_left;
                         break;
                     }
-                    if (get_walkable_area_pixel(try_right, ch->y) > 0)
+                    if (get_walkable_area_pixel(room, try_right, ch->y) > 0)
                     {
                         ch->x = try_right;
                         break;
@@ -972,12 +974,12 @@ void load_new_room(int room_id, CharacterInfo *ch)
                 int try_left = ch->y - 1, try_right = ch->y + 1;
                 while (1)
                 {
-                    if (get_walkable_area_pixel(ch->x, try_left) > 0)
+                    if (get_walkable_area_pixel(room, ch->x, try_left) > 0)
                     {
                         ch->y = try_left;
                         break;
                     }
-                    if (get_walkable_area_pixel(ch->x, try_right) > 0)
+                    if (get_walkable_area_pixel(room, ch->x, try_right) > 0)
                     {
                         ch->y = try_right;
                         break;
@@ -1344,14 +1346,14 @@ MaskRouteFinder *get_room_pathfinder()
 }
 
 // coordinate conversion (room) ---> (room mask)
-int room_to_mask_coord(int coord)
+int room_to_mask_coord(Room &room, int coord)
 {
-    return coord / Room::Current().MaskResolution;
+    return coord / room.MaskResolution;
 }
 // coordinate conversion (room mask) ---> (room)
-int mask_to_room_coord(int coord)
+int mask_to_room_coord(Room &room, int coord)
 {
-    return coord * Room::Current().MaskResolution;
+    return coord * room.MaskResolution;
 }
 
 #include "debug/out.h"

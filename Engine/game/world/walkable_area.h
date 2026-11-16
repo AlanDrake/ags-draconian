@@ -29,20 +29,23 @@ class Bitmap;
 }
 } // namespace AGS
 
+class Game;
+class Room;
+
 // Rebuilds the room's walkable area mask from the backup taken when the room was loaded, erasing the areas
 // that game.Play.walkable_areas_on has switched off. Call after changing which areas are enabled.
 void redo_walkable_areas();
 // Returns the walkable area number (the mask value) at the room point, 0 for no area, or a negative value
 // outside the mask. Erased (disabled) areas read as 0.
-int get_walkable_area_pixel(int x, int y);
+int get_walkable_area_pixel(Room &room, int x, int y);
 // Returns the scaling of the walkable area area_id at the room row y, as a percentage of normal size (100).
 // A vector-scaled area interpolates between its far (top) and near (bottom) scaling over its rows,
 // any other valid area has one scaling; an invalid area_id gives 100. Never returns 0 (that gives 100).
-int get_area_scaling(int area_id, int y);
+int get_area_scaling(Room &room, int area_id, int y);
 // Scales the sprite's size by zoom_level (a percentage) into new_width and new_height, each at least 1.
-void scale_sprite_size(int sprite_id, int zoom_level, int *new_width, int *new_height);
+void scale_sprite_size(Game &game, int sprite_id, int zoom_level, int *new_width, int *new_height);
 // Erases the room-coordinate rectangle area from the temporary walkable bitmap (see prepare_walkable_areas).
-void remove_walkable_areas_from_temp(const Rect &area);
+void remove_walkable_areas_from_temp(Room &room, const Rect &area);
 // Returns the walkable mask with the blocking rectangles of the other characters and the solid objects in the
 // room erased from it, for the pathfinder. Pass the moving character's ID, or -1 for none (then every
 // enabled blocking character and solid object counts); a rectangle the moving character stands in is left
@@ -53,7 +56,7 @@ AGS::Common::Bitmap *prepare_walkable_areas(int source_char_id);
 // Returns the walkable area (0 to MAX_WALK_AREAS - 1) at the room point, 0 for none. Off the room's edge it
 // takes the area at the nearest edge; on a non-walkable pixel it tries the points 2 pixels to the right,
 // left, below and above in turn.
-int get_walkable_area_at_location(int x, int y);
+int get_walkable_area_at_location(Room &room, int x, int y);
 // Same for the position of the character char_id.
 int get_walkable_area_at_character(int char_id);
 

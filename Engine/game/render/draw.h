@@ -56,6 +56,8 @@ int MakeColor(int color_index);
 class Viewport;
 class Camera;
 struct EngineServices;
+class Game;
+class Room;
 
 // Initializes drawing methods and optimisation
 void init_draw_method();
@@ -240,9 +242,9 @@ bool GfxDriverSpriteEvtCallback(int evt, intptr_t data);
 // effect changes (scaling, tint, etc).
 // * force_software option forces HW renderers to construct the image
 // in software mode as well.
-bool construct_object_gfx(int obj_id, bool force_software);
+bool construct_object_gfx(Game &game, Room &room, EngineServices &services, int obj_id, bool force_software);
 // Same as above for a character: creates the actsps image of character char_id
-bool construct_char_gfx(int char_id, bool force_software);
+bool construct_char_gfx(Game &game, Room &room, EngineServices &services, int char_id, bool force_software);
 // Returns a cached character image prepared for the render
 AGS::Common::Bitmap *get_cached_character_image(int char_id);
 // Returns a cached object image prepared for the render
@@ -262,8 +264,8 @@ void setpal();
 // Creates bitmap of a format compatible with the gfxdriver;
 // if col_depth is 0, uses game's native color depth.
 AGS::Common::Bitmap *CreateCompatBitmap(int width, int height, int col_depth = 0);
-// The same for a caller that holds the services already (a loop)
-AGS::Common::Bitmap *CreateCompatBitmap(EngineServices &services, int width, int height, int col_depth = 0);
+// The same for a caller that holds the contexts already (a loop)
+AGS::Common::Bitmap *CreateCompatBitmap(Game &game, EngineServices &services, int width, int height, int col_depth = 0);
 // Performs any kind of conversions over bitmap if they are necessary for it
 // to be be used in AGS sprite operations. Returns either old or new bitmap.
 // Original bitmap **gets deleted** if a new bitmap had to be created.

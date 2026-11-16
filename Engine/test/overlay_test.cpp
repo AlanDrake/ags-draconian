@@ -144,7 +144,7 @@ TEST_F(OverlayLayout, SpriteAtTheOverlayPosition)
     ScreenOverlay over(1);
     over.SetSpriteNum(kSprite20x10);
     over.SetFixedPosition(50, 40);
-    over.UpdateGraphicSpace();
+    over.UpdateGraphicSpace(EngineServices::Current());
     EXPECT_EQ(Size(20, 10), over.GetGraphicSize());
     EXPECT_EQ(Size(20, 10), over.GetDestinationSize());
     EXPECT_EQ(Size(20, 10), over.GetScaledSize());
@@ -157,7 +157,7 @@ TEST_F(OverlayLayout, SpriteOffsetMovesTheGraphicNotThePosition)
     ScreenOverlay over(1);
     over.SetSpriteNum(kSprite20x10, 3, -2);
     over.SetFixedPosition(50, 40);
-    over.UpdateGraphicSpace();
+    over.UpdateGraphicSpace(EngineServices::Current());
     EXPECT_EQ(50, over.GetX());
     EXPECT_EQ(40, over.GetY());
     EXPECT_EQ(Point(53, 38), over.GetDrawPos());
@@ -166,16 +166,17 @@ TEST_F(OverlayLayout, SpriteOffsetMovesTheGraphicNotThePosition)
 
 TEST_F(OverlayLayout, AnchorAlignsTheSpriteToThePosition)
 {
+    EngineServices &services = EngineServices::Current();
     ScreenOverlay over(1);
     over.SetSpriteNum(kSprite21x11);
     over.SetFixedPosition(100, 100);
     // bottom centre
     over.SetSpriteAnchor(Pointf(0.5f, 1.f));
-    over.UpdateGraphicSpace();
+    over.UpdateGraphicSpace(services);
     EXPECT_EQ(Rect(90, 90, 110, 100), over.GetGraphicSpace().AABB());
     // bottom right
     over.SetSpriteAnchor(Pointf(1.f, 1.f));
-    over.UpdateGraphicSpace();
+    over.UpdateGraphicSpace(services);
     EXPECT_EQ(Rect(80, 90, 100, 100), over.GetGraphicSpace().AABB());
     // the anchor is clamped to the sprite
     over.SetSpriteAnchor(Pointf(2.f, -1.f));
@@ -188,7 +189,7 @@ TEST_F(OverlayLayout, ScaleMultipliesTheSize)
     over.SetSpriteNum(kSprite20x10);
     over.SetFixedPosition(50, 40);
     over.SetScale(2.f, 3.f);
-    over.UpdateGraphicSpace();
+    over.UpdateGraphicSpace(EngineServices::Current());
     EXPECT_EQ(Size(20, 10), over.GetDestinationSize());
     EXPECT_EQ(Size(40, 30), over.GetScaledSize());
     // the box is the transformed corner pixels: the last pixel's origin, 19 * 2 and 9 * 3 away
@@ -202,7 +203,7 @@ TEST_F(OverlayLayout, ScaleWithAnAnchor)
     over.SetFixedPosition(100, 100);
     over.SetSpriteAnchor(Pointf(0.5f, 1.f));
     over.SetScale(2.f, 2.f);
-    over.UpdateGraphicSpace();
+    over.UpdateGraphicSpace(EngineServices::Current());
     EXPECT_EQ(Size(42, 22), over.GetScaledSize());
     // the anchor point stays at the position: (42 - 1) / 2 to the left, 22 - 1 up
     const Rect &aabb = over.GetGraphicSpace().AABB();
@@ -239,17 +240,18 @@ TEST_F(OverlayLayout, StretchedSpriteFillsTheDestinationSize)
     over.SetSpriteNum(kSprite20x10);
     over.SetFixedPosition(0, 0);
     over.SetDestinationSize(60, 20);
-    over.UpdateGraphicSpace();
+    over.UpdateGraphicSpace(EngineServices::Current());
     EXPECT_EQ(Rect(0, 0, 57, 18), over.GetGraphicSpace().AABB());
 }
 
 TEST_F(OverlayLayout, RotationTurnsTheBoxAroundTheCentre)
 {
+    EngineServices &services = EngineServices::Current();
     ScreenOverlay over(1);
     over.SetSpriteNum(kSprite21x11);
     over.SetFixedPosition(100, 100);
     over.SetRotation(90.f);
-    over.UpdateGraphicSpace();
+    over.UpdateGraphicSpace(services);
     const Rect &aabb = over.GetGraphicSpace().AABB();
     // a 21x11 box turned by a quarter is 11x21, around the same centre
     EXPECT_NEAR(10, aabb.GetWidth() - 1, 1);
@@ -258,7 +260,7 @@ TEST_F(OverlayLayout, RotationTurnsTheBoxAroundTheCentre)
     EXPECT_NEAR(105, (aabb.Top + aabb.Bottom) / 2, 1);
     // half a turn keeps the box
     over.SetRotation(180.f);
-    over.UpdateGraphicSpace();
+    over.UpdateGraphicSpace(services);
     EXPECT_NEAR(20, over.GetGraphicSpace().AABB().GetWidth() - 1, 1);
     EXPECT_NEAR(10, over.GetGraphicSpace().AABB().GetHeight() - 1, 1);
 }

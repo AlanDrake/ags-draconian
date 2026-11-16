@@ -236,7 +236,7 @@ int GetHotspotIDAtRoom(int xpp, int ypp, int hit_options)
 {
     Room &room = Room::Current();
     const bool only_clickable = (hit_options & kHit_Interactable) != 0;
-    int onhs = room.HotspotMask->GetPixel(room_to_mask_coord(xpp), room_to_mask_coord(ypp));
+    int onhs = room.HotspotMask->GetPixel(room_to_mask_coord(room, xpp), room_to_mask_coord(room, ypp));
     if (onhs <= 0 || onhs >= MAX_ROOM_HOTSPOTS)
         return 0;
     if (only_clickable && !room.State->hotspot[onhs].Enabled)

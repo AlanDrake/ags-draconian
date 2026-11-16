@@ -35,14 +35,13 @@
 using namespace AGS::Common;
 
 
-int GetRegionIDAtRoom(int x, int y, int hit_options)
+int GetRegionIDAtRoom(Room &room, int x, int y, int hit_options)
 {
-    Room &room = Room::Current();
     // if the co-ordinates are off the edge of the screen,
     // correct them to be just within
     // this fixes walk-off-screen problems
-    x = room_to_mask_coord(x);
-    y = room_to_mask_coord(y);
+    x = room_to_mask_coord(room, x);
+    y = room_to_mask_coord(room, y);
 
     if (x >= room.RegionMask->GetWidth())
         x = room.RegionMask->GetWidth() - 1;
@@ -63,7 +62,7 @@ int GetRegionIDAtRoom(int x, int y, int hit_options)
 
 ScriptRegion *Region_GetAtRoomXY(int x, int y, int hit_options)
 {
-    return &Game::Current().ScRegions[GetRegionIDAtRoom(x, y, hit_options)];
+    return &Game::Current().ScRegions[GetRegionIDAtRoom(Room::Current(), x, y, hit_options)];
 }
 
 ScriptRegion *Region_GetAtRoomXY2(int x, int y)

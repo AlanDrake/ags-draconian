@@ -514,14 +514,13 @@ void setpal()
 
 Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
 {
-    return CreateCompatBitmap(EngineServices::Current(), width, height, col_depth);
+    return CreateCompatBitmap(Game::Current(), EngineServices::Current(), width, height, col_depth);
 }
 
-Bitmap *CreateCompatBitmap(EngineServices &services, int width, int height, int col_depth)
+Bitmap *CreateCompatBitmap(Game &game, EngineServices &services, int width, int height, int col_depth)
 {
-    return new Bitmap(
-        width, height,
-        services.GfxDriver->GetCompatibleBitmapFormat(col_depth == 0 ? Game::Current().GetColorDepth() : col_depth));
+    return new Bitmap(width, height,
+                      services.GfxDriver->GetCompatibleBitmapFormat(col_depth == 0 ? game.GetColorDepth() : col_depth));
 }
 
 // PrepareSpriteForUseImpl converts input bitmap to format which may be used
@@ -1746,9 +1745,9 @@ void recycle_bitmap(std::unique_ptr<Common::Bitmap> &bimp, int coldep, int wid, 
     bimp.reset(recycle_bitmap(bimp.release(), coldep, wid, hit, make_transparent));
 }
 
-// Allocates texture for the GUI; takes the services from its caller, which calls it in the loop over the GUIs
-void recreate_drawobj_bitmap(EngineServices &services, Bitmap *&raw, IDriverDependantBitmap *&ddb, int width,
-                             int height, int rot_degrees)
+// Allocates texture for the GUI; takes the contexts from its caller, which calls it in the loop over the GUIs
+void recreate_drawobj_bitmap(Game &game, EngineServices &services, Bitmap *&raw, IDriverDependantBitmap *&ddb,
+                             int width, int height, int rot_degrees)
 {
     // Calculate all supported GUI transforms
     Size final_sz = drawstate.SoftwareRender ? RotateSize(Size(width, height), rot_degrees) : Size(width, height);
@@ -1756,7 +1755,7 @@ void recreate_drawobj_bitmap(EngineServices &services, Bitmap *&raw, IDriverDepe
     if (raw && raw->GetSize() == final_sz)
         return; // all is fine
     delete raw;
-    raw = CreateCompatBitmap(services, final_sz.Width, final_sz.Height);
+    raw = CreateCompatBitmap(game, services, final_sz.Width, final_sz.Height);
     if (ddb != nullptr)
     {
         services.GfxDriver->DestroyDDB(ddb);
@@ -1768,11 +1767,9 @@ void recreate_drawobj_bitmap(EngineServices &services, Bitmap *&raw, IDriverDepe
 // room regions and SetAmbientTint
 // tint_amnt will be set to 0 if there is no tint enabled
 // if this is the case, then light_lev holds the light level (0=none)
-void get_local_tint(int xpp, int ypp, bool use_region_tint, int *tint_amnt, int *tint_r, int *tint_g, int *tint_b,
-                    int *tint_lit, int *light_lev)
+void get_local_tint(Game &game, Room &room, int xpp, int ypp, bool use_region_tint, int *tint_amnt, int *tint_r,
+                    int *tint_g, int *tint_b, int *tint_lit, int *light_lev)
 {
-    Game &game = Game::Current();
-    Room &room = Room::Current();
     int tint_level = 0, light_level = 0;
     int tint_amount = 0;
     int tint_red = 0;
@@ -1788,17 +1785,17 @@ void get_local_tint(int xpp, int ypp, bool use_region_tint, int *tint_amnt, int 
         {
             // check if the player is on a region, to find its
             // light/tint level
-            on_region = GetRegionIDAtRoom(xpp, ypp, kHit_Interactable);
+            on_region = GetRegionIDAtRoom(room, xpp, ypp, kHit_Interactable);
             if (on_region == 0)
             {
                 // when walking, he might just be off a walkable area
-                on_region = GetRegionIDAtRoom(xpp - 3, ypp, kHit_Interactable);
+                on_region = GetRegionIDAtRoom(room, xpp - 3, ypp, kHit_Interactable);
                 if (on_region == 0)
-                    on_region = GetRegionIDAtRoom(xpp + 3, ypp, kHit_Interactable);
+                    on_region = GetRegionIDAtRoom(room, xpp + 3, ypp, kHit_Interactable);
                 if (on_region == 0)
-                    on_region = GetRegionIDAtRoom(xpp, ypp - 3, kHit_Interactable);
+                    on_region = GetRegionIDAtRoom(room, xpp, ypp - 3, kHit_Interactable);
                 if (on_region == 0)
-                    on_region = GetRegionIDAtRoom(xpp, ypp + 3, kHit_Interactable);
+                    on_region = GetRegionIDAtRoom(room, xpp, ypp + 3, kHit_Interactable);
             }
         }
 
@@ -1881,10 +1878,9 @@ static void apply_tint_or_light_ddb(ObjTexture &objtx, int light_level, int tint
 
 // Applies the specified RGB Tint or Light Level to the ObjTexture 'actsp'.
 // Used for software render mode only.
-static void apply_tint_or_light(ObjTexture &actsp, int light_level, int tint_amount, int tint_red, int tint_green,
-                                int tint_blue, int tint_light, int coldept, Bitmap *blit_from)
+static void apply_tint_or_light(Game &game, ObjTexture &actsp, int light_level, int tint_amount, int tint_red,
+                                int tint_green, int tint_blue, int tint_light, int coldept, Bitmap *blit_from)
 {
-    Game &game = Game::Current();
     // In a 256-colour game, we cannot do tinting or lightening
     // (but we can do darkening, if light_level < 0)
     if (game.color_depth == 1)
@@ -1957,10 +1953,10 @@ static void apply_tint_or_light(ObjTexture &actsp, int light_level, int tint_amo
 // * if transformation is necessary - writes into dst and returns dst;
 // * if no transformation is necessary - simply returns src;
 // Used for software render mode only.
-static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst, std::unique_ptr<Bitmap> (&transform_bmp)[2],
-                                const Size &scale_sz, float rotation = 0.f, GraphicFlip flip = Common::kFlip_None)
+static Bitmap *transform_sprite(Game &game, Bitmap *src, std::unique_ptr<Bitmap> &dst,
+                                std::unique_ptr<Bitmap> (&transform_bmp)[2], const Size &scale_sz, float rotation = 0.f,
+                                GraphicFlip flip = Common::kFlip_None)
 {
-    Game &game = Game::Current();
     assert(!scale_sz.IsNull());
 
     if ((src->GetSize() == scale_sz) && (rotation == 0.f) && (flip == kFlip_None))
@@ -2034,10 +2030,11 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst, std::
 // If any transformation was necessary, then writes the result into ObjTexture.
 // Returns if any transformation was done.
 // Used for software render mode only.
-static bool transform_sprite(ObjTexture &actsp, int sppic, const Size &scale_sz, float rotation, GraphicFlip flip)
+static bool transform_sprite(Game &game, EngineServices &services, ObjTexture &actsp, int sppic, const Size &scale_sz,
+                             float rotation, GraphicFlip flip)
 {
-    Bitmap *src = EngineServices::Current().Sprites[sppic];
-    Bitmap *result = transform_sprite(src, actsp.Bmp, actsp.TempBmp, scale_sz, rotation, flip);
+    Bitmap *src = services.Sprites[sppic];
+    Bitmap *result = transform_sprite(game, src, actsp.Bmp, actsp.TempBmp, scale_sz, rotation, flip);
     return result != src;
 }
 
@@ -2050,7 +2047,8 @@ static bool transform_sprite(ObjTexture &actsp, int sppic, const Size &scale_sz,
 // require preparing the raw bitmap.
 // Except if force_software is set, in which case even HW renderers
 // construct the image in software mode as well.
-static bool construct_object_gfx(const ViewFrame *vf, int pic, const Size &scale_size,
+static bool construct_object_gfx(Game &game, Room &room, EngineServices &services, const ViewFrame *vf, int pic,
+                                 const Size &scale_size,
                                  int tint_flags,            // OBJF_* flags related to using tint and light fx
                                  const ObjectCache &objsrc, // source item to acquire values from
                                  ObjectCache &objsav,       // cache item to use
@@ -2081,8 +2079,8 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic, const Size &scale
     else
     {
         // get the ambient or region tint
-        get_local_tint(objsrc.x, objsrc.y, (tint_flags & OBJF_USEREGIONTINTS) != 0, &tint_level, &tint_red, &tint_green,
-                       &tint_blue, &tint_light, &light_level);
+        get_local_tint(game, room, objsrc.x, objsrc.y, (tint_flags & OBJF_USEREGIONTINTS) != 0, &tint_level, &tint_red,
+                       &tint_green, &tint_blue, &tint_light, &light_level);
     }
 
     // check whether the image should be flipped
@@ -2141,7 +2139,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic, const Size &scale
         // Check if the X & Y co-ords are the same, too -- if so, there
         // is scope for further optimisations
         if (optimize_by_position && (objsav.x == objsrc.x) && (objsav.y == objsrc.y) && (actsp.Bmp != nullptr) &&
-            (Room::Current().WalkBehindBaselinesChanged == 0))
+            (room.WalkBehindBaselinesChanged == 0))
         {
             return true;
         }
@@ -2151,12 +2149,12 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic, const Size &scale
     }
 
     // Not cached, so draw the image
-    Bitmap *sprite = EngineServices::Current().Sprites[pic];
+    Bitmap *sprite = services.Sprites[pic];
     const int coldept = sprite->GetColorDepth();
     const int src_sprwidth = sprite->GetWidth();
     const int src_sprheight = sprite->GetHeight();
     // draw the base sprite, scaled and flipped as appropriate
-    bool actsps_used = transform_sprite(actsp, pic, scale_size, objsrc.rotation, use_flip);
+    bool actsps_used = transform_sprite(game, services, actsp, pic, scale_size, objsrc.rotation, use_flip);
     if (!actsps_used)
     {
         // ensure actsp.Bmp exists: this is the software path, reached by a HW driver only with force_software,
@@ -2172,7 +2170,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic, const Size &scale
         if (!actsps_used)
             blit_from = sprite;
 
-        apply_tint_or_light(actsp, light_level, tint_level, tint_red, tint_green, tint_blue, tint_light, coldept,
+        apply_tint_or_light(game, actsp, light_level, tint_level, tint_red, tint_green, tint_blue, tint_light, coldept,
                             blit_from);
     }
     else if (!actsps_used)
@@ -2208,7 +2206,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic, const Size &scale
 // - atx and aty are coordinates of the top-left object's corner in the room;
 // - usebasel is object's z-order, it may be modified within the function;
 // TODO: possibly makes sense to split this function into parts later.
-void prepare_and_add_object_gfx(const ObjectCache &objsav, ObjTexture &actsp, bool actsp_modified,
+void prepare_and_add_object_gfx(Room &room, const ObjectCache &objsav, ObjTexture &actsp, bool actsp_modified,
                                 const Size &scale_size, int atx, int aty, int &usebasel, bool use_walkbehinds,
                                 Pointf origin, int alpha, BlendMode blend_mode, int shader_id, bool hw_accel)
 {
@@ -2219,7 +2217,7 @@ void prepare_and_add_object_gfx(const ObjectCache &objsav, ObjTexture &actsp, bo
         // Only merge sprite with the walk-behinds in software mode
         if ((drawstate.WalkBehindMethod == DrawOverCharSprite) && (actsp_modified))
         {
-            walkbehinds_cropout(actsp.Bmp.get(), atx, aty, usebasel);
+            walkbehinds_cropout(room, actsp.Bmp.get(), atx, aty, usebasel);
         }
     }
     else
@@ -2229,7 +2227,7 @@ void prepare_and_add_object_gfx(const ObjectCache &objsav, ObjTexture &actsp, bo
         // or this shifted baseline will not be above it
         if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
         {
-            usebasel += Room::Current().Height;
+            usebasel += room.Height;
         }
     }
 
@@ -2268,24 +2266,27 @@ void prepare_and_add_object_gfx(const ObjectCache &objsav, ObjTexture &actsp, bo
 // Prepares a actsps element for RoomObject; updates object cache.
 // Software mode draws an actual bitmap in actsp, hardware mode only
 // assigns parameters, which may further be assigned to a texture.
-bool construct_object_gfx(int obj_id, bool force_software)
+bool construct_object_gfx(Game &game, Room &room, EngineServices &services, int obj_id, bool force_software)
 {
-    const RoomObject &obj = Room::Current().Objs[obj_id];
-    const int sprite_id = EngineServices::Current().Sprites.DoesSpriteExist(obj.num) ? obj.num : 0;
+    const RoomObject &obj = room.Objs[obj_id];
+    const int sprite_id = services.Sprites.DoesSpriteExist(obj.num) ? obj.num : 0;
 
     ObjectCache objsrc(sprite_id, obj.tint_r, obj.tint_g, obj.tint_b, obj.tint_level, obj.tint_light, 0 /* skip */,
                        obj.zoom, obj.rotation, kFlip_None /* skip */, obj.x, obj.y);
     objsrc.pivotx = obj.pivot.X + (static_cast<float>(obj.pivot_offset.X) / obj.width);
     objsrc.pivoty = obj.pivot.Y + (static_cast<float>(obj.pivot_offset.Y) / obj.height);
 
-    return construct_object_gfx(
-        (obj.view != UINT16_MAX) ? &Game::Current().Views[obj.view].loops[obj.loop].frames[obj.frame] : nullptr,
-        sprite_id, Size(obj.width, obj.height), obj.flags & OBJF_TINTLIGHTMASK, objsrc, objcache[obj_id],
-        actsps[obj_id], true, force_software);
+    return construct_object_gfx(game, room, services,
+                                (obj.view != UINT16_MAX) ? &game.Views[obj.view].loops[obj.loop].frames[obj.frame]
+                                                         : nullptr,
+                                sprite_id, Size(obj.width, obj.height), obj.flags & OBJF_TINTLIGHTMASK, objsrc,
+                                objcache[obj_id], actsps[obj_id], true, force_software);
 }
 
 void prepare_objects_for_drawing()
 {
+    EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     Room &room = Room::Current();
     set_our_eip(32);
     const bool hw_accel = !drawstate.SoftwareRender;
@@ -2309,11 +2310,11 @@ void prepare_objects_for_drawing()
         int usebasel = obj.get_baseline();
 
         // Generate raw bitmap in ObjTexture and store parameters in ObjectCache.
-        const bool actsp_modified = !construct_object_gfx(obj_id, false);
+        const bool actsp_modified = !construct_object_gfx(game, room, services, obj_id, false);
         // Prepare the object texture
-        prepare_and_add_object_gfx(objsav, actsp, actsp_modified, Size(obj.width, obj.height), imgx, imgy, usebasel,
-                                   (obj.flags & OBJF_NOWALKBEHINDS) == 0, obj.spr_anchor, obj.opacity, obj.blend_mode,
-                                   obj.shader_id, hw_accel);
+        prepare_and_add_object_gfx(room, objsav, actsp, actsp_modified, Size(obj.width, obj.height), imgx, imgy,
+                                   usebasel, (obj.flags & OBJF_NOWALKBEHINDS) == 0, obj.spr_anchor, obj.opacity,
+                                   obj.blend_mode, obj.shader_id, hw_accel);
         // Finally, add the texture to the draw list
         // FIXME: find a way to achieve this without manually coding scaling of the offset here;
         // also see fixme comment to GraphicSpace struct.
@@ -2376,13 +2377,12 @@ void tint_image(Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int light
 // Prepares a actsps element for Character; updates character cache.
 // Software mode draws an actual bitmap in actsp, hardware mode only
 // assigns parameters, which may further be assigned to a texture.
-bool construct_char_gfx(int char_id, bool force_software)
+bool construct_char_gfx(Game &game, Room &room, EngineServices &services, int char_id, bool force_software)
 {
-    Game &game = Game::Current();
     const CharacterInfo &ch = game.chars[char_id];
     const CharacterExtras &chex = game.CharExtras[char_id];
     const ViewFrame *vf = &game.Views[ch.view].loops[ch.loop].frames[ch.frame];
-    const int pic = EngineServices::Current().Sprites.DoesSpriteExist(vf->pic) ? vf->pic : 0;
+    const int pic = services.Sprites.DoesSpriteExist(vf->pic) ? vf->pic : 0;
 
     ObjectCache chsrc(pic, chex.tint_r, chex.tint_g, chex.tint_b, chex.tint_level, chex.tint_light, 0 /* skip */,
                       chex.zoom, chex.rotation, kFlip_None /* skip */, ch.x, ch.y);
@@ -2390,15 +2390,17 @@ bool construct_char_gfx(int char_id, bool force_software)
     chsrc.pivoty = chex.pivot.Y + (static_cast<float>(chex.pivot_offset.Y) / chex.height);
 
     return construct_object_gfx(
-        vf, pic, Size(chex.width, chex.height), CharFlagsToObjFlags(ch.flags) & OBJF_TINTLIGHTMASK, chsrc,
-        charcache[char_id], actsps[char_id + ACTSP_OBJSOFF],
+        game, room, services, vf, pic, Size(chex.width, chex.height),
+        CharFlagsToObjFlags(ch.flags) & OBJF_TINTLIGHTMASK, chsrc, charcache[char_id], actsps[char_id + ACTSP_OBJSOFF],
         false, // characters cannot optimize by pos, probably because of z coord and view offsets (?)
         force_software);
 }
 
 void prepare_characters_for_drawing()
 {
+    EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    Room &room = Room::Current();
     set_our_eip(33);
     const bool hw_accel = !drawstate.SoftwareRender;
 
@@ -2423,11 +2425,11 @@ void prepare_characters_for_drawing()
         int usebasel = ch.get_baseline();
 
         // Generate raw bitmap in ObjTexture and store parameters in ObjectCache.
-        const bool actsp_modified = !construct_char_gfx(char_id, false);
+        const bool actsp_modified = !construct_char_gfx(game, room, services, char_id, false);
         // Prepare the object texture
-        prepare_and_add_object_gfx(chsav, actsp, actsp_modified, Size(chex.width, chex.height), imgx, imgy, usebasel,
-                                   (ch.flags & CHF_NOWALKBEHINDS) == 0, chex.eff_anchor, ch.opacity, chex.blend_mode,
-                                   chex.shader_id, hw_accel);
+        prepare_and_add_object_gfx(room, chsav, actsp, actsp_modified, Size(chex.width, chex.height), imgx, imgy,
+                                   usebasel, (ch.flags & CHF_NOWALKBEHINDS) == 0, chex.eff_anchor, ch.opacity,
+                                   chex.blend_mode, chex.shader_id, hw_accel);
 #if (AGS_PLATFORM_DEBUG)
         actsp.Ddb->SetTag(String::FromFormat("CHAR%d:%s", ch.index_id, ch.scrname.GetCStr()));
 #endif
@@ -2673,9 +2675,8 @@ void draw_fps(const Rect &viewport)
 }
 
 // Draw GUI controls as separate sprites, each on their own texture
-static void construct_guictrl_tex(GUIMain &gui)
+static void construct_guictrl_tex(Game &game, GUIMain &gui)
 {
-    Game &game = Game::Current();
     if (GUI::ShouldSkipControls(&gui))
         return; // don't draw GUI controls
 
@@ -2701,12 +2702,11 @@ static void construct_guictrl_tex(GUIMain &gui)
 }
 
 // Push gui bg & controls textures for the render to the corresponding render target
-static void draw_gui_controls_batch(int gui_id)
+static void draw_gui_controls_batch(Game &game, EngineServices &services, int gui_id)
 {
-    EngineServices &services = EngineServices::Current();
     auto *gui_rtex = gui_render_tex[gui_id];
     assert(gui_rtex);
-    const auto &gui = Game::Current().Guis[gui_id];
+    const auto &gui = game.Guis[gui_id];
     auto *gui_bg = guibg[gui_id].Ddb;
     // Create a sub-batch
     services.GfxDriver->BeginSpriteBatch(gui_rtex, RectWH(0, 0, gui_bg->GetWidth(), gui_bg->GetHeight()),
@@ -2807,7 +2807,8 @@ void draw_gui_and_overlays()
                 {
                     auto &gbg = guibg[index];
                     Bitmap *bmp = gbg.Bmp.release();
-                    recreate_drawobj_bitmap(services, bmp, gbg.Ddb, gui.GetWidth(), gui.GetHeight(), gui.GetRotation());
+                    recreate_drawobj_bitmap(game, services, bmp, gbg.Ddb, gui.GetWidth(), gui.GetHeight(),
+                                            gui.GetRotation());
                     gbg.Bmp.reset(bmp);
                     Bitmap *guibg_final = gbg.Bmp.get();
                     Bitmap *draw_at = guibg_final;
@@ -2855,7 +2856,7 @@ void draw_gui_and_overlays()
                 // Update control textures, if they have changed themselves
                 if (draw_controls_as_textures && gui.HasControlsChanged())
                 {
-                    construct_guictrl_tex(gui);
+                    construct_guictrl_tex(game, gui);
                 }
 
                 set_our_eip(374);
@@ -2882,7 +2883,7 @@ void draw_gui_and_overlays()
                 gui_render_tex[index] = recycle_render_target(services, gui_render_tex[index], gui_ddb->GetWidth(),
                                                               gui_ddb->GetHeight(), gui_ddb->GetColorDepth(), false);
                 // Render control textures onto the GUI texture
-                draw_gui_controls_batch(index);
+                draw_gui_controls_batch(game, services, index);
                 // Replace gui bg ddb with a render target texture,
                 // and push it to the sprite list instead
                 gui_ddb = gui_render_tex[index];
@@ -3106,6 +3107,8 @@ static void construct_ui_view()
 static void construct_overlays()
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
+    Room &room = Room::Current();
     const bool is_software_mode = drawstate.SoftwareRender;
     const bool crop_walkbehinds = (drawstate.WalkBehindMethod == DrawOverCharSprite);
 
@@ -3130,7 +3133,7 @@ static void construct_overlays()
 
         auto &overtx = overtxs[i];
         bool has_changed = over.HasChanged();
-        over.UpdateGraphicSpace();
+        over.UpdateGraphicSpace(services);
         // If walk behinds are drawn over the cached object sprite, then check if positions were updated
         if (crop_walkbehinds && over.IsRoomLayer())
         {
@@ -3153,8 +3156,8 @@ static void construct_overlays()
             Bitmap *use_bmp = nullptr;
             if (is_software_mode)
             {
-                use_bmp = transform_sprite(over.GetImage(), overtx.Bmp, overtx.TempBmp, over.GetScaledSize(),
-                                           over.GetRotation(), over.GetFlip());
+                use_bmp = transform_sprite(game, over.GetImage(services), overtx.Bmp, overtx.TempBmp,
+                                           over.GetScaledSize(), over.GetRotation(), over.GetFlip());
                 if (crop_walkbehinds && over.IsRoomLayer())
                 {
                     auto &use_cache = overtx.Bmp;
@@ -3165,12 +3168,12 @@ static void construct_overlays()
                         use_cache->Blit(use_bmp);
                     }
                     const Point draw_pos = over.GetGraphicSpace().TopLeft();
-                    walkbehinds_cropout(use_cache.get(), draw_pos.X, draw_pos.Y, over.GetZOrder());
+                    walkbehinds_cropout(room, use_cache.get(), draw_pos.X, draw_pos.Y, over.GetZOrder());
                     use_bmp = use_cache.get();
                 }
                 if (over.HasLightLevel() || over.HasTint())
                 {
-                    apply_tint_or_light(overtx, over.GetTintLight() * over.HasLightLevel(), over.GetTintLevel(),
+                    apply_tint_or_light(game, overtx, over.GetTintLight() * over.HasLightLevel(), over.GetTintLevel(),
                                         over.GetTintR(), over.GetTintG(), over.GetTintB(), over.GetTintLight(),
                                         use_bmp->GetColorDepth(), use_bmp);
                 }

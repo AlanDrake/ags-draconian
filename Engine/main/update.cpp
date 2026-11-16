@@ -95,11 +95,12 @@ void update_script_timers()
 
 void update_cycling_views()
 {
+    Game &game = Game::Current();
     Room &room = Room::Current();
     // update graphics for object if cycling view
     for (uint32_t i = 0; i < room.State->numobj; ++i)
     {
-        room.Objs[i].UpdateCyclingView(i);
+        room.Objs[i].UpdateCyclingView(game, i);
     }
 }
 
@@ -127,6 +128,7 @@ void update_player_view()
 void update_character_move_and_anim(std::vector<int> &following_as_sheep)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     // move & animate characters
     for (int aa = 0; aa < game.numcharacters; aa++)
     {
@@ -136,7 +138,7 @@ void update_character_move_and_anim(std::vector<int> &following_as_sheep)
         CharacterInfo *ch = &game.chars[aa];
         CharacterExtras *chex = &game.CharExtras[aa];
 
-        UpdateCharacterMoveAndAnim(ch, chex, following_as_sheep);
+        UpdateCharacterMoveAndAnim(game, room, ch, chex, following_as_sheep);
     }
 }
 
@@ -148,7 +150,7 @@ void update_following_exactly_characters(const std::vector<int> &following_as_sh
     {
         CharacterInfo *ch = &game.chars[following_as_sheep[i]];
 
-        UpdateFollowingExactlyCharacter(ch);
+        UpdateFollowingExactlyCharacter(game, ch);
     }
 }
 

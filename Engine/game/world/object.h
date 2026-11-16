@@ -27,6 +27,10 @@ class Bitmap;
 }
 } // namespace AGS
 
+struct EngineServices;
+class Game;
+class Room;
+
 // Tells if the object ID is valid (in the current room)
 bool IsValidObject(int obj_id);
 // Asserts the object ID is valid in the current room,
@@ -42,7 +46,7 @@ int GetObjectIDAtRoom(int roomx, int roomy, int hit_options);
 // and when always_original is not set, else the source sprite; is_original, if given, tells which one it is.
 AGS::Common::Bitmap *GetObjectImage(int obj_id, bool always_original = true, bool *is_original = nullptr);
 // Gets current source image (untransformed) for the room object
-AGS::Common::Bitmap *GetObjectSourceImage(int obj_id);
+AGS::Common::Bitmap *GetObjectSourceImage(Room &room, EngineServices &services, int obj_id);
 
 // **** OBJECT: FUNCTIONS ****
 //
@@ -142,20 +146,20 @@ int AreThingsOverlapping(int thing1, int thing2);
 
 // Deduces room object's scale, accounting for both manual scaling and the room region effects;
 // calculates resulting sprite size. Does nothing to a disabled object.
-void update_object_scale(int obj_id);
+void update_object_scale(Game &game, Room &room, int obj_id);
 // Deduces arbitrary object's scale, accounting for both manual scaling and the room region effects
-void update_object_scale(int &res_zoom, int &res_width, int &res_height, int objx, int objy, int sprnum, int own_zoom,
-                         bool use_region_scaling);
+void update_object_scale(Game &game, Room &room, int &res_zoom, int &res_width, int &res_height, int objx, int objy,
+                         int sprnum, int own_zoom, bool use_region_scaling);
 // Gets the rectangle in room coordinates that the object blocks for walking when it is solid:
 // blocking_width wide (the object's width minus 4 if unset) and blocking_height tall (5 pixels around its Y
 // if unset), centred on the object's X, then shifted by blocking_x and blocking_y.
-Rect get_object_blocking_rect(int obj_id);
+Rect get_object_blocking_rect(Room &room, int obj_id);
 // Tells if the point x,y hits the sprite sprit: it is inside the area arx,ary,spww,sphh and, if the pixel-perfect
 // game option is on, the sprite's pixel there is not transparent (sprite_flags mirror the pixel lookup).
 // x,y and arx,ary must be in the same space; the callers pass a point already converted to the object's local
 // space, with arx = ary = 0. spww and sphh of 0 mean the bitmap's size.
 // Returns TRUE or FALSE.
-int is_pos_in_sprite(int x, int y, int arx, int ary, AGS::Common::Bitmap *sprit, int spww, int sphh,
+int is_pos_in_sprite(Game &game, int x, int y, int arx, int ary, AGS::Common::Bitmap *sprit, int spww, int sphh,
                      AGS::Common::SpriteTransformFlags sprite_flags);
 // Runs the interaction of the clickable object at the room coordinates roomx, roomy for the cursor mode (mood);
 // returns 1 if there is such an object, whether or not it has a handler, 0 if there is none.
@@ -183,7 +187,7 @@ int SetFirstAnimFrame(int view, int loop, int sframe, AnimFlowDirection dir);
 // o_loop and o_frame are the current values, passed by reference and updated;
 // AnimationFlowParams may be modified if direction changes, according to flow style;
 // returns whether the animation should continue.
-bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams &anim_params);
+bool CycleViewAnim(Game &game, int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams &anim_params);
 
 // Tests if the standard move/walk parameters are in valid range, if not then clamps them and
 // reports a script warning. BLOCKING, IN_BACKGROUND, ANYWHERE and WALKABLE_AREAS are converted to 1 or 0.

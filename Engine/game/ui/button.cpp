@@ -414,7 +414,7 @@ void AddButtonAnimation(const AnimatingGUIButton &abtn)
 }
 
 // Returns true while the animation continues, false when it has ended
-bool UpdateAnimatingButton(int bu)
+bool UpdateAnimatingButton(Game &game, int bu)
 {
     AnimatingGUIButton &abtn = animbuts[bu];
     if (abtn.wait > 0)
@@ -422,11 +422,11 @@ bool UpdateAnimatingButton(int bu)
         abtn.wait--;
         return true;
     }
-    if (!CycleViewAnim(abtn.view, abtn.loop, abtn.frame, abtn.anim))
+    if (!CycleViewAnim(game, abtn.view, abtn.loop, abtn.frame, abtn.anim))
         return false;
 
     ABut_CheckViewFrame(abtn);
-    abtn.wait = abtn.anim.Delay + Game::Current().Views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
+    abtn.wait = abtn.anim.Delay + game.Views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
     return true;
 }
 

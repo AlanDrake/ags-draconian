@@ -98,9 +98,8 @@ void walkbehinds_generate_sprites()
 
 // Edits the given game object's sprite, cutting out pixels covered by walk-behinds;
 // returns whether any pixels were updated;
-bool walkbehinds_cropout(Bitmap *sprit, int sprx, int spry, int basel)
+bool walkbehinds_cropout(Room &room, Bitmap *sprit, int sprx, int spry, int basel)
 {
-    Room &room = Room::Current();
     if (room.NoWalkBehindsAtAll)
         return false;
 
@@ -185,7 +184,8 @@ void walkbehinds_recalc()
 
 int get_walkbehind_pixel(int x, int y)
 {
-    return Room::Current().WalkAreaMask->GetPixel(room_to_mask_coord(x), room_to_mask_coord(y));
+    Room &room = Room::Current();
+    return room.WalkAreaMask->GetPixel(room_to_mask_coord(room, x), room_to_mask_coord(room, y));
 }
 
 ScriptWalkbehind *Walkbehind_GetAtRoomXY(int x, int y)

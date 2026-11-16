@@ -20,7 +20,9 @@
 #include "game/dynobj/script_objects.h"
 #include "game/roomdata.h"
 
-int GetRegionIDAtRoom(int x, int y, int hit_options);
+class Room;
+
+int GetRegionIDAtRoom(Room &room, int x, int y, int hit_options);
 void Region_SetLightLevel(ScriptRegion *ssr, int brightness);
 int Region_GetLightLevel(ScriptRegion *ssr);
 int Region_GetTintEnabled(ScriptRegion *srr);

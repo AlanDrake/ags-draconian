@@ -54,9 +54,9 @@ Pointf ScreenOverlay::GetEffectivePivot() const
                            (static_cast<float>(_pivotOff.Y) / _scaledSize.Height));
 }
 
-Bitmap *ScreenOverlay::GetImage() const
+Bitmap *ScreenOverlay::GetImage(EngineServices &services) const
 {
-    return EngineServices::Current().Sprites[_sprnum];
+    return services.Sprites[_sprnum];
 }
 
 Size ScreenOverlay::GetGraphicSize() const
@@ -341,9 +341,9 @@ void ScreenOverlay::OnRemove()
         _removeCb(*this);
 }
 
-void ScreenOverlay::UpdateGraphicSpace()
+void ScreenOverlay::UpdateGraphicSpace(EngineServices &services)
 {
-    Bitmap *pic = GetImage();
+    Bitmap *pic = GetImage(services);
     _gs = GraphicSpace(_x, _y, _sprAnchor,                      // origin
                        Size(pic->GetWidth(), pic->GetHeight()), // source sprite size
                        _scaledSize,
@@ -528,9 +528,9 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     out->WriteInt32(_pivotOff.Y);
 }
 
-const ViewFrame *AnimatedOverlay::GetViewFrame() const
+const ViewFrame *AnimatedOverlay::GetViewFrame(Game &game) const
 {
-    return &Game::Current().Views[_view].loops[_loop].frames[_frame];
+    return &game.Views[_view].loops[_loop].frames[_frame];
 }
 
 void AnimatedOverlay::Begin(int view, int loop, int frame, const ViewAnimateParams &params)
@@ -543,7 +543,7 @@ void AnimatedOverlay::Begin(int view, int loop, int frame, const ViewAnimatePara
     _wait = _anim.Delay + Game::Current().Views[_view].loops[_loop].frames[_frame].speed;
 }
 
-bool AnimatedOverlay::UpdateOnce()
+bool AnimatedOverlay::UpdateOnce(Game &game)
 {
     if (!_anim.IsValid())
         return false;
@@ -553,10 +553,10 @@ bool AnimatedOverlay::UpdateOnce()
         _wait--;
         return true;
     }
-    if (!CycleViewAnim(_view, _loop, _frame, _anim))
+    if (!CycleViewAnim(game, _view, _loop, _frame, _anim))
         return false;
     CheckViewFrame(_view, _loop, _frame, _anim.AudioVolume);
-    _wait = _anim.Delay + Game::Current().Views[_view].loops[_loop].frames[_frame].speed;
+    _wait = _anim.Delay + game.Views[_view].loops[_loop].frames[_frame].speed;
     return true;
 }
 
