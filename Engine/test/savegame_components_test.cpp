@@ -230,27 +230,27 @@ protected:
         for (int i = 0; i < game.numcharacters; ++i)
         {
             auto &ch = game.Characters[i];
-            ch.x = 100 + i;
-            ch.y = 150 + i;
-            ch.room = 3 + i;
-            ch.prevroom = 2;
-            ch.view = 4;
-            ch.loop = 2;
-            ch.frame = 1;
-            ch.z = -5;
-            ch.activeinv = 1;
-            ch.walkspeed = 6;
-            ch.opacity = 128;
-            ch.flags = 0x41;
-            ch.name = String::FromFormat("Character %d", i);
+            ch.X = 100 + i;
+            ch.Y = 150 + i;
+            ch.Room = 3 + i;
+            ch.PreviousRoom = 2;
+            ch.View = 4;
+            ch.Loop = 2;
+            ch.Frame = 1;
+            ch.Z = -5;
+            ch.ActiveInventory = 1;
+            ch.WalkSpeedX = 6;
+            ch.Opacity = 128;
+            ch.Flags = 0x41;
+            ch.Name = String::FromFormat("Character %d", i);
             ch.set_item_quantity(1, 2);
             ch.set_item_quantity(4, 1);
             ch.set_item_quantity(9, 7);
-            ch.inventory = {1, 4, 9};
-            ch.zoom = 80;
-            ch.tint_r = 10;
-            ch.tint_level = 50;
-            ch.following = 0;
+            ch.Inventory = {1, 4, 9};
+            ch.Zoom = 80;
+            ch.TintRed = 10;
+            ch.TintLevel = 50;
+            ch.Following = 0;
             game.Play.charProps[i]["Mood"] = "angry";
         }
         for (int i = 0; i < game.numinvitems; ++i)
@@ -298,27 +298,27 @@ TEST_F(SavegameContent, CharactersAndItemsAreRestored)
     for (int i = 0; i < 3; ++i)
     {
         const auto &ch = game.Characters[i];
-        EXPECT_EQ(100 + i, ch.x);
-        EXPECT_EQ(150 + i, ch.y);
-        EXPECT_EQ(3 + i, ch.room);
-        EXPECT_EQ(2, ch.prevroom);
-        EXPECT_EQ(4, ch.view);
-        EXPECT_EQ(2, ch.loop);
-        EXPECT_EQ(1, ch.frame);
-        EXPECT_EQ(-5, ch.z);
-        EXPECT_EQ(1, ch.activeinv);
-        EXPECT_EQ(6, ch.walkspeed);
-        EXPECT_EQ(128, ch.opacity);
-        EXPECT_EQ(0x41, ch.flags);
-        EXPECT_STREQ(String::FromFormat("Character %d", i).GetCStr(), ch.name.GetCStr());
+        EXPECT_EQ(100 + i, ch.X);
+        EXPECT_EQ(150 + i, ch.Y);
+        EXPECT_EQ(3 + i, ch.Room);
+        EXPECT_EQ(2, ch.PreviousRoom);
+        EXPECT_EQ(4, ch.View);
+        EXPECT_EQ(2, ch.Loop);
+        EXPECT_EQ(1, ch.Frame);
+        EXPECT_EQ(-5, ch.Z);
+        EXPECT_EQ(1, ch.ActiveInventory);
+        EXPECT_EQ(6, ch.WalkSpeedX);
+        EXPECT_EQ(128, ch.Opacity);
+        EXPECT_EQ(0x41, ch.Flags);
+        EXPECT_STREQ(String::FromFormat("Character %d", i).GetCStr(), ch.Name.GetCStr());
         EXPECT_EQ(2, ch.get_item_quantity(1));
         EXPECT_EQ(1, ch.get_item_quantity(4));
         EXPECT_EQ(7, ch.get_item_quantity(9));
         EXPECT_EQ(0, ch.get_item_quantity(2));
-        EXPECT_EQ((std::vector<int>{1, 4, 9}), game.Characters[i].inventory);
-        EXPECT_EQ(80, game.Characters[i].zoom);
-        EXPECT_EQ(10, game.Characters[i].tint_r);
-        EXPECT_EQ(50, game.Characters[i].tint_level);
+        EXPECT_EQ((std::vector<int>{1, 4, 9}), game.Characters[i].Inventory);
+        EXPECT_EQ(80, game.Characters[i].Zoom);
+        EXPECT_EQ(10, game.Characters[i].TintRed);
+        EXPECT_EQ(50, game.Characters[i].TintLevel);
         EXPECT_STREQ("angry", game.Play.charProps[i]["Mood"].GetCStr());
     }
     for (int i = 0; i < 2; ++i)
@@ -394,8 +394,8 @@ TEST_F(SavegameContent, FewerCharactersAllowedOnACleanGame)
     EXPECT_NE(0, clean_data.Result.RestoreFlags & kSaveRestore_MissingDataInSave);
     EXPECT_FALSE(clean_data.Result.FirstMismatchError.IsEmpty());
     EXPECT_EQ(2u, clean_data.DataCounts.Characters);
-    EXPECT_EQ(101, game.Characters[1].x);
-    EXPECT_EQ(0, game.Characters[2].x);
+    EXPECT_EQ(101, game.Characters[1].X);
+    EXPECT_EQ(0, game.Characters[2].X);
 }
 
 TEST_F(SavegameContent, PrescanCountsWithoutRestoring)
@@ -417,7 +417,7 @@ TEST_F(SavegameContent, PrescanCountsWithoutRestoring)
     EXPECT_EQ(3u, r_data.DataCounts.Characters);
     EXPECT_EQ(2u, r_data.DataCounts.InventoryItems);
     // the game is untouched
-    EXPECT_EQ(0, game.Characters[0].x);
+    EXPECT_EQ(0, game.Characters[0].X);
     EXPECT_TRUE(game.invinfo[0].name.IsEmpty());
 }
 
@@ -456,7 +456,7 @@ TEST_F(SavegameContent, UnselectedComponentsAreSkipped)
     HSaveError err = Restore(saved, kSaveCmp_GameState, r_data);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
     EXPECT_EQ(4321, game.Play.messagetime);
-    EXPECT_EQ(0, game.Characters[0].x);
+    EXPECT_EQ(0, game.Characters[0].X);
     EXPECT_TRUE(game.invinfo[0].name.IsEmpty());
     game.Play.messagetime = 0;
 }
@@ -497,7 +497,7 @@ TEST_F(SavegameContent, CharacterAnimationVolumeIsRestored)
 {
     Game &game = Game::Current();
     SetCounts(1, 0);
-    game.Characters[0].audio_volume = 70;
+    game.Characters[0].AnimationVolume = 70;
     game.Characters[0].SetAnimating(kAnimFlow_Repeat, kAnimDirBackward, 3, 40);
     std::vector<uint8_t> saved;
     std::string error;
@@ -511,7 +511,7 @@ TEST_F(SavegameContent, CharacterAnimationVolumeIsRestored)
     EXPECT_EQ(kAnimFlow_Repeat, anim.Flow);
     EXPECT_EQ(kAnimDirBackward, anim.Direction);
     EXPECT_EQ(3, anim.Delay);
-    EXPECT_EQ(70, game.Characters[0].audio_volume);
+    EXPECT_EQ(70, game.Characters[0].AnimationVolume);
     EXPECT_EQ(40, anim.AudioVolume);
 }
 

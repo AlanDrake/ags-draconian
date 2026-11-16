@@ -747,7 +747,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     set_cursor_mode(r_data.CursorMode);
     set_cursor_look(r_data.CursorID, true);
     if (game.HasCursorRole(r_data.CursorID, kCursorRole_UseInv))
-        SetActiveInventory(game.PlayerChar->activeinv);
+        SetActiveInventory(game.PlayerChar->ActiveInventory);
     // precache current cursor
     services.Sprites.PrecacheSprite(game.mcurs[r_data.CursorID].pic);
 
@@ -841,7 +841,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // If this is a restart point and no room was loaded, then load startup room
     if (game.DisplayedRoom < 0)
     {
-        load_new_room(game.PlayerChar->room, game.PlayerChar);
+        load_new_room(game.PlayerChar->Room, game.PlayerChar);
         first_room_initialization();
     }
 

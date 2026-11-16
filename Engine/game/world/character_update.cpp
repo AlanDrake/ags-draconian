@@ -33,31 +33,31 @@ using namespace AGS::Common;
 
 int Character::get_baseline() const
 {
-    if (baseline < 1)
+    if (Baseline < 1)
     {
-        return y;
+        return Y;
     }
-    return baseline;
+    return Baseline;
 }
 
 int Character::get_blocking_top() const
 {
-    if (blocking_height > 0)
+    if (BlockingHeight > 0)
     {
-        return y - blocking_height / 2;
+        return Y - BlockingHeight / 2;
     }
-    return y - 2;
+    return Y - 2;
 }
 
 int Character::get_blocking_bottom() const
 {
     // the blocking_bottom should be 1 less than the top + height
     // since the code does <= checks on it rather than < checks
-    if (blocking_height > 0)
+    if (BlockingHeight > 0)
     {
-        return (y + (blocking_height + 1) / 2) - 1;
+        return (Y + (BlockingHeight + 1) / 2) - 1;
     }
-    return y + 3;
+    return Y + 3;
 }
 
 // Tests if frame reached or exceeded the loop, and resets frame back
@@ -65,10 +65,10 @@ int Character::get_blocking_bottom() const
 // (or if there's less than 2 frames in the current loop).
 static void ResetFrameIfAtEnd(Game &game, Character *ch)
 {
-    const int frames_in_loop = game.Views[ch->view].loops[ch->loop].numFrames;
-    if (ch->frame >= frames_in_loop)
+    const int frames_in_loop = game.Views[ch->View].loops[ch->Loop].numFrames;
+    if (ch->Frame >= frames_in_loop)
     {
-        ch->frame = (ch->is_moving() && frames_in_loop > 1) ? 1 : 0;
+        ch->Frame = (ch->is_moving() && frames_in_loop > 1) ? 1 : 0;
     }
 }
 
@@ -79,32 +79,32 @@ static void FixupCharacterLoopAndFrame(Game &game, Character *ch, bool switch_fr
     // or if selected loop has no frames, then try select any first loop that has frames.
     // NOTE: although this may seem like a weird solution to a problem,
     // we do so for backwards compatibility; this approximately emulates older games behavior.
-    const int view = ch->view;
+    const int view = ch->View;
     if (view < 0 || view >= game.Views.size())
     {
-        quitprintf("!Character %s is assigned a invalid view %d (valid range 1..%d)", ch->scrname.GetCStr(), view,
+        quitprintf("!Character %s is assigned a invalid view %d (valid range 1..%d)", ch->ScriptName.GetCStr(), view,
                    game.numviews);
     }
-    if (!switch_from_bad_loop && (ch->loop < 0 || ch->loop >= game.Views[view].numLoops))
+    if (!switch_from_bad_loop && (ch->Loop < 0 || ch->Loop >= game.Views[view].numLoops))
     {
-        quitprintf("!Character %s is assigned a invalid loop %d in view %d (valid range 0..%d)", ch->scrname.GetCStr(),
-                   ch->loop, view, game.Views[view].GetLastLoop());
+        quitprintf("!Character %s is assigned a invalid loop %d in view %d (valid range 0..%d)",
+                   ch->ScriptName.GetCStr(), ch->Loop, view, game.Views[view].GetLastLoop());
     }
 
     if (switch_from_bad_loop &&
-        ((ch->loop < 0 || ch->loop >= game.Views[view].numLoops) || (game.Views[view].loops[ch->loop].numFrames == 0)))
+        ((ch->Loop < 0 || ch->Loop >= game.Views[view].numLoops) || (game.Views[view].loops[ch->Loop].numFrames == 0)))
     {
-        int loop = ch->loop;
+        int loop = ch->Loop;
         for (loop = 0; (loop < game.Views[view].numLoops) && (game.Views[view].loops[loop].numFrames == 0); ++loop)
         {
             ;
         }
         if (loop == game.Views[view].numLoops) // view has no frames?!
         {
-            quitprintf("!Character %s is assigned view %d that has no frames!", ch->scrname.GetCStr(), view);
+            quitprintf("!Character %s is assigned view %d that has no frames!", ch->ScriptName.GetCStr(), view);
             loop = 0;
         }
-        ch->loop = loop;
+        ch->Loop = loop;
     }
 
     ResetFrameIfAtEnd(game, ch); // test, in case new loop has less frames
@@ -140,26 +140,26 @@ void UpdateCharacterMoveAndAnim(Game &game, Room &room, Character *ch, std::vect
 
     UpdateCharacterIdle(game, ch, doing_nothing);
 
-    ch->process_idle_this_time = 0;
+    ch->ProcessIdleThisTime = 0;
 }
 
 void UpdateFollowingExactlyCharacter(Game &game, Character *ch)
 {
-    const auto &following = game.Characters[ch->following];
-    ch->x = following.x;
-    ch->y = following.y;
-    ch->z = following.z;
-    ch->room = following.room;
-    ch->prevroom = following.prevroom;
+    const auto &following = game.Characters[ch->Following];
+    ch->X = following.X;
+    ch->Y = following.Y;
+    ch->Z = following.Z;
+    ch->Room = following.Room;
+    ch->PreviousRoom = following.PreviousRoom;
 
     const int use_baseline = following.get_baseline();
     if (ch->get_follow_sort_behind())
     {
-        ch->baseline = use_baseline - 1;
+        ch->Baseline = use_baseline - 1;
     }
     else
     {
-        ch->baseline = use_baseline + 1;
+        ch->Baseline = use_baseline + 1;
     }
 }
 
@@ -167,16 +167,16 @@ bool UpdateCharacterTurning(Game &game, Character *ch)
 {
     if (ch->IsTurning())
     {
-        const int view = ch->view;
+        const int view = ch->View;
         // Currently rotating to correct direction
-        if (ch->walkwait > 0)
+        if (ch->WalkWait > 0)
         {
-            ch->walkwait--;
+            ch->WalkWait--;
         }
         else
         {
             // Work out which direction is next
-            int want_loop = find_looporder_index(ch->loop) + 1;
+            int want_loop = find_looporder_index(ch->Loop) + 1;
             // going anti-clockwise, take one before instead
             if (ch->IsTurningCounterClockwise())
             {
@@ -195,7 +195,7 @@ bool UpdateCharacterTurning(Game &game, Character *ch)
 
                 if ((turnlooporder[want_loop] >= game.Views[view].numLoops) ||
                     (game.Views[view].loops[turnlooporder[want_loop]].numFrames < 1) ||
-                    ((turnlooporder[want_loop] >= NUM_BASE_DIRECTIONS) && ((ch->flags & CHF_NODIAGONAL) != 0)))
+                    ((turnlooporder[want_loop] >= NUM_BASE_DIRECTIONS) && ((ch->Flags & CHF_NODIAGONAL) != 0)))
                 {
                     if (ch->IsTurningCounterClockwise())
                     {
@@ -211,18 +211,18 @@ bool UpdateCharacterTurning(Game &game, Character *ch)
                     break;
                 }
             }
-            ch->loop = turnlooporder[want_loop];
+            ch->Loop = turnlooporder[want_loop];
             ch->DecrementTurning();
             // if still turning, wait for next frame
-            if (ch->turns > 0)
+            if (ch->Turns > 0)
             {
-                ch->walkwait = ch->animspeed;
+                ch->WalkWait = ch->AnimationSpeed;
             }
             else if (ch->is_moving())
             {
-                ch->walkwait = 1; // wait 1 frame to let walking animation advance once
+                ch->WalkWait = 1; // wait 1 frame to let walking animation advance once
             }
-            ch->animwait = 0;
+            ch->WalkAnimWait = 0;
         }
 
         return true;
@@ -233,31 +233,31 @@ bool UpdateCharacterTurning(Game &game, Character *ch)
 
 void UpdateCharacterMoving(Game &game, Character *ch, int &doing_nothing)
 {
-    if (ch->is_moving() && (ch->room == game.DisplayedRoom))
+    if (ch->is_moving() && (ch->Room == game.DisplayedRoom))
     {
         const bool was_move_direct = get_movelist(ch->get_movelist_id())->IsStageDirect();
 
-        if (ch->walkwait > 0)
+        if (ch->WalkWait > 0)
         {
-            ch->walkwait--;
+            ch->WalkWait--;
         }
         else
         {
-            ch->flags &= ~CHF_AWAITINGMOVE;
+            ch->Flags &= ~CHF_AWAITINGMOVE;
 
             // Move the character
             int num_steps = wantMoveNow(ch);
 
-            if ((num_steps) && (ch->xwas != INVALID_X))
+            if ((num_steps) && (ch->FullStepX != INVALID_X))
             {
                 // A half-step position saved by an earlier update (see below) may still be pending, for instance
                 // when the zoom level changed in between: restore the full-step position before stepping
-                ch->x = ch->xwas;
-                ch->y = ch->ywas;
-                ch->xwas = INVALID_X;
+                ch->X = ch->FullStepX;
+                ch->Y = ch->FullStepY;
+                ch->FullStepX = INVALID_X;
             }
 
-            const int oldxp = ch->x, oldyp = ch->y;
+            const int oldxp = ch->X, oldyp = ch->Y;
 
             for (int ff = 0; ff < abs(num_steps); ff++)
             {
@@ -265,7 +265,7 @@ void UpdateCharacterMoving(Game &game, Character *ch, int &doing_nothing)
                 {
                     break;
                 }
-                if ((ch->walking == 0) || (ch->turns > 0))
+                if ((ch->MoveListID == 0) || (ch->Turns > 0))
                 {
                     break;
                 }
@@ -274,20 +274,20 @@ void UpdateCharacterMoving(Game &game, Character *ch, int &doing_nothing)
             if (num_steps < 0)
             {
                 // Very small scaling: show the character half way through the step, to stop the movement being
-                // jumpy; the full-step position is kept in xwas/ywas and restored on the next update
-                ch->xwas = ch->x;
-                ch->ywas = ch->y;
-                ch->x = ((ch->x) - oldxp) / 2 + oldxp;
-                ch->y = ((ch->y) - oldyp) / 2 + oldyp;
+                // jumpy; the full-step position is kept in FullStepX/FullStepY and restored on the next update
+                ch->FullStepX = ch->X;
+                ch->FullStepY = ch->Y;
+                ch->X = ((ch->X) - oldxp) / 2 + oldxp;
+                ch->Y = ((ch->Y) - oldyp) / 2 + oldyp;
             }
             else if (num_steps > 0)
             {
-                ch->xwas = INVALID_X;
+                ch->FullStepX = INVALID_X;
             }
 
-            if ((ch->flags & CHF_ANTIGLIDE) == 0)
+            if ((ch->Flags & CHF_ANTIGLIDE) == 0)
             {
-                ch->walkwaitcounter++;
+                ch->WalkWaitCounter++;
             }
         }
 
@@ -296,53 +296,53 @@ void UpdateCharacterMoving(Game &game, Character *ch, int &doing_nothing)
 
         doing_nothing = 0; // still walking?
 
-        const int view = ch->view, loop = ch->loop;
-        if (ch->walking < 1)
+        const int view = ch->View, loop = ch->Loop;
+        if (ch->MoveListID < 1)
         {
             // Finished walking, stop and reset state
             reset_character_idling_time(ch);
             doing_nothing = 1;
-            ch->walkwait = 0;
+            ch->WalkWait = 0;
             const bool was_walk_anim = ch->is_moving_walkanim();
             Character_StopMovingEx(ch, !was_move_direct);
-            // The move list is gone and "walking" is already 0 here (do_movelist_move), so Character_StopMovingEx
-            // skips its "walking > 0" part, which is the one that resets the frame: this is the only place where
+            // The move list is gone and "MoveListID" is already 0 here (do_movelist_move), so Character_StopMovingEx
+            // skips its "MoveListID > 0" part, which is the one that resets the frame: this is the only place where
             // the standing frame is set after a finished walk.
             // TODO: Character_StopMoving called by a script on a walking character resets the frame, but not
-            // animwait, and does not call CheckViewFrame(), unlike here: the same reset could be shared.
+            // WalkAnimWait, and does not call CheckViewFrame(), unlike here: the same reset could be shared.
             if (was_walk_anim)
             {
                 // use standing pic
-                ch->animwait = 0;
-                ch->frame = 0;
+                ch->WalkAnimWait = 0;
+                ch->Frame = 0;
                 ch->CheckViewFrame();
             }
         }
-        else if (ch->animwait > 0)
+        else if (ch->WalkAnimWait > 0)
         {
-            ch->animwait--;
+            ch->WalkAnimWait--;
         }
         else
         {
-            if (ch->flags & CHF_ANTIGLIDE)
+            if (ch->Flags & CHF_ANTIGLIDE)
             {
-                ch->walkwaitcounter++;
+                ch->WalkWaitCounter++;
             }
 
             if (ch->is_moving_walkanim())
             {
-                ch->frame++;
+                ch->Frame++;
                 ResetFrameIfAtEnd(game, ch); // roll back if exceeded loop
 
-                ch->animwait = game.Views[view].loops[loop].frames[ch->frame].speed + ch->animspeed;
+                ch->WalkAnimWait = game.Views[view].loops[loop].frames[ch->Frame].speed + ch->AnimationSpeed;
 
-                if (ch->flags & CHF_ANTIGLIDE)
+                if (ch->Flags & CHF_ANTIGLIDE)
                 {
-                    ch->walkwait = ch->animwait;
+                    ch->WalkWait = ch->WalkAnimWait;
                 }
                 else
                 {
-                    ch->walkwait = 0;
+                    ch->WalkWait = 0;
                 }
 
                 ch->CheckViewFrame();
@@ -355,7 +355,7 @@ bool UpdateCharacterAnimating(Game &game, Character *ch, int &doing_nothing)
 {
     // animating or idling, and not walking with a walk animation
     if (((ch->IsAnimating()) || (ch->is_idling())) && (!ch->is_moving() || ch->is_moving_no_anim()) &&
-        (ch->room == game.DisplayedRoom))
+        (ch->Room == game.DisplayedRoom))
     {
         doing_nothing = 0;
         // idle anim doesn't count as doing something
@@ -364,38 +364,38 @@ bool UpdateCharacterAnimating(Game &game, Character *ch, int &doing_nothing)
             doing_nothing = 1;
         }
 
-        const int view = ch->view;
-        const bool is_char_speaking = (game.Speech.CharSpeakingAnim == ch->index_id);
+        const int view = ch->View;
+        const bool is_char_speaking = (game.Speech.CharSpeakingAnim == ch->ID);
 
-        if (ch->wait > 0)
+        if (ch->AnimWait > 0)
         {
-            ch->wait--;
+            ch->AnimWait--;
         }
         else if (is_char_speaking && (game.options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts) && has_voice_lipsync())
         {
-            const int new_frame = update_voice_lipsync(ch->frame);
-            if (ch->frame != new_frame)
+            const int new_frame = update_voice_lipsync(ch->Frame);
+            if (ch->Frame != new_frame)
             {
-                ch->frame = new_frame;
+                ch->Frame = new_frame;
                 ch->CheckViewFrame();
             }
         }
         else if (is_char_speaking && (game.options[OPT_LIPSYNCTEXT] != 0))
         {
             // currently talking with lip-sync speech
-            int fraa = ch->frame;
-            ch->wait = update_lip_sync(view, ch->loop, &fraa) - 1;
+            int fraa = ch->Frame;
+            ch->AnimWait = update_lip_sync(view, ch->Loop, &fraa) - 1;
             // closed mouth at end of sentence
             // NOTE: standard lip-sync is synchronized with text timer, not voice file
             if (game.Play.speech_in_post_state ||
                 ((game.Play.messagetime >= 0) && (game.Play.messagetime < game.Play.close_mouth_speech_time)))
             {
-                ch->frame = 0;
+                ch->Frame = 0;
             }
 
-            if (ch->frame != fraa)
+            if (ch->Frame != fraa)
             {
-                ch->frame = fraa;
+                ch->Frame = fraa;
                 ch->CheckViewFrame();
             }
 
@@ -404,30 +404,30 @@ bool UpdateCharacterAnimating(Game &game, Character *ch, int &doing_nothing)
         else
         {
             // Normal view animation
-            const int old_frame = ch->frame;
+            const int old_frame = ch->Frame;
 
             bool done_anim = false;
-            if ((ch->index_id == game.Speech.CharSpeakingAnim) &&
+            if ((ch->ID == game.Speech.CharSpeakingAnim) &&
                 (game.Play.speech_in_post_state ||
                  ((!game.Play.speech_voice_blocking) && (game.Play.close_mouth_speech_time > 0) &&
                   (game.Play.messagetime < game.Play.close_mouth_speech_time))))
             {
                 // finished talking - stop animation
                 done_anim = true;
-                ch->frame = 0;
+                ch->Frame = 0;
             }
             else
             {
-                if (!CycleViewAnim(game, view, ch->loop, ch->frame, ch->GetAnimParams()))
+                if (!CycleViewAnim(game, view, ch->Loop, ch->Frame, ch->GetAnimParams()))
                 {
                     done_anim = true; // finished animating
                     // end of idle anim
                     if (ch->is_idling())
                     {
                         // constant anim, reset (need this cos animating==0)
-                        if (ch->idledelay == 0)
+                        if (ch->IdleDelay == 0)
                         {
-                            ch->frame = 0;
+                            ch->Frame = 0;
                         }
                         // one-off anim, stop
                         else
@@ -438,19 +438,19 @@ bool UpdateCharacterAnimating(Game &game, Character *ch, int &doing_nothing)
                 }
             }
 
-            ch->wait = game.Views[view].loops[ch->loop].frames[ch->frame].speed;
-            // An idle animation has no animation parameters in ch->anim (they are cleared when it starts, see
-            // UpdateCharacterIdle), so its delay comes from idle_anim_speed instead of GetAnimDelay()
+            ch->AnimWait = game.Views[view].loops[ch->Loop].frames[ch->Frame].speed;
+            // An idle animation has no animation parameters in ch->Anim (they are cleared when it starts, see
+            // UpdateCharacterIdle), so its delay comes from IdleAnimationDelay instead of GetAnimDelay()
             if (ch->is_idling())
             {
-                ch->wait += ch->idle_anim_speed;
+                ch->AnimWait += ch->IdleAnimationDelay;
             }
             else
             {
-                ch->wait += ch->GetAnimDelay();
+                ch->AnimWait += ch->GetAnimDelay();
             }
 
-            if (ch->frame != old_frame)
+            if (ch->Frame != old_frame)
             {
                 ch->CheckViewFrame();
             }
@@ -468,14 +468,14 @@ bool UpdateCharacterAnimating(Game &game, Character *ch, int &doing_nothing)
 void UpdateCharacterFollower(Game &game, Room &room, Character *ch, std::vector<int> &following_as_sheep,
                              int &doing_nothing)
 {
-    const int following = ch->following;
-    const int distaway = ch->follow_dist;
-    const int eagerness = ch->follow_eagerness;
+    const int following = ch->Following;
+    const int distaway = ch->FollowDistance;
+    const int eagerness = ch->FollowEagerness;
 
     if ((following >= 0) && (distaway == FOLLOW_ALWAYSONTOP))
     {
         // an always-on-top follow
-        following_as_sheep.push_back(ch->index_id);
+        following_as_sheep.push_back(ch->ID);
     }
     // not moving, but should be following another character
     else if ((following >= 0) && (doing_nothing == 1))
@@ -485,18 +485,18 @@ void UpdateCharacterFollower(Game &game, Room &room, Character *ch, std::vector<
         {
             return;
         }
-        if (ch->room < 0)
+        if (ch->Room < 0)
         {
             // A negative room is the countdown set below (-follow_change_room_timer), the delay before the follower
             // appears in the room the followed character is in. It counts up by one per update while the
             // character has nothing else to do, and the follower enters at 0.
-            ch->room++;
-            if (ch->room == 0)
+            ch->Room++;
+            if (ch->Room == 0)
             {
                 // appear in the new room
-                ch->room = game.Characters[following].room;
-                ch->x = room.EnteredAtX;
-                ch->y = room.EnteredAtY;
+                ch->Room = game.Characters[following].Room;
+                ch->X = room.EnteredAtX;
+                ch->Y = room.EnteredAtY;
             }
         }
         // wait a bit, so we're not constantly walking
@@ -505,55 +505,55 @@ void UpdateCharacterFollower(Game &game, Room &room, Character *ch, std::vector<
             return;
         }
         // the followed character has changed room
-        else if (ch->room != game.Characters[following].room)
+        else if (ch->Room != game.Characters[following].Room)
         {
-            ch->prevroom = ch->room;
-            ch->room = game.Characters[following].room;
+            ch->PreviousRoom = ch->Room;
+            ch->Room = game.Characters[following].Room;
 
-            if (ch->room == game.DisplayedRoom)
+            if (ch->Room == game.DisplayedRoom)
             {
                 // only move to the room-entered position if coming into
                 // the current room
                 if (room.EnteredAtX > (room.Width - 8))
                 {
-                    ch->x = room.Width + 8;
-                    ch->y = room.EnteredAtY;
+                    ch->X = room.Width + 8;
+                    ch->Y = room.EnteredAtY;
                 }
                 else if (room.EnteredAtX < 8)
                 {
-                    ch->x = -8;
-                    ch->y = room.EnteredAtY;
+                    ch->X = -8;
+                    ch->Y = room.EnteredAtY;
                 }
                 else if (room.EnteredAtY > (room.Height - 8))
                 {
-                    ch->y = room.Height + 8;
-                    ch->x = room.EnteredAtX;
+                    ch->Y = room.Height + 8;
+                    ch->X = room.EnteredAtX;
                 }
                 else if (room.EnteredAtY < room.Edges.Top + 8)
                 {
-                    ch->y = room.Edges.Top + 1;
-                    ch->x = room.EnteredAtX;
+                    ch->Y = room.Edges.Top + 1;
+                    ch->X = room.EnteredAtX;
                 }
                 else
                 {
                     // not at one of the edges
                     // delay for a few seconds to let the player move
-                    ch->room = -game.Play.follow_change_room_timer;
+                    ch->Room = -game.Play.follow_change_room_timer;
                 }
-                if (ch->room >= 0)
+                if (ch->Room >= 0)
                 {
                     walk_character(ch, room.EnteredAtX, room.EnteredAtY, true /* ignwal */);
                     doing_nothing = 0;
                 }
             }
         }
-        else if (ch->room != game.DisplayedRoom)
+        else if (ch->Room != game.DisplayedRoom)
         {
             // if the character is following another character and
             // neither is in the current room, don't try to move
         }
-        else if ((abs(game.Characters[following].x - ch->x) > distaway + 30) ||
-                 (abs(game.Characters[following].y - ch->y) > distaway + 30) || (eagerness == 0))
+        else if ((abs(game.Characters[following].X - ch->X) > distaway + 30) ||
+                 (abs(game.Characters[following].Y - ch->Y) > distaway + 30) || (eagerness == 0))
         {
             // in same room
             int goxoffs = (Random(50) - 25);
@@ -566,7 +566,7 @@ void UpdateCharacterFollower(Game &game, Room &room, Character *ch, std::vector<
             {
                 goxoffs += distaway;
             }
-            walk_character(ch, game.Characters[following].x + goxoffs, game.Characters[following].y + (Random(50) - 25),
+            walk_character(ch, game.Characters[following].X + goxoffs, game.Characters[following].Y + (Random(50) - 25),
                            false /* walk areas */);
 
             doing_nothing = 0;
@@ -577,28 +577,28 @@ void UpdateCharacterFollower(Game &game, Room &room, Character *ch, std::vector<
 void UpdateCharacterIdle(Game &game, Character *ch, int &doing_nothing)
 {
     // no idle animation, already playing the idle animation, or not in the current room
-    if ((ch->idleview < 1) || ch->is_idling() || (ch->room != game.DisplayedRoom))
+    if ((ch->IdleView < 1) || ch->is_idling() || (ch->Room != game.DisplayedRoom))
     {
         return;
     }
     // they are moving or animating (or the view is locked), so
     // reset idle timeout
-    if ((doing_nothing == 0) || ((ch->flags & CHF_FIXVIEW) != 0))
+    if ((doing_nothing == 0) || ((ch->Flags & CHF_FIXVIEW) != 0))
     {
-        ch->idleleft = ch->idledelay;
+        ch->IdleTimeLeft = ch->IdleDelay;
     }
     // count idle time
-    else if ((get_loop_counter() % GetGameSpeed() == 0) || (ch->process_idle_this_time == 1))
+    else if ((get_loop_counter() % GetGameSpeed() == 0) || (ch->ProcessIdleThisTime == 1))
     {
-        ch->idleleft--;
-        if (ch->idleleft == -1)
+        ch->IdleTimeLeft--;
+        if (ch->IdleTimeLeft == -1)
         {
-            int use_loop = ch->loop;
-            debug_script_log("%s: Now idle (view %d)", ch->scrname.GetCStr(), ch->idleview + 1);
-            Character_LockView(ch, ch->idleview + 1);
-            // Character_LockView stops the idling (idleleft is -1 here) and resets idleleft: mark it as idling again
-            ch->idleleft = -2;
-            int max_loops = game.Views[ch->idleview].numLoops;
+            int use_loop = ch->Loop;
+            debug_script_log("%s: Now idle (view %d)", ch->ScriptName.GetCStr(), ch->IdleView + 1);
+            Character_LockView(ch, ch->IdleView + 1);
+            // Character_LockView stops the idling (IdleTimeLeft is -1 here) and resets IdleTimeLeft: mark it as idling again
+            ch->IdleTimeLeft = -2;
+            int max_loops = game.Views[ch->IdleView].numLoops;
             // if the char is set to "no diagonal loops", don't try
             // to use diagonal idle loops either
             if ((max_loops > 4) && (!should_use_diagloops(ch, false /* allow 1-frame loops */)))
@@ -607,13 +607,13 @@ void UpdateCharacterIdle(Game &game, Character *ch, int &doing_nothing)
             }
             // If it's not a "swimming"-type idleanim, choose a random loop
             // if there arent enough loops to do the current one.
-            if ((ch->idledelay > 0) && (use_loop >= max_loops))
+            if ((ch->IdleDelay > 0) && (use_loop >= max_loops))
             {
                 do
                 {
                     use_loop = rand() % max_loops;
                     // don't select a loop which is a continuation of a previous one
-                } while ((use_loop > 0) && (game.Views[ch->idleview].loops[use_loop - 1].RunNextLoop()));
+                } while ((use_loop > 0) && (game.Views[ch->IdleView].loops[use_loop - 1].RunNextLoop()));
             }
             // Normal idle anim - just reset to loop 0 if not enough to
             // use the current one
@@ -622,13 +622,13 @@ void UpdateCharacterIdle(Game &game, Character *ch, int &doing_nothing)
                 use_loop = 0;
             }
 
-            animate_character(ch, use_loop, ch->idle_anim_speed, (ch->idledelay == 0) ? 1 : 0 /* repeat */);
+            animate_character(ch, use_loop, ch->IdleAnimationDelay, (ch->IdleDelay == 0) ? 1 : 0 /* repeat */);
 
             // Don't keep the animation parameters while the idle anim plays: ch->IsAnimating() stays false, and
-            // the idling state is told by idleleft < 0 alone (is_idling()).
-            // TODO: the idle animation's delay could live in ch->anim like the other animations' (see
-            // UpdateCharacterAnimating), which would drop the idle_anim_speed special case.
-            ch->anim = ViewAnimateParams();
+            // the idling state is told by IdleTimeLeft < 0 alone (is_idling()).
+            // TODO: the idle animation's delay could live in ch->Anim like the other animations' (see
+            // UpdateCharacterAnimating), which would drop the IdleAnimationDelay special case.
+            ch->Anim = ViewAnimateParams();
         }
     } // end do idle animation
 }

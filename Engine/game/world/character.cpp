@@ -86,19 +86,19 @@ const char *text_lips_text = nullptr;
 
 void Character::UpdateGraphicSpace()
 {
-    // TODO: zoom_offs is not applied to eff_offset here, while draw.cpp scales the offsets by it on its own.
+    // TODO: OffsetZoom is not applied to EffectiveOffset here, while draw.cpp scales the offsets by it on its own.
     // To apply it here, either:
     // * AABB should *divide* graphical offset by zoom, which may only work if AABB is made
     // of floats (otherwise value precision will be lost in integer division).
     // * OR we might require ADDITIONAL parameter into GS, which is an offset applied UNSCALED.
-    const GraphicFlip flip = GetViewFrameFlip(view, loop, frame);
-    _graphicSpace =
-        GraphicSpace(x, y, eff_anchor,            // origin
-                     Size(spr_width, spr_height), // source sprite size
-                     Size(width, height),         // destination size (scaled)
-                     // real graphical aabb (maybe with extra offsets)
-                     RectWH((eff_offset.X + frame_xoff), (-z + eff_offset.Y + frame_yoff), spr_width, spr_height),
-                     rotation, pivot, pivot_offset, kOriginRule_MirrorAround, flip);
+    const GraphicFlip flip = GetViewFrameFlip(View, Loop, Frame);
+    _graphicSpace = GraphicSpace(
+        X, Y, EffectiveAnchor,           // origin
+        Size(SpriteWidth, SpriteHeight), // source sprite size
+        Size(Width, Height),             // destination size (scaled)
+        // real graphical aabb (maybe with extra offsets)
+        RectWH((EffectiveOffset.X + FrameOffsetX), (-Z + EffectiveOffset.Y + FrameOffsetY), SpriteWidth, SpriteHeight),
+        Rotation, Pivot, PivotOffset, kOriginRule_MirrorAround, flip);
 }
 
 void Character::SetTurning(bool on, bool ccw, int turn_steps)
@@ -107,13 +107,13 @@ void Character::SetTurning(bool on, bool ccw, int turn_steps)
         RuntimeFlags = (RuntimeFlags & ~kCharf_TurningMask) | kCharf_Turning | (ccw ? kCharf_TurningCCW : 0);
     else
         RuntimeFlags = (RuntimeFlags & ~kCharf_TurningMask);
-    turns = turn_steps;
+    Turns = turn_steps;
 }
 
 void Character::DecrementTurning()
 {
-    turns--;
-    if (turns <= 0)
+    Turns--;
+    if (Turns <= 0)
     {
         SetTurning(false, false, 0);
     }
@@ -121,50 +121,50 @@ void Character::DecrementTurning()
 
 void Character::SetAnimating(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int anim_volume)
 {
-    anim = ViewAnimateParams(flow, dir, delay, anim_volume);
+    Anim = ViewAnimateParams(flow, dir, delay, anim_volume);
 }
 
 void Character::ResetAnimating()
 {
-    anim = ViewAnimateParams();
+    Anim = ViewAnimateParams();
 }
 
 int Character::GetEffectiveY() const
 {
-    return y - (z * zoom_offs) / 100;
+    return Y - (Z * OffsetZoom) / 100;
 }
 
 int Character::GetFrameSoundVolume() const
 {
-    return ::CalcFrameSoundVolume(audio_volume, anim.AudioVolume, (flags & CHF_SCALEVOLUME) ? zoom : 100);
+    return ::CalcFrameSoundVolume(AnimationVolume, Anim.AudioVolume, (Flags & CHF_SCALEVOLUME) ? Zoom : 100);
 }
 
 void Character::SetLockedView(int new_view, int new_loop, int new_frame, const Pointf &anchor, const Point &off)
 {
-    view = new_view;
-    loop = new_loop;
-    frame = new_frame;
-    wait = 0;
-    flags |= CHF_FIXVIEW;
-    view_anchor = anchor;
-    view_offset = off;
+    View = new_view;
+    Loop = new_loop;
+    Frame = new_frame;
+    AnimWait = 0;
+    Flags |= CHF_FIXVIEW;
+    ViewAnchor = anchor;
+    ViewOffset = off;
     UpdateEffectiveValues();
 }
 
 void Character::SetUnlockedView()
 {
-    flags &= ~CHF_FIXVIEW;
-    view = defview;
-    frame = 0;
-    view_anchor = CharacterDef::GetDefaultSpriteAnchor();
-    view_offset = Point();
+    Flags &= ~CHF_FIXVIEW;
+    View = NormalView;
+    Frame = 0;
+    ViewAnchor = CharacterDef::GetDefaultSpriteAnchor();
+    ViewOffset = Point();
     UpdateEffectiveValues();
 }
 
 void Character::CheckViewFrame()
 {
     ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(this, &ccDynamicCharacter));
-    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(), audio_panning, AudioSpeed, objevt, &GetEvents(),
+    ::CheckViewFrame(View, Loop, Frame, GetFrameSoundVolume(), AudioPanning, AudioSpeed, objevt, &GetEvents(),
                      kCharacterEvent_OnFrameEvent);
 }
 
@@ -178,24 +178,24 @@ void Character::SetFollowing(int follow_who, int distance, int eagerness, bool s
 {
     if (follow_who < 0)
     {
-        following = -1;
-        follow_dist = 0;
-        follow_eagerness = 0;
+        Following = -1;
+        FollowDistance = 0;
+        FollowEagerness = 0;
         set_following_sortbehind(false);
     }
     else
     {
-        following = follow_who;
-        follow_dist = distance;
-        follow_eagerness = (distance == FOLLOW_ALWAYSONTOP) ? 0 : eagerness;
+        Following = follow_who;
+        FollowDistance = distance;
+        FollowEagerness = (distance == FOLLOW_ALWAYSONTOP) ? 0 : eagerness;
         set_following_sortbehind(sort_behind && (distance == FOLLOW_ALWAYSONTOP));
     }
 }
 
 void Character::UpdateEffectiveValues()
 {
-    eff_offset = is_view_locked() ? view_offset : GraphicOffset;
-    eff_anchor = is_view_locked() ? view_anchor : GraphicAnchor;
+    EffectiveOffset = is_view_locked() ? ViewOffset : GraphicOffset;
+    EffectiveAnchor = is_view_locked() ? ViewAnchor : GraphicAnchor;
 }
 
 void Character::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
@@ -206,47 +206,47 @@ void Character::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
         int16_t invorder[LEGACY_MAX_CHAR_INVENTORY];
         in->ReadArrayOfInt16(invorder, LEGACY_MAX_CHAR_INVENTORY);
         int invorder_count = in->ReadInt16();
-        inventory.resize(invorder_count);
-        std::copy(invorder, invorder + invorder_count, inventory.begin());
+        Inventory.resize(invorder_count);
+        std::copy(invorder, invorder + invorder_count, Inventory.begin());
     }
     else
     {
         uint32_t inv_count = in->ReadInt32();
-        inventory.resize(inv_count);
-        in->ReadArrayOfInt32(inventory.data(), inv_count);
+        Inventory.resize(inv_count);
+        in->ReadArrayOfInt32(Inventory.data(), inv_count);
         if (inv_count > MAX_CHAR_INVENTORY)
-            inventory.resize(MAX_CHAR_INVENTORY);
+            Inventory.resize(MAX_CHAR_INVENTORY);
     }
 
-    width = in->ReadInt16();
-    height = in->ReadInt16();
-    zoom = in->ReadInt16();
-    xwas = in->ReadInt16();
-    ywas = in->ReadInt16();
-    tint_r = in->ReadInt16();
-    tint_g = in->ReadInt16();
-    tint_b = in->ReadInt16();
-    tint_level = in->ReadInt16();
-    tint_light = in->ReadInt16();
-    process_idle_this_time = in->ReadInt8();
-    slow_move_counter = in->ReadInt8();
-    animwait = in->ReadInt16();
-    audio_volume = static_cast<uint8_t>(in->ReadInt8());
+    Width = in->ReadInt16();
+    Height = in->ReadInt16();
+    Zoom = in->ReadInt16();
+    FullStepX = in->ReadInt16();
+    FullStepY = in->ReadInt16();
+    TintRed = in->ReadInt16();
+    TintGreen = in->ReadInt16();
+    TintBlue = in->ReadInt16();
+    TintLevel = in->ReadInt16();
+    TintLight = in->ReadInt16();
+    ProcessIdleThisTime = in->ReadInt8();
+    SlowMoveCounter = in->ReadInt8();
+    WalkAnimWait = in->ReadInt16();
+    AnimationVolume = static_cast<uint8_t>(in->ReadInt8());
     const int cur_anim_volume = static_cast<uint8_t>(in->ReadInt8());
-    audio_panning = in->ReadInt8();
+    AudioPanning = in->ReadInt8();
     in->ReadInt8(); // reserved
 
     if (save_ver >= kCharSvgVersion_400_13)
     {
-        following = in->ReadInt32();
-        follow_dist = in->ReadInt32();
-        follow_eagerness = in->ReadInt32();
+        Following = in->ReadInt32();
+        FollowDistance = in->ReadInt32();
+        FollowEagerness = in->ReadInt32();
     }
     else
     {
-        following = -1;
-        follow_dist = 0;
-        follow_eagerness = 0;
+        Following = -1;
+        FollowDistance = 0;
+        FollowEagerness = 0;
     }
 
     if (save_ver >= kCharSvgVersion_400_28)
@@ -271,27 +271,27 @@ void Character::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     in->ReadInt32();              // transform scale y
     in->ReadInt32();              // transform skew x
     in->ReadInt32();              // transform skew y
-    rotation = in->ReadFloat32(); // transform rotate
+    Rotation = in->ReadFloat32(); // transform rotate
     float px = in->ReadFloat32(); // sprite pivot x
     float py = in->ReadFloat32(); // sprite pivot y
     float ax = in->ReadFloat32(); // sprite anchor x
     float ay = in->ReadFloat32(); // sprite anchor y
     GraphicAnchor = Pointf(ax, ay);
-    pivot = Pointf(px, py);
+    Pivot = Pointf(px, py);
 
     if (save_ver >= kCharSvgVersion_400_03)
     {
-        face_dir_ratio = in->ReadFloat32();
-        movelist_handle = in->ReadInt32();
+        FaceDirectionRatio = in->ReadFloat32();
+        MoveListHandle = in->ReadInt32();
         RuntimeFlags = in->ReadInt32();
-        turns = in->ReadInt32();
+        Turns = in->ReadInt32();
     }
     else
     {
-        face_dir_ratio = 0.f;
-        movelist_handle = 0;
+        FaceDirectionRatio = 0.f;
+        MoveListHandle = 0;
         RuntimeFlags = 0;
-        turns = 0;
+        Turns = 0;
     }
 
     AnimFlowStyle anim_flow = kAnimFlow_None;
@@ -300,8 +300,8 @@ void Character::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     int anim_delay = 0;
     if (save_ver >= kCharSvgVersion_400_18)
     {
-        shader_id = in->ReadInt32();
-        shader_handle = in->ReadInt32();
+        ShaderID = in->ReadInt32();
+        ShaderHandle = in->ReadInt32();
         // new anim fields are valid since kCharSvgVersion_400_20
         anim_flow = static_cast<AnimFlowStyle>(in->ReadInt8());
         anim_dir_initial = static_cast<AnimFlowDirection>(in->ReadInt8());
@@ -312,8 +312,8 @@ void Character::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     }
     else
     {
-        shader_id = 0;
-        shader_handle = 0;
+        ShaderID = 0;
+        ShaderHandle = 0;
     }
 
     if (save_ver >= kCharSvgVersion_400_26)
@@ -323,64 +323,64 @@ void Character::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
         GraphicOffset = Point(offx, offy);
         float view_ax = in->ReadFloat32();
         float view_ay = in->ReadFloat32();
-        view_anchor = Pointf(view_ax, view_ay);
+        ViewAnchor = Pointf(view_ax, view_ay);
         offx = in->ReadInt32();
         offy = in->ReadInt32();
-        view_offset = Point(offx, offy);
+        ViewOffset = Point(offx, offy);
     }
     else
     {
         GraphicAnchor = Pointf(0.5f, 1.f); // default: middle-bottom
         GraphicOffset = Point();
-        view_anchor = CharacterDef::GetDefaultSpriteAnchor(); // as SetUnlockedView
-        view_offset = Point();
+        ViewAnchor = CharacterDef::GetDefaultSpriteAnchor(); // as SetUnlockedView
+        ViewOffset = Point();
     }
 
     if (save_ver >= kCharSvgVersion_400_29)
     {
         int pivot_offx = in->ReadInt32();
         int pivot_offy = in->ReadInt32();
-        pivot_offset = Point(pivot_offx, pivot_offy);
+        PivotOffset = Point(pivot_offx, pivot_offy);
     }
     else
     {
-        pivot = Pointf(0.5f, 0.5f); // default: center
-        pivot_offset = Point();
+        Pivot = Pointf(0.5f, 0.5f); // default: center
+        PivotOffset = Point();
     }
 
     // NOTE: the legacy animating fields from old save fmt are applied externally,
     // because they are loaded into deprecated CharacterDef fields
-    anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_anim_volume);
+    Anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_anim_volume);
 
     UpdateEffectiveValues();
 }
 
 void Character::WriteToSavegame(Stream *out) const
 {
-    out->WriteInt32(static_cast<uint32_t>(inventory.size()));
-    out->WriteArrayOfInt32(inventory.data(), inventory.size());
-    out->WriteInt16(width);
-    out->WriteInt16(height);
-    out->WriteInt16(zoom);
-    out->WriteInt16(xwas);
-    out->WriteInt16(ywas);
-    out->WriteInt16(tint_r);
-    out->WriteInt16(tint_g);
-    out->WriteInt16(tint_b);
-    out->WriteInt16(tint_level);
-    out->WriteInt16(tint_light);
-    out->WriteInt8(process_idle_this_time);
-    out->WriteInt8(slow_move_counter);
-    out->WriteInt16(animwait);
+    out->WriteInt32(static_cast<uint32_t>(Inventory.size()));
+    out->WriteArrayOfInt32(Inventory.data(), Inventory.size());
+    out->WriteInt16(Width);
+    out->WriteInt16(Height);
+    out->WriteInt16(Zoom);
+    out->WriteInt16(FullStepX);
+    out->WriteInt16(FullStepY);
+    out->WriteInt16(TintRed);
+    out->WriteInt16(TintGreen);
+    out->WriteInt16(TintBlue);
+    out->WriteInt16(TintLevel);
+    out->WriteInt16(TintLight);
+    out->WriteInt8(ProcessIdleThisTime);
+    out->WriteInt8(SlowMoveCounter);
+    out->WriteInt16(WalkAnimWait);
     // since 3.6.0.25
-    out->WriteInt8(static_cast<uint8_t>(audio_volume));
-    out->WriteInt8(static_cast<uint8_t>(anim.AudioVolume));
-    out->WriteInt8(audio_panning);
+    out->WriteInt8(static_cast<uint8_t>(AnimationVolume));
+    out->WriteInt8(static_cast<uint8_t>(Anim.AudioVolume));
+    out->WriteInt8(AudioPanning);
     out->WriteInt8(0); // reserved
     // kCharSvgVersion_400_13
-    out->WriteInt32(following);
-    out->WriteInt32(follow_dist);
-    out->WriteInt32(follow_eagerness);
+    out->WriteInt32(Following);
+    out->WriteInt32(FollowDistance);
+    out->WriteInt32(FollowEagerness);
     // kCharSvgVersion_400_28
     out->WriteInt32(AudioSpeed);
     out->WriteInt32(0);
@@ -397,36 +397,36 @@ void Character::WriteToSavegame(Stream *out) const
     out->WriteInt32(0);                 // transform scale y
     out->WriteInt32(0);                 // transform skew x
     out->WriteInt32(0);                 // transform skew y
-    out->WriteFloat32(rotation);        // transform rotate
-    out->WriteFloat32(pivot.X);         // sprite pivot x
-    out->WriteFloat32(pivot.Y);         // sprite pivot y
+    out->WriteFloat32(Rotation);        // transform rotate
+    out->WriteFloat32(Pivot.X);         // sprite pivot x
+    out->WriteFloat32(Pivot.Y);         // sprite pivot y
     out->WriteFloat32(GraphicAnchor.X); // sprite anchor x
     out->WriteFloat32(GraphicAnchor.Y); // sprite anchor y
     // -- kCharSvgVersion_400_03
-    out->WriteFloat32(face_dir_ratio);
-    out->WriteInt32(movelist_handle);
+    out->WriteFloat32(FaceDirectionRatio);
+    out->WriteInt32(MoveListHandle);
     out->WriteInt32(RuntimeFlags);
-    out->WriteInt32(turns);
+    out->WriteInt32(Turns);
     // -- kCharSvgVersion_400_18
-    out->WriteInt32(shader_id);
-    out->WriteInt32(shader_handle);
+    out->WriteInt32(ShaderID);
+    out->WriteInt32(ShaderHandle);
     // new anim fields are valid since kCharSvgVersion_400_20
-    out->WriteInt8(anim.Flow);
-    out->WriteInt8(anim.InitialDirection);
-    out->WriteInt8(anim.Direction);
+    out->WriteInt8(Anim.Flow);
+    out->WriteInt8(Anim.InitialDirection);
+    out->WriteInt8(Anim.Direction);
     out->WriteInt8(0); // reserved to fill int32
-    out->WriteInt16(anim.Delay);
+    out->WriteInt16(Anim.Delay);
     out->WriteInt16(0); // reserved to fill int32
     // kCharSvgVersion_400_26
     out->WriteInt32(GraphicOffset.X);
     out->WriteInt32(GraphicOffset.Y);
-    out->WriteFloat32(view_anchor.X);
-    out->WriteFloat32(view_anchor.Y);
-    out->WriteInt32(view_offset.X);
-    out->WriteInt32(view_offset.Y);
+    out->WriteFloat32(ViewAnchor.X);
+    out->WriteFloat32(ViewAnchor.Y);
+    out->WriteInt32(ViewOffset.X);
+    out->WriteInt32(ViewOffset.Y);
     // kCharSvgVersion_400_29
-    out->WriteInt32(pivot_offset.X);
-    out->WriteInt32(pivot_offset.Y);
+    out->WriteInt32(PivotOffset.X);
+    out->WriteInt32(PivotOffset.Y);
 }
 
 // **** CHARACTER: FUNCTIONS ****
@@ -437,15 +437,15 @@ void stop_character_idling(Character *ch)
     if (ch->is_idling())
     {
         Character_UnlockView(ch);
-        ch->idleleft = ch->idledelay;
+        ch->IdleTimeLeft = ch->IdleDelay;
     }
 }
 
 // Resets idling timer, and marks for immediate update (in case its persistent idling)
 void reset_character_idling_time(Character *ch)
 {
-    ch->idleleft = ch->idledelay;
-    ch->process_idle_this_time = 1;
+    ch->IdleTimeLeft = ch->IdleDelay;
+    ch->ProcessIdleThisTime = 1;
 }
 
 bool IsValidCharacter(int char_id)
@@ -479,7 +479,7 @@ void Character_AddInventory(Character *ch, ScriptInvItem *item, int at_index)
     if (quant == INT32_MAX)
     {
         debug_script_warn("Character.AddInventory: char %s, item %s: cannot carry more than %d of one inventory item",
-                          ch->scrname.GetCStr(), game.invScriptNames[inum].GetCStr(), INT32_MAX);
+                          ch->ScriptName.GetCStr(), game.invScriptNames[inum].GetCStr(), INT32_MAX);
         return;
     }
 
@@ -488,7 +488,7 @@ void Character_AddInventory(Character *ch, ScriptInvItem *item, int at_index)
     if (game.options[OPT_DUPLICATEINV] == 0)
     {
         // Ensure it is only in the list once
-        for (const auto &item_id : ch->inventory)
+        for (const auto &item_id : ch->Inventory)
         {
             if (item_id == inum)
             {
@@ -502,23 +502,23 @@ void Character_AddInventory(Character *ch, ScriptInvItem *item, int at_index)
         }
     }
 
-    if (ch->inventory.size() == MAX_CHAR_INVENTORY)
+    if (ch->Inventory.size() == MAX_CHAR_INVENTORY)
     {
         debug_script_warn(
             "Character.AddInventory: char %s, item %s: too many inventory items added, max %d can be stored at once",
-            ch->scrname.GetCStr(), game.invScriptNames[inum].GetCStr(), MAX_CHAR_INVENTORY);
+            ch->ScriptName.GetCStr(), game.invScriptNames[inum].GetCStr(), MAX_CHAR_INVENTORY);
         return;
     }
 
-    if ((at_index < 0) || (static_cast<uint32_t>(at_index) >= ch->inventory.size()))
+    if ((at_index < 0) || (static_cast<uint32_t>(at_index) >= ch->Inventory.size()))
     {
-        ch->inventory.push_back(inum);
+        ch->Inventory.push_back(inum);
     }
     else
     {
-        ch->inventory.insert(ch->inventory.begin() + at_index, inum);
+        ch->Inventory.insert(ch->Inventory.begin() + at_index, inum);
     }
-    GUIE::MarkInventoryForUpdate(ch->index_id, ch->index_id == game.playercharacter);
+    GUIE::MarkInventoryForUpdate(ch->ID, ch->ID == game.playercharacter);
     if (ch == game.PlayerChar)
     {
         run_on_event(kScriptEvent_InventoryAdd, inum);
@@ -528,14 +528,14 @@ void Character_AddInventory(Character *ch, ScriptInvItem *item, int at_index)
 void Character_AddWaypoint(Character *ch, int x, int y)
 {
     Game &game = Game::Current();
-    if (ch->room != game.DisplayedRoom)
+    if (ch->Room != game.DisplayedRoom)
     {
         quitprintf("!MoveCharacterPath: character %s is not in current room %d (it is in room %d)",
-                   ch->scrname.GetCStr(), game.DisplayedRoom, ch->room);
+                   ch->ScriptName.GetCStr(), game.DisplayedRoom, ch->Room);
     }
 
     // not already walking, so just do a normal move
-    if (ch->walking <= 0)
+    if (ch->MoveListID <= 0)
     {
         Character_Walk(ch, x, y, IN_BACKGROUND, ANYWHERE);
         return;
@@ -552,7 +552,7 @@ void Character_AddWaypoint(Character *ch, int x, int y)
     ch->get_effective_walkspeeds(move_speed_x, move_speed_y);
     if ((move_speed_x == 0) && (move_speed_y == 0))
     {
-        debug_script_warn("Character::AddWaypoint: called for '%s' with walk speed 0", ch->scrname.GetCStr());
+        debug_script_warn("Character::AddWaypoint: called for '%s' with walk speed 0", ch->ScriptName.GetCStr());
     }
 
     MoveListOp::AddWaypointDirect(cmls, x, y, move_speed_x, move_speed_y, kMoveStage_Direct);
@@ -562,23 +562,23 @@ void Character_Animate(Character *ch, int loop, int delay, int repeat, int block
                        int volume)
 {
     // If idle view in progress for the character, stop the idle anim;
-    // do this prior to the loop check, as the view may switch back to defview here
+    // do this prior to the loop check, as the view may switch back to NormalView here
     stop_character_idling(ch);
 
-    ValidateViewAnimVLF("Character.Animate", ch->scrname.GetCStr(), ch->view, loop, sframe);
-    ValidateViewAnimParams("Character.Animate", ch->scrname.GetCStr(), blocking, repeat, direction);
+    ValidateViewAnimVLF("Character.Animate", ch->ScriptName.GetCStr(), ch->View, loop, sframe);
+    ValidateViewAnimParams("Character.Animate", ch->ScriptName.GetCStr(), blocking, repeat, direction);
 
     if (!ch->is_enabled())
     {
         debug_script_warn("%s: character %s is turned off, cannot run animation", "Character.Animate",
-                          ch->scrname.GetCStr());
+                          ch->ScriptName.GetCStr());
         return;
     }
 
     animate_character(ch, loop, delay, repeat, direction, sframe, volume);
 
     if (blocking != 0)
-        GameLoopUntilViewAnimEnd(&ch->anim);
+        GameLoopUntilViewAnimEnd(&ch->Anim);
 }
 
 void Character_Animate5(Character *ch, int loop, int delay, int repeat, int blocking, int direction)
@@ -594,7 +594,7 @@ void Character_Animate6(Character *ch, int loop, int delay, int repeat, int bloc
 void Character_ChangeRoomAutoPosition(Character *ch, int room, int new_pos)
 {
     Game &game = Game::Current();
-    if (ch->index_id != game.playercharacter)
+    if (ch->ID != game.playercharacter)
     {
         quit("!Character.ChangeRoomAutoPosition can only be used with the player character.");
     }
@@ -604,27 +604,27 @@ void Character_ChangeRoomAutoPosition(Character *ch, int room, int new_pos)
     if (game.RoomChange.Pos == 0)
     {
         // auto place on other side of screen
-        if (ch->x <= Room::Current().Edges.Left + 10)
+        if (ch->X <= Room::Current().Edges.Left + 10)
         {
             game.RoomChange.Pos = 2000;
         }
-        else if (ch->x >= Room::Current().Edges.Right - 10)
+        else if (ch->X >= Room::Current().Edges.Right - 10)
         {
             game.RoomChange.Pos = 1000;
         }
-        else if (ch->y <= Room::Current().Edges.Top + 10)
+        else if (ch->Y <= Room::Current().Edges.Top + 10)
         {
             game.RoomChange.Pos = 3000;
         }
-        else if (ch->y >= Room::Current().Edges.Bottom - 10)
+        else if (ch->Y >= Room::Current().Edges.Bottom - 10)
         {
             game.RoomChange.Pos = 4000;
         }
 
         if (game.RoomChange.Pos < 3000)
-            game.RoomChange.Pos += ch->y;
+            game.RoomChange.Pos += ch->Y;
         else
-            game.RoomChange.Pos += ch->x;
+            game.RoomChange.Pos += ch->X;
     }
     NewRoom(room);
 }
@@ -637,21 +637,21 @@ void Character_ChangeRoom(Character *ch, int room, int x, int y)
 void Character_ChangeRoomSetLoop(Character *ch, int room, int x, int y, int direction)
 {
     Game &game = Game::Current();
-    if (ch->index_id != game.playercharacter)
+    if (ch->ID != game.playercharacter)
     {
         // NewRoomNPC
         if ((x != SCR_NO_VALUE) && (y != SCR_NO_VALUE))
         {
-            ch->x = x;
-            ch->y = y;
+            ch->X = x;
+            ch->Y = y;
             if (direction != SCR_NO_VALUE && direction >= 0)
-                ch->loop = direction;
+                ch->Loop = direction;
         }
-        ch->prevroom = ch->room;
-        ch->room = room;
+        ch->PreviousRoom = ch->Room;
+        ch->Room = room;
 
-        debug_script_log("%s moved to room %d, location %d,%d, loop %d", ch->scrname.GetCStr(), room, ch->x, ch->y,
-                         ch->loop);
+        debug_script_log("%s moved to room %d, location %d,%d, loop %d", ch->ScriptName.GetCStr(), room, ch->X, ch->Y,
+                         ch->Loop);
 
         return;
     }
@@ -681,12 +681,12 @@ void Character_SetViewDirect(Character *ch, int view, bool is_walk_view)
 {
     // if the idle animation is playing we should release the view
     stop_character_idling(ch);
-    ch->view = view;
+    ch->View = view;
     stop_character_anim(ch);
-    ch->frame = 0;
-    ch->wait = 0;
-    ch->walkwait = 0;
-    ch->animwait = 0;
+    ch->Frame = 0;
+    ch->AnimWait = 0;
+    ch->WalkWait = 0;
+    ch->WalkAnimWait = 0;
     FindReasonableLoopForCharacter(ch, is_walk_view);
 }
 
@@ -700,13 +700,13 @@ void Character_ChangeView(Character *ch, int view)
     }
 
     // if animating, but not idle view, give warning message
-    if ((ch->flags & CHF_FIXVIEW) && (ch->idleleft >= 0))
+    if ((ch->Flags & CHF_FIXVIEW) && (ch->IdleTimeLeft >= 0))
     {
         debug_script_warn("ChangeCharacterView was used while the view was fixed - call ReleaseCharView first");
     }
 
-    debug_script_log("%s: Change view to %d", ch->scrname.GetCStr(), view + 1);
-    ch->defview = view;
+    debug_script_log("%s: Change view to %d", ch->ScriptName.GetCStr(), view + 1);
+    ch->NormalView = view;
     Character_SetViewDirect(ch, view, true);
 }
 
@@ -732,10 +732,10 @@ float GetFaceDirRatio(Character *ch)
 {
     Game &game = Game::Current();
     Room &room = Room::Current();
-    if (ch->face_dir_ratio != 0.f)
-        return ch->face_dir_ratio;
+    if (ch->FaceDirectionRatio != 0.f)
+        return ch->FaceDirectionRatio;
     // TODO: cache current area in Character somewhere during early char update
-    int onarea = get_walkable_area_at_location(room, ch->x, ch->y);
+    int onarea = get_walkable_area_at_location(room, ch->X, ch->Y);
     if (onarea > 0 && room.WalkAreas[onarea].FaceDirectionRatio != 0.f)
         return room.WalkAreas[onarea].FaceDirectionRatio;
     if (room.State->face_dir_ratio != 0.f)
@@ -750,7 +750,7 @@ float GetFaceDirRatio(Character *ch)
 DirectionalLoop GetDirectionalLoop(Character *ch, float x_diff, float y_diff, bool move_dir_fw = true)
 {
     if (x_diff == 0.f && y_diff == 0.f)
-        return static_cast<DirectionalLoop>(ch->loop);
+        return static_cast<DirectionalLoop>(ch->Loop);
 
     if (!move_dir_fw)
     {
@@ -763,7 +763,7 @@ DirectionalLoop GetDirectionalLoop(Character *ch, float x_diff, float y_diff, bo
     assert(dir_ratio != 0.f);
     y_diff *= dir_ratio; // dir ratio is a y/x relation
 
-    const ViewStruct &chview = Game::Current().Views[ch->view];
+    const ViewStruct &chview = Game::Current().Views[ch->View];
     const bool has_down_loop = ((chview.numLoops > kDirLoop_Down) && (chview.loops[kDirLoop_Down].numFrames > 0));
     const bool has_up_loop = ((chview.numLoops > kDirLoop_Up) && (chview.loops[kDirLoop_Up].numFrames > 0));
     // NOTE: left and right loops are required to be present at all times (as 3.+ games did)
@@ -813,14 +813,14 @@ void FaceDirectionalLoop(Character *ch, int direction, int blocking_style)
     stop_character_idling(ch);
 
     // Change facing only if the desired direction is different
-    if (direction != ch->loop)
+    if (direction != ch->Loop)
     {
-        if ((game.options[OPT_CHARTURNWHENFACE] != 0) && ((ch->flags & CHF_TURNWHENFACE) != 0) &&
+        if ((game.options[OPT_CHARTURNWHENFACE] != 0) && ((ch->Flags & CHF_TURNWHENFACE) != 0) &&
             (!game.Events.InEntersScreen))
         {
             const bool use_diagloops = should_use_diagloops(ch, false /* allow 1 frame in loops */);
             const int highest_loop = use_diagloops ? kDirLoop_Last : kDirLoop_LastOrthogonal;
-            if ((ch->loop <= highest_loop))
+            if ((ch->Loop <= highest_loop))
             {
                 // Turn to face new direction
                 Character_StopMoving(ch);
@@ -836,25 +836,25 @@ void FaceDirectionalLoop(Character *ch, int direction, int blocking_style)
                     }
                 }
                 else
-                    ch->loop = direction;
+                    ch->Loop = direction;
             }
             else
-                ch->loop = direction;
+                ch->Loop = direction;
         }
         else
-            ch->loop = direction;
+            ch->Loop = direction;
     }
 
-    ch->frame = 0;
+    ch->Frame = 0;
     reset_character_idling_time(ch);
 }
 
 void FaceLocationXY(Character *ch, int x, int y, int blocking_style)
 {
-    debug_script_log("%s: Face location %d,%d", ch->scrname.GetCStr(), x, y);
+    debug_script_log("%s: Face location %d,%d", ch->ScriptName.GetCStr(), x, y);
 
-    const int diffrx = x - ch->x;
-    const int diffry = y - ch->y;
+    const int diffrx = x - ch->X;
+    const int diffry = y - ch->Y;
     FaceDirectionalLoop(ch, GetDirectionalLoop(ch, diffrx, diffry), blocking_style);
 }
 
@@ -899,13 +899,13 @@ void Character_FaceCharacter(Character *ch, Character *other, int blocking_style
         quit("!FaceCharacter: invalid character specified");
     }
 
-    if (ch->room != other->room)
+    if (ch->Room != other->Room)
     {
         quitprintf("!FaceCharacter: characters %s and %s are in different rooms (room %d and room %d respectively)",
-                   ch->scrname.GetCStr(), other->scrname.GetCStr(), ch->room, other->room);
+                   ch->ScriptName.GetCStr(), other->ScriptName.GetCStr(), ch->Room, other->Room);
     }
 
-    FaceLocationXY(ch, other->x, other->y, blocking_style);
+    FaceLocationXY(ch, other->X, other->Y, blocking_style);
 }
 
 void Character_FollowCharacter(Character *ch, Character *to_follow, int distaway, int eagerness)
@@ -916,31 +916,31 @@ void Character_FollowCharacter(Character *ch, Character *to_follow, int distaway
     if ((eagerness < 0) || (eagerness > 250))
         quit("!FollowCharacterEx: invalid eagerness: must be 0-250");
 
-    if ((ch->index_id == Game::Current().playercharacter) && (to_follow != nullptr) && (to_follow->room != ch->room))
+    if ((ch->ID == Game::Current().playercharacter) && (to_follow != nullptr) && (to_follow->Room != ch->Room))
     {
         quitprintf("!FollowCharacterEx: you cannot tell the player character %s, who is in room %d, to follow a "
                    "character %s who is in another room %d",
-                   ch->scrname.GetCStr(), ch->room, to_follow->scrname.GetCStr(), to_follow->room);
+                   ch->ScriptName.GetCStr(), ch->Room, to_follow->ScriptName.GetCStr(), to_follow->Room);
     }
 
     if (to_follow != nullptr)
     {
-        debug_script_log("%s: Start following %s (dist %d, eager %d)", ch->scrname.GetCStr(),
-                         to_follow->scrname.GetCStr(), distaway, eagerness);
+        debug_script_log("%s: Start following %s (dist %d, eager %d)", ch->ScriptName.GetCStr(),
+                         to_follow->ScriptName.GetCStr(), distaway, eagerness);
     }
     else
     {
-        debug_script_log("%s: Stop following other character", ch->scrname.GetCStr());
+        debug_script_log("%s: Stop following other character", ch->ScriptName.GetCStr());
     }
 
-    if ((ch->following >= 0) && (ch->follow_dist == FOLLOW_ALWAYSONTOP))
+    if ((ch->Following >= 0) && (ch->FollowDistance == FOLLOW_ALWAYSONTOP))
     {
         // if this character was following always-on-top, its baseline will
         // have been changed, so release it.
-        ch->baseline = -1;
+        ch->Baseline = -1;
     }
 
-    ch->SetFollowing(to_follow ? to_follow->index_id : -1, distaway, eagerness, (eagerness == 1));
+    ch->SetFollowing(to_follow ? to_follow->ID : -1, distaway, eagerness, (eagerness == 1));
 
     if (ch->IsAnimatingRepeatedly())
         debug_script_warn(
@@ -949,52 +949,52 @@ void Character_FollowCharacter(Character *ch, Character *to_follow, int distaway
 
 Character *Character_GetFollowing(Character *ch)
 {
-    if (ch->following < 0)
+    if (ch->Following < 0)
     {
         return nullptr;
     }
 
-    return &Game::Current().Characters[ch->following];
+    return &Game::Current().Characters[ch->Following];
 }
 
 int GetCharacterWidth(Game &game, int char_id)
 {
     Character *ch = &game.Characters[char_id];
 
-    if (ch->width < 1)
+    if (ch->Width < 1)
     {
-        if ((ch->view < 0) || (ch->loop >= game.Views[ch->view].numLoops) ||
-            (ch->frame >= game.Views[ch->view].loops[ch->loop].numFrames))
+        if ((ch->View < 0) || (ch->Loop >= game.Views[ch->View].numLoops) ||
+            (ch->Frame >= game.Views[ch->View].loops[ch->Loop].numFrames))
         {
             debug_script_warn("GetCharacterWidth: Character %s has invalid frame: view %d, loop %d, frame %d",
-                              ch->scrname.GetCStr(), ch->view + 1, ch->loop, ch->frame);
+                              ch->ScriptName.GetCStr(), ch->View + 1, ch->Loop, ch->Frame);
             return 4;
         }
 
-        return game.SpriteInfos[game.Views[ch->view].loops[ch->loop].frames[ch->frame].pic].Width;
+        return game.SpriteInfos[game.Views[ch->View].loops[ch->Loop].frames[ch->Frame].pic].Width;
     }
     else
-        return ch->width;
+        return ch->Width;
 }
 
 int GetCharacterHeight(Game &game, int char_id)
 {
     Character *ch = &game.Characters[char_id];
 
-    if (ch->height < 1)
+    if (ch->Height < 1)
     {
-        if ((ch->view < 0) || (ch->loop >= game.Views[ch->view].numLoops) ||
-            (ch->frame >= game.Views[ch->view].loops[ch->loop].numFrames))
+        if ((ch->View < 0) || (ch->Loop >= game.Views[ch->View].numLoops) ||
+            (ch->Frame >= game.Views[ch->View].loops[ch->Loop].numFrames))
         {
             debug_script_warn("GetCharacterHeight: Character %s has invalid frame: view %d, loop %d, frame %d",
-                              ch->scrname.GetCStr(), ch->view + 1, ch->loop, ch->frame);
+                              ch->ScriptName.GetCStr(), ch->View + 1, ch->Loop, ch->Frame);
             return 2;
         }
 
-        return game.SpriteInfos[game.Views[ch->view].loops[ch->loop].frames[ch->frame].pic].Height;
+        return game.SpriteInfos[game.Views[ch->View].loops[ch->Loop].frames[ch->Frame].pic].Height;
     }
     else
-        return ch->height;
+        return ch->Height;
 }
 
 int Character_IsCollidingWithChar(Character *ch, Character *other)
@@ -1005,23 +1005,23 @@ int Character_IsCollidingWithChar(Character *ch, Character *other)
         quit("!AreCharactersColliding: invalid char2");
     }
 
-    if (ch->room != other->room)
+    if (ch->Room != other->Room)
     {
         return 0; // not colliding
     }
 
-    if ((ch->y > other->y - 5) && (ch->y < other->y + 5))
+    if ((ch->Y > other->Y - 5) && (ch->Y < other->Y + 5))
     {
         ;
     }
     else
         return 0;
 
-    int w1 = GetCharacterWidth(game, ch->index_id);
-    int w2 = GetCharacterWidth(game, other->index_id);
+    int w1 = GetCharacterWidth(game, ch->ID);
+    int w2 = GetCharacterWidth(game, other->ID);
 
-    int xps1 = ch->x - w1 / 2;
-    int xps2 = other->x - w2 / 2;
+    int xps1 = ch->X - w1 / 2;
+    int xps2 = other->X - w2 / 2;
 
     if ((xps1 >= xps2 - w1) & (xps1 <= xps2 + w2))
         return 1;
@@ -1037,7 +1037,7 @@ int Character_IsCollidingWithObject(Character *ch, ScriptObject *obj)
         quit("!AreCharObjColliding: invalid object number");
     }
 
-    if (ch->room != game.DisplayedRoom)
+    if (ch->Room != game.DisplayedRoom)
     {
         return 0;
     }
@@ -1053,12 +1053,12 @@ int Character_IsCollidingWithObject(Character *ch, ScriptObject *obj)
     const int obj_h = obj_pic->GetHeight();
     const Rect obj_rc = RectWH(room.Objs[obj->id].x, room.Objs[obj->id].y - obj_h, obj_w, obj_h);
 
-    Bitmap *ch_pic = GetCharacterImage(ch->index_id);
+    Bitmap *ch_pic = GetCharacterImage(ch->ID);
     const int char_w = ch_pic->GetWidth();
     const int char_h = ch_pic->GetHeight();
     // Only check feet (few bottom pixels)
     // FIXME: why is this hardcoded as "5" pixels, how does this work in hi-res games, how to let customize this?
-    const Rect ch_rc = RectWH(ch->x - char_w / 2, ch->GetEffectiveY() - 5, char_w, 5);
+    const Rect ch_rc = RectWH(ch->X - char_w / 2, ch->GetEffectiveY() - 5, char_w, 5);
 
     const Rect intersect = IntersectRects(obj_rc, ch_rc);
     if (!intersect.IsEmpty())
@@ -1100,15 +1100,15 @@ void Character_LockViewImpl(Character *ch, const char *api_name, int view, int l
                             const Point &offset, bool stop_moving)
 {
     view--; // convert to 0-based
-    AssertView(api_name, ch->scrname.GetCStr(), view);
-    AssertViewHasLoops(api_name, ch->scrname.GetCStr(), view);
+    AssertView(api_name, ch->ScriptName.GetCStr(), view);
+    AssertViewHasLoops(api_name, ch->ScriptName.GetCStr(), view);
 
     if (loop >= 0)
-        AssertLoop(api_name, ch->scrname.GetCStr(), view, loop);
+        AssertLoop(api_name, ch->ScriptName.GetCStr(), view, loop);
     else
         loop = 0;
     if (frame >= 0)
-        AssertFrame(api_name, ch->scrname.GetCStr(), view, loop, frame);
+        AssertFrame(api_name, ch->ScriptName.GetCStr(), view, loop, frame);
     else
         frame = 0;
 
@@ -1120,7 +1120,7 @@ void Character_LockViewImpl(Character *ch, const char *api_name, int view, int l
     stop_character_anim(ch);
     ch->SetLockedView(view, loop, frame, anchor, offset);
     FindReasonableLoopForCharacter(ch, false);
-    debug_script_log("%s: View locked to %d", ch->scrname.GetCStr(), view + 1);
+    debug_script_log("%s: View locked to %d", ch->ScriptName.GetCStr(), view + 1);
 }
 
 void Character_LockViewEx(Character *ch, int view, int stop_moving)
@@ -1174,30 +1174,30 @@ void Character_LoseInventoryImpl(Character *ch, int item_id, int item_inv_index)
 
     // If this was a selected item, and its quantity drops to zero,
     // then reset the active inventory and "use inv" cursor
-    if ((ch->activeinv == item_id) && no_item_left)
+    if ((ch->ActiveInventory == item_id) && no_item_left)
     {
-        ch->activeinv = -1;
+        ch->ActiveInventory = -1;
         if ((ch == game.PlayerChar) && (is_current_cursor_mode(kCursorRole_UseInv)))
         {
             set_cursor_mode(0); // change to the first enabled mode
         }
     }
 
-    const int char_id = ch->index_id;
+    const int char_id = ch->ID;
     if (item_inv_index >= 0)
     {
         // Remove from particular inventory slot
-        ch->inventory.erase(ch->inventory.begin() + item_inv_index);
+        ch->Inventory.erase(ch->Inventory.begin() + item_inv_index);
     }
     else
     {
         // Remove one item of this kind (it will be the only item if no duplicates allowed)
         if (no_item_left || (game.options[OPT_DUPLICATEINV] > 0))
         {
-            auto it_found = std::find(ch->inventory.begin(), ch->inventory.end(), item_id);
-            if (it_found != ch->inventory.end())
+            auto it_found = std::find(ch->Inventory.begin(), ch->Inventory.end(), item_id);
+            if (it_found != ch->Inventory.end())
             {
-                ch->inventory.erase(it_found);
+                ch->Inventory.erase(it_found);
             }
         }
     }
@@ -1220,8 +1220,8 @@ void Character_LoseInventory(Character *ch, ScriptInvItem *item)
     const int item_id = item->id;
     if (!ch->has_any_of_item(item_id))
     {
-        debug_script_warn("Character.LoseInventory: char %s, item %s: no such item in inventory", ch->scrname.GetCStr(),
-                          Game::Current().invScriptNames[item_id].GetCStr());
+        debug_script_warn("Character.LoseInventory: char %s, item %s: no such item in inventory",
+                          ch->ScriptName.GetCStr(), Game::Current().invScriptNames[item_id].GetCStr());
         return;
     }
 
@@ -1230,19 +1230,19 @@ void Character_LoseInventory(Character *ch, ScriptInvItem *item)
 
 void Character_LoseInventoryAt(Character *ch, int inv_index)
 {
-    if (ch->inventory.empty())
+    if (ch->Inventory.empty())
     {
-        debug_script_error("Character.RemoveInventoryAt: char %s has no items", ch->scrname.GetCStr());
+        debug_script_error("Character.RemoveInventoryAt: char %s has no items", ch->ScriptName.GetCStr());
         return;
     }
-    if (inv_index < 0 || static_cast<size_t>(inv_index) >= ch->inventory.size())
+    if (inv_index < 0 || static_cast<size_t>(inv_index) >= ch->Inventory.size())
     {
         debug_script_error("Character.RemoveInventoryAt: char %s has no item at index %d, inventory range is 0..%zu",
-                           ch->scrname.GetCStr(), inv_index, ch->inventory.size() - 1);
+                           ch->ScriptName.GetCStr(), inv_index, ch->Inventory.size() - 1);
         return;
     }
 
-    Character_LoseInventoryImpl(ch, ch->inventory[inv_index], inv_index);
+    Character_LoseInventoryImpl(ch, ch->Inventory[inv_index], inv_index);
 }
 
 void Character_PlaceOnWalkableArea(Character *ch)
@@ -1251,19 +1251,19 @@ void Character_PlaceOnWalkableArea(Character *ch)
         quit("!Character.PlaceOnWalkableArea: no room is currently loaded");
 
     Point dst;
-    if (FindNearestWalkableAreaForCharacter(Point(ch->x, ch->y), dst))
+    if (FindNearestWalkableAreaForCharacter(Point(ch->X, ch->Y), dst))
     {
-        ch->x = dst.X;
-        ch->y = dst.Y;
+        ch->X = dst.X;
+        ch->Y = dst.Y;
     }
 }
 
 void Character_RemoveTint(Character *ch)
 {
-    if (ch->flags & (CHF_HASTINT | CHF_HASLIGHT))
+    if (ch->Flags & (CHF_HASTINT | CHF_HASLIGHT))
     {
-        debug_script_log("Un-tint %s", ch->scrname.GetCStr());
-        ch->flags &= ~(CHF_HASTINT | CHF_HASLIGHT);
+        debug_script_log("Un-tint %s", ch->ScriptName.GetCStr());
+        ch->Flags &= ~(CHF_HASTINT | CHF_HASLIGHT);
     }
     else
     {
@@ -1278,17 +1278,17 @@ int Character_GetHasExplicitTint(Character *ch)
 
 void Character_Say(Character *ch, const char *text)
 {
-    DisplaySpeechCore(ch->index_id, text);
+    DisplaySpeechCore(ch->ID, text);
 }
 
 void Character_SayAt(Character *ch, int x, int y, int width, const char *text)
 {
-    DisplaySpeechAt(x, y, width, ch->index_id, text);
+    DisplaySpeechAt(x, y, width, ch->ID, text);
 }
 
 ScriptOverlay *Character_SayBackground(Character *ch, const char *text)
 {
-    int ovltype = DisplaySpeechBackground(ch->index_id, text);
+    int ovltype = DisplaySpeechBackground(ch->ID, text);
     auto *over = get_overlay(ovltype);
     if (!over)
         quit("!SayBackground internal error: no overlay");
@@ -1315,35 +1315,35 @@ void Character_SetAsPlayer(Character *ch)
 {
     Game &game = Game::Current();
     // Set to same character, so ignore.
-    if (game.playercharacter == ch->index_id)
+    if (game.playercharacter == ch->ID)
     {
         return;
     }
 
-    setup_player_character(ch->index_id);
+    setup_player_character(ch->ID);
     GUIE::MarkInventoryForUpdate(game.playercharacter, true);
-    debug_script_log("%s is new player character", game.PlayerChar->scrname.GetCStr());
+    debug_script_log("%s is new player character", game.PlayerChar->ScriptName.GetCStr());
 
     // Within game_start, return now
     if (game.DisplayedRoom < 0)
         return;
 
-    if (game.DisplayedRoom != game.PlayerChar->room)
-        NewRoom(game.PlayerChar->room);
+    if (game.DisplayedRoom != game.PlayerChar->Room)
+        NewRoom(game.PlayerChar->Room);
     else // make sure it doesn't run the region interactions
         game.Play.player_on_region =
-            GetRegionIDAtRoom(Room::Current(), game.PlayerChar->x, game.PlayerChar->y, kHit_Interactable);
+            GetRegionIDAtRoom(Room::Current(), game.PlayerChar->X, game.PlayerChar->Y, kHit_Interactable);
 
-    if ((game.PlayerChar->activeinv >= 0) && !game.PlayerChar->has_any_of_item(game.PlayerChar->activeinv))
-        game.PlayerChar->activeinv = -1;
+    if ((game.PlayerChar->ActiveInventory >= 0) && !game.PlayerChar->has_any_of_item(game.PlayerChar->ActiveInventory))
+        game.PlayerChar->ActiveInventory = -1;
 
     // They had inv selected, so change the cursor
     if (is_current_cursor_mode(kCursorRole_UseInv))
     {
-        if (game.PlayerChar->activeinv < 0)
+        if (game.PlayerChar->ActiveInventory < 0)
             Mouse_SetNextCursor();
         else
-            SetActiveInventory(game.PlayerChar->activeinv);
+            SetActiveInventory(game.PlayerChar->ActiveInventory);
     }
 }
 
@@ -1355,35 +1355,35 @@ void Character_SetIdleView(Character *ch, int iview, int itime)
     // if an idle anim is currently playing, release it
     stop_character_idling(ch);
 
-    ch->idleview = iview - 1;
+    ch->IdleView = iview - 1;
     // make sure they don't appear idle while idle anim is disabled
     if (iview < 1)
         itime = 10;
-    ch->idledelay = itime;
-    ch->idleleft = itime;
+    ch->IdleDelay = itime;
+    ch->IdleTimeLeft = itime;
 
     // if not currently animating, reset the wait counter
     if ((!ch->IsAnimating()) && (!ch->is_moving()))
     {
-        ch->wait = 0;
+        ch->AnimWait = 0;
     }
 
     if (iview >= 1)
     {
-        debug_script_log("Set %s idle view to %d (time %d)", ch->scrname.GetCStr(), iview, itime);
+        debug_script_log("Set %s idle view to %d (time %d)", ch->ScriptName.GetCStr(), iview, itime);
     }
     else
     {
-        debug_script_log("%s idle view disabled", ch->scrname.GetCStr());
+        debug_script_log("%s idle view disabled", ch->ScriptName.GetCStr());
     }
-    if (ch->flags & CHF_FIXVIEW)
+    if (ch->Flags & CHF_FIXVIEW)
     {
         debug_script_warn("SetCharacterIdle called while character view locked with SetCharacterView; idle ignored");
         debug_script_log("View locked, idle will not kick in until Released");
     }
     // if they switch to a swimming animation, kick it off immediately
     if (itime == 0)
-        ch->process_idle_this_time = 1;
+        ch->ProcessIdleThisTime = 1;
 }
 
 bool Character_GetHasExplicitLight(Character *ch)
@@ -1393,41 +1393,41 @@ bool Character_GetHasExplicitLight(Character *ch)
 
 int Character_GetLightLevel(Character *ch)
 {
-    return ch->has_explicit_light() ? ch->tint_light : 0;
+    return ch->has_explicit_light() ? ch->TintLight : 0;
 }
 
 void Character_SetLightLevel(Character *ch, int light_level)
 {
     light_level = Math::Clamp(light_level, -255, 255);
 
-    ch->tint_light = light_level;
-    ch->flags &= ~CHF_HASTINT;
-    ch->flags |= CHF_HASLIGHT;
+    ch->TintLight = light_level;
+    ch->Flags &= ~CHF_HASTINT;
+    ch->Flags |= CHF_HASLIGHT;
 }
 
 int Character_GetTintRed(Character *ch)
 {
-    return ch->has_explicit_tint() ? ch->tint_r : 0;
+    return ch->has_explicit_tint() ? ch->TintRed : 0;
 }
 
 int Character_GetTintGreen(Character *ch)
 {
-    return ch->has_explicit_tint() ? ch->tint_g : 0;
+    return ch->has_explicit_tint() ? ch->TintGreen : 0;
 }
 
 int Character_GetTintBlue(Character *ch)
 {
-    return ch->has_explicit_tint() ? ch->tint_b : 0;
+    return ch->has_explicit_tint() ? ch->TintBlue : 0;
 }
 
 int Character_GetTintSaturation(Character *ch)
 {
-    return ch->has_explicit_tint() ? ch->tint_level : 0;
+    return ch->has_explicit_tint() ? ch->TintLevel : 0;
 }
 
 int Character_GetTintLuminance(Character *ch)
 {
-    return ch->has_explicit_tint() ? ch->tint_light : 0;
+    return ch->has_explicit_tint() ? ch->TintLight : 0;
 }
 
 void Character_SetSpeed(Character *ch, int xspeed, int yspeed)
@@ -1438,14 +1438,14 @@ void Character_SetSpeed(Character *ch, int xspeed, int yspeed)
     xspeed = Math::Clamp(xspeed, (int)INT16_MIN, (int)INT16_MAX);
     yspeed = Math::Clamp(yspeed, (int)INT16_MIN, (int)INT16_MAX);
 
-    uint16_t old_speedx = ch->walkspeed;
-    uint16_t old_speedy = ((ch->walkspeed_y == UNIFORM_WALK_SPEED) ? ch->walkspeed : ch->walkspeed_y);
+    uint16_t old_speedx = ch->WalkSpeedX;
+    uint16_t old_speedy = ((ch->WalkSpeedY == UNIFORM_WALK_SPEED) ? ch->WalkSpeedX : ch->WalkSpeedY);
 
-    ch->walkspeed = xspeed;
+    ch->WalkSpeedX = xspeed;
     if (yspeed == xspeed)
-        ch->walkspeed_y = UNIFORM_WALK_SPEED;
+        ch->WalkSpeedY = UNIFORM_WALK_SPEED;
     else
-        ch->walkspeed_y = yspeed;
+        ch->WalkSpeedY = yspeed;
 
     if (ch->is_moving() && (old_speedx != xspeed || old_speedy != yspeed))
     {
@@ -1462,25 +1462,25 @@ void Character_StopMovingEx(Character *ch, bool force_walkable_area)
 {
     Game &game = Game::Current();
     // If we have a movelist reference attached, then invalidate and dec refcount
-    if (ch->movelist_handle > 0)
+    if (ch->MoveListHandle > 0)
     {
-        release_script_movelist(ch->movelist_handle);
-        ch->movelist_handle = 0;
+        release_script_movelist(ch->MoveListHandle);
+        ch->MoveListHandle = 0;
     }
 
-    int char_id = ch->index_id;
+    int char_id = ch->ID;
     if (char_id == game.Play.skip_until_char_stops)
     {
         EndSkippingUntilCharStops();
     }
 
     // A walk at a very small zoom level shows the character half way through a step, and keeps the position
-    // of the full step in xwas/ywas (see UpdateCharacterMoving); restore it before stopping
-    if (ch->xwas != INVALID_X)
+    // of the full step in FullStepX/FullStepY (see UpdateCharacterMoving); restore it before stopping
+    if (ch->FullStepX != INVALID_X)
     {
-        ch->x = ch->xwas;
-        ch->y = ch->ywas;
-        ch->xwas = INVALID_X;
+        ch->X = ch->FullStepX;
+        ch->Y = ch->FullStepY;
+        ch->FullStepX = INVALID_X;
     }
 
     // If requested by a caller, then validate the character position,
@@ -1488,7 +1488,7 @@ void Character_StopMovingEx(Character *ch, bool force_walkable_area)
     // Because the pathfinder is not ideal, and there are various sources of
     // inaccuracy in the walking logic, in rare cases the character might
     // pass through or even finish on a non-walkable pixel.
-    if (force_walkable_area && (ch->room == game.DisplayedRoom))
+    if (force_walkable_area && (ch->Room == game.DisplayedRoom))
     {
         // TODO: don't use PlaceOnWalkable, as that may result in moving character
         // into the random direction.
@@ -1504,24 +1504,24 @@ void Character_StopMovingEx(Character *ch, bool force_walkable_area)
     // Always reset any turning
     ch->StopTurning();
     // If the character is currently moving, stop them and reset their state
-    if (ch->walking > 0)
+    if (ch->MoveListID > 0)
     {
         // Switch character state from walking to standing
         remove_movelist(ch->get_movelist_id());
-        ch->walking = 0;
+        ch->MoveListID = 0;
         // If the character was animating a walk, then reset their frame to standing
         if (ch->is_moving_walkanim())
         {
-            ch->frame = 0;
+            ch->Frame = 0;
         }
         // Restart idle timer
         reset_character_idling_time(ch);
-        debug_script_log("%s: stop moving", ch->scrname.GetCStr());
+        debug_script_log("%s: stop moving", ch->ScriptName.GetCStr());
     }
 
     // Always clear the move-related flags (for safety)
     // NOTE: I recall there was a potential case when this flag could remain after Move...
-    ch->flags &= ~CHF_MOVENOTWALK;
+    ch->Flags &= ~CHF_MOVENOTWALK;
 }
 
 void Character_Tint(Character *ch, int red, int green, int blue, int opacity, int luminance)
@@ -1535,20 +1535,20 @@ void Character_Tint(Character *ch, int red, int green, int blue, int opacity, in
         return;
     }
 
-    debug_script_log("Set %s tint RGB(%d,%d,%d) %d%%", ch->scrname.GetCStr(), red, green, blue, opacity);
+    debug_script_log("Set %s tint RGB(%d,%d,%d) %d%%", ch->ScriptName.GetCStr(), red, green, blue, opacity);
 
-    ch->tint_r = red;
-    ch->tint_g = green;
-    ch->tint_b = blue;
-    ch->tint_level = opacity;
-    ch->tint_light = luminance;
-    ch->flags &= ~CHF_HASLIGHT;
-    ch->flags |= CHF_HASTINT;
+    ch->TintRed = red;
+    ch->TintGreen = green;
+    ch->TintBlue = blue;
+    ch->TintLevel = opacity;
+    ch->TintLight = luminance;
+    ch->Flags &= ~CHF_HASLIGHT;
+    ch->Flags |= CHF_HASTINT;
 }
 
 void Character_Think(Character *ch, const char *text)
 {
-    DisplayThoughtCore(ch->index_id, text);
+    DisplayThoughtCore(ch->ID, text);
 }
 
 void Character_UnlockView(Character *ch)
@@ -1558,16 +1558,16 @@ void Character_UnlockView(Character *ch)
 
 void Character_UnlockViewEx(Character *ch, int stop_moving)
 {
-    if (ch->flags & CHF_FIXVIEW)
+    if (ch->Flags & CHF_FIXVIEW)
     {
-        debug_script_log("%s: Released view back to default", ch->scrname.GetCStr());
+        debug_script_log("%s: Released view back to default", ch->ScriptName.GetCStr());
     }
     ch->SetUnlockedView();
     if (stop_moving != KEEP_MOVING)
     {
         Character_StopMoving(ch);
     }
-    if (ch->view >= 0)
+    if (ch->View >= 0)
     {
         FindReasonableLoopForCharacter(ch, true);
     }
@@ -1580,15 +1580,15 @@ void Character_UnlockViewEx(Character *ch, int stop_moving)
 bool ValidateCharForMove(Character *ch, const char *api_name)
 {
     Game &game = Game::Current();
-    if (ch->room != game.DisplayedRoom)
+    if (ch->Room != game.DisplayedRoom)
     {
         debug_script_warn("%s: specified character %s not in current room (is in %d, current room %d)", api_name,
-                          ch->scrname.GetCStr(), ch->room, game.DisplayedRoom);
+                          ch->ScriptName.GetCStr(), ch->Room, game.DisplayedRoom);
         return false;
     }
     if (!ch->is_enabled())
     {
-        debug_script_warn("%s: character %s is turned off and cannot be moved", api_name, ch->scrname.GetCStr());
+        debug_script_warn("%s: character %s is turned off and cannot be moved", api_name, ch->ScriptName.GetCStr());
         return false;
     }
     return true;
@@ -1604,8 +1604,8 @@ static void Character_DoMove(Character *ch, const char *api_name, void *path_arr
         return;
     }
 
-    ValidateMoveParams(api_name, ch->scrname.GetCStr(), blocking, ignwal);
-    ValidateAnimParams(api_name, ch->scrname.GetCStr(), repeat, direction);
+    ValidateMoveParams(api_name, ch->ScriptName.GetCStr(), blocking, ignwal);
+    ValidateAnimParams(api_name, ch->ScriptName.GetCStr(), repeat, direction);
 
     if (use_path)
     {
@@ -1629,7 +1629,7 @@ static void Character_DoMove(Character *ch, const char *api_name, void *path_arr
     }
 
     if (blocking)
-        GameLoopUntilNotMoving(&ch->walking);
+        GameLoopUntilNotMoving(&ch->MoveListID);
 }
 
 void Character_Walk(Character *ch, int x, int y, int blocking, int ignwal)
@@ -1671,7 +1671,7 @@ void Character_MovePath(Character *ch, void *path_arr, int blocking, int repeat,
 bool Character_RunFrameEvent(Character *ch, int view, int loop, int frame)
 {
     view--; // convert to internal 0-based view ID
-    AssertFrame("Character.RunFrameEvent", ch->scrname.GetCStr(), view, loop, frame);
+    AssertFrame("Character.RunFrameEvent", ch->ScriptName.GetCStr(), view, loop, frame);
     return ch->RunFrameEvent(view, loop, frame);
 }
 
@@ -1690,26 +1690,26 @@ void Character_RunInteraction(Character *ch, int mood)
     // For USE verb: remember active inventory
     if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
-        game.Play.usedinv = game.PlayerChar->activeinv;
+        game.Play.usedinv = game.PlayerChar->ActiveInventory;
     }
 
-    const auto obj_evt = ObjectEvent(kScTypeGame, LOCTYPE_CHAR, ch->index_id,
+    const auto obj_evt = ObjectEvent(kScTypeGame, LOCTYPE_CHAR, ch->ID,
                                      RuntimeScriptValue().SetScriptObject(ch, &ccDynamicCharacter), mood);
     if ((evnt >= 0) &&
-        run_event_script(obj_evt, &game.Characters[ch->index_id].interactions, evnt,
-                         &game.Characters[ch->index_id].GetEvents(), anyclick_evt, true /* do unhandled event */) < 0)
+        run_event_script(obj_evt, &game.Characters[ch->ID].Interactions, evnt, &game.Characters[ch->ID].GetEvents(),
+                         anyclick_evt, true /* do unhandled event */) < 0)
     {
         return; // game state changed, don't do "any click"
     }
     // any click on char
-    run_event_script(obj_evt, &game.Characters[ch->index_id].GetEvents(), anyclick_evt);
+    run_event_script(obj_evt, &game.Characters[ch->ID].GetEvents(), anyclick_evt);
 }
 
 void *Character_GetGraphicPosition(Character *ch)
 {
     ch->UpdateGraphicSpace();
     std::vector<Point> points;
-    ch->GetGraphicSpace().GetTransformedCorners(points, Size(ch->spr_width, ch->spr_height));
+    ch->GetGraphicSpace().GetTransformedCorners(points, Size(ch->SpriteWidth, ch->SpriteHeight));
     return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
 }
 
@@ -1724,59 +1724,59 @@ void *Character_GetGraphicBoundBox(Character *ch)
 int Character_GetProperty(Character *ch, const char *property)
 {
     Game &game = Game::Current();
-    if (!AssertCharacter("Character.GetProperty", ch->index_id))
+    if (!AssertCharacter("Character.GetProperty", ch->ID))
     {
         return 0;
     }
-    return get_int_property(game.charProps[ch->index_id], game.Play.charProps[ch->index_id], property);
+    return get_int_property(game.charProps[ch->ID], game.Play.charProps[ch->ID], property);
 }
 
 void Character_GetPropertyText(Character *ch, const char *property, char *buffer)
 {
     Game &game = Game::Current();
-    if (!AssertCharacter("Character.GetPropertyText", ch->index_id))
+    if (!AssertCharacter("Character.GetPropertyText", ch->ID))
     {
         return;
     }
-    get_text_property(game.charProps[ch->index_id], game.Play.charProps[ch->index_id], property, buffer);
+    get_text_property(game.charProps[ch->ID], game.Play.charProps[ch->ID], property, buffer);
 }
 
 const char *Character_GetTextProperty(Character *ch, const char *property)
 {
     Game &game = Game::Current();
-    if (!AssertCharacter("Character.GetTextProperty", ch->index_id))
+    if (!AssertCharacter("Character.GetTextProperty", ch->ID))
     {
         return nullptr;
     }
-    return get_text_property_dynamic_string(game.charProps[ch->index_id], game.Play.charProps[ch->index_id], property);
+    return get_text_property_dynamic_string(game.charProps[ch->ID], game.Play.charProps[ch->ID], property);
 }
 
 bool Character_SetProperty(Character *ch, const char *property, int value)
 {
-    if (!AssertCharacter("Character.SetProperty", ch->index_id))
+    if (!AssertCharacter("Character.SetProperty", ch->ID))
     {
         return false;
     }
-    return set_int_property(Game::Current().Play.charProps[ch->index_id], property, value);
+    return set_int_property(Game::Current().Play.charProps[ch->ID], property, value);
 }
 
 bool Character_SetTextProperty(Character *ch, const char *property, const char *value)
 {
-    if (!AssertCharacter("Character.SetTextProperty", ch->index_id))
+    if (!AssertCharacter("Character.SetTextProperty", ch->ID))
     {
         return false;
     }
-    return set_text_property(Game::Current().Play.charProps[ch->index_id], property, value);
+    return set_text_property(Game::Current().Play.charProps[ch->ID], property, value);
 }
 
 ScriptInvItem *Character_GetActiveInventory(Character *ch)
 {
-    if (ch->activeinv <= 0)
+    if (ch->ActiveInventory <= 0)
     {
         return nullptr;
     }
 
-    return &Game::Current().ScInvItems[ch->activeinv];
+    return &Game::Current().ScInvItems[ch->ActiveInventory];
 }
 
 void Character_SetActiveInventory(Character *ch, ScriptInvItem *item)
@@ -1784,14 +1784,14 @@ void Character_SetActiveInventory(Character *ch, ScriptInvItem *item)
     Game &game = Game::Current();
     if (item == nullptr)
     {
-        ch->activeinv = -1;
+        ch->ActiveInventory = -1;
 
-        if (ch->index_id == game.playercharacter)
+        if (ch->ID == game.playercharacter)
         {
             if (is_current_cursor_mode(kCursorRole_UseInv))
                 set_cursor_mode(0); // change to the first enabled mode
         }
-        GUIE::MarkInventoryForUpdate(ch->index_id, ch->index_id == game.playercharacter);
+        GUIE::MarkInventoryForUpdate(ch->ID, ch->ID == game.playercharacter);
         return;
     }
 
@@ -1801,15 +1801,15 @@ void Character_SetActiveInventory(Character *ch, ScriptInvItem *item)
         return;
     }
 
-    ch->activeinv = item->id;
+    ch->ActiveInventory = item->id;
 
-    if (ch->index_id == game.playercharacter)
+    if (ch->ID == game.playercharacter)
     {
         // if it's the player character, update mouse cursor
         update_inv_cursor(item->id);
         set_cursor_mode_with_role(kCursorRole_UseInv, -1);
     }
-    GUIE::MarkInventoryForUpdate(ch->index_id, ch->index_id == game.playercharacter);
+    GUIE::MarkInventoryForUpdate(ch->ID, ch->ID == game.playercharacter);
 }
 
 int Character_GetAnimating(Character *ch)
@@ -1819,22 +1819,22 @@ int Character_GetAnimating(Character *ch)
 
 int Character_GetAnimationSpeed(Character *ch)
 {
-    return ch->animspeed;
+    return ch->AnimationSpeed;
 }
 
 void Character_SetAnimationSpeed(Character *ch, int new_value)
 {
-    ch->animspeed = new_value;
+    ch->AnimationSpeed = new_value;
 }
 
 int Character_GetAudioPanning(Character *ch)
 {
-    return ch->audio_panning;
+    return ch->AudioPanning;
 }
 
 void Character_SetAudioPanning(Character *ch, int new_value)
 {
-    ch->audio_panning = Math::Clamp(new_value, -100, 100);
+    ch->AudioPanning = Math::Clamp(new_value, -100, 100);
 }
 
 int Character_GetAudioSpeed(Character *ch)
@@ -1849,32 +1849,32 @@ void Character_SetAudioSpeed(Character *ch, int new_value)
 
 int Character_GetAudioVolume(Character *ch)
 {
-    return ch->audio_volume;
+    return ch->AnimationVolume;
 }
 
 void Character_SetAudioVolume(Character *ch, int new_value)
 {
-    ch->audio_volume = Math::Clamp(new_value, 0, 100);
+    ch->AnimationVolume = Math::Clamp(new_value, 0, 100);
 }
 
 int Character_GetBaseline(Character *ch)
 {
-    if (ch->baseline < 1)
+    if (ch->Baseline < 1)
     {
         return 0;
     }
 
-    return ch->baseline;
+    return ch->Baseline;
 }
 
 void Character_SetBaseline(Character *ch, int baseline)
 {
-    ch->baseline = baseline;
+    ch->Baseline = baseline;
 }
 
 int Character_GetBlinkInterval(Character *ch)
 {
-    return ch->blinkinterval;
+    return ch->BlinkInterval;
 }
 
 void Character_SetBlinkInterval(Character *ch, int interval)
@@ -1882,17 +1882,17 @@ void Character_SetBlinkInterval(Character *ch, int interval)
     if (interval < 0)
         quit("!SetCharacterBlinkView: invalid blink interval");
 
-    ch->blinkinterval = interval;
+    ch->BlinkInterval = interval;
 
-    if (ch->blinktimer > 0)
+    if (ch->BlinkTimer > 0)
     {
-        ch->blinktimer = ch->blinkinterval;
+        ch->BlinkTimer = ch->BlinkInterval;
     }
 }
 
 int Character_GetBlinkView(Character *ch)
 {
-    return ch->blinkview + 1;
+    return ch->BlinkView + 1;
 }
 
 void Character_SetBlinkView(Character *ch, int view)
@@ -1902,12 +1902,12 @@ void Character_SetBlinkView(Character *ch, int view)
         quit("!SetCharacterBlinkView: invalid view number");
     }
 
-    ch->blinkview = view - 1;
+    ch->BlinkView = view - 1;
 }
 
 int Character_GetBlinkWhileThinking(Character *ch)
 {
-    if (ch->flags & CHF_NOBLINKANDTHINK)
+    if (ch->Flags & CHF_NOBLINKANDTHINK)
     {
         return 0;
     }
@@ -1916,56 +1916,56 @@ int Character_GetBlinkWhileThinking(Character *ch)
 
 void Character_SetBlinkWhileThinking(Character *ch, int yesorno)
 {
-    ch->flags &= ~CHF_NOBLINKANDTHINK;
+    ch->Flags &= ~CHF_NOBLINKANDTHINK;
     if (yesorno == 0)
     {
-        ch->flags |= CHF_NOBLINKANDTHINK;
+        ch->Flags |= CHF_NOBLINKANDTHINK;
     }
 }
 
 int Character_GetBlockingHeight(Character *ch)
 {
-    return ch->blocking_height;
+    return ch->BlockingHeight;
 }
 
 void Character_SetBlockingHeight(Character *ch, int hit)
 {
-    ch->blocking_height = static_cast<int16_t>(hit);
+    ch->BlockingHeight = static_cast<int16_t>(hit);
 }
 
 int Character_GetBlockingWidth(Character *ch)
 {
-    return ch->blocking_width;
+    return ch->BlockingWidth;
 }
 
 void Character_SetBlockingWidth(Character *ch, int wid)
 {
-    ch->blocking_width = static_cast<int16_t>(wid);
+    ch->BlockingWidth = static_cast<int16_t>(wid);
 }
 
 int Character_GetBlockingRectX(Character *ch)
 {
-    return Game::Current().Characters[ch->index_id].blocking_x;
+    return Game::Current().Characters[ch->ID].BlockingX;
 }
 
 void Character_SetBlockingRectX(Character *ch, int x)
 {
-    Game::Current().Characters[ch->index_id].blocking_x = x;
+    Game::Current().Characters[ch->ID].BlockingX = x;
 }
 
 int Character_GetBlockingRectY(Character *ch)
 {
-    return Game::Current().Characters[ch->index_id].blocking_y;
+    return Game::Current().Characters[ch->ID].BlockingY;
 }
 
 void Character_SetBlockingRectY(Character *ch, int y)
 {
-    Game::Current().Characters[ch->index_id].blocking_y = y;
+    Game::Current().Characters[ch->ID].BlockingY = y;
 }
 
 int Character_GetDiagonalWalking(Character *ch)
 {
-    if (ch->flags & CHF_NODIAGONAL)
+    if (ch->Flags & CHF_NODIAGONAL)
     {
         return 0;
     }
@@ -1974,14 +1974,14 @@ int Character_GetDiagonalWalking(Character *ch)
 
 void Character_SetDiagonalWalking(Character *ch, int yesorno)
 {
-    ch->flags &= ~CHF_NODIAGONAL;
+    ch->Flags &= ~CHF_NODIAGONAL;
     if (!yesorno)
-        ch->flags |= CHF_NODIAGONAL;
+        ch->Flags |= CHF_NODIAGONAL;
 }
 
 int Character_GetClickable(Character *ch)
 {
-    if (ch->flags & CHF_NOINTERACT)
+    if (ch->Flags & CHF_NOINTERACT)
     {
         return 0;
     }
@@ -1990,22 +1990,22 @@ int Character_GetClickable(Character *ch)
 
 void Character_SetClickable(Character *ch, int clickable)
 {
-    ch->flags &= ~CHF_NOINTERACT;
+    ch->Flags &= ~CHF_NOINTERACT;
     // if they don't want it clickable, set the relevant bit
     if (clickable == 0)
     {
-        ch->flags |= CHF_NOINTERACT;
+        ch->Flags |= CHF_NOINTERACT;
     }
 }
 
 int Character_GetID(Character *ch)
 {
-    return ch->index_id;
+    return ch->ID;
 }
 
 const char *Character_GetScriptName(Character *ch)
 {
-    return CreateNewScriptString(Game::Current().Characters[ch->index_id].scrname);
+    return CreateNewScriptString(Game::Current().Characters[ch->ID].ScriptName);
 }
 
 bool Character_GetEnabled(Character *ch)
@@ -2020,32 +2020,32 @@ void Character_SetEnabled(Character *ch, bool new_value)
 
 int Character_GetFrame(Character *ch)
 {
-    return ch->frame;
+    return ch->Frame;
 }
 
 void Character_SetFrame(Character *ch, int new_value)
 {
-    ch->frame = new_value;
+    ch->Frame = new_value;
 }
 
 int Character_GetIdleDelay(Character *ch)
 {
-    return ch->idledelay;
+    return ch->IdleDelay;
 }
 
 int Character_GetIdleTime(Character *ch)
 {
-    return ch->idleleft;
+    return ch->IdleTimeLeft;
 }
 
 int Character_GetIdleView(Character *ch)
 {
     // convert to a 1-based script view index
-    if (ch->idleview < 1)
+    if (ch->IdleView < 1)
     {
         return -1;
     }
-    return ch->idleview + 1;
+    return ch->IdleView + 1;
 }
 
 int Character_GetIInventoryQuantity(Character *ch, int index)
@@ -2075,7 +2075,7 @@ void Character_SetIInventoryQuantity(Character *ch, int index, int quant)
     if ((quant < 0) || (quant > INT16_MAX))
     {
         debug_script_warn("Character.InventoryQuantity: char %s, item %s: invalid quantity %d, valid range is 0..%d",
-                          ch->scrname.GetCStr(), game.invScriptNames[index].GetCStr(), quant, INT16_MAX);
+                          ch->ScriptName.GetCStr(), game.invScriptNames[index].GetCStr(), quant, INT16_MAX);
         quant = Math::Clamp<int>(quant, 0, INT16_MAX);
     }
 
@@ -2091,17 +2091,17 @@ void Character_SetIInventoryQuantity(Character *ch, int index, int quant)
         if (quant > old_quant)
         {
             for (int i = old_quant; i < quant; ++i)
-                ch->inventory.push_back(index);
+                ch->Inventory.push_back(index);
         }
         else
         {
             int cur_quant = old_quant;
-            for (size_t last_found = 0; (cur_quant > quant) && (last_found != ch->inventory.size()); --cur_quant)
+            for (size_t last_found = 0; (cur_quant > quant) && (last_found != ch->Inventory.size()); --cur_quant)
             {
-                auto it_found = std::find(ch->inventory.begin() + last_found, ch->inventory.end(), index);
-                last_found = it_found - ch->inventory.begin();
-                if (it_found != ch->inventory.end())
-                    ch->inventory.erase(it_found);
+                auto it_found = std::find(ch->Inventory.begin() + last_found, ch->Inventory.end(), index);
+                last_found = it_found - ch->Inventory.begin();
+                if (it_found != ch->Inventory.end())
+                    ch->Inventory.erase(it_found);
             }
         }
     }
@@ -2109,13 +2109,13 @@ void Character_SetIInventoryQuantity(Character *ch, int index, int quant)
     {
         if (quant > 0 && old_quant == 0)
         {
-            ch->inventory.push_back(index);
+            ch->Inventory.push_back(index);
         }
         else if (quant == 0 && old_quant > 0)
         {
-            auto it_found = std::find(ch->inventory.begin(), ch->inventory.end(), index);
-            if (it_found != ch->inventory.end())
-                ch->inventory.erase(it_found);
+            auto it_found = std::find(ch->Inventory.begin(), ch->Inventory.end(), index);
+            if (it_found != ch->Inventory.end())
+                ch->Inventory.erase(it_found);
         }
     }
 
@@ -2127,13 +2127,13 @@ void Character_SetIInventoryQuantity(Character *ch, int index, int quant)
             run_on_event(kScriptEvent_InventoryLose, index);
     }
 
-    GUIE::MarkInventoryForUpdate(ch->index_id, ch->index_id == game.playercharacter);
+    GUIE::MarkInventoryForUpdate(ch->ID, ch->ID == game.playercharacter);
 }
 
 // [DEPRECATED]
 int Character_GetIgnoreLighting(Character *ch)
 {
-    if (ch->flags & CHF_NOLIGHTING)
+    if (ch->Flags & CHF_NOLIGHTING)
     {
         return 1;
     }
@@ -2143,42 +2143,42 @@ int Character_GetIgnoreLighting(Character *ch)
 // [DEPRECATED]
 void Character_SetIgnoreLighting(Character *ch, int yesorno)
 {
-    ch->flags &= ~CHF_NOLIGHTING;
+    ch->Flags &= ~CHF_NOLIGHTING;
     if (yesorno)
-        ch->flags |= CHF_NOLIGHTING;
+        ch->Flags |= CHF_NOLIGHTING;
 }
 
 int Character_GetManualScaling(Character *ch)
 {
-    return (ch->flags & CHF_MANUALSCALING) ? 1 : 0;
+    return (ch->Flags & CHF_MANUALSCALING) ? 1 : 0;
 }
 
 void Character_SetManualScaling(Character *ch, int yesorno)
 {
-    ch->flags &= ~CHF_MANUALSCALING;
+    ch->Flags &= ~CHF_MANUALSCALING;
     if (yesorno)
-        ch->flags |= CHF_MANUALSCALING;
+        ch->Flags |= CHF_MANUALSCALING;
 }
 
 int Character_GetInventoryCount(Character *ch)
 {
-    return ch->inventory.size();
+    return ch->Inventory.size();
 }
 
 ScriptInvItem *Character_GetInventory(Character *ch, int index)
 {
-    if (index < 0 || static_cast<uint32_t>(index) >= ch->inventory.size())
+    if (index < 0 || static_cast<uint32_t>(index) >= ch->Inventory.size())
     {
         debug_script_warn("Character.Inventory[]: char %s: index %d is out of valid range, current inventory is 0..%d",
-                          ch->scrname.GetCStr(), index, (int)ch->inventory.size());
+                          ch->ScriptName.GetCStr(), index, (int)ch->Inventory.size());
         return nullptr;
     }
-    return &Game::Current().ScInvItems[ch->inventory[index]];
+    return &Game::Current().ScInvItems[ch->Inventory[index]];
 }
 
 int Character_GetMovementLinkedToAnimation(Character *ch)
 {
-    if (ch->flags & CHF_ANTIGLIDE)
+    if (ch->Flags & CHF_ANTIGLIDE)
     {
         return 1;
     }
@@ -2187,30 +2187,30 @@ int Character_GetMovementLinkedToAnimation(Character *ch)
 
 void Character_SetMovementLinkedToAnimation(Character *ch, int yesorno)
 {
-    ch->flags &= ~CHF_ANTIGLIDE;
+    ch->Flags &= ~CHF_ANTIGLIDE;
     if (yesorno)
-        ch->flags |= CHF_ANTIGLIDE;
+        ch->Flags |= CHF_ANTIGLIDE;
 }
 
 int Character_GetLoop(Character *ch)
 {
-    return ch->loop;
+    return ch->Loop;
 }
 
 void Character_SetLoop(Character *ch, int new_value)
 {
-    AssertLoop("Character.Loop", ch->scrname.GetCStr(), ch->view, new_value);
+    AssertLoop("Character.Loop", ch->ScriptName.GetCStr(), ch->View, new_value);
 
-    ch->loop = new_value;
-    if (ch->frame >= Game::Current().Views[ch->view].loops[ch->loop].numFrames)
+    ch->Loop = new_value;
+    if (ch->Frame >= Game::Current().Views[ch->View].loops[ch->Loop].numFrames)
     {
-        ch->frame = 0;
+        ch->Frame = 0;
     }
 }
 
 int Character_GetMoving(Character *ch)
 {
-    if (ch->walking)
+    if (ch->MoveListID)
     {
         return 1;
     }
@@ -2226,7 +2226,7 @@ int Character_GetDestinationX(Character *ch)
     }
     else
     {
-        return ch->x;
+        return ch->X;
     }
 }
 
@@ -2239,41 +2239,41 @@ int Character_GetDestinationY(Character *ch)
     }
     else
     {
-        return ch->y;
+        return ch->Y;
     }
 }
 
 const char *Character_GetName(Character *ch)
 {
-    return CreateNewScriptString(Game::Current().Characters[ch->index_id].name.GetCStr());
+    return CreateNewScriptString(Game::Current().Characters[ch->ID].Name.GetCStr());
 }
 
 void Character_SetName(Character *ch, const char *name)
 {
-    ch->name = name;
+    ch->Name = name;
     // Fill legacy name fields, for compatibility with old scripts and plugins
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
 int Character_GetNormalView(Character *ch)
 {
-    return ch->defview + 1;
+    return ch->NormalView + 1;
 }
 
 int Character_GetPreviousRoom(Character *ch)
 {
-    return ch->prevroom;
+    return ch->PreviousRoom;
 }
 
 int Character_GetRoom(Character *ch)
 {
-    return ch->room;
+    return ch->Room;
 }
 
 
 int Character_GetScaleMoveSpeed(Character *ch)
 {
-    if (ch->flags & CHF_SCALEMOVESPEED)
+    if (ch->Flags & CHF_SCALEMOVESPEED)
     {
         return 1;
     }
@@ -2285,14 +2285,14 @@ void Character_SetScaleMoveSpeed(Character *ch, int yesorno)
     if ((yesorno < 0) || (yesorno > 1))
         quit("Character.ScaleMoveSpeed: value must be true or false (1 or 0)");
 
-    ch->flags &= ~CHF_SCALEMOVESPEED;
+    ch->Flags &= ~CHF_SCALEMOVESPEED;
     if (yesorno)
-        ch->flags |= CHF_SCALEMOVESPEED;
+        ch->Flags |= CHF_SCALEMOVESPEED;
 }
 
 int Character_GetScaleVolume(Character *ch)
 {
-    if (ch->flags & CHF_SCALEVOLUME)
+    if (ch->Flags & CHF_SCALEVOLUME)
     {
         return 1;
     }
@@ -2304,34 +2304,34 @@ void Character_SetScaleVolume(Character *ch, int yesorno)
     if ((yesorno < 0) || (yesorno > 1))
         quit("Character.ScaleVolume: value must be true or false (1 or 0)");
 
-    ch->flags &= ~CHF_SCALEVOLUME;
+    ch->Flags &= ~CHF_SCALEVOLUME;
     if (yesorno)
-        ch->flags |= CHF_SCALEVOLUME;
+        ch->Flags |= CHF_SCALEVOLUME;
 }
 
 int Character_GetScaling(Character *ch)
 {
-    return ch->zoom;
+    return ch->Zoom;
 }
 
 void Character_SetScaling(Character *ch, int zoomlevel)
 {
-    if ((ch->flags & CHF_MANUALSCALING) == 0)
+    if ((ch->Flags & CHF_MANUALSCALING) == 0)
     {
         debug_script_warn("Character.Scaling: cannot set property unless ManualScaling is enabled");
         return;
     }
-    int zoom_fixed = Math::Clamp(zoomlevel, 1, (int)(INT16_MAX)); // Character::zoom is int16
+    int zoom_fixed = Math::Clamp(zoomlevel, 1, (int)(INT16_MAX)); // Character::Zoom is int16
     if (zoomlevel != zoom_fixed)
         debug_script_warn("Character.Scaling: scaling level must be between 1 and %d%%, asked for: %d",
                           (int)(INT16_MAX), zoomlevel);
 
-    ch->zoom = zoom_fixed;
+    ch->Zoom = zoom_fixed;
 }
 
 int Character_GetSolid(Character *ch)
 {
-    if (ch->flags & CHF_NOBLOCKING)
+    if (ch->Flags & CHF_NOBLOCKING)
     {
         return 0;
     }
@@ -2340,14 +2340,14 @@ int Character_GetSolid(Character *ch)
 
 void Character_SetSolid(Character *ch, int yesorno)
 {
-    ch->flags &= ~CHF_NOBLOCKING;
+    ch->Flags &= ~CHF_NOBLOCKING;
     if (!yesorno)
-        ch->flags |= CHF_NOBLOCKING;
+        ch->Flags |= CHF_NOBLOCKING;
 }
 
 int Character_GetSpeaking(Character *ch)
 {
-    if (get_character_currently_talking() == ch->index_id)
+    if (get_character_currently_talking() == ch->ID)
     {
         return 1;
     }
@@ -2357,12 +2357,12 @@ int Character_GetSpeaking(Character *ch)
 
 int Character_GetSpeechColor(Character *ch)
 {
-    return ch->talkcolor;
+    return ch->SpeechColor;
 }
 
 void Character_SetSpeechColor(Character *ch, int ncol)
 {
-    ch->talkcolor = ncol;
+    ch->SpeechColor = ncol;
 }
 
 int Character_GetSpeechAnimationDelay(Character *ch)
@@ -2371,7 +2371,7 @@ int Character_GetSpeechAnimationDelay(Character *ch)
     if (game.options[OPT_GLOBALTALKANIMSPD] != 0)
         return game.Play.talkanim_speed;
     else
-        return ch->speech_anim_speed;
+        return ch->SpeechAnimationDelay;
 }
 
 void Character_SetSpeechAnimationDelay(Character *ch, int delay)
@@ -2382,29 +2382,29 @@ void Character_SetSpeechAnimationDelay(Character *ch, int delay)
         return;
     }
 
-    ch->speech_anim_speed = delay;
+    ch->SpeechAnimationDelay = delay;
 }
 
 int Character_GetIdleAnimationDelay(Character *ch)
 {
-    return ch->idle_anim_speed;
+    return ch->IdleAnimationDelay;
 }
 
 void Character_SetIdleAnimationDelay(Character *ch, int delay)
 {
-    ch->idle_anim_speed = delay;
+    ch->IdleAnimationDelay = delay;
 }
 
 int Character_GetSpeechView(Character *ch)
 {
-    return ch->talkview + 1;
+    return ch->SpeechView + 1;
 }
 
 void Character_SetSpeechView(Character *ch, int view)
 {
     if (view == -1)
     {
-        ch->talkview = -1;
+        ch->SpeechView = -1;
         return;
     }
 
@@ -2413,19 +2413,19 @@ void Character_SetSpeechView(Character *ch, int view)
         quit("!SetCharacterSpeechView: invalid view number");
     }
 
-    ch->talkview = view - 1;
+    ch->SpeechView = view - 1;
 }
 
 bool Character_GetThinking(Character *ch)
 {
-    return char_thinking == ch->index_id;
+    return char_thinking == ch->ID;
 }
 
 int Character_GetThinkingFrame(Character *ch)
 {
-    if (char_thinking == ch->index_id)
+    if (char_thinking == ch->ID)
     {
-        return ch->thinkview > 0 ? ch->frame : -1;
+        return ch->ThinkView > 0 ? ch->Frame : -1;
     }
 
     debug_script_warn("Character.ThinkingFrame: character is not currently thinking");
@@ -2434,7 +2434,7 @@ int Character_GetThinkingFrame(Character *ch)
 
 int Character_GetThinkView(Character *ch)
 {
-    return ch->thinkview + 1;
+    return ch->ThinkView + 1;
 }
 
 void Character_SetThinkView(Character *ch, int view)
@@ -2444,12 +2444,12 @@ void Character_SetThinkView(Character *ch, int view)
         quit("!SetCharacterThinkView: invalid view number");
     }
 
-    ch->thinkview = view - 1;
+    ch->ThinkView = view - 1;
 }
 
 int Character_GetOpacity(Character *ch)
 {
-    return ch->opacity;
+    return ch->Opacity;
 }
 
 void Character_SetOpacity(Character *ch, int opacity)
@@ -2457,13 +2457,13 @@ void Character_SetOpacity(Character *ch, int opacity)
     if ((opacity < 0) || (opacity > 255))
         quit("!Character.Opacity: alpha value must be between 0 and 255");
 
-    ch->opacity = opacity;
+    ch->Opacity = opacity;
 }
 
 // [OBSOLETE] the AGS 4.0 Transparency, for compiled 4.0 games
 int Character_GetTransparency(Character *ch)
 {
-    return GfxDef::OpacityToTrans100(ch->opacity);
+    return GfxDef::OpacityToTrans100(ch->Opacity);
 }
 
 void Character_SetTransparency(Character *ch, int trans)
@@ -2471,7 +2471,7 @@ void Character_SetTransparency(Character *ch, int trans)
     if ((trans < 0) || (trans > 100))
         quit("!SetCharTransparent: transparency value must be between 0 and 100");
 
-    ch->opacity = GfxDef::Trans100ToOpacity(trans);
+    ch->Opacity = GfxDef::Trans100ToOpacity(trans);
 }
 
 bool Character_GetVisible(Character *ch)
@@ -2491,7 +2491,7 @@ int Character_GetBlendMode(Character *ch)
 
 void Character_SetBlendMode(Character *ch, int blend_mode)
 {
-    ch->BlendMode = ValidateBlendMode("Character.BlendMode", ch->scrname.GetCStr(), blend_mode);
+    ch->BlendMode = ValidateBlendMode("Character.BlendMode", ch->ScriptName.GetCStr(), blend_mode);
 }
 
 float Character_GetGraphicAnchorX(Character *ch)
@@ -2540,89 +2540,89 @@ void Character_SetGraphicOffsetY(Character *ch, int y)
 
 ScriptShaderInstance *Character_GetShader(Character *ch)
 {
-    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(ch->shader_handle));
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(ch->ShaderHandle));
 }
 
 void Character_SetShader(Character *ch, ScriptShaderInstance *shader_inst)
 {
-    ch->shader_id = shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID;
-    ch->shader_handle = ccReplaceObjectHandle(ch->shader_handle, shader_inst);
+    ch->ShaderID = shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID;
+    ch->ShaderHandle = ccReplaceObjectHandle(ch->ShaderHandle, shader_inst);
 }
 
 float Character_GetRotation(Character *ch)
 {
-    return ch->rotation;
+    return ch->Rotation;
 }
 
 void Character_SetRotation(Character *ch, float degrees)
 {
-    ch->rotation = Math::ClampAngle360(degrees);
+    ch->Rotation = Math::ClampAngle360(degrees);
     ch->UpdateGraphicSpace();
 }
 
 float Character_GetGraphicPivotX(Character *ch)
 {
-    return ch->pivot.X;
+    return ch->Pivot.X;
 }
 
 void Character_SetGraphicPivotX(Character *ch, float pivotx)
 {
-    ch->pivot.X = pivotx;
+    ch->Pivot.X = pivotx;
 }
 
 float Character_GetGraphicPivotY(Character *ch)
 {
-    return ch->pivot.Y;
+    return ch->Pivot.Y;
 }
 
 void Character_SetGraphicPivotY(Character *ch, float pivoty)
 {
-    ch->pivot.Y = pivoty;
+    ch->Pivot.Y = pivoty;
 }
 
 int Character_GetGraphicPivotOffsetX(Character *ch)
 {
-    return ch->pivot_offset.X;
+    return ch->PivotOffset.X;
 }
 
 void Character_SetGraphicPivotOffsetX(Character *ch, int px)
 {
-    ch->pivot_offset.X = px;
+    ch->PivotOffset.X = px;
 }
 
 int Character_GetGraphicPivotOffsetY(Character *ch)
 {
-    return ch->pivot_offset.Y;
+    return ch->PivotOffset.Y;
 }
 
 void Character_SetGraphicPivotOffsetY(Character *ch, int py)
 {
-    ch->pivot_offset.Y = py;
+    ch->PivotOffset.Y = py;
 }
 
 float Character_GetFaceDirectionRatio(Character *ch)
 {
-    return ch->face_dir_ratio;
+    return ch->FaceDirectionRatio;
 }
 
 void Character_SetFaceDirectionRatio(Character *ch, float ratio)
 {
-    ch->face_dir_ratio = ratio;
+    ch->FaceDirectionRatio = ratio;
 }
 
 int Character_GetTurnBeforeWalking(Character *ch)
 {
     // NOTE: this flag has inverse meaning
-    return ((ch->flags & CHF_NOTURNWHENWALK) != 0) ? 0 : 1;
+    return ((ch->Flags & CHF_NOTURNWHENWALK) != 0) ? 0 : 1;
 }
 
 void Character_SetTurnBeforeWalking(Character *ch, int on)
 {
     // NOTE: this flag has inverse meaning
     if (on)
-        ch->flags &= ~CHF_NOTURNWHENWALK;
+        ch->Flags &= ~CHF_NOTURNWHENWALK;
     else
-        ch->flags |= CHF_NOTURNWHENWALK;
+        ch->Flags |= CHF_NOTURNWHENWALK;
 }
 
 bool Character_GetTurning(Character *ch)
@@ -2632,67 +2632,67 @@ bool Character_GetTurning(Character *ch)
 
 int Character_GetTurnWhenFacing(Character *ch)
 {
-    return ((ch->flags & CHF_TURNWHENFACE) != 0) ? 1 : 0;
+    return ((ch->Flags & CHF_TURNWHENFACE) != 0) ? 1 : 0;
 }
 
 void Character_SetTurnWhenFacing(Character *ch, int on)
 {
     if (on)
-        ch->flags |= CHF_TURNWHENFACE;
+        ch->Flags |= CHF_TURNWHENFACE;
     else
-        ch->flags &= ~CHF_TURNWHENFACE;
+        ch->Flags &= ~CHF_TURNWHENFACE;
 }
 
 int Character_GetView(Character *ch)
 {
-    return ch->view + 1;
+    return ch->View + 1;
 }
 
 int Character_GetWalkSpeedX(Character *ch)
 {
-    return ch->walkspeed;
+    return ch->WalkSpeedX;
 }
 
 int Character_GetWalkSpeedY(Character *ch)
 {
-    if (ch->walkspeed_y != UNIFORM_WALK_SPEED)
+    if (ch->WalkSpeedY != UNIFORM_WALK_SPEED)
     {
-        return ch->walkspeed_y;
+        return ch->WalkSpeedY;
     }
 
-    return ch->walkspeed;
+    return ch->WalkSpeedX;
 }
 
 int Character_GetX(Character *ch)
 {
-    return ch->x;
+    return ch->X;
 }
 
 void Character_SetX(Character *ch, int new_value)
 {
-    ch->x = new_value;
+    ch->X = new_value;
     ch->UpdateGraphicSpace();
 }
 
 int Character_GetY(Character *ch)
 {
-    return ch->y;
+    return ch->Y;
 }
 
 void Character_SetY(Character *ch, int new_value)
 {
-    ch->y = new_value;
+    ch->Y = new_value;
     ch->UpdateGraphicSpace();
 }
 
 int Character_GetZ(Character *ch)
 {
-    return ch->z;
+    return ch->Z;
 }
 
 void Character_SetZ(Character *ch, int new_value)
 {
-    ch->z = new_value;
+    ch->Z = new_value;
     ch->UpdateGraphicSpace();
 }
 
@@ -2701,16 +2701,16 @@ int Character_GetSpeakingFrame(Character *ch)
     Game &game = Game::Current();
     if ((game.Speech.FaceTalking >= 0) && (game.Speech.FaceTalkRepeat))
     {
-        if (game.Speech.FaceTalkChar->index_id == ch->index_id)
+        if (game.Speech.FaceTalkChar->ID == ch->ID)
         {
             return game.Speech.FaceTalkFrame;
         }
     }
     else if (game.Speech.CharSpeakingAnim >= 0)
     {
-        if (game.Speech.CharSpeakingAnim == ch->index_id)
+        if (game.Speech.CharSpeakingAnim == ch->ID)
         {
-            return ch->frame;
+            return ch->Frame;
         }
     }
 
@@ -2720,14 +2720,14 @@ int Character_GetSpeakingFrame(Character *ch)
 
 bool Character_GetUseRegionTint(Character *ch)
 {
-    return (ch->flags & CHF_NOLIGHTING) == 0;
+    return (ch->Flags & CHF_NOLIGHTING) == 0;
 }
 
 void Character_SetUseRegionTint(Character *ch, int yesorno)
 {
-    ch->flags &= ~CHF_NOLIGHTING;
+    ch->Flags &= ~CHF_NOLIGHTING;
     if (!yesorno)
-        ch->flags |= CHF_NOLIGHTING;
+        ch->Flags |= CHF_NOLIGHTING;
 }
 
 float Character_GetViewAnchorX(Character *ch)
@@ -2756,14 +2756,14 @@ ScriptMotionPath *Character_GetMotionPath(Character *ch)
     if (mslot <= 0)
         return nullptr;
 
-    if (ch->movelist_handle > 0)
+    if (ch->MoveListHandle > 0)
     {
-        return static_cast<ScriptMotionPath *>(ccGetObjectAddressFromHandle(ch->movelist_handle));
+        return static_cast<ScriptMotionPath *>(ccGetObjectAddressFromHandle(ch->MoveListHandle));
     }
 
     auto sc_path = ScriptMotionPath::Create(mslot);
     ccAddObjectReference(sc_path.Handle());
-    ch->movelist_handle = sc_path.Handle();
+    ch->MoveListHandle = sc_path.Handle();
     return static_cast<ScriptMotionPath *>(sc_path.Obj());
 }
 
@@ -2781,7 +2781,7 @@ void move_character_impl(Character *ch, const std::vector<Point> *path, int tox,
 {
     assert(run_params.Flow >= kAnimFlow_First && run_params.Flow <= kAnimFlow_Last);
     assert(run_params.Direction >= kAnimDirForward && run_params.Direction <= kAnimDirBackward);
-    const int char_id = ch->index_id;
+    const int char_id = ch->ID;
     if (!ValidateCharForMove(ch, "MoveCharacter"))
     {
         return;
@@ -2795,8 +2795,8 @@ void move_character_impl(Character *ch, const std::vector<Point> *path, int tox,
     // and jump the character to the path's start
     if (path)
     {
-        ch->x = run_params.IsForward() ? path->front().X : path->back().X;
-        ch->y = run_params.IsForward() ? path->front().Y : path->back().Y;
+        ch->X = run_params.IsForward() ? path->front().X : path->back().X;
+        ch->Y = run_params.IsForward() ? path->front().Y : path->back().Y;
         tox = run_params.IsForward() ? path->back().X : path->front().X;
         toy = run_params.IsForward() ? path->back().Y : path->front().Y;
     }
@@ -2804,11 +2804,11 @@ void move_character_impl(Character *ch, const std::vector<Point> *path, int tox,
     // If has path, then test if it's empty, or has 2 stages where start is identical to end;
     // If no path, then test if destination is identical to the current pos
     if (path && ((path->size() < 2) || (path->size() == 2) && ((*path)[0] == (*path)[1])) ||
-        !path && (tox == ch->x) && (toy == ch->y))
+        !path && (tox == ch->X) && (toy == ch->Y))
     {
         Character_StopMoving(ch);
         debug_script_log("MoveCharacter: %s move path is empty, or is already at destination, not moving",
-                         ch->scrname.GetCStr());
+                         ch->ScriptName.GetCStr());
         return;
     }
 
@@ -2816,28 +2816,29 @@ void move_character_impl(Character *ch, const std::vector<Point> *path, int tox,
     int walk_wait_init = 1;
     int anim_wait_init = 0;
     float step_frac_init = 0.f;
-    int old_frame = ch->frame;
+    int old_frame = ch->Frame;
     // If character was currently walking, then save current "wait" timers
     // and animation frame, and apply later after new walking begins,
     // in order to make it look smoother.
-    if (ch->walking)
+    if (ch->MoveListID)
     {
-        walk_wait_init = ch->walkwait;
-        anim_wait_init = ch->animwait;
+        walk_wait_init = ch->WalkWait;
+        anim_wait_init = ch->WalkAnimWait;
         const auto &movelist = *get_movelist(ch->get_movelist_id());
         if (movelist.GetStageProgress() > 0.f)
             step_frac_init = movelist.GetPixelUnitFraction();
     }
 
     Character_StopMoving(ch);
-    ch->frame = old_frame;
-    debug_script_log("MoveCharacter: request move %s: %d,%d to %d,%d", ch->scrname.GetCStr(), ch->x, ch->y, tox, toy);
+    ch->Frame = old_frame;
+    debug_script_log("MoveCharacter: request move %s: %d,%d to %d,%d", ch->ScriptName.GetCStr(), ch->X, ch->Y, tox,
+                     toy);
 
     int move_speed_x, move_speed_y;
     ch->get_effective_walkspeeds(move_speed_x, move_speed_y);
     if ((move_speed_x == 0) && (move_speed_y == 0))
     {
-        debug_script_warn("MoveCharacter: called for '%s' with walk speed 0", ch->scrname.GetCStr());
+        debug_script_warn("MoveCharacter: called for '%s' with walk speed 0", ch->ScriptName.GetCStr());
     }
 
     MoveList new_mlist;
@@ -2851,7 +2852,7 @@ void move_character_impl(Character *ch, const std::vector<Point> *path, int tox,
     {
         MaskRouteFinder *pathfind = get_room_pathfinder();
         pathfind->SetWalkableArea(prepare_walkable_areas(char_id), Room::Current().MaskResolution);
-        path_result = Pathfinding::FindRoute(new_mlist, pathfind, ch->x, ch->y, tox, toy, move_speed_x, move_speed_y,
+        path_result = Pathfinding::FindRoute(new_mlist, pathfind, ch->X, ch->Y, tox, toy, move_speed_x, move_speed_y,
                                              false, ignwal, run_params);
     }
 
@@ -2872,8 +2873,8 @@ void move_character_impl(Character *ch, const std::vector<Point> *path, int tox,
         stop_character_idling(ch);
 
         // Setup new walk state
-        ch->walking = movelist;
-        MoveList &mlist = *get_movelist(ch->walking);
+        ch->MoveListID = movelist;
+        MoveList &mlist = *get_movelist(ch->MoveListID);
 
         if (step_frac_init > 0.f)
         {
@@ -2886,13 +2887,13 @@ void move_character_impl(Character *ch, const std::vector<Point> *path, int tox,
         // are already moving
         if (walk_anim)
         {
-            ch->walkwait = walk_wait_init;
-            ch->animwait = anim_wait_init;
+            ch->WalkWait = walk_wait_init;
+            ch->WalkAnimWait = anim_wait_init;
             fix_player_sprite(ch, mlist);
         }
         else
         {
-            ch->flags |= CHF_MOVENOTWALK;
+            ch->Flags |= CHF_MOVENOTWALK;
         }
     }
     else
@@ -2900,7 +2901,7 @@ void move_character_impl(Character *ch, const std::vector<Point> *path, int tox,
         // Pathfinder couldn't get a route, stand them still
         if (walk_anim && !ch->is_idling())
         {
-            ch->frame = 0;
+            ch->Frame = 0;
         }
     }
 }
@@ -2918,13 +2919,13 @@ int find_looporder_index(int curloop)
 bool should_use_diagloops(Character *ch, bool require_animation)
 {
     Game &game = Game::Current();
-    if ((game.Views[ch->view].numLoops < 8) || ((ch->flags & CHF_NODIAGONAL) != 0))
+    if ((game.Views[ch->View].numLoops < 8) || ((ch->Flags & CHF_NODIAGONAL) != 0))
     {
         return false;
     }
     // Optionally test if they have just provided standing frames for loops 4-7, to
     // provide smoother turning
-    if (require_animation && (game.Views[ch->view].loops[4].numFrames < 2))
+    if (require_animation && (game.Views[ch->View].loops[4].numFrames < 2))
     {
         return false;
     }
@@ -2937,8 +2938,8 @@ bool has_updown_loops(Character *ch)
     Game &game = Game::Current();
     // if no loops in the Down animation
     // or no loops in the Up animation
-    if ((game.Views[ch->view].loops[0].numFrames < 1) || (game.Views[ch->view].numLoops < 4) ||
-        (game.Views[ch->view].loops[3].numFrames < 1))
+    if ((game.Views[ch->View].loops[0].numFrames < 1) || (game.Views[ch->View].numLoops < 4) ||
+        (game.Views[ch->View].loops[3].numFrames < 1))
     {
         return false;
     }
@@ -2964,7 +2965,7 @@ void start_character_turning(Character *ch, int use_loop, bool use_diagloops)
 {
     Game &game = Game::Current();
     // work out how far round they have to turn
-    int from_idx = find_looporder_index(ch->loop);
+    int from_idx = find_looporder_index(ch->Loop);
     int to_idx = find_looporder_index(use_loop);
     // Default turn order is clockwise. But in certain cases we might want to change this.
     int clock_order = 1;
@@ -3002,11 +3003,11 @@ void start_character_turning(Character *ch, int use_loop, bool use_diagloops)
         }
         if ((turnlooporder[ii] >= NUM_BASE_DIRECTIONS) && (!use_diagloops))
             continue; // there are no diagonal loops
-        if (turnlooporder[ii] >= game.Views[ch->view].numLoops)
+        if (turnlooporder[ii] >= game.Views[ch->View].numLoops)
         {
             continue; // no such loop
         }
-        if (game.Views[ch->view].loops[turnlooporder[ii]].numFrames < 1)
+        if (game.Views[ch->View].loops[turnlooporder[ii]].numFrames < 1)
         {
             continue; // no frames in such loop
         }
@@ -3030,24 +3031,24 @@ void fix_player_sprite(Character *ch, const MoveList &cmls)
 
     const int use_loop = GetDirectionalLoop(ch, xpmove, ypmove, cmls.GetRunParams().IsForward());
 
-    if ((game.options[OPT_CHARTURNWHENWALK] == 0) || ((ch->flags & CHF_NOTURNWHENWALK) != 0))
+    if ((game.options[OPT_CHARTURNWHENWALK] == 0) || ((ch->Flags & CHF_NOTURNWHENWALK) != 0))
     {
-        ch->loop = use_loop;
+        ch->Loop = use_loop;
         return;
     }
-    if ((ch->loop > kDirLoop_LastOrthogonal) && ((ch->flags & CHF_NODIAGONAL) != 0))
+    if ((ch->Loop > kDirLoop_LastOrthogonal) && ((ch->Flags & CHF_NODIAGONAL) != 0))
     {
         // They've just been playing an animation with an extended loop number,
         // so don't try and rotate using it
-        ch->loop = use_loop;
+        ch->Loop = use_loop;
         return;
     }
-    if ((ch->loop >= game.Views[ch->view].numLoops) || (game.Views[ch->view].loops[ch->loop].numFrames < 1) ||
+    if ((ch->Loop >= game.Views[ch->View].numLoops) || (game.Views[ch->View].loops[ch->Loop].numFrames < 1) ||
         (!has_updown_loops(ch)))
     {
         // Character is not currently on a valid loop, so don't try to rotate
         // eg. left/right only view, but current loop 0
-        ch->loop = use_loop;
+        ch->Loop = use_loop;
         return;
     }
     start_character_turning(ch, use_loop, should_use_diagloops(ch, false /* allow 1 frame in loops */));
@@ -3057,7 +3058,7 @@ void fix_player_sprite(Character *ch, const MoveList &cmls)
 int has_hit_another_character(Game &game, int source_char)
 {
     // if the character who's moving doesn't block, don't bother checking
-    if (game.Characters[source_char].flags & CHF_NOBLOCKING)
+    if (game.Characters[source_char].Flags & CHF_NOBLOCKING)
     {
         return -1;
     }
@@ -3066,19 +3067,19 @@ int has_hit_another_character(Game &game, int source_char)
     {
         if (!game.Characters[ww].is_enabled())
             continue;
-        if (game.Characters[ww].room != game.DisplayedRoom)
+        if (game.Characters[ww].Room != game.DisplayedRoom)
             continue;
         if (ww == source_char)
         {
             continue;
         }
-        if (game.Characters[ww].flags & CHF_NOBLOCKING)
+        if (game.Characters[ww].Flags & CHF_NOBLOCKING)
             continue;
 
-        if (get_char_blocking_rect(game, ww).IsInside(game.Characters[source_char].x, game.Characters[source_char].y))
+        if (get_char_blocking_rect(game, ww).IsInside(game.Characters[source_char].X, game.Characters[source_char].Y))
         {
             // we are now overlapping character 'ww'
-            if ((game.Characters[ww].walking) && ((game.Characters[ww].flags & CHF_AWAITINGMOVE) == 0))
+            if ((game.Characters[ww].MoveListID) && ((game.Characters[ww].Flags & CHF_AWAITINGMOVE) == 0))
                 return ww;
         }
     }
@@ -3091,17 +3092,17 @@ int has_hit_another_character(Game &game, int source_char)
 int doNextCharMoveStep(Game &game, Character *ch)
 {
     assert(ch->walking > 0);
-    if (ch->walking <= 0)
+    if (ch->MoveListID <= 0)
     {
         return 0;
     }
 
-    const int xwas = ch->x, ywas = ch->y;
+    const int xwas = ch->X, ywas = ch->Y;
     MoveList &mlist = *get_movelist(ch->get_movelist_id());
     // For the purpose smooth walk transition keep moving even across multiple stages,
     // until all the "current move" is not depleted OR until we have to turn.
     for (MoveResult mresult = kMoveResult_Continue;
-         (mresult = do_movelist_move(ch->walking, ch->x, ch->y, mresult == kMoveResult_Continue)) ==
+         (mresult = do_movelist_move(ch->MoveListID, ch->X, ch->Y, mresult == kMoveResult_Continue)) ==
          kMoveResult_NextStage;)
     {
         // Character just switched to the next path segment, test if we need to turn.
@@ -3120,35 +3121,35 @@ int doNextCharMoveStep(Game &game, Character *ch)
         }
     }
 
-    int ntf = has_hit_another_character(game, ch->index_id);
+    int ntf = has_hit_another_character(game, ch->ID);
     if (ntf >= 0)
     {
-        ch->walkwait = 30;
-        if (game.Characters[ntf].walkspeed < 5)
-            ch->walkwait += (5 - game.Characters[ntf].walkspeed) * 5;
+        ch->WalkWait = 30;
+        if (game.Characters[ntf].WalkSpeedX < 5)
+            ch->WalkWait += (5 - game.Characters[ntf].WalkSpeedX) * 5;
         // we are now waiting for the other char to move, so
         // make sure he doesn't stop for us too
 
-        ch->flags |= CHF_AWAITINGMOVE;
+        ch->Flags |= CHF_AWAITINGMOVE;
 
         if (ch->is_moving_walkanim())
         {
-            ch->frame = 0;
-            ch->animwait = ch->walkwait;
+            ch->Frame = 0;
+            ch->WalkAnimWait = ch->WalkWait;
         }
 
-        if ((ch->walking < 1) || (ch->turns > 0))
+        if ((ch->MoveListID < 1) || (ch->Turns > 0))
         { /* skip */
         }
         else if (mlist.GetStageDoneSteps() > 0.f)
         {
             mlist.Backward();
-            ch->x = xwas;
-            ch->y = ywas;
+            ch->X = xwas;
+            ch->Y = ywas;
         }
 
-        debug_script_log("%s: Bumped into %s, waiting for them to move", ch->scrname.GetCStr(),
-                         game.Characters[ntf].scrname.GetCStr());
+        debug_script_log("%s: Bumped into %s, waiting for them to move", ch->ScriptName.GetCStr(),
+                         game.Characters[ntf].ScriptName.GetCStr());
         return 1;
     }
     return 0;
@@ -3209,31 +3210,31 @@ bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
 void FindReasonableLoopForCharacter(Character *ch, bool is_walk_view)
 {
     Game &game = Game::Current();
-    int loop_limit = game.Views[ch->view].numLoops;
+    int loop_limit = game.Views[ch->View].numLoops;
     // If it's a standard purpose walking view, then limit the loop to
     // walking directions (depending on "use diagonal loops" character option)
     if (is_walk_view)
     {
-        loop_limit = ((ch->flags & CHF_NODIAGONAL) != 0) ? std::min(loop_limit, 4) : std::min(loop_limit, 8);
+        loop_limit = ((ch->Flags & CHF_NODIAGONAL) != 0) ? std::min(loop_limit, 4) : std::min(loop_limit, 8);
     }
 
-    if (ch->loop >= loop_limit)
+    if (ch->Loop >= loop_limit)
     {
-        ch->loop = kDirLoop_Default;
+        ch->Loop = kDirLoop_Default;
     }
-    if (game.Views[ch->view].numLoops < 1)
+    if (game.Views[ch->View].numLoops < 1)
     {
-        quitprintf("!View %d does not have any loops", ch->view + 1);
+        quitprintf("!View %d does not have any loops", ch->View + 1);
     }
 
     // if the current loop has no frames, find one that does
-    if (game.Views[ch->view].loops[ch->loop].numFrames < 1)
+    if (game.Views[ch->View].loops[ch->Loop].numFrames < 1)
     {
         for (int i = 0; i < loop_limit; i++)
         {
-            if (game.Views[ch->view].loops[i].numFrames > 0)
+            if (game.Views[ch->View].loops[i].numFrames > 0)
             {
-                ch->loop = i;
+                ch->Loop = i;
                 break;
             }
         }
@@ -3253,24 +3254,24 @@ void move_character(Character *ch, const std::vector<Point> &path, bool walk_ani
 void move_character_straight(Character *ch, int x, int y, bool walk_anim)
 {
     MaskRouteFinder *pathfind = get_room_pathfinder();
-    pathfind->SetWalkableArea(prepare_walkable_areas(ch->index_id), Room::Current().MaskResolution);
-    if (!pathfind->IsWalkableAt(ch->x, ch->y))
+    pathfind->SetWalkableArea(prepare_walkable_areas(ch->ID), Room::Current().MaskResolution);
+    if (!pathfind->IsWalkableAt(ch->X, ch->Y))
     {
         Character_StopMoving(ch);
         debug_script_log("MoveCharacterStraight: %s (%d,%d) is not on a walkable area, not moving",
-                         ch->scrname.GetCStr(), ch->x, ch->y);
+                         ch->ScriptName.GetCStr(), ch->X, ch->Y);
         return;
     }
 
     int movetox = x, movetoy = y;
-    int lastcx = ch->x, lastcy = ch->y;
-    if (!pathfind->CanSeeFrom(ch->x, ch->y, x, y, &lastcx, &lastcy))
+    int lastcx = ch->X, lastcy = ch->Y;
+    if (!pathfind->CanSeeFrom(ch->X, ch->Y, x, y, &lastcx, &lastcy))
     {
         movetox = lastcx;
         movetoy = lastcy;
     }
 
-    std::vector<Point> path = {{ch->x, ch->y}, {movetox, movetoy}};
+    std::vector<Point> path = {{ch->X, ch->Y}, {movetox, movetoy}};
     move_character_impl(ch, &path, movetox, movetoy, false /* walkable areas */, walk_anim,
                         RunPathParams::DefaultOnce());
 }
@@ -3291,30 +3292,30 @@ void MoveCharacterToHotspot(int char_id, int hotsp)
 
     walk_character(&game.Characters[char_id], room.Hotspots[hotsp].WalkTo.X, room.Hotspots[hotsp].WalkTo.Y,
                    false /* walkable areas */);
-    GameLoopUntilNotMoving(&game.Characters[char_id].walking);
+    GameLoopUntilNotMoving(&game.Characters[char_id].MoveListID);
 }
 
 int wantMoveNow(Character *ch)
 {
     // check most likely case first
-    if ((ch->zoom == 100) || ((ch->flags & CHF_SCALEMOVESPEED) == 0))
+    if ((ch->Zoom == 100) || ((ch->Flags & CHF_SCALEMOVESPEED) == 0))
     {
         return 1;
     }
 
     // the % checks don't work when the counter is negative, so once
     // it wraps round, correct it
-    // FIXME: walkwaitcounter is int16_t and turns negative after 32767 steps, which this loop works around
+    // FIXME: WalkWaitCounter is int16_t and turns negative after 32767 steps, which this loop works around
     // (12000 is a multiple of 4, so the phase of the % 4 checks is kept); an unsigned counter would not need it.
-    while (ch->walkwaitcounter < 0)
+    while (ch->WalkWaitCounter < 0)
     {
-        ch->walkwaitcounter += 12000;
+        ch->WalkWaitCounter += 12000;
     }
 
     // scaling 170-200%, move 175% speed
-    if (ch->zoom >= 170)
+    if (ch->Zoom >= 170)
     {
-        if ((ch->walkwaitcounter % 4) >= 1)
+        if ((ch->WalkWaitCounter % 4) >= 1)
         {
             return 2;
         }
@@ -3322,9 +3323,9 @@ int wantMoveNow(Character *ch)
             return 1;
     }
     // scaling 140-170%, move 150% speed
-    else if (ch->zoom >= 140)
+    else if (ch->Zoom >= 140)
     {
-        if ((ch->walkwaitcounter % 2) == 1)
+        if ((ch->WalkWaitCounter % 2) == 1)
         {
             return 2;
         }
@@ -3332,9 +3333,9 @@ int wantMoveNow(Character *ch)
             return 1;
     }
     // scaling 115-140%, move 125% speed
-    else if (ch->zoom >= 115)
+    else if (ch->Zoom >= 115)
     {
-        if ((ch->walkwaitcounter % 4) >= 3)
+        if ((ch->WalkWaitCounter % 4) >= 3)
         {
             return 2;
         }
@@ -3342,51 +3343,51 @@ int wantMoveNow(Character *ch)
             return 1;
     }
     // scaling 80-120%, normal speed
-    else if (ch->zoom >= 80)
+    else if (ch->Zoom >= 80)
         return 1;
     // scaling 60-80%, move 75% speed
-    if (ch->zoom >= 60)
+    if (ch->Zoom >= 60)
     {
-        if ((ch->walkwaitcounter % 4) >= 1)
+        if ((ch->WalkWaitCounter % 4) >= 1)
         {
             return -1;
         }
-        else if (ch->xwas != INVALID_X)
+        else if (ch->FullStepX != INVALID_X)
         {
             // move the second half of the movement to make it smoother
-            ch->x = ch->xwas;
-            ch->y = ch->ywas;
-            ch->xwas = INVALID_X;
+            ch->X = ch->FullStepX;
+            ch->Y = ch->FullStepY;
+            ch->FullStepX = INVALID_X;
         }
     }
     // scaling 30-60%, move 50% speed
-    else if (ch->zoom >= 30)
+    else if (ch->Zoom >= 30)
     {
-        if ((ch->walkwaitcounter % 2) == 1)
+        if ((ch->WalkWaitCounter % 2) == 1)
         {
             return -1;
         }
-        else if (ch->xwas != INVALID_X)
+        else if (ch->FullStepX != INVALID_X)
         {
             // move the second half of the movement to make it smoother
-            ch->x = ch->xwas;
-            ch->y = ch->ywas;
-            ch->xwas = INVALID_X;
+            ch->X = ch->FullStepX;
+            ch->Y = ch->FullStepY;
+            ch->FullStepX = INVALID_X;
         }
     }
     // scaling 0-30%, move 25% speed
     else
     {
-        if ((ch->walkwaitcounter % 4) >= 3)
+        if ((ch->WalkWaitCounter % 4) >= 3)
         {
             return -1;
         }
-        if (((ch->walkwaitcounter % 4) == 1) && (ch->xwas != INVALID_X))
+        if (((ch->WalkWaitCounter % 4) == 1) && (ch->FullStepX != INVALID_X))
         {
             // move the second half of the movement to make it smoother
-            ch->x = ch->xwas;
-            ch->y = ch->ywas;
-            ch->xwas = INVALID_X;
+            ch->X = ch->FullStepX;
+            ch->Y = ch->FullStepY;
+            ch->FullStepX = INVALID_X;
         }
     }
 
@@ -3407,24 +3408,24 @@ void setup_player_character(int char_id)
 void animate_character(Character *ch, int loop, int sppd, int rept, int direction, int sframe, int volume)
 {
     Game &game = Game::Current();
-    if ((ch->view < 0) || (ch->view > game.numviews) || (loop < 0) || (loop >= game.Views[ch->view].numLoops))
+    if ((ch->View < 0) || (ch->View > game.numviews) || (loop < 0) || (loop >= game.Views[ch->View].numLoops))
     {
         quitprintf("!AnimateCharacter: invalid view and/or loop\n"
                    "(trying to animate '%s' using view %d (range is 1..%d) and loop %d (view has %d loops)).",
-                   ch->scrname.GetCStr(), ch->view + 1, game.numviews, loop, game.Views[ch->view].numLoops);
+                   ch->ScriptName.GetCStr(), ch->View + 1, game.numviews, loop, game.Views[ch->View].numLoops);
     }
     // NOTE: there's always frame 0 allocated for safety
-    sframe = std::max(0, std::min(sframe, game.Views[ch->view].loops[loop].GetLastFrame()));
-    debug_script_log("%s: Start anim view %d loop %d, spd %d, repeat %d, frame: %d", ch->scrname.GetCStr(),
-                     ch->view + 1, loop, sppd, rept, sframe);
+    sframe = std::max(0, std::min(sframe, game.Views[ch->View].loops[loop].GetLastFrame()));
+    debug_script_log("%s: Start anim view %d loop %d, spd %d, repeat %d, frame: %d", ch->ScriptName.GetCStr(),
+                     ch->View + 1, loop, sppd, rept, sframe);
 
     Character_StopMoving(ch);
 
     ch->SetAnimating(static_cast<AnimFlowStyle>(rept), static_cast<AnimFlowDirection>(direction), sppd,
                      Math::Clamp(volume, 0, 100));
-    ch->loop = loop;
-    ch->frame = SetFirstAnimFrame(ch->view, loop, sframe, static_cast<AnimFlowDirection>(direction));
-    ch->wait = sppd + game.Views[ch->view].loops[loop].frames[ch->frame].speed;
+    ch->Loop = loop;
+    ch->Frame = SetFirstAnimFrame(ch->View, loop, sframe, static_cast<AnimFlowDirection>(direction));
+    ch->AnimWait = sppd + game.Views[ch->View].loops[loop].frames[ch->Frame].speed;
 
     ch->CheckViewFrame();
 }
@@ -3453,7 +3454,7 @@ Bitmap *GetCharacterImage(int char_id, bool always_original, bool *is_original)
 Bitmap *GetCharacterSourceImage(Game &game, EngineServices &services, int char_id)
 {
     const Character &ch = game.Characters[char_id];
-    int sppic = game.Views[ch.view].loops[ch.loop].frames[ch.frame].pic;
+    int sppic = game.Views[ch.View].loops[ch.Loop].frames[ch.Frame].pic;
     return services.Sprites[sppic];
 }
 
@@ -3493,48 +3494,48 @@ void update_character_scale(Game &game, Room &room, int char_id)
 {
     // Test for valid view and loop
     Character &ch = game.Characters[char_id];
-    if (!ch.is_enabled() || ch.room != game.DisplayedRoom)
+    if (!ch.is_enabled() || ch.Room != game.DisplayedRoom)
     {
         return; // not enabled, or in a different room
     }
 
-    if (ch.view < 0)
+    if (ch.View < 0)
     {
         quitprintf(
             "!The character '%s' was turned on in the current room (room %d) but has not been assigned a view number.",
-            ch.scrname.GetCStr(), game.DisplayedRoom);
+            ch.ScriptName.GetCStr(), game.DisplayedRoom);
     }
-    if (ch.loop >= game.Views[ch.view].numLoops)
+    if (ch.Loop >= game.Views[ch.View].numLoops)
     {
         // a stale loop can survive a view change, re-select a valid loop
         debug_script_warn("The character '%s' was to be displayed with loop %d of view %d, which does not exist; "
                           "resetting to a valid loop.",
-                          ch.scrname.GetCStr(), ch.loop, ch.view + 1);
-        FindReasonableLoopForCharacter(&ch, ch.view == ch.defview);
+                          ch.ScriptName.GetCStr(), ch.Loop, ch.View + 1);
+        FindReasonableLoopForCharacter(&ch, ch.View == ch.NormalView);
     }
     // If frame is too high -- fallback to the frame 0;
     // there's always at least 1 dummy frame at index 0
-    if (ch.frame >= game.Views[ch.view].loops[ch.loop].numFrames)
+    if (ch.Frame >= game.Views[ch.View].loops[ch.Loop].numFrames)
     {
-        ch.frame = 0;
+        ch.Frame = 0;
     }
 
-    const ViewFrame &vf = game.Views[ch.view].loops[ch.loop].frames[ch.frame];
+    const ViewFrame &vf = game.Views[ch.View].loops[ch.Loop].frames[ch.Frame];
     const int pic = vf.pic;
     int zoom, zoom_offs, scale_width, scale_height;
-    update_object_scale(game, room, zoom, scale_width, scale_height, ch.x, ch.y, pic, ch.zoom,
-                        (ch.flags & CHF_MANUALSCALING) == 0);
+    update_object_scale(game, room, zoom, scale_width, scale_height, ch.X, ch.Y, pic, ch.Zoom,
+                        (ch.Flags & CHF_MANUALSCALING) == 0);
     zoom_offs = (game.options[OPT_SCALECHAROFFSETS] != 0) ? zoom : 100;
 
     // Save calculated properties and recalc GS
-    ch.zoom = zoom;
-    ch.spr_width = game.SpriteInfos[pic].Width;
-    ch.spr_height = game.SpriteInfos[pic].Height;
-    ch.frame_xoff = vf.xoffs;
-    ch.frame_yoff = vf.yoffs;
-    ch.width = scale_width;
-    ch.height = scale_height;
-    ch.zoom_offs = zoom_offs;
+    ch.Zoom = zoom;
+    ch.SpriteWidth = game.SpriteInfos[pic].Width;
+    ch.SpriteHeight = game.SpriteInfos[pic].Height;
+    ch.FrameOffsetX = vf.xoffs;
+    ch.FrameOffsetY = vf.yoffs;
+    ch.Width = scale_width;
+    ch.Height = scale_height;
+    ch.OffsetZoom = zoom_offs;
     ch.UpdateGraphicSpace();
 }
 
@@ -3547,27 +3548,27 @@ int GetCharIDAtRoom(int x, int y, int hit_options)
     int cc, sppic, lowestyp = 0, lowestwas = -1;
     for (cc = 0; cc < game.numcharacters; cc++)
     {
-        if (game.Characters[cc].room != game.DisplayedRoom)
+        if (game.Characters[cc].Room != game.DisplayedRoom)
             continue;
         if (!game.Characters[cc].is_displayed())
             continue; // disabled or not visible
-        if (only_clickable && (game.Characters[cc].flags & CHF_NOINTERACT))
+        if (only_clickable && (game.Characters[cc].Flags & CHF_NOINTERACT))
             continue;
-        if (game.Characters[cc].view < 0)
+        if (game.Characters[cc].View < 0)
             continue;
         Character *ch = &game.Characters[cc];
 
-        if ((ch->view < 0) || (ch->loop >= game.Views[ch->view].numLoops) ||
-            (ch->frame >= game.Views[ch->view].loops[ch->loop].numFrames))
+        if ((ch->View < 0) || (ch->Loop >= game.Views[ch->View].numLoops) ||
+            (ch->Frame >= game.Views[ch->View].loops[ch->Loop].numFrames))
         {
             continue;
         }
 
-        sppic = game.Views[ch->view].loops[ch->loop].frames[ch->frame].pic;
+        sppic = game.Views[ch->View].loops[ch->Loop].frames[ch->Frame].pic;
         int use_width = game.SpriteInfos[sppic].Width;
         int use_height = game.SpriteInfos[sppic].Height;
         // TODO: support mirrored transformation in GraphicSpace
-        SpriteTransformFlags sprite_flags = game.Views[ch->view].loops[ch->loop].frames[ch->frame].flags;
+        SpriteTransformFlags sprite_flags = game.Views[ch->View].loops[ch->Loop].frames[ch->Frame].flags;
         Bitmap *image = GetCharacterSourceImage(game, services, cc);
         // Convert to local object coordinates
         Point local = ch->GetGraphicSpace().WorldToLocal(x, y);
@@ -3591,16 +3592,16 @@ Rect get_char_blocking_rect(Game &game, int char_id)
     Character *ch = &game.Characters[char_id];
 
     int width;
-    if (ch->blocking_width < 1)
+    if (ch->BlockingWidth < 1)
     {
         width = GetCharacterWidth(game, char_id) - 4;
     }
     else
-        width = ch->blocking_width;
+        width = ch->BlockingWidth;
 
-    int x = ch->x - width / 2 + game.Characters[ch->index_id].blocking_x;
-    int y1 = ch->get_blocking_top() + game.Characters[ch->index_id].blocking_y;
-    int y2 = ch->get_blocking_bottom() + game.Characters[ch->index_id].blocking_y;
+    int x = ch->X - width / 2 + game.Characters[ch->ID].BlockingX;
+    int y1 = ch->get_blocking_top() + game.Characters[ch->ID].BlockingY;
+    int y2 = ch->get_blocking_bottom() + game.Characters[ch->ID].BlockingY;
 
     return Rect(x, y1, x + width - 1, y2);
 }
@@ -3647,7 +3648,7 @@ void DisplayThoughtCore(int char_id, const char *displbuf)
         game.TextLayout.SourceTextLength = len;
 
     int width = -1;
-    if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts) || (game.Characters[char_id].thinkview <= 0))
+    if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts) || (game.Characters[char_id].ThinkView <= 0))
     {
         // lucasarts-style, so we want a speech bubble actually above
         // their head (or if they have no think anim in Sierra-style)
@@ -3666,7 +3667,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
     }
 
     Character *speaking_char = &game.Characters[char_id];
-    if ((speaking_char->view < 0) || (speaking_char->view >= game.numviews))
+    if ((speaking_char->View < 0) || (speaking_char->View >= game.numviews))
     {
         quit("!DisplaySpeech: character has invalid view");
     }
@@ -3680,7 +3681,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
         return;
     }
 
-    debug_script_log("%s: \"%s\"", speaking_char->scrname.GetCStr(), text);
+    debug_script_log("%s: \"%s\"", speaking_char->ScriptName.GetCStr(), text);
 
     EndSkippingUntilCharStops();
 
@@ -3733,10 +3734,10 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
     // this has to be kept in mind if backwards compatibility matters.
     DisplayTextPosition disp_pos =
         (DisplayTextPosition)((auto_position
-                                   ? get_textpos_from_scriptcoords(x, y, (speaking_char->room == game.DisplayedRoom))
+                                   ? get_textpos_from_scriptcoords(x, y, (speaking_char->Room == game.DisplayedRoom))
                                    : kDisplayTextPos_Normal) |
                               kDisplayTextPos_ClampToScreenWidth);
-    const color_t text_color = speaking_char->talkcolor;
+    const color_t text_color = speaking_char->SpeechColor;
 
     DisplayTextShrink allow_shrink = kDisplayTextShrink_None;
     bool align_hcenter = false; // whether to align text by centering over position
@@ -3748,10 +3749,10 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
 
     set_our_eip(151);
 
-    int use_view = speaking_char->talkview;
+    int use_view = speaking_char->SpeechView;
     if (is_thought)
     {
-        use_view = speaking_char->thinkview;
+        use_view = speaking_char->ThinkView;
         // view 0 is not valid for think views
         if (use_view == 0)
         {
@@ -3789,20 +3790,20 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
     text_lips_text = text;
     std::unique_ptr<Bitmap> closeupface;
     int char_frame_was = 0;
-    const bool view_was_locked = (speaking_char->flags & CHF_FIXVIEW);
-    game.Speech.CharSpeaking = speaking_char->index_id;
+    const bool view_was_locked = (speaking_char->Flags & CHF_FIXVIEW);
+    game.Speech.CharSpeaking = speaking_char->ID;
 
     // Start voice-over, if requested by the tokens in speech text
     try_auto_play_speech(text, text, char_id);
 
-    if (speaking_char->room == game.DisplayedRoom)
+    if (speaking_char->Room == game.DisplayedRoom)
     {
         // If the character is in this room, go for it - otherwise
         // run the "else" clause which  does text in the middle of
         // the screen.
         set_our_eip(1501);
 
-        if (speaking_char->walking)
+        if (speaking_char->MoveListID)
         {
             Character_StopMoving(speaking_char);
         }
@@ -3812,19 +3813,19 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
         // StopMoving); otherwise, it might be a specific animation
         // frame which we should return to
         if (view_was_locked)
-            char_frame_was = speaking_char->frame;
+            char_frame_was = speaking_char->Frame;
 
-        if ((speaking_char->view < 0) || game.Views[speaking_char->view].numLoops == 0)
+        if ((speaking_char->View < 0) || game.Views[speaking_char->View].numLoops == 0)
         {
-            quitprintf("!Character %s current view %d is invalid, or has no loops.", speaking_char->scrname.GetCStr(),
-                       speaking_char->view + 1);
+            quitprintf("!Character %s current view %d is invalid, or has no loops.",
+                       speaking_char->ScriptName.GetCStr(), speaking_char->View + 1);
         }
         // If current view is missing a loop - use loop 0
-        if (speaking_char->loop >= game.Views[speaking_char->view].numLoops)
+        if (speaking_char->Loop >= game.Views[speaking_char->View].numLoops)
         {
             debug_script_warn("Character %s current view %d does not have necessary loop %d; switching to loop 0.",
-                              speaking_char->scrname.GetCStr(), speaking_char->view + 1, speaking_char->loop);
-            speaking_char->loop = 0;
+                              speaking_char->ScriptName.GetCStr(), speaking_char->View + 1, speaking_char->Loop);
+            speaking_char->Loop = 0;
         }
 
         set_our_eip(1504);
@@ -3833,7 +3834,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
         // (an assumption here, but this must be the case if it's LA-style speech)
         auto view = FindNearestViewport(char_id);
         if (tdxp < 0)
-            tdxp = view->RoomToScreen(speaking_char->x, 0).first.X;
+            tdxp = view->RoomToScreen(speaking_char->X, 0).first.X;
         if (tdxp < 2)
             tdxp = 2;
         // tell it to align it by center
@@ -3841,8 +3842,8 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
 
         if (tdyp < 0)
         {
-            int sppic = game.Views[speaking_char->view].loops[speaking_char->loop].frames[0].pic;
-            int height = (speaking_char->height < 1) ? game.SpriteInfos[sppic].Height : speaking_char->height;
+            int sppic = game.Views[speaking_char->View].loops[speaking_char->Loop].frames[0].pic;
+            int height = (speaking_char->Height < 1) ? game.SpriteInfos[sppic].Height : speaking_char->Height;
             tdyp = view->RoomToScreen(0, speaking_char->GetEffectiveY() - height).first.Y - 5;
             if (is_thought) // if it's a thought, lift it a bit further up
                 tdyp -= 10;
@@ -3880,7 +3881,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                         // No previous character been spoken to
                         // therefore, assume it's the player
                         if (game.playercharacter != char_id &&
-                            game.Characters[game.playercharacter].room == speaking_char->room &&
+                            game.Characters[game.playercharacter].Room == speaking_char->Room &&
                             game.Characters[game.playercharacter].is_enabled())
                         {
                             game.Play.swap_portrait_lastchar = game.playercharacter;
@@ -3891,7 +3892,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                             // that it could be
                             for (int ce = 0; ce < game.numcharacters; ce++)
                             {
-                                if ((game.Characters[ce].room == speaking_char->room) &&
+                                if ((game.Characters[ce].Room == speaking_char->Room) &&
                                     (game.Characters[ce].is_enabled()) && (ce != char_id))
                                 {
                                     game.Play.swap_portrait_lastchar = ce;
@@ -3905,7 +3906,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                     {
                         // if this character is right of the one before, put the
                         // portrait on the right
-                        if (speaking_char->x > game.Characters[game.Play.swap_portrait_lastchar].x)
+                        if (speaking_char->X > game.Characters[game.Play.swap_portrait_lastchar].X)
                         {
                             game.Play.swap_portrait_side = -1;
                         }
@@ -3921,7 +3922,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                 // speaking, compare against the previous *previous* character to see where the speech should be
                 if (game.options[OPT_PORTRAITSIDE] == PORTRAIT_XPOSITION && game.Play.swap_portrait_lastlastchar >= 0)
                 {
-                    if (speaking_char->x > game.Characters[game.Play.swap_portrait_lastlastchar].x)
+                    if (speaking_char->X > game.Characters[game.Play.swap_portrait_lastlastchar].X)
                     {
                         game.Play.swap_portrait_side = -1;
                     }
@@ -4089,13 +4090,13 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
             game.Speech.FaceTalkRepeat = (is_thought) ? 0 : 1;
             game.Speech.FaceTalkBlinkLoop = 0;
             game.Speech.FaceTalkAllowBlink = 1;
-            if ((is_thought) && (speaking_char->flags & CHF_NOBLINKANDTHINK))
+            if ((is_thought) && (speaking_char->Flags & CHF_NOBLINKANDTHINK))
             {
                 game.Speech.FaceTalkAllowBlink = 0;
             }
             game.Speech.FaceTalkChar = &game.Characters[char_id];
-            if (game.Speech.FaceTalkChar->blinktimer < 0)
-                game.Speech.FaceTalkChar->blinktimer = game.Speech.FaceTalkChar->blinkinterval;
+            if (game.Speech.FaceTalkChar->BlinkTimer < 0)
+                game.Speech.FaceTalkChar->BlinkTimer = game.Speech.FaceTalkChar->BlinkInterval;
             disp_style = kDisplayTextStyle_TextWindow;
             // Process the first portrait view frame
             const int frame_vol = game.Speech.FaceTalkChar->GetFrameSoundVolume();
@@ -4106,42 +4107,42 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
             // Lucasarts-style speech
             set_our_eip(154);
 
-            old_view = speaking_char->view;
-            oldloop = speaking_char->loop;
+            old_view = speaking_char->View;
+            oldloop = speaking_char->Loop;
 
             speaking_char->SetAnimating(is_thought ? kAnimFlow_Once
                                                    : kAnimFlow_Repeat, // only repeat if speech, not thought
                                         kAnimDirForward,               // always forwards
                                         Character_GetSpeechAnimationDelay(speaking_char));
 
-            speaking_char->view = use_view;
-            speaking_char->frame = 0;
-            speaking_char->flags |= CHF_FIXVIEW;
+            speaking_char->View = use_view;
+            speaking_char->Frame = 0;
+            speaking_char->Flags |= CHF_FIXVIEW;
 
-            if ((speaking_char->view < 0) || game.Views[speaking_char->view].numLoops == 0)
+            if ((speaking_char->View < 0) || game.Views[speaking_char->View].numLoops == 0)
             {
                 quitprintf("!Character %s speech view %d is invalid, or has no loops.",
-                           speaking_char->scrname.GetCStr(), speaking_char->view + 1);
+                           speaking_char->ScriptName.GetCStr(), speaking_char->View + 1);
             }
             // If speech view is missing a loop - use loop 0
-            if (speaking_char->loop >= game.Views[speaking_char->view].numLoops)
+            if (speaking_char->Loop >= game.Views[speaking_char->View].numLoops)
             {
                 debug_script_warn("Character %s speech view %d does not have necessary loop %d; switching to loop 0.",
-                                  speaking_char->scrname.GetCStr(), speaking_char->view + 1, speaking_char->loop);
-                speaking_char->loop = 0;
+                                  speaking_char->ScriptName.GetCStr(), speaking_char->View + 1, speaking_char->Loop);
+                speaking_char->Loop = 0;
             }
 
-            game.Speech.FaceTalkBlinkLoop = speaking_char->loop;
+            game.Speech.FaceTalkBlinkLoop = speaking_char->Loop;
 
             // set up the speed of the first frame
-            speaking_char->wait = Character_GetSpeechAnimationDelay(speaking_char) +
-                                  game.Views[speaking_char->view].loops[speaking_char->loop].frames[0].speed;
+            speaking_char->AnimWait = Character_GetSpeechAnimationDelay(speaking_char) +
+                                      game.Views[speaking_char->View].loops[speaking_char->Loop].frames[0].speed;
 
             if (width < 0)
             {
                 bwidth = ui_view.GetWidth() / 2 + ui_view.GetWidth() / 6;
                 // If they are close to the screen edge, make the text narrower
-                int relx = game.Viewports.RoomToScreenX(speaking_char->x);
+                int relx = game.Viewports.RoomToScreenX(speaking_char->X);
                 if ((relx < ui_view.GetWidth() / 4) || (relx > ui_view.GetWidth() - (ui_view.GetWidth() / 4)))
                     bwidth -= ui_view.GetWidth() / 5;
             }
@@ -4186,13 +4187,13 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
     if (old_view >= 0)
     {
         // Restore the character's locked view (if one was locked prior to the speech)
-        speaking_char->flags &= ~CHF_FIXVIEW;
+        speaking_char->Flags &= ~CHF_FIXVIEW;
         if (view_was_locked)
-            speaking_char->flags |= CHF_FIXVIEW;
-        speaking_char->view = old_view;
+            speaking_char->Flags |= CHF_FIXVIEW;
+        speaking_char->View = old_view;
         stop_character_anim(speaking_char);
-        speaking_char->frame = char_frame_was;
-        speaking_char->wait = 0;
+        speaking_char->Frame = char_frame_was;
+        speaking_char->AnimWait = 0;
         // Restart idle timer
         reset_character_idling_time(speaking_char);
     }
@@ -4208,7 +4209,7 @@ int get_character_currently_talking()
 {
     Game &game = Game::Current();
     if ((game.Speech.FaceTalking >= 0) && (game.Speech.FaceTalkRepeat))
-        return game.Speech.FaceTalkChar->index_id;
+        return game.Speech.FaceTalkChar->ID;
     else if (game.Speech.CharSpeaking >= 0)
         return game.Speech.CharSpeaking;
 
@@ -4289,7 +4290,7 @@ void restore_characters()
     Game &game = Game::Current();
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        game.Characters[i].zoom_offs = (game.options[OPT_SCALECHAROFFSETS] != 0) ? game.Characters[i].zoom : 100;
+        game.Characters[i].OffsetZoom = (game.options[OPT_SCALECHAROFFSETS] != 0) ? game.Characters[i].Zoom : 100;
     }
 }
 
@@ -4298,10 +4299,10 @@ Rect GetCharacterRoomBBox(int char_id, bool use_frame_0)
     Game &game = Game::Current();
     int width, height;
     const Character &ch = game.Characters[char_id];
-    int frame = use_frame_0 ? 0 : ch.frame;
-    int pic = game.Views[ch.view].loops[ch.loop].frames[frame].pic;
-    scale_sprite_size(game, pic, ch.zoom, &width, &height);
-    return RectWH(ch.x - width / 2, ch.y - height, width, height);
+    int frame = use_frame_0 ? 0 : ch.Frame;
+    int pic = game.Views[ch.View].loops[ch.Loop].frames[frame].pic;
+    scale_sprite_size(game, pic, ch.Zoom, &width, &height);
+    return RectWH(ch.X - width / 2, ch.Y - height, width, height);
 }
 
 PViewport FindNearestViewport(int char_id)
@@ -4337,18 +4338,18 @@ void UpdateInventory()
     for (int cc = 0; cc < game.numcharacters; cc++)
     {
         auto &ch = game.Characters[cc];
-        ch.inventory.clear();
+        ch.Inventory.clear();
         // Iterate through all inv items, adding them once
         // (or multiple times if requested) to the list.
-        for (int item = 0; (item < game.numinvitems) && (ch.inventory.size() != MAX_CHAR_INVENTORY); ++item)
+        for (int item = 0; (item < game.numinvitems) && (ch.Inventory.size() != MAX_CHAR_INVENTORY); ++item)
         {
             int item_count = ch.get_item_quantity(item);
             if ((game.options[OPT_DUPLICATEINV] == 0) && (item_count > 1))
                 item_count = 1;
 
-            for (int i = 0; (i < item_count) && (ch.inventory.size() != MAX_CHAR_INVENTORY); ++i)
+            for (int i = 0; (i < item_count) && (ch.Inventory.size() != MAX_CHAR_INVENTORY); ++i)
             {
-                ch.inventory.push_back(item);
+                ch.Inventory.push_back(item);
             }
         }
     }

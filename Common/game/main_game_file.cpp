@@ -402,7 +402,7 @@ void UpgradeCharacters(GameDef &game, GameDataVersion data_ver)
     {
         for (int i = 0; i < char_count; i++)
         {
-            chars[i].talkcolor = RemapFromLegacyColourNumber(game, chars[i].talkcolor);
+            chars[i].SpeechColor = RemapFromLegacyColourNumber(game, chars[i].SpeechColor);
         }
     }
 
@@ -419,7 +419,7 @@ void UpgradeCharacters(GameDef &game, GameDataVersion data_ver)
     {
         for (int i = 0; i < char_count; i++)
         {
-            chars[i].opacity = static_cast<int16_t>(GfxDef::LegacyTrans255ToAlpha255(chars[i].opacity));
+            chars[i].Opacity = static_cast<int16_t>(GfxDef::LegacyTrans255ToAlpha255(chars[i].Opacity));
         }
     }
 }
@@ -617,7 +617,7 @@ HError GameDataExtReader::ReadInteractionScriptModules(Stream *in, LoadedGameEnt
         return err;
     for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
     {
-        err = ents.Game.Characters[i].interactions.Read(in);
+        err = ents.Game.Characters[i].Interactions.Read(in);
         if (!err)
             return err;
     }
@@ -822,8 +822,8 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         for (int i = 0; i < _ents.Game.numcharacters; ++i)
         {
             auto &ch = _ents.Game.Characters[i];
-            ch.scrname = StrUtil::ReadString(in);
-            ch.name = StrUtil::ReadString(in);
+            ch.ScriptName = StrUtil::ReadString(in);
+            ch.Name = StrUtil::ReadString(in);
         }
         if (!ReadAndAssertCount(in, "inventory items", static_cast<uint32_t>(_ents.Game.numinvitems), err))
             return err;

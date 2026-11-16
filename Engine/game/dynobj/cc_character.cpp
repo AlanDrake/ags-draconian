@@ -39,7 +39,7 @@ size_t CCCharacter::CalcSerializeSize(const void * /*address*/)
 void CCCharacter::Serialize(const void *address, Stream *out)
 {
     const Character *ch = static_cast<const Character *>(address);
-    out->WriteInt32(ch->index_id);
+    out->WriteInt32(ch->ID);
 }
 
 void CCCharacter::Unserialize(int index, Stream *in, size_t /*data_sz*/)
@@ -57,7 +57,7 @@ uint8_t CCCharacter::ReadInt8(const void *address, intptr_t offset)
                           + 301 * sizeof(int16_t) /* inventory */ + sizeof(int16_t) * 2 /* two shorts */ +
                           40 /* name */ + 20 /* scrname */;
     if (offset == on_offset)
-        return (ci->flags & CHF_ENABLED) != 0;
+        return (ci->Flags & CHF_ENABLED) != 0;
     cc_error("ScriptCharacter: unsupported 'char' variable offset %" PRIdPTR, offset);
     return 0;
 }
@@ -70,7 +70,7 @@ void CCCharacter::WriteInt8(void *address, intptr_t offset, uint8_t val)
                           + 301 * sizeof(int16_t) /* inventory */ + sizeof(int16_t) * 2 /* two shorts */ +
                           40 /* name */ + 20 /* scrname */;
     if (offset == on_offset)
-        ci->flags = (ci->flags & ~CHF_ENABLED) | ((CHF_ENABLED | CHF_VISIBLE) * val);
+        ci->Flags = (ci->Flags & ~CHF_ENABLED) | ((CHF_ENABLED | CHF_VISIBLE) * val);
     else
         cc_error("ScriptCharacter: unsupported 'char' variable offset %" PRIdPTR, offset);
 }

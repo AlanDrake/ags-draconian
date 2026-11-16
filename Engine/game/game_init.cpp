@@ -126,20 +126,20 @@ void InitAndRegisterCharacters(Game &game)
     for (int i = 0; i < game.numcharacters; ++i)
     {
         // TODO: move this to Character's "init" method
-        game.Characters[i].walking = 0;
-        game.Characters[i].blinkinterval = 140;
-        game.Characters[i].blinktimer = game.Characters[i].blinkinterval;
-        game.Characters[i].index_id = i;
-        game.Characters[i].prevroom = -1;
-        game.Characters[i].loop = 0;
-        game.Characters[i].frame = 0;
-        game.Characters[i].walkwait = -1;
+        game.Characters[i].MoveListID = 0;
+        game.Characters[i].BlinkInterval = 140;
+        game.Characters[i].BlinkTimer = game.Characters[i].BlinkInterval;
+        game.Characters[i].ID = i;
+        game.Characters[i].PreviousRoom = -1;
+        game.Characters[i].Loop = 0;
+        game.Characters[i].Frame = 0;
+        game.Characters[i].WalkWait = -1;
         // register and save handle
         game.Handles.Characters[i] = ccRegisterPersistentObject(&game.Characters[i], &ccDynamicCharacter);
 
         // export the character's script object
-        if (!game.Characters[i].scrname.IsEmpty())
-            ccAddExternalScriptObjectHandle(game.Characters[i].scrname, &game.Handles.Characters[i]);
+        if (!game.Characters[i].ScriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(game.Characters[i].ScriptName, &game.Handles.Characters[i]);
     }
 
     // the blend mode, graphic anchor and offset came with the definitions; the effective values follow from them

@@ -86,7 +86,7 @@ void start_game()
     if (game.DisplayedRoom < 0)
     {
         current_fade_out_effect();
-        load_new_room(game.PlayerChar->room, game.PlayerChar);
+        load_new_room(game.PlayerChar->Room, game.PlayerChar);
     }
 
     first_room_initialization();
@@ -101,7 +101,7 @@ void initialize_start_and_play_game(int override_start_room, const String &load_
         set_cursor_mode_with_role(kCursorRole_Walk);
 
         if (override_start_room)
-            game.PlayerChar->room = override_start_room;
+            game.PlayerChar->Room = override_start_room;
 
         Debug::Printf(kDbgMsg_Info, "Engine initialization complete");
         Debug::Printf(kDbgMsg_Info, "Starting game");

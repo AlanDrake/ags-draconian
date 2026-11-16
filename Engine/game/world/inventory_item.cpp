@@ -83,7 +83,7 @@ void set_inv_item_cursorpic(int item_id, int sprite)
     Game &game = Game::Current();
     game.invinfo[item_id].cursorPic = sprite;
 
-    if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->activeinv == item_id))
+    if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->ActiveInventory == item_id))
     {
         update_inv_cursor(item_id);
         set_cursor_look(game.Cursor.Look);
@@ -99,7 +99,7 @@ static void set_inv_item_cursorhotspot(int item_id, int hx, int hy, FrameAlignme
     item.hotAlign = align;
 
     // The cursor image may include hotspot marker, therefore update cursor image
-    if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->activeinv == item_id))
+    if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->ActiveInventory == item_id))
     {
         update_inv_cursor(item_id);
         set_cursor_look(game.Cursor.Look);
@@ -246,7 +246,7 @@ void RunInventoryInteraction(int item_id, int mood)
     // For USE verb: remember active inventory
     if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
-        game.Play.usedinv = game.PlayerChar->activeinv;
+        game.Play.usedinv = game.PlayerChar->ActiveInventory;
     }
 
     const auto obj_evt =

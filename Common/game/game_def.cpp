@@ -188,7 +188,7 @@ HError GameDef::read_interaction_scripts(Common::Stream *in, GameDataVersion /*d
     HError err;
     for (size_t i = 0; i < (size_t)numcharacters; ++i)
     {
-        err = Characters[i].interactions.Read_v361(in);
+        err = Characters[i].Interactions.Read_v361(in);
         if (!err)
             return err;
     }

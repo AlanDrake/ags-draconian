@@ -168,7 +168,7 @@ void RunHotspotInteraction(int hotspothere, int mood)
     // For USE verb: remember active inventory
     if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
-        game.Play.usedinv = game.PlayerChar->activeinv;
+        game.Play.usedinv = game.PlayerChar->ActiveInventory;
     }
 
     if ((game.options[OPT_WALKONLOOK] == 0) && (game.HasCursorRole(mood, kCursorRole_Look)))

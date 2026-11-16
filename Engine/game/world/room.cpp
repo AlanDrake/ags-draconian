@@ -449,7 +449,7 @@ void unload_old_room()
     // ensure that any half-moves (eg. with scaled movement) are stopped
     for (int i = 0; i < game.numcharacters; i++)
     {
-        game.Characters[i].xwas = INVALID_X;
+        game.Characters[i].FullStepX = INVALID_X;
     }
 
     game.Play.swap_portrait_lastchar = -1;
@@ -837,19 +837,19 @@ void load_new_room(int room_id, Character *ch)
         // previous room, force it out so that the timer resets
         for (int i = 0; i < game.numcharacters; i++)
         {
-            if ((game.Characters[i].following >= 0) && (game.Characters[i].room < 0))
+            if ((game.Characters[i].Following >= 0) && (game.Characters[i].Room < 0))
             {
-                if ((game.Characters[i].following == game.playercharacter) && (ch->prevroom == room_id))
+                if ((game.Characters[i].Following == game.playercharacter) && (ch->PreviousRoom == room_id))
                     // the player went back to the previous room, so make sure
                     // the following character is still there
-                    game.Characters[i].room = room_id;
+                    game.Characters[i].Room = room_id;
                 else
-                    game.Characters[i].room = game.Characters[game.Characters[i].following].room;
+                    game.Characters[i].Room = game.Characters[game.Characters[i].Following].Room;
             }
         }
 
-        ch->prevroom = ch->room;
-        ch->room = room_id;
+        ch->PreviousRoom = ch->Room;
+        ch->Room = room_id;
         // only stop moving if it's a new room, not a restore game
         for (int i = 0; i < game.numcharacters; i++)
             Character_StopMoving(&game.Characters[i]);
@@ -884,13 +884,13 @@ void load_new_room(int room_id, Character *ch)
 
     if ((game.RoomChange.X != SCR_NO_VALUE) && (ch != nullptr))
     {
-        ch->x = game.RoomChange.X;
-        ch->y = game.RoomChange.Y;
+        ch->X = game.RoomChange.X;
+        ch->Y = game.RoomChange.Y;
         if (game.RoomChange.PlaceOnWalkable)
             Character_PlaceOnWalkableArea(ch);
 
         if (game.RoomChange.Loop != SCR_NO_VALUE)
-            ch->loop = game.RoomChange.Loop;
+            ch->Loop = game.RoomChange.Loop;
     }
     // reset new_room instructions
     game.RoomChange.X = game.RoomChange.Y = SCR_NO_VALUE;
@@ -902,71 +902,71 @@ void load_new_room(int room_id, Character *ch)
         if (game.RoomChange.Pos >= 4000)
         {
             room.EnteredEdge = 3;
-            ch->y = room.Edges.Top + 1;
-            ch->x = game.RoomChange.Pos % 1000;
-            if (ch->x == 0)
-                ch->x = room.Width / 2;
-            if (ch->x <= room.Edges.Left)
-                ch->x = room.Edges.Left + 3;
-            if (ch->x >= room.Edges.Right)
-                ch->x = room.Edges.Right - 3;
-            ch->loop = 0;
+            ch->Y = room.Edges.Top + 1;
+            ch->X = game.RoomChange.Pos % 1000;
+            if (ch->X == 0)
+                ch->X = room.Width / 2;
+            if (ch->X <= room.Edges.Left)
+                ch->X = room.Edges.Left + 3;
+            if (ch->X >= room.Edges.Right)
+                ch->X = room.Edges.Right - 3;
+            ch->Loop = 0;
         }
         else if (game.RoomChange.Pos >= 3000)
         {
             room.EnteredEdge = 2;
-            ch->y = room.Edges.Bottom - 1;
-            ch->x = game.RoomChange.Pos % 1000;
-            if (ch->x == 0)
-                ch->x = room.Width / 2;
-            if (ch->x <= room.Edges.Left)
-                ch->x = room.Edges.Left + 3;
-            if (ch->x >= room.Edges.Right)
-                ch->x = room.Edges.Right - 3;
-            ch->loop = 3;
+            ch->Y = room.Edges.Bottom - 1;
+            ch->X = game.RoomChange.Pos % 1000;
+            if (ch->X == 0)
+                ch->X = room.Width / 2;
+            if (ch->X <= room.Edges.Left)
+                ch->X = room.Edges.Left + 3;
+            if (ch->X >= room.Edges.Right)
+                ch->X = room.Edges.Right - 3;
+            ch->Loop = 3;
         }
         else if (game.RoomChange.Pos >= 2000)
         {
             room.EnteredEdge = 1;
-            ch->x = room.Edges.Right - 1;
-            ch->y = game.RoomChange.Pos % 1000;
-            if (ch->y == 0)
-                ch->y = room.Height / 2;
-            if (ch->y <= room.Edges.Top)
-                ch->y = room.Edges.Top + 3;
-            if (ch->y >= room.Edges.Bottom)
-                ch->y = room.Edges.Bottom - 3;
-            ch->loop = 1;
+            ch->X = room.Edges.Right - 1;
+            ch->Y = game.RoomChange.Pos % 1000;
+            if (ch->Y == 0)
+                ch->Y = room.Height / 2;
+            if (ch->Y <= room.Edges.Top)
+                ch->Y = room.Edges.Top + 3;
+            if (ch->Y >= room.Edges.Bottom)
+                ch->Y = room.Edges.Bottom - 3;
+            ch->Loop = 1;
         }
         else if (game.RoomChange.Pos >= 1000)
         {
             room.EnteredEdge = 0;
-            ch->x = room.Edges.Left + 1;
-            ch->y = game.RoomChange.Pos % 1000;
-            if (ch->y == 0)
-                ch->y = room.Height / 2;
-            if (ch->y <= room.Edges.Top)
-                ch->y = room.Edges.Top + 3;
-            if (ch->y >= room.Edges.Bottom)
-                ch->y = room.Edges.Bottom - 3;
-            ch->loop = 2;
+            ch->X = room.Edges.Left + 1;
+            ch->Y = game.RoomChange.Pos % 1000;
+            if (ch->Y == 0)
+                ch->Y = room.Height / 2;
+            if (ch->Y <= room.Edges.Top)
+                ch->Y = room.Edges.Top + 3;
+            if (ch->Y >= room.Edges.Bottom)
+                ch->Y = room.Edges.Bottom - 3;
+            ch->Loop = 2;
         }
         // if starts on un-walkable area
-        if (get_walkable_area_pixel(room, ch->x, ch->y) == 0)
+        if (get_walkable_area_pixel(room, ch->X, ch->Y) == 0)
         {
             if (game.RoomChange.Pos >= 3000)
             { // bottom or top of screen
-                int try_left = ch->x - 1, try_right = ch->x + 1;
+                int try_left = ch->X - 1, try_right = ch->X + 1;
                 while (1)
                 {
-                    if (get_walkable_area_pixel(room, try_left, ch->y) > 0)
+                    if (get_walkable_area_pixel(room, try_left, ch->Y) > 0)
                     {
-                        ch->x = try_left;
+                        ch->X = try_left;
                         break;
                     }
-                    if (get_walkable_area_pixel(room, try_right, ch->y) > 0)
+                    if (get_walkable_area_pixel(room, try_right, ch->Y) > 0)
                     {
-                        ch->x = try_right;
+                        ch->X = try_right;
                         break;
                     }
                     int nowhere = 0;
@@ -986,17 +986,17 @@ void load_new_room(int room_id, Character *ch)
             }
             else if (game.RoomChange.Pos >= 1000)
             { // left or right
-                int try_left = ch->y - 1, try_right = ch->y + 1;
+                int try_left = ch->Y - 1, try_right = ch->Y + 1;
                 while (1)
                 {
-                    if (get_walkable_area_pixel(room, ch->x, try_left) > 0)
+                    if (get_walkable_area_pixel(room, ch->X, try_left) > 0)
                     {
-                        ch->y = try_left;
+                        ch->Y = try_left;
                         break;
                     }
-                    if (get_walkable_area_pixel(room, ch->x, try_right) > 0)
+                    if (get_walkable_area_pixel(room, ch->X, try_right) > 0)
                     {
-                        ch->y = try_right;
+                        ch->Y = try_right;
                         break;
                     }
                     int nowhere = 0;
@@ -1019,15 +1019,15 @@ void load_new_room(int room_id, Character *ch)
     }
     if (ch != nullptr)
     {
-        room.EnteredAtX = ch->x;
-        room.EnteredAtY = ch->y;
-        if (ch->x >= room.Edges.Right)
+        room.EnteredAtX = ch->X;
+        room.EnteredAtY = ch->Y;
+        if (ch->X >= room.Edges.Right)
             room.EnteredEdge = 1;
-        else if (ch->x <= room.Edges.Left)
+        else if (ch->X <= room.Edges.Left)
             room.EnteredEdge = 0;
-        else if (ch->y >= room.Edges.Bottom)
+        else if (ch->Y >= room.Edges.Bottom)
             room.EnteredEdge = 2;
-        else if (ch->y <= room.Edges.Top)
+        else if (ch->Y <= room.Edges.Top)
             room.EnteredEdge = 3;
     }
 
@@ -1048,10 +1048,10 @@ void load_new_room(int room_id, Character *ch)
             // the correct character when leaving the room)
             game.Play.temporarily_turned_off_character = game.playercharacter;
         }
-        if (ch->flags & CHF_FIXVIEW)
+        if (ch->Flags & CHF_FIXVIEW)
             ;
         else if (room.Options.PlayerView == 0)
-            Character_SetViewDirect(ch, ch->defview, true);
+            Character_SetViewDirect(ch, ch->NormalView, true);
         else
             Character_SetViewDirect(ch, room.Options.PlayerView - 1, true);
     }
@@ -1117,7 +1117,7 @@ void new_room(int room_id, Character *ch)
     room_id = game.Events.InLeavesScreen;
     game.Events.InLeavesScreen = -1;
 
-    if ((game.PlayerChar->following >= 0) && (game.Characters[game.PlayerChar->following].room != room_id))
+    if ((game.PlayerChar->Following >= 0) && (game.Characters[game.PlayerChar->Following].Room != room_id))
     {
         // the player character is following another character,
         // who is not in the new room. therefore, abort the follow
@@ -1162,7 +1162,7 @@ void first_room_initialization()
     Game &game = Game::Current();
     Room &room = Room::Current();
     game.Events.InRoomTransition = true;
-    game.PlayerChar->prevroom = -1;
+    game.PlayerChar->PreviousRoom = -1;
     set_loop_counter(0);
     // Reset background frame state
     room.BgFrame = 0;
@@ -1412,7 +1412,7 @@ void NewRoom(int nrnum)
     if (game.DisplayedRoom < 0)
     {
         // called from game_start; change the room where the game will start
-        game.PlayerChar->room = nrnum;
+        game.PlayerChar->Room = nrnum;
         return;
     }
 

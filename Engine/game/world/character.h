@@ -74,74 +74,74 @@ struct CharacterState
 {
     // These were fields of the game file's character record once; the file keeps their slots, unused
     // (CharacterDef::ReadFromFile skips them, WriteToFile writes zeros)
-    int prevroom = 0;
-    int wait = 0;
-    int16_t idleleft = 0; // time in seconds left before switching to idle animation
-    int activeinv = -1;   // selected inventory item
-    int16_t blinkinterval = 0;
-    int16_t blinktimer = 0;
-    int16_t blinkframe = 0;
-    int z = 0;        // z-location, for flying etc
-    int walkwait = 0; // number of frames to wait before advancing a move;
+    int PreviousRoom = 0;
+    int AnimWait = 0;
+    int16_t IdleTimeLeft = 0; // time in seconds left before switching to idle animation
+    int ActiveInventory = -1; // selected inventory item
+    int16_t BlinkInterval = 0;
+    int16_t BlinkTimer = 0;
+    int16_t BlinkFrame = 0;
+    int Z = 0;        // z-location, for flying etc
+    int WalkWait = 0; // number of frames to wait before advancing a move;
                       // also used as a turning counter
-    int16_t walkwaitcounter = 0;
-    uint16_t loop = 0;
-    uint16_t frame = 0;
-    int16_t walking = 0; // stores movelist index
+    int16_t WalkWaitCounter = 0;
+    uint16_t Loop = 0;
+    uint16_t Frame = 0;
+    int16_t MoveListID = 0; // stores movelist index
 
     // FIXME: hide the fields under public interface;
     //        use standard int* types
-    Point view_offset;        // fixed view offset (from locked view)
-    Pointf view_anchor        // view anchor (from locked view)
+    Point ViewOffset;         // fixed view offset (from locked view)
+    Pointf ViewAnchor         // view anchor (from locked view)
         = Pointf(0.5f, 1.f);  // default: middle-bottom
-    Point eff_offset;         // effective offset (depends on view state)
-    Pointf eff_anchor;        // effective anchor (depends on view state)
-    Pointf pivot              // relative rotation pivot
+    Point EffectiveOffset;    // effective offset (depends on view state)
+    Pointf EffectiveAnchor;   // effective anchor (depends on view state)
+    Pointf Pivot              // relative rotation pivot
         = Pointf(0.5f, 0.5f); // default: center
-    Point pivot_offset;       // relative rotation pivot offset (in pixels)
-    int spr_width = 0;        // current sprite size
-    int spr_height = 0;
-    int frame_xoff = 0; // current frame offset
-    int frame_yoff = 0;
-    short width = 0; // width/height (includes character scaling!)
-    short height = 0;
-    short zoom = 100;
+    Point PivotOffset;        // relative rotation pivot offset (in pixels)
+    int SpriteWidth = 0;      // current sprite size
+    int SpriteHeight = 0;
+    int FrameOffsetX = 0; // current frame offset
+    int FrameOffsetY = 0;
+    short Width = 0; // width/height (includes character scaling!)
+    short Height = 0;
+    short Zoom = 100; // script: Scaling
     // Full-step position of a character that is shown half way through a step (very small scaling,
-    // see UpdateCharacterMoving); xwas == INVALID_X when there is none
-    short xwas = 0;
-    short ywas = 0;
-    short tint_r = 0;
-    short tint_g = 0;
-    short tint_b = 0;
-    short tint_level = 0;
-    short tint_light = 0;
-    char process_idle_this_time = 0;
-    char slow_move_counter = 0;
-    ViewAnimateParams anim;
-    short animwait = 0;     // current ticks counter, before advancing an animation
-    int audio_volume = 100; // default animation volume (relative factor)
-    int audio_panning = 0;
+    // see UpdateCharacterMoving); FullStepX == INVALID_X when there is none
+    short FullStepX = 0;
+    short FullStepY = 0;
+    short TintRed = 0;
+    short TintGreen = 0;
+    short TintBlue = 0;
+    short TintLevel = 0; // script: TintSaturation
+    short TintLight = 0; // script: TintLuminance, and LightLevel when the character has a light
+    char ProcessIdleThisTime = 0;
+    char SlowMoveCounter = 0;
+    ViewAnimateParams Anim;
+    short WalkAnimWait = 0;    // current ticks counter, before advancing an animation
+    int AnimationVolume = 100; // default animation volume (relative factor)
+    int AudioPanning = 0;
     int AudioSpeed = 1000;
-    int following = -1;       // whom do we follow (character id)
-    int follow_dist = 0;      // follow distance, in pixels
-    int follow_eagerness = 0; // follow reaction
+    int Following = -1;      // whom do we follow (character id)
+    int FollowDistance = 0;  // follow distance, in pixels
+    int FollowEagerness = 0; // follow reaction
     // Character's inventory, stores item IDs in the order in which items were added.
     // This may include item duplicates if OPT_DUPLICATEINV is enabled.
-    std::vector<int> inventory;
-    int shader_id = 0;
-    int shader_handle = 0; // script shader handle
-    float rotation = 0.f;
+    std::vector<int> Inventory;
+    int ShaderID = 0;
+    int ShaderHandle = 0; // script shader handle
+    float Rotation = 0.f;
     // Optional character face direction ratio, 0 = ignore
-    float face_dir_ratio = 0.f;
-    int movelist_handle = 0; // handle to the script movelist
-    int RuntimeFlags = 0;    // runtime character flags (CharacterRuntimeFlags)
-    int turns = 0;           // turning counter
+    float FaceDirectionRatio = 0.f;
+    int MoveListHandle = 0; // handle to the script movelist
+    int RuntimeFlags = 0;   // runtime character flags (CharacterRuntimeFlags)
+    int Turns = 0;          // turning counter
 
     // Following fields are derivatives of the above (calculated from these
     // and other factors), and hence are not serialized.
     //
     // zoom factor of sprite offsets: the character's zoom if OPT_SCALECHAROFFSETS is set, otherwise 100
-    int zoom_offs = 100;
+    int OffsetZoom = 100;
 };
 
 // A character of the running game: its definition's fields, which start as a copy of what the game file says,
@@ -159,11 +159,11 @@ public:
     int get_blocking_bottom() const; // return Y + BlockingHeight/2
 
     // Gets current character's movelist id
-    inline int get_movelist_id() const { return walking; }
+    inline int get_movelist_id() const { return MoveListID; }
     // Tells if the character is performing a move, that is - either moving along
     // a path or turning between move path segments.
-    inline bool is_moving() const { return walking > 0; }
-    inline bool is_idling() const { return (idleleft < 0); }
+    inline bool is_moving() const { return MoveListID > 0; }
+    inline bool is_idling() const { return (IdleTimeLeft < 0); }
 
     // Tells whether the character is turning, and in which direction
     bool IsTurning() const { return (RuntimeFlags & kCharf_Turning) != 0; }
@@ -177,14 +177,14 @@ public:
     void StopTurning() { SetTurning(false, false, 0); }
 
     // Tells whether the character has a view animation set up
-    bool IsAnimating() const { return anim.IsValid(); }
+    bool IsAnimating() const { return Anim.IsValid(); }
     // Tells whether the animation repeats
-    bool IsAnimatingRepeatedly() const { return anim.IsRepeating(); }
+    bool IsAnimatingRepeatedly() const { return Anim.IsRepeating(); }
     // Gets the animation delay
-    int GetAnimDelay() const { return anim.Delay; }
+    int GetAnimDelay() const { return Anim.Delay; }
     // NOTE: has to return non-const for CycleViewAnim :/
     // this may be solved by having a base class that handles animation, e.g. ViewBasedObject
-    ViewAnimateParams &GetAnimParams() { return anim; }
+    ViewAnimateParams &GetAnimParams() { return Anim; }
     // Sets up a view animation
     void SetAnimating(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int anim_volume = 100);
     // Clears the view animation
@@ -192,11 +192,11 @@ public:
 
     // Get current effective graphic anchor, which may be either a freely assigned anchor
     // or an offset from the temporarily locked view
-    Pointf GetEffectiveGraphicAnchor() const { return eff_anchor; }
+    Pointf GetEffectiveGraphicAnchor() const { return EffectiveAnchor; }
     // Get current effective graphic offset, which may be either a freely assigned offset
     // or an offset from the temporarily locked view
-    Point GetEffectiveGraphicOffset() const { return eff_offset; }
-    // Get visual Y position, which is calculated as Y - Z (Z scaled by zoom_offs)
+    Point GetEffectiveGraphicOffset() const { return EffectiveOffset; }
+    // Get visual Y position, which is calculated as Y - Z (Z scaled by OffsetZoom)
     int GetEffectiveY() const;
     // Calculate wanted frame sound volume based on multiple factors
     int GetFrameSoundVolume() const;
@@ -537,7 +537,7 @@ void UpdateCharacterIdle(Game &game, Character *ch, int &doing_nothing);
 // Makes a character that follows another one walk after it, or change room with it, when it has nothing else to do.
 void UpdateCharacterFollower(Game &game, Room &room, Character *ch, std::vector<int> &following_as_sheep,
                              int &doing_nothing);
-// Rebuilds every character's list of inventory items (Character::inventory) from the item quantities.
+// Rebuilds every character's list of inventory items (Character::Inventory) from the item quantities.
 void UpdateInventory();
 
 // Resets idling timer, and marks for immediate update (in case its persistent idling)

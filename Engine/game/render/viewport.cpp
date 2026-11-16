@@ -469,8 +469,8 @@ void GameViewports::UpdateRoomCamera(int index)
         // TODO: split out into Camera Behavior
         if (!cam->IsLocked() && game.PlayerChar->is_enabled())
         {
-            int x = game.PlayerChar->x - cam_rect.GetWidth() / 2;
-            int y = game.PlayerChar->y - cam_rect.GetHeight() / 2;
+            int x = game.PlayerChar->X - cam_rect.GetWidth() / 2;
+            int y = game.PlayerChar->Y - cam_rect.GetHeight() / 2;
             cam->SetAt(x, y);
         }
     }

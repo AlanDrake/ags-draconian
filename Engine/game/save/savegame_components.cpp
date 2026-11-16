@@ -119,53 +119,53 @@ struct CharacterLegacyFields
 
 void ReadCharacterDef(Character &ch, Stream *in, CharacterLegacyFields &old_fields, CharacterSvgVersion save_ver)
 {
-    ch.defview = in->ReadInt32();
-    ch.talkview = in->ReadInt32();
-    ch.view = in->ReadInt32();
-    ch.room = in->ReadInt32();
-    ch.prevroom = in->ReadInt32();
-    ch.x = in->ReadInt32();
-    ch.y = in->ReadInt32();
-    ch.wait = in->ReadInt32();
-    ch.flags = in->ReadInt32();
+    ch.NormalView = in->ReadInt32();
+    ch.SpeechView = in->ReadInt32();
+    ch.View = in->ReadInt32();
+    ch.Room = in->ReadInt32();
+    ch.PreviousRoom = in->ReadInt32();
+    ch.X = in->ReadInt32();
+    ch.Y = in->ReadInt32();
+    ch.AnimWait = in->ReadInt32();
+    ch.Flags = in->ReadInt32();
     in->ReadInt16(); // legacy following
     in->ReadInt16(); // legacy followinginfo
-    ch.idleview = in->ReadInt32();
-    ch.idledelay = in->ReadInt16();
-    ch.idleleft = in->ReadInt16();
-    ch.opacity = in->ReadInt16();
-    ch.baseline = in->ReadInt16();
-    ch.activeinv = in->ReadInt32();
-    ch.talkcolor = in->ReadInt32();
-    ch.thinkview = in->ReadInt32();
-    ch.blinkview = in->ReadInt16();
-    ch.blinkinterval = in->ReadInt16();
-    ch.blinktimer = in->ReadInt16();
-    ch.blinkframe = in->ReadInt16();
-    ch.walkspeed_y = in->ReadInt16();
+    ch.IdleView = in->ReadInt32();
+    ch.IdleDelay = in->ReadInt16();
+    ch.IdleTimeLeft = in->ReadInt16();
+    ch.Opacity = in->ReadInt16();
+    ch.Baseline = in->ReadInt16();
+    ch.ActiveInventory = in->ReadInt32();
+    ch.SpeechColor = in->ReadInt32();
+    ch.ThinkView = in->ReadInt32();
+    ch.BlinkView = in->ReadInt16();
+    ch.BlinkInterval = in->ReadInt16();
+    ch.BlinkTimer = in->ReadInt16();
+    ch.BlinkFrame = in->ReadInt16();
+    ch.WalkSpeedY = in->ReadInt16();
     old_fields.ViewOffset.Y = in->ReadInt16(); // legacy 16-bit view offset
-    ch.z = in->ReadInt32();
-    ch.walkwait = in->ReadInt32();
-    ch.speech_anim_speed = in->ReadInt16();
-    ch.idle_anim_speed = in->ReadInt16();
-    ch.blocking_width = in->ReadInt16();
-    ch.blocking_height = in->ReadInt16();
-    ch.index_id = in->ReadInt32();
+    ch.Z = in->ReadInt32();
+    ch.WalkWait = in->ReadInt32();
+    ch.SpeechAnimationDelay = in->ReadInt16();
+    ch.IdleAnimationDelay = in->ReadInt16();
+    ch.BlockingWidth = in->ReadInt16();
+    ch.BlockingHeight = in->ReadInt16();
+    ch.ID = in->ReadInt32();
     old_fields.ViewOffset.X = in->ReadInt16(); // legacy 16-bit view offset
-    ch.walkwaitcounter = in->ReadInt16();
-    ch.loop = in->ReadInt16();
-    ch.frame = in->ReadInt16();
-    ch.walking = in->ReadInt16();
+    ch.WalkWaitCounter = in->ReadInt16();
+    ch.Loop = in->ReadInt16();
+    ch.Frame = in->ReadInt16();
+    ch.MoveListID = in->ReadInt16();
     in->ReadInt16(); // legacy animating
-    ch.walkspeed = in->ReadInt16();
-    ch.animspeed = in->ReadInt16();
+    ch.WalkSpeedX = in->ReadInt16();
+    ch.AnimationSpeed = in->ReadInt16();
     if (save_ver < kCharSvgVersion_400_33)
     {
         int16_t legacy_invq[LEGACY_MAX_INV];
         in->ReadArrayOfInt16(legacy_invq, LEGACY_MAX_INV);
         for (int i = 0; i < LEGACY_MAX_INV; ++i)
             if (legacy_invq[i] > 0)
-                ch.invq[i] = legacy_invq[i];
+                ch.InventoryQuantity[i] = legacy_invq[i];
     }
     else
     {
@@ -174,7 +174,7 @@ void ReadCharacterDef(Character &ch, Stream *in, CharacterLegacyFields &old_fiel
         {
             int itemid = in->ReadInt32();
             int itemq = in->ReadInt32();
-            ch.invq[itemid] = itemq;
+            ch.InventoryQuantity[itemid] = itemq;
         }
     }
     in->ReadInt16(); // actx__
@@ -182,13 +182,13 @@ void ReadCharacterDef(Character &ch, Stream *in, CharacterLegacyFields &old_fiel
 
     if (save_ver < kCharSvgVersion_400_03)
     { // Fixed-size name and scriptname
-        ch.name.ReadCount(in, LEGACY_MAX_CHAR_NAME_LEN);
+        ch.Name.ReadCount(in, LEGACY_MAX_CHAR_NAME_LEN);
         in->Seek(LEGACY_MAX_SCRIPT_NAME_LEN); // skip legacy scriptname
                                               // (don't overwrite static data from save!)
     }
     else
     {
-        ch.name = StrUtil::ReadString(in);
+        ch.Name = StrUtil::ReadString(in);
     }
 
     if (save_ver >= kCharSvgVersion_400_03)
@@ -199,66 +199,66 @@ void ReadCharacterDef(Character &ch, Stream *in, CharacterLegacyFields &old_fiel
     {
         uint8_t on = in->ReadInt8(); // old enabled + visible flag
         // Only treat "on" as visible and make characters from old saves all enabled
-        ch.flags |= CHF_ENABLED | (CHF_VISIBLE)*on;
+        ch.Flags |= CHF_ENABLED | (CHF_VISIBLE)*on;
     }
 
     if (save_ver >= kCharSvgVersion_400_26)
     {
-        ch.blocking_x = in->ReadInt16();
-        ch.blocking_y = in->ReadInt16();
+        ch.BlockingX = in->ReadInt16();
+        ch.BlockingY = in->ReadInt16();
     }
     else
     {
-        ch.blocking_x = 0;
-        ch.blocking_y = 0;
+        ch.BlockingX = 0;
+        ch.BlockingY = 0;
     }
 }
 
 void WriteCharacterDef(const Character &ch, Stream *out)
 {
-    out->WriteInt32(ch.defview);
-    out->WriteInt32(ch.talkview);
-    out->WriteInt32(ch.view);
-    out->WriteInt32(ch.room);
-    out->WriteInt32(ch.prevroom);
-    out->WriteInt32(ch.x);
-    out->WriteInt32(ch.y);
-    out->WriteInt32(ch.wait);
-    out->WriteInt32(ch.flags);
+    out->WriteInt32(ch.NormalView);
+    out->WriteInt32(ch.SpeechView);
+    out->WriteInt32(ch.View);
+    out->WriteInt32(ch.Room);
+    out->WriteInt32(ch.PreviousRoom);
+    out->WriteInt32(ch.X);
+    out->WriteInt32(ch.Y);
+    out->WriteInt32(ch.AnimWait);
+    out->WriteInt32(ch.Flags);
     out->WriteInt16(0); // legacy following
     out->WriteInt16(0); // legacy followinfo
-    out->WriteInt32(ch.idleview);
-    out->WriteInt16(ch.idledelay);
-    out->WriteInt16(ch.idleleft);
-    out->WriteInt16(ch.opacity);
-    out->WriteInt16(ch.baseline);
-    out->WriteInt32(ch.activeinv);
-    out->WriteInt32(ch.talkcolor);
-    out->WriteInt32(ch.thinkview);
-    out->WriteInt16(ch.blinkview);
-    out->WriteInt16(ch.blinkinterval);
-    out->WriteInt16(ch.blinktimer);
-    out->WriteInt16(ch.blinkframe);
-    out->WriteInt16(ch.walkspeed_y);
+    out->WriteInt32(ch.IdleView);
+    out->WriteInt16(ch.IdleDelay);
+    out->WriteInt16(ch.IdleTimeLeft);
+    out->WriteInt16(ch.Opacity);
+    out->WriteInt16(ch.Baseline);
+    out->WriteInt32(ch.ActiveInventory);
+    out->WriteInt32(ch.SpeechColor);
+    out->WriteInt32(ch.ThinkView);
+    out->WriteInt16(ch.BlinkView);
+    out->WriteInt16(ch.BlinkInterval);
+    out->WriteInt16(ch.BlinkTimer);
+    out->WriteInt16(ch.BlinkFrame);
+    out->WriteInt16(ch.WalkSpeedY);
     out->WriteInt16(0); // legacy view offset y
-    out->WriteInt32(ch.z);
-    out->WriteInt32(ch.walkwait);
-    out->WriteInt16(ch.speech_anim_speed);
-    out->WriteInt16(ch.idle_anim_speed);
-    out->WriteInt16(ch.blocking_width);
-    out->WriteInt16(ch.blocking_height);
-    out->WriteInt32(ch.index_id);
+    out->WriteInt32(ch.Z);
+    out->WriteInt32(ch.WalkWait);
+    out->WriteInt16(ch.SpeechAnimationDelay);
+    out->WriteInt16(ch.IdleAnimationDelay);
+    out->WriteInt16(ch.BlockingWidth);
+    out->WriteInt16(ch.BlockingHeight);
+    out->WriteInt32(ch.ID);
     out->WriteInt16(0); // old view offset x
-    out->WriteInt16(ch.walkwaitcounter);
-    out->WriteInt16(ch.loop);
-    out->WriteInt16(ch.frame);
-    out->WriteInt16(ch.walking);
+    out->WriteInt16(ch.WalkWaitCounter);
+    out->WriteInt16(ch.Loop);
+    out->WriteInt16(ch.Frame);
+    out->WriteInt16(ch.MoveListID);
     out->WriteInt16(0); // legacy animating
-    out->WriteInt16(ch.walkspeed);
-    out->WriteInt16(ch.animspeed);
+    out->WriteInt16(ch.WalkSpeedX);
+    out->WriteInt16(ch.AnimationSpeed);
     // new inv item quantity format since kCharSvgVersion_400_33;
     // written in the order of item IDs, so that the same inventory always gives the same bytes
-    std::vector<std::pair<int, int>> items(ch.invq.begin(), ch.invq.end());
+    std::vector<std::pair<int, int>> items(ch.InventoryQuantity.begin(), ch.InventoryQuantity.end());
     std::sort(items.begin(), items.end());
     out->WriteInt32(items.size());
     for (const auto &iq : items)
@@ -269,11 +269,11 @@ void WriteCharacterDef(const Character &ch, Stream *out)
     out->WriteInt16(0); // actx__
     out->WriteInt16(0); // acty__
 
-    StrUtil::WriteString(ch.name, out); // kCharSvgVersion_400_03
+    StrUtil::WriteString(ch.Name, out); // kCharSvgVersion_400_03
     out->WriteInt8(0);                  // [OBSOLETE], old enabled + visible flag
     // kCharSvgVersion_400_26
-    out->WriteInt16(ch.blocking_x);
-    out->WriteInt16(ch.blocking_y);
+    out->WriteInt16(ch.BlockingX);
+    out->WriteInt16(ch.BlockingY);
 }
 
 void ReadInventoryItemInfo(InventoryItemInfo &item, Stream *in, InvitemSvgVersion svg_ver)
@@ -1078,34 +1078,34 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
         // TODO: this is ugly reading old fields like that, might either join Read methods in one, or drop old format at some point
         CharacterLegacyFields old_fields;
         ReadCharacterDef(ch, in, old_fields, svg_ver);
-        ch.view_offset = old_fields.ViewOffset;
+        ch.ViewOffset = old_fields.ViewOffset;
         ch.ReadFromSavegame(in, svg_ver);
         Properties::ReadValues(game.Play.charProps[i], in);
 
         // Upgrade legacy turning mask
         if (svg_ver < kCharSvgVersion_400_16)
         {
-            int turns = (ch.walking % LEGACY_CHAR_TURNING_BACKWARDS) / LEGACY_CHAR_TURNING_AROUND;
-            bool turn_ccw = ch.walking % LEGACY_CHAR_TURNING_BACKWARDS;
+            int turns = (ch.MoveListID % LEGACY_CHAR_TURNING_BACKWARDS) / LEGACY_CHAR_TURNING_AROUND;
+            bool turn_ccw = ch.MoveListID % LEGACY_CHAR_TURNING_BACKWARDS;
             if (turns > 0)
             {
                 ch.SetTurning(true, turn_ccw, turns);
             }
-            ch.walking = ch.walking % LEGACY_CHAR_TURNING_AROUND;
+            ch.MoveListID = ch.MoveListID % LEGACY_CHAR_TURNING_AROUND;
         }
 
         // Upgrade legacy transparency, tint and light ranges
         if (svg_ver < kCharSvgVersion_400_34)
         {
-            ch.opacity = static_cast<int16_t>(GfxDef::LegacyTrans255ToAlpha255(ch.opacity));
+            ch.Opacity = static_cast<int16_t>(GfxDef::LegacyTrans255ToAlpha255(ch.Opacity));
             if (ch.has_explicit_tint())
             {
-                ch.tint_level = static_cast<short>(GfxDef::Value100ToValue255(ch.tint_level));
-                ch.tint_light = static_cast<short>(GfxDef::Value250ToValue255(ch.tint_light));
+                ch.TintLevel = static_cast<short>(GfxDef::Value100ToValue255(ch.TintLevel));
+                ch.TintLight = static_cast<short>(GfxDef::Value250ToValue255(ch.TintLight));
             }
             else if (ch.has_explicit_light())
             {
-                ch.tint_light = static_cast<short>(GfxDef::Value100ToValue255(ch.tint_light));
+                ch.TintLight = static_cast<short>(GfxDef::Value100ToValue255(ch.TintLight));
             }
         }
     }

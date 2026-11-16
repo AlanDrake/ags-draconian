@@ -573,8 +573,8 @@ void stop_and_destroy_channel(int chid)
 
 int get_volume_adjusted_for_distance(Game &game, int volume, int snd_x, int snd_y, int snd_max_dist)
 {
-    int distx = game.PlayerChar->x - snd_x;
-    int disty = game.PlayerChar->y - snd_y;
+    int distx = game.PlayerChar->X - snd_x;
+    int disty = game.PlayerChar->Y - snd_y;
     int dist = (int)::sqrt((double)(distx * distx + disty * disty));
 
     // if they're quite close, full volume

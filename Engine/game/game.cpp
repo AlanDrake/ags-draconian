@@ -719,9 +719,9 @@ void Game_SetUseActiveInventoryGraphicForCursor(bool use_inv_graphic)
     Game &game = Game::Current();
     game.options[OPT_FIXEDINVCURSOR] = use_inv_graphic ? 0 : 1; // OPT_FIXEDINVCURSOR is inverse
     // Update current "use inv" cursor if necessary
-    if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->activeinv >= 0))
+    if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->ActiveInventory >= 0))
     {
-        update_inv_cursor(game.PlayerChar->activeinv);
+        update_inv_cursor(game.PlayerChar->ActiveInventory);
         set_cursor_look(game.Cursor.Look);
     }
 }
@@ -1227,7 +1227,7 @@ void Game_Resume()
 
 ScriptAudioChannel *Game_PlayVoiceClip(Character *ch, int sound_id, bool as_speech)
 {
-    if (!play_voice_nonblocking(ch ? ch->index_id : -1 /* narrator */, sound_id, as_speech))
+    if (!play_voice_nonblocking(ch ? ch->ID : -1 /* narrator */, sound_id, as_speech))
         return nullptr;
     return &Game::Current().ScAudioChannels[SCHAN_SPEECH];
 }
@@ -1245,8 +1245,7 @@ ScriptAudioChannel *Game_PlayVoiceClipAsType(Character *ch, int sound_id, int au
     if (chan_id == SCR_NO_VALUE)
         chan_id = -1;
 
-    if (!play_voice_clip_as_type(ch ? ch->index_id : -1 /* narrator */, sound_id, audio_type, chan_id, priority,
-                                 repeat))
+    if (!play_voice_clip_as_type(ch ? ch->ID : -1 /* narrator */, sound_id, audio_type, chan_id, priority, repeat))
         return nullptr;
     return &game.ScAudioChannels[SCHAN_SPEECH];
 }
@@ -1821,7 +1820,7 @@ int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool c
     // if it's an Ignore Walkbehinds object, then ignore the walkbehind
     if ((obj_id >= 0) && ((room.Objs[obj_id].flags & OBJF_NOWALKBEHINDS) != 0))
         wb_baseline = 0;
-    if ((char_id >= 0) && ((game.Characters[char_id].flags & CHF_NOWALKBEHINDS) != 0))
+    if ((char_id >= 0) && ((game.Characters[char_id].Flags & CHF_NOWALKBEHINDS) != 0))
         wb_baseline = 0;
 
     if ((char_id >= 0) && (obj_id >= 0))
@@ -2690,9 +2689,9 @@ int SetGameOption(int opt, int new_value)
         for (int i = 0; i < game.numcharacters; i++)
         {
             if (new_value)
-                game.Characters[i].flags |= CHF_ANTIGLIDE;
+                game.Characters[i].Flags |= CHF_ANTIGLIDE;
             else
-                game.Characters[i].flags &= ~CHF_ANTIGLIDE;
+                game.Characters[i].Flags &= ~CHF_ANTIGLIDE;
         }
         break;
     case OPT_DISABLEOFF:
@@ -2704,9 +2703,9 @@ int SetGameOption(int opt, int new_value)
         break;
     case OPT_FIXEDINVCURSOR:
         // Update current "use inv" cursor if necessary
-        if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->activeinv >= 0))
+        if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->ActiveInventory >= 0))
         {
-            update_inv_cursor(game.PlayerChar->activeinv);
+            update_inv_cursor(game.PlayerChar->ActiveInventory);
             set_cursor_look(game.Cursor.Look);
         }
         break;
@@ -2737,12 +2736,12 @@ void SkipUntilCharacterStops(int char_id)
     Game &game = Game::Current();
     if (!AssertCharacter("SkipUntilCharacterStops", char_id))
         return;
-    if (game.Characters[char_id].room != game.DisplayedRoom)
+    if (game.Characters[char_id].Room != game.DisplayedRoom)
         quitprintf("!SkipUntilCharacterStops: character %s is not in current room %d (it is in room %d)",
-                   game.Characters[char_id].scrname.GetCStr(), game.DisplayedRoom, game.Characters[char_id].room);
+                   game.Characters[char_id].ScriptName.GetCStr(), game.DisplayedRoom, game.Characters[char_id].Room);
 
     // if they are not currently moving, do nothing
-    if (!game.Characters[char_id].walking)
+    if (!game.Characters[char_id].MoveListID)
         return;
 
     if (is_in_cutscene())
@@ -2864,7 +2863,7 @@ static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y
     // on character
     if (loc_type == LOCTYPE_CHAR)
     {
-        return game.Characters[loc_id].name.GetCStr();
+        return game.Characters[loc_id].Name.GetCStr();
     }
     // on object
     else if (loc_type == LOCTYPE_OBJ)

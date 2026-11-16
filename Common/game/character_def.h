@@ -67,7 +67,7 @@ class Stream;
 #define CHF_VISIBLE 0x02000000 // Visible (actual visibility requires both ENABLED + VISIBLE)
 
 // Value of walk speed indicating that X and Y speed is the same
-// Value of CharacterDef::walkspeed_y that tells to use walkspeed_x
+// Value of CharacterDef::WalkSpeedY that tells to use WalkSpeedX
 #define UNIFORM_WALK_SPEED 0
 // Value of "followinfo" field that tells to draw follower char above followed
 // Value of CharacterDef::followinfo that tells to keep follower z-sorted above the leading char
@@ -122,39 +122,39 @@ enum CharacterEventID
 // as a copy of it and adds the play state.
 struct CharacterDef
 {
-    int defview = 0;
-    int talkview = 0;
-    int view = 0;
-    int room = 0;
-    int x = 0;
-    int y = 0;
-    int flags = 0;    // CHF_* flags
-    int idleview = 0; // idle view number
+    int NormalView = 0;
+    int SpeechView = 0;
+    int View = 0;
+    int Room = 0;
+    int X = 0;
+    int Y = 0;
+    int Flags = 0;    // CHF_* flags
+    int IdleView = 0; // idle view number
     // delay in seconds to wait before switching to idle animation (0 = continuous idling)
-    int16_t idledelay = 0;
-    int16_t opacity = 255;
-    int16_t baseline = -1;
-    int talkcolor = 0;
-    int thinkview = 0;
-    int16_t blinkview = 0;
-    int16_t walkspeed_y = 0;
-    int16_t speech_anim_speed = 0;
-    int16_t idle_anim_speed = 0; // idle animation delay
+    int16_t IdleDelay = 0;
+    int16_t Opacity = 255;
+    int16_t Baseline = -1;
+    int SpeechColor = 0;
+    int ThinkView = 0;
+    int16_t BlinkView = 0;
+    int16_t WalkSpeedY = 0;
+    int16_t SpeechAnimationDelay = 0;
+    int16_t IdleAnimationDelay = 0; // idle animation delay
     // relative offset of the blocking rect
-    int16_t blocking_x = 0;
-    int16_t blocking_y = 0;
-    int16_t blocking_width = 0;
-    int16_t blocking_height = 0;
-    int index_id = 0; // this character's numeric ID
-    int16_t walkspeed = 0;
-    int16_t animspeed = 0;
+    int16_t BlockingX = 0;
+    int16_t BlockingY = 0;
+    int16_t BlockingWidth = 0;
+    int16_t BlockingHeight = 0;
+    int ID = 0; // this character's numeric ID
+    int16_t WalkSpeedX = 0;
+    int16_t AnimationSpeed = 0;
     // Quantities of inventory items, by item ID;
     // these may be read from the game data, in case it sets up character start with certain items
-    std::unordered_map<int, int> invq;
-    AGS::Common::String scrname = {}; // script name
-    AGS::Common::String name = {};    // regular name (aka description)
+    std::unordered_map<int, int> InventoryQuantity;
+    AGS::Common::String ScriptName = {}; // script name
+    AGS::Common::String Name = {};       // regular name (aka description)
     // Interaction events (cursor-based)
-    AGS::Common::ScriptEventHandlers interactions = {};
+    AGS::Common::ScriptEventHandlers Interactions = {};
     // Graphic options, read from the game file's extensions ("ext_ags399", "v400_charopts2")
     AGS::Common::BlendMode BlendMode = AGS::Common::kBlend_Normal;
     Pointf GraphicAnchor = Pointf(0.5f, 1.f); // graphic anchor (relative alignment); default: middle-bottom
@@ -166,43 +166,49 @@ struct CharacterDef
     static const AGS::Common::ScriptEventSchema &GetEventSchema() { return CharacterDef::_eventSchema; }
 
     // Tells if the "enabled" flag is set
-    inline bool is_enabled() const { return (flags & CHF_ENABLED) != 0; }
+    inline bool is_enabled() const { return (Flags & CHF_ENABLED) != 0; }
     // Tells if the "visible" flag is set
-    inline bool is_visible() const { return (flags & CHF_VISIBLE) != 0; }
+    inline bool is_visible() const { return (Flags & CHF_VISIBLE) != 0; }
     // Tells if the character is actually meant to be displayed on screen;
     // this combines both "enabled" and "visible" factors.
     inline bool is_displayed() const { return is_enabled() && is_visible(); }
-    inline bool is_view_locked() const { return (flags & CHF_FIXVIEW) != 0; }
+    inline bool is_view_locked() const { return (Flags & CHF_FIXVIEW) != 0; }
     // Returns effective x/y walkspeeds for this character
     void get_effective_walkspeeds(int &walk_speed_x, int &walk_speed_y) const
     {
-        walk_speed_x = walkspeed;
-        walk_speed_y = ((walkspeed_y == UNIFORM_WALK_SPEED) ? walkspeed : walkspeed_y);
+        walk_speed_x = WalkSpeedX;
+        walk_speed_y = ((WalkSpeedY == UNIFORM_WALK_SPEED) ? WalkSpeedX : WalkSpeedY);
     }
 
     // Is moving *and* playing walking animation
     // FIXME: would be proper to also test is_moving() in is_moving_walkanim()
     // and in is_moving_no_anim(), but it breaks animation logic;
     // some further adjustments would be required in the engine code.
-    inline bool is_moving_walkanim() const { return (flags & CHF_MOVENOTWALK) == 0; }
+    inline bool is_moving_walkanim() const { return (Flags & CHF_MOVENOTWALK) == 0; }
     // Is moving, but *not* playing walking animation
-    inline bool is_moving_no_anim() const { return (flags & CHF_MOVENOTWALK) != 0; }
-    inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }
-    inline bool has_explicit_tint() const { return (flags & CHF_HASTINT) != 0; }
-    inline void set_enabled(bool on) { flags = (flags & ~CHF_ENABLED) | (CHF_ENABLED * on); }
-    inline void set_visible(bool on) { flags = (flags & ~CHF_VISIBLE) | (CHF_VISIBLE * on); }
+    inline bool is_moving_no_anim() const { return (Flags & CHF_MOVENOTWALK) != 0; }
+    inline bool has_explicit_light() const { return (Flags & CHF_HASLIGHT) != 0; }
+    inline bool has_explicit_tint() const { return (Flags & CHF_HASTINT) != 0; }
+    inline void set_enabled(bool on) { Flags = (Flags & ~CHF_ENABLED) | (CHF_ENABLED * on); }
+    inline void set_visible(bool on) { Flags = (Flags & ~CHF_VISIBLE) | (CHF_VISIBLE * on); }
 
     // Gets if character follows another, while being drawn behind
-    inline bool get_follow_sort_behind() const { return (flags & CHF_BEHINDSHEPHERD) != 0; }
+    inline bool get_follow_sort_behind() const { return (Flags & CHF_BEHINDSHEPHERD) != 0; }
     // Sets "following sort behind" flag
     void set_following_sortbehind(bool sort_behind = false)
     {
-        flags = (flags & ~CHF_BEHINDSHEPHERD) | (CHF_BEHINDSHEPHERD * sort_behind);
+        Flags = (Flags & ~CHF_BEHINDSHEPHERD) | (CHF_BEHINDSHEPHERD * sort_behind);
     }
 
-    bool has_any_of_item(int item_id) const { return invq.count(item_id) > 0 && invq.at(item_id) > 0; }
+    bool has_any_of_item(int item_id) const
+    {
+        return InventoryQuantity.count(item_id) > 0 && InventoryQuantity.at(item_id) > 0;
+    }
 
-    int get_item_quantity(int item_id) const { return invq.count(item_id) > 0 ? invq.at(item_id) : 0; }
+    int get_item_quantity(int item_id) const
+    {
+        return InventoryQuantity.count(item_id) > 0 ? InventoryQuantity.at(item_id) : 0;
+    }
 
     void set_item_quantity(int item_id, int quant);
 

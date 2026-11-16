@@ -637,7 +637,7 @@ static int write_dialog_options(Bitmap *dst, int at_x, int at_y, int area_width,
         else
         {
             // 'unread' colour
-            text_color = dst->GetCompatibleColor(game.PlayerChar->talkcolor);
+            text_color = dst->GetCompatibleColor(game.PlayerChar->SpeechColor);
         }
 
         if (mouse_over_item == item_index)
@@ -1221,7 +1221,7 @@ void DialogOptions::Draw()
         // Set up the text box, if present
         parserInput->SetY(curyp + game.options[OPT_DIALOGGAP]);
         parserInput->SetWidth(areawid - 10);
-        parserInput->SetTextColor(game.PlayerChar->talkcolor);
+        parserInput->SetTextColor(game.PlayerChar->SpeechColor);
         if (mouseison == DLG_OPTION_PARSER)
             parserInput->SetTextColor(forecol);
 

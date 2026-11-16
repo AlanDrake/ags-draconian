@@ -94,9 +94,9 @@ protected:
         game.Views[0].loops[0].frames[0].pic = kCharacterSprite;
         game.Characters.resize(1);
         game.numcharacters = 1;
-        game.Characters[0].view = 0;
-        game.Characters[0].loop = 0;
-        game.Characters[0].room = kRoom;
+        game.Characters[0].View = 0;
+        game.Characters[0].Loop = 0;
+        game.Characters[0].Room = kRoom;
         game.DisplayedRoom = kRoom;
     }
 
@@ -127,8 +127,8 @@ protected:
     static Point AutoPosition(int char_x, int char_y)
     {
         Game &game = Game::Current();
-        game.Characters[0].x = char_x;
-        game.Characters[0].y = char_y;
+        game.Characters[0].X = char_x;
+        game.Characters[0].Y = char_y;
         ScreenOverlay over(1);
         over.SetSpriteNum(kSpeechSprite);
         over.SetAutoPosition(0);
@@ -300,17 +300,17 @@ TEST_F(OverlayLayout, SpeechUsesTheCharacterHeightAndZ)
 {
     Game &game = Game::Current();
     // a character's height, when known, is used instead of its sprite's
-    game.Characters[0].height = 80;
+    game.Characters[0].Height = 80;
     EXPECT_EQ(Point(80, 45), AutoPosition(100, 150));
-    game.Characters[0].height = 0;
+    game.Characters[0].Height = 0;
     // a flying character
-    game.Characters[0].z = 30;
+    game.Characters[0].Z = 30;
     EXPECT_EQ(Point(80, 45), AutoPosition(100, 150));
-    game.Characters[0].z = 0;
+    game.Characters[0].Z = 0;
 }
 
 TEST_F(OverlayLayout, SpeechOfACharacterInAnotherRoomIsCentred)
 {
-    Game::Current().Characters[0].room = kRoom + 1;
+    Game::Current().Characters[0].Room = kRoom + 1;
     EXPECT_EQ(Point(kScreenWidth / 2 - 20, kScreenHeight / 2 - 10), AutoPosition(100, 150));
 }

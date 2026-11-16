@@ -314,16 +314,16 @@ void set_cursor_mode(int newmode)
 
     if (game.HasCursorRole(newmode, kCursorRole_UseInv))
     {
-        if (game.PlayerChar->activeinv == -1)
+        if (game.PlayerChar->ActiveInventory == -1)
         {
             find_next_enabled_cursor(0);
             return;
         }
-        update_inv_cursor(game.PlayerChar->activeinv);
+        update_inv_cursor(game.PlayerChar->ActiveInventory);
     }
 
     if (game.Cursor.Mode !=
-        newmode) // TODO: actually prevent from running any action here if cursor + activeinv did not change?
+        newmode) // TODO: actually prevent from running any action here if cursor + ActiveInventory did not change?
         debug_script_log("Cursor mode set to %d", newmode);
     game.Cursor.Mode = newmode;
     set_default_cursor_look();
@@ -474,7 +474,7 @@ int Mouse_IsModeEnabled(int which)
 {
     Game &game = Game::Current();
     return (which < 0) || (which >= game.numcursors)       ? 0
-           : game.HasCursorRole(which, kCursorRole_UseInv) ? game.PlayerChar->activeinv > 0
+           : game.HasCursorRole(which, kCursorRole_UseInv) ? game.PlayerChar->ActiveInventory > 0
                                                            : (game.mcurs[which].flags & MCF_DISABLED) == 0;
 }
 
@@ -624,7 +624,7 @@ bool is_standard_cursor_enabled(int curs)
         // inventory cursor, and they have an active item
         if (game.HasCursorRole(curs, kCursorRole_UseInv))
         {
-            if (game.PlayerChar->activeinv > 0)
+            if (game.PlayerChar->ActiveInventory > 0)
                 return true;
         }
         // standard cursor that's not disabled, go with it

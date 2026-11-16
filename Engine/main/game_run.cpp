@@ -284,13 +284,13 @@ static void GameUpdateCheckGroundInteractions()
     else
     {
         // check if he's standing on a hotspot
-        int hotspot_there = GetHotspotIDAtRoom(game.PlayerChar->x, game.PlayerChar->y, kHit_Interactable);
+        int hotspot_there = GetHotspotIDAtRoom(game.PlayerChar->X, game.PlayerChar->Y, kHit_Interactable);
         // run Stands on Hotspot event;
         // NOTE: this runs even for hotspot 0 (no hotspot), in case one has a script function attached
         setevent(AGSEvent_Object(kObjEventType_Hotspot, hotspot_there, kHotspotEvent_StandOn));
 
         // check current region
-        int on_region = GetRegionIDAtRoom(Room::Current(), game.PlayerChar->x, game.PlayerChar->y, kHit_Interactable);
+        int on_region = GetRegionIDAtRoom(Room::Current(), game.PlayerChar->X, game.PlayerChar->Y, kHit_Interactable);
         if (on_region != game.Play.player_on_region)
         {
             // we need to save this and set game.Play.player_on_region
@@ -561,9 +561,9 @@ bool run_service_key_controls(KeyInput &out_key)
         // ctrl+D - show info
         String buffer =
             String::FromFormat("In room %d %s\nPlayer at %d, %d (view %d, loop %d, frame %d)%s%s%s", game.DisplayedRoom,
-                               (room.NoWalkBehindsAtAll ? "(has no walk-behinds)" : ""), game.PlayerChar->x,
-                               game.PlayerChar->y, game.PlayerChar->view + 1, game.PlayerChar->loop,
-                               game.PlayerChar->frame, (IsGamePaused() == 0) ? "" : "\nGame paused.",
+                               (room.NoWalkBehindsAtAll ? "(has no walk-behinds)" : ""), game.PlayerChar->X,
+                               game.PlayerChar->Y, game.PlayerChar->View + 1, game.PlayerChar->Loop,
+                               game.PlayerChar->Frame, (IsGamePaused() == 0) ? "" : "\nGame paused.",
                                (game.Play.ground_level_areas_disabled == 0) ? "" : "\nGround areas disabled.",
                                (IsInterfaceEnabled() == 0) ? "\nGame in Wait state" : "");
         for (uint32_t obj_id = 0; obj_id < room.State->numobj; obj_id++)
@@ -587,7 +587,7 @@ bool run_service_key_controls(KeyInput &out_key)
         buffer = "CHARACTERS IN THIS ROOM:\n";
         for (int char_id = 0; char_id < game.numcharacters; char_id++)
         {
-            if (game.Characters[char_id].room != game.DisplayedRoom)
+            if (game.Characters[char_id].Room != game.DisplayedRoom)
                 continue;
             if (buffer.GetLength() > 430)
             { // TODO: the limit is a text length in characters; measure the graphical size instead
@@ -596,17 +596,18 @@ bool run_service_key_controls(KeyInput &out_key)
                 buffer = "CHARACTERS IN THIS ROOM (cont'd):\n";
             }
             listed_char_id = char_id;
-            buffer.AppendFmt(
-                "%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%s anim:%s "
-                "follow:%d flags:%X wait:%d zoom:%d)\n",
-                game.Characters[listed_char_id].scrname.GetCStr(), game.Characters[listed_char_id].view + 1,
-                game.Characters[listed_char_id].loop, game.Characters[listed_char_id].frame,
-                game.Characters[listed_char_id].x, game.Characters[listed_char_id].y, game.Characters[listed_char_id].z,
-                game.Characters[listed_char_id].idleview, game.Characters[listed_char_id].idledelay,
-                game.Characters[listed_char_id].idleleft, game.Characters[listed_char_id].is_moving() ? "yes" : "no",
-                game.Characters[listed_char_id].IsAnimating() ? "yes" : "no", game.Characters[listed_char_id].following,
-                game.Characters[listed_char_id].flags, game.Characters[listed_char_id].wait,
-                game.Characters[listed_char_id].zoom);
+            buffer.AppendFmt("%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%s anim:%s "
+                             "follow:%d flags:%X wait:%d zoom:%d)\n",
+                             game.Characters[listed_char_id].ScriptName.GetCStr(),
+                             game.Characters[listed_char_id].View + 1, game.Characters[listed_char_id].Loop,
+                             game.Characters[listed_char_id].Frame, game.Characters[listed_char_id].X,
+                             game.Characters[listed_char_id].Y, game.Characters[listed_char_id].Z,
+                             game.Characters[listed_char_id].IdleView, game.Characters[listed_char_id].IdleDelay,
+                             game.Characters[listed_char_id].IdleTimeLeft,
+                             game.Characters[listed_char_id].is_moving() ? "yes" : "no",
+                             game.Characters[listed_char_id].IsAnimating() ? "yes" : "no",
+                             game.Characters[listed_char_id].Following, game.Characters[listed_char_id].Flags,
+                             game.Characters[listed_char_id].AnimWait, game.Characters[listed_char_id].Zoom);
         }
         DisplayMB(buffer.GetCStr());
         return false;
@@ -748,7 +749,7 @@ static void check_keyboard_controls(Game &game, EngineServices &services)
     else if ((services.Config.Override.KeyDebugPathfind > 0) &&
              (ags_combo_key == services.Config.Override.KeyDebugPathfind))
     {
-        script_debug(5, game.PlayerChar->index_id);
+        script_debug(5, game.PlayerChar->ID);
         return;
     }
 
@@ -943,13 +944,13 @@ static void GameUpdateCheckRoomEdges()
         // Only allow walking off edges if not in wait mode, and
         // if not in Player Enters Screen (allow walking in from off-screen)
         int edges_activated[4] = {0, 0, 0, 0};
-        if (game.PlayerChar->x <= room.Edges.Left)
+        if (game.PlayerChar->X <= room.Edges.Left)
             edges_activated[0] = 1;
-        else if (game.PlayerChar->x >= room.Edges.Right)
+        else if (game.PlayerChar->X >= room.Edges.Right)
             edges_activated[1] = 1;
-        if (game.PlayerChar->y >= room.Edges.Bottom)
+        if (game.PlayerChar->Y >= room.Edges.Bottom)
             edges_activated[2] = 1;
-        else if (game.PlayerChar->y <= room.Edges.Top)
+        else if (game.PlayerChar->Y <= room.Edges.Top)
             edges_activated[3] = 1;
 
         if ((room.EnteredEdge >= 0) && (room.EnteredEdge <= 3))
@@ -1172,10 +1173,10 @@ static void UpdateGUIContext()
     // OTOH it may be inconvenient to have this in every place where this data changes.
     GUI::Context.GameTitle = game.Play.game_name;
 
-    if (game.PlayerChar->activeinv < 0 || game.PlayerChar->activeinv >= game.numinvitems)
+    if (game.PlayerChar->ActiveInventory < 0 || game.PlayerChar->ActiveInventory >= game.numinvitems)
         GUI::Context.InventoryPic = -1;
     else
-        GUI::Context.InventoryPic = game.invinfo[game.PlayerChar->activeinv].pic;
+        GUI::Context.InventoryPic = game.invinfo[game.PlayerChar->ActiveInventory].pic;
 
     // Update a location name for the GUI labels. We do this every game
     // tick, because this does not depend only on cursor position, but also

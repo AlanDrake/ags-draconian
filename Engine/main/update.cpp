@@ -108,7 +108,7 @@ void update_player_view()
 {
     Game &game = Game::Current();
     Room &room = Room::Current();
-    if (game.PlayerChar->flags & CHF_FIXVIEW)
+    if (game.PlayerChar->Flags & CHF_FIXVIEW)
         return; // view is locked
 
     int onwalkarea = get_walkable_area_at_character(game.playercharacter);
@@ -117,11 +117,11 @@ void update_player_view()
 
     int areaview = room.WalkAreas[onwalkarea].PlayerView;
     if (areaview > 0)
-        game.PlayerChar->view = areaview - 1; // convert to 0-based id
+        game.PlayerChar->View = areaview - 1; // convert to 0-based id
     else if (room.Options.PlayerView > 0)
-        game.PlayerChar->view = room.Options.PlayerView - 1; // convert to 0-based id
+        game.PlayerChar->View = room.Options.PlayerView - 1; // convert to 0-based id
     else
-        game.PlayerChar->view = game.PlayerChar->defview;
+        game.PlayerChar->View = game.PlayerChar->NormalView;
 }
 
 void update_character_move_and_anim(std::vector<int> &following_as_sheep)
@@ -276,40 +276,40 @@ void update_sierra_speech()
     {
         int updatedFrame = 0;
 
-        if ((game.Speech.FaceTalkChar->blinkview > 0) && (game.Speech.FaceTalkAllowBlink))
+        if ((game.Speech.FaceTalkChar->BlinkView > 0) && (game.Speech.FaceTalkAllowBlink))
         {
-            if (game.Speech.FaceTalkChar->blinktimer > 0)
+            if (game.Speech.FaceTalkChar->BlinkTimer > 0)
             {
                 // countdown to playing blink anim
-                game.Speech.FaceTalkChar->blinktimer--;
-                if (game.Speech.FaceTalkChar->blinktimer == 0)
+                game.Speech.FaceTalkChar->BlinkTimer--;
+                if (game.Speech.FaceTalkChar->BlinkTimer == 0)
                 {
-                    game.Speech.FaceTalkChar->blinkframe = 0;
-                    game.Speech.FaceTalkChar->blinktimer = -1;
+                    game.Speech.FaceTalkChar->BlinkFrame = 0;
+                    game.Speech.FaceTalkChar->BlinkTimer = -1;
                     updatedFrame = 2;
                 }
             }
-            else if (game.Speech.FaceTalkChar->blinktimer < 0)
+            else if (game.Speech.FaceTalkChar->BlinkTimer < 0)
             {
                 // currently playing blink anim
-                if (game.Speech.FaceTalkChar->blinktimer < ((0 - 6) - game.Views[game.Speech.FaceTalkChar->blinkview]
+                if (game.Speech.FaceTalkChar->BlinkTimer < ((0 - 6) - game.Views[game.Speech.FaceTalkChar->BlinkView]
                                                                           .loops[game.Speech.FaceTalkBlinkLoop]
-                                                                          .frames[game.Speech.FaceTalkChar->blinkframe]
+                                                                          .frames[game.Speech.FaceTalkChar->BlinkFrame]
                                                                           .speed))
                 {
                     // time to advance to next frame
-                    game.Speech.FaceTalkChar->blinktimer = -1;
-                    game.Speech.FaceTalkChar->blinkframe++;
+                    game.Speech.FaceTalkChar->BlinkTimer = -1;
+                    game.Speech.FaceTalkChar->BlinkFrame++;
                     updatedFrame = 2;
-                    if (game.Speech.FaceTalkChar->blinkframe >=
-                        game.Views[game.Speech.FaceTalkChar->blinkview].loops[game.Speech.FaceTalkBlinkLoop].numFrames)
+                    if (game.Speech.FaceTalkChar->BlinkFrame >=
+                        game.Views[game.Speech.FaceTalkChar->BlinkView].loops[game.Speech.FaceTalkBlinkLoop].numFrames)
                     {
-                        game.Speech.FaceTalkChar->blinkframe = 0;
-                        game.Speech.FaceTalkChar->blinktimer = game.Speech.FaceTalkChar->blinkinterval;
+                        game.Speech.FaceTalkChar->BlinkFrame = 0;
+                        game.Speech.FaceTalkChar->BlinkTimer = game.Speech.FaceTalkChar->BlinkInterval;
                     }
                 }
                 else
-                    game.Speech.FaceTalkChar->blinktimer--;
+                    game.Speech.FaceTalkChar->BlinkTimer--;
             }
         }
 
@@ -396,8 +396,8 @@ void update_sierra_speech()
                 CheckViewFrame(game.Speech.FaceTalkView, game.Speech.FaceTalkLoop, game.Speech.FaceTalkFrame,
                                frame_vol);
             if (updatedFrame & 2)
-                CheckViewFrame(game.Speech.FaceTalkChar->blinkview, game.Speech.FaceTalkBlinkLoop,
-                               game.Speech.FaceTalkChar->blinkframe, frame_vol);
+                CheckViewFrame(game.Speech.FaceTalkChar->BlinkView, game.Speech.FaceTalkBlinkLoop,
+                               game.Speech.FaceTalkChar->BlinkFrame, frame_vol);
 
             int this_pic = game.Views[game.Speech.FaceTalkView]
                                .loops[game.Speech.FaceTalkLoop]
@@ -435,11 +435,11 @@ void update_sierra_speech()
                 &game.Views[game.Speech.FaceTalkView].loops[game.Speech.FaceTalkLoop].frames[game.Speech.FaceTalkFrame];
             DrawViewFrame(frame_pic, face_vf, view_frame_x, view_frame_y);
 
-            if ((game.Speech.FaceTalkChar->blinkview > 0) && (game.Speech.FaceTalkChar->blinktimer < 0))
+            if ((game.Speech.FaceTalkChar->BlinkView > 0) && (game.Speech.FaceTalkChar->BlinkTimer < 0))
             {
-                ViewFrame *blink_vf = &game.Views[game.Speech.FaceTalkChar->blinkview]
+                ViewFrame *blink_vf = &game.Views[game.Speech.FaceTalkChar->BlinkView]
                                            .loops[game.Speech.FaceTalkBlinkLoop]
-                                           .frames[game.Speech.FaceTalkChar->blinkframe];
+                                           .frames[game.Speech.FaceTalkChar->BlinkFrame];
                 // draw the blinking sprite on top
                 DrawViewFrame(frame_pic, blink_vf, view_frame_x, view_frame_y);
             }

@@ -80,12 +80,12 @@ static int GetThingRect(int thing, Rect *rect)
     {
         // FIXME: a disabled character in this room still counts as overlapping, a disabled object does not
         // (below), and neither case looks at visibility
-        if (game.Characters[thing].room != game.DisplayedRoom)
+        if (game.Characters[thing].Room != game.DisplayedRoom)
             return 0;
 
         const int charw = GetCharacterWidth(game, thing);
         const int charh = GetCharacterHeight(game, thing);
-        *rect = RectWH(game.Characters[thing].x - (charw / 2), game.Characters[thing].GetEffectiveY() - charh + 1,
+        *rect = RectWH(game.Characters[thing].X - (charw / 2), game.Characters[thing].GetEffectiveY() - charh + 1,
                        charw, charh);
     }
     else if (IsValidObject(thing - OVERLAPPING_OBJECT))
@@ -944,7 +944,7 @@ void RunObjectInteraction(int obj_id, int mood)
     // For USE verb: remember active inventory
     if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
-        game.Play.usedinv = game.PlayerChar->activeinv;
+        game.Play.usedinv = game.PlayerChar->ActiveInventory;
     }
 
     const auto obj_evt =

@@ -695,8 +695,8 @@ void engine_init_game_settings()
             precache_view(game.mcurs[i].view);
     }
     // may as well preload the character gfx
-    if (game.PlayerChar->view >= 0)
-        precache_view(game.PlayerChar->view, 0, Character_GetDiagonalWalking(game.PlayerChar) ? 8 : 4);
+    if (game.PlayerChar->View >= 0)
+        precache_view(game.PlayerChar->View, 0, Character_GetDiagonalWalking(game.PlayerChar) ? 8 : 4);
 
     set_our_eip(-6);
 
@@ -707,23 +707,23 @@ void engine_init_game_settings()
 
     for (i = 0; i < game.numcharacters; i++)
     {
-        game.Characters[i].activeinv = -1;
-        game.Characters[i].idleleft = game.Characters[i].idledelay;
-        game.Characters[i].walkwaitcounter = 0;
-        game.Characters[i].z = 0;
-        game.Characters[i].xwas = INVALID_X;
-        game.Characters[i].zoom = 100;
-        if (game.Characters[i].view >= 0)
+        game.Characters[i].ActiveInventory = -1;
+        game.Characters[i].IdleTimeLeft = game.Characters[i].IdleDelay;
+        game.Characters[i].WalkWaitCounter = 0;
+        game.Characters[i].Z = 0;
+        game.Characters[i].FullStepX = INVALID_X;
+        game.Characters[i].Zoom = 100;
+        if (game.Characters[i].View >= 0)
         {
             // set initial loop to 0
-            game.Characters[i].loop = 0;
+            game.Characters[i].Loop = 0;
             // or to 1 if they don't have up/down frames
-            if (game.Views[game.Characters[i].view].loops[0].numFrames < 1)
-                game.Characters[i].loop = 1;
+            if (game.Views[game.Characters[i].View].loops[0].numFrames < 1)
+                game.Characters[i].Loop = 1;
         }
-        game.Characters[i].process_idle_this_time = 0;
-        game.Characters[i].slow_move_counter = 0;
-        game.Characters[i].animwait = 0;
+        game.Characters[i].ProcessIdleThisTime = 0;
+        game.Characters[i].SlowMoveCounter = 0;
+        game.Characters[i].WalkAnimWait = 0;
     }
 
     set_our_eip(-5);

@@ -100,7 +100,7 @@ TEST_P(GameCompat, MainGameData)
 
     EXPECT_STREQ(game.gamename.GetCStr(), "Sierra-style");
     ASSERT_EQ(game.numcharacters, 1);
-    EXPECT_STREQ(game.Characters[0].scrname.GetCStr(), "cEgo");
+    EXPECT_STREQ(game.Characters[0].ScriptName.GetCStr(), "cEgo");
     ASSERT_EQ(game.numinvitems, 3); // item 0 is reserved
     EXPECT_STREQ(game.invScriptNames[1].GetCStr(), "iBlueCup");
     EXPECT_STREQ(game.invScriptNames[2].GetCStr(), "iKey");

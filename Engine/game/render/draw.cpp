@@ -744,7 +744,7 @@ void init_game_drawdata()
         objcache[i] = ObjectCache();
 #if (AGS_PLATFORM_DEBUG)
     for (auto &ch : game.Characters)
-        charcache[ch.index_id].tag.Format("CHAR%d:%s", ch.index_id, ch.scrname.GetCStr());
+        charcache[ch.ID].tag.Format("CHAR%d:%s", ch.ID, ch.ScriptName.GetCStr());
 #endif
 
     size_t actsps_num = game.numcharacters + MAX_ROOM_OBJECTS;
@@ -2379,16 +2379,16 @@ void tint_image(Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int light
 bool construct_char_gfx(Game &game, Room &room, EngineServices &services, int char_id, bool force_software)
 {
     const Character &ch = game.Characters[char_id];
-    const ViewFrame *vf = &game.Views[ch.view].loops[ch.loop].frames[ch.frame];
+    const ViewFrame *vf = &game.Views[ch.View].loops[ch.Loop].frames[ch.Frame];
     const int pic = services.Sprites.DoesSpriteExist(vf->pic) ? vf->pic : 0;
 
-    ObjectCache chsrc(pic, ch.tint_r, ch.tint_g, ch.tint_b, ch.tint_level, ch.tint_light, 0 /* skip */, ch.zoom,
-                      ch.rotation, kFlip_None /* skip */, ch.x, ch.y);
-    chsrc.pivotx = ch.pivot.X + (static_cast<float>(ch.pivot_offset.X) / ch.width);
-    chsrc.pivoty = ch.pivot.Y + (static_cast<float>(ch.pivot_offset.Y) / ch.height);
+    ObjectCache chsrc(pic, ch.TintRed, ch.TintGreen, ch.TintBlue, ch.TintLevel, ch.TintLight, 0 /* skip */, ch.Zoom,
+                      ch.Rotation, kFlip_None /* skip */, ch.X, ch.Y);
+    chsrc.pivotx = ch.Pivot.X + (static_cast<float>(ch.PivotOffset.X) / ch.Width);
+    chsrc.pivoty = ch.Pivot.Y + (static_cast<float>(ch.PivotOffset.Y) / ch.Height);
 
     return construct_object_gfx(
-        game, room, services, vf, pic, Size(ch.width, ch.height), CharFlagsToObjFlags(ch.flags) & OBJF_TINTLIGHTMASK,
+        game, room, services, vf, pic, Size(ch.Width, ch.Height), CharFlagsToObjFlags(ch.Flags) & OBJF_TINTLIGHTMASK,
         chsrc, charcache[char_id], actsps[char_id + ACTSP_OBJSOFF],
         false, // characters cannot optimize by pos, probably because of z coord and view offsets (?)
         force_software);
@@ -2408,7 +2408,7 @@ void prepare_characters_for_drawing()
         const Character &ch = game.Characters[char_id];
         if (!ch.is_displayed())
             continue; // disabled or not visible
-        if (ch.room != game.DisplayedRoom)
+        if (ch.Room != game.DisplayedRoom)
             continue; // in another room
 
         eip_guinum = char_id;
@@ -2424,19 +2424,19 @@ void prepare_characters_for_drawing()
         // Generate raw bitmap in ObjTexture and store parameters in ObjectCache.
         const bool actsp_modified = !construct_char_gfx(game, room, services, char_id, false);
         // Prepare the object texture
-        prepare_and_add_object_gfx(room, chsav, actsp, actsp_modified, Size(ch.width, ch.height), imgx, imgy, usebasel,
-                                   (ch.flags & CHF_NOWALKBEHINDS) == 0, ch.eff_anchor, ch.opacity, ch.BlendMode,
-                                   ch.shader_id, hw_accel);
+        prepare_and_add_object_gfx(room, chsav, actsp, actsp_modified, Size(ch.Width, ch.Height), imgx, imgy, usebasel,
+                                   (ch.Flags & CHF_NOWALKBEHINDS) == 0, ch.EffectiveAnchor, ch.Opacity, ch.BlendMode,
+                                   ch.ShaderID, hw_accel);
 #if (AGS_PLATFORM_DEBUG)
-        actsp.Ddb->SetTag(String::FromFormat("CHAR%d:%s", ch.index_id, ch.scrname.GetCStr()));
+        actsp.Ddb->SetTag(String::FromFormat("CHAR%d:%s", ch.ID, ch.ScriptName.GetCStr()));
 #endif
         // Finally, add the texture to the draw list
         // FIXME: find a way to achieve this without manually coding scaling of the offset here;
         // also see fixme comment to GraphicSpace struct.
         // FIXME: can't we just use anything saved (e.g. when updating GraphicSpace) here?
         // why do we have to recalculate these offsets in multiple places?!!
-        const int charx = ch.x + (ch.frame_xoff + ch.eff_offset.X) * ch.zoom_offs / 100;
-        const int chary = ch.y + (-ch.z + ch.frame_yoff + ch.eff_offset.Y) * ch.zoom_offs / 100;
+        const int charx = ch.X + (ch.FrameOffsetX + ch.EffectiveOffset.X) * ch.OffsetZoom / 100;
+        const int chary = ch.Y + (-ch.Z + ch.FrameOffsetY + ch.EffectiveOffset.Y) * ch.OffsetZoom / 100;
         add_to_sprite_list(actsp.Ddb, charx, chary, aabb, usebasel, actsp.DrawIndex);
     }
 }

@@ -206,22 +206,22 @@ TEST(DataFileWriter, RoundTripCharacter)
     CharacterDef loaded;
     loaded.ReadFromFile(in.get(), kGameVersion_Current);
 
-    EXPECT_EQ(7, loaded.index_id);
-    EXPECT_EQ(2, loaded.defview);
-    EXPECT_EQ(4, loaded.talkview);
-    EXPECT_EQ(6, loaded.room);
-    EXPECT_EQ(100, loaded.x);
-    EXPECT_EQ(120, loaded.y);
-    EXPECT_EQ(4, loaded.walkspeed);
-    EXPECT_NE(0, loaded.flags & CHF_SCALEMOVESPEED);
-    EXPECT_NE(0, loaded.flags & CHF_TURNWHENFACE);
+    EXPECT_EQ(7, loaded.ID);
+    EXPECT_EQ(2, loaded.NormalView);
+    EXPECT_EQ(4, loaded.SpeechView);
+    EXPECT_EQ(6, loaded.Room);
+    EXPECT_EQ(100, loaded.X);
+    EXPECT_EQ(120, loaded.Y);
+    EXPECT_EQ(4, loaded.WalkSpeedX);
+    EXPECT_NE(0, loaded.Flags & CHF_SCALEMOVESPEED);
+    EXPECT_NE(0, loaded.Flags & CHF_TURNWHENFACE);
     // TODO: expand this test to be able to check character inventory;
     // in 4.x it's now written in "v400_charinv" extension
     //EXPECT_EQ(1, loaded.invq[2]);
-    EXPECT_STREQ("Hero of \"Fairy land\"", loaded.name.GetCStr());
-    EXPECT_STREQ("cHero", loaded.scrname.GetCStr());
-    EXPECT_EQ(-4, loaded.blocking_x);
-    EXPECT_EQ(8, loaded.blocking_y);
+    EXPECT_STREQ("Hero of \"Fairy land\"", loaded.Name.GetCStr());
+    EXPECT_STREQ("cHero", loaded.ScriptName.GetCStr());
+    EXPECT_EQ(-4, loaded.BlockingX);
+    EXPECT_EQ(8, loaded.BlockingY);
 }
 
 TEST(DataFileWriter, RoundTripInventoryItem)
@@ -450,10 +450,10 @@ TEST(DataFileWriter, RoundTripCharactersBlock)
     CharacterDef loaded[2];
     for (int i = 0; i < 2; ++i)
         loaded[i].ReadFromFile(in.get(), kGameVersion_Current);
-    EXPECT_EQ(0, loaded[0].index_id);
-    EXPECT_EQ(1, loaded[1].index_id);
-    EXPECT_STREQ("First", loaded[0].name.GetCStr());
-    EXPECT_STREQ("Second", loaded[1].name.GetCStr());
+    EXPECT_EQ(0, loaded[0].ID);
+    EXPECT_EQ(1, loaded[1].ID);
+    EXPECT_STREQ("First", loaded[0].Name.GetCStr());
+    EXPECT_STREQ("Second", loaded[1].Name.GetCStr());
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
 

@@ -199,60 +199,60 @@ void WriteCharacter(Stream *out, const DataUtil::GameData &game, const DataUtil:
 {
     CharacterDef ch;
 
-    ch.index_id = ref.ID >= 0 ? ref.ID : index;
-    ch.defview = ref.NormalView - 1;
-    ch.talkview = ref.SpeechView - 1;
-    ch.view = ref.NormalView - 1;
-    ch.room = ref.StartingRoom;
-    ch.x = ref.StartX;
-    ch.y = ref.StartY;
-    ch.idleview = ref.IdleView - 1;
-    ch.idledelay = static_cast<int16_t>(ref.IdleDelay);
-    ch.opacity = static_cast<int16_t>(ref.Opacity);
-    ch.baseline = static_cast<int16_t>(ref.Baseline);
-    ch.talkcolor = ref.SpeechColor;
-    ch.thinkview = ref.ThinkingView - 1;
-    ch.blinkview = static_cast<int16_t>(ref.BlinkingView - 1);
-    ch.walkspeed_y = static_cast<int16_t>(ref.UniformMovementSpeed ? UNIFORM_WALK_SPEED : ref.MovementSpeedY);
-    ch.speech_anim_speed = static_cast<int16_t>(ref.SpeechAnimationDelay);
-    ch.idle_anim_speed = static_cast<int16_t>(ref.IdleAnimationDelay);
-    ch.blocking_width = static_cast<int16_t>(ref.BlockingWidth);
-    ch.blocking_height = static_cast<int16_t>(ref.BlockingHeight);
-    ch.walkspeed = static_cast<int16_t>(ref.UniformMovementSpeed ? ref.MovementSpeed : ref.MovementSpeedX);
-    ch.animspeed = static_cast<int16_t>(ref.AnimationDelay);
+    ch.ID = ref.ID >= 0 ? ref.ID : index;
+    ch.NormalView = ref.NormalView - 1;
+    ch.SpeechView = ref.SpeechView - 1;
+    ch.View = ref.NormalView - 1;
+    ch.Room = ref.StartingRoom;
+    ch.X = ref.StartX;
+    ch.Y = ref.StartY;
+    ch.IdleView = ref.IdleView - 1;
+    ch.IdleDelay = static_cast<int16_t>(ref.IdleDelay);
+    ch.Opacity = static_cast<int16_t>(ref.Opacity);
+    ch.Baseline = static_cast<int16_t>(ref.Baseline);
+    ch.SpeechColor = ref.SpeechColor;
+    ch.ThinkView = ref.ThinkingView - 1;
+    ch.BlinkView = static_cast<int16_t>(ref.BlinkingView - 1);
+    ch.WalkSpeedY = static_cast<int16_t>(ref.UniformMovementSpeed ? UNIFORM_WALK_SPEED : ref.MovementSpeedY);
+    ch.SpeechAnimationDelay = static_cast<int16_t>(ref.SpeechAnimationDelay);
+    ch.IdleAnimationDelay = static_cast<int16_t>(ref.IdleAnimationDelay);
+    ch.BlockingWidth = static_cast<int16_t>(ref.BlockingWidth);
+    ch.BlockingHeight = static_cast<int16_t>(ref.BlockingHeight);
+    ch.WalkSpeedX = static_cast<int16_t>(ref.UniformMovementSpeed ? ref.MovementSpeed : ref.MovementSpeedX);
+    ch.AnimationSpeed = static_cast<int16_t>(ref.AnimationDelay);
     if (ref.Enabled)
-        ch.flags |= CHF_ENABLED;
+        ch.Flags |= CHF_ENABLED;
     if (ref.Visible)
-        ch.flags |= CHF_VISIBLE;
+        ch.Flags |= CHF_VISIBLE;
     if (ref.AdjustSpeedWithScaling)
-        ch.flags |= CHF_SCALEMOVESPEED;
+        ch.Flags |= CHF_SCALEMOVESPEED;
     if (ref.AdjustVolumeWithScaling)
-        ch.flags |= CHF_SCALEVOLUME;
+        ch.Flags |= CHF_SCALEVOLUME;
     if (!ref.Clickable)
-        ch.flags |= CHF_NOINTERACT;
+        ch.Flags |= CHF_NOINTERACT;
     if (!ref.DiagonalLoops)
-        ch.flags |= CHF_NODIAGONAL;
+        ch.Flags |= CHF_NODIAGONAL;
     if (ref.MovementLinkedToAnimation)
-        ch.flags |= CHF_ANTIGLIDE;
+        ch.Flags |= CHF_ANTIGLIDE;
     if (!ref.Solid)
-        ch.flags |= CHF_NOBLOCKING;
+        ch.Flags |= CHF_NOBLOCKING;
     if (!ref.TurnBeforeWalking)
-        ch.flags |= CHF_NOTURNWHENWALK;
+        ch.Flags |= CHF_NOTURNWHENWALK;
     if (ref.TurnWhenFacing)
-        ch.flags |= CHF_TURNWHENFACE;
+        ch.Flags |= CHF_TURNWHENFACE;
     if (!ref.UseRoomAreaLighting)
-        ch.flags |= CHF_NOLIGHTING;
+        ch.Flags |= CHF_NOLIGHTING;
     if (!ref.UseRoomAreaScaling)
-        ch.flags |= CHF_MANUALSCALING;
+        ch.Flags |= CHF_MANUALSCALING;
     if ((ref.ID >= 0 ? ref.ID : index) == game.PlayerCharacter)
         for (const auto &item : game.Inventory)
             if (item.PlayerStartsWith && item.ID >= 0)
-                ch.invq[item.ID] = 1;
-    ch.blocking_x = ref.BlockingX;
-    ch.blocking_y = ref.BlockingY;
+                ch.InventoryQuantity[item.ID] = 1;
+    ch.BlockingX = ref.BlockingX;
+    ch.BlockingY = ref.BlockingY;
 
-    ch.name = TextProperty(ref.RealName);
-    ch.scrname = ref.ScriptName;
+    ch.Name = TextProperty(ref.RealName);
+    ch.ScriptName = ref.ScriptName;
 
     ch.WriteToFile(out);
 }
