@@ -340,4 +340,4 @@ enum PluginEventID
     kPluginEvt_PostRoomDraw = 0x00080000,
 };
 
-extern std::array<const char *, kNum_RBS> RBSwitchNames;
+extern const std::array<const char *, kNum_RBS> RBSwitchNames;

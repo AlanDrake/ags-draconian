@@ -863,8 +863,8 @@ static void set_t2m_pos(float x, float y, float dx, float dy)
 {
     EngineServices &services = EngineServices::Current();
     // CHECKME: can't we use SDL window size here, or anything similar?
-    const int w = gl_SysConfig.DisplayMode.Width;
-    const int h = gl_SysConfig.DisplayMode.Height;
+    const int w = services.SysConfig.DisplayMode.Width;
+    const int h = services.SysConfig.DisplayMode.Height;
     // Save real touch pos
     t2m.pos = Point(static_cast<int>(std::roundf(x * w)), static_cast<int>(std::roundf(y * h)));
 
@@ -917,7 +917,7 @@ static void sync_sys_mouse_pos()
 static Point sdl_touch_to_window_pos(float x, float y)
 {
     // CHECKME: can't we use SDL window size here, or anything similar?
-    const Size d_sz = gl_SysConfig.DisplayMode;
+    const Size d_sz = EngineServices::Current().SysConfig.DisplayMode;
     const Point pos_real = Point::Clamp(
         Point(static_cast<int>(std::roundf(x * d_sz.Width)), static_cast<int>(std::roundf(y * d_sz.Height))), Point(),
         Point(d_sz.Width - 1, d_sz.Height - 1));
@@ -1202,9 +1202,10 @@ int sys_evt_filter(void *userdata, SDL_Event *event)
 
 void sys_evt_on_config_set()
 {
-    if (!gl_SysConfig.MouseEnabled)
+    EngineServices &services = EngineServices::Current();
+    if (!services.SysConfig.MouseEnabled)
     {
-        SDL_SetEventFilter(sys_evt_filter, &gl_SysConfig);
+        SDL_SetEventFilter(sys_evt_filter, &services.SysConfig);
     }
     else
     {

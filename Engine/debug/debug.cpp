@@ -644,7 +644,7 @@ void scriptDebugHook(ScriptExecutor *exec, int linenum)
         return; // not inside script
     }
 
-    if (pluginsWantingDebugHooks > 0)
+    if (services.PluginsWantingDebugHooks > 0)
     {
         // a plugin is handling the debugging
         String scname = exec->GetRunningScript()->GetScriptName();

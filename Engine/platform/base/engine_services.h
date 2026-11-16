@@ -21,6 +21,7 @@
 #include "debug/debugger.h"
 #include "device/input_state.h"
 #include "platform/base/engine_config.h"
+#include "util/geometry.h"
 #include "util/scaling.h"
 #include "util/string.h"
 #include "util/version.h"
@@ -60,6 +61,20 @@ struct ResourcePaths
     // see "--runfromide" command line arg.
     std::vector<std::pair<AGS::Common::String, AGS::Common::String>> OptDataDirs; // optional data directories
     AGS::Common::String VoiceDirSub; // full voice-over directory with optional sub-dir
+};
+
+// Configuration of the overall system behavior (platform/base/sys_main.h);
+// affects coordination between engine and backend,
+// event handling.
+struct SystemConfig
+{
+    // Allows to disable the mouse device in the engine.
+    // NOTE: this does *not* disable the mouse handling of the window
+    // (moving, resizing, closing), only mouse interaction within the
+    // game window.
+    bool MouseEnabled = true;
+    // Used to tell the current display mode
+    Size DisplayMode;
 };
 
 // What lives as long as the process: the engine's configuration and the services of the host (window and
@@ -154,6 +169,11 @@ struct EngineServices
     InputState Input;
     // The link to the editor's debugger, the debug flags, the FPS display (debug/debug.cpp)
     DebugState Debug;
+
+    // The system config in use, set by sys_set_config (platform/base/sys_main.h)
+    SystemConfig SysConfig;
+    // The number of plugins that asked for the debugging hooks (AGSE_SCRIPTDEBUG; plugin/agsplugin.cpp)
+    int PluginsWantingDebugHooks = 0;
 
 private:
     static EngineServices *_current;

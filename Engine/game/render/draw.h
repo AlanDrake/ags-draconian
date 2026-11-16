@@ -57,9 +57,6 @@ class Viewport;
 class Camera;
 struct EngineServices;
 
-// Room background sprite
-extern AGS::Engine::IDriverDependantBitmap *roomBackgroundBmp;
-
 // Initializes drawing methods and optimisation
 void init_draw_method();
 // Initializes global game drawing resources
@@ -72,6 +69,8 @@ void dispose_draw_method();
 void dispose_game_drawdata();
 // Disposes any temporary resources on leaving current room
 void dispose_room_drawdata();
+// Destroys the texture of the room background, if there is one (on unloading the room)
+void dispose_room_background_ddb();
 // Releases all the cached textures of game objects and other cached data.
 // Optionally keeps or resets object subscriptions to sprite changes.
 void clear_drawobj_cache(bool keep_sprite_callbacks);

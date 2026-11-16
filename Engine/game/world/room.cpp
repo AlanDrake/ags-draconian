@@ -409,11 +409,7 @@ void unload_old_room()
 
     game.Events.Queue.clear(); // cancel any pending room events
 
-    if (roomBackgroundBmp != nullptr)
-    {
-        EngineServices::Current().GfxDriver->DestroyDDB(roomBackgroundBmp);
-        roomBackgroundBmp = nullptr;
-    }
+    dispose_room_background_ddb();
 
     // FIXME: room.State was already dereferenced above (room.State->numobj), so a null one would have crashed there
     if (room.State == nullptr)

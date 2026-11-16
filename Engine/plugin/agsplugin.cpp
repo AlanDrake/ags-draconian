@@ -125,7 +125,6 @@ struct EnginePlugin
 };
 
 std::vector<EnginePlugin> plugins;
-int pluginsWantingDebugHooks = 0;
 
 //
 // Managed object unserializers
@@ -182,7 +181,7 @@ void IAGSEngine::RequestEventHook(int32 event)
 
     if ((event & AGSE_SCRIPTDEBUG) && ((plugins[this->pluginId].wantHook & AGSE_SCRIPTDEBUG) == 0))
     {
-        pluginsWantingDebugHooks++;
+        EngineServices::Current().PluginsWantingDebugHooks++;
         ccSetDebugHook(scriptDebugHook);
     }
 
@@ -197,13 +196,14 @@ void IAGSEngine::RequestEventHook(int32 event)
 
 void IAGSEngine::UnrequestEventHook(int32 event)
 {
+    EngineServices &services = EngineServices::Current();
     if (event >= AGSE_TOOHIGH)
         quit("!IAGSEngine::UnrequestEventHook: invalid event requested");
 
     if ((event & AGSE_SCRIPTDEBUG) && (plugins[this->pluginId].wantHook & AGSE_SCRIPTDEBUG))
     {
-        pluginsWantingDebugHooks--;
-        if (pluginsWantingDebugHooks < 1)
+        services.PluginsWantingDebugHooks--;
+        if (services.PluginsWantingDebugHooks < 1)
             ccSetDebugHook(nullptr);
     }
 

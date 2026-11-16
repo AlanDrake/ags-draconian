@@ -27,22 +27,8 @@
 
 using AGS::Common::String;
 
-// Configuration of the overall system behavior;
-// affects coordination between engine and backend,
-// event handling.
-struct SystemConfig
-{
-    // Allows to disable the mouse device in the engine.
-    // NOTE: this does *not* disable the mouse handling of the window
-    // (moving, resizing, closing), only mouse interaction within the
-    // game window.
-    bool MouseEnabled = true;
-    // Used to tell the current display mode
-    Size DisplayMode;
-};
-
-// The system config in use, set by sys_set_config.
-extern SystemConfig gl_SysConfig;
+// The system configuration (platform/base/engine_services.h); the one in use is EngineServices::SysConfig
+struct SystemConfig;
 
 // Initializes main backend system;
 // should be called before anything else backend related.

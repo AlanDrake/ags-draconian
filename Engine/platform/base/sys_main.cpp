@@ -34,8 +34,6 @@ struct SysMainInfo
     uint32_t SDLSubsystems = 0u;
 } static gl_SysMainInfo;
 
-SystemConfig gl_SysConfig;
-
 // ----------------------------------------------------------------------------
 // INIT / SHUTDOWN
 // ----------------------------------------------------------------------------
@@ -73,13 +71,13 @@ int sys_main_init(/*config*/)
 
 void sys_set_config(const SystemConfig &cfg)
 {
-    gl_SysConfig = cfg;
+    EngineServices::Current().SysConfig = cfg;
     sys_evt_on_config_set();
 }
 
 void sys_set_display_size_ref(const Size &mode)
 {
-    gl_SysConfig.DisplayMode = mode;
+    EngineServices::Current().SysConfig.DisplayMode = mode;
 }
 
 void sys_main_shutdown()
@@ -387,7 +385,7 @@ void sys_window_set_mouse(int x, int y)
 {
     if (!window)
         return;
-    if (!gl_SysConfig.MouseEnabled)
+    if (!EngineServices::Current().SysConfig.MouseEnabled)
         return;
     SDL_WarpMouseInWindow(window, x, y);
 }

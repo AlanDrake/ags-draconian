@@ -422,8 +422,8 @@ std::vector<ObjectCache> charcache;
 ObjectCache objcache[MAX_ROOM_OBJECTS];
 std::vector<Point> overcache;
 
-// Room background sprite
-IDriverDependantBitmap *roomBackgroundBmp = nullptr;
+// Room background sprite; dispose_room_background_ddb destroys it when the room is unloaded
+static IDriverDependantBitmap *roomBackgroundBmp = nullptr;
 // Whether room bg was modified
 bool current_background_is_dirty = false;
 
@@ -796,6 +796,15 @@ void dispose_room_drawdata()
 {
     CameraDrawData.clear();
     dispose_invalid_regions(true);
+}
+
+void dispose_room_background_ddb()
+{
+    if (roomBackgroundBmp != nullptr)
+    {
+        EngineServices::Current().GfxDriver->DestroyDDB(roomBackgroundBmp);
+        roomBackgroundBmp = nullptr;
+    }
 }
 
 void clear_drawobj_cache(bool keep_sprite_callbacks)

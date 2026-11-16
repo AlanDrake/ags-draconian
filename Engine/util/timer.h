@@ -20,11 +20,11 @@
 #include "util/time_util.h"
 
 // Sleeps for time remaining until the next game frame, updates next frame timestamp
-extern void WaitForNextFrame();
+void WaitForNextFrame();
 
 // Sets real FPS to the given number of frames per second
-extern int setTimerFps(int new_fps, bool max_fps_mode);
+int setTimerFps(int new_fps, bool max_fps_mode);
 // Tells whether maxed FPS mode is currently set
-extern bool isTimerFpsMaxed();
+bool isTimerFpsMaxed();
 // If more than N frames, just skip all, start a fresh.
-extern void skipMissedTicks();
+void skipMissedTicks();

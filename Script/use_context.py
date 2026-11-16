@@ -119,6 +119,9 @@ CONTEXTS = {
             'break_on_next_script_step': 'Debug.BreakOnNextScriptStep',
             'display_fps': 'Debug.DisplayFps',
             'debug_flags': 'Debug.Flags',
+            # 5.1 step 3, batch exceptions
+            'gl_SysConfig': 'SysConfig',
+            'pluginsWantingDebugHooks': 'PluginsWantingDebugHooks',
         },
     },
     # 5.1 step 3: one play-through (the global `game` is the context itself: `class Game : public GameDef`)
