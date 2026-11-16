@@ -33,7 +33,7 @@
 
 using namespace AGS;
 using namespace AGS::Common;
-extern GameSetupStruct thisgame;
+extern GameDef thisgame;
 
 bool ShouldAntiAliasText()
 {

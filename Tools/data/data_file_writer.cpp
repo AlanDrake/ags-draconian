@@ -105,7 +105,7 @@ bool ParseResolution(const String &text, int &width, int &height)
 }
 
 // Read by Properties::ReadSchema() in Common/game/customproperties.cpp,
-// called from GameSetupStruct::read_customprops().
+// called from GameDef::read_customprops().
 void WritePropertySchemaBlock(Stream *out, const std::vector<DataUtil::CustomPropertySchemaItem> &schema)
 {
     out->WriteInt32(AGS::Common::kPropertyVersion_Current);
@@ -119,7 +119,7 @@ void WritePropertySchemaBlock(Stream *out, const std::vector<DataUtil::CustomPro
     }
 }
 
-// Read inline by GameSetupStruct::read_font_infos() in
+// Read inline by GameDef::read_font_infos() in
 // Common/game/game_setup_struct.cpp.
 void WriteFontInfo(Stream *out, const DataUtil::FontData &font)
 {
@@ -142,7 +142,7 @@ void WriteFontInfo(Stream *out, const DataUtil::FontData &font)
 }
 
 // Read by Properties::ReadValues() in Common/game/customproperties.cpp,
-// called from GameSetupStruct::read_customprops().
+// called from GameDef::read_customprops().
 void WritePropertyValues(Stream *out, const std::vector<DataUtil::CustomPropertyValue> &properties)
 {
     out->WriteInt32(AGS::Common::kPropertyVersion_Current);
@@ -155,7 +155,7 @@ void WritePropertyValues(Stream *out, const std::vector<DataUtil::CustomProperty
 }
 
 // Read by ScriptEventHandlers::Read_v361() in Common/game/scripteventtable.cpp, called from
-// GameSetupStruct::read_interaction_scripts(): a handler count, here always 0.
+// GameDef::read_interaction_scripts(): a handler count, here always 0.
 void WriteEmptyInteractionEvents(Stream *out)
 {
     out->WriteInt32(0);
@@ -194,7 +194,7 @@ void WriteView(Stream *out, const DataUtil::GameData &game, const DataUtil::View
 }
 
 // Read by CharacterInfo::ReadFromFile() in Common/game/character_info.cpp,
-// through GameSetupStruct::ReadCharacters().
+// through GameDef::ReadCharacters().
 void WriteCharacter(Stream *out, const DataUtil::GameData &game, const DataUtil::CharacterData &ref, int index)
 {
     CharacterInfo ch;
@@ -492,7 +492,7 @@ void WriteAudioClip(Stream *out, const DataUtil::AudioClipData &ref, int index)
     out->WriteInt32(0); // reserved
 }
 
-// Read inline by GameSetupStruct::read_room_names() in
+// Read inline by GameDef::read_room_names() in
 // Common/game/game_setup_struct.cpp.
 void WriteRoomName(Stream *out, int number, const String &description)
 {
@@ -531,7 +531,7 @@ int ParseSplitResources(const String &value)
 std::vector<int32_t> BuildGameOptions(const DataUtil::GameData &game)
 {
     // Options without a corresponding GameData field retain their default.
-    std::vector<int32_t> options(GameSetupStructBase::MAX_OPTIONS, 0);
+    std::vector<int32_t> options(GameDefBase::MAX_OPTIONS, 0);
     options[OPT_ALWAYSSPCH] = game.Settings.AlwaysDisplayTextAsSpeech ? 1 : 0;
     options[OPT_ANTIALIASFONTS] = game.Settings.AntiAliasFonts ? 1 : 0;
     options[OPT_ANTIGLIDE] = game.Settings.AntiGlideMode ? 1 : 0;
@@ -582,7 +582,7 @@ std::vector<int32_t> BuildGameOptions(const DataUtil::GameData &game)
     return options;
 }
 
-// Read by GameSetupStructBase::ReadFromFile() in
+// Read by GameDefBase::ReadFromFile() in
 // Common/game/game_setup_struct_base.cpp, at the start of ReadGameData().
 void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData &data, Stream *out,
                               soff_t &ext_offset_pos)
@@ -590,12 +590,12 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData
     String game_name = game.Settings.GameName;
     if (game_name.IsEmpty())
         game_name = game.Settings.GameFileName;
-    StrUtil::WriteFixedString(TextProperty(game_name), GameSetupStructBase::LEGACY_GAME_NAME_LENGTH, out);
+    StrUtil::WriteFixedString(TextProperty(game_name), GameDefBase::LEGACY_GAME_NAME_LENGTH, out);
     out->WriteInt16(0); // alignment padding to int32
 
     const std::vector<int32_t> options = BuildGameOptions(game);
 
-    for (int i = 0; i < GameSetupStructBase::MAX_OPTIONS; ++i)
+    for (int i = 0; i < GameDefBase::MAX_OPTIONS; ++i)
         out->WriteInt32(options[i]);
 
     for (int i = 0; i < 256; ++i)
@@ -666,7 +666,7 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData
                         : 0);
     out->WriteInt32(game.Settings.InventoryHotspotMarkerCrosshairColor);
     // reserved; NUM_INTS_RESERVED ints
-    for (int i = 0; i < GameSetupStructBase::NUM_INTS_RESERVED; ++i)
+    for (int i = 0; i < GameDefBase::NUM_INTS_RESERVED; ++i)
         out->WriteInt32(0);
 
     ext_offset_pos = out->GetPosition();
@@ -680,7 +680,7 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData
     out->WriteInt32(0); // compiled scripts are loaded from separate files since 3.6.1
 }
 
-// Read by GameSetupStruct::read_savegame_info() in
+// Read by GameDef::read_savegame_info() in
 // Common/game/game_setup_struct.cpp.
 void WriteSaveGameInfo(const DataUtil::GameData &game, Stream *out)
 {
@@ -690,7 +690,7 @@ void WriteSaveGameInfo(const DataUtil::GameData &game, Stream *out)
     StrUtil::WriteFixedString(game.Settings.SaveGameFolderName, LEGACY_MAX_SG_FOLDER_LEN, out);
 }
 
-// Read by GameSetupStruct::read_font_infos() in
+// Read by GameDef::read_font_infos() in
 // Common/game/game_setup_struct.cpp.
 void WriteFontBlock(const DataUtil::GameData &game, Stream *out)
 {
@@ -717,7 +717,7 @@ void WriteSpriteFlags(const DataUtil::GameData &game, Stream *out)
         out->Write(flags.data(), flags.size());
 }
 
-// Read by GameSetupStruct::ReadInvInfo() in Common/game/game_setup_struct.cpp,
+// Read by GameDef::ReadInvInfo() in Common/game/game_setup_struct.cpp,
 // which calls InventoryItemInfo::ReadFromFile().
 void WriteInventoryBlock(const DataUtil::GameData &game, Stream *out)
 {
@@ -725,7 +725,7 @@ void WriteInventoryBlock(const DataUtil::GameData &game, Stream *out)
         WriteInventoryItem(out, item_ref);
 }
 
-// Read by GameSetupStruct::read_cursors()/ReadMouseCursors() in
+// Read by GameDef::read_cursors()/ReadMouseCursors() in
 // Common/game/game_setup_struct.cpp.
 void WriteCursorBlock(const DataUtil::GameData &game, Stream *out)
 {
@@ -733,7 +733,7 @@ void WriteCursorBlock(const DataUtil::GameData &game, Stream *out)
         WriteCursor(out, cursor_ref);
 }
 
-// Read by GameSetupStruct::read_interaction_scripts() in
+// Read by GameDef::read_interaction_scripts() in
 // Common/game/game_setup_struct.cpp. Its inventory loop intentionally starts at
 // slot 1, unlike the v361_objnames extension, which includes unused slot 0.
 void WriteInteractionScriptsBlock(const DataUtil::GameData &game, Stream *out)
@@ -744,7 +744,7 @@ void WriteInteractionScriptsBlock(const DataUtil::GameData &game, Stream *out)
         WriteEmptyInteractionEvents(out);
 }
 
-// Read by GameSetupStruct::read_words_dictionary(), then
+// Read by GameDef::read_words_dictionary(), then
 // WordsDictionary::ReadFromFile() in Common/game/words_dictionary.cpp.
 void WriteTextParserDictionary(const DataUtil::GameData &game, Stream *out)
 {
@@ -790,7 +790,7 @@ void WriteViewsBlock(const DataUtil::GameData &game, const CompiledData &data, S
     }
 }
 
-// Read by GameSetupStruct::read_characters()/ReadCharacters() in
+// Read by GameDef::read_characters()/ReadCharacters() in
 // Common/game/game_setup_struct.cpp.
 void WriteCharactersBlock(const DataUtil::GameData &game, Stream *out)
 {
@@ -798,7 +798,7 @@ void WriteCharactersBlock(const DataUtil::GameData &game, Stream *out)
         WriteCharacter(out, game, game.Characters[i], static_cast<int>(i));
 }
 
-// Read by GameSetupStruct::read_lipsync() in Common/game/game_setup_struct.cpp.
+// Read by GameDef::read_lipsync() in Common/game/game_setup_struct.cpp.
 void WriteLipSyncBlock(const DataUtil::GameData &game, Stream *out)
 {
     for (int i = 0; i < MAXLIPSYNCFRAMES; ++i)
@@ -902,7 +902,7 @@ void WritePluginsBlock(const DataUtil::GameData &game, Stream *out)
 }
 
 // Read by the schema/property-values portion of
-// GameSetupStruct::read_customprops() in Common/game/game_setup_struct.cpp.
+// GameDef::read_customprops() in Common/game/game_setup_struct.cpp.
 void WriteCustomPropertiesBlock(const DataUtil::GameData &game, Stream *out)
 {
     WritePropertySchemaBlock(out, game.PropertySchema);
@@ -913,7 +913,7 @@ void WriteCustomPropertiesBlock(const DataUtil::GameData &game, Stream *out)
 }
 
 // Read by the trailing viewNames/invScriptNames/dialogScriptNames portion of
-// GameSetupStruct::read_customprops() in Common/game/game_setup_struct.cpp.
+// GameDef::read_customprops() in Common/game/game_setup_struct.cpp.
 void WriteLegacyScriptNamesBlock(const DataUtil::GameData &game, const CompiledData &data, Stream *out)
 {
     for (const auto *view : data.ViewsByID)
@@ -922,7 +922,7 @@ void WriteLegacyScriptNamesBlock(const DataUtil::GameData &game, const CompiledD
         StrUtil::WriteCStr(item.ScriptName, out);
 }
 
-// Read by GameSetupStruct::read_audio() in Common/game/game_setup_struct.cpp.
+// Read by GameDef::read_audio() in Common/game/game_setup_struct.cpp.
 void WriteAudioBlock(const DataUtil::GameData &game, Stream *out)
 {
     // Add a fixed voice-over audio type at index 0
@@ -941,7 +941,7 @@ void WriteAudioBlock(const DataUtil::GameData &game, Stream *out)
     out->WriteInt32(0); // [DEPRECATED]
 }
 
-// Read by GameSetupStruct::read_room_names() in
+// Read by GameDef::read_room_names() in
 // Common/game/game_setup_struct.cpp, in release mode too since data version 4.00.00.13.
 void WriteRoomNamesBlock(const DataUtil::GameData &game, Stream *out)
 {
@@ -1495,7 +1495,7 @@ void WriteExt400CharacterInventory(Stream *out, const DataUtil::GameData &game)
 
 // Read by DataExtReader::Read() through GameDataExtReader in
 // Common/game/main_game_file.cpp. The patched offset is read earlier by
-// GameSetupStructBase::ReadFromFile().
+// GameDefBase::ReadFromFile().
 void WriteExtensions(Stream *out, const DataUtil::GameData &game, const CompiledData &data, soff_t ext_offset_pos)
 {
     const soff_t ext_offset = out->GetPosition();

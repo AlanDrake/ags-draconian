@@ -16,7 +16,7 @@
 //
 //-----------------------------------------------------------------------------
 //
-// Custom property schema is kept by GameSetupStruct object as a single
+// Custom property schema is kept by GameDef object as a single
 // instance and defines property type and default value. Every game entity that
 // has properties implemented keeps CustomProperties object, which stores
 // actual property values only if ones are different from defaults.

@@ -345,5 +345,5 @@ enum PluginEventID
 extern std::array<const char *, kNum_RBS> RBSwitchNames;
 
 // Data format version of the loaded game
-// TODO: get rid of this global variable, use one from GameSetupStruct
+// TODO: get rid of this global variable, use one from GameDef
 extern GameDataVersion loaded_game_file_version;

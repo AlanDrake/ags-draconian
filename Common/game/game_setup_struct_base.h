@@ -12,7 +12,7 @@
 //
 //=============================================================================
 //
-// GameSetupStructBase is a base class for main game data.
+// GameDefBase is a base class for main game data.
 //
 //=============================================================================
 #pragma once
@@ -39,7 +39,7 @@ class Stream;
 struct CharacterInfo;
 
 
-struct GameSetupStructBase
+struct GameDefBase
 {
     static const int LEGACY_GAME_NAME_LENGTH = 50;
     static const int MAX_OPTIONS = 100;
@@ -76,11 +76,11 @@ struct GameSetupStructBase
     std::unique_ptr<AGS::Common::WordsDictionary> dict;
     std::vector<CharacterInfo> chars;
 
-    GameSetupStructBase() = default;
-    GameSetupStructBase(GameSetupStructBase &&gss) = default;
-    ~GameSetupStructBase() = default;
+    GameDefBase() = default;
+    GameDefBase(GameDefBase &&gss) = default;
+    ~GameDefBase() = default;
 
-    GameSetupStructBase &operator=(GameSetupStructBase &&gss) = default;
+    GameDefBase &operator=(GameDefBase &&gss) = default;
 
     // Tells whether the serialized game data contains certain components
     struct SerializeInfo

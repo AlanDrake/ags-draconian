@@ -25,7 +25,7 @@
 #include "util/error.h"
 #include "util/string.h"
 
-struct GameSetupStruct;
+struct GameDef;
 struct GamePlayState;
 struct EngineConfig;
 
@@ -74,13 +74,13 @@ HGameInitError InitGameState(const Common::LoadedGameEntities &ents, GameDataVer
 void ApplyAccessibilityOptions(GamePlayState &play, const EngineConfig &setup);
 // Applies configurable behavior options for this game, which are the runtime behavior switches
 // (the engine's defaults, plus the overrides from the config)
-void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const EngineConfig &setup);
+void ApplyBehaviorOptions(GameDef &game, GamePlayState &play, const EngineConfig &setup);
 // Prints behavior options to the log
-void PrintBehaviorOptions(const GameSetupStruct &game, const GamePlayState &play);
+void PrintBehaviorOptions(const GameDef &game, const GamePlayState &play);
 
 // Registers any persistent script objects that are missing from the managed pool,
 // e.g. if restoring a save made before they were added to the game.
-void RegisterMissingManagedObjects(GameSetupStruct &game);
+void RegisterMissingManagedObjects(GameDef &game);
 
 } // namespace Engine
 } // namespace AGS

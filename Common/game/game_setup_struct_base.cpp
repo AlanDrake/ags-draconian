@@ -22,18 +22,18 @@
 using namespace AGS::Common;
 
 
-void GameSetupStructBase::SetGameResolution(Size game_res)
+void GameDefBase::SetGameResolution(Size game_res)
 {
     _gameResolution = game_res;
     OnResolutionSet();
 }
 
-void GameSetupStructBase::OnResolutionSet()
+void GameDefBase::OnResolutionSet()
 {
     _relativeUIMult = 1; // NOTE: this is remains of old logic, currently unused.
 }
 
-void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, SerializeInfo &info)
+void GameDefBase::ReadFromFile(Stream *in, GameDataVersion game_ver, SerializeInfo &info)
 {
     // NOTE: historically the struct was saved by dumping whole memory
     // into the file stream, which added padding from memory alignment;

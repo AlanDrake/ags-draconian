@@ -339,7 +339,7 @@ std::vector<MoveList> &get_movelists();
 void release_script_movelist(int handle);
 
 
-struct GameSetupStruct;
+struct GameDef;
 struct ViewStruct;
 namespace AGS
 {
@@ -350,7 +350,7 @@ class SpriteCache;
 } // namespace AGS
 
 // The game's data, as loaded from the game file.
-extern GameSetupStruct game;
+extern GameDef game;
 // The game's views.
 extern std::vector<ViewStruct> views;
 // The game's sprites.

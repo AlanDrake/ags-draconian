@@ -138,8 +138,8 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     out.reset();
 
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
-    GameSetupStructBase loaded;
-    GameSetupStructBase::SerializeInfo info;
+    GameDefBase loaded;
+    GameDefBase::SerializeInfo info;
     loaded.ReadFromFile(in.get(), kGameVersion_Current, info);
 
     EXPECT_STREQ("Round-trip \"game\"", loaded.gamename.GetCStr());
@@ -796,7 +796,7 @@ TEST(DataFileWriter, RoundTripInteractionScriptsBlock)
     std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteInteractionScriptsBlock);
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
-    // GameSetupStruct reads two characters, then inventory slots 1 and 2;
+    // GameDef reads two characters, then inventory slots 1 and 2;
     // unused inventory slot 0 has no v361 record in this block.
     for (int i = 0; i < 4; ++i)
     {

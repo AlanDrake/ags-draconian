@@ -80,7 +80,7 @@ const SaveCmpSelection kCharactersAndItems = static_cast<SaveCmpSelection>(kSave
 // - dialog, game.numdialog, play.dialogProps: the dialogs
 // - game.mcurs, game.numcursors: the mouse cursors
 // - game.audioClipTypes, play.default_audio_type_volumes: the audio types
-// - the GameSetupStruct fields that the game state saves (GameSetupFields)
+// - the GameDef fields that the game state saves (GameSetupFields)
 // - EngineServices::Current().SeparateMusicLib
 class SavegameContent : public ::testing::Test
 {
@@ -102,10 +102,10 @@ protected:
         EngineServices::Current().SeparateMusicLib = _separateMusicLib;
     }
 
-    // The GameSetupStruct fields that the game state component saves
+    // The GameDef fields that the game state component saves
     struct GameSetupFields
     {
-        std::array<int, GameSetupStructBase::MAX_OPTIONS> Options = {};
+        std::array<int, GameDefBase::MAX_OPTIONS> Options = {};
         int PlayerCharacter = 0;
         int DialogBullet = 0;
         int InvHotColor = 0;
@@ -116,7 +116,7 @@ protected:
         static GameSetupFields Get()
         {
             GameSetupFields fields;
-            std::copy_n(game.options, GameSetupStructBase::MAX_OPTIONS, fields.Options.begin());
+            std::copy_n(game.options, GameDefBase::MAX_OPTIONS, fields.Options.begin());
             fields.PlayerCharacter = game.playercharacter;
             fields.DialogBullet = game.dialog_bullet;
             fields.InvHotColor = game.inv_hot_color;

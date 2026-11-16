@@ -105,7 +105,7 @@ String GetGameInitErrorText(GameInitErrorType err)
 }
 
 // Initializes audio channels and clips and registers them in the script system
-void InitAndRegisterAudioObjects(GameSetupStruct &game)
+void InitAndRegisterAudioObjects(GameDef &game)
 {
     for (int i = 0; i < game.numCompatGameChannels; ++i)
     {
@@ -126,7 +126,7 @@ void InitAndRegisterAudioObjects(GameSetupStruct &game)
 }
 
 // Initializes characters and registers them in the script system
-void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &ents)
+void InitAndRegisterCharacters(GameDef &game, const LoadedGameEntities &ents)
 {
     // ensure at least 1 element, we must register buffer
     StaticCharacterArray.resize(std::max(1, game.numcharacters));
@@ -165,7 +165,7 @@ void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &
 }
 
 // Initializes dialogs and registers them in the script system
-void InitAndRegisterDialogs(const GameSetupStruct &game)
+void InitAndRegisterDialogs(const GameDef &game)
 {
     scrDialog.resize(game.numdialog);
     // ensure at least 1 element, we must register buffer
@@ -184,7 +184,7 @@ void InitAndRegisterDialogs(const GameSetupStruct &game)
 
 // Registers all the controls of all GUIs in the script system, and exports the named ones;
 // their handles are stored in StaticGUIControlsHandles
-void RegisterAllGUIControls(const GameSetupStruct &game)
+void RegisterAllGUIControls(const GameDef &game)
 {
     StaticGUIControlsHandles.resize(game.numgui);
     for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
@@ -225,7 +225,7 @@ void RegisterAllGUIControls(const GameSetupStruct &game)
 }
 
 // Initializes GUIs (including their controls) and registers them in the script system
-HError InitAndRegisterGUI(const GameSetupStruct &game)
+HError InitAndRegisterGUI(const GameDef &game)
 {
     scrGui.resize(game.numgui);
     // ensure at least 1 element, we must register buffer
@@ -259,7 +259,7 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
 }
 
 // Initializes inventory items and registers them in the script system
-void InitAndRegisterInvItems(const GameSetupStruct &game)
+void InitAndRegisterInvItems(const GameDef &game)
 {
     scrInv.resize(game.numinvitems);
     // ensure at least 1 element, we must register buffer
@@ -279,7 +279,7 @@ void InitAndRegisterInvItems(const GameSetupStruct &game)
 // Register any GUI controls that are not present in the managed pool.
 // We assume that handle arrays are already created of proper size when the game was loaded,
 // so we only need to fill missing elements.
-static void RegisterMissingGUIControls(GameSetupStruct &game)
+static void RegisterMissingGUIControls(GameDef &game)
 {
     for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
     {
@@ -312,7 +312,7 @@ static void RegisterMissingGUIControls(GameSetupStruct &game)
 // e.g. if restoring a save made before they were added to the game.
 // We assume that handle arrays are already created of proper size when the game was loaded,
 // so we only need to fill missing elements.
-void RegisterMissingManagedObjects(GameSetupStruct &game)
+void RegisterMissingManagedObjects(GameDef &game)
 {
     for (int i = 0; i < game.numCompatGameChannels; ++i)
     {
@@ -366,7 +366,7 @@ void InitAndRegisterRoomEntities()
 }
 
 // Registers static entity arrays in the script system
-void RegisterStaticArrays(GameSetupStruct &game)
+void RegisterStaticArrays(GameDef &game)
 {
     StaticHandlesArray.Create(sizeof(int32_t));
 
@@ -386,7 +386,7 @@ void RegisterStaticArrays(GameSetupStruct &game)
 // Initializes various game entities and registers them in the script system
 HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
 {
-    GameSetupStruct &game = ents.Game;
+    GameDef &game = ents.Game;
     InitAndRegisterAudioObjects(game);
     InitAndRegisterCharacters(game, ents);
     InitAndRegisterDialogs(game);
@@ -405,7 +405,7 @@ HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
 }
 
 // Loads all the game fonts, then lets the font module fix them up
-void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
+void LoadFonts(GameDef &game, GameDataVersion data_ver)
 {
     set_gamedata_version(data_ver);
 
@@ -475,7 +475,7 @@ void LoadLipsyncData()
 
 // Reports the game resolution, and sets up the main and UI viewports and the script system's
 // resolution variables from it
-void InitGameResolution(GameSetupStruct &game, GameDataVersion data_ver)
+void InitGameResolution(GameDef &game, GameDataVersion data_ver)
 {
     const Size game_size = game.GetGameRes();
     Debug::Printf(kDbgMsg_Info, "Game native resolution: %d x %d (%d bit)", game_size.Width, game_size.Height,
@@ -497,7 +497,7 @@ void InitGameResolution(GameSetupStruct &game, GameDataVersion data_ver)
 HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     EngineServices &services = EngineServices::Current();
-    GameSetupStruct &game = ents.Game;
+    GameDef &game = ents.Game;
     const ScriptAPIVersion base_api = (ScriptAPIVersion)game.options[OPT_BASESCRIPTAPI];
     const ScriptAPIVersion compat_api = (ScriptAPIVersion)game.options[OPT_SCRIPTCOMPATLEV];
     const char *base_api_name = GetScriptAPIName(base_api);
@@ -659,7 +659,7 @@ void ApplyAccessibilityOptions(GamePlayState &play, const EngineConfig &setup)
     }
 }
 
-void ApplyBehaviorOptions(GameSetupStruct & /*game*/, GamePlayState &play, const EngineConfig &setup)
+void ApplyBehaviorOptions(GameDef & /*game*/, GamePlayState &play, const EngineConfig &setup)
 {
     // First designate the default behavior settings: games older than 3.6.3 had them off, which this
     // engine does not load any more, and 3.99+ data has them all on
@@ -682,7 +682,7 @@ void ApplyBehaviorOptions(GameSetupStruct & /*game*/, GamePlayState &play, const
     GUI::Options.ApplyTextDirection = play.GetRBSwitches()[kRBO_ApplyGUITextDirection];
 }
 
-void PrintBehaviorOptions(const GameSetupStruct &game, const GamePlayState &play)
+void PrintBehaviorOptions(const GameDef &game, const GamePlayState &play)
 {
     // Runtime Behavior Switches
     {

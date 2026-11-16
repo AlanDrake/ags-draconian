@@ -76,7 +76,7 @@ String GetMainGameFileErrorText(MainGameFileErrorType err)
     return "Unknown error.";
 }
 
-LoadedGameEntities::LoadedGameEntities(GameSetupStruct &game) : Game(game), SpriteCount(0) {}
+LoadedGameEntities::LoadedGameEntities(GameDef &game) : Game(game), SpriteCount(0) {}
 
 LoadedGameEntities::~LoadedGameEntities() = default;
 
@@ -227,7 +227,7 @@ HGameFileError ReadScriptModules(std::vector<UScript> &sc_mods, Stream *in, Game
     return HGameFileError::None();
 }
 
-void ReadViews(GameSetupStruct &game, std::vector<ViewStruct> &views, Stream *in, GameDataVersion data_ver)
+void ReadViews(GameDef &game, std::vector<ViewStruct> &views, Stream *in, GameDataVersion data_ver)
 {
     views.resize(game.numviews);
     for (int i = 0; i < game.numviews; ++i)
@@ -273,7 +273,7 @@ HGameFileError ReadPlugins(std::vector<PluginInfo> &infos, Stream *in)
     return HGameFileError::None();
 }
 
-void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, GameDataVersion data_ver)
+void ApplySpriteData(GameDef &game, const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     if (ents.SpriteCount == 0)
         return;
@@ -301,7 +301,7 @@ static const uint8_t RGBScale6[64]{0,   4,   8,   12,  16,  20,  24,  28,  32,  
 // Remaps color number from legacy to new format:
 // * palette index in 8-bit game,
 // * encoded 32-bit A8R8G8B8 in 32-bit game.
-int RemapFromLegacyColourNumber(const GameSetupStruct &game, int color, bool is_bg)
+int RemapFromLegacyColourNumber(const GameDef &game, int color, bool is_bg)
 {
     if (game.color_depth == 1)
         return color; // keep palette index
@@ -330,7 +330,7 @@ int RemapFromLegacyColourNumber(const GameSetupStruct &game, int color, bool is_
     return blue | (green << 8) | (red << 16) | (0xFF << 24);
 }
 
-void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
+void UpgradeGame(GameDef &game, GameDataVersion data_ver)
 {
     // 32-bit color properties
     if (data_ver < kGameVersion_400_09)
@@ -350,7 +350,7 @@ void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
     }
 }
 
-void UpgradeDialogs(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
+void UpgradeDialogs(GameDef &game, LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     if (data_ver < kGameVersion_400_26)
     {
@@ -362,7 +362,7 @@ void UpgradeDialogs(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVer
     }
 }
 
-void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
+void UpgradeFonts(GameDef &game, GameDataVersion data_ver)
 {
     if (data_ver < kGameVersion_400_10)
     {
@@ -379,10 +379,10 @@ void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
 }
 
 // Convert audio data to the current version
-void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver) {}
+void UpgradeAudio(GameDef &game, LoadedGameEntities &ents, GameDataVersion data_ver) {}
 
 // Convert character data to the current version
-void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
+void UpgradeCharacters(GameDef &game, GameDataVersion data_ver)
 {
     const int char_count = game.numcharacters;
     auto &chars = game.chars;
@@ -424,7 +424,7 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
     }
 }
 
-void UpgradeInventoryItems(GameSetupStruct &game, GameDataVersion data_ver)
+void UpgradeInventoryItems(GameDef &game, GameDataVersion data_ver)
 {
     const int inv_count = game.numinvitems;
     auto &inv = game.invinfo;
@@ -438,7 +438,7 @@ void UpgradeInventoryItems(GameSetupStruct &game, GameDataVersion data_ver)
     }
 }
 
-void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
+void UpgradeGUI(GameDef &game, LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     if (data_ver < kGameVersion_400_26)
     {
@@ -521,7 +521,7 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
     }
 }
 
-void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
+void UpgradeMouseCursors(GameDef &game, GameDataVersion data_ver)
 {
     if (data_ver < kGameVersion_400_24)
     {
@@ -552,7 +552,7 @@ void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
     }
 }
 
-void FixupSaveDirectory(GameSetupStruct &game)
+void FixupSaveDirectory(GameDef &game)
 {
     // If the save game folder was not specified by game author, create one of
     // the game name, game GUID, or uniqueid, as a last resort
@@ -1119,7 +1119,7 @@ HError GameDataExtPreloader::ReadBlock(Stream *in, int /*block_id*/, const Strin
 HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver,
                             const String &compiled_with)
 {
-    GameSetupStruct &game = ents.Game;
+    GameDef &game = ents.Game;
     game.gamedataver = data_ver;
     game.compiled_with = compiled_with;
     Stream *in = s_in.get(); // for convenience
@@ -1127,8 +1127,8 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     //-------------------------------------------------------------------------
     // The standard data section.
     //-------------------------------------------------------------------------
-    GameSetupStruct::SerializeInfo sinfo;
-    game.GameSetupStructBase::ReadFromFile(in, data_ver, sinfo);
+    GameDef::SerializeInfo sinfo;
+    game.GameDefBase::ReadFromFile(in, data_ver, sinfo);
     game.read_savegame_info(in, data_ver); // the game GUID, save file extension and save folder name
 
     Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename.GetCStr());
@@ -1210,7 +1210,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
 
 HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver)
 {
-    GameSetupStruct &game = ents.Game;
+    GameDef &game = ents.Game;
     ApplySpriteData(game, ents, data_ver);
     UpgradeGame(game, data_ver);
     UpgradeDialogs(game, ents, data_ver);
@@ -1225,12 +1225,12 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     return HGameFileError::None();
 }
 
-void PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver,
+void PreReadGameData(GameDef &game, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver,
                      const String &compiled_with)
 {
     Stream *in = s_in.get(); // for convenience
-    GameSetupStruct::SerializeInfo sinfo;
-    game.GameSetupStructBase::ReadFromFile(in, data_ver, sinfo);
+    GameDef::SerializeInfo sinfo;
+    game.GameDefBase::ReadFromFile(in, data_ver, sinfo);
     game.read_savegame_info(in, data_ver); // the game GUID, save file extension and save folder name
     game.gamedataver = data_ver;
     game.compiled_with = compiled_with;

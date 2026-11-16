@@ -22,7 +22,7 @@ using namespace AGS;
 using namespace AGS::Common;
 
 
-void GameSetupStruct::ResolveStandardModes()
+void GameDef::ResolveStandardModes()
 {
     for (int role = 0; role < kNumCursorRoles; ++role)
     {
@@ -40,14 +40,14 @@ void GameSetupStruct::ResolveStandardModes()
 //-----------------------------------------------------------------------------
 // Reading Part 1
 
-void GameSetupStruct::read_savegame_info(Common::Stream *in, GameDataVersion data_ver)
+void GameDef::read_savegame_info(Common::Stream *in, GameDataVersion data_ver)
 {
     StrUtil::ReadCStrCount(guid, in, MAX_GUID_LENGTH);
     StrUtil::ReadCStrCount(saveGameFileExtension, in, MAX_SG_EXT_LENGTH);
     saveGameFolderName.ReadCount(in, LEGACY_MAX_SG_FOLDER_LEN);
 }
 
-void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_ver)
+void GameDef::read_font_infos(Common::Stream *in, GameDataVersion data_ver)
 {
     fonts.resize(numfonts);
     for (int i = 0; i < numfonts; ++i)
@@ -62,7 +62,7 @@ void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_v
     }
 }
 
-void GameSetupStruct::ReadInvInfo(Stream *in, GameDataVersion data_ver)
+void GameDef::ReadInvInfo(Stream *in, GameDataVersion data_ver)
 {
     invinfo.resize(numinvitems);
     for (int i = 0; i < numinvitems; ++i)
@@ -71,14 +71,14 @@ void GameSetupStruct::ReadInvInfo(Stream *in, GameDataVersion data_ver)
     }
 }
 
-HGameFileError GameSetupStruct::read_cursors(Common::Stream *in)
+HGameFileError GameDef::read_cursors(Common::Stream *in)
 {
     mcurs.resize(numcursors);
     ReadMouseCursors(in);
     return HGameFileError::None();
 }
 
-HError GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver)
+HError GameDef::read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver)
 {
     chars.resize(numcharacters); // safety precaution, because chars may be read later
     HError err;
@@ -99,13 +99,13 @@ HError GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVer
     return HError::None();
 }
 
-void GameSetupStruct::read_words_dictionary(Common::Stream *in)
+void GameDef::read_words_dictionary(Common::Stream *in)
 {
     dict.reset(new WordsDictionary());
     dict->ReadFromFile(in);
 }
 
-void GameSetupStruct::ReadMouseCursors(Stream *in)
+void GameDef::ReadMouseCursors(Stream *in)
 {
     for (int i = 0; i < numcursors; ++i)
     {
@@ -116,19 +116,19 @@ void GameSetupStruct::ReadMouseCursors(Stream *in)
 //-----------------------------------------------------------------------------
 // Reading Part 2
 
-void GameSetupStruct::read_characters(Common::Stream *in, GameDataVersion data_ver)
+void GameDef::read_characters(Common::Stream *in, GameDataVersion data_ver)
 {
     chars.resize(numcharacters);
     ReadCharacters(in, data_ver);
 }
 
-void GameSetupStruct::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
+void GameDef::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
 {
     in->ReadArray(&lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50);
 }
 
-void GameSetupStruct::skip_messages(Common::Stream *in, const std::array<int, NUM_LEGACY_GLOBALMES> &load_messages,
-                                    GameDataVersion data_ver)
+void GameDef::skip_messages(Common::Stream *in, const std::array<int, NUM_LEGACY_GLOBALMES> &load_messages,
+                            GameDataVersion data_ver)
 {
     for (int i = 0; i < NUM_LEGACY_GLOBALMES; ++i)
     {
@@ -138,7 +138,7 @@ void GameSetupStruct::skip_messages(Common::Stream *in, const std::array<int, NU
     }
 }
 
-void GameSetupStruct::ReadCharacters(Stream *in, GameDataVersion data_ver)
+void GameDef::ReadCharacters(Stream *in, GameDataVersion data_ver)
 {
     for (int i = 0; i < numcharacters; ++i)
     {
@@ -149,7 +149,7 @@ void GameSetupStruct::ReadCharacters(Stream *in, GameDataVersion data_ver)
 //-----------------------------------------------------------------------------
 // Reading Part 3
 
-HGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVersion data_ver)
+HGameFileError GameDef::read_customprops(Common::Stream *in, GameDataVersion data_ver)
 {
     if (Properties::ReadSchema(propSchema, in) != kPropertyErr_NoError)
         return new MainGameFileError(kMGFErr_InvalidPropertySchema);
@@ -184,7 +184,7 @@ HGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVer
     return HGameFileError::None();
 }
 
-HGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion data_ver)
+HGameFileError GameDef::read_audio(Common::Stream *in, GameDataVersion data_ver)
 {
     size_t audiotype_count = in->ReadInt32();
     audioClipTypes.resize(audiotype_count);
@@ -201,7 +201,7 @@ HGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion d
     return HGameFileError::None();
 }
 
-void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
+void GameDef::read_room_names(Stream *in, GameDataVersion data_ver)
 {
     if ((data_ver >= kGameVersion_400_13) || (options[OPT_DEBUGMODE] != 0))
     {
@@ -217,7 +217,7 @@ void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
     }
 }
 
-void GameSetupStruct::ReadAudioClips(Common::Stream *in, size_t count)
+void GameDef::ReadAudioClips(Common::Stream *in, size_t count)
 {
     for (size_t i = 0; i < count; ++i)
     {

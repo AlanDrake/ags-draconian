@@ -12,7 +12,7 @@
 //
 //=============================================================================
 //
-// GameSetupStruct is a contemporary main game data.
+// GameDef is a contemporary main game data.
 //
 //=============================================================================
 #pragma once
@@ -35,8 +35,8 @@ using AGS::Common::HGameFileError;
 using AGS::Common::HError;
 
 
-// TODO: split GameSetupStruct into struct used to hold loaded game data, and actual runtime object
-struct GameSetupStruct : public GameSetupStructBase
+// TODO: split GameDef into struct used to hold loaded game data, and actual runtime object
+struct GameDef : public GameDefBase
 {
     // This array is used only to read data into;
     // font parameters are then put and queried in the fonts module
@@ -128,11 +128,11 @@ struct GameSetupStruct : public GameSetupStructBase
     // Tells if the given cursor has the specific role
     bool HasCursorRole(int curs, CursorRole role) const { return mcurs[curs].role == role; }
 
-    GameSetupStruct() = default;
-    GameSetupStruct(GameSetupStruct &&gss) = default;
-    ~GameSetupStruct() = default;
+    GameDef() = default;
+    GameDef(GameDef &&gss) = default;
+    ~GameDef() = default;
 
-    GameSetupStruct &operator=(GameSetupStruct &&gss) = default;
+    GameDef &operator=(GameDef &&gss) = default;
 
     void ResolveStandardModes();
 

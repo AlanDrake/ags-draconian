@@ -396,7 +396,7 @@ HSaveError OpenSavegame(const String &filename, SavegameDescription &desc, Saveg
 // Prepares engine for actual save restore (stops processes, cleans up memory)
 void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
 {
-    memcpy(pp.GameOptions, game.options, GameSetupStruct::MAX_OPTIONS * sizeof(int));
+    memcpy(pp.GameOptions, game.options, GameDef::MAX_OPTIONS * sizeof(int));
 
     unload_old_room();
     remove_all_overlays();
@@ -595,12 +595,12 @@ static void RestoreViewportsAndCameras(const RestoredData &r_data)
 
 // Resets the options that are not supposed to be changed at runtime (the restricted and the preserved ones)
 // to the values the running game had before the restoration (see DoBeforeRestore)
-static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedParams &pp)
+static void CopyPreservedGameOptions(GameDefBase &gs, const PreservedParams &pp)
 {
-    const auto restricted_opts = GameSetupStructBase::GetRestrictedOptions();
+    const auto restricted_opts = GameDefBase::GetRestrictedOptions();
     for (auto opt : restricted_opts)
         gs.options[opt] = pp.GameOptions[opt];
-    const auto preserved_opts = GameSetupStructBase::GetPreservedOptions();
+    const auto preserved_opts = GameDefBase::GetPreservedOptions();
     for (auto opt : preserved_opts)
         gs.options[opt] = pp.GameOptions[opt];
 }

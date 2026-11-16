@@ -46,7 +46,7 @@ struct PreservedParams
     SavegameDescription Desc;
 
     // Game options, to preserve ones that must not change at runtime
-    int GameOptions[GameSetupStructBase::MAX_OPTIONS]{};
+    int GameOptions[GameDefBase::MAX_OPTIONS]{};
     // Script global data sizes
     size_t GlScDataSize = 0u;
     std::vector<String> ScriptModuleNames;

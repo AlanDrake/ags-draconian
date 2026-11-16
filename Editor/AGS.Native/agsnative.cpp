@@ -88,7 +88,7 @@ AGSBitmap *initialize_sprite(AGS::Common::sprkey_t, AGSBitmap*, uint32_t &sprite
 std::unique_ptr<AssetManager> AssetMgr;
 int mousex = 0, mousey = 0;
 RGB*palette = NULL;
-GameSetupStruct thisgame;
+GameDef thisgame;
 AGS::Common::SpriteCache::Callbacks spritecallbacks = {
     nullptr,
     initialize_sprite,

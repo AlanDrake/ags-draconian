@@ -96,7 +96,7 @@ using namespace AGS::Engine;
 
 //=============================================================================
 GamePlayState play;
-GameSetupStruct game;
+GameDef game;
 RoomStatus troom; // state of the current room if it is a temporary one (number >= MAX_ROOMS), e.g. an intro room
 RoomObject *objs = nullptr;
 RoomStatus *croom = nullptr;
@@ -611,7 +611,7 @@ void unload_game()
 
     // Free game state and game struct
     play = GamePlayState();
-    game = GameSetupStruct();
+    game = GameDef();
 
     // Reset all resource caches
     // IMPORTANT: this is hard reset, including locked items
@@ -1459,7 +1459,7 @@ bool test_game_guid(const String &filepath, const String &guid, int legacy_id)
     MainGameSource src;
     if (!OpenMainGameFileFromDefaultAsset(src, asset_mgr.get()))
         return false;
-    GameSetupStruct loaded_game;
+    GameDef loaded_game;
     PreReadGameData(loaded_game, std::move(src.InputStream), src.DataVersion, src.CompiledWith);
     if (!guid.IsEmpty())
         return guid.CompareNoCase(loaded_game.guid) == 0;
@@ -2626,7 +2626,7 @@ int SetGameOption(int opt, int new_value)
     }
 
     // Handle forbidden options
-    const auto restricted_opts = GameSetupStructBase::GetRestrictedOptions();
+    const auto restricted_opts = GameDefBase::GetRestrictedOptions();
     for (auto r_opt : restricted_opts)
     {
         if (r_opt == opt)

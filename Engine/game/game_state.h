@@ -54,7 +54,7 @@ struct ScriptViewport;
 struct ScriptCamera;
 struct ScriptOverlay;
 
-// The game state's save format (GameSetupStruct's saved fields and GamePlayState)
+// The game state's save format (GameDef's saved fields and GamePlayState)
 // Before 4.0: 0 to 3 (3.5.0 to 3.5.0.10), 4 (3.6.1.14), then 3060300, 3060302, 3060304, 3060313 (3.6.3).
 enum GameStateSvgVersion
 {

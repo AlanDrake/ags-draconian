@@ -91,7 +91,7 @@ TEST_P(GameCompat, MainGameData)
     EXPECT_EQ(src.DataVersion, fx.DataVersion);
     EXPECT_STREQ(src.CompiledWith.GetCStr(), fx.CompiledWith);
 
-    GameSetupStruct game;
+    GameDef game;
     LoadedGameEntities ents(game);
     err = ReadGameData(ents, std::move(src.InputStream), src.DataVersion, src.CompiledWith);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();

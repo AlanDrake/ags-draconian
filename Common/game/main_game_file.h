@@ -39,7 +39,7 @@
 #include "util/string.h"
 #include "util/version.h"
 
-struct GameSetupStruct;
+struct GameDef;
 struct DialogTopic;
 struct ViewStruct;
 
@@ -119,7 +119,7 @@ struct CharDataEx
 // code refactoring.
 struct LoadedGameEntities
 {
-    GameSetupStruct &Game; // FIXME: have an object, not ref, and std::move
+    GameDef &Game; // FIXME: have an object, not ref, and std::move
     std::vector<CharDataEx> CharEx;
     GuiVersion LoadedGuiVersion;
     std::vector<GUIMain> Guis;
@@ -136,7 +136,7 @@ struct LoadedGameEntities
     size_t SpriteCount;
     std::vector<uint8_t> SpriteFlags; // SPF_* flags
 
-    LoadedGameEntities(GameSetupStruct &game);
+    LoadedGameEntities(GameDef &game);
     ~LoadedGameEntities();
 };
 
@@ -157,19 +157,19 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src, AssetManage
 HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&in, GameDataVersion data_ver,
                             const String &compiled_with);
 // Pre-reads the heading game data, just enough to identify the game and its special file locations
-void PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&in, GameDataVersion data_ver,
+void PreReadGameData(GameDef &game, std::unique_ptr<Stream> &&in, GameDataVersion data_ver,
                      const String &compiled_with);
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
 HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver);
 // Ensures that the game saves directory path is valid
-void FixupSaveDirectory(GameSetupStruct &game);
+void FixupSaveDirectory(GameDef &game);
 // Remaps color number from legacy to new format:
 // * palette index in 8-bit game,
 // * encoded 32-bit A8R8G8B8 in 32-bit game.
 // is_bg parameter lets differentiate the meaning of certain special numeric values
 // between "background" and "foreground" color, depending on a context.
-int RemapFromLegacyColourNumber(const GameSetupStruct &game, int color, bool is_bg = false);
+int RemapFromLegacyColourNumber(const GameDef &game, int color, bool is_bg = false);
 
 } // namespace Common
 } // namespace AGS
