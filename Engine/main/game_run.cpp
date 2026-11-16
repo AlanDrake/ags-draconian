@@ -952,14 +952,14 @@ static void GameUpdateCheckRoomEdges()
         else if (game.PlayerChar->y <= room.Edges.Top)
             edges_activated[3] = 1;
 
-        if ((game.Play.entered_edge >= 0) && (game.Play.entered_edge <= 3))
+        if ((room.EnteredEdge >= 0) && (room.EnteredEdge <= 3))
         {
             // once the player is no longer outside the edge, forget the stored edge
-            if (edges_activated[game.Play.entered_edge] == 0)
-                game.Play.entered_edge = -10;
+            if (edges_activated[room.EnteredEdge] == 0)
+                room.EnteredEdge = -10;
             // if we are walking in from off-screen, don't activate edges
             else
-                edges_activated[game.Play.entered_edge] = 0;
+                edges_activated[room.EnteredEdge] = 0;
         }
 
         for (int edge = 0; edge < 4; edge++)
@@ -976,14 +976,14 @@ static void game_loop_update_background_animation()
     Room &room = Room::Current();
     if (game.Play.bg_anim_delay > 0)
         game.Play.bg_anim_delay--;
-    else if (game.Play.bg_frame_locked)
+    else if (room.BgFrameLocked)
         ;
     else
     {
-        game.Play.bg_anim_delay = game.Play.anim_background_speed;
-        game.Play.bg_frame++;
-        if ((size_t)game.Play.bg_frame >= room.BgFrameCount)
-            game.Play.bg_frame = 0;
+        game.Play.bg_anim_delay = room.AnimBackgroundSpeed;
+        room.BgFrame++;
+        if ((size_t)room.BgFrame >= room.BgFrameCount)
+            room.BgFrame = 0;
         if (room.BgFrameCount >= 2)
         {
             // get the new frame's palette

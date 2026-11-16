@@ -612,6 +612,8 @@ void unload_game()
     // in place of the other globals are cleared one by one above, as the globals were, and the whole object
     // cannot be assigned (Game is not copyable).
     game.Play = GamePlayState();
+    // the room's members that were fields of the game state were reset with it
+    Room::Current().ResetPlayState();
     static_cast<GameDef &>(game) = GameDef();
 
     // Reset all resource caches

@@ -55,6 +55,7 @@
 #include "game/world/character.h"
 #include "game/world/character_extras.h"
 #include "game/world/object.h"
+#include "game/world/room_context.h"
 #include "game/world/room_status.h"
 #include "game/world/view_frame.h"
 #include "gfx/ddb.h"
@@ -639,6 +640,7 @@ void engine_init_game_settings()
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    Room &room = Room::Current();
     set_our_eip(-7);
     Debug::Printf("Initialize game settings");
 
@@ -776,10 +778,10 @@ void engine_init_game_settings()
     }
 
     game.Play.speech_bubble_width = 100;
-    game.Play.bg_frame = 0;
-    game.Play.bg_frame_locked = 0;
+    room.BgFrame = 0;
+    room.BgFrameLocked = 0;
     game.Play.bg_anim_delay = 0;
-    game.Play.anim_background_speed = 0;
+    room.AnimBackgroundSpeed = 0;
     game.Play.mouse_input_enabled = true;
     game.Play.mouse_cursor_shown = true;
     game.Play.skip_until_char_stops = -1;
@@ -813,7 +815,7 @@ void engine_init_game_settings()
     game.Play.no_multiloop_repeat = 0;
     game.Play.in_cutscene = 0;
     game.Play.fast_forward = 0;
-    game.Play.roomscript_finished = 0;
+    room.ScriptFinished = 0;
     game.Play.no_textbg_when_voice = 0;
     game.Play.max_dialogoption_width = 180;
     game.Play.no_hicolor_fadein = 0;
@@ -880,7 +882,7 @@ void engine_init_game_settings()
     // Force GUI metrics recalculation, accomodating for loaded fonts
     GUIE::MarkForFontUpdate(-1);
 
-    memset(&game.Play.walkable_areas_on[0], 1, MAX_WALK_AREAS);
+    memset(&room.WalkableAreasOn[0], 1, MAX_WALK_AREAS);
     game.Play.default_audio_type_volumes.resize(game.audioClipTypes.size(), -1);
 
     if (!services.Config.Translation.IsEmpty())

@@ -2488,19 +2488,17 @@ static void add_roomovers_for_drawing()
 void prepare_room_sprites()
 {
     EngineServices &services = EngineServices::Current();
-    Game &game = Game::Current();
     Room &room = Room::Current();
     // Background sprite is required for the non-software renderers always,
     // and for software renderer in case there are overlapping viewports.
     // Note that software DDB is just a tiny wrapper around bitmap, so overhead is negligible.
     if (current_background_is_dirty || !roomBackgroundBmp)
     {
-        roomBackgroundBmp =
-            recycle_ddb_bitmap(roomBackgroundBmp, room.BgImages[game.Play.bg_frame].get(), true /*opaque*/);
+        roomBackgroundBmp = recycle_ddb_bitmap(roomBackgroundBmp, room.BgImages[room.BgFrame].get(), true /*opaque*/);
     }
     if (drawstate.FullFrameRedraw)
     {
-        if (current_background_is_dirty || room.WalkBehindsCachedForBgNum != game.Play.bg_frame)
+        if (current_background_is_dirty || room.WalkBehindsCachedForBgNum != room.BgFrame)
         {
             if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
             {
@@ -2573,6 +2571,7 @@ void draw_preroom_background()
 // whatsoever.
 static PBitmap draw_room_background(const Viewport *view)
 {
+    Room &room = Room::Current();
     set_our_eip(31);
 
     // For the sake of software renderer, if there is any kind of camera transform required
@@ -2596,8 +2595,7 @@ static PBitmap draw_room_background(const Viewport *view)
 
         // TODO: measure this call. An old note said it took up to 50% of the game CPU time at
         // high resolutions and colour depths; that was never measured on the current code
-        update_room_invreg_and_reset(view_index, roomcam_surface,
-                                     Room::Current().BgImages[Game::Current().Play.bg_frame].get(), draw_to_camsurf);
+        update_room_invreg_and_reset(view_index, roomcam_surface, room.BgImages[room.BgFrame].get(), draw_to_camsurf);
     }
 
     return CameraDrawData[view_index].Frame;

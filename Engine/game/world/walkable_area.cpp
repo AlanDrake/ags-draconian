@@ -36,7 +36,6 @@ using namespace AGS::Common;
 
 void redo_walkable_areas()
 {
-    Game &game = Game::Current();
     Room &room = Room::Current();
     // restore the mask from the backup, then erase the pixels of areas that are switched off
     room.WalkAreaMask->Blit(room.WalkAreaBackup, 0, 0);
@@ -45,8 +44,7 @@ void redo_walkable_areas()
         uint8_t *walls_scanline = room.WalkAreaMask->GetScanLineForWriting(y);
         for (int x = 0; x < room.WalkAreaBackup->GetWidth(); ++x)
         {
-            if ((walls_scanline[x] >= sizeof(game.Play.walkable_areas_on)) ||
-                (game.Play.walkable_areas_on[walls_scanline[x]] == 0))
+            if ((walls_scanline[x] >= sizeof(room.WalkableAreasOn)) || (room.WalkableAreasOn[walls_scanline[x]] == 0))
                 walls_scanline[x] = 0;
         }
     }
@@ -254,12 +252,12 @@ int Walkarea_GetID(ScriptWalkableArea *wa)
 
 int Walkarea_GetEnabled(ScriptWalkableArea *wa)
 {
-    return Game::Current().Play.walkable_areas_on[wa->id];
+    return Room::Current().WalkableAreasOn[wa->id];
 }
 
 void Walkarea_SetEnabled(ScriptWalkableArea *wa, int enable)
 {
-    if (enable == Game::Current().Play.walkable_areas_on[wa->id])
+    if (enable == Room::Current().WalkableAreasOn[wa->id])
         return; // no change necessary
     if (enable)
         RestoreWalkableArea(wa->id);
@@ -363,7 +361,7 @@ void RemoveWalkableArea(int areanum)
 {
     if ((areanum < 1) || (areanum >= MAX_WALK_AREAS))
         quitprintf("!RemoveWalkableArea: invalid area number specified (1-%d).", MAX_WALK_AREAS - 1);
-    Game::Current().Play.walkable_areas_on[areanum] = 0;
+    Room::Current().WalkableAreasOn[areanum] = 0;
     redo_walkable_areas();
     debug_script_log("Walkable area %d removed", areanum);
 }
@@ -372,7 +370,7 @@ void RestoreWalkableArea(int areanum)
 {
     if ((areanum < 1) || (areanum >= MAX_WALK_AREAS))
         quitprintf("!RestoreWalkableArea: invalid area number specified (1-%d).", MAX_WALK_AREAS - 1);
-    Game::Current().Play.walkable_areas_on[areanum] = 1;
+    Room::Current().WalkableAreasOn[areanum] = 1;
     redo_walkable_areas();
     debug_script_log("Walkable area %d restored", areanum);
 }

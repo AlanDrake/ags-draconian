@@ -2120,8 +2120,8 @@ HSaveError WriteThisRoom(Stream *out)
     out->WriteInt8(static_cast<uint8_t>(room.BgImages.size()));
     for (size_t i = 0; i < room.BgImages.size(); ++i)
     {
-        out->WriteBool(game.Play.room_bg_modified[i]);
-        if (game.Play.room_bg_modified[i])
+        out->WriteBool(room.BgModified[i]);
+        if (room.BgModified[i])
             WriteBitmap(room.BgImages[i].get(), out, false /* not compressed (expect component is compressed) */);
     }
     out->WriteBool(false); //[DEPRECATED]
@@ -2130,8 +2130,8 @@ HSaveError WriteThisRoom(Stream *out)
     // -- kRoomStatSvgVersion_40024
     for (int i = 0; i < kNumRoomAreaTypes; ++i)
     {
-        out->WriteBool(game.Play.room_mask_modified[i]);
-        if (game.Play.room_mask_modified[i])
+        out->WriteBool(room.MaskModified[i]);
+        if (room.MaskModified[i])
             WriteBitmap(room.GetMask(static_cast<RoomAreaMask>(i)), out,
                         false /* not compressed (expect component is compressed) */);
     }

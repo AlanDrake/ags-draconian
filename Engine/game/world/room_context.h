@@ -14,6 +14,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "game/roomstruct.h"
 
@@ -75,6 +76,34 @@ public:
     // Set when a walk-behind baseline changed, until the next room draw; while set, the cached object images
     // are not reused
     bool WalkBehindBaselinesChanged = false;
+
+    // The room on screen as the game changes it. These were fields of the game state (GamePlayState); the save
+    // keeps them at their places in the game state's layout (GamePlayState::ReadFromSavegame, WriteForSavegame,
+    // and the room component for BgModified and MaskModified). None is kept per room between visits.
+    //
+    // 0 while the room's on_call runs (CallRoomScript), 1 after; the script's game.roomscript_finished
+    int ScriptFinished = 0;
+    // The game loops between background frames, the room file's BgAnimSpeed when the room is loaded; the script's
+    // game.anim_background_speed
+    int AnimBackgroundSpeed = 0;
+    // The background frame shown now, and whether the frame is locked (no animation)
+    int BgFrame = 0;
+    int BgFrameLocked = 0;
+    // Whether each walkable area is enabled, by area number
+    char WalkableAreasOn[MAX_WALK_AREAS]{};
+    // Where the player character entered the room, and from which edge (0 left, 1 right, 2 bottom, 3 top;
+    // -1 not from an edge, -10 once the edge has been left)
+    int EnteredAtX = 0;
+    int EnteredAtY = 0;
+    int EnteredEdge = 0;
+    // Tells which room background frames and which masks (by RoomAreaMask) were modified by script drawing
+    // operations
+    std::vector<bool> BgModified;
+    bool MaskModified[kNumRoomAreaTypes]{};
+
+    // Resets the members above (ScriptFinished ... MaskModified) to their initial values; called where the game
+    // state is reset as a whole (unload_game), as these were reset with it.
+    void ResetPlayState();
 
 private:
     static Room *_current;

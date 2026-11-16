@@ -282,7 +282,7 @@ int IAGSEngine::GetNumBackgrounds()
 }
 int IAGSEngine::GetCurrentBackground()
 {
-    return Game::Current().Play.bg_frame;
+    return Room::Current().BgFrame;
 }
 BITMAP *IAGSEngine::GetBackgroundScene(int32 index)
 {

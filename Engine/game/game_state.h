@@ -126,8 +126,11 @@ public:
 // std_gui_textheight, swap_portrait_lastlastchar, room_changes,
 // speech_in_post_state, overlay_count, complete_overlay_on, text_overlay_on, speech_text_schandle,
 // speech_face_schandle, shake_screen_yoff, get_loc_name_last_time, get_loc_name_save_cursor and gui_draw_order.
-// Saved by other save components: room_bg_modified, room_mask_modified, default_audio_type_volumes and the custom
-// property vectors (charProps, dialogProps, guiProps, guicontrolProps, invProps); audioclipProps are not saved.
+// Saved by other save components: default_audio_type_volumes and the custom property vectors (charProps,
+// dialogProps, guiProps, guicontrolProps, invProps); audioclipProps are not saved.
+// The save layout also holds the room's ScriptFinished, AnimBackgroundSpeed, BgFrame, BgFrameLocked,
+// WalkableAreasOn, EnteredAtX, EnteredAtY and EnteredEdge (game/world/room_context.h), at the places their
+// GamePlayState fields had: ReadFromSavegame and WriteForSavegame read and write them in the current Room.
 struct GamePlayState
 {
     // TODO: this is left purely to load older save version, revise later
@@ -152,7 +155,6 @@ struct GamePlayState
     int follow_change_room_timer = 0;                   // delay before moving following characters into new room
     SkipSpeechStyle skip_display = kSkipSpeechKeyMouse; // how the user can skip normal Display windows
     int no_multiloop_repeat = 0;                        // for backwards compatibility
-    int roomscript_finished = 0;                        // 0 while the room's on_call runs (CallRoomScript), 1 after
     int used_inv_on = 0;                                // inv item they clicked on
     int no_textbg_when_voice = 0;                       // no textwindow bgrnd when voice speech is used
     int max_dialogoption_width = 0;                     // max width of dialog options text window
@@ -180,7 +182,6 @@ struct GamePlayState
     int speech_bubble_width = 0;
     int min_dialogoption_width = 0;
     int disable_dialog_parser = 0;
-    int anim_background_speed = 0; // the setting for this room
     int top_bar_backcolor = 0;
     int top_bar_textcolor = 0;
     int top_bar_bordercolor = 0;
@@ -214,20 +215,14 @@ struct GamePlayState
     int player_on_region = 0;               // player's current region
     bool screen_is_faded_out = false;       // the screen is currently black
     int check_interaction_only = 0;
-    int bg_frame = 0; // for animating backgrounds
     int bg_anim_delay = 0;
     short wait_counter = 0;
     char wait_skipped_by = 0;     // tells how last blocking wait was skipped [not serialized]
     int wait_skipped_by_data = 0; // extended data telling how last blocking wait was skipped [not serialized]
     Rect mbounds;                 // mouse cursor bounds
     int fade_effect = 0;
-    int bg_frame_locked = 0;
     int audio_master_volume = 0; // in 0-100
-    char walkable_areas_on[MAX_WALK_AREAS]{};
     short screen_flipped = 0;
-    int entered_at_x = 0;
-    int entered_at_y = 0;
-    int entered_edge = 0;
     SpeechMode speech_mode = kSpeech_TextOnly; // speech mode (text, voice, or both)
     int speech_skip_style = 0;                 // stores SKIP_* flags
     bool speech_always_wait_for_text = false;
@@ -243,9 +238,6 @@ struct GamePlayState
     int screen_tint = 0;
     std::vector<uint16_t> parsed_words;
     AGS::Common::String bad_parsed_word;
-    // Tells which room background frames were modified by script drawing operations
-    std::vector<bool> room_bg_modified;
-    bool room_mask_modified[kNumRoomAreaTypes]{};
     int room_changes = 0;
 
     // Disables mouse input *in game*. Note that the mouse input may still affect the "engine layer",
@@ -516,10 +508,12 @@ struct GamePlayState
     // Serialization
     //
     // Reads the state from a save, written by WriteForSavegame (or by an older save version, see the
-    // GameStateSvgVersion checks). Skips the legacy fields that are no longer used. data_ver and r_data are not used.
+    // GameStateSvgVersion checks), with the room's fields that the layout holds into Room::Current().
+    // Skips the legacy fields that are no longer used. data_ver and r_data are not used.
     void ReadFromSavegame(AGS::Common::Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver,
                           AGS::Engine::RestoredData &r_data);
-    // Writes the state into a save; the fields that are not written are listed above the struct.
+    // Writes the state into a save, with the room's fields that the layout holds from Room::Current(); the
+    // fields that are not written are listed above the struct.
     void WriteForSavegame(AGS::Common::Stream *out) const;
     // These are required for freeing only particular parts when restoring the game: FreeProperties clears the custom
     // property values of audio clips, characters, dialogs, GUIs and inventory items, FreeViewportsAndCameras removes

@@ -568,6 +568,7 @@ void GamePlayState::UpdateScriptTimers()
 void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver,
                                      RestoredData &r_data)
 {
+    Room &room = Room::Current();
     in->ReadInt32(); // [DEPRECATED]
     usedmode = in->ReadInt32();
     disabled_user_interface = in->ReadInt32();
@@ -592,7 +593,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     in->ReadInt32(); // [DEPRECATED]
     skip_display = static_cast<SkipSpeechStyle>(in->ReadInt32());
     no_multiloop_repeat = in->ReadInt32();
-    roomscript_finished = in->ReadInt32();
+    room.ScriptFinished = in->ReadInt32();
     used_inv_on = in->ReadInt32();
     no_textbg_when_voice = in->ReadInt32();
     max_dialogoption_width = in->ReadInt32();
@@ -622,7 +623,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     speech_bubble_width = in->ReadInt32();
     min_dialogoption_width = in->ReadInt32();
     disable_dialog_parser = in->ReadInt32();
-    anim_background_speed = in->ReadInt32(); // the setting for this room
+    room.AnimBackgroundSpeed = in->ReadInt32(); // the setting for this room
     top_bar_backcolor = in->ReadInt32();
     top_bar_textcolor = in->ReadInt32();
     top_bar_bordercolor = in->ReadInt32();
@@ -651,7 +652,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     randseed = in->ReadInt32();         // random seed
     player_on_region = in->ReadInt32(); // player's current region
     check_interaction_only = in->ReadInt32();
-    bg_frame = in->ReadInt32();
+    room.BgFrame = in->ReadInt32();
     bg_anim_delay = in->ReadInt32(); // for animating backgrounds
     in->ReadInt32();                 // [DEPRECATED]
     wait_counter = in->ReadInt16();
@@ -660,17 +661,17 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     mbounds.Top = in->ReadInt16();
     mbounds.Bottom = in->ReadInt16();
     fade_effect = in->ReadInt32();
-    bg_frame_locked = in->ReadInt32();
+    room.BgFrameLocked = in->ReadInt32();
     in->Seek(sizeof(int32_t) * LEGACY_MAXGSVALUES);
     in->ReadInt32(); // [DEPRECATED]
     in->ReadInt32();
     in->ReadInt32();
     audio_master_volume = in->ReadInt32();
-    in->Read(walkable_areas_on, MAX_WALK_AREAS);
+    in->Read(room.WalkableAreasOn, MAX_WALK_AREAS);
     screen_flipped = in->ReadInt16();
-    entered_at_x = in->ReadInt32();
-    entered_at_y = in->ReadInt32();
-    entered_edge = in->ReadInt32();
+    room.EnteredAtX = in->ReadInt32();
+    room.EnteredAtY = in->ReadInt32();
+    room.EnteredEdge = in->ReadInt32();
     speech_mode = (SpeechMode)in->ReadInt32();
     speech_skip_style = in->ReadInt32();
     // Old-style timers, limited to 20, with 1-based ID
@@ -859,6 +860,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
 
 void GamePlayState::WriteForSavegame(Stream *out) const
 {
+    const Room &room = Room::Current();
     // NOTE: the fields that are never saved here are listed above the GamePlayState struct;
     // the order below is the save layout, ReadFromSavegame reads the same
     out->WriteInt32(0); // [DEPRECATED]
@@ -885,7 +887,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(skip_display);
     out->WriteInt32(no_multiloop_repeat);
-    out->WriteInt32(roomscript_finished);
+    out->WriteInt32(room.ScriptFinished);
     out->WriteInt32(used_inv_on);
     out->WriteInt32(no_textbg_when_voice);
     out->WriteInt32(max_dialogoption_width);
@@ -915,7 +917,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(speech_bubble_width);
     out->WriteInt32(min_dialogoption_width);
     out->WriteInt32(disable_dialog_parser);
-    out->WriteInt32(anim_background_speed); // the setting for this room
+    out->WriteInt32(room.AnimBackgroundSpeed); // the setting for this room
     out->WriteInt32(top_bar_backcolor);
     out->WriteInt32(top_bar_textcolor);
     out->WriteInt32(top_bar_bordercolor);
@@ -945,7 +947,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(randseed);         // random seed
     out->WriteInt32(player_on_region); // player's current region
     out->WriteInt32(check_interaction_only);
-    out->WriteInt32(bg_frame);
+    out->WriteInt32(room.BgFrame);
     out->WriteInt32(bg_anim_delay); // for animating backgrounds
     out->WriteInt32(0);             // [DEPRECATED]
     out->WriteInt16(wait_counter);
@@ -954,17 +956,17 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt16(mbounds.Top);
     out->WriteInt16(mbounds.Bottom);
     out->WriteInt32(fade_effect);
-    out->WriteInt32(bg_frame_locked);
+    out->WriteInt32(room.BgFrameLocked);
     out->WriteByteCount(0, sizeof(int32_t) * LEGACY_MAXGSVALUES);
     out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(0);
     out->WriteInt32(0);
     out->WriteInt32(audio_master_volume);
-    out->Write(walkable_areas_on, MAX_WALK_AREAS);
+    out->Write(room.WalkableAreasOn, MAX_WALK_AREAS);
     out->WriteInt16(screen_flipped);
-    out->WriteInt32(entered_at_x);
-    out->WriteInt32(entered_at_y);
-    out->WriteInt32(entered_edge);
+    out->WriteInt32(room.EnteredAtX);
+    out->WriteInt32(room.EnteredAtY);
+    out->WriteInt32(room.EnteredEdge);
     out->WriteInt32(speech_mode);
     out->WriteInt32(speech_skip_style);
     out->WriteInt32(0); // [DEPRECATED]

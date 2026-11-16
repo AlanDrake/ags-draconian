@@ -48,10 +48,9 @@ Rect walkBehindAABB[MAX_WALK_BEHINDS];        // WB bounding box
 // Generates walk-behinds as separate sprites
 void walkbehinds_generate_sprites()
 {
-    Game &game = Game::Current();
     Room &room = Room::Current();
     const Bitmap *mask = room.WalkBehindMask.get();
-    const Bitmap *bg = room.BgImages[game.Play.bg_frame].get();
+    const Bitmap *bg = room.BgImages[room.BgFrame].get();
 
     const int coldepth = bg->GetColorDepth();
     Bitmap wbbmp; // temp buffer
@@ -93,7 +92,7 @@ void walkbehinds_generate_sprites()
         }
     }
 
-    room.WalkBehindsCachedForBgNum = game.Play.bg_frame;
+    room.WalkBehindsCachedForBgNum = room.BgFrame;
 }
 
 // Edits the given game object's sprite, cutting out pixels covered by walk-behinds;

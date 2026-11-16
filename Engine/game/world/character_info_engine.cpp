@@ -498,8 +498,8 @@ void UpdateCharacterFollower(Game &game, Room &room, CharacterInfo *ch, std::vec
             {
                 // appear in the new room
                 ch->room = game.chars[following].room;
-                ch->x = game.Play.entered_at_x;
-                ch->y = game.Play.entered_at_y;
+                ch->x = room.EnteredAtX;
+                ch->y = room.EnteredAtY;
             }
         }
         // wait a bit, so we're not constantly walking
@@ -517,25 +517,25 @@ void UpdateCharacterFollower(Game &game, Room &room, CharacterInfo *ch, std::vec
             {
                 // only move to the room-entered position if coming into
                 // the current room
-                if (game.Play.entered_at_x > (room.Width - 8))
+                if (room.EnteredAtX > (room.Width - 8))
                 {
                     ch->x = room.Width + 8;
-                    ch->y = game.Play.entered_at_y;
+                    ch->y = room.EnteredAtY;
                 }
-                else if (game.Play.entered_at_x < 8)
+                else if (room.EnteredAtX < 8)
                 {
                     ch->x = -8;
-                    ch->y = game.Play.entered_at_y;
+                    ch->y = room.EnteredAtY;
                 }
-                else if (game.Play.entered_at_y > (room.Height - 8))
+                else if (room.EnteredAtY > (room.Height - 8))
                 {
                     ch->y = room.Height + 8;
-                    ch->x = game.Play.entered_at_x;
+                    ch->x = room.EnteredAtX;
                 }
-                else if (game.Play.entered_at_y < room.Edges.Top + 8)
+                else if (room.EnteredAtY < room.Edges.Top + 8)
                 {
                     ch->y = room.Edges.Top + 1;
-                    ch->x = game.Play.entered_at_x;
+                    ch->x = room.EnteredAtX;
                 }
                 else
                 {
@@ -545,7 +545,7 @@ void UpdateCharacterFollower(Game &game, Room &room, CharacterInfo *ch, std::vec
                 }
                 if (ch->room >= 0)
                 {
-                    walk_character(ch, game.Play.entered_at_x, game.Play.entered_at_y, true /* ignwal */);
+                    walk_character(ch, room.EnteredAtX, room.EnteredAtY, true /* ignwal */);
                     doing_nothing = 0;
                 }
             }

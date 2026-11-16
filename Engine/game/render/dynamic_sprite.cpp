@@ -439,7 +439,7 @@ ScriptDynamicSprite *DynamicSprite_CreateFromBackground(int frame, int x1, int y
     Room &room = Room::Current();
     if (frame == SCR_NO_VALUE)
     {
-        frame = game.Play.bg_frame;
+        frame = room.BgFrame;
     }
     else if ((frame < 0) || ((size_t)frame >= room.BgFrameCount))
         quit("!DynamicSprite.CreateFromBackground: invalid frame specified");

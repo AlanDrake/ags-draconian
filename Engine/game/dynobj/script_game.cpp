@@ -19,6 +19,7 @@
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/ui/gui.h"
+#include "game/world/room_context.h"
 #include "platform/base/engine_config.h"
 #include "platform/base/engine_services.h"
 #include "script/cc_common.h" // cc_error
@@ -31,6 +32,7 @@ CCScriptGame GameStaticManager;
 int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     const int index = offset / sizeof(int32_t);
     if (index >= 5 && index < 5 + GamePlayState::LEGACY_MAXGLOBALVARS)
         return 0; // [DEPRECATED]
@@ -61,7 +63,7 @@ int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
     case 70: return 0; // [DEPRECATED]
     case 71: return game.Play.skip_display;
     case 72: return game.Play.no_multiloop_repeat;
-    case 73: return game.Play.roomscript_finished;
+    case 73: return room.ScriptFinished;
     case 74: return game.Play.used_inv_on;
     case 75: return game.Play.no_textbg_when_voice;
     case 76: return game.Play.max_dialogoption_width;
@@ -91,7 +93,7 @@ int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
     case 100: return game.Play.speech_bubble_width;
     case 101: return game.Play.min_dialogoption_width;
     case 102: return game.Play.disable_dialog_parser;
-    case 103: return game.Play.anim_background_speed;
+    case 103: return room.AnimBackgroundSpeed;
     case 104: return game.Play.top_bar_backcolor;
     case 105: return game.Play.top_bar_textcolor;
     case 106: return game.Play.top_bar_bordercolor;
@@ -125,6 +127,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    Room &room = Room::Current();
     const int index = offset / sizeof(int32_t);
     if (index >= 5 && index < 5 + GamePlayState::LEGACY_MAXGLOBALVARS)
         return; // [DEPRECATED]
@@ -163,7 +166,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
             game.Play.skip_display = static_cast<SkipSpeechStyle>(val);
         break;
     case 72: game.Play.no_multiloop_repeat = val; break;
-    case 73: game.Play.roomscript_finished = val; break;
+    case 73: room.ScriptFinished = val; break;
     case 74: game.Play.used_inv_on = val; break;
     case 75: game.Play.no_textbg_when_voice = val; break;
     case 76: game.Play.max_dialogoption_width = val; break;
@@ -196,7 +199,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 100: game.Play.speech_bubble_width = val; break;
     case 101: game.Play.min_dialogoption_width = val; break;
     case 102: game.Play.disable_dialog_parser = val; break;
-    case 103: game.Play.anim_background_speed = val; break;
+    case 103: room.AnimBackgroundSpeed = val; break;
     case 104: game.Play.top_bar_backcolor = val; break;
     case 105: game.Play.top_bar_textcolor = val; break;
     case 106: game.Play.top_bar_bordercolor = val; break;

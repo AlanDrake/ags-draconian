@@ -756,14 +756,14 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     if (game.DisplayedRoom >= 0)
     {
         // Fixup the frame index, in case the restored room does not have enough background frames
-        if (game.Play.bg_frame < 0 || static_cast<size_t>(game.Play.bg_frame) >= room.BgFrameCount)
-            game.Play.bg_frame = 0;
+        if (room.BgFrame < 0 || static_cast<size_t>(room.BgFrame) >= room.BgFrameCount)
+            room.BgFrame = 0;
 
         for (size_t i = 0; i < std::min(room.BgImages.size(), r_data.RoomBkgScene.size()); ++i)
         {
             if (r_data.RoomBkgScene[i])
             {
-                game.Play.room_bg_modified[i] = true;
+                room.BgModified[i] = true;
                 // Blit, don't replace image, in case we restored a image of different size
                 room.BgImages[i]->Clear(0);
                 room.BgImages[i]->Blit(r_data.RoomBkgScene[i].get());
@@ -774,7 +774,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         {
             if (r_data.RoomMask[i])
             {
-                game.Play.room_mask_modified[i] = true;
+                room.MaskModified[i] = true;
                 // Blit, don't replace mask, in case we restored a mask of different size
                 room.CopyMask(static_cast<RoomAreaMask>(i), r_data.RoomMask[i].get());
             }
