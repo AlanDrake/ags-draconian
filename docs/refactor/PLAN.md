@@ -86,7 +86,7 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
 | 1 | **The bugs found in 4.1, by upstream branch** (the user, 2026-11-12; the list is "4.1's bugs by upstream branch" below): all fixed in the fork (2026-11-12, `d90b789ab`..`98a7dae87`, `4c07f1e11`; lip-sync and the push button still want a run in a game); ported to `master-41-fixes` and `ags4-41-fixes`, trial merge of the first into the second on `ags4-41-mergecheck` (`docs/UPSTREAM.md`, worktrees `../ags-up-master`, `../ags-up-ags4`; the trial merge's worktree is gone, its branch stays); double-checked, fixed, rebased and pushed to `origin` 2026-11-13 (`53a55451d` on `upstream/master` `fc4c47a7f`, `9d32c9654`; what the check found is in `docs/UPSTREAM.md`); left: open the two PRs (texts in `.compare/pr-description.md` of each worktree), the trial merge is from the first version and not redone, and the fork's reader still gives `RunGameLoopsWhileDialogOptionsDisplayed` true for an absent element where `Settings.FromXml` gives false (no effect on 4.0 projects) | 4.1 is done; the PRs were waiting for it | Fable 5.1, `high` for the review; the user opens the PRs |
-| 2 | **5.1 and 5.1a, by the design of 2026-11-15** (`RUNTIME-SPLIT.md`, reviewed with the user; LOG.md "5.1 step 2 and 5.1a: the design" lists what was decided and what each task still has to design). The order: **(a)** done 2026-11-15: 2.10a, the compile-time metric (BASELINE.md "compile time"), and the three save defects of RUNTIME-SPLIT.md 11 with a test each (`1dc82bb6c`); **(b)** done 2026-11-15 (`b8ac51d20`..`59b5d7092`, not pushed): 5.1 step 2, `EngineServices` (LOG.md "5.1 step 2": baseline 143 to 94; the sprite cache is left to (d)); **(c)** 5.8 step 1 done 2026-11-15 (`c61a37714`..`970aa19cf`, not pushed; LOG.md "5.8 step 1"), Common's save code into the engine; 6.7a done 2026-11-15 (`79f6369fc`, not pushed), the old-game import out of `AGS.Native`; **next:** **(d)** 5.1 step 3, `GameDef`, `Game`, `Room`; **(e)** 5.1a step 1 (`Character`), 5.9 on it, then 5.1a steps 2 to 4; **(f)** 5.11 and 5.12, the restore into a second `Game` and the new save format; **(g)** 5.1a step 5 (GUI) with 6.7c. Any time after (d): 5.8 step 2. After (e): 5.10. Any time: 2.10b. Small follow-ups left by 5.2 and 5.3: the host half of `asset_helper.h` (that of `runtime_defines.h` is done, `platform/base/engine_defines.h`); the signature fixes that 5.2 step 2's tags mark (LOG.md "5.2 step 2", each a behaviour change to decide). | Steps 1 and 2 are done: each remaining global has one declaration, the process-wide ones are out of the way, and `Script/use_context.py` converts the uses of a context; the design settles what the globals become before 1,860 uses of `game` are touched | Fable 5.2, `high` to supervise and for 5.9, 5.11 and 5.12's designs; Sonnet 5.5 or Opus 5.5 subagents for the conversions, in batches built once per batch |
+| 2 | **5.1 and 5.1a, by the design of 2026-11-15** (`RUNTIME-SPLIT.md`, reviewed with the user; LOG.md "5.1 step 2 and 5.1a: the design" lists what was decided and what each task still has to design). The order: **(a)** done 2026-11-15: 2.10a, the compile-time metric (BASELINE.md "compile time"), and the three save defects of RUNTIME-SPLIT.md 11 with a test each (`1dc82bb6c`); **(b)** done 2026-11-15 (`b8ac51d20`..`59b5d7092`, not pushed): 5.1 step 2, `EngineServices` (LOG.md "5.1 step 2": baseline 143 to 94; the sprite cache is left to (d)); **(c)** 5.8 step 1 done 2026-11-15 (`c61a37714`..`970aa19cf`, not pushed; LOG.md "5.8 step 1"), Common's save code into the engine; 6.7a done 2026-11-15 (`79f6369fc`, not pushed), the old-game import out of `AGS.Native`; **(d)** 5.1 step 3 converted 2026-11-15 (`GameDef`, `Game`, `Room`, the sprite cache in `EngineServices`; snapshots `refs/wip/51s3/*`, not committed; LOG.md "5.1 step 3"), finished 2026-11-16 with the room fields and viewports out of `GamePlayState` and the loaded lists in `GameDef`; left for the user: the commits, and a run of the `tidy`, `linux`, `emscripten` and `msbuild` stages on the last changes (the compile-time cost, total +2.4% and median +5%, is accepted, 2026-11-16); **next:** **(e)** 5.1a step 1 (`Character`), 5.9 on it, then 5.1a steps 2 to 4; **(f)** 5.11 and 5.12, the restore into a second `Game` and the new save format; **(g)** 5.1a step 5 (GUI) with 6.7c. Any time after (d): 5.8 step 2. After (e): 5.10. **Compile time, in 2.10b's order:** its item 1 (`tools_test` links `common`) any time; its item 2, the precompiled header of stable content, beside 5.1a step 1 in a worktree (CMake files only) or at the latest before 5.1a steps 2 to 4, since it shortens every batch build of that series; each 5.1a step trims the big headers it splits and reports compile time against BASELINE.md "After 5.1 step 3", read on an idle machine with nothing else running. Small follow-ups left by 5.2 and 5.3: the host half of `asset_helper.h` (that of `runtime_defines.h` is done, `platform/base/engine_defines.h`); the signature fixes that 5.2 step 2's tags mark (LOG.md "5.2 step 2", each a behaviour change to decide). | Steps 1 and 2 are done: each remaining global has one declaration, the process-wide ones are out of the way, and `Script/use_context.py` converts the uses of a context; the design settles what the globals become before 1,860 uses of `game` are touched | Fable 5.2, `high` to supervise and for 5.9, 5.11 and 5.12's designs; Sonnet 5.5 or Opus 5.5 subagents for the conversions, in batches built once per batch |
 | 3 | **4.5 + 3.6 on what had no comment pass** (770 first-party files, ~280k lines): batch 8 done (2026-11-13, LOG.md: `game`, `gamestate`, `room`, `dialog`, `savegame`, `game_init`, `script`, `guimain`, `engine`); next, the untouched files most-churned first (a ranking by commits since 2024, the batch-6 stray-rename files among them), then the D3D/OpenGL drivers with the `emscripten` and `linux` stages, and the compiler (7,440-line parser: its own plan, by function groups). Brief `.compare/briefs/brief-45-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | The files have their final paths since 5.3 (map: `docs/refactor/moves-5.3.tsv`; the brief's file lists use the old ones), and a comment pass is cheaper before 5.1 and 5.2 step 2 edit them again | Sonnet 5.5, `medium`, parallel subagents; the parser plan Fable 5.1 |
 | 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3188, #3189; #3187 merged), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
@@ -106,6 +106,16 @@ Open items from finished tasks (details in LOG.md "Open items"):
   commented out; three callers pass `game`); `util/timer.cpp` is frame pacing that needs the host (five baseline
   lines) and belongs in the host ring; `Game_ChangeSpeechVox` and `ResourcePaths::VoiceAvail` keep two
   meanings of "voice available" (`EngineServices::VoiceAvail` is the one the game reads).
+- 5.1 step 3 (2026-11-15), found on the way, none fixed (each is a behaviour change with its own test):
+  `DialogOptions::RunKey` fills the parameters of the `dialog_options_text_input` callback and runs the key-press
+  callback instead (`game/dialog/dialog.cpp`; the same in upstream `ags4` at `7c4967917`, `Engine/ac/dialog.cpp`
+  line 1495), so the text-input callback never runs from there; `UpdateOverlayState` calls
+  `ScreenOverlay::SetSpriteNum` for every animating overlay on every frame, which resets its image and marks it
+  changed even when the frame is the same; `Game::LoadedDataVersion` (was `loaded_game_file_version`) is not
+  `gamedataver` only because `--tell data` prints it after the pre-read, when it is still undefined; the private
+  members of the old base sit in the middle of `GameDef` (kept so that the fold changed no offset) and
+  `StaticAudioClipArray` is a global of `game_init.cpp` outside `Game::Handles`; `debug/debugger.h` brings its
+  `DBG_*` macros to the includers of `engine_services.h`.
 - 1.4: the `agfreader` items are closed: a project without `<Settings>` is refused by `AGFReader::Open` and `ReadFields`
   refuses a missing element (2026-11-12, test `AGFReader.OpenReportsMissingSettings`); `StrUtil::Unescape`'s read past
   the end went with its rewrite in `28badf14b` (U.3). Left: the `ReadAllData` wrappers drop `ReadFields`' error, so an
@@ -260,6 +270,38 @@ folders.
      (the Debian 10 image's GCC 8, the hand-written projects, include-based tools and ports), ThinLTO (Clang
      only and already CMake's choice there; the slow links are MSVC `/GL` and GCC, which runs `-flto=auto`
      on 11+), a precompiled header for the vendored libraries (almost all C, built once, ccache).
+     **The order, from what 5.1 step 3 measured** (2026-11-16; BASELINE.md "After 5.1 step 3": the step cost
+     2.4% of the build, median per object +5%, which the user accepts; the front end alone parses the
+     standard headers in 0.38 s, `game_def.h` or `game_state.h` in about 1.0 s, the three contexts in 1.18 s,
+     of a context user's 3.7 s median):
+     1. *Any time, small* (Sonnet 5.5, `medium`): `tools_test` stops compiling Common sources of its own and
+        links the `common` library (`main_game_file.cpp` alone is 6 s of the 40 s step 3 added; count the
+        others). The `buildlists` stage and `Tests.App` follow. Done when the object count and the total drop
+        and `tools_test` passes.
+     2. *Before the long series of 5.1a (steps 2 to 4), or beside 5.1a step 1 in a worktree: it touches CMake
+        files only* (Opus 5.5, `high`): the precompiled header, **stable content only**: the standard headers,
+        SDL, Allegro, and the `Common/util` and `platform` basics that every file includes (the trace chooses:
+        `/d1reportTime`, `-ftime-trace`), gtest for the test targets. Not the game headers: they change in
+        every step of phase 5 and would rebuild everything. CMake targets only (`target_precompile_headers`);
+        the hand-written solutions stay as they are. Guards: one CI job and `prepush.py`'s `headers` stage
+        build without it (`CMAKE_DISABLE_PRECOMPILE_HEADERS=ON`), so a missing include still fails;
+        `compare_objects.py` and the BASELINE.md readings of phase 5 are taken without it, as before; GCC 8
+        (the Debian 10 image), Emscripten and the libc++ check must accept it or be excluded, said which.
+        Judged by two clean builds each way on an idle machine (the user's go, nothing else running): the total
+        and the median against "After 5.1 step 3", and an incremental build after a change to
+        `game_context.h`, which is what a phase 5 batch pays. The user decides on the numbers.
+     3. *With each step of 5.1a, not as a task of its own:* the two big headers lose what they no longer
+        need when their structs are split (`game_def.h` still includes `main_game_file.h`, with its own TODO,
+        and through it `guimain.h` and `cc_script.h`; `game_state.h` still includes `roomstruct.h` and
+        `graphicsdriver.h`, which the room fields and the viewports needed), and the game headers are looked
+        at again for the precompiled header once 5.1a has settled them.
+     4. *After phase 5:* the unity build of `script_api/` (46 files, about 125 s), against the precompiled
+        header's result.
+     **Decided against, for compile time** (2026-11-16): holding `Game`'s parts (`Play`, `Viewports`) through
+     reference members to keep `game_state.h` out of the context header. At best it gives back the 26 s that
+     step 3 added (1.5% of the build), for one more pointer load at every use, and item 2 removes more than
+     that for every file. The cost of step 3 is concentrated: 42 of the 95 context users did not see both big
+     headers before and now do; a file that already saw both pays 0.08 s.
 
   *Done when:* the two numbers are in BASELINE.md and in `refactor_metrics.py`; (b) is decided with its
   measurements.
@@ -431,6 +473,33 @@ Each task is a series of small PRs.
      *Done when:* no `extern` of mutable state is left in an `Engine/` header but the contexts and a list of
      exceptions kept in `Script/check_layers.py` (constants, stateless managers); the median compile time per
      file is not higher than before the step.
+     *Status 2026-11-16* (LOG.md "5.1 step 3"; snapshots `refs/wip/51s3/*`, not committed): **the text above is
+     done; the compile-time criterion is not met (the median per object is 5% higher: the user decides); the
+     last three batches and the tidy fixes have not been through the Linux, Emscripten, tidy and MSBuild
+     stages.**
+     `GameSetupStruct` and its base are `GameDef` (`Common/game/game_def.h`); `class Game : public GameDef`
+     (`game/game_context.h`) and `class Room : public RoomStruct` (`game/world/room_context.h`) hold the game's
+     and the room's globals, `EngineServices` the rest of the process-wide ones and the sprite cache
+     (`Sprites`; `SpriteCache` takes its table and callbacks after construction); about 6,300 uses of 150
+     globals converted by `Script/use_context.py`, which gained the contexts `game` and `room`, incremental
+     runs and the rule that a use inside a loop takes the local; about 45 helpers of the draw and update paths
+     take the context from their caller (the first use of step 4's rule). `extern` lines in engine headers:
+     190 to 41 variables, each in `EXTERN_ALLOWED` of `Script/check_layers.py` with its reason (the check
+     fails on any other and on a stale entry); the layering baseline 94 to 92. Where the design was decided
+     here: `Game` derives from `GameDef` as a transitional shape, so each use was converted once and
+     `GameDef::Current()` comes with the first kept definition (5.1a step 1, 5.11); the contexts have light
+     headers of their own, chosen from a probe (RUNTIME-SPLIT.md 9). Added 2026-11-16: the room fields of
+     `GamePlayState` are members of `Room` (all of them: none is kept per room, so none went to the room
+     state), its viewports and cameras are `Game::Viewports` (`GameViewports`), and `GameDef` holds `Views`,
+     `Dialogs`, the GUI lists and the compiled scripts, read into directly (the compiled scripts are now kept
+     until the game is unloaded, about 1.6 MB for the auto-test game). The auto-test game: 2414 of 2414 on the
+     four renderers. **Compile time** (BASELINE.md "After 5.1 step 3", MSVC on an idle machine): total +2.4%,
+     median per object 2.59 to 2.72 s (+5.1%); the 95 engine sources that include a context header cost
+     0.27 s more each. Accepted by the user (2026-11-16, "not too bad"); what lowers compile time from here
+     is 2.10b, in its order (a precompiled header of stable content first; not reference members in `Game`).
+     **Not verified:** the `tidy`, `linux`, `emscripten` and `msbuild` stages on the tidy fixes and on the
+     three batches of 2026-11-16 (the full run before them passed all but `helpers` and `tidy`); GCC compile
+     time and the GCC Release comparison of the linked engine; sanitizers.
   4. New and refactored functions take their context as a parameter; phase 1 fixtures construct the
      contexts, which makes engine code unit-testable.
 
@@ -494,7 +563,10 @@ Each task is a series of small PRs.
   address (C4). Saves made before the split load through the legacy reader (5.8 step 1, 5.12).
   *When:* after 5.1 step 3 and 5.8 step 1; 5.9 starts after step 1.
   *Guard:* a CMake target that compiles `Common/game` with no `Engine/` on the include path, the save
-  round-trip tests and the `compat_restore` fixtures, the auto-test game.
+  round-trip tests and the `compat_restore` fixtures, the auto-test game. *Compile time* (2.10b item 3): a
+  step that splits a struct takes out of `game_def.h`, `game_state.h` and the context headers the includes
+  the struct no longer needs, holds a new member of a context by the light-header rule (RUNTIME-SPLIT.md 9),
+  and reports the total and the median against BASELINE.md "After 5.1 step 3", read on an idle machine.
   *Done when:* `GameDef::Current()` is `const` and nothing casts it away, `charextra` is gone, no `Common` struct has
   a field the engine writes during play, and `agf2dta`/`crmbuild` link no Engine object.
 - [x] **5.2 Script bindings apart from logic.** 1,598 hand-written `Sc_*` wrappers from 147 `API_*`
@@ -862,10 +934,10 @@ and without fork-only features, built in the worktree `E:\Projects\ags\ags4-upst
 | commented-out code lines | 83 | | 0 | | |
 | cryptic names (total) | 4,855 | | | ~0 (globals excluded) | 0 |
 | extern decls in Engine .cpp files | 596 | | | | 0 |
-| extern decls in Engine headers (5.1 step 3) | 203 (2026-11-15) | | | | the contexts and the listed exceptions |
-| layering baseline includes (5.1 step 2) | 143 (2026-11-15) | | | | 94 (2026-11-15, step 2 done; the target was ≤ 110) |
+| extern decls in Engine headers (5.1 step 3) | 203 (2026-11-15) | | | | the contexts and the listed exceptions: 41 variables, all in `EXTERN_ALLOWED` (2026-11-15) |
+| layering baseline includes (5.1 step 2) | 143 (2026-11-15) | | | | 94 (2026-11-15, step 2 done; the target was ≤ 110); 92 since 5.1 step 3 |
 | `Savegame` methods in `Common/` (5.8) | 14 files | | | | 0 (8 since 5.8 step 1, 2026-11-15: the `Common/gui` classes, until 5.1a step 5) |
-| compile time, total and median per file (2.10) | MSVC 1676 to 1731 s, 2.6 to 2.7 s; GCC 1585 to 1604 s, 2.4 s (2026-11-15, two readings each) | | | | not higher |
+| compile time, total and median per file (2.10) | MSVC 1676 to 1731 s, 2.6 to 2.7 s; GCC 1585 to 1604 s, 2.4 s (2026-11-15, two readings each) | | | | not higher; after 5.1 step 3 (2026-11-16, MSVC, idle machine): 1754 to 1773 s, 2.68 to 2.76 s, against 1717 to 1728 s and 2.57 to 2.61 s before it the same night: +2.4% and +5%, accepted; the reference for 5.1a and 2.10b |
 | functions > 200 lines | 19 | | | | ≤ 3 |
 | nesting depth ≥ 6 | 10 | | | | 0 |
 | script API wrappers (Sc_*) | 1,598 | | | | 0 |

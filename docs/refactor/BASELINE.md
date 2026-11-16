@@ -193,6 +193,53 @@ and 122.0). That is not explained by the step: no file of `script_api` and no he
 `platform/base/engine_services.h` (47 source files do), and the rest of `Engine/game` is as much faster as
 `script_api` is slower, which points at the order in which the parallel steps ran. To read again in 2.10b.
 
+**After 5.1 step 3** (2026-11-16, MSVC only; the tree before the step, `f8bd17c05`, and the working tree after it
+built in turn, before, after, before, after, on an idle machine; 560 objects on both sides: the step folded
+`game_setup_struct_base.cpp` into `game_def.cpp` and `tools_test` compiles `main_game_file.cpp` too). The
+objects are matched through `compile_commands.json` as above, by `.compare/helpers/51s3/ct_cmp.py`; the result
+sets are in `.compare/ct/q-*`.
+
+| | before 1 | before 2 | after 1 | after 2 | difference of the averages |
+|---|---:|---:|---:|---:|---:|
+| all: total s | 1728.4 | 1716.9 | 1772.8 | 1753.8 | +2.4% |
+| all: median s per object | 2.57 | 2.61 | 2.76 | 2.68 | +5.1% |
+| `Engine` (255 objects): total s | 751.6 | 741.4 | 789.9 | 766.7 | +4.3% |
+| `Engine` median s | 2.63 | 2.71 | 2.94 | 2.78 | +7.2% |
+| `Engine/game` (155 objects): total s | 449.1 | 441.0 | 483.3 | 458.9 | +5.9% |
+| `Engine/game` median s | 2.69 | 2.87 | 3.11 | 2.87 | +7.7% |
+| `Engine/game/script_api` (46 objects): total s | 125.5 | 123.6 | 127.9 | 125.6 | +1.8% |
+| `Common` (199 objects): total s | 515.9 | 515.0 | 524.0 | 526.4 | +1.9% |
+| `Tools` (59 objects): total s | 279.2 | 277.1 | 279.1 | 278.7 | +0.3% |
+| wall-clock of the whole build, s | 206.5 | 205.2 | 211.3 | 209.3 | +2.1% |
+
+The two readings of a side differ by 0.7% and 1.1% in total, so the step's cost is real: 40 s of compile time
+over the build, of which 26 s on the 95 engine sources that include a context header (`game/game_context.h`
+or `game/world/room_context.h`: 350.1 to 375.8 s, +7.3%, about 0.27 s a file; median 3.38 to 3.68 s), 6 s on
+the 160 other engine sources (+1.6%) and 8 s outside `Engine` (+0.9%, of which 6 s are the second copy of
+`main_game_file.cpp` in `tools_test`). PLAN.md 5.1 step 3 asked for a median not higher than before: it is
+higher, by 0.13 s per object (5%). A reading taken the evening before, with the machine in use, had shown
+nothing (three builds of the unchanged tree differed by 26%). GCC was not measured. What the context header
+costs is its includes: `game/game_def.h`, `game/game_state.h` and `game/render/viewport.h` reach every user of
+`Game`, where a file used to include one of them.
+
+Where the 26 s went (2026-11-16, `.compare/helpers/51s3/ct_why.py`: what each of the 95 sources included
+before and after, by `/showIncludes`, against its time in the readings above):
+
+| The source, before the step | Sources | Seconds more | Per file |
+|---|---:|---:|---:|
+| saw `game_state.h` and the game struct | 53 | 4.2 | 0.08 |
+| saw `game_state.h` only | 13 | 4.0 | 0.31 |
+| saw the game struct only | 10 | 6.2 | 0.62 |
+| saw neither (it named a global declared in a light header: `displayed_room`, `guis`, `palette`...) | 19 | 11.3 | 0.59 |
+
+So the cost is the 42 sources that did not see both big headers and now do; a source that already saw both
+pays almost nothing for the context. The front end alone, on an empty source (MSVC `/Zs`, best of five): the
+standard headers the engine uses everywhere 0.38 s, `game_def.h` 0.98 s, `game_state.h` 0.97 s, both 1.10 s
+(they share most of what they include), `game_context.h` 1.13 s, the three contexts 1.18 s, `roomstruct.h`
+0.72 s, `viewport.h` 0.43 s, `engine_services.h` 0.41 s (0.40 s before the step). These are the numbers a
+precompiled header would be judged by (2.10b): about 1.2 s of a context user's 3.7 s median is headers that
+every one of them parses again.
+
 To reproduce: build as `compare_objects.py` does (`cmake -S . -B <dir> -G Ninja -DCMAKE_BUILD_TYPE=MinSizeRel
 -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON`, from a developer prompt for MSVC, then
 `cmake --build <dir>`), then `python Script/refactor_metrics.py --ninja-log <dir>/.ninja_log` (`--json` for the

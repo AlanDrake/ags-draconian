@@ -1972,6 +1972,146 @@ measurement), each batch built once.
   `refs/wip/` let several agents build on one working tree in turn and keep the batches apart for the commits;
   the tidy gate reads a reformatted old line as new, so a conversion pays for the lines it touches.
 
+### 5.1 step 3: `GameDef`, `Game`, `Room`
+
+*Definition:* the globals of one play-through become members of `Game`, the room-loaded ones of `Room`, the
+rest of the process-wide ones and the sprite cache of `EngineServices`; `GameSetupStruct` becomes `GameDef`.
+*Done when:* no `extern` of mutable state in an engine header but the contexts and a list of exceptions in
+`Script/check_layers.py`; the median compile time per file not higher than before.
+
+**Status (2026-11-16): the plan's text is done; not committed.** The work is the working tree and the
+snapshots `refs/wip/51s3/*` (one per batch, made with `git stash create`; `final2` is the last). Designed and
+supervised by Fable 5.2; the batches by Opus 5.5 subagents (the tool, `core`, `room`, `world`, `ui`, `script`,
+`services`, `exceptions` and `sprites`, `hot`, `roomfields` and `viewports`, `gamedef-lists`) and Sonnet 5.5
+ones (the rename, the probe, the code comparison, the tidy fixes), each batch built once. The user built the
+tree and ran a game on it after `hot`. **Left for the user:** the commits; the compile-time cost, which is
+real (median per object +5%, below); the `tidy`, `linux`, `emscripten` and `msbuild` stages on the tidy fixes
+and the last three batches.
+
+- **The design, where it was decided here** (RUNTIME-SPLIT.md 2 and 9 hold the reasons):
+  - `class Game : public GameDef` and `class Room : public RoomStruct`: the definition and the live state stay
+    one object until 5.1a gives an entity a live copy, so `game.chars` reads as before through `Game &game`,
+    each use was converted once, and `GameDef::Current()` waits for the first kept definition.
+  - The contexts have headers of their own (`game/game_context.h`, `game/world/room_context.h`), not
+    `game/game.h`. A probe decided how members are held: today's module headers for every member type, forced
+    into the 120 sources that would use the contexts, made those 28% slower to compile (+0.95 s each, `Engine`
+    +17%, all +8%; the files without it +4%). So: by value from light headers (the `GameDef` base, `Play`,
+    state structs of plain values declared in the context header, `std::vector`s of forward-declared types
+    with the constructor and destructor out of line), a reference member where only a module header defines
+    the type (`Game::Scripts`, `Room::TempState`, `EngineServices::Sprites`). The plan's "about 335 files"
+    counted the word `game` in include paths: `game/game.h` has 101 includers, 73 files named `game` or `play`.
+  - The loose globals are grouped: `RoomChange`, `Speech`, `LipSync`, `TextLayout`, `Cursor`, `BuiltinDialogs`,
+    `Scripts`, `Handles`, `Events` in `Game`; `Input`, `Debug` in `EngineServices`.
+  - The sprite cache: `SpriteCache` takes its table and callbacks after construction (`SetSpriteInfos`,
+    `SetCallbacks`, a table of its own until then; two unit tests, one seen failing first); the services own it;
+    `init_sprite_cache()` attaches the game's table as the second statement of `initialize_engine`; the texture
+    cache of `draw.cpp` no longer binds during static initialization.
+- **The batches** (uses converted by `Script/use_context.py`, direct form + through the local):
+  1. `rename`: `GameSetupStruct` to `GameDef` (equal to a word replacement of HEAD but two re-wrapped lines),
+     the files to `game_def.h/.cpp` (`compare_objects.py`: mechanical, 3 objects moved), the base folded in.
+     The fold is not byte-mechanical: the member offsets are the same (checked in `GetCharIDAtRoom`), MSVC
+     `/O1` generates other code in about ten functions that read both former halves (only that one was
+     disassembled); `tools_test` now compiles `main_game_file.cpp` too.
+  2. `core`: `game` 1,020 uses, `play` 1,510, 73 files. Two macros hid `play` (`FONT_NORMAL`, `FONT_SPEECH`):
+     removed, written out.
+  3. `room`: `thisroom`, `croom`, `objs`, `troom`, `roomscript` and six more, 689 uses, 25 files.
+  4. `world` with dialog: 47 globals, about 980 uses, 53 files. `loaded_game_file_version` stays a value of its
+     own (`Game::LoadedDataVersion`): `--tell data` prints it after the pre-read, when it is still undefined.
+  5. `ui`: 29 globals, about 530 uses; `CursorGraphicState` moved to a light header. Corrected in the next
+     batch: three "state" values of the built-in dialogs were constants (`constexpr` in `csci_dialog.h` now),
+     and the init functions of `game_init.cpp` take `Game &`, not `GameDef &`.
+  6. `script`: script modules and callbacks, handle arrays, events, `ScSystem`, audio channel objects, the
+     palette, about 450 uses. `ScriptEventCb` is `const`. No `"system"` export by address exists.
+  7. `services`: start-up values, input state, debugger state, `GameScaling`, 27 globals, about 310 uses; the
+     layering baseline 94 to 92.
+  8. `exceptions`: `EXTERN_ALLOWED` in `check_layers.py`, 41 variables (8 constants, 24 stateless script
+     managers, 5 of the script ring, 4 crash handler values, `pluginReaders`); the check fails on another
+     `extern` variable in an engine header and on a stale entry (both seen failing). `extern` lines in engine
+     headers: 190 to 41. `gl_SysConfig` and `pluginsWantingDebugHooks` are services members,
+     `roomBackgroundBmp` a static of `draw.cpp`. The design said 26 `ccDynamic*` managers; there are 19.
+  9. `sprites`: 164 uses. Four savegame tests crashed until their fixtures attached the table: they had relied
+     on the old static being bound to the game's table from process start.
+  10. `hot`: about 45 helpers of the draw, update, walkable-area, hit-test, overlay and input paths take the
+      context from their caller (`Game &`, `Room &`, `EngineServices &`, in that order); the transition
+      classes hold the references.
+  11. `roomfields` (2026-11-16): the fields of `GamePlayState` that describe the room on screen are members
+      of `Room` (`BgFrame`, `BgFrameLocked`, `AnimBackgroundSpeed`, `WalkableAreasOn`, `EnteredAtX`,
+      `EnteredAtY`, `EnteredEdge`, `BgModified`, `MaskModified`, `ScriptFinished`, `LoadedWidth`,
+      `LoadedHeight`; about 110 uses), reset by `Room::ResetPlayState()` beside the one place that rebuilds the
+      play state (`unload_game`). The Game State save component keeps its byte order and reads into the room;
+      where each value is set, reset, saved and restored relative to the room load was traced per field and is
+      the same (room loading assigns only the `RoomStruct` base). **`room_width` and `room_height` are not the
+      room's `Width` and `Height`:** they are 0 until the first room is loaded and after `unload_game`, while
+      the `Room` object starts at 320x200 and keeps the last room's size, so `game.room_width` read in
+      `game_start` would have gone from 0 to 320; they moved as they are, under names that say so.
+  12. `viewports` (2026-11-16): `GameViewports` (`game/render/viewport.h`), 32 bodies moved verbatim from
+      `GamePlayState` with ten data members, held as `Game::Viewports`; 184 call sites in 29 files; reset
+      beside the play state's; the save component's sequence and `DoBeforeRestore`/`DoAfterRestore` unchanged.
+      `GetGlobalTransform` reads the shake offset from the game.
+  13. `gamedef-lists` (2026-11-16): `GameDef` holds `Views`, `Dialogs`, `Guis`, the six control lists and the
+      compiled scripts; the loader reads into them (`LoadedGameEntities` keeps `CharEx`, the GUI version, the
+      plugin infos and the sprite flags); `Game` lost its own lists. `DialogTopic` and `ViewStruct` are
+      forward-declared in `game_def.h` and `GameDef`'s special members are defined in `game_def.cpp`.
+      `InitGameState` no longer copies the lists (they were copies: `ents` is const, so `std::move` copied).
+      The compiled scripts died at the end of `load_game_file`; they are kept until `unload_game` now: about
+      1.6 MB for the auto-test game (669,504 bytes of code), which a second `Game` from the `GameDef` needs.
+      The GUI control lists are freed at `unload_game` now; before, the next load replaced them.
+- **`Script/use_context.py`** (864 to about 1,300 lines): the contexts `game` and `room`; a global that is the
+  context itself (`game`, `thisroom`); a local's name that is taken means the direct form; incremental runs
+  (a later batch reuses the declaration or turns direct forms into the local; proved equal to one run on a copy
+  of the tree, and idempotent); **a use inside a loop takes the local** (added after `core` left
+  `chan_id < Game::Current().numGameChannels`; 23 functions). Two misreadings found by the batches and fixed
+  with a self-test each: `x > dialog[i]` read as the end of a template type, and a later declarator of
+  `int a = 0, b = 0, win_y = ...;` read as a use. A skipped function cannot hide: the global is deleted and the
+  compiler rejects it.
+- **Measured, MSVC x64 `/O2` without `/GL`** (instructions, nothing timed; scripts in the session's scratch
+  directory, method of step 2). After `room`, 13 objects: `draw.cpp` +0.38%, `object.cpp` +3.1%,
+  `walkable_area.cpp` +6.2%, `update.cpp` -4.6%, `game_run.cpp` -3.1%: a function that holds one reference
+  instead of addressing `game` and `play` many times is shorter (`doNextCharMoveStep` 197 to 117). The cost was
+  step 2's pattern, a helper inlined into a per-entity loop reloading `_current` (seven loops). After `hot`, 19
+  objects: 139,914 instructions before the step, 139,516 after the conversions, 139,841 after `hot` (-0.05%);
+  no per-frame or per-step loop loads a context pointer in its own body; what remains is on rare branches or
+  in functions declared in Common or bound to the script API. GCC was not compared.
+- **Compile time, MSVC: the step costs 2.4% of the build and the criterion is not met** (BASELINE.md "After
+  5.1 step 3"). On an idle machine, before, after, before, after: total 1,728 and 1,717 s against 1,773 and
+  1,754 s; median per object 2.57 and 2.61 against 2.76 and 2.68 s (+5.1%); the 95 engine sources that
+  include a context header +7.3% (0.27 s each), the 160 other engine sources +1.6%, the sources outside
+  `Engine` +0.9% (mostly `main_game_file.cpp` compiled a second time, into `tools_test`). A first reading,
+  taken the evening before with the machine in use, was worthless: three builds of the unchanged tree
+  differed by 26%, and by a control group it showed no cost at all. The cost is the context header's
+  includes (`game_def.h`, `game_state.h`, `viewport.h` reach every user of `Game`); `Play` and `Viewports`
+  held through reference members would take two of them out, at one more load per use. By what each of the 95
+  sources included before (`/showIncludes`, `.compare/helpers/51s3/ct_why.py`): the 53 that already saw both
+  `game_state.h` and the game struct pay 0.08 s each, the 42 that saw one or neither carry 21.5 of the 26 s
+  (the 19 that saw neither named a global from a light header, such as `displayed_room` or `guis`). The user
+  accepts the cost (2026-11-16); reference members are decided against, and PLAN.md 2.10b has the order of
+  what lowers compile time from here. GCC not measured (the user).
+- **Verified:** `prepush.py` with every stage on the tree after `hot`: format, layers, build lists, the MSVC
+  build and `ctest`, headers, libc++ (341 headers), Emscripten (`ags.wasm` linked), the Linux GCC job (1,218
+  tests), MSBuild with the Editor's NUnit tests pass; `helpers` and `tidy` failed (the two new `Current()`
+  accessors, two comments; 32 diagnostics on old lines the conversion touched) and were fixed in 27 files.
+  A second run, stopped by the user, passed format, helpers and layers on the fixed tree. The last three
+  batches (2026-11-16): the MSVC build, `ctest` (1,218), the header check, the libc++ check of all 341
+  headers, format, layers and build lists, by their agents. **The auto-test game on the finished tree: 2414 of
+  2414 on Software, Direct3D 9, Direct3D 11 and OpenGL** (the project at tag `draconian-auto-test-3`, built
+  with the tree's tools).
+- **Not verified:** the `tidy` stage on the tidy fixes (ten renames, `RBSwitchNames` to `kRBSwitchNames`, six
+  named casts, of which the two `reinterpret_cast`s in `agsplugin.cpp` were chosen without reading the types;
+  they compile with MSVC) and on the last three batches; the `linux`, `emscripten` and `msbuild` stages on
+  both (`Editor/AGS.Native` constructs a `GameDef`, whose special members are out of line now: read in its
+  project, not built); no sanitizer run; no `compare_objects.py` beyond the rename; the GCC comparison of the
+  linked engine; the corpus game; macOS, iOS, Android (one edit in an Android-only branch of
+  `main/engine.cpp`); a plugin that asks for the debug hook.
+- **Found on the way** (PLAN.md open items): `DialogOptions::RunKey` runs the key-press callback where it
+  prepared the text-input one (upstream `ags4` too); `SetSpriteNum` resets every animating overlay's image on
+  every frame.
+- **Lessons:** a count by `grep -w` of a word that is also a directory name is not a count of uses; a probe
+  with today's headers settled in half an hour what the design left open; macros hide globals from a
+  token-level tool; a tool rule ("a use in a loop takes the local") is cheaper than a list of loops to fix by
+  hand, and what it cannot see (a helper inlined into a loop) needs the disassembly; a compile-time reading
+  needs a quiet machine and nothing started beside it, and when the user changes what a running agent does,
+  the agent is stopped, not messaged.
+
 ### 5.8 step 1: Common's save code into the engine
 
 *Definition:* PLAN.md 5.8 step 1: the `...Savegame` methods of six `Common/game` files go to

@@ -63,10 +63,13 @@ Three placements that are easy to get wrong:
   of the script ring); the two base-ring files that use it (`util/timer.cpp`, `debug/debug.cpp`) are in the
   layering baseline, as they already were for the platform driver. Services that describe the loaded game (the
   mounted packs, the voice and music flags, the text language) are set again by `RunAGSGame`.
-- **The sprite cache is not in it yet.** It is constructed on a reference to `game.SpriteInfos`, which it
-  resizes and writes for dynamic sprites, and the texture cache of `draw.cpp` binds to it during static
-  initialization. It moves when the sprite table gets its owner (5.1 step 3; the dynamic sprites of each
-  `Game` are 5.11's).
+- **The sprite cache is `EngineServices::Sprites`** (5.1 step 3, 2026-11-15). `SpriteCache` used to be
+  constructed on a reference to `game.SpriteInfos`, which it resizes and writes for dynamic sprites, and the
+  texture cache of `draw.cpp` bound to it during static initialization. Now the cache can be told its table
+  and callbacks after construction (`SetSpriteInfos`, `SetCallbacks`; a table of its own until then), the
+  services own it, the game attaches its table once at engine start (`init_sprite_cache`), and the texture
+  cache reaches it at use. A second `Game` attaches its own table when it becomes current (the dynamic
+  sprites of each `Game` are 5.11's).
 - **The palette is game state**: a savestate holds it, so it is `Game`'s. The three graphics drivers read the
   global to convert 8-bit bitmaps (`select_palette(palette)`); since 2026-11-15 they are given a pointer to
   it once, when the driver is created (`IGraphicsDriver::SetIndexedPalette`), and the game changes the colours
@@ -120,6 +123,39 @@ or a restore can make another instance current while old code runs. A function t
 once takes a local reference at its top (`Game &game = Game::Current();`) and its body reads as today; that
 local is what becomes the parameter in 5.1 step 4. The extra pointer load is measured on the script VM and the
 draw loops before the first batch lands (STYLE.md "Performance").
+
+**What 5.1 step 3 built (2026-11-15), and where it is a transitional shape.**
+
+- `GameSetupStruct` and its base are one struct, `GameDef` (`Common/game/game_def.h`).
+- **`class Game : public GameDef`** (`Engine/game/game_context.h`). The engine's one game is at once what the
+  game file says and what the game changes, as `game` was: until an entity has a live copy, there is one
+  object per datum. So `game.chars[i]` and `game.options[...]` read as before through `Game &game`, each use
+  was converted once, and 5.1a moves or doubles a member between `GameDef` and `Game` without touching the use
+  sites. `GameDef::Current()` does not exist yet: it gets a meaning when a definition is kept apart from the
+  live game (5.1a step 1, 5.11). `Game` also holds `Play` (`GamePlayState`), `Viewports`, `CharExtras`, the
+  script objects and handle arrays, the palette, and the loose globals grouped into state structs (`RoomChange`, `Speech`, `LipSync`, `TextLayout`,
+  `Cursor`, `BuiltinDialogs`, `Scripts`, `Handles`, `Events`).
+- **`class Room : public RoomStruct`** (`Engine/game/world/room_context.h`): `State` (was `croom`),
+  `TempState`, `Objs`, `Script`, the walkable-area and walk-behind working state. One instance; a `Game`
+  owns its `Room` once a second `Game` can exist (5.11). The number of the room on screen and the pending
+  room change are the game's (`Game::DisplayedRoom`, `Game::RoomChange`): they exist while no room is loaded.
+- **A loop does not reload the accessor.** A function that uses a context once inside a loop takes the local
+  too, and a helper that is inlined into a loop over drawn or updated entities takes the context from its
+  caller as its first parameter (`update_object_scale(Game &, Room &, ...)`): the first use of 5.1 step 4's
+  rule, on about 45 functions of the draw and update paths.
+- **Globals that stay** are listed with a reason in `Script/check_layers.py` (`EXTERN_ALLOWED`): constants,
+  the stateless script managers, the script ring's own state (`pool`, `simp`, `scriptExecutor`: the ring
+  cannot reach a context; one pool per `Game` is 5.11's), the crash handler's values, `pluginReaders`.
+- **`GamePlayState` lost two of its five things** (section 5): the fields that describe the room on screen are
+  members of `Room` (`BgFrame`, `WalkableAreasOn`, `EnteredAtX`..., reset by `Room::ResetPlayState()` where
+  the play state is reset), and the viewports and cameras are a class of their own, `GameViewports`
+  (`game/render/viewport.h`), held as `Game::Viewports`. The save bytes and the order in which these values
+  are set, reset, saved and restored did not change.
+- **`GameDef` holds what the loader reads**: `Views`, `Dialogs`, `Guis` and the six control lists, and the
+  compiled scripts (`GlobalScript`, `DialogScript`, `ScriptModules`, `ScriptModuleNames`). The loader reads
+  into them directly and `Game` inherits them; `LoadedGameEntities` keeps only what is needed while loading.
+  The compiled scripts used to die at the end of `load_game_file`; they are kept until `unload_game` now
+  (about 1.6 MB for the auto-test game), which is what a second `Game` built from the `GameDef` needs (5.11).
 
 ## 3. Names
 
@@ -230,10 +266,10 @@ classes keep their save methods until their data is plain records (5.1a step 5):
 |---|---|---|
 | Settings the script changes, play progress | `text_speed`, `speech_mode`, the dialog-options and top-bar fields, `do_once_tokens`, `randseed`, the music queue | stays: the game's own state |
 | Blocking and transient state | `wait_counter`, `messagetime`, `in_cutscene`, `fast_forward`, `shakesc_*` | stays for now; some later to the blocking-loop classes |
-| The current room | `room_width`, `room_height`, `bg_frame`, `walkable_areas_on`, `room_bg_modified`, `entered_at_x` | `Room`, `RoomState` |
+| The current room | `room_width`, `room_height`, `bg_frame`, `walkable_areas_on`, `room_bg_modified`, `entered_at_x` | done 2026-11-16: all to `Room` (`LoadedWidth`, `LoadedHeight`, `BgFrame`, `BgFrameLocked`, `AnimBackgroundSpeed`, `WalkableAreasOn`, `EnteredAtX`, `EnteredAtY`, `EnteredEdge`, `BgModified`, `MaskModified`, `ScriptFinished`); none to `RoomState`: none is kept per room between visits, and moving one there would make it persist. `LoadedWidth` and `LoadedHeight` are not the room's `Width` and `Height`: they are 0 until the first room is loaded and after `unload_game`, which the script's `game.room_width` shows in `game_start` |
 | Per-object custom properties | `charProps`, `invProps`, `guiProps`, `dialogProps`, `guicontrolProps` | each live object |
 | What outlives a restore | `voice_avail`, `separate_music_lib`, `enable_antialiasing`, the text language | done 2026-11-15: `EngineServices::VoiceAvail`, `SeparateMusicLib`, `TextLanguage`, `TextLocaleName`; `ShouldAASprites()` reads `Config.AntialiasSprites`. The save keeps the `separate_music_lib` slot: read and dropped, written from the engine's value |
-| Viewports and cameras | `_roomViewports`, `_roomCameras` | `Game`, as objects of their own |
+| Viewports and cameras | `_roomViewports`, `_roomCameras` | done 2026-11-16: `GameViewports`, held as `Game::Viewports` |
 
 The legacy reader of the "Game State" component keeps its byte order and assigns to the fields where they are.
 The script's `game.` variable is read through `CCScriptGame`'s offset switch, not the C++ layout (C3).
@@ -345,9 +381,30 @@ behaviour change.
 The cost of a file is its headers. Consequences:
 
 - The moves of section 4 add no file. The file count of the engine does not rise in 5.1, 5.1a or 5.8.
-- `game/game.h` must not become the header that includes every entity: a `Game` holding every list by value
-  would make about 335 files pay for all of them. The mechanism is chosen in 5.1 step 3 (candidate: `Game`
-  holds its sections through pointers to types defined in the domain headers) and judged by the numbers.
+- `game/game.h` must not become the header that includes every entity. Chosen in 5.1 step 3 (2026-11-15) from
+  a probe: forcing today's module headers for every member type into the 120 sources that use the contexts
+  made those files 28% slower to compile (+0.95 s each; `Engine` +17%, the whole build +8%; the files without
+  the forced include moved +4%, the noise). The count behind "about 335 files" was the word `game`, include
+  paths counted in; `game/game.h` has 101 includers and 73 files named `game` or `play`. So:
+  - the contexts have headers of their own (`game/game_context.h`, `game/world/room_context.h`), included only
+    by the files that use a context; `game/game.h` stays the module's function declarations;
+  - a member is held by value when its type is complete from a light header: the `GameDef` base and `Play`
+    (what their users included already), a state struct of plain values declared in the context header, a
+    `std::vector` of a forward-declared type (C++17, with the context's constructor and destructor out of
+    line), an array of a type from a header without includes of its own (`game/dynobj/script_objects.h`);
+  - a member whose type only a module header defines is held through a reference member bound to an object
+    the context owns (`Game::Scripts`, `Room::TempState`, `EngineServices::Sprites`): one more load, the same
+    syntax at the use;
+  - a context header never includes a module header.
+  What it cost in the end (BASELINE.md "After 5.1 step 3", MSVC on an idle machine): the build +2.4%, the
+  median per object +5.1%, 0.27 s more on each of the 95 engine sources that include a context header. The
+  by-value `GameDef` base, `Play` and `Viewports` are that cost: their three headers reach every user of
+  `Game`, where a file used to include one: 42 of the 95 did not see both `game_def.h` and `game_state.h`
+  before and carry 21 of the 26 s; a file that already saw both pays 0.08 s. Accepted by the user
+  (2026-11-16). `Play` and `Viewports` through reference members would give back at most those 26 s for one
+  more load per use: decided against. What lowers compile time from here is PLAN.md 2.10b, in its order: a
+  precompiled header of stable content (the standard headers alone are 0.38 s of every file), and the big
+  headers trimmed as 5.1a splits their structs.
 - Two numbers go into BASELINE.md and are taken before and after each batch from the ninja log: the total
   compile time and the median per file (2.10). Lowering the fixed cost (a precompiled header; unity builds
   only where `compare_objects.py` does not need per-file objects) is the second half of 2.10.

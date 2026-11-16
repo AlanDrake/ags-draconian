@@ -132,6 +132,25 @@ the engine version and the loop flags (`want_exit`...) are members of `EngineSer
 that uses it more than once takes `EngineServices &services = EngineServices::Current();` as its first statement.
 A new process-wide value is a member there, not a global; `Script/use_context.py` converts the uses of a global
 to a context's member (`--check` fails on a converted global that is named again).
+The game's and the room's globals are members of two more contexts (5.1 step 3, 2026-11-15): `Game`
+(`Engine/game/game_context.h`; `class Game : public GameDef`, where `GameDef` in `Common/game/game_def.h` is
+upstream's `GameSetupStruct` and its base; `Game::Current()`, local `Game &game`): `game.chars`, `game.options`,
+`game.Play` (upstream's `play`, less its room fields and its viewports), `game.Viewports` (`GameViewports`: the
+viewports and cameras that upstream's `GamePlayState` holds), `game.Views`, `game.Guis` (members of `GameDef`: the
+loader reads into them), `game.CharExtras`, `game.DisplayedRoom`, `game.Palette`,
+the script objects and handles, and state structs such as `game.Cursor`, `game.Speech`, `game.Scripts`,
+`game.Events`; and `Room` (`Engine/game/world/room_context.h`; `class Room : public RoomStruct`,
+`Room::Current()`, local `Room &room`): `room.Width`, `room.Objects` (upstream's `thisroom`), `room.State`
+(`croom`), `room.Objs` (`objs`), `room.BgFrame`, `room.WalkableAreasOn`, `room.EnteredAtX` (upstream's
+`play.bg_frame`...). The sprite cache is `EngineServices::Sprites`, the mouse position
+`services.Input.MouseX`. A function that uses a context once takes the direct form (`Game::Current().numviews`);
+more than once, or once inside a loop, the local as its first statement; a helper called per drawn or updated
+entity takes the context from its caller as its first parameter(s), in the order `Game &`, `Room &`,
+`EngineServices &`. The context headers stay light (RUNTIME-SPLIT.md 9): a member whose type needs a module header
+is a `std::vector` of a forward-declared type or a reference member, never a new include of `game/ui/gui.h` and
+its like. A new value of the game or of the room is a member of its context; the few globals that stay are listed
+with a reason in `Script/check_layers.py` (`EXTERN_ALLOWED`: constants, stateless script managers, the script
+ring's own state, crash handler values), which fails on any other `extern` variable in an engine header.
 `Engine/game/` holds the game logic in `world`, `navigation`, `dialog`, `ui`, `render`, `audio`, `video`,
 `input`, `save`, `lib` and `dynobj`, and the script bindings in `script_api/`. `docs/context/repository.md`
 describes upstream's tree, so its `Engine/ac/` and `Common/ac/` paths map through
@@ -152,7 +171,8 @@ changed files that no stage verifies (workflows, packaging, most scripts). `--dr
 Without `--auto` every stage runs, which a repository-wide change needs (`--list`, `--only`, `--skip`,
 `--base`, `--emsdk <dir>`): `format`, `helpers` (`Script/check_helpers.py` on the changed lines: functions
 named like a shared helper, comments citing an Editor member that is not there), `layers`
-(`Script/check_layers.py`: an include against the engine's ring rules that is not in the baseline, an `extern` in an engine source file), `buildlists` (`Script/check_build_lists.py`: every `.vcxproj`'s and the macOS Xcode project's
+(`Script/check_layers.py`: an include against the engine's ring rules that is not in the baseline, an `extern` in an engine source file, an
+`extern` variable in an engine header that its `EXTERN_ALLOWED` table does not list), `buildlists` (`Script/check_build_lists.py`: every `.vcxproj`'s and the macOS Xcode project's
 (`OSX/xcode/AGSKit`) sources against its CMake targets, deliberate differences listed with reasons in the script), `build`
 (+ `ctest`), `tidy` (clang-tidy on changed lines), `headers`, `libcxx`, `emscripten` (engine as GLES2, then
 a syntax check of the Linux-only code), `linux` (the CI's GCC job: build, header check, `ctest`), `msbuild`.
