@@ -45,7 +45,7 @@ on a changed line: the ones on the watchlist are reported as [ags-cryptic-name],
 a declaration is flagged; a changed line that uses a legacy "chaa" is not, and neither is an `extern`
 declaration of a global, which repeats the name its definition has (5.1 step 1 moved the declarations of
 `croom`, `objs` and `scsystem` into headers; a new global is flagged where it is defined). The same list serves the
-reserved names (STYLE.md "Naming": `ch` is a character, `chex` a CharacterState, `btn` a GUIButton):
+reserved names (STYLE.md "Naming": `ch` is a character, `btn` a GUIButton):
 a declaration of one of them is read from the source line and reported as [ags-reserved-name] when
 the type written there is not the reserved one. A declaration by `auto` is not checked.
 
@@ -82,8 +82,7 @@ DECLARED_CHECK = 'readability-identifier-length'
 DECLARED_NAME = re.compile(r"name '(\w+)' is too short")
 CRYPTIC_CHECK = 'ags-cryptic-name'
 # Reserved names and the types they may have (STYLE.md "Naming"); a type token of the declaration must match
-RESERVED_NAMES = {'ch': ('CharacterDef', 'AGSCharacter', 'Character'),
-                  'chex': ('CharacterState',),
+RESERVED_NAMES = {'ch': ('Character', 'CharacterDef', 'AGSCharacter'),
                   'btn': ('GUIButton',)}
 RESERVED_CHECK = 'ags-reserved-name'
 # The diagnostics about a whole function, reported on its declaration line (see the docstring)
