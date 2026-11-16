@@ -17,7 +17,7 @@
 
 #include "game/dynobj/script_string.h"
 #include "game/game.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/lib/string.h"
 #include "game/runtime_defines.h"
 #include "script/runtimescriptvalue.h"

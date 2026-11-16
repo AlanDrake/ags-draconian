@@ -31,7 +31,7 @@
 #include "game/dynobj/all_script_classes.h"
 #include "game/file.h"
 #include "game/game.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/script.h"

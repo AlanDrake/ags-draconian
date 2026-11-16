@@ -26,7 +26,7 @@
 #include "game/dialog_topic.h"
 #include "game/dynobj/cc_serializer.h"
 #include "game/game.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/inventory_item_info.h"
 #include "game/main_game_file.h"

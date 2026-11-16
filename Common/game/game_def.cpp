@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 
 #include "data/data_helpers.h"
 #include "game/audio_clip_type.h"

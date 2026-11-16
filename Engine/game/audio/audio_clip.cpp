@@ -18,7 +18,7 @@
 #include "game/audio/audio_channel.h"
 #include "game/dynobj/cc_audio_clip.h"
 #include "game/game.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/world/properties.h"

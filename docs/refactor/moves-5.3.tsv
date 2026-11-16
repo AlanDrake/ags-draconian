@@ -15,10 +15,10 @@ Common/ac/dialogtopic.h	Common/game/dialog_topic.h
 Common/ac/dynobj/scriptaudioclip.cpp	Common/game/script_audio_clip.cpp
 Common/ac/dynobj/scriptaudioclip.h	Common/game/script_audio_clip.h
 Common/ac/game_version.h	Common/game/game_version.h
-Common/ac/gamesetupstruct.cpp	Common/game/game_setup_struct.cpp
-Common/ac/gamesetupstruct.h	Common/game/game_setup_struct.h
-Common/ac/gamesetupstructbase.cpp	Common/game/game_setup_struct_base.cpp
-Common/ac/gamesetupstructbase.h	Common/game/game_setup_struct_base.h
+Common/ac/gamesetupstruct.cpp	Common/game/game_def.cpp
+Common/ac/gamesetupstruct.h	Common/game/game_def.h
+Common/ac/gamesetupstructbase.cpp	Common/game/game_def_base.cpp
+Common/ac/gamesetupstructbase.h	Common/game/game_def_base.h
 Common/ac/gamestructdefines.h	Common/game/game_struct_defines.h
 Common/ac/inventoryiteminfo.cpp	Common/game/inventory_item_info.cpp
 Common/ac/inventoryiteminfo.h	Common/game/inventory_item_info.h

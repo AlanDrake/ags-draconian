@@ -600,8 +600,8 @@
     <ClInclude Include="..\..\Common\game\character_info.h" />
     <ClInclude Include="..\..\Common\game\common_defines.h" />
     <ClInclude Include="..\..\Common\game\dialog_topic.h" />
-    <ClInclude Include="..\..\Common\game\game_setup_struct.h" />
-    <ClInclude Include="..\..\Common\game\game_setup_struct_base.h" />
+    <ClInclude Include="..\..\Common\game\game_def.h" />
+    <ClInclude Include="..\..\Common\game\game_def_base.h" />
     <ClInclude Include="..\..\Common\game\game_struct_defines.h" />
     <ClInclude Include="..\..\Common\game\inventory_item_info.h" />
     <ClInclude Include="..\..\Common\game\mouse_cursor.h" />

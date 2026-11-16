@@ -435,10 +435,10 @@
 		526F22A61D3B5C4900EF4E1F /* script_audio_clip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F21241D3B5C4800EF4E1F /* script_audio_clip.cpp */; };
 		526F22A71D3B5C4900EF4E1F /* script_audio_clip.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F21251D3B5C4800EF4E1F /* script_audio_clip.h */; };
 		526F22A81D3B5C4900EF4E1F /* game_version.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F21261D3B5C4800EF4E1F /* game_version.h */; };
-		526F22A91D3B5C4900EF4E1F /* game_setup_struct.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F21271D3B5C4800EF4E1F /* game_setup_struct.cpp */; };
-		526F22AA1D3B5C4900EF4E1F /* game_setup_struct.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F21281D3B5C4800EF4E1F /* game_setup_struct.h */; };
-		526F22AB1D3B5C4900EF4E1F /* game_setup_struct_base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F21291D3B5C4800EF4E1F /* game_setup_struct_base.cpp */; };
-		526F22AC1D3B5C4900EF4E1F /* game_setup_struct_base.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F212A1D3B5C4800EF4E1F /* game_setup_struct_base.h */; };
+		526F22A91D3B5C4900EF4E1F /* game_def.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F21271D3B5C4800EF4E1F /* game_def.cpp */; };
+		526F22AA1D3B5C4900EF4E1F /* game_def.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F21281D3B5C4800EF4E1F /* game_def.h */; };
+		526F22AB1D3B5C4900EF4E1F /* game_def_base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F21291D3B5C4800EF4E1F /* game_def_base.cpp */; };
+		526F22AC1D3B5C4900EF4E1F /* game_def_base.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F212A1D3B5C4800EF4E1F /* game_def_base.h */; };
 		526F22AD1D3B5C4900EF4E1F /* game_struct_defines.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F212B1D3B5C4800EF4E1F /* game_struct_defines.h */; };
 		526F22B01D3B5C4900EF4E1F /* inventory_item_info.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F212E1D3B5C4800EF4E1F /* inventory_item_info.h */; };
 		526F22B31D3B5C4900EF4E1F /* mouse_cursor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F21311D3B5C4800EF4E1F /* mouse_cursor.cpp */; };
@@ -1364,10 +1364,10 @@
 		526F21241D3B5C4800EF4E1F /* script_audio_clip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = script_audio_clip.cpp; sourceTree = "<group>"; };
 		526F21251D3B5C4800EF4E1F /* script_audio_clip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = script_audio_clip.h; sourceTree = "<group>"; };
 		526F21261D3B5C4800EF4E1F /* game_version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = game_version.h; sourceTree = "<group>"; };
-		526F21271D3B5C4800EF4E1F /* game_setup_struct.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = game_setup_struct.cpp; sourceTree = "<group>"; };
-		526F21281D3B5C4800EF4E1F /* game_setup_struct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = game_setup_struct.h; sourceTree = "<group>"; };
-		526F21291D3B5C4800EF4E1F /* game_setup_struct_base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = game_setup_struct_base.cpp; sourceTree = "<group>"; };
-		526F212A1D3B5C4800EF4E1F /* game_setup_struct_base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = game_setup_struct_base.h; sourceTree = "<group>"; };
+		526F21271D3B5C4800EF4E1F /* game_def.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = game_def.cpp; sourceTree = "<group>"; };
+		526F21281D3B5C4800EF4E1F /* game_def.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = game_def.h; sourceTree = "<group>"; };
+		526F21291D3B5C4800EF4E1F /* game_def_base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = game_def_base.cpp; sourceTree = "<group>"; };
+		526F212A1D3B5C4800EF4E1F /* game_def_base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = game_def_base.h; sourceTree = "<group>"; };
 		526F212B1D3B5C4800EF4E1F /* game_struct_defines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = game_struct_defines.h; sourceTree = "<group>"; };
 		526F212E1D3B5C4800EF4E1F /* inventory_item_info.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inventory_item_info.h; sourceTree = "<group>"; };
 		526F21311D3B5C4800EF4E1F /* mouse_cursor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mouse_cursor.cpp; sourceTree = "<group>"; };
@@ -2817,10 +2817,10 @@
 				526F21241D3B5C4800EF4E1F /* script_audio_clip.cpp */,
 				526F21251D3B5C4800EF4E1F /* script_audio_clip.h */,
 				526F21261D3B5C4800EF4E1F /* game_version.h */,
-				526F21271D3B5C4800EF4E1F /* game_setup_struct.cpp */,
-				526F21281D3B5C4800EF4E1F /* game_setup_struct.h */,
-				526F21291D3B5C4800EF4E1F /* game_setup_struct_base.cpp */,
-				526F212A1D3B5C4800EF4E1F /* game_setup_struct_base.h */,
+				526F21271D3B5C4800EF4E1F /* game_def.cpp */,
+				526F21281D3B5C4800EF4E1F /* game_def.h */,
+				526F21291D3B5C4800EF4E1F /* game_def_base.cpp */,
+				526F212A1D3B5C4800EF4E1F /* game_def_base.h */,
 				526F212B1D3B5C4800EF4E1F /* game_struct_defines.h */,
 				52F5D8601DA1219D006F8F4B /* inventory_item_info.cpp */,
 				526F212E1D3B5C4800EF4E1F /* inventory_item_info.h */,
@@ -3816,7 +3816,7 @@
 				526F28621D3B5CC300EF4E1F /* game_file.h in Headers */,
 				526F27BC1D3B5CC300EF4E1F /* gfxdriverbase.h in Headers */,
 				2034CAAD2A201E4F00824C80 /* dr_mp3.h in Headers */,
-				526F22AC1D3B5C4900EF4E1F /* game_setup_struct_base.h in Headers */,
+				526F22AC1D3B5C4900EF4E1F /* game_def_base.h in Headers */,
 				526F22A01D3B5C4900EF4E1F /* audio_clip_type.h in Headers */,
 				20522A4928E8F8AA00589E91 /* draw_software.h in Headers */,
 				526F26C81D3B5CC300EF4E1F /* cc_gui.h in Headers */,
@@ -3849,7 +3849,7 @@
 				20E6825F28F1D2C400B95C00 /* resample.h in Headers */,
 				526F22E81D3B5C4900EF4E1F /* guimain.h in Headers */,
 				526F23191D3B5C4900EF4E1F /* aautil.h in Headers */,
-				526F22AA1D3B5C4900EF4E1F /* game_setup_struct.h in Headers */,
+				526F22AA1D3B5C4900EF4E1F /* game_def.h in Headers */,
 				526F27CD1D3B5CC300EF4E1F /* gfxmodelist.h in Headers */,
 				526F27721D3B5CC300EF4E1F /* room.h in Headers */,
 				20E67D8E28F1BDE000B95C00 /* cdefs24.h in Headers */,
@@ -4413,7 +4413,7 @@
 				526F26EE1D3B5CC300EF4E1F /* script_user_object.cpp in Sources */,
 				526F22E31D3B5C4900EF4E1F /* guilabel.cpp in Sources */,
 				526F28911D3B5CC300EF4E1F /* soundclip.cpp in Sources */,
-				526F22A91D3B5C4900EF4E1F /* game_setup_struct.cpp in Sources */,
+				526F22A91D3B5C4900EF4E1F /* game_def.cpp in Sources */,
 				526F23D11D3B5C4900EF4E1F /* file.cpp in Sources */,
 				20402A6A2A227C86001C7642 /* cc_static_array.cpp in Sources */,
 				526F22B31D3B5C4900EF4E1F /* mouse_cursor.cpp in Sources */,
@@ -4452,7 +4452,7 @@
 				526F26C71D3B5CC300EF4E1F /* cc_gui.cpp in Sources */,
 				20E683D828F20C7200B95C00 /* smallft.c in Sources */,
 				526F23D51D3B5C4900EF4E1F /* geometry.cpp in Sources */,
-				526F22AB1D3B5C4900EF4E1F /* game_setup_struct_base.cpp in Sources */,
+				526F22AB1D3B5C4900EF4E1F /* game_def_base.cpp in Sources */,
 				526F23D91D3B5C4900EF4E1F /* inifile.cpp in Sources */,
 				20E681F728F1D2A800B95C00 /* SDL_sound_voc.c in Sources */,
 				52F5D8581DA120F1006F8F4B /* game_init.cpp in Sources */,

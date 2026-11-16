@@ -26,7 +26,7 @@
 #include <vector>
 
 #include "game/game.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/render/dynamic_sprite.h"
 #include "gfx/ali3dsw.h"
 #include "gfx/bitmap.h"

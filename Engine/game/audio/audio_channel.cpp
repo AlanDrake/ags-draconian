@@ -16,7 +16,7 @@
 #include "debug/debug_log.h"
 #include "game/dialog/speech.h"
 #include "game/game.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/roomstruct.h"
 #include "game/world/room.h"

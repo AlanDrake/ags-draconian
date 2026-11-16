@@ -181,7 +181,7 @@ String get_voice_assetpath()
 //=============================================================================
 
 #include "debug/out.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "script/dynobj/dynobj_manager.h"
 
 ScriptOverlay *Speech_GetTextOverlay()

@@ -24,7 +24,7 @@
 
 #include "data/assetmanager.h"
 #include "game/dialog_topic.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/main_game_file.h"
 #include "game/room_file.h"
 #include "game/roomstruct.h"

@@ -22,7 +22,7 @@
 #include "game/audio_clip_type.h"
 #include "game/character_info.h" // TODO: constants to separate header
 #include "game/customproperties.h"
-#include "game/game_setup_struct_base.h"
+#include "game/game_def_base.h"
 #include "game/inventory_item_info.h"
 #include "game/main_game_file.h" // TODO: constants to separate header or split out reading functions
 #include "game/mouse_cursor.h"

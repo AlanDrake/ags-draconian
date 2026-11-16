@@ -25,7 +25,7 @@
 #include "game/dialog/dialog.h"
 #include "game/event.h"
 #include "game/game.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/ui/inv_window.h"
 #include "game/ui/mouse.h"

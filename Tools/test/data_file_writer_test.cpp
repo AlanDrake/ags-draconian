@@ -20,7 +20,7 @@
 #include "game/character_info.h"
 #include "game/customproperties.h"
 #include "game/dialog_topic.h"
-#include "game/game_setup_struct_base.h"
+#include "game/game_def_base.h"
 #include "game/game_version.h"
 #include "game/inventory_item_info.h"
 #include "game/mouse_cursor.h"

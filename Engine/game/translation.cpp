@@ -23,7 +23,7 @@
 #include "game/dialog/display.h"
 #include "game/dialog/parser.h"
 #include "game/game.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/runtime_defines.h"
 #include "gui/guimain.h"

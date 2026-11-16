@@ -14,7 +14,7 @@
 #include "game/dynobj/script_drawing_surface.h"
 
 #include "game/game.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/render/drawing_surface.h"

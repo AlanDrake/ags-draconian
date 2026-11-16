@@ -23,7 +23,7 @@
 #include "font/fonts.h"
 #include "game/audio_clip_type.h"
 #include "game/dialog_topic.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/script_audio_clip.h"
 #include "game/view.h"
 #include "gfx/gfx_def.h"

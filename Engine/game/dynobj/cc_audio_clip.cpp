@@ -14,7 +14,7 @@
 #include "game/dynobj/cc_audio_clip.h"
 
 #include "game/game.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/script_audio_clip.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"

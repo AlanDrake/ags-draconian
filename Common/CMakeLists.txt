@@ -51,10 +51,10 @@ target_sources(common
     game/customproperties.h
     game/dialog_topic.cpp
     game/dialog_topic.h
-    game/game_setup_struct.cpp
-    game/game_setup_struct.h
-    game/game_setup_struct_base.cpp
-    game/game_setup_struct_base.h
+    game/game_def.cpp
+    game/game_def.h
+    game/game_def_base.cpp
+    game/game_def_base.h
     game/game_struct_defines.h
     game/game_version.h
     game/inventory_item_info.cpp

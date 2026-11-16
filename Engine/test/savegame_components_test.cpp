@@ -37,7 +37,7 @@
 #include "game/dialog/dialog.h"
 #include "game/dialog_topic.h"
 #include "game/game.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/render/screen_overlay.h"
 #include "game/save/savegame.h"

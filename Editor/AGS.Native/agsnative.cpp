@@ -25,7 +25,7 @@ extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 #undef DeleteFile
 #include <algorithm>
 #include "util/common.h" // quit
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "gfx/sprite_cache.h"
 #include "game/view.h"
 #include "font/agsfontrenderer.h"

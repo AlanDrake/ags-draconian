@@ -24,7 +24,7 @@
 #include "game/dialog/display.h"
 #include "game/dynobj/script_string.h"
 #include "game/game.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/runtime_defines.h"
 #include "platform/base/engine_services.h"
 #include "script/dynobj/cc_dynamic_array.h"

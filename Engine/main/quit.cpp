@@ -28,7 +28,7 @@
 #include "debug/out.h"
 #include "font/fonts.h"
 #include "game/game.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/navigation/route_finder.h"
 #include "game/render/draw.h"

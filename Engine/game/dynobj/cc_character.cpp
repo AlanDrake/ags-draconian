@@ -15,8 +15,8 @@
 
 #include "game/character_info.h"
 #include "game/game.h"
+#include "game/game_def.h"
 #include "game/game_init.h"
-#include "game/game_setup_struct.h"
 #include "script/cc_common.h" // cc_error
 #include "script/cc_common.h"
 #include "script/dynobj/dynobj_manager.h"

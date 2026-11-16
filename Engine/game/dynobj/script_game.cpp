@@ -15,7 +15,7 @@
 
 #include "debug/debug_log.h"
 #include "game/game.h"
-#include "game/game_setup_struct.h"
+#include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/ui/gui.h"
 #include "platform/base/engine_config.h"

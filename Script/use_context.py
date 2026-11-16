@@ -93,7 +93,7 @@ CONTEXTS = {
         'type': 'Game',
         'accessor': 'Game::Current()',
         'local': 'game',
-        'header': 'game/game.h',
+        'header': 'game/game_context.h',
         'own_files': (),
         'names': {
             'game': '',
@@ -105,7 +105,7 @@ CONTEXTS = {
         'type': 'Room',
         'accessor': 'Room::Current()',
         'local': 'room',
-        'header': 'game/world/room.h',
+        'header': 'game/world/room_context.h',
         'own_files': (),
         'names': {
             'thisroom': '',

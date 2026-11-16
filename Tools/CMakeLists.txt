@@ -301,7 +301,7 @@ endif ()
 if(AGS_TESTS)
    add_executable(tools_test
       ${CMAKE_SOURCE_DIR}/Common/test/common_stubs.cpp # GUI reader runtime stubs used by data_file_writer_test
-      ../Common/game/game_setup_struct_base.cpp # needed by data_file_writer_test
+      ../Common/game/game_def_base.cpp # needed by data_file_writer_test
       ../Common/game/view.cpp # needed by data_file_writer_test
       ../Common/game/audio_clip_type.cpp # needed by data_file_writer_test
       ../Common/game/script_audio_clip.cpp # needed by data_file_writer_test
