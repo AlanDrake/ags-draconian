@@ -266,8 +266,35 @@ cancel. This run's "before" is the tree that the morning's reading had as "after
 1,659 and 1,688 s now, about 5% less): readings of different hours are not compared, only the pairs of one
 run. GCC was not measured.
 
+**With the precompiled header** (2.10b item 2, 2026-11-16, MSVC only; `95c9e7e09` with the change in a
+worktree). **Indicative: taken while another session built on the same machine**, and accepted so by the user;
+no reading on an idle machine was taken. The readings of this file above and below stay without the
+precompiled header (`-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON`, which `compare_objects.py` passes), so a later
+step is compared with them, not with this table.
+
+| MinSizeRel, a clean build each | without | with | difference |
+|---|---:|---:|---:|
+| all (558 objects): total s | 1708.6 | 1410.5, and 27.0 for the nine headers | -17% |
+| all: median s per object | 2.69 | 2.08 | -23% |
+| `Engine` (253 objects): total s | 751.5 | 523.2 | -30% |
+| `Engine` median s | 2.80 | 1.86 | -34% |
+| `Engine/game` (154 objects): total s | 454.0 | 312.7 | -31% |
+| `Engine/game/script_api` (46 objects): total s | 123.7 | 84.3 | -32% |
+| `Common` (199 objects): total s | 507.4 | 471.6 | -7% |
+| `Tools` (59 objects): total s | 277.3 | 255.6 | -8% |
+| `Compiler` (31 objects): total s | 153.6 | 146.5 | -5% |
+| wall-clock of the whole build, s | 205 | 215 | none seen |
+| rebuild after a change to `game_context.h` (98 steps), s | 48.8, 43.8 | 27.5, 29.3, 37.0 | about -35% |
+
+Twelve single compiles, the fastest of three each, which a busy machine disturbs less: 21.15 s without, 14.47 s
+with (-32%; `Common/util/string.cpp` 0.53 to 0.18 s, `Engine/game/render/draw.cpp` 5.21 to 4.13 s). As Release,
+the configuration of the batch builds, the first clean build with it (`.tidy/dev`) took 635 s of compile time
+over 568 steps, median 0.99 s, 278 s of wall-clock with the links; there is no clean Release build without it
+to set beside it (the prepush directory's log, objects compiled at different hours of a busy day, adds up to
+1,348 s, median 2.27 s). The wall-clock of a clean build did not move in the one pair there is.
+
 To reproduce: build as `compare_objects.py` does (`cmake -S . -B <dir> -G Ninja -DCMAKE_BUILD_TYPE=MinSizeRel
--DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON`, from a developer prompt for MSVC, then
+-DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON`, from a developer prompt for MSVC, then
 `cmake --build <dir>`), then `python Script/refactor_metrics.py --ninja-log <dir>/.ninja_log` (`--json` for the
 numbers as data). The script maps each object to its source through the `compile_commands.json` beside the log.
 

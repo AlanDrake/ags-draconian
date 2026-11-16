@@ -211,6 +211,15 @@ installer are x64 (PLAN.md 2.9d, 2026-11-08); the Linux i386 packages stay, in f
 `macos.yml` (tags, weekly, on demand; macOS runners are often unavailable), `analysis.yml` (on demand:
 ASan + UBSan 27 min, coverage per directory 14 min).
 
+A local CMake build without a compiler launcher uses a precompiled header of stable content (2.10b, 2026-11-16;
+`CMake/PrecompiledHeaders.cmake`: standard headers, four Common basics, glm for the engine, gtest for the tests;
+MSVC, and GCC 11+ or Clang on Linux). Nothing that verifies does: `prepush.py`, `compare_objects.py`,
+`linux_jobs.sh`, `verify.yml` and `analysis.yml` pass `-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON`, and a ccache job gets
+none, so a missing `#include` that the header hides fails there, not in the local build. A compile database for
+clang-tidy comes from a build without it (`tidy_fix.py`'s `.tidy/build`), and the compile-time readings of
+BASELINE.md are taken without it. A header added to it must be stable and included by nearly every file of the
+target: never a game header.
+
 `ags_warning_free(<target>)` marks a target without warnings (`common` so far); with
 `-DAGS_WARNINGS_AS_ERRORS=ON` (`verify.yml`, `prepush.py`; off by default) a warning there is an error.
 

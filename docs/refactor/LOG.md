@@ -2392,6 +2392,55 @@ steps left are in PLAN.md 5.9.
   `cc.py` (one source with the build's own command line, timed), `cl.py`, `disasm.py`, `getter.cpp` (the
   generated accessors beside the hand-written ones), `mkprobe.py` (the header-cost probes).
 
+### 2.10b item 2: a precompiled header of stable content, kept local
+
+*Definition:* PLAN.md 2.10b item 2: lower the fixed cost of a file (about 2.4 s of its 2.7 s) with a
+precompiled header of what does not change, CMake targets only, with the guards built without it.
+
+**Status (2026-11-16): done.** By Sonnet 5.5 `medium` in a worktree beside 5.9 (CMake files, the scripts and
+the workflows; 162 tool calls), then carried onto the tree after 5.9's commits and checked by Fable 5.2. The
+user kept it local and took the readings of a busy machine as good enough.
+
+- **Built:** `CMake/PrecompiledHeaders.cmake`, `ags_precompile_headers(<target> [ENGINE] [GTEST])`, called for
+  `common`, `engine`, `libtools`, `compiler` and the five test targets; `PRIVATE`, C++ only (the C files of a
+  mixed target get none), one header per target (their definitions differ, so none is reused): nine, 27 s to
+  build, 540 MB. The tool executables and the vendored libraries have none.
+- **The content came from counts and parse times** (`ninja -t deps` over 551 objects, `/Zs` per candidate):
+  the standard headers (521 to 538 objects include them, 0.45 s), `platform.h`, `types.h`, `util/string.h` and
+  `debug/assert.h` (495 to 518); glm for the engine (121 of its 248, 0.29 s); gtest for the tests (0.86 s).
+  Left out: Allegro (0.04 s) and `SDL.h` (33 of the engine's 248), 2% more on a sample of ten files and their
+  macros in files that do not include them; `stream.h`, `bbop.h`, `geometry.h` and the like (328 to 427), which
+  change more often than they save; every game header.
+- **Kept local** means: on for MSVC, and for GCC 11+ or Clang on Linux, when no compiler launcher is set. Off
+  for Emscripten, Android, Apple (the Objective-C++ source), FreeBSD, GCC 8, and with ccache: MSVC's `/Yu`
+  objects cannot be cached, and GCC's need ccache settings that nobody tested. `compare_objects.py`,
+  `prepush.py`, `linux_jobs.sh`, `verify.yml` and `analysis.yml` pass `-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON`.
+  So no CI job builds with it, by choice: the alternative was to lose the Windows job's cache.
+- **Two build directories where there was one.** clang-tidy cannot read the compile database of an MSVC build
+  with the precompiled header (`is not a valid precompiled PCH file`, every file), and the batch builds shared
+  `.tidy/build` with `tidy_fix.py`. That directory is now configured without it, and the batches build in
+  `.tidy/dev` (`.compare/helpers/build_dev.py`), which has it.
+- **Found: a header the file did not include changes its code.** `Plugins/ags_snowrain` calls `floor(x)` and
+  `sin(x)` unqualified on floats; with `<cmath>` from the precompiled header MSVC takes the float overloads
+  where it took the double ones. The built-in plugins' sources are left out of the header
+  (`SKIP_PRECOMPILE_HEADERS`). After that the disassembly of all 558 objects was compared with the build
+  without: 481 the same, the 77 others differ in generated names only (numbered statics and
+  anonymous-namespace names in five product objects, a gtest path string in 72 test objects).
+- **Found in CMake:** `$<$<COMPILE_LANGUAGE:CXX>:<vector>>` ends at the first bare `>` when the condition is
+  false and gave the C header `#include ">"`; the module writes `$<ANGLE-R>`. A build directory configured
+  before this change turns the header on at its next configure and rebuilds everything, unless it is given
+  the switch.
+- **Measured** (BASELINE.md "With the precompiled header"; all on a busy machine): compile time of the
+  first-party objects -17% (MinSizeRel), the median per object 2.69 to 2.08 s, `Engine` -30%, `Common` -7%;
+  twelve single compiles -32%; the rebuild after a change to `game_context.h` 44 to 49 s down to 28 to 37 s;
+  the wall-clock of a clean build did not move in the one pair there is.
+- **Verified:** with it, MSVC Release in `.tidy/dev`, 1,226 of 1,226 tests; GCC 13 as Release with warnings
+  as errors, 1,218 of 1,218 (on the tree before 5.9's commits). Without it, on the final tree: every prepush
+  stage, whose logs say "Precompiled headers: off"; `actionlint` on the two workflows. Not run: Clang with
+  libc++ with it, the Visual Studio generator; the workflow edits run in CI only.
+- **Seen and left:** `refactor_metrics.py --ninja-log` refuses to run in a git worktree (it looks for a
+  `.git` directory, and a worktree has a file).
+
 ### Open items from finished tasks
 
 *Moved from PLAN.md "Next up" on 2026-11-07* (details in the tasks' sections):
