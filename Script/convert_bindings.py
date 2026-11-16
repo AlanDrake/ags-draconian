@@ -57,7 +57,7 @@ SKIP_FILES = ('Engine/plugin/plugin_stubs.cpp',)
 # not here is its own manager. Keep in step with bindings.h.
 MANAGERS = {
     'char': 'myScriptStringImpl',
-    'CharacterInfo': 'ccDynamicCharacter',
+    'CharacterDef': 'ccDynamicCharacter',
     'ScriptAudioChannel': 'ccDynamicAudio',
     'ScriptAudioClip': 'ccDynamicAudioClip',
     'ScriptDialog': 'ccDynamicDialog',

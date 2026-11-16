@@ -13,13 +13,10 @@
 //=============================================================================
 //
 // The engine's character: Character, a copy of its definition from the game
-// file (CharacterInfo: what the file gives, the blend mode, graphic anchor and
-// graphic offset included) and its play state (CharacterExtras: everything
+// file (CharacterDef: what the file gives, the blend mode, graphic anchor and
+// graphic offset included) and its play state (CharacterState: everything
 // that exists only while the game runs, the fields that were unused slots of
-// the game file's record included) in one object. The play state was a
-// separate struct historically, because CharacterInfo was exposed to the
-// script API and plugin API in such way that its memory layout could not be
-// changed at all.
+// the game file's record included) in one object.
 //
 //=============================================================================
 #pragma once
@@ -40,7 +37,7 @@ class Stream;
 }
 } // namespace AGS
 
-// A character's save format (CharacterInfo and CharacterExtras)
+// A character's save format (CharacterDef and CharacterState)
 // Before 4.0: 0 (3.5.0 pre-alpha); 1 (3.5.0) new movelist format (along with pathfinder);
 // 2 (3.6.0.25) animation volume; 3 (3.6.1.9) removed movelists, save externally;
 // 4 (3.6.1.15) no limit on character name's length; 3060205 32-bit "following" parameters;
@@ -71,10 +68,10 @@ enum CharacterRuntimeFlags
 };
 
 // The play state of a character: what exists only while the game runs. Character holds it with its definition.
-struct CharacterExtras
+struct CharacterState
 {
     // These were fields of the game file's character record once; the file keeps their slots, unused
-    // (CharacterInfo::ReadFromFile skips them, WriteToFile writes zeros)
+    // (CharacterDef::ReadFromFile skips them, WriteToFile writes zeros)
     int prevroom = 0;
     int wait = 0;
     int16_t idleleft = 0; // time in seconds left before switching to idle animation
@@ -148,12 +145,12 @@ struct CharacterExtras
 // A character of the running game: its definition's fields, which start as a copy of what the game file says,
 // and its play state. The game's characters are Game::Characters, by character id; their addresses are held by
 // the managed pool, scripts and plugins, so the list is built once per loaded game and never resized after.
-class Character : public CharacterInfo, public CharacterExtras
+class Character : public CharacterDef, public CharacterState
 {
 public:
     Character() = default;
     // Starts a character from its definition
-    explicit Character(const CharacterInfo &def) : CharacterInfo(def) {}
+    explicit Character(const CharacterDef &def) : CharacterDef(def) {}
 
     int get_baseline() const;        // return baseline, or Y if not set
     int get_blocking_top() const;    // return Y - BlockingHeight/2
@@ -225,7 +222,7 @@ public:
     void UpdateGraphicSpace();
 
     // Reads the play state part of the character from a save (the definition part is read by the save code,
-    // ReadCharacterInfo in savegame_components.cpp)
+    // ReadCharacterDef in savegame_components.cpp)
     void ReadFromSavegame(AGS::Common::Stream *in, CharacterSvgVersion save_ver);
     // Writes the play state part of the character to a save
     void WriteToSavegame(AGS::Common::Stream *out) const;

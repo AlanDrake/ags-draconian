@@ -67,10 +67,10 @@ class Stream;
 #define CHF_VISIBLE 0x02000000 // Visible (actual visibility requires both ENABLED + VISIBLE)
 
 // Value of walk speed indicating that X and Y speed is the same
-// Value of CharacterInfo::walkspeed_y that tells to use walkspeed_x
+// Value of CharacterDef::walkspeed_y that tells to use walkspeed_x
 #define UNIFORM_WALK_SPEED 0
 // Value of "followinfo" field that tells to draw follower char above followed
-// Value of CharacterInfo::followinfo that tells to keep follower z-sorted above the leading char
+// Value of CharacterDef::followinfo that tells to keep follower z-sorted above the leading char
 #define FOLLOW_ALWAYSONTOP 0x7ffe
 
 // Maximal number of character's face directions (loops)
@@ -87,7 +87,7 @@ class Stream;
 #define LEGACY_CHANIM_REPEAT    0x02
 #define LEGACY_CHANIM_BACKWARDS 0x04
 
-// These deprecated values were **added** to CharacterInfo's MoveList index;
+// These deprecated values were **added** to CharacterDef's MoveList index;
 // TURNING_AROUND was added times the character must turn,
 // TURNING_BACKWARDS was added if the character is turning counter-clockwise;
 // which meant that the number of MoveList users will be limited by 1000,
@@ -120,7 +120,7 @@ enum CharacterEventID
 
 // A character as the game file defines it. The engine's running character (Character, Engine/game/world) starts
 // as a copy of it and adds the play state.
-struct CharacterInfo
+struct CharacterDef
 {
     int defview = 0;
     int talkview = 0;
@@ -163,7 +163,7 @@ struct CharacterInfo
     // Gets default sprite anchor for the character
     static Pointf GetDefaultSpriteAnchor() { return Pointf(0.5f, 1.f); /* middle-bottom */ }
     // Gets a events schema corresponding to this object's type
-    static const AGS::Common::ScriptEventSchema &GetEventSchema() { return CharacterInfo::_eventSchema; }
+    static const AGS::Common::ScriptEventSchema &GetEventSchema() { return CharacterDef::_eventSchema; }
 
     // Tells if the "enabled" flag is set
     inline bool is_enabled() const { return (flags & CHF_ENABLED) != 0; }
@@ -206,12 +206,12 @@ struct CharacterInfo
 
     void set_item_quantity(int item_id, int quant);
 
-    CharacterInfo() = default;
-    CharacterInfo(const CharacterInfo &) = default;
-    CharacterInfo(CharacterInfo &&) = default;
+    CharacterDef() = default;
+    CharacterDef(const CharacterDef &) = default;
+    CharacterDef(CharacterDef &&) = default;
 
-    CharacterInfo &operator=(const CharacterInfo &) = default;
-    CharacterInfo &operator=(CharacterInfo &&) = default;
+    CharacterDef &operator=(const CharacterDef &) = default;
+    CharacterDef &operator=(CharacterDef &&) = default;
 
     // Provides a script events table
     const AGS::Common::ScriptEventTable &GetEvents() const { return _events; }
@@ -227,5 +227,5 @@ private:
     // Script events schema
     static AGS::Common::ScriptEventSchema _eventSchema;
     // Common events
-    AGS::Common::ScriptEventTable _events = AGS::Common::ScriptEventTable(&CharacterInfo::_eventSchema);
+    AGS::Common::ScriptEventTable _events = AGS::Common::ScriptEventTable(&CharacterDef::_eventSchema);
 };

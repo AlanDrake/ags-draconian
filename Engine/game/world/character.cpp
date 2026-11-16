@@ -778,7 +778,7 @@ void Character_LockViewImpl(Character *ch, const char *api_name, int view, int l
 
 void Character_LockViewEx(Character *ch, int view, int stop_moving)
 {
-    Character_LockViewImpl(ch, "Character.LockView", view, -1, -1, CharacterInfo::GetDefaultSpriteAnchor(), Point(),
+    Character_LockViewImpl(ch, "Character.LockView", view, -1, -1, CharacterDef::GetDefaultSpriteAnchor(), Point(),
                            stop_moving != 0);
 }
 
@@ -808,13 +808,13 @@ void Character_LockViewAnchored(Character *ch, int view, float x_anchor, float y
 
 void Character_LockViewFrameEx(Character *ch, int view, int loop, int frame, int stop_moving)
 {
-    Character_LockViewImpl(ch, "Character.LockViewFrame", view, loop, frame, CharacterInfo::GetDefaultSpriteAnchor(),
+    Character_LockViewImpl(ch, "Character.LockViewFrame", view, loop, frame, CharacterDef::GetDefaultSpriteAnchor(),
                            Point(), stop_moving != 0);
 }
 
 void Character_LockViewOffsetEx(Character *ch, int view, int xoffs, int yoffs, int stop_moving)
 {
-    Character_LockViewImpl(ch, "Character.LockViewOffset", view, -1, -1, CharacterInfo::GetDefaultSpriteAnchor(),
+    Character_LockViewImpl(ch, "Character.LockViewOffset", view, -1, -1, CharacterDef::GetDefaultSpriteAnchor(),
                            Point(xoffs, yoffs), stop_moving != 0);
 }
 

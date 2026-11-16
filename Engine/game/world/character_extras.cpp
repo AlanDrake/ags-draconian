@@ -97,7 +97,7 @@ void Character::SetUnlockedView()
     flags &= ~CHF_FIXVIEW;
     view = defview;
     frame = 0;
-    view_anchor = CharacterInfo::GetDefaultSpriteAnchor();
+    view_anchor = CharacterDef::GetDefaultSpriteAnchor();
     view_offset = Point();
     UpdateEffectiveValues();
 }
@@ -273,7 +273,7 @@ void Character::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     {
         GraphicAnchor = Pointf(0.5f, 1.f); // default: middle-bottom
         GraphicOffset = Point();
-        view_anchor = CharacterInfo::GetDefaultSpriteAnchor(); // as SetUnlockedView
+        view_anchor = CharacterDef::GetDefaultSpriteAnchor(); // as SetUnlockedView
         view_offset = Point();
     }
 
@@ -290,7 +290,7 @@ void Character::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     }
 
     // NOTE: the legacy animating fields from old save fmt are applied externally,
-    // because they are loaded into deprecated CharacterInfo fields
+    // because they are loaded into deprecated CharacterDef fields
     anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_anim_volume);
 
     UpdateEffectiveValues();

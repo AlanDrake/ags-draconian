@@ -22,7 +22,7 @@
 
 using namespace AGS::Common;
 
-void CharacterInfo::set_item_quantity(int item_id, int quant)
+void CharacterDef::set_item_quantity(int item_id, int quant)
 {
     if (quant <= 0)
     {
@@ -35,12 +35,12 @@ void CharacterInfo::set_item_quantity(int item_id, int quant)
     }
 }
 
-/* static */ ScriptEventSchema CharacterInfo::_eventSchema = {{
+/* static */ ScriptEventSchema CharacterDef::_eventSchema = {{
     {"OnAnyClick", kCharacterEvent_AnyClick},
     {"OnFrameEvent", kCharacterEvent_OnFrameEvent},
 }};
 
-void CharacterInfo::RemapOldInteractions()
+void CharacterDef::RemapOldInteractions()
 {
     std::vector<ScriptEventHandler> old_interactions = interactions.GetHandlers();
     std::vector<ScriptEventHandler> new_interactions;
@@ -61,7 +61,7 @@ void CharacterInfo::RemapOldInteractions()
     interactions.SetHandlers(std::move(new_interactions));
 }
 
-void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver)
+void CharacterDef::ReadFromFile(Stream *in, GameDataVersion data_ver)
 {
     // Base fields (original game format)
     // NOTE: some of the fields below are dummy slots,
@@ -130,7 +130,7 @@ void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver)
     in->ReadInt8(); // alignment padding to int32
 }
 
-void CharacterInfo::WriteToFile(Stream *out) const
+void CharacterDef::WriteToFile(Stream *out) const
 {
     // Base fields (original game format)
     // NOTE: some of the fields below are dummy slots,

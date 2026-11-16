@@ -38,14 +38,14 @@ the same reading: a function-size or function-name diagnostic is dropped when a 
 is in the base copy of any file the diff touches (a Register*API that moved to a new file), and a
 diagnostic on a declaration line that moved unchanged is gone already, since that line is not changed.
 
-clang-tidy's naming check knows case styles, not words, so a new "CharacterInfo *chaa" would pass it.
+clang-tidy's naming check knows case styles, not words, so a new "CharacterDef *chaa" would pass it.
 The banned abbreviations (CRYPTIC_WATCHLIST in refactor_metrics.py; STYLE.md "Naming") are found through
 readability-identifier-length, which .clang-tidy sets up to report every variable and parameter declared
 on a changed line: the ones on the watchlist are reported as [ags-cryptic-name], the rest dropped. Only
 a declaration is flagged; a changed line that uses a legacy "chaa" is not, and neither is an `extern`
 declaration of a global, which repeats the name its definition has (5.1 step 1 moved the declarations of
 `croom`, `objs` and `scsystem` into headers; a new global is flagged where it is defined). The same list serves the
-reserved names (STYLE.md "Naming": `ch` is a character, `chex` a CharacterExtras, `btn` a GUIButton):
+reserved names (STYLE.md "Naming": `ch` is a character, `chex` a CharacterState, `btn` a GUIButton):
 a declaration of one of them is read from the source line and reported as [ags-reserved-name] when
 the type written there is not the reserved one. A declaration by `auto` is not checked.
 
@@ -82,8 +82,8 @@ DECLARED_CHECK = 'readability-identifier-length'
 DECLARED_NAME = re.compile(r"name '(\w+)' is too short")
 CRYPTIC_CHECK = 'ags-cryptic-name'
 # Reserved names and the types they may have (STYLE.md "Naming"); a type token of the declaration must match
-RESERVED_NAMES = {'ch': ('CharacterInfo', 'AGSCharacter', 'Character'),
-                  'chex': ('CharacterExtras',),
+RESERVED_NAMES = {'ch': ('CharacterDef', 'AGSCharacter', 'Character'),
+                  'chex': ('CharacterState',),
                   'btn': ('GUIButton',)}
 RESERVED_CHECK = 'ags-reserved-name'
 # The diagnostics about a whole function, reported on its declaration line (see the docstring)

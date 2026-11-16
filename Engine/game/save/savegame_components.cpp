@@ -117,7 +117,7 @@ struct CharacterLegacyFields
     Point ViewOffset;
 };
 
-void ReadCharacterInfo(Character &ch, Stream *in, CharacterLegacyFields &old_fields, CharacterSvgVersion save_ver)
+void ReadCharacterDef(Character &ch, Stream *in, CharacterLegacyFields &old_fields, CharacterSvgVersion save_ver)
 {
     ch.defview = in->ReadInt32();
     ch.talkview = in->ReadInt32();
@@ -214,7 +214,7 @@ void ReadCharacterInfo(Character &ch, Stream *in, CharacterLegacyFields &old_fie
     }
 }
 
-void WriteCharacterInfo(const Character &ch, Stream *out)
+void WriteCharacterDef(const Character &ch, Stream *out)
 {
     out->WriteInt32(ch.defview);
     out->WriteInt32(ch.talkview);
@@ -1054,7 +1054,7 @@ HSaveError WriteCharacters(Stream *out)
     out->WriteInt32(game.numcharacters);
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        WriteCharacterInfo(game.Characters[i], out);
+        WriteCharacterDef(game.Characters[i], out);
         game.Characters[i].WriteToSavegame(out);
         Properties::WriteValues(game.Play.charProps[i], out);
     }
@@ -1077,7 +1077,7 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
         auto &ch = game.Characters[i];
         // TODO: this is ugly reading old fields like that, might either join Read methods in one, or drop old format at some point
         CharacterLegacyFields old_fields;
-        ReadCharacterInfo(ch, in, old_fields, svg_ver);
+        ReadCharacterDef(ch, in, old_fields, svg_ver);
         ch.view_offset = old_fields.ViewOffset;
         ch.ReadFromSavegame(in, svg_ver);
         Properties::ReadValues(game.Play.charProps[i], in);

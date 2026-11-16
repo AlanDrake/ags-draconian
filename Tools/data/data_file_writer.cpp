@@ -193,11 +193,11 @@ void WriteView(Stream *out, const DataUtil::GameData &game, const DataUtil::View
     }
 }
 
-// Read by CharacterInfo::ReadFromFile() in Common/game/character_info.cpp,
+// Read by CharacterDef::ReadFromFile() in Common/game/character_info.cpp,
 // through GameDef::ReadCharacters().
 void WriteCharacter(Stream *out, const DataUtil::GameData &game, const DataUtil::CharacterData &ref, int index)
 {
-    CharacterInfo ch;
+    CharacterDef ch;
 
     ch.index_id = ref.ID >= 0 ? ref.ID : index;
     ch.defview = ref.NormalView - 1;

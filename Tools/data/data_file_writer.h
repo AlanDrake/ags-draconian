@@ -43,7 +43,7 @@ struct CompiledData
     explicit CompiledData(const DataUtil::GameData &game);
 };
 
-// Writes one character's CharacterInfo record
+// Writes one character's CharacterDef record
 void WriteCharacter(Stream *out, const DataUtil::GameData &game, const DataUtil::CharacterData &character, int index);
 // Writes one inventory item record
 void WriteInventoryItem(Stream *out, const DataUtil::InventoryItemData &item);

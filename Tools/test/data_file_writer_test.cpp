@@ -203,7 +203,7 @@ TEST(DataFileWriter, RoundTripCharacter)
     out.reset();
 
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
-    CharacterInfo loaded;
+    CharacterDef loaded;
     loaded.ReadFromFile(in.get(), kGameVersion_Current);
 
     EXPECT_EQ(7, loaded.index_id);
@@ -447,7 +447,7 @@ TEST(DataFileWriter, RoundTripCharactersBlock)
     out.reset();
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
-    CharacterInfo loaded[2];
+    CharacterDef loaded[2];
     for (int i = 0; i < 2; ++i)
         loaded[i].ReadFromFile(in.get(), kGameVersion_Current);
     EXPECT_EQ(0, loaded[0].index_id);
