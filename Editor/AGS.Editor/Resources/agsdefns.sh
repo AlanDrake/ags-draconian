@@ -3330,6 +3330,12 @@ builtin managed struct Character {
   import attribute int  y;
   /// The character's current Z-position.
   import attribute int  z;
+  /// The character's current X-position.
+  import attribute int  X;
+  /// The character's current Y-position.
+  import attribute int  Y;
+  /// The character's current Z-position.
+  import attribute int  Z;
 #ifdef SCRIPT_API_v399
   /// Gets/sets the character's current blend mode.
   import attribute BlendMode BlendMode;

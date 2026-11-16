@@ -237,7 +237,7 @@ HError ReadMainBlock(RoomDef *room, Stream *in, RoomFileVersion data_ver, const 
     in->Seek(LEGACY_ROOM_PASSWORD_LENGTH); // skip password
     in->ReadInt8();                        // [DEPRECATED]
     in->ReadInt8();                        // [DEPRECATED]
-    room->Options.PlayerCharacterOff = in->ReadInt8() != 0;
+    room->Options.ShowPlayerCharacter = in->ReadInt8() == 0;
     room->Options.PlayerView = in->ReadInt8();
     in->ReadInt8(); // [DEPRECATED]
     room->Options.Flags = in->ReadInt8();
@@ -345,7 +345,7 @@ HError ReadObjScNamesBlock(RoomDef *room, Stream *in, RoomFileVersion /*data_ver
 HError ReadAnimBgBlock(RoomDef *room, Stream *in, RoomFileVersion data_ver)
 {
     room->BgFrameCount = std::max<uint8_t>(1u, static_cast<uint8_t>(in->ReadInt8()));
-    room->BgAnimSpeed = static_cast<uint8_t>(in->ReadInt8());
+    room->BgAnimDelay = static_cast<uint8_t>(in->ReadInt8());
 
     room->BgFrames.resize(room->BgFrameCount);
     for (size_t i = 0; i < room->BgFrameCount; ++i)
@@ -912,7 +912,7 @@ void WriteMainBlock(const RoomDef *room, Stream *out)
     out->WriteByteCount(0, LEGACY_ROOM_PASSWORD_LENGTH);
     out->WriteInt8(0); // [DEPRECATED]
     out->WriteInt8(0); // [DEPRECATED]
-    out->WriteInt8(room->Options.PlayerCharacterOff ? 1 : 0);
+    out->WriteInt8(room->Options.ShowPlayerCharacter ? 0 : 1);
     out->WriteInt8(room->Options.PlayerView);
     out->WriteInt8(0); // [DEPRECATED]
     out->WriteInt8(room->Options.Flags);
@@ -948,7 +948,7 @@ void WriteCompSc3Block(const RoomDef *room, Stream *out)
 void WriteAnimBgBlock(const RoomDef *room, Stream *out)
 {
     out->WriteByte((int8_t)room->BgFrameCount);
-    out->WriteByte(room->BgAnimSpeed);
+    out->WriteByte(room->BgAnimDelay);
 
     for (size_t i = 0; i < room->BgFrameCount; ++i)
         out->WriteInt8(room->BgFrames[i].IsPaletteShared ? 1 : 0);

@@ -63,11 +63,11 @@ enum RoomStatSvgVersion
 struct RoomHotspotState
 {
     // Whether the hotspot answers the player (Hotspot.Enabled)
-    bool Enabled = false;
+    bool IsEnabled = false;
 };
 
 // A hotspot of a room, as the game changes it: its definition's fields, which start as a copy of what the room file
-// says, and its play state. A room state keeps its Name and Enabled between visits, and a save holds them.
+// says, and its play state. A room state keeps its Name and IsEnabled between visits, and a save holds them.
 class RoomHotspot : public AGS::Common::RoomHotspotDef, public RoomHotspotState
 {
 public:
@@ -84,11 +84,11 @@ public:
 struct RoomRegionState
 {
     // Whether the region answers the player (Region.Enabled): 1 or 0. A char, as the save's byte is read into it whole
-    char Enabled = 0;
+    char IsEnabled = 0;
 };
 
 // A region of a room, as the game changes it: its definition's fields, which start as a copy of what the room file
-// says, and its play state. A room state keeps Enabled between visits, and a save holds it. The light level and the
+// says, and its play state. A room state keeps IsEnabled between visits, and a save holds it. The light level and the
 // tint that the script sets last while the room is loaded: the next visit takes them from the room file again.
 class RoomRegion : public AGS::Common::RoomRegionDef, public RoomRegionState
 {
@@ -144,7 +144,7 @@ class RoomState
 {
 public:
     // TODO: hide these fields under get/set methods
-    int Visited = 0;          // 0 until the room has been entered once, then 1
+    int IsVisited = 0;        // 0 until the room has been entered once, then 1
     uint32_t ObjectCount = 0; // the number of live objects, equal to Objects.size()
     std::vector<RoomObject> Objects;
     uint32_t ScriptDataSize = 0;     // the size of ScriptData in bytes

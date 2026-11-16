@@ -276,7 +276,7 @@ void Character::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     TintBlue = in->ReadInt16();
     TintLevel = in->ReadInt16();
     TintLight = in->ReadInt16();
-    ProcessIdleThisTime = in->ReadInt8();
+    ProcessIdleThisTime = in->ReadInt8() == 1;
     SlowMoveCounter = in->ReadInt8();
     WalkAnimWait = in->ReadInt16();
     AnimationVolume = static_cast<uint8_t>(in->ReadInt8());
@@ -417,7 +417,7 @@ void Character::WriteToSavegame(Stream *out) const
     out->WriteInt16(TintBlue);
     out->WriteInt16(TintLevel);
     out->WriteInt16(TintLight);
-    out->WriteInt8(ProcessIdleThisTime);
+    out->WriteInt8(ProcessIdleThisTime ? 1 : 0);
     out->WriteInt8(SlowMoveCounter);
     out->WriteInt16(WalkAnimWait);
     // since 3.6.0.25
@@ -493,7 +493,7 @@ void stop_character_idling(Character *ch)
 void reset_character_idling_time(Character *ch)
 {
     ch->IdleTimeLeft = ch->IdleDelay;
-    ch->ProcessIdleThisTime = 1;
+    ch->ProcessIdleThisTime = true;
 }
 
 bool IsValidCharacter(int char_id)
@@ -1431,7 +1431,7 @@ void Character_SetIdleView(Character *ch, int iview, int itime)
     }
     // if they switch to a swimming animation, kick it off immediately
     if (itime == 0)
-        ch->ProcessIdleThisTime = 1;
+        ch->ProcessIdleThisTime = true;
 }
 
 bool Character_GetHasExplicitLight(Character *ch)
@@ -1867,12 +1867,12 @@ int Character_GetAnimating(Character *ch)
 
 int Character_GetAnimationSpeed(Character *ch)
 {
-    return ch->AnimationSpeed;
+    return ch->AnimationDelay;
 }
 
 void Character_SetAnimationSpeed(Character *ch, int new_value)
 {
-    ch->AnimationSpeed = new_value;
+    ch->AnimationDelay = new_value;
 }
 
 int Character_GetAudioPanning(Character *ch)

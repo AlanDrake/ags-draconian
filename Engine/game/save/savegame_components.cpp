@@ -158,7 +158,7 @@ void ReadCharacterDef(Character &ch, Stream *in, CharacterLegacyFields &old_fiel
     ch.MoveListID = in->ReadInt16();
     in->ReadInt16(); // legacy animating
     ch.WalkSpeedX = in->ReadInt16();
-    ch.AnimationSpeed = in->ReadInt16();
+    ch.AnimationDelay = in->ReadInt16();
     if (save_ver < kCharSvgVersion_400_33)
     {
         int16_t legacy_invq[LEGACY_MAX_INV];
@@ -255,7 +255,7 @@ void WriteCharacterDef(const Character &ch, Stream *out)
     out->WriteInt16(ch.MoveListID);
     out->WriteInt16(0); // legacy animating
     out->WriteInt16(ch.WalkSpeedX);
-    out->WriteInt16(ch.AnimationSpeed);
+    out->WriteInt16(ch.AnimationDelay);
     // new inv item quantity format since kCharSvgVersion_400_33;
     // written in the order of item IDs, so that the same inventory always gives the same bytes
     std::vector<std::pair<int, int>> items(ch.InventoryQuantity.begin(), ch.InventoryQuantity.end());
@@ -2056,7 +2056,7 @@ HSaveError WriteRoomStates(Stream *out)
         RoomState *roomstat = GetRoomStateIfExists(i);
         if (roomstat)
         {
-            if (roomstat->Visited)
+            if (roomstat->IsVisited)
             {
                 out->WriteInt32(i);
                 WriteFormatTag(out, "RoomState", true);

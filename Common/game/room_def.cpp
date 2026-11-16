@@ -22,7 +22,7 @@ namespace AGS
 namespace Common
 {
 
-RoomOptions::RoomOptions() : PlayerCharacterOff(false), PlayerView(0), FaceDirectionRatio(0.f), Flags(0) {}
+RoomOptions::RoomOptions() : ShowPlayerCharacter(true), PlayerView(0), FaceDirectionRatio(0.f), Flags(0) {}
 
 RoomBgFrame::RoomBgFrame()
 {
@@ -161,7 +161,7 @@ RoomDef &RoomDef::operator=(const RoomDef &src)
     BackgroundBPP = src.BackgroundBPP;
     BgFrameCount = src.BgFrameCount;
     BgFrames = src.BgFrames;
-    BgAnimSpeed = src.BgAnimSpeed;
+    BgAnimDelay = src.BgAnimDelay;
     Edges = src.Edges;
     HotspotMaskBuf = src.HotspotMaskBuf;
     RegionMaskBuf = src.RegionMaskBuf;
@@ -254,7 +254,7 @@ void RoomDef::InitDefaults()
         WalkBehinds[i] = RoomWalkBehindDef();
 
     BackgroundBPP = 1;
-    BgAnimSpeed = 5;
+    BgAnimDelay = 5;
 
     memset(Palette, 0, sizeof(Palette));
 }

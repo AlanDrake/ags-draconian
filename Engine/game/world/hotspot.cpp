@@ -41,7 +41,7 @@ void DisableHotspot(int hsnum)
 {
     if ((hsnum < 1) | (hsnum >= MAX_ROOM_HOTSPOTS))
         quit("!DisableHotspot: invalid hotspot specified");
-    Room::Current().Hotspots[hsnum].Enabled = false;
+    Room::Current().Hotspots[hsnum].IsEnabled = false;
     debug_script_log("Hotspot %d disabled", hsnum);
 }
 
@@ -49,7 +49,7 @@ void EnableHotspot(int hsnum)
 {
     if ((hsnum < 1) | (hsnum >= MAX_ROOM_HOTSPOTS))
         quit("!EnableHotspot: invalid hotspot specified");
-    Room::Current().Hotspots[hsnum].Enabled = true;
+    Room::Current().Hotspots[hsnum].IsEnabled = true;
     debug_script_log("Hotspot %d re-enabled", hsnum);
 }
 
@@ -63,7 +63,7 @@ void Hotspot_SetEnabled(ScriptHotspot *hss, int new_value)
 
 int Hotspot_GetEnabled(ScriptHotspot *hss)
 {
-    return Room::Current().Hotspots[hss->id].Enabled ? 1 : 0;
+    return Room::Current().Hotspots[hss->id].IsEnabled ? 1 : 0;
 }
 
 int Hotspot_GetID(ScriptHotspot *hss)
@@ -240,7 +240,7 @@ int GetHotspotIDAtRoom(int xpp, int ypp, int hit_options)
     int onhs = room.HotspotMask->GetPixel(room_to_mask_coord(room, xpp), room_to_mask_coord(room, ypp));
     if (onhs <= 0 || onhs >= MAX_ROOM_HOTSPOTS)
         return 0;
-    if (only_clickable && !room.Hotspots[onhs].Enabled)
+    if (only_clickable && !room.Hotspots[onhs].IsEnabled)
         return 0;
     return onhs;
 }

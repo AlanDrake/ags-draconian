@@ -514,11 +514,11 @@ TEST_F(LoadedRoom, FirstVisitTakesTheDefinition)
     }
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
-        EXPECT_TRUE(_state.Hotspots[i].Enabled) << "hotspot " << i;
+        EXPECT_TRUE(_state.Hotspots[i].IsEnabled) << "hotspot " << i;
         EXPECT_STREQ(String::FromFormat("Hotspot %d", i).GetCStr(), _state.Hotspots[i].Name.GetCStr());
     }
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
-        EXPECT_EQ(1, _state.Regions[i].Enabled) << "region " << i;
+        EXPECT_EQ(1, _state.Regions[i].IsEnabled) << "region " << i;
     for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
         EXPECT_EQ(500 + i, _state.WalkBehinds[i].Baseline) << "walk-behind " << i;
     for (int i = 0; i < MAX_WALK_AREAS; ++i)
@@ -530,7 +530,7 @@ TEST_F(LoadedRoom, FirstVisitTakesTheDefinition)
     EXPECT_EQ(&_state.WalkAreas[0], _room.WalkAreas);
     EXPECT_EQ(&_state.WalkBehinds[0], _room.WalkBehinds);
     EXPECT_EQ(1.25f, _state.FaceDirectionRatio);
-    EXPECT_EQ(1, _state.Visited);
+    EXPECT_EQ(1, _state.IsVisited);
     EXPECT_EQ(kRoomStatSvgVersion_Current, _state.ContentFormat);
 }
 
@@ -602,11 +602,11 @@ TEST_F(LoadedRoom, LaterVisitKeepsTheState)
     ExpectSameObject(changed, _state.Objects[1], true);
     EXPECT_EQ(111, _state.Objects[1].X);
     EXPECT_FALSE(_state.Objects[1].is_visible());
-    EXPECT_FALSE(_state.Hotspots[4].Enabled);
+    EXPECT_FALSE(_state.Hotspots[4].IsEnabled);
     EXPECT_STREQ("Renamed hotspot", _state.Hotspots[4].Name.GetCStr());
-    EXPECT_EQ(0, _state.Regions[5].Enabled);
+    EXPECT_EQ(0, _state.Regions[5].IsEnabled);
     EXPECT_EQ(333, _state.WalkBehinds[6].Baseline);
-    EXPECT_EQ(1, _state.Visited);
+    EXPECT_EQ(1, _state.IsVisited);
 }
 
 // What a room state does not keep between visits is taken from the room file again at the next load: a region's light
@@ -661,14 +661,14 @@ TEST_F(LoadedRoom, LaterVisitTakesTheRegionsAndWalkableAreasFromTheDefinitionAga
     EXPECT_EQ(12, Walkarea_GetScalingMax(&area2));
     // kept
     EXPECT_EQ(7.5f, Walkarea_GetFaceDirectionRatio(&area3));
-    EXPECT_FALSE(_state.Hotspots[4].Enabled);
+    EXPECT_FALSE(_state.Hotspots[4].IsEnabled);
     EXPECT_STREQ("Renamed hotspot", _state.Hotspots[4].Name.GetCStr());
     EXPECT_EQ(0, Region_GetEnabled(&region5));
     EXPECT_EQ(333, Walkbehind_GetBaseline(&walkbehind6));
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
-        EXPECT_EQ(i != 4, _state.Hotspots[i].Enabled) << "hotspot " << i;
+        EXPECT_EQ(i != 4, _state.Hotspots[i].IsEnabled) << "hotspot " << i;
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
-        EXPECT_EQ(i != 5 ? 1 : 0, _state.Regions[i].Enabled) << "region " << i;
+        EXPECT_EQ(i != 5 ? 1 : 0, _state.Regions[i].IsEnabled) << "region " << i;
 }
 
 // A walkable area's face direction ratio is kept by the room state between visits, as a hotspot's name is (the user's
@@ -746,9 +746,9 @@ TEST_F(LoadedRoom, RestoredStateTakesTheEntitiesDefinitions)
     EXPECT_EQ(333, restored.WalkBehinds[6].Baseline);
     EXPECT_EQ(507, restored.WalkBehinds[7].Baseline);
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
-        EXPECT_TRUE(restored.Hotspots[i].Enabled) << "hotspot " << i;
+        EXPECT_TRUE(restored.Hotspots[i].IsEnabled) << "hotspot " << i;
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
-        EXPECT_EQ(1, restored.Regions[i].Enabled) << "region " << i;
+        EXPECT_EQ(1, restored.Regions[i].IsEnabled) << "region " << i;
 }
 
 // With no state bound the four lists are those of TempState, never nullptr; the placeholder room, used while no room
@@ -772,15 +772,15 @@ TEST_F(LoadedRoom, UnboundRoomReadsTheListsOfTheTemporaryState)
     EXPECT_EQ(&_room.TempState, _room.State);
     EXPECT_EQ(nullptr, _room.Objects);
     EXPECT_EQ(&_room.TempState.Hotspots[0], _room.Hotspots);
-    EXPECT_EQ(0, _room.TempState.Visited);
+    EXPECT_EQ(0, _room.TempState.IsVisited);
     ExpectEntitiesTakeTheDefinition(_room.TempState, _room.Def());
     // the placeholder's definition has the defaults
     EXPECT_TRUE(_room.Def().Hotspots[1].ScriptName.IsEmpty());
     EXPECT_EQ(NOT_VECTOR_SCALED, _room.WalkAreas[1].ScalingNear);
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
-        EXPECT_FALSE(_room.Hotspots[i].Enabled) << "hotspot " << i;
+        EXPECT_FALSE(_room.Hotspots[i].IsEnabled) << "hotspot " << i;
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
-        EXPECT_EQ(0, _room.Regions[i].Enabled) << "region " << i;
+        EXPECT_EQ(0, _room.Regions[i].IsEnabled) << "region " << i;
     for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
         EXPECT_EQ(0, _room.WalkBehinds[i].Baseline) << "walk-behind " << i;
 }
@@ -916,7 +916,7 @@ TEST(RoomObjectSave, SpriteAboveInt16RoundTrips)
 TEST(RoomStateSave, EverySavedFieldIsRestored)
 {
     RoomState state;
-    state.Visited = 1;
+    state.IsVisited = 1;
     state.ObjectCount = 2;
     state.Objects.resize(2);
     state.ObjectProperties.resize(2);
@@ -925,12 +925,12 @@ TEST(RoomStateSave, EverySavedFieldIsRestored)
     state.ObjectProperties[1]["Weight"] = "12";
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
-        state.Hotspots[i].Enabled = (i % 2) == 0;
+        state.Hotspots[i].IsEnabled = (i % 2) == 0;
         state.Hotspots[i].Name = String::FromFormat("Hotspot %d", i);
     }
     state.HotspotProperties[2]["Smell"] = "sweet";
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
-        state.Regions[i].Enabled = static_cast<char>(i % 3 == 0);
+        state.Regions[i].IsEnabled = static_cast<char>(i % 3 == 0);
     state.RegionProperties[3]["Wet"] = "1";
     for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
         state.WalkBehinds[i].Baseline = static_cast<short>(700 + i);
@@ -947,7 +947,7 @@ TEST(RoomStateSave, EverySavedFieldIsRestored)
     RoomState restored;
     EXPECT_TRUE(ReadState(saved, restored)) << "the read did not take the whole stream";
 
-    EXPECT_EQ(1, restored.Visited);
+    EXPECT_EQ(1, restored.IsVisited);
     ASSERT_EQ(2u, restored.ObjectCount);
     ASSERT_EQ(2u, restored.Objects.size());
     ASSERT_EQ(2u, restored.ObjectProperties.size());
@@ -959,13 +959,13 @@ TEST(RoomStateSave, EverySavedFieldIsRestored)
     }
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
-        EXPECT_EQ(state.Hotspots[i].Enabled, restored.Hotspots[i].Enabled) << "hotspot " << i;
+        EXPECT_EQ(state.Hotspots[i].IsEnabled, restored.Hotspots[i].IsEnabled) << "hotspot " << i;
         EXPECT_STREQ(state.Hotspots[i].Name.GetCStr(), restored.Hotspots[i].Name.GetCStr());
         EXPECT_EQ(state.HotspotProperties[i], restored.HotspotProperties[i]) << "hotspot " << i;
     }
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
-        EXPECT_EQ(state.Regions[i].Enabled, restored.Regions[i].Enabled) << "region " << i;
+        EXPECT_EQ(state.Regions[i].IsEnabled, restored.Regions[i].IsEnabled) << "region " << i;
         EXPECT_EQ(state.RegionProperties[i], restored.RegionProperties[i]) << "region " << i;
     }
     for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
@@ -1244,6 +1244,23 @@ TEST_F(LoadedRoomWithView, ObjectAnimWaitWrapsAt16Bits)
     Stream in(std::make_unique<VectorStream>(saved));
     restored.ReadFromSavegame(&in, kRoomStatSvgVersion_Current);
     EXPECT_EQ(40000 + 5 - 65536, restored.AnimWait);
+}
+
+// An object that has not moved since the room was entered has MoveListID -1 (no move list); its destination is
+// where it stands, as for an object whose move has ended (MoveListID 0)
+TEST_F(LoadedRoom, ObjectDestinationOfAnObjectThatHasNotMoved)
+{
+    BindRoomState(_room);
+    RoomObject &obj = _state.Objects[1];
+    ASSERT_EQ(-1, obj.MoveListID);
+    ScriptObject obj1;
+    obj1.id = 1;
+    EXPECT_EQ(obj.X, Object_GetDestinationX(&obj1));
+    EXPECT_EQ(obj.Y, Object_GetDestinationY(&obj1));
+
+    obj.MoveListID = 0;
+    EXPECT_EQ(obj.X, Object_GetDestinationX(&obj1));
+    EXPECT_EQ(obj.Y, Object_GetDestinationY(&obj1));
 }
 
 // The id is not saved; CheckViewFrame and RunFrameEvent find the object's script object and events by it

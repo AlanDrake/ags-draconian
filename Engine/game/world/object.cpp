@@ -1067,7 +1067,7 @@ int Object_GetDestinationX(ScriptObject *obj)
         return 0;
     }
 
-    if (room.Objects[obj->id].MoveListID)
+    if (room.Objects[obj->id].MoveListID > 0)
     {
         MoveList *cmls = get_movelist(room.Objects[obj->id].MoveListID);
         return cmls->GetLastPos().X;
@@ -1083,7 +1083,7 @@ int Object_GetDestinationY(ScriptObject *obj)
         return 0;
     }
 
-    if (room.Objects[obj->id].MoveListID)
+    if (room.Objects[obj->id].MoveListID > 0)
     {
         MoveList *cmls = get_movelist(room.Objects[obj->id].MoveListID);
         return cmls->GetLastPos().Y;

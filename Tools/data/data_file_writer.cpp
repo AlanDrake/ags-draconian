@@ -219,7 +219,7 @@ void WriteCharacter(Stream *out, const DataUtil::GameData &game, const DataUtil:
     ch.BlockingWidth = static_cast<int16_t>(ref.BlockingWidth);
     ch.BlockingHeight = static_cast<int16_t>(ref.BlockingHeight);
     ch.WalkSpeedX = static_cast<int16_t>(ref.UniformMovementSpeed ? ref.MovementSpeed : ref.MovementSpeedX);
-    ch.AnimationSpeed = static_cast<int16_t>(ref.AnimationDelay);
+    ch.AnimationDelay = static_cast<int16_t>(ref.AnimationDelay);
     if (ref.Enabled)
         ch.Flags |= CHF_ENABLED;
     if (ref.Visible)

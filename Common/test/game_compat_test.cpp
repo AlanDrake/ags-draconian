@@ -19,14 +19,17 @@
 // read.
 //
 //=============================================================================
+#include <algorithm>
 #include <memory>
 #include <utility>
+#include <vector>
 
 #include "data/assetmanager.h"
 #include "game/character_def.h"
 #include "game/dialog_topic.h"
 #include "game/game_def.h"
 #include "game/main_game_file.h"
+#include "game/room_def.h"
 #include "game/room_file.h"
 #include "game/roomstruct.h"
 #include "game/view.h"
@@ -34,6 +37,7 @@
 #include "gui/guimain.h"
 #include "script/cc_common.h"
 #include "util/file.h"
+#include "util/memorystream.h"
 #include "util/path.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
@@ -296,4 +300,77 @@ TEST(RoomDataVersion, NewerThanEngineIsRefused)
     HRoomFileError err = OpenRoomHeader(kRoomVersion_Current + 1, true, src);
     ASSERT_FALSE(err);
     EXPECT_EQ(err->Code(), kRoomFileErr_FormatNotSupported);
+}
+
+namespace
+{
+
+// A 4x4 8-bit image of zeros: the writer's own stand-in for a missing image is not initialised, so the
+// bytes written for a room without images differ from one write to the next
+PixelBuffer ZeroImage()
+{
+    PixelBuffer image(4, 4, kPxFmt_Indexed8);
+    std::fill_n(image.GetData(), image.GetDataSize(), uint8_t(0));
+    return image;
+}
+
+// Writes the room as the tools do and returns the bytes of the room file
+std::vector<uint8_t> WriteRoomBytes(RoomDef &room)
+{
+    room.BgFrames[0].GraphicBuf = ZeroImage();
+    room.HotspotMaskBuf = ZeroImage();
+    room.RegionMaskBuf = ZeroImage();
+    room.WalkAreaMaskBuf = ZeroImage();
+    room.WalkBehindMaskBuf = ZeroImage();
+    std::vector<uint8_t> data;
+    {
+        Stream out(std::make_unique<VectorStream>(data, kStream_Write));
+        HRoomFileError err = WriteRoomData(&room, nullptr, &out, kRoomVersion_Current, "4.00.00.34");
+        EXPECT_TRUE(err) << err->FullMessage().GetCStr();
+    }
+    return data;
+}
+
+} // namespace
+
+// The room options block stores the player character's visibility as one byte: 1 when the character is
+// hidden in this room, 0 when it is shown (any other value counts as hidden)
+TEST(RoomOptions, PlayerCharacterByteRoundTrip)
+{
+    // The tools always write every slot of the format's fixed tables
+    RoomDef room;
+    room.HotspotCount = MAX_ROOM_HOTSPOTS;
+    room.RegionCount = MAX_ROOM_REGIONS;
+    room.WalkAreaCount = MAX_WALK_AREAS;
+    room.WalkBehindCount = MAX_WALK_BEHINDS;
+    room.BgFrameCount = 1;
+    room.Options.ShowPlayerCharacter = false;
+    const std::vector<uint8_t> hidden_bytes = WriteRoomBytes(room);
+    room.Options.ShowPlayerCharacter = true;
+    const std::vector<uint8_t> shown_bytes = WriteRoomBytes(room);
+    // The two files differ in that one byte and nowhere else
+    ASSERT_EQ(hidden_bytes.size(), shown_bytes.size());
+    size_t diffs = 0;
+    for (size_t i = 0; i < hidden_bytes.size(); ++i)
+    {
+        if (hidden_bytes[i] != shown_bytes[i])
+        {
+            ++diffs;
+            EXPECT_EQ(hidden_bytes[i], 1u) << "at " << i;
+            EXPECT_EQ(shown_bytes[i], 0u) << "at " << i;
+        }
+    }
+    EXPECT_EQ(diffs, 1u);
+
+    for (bool is_hidden : {true, false})
+    {
+        const std::vector<uint8_t> &bytes = is_hidden ? hidden_bytes : shown_bytes;
+        RoomDataSource src("room.crm", std::make_unique<Stream>(std::make_unique<VectorStream>(bytes)));
+        HRoomFileError err = OpenRoomFile(src);
+        ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+        RoomDef read;
+        err = ReadRoomData(&read, std::move(src.InputStream), src.DataVersion);
+        ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+        EXPECT_EQ(read.Options.ShowPlayerCharacter, !is_hidden);
+    }
 }

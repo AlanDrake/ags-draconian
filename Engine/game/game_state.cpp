@@ -248,7 +248,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     speech_bubble_width = in->ReadInt32();
     min_dialogoption_width = in->ReadInt32();
     disable_dialog_parser = in->ReadInt32();
-    room.AnimBackgroundSpeed = in->ReadInt32(); // the setting for this room
+    room.AnimBackgroundDelay = in->ReadInt32(); // the setting for this room
     top_bar_backcolor = in->ReadInt32();
     top_bar_textcolor = in->ReadInt32();
     top_bar_bordercolor = in->ReadInt32();
@@ -542,7 +542,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(speech_bubble_width);
     out->WriteInt32(min_dialogoption_width);
     out->WriteInt32(disable_dialog_parser);
-    out->WriteInt32(room.AnimBackgroundSpeed); // the setting for this room
+    out->WriteInt32(room.AnimBackgroundDelay); // the setting for this room
     out->WriteInt32(top_bar_backcolor);
     out->WriteInt32(top_bar_textcolor);
     out->WriteInt32(top_bar_bordercolor);

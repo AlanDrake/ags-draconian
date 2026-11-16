@@ -149,7 +149,7 @@ struct CharacterDef
     int16_t BlockingHeight = 0;
     int ID = 0; // this character's numeric ID
     int16_t WalkSpeedX = 0;
-    int16_t AnimationSpeed = 0;
+    int16_t AnimationDelay = 0; // script: AnimationSpeed
     // Quantities of inventory items, by item ID;
     // these may be read from the game data, in case it sets up character start with certain items
     std::unordered_map<int, int> InventoryQuantity;

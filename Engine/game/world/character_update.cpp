@@ -140,7 +140,7 @@ void UpdateCharacterMoveAndAnim(Game &game, Room &room, Character *ch, std::vect
 
     UpdateCharacterIdle(game, ch, doing_nothing);
 
-    ch->ProcessIdleThisTime = 0;
+    ch->ProcessIdleThisTime = false;
 }
 
 void UpdateFollowingExactlyCharacter(Game &game, Character *ch)
@@ -216,7 +216,7 @@ bool UpdateCharacterTurning(Game &game, Character *ch)
             // if still turning, wait for next frame
             if (ch->Turns > 0)
             {
-                ch->WalkWait = ch->AnimationSpeed;
+                ch->WalkWait = ch->AnimationDelay;
             }
             else if (ch->is_moving())
             {
@@ -334,7 +334,7 @@ void UpdateCharacterMoving(Game &game, Character *ch, int &doing_nothing)
                 ch->Frame++;
                 ResetFrameIfAtEnd(game, ch); // roll back if exceeded loop
 
-                ch->WalkAnimWait = game.Views[view].loops[loop].frames[ch->Frame].speed + ch->AnimationSpeed;
+                ch->WalkAnimWait = game.Views[view].loops[loop].frames[ch->Frame].speed + ch->AnimationDelay;
 
                 if (ch->Flags & CHF_ANTIGLIDE)
                 {
@@ -588,7 +588,7 @@ void UpdateCharacterIdle(Game &game, Character *ch, int &doing_nothing)
         ch->IdleTimeLeft = ch->IdleDelay;
     }
     // count idle time
-    else if ((get_loop_counter() % GetGameSpeed() == 0) || (ch->ProcessIdleThisTime == 1))
+    else if ((get_loop_counter() % GetGameSpeed() == 0) || ch->ProcessIdleThisTime)
     {
         ch->IdleTimeLeft--;
         if (ch->IdleTimeLeft == -1)

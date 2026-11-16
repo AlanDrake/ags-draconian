@@ -365,6 +365,46 @@ TEST_F(SavegameContent, EveryCharacterFieldIsRestored)
     EXPECT_EQ("", lost);
 }
 
+// A character's "process idle this time" flag is one byte of the save: 1 when set, 0 when not; a byte that
+// is neither reads as not set, as the engine only ever tests for 1
+TEST_F(SavegameContent, ProcessIdleThisTimeIsOneByte)
+{
+    Game &game = Game::Current();
+    SetCounts(1, 0);
+    game.Characters[0].ProcessIdleThisTime = true;
+    std::vector<uint8_t> on_bytes;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_Characters, on_bytes, error)) << error;
+    game.Characters[0].ProcessIdleThisTime = false;
+    std::vector<uint8_t> off_bytes;
+    ASSERT_TRUE(Save(kSaveCmp_Characters, off_bytes, error)) << error;
+
+    ASSERT_EQ(on_bytes.size(), off_bytes.size());
+    size_t at = on_bytes.size();
+    for (size_t i = 0; i < on_bytes.size(); ++i)
+    {
+        if (on_bytes[i] != off_bytes[i])
+        {
+            ASSERT_EQ(on_bytes.size(), at) << "a second byte differs, at " << i;
+            at = i;
+        }
+    }
+    ASSERT_LT(at, on_bytes.size());
+    EXPECT_EQ(1u, on_bytes[at]);
+    EXPECT_EQ(0u, off_bytes[at]);
+
+    for (const auto &[byte, expected] : {std::pair<uint8_t, bool>{0, false}, {1, true}, {2, false}, {255, false}})
+    {
+        std::vector<uint8_t> saved = on_bytes;
+        saved[at] = byte;
+        SetCounts(1, 0);
+        RestoredData r_data;
+        HSaveError err = Restore(saved, kSaveCmp_Characters, r_data);
+        ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+        EXPECT_EQ(expected, game.Characters[0].ProcessIdleThisTime) << "byte " << int(byte);
+    }
+}
+
 TEST_F(SavegameContent, SaveWithFewerCharactersIsRefused)
 {
     SetCounts(2, 2);
@@ -744,7 +784,7 @@ TEST(SavegameState, RoomStatusReadsTheCountsInTheWrittenOrder)
     std::vector<uint8_t> saved;
     {
         Stream out(std::make_unique<VectorStream>(saved, kStream_Write));
-        out.WriteInt8(1);    // Visited
+        out.WriteInt8(1);    // IsVisited
         out.WriteInt32(0);   // objects
         out.WriteInt32(0);   // hotspots
         out.WriteInt32(0);   // regions
@@ -772,7 +812,7 @@ TEST(SavegameState, RoomStatusReadsTheCountsInTheWrittenOrder)
     RoomState room;
     Stream in(std::make_unique<VectorStream>(saved));
     room.ReadFromSavegame(&in, kRoomStatSvgVersion_Current);
-    EXPECT_EQ(1, room.Visited);
+    EXPECT_EQ(1, room.IsVisited);
     EXPECT_EQ(111, room.WalkBehinds[0].Baseline);
     EXPECT_EQ(222, room.WalkBehinds[1].Baseline);
     EXPECT_EQ(0.5f, room.WalkAreas[0].FaceDirectionRatio);

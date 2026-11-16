@@ -93,7 +93,7 @@ int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
     case 100: return game.Play.speech_bubble_width;
     case 101: return game.Play.min_dialogoption_width;
     case 102: return game.Play.disable_dialog_parser;
-    case 103: return room.AnimBackgroundSpeed;
+    case 103: return room.AnimBackgroundDelay;
     case 104: return game.Play.top_bar_backcolor;
     case 105: return game.Play.top_bar_textcolor;
     case 106: return game.Play.top_bar_bordercolor;
@@ -199,7 +199,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 100: game.Play.speech_bubble_width = val; break;
     case 101: game.Play.min_dialogoption_width = val; break;
     case 102: game.Play.disable_dialog_parser = val; break;
-    case 103: room.AnimBackgroundSpeed = val; break;
+    case 103: room.AnimBackgroundDelay = val; break;
     case 104: game.Play.top_bar_backcolor = val; break;
     case 105: game.Play.top_bar_textcolor = val; break;
     case 106: game.Play.top_bar_bordercolor = val; break;

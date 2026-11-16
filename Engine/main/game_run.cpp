@@ -981,7 +981,7 @@ static void game_loop_update_background_animation()
         ;
     else
     {
-        game.Play.bg_anim_delay = room.AnimBackgroundSpeed;
+        game.Play.bg_anim_delay = room.AnimBackgroundDelay;
         room.BgFrame++;
         if ((size_t)room.BgFrame >= room.BgFrameCount)
             room.BgFrame = 0;

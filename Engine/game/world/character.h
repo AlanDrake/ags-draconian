@@ -101,7 +101,7 @@ struct CharacterState : public GraphicState, public ViewAnimState, public MoveSt
     // see UpdateCharacterMoving); FullStepX == INVALID_X when there is none
     short FullStepX = 0;
     short FullStepY = 0;
-    char ProcessIdleThisTime = 0;
+    bool ProcessIdleThisTime = false;
     char SlowMoveCounter = 0;
     short WalkAnimWait = 0;  // game loops left before the next frame of the walking animation
     int Following = -1;      // whom do we follow (character id)

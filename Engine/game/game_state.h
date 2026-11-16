@@ -123,7 +123,7 @@ public:
 // speech_face_schandle, shake_screen_yoff, get_loc_name_last_time, get_loc_name_save_cursor and gui_draw_order.
 // Saved by other save components: default_audio_type_volumes and the custom property vectors (charProps,
 // dialogProps, guiProps, guicontrolProps, invProps); audioclipProps are not saved.
-// The save layout also holds the room's ScriptFinished, AnimBackgroundSpeed, BgFrame, BgFrameLocked,
+// The save layout also holds the room's ScriptFinished, AnimBackgroundDelay, BgFrame, BgFrameLocked,
 // WalkableAreasOn, EnteredAtX, EnteredAtY and EnteredEdge (game/world/room_context.h), at the places their
 // GamePlayState fields had: ReadFromSavegame and WriteForSavegame read and write them in the current Room.
 struct GamePlayState

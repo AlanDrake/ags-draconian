@@ -136,7 +136,7 @@ enum RegionEventID
 struct RoomOptions
 {
     // If player character is turned off in the room
-    bool PlayerCharacterOff;
+    bool ShowPlayerCharacter; // the file's byte holds the opposite: 1 when the player character is hidden
     // Apply player character's normal view when entering this room
     int PlayerView;
     // Optional character facing dir ratio (y / x), 0 = ignore
@@ -405,7 +405,7 @@ public:
     uint32_t BgFrameCount;
     std::vector<RoomBgFrame> BgFrames;
     // Speed at which background frames are changing, 0 - no auto animation
-    int32_t BgAnimSpeed;
+    int32_t BgAnimDelay;
     // Edges
     RoomEdges Edges;
     // Region masks

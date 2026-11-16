@@ -318,9 +318,9 @@ HError ConvertRoomXml(RoomXml room, const RoomBuildGame &game, RoomDef &data)
     data.BackgroundBPP = (room.ColorDepth + 7) / 8;
     data.Width = room.Width;
     data.Height = room.Height;
-    data.BgAnimSpeed = room.BackgroundAnimationDelay;
+    data.BgAnimDelay = room.BackgroundAnimationDelay;
     data.Options.Flags = 0;
-    data.Options.PlayerCharacterOff = !room.ShowPlayerCharacter;
+    data.Options.ShowPlayerCharacter = room.ShowPlayerCharacter;
     data.Options.PlayerView = room.PlayerCharacterView;
     if (!room.BackgroundAnimationEnabled)
         data.Options.Flags |= kRoomFlag_BkgFrameLocked;

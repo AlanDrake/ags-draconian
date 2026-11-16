@@ -2548,13 +2548,13 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     room->LeftEdgeX = rs.Edges.Left;
     room->PlayerCharacterView = rs.Options.PlayerView;
     room->RightEdgeX = rs.Edges.Right;
-    room->ShowPlayerCharacter = (rs.Options.PlayerCharacterOff == 0);
+    room->ShowPlayerCharacter = rs.Options.ShowPlayerCharacter;
     room->TopEdgeY = rs.Edges.Top;
     room->Width = rs.Width;
     room->Height = rs.Height;
     AGSBitmap *bg = rs.GetBackgroundImage(0);
     room->ColorDepth = bg ? bg->GetColorDepth() : 0;
-    room->BackgroundAnimationDelay = rs.BgAnimSpeed;
+    room->BackgroundAnimationDelay = rs.BgAnimDelay;
     room->BackgroundAnimationEnabled = (rs.Options.Flags & kRoomFlag_BkgFrameLocked) == 0;
     room->BackgroundCount = rs.BgFrameCount;
     room->MaskResolution = rs.MaskResolution;
@@ -2674,9 +2674,9 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	rs.Width = room->Width;
 	rs.Height = room->Height;
     // NOTE: should not set BgFrameCount here, it's added by adding background images
-	rs.BgAnimSpeed = room->BackgroundAnimationDelay;
+	rs.BgAnimDelay = room->BackgroundAnimationDelay;
     rs.Options.Flags = 0;
-    rs.Options.PlayerCharacterOff = room->ShowPlayerCharacter ? 0 : 1;
+    rs.Options.ShowPlayerCharacter = room->ShowPlayerCharacter;
     rs.Options.PlayerView = room->PlayerCharacterView;
     if (!room->BackgroundAnimationEnabled)
         rs.Options.Flags |= kRoomFlag_BkgFrameLocked;

@@ -58,7 +58,7 @@ void RoomWalkBehind::RebindDefinition(const RoomWalkBehindDef &def)
 RoomState::RoomState()
 {
     ContentFormat = kRoomStatSvgVersion_Current; // set current to avoid fixups
-    Visited = 0;
+    IsVisited = 0;
     ObjectCount = 0;
     ScriptDataSize = 0;
 }
@@ -100,7 +100,7 @@ void RoomState::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
     FreeScriptData();
     FreeProperties();
 
-    Visited = in->ReadInt8();
+    IsVisited = in->ReadInt8();
     ObjectCount = static_cast<uint32_t>(in->ReadInt32());
 
     const int num_hotspots = in->ReadInt32();
@@ -120,13 +120,13 @@ void RoomState::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
     // the room's definition gives the others when the room is loaded (BindRoomState)
     for (int i = 0; i < num_hotspots; ++i)
     {
-        Hotspots[i].Enabled = in->ReadInt8() != 0;
+        Hotspots[i].IsEnabled = in->ReadInt8() != 0;
         Hotspots[i].Name = StrUtil::ReadString(in);
         Properties::ReadValues(HotspotProperties[i], in);
     }
     for (int i = 0; i < num_regions; ++i)
     {
-        Regions[i].Enabled = in->ReadInt8();
+        Regions[i].IsEnabled = in->ReadInt8();
     }
     for (int i = 0; i < num_walkbehinds; ++i)
     {
@@ -176,7 +176,7 @@ void RoomState::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
 
 void RoomState::WriteToSavegame(Stream *out) const
 {
-    out->WriteInt8(Visited);
+    out->WriteInt8(IsVisited);
     out->WriteInt32(ObjectCount);
     // -- kRoomStatSvgVersion_40003
     out->WriteInt32(MAX_ROOM_HOTSPOTS);
@@ -191,13 +191,13 @@ void RoomState::WriteToSavegame(Stream *out) const
     }
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
-        out->WriteInt8(Hotspots[i].Enabled);
+        out->WriteInt8(Hotspots[i].IsEnabled);
         StrUtil::WriteString(Hotspots[i].Name, out);
         Properties::WriteValues(HotspotProperties[i], out);
     }
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
-        out->WriteInt8(Regions[i].Enabled);
+        out->WriteInt8(Regions[i].IsEnabled);
     }
     for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
     {

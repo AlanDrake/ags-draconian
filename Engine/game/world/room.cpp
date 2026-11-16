@@ -117,7 +117,7 @@ void Room::ResetPlayState()
     LoadedWidth = 0;
     LoadedHeight = 0;
     ScriptFinished = 0;
-    AnimBackgroundSpeed = 0;
+    AnimBackgroundDelay = 0;
     BgFrame = 0;
     BgFrameLocked = 0;
     std::fill(std::begin(WalkableAreasOn), std::end(WalkableAreasOn), 0);
@@ -635,7 +635,7 @@ bool BindRoomState(Room &room)
 {
     const RoomDef &def = room.Def();
     // Decide what to do if we have been or not in this room before
-    const bool first_visit = room.State->Visited == 0;
+    const bool first_visit = room.State->IsVisited == 0;
     if (first_visit)
     {
         // If we have not been in this room before, then copy necessary fields from the room's data
@@ -648,11 +648,11 @@ bool BindRoomState(Room &room)
         StartEntitiesFromDefinitions(room);
         // the hotspots and regions start enabled
         for (int i = 0; i < MAX_ROOM_HOTSPOTS; i++)
-            room.State->Hotspots[i].Enabled = true;
+            room.State->Hotspots[i].IsEnabled = true;
         for (int i = 0; i < MAX_ROOM_REGIONS; i++)
-            room.State->Regions[i].Enabled = 1;
+            room.State->Regions[i].IsEnabled = 1;
 
-        room.State->Visited = 1;
+        room.State->IsVisited = 1;
     }
     else
     {
@@ -749,8 +749,8 @@ void load_new_room(int room_id, Character *ch)
 
     room.LoadedWidth = room.Width;
     room.LoadedHeight = room.Height;
-    room.AnimBackgroundSpeed = room.BgAnimSpeed;
-    game.Play.bg_anim_delay = room.AnimBackgroundSpeed;
+    room.AnimBackgroundDelay = room.BgAnimDelay;
+    game.Play.bg_anim_delay = room.AnimBackgroundDelay;
     room.BgModified.resize(room.BgFrameCount);
 
     // Fixup the frame index, in case the new room does not have enough background frames
@@ -817,7 +817,7 @@ void load_new_room(int room_id, Character *ch)
     else
         room.SetState(&room.TempState);
 
-    const bool been_here = room.State->Visited > 0;
+    const bool been_here = room.State->IsVisited > 0;
     if (BindRoomState(room))
         game.RoomChange.InNewRoom = kEnterRoom_FirstTime;
 
@@ -1064,7 +1064,7 @@ void load_new_room(int room_id, Character *ch)
     set_our_eip(208);
     if (ch != nullptr)
     {
-        if (room.Options.PlayerCharacterOff == 0)
+        if (room.Options.ShowPlayerCharacter)
         {
             ch->set_enabled(true);
             enable_cursor_mode(game.GetModeWalk());
@@ -1502,7 +1502,7 @@ int HasPlayerBeenInRoom(int roomnum)
     if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
         return 0;
     RoomState *roomstat = GetRoomStateIfExists(roomnum);
-    return (roomstat != nullptr) && (roomstat->Visited != 0);
+    return (roomstat != nullptr) && (roomstat->IsVisited != 0);
 }
 
 void CallRoomScript(int value)

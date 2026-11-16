@@ -50,7 +50,7 @@ constexpr FieldRow<CharacterDef> kCharacterDefFields[] = {
     Field<&CharacterDef::BlockingHeight>("BlockingHeight"),
     Field<&CharacterDef::ID>("ID"),
     Field<&CharacterDef::WalkSpeedX>("WalkSpeedX"),
-    Field<&CharacterDef::AnimationSpeed>("AnimationSpeed"),
+    Field<&CharacterDef::AnimationDelay>("AnimationDelay"),
     Field<&CharacterDef::InventoryQuantity>("InventoryQuantity"),
     Field<&CharacterDef::ScriptName>("ScriptName"),
     Field<&CharacterDef::Name>("Name"),
@@ -155,7 +155,7 @@ void CharacterDef::ReadFromFile(Stream *in, GameDataVersion data_ver)
     in->ReadInt16(); // [UNUSED] (walking)
     in->ReadInt16(); // [UNUSED] (animating)
     WalkSpeedX = in->ReadInt16();
-    AnimationSpeed = in->ReadInt16();
+    AnimationDelay = in->ReadInt16();
     if (data_ver < kGameVersion_400_33)
     {
         int16_t legacy_invq[LEGACY_MAX_INV];
@@ -224,7 +224,7 @@ void CharacterDef::WriteToFile(Stream *out) const
     out->WriteInt16(0); // [UNUSED] walking
     out->WriteInt16(0); // [UNUSED] animating
     out->WriteInt16(WalkSpeedX);
-    out->WriteInt16(AnimationSpeed);
+    out->WriteInt16(AnimationDelay);
     // skip LEGACY_MAX_INV int16s since kGameVersion_400_33
     out->WriteInt16(0); // [UNUSED] actx
     out->WriteInt16(0); // [UNUSED] acty

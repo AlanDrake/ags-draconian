@@ -720,7 +720,7 @@ void engine_init_game_settings()
             if (game.Views[game.Characters[i].View].loops[0].numFrames < 1)
                 game.Characters[i].Loop = 1;
         }
-        game.Characters[i].ProcessIdleThisTime = 0;
+        game.Characters[i].ProcessIdleThisTime = false;
         game.Characters[i].SlowMoveCounter = 0;
         game.Characters[i].WalkAnimWait = 0;
     }
@@ -779,7 +779,7 @@ void engine_init_game_settings()
     room.BgFrame = 0;
     room.BgFrameLocked = 0;
     game.Play.bg_anim_delay = 0;
-    room.AnimBackgroundSpeed = 0;
+    room.AnimBackgroundDelay = 0;
     game.Play.mouse_input_enabled = true;
     game.Play.mouse_cursor_shown = true;
     game.Play.skip_until_char_stops = -1;

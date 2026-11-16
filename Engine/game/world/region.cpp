@@ -55,7 +55,7 @@ int GetRegionIDAtRoom(Room &room, int x, int y, int hit_options)
     int hsthere = room.RegionMask->GetPixel(x, y);
     if (hsthere <= 0 || hsthere >= MAX_ROOM_REGIONS)
         return 0;
-    if (((hit_options & kHit_Interactable) != 0) && (room.Regions[hsthere].Enabled == 0))
+    if (((hit_options & kHit_Interactable) != 0) && (room.Regions[hsthere].IsEnabled == 0))
         return 0;
     return hsthere;
 }
@@ -197,7 +197,7 @@ void DisableRegion(int hsnum)
     if ((hsnum < 0) || (hsnum >= MAX_ROOM_REGIONS))
         quit("!DisableRegion: invalid region specified");
 
-    Room::Current().Regions[hsnum].Enabled = 0;
+    Room::Current().Regions[hsnum].IsEnabled = 0;
     debug_script_log("Region %d disabled", hsnum);
 }
 
@@ -206,7 +206,7 @@ void EnableRegion(int hsnum)
     if ((hsnum < 0) || (hsnum >= MAX_ROOM_REGIONS))
         quit("!EnableRegion: invalid region specified");
 
-    Room::Current().Regions[hsnum].Enabled = 1;
+    Room::Current().Regions[hsnum].IsEnabled = 1;
     debug_script_log("Region %d enabled", hsnum);
 }
 
@@ -220,7 +220,7 @@ void Region_SetEnabled(ScriptRegion *ssr, int enable)
 
 int Region_GetEnabled(ScriptRegion *ssr)
 {
-    return Room::Current().Regions[ssr->id].Enabled;
+    return Room::Current().Regions[ssr->id].IsEnabled;
 }
 
 int Region_GetID(ScriptRegion *ssr)

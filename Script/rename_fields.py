@@ -630,6 +630,9 @@ class Run:
         for line in lines:
             matches = sorted({u for u, d in self.records.items()
                               if d['qualname'] == line.struct or d['qualname'].endswith('::' + line.struct)})
+            exact = [u for u in matches if self.records[u]['qualname'] == line.struct]
+            if exact:
+                matches = exact  # a name that is a record's whole name beats the same name inside a namespace
             if not matches:
                 self.errors.append('map line %d (%s): no struct or class %s in the parsed code' %
                                    (line.number, line.text, line.struct))
