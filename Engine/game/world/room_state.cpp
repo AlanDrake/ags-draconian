@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "game/world/room_status.h"
+#include "game/world/room_state.h"
 
 #include <cstdlib> // free
 #include <cstring> // memset
@@ -61,7 +61,7 @@ void WalkareaState::WriteToSavegame(Common::Stream *out) const
 }
 
 
-RoomStatus::RoomStatus()
+RoomState::RoomState()
 {
     contentFormat = kRoomStatSvgVersion_Current; // set current to avoid fixups
     beenhere = 0;
@@ -72,15 +72,15 @@ RoomStatus::RoomStatus()
     memset(&walkbehind_base, 0, sizeof(walkbehind_base));
 }
 
-RoomStatus::~RoomStatus() {}
+RoomState::~RoomState() {}
 
-void RoomStatus::FreeScriptData()
+void RoomState::FreeScriptData()
 {
     tsdata.clear();
     tsdatasize = 0;
 }
 
-void RoomStatus::FreeProperties()
+void RoomState::FreeProperties()
 {
     roomProps.clear();
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
@@ -98,13 +98,13 @@ void RoomStatus::FreeProperties()
     }
 }
 
-void RoomStatus::SetBgShader(int shader_id, int shader_handle)
+void RoomState::SetBgShader(int shader_id, int shader_handle)
 {
     _bgShaderID = shader_id;
     _bgShaderHandle = shader_handle;
 }
 
-void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
+void RoomState::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
 {
     FreeScriptData();
     FreeProperties();
@@ -174,7 +174,7 @@ void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
     }
 }
 
-void RoomStatus::WriteToSavegame(Stream *out) const
+void RoomState::WriteToSavegame(Stream *out) const
 {
     out->WriteInt8(beenhere);
     out->WriteInt32(numobj);
@@ -238,9 +238,9 @@ void RoomStatus::WriteToSavegame(Stream *out) const
     }
 }
 
-std::unique_ptr<RoomStatus> room_statuses[MAX_ROOMS];
+std::unique_ptr<RoomState> room_statuses[MAX_ROOMS];
 
-RoomStatus *GetRoomState(int room)
+RoomState *GetRoomState(int room)
 {
     if (room < 0 || room >= MAX_ROOMS)
         return nullptr;
@@ -248,12 +248,12 @@ RoomStatus *GetRoomState(int room)
     if (!room_statuses[room])
     {
         // First access, allocate and initialise the status
-        room_statuses[room].reset(new RoomStatus());
+        room_statuses[room].reset(new RoomState());
     }
     return room_statuses[room].get();
 }
 
-RoomStatus *GetRoomStateIfExists(int room)
+RoomState *GetRoomStateIfExists(int room)
 {
     if (room < 0 || room >= MAX_ROOMS)
         return nullptr;
@@ -265,7 +265,7 @@ void ResetRoomState(int room)
     if (room < 0 || room >= MAX_ROOMS)
         return;
 
-    RoomStatus *roomstat = room_statuses[room].get();
+    RoomState *roomstat = room_statuses[room].get();
     if (roomstat)
     {
         ccRemoveObjectHandle(roomstat->GetBgShaderHandle());

@@ -242,7 +242,7 @@
     <ClCompile Include="..\..\Common\game\roomstruct.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\roomdata.cpp">
+    <ClCompile Include="..\..\Common\game\room_def.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\libsrc\aastr-0.1.1\aarot.c">
@@ -787,7 +787,7 @@
     <ClInclude Include="..\..\Common\game\room_version.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\roomdata.h">
+    <ClInclude Include="..\..\Common\game\room_def.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\stdio_compat.h">

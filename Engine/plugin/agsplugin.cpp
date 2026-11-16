@@ -47,7 +47,7 @@
 #include "game/world/object.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"
-#include "game/world/room_status.h"
+#include "game/world/room_state.h"
 #include "game/world/walkable_area.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_util.h"

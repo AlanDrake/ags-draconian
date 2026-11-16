@@ -48,7 +48,7 @@
 #include "game/world/move_list.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"
-#include "game/world/room_status.h"
+#include "game/world/room_state.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "gfx/sprite_cache.h"
@@ -2053,7 +2053,7 @@ HSaveError WriteRoomStates(Stream *out)
     out->WriteInt32(MAX_ROOMS);
     for (int i = 0; i < MAX_ROOMS; ++i)
     {
-        RoomStatus *roomstat = GetRoomStateIfExists(i);
+        RoomState *roomstat = GetRoomStateIfExists(i);
         if (roomstat)
         {
             if (roomstat->beenhere)
@@ -2095,7 +2095,7 @@ HSaveError ReadRoomStates(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
             {
                 return err;
             }
-            RoomStatus *roomstat = GetRoomState(id);
+            RoomState *roomstat = GetRoomState(id);
             roomstat->ReadFromSavegame(in, (RoomStatSvgVersion)cmp_ver);
             if (!AssertFormatTagStrict(in, err, "RoomState", String::FromFormat("Room %d", id), false))
             {
@@ -2202,7 +2202,7 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
         if (cmp_ver < kRoomStatSvgVersion_40034)
         {
             int light = r_data.RoomLightLevels[i];
-            RoomRegion::UpgradeLegacyLight(light, r_data.RoomTintLevels[i]);
+            RoomRegionDef::UpgradeLegacyLight(light, r_data.RoomTintLevels[i]);
             r_data.RoomLightLevels[i] = static_cast<short>(light);
         }
     }

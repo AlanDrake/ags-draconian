@@ -48,7 +48,7 @@
 #include "game/world/region.h"
 #include "game/world/room_context.h"
 #include "game/world/room_object.h"
-#include "game/world/room_status.h"
+#include "game/world/room_state.h"
 #include "game/world/walk_behind.h"
 #include "game/world/walkable_area.h"
 #include "gfx/bitmap.h"
@@ -86,7 +86,7 @@ Room engineRoom;
 // initialization, as the globals thisroom, croom and objs that the instance replaces were
 Room *Room::_current = &engineRoom;
 
-Room::Room() : _tempState(std::make_unique<RoomStatus>()), TempState(*_tempState) {}
+Room::Room() : _tempState(std::make_unique<RoomState>()), TempState(*_tempState) {}
 
 Room::~Room() = default;
 
@@ -558,10 +558,10 @@ HError LoadRoomScript(RoomStruct *room, int room_id)
 
 static void reset_temp_room()
 {
-    Room::Current().TempState = RoomStatus();
+    Room::Current().TempState = RoomState();
 }
 
-// Initializes object states in the current RoomStatus object (room.State),
+// Initializes object states in the current RoomState object (room.State),
 // copying default properties from the room's objects (room.Objects), in the element range [start, end).
 static void init_object_states(size_t start, size_t end)
 {
@@ -607,7 +607,7 @@ HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr,
     auto in = mgr->OpenAsset(filename);
     if (in == nullptr)
         return new RoomFileError(kRoomFileErr_FileOpenFailed, "Filename: %s.", filename.GetCStr());
-    RoomData room_data;
+    RoomDef room_data;
     HRoomFileError err = LoadRoom(&room_data, std::move(in), &sprite_infos);
     if (!err)
         return new Error(*err);
@@ -728,7 +728,7 @@ void load_new_room(int room_id, Character *ch)
         reset_temp_room();
     }
 
-    // A room with a valid number has its own saveable RoomStatus, any other one (e.g. the intro) uses room.TempState
+    // A room with a valid number has its own saveable RoomState, any other one (e.g. the intro) uses room.TempState
     if ((room_id >= 0) & (room_id < MAX_ROOMS))
         room.State = GetRoomState(room_id);
     else
@@ -1137,7 +1137,7 @@ void new_room(int room_id, Character *ch)
 
     load_new_room(room_id, ch);
 
-    // Update background frame state (it's not a part of the RoomStatus currently)
+    // Update background frame state (it's not a part of the RoomState currently)
     room.BgFrame = 0;
     room.BgFrameLocked = (room.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
 }
@@ -1470,7 +1470,7 @@ int HasPlayerBeenInRoom(int roomnum)
 {
     if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
         return 0;
-    RoomStatus *roomstat = GetRoomStateIfExists(roomnum);
+    RoomState *roomstat = GetRoomStateIfExists(roomnum);
     return (roomstat != nullptr) && (roomstat->beenhere != 0);
 }
 

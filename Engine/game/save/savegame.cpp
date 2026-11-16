@@ -50,7 +50,7 @@
 #include "game/world/region.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"
-#include "game/world/room_status.h"
+#include "game/world/room_state.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
@@ -437,7 +437,7 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     // reset saved room states
     ResetRoomStates();
     // reset temp room state
-    Room::Current().TempState = RoomStatus();
+    Room::Current().TempState = RoomState();
     // Free what Game::Play owns outside of its plain fields (properties, do-once tokens) and the viewports and
     // cameras (Game::Viewports); the plain fields are overwritten by the GameState component
     // TODO: reset the whole GameState object here instead, once it is clear nothing in it must survive

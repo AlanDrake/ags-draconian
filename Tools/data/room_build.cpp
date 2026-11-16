@@ -298,7 +298,7 @@ static HError FixupRoom(RoomXml &room, const RoomBuildGame &game)
     return HError::None();
 }
 
-HError ConvertRoomXml(RoomXml room, const RoomBuildGame &game, RoomData &data)
+HError ConvertRoomXml(RoomXml room, const RoomBuildGame &game, RoomDef &data)
 {
     HError err = FixupRoom(room, game);
     if (!err)
@@ -306,7 +306,7 @@ HError ConvertRoomXml(RoomXml room, const RoomBuildGame &game, RoomData &data)
 
     // AGS.Native convert_room_to_native
     const int cp = game.TextCodePage;
-    data = RoomData();
+    data = RoomDef();
     data.Name = ConvertTextProperty(room.Description, cp);
     data.ScriptName = ""; // reserved
     data.MaskResolution = room.MaskResolution;
@@ -539,7 +539,7 @@ static void SetGamewideColours(Palette &pal, size_t pal_length, const std::vecto
     }
 }
 
-HError LoadRoomImages(const String &room_dir, const RoomXml &room, const RoomBuildGame &game, RoomData &data,
+HError LoadRoomImages(const String &room_dir, const RoomXml &room, const RoomBuildGame &game, RoomDef &data,
                       std::vector<String> &warnings)
 {
     // Backgrounds: the editor uses the ones it finds (RoomsComponent.LoadImageCache)
@@ -590,7 +590,7 @@ HError LoadRoomImages(const String &room_dir, const RoomXml &room, const RoomBui
     return err;
 }
 
-void FinishRoomData(RoomData &data)
+void FinishRoomData(RoomDef &data)
 {
     // AGS.Native calculate_walkable_areas
     for (int i = 0; i < MAX_WALK_AREAS; ++i)

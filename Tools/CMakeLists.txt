@@ -33,8 +33,8 @@ set(TOOLS_COMMON_SOURCES
         ../Common/game/room_file.h
         ../Common/game/room_file_blocks.h
         ../Common/game/room_file_blocks.cpp
-        ../Common/game/roomdata.cpp
-        ../Common/game/roomdata.h
+        ../Common/game/room_def.cpp
+        ../Common/game/room_def.h
         ../Common/game/scripteventtable.cpp
         ../Common/game/scripteventtable.h
         ../Common/game/words_dictionary.cpp

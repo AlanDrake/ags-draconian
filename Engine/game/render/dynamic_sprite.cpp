@@ -29,7 +29,7 @@
 #include "game/world/room.h"
 #include "game/world/room_context.h"
 #include "game/world/room_object.h"
-#include "game/world/room_status.h"
+#include "game/world/room_state.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/sprite_cache.h"
 #include "gui/guibutton.h"

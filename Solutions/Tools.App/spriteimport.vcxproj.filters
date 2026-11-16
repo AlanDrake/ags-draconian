@@ -139,7 +139,7 @@
     <ClCompile Include="..\..\Common\game\customproperties.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\roomdata.cpp">
+    <ClCompile Include="..\..\Common\game\room_def.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\script\cc_common.cpp">
@@ -246,7 +246,7 @@
     <ClInclude Include="..\..\Common\game\customproperties.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\roomdata.h">
+    <ClInclude Include="..\..\Common\game\room_def.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_common.h">

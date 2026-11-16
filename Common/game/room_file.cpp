@@ -84,7 +84,7 @@ String GetRoomBlockName(RoomFileBlock id)
 }
 
 // Read base room object's fields
-void ReadRoomObjectBase(RoomObjectInfo &obj, Stream *in)
+void ReadRoomObjectBase(RoomObjectDef &obj, Stream *in)
 {
     obj.Sprite = (uint16_t)in->ReadInt16();
     obj.X = in->ReadInt16();
@@ -98,7 +98,7 @@ void ReadRoomObjectBase(RoomObjectInfo &obj, Stream *in)
 }
 
 // Write base room object's fields
-void WriteRoomObjectBase(const RoomObjectInfo &obj, Stream *out)
+void WriteRoomObjectBase(const RoomObjectDef &obj, Stream *out)
 {
     // TODO: expand serialization into 32-bit values at least for the sprite index!!
     out->WriteInt16((uint16_t)obj.Sprite);
@@ -109,7 +109,7 @@ void WriteRoomObjectBase(const RoomObjectInfo &obj, Stream *out)
 }
 
 // Main room data
-HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const RoomReadOptions &read_opts)
+HError ReadMainBlock(RoomDef *room, Stream *in, RoomFileVersion data_ver, const RoomReadOptions &read_opts)
 {
     room->BackgroundBPP = in->ReadInt32();
     if (room->BackgroundBPP < 1)
@@ -301,7 +301,7 @@ HError ReadScriptBlock(String &buf, Stream *in, RoomFileVersion /*data_ver*/)
 }
 
 // Compiled room script
-HError ReadCompSc3Block(RoomData *room, Stream *in, RoomFileVersion /*data_ver*/)
+HError ReadCompSc3Block(RoomDef *room, Stream *in, RoomFileVersion /*data_ver*/)
 {
     room->CompiledScript.reset(ccScript::CreateFromStream(in));
     if (room->CompiledScript == nullptr)
@@ -310,7 +310,7 @@ HError ReadCompSc3Block(RoomData *room, Stream *in, RoomFileVersion /*data_ver*/
 }
 
 // Room object names
-HError ReadObjNamesBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
+HError ReadObjNamesBlock(RoomDef *room, Stream *in, RoomFileVersion data_ver)
 {
     size_t name_count = static_cast<uint8_t>(in->ReadInt8());
     if (name_count != room->Objects.size())
@@ -326,7 +326,7 @@ HError ReadObjNamesBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
 }
 
 // Room object script names
-HError ReadObjScNamesBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
+HError ReadObjScNamesBlock(RoomDef *room, Stream *in, RoomFileVersion data_ver)
 {
     size_t name_count = static_cast<uint8_t>(in->ReadInt8());
     if (name_count != room->Objects.size())
@@ -342,7 +342,7 @@ HError ReadObjScNamesBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
 }
 
 // Secondary backgrounds
-HError ReadAnimBgBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
+HError ReadAnimBgBlock(RoomDef *room, Stream *in, RoomFileVersion data_ver)
 {
     room->BgFrameCount = std::max<uint8_t>(1u, static_cast<uint8_t>(in->ReadInt8()));
     room->BgAnimSpeed = static_cast<uint8_t>(in->ReadInt8());
@@ -373,7 +373,7 @@ HError ReadAnimBgBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
 }
 
 // Read custom properties
-HError ReadPropertiesBlock(RoomData *room, Stream *in, RoomFileVersion /*data_ver*/)
+HError ReadPropertiesBlock(RoomDef *room, Stream *in, RoomFileVersion /*data_ver*/)
 {
     int prop_ver = in->ReadInt32();
     if (prop_ver != 1)
@@ -392,7 +392,7 @@ HError ReadPropertiesBlock(RoomData *room, Stream *in, RoomFileVersion /*data_ve
 }
 
 // Room object options that came with 3.6.3; 4.0 rooms carry this block too
-HError ReadExt_363_Objects(RoomData *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt_363_Objects(RoomDef *room, Stream *in, RoomFileVersion data_ver)
 {
     uint32_t obj_count = static_cast<uint32_t>(in->ReadInt32());
     if (obj_count != room->Objects.size())
@@ -418,7 +418,7 @@ HError ReadExt_363_Objects(RoomData *room, Stream *in, RoomFileVersion data_ver)
 }
 
 // Early development version of "ags4"
-HError ReadExt399(RoomData *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt399(RoomDef *room, Stream *in, RoomFileVersion data_ver)
 {
     // New room object properties
     for (auto &obj : room->Objects)
@@ -433,7 +433,7 @@ HError ReadExt399(RoomData *room, Stream *in, RoomFileVersion data_ver)
 }
 
 // Extended walkable areas and related room properties
-HError ReadExt_400_WalkOpts(RoomData *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt_400_WalkOpts(RoomDef *room, Stream *in, RoomFileVersion data_ver)
 {
     HError err;
     // New room properties
@@ -457,7 +457,7 @@ HError ReadExt_400_WalkOpts(RoomData *room, Stream *in, RoomFileVersion data_ver
     return HError::None();
 }
 
-HError ReadExt_400_CustomProps(RoomData *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt_400_CustomProps(RoomDef *room, Stream *in, RoomFileVersion data_ver)
 {
     HError err;
     if (!ReadAndAssertCount(in, "regions", room->RegionCount, err))
@@ -481,14 +481,14 @@ HError ReadExt_400_CustomProps(RoomData *room, Stream *in, RoomFileVersion data_
     return HError::None();
 }
 
-HError ReadExt_400_RoomNames(RoomData *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt_400_RoomNames(RoomDef *room, Stream *in, RoomFileVersion data_ver)
 {
     room->ScriptName = StrUtil::ReadString(in);
     room->Name = StrUtil::ReadString(in);
     return HError::None();
 }
 
-HError ReadExt_400_EventTables(RoomData *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt_400_EventTables(RoomDef *room, Stream *in, RoomFileVersion data_ver)
 {
     // TODO: figure out a more optimal way for handling all the operations here,
     // perhaps join schema read and remap into the member of the ScriptEventSchema class?
@@ -499,7 +499,7 @@ HError ReadExt_400_EventTables(RoomData *room, Stream *in, RoomFileVersion data_
         if (!err)
             return err;
         std::vector<uint32_t> remap;
-        const bool must_remap = schema.CreateRemap(RoomData::GetEventSchema(), remap);
+        const bool must_remap = schema.CreateRemap(RoomDef::GetEventSchema(), remap);
         ScriptEventHandlers handlers;
         err = handlers.Read(in);
         if (!err)
@@ -521,7 +521,7 @@ HError ReadExt_400_EventTables(RoomData *room, Stream *in, RoomFileVersion data_
     return HError::None();
 }
 
-HError ReadExt_400_ObjectOptions2(RoomData *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt_400_ObjectOptions2(RoomDef *room, Stream *in, RoomFileVersion data_ver)
 {
     HError err;
     if (!ReadAndAssertCount(in, "objects", room->Objects.size(), err))
@@ -541,7 +541,7 @@ HError ReadExt_400_ObjectOptions2(RoomData *room, Stream *in, RoomFileVersion da
     return HError::None();
 }
 
-HError ReadExt_400_AreaNames(RoomData *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt_400_AreaNames(RoomDef *room, Stream *in, RoomFileVersion data_ver)
 {
     // NOTE: Object names and script names were historically written in
     // blocks kRoomFblk_ObjectNames and kRoomFblk_ObjectScNames, but limited
@@ -578,7 +578,7 @@ HError ReadExt_400_AreaNames(RoomData *room, Stream *in, RoomFileVersion data_ve
     return HError::None();
 }
 
-HError ReadRoomBlock(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
+HError ReadRoomBlock(RoomDef *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
                      soff_t block_len, RoomFileVersion data_ver, const RoomReadOptions &read_opts)
 {
     //
@@ -719,7 +719,7 @@ HRoomFileError OpenRoomFile(RoomDataSource &src)
     return ReadRoomHeader(src);
 }
 
-HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in,
+HRoomFileError ReadRoomData(RoomDef *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in,
                             RoomFileVersion data_ver)
 {
     room->DataVersion = data_ver;
@@ -728,7 +728,7 @@ HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_p
     return err ? HRoomFileError::None() : new RoomFileError(err, kRoomFileErr_BlockListFailed);
 }
 
-HRoomFileError ReadRoomData(RoomData *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
+HRoomFileError ReadRoomData(RoomDef *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {
     return ReadRoomData(room, nullptr, std::move(in), data_ver);
 }
@@ -738,7 +738,7 @@ HRoomFileError ReadRoomData(RoomDataExt *room, std::unique_ptr<Stream> &&in, Roo
     return ReadRoomData(room, room, std::move(in), data_ver);
 }
 
-HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> *sprinfos)
+HRoomFileError UpdateRoomData(RoomDef *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> *sprinfos)
 {
     // Enforce sequential numeric IDs
     for (int id = 0; id < room->Objects.size(); ++id)
@@ -778,13 +778,13 @@ HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, const st
     if (data_ver < kRoomVersion_400_34)
     {
         for (auto &reg : room->Regions)
-            RoomRegion::UpgradeLegacyLight(reg.Light, reg.Tint);
+            RoomRegionDef::UpgradeLegacyLight(reg.Light, reg.Tint);
     }
 
     return HRoomFileError::None();
 }
 
-HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in, const std::vector<SpriteInfo> *sprinfos)
+HRoomFileError LoadRoom(RoomDef *room, std::unique_ptr<Stream> &&in, const std::vector<SpriteInfo> *sprinfos)
 {
     room->Free();
     room->InitDefaults();
@@ -800,14 +800,14 @@ HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in, const std:
     return err;
 }
 
-HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in,
+HRoomFileError ReadRoomData(RoomDef *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in,
                             RoomFileVersion data_ver,
                             const std::vector<std::pair<RoomFileBlock, String>> &blocks_to_read,
                             const RoomReadOptions &read_opts)
 {
     // Reads the listed blocks and skips the rest; the reader passes its own room, stream and options.
     // The list is captured by reference: it outlives the reader.
-    const auto read_listed = [&blocks_to_read](RoomData *block_room, RoomDataAux *block_aux, Stream *block_in,
+    const auto read_listed = [&blocks_to_read](RoomDef *block_room, RoomDataAux *block_aux, Stream *block_in,
                                                RoomFileBlock block, const String &ext_id, soff_t block_len,
                                                RoomFileVersion block_ver, const RoomReadOptions &block_opts)
     {
@@ -835,7 +835,7 @@ HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, R
     return HRoomFileError::None();
 }
 
-void WriteMainBlock(const RoomData *room, Stream *out)
+void WriteMainBlock(const RoomDef *room, Stream *out)
 {
     out->WriteInt32(room->BackgroundBPP);
     out->WriteInt16((uint16_t)room->WalkBehindCount);
@@ -940,12 +940,12 @@ void WriteMainBlock(const RoomData *room, Stream *out)
     save_rle_bitmap8(out, room->HotspotMaskBuf ? room->HotspotMaskBuf : dummy_buf);
 }
 
-void WriteCompSc3Block(const RoomData *room, Stream *out)
+void WriteCompSc3Block(const RoomDef *room, Stream *out)
 {
     room->CompiledScript->Write(out);
 }
 
-void WriteAnimBgBlock(const RoomData *room, Stream *out)
+void WriteAnimBgBlock(const RoomDef *room, Stream *out)
 {
     out->WriteByte((int8_t)room->BgFrameCount);
     out->WriteByte(room->BgAnimSpeed);
@@ -957,7 +957,7 @@ void WriteAnimBgBlock(const RoomData *room, Stream *out)
                                          kSprCompress_Deflate, &room->BgFrames[i].Palette);
 }
 
-void WritePropertiesBlock(const RoomData *room, Stream *out)
+void WritePropertiesBlock(const RoomDef *room, Stream *out)
 {
     out->WriteInt32(1); // Version 1 of properties block
     Properties::WriteValues(room->Properties, out);
@@ -967,12 +967,12 @@ void WritePropertiesBlock(const RoomData *room, Stream *out)
         Properties::WriteValues(obj.Properties, out);
 }
 
-void WriteStrOptions(const RoomData *room, Stream *out)
+void WriteStrOptions(const RoomDef *room, Stream *out)
 {
     StrUtil::WriteStringMap(room->StrOptions, out);
 }
 
-void WriteExt_363_Objects(const RoomData *room, Stream *out)
+void WriteExt_363_Objects(const RoomDef *room, Stream *out)
 {
     out->WriteInt32(room->Objects.size());
     for (const auto &obj : room->Objects)
@@ -987,7 +987,7 @@ void WriteExt_363_Objects(const RoomData *room, Stream *out)
     }
 }
 
-void WriteExt399(const RoomData *room, Stream *out)
+void WriteExt399(const RoomDef *room, Stream *out)
 {
     // New object properties
     for (const auto &obj : room->Objects)
@@ -1000,7 +1000,7 @@ void WriteExt399(const RoomData *room, Stream *out)
     }
 }
 
-void WriteExt_400_WalkareaOpts(const RoomData *room, Stream *out)
+void WriteExt_400_WalkareaOpts(const RoomDef *room, Stream *out)
 {
     // New room properties
     out->WriteFloat32(room->Options.FaceDirectionRatio);
@@ -1021,7 +1021,7 @@ void WriteExt_400_WalkareaOpts(const RoomData *room, Stream *out)
     }
 }
 
-void WriteExt_400_CustomProps(const RoomData *room, Stream *out)
+void WriteExt_400_CustomProps(const RoomDef *room, Stream *out)
 {
     out->WriteInt32(room->RegionCount);
     for (size_t i = 0; i < room->RegionCount; ++i)
@@ -1036,32 +1036,32 @@ void WriteExt_400_CustomProps(const RoomData *room, Stream *out)
     }
 }
 
-void WriteExt_400_RoomNames(const RoomData *room, Stream *out)
+void WriteExt_400_RoomNames(const RoomDef *room, Stream *out)
 {
     StrUtil::WriteString(room->ScriptName, out);
     StrUtil::WriteString(room->Name, out);
 }
 
-void WriteExt_400_EventTables(const RoomData *room, Stream *out)
+void WriteExt_400_EventTables(const RoomDef *room, Stream *out)
 {
-    RoomData::GetEventSchema().Write(out);
+    RoomDef::GetEventSchema().Write(out);
     room->GetEvents().Write(out);
 
-    RoomHotspot::GetEventSchema().Write(out);
+    RoomHotspotDef::GetEventSchema().Write(out);
     out->WriteInt32(room->HotspotCount);
     for (size_t i = 0; i < room->HotspotCount; ++i)
     {
         room->Hotspots[i].GetEvents().Write(out);
     }
 
-    RoomObjectInfo::GetEventSchema().Write(out);
+    RoomObjectDef::GetEventSchema().Write(out);
     out->WriteInt32(static_cast<uint32_t>(room->Objects.size()));
     for (size_t i = 0; i < room->Objects.size(); ++i)
     {
         room->Objects[i].GetEvents().Write(out);
     }
 
-    RoomRegion::GetEventSchema().Write(out);
+    RoomRegionDef::GetEventSchema().Write(out);
     out->WriteInt32(room->RegionCount);
     for (size_t i = 0; i < room->RegionCount; ++i)
     {
@@ -1069,7 +1069,7 @@ void WriteExt_400_EventTables(const RoomData *room, Stream *out)
     }
 }
 
-void WriteExt_400_ObjectOptions2(const RoomData *room, Stream *out)
+void WriteExt_400_ObjectOptions2(const RoomDef *room, Stream *out)
 {
     out->WriteInt32(room->Objects.size());
     for (const auto &obj : room->Objects)
@@ -1085,7 +1085,7 @@ void WriteExt_400_ObjectOptions2(const RoomData *room, Stream *out)
     }
 }
 
-void WriteExt_400_AreaNames(const RoomData *room, Stream *out)
+void WriteExt_400_AreaNames(const RoomDef *room, Stream *out)
 {
     // NOTE: Object names and script names were historically written in
     // blocks kRoomFblk_ObjectNames and kRoomFblk_ObjectScNames, but limited
@@ -1125,7 +1125,7 @@ void WriteAux_ScriptBlock(const RoomDataAux *room_aux, Stream *out)
     WriteRoomBlock(kRoomFblk_Script, data, out);
 }
 
-HRoomFileError WriteRoomData(const RoomData *room, const RoomDataAux *room_aux, Stream *out, RoomFileVersion data_ver,
+HRoomFileError WriteRoomData(const RoomDef *room, const RoomDataAux *room_aux, Stream *out, RoomFileVersion data_ver,
                              const String &compiled_with)
 {
     if (data_ver < kRoomVersion_Current)

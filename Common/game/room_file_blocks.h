@@ -21,8 +21,8 @@
 #include <functional>
 
 #include "data/data_ext.h"
+#include "game/room_def.h"
 #include "game/room_file.h"
-#include "game/roomdata.h"
 
 namespace AGS
 {
@@ -42,7 +42,7 @@ private:
 };
 
 // Type of function that reads (or skips) a single room block
-typedef std::function<HError(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block,
+typedef std::function<HError(RoomDef *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block,
                              const String &ext_id, soff_t block_len, RoomFileVersion data_ver,
                              const RoomReadOptions &room_read_opts)>
     PfnReadRoomBlock;
@@ -51,7 +51,7 @@ typedef std::function<HError(RoomData *room, RoomDataAux *room_aux, Stream *in, 
 class RoomBlockReader : public DataExtReader
 {
 public:
-    RoomBlockReader(RoomData *room, RoomDataAux *room_aux, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in,
+    RoomBlockReader(RoomDef *room, RoomDataAux *room_aux, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in,
                     const RoomReadOptions &read_opts, PfnReadRoomBlock pfn_read = nullptr);
 
 private:
@@ -64,7 +64,7 @@ private:
     String GetOldBlockName(int block_id) const override;
     HError ReadBlock(Stream *in, int block_id, const String &ext_id, soff_t block_len, bool &read_next) override;
 
-    RoomData *_room{};
+    RoomDef *_room{};
     RoomDataAux *_roomAux{};
     RoomFileVersion _dataVer{};
     RoomReadOptions _roomReadOpts;
@@ -76,11 +76,11 @@ private:
 // TODO: RoomBlockWriter to pair the RoomBlockReader
 //
 // Type of function that writes single room block.
-typedef std::function<void(const RoomData *room, Stream *out)> PfnWriteRoomBlock;
+typedef std::function<void(const RoomDef *room, Stream *out)> PfnWriteRoomBlock;
 // Helper for new-style blocks with string id
-void WriteRoomBlock(const RoomData *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out);
+void WriteRoomBlock(const RoomDef *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out);
 // Helper for old-style blocks with only numeric id
-void WriteRoomBlock(const RoomData *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out);
+void WriteRoomBlock(const RoomDef *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out);
 void WriteRoomBlock(RoomFileBlock block, const std::vector<uint8_t> &data, Stream *out);
 
 } // namespace Common

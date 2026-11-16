@@ -35,7 +35,7 @@
 #include "game/world/properties.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"
-#include "game/world/room_status.h"
+#include "game/world/room_state.h"
 #include "game/world/view_frame.h"
 #include "game/world/walkable_area.h"
 #include "gfx/bitmap.h"
@@ -541,7 +541,7 @@ void AnimateObjectImpl(int obj_id, int loop, int spdd, int rept, int direction, 
     }
 
     RoomObject &room_obj = room.Objs[obj_id];
-    const RoomObjectInfo &obji = room.Objects[obj_id];
+    const RoomObjectDef &obji = room.Objects[obj_id];
 
     if (!room_obj.is_enabled())
     {
@@ -983,7 +983,7 @@ void Object_DoMove(ScriptObject *obj, const char *api_name, void *path_arr, int 
     {
         return;
     }
-    const RoomObjectInfo &obji = room.Objects[obj->id];
+    const RoomObjectDef &obji = room.Objects[obj->id];
     ValidateMoveParams(api_name, obji.ScriptName.GetCStr(), blocking, ignwal);
     ValidateAnimParams(api_name, obji.ScriptName.GetCStr(), repeat, direction);
 

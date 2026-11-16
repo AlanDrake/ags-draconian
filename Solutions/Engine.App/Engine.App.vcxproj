@@ -501,7 +501,7 @@
     <ClCompile Include="..\..\Engine\game\world\region.cpp" />
     <ClCompile Include="..\..\Engine\game\world\room.cpp" />
     <ClCompile Include="..\..\Engine\game\world\room_object.cpp" />
-    <ClCompile Include="..\..\Engine\game\world\room_status.cpp" />
+    <ClCompile Include="..\..\Engine\game\world\room_state.cpp" />
     <ClCompile Include="..\..\Engine\game\world\view_frame.cpp" />
     <ClCompile Include="..\..\Engine\game\world\walk_behind.cpp" />
     <ClCompile Include="..\..\Engine\game\world\walkable_area.cpp" />
@@ -744,7 +744,7 @@
     <ClInclude Include="..\..\Engine\game\world\room.h" />
     <ClInclude Include="..\..\Engine\game\world\room_context.h" />
     <ClInclude Include="..\..\Engine\game\world\room_object.h" />
-    <ClInclude Include="..\..\Engine\game\world\room_status.h" />
+    <ClInclude Include="..\..\Engine\game\world\room_state.h" />
     <ClInclude Include="..\..\Engine\game\world\view_frame.h" />
     <ClInclude Include="..\..\Engine\game\world\walk_behind.h" />
     <ClInclude Include="..\..\Engine\game\world\walkable_area.h" />

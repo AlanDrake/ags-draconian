@@ -468,7 +468,7 @@
     <ClCompile Include="..\..\Common\game\scripteventtable.cpp" />
     <ClCompile Include="..\..\Common\game\main_game_file.cpp" />
     <ClCompile Include="..\..\Common\game\mouse_cursor.cpp" />
-    <ClCompile Include="..\..\Common\game\roomdata.cpp" />
+    <ClCompile Include="..\..\Common\game\room_def.cpp" />
     <ClCompile Include="..\..\Common\game\roomstruct.cpp" />
     <ClCompile Include="..\..\Common\game\room_file.cpp" />
     <ClCompile Include="..\..\Common\game\room_file_blocks.cpp" />
@@ -666,7 +666,7 @@
     <ClInclude Include="..\..\Common\game\main_game_file.h" />
     <ClInclude Include="..\..\Common\game\mouse_cursor.h" />
     <ClInclude Include="..\..\Common\game\plugininfo.h" />
-    <ClInclude Include="..\..\Common\game\roomdata.h" />
+    <ClInclude Include="..\..\Common\game\room_def.h" />
     <ClInclude Include="..\..\Common\game\roomstruct.h" />
     <ClInclude Include="..\..\Common\game\room_file_blocks.h" />
     <ClInclude Include="..\..\Common\game\room_version.h" />

@@ -18,7 +18,7 @@
 //=============================================================================
 #pragma once
 
-#include "game/roomdata.h"
+#include "game/room_def.h"
 #include "gfx/bitmap.h"
 
 namespace AGS
@@ -28,23 +28,23 @@ namespace Common
 
 typedef std::shared_ptr<Bitmap> PBitmap;
 
-// TODO: review this later, probably not a good idea to publicly inherit RoomData?
-class RoomStruct : public RoomData
+// TODO: review this later, probably not a good idea to publicly inherit RoomDef?
+class RoomStruct : public RoomDef
 {
 public:
     RoomStruct() = default;
-    // Construct a RoomStruct object by copying data from RoomData
-    RoomStruct(const RoomData &src);
-    // Construct a RoomStruct object by moving (owning) data from RoomData
-    RoomStruct(RoomData &&src);
+    // Construct a RoomStruct object by copying data from RoomDef
+    RoomStruct(const RoomDef &src);
+    // Construct a RoomStruct object by moving (owning) data from RoomDef
+    RoomStruct(RoomDef &&src);
     ~RoomStruct();
 
-    // Reinitialize RoomStruct by copying data from RoomData
-    RoomStruct &operator=(const RoomData &src);
-    // Reinitialize RoomStruct by moving (owning) data from RoomData
-    RoomStruct &operator=(RoomData &&src);
+    // Reinitialize RoomStruct by copying data from RoomDef
+    RoomStruct &operator=(const RoomDef &src);
+    // Reinitialize RoomStruct by moving (owning) data from RoomDef
+    RoomStruct &operator=(RoomDef &&src);
 
-    // Initializes bitmaps from RoomData's pixel buffers.
+    // Initializes bitmaps from RoomDef's pixel buffers.
     // CHECKME: this should be a private method; currently only accessed by a
     // (possibly temporary) code in the Editor.
     void InitBitmaps();

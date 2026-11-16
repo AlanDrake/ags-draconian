@@ -303,8 +303,8 @@ target_sources(engine
     game/world/room_context.h
     game/world/room_object.cpp
     game/world/room_object.h
-    game/world/room_status.cpp
-    game/world/room_status.h
+    game/world/room_state.cpp
+    game/world/room_state.h
     game/world/view_frame.cpp
     game/world/view_frame.h
     game/world/walk_behind.cpp

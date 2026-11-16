@@ -29,7 +29,7 @@ class Stream;
 } // namespace AGS
 using AGS::Common::Stream;
 
-// RoomStatus runtime save format
+// RoomState runtime save format
 // Before 4.0: 0 (3.5.0 pre-alpha, and "Room States" of 3.5.0 by mistake); 1 (3.5.0) new movelist format;
 // 2 (3.6.0.16) hotspot and object names; 3 (3.6.0.25) object animation volume; 4 (3.6.0.41) room state's
 // contentFormat; 5 (3.6.1.9) removed movelists, save externally; 3060214 serialize current room's changes to
@@ -68,8 +68,8 @@ struct WalkareaState
     void WriteToSavegame(AGS::Common::Stream *out) const;
 };
 
-// RoomStatus contains everything about a room that could change at runtime.
-class RoomStatus
+// RoomState is the state of one room number, kept between visits and saved for every visited room.
+class RoomState
 {
 public:
     // TODO: hide these fields under get/set methods
@@ -91,15 +91,15 @@ public:
     AGS::Common::StringIMap regProps[MAX_ROOM_REGIONS];
     AGS::Common::StringIMap waProps[MAX_WALK_AREAS];
 
-    // A version of a save this RoomStatus was restored from.
-    // This is used as a hint when merging RoomStatus with the loaded room file (upon room enter).
+    // A version of a save this RoomState was restored from.
+    // This is used as a hint when merging RoomState with the loaded room file (upon room enter).
     // We need this for cases when an old format save is restored within an upgraded game
     // (for example, game was upgraded from 3.4.0 to 3.6.0, but player tries loading 3.4.0 save),
     // because room files are only loaded once entered, so we cannot fixup all RoomStatuses at once.
     RoomStatSvgVersion contentFormat = kRoomStatSvgVersion_Current;
 
-    RoomStatus();
-    ~RoomStatus();
+    RoomState();
+    ~RoomState();
 
     int GetBgShaderID() const { return _bgShaderID; }
     int GetBgShaderHandle() const { return _bgShaderHandle; }
@@ -118,9 +118,9 @@ private:
 };
 
 // Retrieves a given room's runtime state. *Allocates* one if it does not exist
-RoomStatus *GetRoomState(int room);
+RoomState *GetRoomState(int room);
 // Retrieves a existing room's runtime state; returns null if one was not allocated
-RoomStatus *GetRoomStateIfExists(int room);
+RoomState *GetRoomStateIfExists(int room);
 // Deletes particular room's runtime state. This will make the game forget about
 // what happened in that room, and make it start anew whenever player enters it again.
 void ResetRoomState(int room);

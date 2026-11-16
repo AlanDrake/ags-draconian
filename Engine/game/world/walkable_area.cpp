@@ -27,7 +27,7 @@
 #include "game/world/room.h"
 #include "game/world/room_context.h"
 #include "game/world/room_object.h"
-#include "game/world/room_status.h"
+#include "game/world/room_state.h"
 #include "gfx/bitmap.h"
 #include "script/script_runtime.h"
 #include "util/common.h"
@@ -58,7 +58,7 @@ int get_walkable_area_pixel(Room &room, int x, int y)
 int get_area_scaling(Room &room, int area_id, int y)
 {
     int zoom_level = 100;
-    y = room_to_mask_coord(room, y); // WalkArea Top and Bottom are mask rows
+    y = room_to_mask_coord(room, y); // RoomWalkableAreaDef Top and Bottom are mask rows
 
     if ((area_id >= 0) && (area_id < MAX_WALK_AREAS) && (room.WalkAreas[area_id].ScalingNear != NOT_VECTOR_SCALED))
     {

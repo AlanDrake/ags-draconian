@@ -33,14 +33,14 @@ String RoomBlockParser::GetOldBlockName(int block_id) const
 }
 
 // Implemented in room_file.cpp
-HError ReadRoomBlock(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
+HError ReadRoomBlock(RoomDef *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
                      soff_t block_len, RoomFileVersion data_ver, const RoomReadOptions &read_opts);
 
 //
 // RoomBlockReader
 //
 
-RoomBlockReader::RoomBlockReader(RoomData *room, RoomDataAux *room_aux, RoomFileVersion data_ver,
+RoomBlockReader::RoomBlockReader(RoomDef *room, RoomDataAux *room_aux, RoomFileVersion data_ver,
                                  std::unique_ptr<Stream> &&in, const RoomReadOptions &read_opts,
                                  PfnReadRoomBlock pfn_read)
     : DataExtReader(std::move(in), GetDataExtFlags(data_ver, read_opts)),
@@ -67,13 +67,13 @@ HError RoomBlockReader::ReadBlock(Stream *in, int block_id, const String &ext_id
 // Room block writer
 //
 
-void WriteRoomBlock(const RoomData *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out)
+void WriteRoomBlock(const RoomDef *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out)
 {
     WriteExtBlock(
         ext_id, [room, writer](Stream *block_out) { writer(room, block_out); }, kDataExt_NumID8 | kDataExt_File64, out);
 }
 
-void WriteRoomBlock(const RoomData *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out)
+void WriteRoomBlock(const RoomDef *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out)
 {
     WriteExtBlock(
         block, [room, writer](Stream *block_out) { writer(room, block_out); }, kDataExt_NumID8 | kDataExt_File64, out);

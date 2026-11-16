@@ -36,7 +36,7 @@
 #include "game/translation.h"
 #include "game/video/video.h"
 #include "game/world/room.h"
-#include "game/world/room_status.h"
+#include "game/world/room_state.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/sprite_cache.h"

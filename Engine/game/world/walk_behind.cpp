@@ -25,7 +25,7 @@
 #include "game/render/draw.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"
-#include "game/world/room_status.h"
+#include "game/world/room_state.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "script/script_runtime.h"

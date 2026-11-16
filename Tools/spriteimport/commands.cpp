@@ -187,7 +187,7 @@ void CacheRoomPalettes(RoomPaletteCache &room_cache, const String &room_dir,
 
         // For the room palette we must read its primary background image
         // found in the kRoomFblk_Main
-        RoomData room;
+        RoomDef room;
         err = ReadRoomData(&room, nullptr, std::move(src.InputStream), src.DataVersion, {{kRoomFblk_Main, ""}}, {});
         if (!err)
         {

@@ -99,7 +99,7 @@
     <ClCompile Include="..\..\Common\game\customproperties.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\roomdata.cpp">
+    <ClCompile Include="..\..\Common\game\room_def.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Tools\data\cc_script_stubs.cpp">
@@ -230,7 +230,7 @@
     <ClInclude Include="..\..\Common\game\room_file.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\roomdata.h">
+    <ClInclude Include="..\..\Common\game\room_def.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\game\room_file_blocks.h">

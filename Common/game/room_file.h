@@ -13,7 +13,7 @@
 //=============================================================================
 //
 // This unit provides functions for reading compiled room file (CRM)
-// into the RoomData structure, as well as extracting separate components,
+// into the RoomDef structure, as well as extracting separate components,
 // such as room scripts.
 //
 //=============================================================================
@@ -23,8 +23,8 @@
 #include <memory>
 #include <vector>
 
+#include "game/room_def.h"
 #include "game/room_version.h"
-#include "game/roomdata.h"
 #include "util/error.h"
 #include "util/stream.h"
 #include "util/string.h"
@@ -121,7 +121,7 @@ public:
 
 // Full room data, includes both runtime and design-time data,
 // including obsolete data from 2.x editors
-class RoomDataExt : public RoomData, public RoomDataAux
+class RoomDataExt : public RoomDef, public RoomDataAux
 {
 };
 
@@ -131,16 +131,16 @@ HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src);
 // Opens room data for reading from the arbitrary stream found in RoomDataSource
 HRoomFileError OpenRoomFile(RoomDataSource &src);
 // Reads room data
-HRoomFileError ReadRoomData(RoomData *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
+HRoomFileError ReadRoomData(RoomDef *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
 // Reads room data and fills in auxiliary data, if one is found in the stream.
 HRoomFileError ReadRoomData(RoomDataExt *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
-HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> *sprinfos);
-// Loads new room data into the given RoomData object and upgrade it to the latest version
-HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in, const std::vector<SpriteInfo> *sprinfos);
+HRoomFileError UpdateRoomData(RoomDef *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> *sprinfos);
+// Loads new room data into the given RoomDef object and upgrade it to the latest version
+HRoomFileError LoadRoom(RoomDef *room, std::unique_ptr<Stream> &&in, const std::vector<SpriteInfo> *sprinfos);
 // Writes all room data to the stream
-HRoomFileError WriteRoomData(const RoomData *room, const RoomDataAux *room_aux, Stream *out, RoomFileVersion data_ver,
+HRoomFileError WriteRoomData(const RoomDef *room, const RoomDataAux *room_aux, Stream *out, RoomFileVersion data_ver,
                              const String &compiled_with);
 // Writes all extended room data to the stream
 HRoomFileError WriteRoomData(const RoomDataExt *room, Stream *out, RoomFileVersion data_ver,
@@ -160,7 +160,7 @@ struct RoomReadOptions
 };
 
 // Reads room data from the only specified room file blocks
-HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in,
+HRoomFileError ReadRoomData(RoomDef *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in,
                             RoomFileVersion data_ver,
                             const std::vector<std::pair<RoomFileBlock, String>> &blocks_to_read,
                             const RoomReadOptions &read_opts);

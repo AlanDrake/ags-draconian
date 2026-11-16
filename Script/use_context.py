@@ -1375,11 +1375,11 @@ def self_test_contexts():
 
     # 3. the local's name taken: a parameter `int room`, a definition passed as `game`, a member, a naming
     src = ('void e(int room)\n{\n    thisroom.Width = room;\n    thisroom.Height = 1;\n}\n'
-           'void m(RoomStatus *rs)\n{\n    foo(x.room, A::room);\n    thisroom.a = 1;\n    croom->b = 2;\n}\n'
+           'void m(RoomState *rs)\n{\n    foo(x.room, A::room);\n    thisroom.a = 1;\n    croom->b = 2;\n}\n'
            'void n()\n{\n    for (auto &room : rooms)\n        thisroom.a = room;\n    croom->b = 2;\n}\n')
     out, rep = run(src, room)
     assert 'void e(int room)\n{\n    Room::Current().Width = room;\n    Room::Current().Height = 1;\n}' in out, out
-    assert 'void m(RoomStatus *rs)\n{\n    Room &room = Room::Current();\n    foo(x.room, A::room);\n    room.a' in out, out
+    assert 'void m(RoomState *rs)\n{\n    Room &room = Room::Current();\n    foo(x.room, A::room);\n    room.a' in out, out
     assert 'Room::Current().a = room;\n    Room::Current().State->b = 2;' in out, out
     assert [t[2] for t in rep.taken] == ['e', 'n'], rep.taken
     src = ('void s(const GameDef &game)\n{\n    play.a = game.x;\n    play.b = 1;\n}\n'

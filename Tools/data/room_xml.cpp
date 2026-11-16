@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <cctype>
 
-#include "game/roomdata.h"
+#include "game/room_def.h"
 #include "util/math.h"
 #include "util/string_types.h"
 #include "util/string_utils.h"

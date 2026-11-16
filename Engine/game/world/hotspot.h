@@ -18,7 +18,7 @@
 #pragma once
 
 #include "game/dynobj/script_objects.h"
-#include "game/roomdata.h"
+#include "game/room_def.h"
 
 void Hotspot_SetEnabled(ScriptHotspot *hss, int new_value);
 int Hotspot_GetEnabled(ScriptHotspot *hss);

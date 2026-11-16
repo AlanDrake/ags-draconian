@@ -59,7 +59,7 @@
 #include "game/world/region.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"
-#include "game/world/room_status.h"
+#include "game/world/room_state.h"
 #include "game/world/walk_behind.h"
 #include "game/world/walkable_area.h"
 #include "gfx/bitmap.h"

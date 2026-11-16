@@ -201,8 +201,8 @@ Engine/ac/room.cpp	Engine/game/world/room.cpp
 Engine/ac/room.h	Engine/game/world/room.h
 Engine/ac/roomobject.cpp	Engine/game/world/room_object.cpp
 Engine/ac/roomobject.h	Engine/game/world/room_object.h
-Engine/ac/roomstatus.cpp	Engine/game/world/room_status.cpp
-Engine/ac/roomstatus.h	Engine/game/world/room_status.h
+Engine/ac/roomstatus.cpp	Engine/game/world/room_state.cpp
+Engine/ac/roomstatus.h	Engine/game/world/room_state.h
 Engine/ac/route_finder.cpp	Engine/game/navigation/route_finder.cpp
 Engine/ac/route_finder.h	Engine/game/navigation/route_finder.h
 Engine/ac/route_finder_impl.cpp	Engine/game/navigation/route_finder_impl.cpp

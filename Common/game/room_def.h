@@ -12,21 +12,12 @@
 //
 //=============================================================================
 //
-// RoomData, a class describing initial room data.
+// RoomDef, a class describing the room as the room file stores it, with the definitions of its
+// entities: RoomObjectDef, RoomHotspotDef, RoomRegionDef, RoomWalkableAreaDef and RoomWalkBehindDef.
 //
-// Because of the imperfect implementation there is inconsistency in how
-// this data is interpreted at the runtime.
-// Some of that data is never supposed to be changed at runtime. Another
-// may be changed, but these changes are lost as soon as room is unloaded.
-// The changes that must remain in memory are kept as separate classes:
-// see RoomStatus, RoomObject etc.
-//
-// Partially this is because same class was used for both engine and editor,
-// while runtime code was not available for the editor.
-//
-// This is also the reason why some classes here are named with the "Info"
-// postfix. For example, RoomObjectInfo is the initial object data, and
-// there is also RoomObject runtime-only class for mutable data.
+// Some of that data is never supposed to be changed at runtime. Another may be changed, but these
+// changes are lost as soon as room is unloaded. The changes that must remain in memory are kept
+// in separate classes: see RoomState, RoomObject etc.
 //
 // TODO: have a consistent division between design-time struct (loaded from
 // game data), and runtime class. Need to think how we want to deal with
@@ -214,7 +205,7 @@ protected:
 };
 
 // Room hotspot description
-struct RoomHotspot : public RoomObjectBase
+struct RoomHotspotDef : public RoomObjectBase
 {
     // Human-readable name (description)
     String Name;
@@ -226,13 +217,13 @@ struct RoomHotspot : public RoomObjectBase
     // Player will automatically walk here when interacting with hotspot
     Point WalkTo;
 
-    RoomHotspot() : RoomObjectBase(&RoomHotspot::_eventSchema) {}
+    RoomHotspotDef() : RoomObjectBase(&RoomHotspotDef::_eventSchema) {}
 
-    RoomHotspot(const RoomHotspot &src) = default;
-    RoomHotspot(RoomHotspot &&src) = default;
+    RoomHotspotDef(const RoomHotspotDef &src) = default;
+    RoomHotspotDef(RoomHotspotDef &&src) = default;
 
-    RoomHotspot &operator=(const RoomHotspot &src) = default;
-    RoomHotspot &operator=(RoomHotspot &&src) = default;
+    RoomHotspotDef &operator=(const RoomHotspotDef &src) = default;
+    RoomHotspotDef &operator=(RoomHotspotDef &&src) = default;
 
     static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
     // Remaps old-format interaction list into new event table
@@ -244,7 +235,7 @@ private:
 };
 
 // Room object description
-struct RoomObjectInfo : public RoomObjectBase
+struct RoomObjectDef : public RoomObjectBase
 {
     int32_t Room = -1;
     int32_t X = 0;
@@ -265,13 +256,13 @@ struct RoomObjectInfo : public RoomObjectBase
     // Interaction events (cursor-based)
     ScriptEventHandlers Interactions = {};
 
-    RoomObjectInfo() : RoomObjectBase(&RoomObjectInfo::_eventSchema) {}
+    RoomObjectDef() : RoomObjectBase(&RoomObjectDef::_eventSchema) {}
 
-    RoomObjectInfo(const RoomObjectInfo &src) = default;
-    RoomObjectInfo(RoomObjectInfo &&src) = default;
+    RoomObjectDef(const RoomObjectDef &src) = default;
+    RoomObjectDef(RoomObjectDef &&src) = default;
 
-    RoomObjectInfo &operator=(const RoomObjectInfo &src) = default;
-    RoomObjectInfo &operator=(RoomObjectInfo &&src) = default;
+    RoomObjectDef &operator=(const RoomObjectDef &src) = default;
+    RoomObjectDef &operator=(RoomObjectDef &&src) = default;
 
     static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
     // Remaps old-format interaction list into new event table
@@ -283,7 +274,7 @@ private:
 };
 
 // Room region description
-struct RoomRegion : public RoomObjectBase
+struct RoomRegionDef : public RoomObjectBase
 {
     // Light level (-255 -> +255) or Tint luminance (0 - 255)
     int32_t Light = 0;
@@ -294,13 +285,13 @@ struct RoomRegion : public RoomObjectBase
     // Interaction events (old-style event storage, kept of loading old data)
     ScriptEventHandlers Interactions = {};
 
-    RoomRegion() : RoomObjectBase(&RoomRegion::_eventSchema) {}
+    RoomRegionDef() : RoomObjectBase(&RoomRegionDef::_eventSchema) {}
 
-    RoomRegion(const RoomRegion &src) = default;
-    RoomRegion(RoomRegion &&src) = default;
+    RoomRegionDef(const RoomRegionDef &src) = default;
+    RoomRegionDef(RoomRegionDef &&src) = default;
 
-    RoomRegion &operator=(const RoomRegion &src) = default;
-    RoomRegion &operator=(RoomRegion &&src) = default;
+    RoomRegionDef &operator=(const RoomRegionDef &src) = default;
+    RoomRegionDef &operator=(RoomRegionDef &&src) = default;
 
     static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
     // Remaps old-format interaction list into new event table
@@ -316,7 +307,7 @@ private:
 };
 
 // Walkable area description
-struct WalkArea : public RoomObjectBase
+struct RoomWalkableAreaDef : public RoomObjectBase
 {
     // Apply player character's normal view on this area
     int32_t CharacterView = 0;
@@ -337,7 +328,7 @@ struct WalkArea : public RoomObjectBase
 };
 
 // Walk-behind description
-struct WalkBehind : public RoomObjectBase
+struct RoomWalkBehindDef : public RoomObjectBase
 {
     // Object's z-order in the room
     int32_t Baseline = 0;
@@ -348,16 +339,16 @@ struct WalkBehind : public RoomObjectBase
 // This class contains initial room data. Some of it may still be modified
 // at the runtime, but then these changes get lost as soon as room is unloaded.
 //
-class RoomData : public RoomObjectBase
+class RoomDef : public RoomObjectBase
 {
 public:
-    RoomData();
-    RoomData(const RoomData &src);
-    RoomData(RoomData &&src);
-    ~RoomData();
+    RoomDef();
+    RoomDef(const RoomDef &src);
+    RoomDef(RoomDef &&src);
+    ~RoomDef();
 
-    RoomData &operator=(const RoomData &src);
-    RoomData &operator=(RoomData &&src) = default;
+    RoomDef &operator=(const RoomDef &src);
+    RoomDef &operator=(RoomDef &&src) = default;
 
     // Releases room resources
     void Free();
@@ -429,14 +420,14 @@ public:
     PixelBuffer WalkBehindMaskBuf;
     // Room entities
     uint32_t HotspotCount;
-    RoomHotspot Hotspots[MAX_ROOM_HOTSPOTS];
-    std::vector<RoomObjectInfo> Objects;
+    RoomHotspotDef Hotspots[MAX_ROOM_HOTSPOTS];
+    std::vector<RoomObjectDef> Objects;
     uint32_t RegionCount;
-    RoomRegion Regions[MAX_ROOM_REGIONS];
+    RoomRegionDef Regions[MAX_ROOM_REGIONS];
     uint32_t WalkAreaCount;
-    WalkArea WalkAreas[MAX_WALK_AREAS];
+    RoomWalkableAreaDef WalkAreas[MAX_WALK_AREAS];
     uint32_t WalkBehindCount;
-    WalkBehind WalkBehinds[MAX_WALK_BEHINDS];
+    RoomWalkBehindDef WalkBehinds[MAX_WALK_BEHINDS];
 
     // Custom properties
     StringIMap Properties;

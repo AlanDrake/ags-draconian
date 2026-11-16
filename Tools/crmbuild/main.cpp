@@ -116,7 +116,7 @@ static HError BuildRoom(const String &agf_file, const String &room_dir, const Ro
     if (!err)
         return err;
 
-    RoomData data;
+    RoomDef data;
     err = ConvertRoomXml(room, game, data);
     if (!err)
         return err;

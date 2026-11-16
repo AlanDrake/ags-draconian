@@ -26,7 +26,7 @@
 #include "game/world/object.h"
 #include "game/world/room.h"
 #include "game/world/room_object.h"
-#include "game/world/room_status.h"
+#include "game/world/room_state.h"
 #include "game/world/walk_behind.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfx_util.h"

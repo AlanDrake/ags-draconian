@@ -1262,7 +1262,7 @@ AGSString load_room_file(RoomStruct &rs, const AGSString &filename)
   auto in = AssetMgr->OpenAsset(filename);
   if (!in)
       return AGSString::FromFormat("Failed to open room file %s", filename.GetCStr());
-  AGS::Common::RoomData room_data;
+  AGS::Common::RoomDef room_data;
   HAGSError err = LoadRoom(&room_data, std::move(in), &thisgame.SpriteInfos);
   if (!err)
       return err->FullMessage();

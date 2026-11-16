@@ -26,7 +26,7 @@
 #include "data/game_utils.h"
 #include "data/room_utils.h"
 #include "data/room_xml.h"
-#include "game/roomdata.h"
+#include "game/room_def.h"
 #include "util/error.h"
 #include "util/string.h"
 
@@ -69,14 +69,14 @@ RoomScriptNames GetRoomScriptNames(const RoomXml &room);
 
 // Fills room data from the room sources, without images and script. Applies the fixups the
 // editor does before saving a room.
-Common::HError ConvertRoomXml(RoomXml room, const RoomBuildGame &game, Common::RoomData &data);
+Common::HError ConvertRoomXml(RoomXml room, const RoomBuildGame &game, Common::RoomDef &data);
 
 // Loads the background images and area masks from the room directory into room data
 Common::HError LoadRoomImages(const String &room_dir, const RoomXml &room, const RoomBuildGame &game,
-                              Common::RoomData &data, std::vector<String> &warnings);
+                              Common::RoomDef &data, std::vector<String> &warnings);
 
 // Last steps before writing: calculates the walkable areas' top and bottom lines
-void FinishRoomData(Common::RoomData &data);
+void FinishRoomData(Common::RoomDef &data);
 
 // Converts a text property to the game encoding and resolves escapes, as the editor does
 // (TextConverter.ConvertTextProperty)

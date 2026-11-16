@@ -17,9 +17,9 @@
 
 #include "data/data_ext.h"
 #include "data/room_utils.h"
+#include "game/room_def.h"
 #include "game/room_file.h"
 #include "game/room_file_blocks.h"
-#include "game/roomdata.h"
 #include "gfx/image_file.h"
 #include "script/cc_script.h"
 #include "util/file.h"
@@ -114,7 +114,7 @@ HRoomFileError ReadOnlyScriptNames(RoomDataExt &room, std::unique_ptr<Stream> &&
 
 HRoomFileError ReadOnlyCompiledScript(RoomDataExt &room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {
-    // the compiled script is read into RoomData, unlike the script text
+    // the compiled script is read into RoomDef, unlike the script text
     return ReadRoomData(&room, &room, std::move(in), data_ver, {{kRoomFblk_CompScript3, ""}}, {});
 }
 

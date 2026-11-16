@@ -18,12 +18,12 @@ namespace AGS
 namespace Common
 {
 
-RoomStruct::RoomStruct(const RoomData &room_data)
+RoomStruct::RoomStruct(const RoomDef &room_data)
 {
     *this = room_data;
 }
 
-RoomStruct::RoomStruct(RoomData &&room_data)
+RoomStruct::RoomStruct(RoomDef &&room_data)
 {
     *this = std::move(room_data);
 }
@@ -33,16 +33,16 @@ RoomStruct::~RoomStruct()
     Free();
 }
 
-RoomStruct &RoomStruct::operator=(const RoomData &room_data)
+RoomStruct &RoomStruct::operator=(const RoomDef &room_data)
 {
-    static_cast<RoomData &>(*this) = room_data;
+    static_cast<RoomDef &>(*this) = room_data;
     InitBitmaps();
     return *this;
 }
 
-RoomStruct &RoomStruct::operator=(RoomData &&room_data)
+RoomStruct &RoomStruct::operator=(RoomDef &&room_data)
 {
-    static_cast<RoomData &>(*this) = std::move(room_data);
+    static_cast<RoomDef &>(*this) = std::move(room_data);
     InitBitmaps();
     return *this;
 }
@@ -65,7 +65,7 @@ void RoomStruct::InitBitmaps()
 
 void RoomStruct::Free()
 {
-    RoomData::Free();
+    RoomDef::Free();
 
     BgImages = {};
     HotspotMask.reset();

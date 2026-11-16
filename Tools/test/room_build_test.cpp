@@ -134,7 +134,7 @@ TEST(RoomBuild, InteractionsAreIndexedByCursor)
                          "<OnAnyClick>oAny</OnAnyClick></RoomObject></Objects><Hotspots><RoomHotspot /></Hotspots>"
                          "</Room>",
                          room));
-    RoomData data;
+    RoomDef data;
     ASSERT_TRUE(ConvertRoomXml(room, MakeGame(), data));
     const auto &handlers = data.Objects[0].Interactions.GetHandlers();
     // slots 0..8, by cursor ID; functions of cursors without an event are dropped
@@ -159,7 +159,7 @@ TEST(RoomBuild, FixupsBeforeSaving)
                          "<MinScalingLevel>150</MinScalingLevel><MaxScalingLevel>50</MaxScalingLevel>"
                          "</RoomWalkableArea></WalkableAreas></Room>",
                          room));
-    RoomData data;
+    RoomDef data;
     ASSERT_TRUE(ConvertRoomXml(room, MakeGame(), data));
     EXPECT_EQ(1234, data.GameID);          // room taken from another game
     ASSERT_EQ(1u, data.Properties.size()); // only what the schema has, with its spelling
@@ -197,7 +197,7 @@ TEST(RoomBuild, ScriptHeader)
 
 TEST(RoomBuild, WalkableAreaExtents)
 {
-    RoomData data;
+    RoomDef data;
     data.Height = 10;
     data.WalkAreaMaskBuf = ClearBuffer(4, 6, kPxFmt_Indexed8);
     data.WalkAreaMaskBuf.GetLine(2)[1] = 3;
@@ -225,7 +225,7 @@ TEST(RoomBuild, LoadsImages)
 
     RoomXml room;
     room.BackgroundCount = 2; // background1.png is missing: the editor uses the ones it finds
-    RoomData data;
+    RoomDef data;
     std::vector<String> warnings;
     HError err = LoadRoomImages(dir, room, MakeGame(), data, warnings);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
@@ -311,7 +311,7 @@ TEST(RoomBuild, EightBitBackgroundsTakeTheGamewideColours)
     RoomBuildGame game = MakeGame();
     game.ColorDepth = 8;
     game.Palette = MakeGamePalette();
-    RoomData data;
+    RoomDef data;
     std::vector<String> warnings;
     HError err = LoadRoomImages(dir, room, game, data, warnings);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
@@ -373,7 +373,7 @@ TEST(RoomBuild, GamewideColoursStopAtTheImagePalette)
     game.Palette[1] = {kPaletteColourType_Gamewide, 1, 2, 3};
     game.Palette[3] = {kPaletteColourType_Gamewide, 7, 8, 9};
     game.Palette[0].ColourType = kPaletteColourType_Background;
-    RoomData data;
+    RoomDef data;
     std::vector<String> warnings;
     HError err = LoadRoomImages(dir, room, game, data, warnings);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();

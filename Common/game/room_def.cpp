@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "game/roomdata.h"
+#include "game/room_def.h"
 
 #include "game/common_defines.h"
 #include "game/room_version.h"
@@ -46,11 +46,11 @@ RoomEdges::RoomEdges() : Left(0), Right(0), Top(0), Bottom(0) {}
 
 RoomEdges::RoomEdges(int l, int r, int t, int b) : Left(l), Right(r), Top(t), Bottom(b) {}
 
-/* static */ ScriptEventSchema RoomHotspot::_eventSchema = {{{"OnAnyClick", kHotspotEvent_AnyClick},
-                                                             {"OnMouseMove", kHotspotEvent_MouseOver},
-                                                             {"OnWalkOn", kHotspotEvent_StandOn}}};
+/* static */ ScriptEventSchema RoomHotspotDef::_eventSchema = {{{"OnAnyClick", kHotspotEvent_AnyClick},
+                                                                {"OnMouseMove", kHotspotEvent_MouseOver},
+                                                                {"OnWalkOn", kHotspotEvent_StandOn}}};
 
-void RoomHotspot::RemapOldInteractions()
+void RoomHotspotDef::RemapOldInteractions()
 {
     std::vector<ScriptEventHandler> old_interactions = Interactions.GetHandlers();
     std::vector<ScriptEventHandler> new_interactions;
@@ -73,12 +73,12 @@ void RoomHotspot::RemapOldInteractions()
     _events.SetHandler(kHotspotEvent_MouseOver, old_interactions[6].FunctionName);
 }
 
-/* static */ ScriptEventSchema RoomObjectInfo::_eventSchema = {{
+/* static */ ScriptEventSchema RoomObjectDef::_eventSchema = {{
     {"OnAnyClick", kRoomObjectEvent_AnyClick},
     {"OnFrameEvent", kRoomObjectEvent_OnFrameEvent},
 }};
 
-void RoomObjectInfo::RemapOldInteractions()
+void RoomObjectDef::RemapOldInteractions()
 {
     std::vector<ScriptEventHandler> old_interactions = Interactions.GetHandlers();
     std::vector<ScriptEventHandler> new_interactions;
@@ -99,13 +99,13 @@ void RoomObjectInfo::RemapOldInteractions()
     _events.SetHandler(kRoomObjectEvent_AnyClick, old_interactions[4].FunctionName);
 }
 
-/* static */ ScriptEventSchema RoomRegion::_eventSchema = {{
+/* static */ ScriptEventSchema RoomRegionDef::_eventSchema = {{
     {"OnStanding", kRegionEvent_Standing},
     {"OnWalksOnto", kRegionEvent_WalkOn},
     {"OnWalksOff", kRegionEvent_WalkOff},
 }};
 
-void RoomRegion::RemapOldInteractions()
+void RoomRegionDef::RemapOldInteractions()
 {
     std::vector<ScriptEventHandler> old_interactions = Interactions.GetHandlers();
     // this is just for safety, it's supposed to be that large
@@ -117,27 +117,27 @@ void RoomRegion::RemapOldInteractions()
     Interactions = {};
 }
 
-RoomData::RoomData() : RoomObjectBase(&RoomData::_eventSchema)
+RoomDef::RoomDef() : RoomObjectBase(&RoomDef::_eventSchema)
 {
     InitDefaults();
 }
 
-RoomData::RoomData(const RoomData &src) : RoomObjectBase(src)
+RoomDef::RoomDef(const RoomDef &src) : RoomObjectBase(src)
 {
     *this = src;
 }
 
-RoomData::RoomData(RoomData &&src)
+RoomDef::RoomDef(RoomDef &&src)
 {
     *this = std::move(src);
 }
 
-RoomData::~RoomData()
+RoomDef::~RoomDef()
 {
     Free();
 }
 
-RoomData &RoomData::operator=(const RoomData &src)
+RoomDef &RoomDef::operator=(const RoomDef &src)
 {
     RoomObjectBase::operator=(src);
 
@@ -177,7 +177,7 @@ RoomData &RoomData::operator=(const RoomData &src)
     return *this;
 }
 
-void RoomData::Free()
+void RoomDef::Free()
 {
     BgFrames = {};
     HotspotMaskBuf = {};
@@ -217,7 +217,7 @@ void RoomData::Free()
     }
 }
 
-void RoomData::InitDefaults()
+void RoomDef::InitDefaults()
 {
     DataVersion = kRoomVersion_Current;
     GameID = NO_GAME_ID_IN_ROOM_FILE;
@@ -238,13 +238,13 @@ void RoomData::InitDefaults()
     BgFrames.resize(BgFrameCount);
 
     for (size_t i = 0; i < (size_t)MAX_ROOM_HOTSPOTS; ++i)
-        Hotspots[i] = RoomHotspot();
+        Hotspots[i] = RoomHotspotDef();
     for (size_t i = 0; i < (size_t)MAX_ROOM_REGIONS; ++i)
-        Regions[i] = RoomRegion();
+        Regions[i] = RoomRegionDef();
     for (size_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
-        WalkAreas[i] = WalkArea();
+        WalkAreas[i] = RoomWalkableAreaDef();
     for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
-        WalkBehinds[i] = WalkBehind();
+        WalkBehinds[i] = RoomWalkBehindDef();
 
     BackgroundBPP = 1;
     BgAnimSpeed = 5;
@@ -252,7 +252,7 @@ void RoomData::InitDefaults()
     memset(Palette, 0, sizeof(Palette));
 }
 
-/* static */ ScriptEventSchema RoomData::_eventSchema = {{
+/* static */ ScriptEventSchema RoomDef::_eventSchema = {{
     {"OnLeaveLeft", kRoomEvent_EdgeLeft},
     {"OnLeaveRight", kRoomEvent_EdgeRight},
     {"OnLeaveBottom", kRoomEvent_EdgeBottom},
@@ -265,7 +265,7 @@ void RoomData::InitDefaults()
     {"OnUnload", kRoomEvent_AfterFadeout},
 }};
 
-void RoomData::RemapOldInteractions()
+void RoomDef::RemapOldInteractions()
 {
     std::vector<ScriptEventHandler> old_interactions = Interactions.GetHandlers();
     // this is just for safety, it's supposed to be that large
@@ -284,35 +284,35 @@ void RoomData::RemapOldInteractions()
     Interactions = {};
 }
 
-bool RoomData::HasRegionLightLevel(int id) const
+bool RoomDef::HasRegionLightLevel(int id) const
 {
     if (id >= 0 && id < MAX_ROOM_REGIONS)
         return Regions[id].Tint == 0;
     return false;
 }
 
-bool RoomData::HasRegionTint(int id) const
+bool RoomDef::HasRegionTint(int id) const
 {
     if (id >= 0 && id < MAX_ROOM_REGIONS)
         return Regions[id].Tint != 0;
     return false;
 }
 
-int RoomData::GetRegionLightLevel(int id) const
+int RoomDef::GetRegionLightLevel(int id) const
 {
     if (id >= 0 && id < MAX_ROOM_REGIONS)
         return HasRegionLightLevel(id) ? Regions[id].Light : 0;
     return 0;
 }
 
-int RoomData::GetRegionTintLuminance(int id) const
+int RoomDef::GetRegionTintLuminance(int id) const
 {
     if (id >= 0 && id < MAX_ROOM_REGIONS)
         return HasRegionTint(id) ? Regions[id].Light : 0;
     return 0;
 }
 
-void RoomRegion::UpgradeLegacyLight(int &light, int &tint)
+void RoomRegionDef::UpgradeLegacyLight(int &light, int &tint)
 {
     if (tint != 0)
     {

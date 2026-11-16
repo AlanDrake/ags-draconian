@@ -46,7 +46,7 @@
 #include "game/save/savegame_internal.h"
 #include "game/view.h"
 #include "game/world/character.h"
-#include "game/world/room_status.h"
+#include "game/world/room_state.h"
 #include "gtest/gtest.h"
 #include "platform/base/engine_services.h"
 #include "util/field_table.h"
@@ -739,7 +739,7 @@ TEST(SavegameState, AnimatedOverlayWaitIsRestored)
 
 TEST(SavegameState, RoomStatusReadsTheCountsInTheWrittenOrder)
 {
-    // a room state as RoomStatus::WriteToSavegame lays it out, with a walk-area count (1) that differs from
+    // a room state as RoomState::WriteToSavegame lays it out, with a walk-area count (1) that differs from
     // the walk-behind count (2), so that reading the two counts swapped misplaces the data after them
     std::vector<uint8_t> saved;
     {
@@ -768,7 +768,7 @@ TEST(SavegameState, RoomStatusReadsTheCountsInTheWrittenOrder)
         Properties::WriteValues(StringIMap(), &out); // the walk area's properties
     }
 
-    RoomStatus room;
+    RoomState room;
     Stream in(std::make_unique<VectorStream>(saved));
     room.ReadFromSavegame(&in, kRoomStatSvgVersion_Current);
     EXPECT_EQ(1, room.beenhere);

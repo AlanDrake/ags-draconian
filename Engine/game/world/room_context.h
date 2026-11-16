@@ -19,7 +19,7 @@
 #include "game/roomstruct.h"
 
 class RoomObject;
-class RoomStatus;
+class RoomState;
 namespace AGS
 {
 namespace Engine
@@ -37,11 +37,11 @@ using PRuntimeScript = std::shared_ptr<RuntimeScript>;
 class Room : public AGS::Common::RoomStruct
 {
     // Owns TempState; declared first, so that it exists when TempState is bound to it
-    std::unique_ptr<RoomStatus> _tempState;
+    std::unique_ptr<RoomState> _tempState;
 
 public:
     Room();
-    ~Room(); // out of line: RoomStatus is incomplete here
+    ~Room(); // out of line: RoomState is incomplete here
     Room(const Room &) = delete;
     Room &operator=(const Room &) = delete;
     // Reloading the room from its data goes through the base's assignments
@@ -54,9 +54,9 @@ public:
     static Room *SetCurrent(Room *room);
 
     // The state of the current room: the saved state of its number, or TempState; nullptr when no room is loaded
-    RoomStatus *State = nullptr;
+    RoomState *State = nullptr;
     // The state of the current room if it is a temporary one (number >= MAX_ROOMS), e.g. an intro room
-    RoomStatus &TempState;
+    RoomState &TempState;
     // The objects of the current room (the first of State->obj), nullptr when the room has none or no room is loaded
     RoomObject *Objs = nullptr;
     // The runtime script of the current room

@@ -67,8 +67,8 @@ target_sources(common
     game/room_file_blocks.cpp
     game/room_file_blocks.h
     game/room_version.h
-    game/roomdata.cpp
-    game/roomdata.h
+    game/room_def.cpp
+    game/room_def.h
     game/roomstruct.cpp
     game/roomstruct.h
     game/script_audio_clip.cpp

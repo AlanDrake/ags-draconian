@@ -27,7 +27,7 @@
 #include "game/world/properties.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"
-#include "game/world/room_status.h"
+#include "game/world/room_state.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script_runtime.h"
 #include "util/common.h"
