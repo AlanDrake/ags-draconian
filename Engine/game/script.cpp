@@ -33,6 +33,7 @@
 #include "game/world/character.h"
 #include "game/world/object.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_object.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
@@ -53,7 +54,6 @@ ExecutingScript *curExecScript = nullptr; // non-owning ptr
 
 PRuntimeScript gamescript;
 PRuntimeScript dialogScriptsScript;
-PRuntimeScript roomscript;
 
 int inside_script = 0;
 // Counts the script functions being run on the non-blocking thread (see DoRunScriptFuncCantBlock), which
@@ -113,7 +113,7 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction *func_to_run)
         return;
 
     func_to_run->RoomHasFunction =
-        DoRunScriptFuncCantBlock(roomscript.get(), func_to_run, func_to_run->RoomHasFunction);
+        DoRunScriptFuncCantBlock(Room::Current().Script.get(), func_to_run, func_to_run->RoomHasFunction);
 }
 
 // Reports a warning in case a requested event handler function was not run
@@ -138,7 +138,7 @@ static bool test_interaction_handler(ScriptEventsBase *handlers, int event_id, b
     if (!handler.IsChecked())
     {
         if (in_room)
-            handler.SetChecked(DoesScriptFunctionExist(roomscript.get(), handler.FunctionName));
+            handler.SetChecked(DoesScriptFunctionExist(Room::Current().Script.get(), handler.FunctionName));
         else
             handler.SetChecked(DoesScriptFunctionExistInModule(handlers->GetScriptModule(), handler.FunctionName));
 
@@ -374,7 +374,7 @@ void AbortAllScripts()
 RuntimeScript *GetScriptInstance(ScriptType sc_type, const String &script_module)
 {
     if (sc_type == kScTypeRoom)
-        return roomscript.get();
+        return Room::Current().Script.get();
 
     if (script_module.IsEmpty() || script_module == gamescript->GetScriptName())
         return gamescript.get();
@@ -576,10 +576,11 @@ bool RunScriptFunctionInModules(const String &fn_name, size_t param_count, const
 
 bool RunScriptFunctionInRoom(const String &fn_name, size_t param_count, const RuntimeScriptValue *params)
 {
-    if (!roomscript)
+    Room &room = Room::Current();
+    if (!room.Script)
         return false; // room is not loaded yet
 
-    return RunScriptFunction(roomscript.get(), fn_name, param_count, params) == kScFnRes_Done;
+    return RunScriptFunction(room.Script.get(), fn_name, param_count, params) == kScFnRes_Done;
 }
 
 // Run an event in all script modules in order, and then in the global script, *excluding* room;
@@ -707,8 +708,9 @@ void ShutdownScriptExec()
 
 void UnlinkAllScripts()
 {
-    if (roomscript)
-        roomscript->UnRegisterExports(simp);
+    Room &room = Room::Current();
+    if (room.Script)
+        room.Script->UnRegisterExports(simp);
     if (gamescript)
         gamescript->UnRegisterExports(simp);
     if (dialogScriptsScript)
@@ -719,16 +721,17 @@ void UnlinkAllScripts()
 
 void FreeRoomScript()
 {
-    if (roomscript)
-        roomscript->UnRegisterExports(simp);
-    roomscript = nullptr;
+    Room &room = Room::Current();
+    if (room.Script)
+        room.Script->UnRegisterExports(simp);
+    room.Script = nullptr;
 }
 
 void FreeAllScripts()
 {
     UnlinkAllScripts();
 
-    roomscript = nullptr;
+    Room::Current().Script = nullptr;
     gamescript = nullptr;
     dialogScriptsScript = nullptr;
     scriptModules.clear();

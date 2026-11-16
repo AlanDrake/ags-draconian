@@ -189,8 +189,6 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams
 // reports a script warning. BLOCKING, IN_BACKGROUND, ANYWHERE and WALKABLE_AREAS are converted to 1 or 0.
 void ValidateMoveParams(const char *apiname, const char *objname, int &blocking, int &ignwal);
 
-// The objects of the current room (the first of croom->obj), nullptr when the room has none or no room is loaded.
-extern RoomObject *objs;
 // The script objects of the room objects, by object index.
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 // The baseline of the object that GetObjectIDAtRoom found last, -1 if none; GetLocationTypeImpl (game.cpp)

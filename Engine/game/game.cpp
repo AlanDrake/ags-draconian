@@ -58,6 +58,7 @@
 #include "game/world/object.h"
 #include "game/world/region.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_status.h"
 #include "game/world/walk_behind.h"
 #include "game/world/walkable_area.h"
@@ -116,11 +117,6 @@ Game *Game::SetCurrent(Game *game)
     _current = game ? game : &engineGame;
     return was;
 }
-
-RoomStatus troom; // state of the current room if it is a temporary one (number >= MAX_ROOMS), e.g. an intro room
-RoomObject *objs = nullptr;
-RoomStatus *croom = nullptr;
-RoomStruct thisroom;
 
 GameDataVersion loaded_game_file_version = kGameVersion_Undefined;
 int frames_per_second = 40;
@@ -1798,6 +1794,7 @@ void stop_fast_forwarding()
 int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool click_through_gui, bool allow_hotspot0)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     if (locobj_index)
         *locobj_index = -1;
 
@@ -1822,7 +1819,7 @@ int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool c
     const VpPoint vp_point = game.Play.ScreenToRoom(x, y);
     const Point room_pt = vp_point.first;
     const int viewport_id = vp_point.second;
-    if ((viewport_id < 0) || (!RectWH(0, 0, thisroom.Width, thisroom.Height).IsInside(room_pt)))
+    if ((viewport_id < 0) || (!RectWH(0, 0, room.Width, room.Height).IsInside(room_pt)))
     {
         return LOCTYPE_NOTHING;
     }
@@ -1836,13 +1833,13 @@ int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool c
     int obj_id = GetObjectIDAtRoom(x, y, hit_options);
 
     int wb_baseline = 0;
-    int wb_id = thisroom.WalkBehindMask->GetPixel(x, y);
+    int wb_id = room.WalkBehindMask->GetPixel(x, y);
     if (wb_id > 0 && wb_id < MAX_WALK_BEHINDS) // wb == 0 is a no-area
-        wb_baseline = croom->walkbehind_base[wb_id];
+        wb_baseline = room.State->walkbehind_base[wb_id];
 
     int winner = LOCTYPE_NOTHING;
     // if it's an Ignore Walkbehinds object, then ignore the walkbehind
-    if ((obj_id >= 0) && ((objs[obj_id].flags & OBJF_NOWALKBEHINDS) != 0))
+    if ((obj_id >= 0) && ((room.Objs[obj_id].flags & OBJF_NOWALKBEHINDS) != 0))
         wb_baseline = 0;
     if ((char_id >= 0) && ((game.chars[char_id].flags & CHF_NOWALKBEHINDS) != 0))
         wb_baseline = 0;
@@ -2861,6 +2858,7 @@ int GetLocationType2(int x, int y)
 static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y, int hit_options)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     // If no room loaded yet, then return nothing
     if (displayed_room < 0)
     {
@@ -2887,14 +2885,14 @@ static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y
     // on object
     else if (loc_type == LOCTYPE_OBJ)
     {
-        return croom->obj[loc_id].name.GetCStr();
+        return room.State->obj[loc_id].name.GetCStr();
     }
     // on hotspot (except hotspot 0 which means "empty space")
     else if (loc_type == LOCTYPE_HOTSPOT)
     {
         if (loc_id > 0)
         {
-            return croom->hotspot[loc_id].Name.GetCStr();
+            return room.State->hotspot[loc_id].Name.GetCStr();
         }
     }
     else if (loc_type == LOCTYPE_INVITEM)

@@ -31,6 +31,7 @@
 #include "game/script.h"
 #include "game/world/character.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "gfx/gfx_def.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/engine_services.h"
@@ -188,9 +189,10 @@ void GamePlayState::UpdateRoomCameras()
 
 void GamePlayState::UpdateRoomCamera(int index)
 {
+    Room &room = Room::Current();
     auto cam = _roomCameras[index];
     const Rect &cam_rect = cam->GetRect();
-    const Size real_room_size = Size(thisroom.Width, thisroom.Height);
+    const Size real_room_size = Size(room.Width, room.Height);
     if ((real_room_size.Width > cam_rect.GetWidth()) || (real_room_size.Height > cam_rect.GetHeight()))
     {
         // TODO: split out into Camera Behavior

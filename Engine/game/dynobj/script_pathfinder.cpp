@@ -15,6 +15,7 @@
 
 #include "game/game.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/walkable_area.h"
 #include "gfx/sprite_cache.h"
 #include "script/dynobj/dynobj_manager.h"
@@ -104,7 +105,7 @@ IRouteFinder *RoomPathfinder::GetRouteFinder()
 
 void RoomPathfinder::SyncPathfinder()
 {
-    _finder->SetWalkableArea(prepare_walkable_areas(-1), thisroom.MaskResolution);
+    _finder->SetWalkableArea(prepare_walkable_areas(-1), Room::Current().MaskResolution);
 }
 
 const char *RoomPathfinder::GetType()

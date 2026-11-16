@@ -34,6 +34,7 @@
 #include "game/world/move_list.h"
 #include "game/world/object.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_object.h"
 #include "game/world/room_status.h"
 #include "game/world/view_frame.h"
@@ -93,16 +94,18 @@ void update_script_timers()
 
 void update_cycling_views()
 {
+    Room &room = Room::Current();
     // update graphics for object if cycling view
-    for (uint32_t i = 0; i < croom->numobj; ++i)
+    for (uint32_t i = 0; i < room.State->numobj; ++i)
     {
-        objs[i].UpdateCyclingView(i);
+        room.Objs[i].UpdateCyclingView(i);
     }
 }
 
 // Updates the view of the player character
 void update_player_view()
 {
+    Room &room = Room::Current();
     if (playerchar->flags & CHF_FIXVIEW)
         return; // view is locked
 
@@ -110,11 +113,11 @@ void update_player_view()
     if (onwalkarea < 0)
         return; // error?
 
-    int areaview = thisroom.WalkAreas[onwalkarea].PlayerView;
+    int areaview = room.WalkAreas[onwalkarea].PlayerView;
     if (areaview > 0)
         playerchar->view = areaview - 1; // convert to 0-based id
-    else if (thisroom.Options.PlayerView > 0)
-        playerchar->view = thisroom.Options.PlayerView - 1; // convert to 0-based id
+    else if (room.Options.PlayerView > 0)
+        playerchar->view = room.Options.PlayerView - 1; // convert to 0-based id
     else
         playerchar->view = playerchar->defview;
 }

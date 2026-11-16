@@ -24,6 +24,7 @@
 #include "game/script.h"
 #include "game/world/object.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_status.h"
 #include "game/world/view_frame.h"
 #include "gfx/gfx_def.h"
@@ -155,13 +156,13 @@ void RoomObject::CheckViewFrame()
 {
     ObjectEvent objevt(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrObj[id], &ccDynamicObject));
     ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(), audio_panning, AudioSpeed, objevt,
-                     &thisroom.Objects[id].GetEvents(), kRoomObjectEvent_OnFrameEvent);
+                     &Room::Current().Objects[id].GetEvents(), kRoomObjectEvent_OnFrameEvent);
 }
 
 bool RoomObject::RunFrameEvent(int view, int loop, int frame)
 {
     ObjectEvent objevt(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrObj[id], &ccDynamicObject));
-    return ::RunViewFrameEvent(view, loop, frame, objevt, &thisroom.Objects[id].GetEvents(),
+    return ::RunViewFrameEvent(view, loop, frame, objevt, &Room::Current().Objects[id].GetEvents(),
                                kRoomObjectEvent_OnFrameEvent);
 }
 

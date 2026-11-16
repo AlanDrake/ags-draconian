@@ -47,6 +47,7 @@
 #include "game/world/object.h"
 #include "game/world/properties.h"
 #include "game/world/region.h"
+#include "game/world/room_context.h"
 #include "game/world/room_object.h"
 #include "game/world/room_status.h"
 #include "game/world/walk_behind.h"
@@ -75,6 +76,28 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
+//=============================================================================
+namespace
+{
+// The engine's own instance
+Room engineRoom;
+} // namespace
+
+// The address of a static object is a constant initializer: Current() is valid before any dynamic
+// initialization, as the globals thisroom, croom and objs that the instance replaces were
+Room *Room::_current = &engineRoom;
+
+Room::Room() : _tempState(std::make_unique<RoomStatus>()), TempState(*_tempState) {}
+
+Room::~Room() = default;
+
+Room *Room::SetCurrent(Room *room)
+{
+    Room *was = _current;
+    _current = room ? room : &engineRoom;
+    return was;
+}
+
 std::unique_ptr<MaskRouteFinder> room_pathfinder;
 RGB_MAP rgb_table; // for 256-col antialiasing
 int new_room_flags = 0;
@@ -86,6 +109,7 @@ int RoomMaskDS[kNumRoomAreaTypes];
 
 ScriptDrawingSurface *Room_GetDrawingSurfaceForBackground(int bg_index)
 {
+    Room &room = Room::Current();
     if (displayed_room < 0)
         quit("!Room.GetDrawingSurfaceForBackground: no room is currently loaded");
 
@@ -94,11 +118,11 @@ ScriptDrawingSurface *Room_GetDrawingSurfaceForBackground(int bg_index)
         bg_index = Game::Current().Play.bg_frame;
     }
 
-    if ((bg_index < 0) || (static_cast<uint32_t>(bg_index) >= thisroom.BgFrameCount))
+    if ((bg_index < 0) || (static_cast<uint32_t>(bg_index) >= room.BgFrameCount))
     {
         debug_script_warn("Room.GetDrawingSurfaceForBackground: invalid background number specified: %d, valid range "
                           "in this room is 0..%u",
-                          bg_index, thisroom.BgFrameCount - 1);
+                          bg_index, room.BgFrameCount - 1);
         return nullptr;
     }
 
@@ -141,7 +165,7 @@ int Room_GetHotspotCount()
 
 int Room_GetObjectCount()
 {
-    return croom->numobj;
+    return Room::Current().State->numobj;
 }
 
 int Room_GetRegionCount()
@@ -161,88 +185,92 @@ int Room_GetWalkbehindCount()
 
 int Room_GetWidth()
 {
-    return thisroom.Width;
+    return Room::Current().Width;
 }
 
 int Room_GetHeight()
 {
-    return thisroom.Height;
+    return Room::Current().Height;
 }
 
 int Room_GetColorDepth()
 {
-    return thisroom.BgImages[0]->GetColorDepth();
+    return Room::Current().BgImages[0]->GetColorDepth();
 }
 
 int Room_GetBackgroundCount()
 {
-    return thisroom.BgFrameCount;
+    return Room::Current().BgFrameCount;
 }
 
 ScriptShaderInstance *Room_GetBackgroundShader()
 {
-    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(croom->GetBgShaderHandle()));
+    return static_cast<ScriptShaderInstance *>(
+        ccGetObjectAddressFromHandle(Room::Current().State->GetBgShaderHandle()));
 }
 
 void Room_SetBackgroundShader(ScriptShaderInstance *shader_inst)
 {
-    croom->SetBgShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
-                       ccReplaceObjectHandle(croom->GetBgShaderHandle(), shader_inst));
+    Room &room = Room::Current();
+    room.State->SetBgShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
+                            ccReplaceObjectHandle(room.State->GetBgShaderHandle(), shader_inst));
 }
 
 int Room_GetLeftEdge()
 {
-    return thisroom.Edges.Left;
+    return Room::Current().Edges.Left;
 }
 
 int Room_GetRightEdge()
 {
-    return thisroom.Edges.Right;
+    return Room::Current().Edges.Right;
 }
 
 int Room_GetTopEdge()
 {
-    return thisroom.Edges.Top;
+    return Room::Current().Edges.Top;
 }
 
 int Room_GetBottomEdge()
 {
-    return thisroom.Edges.Bottom;
+    return Room::Current().Edges.Bottom;
 }
 
 int Room_GetProperty(const char *property)
 {
-    return get_int_property(thisroom.Properties, croom->roomProps, property);
+    Room &room = Room::Current();
+    return get_int_property(room.Properties, room.State->roomProps, property);
 }
 
 const char *Room_GetTextProperty(const char *property)
 {
-    return get_text_property_dynamic_string(thisroom.Properties, croom->roomProps, property);
+    Room &room = Room::Current();
+    return get_text_property_dynamic_string(room.Properties, room.State->roomProps, property);
 }
 
 bool Room_SetProperty(const char *property, int value)
 {
-    return set_int_property(croom->roomProps, property, value);
+    return set_int_property(Room::Current().State->roomProps, property, value);
 }
 
 bool Room_SetTextProperty(const char *property, const char *value)
 {
-    return set_text_property(croom->roomProps, property, value);
+    return set_text_property(Room::Current().State->roomProps, property, value);
 }
 
 float Room_GetFaceDirectionRatio()
 {
-    return croom->face_dir_ratio;
+    return Room::Current().State->face_dir_ratio;
 }
 
 void Room_SetFaceDirectionRatio(float ratio)
 {
-    croom->face_dir_ratio = ratio;
+    Room::Current().State->face_dir_ratio = ratio;
 }
 
 const char *Room_GetName()
 {
-    return CreateNewScriptString(thisroom.GetName());
+    return CreateNewScriptString(Room::Current().GetName());
 }
 
 int Room_GetNumber()
@@ -262,7 +290,7 @@ ScriptUserObject *Room_NearestWalkableArea(int x, int y)
     if (displayed_room < 0)
         quit("!Room.NearestWalkableArea: no room is currently loaded");
     Point found_pt;
-    if (Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(),
+    if (Pathfinding::FindNearestWalkablePoint(Room::Current().WalkAreaMask.get(),
                                               Point(room_to_mask_coord(x), room_to_mask_coord(y)), found_pt))
     {
         return ScriptStructHelpers::CreatePoint(mask_to_room_coord(found_pt.X), mask_to_room_coord(found_pt.Y));
@@ -334,18 +362,20 @@ ScriptPathfinder *Room_GetPathFinder()
 
 void save_room_data_segment()
 {
-    const auto &global_data = roomscript->GetGlobalData();
-    croom->tsdatasize = global_data.size();
-    croom->tsdata.resize(global_data.size());
-    if (croom->tsdatasize > 0)
+    Room &room = Room::Current();
+    const auto &global_data = room.Script->GetGlobalData();
+    room.State->tsdatasize = global_data.size();
+    room.State->tsdata.resize(global_data.size());
+    if (room.State->tsdatasize > 0)
     {
-        std::copy(global_data.begin(), global_data.end(), croom->tsdata.begin());
+        std::copy(global_data.begin(), global_data.end(), room.State->tsdata.begin());
     }
 }
 
 void unload_old_room()
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     // if switching games on restore, don't do this
     if (displayed_room < 0)
         return;
@@ -369,8 +399,8 @@ void unload_old_room()
 
     dispose_room_drawdata();
 
-    for (uint32_t i = 0; i < croom->numobj; i++)
-        objs[i].moving = 0;
+    for (uint32_t i = 0; i < room.State->numobj; i++)
+        room.Objs[i].moving = 0;
 
     AbortAllScripts();
     // Invalidate and detach any active DrawingSurfaces connected to this room
@@ -384,16 +414,16 @@ void unload_old_room()
         roomBackgroundBmp = nullptr;
     }
 
-    // FIXME: croom was already dereferenced above (croom->numobj), so a null croom would have crashed there
-    if (croom == nullptr)
+    // FIXME: room.State was already dereferenced above (room.State->numobj), so a null one would have crashed there
+    if (room.State == nullptr)
         ;
-    else if (roomscript)
+    else if (room.Script)
     {
         save_room_data_segment();
         FreeRoomScript();
     }
     else
-        croom->tsdatasize = 0;
+        room.State->tsdatasize = 0;
     memset(&game.Play.walkable_areas_on[0], 1, MAX_WALK_AREAS);
     game.Play.bg_frame = 0;
     game.Play.bg_frame_locked = 0;
@@ -412,34 +442,34 @@ void unload_old_room()
     game.Play.swap_portrait_lastlastchar = -1;
 
     // Remove named room elements from script
-    for (uint32_t i = 0; i < thisroom.Objects.size(); ++i)
+    for (uint32_t i = 0; i < room.Objects.size(); ++i)
     {
-        if (!thisroom.Objects[i].ScriptName.IsEmpty())
-            ccRemoveExternalSymbol(thisroom.Objects[i].ScriptName);
+        if (!room.Objects[i].ScriptName.IsEmpty())
+            ccRemoveExternalSymbol(room.Objects[i].ScriptName);
     }
 
     for (uint32_t i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
-        if (!thisroom.Hotspots[i].ScriptName.IsEmpty())
-            ccRemoveExternalSymbol(thisroom.Hotspots[i].ScriptName);
+        if (!room.Hotspots[i].ScriptName.IsEmpty())
+            ccRemoveExternalSymbol(room.Hotspots[i].ScriptName);
     }
 
     for (uint32_t i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
-        if (!thisroom.Regions[i].ScriptName.IsEmpty())
-            ccRemoveExternalSymbol(thisroom.Regions[i].ScriptName);
+        if (!room.Regions[i].ScriptName.IsEmpty())
+            ccRemoveExternalSymbol(room.Regions[i].ScriptName);
     }
 
     for (uint32_t i = 0; i < MAX_WALK_AREAS; ++i)
     {
-        if (!thisroom.WalkAreas[i].ScriptName.IsEmpty())
-            ccRemoveExternalSymbol(thisroom.WalkAreas[i].ScriptName);
+        if (!room.WalkAreas[i].ScriptName.IsEmpty())
+            ccRemoveExternalSymbol(room.WalkAreas[i].ScriptName);
     }
 
     for (uint32_t i = 0; i < MAX_WALK_BEHINDS; ++i)
     {
-        if (!thisroom.WalkBehinds[i].ScriptName.IsEmpty())
-            ccRemoveExternalSymbol(thisroom.WalkBehinds[i].ScriptName);
+        if (!room.WalkBehinds[i].ScriptName.IsEmpty())
+            ccRemoveExternalSymbol(room.WalkBehinds[i].ScriptName);
     }
 
     croom_ptr_clear();
@@ -464,7 +494,8 @@ void unload_old_room()
 static void adjust_viewport_to_room()
 {
     Game &game = Game::Current();
-    const Size real_room_sz = Size(thisroom.Width, thisroom.Height);
+    Room &room = Room::Current();
+    const Size real_room_sz = Size(room.Width, room.Height);
     const Rect main_view = game.Play.GetMainViewport();
     Rect new_room_view = RectWH(Size::Clamp(real_room_sz, Size(1, 1), main_view.GetSize()));
 
@@ -513,17 +544,18 @@ HError LoadRoomScript(RoomStruct *room, int room_id)
 
 static void reset_temp_room()
 {
-    troom = RoomStatus();
+    Room::Current().TempState = RoomStatus();
 }
 
-// Initializes object states in the current RoomStatus object (croom),
-// copying default properties from thisroom's objects, in the element range [start, end).
+// Initializes object states in the current RoomStatus object (room.State),
+// copying default properties from the room's objects (room.Objects), in the element range [start, end).
 static void init_object_states(size_t start, size_t end)
 {
+    Room &room = Room::Current();
     for (uint32_t i = start; i < end; ++i)
     {
-        const auto &obj_info = thisroom.Objects[i];
-        auto &room_obj = croom->obj[i];
+        const auto &obj_info = room.Objects[i];
+        auto &room_obj = room.State->obj[i];
         room_obj.id = i;
         room_obj.x = obj_info.X;
         room_obj.y = obj_info.Y;
@@ -573,6 +605,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    Room &room = Room::Current();
     debug_script_log("Loading room %d", room_id);
 
     String room_filename;
@@ -584,20 +617,20 @@ void load_new_room(int room_id, CharacterInfo *ch)
 
     // load the room from disk
     set_our_eip(200);
-    thisroom.GameID = NO_GAME_ID_IN_ROOM_FILE;
-    HError err = LoadRoom(room_filename, &thisroom, services.Assets.get(), game.SpriteInfos);
+    room.GameID = NO_GAME_ID_IN_ROOM_FILE;
+    HError err = LoadRoom(room_filename, &room, services.Assets.get(), game.SpriteInfos);
     if (!err)
     {
         quitprintf("Unable to load the room file '%s'. Error: %s", room_filename.GetCStr(),
                    err->FullMessage().GetCStr());
     }
 
-    if ((thisroom.GameID != NO_GAME_ID_IN_ROOM_FILE) && (thisroom.GameID != game.uniqueid))
+    if ((room.GameID != NO_GAME_ID_IN_ROOM_FILE) && (room.GameID != game.uniqueid))
     {
         quitprintf("!Unable to load '%s'. This room file is assigned to a different game.", room_filename.GetCStr());
     }
 
-    err = LoadRoomScript(&thisroom, room_id);
+    err = LoadRoomScript(&room, room_id);
     if (!err)
     {
         quitprintf("!Unable to load script from '%s'. Error: %s", room_filename.GetCStr(),
@@ -610,22 +643,21 @@ void load_new_room(int room_id, CharacterInfo *ch)
         Debug::Printf(PrintRTTI(RuntimeScript::GetJointRTTI()->AsConstRTTI()));
     }
     // Optionally dump room script's TOC into the log
-    if (services.LogScriptTOC && thisroom.CompiledScript && thisroom.CompiledScript->sctoc)
+    if (services.LogScriptTOC && room.CompiledScript && room.CompiledScript->sctoc)
     {
-        Debug::Printf(
-            PrintScriptTOC(*thisroom.CompiledScript->sctoc, thisroom.CompiledScript->sectionNames[0].c_str()));
+        Debug::Printf(PrintScriptTOC(*room.CompiledScript->sctoc, room.CompiledScript->sectionNames[0].c_str()));
     }
 
     set_our_eip(201);
 
-    game.Play.room_width = thisroom.Width;
-    game.Play.room_height = thisroom.Height;
-    game.Play.anim_background_speed = thisroom.BgAnimSpeed;
+    game.Play.room_width = room.Width;
+    game.Play.room_height = room.Height;
+    game.Play.anim_background_speed = room.BgAnimSpeed;
     game.Play.bg_anim_delay = game.Play.anim_background_speed;
-    game.Play.room_bg_modified.resize(thisroom.BgFrameCount);
+    game.Play.room_bg_modified.resize(room.BgFrameCount);
 
     // Fixup the frame index, in case the new room does not have enough background frames
-    if (game.Play.bg_frame < 0 || static_cast<size_t>(game.Play.bg_frame) >= thisroom.BgFrameCount)
+    if (game.Play.bg_frame < 0 || static_cast<size_t>(game.Play.bg_frame) >= room.BgFrameCount)
         game.Play.bg_frame = 0;
 
     // Set up the 8-bit palettes: a color the game marks as PAL_BACKGROUND takes the room's palette;
@@ -633,24 +665,24 @@ void load_new_room(int room_id, CharacterInfo *ch)
     for (size_t pal_index = 0; pal_index < 256; pal_index++)
     {
         if (game.paluses[pal_index] == PAL_BACKGROUND)
-            palette[pal_index] = thisroom.Palette[pal_index];
+            palette[pal_index] = room.Palette[pal_index];
         else
         {
             // copy the game-wide colours into the room palette
-            for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
-                thisroom.BgFrames[i].Palette[pal_index] = palette[pal_index];
+            for (size_t i = 0; i < room.BgFrameCount; ++i)
+                room.BgFrames[i].Palette[pal_index] = palette[pal_index];
         }
     }
 
-    for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
+    for (size_t i = 0; i < room.BgFrameCount; ++i)
     {
-        thisroom.BgImages[i] = PrepareSpriteForUse(thisroom.BgImages[i], false /* no alpha */, false /* no keep mask */,
-                                                   false /* dont care about alpha */, thisroom.BgFrames[i].Palette);
+        room.BgImages[i] = PrepareSpriteForUse(room.BgImages[i], false /* no alpha */, false /* no keep mask */,
+                                               false /* dont care about alpha */, room.BgFrames[i].Palette);
     }
 
     // If the room script data did not have any name, then assign room filename, primarily for test/debug purposes
-    if (thisroom.CompiledScript && thisroom.CompiledScript->GetScriptName().empty())
-        thisroom.CompiledScript->SetScriptName(room_filename.GetCStr());
+    if (room.CompiledScript && room.CompiledScript->GetScriptName().empty())
+        room.CompiledScript->SetScriptName(room_filename.GetCStr());
 
     set_our_eip(202);
     Mouse_SetBounds(0, 0, 0, 0);
@@ -659,17 +691,17 @@ void load_new_room(int room_id, CharacterInfo *ch)
     in_new_room = kEnterRoom_Normal;
 
 
-    // walkable_areas_temp is used by the pathfinder to generate a
+    // room.WalkableAreasTemp is used by the pathfinder to generate a
     // copy of the walkable areas - allocate it here to save time later
-    delete walkable_areas_temp;
-    walkable_areas_temp =
-        BitmapHelper::CreateBitmap(thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight(), 8);
+    delete room.WalkableAreasTemp;
+    room.WalkableAreasTemp =
+        BitmapHelper::CreateBitmap(room.WalkAreaMask->GetWidth(), room.WalkAreaMask->GetHeight(), 8);
 
     // Make a backup copy of the walkable areas prior to
     // any RemoveWalkableArea commands
-    delete walkareabackup;
+    delete room.WalkAreaBackup;
     // copy of the walkable area mask
-    walkareabackup = BitmapHelper::CreateBitmapCopy(thisroom.WalkAreaMask.get());
+    room.WalkAreaBackup = BitmapHelper::CreateBitmapCopy(room.WalkAreaMask.get());
 
     set_our_eip(204);
     redo_walkable_areas();
@@ -682,42 +714,42 @@ void load_new_room(int room_id, CharacterInfo *ch)
         reset_temp_room();
     }
 
-    // A room with a valid number has its own saveable RoomStatus, any other one (e.g. the intro) uses troom
+    // A room with a valid number has its own saveable RoomStatus, any other one (e.g. the intro) uses room.TempState
     if ((room_id >= 0) & (room_id < MAX_ROOMS))
-        croom = GetRoomState(room_id);
+        room.State = GetRoomState(room_id);
     else
-        croom = &troom;
+        room.State = &room.TempState;
 
     // Decide what to do if we have been or not in this room before
-    const bool been_here = croom->beenhere > 0;
-    if (croom->beenhere == 0)
+    const bool been_here = room.State->beenhere > 0;
+    if (room.State->beenhere == 0)
     {
-        // If we have not been in this room before, then copy necessary fields from thisroom
-        croom->numobj = thisroom.Objects.size();
-        croom->tsdatasize = 0u;
-        croom->obj.resize(croom->numobj);
-        croom->objProps.resize(croom->numobj);
-        croom->face_dir_ratio = thisroom.Options.FaceDirectionRatio;
-        init_object_states(0u, thisroom.Objects.size());
+        // If we have not been in this room before, then copy necessary fields from the room's data
+        room.State->numobj = room.Objects.size();
+        room.State->tsdatasize = 0u;
+        room.State->obj.resize(room.State->numobj);
+        room.State->objProps.resize(room.State->numobj);
+        room.State->face_dir_ratio = room.Options.FaceDirectionRatio;
+        init_object_states(0u, room.Objects.size());
 
         for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
-            croom->walkbehind_base[i] = thisroom.WalkBehinds[i].Baseline;
+            room.State->walkbehind_base[i] = room.WalkBehinds[i].Baseline;
 
         for (int i = 0; i < MAX_ROOM_HOTSPOTS; i++)
         {
-            croom->hotspot[i].Enabled = true;
-            croom->hotspot[i].Name = thisroom.Hotspots[i].Name;
+            room.State->hotspot[i].Enabled = true;
+            room.State->hotspot[i].Name = room.Hotspots[i].Name;
         }
         for (int i = 0; i < MAX_ROOM_REGIONS; i++)
         {
-            croom->region_enabled[i] = 1;
+            room.State->region_enabled[i] = 1;
         }
         for (int i = 0; i < MAX_WALK_AREAS; ++i)
         {
-            croom->walkareas[i].FaceDirectionRatio = thisroom.WalkAreas[i].FaceDirectionRatio;
+            room.State->walkareas[i].FaceDirectionRatio = room.WalkAreas[i].FaceDirectionRatio;
         }
 
-        croom->beenhere = 1;
+        room.State->beenhere = 1;
         in_new_room = kEnterRoom_FirstTime;
     }
     else
@@ -725,55 +757,55 @@ void load_new_room(int room_id, CharacterInfo *ch)
         // We HAD been in this room, so normally we don't have to do anything... but
         // If the restored number of object states does not match real room,
         // then adjust the *room state* by either expanding or cutting objects array
-        if (croom->obj.size() != thisroom.Objects.size())
+        if (room.State->obj.size() != room.Objects.size())
         {
             Debug::Printf(kDbgMsg_Warn,
                           "WARNING: the restored room state has different number of object states than the current "
                           "room has objects (%u vs %u).",
-                          croom->numobj, (uint32_t)thisroom.Objects.size());
-            const size_t was_obj_states = croom->obj.size();
-            croom->numobj = thisroom.Objects.size();
-            croom->obj.resize(thisroom.Objects.size());
-            croom->objProps.resize(thisroom.Objects.size());
-            if (was_obj_states < thisroom.Objects.size())
-                init_object_states(was_obj_states, thisroom.Objects.size());
+                          room.State->numobj, (uint32_t)room.Objects.size());
+            const size_t was_obj_states = room.State->obj.size();
+            room.State->numobj = room.Objects.size();
+            room.State->obj.resize(room.Objects.size());
+            room.State->objProps.resize(room.Objects.size());
+            if (was_obj_states < room.Objects.size())
+                init_object_states(was_obj_states, room.Objects.size());
         }
     }
 
     // Reset contentFormat hint to avoid doing fixups later
-    croom->contentFormat = kRoomStatSvgVersion_Current;
+    room.State->contentFormat = kRoomStatSvgVersion_Current;
 
-    objs = croom->obj.size() > 0 ? &croom->obj[0] : nullptr;
+    room.Objs = room.State->obj.size() > 0 ? &room.State->obj[0] : nullptr;
 
     // Export named room elements to script
-    for (uint32_t i = 0; i < thisroom.Objects.size(); ++i)
+    for (uint32_t i = 0; i < room.Objects.size(); ++i)
     {
-        if (!thisroom.Objects[i].ScriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(thisroom.Objects[i].ScriptName, &StaticObjectArray[i]);
+        if (!room.Objects[i].ScriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(room.Objects[i].ScriptName, &StaticObjectArray[i]);
     }
 
     for (uint32_t i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
-        if (!thisroom.Hotspots[i].ScriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(thisroom.Hotspots[i].ScriptName, &StaticHotspotArray[i]);
+        if (!room.Hotspots[i].ScriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(room.Hotspots[i].ScriptName, &StaticHotspotArray[i]);
     }
 
     for (uint32_t i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
-        if (!thisroom.Regions[i].ScriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(thisroom.Regions[i].ScriptName, &StaticRegionArray[i]);
+        if (!room.Regions[i].ScriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(room.Regions[i].ScriptName, &StaticRegionArray[i]);
     }
 
     for (uint32_t i = 0; i < MAX_WALK_AREAS; ++i)
     {
-        if (!thisroom.WalkAreas[i].ScriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(thisroom.WalkAreas[i].ScriptName, &StaticWalkareaArray[i]);
+        if (!room.WalkAreas[i].ScriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(room.WalkAreas[i].ScriptName, &StaticWalkareaArray[i]);
     }
 
     for (uint32_t i = 0; i < MAX_WALK_BEHINDS; ++i)
     {
-        if (!thisroom.WalkBehinds[i].ScriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(thisroom.WalkBehinds[i].ScriptName, &StaticWalkbehindArray[i]);
+        if (!room.WalkBehinds[i].ScriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(room.WalkBehinds[i].ScriptName, &StaticWalkbehindArray[i]);
     }
 
     set_our_eip(210);
@@ -809,28 +841,28 @@ void load_new_room(int room_id, CharacterInfo *ch)
             Character_StopMoving(&game.chars[i]);
     }
 
-    roomscript = nullptr;
+    room.Script = nullptr;
     if (debug_flags & DBG_NOSCRIPT)
         ;
-    else if (thisroom.CompiledScript)
+    else if (room.CompiledScript)
     {
         compile_room_script();
         if (been_here)
         {
-            const auto &global_data = roomscript->GetGlobalData();
-            if (croom->tsdatasize > global_data.size())
+            const auto &global_data = room.Script->GetGlobalData();
+            if (room.State->tsdatasize > global_data.size())
             {
                 quitprintf("Restored Room %d script data size exceeds current script data (%u vs %zu bytes).", room_id,
-                           croom->tsdatasize, global_data.size());
+                           room.State->tsdatasize, global_data.size());
             }
-            else if (croom->tsdatasize < global_data.size())
+            else if (room.State->tsdatasize < global_data.size())
             {
                 Debug::Printf(
                     kDbgMsg_Warn,
                     "WARNING: Restored Room %d script data size is less than the current script data (%u vs %zu bytes)",
-                    room_id, croom->tsdatasize, global_data.size());
+                    room_id, room.State->tsdatasize, global_data.size());
             }
-            roomscript->CopyGlobalData(croom->tsdata);
+            room.Script->CopyGlobalData(room.State->tsdata);
         }
     }
     set_our_eip(207);
@@ -856,53 +888,53 @@ void load_new_room(int room_id, CharacterInfo *ch)
         if (new_room_pos >= 4000)
         {
             game.Play.entered_edge = 3;
-            ch->y = thisroom.Edges.Top + 1;
+            ch->y = room.Edges.Top + 1;
             ch->x = new_room_pos % 1000;
             if (ch->x == 0)
-                ch->x = thisroom.Width / 2;
-            if (ch->x <= thisroom.Edges.Left)
-                ch->x = thisroom.Edges.Left + 3;
-            if (ch->x >= thisroom.Edges.Right)
-                ch->x = thisroom.Edges.Right - 3;
+                ch->x = room.Width / 2;
+            if (ch->x <= room.Edges.Left)
+                ch->x = room.Edges.Left + 3;
+            if (ch->x >= room.Edges.Right)
+                ch->x = room.Edges.Right - 3;
             ch->loop = 0;
         }
         else if (new_room_pos >= 3000)
         {
             game.Play.entered_edge = 2;
-            ch->y = thisroom.Edges.Bottom - 1;
+            ch->y = room.Edges.Bottom - 1;
             ch->x = new_room_pos % 1000;
             if (ch->x == 0)
-                ch->x = thisroom.Width / 2;
-            if (ch->x <= thisroom.Edges.Left)
-                ch->x = thisroom.Edges.Left + 3;
-            if (ch->x >= thisroom.Edges.Right)
-                ch->x = thisroom.Edges.Right - 3;
+                ch->x = room.Width / 2;
+            if (ch->x <= room.Edges.Left)
+                ch->x = room.Edges.Left + 3;
+            if (ch->x >= room.Edges.Right)
+                ch->x = room.Edges.Right - 3;
             ch->loop = 3;
         }
         else if (new_room_pos >= 2000)
         {
             game.Play.entered_edge = 1;
-            ch->x = thisroom.Edges.Right - 1;
+            ch->x = room.Edges.Right - 1;
             ch->y = new_room_pos % 1000;
             if (ch->y == 0)
-                ch->y = thisroom.Height / 2;
-            if (ch->y <= thisroom.Edges.Top)
-                ch->y = thisroom.Edges.Top + 3;
-            if (ch->y >= thisroom.Edges.Bottom)
-                ch->y = thisroom.Edges.Bottom - 3;
+                ch->y = room.Height / 2;
+            if (ch->y <= room.Edges.Top)
+                ch->y = room.Edges.Top + 3;
+            if (ch->y >= room.Edges.Bottom)
+                ch->y = room.Edges.Bottom - 3;
             ch->loop = 1;
         }
         else if (new_room_pos >= 1000)
         {
             game.Play.entered_edge = 0;
-            ch->x = thisroom.Edges.Left + 1;
+            ch->x = room.Edges.Left + 1;
             ch->y = new_room_pos % 1000;
             if (ch->y == 0)
-                ch->y = thisroom.Height / 2;
-            if (ch->y <= thisroom.Edges.Top)
-                ch->y = thisroom.Edges.Top + 3;
-            if (ch->y >= thisroom.Edges.Bottom)
-                ch->y = thisroom.Edges.Bottom - 3;
+                ch->y = room.Height / 2;
+            if (ch->y <= room.Edges.Top)
+                ch->y = room.Edges.Top + 3;
+            if (ch->y >= room.Edges.Bottom)
+                ch->y = room.Edges.Bottom - 3;
             ch->loop = 2;
         }
         // if starts on un-walkable area
@@ -924,12 +956,12 @@ void load_new_room(int room_id, CharacterInfo *ch)
                         break;
                     }
                     int nowhere = 0;
-                    if (try_left > thisroom.Edges.Left)
+                    if (try_left > room.Edges.Left)
                     {
                         try_left--;
                         nowhere++;
                     }
-                    if (try_right < thisroom.Edges.Right)
+                    if (try_right < room.Edges.Right)
                     {
                         try_right++;
                         nowhere++;
@@ -954,12 +986,12 @@ void load_new_room(int room_id, CharacterInfo *ch)
                         break;
                     }
                     int nowhere = 0;
-                    if (try_left > thisroom.Edges.Top)
+                    if (try_left > room.Edges.Top)
                     {
                         try_left--;
                         nowhere++;
                     }
-                    if (try_right < thisroom.Edges.Bottom)
+                    if (try_right < room.Edges.Bottom)
                     {
                         try_right++;
                         nowhere++;
@@ -975,20 +1007,20 @@ void load_new_room(int room_id, CharacterInfo *ch)
     {
         game.Play.entered_at_x = ch->x;
         game.Play.entered_at_y = ch->y;
-        if (ch->x >= thisroom.Edges.Right)
+        if (ch->x >= room.Edges.Right)
             game.Play.entered_edge = 1;
-        else if (ch->x <= thisroom.Edges.Left)
+        else if (ch->x <= room.Edges.Left)
             game.Play.entered_edge = 0;
-        else if (ch->y >= thisroom.Edges.Bottom)
+        else if (ch->y >= room.Edges.Bottom)
             game.Play.entered_edge = 2;
-        else if (ch->y <= thisroom.Edges.Top)
+        else if (ch->y <= room.Edges.Top)
             game.Play.entered_edge = 3;
     }
 
     set_our_eip(208);
     if (ch != nullptr)
     {
-        if (thisroom.Options.PlayerCharOff == 0)
+        if (room.Options.PlayerCharOff == 0)
         {
             ch->set_enabled(true);
             enable_cursor_mode(game.GetModeWalk());
@@ -1004,10 +1036,10 @@ void load_new_room(int room_id, CharacterInfo *ch)
         }
         if (ch->flags & CHF_FIXVIEW)
             ;
-        else if (thisroom.Options.PlayerView == 0)
+        else if (room.Options.PlayerView == 0)
             Character_SetViewDirect(ch, ch->defview, true);
         else
-            Character_SetViewDirect(ch, thisroom.Options.PlayerView - 1, true);
+            Character_SetViewDirect(ch, room.Options.PlayerView - 1, true);
     }
     color_map = nullptr;
 
@@ -1026,7 +1058,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
 
     init_room_pathfinder();
     init_room_drawdata();
-    RoomBgDS.resize(thisroom.BgFrameCount);
+    RoomBgDS.resize(room.BgFrameCount);
 
     set_our_eip(212);
     invalidate_screen();
@@ -1092,21 +1124,22 @@ void new_room(int room_id, CharacterInfo *ch)
 
     // Update background frame state (it's not a part of the RoomStatus currently)
     game.Play.bg_frame = 0;
-    game.Play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
+    game.Play.bg_frame_locked = (Room::Current().Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
 }
 
 void set_room_placeholder()
 {
-    thisroom.InitDefaults();
+    Room &room = Room::Current();
+    room.InitDefaults();
     std::shared_ptr<Bitmap> dummy_bg(new Bitmap(1, 1, 8));
-    thisroom.BgImages.resize(1, dummy_bg);
-    thisroom.HotspotMask = dummy_bg;
-    thisroom.RegionMask = dummy_bg;
-    thisroom.WalkAreaMask = dummy_bg;
-    thisroom.WalkBehindMask = dummy_bg;
+    room.BgImages.resize(1, dummy_bg);
+    room.HotspotMask = dummy_bg;
+    room.RegionMask = dummy_bg;
+    room.WalkAreaMask = dummy_bg;
+    room.WalkBehindMask = dummy_bg;
 
     reset_temp_room();
-    croom = &troom;
+    room.State = &room.TempState;
 }
 
 void first_room_initialization()
@@ -1117,7 +1150,7 @@ void first_room_initialization()
     set_loop_counter(0);
     // Reset background frame state
     game.Play.bg_frame = 0;
-    game.Play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
+    game.Play.bg_frame_locked = (Room::Current().Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
 }
 
 void check_new_room()
@@ -1142,16 +1175,17 @@ void check_new_room()
 
 void compile_room_script()
 {
+    Room &room = Room::Current();
     cc_clear_error();
 
-    roomscript = RuntimeScript::Create(thisroom.CompiledScript.get());
-    if ((cc_has_error()) || (roomscript == nullptr))
+    room.Script = RuntimeScript::Create(room.CompiledScript.get());
+    if ((cc_has_error()) || (room.Script == nullptr))
     {
         quitprintf("Unable to create local script:\n%s", cc_get_error().ErrorString.GetCStr());
     }
 
-    roomscript->RegisterExports(simp);
-    if (!roomscript->ResolveImports(simp))
+    room.Script->RegisterExports(simp);
+    if (!room.Script->ResolveImports(simp))
         quitprintf("Unable to resolve imports in room script:\n%s", cc_get_error().ErrorString.GetCStr());
 
     repExecAlways.RoomHasFunction = true;
@@ -1159,16 +1193,15 @@ void compile_room_script()
     getDialogOptionsDimensionsFunc.RoomHasFunction = true;
 }
 
-int bg_just_changed = 0;
-
 void on_background_frame_change()
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     invalidate_screen();
     mark_current_background_dirty();
 
     // get the new frame's palette
-    memcpy(palette, thisroom.BgFrames[game.Play.bg_frame].Palette, sizeof(RGB) * 256);
+    memcpy(palette, room.BgFrames[game.Play.bg_frame].Palette, sizeof(RGB) * 256);
 
     // hi-colour, update the palette. It won't have an immediate effect
     // but will be drawn properly when the screen fades in
@@ -1179,19 +1212,20 @@ void on_background_frame_change()
         return;
 
     // Don't update the palette if it hasn't changed
-    if (thisroom.BgFrames[game.Play.bg_frame].IsPaletteShared)
+    if (room.BgFrames[game.Play.bg_frame].IsPaletteShared)
         return;
 
     // 256-colours, tell it to update the palette (will actually be done as
     // close as possible to the screen update to prevent flicker problem)
     if (game.color_depth == 1)
-        bg_just_changed = 1;
+        room.BgJustChanged = 1;
 }
 
 void croom_ptr_clear()
 {
-    croom = nullptr;
-    objs = nullptr;
+    Room &room = Room::Current();
+    room.State = nullptr;
+    room.Objs = nullptr;
 }
 
 ScriptDrawingSurface *get_room_bg_surface(uint32_t bg_index)
@@ -1313,12 +1347,12 @@ MaskRouteFinder *get_room_pathfinder()
 // coordinate conversion (room) ---> (room mask)
 int room_to_mask_coord(int coord)
 {
-    return coord / thisroom.MaskResolution;
+    return coord / Room::Current().MaskResolution;
 }
 // coordinate conversion (room mask) ---> (room)
 int mask_to_room_coord(int coord)
 {
-    return coord * thisroom.MaskResolution;
+    return coord * Room::Current().MaskResolution;
 }
 
 #include "debug/out.h"
@@ -1439,11 +1473,12 @@ void CallRoomScript(int value)
 void SetBackgroundFrame(int frnum)
 {
     Game &game = Game::Current();
-    if ((frnum < -1) || (frnum != -1 && (size_t)frnum >= thisroom.BgFrameCount))
+    Room &room = Room::Current();
+    if ((frnum < -1) || (frnum != -1 && (size_t)frnum >= room.BgFrameCount))
     {
         debug_script_error(
             "SetBackgrondFrame: invalid background number specified: %d, valid range in this room is 0..%u", frnum,
-            thisroom.BgFrameCount - 1);
+            room.BgFrameCount - 1);
         return;
     }
 
@@ -1473,6 +1508,7 @@ int GetBackgroundFrame()
 void RoomProcessClick(int x, int y, int mood)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     int loc_id = -1;
     int loc_type = GetLocationTypeImpl(&loc_id, x, y, kHit_Interactable, true /* click-through gui */,
                                        false /* not allow hotspot0 */);
@@ -1487,14 +1523,14 @@ void RoomProcessClick(int x, int y, int mood)
         int hotspot_id = GetHotspotIDAtRoom(x, y, kHit_Interactable);
         if (hotspot_id < 1)
             ;
-        else if (thisroom.Hotspots[hotspot_id].WalkTo.X < 1)
+        else if (room.Hotspots[hotspot_id].WalkTo.X < 1)
             ;
         else if (game.Play.auto_use_walkto_points == 0)
             ;
         else
         {
-            x = thisroom.Hotspots[hotspot_id].WalkTo.X;
-            y = thisroom.Hotspots[hotspot_id].WalkTo.Y;
+            x = room.Hotspots[hotspot_id].WalkTo.X;
+            y = room.Hotspots[hotspot_id].WalkTo.Y;
             debug_script_log("Move to walk-to point hotspot %d", hotspot_id);
         }
         walk_character(playerchar, x, y, false /* walk areas */);

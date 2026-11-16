@@ -50,6 +50,7 @@
 #include "game/world/properties.h"
 #include "game/world/region.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_status.h"
 #include "game/world/view_frame.h"
 #include "game/world/walkable_area.h"
@@ -269,19 +270,19 @@ void Character_ChangeRoomAutoPosition(CharacterInfo *ch, int room, int new_pos)
     if (new_room_pos == 0)
     {
         // auto place on other side of screen
-        if (ch->x <= thisroom.Edges.Left + 10)
+        if (ch->x <= Room::Current().Edges.Left + 10)
         {
             new_room_pos = 2000;
         }
-        else if (ch->x >= thisroom.Edges.Right - 10)
+        else if (ch->x >= Room::Current().Edges.Right - 10)
         {
             new_room_pos = 1000;
         }
-        else if (ch->y <= thisroom.Edges.Top + 10)
+        else if (ch->y <= Room::Current().Edges.Top + 10)
         {
             new_room_pos = 3000;
         }
-        else if (ch->y >= thisroom.Edges.Bottom - 10)
+        else if (ch->y >= Room::Current().Edges.Bottom - 10)
         {
             new_room_pos = 4000;
         }
@@ -395,15 +396,16 @@ enum DirectionalLoop
 float GetFaceDirRatio(CharacterInfo *ch)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     CharacterExtras &chex = charextra[ch->index_id];
     if (chex.face_dir_ratio != 0.f)
         return chex.face_dir_ratio;
     // TODO: cache current area in CharacterExtras somewhere during early char update
     int onarea = get_walkable_area_at_location(ch->x, ch->y);
-    if (onarea > 0 && thisroom.WalkAreas[onarea].FaceDirectionRatio != 0.f)
-        return thisroom.WalkAreas[onarea].FaceDirectionRatio;
-    if (croom->face_dir_ratio != 0.f)
-        return croom->face_dir_ratio;
+    if (onarea > 0 && room.WalkAreas[onarea].FaceDirectionRatio != 0.f)
+        return room.WalkAreas[onarea].FaceDirectionRatio;
+    if (room.State->face_dir_ratio != 0.f)
+        return room.State->face_dir_ratio;
     if (game.Play.face_dir_ratio != 0.f)
         return game.Play.face_dir_ratio;
     return 1.f;
@@ -548,10 +550,11 @@ void Character_FaceLocation(CharacterInfo *ch, int x, int y, int blocking_style)
 
 void Character_FaceObject(CharacterInfo *ch, ScriptObject *obj, int blocking_style)
 {
+    Room &room = Room::Current();
     if (obj == nullptr)
         quit("!FaceObject: invalid object specified");
 
-    FaceLocationXY(ch, objs[obj->id].x, objs[obj->id].y, blocking_style);
+    FaceLocationXY(ch, room.Objs[obj->id].x, room.Objs[obj->id].y, blocking_style);
 }
 
 void Character_FaceCharacter(CharacterInfo *ch, CharacterInfo *other, int blocking_style)
@@ -694,6 +697,7 @@ int Character_IsCollidingWithChar(CharacterInfo *ch, CharacterInfo *other)
 
 int Character_IsCollidingWithObject(CharacterInfo *ch, ScriptObject *obj)
 {
+    Room &room = Room::Current();
     if (obj == nullptr)
     {
         quit("!AreCharObjColliding: invalid object number");
@@ -703,7 +707,7 @@ int Character_IsCollidingWithObject(CharacterInfo *ch, ScriptObject *obj)
     {
         return 0;
     }
-    if (!objs[obj->id].is_enabled())
+    if (!room.Objs[obj->id].is_enabled())
     {
         return 0;
     }
@@ -713,7 +717,7 @@ int Character_IsCollidingWithObject(CharacterInfo *ch, ScriptObject *obj)
     Bitmap *obj_pic = GetObjectImage(obj->id);
     const int obj_w = obj_pic->GetWidth();
     const int obj_h = obj_pic->GetHeight();
-    const Rect obj_rc = RectWH(objs[obj->id].x, objs[obj->id].y - obj_h, obj_w, obj_h);
+    const Rect obj_rc = RectWH(room.Objs[obj->id].x, room.Objs[obj->id].y - obj_h, obj_w, obj_h);
 
     Bitmap *ch_pic = GetCharacterImage(ch->index_id);
     const int char_w = ch_pic->GetWidth();
@@ -2519,7 +2523,7 @@ void move_character_impl(CharacterInfo *ch, const std::vector<Point> *path, int 
     else
     {
         MaskRouteFinder *pathfind = get_room_pathfinder();
-        pathfind->SetWalkableArea(prepare_walkable_areas(char_id), thisroom.MaskResolution);
+        pathfind->SetWalkableArea(prepare_walkable_areas(char_id), Room::Current().MaskResolution);
         path_result = Pathfinding::FindRoute(new_mlist, pathfind, ch->x, ch->y, tox, toy, move_speed_x, move_speed_y,
                                              false, ignwal, run_params);
     }
@@ -2829,13 +2833,14 @@ bool is_char_walking_ndirect(CharacterInfo *ch)
 
 bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
 {
+    Room &room = Room::Current();
     const Point at_pt = Point(room_to_mask_coord(src.X), room_to_mask_coord(src.Y));
-    const Bitmap *mask = thisroom.WalkAreaMask.get();
+    const Bitmap *mask = room.WalkAreaMask.get();
 
     int pix_value = 0;
     if (mask->IsOnBitmap(at_pt.X, at_pt.Y))
     {
-        pix_value = thisroom.WalkAreaMask->GetPixel(at_pt.X, at_pt.Y);
+        pix_value = room.WalkAreaMask->GetPixel(at_pt.X, at_pt.Y);
     }
 
     // Is already on a walkable area?
@@ -2848,10 +2853,10 @@ bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
     Rect limits = RectWH(mask->GetSize());
     // Adjust scan area to match historical behavior of Character.PlaceOnWalkableArea()
     // Characters that are within Room Edges cannot be moved outside of them
-    int right_edge = room_to_mask_coord(thisroom.Edges.Right);
-    int left_edge = room_to_mask_coord(thisroom.Edges.Left);
-    int top_edge = room_to_mask_coord(thisroom.Edges.Top);
-    int bottom_edge = room_to_mask_coord(thisroom.Edges.Bottom);
+    int right_edge = room_to_mask_coord(room.Edges.Right);
+    int left_edge = room_to_mask_coord(room.Edges.Left);
+    int top_edge = room_to_mask_coord(room.Edges.Top);
+    int bottom_edge = room_to_mask_coord(room.Edges.Bottom);
 
     // Original comment says that edges are ignored if the character is outside,
     // because "people forget to move the edges sometimes".
@@ -2864,7 +2869,7 @@ bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
     if (at_pt.Y >= bottom_edge)
         bottom_edge = limits.Bottom;
 
-    if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), at_pt, dst, limits, 0, 1))
+    if (!Pathfinding::FindNearestWalkablePoint(room.WalkAreaMask.get(), at_pt, dst, limits, 0, 1))
     {
         return false;
     }
@@ -2919,7 +2924,7 @@ void move_character(CharacterInfo *ch, const std::vector<Point> &path, bool walk
 void move_character_straight(CharacterInfo *ch, int x, int y, bool walk_anim)
 {
     MaskRouteFinder *pathfind = get_room_pathfinder();
-    pathfind->SetWalkableArea(prepare_walkable_areas(ch->index_id), thisroom.MaskResolution);
+    pathfind->SetWalkableArea(prepare_walkable_areas(ch->index_id), Room::Current().MaskResolution);
     if (!pathfind->IsWalkableAt(ch->x, ch->y))
     {
         Character_StopMoving(ch);
@@ -2949,12 +2954,13 @@ void walk_character(CharacterInfo *ch, int tox, int toy, bool ignwal)
 void MoveCharacterToHotspot(int char_id, int hotsp)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     if ((hotsp < 0) || (hotsp >= MAX_ROOM_HOTSPOTS))
         quit("!MovecharacterToHotspot: invalid hotspot");
-    if (thisroom.Hotspots[hotsp].WalkTo.X < 1)
+    if (room.Hotspots[hotsp].WalkTo.X < 1)
         return;
 
-    walk_character(&game.chars[char_id], thisroom.Hotspots[hotsp].WalkTo.X, thisroom.Hotspots[hotsp].WalkTo.Y,
+    walk_character(&game.chars[char_id], room.Hotspots[hotsp].WalkTo.X, room.Hotspots[hotsp].WalkTo.Y,
                    false /* walkable areas */);
     GameLoopUntilNotMoving(&game.chars[char_id].walking);
 }

@@ -13,7 +13,7 @@
 //=============================================================================
 // Walkable areas: the room's walkable area mask with its scaling, and what blocks a path across it.
 // Coordinates are in room pixels unless a function says "mask"; a mask pixel covers
-// thisroom.MaskResolution room pixels (room_to_mask_coord).
+// room.MaskResolution room pixels (room_to_mask_coord).
 //=============================================================================
 #pragma once
 
@@ -31,12 +31,6 @@ class Bitmap;
 
 // The script objects of the room's walkable areas, by area number.
 extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
-// The walkable area mask as loaded with the room, before disabled areas are erased from it
-// (thisroom.WalkAreaMask); redo_walkable_areas copies it back. Created by the room loader (room.cpp).
-extern AGS::Common::Bitmap *walkareabackup;
-// Scratch copy of the mask that prepare_walkable_areas fills and hands out to the pathfinder, same size
-// as the mask. Created by the room loader (room.cpp).
-extern AGS::Common::Bitmap *walkable_areas_temp;
 
 // Rebuilds the room's walkable area mask from the backup taken when the room was loaded, erasing the areas
 // that game.Play.walkable_areas_on has switched off. Call after changing which areas are enabled.

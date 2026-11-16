@@ -25,6 +25,7 @@
 #include "game/world/object.h"
 #include "game/world/properties.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_object.h"
 #include "game/world/room_status.h"
 #include "gfx/bitmap.h"
@@ -33,22 +34,16 @@
 
 using namespace AGS::Common;
 
-// The walkable area mask as loaded with the room, before disabled areas are erased from it
-// (thisroom.WalkAreaMask); redo_walkable_areas copies it back. Created by the room loader (room.cpp).
-Bitmap *walkareabackup = nullptr;
-// Scratch copy of the mask that prepare_walkable_areas fills and hands out to the pathfinder, same size
-// as the mask. Created by the room loader (room.cpp).
-Bitmap *walkable_areas_temp = nullptr;
-
 void redo_walkable_areas()
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     // restore the mask from the backup, then erase the pixels of areas that are switched off
-    thisroom.WalkAreaMask->Blit(walkareabackup, 0, 0);
-    for (int y = 0; y < walkareabackup->GetHeight(); ++y)
+    room.WalkAreaMask->Blit(room.WalkAreaBackup, 0, 0);
+    for (int y = 0; y < room.WalkAreaBackup->GetHeight(); ++y)
     {
-        uint8_t *walls_scanline = thisroom.WalkAreaMask->GetScanLineForWriting(y);
-        for (int x = 0; x < walkareabackup->GetWidth(); ++x)
+        uint8_t *walls_scanline = room.WalkAreaMask->GetScanLineForWriting(y);
+        for (int x = 0; x < room.WalkAreaBackup->GetWidth(); ++x)
         {
             if ((walls_scanline[x] >= sizeof(game.Play.walkable_areas_on)) ||
                 (game.Play.walkable_areas_on[walls_scanline[x]] == 0))
@@ -59,44 +54,45 @@ void redo_walkable_areas()
 
 int get_walkable_area_pixel(int x, int y)
 {
-    return thisroom.WalkAreaMask->GetPixel(room_to_mask_coord(x), room_to_mask_coord(y));
+    return Room::Current().WalkAreaMask->GetPixel(room_to_mask_coord(x), room_to_mask_coord(y));
 }
 
 int get_area_scaling(int area_id, int y)
 {
+    Room &room = Room::Current();
     int zoom_level = 100;
     y = room_to_mask_coord(y); // WalkArea Top and Bottom are mask rows
 
-    if ((area_id >= 0) && (area_id < MAX_WALK_AREAS) && (thisroom.WalkAreas[area_id].ScalingNear != NOT_VECTOR_SCALED))
+    if ((area_id >= 0) && (area_id < MAX_WALK_AREAS) && (room.WalkAreas[area_id].ScalingNear != NOT_VECTOR_SCALED))
     {
         // We have vector scaling!
         // In case the character is off the screen, limit the Y co-ordinate
         // to within the area range (otherwise we get silly zoom levels
         // that cause Out Of Memory crashes)
-        if (y > thisroom.WalkAreas[area_id].Bottom)
-            y = thisroom.WalkAreas[area_id].Bottom;
-        if (y < thisroom.WalkAreas[area_id].Top)
-            y = thisroom.WalkAreas[area_id].Top;
+        if (y > room.WalkAreas[area_id].Bottom)
+            y = room.WalkAreas[area_id].Bottom;
+        if (y < room.WalkAreas[area_id].Top)
+            y = room.WalkAreas[area_id].Top;
         // Work it all out without having to use floats
         // Percent = ((y - top) * 100) / (bottom - top)
         // Zoom level = ((near - far) * Percent) / 100 + far, in percent points from 100
-        if (thisroom.WalkAreas[area_id].Bottom != thisroom.WalkAreas[area_id].Top)
+        if (room.WalkAreas[area_id].Bottom != room.WalkAreas[area_id].Top)
         {
-            int percent = ((y - thisroom.WalkAreas[area_id].Top) * 100) /
-                          (thisroom.WalkAreas[area_id].Bottom - thisroom.WalkAreas[area_id].Top);
+            int percent = ((y - room.WalkAreas[area_id].Top) * 100) /
+                          (room.WalkAreas[area_id].Bottom - room.WalkAreas[area_id].Top);
             zoom_level =
-                ((thisroom.WalkAreas[area_id].ScalingNear - thisroom.WalkAreas[area_id].ScalingFar) * (percent)) / 100 +
-                thisroom.WalkAreas[area_id].ScalingFar;
+                ((room.WalkAreas[area_id].ScalingNear - room.WalkAreas[area_id].ScalingFar) * (percent)) / 100 +
+                room.WalkAreas[area_id].ScalingFar;
         }
         else
         {
             // Special case for 1px tall walkable area: take bottom line scaling
-            zoom_level = thisroom.WalkAreas[area_id].ScalingNear;
+            zoom_level = room.WalkAreas[area_id].ScalingNear;
         }
         zoom_level += 100; // the scaling is stored as the percentage minus 100 (SetAreaScaling)
     }
     else if ((area_id >= 0) && (area_id < MAX_WALK_AREAS))
-        zoom_level = thisroom.WalkAreas[area_id].ScalingFar + 100;
+        zoom_level = room.WalkAreas[area_id].ScalingFar + 100;
 
     // zero would make the sprite vanish: treat it as normal size
     if (zoom_level == 0)
@@ -121,22 +117,23 @@ void remove_walkable_areas_from_temp(const Rect &area)
     const Rect mask_area = Rect(room_to_mask_coord(area.Left), room_to_mask_coord(area.Top),
                                 room_to_mask_coord(area.Right), room_to_mask_coord(area.Bottom));
 
-    walkable_areas_temp->FillRect(mask_area, 0);
+    Room::Current().WalkableAreasTemp->FillRect(mask_area, 0);
 }
 
 // TODO: possibly optimize this by caching and/or knowing if walkable area changed since the last call?
-// Copies the walkable mask to walkable_areas_temp and cuts out the blocking rectangles of the enabled,
+// Copies the walkable mask to room.WalkableAreasTemp and cuts out the blocking rectangles of the enabled,
 // blocking characters (other than source_char_id) and of the solid objects in the current room, except the
 // rectangles source_char_id stands in.
 Bitmap *prepare_walkable_areas(int source_char_id)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     // copy the walkable areas to the temp bitmap
-    walkable_areas_temp->Blit(thisroom.WalkAreaMask.get(), 0, 0, 0, 0, thisroom.WalkAreaMask->GetWidth(),
-                              thisroom.WalkAreaMask->GetHeight());
+    room.WalkableAreasTemp->Blit(room.WalkAreaMask.get(), 0, 0, 0, 0, room.WalkAreaMask->GetWidth(),
+                                 room.WalkAreaMask->GetHeight());
     // if the character who's moving doesn't block, don't bother checking: it passes through everybody
     if ((source_char_id >= 0) && (game.chars[source_char_id].flags & CHF_NOBLOCKING))
-        return walkable_areas_temp;
+        return room.WalkableAreasTemp;
 
     // for each character in the current room, make the area under them unwalkable
     for (int char_id = 0; char_id < game.numcharacters; char_id++)
@@ -149,9 +146,9 @@ Bitmap *prepare_walkable_areas(int source_char_id)
             continue;
         if (game.chars[char_id].flags & CHF_NOBLOCKING)
             continue;
-        if (room_to_mask_coord(game.chars[char_id].y) >= walkable_areas_temp->GetHeight())
+        if (room_to_mask_coord(game.chars[char_id].y) >= room.WalkableAreasTemp->GetHeight())
             continue;
-        if (room_to_mask_coord(game.chars[char_id].x) >= walkable_areas_temp->GetWidth())
+        if (room_to_mask_coord(game.chars[char_id].x) >= room.WalkableAreasTemp->GetWidth())
             continue;
         if ((game.chars[char_id].y < 0) || (game.chars[char_id].x < 0))
             continue;
@@ -166,17 +163,17 @@ Bitmap *prepare_walkable_areas(int source_char_id)
     }
 
     // check for any blocking objects in the room, and deal with them as well
-    for (uint32_t obj_id = 0; obj_id < croom->numobj; obj_id++)
+    for (uint32_t obj_id = 0; obj_id < room.State->numobj; obj_id++)
     {
-        if (!objs[obj_id].is_enabled())
+        if (!room.Objs[obj_id].is_enabled())
             continue;
-        if ((objs[obj_id].flags & OBJF_SOLID) == 0)
+        if ((room.Objs[obj_id].flags & OBJF_SOLID) == 0)
             continue;
-        if (room_to_mask_coord(objs[obj_id].y) >= walkable_areas_temp->GetHeight())
+        if (room_to_mask_coord(room.Objs[obj_id].y) >= room.WalkableAreasTemp->GetHeight())
             continue;
-        if (room_to_mask_coord(objs[obj_id].x) >= walkable_areas_temp->GetWidth())
+        if (room_to_mask_coord(room.Objs[obj_id].x) >= room.WalkableAreasTemp->GetWidth())
             continue;
-        if ((objs[obj_id].y < 0) || (objs[obj_id].x < 0))
+        if ((room.Objs[obj_id].y < 0) || (room.Objs[obj_id].x < 0))
             continue;
 
         Rect blocking_rect = get_object_blocking_rect(obj_id);
@@ -189,23 +186,24 @@ Bitmap *prepare_walkable_areas(int source_char_id)
         remove_walkable_areas_from_temp(blocking_rect);
     }
 
-    return walkable_areas_temp;
+    return room.WalkableAreasTemp;
 }
 
 int get_walkable_area_at_location(int x, int y)
 {
+    Room &room = Room::Current();
     int area_id = get_walkable_area_pixel(x, y);
 
     if (area_id < 0)
     {
         // the point is outside the mask, e.g. the character has walked off the edge of the room: take the
         // area at the nearest edge, so that the scaling does not jump to full size when leaving
-        if (x >= thisroom.Width)
-            area_id = get_walkable_area_pixel(thisroom.Width - 1, y);
+        if (x >= room.Width)
+            area_id = get_walkable_area_pixel(room.Width - 1, y);
         else if (x < 0)
             area_id = get_walkable_area_pixel(0, y);
-        else if (y >= thisroom.Height)
-            area_id = get_walkable_area_pixel(x, thisroom.Height - 1);
+        else if (y >= room.Height)
+            area_id = get_walkable_area_pixel(x, room.Height - 1);
         else if (y < 0)
             area_id = get_walkable_area_pixel(x, 0);
     }
@@ -279,47 +277,49 @@ void Walkarea_SetScaling(ScriptWalkableArea *wa, int scale_min, int scale_max)
 
 int Walkarea_GetScalingMin(ScriptWalkableArea *wa)
 {
-    return thisroom.WalkAreas[wa->id].ScalingFar;
+    return Room::Current().WalkAreas[wa->id].ScalingFar;
 }
 
 int Walkarea_GetScalingMax(ScriptWalkableArea *wa)
 {
-    return thisroom.WalkAreas[wa->id].ScalingNear;
+    return Room::Current().WalkAreas[wa->id].ScalingNear;
 }
 
 const char *Walkarea_GetScriptName(ScriptWalkableArea *wa)
 {
-    return CreateNewScriptString(thisroom.WalkAreas[wa->id].ScriptName);
+    return CreateNewScriptString(Room::Current().WalkAreas[wa->id].ScriptName);
 }
 
 float Walkarea_GetFaceDirectionRatio(ScriptWalkableArea *wa)
 {
-    return thisroom.WalkAreas[wa->id].FaceDirectionRatio;
+    return Room::Current().WalkAreas[wa->id].FaceDirectionRatio;
 }
 
 void Walkarea_SetFaceDirectionRatio(ScriptWalkableArea *wa, float ratio)
 {
-    thisroom.WalkAreas[wa->id].FaceDirectionRatio = ratio;
+    Room::Current().WalkAreas[wa->id].FaceDirectionRatio = ratio;
 }
 
 int Walkarea_GetProperty(ScriptWalkableArea *wa, const char *property)
 {
-    return get_int_property(thisroom.WalkAreas[wa->id].Properties, croom->waProps[wa->id], property);
+    Room &room = Room::Current();
+    return get_int_property(room.WalkAreas[wa->id].Properties, room.State->waProps[wa->id], property);
 }
 
 const char *Walkarea_GetTextProperty(ScriptWalkableArea *wa, const char *property)
 {
-    return get_text_property_dynamic_string(thisroom.WalkAreas[wa->id].Properties, croom->waProps[wa->id], property);
+    Room &room = Room::Current();
+    return get_text_property_dynamic_string(room.WalkAreas[wa->id].Properties, room.State->waProps[wa->id], property);
 }
 
 bool Walkarea_SetProperty(ScriptWalkableArea *wa, const char *property, int value)
 {
-    return set_int_property(croom->waProps[wa->id], property, value);
+    return set_int_property(Room::Current().State->waProps[wa->id], property, value);
 }
 
 bool Walkarea_SetTextProperty(ScriptWalkableArea *wa, const char *property, const char *value)
 {
-    return set_text_property(croom->waProps[wa->id], property, value);
+    return set_text_property(Room::Current().State->waProps[wa->id], property, value);
 }
 
 #include "script/script_runtime.h"
@@ -335,6 +335,7 @@ int GetScalingAt(int x, int y)
 
 void SetAreaScaling(int area, int min, int max)
 {
+    Room &room = Room::Current();
     if ((area < 0) || (area >= MAX_WALK_AREAS))
         quit("!SetAreaScaling: invalid walkalbe area");
 
@@ -350,13 +351,13 @@ void SetAreaScaling(int area, int min, int max)
 
     if (min == max)
     {
-        thisroom.WalkAreas[area].ScalingFar = min;
-        thisroom.WalkAreas[area].ScalingNear = NOT_VECTOR_SCALED;
+        room.WalkAreas[area].ScalingFar = min;
+        room.WalkAreas[area].ScalingNear = NOT_VECTOR_SCALED;
     }
     else
     {
-        thisroom.WalkAreas[area].ScalingFar = min;
-        thisroom.WalkAreas[area].ScalingNear = max;
+        room.WalkAreas[area].ScalingFar = min;
+        room.WalkAreas[area].ScalingNear = max;
     }
 }
 

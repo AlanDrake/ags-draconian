@@ -34,6 +34,7 @@
 #include "game/world/move_list.h"
 #include "game/world/properties.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_status.h"
 #include "game/world/view_frame.h"
 #include "game/world/walkable_area.h"
@@ -62,21 +63,23 @@ int obj_lowest_yp;
 
 bool IsValidObject(int obj_id)
 {
-    return ((obj_id >= 0) && (static_cast<uint32_t>(obj_id) < croom->numobj));
+    return ((obj_id >= 0) && (static_cast<uint32_t>(obj_id) < Room::Current().State->numobj));
 }
 
 bool AssertObject(const char *apiname, int obj_id)
 {
-    if ((obj_id >= 0) && (static_cast<uint32_t>(obj_id) < croom->numobj))
+    Room &room = Room::Current();
+    if ((obj_id >= 0) && (static_cast<uint32_t>(obj_id) < room.State->numobj))
         return true;
     debug_script_error("%s: invalid object id %d (range is 0..%d)", apiname, obj_id,
-                       croom->numobj > 0 ? croom->numobj - 1 : 0);
+                       room.State->numobj > 0 ? room.State->numobj - 1 : 0);
     return false;
 }
 
 static int GetThingRect(int thing, Rect *rect)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     if (IsValidCharacter(thing))
     {
         // FIXME: a disabled character in this room still counts as overlapping, a disabled object does not
@@ -92,14 +95,14 @@ static int GetThingRect(int thing, Rect *rect)
     else if (IsValidObject(thing - OVERLAPPING_OBJECT))
     {
         int obj_id = thing - OVERLAPPING_OBJECT;
-        if (!objs[obj_id].is_enabled())
+        if (!room.Objs[obj_id].is_enabled())
         {
             return 0;
         }
 
-        const int objw = objs[obj_id].get_width();
-        const int objh = objs[obj_id].get_height();
-        *rect = RectWH(objs[obj_id].x, objs[obj_id].y - objh + 1, objw, objh);
+        const int objw = room.Objs[obj_id].get_width();
+        const int objh = room.Objs[obj_id].get_height();
+        *rect = RectWH(room.Objs[obj_id].x, room.Objs[obj_id].y - objh + 1, objw, objh);
     }
     else
     {
@@ -164,48 +167,50 @@ Bitmap *GetObjectImage(int obj_id, bool always_original, bool *is_original)
     if (is_original)
         *is_original = pic == nullptr; // if not used cached image, then use original
     if (!pic)
-        pic = spriteset[objs[obj_id].num];
+        pic = spriteset[Room::Current().Objs[obj_id].num];
     return pic;
 }
 
 Bitmap *GetObjectSourceImage(int obj_id)
 {
-    return spriteset[objs[obj_id].num];
+    return spriteset[Room::Current().Objs[obj_id].num];
 }
 
 int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
 {
+    Room &room = Room::Current();
     const bool only_clickable = (hit_options & kHit_Interactable) != 0;
     int bestshotyp = -1, bestshotwas = -1;
     // Iterate through all objects in the room
-    for (uint32_t obj_id = 0; obj_id < croom->numobj; obj_id++)
+    for (uint32_t obj_id = 0; obj_id < room.State->numobj; obj_id++)
     {
-        if (!objs[obj_id].is_displayed())
+        if (!room.Objs[obj_id].is_displayed())
         {
             continue; // disabled or invisible
         }
-        if (only_clickable && (objs[obj_id].flags & OBJF_NOINTERACT))
+        if (only_clickable && (room.Objs[obj_id].flags & OBJF_NOINTERACT))
         {
             continue;
         }
         SpriteTransformFlags sprite_flags = kSprTf_None;
-        int sprite_width = objs[obj_id].get_width();
-        int sprite_height = objs[obj_id].get_height();
+        int sprite_width = room.Objs[obj_id].get_width();
+        int sprite_height = room.Objs[obj_id].get_height();
         // TODO: support mirrored transformation in GraphicSpace
-        if (objs[obj_id].view != RoomObject::NoView)
+        if (room.Objs[obj_id].view != RoomObject::NoView)
         {
-            sprite_flags = views[objs[obj_id].view].loops[objs[obj_id].loop].frames[objs[obj_id].frame].flags;
+            sprite_flags =
+                views[room.Objs[obj_id].view].loops[room.Objs[obj_id].loop].frames[room.Objs[obj_id].frame].flags;
         }
 
         Bitmap *image = GetObjectSourceImage(obj_id);
         // Convert to local object coordinates
-        Point local = objs[obj_id].GetGraphicSpace().WorldToLocal(roomx, roomy);
+        Point local = room.Objs[obj_id].GetGraphicSpace().WorldToLocal(roomx, roomy);
         if (is_pos_in_sprite(local.X, local.Y, 0, 0, image, sprite_width, sprite_height, sprite_flags) == FALSE)
         {
             continue;
         }
 
-        int use_baseline = objs[obj_id].get_baseline();
+        int use_baseline = room.Objs[obj_id].get_baseline();
         if (use_baseline < bestshotyp)
         {
             continue;
@@ -253,6 +258,7 @@ ScriptObject *Object_GetAtRoomXY2(int x, int y)
 
 void SetObjectTint(int obj_id, int red, int green, int blue, int opacity, int luminance)
 {
+    Room &room = Room::Current();
     if (!AssertObject("SetObjectTint", obj_id))
     {
         return;
@@ -269,26 +275,27 @@ void SetObjectTint(int obj_id, int red, int green, int blue, int opacity, int lu
 
     debug_script_log("Set object %d tint RGB(%d,%d,%d) %d%%", obj_id, red, green, blue, opacity);
 
-    objs[obj_id].tint_r = red;
-    objs[obj_id].tint_g = green;
-    objs[obj_id].tint_b = blue;
-    objs[obj_id].tint_level = opacity;
-    objs[obj_id].tint_light = luminance;
-    objs[obj_id].flags &= ~OBJF_HASLIGHT;
-    objs[obj_id].flags |= OBJF_HASTINT;
+    room.Objs[obj_id].tint_r = red;
+    room.Objs[obj_id].tint_g = green;
+    room.Objs[obj_id].tint_b = blue;
+    room.Objs[obj_id].tint_level = opacity;
+    room.Objs[obj_id].tint_light = luminance;
+    room.Objs[obj_id].flags &= ~OBJF_HASLIGHT;
+    room.Objs[obj_id].flags |= OBJF_HASTINT;
 }
 
 void RemoveObjectTint(int obj_id)
 {
+    Room &room = Room::Current();
     if (!AssertObject("RemoveObjectTint", obj_id))
     {
         return;
     }
 
-    if (objs[obj_id].flags & (OBJF_HASTINT | OBJF_HASLIGHT))
+    if (room.Objs[obj_id].flags & (OBJF_HASTINT | OBJF_HASLIGHT))
     {
         debug_script_log("Un-tint object %d", obj_id);
-        objs[obj_id].flags &= ~(OBJF_HASTINT | OBJF_HASLIGHT);
+        room.Objs[obj_id].flags &= ~(OBJF_HASTINT | OBJF_HASLIGHT);
     }
     else
     {
@@ -308,14 +315,15 @@ void Object_RemoveTint(ScriptObject *obj)
 
 void SetObjectGraphic(int obj_id, int slot)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.Graphic", obj_id))
     {
         return;
     }
 
-    if (objs[obj_id].num != slot)
+    if (room.Objs[obj_id].num != slot)
     {
-        objs[obj_id].num = Math::InRangeOrDef<uint16_t>(slot, 0);
+        room.Objs[obj_id].num = Math::InRangeOrDef<uint16_t>(slot, 0);
         if (slot > UINT16_MAX)
         {
             debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obj_id, slot,
@@ -323,22 +331,23 @@ void SetObjectGraphic(int obj_id, int slot)
         }
         debug_script_log("Object %d graphic changed to slot %d", obj_id, slot);
     }
-    objs[obj_id].frame = 0;
-    objs[obj_id].loop = 0;
-    objs[obj_id].view = RoomObject::NoView;
-    objs[obj_id].anim = ViewAnimateParams(); // reset anim
+    room.Objs[obj_id].frame = 0;
+    room.Objs[obj_id].loop = 0;
+    room.Objs[obj_id].view = RoomObject::NoView;
+    room.Objs[obj_id].anim = ViewAnimateParams(); // reset anim
 }
 
 bool SetObjectFrameSimple(int obj_id, int view, int loop, int frame)
 {
+    Room &room = Room::Current();
     if (!AssertObject("SetObjectFrame", obj_id))
     {
         return false;
     }
     view--;
-    AssertViewHasLoops("SetObjectFrame", thisroom.Objects[obj_id].ScriptName.GetCStr(), view);
+    AssertViewHasLoops("SetObjectFrame", room.Objects[obj_id].ScriptName.GetCStr(), view);
 
-    auto &room_obj = objs[obj_id];
+    auto &room_obj = room.Objs[obj_id];
     // Fixup invalid loop & frame numbers by using default 0 value
     if (loop < 0 || loop >= views[view].numLoops)
     {
@@ -390,7 +399,7 @@ void SetObjectAlpha(int obj_id, int alpha)
     if ((alpha < 0) || (alpha > 255))
         quit("!Object.Opacity: alpha value must be between 0 and 255");
 
-    objs[obj_id].opacity = alpha;
+    Room::Current().Objs[obj_id].opacity = alpha;
 }
 
 void Object_SetOpacity(ScriptObject *obj, int alpha)
@@ -405,7 +414,7 @@ int Object_GetOpacity(ScriptObject *obj)
         return 0;
     }
 
-    return objs[obj->id].opacity;
+    return Room::Current().Objs[obj->id].opacity;
 }
 
 // [OBSOLETE] the AGS 4.0 Transparency, for compiled 4.0 games
@@ -423,7 +432,7 @@ int Object_GetTransparency(ScriptObject *obj)
         return 0;
     }
 
-    return GfxDef::OpacityToTrans100(objs[obj->id].opacity);
+    return GfxDef::OpacityToTrans100(Room::Current().Objs[obj->id].opacity);
 }
 
 int Object_GetAudioPanning(ScriptObject *obj)
@@ -432,7 +441,7 @@ int Object_GetAudioPanning(ScriptObject *obj)
     {
         return 0;
     }
-    return objs[obj->id].audio_panning;
+    return Room::Current().Objs[obj->id].audio_panning;
 }
 
 void Object_SetAudioPanning(ScriptObject *obj, int new_value)
@@ -441,7 +450,7 @@ void Object_SetAudioPanning(ScriptObject *obj, int new_value)
     {
         return;
     }
-    objs[obj->id].audio_panning = Math::Clamp(new_value, -100, 100);
+    Room::Current().Objs[obj->id].audio_panning = Math::Clamp(new_value, -100, 100);
 }
 
 int Object_GetAudioSpeed(ScriptObject *obj)
@@ -450,7 +459,7 @@ int Object_GetAudioSpeed(ScriptObject *obj)
     {
         return 0;
     }
-    return objs[obj->id].AudioSpeed;
+    return Room::Current().Objs[obj->id].AudioSpeed;
 }
 
 void Object_SetAudioSpeed(ScriptObject *obj, int new_value)
@@ -459,7 +468,7 @@ void Object_SetAudioSpeed(ScriptObject *obj, int new_value)
     {
         return;
     }
-    objs[obj->id].AudioSpeed = new_value;
+    Room::Current().Objs[obj->id].AudioSpeed = new_value;
 }
 
 int Object_GetAudioVolume(ScriptObject *obj)
@@ -468,7 +477,7 @@ int Object_GetAudioVolume(ScriptObject *obj)
     {
         return 0;
     }
-    return objs[obj->id].audio_volume;
+    return Room::Current().Objs[obj->id].audio_volume;
 }
 
 void Object_SetAudioVolume(ScriptObject *obj, int new_value)
@@ -477,36 +486,38 @@ void Object_SetAudioVolume(ScriptObject *obj, int new_value)
     {
         return;
     }
-    objs[obj->id].audio_volume = Math::Clamp(new_value, 0, 100);
+    Room::Current().Objs[obj->id].audio_volume = Math::Clamp(new_value, 0, 100);
 }
 
 void SetObjectBaseline(int obj_id, int baseline)
 {
+    Room &room = Room::Current();
     if (!AssertObject("SetObjectBaseline", obj_id))
     {
         return;
     }
     // baseline has changed, invalidate the cache
-    if (objs[obj_id].baseline != baseline)
+    if (room.Objs[obj_id].baseline != baseline)
     {
-        objs[obj_id].baseline = baseline;
+        room.Objs[obj_id].baseline = baseline;
         mark_object_changed(obj_id);
     }
 }
 
 int GetObjectBaseline(int obj_id)
 {
+    Room &room = Room::Current();
     if (!AssertObject("GetObjectBaseline", obj_id))
     {
         return 0;
     }
 
-    if (objs[obj_id].baseline < 1)
+    if (room.Objs[obj_id].baseline < 1)
     {
         return 0;
     }
 
-    return objs[obj_id].baseline;
+    return room.Objs[obj_id].baseline;
 }
 
 void Object_SetBaseline(ScriptObject *obj, int baseline)
@@ -521,13 +532,14 @@ int Object_GetBaseline(ScriptObject *obj)
 
 void AnimateObjectImpl(int obj_id, int loop, int spdd, int rept, int direction, int blocking, int sframe, int volume)
 {
+    Room &room = Room::Current();
     if (!AssertObject("AnimateObject", obj_id))
     {
         return;
     }
 
-    RoomObject &room_obj = objs[obj_id];
-    const RoomObjectInfo &obji = thisroom.Objects[obj_id];
+    RoomObject &room_obj = room.Objs[obj_id];
+    const RoomObjectInfo &obji = room.Objects[obj_id];
 
     if (!room_obj.is_enabled())
     {
@@ -565,7 +577,7 @@ void AnimateObjectImpl(int obj_id, int loop, int spdd, int rept, int direction, 
         debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obj_id, pic,
                           UINT16_MAX);
 
-    objs[obj_id].CheckViewFrame();
+    room.Objs[obj_id].CheckViewFrame();
 
     if (blocking)
         GameLoopUntilViewAnimEnd(&room_obj.anim);
@@ -589,15 +601,16 @@ void Object_Animate6(ScriptObject *obj, int loop, int delay, int repeat, int blo
 
 void Object_StopAnimating(ScriptObject *obj)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.StopAnimating", obj->id))
     {
         return;
     }
 
-    if (objs[obj->id].is_animating())
+    if (room.Objs[obj->id].is_animating())
     {
-        objs[obj->id].anim = ViewAnimateParams();
-        objs[obj->id].wait = 0;
+        room.Objs[obj->id].anim = ViewAnimateParams();
+        room.Objs[obj->id].wait = 0;
     }
 }
 
@@ -608,7 +621,7 @@ void StopObjectMoving(int obj_id)
         return;
     }
 
-    objs[obj_id].OnStopMoving();
+    Room::Current().Objs[obj_id].OnStopMoving();
 
     debug_script_log("Object %d stop moving", obj_id);
 }
@@ -620,41 +633,44 @@ void Object_StopMoving(ScriptObject *obj)
 
 int Object_GetView(ScriptObject *obj)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.View", obj->id))
     {
         return 0;
     }
-    if (objs[obj->id].view == RoomObject::NoView)
+    if (room.Objs[obj->id].view == RoomObject::NoView)
     {
         return 0;
     }
-    return objs[obj->id].view + 1;
+    return room.Objs[obj->id].view + 1;
 }
 
 int Object_GetLoop(ScriptObject *obj)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.Loop", obj->id))
     {
         return 0;
     }
-    if (objs[obj->id].view == RoomObject::NoView)
+    if (room.Objs[obj->id].view == RoomObject::NoView)
     {
         return 0;
     }
-    return objs[obj->id].loop;
+    return room.Objs[obj->id].loop;
 }
 
 int Object_GetFrame(ScriptObject *obj)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.Frame", obj->id))
     {
         return 0;
     }
-    if (objs[obj->id].view == RoomObject::NoView)
+    if (room.Objs[obj->id].view == RoomObject::NoView)
     {
         return 0;
     }
-    return objs[obj->id].frame;
+    return room.Objs[obj->id].frame;
 }
 
 bool Object_GetEnabled(ScriptObject *obj)
@@ -663,18 +679,19 @@ bool Object_GetEnabled(ScriptObject *obj)
     {
         return false;
     }
-    return objs[obj->id].is_enabled();
+    return Room::Current().Objs[obj->id].is_enabled();
 }
 
 void Object_SetEnabled(ScriptObject *obj, bool on)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.Enabled", obj->id))
     {
         return;
     }
-    if (objs[obj->id].is_enabled() != on)
+    if (room.Objs[obj->id].is_enabled() != on)
     {
-        objs[obj->id].set_enabled(on);
+        room.Objs[obj->id].set_enabled(on);
         debug_script_log("Object %d enabled = %d", obj->id, on);
     }
 }
@@ -685,18 +702,19 @@ bool Object_GetVisible(ScriptObject *obj)
     {
         return false;
     }
-    return objs[obj->id].is_visible();
+    return Room::Current().Objs[obj->id].is_visible();
 }
 
 void Object_SetVisible(ScriptObject *obj, bool on)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.Visible", obj->id))
     {
         return;
     }
-    if (objs[obj->id].is_visible() != on)
+    if (room.Objs[obj->id].is_visible() != on)
     {
-        objs[obj->id].set_visible(on);
+        room.Objs[obj->id].set_visible(on);
         debug_script_log("Object %d visible = %d", obj->id, on);
     }
 }
@@ -712,7 +730,7 @@ int GetObjectGraphic(int obj_id)
     {
         return 0;
     }
-    return objs[obj_id].num;
+    return Room::Current().Objs[obj_id].num;
 }
 
 int Object_GetGraphic(ScriptObject *obj)
@@ -726,7 +744,7 @@ int GetObjectX(int obj_id)
     {
         return 0;
     }
-    return objs[obj_id].x;
+    return Room::Current().Objs[obj_id].x;
 }
 
 int Object_GetX(ScriptObject *obj)
@@ -740,7 +758,7 @@ int GetObjectY(int obj_id)
     {
         return 0;
     }
-    return objs[obj_id].y;
+    return Room::Current().Objs[obj_id].y;
 }
 
 int Object_GetY(ScriptObject *obj)
@@ -754,7 +772,7 @@ int IsObjectAnimating(int obj_id)
     {
         return 0;
     }
-    return objs[obj_id].is_animating() ? 1 : 0;
+    return Room::Current().Objs[obj_id].is_animating() ? 1 : 0;
 }
 
 int Object_GetAnimating(ScriptObject *obj)
@@ -768,7 +786,7 @@ int IsObjectMoving(int obj_id)
     {
         return 0;
     }
-    return (objs[obj_id].moving > 0) ? 1 : 0;
+    return (Room::Current().Objs[obj_id].moving > 0) ? 1 : 0;
 }
 
 int Object_GetMoving(ScriptObject *obj)
@@ -780,87 +798,95 @@ bool Object_HasExplicitLight(ScriptObject *obj)
 {
     if (!AssertObject("Object.HasExplicitLight", obj->id))
         return false;
-    return objs[obj->id].has_explicit_light();
+    return Room::Current().Objs[obj->id].has_explicit_light();
 }
 
 bool Object_HasExplicitTint(ScriptObject *obj)
 {
     if (!AssertObject("Object.HasExplicitTint", obj->id))
         return false;
-    return objs[obj->id].has_explicit_tint();
+    return Room::Current().Objs[obj->id].has_explicit_tint();
 }
 
 int Object_GetLightLevel(ScriptObject *obj)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.LightLevel", obj->id))
         return 0;
-    return objs[obj->id].has_explicit_light() ? objs[obj->id].tint_light : 0;
+    return room.Objs[obj->id].has_explicit_light() ? room.Objs[obj->id].tint_light : 0;
 }
 
 void Object_SetLightLevel(ScriptObject *obj, int light_level)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.LightLevel", obj->id))
     {
         return;
     }
 
     int obj_id = obj->id;
-    objs[obj_id].tint_light = light_level;
-    objs[obj_id].flags &= ~OBJF_HASTINT;
-    objs[obj_id].flags |= OBJF_HASLIGHT;
+    room.Objs[obj_id].tint_light = light_level;
+    room.Objs[obj_id].flags &= ~OBJF_HASTINT;
+    room.Objs[obj_id].flags |= OBJF_HASLIGHT;
 }
 
 int Object_GetTintRed(ScriptObject *obj)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.TintRed", obj->id))
         return 0;
-    return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_r : 0;
+    return room.Objs[obj->id].has_explicit_tint() ? room.Objs[obj->id].tint_r : 0;
 }
 
 int Object_GetTintGreen(ScriptObject *obj)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.TintGreen", obj->id))
         return 0;
-    return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_g : 0;
+    return room.Objs[obj->id].has_explicit_tint() ? room.Objs[obj->id].tint_g : 0;
 }
 
 int Object_GetTintBlue(ScriptObject *obj)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.TintBlue", obj->id))
         return 0;
-    return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_b : 0;
+    return room.Objs[obj->id].has_explicit_tint() ? room.Objs[obj->id].tint_b : 0;
 }
 
 int Object_GetTintSaturation(ScriptObject *obj)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.TintSaturation", obj->id))
         return 0;
-    return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_level : 0;
+    return room.Objs[obj->id].has_explicit_tint() ? room.Objs[obj->id].tint_level : 0;
 }
 
 int Object_GetTintLuminance(ScriptObject *obj)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.TintLuminance", obj->id))
         return 0;
-    return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_light : 0;
+    return room.Objs[obj->id].has_explicit_tint() ? room.Objs[obj->id].tint_light : 0;
 }
 
 void SetObjectPosition(int obj_id, int tox, int toy)
 {
+    Room &room = Room::Current();
     if (!AssertObject("SetObjectPosition", obj_id))
     {
         return;
     }
 
-    if (objs[obj_id].moving > 0)
+    if (room.Objs[obj_id].moving > 0)
     {
         debug_script_warn("Object.SetPosition: cannot set position while object is moving");
         return;
     }
 
-    objs[obj_id].x = tox;
-    objs[obj_id].y = toy;
-    objs[obj_id].UpdateGraphicSpace();
+    room.Objs[obj_id].x = tox;
+    room.Objs[obj_id].y = toy;
+    room.Objs[obj_id].UpdateGraphicSpace();
 }
 
 void Object_SetPosition(ScriptObject *obj, int x, int y)
@@ -870,12 +896,12 @@ void Object_SetPosition(ScriptObject *obj, int x, int y)
 
 void Object_SetX(ScriptObject *obj, int x)
 {
-    SetObjectPosition(obj->id, x, objs[obj->id].y);
+    SetObjectPosition(obj->id, x, Room::Current().Objs[obj->id].y);
 }
 
 void Object_SetY(ScriptObject *obj, int y)
 {
-    SetObjectPosition(obj->id, objs[obj->id].x, y);
+    SetObjectPosition(obj->id, Room::Current().Objs[obj->id].x, y);
 }
 
 const char *Object_GetName_New(ScriptObject *obj)
@@ -885,7 +911,7 @@ const char *Object_GetName_New(ScriptObject *obj)
         return nullptr;
     }
 
-    return CreateNewScriptString(croom->obj[obj->id].name);
+    return CreateNewScriptString(Room::Current().State->obj[obj->id].name);
 }
 
 void Object_SetName(ScriptObject *obj, const char *new_name)
@@ -894,13 +920,14 @@ void Object_SetName(ScriptObject *obj, const char *new_name)
     {
         return;
     }
-    croom->obj[obj->id].name = new_name;
+    Room::Current().State->obj[obj->id].name = new_name;
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
 void RunObjectInteraction(int obj_id, int mood)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     if (!AssertObject("RunObjectInteraction", obj_id))
     {
         return;
@@ -922,11 +949,11 @@ void RunObjectInteraction(int obj_id, int mood)
     const auto obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_OBJ, obj_id,
                                      RuntimeScriptValue().SetScriptObject(&scrObj[obj_id], &ccDynamicObject), mood);
     if ((evnt >= 0) &&
-        run_event_script(obj_evt, &thisroom.Objects[obj_id].Interactions, evnt, &thisroom.Objects[obj_id].GetEvents(),
+        run_event_script(obj_evt, &room.Objects[obj_id].Interactions, evnt, &room.Objects[obj_id].GetEvents(),
                          anyclick_evt, true /* do unhandled event */) < 0)
         return; // game state changed, don't do "any click"
     // any click on obj
-    run_event_script(obj_evt, &thisroom.Objects[obj_id].GetEvents(), anyclick_evt);
+    run_event_script(obj_evt, &room.Objects[obj_id].GetEvents(), anyclick_evt);
 }
 
 bool Object_IsInteractionAvailable(ScriptObject *obj, int mood)
@@ -948,15 +975,16 @@ void move_object(int obj_id, const std::vector<Point> *path, int tox, int toy, i
 void Object_DoMove(ScriptObject *obj, const char *api_name, void *path_arr, int x, int y, bool use_path, int speed,
                    int blocking, int ignwal, int repeat = kAnimFlow_Once, int direction = FORWARDS)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.Move", obj->id))
     {
         return;
     }
-    const RoomObjectInfo &obji = thisroom.Objects[obj->id];
+    const RoomObjectInfo &obji = room.Objects[obj->id];
     ValidateMoveParams(api_name, obji.ScriptName.GetCStr(), blocking, ignwal);
     ValidateAnimParams(api_name, obji.ScriptName.GetCStr(), repeat, direction);
 
-    if (!objs[obj->id].is_enabled())
+    if (!room.Objs[obj->id].is_enabled())
     {
         debug_script_warn("%s: object %d is disabled, cannot start move", "Object.Move", obj->id);
         return;
@@ -979,7 +1007,7 @@ void Object_DoMove(ScriptObject *obj, const char *api_name, void *path_arr, int 
     }
 
     if (blocking)
-        GameLoopUntilNotMoving(&objs[obj->id].moving);
+        GameLoopUntilNotMoving(&room.Objs[obj->id].moving);
 }
 
 void Object_Move(ScriptObject *obj, int x, int y, int speed, int blocking, int ignwal)
@@ -995,14 +1023,15 @@ void Object_MovePath(ScriptObject *obj, void *path_arr, int speed, int blocking,
 
 void SetObjectClickable(int obj_id, int clickable)
 {
+    Room &room = Room::Current();
     if (!AssertObject("SetObjectClickable", obj_id))
     {
         return;
     }
-    objs[obj_id].flags &= ~OBJF_NOINTERACT;
+    room.Objs[obj_id].flags &= ~OBJF_NOINTERACT;
     if (clickable == 0)
     {
-        objs[obj_id].flags |= OBJF_NOINTERACT;
+        room.Objs[obj_id].flags |= OBJF_NOINTERACT;
     }
 }
 
@@ -1018,7 +1047,7 @@ int Object_GetClickable(ScriptObject *obj)
         return 0;
     }
 
-    if (objs[obj->id].flags & OBJF_NOINTERACT)
+    if (Room::Current().Objs[obj->id].flags & OBJF_NOINTERACT)
     {
         return 0;
     }
@@ -1027,32 +1056,34 @@ int Object_GetClickable(ScriptObject *obj)
 
 int Object_GetDestinationX(ScriptObject *obj)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.DestinationX", obj->id))
     {
         return 0;
     }
 
-    if (objs[obj->id].moving)
+    if (room.Objs[obj->id].moving)
     {
-        MoveList *cmls = get_movelist(objs[obj->id].moving);
+        MoveList *cmls = get_movelist(room.Objs[obj->id].moving);
         return cmls->GetLastPos().X;
     }
-    return objs[obj->id].x;
+    return room.Objs[obj->id].x;
 }
 
 int Object_GetDestinationY(ScriptObject *obj)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.DestinationY", obj->id))
     {
         return 0;
     }
 
-    if (objs[obj->id].moving)
+    if (room.Objs[obj->id].moving)
     {
-        MoveList *cmls = get_movelist(objs[obj->id].moving);
+        MoveList *cmls = get_movelist(room.Objs[obj->id].moving);
         return cmls->GetLastPos().Y;
     }
-    return objs[obj->id].y;
+    return room.Objs[obj->id].y;
 }
 
 bool Object_GetManualScaling(ScriptObject *obj)
@@ -1062,19 +1093,20 @@ bool Object_GetManualScaling(ScriptObject *obj)
         return false;
     }
 
-    return !(objs[obj->id].flags & OBJF_USEROOMSCALING);
+    return !(Room::Current().Objs[obj->id].flags & OBJF_USEROOMSCALING);
 }
 
 void Object_SetManualScaling(ScriptObject *obj, bool on)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.ManualScaling", obj->id))
     {
         return;
     }
     if (on)
-        objs[obj->id].flags &= ~OBJF_USEROOMSCALING;
+        room.Objs[obj->id].flags &= ~OBJF_USEROOMSCALING;
     else
-        objs[obj->id].flags |= OBJF_USEROOMSCALING;
+        room.Objs[obj->id].flags |= OBJF_USEROOMSCALING;
     // clear the cache
     mark_object_changed(obj->id);
 }
@@ -1085,16 +1117,17 @@ int Object_GetScaling(ScriptObject *obj)
     {
         return 0;
     }
-    return objs[obj->id].zoom;
+    return Room::Current().Objs[obj->id].zoom;
 }
 
 void Object_SetScaling(ScriptObject *obj, int zoomlevel)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.Scaling", obj->id))
     {
         return;
     }
-    if ((objs[obj->id].flags & OBJF_USEROOMSCALING) != 0)
+    if ((room.Objs[obj->id].flags & OBJF_USEROOMSCALING) != 0)
     {
         debug_script_warn("Object.Scaling: cannot set property unless ManualScaling is enabled");
         return;
@@ -1103,18 +1136,19 @@ void Object_SetScaling(ScriptObject *obj, int zoomlevel)
     if (zoomlevel != zoom_fixed)
         debug_script_warn("Object.Scaling: scaling level must be between 1 and %d%%, asked for: %d", (int)(INT16_MAX),
                           zoomlevel);
-    objs[obj->id].zoom = zoom_fixed;
+    room.Objs[obj->id].zoom = zoom_fixed;
 }
 
 void Object_SetSolid(ScriptObject *obj, int solid)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.Solid", obj->id))
     {
         return;
     }
-    objs[obj->id].flags &= ~OBJF_SOLID;
+    room.Objs[obj->id].flags &= ~OBJF_SOLID;
     if (solid)
-        objs[obj->id].flags |= OBJF_SOLID;
+        room.Objs[obj->id].flags |= OBJF_SOLID;
 }
 
 int Object_GetSolid(ScriptObject *obj)
@@ -1123,7 +1157,7 @@ int Object_GetSolid(ScriptObject *obj)
     {
         return 0;
     }
-    if (objs[obj->id].flags & OBJF_SOLID)
+    if (Room::Current().Objs[obj->id].flags & OBJF_SOLID)
     {
         return 1;
     }
@@ -1136,7 +1170,7 @@ void Object_SetBlockingWidth(ScriptObject *obj, int blocking_width)
     {
         return;
     }
-    objs[obj->id].blocking_width = static_cast<int16_t>(blocking_width);
+    Room::Current().Objs[obj->id].blocking_width = static_cast<int16_t>(blocking_width);
 }
 
 int Object_GetBlockingWidth(ScriptObject *obj)
@@ -1145,7 +1179,7 @@ int Object_GetBlockingWidth(ScriptObject *obj)
     {
         return 0;
     }
-    return objs[obj->id].blocking_width;
+    return Room::Current().Objs[obj->id].blocking_width;
 }
 
 void Object_SetBlockingHeight(ScriptObject *obj, int blocking_height)
@@ -1154,7 +1188,7 @@ void Object_SetBlockingHeight(ScriptObject *obj, int blocking_height)
     {
         return;
     }
-    objs[obj->id].blocking_height = static_cast<int16_t>(blocking_height);
+    Room::Current().Objs[obj->id].blocking_height = static_cast<int16_t>(blocking_height);
 }
 
 int Object_GetBlockingHeight(ScriptObject *obj)
@@ -1163,7 +1197,7 @@ int Object_GetBlockingHeight(ScriptObject *obj)
     {
         return 0;
     }
-    return objs[obj->id].blocking_height;
+    return Room::Current().Objs[obj->id].blocking_height;
 }
 
 int Object_GetBlockingRectX(ScriptObject *obj)
@@ -1172,7 +1206,7 @@ int Object_GetBlockingRectX(ScriptObject *obj)
     {
         return 0;
     }
-    return objs[obj->id].blocking_x;
+    return Room::Current().Objs[obj->id].blocking_x;
 }
 
 void Object_SetBlockingRectX(ScriptObject *obj, int x)
@@ -1181,7 +1215,7 @@ void Object_SetBlockingRectX(ScriptObject *obj, int x)
     {
         return;
     }
-    objs[obj->id].blocking_x = static_cast<int16_t>(x);
+    Room::Current().Objs[obj->id].blocking_x = static_cast<int16_t>(x);
 }
 
 int Object_GetBlockingRectY(ScriptObject *obj)
@@ -1190,7 +1224,7 @@ int Object_GetBlockingRectY(ScriptObject *obj)
     {
         return 0;
     }
-    return objs[obj->id].blocking_y;
+    return Room::Current().Objs[obj->id].blocking_y;
 }
 
 void Object_SetBlockingRectY(ScriptObject *obj, int y)
@@ -1199,7 +1233,7 @@ void Object_SetBlockingRectY(ScriptObject *obj, int y)
     {
         return;
     }
-    objs[obj->id].blocking_y = static_cast<int16_t>(y);
+    Room::Current().Objs[obj->id].blocking_y = static_cast<int16_t>(y);
 }
 
 int Object_GetID(ScriptObject *obj)
@@ -1209,127 +1243,131 @@ int Object_GetID(ScriptObject *obj)
 
 const char *Object_GetScriptName(ScriptObject *obj)
 {
-    return CreateNewScriptString(thisroom.Objects[obj->id].ScriptName);
+    return CreateNewScriptString(Room::Current().Objects[obj->id].ScriptName);
 }
 
 int Object_GetBlendMode(ScriptObject *obj)
 {
-    return objs[obj->id].blend_mode;
+    return Room::Current().Objs[obj->id].blend_mode;
 }
 
 void Object_SetBlendMode(ScriptObject *obj, int blend_mode)
 {
-    objs[obj->id].blend_mode =
-        ValidateBlendMode("Object.BlendMode", thisroom.Objects[obj->id].ScriptName.GetCStr(), blend_mode);
+    Room &room = Room::Current();
+    room.Objs[obj->id].blend_mode =
+        ValidateBlendMode("Object.BlendMode", room.Objects[obj->id].ScriptName.GetCStr(), blend_mode);
 }
 
 float Object_GetGraphicAnchorX(ScriptObject *obj)
 {
-    return objs[obj->id].spr_anchor.X;
+    return Room::Current().Objs[obj->id].spr_anchor.X;
 }
 
 void Object_SetGraphicAnchorX(ScriptObject *obj, float x)
 {
-    objs[obj->id].spr_anchor.X = Math::Clamp(x, 0.f, 1.f);
+    Room::Current().Objs[obj->id].spr_anchor.X = Math::Clamp(x, 0.f, 1.f);
 }
 
 float Object_GetGraphicAnchorY(ScriptObject *obj)
 {
-    return objs[obj->id].spr_anchor.Y;
+    return Room::Current().Objs[obj->id].spr_anchor.Y;
 }
 
 void Object_SetGraphicAnchorY(ScriptObject *obj, float y)
 {
-    objs[obj->id].spr_anchor.Y = Math::Clamp(y, 0.f, 1.f);
+    Room::Current().Objs[obj->id].spr_anchor.Y = Math::Clamp(y, 0.f, 1.f);
 }
 
 int Object_GetGraphicOffsetX(ScriptObject *obj)
 {
-    return objs[obj->id].spr_offset.X;
+    return Room::Current().Objs[obj->id].spr_offset.X;
 }
 
 void Object_SetGraphicOffsetX(ScriptObject *obj, int x)
 {
-    objs[obj->id].spr_offset.X = x;
+    Room::Current().Objs[obj->id].spr_offset.X = x;
 }
 
 int Object_GetGraphicOffsetY(ScriptObject *obj)
 {
-    return objs[obj->id].spr_offset.Y;
+    return Room::Current().Objs[obj->id].spr_offset.Y;
 }
 
 void Object_SetGraphicOffsetY(ScriptObject *obj, int y)
 {
-    objs[obj->id].spr_offset.Y = y;
+    Room::Current().Objs[obj->id].spr_offset.Y = y;
 }
 
 ScriptShaderInstance *Object_GetShader(ScriptObject *obj)
 {
-    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(objs[obj->id].shader_handle));
+    return static_cast<ScriptShaderInstance *>(
+        ccGetObjectAddressFromHandle(Room::Current().Objs[obj->id].shader_handle));
 }
 
 void Object_SetShader(ScriptObject *obj, ScriptShaderInstance *shader_inst)
 {
-    auto &room_obj = objs[obj->id];
+    auto &room_obj = Room::Current().Objs[obj->id];
     room_obj.shader_id = shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID;
     room_obj.shader_handle = ccReplaceObjectHandle(room_obj.shader_handle, shader_inst);
 }
 
 float Object_GetRotation(ScriptObject *obj)
 {
-    return objs[obj->id].rotation;
+    return Room::Current().Objs[obj->id].rotation;
 }
 
 void Object_SetRotation(ScriptObject *obj, float degrees)
 {
-    objs[obj->id].rotation = Math::ClampAngle360(degrees);
-    objs[obj->id].UpdateGraphicSpace();
+    Room &room = Room::Current();
+    room.Objs[obj->id].rotation = Math::ClampAngle360(degrees);
+    room.Objs[obj->id].UpdateGraphicSpace();
 }
 
 float Object_GetGraphicPivotX(ScriptObject *obj)
 {
-    return objs[obj->id].pivot.X;
+    return Room::Current().Objs[obj->id].pivot.X;
 }
 
 void Object_SetGraphicPivotX(ScriptObject *obj, float pivotx)
 {
-    objs[obj->id].pivot.X = pivotx;
+    Room::Current().Objs[obj->id].pivot.X = pivotx;
 }
 
 float Object_GetGraphicPivotY(ScriptObject *obj)
 {
-    return objs[obj->id].pivot.Y;
+    return Room::Current().Objs[obj->id].pivot.Y;
 }
 
 void Object_SetGraphicPivotY(ScriptObject *obj, float pivoty)
 {
-    objs[obj->id].pivot.Y = pivoty;
+    Room::Current().Objs[obj->id].pivot.Y = pivoty;
 }
 
 int Object_GetGraphicPivotOffsetX(ScriptObject *obj)
 {
-    return objs[obj->id].pivot_offset.X;
+    return Room::Current().Objs[obj->id].pivot_offset.X;
 }
 
 void Object_SetGraphicPivotOffsetX(ScriptObject *obj, int px)
 {
-    objs[obj->id].pivot_offset.X = px;
+    Room::Current().Objs[obj->id].pivot_offset.X = px;
 }
 
 int Object_GetGraphicPivotOffsetY(ScriptObject *obj)
 {
-    return objs[obj->id].pivot_offset.Y;
+    return Room::Current().Objs[obj->id].pivot_offset.Y;
 }
 
 void Object_SetGraphicPivotOffsetY(ScriptObject *obj, int py)
 {
-    objs[obj->id].pivot_offset.Y = py;
+    Room::Current().Objs[obj->id].pivot_offset.Y = py;
 }
 
 void move_object(int obj_id, const std::vector<Point> *path, int tox, int toy, int speed, bool ignwal,
                  const RunPathParams &run_params)
 {
-    RoomObject &room_obj = objs[obj_id];
+    Room &room = Room::Current();
+    RoomObject &room_obj = room.Objs[obj_id];
     if (path)
     {
         if (path->empty())
@@ -1361,7 +1399,7 @@ void move_object(int obj_id, const std::vector<Point> *path, int tox, int toy, i
     else
     {
         MaskRouteFinder *pathfind = get_room_pathfinder();
-        pathfind->SetWalkableArea(prepare_walkable_areas(-1), thisroom.MaskResolution);
+        pathfind->SetWalkableArea(prepare_walkable_areas(-1), room.MaskResolution);
         path_result = Pathfinding::FindRoute(new_mlist, pathfind, room_obj.x, room_obj.y, tox, toy, speed, speed, false,
                                              ignwal, run_params);
     }
@@ -1369,19 +1407,20 @@ void move_object(int obj_id, const std::vector<Point> *path, int tox, int toy, i
     // If successful, then start moving
     if (path_result)
     {
-        objs[obj_id].moving = add_movelist(std::move(new_mlist));
+        room.Objs[obj_id].moving = add_movelist(std::move(new_mlist));
     }
 }
 
 bool Object_RunFrameEvent(ScriptObject *obj, int view, int loop, int frame)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.RunFrameEvent", obj->id))
     {
         return false;
     }
     view--; // convert to internal 0-based view ID
-    AssertFrame("Object.RunFrameEvent", thisroom.Objects[obj->id].ScriptName.GetCStr(), view, loop, frame);
-    return objs[obj->id].RunFrameEvent(view, loop, frame);
+    AssertFrame("Object.RunFrameEvent", room.Objects[obj->id].ScriptName.GetCStr(), view, loop, frame);
+    return room.Objs[obj->id].RunFrameEvent(view, loop, frame);
 }
 
 void Object_RunInteraction(ScriptObject *obj, int mode)
@@ -1391,37 +1430,41 @@ void Object_RunInteraction(ScriptObject *obj, int mode)
 
 void *Object_GetGraphicPosition(ScriptObject *obj)
 {
-    objs[obj->id].UpdateGraphicSpace();
+    Room &room = Room::Current();
+    room.Objs[obj->id].UpdateGraphicSpace();
     std::vector<Point> points;
-    objs[obj->id].GetGraphicSpace().GetTransformedCorners(points,
-                                                          Size(objs[obj->id].spr_width, objs[obj->id].spr_height));
+    room.Objs[obj->id].GetGraphicSpace().GetTransformedCorners(
+        points, Size(room.Objs[obj->id].spr_width, room.Objs[obj->id].spr_height));
     return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
 }
 
 void *Object_GetGraphicBoundBox(ScriptObject *obj)
 {
-    objs[obj->id].UpdateGraphicSpace();
+    Room &room = Room::Current();
+    room.Objs[obj->id].UpdateGraphicSpace();
     std::vector<Point> points;
-    objs[obj->id].GetGraphicSpace().GetAABBPoints(points);
+    room.Objs[obj->id].GetGraphicSpace().GetAABBPoints(points);
     return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
 }
 
 int GetObjectProperty(int obj_id, const char *property)
 {
+    Room &room = Room::Current();
     if (!AssertObject("GetObjectProperty", obj_id))
     {
         return 0;
     }
-    return get_int_property(thisroom.Objects[obj_id].Properties, croom->objProps[obj_id], property);
+    return get_int_property(room.Objects[obj_id].Properties, room.State->objProps[obj_id], property);
 }
 
 void GetObjectPropertyText(int obj_id, const char *property, char *buffer)
 {
+    Room &room = Room::Current();
     if (!AssertObject("GetObjectPropertyText", obj_id))
     {
         return;
     }
-    get_text_property(thisroom.Objects[obj_id].Properties, croom->objProps[obj_id], property, buffer);
+    get_text_property(room.Objects[obj_id].Properties, room.State->objProps[obj_id], property, buffer);
 }
 
 int Object_GetProperty(ScriptObject *obj, const char *property)
@@ -1436,11 +1479,12 @@ void Object_GetPropertyText(ScriptObject *obj, const char *property, char *buffe
 
 const char *Object_GetTextProperty(ScriptObject *obj, const char *property)
 {
+    Room &room = Room::Current();
     if (!AssertObject("Object.GetTextProperty", obj->id))
     {
         return nullptr;
     }
-    return get_text_property_dynamic_string(thisroom.Objects[obj->id].Properties, croom->objProps[obj->id], property);
+    return get_text_property_dynamic_string(room.Objects[obj->id].Properties, room.State->objProps[obj->id], property);
 }
 
 bool Object_SetProperty(ScriptObject *obj, const char *property, int value)
@@ -1449,7 +1493,7 @@ bool Object_SetProperty(ScriptObject *obj, const char *property, int value)
     {
         return false;
     }
-    return set_int_property(croom->objProps[obj->id], property, value);
+    return set_int_property(Room::Current().State->objProps[obj->id], property, value);
 }
 
 bool Object_SetTextProperty(ScriptObject *obj, const char *property, const char *value)
@@ -1458,24 +1502,25 @@ bool Object_SetTextProperty(ScriptObject *obj, const char *property, const char 
     {
         return false;
     }
-    return set_text_property(croom->objProps[obj->id], property, value);
+    return set_text_property(Room::Current().State->objProps[obj->id], property, value);
 }
 
 bool Object_GetUseRegionTint(ScriptObject *obj)
 {
-    return (croom->obj[obj->id].flags & OBJF_USEREGIONTINTS) != 0;
+    return (Room::Current().State->obj[obj->id].flags & OBJF_USEREGIONTINTS) != 0;
 }
 
 void Object_SetUseRegionTint(ScriptObject *obj, int yesorno)
 {
-    objs[obj->id].flags &= ~OBJF_USEREGIONTINTS;
+    Room &room = Room::Current();
+    room.Objs[obj->id].flags &= ~OBJF_USEREGIONTINTS;
     if (yesorno)
-        objs[obj->id].flags |= OBJF_USEREGIONTINTS;
+        room.Objs[obj->id].flags |= OBJF_USEREGIONTINTS;
 }
 
 ScriptMotionPath *Object_GetMotionPath(ScriptObject *obj)
 {
-    RoomObject &room_obj = objs[obj->id];
+    RoomObject &room_obj = Room::Current().Objs[obj->id];
     const int mslot = room_obj.moving;
     if (mslot <= 0)
         return nullptr;
@@ -1502,7 +1547,7 @@ void update_object_scale(int &res_zoom, int &res_width, int &res_height, int obj
         // * either area is > 0, or
         // * area 0 has valid scaling property (<> 0)
         int onarea = get_walkable_area_at_location(objx, objy);
-        if ((onarea > 0) || (thisroom.WalkAreas[0].ScalingFar != 0))
+        if ((onarea > 0) || (Room::Current().WalkAreas[0].ScalingFar != 0))
         {
             zoom = get_area_scaling(onarea, objy);
         }
@@ -1530,7 +1575,7 @@ void update_object_scale(int &res_zoom, int &res_width, int &res_height, int obj
 void update_object_scale(int obj_id)
 {
     Game &game = Game::Current();
-    RoomObject &room_obj = objs[obj_id];
+    RoomObject &room_obj = Room::Current().Objs[obj_id];
     if (!room_obj.is_enabled())
     {
         return; // not enabled
@@ -1556,7 +1601,7 @@ void update_object_scale(int obj_id)
 
 Rect get_object_blocking_rect(int obj_id)
 {
-    RoomObject *room_obj = &objs[obj_id];
+    RoomObject *room_obj = &Room::Current().Objs[obj_id];
 
     int width;
     if (room_obj->blocking_width < 1)

@@ -19,10 +19,11 @@
 #include "game/render/draw.h"
 #include "game/roomstruct.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 
 using namespace AGS::Common;
 
-// FIXME: don't use global variables here (displayed_room, thisroom), have access to a GameState or some kind of a
+// FIXME: don't use global variables here (displayed_room, Room::Current()), have access to a GameState or some kind of a
 // camera manager etc
 
 void Camera::SetID(int id)
@@ -39,10 +40,11 @@ const Rect &Camera::GetRect() const
 // Sets explicit room camera's orthographic size
 void Camera::SetSize(const Size cam_size)
 {
+    Room &room = Room::Current();
     // TODO: currently we don't support having camera larger than room background
     // (or rather - looking outside of the room background); look into this later
-    const Size real_room_sz = (displayed_room >= 0 && (thisroom.Width > 0 && thisroom.Height > 0))
-                                  ? Size(thisroom.Width, thisroom.Height)
+    const Size real_room_sz = (displayed_room >= 0 && (room.Width > 0 && room.Height > 0))
+                                  ? Size(room.Width, room.Height)
                                   : Size(INT32_MAX, INT32_MAX);
 
     const Size real_size = Size::Clamp(cam_size, Size(1, 1), real_room_sz);
@@ -52,8 +54,8 @@ void Camera::SetSize(const Size cam_size)
     _position.SetWidth(real_size.Width);
     _position.SetHeight(real_size.Height);
     // readjust in case went off-room after size changed
-    int x = Math::Clamp(_position.Left, 0, thisroom.Width - _position.GetWidth());
-    int y = Math::Clamp(_position.Top, 0, thisroom.Height - _position.GetHeight());
+    int x = Math::Clamp(_position.Left, 0, room.Width - _position.GetWidth());
+    int y = Math::Clamp(_position.Top, 0, room.Height - _position.GetHeight());
     if (_position.Left != x || _position.Top != y)
     {
         _position.MoveTo(Point(x, y));
@@ -66,8 +68,9 @@ void Camera::SetSize(const Size cam_size)
 // Puts room camera to the new location in the room
 void Camera::SetAt(int x, int y)
 {
-    x = Math::Clamp(x, 0, thisroom.Width - _position.GetWidth());
-    y = Math::Clamp(y, 0, thisroom.Height - _position.GetHeight());
+    Room &room = Room::Current();
+    x = Math::Clamp(x, 0, room.Width - _position.GetWidth());
+    y = Math::Clamp(y, 0, room.Height - _position.GetHeight());
     if (_position.Left == x && _position.Top == y)
         return;
 

@@ -46,6 +46,7 @@
 #include "game/world/object.h"
 #include "game/world/region.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_object.h"
 #include "game/world/room_status.h"
 #include "game/world/view_frame.h"
@@ -898,6 +899,7 @@ void on_mainviewport_changed()
 // Allocates a bitmap for rendering camera/viewport pair (software render mode)
 void prepare_roomview_frame(Viewport *view)
 {
+    Room &room = Room::Current();
     if (!view->GetCamera())
         return; // no camera link
     const int view_index = view->GetID();
@@ -922,7 +924,7 @@ void prepare_roomview_frame(Viewport *view)
         if (!camera_buffer || camera_buffer->GetWidth() < cam_sz.Width || camera_buffer->GetHeight() < cam_sz.Height)
         {
             // Allocate new buffer bitmap with an extra size in case they will want to zoom out
-            Size alloc_sz = Size::Clamp(cam_sz * 2, Size(1, 1), Size(thisroom.Width, thisroom.Height));
+            Size alloc_sz = Size::Clamp(cam_sz * 2, Size(1, 1), Size(room.Width, room.Height));
             camera_buffer.reset(
                 new Bitmap(alloc_sz.Width, alloc_sz.Height,
                            EngineServices::Current().GfxDriver->GetMemoryBackBuffer()->GetColorDepth()));
@@ -973,8 +975,8 @@ void init_room_drawdata()
             sync_roomview(game.Play.GetRoomViewport(i).get());
 
 #if (AGS_PLATFORM_DEBUG)
-        for (size_t i = 0; i < (size_t)thisroom.Objects.size(); ++i)
-            objcache[i].tag.Format("OBJ%d:%s", (int)i, thisroom.Objects[i].ScriptName.GetCStr());
+        for (size_t i = 0; i < (size_t)Room::Current().Objects.size(); ++i)
+            objcache[i].tag.Format("OBJ%d:%s", (int)i, Room::Current().Objects[i].ScriptName.GetCStr());
 #endif
     }
 }
@@ -1760,6 +1762,7 @@ void get_local_tint(int xpp, int ypp, bool use_region_tint, int *tint_amnt, int 
                     int *tint_lit, int *light_lev)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     int tint_level = 0, light_level = 0;
     int tint_amount = 0;
     int tint_red = 0;
@@ -1791,13 +1794,13 @@ void get_local_tint(int xpp, int ypp, bool use_region_tint, int *tint_amnt, int 
 
         if ((on_region > 0) && (on_region < MAX_ROOM_REGIONS))
         {
-            light_level = thisroom.Regions[on_region].Light;
-            tint_level = thisroom.Regions[on_region].Tint;
+            light_level = room.Regions[on_region].Light;
+            tint_level = room.Regions[on_region].Tint;
         }
         else if (on_region <= 0)
         {
-            light_level = thisroom.Regions[0].Light;
-            tint_level = thisroom.Regions[0].Tint;
+            light_level = room.Regions[0].Light;
+            tint_level = room.Regions[0].Tint;
         }
 
         int tint_sat = (tint_level >> 24) & 0xFF;
@@ -2128,7 +2131,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic, const Size &scale
         // Check if the X & Y co-ords are the same, too -- if so, there
         // is scope for further optimisations
         if (optimize_by_position && (objsav.x == objsrc.x) && (objsav.y == objsrc.y) && (actsp.Bmp != nullptr) &&
-            (walk_behind_baselines_changed == 0))
+            (Room::Current().WalkBehindBaselinesChanged == 0))
         {
             return true;
         }
@@ -2212,11 +2215,11 @@ void prepare_and_add_object_gfx(const ObjectCache &objsav, ObjTexture &actsp, bo
     else
     {
         // Ignore walk-behinds by shifting baseline to a larger value
-        // TODO: make sure a walk-behind baseline can never exceed thisroom.Height,
+        // TODO: make sure a walk-behind baseline can never exceed room.Height,
         // or this shifted baseline will not be above it
         if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
         {
-            usebasel += thisroom.Height;
+            usebasel += Room::Current().Height;
         }
     }
 
@@ -2257,7 +2260,7 @@ void prepare_and_add_object_gfx(const ObjectCache &objsav, ObjTexture &actsp, bo
 // assigns parameters, which may further be assigned to a texture.
 bool construct_object_gfx(int obj_id, bool force_software)
 {
-    const RoomObject &obj = objs[obj_id];
+    const RoomObject &obj = Room::Current().Objs[obj_id];
     const int sprite_id = spriteset.DoesSpriteExist(obj.num) ? obj.num : 0;
 
     ObjectCache objsrc(sprite_id, obj.tint_r, obj.tint_g, obj.tint_b, obj.tint_level, obj.tint_light, 0 /* skip */,
@@ -2272,15 +2275,16 @@ bool construct_object_gfx(int obj_id, bool force_software)
 
 void prepare_objects_for_drawing()
 {
+    Room &room = Room::Current();
     set_our_eip(32);
     const bool hw_accel = !drawstate.SoftwareRender;
 
-    for (uint32_t obj_id = 0; obj_id < croom->numobj; ++obj_id)
+    for (uint32_t obj_id = 0; obj_id < room.State->numobj; ++obj_id)
     {
-        const RoomObject &obj = objs[obj_id];
+        const RoomObject &obj = room.Objs[obj_id];
         if (!obj.is_displayed())
             continue; // disabled or invisible
-        if ((obj.x >= thisroom.Width) || (obj.y < 1))
+        if ((obj.x >= room.Width) || (obj.y < 1))
             continue; // offscreen
 
         eip_guinum = obj_id;
@@ -2470,24 +2474,25 @@ static void add_roomovers_for_drawing()
 void prepare_room_sprites()
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     // Background sprite is required for the non-software renderers always,
     // and for software renderer in case there are overlapping viewports.
     // Note that software DDB is just a tiny wrapper around bitmap, so overhead is negligible.
     if (current_background_is_dirty || !roomBackgroundBmp)
     {
         roomBackgroundBmp =
-            recycle_ddb_bitmap(roomBackgroundBmp, thisroom.BgImages[game.Play.bg_frame].get(), true /*opaque*/);
+            recycle_ddb_bitmap(roomBackgroundBmp, room.BgImages[game.Play.bg_frame].get(), true /*opaque*/);
     }
     if (drawstate.FullFrameRedraw)
     {
-        if (current_background_is_dirty || walkBehindsCachedForBgNum != game.Play.bg_frame)
+        if (current_background_is_dirty || room.WalkBehindsCachedForBgNum != game.Play.bg_frame)
         {
             if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
             {
                 walkbehinds_generate_sprites();
             }
         }
-        roomBackgroundBmp->SetShader(shaderInstances[croom->GetBgShaderID()]);
+        roomBackgroundBmp->SetShader(shaderInstances[room.State->GetBgShaderID()]);
         add_thing_to_draw(roomBackgroundBmp, 0, 0);
     }
     current_background_is_dirty = false; // Note this is only place where this flag is checked
@@ -2511,7 +2516,7 @@ void prepare_room_sprites()
                     const auto &wbobj = walkbehindobj[wb];
                     if (wbobj.Ddb)
                     {
-                        add_to_sprite_list(wbobj.Ddb, wbobj.Pos.X, wbobj.Pos.Y, croom->walkbehind_base[wb], 0u);
+                        add_to_sprite_list(wbobj.Ddb, wbobj.Pos.X, wbobj.Pos.Y, room.State->walkbehind_base[wb], 0u);
                         // when baselines are equal, walk-behinds must be sorted back, so draw index = 0
                     }
                 }
@@ -2577,7 +2582,7 @@ static PBitmap draw_room_background(const Viewport *view)
         // TODO: measure this call. An old note said it took up to 50% of the game CPU time at
         // high resolutions and colour depths; that was never measured on the current code
         update_room_invreg_and_reset(view_index, roomcam_surface,
-                                     thisroom.BgImages[Game::Current().Play.bg_frame].get(), draw_to_camsurf);
+                                     Room::Current().BgImages[Game::Current().Play.bg_frame].get(), draw_to_camsurf);
     }
 
     return CameraDrawData[view_index].Frame;
@@ -3050,7 +3055,7 @@ static void construct_room_view()
     draw_preroom_background();
     prepare_room_sprites();
     // reset the Baselines Changed flag now that we've drawn stuff
-    walk_behind_baselines_changed = 0;
+    Room::Current().WalkBehindBaselinesChanged = 0;
 
     for (const auto &viewport : game.Play.GetRoomViewportsZOrdered())
     {
@@ -3328,6 +3333,7 @@ RoomAreaMask get_room_mask_debugmode()
 
 void debug_draw_room_mask(RoomAreaMask mask)
 {
+    Room &room = Room::Current();
     debugRoomMask = mask;
     if (mask == kRoomAreaNone)
         return;
@@ -3335,15 +3341,15 @@ void debug_draw_room_mask(RoomAreaMask mask)
     Bitmap *bmp;
     switch (mask)
     {
-    case kRoomAreaHotspot: bmp = thisroom.HotspotMask.get(); break;
-    case kRoomAreaWalkBehind: bmp = thisroom.WalkBehindMask.get(); break;
+    case kRoomAreaHotspot: bmp = room.HotspotMask.get(); break;
+    case kRoomAreaWalkBehind: bmp = room.WalkBehindMask.get(); break;
     case kRoomAreaWalkable: bmp = prepare_walkable_areas(-1); break;
-    case kRoomAreaRegion: bmp = thisroom.RegionMask.get(); break;
+    case kRoomAreaRegion: bmp = room.RegionMask.get(); break;
     default: return;
     }
 
-    const int fin_width = thisroom.Width;
-    const int fin_height = thisroom.Height;
+    const int fin_width = room.Width;
+    const int fin_height = room.Height;
     // Software mode scaling
     // note we don't use transparency in software mode - may be slow in hi-res games
     if (drawstate.SoftwareRender && (mask != kRoomAreaWalkBehind) && (bmp->GetSize() != Size(fin_width, fin_height)))
@@ -3366,20 +3372,21 @@ void debug_draw_movelist(int charnum)
 void update_room_debug()
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     if (debugRoomMask == kRoomAreaWalkable)
     {
         debug_draw_room_mask(debugRoomMask);
     }
     if (debugMoveListChar >= 0)
     {
-        const int mult = drawstate.SoftwareRender ? 1 : thisroom.MaskResolution;
-        const int fin_width = thisroom.Width;
-        const int fin_height = thisroom.Height;
+        const int mult = drawstate.SoftwareRender ? 1 : room.MaskResolution;
+        const int fin_width = room.Width;
+        const int fin_height = room.Height;
         if (drawstate.SoftwareRender)
             recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(), fin_width, fin_height, true);
         else
-            recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(), thisroom.WalkAreaMask->GetWidth(),
-                           thisroom.WalkAreaMask->GetHeight(), true);
+            recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(), room.WalkAreaMask->GetWidth(),
+                           room.WalkAreaMask->GetHeight(), true);
 
         if (game.chars[debugMoveListChar].is_moving())
         {
@@ -3406,6 +3413,7 @@ void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extr
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    Room &room = Room::Current();
     // Don't render if skipping cutscene
     if (game.Play.fast_forward)
         return;
@@ -3443,10 +3451,10 @@ void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extr
     {
         // always update the palette, regardless of whether the plugin
         // vetos the screen update
-        if (bg_just_changed)
+        if (room.BgJustChanged)
         {
             setpal();
-            bg_just_changed = 0;
+            room.BgJustChanged = 0;
         }
     }
 }

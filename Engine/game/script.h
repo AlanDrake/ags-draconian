@@ -240,7 +240,6 @@ extern NonBlockingScriptFunction runDialogOptionCloseFunc;
 extern AGS::Engine::PRuntimeScript gamescript;
 extern AGS::Engine::PRuntimeScript dialogScriptsScript;
 extern std::vector<AGS::Engine::PRuntimeScript> scriptModules;
-extern AGS::Engine::PRuntimeScript roomscript;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 extern size_t numScriptModules;
 

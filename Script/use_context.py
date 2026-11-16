@@ -111,7 +111,7 @@ CONTEXTS = {
         'accessor': 'Room::Current()',
         'local': 'room',
         'header': 'game/world/room_context.h',
-        'own_files': (),
+        'own_files': ('Engine/game/world/room_context.h',),
         'names': {
             'thisroom': '',
             'croom': 'State',

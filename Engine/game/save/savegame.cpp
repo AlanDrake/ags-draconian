@@ -49,6 +49,7 @@
 #include "game/world/character.h"
 #include "game/world/region.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_status.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
@@ -435,7 +436,7 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     // reset saved room states
     ResetRoomStates();
     // reset temp room state
-    troom = RoomStatus();
+    Room::Current().TempState = RoomStatus();
     // Free what GameState owns outside of its plain fields (properties, viewports and cameras, do-once tokens);
     // the plain fields are overwritten by the GameState component
     // TODO: reset the whole GameState object here instead, once it is clear nothing in it must survive
@@ -661,6 +662,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    Room &room = Room::Current();
     // Put back the game options that must not change at runtime, whatever the save had
     CopyPreservedGameOptions(game, pp);
 
@@ -751,17 +753,17 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     if (displayed_room >= 0)
     {
         // Fixup the frame index, in case the restored room does not have enough background frames
-        if (game.Play.bg_frame < 0 || static_cast<size_t>(game.Play.bg_frame) >= thisroom.BgFrameCount)
+        if (game.Play.bg_frame < 0 || static_cast<size_t>(game.Play.bg_frame) >= room.BgFrameCount)
             game.Play.bg_frame = 0;
 
-        for (size_t i = 0; i < std::min(thisroom.BgImages.size(), r_data.RoomBkgScene.size()); ++i)
+        for (size_t i = 0; i < std::min(room.BgImages.size(), r_data.RoomBkgScene.size()); ++i)
         {
             if (r_data.RoomBkgScene[i])
             {
                 game.Play.room_bg_modified[i] = true;
                 // Blit, don't replace image, in case we restored a image of different size
-                thisroom.BgImages[i]->Clear(0);
-                thisroom.BgImages[i]->Blit(r_data.RoomBkgScene[i].get());
+                room.BgImages[i]->Clear(0);
+                room.BgImages[i]->Blit(r_data.RoomBkgScene[i].get());
             }
         }
 
@@ -771,7 +773,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
             {
                 game.Play.room_mask_modified[i] = true;
                 // Blit, don't replace mask, in case we restored a mask of different size
-                thisroom.CopyMask(static_cast<RoomAreaMask>(i), r_data.RoomMask[i].get());
+                room.CopyMask(static_cast<RoomAreaMask>(i), r_data.RoomMask[i].get());
             }
         }
 
@@ -779,16 +781,16 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         // now that room has loaded, copy saved region light and tint levels in
         for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
         {
-            thisroom.Regions[i].Light = r_data.RoomLightLevels[i];
-            thisroom.Regions[i].Tint = r_data.RoomTintLevels[i];
+            room.Regions[i].Light = r_data.RoomLightLevels[i];
+            room.Regions[i].Tint = r_data.RoomTintLevels[i];
         }
         generate_light_table();
 
         // and the walkable areas' scaling (the far and the near zoom levels)
         for (size_t i = 0; i < MAX_WALK_AREAS; ++i)
         {
-            thisroom.WalkAreas[i].ScalingFar = r_data.RoomZoomLevels1[i];
-            thisroom.WalkAreas[i].ScalingNear = r_data.RoomZoomLevels2[i];
+            room.WalkAreas[i].ScalingFar = r_data.RoomZoomLevels1[i];
+            room.WalkAreas[i].ScalingNear = r_data.RoomZoomLevels2[i];
         }
 
         on_background_frame_change();
@@ -1021,7 +1023,7 @@ void DoBeforeSave()
     if (displayed_room >= 0)
     {
         // update the current room script's data segment copy
-        if (roomscript)
+        if (Room::Current().Script)
             save_room_data_segment();
     }
 }

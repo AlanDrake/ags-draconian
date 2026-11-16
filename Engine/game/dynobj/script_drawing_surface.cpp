@@ -22,6 +22,7 @@
 #include "game/roomstruct.h"
 #include "game/runtime_defines.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "gfx/sprite_cache.h"
@@ -38,9 +39,10 @@ bool ScriptDrawingSurface::IsValid() const
 
 Bitmap *ScriptDrawingSurface::GetBitmapSurface()
 {
+    Room &room = Room::Current();
     // TODO: consider creating weak_ptr here, and store one in the DrawingSurface!
     if (roomBackgroundNumber >= 0)
-        return thisroom.BgImages[roomBackgroundNumber].get();
+        return room.BgImages[roomBackgroundNumber].get();
     else if (dynamicSpriteNumber >= 0)
         return spriteset[dynamicSpriteNumber];
     else if (dynamicSurfaceNumber >= 0)
@@ -48,7 +50,7 @@ Bitmap *ScriptDrawingSurface::GetBitmapSurface()
     else if (linkedBitmapOnly != nullptr)
         return linkedBitmapOnly;
     else if (roomMaskType > kRoomAreaNone)
-        return thisroom.GetMask(roomMaskType);
+        return room.GetMask(roomMaskType);
     return nullptr;
 }
 

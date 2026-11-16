@@ -51,6 +51,7 @@
 #include "game/world/object.h"
 #include "game/world/region.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_object.h"
 #include "game/world/room_status.h"
 #include "game/world/view_frame.h"
@@ -451,6 +452,7 @@ static void check_mouse_controls(const int was_mouse_on_iface)
 bool run_service_key_controls(KeyInput &out_key)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     out_key = KeyInput(); // clear the output
     if (ags_inputevent_ready() != kInputKeyboard)
         return false; // there was no key event
@@ -555,22 +557,22 @@ bool run_service_key_controls(KeyInput &out_key)
         // ctrl+D - show info
         String buffer = String::FromFormat(
             "In room %d %s\nPlayer at %d, %d (view %d, loop %d, frame %d)%s%s%s", displayed_room,
-            (noWalkBehindsAtAll ? "(has no walk-behinds)" : ""), playerchar->x, playerchar->y, playerchar->view + 1,
-            playerchar->loop, playerchar->frame, (IsGamePaused() == 0) ? "" : "\nGame paused.",
+            (room.NoWalkBehindsAtAll ? "(has no walk-behinds)" : ""), playerchar->x, playerchar->y,
+            playerchar->view + 1, playerchar->loop, playerchar->frame, (IsGamePaused() == 0) ? "" : "\nGame paused.",
             (game.Play.ground_level_areas_disabled == 0) ? "" : "\nGround areas disabled.",
             (IsInterfaceEnabled() == 0) ? "\nGame in Wait state" : "");
-        for (uint32_t obj_id = 0; obj_id < croom->numobj; obj_id++)
+        for (uint32_t obj_id = 0; obj_id < room.State->numobj; obj_id++)
         {
             if (obj_id >= 8)
                 break; // TODO: measure the graphical size of the text instead of counting objects
             buffer.AppendFmt(
                 "\nObject %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%s slot:%d opacity:%d clkble:%d", obj_id,
-                objs[obj_id].x, objs[obj_id].y,
-                (spriteset.DoesSpriteExist(objs[obj_id].num) ? game.SpriteInfos[objs[obj_id].num].Width : 0),
-                (spriteset.DoesSpriteExist(objs[obj_id].num) ? game.SpriteInfos[objs[obj_id].num].Height : 0),
-                objs[obj_id].is_enabled(), objs[obj_id].is_moving() ? "yes" : "no",
-                objs[obj_id].is_animating() ? "yes" : "no", objs[obj_id].num, objs[obj_id].opacity,
-                ((objs[obj_id].flags & OBJF_NOINTERACT) != 0) ? 0 : 1);
+                room.Objs[obj_id].x, room.Objs[obj_id].y,
+                (spriteset.DoesSpriteExist(room.Objs[obj_id].num) ? game.SpriteInfos[room.Objs[obj_id].num].Width : 0),
+                (spriteset.DoesSpriteExist(room.Objs[obj_id].num) ? game.SpriteInfos[room.Objs[obj_id].num].Height : 0),
+                room.Objs[obj_id].is_enabled(), room.Objs[obj_id].is_moving() ? "yes" : "no",
+                room.Objs[obj_id].is_animating() ? "yes" : "no", room.Objs[obj_id].num, room.Objs[obj_id].opacity,
+                ((room.Objs[obj_id].flags & OBJF_NOINTERACT) != 0) ? 0 : 1);
         }
         DisplayMB(buffer.GetCStr());
         int listed_char_id = game.playercharacter;
@@ -926,6 +928,7 @@ static void GameUpdateCheckControls()
 static void GameUpdateCheckRoomEdges()
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     if ((IsInterfaceEnabled()) && (IsGamePaused() == 0) &&
         ((game.Play.ground_level_areas_disabled & GLED_INTERACTION) == 0) && (in_new_room == kEnterRoom_None) &&
         (new_room_was == kEnterRoom_None))
@@ -933,13 +936,13 @@ static void GameUpdateCheckRoomEdges()
         // Only allow walking off edges if not in wait mode, and
         // if not in Player Enters Screen (allow walking in from off-screen)
         int edges_activated[4] = {0, 0, 0, 0};
-        if (playerchar->x <= thisroom.Edges.Left)
+        if (playerchar->x <= room.Edges.Left)
             edges_activated[0] = 1;
-        else if (playerchar->x >= thisroom.Edges.Right)
+        else if (playerchar->x >= room.Edges.Right)
             edges_activated[1] = 1;
-        if (playerchar->y >= thisroom.Edges.Bottom)
+        if (playerchar->y >= room.Edges.Bottom)
             edges_activated[2] = 1;
-        else if (playerchar->y <= thisroom.Edges.Top)
+        else if (playerchar->y <= room.Edges.Top)
             edges_activated[3] = 1;
 
         if ((game.Play.entered_edge >= 0) && (game.Play.entered_edge <= 3))
@@ -963,6 +966,7 @@ static void GameUpdateCheckRoomEdges()
 static void game_loop_update_background_animation()
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     if (game.Play.bg_anim_delay > 0)
         game.Play.bg_anim_delay--;
     else if (game.Play.bg_frame_locked)
@@ -971,9 +975,9 @@ static void game_loop_update_background_animation()
     {
         game.Play.bg_anim_delay = game.Play.anim_background_speed;
         game.Play.bg_frame++;
-        if ((size_t)game.Play.bg_frame >= thisroom.BgFrameCount)
+        if ((size_t)game.Play.bg_frame >= room.BgFrameCount)
             game.Play.bg_frame = 0;
-        if (thisroom.BgFrameCount >= 2)
+        if (room.BgFrameCount >= 2)
         {
             // get the new frame's palette
             on_background_frame_change();
@@ -1025,10 +1029,11 @@ static void GameUpdatePersistentAnimations()
 static void update_objects_scale()
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     if (displayed_room < 0)
         return;
 
-    for (uint32_t obj_id = 0; obj_id < croom->numobj; ++obj_id)
+    for (uint32_t obj_id = 0; obj_id < room.State->numobj; ++obj_id)
     {
         update_object_scale(obj_id);
     }

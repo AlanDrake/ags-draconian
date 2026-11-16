@@ -24,6 +24,7 @@
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_status.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
@@ -42,17 +43,15 @@ struct WalkBehindColumn
 
 std::vector<WalkBehindColumn> walkBehindCols; // precalculated WB positions
 Rect walkBehindAABB[MAX_WALK_BEHINDS];        // WB bounding box
-int walkBehindsCachedForBgNum = -1;           // WB textures are for this background
-bool noWalkBehindsAtAll = false;              // quick report that no WBs in this room
-bool walk_behind_baselines_changed = false;
 
 
 // Generates walk-behinds as separate sprites
 void walkbehinds_generate_sprites()
 {
     Game &game = Game::Current();
-    const Bitmap *mask = thisroom.WalkBehindMask.get();
-    const Bitmap *bg = thisroom.BgImages[game.Play.bg_frame].get();
+    Room &room = Room::Current();
+    const Bitmap *mask = room.WalkBehindMask.get();
+    const Bitmap *bg = room.BgImages[game.Play.bg_frame].get();
 
     const int coldepth = bg->GetColorDepth();
     Bitmap wbbmp; // temp buffer
@@ -94,14 +93,15 @@ void walkbehinds_generate_sprites()
         }
     }
 
-    walkBehindsCachedForBgNum = game.Play.bg_frame;
+    room.WalkBehindsCachedForBgNum = game.Play.bg_frame;
 }
 
 // Edits the given game object's sprite, cutting out pixels covered by walk-behinds;
 // returns whether any pixels were updated;
 bool walkbehinds_cropout(Bitmap *sprit, int sprx, int spry, int basel)
 {
-    if (noWalkBehindsAtAll)
+    Room &room = Room::Current();
+    if (room.NoWalkBehindsAtAll)
         return false;
 
     const int maskcol = sprit->GetMaskColor();
@@ -109,8 +109,7 @@ bool walkbehinds_cropout(Bitmap *sprit, int sprx, int spry, int basel)
 
     bool pixels_changed = false;
     // pass along the sprite's pixels, but skip those that lie outside the mask
-    for (int x = std::max(0, 0 - sprx); (x < sprit->GetWidth()) && (x + sprx < thisroom.WalkBehindMask->GetWidth());
-         ++x)
+    for (int x = std::max(0, 0 - sprx); (x < sprit->GetWidth()) && (x + sprx < room.WalkBehindMask->GetWidth()); ++x)
     {
         // select the WB column at this x
         const auto &wbcol = walkBehindCols[x + sprx];
@@ -122,10 +121,10 @@ bool walkbehinds_cropout(Bitmap *sprit, int sprx, int spry, int basel)
         // we assume that Y1 and Y2 are always within the mask
         for (int y = std::max(0, wbcol.Y1 - spry); (y < sprit->GetHeight()) && (y + spry < wbcol.Y2); ++y)
         {
-            const int wb = thisroom.WalkBehindMask->GetScanLine(y + spry)[x + sprx];
+            const int wb = room.WalkBehindMask->GetScanLine(y + spry)[x + sprx];
             if (wb < 1)
                 continue; // "no area"
-            if (croom->walkbehind_base[wb] <= basel)
+            if (room.State->walkbehind_base[wb] <= basel)
                 continue;
 
             pixels_changed = true;
@@ -144,16 +143,17 @@ bool walkbehinds_cropout(Bitmap *sprit, int sprx, int spry, int basel)
 
 void walkbehinds_recalc()
 {
+    Room &room = Room::Current();
     // Reset all data
     walkBehindCols.clear();
     for (int wb = 0; wb < MAX_WALK_BEHINDS; ++wb)
     {
         walkBehindAABB[wb] = Rect(INT32_MAX, INT32_MAX, INT32_MIN, INT32_MIN);
     }
-    noWalkBehindsAtAll = true;
+    room.NoWalkBehindsAtAll = true;
 
     // Recalculate everything; note that mask is always 8-bit
-    const Bitmap *mask = thisroom.WalkBehindMask.get();
+    const Bitmap *mask = room.WalkBehindMask.get();
     walkBehindCols.resize(mask->GetWidth());
     for (int col = 0; col < mask->GetWidth(); ++col)
     {
@@ -168,7 +168,7 @@ void walkbehinds_recalc()
                 {
                     wbcol.Y1 = y;
                     wbcol.Exists = true;
-                    noWalkBehindsAtAll = false;
+                    room.NoWalkBehindsAtAll = false;
                 }
                 wbcol.Y2 = y + 1; // +1 to allow bottom line of screen to work (CHECKME??)
                 // resize the bounding rect
@@ -180,12 +180,12 @@ void walkbehinds_recalc()
         }
     }
 
-    walkBehindsCachedForBgNum = -1;
+    room.WalkBehindsCachedForBgNum = -1;
 }
 
 int get_walkbehind_pixel(int x, int y)
 {
-    return thisroom.WalkAreaMask->GetPixel(room_to_mask_coord(x), room_to_mask_coord(y));
+    return Room::Current().WalkAreaMask->GetPixel(room_to_mask_coord(x), room_to_mask_coord(y));
 }
 
 ScriptWalkbehind *Walkbehind_GetAtRoomXY(int x, int y)
@@ -215,23 +215,24 @@ int Walkbehind_GetID(ScriptWalkbehind *wb)
 
 int Walkbehind_GetBaseline(ScriptWalkbehind *wb)
 {
-    return croom->walkbehind_base[wb->id];
+    return Room::Current().State->walkbehind_base[wb->id];
 }
 
 void Walkbehind_SetBaseline(ScriptWalkbehind *wb, int baseline)
 {
-    croom->walkbehind_base[wb->id] = baseline;
+    Room::Current().State->walkbehind_base[wb->id] = baseline;
 }
 
 const char *Walkbehind_GetScriptName(ScriptWalkbehind *wb)
 {
-    return CreateNewScriptString(thisroom.WalkBehinds[wb->id].ScriptName);
+    return CreateNewScriptString(Room::Current().WalkBehinds[wb->id].ScriptName);
 }
 
 #include "script/script_runtime.h"
 
 void SetWalkBehindBase(int wa, int bl)
 {
+    Room &room = Room::Current();
     if ((wa < 1) || (wa >= MAX_WALK_BEHINDS))
     {
         debug_script_error("SetWalkBehindBase: invalid walk-behind area specified: %d, range is 1..%d", wa,
@@ -239,10 +240,10 @@ void SetWalkBehindBase(int wa, int bl)
         return;
     }
 
-    if (bl != croom->walkbehind_base[wa])
+    if (bl != room.State->walkbehind_base[wa])
     {
-        walk_behind_baselines_changed = 1;
-        croom->walkbehind_base[wa] = bl;
+        room.WalkBehindBaselinesChanged = 1;
+        room.State->walkbehind_base[wa] = bl;
         debug_script_log("Walk-behind %d baseline changed to %d", wa, bl);
     }
 }
@@ -256,5 +257,5 @@ int GetWalkBehindBase(int wa)
         return 0;
     }
 
-    return croom->walkbehind_base[wa];
+    return Room::Current().State->walkbehind_base[wa];
 }

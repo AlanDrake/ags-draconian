@@ -47,6 +47,7 @@
 #include "game/world/character.h"
 #include "game/world/move_list.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_status.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
@@ -2102,18 +2103,19 @@ HSaveError ReadRoomStates(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
 HSaveError WriteThisRoom(Stream *out)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     out->WriteInt32(displayed_room);
     if (displayed_room < 0)
         return HSaveError::None();
 
     // modified room backgrounds
     // -- varied count since kRoomStatSvgVersion_40033
-    out->WriteInt8(static_cast<uint8_t>(thisroom.BgImages.size()));
-    for (size_t i = 0; i < thisroom.BgImages.size(); ++i)
+    out->WriteInt8(static_cast<uint8_t>(room.BgImages.size()));
+    for (size_t i = 0; i < room.BgImages.size(); ++i)
     {
         out->WriteBool(game.Play.room_bg_modified[i]);
         if (game.Play.room_bg_modified[i])
-            WriteBitmap(thisroom.BgImages[i].get(), out, false /* not compressed (expect component is compressed) */);
+            WriteBitmap(room.BgImages[i].get(), out, false /* not compressed (expect component is compressed) */);
     }
     out->WriteBool(false); //[DEPRECATED]
 
@@ -2123,20 +2125,20 @@ HSaveError WriteThisRoom(Stream *out)
     {
         out->WriteBool(game.Play.room_mask_modified[i]);
         if (game.Play.room_mask_modified[i])
-            WriteBitmap(thisroom.GetMask(static_cast<RoomAreaMask>(i)), out,
+            WriteBitmap(room.GetMask(static_cast<RoomAreaMask>(i)), out,
                         false /* not compressed (expect component is compressed) */);
     }
 
     // room region state
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
-        out->WriteInt32(thisroom.Regions[i].Light);
-        out->WriteInt32(thisroom.Regions[i].Tint);
+        out->WriteInt32(room.Regions[i].Light);
+        out->WriteInt32(room.Regions[i].Tint);
     }
     for (int i = 0; i < MAX_WALK_AREAS; ++i)
     {
-        out->WriteInt32(thisroom.WalkAreas[i].ScalingFar);
-        out->WriteInt32(thisroom.WalkAreas[i].ScalingNear);
+        out->WriteInt32(room.WalkAreas[i].ScalingFar);
+        out->WriteInt32(room.WalkAreas[i].ScalingNear);
     }
 
     out->WriteInt32(0); // [DEPRECATED]
@@ -2144,9 +2146,9 @@ HSaveError WriteThisRoom(Stream *out)
     // persistent room's indicator
     const bool persist = displayed_room < MAX_ROOMS;
     out->WriteBool(persist);
-    // write the current troom state, in case they save in temporary room
+    // write room.TempState, in case they save in temporary room
     if (!persist)
-        troom.WriteToSavegame(out);
+        room.TempState.WriteToSavegame(out);
     return HSaveError::None();
 }
 
@@ -2206,9 +2208,9 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
 
     in->ReadInt32(); // [DEPRECATED]
 
-    // read the current troom state, in case they saved in temporary room
+    // read room.TempState, in case they saved in temporary room
     if (!in->ReadBool())
-        troom.ReadFromSavegame(in, (RoomStatSvgVersion)cmp_ver);
+        Room::Current().TempState.ReadFromSavegame(in, (RoomStatSvgVersion)cmp_ver);
 
     return HSaveError::None();
 }

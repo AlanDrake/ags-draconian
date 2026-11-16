@@ -23,6 +23,7 @@
 #include "game/world/character_extras.h"
 #include "game/world/object.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/view_frame.h"
 #include "main/game_run.h"
 #include "main/update.h"
@@ -469,6 +470,7 @@ bool UpdateCharacterAnimating(CharacterInfo *ch, CharacterExtras *chex, int &doi
 void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_sheep, int &doing_nothing)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     const CharacterExtras *chex = &charextra[ch->index_id];
     const int following = chex->following;
     const int distaway = chex->follow_dist;
@@ -516,9 +518,9 @@ void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_s
             {
                 // only move to the room-entered position if coming into
                 // the current room
-                if (game.Play.entered_at_x > (thisroom.Width - 8))
+                if (game.Play.entered_at_x > (room.Width - 8))
                 {
-                    ch->x = thisroom.Width + 8;
+                    ch->x = room.Width + 8;
                     ch->y = game.Play.entered_at_y;
                 }
                 else if (game.Play.entered_at_x < 8)
@@ -526,14 +528,14 @@ void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_s
                     ch->x = -8;
                     ch->y = game.Play.entered_at_y;
                 }
-                else if (game.Play.entered_at_y > (thisroom.Height - 8))
+                else if (game.Play.entered_at_y > (room.Height - 8))
                 {
-                    ch->y = thisroom.Height + 8;
+                    ch->y = room.Height + 8;
                     ch->x = game.Play.entered_at_x;
                 }
-                else if (game.Play.entered_at_y < thisroom.Edges.Top + 8)
+                else if (game.Play.entered_at_y < room.Edges.Top + 8)
                 {
-                    ch->y = thisroom.Edges.Top + 1;
+                    ch->y = room.Edges.Top + 1;
                     ch->x = game.Play.entered_at_x;
                 }
                 else

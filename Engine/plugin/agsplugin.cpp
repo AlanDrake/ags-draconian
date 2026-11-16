@@ -45,6 +45,7 @@
 #include "game/ui/mouse.h"
 #include "game/world/object.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_status.h"
 #include "game/world/walkable_area.h"
 #include "gfx/bitmap.h"
@@ -277,7 +278,7 @@ int IAGSEngine::GetCurrentRoom()
 }
 int IAGSEngine::GetNumBackgrounds()
 {
-    return thisroom.BgFrameCount;
+    return Room::Current().BgFrameCount;
 }
 int IAGSEngine::GetCurrentBackground()
 {
@@ -285,7 +286,7 @@ int IAGSEngine::GetCurrentBackground()
 }
 BITMAP *IAGSEngine::GetBackgroundScene(int32 index)
 {
-    return (BITMAP *)thisroom.BgImages[index]->GetAllegroBitmap();
+    return (BITMAP *)Room::Current().BgImages[index]->GetAllegroBitmap();
 }
 void IAGSEngine::GetBitmapDimensions(BITMAP *bmp, int32 *width, int32 *height, int32 *coldepth)
 {
@@ -464,11 +465,11 @@ void IAGSEngine::ViewportToRoom(int32 *x, int32 *y)
 }
 int IAGSEngine::GetNumObjects()
 {
-    return croom->numobj;
+    return Room::Current().State->numobj;
 }
 AGSObject *IAGSEngine::GetObject(int32 num)
 {
-    if (num < 0 || static_cast<uint32_t>(num) >= croom->numobj)
+    if (num < 0 || static_cast<uint32_t>(num) >= Room::Current().State->numobj)
         quit("!IAGSEngine::GetObject: invalid object");
     // IMPORTANT: if we change the script functions object argument type, we must change this return value too!
     return (AGSObject *)&scrObj[num];
@@ -493,14 +494,15 @@ BITMAP *IAGSEngine::GetSpriteGraphic(int32 num)
 }
 BITMAP *IAGSEngine::GetRoomMask(int32 index)
 {
+    Room &room = Room::Current();
     if (index == MASK_WALKABLE)
-        return (BITMAP *)thisroom.WalkAreaMask->GetAllegroBitmap();
+        return (BITMAP *)room.WalkAreaMask->GetAllegroBitmap();
     else if (index == MASK_WALKBEHIND)
-        return (BITMAP *)thisroom.WalkBehindMask->GetAllegroBitmap();
+        return (BITMAP *)room.WalkBehindMask->GetAllegroBitmap();
     else if (index == MASK_HOTSPOT)
-        return (BITMAP *)thisroom.HotspotMask->GetAllegroBitmap();
+        return (BITMAP *)room.HotspotMask->GetAllegroBitmap();
     else if (index == MASK_REGIONS)
-        return (BITMAP *)thisroom.RegionMask->GetAllegroBitmap();
+        return (BITMAP *)room.RegionMask->GetAllegroBitmap();
     else
         quit("!IAGSEngine::GetRoomMask: invalid mask requested");
     return nullptr;
@@ -521,7 +523,7 @@ int IAGSEngine::GetWalkbehindBaseline(int32 wa)
 {
     if ((wa < 1) || (wa >= MAX_WALK_BEHINDS))
         quit("!IAGSEngine::GetWalkBehindBase: invalid walk-behind area specified");
-    return croom->walkbehind_base[wa];
+    return Room::Current().State->walkbehind_base[wa];
 }
 void *IAGSEngine::GetScriptFunctionAddress(const char *func_name)
 {

@@ -27,6 +27,7 @@
 #include "game/system.h"
 #include "game/world/object.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_object.h"
 #include "game/world/room_status.h"
 #include "gfx/graphicsdriver.h"
@@ -434,11 +435,12 @@ ScriptDynamicSprite *DynamicSprite_Create(int width, int height, int color_fmt)
 ScriptDynamicSprite *DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     if (frame == SCR_NO_VALUE)
     {
         frame = game.Play.bg_frame;
     }
-    else if ((frame < 0) || ((size_t)frame >= thisroom.BgFrameCount))
+    else if ((frame < 0) || ((size_t)frame >= room.BgFrameCount))
         quit("!DynamicSprite.CreateFromBackground: invalid frame specified");
 
     if (x1 == SCR_NO_VALUE)
@@ -461,12 +463,11 @@ ScriptDynamicSprite *DynamicSprite_CreateFromBackground(int frame, int x1, int y
         quit("!DynamicSprite.CreateFromBackground: invalid co-ordinates specified");
 
     // create a new sprite as a copy of the background area
-    std::unique_ptr<Bitmap> new_pic(
-        BitmapHelper::CreateBitmap(width, height, thisroom.BgImages[frame]->GetColorDepth()));
+    std::unique_ptr<Bitmap> new_pic(BitmapHelper::CreateBitmap(width, height, room.BgImages[frame]->GetColorDepth()));
     if (!new_pic)
         return nullptr;
 
-    new_pic->Blit(thisroom.BgImages[frame].get(), x1, y1, 0, 0, width, height);
+    new_pic->Blit(room.BgImages[frame].get(), x1, y1, 0, 0, width, height);
 
     int new_slot = add_dynamic_sprite(std::move(new_pic));
     if (new_slot <= 0)

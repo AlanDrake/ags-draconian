@@ -32,6 +32,7 @@
 #include "game/view.h"
 #include "game/world/character_extras.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "gfx/bitmap.h"
 #include "gfx/sprite_cache.h"
 #include "gtest/gtest.h"
@@ -58,7 +59,7 @@ const int kRoom = 7;
 // Fixture for the overlay layout. The engine globals it touches, all reset in TearDown:
 // - spriteset and game.SpriteInfos: the sprites above
 // - game.Play: the main and UI viewports (320x200), one room viewport and its camera
-// - thisroom: the room size (640x400, so the camera can scroll)
+// - Room::Current(): the room size (640x400, so the camera can scroll)
 // - game.chars, game.numcharacters, charextra, views: one character standing in room kRoom,
 //   with a one-frame view
 // - displayed_room: kRoom
@@ -68,14 +69,15 @@ protected:
     void SetUp() override
     {
         Game &game = Game::Current();
+        Room &room = Room::Current();
         AddSprite(kSprite20x10, 20, 10);
         AddSprite(kSprite21x11, 21, 11);
         AddSprite(kSprite41x21, 41, 21);
         AddSprite(kCharacterSprite, 30, 50);
         AddSprite(kSpeechSprite, 40, 20);
 
-        thisroom.Width = 640;
-        thisroom.Height = 400;
+        room.Width = 640;
+        room.Height = 400;
         game.Play.SetMainViewport(RectWH(0, 0, kScreenWidth, kScreenHeight));
         game.Play.SetUIViewport(RectWH(0, 0, kScreenWidth, kScreenHeight));
         auto viewport = game.Play.CreateRoomViewport();
@@ -99,6 +101,7 @@ protected:
     void TearDown() override
     {
         Game &game = Game::Current();
+        Room &room = Room::Current();
         displayed_room = -10;
         charextra.clear();
         game.chars.clear();
@@ -107,8 +110,8 @@ protected:
         game.Play.FreeViewportsAndCameras();
         game.Play.SetUIViewport(Rect());
         game.Play.SetMainViewport(Rect());
-        thisroom.Width = 0;
-        thisroom.Height = 0;
+        room.Width = 0;
+        room.Height = 0;
         spriteset.Reset();
         game.SpriteInfos.clear();
     }

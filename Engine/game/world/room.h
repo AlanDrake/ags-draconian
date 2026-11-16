@@ -74,7 +74,7 @@ void set_room_placeholder();
 void first_room_initialization();
 // If a new room was just entered (and not restored from a save), runs its "before fade-in" event
 void check_new_room();
-// Creates the runtime room script from thisroom's compiled script, registers its exports and resolves
+// Creates the runtime room script (Room::Script) from the room's compiled script, registers its exports and resolves
 // its imports; quits on error
 void compile_room_script();
 // Updates the screen and the palette after the current background frame was changed
@@ -117,17 +117,6 @@ AGS::Engine::MaskRouteFinder *get_room_pathfinder();
 int room_to_mask_coord(int coord);
 // coordinate conversion (room mask) ---> (room)
 int mask_to_room_coord(int coord);
-
-// The single global "current room" instance
-extern AGS::Common::RoomStruct thisroom;
-
-class RoomStatus;
-// The state of the current room: the saved state of its number, or troom; nullptr when no room is loaded.
-extern RoomStatus *croom;
-// The state of the current room if it is a temporary one (number >= MAX_ROOMS), e.g. an intro room
-extern RoomStatus troom;
-// Set to 1 when the room's background frame changed, until the next draw updates the background's texture.
-extern int bg_just_changed;
 
 class ScriptPathfinder;
 class ScriptShaderInstance;

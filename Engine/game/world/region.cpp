@@ -26,6 +26,7 @@
 #include "game/script.h"
 #include "game/world/properties.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_status.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script_runtime.h"
@@ -36,25 +37,26 @@ using namespace AGS::Common;
 
 int GetRegionIDAtRoom(int x, int y, int hit_options)
 {
+    Room &room = Room::Current();
     // if the co-ordinates are off the edge of the screen,
     // correct them to be just within
     // this fixes walk-off-screen problems
     x = room_to_mask_coord(x);
     y = room_to_mask_coord(y);
 
-    if (x >= thisroom.RegionMask->GetWidth())
-        x = thisroom.RegionMask->GetWidth() - 1;
-    if (y >= thisroom.RegionMask->GetHeight())
-        y = thisroom.RegionMask->GetHeight() - 1;
+    if (x >= room.RegionMask->GetWidth())
+        x = room.RegionMask->GetWidth() - 1;
+    if (y >= room.RegionMask->GetHeight())
+        y = room.RegionMask->GetHeight() - 1;
     if (x < 0)
         x = 0;
     if (y < 0)
         y = 0;
 
-    int hsthere = thisroom.RegionMask->GetPixel(x, y);
+    int hsthere = room.RegionMask->GetPixel(x, y);
     if (hsthere <= 0 || hsthere >= MAX_ROOM_REGIONS)
         return 0;
-    if (((hit_options & kHit_Interactable) != 0) && (croom->region_enabled[hsthere] == 0))
+    if (((hit_options & kHit_Interactable) != 0) && (room.State->region_enabled[hsthere] == 0))
         return 0;
     return hsthere;
 }
@@ -89,6 +91,7 @@ ScriptRegion *Region_GetByName(const char *name)
 
 void SetAreaLightLevel(int area, int brightness)
 {
+    Room &room = Room::Current();
     if ((area < 0) || (area > MAX_ROOM_REGIONS))
         quit("!SetAreaLightLevel: invalid region");
     if (brightness < -255)
@@ -96,10 +99,10 @@ void SetAreaLightLevel(int area, int brightness)
     if (brightness > 255)
         brightness = 255;
     // Set light level and disable RGB tint for this area
-    if (thisroom.Regions[area].Light != brightness || thisroom.Regions[area].Tint != 0)
+    if (room.Regions[area].Light != brightness || room.Regions[area].Tint != 0)
     {
-        thisroom.Regions[area].Light = brightness;
-        thisroom.Regions[area].Tint = 0;
+        room.Regions[area].Light = brightness;
+        room.Regions[area].Tint = 0;
         debug_script_log("Region %d light level set to %d", area, brightness);
     }
 }
@@ -111,48 +114,49 @@ void Region_SetLightLevel(ScriptRegion *ssr, int brightness)
 
 int Region_GetLightLevel(ScriptRegion *ssr)
 {
-    return thisroom.GetRegionLightLevel(ssr->id);
+    return Room::Current().GetRegionLightLevel(ssr->id);
 }
 
 const char *Region_GetScriptName(ScriptRegion *ssr)
 {
-    return CreateNewScriptString(thisroom.Regions[ssr->id].ScriptName);
+    return CreateNewScriptString(Room::Current().Regions[ssr->id].ScriptName);
 }
 
 int Region_GetTintEnabled(ScriptRegion *srr)
 {
-    if (thisroom.Regions[srr->id].Tint & 0xFF000000)
+    if (Room::Current().Regions[srr->id].Tint & 0xFF000000)
         return 1;
     return 0;
 }
 
 int Region_GetTintRed(ScriptRegion *srr)
 {
-    return thisroom.Regions[srr->id].Tint & 0x000000ff;
+    return Room::Current().Regions[srr->id].Tint & 0x000000ff;
 }
 
 int Region_GetTintGreen(ScriptRegion *srr)
 {
-    return (thisroom.Regions[srr->id].Tint >> 8) & 0x000000ff;
+    return (Room::Current().Regions[srr->id].Tint >> 8) & 0x000000ff;
 }
 
 int Region_GetTintBlue(ScriptRegion *srr)
 {
-    return (thisroom.Regions[srr->id].Tint >> 16) & 0x000000ff;
+    return (Room::Current().Regions[srr->id].Tint >> 16) & 0x000000ff;
 }
 
 int Region_GetTintSaturation(ScriptRegion *srr)
 {
-    return (thisroom.Regions[srr->id].Tint >> 24) & 0xFF;
+    return (Room::Current().Regions[srr->id].Tint >> 24) & 0xFF;
 }
 
 int Region_GetTintLuminance(ScriptRegion *srr)
 {
-    return thisroom.GetRegionTintLuminance(srr->id);
+    return Room::Current().GetRegionTintLuminance(srr->id);
 }
 
 void SetRegionTint(int area, int red, int green, int blue, int amount, int luminance = 255)
 {
+    Room &room = Room::Current();
     if ((area < 0) || (area >= MAX_ROOM_REGIONS))
         quit("!SetRegionTint: invalid region");
 
@@ -170,10 +174,10 @@ void SetRegionTint(int area, int red, int green, int blue, int amount, int lumin
         (amount > 0) ? (red & 0xFF) | ((green & 0xFF) << 8) | ((blue & 0XFF) << 16) | ((amount & 0xFF) << 24) : 0;
     const int light = (amount > 0) ? luminance : 0;
 
-    if ((thisroom.Regions[area].Tint != tint) || (thisroom.Regions[area].Light != light))
+    if ((room.Regions[area].Tint != tint) || (room.Regions[area].Light != light))
     {
-        thisroom.Regions[area].Tint = tint;
-        thisroom.Regions[area].Light = light;
+        room.Regions[area].Tint = tint;
+        room.Regions[area].Light = light;
         debug_script_log("Region %d tint set to RGB %d,%d,%d, A %d, L %d", area, red, green, blue, amount, luminance);
     }
 }
@@ -193,7 +197,7 @@ void DisableRegion(int hsnum)
     if ((hsnum < 0) || (hsnum >= MAX_ROOM_REGIONS))
         quit("!DisableRegion: invalid region specified");
 
-    croom->region_enabled[hsnum] = 0;
+    Room::Current().State->region_enabled[hsnum] = 0;
     debug_script_log("Region %d disabled", hsnum);
 }
 
@@ -202,7 +206,7 @@ void EnableRegion(int hsnum)
     if ((hsnum < 0) || (hsnum >= MAX_ROOM_REGIONS))
         quit("!EnableRegion: invalid region specified");
 
-    croom->region_enabled[hsnum] = 1;
+    Room::Current().State->region_enabled[hsnum] = 1;
     debug_script_log("Region %d enabled", hsnum);
 }
 
@@ -216,7 +220,7 @@ void Region_SetEnabled(ScriptRegion *ssr, int enable)
 
 int Region_GetEnabled(ScriptRegion *ssr)
 {
-    return croom->region_enabled[ssr->id];
+    return Room::Current().State->region_enabled[ssr->id];
 }
 
 int Region_GetID(ScriptRegion *ssr)
@@ -235,7 +239,7 @@ void RunRegionInteraction(int regnum, int mood)
     // was historically executing special region events (see RegionEventID)
     const auto obj_evt =
         ObjectEvent(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrRegion[regnum], &ccDynamicRegion));
-    run_event_script(obj_evt, &thisroom.Regions[regnum].GetEvents(), mood);
+    run_event_script(obj_evt, &Room::Current().Regions[regnum].GetEvents(), mood);
 }
 
 void Region_RunInteraction(ScriptRegion *ssr, int mood)
@@ -245,22 +249,24 @@ void Region_RunInteraction(ScriptRegion *ssr, int mood)
 
 int Region_GetProperty(ScriptRegion *ssr, const char *property)
 {
-    return get_int_property(thisroom.Regions[ssr->id].Properties, croom->regProps[ssr->id], property);
+    Room &room = Room::Current();
+    return get_int_property(room.Regions[ssr->id].Properties, room.State->regProps[ssr->id], property);
 }
 
 const char *Region_GetTextProperty(ScriptRegion *ssr, const char *property)
 {
-    return get_text_property_dynamic_string(thisroom.Regions[ssr->id].Properties, croom->regProps[ssr->id], property);
+    Room &room = Room::Current();
+    return get_text_property_dynamic_string(room.Regions[ssr->id].Properties, room.State->regProps[ssr->id], property);
 }
 
 bool Region_SetProperty(ScriptRegion *ssr, const char *property, int value)
 {
-    return set_int_property(croom->regProps[ssr->id], property, value);
+    return set_int_property(Room::Current().State->regProps[ssr->id], property, value);
 }
 
 bool Region_SetTextProperty(ScriptRegion *ssr, const char *property, const char *value)
 {
-    return set_text_property(croom->regProps[ssr->id], property, value);
+    return set_text_property(Room::Current().State->regProps[ssr->id], property, value);
 }
 
 void DisableGroundLevelAreas(int alsoEffects)

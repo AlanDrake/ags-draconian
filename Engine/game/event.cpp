@@ -29,6 +29,7 @@
 #include "game/world/hotspot.h"
 #include "game/world/region.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "game/world/room_status.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
@@ -77,6 +78,7 @@ std::array<ScriptEventCallback, kTS_Num> ScriptEventCb = {{
 void run_claimable_event(const String &tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params,
                          bool *eventWasClaimed)
 {
+    Room &room = Room::Current();
     *eventWasClaimed = true;
     // Run the room script function, and if it is not claimed,
     // then run the main one
@@ -85,9 +87,9 @@ void run_claimable_event(const String &tsname, bool includeRoom, int numParams, 
     int eventClaimedOldValue = eventClaimed;
     eventClaimed = EVENT_INPROGRESS;
 
-    if (includeRoom && roomscript)
+    if (includeRoom && room.Script)
     {
-        RunScriptFunction(roomscript.get(), tsname, numParams, params);
+        RunScriptFunction(room.Script.get(), tsname, numParams, params);
         if (eventClaimed == EVENT_CLAIMED)
         {
             eventClaimed = eventClaimedOldValue;
@@ -120,7 +122,7 @@ void run_on_event(AGSScriptEventType evtype, int data1, int data2, int data3, in
 void run_room_event(int id)
 {
     auto obj_evt = ObjectEvent(kScTypeRoom);
-    run_event_script(obj_evt, &thisroom.GetEvents(), id);
+    run_event_script(obj_evt, &Room::Current().GetEvents(), id);
 }
 
 // event list functions
@@ -140,6 +142,7 @@ void force_event(const AGSEvent &evt)
 void process_event(const AGSEvent *evp)
 {
     Game &game = Game::Current();
+    Room &room = Room::Current();
     const int room_was = game.Play.room_changes;
 
     RuntimeScriptValue rval_null;
@@ -170,7 +173,7 @@ void process_event(const AGSEvent *evp)
         case kObjEventType_Hotspot:
         {
             const int hotspot_id = obj.ObjID;
-            obj_events = &thisroom.Hotspots[hotspot_id].GetEvents();
+            obj_events = &room.Hotspots[hotspot_id].GetEvents();
             obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_HOTSPOT, hotspot_id,
                                   RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspot_id], &ccDynamicHotspot));
             //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
@@ -179,14 +182,14 @@ void process_event(const AGSEvent *evp)
         case kObjEventType_Region:
         {
             const int region_id = obj.ObjID;
-            obj_events = &thisroom.Regions[region_id].GetEvents();
+            obj_events = &room.Regions[region_id].GetEvents();
             obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_NOTHING, region_id,
                                   RuntimeScriptValue().SetScriptObject(&scrRegion[region_id], &ccDynamicRegion));
             break;
         }
         case kObjEventType_Room:
         {
-            obj_events = &thisroom.GetEvents();
+            obj_events = &room.GetEvents();
             obj_evt = ObjectEvent(kScTypeRoom);
             if (obj.ObjEvent == kRoomEvent_BeforeFadein)
             {

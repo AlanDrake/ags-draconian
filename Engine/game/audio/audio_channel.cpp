@@ -21,6 +21,7 @@
 #include "game/game_state.h"
 #include "game/roomstruct.h"
 #include "game/world/room.h"
+#include "game/world/room_context.h"
 #include "media/audio/audio_system.h"
 #include "script/runtimescriptvalue.h"
 #include "util/common.h" // quitprintf
@@ -226,13 +227,14 @@ void AudioChannel_SeekMs(ScriptAudioChannel *channel, int newPosition)
 
 void AudioChannel_SetRoomLocation(ScriptAudioChannel *channel, int xPos, int yPos, int maxDist)
 {
+    Room &room = Room::Current();
     auto *playback = AudioChans::GetChannelIfPlaying(channel->id);
 
     if (playback)
     {
-        if ((maxDist < 1) || (thisroom.Width <= maxDist))
+        if ((maxDist < 1) || (room.Width <= maxDist))
         {
-            maxDist = ((xPos > thisroom.Width / 2) ? xPos : (thisroom.Width - xPos)) - AMBIENCE_FULL_DIST;
+            maxDist = ((xPos > room.Width / 2) ? xPos : (room.Width - xPos)) - AMBIENCE_FULL_DIST;
         }
 
         playback->xSource = (xPos > 0) ? xPos : -1;
