@@ -31,7 +31,9 @@ namespace AGS
 namespace Common
 {
 class Stream;
-}
+template <typename T>
+struct FieldTable;
+} // namespace Common
 } // namespace AGS
 
 // Character flags (32-bit)
@@ -159,6 +161,11 @@ struct CharacterDef
     AGS::Common::BlendMode BlendMode = AGS::Common::kBlend_Normal;
     Pointf GraphicAnchor = Pointf(0.5f, 1.f); // graphic anchor (relative alignment); default: middle-bottom
     Point GraphicOffset;                      // fixed sprite offset (translation)
+    // Common events
+    AGS::Common::ScriptEventTable Events = AGS::Common::ScriptEventTable(&CharacterDef::_eventSchema);
+
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static AGS::Common::FieldTable<CharacterDef> Fields();
 
     // Gets default sprite anchor for the character
     static Pointf GetDefaultSpriteAnchor() { return Pointf(0.5f, 1.f); /* middle-bottom */ }
@@ -212,16 +219,9 @@ struct CharacterDef
 
     void set_item_quantity(int item_id, int quant);
 
-    CharacterDef() = default;
-    CharacterDef(const CharacterDef &) = default;
-    CharacterDef(CharacterDef &&) = default;
-
-    CharacterDef &operator=(const CharacterDef &) = default;
-    CharacterDef &operator=(CharacterDef &&) = default;
-
     // Provides a script events table
-    const AGS::Common::ScriptEventTable &GetEvents() const { return _events; }
-    AGS::Common::ScriptEventTable &GetEvents() { return _events; }
+    const AGS::Common::ScriptEventTable &GetEvents() const { return Events; }
+    AGS::Common::ScriptEventTable &GetEvents() { return Events; }
 
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
@@ -232,6 +232,4 @@ struct CharacterDef
 private:
     // Script events schema
     static AGS::Common::ScriptEventSchema _eventSchema;
-    // Common events
-    AGS::Common::ScriptEventTable _events = AGS::Common::ScriptEventTable(&CharacterDef::_eventSchema);
 };

@@ -18,9 +18,56 @@
 #include <vector>
 
 #include "game/game_version.h"
+#include "util/field_table.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
+
+namespace
+{
+
+constexpr FieldRow<CharacterDef> kCharacterDefFields[] = {
+    Field<&CharacterDef::NormalView>("NormalView"),
+    Field<&CharacterDef::SpeechView>("SpeechView"),
+    Field<&CharacterDef::View>("View"),
+    Field<&CharacterDef::Room>("Room"),
+    Field<&CharacterDef::X>("X"),
+    Field<&CharacterDef::Y>("Y"),
+    Field<&CharacterDef::Flags>("Flags"),
+    Field<&CharacterDef::IdleView>("IdleView"),
+    Field<&CharacterDef::IdleDelay>("IdleDelay"),
+    Field<&CharacterDef::Opacity>("Opacity"),
+    Field<&CharacterDef::Baseline>("Baseline"),
+    Field<&CharacterDef::SpeechColor>("SpeechColor"),
+    Field<&CharacterDef::ThinkView>("ThinkView"),
+    Field<&CharacterDef::BlinkView>("BlinkView"),
+    Field<&CharacterDef::WalkSpeedY>("WalkSpeedY"),
+    Field<&CharacterDef::SpeechAnimationDelay>("SpeechAnimationDelay"),
+    Field<&CharacterDef::IdleAnimationDelay>("IdleAnimationDelay"),
+    Field<&CharacterDef::BlockingX>("BlockingX"),
+    Field<&CharacterDef::BlockingY>("BlockingY"),
+    Field<&CharacterDef::BlockingWidth>("BlockingWidth"),
+    Field<&CharacterDef::BlockingHeight>("BlockingHeight"),
+    Field<&CharacterDef::ID>("ID"),
+    Field<&CharacterDef::WalkSpeedX>("WalkSpeedX"),
+    Field<&CharacterDef::AnimationSpeed>("AnimationSpeed"),
+    Field<&CharacterDef::InventoryQuantity>("InventoryQuantity"),
+    Field<&CharacterDef::ScriptName>("ScriptName"),
+    Field<&CharacterDef::Name>("Name"),
+    OpaqueField<&CharacterDef::Interactions>("Interactions"),
+    Field<&CharacterDef::BlendMode>("BlendMode"),
+    Field<&CharacterDef::GraphicAnchor>("GraphicAnchor"),
+    Field<&CharacterDef::GraphicOffset>("GraphicOffset"),
+    OpaqueField<&CharacterDef::Events>("Events"),
+};
+static_assert(FieldsCoverStruct(kCharacterDefFields), "CharacterDef: a field has no row in kCharacterDefFields");
+
+} // namespace
+
+FieldTable<CharacterDef> CharacterDef::Fields()
+{
+    return kCharacterDefFields;
+}
 
 void CharacterDef::set_item_quantity(int item_id, int quant)
 {
@@ -56,8 +103,8 @@ void CharacterDef::RemapOldInteractions()
     new_interactions[STD_MODE_CUSTOM1] = old_interactions[6];
     new_interactions[STD_MODE_CUSTOM2] = old_interactions[7];
 
-    _events.SetHandler(kCharacterEvent_AnyClick, old_interactions[4].FunctionName);
-    Interactions.SetScriptModule(_events.GetScriptModule());
+    Events.SetHandler(kCharacterEvent_AnyClick, old_interactions[4].FunctionName);
+    Interactions.SetScriptModule(Events.GetScriptModule());
     Interactions.SetHandlers(std::move(new_interactions));
 }
 

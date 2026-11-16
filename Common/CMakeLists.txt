@@ -147,6 +147,7 @@ target_sources(common
     util/directory.cpp
     util/directory.h
     util/error.h
+    util/field_table.h
     util/file.cpp
     util/file.h
     util/filestream.cpp
@@ -259,6 +260,7 @@ if(AGS_TESTS)
         test/deflatestream_test.cpp
         test/directory_test.cpp
         test/error_test.cpp
+        test/field_table_test.cpp
         test/game_compat_test.cpp
         test/gfxdef_test.cpp
         test/gui_test.cpp

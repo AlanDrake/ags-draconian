@@ -28,6 +28,7 @@
     <ClCompile Include="..\..\Common\test\deflatestream_test.cpp" />
     <ClCompile Include="..\..\Common\test\directory_test.cpp" />
     <ClCompile Include="..\..\Common\test\error_test.cpp" />
+    <ClCompile Include="..\..\Common\test\field_table_test.cpp" />
     <ClCompile Include="..\..\Common\test\game_compat_test.cpp" />
     <ClCompile Include="..\..\Common\test\gfxdef_test.cpp" />
     <ClCompile Include="..\..\Common\test\gui_test.cpp" />
