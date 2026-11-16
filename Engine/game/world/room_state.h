@@ -111,8 +111,8 @@ public:
 };
 
 // A walkable area of a room, as the game changes it: its definition's fields, which start as a copy of what the room
-// file says. A room state keeps none of them between visits: the scaling and the face direction ratio that the script
-// sets last while the room is loaded. Whether the area is enabled is Room::WalkableAreasOn.
+// file says. A room state keeps its FaceDirectionRatio between visits, and a save holds it; the scaling that the
+// script sets lasts while the room is loaded. Whether the area is enabled is Room::WalkableAreasOn.
 class RoomWalkableArea : public AGS::Common::RoomWalkableAreaDef
 {
 public:
@@ -121,6 +121,7 @@ public:
     explicit RoomWalkableArea(const AGS::Common::RoomWalkableAreaDef &def) : RoomWalkableAreaDef(def) {}
 
     // Takes again from the definition what a room state does not keep between visits: every field of the definition
+    // but the face direction ratio
     void RebindDefinition(const AGS::Common::RoomWalkableAreaDef &def);
 };
 

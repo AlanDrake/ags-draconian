@@ -67,9 +67,9 @@ void unload_old_room();
 void load_new_room(int room_id, Character *ch);
 // Brings the state of the loaded room (room.State) in line with the room's definition (room.Def()): at a first
 // visit the state is filled from the definition, each object constructed from its own; at a later one the state is
-// kept, with its object list cut or grown to the definition's, and each kept object takes again from its
-// definition what a state does not keep (RoomObject::RebindDefinition). Sets room.Objects. Returns whether this was
-// the first visit.
+// kept, with its object list cut or grown to the definition's, and each kept entity takes again from its
+// definition what a state does not keep (the RebindDefinition functions): a walkable area keeps its face direction
+// ratio, a hotspot its name, a walk-behind its baseline. Sets room.Objects. Returns whether this was the first visit.
 bool BindRoomState(Room &room);
 // Changes the current room: runs the room-leaving events (their scripts may change the destination),
 // unloads the old room and loads the new one with load_new_room()

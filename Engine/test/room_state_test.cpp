@@ -287,8 +287,8 @@ void SetUnsavedFields(RoomObjectDef &def, const char *name, int i)
 const int kObjectCount = 3;
 
 // Compares the live hotspots, regions, walk-behinds and walkable areas of a state with their definitions, field by
-// field, but for the fields that a room state keeps between visits (a hotspot's name, a walk-behind's baseline) and
-// the play state
+// field, but for the fields that a room state keeps between visits (a hotspot's name, a walk-behind's baseline, a
+// walkable area's face direction ratio) and the play state
 void ExpectEntitiesTakeTheDefinition(const RoomState &state, const RoomDef &def)
 {
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
@@ -333,7 +333,6 @@ void ExpectEntitiesTakeTheDefinition(const RoomState &state, const RoomDef &def)
         EXPECT_EQ(expected.ScalingFar, actual.ScalingFar);
         EXPECT_EQ(expected.ScalingNear, actual.ScalingNear);
         EXPECT_EQ(expected.PlayerView, actual.PlayerView);
-        EXPECT_EQ(expected.FaceDirectionRatio, actual.FaceDirectionRatio);
         EXPECT_EQ(expected.Top, actual.Top);
         EXPECT_EQ(expected.Bottom, actual.Bottom);
         EXPECT_EQ(expected.Properties, actual.Properties);
@@ -540,15 +539,10 @@ TEST_F(LoadedRoom, LaterVisitKeepsTheState)
     walkbehind6.id = 6;
     Walkbehind_SetBaseline(&walkbehind6, 333);
     const RoomObject changed = _state.Objects[1];
-    // what the state must save after the next load: the same, but for the walkable areas' face direction ratio,
-    // which the save holds as the live value and which the room file below gives again (9)
-    std::vector<uint8_t> before;
-    {
-        RoomState expected = _state;
-        for (int i = 0; i < MAX_WALK_AREAS; ++i)
-            expected.WalkAreas[i].FaceDirectionRatio = 9.f;
-        before = WriteState(expected);
-    }
+    // what the state must save after the next load: the same, the walkable areas' face direction ratio included,
+    // although the room file below gives another one (9): a room state keeps it between visits (the user's decision
+    // of 2026-11-16)
+    const std::vector<uint8_t> before = WriteState(_state);
 
     // the room is loaded again, from a file that says otherwise for every value the state keeps
     MakeDefinition(kObjectCount);
@@ -590,9 +584,9 @@ TEST_F(LoadedRoom, LaterVisitKeepsTheState)
 }
 
 // What a room state does not keep between visits is taken from the room file again at the next load: a region's light
-// level and tint and a walkable area's scaling and face direction ratio, which the script changed during the visit
-// (they live as long as the room is loaded); what it keeps stays: a hotspot's name and flag, a region's flag, a
-// walk-behind's baseline
+// level and tint and a walkable area's scaling, which the script changed during the visit (they live as long as the
+// room is loaded); what it keeps stays: a hotspot's name and flag, a region's flag, a walk-behind's baseline, and a
+// walkable area's face direction ratio (taken from the room file again before the user's decision of 2026-11-16)
 TEST_F(LoadedRoom, LaterVisitTakesTheRegionsAndWalkableAreasFromTheDefinitionAgain)
 {
     BindRoomState(_room);
@@ -639,8 +633,8 @@ TEST_F(LoadedRoom, LaterVisitTakesTheRegionsAndWalkableAreasFromTheDefinitionAga
     area2.id = 2;
     EXPECT_EQ(-12, Walkarea_GetScalingMin(&area2));
     EXPECT_EQ(12, Walkarea_GetScalingMax(&area2));
-    EXPECT_EQ(3.5f, Walkarea_GetFaceDirectionRatio(&area3));
     // kept
+    EXPECT_EQ(7.5f, Walkarea_GetFaceDirectionRatio(&area3));
     EXPECT_FALSE(_state.Hotspots[4].Enabled);
     EXPECT_STREQ("Renamed hotspot", _state.Hotspots[4].Name.GetCStr());
     EXPECT_EQ(0, Region_GetEnabled(&region5));
@@ -649,6 +643,45 @@ TEST_F(LoadedRoom, LaterVisitTakesTheRegionsAndWalkableAreasFromTheDefinitionAga
         EXPECT_EQ(i != 4, _state.Hotspots[i].Enabled) << "hotspot " << i;
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
         EXPECT_EQ(i != 5 ? 1 : 0, _state.Regions[i].Enabled) << "region " << i;
+}
+
+// A walkable area's face direction ratio is kept by the room state between visits, as a hotspot's name is (the user's
+// decision of 2026-11-16): the value a script set, and for the other areas the first visit's, whatever the room file
+// says at the next load
+TEST_F(LoadedRoom, LaterVisitKeepsTheWalkableAreasFaceDirectionRatio)
+{
+    BindRoomState(_room);
+    ScriptWalkableArea area3;
+    area3.id = 3;
+    Walkarea_SetFaceDirectionRatio(&area3, 7.5f);
+
+    // the room is left, and entered again, its file giving other ratios
+    Definition().WalkAreas[3].FaceDirectionRatio = 9.f;
+    Definition().WalkAreas[4].FaceDirectionRatio = 9.f;
+    _room.SetState(nullptr);
+    _room.SetState(&_state);
+    EXPECT_FALSE(BindRoomState(_room));
+
+    EXPECT_EQ(7.5f, Walkarea_GetFaceDirectionRatio(&area3));
+    EXPECT_EQ(4.5f, _state.WalkAreas[4].FaceDirectionRatio);
+    EXPECT_EQ(2.5f, _state.WalkAreas[2].FaceDirectionRatio);
+}
+
+// The ratio a script set comes back from a save made in the room: the state restored and bound to the room keeps it
+TEST_F(LoadedRoom, RestoredStateKeepsTheWalkableAreasFaceDirectionRatio)
+{
+    BindRoomState(_room);
+    ScriptWalkableArea area3;
+    area3.id = 3;
+    Walkarea_SetFaceDirectionRatio(&area3, 7.5f);
+    RoomState restored;
+    ASSERT_TRUE(ReadState(WriteState(_state), restored));
+
+    _room.SetState(&restored);
+    EXPECT_FALSE(BindRoomState(_room));
+
+    EXPECT_EQ(7.5f, Walkarea_GetFaceDirectionRatio(&area3));
+    EXPECT_EQ(2.5f, restored.WalkAreas[2].FaceDirectionRatio);
 }
 
 // A state restored from a save holds of the hotspots, regions, walk-behinds and walkable areas only what a room state

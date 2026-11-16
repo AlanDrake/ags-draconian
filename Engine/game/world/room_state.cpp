@@ -42,7 +42,9 @@ void RoomRegion::RebindDefinition(const RoomRegionDef &def)
 
 void RoomWalkableArea::RebindDefinition(const RoomWalkableAreaDef &def)
 {
+    const float face_direction_ratio = FaceDirectionRatio; // kept
     RoomWalkableAreaDef::operator=(def);
+    FaceDirectionRatio = face_direction_ratio;
 }
 
 void RoomWalkBehind::RebindDefinition(const RoomWalkBehindDef &def)
@@ -209,7 +211,7 @@ void RoomState::WriteToSavegame(Stream *out) const
         out->WriteInt32(0);
         out->WriteInt32(0);
         out->WriteInt32(0);
-        // The live ratio, which the next load takes from the room file again; the slot held the first visit's copy of
+        // The live ratio, which a room state keeps between visits; earlier engines wrote here the first visit's copy of
         // the definition's, which nothing read
         out->WriteFloat32(WalkAreas[i].FaceDirectionRatio);
     }

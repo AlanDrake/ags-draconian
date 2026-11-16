@@ -678,8 +678,8 @@ bool BindRoomState(Room &room)
         for (size_t i = 0; i < kept_objects; ++i)
             room.State->Objects[i].RebindDefinition(def.Objects[i]);
         // So do the hotspots, regions, walk-behinds and walkable areas: among what they take again are a region's
-        // light level and tint and a walkable area's scaling and face direction ratio, which a script's change does
-        // not outlive the visit
+        // light level and tint and a walkable area's scaling, which a script's change does not outlive the visit;
+        // they keep a hotspot's name, a walk-behind's baseline and a walkable area's face direction ratio
         for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
             room.State->WalkBehinds[i].RebindDefinition(def.WalkBehinds[i]);
         for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
