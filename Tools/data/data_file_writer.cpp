@@ -38,7 +38,7 @@
 #include "game/character_info.h"
 #include "game/customproperties.h"
 #include "game/dialog_topic.h"
-#include "game/game_def_base.h"
+#include "game/game_def.h"
 #include "game/game_version.h"
 #include "game/inventory_item_info.h"
 #include "game/mouse_cursor.h"
@@ -531,7 +531,7 @@ int ParseSplitResources(const String &value)
 std::vector<int32_t> BuildGameOptions(const DataUtil::GameData &game)
 {
     // Options without a corresponding GameData field retain their default.
-    std::vector<int32_t> options(GameDefBase::MAX_OPTIONS, 0);
+    std::vector<int32_t> options(GameDef::MAX_OPTIONS, 0);
     options[OPT_ALWAYSSPCH] = game.Settings.AlwaysDisplayTextAsSpeech ? 1 : 0;
     options[OPT_ANTIALIASFONTS] = game.Settings.AntiAliasFonts ? 1 : 0;
     options[OPT_ANTIGLIDE] = game.Settings.AntiGlideMode ? 1 : 0;
@@ -582,20 +582,20 @@ std::vector<int32_t> BuildGameOptions(const DataUtil::GameData &game)
     return options;
 }
 
-// Read by GameDefBase::ReadFromFile() in
-// Common/game/game_def_base.cpp, at the start of ReadGameData().
+// Read by GameDef::ReadFromFile() in
+// Common/game/game_def.cpp, at the start of ReadGameData().
 void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData &data, Stream *out,
                               soff_t &ext_offset_pos)
 {
     String game_name = game.Settings.GameName;
     if (game_name.IsEmpty())
         game_name = game.Settings.GameFileName;
-    StrUtil::WriteFixedString(TextProperty(game_name), GameDefBase::LEGACY_GAME_NAME_LENGTH, out);
+    StrUtil::WriteFixedString(TextProperty(game_name), GameDef::LEGACY_GAME_NAME_LENGTH, out);
     out->WriteInt16(0); // alignment padding to int32
 
     const std::vector<int32_t> options = BuildGameOptions(game);
 
-    for (int i = 0; i < GameDefBase::MAX_OPTIONS; ++i)
+    for (int i = 0; i < GameDef::MAX_OPTIONS; ++i)
         out->WriteInt32(options[i]);
 
     for (int i = 0; i < 256; ++i)
@@ -666,7 +666,7 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData
                         : 0);
     out->WriteInt32(game.Settings.InventoryHotspotMarkerCrosshairColor);
     // reserved; NUM_INTS_RESERVED ints
-    for (int i = 0; i < GameDefBase::NUM_INTS_RESERVED; ++i)
+    for (int i = 0; i < GameDef::NUM_INTS_RESERVED; ++i)
         out->WriteInt32(0);
 
     ext_offset_pos = out->GetPosition();
@@ -1495,7 +1495,7 @@ void WriteExt400CharacterInventory(Stream *out, const DataUtil::GameData &game)
 
 // Read by DataExtReader::Read() through GameDataExtReader in
 // Common/game/main_game_file.cpp. The patched offset is read earlier by
-// GameDefBase::ReadFromFile().
+// GameDef::ReadFromFile().
 void WriteExtensions(Stream *out, const DataUtil::GameData &game, const CompiledData &data, soff_t ext_offset_pos)
 {
     const soff_t ext_offset = out->GetPosition();

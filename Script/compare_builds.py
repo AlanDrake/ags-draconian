@@ -203,7 +203,7 @@ def unembed_scripts(ed_dta, scripts):
 
     The editor writes the scripts after the text parser dictionary (Common/game/main_game_file.cpp,
     ReadGameData), so three other places depend on them: the HasCCScript flag and the offset of the
-    extension list, both in the GameDefBase block before the scripts, and the script names at
+    extension list, both in the GameDef block before the scripts, and the script names at
     the start of the v362_interevent2 extension."""
     modules = scripts[2:]
     section = scripts[0][1] + scripts[1][1] + struct.pack('<i', len(modules)) + b''.join(m[1] for m in modules)
@@ -214,7 +214,7 @@ def unembed_scripts(ed_dta, scripts):
     field = ed_dta.find(struct.pack('<i', ext_start), 0, pos)
     if ext_start < 0 or field < 0 or ed_dta.find(struct.pack('<i', ext_start), field + 1, pos) >= 0:
         return None, 'extension offset not found'
-    # GameDefBase: the extension offset, then the dict, globalscript, chars and HasCCScript flags
+    # GameDef: the extension offset, then the dict, globalscript, chars and HasCCScript flags
     flag = field + 16
     if struct.unpack_from('<i', ed_dta, flag)[0] != 1:
         return None, 'HasCCScript flag not found'

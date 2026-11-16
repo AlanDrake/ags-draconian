@@ -1445,9 +1445,6 @@
     <ClInclude Include="..\..\Common\game\game_def.h">
       <Filter>Common Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\game_def_base.h">
-      <Filter>Common Header Files\game</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\game\game_struct_defines.h">
       <Filter>Common Header Files\game</Filter>
     </ClInclude>

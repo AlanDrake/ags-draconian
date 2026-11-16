@@ -464,7 +464,6 @@
     <ClCompile Include="..\..\Common\game\customproperties.cpp" />
     <ClCompile Include="..\..\Common\game\dialog_topic.cpp" />
     <ClCompile Include="..\..\Common\game\game_def.cpp" />
-    <ClCompile Include="..\..\Common\game\game_def_base.cpp" />
     <ClCompile Include="..\..\Common\game\inventory_item_info.cpp" />
     <ClCompile Include="..\..\Common\game\scripteventtable.cpp" />
     <ClCompile Include="..\..\Common\game\main_game_file.cpp" />
@@ -660,7 +659,6 @@
     <ClInclude Include="..\..\Common\game\customproperties.h" />
     <ClInclude Include="..\..\Common\game\dialog_topic.h" />
     <ClInclude Include="..\..\Common\game\game_def.h" />
-    <ClInclude Include="..\..\Common\game\game_def_base.h" />
     <ClInclude Include="..\..\Common\game\game_struct_defines.h" />
     <ClInclude Include="..\..\Common\game\game_version.h" />
     <ClInclude Include="..\..\Common\game\inventory_item_info.h" />

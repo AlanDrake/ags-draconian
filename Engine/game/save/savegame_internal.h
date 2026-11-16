@@ -19,7 +19,7 @@
 
 #include "game/common_defines.h"
 #include "game/dynobj/cc_serializer.h"
-#include "game/game_def_base.h"
+#include "game/game_def.h"
 #include "game/roomstruct.h"
 #include "game/save/savegame.h"
 #include "game/script_audio_clip.h"
@@ -46,7 +46,7 @@ struct PreservedParams
     SavegameDescription Desc;
 
     // Game options, to preserve ones that must not change at runtime
-    int GameOptions[GameDefBase::MAX_OPTIONS]{};
+    int GameOptions[GameDef::MAX_OPTIONS]{};
     // Script global data sizes
     size_t GlScDataSize = 0u;
     std::vector<String> ScriptModuleNames;

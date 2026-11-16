@@ -110,9 +110,6 @@
     <ClCompile Include="..\..\Common\game\game_def.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\game_def_base.cpp">
-      <Filter>Source Files\game</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\game\inventory_item_info.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
@@ -614,9 +611,6 @@
       <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\game\game_def.h">
-      <Filter>Header Files\game</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\game\game_def_base.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\game\game_struct_defines.h">

@@ -385,7 +385,7 @@ public:
 
     // TODO: all members are currently public because they are used everywhere; hide them later
 public:
-    // Game's unique ID, corresponds to GameDefBase::uniqueid.
+    // Game's unique ID, corresponds to GameDef::uniqueid.
     // If this field has a valid value and does not match actual game's id,
     // then engine will refuse to start this room.
     // May be set to NO_GAME_ID_IN_ROOM_FILE to let it run within any game.

@@ -1128,7 +1128,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     // The standard data section.
     //-------------------------------------------------------------------------
     GameDef::SerializeInfo sinfo;
-    game.GameDefBase::ReadFromFile(in, data_ver, sinfo);
+    game.ReadFromFile(in, data_ver, sinfo);
     game.read_savegame_info(in, data_ver); // the game GUID, save file extension and save folder name
 
     Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename.GetCStr());
@@ -1230,7 +1230,7 @@ void PreReadGameData(GameDef &game, std::unique_ptr<Stream> &&s_in, GameDataVers
 {
     Stream *in = s_in.get(); // for convenience
     GameDef::SerializeInfo sinfo;
-    game.GameDefBase::ReadFromFile(in, data_ver, sinfo);
+    game.ReadFromFile(in, data_ver, sinfo);
     game.read_savegame_info(in, data_ver); // the game GUID, save file extension and save folder name
     game.gamedataver = data_ver;
     game.compiled_with = compiled_with;

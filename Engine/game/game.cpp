@@ -2626,7 +2626,7 @@ int SetGameOption(int opt, int new_value)
     }
 
     // Handle forbidden options
-    const auto restricted_opts = GameDefBase::GetRestrictedOptions();
+    const auto restricted_opts = GameDef::GetRestrictedOptions();
     for (auto r_opt : restricted_opts)
     {
         if (r_opt == opt)

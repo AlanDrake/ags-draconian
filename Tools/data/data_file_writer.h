@@ -99,7 +99,7 @@ using ExtensionWriter = std::function<void(Stream *, const DataUtil::GameData &)
 // Writes an extension record: the id, the payload's length and the payload that `writer` produces
 void WriteExtension(Stream *out, const char *id, const DataUtil::GameData &game, ExtensionWriter writer);
 
-// Serializes the legacy GameDefBase block.
+// Serializes the legacy GameDef block.
 void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData &data, Stream *out,
                               soff_t &ext_offset_pos);
 

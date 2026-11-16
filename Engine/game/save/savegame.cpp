@@ -595,12 +595,12 @@ static void RestoreViewportsAndCameras(const RestoredData &r_data)
 
 // Resets the options that are not supposed to be changed at runtime (the restricted and the preserved ones)
 // to the values the running game had before the restoration (see DoBeforeRestore)
-static void CopyPreservedGameOptions(GameDefBase &gs, const PreservedParams &pp)
+static void CopyPreservedGameOptions(GameDef &gs, const PreservedParams &pp)
 {
-    const auto restricted_opts = GameDefBase::GetRestrictedOptions();
+    const auto restricted_opts = GameDef::GetRestrictedOptions();
     for (auto opt : restricted_opts)
         gs.options[opt] = pp.GameOptions[opt];
-    const auto preserved_opts = GameDefBase::GetPreservedOptions();
+    const auto preserved_opts = GameDef::GetPreservedOptions();
     for (auto opt : preserved_opts)
         gs.options[opt] = pp.GameOptions[opt];
 }

@@ -20,7 +20,7 @@
 #include "game/character_info.h"
 #include "game/customproperties.h"
 #include "game/dialog_topic.h"
-#include "game/game_def_base.h"
+#include "game/game_def.h"
 #include "game/game_version.h"
 #include "game/inventory_item_info.h"
 #include "game/mouse_cursor.h"
@@ -138,8 +138,8 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     out.reset();
 
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
-    GameDefBase loaded;
-    GameDefBase::SerializeInfo info;
+    GameDef loaded;
+    GameDef::SerializeInfo info;
     loaded.ReadFromFile(in.get(), kGameVersion_Current, info);
 
     EXPECT_STREQ("Round-trip \"game\"", loaded.gamename.GetCStr());

@@ -53,8 +53,6 @@ target_sources(common
     game/dialog_topic.h
     game/game_def.cpp
     game/game_def.h
-    game/game_def_base.cpp
-    game/game_def_base.h
     game/game_struct_defines.h
     game/game_version.h
     game/inventory_item_info.cpp

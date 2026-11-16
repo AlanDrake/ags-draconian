@@ -105,7 +105,7 @@ protected:
     // The GameDef fields that the game state component saves
     struct GameSetupFields
     {
-        std::array<int, GameDefBase::MAX_OPTIONS> Options = {};
+        std::array<int, GameDef::MAX_OPTIONS> Options = {};
         int PlayerCharacter = 0;
         int DialogBullet = 0;
         int InvHotColor = 0;
@@ -116,7 +116,7 @@ protected:
         static GameSetupFields Get()
         {
             GameSetupFields fields;
-            std::copy_n(game.options, GameDefBase::MAX_OPTIONS, fields.Options.begin());
+            std::copy_n(game.options, GameDef::MAX_OPTIONS, fields.Options.begin());
             fields.PlayerCharacter = game.playercharacter;
             fields.DialogBullet = game.dialog_bullet;
             fields.InvHotColor = game.inv_hot_color;
