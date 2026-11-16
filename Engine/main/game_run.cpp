@@ -1024,6 +1024,7 @@ static void GameUpdatePersistentAnimations()
 
 static void update_objects_scale()
 {
+    Game &game = Game::Current();
     if (displayed_room < 0)
         return;
 
@@ -1032,7 +1033,7 @@ static void update_objects_scale()
         update_object_scale(obj_id);
     }
 
-    for (int char_id = 0; char_id < Game::Current().numcharacters; ++char_id)
+    for (int char_id = 0; char_id < game.numcharacters; ++char_id)
     {
         update_character_scale(char_id);
     }
@@ -1627,10 +1628,11 @@ void GameLoopUntilViewAnimEnd(const ViewAnimateParams *anim)
 
 void RunGameUntilAborted()
 {
+    EngineServices &services = EngineServices::Current();
     // skip ticks to account for time spent starting game.
     skipMissedTicks();
 
-    while (!EngineServices::Current().AbortEngine)
+    while (!services.AbortEngine)
     {
         GameTick();
 

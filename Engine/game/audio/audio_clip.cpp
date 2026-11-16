@@ -75,7 +75,8 @@ int AudioClip_GetIsAvailable(ScriptAudioClip *clip)
 
 void AudioClip_Stop(ScriptAudioClip *clip)
 {
-    for (int i = NUM_SPEECH_CHANS; i < Game::Current().numGameChannels; i++)
+    Game &game = Game::Current();
+    for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
     {
         auto *playback = AudioChans::GetChannelIfPlaying(i);
         if ((playback != nullptr) && (playback->sourceClipID == clip->id))

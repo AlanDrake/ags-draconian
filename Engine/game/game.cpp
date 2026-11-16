@@ -209,9 +209,10 @@ bool AssertAudioType(const char *api_name, int audio_type)
 
 void Game_StopAudio(int audio_type)
 {
+    Game &game = Game::Current();
     if ((audio_type != SCR_NO_VALUE) && !AssertAudioType("Game.StopAudio", audio_type))
         return;
-    for (int chan_id = 0; chan_id < Game::Current().numGameChannels; chan_id++)
+    for (int chan_id = 0; chan_id < game.numGameChannels; chan_id++)
     {
         if (audio_type == SCR_NO_VALUE)
         {
@@ -1977,6 +1978,7 @@ void game_sprite_updated(int sprite_num, bool deleted)
 
 void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
 {
+    Game &game = Game::Current();
     if (view < 0)
         return;
     if (first_loop > last_loop)
@@ -2004,7 +2006,7 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
 
             if (with_sounds && frame.sound >= 0)
             {
-                ScriptAudioClip *clip = &Game::Current().audioClips[frame.sound];
+                ScriptAudioClip *clip = &game.audioClips[frame.sound];
                 auto asset_path = get_audio_clip_assetpath(clip->bundlingType, clip->fileName);
                 soundcache_precache(asset_path);
                 dur_sound_load += ToMilliseconds(FastClock::now() - tp_detail3);
@@ -2060,9 +2062,10 @@ bool load_game_font(int at_index, const FontInfo &font_info, GameDataVersion /*d
 }
 void fixup_game_fonts()
 {
+    Game &game = Game::Current();
     // TODO: this workaround may not be needed any more with the FreeType the engine is built with; test with the
     // LucasFan font before removing it
-    for (int i = 0; i < Game::Current().numfonts; ++i)
+    for (int i = 0; i < game.numfonts; ++i)
     {
         if (!is_bitmap_font(i))
         {

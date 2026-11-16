@@ -404,6 +404,7 @@ static String get_cue_filename(int char_id, int cue_id)
 // returns an empty path (and logs a script warning) if none exists
 static AssetPath find_voice_clip(const String &voice_name)
 {
+    EngineServices &services = EngineServices::Current();
     // TODO: perhaps a better algorithm, allow any extension / sound format?
     // e.g. make a hashmap matching a voice name to a asset name
     std::array<const char *, 4> exts = {{"mp3", "ogg", "wav", "flac"}};
@@ -412,7 +413,7 @@ static AssetPath find_voice_clip(const String &voice_name)
     for (auto *ext : exts)
     {
         apath.Name.Format("%s.%s", voice_name.GetCStr(), ext);
-        found = EngineServices::Current().Assets->DoesAssetExist(apath);
+        found = services.Assets->DoesAssetExist(apath);
         if (found)
             break;
     }

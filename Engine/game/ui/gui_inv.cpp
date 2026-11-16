@@ -50,6 +50,7 @@ int GUIInvWindow::GetCharacterID() const
 
 void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
 {
+    Game &game = Game::Current();
     DrawControlFrame(ds, x, y);
 
     const bool draw_disabled = GUI::ShouldDrawDisabled(this);
@@ -66,7 +67,7 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
     for (int item = _topItem; item < lastItem; ++item)
     {
         // draw inv graphic
-        draw_gui_sprite(ds, Game::Current().invinfo[chex.inventory[item]].pic, at_x, at_y);
+        draw_gui_sprite(ds, game.invinfo[chex.inventory[item]].pic, at_x, at_y);
         at_x += _itemWidth;
 
         // go to next row when appropriate

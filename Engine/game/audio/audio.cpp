@@ -594,7 +594,8 @@ int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxD
 
 void update_directional_sound_vol()
 {
-    for (int chnum = NUM_SPEECH_CHANS; chnum < Game::Current().numGameChannels; chnum++)
+    Game &game = Game::Current();
+    for (int chnum = NUM_SPEECH_CHANS; chnum < game.numGameChannels; chnum++)
     {
         auto *playback = AudioChans::GetChannelIfPlaying(chnum);
         if ((playback != nullptr) && (playback->xSource >= 0))
@@ -609,12 +610,13 @@ void update_directional_sound_vol()
 
 void stop_all_sound_and_music()
 {
+    Game &game = Game::Current();
     stop_voice_nonblocking();
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
         stop_and_destroy_channel(i);
     // Sound queues
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
-        Game::Current().Play.new_music_queue[i] = QueuedAudioItem();
+        game.Play.new_music_queue[i] = QueuedAudioItem();
 }
 
 void shutdown_sound()
@@ -672,7 +674,8 @@ void process_scheduled_music_update()
 // add/remove the volume drop to the audio channels while speech is playing
 void apply_volume_drop_modifier(bool applyModifier)
 {
-    for (int i = NUM_SPEECH_CHANS; i < Game::Current().numGameChannels; i++)
+    Game &game = Game::Current();
+    for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
     {
         auto *playback = AudioChans::GetChannelIfPlaying(i);
         if (playback && playback->sourceClipID >= 0)

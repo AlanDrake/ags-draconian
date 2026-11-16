@@ -423,6 +423,7 @@ bool send_state_to_debugger(const char *msg)
 
 bool init_editor_debugging(const ConfigTree &cfg)
 {
+    EngineServices &services = EngineServices::Current();
 #if AGS_PLATFORM_OS_WINDOWS
     editor_debugger = GetEditorDebugger(editor_debugger_instance_token);
 #else
@@ -441,7 +442,7 @@ bool init_editor_debugging(const ConfigTree &cfg)
         // and then its READY message
         while (check_for_messages_from_debugger() != kDbgResponse_Ready)
         {
-            EngineServices::Current().Platform->Delay(10);
+            services.Platform->Delay(10);
         }
 
         send_state_to_debugger("START");

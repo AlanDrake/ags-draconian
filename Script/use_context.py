@@ -15,6 +15,11 @@ The rule (one per use, counted per function body, all the mapped names together)
   * A function that names them more than once: `EngineServices &services = EngineServices::Current();` as the
     first statement of its body, then `services.Config...`. The locals of several contexts open the body in the
     order of CONTEXTS (services, game, room), whatever the order of the runs.
+  * A use inside a loop of the function (the header or the body of a `for`, range-`for`, `while` or
+    `do ... while`, the range expression included) gives the function the local even if it is the only use, so
+    that the context is not reloaded on every pass; the same for an existing direct form. A use that may not go
+    through the local (lambda rule) does not count. If the local's name is taken, the use stays direct and the
+    function is listed under "direct form inside a loop, the local's name is taken" for a decision by hand.
   * A global mapped to '' is the context itself: `thisroom.Width` becomes `Room::Current().Width` or
     `room.Width`; `game.chars` stays `game.chars` through the local (only the declaration is added).
   * A use outside a function body (a namespace-scope or class-scope initializer, a constructor's initializer
@@ -453,6 +458,91 @@ def is_declaration(toks, i):
     return False
 
 
+def skip_pp(toks, j):
+    while j < len(toks) and toks[j].kind == 'pp':
+        j += 1
+    return j
+
+
+def closer_of(toks, j):
+    """The index of the `)`, `]` or `}` that closes the bracket at j (preprocessor lines are not followed)."""
+    depth = 0
+    for k in range(j, len(toks)):
+        t = toks[k]
+        if t.kind != 'punct':
+            continue
+        if t.text in '([{':
+            depth += 1
+        elif t.text in ')]}':
+            depth -= 1
+            if depth == 0:
+                return k
+    return len(toks) - 1
+
+
+def statement_end(toks, j):
+    """The index of the last token of the statement that starts at j: a block's `}`, a plain statement's `;`, or the
+    end of the last branch of an if/else, a loop's body, a do-while's `;`."""
+    j = skip_pp(toks, j)
+    if j >= len(toks):
+        return len(toks) - 1
+    t = toks[j]
+    if t.text == '{':
+        return closer_of(toks, j)
+    if t.kind == 'id' and t.text in ('for', 'while', 'switch', 'if'):
+        p = skip_pp(toks, j + 1)
+        if t.text == 'if' and p < len(toks) and toks[p].text == 'constexpr':
+            p = skip_pp(toks, p + 1)
+        if p >= len(toks) or toks[p].text != '(':
+            return p
+        e = statement_end(toks, closer_of(toks, p) + 1)
+        if t.text == 'if':
+            n = skip_pp(toks, e + 1)
+            if n < len(toks) and toks[n].text == 'else':
+                return statement_end(toks, n + 1)
+        return e
+    if t.kind == 'id' and t.text == 'do':
+        e = statement_end(toks, j + 1)
+        w = skip_pp(toks, e + 1)
+        if w < len(toks) and toks[w].text == 'while':
+            p = skip_pp(toks, w + 1)
+            if p < len(toks) and toks[p].text == '(':
+                return skip_pp(toks, closer_of(toks, p) + 1)
+        return e
+    depth = 0
+    for k in range(j, len(toks)):
+        x = toks[k]
+        if x.kind != 'punct':
+            continue
+        if x.text in '([{':
+            depth += 1
+        elif x.text in ')]}':
+            if depth == 0:
+                return k - 1  # the enclosing block ends first
+            depth -= 1
+        elif x.text == ';' and depth == 0:
+            return k
+    return len(toks) - 1
+
+
+def loop_spans(toks):
+    """(index of the keyword, index of the last token) of every `for`, range-`for`, `while` and `do ... while`
+    statement: the header and the body. The `while` that ends a do-while is a span of its own, inside the do's."""
+    out = []
+    for i, t in enumerate(toks):
+        if t.kind != 'id' or t.text not in ('for', 'while', 'do'):
+            continue
+        if i > 0 and toks[i - 1].text in ('.', '->', '::'):
+            continue
+        if t.text == 'do':
+            out.append((i, statement_end(toks, i)))
+            continue
+        p = skip_pp(toks, i + 1)
+        if p < len(toks) and toks[p].text == '(':
+            out.append((i, statement_end(toks, closer_of(toks, p) + 1)))
+    return out
+
+
 def analyse(text, ctx):
     """The functions and the uses of the mapped names in a file, the existing direct forms of the accessor, and
     the declarations and namings of the local's name."""
@@ -695,6 +785,7 @@ def analyse(text, ctx):
     if state['scopes']:
         an.anomalies.append('end of file inside %d open braces' % len(state['scopes']))
     an.toks = toks
+    an.loops = loop_spans(toks)
     return an
 
 
@@ -719,6 +810,8 @@ class Report:
         self.taken = []  # (file, line, function, why, uses): the local's name is taken, so the direct form
         self.extended = []  # (file, line, function, uses): the body already had the local, new uses go through it
         self.rewritten = []  # (file, line, function, n): existing direct forms rewritten to the local
+        self.loop_locals = []  # (file, line, function, line of the use): the local only because of a use in a loop
+        self.loop_taken = []  # (file, line, function, why, line of the use): a use in a loop, the local's name taken
         self.changed = {}
 
 
@@ -829,6 +922,8 @@ def rewrite(path, text, ctx, rep, verbose, members=None, registry=None):
         leading = leading_context_decls(toks, f.open_tok, registry)
         taken = None if has_local else taken_reason(f, local, names, f.member_shadowed)
         through = [u for u in uses if u.allowed]
+        # a use inside a loop of this function (header or body) would reload the context on every pass
+        looped = [u for u in through if any(f.open_tok < s < u.i <= e for s, e in an.loops)]
         add_decl = False
         if has_local:
             use_local = True
@@ -838,8 +933,10 @@ def rewrite(path, text, ctx, rep, verbose, members=None, registry=None):
                                    'above it take the direct form' % (local, len(above))))
         elif taken:
             use_local = False
+            if looped:
+                rep.loop_taken.append((path, line, f.name, taken, line_of(text, toks[looped[0].i].start)))
         else:
-            use_local = len(through) >= 2
+            use_local = len(through) >= 2 or bool(looped)
             # the local must be used in every build: by a use outside the #if blocks of the body and outside
             # assert()
             if use_local and not any(f.branch_of[u.i] == f.branch and u.i not in f.in_assert for u in through):
@@ -869,7 +966,8 @@ def rewrite(path, text, ctx, rep, verbose, members=None, registry=None):
             rep.per_name[name]['local' if via else 'direct'] += 1
             rep.files_per_name[name].add(path)
             notes.append((u.i, name + ('' if via or not use_local else ' (direct: in a lambda or local class, or '
-                                                                         'above the declaration)')))
+                                                                         'above the declaration)') +
+                          (' (in a loop)' if u in looped else '')))
         if add_decl:
             # after the locals of the contexts before this one that open the body, before the later ones'
             at = f.open_tok
@@ -884,6 +982,8 @@ def rewrite(path, text, ctx, rep, verbose, members=None, registry=None):
             edits.append((toks[at].end, toks[at].end, '%s%s%s &%s = %s;' % (eol, indent, ctx['type'], local,
                                                                              ctx['accessor'])))
             rep.locals.append((path, line, f.name, len(through)))
+            if len(through) < 2:
+                rep.loop_locals.append((path, line, f.name, line_of(text, toks[looped[0].i].start)))
         elif has_local and converted:
             rep.extended.append((path, line, f.name, converted))
         elif not use_local and converted:
@@ -1162,6 +1262,42 @@ def self_test_contexts():
     left = check_file('t.cpp', src, game, Report())
     assert [l[1] for l in left] == [1, 12], left
 
+    # 7. a use inside a loop gives the local even when it is the only use
+    decl = '    Game &game = Game::Current();\n'
+    src = ('void f1()\n{\n    for (int i = 0; i < game.numviews; i++)\n        x(i);\n}\n'
+           'void f2()\n{\n    while (a)\n        play.b = 1;\n}\n'
+           'void f3()\n{\n    do\n    {\n        play.b = 1;\n    } while (a);\n}\n'
+           'void f4()\n{\n    for (auto &c : chars)\n    {\n        if (c)\n        {\n            play.b = 1;\n        }\n'
+           '    }\n}\n'
+           'void f5()\n{\n    for (int i = 0; i < 2; i++)\n        x(i);\n    play.b = 1;\n}\n'
+           'void f6()\n{\n    auto l = [=]() { for (;;) play.b = 1; };\n}\n'
+           'void f7(int game)\n{\n    while (a)\n        play.b = game;\n}\n'
+           'void f8()\n{\n    for (auto &c : play.chars)\n        x(c);\n}\n'
+           'void f9()\n{\n    if (a)\n        while (b) x();\n    else\n        y();\n    play.c = 1;\n}\n'
+           'void f10()\n{\n    auto l = [&]() { while (a) play.b = 1; };\n}\n')
+    out, rep = run(src, game)
+    assert 'void f1()\n{\n' + decl + '    for (int i = 0; i < game.numviews; i++)' in out, out
+    assert 'void f2()\n{\n' + decl + '    while (a)\n        game.Play.b = 1;' in out, out
+    assert 'void f3()\n{\n' + decl + '    do\n    {\n        game.Play.b = 1;' in out, out
+    assert 'void f4()\n{\n' + decl in out and '            game.Play.b = 1;' in out, out
+    assert 'x(i);\n    Game::Current().Play.b = 1;' in out, out  # after the loop: still direct
+    assert '[=]() { for (;;) Game::Current().Play.b = 1; }' in out, out  # a loop inside a [=] lambda
+    assert 'void f7(int game)\n{\n    while (a)\n        Game::Current().Play.b = game;' in out, out
+    assert [t[2] for t in rep.loop_taken] == ['f7'], rep.loop_taken
+    assert 'void f8()\n{\n' + decl + '    for (auto &c : game.Play.chars)' in out, out  # the range expression
+    assert '        y();\n    Game::Current().Play.c = 1;' in out, out  # after an if/else holding a loop
+    assert 'void f10()\n{\n' + decl + '    auto l = [&]() { while (a) game.Play.b = 1; };' in out, out
+    assert sorted(t[2] for t in rep.loop_locals) == ['f1', 'f10', 'f2', 'f3', 'f4', 'f8'], rep.loop_locals
+    assert run(out, game)[0] == out, 'loops: not idempotent'
+    # an existing direct form in a loop, in a function without the declaration (a run without the loop rule)
+    src = 'void g1()\n{\n    for (int i = 0; i < Game::Current().numviews; i++)\n        x(i);\n}\n'
+    out, rep = run(src, game)
+    assert 'void g1()\n{\n' + decl + '    for (int i = 0; i < game.numviews; i++)' in out, out
+    assert rep.rewritten and run(out, game)[0] == out, rep.rewritten
+    # a single loop use under #if: direct, listed
+    out, rep = run('void g2()\n{\n#if A\n    while (a)\n        play.b = 1;\n#endif\n}\n', game)
+    assert 'Game::Current().Play.b = 1;' in out and rep.conditional, (out, rep.conditional)
+
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -1214,6 +1350,15 @@ def main():
         print('decided by the rule: the local\'s name is taken (direct form):')
         for f, line, fn, why, n in rep.taken:
             print('  %s:%d %s: %s, %d uses' % (f, line, fn, why, n))
+    if rep.loop_locals:
+        print('functions given the local because of a use inside a loop (one use otherwise): %d'
+              % len(rep.loop_locals))
+        for f, line, fn, uline in rep.loop_locals:
+            print('  %s:%d %s: use at line %d' % (f, line, fn, uline))
+    if rep.loop_taken:
+        print('direct form inside a loop, the local\'s name is taken (decide by hand):')
+        for f, line, fn, why, uline in rep.loop_taken:
+            print('  %s:%d %s: %s, use at line %d' % (f, line, fn, why, uline))
     if rep.rewritten:
         print('direct forms rewritten to the local:')
         for f, line, fn, n in rep.rewritten:

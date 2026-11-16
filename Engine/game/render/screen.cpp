@@ -370,6 +370,7 @@ public:
     // Begin the state, initialize and prepare any resources
     void Begin() override
     {
+        EngineServices &services = EngineServices::Current();
         Game &game = Game::Current();
         // Safety fix: set up some default speed
         if (_speed <= 0)
@@ -385,7 +386,7 @@ public:
         black_bmp->Clear(_fadeColor);
         for (int i = 0; i < (_fadein ? 4 : 1); i++)
         {
-            _fade[i] = EngineServices::Current().GfxDriver->CreateDDBFromBitmap(black_bmp.get(), kTxFlags_Opaque);
+            _fade[i] = services.GfxDriver->CreateDDBFromBitmap(black_bmp.get(), kTxFlags_Opaque);
             _fade[i]->SetStretch(_view.GetWidth(), _view.GetHeight(), false);
         }
 
@@ -396,10 +397,11 @@ public:
     // End the state, release all resources
     void End() override
     {
+        EngineServices &services = EngineServices::Current();
         for (int i = 0; i < 4; i++)
         {
             if (_fade[i])
-                EngineServices::Current().GfxDriver->DestroyDDB(_fade[i]);
+                services.GfxDriver->DestroyDDB(_fade[i]);
         }
     }
     // Draw the state

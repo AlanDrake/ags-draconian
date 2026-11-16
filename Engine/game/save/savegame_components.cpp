@@ -1316,6 +1316,7 @@ bool ReadGUIControlArray(std::vector<TGUIControl> &obj_arr, Stream *in, GuiSvgVe
                          const std::vector<std::pair<uint32_t, uint32_t>> &ctrlidx_per_gui_old,
                          const std::vector<std::pair<uint32_t, uint32_t>> &ctrlidx_per_gui_new)
 {
+    Game &game = Game::Current();
     if (!AssertFormatTagStrict(in, err, tag))
         return false;
     const uint32_t guiobj_read_count = in->ReadInt32();
@@ -1337,7 +1338,7 @@ bool ReadGUIControlArray(std::vector<TGUIControl> &obj_arr, Stream *in, GuiSvgVe
     {
         guiobj_read[i].ReadFromSavegame(in, svg_ver);
         if (svg_ver >= kGuiSvgVersion_40008)
-            Properties::ReadValues(Game::Current().Play.guicontrolProps[control_type][i], in);
+            Properties::ReadValues(game.Play.guicontrolProps[control_type][i], in);
     }
     MoveGUIControlArray<TGUIControl>(guiobj_read, obj_arr, ctrlidx_per_gui_old, ctrlidx_per_gui_new);
     return true;

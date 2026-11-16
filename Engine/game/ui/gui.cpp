@@ -850,6 +850,7 @@ static bool should_skip_adjust_for_gui(const GUIMain &gui)
 
 int adjust_x_for_guis(int x, int y, bool assume_blocking)
 {
+    Game &game = Game::Current();
     if ((GUI::Options.DisabledStyle == kGuiDis_Off) && (!IsInterfaceEnabled() || assume_blocking))
         return x; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it right a bit
@@ -866,7 +867,7 @@ int adjust_x_for_guis(int x, int y, bool assume_blocking)
             continue;
         // try to deal with very wide GUIs
         const float gui_width_cap = 0.75f; // NOTE: originally was 280 pixels in 320-wide game
-        if (gui.GetWidth() >= Game::Current().GetGameRes().Width * gui_width_cap)
+        if (gui.GetWidth() >= game.GetGameRes().Width * gui_width_cap)
             continue;
         // fix coordinates if x is inside the gui
         x = gui.GetX() + gui.GetWidth() + 2;
@@ -876,6 +877,7 @@ int adjust_x_for_guis(int x, int y, bool assume_blocking)
 
 int adjust_y_for_guis(int y, bool assume_blocking)
 {
+    Game &game = Game::Current();
     if ((GUI::Options.DisabledStyle == kGuiDis_Off) && (!IsInterfaceEnabled() || assume_blocking))
         return y; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it down a bit
@@ -889,7 +891,7 @@ int adjust_y_for_guis(int y, bool assume_blocking)
             continue;
         // ignore tall GUIs (a quarter of the game height or more): the text is not moved for them
         const float gui_height_cap = 0.25f; // NOTE: originally was 50 pixels in 200-height game
-        if (gui.GetHeight() >= Game::Current().GetGameRes().Height * gui_height_cap)
+        if (gui.GetHeight() >= game.GetGameRes().Height * gui_height_cap)
             continue;
         // fix coordinates if y is inside the gui
         y = gui.GetY() + gui.GetHeight() + 2;
@@ -1132,7 +1134,8 @@ ScriptUserObject *GUI_GUIToScreenPoint(ScriptGUI *sgui, int gui_x, int gui_y, bo
 // It is used by the editor's automatic macro generation.
 int FindGUIID(const char *GUIName)
 {
-    for (int ii = 0; ii < Game::Current().numgui; ii++)
+    Game &game = Game::Current();
+    for (int ii = 0; ii < game.numgui; ii++)
     {
         if (guis[ii].GetName().IsEmpty())
             continue;

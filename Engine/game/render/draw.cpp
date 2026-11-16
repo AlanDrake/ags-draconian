@@ -802,6 +802,7 @@ void dispose_room_drawdata()
 
 void clear_drawobj_cache(bool keep_sprite_callbacks)
 {
+    EngineServices &services = EngineServices::Current();
     // clear the character cache
     for (auto &cc : charcache)
     {
@@ -826,7 +827,7 @@ void clear_drawobj_cache(bool keep_sprite_callbacks)
     for (auto &tex : gui_render_tex)
     {
         if (tex)
-            EngineServices::Current().GfxDriver->DestroyDDB(tex);
+            services.GfxDriver->DestroyDDB(tex);
         tex = nullptr;
     }
     for (auto &o : guiobjbg)
@@ -2656,6 +2657,7 @@ void draw_fps(const Rect &viewport)
 // Draw GUI controls as separate sprites, each on their own texture
 static void construct_guictrl_tex(GUIMain &gui)
 {
+    Game &game = Game::Current();
     if (GUI::ShouldSkipControls(&gui))
         return; // don't draw GUI controls
 
@@ -2671,7 +2673,7 @@ static void construct_guictrl_tex(GUIMain &gui)
 
         auto &objbg = guiobjbg[draw_index];
         Rect obj_surf = obj->CalcGraphicRect(GUI::Options.ClipControls);
-        recycle_bitmap(objbg.Bmp, Game::Current().GetColorDepth(), obj_surf.GetWidth(), obj_surf.GetHeight(), true);
+        recycle_bitmap(objbg.Bmp, game.GetColorDepth(), obj_surf.GetWidth(), obj_surf.GetHeight(), true);
         obj->Draw(objbg.Bmp.get(), -obj_surf.Left, -obj_surf.Top);
 
         sync_object_texture(objbg);
@@ -3044,12 +3046,13 @@ static void construct_roomview_sw(const Viewport *viewport)
 // Schedule room rendering: background, objects, characters
 static void construct_room_view()
 {
+    Game &game = Game::Current();
     draw_preroom_background();
     prepare_room_sprites();
     // reset the Baselines Changed flag now that we've drawn stuff
     walk_behind_baselines_changed = 0;
 
-    for (const auto &viewport : Game::Current().Play.GetRoomViewportsZOrdered())
+    for (const auto &viewport : game.Play.GetRoomViewportsZOrdered())
     {
         if (!viewport->IsVisible())
             continue;

@@ -137,10 +137,11 @@ void update_character_move_and_anim(std::vector<int> &following_as_sheep)
 
 void update_following_exactly_characters(const std::vector<int> &following_as_sheep)
 {
+    Game &game = Game::Current();
     // update location of all following_exactly characters
     for (size_t i = 0; i < following_as_sheep.size(); ++i)
     {
-        CharacterInfo *ch = &Game::Current().chars[following_as_sheep[i]];
+        CharacterInfo *ch = &game.chars[following_as_sheep[i]];
 
         UpdateFollowingExactlyCharacter(ch);
     }
@@ -227,6 +228,7 @@ bool has_voice_lipsync()
 
 int update_voice_lipsync(int frame)
 {
+    Game &game = Game::Current();
     if (!has_voice_lipsync())
         return frame; // no change
 
@@ -248,7 +250,7 @@ int update_voice_lipsync(int frame)
         {
             curLipLinePhoneme++;
             if (curLipLinePhoneme >= splipsync[curLipLine].numPhonemes)
-                frame = Game::Current().default_lipsync_frame;
+                frame = game.default_lipsync_frame;
             else
                 frame = splipsync[curLipLine].frame[curLipLinePhoneme];
 
