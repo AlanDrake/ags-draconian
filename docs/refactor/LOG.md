@@ -2330,6 +2330,66 @@ step 3 and 5.1a step 5 do not have to keep it building.
   solutions with `AGS.Native` and the editor, the editor's NUnit tests). Not run: opening a project in the editor
   (no code path that runs changed), the other stages (no file they verify changed).
 
+### 5.9: the design and step 1, field tables for the character
+
+*Definition:* PLAN.md 5.9: one row per field of a struct, from which comparison, dump and the new save format
+are written once. The task opened with the question the design of 2026-11-15 left: how far to take data-driven
+code (what a row carries beyond name and member, whether a row drives behaviour, whether a schema file
+generates the rows), to be decided against the real `CharacterDef` and `CharacterState`.
+
+**Status (2026-11-16): designed with the user and step 1 built** (`a206fefde`, `0a8a21b54`; not pushed). By Fable 5.2 alone (the
+precompiled header of 2.10b ran beside it in a worktree, Sonnet 5.5). The design is RUNTIME-SPLIT.md 6; the
+steps left are in PLAN.md 5.9.
+
+- **Decided** (four questions put to the user with the measurements below; all four as recommended): a row is
+  a name, a member and a role, with no default, range or script name; no change hook, the live class
+  computes its derived fields again in one function; no schema file, the rows are C++ and the compiler counts
+  the struct's members against them; the script properties that only read or write a member or a flag bit
+  are bound from the member in the binder, the exact forms only.
+- **Named "field", not "property":** the game's custom properties own that word (`PropertyDesc`,
+  `Character.GetProperty`). The plan's "property rows" are `FieldRow`s.
+- **Built:** `Common/util/field_table.h` (header only: `FieldRow`, `FieldTable`, `Field`, `OpaqueField`,
+  `BaseFields`, `FieldsCoverStruct`, `FieldsAreDistinct`, `DiffFields`, `PrintFields`, `AlterFields`, and
+  `FieldValue<V>` for numbers, enums, `String`, points, vectors, maps, arrays and structs with a table); the
+  tables of `CharacterDef` (32 rows, `character_def.cpp`), `CharacterState` (52, `character.cpp`),
+  `AnimFlowParams` and `ViewAnimateParams` (`object.cpp`, beside `CycleViewAnim`). `CharacterDef` became an
+  aggregate: `_events` is the public member `Events` (the accessors stay until step 2), its five defaulted
+  special members are gone.
+- **Measured:**
+  - *The count works on the real structs* with MSVC 19.4x, GCC 13 (WSL) and Clang 20 with libc++ (emsdk), and
+    a dropped row fails the build on all three. GCC 8 has not compiled it.
+  - *Where the table goes:* a file that includes only `character.h` compiles in 0.85 s, with `field_table.h`
+    in 0.89 s, with both tables as `inline constexpr` in 0.98 s (MSVC Release flags, the fastest of 7, on a
+    machine that was building beside it: rough). 35 files include `character.h`, so the tables are in the
+    source files.
+  - *The script properties of the character:* 142 functions behind 152 rows; 35 return a member, 16 test a
+    flag, 14 assign a member, 12 set a flag (77 exact forms); 5 return a view number plus one, 6 clamp, 5 call
+    an update after the write; 46 do more. One of the 77 is called by engine code by name
+    (`Character_GetDiagonalWalking`), seven by plugins through the name lookup. All types have 1,015 property
+    rows.
+  - *Generated against hand-written* (MSVC `/O2`, a scratch file with both): the same instructions for a
+    getter, a setter and a flag getter of a `CharacterDef` member. For a `CharacterState` member (the second
+    base of `Character`) `obj->*Member` and `(*obj).*Member` compile to a null test of the object and a
+    conditional move before the load, four instructions more; `static_cast<CharacterState &>(*obj).*Member` is
+    the hand-written `mov eax,[rcx+190h]`.
+- **Found by the first table-driven test:** nothing lost. `SavegameContent.EveryCharacterFieldIsRestored` sets
+  every saved field of a character (73 of the 84), saves, restores and compares: today's save code returns all
+  of them. The test was then shown to fail: with `SpriteWidth` marked saved it reports `SpriteWidth: 1 != 0`.
+  The hand-written `CharactersAndItemsAreRestored` checks 20 fields.
+- **Seen and left:** five of the seven derived fields (`SpriteWidth`, `SpriteHeight`, `FrameOffsetX`,
+  `FrameOffsetY`, `OffsetZoom`) are set by the next update of the character, not by the restore; whether
+  anything reads them in between is for step 2's test. The script event tables have no comparison, so their
+  two rows are opaque. The member-pointer trait exists twice (`xml_fields.h`).
+- **Verified:** `prepush.py --auto`, all eleven stages (`format`, `helpers`, `layers`, `buildlists`, `build`
+  with `ctest`, `tidy`, `headers`, `libcxx`, `emscripten`, `linux` with 1,226 tests on GCC 13, `msbuild` with
+  five solutions and the editor's NUnit tests); the auto-test game, 2414 of 2414 on Software, D3D9, D3D11 and
+  OpenGL. Not verified: GCC 8 (the Debian 10 image), macOS, Android and iOS compilers on the member count;
+  `compare_objects.py` was not run (the commits are not mechanical: `CharacterDef` lost its declared special
+  members and gained a static function).
+- **Helpers kept** in `.compare/helpers/59`: `classify.py` (the forms of a type's property functions),
+  `cc.py` (one source with the build's own command line, timed), `cl.py`, `disasm.py`, `getter.cpp` (the
+  generated accessors beside the hand-written ones), `mkprobe.py` (the header-cost probes).
+
 ### Open items from finished tasks
 
 *Moved from PLAN.md "Next up" on 2026-11-07* (details in the tasks' sections):

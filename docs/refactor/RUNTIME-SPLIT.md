@@ -287,7 +287,7 @@ Savestates:
 
 | Format | Written by | Read by | Code lives | Described by | Change |
 |---|---|---|---|---|---|
-| New savestate | the engine | the engine, into a second `Game` built from the `GameDef` | one generic reader and writer in `Engine/game/save/` | each component: its property rows beside the struct, and a hook on the live class for what rows cannot say (handles, caches to rebuild) | new (5.9, 5.12; section 6a) |
+| New savestate | the engine | the engine, into a second `Game` built from the `GameDef` | one generic reader and writer in `Engine/game/save/` | each component: its field rows (section 6) in the struct's source file, and a function on the live class for what rows cannot say (handles, the derived fields to compute again) | new (5.9, 5.12; section 6a) |
 | Today's savestate (C2) | the engine until 5.12, then nothing | the engine, for saves of older engines | all of it in `Engine/game/save/savegame_components.cpp` | hand-written code that no longer changes | the `...Savegame` methods of the six `Common/game` files move in first (5.8 step 1), the eight `Common/gui` files' with 5.1a step 5, the engine structs' own with 5.12; after 5.12 the file only reads |
 
 The rows of an `XDef` struct sit beside it in Common although the savestate code is in the engine: a row
@@ -316,17 +316,93 @@ The script's `game.` variable is read through `CCScriptGame`'s offset switch, no
 ## 6. Field tables
 
 The fork already describes `Game.agf` (`xml_fields.h`) and the script bindings (`script_binder.h`) by rows.
-The same for records, in two kinds:
+The same for records, in two kinds: **field rows** say what each data member of a struct is (5.9), **layout
+rows** how a frozen format stores it.
+
+### Field rows (5.9; designed with the user 2026-11-16 and built for the character)
+
+How far to take data-driven code was left open by the design of 2026-11-15. It was decided against the real
+`CharacterDef` (32 fields) and `CharacterState` (52), with the tables written and measured first. The names in
+the code say *field*, not *property*: `PropertyDesc` and `Character.GetProperty` are the game's custom
+properties.
 
 ```cpp
-// What the property is: beside the struct.
-inline constexpr PropertyRow<CharacterDef> kCharacterDefProps[] = {
-    Prop<&CharacterDef::Baseline>("Baseline"),
-    Flag<&CharacterDef::Flags, CHF_NOINTERACT>("Clickable", Inverted),
-    Prop<&CharacterDef::ScriptName>("ScriptName", ReadOnly),
+// Common/game/character_def.cpp. The struct declares: static AGS::Common::FieldTable<CharacterDef> Fields();
+constexpr FieldRow<CharacterDef> kCharacterDefFields[] = {
+    Field<&CharacterDef::Baseline>("Baseline"),
+    Field<&CharacterDef::Name>("Name"),
+    OpaqueField<&CharacterDef::Events>("Events"),
 };
+static_assert(FieldsCoverStruct(kCharacterDefFields), "CharacterDef: a field has no row in kCharacterDefFields");
+```
 
-// How a frozen format lays it out: beside the format. Order, width, padding.
+- **A row is a name, a member and a role** (`Common/util/field_table.h`, header only). The member gives the
+  address and, through its type, the operations (`FieldValue<V>`: equal, print, alter), which every row of that
+  type shares: numbers, enums, `String`, points, vectors, maps and arrays of those have them, and so has a
+  struct with a table of its own (`CharacterState::Anim`); a base class is one row (`BaseFields`). The role is
+  `Saved` (a part of the state: a restored game has the value the saved one had), `Derived` (computed from
+  other fields; a restore computes it again: the character's `EffectiveOffset`, `EffectiveAnchor`,
+  `SpriteWidth`, `SpriteHeight`, `FrameOffsetX`, `FrameOffsetY`, `OffsetZoom`) or `Opaque` (not a value that can
+  be compared or stored; listed so that the table is whole: the two event tables for now, which have no
+  comparison).
+- **One row per data member, never more.** The bits of `Flags` are not rows: for a comparison and for a save
+  `Flags` is one integer.
+- **What a row does not hold** (the user, 2026-11-16, on these findings):
+  - *the default:* it is the member initializer, as in `xml_fields.h`;
+  - *a range:* nothing reads one yet, and the character's range-checked setters follow four policies
+    (`AudioPanning`, `AudioSpeed`, the volume, the anchors and the rotation clamp silently; `Opacity`,
+    `Transparency`, `BlinkInterval` and two flags quit; `Scaling` warns and clamps; `Frame`, `Baseline` and the
+    blocking size check nothing), so a range in a row could not replace them without changing behaviour. A
+    range is added to the row type when something reads it (a check of a restored save, an inspector);
+  - *script exposure:* a binding is a function per property with an address of its own, which plugins call
+    (C4), and the script VM is an engine ring that Common cannot name. Script properties are bound from the
+    member in the engine's binding table (below), not from the row;
+  - *behaviour:* no change hook. The engine writes these fields directly in hundreds of places, so a hook
+    would fire only for writes through the table and code would come to rely on what the engine's own writes
+    never trigger. After a write through the table (a restore, an inspector) the live class recomputes its
+    `Derived` fields in one function; a test compares them, so a forgotten one fails.
+- **A field without a row does not build.** `FieldsCoverStruct` counts the members of the struct at compile
+  time (the largest number of initializers its aggregate initialization takes) against the rows; checked with
+  MSVC, GCC 13 and Clang with libc++, GCC 8 (the Debian 10 image) not yet. So an `XDef` and an `XState` is an
+  **aggregate**: no private data, no constructor written out, no virtual function. `CharacterDef` needed its
+  event table public (`Events`) and its five defaulted special members deleted. A struct that keeps
+  constructors (`AnimFlowParams`, `ViewAnimateParams`) has a table without the count. The count does not tell
+  two rows of one member from two members (the table's test does, `FieldsAreDistinct`) and does not see the
+  live class's own members (`Character::_graphicSpace`: it moves into the state, 5.9 step 2).
+- **The table is in the struct's source file**, the struct declares `static FieldTable<X> Fields();` with a
+  forward declaration, no include. In the header the two character tables cost about 0.13 s on each of the 35
+  files that include `character.h` (0.85 s without, 0.98 s with, the fastest of 7 compiles of a file that
+  includes only it, MSVC); in the source file once.
+- **No schema file** (the user, 2026-11-16). A generator would have to run in every build system (CMake, the
+  hand-written solutions, Xcode, Android) or its output be checked in with a drift check, and a generated
+  struct is harder to read, to rename (`rename_fields.py`) and to port from upstream. With the count the only
+  thing written twice is the field's name, and the compiler guards it. One schema for C++ and C# stays
+  unplanned (L.3).
+- **What reads the rows.** Today `DiffFields`, `PrintFields` and `AlterFields`: the test
+  `SavegameContent.EveryCharacterFieldIsRestored` sets every saved field of a character, saves, restores and
+  compares, and names a lost field (today's save code loses none of the 73; with a derived field marked saved
+  it fails with `SpriteWidth: 1 != 0`). The hand-written test checked 20 of the 84 fields. Next: the comparison
+  of two `Game` objects (5.11) and the new save format (5.12), which adds two operations per value type (read,
+  write), not per row. A row's name becomes a part of the save format the day a save holds it: from then on a
+  renamed member keeps its row's name.
+- **Script properties are bound from the member, in the binder** (5.9 step 3). Of the character's 142
+  property functions (152 binding rows; all types have 1,015), 77 are exact forms: 35 return a member, 14
+  assign one, 28 test or set a flag bit; one is called by engine code by name. A function template makes each
+  (`ScMethod<&FieldGetter<Character, &Character::Z>>("Character::get_Z")`), a plain function returning `int`
+  or `float` whatever the member's width, since plugins call it as a C function. The script object's type is a
+  template argument: a member of the second base is at another offset in `Character`. The generated code is
+  the hand-written function's (`mov eax,[rcx+190h]`, MSVC `/O2`) when the template reads through a reference
+  cast to the member's class; through `obj->*Member` MSVC adds a null test of the object, four instructions.
+  So each conversion is proven by comparing the objects, as 5.2 step 2 was. A function with a check, a clamp,
+  a view number plus one or a call after the write stays a named function (65 of the 142).
+- **The drift check of `agsdefns.sh` needs no rows:** it compares the imports the compiler reads from
+  `agsdefns.sh` with the registered names (`Engine/test/data/script_exports.txt`); no test does that today
+  (5.9 step 4).
+
+### Layout rows
+
+```cpp
+// How a frozen format lays a record out: beside the format. Order, width, padding.
 inline constexpr LayoutRow<CharacterDef> kCharacterFileLayout[] = {
     Int32<&CharacterDef::NormalView>(),
     Int16<&CharacterDef::Baseline>(),
@@ -334,16 +410,14 @@ inline constexpr LayoutRow<CharacterDef> kCharacterFileLayout[] = {
 };
 ```
 
-- **Property rows** (5.9) give the new save format (6a), comparison and dump of two objects (round-trip tests,
-  the check of a restore, a debug inspector), the plain getters and setters of the script API, and a drift
-  check of `agsdefns.sh`.
 - **Layout rows** are for the game file only, where C1 freezes order, width and padding: one loop for the
   reader and one for the writer, so the two cannot disagree; a hand-written row covers what a plain row cannot.
   They are optional: the game file code can also stay as moved (5.8 step 2). Saves need none (6a).
-- One property, the character's `Baseline`, is written by hand in twelve places today (the C# property, the
-  project struct, its XML row, the conversion, the field, four stream lines, getter, setter and two binding
-  rows, the `agsdefns.sh` line). Rows bring that to about eight, with the pairs unable to drift. One schema for
-  C++ and C# would bring it to one; that is not planned (L.3).
+- One plain property of a character is written by hand in twelve places today (the C# property, the project
+  struct, its XML row, the conversion, the field, four stream lines, getter, setter and two binding rows, the
+  `agsdefns.sh` line). With field rows, members bound to the script and the new save format it is nine (the
+  field's row replaces the four stream lines and the getter and setter go), and the compiler or a test guards
+  each pair.
 
 ## 6a. The save format is free to change
 
@@ -354,7 +428,7 @@ stays as written (saves made by 3.99+ engines load), and constrains reading only
   a field. Its writers are deleted when the new format is written. It still fills a `Game`, so its assignments
   follow the fields as they move. Guard: the `compat_restore` fixtures, plus one written by the last engine
   with the old format.
-- **The new format is written from the property rows** (5.12). Proposed shape: per type, the list of saved
+- **The new format is written from the field rows** (5.12; the rows with the role `Saved`, section 6). Proposed shape: per type, the list of saved
   field names and types once, then the objects' values in that order. The reader matches the saved names
   against the current rows: a field the save lacks keeps the value the `Game` got from its definition, a field
   the engine no longer has is skipped. So adding a property needs no version number and no reader change.

@@ -156,6 +156,14 @@ private:
 - `auto` when the type is obvious from the right-hand side or an iterator; no C-style casts.
 - Fixed-width integers (`int32_t`, `uint8_t`) for anything serialized (game data, saves, the
   script ABI); plain `int` / `size_t` elsewhere.
+- A definition or state struct (`XDef`, `XState`; PLAN.md 5.1a) is an **aggregate**: public data members with
+  initializers, no constructor written out, no virtual function. Each data member has one row in the struct's
+  field table, which is in its source file (`util/field_table.h`: `Field<&CharacterState::Z>("Z")`, with
+  `FieldRole::Derived` for a field computed from others, `OpaqueField` for a cache or a pointer), and the
+  struct declares `static AGS::Common::FieldTable<X> Fields();`. The `static_assert(FieldsCoverStruct(...))`
+  under the table fails the build for a field without a row **[enforced]**. A row says what the field is and
+  nothing else: its default is the member initializer, and what happens when it changes stays in functions
+  (RUNTIME-SPLIT.md 6). The character's structs have theirs; the others get them as 5.1a splits them.
 
 ### Shared helpers
 

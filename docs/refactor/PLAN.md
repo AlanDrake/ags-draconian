@@ -78,7 +78,7 @@ Recorded 2026-10-31.
 ## Next up
 
 Kept current as tasks land. Model and effort are recommendations for an AI session. Done: phases
-0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 5.1 steps 1 to 3 (2026-11-16), 5.1a step 1 (2026-11-16), 2.10a (2026-11-15), 5.2, 5.3 (2026-11-14), 6.7a (2026-11-15), 6.7d,
+0–2, 3.1, 3.3, 3.4-1, 3.4-2, 3.4-3, 3.4-4, 3.5, 3.7, 4.1, 5.1 steps 1 to 3 (2026-11-16), 5.1a step 1 (2026-11-16), 5.9 step 1 (2026-11-16), 2.10a (2026-11-15), 5.2, 5.3 (2026-11-14), 6.7a (2026-11-15), 6.7d,
 6.9, 7.1 (but 7.1n) (LOG.md); 3.2 with 3.2c
 (CI-confirmed 2026-11-08). The fork does not wait for upstream review (the user, 2026-11-09): a fork-only
 move that would conflict with an open offer is preceded by a tag of the pre-move tree for `port.py`.
@@ -86,7 +86,7 @@ move that would conflict with an open offer is preceded by a tag of the pre-move
 | # | Task | Why now | Model / effort |
 |---|---|---|---|
 | 1 | **The bugs found in 4.1, by upstream branch** (the user, 2026-11-12; the list is "4.1's bugs by upstream branch" below): all fixed in the fork (2026-11-12, `d90b789ab`..`98a7dae87`, `4c07f1e11`; lip-sync and the push button still want a run in a game); ported to `master-41-fixes` and `ags4-41-fixes`, trial merge of the first into the second on `ags4-41-mergecheck` (`docs/UPSTREAM.md`, worktrees `../ags-up-master`, `../ags-up-ags4`; the trial merge's worktree is gone, its branch stays); double-checked, fixed, rebased and pushed to `origin` 2026-11-13 (`53a55451d` on `upstream/master` `fc4c47a7f`, `9d32c9654`; what the check found is in `docs/UPSTREAM.md`); left: open the two PRs (texts in `.compare/pr-description.md` of each worktree), the trial merge is from the first version and not redone, and the fork's reader still gives `RunGameLoopsWhileDialogOptionsDisplayed` true for an absent element where `Settings.FromXml` gives false (no effect on 4.0 projects) | 4.1 is done; the PRs were waiting for it | Fable 5.1, `high` for the review; the user opens the PRs |
-| 2 | **5.1 and 5.1a, by the design of 2026-11-15** (`RUNTIME-SPLIT.md`, reviewed with the user; LOG.md "5.1 step 2 and 5.1a: the design" lists what was decided and what each task still has to design). The order: **(a)** done 2026-11-15: 2.10a, the compile-time metric (BASELINE.md "compile time"), and the three save defects of RUNTIME-SPLIT.md 11 with a test each (`1dc82bb6c`); **(b)** done 2026-11-15 (`b8ac51d20`..`59b5d7092`): 5.1 step 2, `EngineServices` (LOG.md "5.1 step 2": baseline 143 to 94; the sprite cache is left to (d)); **(c)** 5.8 step 1 done 2026-11-15 (`c61a37714`..`970aa19cf`; LOG.md "5.8 step 1"), Common's save code into the engine; 6.7a done 2026-11-15 (`79f6369fc`), the old-game import out of `AGS.Native`; **(d)** 5.1 step 3 converted 2026-11-15 (`GameDef`, `Game`, `Room`, the sprite cache in `EngineServices`; LOG.md "5.1 step 3"), finished 2026-11-16 with the room fields and viewports out of `GamePlayState` and the loaded lists in `GameDef` (`26a9122bb`..`0501021fe`; the `linux`, `emscripten` and `msbuild` stages passed and everything up to `ec0098a2a` was pushed on 2026-11-16, CI green; the compile-time cost, total +2.4% and median +5%, is accepted, 2026-11-16); **(e)** 5.1a step 1 (`Character`) done 2026-11-16 (`f47b8ccb4`..`7347023cb`, 17 commits, not pushed; LOG.md "5.1a step 1": `CharacterDef`, `CharacterState`, `class Character`, one list `Game::Characters`, the fields renamed; compile time unchanged within the noise, BASELINE.md "After 5.1a step 1"); **next:** 5.9 on it (it opens with a design pass), then 5.1a steps 2 to 4 (each struct's fields renamed with `Script/rename_fields.py`); **(f)** 5.11 and 5.12, the restore into a second `Game` and the new save format; **(g)** 5.1a step 5 (GUI) with 6.7c. Any time after (d): 5.8 step 2. After (e): 5.10. **Compile time, in 2.10b's order:** its item 1 (`tools_test` links `common`) any time; its item 2, the precompiled header of stable content, beside 5.1a step 1 in a worktree (CMake files only) or at the latest before 5.1a steps 2 to 4, since it shortens every batch build of that series; each 5.1a step trims the big headers it splits and reports compile time against BASELINE.md "After 5.1 step 3", read on an idle machine with nothing else running. Small follow-ups left by 5.2 and 5.3: the host half of `asset_helper.h` (that of `runtime_defines.h` is done, `platform/base/engine_defines.h`); the signature fixes that 5.2 step 2's tags mark (LOG.md "5.2 step 2", each a behaviour change to decide). | Steps 1 and 2 are done: each remaining global has one declaration, the process-wide ones are out of the way, and `Script/use_context.py` converts the uses of a context; the design settles what the globals become before 1,860 uses of `game` are touched | Fable 5.2, `high` to supervise and for 5.9, 5.11 and 5.12's designs; Sonnet 5.5 or Opus 5.5 subagents for the conversions, in batches built once per batch |
+| 2 | **5.1 and 5.1a, by the design of 2026-11-15** (`RUNTIME-SPLIT.md`, reviewed with the user; LOG.md "5.1 step 2 and 5.1a: the design" lists what was decided and what each task still has to design). The order: **(a)** done 2026-11-15: 2.10a, the compile-time metric (BASELINE.md "compile time"), and the three save defects of RUNTIME-SPLIT.md 11 with a test each (`1dc82bb6c`); **(b)** done 2026-11-15 (`b8ac51d20`..`59b5d7092`): 5.1 step 2, `EngineServices` (LOG.md "5.1 step 2": baseline 143 to 94; the sprite cache is left to (d)); **(c)** 5.8 step 1 done 2026-11-15 (`c61a37714`..`970aa19cf`; LOG.md "5.8 step 1"), Common's save code into the engine; 6.7a done 2026-11-15 (`79f6369fc`), the old-game import out of `AGS.Native`; **(d)** 5.1 step 3 converted 2026-11-15 (`GameDef`, `Game`, `Room`, the sprite cache in `EngineServices`; LOG.md "5.1 step 3"), finished 2026-11-16 with the room fields and viewports out of `GamePlayState` and the loaded lists in `GameDef` (`26a9122bb`..`0501021fe`; the `linux`, `emscripten` and `msbuild` stages passed and everything up to `ec0098a2a` was pushed on 2026-11-16, CI green; the compile-time cost, total +2.4% and median +5%, is accepted, 2026-11-16); **(e)** 5.1a step 1 (`Character`) done 2026-11-16 (`f47b8ccb4`..`7347023cb`, 17 commits, not pushed; LOG.md "5.1a step 1": `CharacterDef`, `CharacterState`, `class Character`, one list `Game::Characters`, the fields renamed; compile time unchanged within the noise, BASELINE.md "After 5.1a step 1"); 5.9 designed with the user and its step 1 built on the character 2026-11-16 (the field tables, `Common/util/field_table.h`; LOG.md "5.9: the design and step 1"; `a206fefde`, `0a8a21b54`, not pushed); **next:** 5.1a steps 2 to 4 (each struct's fields renamed with `Script/rename_fields.py`, its field table written when the names are final), with 5.9 steps 2 to 4 beside them, any time: step 3, the script properties bound from the member, is a converter script and an object comparison for a subagent; **(f)** 5.11 and 5.12, the restore into a second `Game` and the new save format; **(g)** 5.1a step 5 (GUI) with 6.7c. Any time after (d): 5.8 step 2. After (e): 5.10. **Compile time, in 2.10b's order:** its item 1 (`tools_test` links `common`) any time; its item 2, the precompiled header of stable content, beside 5.1a step 1 in a worktree (CMake files only) or at the latest before 5.1a steps 2 to 4, since it shortens every batch build of that series; each 5.1a step trims the big headers it splits and reports compile time against BASELINE.md "After 5.1 step 3", read on an idle machine with nothing else running. Small follow-ups left by 5.2 and 5.3: the host half of `asset_helper.h` (that of `runtime_defines.h` is done, `platform/base/engine_defines.h`); the signature fixes that 5.2 step 2's tags mark (LOG.md "5.2 step 2", each a behaviour change to decide). | Steps 1 and 2 are done: each remaining global has one declaration, the process-wide ones are out of the way, and `Script/use_context.py` converts the uses of a context; the design settles what the globals become before 1,860 uses of `game` are touched | Fable 5.2, `high` to supervise and for 5.11 and 5.12's designs (5.9's is done); Sonnet 5.5 or Opus 5.5 subagents for the conversions and for 5.9 steps 2 to 4, in batches built once per batch |
 | 3 | **4.5 + 3.6 on what had no comment pass** (770 first-party files, ~280k lines): batch 8 done (2026-11-13, LOG.md: `game`, `gamestate`, `room`, `dialog`, `savegame`, `game_init`, `script`, `guimain`, `engine`); next, the untouched files most-churned first (a ranking by commits since 2024, the batch-6 stray-rename files among them), then the D3D/OpenGL drivers with the `emscripten` and `linux` stages, and the compiler (7,440-line parser: its own plan, by function groups). Brief `.compare/briefs/brief-45-fileset.md` (agents never run `prepush.py`; the supervisor runs it once on the combined branch) | The files have their final paths since 5.3 (map: `docs/refactor/moves-5.3.tsv`; the brief's file lists use the old ones), and a comment pass is cheaper before 5.1 and 5.2 step 2 edit them again | Sonnet 5.5, `medium`, parallel subagents; the parser plan Fable 5.1 |
 | 4 | **Upstream, when convenient:** U.8 (the 1.5b-2 fixes; `String(ptr, length)` separately if at all; 1.5b-4 leaks only if the user confirms); under review: U.3 (#3188, #3189; #3187 merged), U.4 (#3185), U.6 (#3192) | Real defects, small | Sonnet 5.5, `medium` (U.6: the user first) |
 
@@ -631,7 +631,7 @@ Each task is a series of small PRs.
     handlers, benchmarked before and after against the corpus run.
   - `GamePlayState::ReadFromSavegame`/`WriteForSavegame` (303/215) and the `RoomObject`,
     `CharacterExtras`, `ScreenOverlay` serialisers: not split here any more. They become the legacy reader
-    as they are (5.12), and the new save format is written from the property rows (5.9, 5.12).
+    as they are (5.12), and the new save format is written from the field rows (5.9, 5.12).
   - `engine_init_game_settings` (265), `DialogOptions::Begin/Run`.
 
   *Done when:* functions over 200 lines 19 → ≤ 3 (interpreter loop a documented exception);
@@ -648,7 +648,7 @@ Each task is a series of small PRs.
   commented C API boundaries (plugin API, SDL, OpenAL).
 - [ ] **5.8 Each format described once, in its layer** (2026-11-15, RUNTIME-SPLIT.md 4). A component describes
   itself in the formats that live with it: the game file through the record's own methods, as today, and the
-  new save format through its property rows (5.9, 5.12). Today's save code is the exception: it becomes the
+  new save format through its field rows (5.9, 5.12). Today's save code is the exception: it becomes the
   record of a dead format, so it is gathered in one place. No step here adds a file (a file costs about 2.4 s
   to compile, 2.10).
   1. **Common's save code into `Engine/game/save/savegame_components.cpp`**: the `...Savegame` methods of the
@@ -675,16 +675,39 @@ Each task is a series of small PRs.
   *Done when:* no `Savegame` method is left in `Common/game` (in `Common/gui` after 5.1a step 5);
   `data_file_writer.cpp` writes no stream; build parity holds; the engine's and Common's file counts are not
   higher than before.
-- [ ] **5.9 Property rows** (2026-11-15, RUNTIME-SPLIT.md 6). One row per field beside its struct
-  (`Prop<&CharacterDef::Baseline>("Baseline")`), in the style of `xml_fields.h` and `script_binder.h`. From the
-  rows: comparison and dump of two objects (tests, the check of a restore, later an inspector), the new save
-  format (5.12), the script API's plain getters and setters, a drift check of `agsdefns.sh`. `Character` first,
-  after 5.1a step 1; then each struct as 5.1a splits it. The task opens with a design pass on how far to take
-  data-driven code (the user, 2026-11-15: left for this session): what a row carries beyond name and member
-  (range, default, script exposure), whether a row can drive behaviour (a change hook), and whether a schema
-  file should generate the rows; decided against a real `Character` and `CharacterState`.
-  *Done when:* every `Info` and `State` struct has its rows (a test fails for a field without one), and a test
-  compares two `Game` objects built from the same `GameDef` as equal.
+- [ ] **5.9 Field tables** (2026-11-15, "property rows" until the design; RUNTIME-SPLIT.md 6). One row per
+  data member of a struct, in its source file (`Field<&CharacterDef::Baseline>("Baseline")`,
+  `Common/util/field_table.h`), in the style of `xml_fields.h` and `script_binder.h`. From the rows: comparison
+  and dump of two objects (tests, the check of a restore, later an inspector) and the new save format (5.12).
+  **Designed with the user 2026-11-16**, against the real `CharacterDef` and `CharacterState` (the evidence is
+  in RUNTIME-SPLIT.md 6): a row is a name, a member and a role (`Saved`, `Derived`, `Opaque`), with no default,
+  range, script exposure or change hook in it; the compiler counts the struct's members against the rows, so a
+  field without a row does not build, which makes every `XDef` and `XState` an aggregate; no schema file; the
+  script properties that only read or write a member or a flag bit are bound from the member in the binder;
+  the drift check of `agsdefns.sh` needs no rows.
+  1. [x] **The mechanism and the character** (2026-11-16, LOG.md "5.9: the design and step 1"; `a206fefde`, `0a8a21b54`, not pushed):
+     `field_table.h`, the tables of `CharacterDef`, `CharacterState`, `AnimFlowParams` and `ViewAnimateParams`,
+     the tests `FieldTable.*` and `SavegameContent.EveryCharacterFieldIsRestored`.
+  2. **The character whole:** `Character::_graphicSpace` into `CharacterState` (the live class declares no
+     data), `GetEvents()` replaced by the member (a `[rename]`), a `FieldValue` for the two event tables so that
+     they are compared, and the one function that computes the `Derived` fields again, with a test that
+     compares them after a restore (five of the seven are set by the next update, not by the restore: with
+     5.11).
+  3. **Script properties bound from the member** (Sonnet 5.5 or Opus 5.5 subagents with a converter script,
+     type by type): `FieldGetter`, `FieldSetter`, `FlagGetter`, `FlagSetter` beside the binder, each binding
+     proven identical to the function it replaces by comparing the objects (5.2 step 2's method; the MSVC trap
+     is in RUNTIME-SPLIT.md 6). The character first: 77 of its 142 property functions, about 500 lines; a
+     function with a check, a clamp or a call after the write stays. The helpers that counted them are in
+     `.compare/helpers/59`.
+  4. **The drift check of `agsdefns.sh`:** the imports the compiler reads from it against
+     `Engine/test/data/script_exports.txt` (every import registered, a `readonly` attribute without a setter,
+     a registered name that no import declares listed with its reason).
+  5. **Each struct as 5.1a splits it**, its rows written when its fields have their final names.
+  6. The member-pointer trait is written twice (`FieldDetail::MemberPointer`, `XmlDetail::MemberPtr` in
+     `Tools/data/xml_fields.h`): one of them, when the tools are next touched.
+
+  *Done when:* every `XDef` and `XState` struct has its rows (the build fails for a field without one), and a
+  test compares two `Game` objects built from the same `GameDef` as equal.
 - [ ] **5.10 Shared parts, the logic** (2026-11-15, RUNTIME-SPLIT.md 7). After 5.1a step 2 has made the shared
   structs: one implementation each of the view animation tick and its start, the move along a path, the graphic
   property setters (tint, light, opacity, scaling, rotation), the blocking rectangle and the
@@ -711,7 +734,7 @@ Each task is a series of small PRs.
   *Done when:* a test restores a truncated save and the game goes on; a test builds two `Game` objects, runs
   one, restores a save into the other and compares; `RunAGSGame` is the only path that reloads the game file.
 - [ ] **5.12 A new save format, the current one read by a legacy routine** (the user, 2026-11-15:
-  the save format need not be kept; RUNTIME-SPLIT.md 6a). After 5.9, and 5.11 step 1. Written from the property
+  the save format need not be kept; RUNTIME-SPLIT.md 6a). After 5.9, and 5.11 step 1. Written from the field
   rows: per type the saved field names once, then the values; the reader matches names, so a field the save
   lacks keeps the definition's value and a field the engine dropped is skipped, with no version number per
   field. Only what differs from the definition is written (today each save holds every frame of every view and
@@ -895,7 +918,7 @@ Wanted, but not before phases 3–7 are done; nothing is kept in the code to mak
 - [ ] **L.3 What the contract keeps out of phase 5** (2026-11-15, RUNTIME-SPLIT.md 10; recorded, not designed):
   identity by a stable id instead of the array index in the script ABI (C3), handles instead of addresses for
   plugins (C4), blocking calls as script coroutines instead of nested game loops, one schema that generates
-  both the C++ property rows and the C# properties of `AGS.Types`.
+  both the C++ field rows and the C# properties of `AGS.Types`.
 
 ---
 

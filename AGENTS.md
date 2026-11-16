@@ -162,6 +162,13 @@ no `chex`, the fields under their STYLE.md names (`ch->NormalView`, `ch->MoveLis
 `game.Def().Characters`, read where the live list is built (`InitGameState`). A field of a struct is renamed with
 `Script/rename_fields.py` (a map of `Struct::old<TAB>New`; it resolves each reference through libclang, never by
 spelling), as a `[rename]` commit of its own.
+Every data member of an `XDef` or `XState` has one row in the struct's field table (5.9 step 1, 2026-11-16,
+RUNTIME-SPLIT.md 6; `Common/util/field_table.h`; the character's structs so far): the table is in the struct's
+source file (`kCharacterDefFields` in `character_def.cpp`, `kCharacterStateFields` in `character.cpp`), and a field
+added without a row does not build (`static_assert(FieldsCoverStruct(...))`), so these structs stay aggregates (no
+private data, no constructor written out). A row is a name, a member and a role (`Saved`, `Derived`, `Opaque`),
+nothing more; `DiffFields`, `PrintFields` and `AlterFields` work on any struct with a table, and a test that
+checks a save uses them rather than naming fields.
 `Engine/game/` holds the game logic in `world`, `navigation`, `dialog`, `ui`, `render`, `audio`, `video`,
 `input`, `save`, `lib` and `dynobj`, and the script bindings in `script_api/`. `docs/context/repository.md`
 describes upstream's tree, so its `Engine/ac/` and `Common/ac/` paths map through
