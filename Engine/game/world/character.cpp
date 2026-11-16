@@ -805,8 +805,8 @@ float GetFaceDirRatio(Character *ch)
     int onarea = get_walkable_area_at_location(room, ch->X, ch->Y);
     if (onarea > 0 && room.WalkAreas[onarea].FaceDirectionRatio != 0.f)
         return room.WalkAreas[onarea].FaceDirectionRatio;
-    if (room.State->face_dir_ratio != 0.f)
-        return room.State->face_dir_ratio;
+    if (room.State->FaceDirectionRatio != 0.f)
+        return room.State->FaceDirectionRatio;
     if (game.Play.face_dir_ratio != 0.f)
         return game.Play.face_dir_ratio;
     return 1.f;
@@ -956,7 +956,7 @@ void Character_FaceObject(Character *ch, ScriptObject *obj, int blocking_style)
     if (obj == nullptr)
         quit("!FaceObject: invalid object specified");
 
-    FaceLocationXY(ch, room.Objs[obj->id].x, room.Objs[obj->id].y, blocking_style);
+    FaceLocationXY(ch, room.Objects[obj->id].X, room.Objects[obj->id].Y, blocking_style);
 }
 
 void Character_FaceCharacter(Character *ch, Character *other, int blocking_style)
@@ -1108,7 +1108,7 @@ int Character_IsCollidingWithObject(Character *ch, ScriptObject *obj)
     {
         return 0;
     }
-    if (!room.Objs[obj->id].is_enabled())
+    if (!room.Objects[obj->id].is_enabled())
     {
         return 0;
     }
@@ -1118,7 +1118,7 @@ int Character_IsCollidingWithObject(Character *ch, ScriptObject *obj)
     Bitmap *obj_pic = GetObjectImage(obj->id);
     const int obj_w = obj_pic->GetWidth();
     const int obj_h = obj_pic->GetHeight();
-    const Rect obj_rc = RectWH(room.Objs[obj->id].x, room.Objs[obj->id].y - obj_h, obj_w, obj_h);
+    const Rect obj_rc = RectWH(room.Objects[obj->id].X, room.Objects[obj->id].Y - obj_h, obj_w, obj_h);
 
     Bitmap *ch_pic = GetCharacterImage(ch->ID);
     const int char_w = ch_pic->GetWidth();

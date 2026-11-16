@@ -15,16 +15,11 @@
 // RoomDef, a class describing the room as the room file stores it, with the definitions of its
 // entities: RoomObjectDef, RoomHotspotDef, RoomRegionDef, RoomWalkableAreaDef and RoomWalkBehindDef.
 //
-// Some of that data is never supposed to be changed at runtime. Another may be changed, but these
-// changes are lost as soon as room is unloaded. The changes that must remain in memory are kept
-// in separate classes: see RoomState, RoomObject etc.
-//
-// TODO: have a consistent division between design-time struct (loaded from
-// game data), and runtime class. Need to think how we want to deal with
-// the data saved when the room is unloaded. We may keep everything in the
-// same runtime class, OR have *another* struct for the "cached runtime data",
-// which is written to when the room is unloaded and read from when the room
-// is loaded once again.
+// The engine keeps a definition as loaded and does not write it while the game runs: each entity
+// that the game changes is a live object that starts as a copy of its definition (RoomObject,
+// RoomHotspot, RoomRegion, RoomWalkableArea, RoomWalkBehind, in the engine's RoomState), and the
+// engine's Room reads the definitions through Room::Def(). The masks and backgrounds that the
+// script draws on are the bitmaps of RoomStruct, still written in place (PLAN.md 6.7e).
 //
 //=============================================================================
 #pragma once
@@ -141,7 +136,7 @@ enum RegionEventID
 struct RoomOptions
 {
     // If player character is turned off in the room
-    bool PlayerCharOff;
+    bool PlayerCharacterOff;
     // Apply player character's normal view when entering this room
     int PlayerView;
     // Optional character facing dir ratio (y / x), 0 = ignore
@@ -335,9 +330,8 @@ struct RoomWalkBehindDef : public RoomObjectBase
 };
 
 //
-// Description of a single room.
-// This class contains initial room data. Some of it may still be modified
-// at the runtime, but then these changes get lost as soon as room is unloaded.
+// Description of a single room, as the room file gives it: the starting values of what the game
+// changes, which the engine copies into the room's live objects and does not write back.
 //
 class RoomDef : public RoomObjectBase
 {
@@ -364,7 +358,8 @@ public:
     // Gets this room's script name
     const String &GetScriptName() const { return ScriptName; }
 
-    // TODO: see later whether it may be more convenient to move these to the Region class instead.
+    // The region's values as the room file gives them, for the editor; the engine reads the live
+    // region's (RoomRegion::GetLightLevel...).
     // Gets if the given region has light level set
     bool HasRegionLightLevel(int id) const;
     // Gets if the given region has a tint set
@@ -436,7 +431,7 @@ public:
     // Compiled room script
     UScript CompiledScript;
     // Various extended options with string values, meta-data etc
-    StringMap StrOptions;
+    StringMap StringOptions;
 
 private:
     // Script events schema

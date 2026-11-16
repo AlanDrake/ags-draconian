@@ -104,6 +104,8 @@ bool walkbehinds_cropout(Room &room, Bitmap *sprit, int sprx, int spry, int base
 
     const int maskcol = sprit->GetMaskColor();
     const int spcoldep = sprit->GetColorDepth();
+    // taken once: the pixel writes below may alias anything, which would make the loop read the list's address again
+    const RoomWalkBehind *walk_behinds = room.WalkBehinds;
 
     bool pixels_changed = false;
     // pass along the sprite's pixels, but skip those that lie outside the mask
@@ -122,7 +124,7 @@ bool walkbehinds_cropout(Room &room, Bitmap *sprit, int sprx, int spry, int base
             const int wb = room.WalkBehindMask->GetScanLine(y + spry)[x + sprx];
             if (wb < 1)
                 continue; // "no area"
-            if (room.State->walkbehind_base[wb] <= basel)
+            if (walk_behinds[wb].Baseline <= basel)
                 continue;
 
             pixels_changed = true;
@@ -214,12 +216,12 @@ int Walkbehind_GetID(ScriptWalkbehind *wb)
 
 int Walkbehind_GetBaseline(ScriptWalkbehind *wb)
 {
-    return Room::Current().State->walkbehind_base[wb->id];
+    return Room::Current().WalkBehinds[wb->id].Baseline;
 }
 
 void Walkbehind_SetBaseline(ScriptWalkbehind *wb, int baseline)
 {
-    Room::Current().State->walkbehind_base[wb->id] = baseline;
+    Room::Current().WalkBehinds[wb->id].Baseline = static_cast<int16_t>(baseline); // 16 bits, as before
 }
 
 const char *Walkbehind_GetScriptName(ScriptWalkbehind *wb)
@@ -239,10 +241,10 @@ void SetWalkBehindBase(int wa, int bl)
         return;
     }
 
-    if (bl != room.State->walkbehind_base[wa])
+    if (bl != room.WalkBehinds[wa].Baseline)
     {
         room.WalkBehindBaselinesChanged = true;
-        room.State->walkbehind_base[wa] = bl;
+        room.WalkBehinds[wa].Baseline = static_cast<int16_t>(bl); // 16 bits, as before
         debug_script_log("Walk-behind %d baseline changed to %d", wa, bl);
     }
 }
@@ -256,5 +258,5 @@ int GetWalkBehindBase(int wa)
         return 0;
     }
 
-    return Room::Current().State->walkbehind_base[wa];
+    return Room::Current().WalkBehinds[wa].Baseline;
 }

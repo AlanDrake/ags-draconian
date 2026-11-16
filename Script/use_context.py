@@ -263,7 +263,7 @@ CONTEXTS = {
             'thisroom': '',
             'croom': 'State',
             'troom': 'TempState',
-            'objs': 'Objs',
+            'objs': 'Objects',
             'roomscript': 'Script',
             'bg_just_changed': 'BgJustChanged',
             'walkareabackup': 'WalkAreaBackup',

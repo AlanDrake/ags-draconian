@@ -35,113 +35,99 @@
 
 using namespace AGS::Common;
 
-RoomObject::RoomObject()
+void RoomObject::RebindDefinition(const RoomObjectDef &def)
 {
-    x = y = 0;
-    opacity = 255;
-    tint_r = tint_g = 0;
-    tint_b = tint_level = 0;
-    tint_light = 0;
-    zoom = 100;
-    spr_width = spr_height = 0;
-    frame_xoff = frame_yoff = 0;
-    width = height = 0;
-    num = 0;
-    baseline = -1;
-    view = NoView;
-    loop = frame = 0;
-    wait = 0;
-    moving = -1;
-    flags = 0;
-    blocking_width = blocking_height = 0;
-    blend_mode = kBlend_Normal;
-    rotation = 0.f;
-
-    UpdateGraphicSpace();
+    ID = def.ID;
+    ScriptName = def.ScriptName;
+    Room = def.Room;
+    GetEvents() = def.GetEvents();
+    Interactions = def.Interactions;
+    Properties = def.Properties;
 }
 
 int RoomObject::get_width() const
 {
     // FIXME: don't use the game context here, instead make sure last_width is always valid
-    if (width == 0)
-        return Game::Current().SpriteInfos[num].Width;
-    return width;
+    if (Width == 0)
+        return Game::Current().SpriteInfos[Sprite].Width;
+    return Width;
 }
 
 int RoomObject::get_height() const
 {
     // FIXME: don't use the game context here, instead make sure last_height is always valid
-    if (height == 0)
-        return Game::Current().SpriteInfos[num].Height;
-    return height;
+    if (Height == 0)
+        return Game::Current().SpriteInfos[Sprite].Height;
+    return Height;
 }
 
 int RoomObject::get_baseline() const
 {
-    if (baseline < 1)
-        return y;
-    return baseline;
+    if (Baseline < 1)
+        return Y;
+    return Baseline;
 }
 
 void RoomObject::UpdateCyclingView(Game &game, int ref_id)
 {
     if (!is_enabled())
         return;
-    if (moving > 0)
+    if (MoveListID > 0)
     {
-        MoveList &mlist = *get_movelist(moving);
+        MoveList &mlist = *get_movelist(MoveListID);
         // If we support smooth walk, then keep moving even across multiple stages,
         // until all the "current move" is not depleted OR until we have to turn.
         for (MoveResult mresult = kMoveResult_Continue;
-             ((mresult = do_movelist_move(moving, x, y, mresult == kMoveResult_Continue)) == kMoveResult_NextStage) &&
+             ((mresult = do_movelist_move(MoveListID, X, Y, mresult == kMoveResult_Continue)) ==
+              kMoveResult_NextStage) &&
              !Math::IsFloatZero(mlist.onpart);)
         {
         }
 
-        if (moving == 0)
+        if (MoveListID == 0)
             OnStopMoving();
     }
     if (!is_animating())
         return;
-    if (view == RoomObject::NoView)
+    if (View == RoomObject::NoView)
         return;
-    if (wait > 0)
+    if (AnimWait > 0)
     {
-        wait--;
+        AnimWait--;
         return;
     }
 
-    if (!CycleViewAnim(game, view, loop, frame, anim))
+    if (!CycleViewAnim(game, View, Loop, Frame, Anim))
     {
-        anim = ViewAnimateParams();
+        Anim = ViewAnimateParams();
     }
 
-    ViewFrame *vfptr = &game.Views[view].loops[loop].frames[frame];
+    ViewFrame *vfptr = &game.Views[View].loops[Loop].frames[Frame];
     if (vfptr->pic > UINT16_MAX)
         debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", ref_id,
                           vfptr->pic, UINT16_MAX);
-    num = Math::InRangeOrDef<uint16_t>(vfptr->pic, 0);
+    Sprite = Math::InRangeOrDef<uint16_t>(vfptr->pic, 0);
 
     if (!is_animating())
         return;
 
-    wait = anim.Delay + vfptr->speed;
+    AnimWait = Anim.Delay + vfptr->speed;
     CheckViewFrame();
 }
 
 void RoomObject::OnStopMoving()
 {
     // Release movelist
-    if (moving > 0)
+    if (MoveListID > 0)
     {
-        remove_movelist(moving);
-        moving = 0;
+        remove_movelist(MoveListID);
+        MoveListID = 0;
     }
     // If we have a movelist reference attached, then invalidate and dec refcount
-    if (movelist_handle > 0)
+    if (MoveListHandle > 0)
     {
-        release_script_movelist(movelist_handle);
-        movelist_handle = 0;
+        release_script_movelist(MoveListHandle);
+        MoveListHandle = 0;
     }
 }
 
@@ -149,69 +135,67 @@ void RoomObject::OnStopMoving()
 int RoomObject::GetFrameSoundVolume() const
 {
     // NOTE: room objects don't have "scale volume" flag at the moment
-    return ::CalcFrameSoundVolume(audio_volume, anim.AudioVolume);
+    return ::CalcFrameSoundVolume(AnimationVolume, Anim.AudioVolume);
 }
 
 void RoomObject::CheckViewFrame()
 {
     ObjectEvent objevt(kScTypeRoom,
-                       RuntimeScriptValue().SetScriptObject(&Game::Current().ScObjects[id], &ccDynamicObject));
-    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(), audio_panning, AudioSpeed, objevt,
-                     &Room::Current().Objects[id].GetEvents(), kRoomObjectEvent_OnFrameEvent);
+                       RuntimeScriptValue().SetScriptObject(&Game::Current().ScObjects[ID], &ccDynamicObject));
+    ::CheckViewFrame(View, Loop, Frame, GetFrameSoundVolume(), AudioPanning, AudioSpeed, objevt, &GetEvents(),
+                     kRoomObjectEvent_OnFrameEvent);
 }
 
 bool RoomObject::RunFrameEvent(int view, int loop, int frame)
 {
     ObjectEvent objevt(kScTypeRoom,
-                       RuntimeScriptValue().SetScriptObject(&Game::Current().ScObjects[id], &ccDynamicObject));
-    return ::RunViewFrameEvent(view, loop, frame, objevt, &Room::Current().Objects[id].GetEvents(),
-                               kRoomObjectEvent_OnFrameEvent);
+                       RuntimeScriptValue().SetScriptObject(&Game::Current().ScObjects[ID], &ccDynamicObject));
+    return ::RunViewFrameEvent(view, loop, frame, objevt, &GetEvents(), kRoomObjectEvent_OnFrameEvent);
 }
 
 void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
 {
-    x = in->ReadInt32();
-    y = in->ReadInt32();
-    opacity = in->ReadInt32();
-    tint_r = in->ReadInt16();
-    tint_g = in->ReadInt16();
-    tint_b = in->ReadInt16();
-    tint_level = in->ReadInt16();
-    tint_light = in->ReadInt16();
-    zoom = in->ReadInt16();
-    width = in->ReadInt16();
-    height = in->ReadInt16();
-    num = in->ReadInt16();
-    baseline = in->ReadInt16();
-    view = in->ReadInt16();
-    loop = in->ReadInt16();
-    frame = in->ReadInt16();
-    wait = in->ReadInt16();
-    moving = in->ReadInt16();
+    X = in->ReadInt32();
+    Y = in->ReadInt32();
+    Opacity = in->ReadInt32();
+    TintRed = in->ReadInt16();
+    TintGreen = in->ReadInt16();
+    TintBlue = in->ReadInt16();
+    TintLevel = in->ReadInt16();
+    TintLight = in->ReadInt16();
+    Zoom = in->ReadInt16();
+    Width = in->ReadInt16();
+    Height = in->ReadInt16();
+    Sprite = static_cast<uint16_t>(in->ReadInt16()); // 16 bits, unsigned: the legacy save format
+    Baseline = static_cast<int16_t>(in->ReadInt16());
+    View = in->ReadInt16();
+    Loop = in->ReadInt16();
+    Frame = in->ReadInt16();
+    AnimWait = in->ReadInt16();
+    MoveListID = in->ReadInt16();
     int legacy_animating = in->ReadInt8(); // legacy animating
     int anim_delay = in->ReadInt8();       // legacy anim delay (8-bit)
-    flags = in->ReadInt32();
+    Flags = in->ReadInt32();
 
-    blocking_width = in->ReadInt16();
-    blocking_height = in->ReadInt16();
-    name = StrUtil::ReadString(in);
+    // the blocking rectangle's size; its offset comes later
+    const int16_t blocking_width = in->ReadInt16();
+    const int16_t blocking_height = in->ReadInt16();
+    Name = StrUtil::ReadString(in);
 
     // anim vols order inverted compared to character, by mistake :(
     int cur_audio_volume = static_cast<uint8_t>(in->ReadInt8());
-    audio_volume = static_cast<uint8_t>(in->ReadInt8());
-    audio_panning = in->ReadInt8();
+    AnimationVolume = static_cast<uint8_t>(in->ReadInt8());
+    AudioPanning = in->ReadInt8();
     in->ReadInt8(); // reserved
 
+    int16_t blocking_x = 0;
+    int16_t blocking_y = 0;
     if (cmp_ver >= kRoomStatSvgVersion_40026)
     {
         blocking_x = in->ReadInt16();
         blocking_y = in->ReadInt16();
     }
-    else
-    {
-        blocking_x = 0;
-        blocking_y = 0;
-    }
+    BlockingRect = RectWH(blocking_x, blocking_y, blocking_width, blocking_height);
 
     if (cmp_ver >= kRoomStatSvgVersion_40028)
     {
@@ -225,7 +209,7 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         AudioSpeed = 1000; // default: normal speed
     }
 
-    blend_mode = (BlendMode)in->ReadInt32();
+    BlendMode = (AGS::Common::BlendMode)in->ReadInt32();
     // Reserved for colour options
     in->ReadInt32(); // colour flags
     // Reserved for transform options
@@ -235,24 +219,24 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     in->ReadInt32();              // transform scale y
     in->ReadInt32();              // transform skew x
     in->ReadInt32();              // transform skew y
-    rotation = in->ReadFloat32(); // transform rotate
+    Rotation = in->ReadFloat32(); // transform rotate
     float px = in->ReadFloat32(); // sprite pivot x
     float py = in->ReadFloat32(); // sprite pivot y
     float ax = in->ReadFloat32(); // sprite anchor x
     float ay = in->ReadFloat32(); // sprite anchor y
-    spr_anchor = Pointf(ax, ay);
-    pivot = Pointf(px, py);
+    GraphicAnchor = Pointf(ax, ay);
+    Pivot = Pointf(px, py);
 
     if (cmp_ver >= kRoomStatSvgVersion_40016)
     {
-        movelist_handle = in->ReadInt32();
+        MoveListHandle = in->ReadInt32();
         in->ReadInt32(); // reserve up to 4 ints
         in->ReadInt32();
         in->ReadInt32();
     }
     else
     {
-        movelist_handle = 0;
+        MoveListHandle = 0;
     }
 
     AnimFlowStyle anim_flow = kAnimFlow_None;
@@ -260,8 +244,8 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     AnimFlowDirection anim_dir_current = kAnimDirForward;
     if (cmp_ver >= kRoomStatSvgVersion_40018)
     {
-        shader_id = in->ReadInt32();
-        shader_handle = in->ReadInt32();
+        ShaderID = in->ReadInt32();
+        ShaderHandle = in->ReadInt32();
         // new anim fields are valid since kRoomStatSvgVersion_40020
         anim_flow = static_cast<AnimFlowStyle>(in->ReadInt8());
         anim_dir_initial = static_cast<AnimFlowDirection>(in->ReadInt8());
@@ -272,32 +256,32 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     }
     else
     {
-        shader_id = 0;
-        shader_handle = 0;
+        ShaderID = 0;
+        ShaderHandle = 0;
     }
 
     if (cmp_ver >= kRoomStatSvgVersion_40026)
     {
         int offx = in->ReadInt32();
         int offy = in->ReadInt32();
-        spr_offset = Point(offx, offy);
+        GraphicOffset = Point(offx, offy);
     }
     else
     {
-        spr_anchor = Pointf(0.f, 1.f); // default: left-bottom
-        spr_offset = Point();
+        GraphicAnchor = Pointf(0.f, 1.f); // default: left-bottom
+        GraphicOffset = Point();
     }
 
     if (cmp_ver >= kRoomStatSvgVersion_40029)
     {
         int pivot_offx = in->ReadInt32();
         int pivot_offy = in->ReadInt32();
-        pivot_offset = Point(pivot_offx, pivot_offy);
+        PivotOffset = Point(pivot_offx, pivot_offy);
     }
     else
     {
-        pivot = Pointf(0.5f, 0.5f); // default: center
-        pivot_offset = Point();
+        Pivot = Pointf(0.5f, 0.5f); // default: center
+        PivotOffset = Point();
     }
 
     // Apply animation params either from old or new save
@@ -317,110 +301,111 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     // Upgrade legacy transparency, tint and light ranges
     if (cmp_ver < kRoomStatSvgVersion_40034)
     {
-        opacity = GfxDef::LegacyTrans255ToAlpha255(opacity);
+        Opacity = GfxDef::LegacyTrans255ToAlpha255(Opacity);
         if (has_explicit_tint())
         {
-            tint_level = static_cast<int16_t>(GfxDef::Value100ToValue255(tint_level));
-            tint_light = static_cast<int16_t>(GfxDef::Value250ToValue255(tint_light));
+            TintLevel = static_cast<int16_t>(GfxDef::Value100ToValue255(TintLevel));
+            TintLight = static_cast<int16_t>(GfxDef::Value250ToValue255(TintLight));
         }
         else if (has_explicit_light())
         {
-            tint_light = static_cast<int16_t>(GfxDef::Value100ToValue255(tint_light));
+            TintLight = static_cast<int16_t>(GfxDef::Value100ToValue255(TintLight));
         }
     }
 
-    anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_audio_volume);
-    spr_width = width;
-    spr_height = height;
+    Anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_audio_volume);
+    SpriteWidth = Width;
+    SpriteHeight = Height;
     UpdateGraphicSpace();
 }
 
 void RoomObject::WriteToSavegame(Stream *out) const
 {
-    out->WriteInt32(x);
-    out->WriteInt32(y);
-    out->WriteInt32(opacity);
-    out->WriteInt16(tint_r);
-    out->WriteInt16(tint_g);
-    out->WriteInt16(tint_b);
-    out->WriteInt16(tint_level);
-    out->WriteInt16(tint_light);
-    out->WriteInt16(zoom);
-    out->WriteInt16(width);
-    out->WriteInt16(height);
-    out->WriteInt16(num);
-    out->WriteInt16(baseline);
-    out->WriteInt16(view);
-    out->WriteInt16(loop);
-    out->WriteInt16(frame);
-    out->WriteInt16(wait);
-    out->WriteInt16(moving);
+    out->WriteInt32(X);
+    out->WriteInt32(Y);
+    out->WriteInt32(Opacity);
+    out->WriteInt16(TintRed);
+    out->WriteInt16(TintGreen);
+    out->WriteInt16(TintBlue);
+    out->WriteInt16(TintLevel);
+    out->WriteInt16(TintLight);
+    out->WriteInt16(Zoom);
+    out->WriteInt16(Width);
+    out->WriteInt16(Height);
+    out->WriteInt16(static_cast<int16_t>(Sprite));
+    out->WriteInt16(static_cast<int16_t>(Baseline));
+    out->WriteInt16(View);
+    out->WriteInt16(Loop);
+    out->WriteInt16(Frame);
+    out->WriteInt16(AnimWait);
+    out->WriteInt16(MoveListID);
     out->WriteInt8(0); // legacy animating (8-bit field)
-    out->WriteInt8(anim.Delay);
-    out->WriteInt32(flags);
-    out->WriteInt16(blocking_width);
-    out->WriteInt16(blocking_height);
+    out->WriteInt8(Anim.Delay);
+    out->WriteInt32(Flags);
+    out->WriteInt16(static_cast<int16_t>(BlockingRect.GetWidth()));
+    out->WriteInt16(static_cast<int16_t>(BlockingRect.GetHeight()));
     // since 3.6.0.16
-    StrUtil::WriteString(name, out);
+    StrUtil::WriteString(Name, out);
     // since 3.6.0.25
-    out->WriteInt8(static_cast<uint8_t>(anim.AudioVolume));
-    out->WriteInt8(static_cast<uint8_t>(audio_volume));
-    out->WriteInt8(audio_panning);
+    out->WriteInt8(static_cast<uint8_t>(Anim.AudioVolume));
+    out->WriteInt8(static_cast<uint8_t>(AnimationVolume));
+    out->WriteInt8(AudioPanning);
     out->WriteInt8(0); // reserved
     // kRoomStatSvgVersion_40026
-    out->WriteInt16(blocking_x);
-    out->WriteInt16(blocking_y);
+    out->WriteInt16(static_cast<int16_t>(BlockingRect.Left));
+    out->WriteInt16(static_cast<int16_t>(BlockingRect.Top));
     // kRoomStatSvgVersion_40028
     out->WriteInt32(AudioSpeed);
     out->WriteInt32(0); // reserved
     out->WriteInt32(0);
     out->WriteInt32(0);
     // since 4.0.0.0
-    out->WriteInt32(blend_mode);
+    out->WriteInt32(BlendMode);
     // Reserved for colour options
     out->WriteInt32(0); // colour flags
     // Reserved for transform options
-    out->WriteInt32(0);              // sprite transform flags1
-    out->WriteInt32(0);              // sprite transform flags2
-    out->WriteInt32(0);              // transform scale x
-    out->WriteInt32(0);              // transform scale y
-    out->WriteInt32(0);              // transform skew x
-    out->WriteInt32(0);              // transform skew y
-    out->WriteFloat32(rotation);     // transform rotate
-    out->WriteFloat32(pivot.X);      // sprite pivot x
-    out->WriteFloat32(pivot.Y);      // sprite pivot y
-    out->WriteFloat32(spr_anchor.X); // sprite anchor x
-    out->WriteFloat32(spr_anchor.Y); // sprite anchor y
+    out->WriteInt32(0);                 // sprite transform flags1
+    out->WriteInt32(0);                 // sprite transform flags2
+    out->WriteInt32(0);                 // transform scale x
+    out->WriteInt32(0);                 // transform scale y
+    out->WriteInt32(0);                 // transform skew x
+    out->WriteInt32(0);                 // transform skew y
+    out->WriteFloat32(Rotation);        // transform rotate
+    out->WriteFloat32(Pivot.X);         // sprite pivot x
+    out->WriteFloat32(Pivot.Y);         // sprite pivot y
+    out->WriteFloat32(GraphicAnchor.X); // sprite anchor x
+    out->WriteFloat32(GraphicAnchor.Y); // sprite anchor y
     // kRoomStatSvgVersion_40016
-    out->WriteInt32(movelist_handle);
+    out->WriteInt32(MoveListHandle);
     out->WriteInt32(0); // reserve up to 4 ints
     out->WriteInt32(0);
     out->WriteInt32(0);
     // kRoomStatSvgVersion_40018
-    out->WriteInt32(shader_id);
-    out->WriteInt32(shader_handle);
+    out->WriteInt32(ShaderID);
+    out->WriteInt32(ShaderHandle);
     // new anim fields are valid since kRoomStatSvgVersion_40020
-    out->WriteInt8(anim.Flow);
-    out->WriteInt8(anim.InitialDirection);
-    out->WriteInt8(anim.Direction);
+    out->WriteInt8(Anim.Flow);
+    out->WriteInt8(Anim.InitialDirection);
+    out->WriteInt8(Anim.Direction);
     out->WriteInt8(0); // reserved to fill int32
-    out->WriteInt16(anim.Delay);
+    out->WriteInt16(Anim.Delay);
     out->WriteInt16(0); // reserved to fill int32
     // kRoomStatSvgVersion_40026
-    out->WriteInt32(spr_offset.X);
-    out->WriteInt32(spr_offset.Y);
+    out->WriteInt32(GraphicOffset.X);
+    out->WriteInt32(GraphicOffset.Y);
     // kRoomStatSvgVersion_40029
-    out->WriteInt32(pivot_offset.X);
-    out->WriteInt32(pivot_offset.Y);
+    out->WriteInt32(PivotOffset.X);
+    out->WriteInt32(PivotOffset.Y);
 }
 
 void RoomObject::UpdateGraphicSpace()
 {
-    const GraphicFlip flip = (view != RoomObject::NoView) ? GetViewFrameFlip(view, loop, frame, num) : kFlip_None;
-    _gs = GraphicSpace(x, y, spr_anchor,            // origin
-                       Size(spr_width, spr_height), // source sprite size
-                       Size(width, height),         // destination size (scaled)
-                       // real graphical aabb (maybe with extra offsets)
-                       RectWH(frame_xoff + spr_offset.X, frame_yoff + spr_offset.Y, spr_width, spr_height), rotation,
-                       pivot, pivot_offset, kOriginRule_MirrorAround, flip);
+    const GraphicFlip flip = (View != RoomObject::NoView) ? GetViewFrameFlip(View, Loop, Frame, Sprite) : kFlip_None;
+    _graphicSpace =
+        GraphicSpace(X, Y, GraphicAnchor,             // origin
+                     Size(SpriteWidth, SpriteHeight), // source sprite size
+                     Size(Width, Height),             // destination size (scaled)
+                     // real graphical aabb (maybe with extra offsets)
+                     RectWH(FrameOffsetX + GraphicOffset.X, FrameOffsetY + GraphicOffset.Y, SpriteWidth, SpriteHeight),
+                     Rotation, Pivot, PivotOffset, kOriginRule_MirrorAround, flip);
 }

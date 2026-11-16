@@ -565,21 +565,22 @@ bool run_service_key_controls(KeyInput &out_key)
                                game.PlayerChar->Frame, (IsGamePaused() == 0) ? "" : "\nGame paused.",
                                (game.Play.ground_level_areas_disabled == 0) ? "" : "\nGround areas disabled.",
                                (IsInterfaceEnabled() == 0) ? "\nGame in Wait state" : "");
-        for (uint32_t obj_id = 0; obj_id < room.State->numobj; obj_id++)
+        for (uint32_t obj_id = 0; obj_id < room.State->ObjectCount; obj_id++)
         {
             if (obj_id >= 8)
                 break; // TODO: measure the graphical size of the text instead of counting objects
             buffer.AppendFmt(
                 "\nObject %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%s slot:%d opacity:%d clkble:%d", obj_id,
-                room.Objs[obj_id].x, room.Objs[obj_id].y,
-                (services.Sprites.DoesSpriteExist(room.Objs[obj_id].num) ? game.SpriteInfos[room.Objs[obj_id].num].Width
-                                                                         : 0),
-                (services.Sprites.DoesSpriteExist(room.Objs[obj_id].num)
-                     ? game.SpriteInfos[room.Objs[obj_id].num].Height
+                room.Objects[obj_id].X, room.Objects[obj_id].Y,
+                (services.Sprites.DoesSpriteExist(room.Objects[obj_id].Sprite)
+                     ? game.SpriteInfos[room.Objects[obj_id].Sprite].Width
                      : 0),
-                room.Objs[obj_id].is_enabled(), room.Objs[obj_id].is_moving() ? "yes" : "no",
-                room.Objs[obj_id].is_animating() ? "yes" : "no", room.Objs[obj_id].num, room.Objs[obj_id].opacity,
-                ((room.Objs[obj_id].flags & OBJF_NOINTERACT) != 0) ? 0 : 1);
+                (services.Sprites.DoesSpriteExist(room.Objects[obj_id].Sprite)
+                     ? game.SpriteInfos[room.Objects[obj_id].Sprite].Height
+                     : 0),
+                room.Objects[obj_id].is_enabled(), room.Objects[obj_id].is_moving() ? "yes" : "no",
+                room.Objects[obj_id].is_animating() ? "yes" : "no", room.Objects[obj_id].Sprite,
+                room.Objects[obj_id].Opacity, ((room.Objects[obj_id].Flags & OBJF_NOINTERACT) != 0) ? 0 : 1);
         }
         DisplayMB(buffer.GetCStr());
         int listed_char_id = game.playercharacter;
@@ -1041,7 +1042,7 @@ static void update_objects_scale()
     if (game.DisplayedRoom < 0)
         return;
 
-    for (uint32_t obj_id = 0; obj_id < room.State->numobj; ++obj_id)
+    for (uint32_t obj_id = 0; obj_id < room.State->ObjectCount; ++obj_id)
     {
         update_object_scale(game, room, obj_id);
     }

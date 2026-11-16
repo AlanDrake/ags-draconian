@@ -2056,7 +2056,7 @@ HSaveError WriteRoomStates(Stream *out)
         RoomState *roomstat = GetRoomStateIfExists(i);
         if (roomstat)
         {
-            if (roomstat->beenhere)
+            if (roomstat->Visited)
             {
                 out->WriteInt32(i);
                 WriteFormatTag(out, "RoomState", true);

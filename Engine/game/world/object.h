@@ -151,8 +151,8 @@ void update_object_scale(Game &game, Room &room, int obj_id);
 void update_object_scale(Game &game, Room &room, int &res_zoom, int &res_width, int &res_height, int objx, int objy,
                          int sprnum, int own_zoom, bool use_region_scaling);
 // Gets the rectangle in room coordinates that the object blocks for walking when it is solid:
-// blocking_width wide (the object's width minus 4 if unset) and blocking_height tall (5 pixels around its Y
-// if unset), centred on the object's X, then shifted by blocking_x and blocking_y.
+// as wide as its BlockingRect (the object's width minus 4 if unset) and as tall (5 pixels around its Y if
+// unset), centred on the object's X, then shifted by the BlockingRect's left and top.
 Rect get_object_blocking_rect(Room &room, int obj_id);
 // Tells if the point x,y hits the sprite sprit: it is inside the area arx,ary,spww,sphh and, if the pixel-perfect
 // game option is on, the sprite's pixel there is not transparent (sprite_flags mirror the pixel lookup).

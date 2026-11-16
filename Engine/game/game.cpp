@@ -1814,11 +1814,11 @@ int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool c
     int wb_baseline = 0;
     int wb_id = room.WalkBehindMask->GetPixel(x, y);
     if (wb_id > 0 && wb_id < MAX_WALK_BEHINDS) // wb == 0 is a no-area
-        wb_baseline = room.State->walkbehind_base[wb_id];
+        wb_baseline = room.WalkBehinds[wb_id].Baseline;
 
     int winner = LOCTYPE_NOTHING;
     // if it's an Ignore Walkbehinds object, then ignore the walkbehind
-    if ((obj_id >= 0) && ((room.Objs[obj_id].flags & OBJF_NOWALKBEHINDS) != 0))
+    if ((obj_id >= 0) && ((room.Objects[obj_id].Flags & OBJF_NOWALKBEHINDS) != 0))
         wb_baseline = 0;
     if ((char_id >= 0) && ((game.Characters[char_id].Flags & CHF_NOWALKBEHINDS) != 0))
         wb_baseline = 0;
@@ -2868,14 +2868,14 @@ static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y
     // on object
     else if (loc_type == LOCTYPE_OBJ)
     {
-        return room.State->obj[loc_id].name.GetCStr();
+        return room.State->Objects[loc_id].Name.GetCStr();
     }
     // on hotspot (except hotspot 0 which means "empty space")
     else if (loc_type == LOCTYPE_HOTSPOT)
     {
         if (loc_id > 0)
         {
-            return room.State->hotspot[loc_id].Name.GetCStr();
+            return room.Hotspots[loc_id].Name.GetCStr();
         }
     }
     else if (loc_type == LOCTYPE_INVITEM)

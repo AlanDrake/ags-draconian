@@ -97,9 +97,9 @@ void update_cycling_views()
     Game &game = Game::Current();
     Room &room = Room::Current();
     // update graphics for object if cycling view
-    for (uint32_t i = 0; i < room.State->numobj; ++i)
+    for (uint32_t i = 0; i < room.State->ObjectCount; ++i)
     {
-        room.Objs[i].UpdateCyclingView(game, i);
+        room.Objects[i].UpdateCyclingView(game, i);
     }
 }
 

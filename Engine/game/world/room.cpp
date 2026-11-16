@@ -13,6 +13,7 @@
 //=============================================================================
 #include "game/world/room.h"
 
+#include <algorithm>
 #include <cctype> // for toupper
 
 #include "data/assetmanager.h"
@@ -86,9 +87,23 @@ Room engineRoom;
 // initialization, as the globals thisroom, croom and objs that the instance replaces were
 Room *Room::_current = &engineRoom;
 
-Room::Room() : _tempState(std::make_unique<RoomState>()), TempState(*_tempState) {}
+Room::Room() : _tempState(std::make_unique<RoomState>()), TempState(*_tempState)
+{
+    SetState(nullptr);
+}
 
 Room::~Room() = default;
+
+void Room::SetState(RoomState *state)
+{
+    State = state;
+    Objects = (state && !state->Objects.empty()) ? &state->Objects[0] : nullptr;
+    RoomState &lists = state ? *state : TempState;
+    Hotspots = lists.Hotspots;
+    Regions = lists.Regions;
+    WalkAreas = lists.WalkAreas;
+    WalkBehinds = lists.WalkBehinds;
+}
 
 Room *Room::SetCurrent(Room *room)
 {
@@ -181,7 +196,7 @@ int Room_GetHotspotCount()
 
 int Room_GetObjectCount()
 {
-    return Room::Current().State->numobj;
+    return Room::Current().State->ObjectCount;
 }
 
 int Room_GetRegionCount()
@@ -255,33 +270,33 @@ int Room_GetBottomEdge()
 int Room_GetProperty(const char *property)
 {
     Room &room = Room::Current();
-    return get_int_property(room.Properties, room.State->roomProps, property);
+    return get_int_property(room.Properties, room.State->Properties, property);
 }
 
 const char *Room_GetTextProperty(const char *property)
 {
     Room &room = Room::Current();
-    return get_text_property_dynamic_string(room.Properties, room.State->roomProps, property);
+    return get_text_property_dynamic_string(room.Properties, room.State->Properties, property);
 }
 
 bool Room_SetProperty(const char *property, int value)
 {
-    return set_int_property(Room::Current().State->roomProps, property, value);
+    return set_int_property(Room::Current().State->Properties, property, value);
 }
 
 bool Room_SetTextProperty(const char *property, const char *value)
 {
-    return set_text_property(Room::Current().State->roomProps, property, value);
+    return set_text_property(Room::Current().State->Properties, property, value);
 }
 
 float Room_GetFaceDirectionRatio()
 {
-    return Room::Current().State->face_dir_ratio;
+    return Room::Current().State->FaceDirectionRatio;
 }
 
 void Room_SetFaceDirectionRatio(float ratio)
 {
-    Room::Current().State->face_dir_ratio = ratio;
+    Room::Current().State->FaceDirectionRatio = ratio;
 }
 
 const char *Room_GetName()
@@ -382,11 +397,11 @@ void save_room_data_segment()
 {
     Room &room = Room::Current();
     const auto &global_data = room.Script->GetGlobalData();
-    room.State->tsdatasize = global_data.size();
-    room.State->tsdata.resize(global_data.size());
-    if (room.State->tsdatasize > 0)
+    room.State->ScriptDataSize = global_data.size();
+    room.State->ScriptData.resize(global_data.size());
+    if (room.State->ScriptDataSize > 0)
     {
-        std::copy(global_data.begin(), global_data.end(), room.State->tsdata.begin());
+        std::copy(global_data.begin(), global_data.end(), room.State->ScriptData.begin());
     }
 }
 
@@ -417,8 +432,8 @@ void unload_old_room()
 
     dispose_room_drawdata();
 
-    for (uint32_t i = 0; i < room.State->numobj; i++)
-        room.Objs[i].moving = 0;
+    for (uint32_t i = 0; i < room.State->ObjectCount; i++)
+        room.Objects[i].MoveListID = 0;
 
     AbortAllScripts();
     // Invalidate and detach any active DrawingSurfaces connected to this room
@@ -428,7 +443,7 @@ void unload_old_room()
 
     dispose_room_background_ddb();
 
-    // FIXME: room.State was already dereferenced above (room.State->numobj), so a null one would have crashed there
+    // FIXME: room.State was already dereferenced above (room.State->ObjectCount), so a null one would have crashed there
     if (room.State == nullptr)
         ;
     else if (room.Script)
@@ -437,7 +452,7 @@ void unload_old_room()
         FreeRoomScript();
     }
     else
-        room.State->tsdatasize = 0;
+        room.State->ScriptDataSize = 0;
     memset(&room.WalkableAreasOn[0], 1, MAX_WALK_AREAS);
     room.BgFrame = 0;
     room.BgFrameLocked = 0;
@@ -456,7 +471,7 @@ void unload_old_room()
     game.Play.swap_portrait_lastlastchar = -1;
 
     // Remove named room elements from script
-    for (uint32_t i = 0; i < room.Objects.size(); ++i)
+    for (uint32_t i = 0; i < room.State->ObjectCount; ++i)
     {
         if (!room.Objects[i].ScriptName.IsEmpty())
             ccRemoveExternalSymbol(room.Objects[i].ScriptName);
@@ -561,43 +576,45 @@ static void reset_temp_room()
     Room::Current().TempState = RoomState();
 }
 
-// Initializes object states in the RoomState object of the given room (room.State),
-// copying default properties from the room's objects (room.Objects), in the element range [start, end).
-static void init_object_states(Room &room, size_t start, size_t end)
+// Starts the objects of the room's state (room.State->Objects) in the element range [start, end) from their
+// definitions, as at the first visit: each is a copy of what the room file says, with a new play state. The
+// sprite and the baseline are kept within what the legacy save format holds (16 bits); the room file holds the
+// blocking rectangle's four values in 16 bits.
+static void StartObjectsFromDefinitions(Room &room, size_t start, size_t end)
 {
+    const RoomDef &def = room.Def();
     for (uint32_t i = start; i < end; ++i)
     {
-        const auto &obj_info = room.Objects[i];
-        auto &room_obj = room.State->obj[i];
-        room_obj.id = i;
-        room_obj.x = obj_info.X;
-        room_obj.y = obj_info.Y;
-        room_obj.num = Math::InRangeOrDef<uint16_t>(obj_info.Sprite, 0);
-        room_obj.flags = obj_info.Flags;
-        room_obj.view = RoomObject::NoView;
-        room_obj.loop = 0u;
-        room_obj.frame = 0u;
-        room_obj.wait = 0;
-        room_obj.opacity = obj_info.Opacity;
-        room_obj.moving = -1;
-        room_obj.flags = obj_info.Flags;
-        room_obj.baseline = obj_info.Baseline;
-        room_obj.zoom = 100;
-        room_obj.blocking_x = obj_info.BlockingRect.Left;
-        room_obj.blocking_y = obj_info.BlockingRect.Top;
-        room_obj.blocking_width = obj_info.BlockingRect.GetWidth();
-        room_obj.blocking_height = obj_info.BlockingRect.GetHeight();
-        room_obj.name = obj_info.Name;
-        if (obj_info.Baseline >= 0)
-            room_obj.baseline = obj_info.Baseline;
-        room_obj.blend_mode = obj_info.BlendMode;
-        room_obj.spr_anchor = obj_info.GraphicAnchor;
-        room_obj.spr_offset = obj_info.GraphicOffset;
-        room_obj.UpdateGraphicSpace();
-        if (obj_info.Sprite > UINT16_MAX)
+        const RoomObjectDef &obj_def = def.Objects[i];
+        RoomObject &obj = room.State->Objects[i];
+        obj = RoomObject(obj_def);
+        obj.Sprite = Math::InRangeOrDef<uint16_t>(obj_def.Sprite, 0);
+        obj.Baseline = static_cast<int16_t>(obj_def.Baseline); // 16 bits: the legacy save format
+        obj.UpdateGraphicSpace();
+        if (obj_def.Sprite > UINT16_MAX)
             debug_script_warn("Object's (id %d) sprite %d outside of internal range (%d), reset to 0", i,
-                              obj_info.Sprite, UINT16_MAX);
+                              obj_def.Sprite, UINT16_MAX);
     }
+}
+
+// Starts the hotspots, regions, walk-behinds and walkable areas of the room's state (room.State) from their
+// definitions: each is a copy of what the room file says, the hotspots and regions disabled. A walk-behind's baseline
+// is kept within what the legacy save format holds (16 bits).
+static void StartEntitiesFromDefinitions(Room &room)
+{
+    const RoomDef &def = room.Def();
+    RoomState &state = *room.State;
+    for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
+    {
+        state.WalkBehinds[i] = RoomWalkBehind(def.WalkBehinds[i]);
+        state.WalkBehinds[i].Baseline = static_cast<int16_t>(def.WalkBehinds[i].Baseline); // 16 bits, as before
+    }
+    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
+        state.Hotspots[i] = RoomHotspot(def.Hotspots[i]);
+    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
+        state.Regions[i] = RoomRegion(def.Regions[i]);
+    for (int i = 0; i < MAX_WALK_AREAS; ++i)
+        state.WalkAreas[i] = RoomWalkableArea(def.WalkAreas[i]);
 }
 
 HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr,
@@ -616,61 +633,68 @@ HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr,
 
 bool BindRoomState(Room &room)
 {
+    const RoomDef &def = room.Def();
     // Decide what to do if we have been or not in this room before
-    const bool first_visit = room.State->beenhere == 0;
+    const bool first_visit = room.State->Visited == 0;
     if (first_visit)
     {
         // If we have not been in this room before, then copy necessary fields from the room's data
-        room.State->numobj = room.Objects.size();
-        room.State->tsdatasize = 0u;
-        room.State->obj.resize(room.State->numobj);
-        room.State->objProps.resize(room.State->numobj);
-        room.State->face_dir_ratio = room.Options.FaceDirectionRatio;
-        init_object_states(room, 0u, room.Objects.size());
-
-        for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
-            room.State->walkbehind_base[i] = room.WalkBehinds[i].Baseline;
-
+        room.State->ObjectCount = def.Objects.size();
+        room.State->ScriptDataSize = 0u;
+        room.State->Objects.resize(room.State->ObjectCount);
+        room.State->ObjectProperties.resize(room.State->ObjectCount);
+        room.State->FaceDirectionRatio = room.Options.FaceDirectionRatio;
+        StartObjectsFromDefinitions(room, 0u, def.Objects.size());
+        StartEntitiesFromDefinitions(room);
+        // the hotspots and regions start enabled
         for (int i = 0; i < MAX_ROOM_HOTSPOTS; i++)
-        {
-            room.State->hotspot[i].Enabled = true;
-            room.State->hotspot[i].Name = room.Hotspots[i].Name;
-        }
+            room.State->Hotspots[i].Enabled = true;
         for (int i = 0; i < MAX_ROOM_REGIONS; i++)
-        {
-            room.State->region_enabled[i] = 1;
-        }
-        for (int i = 0; i < MAX_WALK_AREAS; ++i)
-        {
-            room.State->walkareas[i].FaceDirectionRatio = room.WalkAreas[i].FaceDirectionRatio;
-        }
+            room.State->Regions[i].Enabled = 1;
 
-        room.State->beenhere = 1;
+        room.State->Visited = 1;
     }
     else
     {
-        // We HAD been in this room, so normally we don't have to do anything... but
+        // We HAD been in this room, so the room state keeps what the game changed... but
         // If the restored number of object states does not match real room,
         // then adjust the *room state* by either expanding or cutting objects array
-        if (room.State->obj.size() != room.Objects.size())
+        const size_t was_obj_states = room.State->Objects.size();
+        if (was_obj_states != def.Objects.size())
         {
             Debug::Printf(kDbgMsg_Warn,
                           "WARNING: the restored room state has different number of object states than the current "
                           "room has objects (%u vs %u).",
-                          room.State->numobj, (uint32_t)room.Objects.size());
-            const size_t was_obj_states = room.State->obj.size();
-            room.State->numobj = room.Objects.size();
-            room.State->obj.resize(room.Objects.size());
-            room.State->objProps.resize(room.Objects.size());
-            if (was_obj_states < room.Objects.size())
-                init_object_states(room, was_obj_states, room.Objects.size());
+                          room.State->ObjectCount, (uint32_t)def.Objects.size());
+            room.State->ObjectCount = def.Objects.size();
+            room.State->Objects.resize(def.Objects.size());
+            room.State->ObjectProperties.resize(def.Objects.size());
+            if (was_obj_states < def.Objects.size())
+                StartObjectsFromDefinitions(room, was_obj_states, def.Objects.size());
         }
+        // The objects kept from the earlier visit, or from a save, take again from the room file what a room state
+        // does not keep (RoomObject::RebindDefinition)
+        const size_t kept_objects = std::min(was_obj_states, def.Objects.size());
+        for (size_t i = 0; i < kept_objects; ++i)
+            room.State->Objects[i].RebindDefinition(def.Objects[i]);
+        // So do the hotspots, regions, walk-behinds and walkable areas: among what they take again are a region's
+        // light level and tint and a walkable area's scaling and face direction ratio, which a script's change does
+        // not outlive the visit
+        for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
+            room.State->WalkBehinds[i].RebindDefinition(def.WalkBehinds[i]);
+        for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
+            room.State->Hotspots[i].RebindDefinition(def.Hotspots[i]);
+        for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
+            room.State->Regions[i].RebindDefinition(def.Regions[i]);
+        for (int i = 0; i < MAX_WALK_AREAS; ++i)
+            room.State->WalkAreas[i].RebindDefinition(def.WalkAreas[i]);
     }
 
-    // Reset contentFormat hint to avoid doing fixups later
-    room.State->contentFormat = kRoomStatSvgVersion_Current;
+    // Reset ContentFormat hint to avoid doing fixups later
+    room.State->ContentFormat = kRoomStatSvgVersion_Current;
 
-    room.Objs = !room.State->obj.empty() ? &room.State->obj[0] : nullptr;
+    // the object list may have been resized
+    room.SetState(room.State);
     return first_visit;
 }
 
@@ -789,16 +813,16 @@ void load_new_room(int room_id, Character *ch)
 
     // A room with a valid number has its own saveable RoomState, any other one (e.g. the intro) uses room.TempState
     if ((room_id >= 0) & (room_id < MAX_ROOMS))
-        room.State = GetRoomState(room_id);
+        room.SetState(GetRoomState(room_id));
     else
-        room.State = &room.TempState;
+        room.SetState(&room.TempState);
 
-    const bool been_here = room.State->beenhere > 0;
+    const bool been_here = room.State->Visited > 0;
     if (BindRoomState(room))
         game.RoomChange.InNewRoom = kEnterRoom_FirstTime;
 
     // Export named room elements to script
-    for (uint32_t i = 0; i < room.Objects.size(); ++i)
+    for (uint32_t i = 0; i < room.State->ObjectCount; ++i)
     {
         if (!room.Objects[i].ScriptName.IsEmpty())
             ccAddExternalScriptObjectHandle(room.Objects[i].ScriptName, &game.Handles.Objects[i]);
@@ -870,19 +894,19 @@ void load_new_room(int room_id, Character *ch)
         if (been_here)
         {
             const auto &global_data = room.Script->GetGlobalData();
-            if (room.State->tsdatasize > global_data.size())
+            if (room.State->ScriptDataSize > global_data.size())
             {
                 quitprintf("Restored Room %d script data size exceeds current script data (%u vs %zu bytes).", room_id,
-                           room.State->tsdatasize, global_data.size());
+                           room.State->ScriptDataSize, global_data.size());
             }
-            else if (room.State->tsdatasize < global_data.size())
+            else if (room.State->ScriptDataSize < global_data.size())
             {
                 Debug::Printf(
                     kDbgMsg_Warn,
                     "WARNING: Restored Room %d script data size is less than the current script data (%u vs %zu bytes)",
-                    room_id, room.State->tsdatasize, global_data.size());
+                    room_id, room.State->ScriptDataSize, global_data.size());
             }
-            room.Script->CopyGlobalData(room.State->tsdata);
+            room.Script->CopyGlobalData(room.State->ScriptData);
         }
     }
     set_our_eip(207);
@@ -1040,7 +1064,7 @@ void load_new_room(int room_id, Character *ch)
     set_our_eip(208);
     if (ch != nullptr)
     {
-        if (room.Options.PlayerCharOff == 0)
+        if (room.Options.PlayerCharacterOff == 0)
         {
             ch->set_enabled(true);
             enable_cursor_mode(game.GetModeWalk());
@@ -1160,7 +1184,10 @@ void set_room_placeholder()
     room.WalkBehindMask = dummy_bg;
 
     reset_temp_room();
-    room.State = &room.TempState;
+    room.SetState(&room.TempState);
+    // While no room is loaded, the hotspots, regions, walkable areas and walk-behinds read are those of the
+    // placeholder: copies of its definition. The state is not marked visited.
+    StartEntitiesFromDefinitions(room);
 }
 
 void first_room_initialization()
@@ -1246,9 +1273,7 @@ void on_background_frame_change()
 
 void croom_ptr_clear()
 {
-    Room &room = Room::Current();
-    room.State = nullptr;
-    room.Objs = nullptr;
+    Room::Current().SetState(nullptr);
 }
 
 ScriptDrawingSurface *get_room_bg_surface(uint32_t bg_index)
@@ -1477,7 +1502,7 @@ int HasPlayerBeenInRoom(int roomnum)
     if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
         return 0;
     RoomState *roomstat = GetRoomStateIfExists(roomnum);
-    return (roomstat != nullptr) && (roomstat->beenhere != 0);
+    return (roomstat != nullptr) && (roomstat->Visited != 0);
 }
 
 void CallRoomScript(int value)

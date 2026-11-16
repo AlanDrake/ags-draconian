@@ -467,11 +467,11 @@ void IAGSEngine::ViewportToRoom(int32 *x, int32 *y)
 }
 int IAGSEngine::GetNumObjects()
 {
-    return Room::Current().State->numobj;
+    return Room::Current().State->ObjectCount;
 }
 AGSObject *IAGSEngine::GetObject(int32 num)
 {
-    if (num < 0 || static_cast<uint32_t>(num) >= Room::Current().State->numobj)
+    if (num < 0 || static_cast<uint32_t>(num) >= Room::Current().State->ObjectCount)
         quit("!IAGSEngine::GetObject: invalid object");
     // IMPORTANT: if we change the script functions object argument type, we must change this return value too!
     return reinterpret_cast<AGSObject *>(&Game::Current().ScObjects[num]);
@@ -525,7 +525,7 @@ int IAGSEngine::GetWalkbehindBaseline(int32 wa)
 {
     if ((wa < 1) || (wa >= MAX_WALK_BEHINDS))
         quit("!IAGSEngine::GetWalkBehindBase: invalid walk-behind area specified");
-    return Room::Current().State->walkbehind_base[wa];
+    return Room::Current().WalkBehinds[wa].Baseline;
 }
 void *IAGSEngine::GetScriptFunctionAddress(const char *func_name)
 {

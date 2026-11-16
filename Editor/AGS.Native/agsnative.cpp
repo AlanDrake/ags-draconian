@@ -2536,7 +2536,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     TextConverter^ tcv = defEncoding ? gcnew TextConverter(defEncoding) : TextHelper::GetGameTextConverter();
     try
     {
-        auto enc_opt = rs.StrOptions.at("textencoding");
+        auto enc_opt = rs.StringOptions.at("textencoding");
         tcv = gcnew TextConverter(System::Text::Encoding::GetEncoding(enc_opt.ToInt()));
     }
     catch (...) {}
@@ -2548,7 +2548,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     room->LeftEdgeX = rs.Edges.Left;
     room->PlayerCharacterView = rs.Options.PlayerView;
     room->RightEdgeX = rs.Edges.Right;
-    room->ShowPlayerCharacter = (rs.Options.PlayerCharOff == 0);
+    room->ShowPlayerCharacter = (rs.Options.PlayerCharacterOff == 0);
     room->TopEdgeY = rs.Edges.Top;
     room->Width = rs.Width;
     room->Height = rs.Height;
@@ -2676,7 +2676,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
     // NOTE: should not set BgFrameCount here, it's added by adding background images
 	rs.BgAnimSpeed = room->BackgroundAnimationDelay;
     rs.Options.Flags = 0;
-    rs.Options.PlayerCharOff = room->ShowPlayerCharacter ? 0 : 1;
+    rs.Options.PlayerCharacterOff = room->ShowPlayerCharacter ? 0 : 1;
     rs.Options.PlayerView = room->PlayerCharacterView;
     if (!room->BackgroundAnimationEnabled)
         rs.Options.Flags |= kRoomFlag_BkgFrameLocked;
@@ -2781,7 +2781,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
     convert_room_interactions_to_native(room, rs);
 
     // Encoding hint
-    rs.StrOptions["textencoding"].Format("%d", tcv->GetEncoding()->CodePage);
+    rs.StringOptions["textencoding"].Format("%d", tcv->GetEncoding()->CodePage);
 }
 
 void convert_interaction_scripts_to_native(Interactions ^interactions, ScriptEventHandlers &native_inter)

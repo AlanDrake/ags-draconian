@@ -237,7 +237,7 @@ HError ReadMainBlock(RoomDef *room, Stream *in, RoomFileVersion data_ver, const 
     in->Seek(LEGACY_ROOM_PASSWORD_LENGTH); // skip password
     in->ReadInt8();                        // [DEPRECATED]
     in->ReadInt8();                        // [DEPRECATED]
-    room->Options.PlayerCharOff = in->ReadInt8() != 0;
+    room->Options.PlayerCharacterOff = in->ReadInt8() != 0;
     room->Options.PlayerView = in->ReadInt8();
     in->ReadInt8(); // [DEPRECATED]
     room->Options.Flags = in->ReadInt8();
@@ -310,7 +310,7 @@ HError ReadCompSc3Block(RoomDef *room, Stream *in, RoomFileVersion /*data_ver*/)
 }
 
 // Room object names
-HError ReadObjNamesBlock(RoomDef *room, Stream *in, RoomFileVersion data_ver)
+HError ReadObjNamesBlock(RoomDef *room, Stream *in, RoomFileVersion /*data_ver*/)
 {
     size_t name_count = static_cast<uint8_t>(in->ReadInt8());
     if (name_count != room->Objects.size())
@@ -326,7 +326,7 @@ HError ReadObjNamesBlock(RoomDef *room, Stream *in, RoomFileVersion data_ver)
 }
 
 // Room object script names
-HError ReadObjScNamesBlock(RoomDef *room, Stream *in, RoomFileVersion data_ver)
+HError ReadObjScNamesBlock(RoomDef *room, Stream *in, RoomFileVersion /*data_ver*/)
 {
     size_t name_count = static_cast<uint8_t>(in->ReadInt8());
     if (name_count != room->Objects.size())
@@ -418,7 +418,7 @@ HError ReadExt_363_Objects(RoomDef *room, Stream *in, RoomFileVersion data_ver)
 }
 
 // Early development version of "ags4"
-HError ReadExt399(RoomDef *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt399(RoomDef *room, Stream *in, RoomFileVersion /*data_ver*/)
 {
     // New room object properties
     for (auto &obj : room->Objects)
@@ -433,7 +433,7 @@ HError ReadExt399(RoomDef *room, Stream *in, RoomFileVersion data_ver)
 }
 
 // Extended walkable areas and related room properties
-HError ReadExt_400_WalkOpts(RoomDef *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt_400_WalkOpts(RoomDef *room, Stream *in, RoomFileVersion /*data_ver*/)
 {
     HError err;
     // New room properties
@@ -457,7 +457,7 @@ HError ReadExt_400_WalkOpts(RoomDef *room, Stream *in, RoomFileVersion data_ver)
     return HError::None();
 }
 
-HError ReadExt_400_CustomProps(RoomDef *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt_400_CustomProps(RoomDef *room, Stream *in, RoomFileVersion /*data_ver*/)
 {
     HError err;
     if (!ReadAndAssertCount(in, "regions", room->RegionCount, err))
@@ -481,14 +481,14 @@ HError ReadExt_400_CustomProps(RoomDef *room, Stream *in, RoomFileVersion data_v
     return HError::None();
 }
 
-HError ReadExt_400_RoomNames(RoomDef *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt_400_RoomNames(RoomDef *room, Stream *in, RoomFileVersion /*data_ver*/)
 {
     room->ScriptName = StrUtil::ReadString(in);
     room->Name = StrUtil::ReadString(in);
     return HError::None();
 }
 
-HError ReadExt_400_EventTables(RoomDef *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt_400_EventTables(RoomDef *room, Stream *in, RoomFileVersion /*data_ver*/)
 {
     // TODO: figure out a more optimal way for handling all the operations here,
     // perhaps join schema read and remap into the member of the ScriptEventSchema class?
@@ -521,7 +521,7 @@ HError ReadExt_400_EventTables(RoomDef *room, Stream *in, RoomFileVersion data_v
     return HError::None();
 }
 
-HError ReadExt_400_ObjectOptions2(RoomDef *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt_400_ObjectOptions2(RoomDef *room, Stream *in, RoomFileVersion /*data_ver*/)
 {
     HError err;
     if (!ReadAndAssertCount(in, "objects", room->Objects.size(), err))
@@ -541,7 +541,7 @@ HError ReadExt_400_ObjectOptions2(RoomDef *room, Stream *in, RoomFileVersion dat
     return HError::None();
 }
 
-HError ReadExt_400_AreaNames(RoomDef *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt_400_AreaNames(RoomDef *room, Stream *in, RoomFileVersion /*data_ver*/)
 {
     // NOTE: Object names and script names were historically written in
     // blocks kRoomFblk_ObjectNames and kRoomFblk_ObjectScNames, but limited
@@ -616,7 +616,7 @@ HError ReadRoomBlock(RoomDef *room, RoomDataAux *room_aux, Stream *in, RoomFileB
     // Add extensions here checking ext_id, which is an up to 16-chars name
     if (ext_id.CompareNoCase("ext_sopts") == 0)
     {
-        StrUtil::ReadStringMap(room->StrOptions, in);
+        StrUtil::ReadStringMap(room->StringOptions, in);
         return HError::None();
     }
     else if (ext_id.CompareNoCase("v363_objects") == 0)
@@ -738,7 +738,7 @@ HRoomFileError ReadRoomData(RoomDataExt *room, std::unique_ptr<Stream> &&in, Roo
     return ReadRoomData(room, room, std::move(in), data_ver);
 }
 
-HRoomFileError UpdateRoomData(RoomDef *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> *sprinfos)
+HRoomFileError UpdateRoomData(RoomDef *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> * /*sprinfos*/)
 {
     // Enforce sequential numeric IDs
     for (int id = 0; id < room->Objects.size(); ++id)
@@ -912,7 +912,7 @@ void WriteMainBlock(const RoomDef *room, Stream *out)
     out->WriteByteCount(0, LEGACY_ROOM_PASSWORD_LENGTH);
     out->WriteInt8(0); // [DEPRECATED]
     out->WriteInt8(0); // [DEPRECATED]
-    out->WriteInt8(room->Options.PlayerCharOff ? 1 : 0);
+    out->WriteInt8(room->Options.PlayerCharacterOff ? 1 : 0);
     out->WriteInt8(room->Options.PlayerView);
     out->WriteInt8(0); // [DEPRECATED]
     out->WriteInt8(room->Options.Flags);
@@ -969,7 +969,7 @@ void WritePropertiesBlock(const RoomDef *room, Stream *out)
 
 void WriteStrOptions(const RoomDef *room, Stream *out)
 {
-    StrUtil::WriteStringMap(room->StrOptions, out);
+    StrUtil::WriteStringMap(room->StringOptions, out);
 }
 
 void WriteExt_363_Objects(const RoomDef *room, Stream *out)

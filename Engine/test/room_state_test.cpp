@@ -14,10 +14,15 @@
 //
 // The state of a room against its definition: what BindRoomState makes of a
 // new state, of a state kept from an earlier visit and of a restored one with
-// another number of objects; a room object's and a room state's save round
-// trip; the region and walkable-area values that the script changes and the
-// "Loaded Room State" component that saves them; the 16-bit limits of an
-// object's baseline and blocking width and of a walk-behind's baseline. The
+// another number of objects, and what a restored state takes from the room
+// file again; a room object's and a room state's save round
+// trip; the region and walkable-area values that the script changes, in the
+// live entities and not in the definition, and the "Loaded Room State"
+// component that saves them; what the hotspots, regions, walk-behinds and
+// walkable areas keep between visits and take from the room file again; the
+// lists a room reads with no state bound; the 16-bit limits of an
+// object's sprite, baseline and blocking width and of a walk-behind's
+// baseline; the setters of an object's blocking rectangle. The
 // room is made by hand: no room file is read.
 //
 // Not tested: load_new_room itself (it reads the room file and the room
@@ -56,141 +61,190 @@ using namespace AGS::Engine;
 namespace
 {
 
-// The members of RoomObject in their order, with their types. A field added to RoomObject changes its size, and
-// the build stops at the static_assert below: add the field here and to ExpectSameObject (a saved field also to
-// SetSavedFields), so that no test passes without looking at it.
-struct RoomObjectMembers
+// The members of a room object in their order, with their types, by part: the definition (RoomObjectBase and
+// RoomObjectDef), the play state (RoomObjectState), and what RoomObject adds. A field added to any of them changes
+// its size, and the build stops at a static_assert below: add the field here and to ExpectSameObject (a saved field
+// also to SetSavedFields), so that no test passes without looking at it.
+struct RoomObjectBaseMembers
 {
-    int id;
-    int x, y;
-    int opacity;
-    int16_t tint_r, tint_g, tint_b, tint_level, tint_light;
-    int16_t zoom;
-    Point spr_offset;
-    Pointf spr_anchor;
-    Pointf pivot;
-    Point pivot_offset;
-    int spr_width, spr_height;
-    int frame_xoff, frame_yoff;
-    int16_t width, height;
-    uint16_t num;
-    int16_t baseline;
-    uint16_t view, loop, frame;
-    int16_t wait, moving;
-    ViewAnimateParams anim;
-    int flags;
-    int16_t blocking_width, blocking_height, blocking_x, blocking_y;
-    int audio_volume;
-    int audio_panning;
+    int ID;
+    String ScriptName;
+    ScriptEventTable Events;
+};
+static_assert(sizeof(RoomObjectBaseMembers) == sizeof(RoomObjectBase),
+              "RoomObjectBase has a field this test does not know: see RoomObjectBaseMembers");
+
+struct RoomObjectDefMembers : RoomObjectBaseMembers
+{
+    int32_t Room;
+    int32_t X, Y;
+    int32_t Sprite;
+    BlendMode Blending;
+    int32_t Baseline;
+    int32_t Opacity;
+    int32_t Flags;
+    String Name;
+    Rect BlockingRect;
+    Pointf GraphicAnchor;
+    Point GraphicOffset;
+    StringIMap Properties;
+    ScriptEventHandlers Interactions;
+};
+static_assert(sizeof(RoomObjectDefMembers) == sizeof(RoomObjectDef),
+              "RoomObjectDef has a field this test does not know: see RoomObjectDefMembers");
+
+struct RoomObjectStateMembers
+{
+    int16_t TintRed, TintGreen, TintBlue, TintLevel, TintLight;
+    int16_t Zoom;
+    Pointf Pivot;
+    Point PivotOffset;
+    int SpriteWidth, SpriteHeight;
+    int FrameOffsetX, FrameOffsetY;
+    int16_t Width, Height;
+    uint16_t View, Loop, Frame;
+    int16_t AnimWait, MoveListID;
+    ViewAnimateParams Anim;
+    int AnimationVolume;
+    int AudioPanning;
     int AudioSpeed;
-    String name;
-    BlendMode blend_mode;
-    int shader_id;
-    int shader_handle;
-    float rotation;
-    int movelist_handle;
-    GraphicSpace gs;
+    int ShaderID;
+    int ShaderHandle;
+    float Rotation;
+    int MoveListHandle;
+};
+static_assert(sizeof(RoomObjectStateMembers) == sizeof(RoomObjectState),
+              "RoomObjectState has a field this test does not know: see RoomObjectStateMembers");
+
+struct RoomObjectMembers : RoomObjectDefMembers, RoomObjectStateMembers
+{
+    GraphicSpace Space;
 };
 static_assert(sizeof(RoomObjectMembers) == sizeof(RoomObject),
               "RoomObject has a field this test does not know: see RoomObjectMembers");
 
-// Compares two room objects field by field. The fields that a save does not hold are compared only with
-// with_unsaved: the id, the frame offsets of the view frame (set by the update) and the graphic space (derived
-// from the other fields by UpdateGraphicSpace, not compared at all).
+// Compares two event tables or interaction lists: the script module and every handler
+void ExpectSameHandlers(const ScriptEventsBase &expected, const ScriptEventsBase &actual, const char *what)
+{
+    SCOPED_TRACE(what);
+    EXPECT_STREQ(expected.GetScriptModule().GetCStr(), actual.GetScriptModule().GetCStr());
+    const std::vector<ScriptEventHandler> expected_handlers = expected.GetHandlers();
+    const std::vector<ScriptEventHandler> actual_handlers = actual.GetHandlers();
+    ASSERT_EQ(expected_handlers.size(), actual_handlers.size());
+    for (size_t i = 0; i < expected_handlers.size(); ++i)
+    {
+        EXPECT_STREQ(expected_handlers[i].FunctionName.GetCStr(), actual_handlers[i].FunctionName.GetCStr())
+            << "handler " << i;
+        EXPECT_EQ(expected_handlers[i].Enabled, actual_handlers[i].Enabled) << "handler " << i;
+        EXPECT_EQ(expected_handlers[i].Checked, actual_handlers[i].Checked) << "handler " << i;
+    }
+}
+
+// Compares two room objects field by field: the definition part, then the play state. The fields that a save does
+// not hold are compared only with with_unsaved: of the definition the id, the script name, the room number, the
+// events, the interactions and the custom properties; of the play state the frame offsets of the view frame (set by
+// the update). The graphic space is derived from the other fields by UpdateGraphicSpace, and not compared at all.
 void ExpectSameObject(const RoomObject &expected, const RoomObject &actual, bool with_unsaved)
 {
+    // the definition
     if (with_unsaved)
     {
-        EXPECT_EQ(expected.id, actual.id);
-        EXPECT_EQ(expected.frame_xoff, actual.frame_xoff);
-        EXPECT_EQ(expected.frame_yoff, actual.frame_yoff);
+        EXPECT_EQ(expected.ID, actual.ID);
+        EXPECT_STREQ(expected.ScriptName.GetCStr(), actual.ScriptName.GetCStr());
+        EXPECT_EQ(expected.Room, actual.Room);
+        ExpectSameHandlers(expected.GetEvents(), actual.GetEvents(), "events");
+        ExpectSameHandlers(expected.Interactions, actual.Interactions, "interactions");
+        EXPECT_EQ(expected.Properties, actual.Properties);
     }
-    EXPECT_EQ(expected.x, actual.x);
-    EXPECT_EQ(expected.y, actual.y);
-    EXPECT_EQ(expected.opacity, actual.opacity);
-    EXPECT_EQ(expected.tint_r, actual.tint_r);
-    EXPECT_EQ(expected.tint_g, actual.tint_g);
-    EXPECT_EQ(expected.tint_b, actual.tint_b);
-    EXPECT_EQ(expected.tint_level, actual.tint_level);
-    EXPECT_EQ(expected.tint_light, actual.tint_light);
-    EXPECT_EQ(expected.zoom, actual.zoom);
-    EXPECT_EQ(expected.spr_offset, actual.spr_offset);
-    EXPECT_EQ(expected.spr_anchor, actual.spr_anchor);
-    EXPECT_EQ(expected.pivot, actual.pivot);
-    EXPECT_EQ(expected.pivot_offset, actual.pivot_offset);
-    EXPECT_EQ(expected.spr_width, actual.spr_width);
-    EXPECT_EQ(expected.spr_height, actual.spr_height);
-    EXPECT_EQ(expected.width, actual.width);
-    EXPECT_EQ(expected.height, actual.height);
-    EXPECT_EQ(expected.num, actual.num);
-    EXPECT_EQ(expected.baseline, actual.baseline);
-    EXPECT_EQ(expected.view, actual.view);
-    EXPECT_EQ(expected.loop, actual.loop);
-    EXPECT_EQ(expected.frame, actual.frame);
-    EXPECT_EQ(expected.wait, actual.wait);
-    EXPECT_EQ(expected.moving, actual.moving);
-    for (const String &line : DiffFields(expected.anim, actual.anim))
+    EXPECT_EQ(expected.X, actual.X);
+    EXPECT_EQ(expected.Y, actual.Y);
+    EXPECT_EQ(expected.Sprite, actual.Sprite);
+    EXPECT_EQ(expected.BlendMode, actual.BlendMode);
+    EXPECT_EQ(expected.Baseline, actual.Baseline);
+    EXPECT_EQ(expected.Opacity, actual.Opacity);
+    EXPECT_EQ(expected.Flags, actual.Flags);
+    EXPECT_STREQ(expected.Name.GetCStr(), actual.Name.GetCStr());
+    EXPECT_EQ(expected.BlockingRect.GetWidth(), actual.BlockingRect.GetWidth());
+    EXPECT_EQ(expected.BlockingRect.GetHeight(), actual.BlockingRect.GetHeight());
+    EXPECT_EQ(expected.BlockingRect.Left, actual.BlockingRect.Left);
+    EXPECT_EQ(expected.BlockingRect.Top, actual.BlockingRect.Top);
+    EXPECT_EQ(expected.GraphicAnchor, actual.GraphicAnchor);
+    EXPECT_EQ(expected.GraphicOffset, actual.GraphicOffset);
+    // the play state
+    if (with_unsaved)
+    {
+        EXPECT_EQ(expected.FrameOffsetX, actual.FrameOffsetX);
+        EXPECT_EQ(expected.FrameOffsetY, actual.FrameOffsetY);
+    }
+    EXPECT_EQ(expected.TintRed, actual.TintRed);
+    EXPECT_EQ(expected.TintGreen, actual.TintGreen);
+    EXPECT_EQ(expected.TintBlue, actual.TintBlue);
+    EXPECT_EQ(expected.TintLevel, actual.TintLevel);
+    EXPECT_EQ(expected.TintLight, actual.TintLight);
+    EXPECT_EQ(expected.Zoom, actual.Zoom);
+    EXPECT_EQ(expected.Pivot, actual.Pivot);
+    EXPECT_EQ(expected.PivotOffset, actual.PivotOffset);
+    EXPECT_EQ(expected.SpriteWidth, actual.SpriteWidth);
+    EXPECT_EQ(expected.SpriteHeight, actual.SpriteHeight);
+    EXPECT_EQ(expected.Width, actual.Width);
+    EXPECT_EQ(expected.Height, actual.Height);
+    EXPECT_EQ(expected.View, actual.View);
+    EXPECT_EQ(expected.Loop, actual.Loop);
+    EXPECT_EQ(expected.Frame, actual.Frame);
+    EXPECT_EQ(expected.AnimWait, actual.AnimWait);
+    EXPECT_EQ(expected.MoveListID, actual.MoveListID);
+    for (const String &line : DiffFields(expected.Anim, actual.Anim))
         ADD_FAILURE() << "anim: " << line.GetCStr();
-    EXPECT_EQ(expected.flags, actual.flags);
-    EXPECT_EQ(expected.blocking_width, actual.blocking_width);
-    EXPECT_EQ(expected.blocking_height, actual.blocking_height);
-    EXPECT_EQ(expected.blocking_x, actual.blocking_x);
-    EXPECT_EQ(expected.blocking_y, actual.blocking_y);
-    EXPECT_EQ(expected.audio_volume, actual.audio_volume);
-    EXPECT_EQ(expected.audio_panning, actual.audio_panning);
+    EXPECT_EQ(expected.AnimationVolume, actual.AnimationVolume);
+    EXPECT_EQ(expected.AudioPanning, actual.AudioPanning);
     EXPECT_EQ(expected.AudioSpeed, actual.AudioSpeed);
-    EXPECT_STREQ(expected.name.GetCStr(), actual.name.GetCStr());
-    EXPECT_EQ(expected.blend_mode, actual.blend_mode);
-    EXPECT_EQ(expected.shader_id, actual.shader_id);
-    EXPECT_EQ(expected.shader_handle, actual.shader_handle);
-    EXPECT_EQ(expected.rotation, actual.rotation);
-    EXPECT_EQ(expected.movelist_handle, actual.movelist_handle);
+    EXPECT_EQ(expected.ShaderID, actual.ShaderID);
+    EXPECT_EQ(expected.ShaderHandle, actual.ShaderHandle);
+    EXPECT_EQ(expected.Rotation, actual.Rotation);
+    EXPECT_EQ(expected.MoveListHandle, actual.MoveListHandle);
 }
 
 // Gives every field that RoomObject::WriteToSavegame writes a value of its own, different for each seed; the
 // width and height also make the sprite size that the read derives from them
 void SetSavedFields(RoomObject &obj, int seed)
 {
-    obj.x = 100 + seed;
-    obj.y = 200 + seed;
-    obj.opacity = 120 + seed;
-    obj.tint_r = static_cast<int16_t>(11 + seed);
-    obj.tint_g = static_cast<int16_t>(12 + seed);
-    obj.tint_b = static_cast<int16_t>(13 + seed);
-    obj.tint_level = static_cast<int16_t>(14 + seed);
-    obj.tint_light = static_cast<int16_t>(15 + seed);
-    obj.zoom = static_cast<int16_t>(80 + seed);
-    obj.width = static_cast<int16_t>(33 + seed);
-    obj.height = static_cast<int16_t>(44 + seed);
-    obj.spr_width = obj.width;
-    obj.spr_height = obj.height;
-    obj.num = static_cast<uint16_t>(555 + seed);
-    obj.baseline = static_cast<int16_t>(66 + seed);
-    obj.view = static_cast<uint16_t>(2 + seed);
-    obj.loop = static_cast<uint16_t>(1 + seed);
-    obj.frame = static_cast<uint16_t>(3 + seed);
-    obj.wait = static_cast<int16_t>(4 + seed);
-    obj.moving = static_cast<int16_t>(5 + seed);
+    obj.X = 100 + seed;
+    obj.Y = 200 + seed;
+    obj.Opacity = 120 + seed;
+    obj.TintRed = static_cast<int16_t>(11 + seed);
+    obj.TintGreen = static_cast<int16_t>(12 + seed);
+    obj.TintBlue = static_cast<int16_t>(13 + seed);
+    obj.TintLevel = static_cast<int16_t>(14 + seed);
+    obj.TintLight = static_cast<int16_t>(15 + seed);
+    obj.Zoom = static_cast<int16_t>(80 + seed);
+    obj.Width = static_cast<int16_t>(33 + seed);
+    obj.Height = static_cast<int16_t>(44 + seed);
+    obj.SpriteWidth = obj.Width;
+    obj.SpriteHeight = obj.Height;
+    obj.Sprite = 555 + seed;
+    obj.Baseline = static_cast<int16_t>(66 + seed);
+    obj.View = static_cast<uint16_t>(2 + seed);
+    obj.Loop = static_cast<uint16_t>(1 + seed);
+    obj.Frame = static_cast<uint16_t>(3 + seed);
+    obj.AnimWait = static_cast<int16_t>(4 + seed);
+    obj.MoveListID = static_cast<int16_t>(5 + seed);
     // a delay above 8 bits: the save has an 8-bit and a 16-bit copy, the read takes the second
-    obj.anim = ViewAnimateParams(kAnimFlow_RepeatAlternate, kAnimDirBackward, kAnimDirForward, 300 + seed, 60 + seed);
-    obj.flags = OBJF_ENABLED | OBJF_VISIBLE | OBJF_HASTINT | (seed << 16);
-    obj.blocking_width = static_cast<int16_t>(21 + seed);
-    obj.blocking_height = static_cast<int16_t>(22 + seed);
-    obj.blocking_x = static_cast<int16_t>(-23 - seed);
-    obj.blocking_y = static_cast<int16_t>(24 + seed);
-    obj.audio_volume = 70 + seed;
-    obj.audio_panning = -40 + seed;
+    obj.Anim = ViewAnimateParams(kAnimFlow_RepeatAlternate, kAnimDirBackward, kAnimDirForward, 300 + seed, 60 + seed);
+    obj.Flags = OBJF_ENABLED | OBJF_VISIBLE | OBJF_HASTINT | (seed << 16);
+    obj.BlockingRect = RectWH(-23 - seed, 24 + seed, 21 + seed, 22 + seed);
+    obj.AnimationVolume = 70 + seed;
+    obj.AudioPanning = -40 + seed;
     obj.AudioSpeed = 1500 + seed;
-    obj.name = String::FromFormat("Saved thing %d", seed);
-    obj.blend_mode = kBlend_Multiply;
-    obj.shader_id = 3 + seed;
-    obj.shader_handle = 14 + seed;
-    obj.rotation = 45.5f + seed;
-    obj.pivot = Pointf(0.25f, 0.75f + seed);
-    obj.spr_anchor = Pointf(0.5f, 0.125f + seed);
-    obj.movelist_handle = 12 + seed;
-    obj.spr_offset = Point(-7 - seed, 9 + seed);
-    obj.pivot_offset = Point(2 + seed, -3 - seed);
+    obj.Name = String::FromFormat("Saved thing %d", seed);
+    obj.BlendMode = kBlend_Multiply;
+    obj.ShaderID = 3 + seed;
+    obj.ShaderHandle = 14 + seed;
+    obj.Rotation = 45.5f + seed;
+    obj.Pivot = Pointf(0.25f, 0.75f + seed);
+    obj.GraphicAnchor = Pointf(0.5f, 0.125f + seed);
+    obj.MoveListHandle = 12 + seed;
+    obj.GraphicOffset = Point(-7 - seed, 9 + seed);
+    obj.PivotOffset = Point(2 + seed, -3 - seed);
 }
 
 std::vector<uint8_t> WriteObject(const RoomObject &obj)
@@ -217,7 +271,74 @@ bool ReadState(const std::vector<uint8_t> &buf, RoomState &state)
     return in.GetPosition() == static_cast<soff_t>(buf.size());
 }
 
+// Gives the definition fields that a save does not hold, but for the id and the room number, values made of the
+// name and the index: the script name o<name><i>, an event handler, an interaction, a custom property
+void SetUnsavedFields(RoomObjectDef &def, const char *name, int i)
+{
+    def.ScriptName = String::FromFormat("o%s%d", name, i);
+    def.GetEvents().SetScriptModule(String::FromFormat("%s.asc", name));
+    def.GetEvents().SetHandler(kRoomObjectEvent_OnFrameEvent, String::FromFormat("o%s%d_OnFrame", name, i));
+    def.Interactions.SetScriptModule(String::FromFormat("%s.asc", name));
+    def.Interactions.SetHandlers(std::vector<ScriptEventHandler>{
+        ScriptEventHandler(), ScriptEventHandler(String::FromFormat("o%s%d_Look", name, i))});
+    def.Properties["Weight"] = String::FromFormat("%d", i);
+}
+
 const int kObjectCount = 3;
+
+// Compares the live hotspots, regions, walk-behinds and walkable areas of a state with their definitions, field by
+// field, but for the fields that a room state keeps between visits (a hotspot's name, a walk-behind's baseline) and
+// the play state
+void ExpectEntitiesTakeTheDefinition(const RoomState &state, const RoomDef &def)
+{
+    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
+    {
+        SCOPED_TRACE(testing::Message() << "hotspot " << i);
+        const RoomHotspotDef &expected = def.Hotspots[i];
+        const RoomHotspot &actual = state.Hotspots[i];
+        EXPECT_EQ(expected.ID, actual.ID);
+        EXPECT_STREQ(expected.ScriptName.GetCStr(), actual.ScriptName.GetCStr());
+        ExpectSameHandlers(expected.GetEvents(), actual.GetEvents(), "events");
+        ExpectSameHandlers(expected.Interactions, actual.Interactions, "interactions");
+        EXPECT_EQ(expected.Properties, actual.Properties);
+        EXPECT_EQ(expected.WalkTo, actual.WalkTo);
+    }
+    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
+    {
+        SCOPED_TRACE(testing::Message() << "region " << i);
+        const RoomRegionDef &expected = def.Regions[i];
+        const RoomRegion &actual = state.Regions[i];
+        EXPECT_EQ(expected.ID, actual.ID);
+        EXPECT_STREQ(expected.ScriptName.GetCStr(), actual.ScriptName.GetCStr());
+        ExpectSameHandlers(expected.GetEvents(), actual.GetEvents(), "events");
+        ExpectSameHandlers(expected.Interactions, actual.Interactions, "interactions");
+        EXPECT_EQ(expected.Properties, actual.Properties);
+        EXPECT_EQ(expected.Light, actual.Light);
+        EXPECT_EQ(expected.Tint, actual.Tint);
+    }
+    for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
+    {
+        SCOPED_TRACE(testing::Message() << "walk-behind " << i);
+        EXPECT_EQ(def.WalkBehinds[i].ID, state.WalkBehinds[i].ID);
+        EXPECT_STREQ(def.WalkBehinds[i].ScriptName.GetCStr(), state.WalkBehinds[i].ScriptName.GetCStr());
+    }
+    for (int i = 0; i < MAX_WALK_AREAS; ++i)
+    {
+        SCOPED_TRACE(testing::Message() << "walkable area " << i);
+        const RoomWalkableAreaDef &expected = def.WalkAreas[i];
+        const RoomWalkableArea &actual = state.WalkAreas[i];
+        EXPECT_EQ(expected.ID, actual.ID);
+        EXPECT_STREQ(expected.ScriptName.GetCStr(), actual.ScriptName.GetCStr());
+        EXPECT_EQ(expected.CharacterView, actual.CharacterView);
+        EXPECT_EQ(expected.ScalingFar, actual.ScalingFar);
+        EXPECT_EQ(expected.ScalingNear, actual.ScalingNear);
+        EXPECT_EQ(expected.PlayerView, actual.PlayerView);
+        EXPECT_EQ(expected.FaceDirectionRatio, actual.FaceDirectionRatio);
+        EXPECT_EQ(expected.Top, actual.Top);
+        EXPECT_EQ(expected.Bottom, actual.Bottom);
+        EXPECT_EQ(expected.Properties, actual.Properties);
+    }
+}
 
 } // namespace
 
@@ -233,7 +354,7 @@ protected:
         _wasRoom = Room::SetCurrent(&_room);
         _wasDisplayedRoom = Game::Current().DisplayedRoom;
         MakeDefinition(kObjectCount);
-        _room.State = &_state;
+        _room.SetState(&_state);
     }
 
     void TearDown() override
@@ -242,17 +363,22 @@ protected:
         Room::SetCurrent(_wasRoom);
     }
 
-    // The room's definition: object_count objects, and in every hotspot, walk-behind and walkable area values of
-    // its own; walkable area 2 spans the mask rows 10 to 30
+    // The room's definition, which the test writes as the room file reader would (the engine reads it through
+    // Room::Def(), which is const)
+    RoomDef &Definition() { return _room; }
+
+    // The room's definition: object_count objects, and in every hotspot, region, walk-behind and walkable area values
+    // of its own; walkable area 2 spans the mask rows 10 to 30
     void MakeDefinition(int object_count)
     {
-        _room.Objects.clear();
-        _room.Objects.resize(object_count);
+        Definition().Objects.clear();
+        Definition().Objects.resize(object_count);
         for (int i = 0; i < object_count; ++i)
         {
-            RoomObjectDef &def = _room.Objects[i];
+            RoomObjectDef &def = Definition().Objects[i];
             def.ID = i;
-            def.ScriptName = String::FromFormat("oThing%d", i);
+            def.Room = 7;
+            SetUnsavedFields(def, "Thing", i);
             def.X = 10 + i;
             def.Y = 20 + i;
             def.Sprite = 30 + i;
@@ -266,13 +392,52 @@ protected:
             def.GraphicOffset = Point(-3 - i, 7 + i);
         }
         for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
-            _room.Hotspots[i].Name = String::FromFormat("Hotspot %d", i);
+        {
+            RoomHotspotDef &def = Definition().Hotspots[i];
+            def.ID = i;
+            def.ScriptName = String::FromFormat("hHotspot%d", i);
+            def.GetEvents().SetScriptModule("room.asc");
+            def.GetEvents().SetHandler(kHotspotEvent_MouseOver, String::FromFormat("hHotspot%d_MouseOver", i));
+            def.Interactions.SetScriptModule("room.asc");
+            def.Interactions.SetHandlers(
+                std::vector<ScriptEventHandler>{ScriptEventHandler(String::FromFormat("hHotspot%d_Look", i))});
+            def.Properties["Smell"] = String::FromFormat("%d", i);
+            def.Name = String::FromFormat("Hotspot %d", i);
+            def.WalkTo = Point(5 + i, 6 + i);
+        }
+        for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
+        {
+            RoomRegionDef &def = Definition().Regions[i];
+            def.ID = i;
+            def.ScriptName = String::FromFormat("region%d", i);
+            def.GetEvents().SetScriptModule("room.asc");
+            def.GetEvents().SetHandler(kRegionEvent_WalkOn, String::FromFormat("region%d_WalkOn", i));
+            def.Properties["Wet"] = String::FromFormat("%d", i);
+            // a light level in the even regions, a tint in the odd ones
+            def.Light = (i % 2) == 0 ? -20 - i : 30 + i;
+            def.Tint = (i % 2) == 0 ? 0 : (10 + i) | (20 << 8) | (30 << 16) | (40 << 24);
+        }
         for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
-            _room.WalkBehinds[i].Baseline = 500 + i;
+        {
+            RoomWalkBehindDef &def = Definition().WalkBehinds[i];
+            def.ID = i;
+            def.ScriptName = String::FromFormat("walkbehind%d", i);
+            def.Baseline = 500 + i;
+        }
         for (int i = 0; i < MAX_WALK_AREAS; ++i)
-            _room.WalkAreas[i].FaceDirectionRatio = 0.5f + i;
-        _room.WalkAreas[2].Top = 10;
-        _room.WalkAreas[2].Bottom = 30;
+        {
+            RoomWalkableAreaDef &def = Definition().WalkAreas[i];
+            def.ID = i;
+            def.ScriptName = String::FromFormat("walkarea%d", i);
+            def.CharacterView = 2 + i;
+            def.ScalingFar = -10 - i;
+            def.ScalingNear = 10 + i;
+            def.PlayerView = 3 + i;
+            def.FaceDirectionRatio = 0.5f + i;
+            def.Properties["Slippery"] = String::FromFormat("%d", i);
+        }
+        Definition().WalkAreas[2].Top = 10;
+        Definition().WalkAreas[2].Bottom = 30;
         _room.Options.FaceDirectionRatio = 1.25f;
     }
 
@@ -280,21 +445,20 @@ protected:
     static RoomObject FirstVisitObject(int i)
     {
         RoomObject obj;
-        obj.id = i;
-        obj.x = 10 + i;
-        obj.y = 20 + i;
-        obj.num = static_cast<uint16_t>(30 + i);
-        obj.blend_mode = kBlend_Add;
-        obj.baseline = static_cast<int16_t>(40 + i);
-        obj.opacity = 50 + i;
-        obj.flags = OBJF_ENABLED | OBJF_VISIBLE | (i << 16);
-        obj.name = String::FromFormat("Thing %d", i);
-        obj.blocking_x = static_cast<int16_t>(60 + i);
-        obj.blocking_y = static_cast<int16_t>(70 + i);
-        obj.blocking_width = static_cast<int16_t>(80 + i);
-        obj.blocking_height = static_cast<int16_t>(90 + i);
-        obj.spr_anchor = Pointf(0.5f, 0.25f * i);
-        obj.spr_offset = Point(-3 - i, 7 + i);
+        obj.ID = i;
+        obj.Room = 7;
+        SetUnsavedFields(obj, "Thing", i);
+        obj.X = 10 + i;
+        obj.Y = 20 + i;
+        obj.Sprite = 30 + i;
+        obj.BlendMode = kBlend_Add;
+        obj.Baseline = static_cast<int16_t>(40 + i);
+        obj.Opacity = 50 + i;
+        obj.Flags = OBJF_ENABLED | OBJF_VISIBLE | (i << 16);
+        obj.Name = String::FromFormat("Thing %d", i);
+        obj.BlockingRect = RectWH(60 + i, 70 + i, 80 + i, 90 + i);
+        obj.GraphicAnchor = Pointf(0.5f, 0.25f * i);
+        obj.GraphicOffset = Point(-3 - i, 7 + i);
         return obj;
     }
 
@@ -308,46 +472,52 @@ TEST_F(LoadedRoom, FirstVisitTakesTheDefinition)
 {
     EXPECT_TRUE(BindRoomState(_room));
 
-    ASSERT_EQ(static_cast<uint32_t>(kObjectCount), _state.numobj);
-    ASSERT_EQ(static_cast<size_t>(kObjectCount), _state.obj.size());
-    EXPECT_EQ(static_cast<size_t>(kObjectCount), _state.objProps.size());
-    EXPECT_EQ(&_state.obj[0], _room.Objs);
+    ASSERT_EQ(static_cast<uint32_t>(kObjectCount), _state.ObjectCount);
+    ASSERT_EQ(static_cast<size_t>(kObjectCount), _state.Objects.size());
+    EXPECT_EQ(static_cast<size_t>(kObjectCount), _state.ObjectProperties.size());
+    EXPECT_EQ(&_state.Objects[0], _room.Objects);
     for (int i = 0; i < kObjectCount; ++i)
     {
         SCOPED_TRACE(testing::Message() << "object " << i);
-        const RoomObject &obj = _state.obj[i];
+        const RoomObject &obj = _state.Objects[i];
         ExpectSameObject(FirstVisitObject(i), obj, true);
         // the play state starts as a new object's
-        EXPECT_EQ(RoomObject::NoView, obj.view);
+        EXPECT_EQ(RoomObject::NoView, obj.View);
         EXPECT_FALSE(obj.is_moving());
         EXPECT_FALSE(obj.is_animating());
-        EXPECT_EQ(100, obj.zoom);
+        EXPECT_EQ(100, obj.Zoom);
     }
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
-        EXPECT_TRUE(_state.hotspot[i].Enabled) << "hotspot " << i;
-        EXPECT_STREQ(String::FromFormat("Hotspot %d", i).GetCStr(), _state.hotspot[i].Name.GetCStr());
+        EXPECT_TRUE(_state.Hotspots[i].Enabled) << "hotspot " << i;
+        EXPECT_STREQ(String::FromFormat("Hotspot %d", i).GetCStr(), _state.Hotspots[i].Name.GetCStr());
     }
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
-        EXPECT_EQ(1, _state.region_enabled[i]) << "region " << i;
+        EXPECT_EQ(1, _state.Regions[i].Enabled) << "region " << i;
     for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
-        EXPECT_EQ(500 + i, _state.walkbehind_base[i]) << "walk-behind " << i;
+        EXPECT_EQ(500 + i, _state.WalkBehinds[i].Baseline) << "walk-behind " << i;
     for (int i = 0; i < MAX_WALK_AREAS; ++i)
-        EXPECT_EQ(0.5f + i, _state.walkareas[i].FaceDirectionRatio) << "walkable area " << i;
-    EXPECT_EQ(1.25f, _state.face_dir_ratio);
-    EXPECT_EQ(1, _state.beenhere);
-    EXPECT_EQ(kRoomStatSvgVersion_Current, _state.contentFormat);
+        EXPECT_EQ(0.5f + i, _state.WalkAreas[i].FaceDirectionRatio) << "walkable area " << i;
+    ExpectEntitiesTakeTheDefinition(_state, _room.Def());
+    // the room reads the lists of the bound state
+    EXPECT_EQ(&_state.Hotspots[0], _room.Hotspots);
+    EXPECT_EQ(&_state.Regions[0], _room.Regions);
+    EXPECT_EQ(&_state.WalkAreas[0], _room.WalkAreas);
+    EXPECT_EQ(&_state.WalkBehinds[0], _room.WalkBehinds);
+    EXPECT_EQ(1.25f, _state.FaceDirectionRatio);
+    EXPECT_EQ(1, _state.Visited);
+    EXPECT_EQ(kRoomStatSvgVersion_Current, _state.ContentFormat);
 }
 
 TEST_F(LoadedRoom, SpriteOutsideTheInternalRangeBecomesZero)
 {
-    _room.Objects[0].Sprite = 65535;
-    _room.Objects[1].Sprite = 65536;
-    _room.Objects[2].Sprite = -5;
+    Definition().Objects[0].Sprite = 65535;
+    Definition().Objects[1].Sprite = 65536;
+    Definition().Objects[2].Sprite = -5;
     BindRoomState(_room);
-    EXPECT_EQ(65535, _state.obj[0].num);
-    EXPECT_EQ(0, _state.obj[1].num);
-    EXPECT_EQ(0, _state.obj[2].num);
+    EXPECT_EQ(65535, _state.Objects[0].Sprite);
+    EXPECT_EQ(0, _state.Objects[1].Sprite);
+    EXPECT_EQ(0, _state.Objects[2].Sprite);
 }
 
 TEST_F(LoadedRoom, LaterVisitKeepsTheState)
@@ -369,12 +539,20 @@ TEST_F(LoadedRoom, LaterVisitKeepsTheState)
     ScriptWalkbehind walkbehind6;
     walkbehind6.id = 6;
     Walkbehind_SetBaseline(&walkbehind6, 333);
-    const RoomObject changed = _state.obj[1];
-    const std::vector<uint8_t> before = WriteState(_state);
+    const RoomObject changed = _state.Objects[1];
+    // what the state must save after the next load: the same, but for the walkable areas' face direction ratio,
+    // which the save holds as the live value and which the room file below gives again (9)
+    std::vector<uint8_t> before;
+    {
+        RoomState expected = _state;
+        for (int i = 0; i < MAX_WALK_AREAS; ++i)
+            expected.WalkAreas[i].FaceDirectionRatio = 9.f;
+        before = WriteState(expected);
+    }
 
     // the room is loaded again, from a file that says otherwise for every value the state keeps
     MakeDefinition(kObjectCount);
-    for (RoomObjectDef &def : _room.Objects)
+    for (RoomObjectDef &def : Definition().Objects)
     {
         def.X += 1000;
         def.Y += 1000;
@@ -389,26 +567,202 @@ TEST_F(LoadedRoom, LaterVisitKeepsTheState)
         def.GraphicOffset = Point(1, 1);
     }
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
-        _room.Hotspots[i].Name = "Other";
+        Definition().Hotspots[i].Name = "Other";
     for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
-        _room.WalkBehinds[i].Baseline = 9;
+        Definition().WalkBehinds[i].Baseline = 9;
     for (int i = 0; i < MAX_WALK_AREAS; ++i)
-        _room.WalkAreas[i].FaceDirectionRatio = 9.f;
+        Definition().WalkAreas[i].FaceDirectionRatio = 9.f;
     _room.Options.FaceDirectionRatio = 9.f;
-    _room.Objs = nullptr;
+    _room.Objects = nullptr;
     EXPECT_FALSE(BindRoomState(_room));
 
-    ASSERT_EQ(static_cast<size_t>(kObjectCount), _state.obj.size());
-    EXPECT_EQ(&_state.obj[0], _room.Objs);
+    ASSERT_EQ(static_cast<size_t>(kObjectCount), _state.Objects.size());
+    EXPECT_EQ(&_state.Objects[0], _room.Objects);
     EXPECT_TRUE(before == WriteState(_state)) << "the state changed";
-    ExpectSameObject(changed, _state.obj[1], true);
-    EXPECT_EQ(111, _state.obj[1].x);
-    EXPECT_FALSE(_state.obj[1].is_visible());
-    EXPECT_FALSE(_state.hotspot[4].Enabled);
-    EXPECT_STREQ("Renamed hotspot", _state.hotspot[4].Name.GetCStr());
-    EXPECT_EQ(0, _state.region_enabled[5]);
-    EXPECT_EQ(333, _state.walkbehind_base[6]);
-    EXPECT_EQ(1, _state.beenhere);
+    ExpectSameObject(changed, _state.Objects[1], true);
+    EXPECT_EQ(111, _state.Objects[1].X);
+    EXPECT_FALSE(_state.Objects[1].is_visible());
+    EXPECT_FALSE(_state.Hotspots[4].Enabled);
+    EXPECT_STREQ("Renamed hotspot", _state.Hotspots[4].Name.GetCStr());
+    EXPECT_EQ(0, _state.Regions[5].Enabled);
+    EXPECT_EQ(333, _state.WalkBehinds[6].Baseline);
+    EXPECT_EQ(1, _state.Visited);
+}
+
+// What a room state does not keep between visits is taken from the room file again at the next load: a region's light
+// level and tint and a walkable area's scaling and face direction ratio, which the script changed during the visit
+// (they live as long as the room is loaded); what it keeps stays: a hotspot's name and flag, a region's flag, a
+// walk-behind's baseline
+TEST_F(LoadedRoom, LaterVisitTakesTheRegionsAndWalkableAreasFromTheDefinitionAgain)
+{
+    BindRoomState(_room);
+    // region 2 has a light level in the room file, region 3 a tint
+    ScriptRegion region2;
+    region2.id = 2;
+    Region_SetLightLevel(&region2, 100);
+    ScriptRegion region3;
+    region3.id = 3;
+    Region_Tint(&region3, 1, 2, 3, 4, 5);
+    ScriptRegion region5;
+    region5.id = 5;
+    Region_SetEnabled(&region5, 0);
+    SetAreaScaling(2, 50, 150);
+    ScriptWalkableArea area3;
+    area3.id = 3;
+    Walkarea_SetFaceDirectionRatio(&area3, 7.5f);
+    ScriptHotspot hotspot4;
+    hotspot4.id = 4;
+    Hotspot_SetEnabled(&hotspot4, 0);
+    Hotspot_SetName(&hotspot4, "Renamed hotspot");
+    ScriptWalkbehind walkbehind6;
+    walkbehind6.id = 6;
+    Walkbehind_SetBaseline(&walkbehind6, 333);
+    ASSERT_EQ(100, Region_GetLightLevel(&region2));
+    ASSERT_EQ(1, Region_GetTintRed(&region3));
+    ASSERT_EQ(-50, _room.WalkAreas[2].ScalingFar);
+    ASSERT_EQ(7.5f, _room.WalkAreas[3].FaceDirectionRatio);
+
+    // the room is left, and entered again
+    _room.SetState(nullptr);
+    _room.SetState(&_state);
+    EXPECT_FALSE(BindRoomState(_room));
+
+    ExpectEntitiesTakeTheDefinition(_state, _room.Def());
+    EXPECT_EQ(-22, Region_GetLightLevel(&region2));
+    EXPECT_EQ(0, Region_GetTintEnabled(&region2));
+    EXPECT_EQ(1, Region_GetTintEnabled(&region3));
+    EXPECT_EQ(13, Region_GetTintRed(&region3));
+    EXPECT_EQ(40, Region_GetTintSaturation(&region3));
+    EXPECT_EQ(33, Region_GetTintLuminance(&region3));
+    EXPECT_EQ(0, Region_GetLightLevel(&region3));
+    ScriptWalkableArea area2;
+    area2.id = 2;
+    EXPECT_EQ(-12, Walkarea_GetScalingMin(&area2));
+    EXPECT_EQ(12, Walkarea_GetScalingMax(&area2));
+    EXPECT_EQ(3.5f, Walkarea_GetFaceDirectionRatio(&area3));
+    // kept
+    EXPECT_FALSE(_state.Hotspots[4].Enabled);
+    EXPECT_STREQ("Renamed hotspot", _state.Hotspots[4].Name.GetCStr());
+    EXPECT_EQ(0, Region_GetEnabled(&region5));
+    EXPECT_EQ(333, Walkbehind_GetBaseline(&walkbehind6));
+    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
+        EXPECT_EQ(i != 4, _state.Hotspots[i].Enabled) << "hotspot " << i;
+    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
+        EXPECT_EQ(i != 5 ? 1 : 0, _state.Regions[i].Enabled) << "region " << i;
+}
+
+// A state restored from a save holds of the hotspots, regions, walk-behinds and walkable areas only what a room state
+// keeps; bound to the room, each takes the rest from the definition: script names, events, interactions, properties
+TEST_F(LoadedRoom, RestoredStateTakesTheEntitiesDefinitions)
+{
+    BindRoomState(_room);
+    ScriptHotspot hotspot4;
+    hotspot4.id = 4;
+    Hotspot_SetName(&hotspot4, "Renamed hotspot");
+    ScriptWalkbehind walkbehind6;
+    walkbehind6.id = 6;
+    Walkbehind_SetBaseline(&walkbehind6, 333);
+    RoomState restored;
+    ASSERT_TRUE(ReadState(WriteState(_state), restored));
+    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
+    {
+        EXPECT_TRUE(restored.Hotspots[i].ScriptName.IsEmpty()) << "hotspot " << i << " as restored";
+        EXPECT_FALSE(restored.Hotspots[i].GetEvents().HasHandler(kHotspotEvent_MouseOver));
+    }
+    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
+        EXPECT_TRUE(restored.Regions[i].ScriptName.IsEmpty()) << "region " << i << " as restored";
+
+    _room.SetState(&restored);
+    EXPECT_FALSE(BindRoomState(_room));
+
+    ExpectEntitiesTakeTheDefinition(restored, _room.Def());
+    EXPECT_STREQ("hHotspot4", restored.Hotspots[4].ScriptName.GetCStr());
+    EXPECT_STREQ("hHotspot4_MouseOver",
+                 restored.Hotspots[4].GetEvents().GetHandler(kHotspotEvent_MouseOver).FunctionName.GetCStr());
+    EXPECT_STREQ("region7_WalkOn",
+                 restored.Regions[7].GetEvents().GetHandler(kRegionEvent_WalkOn).FunctionName.GetCStr());
+    // the saved values are kept
+    EXPECT_STREQ("Renamed hotspot", restored.Hotspots[4].Name.GetCStr());
+    EXPECT_STREQ("Hotspot 5", restored.Hotspots[5].Name.GetCStr());
+    EXPECT_EQ(333, restored.WalkBehinds[6].Baseline);
+    EXPECT_EQ(507, restored.WalkBehinds[7].Baseline);
+    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
+        EXPECT_TRUE(restored.Hotspots[i].Enabled) << "hotspot " << i;
+    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
+        EXPECT_EQ(1, restored.Regions[i].Enabled) << "region " << i;
+}
+
+// With no state bound the four lists are those of TempState, never nullptr; the placeholder room, used while no room
+// is loaded, makes them copies of its definition without marking the state visited
+TEST_F(LoadedRoom, UnboundRoomReadsTheListsOfTheTemporaryState)
+{
+    BindRoomState(_room);
+    _room.SetState(nullptr);
+    EXPECT_EQ(nullptr, _room.State);
+    EXPECT_EQ(nullptr, _room.Objects);
+    EXPECT_EQ(&_room.TempState.Hotspots[0], _room.Hotspots);
+    EXPECT_EQ(&_room.TempState.Regions[0], _room.Regions);
+    EXPECT_EQ(&_room.TempState.WalkAreas[0], _room.WalkAreas);
+    EXPECT_EQ(&_room.TempState.WalkBehinds[0], _room.WalkBehinds);
+    ScriptRegion region3;
+    region3.id = 3;
+    EXPECT_EQ(0, Region_GetLightLevel(&region3));
+    EXPECT_EQ(0, Region_GetEnabled(&region3));
+
+    set_room_placeholder();
+    EXPECT_EQ(&_room.TempState, _room.State);
+    EXPECT_EQ(nullptr, _room.Objects);
+    EXPECT_EQ(&_room.TempState.Hotspots[0], _room.Hotspots);
+    EXPECT_EQ(0, _room.TempState.Visited);
+    ExpectEntitiesTakeTheDefinition(_room.TempState, _room.Def());
+    // the placeholder's definition has the defaults
+    EXPECT_TRUE(_room.Def().Hotspots[1].ScriptName.IsEmpty());
+    EXPECT_EQ(NOT_VECTOR_SCALED, _room.WalkAreas[1].ScalingNear);
+    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
+        EXPECT_FALSE(_room.Hotspots[i].Enabled) << "hotspot " << i;
+    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
+        EXPECT_EQ(0, _room.Regions[i].Enabled) << "region " << i;
+    for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
+        EXPECT_EQ(0, _room.WalkBehinds[i].Baseline) << "walk-behind " << i;
+}
+
+// The script functions that change a region's light level and tint and a walkable area's scaling and face direction
+// ratio write the live entity: the room's definition stays as loaded
+TEST_F(LoadedRoom, ScriptFunctionsLeaveTheDefinitionUntouched)
+{
+    BindRoomState(_room);
+    // region 2 has a light level in the room file, region 3 a tint
+    ScriptRegion region2;
+    region2.id = 2;
+    Region_SetLightLevel(&region2, 100); // SetAreaLightLevel
+    ScriptRegion region3;
+    region3.id = 3;
+    Region_Tint(&region3, 1, 2, 3, 4, 5); // SetRegionTint
+    SetAreaScaling(2, 50, 150);
+    ScriptWalkableArea area3;
+    area3.id = 3;
+    Walkarea_SetFaceDirectionRatio(&area3, 7.5f);
+    ScriptHotspot hotspot4;
+    hotspot4.id = 4;
+    Hotspot_SetName(&hotspot4, "Renamed hotspot");
+    SetWalkBehindBase(6, 333);
+
+    const RoomDef &def = _room.Def();
+    EXPECT_EQ(100, _room.Regions[2].Light);
+    EXPECT_EQ(-22, def.Regions[2].Light);
+    EXPECT_EQ(0, def.Regions[2].Tint);
+    EXPECT_EQ(5, _room.Regions[3].Light);
+    EXPECT_EQ(1 | (2 << 8) | (3 << 16) | (4 << 24), _room.Regions[3].Tint);
+    EXPECT_EQ(33, def.Regions[3].Light);
+    EXPECT_EQ(13 | (20 << 8) | (30 << 16) | (40 << 24), def.Regions[3].Tint);
+    EXPECT_EQ(-50, _room.WalkAreas[2].ScalingFar);
+    EXPECT_EQ(-12, def.WalkAreas[2].ScalingFar);
+    EXPECT_EQ(12, def.WalkAreas[2].ScalingNear);
+    EXPECT_EQ(7.5f, _room.WalkAreas[3].FaceDirectionRatio);
+    EXPECT_EQ(3.5f, def.WalkAreas[3].FaceDirectionRatio);
+    EXPECT_STREQ("Hotspot 4", def.Hotspots[4].Name.GetCStr());
+    EXPECT_EQ(333, _room.WalkBehinds[6].Baseline);
+    EXPECT_EQ(506, def.WalkBehinds[6].Baseline);
 }
 
 TEST_F(LoadedRoom, RestoredStateWithFewerObjectsIsGrown)
@@ -419,23 +773,23 @@ TEST_F(LoadedRoom, RestoredStateWithFewerObjectsIsGrown)
     ScriptObject obj0;
     obj0.id = 0;
     Object_SetPosition(&obj0, 111, 222);
-    const RoomObject kept = _state.obj[0];
+    const RoomObject kept = _state.Objects[0];
     RoomState restored;
     ASSERT_TRUE(ReadState(WriteState(_state), restored));
 
     MakeDefinition(kObjectCount);
-    _room.State = &restored;
+    _room.SetState(&restored);
     EXPECT_FALSE(BindRoomState(_room));
 
-    ASSERT_EQ(static_cast<uint32_t>(kObjectCount), restored.numobj);
-    ASSERT_EQ(static_cast<size_t>(kObjectCount), restored.obj.size());
-    EXPECT_EQ(static_cast<size_t>(kObjectCount), restored.objProps.size());
-    EXPECT_EQ(&restored.obj[0], _room.Objs);
-    ExpectSameObject(kept, restored.obj[0], false);
+    ASSERT_EQ(static_cast<uint32_t>(kObjectCount), restored.ObjectCount);
+    ASSERT_EQ(static_cast<size_t>(kObjectCount), restored.Objects.size());
+    EXPECT_EQ(static_cast<size_t>(kObjectCount), restored.ObjectProperties.size());
+    EXPECT_EQ(&restored.Objects[0], _room.Objects);
+    ExpectSameObject(kept, restored.Objects[0], false);
     for (int i = 1; i < kObjectCount; ++i)
     {
         SCOPED_TRACE(testing::Message() << "object " << i);
-        ExpectSameObject(FirstVisitObject(i), restored.obj[i], true);
+        ExpectSameObject(FirstVisitObject(i), restored.Objects[i], true);
     }
 }
 
@@ -445,19 +799,19 @@ TEST_F(LoadedRoom, RestoredStateWithMoreObjectsIsCut)
     ScriptObject obj0;
     obj0.id = 0;
     Object_SetPosition(&obj0, 111, 222);
-    const RoomObject kept = _state.obj[0];
+    const RoomObject kept = _state.Objects[0];
     RoomState restored;
     ASSERT_TRUE(ReadState(WriteState(_state), restored));
 
     MakeDefinition(1);
-    _room.State = &restored;
+    _room.SetState(&restored);
     EXPECT_FALSE(BindRoomState(_room));
 
-    EXPECT_EQ(1u, restored.numobj);
-    ASSERT_EQ(1u, restored.obj.size());
-    EXPECT_EQ(1u, restored.objProps.size());
-    EXPECT_EQ(&restored.obj[0], _room.Objs);
-    ExpectSameObject(kept, restored.obj[0], false);
+    EXPECT_EQ(1u, restored.ObjectCount);
+    ASSERT_EQ(1u, restored.Objects.size());
+    EXPECT_EQ(1u, restored.ObjectProperties.size());
+    EXPECT_EQ(&restored.Objects[0], _room.Objects);
+    ExpectSameObject(kept, restored.Objects[0], false);
 }
 
 TEST(RoomObjectSave, EverySavedFieldIsRestored)
@@ -472,85 +826,102 @@ TEST(RoomObjectSave, EverySavedFieldIsRestored)
     EXPECT_EQ(static_cast<soff_t>(saved.size()), in.GetPosition());
     ExpectSameObject(obj, restored, false);
     // the sprite size is derived from the scaled size
-    EXPECT_EQ(33, restored.spr_width);
-    EXPECT_EQ(44, restored.spr_height);
+    EXPECT_EQ(33, restored.SpriteWidth);
+    EXPECT_EQ(44, restored.SpriteHeight);
+    EXPECT_TRUE(saved == WriteObject(restored));
+}
+
+// The save holds the sprite in 16 bits, which the read takes as unsigned: a number above INT16_MAX comes back as it was
+TEST(RoomObjectSave, SpriteAboveInt16RoundTrips)
+{
+    RoomObject obj;
+    SetSavedFields(obj, 0);
+    obj.Sprite = 40000;
+    const std::vector<uint8_t> saved = WriteObject(obj);
+
+    RoomObject restored;
+    Stream in(std::make_unique<VectorStream>(saved));
+    restored.ReadFromSavegame(&in, kRoomStatSvgVersion_Current);
+    EXPECT_EQ(40000, restored.Sprite);
     EXPECT_TRUE(saved == WriteObject(restored));
 }
 
 TEST(RoomStateSave, EverySavedFieldIsRestored)
 {
     RoomState state;
-    state.beenhere = 1;
-    state.numobj = 2;
-    state.obj.resize(2);
-    state.objProps.resize(2);
-    SetSavedFields(state.obj[0], 0);
-    SetSavedFields(state.obj[1], 1);
-    state.objProps[1]["Weight"] = "12";
+    state.Visited = 1;
+    state.ObjectCount = 2;
+    state.Objects.resize(2);
+    state.ObjectProperties.resize(2);
+    SetSavedFields(state.Objects[0], 0);
+    SetSavedFields(state.Objects[1], 1);
+    state.ObjectProperties[1]["Weight"] = "12";
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
-        state.hotspot[i].Enabled = (i % 2) == 0;
-        state.hotspot[i].Name = String::FromFormat("Hotspot %d", i);
+        state.Hotspots[i].Enabled = (i % 2) == 0;
+        state.Hotspots[i].Name = String::FromFormat("Hotspot %d", i);
     }
-    state.hsProps[2]["Smell"] = "sweet";
+    state.HotspotProperties[2]["Smell"] = "sweet";
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
-        state.region_enabled[i] = static_cast<char>(i % 3 == 0);
-    state.regProps[3]["Wet"] = "1";
+        state.Regions[i].Enabled = static_cast<char>(i % 3 == 0);
+    state.RegionProperties[3]["Wet"] = "1";
     for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
-        state.walkbehind_base[i] = static_cast<short>(700 + i);
+        state.WalkBehinds[i].Baseline = static_cast<short>(700 + i);
     for (int i = 0; i < MAX_WALK_AREAS; ++i)
-        state.walkareas[i].FaceDirectionRatio = 0.75f + i;
-    state.waProps[4]["Slippery"] = "yes";
-    state.roomProps["Mood"] = "gloomy";
-    state.face_dir_ratio = 2.5f;
+        state.WalkAreas[i].FaceDirectionRatio = 0.75f + i;
+    state.WalkAreaProperties[4]["Slippery"] = "yes";
+    state.Properties["Mood"] = "gloomy";
+    state.FaceDirectionRatio = 2.5f;
     state.SetBgShader(5, 6);
-    state.tsdata = {1, 2, 3};
-    state.tsdatasize = 3;
+    state.ScriptData = {1, 2, 3};
+    state.ScriptDataSize = 3;
 
     const std::vector<uint8_t> saved = WriteState(state);
     RoomState restored;
     EXPECT_TRUE(ReadState(saved, restored)) << "the read did not take the whole stream";
 
-    EXPECT_EQ(1, restored.beenhere);
-    ASSERT_EQ(2u, restored.numobj);
-    ASSERT_EQ(2u, restored.obj.size());
-    ASSERT_EQ(2u, restored.objProps.size());
+    EXPECT_EQ(1, restored.Visited);
+    ASSERT_EQ(2u, restored.ObjectCount);
+    ASSERT_EQ(2u, restored.Objects.size());
+    ASSERT_EQ(2u, restored.ObjectProperties.size());
     for (int i = 0; i < 2; ++i)
     {
         SCOPED_TRACE(testing::Message() << "object " << i);
-        ExpectSameObject(state.obj[i], restored.obj[i], false);
-        EXPECT_EQ(state.objProps[i], restored.objProps[i]);
+        ExpectSameObject(state.Objects[i], restored.Objects[i], false);
+        EXPECT_EQ(state.ObjectProperties[i], restored.ObjectProperties[i]);
     }
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
-        EXPECT_EQ(state.hotspot[i].Enabled, restored.hotspot[i].Enabled) << "hotspot " << i;
-        EXPECT_STREQ(state.hotspot[i].Name.GetCStr(), restored.hotspot[i].Name.GetCStr());
-        EXPECT_EQ(state.hsProps[i], restored.hsProps[i]) << "hotspot " << i;
+        EXPECT_EQ(state.Hotspots[i].Enabled, restored.Hotspots[i].Enabled) << "hotspot " << i;
+        EXPECT_STREQ(state.Hotspots[i].Name.GetCStr(), restored.Hotspots[i].Name.GetCStr());
+        EXPECT_EQ(state.HotspotProperties[i], restored.HotspotProperties[i]) << "hotspot " << i;
     }
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
-        EXPECT_EQ(state.region_enabled[i], restored.region_enabled[i]) << "region " << i;
-        EXPECT_EQ(state.regProps[i], restored.regProps[i]) << "region " << i;
+        EXPECT_EQ(state.Regions[i].Enabled, restored.Regions[i].Enabled) << "region " << i;
+        EXPECT_EQ(state.RegionProperties[i], restored.RegionProperties[i]) << "region " << i;
     }
     for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
-        EXPECT_EQ(state.walkbehind_base[i], restored.walkbehind_base[i]) << "walk-behind " << i;
+        EXPECT_EQ(state.WalkBehinds[i].Baseline, restored.WalkBehinds[i].Baseline) << "walk-behind " << i;
     for (int i = 0; i < MAX_WALK_AREAS; ++i)
     {
-        EXPECT_EQ(state.walkareas[i].FaceDirectionRatio, restored.walkareas[i].FaceDirectionRatio) << "area " << i;
-        EXPECT_EQ(state.waProps[i], restored.waProps[i]) << "walkable area " << i;
+        EXPECT_EQ(state.WalkAreas[i].FaceDirectionRatio, restored.WalkAreas[i].FaceDirectionRatio) << "area " << i;
+        EXPECT_EQ(state.WalkAreaProperties[i], restored.WalkAreaProperties[i]) << "walkable area " << i;
     }
-    EXPECT_EQ(state.roomProps, restored.roomProps);
-    EXPECT_EQ(2.5f, restored.face_dir_ratio);
+    EXPECT_EQ(state.Properties, restored.Properties);
+    EXPECT_EQ(2.5f, restored.FaceDirectionRatio);
     EXPECT_EQ(5, restored.GetBgShaderID());
     EXPECT_EQ(6, restored.GetBgShaderHandle());
-    EXPECT_EQ(3u, restored.tsdatasize);
-    EXPECT_EQ(state.tsdata, restored.tsdata);
-    EXPECT_EQ(kRoomStatSvgVersion_Current, restored.contentFormat);
+    EXPECT_EQ(3u, restored.ScriptDataSize);
+    EXPECT_EQ(state.ScriptData, restored.ScriptData);
+    EXPECT_EQ(kRoomStatSvgVersion_Current, restored.ContentFormat);
     EXPECT_TRUE(saved == WriteState(restored)) << "saving the restored state gives other bytes";
 }
 
 TEST_F(LoadedRoom, ScriptChangesRegionsAndWalkableAreas)
 {
+    // the live regions and walkable areas take the definition's values (the walkable area's rows) when bound
+    BindRoomState(_room);
     ScriptRegion region3;
     region3.id = 3;
     Region_SetLightLevel(&region3, 100);
@@ -670,7 +1041,7 @@ TEST_F(LoadedRoom, NarrowFieldsWrapAt16Bits)
 
     RoomState restored;
     ASSERT_TRUE(ReadState(WriteState(_state), restored));
-    _room.State = &restored;
+    _room.SetState(&restored);
     BindRoomState(_room);
     EXPECT_EQ(0, Object_GetBaseline(&obj0));
     EXPECT_EQ(25536, Object_GetBaseline(&obj1));
@@ -680,17 +1051,145 @@ TEST_F(LoadedRoom, NarrowFieldsWrapAt16Bits)
     EXPECT_EQ(25536, GetWalkBehindBase(2));
 }
 
+// Each of the four values of the blocking rectangle is set alone: the three others read back as they were, also
+// when the size is zero or negative (a size below 1 means "from the sprite")
+TEST_F(LoadedRoom, BlockingRectSettersKeepTheOtherValues)
+{
+    BindRoomState(_room);
+    ScriptObject obj0;
+    obj0.id = 0;
+    // object 0's rectangle is RectWH(60, 70, 80, 90)
+    int left = 60, top = 70, width = 80, height = 90;
+    auto expect_rect = [&](const char *what)
+    {
+        SCOPED_TRACE(what);
+        EXPECT_EQ(left, Object_GetBlockingRectX(&obj0));
+        EXPECT_EQ(top, Object_GetBlockingRectY(&obj0));
+        EXPECT_EQ(width, Object_GetBlockingWidth(&obj0));
+        EXPECT_EQ(height, Object_GetBlockingHeight(&obj0));
+    };
+    expect_rect("as bound");
+    for (int value : {37, 0, -5})
+    {
+        SCOPED_TRACE(testing::Message() << "value " << value);
+        Object_SetBlockingWidth(&obj0, value);
+        width = value;
+        expect_rect("width");
+        Object_SetBlockingHeight(&obj0, value);
+        height = value;
+        expect_rect("height");
+        Object_SetBlockingRectX(&obj0, value - 1);
+        left = value - 1;
+        expect_rect("x");
+        Object_SetBlockingRectY(&obj0, value - 2);
+        top = value - 2;
+        expect_rect("y");
+    }
+    // a size set before the position, and a position set before the size
+    Object_SetBlockingWidth(&obj0, 12);
+    Object_SetBlockingRectX(&obj0, 300);
+    Object_SetBlockingHeight(&obj0, -7);
+    Object_SetBlockingRectY(&obj0, -300);
+    Object_SetBlockingWidth(&obj0, -9);
+    left = 300;
+    top = -300;
+    width = -9;
+    height = -7;
+    expect_rect("mixed");
+}
+
+// The room file's baseline is 32 bits; the object keeps 16 of them, as the save does
+TEST_F(LoadedRoom, DefinitionBaselineWrapsAt16Bits)
+{
+    Definition().Objects[0].Baseline = 40000;
+    Definition().Objects[1].Baseline = -40000;
+    BindRoomState(_room);
+    EXPECT_EQ(-25536, _state.Objects[0].Baseline);
+    EXPECT_EQ(25536, _state.Objects[1].Baseline);
+}
+
+// A walk-behind's baseline is 32 bits in the room file; the room state keeps 16 of them, as the save does, both from
+// the definition and from the script's Walkbehind.Baseline
+TEST_F(LoadedRoom, WalkBehindBaselineWrapsAt16Bits)
+{
+    Definition().WalkBehinds[1].Baseline = 40000;
+    Definition().WalkBehinds[2].Baseline = -40000;
+    BindRoomState(_room);
+    EXPECT_EQ(-25536, GetWalkBehindBase(1));
+    EXPECT_EQ(25536, GetWalkBehindBase(2));
+    ScriptWalkbehind walkbehind3;
+    walkbehind3.id = 3;
+    Walkbehind_SetBaseline(&walkbehind3, 40000);
+    EXPECT_EQ(-25536, Walkbehind_GetBaseline(&walkbehind3));
+    EXPECT_EQ(-25536, GetWalkBehindBase(3));
+}
+
 // The id is not saved; CheckViewFrame and RunFrameEvent find the object's script object and events by it
 TEST_F(LoadedRoom, RestoredObjectsKeepTheirIds)
 {
     BindRoomState(_room);
     RoomState restored;
     ASSERT_TRUE(ReadState(WriteState(_state), restored));
-    _room.State = &restored;
+    _room.SetState(&restored);
     EXPECT_FALSE(BindRoomState(_room));
-    ASSERT_EQ(static_cast<size_t>(kObjectCount), restored.obj.size());
+    ASSERT_EQ(static_cast<size_t>(kObjectCount), restored.Objects.size());
     for (int i = 0; i < kObjectCount; ++i)
-        EXPECT_EQ(i, restored.obj[i].id) << "object " << i;
+        EXPECT_EQ(i, restored.Objects[i].ID) << "object " << i;
+}
+
+// A state restored from a save holds no script name, event, interaction, custom property defaults nor id: a later
+// visit takes them from the room file again, and each object keeps what the save gave it
+TEST_F(LoadedRoom, LaterVisitTakesTheUnsavedDefinitionFieldsAgain)
+{
+    BindRoomState(_room);
+    ScriptObject obj1;
+    obj1.id = 1;
+    Object_SetPosition(&obj1, 111, 222);
+    Object_SetName(&obj1, "Moved thing");
+    const std::vector<RoomObject> saved_objects = _state.Objects;
+    RoomState restored;
+    ASSERT_TRUE(ReadState(WriteState(_state), restored));
+    ASSERT_EQ(static_cast<size_t>(kObjectCount), restored.Objects.size());
+    for (int i = 0; i < kObjectCount; ++i)
+    {
+        SCOPED_TRACE(testing::Message() << "object " << i << " as restored");
+        EXPECT_TRUE(restored.Objects[i].ScriptName.IsEmpty());
+        EXPECT_FALSE(restored.Objects[i].GetEvents().HasHandler(kRoomObjectEvent_OnFrameEvent));
+        EXPECT_TRUE(restored.Objects[i].Interactions.GetHandlers().empty());
+        EXPECT_TRUE(restored.Objects[i].Properties.empty());
+        EXPECT_EQ(-1, restored.Objects[i].Room);
+        // the id is the index (RoomState::ReadFromSavegame): wiped here, so that the test sees where the bind takes
+        // it from
+        restored.Objects[i].ID = -1;
+    }
+
+    // the room file says other things now for what a save does not hold
+    for (int i = 0; i < kObjectCount; ++i)
+    {
+        SetUnsavedFields(Definition().Objects[i], "Other", i);
+        Definition().Objects[i].Room = 8;
+    }
+    _room.SetState(&restored);
+    EXPECT_FALSE(BindRoomState(_room));
+
+    ASSERT_EQ(static_cast<size_t>(kObjectCount), restored.Objects.size());
+    for (int i = 0; i < kObjectCount; ++i)
+    {
+        SCOPED_TRACE(testing::Message() << "object " << i);
+        const RoomObject &obj = restored.Objects[i];
+        EXPECT_EQ(i, obj.ID);
+        EXPECT_STREQ(String::FromFormat("oOther%d", i).GetCStr(), obj.ScriptName.GetCStr());
+        EXPECT_EQ(8, obj.Room);
+        ExpectSameHandlers(Definition().Objects[i].GetEvents(), obj.GetEvents(), "events");
+        EXPECT_STREQ(String::FromFormat("oOther%d_OnFrame", i).GetCStr(),
+                     obj.GetEvents().GetHandler(kRoomObjectEvent_OnFrameEvent).FunctionName.GetCStr());
+        ExpectSameHandlers(Definition().Objects[i].Interactions, obj.Interactions, "interactions");
+        EXPECT_EQ(Definition().Objects[i].Properties, obj.Properties);
+        // the saved values are kept
+        ExpectSameObject(saved_objects[i], obj, false);
+    }
+    EXPECT_EQ(111, restored.Objects[1].X);
+    EXPECT_STREQ("Moved thing", restored.Objects[1].Name.GetCStr());
 }
 
 // SetAreaLightLevel rejects the region number MAX_ROOM_REGIONS with a quit, as SetRegionTint does; a quit ends

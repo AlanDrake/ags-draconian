@@ -14,7 +14,7 @@
 #include "game/world/room_state.h"
 
 #include <cstdlib> // free
-#include <cstring> // memset
+#include <memory>
 
 #include "game/customproperties.h"
 #include "game/game_version.h"
@@ -28,73 +28,62 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 
-void HotspotState::ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion /*save_ver*/)
+void RoomHotspot::RebindDefinition(const RoomHotspotDef &def)
 {
-    Enabled = in->ReadInt8() != 0;
-    Name = StrUtil::ReadString(in);
+    String name = std::move(Name); // kept
+    RoomHotspotDef::operator=(def);
+    Name = std::move(name);
 }
 
-void HotspotState::WriteToSavegame(Common::Stream *out) const
+void RoomRegion::RebindDefinition(const RoomRegionDef &def)
 {
-    out->WriteInt8(Enabled);
-    StrUtil::WriteString(Name, out);
+    RoomRegionDef::operator=(def);
 }
 
-void WalkareaState::ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion save_ver)
+void RoomWalkableArea::RebindDefinition(const RoomWalkableAreaDef &def)
 {
-    // reserve 3 int32 for existing older WA properties:
-    // enabled (or rather flags?), scaling min & max, anything else?
-    in->ReadInt32();
-    in->ReadInt32();
-    in->ReadInt32();
-    FaceDirectionRatio = in->ReadFloat32();
+    RoomWalkableAreaDef::operator=(def);
 }
 
-void WalkareaState::WriteToSavegame(Common::Stream *out) const
+void RoomWalkBehind::RebindDefinition(const RoomWalkBehindDef &def)
 {
-    // reserve 3 int32 for existing older WA properties:
-    // enabled (or rather flags?), scaling min & max, anything else?
-    out->WriteInt32(0);
-    out->WriteInt32(0);
-    out->WriteInt32(0);
-    out->WriteFloat32(FaceDirectionRatio);
+    const int32_t baseline = Baseline; // kept
+    RoomWalkBehindDef::operator=(def);
+    Baseline = baseline;
 }
 
 
 RoomState::RoomState()
 {
-    contentFormat = kRoomStatSvgVersion_Current; // set current to avoid fixups
-    beenhere = 0;
-    numobj = 0;
-    tsdatasize = 0;
-
-    memset(&region_enabled, 0, sizeof(region_enabled));
-    memset(&walkbehind_base, 0, sizeof(walkbehind_base));
+    ContentFormat = kRoomStatSvgVersion_Current; // set current to avoid fixups
+    Visited = 0;
+    ObjectCount = 0;
+    ScriptDataSize = 0;
 }
 
 RoomState::~RoomState() {}
 
 void RoomState::FreeScriptData()
 {
-    tsdata.clear();
-    tsdatasize = 0;
+    ScriptData.clear();
+    ScriptDataSize = 0;
 }
 
 void RoomState::FreeProperties()
 {
-    roomProps.clear();
+    Properties.clear();
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
-        hsProps[i].clear();
+        HotspotProperties[i].clear();
     }
-    objProps.clear();
+    ObjectProperties.clear();
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
-        regProps[i].clear();
+        RegionProperties[i].clear();
     }
     for (int i = 0; i < MAX_WALK_AREAS; ++i)
     {
-        waProps[i].clear();
+        WalkAreaProperties[i].clear();
     }
 }
 
@@ -109,55 +98,63 @@ void RoomState::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
     FreeScriptData();
     FreeProperties();
 
-    beenhere = in->ReadInt8();
-    numobj = static_cast<uint32_t>(in->ReadInt32());
+    Visited = in->ReadInt8();
+    ObjectCount = static_cast<uint32_t>(in->ReadInt32());
 
     const int num_hotspots = in->ReadInt32();
     const int num_regions = in->ReadInt32();
     const int num_walkareas = in->ReadInt32();
     const int num_walkbehinds = in->ReadInt32();
 
-    obj.resize(numobj);
-    objProps.resize(numobj);
-    for (uint32_t i = 0; i < numobj; ++i)
+    Objects.resize(ObjectCount);
+    ObjectProperties.resize(ObjectCount);
+    for (uint32_t i = 0; i < ObjectCount; ++i)
     {
-        obj[i].ReadFromSavegame(in, cmp_ver);
-        obj[i].id = static_cast<int>(i); // not saved: the object's index
-        Properties::ReadValues(objProps[i], in);
+        Objects[i].ReadFromSavegame(in, cmp_ver);
+        Objects[i].ID = static_cast<int>(i); // not saved: the object's index
+        Properties::ReadValues(ObjectProperties[i], in);
     }
+    // Of the hotspots, regions, walk-behinds and walkable areas only the fields a room state keeps between visits;
+    // the room's definition gives the others when the room is loaded (BindRoomState)
     for (int i = 0; i < num_hotspots; ++i)
     {
-        hotspot[i].ReadFromSavegame(in, cmp_ver);
-        Properties::ReadValues(hsProps[i], in);
+        Hotspots[i].Enabled = in->ReadInt8() != 0;
+        Hotspots[i].Name = StrUtil::ReadString(in);
+        Properties::ReadValues(HotspotProperties[i], in);
     }
     for (int i = 0; i < num_regions; ++i)
     {
-        region_enabled[i] = in->ReadInt8();
+        Regions[i].Enabled = in->ReadInt8();
     }
     for (int i = 0; i < num_walkbehinds; ++i)
     {
-        walkbehind_base[i] = in->ReadInt32();
+        WalkBehinds[i].Baseline = static_cast<int16_t>(in->ReadInt32()); // 16 bits, as before
     }
     for (int i = 0; i < num_walkareas; ++i)
     {
-        walkareas[i].ReadFromSavegame(in, cmp_ver);
+        // reserve 3 int32 for existing older WA properties:
+        // enabled (or rather flags?), scaling min & max, anything else?
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
+        WalkAreas[i].FaceDirectionRatio = in->ReadFloat32();
     }
 
-    Properties::ReadValues(roomProps, in);
+    Properties::ReadValues(Properties, in);
 
-    tsdatasize = static_cast<uint32_t>(in->ReadInt32());
-    if (tsdatasize)
+    ScriptDataSize = static_cast<uint32_t>(in->ReadInt32());
+    if (ScriptDataSize)
     {
-        tsdata.resize(tsdatasize);
-        in->Read(tsdata.data(), tsdatasize);
+        ScriptData.resize(ScriptDataSize);
+        in->Read(ScriptData.data(), ScriptDataSize);
     }
 
-    contentFormat = (RoomStatSvgVersion)in->ReadInt32();
+    ContentFormat = (RoomStatSvgVersion)in->ReadInt32();
     in->ReadInt32(); // reserved
     in->ReadInt32();
     in->ReadInt32();
 
-    face_dir_ratio = in->ReadFloat32();
+    FaceDirectionRatio = in->ReadFloat32();
     _bgShaderID = in->ReadInt32(); // used since kRoomStatSvgVersion_40018
     _bgShaderHandle = in->ReadInt32();
     in->ReadInt32(); // reserved
@@ -166,64 +163,72 @@ void RoomState::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
     {
         for (int i = 0; i < num_regions; ++i)
         {
-            Properties::ReadValues(regProps[i], in);
+            Properties::ReadValues(RegionProperties[i], in);
         }
         for (int i = 0; i < num_walkareas; ++i)
         {
-            Properties::ReadValues(waProps[i], in);
+            Properties::ReadValues(WalkAreaProperties[i], in);
         }
     }
 }
 
 void RoomState::WriteToSavegame(Stream *out) const
 {
-    out->WriteInt8(beenhere);
-    out->WriteInt32(numobj);
+    out->WriteInt8(Visited);
+    out->WriteInt32(ObjectCount);
     // -- kRoomStatSvgVersion_40003
     out->WriteInt32(MAX_ROOM_HOTSPOTS);
     out->WriteInt32(MAX_ROOM_REGIONS);
     out->WriteInt32(MAX_WALK_AREAS);
     out->WriteInt32(MAX_WALK_BEHINDS);
     // --
-    for (uint32_t i = 0; i < numobj; ++i)
+    for (uint32_t i = 0; i < ObjectCount; ++i)
     {
-        obj[i].WriteToSavegame(out);
-        Properties::WriteValues(objProps[i], out);
+        Objects[i].WriteToSavegame(out);
+        Properties::WriteValues(ObjectProperties[i], out);
     }
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
-        hotspot[i].WriteToSavegame(out);
-        Properties::WriteValues(hsProps[i], out);
+        out->WriteInt8(Hotspots[i].Enabled);
+        StrUtil::WriteString(Hotspots[i].Name, out);
+        Properties::WriteValues(HotspotProperties[i], out);
     }
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
-        out->WriteInt8(region_enabled[i]);
+        out->WriteInt8(Regions[i].Enabled);
     }
     for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
     {
-        out->WriteInt32(walkbehind_base[i]);
+        out->WriteInt32(WalkBehinds[i].Baseline);
     }
     // -- kRoomStatSvgVersion_40003
     for (int i = 0; i < MAX_WALK_AREAS; ++i)
     {
-        walkareas[i].WriteToSavegame(out);
+        // reserve 3 int32 for existing older WA properties:
+        // enabled (or rather flags?), scaling min & max, anything else?
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        // The live ratio, which the next load takes from the room file again; the slot held the first visit's copy of
+        // the definition's, which nothing read
+        out->WriteFloat32(WalkAreas[i].FaceDirectionRatio);
     }
     // --
 
-    Properties::WriteValues(roomProps, out);
+    Properties::WriteValues(Properties, out);
 
-    out->WriteInt32(static_cast<int32_t>(tsdatasize));
-    if (tsdatasize)
-        out->Write(tsdata.data(), tsdatasize);
+    out->WriteInt32(static_cast<int32_t>(ScriptDataSize));
+    if (ScriptDataSize)
+        out->Write(ScriptData.data(), ScriptDataSize);
 
     // since 3.6.0.41
-    out->WriteInt32(contentFormat);
+    out->WriteInt32(ContentFormat);
     out->WriteInt32(0); // reserved
     out->WriteInt32(0);
     out->WriteInt32(0);
 
     // -- kRoomStatSvgVersion_40003
-    out->WriteFloat32(face_dir_ratio);
+    out->WriteFloat32(FaceDirectionRatio);
     out->WriteInt32(_bgShaderID); // used since kRoomStatSvgVersion_40018
     out->WriteInt32(_bgShaderHandle);
     out->WriteInt32(0); // reserved
@@ -231,11 +236,11 @@ void RoomState::WriteToSavegame(Stream *out) const
     // -- kRoomStatSvgVersion_40008
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
-        Properties::WriteValues(regProps[i], out);
+        Properties::WriteValues(RegionProperties[i], out);
     }
     for (int i = 0; i < MAX_WALK_AREAS; ++i)
     {
-        Properties::WriteValues(waProps[i], out);
+        Properties::WriteValues(WalkAreaProperties[i], out);
     }
 }
 
@@ -249,7 +254,7 @@ RoomState *GetRoomState(int room)
     if (!room_statuses[room])
     {
         // First access, allocate and initialise the status
-        room_statuses[room].reset(new RoomState());
+        room_statuses[room] = std::make_unique<RoomState>();
     }
     return room_statuses[room].get();
 }
@@ -270,8 +275,8 @@ void ResetRoomState(int room)
     if (roomstat)
     {
         ccRemoveObjectHandle(roomstat->GetBgShaderHandle());
-        for (auto &obj : roomstat->obj)
-            ccRemoveObjectHandle(obj.shader_handle);
+        for (auto &obj : roomstat->Objects)
+            ccRemoveObjectHandle(obj.ShaderHandle);
         room_statuses[room].reset();
     }
 }

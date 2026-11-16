@@ -160,17 +160,17 @@ Bitmap *prepare_walkable_areas(int source_char_id)
     }
 
     // check for any blocking objects in the room, and deal with them as well
-    for (uint32_t obj_id = 0; obj_id < room.State->numobj; obj_id++)
+    for (uint32_t obj_id = 0; obj_id < room.State->ObjectCount; obj_id++)
     {
-        if (!room.Objs[obj_id].is_enabled())
+        if (!room.Objects[obj_id].is_enabled())
             continue;
-        if ((room.Objs[obj_id].flags & OBJF_SOLID) == 0)
+        if ((room.Objects[obj_id].Flags & OBJF_SOLID) == 0)
             continue;
-        if (room_to_mask_coord(room, room.Objs[obj_id].y) >= room.WalkableAreasTemp->GetHeight())
+        if (room_to_mask_coord(room, room.Objects[obj_id].Y) >= room.WalkableAreasTemp->GetHeight())
             continue;
-        if (room_to_mask_coord(room, room.Objs[obj_id].x) >= room.WalkableAreasTemp->GetWidth())
+        if (room_to_mask_coord(room, room.Objects[obj_id].X) >= room.WalkableAreasTemp->GetWidth())
             continue;
-        if ((room.Objs[obj_id].y < 0) || (room.Objs[obj_id].x < 0))
+        if ((room.Objects[obj_id].Y < 0) || (room.Objects[obj_id].X < 0))
             continue;
 
         Rect blocking_rect = get_object_blocking_rect(room, obj_id);
@@ -300,23 +300,24 @@ void Walkarea_SetFaceDirectionRatio(ScriptWalkableArea *wa, float ratio)
 int Walkarea_GetProperty(ScriptWalkableArea *wa, const char *property)
 {
     Room &room = Room::Current();
-    return get_int_property(room.WalkAreas[wa->id].Properties, room.State->waProps[wa->id], property);
+    return get_int_property(room.WalkAreas[wa->id].Properties, room.State->WalkAreaProperties[wa->id], property);
 }
 
 const char *Walkarea_GetTextProperty(ScriptWalkableArea *wa, const char *property)
 {
     Room &room = Room::Current();
-    return get_text_property_dynamic_string(room.WalkAreas[wa->id].Properties, room.State->waProps[wa->id], property);
+    return get_text_property_dynamic_string(room.WalkAreas[wa->id].Properties, room.State->WalkAreaProperties[wa->id],
+                                            property);
 }
 
 bool Walkarea_SetProperty(ScriptWalkableArea *wa, const char *property, int value)
 {
-    return set_int_property(Room::Current().State->waProps[wa->id], property, value);
+    return set_int_property(Room::Current().State->WalkAreaProperties[wa->id], property, value);
 }
 
 bool Walkarea_SetTextProperty(ScriptWalkableArea *wa, const char *property, const char *value)
 {
-    return set_text_property(Room::Current().State->waProps[wa->id], property, value);
+    return set_text_property(Room::Current().State->WalkAreaProperties[wa->id], property, value);
 }
 
 #include "script/script_runtime.h"

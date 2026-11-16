@@ -19,6 +19,14 @@
 #include "game/world/room_object.h"
 #include "util/string_types.h"
 
+// The state of a room number (RoomState), kept between visits and saved for every visited room, holds the room's live
+// entities: the objects (RoomObject), hotspots (RoomHotspot), regions (RoomRegion), walkable areas (RoomWalkableArea)
+// and walk-behinds (RoomWalkBehind). Each is one object: its definition's fields (Common's XDef: what the room file
+// says, which the entity starts as a copy of at the first visit) and, where it has one, its play state (XState: what
+// exists only while the game runs). When the room is loaded again, BindRoomState rebinds each entity to the room
+// file (RebindDefinition): it keeps what a save holds and takes the rest from the definition again. The definitions
+// are kept as loaded in the room (Room::Def()) and are not written while the game runs.
+
 // Forward declaration
 namespace AGS
 {
@@ -32,7 +40,7 @@ using AGS::Common::Stream;
 // RoomState runtime save format
 // Before 4.0: 0 (3.5.0 pre-alpha, and "Room States" of 3.5.0 by mistake); 1 (3.5.0) new movelist format;
 // 2 (3.6.0.16) hotspot and object names; 3 (3.6.0.25) object animation volume; 4 (3.6.0.41) room state's
-// contentFormat; 5 (3.6.1.9) removed movelists, save externally; 3060214 serialize current room's changes to
+// ContentFormat; 5 (3.6.1.9) removed movelists, save externally; 3060214 serialize current room's changes to
 // masks; 3060304 room object's blocking rect x,y; 3060310 audio panning and speed; 3060314 arbitrary number of
 // room bgs. 4000000: room object blendmodes etc.
 enum RoomStatSvgVersion
@@ -51,21 +59,83 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_Current = kRoomStatSvgVersion_40034
 };
 
-struct HotspotState
+// The play state of a hotspot: what exists only while the game runs. RoomHotspot holds it with its definition.
+struct RoomHotspotState
 {
+    // Whether the hotspot answers the player (Hotspot.Enabled)
     bool Enabled = false;
-    AGS::Common::String Name;
-
-    void ReadFromSavegame(AGS::Common::Stream *in, RoomStatSvgVersion save_ver);
-    void WriteToSavegame(AGS::Common::Stream *out) const;
 };
 
-struct WalkareaState
+// A hotspot of a room, as the game changes it: its definition's fields, which start as a copy of what the room file
+// says, and its play state. A room state keeps its Name and Enabled between visits, and a save holds them.
+class RoomHotspot : public AGS::Common::RoomHotspotDef, public RoomHotspotState
 {
-    float FaceDirectionRatio = 0.f;
+public:
+    RoomHotspot() = default;
+    // Starts a hotspot from its definition
+    explicit RoomHotspot(const AGS::Common::RoomHotspotDef &def) : RoomHotspotDef(def) {}
 
-    void ReadFromSavegame(AGS::Common::Stream *in, RoomStatSvgVersion save_ver);
-    void WriteToSavegame(AGS::Common::Stream *out) const;
+    // Takes again from the definition what a room state does not keep between visits: every field of the
+    // definition but the name
+    void RebindDefinition(const AGS::Common::RoomHotspotDef &def);
+};
+
+// The play state of a region: what exists only while the game runs. RoomRegion holds it with its definition.
+struct RoomRegionState
+{
+    // Whether the region answers the player (Region.Enabled): 1 or 0. A char, as the save's byte is read into it whole
+    char Enabled = 0;
+};
+
+// A region of a room, as the game changes it: its definition's fields, which start as a copy of what the room file
+// says, and its play state. A room state keeps Enabled between visits, and a save holds it. The light level and the
+// tint that the script sets last while the room is loaded: the next visit takes them from the room file again.
+class RoomRegion : public AGS::Common::RoomRegionDef, public RoomRegionState
+{
+public:
+    RoomRegion() = default;
+    // Starts a region from its definition
+    explicit RoomRegion(const AGS::Common::RoomRegionDef &def) : RoomRegionDef(def) {}
+
+    // Takes again from the definition what a room state does not keep between visits: every field of the definition
+    void RebindDefinition(const AGS::Common::RoomRegionDef &def);
+
+    // Gets if the region has a light level set
+    bool HasLightLevel() const { return Tint == 0; }
+    // Gets if the region has a tint set
+    bool HasTint() const { return Tint != 0; }
+    // Gets the region's light level in -255 to 255 range value; returns 0 (default level) if the region's tint is set
+    int GetLightLevel() const { return HasLightLevel() ? Light : 0; }
+    // Gets the region's tint luminance in 0 to 255 range value; returns 0 if the region's light level is set
+    int GetTintLuminance() const { return HasTint() ? Light : 0; }
+};
+
+// A walkable area of a room, as the game changes it: its definition's fields, which start as a copy of what the room
+// file says. A room state keeps none of them between visits: the scaling and the face direction ratio that the script
+// sets last while the room is loaded. Whether the area is enabled is Room::WalkableAreasOn.
+class RoomWalkableArea : public AGS::Common::RoomWalkableAreaDef
+{
+public:
+    RoomWalkableArea() = default;
+    // Starts a walkable area from its definition
+    explicit RoomWalkableArea(const AGS::Common::RoomWalkableAreaDef &def) : RoomWalkableAreaDef(def) {}
+
+    // Takes again from the definition what a room state does not keep between visits: every field of the definition
+    void RebindDefinition(const AGS::Common::RoomWalkableAreaDef &def);
+};
+
+// A walk-behind of a room, as the game changes it: its definition's fields, which start as a copy of what the room
+// file says. A room state keeps its Baseline between visits, and a save holds it, in 16 bits (PLAN.md 5.12).
+class RoomWalkBehind : public AGS::Common::RoomWalkBehindDef
+{
+public:
+    RoomWalkBehind() = default;
+    // Starts a walk-behind from its definition
+    explicit RoomWalkBehind(const AGS::Common::RoomWalkBehindDef &def) : RoomWalkBehindDef(def) {}
+
+    // Takes again from the definition what a room state does not keep between visits: every field of the
+    // definition but the baseline
+    void RebindDefinition(const AGS::Common::RoomWalkBehindDef &def);
 };
 
 // RoomState is the state of one room number, kept between visits and saved for every visited room.
@@ -73,30 +143,31 @@ class RoomState
 {
 public:
     // TODO: hide these fields under get/set methods
-    int beenhere = 0;
-    uint32_t numobj = 0;
-    std::vector<RoomObject> obj;
-    uint32_t tsdatasize = 0;
-    std::vector<uint8_t> tsdata;
+    int Visited = 0;          // 0 until the room has been entered once, then 1
+    uint32_t ObjectCount = 0; // the number of live objects, equal to Objects.size()
+    std::vector<RoomObject> Objects;
+    uint32_t ScriptDataSize = 0;     // the size of ScriptData in bytes
+    std::vector<uint8_t> ScriptData; // the room script's global data, kept between visits
 
-    HotspotState hotspot[MAX_ROOM_HOTSPOTS];
-    char region_enabled[MAX_ROOM_REGIONS];
-    short walkbehind_base[MAX_WALK_BEHINDS];
-    float face_dir_ratio = 0.f;
-    WalkareaState walkareas[MAX_WALK_AREAS];
+    // The live entities of the room, by number; Room::Hotspots... point at them while the room is loaded
+    RoomHotspot Hotspots[MAX_ROOM_HOTSPOTS];
+    RoomRegion Regions[MAX_ROOM_REGIONS];
+    RoomWalkBehind WalkBehinds[MAX_WALK_BEHINDS];
+    float FaceDirectionRatio = 0.f; // the room's ratio for turning a walking character left/right or up/down
+    RoomWalkableArea WalkAreas[MAX_WALK_AREAS];
 
-    AGS::Common::StringIMap roomProps;
-    std::vector<AGS::Common::StringIMap> objProps;
-    AGS::Common::StringIMap hsProps[MAX_ROOM_HOTSPOTS];
-    AGS::Common::StringIMap regProps[MAX_ROOM_REGIONS];
-    AGS::Common::StringIMap waProps[MAX_WALK_AREAS];
+    AGS::Common::StringIMap Properties;
+    std::vector<AGS::Common::StringIMap> ObjectProperties;
+    AGS::Common::StringIMap HotspotProperties[MAX_ROOM_HOTSPOTS];
+    AGS::Common::StringIMap RegionProperties[MAX_ROOM_REGIONS];
+    AGS::Common::StringIMap WalkAreaProperties[MAX_WALK_AREAS];
 
     // A version of a save this RoomState was restored from.
     // This is used as a hint when merging RoomState with the loaded room file (upon room enter).
     // We need this for cases when an old format save is restored within an upgraded game
     // (for example, game was upgraded from 3.4.0 to 3.6.0, but player tries loading 3.4.0 save),
     // because room files are only loaded once entered, so we cannot fixup all RoomStatuses at once.
-    RoomStatSvgVersion contentFormat = kRoomStatSvgVersion_Current;
+    RoomStatSvgVersion ContentFormat = kRoomStatSvgVersion_Current;
 
     RoomState();
     ~RoomState();

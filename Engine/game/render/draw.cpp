@@ -979,7 +979,7 @@ void init_room_drawdata()
             sync_roomview(game.Viewports.GetRoomViewport(i).get());
 
 #if (AGS_PLATFORM_DEBUG)
-        for (size_t i = 0; i < (size_t)Room::Current().Objects.size(); ++i)
+        for (size_t i = 0; i < (size_t)Room::Current().State->ObjectCount; ++i)
             objcache[i].tag.Format("OBJ%d:%s", (int)i, Room::Current().Objects[i].ScriptName.GetCStr());
 #endif
     }
@@ -2267,18 +2267,18 @@ void prepare_and_add_object_gfx(Room &room, const ObjectCache &objsav, ObjTextur
 // assigns parameters, which may further be assigned to a texture.
 bool construct_object_gfx(Game &game, Room &room, EngineServices &services, int obj_id, bool force_software)
 {
-    const RoomObject &obj = room.Objs[obj_id];
-    const int sprite_id = services.Sprites.DoesSpriteExist(obj.num) ? obj.num : 0;
+    const RoomObject &obj = room.Objects[obj_id];
+    const int sprite_id = services.Sprites.DoesSpriteExist(obj.Sprite) ? obj.Sprite : 0;
 
-    ObjectCache objsrc(sprite_id, obj.tint_r, obj.tint_g, obj.tint_b, obj.tint_level, obj.tint_light, 0 /* skip */,
-                       obj.zoom, obj.rotation, kFlip_None /* skip */, obj.x, obj.y);
-    objsrc.pivotx = obj.pivot.X + (static_cast<float>(obj.pivot_offset.X) / obj.width);
-    objsrc.pivoty = obj.pivot.Y + (static_cast<float>(obj.pivot_offset.Y) / obj.height);
+    ObjectCache objsrc(sprite_id, obj.TintRed, obj.TintGreen, obj.TintBlue, obj.TintLevel, obj.TintLight, 0 /* skip */,
+                       obj.Zoom, obj.Rotation, kFlip_None /* skip */, obj.X, obj.Y);
+    objsrc.pivotx = obj.Pivot.X + (static_cast<float>(obj.PivotOffset.X) / obj.Width);
+    objsrc.pivoty = obj.Pivot.Y + (static_cast<float>(obj.PivotOffset.Y) / obj.Height);
 
     return construct_object_gfx(game, room, services,
-                                (obj.view != UINT16_MAX) ? &game.Views[obj.view].loops[obj.loop].frames[obj.frame]
+                                (obj.View != UINT16_MAX) ? &game.Views[obj.View].loops[obj.Loop].frames[obj.Frame]
                                                          : nullptr,
-                                sprite_id, Size(obj.width, obj.height), obj.flags & OBJF_TINTLIGHTMASK, objsrc,
+                                sprite_id, Size(obj.Width, obj.Height), obj.Flags & OBJF_TINTLIGHTMASK, objsrc,
                                 objcache[obj_id], actsps[obj_id], true, force_software);
 }
 
@@ -2290,12 +2290,12 @@ void prepare_objects_for_drawing()
     set_our_eip(32);
     const bool hw_accel = !drawstate.SoftwareRender;
 
-    for (uint32_t obj_id = 0; obj_id < room.State->numobj; ++obj_id)
+    for (uint32_t obj_id = 0; obj_id < room.State->ObjectCount; ++obj_id)
     {
-        const RoomObject &obj = room.Objs[obj_id];
+        const RoomObject &obj = room.Objects[obj_id];
         if (!obj.is_displayed())
             continue; // disabled or invisible
-        if ((obj.x >= room.Width) || (obj.y < 1))
+        if ((obj.X >= room.Width) || (obj.Y < 1))
             continue; // offscreen
 
         eip_guinum = obj_id;
@@ -2311,16 +2311,16 @@ void prepare_objects_for_drawing()
         // Generate raw bitmap in ObjTexture and store parameters in ObjectCache.
         const bool actsp_modified = !construct_object_gfx(game, room, services, obj_id, false);
         // Prepare the object texture
-        prepare_and_add_object_gfx(room, objsav, actsp, actsp_modified, Size(obj.width, obj.height), imgx, imgy,
-                                   usebasel, (obj.flags & OBJF_NOWALKBEHINDS) == 0, obj.spr_anchor, obj.opacity,
-                                   obj.blend_mode, obj.shader_id, hw_accel);
+        prepare_and_add_object_gfx(room, objsav, actsp, actsp_modified, Size(obj.Width, obj.Height), imgx, imgy,
+                                   usebasel, (obj.Flags & OBJF_NOWALKBEHINDS) == 0, obj.GraphicAnchor, obj.Opacity,
+                                   obj.BlendMode, obj.ShaderID, hw_accel);
         // Finally, add the texture to the draw list
         // FIXME: find a way to achieve this without manually coding scaling of the offset here;
         // also see fixme comment to GraphicSpace struct.
         // FIXME: can't we just use anything saved (e.g. when updating GraphicSpace) here?
         // why do we have to recalculate these offsets in multiple places?!!
-        const int objx = obj.x + (obj.frame_xoff + obj.spr_offset.X) * obj.zoom / 100;
-        const int objy = obj.y + (obj.frame_yoff + obj.spr_offset.Y) * obj.zoom / 100;
+        const int objx = obj.X + (obj.FrameOffsetX + obj.GraphicOffset.X) * obj.Zoom / 100;
+        const int objy = obj.Y + (obj.FrameOffsetY + obj.GraphicOffset.Y) * obj.Zoom / 100;
         add_to_sprite_list(actsp.Ddb, objx, objy, aabb, usebasel, actsp.DrawIndex);
     }
 }
@@ -2526,7 +2526,7 @@ void prepare_room_sprites()
                     const auto &wbobj = walkbehindobj[wb];
                     if (wbobj.Ddb)
                     {
-                        add_to_sprite_list(wbobj.Ddb, wbobj.Pos.X, wbobj.Pos.Y, room.State->walkbehind_base[wb], 0u);
+                        add_to_sprite_list(wbobj.Ddb, wbobj.Pos.X, wbobj.Pos.Y, room.WalkBehinds[wb].Baseline, 0u);
                         // when baselines are equal, walk-behinds must be sorted back, so draw index = 0
                     }
                 }

@@ -22,7 +22,7 @@ namespace AGS
 namespace Common
 {
 
-RoomOptions::RoomOptions() : PlayerCharOff(false), PlayerView(0), FaceDirectionRatio(0.f), Flags(0) {}
+RoomOptions::RoomOptions() : PlayerCharacterOff(false), PlayerView(0), FaceDirectionRatio(0.f), Flags(0) {}
 
 RoomBgFrame::RoomBgFrame()
 {
@@ -127,11 +127,16 @@ RoomDef::RoomDef(const RoomDef &src) : RoomObjectBase(src)
     *this = src;
 }
 
+// Not noexcept, as before the rename: it assigns member by member, and that may allocate
+// NOLINTNEXTLINE(bugprone-exception-escape)
 RoomDef::RoomDef(RoomDef &&src)
 {
     *this = std::move(src);
 }
 
+// Not noexcept, as before the rename: Free() clears containers and resets members whose destructors are not
+// declared noexcept (the script, the event handlers)
+// NOLINTNEXTLINE(bugprone-exception-escape)
 RoomDef::~RoomDef()
 {
     Free();
@@ -139,6 +144,8 @@ RoomDef::~RoomDef()
 
 RoomDef &RoomDef::operator=(const RoomDef &src)
 {
+    if (this == &src)
+        return *this;
     RoomObjectBase::operator=(src);
 
     GameID = src.GameID;
@@ -173,7 +180,7 @@ RoomDef &RoomDef::operator=(const RoomDef &src)
     Properties = src.Properties;
     Interactions = src.Interactions;
     CompiledScript.reset(src.CompiledScript ? new ccScript(*src.CompiledScript) : nullptr);
-    StrOptions = src.StrOptions;
+    StringOptions = src.StringOptions;
     return *this;
 }
 

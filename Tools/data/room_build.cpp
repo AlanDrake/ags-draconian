@@ -320,7 +320,7 @@ HError ConvertRoomXml(RoomXml room, const RoomBuildGame &game, RoomDef &data)
     data.Height = room.Height;
     data.BgAnimSpeed = room.BackgroundAnimationDelay;
     data.Options.Flags = 0;
-    data.Options.PlayerCharOff = !room.ShowPlayerCharacter;
+    data.Options.PlayerCharacterOff = !room.ShowPlayerCharacter;
     data.Options.PlayerView = room.PlayerCharacterView;
     if (!room.BackgroundAnimationEnabled)
         data.Options.Flags |= kRoomFlag_BkgFrameLocked;
@@ -435,7 +435,7 @@ HError ConvertRoomXml(RoomXml room, const RoomBuildGame &game, RoomDef &data)
     });
 
     // Encoding hint
-    data.StrOptions["textencoding"].Format("%d", cp);
+    data.StringOptions["textencoding"].Format("%d", cp);
     return HError::None();
 }
 

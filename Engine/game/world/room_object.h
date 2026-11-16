@@ -18,6 +18,7 @@
 #pragma once
 
 #include "game/common_defines.h"
+#include "game/room_def.h"
 #include "game/runtime_defines.h"
 #include "gfx/gfx_def.h"
 #include "gfx/graphicspace.h"
@@ -40,72 +41,76 @@ class Game;
 #define LEGACY_OBJANIM_BACKWARDS 10
 
 
-class RoomObject
+// The play state of a room object: what exists only while the game runs. RoomObject holds it with its definition.
+struct RoomObjectState
+{
+    static constexpr uint16_t NoView = UINT16_MAX;
+
+    int16_t TintRed = 0, TintGreen = 0;     // specific object tint
+    int16_t TintBlue = 0, TintLevel = 0;    // script: TintSaturation
+    int16_t TintLight = 0;                  // script: TintLuminance, and LightLevel when the object has a light
+    int16_t Zoom = 100;                     // zoom level, either manual or from the current area; script: Scaling
+    Pointf Pivot                            // relative rotation pivot
+        = Pointf(0.5f, 0.5f);               // default: center
+    Point PivotOffset;                      // relative rotation pivot offset (in pixels)
+    int SpriteWidth = 0, SpriteHeight = 0;  // last used sprite's size
+    int FrameOffsetX = 0, FrameOffsetY = 0; // frame offsets (when using a view)
+    int16_t Width = 0, Height = 0;          // width/height based on a scaled sprite
+    uint16_t View = NoView;                 // only used to track animation - 'Sprite' holds the current sprite
+    uint16_t Loop = 0, Frame = 0;
+    int16_t AnimWait = 0, MoveListID = -1;
+    ViewAnimateParams Anim;
+    int AnimationVolume = 100; // default animation sounds volume (relative factor)
+    int AudioPanning = 0;      // animation sounds panning (-100 to +100)
+    int AudioSpeed = 1000;     // animation sounds speed, ms per second
+    int ShaderID = 0;
+    int ShaderHandle = 0;   // script shader handle
+    float Rotation = 0.f;   // script: GraphicRotation
+    int MoveListHandle = 0; // handle to the script movelist
+};
+
+// An object of a room, as the game changes it: its definition's fields, which start as a copy of what the room
+// file says, and its play state. The objects of a room are in the room's state (RoomState), by object id, and are
+// kept between visits to the room. The definition's Sprite (0 to 65535), Baseline and the four values of
+// BlockingRect stay within 16 bits while the game runs: the legacy save format holds them so (PLAN.md 5.12).
+class RoomObject : public AGS::Common::RoomObjectDef, public RoomObjectState
 {
 public:
-    static const uint16_t NoView = UINT16_MAX;
+    RoomObject() = default;
+    // Starts an object from its definition
+    explicit RoomObject(const AGS::Common::RoomObjectDef &def) : RoomObjectDef(def) {}
 
-    int id = 0;
-    int x, y;
-    int opacity;            // alpha opacity
-    int16_t tint_r, tint_g; // specific object tint
-    int16_t tint_b, tint_level;
-    int16_t tint_light;
-    int16_t zoom;               // zoom level, either manual or from the current area
-    Point spr_offset;           // fixed sprite offset (translation)
-    Pointf spr_anchor           // graphic anchor (relative alignment)
-        = Pointf(0.f, 1.f);     // default: left-bottom
-    Pointf pivot                // relative rotation pivot
-        = Pointf(0.5f, 0.5f);   // default: center
-    Point pivot_offset;         // relative rotation pivot offset (in pixels)
-    int spr_width, spr_height;  // last used sprite's size
-    int frame_xoff, frame_yoff; // frame offsets (when using a view)
-    int16_t width, height;      // width/height based on a scaled sprite
-    uint16_t num;               // sprite slot number
-    int16_t baseline;           // <=0 to use Y co-ordinate; >0 for specific baseline
-    uint16_t view, loop, frame; // only used to track animation - 'num' holds the current sprite
-    int16_t wait, moving;
-    ViewAnimateParams anim;
-    int flags; // OBJF_* flags
-    int16_t blocking_width = 0, blocking_height = 0, blocking_x = 0, blocking_y = 0;
-    int audio_volume = 100; // default animation sounds volume (relative factor)
-    int audio_panning = 0;  // animation sounds panning (-100 to +100)
-    int AudioSpeed = 1000;  // animation sounds speed, ms per second
-    AGS::Common::String name;
-    AGS::Common::BlendMode blend_mode;
-    int shader_id = 0;
-    int shader_handle = 0; // script shader handle
-    float rotation;
-    int movelist_handle = 0; // handle to the script movelist
-
-    RoomObject();
+    // Takes again from the definition what a room state does not keep between visits, and so what a save does not
+    // hold: the id, the script name, the room number, the events, the interactions and the custom properties as the
+    // room file gives them. The rest of the definition's fields and the play state stay as the game left them.
+    void RebindDefinition(const AGS::Common::RoomObjectDef &def);
 
     int get_width() const;
     int get_height() const;
     int get_baseline() const;
 
     // Tells if the "enabled" flag is set
-    inline bool is_enabled() const { return (flags & OBJF_ENABLED) != 0; }
+    inline bool is_enabled() const { return (Flags & OBJF_ENABLED) != 0; }
     // Tells if the "visible" flag is set
-    inline bool is_visible() const { return (flags & OBJF_VISIBLE) != 0; }
+    inline bool is_visible() const { return (Flags & OBJF_VISIBLE) != 0; }
     // Tells if the object is actually meant to be displayed on screen;
     // this combines both "enabled" and "visible" factors.
     inline bool is_displayed() const { return is_enabled() && is_visible(); }
-    inline bool has_explicit_light() const { return (flags & OBJF_HASLIGHT) != 0; }
-    inline bool has_explicit_tint() const { return (flags & OBJF_HASTINT) != 0; }
-    inline bool is_moving() const { return moving > 0; }
-    inline bool is_animating() const { return anim.IsValid(); }
-    inline int get_anim_repeat() const { return anim.IsRepeating(); }
-    inline bool get_anim_forwards() const { return anim.IsForward(); }
-    inline int get_anim_delay() const { return anim.Delay; }
-    inline void set_enabled(bool on) { flags = (flags & ~OBJF_ENABLED) | (OBJF_ENABLED * on); }
-    inline void set_visible(bool on) { flags = (flags & ~OBJF_VISIBLE) | (OBJF_VISIBLE * on); }
+    inline bool has_explicit_light() const { return (Flags & OBJF_HASLIGHT) != 0; }
+    inline bool has_explicit_tint() const { return (Flags & OBJF_HASTINT) != 0; }
+    inline bool is_moving() const { return MoveListID > 0; }
+    inline bool is_animating() const { return Anim.IsValid(); }
+    inline int get_anim_repeat() const { return Anim.IsRepeating(); }
+    inline bool get_anim_forwards() const { return Anim.IsForward(); }
+    inline int get_anim_delay() const { return Anim.Delay; }
+    inline void set_enabled(bool on) { Flags = (Flags & ~OBJF_ENABLED) | (OBJF_ENABLED * on); }
+    inline void set_visible(bool on) { Flags = (Flags & ~OBJF_VISIBLE) | (OBJF_VISIBLE * on); }
     inline void set_animating(AnimFlowStyle repeat, AnimFlowDirection dir, int delay, int anim_volume = 100)
     {
-        anim = ViewAnimateParams(repeat, dir, delay, anim_volume);
+        Anim = ViewAnimateParams(repeat, dir, delay, anim_volume);
     }
 
-    inline const AGS::Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
+    inline const AGS::Common::GraphicSpace &GetGraphicSpace() const { return _graphicSpace; }
     void UpdateGraphicSpace();
 
     void UpdateCyclingView(Game &game, int ref_id);
@@ -122,5 +127,5 @@ public:
     void WriteToSavegame(AGS::Common::Stream *out) const;
 
 private:
-    AGS::Common::GraphicSpace _gs;
+    AGS::Common::GraphicSpace _graphicSpace;
 };

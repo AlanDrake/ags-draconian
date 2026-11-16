@@ -744,7 +744,7 @@ TEST(SavegameState, RoomStatusReadsTheCountsInTheWrittenOrder)
     std::vector<uint8_t> saved;
     {
         Stream out(std::make_unique<VectorStream>(saved, kStream_Write));
-        out.WriteInt8(1);    // beenhere
+        out.WriteInt8(1);    // Visited
         out.WriteInt32(0);   // objects
         out.WriteInt32(0);   // hotspots
         out.WriteInt32(0);   // regions
@@ -752,9 +752,10 @@ TEST(SavegameState, RoomStatusReadsTheCountsInTheWrittenOrder)
         out.WriteInt32(2);   // walk-behinds
         out.WriteInt32(111); // walk-behind baselines
         out.WriteInt32(222);
-        WalkareaState walkarea;
-        walkarea.FaceDirectionRatio = 0.5f;
-        walkarea.WriteToSavegame(&out);
+        out.WriteInt32(0); // the walk area: 3 reserved values
+        out.WriteInt32(0);
+        out.WriteInt32(0);
+        out.WriteFloat32(0.5f);                      // its face direction ratio
         Properties::WriteValues(StringIMap(), &out); // room properties
         out.WriteInt32(0);                           // script data size
         out.WriteInt32(kRoomStatSvgVersion_Current); // content format
@@ -771,10 +772,10 @@ TEST(SavegameState, RoomStatusReadsTheCountsInTheWrittenOrder)
     RoomState room;
     Stream in(std::make_unique<VectorStream>(saved));
     room.ReadFromSavegame(&in, kRoomStatSvgVersion_Current);
-    EXPECT_EQ(1, room.beenhere);
-    EXPECT_EQ(111, room.walkbehind_base[0]);
-    EXPECT_EQ(222, room.walkbehind_base[1]);
-    EXPECT_EQ(0.5f, room.walkareas[0].FaceDirectionRatio);
-    EXPECT_EQ(0.25f, room.face_dir_ratio);
+    EXPECT_EQ(1, room.Visited);
+    EXPECT_EQ(111, room.WalkBehinds[0].Baseline);
+    EXPECT_EQ(222, room.WalkBehinds[1].Baseline);
+    EXPECT_EQ(0.5f, room.WalkAreas[0].FaceDirectionRatio);
+    EXPECT_EQ(0.25f, room.FaceDirectionRatio);
     EXPECT_EQ(static_cast<soff_t>(saved.size()), in.GetPosition());
 }

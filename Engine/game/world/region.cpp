@@ -55,7 +55,7 @@ int GetRegionIDAtRoom(Room &room, int x, int y, int hit_options)
     int hsthere = room.RegionMask->GetPixel(x, y);
     if (hsthere <= 0 || hsthere >= MAX_ROOM_REGIONS)
         return 0;
-    if (((hit_options & kHit_Interactable) != 0) && (room.State->region_enabled[hsthere] == 0))
+    if (((hit_options & kHit_Interactable) != 0) && (room.Regions[hsthere].Enabled == 0))
         return 0;
     return hsthere;
 }
@@ -114,7 +114,7 @@ void Region_SetLightLevel(ScriptRegion *ssr, int brightness)
 
 int Region_GetLightLevel(ScriptRegion *ssr)
 {
-    return Room::Current().GetRegionLightLevel(ssr->id);
+    return Room::Current().Regions[ssr->id].GetLightLevel();
 }
 
 const char *Region_GetScriptName(ScriptRegion *ssr)
@@ -151,7 +151,7 @@ int Region_GetTintSaturation(ScriptRegion *srr)
 
 int Region_GetTintLuminance(ScriptRegion *srr)
 {
-    return Room::Current().GetRegionTintLuminance(srr->id);
+    return Room::Current().Regions[srr->id].GetTintLuminance();
 }
 
 void SetRegionTint(int area, int red, int green, int blue, int amount, int luminance = 255)
@@ -197,7 +197,7 @@ void DisableRegion(int hsnum)
     if ((hsnum < 0) || (hsnum >= MAX_ROOM_REGIONS))
         quit("!DisableRegion: invalid region specified");
 
-    Room::Current().State->region_enabled[hsnum] = 0;
+    Room::Current().Regions[hsnum].Enabled = 0;
     debug_script_log("Region %d disabled", hsnum);
 }
 
@@ -206,7 +206,7 @@ void EnableRegion(int hsnum)
     if ((hsnum < 0) || (hsnum >= MAX_ROOM_REGIONS))
         quit("!EnableRegion: invalid region specified");
 
-    Room::Current().State->region_enabled[hsnum] = 1;
+    Room::Current().Regions[hsnum].Enabled = 1;
     debug_script_log("Region %d enabled", hsnum);
 }
 
@@ -220,7 +220,7 @@ void Region_SetEnabled(ScriptRegion *ssr, int enable)
 
 int Region_GetEnabled(ScriptRegion *ssr)
 {
-    return Room::Current().State->region_enabled[ssr->id];
+    return Room::Current().Regions[ssr->id].Enabled;
 }
 
 int Region_GetID(ScriptRegion *ssr)
@@ -250,23 +250,24 @@ void Region_RunInteraction(ScriptRegion *ssr, int mood)
 int Region_GetProperty(ScriptRegion *ssr, const char *property)
 {
     Room &room = Room::Current();
-    return get_int_property(room.Regions[ssr->id].Properties, room.State->regProps[ssr->id], property);
+    return get_int_property(room.Regions[ssr->id].Properties, room.State->RegionProperties[ssr->id], property);
 }
 
 const char *Region_GetTextProperty(ScriptRegion *ssr, const char *property)
 {
     Room &room = Room::Current();
-    return get_text_property_dynamic_string(room.Regions[ssr->id].Properties, room.State->regProps[ssr->id], property);
+    return get_text_property_dynamic_string(room.Regions[ssr->id].Properties, room.State->RegionProperties[ssr->id],
+                                            property);
 }
 
 bool Region_SetProperty(ScriptRegion *ssr, const char *property, int value)
 {
-    return set_int_property(Room::Current().State->regProps[ssr->id], property, value);
+    return set_int_property(Room::Current().State->RegionProperties[ssr->id], property, value);
 }
 
 bool Region_SetTextProperty(ScriptRegion *ssr, const char *property, const char *value)
 {
-    return set_text_property(Room::Current().State->regProps[ssr->id], property, value);
+    return set_text_property(Room::Current().State->RegionProperties[ssr->id], property, value);
 }
 
 void DisableGroundLevelAreas(int alsoEffects)
