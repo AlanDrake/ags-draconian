@@ -111,7 +111,7 @@ void RoomObject::UpdateCyclingView(Game &game, int ref_id)
     if (!is_animating())
         return;
 
-    AnimWait = Anim.Delay + vfptr->speed;
+    AnimWait = static_cast<int16_t>(Anim.Delay + vfptr->speed); // 16 bits: the legacy save format
     CheckViewFrame();
 }
 
@@ -337,7 +337,7 @@ void RoomObject::WriteToSavegame(Stream *out) const
     out->WriteInt16(View);
     out->WriteInt16(Loop);
     out->WriteInt16(Frame);
-    out->WriteInt16(AnimWait);
+    out->WriteInt16(static_cast<int16_t>(AnimWait));
     out->WriteInt16(MoveListID);
     out->WriteInt8(0); // legacy animating (8-bit field)
     out->WriteInt8(Anim.Delay);

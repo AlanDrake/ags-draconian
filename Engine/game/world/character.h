@@ -20,6 +20,7 @@
 #include "game/dynobj/script_overlay.h"
 #include "game/render/viewport.h"
 #include "game/runtime_defines.h"
+#include "game/world/entity_state.h"
 #include "gfx/gfx_def.h"
 #include "gfx/graphicspace.h"
 #include "util/geometry.h"
@@ -68,13 +69,15 @@ enum CharacterRuntimeFlags
     kCharf_TurningMask = (kCharf_Turning | kCharf_TurningCCW),
 };
 
-// The play state of a character: what exists only while the game runs. Character holds it with its definition.
-struct CharacterState
+// The play state of a character: what exists only while the game runs. Character holds it with its definition. The
+// parts a room object has too are its bases (entity_state.h): the graphic fields (tint, Zoom, Rotation, the sprite's
+// size...), the view animation (Loop, Frame, AnimWait, Anim), the move list and the frame sounds' volume, panning
+// and speed.
+struct CharacterState : public GraphicState, public ViewAnimState, public MoveState, public FrameSoundState
 {
-    // These were fields of the game file's character record once; the file keeps their slots, unused
-    // (CharacterDef::ReadFromFile skips them, WriteToFile writes zeros)
+    // These were fields of the game file's character record once, as were AnimWait, Loop, Frame and MoveListID of
+    // the parts; the file keeps their slots, unused (CharacterDef::ReadFromFile skips them, WriteToFile writes zeros)
     int PreviousRoom = 0;
-    int AnimWait = 0;         // game loops left before the next frame of an animation (Animate, idle, speech)
     int16_t IdleTimeLeft = 0; // time in seconds left before switching to idle animation
     int ActiveInventory = -1; // selected inventory item
     int16_t BlinkInterval = 0;
@@ -84,57 +87,33 @@ struct CharacterState
     int WalkWait = 0; // number of frames to wait before advancing a move;
                       // also used as a turning counter
     int16_t WalkWaitCounter = 0;
-    uint16_t Loop = 0;
-    uint16_t Frame = 0;
-    int16_t MoveListID = 0; // stores movelist index
 
     // FIXME: hide the fields under public interface;
     //        use standard int* types
-    Point ViewOffset;         // fixed view offset (from locked view)
-    Pointf ViewAnchor         // view anchor (from locked view)
-        = Pointf(0.5f, 1.f);  // default: middle-bottom
-    Point EffectiveOffset;    // effective offset (depends on view state)
-    Pointf EffectiveAnchor;   // effective anchor (depends on view state)
-    Pointf Pivot              // relative rotation pivot
-        = Pointf(0.5f, 0.5f); // default: center
-    Point PivotOffset;        // relative rotation pivot offset (in pixels)
-    int SpriteWidth = 0;      // current sprite size
-    int SpriteHeight = 0;
-    int FrameOffsetX = 0; // current frame offset
+    Point ViewOffset;        // fixed view offset (from locked view)
+    Pointf ViewAnchor        // view anchor (from locked view)
+        = Pointf(0.5f, 1.f); // default: middle-bottom
+    Point EffectiveOffset;   // effective offset (depends on view state)
+    Pointf EffectiveAnchor;  // effective anchor (depends on view state)
+    int FrameOffsetX = 0;    // current frame offset
     int FrameOffsetY = 0;
-    short Width = 0; // width/height (includes character scaling!)
-    short Height = 0;
-    short Zoom = 100; // script: Scaling
     // Full-step position of a character that is shown half way through a step (very small scaling,
     // see UpdateCharacterMoving); FullStepX == INVALID_X when there is none
     short FullStepX = 0;
     short FullStepY = 0;
-    short TintRed = 0;
-    short TintGreen = 0;
-    short TintBlue = 0;
-    short TintLevel = 0; // script: TintSaturation
-    short TintLight = 0; // script: TintLuminance, and LightLevel when the character has a light
     char ProcessIdleThisTime = 0;
     char SlowMoveCounter = 0;
-    ViewAnimateParams Anim;
-    short WalkAnimWait = 0;    // game loops left before the next frame of the walking animation
-    int AnimationVolume = 100; // default animation volume (relative factor)
-    int AudioPanning = 0;
-    int AudioSpeed = 1000;
+    short WalkAnimWait = 0;  // game loops left before the next frame of the walking animation
     int Following = -1;      // whom do we follow (character id)
     int FollowDistance = 0;  // follow distance, in pixels
     int FollowEagerness = 0; // follow reaction
     // Character's inventory, stores item IDs in the order in which items were added.
     // This may include item duplicates if OPT_DUPLICATEINV is enabled.
     std::vector<int> Inventory;
-    int ShaderID = 0;
-    int ShaderHandle = 0; // script shader handle
-    float Rotation = 0.f;
     // Optional character face direction ratio, 0 = ignore
     float FaceDirectionRatio = 0.f;
-    int MoveListHandle = 0; // handle to the script movelist
-    int RuntimeFlags = 0;   // runtime character flags (CharacterRuntimeFlags)
-    int Turns = 0;          // turning counter
+    int RuntimeFlags = 0; // runtime character flags (CharacterRuntimeFlags)
+    int Turns = 0;        // turning counter
 
     // Following fields are derivatives of the above (calculated from these
     // and other factors), and hence are not serialized.

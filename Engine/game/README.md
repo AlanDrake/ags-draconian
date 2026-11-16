@@ -24,7 +24,8 @@ New code goes in the folder of its domain. A new file is also added to `Engine/C
 
 - `world/`: the things in a room and the player's party: `character`, `object`, `room_object`, `room`,
   `room_state`, `hotspot`, `region`, `walkable_area`, `walk_behind`, `inventory_item`, `view_frame`,
-  `move_list`, `properties`. A new room or character feature goes here.
+  `move_list`, `properties`, and `entity_state` (the play-state parts that a character and a room object share).
+  A new room or character feature goes here.
 - `navigation/`: path finding (`route_finder`, `route_finder_jps`, `pathfinder_script`).
 - `dialog/`: dialogs and text: `dialog`, `dialog_options_rendering`, `display` (message boxes and
   overlays), `speech`, `lipsync`, `parser`.

@@ -648,6 +648,7 @@
 		526F27721D3B5CC300EF4E1F /* room.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24EF1D3B5CC300EF4E1F /* room.h */; };
 		526F27741D3B5CC300EF4E1F /* room_object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24F11D3B5CC300EF4E1F /* room_object.cpp */; };
 		526F27751D3B5CC300EF4E1F /* room_object.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24F21D3B5CC300EF4E1F /* room_object.h */; };
+		B2C71C2E555922A26F29F5AE /* entity_state.h in Headers */ = {isa = PBXBuildFile; fileRef = 38AA93A0F42C30DBD0E064C8 /* entity_state.h */; };
 		526F27761D3B5CC300EF4E1F /* room_state.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24F31D3B5CC300EF4E1F /* room_state.cpp */; };
 		526F27771D3B5CC300EF4E1F /* room_state.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24F41D3B5CC300EF4E1F /* room_state.h */; };
 		526F27781D3B5CC300EF4E1F /* route_finder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24F51D3B5CC300EF4E1F /* route_finder.cpp */; };
@@ -1573,6 +1574,7 @@
 		526F24EF1D3B5CC300EF4E1F /* room.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = room.h; sourceTree = "<group>"; };
 		526F24F11D3B5CC300EF4E1F /* room_object.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = room_object.cpp; sourceTree = "<group>"; };
 		526F24F21D3B5CC300EF4E1F /* room_object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = room_object.h; sourceTree = "<group>"; };
+		38AA93A0F42C30DBD0E064C8 /* entity_state.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = entity_state.h; sourceTree = "<group>"; };
 		526F24F31D3B5CC300EF4E1F /* room_state.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = room_state.cpp; sourceTree = "<group>"; };
 		526F24F41D3B5CC300EF4E1F /* room_state.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = room_state.h; sourceTree = "<group>"; };
 		526F24F51D3B5CC300EF4E1F /* route_finder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = route_finder.cpp; sourceTree = "<group>"; };
@@ -2443,6 +2445,7 @@
 				526F241F1D3B5CC200EF4E1F /* character.h */,
 				52F5D85A1DA1211B006F8F4B /* character_update.cpp */,
 				526F24C81D3B5CC300EF4E1F /* hotspot.cpp */,
+				38AA93A0F42C30DBD0E064C8 /* entity_state.h */,
 				526F24C91D3B5CC300EF4E1F /* hotspot.h */,
 				526F24CC1D3B5CC300EF4E1F /* inventory_item.cpp */,
 				526F24CD1D3B5CC300EF4E1F /* inventory_item.h */,
@@ -4009,6 +4012,7 @@
 				205229B028E8EBE500589E91 /* roomstruct.h in Headers */,
 				526F26AD1D3B5CC300EF4E1F /* dialog_options_rendering.h in Headers */,
 				526F27751D3B5CC300EF4E1F /* room_object.h in Headers */,
+				B2C71C2E555922A26F29F5AE /* entity_state.h in Headers */,
 				20E6853828F2219B00B95C00 /* AGSSpriteFont.h in Headers */,
 				526F27C01D3B5CC300EF4E1F /* gfxfilter.h in Headers */,
 				526F230E1D3B5C4900EF4E1F /* theoradec.h in Headers */,

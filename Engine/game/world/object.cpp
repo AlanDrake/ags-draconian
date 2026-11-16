@@ -31,6 +31,7 @@
 #include "game/ui/gui.h"
 #include "game/view.h"
 #include "game/world/character.h"
+#include "game/world/entity_state.h"
 #include "game/world/move_list.h"
 #include "game/world/properties.h"
 #include "game/world/room.h"
@@ -573,7 +574,8 @@ void AnimateObjectImpl(int obj_id, int loop, int spdd, int rept, int direction, 
     room_obj.Loop = (uint16_t)loop;
     room_obj.Frame =
         (uint16_t)SetFirstAnimFrame(room_obj.View, loop, sframe, static_cast<AnimFlowDirection>(direction));
-    room_obj.AnimWait = spdd + game.Views[room_obj.View].loops[loop].frames[room_obj.Frame].speed;
+    // 16 bits: the legacy save format
+    room_obj.AnimWait = static_cast<int16_t>(spdd + game.Views[room_obj.View].loops[loop].frames[room_obj.Frame].speed);
     int pic = game.Views[room_obj.View].loops[loop].frames[room_obj.Frame].pic;
     room_obj.Sprite = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
@@ -1848,6 +1850,48 @@ constexpr FieldRow<ViewAnimateParams> kViewAnimateParamsFields[] = {
     Field<&ViewAnimateParams::AudioVolume>("AudioVolume"),
 };
 
+// The parts that a character and a room object share (entity_state.h)
+constexpr FieldRow<GraphicState> kGraphicStateFields[] = {
+    Field<&GraphicState::TintRed>("TintRed"),
+    Field<&GraphicState::TintGreen>("TintGreen"),
+    Field<&GraphicState::TintBlue>("TintBlue"),
+    Field<&GraphicState::TintLevel>("TintLevel"),
+    Field<&GraphicState::TintLight>("TintLight"),
+    Field<&GraphicState::Zoom>("Zoom"),
+    Field<&GraphicState::Rotation>("Rotation"),
+    Field<&GraphicState::Pivot>("Pivot"),
+    Field<&GraphicState::PivotOffset>("PivotOffset"),
+    Field<&GraphicState::ShaderID>("ShaderID"),
+    Field<&GraphicState::ShaderHandle>("ShaderHandle"),
+    Field<&GraphicState::SpriteWidth>("SpriteWidth", FieldRole::Derived),
+    Field<&GraphicState::SpriteHeight>("SpriteHeight", FieldRole::Derived),
+    Field<&GraphicState::Width>("Width"),
+    Field<&GraphicState::Height>("Height"),
+};
+static_assert(FieldsCoverStruct(kGraphicStateFields), "GraphicState: a field has no row in kGraphicStateFields");
+
+constexpr FieldRow<ViewAnimState> kViewAnimStateFields[] = {
+    Field<&ViewAnimState::Loop>("Loop"),
+    Field<&ViewAnimState::Frame>("Frame"),
+    Field<&ViewAnimState::AnimWait>("AnimWait"),
+    Field<&ViewAnimState::Anim>("Anim"),
+};
+static_assert(FieldsCoverStruct(kViewAnimStateFields), "ViewAnimState: a field has no row in kViewAnimStateFields");
+
+constexpr FieldRow<MoveState> kMoveStateFields[] = {
+    Field<&MoveState::MoveListID>("MoveListID"),
+    Field<&MoveState::MoveListHandle>("MoveListHandle"),
+};
+static_assert(FieldsCoverStruct(kMoveStateFields), "MoveState: a field has no row in kMoveStateFields");
+
+constexpr FieldRow<FrameSoundState> kFrameSoundStateFields[] = {
+    Field<&FrameSoundState::AnimationVolume>("AnimationVolume"),
+    Field<&FrameSoundState::AudioPanning>("AudioPanning"),
+    Field<&FrameSoundState::AudioSpeed>("AudioSpeed"),
+};
+static_assert(FieldsCoverStruct(kFrameSoundStateFields),
+              "FrameSoundState: a field has no row in kFrameSoundStateFields");
+
 } // namespace
 
 FieldTable<AnimFlowParams> AnimFlowParams::Fields()
@@ -1858,6 +1902,26 @@ FieldTable<AnimFlowParams> AnimFlowParams::Fields()
 FieldTable<ViewAnimateParams> ViewAnimateParams::Fields()
 {
     return kViewAnimateParamsFields;
+}
+
+FieldTable<GraphicState> GraphicState::Fields()
+{
+    return kGraphicStateFields;
+}
+
+FieldTable<ViewAnimState> ViewAnimState::Fields()
+{
+    return kViewAnimStateFields;
+}
+
+FieldTable<MoveState> MoveState::Fields()
+{
+    return kMoveStateFields;
+}
+
+FieldTable<FrameSoundState> FrameSoundState::Fields()
+{
+    return kFrameSoundStateFields;
 }
 
 bool CycleViewAnim(Game &game, int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams &anim_params)

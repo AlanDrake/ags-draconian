@@ -735,6 +735,7 @@
     <ClInclude Include="..\..\Engine\game\video\video.h" />
     <ClInclude Include="..\..\Engine\game\video\video_script.h" />
     <ClInclude Include="..\..\Engine\game\world\character.h" />
+    <ClInclude Include="..\..\Engine\game\world\entity_state.h" />
     <ClInclude Include="..\..\Engine\game\world\hotspot.h" />
     <ClInclude Include="..\..\Engine\game\world\inventory_item.h" />
     <ClInclude Include="..\..\Engine\game\world\move_list.h" />

@@ -286,6 +286,7 @@ target_sources(engine
     game/world/character.cpp
     game/world/character.h
     game/world/character_update.cpp
+    game/world/entity_state.h
     game/world/hotspot.cpp
     game/world/hotspot.h
     game/world/inventory_item.cpp

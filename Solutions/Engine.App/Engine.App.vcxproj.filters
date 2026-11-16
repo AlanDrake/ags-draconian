@@ -962,6 +962,9 @@
     <ClInclude Include="..\..\Engine\game\world\character.h">
       <Filter>Header Files\game\world</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\game\world\entity_state.h">
+      <Filter>Header Files\game\world</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Engine\game\lib\date_time.h">
       <Filter>Header Files\game\lib</Filter>
     </ClInclude>

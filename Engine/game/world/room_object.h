@@ -20,6 +20,7 @@
 #include "game/common_defines.h"
 #include "game/room_def.h"
 #include "game/runtime_defines.h"
+#include "game/world/entity_state.h"
 #include "gfx/gfx_def.h"
 #include "gfx/graphicspace.h"
 #include "util/string.h"
@@ -41,32 +42,18 @@ class Game;
 #define LEGACY_OBJANIM_BACKWARDS 10
 
 
-// The play state of a room object: what exists only while the game runs. RoomObject holds it with its definition.
-struct RoomObjectState
+// The play state of a room object: what exists only while the game runs. RoomObject holds it with its definition. The
+// parts a character has too are its bases (entity_state.h): the graphic fields (tint, Zoom, Rotation, the sprite's
+// size...), the view animation (Loop, Frame, AnimWait, Anim), the move list and the frame sounds' volume, panning and
+// speed. It is never made on its own: RoomObject's constructors give MoveListID the object's starting value.
+struct RoomObjectState : public GraphicState, public ViewAnimState, public MoveState, public FrameSoundState
 {
     static constexpr uint16_t NoView = UINT16_MAX;
 
-    int16_t TintRed = 0, TintGreen = 0;     // specific object tint
-    int16_t TintBlue = 0, TintLevel = 0;    // script: TintSaturation
-    int16_t TintLight = 0;                  // script: TintLuminance, and LightLevel when the object has a light
-    int16_t Zoom = 100;                     // zoom level, either manual or from the current area; script: Scaling
-    Pointf Pivot                            // relative rotation pivot
-        = Pointf(0.5f, 0.5f);               // default: center
-    Point PivotOffset;                      // relative rotation pivot offset (in pixels)
-    int SpriteWidth = 0, SpriteHeight = 0;  // last used sprite's size
-    int FrameOffsetX = 0, FrameOffsetY = 0; // frame offsets (when using a view)
-    int16_t Width = 0, Height = 0;          // width/height based on a scaled sprite
-    uint16_t View = NoView;                 // only used to track animation - 'Sprite' holds the current sprite
-    uint16_t Loop = 0, Frame = 0;
-    int16_t AnimWait = 0, MoveListID = -1;
-    ViewAnimateParams Anim;
-    int AnimationVolume = 100; // default animation sounds volume (relative factor)
-    int AudioPanning = 0;      // animation sounds panning (-100 to +100)
-    int AudioSpeed = 1000;     // animation sounds speed, ms per second
-    int ShaderID = 0;
-    int ShaderHandle = 0;   // script shader handle
-    float Rotation = 0.f;   // script: GraphicRotation
-    int MoveListHandle = 0; // handle to the script movelist
+    // The offsets of the view frame the object last animated to, set while the object animates (update_object_scale)
+    // and kept after; a save does not hold them
+    int FrameOffsetX = 0, FrameOffsetY = 0;
+    uint16_t View = NoView; // only used to track animation - 'Sprite' holds the current sprite
 };
 
 // An object of a room, as the game changes it: its definition's fields, which start as a copy of what the room
@@ -76,9 +63,10 @@ struct RoomObjectState
 class RoomObject : public AGS::Common::RoomObjectDef, public RoomObjectState
 {
 public:
-    RoomObject() = default;
+    // An object starts with MoveListID -1, where a character starts with 0 (MoveState's default)
+    RoomObject() { MoveListID = -1; }
     // Starts an object from its definition
-    explicit RoomObject(const AGS::Common::RoomObjectDef &def) : RoomObjectDef(def) {}
+    explicit RoomObject(const AGS::Common::RoomObjectDef &def) : RoomObjectDef(def) { MoveListID = -1; }
 
     // Takes again from the definition what a room state does not keep between visits, and so what a save does not
     // hold: the id, the script name, the room number, the events, the interactions and the custom properties as the

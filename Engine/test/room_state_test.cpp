@@ -21,8 +21,8 @@
 // component that saves them; what the hotspots, regions, walk-behinds and
 // walkable areas keep between visits and take from the room file again; the
 // lists a room reads with no state bound; the 16-bit limits of an
-// object's sprite, baseline and blocking width and of a walk-behind's
-// baseline; the setters of an object's blocking rectangle. The
+// object's sprite, baseline, blocking width and animation wait and of a
+// walk-behind's baseline; the setters of an object's blocking rectangle. The
 // room is made by hand: no room file is read.
 //
 // Not tested: load_new_room itself (it reads the room file and the room
@@ -40,6 +40,7 @@
 #include "game/save/savegame.h"
 #include "game/save/savegame_components.h"
 #include "game/save/savegame_internal.h"
+#include "game/view.h"
 #include "game/world/hotspot.h"
 #include "game/world/object.h"
 #include "game/world/region.h"
@@ -62,7 +63,8 @@ namespace
 {
 
 // The members of a room object in their order, with their types, by part: the definition (RoomObjectBase and
-// RoomObjectDef), the play state (RoomObjectState), and what RoomObject adds. A field added to any of them changes
+// RoomObjectDef), the play state (RoomObjectState and its bases), and what RoomObject adds. A field added to any of
+// them changes
 // its size, and the build stops at a static_assert below: add the field here and to ExpectSameObject (a saved field
 // also to SetSavedFields), so that no test passes without looking at it.
 struct RoomObjectBaseMembers
@@ -93,25 +95,49 @@ struct RoomObjectDefMembers : RoomObjectBaseMembers
 static_assert(sizeof(RoomObjectDefMembers) == sizeof(RoomObjectDef),
               "RoomObjectDef has a field this test does not know: see RoomObjectDefMembers");
 
-struct RoomObjectStateMembers
+// The parts the play state shares with a character (entity_state.h), its bases in this order
+struct GraphicStateMembers
 {
     int16_t TintRed, TintGreen, TintBlue, TintLevel, TintLight;
     int16_t Zoom;
+    float Rotation;
     Pointf Pivot;
     Point PivotOffset;
+    int ShaderID, ShaderHandle;
     int SpriteWidth, SpriteHeight;
-    int FrameOffsetX, FrameOffsetY;
     int16_t Width, Height;
-    uint16_t View, Loop, Frame;
-    int16_t AnimWait, MoveListID;
+};
+static_assert(sizeof(GraphicStateMembers) == sizeof(GraphicState),
+              "GraphicState has a field this test does not know: see GraphicStateMembers");
+
+struct ViewAnimStateMembers
+{
+    uint16_t Loop, Frame;
+    int AnimWait;
     ViewAnimateParams Anim;
-    int AnimationVolume;
-    int AudioPanning;
-    int AudioSpeed;
-    int ShaderID;
-    int ShaderHandle;
-    float Rotation;
+};
+static_assert(sizeof(ViewAnimStateMembers) == sizeof(ViewAnimState),
+              "ViewAnimState has a field this test does not know: see ViewAnimStateMembers");
+
+struct MoveStateMembers
+{
+    int16_t MoveListID;
     int MoveListHandle;
+};
+static_assert(sizeof(MoveStateMembers) == sizeof(MoveState),
+              "MoveState has a field this test does not know: see MoveStateMembers");
+
+struct FrameSoundStateMembers
+{
+    int AnimationVolume, AudioPanning, AudioSpeed;
+};
+static_assert(sizeof(FrameSoundStateMembers) == sizeof(FrameSoundState),
+              "FrameSoundState has a field this test does not know: see FrameSoundStateMembers");
+
+struct RoomObjectStateMembers : GraphicStateMembers, ViewAnimStateMembers, MoveStateMembers, FrameSoundStateMembers
+{
+    int FrameOffsetX, FrameOffsetY;
+    uint16_t View;
 };
 static_assert(sizeof(RoomObjectStateMembers) == sizeof(RoomObjectState),
               "RoomObjectState has a field this test does not know: see RoomObjectStateMembers");
@@ -864,6 +890,14 @@ TEST(RoomObjectSave, EverySavedFieldIsRestored)
     EXPECT_TRUE(saved == WriteObject(restored));
 }
 
+// An object starts with MoveListID -1 from either constructor, where a character starts with 0 (MoveState's default)
+TEST(RoomObjectStart, MoveListIdIsMinusOne)
+{
+    EXPECT_EQ(-1, RoomObject().MoveListID);
+    EXPECT_EQ(-1, RoomObject(RoomObjectDef()).MoveListID);
+    EXPECT_EQ(0, MoveState().MoveListID);
+}
+
 // The save holds the sprite in 16 bits, which the read takes as unsigned: a number above INT16_MAX comes back as it was
 TEST(RoomObjectSave, SpriteAboveInt16RoundTrips)
 {
@@ -1155,6 +1189,61 @@ TEST_F(LoadedRoom, WalkBehindBaselineWrapsAt16Bits)
     Walkbehind_SetBaseline(&walkbehind3, 40000);
     EXPECT_EQ(-25536, Walkbehind_GetBaseline(&walkbehind3));
     EXPECT_EQ(-25536, GetWalkBehindBase(3));
+}
+
+// Fixture: LoadedRoom with one view for the objects to animate in: one loop of two frames, of speeds 3 and 5. The engine
+// globals it touches besides LoadedRoom's, reset in TearDown: Game::Views and game.numviews.
+class LoadedRoomWithView : public LoadedRoom
+{
+protected:
+    void SetUp() override
+    {
+        LoadedRoom::SetUp();
+        Game &game = Game::Current();
+        _wasNumViews = game.numviews;
+        _wasViews.swap(game.Views);
+        game.Views.resize(1);
+        game.Views[0].Initialize(1);
+        game.Views[0].loops[0].Initialize(2);
+        game.Views[0].loops[0].frames[0].speed = 3;
+        game.Views[0].loops[0].frames[1].speed = 5;
+        game.numviews = 1;
+    }
+
+    void TearDown() override
+    {
+        Game &game = Game::Current();
+        game.Views.swap(_wasViews);
+        game.numviews = _wasNumViews;
+        LoadedRoom::TearDown();
+    }
+
+    std::vector<ViewStruct> _wasViews;
+    int _wasNumViews = 0;
+};
+
+// An object's animation wait stays within 16 bits, as the legacy save format holds it: a delay above INT16_MAX wraps
+// when the animation starts and at every frame, and the save keeps the wrapped value
+TEST_F(LoadedRoomWithView, ObjectAnimWaitWrapsAt16Bits)
+{
+    BindRoomState(_room);
+    RoomObject &obj = _state.Objects[0];
+    obj.View = 0;
+    ScriptObject obj0;
+    obj0.id = 0;
+    Object_Animate(&obj0, 0, 40000, kAnimFlow_Repeat, 0 /* not blocking */, kAnimDirForward, 0, 100);
+    EXPECT_EQ(0, obj.Frame);
+    EXPECT_EQ(40000 + 3 - 65536, obj.AnimWait);
+    // a wait below 1 shows the next frame at the next update, which takes the next wait in 16 bits too
+    obj.UpdateCyclingView(Game::Current(), 0);
+    EXPECT_EQ(1, obj.Frame);
+    EXPECT_EQ(40000 + 5 - 65536, obj.AnimWait);
+
+    const std::vector<uint8_t> saved = WriteObject(obj);
+    RoomObject restored;
+    Stream in(std::make_unique<VectorStream>(saved));
+    restored.ReadFromSavegame(&in, kRoomStatSvgVersion_Current);
+    EXPECT_EQ(40000 + 5 - 65536, restored.AnimWait);
 }
 
 // The id is not saved; CheckViewFrame and RunFrameEvent find the object's script object and events by it
