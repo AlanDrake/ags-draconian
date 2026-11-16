@@ -105,13 +105,15 @@ private:
   `cfg`, `str`, `x`/`y`/`w`/`h`). `chaa`, `objj`, `butt`, `guio`, `sds`, `tqs`, `eres`, `scam`,
   `texx`, `widd`, `iit`, `vii`, `charid`, `objid`, `invi`, `newval`, `newwid`, `newhit` are on the `refactor_metrics.py` watchlist and banned in new code
   **[enforced]**: `tidy_diff.py` flags a new variable or parameter so named.
-- **One concept, one name:** a `CharacterInfo*` is `ch` (or `character`) everywhere, not `chaa`,
-  `chap`, `chin`, `chinfo`, `char1` or `chi`. Name the concept, not the struct: `ch` stays right when
-  `CharacterInfo` becomes design-time data and the engine's character is a `Character` (PLAN.md 5.1a).
+- **One concept, one name:** a `Character*` is `ch` (or `character`) everywhere, not `chaa`,
+  `chap`, `chin`, `chinfo`, `char1` or `chi`. Name the concept, not the struct: `ch` stayed right when
+  `CharacterInfo` became the definition `CharacterDef` and the engine's character a `Character` (PLAN.md
+  5.1a). A definition beside its live object is `def` (`explicit Character(const CharacterDef &def)`); the
+  word is not reserved, since `def` is also a default value in older code.
 - **Reserved names** mean exactly one thing in first-party code, so a reader never has to check
   **[enforced]** (`tidy_diff.py` flags a variable or parameter so named with another explicit type;
-  `auto` is not checked): `ch` = a character (`CharacterInfo`, the plugin API's `AGSCharacter`, later
-  `Character`), `chex` = `CharacterExtras`, `btn` = `GUIButton`. A text character or byte is `c`, a
+  `auto` is not checked): `ch` = a character (`Character`, its definition `CharacterDef`, the plugin API's
+  `AGSCharacter`), `btn` = `GUIButton`. A text character or byte is `c`, a
   playing sound (`SoundClip`, not the `AudioClip` asset) `playback`: `voice` is speech voice-over
   and `channel` a `ScriptAudioChannel`. An index is `<thing>_id` (`char_id`, `obj_id`, `btn_id`,
   `gui_id`, `item_id`), never `charid`, `objn` or the bare name of the thing. Where a file has the
@@ -329,4 +331,19 @@ Extends `CONTRIBUTING.md` (one program per commit, prefixes like `Engine:`, 72-c
    after, with the same code, and an ordinary function has exactly one copy before and after. Both
    are MSVC only and compare code, not data: the `Register*API` tables are covered by the engine
    tests `ScriptExports.*`.
+
+   **Fields of a struct are renamed with `Script/rename_fields.py`**, never by a text replacement
+   (`x`, `flags`, `view` and `name` are fields of many structs): a map file of
+   `Struct::old_name<TAB>NewName` lines, the struct being the one that declares the field; the tool
+   resolves every reference through libclang over the build's `compile_commands.json`, refuses a
+   new name that a parameter would capture or that would hide a type, and lists what it cannot
+   rewrite (a macro body, a dependent expression in a template, comments, code no unit compiles).
+   The result is a `[rename]` commit with identical objects (a field's name is in no symbol). A
+   rename of a **type** is proved another way, since the type is in the symbols: the commit must
+   equal a whole-word replacement of its parent, shown with a script, and the commits after it are
+   compared with objects again.
+
+   ```sh
+   .compare/renameenv/Scripts/python.exe Script/rename_fields.py --build .tidy/build --map fields.tsv --dry-run
+   ```
 5. Every commit builds and passes the tests.

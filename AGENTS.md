@@ -114,7 +114,7 @@ Entry points, in reading order:
 `Editor/AGS.Editor/Utils/`),
 `Tools/crmbuild`, `Tools/data/xml_fields.h` (table-driven `Game.agf` reading, drift guard
 `Tools/data/agf_elements.txt`), `Script/compare_objects.py`, `Script/compare_builds.py`,
-`Script/refactor_metrics.py` (BASELINE.md numbers), `Script/tidy_fix.py`, `Script/tidy_diff.py` (clang-tidy on changed lines), `Script/check_helpers.py` (repeated helpers), `ci/corpus/`,
+`Script/refactor_metrics.py` (BASELINE.md numbers), `Script/tidy_fix.py`, `Script/tidy_diff.py` (clang-tidy on changed lines), `Script/check_helpers.py` (repeated helpers), `Script/rename_fields.py` (compiler-exact rename of struct fields), `ci/corpus/`,
 `.github/workflows/verify.yml`, `Script/prepush.py`, `Script/linux_jobs.sh` (the Linux CI jobs, run by
 `prepush.py`). Local-only helpers and build trees live in the git-ignored
 `.compare/` and `.tidy/`.
@@ -134,10 +134,10 @@ A new process-wide value is a member there, not a global; `Script/use_context.py
 to a context's member (`--check` fails on a converted global that is named again).
 The game's and the room's globals are members of two more contexts (5.1 step 3, 2026-11-15): `Game`
 (`Engine/game/game_context.h`; `class Game : public GameDef`, where `GameDef` in `Common/game/game_def.h` is
-upstream's `GameSetupStruct` and its base; `Game::Current()`, local `Game &game`): `game.chars`, `game.options`,
+upstream's `GameSetupStruct` and its base; `Game::Current()`, local `Game &game`): `game.Characters`, `game.options`,
 `game.Play` (upstream's `play`, less its room fields and its viewports), `game.Viewports` (`GameViewports`: the
 viewports and cameras that upstream's `GamePlayState` holds), `game.Views`, `game.Guis` (members of `GameDef`: the
-loader reads into them), `game.CharExtras`, `game.DisplayedRoom`, `game.Palette`,
+loader reads into them), `game.DisplayedRoom`, `game.Palette`,
 the script objects and handles, and state structs such as `game.Cursor`, `game.Speech`, `game.Scripts`,
 `game.Events`; and `Room` (`Engine/game/world/room_context.h`; `class Room : public RoomStruct`,
 `Room::Current()`, local `Room &room`): `room.Width`, `room.Objects` (upstream's `thisroom`), `room.State`
@@ -151,6 +151,17 @@ is a `std::vector` of a forward-declared type or a reference member, never a new
 its like. A new value of the game or of the room is a member of its context; the few globals that stay are listed
 with a reason in `Script/check_layers.py` (`EXTERN_ALLOWED`: constants, stateless script managers, the script
 ring's own state, crash handler values), which fails on any other `extern` variable in an engine header.
+A definition is kept apart from its live object (5.1a, RUNTIME-SPLIT.md 2 and 3; the character first, step 1,
+2026-11-16): `XDef` is the record the game file holds (Common, never written after load), `XState` the fields that
+exist only during play, `X` the live class that derives from both. So upstream's `CharacterInfo` is
+`CharacterDef` (`Common/game/character_def.h`, less the play-only fields, plus `BlendMode`, `GraphicAnchor`,
+`GraphicOffset`), its `CharacterExtras` is `CharacterState`, and the engine's character is `class Character`
+(`Engine/game/world/character.h`): one list, `game.Characters`, where upstream has `game.chars` and `charextra`;
+no `chex`, the fields under their STYLE.md names (`ch->NormalView`, `ch->MoveListID`, `ch->AnimWait`; upstream's
+`defview`, `walking`, `wait`). `Game::Characters` hides `GameDef::Characters` on purpose: the definitions are
+`game.Def().Characters`, read where the live list is built (`InitGameState`). A field of a struct is renamed with
+`Script/rename_fields.py` (a map of `Struct::old<TAB>New`; it resolves each reference through libclang, never by
+spelling), as a `[rename]` commit of its own.
 `Engine/game/` holds the game logic in `world`, `navigation`, `dialog`, `ui`, `render`, `audio`, `video`,
 `input`, `save`, `lib` and `dynobj`, and the script bindings in `script_api/`. `docs/context/repository.md`
 describes upstream's tree, so its `Engine/ac/` and `Common/ac/` paths map through
@@ -181,7 +192,9 @@ On demand with `--only`: `sanitizers` (ASan, UBSan and leaks on the unit tests a
 `ubuntu-latest`) on a copy of the working tree, uncommitted files included. CI confirms, it does not
 discover. Also: the auto-test game; `compare_objects.py` for mechanical commits; `compare_builds.py` for
 tool or `agfreader` changes; the generated code or a benchmark for a change on a hot path (STYLE.md
-"Performance").
+"Performance"). A game run on the user's desktop (the auto-test game, a corpus or parity run) passes
+`--windowed --background` to the engine: never fullscreen, and it keeps running when its window loses the focus
+(`compare_builds.py` and `ci/corpus/run.py` do; a brief for an agent that runs a game says so).
 
 Workflows: `verify.yml` (every push: format, GCC build + tests + auto-test game + tidy gate, header
 checks), `ci.yml` (`ags4draconian*`, PRs: light set, which is the Windows CMake build with Ninja and the

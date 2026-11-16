@@ -95,8 +95,9 @@ class  Character : public CharacterDef, public CharacterState { /* behaviour */ 
 - `X`: the live object. The engine's functions and the script API take this one.
 - A class hierarchy (the GUI controls) gets one struct per level, so that no record is inherited twice:
   `GUIButtonDef` holds the button's own fields and does not derive from `GUIControlDef`.
-- Two bases must not share a member name. `CharacterInfo` and `CharacterExtras` both have `flags` (different
-  bits) and the two save methods; the first is renamed, the second leaves with 5.8 step 1.
+- Two bases must not share a member name. `CharacterInfo` and `CharacterExtras` both had `flags` (different
+  bits) and the two save methods: the state's is `RuntimeFlags` (5.1a step 1), the record's save methods left
+  with 5.8 step 1.
 - Where the live struct repeats its record today, deriving removes the copy and the types have to be
   reconciled. `RoomObject` repeats `RoomObjectInfo`: `x`/`X` (`int`/`int32_t`), `num`/`Sprite`
   (`uint16_t`/`int32_t`), `baseline`/`Baseline` (`int16_t`/`int32_t`), four `blocking_` fields against a
@@ -157,6 +158,44 @@ draw loops before the first batch lands (STYLE.md "Performance").
   The compiled scripts used to die at the end of `load_game_file`; they are kept until `unload_game` now
   (about 1.6 MB for the auto-test game), which is what a second `Game` built from the `GameDef` needs (5.11).
 
+**What 5.1a step 1 built (2026-11-16): the character, the first entity with a live copy.**
+
+- `struct CharacterDef` (`Common/game/character_def.h`, upstream's `CharacterInfo`): what the game file gives.
+  It lost thirteen play-only fields, which `ReadFromFile` had long skipped as unused slots of the record
+  (`prevroom`, `wait`, `idleleft`, `activeinv`, the three blink counters, `z`, `walkwait`, `walkwaitcounter`,
+  `loop`, `frame`, `walking`), and the three methods the engine defined for it; it gained `BlendMode`,
+  `GraphicAnchor` and `GraphicOffset`, which the loader used to read into a side struct (`CharDataEx`, gone)
+  for the engine to copy.
+- `struct CharacterState` (`Engine/game/world/character.h`, upstream's `CharacterExtras`): plain data, with
+  those thirteen fields and without the three it had copies of.
+- `class Character : public CharacterDef, public CharacterState`: all the behaviour (the methods of
+  `CharacterExtras` without their `ch` parameter, the engine's methods of `CharacterInfo`), built by
+  `explicit Character(const CharacterDef &def)`. Every engine function, the managed pool, `CCCharacter`, the
+  plugin API's `GetCharacter` and the script objects take and hold a `Character *`; no layout was frozen
+  (`AGSCharacter` is opaque, scripts reach one field by offset, through `CCCharacter`).
+- **One live list, `Game::Characters`**, built in `InitGameState` from the definitions and cleared in
+  `unload_game`; `Game::CharExtras` and every `chex` are gone. The definitions stay in
+  `GameDef::Characters` as loaded.
+- **The live list hides the definitions' list by name.** `Game` still derives from `GameDef`, so
+  `Game::Characters` hides `GameDef::Characters`: through a `Game &` the name is the live list, which is what
+  every engine use means, no use site had to change when the class arrived (`GameDef::chars` was renamed
+  first), and nothing can write a definition by oversight. The definitions are read through
+  `const GameDef &Game::Def() const`, in one place so far. The same works for each entity that gets a live
+  copy; when the last has one, `Game` stops deriving from `GameDef` and holds the reference that `Def()`
+  returns. **`GameDef::Current()` was not needed**: every reader of a definition has its `Game` at hand; it
+  comes with the first that has not (5.11 at the latest), as `Game::Current().Def()`.
+- **The starting values are still assigned in three places** (`InitAndRegisterCharacters`,
+  `engine_init_game_settings`, the default member initializers): one constructor for the starting state is
+  5.11 step 1. The three `[INTERNAL]` bits of `CHF_` stay in the definition's `Flags`: a save holds them
+  there (5.12).
+- The fields have their STYLE.md names (PLAN.md 4.3: `NormalView`, `SpeechColor`, `MoveListID`, `AnimWait`
+  and `WalkAnimWait`, `Zoom`, `TintLevel`, `TintLight`...), renamed by `Script/rename_fields.py`, which
+  resolves each reference through libclang.
+- Measured (MSVC x64 `/O2`, LOG.md "5.1a step 1"): a character is 752 bytes as before (392 + 360 in two
+  arrays, now one); every per-character update and draw function has the same or fewer instructions but
+  `UpdateEffectiveValues` (11 to 12); no loop gained an accessor load; the state's fields sit at offset 376
+  and up, so their accesses take a 4-byte displacement (more code bytes, not more instructions).
+
 ## 3. Names
 
 The stem is the Editor's class name (`AGS.Types`). `ScriptX` handles, `CCX` managers, the Tools' `AGF::X` and
@@ -200,7 +239,7 @@ about 25 uses in Common and 5 in the Tools. The cost is distance from upstream, 
 
 | Entity | Definition today | Definition | Live today | Live |
 |---|---|---|---|---|
-| Character | `CharacterInfo` | `CharacterDef` | `CharacterInfo` + `CharacterExtras` | `Character` (+ `CharacterState`) |
+| Character (done, 5.1a step 1) | `CharacterInfo` | `CharacterDef` | `CharacterInfo` + `CharacterExtras` | `Character` (+ `CharacterState`) |
 | Inventory item | `InventoryItemInfo` | `InventoryItemDef` | in place | `InventoryItem` |
 | Cursor | `MouseCursor` | `MouseCursorDef` | in place | `MouseCursor` |
 | View | `ViewStruct`, `ViewLoopNew`, `ViewFrame` | `ViewDef`, `ViewLoopDef`, `ViewFrameDef` | in place | `View`, `ViewLoop`, `ViewFrame` |
@@ -404,7 +443,10 @@ The cost of a file is its headers. Consequences:
   (2026-11-16). `Play` and `Viewports` through reference members would give back at most those 26 s for one
   more load per use: decided against. What lowers compile time from here is PLAN.md 2.10b, in its order: a
   precompiled header of stable content (the standard headers alone are 0.38 s of every file), and the big
-  headers trimmed as 5.1a splits their structs.
+  headers trimmed as 5.1a splits their structs. 5.1a step 1 (2026-11-16) took `game/world/character.h` out of
+  `game_state.h`, which named nothing of it and passed it to every user of a context, and the definition's
+  header out of `game_def.h` (a forward declaration, as for the views and dialogs): of the 451 first-party
+  translation units, 34 see `character.h` where 104 did, and 40 see `character_def.h` where 119 did.
 - Two numbers go into BASELINE.md and are taken before and after each batch from the ninja log: the total
   compile time and the median per file (2.10). Lowering the fixed cost (a precompiled header; unity builds
   only where `compare_objects.py` does not need per-file objects) is the second half of 2.10.

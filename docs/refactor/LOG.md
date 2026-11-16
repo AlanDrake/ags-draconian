@@ -1987,8 +1987,10 @@ supervised by Fable 5.2; the batches by Opus 5.5 subagents (the tool, `core`, `r
 `services`, `exceptions` and `sprites`, `hot`, `roomfields` and `viewports`, `gamedef-lists`) and Sonnet 5.5
 ones (the rename, the probe, the code comparison, the tidy fixes), each batch built once. The user built the
 tree and ran a game on it after `hot`. The compile-time cost is real (median per object +5%, below) and
-accepted by the user. **Left:** the `linux`, `emscripten` and `msbuild` stages on the last six commits (the
-tidy fixes and the three batches of 2026-11-16), before the push.
+accepted by the user. The `linux`, `emscripten` and `msbuild` stages, left open for the last six commits (the
+tidy fixes and the three batches of 2026-11-16), passed on `ec0098a2a` later that day (`ags.wasm` linked;
+1,218 tests under GCC; 5 solutions and the Editor's NUnit tests); pushed, 111 commits
+(`ffa8705f4..ec0098a2a`), and CI's `Verify` and `CI` runs passed.
 
 - **The design, where it was decided here** (RUNTIME-SPLIT.md 2 and 9 hold the reasons):
   - `class Game : public GameDef` and `class Room : public RoomStruct`: the definition and the live state stay
@@ -2116,6 +2118,134 @@ tidy fixes and the three batches of 2026-11-16), before the push.
   hand, and what it cannot see (a helper inlined into a loop) needs the disassembly; a compile-time reading
   needs a quiet machine and nothing started beside it, and when the user changes what a running agent does,
   the agent is stopped, not messaged.
+
+### 5.1a step 1: `Character`
+
+*Definition:* PLAN.md 5.1a step 1: one live list in `Game` replaces `game.chars` + `charextra`; the
+`Character_*` functions take `Character *`; `GameDef`'s characters are not written after load; first an alias
+and the signatures, then the class; `CharacterInfo` becomes `CharacterDef`; with 4.3 for the two structs
+(5.1a point 6).
+
+**Status (2026-11-16): done in the working tree, not committed** (snapshots `refs/wip/51a1/*`, one per batch:
+`prep-flags`, `prep-chars`, `prep-alias`, `class`, `fields`, `names-types`, `names-common`, `names-engine`,
+`fieldnames`, `trim`, `cleanup`, `runners`; 86 files, of them 64 under `Common`, `Engine`, `Tools` and
+`Editor`). Designed and supervised by Fable 5.2 (`.compare/briefs/brief-51a1-*.md`); the batches by Sonnet 5.5
+`medium` (`prep`, `names`, `fieldnames`, `trim`, the code comparison) and Opus 5.5 `high` (`class` and
+`fields`, one agent; the rename tool), each batch built once. **Open:** the compile-time reading against
+BASELINE.md "After 5.1 step 3" (it needs the machine to itself); the GCC comparison of the linked engine.
+
+- **The design, where it was decided here** (RUNTIME-SPLIT.md 2, "What 5.1a step 1 built"):
+  - **No layout was frozen**, which the old comments still claimed: `AGSCharacter` is opaque to plugins, and
+    scripts reach one field by offset, through `CCCharacter`. So fields could move between the structs.
+  - **The game file had stopped holding the play-only fields long ago**: `ReadFromFile` skips twelve slots as
+    `[UNUSED]` and writes zeros (`prevroom`, `wait`, `idleleft`, `activeinv`, `blinkinterval`, `blinktimer`,
+    `blinkframe`, `z`, `walkwait`, `loop`, `frame`, `walking`; `walkwaitcounter` never had a slot). They moved
+    to the state with no reader change.
+  - **Three definition fields were outside the record**: blend mode, graphic anchor and graphic offset were
+    read into `CharDataEx` and copied into `CharacterExtras` at init. They are fields of `CharacterDef` now,
+    read into directly; `CharDataEx` and `LoadedGameEntities::CharEx` are gone. The defaults were equal, and
+    the copy ran for every game (the loader always sized the side list), so a game file without the extension
+    behaves as before.
+  - **`Game::Characters` hides `GameDef::Characters`.** `GameDef::chars` was renamed `Characters` first, as a
+    `[rename]`; when `Game` got its own `std::vector<Character> Characters`, every `game.Characters[i]` of
+    the engine meant the live list without a text change, and a write to the definitions through a `Game &`
+    cannot compile into existence by oversight. The definitions are read through `game.Def()`, in one place
+    (`InitGameState`). `GameDef::Current()` was not needed and was not added.
+  - **Behaviour on the class, data in the structs**: the methods of `CharacterExtras` are `Character`'s,
+    without their `ch` parameter; the three methods of `CharacterInfo` that only the engine defined
+    (`get_baseline`, `get_blocking_top`, `get_blocking_bottom`) and its three predicates on play-only fields
+    left Common. Seven free functions lost their `CharacterExtras *chex` parameter.
+  - **One header, one source fewer**: `character_extras.h/.cpp` merged into `character.h/.cpp`,
+    `character_info_engine.cpp` is `character_update.cpp`, `Common/game/character_info.{h,cpp}` are
+    `character_def.{h,cpp}`.
+- **The batches:**
+  1. `prep`, three `[rename]`s: `CharacterExtras::flags` to `RuntimeFlags` (11 places, found by type),
+     `GameDef::chars` to `Characters` (186), the engine's `CharacterInfo` to `Character` through an alias
+     (546; the alias was needed in six headers, two more than the forward declarations).
+     `compare_objects.py`: mechanical, 672 objects identical.
+  2. `class`: `class Character : public CharacterInfo, public CharacterExtras`, the live list, `chex` folded
+     away; 27 files. Two methods' parameters would have shadowed members (`SetLockedView`, `RunFrameEvent`:
+     MSVC does not warn). The agent listed every `GameDef &` in the engine and every `GameDef` method that
+     names the characters: all run before the live list is built. One difference in moment: the definition
+     part of a live character is cleared at the `Characters.clear()` of `unload_game`, earlier than the
+     `GameDef` reset that cleared it before; nothing reads a character in between.
+  3. `fields`: the thirteen fields to the state, `CharDataEx` into the definition; 9 files. Inside `Character`
+     the name `BlendMode` is the member, so the type is written `AGS::Common::BlendMode` there.
+  4. `names`: the two type names (a whole-word replacement of the snapshot before it, shown by a script, but
+     two history comments rewritten), then the Common move and the engine merge and move
+     (`compare_objects.py`: "3 objects moved, code identical; 15 functions moved between objects, 0 changed").
+  5. `fieldnames`, PLAN.md 4.3 for the two structs: 78 fields by `Script/rename_fields.py` with the map
+     `.compare/helpers/51a1/fieldnames.tsv`, 37 files, no refusal, nothing left "by hand", a second run
+     "nothing to do"; two lines under `#if (AGS_PLATFORM_DEBUG)` in `draw.cpp`, which no Release unit
+     compiles, were converted by hand from the tool's list; 20 comment lines follow.
+     `compare_objects.py`: mechanical, 671 objects identical. The names are the script properties' where one
+     exists; decided with the user: `AnimWait` (was `wait`) and `WalkAnimWait` (`animwait`), `Zoom` (not the
+     script's `Scaling`: room objects have the field too), `TintLevel` and `TintLight` (`tint_light` is also
+     the light level); `ID`, not `Id` (29 public members against 2).
+  6. `trim` (2.10b item 3): `game_state.h` included the character header and named nothing of it, so every
+     user of a context got it; `inv_window.h` and `room.h` included the definition for a parameter type;
+     `game_def.h` forward-declares `CharacterDef` now. First-party translation units that see
+     `game/world/character.h`: 104 to 34 of 451; `game/character_def.h`: 119 to 40. Two sources gained the
+     include they had relied on (`cc_character.cpp`, `agsplugin.cpp`), three in Common for `game_def.h`'s.
+  7. `cleanup` and `runners`, by the supervisor: comments of the merged header, `tidy_diff.py`'s reserved
+     names (`chex` gone); `compare_builds.py` and `ci/corpus/run.py` pass `--windowed --background`.
+- **`Script/rename_fields.py`** (new, 1,342 lines; Opus 5.5 in a worktree): renames data members by a map of
+  `Struct::old<TAB>New`, finding each reference through libclang's Python bindings (`clang==19.1.7` with
+  Visual Studio's `libclang.dll`; the venv is `.compare/renameenv`) over `compile_commands.json`, the units
+  chosen by `clang-scan-deps` closure. It refuses a new name that a parameter would capture, that would hide
+  a type used in a member function, or that a sibling base has; lists references in macro bodies, dependent
+  ones in templates, comments, and code no unit compiles; `--self-test` has 32 checks. `clang-rename` is in
+  the same LLVM directory and was not used: no collision checks, silent about macro bodies, no report. Its
+  trial on six awkward fields (`x`, `flags`, `view`, `name`, `defview`, `room`): 449 references in 26 files,
+  the tree built with no hand edit, and a token-level diff showed nothing else changed. Limits: template
+  instantiations are not walked; token pasting is not found.
+- **Measured, MSVC x64 `/O2` without `/GL`** (instructions and bytes of 15 objects, `prep-alias` against
+  `fields`; nothing timed; scripts in the session's scratch directory, method of 5.1 steps 2 and 3):
+  - a character is 752 bytes before and after (392 + 360 in two arrays; 376 + 232 + the 144-byte graphic
+    space in one object);
+  - the per-character functions have the same or fewer instructions: `UpdateCharacterMoving` 184 to 170,
+    `UpdateCharacterAnimating` 185 to 176, `UpdateCharacterTurning` 112 to 106,
+    `prepare_characters_for_drawing` 149 to 140, the loop of `update_character_move_and_anim` 37 to 35 (one
+    pointer stepped where two were); `Character::UpdateEffectiveValues` 11 to 12 is the one growth;
+  - no loop gained a load of a context pointer; about 68 `Character_*` script functions lost theirs (no
+    lookup of the extras by index);
+  - the state's fields sit at offset 376 and up, so their accesses take a 4-byte displacement where 1 byte
+    did: more code bytes in those functions (`UpdateCharacterAnimating` +72, `construct_char_gfx` +46), not
+    more instructions. `character.cpp` -3.6% bytes, `character_update.cpp` +2.0%;
+  - `game_init.cpp` +3,900 instructions: the copy constructors and vector code that build the live list at
+    game load.
+  The four `Character_LockView*` script functions grew by about 45 instructions each (a changed inlining
+  decision, not traced). GCC was not compared.
+- **Verified:** per batch, the MSVC build, the header check and `ctest` (1,218). The auto-test game, 2414 of
+  2414 on Software, Direct3D 9, Direct3D 11 and OpenGL, on the binaries of `class` and again of `fields`
+  (the second run windowed and in the background: the same result). `prepush.py` with every stage on the
+  finished tree: `format`, `helpers`, `layers`, `buildlists`, `build`, `headers`, `libcxx` (340 headers),
+  `emscripten` (`ags.wasm` linked) and `linux` (1,218 tests) passed; `tidy` had one finding, a C-style cast
+  on a changed line of `IAGSEngine::GetCharacter` (a `reinterpret_cast` now); `msbuild` failed on stale
+  objects, below. After the two fixes `format`, `helpers`, `tidy` and `msbuild` (5 solutions, the Editor's
+  NUnit tests) pass; the other stages were not rerun for a cast, comments and scripts. `compare_objects.py`
+  from `fieldnames` to the finished tree (the trim, the comments, the cast): no code generation difference,
+  so the auto-test run on the binaries of `fields` stands for the finished code.
+- **Found on the way:**
+  - **A renamed engine source broke the local `msbuild` stage.** `Engine.Full.Test` links every object in
+    `Engine.App`'s directory and `prepush.py` keeps its MSBuild output between runs, so `character_extras.obj`
+    and `character_info_engine.obj` joined the link with the old symbols (10 unresolved). CI builds from
+    nothing and does not see it. `prepush.py` now deletes the objects that no source of `Engine.App.vcxproj`
+    gives before it builds.
+  - `game_state.h` had carried an include of the character header that nothing in it used, probably since
+    upstream's file.
+  - `def` cannot be a reserved name for a definition: older code uses it for a default value
+    (`CfgReadInt(..., int def)`). STYLE.md recommends it without enforcing it.
+- **Not verified:** the compile time; the GCC Release comparison of the linked engine; sanitizers; that a
+  real game's save and game file are byte-identical before and after (the save round-trip tests, the tools'
+  tests and the auto-test game pass; the code was read); the two debug-only lines of `draw.cpp` (the MSBuild
+  Debug jobs of a full CI run compile them); the Xcode project's entries; macOS, iOS, Android; the corpus
+  game.
+- **Lessons:** renaming the base's member first and letting the derived class hide it converts every use
+  site for free and makes the wrong access a different type; a rename of a type is proved as a word
+  replacement of its parent, a rename of fields by objects; a tool that asks the compiler what a name refers
+  to costs an afternoon once and makes hundreds of `x` and `flags` safe; a test program that links a
+  directory's objects by wildcard needs that directory cleaned when a source is renamed.
 
 ### 5.8 step 1: Common's save code into the engine
 
