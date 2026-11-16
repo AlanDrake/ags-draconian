@@ -372,8 +372,7 @@ extern CCGUI ccDynamicGUI;
 // Used by the script bindings in game/script_api/dialog_api.cpp
 extern CCDialog ccDynamicDialog;
 
-struct CharacterInfo;
-using Character = CharacterInfo;
+class Character;
 struct ScriptAudioChannel;
 struct ScriptAudioClip;
 struct ScriptCamera;

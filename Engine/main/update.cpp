@@ -136,9 +136,8 @@ void update_character_move_and_anim(std::vector<int> &following_as_sheep)
             continue;
 
         Character *ch = &game.Characters[aa];
-        CharacterExtras *chex = &game.CharExtras[aa];
 
-        UpdateCharacterMoveAndAnim(game, room, ch, chex, following_as_sheep);
+        UpdateCharacterMoveAndAnim(game, room, ch, following_as_sheep);
     }
 }
 
@@ -393,8 +392,7 @@ void update_sierra_speech()
         // is_text_overlay might be 0 if it was only just destroyed this loop
         if ((updatedFrame) && (game.Play.text_overlay_on > 0))
         {
-            const auto &talking_chex = game.CharExtras[game.Speech.FaceTalkChar->index_id];
-            const int frame_vol = talking_chex.GetFrameSoundVolume(game.Speech.FaceTalkChar);
+            const int frame_vol = game.Speech.FaceTalkChar->GetFrameSoundVolume();
             if (updatedFrame & 1)
                 CheckViewFrame(game.Speech.FaceTalkView, game.Speech.FaceTalkLoop, game.Speech.FaceTalkFrame,
                                frame_vol);

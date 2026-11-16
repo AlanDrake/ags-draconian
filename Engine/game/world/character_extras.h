@@ -12,15 +12,11 @@
 //
 //=============================================================================
 //
-// CharacterExtras is a separate runtime character data. Historically it was
-// separated from the design-time CharacterInfo, because the latter is exposed
-// to script API and plugin API in such way that its memory layout could not
-// be changed at all. Although, today this is less of an issue (see comment
-// to CharacterInfo).
-//
-// TODO: in the long run it will be beneficial to remake this into a more
-// explicit runtime Character class, while perhaps keeping CharacterInfo only
-// to load design-time data.
+// The engine's character: Character, a definition from the game file
+// (CharacterInfo) and its play state (CharacterExtras) in one object.
+// The play state was a separate struct historically, because CharacterInfo
+// was exposed to the script API and plugin API in such way that its memory
+// layout could not be changed at all.
 //
 //=============================================================================
 #pragma once
@@ -40,10 +36,6 @@ namespace Common
 class Stream;
 }
 } // namespace AGS
-
-struct CharacterInfo;
-// The engine's character; a class of its own from PLAN.md 5.1a step 1 on
-using Character = CharacterInfo;
 
 // A character's save format (CharacterInfo and CharacterExtras)
 // Before 4.0: 0 (3.5.0 pre-alpha); 1 (3.5.0) new movelist format (along with pathfinder);
@@ -75,14 +67,9 @@ enum CharacterRuntimeFlags
     kCharf_TurningMask = (kCharf_Turning | kCharf_TurningCCW),
 };
 
-// The CharacterInfo struct size is fixed because it's exposed to script
-// and plugin API, therefore new stuff has to go here
-// TODO: now safe to merge with CharacterInfo into one class;
-// but it's better to leave a separate "character data" struct, loaded from the game file,
-// and a Character class, that does all things runtime.
-class CharacterExtras
+// The play state of a character: what exists only while the game runs. Character holds it with its definition.
+struct CharacterExtras
 {
-public:
     // FIXME: hide the fields under public interface;
     //        use standard int* types
     Point spr_offset;         // fixed sprite offset (translation)
@@ -140,6 +127,21 @@ public:
     //
     // zoom factor of sprite offsets: the character's zoom if OPT_SCALECHAROFFSETS is set, otherwise 100
     int zoom_offs = 100;
+};
+
+// A character of the running game: its definition's fields, which start as a copy of what the game file says,
+// and its play state. The game's characters are Game::Characters, by character id; their addresses are held by
+// the managed pool, scripts and plugins, so the list is built once per loaded game and never resized after.
+class Character : public CharacterInfo, public CharacterExtras
+{
+public:
+    Character() = default;
+    // Starts a character from its definition
+    explicit Character(const CharacterInfo &def) : CharacterInfo(def) {}
+
+    int get_baseline() const;        // return baseline, or Y if not set
+    int get_blocking_top() const;    // return Y - BlockingHeight/2
+    int get_blocking_bottom() const; // return Y + BlockingHeight/2
 
     // Tells whether the character is turning, and in which direction
     bool IsTurning() const { return (RuntimeFlags & kCharf_Turning) != 0; }
@@ -173,37 +175,38 @@ public:
     // or an offset from the temporarily locked view
     Point GetEffectiveGraphicOffset() const { return eff_offset; }
     // Get visual Y position, which is calculated as Y - Z (Z scaled by zoom_offs)
-    int GetEffectiveY(const Character *ch) const;
+    int GetEffectiveY() const;
     // Calculate wanted frame sound volume based on multiple factors
-    int GetFrameSoundVolume(const Character *ch) const;
+    int GetFrameSoundVolume() const;
     // Set locked view with anchor and offset; also sets the character's view, loop and frame
-    void SetLockedView(Character *ch, int view, int loop, int frame, const Pointf &anchor = Pointf(),
+    void SetLockedView(int new_view, int new_loop, int new_frame, const Pointf &anchor = Pointf(),
                        const Point &off = Point());
     // Set unlocked view, revert to common anchor and offset; also sets the character's default view
-    void SetUnlockedView(Character *ch);
+    void SetUnlockedView();
     // Process the current animation frame for the character:
     // play linked sounds, run the frame event, and so forth.
-    void CheckViewFrame(Character *ch);
+    void CheckViewFrame();
     // Run the arbitrary frame's event if one is associated and character has a handler;
     // returns the result of RunViewFrameEvent
-    bool RunFrameEvent(Character *ch, int view, int loop, int frame);
+    bool RunFrameEvent(int at_view, int at_loop, int at_frame);
     // Sets up following another character (follow_who); a negative follow_who stops following.
     // Eagerness is ignored, and sort_behind applies, only when distance is FOLLOW_ALWAYSONTOP
-    void SetFollowing(Character *ch, int follow_who, int distance = 0, int eagerness = 0, bool sort_behind = false);
+    void SetFollowing(int follow_who, int distance = 0, int eagerness = 0, bool sort_behind = false);
 
     // Gets the character's graphic space, as of the last UpdateGraphicSpace
-    inline const AGS::Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
+    inline const AGS::Common::GraphicSpace &GetGraphicSpace() const { return _graphicSpace; }
 
     // Recalculates the effective offset and anchor: the locked view's if the view is locked, else the sprite's
-    void UpdateEffectiveValues(const Character *ch);
+    void UpdateEffectiveValues();
     // Recalculates the graphic space from the character position and the sprite, scaling and rotation fields
-    void UpdateGraphicSpace(const Character *ch);
+    void UpdateGraphicSpace();
 
-    // Read character extra data from saves.
-    void ReadFromSavegame(Character *ch, AGS::Common::Stream *in, CharacterSvgVersion save_ver);
-    // Write character extra data to saves.
+    // Reads the play state part of the character from a save (the definition part is read by the save code,
+    // ReadCharacterInfo in savegame_components.cpp)
+    void ReadFromSavegame(AGS::Common::Stream *in, CharacterSvgVersion save_ver);
+    // Writes the play state part of the character to a save
     void WriteToSavegame(AGS::Common::Stream *out) const;
 
 private:
-    AGS::Common::GraphicSpace _gs;
+    AGS::Common::GraphicSpace _graphicSpace;
 };

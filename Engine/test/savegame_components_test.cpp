@@ -75,7 +75,7 @@ const SaveCmpSelection kCharactersAndItems = static_cast<SaveCmpSelection>(kSave
 } // namespace
 
 // Fixture for the savegame components with game content. The engine globals it touches, all reset in TearDown:
-// - game.Characters, game.numcharacters, Game::CharExtras, game.Play.charProps: the characters
+// - Game::Characters, game.numcharacters, game.Play.charProps: the characters
 // - game.invinfo, game.numinvitems, game.Play.invProps: the inventory items
 // - Game::Views, game.numviews: the views
 // - Game::Dialogs, game.numdialog, game.Play.dialogProps: the dialogs
@@ -214,8 +214,6 @@ protected:
         game.Characters.clear();
         game.Characters.resize(characters);
         game.numcharacters = characters;
-        game.CharExtras.clear();
-        game.CharExtras.resize(characters);
         game.Play.charProps.clear();
         game.Play.charProps.resize(characters);
         game.invinfo.clear();
@@ -248,12 +246,11 @@ protected:
             ch.set_item_quantity(1, 2);
             ch.set_item_quantity(4, 1);
             ch.set_item_quantity(9, 7);
-            auto &ex = game.CharExtras[i];
-            ex.inventory = {1, 4, 9};
-            ex.zoom = 80;
-            ex.tint_r = 10;
-            ex.tint_level = 50;
-            ex.following = 0;
+            ch.inventory = {1, 4, 9};
+            ch.zoom = 80;
+            ch.tint_r = 10;
+            ch.tint_level = 50;
+            ch.following = 0;
             game.Play.charProps[i]["Mood"] = "angry";
         }
         for (int i = 0; i < game.numinvitems; ++i)
@@ -318,10 +315,10 @@ TEST_F(SavegameContent, CharactersAndItemsAreRestored)
         EXPECT_EQ(1, ch.get_item_quantity(4));
         EXPECT_EQ(7, ch.get_item_quantity(9));
         EXPECT_EQ(0, ch.get_item_quantity(2));
-        EXPECT_EQ((std::vector<int>{1, 4, 9}), game.CharExtras[i].inventory);
-        EXPECT_EQ(80, game.CharExtras[i].zoom);
-        EXPECT_EQ(10, game.CharExtras[i].tint_r);
-        EXPECT_EQ(50, game.CharExtras[i].tint_level);
+        EXPECT_EQ((std::vector<int>{1, 4, 9}), game.Characters[i].inventory);
+        EXPECT_EQ(80, game.Characters[i].zoom);
+        EXPECT_EQ(10, game.Characters[i].tint_r);
+        EXPECT_EQ(50, game.Characters[i].tint_level);
         EXPECT_STREQ("angry", game.Play.charProps[i]["Mood"].GetCStr());
     }
     for (int i = 0; i < 2; ++i)
@@ -500,8 +497,8 @@ TEST_F(SavegameContent, CharacterAnimationVolumeIsRestored)
 {
     Game &game = Game::Current();
     SetCounts(1, 0);
-    game.CharExtras[0].audio_volume = 70;
-    game.CharExtras[0].SetAnimating(kAnimFlow_Repeat, kAnimDirBackward, 3, 40);
+    game.Characters[0].audio_volume = 70;
+    game.Characters[0].SetAnimating(kAnimFlow_Repeat, kAnimDirBackward, 3, 40);
     std::vector<uint8_t> saved;
     std::string error;
     ASSERT_TRUE(Save(kSaveCmp_Characters, saved, error)) << error;
@@ -510,11 +507,11 @@ TEST_F(SavegameContent, CharacterAnimationVolumeIsRestored)
     RestoredData r_data;
     HSaveError err = Restore(saved, kSaveCmp_Characters, r_data);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
-    const ViewAnimateParams &anim = game.CharExtras[0].GetAnimParams();
+    const ViewAnimateParams &anim = game.Characters[0].GetAnimParams();
     EXPECT_EQ(kAnimFlow_Repeat, anim.Flow);
     EXPECT_EQ(kAnimDirBackward, anim.Direction);
     EXPECT_EQ(3, anim.Delay);
-    EXPECT_EQ(70, game.CharExtras[0].audio_volume);
+    EXPECT_EQ(70, game.Characters[0].audio_volume);
     EXPECT_EQ(40, anim.AudioVolume);
 }
 

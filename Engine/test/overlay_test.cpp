@@ -62,7 +62,7 @@ const int kRoom = 7;
 //   (init_sprite_cache), which stays attached, as in the engine
 // - game.Play: the main and UI viewports (320x200), one room viewport and its camera
 // - Room::Current(): the room size (640x400, so the camera can scroll)
-// - game.Characters, game.numcharacters, Game::CharExtras, Game::Views: one character standing in room kRoom,
+// - Game::Characters, game.numcharacters, Game::Views: one character standing in room kRoom,
 //   with a one-frame view
 // - Game::DisplayedRoom: kRoom
 class OverlayLayout : public ::testing::Test
@@ -97,7 +97,6 @@ protected:
         game.Characters[0].view = 0;
         game.Characters[0].loop = 0;
         game.Characters[0].room = kRoom;
-        game.CharExtras.resize(1);
         game.DisplayedRoom = kRoom;
     }
 
@@ -107,7 +106,6 @@ protected:
         Game &game = Game::Current();
         Room &room = Room::Current();
         game.DisplayedRoom = -10;
-        game.CharExtras.clear();
         game.Characters.clear();
         game.numcharacters = 0;
         game.Views.clear();
@@ -302,9 +300,9 @@ TEST_F(OverlayLayout, SpeechUsesTheCharacterHeightAndZ)
 {
     Game &game = Game::Current();
     // a character's height, when known, is used instead of its sprite's
-    game.CharExtras[0].height = 80;
+    game.Characters[0].height = 80;
     EXPECT_EQ(Point(80, 45), AutoPosition(100, 150));
-    game.CharExtras[0].height = 0;
+    game.Characters[0].height = 0;
     // a flying character
     game.Characters[0].z = 30;
     EXPECT_EQ(Point(80, 45), AutoPosition(100, 150));

@@ -229,7 +229,7 @@ void fix_player_sprite(Character *ch, const MoveList &cmls);
 int has_hit_another_character(Game &game, int source_char);
 // Does the next move from the character's movelist.
 // Returns 1 if the character is now waiting for another one to move, otherwise 0.
-int doNextCharMoveStep(Game &game, Character *ch, CharacterExtras *chex);
+int doNextCharMoveStep(Game &game, Character *ch);
 // Tells if character is currently moving, in eWalkableAreas mode
 bool is_char_walking_ndirect(Character *ch);
 // Finds the walkable point nearest to src (src itself if it is walkable) and writes it to dst; returns false if
@@ -252,7 +252,7 @@ void MoveCharacterToHotspot(int char_id, int hotsp);
 // Tells how many steps the character makes this update, as its speed scales with its zoom level
 // (CHF_SCALEMOVESPEED): 1 normally, 2 when faster, 0 when it skips the update, and a negative value for
 // abs(value) steps made half-way, with the position saved to be completed on the next update (UpdateCharacterMoving).
-int wantMoveNow(Character *ch, CharacterExtras *chex);
+int wantMoveNow(Character *ch);
 // Makes the character the player: sets game.playercharacter, Game::PlayerChar and the script pointer to it.
 void setup_player_character(int char_id);
 // Width and height of the character's sprite: the scaled size calculated by update_character_scale, or the size of
@@ -305,31 +305,29 @@ PViewport FindNearestViewport(int char_id);
 
 //
 // Character update functions, defined in character_info_engine.cpp and called from the game update.
-// TODO: move these into a runtime Character class, when there will be a proper one,
-// merging CharacterInfo and CharacterExtras.
+// TODO: make these methods of Character.
 //
 // Updates one character for one game tick: turning, moving, animating, following, idling, in this order; does
 // nothing if the character is disabled. Characters following another "always on top" are added to
 // following_as_sheep, to be updated afterwards with UpdateFollowingExactlyCharacter.
-void UpdateCharacterMoveAndAnim(Game &game, Room &room, Character *ch, CharacterExtras *chex,
-                                std::vector<int> &following_as_sheep);
+void UpdateCharacterMoveAndAnim(Game &game, Room &room, Character *ch, std::vector<int> &following_as_sheep);
 // Copies the position, room and previous room of the character it follows "always on top", and puts its baseline
 // one behind or in front of the followed one's.
 void UpdateFollowingExactlyCharacter(Game &game, Character *ch);
 // Makes the next turn step of a turning character; returns true if the character was turning.
-bool UpdateCharacterTurning(Game &game, Character *ch, CharacterExtras *chex);
+bool UpdateCharacterTurning(Game &game, Character *ch);
 // Makes the move steps of a moving character (see wantMoveNow), and stops it when the move is finished;
 // doing_nothing is cleared while the character is still moving.
-void UpdateCharacterMoving(Game &game, Character *ch, CharacterExtras *chex, int &doing_nothing);
+void UpdateCharacterMoving(Game &game, Character *ch, int &doing_nothing);
 // Advances the animation of an animating or idling character, including the lip-sync of a speaking one; returns
 // true if the rest of the character's update is to be skipped. doing_nothing is cleared, unless it is an idle animation.
-bool UpdateCharacterAnimating(Game &game, Character *ch, CharacterExtras *chex, int &doing_nothing);
+bool UpdateCharacterAnimating(Game &game, Character *ch, int &doing_nothing);
 // Counts the idle time of a character that does nothing and starts its idle animation when the time is up.
-void UpdateCharacterIdle(Game &game, Character *ch, CharacterExtras *chex, int &doing_nothing);
+void UpdateCharacterIdle(Game &game, Character *ch, int &doing_nothing);
 // Makes a character that follows another one walk after it, or change room with it, when it has nothing else to do.
 void UpdateCharacterFollower(Game &game, Room &room, Character *ch, std::vector<int> &following_as_sheep,
                              int &doing_nothing);
-// Rebuilds every character's list of inventory items (CharacterExtras::inventory) from the item quantities.
+// Rebuilds every character's list of inventory items (Character::inventory) from the item quantities.
 void UpdateInventory();
 
 // Resets idling timer, and marks for immediate update (in case its persistent idling)

@@ -712,8 +712,8 @@ void engine_init_game_settings()
         game.Characters[i].idleleft = game.Characters[i].idledelay;
         game.Characters[i].walkwaitcounter = 0;
         game.Characters[i].z = 0;
-        game.CharExtras[i].xwas = INVALID_X;
-        game.CharExtras[i].zoom = 100;
+        game.Characters[i].xwas = INVALID_X;
+        game.Characters[i].zoom = 100;
         if (game.Characters[i].view >= 0)
         {
             // set initial loop to 0
@@ -722,9 +722,9 @@ void engine_init_game_settings()
             if (game.Views[game.Characters[i].view].loops[0].numFrames < 1)
                 game.Characters[i].loop = 1;
         }
-        game.CharExtras[i].process_idle_this_time = 0;
-        game.CharExtras[i].slow_move_counter = 0;
-        game.CharExtras[i].animwait = 0;
+        game.Characters[i].process_idle_this_time = 0;
+        game.Characters[i].slow_move_counter = 0;
+        game.Characters[i].animwait = 0;
     }
 
     set_our_eip(-5);

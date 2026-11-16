@@ -19,8 +19,8 @@
 #include "game/roomstruct.h"
 #include "script/runtimescriptvalue.h"
 
+class Character;
 class Room;
-using Character = CharacterInfo;
 
 // Script function: returns a DrawingSurface for the given room background (SCR_NO_VALUE: the current one);
 // reuses the surface already attached to it, if any. Returns null for an invalid index.

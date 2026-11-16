@@ -2249,7 +2249,7 @@ void prepare_and_add_object_gfx(Room &room, const ObjectCache &objsav, ObjTextur
         actsp.Ddb->SetStretch(scale_size.Width, scale_size.Height);
         // draw at the exact zoom, so that frames of different sizes keep their pixels around the origin
         actsp.Ddb->SetScaleRatio(objsav.zoom, 100);
-        // a loop and its mirrored copy turn around the same texel (as CharacterExtras and RoomObject place them)
+        // a loop and its mirrored copy turn around the same texel (as Character and RoomObject place them)
         actsp.Ddb->SetOriginRule(kOriginRule_MirrorAround);
         actsp.Ddb->SetRotation(objsav.rotation);
         actsp.Ddb->SetPivot(objsav.pivotx, objsav.pivoty);
@@ -2380,18 +2380,17 @@ void tint_image(Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int light
 bool construct_char_gfx(Game &game, Room &room, EngineServices &services, int char_id, bool force_software)
 {
     const Character &ch = game.Characters[char_id];
-    const CharacterExtras &chex = game.CharExtras[char_id];
     const ViewFrame *vf = &game.Views[ch.view].loops[ch.loop].frames[ch.frame];
     const int pic = services.Sprites.DoesSpriteExist(vf->pic) ? vf->pic : 0;
 
-    ObjectCache chsrc(pic, chex.tint_r, chex.tint_g, chex.tint_b, chex.tint_level, chex.tint_light, 0 /* skip */,
-                      chex.zoom, chex.rotation, kFlip_None /* skip */, ch.x, ch.y);
-    chsrc.pivotx = chex.pivot.X + (static_cast<float>(chex.pivot_offset.X) / chex.width);
-    chsrc.pivoty = chex.pivot.Y + (static_cast<float>(chex.pivot_offset.Y) / chex.height);
+    ObjectCache chsrc(pic, ch.tint_r, ch.tint_g, ch.tint_b, ch.tint_level, ch.tint_light, 0 /* skip */, ch.zoom,
+                      ch.rotation, kFlip_None /* skip */, ch.x, ch.y);
+    chsrc.pivotx = ch.pivot.X + (static_cast<float>(ch.pivot_offset.X) / ch.width);
+    chsrc.pivoty = ch.pivot.Y + (static_cast<float>(ch.pivot_offset.Y) / ch.height);
 
     return construct_object_gfx(
-        game, room, services, vf, pic, Size(chex.width, chex.height),
-        CharFlagsToObjFlags(ch.flags) & OBJF_TINTLIGHTMASK, chsrc, charcache[char_id], actsps[char_id + ACTSP_OBJSOFF],
+        game, room, services, vf, pic, Size(ch.width, ch.height), CharFlagsToObjFlags(ch.flags) & OBJF_TINTLIGHTMASK,
+        chsrc, charcache[char_id], actsps[char_id + ACTSP_OBJSOFF],
         false, // characters cannot optimize by pos, probably because of z coord and view offsets (?)
         force_software);
 }
@@ -2414,12 +2413,11 @@ void prepare_characters_for_drawing()
             continue; // in another room
 
         eip_guinum = char_id;
-        const CharacterExtras &chex = game.CharExtras[char_id];
         const ObjectCache &chsav = charcache[char_id];
         ObjTexture &actsp = actsps[char_id + ACTSP_OBJSOFF];
 
         // we must use actual image's top-left position here
-        const Rect &aabb = chex.GetGraphicSpace().AABB();
+        const Rect &aabb = ch.GetGraphicSpace().AABB();
         const int imgx = aabb.Left;
         const int imgy = aabb.Top;
         int usebasel = ch.get_baseline();
@@ -2427,9 +2425,9 @@ void prepare_characters_for_drawing()
         // Generate raw bitmap in ObjTexture and store parameters in ObjectCache.
         const bool actsp_modified = !construct_char_gfx(game, room, services, char_id, false);
         // Prepare the object texture
-        prepare_and_add_object_gfx(room, chsav, actsp, actsp_modified, Size(chex.width, chex.height), imgx, imgy,
-                                   usebasel, (ch.flags & CHF_NOWALKBEHINDS) == 0, chex.eff_anchor, ch.opacity,
-                                   chex.blend_mode, chex.shader_id, hw_accel);
+        prepare_and_add_object_gfx(room, chsav, actsp, actsp_modified, Size(ch.width, ch.height), imgx, imgy, usebasel,
+                                   (ch.flags & CHF_NOWALKBEHINDS) == 0, ch.eff_anchor, ch.opacity, ch.blend_mode,
+                                   ch.shader_id, hw_accel);
 #if (AGS_PLATFORM_DEBUG)
         actsp.Ddb->SetTag(String::FromFormat("CHAR%d:%s", ch.index_id, ch.scrname.GetCStr()));
 #endif
@@ -2438,8 +2436,8 @@ void prepare_characters_for_drawing()
         // also see fixme comment to GraphicSpace struct.
         // FIXME: can't we just use anything saved (e.g. when updating GraphicSpace) here?
         // why do we have to recalculate these offsets in multiple places?!!
-        const int charx = ch.x + (chex.frame_xoff + chex.eff_offset.X) * chex.zoom_offs / 100;
-        const int chary = ch.y + (-ch.z + chex.frame_yoff + chex.eff_offset.Y) * chex.zoom_offs / 100;
+        const int charx = ch.x + (ch.frame_xoff + ch.eff_offset.X) * ch.zoom_offs / 100;
+        const int chary = ch.y + (-ch.z + ch.frame_yoff + ch.eff_offset.Y) * ch.zoom_offs / 100;
         add_to_sprite_list(actsp.Ddb, charx, chary, aabb, usebasel, actsp.DrawIndex);
     }
 }

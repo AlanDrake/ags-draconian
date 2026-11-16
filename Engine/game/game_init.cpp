@@ -148,10 +148,10 @@ void InitAndRegisterCharacters(Game &game, const LoadedGameEntities &ents)
         for (int i = 0; i < game.numcharacters; ++i)
         {
             // TODO: move this to Character's "init" method
-            game.CharExtras[i].blend_mode = ents.CharEx[i].BlendMode;
-            game.CharExtras[i].spr_anchor = ents.CharEx[i].GraphicAnchor;
-            game.CharExtras[i].spr_offset = ents.CharEx[i].GraphicOffset;
-            game.CharExtras[i].UpdateEffectiveValues(&game.Characters[i]);
+            game.Characters[i].blend_mode = ents.CharEx[i].BlendMode;
+            game.Characters[i].spr_anchor = ents.CharEx[i].GraphicAnchor;
+            game.Characters[i].spr_offset = ents.CharEx[i].GraphicOffset;
+            game.Characters[i].UpdateEffectiveValues();
         }
     }
 }
@@ -520,7 +520,12 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // 2. Allocate and init game objects
     //
     services.Sprites.EnlargeTo(ents.SpriteCount - 1);
-    game.CharExtras.resize(game.numcharacters);
+    // the live characters start as copies of their definitions; the managed pool, scripts and plugins hold their
+    // addresses from InitAndRegisterCharacters on, so the list is not resized again until unload_game
+    game.Characters.clear();
+    game.Characters.reserve(game.Def().Characters.size());
+    for (const auto &def : game.Def().Characters)
+        game.Characters.emplace_back(def);
     // the GUIs, views and dialogs were read into the game (GameDef) by the loader
     GUI::Context.GameColorDepth = game.GetColorDepth();
     GUI::Context.Spriteset = &services.Sprites;

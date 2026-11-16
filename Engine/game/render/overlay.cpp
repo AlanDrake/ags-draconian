@@ -908,11 +908,9 @@ void autoposition_overlay(ScreenOverlay &over)
     const int char_sprite =
         game.Views[game.Characters[char_id].view].loops[game.Characters[char_id].loop].frames[0].pic;
     const int height =
-        (game.CharExtras[char_id].height < 1) ? game.SpriteInfos[char_sprite].Height : game.CharExtras[char_id].height;
+        (game.Characters[char_id].height < 1) ? game.SpriteInfos[char_sprite].Height : game.Characters[char_id].height;
     const Point screen_pt =
-        view->RoomToScreen(game.Characters[char_id].x,
-                           game.CharExtras[char_id].GetEffectiveY(&game.Characters[char_id]) - height)
-            .first;
+        view->RoomToScreen(game.Characters[char_id].x, game.Characters[char_id].GetEffectiveY() - height).first;
     const Size pic_size = over.GetGraphicSize();
     int over_x = std::max(0, screen_pt.X - pic_size.Width / 2);
     int over_y = screen_pt.Y - 5;

@@ -25,23 +25,24 @@
 
 using namespace AGS::Common;
 
-void CharacterExtras::UpdateGraphicSpace(const Character *ch)
+void Character::UpdateGraphicSpace()
 {
     // TODO: zoom_offs is not applied to eff_offset here, while draw.cpp scales the offsets by it on its own.
     // To apply it here, either:
     // * AABB should *divide* graphical offset by zoom, which may only work if AABB is made
     // of floats (otherwise value precision will be lost in integer division).
     // * OR we might require ADDITIONAL parameter into GS, which is an offset applied UNSCALED.
-    const GraphicFlip flip = GetViewFrameFlip(ch->view, ch->loop, ch->frame);
-    _gs = GraphicSpace(ch->x, ch->y, eff_anchor,    // origin
-                       Size(spr_width, spr_height), // source sprite size
-                       Size(width, height),         // destination size (scaled)
-                       // real graphical aabb (maybe with extra offsets)
-                       RectWH((eff_offset.X + frame_xoff), (-ch->z + eff_offset.Y + frame_yoff), spr_width, spr_height),
-                       rotation, pivot, pivot_offset, kOriginRule_MirrorAround, flip);
+    const GraphicFlip flip = GetViewFrameFlip(view, loop, frame);
+    _graphicSpace =
+        GraphicSpace(x, y, eff_anchor,            // origin
+                     Size(spr_width, spr_height), // source sprite size
+                     Size(width, height),         // destination size (scaled)
+                     // real graphical aabb (maybe with extra offsets)
+                     RectWH((eff_offset.X + frame_xoff), (-z + eff_offset.Y + frame_yoff), spr_width, spr_height),
+                     rotation, pivot, pivot_offset, kOriginRule_MirrorAround, flip);
 }
 
-void CharacterExtras::SetTurning(bool on, bool ccw, int turn_steps)
+void Character::SetTurning(bool on, bool ccw, int turn_steps)
 {
     if (on && (turn_steps > 0))
         RuntimeFlags = (RuntimeFlags & ~kCharf_TurningMask) | kCharf_Turning | (ccw ? kCharf_TurningCCW : 0);
@@ -50,7 +51,7 @@ void CharacterExtras::SetTurning(bool on, bool ccw, int turn_steps)
     turns = turn_steps;
 }
 
-void CharacterExtras::DecrementTurning()
+void Character::DecrementTurning()
 {
     turns--;
     if (turns <= 0)
@@ -59,87 +60,86 @@ void CharacterExtras::DecrementTurning()
     }
 }
 
-void CharacterExtras::SetAnimating(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int anim_volume)
+void Character::SetAnimating(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int anim_volume)
 {
     anim = ViewAnimateParams(flow, dir, delay, anim_volume);
 }
 
-void CharacterExtras::ResetAnimating()
+void Character::ResetAnimating()
 {
     anim = ViewAnimateParams();
 }
 
-int CharacterExtras::GetEffectiveY(const Character *ch) const
+int Character::GetEffectiveY() const
 {
-    return ch->y - (ch->z * zoom_offs) / 100;
+    return y - (z * zoom_offs) / 100;
 }
 
-int CharacterExtras::GetFrameSoundVolume(const Character *ch) const
+int Character::GetFrameSoundVolume() const
 {
-    return ::CalcFrameSoundVolume(audio_volume, anim.AudioVolume, (ch->flags & CHF_SCALEVOLUME) ? zoom : 100);
+    return ::CalcFrameSoundVolume(audio_volume, anim.AudioVolume, (flags & CHF_SCALEVOLUME) ? zoom : 100);
 }
 
-void CharacterExtras::SetLockedView(Character *ch, int view, int loop, int frame, const Pointf &anchor,
-                                    const Point &off)
+void Character::SetLockedView(int new_view, int new_loop, int new_frame, const Pointf &anchor, const Point &off)
 {
-    ch->view = view;
-    ch->loop = loop;
-    ch->frame = frame;
-    ch->wait = 0;
-    ch->flags |= CHF_FIXVIEW;
+    view = new_view;
+    loop = new_loop;
+    frame = new_frame;
+    wait = 0;
+    flags |= CHF_FIXVIEW;
     view_anchor = anchor;
     view_offset = off;
-    UpdateEffectiveValues(ch);
+    UpdateEffectiveValues();
 }
 
-void CharacterExtras::SetUnlockedView(Character *ch)
+void Character::SetUnlockedView()
 {
-    ch->flags &= ~CHF_FIXVIEW;
-    ch->view = ch->defview;
-    ch->frame = 0;
+    flags &= ~CHF_FIXVIEW;
+    view = defview;
+    frame = 0;
     view_anchor = CharacterInfo::GetDefaultSpriteAnchor();
     view_offset = Point();
-    UpdateEffectiveValues(ch);
+    UpdateEffectiveValues();
 }
 
-void CharacterExtras::CheckViewFrame(Character *ch)
+void Character::CheckViewFrame()
 {
-    ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(ch, &ccDynamicCharacter));
-    ::CheckViewFrame(ch->view, ch->loop, ch->frame, GetFrameSoundVolume(ch), audio_panning, AudioSpeed, objevt,
-                     &ch->GetEvents(), kCharacterEvent_OnFrameEvent);
+    ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(this, &ccDynamicCharacter));
+    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(), audio_panning, AudioSpeed, objevt, &GetEvents(),
+                     kCharacterEvent_OnFrameEvent);
 }
 
-bool CharacterExtras::RunFrameEvent(Character *ch, int view, int loop, int frame)
+bool Character::RunFrameEvent(int at_view, int at_loop, int at_frame)
 {
-    ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(ch, &ccDynamicCharacter));
-    return ::RunViewFrameEvent(view, loop, frame, objevt, &ch->GetEvents(), kCharacterEvent_OnFrameEvent);
+    ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(this, &ccDynamicCharacter));
+    return ::RunViewFrameEvent(at_view, at_loop, at_frame, objevt, &GetEvents(), kCharacterEvent_OnFrameEvent);
 }
 
-void CharacterExtras::SetFollowing(Character *ch, int follow_who, int distance, int eagerness, bool sort_behind)
+void Character::SetFollowing(int follow_who, int distance, int eagerness, bool sort_behind)
 {
     if (follow_who < 0)
     {
         following = -1;
         follow_dist = 0;
         follow_eagerness = 0;
-        ch->set_following_sortbehind(false);
+        set_following_sortbehind(false);
     }
     else
     {
         following = follow_who;
         follow_dist = distance;
         follow_eagerness = (distance == FOLLOW_ALWAYSONTOP) ? 0 : eagerness;
-        ch->set_following_sortbehind(sort_behind && (distance == FOLLOW_ALWAYSONTOP));
+        set_following_sortbehind(sort_behind && (distance == FOLLOW_ALWAYSONTOP));
     }
 }
 
-void CharacterExtras::UpdateEffectiveValues(const Character *ch)
+void Character::UpdateEffectiveValues()
 {
-    eff_offset = ch->is_view_locked() ? view_offset : spr_offset;
-    eff_anchor = ch->is_view_locked() ? view_anchor : spr_anchor;
+    eff_offset = is_view_locked() ? view_offset : spr_offset;
+    eff_anchor = is_view_locked() ? view_anchor : spr_anchor;
 }
 
-void CharacterExtras::ReadFromSavegame(Character *ch, Stream *in, CharacterSvgVersion save_ver)
+void Character::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
 {
     // saves before kCharSvgVersion_400_28 have the legacy inventory (as with AudioSpeed below)
     if (save_ver < kCharSvgVersion_400_28)
@@ -293,10 +293,10 @@ void CharacterExtras::ReadFromSavegame(Character *ch, Stream *in, CharacterSvgVe
     // because they are loaded into deprecated CharacterInfo fields
     anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_anim_volume);
 
-    UpdateEffectiveValues(ch);
+    UpdateEffectiveValues();
 }
 
-void CharacterExtras::WriteToSavegame(Stream *out) const
+void Character::WriteToSavegame(Stream *out) const
 {
     out->WriteInt32(static_cast<uint32_t>(inventory.size()));
     out->WriteArrayOfInt32(inventory.data(), inventory.size());

@@ -605,9 +605,9 @@ bool run_service_key_controls(KeyInput &out_key)
                 game.Characters[listed_char_id].x, game.Characters[listed_char_id].y, game.Characters[listed_char_id].z,
                 game.Characters[listed_char_id].idleview, game.Characters[listed_char_id].idledelay,
                 game.Characters[listed_char_id].idleleft, game.Characters[listed_char_id].is_moving() ? "yes" : "no",
-                game.CharExtras[listed_char_id].IsAnimating() ? "yes" : "no", game.CharExtras[listed_char_id].following,
+                game.Characters[listed_char_id].IsAnimating() ? "yes" : "no", game.Characters[listed_char_id].following,
                 game.Characters[listed_char_id].flags, game.Characters[listed_char_id].wait,
-                game.CharExtras[listed_char_id].zoom);
+                game.Characters[listed_char_id].zoom);
         }
         DisplayMB(buffer.GetCStr());
         return false;

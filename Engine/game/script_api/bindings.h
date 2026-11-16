@@ -41,8 +41,7 @@
 #include "script/script_api.h"
 #include "script/script_binder.h"
 
-struct CharacterInfo;
-using Character = CharacterInfo;
+class Character;
 struct ScriptAudioChannel;
 struct ScriptAudioClip;
 struct ScriptDialog;

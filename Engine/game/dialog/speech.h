@@ -30,8 +30,7 @@ AGS::Common::String get_voicepak_name();
 // Gets an asset's parent path for voice-over clips and data files
 AGS::Common::String get_voice_assetpath();
 
-struct CharacterInfo;
-using Character = CharacterInfo;
+class Character;
 struct ScriptOverlay;
 
 // Script API: Speech::get_TextOverlay

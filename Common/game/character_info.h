@@ -174,10 +174,6 @@ struct CharacterInfo
     // Gets a events schema corresponding to this object's type
     static const AGS::Common::ScriptEventSchema &GetEventSchema() { return CharacterInfo::_eventSchema; }
 
-    int get_baseline() const;        // return baseline, or Y if not set
-    int get_blocking_top() const;    // return Y - BlockingHeight/2
-    int get_blocking_bottom() const; // return Y + BlockingHeight/2
-
     // Tells if the "enabled" flag is set
     inline bool is_enabled() const { return (flags & CHF_ENABLED) != 0; }
     // Tells if the "visible" flag is set

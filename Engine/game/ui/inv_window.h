@@ -24,7 +24,7 @@
 
 using AGS::Common::GUIInvWindow;
 
-using Character = CharacterInfo;
+class Character;
 
 // Sets the character whose inventory is shown (null for none) and scrolls to the top.
 void InvWindow_SetCharacterToUse(GUIInvWindow *guii, Character *ch);

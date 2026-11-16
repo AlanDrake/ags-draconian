@@ -450,7 +450,7 @@ void unload_old_room()
     // ensure that any half-moves (eg. with scaled movement) are stopped
     for (int i = 0; i < game.numcharacters; i++)
     {
-        game.CharExtras[i].xwas = INVALID_X;
+        game.Characters[i].xwas = INVALID_X;
     }
 
     game.Play.swap_portrait_lastchar = -1;
@@ -838,14 +838,14 @@ void load_new_room(int room_id, Character *ch)
         // previous room, force it out so that the timer resets
         for (int i = 0; i < game.numcharacters; i++)
         {
-            if ((game.CharExtras[i].following >= 0) && (game.Characters[i].room < 0))
+            if ((game.Characters[i].following >= 0) && (game.Characters[i].room < 0))
             {
-                if ((game.CharExtras[i].following == game.playercharacter) && (ch->prevroom == room_id))
+                if ((game.Characters[i].following == game.playercharacter) && (ch->prevroom == room_id))
                     // the player went back to the previous room, so make sure
                     // the following character is still there
                     game.Characters[i].room = room_id;
                 else
-                    game.Characters[i].room = game.Characters[game.CharExtras[i].following].room;
+                    game.Characters[i].room = game.Characters[game.Characters[i].following].room;
             }
         }
 
@@ -1118,12 +1118,11 @@ void new_room(int room_id, Character *ch)
     room_id = game.Events.InLeavesScreen;
     game.Events.InLeavesScreen = -1;
 
-    CharacterExtras *player_chex = &game.CharExtras[game.PlayerChar->index_id];
-    if ((player_chex->following >= 0) && (game.Characters[player_chex->following].room != room_id))
+    if ((game.PlayerChar->following >= 0) && (game.Characters[game.PlayerChar->following].room != room_id))
     {
         // the player character is following another character,
         // who is not in the new room. therefore, abort the follow
-        player_chex->SetFollowing(game.PlayerChar, -1);
+        game.PlayerChar->SetFollowing(-1);
     }
 
     // change rooms

@@ -25,6 +25,7 @@
 #include "game/ui/cursor_graphic_state.h"
 #include "media/audio/audiodefines.h"
 
+class Character;
 struct AGSEvent;
 struct ScriptState;
 struct SpeechLipSyncLine;
@@ -187,7 +188,8 @@ struct EventState
 
 // One play-through: what the game file says (the base, GameDef) and everything that changes while the game
 // runs, which is what a save holds. The definitions and the live state are one object until each entity
-// gets a live copy (PLAN.md 5.1a). The game logic reaches it through Game::Current(); a function that uses
+// gets a live copy (PLAN.md 5.1a); the characters have theirs (Characters). The game logic reaches it through
+// Game::Current(); a function that uses
 // it more than once takes a reference at its top:
 //     Game &game = Game::Current();
 class Game : public GameDef
@@ -212,8 +214,13 @@ public:
     // The viewports and cameras of the game screen and the room
     GameViewports Viewports;
 
-    // The runtime state of the characters that Character does not hold, by character index
-    std::vector<CharacterExtras> CharExtras;
+    // What the game file says, as loaded; never written after load
+    const GameDef &Def() const { return *this; }
+
+    // The characters of the running game, by character id, each started from its definition (InitGameState).
+    // Hides GameDef::Characters on purpose: through a Game the name is the live list, the definitions are
+    // Def().Characters. The managed pool, scripts and plugins hold the elements' addresses: built once per game.
+    std::vector<Character> Characters;
     // The player character, and its handle for scripts (the script object "player").
     Character *PlayerChar = nullptr;
     int32_t ScPlayerCharPtr = 0;

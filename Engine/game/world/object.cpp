@@ -85,8 +85,8 @@ static int GetThingRect(int thing, Rect *rect)
 
         const int charw = GetCharacterWidth(game, thing);
         const int charh = GetCharacterHeight(game, thing);
-        *rect = RectWH(game.Characters[thing].x - (charw / 2),
-                       game.CharExtras[thing].GetEffectiveY(&game.Characters[thing]) - charh + 1, charw, charh);
+        *rect = RectWH(game.Characters[thing].x - (charw / 2), game.Characters[thing].GetEffectiveY() - charh + 1,
+                       charw, charh);
     }
     else if (IsValidObject(thing - OVERLAPPING_OBJECT))
     {

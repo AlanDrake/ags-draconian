@@ -44,7 +44,6 @@ protected:
         game.numcharacters = 1;
         game.Characters[0].view = 0;
         game.Characters[0].index_id = 0;
-        game.CharExtras.resize(1);
         _savedPriority = game.options[OPT_TURNORDERPRIORITY];
     }
 
@@ -52,7 +51,6 @@ protected:
     {
         Game &game = Game::Current();
         game.options[OPT_TURNORDERPRIORITY] = _savedPriority;
-        game.CharExtras.clear();
         game.Characters.clear();
         game.numcharacters = 0;
         game.Views.clear();
@@ -65,14 +63,14 @@ protected:
     {
         Game &game = Game::Current();
         game.Characters[0].loop = turnlooporder[from_idx];
-        game.CharExtras[0].SetTurning(false, false, 0);
+        game.Characters[0].SetTurning(false, false, 0);
         start_character_turning(&game.Characters[0], turnlooporder[to_idx], true);
         std::vector<int> passed;
-        if (!game.CharExtras[0].IsTurning())
+        if (!game.Characters[0].IsTurning())
             return passed;
-        const int step = game.CharExtras[0].IsTurningCounterClockwise() ? -1 : 1;
+        const int step = game.Characters[0].IsTurningCounterClockwise() ? -1 : 1;
         // turns counts the loops left behind, the start included; the last of them leads to the target
-        for (int i = 1; i < game.CharExtras[0].turns; ++i)
+        for (int i = 1; i < game.Characters[0].turns; ++i)
             passed.push_back(((from_idx + step * i) % MAX_FACE_DIRECTIONS + MAX_FACE_DIRECTIONS) % MAX_FACE_DIRECTIONS);
         return passed;
     }
@@ -86,10 +84,10 @@ TEST_F(CharacterTurning, ShorterWayIsTaken)
     game.options[OPT_TURNORDERPRIORITY] = kScTurnOrder_Clockwise;
     // two steps clockwise: one loop between
     EXPECT_EQ(std::vector<int>({1}), Turn(0, 2));
-    EXPECT_TRUE(game.CharExtras[0].IsTurningClockwise());
+    EXPECT_TRUE(game.Characters[0].IsTurningClockwise());
     // three steps the other way: anti-clockwise through two loops
     EXPECT_EQ(std::vector<int>({1, 0}), Turn(2, 7));
-    EXPECT_TRUE(game.CharExtras[0].IsTurningCounterClockwise());
+    EXPECT_TRUE(game.Characters[0].IsTurningCounterClockwise());
 }
 
 TEST_F(CharacterTurning, FaceDownPassesThroughDownFromEveryStart)

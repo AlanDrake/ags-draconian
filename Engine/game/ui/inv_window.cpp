@@ -102,7 +102,7 @@ int InvWindow_GetItemsPerRow(GUIInvWindow *guii)
 
 int InvWindow_GetItemCount(GUIInvWindow *guii)
 {
-    return Game::Current().CharExtras[guii->GetCharacterID()].inventory.size();
+    return Game::Current().Characters[guii->GetCharacterID()].inventory.size();
 }
 
 int InvWindow_GetRowCount(GUIInvWindow *guii)
@@ -112,7 +112,7 @@ int InvWindow_GetRowCount(GUIInvWindow *guii)
 
 void InvWindow_ScrollDown(GUIInvWindow *guii)
 {
-    if ((Game::Current().CharExtras[guii->GetCharacterID()].inventory.size()) >
+    if ((Game::Current().Characters[guii->GetCharacterID()].inventory.size()) >
         (guii->GetTopItem() + (guii->GetColCount() * guii->GetRowCount())))
     {
         guii->SetTopItem(guii->GetTopItem() + guii->GetColCount());
@@ -130,17 +130,17 @@ void InvWindow_ScrollUp(GUIInvWindow *guii)
 ScriptInvItem *InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index)
 {
     Game &game = Game::Current();
-    if ((index < 0) || (index >= game.CharExtras[guii->GetCharacterID()].inventory.size()))
+    if ((index < 0) || (index >= game.Characters[guii->GetCharacterID()].inventory.size()))
         return nullptr;
-    return &game.ScInvItems[game.CharExtras[guii->GetCharacterID()].inventory[index]];
+    return &game.ScInvItems[game.Characters[guii->GetCharacterID()].inventory[index]];
 }
 
 int InvWindow_GetItemAtXY(GUIInvWindow *inv, int at_x, int at_y)
 {
     Game &game = Game::Current();
     int item_index = inv->GetItemIndexAt(at_x, at_y);
-    if ((item_index < 0) || (item_index >= game.CharExtras[inv->GetCharacterID()].inventory.size()))
+    if ((item_index < 0) || (item_index >= game.Characters[inv->GetCharacterID()].inventory.size()))
         return -1;
 
-    return game.CharExtras[inv->GetCharacterID()].inventory[item_index];
+    return game.Characters[inv->GetCharacterID()].inventory[item_index];
 }

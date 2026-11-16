@@ -1055,7 +1055,7 @@ HSaveError WriteCharacters(Stream *out)
     for (int i = 0; i < game.numcharacters; ++i)
     {
         WriteCharacterInfo(game.Characters[i], out);
-        game.CharExtras[i].WriteToSavegame(out);
+        game.Characters[i].WriteToSavegame(out);
         Properties::WriteValues(game.Play.charProps[i], out);
     }
     return HSaveError::None();
@@ -1075,12 +1075,11 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
     for (uint32_t i = 0; i < characters_read; ++i)
     {
         auto &ch = game.Characters[i];
-        auto &chex = game.CharExtras[i];
         // TODO: this is ugly reading old fields like that, might either join Read methods in one, or drop old format at some point
         CharacterLegacyFields old_fields;
         ReadCharacterInfo(ch, in, old_fields, svg_ver);
-        chex.view_offset = old_fields.ViewOffset;
-        chex.ReadFromSavegame(&ch, in, svg_ver);
+        ch.view_offset = old_fields.ViewOffset;
+        ch.ReadFromSavegame(in, svg_ver);
         Properties::ReadValues(game.Play.charProps[i], in);
 
         // Upgrade legacy turning mask
@@ -1090,7 +1089,7 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
             bool turn_ccw = ch.walking % LEGACY_CHAR_TURNING_BACKWARDS;
             if (turns > 0)
             {
-                chex.SetTurning(true, turn_ccw, turns);
+                ch.SetTurning(true, turn_ccw, turns);
             }
             ch.walking = ch.walking % LEGACY_CHAR_TURNING_AROUND;
         }
@@ -1101,12 +1100,12 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
             ch.opacity = static_cast<int16_t>(GfxDef::LegacyTrans255ToAlpha255(ch.opacity));
             if (ch.has_explicit_tint())
             {
-                chex.tint_level = static_cast<short>(GfxDef::Value100ToValue255(chex.tint_level));
-                chex.tint_light = static_cast<short>(GfxDef::Value250ToValue255(chex.tint_light));
+                ch.tint_level = static_cast<short>(GfxDef::Value100ToValue255(ch.tint_level));
+                ch.tint_light = static_cast<short>(GfxDef::Value250ToValue255(ch.tint_light));
             }
             else if (ch.has_explicit_light())
             {
-                chex.tint_light = static_cast<short>(GfxDef::Value100ToValue255(chex.tint_light));
+                ch.tint_light = static_cast<short>(GfxDef::Value100ToValue255(ch.tint_light));
             }
         }
     }

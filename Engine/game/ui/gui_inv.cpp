@@ -60,14 +60,14 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
     int at_x = leftmost_x;
     int at_y = y + _innerRect.Top;
     int lastItem = _topItem + (_colCount * _rowCount);
-    auto &chex = game.CharExtras[GetCharacterID()];
-    if (lastItem > chex.inventory.size())
-        lastItem = chex.inventory.size();
+    auto &ch = game.Characters[GetCharacterID()];
+    if (lastItem > ch.inventory.size())
+        lastItem = ch.inventory.size();
 
     for (int item = _topItem; item < lastItem; ++item)
     {
         // draw inv graphic
-        draw_gui_sprite(ds, game.invinfo[chex.inventory[item]].pic, at_x, at_y);
+        draw_gui_sprite(ds, game.invinfo[ch.inventory[item]].pic, at_x, at_y);
         at_x += _itemWidth;
 
         // go to next row when appropriate

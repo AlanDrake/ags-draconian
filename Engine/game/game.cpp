@@ -587,7 +587,7 @@ void unload_game()
     FreeAllScripts();
     ShutdownScriptExec();
 
-    game.CharExtras.clear();
+    game.Characters.clear();
     movelists.clear();
     movelist_free_ids = std::queue<uint32_t>();
     game.Views.clear();
