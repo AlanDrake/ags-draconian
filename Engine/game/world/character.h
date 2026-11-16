@@ -441,7 +441,7 @@ void MoveCharacterToHotspot(int char_id, int hotsp);
 // (CHF_SCALEMOVESPEED): 1 normally, 2 when faster, 0 when it skips the update, and a negative value for
 // abs(value) steps made half-way, with the position saved to be completed on the next update (UpdateCharacterMoving).
 int wantMoveNow(Character *ch);
-// Makes the character the player: sets game.playercharacter, Game::PlayerChar and the script pointer to it.
+// Makes the character the player: sets game.PlayerCharacterID, Game::PlayerChar and the script pointer to it.
 void setup_player_character(int char_id);
 // Width and height of the character's sprite: the scaled size calculated by update_character_scale, or the size of
 // the current frame until then; 4 and 2 if the frame is invalid.

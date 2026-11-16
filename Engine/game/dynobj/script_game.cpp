@@ -221,7 +221,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
         break;
     case 120:
         game.Play.show_single_dialog_option = val;
-        game.options[OPT_DISPLAYSINGLEDIALOGOPTION] = val;
+        game.Options[OPT_DISPLAYSINGLEDIALOGOPTION] = val;
         break;
     case 121: game.Play.keep_screen_during_instant_transition = val; break;
     case 122: game.Play.read_dialog_option_colour = val; break;

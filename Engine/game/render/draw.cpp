@@ -39,7 +39,7 @@
 #include "game/system.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
-#include "game/view.h"
+#include "game/view_def.h"
 #include "game/world/character.h"
 #include "game/world/move_list.h"
 #include "game/world/object.h"

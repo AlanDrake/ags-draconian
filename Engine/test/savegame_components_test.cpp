@@ -35,7 +35,7 @@
 
 #include "game/customproperties.h"
 #include "game/dialog/dialog.h"
-#include "game/dialog_topic.h"
+#include "game/dialog_def.h"
 #include "game/game.h"
 #include "game/game_context.h"
 #include "game/game_def.h"
@@ -44,7 +44,7 @@
 #include "game/save/savegame.h"
 #include "game/save/savegame_components.h"
 #include "game/save/savegame_internal.h"
-#include "game/view.h"
+#include "game/view_def.h"
 #include "game/world/character.h"
 #include "game/world/room_state.h"
 #include "gtest/gtest.h"
@@ -77,11 +77,11 @@ const SaveCmpSelection kCharactersAndItems = static_cast<SaveCmpSelection>(kSave
 
 // Fixture for the savegame components with game content. The engine globals it touches, all reset in TearDown:
 // - Game::Characters, game.numcharacters, game.Play.charProps: the characters
-// - game.invinfo, game.numinvitems, game.Play.invProps: the inventory items
+// - game.InventoryItems, game.numinvitems, game.Play.invProps: the inventory items
 // - Game::Views, game.numviews: the views
 // - Game::Dialogs, game.numdialog, game.Play.dialogProps: the dialogs
-// - game.mcurs, game.numcursors: the mouse cursors
-// - game.audioClipTypes, game.Play.default_audio_type_volumes: the audio types
+// - game.MouseCursors, game.numcursors: the mouse cursors
+// - game.AudioClipTypes, game.Play.default_audio_type_volumes: the audio types
 // - the GameDef fields that the game state saves (GameSetupFields)
 // - EngineServices::Current().SeparateMusicLib
 class SavegameContent : public ::testing::Test
@@ -119,26 +119,26 @@ protected:
         {
             Game &game = Game::Current();
             GameSetupFields fields;
-            std::copy_n(game.options, GameDef::MAX_OPTIONS, fields.Options.begin());
-            fields.PlayerCharacter = game.playercharacter;
-            fields.DialogBullet = game.dialog_bullet;
-            fields.InvHotColor = game.inv_hot_color;
-            fields.InvHotCrossColor = game.inv_hot_cross_color;
-            fields.InvHotSprite = game.inv_hot_sprite;
-            fields.DefaultLipsyncFrame = game.default_lipsync_frame;
+            std::copy_n(game.Options, GameDef::MAX_OPTIONS, fields.Options.begin());
+            fields.PlayerCharacter = game.PlayerCharacterID;
+            fields.DialogBullet = game.DialogBulletSprite;
+            fields.InvHotColor = game.InventoryCursorHotspotColor;
+            fields.InvHotCrossColor = game.InventoryCursorHotspotCrossColor;
+            fields.InvHotSprite = game.InventoryCursorHotspotSprite;
+            fields.DefaultLipsyncFrame = game.DefaultLipSyncFrame;
             return fields;
         }
 
         void Set() const
         {
             Game &game = Game::Current();
-            std::copy(Options.begin(), Options.end(), game.options);
-            game.playercharacter = PlayerCharacter;
-            game.dialog_bullet = DialogBullet;
-            game.inv_hot_color = InvHotColor;
-            game.inv_hot_cross_color = InvHotCrossColor;
-            game.inv_hot_sprite = InvHotSprite;
-            game.default_lipsync_frame = DefaultLipsyncFrame;
+            std::copy(Options.begin(), Options.end(), game.Options);
+            game.PlayerCharacterID = PlayerCharacter;
+            game.DialogBulletSprite = DialogBullet;
+            game.InventoryCursorHotspotColor = InvHotColor;
+            game.InventoryCursorHotspotCrossColor = InvHotCrossColor;
+            game.InventoryCursorHotspotSprite = InvHotSprite;
+            game.DefaultLipSyncFrame = DefaultLipsyncFrame;
         }
     };
 
@@ -170,8 +170,8 @@ protected:
     static void SetCursors(int count)
     {
         Game &game = Game::Current();
-        game.mcurs.clear();
-        game.mcurs.resize(count);
+        game.MouseCursors.clear();
+        game.MouseCursors.resize(count);
         game.numcursors = count;
     }
 
@@ -179,8 +179,8 @@ protected:
     static void SetAudioTypes(int count)
     {
         Game &game = Game::Current();
-        game.audioClipTypes.clear();
-        game.audioClipTypes.resize(count);
+        game.AudioClipTypes.clear();
+        game.AudioClipTypes.resize(count);
         game.Play.default_audio_type_volumes.clear();
         game.Play.default_audio_type_volumes.resize(count);
     }
@@ -217,8 +217,8 @@ protected:
         game.numcharacters = characters;
         game.Play.charProps.clear();
         game.Play.charProps.resize(characters);
-        game.invinfo.clear();
-        game.invinfo.resize(items);
+        game.InventoryItems.clear();
+        game.InventoryItems.resize(items);
         game.numinvitems = static_cast<uint16_t>(items);
         game.Play.invProps.clear();
         game.Play.invProps.resize(items);
@@ -256,11 +256,11 @@ protected:
         }
         for (int i = 0; i < game.numinvitems; ++i)
         {
-            game.invinfo[i].name = String::FromFormat("Item %d", i);
-            game.invinfo[i].pic = 20 + i;
-            game.invinfo[i].cursorPic = 40 + i;
-            game.invinfo[i].hotx = 3;
-            game.invinfo[i].hoty = 4;
+            game.InventoryItems[i].name = String::FromFormat("Item %d", i);
+            game.InventoryItems[i].pic = 20 + i;
+            game.InventoryItems[i].cursorPic = 40 + i;
+            game.InventoryItems[i].hotx = 3;
+            game.InventoryItems[i].hoty = 4;
             game.Play.invProps[i]["Weight"] = "12";
         }
     }
@@ -324,11 +324,11 @@ TEST_F(SavegameContent, CharactersAndItemsAreRestored)
     }
     for (int i = 0; i < 2; ++i)
     {
-        EXPECT_STREQ(String::FromFormat("Item %d", i).GetCStr(), game.invinfo[i].name.GetCStr());
-        EXPECT_EQ(20 + i, game.invinfo[i].pic);
-        EXPECT_EQ(40 + i, game.invinfo[i].cursorPic);
-        EXPECT_EQ(3, game.invinfo[i].hotx);
-        EXPECT_EQ(4, game.invinfo[i].hoty);
+        EXPECT_STREQ(String::FromFormat("Item %d", i).GetCStr(), game.InventoryItems[i].name.GetCStr());
+        EXPECT_EQ(20 + i, game.InventoryItems[i].pic);
+        EXPECT_EQ(40 + i, game.InventoryItems[i].cursorPic);
+        EXPECT_EQ(3, game.InventoryItems[i].hotx);
+        EXPECT_EQ(4, game.InventoryItems[i].hoty);
         EXPECT_STREQ("12", game.Play.invProps[i]["Weight"].GetCStr());
     }
     EXPECT_EQ(3u, r_data.DataCounts.Characters);
@@ -489,7 +489,7 @@ TEST_F(SavegameContent, PrescanCountsWithoutRestoring)
     EXPECT_EQ(2u, r_data.DataCounts.InventoryItems);
     // the game is untouched
     EXPECT_EQ(0, game.Characters[0].X);
-    EXPECT_TRUE(game.invinfo[0].name.IsEmpty());
+    EXPECT_TRUE(game.InventoryItems[0].name.IsEmpty());
 }
 
 TEST_F(SavegameContent, PrescanStepsOverViewFrames)
@@ -528,7 +528,7 @@ TEST_F(SavegameContent, UnselectedComponentsAreSkipped)
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
     EXPECT_EQ(4321, game.Play.messagetime);
     EXPECT_EQ(0, game.Characters[0].X);
-    EXPECT_TRUE(game.invinfo[0].name.IsEmpty());
+    EXPECT_TRUE(game.InventoryItems[0].name.IsEmpty());
     game.Play.messagetime = 0;
 }
 
@@ -644,7 +644,7 @@ TEST_F(SavegameContent, MouseCursorsAreRestored)
     SetCursors(2);
     for (int i = 0; i < 2; ++i)
     {
-        auto &cur = game.mcurs[i];
+        auto &cur = game.MouseCursors[i];
         cur.pic = 30 + i;
         cur.hotx = static_cast<short>(5 + i);
         cur.hoty = static_cast<short>(7 + i);
@@ -662,7 +662,7 @@ TEST_F(SavegameContent, MouseCursorsAreRestored)
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
     for (int i = 0; i < 2; ++i)
     {
-        const auto &cur = game.mcurs[i];
+        const auto &cur = game.MouseCursors[i];
         EXPECT_EQ(30 + i, cur.pic);
         EXPECT_EQ(5 + i, cur.hotx);
         EXPECT_EQ(7 + i, cur.hoty);
@@ -680,9 +680,9 @@ TEST_F(SavegameContent, AudioTypesAreRestored)
     SetAudioTypes(2);
     for (int i = 0; i < 2; ++i)
     {
-        game.audioClipTypes[i].reservedChannels = 1;
-        game.audioClipTypes[i].volume_reduction_while_speech_playing = 25 + i;
-        game.audioClipTypes[i].crossfadeSpeed = 3 + i;
+        game.AudioClipTypes[i].reservedChannels = 1;
+        game.AudioClipTypes[i].volume_reduction_while_speech_playing = 25 + i;
+        game.AudioClipTypes[i].crossfadeSpeed = 3 + i;
         game.Play.default_audio_type_volumes[i] = 60 + i;
     }
     std::vector<uint8_t> saved;
@@ -695,9 +695,9 @@ TEST_F(SavegameContent, AudioTypesAreRestored)
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
     for (int i = 0; i < 2; ++i)
     {
-        EXPECT_EQ(0, game.audioClipTypes[i].reservedChannels);
-        EXPECT_EQ(25 + i, game.audioClipTypes[i].volume_reduction_while_speech_playing);
-        EXPECT_EQ(3 + i, game.audioClipTypes[i].crossfadeSpeed);
+        EXPECT_EQ(0, game.AudioClipTypes[i].reservedChannels);
+        EXPECT_EQ(25 + i, game.AudioClipTypes[i].volume_reduction_while_speech_playing);
+        EXPECT_EQ(3 + i, game.AudioClipTypes[i].crossfadeSpeed);
         EXPECT_EQ(60 + i, game.Play.default_audio_type_volumes[i]);
     }
     EXPECT_EQ(2u, r_data.DataCounts.AudioClipTypes);
@@ -709,14 +709,14 @@ TEST_F(SavegameContent, GameSetupIsRestored)
     // the options up to OPT_HIGHESTOPTION_321 and OPT_LIPSYNCTEXT, the player, the dialog bullet, the inventory
     // cursor's hotspot marker and the default lip-sync frame
     for (int i = 0; i <= OPT_HIGHESTOPTION_321; ++i)
-        game.options[i] = 100 + i;
-    game.options[OPT_LIPSYNCTEXT] = 1;
-    game.playercharacter = 2;
-    game.dialog_bullet = 14;
-    game.inv_hot_color = static_cast<int>(0xFF00FF80u);
-    game.inv_hot_cross_color = 0x00123456;
-    game.inv_hot_sprite = 17;
-    game.default_lipsync_frame = 4;
+        game.Options[i] = 100 + i;
+    game.Options[OPT_LIPSYNCTEXT] = 1;
+    game.PlayerCharacterID = 2;
+    game.DialogBulletSprite = 14;
+    game.InventoryCursorHotspotColor = static_cast<int>(0xFF00FF80u);
+    game.InventoryCursorHotspotCrossColor = 0x00123456;
+    game.InventoryCursorHotspotSprite = 17;
+    game.DefaultLipSyncFrame = 4;
     std::vector<uint8_t> saved;
     std::string error;
     ASSERT_TRUE(Save(kSaveCmp_GameState, saved, error)) << error;
@@ -726,14 +726,14 @@ TEST_F(SavegameContent, GameSetupIsRestored)
     HSaveError err = Restore(saved, kSaveCmp_GameState, r_data);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
     for (int i = 0; i <= OPT_HIGHESTOPTION_321; ++i)
-        EXPECT_EQ(100 + i, game.options[i]) << "option " << i;
-    EXPECT_EQ(1, game.options[OPT_LIPSYNCTEXT]);
-    EXPECT_EQ(2, game.playercharacter);
-    EXPECT_EQ(14, game.dialog_bullet);
-    EXPECT_EQ(static_cast<int>(0xFF00FF80u), game.inv_hot_color);
-    EXPECT_EQ(0x00123456, game.inv_hot_cross_color);
-    EXPECT_EQ(17, game.inv_hot_sprite);
-    EXPECT_EQ(4, game.default_lipsync_frame);
+        EXPECT_EQ(100 + i, game.Options[i]) << "option " << i;
+    EXPECT_EQ(1, game.Options[OPT_LIPSYNCTEXT]);
+    EXPECT_EQ(2, game.PlayerCharacterID);
+    EXPECT_EQ(14, game.DialogBulletSprite);
+    EXPECT_EQ(static_cast<int>(0xFF00FF80u), game.InventoryCursorHotspotColor);
+    EXPECT_EQ(0x00123456, game.InventoryCursorHotspotCrossColor);
+    EXPECT_EQ(17, game.InventoryCursorHotspotSprite);
+    EXPECT_EQ(4, game.DefaultLipSyncFrame);
 }
 
 TEST(SavegameState, AnimatedOverlayWaitIsRestored)

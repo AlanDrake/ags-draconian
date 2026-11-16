@@ -14,7 +14,7 @@
 #include "game/dynobj/cc_dialog.h"
 
 #include "game/dialog/dialog.h"
-#include "game/dialog_topic.h"
+#include "game/dialog_def.h"
 #include "game/game_context.h"
 #include "game/game_init.h"
 #include "game/game_struct_defines.h"

@@ -443,7 +443,7 @@ int IAGSEngine::GetNumCharacters()
 }
 int IAGSEngine::GetPlayerCharacter()
 {
-    return Game::Current().playercharacter;
+    return Game::Current().PlayerCharacterID;
 }
 void IAGSEngine::RoomToViewport(int32 *x, int32 *y)
 {

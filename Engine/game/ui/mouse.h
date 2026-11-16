@@ -14,8 +14,11 @@
 #pragma once
 
 #include "device/mousew32.h"
-#include "game/mouse_cursor.h"
+#include "game/mouse_cursor_def.h"
 #include "game/ui/cursor_graphic_state.h"
+
+// The engine's mouse cursor; an alias of its definition until it holds more (PLAN.md 5.1a step 3)
+using MouseCursor = MouseCursorDef;
 
 void Mouse_SetVisible(int isOn);
 int Mouse_GetVisible();

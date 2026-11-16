@@ -12,14 +12,14 @@
 //
 //=============================================================================
 
-#include "game/script_audio_clip.h"
+#include "game/audio_clip_def.h"
 
 #include "util/stream.h"
 #include "util/string_compat.h"
 
 using namespace AGS::Common;
 
-/*static*/ AudioFileType ScriptAudioClip::GetAudioFileTypeFromExt(const char *ext)
+/*static*/ AudioFileType AudioClipDef::GetAudioFileTypeFromExt(const char *ext)
 {
     if (ags_stricmp(ext, "mp3") == 0)
         return eAudioFileMP3;
@@ -39,7 +39,7 @@ using namespace AGS::Common;
     return eAudioFileUndefined;
 }
 
-/*static */ const char *ScriptAudioClip::GetExtFromAudioFileType(AudioFileType filetype)
+/*static */ const char *AudioClipDef::GetExtFromAudioFileType(AudioFileType filetype)
 {
     switch (filetype)
     {
@@ -54,7 +54,7 @@ using namespace AGS::Common;
     }
 }
 
-void ScriptAudioClip::ReadFromFile(Stream *in)
+void AudioClipDef::ReadFromFile(Stream *in)
 {
     id = in->ReadInt32();
     scriptName.ReadCount(in, LEGACY_AUDIOCLIP_SCRIPTNAMELENGTH);

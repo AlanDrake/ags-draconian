@@ -35,15 +35,15 @@
 
 #include "ac/def_version.h"
 #include "data/data_helpers.h"
+#include "game/audio_clip_def.h"
 #include "game/character_def.h"
 #include "game/customproperties.h"
-#include "game/dialog_topic.h"
+#include "game/dialog_def.h"
 #include "game/game_def.h"
 #include "game/game_version.h"
-#include "game/inventory_item_info.h"
-#include "game/mouse_cursor.h"
-#include "game/script_audio_clip.h"
-#include "game/view.h"
+#include "game/inventory_item_def.h"
+#include "game/mouse_cursor_def.h"
+#include "game/view_def.h"
 #include "gfx/gfx_def.h"
 #include "gui/guibutton.h"
 #include "gui/guidefines.h"
@@ -169,7 +169,7 @@ int GetAudioID(const DataUtil::GameData &game, int fixed_index)
     return -1;
 }
 
-// Read by ViewStruct::ReadFromFile() in Common/game/view.cpp, called from
+// Read by ViewDef::ReadFromFile() in Common/game/view_def.cpp, called from
 // ReadViews() in Common/game/main_game_file.cpp.
 void WriteView(Stream *out, const DataUtil::GameData &game, const DataUtil::ViewData &view)
 {
@@ -257,11 +257,11 @@ void WriteCharacter(Stream *out, const DataUtil::GameData &game, const DataUtil:
     ch.WriteToFile(out);
 }
 
-// Read by InventoryItemInfo::ReadFromFile() in
-// Common/game/inventory_item_info.cpp.
+// Read by InventoryItemDef::ReadFromFile() in
+// Common/game/inventory_item_def.cpp.
 void WriteInventoryItem(Stream *out, const DataUtil::InventoryItemData &ref)
 {
-    InventoryItemInfo item{};
+    InventoryItemDef item{};
     item.name = TextProperty(ref.Description);
     item.pic = ref.Image;
     item.cursorPic = ref.CursorImage;
@@ -272,10 +272,10 @@ void WriteInventoryItem(Stream *out, const DataUtil::InventoryItemData &ref)
     item.WriteToFile(out);
 }
 
-// Read by MouseCursor::ReadFromFile() in Common/game/mouse_cursor.cpp.
+// Read by MouseCursorDef::ReadFromFile() in Common/game/mouse_cursor_def.cpp.
 void WriteCursor(Stream *out, const DataUtil::CursorData &ref)
 {
-    MouseCursor cur;
+    MouseCursorDef cur;
     cur.name = ref.Name;
     cur.pic = ref.Image;
     cur.hotx = static_cast<short>(ref.HotspotX);
@@ -459,7 +459,7 @@ void WriteGuiListBox(Stream *out, const DataUtil::GUIListBoxData &list_box)
     out->WriteInt32(list_box.SelectedBackgroundColor);
 }
 
-// Read by AudioClipType::ReadFromFile() in Common/game/audio_clip_type.cpp.
+// Read by AudioClipTypeDef::ReadFromFile() in Common/game/audio_clip_type_def.cpp.
 void WriteAudioType(Stream *out, const DataUtil::AudioTypeData &type, int id)
 {
     out->WriteInt32(id);
@@ -469,8 +469,8 @@ void WriteAudioType(Stream *out, const DataUtil::AudioTypeData &type, int id)
     out->WriteInt32(0);
 }
 
-// Read by ScriptAudioClip::ReadFromFile() in
-// Common/game/script_audio_clip.cpp.
+// Read by AudioClipDef::ReadFromFile() in
+// Common/game/audio_clip_def.cpp.
 void WriteAudioClip(Stream *out, const DataUtil::AudioClipData &ref, int index)
 {
     const String &name = ref.ScriptName.IsEmpty() ? ref.TypeName : ref.ScriptName;
@@ -718,7 +718,7 @@ void WriteSpriteFlags(const DataUtil::GameData &game, Stream *out)
 }
 
 // Read by GameDef::ReadInvInfo() in Common/game/game_def.cpp,
-// which calls InventoryItemInfo::ReadFromFile().
+// which calls InventoryItemDef::ReadFromFile().
 void WriteInventoryBlock(const DataUtil::GameData &game, Stream *out)
 {
     for (const auto &item_ref : game.Inventory)
@@ -778,7 +778,7 @@ void WriteTextParserDictionary(const DataUtil::GameData &game, Stream *out)
 }
 
 // Read by ReadViews() in Common/game/main_game_file.cpp, which calls
-// ViewStruct::ReadFromFile().
+// ViewDef::ReadFromFile().
 void WriteViewsBlock(const DataUtil::GameData &game, const CompiledData &data, Stream *out)
 {
     for (const auto *view : data.ViewsByID)
@@ -1217,7 +1217,7 @@ void WriteExtension(Stream *out, const char *id, const DataUtil::GameData &game,
 }
 
 // Read by GameDataExtReader::ReadBlock()'s "v363_dialogsnew" branch, then
-// DialogTopic::ReadFromFile_v363() in Common/game/dialog_topic.cpp.
+// DialogDef::ReadFromFile_v363() in Common/game/dialog_def.cpp.
 void WriteExt363Dialogs(Stream *out, const DataUtil::GameData &game)
 {
     out->WriteInt32(static_cast<int32_t>(game.Dialogs.size()));

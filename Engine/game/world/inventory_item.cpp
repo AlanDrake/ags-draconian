@@ -54,7 +54,7 @@ void InvItems_RegisterDynamicSpriteCallbacks()
     Game &game = Game::Current();
     for (int i = 0; i < game.numinvitems; ++i)
     {
-        if (game.invinfo[i].pic > 0)
+        if (game.InventoryItems[i].pic > 0)
             add_sprite_changed_callback(i, &gl_InvItemSpriteListener);
     }
 }
@@ -66,11 +66,11 @@ static void set_inv_item_pic(int item_id, int sprite)
     if ((item_id < 0) || (item_id >= game.numinvitems))
         quit("!SetInvItemPic: invalid inventory item specified");
 
-    if (game.invinfo[item_id].pic == sprite)
+    if (game.InventoryItems[item_id].pic == sprite)
         return;
 
-    const int old_pic = game.invinfo[item_id].pic;
-    game.invinfo[item_id].pic = sprite;
+    const int old_pic = game.InventoryItems[item_id].pic;
+    game.InventoryItems[item_id].pic = sprite;
     // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
     replace_sprite_changed_callback(old_pic, sprite, &gl_InvItemSpriteListener);
 
@@ -80,7 +80,7 @@ static void set_inv_item_pic(int item_id, int sprite)
 void set_inv_item_cursorpic(int item_id, int sprite)
 {
     Game &game = Game::Current();
-    game.invinfo[item_id].cursorPic = sprite;
+    game.InventoryItems[item_id].cursorPic = sprite;
 
     if (is_current_cursor_look(kCursorRole_UseInv) && (game.PlayerChar->ActiveInventory == item_id))
     {
@@ -92,7 +92,7 @@ void set_inv_item_cursorpic(int item_id, int sprite)
 static void set_inv_item_cursorhotspot(int item_id, int hx, int hy, FrameAlignment align)
 {
     Game &game = Game::Current();
-    auto &item = game.invinfo[item_id];
+    auto &item = game.InventoryItems[item_id];
     item.hotx = hx;
     item.hoty = hy;
     item.hotAlign = align;
@@ -121,41 +121,43 @@ void InventoryItem_SetCursorGraphic(ScriptInvItem *item, int sprite)
 
 int InventoryItem_GetCursorGraphic(ScriptInvItem *item)
 {
-    return Game::Current().invinfo[item->id].cursorPic;
+    return Game::Current().InventoryItems[item->id].cursorPic;
 }
 
 int InventoryItem_GetCursorHotspotAlignment(ScriptInvItem *item)
 {
-    return Game::Current().invinfo[item->id].hotAlign;
+    return Game::Current().InventoryItems[item->id].hotAlign;
 }
 
 void InventoryItem_SetCursorHotspotAlignment(ScriptInvItem *item, int align)
 {
     Game &game = Game::Current();
-    set_inv_item_cursorhotspot(item->id, game.invinfo[item->id].hotx, game.invinfo[item->id].hoty,
+    set_inv_item_cursorhotspot(item->id, game.InventoryItems[item->id].hotx, game.InventoryItems[item->id].hoty,
                                static_cast<FrameAlignment>(align));
 }
 
 int InventoryItem_GetCursorHotspotX(ScriptInvItem *item)
 {
-    return Game::Current().invinfo[item->id].hotx;
+    return Game::Current().InventoryItems[item->id].hotx;
 }
 
 void InventoryItem_SetCursorHotspotX(ScriptInvItem *item, int hotspot_x)
 {
     Game &game = Game::Current();
-    set_inv_item_cursorhotspot(item->id, hotspot_x, game.invinfo[item->id].hoty, game.invinfo[item->id].hotAlign);
+    set_inv_item_cursorhotspot(item->id, hotspot_x, game.InventoryItems[item->id].hoty,
+                               game.InventoryItems[item->id].hotAlign);
 }
 
 int InventoryItem_GetCursorHotspotY(ScriptInvItem *item)
 {
-    return Game::Current().invinfo[item->id].hoty;
+    return Game::Current().InventoryItems[item->id].hoty;
 }
 
 void InventoryItem_SetCursorHotspotY(ScriptInvItem *item, int hotspot_y)
 {
     Game &game = Game::Current();
-    set_inv_item_cursorhotspot(item->id, game.invinfo[item->id].hotx, hotspot_y, game.invinfo[item->id].hotAlign);
+    set_inv_item_cursorhotspot(item->id, game.InventoryItems[item->id].hotx, hotspot_y,
+                               game.InventoryItems[item->id].hotAlign);
 }
 
 void InventoryItem_SetGraphic(ScriptInvItem *item, int sprite)
@@ -169,7 +171,7 @@ static void SetInvItemName(int item_id, const char *new_name)
     if ((item_id < 0) || (item_id >= game.numinvitems))
         quit("!SetInvName: invalid inventory item specified");
 
-    game.invinfo[item_id].name = new_name;
+    game.InventoryItems[item_id].name = new_name;
     // might need to redraw the GUI if it has the inv item name on it
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
@@ -222,12 +224,12 @@ ScriptInvItem *InventoryItem_GetAtScreenXY2(int x, int y)
 
 const char *InventoryItem_GetName_New(ScriptInvItem *item)
 {
-    return CreateNewScriptString(Game::Current().invinfo[item->id].name);
+    return CreateNewScriptString(Game::Current().InventoryItems[item->id].name);
 }
 
 int InventoryItem_GetGraphic(ScriptInvItem *item)
 {
-    return Game::Current().invinfo[item->id].pic;
+    return Game::Current().InventoryItems[item->id].pic;
 }
 
 void RunInventoryInteraction(int item_id, int mood)
@@ -239,7 +241,7 @@ void RunInventoryInteraction(int item_id, int mood)
         return;
 
     // Cursor mode must match the event index in "Interactions" table
-    const int evnt = (game.mcurs[mood].flags & MCF_EVENT) != 0 ? mood : -1;
+    const int evnt = (game.MouseCursors[mood].flags & MCF_EVENT) != 0 ? mood : -1;
     const int anyclick_evt = kInventoryEvent_AnyClick;
 
     // For USE verb: remember active inventory
@@ -252,11 +254,11 @@ void RunInventoryInteraction(int item_id, int mood)
         ObjectEvent(kScTypeGame, LOCTYPE_INVITEM, item_id,
                     RuntimeScriptValue().SetScriptObject(&game.ScInvItems[item_id], &ccDynamicInv), mood);
     if ((evnt >= 0) &&
-        run_event_script(obj_evt, &game.invinfo[item_id].interactions, evnt, &game.invinfo[item_id].GetEvents(),
-                         anyclick_evt, true /* do unhandled event */) < 0)
+        run_event_script(obj_evt, &game.InventoryItems[item_id].interactions, evnt,
+                         &game.InventoryItems[item_id].GetEvents(), anyclick_evt, true /* do unhandled event */) < 0)
         return; // game state changed, don't do "any click"
     // any click on inv item
-    run_event_script(obj_evt, &game.invinfo[item_id].GetEvents(), anyclick_evt);
+    run_event_script(obj_evt, &game.InventoryItems[item_id].GetEvents(), anyclick_evt);
 }
 
 static int IsInventoryInteractionAvailable(int item_id, int mood)

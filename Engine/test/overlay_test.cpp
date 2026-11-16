@@ -28,7 +28,7 @@
 #include "game/render/overlay.h"
 #include "game/render/screen_overlay.h"
 #include "game/render/viewport.h"
-#include "game/view.h"
+#include "game/view_def.h"
 #include "game/world/character.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"

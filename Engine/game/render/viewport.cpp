@@ -507,7 +507,7 @@ VpPoint GameViewports::ScreenToRoomImpl(int screen_x, int screen_y, int viewport
 
 VpPoint GameViewports::ScreenToRoom(int screen_x, int screen_y, bool clip_viewport)
 {
-    if (Game::Current().options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507)
+    if (Game::Current().Options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507)
         return ScreenToRoomImpl(screen_x, screen_y, -1, clip_viewport);
     return ScreenToRoomImpl(screen_x, screen_y, 0, false);
 }

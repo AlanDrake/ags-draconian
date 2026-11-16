@@ -16,16 +16,16 @@
 
 #include "data/data_file_writer.h"
 #include "data/data_helpers.h"
-#include "game/audio_clip_type.h"
+#include "game/audio_clip_def.h"
+#include "game/audio_clip_type_def.h"
 #include "game/character_def.h"
 #include "game/customproperties.h"
-#include "game/dialog_topic.h"
+#include "game/dialog_def.h"
 #include "game/game_def.h"
 #include "game/game_version.h"
-#include "game/inventory_item_info.h"
-#include "game/mouse_cursor.h"
-#include "game/script_audio_clip.h"
-#include "game/view.h"
+#include "game/inventory_item_def.h"
+#include "game/mouse_cursor_def.h"
+#include "game/view_def.h"
 #include "gtest/gtest.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
@@ -78,8 +78,8 @@ void WriteLargeExtensionPayload(Stream *out, const DataUtil::GameData &)
 
 struct LoadedAudioBlock
 {
-    std::vector<AudioClipType> Types;
-    std::vector<ScriptAudioClip> Clips;
+    std::vector<AudioClipTypeDef> Types;
+    std::vector<AudioClipDef> Clips;
     int ScoreClipID = -1;
 };
 
@@ -145,22 +145,22 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     EXPECT_STREQ("Round-trip \"game\"", loaded.gamename.GetCStr());
     EXPECT_EQ(2, loaded.numviews);
     EXPECT_EQ(2, loaded.numcharacters);
-    EXPECT_EQ(1, loaded.playercharacter);
+    EXPECT_EQ(1, loaded.PlayerCharacterID);
     EXPECT_EQ(1, loaded.numinvitems); // the list has item 0 already, as in the editor
     EXPECT_EQ(1, loaded.numfonts);
     EXPECT_EQ(1, loaded.numgui);
     EXPECT_EQ(2, loaded.numcursors);
     EXPECT_EQ(4, loaded.color_depth);
-    EXPECT_EQ(17, loaded.dialog_bullet);
+    EXPECT_EQ(17, loaded.DialogBulletSprite);
     EXPECT_EQ(123456, loaded.uniqueid);
     EXPECT_EQ(640, loaded.GetGameRes().Width);
     EXPECT_EQ(360, loaded.GetGameRes().Height);
-    EXPECT_EQ(3, loaded.default_lipsync_frame);
-    EXPECT_EQ(10, loaded.inv_hot_color);
-    EXPECT_EQ(11, loaded.inv_hot_cross_color);
-    EXPECT_EQ(12, loaded.inv_hot_sprite);
-    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOnly, loaded.options[OPT_NOSKIPTEXT]);
-    EXPECT_EQ(1, loaded.options[OPT_LIPSYNCTEXT]);
+    EXPECT_EQ(3, loaded.DefaultLipSyncFrame);
+    EXPECT_EQ(10, loaded.InventoryCursorHotspotColor);
+    EXPECT_EQ(11, loaded.InventoryCursorHotspotCrossColor);
+    EXPECT_EQ(12, loaded.InventoryCursorHotspotSprite);
+    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOnly, loaded.Options[OPT_NOSKIPTEXT]);
+    EXPECT_EQ(1, loaded.Options[OPT_LIPSYNCTEXT]);
     EXPECT_TRUE(info.HasWordsDict);
     EXPECT_FALSE(info.HasCCScript);
     EXPECT_EQ(0u, info.ExtensionOffset);
@@ -240,7 +240,7 @@ TEST(DataFileWriter, RoundTripInventoryItem)
     out.reset();
 
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
-    InventoryItemInfo loaded{};
+    InventoryItemDef loaded{};
     loaded.ReadFromFile(in.get(), kGameVersion_Current);
 
     EXPECT_STREQ("Key that unlocks the \"doo", loaded.name.GetCStr()); // limited by LEGACY_MAX_INVENTORY_NAME_LENGTH
@@ -268,7 +268,7 @@ TEST(DataFileWriter, RoundTripInventoryBlock)
     out.reset();
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
-    InventoryItemInfo loaded[2]{};
+    InventoryItemDef loaded[2]{};
     for (auto &item : loaded)
         item.ReadFromFile(in.get(), kGameVersion_Current);
     EXPECT_STREQ("Key", loaded[0].name.GetCStr());
@@ -297,7 +297,7 @@ TEST(DataFileWriter, RoundTripCursor)
     out.reset();
 
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
-    MouseCursor loaded;
+    MouseCursorDef loaded;
     loaded.ReadFromFile(in.get());
 
     EXPECT_STREQ("Interact", loaded.name.GetCStr());
@@ -327,7 +327,7 @@ TEST(DataFileWriter, RoundTripCursorBlock)
     out.reset();
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
-    MouseCursor loaded[2];
+    MouseCursorDef loaded[2];
     for (auto &cursor : loaded)
         cursor.ReadFromFile(in.get());
     EXPECT_STREQ("Walk", loaded[0].name.GetCStr());
@@ -383,7 +383,7 @@ TEST(DataFileWriter, RoundTripView)
     out.reset();
 
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
-    ViewStruct loaded;
+    ViewDef loaded;
     loaded.ReadFromFile(in.get());
 
     ASSERT_EQ(1, loaded.numLoops);
@@ -418,7 +418,7 @@ TEST(DataFileWriter, RoundTripViewsBlock)
     out.reset();
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
-    ViewStruct loaded[3];
+    ViewDef loaded[3];
     for (auto &view : loaded)
         view.ReadFromFile(in.get());
     ASSERT_EQ(1u, loaded[0].loops[0].frames.size());
@@ -471,7 +471,7 @@ TEST(DataFileWriter, RoundTripAudioType)
     out.reset();
 
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
-    AudioClipType loaded;
+    AudioClipTypeDef loaded;
     loaded.ReadFromFile(in.get());
 
     EXPECT_EQ(4, loaded.id);
@@ -499,7 +499,7 @@ TEST(DataFileWriter, RoundTripAudioClip)
     out.reset();
 
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
-    ScriptAudioClip loaded;
+    AudioClipDef loaded;
     loaded.ReadFromFile(in.get());
 
     EXPECT_EQ(8, loaded.id);
@@ -570,7 +570,7 @@ TEST(DataFileWriter, RoundTripExt363Dialogs)
 
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
     ASSERT_EQ(1, in->ReadInt32());
-    DialogTopic loaded;
+    DialogDef loaded;
     loaded.ReadFromFile_v363(in.get());
 
     EXPECT_STREQ("dGreeting", loaded.ScriptName.GetCStr());
@@ -739,7 +739,7 @@ TEST(DataFileWriter, RoundTripFontBlock)
     std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteFontBlock);
     auto in = std::make_unique<Stream>(std::make_unique<VectorStream>(buffer));
 
-    FontInfo loaded[2];
+    FontDef loaded[2];
     for (int i = 0; i < 2; ++i)
     {
         loaded[i].FontID = i;

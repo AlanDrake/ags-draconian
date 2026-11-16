@@ -67,7 +67,7 @@ int Parser_Said(const char *checkwords)
     // If the Parser.Said input is auto-translated, then we got to parse it using the
     // dictionary from the translation file. However, if it's not translated, then we
     // must parse the input using base word dictionary.
-    if (game.options[OPT_AUTOTRANSPARSERSAID])
+    if (game.Options[OPT_AUTOTRANSPARSERSAID])
     {
         checkwords = get_translation(checkwords);
         parser = GetTranslationTextParser();

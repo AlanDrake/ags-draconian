@@ -21,12 +21,12 @@
 #include "data/data_helpers.h"
 #include "debug/out.h"
 #include "font/fonts.h"
-#include "game/audio_clip_type.h"
+#include "game/audio_clip_def.h"
+#include "game/audio_clip_type_def.h"
 #include "game/character_def.h"
-#include "game/dialog_topic.h"
+#include "game/dialog_def.h"
 #include "game/game_def.h"
-#include "game/script_audio_clip.h"
-#include "game/view.h"
+#include "game/view_def.h"
 #include "gfx/gfx_def.h"
 #include "gfx/sprite_cache.h"
 #include "gui/guibutton.h"
@@ -228,7 +228,7 @@ HGameFileError ReadScriptModules(std::vector<UScript> &sc_mods, Stream *in, Game
     return HGameFileError::None();
 }
 
-void ReadViews(GameDef &game, std::vector<ViewStruct> &views, Stream *in, GameDataVersion /*data_ver*/)
+void ReadViews(GameDef &game, std::vector<ViewDef> &views, Stream *in, GameDataVersion /*data_ver*/)
 {
     views.resize(game.numviews);
     for (int i = 0; i < game.numviews; ++i)
@@ -237,7 +237,7 @@ void ReadViews(GameDef &game, std::vector<ViewStruct> &views, Stream *in, GameDa
     }
 }
 
-void ReadDialogs(std::vector<DialogTopic> &dialog, Stream *in, GameDataVersion data_ver, int dlg_count)
+void ReadDialogs(std::vector<DialogDef> &dialog, Stream *in, GameDataVersion /*data_ver*/, int dlg_count)
 {
     dialog.resize(dlg_count);
     for (int i = 0; i < dlg_count; ++i)
@@ -336,14 +336,15 @@ void UpgradeGame(GameDef &game, GameDataVersion data_ver)
     // 32-bit color properties
     if (data_ver < kGameVersion_400_09)
     {
-        game.inv_hot_color = RemapFromLegacyColourNumber(game, game.inv_hot_color);
-        game.inv_hot_cross_color = RemapFromLegacyColourNumber(game, game.inv_hot_cross_color);
+        game.InventoryCursorHotspotColor = RemapFromLegacyColourNumber(game, game.InventoryCursorHotspotColor);
+        game.InventoryCursorHotspotCrossColor =
+            RemapFromLegacyColourNumber(game, game.InventoryCursorHotspotCrossColor);
     }
     // NOTE: OPT_GAMEFPS appeared in 4.0.0.14 (3.6.2.12 on the 3.x branch);
     // the older 4.x game data defaults to 40 fps
     if (data_ver < kGameVersion_400_14)
     {
-        game.options[OPT_GAMEFPS] = 40;
+        game.Options[OPT_GAMEFPS] = 40;
     }
     if (game.GameInfo.count("text_lang") > 0)
     {
@@ -367,10 +368,10 @@ void UpgradeFonts(GameDef &game, GameDataVersion data_ver)
 {
     if (data_ver < kGameVersion_400_10)
     {
-        for (uint32_t i = 0; i < game.fonts.size(); ++i)
+        for (uint32_t i = 0; i < game.Fonts.size(); ++i)
         {
             // TODO: find a better way than relying on valid size?
-            auto &fi = game.fonts[i];
+            auto &fi = game.Fonts[i];
             if (fi.Size > 0)
                 fi.Filename.Format("agsfnt%u.ttf", i);
             else
@@ -428,7 +429,7 @@ void UpgradeCharacters(GameDef &game, GameDataVersion data_ver)
 void UpgradeInventoryItems(GameDef &game, GameDataVersion data_ver)
 {
     const int inv_count = game.numinvitems;
-    auto &inv = game.invinfo;
+    auto &inv = game.InventoryItems;
 
     if (data_ver < kGameVersion_400_24)
     {
@@ -547,8 +548,8 @@ void UpgradeMouseCursors(GameDef &game, GameDataVersion data_ver)
 
         for (int i = 0; i < game.numcursors && i < cursor_event.size(); ++i)
         {
-            game.mcurs[i].role = cursor_role[i];
-            game.mcurs[i].flags |= MCF_EVENT * cursor_event[i];
+            game.MouseCursors[i].role = cursor_role[i];
+            game.MouseCursors[i].flags |= MCF_EVENT * cursor_event[i];
         }
     }
 }
@@ -626,7 +627,7 @@ HError GameDataExtReader::ReadInteractionScriptModules(Stream *in, LoadedGameEnt
         return err;
     for (uint32_t i = 0; i < (uint32_t)ents.Game.numinvitems; ++i)
     {
-        err = ents.Game.invinfo[i].interactions.Read(in);
+        err = ents.Game.InventoryItems[i].interactions.Read(in);
         if (!err)
             return err;
     }
@@ -722,7 +723,7 @@ HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntitie
     HError err = ReadScriptEventsTablesForObjects(ents.Game.Characters, "characters", in);
     if (!err)
         return err;
-    err = ReadScriptEventsTablesForObjects(ents.Game.invinfo, "inventory items", in);
+    err = ReadScriptEventsTablesForObjects(ents.Game.InventoryItems, "inventory items", in);
     if (!err)
         return err;
     err = ReadScriptEventsTablesForObjects(ents.Game.Guis, "GUIs", in);
@@ -748,9 +749,9 @@ HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntitie
         return err;
 
     // Additional cursor properties required for the updated interaction system
-    if (!ReadAndAssertCount(in, "Cursors", static_cast<uint32_t>(_ents.Game.mcurs.size()), err))
+    if (!ReadAndAssertCount(in, "Cursors", static_cast<uint32_t>(_ents.Game.MouseCursors.size()), err))
         return err;
-    for (MouseCursor &mcur : _ents.Game.mcurs)
+    for (MouseCursorDef &mcur : _ents.Game.MouseCursors)
     {
         mcur.role = static_cast<CursorRole>(in->ReadInt32());
         // reserved
@@ -788,11 +789,11 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     if (ext_id.CompareNoCase("v360_fonts") == 0)
     {
         // NOTE: font number assertion was missed in this extension
-        for (FontInfo &finfo : _ents.Game.fonts)
+        for (FontDef &finfo : _ents.Game.Fonts)
         {
             // adjustable font outlines
             finfo.AutoOutlineThickness = in->ReadInt32();
-            finfo.AutoOutlineStyle = static_cast<enum FontInfo::AutoOutlineStyle>(in->ReadInt32());
+            finfo.AutoOutlineStyle = static_cast<enum FontDef::AutoOutlineStyle>(in->ReadInt32());
             // since 3.6.3
             finfo.CharacterSpacing = in->ReadInt32();
             finfo.CustomHeight = in->ReadInt32();
@@ -803,7 +804,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     else if (ext_id.CompareNoCase("v360_cursors") == 0)
     {
         // NOTE: cursor number assertion was missed in this extension
-        for (MouseCursor &mcur : _ents.Game.mcurs)
+        for (MouseCursorDef &mcur : _ents.Game.MouseCursors)
         {
             mcur.animdelay = in->ReadInt32();
             // reserved
@@ -830,17 +831,17 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
             return err;
         for (int i = 0; i < _ents.Game.numinvitems; ++i)
         {
-            _ents.Game.invinfo[i].name = StrUtil::ReadString(in);
+            _ents.Game.InventoryItems[i].name = StrUtil::ReadString(in);
         }
-        if (!ReadAndAssertCount(in, "cursors", static_cast<uint32_t>(_ents.Game.mcurs.size()), err))
+        if (!ReadAndAssertCount(in, "cursors", static_cast<uint32_t>(_ents.Game.MouseCursors.size()), err))
             return err;
-        for (MouseCursor &mcur : _ents.Game.mcurs)
+        for (MouseCursorDef &mcur : _ents.Game.MouseCursors)
         {
             mcur.name = StrUtil::ReadString(in);
         }
-        if (!ReadAndAssertCount(in, "audio clips", static_cast<uint32_t>(_ents.Game.audioClips.size()), err))
+        if (!ReadAndAssertCount(in, "audio clips", static_cast<uint32_t>(_ents.Game.AudioClips.size()), err))
             return err;
-        for (ScriptAudioClip &clip : _ents.Game.audioClips)
+        for (AudioClipDef &clip : _ents.Game.AudioClips)
         {
             clip.scriptName = StrUtil::ReadString(in);
             clip.fileName = StrUtil::ReadString(in);
@@ -982,11 +983,11 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     else if (ext_id.CompareNoCase("v400_customprops") == 0)
     {
         auto &game = _ents.Game;
-        game.audioclipProps.resize(game.audioClips.size());
+        game.audioclipProps.resize(game.AudioClips.size());
         game.dialogProps.resize(game.numdialog);
         game.guiProps.resize(game.numgui);
 
-        err = ReadCustomProperties(in, "audio clips", _ents.Game.audioClips.size(), game.audioclipProps);
+        err = ReadCustomProperties(in, "audio clips", _ents.Game.AudioClips.size(), game.audioclipProps);
         if (!err)
             return err;
         err = ReadCustomProperties(in, "dialogs", game.numdialog, game.dialogProps);
@@ -1014,9 +1015,9 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     }
     else if (ext_id.CompareNoCase("v400_fontfiles") == 0)
     {
-        if (!ReadAndAssertCount(in, "fonts", static_cast<uint32_t>(_ents.Game.fonts.size()), err))
+        if (!ReadAndAssertCount(in, "fonts", static_cast<uint32_t>(_ents.Game.Fonts.size()), err))
             return err;
-        for (FontInfo &finfo : _ents.Game.fonts)
+        for (FontDef &finfo : _ents.Game.Fonts)
         {
             finfo.Filename = StrUtil::ReadString(in);
         }

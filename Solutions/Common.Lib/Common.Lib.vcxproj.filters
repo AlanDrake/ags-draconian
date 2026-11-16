@@ -95,7 +95,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Common\game\audio_clip_type.cpp">
+    <ClCompile Include="..\..\Common\game\audio_clip_type_def.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\game\character_def.cpp">
@@ -104,28 +104,28 @@
     <ClCompile Include="..\..\Common\util\common.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\dialog_topic.cpp">
+    <ClCompile Include="..\..\Common\game\dialog_def.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\game\game_def.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\inventory_item_info.cpp">
+    <ClCompile Include="..\..\Common\game\inventory_item_def.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\mouse_cursor.cpp">
+    <ClCompile Include="..\..\Common\game\mouse_cursor_def.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\gfx\sprite_cache.cpp">
       <Filter>Source Files\gfx</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\view.cpp">
+    <ClCompile Include="..\..\Common\game\view_def.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\game\words_dictionary.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\script_audio_clip.cpp">
+    <ClCompile Include="..\..\Common\game\audio_clip_def.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\font\fonts.cpp">
@@ -592,7 +592,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Common\game\audio_clip_type.h">
+    <ClInclude Include="..\..\Common\game\audio_clip_type_def.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\game\character_def.h">
@@ -604,7 +604,7 @@
     <ClInclude Include="..\..\Common\game\common_defines.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\dialog_topic.h">
+    <ClInclude Include="..\..\Common\game\dialog_def.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\game\game_version.h">
@@ -616,22 +616,22 @@
     <ClInclude Include="..\..\Common\game\game_struct_defines.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\inventory_item_info.h">
+    <ClInclude Include="..\..\Common\game\inventory_item_def.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\mouse_cursor.h">
+    <ClInclude Include="..\..\Common\game\mouse_cursor_def.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\gfx\sprite_cache.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\view.h">
+    <ClInclude Include="..\..\Common\game\view_def.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\game\words_dictionary.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\script_audio_clip.h">
+    <ClInclude Include="..\..\Common\game\audio_clip_def.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\font\agsfontrenderer.h">

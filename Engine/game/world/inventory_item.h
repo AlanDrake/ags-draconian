@@ -17,6 +17,10 @@
 
 #include "game/dynobj/script_objects.h"
 
+struct InventoryItemDef;
+// The engine's inventory item; an alias of its definition until it holds more (PLAN.md 5.1a step 3)
+using InventoryItem = InventoryItemDef;
+
 // Tells if item_id is a valid inventory item index; if not, writes a script warning naming apiname.
 bool AssertInvItem(const char *apiname, int item_id);
 

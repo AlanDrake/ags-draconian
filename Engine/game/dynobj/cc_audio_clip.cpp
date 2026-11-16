@@ -13,10 +13,10 @@
 //=============================================================================
 #include "game/dynobj/cc_audio_clip.h"
 
+#include "game/audio_clip_def.h"
 #include "game/game.h"
 #include "game/game_context.h"
 #include "game/game_def.h"
-#include "game/script_audio_clip.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
@@ -34,12 +34,12 @@ size_t CCAudioClip::CalcSerializeSize(const void * /*address*/)
 
 void CCAudioClip::Serialize(const void *address, Stream *out)
 {
-    const ScriptAudioClip *ach = static_cast<const ScriptAudioClip *>(address);
+    const AudioClip *ach = static_cast<const AudioClip *>(address);
     out->WriteInt32(ach->id);
 }
 
 void CCAudioClip::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     int id = in->ReadInt32();
-    ccRegisterUnserializedPersistentObject(index, &Game::Current().audioClips[id], this);
+    ccRegisterUnserializedPersistentObject(index, &Game::Current().AudioClips[id], this);
 }

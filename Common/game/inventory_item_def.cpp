@@ -11,16 +11,16 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "game/inventory_item_info.h"
+#include "game/inventory_item_def.h"
 
 #include "game/common_defines.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
 
-/* static */ ScriptEventSchema InventoryItemInfo::_eventSchema = {{{"OnAnyClick", kInventoryEvent_AnyClick}}};
+/* static */ ScriptEventSchema InventoryItemDef::_eventSchema = {{{"OnAnyClick", kInventoryEvent_AnyClick}}};
 
-void InventoryItemInfo::RemapOldInteractions()
+void InventoryItemDef::RemapOldInteractions()
 {
     std::vector<ScriptEventHandler> old_interactions = interactions.GetHandlers();
     std::vector<ScriptEventHandler> new_interactions;
@@ -41,7 +41,7 @@ void InventoryItemInfo::RemapOldInteractions()
     interactions.SetHandlers(std::move(new_interactions));
 }
 
-void InventoryItemInfo::ReadFromFile(Stream *in, GameDataVersion game_ver)
+void InventoryItemDef::ReadFromFile(Stream *in, GameDataVersion /*game_ver*/)
 {
     name.ReadCount(in, LEGACY_MAX_INVENTORY_NAME_LENGTH);
     in->Seek(3); // alignment padding to int32
@@ -55,7 +55,7 @@ void InventoryItemInfo::ReadFromFile(Stream *in, GameDataVersion game_ver)
     in->Seek(3); // alignment padding to int32
 }
 
-void InventoryItemInfo::WriteToFile(Stream *out) const
+void InventoryItemDef::WriteToFile(Stream *out) const
 {
     name.WriteCount(out, LEGACY_MAX_INVENTORY_NAME_LENGTH);
     out->WriteByteCount(0, 3); // alignment padding to int32

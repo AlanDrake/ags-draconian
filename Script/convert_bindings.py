@@ -59,7 +59,7 @@ MANAGERS = {
     'char': 'myScriptStringImpl',
     'CharacterDef': 'ccDynamicCharacter',
     'ScriptAudioChannel': 'ccDynamicAudio',
-    'ScriptAudioClip': 'ccDynamicAudioClip',
+    'AudioClip': 'ccDynamicAudioClip',
     'ScriptDialog': 'ccDynamicDialog',
     'ScriptGUI': 'ccDynamicGUI',
     'ScriptHotspot': 'ccDynamicHotspot',

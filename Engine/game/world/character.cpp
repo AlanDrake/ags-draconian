@@ -43,7 +43,7 @@
 #include "game/system.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
-#include "game/view.h"
+#include "game/view_def.h"
 #include "game/world/inventory_item.h"
 #include "game/world/move_list.h"
 #include "game/world/object.h"
@@ -533,7 +533,7 @@ void Character_AddInventory(Character *ch, ScriptInvItem *item, int at_index)
 
     ch->set_item_quantity(inum, quant + 1);
 
-    if (game.options[OPT_DUPLICATEINV] == 0)
+    if (game.Options[OPT_DUPLICATEINV] == 0)
     {
         // Ensure it is only in the list once
         for (const auto &item_id : ch->Inventory)
@@ -566,7 +566,7 @@ void Character_AddInventory(Character *ch, ScriptInvItem *item, int at_index)
     {
         ch->Inventory.insert(ch->Inventory.begin() + at_index, inum);
     }
-    GUIE::MarkInventoryForUpdate(ch->ID, ch->ID == game.playercharacter);
+    GUIE::MarkInventoryForUpdate(ch->ID, ch->ID == game.PlayerCharacterID);
     if (ch == game.PlayerChar)
     {
         run_on_event(kScriptEvent_InventoryAdd, inum);
@@ -642,7 +642,7 @@ void Character_Animate6(Character *ch, int loop, int delay, int repeat, int bloc
 void Character_ChangeRoomAutoPosition(Character *ch, int room, int new_pos)
 {
     Game &game = Game::Current();
-    if (ch->ID != game.playercharacter)
+    if (ch->ID != game.PlayerCharacterID)
     {
         quit("!Character.ChangeRoomAutoPosition can only be used with the player character.");
     }
@@ -685,7 +685,7 @@ void Character_ChangeRoom(Character *ch, int room, int x, int y)
 void Character_ChangeRoomSetLoop(Character *ch, int room, int x, int y, int direction)
 {
     Game &game = Game::Current();
-    if (ch->ID != game.playercharacter)
+    if (ch->ID != game.PlayerCharacterID)
     {
         // NewRoomNPC
         if ((x != SCR_NO_VALUE) && (y != SCR_NO_VALUE))
@@ -811,7 +811,7 @@ DirectionalLoop GetDirectionalLoop(Character *ch, float x_diff, float y_diff, bo
     assert(dir_ratio != 0.f);
     y_diff *= dir_ratio; // dir ratio is a y/x relation
 
-    const ViewStruct &chview = Game::Current().Views[ch->View];
+    const View &chview = Game::Current().Views[ch->View];
     const bool has_down_loop = ((chview.numLoops > kDirLoop_Down) && (chview.loops[kDirLoop_Down].numFrames > 0));
     const bool has_up_loop = ((chview.numLoops > kDirLoop_Up) && (chview.loops[kDirLoop_Up].numFrames > 0));
     // NOTE: left and right loops are required to be present at all times (as 3.+ games did)
@@ -863,7 +863,7 @@ void FaceDirectionalLoop(Character *ch, int direction, int blocking_style)
     // Change facing only if the desired direction is different
     if (direction != ch->Loop)
     {
-        if ((game.options[OPT_CHARTURNWHENFACE] != 0) && ((ch->Flags & CHF_TURNWHENFACE) != 0) &&
+        if ((game.Options[OPT_CHARTURNWHENFACE] != 0) && ((ch->Flags & CHF_TURNWHENFACE) != 0) &&
             (!game.Events.InEntersScreen))
         {
             const bool use_diagloops = should_use_diagloops(ch, false /* allow 1 frame in loops */);
@@ -964,7 +964,7 @@ void Character_FollowCharacter(Character *ch, Character *to_follow, int distaway
     if ((eagerness < 0) || (eagerness > 250))
         quit("!FollowCharacterEx: invalid eagerness: must be 0-250");
 
-    if ((ch->ID == Game::Current().playercharacter) && (to_follow != nullptr) && (to_follow->Room != ch->Room))
+    if ((ch->ID == Game::Current().PlayerCharacterID) && (to_follow != nullptr) && (to_follow->Room != ch->Room))
     {
         quitprintf("!FollowCharacterEx: you cannot tell the player character %s, who is in room %d, to follow a "
                    "character %s who is in another room %d",
@@ -1112,7 +1112,7 @@ int Character_IsCollidingWithObject(Character *ch, ScriptObject *obj)
     if (!intersect.IsEmpty())
     {
         // If no pixel-perfect test is required, then the intersection is enough
-        if (game.options[OPT_PIXPERFECT] == 0)
+        if (game.Options[OPT_PIXPERFECT] == 0)
             return 1;
 
         // Pixel-perfect test: check if they're on a non-transparent bit of the object
@@ -1240,7 +1240,7 @@ void Character_LoseInventoryImpl(Character *ch, int item_id, int item_inv_index)
     else
     {
         // Remove one item of this kind (it will be the only item if no duplicates allowed)
-        if (no_item_left || (game.options[OPT_DUPLICATEINV] > 0))
+        if (no_item_left || (game.Options[OPT_DUPLICATEINV] > 0))
         {
             auto it_found = std::find(ch->Inventory.begin(), ch->Inventory.end(), item_id);
             if (it_found != ch->Inventory.end())
@@ -1250,7 +1250,7 @@ void Character_LoseInventoryImpl(Character *ch, int item_id, int item_inv_index)
         }
     }
     // Redraw active inventory window(s) for this character
-    GUIE::MarkInventoryForUpdate(char_id, char_id == game.playercharacter);
+    GUIE::MarkInventoryForUpdate(char_id, char_id == game.PlayerCharacterID);
 
     if (ch == game.PlayerChar)
     {
@@ -1363,13 +1363,13 @@ void Character_SetAsPlayer(Character *ch)
 {
     Game &game = Game::Current();
     // Set to same character, so ignore.
-    if (game.playercharacter == ch->ID)
+    if (game.PlayerCharacterID == ch->ID)
     {
         return;
     }
 
     setup_player_character(ch->ID);
-    GUIE::MarkInventoryForUpdate(game.playercharacter, true);
+    GUIE::MarkInventoryForUpdate(game.PlayerCharacterID, true);
     debug_script_log("%s is new player character", game.PlayerChar->ScriptName.GetCStr());
 
     // Within game_start, return now
@@ -1732,7 +1732,7 @@ void Character_RunInteraction(Character *ch, int mood)
     // Cursor mode must match the event index in "Interactions" table,
     // except when it does not have a "event" flag
     // TODO: do we need extra flag telling if to trigger "any click" for this mode?
-    const int evnt = (game.mcurs[mood].flags & MCF_EVENT) != 0 ? mood : -1;
+    const int evnt = (game.MouseCursors[mood].flags & MCF_EVENT) != 0 ? mood : -1;
     const int anyclick_evt = kCharacterEvent_AnyClick;
 
     // For USE verb: remember active inventory
@@ -1834,12 +1834,12 @@ void Character_SetActiveInventory(Character *ch, ScriptInvItem *item)
     {
         ch->ActiveInventory = -1;
 
-        if (ch->ID == game.playercharacter)
+        if (ch->ID == game.PlayerCharacterID)
         {
             if (is_current_cursor_mode(kCursorRole_UseInv))
                 set_cursor_mode(0); // change to the first enabled mode
         }
-        GUIE::MarkInventoryForUpdate(ch->ID, ch->ID == game.playercharacter);
+        GUIE::MarkInventoryForUpdate(ch->ID, ch->ID == game.PlayerCharacterID);
         return;
     }
 
@@ -1851,13 +1851,13 @@ void Character_SetActiveInventory(Character *ch, ScriptInvItem *item)
 
     ch->ActiveInventory = item->id;
 
-    if (ch->ID == game.playercharacter)
+    if (ch->ID == game.PlayerCharacterID)
     {
         // if it's the player character, update mouse cursor
         update_inv_cursor(item->id);
         set_cursor_mode_with_role(kCursorRole_UseInv, -1);
     }
-    GUIE::MarkInventoryForUpdate(ch->ID, ch->ID == game.playercharacter);
+    GUIE::MarkInventoryForUpdate(ch->ID, ch->ID == game.PlayerCharacterID);
 }
 
 int Character_GetAnimating(Character *ch)
@@ -2134,7 +2134,7 @@ void Character_SetIInventoryQuantity(Character *ch, int index, int quant)
     }
 
     ch->set_item_quantity(index, quant);
-    if (game.options[OPT_DUPLICATEINV] != 0)
+    if (game.Options[OPT_DUPLICATEINV] != 0)
     {
         if (quant > old_quant)
         {
@@ -2175,7 +2175,7 @@ void Character_SetIInventoryQuantity(Character *ch, int index, int quant)
             run_on_event(kScriptEvent_InventoryLose, index);
     }
 
-    GUIE::MarkInventoryForUpdate(ch->ID, ch->ID == game.playercharacter);
+    GUIE::MarkInventoryForUpdate(ch->ID, ch->ID == game.PlayerCharacterID);
 }
 
 // [DEPRECATED]
@@ -2416,7 +2416,7 @@ void Character_SetSpeechColor(Character *ch, int ncol)
 int Character_GetSpeechAnimationDelay(Character *ch)
 {
     Game &game = Game::Current();
-    if (game.options[OPT_GLOBALTALKANIMSPD] != 0)
+    if (game.Options[OPT_GLOBALTALKANIMSPD] != 0)
         return game.Play.talkanim_speed;
     else
         return ch->SpeechAnimationDelay;
@@ -2424,7 +2424,7 @@ int Character_GetSpeechAnimationDelay(Character *ch)
 
 void Character_SetSpeechAnimationDelay(Character *ch, int delay)
 {
-    if (Game::Current().options[OPT_GLOBALTALKANIMSPD] != 0)
+    if (Game::Current().Options[OPT_GLOBALTALKANIMSPD] != 0)
     {
         debug_script_warn("Character.SpeechAnimationDelay cannot be set when global speech animation speed is enabled");
         return;
@@ -3026,7 +3026,7 @@ void start_character_turning(Character *ch, int use_loop, bool use_diagloops)
     // If both directions are equally short, then use the global priority setting.
     else if (std::abs(to_idx - from_idx) == MAX_FACE_DIRECTIONS / 2)
     {
-        switch (game.options[OPT_TURNORDERPRIORITY])
+        switch (game.Options[OPT_TURNORDERPRIORITY])
         {
         case kScTurnOrder_Clockwise: clock_order = 1; break;
         case kScTurnOrder_CounterClockwise: clock_order = -1; break;
@@ -3079,7 +3079,7 @@ void fix_player_sprite(Character *ch, const MoveList &cmls)
 
     const int use_loop = GetDirectionalLoop(ch, xpmove, ypmove, cmls.GetRunParams().IsForward());
 
-    if ((game.options[OPT_CHARTURNWHENWALK] == 0) || ((ch->Flags & CHF_NOTURNWHENWALK) != 0))
+    if ((game.Options[OPT_CHARTURNWHENWALK] == 0) || ((ch->Flags & CHF_NOTURNWHENWALK) != 0))
     {
         ch->Loop = use_loop;
         return;
@@ -3445,7 +3445,7 @@ int wantMoveNow(Character *ch)
 void setup_player_character(int char_id)
 {
     Game &game = Game::Current();
-    game.playercharacter = char_id;
+    game.PlayerCharacterID = char_id;
     game.PlayerChar = &game.Characters[char_id];
     game.ScPlayerCharPtr = ccGetObjectHandleFromAddress(game.PlayerChar);
 }
@@ -3573,7 +3573,7 @@ void update_character_scale(Game &game, Room &room, int char_id)
     int zoom, zoom_offs, scale_width, scale_height;
     update_object_scale(game, room, zoom, scale_width, scale_height, ch.X, ch.Y, pic, ch.Zoom,
                         (ch.Flags & CHF_MANUALSCALING) == 0);
-    zoom_offs = (game.options[OPT_SCALECHAROFFSETS] != 0) ? zoom : 100;
+    zoom_offs = (game.Options[OPT_SCALECHAROFFSETS] != 0) ? zoom : 100;
 
     // Save calculated properties and recalc GS
     ch.Zoom = zoom;
@@ -3696,7 +3696,7 @@ void DisplayThoughtCore(int char_id, const char *displbuf)
         game.TextLayout.SourceTextLength = len;
 
     int width = -1;
-    if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts) || (game.Characters[char_id].ThinkView <= 0))
+    if ((game.Options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts) || (game.Characters[char_id].ThinkView <= 0))
     {
         // lucasarts-style, so we want a speech bubble actually above
         // their head (or if they have no think anim in Sierra-style)
@@ -3815,11 +3815,11 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
         quitprintf("!Character.Say: attempted to use view %d for animation, but it does not exist", use_view + 1);
     }
 
-    if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
+    if (game.Options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
         remove_screen_overlay(OVER_COMPLETE);
     set_our_eip(1500);
 
-    if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts)
+    if (game.Options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts)
         allow_shrink = kDisplayTextShrink_Left;
 
     // If has a valid speech view, and idle anim in progress for the character, then stop it
@@ -3901,7 +3901,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
 
         set_our_eip(152);
 
-        if ((game.options[OPT_SPEECHTYPE] > kSpeechStyle_LucasArts) && (use_view >= 0) &&
+        if ((game.Options[OPT_SPEECHTYPE] > kSpeechStyle_LucasArts) && (use_view >= 0) &&
             (game.Views[use_view].numLoops > 0))
         {
             // Sierra-style close-up portrait
@@ -3912,8 +3912,8 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                 // if the portraits are set to Alternate, OR they are
                 // set to Left but swap_portrait has been set to 1 (the old
                 // method for enabling it), then swap them round
-                if ((game.options[OPT_PORTRAITSIDE] == PORTRAIT_ALTERNATE) ||
-                    ((game.options[OPT_PORTRAITSIDE] == 0) && (game.Play.swap_portrait_side > 0)))
+                if ((game.Options[OPT_PORTRAITSIDE] == PORTRAIT_ALTERNATE) ||
+                    ((game.Options[OPT_PORTRAITSIDE] == 0) && (game.Play.swap_portrait_side > 0)))
                 {
                     if (game.Play.swap_portrait_side == 2)
                         game.Play.swap_portrait_side = 1;
@@ -3921,18 +3921,18 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                         game.Play.swap_portrait_side = 2;
                 }
 
-                if (game.options[OPT_PORTRAITSIDE] == PORTRAIT_XPOSITION)
+                if (game.Options[OPT_PORTRAITSIDE] == PORTRAIT_XPOSITION)
                 {
                     // Portrait side based on character X-positions
                     if (game.Play.swap_portrait_lastchar < 0)
                     {
                         // No previous character been spoken to
                         // therefore, assume it's the player
-                        if (game.playercharacter != char_id &&
-                            game.Characters[game.playercharacter].Room == speaking_char->Room &&
-                            game.Characters[game.playercharacter].is_enabled())
+                        if (game.PlayerCharacterID != char_id &&
+                            game.Characters[game.PlayerCharacterID].Room == speaking_char->Room &&
+                            game.Characters[game.PlayerCharacterID].is_enabled())
                         {
-                            game.Play.swap_portrait_lastchar = game.playercharacter;
+                            game.Play.swap_portrait_lastchar = game.PlayerCharacterID;
                         }
                         else
                         {
@@ -3968,7 +3968,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
             else
                 // If the portrait side is based on the character's X position and the same character is
                 // speaking, compare against the previous *previous* character to see where the speech should be
-                if (game.options[OPT_PORTRAITSIDE] == PORTRAIT_XPOSITION && game.Play.swap_portrait_lastlastchar >= 0)
+                if (game.Options[OPT_PORTRAITSIDE] == PORTRAIT_XPOSITION && game.Play.swap_portrait_lastlastchar >= 0)
                 {
                     if (speaking_char->X > game.Characters[game.Play.swap_portrait_lastlastchar].X)
                     {
@@ -3981,16 +3981,16 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
             // Determine whether to display the portrait on the left or right
             int portrait_on_right = 0;
 
-            if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
+            if (game.Options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
             {
             } // always on left with QFG-style speech
             else if ((game.Play.swap_portrait_side == 1) || (game.Play.swap_portrait_side == -1) ||
-                     (game.options[OPT_PORTRAITSIDE] == PORTRAIT_RIGHT))
+                     (game.Options[OPT_PORTRAITSIDE] == PORTRAIT_RIGHT))
                 portrait_on_right = 1;
 
 
             int bigx = 0, bigy = 0, kk;
-            ViewStruct *viptr = &game.Views[use_view];
+            View *viptr = &game.Views[use_view];
             for (kk = 0; kk < viptr->loops[0].numFrames; kk++)
             {
                 int tw = game.SpriteInfos[viptr->loops[0].frames[kk].pic].Width;
@@ -4003,7 +4003,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
 
             // if they accidentally used a large full-screen image as the sierra-style
             // talk view, correct it
-            if ((game.options[OPT_SPEECHTYPE] != kSpeechStyle_QFG4) && (bigx > ui_view.GetWidth() - 50))
+            if ((game.Options[OPT_SPEECHTYPE] != kSpeechStyle_QFG4) && (bigx > ui_view.GetWidth() - 50))
                 bigx = ui_view.GetWidth() - 50;
 
             if (width > 0)
@@ -4018,7 +4018,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
             game.Speech.Qfg4OverridePlacementX = false;
             game.Speech.Qfg4OverridePlacementY = false;
 
-            if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
+            if (game.Options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
             {
                 // QFG4-style whole screen picture
                 closeupface.reset(BitmapHelper::CreateBitmap(ui_view.GetWidth(), ui_view.GetHeight()));
@@ -4127,7 +4127,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                 tdxp += get_textwindow_border_width(game.Play.speech_textwindow_gui) / 2;
                 allow_shrink = kDisplayTextShrink_Right;
             }
-            if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
+            if (game.Options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
                 overlay_x = 0;
             game.Speech.FaceTalking = add_screen_overlay(false, overlay_x, ovr_yp, ovr_type, std::move(closeupface));
             game.Speech.FaceTalkView = use_view;
@@ -4275,7 +4275,7 @@ int GetLipSyncFrame(const char *curtex, int *stroffs)
 {
     Game &game = Game::Current();
     size_t bestfit_len = 0;
-    int bestfit = game.default_lipsync_frame;
+    int bestfit = game.DefaultLipSyncFrame;
     for (int i = 0; i < MAXLIPSYNCFRAMES; i++)
     {
         char *tptr = game.lipSyncFrameLetters[i];
@@ -4338,7 +4338,7 @@ void restore_characters()
     Game &game = Game::Current();
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        game.Characters[i].OffsetZoom = (game.options[OPT_SCALECHAROFFSETS] != 0) ? game.Characters[i].Zoom : 100;
+        game.Characters[i].OffsetZoom = (game.Options[OPT_SCALECHAROFFSETS] != 0) ? game.Characters[i].Zoom : 100;
     }
 }
 
@@ -4392,7 +4392,7 @@ void UpdateInventory()
         for (int item = 0; (item < game.numinvitems) && (ch.Inventory.size() != MAX_CHAR_INVENTORY); ++item)
         {
             int item_count = ch.get_item_quantity(item);
-            if ((game.options[OPT_DUPLICATEINV] == 0) && (item_count > 1))
+            if ((game.Options[OPT_DUPLICATEINV] == 0) && (item_count > 1))
                 item_count = 1;
 
             for (int i = 0; (i < item_count) && (ch.Inventory.size() != MAX_CHAR_INVENTORY); ++i)
@@ -4401,7 +4401,7 @@ void UpdateInventory()
             }
         }
     }
-    GUIE::MarkInventoryForUpdate(game.playercharacter, true);
+    GUIE::MarkInventoryForUpdate(game.PlayerCharacterID, true);
 }
 
 //=============================================================================

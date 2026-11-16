@@ -129,6 +129,6 @@ std::unique_ptr<SoundClip> load_sound_clip(const AssetPath &apath, const char *e
         return nullptr;
     }
 
-    const auto sound_type = ScriptAudioClip::GetAudioFileTypeFromExt(ext_hint.GetCStr());
+    const auto sound_type = AudioClip::GetAudioFileTypeFromExt(ext_hint.GetCStr());
     return std::unique_ptr<SoundClip>(new SoundClip(slot, sound_type, loop));
 }

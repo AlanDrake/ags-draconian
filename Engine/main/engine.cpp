@@ -156,9 +156,9 @@ static void fill_game_properties(StringOrderMap &map)
     map["resolution_height"] = StrUtil::IntToString(game.GetGameRes().Height);
     map["resolution_bpp"] = StrUtil::IntToString(game.GetColorDepth());
     map["render_at_screenres"] =
-        StrUtil::IntToString(game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined
+        StrUtil::IntToString(game.Options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined
                                  ? -1
-                                 : (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled ? 1 : 0));
+                                 : (game.Options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled ? 1 : 0));
 }
 
 // Runs the setup application, if the platform has one built in (Windows only).
@@ -659,13 +659,13 @@ void engine_init_game_settings()
     // Since 4.0 AGS engine always works in UTF-8 mode
     set_uformat(U_UTF8);
     String game_encoding;
-    if (game.options[OPT_GAMETEXTENCODING] == 65001) // utf-8 codepage number
+    if (game.Options[OPT_GAMETEXTENCODING] == 65001) // utf-8 codepage number
         game_encoding = "UTF-8";
     else
         game_encoding = "ASCII";
     Debug::Printf("Game text encoding: %s, text language: %s", game_encoding.GetCStr(),
                   game.GameTextLanguage.IsEmpty() ? "not set" : game.GameTextLanguage.GetCStr());
-    if (game.options[OPT_GAMETEXTENCODING] != 65001)
+    if (game.Options[OPT_GAMETEXTENCODING] != 65001)
         Debug::Printf(kDbgMsg_Warn, "WARNING: game's text encoding is not UTF-8, and may be displayed incorrectly");
 
     int i;
@@ -682,15 +682,15 @@ void engine_init_game_settings()
     {
         // The cursor graphics are assigned to mousecurs[] and so cannot
         // be removed from memory
-        if (game.mcurs[i].pic >= 0)
-            services.Sprites.PrecacheSprite(game.mcurs[i].pic);
+        if (game.MouseCursors[i].pic >= 0)
+            services.Sprites.PrecacheSprite(game.MouseCursors[i].pic);
 
         // just in case they typed an invalid view number in the editor
-        if (game.mcurs[i].view >= game.numviews)
-            game.mcurs[i].view = -1;
+        if (game.MouseCursors[i].view >= game.numviews)
+            game.MouseCursors[i].view = -1;
 
-        if (game.mcurs[i].view >= 0)
-            precache_view(game.mcurs[i].view);
+        if (game.MouseCursors[i].view >= 0)
+            precache_view(game.MouseCursors[i].view);
     }
     // may as well preload the character gfx
     if (game.PlayerChar->View >= 0)
@@ -728,29 +728,29 @@ void engine_init_game_settings()
     // Add all inventory items with "starts with" flag to the player character
     for (i = 0; i < game.numinvitems; i++)
     {
-        if (game.invinfo[i].flags & IFLG_STARTWITH)
+        if (game.InventoryItems[i].flags & IFLG_STARTWITH)
             game.PlayerChar->set_item_quantity(i, 1);
     }
 
     //
     // TODO: following big initialization sequence could be in GameState ctor
     // copy the value set by the editor
-    if (game.options[OPT_GLOBALTALKANIMSPD] >= 0)
+    if (game.Options[OPT_GLOBALTALKANIMSPD] >= 0)
     {
-        game.Play.talkanim_speed = game.options[OPT_GLOBALTALKANIMSPD];
-        game.options[OPT_GLOBALTALKANIMSPD] = 1;
+        game.Play.talkanim_speed = game.Options[OPT_GLOBALTALKANIMSPD];
+        game.Options[OPT_GLOBALTALKANIMSPD] = 1;
     }
     else
     {
-        game.Play.talkanim_speed = -game.options[OPT_GLOBALTALKANIMSPD] - 1;
-        game.options[OPT_GLOBALTALKANIMSPD] = 0;
+        game.Play.talkanim_speed = -game.Options[OPT_GLOBALTALKANIMSPD] - 1;
+        game.Options[OPT_GLOBALTALKANIMSPD] = 0;
     }
     game.Play.inv_item_wid = 40;
     game.Play.inv_item_hit = 22;
     game.Play.messagetime = -1;
     game.Play.disabled_user_interface = 0;
     game.Play.gscript_timer = -1;
-    game.Play.debug_mode = game.options[OPT_DEBUGMODE];
+    game.Play.debug_mode = game.Options[OPT_DEBUGMODE];
     game.Play.text_speed = 15;
     game.Play.text_min_display_time_ms = 1000;
     game.Play.ignore_user_input_after_text_timeout_ms = 500;
@@ -767,7 +767,7 @@ void engine_init_game_settings()
     game.Play.dialog_options_textalign = kHAlignLeft;
     // Make the default text alignment to the right with right-to-left text;
     // except speech text, which is centered by default
-    if (game.options[OPT_RIGHTLEFTWRITE])
+    if (game.Options[OPT_RIGHTLEFTWRITE])
     {
         game.Play.text_align = kHAlignRight;
         if (game.Play.GetRBSwitches()[kRBO_ApplyDialogOptionTextAlignment])
@@ -797,7 +797,7 @@ void engine_init_game_settings()
     game.Play.audio_master_volume = 100;
     game.Play.screen_flipped = 0;
     game.Play.speech_mode = kSpeech_VoiceText;
-    game.Play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)game.options[OPT_NOSKIPTEXT]);
+    game.Play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)game.Options[OPT_NOSKIPTEXT]);
     game.Play.speech_volume = 255;
     game.Play.normal_font = 0;
     game.Play.speech_font = 1;
@@ -845,7 +845,7 @@ void engine_init_game_settings()
     game.Play.fade_to_red = 0;
     game.Play.fade_to_green = 0;
     game.Play.fade_to_blue = 0;
-    game.Play.show_single_dialog_option = game.options[OPT_DISPLAYSINGLEDIALOGOPTION];
+    game.Play.show_single_dialog_option = game.Options[OPT_DISPLAYSINGLEDIALOGOPTION];
     game.Play.keep_screen_during_instant_transition = 0;
     game.Play.read_dialog_option_colour = -1;
     game.Play.stop_dialog_at_end = DIALOG_NONE;
@@ -859,9 +859,9 @@ void engine_init_game_settings()
     game.Play.speech_in_post_state = false;
     game.Play.complete_overlay_on = 0;
     game.Play.text_overlay_on = 0;
-    game.Play.narrator_speech = game.playercharacter;
+    game.Play.narrator_speech = game.PlayerCharacterID;
     game.Play.crossfading_out_channel = 0;
-    game.Play.speech_textwindow_gui = game.options[OPT_TWCUSTOM];
+    game.Play.speech_textwindow_gui = game.Options[OPT_TWCUSTOM];
     if (game.Play.speech_textwindow_gui == 0)
         game.Play.speech_textwindow_gui = -1;
     game.Play.game_name = game.gamename;
@@ -874,13 +874,13 @@ void engine_init_game_settings()
     game.Play.face_dir_ratio = game.faceDirectionRatio;
 
     GUI::DataVersion = game.LoadedDataVersion;
-    GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
-    GUI::Options.ClipControls = game.options[OPT_CLIPGUICONTROLS] != 0;
+    GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.Options[OPT_DISABLEOFF]);
+    GUI::Options.ClipControls = game.Options[OPT_CLIPGUICONTROLS] != 0;
     // Force GUI metrics recalculation, accomodating for loaded fonts
     GUIE::MarkForFontUpdate(-1);
 
     memset(&room.WalkableAreasOn[0], 1, MAX_WALK_AREAS);
-    game.Play.default_audio_type_volumes.resize(game.audioClipTypes.size(), -1);
+    game.Play.default_audio_type_volumes.resize(game.AudioClipTypes.size(), -1);
 
     if (!services.Config.Translation.IsEmpty())
         Game_ChangeTranslation(services.Config.Translation.GetCStr());
@@ -891,13 +891,13 @@ void engine_init_game_settings()
     set_our_eip(-4);
     services.Input.MouseY = 100; // stop icon bar popping up
 
-    set_game_speed(game.options[OPT_GAMEFPS]);
+    set_game_speed(game.Options[OPT_GAMEFPS]);
 
     // We use same variable to read config and be used at runtime for now,
     // so update it here with regards to game design option
     services.Config.RenderAtScreenRes =
-        (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined && services.Config.RenderAtScreenRes) ||
-        game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled;
+        (game.Options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined && services.Config.RenderAtScreenRes) ||
+        game.Options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled;
 
     // TODO: InitGameState already applies these once, but the defaults set above come after it
     // and overwrite part of them; the default game settings are spread across several

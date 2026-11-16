@@ -27,7 +27,7 @@ extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 #include "util/common.h" // quit
 #include "game/game_def.h"
 #include "gfx/sprite_cache.h"
-#include "game/view.h"
+#include "game/view_def.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "game/room_file.h"
@@ -638,7 +638,7 @@ void DrawFontAt(HDC hdc, int fontnum, bool only_valid_chars,
     }
 
     const Rect bbox = get_font_glyph_bbox(fontnum);
-    const int font_y_offset = thisgame.fonts[fontnum].YOffset; // hack to avoid YOffset in the preview table
+    const int font_y_offset = thisgame.Fonts[fontnum].YOffset; // hack to avoid YOffset in the preview table
     const ::Point char_off = ::Point(std::max(0, -bbox.Left), std::max(0, -bbox.Top) - font_y_offset);
     int char_count = 0;
     if (only_valid_chars)
@@ -697,9 +697,9 @@ void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum, bool right
     if (!is_font_loaded(fontnum))
         reload_font(fontnum);
 
-    if (use_outline && (thisgame.fonts[fontnum].Outline >= 0))
+    if (use_outline && (thisgame.Fonts[fontnum].Outline >= 0))
     {
-        int outline_font = thisgame.fonts[fontnum].Outline;
+        int outline_font = thisgame.Fonts[fontnum].Outline;
         if (!is_font_loaded(outline_font))
             reload_font(outline_font);
     }
@@ -729,7 +729,7 @@ void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum, bool right
 
     const bool is_shaded_wfn = get_wfn_font_bits_per_pixel(fontnum) > 1;
     const bool has_auto_outline = use_outline &&
-        thisgame.fonts[fontnum].Outline == FONT_OUTLINE_AUTO;
+        thisgame.Fonts[fontnum].Outline == FONT_OUTLINE_AUTO;
 
     tempblock->Fill(is_shaded_wfn && has_auto_outline ?
         makeacol32(85, 85, 85, 255) : 0);
@@ -770,7 +770,7 @@ void proportionalDraw (int new_width, int sprnum, int*newx, int*newy) {
   newy[0] = newsizy;
 }
 
-static void doDrawViewLoop(HDC hdc, const std::vector<::ViewFrame> &frames,
+static void doDrawViewLoop(HDC hdc, const std::vector<::ViewFrameDef> &frames,
     int x, int y, int size, const std::vector<int> &cursel)
 {
     int wtoDraw = size * frames.size();
@@ -1152,7 +1152,7 @@ void sort_out_palette(Common::Bitmap *toimp, RGB*itspal, bool useBgSlots, int tr
 
 bool reload_font(int curFont)
 {
-    return load_font_size(curFont, thisgame.fonts[curFont]);
+    return load_font_size(curFont, thisgame.Fonts[curFont]);
 }
 
 void unload_font(int curFont)
@@ -1544,10 +1544,10 @@ void GameUpdated(Game ^game, bool forceUpdate)
   thisgame.color_depth = (int)game->Settings->ColorDepth;
   SetGameResolution(game);
 
-  thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
-  thisgame.options[OPT_CLIPGUICONTROLS] = game->Settings->ClipGUIControls;
-  thisgame.options[OPT_GAMETEXTENCODING] = game->TextEncoding->CodePage;
-  AGS::Common::GUI::Options.ClipControls = thisgame.options[OPT_CLIPGUICONTROLS] != 0;
+  thisgame.Options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
+  thisgame.Options[OPT_CLIPGUICONTROLS] = game->Settings->ClipGUIControls;
+  thisgame.Options[OPT_GAMETEXTENCODING] = game->TextEncoding->CodePage;
+  AGS::Common::GUI::Options.ClipControls = thisgame.Options[OPT_CLIPGUICONTROLS] != 0;
 
   // ensure that the sprite import knows about pal slots 
   for (int i = 0; i < 256; i++) {
@@ -1563,7 +1563,7 @@ void GameUpdated(Game ^game, bool forceUpdate)
 
   // Reload native fonts and update font information in the managed component
   thisgame.numfonts = game->Fonts->Count;
-  thisgame.fonts.resize(thisgame.numfonts);
+  thisgame.Fonts.resize(thisgame.numfonts);
   for (int i = 0; i < thisgame.numfonts; i++) 
   {
       GameFontUpdated(game, i, forceUpdate);
@@ -1573,7 +1573,7 @@ void GameUpdated(Game ^game, bool forceUpdate)
 void GameFontAdded(Game ^game, int fontNumber)
 {
     thisgame.numfonts = game->Fonts->Count;
-    thisgame.fonts.resize(thisgame.numfonts);
+    thisgame.Fonts.resize(thisgame.numfonts);
     for (int i = fontNumber; i < thisgame.numfonts; i++) 
     {
         GameFontUpdated(game, i, true);
@@ -1583,7 +1583,7 @@ void GameFontAdded(Game ^game, int fontNumber)
 void GameFontDeleted(Game ^game, int fontNumber)
 {
     thisgame.numfonts = game->Fonts->Count;
-    thisgame.fonts.resize(thisgame.numfonts);
+    thisgame.Fonts.resize(thisgame.numfonts);
     freefont(fontNumber);
     for (int i = fontNumber; i < thisgame.numfonts; i++) 
     {
@@ -1597,7 +1597,7 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     if (fontNumber < 0 || fontNumber >= thisgame.numfonts)
         return;
 
-    FontInfo &font_info = thisgame.fonts[fontNumber];
+    FontDef &font_info = thisgame.Fonts[fontNumber];
     AGS::Types::Font ^font = game->Fonts[fontNumber];
 
     AGSString old_filename = font_info.Filename;
@@ -1631,7 +1631,7 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
         font_info.Outline = FONT_OUTLINE_NONE;
         break;
     }
-    font_info.AutoOutlineStyle = static_cast<enum FontInfo::AutoOutlineStyle>(font->AutoOutlineStyle);
+    font_info.AutoOutlineStyle = static_cast<enum FontDef::AutoOutlineStyle>(font->AutoOutlineStyle);
     font_info.AutoOutlineThickness = font->AutoOutlineThickness;
 
     forceUpdate |=
@@ -1671,7 +1671,7 @@ void DrawTextUsingFontAt(HDC hdc, String ^text, int fontnum, bool right_to_left,
 
 void drawViewLoop (HDC hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel)
 {
-    std::vector<::ViewFrame> frames(loopToDraw->Frames->Count);
+    std::vector<::ViewFrameDef> frames(loopToDraw->Frames->Count);
     for (int i = 0; i < loopToDraw->Frames->Count; ++i) 
     {
 	    frames[i].pic = loopToDraw->Frames[i]->Image;

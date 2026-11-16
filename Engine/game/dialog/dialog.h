@@ -15,8 +15,12 @@
 
 #include <vector>
 
-#include "game/dialog_topic.h"
+#include "game/dialog_def.h"
 #include "game/dynobj/script_objects.h"
+
+// The engine's dialog; an alias of its definition until it holds more (PLAN.md 5.1a step 3)
+using Dialog = DialogDef;
+using DialogOption = DialogOptionDef;
 
 // Script function: the dialog's number
 int Dialog_GetID(ScriptDialog *script_dialog);

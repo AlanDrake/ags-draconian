@@ -75,7 +75,7 @@ static HError ReadFontOverrides(Translation &tra, Stream *in)
 
     for (uint32_t i = 0; i < override_count; ++i)
     {
-        FontInfo finfo;
+        FontDef finfo;
         const int override_index = in->ReadInt32();
         // ID >= 0 means a replacement is based on another game font
         // ID < 0 means a replacement is based on a font file
@@ -92,7 +92,7 @@ static HError ReadFontOverrides(Translation &tra, Stream *in)
         finfo.SetFlags(flags);
         // This corresponds to the "v360_fonts" extension in game data
         finfo.AutoOutlineThickness = in->ReadInt32();
-        finfo.AutoOutlineStyle = static_cast<enum FontInfo::AutoOutlineStyle>(in->ReadInt32());
+        finfo.AutoOutlineStyle = static_cast<enum FontDef::AutoOutlineStyle>(in->ReadInt32());
         finfo.CharacterSpacing = in->ReadInt32();
         finfo.CustomHeight = in->ReadInt32();
         in->ReadInt32(); // reserved

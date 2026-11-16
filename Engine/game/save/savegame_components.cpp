@@ -19,19 +19,19 @@
 #include <vector>
 
 #include "debug/out.h"
-#include "game/audio_clip_type.h"
+#include "game/audio_clip_type_def.h"
 #include "game/character_def.h"
 #include "game/common_defines.h"
 #include "game/dialog/dialog.h"
-#include "game/dialog_topic.h"
+#include "game/dialog_def.h"
 #include "game/dynobj/cc_serializer.h"
 #include "game/game.h"
 #include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
-#include "game/inventory_item_info.h"
+#include "game/inventory_item_def.h"
 #include "game/main_game_file.h"
-#include "game/mouse_cursor.h"
+#include "game/mouse_cursor_def.h"
 #include "game/render/draw.h"
 #include "game/render/dynamic_sprite.h"
 #include "game/render/overlay.h"
@@ -43,8 +43,9 @@
 #include "game/ui/button.h"
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
-#include "game/view.h"
+#include "game/view_def.h"
 #include "game/world/character.h"
+#include "game/world/inventory_item.h"
 #include "game/world/move_list.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"
@@ -276,7 +277,7 @@ void WriteCharacterDef(const Character &ch, Stream *out)
     out->WriteInt16(ch.BlockingY);
 }
 
-void ReadInventoryItemInfo(InventoryItemInfo &item, Stream *in, InvitemSvgVersion svg_ver)
+void ReadInventoryItemDef(InventoryItem &item, Stream *in, InvitemSvgVersion svg_ver)
 {
     item.name = StrUtil::ReadString(in);
     item.pic = in->ReadInt32();
@@ -305,7 +306,7 @@ void ReadInventoryItemInfo(InventoryItemInfo &item, Stream *in, InvitemSvgVersio
     }
 }
 
-void WriteInventoryItemInfo(const InventoryItemInfo &item, Stream *out)
+void WriteInventoryItemDef(const InventoryItem &item, Stream *out)
 {
     StrUtil::WriteString(item.name, out);
     out->WriteInt32(item.pic);
@@ -340,7 +341,7 @@ void WriteMouseCursor(const MouseCursor &cursor, Stream *out)
     out->WriteInt32(cursor.animdelay);
 }
 
-void ReadDialogOption(DialogTopic::DialogOption &opt, Stream *in)
+void ReadDialogOption(DialogOption &opt, Stream *in)
 {
     opt.Text = StrUtil::ReadString(in);
     opt.Flags = in->ReadInt32();
@@ -348,7 +349,7 @@ void ReadDialogOption(DialogTopic::DialogOption &opt, Stream *in)
         opt.Text = opt.OriginalText;
 }
 
-void ReadDialogTopic(DialogTopic &topic, Stream *in, DialogTopicSvgVersion svg_ver, uint32_t *read_opt_count)
+void ReadDialogTopic(Dialog &topic, Stream *in, DialogTopicSvgVersion svg_ver, uint32_t *read_opt_count)
 {
     if ((svg_ver <= kDialogTopicSvgVer_Initial) || (svg_ver == kDialogTopicSvgVer_40008))
     {
@@ -369,7 +370,7 @@ void ReadDialogTopic(DialogTopic &topic, Stream *in, DialogTopicSvgVersion svg_v
         for (opt_idx = 0; opt_idx < option_records && opt_idx < topic.Options.size(); ++opt_idx)
             ReadDialogOption(topic.Options[opt_idx], in);
         // skip if there's any mismatched count (?)
-        DialogTopic::DialogOption dummy;
+        DialogOption dummy;
         for (; opt_idx < option_records; ++opt_idx)
             ReadDialogOption(dummy, in);
 
@@ -378,7 +379,7 @@ void ReadDialogTopic(DialogTopic &topic, Stream *in, DialogTopicSvgVersion svg_v
     }
 }
 
-void WriteDialogTopic(const DialogTopic &topic, Stream *out)
+void WriteDialogTopic(const Dialog &topic, Stream *out)
 {
     out->WriteInt32(topic.Options.size());
     for (auto &opt : topic.Options)
@@ -406,19 +407,19 @@ void WriteAudioClipType(const AudioClipType &type, Stream *out)
 void ReadGameSetupStruct(GameDef &setup, Stream *in, GameStateSvgVersion svg_ver)
 {
     // of GameDef
-    in->ReadArrayOfInt32(setup.options, OPT_HIGHESTOPTION_321 + 1);
-    setup.options[OPT_LIPSYNCTEXT] = in->ReadInt32();
-    setup.playercharacter = in->ReadInt32();
-    setup.dialog_bullet = in->ReadInt32();
+    in->ReadArrayOfInt32(setup.Options, OPT_HIGHESTOPTION_321 + 1);
+    setup.Options[OPT_LIPSYNCTEXT] = in->ReadInt32();
+    setup.PlayerCharacterID = in->ReadInt32();
+    setup.DialogBulletSprite = in->ReadInt32();
     // legacy uint16 values of a inv cursor hotdot and cross colors
-    setup.inv_hot_color = RemapFromLegacyColourNumber(setup, in->ReadInt16());
-    setup.inv_hot_cross_color = RemapFromLegacyColourNumber(setup, in->ReadInt16());
-    setup.inv_hot_sprite = in->ReadInt32();
-    setup.default_lipsync_frame = in->ReadInt32();
+    setup.InventoryCursorHotspotColor = RemapFromLegacyColourNumber(setup, in->ReadInt16());
+    setup.InventoryCursorHotspotCrossColor = RemapFromLegacyColourNumber(setup, in->ReadInt16());
+    setup.InventoryCursorHotspotSprite = in->ReadInt32();
+    setup.DefaultLipSyncFrame = in->ReadInt32();
     if (svg_ver >= kGSSvgVersion_400_27)
     {
-        setup.inv_hot_color = in->ReadInt32();
-        setup.inv_hot_cross_color = in->ReadInt32();
+        setup.InventoryCursorHotspotColor = in->ReadInt32();
+        setup.InventoryCursorHotspotCrossColor = in->ReadInt32();
         in->ReadInt32(); // reserved
         in->ReadInt32();
     }
@@ -427,17 +428,17 @@ void ReadGameSetupStruct(GameDef &setup, Stream *in, GameStateSvgVersion svg_ver
 void WriteGameSetupStruct(const GameDef &setup, Stream *out)
 {
     // of GameDef
-    out->WriteArrayOfInt32(setup.options, OPT_HIGHESTOPTION_321 + 1);
-    out->WriteInt32(setup.options[OPT_LIPSYNCTEXT]);
-    out->WriteInt32(setup.playercharacter);
-    out->WriteInt32(setup.dialog_bullet);
+    out->WriteArrayOfInt32(setup.Options, OPT_HIGHESTOPTION_321 + 1);
+    out->WriteInt32(setup.Options[OPT_LIPSYNCTEXT]);
+    out->WriteInt32(setup.PlayerCharacterID);
+    out->WriteInt32(setup.DialogBulletSprite);
     out->WriteInt16(0); // [DEPRECATED] uint16 value of a inv cursor hotdot color
     out->WriteInt16(0); // [DEPRECATED] uint16 value of a inv cursor hot cross color
-    out->WriteInt32(setup.inv_hot_sprite);
-    out->WriteInt32(setup.default_lipsync_frame);
+    out->WriteInt32(setup.InventoryCursorHotspotSprite);
+    out->WriteInt32(setup.DefaultLipSyncFrame);
     // kGSSvgVersion_400_27
-    out->WriteInt32(setup.inv_hot_color);
-    out->WriteInt32(setup.inv_hot_cross_color);
+    out->WriteInt32(setup.InventoryCursorHotspotColor);
+    out->WriteInt32(setup.InventoryCursorHotspotCrossColor);
     out->WriteInt32(0);
     out->WriteInt32(0);
 }
@@ -869,14 +870,14 @@ HSaveError WriteAudio(Stream *out)
 {
     Game &game = Game::Current();
     // Game content assertion
-    out->WriteInt32(game.audioClipTypes.size());
+    out->WriteInt32(game.AudioClipTypes.size());
     out->WriteInt8(TOTAL_AUDIO_CHANNELS);
-    out->WriteInt8(game.numGameChannels);
+    out->WriteInt8(game.GameChannelCount);
     out->WriteInt16(0); // reserved 2 bytes (remains of int32)
     // Audio types
-    for (size_t i = 0; i < game.audioClipTypes.size(); ++i)
+    for (size_t i = 0; i < game.AudioClipTypes.size(); ++i)
     {
-        WriteAudioClipType(game.audioClipTypes[i], out);
+        WriteAudioClipType(game.AudioClipTypes[i], out);
         out->WriteInt32(game.Play.default_audio_type_volumes[i]);
     }
 
@@ -931,7 +932,7 @@ HSaveError WriteAudio(Stream *out)
 
     // Skip legacy Ambient sounds
     // NOTE: six ints per game channel, kept in the save format and ignored when reading
-    for (int i = 0; i < game.numGameChannels; ++i)
+    for (int i = 0; i < game.GameChannelCount; ++i)
     {
         out->WriteInt32(0);
         out->WriteInt32(0);
@@ -949,7 +950,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
     HSaveError err;
     // Game content assertion
     const uint32_t audiocliptype_read = in->ReadInt32();
-    if (!AssertGameContent(err, audiocliptype_read, game.audioClipTypes.size(), "Audio Clip Types", r_data.Result,
+    if (!AssertGameContent(err, audiocliptype_read, game.AudioClipTypes.size(), "Audio Clip Types", r_data.Result,
                            r_data.DataCounts.AudioClipTypes))
         return err;
 
@@ -965,7 +966,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
     // Audio types
     for (uint32_t i = 0; i < audiocliptype_read; ++i)
     {
-        ReadAudioClipType(game.audioClipTypes[i], in);
+        ReadAudioClipType(game.AudioClipTypes[i], in);
         game.Play.default_audio_type_volumes[i] = in->ReadInt32();
     }
 
@@ -1034,7 +1035,7 @@ HSaveError PrescanAudio(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, co
 {
     HSaveError err;
     const uint32_t audiocliptype_read = in->ReadInt32();
-    if (!AssertGameContent(err, audiocliptype_read, Game::Current().audioClipTypes.size(), "Audio Clip Types",
+    if (!AssertGameContent(err, audiocliptype_read, Game::Current().AudioClipTypes.size(), "Audio Clip Types",
                            r_data.Result, r_data.DataCounts.AudioClipTypes))
         return err;
 
@@ -1169,7 +1170,7 @@ HSaveError PrescanDialogs(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, cons
         return err;
 
     r_data.DataCounts.DialogOptions.resize(dialogs_read);
-    DialogTopic dummy;
+    Dialog dummy;
     for (uint32_t i = 0; i < dialogs_read; ++i)
     {
         uint32_t read_opt_count = 0;
@@ -1474,7 +1475,7 @@ HSaveError WriteInventory(Stream *out)
     out->WriteInt32(game.numinvitems);
     for (int i = 0; i < game.numinvitems; ++i)
     {
-        WriteInventoryItemInfo(game.invinfo[i], out);
+        WriteInventoryItemDef(game.InventoryItems[i], out);
         Properties::WriteValues(game.Play.invProps[i], out);
     }
     return HSaveError::None();
@@ -1491,7 +1492,7 @@ HSaveError ReadInventory(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
         return err;
     for (uint32_t i = 0; i < invitems_read; ++i)
     {
-        ReadInventoryItemInfo(game.invinfo[i], in, static_cast<InvitemSvgVersion>(cmp_ver));
+        ReadInventoryItemDef(game.InventoryItems[i], in, static_cast<InvitemSvgVersion>(cmp_ver));
         Properties::ReadValues(game.Play.invProps[i], in);
     }
     return err;
@@ -1514,7 +1515,7 @@ HSaveError WriteMouseCursors(Stream *out)
     out->WriteInt32(game.numcursors);
     for (int i = 0; i < game.numcursors; ++i)
     {
-        WriteMouseCursor(game.mcurs[i], out);
+        WriteMouseCursor(game.MouseCursors[i], out);
     }
     return HSaveError::None();
 }
@@ -1530,7 +1531,7 @@ HSaveError ReadMouseCursors(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/
         return err;
     for (uint32_t i = 0; i < cursors_read; ++i)
     {
-        ReadMouseCursor(game.mcurs[i], in);
+        ReadMouseCursor(game.MouseCursors[i], in);
     }
     return err;
 }

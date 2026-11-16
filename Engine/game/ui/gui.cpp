@@ -846,7 +846,7 @@ void prepare_gui_runtime(bool startup)
         InvItems_RegisterDynamicSpriteCallbacks();
     }
 
-    GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
+    GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.Options[OPT_DISABLEOFF]);
     GUIE::MarkAllGUIForUpdate(true, true);
 }
 
@@ -945,7 +945,7 @@ int gui_on_mouse_move(const int mx, const int my)
     Game &game = Game::Current();
     int mouse_over_gui = -1;
     // If all GUIs are off, no GUI is under the mouse or pops up
-    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (GUI::Context.DisabledState >= 0))
+    if ((game.Options[OPT_DISABLEOFF] == kGuiDis_Off) && (GUI::Context.DisabledState >= 0))
         return mouse_over_gui;
 
     // Scan for mouse-y-pos GUIs, and pop one up if appropriate
@@ -988,7 +988,7 @@ int gui_on_mouse_move(const int mx, const int my)
 // handle the button difference there, per control.
 inline bool gui_control_should_handle_button(int mbut)
 {
-    return (Game::Current().options[OPT_GUICONTROLMOUSEBUT] == 0) || (mbut == kMouseLeft);
+    return (Game::Current().Options[OPT_GUICONTROLMOUSEBUT] == 0) || (mbut == kMouseLeft);
 }
 
 void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
@@ -1046,7 +1046,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
             if (item_id >= 0)
             {
                 game.Play.used_inv_on = item_id;
-                if (game.options[OPT_HANDLEINVCLICKS])
+                if (game.Options[OPT_HANDLEINVCLICKS])
                 {
                     // Let the script handle the click
                     // LEFTINV is 5, RIGHTINV is 6
@@ -1290,7 +1290,7 @@ void SetTextWindowGUI(int guinum)
     else if (!game.Guis[guinum].IsTextWindow())
         quit("!SetTextWindowGUI: specified GUI is not a text window");
 
-    if (game.Play.speech_textwindow_gui == game.options[OPT_TWCUSTOM])
+    if (game.Play.speech_textwindow_gui == game.Options[OPT_TWCUSTOM])
         game.Play.speech_textwindow_gui = guinum;
-    game.options[OPT_TWCUSTOM] = guinum;
+    game.Options[OPT_TWCUSTOM] = guinum;
 }

@@ -76,13 +76,13 @@ void AudioChannel_SetPanning(ScriptAudioChannel *channel, int newPanning)
     }
 }
 
-ScriptAudioClip *AudioChannel_GetPlayingClip(ScriptAudioChannel *channel)
+AudioClip *AudioChannel_GetPlayingClip(ScriptAudioChannel *channel)
 {
     auto *playback = AudioChans::GetChannelIfPlaying(channel->id);
 
     if (playback && playback->sourceClipID >= 0)
     {
-        return &Game::Current().audioClips[playback->sourceClipID];
+        return &Game::Current().AudioClips[playback->sourceClipID];
     }
     return nullptr;
 }

@@ -49,10 +49,10 @@
     <ClCompile Include="..\..\Common\game\character_def.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\inventory_item_info.cpp">
+    <ClCompile Include="..\..\Common\game\inventory_item_def.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\mouse_cursor.cpp">
+    <ClCompile Include="..\..\Common\game\mouse_cursor_def.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\cmdlineopts.cpp">
@@ -126,10 +126,10 @@
     <ClInclude Include="..\..\Common\game\character_def.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\inventory_item_info.h">
+    <ClInclude Include="..\..\Common\game\inventory_item_def.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\mouse_cursor.h">
+    <ClInclude Include="..\..\Common\game\mouse_cursor_def.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\cmdlineopts.h">

@@ -307,7 +307,8 @@ enum AnimOverlaySvgVersion
 };
 
 class Game;
-struct ViewFrame;
+struct ViewFrameDef;
+using ViewFrame = ViewFrameDef;
 
 class AnimatedOverlay
 {

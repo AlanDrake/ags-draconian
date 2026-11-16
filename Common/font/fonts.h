@@ -29,7 +29,7 @@
 class IAGSFontRenderer;
 class IAGSFontRenderer2;
 class IAGSFontRendererInternal;
-struct FontInfo;
+struct FontDef;
 struct FontRenderParams;
 struct FontMetrics;
 
@@ -92,18 +92,18 @@ int get_font_outline(int font_number);
 // or real graphical height of a font.
 int get_text_lines_height(int font_number, size_t numlines);
 // Set font's outline type
-void set_font_outline(int font_number, int outline_type, enum FontInfo::AutoOutlineStyle style = FontInfo::kSquared,
+void set_font_outline(int font_number, int outline_type, enum FontDef::AutoOutlineStyle style = FontDef::kSquared,
                       int thickness = 1);
-// Assigns FontInfo to the font
-void set_fontinfo(int font_number, const FontInfo &finfo);
+// Assigns FontDef to the font
+void set_fontinfo(int font_number, const FontDef &finfo);
 // Gets the general font properties
-FontInfo get_fontinfo(int font_number);
+FontDef get_fontinfo(int font_number);
 // Gets the file used to load this font
 AGS::Common::String get_font_file(int font_number);
 // Loads a font from disk
-bool load_font_size(int font_number, const FontInfo &font_info);
+bool load_font_size(int font_number, const FontDef &font_info);
 // Loads a font from disk using an explicit filename
-bool load_font_size(int font_number, const AGS::Common::String &filename, const FontInfo &font_info);
+bool load_font_size(int font_number, const AGS::Common::String &filename, const FontDef &font_info);
 // Loads a font from disk, reads metrics, and disposes a font
 bool load_font_metrics(const AGS::Common::String &filename, int pixel_size, FontMetrics &metrics);
 // Allocates two outline stencil buffers, or returns previously creates ones;

@@ -1319,7 +1319,7 @@ void q() { int services = 0; g = h; }
     assert rep.taken and 'declares' in rep.taken[0][3], rep.taken
 
     # a later declarator of a declaration inside a function is a local (`int a = 0, b = 1, g = 2;` in
-    # DialogOptions::Begin), the same names in a comma expression are the globals
+    # DialogOptionsState::Begin), the same names in a comma expression are the globals
     ctx['local'] = 's'
     out, rep = run('void d() { int a = 0, b = 1, g = 2; use(g); }\nvoid e(int a) { a = 1, g = 2; }\n')
     assert 'void d() { int a = 0, b = 1, g = 2; use(g); }' in out, out

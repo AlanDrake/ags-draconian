@@ -29,7 +29,7 @@
 #include "game/script.h"
 #include "game/system.h"
 #include "game/ui/gui.h"
-#include "game/view.h"
+#include "game/view_def.h"
 #include "game/world/character.h"
 #include "game/world/entity_state.h"
 #include "game/world/move_list.h"
@@ -942,7 +942,7 @@ void RunObjectInteraction(int obj_id, int mood)
         return;
 
     // Cursor mode must match the event index in "Interactions" table
-    const int evnt = (game.mcurs[mood].flags & MCF_EVENT) != 0 ? mood : -1;
+    const int evnt = (game.MouseCursors[mood].flags & MCF_EVENT) != 0 ? mood : -1;
     const int anyclick_evt = kRoomObjectEvent_AnyClick;
 
     // For USE verb: remember active inventory
@@ -1651,7 +1651,7 @@ int is_pos_in_sprite(Game &game, int x, int y, int arx, int ary, Bitmap *sprit, 
         return false;
     }
 
-    if (game.options[OPT_PIXPERFECT])
+    if (game.Options[OPT_PIXPERFECT])
     {
         // if it's transparent, or off the edge of the sprite, ignore
         int xpos = x - arx;
@@ -1760,8 +1760,7 @@ int SetFirstAnimFrame(int view, int loop, int sframe, AnimFlowDirection dir)
     return sframe;
 }
 
-static void CycleResetToBegin(const ViewStruct *view, uint16_t &loop, uint16_t &frame, bool forward,
-                              bool multi_loop_reset)
+static void CycleResetToBegin(const View *view, uint16_t &loop, uint16_t &frame, bool forward, bool multi_loop_reset)
 {
     if (forward)
     {
@@ -1783,7 +1782,7 @@ static void CycleResetToBegin(const ViewStruct *view, uint16_t &loop, uint16_t &
     }
 }
 
-static bool CycleNextFrame(const ViewStruct *view, uint16_t &loop, uint16_t &frame, bool forward)
+static bool CycleNextFrame(const View *view, uint16_t &loop, uint16_t &frame, bool forward)
 {
     if (forward)
     {
@@ -1926,7 +1925,7 @@ FieldTable<FrameSoundState> FrameSoundState::Fields()
 
 bool CycleViewAnim(Game &game, int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams &anim_params)
 {
-    const ViewStruct *aview = &game.Views[view];
+    const View *aview = &game.Views[view];
     uint16_t loop = o_loop;
     uint16_t frame = o_frame;
     const bool forward = anim_params.IsForward();

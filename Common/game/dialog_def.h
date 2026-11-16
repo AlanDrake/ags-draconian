@@ -44,21 +44,21 @@ class Stream;
 
 #define LEGACY_MAXTOPICOPTIONS 30
 
-struct DialogTopic
+struct DialogOptionDef
 {
-    struct DialogOption
-    {
-        // Storing original text in case we load a save without modified text.
-        // NOTE: had no better idea how to prevent unnecessary text writing in the saves at this time.
-        AGS::Common::String OriginalText;
-        AGS::Common::String Text;
-        int Flags = 0;       // DFLG_* flags
-        int EntryPoint = -1; // old-style dialog script entry point
-    };
+    // Storing original text in case we load a save without modified text.
+    // NOTE: had no better idea how to prevent unnecessary text writing in the saves at this time.
+    AGS::Common::String OriginalText;
+    AGS::Common::String Text;
+    int Flags = 0;       // DFLG_* flags
+    int EntryPoint = -1; // old-style dialog script entry point
+};
 
+struct DialogDef
+{
     AGS::Common::String ScriptName;
-    int Flags = 0; // DialogTopic flags (DTFLG_*)
-    std::vector<DialogOption> Options;
+    int Flags = 0; // DialogDef flags (DTFLG_*)
+    std::vector<DialogOptionDef> Options;
     int StartEntryPoint = -1; // old-style dialog script entry point
     size_t CodeSize = 0u;     // old-style dialog script size
 

@@ -66,17 +66,17 @@ void ViewFrame_SetGraphic(ScriptViewFrame *svf, int newPic)
     Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].pic = newPic;
 }
 
-ScriptAudioClip *ViewFrame_GetLinkedAudio(ScriptViewFrame *svf)
+AudioClip *ViewFrame_GetLinkedAudio(ScriptViewFrame *svf)
 {
     Game &game = Game::Current();
     int sound_index = game.Views[svf->view].loops[svf->loop].frames[svf->frame].sound;
     if (sound_index < 0)
         return nullptr;
 
-    return &game.audioClips[sound_index];
+    return &game.AudioClips[sound_index];
 }
 
-void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip *clip)
+void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, AudioClip *clip)
 {
     int newSoundIndex = -1;
     if (clip != nullptr)
@@ -107,7 +107,7 @@ void ViewFrame_SetXOffset(ScriptViewFrame *svf, int xoff)
 
 int ViewFrame_GetYOffset(ScriptViewFrame *svf)
 {
-    return Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].xoffs;
+    return Game::Current().Views[svf->view].loops[svf->loop].frames[svf->frame].yoffs;
 }
 
 void ViewFrame_SetYOffset(ScriptViewFrame *svf, int yoff)
@@ -236,7 +236,7 @@ GraphicFlip GetViewFrameFlip(int view, int loop, int frame, int pic)
     Game &game = Game::Current();
     if (view < 0 || static_cast<size_t>(view) >= game.Views.size())
         return kFlip_None;
-    const ViewStruct &vs = game.Views[view];
+    const View &vs = game.Views[view];
     if (loop < 0 || loop >= vs.numLoops || frame < 0 || frame >= vs.loops[loop].numFrames)
         return kFlip_None;
     const ViewFrame &vf = vs.loops[loop].frames[frame];

@@ -161,7 +161,7 @@ void RunHotspotInteraction(int hotspothere, int mood)
         return;
 
     // Cursor mode must match the event index in "Interactions" table
-    const int evnt = (game.mcurs[mood].flags & MCF_EVENT) != 0 ? mood : -1;
+    const int evnt = (game.MouseCursors[mood].flags & MCF_EVENT) != 0 ? mood : -1;
     const int anyclick_evt = kHotspotEvent_AnyClick;
 
     // For USE verb: remember active inventory
@@ -170,12 +170,12 @@ void RunHotspotInteraction(int hotspothere, int mood)
         game.Play.usedinv = game.PlayerChar->ActiveInventory;
     }
 
-    if ((game.options[OPT_WALKONLOOK] == 0) && (game.HasCursorRole(mood, kCursorRole_Look)))
+    if ((game.Options[OPT_WALKONLOOK] == 0) && (game.HasCursorRole(mood, kCursorRole_Look)))
         ;
     else if (game.Play.auto_use_walkto_points == 0)
         ;
     else if ((!game.HasCursorRole(mood, kCursorRole_Walk)) && (game.Play.check_interaction_only == 0))
-        MoveCharacterToHotspot(game.playercharacter, hotspothere);
+        MoveCharacterToHotspot(game.PlayerCharacterID, hotspothere);
 
     const auto obj_evt =
         ObjectEvent(kScTypeRoom, LOCTYPE_HOTSPOT, hotspothere,

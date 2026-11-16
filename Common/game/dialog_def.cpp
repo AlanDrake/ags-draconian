@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "game/dialog_topic.h"
+#include "game/dialog_def.h"
 
 #include <algorithm>
 
@@ -21,9 +21,9 @@
 using namespace AGS;
 using namespace AGS::Common;
 
-void DialogTopic::ReadFromFile_v321(Stream *in)
+void DialogDef::ReadFromFile_v321(Stream *in)
 {
-    std::vector<DialogOption> options;
+    std::vector<DialogOptionDef> options;
     options.resize(LEGACY_MAXTOPICOPTIONS);
     char name[150];
     for (size_t i = 0u; i < LEGACY_MAXTOPICOPTIONS; ++i)
@@ -51,7 +51,7 @@ void DialogTopic::ReadFromFile_v321(Stream *in)
     std::copy_n(options.begin(), option_count, Options.begin());
 }
 
-void DialogTopic::ReadFromFile_v363(Stream *in)
+void DialogDef::ReadFromFile_v363(Stream *in)
 {
     // Dialog topic settings
     ScriptName = StrUtil::ReadString(in);

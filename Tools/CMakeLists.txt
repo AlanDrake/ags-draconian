@@ -27,8 +27,8 @@ set(TOOLS_COMMON_SOURCES
         ../Common/game/character_def.cpp
         ../Common/game/customproperties.cpp
         ../Common/game/customproperties.h
-        ../Common/game/inventory_item_info.cpp
-        ../Common/game/mouse_cursor.cpp
+        ../Common/game/inventory_item_def.cpp
+        ../Common/game/mouse_cursor_def.cpp
         ../Common/game/room_file.cpp
         ../Common/game/room_file.h
         ../Common/game/room_file_blocks.h
@@ -304,10 +304,10 @@ if(AGS_TESTS)
       ${CMAKE_SOURCE_DIR}/Common/test/common_stubs.cpp # GUI reader runtime stubs used by data_file_writer_test
       ../Common/game/game_def.cpp # needed by data_file_writer_test
       ../Common/game/main_game_file.cpp # needed by game_def.cpp
-      ../Common/game/view.cpp # needed by data_file_writer_test
-      ../Common/game/audio_clip_type.cpp # needed by data_file_writer_test
-      ../Common/game/script_audio_clip.cpp # needed by data_file_writer_test
-      ../Common/game/dialog_topic.cpp # needed by data_file_writer_test
+      ../Common/game/view_def.cpp # needed by data_file_writer_test
+      ../Common/game/audio_clip_type_def.cpp # needed by data_file_writer_test
+      ../Common/game/audio_clip_def.cpp # needed by data_file_writer_test
+      ../Common/game/dialog_def.cpp # needed by data_file_writer_test
       ../Common/util/common.cpp # needed by GUI readers in data_file_writer_test
       ../Common/gfx/sprite_cache.cpp # needed by GUI readers in data_file_writer_test
       ../Common/data/assetmanager.cpp # needed by Common font renderers

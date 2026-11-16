@@ -11,31 +11,21 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "game/mouse_cursor.h"
+
+#include "game/audio_clip_type_def.h"
 
 #include "util/stream.h"
-#include "util/string_utils.h"
 
+using namespace AGS;
 using namespace AGS::Common;
 
-void MouseCursor::ReadFromFile(Stream *in)
-{
-    pic = in->ReadInt32();
-    hotx = in->ReadInt16();
-    hoty = in->ReadInt16();
-    view = in->ReadInt16();
-    name.ReadCount(in, LEGACY_MAX_CURSOR_NAME_LENGTH);
-    flags = in->ReadInt8();
-    in->Seek(3); // alignment padding to int32
-}
+using AGS::Common::Stream;
 
-void MouseCursor::WriteToFile(Stream *out)
+void AudioClipTypeDef::ReadFromFile(Stream *in)
 {
-    out->WriteInt32(pic);
-    out->WriteInt16(hotx);
-    out->WriteInt16(hoty);
-    out->WriteInt16(view);
-    name.WriteCount(out, LEGACY_MAX_CURSOR_NAME_LENGTH);
-    out->WriteInt8(flags);
-    out->WriteByteCount(0, 3); // alignment padding to int32
+    id = in->ReadInt32();
+    reservedChannels = in->ReadInt32();
+    volume_reduction_while_speech_playing = in->ReadInt32();
+    crossfadeSpeed = in->ReadInt32();
+    in->ReadInt32(); // reserved
 }

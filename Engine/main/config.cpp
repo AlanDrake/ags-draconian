@@ -413,7 +413,7 @@ void save_runtime_config_file()
     // Last display mode
     cfg["graphics"]["windowed"] = String::FromFormat("%d", System_GetWindowed() != 0 ? 1 : 0);
     // Other game options that could be changed at runtime
-    if (Game::Current().options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined)
+    if (Game::Current().Options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined)
         cfg["graphics"]["render_at_screenres"] = String::FromFormat("%d", services.Config.RenderAtScreenRes ? 1 : 0);
     cfg["mouse"]["control_enabled"] = String::FromFormat("%d", services.Config.MouseCtrlEnabled ? 1 : 0);
     cfg["mouse"]["speed"] = String::FromFormat("%f", Mouse::GetSpeed());

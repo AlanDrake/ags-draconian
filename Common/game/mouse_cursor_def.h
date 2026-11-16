@@ -39,7 +39,7 @@ enum CursorRole
     kNumCursorRoles
 };
 
-struct MouseCursor
+struct MouseCursorDef
 {
     uint8_t flags = 0;
     CursorRole role = kCursorRole_None;
@@ -50,7 +50,7 @@ struct MouseCursor
 
     AGS::Common::String name; // script name
 
-    MouseCursor() = default;
+    MouseCursorDef() = default;
 
     void ReadFromFile(AGS::Common::Stream *in);
     void WriteToFile(AGS::Common::Stream *out);

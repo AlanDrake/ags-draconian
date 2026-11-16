@@ -274,13 +274,13 @@ struct SpriteInfo
 
 // Various font parameters, defining and extending font rendering behavior.
 // While FontRenderer object's main goal is to render single line of text at
-// the strictly determined position on canvas, FontInfo may additionally
+// the strictly determined position on canvas, FontDef may additionally
 // provide instructions on adjusting drawing position, as well as arranging
 // multiple lines, and similar cases.
 //
-// TODO: some of FontInfo's properties only make sense in combination,
+// TODO: some of FontDef's properties only make sense in combination,
 // therefore it may not be suitable to have them public.
-struct FontInfo
+struct FontDef
 {
     enum AutoOutlineStyle : int
     {

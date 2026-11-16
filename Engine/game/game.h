@@ -314,7 +314,7 @@ void precache_view(int view, int first_loop = 0, int last_loop = INT32_MAX, bool
 
 // Loads and initializes font at certain index using given properties; if the font file cannot be loaded, tries to
 // load the font from font 0's file instead (except for font 0). Returns false if no font could be loaded.
-bool load_game_font(int at_index, const FontInfo &font_info, GameDataVersion data_ver);
+bool load_game_font(int at_index, const FontDef &font_info, GameDataVersion data_ver);
 // Do additional fixups to the game fonts. This requires *all fonts* to be loaded,
 // as some fixups depend on relation between the main font and its outline font.
 void fixup_game_fonts();
@@ -374,7 +374,8 @@ extern CCDialog ccDynamicDialog;
 
 class Character;
 struct ScriptAudioChannel;
-struct ScriptAudioClip;
+struct AudioClipDef;
+using AudioClip = AudioClipDef;
 struct ScriptCamera;
 struct ScriptDateTime;
 
@@ -451,7 +452,7 @@ void Game_SetSpeed(int speed);
 int Game_GetAudioClipCount();
 
 // Script API: Game::geti_AudioClips
-ScriptAudioClip *Game_GetAudioClip(int index);
+AudioClip *Game_GetAudioClip(int index);
 
 // Script API: Game::get_Camera
 ScriptCamera *Game_GetCamera();

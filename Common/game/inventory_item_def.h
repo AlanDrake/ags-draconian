@@ -30,7 +30,7 @@ enum InventoryEventID
     kInventoryEvent_AnyClick = 0
 };
 
-struct InventoryItemInfo
+struct InventoryItemDef
 {
     AGS::Common::String name = {};
     int pic = 0;
@@ -41,7 +41,7 @@ struct InventoryItemInfo
     AGS::Common::ScriptEventHandlers interactions = {};
 
     // Gets a events schema corresponding to this object's type
-    static const AGS::Common::ScriptEventSchema &GetEventSchema() { return InventoryItemInfo::_eventSchema; }
+    static const AGS::Common::ScriptEventSchema &GetEventSchema() { return InventoryItemDef::_eventSchema; }
 
     // Provides a script events table
     const AGS::Common::ScriptEventTable &GetEvents() const { return _events; }
@@ -56,5 +56,5 @@ private:
     // Script events schema
     static AGS::Common::ScriptEventSchema _eventSchema;
     // Common events
-    AGS::Common::ScriptEventTable _events = AGS::Common::ScriptEventTable(&InventoryItemInfo::_eventSchema);
+    AGS::Common::ScriptEventTable _events = AGS::Common::ScriptEventTable(&InventoryItemDef::_eventSchema);
 };

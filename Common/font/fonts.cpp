@@ -46,7 +46,7 @@ struct Font
     // A file this font's data was loaded from
     String Filename;
     // Font's general properties
-    FontInfo Info;
+    FontDef Info;
     // Values received from the renderer and saved for the reference
     FontMetrics Metrics;
     // Precalculated linespacing, based on font properties and compat settings
@@ -347,7 +347,7 @@ int get_font_outline(int font_number)
     return fonts[font_number].Info.Outline;
 }
 
-void set_font_outline(int font_number, int outline_type, enum FontInfo::AutoOutlineStyle style, int thickness)
+void set_font_outline(int font_number, int outline_type, enum FontDef::AutoOutlineStyle style, int thickness)
 {
     if (!assert_font_number(font_number))
         return;
@@ -534,7 +534,7 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
     return lines.Count();
 }
 
-void set_fontinfo(int font_number, const FontInfo &finfo)
+void set_fontinfo(int font_number, const FontDef &finfo)
 {
     if (!assert_font_number(font_number))
         return;
@@ -543,10 +543,10 @@ void set_fontinfo(int font_number, const FontInfo &finfo)
     font_post_init(font_number);
 }
 
-FontInfo get_fontinfo(int font_number)
+FontDef get_fontinfo(int font_number)
 {
     if (!assert_font_number(font_number))
-        return FontInfo();
+        return FontDef();
 
     return fonts[font_number].Info;
 }
@@ -559,12 +559,12 @@ String get_font_file(int font_number)
     return fonts[font_number].Filename;
 }
 
-bool load_font_size(int font_number, const FontInfo &font_info)
+bool load_font_size(int font_number, const FontDef &font_info)
 {
     return load_font_size(font_number, font_info.FileName, font_info);
 }
 
-bool load_font_size(int font_number, const String &filename, const FontInfo &font_info)
+bool load_font_size(int font_number, const String &filename, const FontDef &font_info)
 {
     if (font_number < 0)
         return false;

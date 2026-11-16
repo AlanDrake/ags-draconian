@@ -73,7 +73,7 @@ void quit_check_dynamic_sprites(QuitReason qreason)
 {
     Game &game = Game::Current();
     if ((qreason & kQuitKind_NormalExit) && (EngineServices::Current().CheckDynamicSpritesAtExit) &&
-        (game.options[OPT_DEBUGMODE] != 0))
+        (game.Options[OPT_DEBUGMODE] != 0))
     {
         // Check that the dynamic sprites have been deleted;
         // ignore those that are owned by the game objects.

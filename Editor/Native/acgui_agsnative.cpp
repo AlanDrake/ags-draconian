@@ -37,13 +37,13 @@ extern GameDef thisgame;
 
 bool ShouldAntiAliasText()
 {
-    return (thisgame.GetColorDepth() >= 24) && (thisgame.options[OPT_ANTIALIASFONTS] != 0);
+    return (thisgame.GetColorDepth() >= 24) && (thisgame.Options[OPT_ANTIALIASFONTS] != 0);
 }
 
 // Draw outline that is calculated from the text font, not derived from an outline font
 static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, BlendMode blend_mode, const char *text, int &x, int &y)
 {
-    const FontInfo &finfo = get_fontinfo(font);
+    const FontDef &finfo = get_fontinfo(font);
     int const thickness = finfo.AutoOutlineThickness;
     auto const style = finfo.AutoOutlineStyle;
     if (thickness <= 0)
@@ -54,7 +54,7 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
     // on the destination bitmap (and our intermediate bitmaps are transparent).
     int const  ds_cd = ds->GetColorDepth();
     bool const alpha_blend = (ds_cd == 32) && !is_bitmap_font(font) &&
-        ((thisgame.options[OPT_ANTIALIASFONTS] != 0) || (geta32(color) < 255) || (blend_mode != kBlend_Normal));
+        ((thisgame.Options[OPT_ANTIALIASFONTS] != 0) || (geta32(color) < 255) || (blend_mode != kBlend_Normal));
     int const  stencil_cd = alpha_blend ? 32 : ds_cd;
 
     const int t_width = get_text_width(text, font);
@@ -108,7 +108,7 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
         // Integer arithmetics: In the following, we use terms k*(k + 1) to account for rounding.
         //     (k + 0.5)^2 == k*k + 2*k*0.5 + 0.5^2 == k*k + k + 0.25 ==approx. k*(k + 1)
         int y_term_limit = thickness * (thickness + 1);
-        if (FontInfo::kRounded == style)
+        if (FontDef::kRounded == style)
             y_term_limit -= x_diff * x_diff;
 
         // extend the outline stencil to the top and bottom

@@ -23,7 +23,7 @@ class Stream;
 }
 } // namespace AGS
 
-struct AudioClipType
+struct AudioClipTypeDef
 {
     int id = 0;
     int reservedChannels = 0;

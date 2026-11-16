@@ -700,6 +700,7 @@ if(AGS_TESTS)
     add_executable(
         engine_full_test
         test/character_turn_test.cpp
+        test/game_entities_test.cpp
         test/gui_layout_test.cpp
         test/managed_pool_test.cpp
         test/overlay_test.cpp

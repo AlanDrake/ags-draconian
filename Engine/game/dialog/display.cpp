@@ -169,14 +169,14 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
     //
 
     const bool use_speech_textwindow =
-        (look.Style == kDisplayTextStyle_TextWindow) && (game.options[OPT_SPEECHTYPE] >= kSpeechStyle_SierraBackground);
-    const bool use_thought_gui = (look.AsThought) && (game.options[OPT_THOUGHTGUI] > 0);
+        (look.Style == kDisplayTextStyle_TextWindow) && (game.Options[OPT_SPEECHTYPE] >= kSpeechStyle_SierraBackground);
+    const bool use_thought_gui = (look.AsThought) && (game.Options[OPT_THOUGHTGUI] > 0);
 
     int gui_id = -1;
     if (use_speech_textwindow)
         gui_id = game.Play.speech_textwindow_gui;
     else if (use_thought_gui)
-        gui_id = game.options[OPT_THOUGHTGUI];
+        gui_id = game.Options[OPT_THOUGHTGUI];
 
     const int screen_padding = 5; // historical limit of text placement from any screen border
     const int padding = get_textwindow_padding(gui_id);
@@ -309,7 +309,7 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
         if (fix_look.Style == kDisplayTextStyle_TextWindow)
         {
             if (!fix_look.PreserveTextColor && (gui_id >= 0) &&
-                ((game.options[OPT_SPEECHTYPE] >= kSpeechStyle_SierraBackground) || (fix_look.AsThought)))
+                ((game.Options[OPT_SPEECHTYPE] >= kSpeechStyle_SierraBackground) || (fix_look.AsThought)))
                 text_color = text_window_ds->GetCompatibleColor(game.Guis[gui_id].GetFgColor());
             else
                 text_color = text_window_ds->GetCompatibleColor(text_color);
@@ -664,14 +664,14 @@ int GetTextDisplayTime(const char *text, int can_be_relative)
 bool ShouldAntiAliasText()
 {
     Game &game = Game::Current();
-    return (game.GetColorDepth() >= 24) && (game.options[OPT_ANTIALIASFONTS] != 0);
+    return (game.GetColorDepth() >= 24) && (game.Options[OPT_ANTIALIASFONTS] != 0);
 }
 
 // Draw outline that is calculated from the text font, not derived from an outline font
 static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, BlendMode blend_mode, const char *text,
                                    int &x, int &y)
 {
-    const FontInfo &finfo = get_fontinfo(font);
+    const FontDef &finfo = get_fontinfo(font);
     int const thickness = finfo.AutoOutlineThickness;
     auto const style = finfo.AutoOutlineStyle;
     if (thickness <= 0)
@@ -683,7 +683,7 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
     int const ds_cd = ds->GetColorDepth();
     bool const alpha_blend =
         (ds_cd == 32) && !is_bitmap_font(font) &&
-        ((Game::Current().options[OPT_ANTIALIASFONTS] != 0) || (geta32(color) < 255) || (blend_mode != kBlend_Normal));
+        ((Game::Current().Options[OPT_ANTIALIASFONTS] != 0) || (geta32(color) < 255) || (blend_mode != kBlend_Normal));
     int const stencil_cd = alpha_blend ? 32 : ds_cd;
 
     const int t_width = get_text_width(text, font);
@@ -735,7 +735,7 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
         // Integer arithmetics: In the following, we use terms k*(k + 1) to account for rounding.
         //     (k + 0.5)^2 == k*k + 2*k*0.5 + 0.5^2 == k*k + k + 0.25 ==approx. k*(k + 1)
         int y_term_limit = thickness * (thickness + 1);
-        if (FontInfo::kRounded == style)
+        if (FontDef::kRounded == style)
             y_term_limit -= x_diff * x_diff;
 
         // extend the outline stencil to the top and bottom
@@ -939,7 +939,7 @@ int get_textwindow_padding(int gui_id)
     int result;
 
     if (gui_id < 0)
-        gui_id = game.options[OPT_TWCUSTOM];
+        gui_id = game.Options[OPT_TWCUSTOM];
     if (gui_id > 0 && gui_id < game.numgui)
         result = game.Guis[gui_id].GetPadding();
     else
@@ -955,7 +955,7 @@ std::unique_ptr<Bitmap> draw_text_window(int *text_x, int *text_y, int *x, int *
     std::unique_ptr<Bitmap> text_window;
 
     if (gui_id < 0)
-        gui_id = game.options[OPT_TWCUSTOM];
+        gui_id = game.Options[OPT_TWCUSTOM];
 
     // Assertions
     if (gui_id > 0)
@@ -1103,7 +1103,7 @@ void DisplayTopBar(int ypos, int text_color, int back_color, const char *title, 
     if (game.Play.speech_skip_style & SKIP_AUTOTIMER)
         game.Play.messagetime = GetTextDisplayTime(text);
 
-    DisplayAtYImpl(game.Play.top_bar_ypos, text, &topbar, game.options[OPT_ALWAYSSPCH] != 0);
+    DisplayAtYImpl(game.Play.top_bar_ypos, text, &topbar, game.Options[OPT_ALWAYSSPCH] != 0);
 }
 
 void DisplayAt(int x, int y, int width, const char *text)
@@ -1138,7 +1138,7 @@ void DisplayAtYImpl(int ypos, const char *text, const TopBarSettings *topbar, bo
     if (as_speech)
     {
         // Message displayed as speech, using current speech style
-        DisplaySpeechAt(-1, ypos, -1, game.playercharacter, text);
+        DisplaySpeechAt(-1, ypos, -1, game.PlayerCharacterID, text);
     }
     else
     {
@@ -1149,7 +1149,7 @@ void DisplayAtYImpl(int ypos, const char *text, const TopBarSettings *topbar, bo
 
 void DisplayAtY(int ypos, const char *text)
 {
-    DisplayAtYImpl(ypos, text, nullptr, Game::Current().options[OPT_ALWAYSSPCH] != 0);
+    DisplayAtYImpl(ypos, text, nullptr, Game::Current().Options[OPT_ALWAYSSPCH] != 0);
 }
 
 void DisplaySpeechAt(int x, int y, int width, int char_id, const char *text)

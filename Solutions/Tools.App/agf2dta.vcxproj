@@ -22,8 +22,8 @@
     <ClCompile Include="..\..\Common\data\data_helpers.cpp" />
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp" />
     <ClCompile Include="..\..\Common\game\character_def.cpp" />
-    <ClCompile Include="..\..\Common\game\inventory_item_info.cpp" />
-    <ClCompile Include="..\..\Common\game\mouse_cursor.cpp" />
+    <ClCompile Include="..\..\Common\game\inventory_item_def.cpp" />
+    <ClCompile Include="..\..\Common\game\mouse_cursor_def.cpp" />
     <ClCompile Include="..\..\Common\game\scripteventtable.cpp" />
     <ClCompile Include="..\..\Common\game\words_dictionary.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
@@ -57,8 +57,8 @@
   <ItemGroup>
     <ClInclude Include="..\..\Common\game\character_def.h" />
     <ClInclude Include="..\..\Common\ac\def_version.h" />
-    <ClInclude Include="..\..\Common\game\inventory_item_info.h" />
-    <ClInclude Include="..\..\Common\game\mouse_cursor.h" />
+    <ClInclude Include="..\..\Common\game\inventory_item_def.h" />
+    <ClInclude Include="..\..\Common\game\mouse_cursor_def.h" />
     <ClInclude Include="..\..\Common\data\data_helpers.h" />
     <ClInclude Include="..\..\Common\debug\out.h" />
     <ClInclude Include="..\..\Common\game\scripteventtable.h" />

@@ -40,7 +40,7 @@
 #include "game/script_api/exports.h"
 #include "game/translation.h"
 #include "game/ui/gui.h"
-#include "game/view.h"
+#include "game/view_def.h"
 #include "game/world/character.h"
 #include "game/world/hotspot.h"
 #include "game/world/inventory_item.h"
@@ -99,21 +99,21 @@ String GetGameInitErrorText(GameInitErrorType err)
 // Initializes audio channels and clips and registers them in the script system
 void InitAndRegisterAudioObjects(Game &game)
 {
-    for (int i = 0; i < game.numCompatGameChannels; ++i)
+    for (int i = 0; i < game.CompatGameChannelCount; ++i)
     {
         game.ScAudioChannels[i].id = i;
         ccRegisterPersistentObject(&game.ScAudioChannels[i], &ccDynamicAudio); // add internal ref
     }
 
-    StaticAudioClipArray.resize(game.audioClips.size());
-    for (size_t i = 0; i < game.audioClips.size(); ++i)
+    StaticAudioClipArray.resize(game.AudioClips.size());
+    for (size_t i = 0; i < game.AudioClips.size(); ++i)
     {
         // A clip's ID is its index in the array
-        game.audioClips[i].id = i;
-        int handle = ccRegisterPersistentObject(&game.audioClips[i], &ccDynamicAudioClip); // add internal ref
+        game.AudioClips[i].id = i;
+        int handle = ccRegisterPersistentObject(&game.AudioClips[i], &ccDynamicAudioClip); // add internal ref
         StaticAudioClipArray[i] = handle;
-        if (!game.audioClips[i].scriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(game.audioClips[i].scriptName, &StaticAudioClipArray[i]);
+        if (!game.AudioClips[i].scriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(game.AudioClips[i].scriptName, &StaticAudioClipArray[i]);
     }
 }
 
@@ -301,13 +301,13 @@ static void RegisterMissingGUIControls(Game &game)
 // so we only need to fill missing elements.
 void RegisterMissingManagedObjects(Game &game)
 {
-    for (int i = 0; i < game.numCompatGameChannels; ++i)
+    for (int i = 0; i < game.CompatGameChannelCount; ++i)
     {
         ccRegisterPersistentObjectIfMissing(&game.ScAudioChannels[i], &ccDynamicAudio);
     }
-    for (size_t i = 0; i < game.audioClips.size(); ++i)
+    for (size_t i = 0; i < game.AudioClips.size(); ++i)
     {
-        StaticAudioClipArray[i] = ccRegisterPersistentObjectIfMissing(&game.audioClips[i], &ccDynamicAudioClip);
+        StaticAudioClipArray[i] = ccRegisterPersistentObjectIfMissing(&game.AudioClips[i], &ccDynamicAudioClip);
     }
     for (int i = 0; i < game.numcharacters; ++i)
     {
@@ -386,7 +386,7 @@ HError InitAndRegisterGameEntities(Game &game, const LoadedGameEntities &ents)
 
     RegisterStaticArrays(game);
 
-    setup_player_character(game.playercharacter);
+    setup_player_character(game.PlayerCharacterID);
     ccAddExternalScriptObjectHandle("player", &game.ScPlayerCharPtr);
     return HError::None();
 }
@@ -406,7 +406,7 @@ void LoadFonts(GameDef &game, GameDataVersion data_ver)
 
     for (int i = 0; i < game.numfonts; ++i)
     {
-        load_game_font(i, game.fonts[i], data_ver);
+        load_game_font(i, game.Fonts[i], data_ver);
     }
 
     // Additional fixups - after all the fonts are registered
@@ -490,8 +490,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     Game &game = Game::Current();
     // the entities were loaded into the engine's game (load_game_file)
     assert(&ents.Game == &game);
-    const ScriptAPIVersion base_api = (ScriptAPIVersion)game.options[OPT_BASESCRIPTAPI];
-    const ScriptAPIVersion compat_api = (ScriptAPIVersion)game.options[OPT_SCRIPTCOMPATLEV];
+    const ScriptAPIVersion base_api = (ScriptAPIVersion)game.Options[OPT_BASESCRIPTAPI];
+    const ScriptAPIVersion compat_api = (ScriptAPIVersion)game.Options[OPT_SCRIPTCOMPATLEV];
     const char *base_api_name = GetScriptAPIName(base_api);
     const char *compat_api_name = GetScriptAPIName(compat_api);
     Debug::Printf(kDbgMsg_Info, "Requested script API: %s (%d), compat level: %s (%d)",
@@ -499,7 +499,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
                   compat_api >= 0 && compat_api <= kScriptAPI_Current ? compat_api_name : "unknown", compat_api);
     // If the game was compiled using unsupported version of the script API,
     // we warn about potential incompatibilities but proceed further.
-    if (game.options[OPT_BASESCRIPTAPI] > kScriptAPI_Current)
+    if (game.Options[OPT_BASESCRIPTAPI] > kScriptAPI_Current)
         services.Platform->DisplayAlert(
             "Warning: this game requests a higher version of AGS script API, it may not run correctly or run at all.");
 
@@ -526,7 +526,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     GUIRefCollection gui_control_refs(game.GuiButtons, game.GuiInvWindows, game.GuiLabels, game.GuiListBoxes,
                                       game.GuiSliders, game.GuiTextBoxes);
     GUI::RebuildGUI(game.Guis, gui_control_refs);
-    game.Play.audioclipProps.resize(game.audioClips.size());
+    game.Play.audioclipProps.resize(game.AudioClips.size());
     game.Play.charProps.resize(game.numcharacters);
     game.Play.dialogProps.resize(game.numdialog);
     game.Play.guiProps.resize(game.numgui);
@@ -538,8 +538,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     game.Play.guicontrolProps[kGUIListBox].resize(game.GuiListBoxes.size());
     game.Play.invProps.resize(game.numinvitems);
     // Set the number of game channels (the same for all the supported game versions)
-    game.numGameChannels = MAX_GAME_CHANNELS;
-    game.numCompatGameChannels = MAX_GAME_CHANNELS;
+    game.GameChannelCount = MAX_GAME_CHANNELS;
+    game.CompatGameChannelCount = MAX_GAME_CHANNELS;
     HError err = InitAndRegisterGameEntities(game, ents);
     if (!err)
         return new GameInitError(err, kGameInitErr_EntityInitFail);
@@ -558,7 +558,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         svg_suffix.Format(".%s", game.saveGameFileExtension);
     set_save_game_suffix(svg_suffix);
 
-    game.Play.fade_effect = game.options[OPT_FADETYPE];
+    game.Play.fade_effect = game.Options[OPT_FADETYPE];
     game.Play.std_gui_textheight = get_font_height_outlined(0) + 1;
     SetGameTextLanguage(game.GameTextLanguage);
     if (game.GameInfo.count("dev_error_text") > 0)

@@ -52,7 +52,7 @@ enum AudioClipBundle
 #define LEGACY_AUDIOCLIP_SCRIPTNAMELENGTH 30
 #define LEGACY_AUDIOCLIP_FILENAMELENGTH   15
 
-struct ScriptAudioClip
+struct AudioClipDef
 {
 public:
     int id = -1;

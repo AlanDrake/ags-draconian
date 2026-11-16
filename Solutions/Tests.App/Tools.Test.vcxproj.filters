@@ -2,15 +2,15 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\..\Common\test\common_stubs.cpp" />
-    <ClCompile Include="..\..\Common\game\audio_clip_type.cpp" />
+    <ClCompile Include="..\..\Common\game\audio_clip_type_def.cpp" />
     <ClCompile Include="..\..\Common\game\character_def.cpp" />
-    <ClCompile Include="..\..\Common\game\dialog_topic.cpp" />
-    <ClCompile Include="..\..\Common\game\script_audio_clip.cpp" />
+    <ClCompile Include="..\..\Common\game\dialog_def.cpp" />
+    <ClCompile Include="..\..\Common\game\audio_clip_def.cpp" />
     <ClCompile Include="..\..\Common\game\game_def.cpp" />
     <ClCompile Include="..\..\Common\game\main_game_file.cpp" />
-    <ClCompile Include="..\..\Common\game\inventory_item_info.cpp" />
-    <ClCompile Include="..\..\Common\game\mouse_cursor.cpp" />
-    <ClCompile Include="..\..\Common\game\view.cpp" />
+    <ClCompile Include="..\..\Common\game\inventory_item_def.cpp" />
+    <ClCompile Include="..\..\Common\game\mouse_cursor_def.cpp" />
+    <ClCompile Include="..\..\Common\game\view_def.cpp" />
     <ClCompile Include="..\..\Common\game\words_dictionary.cpp" />
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp" />
     <ClCompile Include="..\..\Common\game\customproperties.cpp" />
@@ -54,14 +54,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\debug\debugmanager.h" />
-    <ClInclude Include="..\..\Common\game\audio_clip_type.h" />
+    <ClInclude Include="..\..\Common\game\audio_clip_type_def.h" />
     <ClInclude Include="..\..\Common\game\character_def.h" />
     <ClInclude Include="..\..\Common\game\customproperties.h" />
-    <ClInclude Include="..\..\Common\game\dialog_topic.h" />
+    <ClInclude Include="..\..\Common\game\dialog_def.h" />
     <ClInclude Include="..\..\Common\game\game_def.h" />
-    <ClInclude Include="..\..\Common\game\inventory_item_info.h" />
-    <ClInclude Include="..\..\Common\game\mouse_cursor.h" />
-    <ClInclude Include="..\..\Common\game\script_audio_clip.h" />
+    <ClInclude Include="..\..\Common\game\inventory_item_def.h" />
+    <ClInclude Include="..\..\Common\game\mouse_cursor_def.h" />
+    <ClInclude Include="..\..\Common\game\audio_clip_def.h" />
     <ClInclude Include="..\..\Common\util\bufferedstream.h" />
     <ClInclude Include="..\..\Common\util\file.h" />
     <ClInclude Include="..\..\Common\util\filestream.h" />
@@ -81,7 +81,7 @@
     <ClInclude Include="..\..\Tools\data\sprite_utils.h" />
     <ClInclude Include="..\..\Tools\test\spriteimport_env.h" />
     <ClInclude Include="..\..\Common\game\scripteventtable.h" />
-    <ClInclude Include="..\..\Common\game\view.h" />
+    <ClInclude Include="..\..\Common\game\view_def.h" />
     <ClInclude Include="..\..\Common\game\words_dictionary.h" />
   </ItemGroup>
 </Project>

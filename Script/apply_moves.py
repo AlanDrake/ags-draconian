@@ -20,7 +20,7 @@ one-commit-per-destination-folder runs of `Engine/game` itself). Without --only 
    - no two rows share an old or a new path;
    - every .cpp stem stays unique inside each .vcxproj that compiles a moved file (MSBuild object names are flat;
      an item with its own <ObjectFileName> is left out of the check);
-   - a moved file's path below its module root (`game/view.h` for `Common/game/view.h`) is not also a file under
+   - a moved file's path below its module root (`game/view_def.h` for `Common/game/view_def.h`) is not also a file under
      the other module roots (MODULE_ROOTS), so a root-relative #include stays unambiguous whatever the -I order;
    - --check-coverage: every tracked file under COVERAGE_DIRS has a row (NO_ROW lists the deliberate exceptions).
 2. `git mv` of every pending selected row (destination folders are created; source folders left empty are removed).

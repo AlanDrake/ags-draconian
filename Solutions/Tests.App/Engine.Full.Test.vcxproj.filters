@@ -34,6 +34,9 @@
     <ClCompile Include="..\..\Engine\test\character_turn_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\test\game_entities_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Engine\test\gui_layout_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>

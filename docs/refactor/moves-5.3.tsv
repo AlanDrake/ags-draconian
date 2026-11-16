@@ -3,35 +3,35 @@
 # The script-binding files of 5.2 are created in Engine/game/script_api/ and are not listed.
 # No row: Engine/ac/dynobj/scriptcontainers.h (merged into Engine/ac/scriptcontainers.h before the move),
 # Common/ac/def_version.h (named by CI and packaging on every platform: decided at the end of 5.3).
-Common/ac/audiocliptype.cpp	Common/game/audio_clip_type.cpp
-Common/ac/audiocliptype.h	Common/game/audio_clip_type.h
+Common/ac/audiocliptype.cpp	Common/game/audio_clip_type_def.cpp
+Common/ac/audiocliptype.h	Common/game/audio_clip_type_def.h
 Common/ac/characterinfo.cpp	Common/game/character_def.cpp
 Common/ac/characterinfo.h	Common/game/character_def.h
 Common/ac/common.cpp	Common/util/common.cpp
 Common/ac/common.h	Common/util/common.h
 Common/ac/common_defines.h	Common/game/common_defines.h
-Common/ac/dialogtopic.cpp	Common/game/dialog_topic.cpp
-Common/ac/dialogtopic.h	Common/game/dialog_topic.h
-Common/ac/dynobj/scriptaudioclip.cpp	Common/game/script_audio_clip.cpp
-Common/ac/dynobj/scriptaudioclip.h	Common/game/script_audio_clip.h
+Common/ac/dialogtopic.cpp	Common/game/dialog_def.cpp
+Common/ac/dialogtopic.h	Common/game/dialog_def.h
+Common/ac/dynobj/scriptaudioclip.cpp	Common/game/audio_clip_def.cpp
+Common/ac/dynobj/scriptaudioclip.h	Common/game/audio_clip_def.h
 Common/ac/game_version.h	Common/game/game_version.h
 Common/ac/gamesetupstruct.cpp	Common/game/game_def.cpp
 Common/ac/gamesetupstruct.h	Common/game/game_def.h
 Common/ac/gamesetupstructbase.cpp	Common/game/game_def.cpp
 Common/ac/gamesetupstructbase.h	Common/game/game_def.h
 Common/ac/gamestructdefines.h	Common/game/game_struct_defines.h
-Common/ac/inventoryiteminfo.cpp	Common/game/inventory_item_info.cpp
-Common/ac/inventoryiteminfo.h	Common/game/inventory_item_info.h
+Common/ac/inventoryiteminfo.cpp	Common/game/inventory_item_def.cpp
+Common/ac/inventoryiteminfo.h	Common/game/inventory_item_def.h
 Common/ac/keycode.cpp	Common/util/keycode.cpp
 Common/ac/keycode.h	Common/util/keycode.h
-Common/ac/mousecursor.cpp	Common/game/mouse_cursor.cpp
-Common/ac/mousecursor.h	Common/game/mouse_cursor.h
+Common/ac/mousecursor.cpp	Common/game/mouse_cursor_def.cpp
+Common/ac/mousecursor.h	Common/game/mouse_cursor_def.h
 Common/ac/spritecache.cpp	Common/gfx/sprite_cache.cpp
 Common/ac/spritecache.h	Common/gfx/sprite_cache.h
 Common/ac/spritefile.cpp	Common/gfx/sprite_file.cpp
 Common/ac/spritefile.h	Common/gfx/sprite_file.h
-Common/ac/view.cpp	Common/game/view.cpp
-Common/ac/view.h	Common/game/view.h
+Common/ac/view.cpp	Common/game/view_def.cpp
+Common/ac/view.h	Common/game/view_def.h
 Common/ac/wordsdictionary.cpp	Common/game/words_dictionary.cpp
 Common/ac/wordsdictionary.h	Common/game/words_dictionary.h
 Engine/ac/asset_helper.h	Engine/game/asset_helper.h	media/ includes it: split asset paths from the audio rules later (check_layers baseline)

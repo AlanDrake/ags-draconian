@@ -1433,7 +1433,7 @@
     <ClInclude Include="..\..\Common\ac\animationstruct.h">
       <Filter>Common Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\audio_clip_type.h">
+    <ClInclude Include="..\..\Common\game\audio_clip_type_def.h">
       <Filter>Common Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\game\character_def.h">
@@ -1448,7 +1448,7 @@
     <ClInclude Include="..\..\Common\ac\customproperties.h">
       <Filter>Common Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\dialog_topic.h">
+    <ClInclude Include="..\..\Common\game\dialog_def.h">
       <Filter>Common Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\game\game_def.h">
@@ -1466,13 +1466,13 @@
     <ClInclude Include="..\..\Common\ac\interfaceelement.h">
       <Filter>Common Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\inventory_item_info.h">
+    <ClInclude Include="..\..\Common\game\inventory_item_def.h">
       <Filter>Common Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\messageinfo.h">
       <Filter>Common Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\mouse_cursor.h">
+    <ClInclude Include="..\..\Common\game\mouse_cursor_def.h">
       <Filter>Common Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\point.h">
@@ -1484,13 +1484,13 @@
     <ClInclude Include="..\..\Common\gfx\sprite_cache.h">
       <Filter>Common Header Files\gfx</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\view.h">
+    <ClInclude Include="..\..\Common\game\view_def.h">
       <Filter>Common Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\game\words_dictionary.h">
       <Filter>Common Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\script_audio_clip.h">
+    <ClInclude Include="..\..\Common\game\audio_clip_def.h">
       <Filter>Common Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_error.h">

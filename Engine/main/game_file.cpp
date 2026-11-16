@@ -21,7 +21,7 @@
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
-#include "game/dialog_topic.h"
+#include "game/dialog_def.h"
 #include "game/game.h"
 #include "game/game_context.h"
 #include "game/game_def.h"

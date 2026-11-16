@@ -869,7 +869,7 @@ void load_new_room(int room_id, Character *ch)
         {
             if ((game.Characters[i].Following >= 0) && (game.Characters[i].Room < 0))
             {
-                if ((game.Characters[i].Following == game.playercharacter) && (ch->PreviousRoom == room_id))
+                if ((game.Characters[i].Following == game.PlayerCharacterID) && (ch->PreviousRoom == room_id))
                     // the player went back to the previous room, so make sure
                     // the following character is still there
                     game.Characters[i].Room = room_id;
@@ -1076,7 +1076,7 @@ void load_new_room(int room_id, Character *ch)
             // remember which character we turned off, in case they
             // use SetPlayerCharacter within this room (so we re-enable
             // the correct character when leaving the room)
-            game.Play.temporarily_turned_off_character = game.playercharacter;
+            game.Play.temporarily_turned_off_character = game.PlayerCharacterID;
         }
         if (ch->Flags & CHF_FIXVIEW)
             ;
@@ -1208,7 +1208,7 @@ void check_new_room()
     // if they're in a new room, run Player Enters Screen and on_event(ENTER_ROOM)
     if ((game.RoomChange.InNewRoom != kEnterRoom_None) && (game.RoomChange.InNewRoom != kEnterRoom_RestoredSave))
     {
-        AGSEvent event(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_BeforeFadein, game.playercharacter));
+        AGSEvent event(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_BeforeFadein, game.PlayerCharacterID));
         // make sure that any script calls don't re-call enters screen
         const EnterNewRoomState saved_in_new_room = game.RoomChange.InNewRoom;
         game.RoomChange.InNewRoom = kEnterRoom_None;
@@ -1566,7 +1566,7 @@ void RoomProcessClick(int x, int y, int mood)
     x = vpt.first.X;
     y = vpt.first.Y;
 
-    if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.options[OPT_NOWALKMODE] == 0))
+    if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.Options[OPT_NOWALKMODE] == 0))
     {
         int hotspot_id = GetHotspotIDAtRoom(x, y, kHit_Interactable);
         if (hotspot_id < 1)
@@ -1620,7 +1620,7 @@ int IsInteractionAvailable(int x, int y, int mood)
     y = vpt.first.Y;
 
     // You can always walk places
-    if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.options[OPT_NOWALKMODE] == 0))
+    if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.Options[OPT_NOWALKMODE] == 0))
         return 1;
 
     game.Play.check_interaction_only = 1;

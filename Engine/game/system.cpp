@@ -158,15 +158,15 @@ void System_SetGamma(int newValue)
 
 int System_GetAudioChannelCount()
 {
-    return Game::Current().numGameChannels;
+    return Game::Current().GameChannelCount;
 }
 
 ScriptAudioChannel *System_GetAudioChannels(int index)
 {
     Game &game = Game::Current();
-    if ((index < 0) || (index >= game.numGameChannels))
+    if ((index < 0) || (index >= game.GameChannelCount))
         quitprintf("!System.AudioChannels: invalid sound channel index %d, supported %d - %d", index, 0,
-                   game.numGameChannels - 1);
+                   game.GameChannelCount - 1);
 
     return &game.ScAudioChannels[index];
 }

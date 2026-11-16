@@ -58,7 +58,7 @@ namespace Common
 
 String GUI::ApplyTextDirection(const String &text)
 {
-    const bool rtl_mode = Game::Current().options[OPT_RIGHTLEFTWRITE] != 0;
+    const bool rtl_mode = Game::Current().Options[OPT_RIGHTLEFTWRITE] != 0;
     return StrUtil::ApplyTextDirection(text, rtl_mode);
 }
 
@@ -121,7 +121,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
     if ((GUI::Options.ApplyTextDirection) && ((_flags & kGUICtrl_Translated) != 0))
     {
         _textToDraw = GUI::ApplyTextDirection(_text);
-        reverse = Game::Current().options[OPT_RIGHTLEFTWRITE] != 0;
+        reverse = Game::Current().Options[OPT_RIGHTLEFTWRITE] != 0;
     }
 
     const FrameAlignment text_align = _textAlignment;

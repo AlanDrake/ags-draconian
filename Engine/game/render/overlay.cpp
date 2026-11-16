@@ -28,7 +28,7 @@
 #include "game/render/screen_overlay.h"
 #include "game/runtime_defines.h"
 #include "game/translation.h"
-#include "game/view.h"
+#include "game/view_def.h"
 #include "game/world/character.h"
 #include "game/world/object.h"
 #include "gfx/bitmap.h"

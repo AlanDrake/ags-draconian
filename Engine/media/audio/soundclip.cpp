@@ -15,8 +15,8 @@
 
 #include <cmath>
 
+#include "game/audio_clip_def.h"
 #include "game/common_defines.h"
-#include "game/script_audio_clip.h"
 #include "media/audio/audio_core.h"
 
 SoundClip::SoundClip(int slot, AudioFileType snd_type, bool loop) : slot_(slot), soundType(snd_type), repeat(loop)

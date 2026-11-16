@@ -111,7 +111,7 @@ void update_player_view()
     if (game.PlayerChar->Flags & CHF_FIXVIEW)
         return; // view is locked
 
-    int onwalkarea = get_walkable_area_at_character(game.playercharacter);
+    int onwalkarea = get_walkable_area_at_character(game.PlayerCharacterID);
     if (onwalkarea < 0)
         return; // error?
 
@@ -257,7 +257,7 @@ int update_voice_lipsync(int frame)
         {
             game.LipSync.CurLinePhoneme++;
             if (game.LipSync.CurLinePhoneme >= game.LipSync.Lines[game.LipSync.CurLine].numPhonemes)
-                frame = game.default_lipsync_frame;
+                frame = game.DefaultLipSyncFrame;
             else
                 frame = game.LipSync.Lines[game.LipSync.CurLine].frame[game.LipSync.CurLinePhoneme];
 
@@ -342,7 +342,7 @@ void update_sierra_speech()
                 game.Speech.FaceTalkFrame = 0;
                 game.Speech.FaceTalkWait = game.Play.messagetime;
             }
-            else if ((game.options[OPT_LIPSYNCTEXT]) && (game.Speech.FaceTalkRepeat > 0))
+            else if ((game.Options[OPT_LIPSYNCTEXT]) && (game.Speech.FaceTalkRepeat > 0))
             {
                 // lip-sync speech (and not a thought)
                 game.Speech.FaceTalkWait =
@@ -409,7 +409,7 @@ void update_sierra_speech()
             auto *face_over = get_overlay(game.Speech.FaceTalking);
             assert(face_over != nullptr);
             Bitmap *frame_pic = EngineServices::Current().Sprites[face_over->GetSpriteNum()];
-            if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
+            if (game.Options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
             {
                 // QFG4-style fullscreen dialog
                 if (game.Speech.Qfg4OverridePlacementX)

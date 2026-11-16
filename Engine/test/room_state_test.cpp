@@ -43,7 +43,7 @@
 #include "game/save/savegame.h"
 #include "game/save/savegame_components.h"
 #include "game/save/savegame_internal.h"
-#include "game/view.h"
+#include "game/view_def.h"
 #include "game/world/hotspot.h"
 #include "game/world/object.h"
 #include "game/world/region.h"
@@ -51,6 +51,7 @@
 #include "game/world/room_context.h"
 #include "game/world/room_object.h"
 #include "game/world/room_state.h"
+#include "game/world/view_frame.h"
 #include "game/world/walk_behind.h"
 #include "game/world/walkable_area.h"
 #include "gfx/bitmap.h"
@@ -1188,7 +1189,7 @@ protected:
         LoadedRoom::TearDown();
     }
 
-    std::vector<ViewStruct> _wasViews;
+    std::vector<View> _wasViews;
     int _wasNumViews = 0;
 };
 

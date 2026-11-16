@@ -22,11 +22,11 @@
 #undef BITMAP
 #include <stdlib.h>
 #include "game/character_def.h"
-#include "game/dialog_topic.h"
+#include "game/dialog_def.h"
 #include "game/game_version.h"
-#include "game/inventory_item_info.h"
-#include "game/mouse_cursor.h"
-#include "game/view.h"
+#include "game/inventory_item_def.h"
+#include "game/mouse_cursor_def.h"
+#include "game/view_def.h"
 #include "game/words_dictionary.h"
 #include "data/data_helpers.h"
 #include "data/multifilelib.h"

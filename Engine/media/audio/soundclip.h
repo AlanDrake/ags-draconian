@@ -35,7 +35,7 @@
 //
 //=============================================================================
 #pragma once
-#include "game/script_audio_clip.h"
+#include "game/audio_clip_def.h"
 #include "media/audio/audiodefines.h"
 #include "util/math.h"
 #include "util/string.h"

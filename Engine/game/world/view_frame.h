@@ -17,12 +17,18 @@
 //=============================================================================
 #pragma once
 
+#include "game/audio_clip_def.h"
 #include "game/dynobj/script_view_frame.h"
 #include "game/runtime_defines.h"
-#include "game/script_audio_clip.h"
-#include "game/view.h"
+#include "game/view_def.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
+
+// The engine's view, loop and frame; aliases of their definitions until they hold more (PLAN.md 5.1a step 3)
+using View = ViewDef;
+using ViewLoop = ViewLoopDef;
+using ViewFrame = ViewFrameDef;
+using AudioClip = AudioClipDef;
 
 namespace AGS
 {
@@ -37,8 +43,8 @@ struct ObjectEvent;
 int ViewFrame_GetFlipped(ScriptViewFrame *svf);
 int ViewFrame_GetGraphic(ScriptViewFrame *svf);
 void ViewFrame_SetGraphic(ScriptViewFrame *svf, int newPic);
-ScriptAudioClip *ViewFrame_GetLinkedAudio(ScriptViewFrame *svf);
-void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip *clip);
+AudioClip *ViewFrame_GetLinkedAudio(ScriptViewFrame *svf);
+void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, AudioClip *clip);
 int ViewFrame_GetSpeed(ScriptViewFrame *svf);
 int ViewFrame_GetView(ScriptViewFrame *svf);
 int ViewFrame_GetLoop(ScriptViewFrame *svf);

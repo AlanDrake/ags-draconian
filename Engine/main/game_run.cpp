@@ -216,7 +216,7 @@ static void GameUpdateCheckProblems()
     // If we're not fading in, don't count the fadeouts
     // TODO: this fixup does not belong to the per-frame check; it should be done once, after restoring
     // a save, and after 'no_hicolor_fadein' or OPT_FADETYPE is changed
-    if ((game.Play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == kScrTran_Fade))
+    if ((game.Play.no_hicolor_fadein) && (game.Options[OPT_FADETYPE] == kScrTran_Fade))
         game.Play.screen_is_faded_out = false;
 }
 
@@ -583,7 +583,7 @@ bool run_service_key_controls(KeyInput &out_key)
                 room.Objects[obj_id].Opacity, ((room.Objects[obj_id].Flags & OBJF_NOINTERACT) != 0) ? 0 : 1);
         }
         DisplayMB(buffer.GetCStr());
-        int listed_char_id = game.playercharacter;
+        int listed_char_id = game.PlayerCharacterID;
         buffer = "CHARACTERS IN THIS ROOM:\n";
         for (int char_id = 0; char_id < game.numcharacters; char_id++)
         {
@@ -703,7 +703,7 @@ static void check_keyboard_controls(Game &game, EngineServices &services)
         if (textbox)
         {
             const bool handled = textbox->OnKeyPress(ki);
-            switch (game.options[OPT_TEXTBOXCLAIMSKEYS])
+            switch (game.Options[OPT_TEXTBOXCLAIMSKEYS])
             {
             case kScTextBoxClaim_Handled: key_was_processed |= handled; break;
             case kScTextBoxClaim_TextOnly: key_was_processed |= (ki.UChar > 0); break;
@@ -1093,7 +1093,7 @@ static void update_cursor_view()
     // update animating mouse cursor
     // NOTE: we are still doing this even if the in-game mouse input is disabled,
     // or mouse cursor is hidden, the animation logic keeps running in the background.
-    const auto &mcur = game.mcurs[game.Cursor.Look];
+    const auto &mcur = game.MouseCursors[game.Cursor.Look];
     if (mcur.view >= 0 && mcur.view < game.numviews)
     {
         // only on mousemove, and it's not moving
@@ -1175,7 +1175,7 @@ static void UpdateGUIContext()
     if (game.PlayerChar->ActiveInventory < 0 || game.PlayerChar->ActiveInventory >= game.numinvitems)
         GUI::Context.InventoryPic = -1;
     else
-        GUI::Context.InventoryPic = game.invinfo[game.PlayerChar->ActiveInventory].pic;
+        GUI::Context.InventoryPic = game.InventoryItems[game.PlayerChar->ActiveInventory].pic;
 
     // Update a location name for the GUI labels. We do this every game
     // tick, because this does not depend only on cursor position, but also

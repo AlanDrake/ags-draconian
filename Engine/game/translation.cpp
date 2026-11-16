@@ -41,11 +41,11 @@ String trans_name;
 String trans_filename;
 Translation trans;
 
-FontInfo construct_font_override(FontInfo *base_finfo, const FontInfo &finfo, int fields)
+FontDef construct_font_override(FontDef *base_finfo, const FontDef &finfo, int fields)
 {
     if (base_finfo)
     {
-        FontInfo out_info = *base_finfo;
+        FontDef out_info = *base_finfo;
         if (fields & kFontField_Size)
         {
             out_info.Size = finfo.Size;
@@ -90,15 +90,15 @@ void init_font_overrides(const Translation &trans)
         const auto &finfo = fover.Finfo;
         const auto &fields = fover.Fields;
         // If FontID is available, this means we should copy another existing font,
-        // otherwise use FontInfo properties to load a new font
+        // otherwise use FontDef properties to load a new font
         const int use_font_id = finfo.FontID;
         if (use_font_id >= 0)
         {
-            if (static_cast<uint32_t>(use_font_id) < game.fonts.size())
+            if (static_cast<uint32_t>(use_font_id) < game.Fonts.size())
             {
                 Debug::Printf("Init font's %d override using replacement font %d and provided parameters", font_id,
                               use_font_id);
-                FontInfo use_finfo = construct_font_override(&game.fonts[use_font_id], finfo, fields);
+                FontDef use_finfo = construct_font_override(&game.Fonts[use_font_id], finfo, fields);
                 load_game_font(font_id, use_finfo, game.LoadedDataVersion);
             }
             else
@@ -111,7 +111,7 @@ void init_font_overrides(const Translation &trans)
         {
             Debug::Printf("Init font's %d override using file %s and provided parameters", font_id,
                           finfo.FileName.GetCStr());
-            FontInfo use_finfo = construct_font_override(nullptr, finfo, fields);
+            FontDef use_finfo = construct_font_override(nullptr, finfo, fields);
             load_game_font(font_id, use_finfo, game.LoadedDataVersion);
         }
         else
@@ -132,8 +132,8 @@ void restore_game_fonts(const Translation &old_trans)
     for (const auto &font_override : trans.FontOverrides)
     {
         const int font_id = font_override.first;
-        if (font_id >= 0 && static_cast<uint32_t>(font_id) < game.fonts.size())
-            load_game_font(font_id, game.fonts[font_id], game.LoadedDataVersion);
+        if (font_id >= 0 && static_cast<uint32_t>(font_id) < game.Fonts.size())
+            load_game_font(font_id, game.Fonts[font_id], game.LoadedDataVersion);
     }
 
     // Additional fixups - after all the fonts are registered
@@ -143,7 +143,7 @@ void restore_game_fonts(const Translation &old_trans)
 void close_translation()
 {
     Game &game = Game::Current();
-    game.options[OPT_AUTOTRANSPARSERSAID] = 0;
+    game.Options[OPT_AUTOTRANSPARSERSAID] = 0;
     if (trans.FontOverrides.size() > 0)
     {
         restore_game_fonts(trans);
@@ -217,15 +217,15 @@ bool init_translation(const String &lang, const String &fallback_lang)
         Game_SetSpeechFont(trans.SpeechFont);
     if (trans.RightToLeft != kTextDirection_Default)
     {
-        game.options[OPT_RIGHTLEFTWRITE] = trans.RightToLeft == kTextDirection_LTR ? 0 : 1;
-        HorAlignment align = game.options[OPT_RIGHTLEFTWRITE] ? kHAlignRight : kHAlignLeft;
+        game.Options[OPT_RIGHTLEFTWRITE] = trans.RightToLeft == kTextDirection_LTR ? 0 : 1;
+        HorAlignment align = game.Options[OPT_RIGHTLEFTWRITE] ? kHAlignRight : kHAlignLeft;
         game.Play.text_align = (game.Play.text_align != kHAlignCenter) ? align : kHAlignCenter;
         game.Play.speech_text_align = (game.Play.speech_text_align != kHAlignCenter) ? align : kHAlignCenter;
         if (game.Play.GetRBSwitches()[kRBO_ApplyDialogOptionTextAlignment])
             game.Play.dialog_options_textalign =
                 (game.Play.dialog_options_textalign != kHAlignCenter) ? align : kHAlignCenter;
     }
-    game.options[OPT_AUTOTRANSPARSERSAID] = (trans.OptFlags & kTraOpt_AutoTranslateSaid) != 0;
+    game.Options[OPT_AUTOTRANSPARSERSAID] = (trans.OptFlags & kTraOpt_AutoTranslateSaid) != 0;
 
     // Font overrides
     if (trans.FontOverrides.size() > 0)

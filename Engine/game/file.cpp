@@ -18,7 +18,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "game/asset_helper.h"
-#include "game/audio_clip_type.h"
+#include "game/audio_clip_type_def.h"
 #include "game/game.h"
 #include "game/game_context.h"
 #include "game/game_def.h"

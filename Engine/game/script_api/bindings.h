@@ -43,7 +43,8 @@
 
 class Character;
 struct ScriptAudioChannel;
-struct ScriptAudioClip;
+struct AudioClipDef;
+using AudioClip = AudioClipDef;
 struct ScriptDialog;
 struct ScriptGUI;
 struct ScriptHotspot;
@@ -87,7 +88,7 @@ struct ScriptManagerOf<ScriptAudioChannel>
     static IScriptObject *Get() { return &ccDynamicAudio; }
 };
 template <>
-struct ScriptManagerOf<ScriptAudioClip>
+struct ScriptManagerOf<AudioClip>
 {
     static IScriptObject *Get() { return &ccDynamicAudioClip; }
 };

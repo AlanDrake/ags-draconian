@@ -42,25 +42,25 @@ target_sources(common
     font/wfnfont.h
     font/wfnfontrenderer.cpp
     font/wfnfontrenderer.h
-    game/audio_clip_type.cpp
-    game/audio_clip_type.h
+    game/audio_clip_type_def.cpp
+    game/audio_clip_type_def.h
     game/character_def.cpp
     game/character_def.h
     game/common_defines.h
     game/customproperties.cpp
     game/customproperties.h
-    game/dialog_topic.cpp
-    game/dialog_topic.h
+    game/dialog_def.cpp
+    game/dialog_def.h
     game/game_def.cpp
     game/game_def.h
     game/game_struct_defines.h
     game/game_version.h
-    game/inventory_item_info.cpp
-    game/inventory_item_info.h
+    game/inventory_item_def.cpp
+    game/inventory_item_def.h
     game/main_game_file.cpp
     game/main_game_file.h
-    game/mouse_cursor.cpp
-    game/mouse_cursor.h
+    game/mouse_cursor_def.cpp
+    game/mouse_cursor_def.h
     game/plugininfo.h
     game/room_file.cpp
     game/room_file.h
@@ -71,12 +71,12 @@ target_sources(common
     game/room_def.h
     game/roomstruct.cpp
     game/roomstruct.h
-    game/script_audio_clip.cpp
-    game/script_audio_clip.h
+    game/audio_clip_def.cpp
+    game/audio_clip_def.h
     game/scripteventtable.cpp
     game/scripteventtable.h
-    game/view.cpp
-    game/view.h
+    game/view_def.cpp
+    game/view_def.h
     game/words_dictionary.cpp
     game/words_dictionary.h
     gfx/allegrobitmap.cpp

@@ -26,7 +26,7 @@ class Stream;
 }
 } // namespace AGS
 
-struct ViewFrame
+struct ViewFrameDef
 {
     int pic = 0;
     int16_t xoffs = 0;
@@ -37,42 +37,42 @@ struct ViewFrame
     int reserved_for_future[2] = {0}; // kept only for plugin api // CLNUP: may remove in ags4?
     AGS::Common::String event_name;
 
-    ViewFrame() = default;
+    ViewFrameDef() = default;
 
     void ReadFromFile(AGS::Common::Stream *in);
 };
 
 #define LOOPFLAG_RUNNEXTLOOP 1
 
-struct ViewLoopNew
+struct ViewLoopDef
 {
     // NOTE: we still need numFrames:
     // as we always allocate at least 1 frame for safety, to avoid crashes,
     // but have to report "logical" number of frames for the engine API.
     int numFrames;
     int flags;
-    std::vector<ViewFrame> frames;
+    std::vector<ViewFrameDef> frames;
 
     // Returns last frame, or 0 if there's no frames in this loop
     int GetLastFrame() const { return numFrames > 0 ? numFrames - 1 : 0; }
 
-    ViewLoopNew();
-    void Initialize(int frameCount);
+    ViewLoopDef();
+    void Initialize(int frame_count);
     // Tells if this loop has a "Run next loop after this" flag
     bool RunNextLoop() const;
     void ReadFromFile(AGS::Common::Stream *in);
     void ReadFrames(AGS::Common::Stream *in);
 };
 
-struct ViewStruct
+struct ViewDef
 {
     int numLoops;
-    std::vector<ViewLoopNew> loops;
+    std::vector<ViewLoopDef> loops;
 
     // Returns last loop, or 0 if there's no loops in this view
     int GetLastLoop() const { return numLoops > 0 ? numLoops - 1 : 0; }
 
-    ViewStruct();
-    void Initialize(int loopCount);
+    ViewDef();
+    void Initialize(int loop_count);
     void ReadFromFile(AGS::Common::Stream *in);
 };

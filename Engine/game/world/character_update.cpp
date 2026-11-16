@@ -370,7 +370,7 @@ bool UpdateCharacterAnimating(Game &game, Character *ch, int &doing_nothing)
         {
             ch->AnimWait--;
         }
-        else if (is_char_speaking && (game.options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts) && has_voice_lipsync())
+        else if (is_char_speaking && (game.Options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts) && has_voice_lipsync())
         {
             const int new_frame = update_voice_lipsync(ch->Frame);
             if (ch->Frame != new_frame)
@@ -379,7 +379,7 @@ bool UpdateCharacterAnimating(Game &game, Character *ch, int &doing_nothing)
                 ch->CheckViewFrame();
             }
         }
-        else if (is_char_speaking && (game.options[OPT_LIPSYNCTEXT] != 0))
+        else if (is_char_speaking && (game.Options[OPT_LIPSYNCTEXT] != 0))
         {
             // currently talking with lip-sync speech
             int fraa = ch->Frame;

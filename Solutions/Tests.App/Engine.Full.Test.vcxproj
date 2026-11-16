@@ -37,6 +37,7 @@
     <ClCompile Include="..\..\Compiler\script\cs_parser.cpp" />
     <ClCompile Include="..\..\Compiler\script\cs_scanner.cpp" />
     <ClCompile Include="..\..\Engine\test\character_turn_test.cpp" />
+    <ClCompile Include="..\..\Engine\test\game_entities_test.cpp" />
     <ClCompile Include="..\..\Engine\test\gui_layout_test.cpp" />
     <ClCompile Include="..\..\Engine\test\managed_pool_test.cpp" />
     <ClCompile Include="..\..\Engine\test\overlay_test.cpp" />

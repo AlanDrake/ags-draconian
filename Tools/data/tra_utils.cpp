@@ -91,7 +91,7 @@ static bool ParseFontOverride(const String &line, FontOverride &fover)
     {
         options.push_back(StrUtil::GetKeyValue(sec, OPTION_SEPARATOR));
     }
-    FontInfo finfo;
+    FontDef finfo;
     int fields = kFontField_None;
     for (const auto &opt : options)
     {
@@ -146,11 +146,11 @@ static bool ParseFontOverride(const String &line, FontOverride &fover)
         {
             if (value == "SQUARED")
             {
-                finfo.AutoOutlineStyle = FontInfo::kSquared;
+                finfo.AutoOutlineStyle = FontDef::kSquared;
             }
             else if (value == "ROUND")
             {
-                finfo.AutoOutlineStyle = FontInfo::kRounded;
+                finfo.AutoOutlineStyle = FontDef::kRounded;
             }
             fields |= kFontField_AutoOutlineStyle;
         }
@@ -289,7 +289,7 @@ static void WriteFontOverrides(const TranslationOptions &tra, TextStreamWriter &
         String font_line;
         int fontIndex = font_over.first;
         const FontOverride &fover = font_over.second;
-        const FontInfo &finfo = fover.Finfo;
+        const FontDef &finfo = fover.Finfo;
         const int fields = fover.Fields;
         font_line.AppendFmt("# $Font%d=", fontIndex);
         // The font override's source is defined either as another font's index, or font file
@@ -319,9 +319,9 @@ static void WriteFontOverrides(const TranslationOptions &tra, TextStreamWriter &
 
         if (fields & kFontField_AutoOutlineStyle)
         {
-            if (finfo.AutoOutlineStyle == FontInfo::kSquared)
+            if (finfo.AutoOutlineStyle == FontDef::kSquared)
                 font_line.Append("AutoOutline=SQUARED;");
-            else if (finfo.AutoOutlineStyle == FontInfo::kRounded)
+            else if (finfo.AutoOutlineStyle == FontDef::kRounded)
                 font_line.Append("AutoOutline=ROUND;");
         }
 
@@ -802,7 +802,7 @@ HError WriteTRA(const TranslationSource &src, std::unique_ptr<Stream> &&out)
                 for (const int font_id : src.FontOverrideOrder)
                 {
                     const FontOverride &fover = tra.FontOverrides.at(font_id);
-                    const FontInfo &finfo = fover.Finfo;
+                    const FontDef &finfo = fover.Finfo;
                     out->WriteInt32(font_id);      // font to override
                     out->WriteInt32(finfo.FontID); // replacement font ID (or -1 if determined by its filename)
                     out->WriteInt32(static_cast<uint32_t>(fover.Fields)); // which font fields are valid

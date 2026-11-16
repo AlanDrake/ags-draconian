@@ -16,13 +16,18 @@
 #include <array>
 #include <memory>
 
+#include "game/audio_clip_def.h"
 #include "game/common_defines.h"
 #include "game/dynobj/script_objects.h"
-#include "game/script_audio_clip.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/soundclip.h"
 #include "util/string.h"
 #include "util/time_util.h"
+
+struct AudioClipTypeDef;
+// The engine's audio clip and audio clip type; aliases of their definitions until they hold more (PLAN.md 5.1a step 3)
+using AudioClip = AudioClipDef;
+using AudioClipType = AudioClipTypeDef;
 
 class Game;
 
@@ -53,12 +58,12 @@ private:
 // Helper struct, pairing audio clip and playback setting overrides
 struct AudioPlayback
 {
-    const ScriptAudioClip *Clip = nullptr;
+    const AudioClip *Clip = nullptr;
     int AudioType = AUDIOTYPE_UNDEFINED;
 
     AudioPlayback() = default;
-    AudioPlayback(const ScriptAudioClip *clip) : Clip(clip), AudioType(clip->type) {}
-    AudioPlayback(const ScriptAudioClip *clip, int audio_type) : Clip(clip), AudioType(audio_type) {}
+    AudioPlayback(const AudioClip *clip) : Clip(clip), AudioType(clip->type) {}
+    AudioPlayback(const AudioClip *clip, int audio_type) : Clip(clip), AudioType(audio_type) {}
 };
 
 
@@ -66,10 +71,10 @@ void calculate_reserved_channel_count();
 int get_playback_start_volume(const AudioPlayback &aplay);
 void start_fading_in_new_track_if_applicable(int fadeInChannel, const AudioPlayback &aplay);
 void stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel = -1, const AudioPlayback &aplay = {});
-std::unique_ptr<SoundClip> load_sound_clip(const ScriptAudioClip *audioClip, bool repeat);
+std::unique_ptr<SoundClip> load_sound_clip(const AudioClip *audio_clip, bool repeat);
 std::unique_ptr<SoundClip> load_sound_clip(const AGS::Common::String &filename, uint8_t bundleType, bool repeat);
 std::unique_ptr<SoundClip> load_sound_clip(const AudioPlayback &aplay, bool repeat);
-ScriptAudioChannel *play_audio_clip_on_channel(const ScriptAudioClip *clip, int channel, int priority, int repeat,
+ScriptAudioChannel *play_audio_clip_on_channel(const AudioClip *clip, int channel, int priority, int repeat,
                                                int fromOffset = 0, std::unique_ptr<SoundClip> &&cachedClip = nullptr);
 ScriptAudioChannel *play_sound_on_channel(std::unique_ptr<SoundClip> &&sound, int channel, int priority, int repeat,
                                           int fromOffset);
@@ -79,7 +84,7 @@ void remove_clips_of_type_from_queue(int audioType);
 void update_queued_clips_volume(int audioType, int new_vol);
 // Checks if speech voice-over is currently playing, and reapply volume drop to all other active clips
 void update_volume_drop_if_voiceover();
-ScriptAudioChannel *play_audio_clip(const ScriptAudioClip *clip, int priority, int repeat, int fromOffset = 0,
+ScriptAudioChannel *play_audio_clip(const AudioClip *clip, int priority, int repeat, int from_offset = 0,
                                     bool queueIfNoChannel = false);
 ScriptAudioChannel *play_audio_clip_by_index(int audioClipIndex);
 ScriptAudioChannel *play_audio_clip(const AudioPlayback &aplay, int channel, int priority, int repeat,

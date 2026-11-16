@@ -24,14 +24,14 @@
 
 #include <allegro.h> // RGB
 
-#include "game/audio_clip_type.h"
+#include "game/audio_clip_def.h"
+#include "game/audio_clip_type_def.h"
 #include "game/customproperties.h"
 #include "game/game_struct_defines.h"
 #include "game/game_version.h"
-#include "game/inventory_item_info.h"
+#include "game/inventory_item_def.h"
 #include "game/main_game_file.h" // TODO: constants to separate header or split out reading functions
-#include "game/mouse_cursor.h"
-#include "game/script_audio_clip.h"
+#include "game/mouse_cursor_def.h"
 #include "game/scripteventtable.h"
 #include "game/words_dictionary.h"
 #include "gui/guidefines.h"
@@ -41,8 +41,8 @@
 
 // Complete in game_def.cpp, where GameDef's special member functions are defined
 struct CharacterDef;
-struct DialogTopic;
-struct ViewStruct;
+struct DialogDef;
+struct ViewDef;
 
 using AGS::Common::HGameFileError;
 using AGS::Common::HError;
@@ -61,26 +61,26 @@ struct GameDef
     AGS::Common::String gamename;
     GameDataVersion gamedataver = kGameVersion_Undefined;
     AGS::Common::String compiled_with; // version of AGS this data was created by
-    int options[MAX_OPTIONS] = {0};
+    int Options[MAX_OPTIONS] = {0};
     uint8_t paluses[256] = {0};
     RGB defpal[256] = {};
     int numviews = 0;
     int numcharacters = 0;
-    int playercharacter = -1;
+    int PlayerCharacterID = -1;
     uint16_t numinvitems = 0u;
     int numdialog = 0;
     int numdlgmessage = 0; // [DEPRECATED]
     int numfonts = 0;
     int color_depth = 0; // in bytes per pixel (ie. 1, 2, 4)
     int target_win = 0;
-    int dialog_bullet = 0;       // 0 for none, otherwise slot num of bullet point
-    int inv_hot_color = 0;       // inv cursor hotspot dot color
-    int inv_hot_cross_color = 0; // inv cursor hotspot cross color
-    int uniqueid = 0;            // random key identifying the game
+    int DialogBulletSprite = 0;               // 0 for none, otherwise slot num of bullet point
+    int InventoryCursorHotspotColor = 0;      // inv cursor hotspot dot color
+    int InventoryCursorHotspotCrossColor = 0; // inv cursor hotspot cross color
+    int uniqueid = 0;                         // random key identifying the game
     int numgui = 0;
     int numcursors = 0;
-    int default_lipsync_frame = 0; // used for unknown chars
-    int inv_hot_sprite = 0;
+    int DefaultLipSyncFrame = 0; // used for unknown chars
+    int InventoryCursorHotspotSprite = 0;
     int reserved[NUM_INTS_RESERVED] = {0};
     // Base text parser dictionary, contains parser words in the original game language.
     // This may be overridden by the parser dictionary read from translation, if one is applied.
@@ -98,9 +98,9 @@ public:
     // This array is used only to read data into;
     // font parameters are then put and queried in the fonts module
     // TODO: split into installation params (used only when reading) and runtime params
-    std::vector<FontInfo> fonts;
-    std::vector<InventoryItemInfo> invinfo;
-    std::vector<MouseCursor> mcurs;
+    std::vector<FontDef> Fonts;
+    std::vector<InventoryItemDef> InventoryItems;
+    std::vector<MouseCursorDef> MouseCursors;
     char lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{0}};
     AGS::Common::PropertySchema propSchema;
     std::vector<AGS::Common::StringIMap> charProps;
@@ -113,7 +113,7 @@ public:
     // used, nor registered as script exports; numeric IDs are used to
     // reference views instead.
     std::vector<AGS::Common::String> viewNames;
-    std::vector<AGS::Common::String> invScriptNames; // TODO: move to InventoryItemInfo
+    std::vector<AGS::Common::String> invScriptNames; // TODO: move to InventoryItemDef
     // TODO: move this array out of Game struct, but need to read legacy data
     // into some sort of a temporary container for post-load upgrading.
     std::vector<AGS::Common::String> dialogScriptNames;
@@ -126,12 +126,12 @@ public:
     // Saved room names, known during the game compilation;
     // may be used to learn the total number of registered rooms
     std::map<int, AGS::Common::String> roomNames;
-    std::vector<ScriptAudioClip> audioClips;
-    std::vector<AudioClipType> audioClipTypes;
+    std::vector<AudioClipDef> AudioClips;
+    std::vector<AudioClipTypeDef> AudioClipTypes;
     // number of accessible game audio channels (the ones under direct user control)
-    int numGameChannels = 0;
+    int GameChannelCount = 0;
     // backward-compatible channel limit that may be exported to script and reserved by audiotypes
-    int numCompatGameChannels = 0;
+    int CompatGameChannelCount = 0;
 
     // Extended global game properties
     // Character face direction ratio (y/x)
@@ -183,14 +183,14 @@ public:
     // Returns a cursor index with standard Wait mode, or -1 if there's none
     int GetModeWait() const { return _roleCursors[kCursorRole_Wait]; }
     // Tells if the given cursor has the specific role
-    bool HasCursorRole(int curs, CursorRole role) const { return mcurs[curs].role == role; }
+    bool HasCursorRole(int curs, CursorRole role) const { return MouseCursors[curs].role == role; }
 
     // The game's entities as loaded from the game file (ReadGameData reads into them); the engine's Game inherits
     // them and changes them while the game runs, until each entity gets a live copy (PLAN.md 5.1a).
     // The game's views
-    std::vector<ViewStruct> Views;
+    std::vector<ViewDef> Views;
     // The dialog topics of the game, by dialog number
-    std::vector<DialogTopic> Dialogs;
+    std::vector<DialogDef> Dialogs;
     // The GUIs and their controls, by GUI index and by control index of each kind
     std::vector<AGS::Common::GUIMain> Guis;
     std::vector<AGS::Common::GUIButton> GuiButtons;

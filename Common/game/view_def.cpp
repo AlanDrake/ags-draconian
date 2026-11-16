@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "game/view.h"
+#include "game/view_def.h"
 
 #include <cstring>
 
@@ -19,7 +19,7 @@
 
 using namespace AGS::Common;
 
-void ViewFrame::ReadFromFile(Stream *in)
+void ViewFrameDef::ReadFromFile(Stream *in)
 {
     pic = in->ReadInt32();
     xoffs = in->ReadInt16();
@@ -32,29 +32,29 @@ void ViewFrame::ReadFromFile(Stream *in)
     in->ReadInt32(); // reserved 1
 }
 
-ViewLoopNew::ViewLoopNew() : numFrames(0), flags(0) {}
+ViewLoopDef::ViewLoopDef() : numFrames(0), flags(0) {}
 
-bool ViewLoopNew::RunNextLoop() const
+bool ViewLoopDef::RunNextLoop() const
 {
     return (flags & LOOPFLAG_RUNNEXTLOOP);
 }
 
-void ViewLoopNew::Initialize(int frameCount)
+void ViewLoopDef::Initialize(int frame_count)
 {
-    numFrames = frameCount;
+    numFrames = frame_count;
     flags = 0;
     // an extra frame is allocated to prevent crashes with empty loops
     frames.resize(numFrames > 0 ? numFrames : 1);
 }
 
-void ViewLoopNew::ReadFromFile(Stream *in)
+void ViewLoopDef::ReadFromFile(Stream *in)
 {
     Initialize(static_cast<uint16_t>(in->ReadInt16()));
     flags = in->ReadInt32();
     ReadFrames(in);
 }
 
-void ViewLoopNew::ReadFrames(Stream *in)
+void ViewLoopDef::ReadFrames(Stream *in)
 {
     for (int i = 0; i < numFrames; ++i)
     {
@@ -62,15 +62,15 @@ void ViewLoopNew::ReadFrames(Stream *in)
     }
 }
 
-ViewStruct::ViewStruct() : numLoops(0) {}
+ViewDef::ViewDef() : numLoops(0) {}
 
-void ViewStruct::Initialize(int loopCount)
+void ViewDef::Initialize(int loop_count)
 {
-    numLoops = loopCount;
+    numLoops = loop_count;
     loops.resize(numLoops);
 }
 
-void ViewStruct::ReadFromFile(Stream *in)
+void ViewDef::ReadFromFile(Stream *in)
 {
     Initialize(static_cast<uint16_t>(in->ReadInt16()));
 

@@ -322,7 +322,7 @@ void apply_debug_config(const ConfigTree &cfg, bool finalize)
 
     // If the game was compiled in Debug mode *and* there's no regular file log,
     // then open "warnings.log" for printing script warnings.
-    if (Game::Current().options[OPT_DEBUGMODE] != 0 && !DbgMgr.HasOutput(OutputFileID))
+    if (Game::Current().Options[OPT_DEBUGMODE] != 0 && !DbgMgr.HasOutput(OutputFileID))
     {
         auto dbgout = create_log_output(OutputFileID, "./", "warnings.log", LogFile::kLogFile_OverwriteAtFirstMessage);
         if (dbgout)
@@ -370,7 +370,7 @@ void debug_script_event(MessageType mt, const String &msg)
 
     // A (possibly) temporary solution to making script errors stand out more to the game developer or testers:
     // if the game is compiled in debug mode, then quit on script error events.
-    if (game.options[OPT_DEBUGMODE])
+    if (game.Options[OPT_DEBUGMODE])
     {
         if (mt == kDbgMsg_Error || mt == kDbgMsg_Fatal)
         {

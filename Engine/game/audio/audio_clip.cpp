@@ -30,42 +30,42 @@
 
 using namespace AGS::Common;
 
-int AudioClip_GetID(ScriptAudioClip *clip)
+int AudioClip_GetID(AudioClip *clip)
 {
     return clip->id;
 }
 
-const char *AudioClip_GetScriptName(ScriptAudioClip *clip)
+const char *AudioClip_GetScriptName(AudioClip *clip)
 {
     return CreateNewScriptString(clip->scriptName);
 }
 
-int AudioClip_GetDefaultPriority(ScriptAudioClip *clip)
+int AudioClip_GetDefaultPriority(AudioClip *clip)
 {
     return clip->defaultPriority;
 }
 
-int AudioClip_GetDefaultRepeat(ScriptAudioClip *clip)
+int AudioClip_GetDefaultRepeat(AudioClip *clip)
 {
     return clip->defaultRepeat;
 }
 
-int AudioClip_GetDefaultVolume(ScriptAudioClip *clip)
+int AudioClip_GetDefaultVolume(AudioClip *clip)
 {
     return clip->defaultVolume;
 }
 
-int AudioClip_GetFileType(ScriptAudioClip *clip)
+int AudioClip_GetFileType(AudioClip *clip)
 {
     return clip->fileType;
 }
 
-int AudioClip_GetType(ScriptAudioClip *clip)
+int AudioClip_GetType(AudioClip *clip)
 {
     return clip->type;
 }
 
-int AudioClip_GetIsAvailable(ScriptAudioClip *clip)
+int AudioClip_GetIsAvailable(AudioClip *clip)
 {
     return EngineServices::Current().Assets->DoesAssetExist(
                get_audio_clip_assetpath(clip->bundlingType, clip->fileName))
@@ -73,10 +73,10 @@ int AudioClip_GetIsAvailable(ScriptAudioClip *clip)
                : 0;
 }
 
-void AudioClip_Stop(ScriptAudioClip *clip)
+void AudioClip_Stop(AudioClip *clip)
 {
     Game &game = Game::Current();
-    for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
+    for (int i = NUM_SPEECH_CHANS; i < game.GameChannelCount; i++)
     {
         auto *playback = AudioChans::GetChannelIfPlaying(i);
         if ((playback != nullptr) && (playback->sourceClipID == clip->id))
@@ -86,27 +86,27 @@ void AudioClip_Stop(ScriptAudioClip *clip)
     }
 }
 
-ScriptAudioChannel *AudioClip_Play(ScriptAudioClip *clip, int priority, int repeat)
+ScriptAudioChannel *AudioClip_Play(AudioClip *clip, int priority, int repeat)
 {
     return play_audio_clip(clip, priority, repeat, 0, false);
 }
 
-ScriptAudioChannel *AudioClip_PlayFrom(ScriptAudioClip *clip, int position, int priority, int repeat)
+ScriptAudioChannel *AudioClip_PlayFrom(AudioClip *clip, int position, int priority, int repeat)
 {
     return play_audio_clip(clip, priority, repeat, position, false);
 }
 
-ScriptAudioChannel *AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, int repeat)
+ScriptAudioChannel *AudioClip_PlayQueued(AudioClip *clip, int priority, int repeat)
 {
     return play_audio_clip(clip, priority, repeat, 0, true);
 }
 
-ScriptAudioChannel *AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int priority, int repeat)
+ScriptAudioChannel *AudioClip_PlayOnChannel(AudioClip *clip, int chan, int priority, int repeat)
 {
     Game &game = Game::Current();
-    if (chan < NUM_SPEECH_CHANS || chan >= game.numGameChannels)
+    if (chan < NUM_SPEECH_CHANS || chan >= game.GameChannelCount)
         quitprintf("!AudioClip.PlayOnChannel: invalid channel %d, the range is %d - %d", chan, NUM_SPEECH_CHANS,
-                   game.numGameChannels - 1);
+                   game.GameChannelCount - 1);
     if (priority == SCR_NO_VALUE)
         priority = clip->defaultPriority;
     if (repeat == SCR_NO_VALUE)
@@ -114,15 +114,15 @@ ScriptAudioChannel *AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int
     return play_audio_clip_on_channel(clip, chan, priority, repeat);
 }
 
-ScriptAudioChannel *AudioClip_PlayAsType(ScriptAudioClip *clip, int type, int chan, int priority, int repeat)
+ScriptAudioChannel *AudioClip_PlayAsType(AudioClip *clip, int type, int chan, int priority, int repeat)
 {
     Game &game = Game::Current();
-    if (type <= AUDIOTYPE_SPEECH || static_cast<uint32_t>(type) >= game.audioClipTypes.size())
+    if (type <= AUDIOTYPE_SPEECH || static_cast<uint32_t>(type) >= game.AudioClipTypes.size())
         quitprintf("!AudioClip.PlayAsType: invalid audio type %d, the range is %u - %u", type, AUDIOTYPE_SPEECH + 1,
-                   static_cast<uint32_t>(game.audioClipTypes.size() - 1));
-    if (chan != SCR_NO_VALUE && (chan < NUM_SPEECH_CHANS || chan >= game.numGameChannels))
+                   static_cast<uint32_t>(game.AudioClipTypes.size() - 1));
+    if (chan != SCR_NO_VALUE && (chan < NUM_SPEECH_CHANS || chan >= game.GameChannelCount))
         quitprintf("!AudioClip.PlayAsType: invalid channel %d, the range is %d - %d", chan, NUM_SPEECH_CHANS,
-                   game.numGameChannels - 1);
+                   game.GameChannelCount - 1);
     if (chan == SCR_NO_VALUE)
         chan = -1;
     if (priority == SCR_NO_VALUE)
@@ -132,25 +132,25 @@ ScriptAudioChannel *AudioClip_PlayAsType(ScriptAudioClip *clip, int type, int ch
     return play_audio_clip(AudioPlayback(clip, type), chan, priority, repeat);
 }
 
-int AudioClip_GetProperty(ScriptAudioClip *clip, const char *property)
+int AudioClip_GetProperty(AudioClip *clip, const char *property)
 {
     Game &game = Game::Current();
     return get_int_property(game.audioclipProps[clip->id], game.Play.audioclipProps[clip->id], property);
 }
 
-const char *AudioClip_GetTextProperty(ScriptAudioClip *clip, const char *property)
+const char *AudioClip_GetTextProperty(AudioClip *clip, const char *property)
 {
     Game &game = Game::Current();
     return get_text_property_dynamic_string(game.audioclipProps[clip->id], game.Play.audioclipProps[clip->id],
                                             property);
 }
 
-bool AudioClip_SetProperty(ScriptAudioClip *clip, const char *property, int value)
+bool AudioClip_SetProperty(AudioClip *clip, const char *property, int value)
 {
     return set_int_property(Game::Current().Play.audioclipProps[clip->id], property, value);
 }
 
-bool AudioClip_SetTextProperty(ScriptAudioClip *clip, const char *property, const char *value)
+bool AudioClip_SetTextProperty(AudioClip *clip, const char *property, const char *value)
 {
     return set_text_property(Game::Current().Play.audioclipProps[clip->id], property, value);
 }
@@ -163,7 +163,7 @@ bool AudioClip_SetTextProperty(ScriptAudioClip *clip, const char *property, cons
 
 #include "script/script_runtime.h"
 
-ScriptAudioClip *AudioClip_GetByName(const char *name)
+AudioClip *AudioClip_GetByName(const char *name)
 {
-    return static_cast<ScriptAudioClip *>(ccGetScriptObjectAddress(name, ccDynamicAudioClip.GetType()));
+    return static_cast<AudioClip *>(ccGetScriptObjectAddress(name, ccDynamicAudioClip.GetType()));
 }

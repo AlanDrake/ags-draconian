@@ -260,7 +260,7 @@ int Speech_GetGlobalSpeechAnimationDelay()
 void Speech_SetGlobalSpeechAnimationDelay(int delay)
 {
     Game &game = Game::Current();
-    if (game.options[OPT_GLOBALTALKANIMSPD] == 0)
+    if (game.Options[OPT_GLOBALTALKANIMSPD] == 0)
     {
         debug_script_warn("Speech.GlobalSpeechAnimationDelay cannot be set when global speech animation speed is not "
                           "enabled; set Speech.UseGlobalSpeechAnimationDelay first!");
@@ -291,14 +291,14 @@ void Speech_SetPortraitY(int y)
 
 int Speech_GetStyle()
 {
-    return Game::Current().options[OPT_SPEECHTYPE];
+    return Game::Current().Options[OPT_SPEECHTYPE];
 }
 
 void Speech_SetStyle(int newstyle)
 {
     if ((newstyle < 0) || (newstyle > 3))
         quit("!SetSpeechStyle: must use a SPEECH_* constant as parameter");
-    Game::Current().options[OPT_SPEECHTYPE] = newstyle;
+    Game::Current().Options[OPT_SPEECHTYPE] = newstyle;
 }
 
 SkipSpeechStyle Speech_GetSkipStyle()
@@ -340,12 +340,12 @@ void Speech_SetTextAlignment(int alignment)
 
 int Speech_GetUseGlobalSpeechAnimationDelay()
 {
-    return Game::Current().options[OPT_GLOBALTALKANIMSPD];
+    return Game::Current().Options[OPT_GLOBALTALKANIMSPD];
 }
 
 void Speech_SetUseGlobalSpeechAnimationDelay(int delay)
 {
-    Game::Current().options[OPT_GLOBALTALKANIMSPD] = delay;
+    Game::Current().Options[OPT_GLOBALTALKANIMSPD] = delay;
 }
 
 void Speech_SetVoiceMode(int newmod)
@@ -517,13 +517,13 @@ bool play_voice_speech(int char_id, int cue_id)
     // if the game has any voice lip-sync data, disable the text-related lipsync
     // (even if this line has no match)
     if (game.LipSync.NumLines > 0)
-        game.options[OPT_LIPSYNCTEXT] = 0;
+        game.Options[OPT_LIPSYNCTEXT] = 0;
 
     // change Sierra w/bgrnd to Sierra without background when the game asks for that
     // with voice speech (no_textbg_when_voice; 2 marks the switch, stop_voice_speech reverts it)
-    if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_SierraBackground) && (game.Play.no_textbg_when_voice > 0))
+    if ((game.Options[OPT_SPEECHTYPE] == kSpeechStyle_SierraBackground) && (game.Play.no_textbg_when_voice > 0))
     {
-        game.options[OPT_SPEECHTYPE] = kSpeechStyle_SierraTransparent;
+        game.Options[OPT_SPEECHTYPE] = kSpeechStyle_SierraTransparent;
         game.Play.no_textbg_when_voice = 2;
     }
     return true;
@@ -554,9 +554,9 @@ const ScriptAudioChannel *play_voice_clip_as_type(int char_id, int cue_id, int t
     if (!apath)
         return nullptr;
 
-    ScriptAudioClip sc_clip; // pass temp dummy clip
+    AudioClip sc_clip; // pass temp dummy clip
     sc_clip.fileName = apath.Name;
-    sc_clip.fileType = ScriptAudioClip::GetAudioFileTypeFromExt(Path::GetFileExtension(apath.Name).GetCStr());
+    sc_clip.fileType = AudioClip::GetAudioFileTypeFromExt(Path::GetFileExtension(apath.Name).GetCStr());
     sc_clip.bundlingType = kAudioBundle_SpeechVox;
     return play_audio_clip(AudioPlayback(&sc_clip, type), chan, priority, repeat, 0, false);
 }
@@ -575,7 +575,7 @@ void stop_voice_speech()
     if (game.Play.no_textbg_when_voice == 2)
     {
         game.Play.no_textbg_when_voice = 1;
-        game.options[OPT_SPEECHTYPE] = kSpeechStyle_SierraBackground;
+        game.Options[OPT_SPEECHTYPE] = kSpeechStyle_SierraBackground;
     }
     game.Play.speech_has_voice = false;
     game.Play.speech_voice_blocking = false;

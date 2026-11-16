@@ -400,7 +400,7 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    memcpy(pp.GameOptions, game.options, GameDef::MAX_OPTIONS * sizeof(int));
+    memcpy(pp.GameOptions, game.Options, GameDef::MAX_OPTIONS * sizeof(int));
 
     unload_old_room();
     remove_all_overlays();
@@ -505,18 +505,18 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
 
         if (chan_info.ClipID >= 0)
         {
-            if ((size_t)chan_info.ClipID >= game.audioClips.size())
+            if ((size_t)chan_info.ClipID >= game.AudioClips.size())
             {
                 return new SavegameError(kSvgErr_GameObjectInitFailed,
                                          "Invalid audio clip index: %d (clip count: %zu).", chan_info.ClipID,
-                                         game.audioClips.size());
+                                         game.AudioClips.size());
             }
 
             int audio_type = chan_info.AudioType != AUDIOTYPE_UNDEFINED ? chan_info.AudioType
-                                                                        : game.audioClips[chan_info.ClipID].type;
+                                                                        : game.AudioClips[chan_info.ClipID].type;
             // TODO: queueIfNoChannel is set here only because play_audio_clip then does not remove the clips of
             // this audio type from the queue, which was just restored; a parameter of its own would say it
-            play_audio_clip(AudioPlayback(&game.audioClips[chan_info.ClipID], audio_type), i, chan_info.Priority,
+            play_audio_clip(AudioPlayback(&game.AudioClips[chan_info.ClipID], audio_type), i, chan_info.Priority,
                             chan_info.Repeat, chan_info.Pos, true /* queueIfNoChannel */);
         }
         else
@@ -606,10 +606,10 @@ static void CopyPreservedGameOptions(GameDef &gs, const PreservedParams &pp)
 {
     const auto restricted_opts = GameDef::GetRestrictedOptions();
     for (auto opt : restricted_opts)
-        gs.options[opt] = pp.GameOptions[opt];
+        gs.Options[opt] = pp.GameOptions[opt];
     const auto preserved_opts = GameDef::GetPreservedOptions();
     for (auto opt : preserved_opts)
-        gs.options[opt] = pp.GameOptions[opt];
+        gs.Options[opt] = pp.GameOptions[opt];
 }
 
 // A callback that tests if DynamicSprite refers a valid dynamic sprite in cache, and resets it to
@@ -717,7 +717,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         }
     }
 
-    setup_player_character(game.playercharacter);
+    setup_player_character(game.PlayerCharacterID);
 
     // Save some parameters to restore them after room load
     const int gscript_timer = game.Play.gscript_timer;
@@ -749,7 +749,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     if (game.HasCursorRole(r_data.CursorID, kCursorRole_UseInv))
         SetActiveInventory(game.PlayerChar->ActiveInventory);
     // precache current cursor
-    services.Sprites.PrecacheSprite(game.mcurs[r_data.CursorID].pic);
+    services.Sprites.PrecacheSprite(game.MouseCursors[r_data.CursorID].pic);
 
     services.Platform->SetWindowTitle(game.Play.game_name);
 
@@ -808,7 +808,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
 
     RestoreShaders();
 
-    adjust_fonts_for_render_mode(game.options[OPT_ANTIALIASFONTS] != 0);
+    adjust_fonts_for_render_mode(game.Options[OPT_ANTIALIASFONTS] != 0);
 
     restore_characters();
     restore_movelists();

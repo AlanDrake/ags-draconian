@@ -90,9 +90,9 @@ enum FontFieldFlags
 struct FontOverride
 {
     FontOverride() = default;
-    FontOverride(const FontInfo &finfo, FontFieldFlags fields) : Finfo(finfo), Fields(fields) {}
+    FontOverride(const FontDef &finfo, FontFieldFlags fields) : Finfo(finfo), Fields(fields) {}
 
-    FontInfo Finfo;
+    FontDef Finfo;
     FontFieldFlags Fields = kFontField_None;
 };
 

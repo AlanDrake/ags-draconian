@@ -585,7 +585,7 @@ size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLi
     split_lines(todis, lines, wii, fonnt, max_lines);
 
     // Apply text direction if requested
-    bool rtl_mode = game.options[OPT_RIGHTLEFTWRITE] != 0;
+    bool rtl_mode = game.Options[OPT_RIGHTLEFTWRITE] != 0;
     if (apply_direction)
     {
         for (size_t rr = 0; rr < lines.Count(); rr++)
