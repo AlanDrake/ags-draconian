@@ -744,15 +744,15 @@ HSaveError WriteGameState(Stream *out)
 
     // Viewports and cameras
     int viewcam_flags = 0;
-    if (game.Play.IsAutoRoomViewport())
+    if (game.Viewports.IsAutoRoomViewport())
         viewcam_flags |= kSvgGameAutoRoomView;
     out->WriteInt32(viewcam_flags);
-    out->WriteInt32(game.Play.GetRoomCameraCount());
-    for (int i = 0; i < game.Play.GetRoomCameraCount(); ++i)
-        WriteCameraState(*game.Play.GetRoomCamera(i), out);
-    out->WriteInt32(game.Play.GetRoomViewportCount());
-    for (int i = 0; i < game.Play.GetRoomViewportCount(); ++i)
-        WriteViewportState(*game.Play.GetRoomViewport(i), out);
+    out->WriteInt32(game.Viewports.GetRoomCameraCount());
+    for (int i = 0; i < game.Viewports.GetRoomCameraCount(); ++i)
+        WriteCameraState(*game.Viewports.GetRoomCamera(i), out);
+    out->WriteInt32(game.Viewports.GetRoomViewportCount());
+    for (int i = 0; i < game.Viewports.GetRoomViewportCount(); ++i)
+        WriteViewportState(*game.Viewports.GetRoomViewport(i), out);
 
     return HSaveError::None();
 }
@@ -833,7 +833,7 @@ HSaveError ReadGameState(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
     // Viewports and cameras
     {
         int viewcam_flags = in->ReadInt32();
-        game.Play.SetAutoRoomViewport((viewcam_flags & kSvgGameAutoRoomView) != 0);
+        game.Viewports.SetAutoRoomViewport((viewcam_flags & kSvgGameAutoRoomView) != 0);
         // TODO: we create viewport and camera objects here because they are
         // required for the managed pool deserialization, but read actual
         // data into temp structs because we need to apply it after active
@@ -842,13 +842,13 @@ HSaveError ReadGameState(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
         int cam_count = in->ReadInt32();
         for (int i = 0; i < cam_count; ++i)
         {
-            game.Play.CreateRoomCamera();
+            game.Viewports.CreateRoomCamera();
             ReadCameraState(svg_ver, r_data, in);
         }
         int view_count = in->ReadInt32();
         for (int i = 0; i < view_count; ++i)
         {
-            game.Play.CreateRoomViewport();
+            game.Viewports.CreateRoomViewport();
             ReadViewportState(svg_ver, r_data, in);
         }
     }

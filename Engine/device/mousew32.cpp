@@ -131,13 +131,13 @@ void Mouse::WindowToGame(int &x, int &y)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    x = services.GameScaling.X.UnScalePt(x) - game.Play.GetMainViewport().Left;
-    y = services.GameScaling.Y.UnScalePt(y) - game.Play.GetMainViewport().Top;
+    x = services.GameScaling.X.UnScalePt(x) - game.Viewports.GetMainViewport().Left;
+    y = services.GameScaling.Y.UnScalePt(y) - game.Viewports.GetMainViewport().Top;
 }
 
 void Mouse::UpdateGraphicArea()
 {
-    Mouse::ControlRect = EngineServices::Current().GameScaling.ScaleRange(Game::Current().Play.GetMainViewport());
+    Mouse::ControlRect = EngineServices::Current().GameScaling.ScaleRange(Game::Current().Viewports.GetMainViewport());
     Debug::Printf("Mouse cursor graphic area: (%d,%d)-(%d,%d) (%dx%d)", Mouse::ControlRect.Left, Mouse::ControlRect.Top,
                   Mouse::ControlRect.Right, Mouse::ControlRect.Bottom, Mouse::ControlRect.GetWidth(),
                   Mouse::ControlRect.GetHeight());
@@ -145,7 +145,7 @@ void Mouse::UpdateGraphicArea()
 
 void Mouse::SetMoveLimit(const Rect &r)
 {
-    Rect src_r = OffsetRect(r, Game::Current().Play.GetMainViewport().GetLT());
+    Rect src_r = OffsetRect(r, Game::Current().Viewports.GetMainViewport().GetLT());
     mouse_bounds = EngineServices::Current().GameScaling.ScaleRange(src_r);
 }
 
@@ -153,8 +153,8 @@ void Mouse::SetPosition(const Point &p)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    Mouse::SetSysPosition(services.GameScaling.X.ScalePt(p.X + game.Play.GetMainViewport().Left),
-                          services.GameScaling.Y.ScalePt(p.Y + game.Play.GetMainViewport().Top));
+    Mouse::SetSysPosition(services.GameScaling.X.ScalePt(p.X + game.Viewports.GetMainViewport().Left),
+                          services.GameScaling.Y.ScalePt(p.Y + game.Viewports.GetMainViewport().Top));
 }
 
 bool Mouse::IsLockedToWindow()

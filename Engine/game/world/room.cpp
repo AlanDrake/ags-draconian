@@ -509,10 +509,10 @@ static void adjust_viewport_to_room()
     Game &game = Game::Current();
     Room &room = Room::Current();
     const Size real_room_sz = Size(room.Width, room.Height);
-    const Rect main_view = game.Play.GetMainViewport();
+    const Rect main_view = game.Viewports.GetMainViewport();
     Rect new_room_view = RectWH(Size::Clamp(real_room_sz, Size(1, 1), main_view.GetSize()));
 
-    auto view = game.Play.GetRoomViewport(0);
+    auto view = game.Viewports.GetRoomViewport(0);
     view->SetRect(new_room_view);
     auto cam = view->GetCamera();
     if (cam)
@@ -527,9 +527,9 @@ static void adjust_viewport_to_room()
 static void update_all_viewcams_with_newroom()
 {
     Game &game = Game::Current();
-    for (int i = 0; i < game.Play.GetRoomCameraCount(); ++i)
+    for (int i = 0; i < game.Viewports.GetRoomCameraCount(); ++i)
     {
-        auto cam = game.Play.GetRoomCamera(i);
+        auto cam = game.Viewports.GetRoomCamera(i);
         const Rect old_pos = cam->GetRect();
         cam->SetSize(old_pos.GetSize());
         cam->SetAt(old_pos.Left, old_pos.Top);
@@ -1063,10 +1063,10 @@ void load_new_room(int room_id, CharacterInfo *ch)
     // new room; otherwise this is done later when cameras are recreated.
     if (ch != nullptr)
     {
-        if (game.Play.IsAutoRoomViewport())
+        if (game.Viewports.IsAutoRoomViewport())
             adjust_viewport_to_room();
         update_all_viewcams_with_newroom();
-        game.Play.UpdateRoomCameras(); // update auto tracking
+        game.Viewports.UpdateRoomCameras(); // update auto tracking
     }
 
     init_room_pathfinder();
@@ -1529,7 +1529,7 @@ void RoomProcessClick(int x, int y, int mood)
     int loc_id = -1;
     int loc_type = GetLocationTypeImpl(&loc_id, x, y, kHit_Interactable, true /* click-through gui */,
                                        false /* not allow hotspot0 */);
-    VpPoint vpt = game.Play.ScreenToRoom(x, y);
+    VpPoint vpt = game.Viewports.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return;
     x = vpt.first.X;
@@ -1582,7 +1582,7 @@ int IsInteractionAvailable(int x, int y, int mood)
     int loc_id = -1;
     int loc_type = GetLocationTypeImpl(&loc_id, x, y, kHit_Interactable, true /* click-through gui */,
                                        false /* not allow hotspot0 */);
-    VpPoint vpt = game.Play.ScreenToRoom(x, y);
+    VpPoint vpt = game.Viewports.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return 0;
     x = vpt.first.X;

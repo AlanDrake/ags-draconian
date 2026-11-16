@@ -225,7 +225,7 @@ ScriptObject *Object_GetAtScreenXY(int x, int y, int hit_options)
 {
     Game &game = Game::Current();
     // translate screen co-ordinates to room co-ordinates
-    VpPoint vpt = game.Play.ScreenToRoom(x, y);
+    VpPoint vpt = game.Viewports.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return nullptr;
     int obj_id = GetObjectIDAtRoom(vpt.first.X, vpt.first.Y, hit_options);

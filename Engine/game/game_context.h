@@ -21,6 +21,7 @@
 #include "game/dynobj/script_system.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
+#include "game/render/viewport.h"
 #include "game/ui/cursor_graphic_state.h"
 #include "media/audio/audiodefines.h"
 
@@ -217,6 +218,8 @@ public:
 
     // The game's own state: settings the script changes, play progress, blocking and transient state
     GamePlayState Play;
+    // The viewports and cameras of the game screen and the room
+    GameViewports Viewports;
 
     // The runtime state of the characters that CharacterInfo does not hold, by character index
     std::vector<CharacterExtras> CharExtras;

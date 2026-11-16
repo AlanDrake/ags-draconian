@@ -3144,7 +3144,7 @@ Bitmap *GetCharacterSourceImage(Game &game, EngineServices &services, int char_i
 CharacterInfo *Character_GetAtScreenXY(int x, int y, int hit_options)
 {
     Game &game = Game::Current();
-    VpPoint vpt = game.Play.ScreenToRoom(x, y);
+    VpPoint vpt = game.Viewports.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return nullptr;
     int chnum = GetCharIDAtRoom(vpt.first.X, vpt.first.Y, hit_options);
@@ -3426,7 +3426,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
     DisplayTextShrink allow_shrink = kDisplayTextShrink_None;
     bool align_hcenter = false; // whether to align text by centering over position
 
-    const Rect ui_view = game.Play.GetUIViewport();
+    const Rect ui_view = game.Viewports.GetUIViewport();
     int bwidth = width;
     if (bwidth < 0)
         bwidth = ui_view.GetWidth() / 2 + ui_view.GetWidth() / 4;
@@ -3828,7 +3828,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
             {
                 bwidth = ui_view.GetWidth() / 2 + ui_view.GetWidth() / 6;
                 // If they are close to the screen edge, make the text narrower
-                int relx = game.Play.RoomToScreenX(speaking_char->x);
+                int relx = game.Viewports.RoomToScreenX(speaking_char->x);
                 if ((relx < ui_view.GetWidth() / 4) || (relx > ui_view.GetWidth() - (ui_view.GetWidth() / 4)))
                     bwidth -= ui_view.GetWidth() / 5;
             }
@@ -3998,9 +3998,9 @@ PViewport FindNearestViewport(int char_id)
     Rect bbox = GetCharacterRoomBBox(char_id, true);
     float min_dist = -1.f;
     PViewport nearest_view;
-    for (int i = 0; i < game.Play.GetRoomViewportCount(); ++i)
+    for (int i = 0; i < game.Viewports.GetRoomViewportCount(); ++i)
     {
-        auto view = game.Play.GetRoomViewport(i);
+        auto view = game.Viewports.GetRoomViewport(i);
         if (!view->IsVisible())
             continue;
         auto cam = view->GetCamera();
@@ -4016,7 +4016,7 @@ PViewport FindNearestViewport(int char_id)
             nearest_view = view;
         }
     }
-    return nearest_view ? nearest_view : game.Play.GetRoomViewport(0);
+    return nearest_view ? nearest_view : game.Viewports.GetRoomViewport(0);
 }
 
 void UpdateInventory()

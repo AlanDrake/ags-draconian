@@ -236,9 +236,9 @@ void IAGSEngine::GetScreenDimensions(int32 *width, int32 *height, int32 *coldept
 {
     Game &game = Game::Current();
     if (width)
-        *width = game.Play.GetMainViewport().GetWidth();
+        *width = game.Viewports.GetMainViewport().GetWidth();
     if (height)
-        *height = game.Play.GetMainViewport().GetHeight();
+        *height = game.Viewports.GetMainViewport().GetHeight();
     if (coldepth)
         *coldepth = game.ScSystem.coldepth;
 }
@@ -446,7 +446,7 @@ int IAGSEngine::GetPlayerCharacter()
 }
 void IAGSEngine::RoomToViewport(int32 *x, int32 *y)
 {
-    Point scrp = Game::Current().Play.RoomToScreen(x ? *x : 0, y ? *y : 0);
+    Point scrp = Game::Current().Viewports.RoomToScreen(x ? *x : 0, y ? *y : 0);
     if (x)
         *x = scrp.X;
     if (y)
@@ -457,7 +457,7 @@ void IAGSEngine::ViewportToRoom(int32 *x, int32 *y)
     // NOTE: This is an old function that did not account for custom/multiple viewports
     // and does not expect to fail, therefore we always use primary viewport here.
     // (Not sure if it's good though)
-    VpPoint vpt = Game::Current().Play.ScreenToRoom(x ? *x : 0, y ? *y : 0);
+    VpPoint vpt = Game::Current().Viewports.ScreenToRoom(x ? *x : 0, y ? *y : 0);
     if (x)
         *x = vpt.first.X;
     if (y)

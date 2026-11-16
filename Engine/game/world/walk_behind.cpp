@@ -196,7 +196,7 @@ ScriptWalkbehind *Walkbehind_GetAtRoomXY(int x, int y)
 
 ScriptWalkbehind *Walkbehind_GetAtScreenXY(int x, int y)
 {
-    VpPoint vpt = Game::Current().Play.ScreenToRoom(x, y);
+    VpPoint vpt = Game::Current().Viewports.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return nullptr;
     return Walkbehind_GetAtRoomXY(vpt.first.X, vpt.first.Y);

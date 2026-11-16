@@ -73,7 +73,7 @@ ScriptRegion *Region_GetAtRoomXY2(int x, int y)
 ScriptRegion *Region_GetAtScreenXY(int x, int y, int hit_options)
 {
     Game &game = Game::Current();
-    VpPoint vpt = game.Play.ScreenToRoom(x, y);
+    VpPoint vpt = game.Viewports.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return &game.ScRegions[0]; // return region[0] for consistency and backwards compatibility
     return Region_GetAtRoomXY(vpt.first.X, vpt.first.Y, hit_options);

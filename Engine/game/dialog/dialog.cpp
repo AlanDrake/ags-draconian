@@ -1051,7 +1051,7 @@ void DialogOptions::Begin()
             needheight = CalcOptionsHeight(padding);
 
             const int saved_width = areawid;
-            const Rect &ui_view = game.Play.GetUIViewport();
+            const Rect &ui_view = game.Viewports.GetUIViewport();
             int text_off_x = 0, text_off_y = 0, win_y = ui_view.GetHeight() / 2 - (2 * padding + needheight) / 2;
             int win_x = ui_view.GetWidth() / 2 - areawid / 2;
             // shift window to the right if QG4-style full-screen pic
@@ -1087,7 +1087,7 @@ void DialogOptions::Begin()
     else
     {
         // Default plain surface
-        const Rect &ui_view = game.Play.GetUIViewport();
+        const Rect &ui_view = game.Viewports.GetUIViewport();
         areawid = ui_view.GetWidth();
         linewrap_padding = game.Play.dialog_options_pad_x + fixed_padding;
         needheight = CalcOptionsHeight(linewrap_padding);

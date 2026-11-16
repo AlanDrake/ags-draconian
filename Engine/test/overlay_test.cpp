@@ -81,10 +81,10 @@ protected:
 
         room.Width = 640;
         room.Height = 400;
-        game.Play.SetMainViewport(RectWH(0, 0, kScreenWidth, kScreenHeight));
-        game.Play.SetUIViewport(RectWH(0, 0, kScreenWidth, kScreenHeight));
-        auto viewport = game.Play.CreateRoomViewport();
-        auto camera = game.Play.CreateRoomCamera();
+        game.Viewports.SetMainViewport(RectWH(0, 0, kScreenWidth, kScreenHeight));
+        game.Viewports.SetUIViewport(RectWH(0, 0, kScreenWidth, kScreenHeight));
+        auto viewport = game.Viewports.CreateRoomViewport();
+        auto camera = game.Viewports.CreateRoomCamera();
         viewport->LinkCamera(camera);
         camera->LinkToViewport(viewport);
 
@@ -111,9 +111,9 @@ protected:
         game.chars.clear();
         game.numcharacters = 0;
         game.Views.clear();
-        game.Play.FreeViewportsAndCameras();
-        game.Play.SetUIViewport(Rect());
-        game.Play.SetMainViewport(Rect());
+        game.Viewports.FreeViewportsAndCameras();
+        game.Viewports.SetUIViewport(Rect());
+        game.Viewports.SetMainViewport(Rect());
         room.Width = 0;
         room.Height = 0;
         services.Sprites.Reset();
@@ -294,7 +294,7 @@ TEST_F(OverlayLayout, SpeechStaysOnTheScreen)
 
 TEST_F(OverlayLayout, SpeechFollowsTheCamera)
 {
-    Game::Current().Play.GetRoomCamera(0)->SetAt(60, 30);
+    Game::Current().Viewports.GetRoomCamera(0)->SetAt(60, 30);
     EXPECT_EQ(Point(80 - 60, 75 - 30), AutoPosition(100, 150));
 }
 

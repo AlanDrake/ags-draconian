@@ -89,12 +89,12 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int font, int
     // Calculate automatic width using the same limit as Display().
     if (auto_width)
     {
-        width = game.Play.GetUIViewport().GetWidth() * 3 / 4;
+        width = game.Viewports.GetUIViewport().GetWidth() * 3 / 4;
     }
     else
     {
         if (width < 8)
-            width = game.Play.GetUIViewport().GetWidth() / 2;
+            width = game.Viewports.GetUIViewport().GetWidth() / 2;
     }
 
     if (text_color == 0)
@@ -372,7 +372,7 @@ ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, 
     // to Overlay.CreateTextual actually made it centered on screen
     DisplayTextPosition text_pos = get_textpos_from_scriptcoords(x, y, false);
     if (width < 8)
-        width = game.Play.GetUIViewport().GetWidth() / 2;
+        width = game.Viewports.GetUIViewport().GetWidth() / 2;
     if (text_color == 0)
         text_color = GUI::GetStandardColor(16);
     // Skip a voice-over token, if present
@@ -397,7 +397,7 @@ ScriptOverlay *Overlay_CreateTextualImpl(bool room_layer, int x, int y, int widt
     if (auto_width)
     {
         // Use the same initial width as Display().
-        width = Game::Current().Play.GetUIViewport().GetWidth() * 3 / 4;
+        width = Game::Current().Viewports.GetUIViewport().GetWidth() * 3 / 4;
     }
 
     auto *over = Overlay_CreateTextCore(room_layer, x, y, width, font, text_color, text, OVER_CUSTOM,
@@ -901,7 +901,7 @@ void autoposition_overlay(ScreenOverlay &over)
     if (!over.IsAutoPosition() || (over.GetCharacterRef() < 0))
         return;
 
-    const Rect &ui_view = game.Play.GetUIViewport();
+    const Rect &ui_view = game.Viewports.GetUIViewport();
     const int char_id = over.GetCharacterRef();
 
     auto view = FindNearestViewport(char_id);

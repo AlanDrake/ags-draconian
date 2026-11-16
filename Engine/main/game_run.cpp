@@ -1198,7 +1198,7 @@ static void update_cursor_over_location(int mouse_was_x, int mouse_was_y)
     if (game.DisplayedRoom < 0 || !game.Play.mouse_input_enabled)
         return;
 
-    auto view = game.Play.GetRoomViewportAt(services.Input.MouseX, services.Input.MouseY);
+    auto view = game.Viewports.GetRoomViewportAt(services.Input.MouseX, services.Input.MouseY);
     auto cam = view ? view->GetCamera() : nullptr;
     if (!cam)
         return;
@@ -1234,7 +1234,7 @@ static void UpdateDrawableObjectStates(bool do_cursor, int mouse_was_x, int mous
         return;
 
     // camera positions may be linked to a player character
-    game.Play.UpdateRoomCameras();
+    game.Viewports.UpdateRoomCameras();
 
     update_objects_scale();
     // overlay positions may be linked to a certain character

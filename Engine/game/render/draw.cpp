@@ -892,7 +892,7 @@ void on_mainviewport_changed()
     Game &game = Game::Current();
     if (!drawstate.FullFrameRedraw)
     {
-        const auto &view = game.Play.GetMainViewport();
+        const auto &view = game.Viewports.GetMainViewport();
         set_invalidrects_globaloffs(view.Left, view.Top);
         // the black background region covers whole game screen
         init_invalid_regions(-1, game.GetGameRes(), RectWH(game.GetGameRes()));
@@ -949,7 +949,7 @@ void sync_roomview(Viewport *view)
         return;
     // Note the dirty regions' viewport is found using absolute offset on game screen
     init_invalid_regions(view->GetID(), view->GetCamera()->GetRect().GetSize(),
-                         Game::Current().Play.GetRoomViewportAbs(view->GetID()));
+                         Game::Current().Viewports.GetRoomViewportAbs(view->GetID()));
     prepare_roomview_frame(view);
 }
 
@@ -971,13 +971,13 @@ void init_room_drawdata()
     debug_draw_room_mask(debugRoomMask);
     debug_draw_movelist(debugMoveListChar);
 
-    const int view_count = game.Play.GetRoomViewportCount();
+    const int view_count = game.Viewports.GetRoomViewportCount();
     CameraDrawData.resize(view_count);
     if (!drawstate.FullFrameRedraw)
     {
         // Make sure camera frame buffers are created for software drawing
         for (int i = 0; i < view_count; ++i)
-            sync_roomview(game.Play.GetRoomViewport(i).get());
+            sync_roomview(game.Viewports.GetRoomViewport(i).get());
 
 #if (AGS_PLATFORM_DEBUG)
         for (size_t i = 0; i < (size_t)Room::Current().Objects.size(); ++i)
@@ -1031,7 +1031,7 @@ void detect_roomviewport_overlaps(size_t z_index)
     if (drawstate.FullFrameRedraw || (game.DisplayedRoom < 0))
         return;
     // Find out if we overlap or are overlapped by anything;
-    const auto &viewports = game.Play.GetRoomViewportsZOrdered();
+    const auto &viewports = game.Viewports.GetRoomViewportsZOrdered();
     for (; z_index < viewports.size(); ++z_index)
     {
         auto this_view = viewports[z_index];
@@ -1391,7 +1391,7 @@ static void render_black_borders()
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    const Rect &viewport = game.Play.GetMainViewport();
+    const Rect &viewport = game.Viewports.GetMainViewport();
     if (viewport.Top > 0)
     {
         // letterbox borders
@@ -1416,8 +1416,8 @@ void render_to_screen()
     // Stage: final plugin callback (still drawn on game screen)
     if (pl_any_want_hook(kPluginEvt_FinalScreenDraw))
     {
-        services.GfxDriver->BeginSpriteBatch(game.Play.GetMainViewport(),
-                                             game.Play.GetGlobalTransform(drawstate.FullFrameRedraw),
+        services.GfxDriver->BeginSpriteBatch(game.Viewports.GetMainViewport(),
+                                             game.Viewports.GetGlobalTransform(drawstate.FullFrameRedraw),
                                              (GraphicFlip)game.Play.screen_flipped);
         services.GfxDriver->AddRenderEvent(kPluginEvt_FinalScreenDraw, 0);
         services.GfxDriver->EndSpriteBatch();
@@ -1458,7 +1458,7 @@ void render_to_screen()
                 // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
                 if (game.Play.shake_screen_yoff > 0)
                 {
-                    const Rect &viewport = game.Play.GetMainViewport();
+                    const Rect &viewport = game.Viewports.GetMainViewport();
                     services.GfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1,
                                                        game.Play.shake_screen_yoff, nullptr);
                 }
@@ -1483,7 +1483,7 @@ void clear_letterbox_borders()
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    const Rect &viewport = game.Play.GetMainViewport();
+    const Rect &viewport = game.Viewports.GetMainViewport();
     services.GfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, viewport.Top - 1, nullptr);
     services.GfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1,
                                        game.GetGameRes().Height - 1, nullptr);
@@ -3069,7 +3069,7 @@ static void construct_room_view()
     // reset the Baselines Changed flag now that we've drawn stuff
     Room::Current().WalkBehindBaselinesChanged = false;
 
-    for (const auto &viewport : game.Play.GetRoomViewportsZOrdered())
+    for (const auto &viewport : game.Viewports.GetRoomViewportsZOrdered())
     {
         if (!viewport->IsVisible())
             continue;
@@ -3093,7 +3093,7 @@ static void construct_room_view()
 static void construct_ui_view()
 {
     EngineServices &services = EngineServices::Current();
-    services.GfxDriver->BeginSpriteBatch(Game::Current().Play.GetUIViewport(), SpriteTransform(),
+    services.GfxDriver->BeginSpriteBatch(Game::Current().Viewports.GetUIViewport(), SpriteTransform(),
                                          RENDER_BATCH_UI_LAYER);
     draw_gui_and_overlays();
     services.GfxDriver->EndSpriteBatch();
@@ -3208,7 +3208,7 @@ void construct_game_scene(bool full_redraw)
     set_our_eip(3);
 
     // React to changes to viewports and cameras (possibly from script) just before the render
-    game.Play.UpdateViewports();
+    game.Viewports.UpdateViewports();
 
     services.GfxDriver->RenderSpritesAtScreenResolution(services.Config.RenderAtScreenRes);
 
@@ -3222,8 +3222,8 @@ void construct_game_scene(bool full_redraw)
     construct_overlays();
 
     // Begin with the parent scene node, defining global offset and flip
-    services.GfxDriver->BeginSpriteBatch(game.Play.GetMainViewport(),
-                                         game.Play.GetGlobalTransform(drawstate.FullFrameRedraw),
+    services.GfxDriver->BeginSpriteBatch(game.Viewports.GetMainViewport(),
+                                         game.Viewports.GetGlobalTransform(drawstate.FullFrameRedraw),
                                          (GraphicFlip)game.Play.screen_flipped);
 
     // Stage: room viewports
@@ -3259,8 +3259,8 @@ void construct_game_screen_overlay(bool draw_cursor)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    services.GfxDriver->BeginSpriteBatch(game.Play.GetMainViewport(),
-                                         game.Play.GetGlobalTransform(drawstate.FullFrameRedraw),
+    services.GfxDriver->BeginSpriteBatch(game.Viewports.GetMainViewport(),
+                                         game.Viewports.GetGlobalTransform(drawstate.FullFrameRedraw),
                                          (GraphicFlip)game.Play.screen_flipped);
     if (pl_any_want_hook(kPluginEvt_PostScreenDraw))
     {
@@ -3308,7 +3308,7 @@ void construct_game_screen_overlay(bool draw_cursor)
     // For hardware-accelerated renderers: legacy letterbox and global screen fade effect
     if (drawstate.FullFrameRedraw)
     {
-        services.GfxDriver->BeginSpriteBatch(game.Play.GetMainViewport(), SpriteTransform());
+        services.GfxDriver->BeginSpriteBatch(game.Viewports.GetMainViewport(), SpriteTransform());
         // Stage: legacy letterbox mode borders
         if (!game.Play.screen_is_faded_out)
             render_black_borders();
@@ -3452,8 +3452,8 @@ void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extr
     // on top of the screen. Normally this should be a part of the game UI stage.
     if (extra_bitmap != nullptr)
     {
-        services.GfxDriver->BeginSpriteBatch(game.Play.GetMainViewport(),
-                                             game.Play.GetGlobalTransform(drawstate.FullFrameRedraw),
+        services.GfxDriver->BeginSpriteBatch(game.Viewports.GetMainViewport(),
+                                             game.Viewports.GetGlobalTransform(drawstate.FullFrameRedraw),
                                              (GraphicFlip)game.Play.screen_flipped);
         invalidate_sprite(extra_x, extra_y, extra_bitmap, false);
         services.GfxDriver->DrawSprite(extra_x, extra_y, extra_bitmap);

@@ -85,8 +85,8 @@ int Mouse_GetVisible()
 void Mouse_SetBounds(int x1, int y1, int x2, int y2)
 {
     Game &game = Game::Current();
-    int xmax = game.Play.GetMainViewport().GetWidth() - 1;
-    int ymax = game.Play.GetMainViewport().GetHeight() - 1;
+    int xmax = game.Viewports.GetMainViewport().GetWidth() - 1;
+    int ymax = game.Viewports.GetMainViewport().GetHeight() - 1;
     if ((x1 == 0) && (y1 == 0) && (x2 == 0) && (y2 == 0))
     {
         x2 = xmax;
@@ -433,7 +433,7 @@ void Mouse_Refresh()
 
 void Mouse_SetPosition(int newx, int newy)
 {
-    const Rect &viewport = Game::Current().Play.GetMainViewport();
+    const Rect &viewport = Game::Current().Viewports.GetMainViewport();
 
     if (newx < 0)
         newx = 0;

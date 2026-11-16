@@ -30,7 +30,7 @@ const char *ScriptViewport::GetType()
 int ScriptViewport::Dispose(void * /*address*/, bool /*force*/)
 {
     // Note that ScriptViewport is a reference to actual Viewport object,
-    // and this deletes the reference, while viewport may remain in GameState.
+    // and this deletes the reference, while viewport may remain in Game::Viewports.
     delete this;
     return 1;
 }
@@ -54,13 +54,13 @@ void ScriptViewport::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 ScriptViewport *Viewport_Unserialize(int handle, Stream *in, size_t /*data_sz*/)
 {
     // The way it works now, we must not create a new script object,
-    // but acquire one from the GameState, which keeps the first reference.
-    // This is essential because GameState should be able to invalidate any
+    // but acquire one from Game::Viewports, which keeps the first reference.
+    // This is essential because Game::Viewports should be able to invalidate any
     // script references when Viewport gets removed.
     const int id = in->ReadInt32();
     if (id >= 0)
     {
-        auto scview = Game::Current().Play.RegisterRoomViewport(id, handle);
+        auto scview = Game::Current().Viewports.RegisterRoomViewport(id, handle);
         if (scview)
             return scview;
     }

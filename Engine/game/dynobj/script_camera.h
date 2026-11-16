@@ -38,7 +38,7 @@ protected:
     void Serialize(const void *address, AGS::Common::Stream *out) override;
 
 private:
-    int _id = -1; // index of camera in the game state array
+    int _id = -1; // index of the room camera in Game::Viewports
 };
 
 // Unserialize camera from the memory stream

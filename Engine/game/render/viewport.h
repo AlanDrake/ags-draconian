@@ -24,8 +24,17 @@
 #include "util/matrix.h"
 #include "util/scaling.h"
 
+namespace AGS
+{
+namespace Engine
+{
+struct SpriteTransform;
+} // namespace Engine
+} // namespace AGS
 class Camera;
 class Viewport;
+struct ScriptCamera;
+struct ScriptViewport;
 
 typedef std::shared_ptr<Camera> PCamera;
 typedef std::shared_ptr<Viewport> PViewport;
@@ -222,4 +231,124 @@ private:
     bool _hasChangedOffscreen = false;
     bool _hasChangedSize = false;
     bool _hasChangedVisible = false;
+};
+
+// The game's viewports and cameras: the main and UI viewports on the game screen, the room viewports and the
+// room cameras they show, and the managed handles of their script objects (ScriptViewport, ScriptCamera).
+// Held by the game context as Game::Viewports (game/game_context.h).
+class GameViewports
+{
+public:
+    // Viewports are positioned in game screen coordinates, related to the "game size",
+    // while cameras are positioned in room coordinates.
+
+    // Returns main (game's) viewport position on screen, this is the overall game view
+    const Rect &GetMainViewport() const;
+    // Returns UI viewport position on screen, within the main viewport
+    const Rect &GetUIViewport() const;
+    // Returns SpriteTransform corresponding to the global screen offsets: the main viewport's position, and
+    // the shaking screen's y offset if full_frame_rend is set
+    AGS::Engine::SpriteTransform GetGlobalTransform(bool full_frame_rend) const;
+    // Tells if the room viewport should be adjusted automatically each time a new room is loaded
+    bool IsAutoRoomViewport() const;
+    // Returns Room viewport object by its main index
+    PViewport GetRoomViewport(int index) const;
+    // Returns the Room viewports in z-order, the bottom one first
+    const std::vector<PViewport> &GetRoomViewportsZOrdered() const;
+    // Finds the topmost visible room viewport at the given screen coordinates; returns nullptr if none found
+    PViewport GetRoomViewportAt(int x, int y) const;
+    // Returns Room viewport position in absolute coordinates (with main viewport offset);
+    // this is a helper function, meant for peculiar cases.
+    Rect GetRoomViewportAbs(int index) const;
+    // Sets if the room viewport should be adjusted automatically each time a new room is loaded
+    void SetAutoRoomViewport(bool on);
+    // Main viewport defines the location of all things drawn and interactable on the game screen.
+    // Other viewports are defined relative to the main viewports.
+    // Also updates the mouse's graphic area and the viewport size in the script's system struct.
+    void SetMainViewport(const Rect &viewport);
+    // UI viewport is a formal dummy viewport for GUI and Overlays (like speech).
+    void SetUIViewport(const Rect &viewport);
+    // Applies all the pending changes to viewports and cameras;
+    // NOTE: this function may be slow, thus recommended to be called only once
+    // and during the main game update.
+    void UpdateViewports();
+    // Tells that the viewports need z-order resorting upon next update.
+    void InvalidateViewportZOrder();
+    // Returns room camera object chosen by index
+    PCamera GetRoomCamera(int index) const;
+    // Runs cameras behaviors: a camera that does not show the whole room and is not locked follows
+    // the player character, if it is enabled
+    void UpdateRoomCameras();
+    // Converts room coordinates to the game screen coordinates through the room viewport
+    // This group of functions always tries to pass a point through the **primary** room viewport
+    // TODO: also support using arbitrary viewport (for multiple viewports).
+    Point RoomToScreen(int room_x, int room_y);
+    int RoomToScreenX(int room_x);
+    // Converts game screen coordinates to the room coordinates through the room viewport.
+    // Tries to find if there is any viewport at the given coords.
+    // If "clip_viewport" parameter is true, then not finding a viewport results in failure,
+    // if it is false, proceeds converting through the primary viewport.
+    // A game made for a script API older than kScriptAPI_v3507 ignores clip_viewport: it always converts through
+    // the primary viewport, without failing.
+    VpPoint ScreenToRoom(int screen_x, int screen_y, bool clip_viewport = true);
+
+    // Makes sure primary viewport and camera are created and linked together
+    void CreatePrimaryViewportAndCamera();
+    // Creates new room viewport, with the size of the main viewport; its ID is its index
+    PViewport CreateRoomViewport();
+    // Register viewport in the managed system; optionally links to existing handle
+    ScriptViewport *RegisterRoomViewport(int index, int32_t handle = 0);
+    // Deletes existing room viewport: invalidates its script object, unlinks its camera and numbers
+    // the viewports after it anew
+    void DeleteRoomViewport(int index);
+    // Get number of room viewports
+    int GetRoomViewportCount() const;
+    // Creates new room camera, with the size of the main viewport; its ID is its index
+    PCamera CreateRoomCamera();
+    // Register camera in the managed system; optionally links to existing handle
+    ScriptCamera *RegisterRoomCamera(int index, int32_t handle = 0);
+    // Deletes existing room camera: invalidates its script object, unlinks it from the viewports and numbers
+    // the cameras after it anew
+    void DeleteRoomCamera(int index);
+    // Get number of room cameras
+    int GetRoomCameraCount() const;
+    // Gets script viewport reference; does NOT increment refcount
+    // because script interpreter does this when acquiring managed pointer.
+    ScriptViewport *GetScriptViewport(int index);
+    // Gets script camera reference; does NOT increment refcount
+    // because script interpreter does this when acquiring managed pointer.
+    ScriptCamera *GetScriptCamera(int index);
+
+    // Removes all the room viewports and cameras with their script objects; required for freeing only particular
+    // parts when restoring the game (see DoBeforeRestore in savegame.cpp)
+    void FreeViewportsAndCameras();
+
+private:
+    VpPoint ScreenToRoomImpl(int screen_x, int screen_y, int viewport_id, bool clip_viewport);
+    void UpdateRoomCamera(int index);
+
+    // Defines if the room viewport should be adjusted to the room size automatically.
+    bool _isAutoRoomViewport = true;
+    // Main viewport defines the rectangle of the drawn and interactable area;
+    // in the most basic case it will be equal to the game size.
+    Rect _mainViewport;
+    // UI viewport defines the render and interaction rectangle of game's UI,
+    // within the main game viewport.
+    Rect _uiViewport;
+    // Room viewports define place on screen where the room camera's
+    // contents are drawn.
+    std::vector<PViewport> _roomViewports;
+    // Vector of viewports sorted in z-order.
+    std::vector<PViewport> _roomViewportsSorted;
+    // Cameras defines the position of a "looking eye" inside the room.
+    std::vector<PCamera> _roomCameras;
+    // We keep handles to the script refs to viewports and cameras, so that we
+    // could address them and invalidate as the actual object gets destroyed.
+    std::vector<int32_t> _scViewportHandles;
+    std::vector<int32_t> _scCameraHandles;
+
+    // Tells that the main viewport's position has changed since last game update
+    bool _mainViewportHasChanged = false;
+    // Tells that room viewports need z-order resort
+    bool _roomViewportZOrderChanged = false;
 };

@@ -438,11 +438,11 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     ResetRoomStates();
     // reset temp room state
     Room::Current().TempState = RoomStatus();
-    // Free what GameState owns outside of its plain fields (properties, viewports and cameras, do-once tokens);
-    // the plain fields are overwritten by the GameState component
+    // Free what Game::Play owns outside of its plain fields (properties, do-once tokens) and the viewports and
+    // cameras (Game::Viewports); the plain fields are overwritten by the GameState component
     // TODO: reset the whole GameState object here instead, once it is clear nothing in it must survive
     game.Play.FreeProperties();
-    game.Play.FreeViewportsAndCameras();
+    game.Viewports.FreeViewportsAndCameras();
     free_do_once_tokens();
 
     RemoveAllButtonAnimations();
@@ -567,7 +567,7 @@ static void RestoreViewportsAndCameras(const RestoredData &r_data)
     for (size_t i = 0; i < r_data.Cameras.size(); ++i)
     {
         const auto &cam_dat = r_data.Cameras[i];
-        auto cam = game.Play.GetRoomCamera(i);
+        auto cam = game.Viewports.GetRoomCamera(i);
         cam->SetID(cam_dat.ID);
         if ((cam_dat.Flags & kSvgCamPosLocked) != 0)
             cam->Lock();
@@ -583,7 +583,7 @@ static void RestoreViewportsAndCameras(const RestoredData &r_data)
     for (size_t i = 0; i < r_data.Viewports.size(); ++i)
     {
         const auto &view_dat = r_data.Viewports[i];
-        auto view = game.Play.GetRoomViewport(i);
+        auto view = game.Viewports.GetRoomViewport(i);
         view->SetID(view_dat.ID);
         view->SetVisible((view_dat.Flags & kSvgViewportVisible) != 0);
         view->SetRect(RectWH(view_dat.Left, view_dat.Top, view_dat.Width, view_dat.Height));
@@ -593,11 +593,11 @@ static void RestoreViewportsAndCameras(const RestoredData &r_data)
         int cam_index = view_dat.CamID;
         if (cam_index < 0)
             continue;
-        auto cam = game.Play.GetRoomCamera(cam_index);
+        auto cam = game.Viewports.GetRoomCamera(cam_index);
         view->LinkCamera(cam);
         cam->LinkToViewport(view);
     }
-    game.Play.InvalidateViewportZOrder();
+    game.Viewports.InvalidateViewportZOrder();
 }
 
 // Resets the options that are not supposed to be changed at runtime (the restricted and the preserved ones)

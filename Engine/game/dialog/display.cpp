@@ -195,7 +195,7 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
             game.TextLayout.LongestLine = top_bar_width;
     }
 
-    const Rect &ui_view = game.Play.GetUIViewport();
+    const Rect &ui_view = game.Viewports.GetUIViewport();
     // Center the text in the middle of the screen
     if ((look.Position & kDisplayTextPos_ScreenCenterY) != 0)
     {
@@ -1113,9 +1113,9 @@ void DisplayAt(int x, int y, int width, const char *text)
         debug_script_warn("Blocking Display call during fade-out.");
 
     if (width < 1)
-        width = game.Play.GetUIViewport().GetWidth() / 2;
+        width = game.Viewports.GetUIViewport().GetWidth() / 2;
     if (x < 0)
-        x = game.Play.GetUIViewport().GetWidth() / 2 - width / 2;
+        x = game.Viewports.GetUIViewport().GetWidth() / 2 - width / 2;
     display_at(x, y, width, text, nullptr);
 }
 
@@ -1125,7 +1125,7 @@ void DisplayAt(int x, int y, int width, const char *text)
 void DisplayAtYImpl(int ypos, const char *text, const TopBarSettings *topbar, bool as_speech)
 {
     Game &game = Game::Current();
-    const Rect &ui_view = game.Play.GetUIViewport();
+    const Rect &ui_view = game.Viewports.GetUIViewport();
     if ((ypos < -1) || (ypos >= ui_view.GetHeight()))
         quitprintf("!DisplayAtY: invalid Y co-ordinate supplied (used: %d; valid: 0..%d)", ypos, ui_view.GetHeight());
     if (game.Play.screen_is_faded_out)
@@ -1184,7 +1184,7 @@ int DisplaySpeechBackground(int char_id, const char *text)
         }
     }
 
-    int over_id = CreateTextOverlay(0, 0, game.Play.GetUIViewport().GetWidth() / 2, game.Play.speech_font,
+    int over_id = CreateTextOverlay(0, 0, game.Viewports.GetUIViewport().GetWidth() / 2, game.Play.speech_font,
                                     game.chars[char_id].talkcolor, get_translation(text), OVER_CUSTOM,
                                     kDisplayTextStyle_Overchar, char_id);
 

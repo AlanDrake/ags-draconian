@@ -57,7 +57,7 @@ protected:
         _wasClipControls = GUI::Options.ClipControls;
         GUI::Options.ClipControls = true;
         GUI::Context.DisabledState = kGuiDis_Undefined;
-        game.Play.SetUIViewport(RectWH(0, 0, kScreenWidth, kScreenHeight));
+        game.Viewports.SetUIViewport(RectWH(0, 0, kScreenWidth, kScreenHeight));
 
         game.Guis.resize(2);
         for (int i = 0; i < 2; ++i)
@@ -91,7 +91,7 @@ protected:
         Game &game = Game::Current();
         game.Guis.clear();
         game.Play.gui_draw_order.clear();
-        game.Play.SetUIViewport(Rect());
+        game.Viewports.SetUIViewport(Rect());
         GUI::Options.ClipControls = _wasClipControls;
     }
 

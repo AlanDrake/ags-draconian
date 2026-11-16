@@ -581,7 +581,7 @@ void show_preload()
         if (services.GfxDriver->UsesMemoryBackBuffer())
             services.GfxDriver->GetMemoryBackBuffer()->Clear();
 
-        const Rect &view = game.Play.GetMainViewport();
+        const Rect &view = game.Viewports.GetMainViewport();
         Bitmap *preload_bmp = BitmapHelper::CreateBitmapCopy(splash_bmp, game.GetColorDepth());
         if (!services.GfxDriver->HasAcceleratedTransform() && view.GetSize() != preload_bmp->GetSize())
         {

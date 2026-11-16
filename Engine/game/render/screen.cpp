@@ -64,7 +64,7 @@ static std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
         get_palette(old_palette);
     else
         std::copy(game.Palette, game.Palette + PAL_SIZE, old_palette);
-    const auto &view = game.Play.GetMainViewport();
+    const auto &view = game.Viewports.GetMainViewport();
     if (for_fadein)
     {
         services.GfxDriver->ClearDrawLists();
@@ -87,7 +87,7 @@ static IDriverDependantBitmap *get_frame_for_transition_in(bool opaque)
     // this is mostly for compatibility with old-style letterboxed games
     // which could have viewport changed depending on new room size.
     // TODO: investigate if this is still a case.
-    const Rect &viewport = game.Play.GetMainViewport();
+    const Rect &viewport = game.Viewports.GetMainViewport();
     if (game.SavedViewportBitmap->GetHeight() != viewport.GetHeight())
     {
         Bitmap *fix_frame = BitmapHelper::CreateBitmap(game.SavedViewportBitmap->GetWidth(), viewport.GetHeight(),
@@ -165,8 +165,8 @@ public:
         // Create a "screenshot" on a texture
         game.Play.screen_is_faded_out = false; // force all game elements to draw
 
-        _view = game.Play.GetMainViewport();
-        _sprTrans = game.Play.GetGlobalTransform(true);
+        _view = game.Viewports.GetMainViewport();
+        _sprTrans = game.Viewports.GetGlobalTransform(true);
 
         std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
         black_bmp->Clear(_fadeColor);
@@ -246,7 +246,7 @@ public:
         if (game.color_depth > 1)
         {
             _speed *= 4; // speed things up for high-color games
-            _view = game.Play.GetMainViewport();
+            _view = game.Viewports.GetMainViewport();
 
             // First of all we render the game once again and get the drawn frame as a bitmap.
             // Then we keep drawing saved image of the game with different alpha,
@@ -382,8 +382,8 @@ public:
         // Create a "screenshot" on a texture
         game.Play.screen_is_faded_out = false; // force all game elements to draw
 
-        _view = game.Play.GetMainViewport();
-        _sprTrans = game.Play.GetGlobalTransform(true);
+        _view = game.Viewports.GetMainViewport();
+        _sprTrans = game.Viewports.GetGlobalTransform(true);
 
         std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
         black_bmp->Clear(_fadeColor);
@@ -480,7 +480,7 @@ public:
         set_palette_range(game.Palette, 0, 255, 0); // TODO: investigate and comment the meaning of this
         _bmpFrame = game_frame_to_bmp(_fadein);
 
-        _view = game.Play.GetMainViewport();
+        _view = game.Viewports.GetMainViewport();
         _yspeed = _view.GetHeight() / (_view.GetWidth() / _speed);
         _boxWidth = _speed;
         _boxHeight = _yspeed;
@@ -552,8 +552,9 @@ public:
             quit("!Cannot use crossfade screen transition in 256-colour games");
 
         game.Play.screen_is_faded_out = false; // force all game elements to draw
-        _view = game.Play.GetMainViewport();
-        _sprTrans = game.Play.GetGlobalTransform(EngineServices::Current().GfxDriver->RequiresFullRedrawEachFrame());
+        _view = game.Viewports.GetMainViewport();
+        _sprTrans =
+            game.Viewports.GetGlobalTransform(EngineServices::Current().GfxDriver->RequiresFullRedrawEachFrame());
         // TODO: crossfade does not need a screen with transparency, it should be opaque;
         // but Software renderer cannot alpha-blend non-masked sprite at the moment,
         // see comment to drawing opaque sprite in SDLRendererGraphicsDriver!
@@ -613,8 +614,9 @@ public:
     {
         Game &game = Game::Current();
         game.Play.screen_is_faded_out = false; // force all game elements to draw
-        _view = game.Play.GetMainViewport();
-        _sprTrans = game.Play.GetGlobalTransform(EngineServices::Current().GfxDriver->RequiresFullRedrawEachFrame());
+        _view = game.Viewports.GetMainViewport();
+        _sprTrans =
+            game.Viewports.GetGlobalTransform(EngineServices::Current().GfxDriver->RequiresFullRedrawEachFrame());
         // An 8-bit frame of the room that ends is drawn in the palette of the room that comes:
         // its pixels are remapped to the nearest colours there, so that both rooms show in
         // colours of their own during the dissolve (index 0 stays the transparent one)
@@ -877,27 +879,27 @@ int Screen_GetScreenHeight()
 
 bool Screen_GetAutoSizeViewport()
 {
-    return Game::Current().Play.IsAutoRoomViewport();
+    return Game::Current().Viewports.IsAutoRoomViewport();
 }
 
 void Screen_SetAutoSizeViewport(bool on)
 {
-    Game::Current().Play.SetAutoRoomViewport(on);
+    Game::Current().Viewports.SetAutoRoomViewport(on);
 }
 
 ScriptViewport *Screen_GetViewport()
 {
-    return Game::Current().Play.GetScriptViewport(0);
+    return Game::Current().Viewports.GetScriptViewport(0);
 }
 
 int Screen_GetViewportCount()
 {
-    return Game::Current().Play.GetRoomViewportCount();
+    return Game::Current().Viewports.GetRoomViewportCount();
 }
 
 ScriptViewport *Screen_GetAnyViewport(int index)
 {
-    return Game::Current().Play.GetScriptViewport(index);
+    return Game::Current().Viewports.GetScriptViewport(index);
 }
 
 ScriptShaderInstance *Screen_GetShader()
@@ -915,7 +917,7 @@ void Screen_SetShader(ScriptShaderInstance *shader_inst)
 
 ScriptUserObject *Screen_ScreenToRoomPoint(int scrx, int scry, bool restrict)
 {
-    VpPoint vpt = Game::Current().Play.ScreenToRoom(scrx, scry, restrict);
+    VpPoint vpt = Game::Current().Viewports.ScreenToRoom(scrx, scry, restrict);
     if (vpt.second < 0)
         return nullptr;
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
@@ -928,7 +930,7 @@ ScriptUserObject *Screen_ScreenToRoomPoint2(int scrx, int scry)
 
 ScriptUserObject *Screen_RoomToScreenPoint(int roomx, int roomy)
 {
-    Point pt = Game::Current().Play.RoomToScreen(roomx, roomy);
+    Point pt = Game::Current().Viewports.RoomToScreen(roomx, roomy);
     return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
 }
 

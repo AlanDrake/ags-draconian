@@ -377,7 +377,7 @@ void RestoreWalkableArea(int areanum)
 
 int GetWalkableAreaAtScreen(int x, int y)
 {
-    VpPoint vpt = Game::Current().Play.ScreenToRoom(x, y);
+    VpPoint vpt = Game::Current().Viewports.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return -1;
     return GetWalkableAreaAtRoom(vpt.first.X, vpt.first.Y);

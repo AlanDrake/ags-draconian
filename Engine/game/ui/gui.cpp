@@ -431,8 +431,8 @@ void GUI_Centre(ScriptGUI *sgui)
 {
     Game &game = Game::Current();
     GUIMain *gui = &game.Guis[sgui->id];
-    int x = game.Play.GetUIViewport().GetWidth() / 2 - gui->GetWidth() / 2;
-    int y = game.Play.GetUIViewport().GetHeight() / 2 - gui->GetHeight() / 2;
+    int x = game.Viewports.GetUIViewport().GetWidth() / 2 - gui->GetWidth() / 2;
+    int y = game.Viewports.GetUIViewport().GetHeight() / 2 - gui->GetHeight() / 2;
     gui->SetPosition(x, y);
 }
 
@@ -876,7 +876,7 @@ static bool should_skip_adjust_for_gui(const GUIMain &gui)
         // not shown
         !gui.IsDisplayed() ||
         // completely offscreen
-        !IsRectInsideRect(Game::Current().Play.GetUIViewport(), gui.GetRect()) ||
+        !IsRectInsideRect(Game::Current().Viewports.GetUIViewport(), gui.GetRect()) ||
         // fully transparent: only the GUI's own background and opacity are checked, not its controls (TODO)
         ((gui.GetBgColor() == 0) && (gui.GetBgImage() < 1)) || (gui.GetOpacity() == 0);
 }

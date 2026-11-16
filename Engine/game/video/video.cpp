@@ -160,7 +160,7 @@ void BlockingVideoPlayer::Begin()
     {
         _isSoftwareRender = !services.GfxDriver->HasAcceleratedTransform();
         Size frame_sz = player->GetFrameSize();
-        Rect dest = PlaceInRect(Game::Current().Play.GetMainViewport(), RectWH(frame_sz),
+        Rect dest = PlaceInRect(Game::Current().Viewports.GetMainViewport(), RectWH(frame_sz),
                                 ((_stateFlags & kVideoState_Stretch) == 0) ? kPlaceCenter : kPlaceStretchProportional);
         // override the stretch option if necessary
         if (frame_sz == dest.GetSize())
@@ -310,7 +310,7 @@ void BlockingVideoPlayer::Draw()
     const auto start_tp = Clock::now();
     if (_videoDDB && _videoDDB->IsValid())
     {
-        services.GfxDriver->BeginSpriteBatch(Game::Current().Play.GetMainViewport(), SpriteTransform());
+        services.GfxDriver->BeginSpriteBatch(Game::Current().Viewports.GetMainViewport(), SpriteTransform());
         services.GfxDriver->DrawSprite(_dstRect.Left, _dstRect.Top, _videoDDB);
         services.GfxDriver->EndSpriteBatch();
     }

@@ -479,15 +479,15 @@ void InitGameResolution(Game &game, GameDataVersion /*data_ver*/)
 
     // Assign general game viewports
     Rect viewport = RectWH(game_size);
-    game.Play.SetMainViewport(viewport);
-    game.Play.SetUIViewport(viewport);
+    game.Viewports.SetMainViewport(viewport);
+    game.Viewports.SetUIViewport(viewport);
 
     // Assign ScriptSystem's resolution variables
     game.ScSystem.width = game.GetGameRes().Width;
     game.ScSystem.height = game.GetGameRes().Height;
     game.ScSystem.coldepth = game.GetColorDepth();
-    game.ScSystem.viewport_width = game.Play.GetMainViewport().GetWidth();
-    game.ScSystem.viewport_height = game.Play.GetMainViewport().GetHeight();
+    game.ScSystem.viewport_width = game.Viewports.GetMainViewport().GetWidth();
+    game.ScSystem.viewport_height = game.Viewports.GetMainViewport().GetHeight();
 }
 
 HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
@@ -584,7 +584,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     prepare_gui_runtime(true /* startup */);
     calculate_reserved_channel_count();
     // Default viewport and camera, draw data, etc, should be created when resolution is set
-    game.Play.CreatePrimaryViewportAndCamera();
+    game.Viewports.CreatePrimaryViewportAndCamera();
     init_game_drawdata();
 
     //

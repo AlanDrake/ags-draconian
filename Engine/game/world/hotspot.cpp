@@ -123,7 +123,7 @@ ScriptHotspot *Hotspot_GetAtRoomXY2(int x, int y)
 ScriptHotspot *Hotspot_GetAtScreenXY(int x, int y, int hit_options)
 {
     Game &game = Game::Current();
-    VpPoint vpt = game.Play.ScreenToRoom(x, y);
+    VpPoint vpt = game.Viewports.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return nullptr;
     return &game.ScHotspots[GetHotspotIDAtRoom(vpt.first.X, vpt.first.Y, hit_options)];

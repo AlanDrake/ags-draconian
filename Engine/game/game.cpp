@@ -612,6 +612,9 @@ void unload_game()
     // in place of the other globals are cleared one by one above, as the globals were, and the whole object
     // cannot be assigned (Game is not copyable).
     game.Play = GamePlayState();
+    // the viewports and cameras were members of the game state and were reset with it; their script objects were
+    // unregistered above (ccUnregisterAllObjects)
+    game.Viewports = GameViewports();
     // the room's members that were fields of the game state were reset with it
     Room::Current().ResetPlayState();
     static_cast<GameDef &>(game) = GameDef();
@@ -1135,17 +1138,17 @@ ScriptAudioClip *Game_GetAudioClip(int index)
 
 ScriptCamera *Game_GetCamera()
 {
-    return Game::Current().Play.GetScriptCamera(0);
+    return Game::Current().Viewports.GetScriptCamera(0);
 }
 
 int Game_GetCameraCount()
 {
-    return Game::Current().Play.GetRoomCameraCount();
+    return Game::Current().Viewports.GetRoomCameraCount();
 }
 
 ScriptCamera *Game_GetAnyCamera(int index)
 {
-    return Game::Current().Play.GetScriptCamera(index);
+    return Game::Current().Viewports.GetScriptCamera(index);
 }
 
 void Game_SimulateKeyPress(int key, int mod)
@@ -1352,7 +1355,7 @@ void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int save_sor
 
 std::unique_ptr<Common::Bitmap> create_game_screenshot(int width, int height, int layers)
 {
-    const Rect &viewport = Game::Current().Play.GetMainViewport();
+    const Rect &viewport = Game::Current().Viewports.GetMainViewport();
     if (width <= 0)
         width = viewport.GetWidth();
     if (height <= 0)
@@ -1793,7 +1796,7 @@ int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool c
     }
 
     // Find out if we're inside the room viewport
-    const VpPoint vp_point = game.Play.ScreenToRoom(x, y);
+    const VpPoint vp_point = game.Viewports.ScreenToRoom(x, y);
     const Point room_pt = vp_point.first;
     const int viewport_id = vp_point.second;
     if ((viewport_id < 0) || (!RectWH(0, 0, room.Width, room.Height).IsInside(room_pt)))
