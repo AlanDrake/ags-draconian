@@ -531,6 +531,25 @@ def find_msbuild():
     raise NotRun('MSBuild not found (Visual Studio 2022)')
 
 
+def remove_stale_engine_objects():
+    """
+    Engine.Full.Test links every object file in Engine.App's directory, and this stage builds into a
+    directory it keeps between runs: the object of an engine source that was renamed or deleted since the
+    last run would join the link (unresolved or doubled symbols; CI builds from nothing and never sees it).
+    Deletes the objects that no source of Engine.App.vcxproj gives, and returns their names.
+    """
+    import check_build_lists
+    sources = check_build_lists.vcxproj_sources('Solutions/Engine.App/Engine.App.vcxproj')
+    stems = {os.path.splitext(os.path.basename(path))[0].lower() for path in sources}
+    removed = []
+    for obj in glob.glob(os.path.join(MSB, '.obj', 'x64', 'Release', 'Engine.App', '*.obj')):
+        name = os.path.basename(obj)
+        if os.path.splitext(name)[0].lower() not in stems:
+            os.remove(obj)
+            removed.append(name)
+    return sorted(removed)
+
+
 def stage_msbuild():
     if os.name != 'nt':
         raise NotRun('MSBuild solutions need Windows')
@@ -538,6 +557,9 @@ def stage_msbuild():
         raise NotRun(r'dependencies missing: run Windows\setup_ags_build_deps.bat (C:\Lib) or set the AGS_*_LIB variables')
     msbuild = find_msbuild()
     out_dir = MSB + '\\'
+    stale = remove_stale_engine_objects()
+    if stale:
+        print('   removed %d stale object(s) of Engine.App: %s' % (len(stale), ', '.join(stale)))
     built = []
     for sln in SOLUTIONS:
         run('msbuild', [msbuild, os.path.join(REPO, 'Solutions', sln + '.sln'), '/m', '/nologo', '/v:minimal',
