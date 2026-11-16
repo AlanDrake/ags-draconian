@@ -6,7 +6,8 @@ de-duplicates the exported fixes, and applies them to the working tree in one go
     python Script/tidy_fix.py <check> [extra clang-tidy args]
 
 Needs: pyyaml, clang-tidy 19 (CLANG_TIDY env var, or on PATH), and a compile database from
-    cmake -S . -B .tidy/build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ...
+    cmake -S . -B .tidy/build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON ...
+(without the precompiled header: clang-tidy cannot read the one MSVC builds, and every file then fails).
 Afterwards run clang-format on the changed files and check with Script/compare_objects.py.
 Not every fix is safe: see the commit messages of the [nullptr]/[override]/[headers]/[void] steps.
 """

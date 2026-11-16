@@ -321,6 +321,8 @@ function(ags_warning_free target)
     endif()
 endfunction()
 
+include(PrecompiledHeaders)
+
 find_package(PkgConfig)
 find_package(Threads)
 

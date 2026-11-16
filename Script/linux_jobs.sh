@@ -73,7 +73,8 @@ auto_test() {
 job_gcc() {
     local build="$WORK/gcc"
     step configure cmake -S "$SRC" -B "$build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 \
-        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DAGS_WARNINGS_AS_ERRORS=ON -DCMAKE_BUILD_TYPE=Release || return 1
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DAGS_WARNINGS_AS_ERRORS=ON -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON -DCMAKE_BUILD_TYPE=Release \
+        || return 1
     # -k: a warning that became an error should not hide the next ones
     step build cmake --build "$build" --parallel "$JOBS" -- -k || return 1
     step "header check" cmake --build "$build" --target header_check --parallel "$JOBS" -- -k || return 1
@@ -109,7 +110,7 @@ job_sanitizers() {
     # RelWithDebInfo: optimized, so the game runs in reasonable time, with the line numbers the reports
     # need. The sanitizer run-time must not report while CMake probes the compiler.
     step configure env ASAN_OPTIONS=detect_leaks=0 cmake -S "$SRC" -B "$build" -DAGS_BUILD_TOOLS=1 \
-        -DAGS_TESTS=1 -DCMAKE_BUILD_TYPE=RelWithDebInfo "-DCMAKE_C_FLAGS=$SAN_FLAGS" \
+        -DAGS_TESTS=1 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON "-DCMAKE_C_FLAGS=$SAN_FLAGS" \
         "-DCMAKE_CXX_FLAGS=$SAN_FLAGS" "-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address,undefined" || return 1
     step build cmake --build "$build" --parallel "$JOBS" || return 1
 
@@ -153,7 +154,7 @@ job_coverage() {
     rm -rf "$profiles"
     step "auto-test project" auto_test_source || return 1
     step configure cmake -S "$SRC" -B "$build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_BUILD_TYPE=Release \
-        "-DCMAKE_C_FLAGS=$COV_FLAGS" "-DCMAKE_CXX_FLAGS=$COV_FLAGS" \
+        -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON "-DCMAKE_C_FLAGS=$COV_FLAGS" "-DCMAKE_CXX_FLAGS=$COV_FLAGS" \
         "-DCMAKE_EXE_LINKER_FLAGS=-fprofile-instr-generate" || return 1
     step build cmake --build "$build" --parallel "$JOBS" || return 1
     step "unit tests" ctest --test-dir "$build" --output-on-failure -j 4 || return 1

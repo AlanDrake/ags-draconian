@@ -86,6 +86,9 @@ BUILD = os.path.join(WORK, 'build')
 EMS = os.path.join(WORK, 'ems')
 # The targets marked ags_warning_free() fail on a warning (PLAN.md 1.5), as in the CI
 WERROR = '-DAGS_WARNINGS_AS_ERRORS=ON'
+# No precompiled header (PLAN.md 2.10b): a missing #include must fail here, and clang-tidy and the libc++
+# check read the compile database, which would carry the precompiled header's flags
+NO_PCH = '-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON'
 MSB = os.path.join(WORK, 'msb')
 CHECK_BUILD_LISTS = os.path.join(REPO, 'Script', 'check_build_lists.py')
 SOURCE_GLOBS = ['*.c', '*.cc', '*.cpp', '*.cxx', '*.h', '*.hpp', '*.inl']
@@ -238,10 +241,14 @@ def stage_layers():
 
 
 def is_configured(build_dir):
-    """True if the tree was configured with the options of this script (WERROR was added later, 1.5)."""
+    """True if the tree was configured with the options of this script (WERROR was added later, 1.5; NO_PCH, 2.10b)."""
     try:
         with open(os.path.join(build_dir, 'CMakeCache.txt'), encoding='utf-8', errors='replace') as f:
-            return WERROR[2:].replace('=', ':BOOL=') in f.read() and os.path.isfile(os.path.join(build_dir, 'build.ninja'))
+            cache = f.read()
+        no_pch = any(line.startswith('CMAKE_DISABLE_PRECOMPILE_HEADERS:') and line.strip().endswith('=ON')
+                     for line in cache.splitlines())
+        return (WERROR[2:].replace('=', ':BOOL=') in cache and no_pch
+                and os.path.isfile(os.path.join(build_dir, 'build.ninja')))
     except OSError:
         return False
 
@@ -251,7 +258,8 @@ def cmake_configure():
     cmake = tool('cmake', env)
     if not is_configured(BUILD):
         run('build', [cmake, '-S', REPO, '-B', BUILD, '-G', 'Ninja', '-DCMAKE_BUILD_TYPE=Release', '-DAGS_BUILD_TOOLS=1',
-                      '-DAGS_TESTS=1', '-DAGS_HEADER_CHECK=1', '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON', WERROR], env=env)
+                      '-DAGS_TESTS=1', '-DAGS_HEADER_CHECK=1', '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON', WERROR, NO_PCH],
+            env=env)
     return env, cmake
 
 
@@ -348,7 +356,7 @@ def stage_emscripten():
         toolchain = os.path.join(emsdk, 'upstream', 'emscripten', 'cmake', 'Modules', 'Platform', 'Emscripten.cmake')
         run('emscripten', [cmake, '-S', REPO, '-B', EMS, '-G', 'Ninja', '-DCMAKE_TOOLCHAIN_FILE=' + toolchain,
                            '-DCMAKE_MAKE_PROGRAM=' + ninja, '-DCMAKE_BUILD_TYPE=Release', '-DAGS_BUILD_TOOLS=0',
-                           '-DAGS_TESTS=0', WERROR], env=env)
+                           '-DAGS_TESTS=0', WERROR, NO_PCH], env=env)
     run('emscripten', [cmake, '--build', EMS], env=env)
     checked = linux_syntax_check(emsdk, ninja, env)
     return 'ags.wasm linked, %d files with Linux branches pass a syntax check' % checked

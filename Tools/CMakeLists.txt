@@ -8,6 +8,7 @@ set_target_properties(libtools PROPERTIES
         )
 
 target_include_directories(libtools PUBLIC .)
+ags_precompile_headers(libtools)
 
 # we could link to AGS::Common, but this provides much faster LTO times with Release builds
 target_include_directories(libtools PUBLIC ../Common)
@@ -365,6 +366,7 @@ if(AGS_TESTS)
       C_EXTENSIONS NO
       INTERPROCEDURAL_OPTIMIZATION FALSE
    )
+   ags_precompile_headers(tools_test GTEST)
    target_link_libraries(tools_test
       Allegro::Allegro
       SDL_ttf::SDL_ttf

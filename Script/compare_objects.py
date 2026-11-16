@@ -77,8 +77,10 @@ import subprocess
 import sys
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+# No precompiled header (PLAN.md 2.10b): a missing #include must fail, and the objects are the ones of
+# the files as written
 CMAKE_ARGS = ['-DCMAKE_BUILD_TYPE=MinSizeRel', '-DAGS_BUILD_TOOLS=1', '-DAGS_TESTS=1',
-              '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON']
+              '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON', '-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON']
 
 
 def run(cmd, env=None, cwd=None, capture=False, check=True):

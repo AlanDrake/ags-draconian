@@ -236,6 +236,7 @@ if(NOT MSVC)
 endif()
 
 ags_warning_free(common)
+ags_precompile_headers(common)
 
 if(AGS_DEBUG_MANAGED_OBJECTS)
     target_compile_definitions(common PUBLIC "DEBUG_MANAGED_OBJECTS=1")
@@ -293,6 +294,7 @@ if(AGS_TESTS)
         common
         gtest_main
     )
+    ags_precompile_headers(common_test GTEST)
     target_compile_definitions(common_test PRIVATE
         COMPAT_FIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test/data/compat")
     if(AGS_USE_LOCAL_GTEST)

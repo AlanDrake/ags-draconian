@@ -8,6 +8,7 @@ set_target_properties(compiler PROPERTIES
         )
 
 target_include_directories(compiler PUBLIC .)
+ags_precompile_headers(compiler)
 target_include_directories(compiler PUBLIC ../Common)
 set(COMPILER_COMMON_SOURCES
         ../Common/data/data_ext.cpp
@@ -145,6 +146,7 @@ if(AGS_TESTS)
             C_EXTENSIONS NO
             INTERPROCEDURAL_OPTIMIZATION FALSE
             )
+    ags_precompile_headers(compiler_test GTEST)
     target_link_libraries(
             compiler_test
             compiler

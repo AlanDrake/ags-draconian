@@ -323,6 +323,10 @@ def compile_times(log_path):
     MODULES directories count, which leaves out the targets of fetched dependencies (`<name>_content-build/`).
     A source compiled into several targets counts once per object: the unit is the object."""
     times = read_ninja_log(log_path)
+    if any('cmake_pch' in out for out in times):
+        sys.stderr.write('this build used precompiled headers: its readings are not comparable with the ones of '
+                         'BASELINE.md, which are taken with -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON '
+                         '(Script/compare_objects.py CMAKE_ARGS)\n')
     sources = object_sources(os.path.dirname(os.path.abspath(log_path)))
     objects = []  # (source path, milliseconds)
     if sources is None:

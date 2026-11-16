@@ -16,6 +16,7 @@ set_target_properties(engine PROPERTIES
 )
 
 target_include_directories(engine PUBLIC .)
+ags_precompile_headers(engine ENGINE)
 
 target_sources(engine
     PRIVATE
@@ -539,6 +540,12 @@ if (AGS_BUILTIN_PLUGINS)
         ../Plugins/agspalrender/agspalrender/raycast.cpp
         ../Plugins/agspalrender/agspalrender/raycast.h
     )
+
+    # The plugins are written against the plugin API only: with <cmath> from the precompiled header,
+    # ags_snowrain's floor(x) and sin(x) on a float take the float overloads instead of the double ones
+    get_target_property(builtin_plugin_sources engine SOURCES)
+    list(FILTER builtin_plugin_sources INCLUDE REGEX "^\\.\\./Plugins/")
+    set_source_files_properties(${builtin_plugin_sources} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 endif()
 
 if (AGS_BUILD_STR)
@@ -665,6 +672,7 @@ if(AGS_TESTS)
         test/scsprintf_test.cpp
         test/systemimports_test.cpp
     )
+    ags_precompile_headers(engine_test GTEST)
     target_compile_definitions(engine_test PRIVATE
         PLUGIN_API_HEADER="${CMAKE_CURRENT_SOURCE_DIR}/plugin/agsplugin.h"
         PLUGIN_ENGINE_SOURCE="${CMAKE_CURRENT_SOURCE_DIR}/plugin/agsplugin.cpp"
@@ -716,6 +724,7 @@ if(AGS_TESTS)
         ${CMAKE_SOURCE_DIR}/Compiler/script/cs_parser.cpp
         ${CMAKE_SOURCE_DIR}/Compiler/script/cs_scanner.cpp)
     target_include_directories(engine_full_test PRIVATE ${CMAKE_SOURCE_DIR}/Compiler)
+    ags_precompile_headers(engine_full_test GTEST)
     set_target_properties(engine_full_test PROPERTIES
         CXX_STANDARD 17
         CXX_EXTENSIONS NO

@@ -133,7 +133,7 @@ jobs:
 
       # AGS_WARNINGS_AS_ERRORS: a warning in a target that builds without any (Common) fails the build (PLAN.md, 1.5)
       - name: Configure CMake
-        run: cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DAGS_WARNINGS_AS_ERRORS=ON -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DAGS_WARNINGS_AS_ERRORS=ON -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       # -k: a warning that became an error should not hide the next ones. The statistics start here: the
       # configure step's compiler checks are in scratch directories with random names and never hit.
@@ -256,7 +256,7 @@ jobs:
       - name: Configure CMake
         run: |
           cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DAGS_HEADER_CHECK=1 \
-            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON \
             "-DAGS_HEADER_CHECK_FLAGS=-stdlib=libc++ -D_LIBCPP_REMOVE_TRANSITIVE_INCLUDES"
 
       # The libraries build with the default standard library; only the header stubs use libc++
