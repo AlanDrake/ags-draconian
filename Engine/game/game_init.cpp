@@ -14,6 +14,7 @@
 #include "game/game_init.h"
 
 #include <array>
+#include <cassert>
 #include <vector>
 
 #include "data/assetmanager.h"
@@ -31,6 +32,7 @@
 #include "game/dynobj/all_script_classes.h"
 #include "game/file.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
@@ -483,21 +485,23 @@ void InitGameResolution(GameDef &game, GameDataVersion data_ver)
 
     // Assign general game viewports
     Rect viewport = RectWH(game_size);
-    play.SetMainViewport(viewport);
-    play.SetUIViewport(viewport);
+    Game::Current().Play.SetMainViewport(viewport);
+    Game::Current().Play.SetUIViewport(viewport);
 
     // Assign ScriptSystem's resolution variables
     scsystem.width = game.GetGameRes().Width;
     scsystem.height = game.GetGameRes().Height;
     scsystem.coldepth = game.GetColorDepth();
-    scsystem.viewport_width = play.GetMainViewport().GetWidth();
-    scsystem.viewport_height = play.GetMainViewport().GetHeight();
+    scsystem.viewport_width = Game::Current().Play.GetMainViewport().GetWidth();
+    scsystem.viewport_height = Game::Current().Play.GetMainViewport().GetHeight();
 }
 
 HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     EngineServices &services = EngineServices::Current();
-    GameDef &game = ents.Game;
+    Game &game = Game::Current();
+    // the entities were loaded into the engine's game (load_game_file)
+    assert(&ents.Game == &game);
     const ScriptAPIVersion base_api = (ScriptAPIVersion)game.options[OPT_BASESCRIPTAPI];
     const ScriptAPIVersion compat_api = (ScriptAPIVersion)game.options[OPT_SCRIPTCOMPATLEV];
     const char *base_api_name = GetScriptAPIName(base_api);
@@ -537,17 +541,17 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     GUIRefCollection gui_control_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
     GUI::RebuildGUI(guis, gui_control_refs);
     views = std::move(ents.Views);
-    play.audioclipProps.resize(game.audioClips.size());
-    play.charProps.resize(game.numcharacters);
-    play.dialogProps.resize(game.numdialog);
-    play.guiProps.resize(game.numgui);
-    play.guicontrolProps[kGUIButton].resize(guibuts.size());
-    play.guicontrolProps[kGUILabel].resize(guilabels.size());
-    play.guicontrolProps[kGUIInvWindow].resize(guiinv.size());
-    play.guicontrolProps[kGUISlider].resize(guislider.size());
-    play.guicontrolProps[kGUITextBox].resize(guitext.size());
-    play.guicontrolProps[kGUIListBox].resize(guilist.size());
-    play.invProps.resize(game.numinvitems);
+    game.Play.audioclipProps.resize(game.audioClips.size());
+    game.Play.charProps.resize(game.numcharacters);
+    game.Play.dialogProps.resize(game.numdialog);
+    game.Play.guiProps.resize(game.numgui);
+    game.Play.guicontrolProps[kGUIButton].resize(guibuts.size());
+    game.Play.guicontrolProps[kGUILabel].resize(guilabels.size());
+    game.Play.guicontrolProps[kGUIInvWindow].resize(guiinv.size());
+    game.Play.guicontrolProps[kGUISlider].resize(guislider.size());
+    game.Play.guicontrolProps[kGUITextBox].resize(guitext.size());
+    game.Play.guicontrolProps[kGUIListBox].resize(guilist.size());
+    game.Play.invProps.resize(game.numinvitems);
     dialog = std::move(ents.Dialogs);
     // Set the number of game channels (the same for all the supported game versions)
     game.numGameChannels = MAX_GAME_CHANNELS;
@@ -570,11 +574,11 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         svg_suffix.Format(".%s", game.saveGameFileExtension);
     set_save_game_suffix(svg_suffix);
 
-    play.fade_effect = game.options[OPT_FADETYPE];
-    play.std_gui_textheight = get_font_height_outlined(0) + 1;
+    game.Play.fade_effect = game.options[OPT_FADETYPE];
+    game.Play.std_gui_textheight = get_font_height_outlined(0) + 1;
     SetGameTextLanguage(game.GameTextLanguage);
     if (game.GameInfo.count("dev_error_text") > 0)
-        play.SetGameErrorText(game.GameInfo["dev_error_text"]);
+        game.Play.SetGameErrorText(game.GameInfo["dev_error_text"]);
     SetBaseTextParser(CreateTextParser(game.dict.get(), true, services.TextLocaleName));
     SetTranslationTextParser(CreateTextParser(game.dict.get(), true, services.TextLocaleName));
 
@@ -585,7 +589,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     prepare_gui_runtime(true /* startup */);
     calculate_reserved_channel_count();
     // Default viewport and camera, draw data, etc, should be created when resolution is set
-    play.CreatePrimaryViewportAndCamera();
+    game.Play.CreatePrimaryViewportAndCamera();
     init_game_drawdata();
 
     //
@@ -621,9 +625,9 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
 
     // Apply accessibility options, must be done last, because some
     // may override startup game settings.
-    ApplyAccessibilityOptions(play, services.Config);
+    ApplyAccessibilityOptions(game.Play, services.Config);
     // Applies behavior options (the runtime behavior switches)
-    ApplyBehaviorOptions(game, play, services.Config);
+    ApplyBehaviorOptions(game, game.Play, services.Config);
 
     // Optionally dump joint RTTI into the log
     if (services.LogScriptRTTI && RuntimeScript::GetJointRTTI())

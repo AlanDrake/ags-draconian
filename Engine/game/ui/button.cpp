@@ -19,6 +19,7 @@
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_gui_control.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
@@ -292,6 +293,7 @@ int Button_GetNormalGraphic(GUIButton *btn)
 
 void Button_SetNormalGraphic(GUIButton *btn, int slot)
 {
+    Game &game = Game::Current();
     slot = std::max(0, slot);
     if (btn->GetNormalImage() != slot)
     {

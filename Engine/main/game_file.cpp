@@ -23,6 +23,7 @@
 #include "debug/out.h"
 #include "game/dialog_topic.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_init.h"
 #include "game/game_struct_defines.h"
@@ -106,6 +107,7 @@ HGameFileError game_file_first_open(MainGameSource &src)
 
 HError preload_game_data()
 {
+    Game &game = Game::Current();
     MainGameSource src;
     HGameFileError err = game_file_first_open(src);
     if (!err)
@@ -178,7 +180,7 @@ void TryLoadGameScripts(LoadedGameEntities &ents)
 HError load_game_file()
 {
     MainGameSource src;
-    LoadedGameEntities ents(game);
+    LoadedGameEntities ents(Game::Current());
     HError err = (HError)OpenMainGameFileFromDefaultAsset(src, EngineServices::Current().Assets.get());
     if (!err)
         return err;

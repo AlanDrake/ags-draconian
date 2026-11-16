@@ -25,6 +25,7 @@
 #include "game/dialog/dialog.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/ui/inv_window.h"
@@ -89,9 +90,10 @@ static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScr
 // skipping the scripts known not to have it (and noting those that do not); stops as soon as the room changes.
 void run_function_on_non_blocking_thread(NonBlockingScriptFunction *func_to_run)
 {
+    Game &game = Game::Current();
     update_script_mouse_coords();
 
-    int room_changes_was = play.room_changes;
+    int room_changes_was = game.Play.room_changes;
     func_to_run->AtLeastOneImplementationExists = false;
 
     // run modules
@@ -100,14 +102,14 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction *func_to_run)
         func_to_run->ModuleHasFunction[i] =
             DoRunScriptFuncCantBlock(scriptModules[i].get(), func_to_run, func_to_run->ModuleHasFunction[i]);
 
-        if (room_changes_was != play.room_changes)
+        if (room_changes_was != game.Play.room_changes)
             return;
     }
 
     func_to_run->GlobalScriptHasFunction =
         DoRunScriptFuncCantBlock(gamescript.get(), func_to_run, func_to_run->GlobalScriptHasFunction);
 
-    if (room_changes_was != play.room_changes)
+    if (room_changes_was != game.Play.room_changes)
         return;
 
     func_to_run->RoomHasFunction =
@@ -150,11 +152,12 @@ static bool test_interaction_handler(ScriptEventsBase *handlers, int event_id, b
 // If there is no enabled handler for 'event_id', runs nothing and returns 0: when 'any_handlers' has an
 // enabled one for 'any_event_id' the caller is expected to run it (the "Any Click" case), otherwise
 // the "unhandled_event" callback is run if 'do_unhandled_event' is set.
-// Returns -1 if the handler was found while play.check_interaction_only is set (it does not run then),
+// Returns -1 if the handler was found while game.Play.check_interaction_only is set (it does not run then),
 // or if the room changed while it ran; 0 otherwise.
 int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int event_id,
                      ScriptEventsBase *any_handlers, int any_event_id, bool do_unhandled_event)
 {
+    Game &game = Game::Current();
     assert(handlers);
     if (!handlers)
         return 0;
@@ -176,20 +179,20 @@ int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int
 
     // TODO: check_interaction_only is both the request (1, set by the caller) and the answer
     // (2, set here: an enabled handler was found); return the answer from this function instead
-    if (play.check_interaction_only)
+    if (game.Play.check_interaction_only)
     {
-        play.check_interaction_only = 2;
+        game.Play.check_interaction_only = 2;
         return -1;
     }
 
-    const int room_was = play.room_changes;
+    const int room_was = game.Play.room_changes;
 
     RunScriptFunctionAuto(obj_evt.ScType,
                           ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(event_id).FunctionName),
                           obj_evt.ParamCount, obj_evt.Params);
 
     // if the room changed within the action
-    if (room_was != play.room_changes)
+    if (room_was != game.Play.room_changes)
         return -1;
     return 0;
 }
@@ -200,10 +203,11 @@ int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int
 }
 
 // Runs the handler for 'event_id' if there is an enabled one: unlike run_event_script, it does not look
-// at play.check_interaction_only, and has no "Any Click" or "unhandled_event" fallback.
+// at game.Play.check_interaction_only, and has no "Any Click" or "unhandled_event" fallback.
 // Returns -1 if the room changed while it ran, 0 otherwise.
 int run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int event_id)
 {
+    Game &game = Game::Current();
     assert(handlers);
     if (!handlers)
         return 0;
@@ -211,14 +215,14 @@ int run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handle
     if (!test_interaction_handler(handlers, event_id, obj_evt.ScType == kScTypeRoom))
         return 0;
 
-    const int room_was = play.room_changes;
+    const int room_was = game.Play.room_changes;
 
     RunScriptFunctionAuto(obj_evt.ScType,
                           ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(event_id).FunctionName),
                           obj_evt.ParamCount, obj_evt.Params);
 
     // if the room changed within the action
-    if (room_was != play.room_changes)
+    if (room_was != game.Play.room_changes)
         return -1;
     return 0;
 }
@@ -585,7 +589,8 @@ bool RunScriptFunctionInRoom(const String &fn_name, size_t param_count, const Ru
 static bool RunEventInModules(const String &fn_name, size_t param_count, const RuntimeScriptValue *params,
                               bool break_after_first)
 {
-    const int room_changes_was = play.room_changes;
+    Game &game = Game::Current();
+    const int room_changes_was = game.Play.room_changes;
     const int restore_game_count_was = gameHasBeenRestored;
     for (size_t i = 0; i < numScriptModules; ++i)
     {
@@ -595,7 +600,7 @@ static bool RunEventInModules(const String &fn_name, size_t param_count, const R
             // Break on room change or save restoration,
             // or if was told to break after the first found callback,
             // or if script execution error occured
-            if ((ret != kScFnRes_Done) || break_after_first || (room_changes_was != play.room_changes) ||
+            if ((ret != kScFnRes_Done) || break_after_first || (room_changes_was != game.Play.room_changes) ||
                 (restore_game_count_was != gameHasBeenRestored))
                 return ret == kScFnRes_Done; // return if succeeded to run
         }
@@ -886,8 +891,9 @@ bool get_can_run_delayed_command()
 // being checked, or for the walk mode.
 void run_unhandled_event(const ObjectEvent &obj_evt, int mode)
 {
+    Game &game = Game::Current();
     // FIXME: do not use a global variable here, pass as a function argument!
-    if (play.check_interaction_only)
+    if (game.Play.check_interaction_only)
         return;
 
     // No "unhandled event" for walk mode

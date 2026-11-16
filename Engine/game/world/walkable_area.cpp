@@ -16,6 +16,7 @@
 #include "debug/debug_log.h"
 #include "game/dynobj/cc_walkable_area.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -41,6 +42,7 @@ Bitmap *walkable_areas_temp = nullptr;
 
 void redo_walkable_areas()
 {
+    Game &game = Game::Current();
     // restore the mask from the backup, then erase the pixels of areas that are switched off
     thisroom.WalkAreaMask->Blit(walkareabackup, 0, 0);
     for (int y = 0; y < walkareabackup->GetHeight(); ++y)
@@ -48,8 +50,8 @@ void redo_walkable_areas()
         uint8_t *walls_scanline = thisroom.WalkAreaMask->GetScanLineForWriting(y);
         for (int x = 0; x < walkareabackup->GetWidth(); ++x)
         {
-            if ((walls_scanline[x] >= sizeof(play.walkable_areas_on)) ||
-                (play.walkable_areas_on[walls_scanline[x]] == 0))
+            if ((walls_scanline[x] >= sizeof(game.Play.walkable_areas_on)) ||
+                (game.Play.walkable_areas_on[walls_scanline[x]] == 0))
                 walls_scanline[x] = 0;
         }
     }
@@ -105,6 +107,7 @@ int get_area_scaling(int area_id, int y)
 
 void scale_sprite_size(int sprite_id, int zoom_level, int *new_width, int *new_height)
 {
+    Game &game = Game::Current();
     new_width[0] = (game.SpriteInfos[sprite_id].Width * zoom_level) / 100;
     new_height[0] = (game.SpriteInfos[sprite_id].Height * zoom_level) / 100;
     if (new_width[0] < 1)
@@ -127,6 +130,7 @@ void remove_walkable_areas_from_temp(const Rect &area)
 // rectangles source_char_id stands in.
 Bitmap *prepare_walkable_areas(int source_char_id)
 {
+    Game &game = Game::Current();
     // copy the walkable areas to the temp bitmap
     walkable_areas_temp->Blit(thisroom.WalkAreaMask.get(), 0, 0, 0, 0, thisroom.WalkAreaMask->GetWidth(),
                               thisroom.WalkAreaMask->GetHeight());
@@ -226,7 +230,7 @@ int get_walkable_area_at_location(int x, int y)
 
 int get_walkable_area_at_character(int char_id)
 {
-    CharacterInfo *ch = &game.chars[char_id];
+    CharacterInfo *ch = &Game::Current().chars[char_id];
     return get_walkable_area_at_location(ch->x, ch->y);
 }
 
@@ -255,12 +259,12 @@ int Walkarea_GetID(ScriptWalkableArea *wa)
 
 int Walkarea_GetEnabled(ScriptWalkableArea *wa)
 {
-    return play.walkable_areas_on[wa->id];
+    return Game::Current().Play.walkable_areas_on[wa->id];
 }
 
 void Walkarea_SetEnabled(ScriptWalkableArea *wa, int enable)
 {
-    if (enable == play.walkable_areas_on[wa->id])
+    if (enable == Game::Current().Play.walkable_areas_on[wa->id])
         return; // no change necessary
     if (enable)
         RestoreWalkableArea(wa->id);
@@ -360,7 +364,7 @@ void RemoveWalkableArea(int areanum)
 {
     if ((areanum < 1) || (areanum >= MAX_WALK_AREAS))
         quitprintf("!RemoveWalkableArea: invalid area number specified (1-%d).", MAX_WALK_AREAS - 1);
-    play.walkable_areas_on[areanum] = 0;
+    Game::Current().Play.walkable_areas_on[areanum] = 0;
     redo_walkable_areas();
     debug_script_log("Walkable area %d removed", areanum);
 }
@@ -369,14 +373,14 @@ void RestoreWalkableArea(int areanum)
 {
     if ((areanum < 1) || (areanum >= MAX_WALK_AREAS))
         quitprintf("!RestoreWalkableArea: invalid area number specified (1-%d).", MAX_WALK_AREAS - 1);
-    play.walkable_areas_on[areanum] = 1;
+    Game::Current().Play.walkable_areas_on[areanum] = 1;
     redo_walkable_areas();
     debug_script_log("Walkable area %d restored", areanum);
 }
 
 int GetWalkableAreaAtScreen(int x, int y)
 {
-    VpPoint vpt = play.ScreenToRoom(x, y);
+    VpPoint vpt = Game::Current().Play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return -1;
     return GetWalkableAreaAtRoom(vpt.first.X, vpt.first.Y);

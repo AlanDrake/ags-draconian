@@ -28,6 +28,7 @@
 #include <vector>
 
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/save/savegame.h"
@@ -83,13 +84,14 @@ void WriteAllBytes(const String &path, const std::vector<uint8_t> &bytes)
 // Fixture for the savegame file. The engine globals it touches, all reset in TearDown:
 // - game.guid, game.gamename, game.uniqueid, game.color_depth: the game identity in the description
 // - EngineServices::ResPaths.GamePak.Name, loaded_game_file_version: the game data identity in the description
-// - play.messagetime: a value of the game state, to see the components restored
+// - game.Play.messagetime: a value of the game state, to see the components restored
 // It writes save files to a directory of its own under the system's temporary directory.
 class SavegameFile : public ::testing::Test
 {
 protected:
     void SetUp() override
     {
+        Game &game = Game::Current();
         // a name of its own, also when ctest runs the tests in parallel processes
         const auto *test = ::testing::UnitTest::GetInstance()->current_test_info();
         _dir = Path::ConcatPaths(TempRoot(),
@@ -107,6 +109,7 @@ protected:
 
     void TearDown() override
     {
+        Game &game = Game::Current();
         for (const String &file : _files)
             File::DeleteFile(file);
         Directory::DeleteDirectory(_dir);
@@ -116,7 +119,7 @@ protected:
         game.color_depth = 0;
         EngineServices::Current().ResPaths.GamePak.Name = {};
         loaded_game_file_version = kGameVersion_Undefined;
-        play.messagetime = 0;
+        game.Play.messagetime = 0;
     }
 
     // The system's temporary directory
@@ -192,13 +195,14 @@ TEST_F(SavegameFile, DescriptionIsReadBack)
 
 TEST_F(SavegameFile, ComponentsFollowTheDescription)
 {
+    Game &game = Game::Current();
     const String path = FilePath("agssave.002");
     for (bool compress : {false, true})
     {
-        play.messagetime = 4321;
+        game.Play.messagetime = 4321;
         HSaveError err = SaveGame(path, "text", nullptr, kSaveCmp_GameState, compress);
         ASSERT_TRUE(err) << err->FullMessage().GetCStr();
-        play.messagetime = 0;
+        game.Play.messagetime = 0;
 
         SavegameSource src;
         SavegameDescription desc;
@@ -213,7 +217,7 @@ TEST_F(SavegameFile, ComponentsFollowTheDescription)
         const auto written = static_cast<SaveCmpSelection>(kSaveCmp_GameState | kSaveCmp_ObjectSprites);
         err = SavegameComponents::ReadAll(src.InputStream.get(), src.Version, written, pp, r_data);
         ASSERT_TRUE(err) << err->FullMessage().GetCStr();
-        EXPECT_EQ(4321, play.messagetime) << "compress " << compress;
+        EXPECT_EQ(4321, game.Play.messagetime) << "compress " << compress;
     }
 }
 

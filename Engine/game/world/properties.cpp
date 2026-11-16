@@ -17,6 +17,7 @@
 
 #include "game/dynobj/script_string.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/lib/string.h"
 #include "game/runtime_defines.h"
@@ -30,6 +31,7 @@ using namespace AGS::Common;
 
 bool get_property_desc(PropertyDesc &desc, const char *property, PropertyType want_type)
 {
+    Game &game = Game::Current();
     PropertySchema::const_iterator sch_it = game.propSchema.find(property);
     if (sch_it == game.propSchema.end())
         quitprintf("!Did not find property '%s' in the schema. Make sure you are using the property's name, and not "

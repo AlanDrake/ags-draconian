@@ -13,6 +13,7 @@
 //=============================================================================
 #include "game/dynobj/script_camera.h"
 
+#include "game/game_context.h"
 #include "game/game_state.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
@@ -59,7 +60,7 @@ ScriptCamera *Camera_Unserialize(int handle, Stream *in, size_t /*data_sz*/)
     const int id = in->ReadInt32();
     if (id >= 0)
     {
-        auto script_cam = play.RegisterRoomCamera(id, handle);
+        auto script_cam = Game::Current().Play.RegisterRoomCamera(id, handle);
         if (script_cam)
             return script_cam;
     }

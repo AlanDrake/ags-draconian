@@ -41,6 +41,7 @@
 #include "game/dynobj/script_objects.h"
 #include "game/dynobj/script_system.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_init.h"
 #include "game/game_state.h"
@@ -135,7 +136,7 @@ void engine_setup_window()
     Debug::Printf(kDbgMsg_Info, "Setting up window");
 
     set_our_eip(-198);
-    services.Platform->SetWindowTitle(game.gamename);
+    services.Platform->SetWindowTitle(Game::Current().gamename);
     sys_window_set_icon();
 
     SystemConfig sys_cfg;
@@ -150,6 +151,7 @@ void engine_setup_window()
 // display correct properties to the user
 static void fill_game_properties(StringOrderMap &map)
 {
+    Game &game = Game::Current();
     map["title"] = game.gamename;
     map["guid"] = game.guid;
     map["legacy_uniqueid"] = StrUtil::IntToString(game.uniqueid);
@@ -313,7 +315,7 @@ void engine_locate_speech_pak()
 void engine_locate_audio_pak()
 {
     EngineServices &services = EngineServices::Current();
-    String music_file = game.GetAudioVOXName();
+    String music_file = Game::Current().GetAudioVOXName();
     String music_filepath = find_assetlib(music_file);
     if (!music_filepath.IsEmpty())
     {
@@ -470,7 +472,7 @@ int engine_load_game_data()
         return EXIT_ERROR;
     }
     // Assign the default bitmap color depth, equals this game's color depth
-    Bitmap::SetColorDepth(game.GetColorDepth());
+    Bitmap::SetColorDepth(Game::Current().GetColorDepth());
 
     // Checks and warnings
     if (!is_any_font_loaded())
@@ -484,7 +486,7 @@ int engine_load_game_data()
 // Replace special tokens inside a user path option
 static void resolve_configured_path(String &option)
 {
-    option.Replace("$GAMENAME$", game.gamename);
+    option.Replace("$GAMENAME$", Game::Current().gamename);
 }
 
 // Setup paths and directories that may be affected by user configuration
@@ -554,6 +556,7 @@ int engine_check_disk_space()
 void show_preload()
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     UStream stream;
     String f_ext;
     for (const auto &ext : ImageFile::GetSupportedImageExts())
@@ -577,7 +580,7 @@ void show_preload()
         if (services.GfxDriver->UsesMemoryBackBuffer())
             services.GfxDriver->GetMemoryBackBuffer()->Clear();
 
-        const Rect &view = play.GetMainViewport();
+        const Rect &view = game.Play.GetMainViewport();
         Bitmap *preload_bmp = BitmapHelper::CreateBitmapCopy(splash_bmp, game.GetColorDepth());
         if (!services.GfxDriver->HasAcceleratedTransform() && view.GetSize() != preload_bmp->GetSize())
         {
@@ -634,12 +637,13 @@ HError engine_init_sprites()
 void engine_init_game_settings()
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     set_our_eip(-7);
     Debug::Printf("Initialize game settings");
 
     // Initialize randomizer
-    play.randseed = time(nullptr);
-    srand(play.randseed);
+    game.Play.randseed = time(nullptr);
+    srand(game.Play.randseed);
 
     if (services.Config.AudioEnabled)
     {
@@ -733,141 +737,141 @@ void engine_init_game_settings()
     // copy the value set by the editor
     if (game.options[OPT_GLOBALTALKANIMSPD] >= 0)
     {
-        play.talkanim_speed = game.options[OPT_GLOBALTALKANIMSPD];
+        game.Play.talkanim_speed = game.options[OPT_GLOBALTALKANIMSPD];
         game.options[OPT_GLOBALTALKANIMSPD] = 1;
     }
     else
     {
-        play.talkanim_speed = -game.options[OPT_GLOBALTALKANIMSPD] - 1;
+        game.Play.talkanim_speed = -game.options[OPT_GLOBALTALKANIMSPD] - 1;
         game.options[OPT_GLOBALTALKANIMSPD] = 0;
     }
-    play.inv_item_wid = 40;
-    play.inv_item_hit = 22;
-    play.messagetime = -1;
-    play.disabled_user_interface = 0;
-    play.gscript_timer = -1;
-    play.debug_mode = game.options[OPT_DEBUGMODE];
-    play.text_speed = 15;
-    play.text_min_display_time_ms = 1000;
-    play.ignore_user_input_after_text_timeout_ms = 500;
-    play.ClearIgnoreInput();
-    play.lipsync_speed = 15;
-    play.close_mouth_speech_time = 10;
-    play.disable_antialiasing = 0;
-    play.rtint_enabled = false;
-    play.rtint_level = 0;
-    play.rtint_light = 0;
-    play.text_speed_modifier = 0;
-    play.text_align = kHAlignLeft;
-    play.speech_text_align = kHAlignCenter;
-    play.dialog_options_textalign = kHAlignLeft;
+    game.Play.inv_item_wid = 40;
+    game.Play.inv_item_hit = 22;
+    game.Play.messagetime = -1;
+    game.Play.disabled_user_interface = 0;
+    game.Play.gscript_timer = -1;
+    game.Play.debug_mode = game.options[OPT_DEBUGMODE];
+    game.Play.text_speed = 15;
+    game.Play.text_min_display_time_ms = 1000;
+    game.Play.ignore_user_input_after_text_timeout_ms = 500;
+    game.Play.ClearIgnoreInput();
+    game.Play.lipsync_speed = 15;
+    game.Play.close_mouth_speech_time = 10;
+    game.Play.disable_antialiasing = 0;
+    game.Play.rtint_enabled = false;
+    game.Play.rtint_level = 0;
+    game.Play.rtint_light = 0;
+    game.Play.text_speed_modifier = 0;
+    game.Play.text_align = kHAlignLeft;
+    game.Play.speech_text_align = kHAlignCenter;
+    game.Play.dialog_options_textalign = kHAlignLeft;
     // Make the default text alignment to the right with right-to-left text;
     // except speech text, which is centered by default
     if (game.options[OPT_RIGHTLEFTWRITE])
     {
-        play.text_align = kHAlignRight;
-        if (play.GetRBSwitches()[kRBO_ApplyDialogOptionTextAlignment])
-            play.dialog_options_textalign = kHAlignRight;
+        game.Play.text_align = kHAlignRight;
+        if (game.Play.GetRBSwitches()[kRBO_ApplyDialogOptionTextAlignment])
+            game.Play.dialog_options_textalign = kHAlignRight;
     }
 
-    play.speech_bubble_width = 100;
-    play.bg_frame = 0;
-    play.bg_frame_locked = 0;
-    play.bg_anim_delay = 0;
-    play.anim_background_speed = 0;
-    play.mouse_input_enabled = true;
-    play.mouse_cursor_shown = true;
-    play.skip_until_char_stops = -1;
-    play.get_loc_name_last_time = {};
-    play.get_loc_name_save_cursor = {};
-    play.restore_cursor_mode_to = -1;
-    play.restore_cursor_image_to = -1;
-    play.ground_level_areas_disabled = 0;
-    play.next_screen_transition = -1;
-    play.temporarily_turned_off_character = -1;
-    play.gamma_adjustment = 100;
-    play.shakesc_length = 0;
-    play.wait_counter = 0;
-    play.SetWaitSkipResult(SKIP_NONE);
-    play.key_skip_wait = SKIP_NONE;
-    play.audio_master_volume = 100;
-    play.screen_flipped = 0;
-    play.speech_mode = kSpeech_VoiceText;
-    play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)game.options[OPT_NOSKIPTEXT]);
-    play.speech_volume = 255;
-    play.normal_font = 0;
-    play.speech_font = 1;
-    play.speech_text_shadow = GUI::GetStandardColor(16);
-    play.screen_tint = -1;
-    play.bad_parsed_word.Empty();
-    play.swap_portrait_side = 0;
-    play.swap_portrait_lastchar = -1;
-    play.swap_portrait_lastlastchar = -1;
-    play.in_conversation = 0;
-    play.skip_display = kSkipSpeechKeyMouse;
-    play.no_multiloop_repeat = 0;
-    play.in_cutscene = 0;
-    play.fast_forward = 0;
-    play.roomscript_finished = 0;
-    play.no_textbg_when_voice = 0;
-    play.max_dialogoption_width = 180;
-    play.no_hicolor_fadein = 0;
-    play.bgspeech_game_speed = 0;
-    play.bgspeech_stay_on_display = 0;
-    play.unfactor_speech_from_textlength = 0;
-    play.speech_music_drop = 60;
-    play.room_changes = 0;
-    play.check_interaction_only = 0;
-    play.replay_hotkey_unused = -1; // StartRecording: not supported.
-    play.dialog_options_pad_x = TEXTWINDOW_PADDING_DEFAULT;
-    play.dialog_options_pad_y = 0; // no Y padding by default
-    play.dialog_options_font = FONT_UNDEFINED;
-    play.min_dialogoption_width = 0;
-    play.disable_dialog_parser = 0;
-    play.screen_is_faded_out = false;
-    play.player_on_region = 0;
-    play.top_bar_backcolor = GUI::GetStandardColor(8);
-    play.top_bar_textcolor = GUI::GetStandardColor(16);
-    play.top_bar_bordercolor = GUI::GetStandardColor(8);
-    play.top_bar_borderwidth = 1;
-    play.top_bar_ypos = 25;
-    play.top_bar_font = -1;
-    play.screenshot_width = 160;
-    play.screenshot_height = 100;
-    play.auto_use_walkto_points = 1;
-    play.inventory_greys_out = 0;
-    play.skip_speech_specific_key = 0;
-    play.abort_key = 324; // Alt+X
-    play.fade_to_red = 0;
-    play.fade_to_green = 0;
-    play.fade_to_blue = 0;
-    play.show_single_dialog_option = game.options[OPT_DISPLAYSINGLEDIALOGOPTION];
-    play.keep_screen_during_instant_transition = 0;
-    play.read_dialog_option_colour = -1;
-    play.stop_dialog_at_end = DIALOG_NONE;
-    play.speech_portrait_placement = 0;
-    play.speech_portrait_x = 0;
-    play.speech_portrait_y = 0;
-    play.speech_display_post_time_ms = 0;
-    play.dialog_options_highlight_color = GUI::GetStandardColor(DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT);
-    play.speech_has_voice = false;
-    play.speech_voice_blocking = false;
-    play.speech_in_post_state = false;
-    play.complete_overlay_on = 0;
-    play.text_overlay_on = 0;
-    play.narrator_speech = game.playercharacter;
-    play.crossfading_out_channel = 0;
-    play.speech_textwindow_gui = game.options[OPT_TWCUSTOM];
-    if (play.speech_textwindow_gui == 0)
-        play.speech_textwindow_gui = -1;
-    play.game_name = game.gamename;
-    play.lastParserEntry[0] = 0;
-    play.follow_change_room_timer = 150;
-    play.game_speed_modifier = 0;
+    game.Play.speech_bubble_width = 100;
+    game.Play.bg_frame = 0;
+    game.Play.bg_frame_locked = 0;
+    game.Play.bg_anim_delay = 0;
+    game.Play.anim_background_speed = 0;
+    game.Play.mouse_input_enabled = true;
+    game.Play.mouse_cursor_shown = true;
+    game.Play.skip_until_char_stops = -1;
+    game.Play.get_loc_name_last_time = {};
+    game.Play.get_loc_name_save_cursor = {};
+    game.Play.restore_cursor_mode_to = -1;
+    game.Play.restore_cursor_image_to = -1;
+    game.Play.ground_level_areas_disabled = 0;
+    game.Play.next_screen_transition = -1;
+    game.Play.temporarily_turned_off_character = -1;
+    game.Play.gamma_adjustment = 100;
+    game.Play.shakesc_length = 0;
+    game.Play.wait_counter = 0;
+    game.Play.SetWaitSkipResult(SKIP_NONE);
+    game.Play.key_skip_wait = SKIP_NONE;
+    game.Play.audio_master_volume = 100;
+    game.Play.screen_flipped = 0;
+    game.Play.speech_mode = kSpeech_VoiceText;
+    game.Play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)game.options[OPT_NOSKIPTEXT]);
+    game.Play.speech_volume = 255;
+    game.Play.normal_font = 0;
+    game.Play.speech_font = 1;
+    game.Play.speech_text_shadow = GUI::GetStandardColor(16);
+    game.Play.screen_tint = -1;
+    game.Play.bad_parsed_word.Empty();
+    game.Play.swap_portrait_side = 0;
+    game.Play.swap_portrait_lastchar = -1;
+    game.Play.swap_portrait_lastlastchar = -1;
+    game.Play.in_conversation = 0;
+    game.Play.skip_display = kSkipSpeechKeyMouse;
+    game.Play.no_multiloop_repeat = 0;
+    game.Play.in_cutscene = 0;
+    game.Play.fast_forward = 0;
+    game.Play.roomscript_finished = 0;
+    game.Play.no_textbg_when_voice = 0;
+    game.Play.max_dialogoption_width = 180;
+    game.Play.no_hicolor_fadein = 0;
+    game.Play.bgspeech_game_speed = 0;
+    game.Play.bgspeech_stay_on_display = 0;
+    game.Play.unfactor_speech_from_textlength = 0;
+    game.Play.speech_music_drop = 60;
+    game.Play.room_changes = 0;
+    game.Play.check_interaction_only = 0;
+    game.Play.replay_hotkey_unused = -1; // StartRecording: not supported.
+    game.Play.dialog_options_pad_x = TEXTWINDOW_PADDING_DEFAULT;
+    game.Play.dialog_options_pad_y = 0; // no Y padding by default
+    game.Play.dialog_options_font = FONT_UNDEFINED;
+    game.Play.min_dialogoption_width = 0;
+    game.Play.disable_dialog_parser = 0;
+    game.Play.screen_is_faded_out = false;
+    game.Play.player_on_region = 0;
+    game.Play.top_bar_backcolor = GUI::GetStandardColor(8);
+    game.Play.top_bar_textcolor = GUI::GetStandardColor(16);
+    game.Play.top_bar_bordercolor = GUI::GetStandardColor(8);
+    game.Play.top_bar_borderwidth = 1;
+    game.Play.top_bar_ypos = 25;
+    game.Play.top_bar_font = -1;
+    game.Play.screenshot_width = 160;
+    game.Play.screenshot_height = 100;
+    game.Play.auto_use_walkto_points = 1;
+    game.Play.inventory_greys_out = 0;
+    game.Play.skip_speech_specific_key = 0;
+    game.Play.abort_key = 324; // Alt+X
+    game.Play.fade_to_red = 0;
+    game.Play.fade_to_green = 0;
+    game.Play.fade_to_blue = 0;
+    game.Play.show_single_dialog_option = game.options[OPT_DISPLAYSINGLEDIALOGOPTION];
+    game.Play.keep_screen_during_instant_transition = 0;
+    game.Play.read_dialog_option_colour = -1;
+    game.Play.stop_dialog_at_end = DIALOG_NONE;
+    game.Play.speech_portrait_placement = 0;
+    game.Play.speech_portrait_x = 0;
+    game.Play.speech_portrait_y = 0;
+    game.Play.speech_display_post_time_ms = 0;
+    game.Play.dialog_options_highlight_color = GUI::GetStandardColor(DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT);
+    game.Play.speech_has_voice = false;
+    game.Play.speech_voice_blocking = false;
+    game.Play.speech_in_post_state = false;
+    game.Play.complete_overlay_on = 0;
+    game.Play.text_overlay_on = 0;
+    game.Play.narrator_speech = game.playercharacter;
+    game.Play.crossfading_out_channel = 0;
+    game.Play.speech_textwindow_gui = game.options[OPT_TWCUSTOM];
+    if (game.Play.speech_textwindow_gui == 0)
+        game.Play.speech_textwindow_gui = -1;
+    game.Play.game_name = game.gamename;
+    game.Play.lastParserEntry[0] = 0;
+    game.Play.follow_change_room_timer = 150;
+    game.Play.game_speed_modifier = 0;
     if (debug_flags & DBG_DEBUGMODE)
-        play.debug_mode = 1;
-    play.shake_screen_yoff = 0;
-    play.face_dir_ratio = game.faceDirectionRatio;
+        game.Play.debug_mode = 1;
+    game.Play.shake_screen_yoff = 0;
+    game.Play.face_dir_ratio = game.faceDirectionRatio;
 
     GUI::DataVersion = loaded_game_file_version;
     GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
@@ -875,8 +879,8 @@ void engine_init_game_settings()
     // Force GUI metrics recalculation, accomodating for loaded fonts
     GUIE::MarkForFontUpdate(-1);
 
-    memset(&play.walkable_areas_on[0], 1, MAX_WALK_AREAS);
-    play.default_audio_type_volumes.resize(game.audioClipTypes.size(), -1);
+    memset(&game.Play.walkable_areas_on[0], 1, MAX_WALK_AREAS);
+    game.Play.default_audio_type_volumes.resize(game.audioClipTypes.size(), -1);
 
     if (!services.Config.Translation.IsEmpty())
         Game_ChangeTranslation(services.Config.Translation.GetCStr());
@@ -898,10 +902,10 @@ void engine_init_game_settings()
     // TODO: InitGameState already applies these once, but the defaults set above come after it
     // and overwrite part of them; the default game settings are spread across several
     // functions, and this repeated call stays until they are gathered in one place.
-    ApplyAccessibilityOptions(play, services.Config);
+    ApplyAccessibilityOptions(game.Play, services.Config);
     // Applies behavior options, also hacks and backwards compatibility fixes
-    ApplyBehaviorOptions(game, play, services.Config);
-    PrintBehaviorOptions(game, play);
+    ApplyBehaviorOptions(game, game.Play, services.Config);
+    PrintBehaviorOptions(game, game.Play);
 }
 
 void engine_setup_scsystem_auxiliary()
@@ -1144,6 +1148,7 @@ static bool print_info_needs_game(const std::set<String> &keys)
 static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     const bool all = keys.count("all") > 0;
     ConfigTree data;
     if (all || keys.count("engine") > 0)
@@ -1379,6 +1384,7 @@ int initialize_engine(const ConfigTree &startup_opts)
 bool engine_try_set_gfxmode_any(const DisplayModeSetup &setup)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     const DisplayMode old_dm = services.GfxDriver ? services.GfxDriver->GetDisplayMode() : DisplayMode();
 
     engine_shutdown_gfxmode();
@@ -1432,7 +1438,7 @@ bool engine_try_switch_windowed_gfxmode()
         WindowSetup window_setup = windowed ? services.Config.Display.WinSetup : services.Config.Display.FsSetup;
         frame = windowed ? services.Config.Display.WinGameFrame : services.Config.Display.FsGameFrame;
         res = graphics_mode_set_dm_any(
-            game.GetGameRes(), window_setup, old_dm.ColorDepth, frame,
+            Game::Current().GetGameRes(), window_setup, old_dm.ColorDepth, frame,
             DisplayParamsEx(use_display_index, services.Config.Display.RefreshRate, services.Config.Display.VSync));
     }
 

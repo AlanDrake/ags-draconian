@@ -1,7 +1,7 @@
 # The includes that break the ring rules of Script/check_layers.py today: includer<TAB>included.
 # A new line here needs a reason in its commit message; a fixed include takes its line away.
 Engine/debug/debug.cpp	Engine/game/game.h
-Engine/debug/debug.cpp	Engine/game/game_state.h
+Engine/debug/debug.cpp	Engine/game/game_context.h
 Engine/debug/debug.cpp	Engine/game/render/dynamic_sprite.h
 Engine/debug/debug.cpp	Engine/game/script.h
 Engine/debug/debug.cpp	Engine/game/world/room.h
@@ -19,7 +19,7 @@ Engine/debug/memory_inspect.cpp	Engine/script/script_runtime.h
 Engine/debug/memory_inspect.cpp	Engine/script/scriptexecutor.h
 Engine/debug/memory_inspect.cpp	Engine/script/systemimports.h
 Engine/debug/memory_inspect.h	Engine/script/scriptexecutor.h
-Engine/device/mousew32.cpp	Engine/game/game_state.h
+Engine/device/mousew32.cpp	Engine/game/game_context.h
 Engine/device/mousew32.cpp	Engine/main/graphics_mode.h
 Engine/device/sys_events.cpp	Engine/game/input/joystick.h
 Engine/device/sys_events.cpp	Engine/game/input/touch.h

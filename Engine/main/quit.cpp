@@ -28,6 +28,7 @@
 #include "debug/out.h"
 #include "font/fonts.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/navigation/route_finder.h"
@@ -71,6 +72,7 @@ void quit_tell_editor_debugger(const String &qmsg, QuitReason qreason)
 
 void quit_check_dynamic_sprites(QuitReason qreason)
 {
+    Game &game = Game::Current();
     if ((qreason & kQuitKind_NormalExit) && (check_dynamic_sprites_at_exit) && (game.options[OPT_DEBUGMODE] != 0))
     {
         // Check that the dynamic sprites have been deleted;
@@ -200,6 +202,7 @@ QuitReason quit_check_for_error_state(const char *qmsg, const String &error_text
 void quit(const char *quitmsg)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     Debug::Printf(kDbgMsg_Info, "Quitting the game...");
 
     // Generate two error message: simple and full.
@@ -207,7 +210,7 @@ void quit(const char *quitmsg)
     // popup and printed to the log.
     String errmsg, fullmsg;
     QuitReason qreason =
-        quit_check_for_error_state(quitmsg, play.GetGameErrorText(), game.GameInfo["version"], errmsg, fullmsg);
+        quit_check_for_error_state(quitmsg, game.Play.GetGameErrorText(), game.GameInfo["version"], errmsg, fullmsg);
 
 #if defined(AGS_AUTO_WRITE_USER_CONFIG)
     if (qreason & kQuitKind_NormalExit)

@@ -19,6 +19,7 @@
 #include "game/dynobj/cc_walk_behind.h"
 #include "game/dynobj/script_objects.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
@@ -49,8 +50,9 @@ bool walk_behind_baselines_changed = false;
 // Generates walk-behinds as separate sprites
 void walkbehinds_generate_sprites()
 {
+    Game &game = Game::Current();
     const Bitmap *mask = thisroom.WalkBehindMask.get();
-    const Bitmap *bg = thisroom.BgImages[play.bg_frame].get();
+    const Bitmap *bg = thisroom.BgImages[game.Play.bg_frame].get();
 
     const int coldepth = bg->GetColorDepth();
     Bitmap wbbmp; // temp buffer
@@ -92,7 +94,7 @@ void walkbehinds_generate_sprites()
         }
     }
 
-    walkBehindsCachedForBgNum = play.bg_frame;
+    walkBehindsCachedForBgNum = game.Play.bg_frame;
 }
 
 // Edits the given game object's sprite, cutting out pixels covered by walk-behinds;
@@ -195,7 +197,7 @@ ScriptWalkbehind *Walkbehind_GetAtRoomXY(int x, int y)
 
 ScriptWalkbehind *Walkbehind_GetAtScreenXY(int x, int y)
 {
-    VpPoint vpt = play.ScreenToRoom(x, y);
+    VpPoint vpt = Game::Current().Play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return nullptr;
     return Walkbehind_GetAtRoomXY(vpt.first.X, vpt.first.Y);

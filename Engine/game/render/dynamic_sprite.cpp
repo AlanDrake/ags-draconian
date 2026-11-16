@@ -18,6 +18,7 @@
 
 #include "debug/debug_log.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/math.h" // M_PI
@@ -44,6 +45,7 @@ char check_dynamic_sprites_at_exit = 1;
 
 int ValidateColorFormat(const char *api_name, ScriptColorFormat color_format)
 {
+    Game &game = Game::Current();
     switch (color_format)
     {
     case kScColorFmt_8bit: return color_format;
@@ -96,7 +98,7 @@ int DynamicSprite_GetWidth(ScriptDynamicSprite *dynsprite)
         debug_script_warn("DynamicSprite.Width: sprite has been deleted");
         return 0;
     }
-    return game.SpriteInfos[dynsprite->slot].Width;
+    return Game::Current().SpriteInfos[dynsprite->slot].Width;
 }
 
 int DynamicSprite_GetHeight(ScriptDynamicSprite *dynsprite)
@@ -106,7 +108,7 @@ int DynamicSprite_GetHeight(ScriptDynamicSprite *dynsprite)
         debug_script_warn("DynamicSprite.Height: sprite has been deleted");
         return 0;
     }
-    return game.SpriteInfos[dynsprite->slot].Height;
+    return Game::Current().SpriteInfos[dynsprite->slot].Height;
 }
 
 int DynamicSprite_GetColorDepth(ScriptDynamicSprite *dynsprite)
@@ -122,6 +124,7 @@ int DynamicSprite_GetColorDepth(ScriptDynamicSprite *dynsprite)
 
 void DynamicSprite_Resize(ScriptDynamicSprite *dynsprite, int width, int height)
 {
+    Game &game = Game::Current();
     if (dynsprite->slot == 0)
         quit("!DynamicSprite.Resize: sprite has been deleted");
     if ((width < 1) || (height < 1))
@@ -158,6 +161,7 @@ void DynamicSprite_Flip(ScriptDynamicSprite *dynsprite, int direction)
 
 void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *dynsprite, int source_sprite)
 {
+    Game &game = Game::Current();
     if (dynsprite->slot == 0)
         quit("!DynamicSprite.CopyTransparencyMask: sprite has been deleted");
 
@@ -200,6 +204,7 @@ void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *dynsprite, int width, i
 
 void DynamicSprite_Crop(ScriptDynamicSprite *dynsprite, int x, int y, int width, int height)
 {
+    Game &game = Game::Current();
     if (dynsprite->slot == 0)
         quit("!DynamicSprite.Crop: sprite has been deleted");
     if ((width < 1) || (height < 1))
@@ -233,6 +238,7 @@ void DynamicSprite_Crop(ScriptDynamicSprite *dynsprite, int x, int y, int width,
 
 void DynamicSprite_Rotate(ScriptDynamicSprite *dynsprite, int angle, int width, int height)
 {
+    Game &game = Game::Current();
     if (dynsprite->slot == 0)
         quit("!DynamicSprite.Rotate: sprite has been deleted");
     if ((angle < 1) || (angle > 359))
@@ -427,9 +433,10 @@ ScriptDynamicSprite *DynamicSprite_Create(int width, int height, int color_fmt)
 
 ScriptDynamicSprite *DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height)
 {
+    Game &game = Game::Current();
     if (frame == SCR_NO_VALUE)
     {
-        frame = play.bg_frame;
+        frame = game.Play.bg_frame;
     }
     else if ((frame < 0) || ((size_t)frame >= thisroom.BgFrameCount))
         quit("!DynamicSprite.CreateFromBackground: invalid frame specified");
@@ -439,9 +446,9 @@ ScriptDynamicSprite *DynamicSprite_CreateFromBackground(int frame, int x1, int y
     if (y1 == SCR_NO_VALUE)
         y1 = 0;
     if (width == SCR_NO_VALUE)
-        width = play.room_width;
+        width = game.Play.room_width;
     if (height == SCR_NO_VALUE)
-        height = play.room_height;
+        height = game.Play.room_height;
 
     if (width <= 0 || height <= 0)
     {
@@ -450,7 +457,7 @@ ScriptDynamicSprite *DynamicSprite_CreateFromBackground(int frame, int x1, int y
         height = std::max(1, height);
     }
 
-    if ((x1 < 0) || (y1 < 0) || (x1 + width > play.room_width) || (y1 + height > play.room_height))
+    if ((x1 < 0) || (y1 < 0) || (x1 + width > game.Play.room_width) || (y1 + height > game.Play.room_height))
         quit("!DynamicSprite.CreateFromBackground: invalid co-ordinates specified");
 
     // create a new sprite as a copy of the background area
@@ -494,6 +501,7 @@ int add_dynamic_sprite(int slot, std::unique_ptr<Bitmap> image, uint32_t extra_f
 
 void free_dynamic_sprite(int slot)
 {
+    Game &game = Game::Current();
     assert((slot > 0) && (static_cast<size_t>(slot) < game.SpriteInfos.size()) &&
            (game.SpriteInfos[slot].Flags & SPF_DYNAMICALLOC));
     if ((slot <= 0) || (static_cast<size_t>(slot) >= game.SpriteInfos.size()) ||
@@ -532,7 +540,7 @@ void attach_dynsprite_surface(int slot, int surface_handle)
 {
     DynamicSpriteDSRef.insert(std::make_pair(slot, surface_handle));
     // Mark the sprite info as having sprite's surface acquired (for notification purposes)
-    game.SpriteInfos[slot].Flags |= SPF_SURFACEACQUIRED;
+    Game::Current().SpriteInfos[slot].Flags |= SPF_SURFACEACQUIRED;
 }
 
 void detach_dynsprite_surface(int slot)
@@ -558,5 +566,5 @@ void on_dynsprite_surface_release(int slot, bool modified)
 
     detach_dynsprite_surface(slot);
     // Unmark the sprite info as having sprite's surface acquired (for notification purposes)
-    game.SpriteInfos[slot].Flags &= ~SPF_SURFACEACQUIRED;
+    Game::Current().SpriteInfos[slot].Flags &= ~SPF_SURFACEACQUIRED;
 }

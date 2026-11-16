@@ -27,6 +27,7 @@
 #include "game/dynobj/script_drawing_surface.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -72,7 +73,7 @@ int longestline = 0;
 
 void RunDialogOption(int dialog_id, int option)
 {
-    if ((dialog_id < 0) || (dialog_id >= game.numdialog))
+    if ((dialog_id < 0) || (dialog_id >= Game::Current().numdialog))
         quit("!Dialog.Start: invalid topic number specified");
 
     can_run_delayed_command();
@@ -111,7 +112,7 @@ void StopDialog()
 
 void SetDialogOption(int dialog_id, int option, int state, bool dlg_script = false)
 {
-    if ((dialog_id < 0) || (dialog_id >= game.numdialog))
+    if ((dialog_id < 0) || (dialog_id >= Game::Current().numdialog))
         quit("!SetDialogOption: Invalid topic number specified");
     if ((option < 1) || (option > dialog[dialog_id].GetOptionCount()))
     {
@@ -137,7 +138,7 @@ void SetDialogOption(int dialog_id, int option, int state, bool dlg_script = fal
 
 int GetDialogOption(int dialog_id, int option)
 {
-    if ((dialog_id < 0) || (dialog_id >= game.numdialog))
+    if ((dialog_id < 0) || (dialog_id >= Game::Current().numdialog))
         quit("!GetDialogOption: Invalid topic number specified");
     if ((option < 1) || (option > dialog[dialog_id].GetOptionCount()))
         quit("!GetDialogOption: Invalid option number specified");
@@ -173,7 +174,7 @@ int Dialog_DisplayOptions(ScriptDialog *script_dialog, int say_chosen_option)
     if ((say_chosen_option < 1) || (say_chosen_option > 3))
         quit("!Dialog.DisplayOptions: invalid parameter passed");
 
-    int chosen = show_dialog_options(script_dialog->id, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
+    int chosen = show_dialog_options(script_dialog->id, (Game::Current().options[OPT_RUNGAMEDLGOPTS] != 0));
 
     if (chosen > 0)
     {
@@ -275,97 +276,98 @@ int DialogOptions_GetAreDisplayed()
 
 int DialogOptions_GetBulletGraphic()
 {
-    return game.dialog_bullet;
+    return Game::Current().dialog_bullet;
 }
 
 void DialogOptions_SetBulletGraphic(int sprite)
 {
-    game.dialog_bullet = sprite;
+    Game::Current().dialog_bullet = sprite;
 }
 
 int DialogOptions_GetDrawMode()
 {
-    return game.options[OPT_DIALOGOPTIONSDRAWMODE];
+    return Game::Current().options[OPT_DIALOGOPTIONSDRAWMODE];
 }
 
 void DialogOptions_SetDrawMode(int draw_mode)
 {
-    game.options[OPT_DIALOGOPTIONSDRAWMODE] = draw_mode;
+    Game::Current().options[OPT_DIALOGOPTIONSDRAWMODE] = draw_mode;
 }
 
 int DialogOptions_GetFont()
 {
-    return play.dialog_options_font;
+    return Game::Current().Play.dialog_options_font;
 }
 
 void DialogOptions_SetFont(int font_id)
 {
     font_id = ValidateFontNumber("Dialog.SetOptionsFont", font_id);
-    play.dialog_options_font = font_id;
+    Game::Current().Play.dialog_options_font = font_id;
 }
 
 int DialogOptions_GetItemNumbering()
 {
-    return game.options[OPT_DIALOGNUMBERED];
+    return Game::Current().options[OPT_DIALOGNUMBERED];
 }
 
 void DialogOptions_SetItemNumbering(int style)
 {
-    game.options[OPT_DIALOGNUMBERED] = style;
+    Game::Current().options[OPT_DIALOGNUMBERED] = style;
 }
 
 int DialogOptions_GetHighlightColor()
 {
-    return play.dialog_options_highlight_color;
+    return Game::Current().Play.dialog_options_highlight_color;
 }
 
 void DialogOptions_SetHighlightColor(int color)
 {
-    play.dialog_options_highlight_color = color;
+    Game::Current().Play.dialog_options_highlight_color = color;
 }
 
 int DialogOptions_GetReadColor()
 {
-    return play.read_dialog_option_colour;
+    return Game::Current().Play.read_dialog_option_colour;
 }
 
 void DialogOptions_SetReadColor(int color)
 {
-    play.read_dialog_option_colour = color;
+    Game::Current().Play.read_dialog_option_colour = color;
 }
 
 int DialogOptions_GetTextAlignment()
 {
-    return play.dialog_options_textalign;
+    return Game::Current().Play.dialog_options_textalign;
 }
 
 void DialogOptions_SetTextAlignment(int align)
 {
-    play.dialog_options_textalign = (HorAlignment)align;
+    Game::Current().Play.dialog_options_textalign = (HorAlignment)align;
 }
 
 int DialogOptions_GetZOrder()
 {
-    return play.dialog_options_zorder;
+    return Game::Current().Play.dialog_options_zorder;
 }
 
 void DialogOptions_SetZOrder(int zorder)
 {
-    play.dialog_options_zorder = zorder;
+    Game::Current().Play.dialog_options_zorder = zorder;
 }
 
 int DialogOptions_GetItemGap()
 {
-    return game.options[OPT_DIALOGGAP];
+    return Game::Current().options[OPT_DIALOGGAP];
 }
 
 void DialogOptions_SetItemGap(int gap)
 {
-    game.options[OPT_DIALOGGAP] = gap;
+    Game::Current().options[OPT_DIALOGGAP] = gap;
 }
 
 ScriptGUI *DialogOptions_GetTemplateGUI()
 {
+    Game &game = Game::Current();
     // NOTE: historically 0 meant "no gui", so gui id 0 cannot be used here
     if (game.options[OPT_DIALOGIFACE] <= 0 || game.options[OPT_DIALOGIFACE] >= game.numgui)
         return nullptr;
@@ -380,88 +382,90 @@ void DialogOptions_SetTemplateGUI(ScriptGUI *sgui)
         return;
     }
 
-    game.options[OPT_DIALOGIFACE] = sgui->id;
+    Game::Current().options[OPT_DIALOGIFACE] = sgui->id;
 }
 
 int DialogOptions_GetGUIX()
 {
-    return play.dialog_options_gui_x;
+    return Game::Current().Play.dialog_options_gui_x;
 }
 
 void DialogOptions_SetGUIX(int x)
 {
-    play.dialog_options_gui_x = x;
+    Game::Current().Play.dialog_options_gui_x = x;
 }
 
 int DialogOptions_GetGUIY()
 {
-    return play.dialog_options_gui_y;
+    return Game::Current().Play.dialog_options_gui_y;
 }
 
 void DialogOptions_SetGUIY(int y)
 {
-    play.dialog_options_gui_y = y;
+    Game::Current().Play.dialog_options_gui_y = y;
 }
 
 int DialogOptions_GetPaddingX()
 {
-    return play.dialog_options_pad_x;
+    return Game::Current().Play.dialog_options_pad_x;
 }
 
 void DialogOptions_SetPaddingX(int x)
 {
-    play.dialog_options_pad_x = x;
+    Game::Current().Play.dialog_options_pad_x = x;
 }
 
 int DialogOptions_GetPaddingY()
 {
-    return play.dialog_options_pad_y;
+    return Game::Current().Play.dialog_options_pad_y;
 }
 
 void DialogOptions_SetPaddingY(int y)
 {
-    play.dialog_options_pad_y = y;
+    Game::Current().Play.dialog_options_pad_y = y;
 }
 
 int DialogOptions_GetMaxGUIWidth()
 {
-    return play.max_dialogoption_width;
+    return Game::Current().Play.max_dialogoption_width;
 }
 
 void DialogOptions_SetMaxGUIWidth(int width)
 {
-    play.max_dialogoption_width = width;
+    Game::Current().Play.max_dialogoption_width = width;
 }
 
 int DialogOptions_GetMinGUIWidth()
 {
-    return play.min_dialogoption_width;
+    return Game::Current().Play.min_dialogoption_width;
 }
 
 void DialogOptions_SetMinGUIWidth(int width)
 {
-    play.min_dialogoption_width = width;
+    Game::Current().Play.min_dialogoption_width = width;
 }
 
 int Dialog_GetProperty(ScriptDialog *script_dialog, const char *property)
 {
-    return get_int_property(game.dialogProps[script_dialog->id], play.dialogProps[script_dialog->id], property);
+    Game &game = Game::Current();
+    return get_int_property(game.dialogProps[script_dialog->id], game.Play.dialogProps[script_dialog->id], property);
 }
 
 const char *Dialog_GetTextProperty(ScriptDialog *script_dialog, const char *property)
 {
-    return get_text_property_dynamic_string(game.dialogProps[script_dialog->id], play.dialogProps[script_dialog->id],
-                                            property);
+    Game &game = Game::Current();
+    return get_text_property_dynamic_string(game.dialogProps[script_dialog->id],
+                                            game.Play.dialogProps[script_dialog->id], property);
 }
 
 bool Dialog_SetProperty(ScriptDialog *script_dialog, const char *property, int value)
 {
-    return set_int_property(play.dialogProps[script_dialog->id], property, value);
+    return set_int_property(Game::Current().Play.dialogProps[script_dialog->id], property, value);
 }
 
 bool Dialog_SetTextProperty(ScriptDialog *script_dialog, const char *property, const char *value)
 {
-    return set_text_property(play.dialogProps[script_dialog->id], property, value);
+    return set_text_property(Game::Current().Play.dialogProps[script_dialog->id], property, value);
 }
 
 //=============================================================================
@@ -477,29 +481,30 @@ bool Dialog_SetTextProperty(ScriptDialog *script_dialog, const char *property, c
 // returns a RUN_DIALOG_* code, or the number of the topic the callback asked to go to
 static int run_dialog_request(int param)
 {
-    play.stop_dialog_at_end = DIALOG_RUNNING;
+    Game &game = Game::Current();
+    game.Play.stop_dialog_at_end = DIALOG_RUNNING;
     RuntimeScriptValue params[]{param};
     RunScriptFunction(gamescript.get(), "dialog_request", 1, params);
 
-    if (play.stop_dialog_at_end == DIALOG_STOP)
+    if (game.Play.stop_dialog_at_end == DIALOG_STOP)
     {
-        play.stop_dialog_at_end = DIALOG_NONE;
+        game.Play.stop_dialog_at_end = DIALOG_NONE;
         return RUN_DIALOG_STOP_DIALOG;
     }
-    if (play.stop_dialog_at_end >= DIALOG_NEWTOPIC)
+    if (game.Play.stop_dialog_at_end >= DIALOG_NEWTOPIC)
     {
-        int topic_id = play.stop_dialog_at_end - DIALOG_NEWTOPIC;
-        play.stop_dialog_at_end = DIALOG_NONE;
+        int topic_id = game.Play.stop_dialog_at_end - DIALOG_NEWTOPIC;
+        game.Play.stop_dialog_at_end = DIALOG_NONE;
         return topic_id;
     }
-    if (play.stop_dialog_at_end >= DIALOG_NEWROOM)
+    if (game.Play.stop_dialog_at_end >= DIALOG_NEWROOM)
     {
-        int room_id = play.stop_dialog_at_end - DIALOG_NEWROOM;
-        play.stop_dialog_at_end = DIALOG_NONE;
+        int room_id = game.Play.stop_dialog_at_end - DIALOG_NEWROOM;
+        game.Play.stop_dialog_at_end = DIALOG_NONE;
         NewRoom(room_id);
         return RUN_DIALOG_STOP_DIALOG;
     }
-    play.stop_dialog_at_end = DIALOG_NONE;
+    game.Play.stop_dialog_at_end = DIALOG_NONE;
     return RUN_DIALOG_STAY;
 }
 
@@ -539,7 +544,7 @@ int run_dialog_script(int dialog_id, int /*entry_point*/, int option_index)
         EnableInterface();
         // if we're not about to abort the dialog, switch back to arrow
         if (result != RUN_DIALOG_STOP_DIALOG)
-            set_cursor_look(game.GetModePointer());
+            set_cursor_look(Game::Current().GetModePointer());
     }
 
     return result;
@@ -569,11 +574,12 @@ static int write_dialog_options(Bitmap *dst, int at_x, int at_y, int area_width,
                                 const DialogTopic *topic, int num_displayed, int mouse_over_item,
                                 std::vector<DialogOptionItem> &items)
 {
+    Game &game = Game::Current();
     // Left-to-right text direction flag
     const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0);
 
     // Configure positioning settings
-    const HorAlignment text_align = play.dialog_options_textalign;
+    const HorAlignment text_align = game.Play.dialog_options_textalign;
     const std::pair<int, int> wrap_range = std::make_pair(at_x + bullet_width, at_x + area_width - 1);
     // Extra offset for 2nd, 3rd etc lines of the same option, *relative* to the first line
     // TODO: make this value dynamic, based on sizes etc?
@@ -623,10 +629,10 @@ static int write_dialog_options(Bitmap *dst, int at_x, int at_y, int area_width,
     {
         color_t text_color = 0;
         if ((topic->Options[items[item_index].OptionID].Flags & DFLG_HASBEENCHOSEN) &&
-            (play.read_dialog_option_colour >= 0))
+            (game.Play.read_dialog_option_colour >= 0))
         {
             // 'read' colour
-            text_color = dst->GetCompatibleColor(play.read_dialog_option_colour);
+            text_color = dst->GetCompatibleColor(game.Play.read_dialog_option_colour);
         }
         else
         {
@@ -851,6 +857,7 @@ DialogOptions::~DialogOptions()
 
 int DialogOptions::CalcOptionsHeight(int padding)
 {
+    Game &game = Game::Current();
     // According to the options drawing logic:
     // * the distance between LINES in a multiline option is font linespacing;
     // * the distance between OPTIONS is font linespacing + OPT_DIALOGGAP;
@@ -883,6 +890,7 @@ int DialogOptions::CalcOptionsHeight(int padding)
 
 void DialogOptions::CreateOverlay()
 {
+    Game &game = Game::Current();
     std::unique_ptr<Bitmap> opt_bitmap(
         new Bitmap(std::max(1, position.GetWidth()), std::max(1, position.GetHeight()), game.GetColorDepth()));
     options_overlay_id =
@@ -895,7 +903,7 @@ void DialogOptions::CreateOverlay()
 
         // Set initial position and sorting order
         overlay->SetFixedPosition(position.Left, position.Top);
-        overlay->SetZOrder(play.dialog_options_zorder);
+        overlay->SetZOrder(game.Play.dialog_options_zorder);
     }
 }
 
@@ -921,6 +929,7 @@ void DialogOptions::Stop()
 
 void DialogOptions::Begin()
 {
+    Game &game = Game::Current();
     items.clear();
 
     doStop = false;
@@ -940,7 +949,8 @@ void DialogOptions::Begin()
         numdisp++;
     }
 
-    usingfont = (play.dialog_options_font == FONT_UNDEFINED) ? FONT_NORMAL : play.dialog_options_font;
+    usingfont =
+        (game.Play.dialog_options_font == FONT_UNDEFINED) ? game.Play.normal_font : game.Play.dialog_options_font;
 
     lineheight = get_font_height_outlined(usingfont);
     linespacing = get_font_linespacing(usingfont);
@@ -970,11 +980,11 @@ void DialogOptions::Begin()
         bullet_wid += number_wid;
     }
 
-    play.in_conversation++;
+    game.Play.in_conversation++;
     set_cursor_look(game.GetModePointer());
 
     parserActivated = 0;
-    if ((dtop->Flags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0))
+    if ((dtop->Flags & DTFLG_SHOWPARSER) && (game.Play.disable_dialog_parser == 0))
     {
         parserInput.reset(new GUITextBox());
         parserInput->SetHeight(lineheight + 4);
@@ -986,7 +996,7 @@ void DialogOptions::Begin()
     is_textwindow = false;
     position = {};
     inner_position = {};
-    forecol = play.dialog_options_highlight_color;
+    forecol = game.Play.dialog_options_highlight_color;
 
     mouseison = -1;
     usingCustomRendering = false;
@@ -1026,7 +1036,7 @@ void DialogOptions::Begin()
             const int padding = guis[game.options[OPT_DIALOGIFACE]].GetPadding();
             // Find the widest options line that will be in the text window,
             // and adjust the area width to that line's width, while clamping to min,max range
-            const int max_width = play.max_dialogoption_width;
+            const int max_width = game.Play.max_dialogoption_width;
             int max_line_width = 0;
             for (int i = 0; i < numdisp; ++i)
             {
@@ -1036,11 +1046,11 @@ void DialogOptions::Begin()
                 max_line_width = std::max(max_line_width, longestline);
             }
             areawid = max_line_width + ((2 * padding + 2 + tw_area_width_mod) + bullet_wid);
-            areawid = Math::Clamp(areawid, play.min_dialogoption_width, play.max_dialogoption_width);
+            areawid = Math::Clamp(areawid, game.Play.min_dialogoption_width, game.Play.max_dialogoption_width);
             needheight = CalcOptionsHeight(padding);
 
             const int saved_width = areawid;
-            const Rect &ui_view = play.GetUIViewport();
+            const Rect &ui_view = game.Play.GetUIViewport();
             int text_off_x = 0, text_off_y = 0, win_y = ui_view.GetHeight() / 2 - (2 * padding + needheight) / 2;
             int win_x = ui_view.GetWidth() / 2 - areawid / 2;
             // shift window to the right if QG4-style full-screen pic
@@ -1062,7 +1072,7 @@ void DialogOptions::Begin()
             position = gui->GetRect();
 
             areawid = gui->GetWidth();
-            linewrap_padding = play.dialog_options_pad_x + fixed_padding;
+            linewrap_padding = game.Play.dialog_options_pad_x + fixed_padding;
             needheight = CalcOptionsHeight(linewrap_padding);
 
             if (game.options[OPT_DIALOGUPWARDS])
@@ -1076,9 +1086,9 @@ void DialogOptions::Begin()
     else
     {
         // Default plain surface
-        const Rect &ui_view = play.GetUIViewport();
+        const Rect &ui_view = game.Play.GetUIViewport();
         areawid = ui_view.GetWidth();
-        linewrap_padding = play.dialog_options_pad_x + fixed_padding;
+        linewrap_padding = game.Play.dialog_options_pad_x + fixed_padding;
         needheight = CalcOptionsHeight(linewrap_padding);
 
         position = RectWH(0, ui_view.GetHeight() - needheight, ui_view.GetWidth(), needheight);
@@ -1087,10 +1097,10 @@ void DialogOptions::Begin()
     // Apply custom GUI position (except when it's fully custom options rendering)
     if (!usingCustomRendering)
     {
-        if (play.dialog_options_gui_x >= 0)
-            position.MoveToX(play.dialog_options_gui_x);
-        if (play.dialog_options_gui_y >= 0)
-            position.MoveToY(play.dialog_options_gui_y);
+        if (game.Play.dialog_options_gui_x >= 0)
+            position.MoveToX(game.Play.dialog_options_gui_x);
+        if (game.Play.dialog_options_gui_y >= 0)
+            position.MoveToY(game.Play.dialog_options_gui_y);
     }
 
     newCustomRender = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
@@ -1107,6 +1117,7 @@ void DialogOptions::Begin()
 
 void DialogOptions::Draw()
 {
+    Game &game = Game::Current();
     // Since we have our overlay exposed to script, we must check that it was not removed by command
     if (options_overlay_id < 0)
         CreateOverlay();
@@ -1187,15 +1198,15 @@ void DialogOptions::Draw()
         }
         // FIXME: alignment of the "text options area" here is very broken;
         // probably a combined result of code refactor + attempts to emulate old game behavior.
-        // linewrap_padding == play.dialog_options_pad_x + fixed_padding, and this is subtracted
+        // linewrap_padding == game.Play.dialog_options_pad_x + fixed_padding, and this is subtracted
         // from areawid. But then, why the area X is not shifted by fixed_padding?
         const int opts_area_width = areawid - (2 * linewrap_padding + 2) - normal_area_counter_align_pad;
-        if (play.dialog_options_textalign == kHAlignLeft)
-            inner_position = Point(play.dialog_options_pad_x + line_x_off, play.dialog_options_pad_y);
-        else if (play.dialog_options_textalign ==
+        if (game.Play.dialog_options_textalign == kHAlignLeft)
+            inner_position = Point(game.Play.dialog_options_pad_x + line_x_off, game.Play.dialog_options_pad_y);
+        else if (game.Play.dialog_options_textalign ==
                  kHAlignRight) // FIXME: following is a hotfix to counter areawid's reduction
-            inner_position =
-                Point(areawid - opts_area_width - (play.dialog_options_pad_x + line_x_off), play.dialog_options_pad_y);
+            inner_position = Point(areawid - opts_area_width - (game.Play.dialog_options_pad_x + line_x_off),
+                                   game.Play.dialog_options_pad_y);
         curyp = write_dialog_options(dst, inner_position.X, inner_position.Y, opts_area_width, bullet_wid,
                                      game.dialog_bullet, bullet_picwid, usingfont, linespacing, forecol, dtop, numdisp,
                                      mouseison, items);
@@ -1242,6 +1253,7 @@ void DialogOptions::Draw()
 
 bool DialogOptions::Run()
 {
+    Game &game = Game::Current();
     // Run() can be called in a loop, so keep events going.
     sys_evt_process_pending();
 
@@ -1263,7 +1275,7 @@ bool DialogOptions::Run()
         UpdateCursorAndDrawables();
         render_graphics();
 
-        if (!play.fast_forward)
+        if (!game.Play.fast_forward)
             WaitForNextFrame();
     }
 
@@ -1302,7 +1314,7 @@ bool DialogOptions::Run()
     else if (usingCustomRendering)
     {
         // Old custom rendering
-        if (play.mouse_input_enabled && position.IsInside(mousex, mousey))
+        if (game.Play.mouse_input_enabled && position.IsInside(mousex, mousey))
         {
             // Run "dialog_options_get_active"
             getDialogOptionUnderCursorFunc.Params[0].SetScriptObject(ccDialogOptionsRendering,
@@ -1327,9 +1339,9 @@ bool DialogOptions::Run()
     else
     {
         // Default rendering: detect option under mouse
-        if (play.mouse_input_enabled && Rect(position.Left + inner_position.X, position.Top + inner_position.Y,
-                                             position.Left + inner_position.X + areawid, position.Top + curyp)
-                                            .IsInside(mousex, mousey))
+        if (game.Play.mouse_input_enabled && Rect(position.Left + inner_position.X, position.Top + inner_position.Y,
+                                                  position.Left + inner_position.X + areawid, position.Top + curyp)
+                                                 .IsInside(mousex, mousey))
         {
             const int rel_mouse_y = mousey - position.Top;
             mouseison = numdisp - 1;
@@ -1422,6 +1434,7 @@ bool DialogOptions::Run()
 
 bool DialogOptions::RunControls()
 {
+    Game &game = Game::Current();
     bool state_handled = false;
     for (InputType type = kInputNone; ags_hasinputevent_ready(type);)
     {
@@ -1432,7 +1445,7 @@ bool DialogOptions::RunControls()
             KeyInput key_input;
             if (!run_service_key_controls(key_input) || state_handled)
                 continue; // handled by engine layer, or resolved
-            if (!play.IsIgnoringInput() && RunKey(key_input))
+            if (!game.Play.IsIgnoringInput() && RunKey(key_input))
             {
                 state_handled = true; // handled
             }
@@ -1444,7 +1457,7 @@ bool DialogOptions::RunControls()
             Point mouse_pos;
             if (!run_service_mb_controls(button, &mouse_pos) || state_handled)
                 continue; // handled by engine layer, or resolved
-            if (!play.IsIgnoringInput() && RunMouse(button, mouse_pos.X, mouse_pos.Y))
+            if (!game.Play.IsIgnoringInput() && RunMouse(button, mouse_pos.X, mouse_pos.Y))
             {
                 state_handled = true; // handled
             }
@@ -1462,6 +1475,7 @@ bool DialogOptions::RunControls()
 
 bool DialogOptions::RunKey(const KeyInput &key_input)
 {
+    Game &game = Game::Current();
     const eAGSKeyCode ags_key = key_input.Key;
     if (parserInput)
     {
@@ -1470,13 +1484,13 @@ bool DialogOptions::RunKey(const KeyInput &key_input)
         if ((ags_key == eAGSKeyCodeF3) || ((ags_key == eAGSKeyCodeSpace) && (parserInput->GetText().GetLength() == 0)))
         {
             // write previous contents into textbox (F3 or Space when box is empty)
-            size_t last_len = ustrlen(play.lastParserEntry);
+            size_t last_len = ustrlen(game.Play.lastParserEntry);
             size_t cur_len = ustrlen(parserInput->GetText().GetCStr());
             // Like F3 in a DOS command line: the typed text is taken to be the start of the previous entry,
             // and only the rest of the previous entry is appended (it is not checked to be a real prefix)
             if (cur_len < last_len)
             {
-                const char *entry = play.lastParserEntry;
+                const char *entry = game.Play.lastParserEntry;
                 // TODO: utility function for advancing N utf-8 chars
                 for (size_t i = 0; i < cur_len; ++i)
                     ugetxc(&entry);
@@ -1582,6 +1596,7 @@ bool DialogOptions::RunMouseWheel(int wheel)
 
 void DialogOptions::End()
 {
+    Game &game = Game::Current();
     // Close custom dialog options
     if (usingCustomRendering)
     {
@@ -1604,7 +1619,7 @@ void DialogOptions::End()
     if (parserActivated)
     {
         assert(parserInput);
-        snprintf(play.lastParserEntry, MAX_MAXSTRLEN, "%s", parserInput->GetText().GetCStr());
+        snprintf(game.Play.lastParserEntry, MAX_MAXSTRLEN, "%s", parserInput->GetText().GetCStr());
         ParseText(parserInput->GetText().GetCStr());
         chose = CHOSE_TEXTPARSER;
     }
@@ -1618,7 +1633,7 @@ void DialogOptions::End()
 
     set_cursor_look(curswas);
     // In case it's the QFG4 style dialog, remove the black screen
-    play.in_conversation--;
+    game.Play.in_conversation--;
     remove_screen_overlay(OVER_COMPLETE);
 
     // Re-enabled the game GUI
@@ -1656,7 +1671,7 @@ int run_dialog_option(int dialog_id, int dialog_choice, int say_chosen_option, b
 
     // Optionally "say" the option's text
     if (say_option)
-        DisplaySpeech(get_translation(option_name.GetCStr()), game.playercharacter);
+        DisplaySpeech(get_translation(option_name.GetCStr()), Game::Current().playercharacter);
 
     // Run the option script
     if (run_script)
@@ -1667,6 +1682,7 @@ int run_dialog_option(int dialog_id, int dialog_choice, int say_chosen_option, b
 
 int show_dialog_options(int dialog_id, bool run_game_loops_in_background)
 {
+    Game &game = Game::Current();
     if ((dialog_id < 0) || (dialog_id >= game.numdialog))
     {
         quit("!RunDialog: invalid dialog number specified");
@@ -1694,8 +1710,8 @@ int show_dialog_options(int dialog_id, bool run_game_loops_in_background)
         return -1;
     }
     // Don't display the options if there is only one and the parser is not enabled.
-    const bool has_parser = (topic->Flags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0);
-    if (!has_parser && (opt_count == 1) && !play.show_single_dialog_option)
+    const bool has_parser = (topic->Flags & DTFLG_SHOWPARSER) && (game.Play.disable_dialog_parser == 0);
+    if (!has_parser && (opt_count == 1) && !game.Play.show_single_dialog_option)
     {
         return last_opt; // only one choice, so select it
     }
@@ -1750,7 +1766,7 @@ private:
     int _startOpt = -1;
     // Tells if the dialog process is running the very first entry overall
     // (not just the starting entry of any topic)
-    // TODO: do_conversation() uses this to remove the full-screen overlay and decrement play.in_conversation
+    // TODO: do_conversation() uses this to remove the full-screen overlay and decrement game.Play.in_conversation
     // when the dialog stopped on its start entry; check if that is still needed, because the matching
     // increment is made only when the dialog options are shown
     bool _isFirstEntry = true;
@@ -1802,6 +1818,7 @@ int DialogExec::HandleDialogResult(int result)
 
 void DialogExec::Run()
 {
+    Game &game = Game::Current();
     _doStop = false;
 
     // Run option index counts index 0 as a starting entry, actual options begin with index 1
@@ -1920,7 +1937,7 @@ void do_conversation(int dialog_id, int start_opt)
     {
         // bail out from first startup script
         remove_screen_overlay(OVER_COMPLETE);
-        play.in_conversation--;
+        Game::Current().Play.in_conversation--;
     }
 
     // Run the global DialogStop event; NOTE: _dlgNum may be different in the end
@@ -1967,16 +1984,17 @@ void set_dialog_result_stop()
 
 bool handle_state_change_in_dialog_request(const char *api_name, int request_result, int start_opt)
 {
+    Game &game = Game::Current();
     // Test if we are inside a dialog state AND dialog_request callback
-    if ((dialogExec == nullptr) || (play.stop_dialog_at_end == DIALOG_NONE))
+    if ((dialogExec == nullptr) || (game.Play.stop_dialog_at_end == DIALOG_NONE))
     {
         return false; // not handled, process command as normal
     }
 
     // Test if dialog result was not set yet
-    if (play.stop_dialog_at_end == DIALOG_RUNNING)
+    if (game.Play.stop_dialog_at_end == DIALOG_RUNNING)
     {
-        play.stop_dialog_at_end = request_result;
+        game.Play.stop_dialog_at_end = request_result;
         get_script_position(dialogExec->GetSavedDialogRequestScPos());
         if (request_result == DIALOG_STOP)
             dialogExec->Stop();

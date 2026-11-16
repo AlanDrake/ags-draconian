@@ -24,6 +24,7 @@
 #include "game/dialog/display.h"
 #include "game/dynobj/script_string.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/runtime_defines.h"
 #include "platform/base/engine_services.h"
@@ -40,6 +41,7 @@ using namespace AGS::Common;
 // Tests if a font number is valid, if not then prints a warning and returns a substitution
 int ValidateFontNumber(const char *apiname, int font_num)
 {
+    Game &game = Game::Current();
     if (((font_num < 0) || (font_num >= game.numfonts)) && (font_num != FONT_NULL))
     {
         debug_script_warn("%s: invalid font number %d, valid range is 0..%d.", apiname, font_num, game.numfonts);
@@ -582,7 +584,7 @@ size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLi
     split_lines(todis, lines, wii, fonnt, max_lines);
 
     // Apply text direction if requested
-    bool rtl_mode = game.options[OPT_RIGHTLEFTWRITE] != 0;
+    bool rtl_mode = Game::Current().options[OPT_RIGHTLEFTWRITE] != 0;
     if (apply_direction)
     {
         for (size_t rr = 0; rr < lines.Count(); rr++)

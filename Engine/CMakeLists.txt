@@ -130,6 +130,7 @@ target_sources(engine
     game/file.h
     game/game.cpp
     game/game.h
+    game/game_context.h
     game/game_init.cpp
     game/game_init.h
     game/game_state.cpp

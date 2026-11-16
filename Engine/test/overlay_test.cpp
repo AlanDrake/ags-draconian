@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/render/overlay.h"
@@ -56,7 +57,7 @@ const int kRoom = 7;
 
 // Fixture for the overlay layout. The engine globals it touches, all reset in TearDown:
 // - spriteset and game.SpriteInfos: the sprites above
-// - play: the main and UI viewports (320x200), one room viewport and its camera
+// - game.Play: the main and UI viewports (320x200), one room viewport and its camera
 // - thisroom: the room size (640x400, so the camera can scroll)
 // - game.chars, game.numcharacters, charextra, views: one character standing in room kRoom,
 //   with a one-frame view
@@ -66,6 +67,7 @@ class OverlayLayout : public ::testing::Test
 protected:
     void SetUp() override
     {
+        Game &game = Game::Current();
         AddSprite(kSprite20x10, 20, 10);
         AddSprite(kSprite21x11, 21, 11);
         AddSprite(kSprite41x21, 41, 21);
@@ -74,10 +76,10 @@ protected:
 
         thisroom.Width = 640;
         thisroom.Height = 400;
-        play.SetMainViewport(RectWH(0, 0, kScreenWidth, kScreenHeight));
-        play.SetUIViewport(RectWH(0, 0, kScreenWidth, kScreenHeight));
-        auto viewport = play.CreateRoomViewport();
-        auto camera = play.CreateRoomCamera();
+        game.Play.SetMainViewport(RectWH(0, 0, kScreenWidth, kScreenHeight));
+        game.Play.SetUIViewport(RectWH(0, 0, kScreenWidth, kScreenHeight));
+        auto viewport = game.Play.CreateRoomViewport();
+        auto camera = game.Play.CreateRoomCamera();
         viewport->LinkCamera(camera);
         camera->LinkToViewport(viewport);
 
@@ -96,14 +98,15 @@ protected:
 
     void TearDown() override
     {
+        Game &game = Game::Current();
         displayed_room = -10;
         charextra.clear();
         game.chars.clear();
         game.numcharacters = 0;
         views.clear();
-        play.FreeViewportsAndCameras();
-        play.SetUIViewport(Rect());
-        play.SetMainViewport(Rect());
+        game.Play.FreeViewportsAndCameras();
+        game.Play.SetUIViewport(Rect());
+        game.Play.SetMainViewport(Rect());
         thisroom.Width = 0;
         thisroom.Height = 0;
         spriteset.Reset();
@@ -118,6 +121,7 @@ protected:
     // A speech overlay for the character, placed as the engine places it
     static Point AutoPosition(int char_x, int char_y)
     {
+        Game &game = Game::Current();
         game.chars[0].x = char_x;
         game.chars[0].y = char_y;
         ScreenOverlay over(1);
@@ -281,12 +285,13 @@ TEST_F(OverlayLayout, SpeechStaysOnTheScreen)
 
 TEST_F(OverlayLayout, SpeechFollowsTheCamera)
 {
-    play.GetRoomCamera(0)->SetAt(60, 30);
+    Game::Current().Play.GetRoomCamera(0)->SetAt(60, 30);
     EXPECT_EQ(Point(80 - 60, 75 - 30), AutoPosition(100, 150));
 }
 
 TEST_F(OverlayLayout, SpeechUsesTheCharacterHeightAndZ)
 {
+    Game &game = Game::Current();
     // a character's height, when known, is used instead of its sprite's
     charextra[0].height = 80;
     EXPECT_EQ(Point(80, 45), AutoPosition(100, 150));
@@ -299,6 +304,6 @@ TEST_F(OverlayLayout, SpeechUsesTheCharacterHeightAndZ)
 
 TEST_F(OverlayLayout, SpeechOfACharacterInAnotherRoomIsCentred)
 {
-    game.chars[0].room = kRoom + 1;
+    Game::Current().chars[0].room = kRoom + 1;
     EXPECT_EQ(Point(kScreenWidth / 2 - 20, kScreenHeight / 2 - 10), AutoPosition(100, 150));
 }

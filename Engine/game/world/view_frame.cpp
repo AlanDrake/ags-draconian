@@ -16,6 +16,7 @@
 #include "debug/debug_log.h"
 #include "game/dynobj/script_string.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_version.h"
 #include "game/lib/string.h"
@@ -69,7 +70,7 @@ ScriptAudioClip *ViewFrame_GetLinkedAudio(ScriptViewFrame *svf)
     if (soundIndex < 0)
         return nullptr;
 
-    return &game.audioClips[soundIndex];
+    return &Game::Current().audioClips[soundIndex];
 }
 
 void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip *clip)

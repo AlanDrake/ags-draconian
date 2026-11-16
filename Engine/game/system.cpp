@@ -20,6 +20,7 @@
 #include "game/audio/audio.h"
 #include "game/dynobj/script_system.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -135,19 +136,20 @@ int System_GetSupportsGammaControl()
 
 int System_GetGamma()
 {
-    return play.gamma_adjustment;
+    return Game::Current().Play.gamma_adjustment;
 }
 
 void System_SetGamma(int newValue)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     if ((newValue < 0) || (newValue > 200))
         quitprintf("!System.Gamma: value must be between 0-200 (not %d)", newValue);
 
-    if (play.gamma_adjustment != newValue)
+    if (game.Play.gamma_adjustment != newValue)
     {
         debug_script_log("Gamma control set to %d", newValue);
-        play.gamma_adjustment = newValue;
+        game.Play.gamma_adjustment = newValue;
 
         if (services.GfxDriver->SupportsGammaControl())
             services.GfxDriver->SetGamma(newValue);
@@ -156,11 +158,12 @@ void System_SetGamma(int newValue)
 
 int System_GetAudioChannelCount()
 {
-    return game.numGameChannels;
+    return Game::Current().numGameChannels;
 }
 
 ScriptAudioChannel *System_GetAudioChannels(int index)
 {
+    Game &game = Game::Current();
     if ((index < 0) || (index >= game.numGameChannels))
         quitprintf("!System.AudioChannels: invalid sound channel index %d, supported %d - %d", index, 0,
                    game.numGameChannels - 1);
@@ -170,18 +173,19 @@ ScriptAudioChannel *System_GetAudioChannels(int index)
 
 int System_GetVolume()
 {
-    return play.audio_master_volume;
+    return Game::Current().Play.audio_master_volume;
 }
 
 void System_SetVolume(int newvol)
 {
+    Game &game = Game::Current();
     if ((newvol < 0) || (newvol > 100))
         quit("!System.Volume: invalid volume - must be from 0-100");
 
-    if (newvol == play.audio_master_volume)
+    if (newvol == game.Play.audio_master_volume)
         return;
 
-    play.audio_master_volume = newvol;
+    game.Play.audio_master_volume = newvol;
     auto newvol_f = static_cast<float>(newvol) / 100.0;
     audio_core_set_master_volume(newvol_f);
 }
@@ -332,6 +336,7 @@ void System_SetDisplayFPS(bool show_fps)
 String GetRuntimeInfo()
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     DisplayMode mode = services.GfxDriver->GetDisplayMode();
     Rect render_frame = services.GfxDriver->GetRenderDestination();
     PGfxFilter filter = services.GfxDriver->GetGraphicsFilter();

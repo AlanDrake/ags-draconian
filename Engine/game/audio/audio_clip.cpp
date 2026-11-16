@@ -18,6 +18,7 @@
 #include "game/audio/audio_channel.h"
 #include "game/dynobj/cc_audio_clip.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -74,7 +75,7 @@ int AudioClip_GetIsAvailable(ScriptAudioClip *clip)
 
 void AudioClip_Stop(ScriptAudioClip *clip)
 {
-    for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
+    for (int i = NUM_SPEECH_CHANS; i < Game::Current().numGameChannels; i++)
     {
         auto *playback = AudioChans::GetChannelIfPlaying(i);
         if ((playback != nullptr) && (playback->sourceClipID == clip->id))
@@ -101,6 +102,7 @@ ScriptAudioChannel *AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, in
 
 ScriptAudioChannel *AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int priority, int repeat)
 {
+    Game &game = Game::Current();
     if (chan < NUM_SPEECH_CHANS || chan >= game.numGameChannels)
         quitprintf("!AudioClip.PlayOnChannel: invalid channel %d, the range is %d - %d", chan, NUM_SPEECH_CHANS,
                    game.numGameChannels - 1);
@@ -113,6 +115,7 @@ ScriptAudioChannel *AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int
 
 ScriptAudioChannel *AudioClip_PlayAsType(ScriptAudioClip *clip, int type, int chan, int priority, int repeat)
 {
+    Game &game = Game::Current();
     if (type <= AUDIOTYPE_SPEECH || static_cast<uint32_t>(type) >= game.audioClipTypes.size())
         quitprintf("!AudioClip.PlayAsType: invalid audio type %d, the range is %u - %u", type, AUDIOTYPE_SPEECH + 1,
                    static_cast<uint32_t>(game.audioClipTypes.size() - 1));
@@ -130,22 +133,25 @@ ScriptAudioChannel *AudioClip_PlayAsType(ScriptAudioClip *clip, int type, int ch
 
 int AudioClip_GetProperty(ScriptAudioClip *clip, const char *property)
 {
-    return get_int_property(game.audioclipProps[clip->id], play.audioclipProps[clip->id], property);
+    Game &game = Game::Current();
+    return get_int_property(game.audioclipProps[clip->id], game.Play.audioclipProps[clip->id], property);
 }
 
 const char *AudioClip_GetTextProperty(ScriptAudioClip *clip, const char *property)
 {
-    return get_text_property_dynamic_string(game.audioclipProps[clip->id], play.audioclipProps[clip->id], property);
+    Game &game = Game::Current();
+    return get_text_property_dynamic_string(game.audioclipProps[clip->id], game.Play.audioclipProps[clip->id],
+                                            property);
 }
 
 bool AudioClip_SetProperty(ScriptAudioClip *clip, const char *property, int value)
 {
-    return set_int_property(play.audioclipProps[clip->id], property, value);
+    return set_int_property(Game::Current().Play.audioclipProps[clip->id], property, value);
 }
 
 bool AudioClip_SetTextProperty(ScriptAudioClip *clip, const char *property, const char *value)
 {
-    return set_text_property(play.audioclipProps[clip->id], property, value);
+    return set_text_property(Game::Current().Play.audioclipProps[clip->id], property, value);
 }
 
 //=============================================================================

@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/view.h"
@@ -34,6 +35,7 @@ class CharacterTurning : public ::testing::Test
 protected:
     void SetUp() override
     {
+        Game &game = Game::Current();
         views.resize(1);
         views[0].Initialize(MAX_FACE_DIRECTIONS);
         for (int i = 0; i < MAX_FACE_DIRECTIONS; ++i)
@@ -48,6 +50,7 @@ protected:
 
     void TearDown() override
     {
+        Game &game = Game::Current();
         game.options[OPT_TURNORDERPRIORITY] = _savedPriority;
         charextra.clear();
         game.chars.clear();
@@ -60,6 +63,7 @@ protected:
     // empty if it does not turn
     std::vector<int> Turn(int from_idx, int to_idx)
     {
+        Game &game = Game::Current();
         game.chars[0].loop = turnlooporder[from_idx];
         charextra[0].SetTurning(false, false, 0);
         start_character_turning(&game.chars[0], turnlooporder[to_idx], true);
@@ -78,7 +82,7 @@ protected:
 
 TEST_F(CharacterTurning, ShorterWayIsTaken)
 {
-    game.options[OPT_TURNORDERPRIORITY] = kScTurnOrder_Clockwise;
+    Game::Current().options[OPT_TURNORDERPRIORITY] = kScTurnOrder_Clockwise;
     // two steps clockwise: one loop between
     EXPECT_EQ(std::vector<int>({1}), Turn(0, 2));
     EXPECT_TRUE(charextra[0].IsTurningClockwise());
@@ -89,7 +93,7 @@ TEST_F(CharacterTurning, ShorterWayIsTaken)
 
 TEST_F(CharacterTurning, FaceDownPassesThroughDownFromEveryStart)
 {
-    game.options[OPT_TURNORDERPRIORITY] = kScTurnOrder_FaceDown;
+    Game::Current().options[OPT_TURNORDERPRIORITY] = kScTurnOrder_FaceDown;
     const int down_idx = 0;
     const int up_idx = MAX_FACE_DIRECTIONS / 2;
     for (int from_idx = 0; from_idx < MAX_FACE_DIRECTIONS; ++from_idx)

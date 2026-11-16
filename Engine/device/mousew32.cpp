@@ -26,7 +26,7 @@
 
 #include "debug/out.h"
 #include "device/sys_events.h"
-#include "game/game_state.h"
+#include "game/game_context.h"
 #include "gfx/bitmap.h"
 #include "main/graphics_mode.h"
 #include "platform/base/engine_services.h"
@@ -131,13 +131,14 @@ int Mouse::GetButtonCount()
 
 void Mouse::WindowToGame(int &x, int &y)
 {
-    x = GameScaling.X.UnScalePt(x) - play.GetMainViewport().Left;
-    y = GameScaling.Y.UnScalePt(y) - play.GetMainViewport().Top;
+    Game &game = Game::Current();
+    x = GameScaling.X.UnScalePt(x) - game.Play.GetMainViewport().Left;
+    y = GameScaling.Y.UnScalePt(y) - game.Play.GetMainViewport().Top;
 }
 
 void Mouse::UpdateGraphicArea()
 {
-    Mouse::ControlRect = GameScaling.ScaleRange(play.GetMainViewport());
+    Mouse::ControlRect = GameScaling.ScaleRange(Game::Current().Play.GetMainViewport());
     Debug::Printf("Mouse cursor graphic area: (%d,%d)-(%d,%d) (%dx%d)", Mouse::ControlRect.Left, Mouse::ControlRect.Top,
                   Mouse::ControlRect.Right, Mouse::ControlRect.Bottom, Mouse::ControlRect.GetWidth(),
                   Mouse::ControlRect.GetHeight());
@@ -145,14 +146,15 @@ void Mouse::UpdateGraphicArea()
 
 void Mouse::SetMoveLimit(const Rect &r)
 {
-    Rect src_r = OffsetRect(r, play.GetMainViewport().GetLT());
+    Rect src_r = OffsetRect(r, Game::Current().Play.GetMainViewport().GetLT());
     mouse_bounds = GameScaling.ScaleRange(src_r);
 }
 
 void Mouse::SetPosition(const Point &p)
 {
-    Mouse::SetSysPosition(GameScaling.X.ScalePt(p.X + play.GetMainViewport().Left),
-                          GameScaling.Y.ScalePt(p.Y + play.GetMainViewport().Top));
+    Game &game = Game::Current();
+    Mouse::SetSysPosition(GameScaling.X.ScalePt(p.X + game.Play.GetMainViewport().Left),
+                          GameScaling.Y.ScalePt(p.Y + game.Play.GetMainViewport().Top));
 }
 
 bool Mouse::IsLockedToWindow()

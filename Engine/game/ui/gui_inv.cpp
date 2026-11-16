@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
@@ -42,7 +43,7 @@ void GUIInvWindow::SetTopItem(int item)
 int GUIInvWindow::GetCharacterID() const
 {
     if (_charID < 0)
-        return game.playercharacter;
+        return Game::Current().playercharacter;
 
     return _charID;
 }
@@ -65,7 +66,7 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
     for (int item = _topItem; item < lastItem; ++item)
     {
         // draw inv graphic
-        draw_gui_sprite(ds, game.invinfo[chex.inventory[item]].pic, at_x, at_y);
+        draw_gui_sprite(ds, Game::Current().invinfo[chex.inventory[item]].pic, at_x, at_y);
         at_x += _itemWidth;
 
         // go to next row when appropriate

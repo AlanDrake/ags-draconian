@@ -20,6 +20,7 @@
 #include "font/fonts.h"
 #include "game/dialog/display.h"
 #include "game/dynobj/script_system.h"
+#include "game/game_context.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/runtime_defines.h"
@@ -200,11 +201,12 @@ void engine_pre_gfxsystem_shutdown()
 
 void on_coordinates_scaling_changed()
 {
+    Game &game = Game::Current();
     // Reset mouse graphic area and bounds
     Mouse::UpdateGraphicArea();
     // If mouse bounds do not have valid values yet, then limit cursor to viewport
-    if (play.mbounds.IsEmpty())
-        Mouse::SetMoveLimit(play.GetMainViewport());
+    if (game.Play.mbounds.IsEmpty())
+        Mouse::SetMoveLimit(game.Play.GetMainViewport());
     else
-        Mouse::SetMoveLimit(play.mbounds);
+        Mouse::SetMoveLimit(game.Play.mbounds);
 }

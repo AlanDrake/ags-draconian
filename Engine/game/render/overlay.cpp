@@ -20,6 +20,7 @@
 #include "game/dialog/display.h"
 #include "game/dynobj/script_shader.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -74,6 +75,7 @@ void Overlay_SetText(ScriptOverlay *script_over, int width, int font, int text_c
 
 void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int font, int text_color, const char *text)
 {
+    Game &game = Game::Current();
     // TODO: find a nice way to refactor and share these code pieces
     // with Overlay_CreateTextCore
     DisplayTextPosition text_pos = over.IsAutoPosition() ? kDisplayTextPos_Overchar : kDisplayTextPos_Normal;
@@ -86,12 +88,12 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int font, int
     // Calculate automatic width using the same limit as Display().
     if (auto_width)
     {
-        width = play.GetUIViewport().GetWidth() * 3 / 4;
+        width = game.Play.GetUIViewport().GetWidth() * 3 / 4;
     }
     else
     {
         if (width < 8)
-            width = play.GetUIViewport().GetWidth() / 2;
+            width = game.Play.GetUIViewport().GetWidth() / 2;
     }
 
     if (text_color == 0)
@@ -336,6 +338,7 @@ int Overlay_GetValid(ScriptOverlay *script_over)
 
 ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot, bool clone)
 {
+    Game &game = Game::Current();
     if (!spriteset.DoesSpriteExist(slot))
     {
         debug_script_warn("Overlay.CreateGraphical: sprite %d is invalid", slot);
@@ -366,7 +369,7 @@ ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, 
     // to Overlay.CreateTextual actually made it centered on screen
     DisplayTextPosition text_pos = get_textpos_from_scriptcoords(x, y, false);
     if (width < 8)
-        width = play.GetUIViewport().GetWidth() / 2;
+        width = Game::Current().Play.GetUIViewport().GetWidth() / 2;
     if (text_color == 0)
         text_color = GUI::GetStandardColor(16);
     // Skip a voice-over token, if present
@@ -391,7 +394,7 @@ ScriptOverlay *Overlay_CreateTextualImpl(bool room_layer, int x, int y, int widt
     if (auto_width)
     {
         // Use the same initial width as Display().
-        width = play.GetUIViewport().GetWidth() * 3 / 4;
+        width = Game::Current().Play.GetUIViewport().GetWidth() * 3 / 4;
     }
 
     auto *over = Overlay_CreateTextCore(room_layer, x, y, width, font, text_color, text, OVER_CUSTOM,
@@ -748,6 +751,7 @@ ScriptAnimatedOverlay *create_scriptanimoverlay(ScreenOverlay &over)
 
 void remove_screen_overlay(int type)
 {
+    Game &game = Game::Current();
     if (type < 0 || static_cast<uint32_t>(type) >= screenover.size() || screenover.IsFree(type))
         return; // requested non-existing overlay
 
@@ -761,20 +765,20 @@ void remove_screen_overlay(int type)
     // Do necessary changes to the game state after overlay's removal
     // TODO: move these custom settings outside of this function
     // TODO: consider using a callback function ptr, run when overlay is removed
-    if (over.GetID() == play.complete_overlay_on)
+    if (over.GetID() == game.Play.complete_overlay_on)
     {
-        play.complete_overlay_on = 0;
+        game.Play.complete_overlay_on = 0;
     }
-    else if (over.GetID() == play.text_overlay_on)
+    else if (over.GetID() == game.Play.text_overlay_on)
     {
         // reset ref for speech text
-        play.speech_text_schandle = ccRemoveObjectHandle(play.speech_text_schandle);
-        play.text_overlay_on = 0;
+        game.Play.speech_text_schandle = ccRemoveObjectHandle(game.Play.speech_text_schandle);
+        game.Play.text_overlay_on = 0;
     }
     else if (over.GetID() == OVER_PICTURE)
     {
         // reset ref for speech face
-        play.speech_face_schandle = ccRemoveObjectHandle(play.speech_face_schandle);
+        game.Play.speech_face_schandle = ccRemoveObjectHandle(game.Play.speech_face_schandle);
         face_talking = -1;
     }
     else if (over.GetCharacterRef() >= 0)
@@ -787,10 +791,10 @@ void remove_screen_overlay(int type)
 
     reset_drawobj_for_overlay(type);
 
-    play.overlay_count--;
+    game.Play.overlay_count--;
     // If all overlays have been removed, reset dynamic draw index (helps vs overflows);
     // we do this here, because overlays are the only dynamic objects atm
-    if (play.overlay_count == 0)
+    if (game.Play.overlay_count == 0)
         reset_drawobj_dynamic_index();
 }
 
@@ -811,6 +815,7 @@ ScreenOverlay *get_overlay(int type)
 static size_t add_screen_overlay_impl(bool room_layer, int x, int y, int type, int sprite_num,
                                       std::unique_ptr<Bitmap> image, int offset_x, int offset_y)
 {
+    Game &game = Game::Current();
     // If a custom overlay is requested, then allocate a free slot
     if (type == OVER_CUSTOM)
     {
@@ -836,32 +841,32 @@ static size_t add_screen_overlay_impl(bool room_layer, int x, int y, int type, i
     if (room_layer || type == OVER_TEXTMSG)
         over.SetZOrder(INT32_MAX);
     else if (type == OVER_PICTURE || type == OVER_TEXTSPEECH)
-        over.SetZOrder(play.speech_zorder);
+        over.SetZOrder(game.Play.speech_zorder);
     else
         over.SetZOrder(INT_MIN);
     over.SetRoomLayer(room_layer);
     // TODO: move these custom settings outside of this function
     if (type == OVER_COMPLETE)
     {
-        play.complete_overlay_on = type;
+        game.Play.complete_overlay_on = type;
     }
     else if (type == OVER_TEXTMSG || type == OVER_TEXTSPEECH)
     {
-        play.text_overlay_on = type;
+        game.Play.text_overlay_on = type;
         // only make script object for blocking speech now, because messagebox blocks all script
         // and therefore cannot be accessed, so no practical reason for that atm
         if (type == OVER_TEXTSPEECH)
         {
-            play.speech_text_schandle = ccAssignObjectHandle(over.CreateScriptObject());
+            game.Play.speech_text_schandle = ccAssignObjectHandle(over.CreateScriptObject());
         }
     }
     else if (type == OVER_PICTURE)
     {
-        play.speech_face_schandle = ccAssignObjectHandle(over.CreateScriptObject());
+        game.Play.speech_face_schandle = ccAssignObjectHandle(over.CreateScriptObject());
     }
     over.MarkChanged();
     screenover[type] = std::move(over);
-    play.overlay_count++;
+    game.Play.overlay_count++;
     add_drawobj_for_overlay(type);
     return type;
 }
@@ -888,11 +893,12 @@ size_t add_screen_overlay(bool room_layer, int x, int y, int type, std::unique_p
 // perhaps add a branch for room layer as well?
 void autoposition_overlay(ScreenOverlay &over)
 {
+    Game &game = Game::Current();
     assert(over.IsAutoPosition());
     if (!over.IsAutoPosition() || (over.GetCharacterRef() < 0))
         return;
 
-    const Rect &ui_view = play.GetUIViewport();
+    const Rect &ui_view = game.Play.GetUIViewport();
     const int char_id = over.GetCharacterRef();
 
     auto view = FindNearestViewport(char_id);

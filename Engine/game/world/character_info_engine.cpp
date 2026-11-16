@@ -14,6 +14,7 @@
 #include "debug/debug_log.h"
 #include "game/character_info.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/math.h"
@@ -82,7 +83,7 @@ static void FixupCharacterLoopAndFrame(CharacterInfo *ch, bool switch_from_bad_l
     if (view < 0 || view >= views.size())
     {
         quitprintf("!Character %s is assigned a invalid view %d (valid range 1..%d)", ch->scrname.GetCStr(), view,
-                   game.numviews);
+                   Game::Current().numviews);
     }
     if (!switch_from_bad_loop && (ch->loop < 0 || ch->loop >= views[view].numLoops))
     {
@@ -144,7 +145,7 @@ void UpdateCharacterMoveAndAnim(CharacterInfo *ch, CharacterExtras *chex, std::v
 
 void UpdateFollowingExactlyCharacter(CharacterInfo *ch)
 {
-    const auto &following = game.chars[charextra[ch->index_id].following];
+    const auto &following = Game::Current().chars[charextra[ch->index_id].following];
     ch->x = following.x;
     ch->y = following.y;
     ch->z = following.z;
@@ -352,6 +353,7 @@ void UpdateCharacterMoving(CharacterInfo *ch, CharacterExtras *chex, int &doing_
 
 bool UpdateCharacterAnimating(CharacterInfo *ch, CharacterExtras *chex, int &doing_nothing)
 {
+    Game &game = Game::Current();
     // animating or idling, and not walking with a walk animation
     if (((chex->IsAnimating()) || (ch->is_idling())) && (!ch->is_moving() || ch->is_moving_no_anim()) &&
         (ch->room == displayed_room))
@@ -386,8 +388,8 @@ bool UpdateCharacterAnimating(CharacterInfo *ch, CharacterExtras *chex, int &doi
             ch->wait = update_lip_sync(view, ch->loop, &fraa) - 1;
             // closed mouth at end of sentence
             // NOTE: standard lip-sync is synchronized with text timer, not voice file
-            if (play.speech_in_post_state ||
-                ((play.messagetime >= 0) && (play.messagetime < play.close_mouth_speech_time)))
+            if (game.Play.speech_in_post_state ||
+                ((game.Play.messagetime >= 0) && (game.Play.messagetime < game.Play.close_mouth_speech_time)))
             {
                 ch->frame = 0;
             }
@@ -407,8 +409,9 @@ bool UpdateCharacterAnimating(CharacterInfo *ch, CharacterExtras *chex, int &doi
 
             bool done_anim = false;
             if ((ch->index_id == char_speaking_anim) &&
-                (play.speech_in_post_state || ((!play.speech_voice_blocking) && (play.close_mouth_speech_time > 0) &&
-                                               (play.messagetime < play.close_mouth_speech_time))))
+                (game.Play.speech_in_post_state ||
+                 ((!game.Play.speech_voice_blocking) && (game.Play.close_mouth_speech_time > 0) &&
+                  (game.Play.messagetime < game.Play.close_mouth_speech_time))))
             {
                 // finished talking - stop animation
                 done_anim = true;
@@ -465,6 +468,7 @@ bool UpdateCharacterAnimating(CharacterInfo *ch, CharacterExtras *chex, int &doi
 
 void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_sheep, int &doing_nothing)
 {
+    Game &game = Game::Current();
     const CharacterExtras *chex = &charextra[ch->index_id];
     const int following = chex->following;
     const int distaway = chex->follow_dist;
@@ -493,8 +497,8 @@ void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_s
             {
                 // appear in the new room
                 ch->room = game.chars[following].room;
-                ch->x = play.entered_at_x;
-                ch->y = play.entered_at_y;
+                ch->x = game.Play.entered_at_x;
+                ch->y = game.Play.entered_at_y;
             }
         }
         // wait a bit, so we're not constantly walking
@@ -512,35 +516,35 @@ void UpdateCharacterFollower(CharacterInfo *ch, std::vector<int> &following_as_s
             {
                 // only move to the room-entered position if coming into
                 // the current room
-                if (play.entered_at_x > (thisroom.Width - 8))
+                if (game.Play.entered_at_x > (thisroom.Width - 8))
                 {
                     ch->x = thisroom.Width + 8;
-                    ch->y = play.entered_at_y;
+                    ch->y = game.Play.entered_at_y;
                 }
-                else if (play.entered_at_x < 8)
+                else if (game.Play.entered_at_x < 8)
                 {
                     ch->x = -8;
-                    ch->y = play.entered_at_y;
+                    ch->y = game.Play.entered_at_y;
                 }
-                else if (play.entered_at_y > (thisroom.Height - 8))
+                else if (game.Play.entered_at_y > (thisroom.Height - 8))
                 {
                     ch->y = thisroom.Height + 8;
-                    ch->x = play.entered_at_x;
+                    ch->x = game.Play.entered_at_x;
                 }
-                else if (play.entered_at_y < thisroom.Edges.Top + 8)
+                else if (game.Play.entered_at_y < thisroom.Edges.Top + 8)
                 {
                     ch->y = thisroom.Edges.Top + 1;
-                    ch->x = play.entered_at_x;
+                    ch->x = game.Play.entered_at_x;
                 }
                 else
                 {
                     // not at one of the edges
                     // delay for a few seconds to let the player move
-                    ch->room = -play.follow_change_room_timer;
+                    ch->room = -game.Play.follow_change_room_timer;
                 }
                 if (ch->room >= 0)
                 {
-                    walk_character(ch, play.entered_at_x, play.entered_at_y, true /* ignwal */);
+                    walk_character(ch, game.Play.entered_at_x, game.Play.entered_at_y, true /* ignwal */);
                     doing_nothing = 0;
                 }
             }

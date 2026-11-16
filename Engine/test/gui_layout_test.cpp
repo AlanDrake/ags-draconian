@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "game/dynobj/script_objects.h"
+#include "game/game_context.h"
 #include "game/game_state.h"
 #include "game/runtime_defines.h"
 #include "game/ui/gui.h"
@@ -43,8 +44,8 @@ const int kScreenHeight = 200;
 // Fixture for the GUI layout. The engine globals it touches, all reset in TearDown:
 // - guis: two GUIs, 0 at (10,20) 100x50 and 1 at (60,40) 100x50, both visible and clickable;
 //   GUI 0 has two buttons, (10,10) 30x20 and (30,15) 30x20, the second drawn on top
-// - play.gui_draw_order: GUI 0 below GUI 1
-// - play's UI viewport: 320x200
+// - game.Play.gui_draw_order: GUI 0 below GUI 1
+// - game.Play's UI viewport: 320x200
 // - GUI::Options.ClipControls: on, so control areas do not depend on fonts and sprites
 // - GUI::Context.DisabledState: GUIs enabled
 class GuiLayout : public ::testing::Test
@@ -52,10 +53,11 @@ class GuiLayout : public ::testing::Test
 protected:
     void SetUp() override
     {
+        Game &game = Game::Current();
         _wasClipControls = GUI::Options.ClipControls;
         GUI::Options.ClipControls = true;
         GUI::Context.DisabledState = kGuiDis_Undefined;
-        play.SetUIViewport(RectWH(0, 0, kScreenWidth, kScreenHeight));
+        game.Play.SetUIViewport(RectWH(0, 0, kScreenWidth, kScreenHeight));
 
         guis.resize(2);
         for (int i = 0; i < 2; ++i)
@@ -67,7 +69,7 @@ protected:
         }
         guis[0].SetPosition(10, 20);
         guis[1].SetPosition(60, 40);
-        play.gui_draw_order = {0, 1};
+        game.Play.gui_draw_order = {0, 1};
 
         for (int i = 0; i < 2; ++i)
         {
@@ -86,9 +88,10 @@ protected:
 
     void TearDown() override
     {
+        Game &game = Game::Current();
         guis.clear();
-        play.gui_draw_order.clear();
-        play.SetUIViewport(Rect());
+        game.Play.gui_draw_order.clear();
+        game.Play.SetUIViewport(Rect());
         GUI::Options.ClipControls = _wasClipControls;
     }
 
@@ -137,7 +140,7 @@ TEST_F(GuiLayout, GuiAtAPointFollowsTheDrawOrder)
     EXPECT_EQ(0, GetGUIAt(20, 25, kHit_Interactable));
     // both: the one drawn on top
     EXPECT_EQ(1, GetGUIAt(80, 50, kHit_Interactable));
-    play.gui_draw_order = {1, 0};
+    Game::Current().Play.gui_draw_order = {1, 0};
     EXPECT_EQ(0, GetGUIAt(80, 50, kHit_Interactable));
     // none
     EXPECT_EQ(-1, GetGUIAt(300, 190, kHit_Interactable));

@@ -22,6 +22,7 @@
 #include "debug/debugger.h"
 #include "device/mousew32.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/system.h"
@@ -412,7 +413,7 @@ void save_runtime_config_file()
     // Last display mode
     cfg["graphics"]["windowed"] = String::FromFormat("%d", System_GetWindowed() != 0 ? 1 : 0);
     // Other game options that could be changed at runtime
-    if (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined)
+    if (Game::Current().options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined)
         cfg["graphics"]["render_at_screenres"] = String::FromFormat("%d", services.Config.RenderAtScreenRes ? 1 : 0);
     cfg["mouse"]["control_enabled"] = String::FromFormat("%d", services.Config.MouseCtrlEnabled ? 1 : 0);
     cfg["mouse"]["speed"] = String::FromFormat("%f", Mouse::GetSpeed());

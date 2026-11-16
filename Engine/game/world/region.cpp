@@ -17,6 +17,7 @@
 #include "game/common_defines.h"
 #include "game/dynobj/cc_region.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -70,7 +71,7 @@ ScriptRegion *Region_GetAtRoomXY2(int x, int y)
 
 ScriptRegion *Region_GetAtScreenXY(int x, int y, int hit_options)
 {
-    VpPoint vpt = play.ScreenToRoom(x, y);
+    VpPoint vpt = Game::Current().Play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return &scrRegion[0]; // return region[0] for consistency and backwards compatibility
     return Region_GetAtRoomXY(vpt.first.X, vpt.first.Y, hit_options);
@@ -264,20 +265,21 @@ bool Region_SetTextProperty(ScriptRegion *ssr, const char *property, const char 
 
 void DisableGroundLevelAreas(int alsoEffects)
 {
+    Game &game = Game::Current();
     if ((alsoEffects < 0) || (alsoEffects > 1))
         quit("!DisableGroundLevelAreas: invalid parameter: must be 0 or 1");
 
-    play.ground_level_areas_disabled = GLED_INTERACTION;
+    game.Play.ground_level_areas_disabled = GLED_INTERACTION;
 
     if (alsoEffects)
-        play.ground_level_areas_disabled |= GLED_EFFECTS;
+        game.Play.ground_level_areas_disabled |= GLED_EFFECTS;
 
     debug_script_log("Ground-level areas disabled");
 }
 
 void EnableGroundLevelAreas()
 {
-    play.ground_level_areas_disabled = 0;
+    Game::Current().Play.ground_level_areas_disabled = 0;
 
     debug_script_log("Ground-level areas re-enabled");
 }
@@ -286,7 +288,7 @@ void EnableGroundLevelAreas()
 
 void generate_light_table()
 {
-    if (game.color_depth == 1 && color_map == nullptr)
+    if (Game::Current().color_depth == 1 && color_map == nullptr)
     {
         create_light_table(&maincoltable, palette, 0, 0, 0, nullptr);
         color_map = &maincoltable;

@@ -33,6 +33,7 @@
 #include "game/dynobj/script_system.h"
 #include "game/file.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -233,10 +234,11 @@ void IAGSEngine::DrawText(int32 x, int32 y, int32 font, int32 color, char *text)
 
 void IAGSEngine::GetScreenDimensions(int32 *width, int32 *height, int32 *coldepth)
 {
+    Game &game = Game::Current();
     if (width)
-        *width = play.GetMainViewport().GetWidth();
+        *width = game.Play.GetMainViewport().GetWidth();
     if (height)
-        *height = play.GetMainViewport().GetHeight();
+        *height = game.Play.GetMainViewport().GetHeight();
     if (coldepth)
         *coldepth = scsystem.coldepth;
 }
@@ -279,7 +281,7 @@ int IAGSEngine::GetNumBackgrounds()
 }
 int IAGSEngine::GetCurrentBackground()
 {
-    return play.bg_frame;
+    return Game::Current().Play.bg_frame;
 }
 BITMAP *IAGSEngine::GetBackgroundScene(int32 index)
 {
@@ -390,6 +392,7 @@ void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle)
 
 void IAGSEngine::PollSystem()
 {
+    Game &game = Game::Current();
     update_polled_stuff();
     ags_domouse();
     // Handle all the buffered input events
@@ -399,12 +402,12 @@ void IAGSEngine::PollSystem()
         KeyInput ki;
         if (type == kInputKeyboard)
         {
-            if (run_service_key_controls(ki) && !play.IsIgnoringInput())
+            if (run_service_key_controls(ki) && !game.Play.IsIgnoringInput())
                 pl_run_plugin_hooks(AGSE_KEYPRESS, ki.Key);
         }
         else if (type == kInputMouse)
         {
-            if (run_service_mb_controls(mbut) && !play.IsIgnoringInput())
+            if (run_service_mb_controls(mbut) && !game.Play.IsIgnoringInput())
                 pl_run_plugin_hooks(AGSE_MOUSECLICK, mbut);
         }
     }
@@ -412,6 +415,7 @@ void IAGSEngine::PollSystem()
 
 AGSCharacter *IAGSEngine::GetCharacter(int32 charnum)
 {
+    Game &game = Game::Current();
     if (charnum >= game.numcharacters)
         quit("!AGSEngine::GetCharacter: invalid character request");
     // IMPORTANT: if we change the script functions object argument type, we must change this return value too!
@@ -433,15 +437,15 @@ void IAGSEngine::SetPalette(int32 start, int32 finish, AGSColor *cpl)
 }
 int IAGSEngine::GetNumCharacters()
 {
-    return game.numcharacters;
+    return Game::Current().numcharacters;
 }
 int IAGSEngine::GetPlayerCharacter()
 {
-    return game.playercharacter;
+    return Game::Current().playercharacter;
 }
 void IAGSEngine::RoomToViewport(int32 *x, int32 *y)
 {
-    Point scrp = play.RoomToScreen(x ? *x : 0, y ? *y : 0);
+    Point scrp = Game::Current().Play.RoomToScreen(x ? *x : 0, y ? *y : 0);
     if (x)
         *x = scrp.X;
     if (y)
@@ -452,7 +456,7 @@ void IAGSEngine::ViewportToRoom(int32 *x, int32 *y)
     // NOTE: This is an old function that did not account for custom/multiple viewports
     // and does not expect to fail, therefore we always use primary viewport here.
     // (Not sure if it's good though)
-    VpPoint vpt = play.ScreenToRoom(x ? *x : 0, y ? *y : 0);
+    VpPoint vpt = Game::Current().Play.ScreenToRoom(x ? *x : 0, y ? *y : 0);
     if (x)
         *x = vpt.first.X;
     if (y)
@@ -510,7 +514,7 @@ AGSViewFrame *IAGSEngine::GetViewFrame(int32 view, int32 loop, int32 frame)
 
 int IAGSEngine::GetRawPixelColor(int32 color)
 {
-    return BitmapHelper::AGSColorToBitmapColor(color, game.GetColorDepth());
+    return BitmapHelper::AGSColorToBitmapColor(color, Game::Current().GetColorDepth());
 }
 
 int IAGSEngine::GetWalkbehindBaseline(int32 wa)
@@ -538,15 +542,15 @@ int IAGSEngine::IsGamePaused()
 }
 int IAGSEngine::GetSpriteWidth(int32 slot)
 {
-    return game.SpriteInfos[slot].Width;
+    return Game::Current().SpriteInfos[slot].Width;
 }
 int IAGSEngine::GetSpriteHeight(int32 slot)
 {
-    return game.SpriteInfos[slot].Height;
+    return Game::Current().SpriteInfos[slot].Height;
 }
 void IAGSEngine::GetTextExtent(int32 font, const char *text, int32 *width, int32 *height)
 {
-    if ((font < 0) || (font >= game.numfonts))
+    if ((font < 0) || (font >= Game::Current().numfonts))
     {
         if (width != nullptr)
             width[0] = 0;
@@ -573,7 +577,7 @@ void IAGSEngine::PlaySoundChannel(int32 channel, int32 sound_type, int32 volume,
     stop_and_destroy_channel(channel);
     // Not sure if it's right to let it play on *any* channel, but this is plugin so let it go...
     // we must correctly stop background voice speech if it takes over speech chan
-    if (channel == SCHAN_SPEECH && play.IsNonBlockingVoiceSpeech())
+    if (channel == SCHAN_SPEECH && Game::Current().Play.IsNonBlockingVoiceSpeech())
         stop_voice_nonblocking();
 
     AssetPath asset_name(filename, "audio");
@@ -630,7 +634,7 @@ int IAGSEngine::MakeRawColorPixel(int32 coldepth, int32 red, int32 green, int32 
 }
 int IAGSEngine::GetFontType(int32 font_id)
 {
-    if ((font_id < 0) || (font_id >= game.numfonts))
+    if ((font_id < 0) || (font_id >= Game::Current().numfonts))
         return FNT_INVALID;
 
     if (is_bitmap_font(font_id))
@@ -827,6 +831,7 @@ void IAGSEngine::GetRenderStageDesc(AGSRenderStageDesc *desc)
 
 void IAGSEngine::GetGameInfo(AGSGameInfo *ginfo)
 {
+    Game &game = Game::Current();
     if (ginfo->Version >= 26)
     {
         snprintf(ginfo->GameName, sizeof(ginfo->GameName), "%s", game.gamename.GetCStr());

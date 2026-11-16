@@ -24,6 +24,7 @@
 #include "game/dialog/dialog.h"
 #include "game/dialog/speech.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/input/joystick.h"
@@ -79,6 +80,7 @@ public:
     // Update the state during a game tick
     bool Run() override
     {
+        Game &game = Game::Current();
         sys_evt_process_pending();
 
         update_audio_system_on_game_loop();
@@ -93,7 +95,7 @@ public:
 
         update_polled_stuff();
 
-        if (play.fast_forward == 0)
+        if (game.Play.fast_forward == 0)
         {
             WaitForNextFrame();
         }
@@ -101,16 +103,16 @@ public:
         _timer--;
 
         // Special behavior when coupled with a blocking voice-over
-        if (play.speech_voice_blocking)
+        if (game.Play.speech_voice_blocking)
         {
             // extend life of text if the voice hasn't finished yet
-            if (AudioChans::ChannelIsPlaying(SCHAN_SPEECH) && (play.fast_forward == 0))
+            if (AudioChans::ChannelIsPlaying(SCHAN_SPEECH) && (game.Play.fast_forward == 0))
             {
                 if (_timer <= 1)
                     _timer = 1;
             }
             // if the voice has finished, and we're not required to wait for text, then remove the speech
-            else if (!play.speech_always_wait_for_text)
+            else if (!game.Play.speech_always_wait_for_text)
             {
                 _timer = 0;
             }
@@ -118,12 +120,12 @@ public:
         // Test for the timed auto-skip
         if ((_timer < 1) && (_skipStyle & SKIP_AUTOTIMER))
         {
-            play.SetWaitSkipResult(SKIP_AUTOTIMER);
-            play.SetIgnoreInput(play.ignore_user_input_after_text_timeout_ms);
+            game.Play.SetWaitSkipResult(SKIP_AUTOTIMER);
+            game.Play.SetIgnoreInput(game.Play.ignore_user_input_after_text_timeout_ms);
             return false;
         }
         // if skipping cutscene, don't get stuck on No Auto Remove text boxes
-        if ((_timer < 1) && (play.fast_forward))
+        if ((_timer < 1) && (game.Play.fast_forward))
             return false;
 
         return true; // continue running
@@ -160,6 +162,7 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
                                              int &y, int &adjusted_x, int &adjusted_y, int width, int font,
                                              const TopBarSettings *topbar)
 {
+    Game &game = Game::Current();
     //
     // Configure the textual image
     //
@@ -170,7 +173,7 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
 
     int gui_id = -1;
     if (use_speech_textwindow)
-        gui_id = play.speech_textwindow_gui;
+        gui_id = game.Play.speech_textwindow_gui;
     else if (use_thought_gui)
         gui_id = game.options[OPT_THOUGHTGUI];
 
@@ -186,12 +189,12 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
     {
         // ensure that the window is wide enough to display any top bar text
         int top_bar_width = get_text_width_outlined(topbar->Text.GetCStr(), topbar->Font);
-        top_bar_width += (play.top_bar_borderwidth + 2) * 2;
+        top_bar_width += (game.Play.top_bar_borderwidth + 2) * 2;
         if (longestline < top_bar_width)
             longestline = top_bar_width;
     }
 
-    const Rect &ui_view = play.GetUIViewport();
+    const Rect &ui_view = game.Play.GetUIViewport();
     // Center the text in the middle of the screen
     if ((look.Position & kDisplayTextPos_ScreenCenterY) != 0)
     {
@@ -323,12 +326,12 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
             if (fix_look.Style == kDisplayTextStyle_TextWindow)
             {
                 wouttext_aligned(text_window_ds.get(), text_left, line_y, area_width, font, text_color,
-                                 Lines[i].GetCStr(), play.text_align);
+                                 Lines[i].GetCStr(), game.Play.text_align);
             }
             else
             {
                 wouttext_aligned(text_window_ds.get(), text_left, line_y, width, font, text_color, Lines[i].GetCStr(),
-                                 play.speech_text_align);
+                                 game.Play.speech_text_align);
             }
         }
     }
@@ -350,7 +353,7 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
 
         for (size_t i = 0; i < Lines.Count(); ++i)
             wouttext_aligned(text_window_ds.get(), xoffs, yoffs + static_cast<int>(i) * disp.Linespacing, area_width,
-                             font, text_color, Lines[i].GetCStr(), play.text_align);
+                             font, text_color, Lines[i].GetCStr(), game.Play.text_align);
     }
     return text_window_ds;
 }
@@ -359,6 +362,7 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
 // returns if the display loop should break.
 bool display_check_user_input(int skip)
 {
+    Game &game = Game::Current();
     bool state_handled = false;
     for (InputType type = kInputNone; ags_hasinputevent_ready(type);)
     { // NOTE: must handle them all in case there were engine's hotkeys too
@@ -367,18 +371,18 @@ bool display_check_user_input(int skip)
         case kInputKeyboard:
         {
             KeyInput ki;
-            if (!run_service_key_controls(ki) || play.fast_forward || state_handled)
+            if (!run_service_key_controls(ki) || game.Play.fast_forward || state_handled)
                 continue; // handled by engine layer, or fast-forwarded, or resolved
             if (check_skip_cutscene_keypress(ki.Key))
             {
                 state_handled = true;
             }
-            else if ((skip & SKIP_KEYPRESS) != 0 && !play.IsIgnoringInput() && !IsAGSServiceKey(ki.Key))
+            else if ((skip & SKIP_KEYPRESS) != 0 && !game.Play.IsIgnoringInput() && !IsAGSServiceKey(ki.Key))
             {
                 // check if it requires a specific keypress
-                if ((play.skip_speech_specific_key == 0) || (ki.CompatKey == play.skip_speech_specific_key))
+                if ((game.Play.skip_speech_specific_key == 0) || (ki.CompatKey == game.Play.skip_speech_specific_key))
                 {
-                    play.SetWaitKeySkip(ki);
+                    game.Play.SetWaitKeySkip(ki);
                     state_handled = true; // stop display
                 }
             }
@@ -387,15 +391,15 @@ bool display_check_user_input(int skip)
         case kInputMouse:
         {
             eAGSMouseButton mbut;
-            if (!run_service_mb_controls(mbut) || play.fast_forward || state_handled)
+            if (!run_service_mb_controls(mbut) || game.Play.fast_forward || state_handled)
                 continue; // handled by engine layer, or fast-forwarded, or resolved
             if (check_skip_cutscene_mclick(mbut))
             {
                 state_handled = true;
             }
-            else if ((skip & SKIP_MOUSECLICK) != 0 && !play.IsIgnoringInput())
+            else if ((skip & SKIP_MOUSECLICK) != 0 && !game.Play.IsIgnoringInput())
             {
-                play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
+                game.Play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
                 state_handled = true; // stop display
             }
             break;
@@ -403,17 +407,17 @@ bool display_check_user_input(int skip)
         case kInputGamepad:
         {
             GamepadInput gbut;
-            if (!run_service_gamepad_controls(gbut) || play.fast_forward || state_handled)
+            if (!run_service_gamepad_controls(gbut) || game.Play.fast_forward || state_handled)
                 continue; // handled by engine layer, or fast-forwarded, or resolved
             eAGSGamepad_Button gbn = gbut.Button;
             if (check_skip_cutscene_gamepad(gbn))
             {
                 state_handled = true; // stop display
             }
-            else if ((skip & SKIP_GAMEPAD) != 0 && !play.IsIgnoringInput() &&
+            else if ((skip & SKIP_GAMEPAD) != 0 && !game.Play.IsIgnoringInput() &&
                      is_default_gamepad_skip_button_pressed(gbn))
             {
-                play.SetWaitSkipResult(SKIP_GAMEPAD, gbn);
+                game.Play.SetWaitSkipResult(SKIP_GAMEPAD, gbn);
                 state_handled = true; // stop display
             }
             break;
@@ -421,12 +425,12 @@ bool display_check_user_input(int skip)
         case kInputTouch:
         {
             TouchInput ti;
-            if (!run_service_touch_controls(ti) || play.fast_forward || state_handled)
+            if (!run_service_touch_controls(ti) || game.Play.fast_forward || state_handled)
                 continue; // handled by engine layer, or fast-forwarded, or resolved
             // TODO: check skip cutscene? we might check if it's "skip by mouse" here
-            if ((skip & SKIP_TOUCH) != 0 && (ti.Phase == TouchPhase::Down) && !play.IsIgnoringInput())
+            if ((skip & SKIP_TOUCH) != 0 && (ti.Phase == TouchPhase::Down) && !game.Play.IsIgnoringInput())
             {
-                play.SetWaitSkipResult(SKIP_TOUCH);
+                game.Play.SetWaitSkipResult(SKIP_TOUCH);
                 state_handled = true; // stop display
             }
             break;
@@ -442,6 +446,7 @@ ScreenOverlay *display_main(int x, int y, int width, const char *text, const Top
                             DisplayTextType disp_type, int over_id, const DisplayTextLooks &look, int font,
                             color_t text_color, int autoplace_at_char, bool roomlayer)
 {
+    Game &game = Game::Current();
     //
     // Prepare for the message display
     //
@@ -450,7 +455,7 @@ ScreenOverlay *display_main(int x, int y, int width, const char *text, const Top
     // ensure that the screen is up to date before the message box
     // is drawn on top of it
     // TODO: is this really necessary anymore?
-    if ((play.skip_until_char_stops >= 0) && (disp_type == kDisplayText_MessageBox))
+    if ((game.Play.skip_until_char_stops >= 0) && (disp_type == kDisplayText_MessageBox))
         render_graphics();
 
     // TODO: should this really be called regardless of message type?
@@ -469,20 +474,20 @@ ScreenOverlay *display_main(int x, int y, int width, const char *text, const Top
         // Update the GUI disabled state in advance of the adjust_x/y_for_guis calls;
         // this is done to avoid display box moved away from GUIs that will be hidden
         // FIXME: this is a misleading hack, find a way to do this without tweaking
-        // play.disabled_user_interface.
-        play.disabled_user_interface++;
+        // game.Play.disabled_user_interface.
+        game.Play.disabled_user_interface++;
         update_gui_disabled_status();
-        play.disabled_user_interface--;
+        game.Play.disabled_user_interface--;
     }
 
     // Remove any previous blocking texts if necessary
     if (disp_type < kDisplayText_NormalOverlay)
-        remove_screen_overlay(play.text_overlay_on);
+        remove_screen_overlay(game.Play.text_overlay_on);
 
     // If fast-forwarding, then skip any blocking message immediately
-    if (play.fast_forward && (disp_type < kDisplayText_NormalOverlay))
+    if (game.Play.fast_forward && (disp_type < kDisplayText_NormalOverlay))
     {
-        play.SetWaitSkipResult(SKIP_AUTOTIMER);
+        game.Play.SetWaitSkipResult(SKIP_AUTOTIMER);
         post_display_cleanup();
         return nullptr;
     }
@@ -531,7 +536,7 @@ ScreenOverlay *display_main(int x, int y, int width, const char *text, const Top
     if (disp_type == kDisplayText_MessageBox)
     {
         int countdown = GetTextDisplayTime(text);
-        int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
+        int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)game.Play.skip_display);
 
         DisplayMessageState disp_state(OVER_TEXTMSG, countdown, skip_setting);
         disp_state.Begin();
@@ -554,24 +559,26 @@ ScreenOverlay *display_main(int x, int y, int width, const char *text, const Top
 
 void display_at(int x, int y, int width, const char *text, const TopBarSettings *topbar)
 {
+    Game &game = Game::Current();
     EndSkippingUntilCharStops();
     // Start voice-over, if requested by the tokens in speech text
-    try_auto_play_speech(text, text, play.narrator_speech);
+    try_auto_play_speech(text, text, game.Play.narrator_speech);
 
     display_main(x, y, width, text, topbar, kDisplayText_MessageBox, 0 /* no overid */,
                  DisplayTextLooks(kDisplayTextStyle_MessageBox, get_textpos_from_scriptcoords(x, y, false),
                                   kDisplayTextShrink_Left),
-                 FONT_NORMAL, 0, -1 /* no autoplace */, false /* screen layer */);
+                 game.Play.normal_font, 0, -1 /* no autoplace */, false /* screen layer */);
 
     // Stop any blocking voice-over, if was started by this function
-    if (play.IsBlockingVoiceSpeech())
+    if (game.Play.IsBlockingVoiceSpeech())
         stop_voice_speech();
 }
 
 void post_display_cleanup()
 {
-    play.messagetime = -1;
-    play.speech_in_post_state = false;
+    Game &game = Game::Current();
+    game.Play.messagetime = -1;
+    game.Play.speech_in_post_state = false;
 }
 
 bool try_auto_play_speech(const char *text, const char *&replace_text, int char_id)
@@ -588,7 +595,7 @@ bool try_auto_play_speech(const char *text, const char *&replace_text, int char_
     if (play_voice_speech(char_id, voice_num))
     {
         // if Voice Only, then blank out the text
-        if (play.speech_mode == kSpeech_VoiceOnly)
+        if (Game::Current().Play.speech_mode == kSpeech_VoiceOnly)
             replace_text = "  ";
         return true;
     }
@@ -602,29 +609,31 @@ int source_text_length = -1;
 int GetTextDisplayLength(const char *text)
 {
     // Skip voice-over token from the length calculation if required
-    if (play.unfactor_speech_from_textlength != 0)
+    if (Game::Current().Play.unfactor_speech_from_textlength != 0)
         text = skip_voiceover_token(text);
     return static_cast<int>(strlen(text));
 }
 
 // Calculates lipsync frame duration (or duration per character) in game loops.
 // NOTE: historical formula was this:
-//   loops_per_character = (((text_len / play.lipsync_speed) + 1) * fps) / text_len;
+//   loops_per_character = (((text_len / game.Play.lipsync_speed) + 1) * fps) / text_len;
 // But because of a precision loss due integer division this resulted in "jumping" values.
 // The new formula uses float division, and coefficent found experimentally to make
 // results match the old formula in certain key text lengths, for backwards compatibility.
 static int CalcLipsyncFrameDuration(int text_len, int fps)
 {
-    return static_cast<int>((((static_cast<float>(text_len) / play.lipsync_speed) + 0.75f) * fps) / text_len);
+    return static_cast<int>((((static_cast<float>(text_len) / Game::Current().Play.lipsync_speed) + 0.75f) * fps) /
+                            text_len);
 }
 
 int GetTextDisplayTime(const char *text, int can_be_relative)
 {
+    Game &game = Game::Current();
     int text_len = 0;
     auto fps = ::lround(get_game_fps());
 
     // if it's background speech, make it stay relative to game speed
-    if ((can_be_relative == 1) && (play.bgspeech_game_speed == 1))
+    if ((can_be_relative == 1) && (game.Play.bgspeech_game_speed == 1))
         fps = 40; // NOTE: should be a fixed constant here, not game speed value
 
     if (source_text_length >= 0)
@@ -642,21 +651,22 @@ int GetTextDisplayTime(const char *text, int can_be_relative)
     if (text_len <= 0)
         return 0;
 
-    if (play.text_speed + play.text_speed_modifier <= 0)
+    if (game.Play.text_speed + game.Play.text_speed_modifier <= 0)
         quit("!Text speed is zero; unable to display text. Check your game.text_speed settings.");
 
     // Store how many game loops per character of text
     loops_per_character = CalcLipsyncFrameDuration(text_len, fps);
 
-    int display_time_ms = ((text_len / (play.text_speed + play.text_speed_modifier)) + 1) * 1000;
-    if (display_time_ms < play.text_min_display_time_ms)
-        display_time_ms = play.text_min_display_time_ms;
+    int display_time_ms = ((text_len / (game.Play.text_speed + game.Play.text_speed_modifier)) + 1) * 1000;
+    if (display_time_ms < game.Play.text_min_display_time_ms)
+        display_time_ms = game.Play.text_min_display_time_ms;
 
     return (display_time_ms * fps) / 1000;
 }
 
 bool ShouldAntiAliasText()
 {
+    Game &game = Game::Current();
     return (game.GetColorDepth() >= 24) && (game.options[OPT_ANTIALIASFONTS] != 0);
 }
 
@@ -676,7 +686,7 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
     int const ds_cd = ds->GetColorDepth();
     bool const alpha_blend =
         (ds_cd == 32) && !is_bitmap_font(font) &&
-        ((game.options[OPT_ANTIALIASFONTS] != 0) || (geta32(color) < 255) || (blend_mode != kBlend_Normal));
+        ((Game::Current().options[OPT_ANTIALIASFONTS] != 0) || (geta32(color) < 255) || (blend_mode != kBlend_Normal));
     int const stencil_cd = alpha_blend ? 32 : ds_cd;
 
     const int t_width = get_text_width(text, font);
@@ -777,13 +787,13 @@ void wouttext_outline(Bitmap *ds, int x, int y, int font, color_t text_color, co
 
 void wouttext_outline(Common::Bitmap *ds, int x, int y, int font, color_t text_color, const char *text)
 {
-    const color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
+    const color_t outline_color = ds->GetCompatibleColor(Game::Current().Play.speech_text_shadow);
     wouttext_outline(ds, x, y, font, text_color, outline_color, kBlend_Normal, text);
 }
 
 void wouttext_outline(Bitmap *ds, int x, int y, int font, color_t text_color, BlendMode blend_mode, const char *text)
 {
-    const color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
+    const color_t outline_color = ds->GetCompatibleColor(Game::Current().Play.speech_text_shadow);
     wouttext_outline(ds, x, y, font, text_color, outline_color, blend_mode, text);
 }
 
@@ -801,12 +811,13 @@ void wouttext_aligned(Bitmap *ds, int x, int y, int area_width, int font, color_
 void wouttext_aligned(Bitmap *ds, int x, int y, int area_width, int font, color_t text_color, const char *text,
                       HorAlignment align)
 {
-    int const outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
+    int const outline_color = ds->GetCompatibleColor(Game::Current().Play.speech_text_shadow);
     wouttext_aligned(ds, x, y, area_width, font, text_color, outline_color, text, align);
 }
 
 void do_corner(Bitmap *ds, int sprite_id, int x, int y, int off_x, int off_y)
 {
+    Game &game = Game::Current();
     if (sprite_id < 0)
         return;
     if (!spriteset.DoesSpriteExist(sprite_id))
@@ -827,6 +838,7 @@ int get_but_pic(GUIMain *gui, GUITextWindowBorder border)
 
 void draw_button_background(Bitmap *ds, int x1, int y1, int x2, int y2, GUIMain *gui)
 {
+    Game &game = Game::Current();
     if (gui == nullptr)
     {
         // Standard window
@@ -893,6 +905,7 @@ void draw_button_background(Bitmap *ds, int x1, int y1, int x2, int y2, GUIMain 
 
 int get_textwindow_border_width(int gui_id)
 {
+    Game &game = Game::Current();
     if (gui_id < 0)
         return 0;
 
@@ -919,11 +932,12 @@ int get_textwindow_top_border_height(int gui_id)
         return 0;
     }
 
-    return game.SpriteInfos[get_but_pic(&guis[gui_id], kTW_Top)].Height;
+    return Game::Current().SpriteInfos[get_but_pic(&guis[gui_id], kTW_Top)].Height;
 }
 
 int get_textwindow_padding(int gui_id)
 {
+    Game &game = Game::Current();
     int result;
 
     if (gui_id < 0)
@@ -939,6 +953,7 @@ int get_textwindow_padding(int gui_id)
 std::unique_ptr<Bitmap> draw_text_window(int *text_x, int *text_y, int *x, int *y, int *width, color_t *set_text_color,
                                          int override_height, int gui_id, const DisplayVars &disp)
 {
+    Game &game = Game::Current();
     std::unique_ptr<Bitmap> text_window;
 
     if (gui_id < 0)
@@ -1002,6 +1017,7 @@ std::unique_ptr<Bitmap> draw_text_window_and_bar(const TopBarSettings *topbar, c
                                                  int *text_y, int *x, int *y, int *width, color_t *set_text_color,
                                                  int gui_id)
 {
+    Game &game = Game::Current();
     std::unique_ptr<Bitmap> text_window_bmp =
         draw_text_window(text_x, text_y, x, y, width, set_text_color, 0 /*use disp*/, gui_id, disp);
 
@@ -1017,20 +1033,20 @@ std::unique_ptr<Bitmap> draw_text_window_and_bar(const TopBarSettings *topbar, c
         ds = text_window_bmp.get();
 
         // draw the top bar
-        color_t draw_color = ds->GetCompatibleColor(play.top_bar_backcolor);
+        color_t draw_color = ds->GetCompatibleColor(game.Play.top_bar_backcolor);
         ds->FillRect(Rect(0, 0, ds->GetWidth() - 1, topbar->Height - 1), draw_color);
-        if (play.top_bar_backcolor != play.top_bar_bordercolor)
+        if (game.Play.top_bar_backcolor != game.Play.top_bar_bordercolor)
         {
             // draw the border
-            draw_color = ds->GetCompatibleColor(play.top_bar_bordercolor);
-            for (int j = 0; j < play.top_bar_borderwidth; j++)
+            draw_color = ds->GetCompatibleColor(game.Play.top_bar_bordercolor);
+            for (int j = 0; j < game.Play.top_bar_borderwidth; j++)
                 ds->DrawRect(Rect(j, j, ds->GetWidth() - (j + 1), topbar->Height - (j + 1)), draw_color);
         }
 
         // draw the text
         int bar_text_x = (ds->GetWidth() / 2) - get_text_width_outlined(topbar->Text.GetCStr(), topbar->Font) / 2;
-        color_t text_color = ds->GetCompatibleColor(play.top_bar_textcolor);
-        wouttext_outline(ds, bar_text_x, play.top_bar_borderwidth + 1, topbar->Font, text_color,
+        color_t text_color = ds->GetCompatibleColor(game.Play.top_bar_textcolor);
+        wouttext_outline(ds, bar_text_x, game.Play.top_bar_borderwidth + 1, topbar->Font, text_color,
                          topbar->Text.GetCStr());
 
         // adjust the text Y position
@@ -1063,20 +1079,21 @@ void DisplayMB(const char *text)
 
 void DisplayTopBar(int ypos, int text_color, int back_color, const char *title, const char *text)
 {
+    Game &game = Game::Current();
     if (ypos > 0)
-        play.top_bar_ypos = ypos;
+        game.Play.top_bar_ypos = ypos;
     if (text_color > 0)
-        play.top_bar_textcolor = text_color;
+        game.Play.top_bar_textcolor = text_color;
     if (back_color > 0)
-        play.top_bar_backcolor = back_color;
+        game.Play.top_bar_backcolor = back_color;
 
     int font;
-    // the font set by the game (play.top_bar_font), or the normal one
-    if (play.top_bar_font >= 0)
-        font = play.top_bar_font;
+    // the font set by the game (game.Play.top_bar_font), or the normal one
+    if (game.Play.top_bar_font >= 0)
+        font = game.Play.top_bar_font;
     else
-        font = FONT_NORMAL;
-    int height = get_font_height_outlined(font) + play.top_bar_borderwidth * 2 + 1;
+        font = game.Play.normal_font;
+    int height = get_font_height_outlined(font) + game.Play.top_bar_borderwidth * 2 + 1;
 
     // get_translation sets source_text_length, which GetTextDisplayTime below reads for the text: keep the text's.
     // FIXME: refactor source_text_length and get rid of this hack (see display.h)
@@ -1085,21 +1102,22 @@ void DisplayTopBar(int ypos, int text_color, int back_color, const char *title, 
     source_text_length = text_source_length;
 
     // DisplaySpeech normally sets this up, but since we're not going via it...
-    if (play.speech_skip_style & SKIP_AUTOTIMER)
-        play.messagetime = GetTextDisplayTime(text);
+    if (game.Play.speech_skip_style & SKIP_AUTOTIMER)
+        game.Play.messagetime = GetTextDisplayTime(text);
 
-    DisplayAtYImpl(play.top_bar_ypos, text, &topbar, game.options[OPT_ALWAYSSPCH] != 0);
+    DisplayAtYImpl(game.Play.top_bar_ypos, text, &topbar, game.options[OPT_ALWAYSSPCH] != 0);
 }
 
 void DisplayAt(int x, int y, int width, const char *text)
 {
-    if (play.screen_is_faded_out)
+    Game &game = Game::Current();
+    if (game.Play.screen_is_faded_out)
         debug_script_warn("Blocking Display call during fade-out.");
 
     if (width < 1)
-        width = play.GetUIViewport().GetWidth() / 2;
+        width = game.Play.GetUIViewport().GetWidth() / 2;
     if (x < 0)
-        x = play.GetUIViewport().GetWidth() / 2 - width / 2;
+        x = game.Play.GetUIViewport().GetWidth() / 2 - width / 2;
     display_at(x, y, width, text, nullptr);
 }
 
@@ -1108,10 +1126,11 @@ void DisplayAt(int x, int y, int width, const char *text)
 // Translates the text.
 void DisplayAtYImpl(int ypos, const char *text, const TopBarSettings *topbar, bool as_speech)
 {
-    const Rect &ui_view = play.GetUIViewport();
+    Game &game = Game::Current();
+    const Rect &ui_view = game.Play.GetUIViewport();
     if ((ypos < -1) || (ypos >= ui_view.GetHeight()))
         quitprintf("!DisplayAtY: invalid Y co-ordinate supplied (used: %d; valid: 0..%d)", ypos, ui_view.GetHeight());
-    if (play.screen_is_faded_out)
+    if (game.Play.screen_is_faded_out)
         debug_script_warn("Blocking Display call during fade-out.");
 
     // Display("") ... a bit of a stupid thing to do, so ignore it
@@ -1132,7 +1151,7 @@ void DisplayAtYImpl(int ypos, const char *text, const TopBarSettings *topbar, bo
 
 void DisplayAtY(int ypos, const char *text)
 {
-    DisplayAtYImpl(ypos, text, nullptr, game.options[OPT_ALWAYSSPCH] != 0);
+    DisplayAtYImpl(ypos, text, nullptr, Game::Current().options[OPT_ALWAYSSPCH] != 0);
 }
 
 void DisplaySpeechAt(int x, int y, int width, int char_id, const char *text)
@@ -1154,6 +1173,7 @@ static int CreateTextOverlay(int x, int y, int width, int font, int text_color, 
 // [DEPRECATED] but still used by Character_SayBackground, might merge since there are no other instances
 int DisplaySpeechBackground(int char_id, const char *text)
 {
+    Game &game = Game::Current();
     // remove any previous background speech for this character
     // TODO: have a map character -> bg speech over?
     const auto &overs = get_overlays();
@@ -1166,9 +1186,9 @@ int DisplaySpeechBackground(int char_id, const char *text)
         }
     }
 
-    int over_id =
-        CreateTextOverlay(0, 0, play.GetUIViewport().GetWidth() / 2, FONT_SPEECH, game.chars[char_id].talkcolor,
-                          get_translation(text), OVER_CUSTOM, kDisplayTextStyle_Overchar, char_id);
+    int over_id = CreateTextOverlay(0, 0, game.Play.GetUIViewport().GetWidth() / 2, game.Play.speech_font,
+                                    game.chars[char_id].talkcolor, get_translation(text), OVER_CUSTOM,
+                                    kDisplayTextStyle_Overchar, char_id);
 
     auto *over = get_overlay(over_id);
     over->SetAsSpeech(char_id, GetTextDisplayTime(text, 1));

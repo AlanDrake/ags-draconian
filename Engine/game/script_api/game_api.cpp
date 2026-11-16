@@ -20,6 +20,7 @@
 #include "game/dynobj/script_camera.h"
 #include "game/dynobj/script_game.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/script.h"
@@ -144,7 +145,7 @@ void RegisterGameAPI()
 
 void RegisterStaticObjects()
 {
-    ccAddExternalScriptObject("game", &play, &GameStaticManager);
+    ccAddExternalScriptObject("game", &Game::Current().Play, &GameStaticManager);
     ccAddExternalScriptObject("mouse", &scmouse, &scmouse);
     ccAddExternalScriptObject("palette", &palette[0], &GlobalStaticManager);
 }

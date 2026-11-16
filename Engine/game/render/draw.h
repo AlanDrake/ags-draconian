@@ -194,7 +194,7 @@ void construct_game_screen_overlay(bool draw_cursor = true);
 // Construct engine overlay with debugging tools (fps, console)
 void construct_engine_overlay();
 
-// Updates the vertical shake offset (play.shake_screen_yoff) for the current game loop
+// Updates the vertical shake offset (game.Play.shake_screen_yoff) for the current game loop
 void update_shakescreen();
 
 // Returns the room mask now shown by the debug overlay (kRoomAreaNone if none)

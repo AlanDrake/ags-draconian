@@ -22,6 +22,7 @@
 #include "game/dynobj/script_system.h"
 #include "game/dynobj/script_viewport.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_version.h"
 #include "game/render/draw.h"
@@ -234,22 +235,23 @@ VpPoint GamePlayState::ScreenToRoomImpl(int screen_x, int screen_y, int viewport
 
 VpPoint GamePlayState::ScreenToRoom(int screen_x, int screen_y, bool clip_viewport)
 {
-    if (game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507)
+    if (Game::Current().options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507)
         return ScreenToRoomImpl(screen_x, screen_y, -1, clip_viewport);
     return ScreenToRoomImpl(screen_x, screen_y, 0, false);
 }
 
 void GamePlayState::CreatePrimaryViewportAndCamera()
 {
+    Game &game = Game::Current();
     if (_roomViewports.size() == 0)
     {
-        play.CreateRoomViewport();
-        play.RegisterRoomViewport(0);
+        game.Play.CreateRoomViewport();
+        game.Play.RegisterRoomViewport(0);
     }
     if (_roomCameras.size() == 0)
     {
-        play.CreateRoomCamera();
-        play.RegisterRoomCamera(0);
+        game.Play.CreateRoomCamera();
+        game.Play.RegisterRoomCamera(0);
     }
     _roomViewports[0]->LinkCamera(_roomCameras[0]);
     _roomCameras[0]->LinkToViewport(_roomViewports[0]);
@@ -463,7 +465,7 @@ int GamePlayState::GetWaitCounter() const
 
 int GamePlayState::GetWaitSkipType() const
 {
-    return play.key_skip_wait;
+    return Game::Current().Play.key_skip_wait;
 }
 
 void GamePlayState::SetWaitSkipResult(int skipped_by, int data)
@@ -491,12 +493,14 @@ bool GamePlayState::IsNonBlockingVoiceSpeech() const
 
 bool GamePlayState::ShouldPlayVoiceSpeech() const
 {
-    return !play.fast_forward && (play.speech_mode != kSpeech_TextOnly) && EngineServices::Current().VoiceAvail;
+    Game &game = Game::Current();
+    return !game.Play.fast_forward && (game.Play.speech_mode != kSpeech_TextOnly) &&
+           EngineServices::Current().VoiceAvail;
 }
 
 bool GamePlayState::ShouldPlayVoiceSpeechNonBlocking() const
 {
-    return !play.fast_forward && EngineServices::Current().VoiceAvail;
+    return !Game::Current().Play.fast_forward && EngineServices::Current().VoiceAvail;
 }
 
 bool GamePlayState::ShouldAASprites() const

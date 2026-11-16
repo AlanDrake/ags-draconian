@@ -94,7 +94,7 @@ CONTEXTS = {
         'accessor': 'Game::Current()',
         'local': 'game',
         'header': 'game/game_context.h',
-        'own_files': (),
+        'own_files': ('Engine/game/game_context.h',),
         'names': {
             'game': '',
             'play': 'Play',
@@ -1078,7 +1078,7 @@ def self_test_contexts():
     for order in ((services, game, room), (room, game, services), (game, room, services), (room, services, game)):
         out = runs(src, *order)
         assert body(out, 'void f()') == want, (out, [c['type'] for c in order])
-        assert '#include "game/game.h"' in out and '#include "game/world/room.h"' in out, out
+        assert f'#include "{game["header"]}"' in out and f'#include "{room["header"]}"' in out, out
 
     # 2. a global that is the context itself
     src = ('void a() { foo(thisroom); }\nvoid b()\n{\n    int w = thisroom.Width;\n    bar(&thisroom);\n}\n'

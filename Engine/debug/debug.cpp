@@ -30,8 +30,8 @@
 #include "debug/messagebuffer.h"
 #include "debug/out.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
-#include "game/game_state.h"
 #include "game/render/dynamic_sprite.h"
 #include "game/script.h"
 #include "game/world/room.h"
@@ -332,7 +332,7 @@ void apply_debug_config(const ConfigTree &cfg, bool finalize)
 
     // If the game was compiled in Debug mode *and* there's no regular file log,
     // then open "warnings.log" for printing script warnings.
-    if (game.options[OPT_DEBUGMODE] != 0 && !DbgMgr.HasOutput(OutputFileID))
+    if (Game::Current().options[OPT_DEBUGMODE] != 0 && !DbgMgr.HasOutput(OutputFileID))
     {
         auto dbgout = create_log_output(OutputFileID, "./", "warnings.log", LogFile::kLogFile_OverwriteAtFirstMessage);
         if (dbgout)
@@ -379,7 +379,7 @@ void debug_script_event(MessageType mt, const String &msg)
 
     // A (possibly) temporary solution to making script errors stand out more to the game developer or testers:
     // if the game is compiled in debug mode, then quit on script error events.
-    if (game.options[OPT_DEBUGMODE])
+    if (Game::Current().options[OPT_DEBUGMODE])
     {
         if (mt == kDbgMsg_Error || mt == kDbgMsg_Fatal)
         {
@@ -682,7 +682,7 @@ int scrlockWasDown = 0;
 
 void check_debug_keys()
 {
-    if (play.debug_mode)
+    if (Game::Current().Play.debug_mode)
     {
         // do the run-time script debugging
 

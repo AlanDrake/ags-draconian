@@ -30,6 +30,7 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_state.h"
 #include "game/navigation/route_finder.h"
 #include "main/config.h"
@@ -414,7 +415,7 @@ int ags_entry_point(int argc, char *argv[])
 #endif
     debug_flags = 0;
     // FIXME: this should be in game data init, but currently also set by cmdline
-    play.takeover_data = 0;
+    Game::Current().Play.takeover_data = 0;
 
     ConfigTree startup_opts;
     int res = main_process_cmdline(startup_opts, argc, argv);

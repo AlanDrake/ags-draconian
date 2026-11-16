@@ -17,6 +17,7 @@
 #include "font/fonts.h"
 #include "game/dialog/display.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -435,7 +436,7 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *surface, int x, int 
     }
 
     color_t text_color = surface->GetRealDrawingColor();
-    color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
+    color_t outline_color = ds->GetCompatibleColor(Game::Current().Play.speech_text_shadow);
     for (size_t i = 0; i < Lines.Count(); i++)
     {
         GUI::DrawTextAlignedHor(ds, Lines[i], font, text_color, outline_color, surface->GetBlendMode(), x,

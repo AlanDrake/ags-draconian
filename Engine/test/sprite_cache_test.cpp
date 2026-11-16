@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/render/dynamic_sprite.h"
 #include "gfx/ali3dsw.h"
@@ -64,7 +65,7 @@ class EngineSpriteCache : public ::testing::Test
 protected:
     void SetUp() override
     {
-        game.color_depth = 4;
+        Game::Current().color_depth = 4;
         _driver = std::make_unique<ALSW::SDLRendererGraphicsDriver>();
         EngineServices::Current().GfxDriver = _driver.get();
         {
@@ -92,6 +93,7 @@ protected:
 
     void TearDown() override
     {
+        Game &game = Game::Current();
         spriteset.Reset();
         spriteset.SetMaxCacheSize(DEFAULTCACHESIZE_KB * 1024u);
         game.SpriteInfos.clear();
@@ -112,6 +114,7 @@ protected:
 
 TEST_F(EngineSpriteCache, GameSpritesLoadOnDemand)
 {
+    Game &game = Game::Current();
     ASSERT_GT(_oneSprite, 0u);
     EXPECT_EQ(static_cast<size_t>(kSpriteCount), game.SpriteInfos.size());
     EXPECT_EQ(kSpriteSize, game.SpriteInfos[3].Width);
@@ -195,7 +198,7 @@ TEST_F(EngineSpriteCache, DynamicSpritesAreNotEvicted)
     const int slot = add_dynamic_sprite(std::move(image));
     ASSERT_GE(slot, kSpriteCount);
     EXPECT_FALSE(spriteset.IsAssetSprite(slot));
-    EXPECT_EQ(64, game.SpriteInfos[slot].Width);
+    EXPECT_EQ(64, Game::Current().SpriteInfos[slot].Width);
     // dynamic sprites do not count against the limit
     EXPECT_EQ(0u, spriteset.GetCacheSize());
     EXPECT_GT(spriteset.GetExternalSize(), 0u);

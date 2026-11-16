@@ -20,6 +20,7 @@
 #include "game/dynobj/cc_gui_control.h"
 #include "game/dynobj/script_shader.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -429,32 +430,34 @@ void GUIControl_SetBlendMode(GUIControl *control, int blend_mode)
 
 int GUIControl_GetProperty(GUIControl *control, const char *property)
 {
+    Game &game = Game::Current();
     int ctrl_type = guis[control->GetParentID()].GetControlType(control->GetID());
     int ctrl_id = guis[control->GetParentID()].GetControlID(control->GetID());
-    return get_int_property(game.guicontrolProps[ctrl_type][ctrl_id], play.guicontrolProps[ctrl_type][ctrl_id],
+    return get_int_property(game.guicontrolProps[ctrl_type][ctrl_id], game.Play.guicontrolProps[ctrl_type][ctrl_id],
                             property);
 }
 
 const char *GUIControl_GetTextProperty(GUIControl *control, const char *property)
 {
+    Game &game = Game::Current();
     int ctrl_type = guis[control->GetParentID()].GetControlType(control->GetID());
     int ctrl_id = guis[control->GetParentID()].GetControlID(control->GetID());
     return get_text_property_dynamic_string(game.guicontrolProps[ctrl_type][ctrl_id],
-                                            play.guicontrolProps[ctrl_type][ctrl_id], property);
+                                            game.Play.guicontrolProps[ctrl_type][ctrl_id], property);
 }
 
 bool GUIControl_SetProperty(GUIControl *control, const char *property, int value)
 {
     int ctrl_type = guis[control->GetParentID()].GetControlType(control->GetID());
     int ctrl_id = guis[control->GetParentID()].GetControlID(control->GetID());
-    return set_int_property(play.guicontrolProps[ctrl_type][ctrl_id], property, value);
+    return set_int_property(Game::Current().Play.guicontrolProps[ctrl_type][ctrl_id], property, value);
 }
 
 bool GUIControl_SetTextProperty(GUIControl *control, const char *property, const char *value)
 {
     int ctrl_type = guis[control->GetParentID()].GetControlType(control->GetID());
     int ctrl_id = guis[control->GetParentID()].GetControlID(control->GetID());
-    return set_text_property(play.guicontrolProps[ctrl_type][ctrl_id], property, value);
+    return set_text_property(Game::Current().Play.guicontrolProps[ctrl_type][ctrl_id], property, value);
 }
 
 ScriptShaderInstance *GUIControl_GetShader(GUIControl *control)

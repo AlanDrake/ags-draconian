@@ -19,6 +19,7 @@
 #include "game/dynobj/cc_region.h"
 #include "game/dynobj/script_objects.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
@@ -138,7 +139,8 @@ void force_event(const AGSEvent &evt)
 
 void process_event(const AGSEvent *evp)
 {
-    const int room_was = play.room_changes;
+    Game &game = Game::Current();
+    const int room_was = game.Play.room_changes;
 
     RuntimeScriptValue rval_null;
     if (evp->Type == kAGSEvent_Script)
@@ -213,7 +215,7 @@ void process_event(const AGSEvent *evp)
 
         // If the room was changed inside a on_event call above,
         // then skip running further interaction scripts
-        if (room_was != play.room_changes)
+        if (room_was != game.Play.room_changes)
         {
             if ((obj.ObjEvType == kObjEventType_Room) && (obj.ObjEvent == kRoomEvent_BeforeFadein))
                 in_enters_screen = false;
@@ -246,6 +248,7 @@ void process_event(const AGSEvent *evp)
 
 void processallevents()
 {
+    Game &game = Game::Current();
     if (inside_processevent)
     {
         events.clear(); // flush queued events
@@ -259,7 +262,7 @@ void processallevents()
     // TODO: need to redesign engine events system?
     std::vector<AGSEvent> evtcopy = events;
 
-    const int room_was = play.room_changes;
+    const int room_was = game.Play.room_changes;
 
     inside_processevent++;
 
@@ -267,7 +270,7 @@ void processallevents()
     {
         process_event(&evtcopy[i]);
 
-        if (room_was != play.room_changes)
+        if (room_was != game.Play.room_changes)
             break; // changed room, so discard other events
     }
 
@@ -288,6 +291,7 @@ void ClaimEvent()
 
 bool AssertCursorValidForEvent(const char *api_name, int mode)
 {
+    Game &game = Game::Current();
     if (mode < 0 || mode >= game.numcursors)
     {
         debug_script_warn("%s: invalid mode number %d, valid range is 0..%d", api_name, mode, game.numcursors - 1);

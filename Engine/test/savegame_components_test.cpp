@@ -37,6 +37,7 @@
 #include "game/dialog/dialog.h"
 #include "game/dialog_topic.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/render/screen_overlay.h"
@@ -74,12 +75,12 @@ const SaveCmpSelection kCharactersAndItems = static_cast<SaveCmpSelection>(kSave
 } // namespace
 
 // Fixture for the savegame components with game content. The engine globals it touches, all reset in TearDown:
-// - game.chars, game.numcharacters, charextra, play.charProps: the characters
-// - game.invinfo, game.numinvitems, play.invProps: the inventory items
+// - game.chars, game.numcharacters, charextra, game.Play.charProps: the characters
+// - game.invinfo, game.numinvitems, game.Play.invProps: the inventory items
 // - views, game.numviews: the views
-// - dialog, game.numdialog, play.dialogProps: the dialogs
+// - dialog, game.numdialog, game.Play.dialogProps: the dialogs
 // - game.mcurs, game.numcursors: the mouse cursors
-// - game.audioClipTypes, play.default_audio_type_volumes: the audio types
+// - game.audioClipTypes, game.Play.default_audio_type_volumes: the audio types
 // - the GameDef fields that the game state saves (GameSetupFields)
 // - EngineServices::Current().SeparateMusicLib
 class SavegameContent : public ::testing::Test
@@ -115,6 +116,7 @@ protected:
 
         static GameSetupFields Get()
         {
+            Game &game = Game::Current();
             GameSetupFields fields;
             std::copy_n(game.options, GameDef::MAX_OPTIONS, fields.Options.begin());
             fields.PlayerCharacter = game.playercharacter;
@@ -128,6 +130,7 @@ protected:
 
         void Set() const
         {
+            Game &game = Game::Current();
             std::copy(Options.begin(), Options.end(), game.options);
             game.playercharacter = PlayerCharacter;
             game.dialog_bullet = DialogBullet;
@@ -144,11 +147,12 @@ protected:
     // Makes the game's dialogs, each with the same number of options, all off; option texts are "Dialog d option o"
     static void SetDialogs(int dialog_count, int option_count)
     {
+        Game &game = Game::Current();
         dialog.clear();
         dialog.resize(dialog_count);
         game.numdialog = dialog_count;
-        play.dialogProps.clear();
-        play.dialogProps.resize(dialog_count);
+        game.Play.dialogProps.clear();
+        game.Play.dialogProps.resize(dialog_count);
         for (int d = 0; d < dialog_count; ++d)
         {
             dialog[d].Options.resize(option_count);
@@ -164,6 +168,7 @@ protected:
     // Resizes the game's mouse cursors, all in their default state
     static void SetCursors(int count)
     {
+        Game &game = Game::Current();
         game.mcurs.clear();
         game.mcurs.resize(count);
         game.numcursors = count;
@@ -172,10 +177,11 @@ protected:
     // Resizes the game's audio types, all in their default state with a default volume of 0
     static void SetAudioTypes(int count)
     {
+        Game &game = Game::Current();
         game.audioClipTypes.clear();
         game.audioClipTypes.resize(count);
-        play.default_audio_type_volumes.clear();
-        play.default_audio_type_volumes.resize(count);
+        game.Play.default_audio_type_volumes.clear();
+        game.Play.default_audio_type_volumes.resize(count);
     }
 
     // Makes the game's views, each with the same number of loops and frames; every frame has a sprite and
@@ -184,7 +190,7 @@ protected:
     {
         views.clear();
         views.resize(view_count);
-        game.numviews = view_count;
+        Game::Current().numviews = view_count;
         for (auto &view : views)
         {
             view.Initialize(loop_count);
@@ -203,23 +209,25 @@ protected:
     // Resizes the game's characters and inventory items, all in their default state
     static void SetCounts(int characters, int items)
     {
+        Game &game = Game::Current();
         game.chars.clear();
         game.chars.resize(characters);
         game.numcharacters = characters;
         charextra.clear();
         charextra.resize(characters);
-        play.charProps.clear();
-        play.charProps.resize(characters);
+        game.Play.charProps.clear();
+        game.Play.charProps.resize(characters);
         game.invinfo.clear();
         game.invinfo.resize(items);
         game.numinvitems = static_cast<uint16_t>(items);
-        play.invProps.clear();
-        play.invProps.resize(items);
+        game.Play.invProps.clear();
+        game.Play.invProps.resize(items);
     }
 
     // State that no new game has
     static void SetState()
     {
+        Game &game = Game::Current();
         for (int i = 0; i < game.numcharacters; ++i)
         {
             auto &ch = game.chars[i];
@@ -245,7 +253,7 @@ protected:
             ex.tint_r = 10;
             ex.tint_level = 50;
             ex.following = 0;
-            play.charProps[i]["Mood"] = "angry";
+            game.Play.charProps[i]["Mood"] = "angry";
         }
         for (int i = 0; i < game.numinvitems; ++i)
         {
@@ -254,7 +262,7 @@ protected:
             game.invinfo[i].cursorPic = 40 + i;
             game.invinfo[i].hotx = 3;
             game.invinfo[i].hoty = 4;
-            play.invProps[i]["Weight"] = "12";
+            game.Play.invProps[i]["Weight"] = "12";
         }
     }
 
@@ -278,6 +286,7 @@ protected:
 
 TEST_F(SavegameContent, CharactersAndItemsAreRestored)
 {
+    Game &game = Game::Current();
     SetCounts(3, 2);
     SetState();
     std::vector<uint8_t> saved;
@@ -312,7 +321,7 @@ TEST_F(SavegameContent, CharactersAndItemsAreRestored)
         EXPECT_EQ(80, charextra[i].zoom);
         EXPECT_EQ(10, charextra[i].tint_r);
         EXPECT_EQ(50, charextra[i].tint_level);
-        EXPECT_STREQ("angry", play.charProps[i]["Mood"].GetCStr());
+        EXPECT_STREQ("angry", game.Play.charProps[i]["Mood"].GetCStr());
     }
     for (int i = 0; i < 2; ++i)
     {
@@ -321,7 +330,7 @@ TEST_F(SavegameContent, CharactersAndItemsAreRestored)
         EXPECT_EQ(40 + i, game.invinfo[i].cursorPic);
         EXPECT_EQ(3, game.invinfo[i].hotx);
         EXPECT_EQ(4, game.invinfo[i].hoty);
-        EXPECT_STREQ("12", play.invProps[i]["Weight"].GetCStr());
+        EXPECT_STREQ("12", game.Play.invProps[i]["Weight"].GetCStr());
     }
     EXPECT_EQ(3u, r_data.DataCounts.Characters);
     EXPECT_EQ(2u, r_data.DataCounts.InventoryItems);
@@ -362,6 +371,7 @@ TEST_F(SavegameContent, SaveWithMoreCharactersIsRefused)
 
 TEST_F(SavegameContent, FewerCharactersAllowedOnACleanGame)
 {
+    Game &game = Game::Current();
     SetCounts(2, 2);
     SetState();
     std::vector<uint8_t> saved;
@@ -392,6 +402,7 @@ TEST_F(SavegameContent, FewerCharactersAllowedOnACleanGame)
 
 TEST_F(SavegameContent, PrescanCountsWithoutRestoring)
 {
+    Game &game = Game::Current();
     SetCounts(3, 2);
     SetState();
     std::vector<uint8_t> saved;
@@ -432,23 +443,24 @@ TEST_F(SavegameContent, PrescanStepsOverViewFrames)
 
 TEST_F(SavegameContent, UnselectedComponentsAreSkipped)
 {
+    Game &game = Game::Current();
     // a save holds components that the restore leaves out (ignored components, a retry without some)
     SetCounts(2, 2);
     SetState();
-    play.messagetime = 4321;
+    game.Play.messagetime = 4321;
     std::vector<uint8_t> saved;
     std::string error;
     ASSERT_TRUE(Save(static_cast<SaveCmpSelection>(kSaveCmp_GameState | kCharactersAndItems), saved, error)) << error;
 
     SetCounts(2, 2);
-    play.messagetime = 0;
+    game.Play.messagetime = 0;
     RestoredData r_data;
     HSaveError err = Restore(saved, kSaveCmp_GameState, r_data);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
-    EXPECT_EQ(4321, play.messagetime);
+    EXPECT_EQ(4321, game.Play.messagetime);
     EXPECT_EQ(0, game.chars[0].x);
     EXPECT_TRUE(game.invinfo[0].name.IsEmpty());
-    play.messagetime = 0;
+    game.Play.messagetime = 0;
 }
 
 TEST_F(SavegameContent, RestoreKeepsTheRunningEnginesMusicPack)
@@ -506,6 +518,7 @@ TEST_F(SavegameContent, CharacterAnimationVolumeIsRestored)
 
 TEST_F(SavegameContent, DialogOptionsAreRestored)
 {
+    Game &game = Game::Current();
     // the flags of every option; the text only of an option whose text was changed (DFLG_TEXTSET)
     SetDialogs(2, 3);
     for (int d = 0; d < 2; ++d)
@@ -515,7 +528,7 @@ TEST_F(SavegameContent, DialogOptionsAreRestored)
         opts[1].Flags = DFLG_ON | DFLG_TEXTSET;
         opts[1].Text = String::FromFormat("Changed %d", d);
         opts[2].Flags = DFLG_OFFPERM | DFLG_NOREPEAT;
-        play.dialogProps[d]["Topic"] = "weather";
+        game.Play.dialogProps[d]["Topic"] = "weather";
     }
     std::vector<uint8_t> saved;
     std::string error;
@@ -534,7 +547,7 @@ TEST_F(SavegameContent, DialogOptionsAreRestored)
         EXPECT_STREQ(String::FromFormat("Dialog %d option 0", d).GetCStr(), opts[0].Text.GetCStr());
         EXPECT_STREQ(String::FromFormat("Changed %d", d).GetCStr(), opts[1].Text.GetCStr());
         EXPECT_STREQ(String::FromFormat("Dialog %d option 2", d).GetCStr(), opts[2].Text.GetCStr());
-        EXPECT_STREQ("weather", play.dialogProps[d]["Topic"].GetCStr());
+        EXPECT_STREQ("weather", game.Play.dialogProps[d]["Topic"].GetCStr());
     }
     EXPECT_EQ(2u, r_data.DataCounts.Dialogs);
     EXPECT_EQ((std::vector<uint32_t>{3u, 3u}), r_data.DataCounts.DialogOptions);
@@ -556,6 +569,7 @@ TEST_F(SavegameContent, SaveWithFewerDialogOptionsIsRefused)
 
 TEST_F(SavegameContent, MouseCursorsAreRestored)
 {
+    Game &game = Game::Current();
     // the cursor's script name is game data and not saved
     SetCursors(2);
     for (int i = 0; i < 2; ++i)
@@ -591,6 +605,7 @@ TEST_F(SavegameContent, MouseCursorsAreRestored)
 
 TEST_F(SavegameContent, AudioTypesAreRestored)
 {
+    Game &game = Game::Current();
     // the speech volume reduction, the crossfade speed and the default volume; the reserved channels are game data
     SetAudioTypes(2);
     for (int i = 0; i < 2; ++i)
@@ -598,7 +613,7 @@ TEST_F(SavegameContent, AudioTypesAreRestored)
         game.audioClipTypes[i].reservedChannels = 1;
         game.audioClipTypes[i].volume_reduction_while_speech_playing = 25 + i;
         game.audioClipTypes[i].crossfadeSpeed = 3 + i;
-        play.default_audio_type_volumes[i] = 60 + i;
+        game.Play.default_audio_type_volumes[i] = 60 + i;
     }
     std::vector<uint8_t> saved;
     std::string error;
@@ -613,13 +628,14 @@ TEST_F(SavegameContent, AudioTypesAreRestored)
         EXPECT_EQ(0, game.audioClipTypes[i].reservedChannels);
         EXPECT_EQ(25 + i, game.audioClipTypes[i].volume_reduction_while_speech_playing);
         EXPECT_EQ(3 + i, game.audioClipTypes[i].crossfadeSpeed);
-        EXPECT_EQ(60 + i, play.default_audio_type_volumes[i]);
+        EXPECT_EQ(60 + i, game.Play.default_audio_type_volumes[i]);
     }
     EXPECT_EQ(2u, r_data.DataCounts.AudioClipTypes);
 }
 
 TEST_F(SavegameContent, GameSetupIsRestored)
 {
+    Game &game = Game::Current();
     // the options up to OPT_HIGHESTOPTION_321 and OPT_LIPSYNCTEXT, the player, the dialog bullet, the inventory
     // cursor's hotspot marker and the default lip-sync frame
     for (int i = 0; i <= OPT_HIGHESTOPTION_321; ++i)

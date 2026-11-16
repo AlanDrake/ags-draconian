@@ -13,6 +13,7 @@
 //=============================================================================
 #include "game/dynobj/script_viewport.h"
 
+#include "game/game_context.h"
 #include "game/game_state.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
@@ -59,7 +60,7 @@ ScriptViewport *Viewport_Unserialize(int handle, Stream *in, size_t /*data_sz*/)
     const int id = in->ReadInt32();
     if (id >= 0)
     {
-        auto scview = play.RegisterRoomViewport(id, handle);
+        auto scview = Game::Current().Play.RegisterRoomViewport(id, handle);
         if (scview)
             return scview;
     }

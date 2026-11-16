@@ -39,7 +39,7 @@ extern AGS::Common::Bitmap *walkareabackup;
 extern AGS::Common::Bitmap *walkable_areas_temp;
 
 // Rebuilds the room's walkable area mask from the backup taken when the room was loaded, erasing the areas
-// that play.walkable_areas_on has switched off. Call after changing which areas are enabled.
+// that game.Play.walkable_areas_on has switched off. Call after changing which areas are enabled.
 void redo_walkable_areas();
 // Returns the walkable area number (the mask value) at the room point, 0 for no area, or a negative value
 // outside the mask. Erased (disabled) areas read as 0.

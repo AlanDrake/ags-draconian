@@ -22,6 +22,7 @@
 #include "game/audio/audio.h"
 #include "game/dynobj/script_video_player.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/input/joystick.h"
@@ -159,7 +160,7 @@ void BlockingVideoPlayer::Begin()
     {
         _isSoftwareRender = !services.GfxDriver->HasAcceleratedTransform();
         Size frame_sz = player->GetFrameSize();
-        Rect dest = PlaceInRect(play.GetMainViewport(), RectWH(frame_sz),
+        Rect dest = PlaceInRect(Game::Current().Play.GetMainViewport(), RectWH(frame_sz),
                                 ((_stateFlags & kVideoState_Stretch) == 0) ? kPlaceCenter : kPlaceStretchProportional);
         // override the stretch option if necessary
         if (frame_sz == dest.GetSize())
@@ -309,7 +310,7 @@ void BlockingVideoPlayer::Draw()
     const auto start_tp = Clock::now();
     if (_videoDDB && _videoDDB->IsValid())
     {
-        services.GfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
+        services.GfxDriver->BeginSpriteBatch(Game::Current().Play.GetMainViewport(), SpriteTransform());
         services.GfxDriver->DrawSprite(_dstRect.Left, _dstRect.Top, _videoDDB);
         services.GfxDriver->EndSpriteBatch();
     }
@@ -412,7 +413,7 @@ static HError video_single_run(const String &asset_name, int video_flags, int st
 
     VideoInitParams params;
     params.Flags = static_cast<VideoFlags>(video_flags);
-    params.TargetColorDepth = game.GetColorDepth();
+    params.TargetColorDepth = Game::Current().GetColorDepth();
 
     video_core_init();
     auto slot = video_core_slot_init(std::move(video_stream), asset_name, Path::GetFileExtension(asset_name), params);
@@ -677,7 +678,7 @@ HError open_video(const char *name, int video_flags, int &video_id)
 
     VideoInitParams params;
     params.Flags = static_cast<VideoFlags>(video_flags);
-    params.TargetColorDepth = game.GetColorDepth();
+    params.TargetColorDepth = Game::Current().GetColorDepth();
     int video_slot = video_core_slot_init(std::move(video_stream), name, Path::GetFileExtension(name), params);
     if (video_slot < 0) // FIXME: return errors from slot_init?
         return new Error(String::FromFormat("Failed to initialize video player for %s", name));

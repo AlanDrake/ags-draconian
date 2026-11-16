@@ -27,6 +27,7 @@
 #include "game/dynobj/script_system.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -521,8 +522,9 @@ Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
 
 Bitmap *CreateCompatBitmap(EngineServices &services, int width, int height, int col_depth)
 {
-    return new Bitmap(width, height,
-                      services.GfxDriver->GetCompatibleBitmapFormat(col_depth == 0 ? game.GetColorDepth() : col_depth));
+    return new Bitmap(
+        width, height,
+        services.GfxDriver->GetCompatibleBitmapFormat(col_depth == 0 ? Game::Current().GetColorDepth() : col_depth));
 }
 
 // PrepareSpriteForUseImpl converts input bitmap to format which may be used
@@ -543,7 +545,7 @@ static Bitmap *PrepareSpriteForUseImpl(Bitmap *bitmap, bool conv_to_gamedepth, b
     // sprite must be converted to game's color depth;
     // this behavior is hardcoded in the current engine version
     const int bmp_col_depth = bitmap->GetColorDepth();
-    const int game_col_depth = game.GetColorDepth();
+    const int game_col_depth = Game::Current().GetColorDepth();
 
     // Palette must be selected if we convert a 8-bit bitmap for a 32-bit game
     const bool must_switch_palette = conv_to_gamedepth && (bitmap->GetColorDepth() == 8) && (game_col_depth > 8);
@@ -617,6 +619,7 @@ Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect, bool a
                              uint32_t batch_skip_filter)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     Bitmap *dst = new Bitmap(width, height, game.GetColorDepth());
     GraphicResolution want_fmt;
     // If the size and color depth are supported, then we may copy right into our final bitmap
@@ -673,12 +676,13 @@ void destroy_blank_image()
 
 int MakeColor(int color_index)
 {
-    return BitmapHelper::AGSColorToBitmapColor(color_index, game.GetColorDepth());
+    return BitmapHelper::AGSColorToBitmapColor(color_index, Game::Current().GetColorDepth());
 }
 
 void init_draw_method()
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     dispose_draw_method(); // ensure that previous draw resources are disposed
 
     drawstate.SoftwareRender = !services.GfxDriver->HasAcceleratedTransform();
@@ -686,7 +690,7 @@ void init_draw_method()
     GUI::Context.SoftwareRender = drawstate.SoftwareRender;
 
     // Must init this as early as possible, as this affects bitmap->texture conv
-    services.GfxDriver->UseSmoothScaling(play.ShouldAASprites());
+    services.GfxDriver->UseSmoothScaling(game.Play.ShouldAASprites());
 
     if (drawstate.SoftwareRender)
     {
@@ -737,6 +741,7 @@ static void alloc_fixed_drawindexes()
 
 void init_game_drawdata()
 {
+    Game &game = Game::Current();
     // character and object caches
     charcache.resize(game.numcharacters);
     for (size_t i = 0; i < (size_t)MAX_ROOM_OBJECTS; ++i)
@@ -877,9 +882,10 @@ void release_drawobj_rendertargets()
 
 void on_mainviewport_changed()
 {
+    Game &game = Game::Current();
     if (!drawstate.FullFrameRedraw)
     {
-        const auto &view = play.GetMainViewport();
+        const auto &view = game.Play.GetMainViewport();
         set_invalidrects_globaloffs(view.Left, view.Top);
         // the black background region covers whole game screen
         init_invalid_regions(-1, game.GetGameRes(), RectWH(game.GetGameRes()));
@@ -934,12 +940,14 @@ void sync_roomview(Viewport *view)
     if (view->GetCamera() == nullptr)
         return;
     // Note the dirty regions' viewport is found using absolute offset on game screen
-    init_invalid_regions(view->GetID(), view->GetCamera()->GetRect().GetSize(), play.GetRoomViewportAbs(view->GetID()));
+    init_invalid_regions(view->GetID(), view->GetCamera()->GetRect().GetSize(),
+                         Game::Current().Play.GetRoomViewportAbs(view->GetID()));
     prepare_roomview_frame(view);
 }
 
 void init_room_drawdata()
 {
+    Game &game = Game::Current();
     if (displayed_room < 0)
         return; // not loaded yet
 
@@ -955,13 +963,13 @@ void init_room_drawdata()
     debug_draw_room_mask(debugRoomMask);
     debug_draw_movelist(debugMoveListChar);
 
-    const int view_count = play.GetRoomViewportCount();
+    const int view_count = game.Play.GetRoomViewportCount();
     CameraDrawData.resize(view_count);
     if (!drawstate.FullFrameRedraw)
     {
         // Make sure camera frame buffers are created for software drawing
         for (int i = 0; i < view_count; ++i)
-            sync_roomview(play.GetRoomViewport(i).get());
+            sync_roomview(game.Play.GetRoomViewport(i).get());
 
 #if (AGS_PLATFORM_DEBUG)
         for (size_t i = 0; i < (size_t)thisroom.Objects.size(); ++i)
@@ -1014,7 +1022,7 @@ void detect_roomviewport_overlaps(size_t z_index)
     if (drawstate.FullFrameRedraw || (displayed_room < 0))
         return;
     // Find out if we overlap or are overlapped by anything;
-    const auto &viewports = play.GetRoomViewportsZOrdered();
+    const auto &viewports = Game::Current().Play.GetRoomViewportsZOrdered();
     for (; z_index < viewports.size(); ++z_index)
     {
         auto this_view = viewports[z_index];
@@ -1099,7 +1107,7 @@ void reset_drawobj_for_overlay(int objnum)
 uint32_t add_sprite_changed_callback(int sprnum, ISpriteUser *user)
 {
     // don't register this callback if sprite does not exist, or if it's not dynamic
-    if (!spriteset.DoesSpriteExist(sprnum) || !game.SpriteInfos[sprnum].IsDynamicSprite())
+    if (!spriteset.DoesSpriteExist(sprnum) || !Game::Current().SpriteInfos[sprnum].IsDynamicSprite())
         return 0u;
 
     SpriteNotifyControl *notify_ctrl;
@@ -1114,7 +1122,7 @@ uint32_t add_sprite_changed_callback(int sprnum, ISpriteUser *user)
 void remove_sprite_changed_callback(int sprnum, ISpriteUser *user)
 {
     // don't register this callback if sprite does not exist, or if it's not dynamic
-    if (!spriteset.DoesSpriteExist(sprnum) || !game.SpriteInfos[sprnum].IsDynamicSprite())
+    if (!spriteset.DoesSpriteExist(sprnum) || !Game::Current().SpriteInfos[sprnum].IsDynamicSprite())
         return;
 
     auto it_notify = drawstate.SpriteNotifyMap.find(sprnum);
@@ -1135,7 +1143,8 @@ void replace_sprite_changed_callback(int old_sprnum, int new_sprnum, ISpriteUser
     }
 
     // NOTE: add_sprite_changed_callback will not add the same callback twice, so it's safe to call always
-    if ((new_sprnum > 0) && spriteset.DoesSpriteExist(new_sprnum) && game.SpriteInfos[new_sprnum].IsDynamicSprite())
+    if ((new_sprnum > 0) && spriteset.DoesSpriteExist(new_sprnum) &&
+        Game::Current().SpriteInfos[new_sprnum].IsDynamicSprite())
     {
         add_sprite_changed_callback(new_sprnum, user);
     }
@@ -1143,7 +1152,7 @@ void replace_sprite_changed_callback(int old_sprnum, int new_sprnum, ISpriteUser
 
 void notify_sprite_changed(int sprnum, bool deleted)
 {
-    assert(sprnum >= 0 && static_cast<uint32_t>(sprnum) < game.SpriteInfos.size());
+    assert(sprnum >= 0 && static_cast<uint32_t>(sprnum) < Game::Current().SpriteInfos.size());
     // Update texture cache (regen texture or clear from cache)
     if (deleted)
         clear_shared_texture(sprnum);
@@ -1207,6 +1216,7 @@ void texturecache_clear()
 
 void update_shared_texture(uint32_t sprite_id)
 {
+    Game &game = Game::Current();
     auto txdata = texturecache.Get(sprite_id);
     if (!txdata)
         return;
@@ -1368,7 +1378,8 @@ void draw_and_invalidate_text(Bitmap *ds, int x1, int y1, int font, color_t text
 static void render_black_borders()
 {
     EngineServices &services = EngineServices::Current();
-    const Rect &viewport = play.GetMainViewport();
+    Game &game = Game::Current();
+    const Rect &viewport = game.Play.GetMainViewport();
     if (viewport.Top > 0)
     {
         // letterbox borders
@@ -1389,11 +1400,13 @@ static void render_black_borders()
 void render_to_screen()
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     // Stage: final plugin callback (still drawn on game screen)
     if (pl_any_want_hook(kPluginEvt_FinalScreenDraw))
     {
-        services.GfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
-                                             (GraphicFlip)play.screen_flipped);
+        services.GfxDriver->BeginSpriteBatch(game.Play.GetMainViewport(),
+                                             game.Play.GetGlobalTransform(drawstate.FullFrameRedraw),
+                                             (GraphicFlip)game.Play.screen_flipped);
         services.GfxDriver->AddRenderEvent(kPluginEvt_FinalScreenDraw, 0);
         services.GfxDriver->EndSpriteBatch();
     }
@@ -1431,13 +1444,13 @@ void render_to_screen()
                 // This may be a matter for the future code improvement.
                 //
                 // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
-                if (play.shake_screen_yoff > 0)
+                if (game.Play.shake_screen_yoff > 0)
                 {
-                    const Rect &viewport = play.GetMainViewport();
+                    const Rect &viewport = game.Play.GetMainViewport();
                     services.GfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1,
-                                                       play.shake_screen_yoff, nullptr);
+                                                       game.Play.shake_screen_yoff, nullptr);
                 }
-                services.GfxDriver->Render(0, play.shake_screen_yoff, (GraphicFlip)play.screen_flipped);
+                services.GfxDriver->Render(0, game.Play.shake_screen_yoff, (GraphicFlip)game.Play.screen_flipped);
             }
             succeeded = true;
         }
@@ -1457,7 +1470,8 @@ void render_to_screen()
 void clear_letterbox_borders()
 {
     EngineServices &services = EngineServices::Current();
-    const Rect &viewport = play.GetMainViewport();
+    Game &game = Game::Current();
+    const Rect &viewport = game.Play.GetMainViewport();
     services.GfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, viewport.Top - 1, nullptr);
     services.GfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1,
                                        game.GetGameRes().Height - 1, nullptr);
@@ -1546,7 +1560,7 @@ static void sync_object_texture(ObjTexture &obj, bool opaque = false)
     obj.Ddb = recycle_ddb_sprite(obj.Ddb, obj.SpriteID, obj.Bmp.get(), opaque);
 
     // Handle notification control block for the dynamic sprites
-    if ((obj.SpriteID != UINT32_MAX) && game.SpriteInfos[obj.SpriteID].IsDynamicSprite())
+    if ((obj.SpriteID != UINT32_MAX) && Game::Current().SpriteInfos[obj.SpriteID].IsDynamicSprite())
     {
         // For dynamic sprite: check and update a notification block for this drawable
         if (!obj.SpriteNotify || (*obj.SpriteNotify != obj.SpriteID))
@@ -1744,6 +1758,7 @@ void recreate_drawobj_bitmap(EngineServices &services, Bitmap *&raw, IDriverDepe
 void get_local_tint(int xpp, int ypp, bool use_region_tint, int *tint_amnt, int *tint_r, int *tint_g, int *tint_b,
                     int *tint_lit, int *light_lev)
 {
+    Game &game = Game::Current();
     int tint_level = 0, light_level = 0;
     int tint_amount = 0;
     int tint_red = 0;
@@ -1755,7 +1770,7 @@ void get_local_tint(int xpp, int ypp, bool use_region_tint, int *tint_amnt, int 
     {
         int on_region = 0;
 
-        if ((play.ground_level_areas_disabled & GLED_EFFECTS) == 0)
+        if ((game.Play.ground_level_areas_disabled & GLED_EFFECTS) == 0)
         {
             // check if the player is on a region, to find its
             // light/tint level
@@ -1797,22 +1812,22 @@ void get_local_tint(int xpp, int ypp, bool use_region_tint, int *tint_amnt, int 
             tint_light = light_level;
         }
 
-        if (play.rtint_enabled)
+        if (game.Play.rtint_enabled)
         {
-            if (play.rtint_level > 0)
+            if (game.Play.rtint_level > 0)
             {
                 // override with room tint
-                tint_red = play.rtint_red;
-                tint_green = play.rtint_green;
-                tint_blue = play.rtint_blue;
-                tint_amount = play.rtint_level;
-                tint_light = play.rtint_light;
+                tint_red = game.Play.rtint_red;
+                tint_green = game.Play.rtint_green;
+                tint_blue = game.Play.rtint_blue;
+                tint_amount = game.Play.rtint_level;
+                tint_light = game.Play.rtint_light;
             }
             else
             {
                 // override with room light level
                 tint_amount = 0;
-                light_level = play.rtint_light;
+                light_level = game.Play.rtint_light;
             }
         }
     }
@@ -1855,6 +1870,7 @@ static void apply_tint_or_light_ddb(ObjTexture &objtx, int light_level, int tint
 static void apply_tint_or_light(ObjTexture &actsp, int light_level, int tint_amount, int tint_red, int tint_green,
                                 int tint_blue, int tint_light, int coldept, Bitmap *blit_from)
 {
+    Game &game = Game::Current();
     // In a 256-colour game, we cannot do tinting or lightening
     // (but we can do darkening, if light_level < 0)
     if (game.color_depth == 1)
@@ -1930,6 +1946,7 @@ static void apply_tint_or_light(ObjTexture &actsp, int light_level, int tint_amo
 static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst, std::unique_ptr<Bitmap> (&transform_bmp)[2],
                                 const Size &scale_sz, float rotation = 0.f, GraphicFlip flip = Common::kFlip_None)
 {
+    Game &game = Game::Current();
     assert(!scale_sz.IsNull());
 
     if ((src->GetSize() == scale_sz) && (rotation == 0.f) && (flip == kFlip_None))
@@ -1965,7 +1982,7 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst, std::
         // to use for mapping while faded out.
         // FIXME: investigate if this may be moved out and not repeated, or at least passed as a parameter!
         const bool do_select_palette =
-            (in_new_room != kEnterRoom_None) && play.ShouldAASprites() && (src->GetColorDepth() == 1);
+            (in_new_room != kEnterRoom_None) && game.Play.ShouldAASprites() && (src->GetColorDepth() == 1);
         if (do_select_palette)
             select_palette(palette);
 
@@ -1973,7 +1990,7 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst, std::
         {
             // TODO: "flip self" function could have allowed to optimize this
             recycle_bitmap(scale_bmp, use_src->GetColorDepth(), dst_sz.Width, dst_sz.Height, true);
-            if (play.ShouldAASprites() && (src->GetColorDepth() < 32))
+            if (game.Play.ShouldAASprites() && (src->GetColorDepth() < 32))
                 scale_bmp->AAStretchBlt(use_src, RectWH(dst_sz), kBitmap_Transparency);
             else
                 scale_bmp->StretchBlt(use_src, RectWH(dst_sz), kBitmap_Transparency);
@@ -1981,7 +1998,7 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst, std::
         }
         else
         {
-            if (play.ShouldAASprites() && (src->GetColorDepth() < 32))
+            if (game.Play.ShouldAASprites() && (src->GetColorDepth() < 32))
                 dst->AAStretchBlt(use_src, RectWH(dst_sz), kBitmap_Transparency);
             else
                 dst->StretchBlt(use_src, RectWH(dst_sz), kBitmap_Transparency);
@@ -2345,7 +2362,7 @@ void tint_image(Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int light
 // assigns parameters, which may further be assigned to a texture.
 bool construct_char_gfx(int char_id, bool force_software)
 {
-    const CharacterInfo &ch = game.chars[char_id];
+    const CharacterInfo &ch = Game::Current().chars[char_id];
     const CharacterExtras &chex = charextra[char_id];
     const ViewFrame *vf = &views[ch.view].loops[ch.loop].frames[ch.frame];
     const int pic = spriteset.DoesSpriteExist(vf->pic) ? vf->pic : 0;
@@ -2364,6 +2381,7 @@ bool construct_char_gfx(int char_id, bool force_software)
 
 void prepare_characters_for_drawing()
 {
+    Game &game = Game::Current();
     set_our_eip(33);
     const bool hw_accel = !drawstate.SoftwareRender;
 
@@ -2450,17 +2468,18 @@ static void add_roomovers_for_drawing()
 // Compiles a list of room sprites (characters, objects, background)
 void prepare_room_sprites()
 {
+    Game &game = Game::Current();
     // Background sprite is required for the non-software renderers always,
     // and for software renderer in case there are overlapping viewports.
     // Note that software DDB is just a tiny wrapper around bitmap, so overhead is negligible.
     if (current_background_is_dirty || !roomBackgroundBmp)
     {
         roomBackgroundBmp =
-            recycle_ddb_bitmap(roomBackgroundBmp, thisroom.BgImages[play.bg_frame].get(), true /*opaque*/);
+            recycle_ddb_bitmap(roomBackgroundBmp, thisroom.BgImages[game.Play.bg_frame].get(), true /*opaque*/);
     }
     if (drawstate.FullFrameRedraw)
     {
-        if (current_background_is_dirty || walkBehindsCachedForBgNum != play.bg_frame)
+        if (current_background_is_dirty || walkBehindsCachedForBgNum != game.Play.bg_frame)
         {
             if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
             {
@@ -2556,8 +2575,8 @@ static PBitmap draw_room_background(const Viewport *view)
 
         // TODO: measure this call. An old note said it took up to 50% of the game CPU time at
         // high resolutions and colour depths; that was never measured on the current code
-        update_room_invreg_and_reset(view_index, roomcam_surface, thisroom.BgImages[play.bg_frame].get(),
-                                     draw_to_camsurf);
+        update_room_invreg_and_reset(view_index, roomcam_surface,
+                                     thisroom.BgImages[Game::Current().Play.bg_frame].get(), draw_to_camsurf);
     }
 
     return CameraDrawData[view_index].Frame;
@@ -2582,11 +2601,12 @@ void dispose_engine_overlay()
 
 void draw_fps(const Rect &viewport)
 {
+    Game &game = Game::Current();
     // We may be at preload pic display, where nor game updates neither re-renders are run.
     if (!is_runtime_set())
         return;
 
-    const int font = FONT_NORMAL;
+    const int font = game.Play.normal_font;
     auto &fps_display = gl_DrawFPS.bmp;
     if (fps_display == nullptr || gl_DrawFPS.font != font)
     {
@@ -2651,7 +2671,7 @@ static void construct_guictrl_tex(GUIMain &gui)
 
         auto &objbg = guiobjbg[draw_index];
         Rect obj_surf = obj->CalcGraphicRect(GUI::Options.ClipControls);
-        recycle_bitmap(objbg.Bmp, game.GetColorDepth(), obj_surf.GetWidth(), obj_surf.GetHeight(), true);
+        recycle_bitmap(objbg.Bmp, Game::Current().GetColorDepth(), obj_surf.GetWidth(), obj_surf.GetHeight(), true);
         obj->Draw(objbg.Bmp.get(), -obj_surf.Left, -obj_surf.Top);
 
         sync_object_texture(objbg);
@@ -2714,6 +2734,7 @@ static void draw_gui_controls_batch(int gui_id)
 void draw_gui_and_overlays()
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     if (pl_any_want_hook(kPluginEvt_PreGUIDraw))
         services.GfxDriver->AddRenderEvent(kPluginEvt_PreGUIDraw, 0); // render stage
 
@@ -2743,7 +2764,7 @@ void draw_gui_and_overlays()
     set_our_eip(35);
     if (((debug_flags & DBG_NOIFACE) == 0) && (displayed_room >= 0))
     {
-        GUI::Options.GreyOutInvWindow = play.inventory_greys_out;
+        GUI::Options.GreyOutInvWindow = game.Play.inventory_greys_out;
 
         set_our_eip(37);
         // Prepare and update GUI textures
@@ -2910,6 +2931,7 @@ void GfxDriverOnInitCallback(void *data)
 static void construct_roomview_hw(const Viewport *viewport)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     assert(viewport->GetID() < CameraDrawData.size());
     Camera *camera = viewport->GetCamera().get();
     const Rect &view_rc = viewport->GetRect();
@@ -3027,7 +3049,7 @@ static void construct_room_view()
     // reset the Baselines Changed flag now that we've drawn stuff
     walk_behind_baselines_changed = 0;
 
-    for (const auto &viewport : play.GetRoomViewportsZOrdered())
+    for (const auto &viewport : Game::Current().Play.GetRoomViewportsZOrdered())
     {
         if (!viewport->IsVisible())
             continue;
@@ -3051,7 +3073,8 @@ static void construct_room_view()
 static void construct_ui_view()
 {
     EngineServices &services = EngineServices::Current();
-    services.GfxDriver->BeginSpriteBatch(play.GetUIViewport(), SpriteTransform(), RENDER_BATCH_UI_LAYER);
+    services.GfxDriver->BeginSpriteBatch(Game::Current().Play.GetUIViewport(), SpriteTransform(),
+                                         RENDER_BATCH_UI_LAYER);
     draw_gui_and_overlays();
     services.GfxDriver->EndSpriteBatch();
     clear_draw_list();
@@ -3158,28 +3181,30 @@ static void construct_overlays()
 void construct_game_scene(bool full_redraw)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     set_our_eip(3);
 
     // React to changes to viewports and cameras (possibly from script) just before the render
-    play.UpdateViewports();
+    game.Play.UpdateViewports();
 
     services.GfxDriver->RenderSpritesAtScreenResolution(services.Config.RenderAtScreenRes);
 
     pl_run_plugin_hooks(kPluginEvt_PreRender, 0);
 
     // Possible reasons to invalidate whole screen for the software renderer
-    if (full_redraw || play.screen_tint > 0 || play.shakesc_length > 0)
+    if (full_redraw || game.Play.screen_tint > 0 || game.Play.shakesc_length > 0)
         invalidate_screen();
 
     // Overlays may be both in rooms and ui layer, prepare their textures beforehand
     construct_overlays();
 
     // Begin with the parent scene node, defining global offset and flip
-    services.GfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
-                                         (GraphicFlip)play.screen_flipped);
+    services.GfxDriver->BeginSpriteBatch(game.Play.GetMainViewport(),
+                                         game.Play.GetGlobalTransform(drawstate.FullFrameRedraw),
+                                         (GraphicFlip)game.Play.screen_flipped);
 
     // Stage: room viewports
-    if (!play.screen_is_faded_out && play.complete_overlay_on == 0)
+    if (!game.Play.screen_is_faded_out && game.Play.complete_overlay_on == 0)
     {
         if (displayed_room >= 0)
         {
@@ -3196,7 +3221,7 @@ void construct_game_scene(bool full_redraw)
     set_our_eip(4);
 
     // Stage: UI overlay
-    if (!play.screen_is_faded_out)
+    if (!game.Play.screen_is_faded_out)
     {
         construct_ui_view();
     }
@@ -3204,21 +3229,23 @@ void construct_game_scene(bool full_redraw)
     // End the parent scene node
     services.GfxDriver->EndSpriteBatch();
 
-    services.GfxDriver->SetScreenShader(shaderInstances[play.GetScreenShaderID()]);
+    services.GfxDriver->SetScreenShader(shaderInstances[game.Play.GetScreenShaderID()]);
 }
 
 void construct_game_screen_overlay(bool draw_cursor)
 {
     EngineServices &services = EngineServices::Current();
-    services.GfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
-                                         (GraphicFlip)play.screen_flipped);
+    Game &game = Game::Current();
+    services.GfxDriver->BeginSpriteBatch(game.Play.GetMainViewport(),
+                                         game.Play.GetGlobalTransform(drawstate.FullFrameRedraw),
+                                         (GraphicFlip)game.Play.screen_flipped);
     if (pl_any_want_hook(kPluginEvt_PostScreenDraw))
     {
         services.GfxDriver->AddRenderEvent(kPluginEvt_PostScreenDraw, 0);
     }
 
     // Mouse cursor
-    if ((!play.screen_is_faded_out) && draw_cursor && play.ShouldDrawMouseCursor())
+    if ((!game.Play.screen_is_faded_out) && draw_cursor && game.Play.ShouldDrawMouseCursor())
     {
         if (cursor_gstate.HasChanged() || cursor_tx.IsChangeNotified() ||
             // Test if must recache the unloaded sprite in software mode
@@ -3236,7 +3263,7 @@ void construct_game_screen_overlay(bool draw_cursor)
         assert(cursor_tx.Ddb); // Test for missing texture, might happen if not marked for update
         if (cursor_tx.Ddb)
         {
-            cursor_tx.Ddb->SetShader(shaderInstances[play.GetCursorShaderID()]);
+            cursor_tx.Ddb->SetShader(shaderInstances[game.Play.GetCursorShaderID()]);
 
             // Exclusive sub-batch for mouse cursor, to let filter it out (see RENDER_SHOT_SKIP_ON_FADE)
             services.GfxDriver->BeginSpriteBatch(Rect(), SpriteTransform(), kFlip_None, nullptr,
@@ -3248,21 +3275,21 @@ void construct_game_screen_overlay(bool draw_cursor)
     }
 
     // Full screen tint fx, covers everything except for fade fx(?) and engine overlay
-    if ((play.screen_tint >= 1) && (!play.screen_is_faded_out))
-        services.GfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff,
-                                          (play.screen_tint >> 16) & 0xff);
+    if ((game.Play.screen_tint >= 1) && (!game.Play.screen_is_faded_out))
+        services.GfxDriver->SetScreenTint(game.Play.screen_tint & 0xff, (game.Play.screen_tint >> 8) & 0xff,
+                                          (game.Play.screen_tint >> 16) & 0xff);
     services.GfxDriver->EndSpriteBatch();
 
     // For hardware-accelerated renderers: legacy letterbox and global screen fade effect
     if (drawstate.FullFrameRedraw)
     {
-        services.GfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
+        services.GfxDriver->BeginSpriteBatch(game.Play.GetMainViewport(), SpriteTransform());
         // Stage: legacy letterbox mode borders
-        if (!play.screen_is_faded_out)
+        if (!game.Play.screen_is_faded_out)
             render_black_borders();
         // Stage: full screen fade fx
-        if (play.screen_is_faded_out)
-            services.GfxDriver->SetScreenFade(play.fade_to_red, play.fade_to_green, play.fade_to_blue);
+        if (game.Play.screen_is_faded_out)
+            services.GfxDriver->SetScreenFade(game.Play.fade_to_red, game.Play.fade_to_green, game.Play.fade_to_blue);
         services.GfxDriver->EndSpriteBatch();
     }
 }
@@ -3270,7 +3297,7 @@ void construct_game_screen_overlay(bool draw_cursor)
 void construct_engine_overlay()
 {
     EngineServices &services = EngineServices::Current();
-    const Rect &viewport = RectWH(game.GetGameRes());
+    const Rect &viewport = RectWH(Game::Current().GetGameRes());
     services.GfxDriver->BeginSpriteBatch(viewport, SpriteTransform(), kFlip_None, nullptr, RENDER_BATCH_ENGINE_OVERLAY);
 
     if (display_fps != kFPS_Hide)
@@ -3281,12 +3308,13 @@ void construct_engine_overlay()
 
 void update_shakescreen()
 {
+    Game &game = Game::Current();
     // TODO: unify blocking and non-blocking shake update
-    play.shake_screen_yoff = 0;
-    if (play.shakesc_length > 0)
+    game.Play.shake_screen_yoff = 0;
+    if (game.Play.shakesc_length > 0)
     {
-        if ((get_loop_counter() % play.shakesc_delay) < (play.shakesc_delay / 2))
-            play.shake_screen_yoff = play.shakesc_amount;
+        if ((get_loop_counter() % game.Play.shakesc_delay) < (game.Play.shakesc_delay / 2))
+            game.Play.shake_screen_yoff = game.Play.shakesc_amount;
     }
 }
 
@@ -3334,6 +3362,7 @@ void debug_draw_movelist(int charnum)
 
 void update_room_debug()
 {
+    Game &game = Game::Current();
     if (debugRoomMask == kRoomAreaWalkable)
     {
         debug_draw_room_mask(debugRoomMask);
@@ -3373,8 +3402,9 @@ void update_room_debug()
 void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extra_y)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     // Don't render if skipping cutscene
-    if (play.fast_forward)
+    if (game.Play.fast_forward)
         return;
     // Don't render if we've just entered new room and are before fade-in
     if (in_new_room != kEnterRoom_None)
@@ -3394,8 +3424,9 @@ void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extr
     // on top of the screen. Normally this should be a part of the game UI stage.
     if (extra_bitmap != nullptr)
     {
-        services.GfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
-                                             (GraphicFlip)play.screen_flipped);
+        services.GfxDriver->BeginSpriteBatch(game.Play.GetMainViewport(),
+                                             game.Play.GetGlobalTransform(drawstate.FullFrameRedraw),
+                                             (GraphicFlip)game.Play.screen_flipped);
         invalidate_sprite(extra_x, extra_y, extra_bitmap, false);
         services.GfxDriver->DrawSprite(extra_x, extra_y, extra_bitmap);
         services.GfxDriver->EndSpriteBatch();
@@ -3405,7 +3436,7 @@ void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extr
 
     spriteset.EnableAutoFreeMem(true);
 
-    if (!play.screen_is_faded_out)
+    if (!game.Play.screen_is_faded_out)
     {
         // always update the palette, regardless of whether the plugin
         // vetos the screen update
@@ -3422,7 +3453,7 @@ void CyclePalette(int strt, int eend)
     // Any non-8-bit game must invalidate screen since the palette changes
     // the effect of the drawing operations
     // FIXME: this is likely wrong, it should also/instead test the graphic driver capabilities?
-    if (game.color_depth > 1)
+    if (Game::Current().color_depth > 1)
         invalidate_screen();
 
     if ((strt < 0) || (strt > 255) || (eend < 0) || (eend > 255))
@@ -3443,7 +3474,7 @@ void CyclePalette(int strt, int eend)
 }
 void SetPalRGB(int inndx, int rr, int gg, int bb)
 {
-    if (game.color_depth > 1)
+    if (Game::Current().color_depth > 1)
         invalidate_screen();
 
     PaletteOp::SetRGB(palette, inndx, rr, gg, bb);
@@ -3452,9 +3483,10 @@ void SetPalRGB(int inndx, int rr, int gg, int bb)
 
 void UpdatePalette()
 {
+    Game &game = Game::Current();
     if (game.color_depth > 1)
         invalidate_screen();
 
-    if (!play.fast_forward)
+    if (!game.Play.fast_forward)
         setpal();
 }

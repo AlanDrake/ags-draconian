@@ -14,6 +14,7 @@
 #include "game/dynobj/cc_audio_clip.h"
 
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/script_audio_clip.h"
 #include "script/dynobj/dynobj_manager.h"
@@ -40,5 +41,5 @@ void CCAudioClip::Serialize(const void *address, Stream *out)
 void CCAudioClip::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     int id = in->ReadInt32();
-    ccRegisterUnserializedPersistentObject(index, &game.audioClips[id], this);
+    ccRegisterUnserializedPersistentObject(index, &Game::Current().audioClips[id], this);
 }

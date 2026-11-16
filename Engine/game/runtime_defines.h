@@ -55,8 +55,6 @@
 #define SCR_COLOR_TRANSPARENT 0
 
 #define FONT_STATUSBAR 0
-#define FONT_NORMAL    play.normal_font
-#define FONT_SPEECH    play.speech_font
 
 // Fixed Overlay IDs
 // Standard message box (see Display command)

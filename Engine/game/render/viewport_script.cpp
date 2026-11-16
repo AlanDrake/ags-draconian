@@ -22,6 +22,7 @@
 #include "game/dynobj/script_camera.h"
 #include "game/dynobj/script_shader.h"
 #include "game/dynobj/script_viewport.h"
+#include "game/game_context.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "script/dynobj/dynobj_manager.h"
@@ -43,15 +44,16 @@ using namespace AGS::Common;
 // Creates a new room camera and returns its script handle, or null on failure.
 ScriptCamera *Camera_Create()
 {
-    auto cam = play.CreateRoomCamera();
+    Game &game = Game::Current();
+    auto cam = game.Play.CreateRoomCamera();
     if (!cam)
         return nullptr;
-    return play.RegisterRoomCamera(cam->GetID());
+    return game.Play.RegisterRoomCamera(cam->GetID());
 }
 
 void Camera_Delete(ScriptCamera *script_cam)
 {
-    play.DeleteRoomCamera(script_cam->GetID());
+    Game::Current().Play.DeleteRoomCamera(script_cam->GetID());
 }
 
 int Camera_GetX(ScriptCamera *script_cam)
@@ -61,7 +63,7 @@ int Camera_GetX(ScriptCamera *script_cam)
         debug_script_warn("Camera.X: trying to use deleted camera");
         return 0;
     }
-    return play.GetRoomCamera(script_cam->GetID())->GetRect().Left;
+    return Game::Current().Play.GetRoomCamera(script_cam->GetID())->GetRect().Left;
 }
 
 void Camera_SetX(ScriptCamera *script_cam, int x)
@@ -71,7 +73,7 @@ void Camera_SetX(ScriptCamera *script_cam, int x)
         debug_script_warn("Camera.X: trying to use deleted camera");
         return;
     }
-    auto cam = play.GetRoomCamera(script_cam->GetID());
+    auto cam = Game::Current().Play.GetRoomCamera(script_cam->GetID());
     cam->LockAt(x, cam->GetRect().Top);
 }
 
@@ -82,7 +84,7 @@ int Camera_GetY(ScriptCamera *script_cam)
         debug_script_warn("Camera.Y: trying to use deleted camera");
         return 0;
     }
-    return play.GetRoomCamera(script_cam->GetID())->GetRect().Top;
+    return Game::Current().Play.GetRoomCamera(script_cam->GetID())->GetRect().Top;
 }
 
 void Camera_SetY(ScriptCamera *script_cam, int y)
@@ -92,7 +94,7 @@ void Camera_SetY(ScriptCamera *script_cam, int y)
         debug_script_warn("Camera.Y: trying to use deleted camera");
         return;
     }
-    auto cam = play.GetRoomCamera(script_cam->GetID());
+    auto cam = Game::Current().Play.GetRoomCamera(script_cam->GetID());
     cam->LockAt(cam->GetRect().Left, y);
 }
 
@@ -103,7 +105,7 @@ int Camera_GetWidth(ScriptCamera *script_cam)
         debug_script_warn("Camera.Width: trying to use deleted camera");
         return 0;
     }
-    return play.GetRoomCamera(script_cam->GetID())->GetRect().GetWidth();
+    return Game::Current().Play.GetRoomCamera(script_cam->GetID())->GetRect().GetWidth();
 }
 
 void Camera_SetWidth(ScriptCamera *script_cam, int width)
@@ -113,7 +115,7 @@ void Camera_SetWidth(ScriptCamera *script_cam, int width)
         debug_script_warn("Camera.Width: trying to use deleted camera");
         return;
     }
-    auto cam = play.GetRoomCamera(script_cam->GetID());
+    auto cam = Game::Current().Play.GetRoomCamera(script_cam->GetID());
     cam->SetSize(Size(width, cam->GetRect().GetHeight()));
 }
 
@@ -124,7 +126,7 @@ int Camera_GetHeight(ScriptCamera *script_cam)
         debug_script_warn("Camera.Height: trying to use deleted camera");
         return 0;
     }
-    return play.GetRoomCamera(script_cam->GetID())->GetRect().GetHeight();
+    return Game::Current().Play.GetRoomCamera(script_cam->GetID())->GetRect().GetHeight();
 }
 
 void Camera_SetHeight(ScriptCamera *script_cam, int height)
@@ -134,7 +136,7 @@ void Camera_SetHeight(ScriptCamera *script_cam, int height)
         debug_script_warn("Camera.Height: trying to use deleted camera");
         return;
     }
-    auto cam = play.GetRoomCamera(script_cam->GetID());
+    auto cam = Game::Current().Play.GetRoomCamera(script_cam->GetID());
     cam->SetSize(Size(cam->GetRect().GetWidth(), height));
 }
 
@@ -145,7 +147,7 @@ float Camera_GetRotation(ScriptCamera *script_cam)
         debug_script_warn("Camera.Rotation: trying to use deleted camera");
         return 0;
     }
-    return play.GetRoomCamera(script_cam->GetID())->GetRotation();
+    return Game::Current().Play.GetRoomCamera(script_cam->GetID())->GetRotation();
 }
 
 void Camera_SetRotation(ScriptCamera *script_cam, float rotation)
@@ -155,7 +157,7 @@ void Camera_SetRotation(ScriptCamera *script_cam, float rotation)
         debug_script_warn("Camera.Rotation: trying to use deleted camera");
         return;
     }
-    auto cam = play.GetRoomCamera(script_cam->GetID());
+    auto cam = Game::Current().Play.GetRoomCamera(script_cam->GetID());
     cam->SetRotation(rotation);
 }
 
@@ -166,7 +168,7 @@ float Camera_GetPivotX(ScriptCamera *script_cam)
         debug_script_warn("Camera.PivotX: trying to use deleted camera");
         return 0.f;
     }
-    auto cam = play.GetRoomCamera(script_cam->GetID());
+    auto cam = Game::Current().Play.GetRoomCamera(script_cam->GetID());
     return cam->GetPivot().X;
 }
 
@@ -177,7 +179,7 @@ void Camera_SetPivotX(ScriptCamera *script_cam, float pivotx)
         debug_script_warn("Camera.PivotX: trying to use deleted camera");
         return;
     }
-    auto cam = play.GetRoomCamera(script_cam->GetID());
+    auto cam = Game::Current().Play.GetRoomCamera(script_cam->GetID());
     cam->SetPivot(Pointf(pivotx, cam->GetPivot().Y));
 }
 
@@ -188,7 +190,7 @@ float Camera_GetPivotY(ScriptCamera *script_cam)
         debug_script_warn("Camera.PivotY: trying to use deleted camera");
         return 0.f;
     }
-    auto cam = play.GetRoomCamera(script_cam->GetID());
+    auto cam = Game::Current().Play.GetRoomCamera(script_cam->GetID());
     return cam->GetPivot().Y;
 }
 
@@ -199,7 +201,7 @@ void Camera_SetPivotY(ScriptCamera *script_cam, float pivoty)
         debug_script_warn("Camera.PivotY: trying to use deleted camera");
         return;
     }
-    auto cam = play.GetRoomCamera(script_cam->GetID());
+    auto cam = Game::Current().Play.GetRoomCamera(script_cam->GetID());
     cam->SetPivot(Pointf(cam->GetPivot().X, pivoty));
 }
 
@@ -210,7 +212,7 @@ int Camera_GetPivotOffsetX(ScriptCamera *script_cam)
         debug_script_warn("Camera.PivotOffsetX: trying to use deleted camera");
         return 0;
     }
-    auto cam = play.GetRoomCamera(script_cam->GetID());
+    auto cam = Game::Current().Play.GetRoomCamera(script_cam->GetID());
     return cam->GetPivotOffset().X;
 }
 
@@ -221,7 +223,7 @@ void Camera_SetPivotOffsetX(ScriptCamera *script_cam, int px)
         debug_script_warn("Camera.PivotOffsetX: trying to use deleted camera");
         return;
     }
-    auto cam = play.GetRoomCamera(script_cam->GetID());
+    auto cam = Game::Current().Play.GetRoomCamera(script_cam->GetID());
     cam->SetPivotOffset(Point(px, cam->GetPivotOffset().Y));
 }
 
@@ -232,7 +234,7 @@ int Camera_GetPivotOffsetY(ScriptCamera *script_cam)
         debug_script_warn("Camera.PivotOffsetY: trying to use deleted camera");
         return 0;
     }
-    auto cam = play.GetRoomCamera(script_cam->GetID());
+    auto cam = Game::Current().Play.GetRoomCamera(script_cam->GetID());
     return cam->GetPivotOffset().Y;
 }
 
@@ -243,7 +245,7 @@ void Camera_SetPivotOffsetY(ScriptCamera *script_cam, int py)
         debug_script_warn("Camera.PivotOffsetY: trying to use deleted camera");
         return;
     }
-    auto cam = play.GetRoomCamera(script_cam->GetID());
+    auto cam = Game::Current().Play.GetRoomCamera(script_cam->GetID());
     cam->SetPivotOffset(Point(cam->GetPivotOffset().X, py));
 }
 
@@ -254,7 +256,7 @@ bool Camera_GetAutoTracking(ScriptCamera *script_cam)
         debug_script_warn("Camera.AutoTracking: trying to use deleted camera");
         return false;
     }
-    return !play.GetRoomCamera(script_cam->GetID())->IsLocked();
+    return !Game::Current().Play.GetRoomCamera(script_cam->GetID())->IsLocked();
 }
 
 void Camera_SetAutoTracking(ScriptCamera *script_cam, bool on)
@@ -264,7 +266,7 @@ void Camera_SetAutoTracking(ScriptCamera *script_cam, bool on)
         debug_script_warn("Camera.AutoTracking: trying to use deleted camera");
         return;
     }
-    auto cam = play.GetRoomCamera(script_cam->GetID());
+    auto cam = Game::Current().Play.GetRoomCamera(script_cam->GetID());
     if (on)
         cam->Release();
     else
@@ -278,7 +280,7 @@ void Camera_SetAt(ScriptCamera *script_cam, int x, int y)
         debug_script_warn("Camera.SetAt: trying to use deleted camera");
         return;
     }
-    play.GetRoomCamera(script_cam->GetID())->LockAt(x, y);
+    Game::Current().Play.GetRoomCamera(script_cam->GetID())->LockAt(x, y);
 }
 
 void Camera_SetSize(ScriptCamera *script_cam, int width, int height)
@@ -288,7 +290,7 @@ void Camera_SetSize(ScriptCamera *script_cam, int width, int height)
         debug_script_warn("Camera.SetSize: trying to use deleted camera");
         return;
     }
-    play.GetRoomCamera(script_cam->GetID())->SetSize(Size(width, height));
+    Game::Current().Play.GetRoomCamera(script_cam->GetID())->SetSize(Size(width, height));
 }
 
 ScriptShaderInstance *Camera_GetShader(ScriptCamera *script_cam)
@@ -299,7 +301,7 @@ ScriptShaderInstance *Camera_GetShader(ScriptCamera *script_cam)
         return nullptr;
     }
     return static_cast<ScriptShaderInstance *>(
-        ccGetObjectAddressFromHandle(play.GetRoomCamera(script_cam->GetID())->GetShaderHandle()));
+        ccGetObjectAddressFromHandle(Game::Current().Play.GetRoomCamera(script_cam->GetID())->GetShaderHandle()));
 }
 
 void Camera_SetShader(ScriptCamera *script_cam, ScriptShaderInstance *shader_inst)
@@ -309,7 +311,7 @@ void Camera_SetShader(ScriptCamera *script_cam, ScriptShaderInstance *shader_ins
         debug_script_warn("Camera.Shader: trying to use deleted camera");
         return;
     }
-    auto cam = play.GetRoomCamera(script_cam->GetID());
+    auto cam = Game::Current().Play.GetRoomCamera(script_cam->GetID());
     cam->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
                    ccReplaceObjectHandle(cam->GetShaderHandle(), shader_inst));
 }
@@ -327,15 +329,16 @@ void Camera_SetShader(ScriptCamera *script_cam, ScriptShaderInstance *shader_ins
 // Creates a new room viewport and returns its script handle, or null on failure.
 ScriptViewport *Viewport_Create()
 {
-    auto view = play.CreateRoomViewport();
+    Game &game = Game::Current();
+    auto view = game.Play.CreateRoomViewport();
     if (!view)
         return nullptr;
-    return play.RegisterRoomViewport(view->GetID());
+    return game.Play.RegisterRoomViewport(view->GetID());
 }
 
 void Viewport_Delete(ScriptViewport *script_view)
 {
-    play.DeleteRoomViewport(script_view->GetID());
+    Game::Current().Play.DeleteRoomViewport(script_view->GetID());
 }
 
 int Viewport_GetX(ScriptViewport *script_view)
@@ -345,7 +348,7 @@ int Viewport_GetX(ScriptViewport *script_view)
         debug_script_warn("Viewport.X: trying to use deleted viewport");
         return 0;
     }
-    return play.GetRoomViewport(script_view->GetID())->GetRect().Left;
+    return Game::Current().Play.GetRoomViewport(script_view->GetID())->GetRect().Left;
 }
 
 void Viewport_SetX(ScriptViewport *script_view, int x)
@@ -355,7 +358,7 @@ void Viewport_SetX(ScriptViewport *script_view, int x)
         debug_script_warn("Viewport.X: trying to use deleted viewport");
         return;
     }
-    auto view = play.GetRoomViewport(script_view->GetID());
+    auto view = Game::Current().Play.GetRoomViewport(script_view->GetID());
     view->SetAt(x, view->GetRect().Top);
 }
 
@@ -366,7 +369,7 @@ int Viewport_GetY(ScriptViewport *script_view)
         debug_script_warn("Viewport.Y: trying to use deleted viewport");
         return 0;
     }
-    return play.GetRoomViewport(script_view->GetID())->GetRect().Top;
+    return Game::Current().Play.GetRoomViewport(script_view->GetID())->GetRect().Top;
 }
 
 void Viewport_SetY(ScriptViewport *script_view, int y)
@@ -376,7 +379,7 @@ void Viewport_SetY(ScriptViewport *script_view, int y)
         debug_script_warn("Viewport.Y: trying to use deleted viewport");
         return;
     }
-    auto view = play.GetRoomViewport(script_view->GetID());
+    auto view = Game::Current().Play.GetRoomViewport(script_view->GetID());
     view->SetAt(view->GetRect().Left, y);
 }
 
@@ -387,7 +390,7 @@ int Viewport_GetWidth(ScriptViewport *script_view)
         debug_script_warn("Viewport.Width: trying to use deleted viewport");
         return 0;
     }
-    return play.GetRoomViewport(script_view->GetID())->GetRect().GetWidth();
+    return Game::Current().Play.GetRoomViewport(script_view->GetID())->GetRect().GetWidth();
 }
 
 void Viewport_SetWidth(ScriptViewport *script_view, int width)
@@ -397,7 +400,7 @@ void Viewport_SetWidth(ScriptViewport *script_view, int width)
         debug_script_warn("Viewport.Width: trying to use deleted viewport");
         return;
     }
-    auto view = play.GetRoomViewport(script_view->GetID());
+    auto view = Game::Current().Play.GetRoomViewport(script_view->GetID());
     view->SetSize(Size(width, view->GetRect().GetHeight()));
 }
 
@@ -408,7 +411,7 @@ int Viewport_GetHeight(ScriptViewport *script_view)
         debug_script_warn("Viewport.Height: trying to use deleted viewport");
         return 0;
     }
-    return play.GetRoomViewport(script_view->GetID())->GetRect().GetHeight();
+    return Game::Current().Play.GetRoomViewport(script_view->GetID())->GetRect().GetHeight();
 }
 
 void Viewport_SetHeight(ScriptViewport *script_view, int height)
@@ -418,26 +421,28 @@ void Viewport_SetHeight(ScriptViewport *script_view, int height)
         debug_script_warn("Viewport.Height: trying to use deleted viewport");
         return;
     }
-    auto view = play.GetRoomViewport(script_view->GetID());
+    auto view = Game::Current().Play.GetRoomViewport(script_view->GetID());
     view->SetSize(Size(view->GetRect().GetWidth(), height));
 }
 
 ScriptCamera *Viewport_GetCamera(ScriptViewport *script_view)
 {
+    Game &game = Game::Current();
     if (script_view->GetID() < 0)
     {
         debug_script_warn("Viewport.Camera: trying to use deleted viewport");
         return nullptr;
     }
-    auto view = play.GetRoomViewport(script_view->GetID());
+    auto view = game.Play.GetRoomViewport(script_view->GetID());
     auto cam = view->GetCamera();
     if (!cam)
         return nullptr;
-    return play.GetScriptCamera(cam->GetID());
+    return game.Play.GetScriptCamera(cam->GetID());
 }
 
 void Viewport_SetCamera(ScriptViewport *script_view, ScriptCamera *script_cam)
 {
+    Game &game = Game::Current();
     if (script_view->GetID() < 0)
     {
         debug_script_warn("Viewport.Camera: trying to use deleted viewport");
@@ -448,7 +453,7 @@ void Viewport_SetCamera(ScriptViewport *script_view, ScriptCamera *script_cam)
         debug_script_warn("Viewport.Camera: trying to link deleted camera");
         return;
     }
-    auto view = play.GetRoomViewport(script_view->GetID());
+    auto view = game.Play.GetRoomViewport(script_view->GetID());
     // unlink the previous camera
     auto cam = view->GetCamera();
     if (cam)
@@ -456,7 +461,7 @@ void Viewport_SetCamera(ScriptViewport *script_view, ScriptCamera *script_cam)
     // link the new camera; null leaves the viewport without a camera
     if (script_cam != nullptr)
     {
-        cam = play.GetRoomCamera(script_cam->GetID());
+        cam = game.Play.GetRoomCamera(script_cam->GetID());
         view->LinkCamera(cam);
         cam->LinkToViewport(view);
     }
@@ -473,7 +478,7 @@ bool Viewport_GetVisible(ScriptViewport *script_view)
         debug_script_warn("Viewport.Visible: trying to use deleted viewport");
         return false;
     }
-    return play.GetRoomViewport(script_view->GetID())->IsVisible();
+    return Game::Current().Play.GetRoomViewport(script_view->GetID())->IsVisible();
 }
 
 void Viewport_SetVisible(ScriptViewport *script_view, bool on)
@@ -483,7 +488,7 @@ void Viewport_SetVisible(ScriptViewport *script_view, bool on)
         debug_script_warn("Viewport.Visible: trying to use deleted viewport");
         return;
     }
-    play.GetRoomViewport(script_view->GetID())->SetVisible(on);
+    Game::Current().Play.GetRoomViewport(script_view->GetID())->SetVisible(on);
 }
 
 int Viewport_GetZOrder(ScriptViewport *script_view)
@@ -493,18 +498,19 @@ int Viewport_GetZOrder(ScriptViewport *script_view)
         debug_script_warn("Viewport.ZOrder: trying to use deleted viewport");
         return 0;
     }
-    return play.GetRoomViewport(script_view->GetID())->GetZOrder();
+    return Game::Current().Play.GetRoomViewport(script_view->GetID())->GetZOrder();
 }
 
 void Viewport_SetZOrder(ScriptViewport *script_view, int zorder)
 {
+    Game &game = Game::Current();
     if (script_view->GetID() < 0)
     {
         debug_script_warn("Viewport.ZOrder: trying to use deleted viewport");
         return;
     }
-    play.GetRoomViewport(script_view->GetID())->SetZOrder(zorder);
-    play.InvalidateViewportZOrder();
+    game.Play.GetRoomViewport(script_view->GetID())->SetZOrder(zorder);
+    game.Play.InvalidateViewportZOrder();
 }
 
 ScriptShaderInstance *Viewport_GetShader(ScriptViewport *script_view)
@@ -515,7 +521,7 @@ ScriptShaderInstance *Viewport_GetShader(ScriptViewport *script_view)
         return nullptr;
     }
     return static_cast<ScriptShaderInstance *>(
-        ccGetObjectAddressFromHandle(play.GetRoomViewport(script_view->GetID())->GetShaderHandle()));
+        ccGetObjectAddressFromHandle(Game::Current().Play.GetRoomViewport(script_view->GetID())->GetShaderHandle()));
 }
 
 void Viewport_SetShader(ScriptViewport *script_view, ScriptShaderInstance *shader_inst)
@@ -525,17 +531,18 @@ void Viewport_SetShader(ScriptViewport *script_view, ScriptShaderInstance *shade
         debug_script_warn("Viewport.Shader: trying to use deleted viewport");
         return;
     }
-    auto view = play.GetRoomViewport(script_view->GetID());
+    auto view = Game::Current().Play.GetRoomViewport(script_view->GetID());
     view->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
                     ccReplaceObjectHandle(view->GetShaderHandle(), shader_inst));
 }
 
 ScriptViewport *Viewport_GetAtScreenXY(int x, int y)
 {
-    PViewport view = play.GetRoomViewportAt(x, y);
+    Game &game = Game::Current();
+    PViewport view = game.Play.GetRoomViewportAt(x, y);
     if (!view)
         return nullptr;
-    return play.GetScriptViewport(view->GetID());
+    return game.Play.GetScriptViewport(view->GetID());
 }
 
 void Viewport_SetPosition(ScriptViewport *script_view, int x, int y, int width, int height)
@@ -545,7 +552,7 @@ void Viewport_SetPosition(ScriptViewport *script_view, int x, int y, int width, 
         debug_script_warn("Viewport.SetPosition: trying to use deleted viewport");
         return;
     }
-    play.GetRoomViewport(script_view->GetID())->SetRect(RectWH(x, y, width, height));
+    Game::Current().Play.GetRoomViewport(script_view->GetID())->SetRect(RectWH(x, y, width, height));
 }
 
 ScriptUserObject *Viewport_ScreenToRoomPoint(ScriptViewport *script_view, int scrx, int scry, bool clip_viewport)
@@ -555,7 +562,7 @@ ScriptUserObject *Viewport_ScreenToRoomPoint(ScriptViewport *script_view, int sc
         debug_script_warn("Viewport.ScreenToRoomPoint: trying to use deleted viewport");
         return nullptr;
     }
-    VpPoint vpt = play.GetRoomViewport(script_view->GetID())->ScreenToRoom(scrx, scry, clip_viewport);
+    VpPoint vpt = Game::Current().Play.GetRoomViewport(script_view->GetID())->ScreenToRoom(scrx, scry, clip_viewport);
     if (vpt.second < 0)
         return nullptr;
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
@@ -563,13 +570,14 @@ ScriptUserObject *Viewport_ScreenToRoomPoint(ScriptViewport *script_view, int sc
 
 ScriptUserObject *Viewport_RoomToScreenPoint(ScriptViewport *script_view, int roomx, int roomy, bool clip_viewport)
 {
+    Game &game = Game::Current();
     if (script_view->GetID() < 0)
     {
         debug_script_warn("Viewport.RoomToScreenPoint: trying to use deleted viewport");
         return nullptr;
     }
-    Point pt = play.RoomToScreen(roomx, roomy);
-    if (clip_viewport && !play.GetRoomViewport(script_view->GetID())->GetRect().IsInside(pt.X, pt.Y))
+    Point pt = game.Play.RoomToScreen(roomx, roomy);
+    if (clip_viewport && !game.Play.GetRoomViewport(script_view->GetID())->GetRect().IsInside(pt.X, pt.Y))
         return nullptr;
     return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
 }

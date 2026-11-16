@@ -119,7 +119,7 @@ public:
 };
 
 
-// Runtime game state, the global "play".
+// Runtime game state, held by the game context as Game::Play (game/game_context.h).
 // ReadFromSavegame and WriteForSavegame keep the save layout of the fields below; it is not the order of the
 // fields here, and has gaps for removed fields, so it changes only with a new GameStateSvgVersion.
 // Not saved by them: stop_dialog_at_end, screen_is_faded_out, wait_skipped_by, wait_skipped_by_data,
@@ -574,5 +574,4 @@ private:
     std::unordered_map<int32_t, int32_t> _scriptTimers;
 };
 
-extern GamePlayState play;
 extern std::vector<CharacterExtras> charextra;

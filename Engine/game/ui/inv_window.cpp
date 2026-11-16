@@ -18,6 +18,7 @@
 #include "game/character_info.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
@@ -56,7 +57,7 @@ CharacterInfo *InvWindow_GetCharacterToUse(GUIInvWindow *guii)
     if (guii->GetCharacterID() < 0)
         return nullptr;
 
-    return &game.chars[guii->GetCharacterID()];
+    return &Game::Current().chars[guii->GetCharacterID()];
 }
 
 void InvWindow_SetItemWidth(GUIInvWindow *guii, int new_width)

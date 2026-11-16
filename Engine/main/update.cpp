@@ -23,6 +23,7 @@
 #include "device/sys_events.h"
 #include "game/dialog/lipsync.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
@@ -82,11 +83,12 @@ MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool do_step)
 
 void update_script_timers()
 {
+    Game &game = Game::Current();
     // Deprecated "graphical script" timer (use unknown)
-    if (play.gscript_timer > 0)
-        play.gscript_timer--;
+    if (game.Play.gscript_timer > 0)
+        game.Play.gscript_timer--;
 
-    play.UpdateScriptTimers();
+    game.Play.UpdateScriptTimers();
 }
 
 void update_cycling_views()
@@ -104,7 +106,7 @@ void update_player_view()
     if (playerchar->flags & CHF_FIXVIEW)
         return; // view is locked
 
-    int onwalkarea = get_walkable_area_at_character(game.playercharacter);
+    int onwalkarea = get_walkable_area_at_character(Game::Current().playercharacter);
     if (onwalkarea < 0)
         return; // error?
 
@@ -119,6 +121,7 @@ void update_player_view()
 
 void update_character_move_and_anim(std::vector<int> &following_as_sheep)
 {
+    Game &game = Game::Current();
     // move & animate characters
     for (int aa = 0; aa < game.numcharacters; aa++)
     {
@@ -137,7 +140,7 @@ void update_following_exactly_characters(const std::vector<int> &following_as_sh
     // update location of all following_exactly characters
     for (size_t i = 0; i < following_as_sheep.size(); ++i)
     {
-        CharacterInfo *ch = &game.chars[following_as_sheep[i]];
+        CharacterInfo *ch = &Game::Current().chars[following_as_sheep[i]];
 
         UpdateFollowingExactlyCharacter(ch);
     }
@@ -161,8 +164,9 @@ void update_overlay_timers()
 
 void update_speech_and_messages()
 {
+    Game &game = Game::Current();
     bool is_voice_playing = false;
-    if (play.speech_voice_blocking)
+    if (game.Play.speech_voice_blocking)
     {
         auto *playback = AudioChans::GetChannel(SCHAN_SPEECH);
         is_voice_playing = playback && playback->is_ready();
@@ -170,47 +174,47 @@ void update_speech_and_messages()
     // determine if speech text should be removed
     // TODO: this code is similar to the Display's box update (see DisplayMessageState::Run),
     // can we merge these two pieces of code? a kind of uniform DisplayText state?
-    if (play.messagetime >= 0)
+    if (game.Play.messagetime >= 0)
     {
-        play.messagetime--;
+        game.Play.messagetime--;
         // extend life of text if the voice hasn't finished yet
-        if (play.speech_voice_blocking && !play.speech_in_post_state)
+        if (game.Play.speech_voice_blocking && !game.Play.speech_in_post_state)
         {
-            if ((is_voice_playing) && (play.fast_forward == 0))
+            if ((is_voice_playing) && (game.Play.fast_forward == 0))
             {
-                if (play.messagetime <= 1)
-                    play.messagetime = 1;
+                if (game.Play.messagetime <= 1)
+                    game.Play.messagetime = 1;
             }
             // if the voice has finished, and we're not required to wait for text, then remove the speech
-            else if (!play.speech_always_wait_for_text)
+            else if (!game.Play.speech_always_wait_for_text)
             {
                 // if the voice has finished, remove the speech
-                play.messagetime = 0;
+                game.Play.messagetime = 0;
             }
         }
 
         // Enter speech post-state: optionally increase final waiting time
-        if (!play.speech_in_post_state && (play.fast_forward == 0) && (play.messagetime < 1))
+        if (!game.Play.speech_in_post_state && (game.Play.fast_forward == 0) && (game.Play.messagetime < 1))
         {
-            play.speech_in_post_state = true;
-            if (play.speech_display_post_time_ms > 0)
+            game.Play.speech_in_post_state = true;
+            if (game.Play.speech_display_post_time_ms > 0)
             {
-                play.messagetime = ::lround(play.speech_display_post_time_ms * get_game_fps() / 1000.0f);
+                game.Play.messagetime = ::lround(game.Play.speech_display_post_time_ms * get_game_fps() / 1000.0f);
             }
         }
 
-        if (play.messagetime < 1)
+        if (game.Play.messagetime < 1)
         {
-            if (play.fast_forward > 0)
+            if (game.Play.fast_forward > 0)
             {
-                remove_screen_overlay(play.text_overlay_on);
-                play.SetWaitSkipResult(SKIP_AUTOTIMER);
+                remove_screen_overlay(game.Play.text_overlay_on);
+                game.Play.SetWaitSkipResult(SKIP_AUTOTIMER);
             }
-            else if (play.speech_skip_style & SKIP_AUTOTIMER)
+            else if (game.Play.speech_skip_style & SKIP_AUTOTIMER)
             {
-                remove_screen_overlay(play.text_overlay_on);
-                play.SetWaitSkipResult(SKIP_AUTOTIMER);
-                play.SetIgnoreInput(play.ignore_user_input_after_text_timeout_ms);
+                remove_screen_overlay(game.Play.text_overlay_on);
+                game.Play.SetWaitSkipResult(SKIP_AUTOTIMER);
+                game.Play.SetIgnoreInput(game.Play.ignore_user_input_after_text_timeout_ms);
             }
         }
     }
@@ -218,7 +222,7 @@ void update_speech_and_messages()
 
 bool has_voice_lipsync()
 {
-    return play.speech_voice_blocking && (curLipLine >= 0);
+    return Game::Current().Play.speech_voice_blocking && (curLipLine >= 0);
 }
 
 int update_voice_lipsync(int frame)
@@ -244,7 +248,7 @@ int update_voice_lipsync(int frame)
         {
             curLipLinePhoneme++;
             if (curLipLinePhoneme >= splipsync[curLipLine].numPhonemes)
-                frame = game.default_lipsync_frame;
+                frame = Game::Current().default_lipsync_frame;
             else
                 frame = splipsync[curLipLine].frame[curLipLinePhoneme];
 
@@ -257,8 +261,9 @@ int update_voice_lipsync(int frame)
 
 void update_sierra_speech()
 {
+    Game &game = Game::Current();
     // Update sierra-style portrait (if active)
-    if ((face_talking >= 0) && (play.fast_forward == 0))
+    if ((face_talking >= 0) && (game.Play.fast_forward == 0))
     {
         int updatedFrame = 0;
 
@@ -307,23 +312,24 @@ void update_sierra_speech()
             facetalkwait--;
         }
         // don't animate if the speech has finished
-        else if ((play.messagetime < 1) && (facetalkframe == 0) &&
-                 // if play.close_mouth_speech_time = 0, this means animation should play till
+        else if ((game.Play.messagetime < 1) && (facetalkframe == 0) &&
+                 // if game.Play.close_mouth_speech_time = 0, this means animation should play till
                  // the speech ends; but this should not work in voice mode, and also if the
                  // speech is in the "post" state
-                 (play.speech_voice_blocking || play.speech_in_post_state || play.close_mouth_speech_time > 0))
+                 (game.Play.speech_voice_blocking || game.Play.speech_in_post_state ||
+                  game.Play.close_mouth_speech_time > 0))
         {
         }
         else
         {
             // Close mouth at end of sentence: if speech has entered the "post" state,
             // or if this is a text only mode and close_mouth_speech_time is set
-            if (play.speech_in_post_state ||
-                (!play.speech_voice_blocking && (play.messagetime < play.close_mouth_speech_time) &&
-                 (play.close_mouth_speech_time > 0)))
+            if (game.Play.speech_in_post_state ||
+                (!game.Play.speech_voice_blocking && (game.Play.messagetime < game.Play.close_mouth_speech_time) &&
+                 (game.Play.close_mouth_speech_time > 0)))
             {
                 facetalkframe = 0;
-                facetalkwait = play.messagetime;
+                facetalkwait = game.Play.messagetime;
             }
             else if ((game.options[OPT_LIPSYNCTEXT]) && (facetalkrepeat > 0))
             {
@@ -338,7 +344,8 @@ void update_sierra_speech()
                 // normal non-lip-sync
                 facetalkframe++;
                 if ((facetalkframe >= views[facetalkview].loops[facetalkloop].numFrames) ||
-                    (!play.speech_voice_blocking && (play.messagetime < 1) && (play.close_mouth_speech_time > 0)))
+                    (!game.Play.speech_voice_blocking && (game.Play.messagetime < 1) &&
+                     (game.Play.close_mouth_speech_time > 0)))
                 {
                     if ((facetalkframe >= views[facetalkview].loops[facetalkloop].numFrames) &&
                         (views[facetalkview].loops[facetalkloop].RunNextLoop()))
@@ -365,7 +372,7 @@ void update_sierra_speech()
         }
 
         // is_text_overlay might be 0 if it was only just destroyed this loop
-        if ((updatedFrame) && (play.text_overlay_on > 0))
+        if ((updatedFrame) && (game.Play.text_overlay_on > 0))
         {
             const auto &talking_chex = charextra[facetalkchar->index_id];
             const int frame_vol = talking_chex.GetFrameSoundVolume(facetalkchar);
@@ -386,11 +393,11 @@ void update_sierra_speech()
                 // QFG4-style fullscreen dialog
                 if (facetalk_qfg4_override_placement_x)
                 {
-                    view_frame_x = play.speech_portrait_x;
+                    view_frame_x = game.Play.speech_portrait_x;
                 }
                 if (facetalk_qfg4_override_placement_y)
                 {
-                    view_frame_y = play.speech_portrait_y;
+                    view_frame_y = game.Play.speech_portrait_y;
                 }
                 else
                 {

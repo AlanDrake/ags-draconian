@@ -21,6 +21,7 @@
 #include "debug/debugger.h"
 #include "game/dynobj/script_video_player.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_state.h"
 #include "game/video/video.h"
 #include "media/video/videoplayer.h"
@@ -228,7 +229,7 @@ void VideoPlayer_SetVolume(ScriptVideoPlayer *sc_video, int volume)
 void PlayFlic(int numb, int scr_flags)
 {
     EndSkippingUntilCharStops();
-    if (play.fast_forward)
+    if (Game::Current().Play.fast_forward)
         return;
     if (debug_flags & DBG_NOVIDEO)
         return;
@@ -279,7 +280,7 @@ void PlayFlic(int numb, int scr_flags)
 void PlayVideo(const char *name, int skip, int scr_flags)
 {
     EndSkippingUntilCharStops();
-    if (play.fast_forward)
+    if (Game::Current().Play.fast_forward)
         return;
     if (debug_flags & DBG_NOVIDEO)
         return;

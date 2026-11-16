@@ -31,6 +31,7 @@
 #include "game/dialog/display.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/input/joystick.h"
@@ -155,10 +156,12 @@ public:
     // Update the state during a game tick
     bool Run() override
     {
+        Game &game = Game::Current();
         // If skipping cutscene and expecting user input: don't wait at all
-        if (play.fast_forward && (play.wait_counter != 0) && ((play.key_skip_wait & ~SKIP_AUTOTIMER) != 0))
+        if (game.Play.fast_forward && (game.Play.wait_counter != 0) &&
+            ((game.Play.key_skip_wait & ~SKIP_AUTOTIMER) != 0))
         {
-            play.SetWaitSkipResult(SKIP_NONE);
+            game.Play.SetWaitSkipResult(SKIP_NONE);
             return false;
         }
 
@@ -194,6 +197,7 @@ static void ProperExit()
 // that may lead to warnings or game aborts
 static void GameUpdateCheckProblems()
 {
+    Game &game = Game::Current();
     if (displayed_room < 0)
     {
         quit("!A blocking function was called before the first room has been loaded");
@@ -213,8 +217,8 @@ static void GameUpdateCheckProblems()
     // If we're not fading in, don't count the fadeouts
     // TODO: this fixup does not belong to the per-frame check; it should be done once, after restoring
     // a save, and after 'no_hicolor_fadein' or OPT_FADETYPE is changed
-    if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == kScrTran_Fade))
-        play.screen_is_faded_out = false;
+    if ((game.Play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == kScrTran_Fade))
+        game.Play.screen_is_faded_out = false;
 }
 
 // Runs rep-exec-always immediately,
@@ -247,6 +251,7 @@ static void GameUpdateLateRepExec()
 // "Stand On" event callbacks.
 static void GameUpdateCheckGroundInteractions()
 {
+    Game &game = Game::Current();
     // Do not check for ground interactions if we are in the process of
     // entering the room (between "load room" and "after fade-in" events).
     // (For backwards compatibility, skip this condition for older games)
@@ -254,7 +259,7 @@ static void GameUpdateCheckGroundInteractions()
         return;
 
     // If ground interactions are disabled completely, then bail out
-    if ((play.ground_level_areas_disabled & GLED_INTERACTION) != 0)
+    if ((game.Play.ground_level_areas_disabled & GLED_INTERACTION) != 0)
         return;
 
     // Do not check for ground interactions while in the waiting
@@ -268,7 +273,7 @@ static void GameUpdateCheckGroundInteractions()
     // (That was pretty unreliable though.)
     if (IsInBlockingAction())
     {
-        // NOTE: play.player_on_region is not updated here; the change is detected by the first update
+        // NOTE: game.Play.player_on_region is not updated here; the change is detected by the first update
         // after the blocking action ends. Updating it here would instead let the player trigger
         // "walk on/off region" after finishing a blocking walk, if it was walking back and forth
         // the region and the last step has crossed the region's border.
@@ -284,13 +289,13 @@ static void GameUpdateCheckGroundInteractions()
 
         // check current region
         int on_region = GetRegionIDAtRoom(playerchar->x, playerchar->y, kHit_Interactable);
-        if (on_region != play.player_on_region)
+        if (on_region != game.Play.player_on_region)
         {
-            // we need to save this and set play.player_on_region
+            // we need to save this and set game.Play.player_on_region
             // now, so it's correct going into RunRegionInteraction
-            int old_region = play.player_on_region;
+            int old_region = game.Play.player_on_region;
 
-            play.player_on_region = on_region;
+            game.Play.player_on_region = on_region;
             // Walks Off last region
             if (old_region > 0)
                 setevent(AGSEvent_Object(kObjEventType_Region, old_region, kRegionEvent_WalkOff));
@@ -299,9 +304,9 @@ static void GameUpdateCheckGroundInteractions()
                 setevent(AGSEvent_Object(kObjEventType_Region, on_region, kRegionEvent_WalkOn));
         }
 
-        if (play.player_on_region > 0) // player stands on region
+        if (game.Play.player_on_region > 0) // player stands on region
         {
-            setevent(AGSEvent_Object(kObjEventType_Region, play.player_on_region, kRegionEvent_Standing));
+            setevent(AGSEvent_Object(kObjEventType_Region, game.Play.player_on_region, kRegionEvent_Standing));
         }
     }
 }
@@ -350,7 +355,7 @@ static int wasongui = 0;
 // Runs default handling of mouse movement, button state, and wheel
 static void check_mouse_state(int &was_mouse_on_iface)
 {
-    if (!play.mouse_input_enabled)
+    if (!Game::Current().Play.mouse_input_enabled)
         return;
 
     mouse_on_iface = gui_on_mouse_move(mousex, mousey);
@@ -381,12 +386,13 @@ static void check_mouse_state(int &was_mouse_on_iface)
 // Runs default mouse button handling
 static void check_mouse_controls(const int was_mouse_on_iface)
 {
+    Game &game = Game::Current();
     eAGSMouseButton mbut;
     Point mpos;
     if (run_service_mb_controls(mbut, &mpos) && mbut > kMouseNone)
     {
         // NOTE: this option disables mouse *in game*, the "service" controls are always run.
-        if (!play.mouse_input_enabled)
+        if (!game.Play.mouse_input_enabled)
         {
             // Still run the plugin hooks though, as it may be overriding game logic
             // TODO: we might consider to expand plugin api, having this issue in mind
@@ -398,19 +404,19 @@ static void check_mouse_controls(const int was_mouse_on_iface)
 
         check_skip_cutscene_mclick(mbut);
 
-        if (play.fast_forward || play.IsIgnoringInput())
+        if (game.Play.fast_forward || game.Play.IsIgnoringInput())
         { /* do nothing if skipping cutscene or input disabled */
         }
-        else if ((play.wait_counter != 0) && (play.key_skip_wait & SKIP_MOUSECLICK) != 0)
+        else if ((game.Play.wait_counter != 0) && (game.Play.key_skip_wait & SKIP_MOUSECLICK) != 0)
         {
-            play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
+            game.Play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
         }
-        else if (play.text_overlay_on > 0)
+        else if (game.Play.text_overlay_on > 0)
         {
-            if (play.speech_skip_style & SKIP_MOUSECLICK)
+            if (game.Play.speech_skip_style & SKIP_MOUSECLICK)
             {
-                remove_screen_overlay(play.text_overlay_on);
-                play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
+                remove_screen_overlay(game.Play.text_overlay_on);
+                game.Play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
             }
         }
         else if (!IsInterfaceEnabled())
@@ -444,6 +450,7 @@ static void check_mouse_controls(const int was_mouse_on_iface)
 //   because game variables may store old-style key + mod codes.
 bool run_service_key_controls(KeyInput &out_key)
 {
+    Game &game = Game::Current();
     out_key = KeyInput(); // clear the output
     if (ags_inputevent_ready() != kInputKeyboard)
         return false; // there was no key event
@@ -527,7 +534,7 @@ bool run_service_key_controls(KeyInput &out_key)
     }
 
     // Alt+X, abort (but only once game is loaded)
-    if ((displayed_room >= 0) && (play.abort_key > 0) && (ags_combo_key == play.abort_key))
+    if ((displayed_room >= 0) && (game.Play.abort_key > 0) && (ags_combo_key == game.Play.abort_key))
     {
         Debug::Printf("Abort key pressed");
         check_dynamic_sprites_at_exit = 0;
@@ -543,15 +550,15 @@ bool run_service_key_controls(KeyInput &out_key)
 
     // FIXME: the info is incomplete in a game with many objects or characters (at most 8 objects are listed;
     // the characters list is split into message boxes by a fixed text length), which makes it inconvenient
-    if ((ags_combo_key == eAGSKeyCodeCtrlD) && (play.debug_mode > 0))
+    if ((ags_combo_key == eAGSKeyCodeCtrlD) && (game.Play.debug_mode > 0))
     {
         // ctrl+D - show info
-        String buffer = String::FromFormat("In room %d %s\nPlayer at %d, %d (view %d, loop %d, frame %d)%s%s%s",
-                                           displayed_room, (noWalkBehindsAtAll ? "(has no walk-behinds)" : ""),
-                                           playerchar->x, playerchar->y, playerchar->view + 1, playerchar->loop,
-                                           playerchar->frame, (IsGamePaused() == 0) ? "" : "\nGame paused.",
-                                           (play.ground_level_areas_disabled == 0) ? "" : "\nGround areas disabled.",
-                                           (IsInterfaceEnabled() == 0) ? "\nGame in Wait state" : "");
+        String buffer = String::FromFormat(
+            "In room %d %s\nPlayer at %d, %d (view %d, loop %d, frame %d)%s%s%s", displayed_room,
+            (noWalkBehindsAtAll ? "(has no walk-behinds)" : ""), playerchar->x, playerchar->y, playerchar->view + 1,
+            playerchar->loop, playerchar->frame, (IsGamePaused() == 0) ? "" : "\nGame paused.",
+            (game.Play.ground_level_areas_disabled == 0) ? "" : "\nGround areas disabled.",
+            (IsInterfaceEnabled() == 0) ? "\nGame in Wait state" : "");
         for (uint32_t obj_id = 0; obj_id < croom->numobj; obj_id++)
         {
             if (obj_id >= 8)
@@ -594,14 +601,14 @@ bool run_service_key_controls(KeyInput &out_key)
         return false;
     }
 
-    if (((ags_combo_key == eAGSKeyCodeCtrlV) && (ki.Mod & eAGSModAlt) != 0) && (play.wait_counter < 1) &&
-        (play.text_overlay_on == 0) && (!restrict_until))
+    if (((ags_combo_key == eAGSKeyCodeCtrlV) && (ki.Mod & eAGSModAlt) != 0) && (game.Play.wait_counter < 1) &&
+        (game.Play.text_overlay_on == 0) && (!restrict_until))
     {
         // make sure we can't interrupt a Wait()
         // and desync the music to cutscene
-        play.debug_mode++;
+        game.Play.debug_mode++;
         script_debug(1, 0);
-        play.debug_mode--;
+        game.Play.debug_mode--;
         return false;
     }
 
@@ -614,6 +621,7 @@ bool run_service_key_controls(KeyInput &out_key)
 static void check_keyboard_controls()
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     // First check for service engine's combinations (mouse lock, display mode switch, and so forth)
     KeyInput ki;
     if (!run_service_key_controls(ki))
@@ -638,36 +646,36 @@ static void check_keyboard_controls()
 
     // Cutscene skip
     check_skip_cutscene_keypress(ags_combo_key);
-    if (play.fast_forward)
+    if (game.Play.fast_forward)
     {
         return;
     }
     // Cancel if temporarily ignoring input (cutscene skipping was already checked above)
-    if (play.IsIgnoringInput())
+    if (game.Play.IsIgnoringInput())
     {
         return;
     }
 
     // Skip speech if instructed by Speech.SkipStyle
-    if ((play.text_overlay_on > 0) && (play.speech_skip_style & SKIP_KEYPRESS) && !IsAGSServiceKey(ki.Key))
+    if ((game.Play.text_overlay_on > 0) && (game.Play.speech_skip_style & SKIP_KEYPRESS) && !IsAGSServiceKey(ki.Key))
     {
         // only allow a key to remove the overlay if the icon bar isn't up
         if (IsGamePaused() == 0)
         {
             // check if it requires a specific keypress
-            if ((play.skip_speech_specific_key == 0) || (ags_combo_key == play.skip_speech_specific_key))
+            if ((game.Play.skip_speech_specific_key == 0) || (ags_combo_key == game.Play.skip_speech_specific_key))
             {
-                remove_screen_overlay(play.text_overlay_on);
-                play.SetWaitKeySkip(ki);
+                remove_screen_overlay(game.Play.text_overlay_on);
+                game.Play.SetWaitKeySkip(ki);
             }
         }
         return;
     }
 
     // Skip Wait state
-    if ((play.wait_counter != 0) && (play.key_skip_wait & SKIP_KEYPRESS) && !IsAGSServiceKey(ki.Key))
+    if ((game.Play.wait_counter != 0) && (game.Play.key_skip_wait & SKIP_KEYPRESS) && !IsAGSServiceKey(ki.Key))
     {
-        play.SetWaitKeySkip(ki);
+        game.Play.SetWaitKeySkip(ki);
         return;
     }
 
@@ -713,13 +721,13 @@ static void check_keyboard_controls()
     // Built-in key-presses
     if ((services.Config.Override.KeySaveGame > 0) && (ags_combo_key == services.Config.Override.KeySaveGame))
     {
-        do_save_game_dialog(0, TOP_SAVESLOT - 1, play.normal_font); // ignore special slot 999
+        do_save_game_dialog(0, TOP_SAVESLOT - 1, game.Play.normal_font); // ignore special slot 999
         return;
     }
     else if ((services.Config.Override.KeyRestoreGame > 0) &&
              (ags_combo_key == services.Config.Override.KeyRestoreGame))
     {
-        do_restore_game_dialog(0, TOP_SAVESLOT - 1, play.normal_font); // ignore special slot 999
+        do_restore_game_dialog(0, TOP_SAVESLOT - 1, game.Play.normal_font); // ignore special slot 999
         return;
     }
     else if ((services.Config.Override.KeyDebugWalkable > 0) &&
@@ -774,6 +782,7 @@ bool run_service_gamepad_controls(GamepadInput &out_key)
 // Runs default gamepad handling
 static void check_gamepad_controls()
 {
+    Game &game = Game::Current();
     // Read the gamepad button press
     GamepadInput gi;
     if (!run_service_gamepad_controls(gi))
@@ -783,31 +792,31 @@ static void check_gamepad_controls()
     eAGSGamepad_Button gamepad_button = gi.Button;
     // Then, check cutscene skip
     check_skip_cutscene_gamepad(gamepad_button);
-    if (play.fast_forward)
+    if (game.Play.fast_forward)
     {
         return;
     }
-    if (play.IsIgnoringInput())
+    if (game.Play.IsIgnoringInput())
     {
         return;
     }
 
     // skip speech if desired by Speech.SkipStyle
-    if ((play.text_overlay_on > 0) && (play.speech_skip_style & SKIP_KEYPRESS))
+    if ((game.Play.text_overlay_on > 0) && (game.Play.speech_skip_style & SKIP_KEYPRESS))
     {
         // only allow a key to remove the overlay if the icon bar isn't up
         if (IsGamePaused() == 0)
         {
-            remove_screen_overlay(play.text_overlay_on);
-            play.SetWaitSkipResult(SKIP_GAMEPAD, gamepad_button);
+            remove_screen_overlay(game.Play.text_overlay_on);
+            game.Play.SetWaitSkipResult(SKIP_GAMEPAD, gamepad_button);
         }
 
         return;
     }
 
-    if ((play.wait_counter != 0) && (play.key_skip_wait & SKIP_KEYPRESS) != 0)
+    if ((game.Play.wait_counter != 0) && (game.Play.key_skip_wait & SKIP_KEYPRESS) != 0)
     {
-        play.SetWaitSkipResult(SKIP_GAMEPAD, gamepad_button);
+        game.Play.SetWaitSkipResult(SKIP_GAMEPAD, gamepad_button);
         return;
     }
 
@@ -846,14 +855,15 @@ bool run_service_touch_controls(TouchInput &out_touch)
 
 static void check_touch_controls()
 {
+    Game &game = Game::Current();
     TouchInput ti;
     if (!run_service_touch_controls(ti))
         return;
 
     // TODO: check cutscene skip
-    if (play.fast_forward)
+    if (game.Play.fast_forward)
         return;
-    if (play.IsIgnoringInput())
+    if (game.Play.IsIgnoringInput())
         return;
 
     // Run script callbacks
@@ -915,8 +925,9 @@ static void GameUpdateCheckControls()
 // Check room edges triggers
 static void GameUpdateCheckRoomEdges()
 {
+    Game &game = Game::Current();
     if ((IsInterfaceEnabled()) && (IsGamePaused() == 0) &&
-        ((play.ground_level_areas_disabled & GLED_INTERACTION) == 0) && (in_new_room == kEnterRoom_None) &&
+        ((game.Play.ground_level_areas_disabled & GLED_INTERACTION) == 0) && (in_new_room == kEnterRoom_None) &&
         (new_room_was == kEnterRoom_None))
     {
         // Only allow walking off edges if not in wait mode, and
@@ -931,14 +942,14 @@ static void GameUpdateCheckRoomEdges()
         else if (playerchar->y <= thisroom.Edges.Top)
             edges_activated[3] = 1;
 
-        if ((play.entered_edge >= 0) && (play.entered_edge <= 3))
+        if ((game.Play.entered_edge >= 0) && (game.Play.entered_edge <= 3))
         {
             // once the player is no longer outside the edge, forget the stored edge
-            if (edges_activated[play.entered_edge] == 0)
-                play.entered_edge = -10;
+            if (edges_activated[game.Play.entered_edge] == 0)
+                game.Play.entered_edge = -10;
             // if we are walking in from off-screen, don't activate edges
             else
-                edges_activated[play.entered_edge] = 0;
+                edges_activated[game.Play.entered_edge] = 0;
         }
 
         for (int edge = 0; edge < 4; edge++)
@@ -951,16 +962,17 @@ static void GameUpdateCheckRoomEdges()
 
 static void game_loop_update_background_animation()
 {
-    if (play.bg_anim_delay > 0)
-        play.bg_anim_delay--;
-    else if (play.bg_frame_locked)
+    Game &game = Game::Current();
+    if (game.Play.bg_anim_delay > 0)
+        game.Play.bg_anim_delay--;
+    else if (game.Play.bg_frame_locked)
         ;
     else
     {
-        play.bg_anim_delay = play.anim_background_speed;
-        play.bg_frame++;
-        if ((size_t)play.bg_frame >= thisroom.BgFrameCount)
-            play.bg_frame = 0;
+        game.Play.bg_anim_delay = game.Play.anim_background_speed;
+        game.Play.bg_frame++;
+        if ((size_t)game.Play.bg_frame >= thisroom.BgFrameCount)
+            game.Play.bg_frame = 0;
         if (thisroom.BgFrameCount >= 2)
         {
             // get the new frame's palette
@@ -971,10 +983,11 @@ static void game_loop_update_background_animation()
 
 static void game_loop_update_game_counters()
 {
-    if (play.wait_counter > 0)
-        play.wait_counter--;
-    if (play.shakesc_length > 0)
-        play.shakesc_length--;
+    Game &game = Game::Current();
+    if (game.Play.wait_counter > 0)
+        game.Play.wait_counter--;
+    if (game.Play.shakesc_length > 0)
+        game.Play.shakesc_length--;
 }
 
 static void GameUpdateGameState()
@@ -1019,7 +1032,7 @@ static void update_objects_scale()
         update_object_scale(obj_id);
     }
 
-    for (int char_id = 0; char_id < game.numcharacters; ++char_id)
+    for (int char_id = 0; char_id < Game::Current().numcharacters; ++char_id)
     {
         update_character_scale(char_id);
     }
@@ -1043,7 +1056,7 @@ static void update_cursor_over_gui()
 {
     if (((debug_flags & DBG_NOIFACE) != 0) || (displayed_room < 0))
         return; // GUI is disabled (debug flag) or room is not loaded
-    if (!IsInterfaceEnabled() || !play.mouse_input_enabled)
+    if (!IsInterfaceEnabled() || !Game::Current().Play.mouse_input_enabled)
         return; // interface is disabled (by script or blocking action)
     // Poll guis
     int focused_gui = GetGUIAt(mousex, mousey, kHit_Interactable);
@@ -1059,6 +1072,7 @@ static void update_cursor_over_gui()
 
 static void update_cursor_view()
 {
+    Game &game = Game::Current();
     // update animating mouse cursor
     // NOTE: we are still doing this even if the in-game mouse input is disabled,
     // or mouse cursor is hidden, the animation logic keeps running in the background.
@@ -1093,7 +1107,8 @@ static void update_cursor_view()
 // Update the "saved cursor until it leaves location" state
 static void UpdateSavedCursorOverLocation()
 {
-    if (!play.mouse_input_enabled)
+    Game &game = Game::Current();
+    if (!game.Play.mouse_input_enabled)
         return;
 
     // Call GetLocationName - it will internally force a GUI refresh
@@ -1102,22 +1117,23 @@ static void UpdateSavedCursorOverLocation()
     // calls it again, but at the end of the tick, after the input and the script events.
     GetLocationName(mousex, mousey, kHit_Interactable);
 
-    if ((play.get_loc_name_save_cursor.IsDefined()) && (play.get_loc_name_save_cursor != play.get_loc_name_last_time) &&
-        (mouse_on_iface < 0) && (ifacepopped < 0))
+    if ((game.Play.get_loc_name_save_cursor.IsDefined()) &&
+        (game.Play.get_loc_name_save_cursor != game.Play.get_loc_name_last_time) && (mouse_on_iface < 0) &&
+        (ifacepopped < 0))
     {
         // we have saved the cursor, but the mouse location has changed
         // and it's time to restore it
-        play.get_loc_name_save_cursor = {};
-        set_cursor_mode(play.restore_cursor_mode_to);
+        game.Play.get_loc_name_save_cursor = {};
+        set_cursor_mode(game.Play.restore_cursor_mode_to);
 
-        if (cur_mode == play.restore_cursor_mode_to)
+        if (cur_mode == game.Play.restore_cursor_mode_to)
         {
             // make sure it changed -- the new mode might have been disabled
             // in which case don't change the image
-            set_cursor_look(play.restore_cursor_image_to);
+            set_cursor_look(game.Play.restore_cursor_image_to);
         }
-        debug_script_log("Restore mouse to mode %d cursor %d", play.restore_cursor_mode_to,
-                         play.restore_cursor_image_to);
+        debug_script_log("Restore mouse to mode %d cursor %d", game.Play.restore_cursor_mode_to,
+                         game.Play.restore_cursor_image_to);
     }
 }
 
@@ -1125,14 +1141,15 @@ static void UpdateSavedCursorOverLocation()
 // This will be required for GUI labels render.
 static void UpdateGUIContext()
 {
-    if (play.fast_forward)
+    Game &game = Game::Current();
+    if (game.Play.fast_forward)
         return;
     if (displayed_room < 0)
         return;
 
     // It's easier to update these every game tick, this is simple data and copy is fast,
     // OTOH it may be inconvenient to have this in every place where this data changes.
-    GUI::Context.GameTitle = play.game_name;
+    GUI::Context.GameTitle = game.Play.game_name;
 
     if (playerchar->activeinv < 0 || playerchar->activeinv >= game.numinvitems)
         GUI::Context.InventoryPic = -1;
@@ -1144,7 +1161,7 @@ static void UpdateGUIContext()
     // on game object positions, and game state changes, and we cannot track all of that here.
     //
     // While game is in Wait mode, or in room transition: set empty overhotspot text.
-    if (!IsInterfaceEnabled() || in_room_transition || !play.mouse_input_enabled)
+    if (!IsInterfaceEnabled() || in_room_transition || !game.Play.mouse_input_enabled)
         GUI::Context.Overhotspot = "";
     else
         GUI::Context.Overhotspot = GetLocationName(mousex, mousey, kHit_Interactable);
@@ -1153,12 +1170,13 @@ static void UpdateGUIContext()
 // Detect mouse move over hotspot, and run respective event if necessary
 static void update_cursor_over_location(int mouse_was_x, int mouse_was_y)
 {
-    if (play.fast_forward)
+    Game &game = Game::Current();
+    if (game.Play.fast_forward)
         return;
-    if (displayed_room < 0 || !play.mouse_input_enabled)
+    if (displayed_room < 0 || !game.Play.mouse_input_enabled)
         return;
 
-    auto view = play.GetRoomViewportAt(mousex, mousey);
+    auto view = game.Play.GetRoomViewportAt(mousex, mousey);
     auto cam = view ? view->GetCamera() : nullptr;
     if (!cam)
         return;
@@ -1192,7 +1210,7 @@ static void UpdateDrawableObjectStates(bool do_cursor, int mouse_was_x, int mous
         return;
 
     // camera positions may be linked to a player character
-    play.UpdateRoomCameras();
+    Game::Current().Play.UpdateRoomCameras();
 
     update_objects_scale();
     // overlay positions may be linked to a certain character
@@ -1335,6 +1353,7 @@ uint32_t get_runtime_ms()
 //
 void UpdateGameOnce(bool do_controls, AGS::Engine::IDriverDependantBitmap *extra_ddb, int extra_x, int extra_y)
 {
+    Game &game = Game::Current();
     set_our_eip(1000);
 
     sys_evt_process_pending();
@@ -1414,7 +1433,7 @@ void UpdateGameOnce(bool do_controls, AGS::Engine::IDriverDependantBitmap *extra
     // Record necessary values for the GUI rendering
     UpdateGUIContext();
     // Only render if we are not skipping a cutscene
-    if (!play.fast_forward)
+    if (!game.Play.fast_forward)
     {
         update_gui_disabled_status(); // in case they changed it in the late script update
         render_graphics(extra_ddb, extra_x, extra_y);
@@ -1429,7 +1448,7 @@ void UpdateGameOnce(bool do_controls, AGS::Engine::IDriverDependantBitmap *extra
     set_our_eip(1010);
 
     // Immediately start the next frame if we are skipping a cutscene
-    if (play.fast_forward)
+    if (game.Play.fast_forward)
         return;
 
     set_our_eip(1011);
@@ -1485,7 +1504,7 @@ static bool ShouldStayInWaitMode()
     }
     case UNTIL_NOOVERLAY:
     {
-        return !(play.text_overlay_on == 0);
+        return !(Game::Current().Play.text_overlay_on == 0);
     }
     case UNTIL_INTIS0:
     {

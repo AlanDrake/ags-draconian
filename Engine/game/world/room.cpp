@@ -26,6 +26,7 @@
 #include "game/dynobj/script_shader.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_init.h"
 #include "game/game_state.h"
@@ -90,7 +91,7 @@ ScriptDrawingSurface *Room_GetDrawingSurfaceForBackground(int bg_index)
 
     if (bg_index == SCR_NO_VALUE)
     {
-        bg_index = play.bg_frame;
+        bg_index = Game::Current().Play.bg_frame;
     }
 
     if ((bg_index < 0) || (static_cast<uint32_t>(bg_index) >= thisroom.BgFrameCount))
@@ -344,6 +345,7 @@ void save_room_data_segment()
 
 void unload_old_room()
 {
+    Game &game = Game::Current();
     // if switching games on restore, don't do this
     if (displayed_room < 0)
         return;
@@ -392,13 +394,13 @@ void unload_old_room()
     }
     else
         croom->tsdatasize = 0;
-    memset(&play.walkable_areas_on[0], 1, MAX_WALK_AREAS);
-    play.bg_frame = 0;
-    play.bg_frame_locked = 0;
+    memset(&game.Play.walkable_areas_on[0], 1, MAX_WALK_AREAS);
+    game.Play.bg_frame = 0;
+    game.Play.bg_frame_locked = 0;
     remove_all_overlays();
-    std::fill(play.room_bg_modified.begin(), play.room_bg_modified.end(), false);
+    std::fill(game.Play.room_bg_modified.begin(), game.Play.room_bg_modified.end(), false);
     for (int i = 0; i < kNumRoomAreaTypes; ++i)
-        play.room_mask_modified[i] = false;
+        game.Play.room_mask_modified[i] = false;
 
     // ensure that any half-moves (eg. with scaled movement) are stopped
     for (int i = 0; i < game.numcharacters; i++)
@@ -406,8 +408,8 @@ void unload_old_room()
         charextra[i].xwas = INVALID_X;
     }
 
-    play.swap_portrait_lastchar = -1;
-    play.swap_portrait_lastlastchar = -1;
+    game.Play.swap_portrait_lastchar = -1;
+    game.Play.swap_portrait_lastlastchar = -1;
 
     // Remove named room elements from script
     for (uint32_t i = 0; i < thisroom.Objects.size(); ++i)
@@ -447,10 +449,10 @@ void unload_old_room()
     clear_drawobj_cache(true /* keep object callbacks */);
 
     // if Hide Player Character was ticked, restore it to visible
-    if (play.temporarily_turned_off_character >= 0)
+    if (game.Play.temporarily_turned_off_character >= 0)
     {
-        game.chars[play.temporarily_turned_off_character].set_enabled(true);
-        play.temporarily_turned_off_character = -1;
+        game.chars[game.Play.temporarily_turned_off_character].set_enabled(true);
+        game.Play.temporarily_turned_off_character = -1;
     }
 
     pool.PrintStats();
@@ -461,11 +463,12 @@ void unload_old_room()
 // Automatically reset primary room viewport and camera to match the new room size
 static void adjust_viewport_to_room()
 {
+    Game &game = Game::Current();
     const Size real_room_sz = Size(thisroom.Width, thisroom.Height);
-    const Rect main_view = play.GetMainViewport();
+    const Rect main_view = game.Play.GetMainViewport();
     Rect new_room_view = RectWH(Size::Clamp(real_room_sz, Size(1, 1), main_view.GetSize()));
 
-    auto view = play.GetRoomViewport(0);
+    auto view = game.Play.GetRoomViewport(0);
     view->SetRect(new_room_view);
     auto cam = view->GetCamera();
     if (cam)
@@ -479,9 +482,10 @@ static void adjust_viewport_to_room()
 // Run through all viewports and cameras to make sure they can work in new room's bounds
 static void update_all_viewcams_with_newroom()
 {
-    for (int i = 0; i < play.GetRoomCameraCount(); ++i)
+    Game &game = Game::Current();
+    for (int i = 0; i < game.Play.GetRoomCameraCount(); ++i)
     {
-        auto cam = play.GetRoomCamera(i);
+        auto cam = game.Play.GetRoomCamera(i);
         const Rect old_pos = cam->GetRect();
         cam->SetSize(old_pos.GetSize());
         cam->SetAt(old_pos.Left, old_pos.Top);
@@ -568,11 +572,12 @@ HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr,
 void load_new_room(int room_id, CharacterInfo *ch)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     debug_script_log("Loading room %d", room_id);
 
     String room_filename;
     done_as_error = false;
-    play.room_changes++;
+    game.Play.room_changes++;
     displayed_room = room_id;
 
     room_filename.Format("room%d.crm", room_id);
@@ -613,15 +618,15 @@ void load_new_room(int room_id, CharacterInfo *ch)
 
     set_our_eip(201);
 
-    play.room_width = thisroom.Width;
-    play.room_height = thisroom.Height;
-    play.anim_background_speed = thisroom.BgAnimSpeed;
-    play.bg_anim_delay = play.anim_background_speed;
-    play.room_bg_modified.resize(thisroom.BgFrameCount);
+    game.Play.room_width = thisroom.Width;
+    game.Play.room_height = thisroom.Height;
+    game.Play.anim_background_speed = thisroom.BgAnimSpeed;
+    game.Play.bg_anim_delay = game.Play.anim_background_speed;
+    game.Play.room_bg_modified.resize(thisroom.BgFrameCount);
 
     // Fixup the frame index, in case the new room does not have enough background frames
-    if (play.bg_frame < 0 || static_cast<size_t>(play.bg_frame) >= thisroom.BgFrameCount)
-        play.bg_frame = 0;
+    if (game.Play.bg_frame < 0 || static_cast<size_t>(game.Play.bg_frame) >= thisroom.BgFrameCount)
+        game.Play.bg_frame = 0;
 
     // Set up the 8-bit palettes: a color the game marks as PAL_BACKGROUND takes the room's palette;
     // for every other color the game-wide one is copied into each background frame's palette
@@ -772,7 +777,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
     }
 
     set_our_eip(210);
-    if (play.ShouldAASprites())
+    if (game.Play.ShouldAASprites())
     {
         create_rgb_table(&rgb_table, palette, nullptr);
         rgb_map = &rgb_table;
@@ -829,7 +834,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
         }
     }
     set_our_eip(207);
-    play.entered_edge = -1;
+    game.Play.entered_edge = -1;
 
     if ((new_room_x != SCR_NO_VALUE) && (ch != nullptr))
     {
@@ -850,7 +855,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
     {
         if (new_room_pos >= 4000)
         {
-            play.entered_edge = 3;
+            game.Play.entered_edge = 3;
             ch->y = thisroom.Edges.Top + 1;
             ch->x = new_room_pos % 1000;
             if (ch->x == 0)
@@ -863,7 +868,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
         }
         else if (new_room_pos >= 3000)
         {
-            play.entered_edge = 2;
+            game.Play.entered_edge = 2;
             ch->y = thisroom.Edges.Bottom - 1;
             ch->x = new_room_pos % 1000;
             if (ch->x == 0)
@@ -876,7 +881,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
         }
         else if (new_room_pos >= 2000)
         {
-            play.entered_edge = 1;
+            game.Play.entered_edge = 1;
             ch->x = thisroom.Edges.Right - 1;
             ch->y = new_room_pos % 1000;
             if (ch->y == 0)
@@ -889,7 +894,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
         }
         else if (new_room_pos >= 1000)
         {
-            play.entered_edge = 0;
+            game.Play.entered_edge = 0;
             ch->x = thisroom.Edges.Left + 1;
             ch->y = new_room_pos % 1000;
             if (ch->y == 0)
@@ -968,16 +973,16 @@ void load_new_room(int room_id, CharacterInfo *ch)
     }
     if (ch != nullptr)
     {
-        play.entered_at_x = ch->x;
-        play.entered_at_y = ch->y;
+        game.Play.entered_at_x = ch->x;
+        game.Play.entered_at_y = ch->y;
         if (ch->x >= thisroom.Edges.Right)
-            play.entered_edge = 1;
+            game.Play.entered_edge = 1;
         else if (ch->x <= thisroom.Edges.Left)
-            play.entered_edge = 0;
+            game.Play.entered_edge = 0;
         else if (ch->y >= thisroom.Edges.Bottom)
-            play.entered_edge = 2;
+            game.Play.entered_edge = 2;
         else if (ch->y <= thisroom.Edges.Top)
-            play.entered_edge = 3;
+            game.Play.entered_edge = 3;
     }
 
     set_our_eip(208);
@@ -995,7 +1000,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
             // remember which character we turned off, in case they
             // use SetPlayerCharacter within this room (so we re-enable
             // the correct character when leaving the room)
-            play.temporarily_turned_off_character = game.playercharacter;
+            game.Play.temporarily_turned_off_character = game.playercharacter;
         }
         if (ch->flags & CHF_FIXVIEW)
             ;
@@ -1013,10 +1018,10 @@ void load_new_room(int room_id, CharacterInfo *ch)
     // new room; otherwise this is done later when cameras are recreated.
     if (ch != nullptr)
     {
-        if (play.IsAutoRoomViewport())
+        if (game.Play.IsAutoRoomViewport())
             adjust_viewport_to_room();
         update_all_viewcams_with_newroom();
-        play.UpdateRoomCameras(); // update auto tracking
+        game.Play.UpdateRoomCameras(); // update auto tracking
     }
 
     init_room_pathfinder();
@@ -1026,8 +1031,8 @@ void load_new_room(int room_id, CharacterInfo *ch)
     set_our_eip(212);
     invalidate_screen();
     new_room_flags = 0;
-    play.gscript_timer = -1; // avoid screw-ups with changing screens
-    play.player_on_region = 0;
+    game.Play.gscript_timer = -1; // avoid screw-ups with changing screens
+    game.Play.player_on_region = 0;
 
     // drop any input which they might have done while it was loading
     ags_clear_input_queue();
@@ -1045,6 +1050,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
 
 void new_room(int room_id, CharacterInfo *ch)
 {
+    Game &game = Game::Current();
     EndSkippingUntilCharStops();
 
     debug_script_log("Room change requested to room %d", room_id);
@@ -1085,8 +1091,8 @@ void new_room(int room_id, CharacterInfo *ch)
     load_new_room(room_id, ch);
 
     // Update background frame state (it's not a part of the RoomStatus currently)
-    play.bg_frame = 0;
-    play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
+    game.Play.bg_frame = 0;
+    game.Play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
 }
 
 void set_room_placeholder()
@@ -1105,12 +1111,13 @@ void set_room_placeholder()
 
 void first_room_initialization()
 {
+    Game &game = Game::Current();
     in_room_transition = true;
     playerchar->prevroom = -1;
     set_loop_counter(0);
     // Reset background frame state
-    play.bg_frame = 0;
-    play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
+    game.Play.bg_frame = 0;
+    game.Play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
 }
 
 void check_new_room()
@@ -1118,7 +1125,8 @@ void check_new_room()
     // if they're in a new room, run Player Enters Screen and on_event(ENTER_ROOM)
     if ((in_new_room != kEnterRoom_None) && (in_new_room != kEnterRoom_RestoredSave))
     {
-        AGSEvent event(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_BeforeFadein, game.playercharacter));
+        AGSEvent event(
+            AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_BeforeFadein, Game::Current().playercharacter));
         // make sure that any script calls don't re-call enters screen
         const EnterNewRoomState saved_in_new_room = in_new_room;
         in_new_room = kEnterRoom_None;
@@ -1155,11 +1163,12 @@ int bg_just_changed = 0;
 
 void on_background_frame_change()
 {
+    Game &game = Game::Current();
     invalidate_screen();
     mark_current_background_dirty();
 
     // get the new frame's palette
-    memcpy(palette, thisroom.BgFrames[play.bg_frame].Palette, sizeof(RGB) * 256);
+    memcpy(palette, thisroom.BgFrames[game.Play.bg_frame].Palette, sizeof(RGB) * 256);
 
     // hi-colour, update the palette. It won't have an immediate effect
     // but will be drawn properly when the screen fades in
@@ -1170,7 +1179,7 @@ void on_background_frame_change()
         return;
 
     // Don't update the palette if it hasn't changed
-    if (thisroom.BgFrames[play.bg_frame].IsPaletteShared)
+    if (thisroom.BgFrames[game.Play.bg_frame].IsPaletteShared)
         return;
 
     // 256-colours, tell it to update the palette (will actually be done as
@@ -1255,14 +1264,15 @@ void detach_room_bg_surfaces()
 
 void on_room_bg_surface_release(uint32_t bg_index, bool modified)
 {
+    Game &game = Game::Current();
     if (modified)
     {
-        if (bg_index == play.bg_frame)
+        if (bg_index == game.Play.bg_frame)
         {
             invalidate_screen();
             mark_current_background_dirty();
         }
-        play.room_bg_modified[bg_index] = true;
+        game.Play.room_bg_modified[bg_index] = true;
     }
     RoomBgDS[bg_index] = 0;
 }
@@ -1279,7 +1289,7 @@ void on_room_mask_surface_release(RoomAreaMask mask, bool modified)
         {
             debug_draw_room_mask(mask);
         }
-        play.room_mask_modified[mask] = true;
+        Game::Current().Play.room_mask_modified[mask] = true;
     }
     RoomMaskDS[mask] = 0;
 }
@@ -1317,27 +1327,29 @@ int mask_to_room_coord(int coord)
 
 void SetAmbientTint(int red, int green, int blue, int opacity, int luminance)
 {
+    Game &game = Game::Current();
     if ((red < 0) || (green < 0) || (blue < 0) || (red > 255) || (green > 255) || (blue > 255) || (opacity < 0) ||
         (opacity > 255) || (luminance < 0) || (luminance > 255))
         quit("!SetTint: invalid parameter. R,G,B must be 0-255, opacity & luminance 0-255");
 
     debug_script_log("Set ambient tint RGB(%d,%d,%d) %d", red, green, blue, opacity);
 
-    play.rtint_enabled = opacity > 0;
-    play.rtint_red = red;
-    play.rtint_green = green;
-    play.rtint_blue = blue;
-    play.rtint_level = opacity;
-    play.rtint_light = luminance;
+    game.Play.rtint_enabled = opacity > 0;
+    game.Play.rtint_red = red;
+    game.Play.rtint_green = green;
+    game.Play.rtint_blue = blue;
+    game.Play.rtint_level = opacity;
+    game.Play.rtint_light = luminance;
 }
 
 void SetAmbientLightLevel(int light_level)
 {
+    Game &game = Game::Current();
     light_level = Math::Clamp(light_level, -255, 255);
 
-    play.rtint_enabled = light_level != 0;
-    play.rtint_level = 0;
-    play.rtint_light = light_level;
+    game.Play.rtint_enabled = light_level != 0;
+    game.Play.rtint_level = 0;
+    game.Play.rtint_light = light_level;
 }
 
 void NewRoom(int nrnum)
@@ -1412,19 +1424,21 @@ int HasPlayerBeenInRoom(int roomnum)
 
 void CallRoomScript(int value)
 {
+    Game &game = Game::Current();
     can_run_delayed_command();
 
     if (!is_inside_script())
         quit("!CallRoomScript: not inside a script???");
 
-    play.roomscript_finished = 0;
+    game.Play.roomscript_finished = 0;
     RuntimeScriptValue params[]{value, RuntimeScriptValue()};
     RunScriptFunctionAuto(kScTypeRoom, "on_call", 1, params);
-    play.roomscript_finished = 1;
+    game.Play.roomscript_finished = 1;
 }
 
 void SetBackgroundFrame(int frnum)
 {
+    Game &game = Game::Current();
     if ((frnum < -1) || (frnum != -1 && (size_t)frnum >= thisroom.BgFrameCount))
     {
         debug_script_error(
@@ -1435,33 +1449,34 @@ void SetBackgroundFrame(int frnum)
 
     if (frnum < 0)
     {
-        play.bg_frame_locked = 0;
+        game.Play.bg_frame_locked = 0;
         return;
     }
 
-    play.bg_frame_locked = 1;
+    game.Play.bg_frame_locked = 1;
 
-    if (frnum == play.bg_frame)
+    if (frnum == game.Play.bg_frame)
     {
         // already on this frame, do nothing
         return;
     }
 
-    play.bg_frame = frnum;
+    game.Play.bg_frame = frnum;
     on_background_frame_change();
 }
 
 int GetBackgroundFrame()
 {
-    return play.bg_frame;
+    return Game::Current().Play.bg_frame;
 }
 
 void RoomProcessClick(int x, int y, int mood)
 {
+    Game &game = Game::Current();
     int loc_id = -1;
     int loc_type = GetLocationTypeImpl(&loc_id, x, y, kHit_Interactable, true /* click-through gui */,
                                        false /* not allow hotspot0 */);
-    VpPoint vpt = play.ScreenToRoom(x, y);
+    VpPoint vpt = game.Play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return;
     x = vpt.first.X;
@@ -1474,7 +1489,7 @@ void RoomProcessClick(int x, int y, int mood)
             ;
         else if (thisroom.Hotspots[hotspot_id].WalkTo.X < 1)
             ;
-        else if (play.auto_use_walkto_points == 0)
+        else if (game.Play.auto_use_walkto_points == 0)
             ;
         else
         {
@@ -1485,7 +1500,7 @@ void RoomProcessClick(int x, int y, int mood)
         walk_character(playerchar, x, y, false /* walk areas */);
         return;
     }
-    play.usedmode = mood;
+    game.Play.usedmode = mood;
 
     if (loc_type == 0)
     {
@@ -1510,10 +1525,11 @@ void RoomProcessClick(int x, int y, int mood)
 
 int IsInteractionAvailable(int x, int y, int mood)
 {
+    Game &game = Game::Current();
     int loc_id = -1;
     int loc_type = GetLocationTypeImpl(&loc_id, x, y, kHit_Interactable, true /* click-through gui */,
                                        false /* not allow hotspot0 */);
-    VpPoint vpt = play.ScreenToRoom(x, y);
+    VpPoint vpt = game.Play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return 0;
     x = vpt.first.X;
@@ -1523,7 +1539,7 @@ int IsInteractionAvailable(int x, int y, int mood)
     if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.options[OPT_NOWALKMODE] == 0))
         return 1;
 
-    play.check_interaction_only = 1;
+    game.Play.check_interaction_only = 1;
 
     if (loc_type == 0)
     {
@@ -1543,8 +1559,8 @@ int IsInteractionAvailable(int x, int y, int mood)
     else if (loc_type == LOCTYPE_HOTSPOT)
         RunHotspotInteraction(loc_id, mood);
 
-    int check_result = play.check_interaction_only;
-    play.check_interaction_only = 0;
+    int check_result = game.Play.check_interaction_only;
+    game.Play.check_interaction_only = 0;
 
     if (check_result == 2)
         return 1;

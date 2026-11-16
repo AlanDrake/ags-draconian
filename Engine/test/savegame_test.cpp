@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/save/savegame.h"
@@ -118,62 +119,65 @@ std::vector<uint8_t> MakeComponentList(const char *name, int32_t version)
 // Some of the state that the game state component saves, with values that no new game has
 void SetPlayState()
 {
-    play.usedmode = 7;
-    play.messagetime = 321;
-    play.usedinv = 4;
-    play.text_speed = 17;
-    play.talkanim_speed = 5;
-    play.speech_text_shadow = 12;
-    play.fast_forward = 1;
-    play.lipsync_speed = 6;
-    play.close_mouth_speech_time = 13;
-    play.text_speed_modifier = -3;
-    play.game_speed_modifier = 25;
-    play.speech_bubble_width = 99;
-    play.dialog_options_pad_x = 8;
-    play.top_bar_backcolor = 31;
-    play.top_bar_font = 2;
-    play.bgspeech_game_speed = 1;
+    Game &game = Game::Current();
+    game.Play.usedmode = 7;
+    game.Play.messagetime = 321;
+    game.Play.usedinv = 4;
+    game.Play.text_speed = 17;
+    game.Play.talkanim_speed = 5;
+    game.Play.speech_text_shadow = 12;
+    game.Play.fast_forward = 1;
+    game.Play.lipsync_speed = 6;
+    game.Play.close_mouth_speech_time = 13;
+    game.Play.text_speed_modifier = -3;
+    game.Play.game_speed_modifier = 25;
+    game.Play.speech_bubble_width = 99;
+    game.Play.dialog_options_pad_x = 8;
+    game.Play.top_bar_backcolor = 31;
+    game.Play.top_bar_font = 2;
+    game.Play.bgspeech_game_speed = 1;
 }
 
 void ClearPlayState()
 {
-    play.usedmode = 0;
-    play.messagetime = 0;
-    play.usedinv = 0;
-    play.text_speed = 0;
-    play.talkanim_speed = 0;
-    play.speech_text_shadow = 0;
-    play.fast_forward = 0;
-    play.lipsync_speed = 0;
-    play.close_mouth_speech_time = 0;
-    play.text_speed_modifier = 0;
-    play.game_speed_modifier = 0;
-    play.speech_bubble_width = 0;
-    play.dialog_options_pad_x = 0;
-    play.top_bar_backcolor = 0;
-    play.top_bar_font = 0;
-    play.bgspeech_game_speed = 0;
+    Game &game = Game::Current();
+    game.Play.usedmode = 0;
+    game.Play.messagetime = 0;
+    game.Play.usedinv = 0;
+    game.Play.text_speed = 0;
+    game.Play.talkanim_speed = 0;
+    game.Play.speech_text_shadow = 0;
+    game.Play.fast_forward = 0;
+    game.Play.lipsync_speed = 0;
+    game.Play.close_mouth_speech_time = 0;
+    game.Play.text_speed_modifier = 0;
+    game.Play.game_speed_modifier = 0;
+    game.Play.speech_bubble_width = 0;
+    game.Play.dialog_options_pad_x = 0;
+    game.Play.top_bar_backcolor = 0;
+    game.Play.top_bar_font = 0;
+    game.Play.bgspeech_game_speed = 0;
 }
 
 void ExpectPlayState()
 {
-    EXPECT_EQ(7, play.usedmode);
-    EXPECT_EQ(321, play.messagetime);
-    EXPECT_EQ(4, play.usedinv);
-    EXPECT_EQ(17, play.text_speed);
-    EXPECT_EQ(5, play.talkanim_speed);
-    EXPECT_EQ(12, play.speech_text_shadow);
-    EXPECT_EQ(1, play.fast_forward);
-    EXPECT_EQ(6, play.lipsync_speed);
-    EXPECT_EQ(13, play.close_mouth_speech_time);
-    EXPECT_EQ(-3, play.text_speed_modifier);
-    EXPECT_EQ(25, play.game_speed_modifier);
-    EXPECT_EQ(99, play.speech_bubble_width);
-    EXPECT_EQ(8, play.dialog_options_pad_x);
-    EXPECT_EQ(31, play.top_bar_backcolor);
-    EXPECT_EQ(2, play.top_bar_font);
-    EXPECT_EQ(1, play.bgspeech_game_speed);
+    Game &game = Game::Current();
+    EXPECT_EQ(7, game.Play.usedmode);
+    EXPECT_EQ(321, game.Play.messagetime);
+    EXPECT_EQ(4, game.Play.usedinv);
+    EXPECT_EQ(17, game.Play.text_speed);
+    EXPECT_EQ(5, game.Play.talkanim_speed);
+    EXPECT_EQ(12, game.Play.speech_text_shadow);
+    EXPECT_EQ(1, game.Play.fast_forward);
+    EXPECT_EQ(6, game.Play.lipsync_speed);
+    EXPECT_EQ(13, game.Play.close_mouth_speech_time);
+    EXPECT_EQ(-3, game.Play.text_speed_modifier);
+    EXPECT_EQ(25, game.Play.game_speed_modifier);
+    EXPECT_EQ(99, game.Play.speech_bubble_width);
+    EXPECT_EQ(8, game.Play.dialog_options_pad_x);
+    EXPECT_EQ(31, game.Play.top_bar_backcolor);
+    EXPECT_EQ(2, game.Play.top_bar_font);
+    EXPECT_EQ(1, game.Play.bgspeech_game_speed);
 }
 
 } // namespace

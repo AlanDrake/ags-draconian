@@ -17,6 +17,7 @@
 
 #include "device/sys_events.h"
 #include "font/fonts.h"
+#include "game/game_context.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
 #include "game/runtime_defines.h"
@@ -124,6 +125,7 @@ void CSCIEraseWindow(int win_id)
 
 int CSCIWaitMessage(CSCIMessage *msg)
 {
+    Game &game = Game::Current();
     for (int i = 0; i < MAXCONTROLS; i++)
     {
         if (vobjs[i] != nullptr)
@@ -148,7 +150,7 @@ int CSCIWaitMessage(CSCIMessage *msg)
         // therefore we cannot process all buffered key presses here
         // (unless the whole dialog system is rewritten).
         KeyInput key_input;
-        if (run_service_key_controls(key_input) && !play.IsIgnoringInput())
+        if (run_service_key_controls(key_input) && !game.Play.IsIgnoringInput())
         {
             int key = key_input.Key;
             int unichar = key_input.UChar;
@@ -178,7 +180,7 @@ int CSCIWaitMessage(CSCIMessage *msg)
         }
 
         eAGSMouseButton mouse_btn;
-        if (run_service_mb_controls(mouse_btn) && (mouse_btn > kMouseNone) && !play.IsIgnoringInput())
+        if (run_service_mb_controls(mouse_btn) && (mouse_btn > kMouseNone) && !game.Play.IsIgnoringInput())
         {
             if (checkcontrols())
             {
@@ -204,6 +206,7 @@ int CSCIWaitMessage(CSCIMessage *msg)
 
 int CSCICreateControl(int typeandflags, int x, int y, int width, int height, const char *title)
 {
+    Game &game = Game::Current();
     int ctrl_id = -1;
     for (int i = 1; i < MAXCONTROLS; i++)
     {
@@ -227,15 +230,15 @@ int CSCICreateControl(int typeandflags, int x, int y, int width, int height, con
     }
     else if (type == CNT_LISTBOX)
     {
-        vobjs[ctrl_id] = new MyListBox(x, y, width, height, play.std_gui_textheight);
+        vobjs[ctrl_id] = new MyListBox(x, y, width, height, game.Play.std_gui_textheight);
     }
     else if (type == CNT_LABEL)
     {
-        vobjs[ctrl_id] = new MyLabel(x, y, width, title, play.std_gui_textheight);
+        vobjs[ctrl_id] = new MyLabel(x, y, width, title, game.Play.std_gui_textheight);
     }
     else if (type == CNT_TEXTBOX)
     {
-        vobjs[ctrl_id] = new MyTextBox(x, y, width, title, play.std_gui_textheight);
+        vobjs[ctrl_id] = new MyTextBox(x, y, width, title, game.Play.std_gui_textheight);
     }
     else
         quit("Unknown control type requested");
@@ -262,7 +265,7 @@ int CSCISendControlMessage(int ctrl_id, int msg, int w_param, intptr_t ip_param)
 // TODO: this is silly, make a uniform formula
 int checkcontrols()
 {
-    if (!play.mouse_input_enabled)
+    if (!Game::Current().Play.mouse_input_enabled)
         return 0;
 
     // NOTE: this is because old code was working with full game screen

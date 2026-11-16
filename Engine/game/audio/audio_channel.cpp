@@ -16,6 +16,7 @@
 #include "debug/debug_log.h"
 #include "game/dialog/speech.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/roomstruct.h"
@@ -33,7 +34,7 @@ int AudioChannel_GetID(ScriptAudioChannel *channel)
 
 int AudioChannel_GetIsPlaying(ScriptAudioChannel *channel)
 {
-    if (play.fast_forward)
+    if (Game::Current().Play.fast_forward)
     {
         return 0;
     }
@@ -81,7 +82,7 @@ ScriptAudioClip *AudioChannel_GetPlayingClip(ScriptAudioChannel *channel)
 
     if (playback && playback->sourceClipID >= 0)
     {
-        return &game.audioClips[playback->sourceClipID];
+        return &Game::Current().audioClips[playback->sourceClipID];
     }
     return nullptr;
 }
@@ -175,7 +176,7 @@ void AudioChannel_SetSpeed(ScriptAudioChannel *channel, int new_speed)
 
 void AudioChannel_Stop(ScriptAudioChannel *channel)
 {
-    if (channel->id == SCHAN_SPEECH && play.IsNonBlockingVoiceSpeech())
+    if (channel->id == SCHAN_SPEECH && Game::Current().Play.IsNonBlockingVoiceSpeech())
         stop_voice_nonblocking();
     else
         stop_or_fade_out_channel(channel->id, -1);

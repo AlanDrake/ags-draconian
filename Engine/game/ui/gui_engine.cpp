@@ -20,6 +20,7 @@
 #include "debug/debugger.h"
 #include "font/fonts.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/lib/string.h"
 #include "game/system.h"
@@ -37,12 +38,12 @@ using namespace AGS::Common;
 
 int get_adjusted_spritewidth(int spr)
 {
-    return game.SpriteInfos[spr].Width;
+    return Game::Current().SpriteInfos[spr].Width;
 }
 
 int get_adjusted_spriteheight(int spr)
 {
-    return game.SpriteInfos[spr].Height;
+    return Game::Current().SpriteInfos[spr].Height;
 }
 
 void set_eip_guiobj(int eip)
@@ -57,7 +58,7 @@ namespace Common
 
 String GUI::ApplyTextDirection(const String &text)
 {
-    const bool rtl_mode = game.options[OPT_RIGHTLEFTWRITE] != 0;
+    const bool rtl_mode = Game::Current().options[OPT_RIGHTLEFTWRITE] != 0;
     return StrUtil::ApplyTextDirection(text, rtl_mode);
 }
 
@@ -120,7 +121,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
     if ((GUI::Options.ApplyTextDirection) && ((_flags & kGUICtrl_Translated) != 0))
     {
         _textToDraw = GUI::ApplyTextDirection(_text);
-        reverse = game.options[OPT_RIGHTLEFTWRITE] != 0;
+        reverse = Game::Current().options[OPT_RIGHTLEFTWRITE] != 0;
     }
 
     const FrameAlignment text_align = _textAlignment;

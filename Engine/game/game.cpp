@@ -34,6 +34,7 @@
 #include "game/dynobj/script_camera.h"
 #include "game/dynobj/script_motion_path.h"
 #include "game/event.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -95,8 +96,27 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 //=============================================================================
-GamePlayState play;
-GameDef game;
+namespace
+{
+// The engine's own instance; defined above spriteset, whose constructor keeps a reference to its SpriteInfos
+Game engineGame;
+} // namespace
+
+// The address of a static object is a constant initializer: Current() is valid before any dynamic
+// initialization, as the globals game and play that the instance replaces were
+Game *Game::_current = &engineGame;
+
+Game::Game() = default;
+
+Game::~Game() = default;
+
+Game *Game::SetCurrent(Game *game)
+{
+    Game *was = _current;
+    _current = game ? game : &engineGame;
+    return was;
+}
+
 RoomStatus troom; // state of the current room if it is a temporary one (number >= MAX_ROOMS), e.g. an intro room
 RoomObject *objs = nullptr;
 RoomStatus *croom = nullptr;
@@ -112,7 +132,7 @@ int new_room_loop = SCR_NO_VALUE;
 bool new_room_placeonwalkable = false;
 
 AGS::Common::SpriteCache::Callbacks spritecallbacks = {nullptr, initialize_sprite, post_init_sprite, nullptr};
-SpriteCache spriteset(game.SpriteInfos, spritecallbacks);
+SpriteCache spriteset(Game::Current().SpriteInfos, spritecallbacks);
 
 std::vector<GUIMain> guis;
 std::vector<GUIButton> guibuts;
@@ -177,6 +197,7 @@ SaveCmpSelection load_new_game_restore_cmp = kSaveCmp_All;
 
 bool AssertAudioType(const char *api_name, int audio_type)
 {
+    Game &game = Game::Current();
     if ((audio_type < 0) || ((size_t)audio_type >= game.audioClipTypes.size()))
     {
         debug_script_error("%s: invalid audio type: %d, valid range is 0..%d", api_name, audio_type,
@@ -190,7 +211,7 @@ void Game_StopAudio(int audio_type)
 {
     if ((audio_type != SCR_NO_VALUE) && !AssertAudioType("Game.StopAudio", audio_type))
         return;
-    for (int chan_id = 0; chan_id < game.numGameChannels; chan_id++)
+    for (int chan_id = 0; chan_id < Game::Current().numGameChannels; chan_id++)
     {
         if (audio_type == SCR_NO_VALUE)
         {
@@ -209,10 +230,11 @@ void Game_StopAudio(int audio_type)
 
 int Game_IsAudioPlaying(int audio_type)
 {
+    Game &game = Game::Current();
     if ((audio_type != SCR_NO_VALUE) && !AssertAudioType("Game.IsAudioPlaying", audio_type))
         return 0;
 
-    if (play.fast_forward)
+    if (game.Play.fast_forward)
         return 0;
 
     for (int chan_id = 0; chan_id < game.numGameChannels; chan_id++)
@@ -234,7 +256,7 @@ int Game_GetAudioTypeCrossfadeSpeed(int audio_type)
     if (!AssertAudioType("Game.GetAudioTypeCrossfadeSpeed", audio_type))
         return 0;
 
-    return game.audioClipTypes[audio_type].crossfadeSpeed;
+    return Game::Current().audioClipTypes[audio_type].crossfadeSpeed;
 }
 
 void Game_SetAudioTypeCrossfadeSpeed(int audio_type, int crossfade_speed)
@@ -248,7 +270,7 @@ void Game_SetAudioTypeCrossfadeSpeed(int audio_type, int crossfade_speed)
     }
 
     Debug::Printf("Game.SetAudioTypeCrossfadeSpeed: type: %d, speed: %d", audio_type, crossfade_speed);
-    game.audioClipTypes[audio_type].crossfadeSpeed = crossfade_speed;
+    Game::Current().audioClipTypes[audio_type].crossfadeSpeed = crossfade_speed;
 }
 
 int Game_GetAudioTypeSpeechVolumeDrop(int audio_type)
@@ -256,7 +278,7 @@ int Game_GetAudioTypeSpeechVolumeDrop(int audio_type)
     if (!AssertAudioType("Game.GetAudioTypeSpeechVolumeDrop", audio_type))
         return 0;
 
-    return game.audioClipTypes[audio_type].volume_reduction_while_speech_playing;
+    return Game::Current().audioClipTypes[audio_type].volume_reduction_while_speech_playing;
 }
 
 void Game_SetAudioTypeSpeechVolumeDrop(int audio_type, int volume_drop)
@@ -265,7 +287,7 @@ void Game_SetAudioTypeSpeechVolumeDrop(int audio_type, int volume_drop)
         return;
 
     Debug::Printf("Game.SetAudioTypeSpeechVolumeDrop: type: %d, drop: %d", audio_type, volume_drop);
-    game.audioClipTypes[audio_type].volume_reduction_while_speech_playing = volume_drop;
+    Game::Current().audioClipTypes[audio_type].volume_reduction_while_speech_playing = volume_drop;
     update_volume_drop_if_voiceover();
 }
 
@@ -273,11 +295,12 @@ int Game_GetAudioTypeVolume(int audio_type)
 {
     if (!AssertAudioType("Game.GetAudioTypeVolume", audio_type))
         return -1;
-    return play.default_audio_type_volumes[audio_type];
+    return Game::Current().Play.default_audio_type_volumes[audio_type];
 }
 
 void Game_SetAudioTypeVolume(int audio_type, int volume, int change_type)
 {
+    Game &game = Game::Current();
     if (!AssertAudioType("Game.SetAudioTypeVolume", audio_type))
         return;
     if ((volume < 0) || (volume > 100))
@@ -307,7 +330,7 @@ void Game_SetAudioTypeVolume(int audio_type, int volume, int change_type)
 
     if ((change_type == VOL_SETFUTUREDEFAULT) || (change_type == VOL_BOTH))
     {
-        play.default_audio_type_volumes[audio_type] = volume;
+        game.Play.default_audio_type_volumes[audio_type] = volume;
 
         // update queued clip volumes
         update_queued_clips_volume(audio_type, volume);
@@ -320,12 +343,12 @@ void Game_SetAudioTypeVolume(int audio_type, int volume, int change_type)
 
 int Game_GetDialogCount()
 {
-    return game.numdialog;
+    return Game::Current().numdialog;
 }
 
 void set_debug_mode(bool on)
 {
-    play.debug_mode = on ? 1 : 0;
+    Game::Current().Play.debug_mode = on ? 1 : 0;
 }
 
 void set_game_speed(int new_fps)
@@ -346,7 +369,7 @@ void setup_for_dialog(int use_font)
     cbuttfont = use_font;
     acdialog_font = use_font;
     oldmouse = cur_cursor;
-    set_cursor_look(game.GetModePointer());
+    set_cursor_look(Game::Current().GetModePointer());
 }
 void restore_after_dialog()
 {
@@ -504,6 +527,7 @@ void restore_game_dialog()
 void restore_game_dialog2(int min_slot, int max_slot)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     // Optionally override the max slot
     max_slot = services.Config.Override.MaxSaveSlot > 0 ? services.Config.Override.MaxSaveSlot : max_slot;
 
@@ -512,10 +536,10 @@ void restore_game_dialog2(int min_slot, int max_slot)
     {
         get_executingscript()->QueueAction(PostScriptAction(ePSARestoreGameDialog,
                                                             (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16,
-                                                            play.normal_font, "RestoreGameDialog"));
+                                                            game.Play.normal_font, "RestoreGameDialog"));
         return;
     }
-    do_restore_game_dialog(min_slot, max_slot, play.normal_font);
+    do_restore_game_dialog(min_slot, max_slot, game.Play.normal_font);
 }
 
 bool do_restore_game_dialog(int min_slot, int max_slot, int use_font)
@@ -536,17 +560,19 @@ void save_game_dialog()
 void save_game_dialog2(int min_slot, int max_slot)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     // Optionally override the max slot
     max_slot = services.Config.Override.MaxSaveSlot > 0 ? services.Config.Override.MaxSaveSlot : max_slot;
 
     can_run_delayed_command();
     if (is_inside_script())
     {
-        get_executingscript()->QueueAction(PostScriptAction(
-            ePSASaveGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, play.normal_font, "SaveGameDialog"));
+        get_executingscript()->QueueAction(PostScriptAction(ePSASaveGameDialog,
+                                                            (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16,
+                                                            game.Play.normal_font, "SaveGameDialog"));
         return;
     }
-    do_save_game_dialog(min_slot, max_slot, play.normal_font);
+    do_save_game_dialog(min_slot, max_slot, game.Play.normal_font);
 }
 
 bool do_save_game_dialog(int min_slot, int max_slot, int use_font)
@@ -561,7 +587,7 @@ bool do_save_game_dialog(int min_slot, int max_slot, int use_font)
 
 void free_do_once_tokens()
 {
-    play.do_once_tokens.clear();
+    Game::Current().Play.do_once_tokens.clear();
 }
 
 void shutdown_game_state()
@@ -574,6 +600,7 @@ void shutdown_game_state()
 // Free all the memory associated with the game
 void unload_game()
 {
+    Game &game = Game::Current();
     dispose_game_drawdata();
     // NOTE: fonts should be freed prior to stopping plugins,
     // as plugins may provide font renderer interface.
@@ -609,9 +636,12 @@ void unload_game()
 
     dispose_room_pathfinder();
 
-    // Free game state and game struct
-    play = GamePlayState();
-    game = GameDef();
+    // Free game state and game struct.
+    // Only the definition part (the GameDef base) is reset by assignment here: the members that Game will gain
+    // in place of the other globals are cleared one by one above, as the globals were, and the whole object
+    // cannot be assigned (Game is not copyable).
+    game.Play = GamePlayState();
+    static_cast<GameDef &>(game) = GameDef();
 
     // Reset all resource caches
     // IMPORTANT: this is hard reset, including locked items
@@ -621,11 +651,12 @@ void unload_game()
 
 int Game_GetInventoryCursorHotspotGraphic()
 {
-    return game.inv_hot_sprite;
+    return Game::Current().inv_hot_sprite;
 }
 
 void Game_SetInventoryCursorHotspotGraphic(int graphic)
 {
+    Game &game = Game::Current();
     if (game.inv_hot_sprite != graphic)
     {
         game.inv_hot_sprite = graphic;
@@ -637,11 +668,12 @@ void Game_SetInventoryCursorHotspotGraphic(int graphic)
 
 int Game_GetInventoryCursorHotspotColor()
 {
-    return game.inv_hot_color;
+    return Game::Current().inv_hot_color;
 }
 
 void Game_SetInventoryCursorHotspotColor(int color)
 {
+    Game &game = Game::Current();
     if (game.inv_hot_color != color)
     {
         game.inv_hot_color = color;
@@ -652,11 +684,12 @@ void Game_SetInventoryCursorHotspotColor(int color)
 
 int Game_GetInventoryCursorHotspotCrossColor()
 {
-    return game.inv_hot_cross_color;
+    return Game::Current().inv_hot_cross_color;
 }
 
 void Game_SetInventoryCursorHotspotCrossColor(int color)
 {
+    Game &game = Game::Current();
     if (game.inv_hot_cross_color != color)
     {
         game.inv_hot_cross_color = color;
@@ -667,7 +700,7 @@ void Game_SetInventoryCursorHotspotCrossColor(int color)
 
 int Game_GetInventoryItemCount()
 {
-    return game.numinvitems;
+    return Game::Current().numinvitems;
 }
 
 bool Game_GetIsPaused()
@@ -677,37 +710,37 @@ bool Game_GetIsPaused()
 
 int Game_GetFontCount()
 {
-    return game.numfonts;
+    return Game::Current().numfonts;
 }
 
 int Game_GetMouseCursorCount()
 {
-    return game.numcursors;
+    return Game::Current().numcursors;
 }
 
 int Game_GetCharacterCount()
 {
-    return game.numcharacters;
+    return Game::Current().numcharacters;
 }
 
 int Game_GetGUICount()
 {
-    return game.numgui;
+    return Game::Current().numgui;
 }
 
 int Game_GetViewCount()
 {
-    return game.numviews;
+    return Game::Current().numviews;
 }
 
 bool Game_GetUseActiveInventoryGraphicForCursor()
 {
-    return game.options[OPT_FIXEDINVCURSOR] == 0; // OPT_FIXEDINVCURSOR is inverse
+    return Game::Current().options[OPT_FIXEDINVCURSOR] == 0; // OPT_FIXEDINVCURSOR is inverse
 }
 
 void Game_SetUseActiveInventoryGraphicForCursor(bool use_inv_graphic)
 {
-    game.options[OPT_FIXEDINVCURSOR] = use_inv_graphic ? 0 : 1; // OPT_FIXEDINVCURSOR is inverse
+    Game::Current().options[OPT_FIXEDINVCURSOR] = use_inv_graphic ? 0 : 1; // OPT_FIXEDINVCURSOR is inverse
     // Update current "use inv" cursor if necessary
     if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv >= 0))
     {
@@ -726,7 +759,7 @@ int Game_GetSpriteWidth(int sprite_num)
     if (!spriteset.DoesSpriteExist(sprite_num))
         return 0;
 
-    return game.SpriteInfos[sprite_num].Width;
+    return Game::Current().SpriteInfos[sprite_num].Width;
 }
 
 int Game_GetSpriteHeight(int sprite_num)
@@ -734,11 +767,12 @@ int Game_GetSpriteHeight(int sprite_num)
     if (!spriteset.DoesSpriteExist(sprite_num))
         return 0;
 
-    return game.SpriteInfos[sprite_num].Height;
+    return Game::Current().SpriteInfos[sprite_num].Height;
 }
 
 int Game_GetSpriteDepth(int sprite_num)
 {
+    Game &game = Game::Current();
     if (!spriteset.DoesSpriteExist(sprite_num))
         return 0;
 
@@ -754,7 +788,7 @@ bool Game_GetIsSpriteDynamic(int sprite_num)
     if (!spriteset.DoesSpriteExist(sprite_num))
         return false;
 
-    return game.SpriteInfos[sprite_num].IsDynamicSprite();
+    return Game::Current().SpriteInfos[sprite_num].IsDynamicSprite();
 }
 
 ScriptFileSortStyle ValidateFileSort(const char *api_name, int file_sort)
@@ -834,6 +868,7 @@ GraphicFlip ValidateFlip(const char *api_name, int flip)
 
 void AssertView(const char *api_name, const char *obj_name, int view)
 {
+    Game &game = Game::Current();
     // NOTE: we assume (here and below) that the view is already in an internal 0-based range.
     // but when printing an error we will use (view + 1) for compliance with the script API.
     if ((view < 0) || (view >= game.numviews))
@@ -897,9 +932,10 @@ ScriptViewFrame *Game_GetViewFrame(int view, int loop, int frame)
 
 int Game_DoOnceOnly(const char *token)
 {
-    if (play.do_once_tokens.count(String::Wrapper(token)) > 0)
+    Game &game = Game::Current();
+    if (game.Play.do_once_tokens.count(String::Wrapper(token)) > 0)
         return 0;
-    play.do_once_tokens.insert(token);
+    game.Play.do_once_tokens.insert(token);
     return 1;
 }
 
@@ -910,7 +946,7 @@ void Game_ResetDoOnceOnly()
 
 int Game_GetTextReadingSpeed()
 {
-    return play.text_speed;
+    return Game::Current().Play.text_speed;
 }
 
 void Game_SetTextReadingSpeed(int new_text_speed)
@@ -919,7 +955,7 @@ void Game_SetTextReadingSpeed(int new_text_speed)
         quitprintf("!Game.TextReadingSpeed: %d is an invalid speed", new_text_speed);
 
     if (EngineServices::Current().Config.Access.TextReadSpeed <= 0)
-        play.text_speed = new_text_speed;
+        Game::Current().Play.text_speed = new_text_speed;
 }
 
 int Game_GetTickCounter()
@@ -933,23 +969,23 @@ int Game_GetTickCounter()
 
 int Game_GetMinimumTextDisplayTimeMs()
 {
-    return play.text_min_display_time_ms;
+    return Game::Current().Play.text_min_display_time_ms;
 }
 
 void Game_SetMinimumTextDisplayTimeMs(int new_text_min_time)
 {
     if (EngineServices::Current().Config.Access.TextReadSpeed <= 0)
-        play.text_min_display_time_ms = new_text_min_time;
+        Game::Current().Play.text_min_display_time_ms = new_text_min_time;
 }
 
 int Game_GetIgnoreUserInputAfterTextTimeoutMs()
 {
-    return play.ignore_user_input_after_text_timeout_ms;
+    return Game::Current().Play.ignore_user_input_after_text_timeout_ms;
 }
 
 void Game_SetIgnoreUserInputAfterTextTimeoutMs(int new_value_ms)
 {
-    play.ignore_user_input_after_text_timeout_ms = new_value_ms;
+    Game::Current().Play.ignore_user_input_after_text_timeout_ms = new_value_ms;
 }
 
 const char *Game_GetFileName()
@@ -959,19 +995,20 @@ const char *Game_GetFileName()
 
 const char *Game_GetName()
 {
-    return CreateNewScriptString(play.game_name);
+    return CreateNewScriptString(Game::Current().Play.game_name);
 }
 
 void Game_SetName(const char *new_name)
 {
-    play.game_name = new_name;
-    EngineServices::Current().Platform->SetWindowTitle(play.game_name);
+    Game &game = Game::Current();
+    game.Play.game_name = new_name;
+    EngineServices::Current().Platform->SetWindowTitle(game.Play.game_name);
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Gamename);
 }
 
 int Game_GetSkippingCutscene()
 {
-    if (play.fast_forward)
+    if (Game::Current().Play.fast_forward)
     {
         return 1;
     }
@@ -980,7 +1017,7 @@ int Game_GetSkippingCutscene()
 
 int Game_GetInSkippableCutscene()
 {
-    if (play.in_cutscene)
+    if (Game::Current().Play.in_cutscene)
     {
         return 1;
     }
@@ -999,7 +1036,7 @@ int Game_GetColorFromRGBA(int red, int green, int blue, int alpha)
         alpha = Math::Clamp(alpha, 0, 255);
     }
 
-    if (game.color_depth == 1)
+    if (Game::Current().color_depth == 1)
     {
         return makecol8(red, green, blue);
     }
@@ -1030,24 +1067,24 @@ const char *Game_GetLocationName2(int x, int y)
 
 int Game_GetSpeechFont()
 {
-    return play.speech_font;
+    return Game::Current().Play.speech_font;
 }
 
 int Game_GetNormalFont()
 {
-    return play.normal_font;
+    return Game::Current().Play.normal_font;
 }
 
 void Game_SetSpeechFont(int font)
 {
     font = ValidateFontNumber("SetSpeechFont", font);
-    play.speech_font = font;
+    Game::Current().Play.speech_font = font;
 }
 
 void Game_SetNormalFont(int font)
 {
     font = ValidateFontNumber("SetNormalFont", font);
-    play.normal_font = font;
+    Game::Current().Play.normal_font = font;
 }
 
 int Game_GetSpeed()
@@ -1068,6 +1105,7 @@ const char *Game_GetTranslationFilename()
 int Game_ChangeTranslation(const char *new_filename)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     if ((new_filename == nullptr) || (new_filename[0] == 0))
     { // switch back to default translation
         close_translation();
@@ -1081,7 +1119,7 @@ int Game_ChangeTranslation(const char *new_filename)
         return 0; // failed, kept previous translation
 
     if (game.GameInfo.count("dev_error_text") > 0)
-        play.SetGameErrorText(get_translation(game.GameInfo["dev_error_text"].GetCStr()));
+        game.Play.SetGameErrorText(get_translation(game.GameInfo["dev_error_text"].GetCStr()));
     services.Config.Translation = new_filename;
     GUIE::MarkForTranslationUpdate();
     return 1;
@@ -1108,11 +1146,12 @@ bool Game_ChangeSpeechVox(const char *new_filename)
 
 int Game_GetAudioClipCount()
 {
-    return game.audioClips.size();
+    return Game::Current().audioClips.size();
 }
 
 ScriptAudioClip *Game_GetAudioClip(int index)
 {
+    Game &game = Game::Current();
     if (index < 0 || (size_t)index >= game.audioClips.size())
         return nullptr;
     return &game.audioClips[index];
@@ -1120,17 +1159,17 @@ ScriptAudioClip *Game_GetAudioClip(int index)
 
 ScriptCamera *Game_GetCamera()
 {
-    return play.GetScriptCamera(0);
+    return Game::Current().Play.GetScriptCamera(0);
 }
 
 int Game_GetCameraCount()
 {
-    return play.GetRoomCameraCount();
+    return Game::Current().Play.GetRoomCameraCount();
 }
 
 ScriptCamera *Game_GetAnyCamera(int index)
 {
-    return play.GetScriptCamera(index);
+    return Game::Current().Play.GetScriptCamera(index);
 }
 
 void Game_SimulateKeyPress(int key, int mod)
@@ -1171,18 +1210,18 @@ void Game_SimulateKeyPressOld(int key)
 
 int Game_BlockingWaitCounter()
 {
-    return play.GetWaitCounter();
+    return Game::Current().Play.GetWaitCounter();
 }
 
 int Game_BlockingWaitSkipped()
 {
-    return play.GetWaitSkipResult();
+    return Game::Current().Play.GetWaitSkipResult();
 }
 
 int Game_BlockingWaitSkipType()
 {
     // Convert to the InputType flags
-    return play.GetWaitSkipType() << SKIP_RESULT_TYPE_SHIFT;
+    return Game::Current().Play.GetWaitSkipType() << SKIP_RESULT_TYPE_SHIFT;
 }
 
 int Game_InBlockingAction()
@@ -1192,8 +1231,9 @@ int Game_InBlockingAction()
 
 int Game_InBlockingWait()
 {
+    Game &game = Game::Current();
     // A design mistake in 3.6.2: IsInBlockingWait name was used to report any blocking action state
-    return game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v363 ? play.IsInWait() : IsInBlockingAction();
+    return game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v363 ? game.Play.IsInWait() : IsInBlockingAction();
 }
 
 void Game_Pause()
@@ -1216,6 +1256,7 @@ ScriptAudioChannel *Game_PlayVoiceClip(CharacterInfo *ch, int sound_id, bool as_
 ScriptAudioChannel *Game_PlayVoiceClipAsType(CharacterInfo *ch, int sound_id, int audio_type, int chan_id, int priority,
                                              int repeat)
 {
+    Game &game = Game::Current();
     if (audio_type <= AUDIOTYPE_SPEECH || static_cast<uint32_t>(audio_type) >= game.audioClipTypes.size())
         quitprintf("!AudioClip.PlayAsType: invalid audio type %d, the range is %u - %u", audio_type,
                    AUDIOTYPE_SPEECH + 1, static_cast<uint32_t>(game.audioClipTypes.size() - 1));
@@ -1253,21 +1294,22 @@ void Game_PrecacheView(int view, int first_loop, int last_loop)
 
 float Game_GetFaceDirectionRatio()
 {
-    return play.face_dir_ratio;
+    return Game::Current().Play.face_dir_ratio;
 }
 
 void Game_SetFaceDirectionRatio(float ratio)
 {
-    play.face_dir_ratio = ratio;
+    Game::Current().Play.face_dir_ratio = ratio;
 }
 
 int Game_GetRoomCount()
 {
-    return game.roomNumbers.size();
+    return Game::Current().roomNumbers.size();
 }
 
 int Game_GetRoomNumber(int index)
 {
+    Game &game = Game::Current();
     if (index < 0 || static_cast<uint32_t>(index) >= game.roomNumbers.size())
         return -1;
     return game.roomNumbers[index];
@@ -1275,6 +1317,7 @@ int Game_GetRoomNumber(int index)
 
 const char *Game_GetRoomName(int room_number)
 {
+    Game &game = Game::Current();
     auto it_room = game.roomNames.find(room_number);
     if (it_room == game.roomNames.end())
         return nullptr;
@@ -1333,7 +1376,7 @@ void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int save_sor
 
 std::unique_ptr<Common::Bitmap> create_game_screenshot(int width, int height, int layers)
 {
-    const Rect &viewport = play.GetMainViewport();
+    const Rect &viewport = Game::Current().Play.GetMainViewport();
     if (width <= 0)
         width = viewport.GetWidth();
     if (height <= 0)
@@ -1351,11 +1394,14 @@ std::unique_ptr<Common::Bitmap> create_game_screenshot(int width, int height, in
 
 static std::unique_ptr<Common::Bitmap> create_savegame_screenshot()
 {
-    return create_game_screenshot(play.screenshot_width, play.screenshot_height, game.options[OPT_SAVESCREENSHOTLAYER]);
+    Game &game = Game::Current();
+    return create_game_screenshot(game.Play.screenshot_width, game.Play.screenshot_height,
+                                  game.options[OPT_SAVESCREENSHOTLAYER]);
 }
 
 void save_game(int slot, const String &description, std::unique_ptr<Bitmap> &&image)
 {
+    Game &game = Game::Current();
     pl_run_plugin_hooks(kPluginEvt_PreSaveGame, 0);
 
     String save_path = get_save_game_path(slot);
@@ -1472,6 +1518,7 @@ bool test_game_guid(const String &filepath, const String &guid, int legacy_id)
 HSaveError load_game(const String &path, int slot, bool startup, bool &data_overwritten)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     data_overwritten = false;
     gameHasBeenRestored++;
 
@@ -1608,6 +1655,7 @@ void prescan_save_slots(int dest_arr_handle, int min_slot, int max_slot, int sav
 
 void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot, int save_sort, int sort_dir)
 {
+    Game &game = Game::Current();
     // Gather existing list of saves in the requested range
     // ...and sort this list according to the parameters
     std::vector<SaveListItem> saves;
@@ -1664,26 +1712,27 @@ void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot,
 
 bool is_in_cutscene()
 {
-    return play.in_cutscene > 0;
+    return Game::Current().Play.in_cutscene > 0;
 }
 
 CutsceneSkipStyle get_cutscene_skipstyle()
 {
-    return static_cast<CutsceneSkipStyle>(play.in_cutscene);
+    return static_cast<CutsceneSkipStyle>(Game::Current().Play.in_cutscene);
 }
 
 void start_skipping_cutscene()
 {
-    play.fast_forward = 1;
+    Game &game = Game::Current();
+    game.Play.fast_forward = 1;
     // if a drop-down icon bar is up, remove it as it will pause the game
     if (ifacepopped >= 0)
         remove_popup_interface(ifacepopped);
 
     // if a text message is currently displayed, remove it
-    if (play.text_overlay_on > 0)
+    if (game.Play.text_overlay_on > 0)
     {
-        remove_screen_overlay(play.text_overlay_on);
-        play.SetWaitSkipResult(SKIP_AUTOTIMER);
+        remove_screen_overlay(game.Play.text_overlay_on);
+        game.Play.SetWaitSkipResult(SKIP_AUTOTIMER);
     }
 }
 
@@ -1731,7 +1780,7 @@ void initialize_skippable_cutscene()
 
 void stop_fast_forwarding()
 {
-    play.fast_forward = 0;
+    Game::Current().Play.fast_forward = 0;
     setpal();
 
     // Restore actual volume of sounds
@@ -1747,6 +1796,7 @@ void stop_fast_forwarding()
 
 int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool click_through_gui, bool allow_hotspot0)
 {
+    Game &game = Game::Current();
     if (locobj_index)
         *locobj_index = -1;
 
@@ -1768,7 +1818,7 @@ int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool c
     }
 
     // Find out if we're inside the room viewport
-    const VpPoint vp_point = play.ScreenToRoom(x, y);
+    const VpPoint vp_point = game.Play.ScreenToRoom(x, y);
     const Point room_pt = vp_point.first;
     const int viewport_id = vp_point.second;
     if ((viewport_id < 0) || (!RectWH(0, 0, thisroom.Width, thisroom.Height).IsInside(room_pt)))
@@ -1892,6 +1942,7 @@ void display_switch_in()
 void display_switch_in_resume()
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     Debug::Printf("Resuming the game on switch in");
     display_switch_in();
 
@@ -1953,7 +2004,7 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
 
             if (with_sounds && frame.sound >= 0)
             {
-                ScriptAudioClip *clip = &game.audioClips[frame.sound];
+                ScriptAudioClip *clip = &Game::Current().audioClips[frame.sound];
                 auto asset_path = get_audio_clip_assetpath(clip->bundlingType, clip->fileName);
                 soundcache_precache(asset_path);
                 dur_sound_load += ToMilliseconds(FastClock::now() - tp_detail3);
@@ -2011,7 +2062,7 @@ void fixup_game_fonts()
 {
     // TODO: this workaround may not be needed any more with the FreeType the engine is built with; test with the
     // LucasFan font before removing it
-    for (int i = 0; i < game.numfonts; ++i)
+    for (int i = 0; i < Game::Current().numfonts; ++i)
     {
         if (!is_bitmap_font(i))
         {
@@ -2113,32 +2164,32 @@ void release_script_movelist(int handle)
 
 const char *GameInfo_GetTitle()
 {
-    return CreateNewScriptString(game.GameInfo["title"]);
+    return CreateNewScriptString(Game::Current().GameInfo["title"]);
 }
 
 const char *GameInfo_GetDescription()
 {
-    return CreateNewScriptString(game.GameInfo["description"]);
+    return CreateNewScriptString(Game::Current().GameInfo["description"]);
 }
 
 const char *GameInfo_GetDeveloperName()
 {
-    return CreateNewScriptString(game.GameInfo["dev_name"]);
+    return CreateNewScriptString(Game::Current().GameInfo["dev_name"]);
 }
 
 const char *GameInfo_GetDeveloperURL()
 {
-    return CreateNewScriptString(game.GameInfo["dev_url"]);
+    return CreateNewScriptString(Game::Current().GameInfo["dev_url"]);
 }
 
 const char *GameInfo_GetGenre()
 {
-    return CreateNewScriptString(game.GameInfo["genre"]);
+    return CreateNewScriptString(Game::Current().GameInfo["genre"]);
 }
 
 ScriptDateTime *GameInfo_GetReleaseDate()
 {
-    String release_date = game.GameInfo["release_date"];
+    String release_date = Game::Current().GameInfo["release_date"];
     if (release_date.IsEmpty())
         return nullptr; // not available
     std::vector<String> parts = release_date.Split('.');
@@ -2157,7 +2208,7 @@ ScriptDateTime *GameInfo_GetReleaseDate()
 
 const char *GameInfo_GetVersion()
 {
-    return CreateNewScriptString(game.GameInfo["version"]);
+    return CreateNewScriptString(Game::Current().GameInfo["version"]);
 }
 
 #include "debug/out.h"
@@ -2175,16 +2226,17 @@ bool AssertTimerID(const char *api_name, int tnum)
 
 void SetTimer(int tnum, int timeout)
 {
+    Game &game = Game::Current();
     if (!AssertTimerID("SetTimer", tnum))
         return;
 
     if (timeout > 0)
     {
-        play.StartScriptTimer(tnum, timeout);
+        game.Play.StartScriptTimer(tnum, timeout);
     }
     else if (timeout == 0)
     {
-        play.StopScriptTimer(tnum);
+        game.Play.StopScriptTimer(tnum);
     }
     else
     {
@@ -2199,7 +2251,7 @@ int GetTimerPos(int tnum)
     if (!AssertTimerID("GetTimerPos", tnum))
         return -1;
 
-    return play.GetScriptTimerPos(tnum);
+    return Game::Current().Play.GetScriptTimerPos(tnum);
 }
 
 int IsTimerExpired(int tnum)
@@ -2207,7 +2259,7 @@ int IsTimerExpired(int tnum)
     if (!AssertTimerID("IsTimerExpired", tnum))
         return 0;
 
-    return play.CheckScriptTimer(tnum);
+    return Game::Current().Play.CheckScriptTimer(tnum);
 }
 
 RoomAreaMask debugLastRoomMask = kRoomAreaNone;
@@ -2215,7 +2267,8 @@ int debugLastMoveChar = -1;
 
 void script_debug(int cmdd, int dataa)
 {
-    if (play.debug_mode == 0)
+    Game &game = Game::Current();
+    if (game.Play.debug_mode == 0)
         return;
 
     if (cmdd == 0)
@@ -2246,13 +2299,13 @@ void script_debug(int cmdd, int dataa)
         if (game.roomNames.size() == 0)
         {
             String inroomtex = String::FromFormat("!Enter new room: (in room %d)", displayed_room);
-            setup_for_dialog(play.normal_font);
+            setup_for_dialog(game.Play.normal_font);
             goToRoom = enternumberwindow(inroomtex.GetCStr());
             restore_after_dialog();
         }
         else
         {
-            setup_for_dialog(play.normal_font);
+            setup_for_dialog(game.Play.normal_font);
             goToRoom = roomSelectorWindow(displayed_room, game.roomNames);
             restore_after_dialog();
         }
@@ -2507,6 +2560,7 @@ int GetLastSaveSlot()
 int RunAGSGame(const String &new_game, unsigned int mode, int data)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     can_run_delayed_command();
 
     int allowed_modes = RAGMODE_LOADNOW;
@@ -2524,7 +2578,7 @@ int RunAGSGame(const String &new_game, unsigned int mode, int data)
     {
         services.ResPaths.GamePak.Path = PathFromInstallDir(new_game);
         services.ResPaths.GamePak.Name = new_game;
-        play.takeover_data = data;
+        game.Play.takeover_data = data;
         load_new_game_restore = -1;
 
         if (is_inside_script())
@@ -2571,7 +2625,7 @@ int RunAGSGame(const String &new_game, unsigned int mode, int data)
         quitprintf("!RunAGSGame: error loading new sprites:\n%s", err->FullMessage().GetCStr());
 
     engine_init_game_settings();
-    play.screen_is_faded_out = true;
+    game.Play.screen_is_faded_out = true;
 
     if (load_new_game_restore >= 0)
     {
@@ -2589,7 +2643,7 @@ void QuitGame(int dialog)
     if (dialog)
     {
         int dialog_result;
-        setup_for_dialog(play.normal_font);
+        setup_for_dialog(Game::Current().Play.normal_font);
         dialog_result = quitdialog();
         restore_after_dialog();
         if (dialog_result == 0)
@@ -2605,8 +2659,9 @@ void SetRestartPoint()
 
 void SetGameSpeed(int new_speed)
 {
+    Game &game = Game::Current();
     game.options[OPT_GAMEFPS] = new_speed; // save for the reference
-    int fixed_speed = new_speed + play.game_speed_modifier;
+    int fixed_speed = new_speed + game.Play.game_speed_modifier;
     fixed_speed = Math::Clamp(fixed_speed, 10, 1000);
     set_game_speed(fixed_speed);
     debug_script_log("Game speed set to %d (requested %d)", fixed_speed, new_speed);
@@ -2614,11 +2669,12 @@ void SetGameSpeed(int new_speed)
 
 int GetGameSpeed()
 {
-    return game.options[OPT_GAMEFPS];
+    return Game::Current().options[OPT_GAMEFPS];
 }
 
 int SetGameOption(int opt, int new_value)
 {
+    Game &game = Game::Current();
     if (((opt < OPT_DEBUGMODE) || (opt > OPT_HIGHESTOPTION)) && (opt != OPT_LIPSYNCTEXT))
     {
         debug_script_error("SetGameOption: invalid option specified: %d", opt);
@@ -2673,8 +2729,8 @@ int SetGameOption(int opt, int new_value)
     case OPT_ANTIALIASFONTS: adjust_fonts_for_render_mode(new_value != 0); break;
     case OPT_RIGHTLEFTWRITE: GUIE::MarkForTranslationUpdate(); break;
     case OPT_DUPLICATEINV: UpdateInventory(); break;
-    case OPT_PORTRAITSIDE: play.swap_portrait_side = (new_value == PORTRAIT_ALTERNATE); break;
-    case OPT_DISPLAYSINGLEDIALOGOPTION: play.show_single_dialog_option = new_value; break;
+    case OPT_PORTRAITSIDE: game.Play.swap_portrait_side = (new_value == PORTRAIT_ALTERNATE); break;
+    case OPT_DISPLAYSINGLEDIALOGOPTION: game.Play.show_single_dialog_option = new_value; break;
     default: break; // do nothing else
     }
 
@@ -2689,11 +2745,12 @@ int GetGameOption(int opt)
         return 0;
     }
 
-    return game.options[opt];
+    return Game::Current().options[opt];
 }
 
 void SkipUntilCharacterStops(int char_id)
 {
+    Game &game = Game::Current();
     if (!AssertCharacter("SkipUntilCharacterStops", char_id))
         return;
     if (game.chars[char_id].room != displayed_room)
@@ -2708,18 +2765,19 @@ void SkipUntilCharacterStops(int char_id)
         quit("!SkipUntilCharacterStops: cannot be used within a cutscene");
 
     initialize_skippable_cutscene();
-    play.fast_forward = 2;
-    play.skip_until_char_stops = char_id;
+    game.Play.fast_forward = 2;
+    game.Play.skip_until_char_stops = char_id;
 }
 
 void EndSkippingUntilCharStops()
 {
+    Game &game = Game::Current();
     // not currently skipping, so ignore
-    if (play.skip_until_char_stops < 0)
+    if (game.Play.skip_until_char_stops < 0)
         return;
 
     stop_fast_forwarding();
-    play.skip_until_char_stops = -1;
+    game.Play.skip_until_char_stops = -1;
 }
 
 void StartCutscene(int skip_mode)
@@ -2740,7 +2798,7 @@ void StartCutscene(int skip_mode)
     // make sure they can't be skipping and cutsceneing at the same time
     EndSkippingUntilCharStops();
 
-    play.in_cutscene = skip_mode;
+    Game::Current().Play.in_cutscene = skip_mode;
     initialize_skippable_cutscene();
 }
 
@@ -2752,11 +2810,12 @@ void SkipCutscene()
 
 int EndCutscene()
 {
+    Game &game = Game::Current();
     if (!is_in_cutscene())
         quit("!EndCutscene: not in a cutscene");
 
-    int result = play.fast_forward;
-    play.in_cutscene = 0;
+    int result = game.Play.fast_forward;
+    game.Play.in_cutscene = 0;
     // Stop it fast-forwarding
     stop_fast_forwarding();
 
@@ -2776,7 +2835,7 @@ void ShowInputBox(const char *msg, char *buffer)
 
 String ShowInputBoxImpl(const char *msg)
 {
-    setup_for_dialog(play.normal_font);
+    setup_for_dialog(Game::Current().Play.normal_font);
     String input = enterstringwindow(get_translation(msg));
     restore_after_dialog();
     return input;
@@ -2798,6 +2857,7 @@ int GetLocationType2(int x, int y)
 // returns location's name and "location reference".
 static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y, int hit_options)
 {
+    Game &game = Game::Current();
     // If no room loaded yet, then return nothing
     if (displayed_room < 0)
     {
@@ -2843,15 +2903,16 @@ static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y
 
 const char *GetLocationName(int x, int y, int hit_options)
 {
+    Game &game = Game::Current();
     SceneLocationRef loc_ref;
     const char *loc_name = GetLocationNameAndRef(loc_ref, x, y, hit_options);
 
     // If it's a new location, different from the last time we checked,
     // then update "@OVERHOTSPOT@" label(s), and save the last index
-    if (play.get_loc_name_last_time != loc_ref)
+    if (game.Play.get_loc_name_last_time != loc_ref)
     {
         GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
-        play.get_loc_name_last_time = loc_ref;
+        game.Play.get_loc_name_last_time = loc_ref;
     }
 
     return loc_name;
@@ -2895,6 +2956,7 @@ void _sc_AbortGame(const char *text)
 // accidental effects that some old games depend on.
 static int WaitImplPre360(int skip_type, int num_loops)
 {
+    Game &game = Game::Current();
     // Negative nloops was forbidden in < 3.6.0, but here we just return instantly
     if (num_loops < 0)
     {
@@ -2929,24 +2991,25 @@ static int WaitImplPre360(int skip_type, int num_loops)
         return 0;
     }
 
-    play.wait_counter = static_cast<int16_t>(Math::Clamp<int>(num_loops, -1, INT16_MAX));
-    play.wait_skipped_by = SKIP_NONE;
-    play.wait_skipped_by_data = 0;
-    play.key_skip_wait = skip_type;
+    game.Play.wait_counter = static_cast<int16_t>(Math::Clamp<int>(num_loops, -1, INT16_MAX));
+    game.Play.wait_skipped_by = SKIP_NONE;
+    game.Play.wait_skipped_by_data = 0;
+    game.Play.key_skip_wait = skip_type;
 
-    GameLoopUntilValueIsZero(&play.wait_counter);
+    GameLoopUntilValueIsZero(&game.Play.wait_counter);
 
     if (force_result_1)
         return 1;
 
     // < 3.6.0 return 1 if skipped by user input, otherwise 0
-    return ((play.wait_skipped_by & (SKIP_KEYPRESS | SKIP_MOUSECLICK)) != 0) ? 1 : 0;
+    return ((game.Play.wait_skipped_by & (SKIP_KEYPRESS | SKIP_MOUSECLICK)) != 0) ? 1 : 0;
 }
 
 int WaitImpl(int skip_type, int num_loops)
 {
+    Game &game = Game::Current();
     // if skipping cutscene and expecting user input: don't wait at all
-    if (play.fast_forward && ((skip_type & ~SKIP_AUTOTIMER) != 0))
+    if (game.Play.fast_forward && ((skip_type & ~SKIP_AUTOTIMER) != 0))
         return 0;
 
     if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v360)
@@ -2960,15 +3023,15 @@ int WaitImpl(int skip_type, int num_loops)
         return 0;
     }
 
-    play.wait_counter = static_cast<int16_t>(Math::Clamp<int>(num_loops, -1, INT16_MAX));
-    play.wait_skipped_by = SKIP_NONE;
-    play.wait_skipped_by_data = 0;
-    play.key_skip_wait = skip_type;
+    game.Play.wait_counter = static_cast<int16_t>(Math::Clamp<int>(num_loops, -1, INT16_MAX));
+    game.Play.wait_skipped_by = SKIP_NONE;
+    game.Play.wait_skipped_by_data = 0;
+    game.Play.key_skip_wait = skip_type;
 
-    GameLoopUntilValueIsZero(&play.wait_counter);
+    GameLoopUntilValueIsZero(&game.Play.wait_counter);
 
     // >= 3.6.0 return skip (input) type flags with keycode
-    return play.GetWaitSkipResult();
+    return game.Play.GetWaitSkipResult();
 }
 
 void scrWait(int num_loops)
@@ -3003,5 +3066,5 @@ void SkipWait0()
 
 void SkipWait(int result_value)
 {
-    play.SetWaitSkipResult(SKIP_NONE /* by script */, result_value);
+    Game::Current().Play.SetWaitSkipResult(SKIP_NONE /* by script */, result_value);
 }

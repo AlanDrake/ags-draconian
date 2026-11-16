@@ -20,6 +20,7 @@
 #include "game/asset_helper.h"
 #include "game/audio_clip_type.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -630,7 +631,7 @@ FSLocation GetGameUserConfigDir()
         return FSLocation(services.ResPaths.DataDir).Concat(dir.FullDir);
     // For absolute dir, we assume it's a special directory prepared for AGS engine
     // and therefore append a game's own subdir
-    return dir.Concat(game.saveGameFolderName);
+    return dir.Concat(Game::Current().saveGameFolderName);
 }
 
 // Constructs data dir using rules for default system location
@@ -641,7 +642,7 @@ inline FSLocation MakeDefaultDataDir(const FSLocation &def_dir)
         return FSLocation(EngineServices::Current().ResPaths.DataDir).Concat(def_dir.FullDir);
     // For absolute dir, we assume it's a special directory prepared for AGS engine
     // and therefore amend it with a game's own subdir (to separate files from different games)
-    return def_dir.Concat(game.saveGameFolderName);
+    return def_dir.Concat(Game::Current().saveGameFolderName);
 }
 
 // Constructs data dir using rules for the user-specified location

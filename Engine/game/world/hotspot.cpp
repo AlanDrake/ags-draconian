@@ -17,6 +17,7 @@
 #include "game/dynobj/cc_hotspot.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -118,7 +119,7 @@ ScriptHotspot *Hotspot_GetAtRoomXY2(int x, int y)
 
 ScriptHotspot *Hotspot_GetAtScreenXY(int x, int y, int hit_options)
 {
-    VpPoint vpt = play.ScreenToRoom(x, y);
+    VpPoint vpt = Game::Current().Play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return nullptr;
     return &scrHotspot[GetHotspotIDAtRoom(vpt.first.X, vpt.first.Y, hit_options)];
@@ -151,6 +152,7 @@ void Hotspot_SetName(ScriptHotspot *hss, const char *new_name)
 
 void RunHotspotInteraction(int hotspothere, int mood)
 {
+    Game &game = Game::Current();
     if (!AssertCursorValidForEvent("Hotspot.RunInteraction", mood))
         return;
 
@@ -161,14 +163,14 @@ void RunHotspotInteraction(int hotspothere, int mood)
     // For USE verb: remember active inventory
     if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
-        play.usedinv = playerchar->activeinv;
+        game.Play.usedinv = playerchar->activeinv;
     }
 
     if ((game.options[OPT_WALKONLOOK] == 0) && (game.HasCursorRole(mood, kCursorRole_Look)))
         ;
-    else if (play.auto_use_walkto_points == 0)
+    else if (game.Play.auto_use_walkto_points == 0)
         ;
-    else if ((!game.HasCursorRole(mood, kCursorRole_Walk)) && (play.check_interaction_only == 0))
+    else if ((!game.HasCursorRole(mood, kCursorRole_Walk)) && (game.Play.check_interaction_only == 0))
         MoveCharacterToHotspot(game.playercharacter, hotspothere);
 
     const auto obj_evt =
@@ -184,10 +186,11 @@ void RunHotspotInteraction(int hotspothere, int mood)
 
 bool Hotspot_IsInteractionAvailable(ScriptHotspot *hhot, int mood)
 {
-    play.check_interaction_only = 1;
+    Game &game = Game::Current();
+    game.Play.check_interaction_only = 1;
     RunHotspotInteraction(hhot->id, mood);
-    int ciwas = play.check_interaction_only;
-    play.check_interaction_only = 0;
+    int ciwas = game.Play.check_interaction_only;
+    game.Play.check_interaction_only = 0;
     return (ciwas == 2);
 }
 

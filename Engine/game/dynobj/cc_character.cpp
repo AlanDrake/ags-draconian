@@ -15,6 +15,7 @@
 
 #include "game/character_info.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_init.h"
 #include "script/cc_common.h" // cc_error
@@ -44,7 +45,7 @@ void CCCharacter::Serialize(const void *address, Stream *out)
 void CCCharacter::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     int num = in->ReadInt32();
-    StaticCharacterArray[num] = ccRegisterUnserializedPersistentObject(index, &game.chars[num], this);
+    StaticCharacterArray[num] = ccRegisterUnserializedPersistentObject(index, &Game::Current().chars[num], this);
 }
 
 uint8_t CCCharacter::ReadInt8(const void *address, intptr_t offset)

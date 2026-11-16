@@ -44,7 +44,7 @@ class Stream;
 // Flag in the mode of RunAGSGame: unload the running game and load the new one now, instead of scheduling the switch.
 #define RAGMODE_LOADNOW 0x8000000
 
-// How a running cutscene may be skipped. The values are the skip_mode of StartCutscene, kept in play.in_cutscene;
+// How a running cutscene may be skipped. The values are the skip_mode of StartCutscene, kept in game.Play.in_cutscene;
 // 0 (kSkipSceneUndefined) means that no cutscene is running.
 enum CutsceneSkipStyle
 {
@@ -188,7 +188,7 @@ bool Game_ChangeSpeechVox(const char *new_filename);
 
 //=============================================================================
 
-// Sets play.debug_mode.
+// Sets game.Play.debug_mode.
 void set_debug_mode(bool on);
 // Sets logical game FPS, telling how often the game should update
 void set_game_speed(int new_fps);
@@ -280,7 +280,7 @@ bool check_skip_cutscene_mclick(int mouse_button);
 bool check_skip_cutscene_gamepad(int gamepad_button);
 // Called by StartCutscene and SkipUntilCharacterStops before they start fast-forwarding; does nothing at present.
 void initialize_skippable_cutscene();
-// Ends the fast-forwarding of a cutscene or of SkipUntilCharacterStops: clears play.fast_forward, applies the game
+// Ends the fast-forwarding of a cutscene or of SkipUntilCharacterStops: clears game.Play.fast_forward, applies the game
 // palette again and unmutes the sounds.
 void stop_fast_forwarding();
 
@@ -339,7 +339,6 @@ std::vector<MoveList> &get_movelists();
 void release_script_movelist(int handle);
 
 
-struct GameDef;
 struct ViewStruct;
 namespace AGS
 {
@@ -349,8 +348,6 @@ class SpriteCache;
 } // namespace Common
 } // namespace AGS
 
-// The game's data, as loaded from the game file.
-extern GameDef game;
 // The game's views.
 extern std::vector<ViewStruct> views;
 // The game's sprites.
@@ -720,7 +717,7 @@ void PauseGame();
 void UnPauseGame();
 // Returns 1 if the game is paused, else 0.
 int IsGamePaused();
-// Runs another game file. Without RAGMODE_LOADNOW in mode, only stores the new game and data (play.takeover_data)
+// Runs another game file. Without RAGMODE_LOADNOW in mode, only stores the new game and data (game.Play.takeover_data)
 // and schedules the switch: after the script ends if called from a script, else through load_new_game. With it,
 // unloads the current game, loads new_game, and starts it or, if load_new_game_restore is set, restores that save.
 // Quits on an unknown mode or when run from the editor's debugger. Always returns 0.
@@ -729,7 +726,7 @@ int RunAGSGame(const AGS::Common::String &new_game, unsigned int mode, int data)
 void QuitGame(int dialog);
 // Saves the game into the restart point slot (RESTART_POINT_SAVE_GAME_NUMBER).
 void SetRestartPoint();
-// Sets the game speed in frames per second; the speed actually used is new_speed plus play.game_speed_modifier,
+// Sets the game speed in frames per second; the speed actually used is new_speed plus game.Play.game_speed_modifier,
 // limited to 10..1000, while GetGameSpeed returns new_speed.
 void SetGameSpeed(int new_speed);
 // Returns the speed last given to SetGameSpeed, initially the game's setting.

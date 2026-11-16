@@ -31,6 +31,7 @@
 #include "game/event.h"
 #include "game/file.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -396,12 +397,13 @@ HSaveError OpenSavegame(const String &filename, SavegameDescription &desc, Saveg
 // Prepares engine for actual save restore (stops processes, cleans up memory)
 void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
 {
+    Game &game = Game::Current();
     memcpy(pp.GameOptions, game.options, GameDef::MAX_OPTIONS * sizeof(int));
 
     unload_old_room();
     remove_all_overlays();
-    play.complete_overlay_on = 0;
-    play.text_overlay_on = 0;
+    game.Play.complete_overlay_on = 0;
+    game.Play.text_overlay_on = 0;
 
     // cleanup dynamic sprites
     // NOTE: sprite 0 is reserved for the "empty sprite" and is never allocated as a dynamic one
@@ -437,8 +439,8 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     // Free what GameState owns outside of its plain fields (properties, viewports and cameras, do-once tokens);
     // the plain fields are overwritten by the GameState component
     // TODO: reset the whole GameState object here instead, once it is clear nothing in it must survive
-    play.FreeProperties();
-    play.FreeViewportsAndCameras();
+    game.Play.FreeProperties();
+    game.Play.FreeViewportsAndCameras();
     free_do_once_tokens();
 
     RemoveAllButtonAnimations();
@@ -469,27 +471,28 @@ void FillPreservedParams(PreservedParams &pp)
 
 static HSaveError RestoreAudio(const RestoredData &r_data)
 {
+    Game &game = Game::Current();
     // Drop the preloaded clips of the music queue (they are unique_ptr, so this frees them);
     // the queue itself comes from the save, without the loaded clips
     // TODO: perhaps this should be done in DoBeforeRestore instead, with the rest of the cleanup
-    for (int i = 0; i < play.new_music_queue_size; ++i)
+    for (int i = 0; i < game.Play.new_music_queue_size; ++i)
     {
-        play.new_music_queue[i].cachedClip = nullptr;
+        game.Play.new_music_queue[i].cachedClip = nullptr;
     }
 
-    if (play.audio_master_volume >= 0)
+    if (game.Play.audio_master_volume >= 0)
     {
-        int temp_vol = play.audio_master_volume;
-        play.audio_master_volume = -1; // reset to invalid state before re-applying
+        int temp_vol = game.Play.audio_master_volume;
+        game.Play.audio_master_volume = -1; // reset to invalid state before re-applying
         System_SetVolume(temp_vol);
     }
 
     // Run audio clips on channels
     // these two crossfading parameters have to be temporarily reset
-    const int cf_in_chan = play.crossfading_in_channel;
-    const int cf_out_chan = play.crossfading_out_channel;
-    play.crossfading_in_channel = 0;
-    play.crossfading_out_channel = 0;
+    const int cf_in_chan = game.Play.crossfading_in_channel;
+    const int cf_out_chan = game.Play.crossfading_out_channel;
+    game.Play.crossfading_in_channel = 0;
+    game.Play.crossfading_out_channel = 0;
 
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     {
@@ -535,9 +538,9 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
         }
     }
     if ((cf_in_chan > 0) && (AudioChans::GetChannel(cf_in_chan) != nullptr))
-        play.crossfading_in_channel = cf_in_chan;
+        game.Play.crossfading_in_channel = cf_in_chan;
     if ((cf_out_chan > 0) && (AudioChans::GetChannel(cf_out_chan) != nullptr))
-        play.crossfading_out_channel = cf_out_chan;
+        game.Play.crossfading_out_channel = cf_out_chan;
 
     // If there were synced audio tracks, the time taken to load in the
     // different channels will have thrown them out of sync, so re-time it
@@ -557,10 +560,11 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
 
 static void RestoreViewportsAndCameras(const RestoredData &r_data)
 {
+    Game &game = Game::Current();
     for (size_t i = 0; i < r_data.Cameras.size(); ++i)
     {
         const auto &cam_dat = r_data.Cameras[i];
-        auto cam = play.GetRoomCamera(i);
+        auto cam = game.Play.GetRoomCamera(i);
         cam->SetID(cam_dat.ID);
         if ((cam_dat.Flags & kSvgCamPosLocked) != 0)
             cam->Lock();
@@ -576,7 +580,7 @@ static void RestoreViewportsAndCameras(const RestoredData &r_data)
     for (size_t i = 0; i < r_data.Viewports.size(); ++i)
     {
         const auto &view_dat = r_data.Viewports[i];
-        auto view = play.GetRoomViewport(i);
+        auto view = game.Play.GetRoomViewport(i);
         view->SetID(view_dat.ID);
         view->SetVisible((view_dat.Flags & kSvgViewportVisible) != 0);
         view->SetRect(RectWH(view_dat.Left, view_dat.Top, view_dat.Width, view_dat.Height));
@@ -586,11 +590,11 @@ static void RestoreViewportsAndCameras(const RestoredData &r_data)
         int cam_index = view_dat.CamID;
         if (cam_index < 0)
             continue;
-        auto cam = play.GetRoomCamera(cam_index);
+        auto cam = game.Play.GetRoomCamera(cam_index);
         view->LinkCamera(cam);
         cam->LinkToViewport(view);
     }
-    play.InvalidateViewportZOrder();
+    game.Play.InvalidateViewportZOrder();
 }
 
 // Resets the options that are not supposed to be changed at runtime (the restricted and the preserved ones)
@@ -609,6 +613,7 @@ static void CopyPreservedGameOptions(GameDef &gs, const PreservedParams &pp)
 // sprite 0 if it does not. Used in a call to ccTraverseManagedObjects.
 static void ValidateDynamicSprite(int handle, IScriptObject *obj)
 {
+    Game &game = Game::Current();
     ScriptDynamicSprite *dynsprite = static_cast<ScriptDynamicSprite *>(obj);
     if (dynsprite->slot < 0 || static_cast<uint32_t>(dynsprite->slot) >= game.SpriteInfos.size() ||
         !game.SpriteInfos[dynsprite->slot].IsDynamicSprite())
@@ -655,12 +660,13 @@ static HSaveError ValidateRestoredSave(const SavegameDescription &save_desc, con
 HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveCmpSelection select_cmp)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     // Put back the game options that must not change at runtime, whatever the save had
     CopyPreservedGameOptions(game, pp);
 
     // Keep the debug mode on if the engine was started in it, whatever the save had
     if (debug_flags & DBG_DEBUGMODE)
-        play.debug_mode = 1;
+        game.Play.debug_mode = 1;
 
     // Move the restored dynamic surfaces to where the engine keeps them
     const size_t dynamic_surface_count = std::min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());
@@ -709,8 +715,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     setup_player_character(game.playercharacter);
 
     // Save some parameters to restore them after room load
-    const int gscript_timer = play.gscript_timer;
-    const Rect mouse_bounds = play.mbounds;
+    const int gscript_timer = game.Play.gscript_timer;
+    const Rect mouse_bounds = game.Play.mbounds;
     // load the room the game was saved in
     displayed_room = r_data.Room;
     if (displayed_room >= 0)
@@ -729,8 +735,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     pool.RemapTypeids(type_l2g);
 
     // Reapply few parameters after room load
-    play.gscript_timer = gscript_timer;
-    play.mbounds = mouse_bounds;
+    game.Play.gscript_timer = gscript_timer;
+    game.Play.mbounds = mouse_bounds;
 
 
     set_cursor_mode(r_data.CursorMode);
@@ -740,19 +746,19 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // precache current cursor
     spriteset.PrecacheSprite(game.mcurs[r_data.CursorID].pic);
 
-    services.Platform->SetWindowTitle(play.game_name);
+    services.Platform->SetWindowTitle(game.Play.game_name);
 
     if (displayed_room >= 0)
     {
         // Fixup the frame index, in case the restored room does not have enough background frames
-        if (play.bg_frame < 0 || static_cast<size_t>(play.bg_frame) >= thisroom.BgFrameCount)
-            play.bg_frame = 0;
+        if (game.Play.bg_frame < 0 || static_cast<size_t>(game.Play.bg_frame) >= thisroom.BgFrameCount)
+            game.Play.bg_frame = 0;
 
         for (size_t i = 0; i < std::min(thisroom.BgImages.size(), r_data.RoomBkgScene.size()); ++i)
         {
             if (r_data.RoomBkgScene[i])
             {
-                play.room_bg_modified[i] = true;
+                game.Play.room_bg_modified[i] = true;
                 // Blit, don't replace image, in case we restored a image of different size
                 thisroom.BgImages[i]->Clear(0);
                 thisroom.BgImages[i]->Blit(r_data.RoomBkgScene[i].get());
@@ -763,7 +769,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         {
             if (r_data.RoomMask[i])
             {
-                play.room_mask_modified[i] = true;
+                game.Play.room_mask_modified[i] = true;
                 // Blit, don't replace mask, in case we restored a mask of different size
                 thisroom.CopyMask(static_cast<RoomAreaMask>(i), r_data.RoomMask[i].get());
             }
@@ -834,15 +840,15 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         first_room_initialization();
     }
 
-    Mouse::SetMoveLimit(play.mbounds); // apply mouse bounds
+    Mouse::SetMoveLimit(game.Play.mbounds); // apply mouse bounds
 
     // Apply accessibility options, must be done last, because some
     // may override restored game settings
-    ApplyAccessibilityOptions(play, services.Config);
+    ApplyAccessibilityOptions(game.Play, services.Config);
     // Applies behavior options, also hacks and backwards compatibility fixes
-    ApplyBehaviorOptions(game, play, services.Config);
+    ApplyBehaviorOptions(game, game.Play, services.Config);
 
-    play.ClearIgnoreInput(); // don't keep ignored input after save restore
+    game.Play.ClearIgnoreInput(); // don't keep ignored input after save restore
     update_polled_stuff();
 
     return HSaveError::None();
@@ -961,6 +967,7 @@ void WriteFileFormat(Stream *out, const SavegameFileFormat &file_format)
 void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_image, SavegameFileFormat &file_format)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     // Data format version
     out->WriteInt32(kSvgVersion_Current);
     soff_t file_format_pos = out->GetPosition();

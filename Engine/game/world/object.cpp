@@ -19,6 +19,7 @@
 #include "game/dynobj/script_shader.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -75,6 +76,7 @@ bool AssertObject(const char *apiname, int obj_id)
 
 static int GetThingRect(int thing, Rect *rect)
 {
+    Game &game = Game::Current();
     if (IsValidCharacter(thing))
     {
         // FIXME: a disabled character in this room still counts as overlapping, a disabled object does not
@@ -219,7 +221,7 @@ int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
 ScriptObject *Object_GetAtScreenXY(int x, int y, int hit_options)
 {
     // translate screen co-ordinates to room co-ordinates
-    VpPoint vpt = play.ScreenToRoom(x, y);
+    VpPoint vpt = Game::Current().Play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return nullptr;
     int obj_id = GetObjectIDAtRoom(vpt.first.X, vpt.first.Y, hit_options);
@@ -898,6 +900,7 @@ void Object_SetName(ScriptObject *obj, const char *new_name)
 
 void RunObjectInteraction(int obj_id, int mood)
 {
+    Game &game = Game::Current();
     if (!AssertObject("RunObjectInteraction", obj_id))
     {
         return;
@@ -913,7 +916,7 @@ void RunObjectInteraction(int obj_id, int mood)
     // For USE verb: remember active inventory
     if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
-        play.usedinv = playerchar->activeinv;
+        game.Play.usedinv = playerchar->activeinv;
     }
 
     const auto obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_OBJ, obj_id,
@@ -928,13 +931,14 @@ void RunObjectInteraction(int obj_id, int mood)
 
 bool Object_IsInteractionAvailable(ScriptObject *obj, int mood)
 {
-    play.check_interaction_only = 1;
+    Game &game = Game::Current();
+    game.Play.check_interaction_only = 1;
     RunObjectInteraction(obj->id, mood);
     // In the check-only mode run_event_script runs no handler, but sets check_interaction_only to 2
     // if it found one (for the event, or for "any click")
-    // TODO: return the check result from run_event_script, instead of passing it through play.check_interaction_only
-    int ciwas = play.check_interaction_only;
-    play.check_interaction_only = 0;
+    // TODO: return the check result from run_event_script, instead of passing it through game.Play.check_interaction_only
+    int ciwas = game.Play.check_interaction_only;
+    game.Play.check_interaction_only = 0;
     return (ciwas == 2);
 }
 
@@ -1490,6 +1494,7 @@ ScriptMotionPath *Object_GetMotionPath(ScriptObject *obj)
 void update_object_scale(int &res_zoom, int &res_width, int &res_height, int objx, int objy, int sprnum, int own_zoom,
                          bool use_region_scaling)
 {
+    Game &game = Game::Current();
     int zoom = own_zoom;
     if (use_region_scaling)
     {
@@ -1524,6 +1529,7 @@ void update_object_scale(int &res_zoom, int &res_width, int &res_height, int obj
 
 void update_object_scale(int obj_id)
 {
+    Game &game = Game::Current();
     RoomObject &room_obj = objs[obj_id];
     if (!room_obj.is_enabled())
     {
@@ -1594,7 +1600,7 @@ int is_pos_in_sprite(int x, int y, int arx, int ary, Bitmap *sprit, int spww, in
         return false;
     }
 
-    if (game.options[OPT_PIXPERFECT])
+    if (Game::Current().options[OPT_PIXPERFECT])
     {
         // if it's transparent, or off the edge of the sprite, ignore
         int xpos = x - arx;
@@ -1783,7 +1789,7 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams
     const bool forward = anim_params.IsForward();
     const AnimFlowStyle flow = anim_params.Flow;
     // Allow multi-loop repeat depending on a game option
-    const bool multi_loop_repeat = (play.no_multiloop_repeat == 0);
+    const bool multi_loop_repeat = (Game::Current().Play.no_multiloop_repeat == 0);
 
     bool is_done = false;
     // Test next frame (fw or bw), if we see that it is past the frame range,

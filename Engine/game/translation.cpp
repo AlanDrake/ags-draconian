@@ -23,6 +23,7 @@
 #include "game/dialog/display.h"
 #include "game/dialog/parser.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/runtime_defines.h"
@@ -81,6 +82,7 @@ FontInfo construct_font_override(FontInfo *base_finfo, const FontInfo &finfo, in
 
 void init_font_overrides(const Translation &trans)
 {
+    Game &game = Game::Current();
     for (const auto &font_override : trans.FontOverrides)
     {
         const int font_id = font_override.first;
@@ -126,6 +128,7 @@ void init_font_overrides(const Translation &trans)
 
 void restore_game_fonts(const Translation &old_trans)
 {
+    Game &game = Game::Current();
     for (const auto &font_override : trans.FontOverrides)
     {
         const int font_id = font_override.first;
@@ -139,6 +142,7 @@ void restore_game_fonts(const Translation &old_trans)
 
 void close_translation()
 {
+    Game &game = Game::Current();
     game.options[OPT_AUTOTRANSPARSERSAID] = 0;
     if (trans.FontOverrides.size() > 0)
     {
@@ -166,6 +170,7 @@ void SetGameTextLanguage(const String &language)
 bool init_translation(const String &lang, const String &fallback_lang)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     if (lang.IsEmpty())
         return false;
     trans_name = lang;
@@ -214,10 +219,11 @@ bool init_translation(const String &lang, const String &fallback_lang)
     {
         game.options[OPT_RIGHTLEFTWRITE] = trans.RightToLeft == kTextDirection_LTR ? 0 : 1;
         HorAlignment align = game.options[OPT_RIGHTLEFTWRITE] ? kHAlignRight : kHAlignLeft;
-        play.text_align = (play.text_align != kHAlignCenter) ? align : kHAlignCenter;
-        play.speech_text_align = (play.speech_text_align != kHAlignCenter) ? align : kHAlignCenter;
-        if (play.GetRBSwitches()[kRBO_ApplyDialogOptionTextAlignment])
-            play.dialog_options_textalign = (play.dialog_options_textalign != kHAlignCenter) ? align : kHAlignCenter;
+        game.Play.text_align = (game.Play.text_align != kHAlignCenter) ? align : kHAlignCenter;
+        game.Play.speech_text_align = (game.Play.speech_text_align != kHAlignCenter) ? align : kHAlignCenter;
+        if (game.Play.GetRBSwitches()[kRBO_ApplyDialogOptionTextAlignment])
+            game.Play.dialog_options_textalign =
+                (game.Play.dialog_options_textalign != kHAlignCenter) ? align : kHAlignCenter;
     }
     game.options[OPT_AUTOTRANSPARSERSAID] = (trans.OptFlags & kTraOpt_AutoTranslateSaid) != 0;
 

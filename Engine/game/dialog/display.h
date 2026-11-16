@@ -156,7 +156,7 @@ int GetTextDisplayLength(const char *text);
 // Calculates number of game loops for displaying a text on screen;
 // uses source_text_length instead of the text's own length, if that is set (and resets it);
 // can_be_relative is 1 for background speech, which keeps its time relative to a fixed 40 fps
-// when play.bgspeech_game_speed is set.
+// when game.Play.bgspeech_game_speed is set.
 // Also stores the lipsync frame duration in loops_per_character.
 int GetTextDisplayTime(const char *text, int can_be_relative = 0);
 // Draw an (optionally) outlined text
@@ -218,7 +218,7 @@ void DisplayAt(int x, int y, int width, const char *text);
 // -1 is automatic; translates the text. Quits with an error if ypos is out of the UI viewport
 void DisplayAtY(int ypos, const char *text);
 // Shows a message box with a top bar titled with the translated title; the y position, text color and back
-// color of the bar are stored in the game state (play.top_bar_*) and stay for the later calls: a value not
+// color of the bar are stored in the game state (game.Play.top_bar_*) and stay for the later calls: a value not
 // above 0 keeps the stored one. The text is translated like in DisplayAtY; with OPT_ALWAYSSPCH set it is
 // displayed as speech of the player (without the bar).
 void DisplayTopBar(int ypos, int text_color, int back_color, const char *title, const char *text);

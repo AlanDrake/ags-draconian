@@ -18,6 +18,7 @@
 #include "game/dynobj/cc_inventory.h"
 #include "game/event.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/lib/string.h"
@@ -51,6 +52,7 @@ public:
 
 void InvItems_RegisterDynamicSpriteCallbacks()
 {
+    Game &game = Game::Current();
     for (int i = 0; i < game.numinvitems; ++i)
     {
         if (game.invinfo[i].pic > 0)
@@ -61,6 +63,7 @@ void InvItems_RegisterDynamicSpriteCallbacks()
 
 static void set_inv_item_pic(int item_id, int sprite)
 {
+    Game &game = Game::Current();
     if ((item_id < 0) || (item_id >= game.numinvitems))
         quit("!SetInvItemPic: invalid inventory item specified");
 
@@ -77,7 +80,7 @@ static void set_inv_item_pic(int item_id, int sprite)
 
 void set_inv_item_cursorpic(int item_id, int sprite)
 {
-    game.invinfo[item_id].cursorPic = sprite;
+    Game::Current().invinfo[item_id].cursorPic = sprite;
 
     if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv == item_id))
     {
@@ -88,7 +91,7 @@ void set_inv_item_cursorpic(int item_id, int sprite)
 
 static void set_inv_item_cursorhotspot(int item_id, int hx, int hy, FrameAlignment align)
 {
-    auto &item = game.invinfo[item_id];
+    auto &item = Game::Current().invinfo[item_id];
     item.hotx = hx;
     item.hoty = hy;
     item.hotAlign = align;
@@ -103,6 +106,7 @@ static void set_inv_item_cursorhotspot(int item_id, int hx, int hy, FrameAlignme
 
 bool AssertInvItem(const char *apiname, int item_id)
 {
+    Game &game = Game::Current();
     if ((item_id >= 0) && (item_id < game.numinvitems))
         return true;
     debug_script_warn("%s: invalid inventory id %d (range is 0..%d)", apiname, item_id, game.numinvitems - 1);
@@ -116,37 +120,40 @@ void InventoryItem_SetCursorGraphic(ScriptInvItem *item, int sprite)
 
 int InventoryItem_GetCursorGraphic(ScriptInvItem *item)
 {
-    return game.invinfo[item->id].cursorPic;
+    return Game::Current().invinfo[item->id].cursorPic;
 }
 
 int InventoryItem_GetCursorHotspotAlignment(ScriptInvItem *item)
 {
-    return game.invinfo[item->id].hotAlign;
+    return Game::Current().invinfo[item->id].hotAlign;
 }
 
 void InventoryItem_SetCursorHotspotAlignment(ScriptInvItem *item, int align)
 {
+    Game &game = Game::Current();
     set_inv_item_cursorhotspot(item->id, game.invinfo[item->id].hotx, game.invinfo[item->id].hoty,
                                static_cast<FrameAlignment>(align));
 }
 
 int InventoryItem_GetCursorHotspotX(ScriptInvItem *item)
 {
-    return game.invinfo[item->id].hotx;
+    return Game::Current().invinfo[item->id].hotx;
 }
 
 void InventoryItem_SetCursorHotspotX(ScriptInvItem *item, int hotspot_x)
 {
+    Game &game = Game::Current();
     set_inv_item_cursorhotspot(item->id, hotspot_x, game.invinfo[item->id].hoty, game.invinfo[item->id].hotAlign);
 }
 
 int InventoryItem_GetCursorHotspotY(ScriptInvItem *item)
 {
-    return game.invinfo[item->id].hoty;
+    return Game::Current().invinfo[item->id].hoty;
 }
 
 void InventoryItem_SetCursorHotspotY(ScriptInvItem *item, int hotspot_y)
 {
+    Game &game = Game::Current();
     set_inv_item_cursorhotspot(item->id, game.invinfo[item->id].hotx, hotspot_y, game.invinfo[item->id].hotAlign);
 }
 
@@ -157,6 +164,7 @@ void InventoryItem_SetGraphic(ScriptInvItem *item, int sprite)
 
 static void SetInvItemName(int item_id, const char *new_name)
 {
+    Game &game = Game::Current();
     if ((item_id < 0) || (item_id >= game.numinvitems))
         quit("!SetInvName: invalid inventory item specified");
 
@@ -177,7 +185,7 @@ int InventoryItem_GetID(ScriptInvItem *item)
 
 const char *InventoryItem_GetScriptName(ScriptInvItem *item)
 {
-    return CreateNewScriptString(game.invScriptNames[item->id]);
+    return CreateNewScriptString(Game::Current().invScriptNames[item->id]);
 }
 
 int GetInvAt(int x, int y, int gui_hitoptions, int inv_hitoptions)
@@ -212,16 +220,17 @@ ScriptInvItem *InventoryItem_GetAtScreenXY2(int x, int y)
 
 const char *InventoryItem_GetName_New(ScriptInvItem *item)
 {
-    return CreateNewScriptString(game.invinfo[item->id].name);
+    return CreateNewScriptString(Game::Current().invinfo[item->id].name);
 }
 
 int InventoryItem_GetGraphic(ScriptInvItem *item)
 {
-    return game.invinfo[item->id].pic;
+    return Game::Current().invinfo[item->id].pic;
 }
 
 void RunInventoryInteraction(int item_id, int mood)
 {
+    Game &game = Game::Current();
     if ((item_id < 0) || (item_id >= game.numinvitems))
         quit("!RunInventoryInteraction: invalid inventory number");
     if (!AssertCursorValidForEvent("InventoryItem.RunInteraction", mood))
@@ -234,7 +243,7 @@ void RunInventoryInteraction(int item_id, int mood)
     // For USE verb: remember active inventory
     if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
-        play.usedinv = playerchar->activeinv;
+        game.Play.usedinv = playerchar->activeinv;
     }
 
     const auto obj_evt = ObjectEvent(kScTypeGame, LOCTYPE_INVITEM, item_id,
@@ -249,15 +258,16 @@ void RunInventoryInteraction(int item_id, int mood)
 
 static int IsInventoryInteractionAvailable(int item_id, int mood)
 {
+    Game &game = Game::Current();
     if ((item_id < 0) || (item_id >= game.numinvitems))
         quit("!IsInventoryInteractionAvailable: invalid inventory number");
 
-    play.check_interaction_only = 1;
+    game.Play.check_interaction_only = 1;
 
     RunInventoryInteraction(item_id, mood);
 
-    int result = play.check_interaction_only;
-    play.check_interaction_only = 0;
+    int result = game.Play.check_interaction_only;
+    game.Play.check_interaction_only = 0;
 
     if (result == 2)
         return 1;
@@ -277,27 +287,30 @@ int InventoryItem_CheckInteractionAvailable(ScriptInvItem *item, int mood)
 
 int InventoryItem_GetProperty(ScriptInvItem *item, const char *property)
 {
-    return get_int_property(game.invProps[item->id], play.invProps[item->id], property);
+    Game &game = Game::Current();
+    return get_int_property(game.invProps[item->id], game.Play.invProps[item->id], property);
 }
 
 void InventoryItem_GetPropertyText(ScriptInvItem *item, const char *property, char *buffer)
 {
-    get_text_property(game.invProps[item->id], play.invProps[item->id], property, buffer);
+    Game &game = Game::Current();
+    get_text_property(game.invProps[item->id], game.Play.invProps[item->id], property, buffer);
 }
 
 const char *InventoryItem_GetTextProperty(ScriptInvItem *item, const char *property)
 {
-    return get_text_property_dynamic_string(game.invProps[item->id], play.invProps[item->id], property);
+    Game &game = Game::Current();
+    return get_text_property_dynamic_string(game.invProps[item->id], game.Play.invProps[item->id], property);
 }
 
 bool InventoryItem_SetProperty(ScriptInvItem *item, const char *property, int value)
 {
-    return set_int_property(play.invProps[item->id], property, value);
+    return set_int_property(Game::Current().Play.invProps[item->id], property, value);
 }
 
 bool InventoryItem_SetTextProperty(ScriptInvItem *item, const char *property, const char *value)
 {
-    return set_text_property(play.invProps[item->id], property, value);
+    return set_text_property(Game::Current().Play.invProps[item->id], property, value);
 }
 
 //=============================================================================

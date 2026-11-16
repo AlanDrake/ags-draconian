@@ -14,6 +14,7 @@
 #include "game/render/screen_overlay.h"
 
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/render/dynamic_sprite.h"
 #include "game/world/object.h"
@@ -59,6 +60,7 @@ Bitmap *ScreenOverlay::GetImage() const
 
 Size ScreenOverlay::GetGraphicSize() const
 {
+    Game &game = Game::Current();
     return Size(game.SpriteInfos[_sprnum].Width, game.SpriteInfos[_sprnum].Height);
 }
 
@@ -166,6 +168,7 @@ void ScreenOverlay::ResetImage(bool reset_size)
 
 void ScreenOverlay::ResizeToImage()
 {
+    Game &game = Game::Current();
     if ((_sprnum > 0) && (static_cast<uint32_t>(_sprnum) < game.SpriteInfos.size()))
     {
         _destSize = Size(game.SpriteInfos[_sprnum].Width, game.SpriteInfos[_sprnum].Height);
@@ -202,6 +205,7 @@ void ScreenOverlay::SetImage(std::unique_ptr<Common::Bitmap> pic, int offx, int 
 
 void ScreenOverlay::SetSpriteNum(int sprnum)
 {
+    Game &game = Game::Current();
     ResetImage(IsAutoSize());
 
     assert(sprnum >= 0 && static_cast<uint32_t>(sprnum) < game.SpriteInfos.size());
