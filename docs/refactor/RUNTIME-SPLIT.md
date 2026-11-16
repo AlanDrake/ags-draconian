@@ -196,6 +196,53 @@ draw loops before the first batch lands (STYLE.md "Performance").
   `UpdateEffectiveValues` (11 to 12); no loop gained an accessor load; the state's fields sit at offset 376
   and up, so their accesses take a 4-byte displacement (more code bytes, not more instructions).
 
+**What 5.1a step 2 built (2026-11-16): the room's entities, and the parts they share with the character.**
+
+- **`RoomDef`** (`Common/game/room_def.h`, upstream's `RoomData`) with `RoomObjectDef`, `RoomHotspotDef`,
+  `RoomRegionDef`, `RoomWalkableAreaDef`, `RoomWalkBehindDef`: what the room file gives. The five entity
+  definitions, `RoomOptions` and `RoomEdges` are aggregates with field tables; each definition that has events
+  declares its own `Events` table, and a walkable area and a walk-behind, which never had events, no longer
+  carry an empty one (`RoomDef` went from 26,440 to 23,592 bytes). `RoomDef` itself is still a class: it owns
+  the images and a hand-written copy (6.7e).
+- **`RoomState`** (`Engine/game/world/room_state.h`, upstream's `RoomStatus`) holds the live entities of one
+  room number: `Objects` (`class RoomObject : RoomObjectDef, RoomObjectState`), `Hotspots` (`RoomHotspot :
+  RoomHotspotDef, RoomHotspotState`), `Regions`, `WalkAreas`, `WalkBehinds` (the last two have no state struct:
+  nothing of them exists only during play). The object's second copy of its definition's fields is gone
+  (`x`/`X`, `num`/`Sprite`, `baseline`/`Baseline`, the four `blocking_` values against `Rect BlockingRect`);
+  where the copy was narrower, the one field has the definition's type and the places that narrowed implicitly
+  narrow explicitly, each pinned by a test at the limit (the legacy save holds 16 bits, 5.12).
+- **The live lists hide the definition's, as `Game::Characters` does.** `Room::Objects`, `Hotspots`,
+  `Regions`, `WalkAreas`, `WalkBehinds` point at the lists of the bound `RoomState` (never null: at the
+  temporary state's when no room is bound), so every `room.Objects[i]` of the engine is the live entity, and
+  the room file's values are read through `const RoomDef &Room::Def() const`. With the lists of `RoomDef`
+  made `const` in a scratch build the engine compiles: it does not write them.
+- **Two lifetimes in one live entity, which is what the room adds to the character's model.** A field of the
+  definition part is either *kept*: a room state holds it between visits and a save holds it (an object's
+  position, sprite, baseline, flags, name, blocking rectangle; a hotspot's `Name`; a walk-behind's `Baseline`;
+  a walkable area's `FaceDirectionRatio`); or *given again*: the room file's value at every load of the room,
+  whatever a script did during the visit (a region's light and tint, a walkable area's scaling, the script
+  names, events, interactions, properties, ids). `BindRoomState` is the one place that says which: a first
+  visit builds the entities from the definitions (`StartObjectsFromDefinitions`,
+  `StartEntitiesFromDefinitions`), a later visit or a restored state calls each entity's `RebindDefinition`,
+  which takes the definition again but the kept fields. In the field tables the second kind has the role
+  `FromDefinition` (section 6), and one test per entity type alters every row and checks both halves after
+  save, restore and bind. Region light and tint and the scaling of the room that is loaded when a save is
+  made are also saved, by the "Loaded Room State" component; that is unchanged.
+- **Shared parts** (section 7), `Engine/game/world/entity_state.h`: `GraphicState` (tint, zoom, rotation,
+  pivot, shader, sprite size, drawn size), `ViewAnimState` (`Loop`, `Frame`, `AnimWait`, `Anim`), `MoveState`
+  (`MoveListID`, `MoveListHandle`, the constant `kNoMoveList` and the one predicate `IsMoving()`),
+  `FrameSoundState` (volume, panning, speed): plain aggregates with tables, bases of `CharacterState` and
+  `RoomObjectState`, no use site changed. 24 of the 26 candidate fields went in; `FrameOffsetX/Y` stayed in
+  each struct (the character computes them at every update, the object only while it animates). The blocking
+  rectangle is not shared yet: the object has a `Rect`, the character four fields (PLAN.md 5.1a step 2, "for
+  a later review"). The view, the opacity, the graphic anchor's default and the flags differ between the two
+  types and are not shared.
+- Measured (MSVC x64 `/O2`, LOG.md "5.1a step 2"): the per-frame functions that touch a room object gained 0
+  to 4 instructions (one pointer load, the live list being reached through `Room`); `sizeof(RoomObject)` went
+  from 336 to 608 bytes, because the object now holds its definition part (strings, the property map, the
+  event tables) where the definition was a separate array, and `sizeof(RoomState)` from 7,136 to 30,608, the
+  four entity arrays having moved into it from the room. No timing run yet (PLAN.md "Next up").
+
 ## 3. Names
 
 The stem is the Editor's class name (`AGS.Types`). `ScriptX` handles, `CCX` managers, the Tools' `AGF::X` and
@@ -305,7 +352,7 @@ classes keep their save methods until their data is plain records (5.1a step 5):
 |---|---|---|
 | Settings the script changes, play progress | `text_speed`, `speech_mode`, the dialog-options and top-bar fields, `do_once_tokens`, `randseed`, the music queue | stays: the game's own state |
 | Blocking and transient state | `wait_counter`, `messagetime`, `in_cutscene`, `fast_forward`, `shakesc_*` | stays for now; some later to the blocking-loop classes |
-| The current room | `room_width`, `room_height`, `bg_frame`, `walkable_areas_on`, `room_bg_modified`, `entered_at_x` | done 2026-11-16: all to `Room` (`LoadedWidth`, `LoadedHeight`, `BgFrame`, `BgFrameLocked`, `AnimBackgroundSpeed`, `WalkableAreasOn`, `EnteredAtX`, `EnteredAtY`, `EnteredEdge`, `BgModified`, `MaskModified`, `ScriptFinished`); none to `RoomState`: none is kept per room between visits, and moving one there would make it persist. `LoadedWidth` and `LoadedHeight` are not the room's `Width` and `Height`: they are 0 until the first room is loaded and after `unload_game`, which the script's `game.room_width` shows in `game_start` |
+| The current room | `room_width`, `room_height`, `bg_frame`, `walkable_areas_on`, `room_bg_modified`, `entered_at_x` | done 2026-11-16: all to `Room` (`LoadedWidth`, `LoadedHeight`, `BgFrame`, `BgFrameLocked`, `AnimBackgroundDelay`, `WalkableAreasOn`, `EnteredAtX`, `EnteredAtY`, `EnteredEdge`, `BgModified`, `MaskModified`, `ScriptFinished`); none to `RoomState`: none is kept per room between visits, and moving one there would make it persist. `LoadedWidth` and `LoadedHeight` are not the room's `Width` and `Height`: they are 0 until the first room is loaded and after `unload_game`, which the script's `game.room_width` shows in `game_start` |
 | Per-object custom properties | `charProps`, `invProps`, `guiProps`, `dialogProps`, `guicontrolProps` | each live object |
 | What outlives a restore | `voice_avail`, `separate_music_lib`, `enable_antialiasing`, the text language | done 2026-11-15: `EngineServices::VoiceAvail`, `SeparateMusicLib`, `TextLanguage`, `TextLocaleName`; `ShouldAASprites()` reads `Config.AntialiasSprites`. The save keeps the `separate_music_lib` slot: read and dropped, written from the engine's value |
 | Viewports and cameras | `_roomViewports`, `_roomCameras` | done 2026-11-16: `GameViewports`, held as `Game::Viewports` |
@@ -340,11 +387,19 @@ static_assert(FieldsCoverStruct(kCharacterDefFields), "CharacterDef: a field has
   address and, through its type, the operations (`FieldValue<V>`: equal, print, alter), which every row of that
   type shares: numbers, enums, `String`, points, vectors, maps and arrays of those have them, and so has a
   struct with a table of its own (`CharacterState::Anim`); a base class is one row (`BaseFields`). The role is
-  `Saved` (a part of the state: a restored game has the value the saved one had), `Derived` (computed from
+  `Saved` (a part of the state: a restored game has the value the saved one had), `FromDefinition` (the
+  definition gives it again whenever the object is loaded, play may change it meanwhile and a save does not
+  hold it: a region's light and tint, a walkable area's scaling, the script names of a room's entities, which
+  the room file gives again at every load of the room), `Derived` (computed from
   other fields; a restore computes it again: the character's `EffectiveOffset`, `EffectiveAnchor`,
   `SpriteWidth`, `SpriteHeight`, `FrameOffsetX`, `FrameOffsetY`, `OffsetZoom`) or `Opaque` (not a value that can
   be compared or stored; listed so that the table is whole: the two event tables for now, which have no
-  comparison).
+  comparison). `FromDefinition` was added with the room's tables (the user, 2026-11-16): until then such a row
+  borrowed `Derived`, and a test had to tell "given again by the file" from "computed" by the kind of struct.
+  The comparison, the print and the alteration descend into a base or a member that has a table, so a
+  difference is reported by field (`TintRed: 0 != 1`, `Anim.Delay: 0 != 1`) and a role applies at every depth;
+  `AlterFields(object, role)` alters the rows of one role, which is how a test of a load shows both halves: a
+  `Saved` field keeps the altered value, a `FromDefinition` field comes back as the definition's.
 - **One row per data member, never more.** The bits of `Flags` are not rows: for a comparison and for a save
   `Flags` is one integer.
 - **What a row does not hold** (the user, 2026-11-16, on these findings):
@@ -484,6 +539,26 @@ type first). Part names are chosen when the second type is split.
 | Dynamic sprites live in the sprite cache and are freed first today | each `Game` owns its list of dynamic sprite slots; the hardest part, to design in 5.11 |
 | Audio channels, draw caches | rebuilt after the exchange, as `DoAfterRestore` does today |
 | The loaded room | the second `Game` loads its own `Room` |
+
+**Sprites** (the target, the user 2026-11-16; to design in detail in 5.11). The sprite cache holds two things
+with different lifetimes today. The static sprites are read from the game's sprite file on demand, kept up to a
+memory limit and evicted: an asset cache, which lasts as long as the game file and holds nothing a save needs.
+The dynamic sprites are bitmaps a script creates; they sit in the same cache, locked against eviction, in the
+same number space (a dynamic sprite's number is valid wherever a sprite number is, C3), and they are game
+state: a save writes each bitmap, and a restore frees all of the running game's before it reads the save
+(`DoBeforeRestore`), which is one reason a failed restore cannot go back. The target:
+
+- a **sprite asset service** in `EngineServices` for the static sprites alone: number to bitmap, load and
+  evict; its sizes and flags belong to the definition and are not written during play;
+- the **dynamic sprites belong to `Game`**: a table of slot to bitmap and info, saved and restored with the
+  game, destroyed with it;
+- **one lookup in front of both**: a number in the game's dynamic table resolves there, any other goes to the
+  asset service;
+- a **restore** builds the second `Game`'s dynamic sprites inside it; on success the games are exchanged and
+  the textures drawn from dynamic slots are dropped, on failure the second `Game` is discarded.
+
+5.1a step 3 takes the first step only: `Game::SpriteInfos` is the live info table (a copy of the loaded one,
+which hides it), and the cache is pointed at it instead of at the definition's.
 
 A decision for the user in 5.11: `RestartGame()` without a restart point fails today (the automatic first
 restart point went with the pre-3.6.1 paths); it could start a new game from the `GameDef` instead, which is a

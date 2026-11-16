@@ -2254,6 +2254,116 @@ commits of their own; 88 files, of them 64 under `Common`, `Engine`, `Tools` and
   to costs an afternoon once and makes hundreds of `x` and `flags` safe; a test program that links a
   directory's objects by wildcard needs that directory cleaned when a source is renamed.
 
+### 5.1a step 2: the room's entities
+
+*Definition:* PLAN.md 5.1a step 2: `RoomObject` and the room entities as definition, state and live class;
+`RoomStatus` to `RoomState`, `RoomData` to `RoomDef`; the object's copies of its definition's fields removed;
+the field groups it shares with the character declared once; with 4.3 and 5.9 step 5 for these structs.
+
+**Status (2026-11-16): built, verified and committed, not pushed** (7 code commits and one of documents,
+cut by `.compare/helpers/51a2/commit_51a2.py`: the user asked not to split excessively, so adjacent
+snapshots are grouped by theme and a rename's own proof is in the message). One snapshot per sub-step,
+`refs/wip/51a2/*` (35 of them, in order: `names-types`, `names-common`, `names-engine`, `net-extract`,
+`net-tests`, `net-fix-id`, `net-fix-region`, `net-fix-walkbehind`, `fix-assert`, `objnames`, `types-sprite`,
+`types-baseline`, `types-blocking`, `object-class`, `object-list`, `entities-wbtype`, `entities-class`,
+`entities-comments`, `prepush-fixes`, `fieldnames`, `faceratio`, `parts`, `names2-rename`,
+`names2-showplayer`, `names2-idlebool`, `names2-charxyz`, `names2-fix-destination`, `tables-diff`,
+`tables-aggregate`, `tables-rows`, `tables-tests`, `trim`, `role`, `movestate-predicate`, `movestate-uses`);
+102 files, of them 82 under `Common`, `Engine`, `Tools` and `Editor`. Designed and supervised by Fable 5.2
+(`.compare/briefs/brief-51a2-*.md`); the batches by Sonnet 5.5 (`names`, `objnames`, `fieldnames`, `names2`,
+`trim`, `movestate`, the code comparison, the pre-push fixes) and Opus 5.5 `high` (`net`, `types`, `object`,
+`entities`, `parts`, `tables`, `role`), each built once per batch in `.tidy/dev`. **Open:** the auto-test
+game and a timing run (the user was using the machine and allowed both at the end of the day: next), the
+GCC comparison of the linked engine.
+
+- **The design, where it was decided here** (RUNTIME-SPLIT.md 2, "What 5.1a step 2 built"):
+  - **Two lifetimes in one live entity.** A definition field of a room entity is either kept by the room
+    state between visits and saved, or given again by the room file at every load. `BindRoomState` (extracted
+    from `load_new_room` and `init_object_states`, so that a test can call it) is the one place that says
+    which; each live class has `RebindDefinition`. Nothing of what is kept or saved changed, with the one
+    exception the user decided (the face ratio, below).
+  - **The live lists hide `RoomDef`'s**, as `Game::Characters` hides `GameDef::Characters`: `Room::Objects`
+    and the four others point at the bound state's lists, `Room::Def()` reads the file's values. Proof that
+    the engine no longer writes the definitions: a scratch build with `RoomDef`'s lists `const`, 0 errors in
+    the engine.
+  - **A rectangle stays one value** (the user): the object keeps `Rect BlockingRect` of its definition and its
+    four `blocking_` copies go; the character keeps four fields; which shape both take is marked for a later
+    review in PLAN.md.
+  - **A fourth field role, `FromDefinition`** (the user, on the finding of the batch `tables`): the 24 rows
+    of the room's definitions that the file gives again had borrowed `Derived`.
+  - **Names** (the user, STYLE.md "Naming"): a field is named for what it does (`AnimationDelay`,
+    `BgAnimDelay`, not "speed"); a boolean takes `Is`/`Has`/`Needs`, or starts with its verb
+    (`ShowPlayerCharacter`, `ProcessIdleThisTime`), whatever type holds it, and is named for the positive
+    sense, the stored value turned round at the file boundary; the script's names do not follow.
+- **The batches:**
+  1. `names`: the Common types (`RoomData`, `RoomObjectInfo`, `RoomHotspot`, `RoomRegion`, `WalkArea`,
+     `WalkBehind` to `RoomDef`, `Room...Def`), `RoomStatus` to `RoomState`, `roomdata.*` to `room_def.*`,
+     `room_status.*` to `room_state.*`. Proved as a whole-word replacement of the parent tree by a script, and
+     by `compare_objects.py` ("3 moved, code identical").
+  2. `net` (ground rule 3): `BindRoomState` extracted, then `Engine/test/room_state_test.cpp`: first visit,
+     later visit, a restored state, the object's save round trip, region light and tint, walk-area scaling.
+     The extraction first returned `!been_here`, which differs from the old test for a negative `beenhere`;
+     made exact by the supervisor. Three defects found by the tests and fixed, each its own commit (below).
+  3. `objnames`, `fieldnames`, `names2-rename`: PLAN.md 4.3 by `Script/rename_fields.py` (38 fields of the
+     object, 14 of `RoomState`, 6 more after the naming rules), each `compare_objects.py`: mechanical (674,
+     674 and 672 objects identical; the test files differ by `__LINE__`).
+  4. `types`, one commit per field with a test at the limit: `Sprite` and `Baseline` take the definition's
+     32-bit type and narrow explicitly where the 16-bit copy did implicitly; the blocking rectangle.
+  5. `object`, `entities`: the classes, the state structs, the copies gone, the hiding pointers, region light
+     and tint and walk-area scaling off the definition. `Room::WalkableAreasOn` stays in `Room`.
+  6. `faceratio`: a behaviour fix the user decided, below. `parts`: the four shared structs
+     (`entity_state.h`), 24 of 26 fields; `AnimWait` takes `int` and the object narrows explicitly, pinned at
+     the limit; `MoveListID` defaults to 0 in the part and `RoomObject`'s constructors assign the object's -1.
+     `sizeof` unchanged (`Character` 752, `RoomObject` 608).
+  7. `names2`: `ShowPlayerCharacter` (was `PlayerCharacterOff`; turned round at the room file read and write,
+     a test pins the byte), `ProcessIdleThisTime` as `bool` (the save byte read as `== 1`, as its one reader
+     tested), `Character.X`, `Y`, `Z` in `agsdefns.sh` beside the lowercase ones (the engine has registered
+     both spellings since before the fork point).
+  8. `tables` (5.9 step 5): `DiffFields` descends into a base or a member that has a table; the definitions
+     as aggregates (`RoomObjectBase` is `ID` and `ScriptName`, each definition with events declares `Events`,
+     `RoomDef` no longer derives from it); 11 tables; one test per entity type from the rows, which replaced
+     87 lines of hand-kept mirror structs. `role`: `FromDefinition`, `AlterFields(object, role)`.
+  9. `trim` (2.10b item 3): first-party translation units that see `game/roomstruct.h` 118 to 30,
+     `room_object.h` 35 to 19, `room_state.h` 23 to 19, `room_def.h` 133 to 127 (the `MAX_ROOM_*` constants
+     keep it in `game_context.h`).
+  10. `movestate` (the user): `MoveState::kNoMoveList` and one `IsMoving()` in the shared part; the two
+      `is_moving()` copies and every comparison of `MoveListID` with a literal are gone.
+- **Defects found and fixed, each with a test seen failing** (the first three and the fifth are in upstream
+  `ags4` too: candidates for a PR):
+  - `SetAreaLightLevel` accepted a region number equal to the count (`>` for `>=`).
+  - `get_walkbehind_pixel` read the walkable-area mask.
+  - `Object.DestinationX` and `DestinationY` of an object that has not moved since the room's first visit
+    dereferenced null: the object starts with `MoveListID` -1 and the two functions tested it for non-zero
+    (an access violation in the test before the fix).
+  - A restored room object had id 0 until the room was entered (`RoomState::ReadFromSavegame` now sets it).
+  - **`WalkableArea.FaceDirectionRatio` set by a script was lost** on leaving the room and on restoring a
+    save, although the room state's save has a slot for it (the room's and the character's ratio are kept).
+    It is a kept field now. A save of an older engine holds in that slot the first visit's copy of the room
+    file's value, so it restores as before unless the room file changed since.
+  - A stale `assert(ch->walking > 0)` from step 1 (asserts are compiled away in the builds the rename tool
+    sees).
+- **Defects found and recorded, not fixed** ("Open items" below): the object's frame offsets after a
+  restore, the room file writer's uninitialised stand-in image, `walkbehinds_cropout`'s unchecked mask index,
+  `Walkarea_GetScalingMin/Max`, and three in the save code.
+- **Measured, MSVC x64 `/O2`** (`objnames` against `prepush-fixes`; nothing timed): the per-frame functions
+  that touch a room object gained 0 to 4 instructions (one pointer load); `sizeof(RoomObject)` 336 to 608 and
+  `sizeof(RoomState)` 7,136 to 30,608, since the live entities hold their definition part. A reordering of
+  `RoomObject`'s members (the hot fields span about four cache lines, two before) waits for a timing run.
+- **Verified:** per batch, the MSVC build with the header check and `ctest` (1,218 to 1,266 tests).
+  `prepush.py --auto --emsdk` three times: after `entities` (found a GCC link error on an in-class `static
+  const`, 61 tidy findings and a stale comment reference: fixed in `prepush-fixes`), again (all 11 stages),
+  and on the finished tree: `format`, `helpers`, `layers`, `buildlists`, `build`, `headers`, `libcxx` (342
+  headers), `emscripten`, `linux` (GCC, 1,266 tests) and `msbuild` (5 solutions, the Editor's NUnit tests,
+  `agsnative.cpp`) passed; `tidy` had one finding, the constant's name (`kNoMoveList` now).
+- **Not verified:** the auto-test game on any renderer (held: it opens a window); compile time; the GCC
+  Release comparison; sanitizers; macOS, iOS, Android, the Xcode project's two new entries; a real game's
+  saves before and after (the round-trip tests pass); the corpus game.
+- **Lessons:** the tests written before the surgery found five defects that had nothing to do with it; a
+  hand-kept mirror struct with a `sizeof` assert is a fair stand-in for a table for a few batches, and goes
+  when the table comes; MSVC accepts an odr-used in-class `static const` that GCC does not link (`constexpr`);
+  a predicate that exists twice is bypassed about thirty times: one definition, and no literal left to
+  compare with.
+
 ### 5.8 step 1: Common's save code into the engine
 
 *Definition:* PLAN.md 5.8 step 1: the `...Savegame` methods of six `Common/game` files go to
@@ -2469,5 +2579,28 @@ user kept it local and took the readings of a busy machine as good enough.
   `prepush.py`'s `linux` stage cannot fetch from one and its `refs/prepush/worktree` ref is shared with the main
   checkout, and the `msbuild` stage needs the git-ignored NuGet packages, irrKlang DLLs and the googletest submodule a
   fresh worktree lacks.
+- 5.1a step 2 (2026-11-16), found while writing its tests, none fixed:
+  - a room object's `FrameOffsetX/Y` are set only while it animates and a save does not hold them, so a
+    restored object that had stopped on a frame with an offset is drawn without it (`update_object_scale`;
+    upstream the same);
+  - `WriteMainBlock` (`Common/game/room_file.cpp`) writes an uninitialised 4x4 stand-in buffer for a room
+    without images, so two writes of such a room differ (real rooms have images; a test gives the room zeroed
+    ones);
+  - `walkbehinds_cropout` indexes its 16 entries with a mask value up to 255 unchecked;
+  - `Walkarea_GetScalingMin/Max` return the stored `ScalingFar`/`ScalingNear` as they are (noted by the batch
+    `net`; to look at when the scaling is next touched);
+  - `RoomState::ReadFromSavegame` trusts the counts a save gives; read from the code and not confirmed by a
+    test: `inv_item_wid` is not initialised and `parsed_words` is appended to on a restore;
+  - `ViewFrame_GetYOffset` returns the x offset (to be fixed with a test in step 3's `net` batch);
+  - upstream candidates from the fixes of this step: the `SetAreaLightLevel` bound, `get_walkbehind_pixel`'s
+    mask, `Object.DestinationX/Y` of an object that has not moved, the walkable area's `FaceDirectionRatio`;
+  - a room object still starts with `MoveListID` -1 where a character starts with `kNoMoveList` (0); nothing
+    tells them apart any more, and the user left it (save bytes unchanged);
+  - `RoomObjectState::NoView` is not named as a constant (`kNoView`); `check_build_lists.py --build` on a
+    tree with the precompiled header reports its `cmake_pch.cxx` entries;
+  - two header proposals of the trim, each a move of declarations: `game/anim_flow.h` for `AnimFlowParams`
+    and `ViewAnimateParams` (so that `entity_state.h` does not need `runtime_defines.h`), and a
+    `room_limits.h` for the `MAX_ROOM_*` constants and `RoomAreaMask` (`room_def.h` is still seen by 127
+    translation units because of them).
 - `Tools/test/directory_test.cpp`'s comment on the MSBuild googletest being older is out of date;
   `FetchGoogleTest.cmake` still pins 1.8.1 for GCC older than 5, which no builder uses.

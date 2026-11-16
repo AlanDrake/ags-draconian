@@ -121,7 +121,22 @@ private:
   (`ScriptObject *obj`, `RoomObject &room_obj`). Words are spelled out and separated: `new_value`,
   `new_width`, not `newval`, `newwid`. A name is added here once the code uses it for nothing else.
 - Booleans are predicates (`is_visible`, `HasAlpha()`, `_needsRedraw`); functions are verbs, types
-  nouns; ambiguous units go in the name (`delay_ms`, `volume_percent`, `speed_fps`).
+  nouns; ambiguous units go in the name (`delay_ms`, `volume_percent`, `speed_fps`). A boolean field takes
+  a prefix that says so where the sense allows it (the user, 2026-11-16): `Is` for a state (`IsEnabled`,
+  `IsPaletteShared`), `Has` and `Needs` where they fit (`HasSpeechVoice`). An instruction to act
+  starts with its verb, which says it already (`ShowPlayerCharacter`, `ProcessIdleThisTime`,
+  `KeepScreenDuringInstantTransition`); `Do` is for the rare name that cannot be turned to start with one. This is the engine's convention for its own fields, whatever type holds the flag (a
+  region's `IsEnabled` is a `char` that takes a save's byte, a room state's `IsVisited` an `int`); a flag
+  that only ever holds 0 or 1 becomes a `bool` when that changes nothing a game or a save can see. The
+  script's names are another matter and do not follow (`Region.Enabled`, `game.disable_antialiasing`).
+  **A boolean is named for the positive sense** (the user, 2026-11-16): `IsEnabled`, `ShowPlayerCharacter`,
+  never `IsDisabled` or `IsPlayerCharacterOff`. A flag that a file, a save or the script holds with the
+  negative sense is turned round where it is read from and written to that side, which keeps its old
+  polarity (`game.disable_antialiasing` reads `!IsAntialiasingEnabled`); the turn is a behaviour-neutral
+  change of its own, with a test, not part of a rename.
+- **A field is named for what it does, not for what an older interface calls it** (the user, 2026-11-16): a
+  view frame's `speed` is added to the animation's delay, so the field is `Delay`. Where the script's name
+  differs, it goes in the trailing comment (`// script: Speed`), as for `Zoom` and `TintLevel`.
 - **No new mutable globals.** The existing ones (`game`, `play`, `thisroom`, `croom`, `objs`, ...)
   move into context objects in PLAN.md phase 5; don't mass-rename them before that.
 
