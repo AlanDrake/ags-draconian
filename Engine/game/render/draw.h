@@ -57,10 +57,6 @@ class Viewport;
 class Camera;
 struct EngineServices;
 
-// The current palette of an 8-bit game.
-extern RGB palette[256];
-// The light table of an 8-bit game, built from the palette for the region light levels.
-extern COLOR_MAP maincoltable;
 // Room background sprite
 extern AGS::Engine::IDriverDependantBitmap *roomBackgroundBmp;
 
@@ -289,11 +285,6 @@ AGS::Common::PBitmap PrepareSpriteForUse(AGS::Common::PBitmap bitmap, bool conv_
 // of the requested width and height and game's native color depth.
 AGS::Common::Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect = nullptr,
                                           bool at_native_res = false, uint32_t batch_skip_filter = 0u);
-
-
-// TODO: hide these behind some kind of an interface
-// Stores cloned surfaces (see DrawingSurface.CreateCopy)
-extern std::unique_ptr<AGS::Common::Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 void CyclePalette(int strt, int eend);
 void SetPalRGB(int inndx, int rr, int gg, int bb);

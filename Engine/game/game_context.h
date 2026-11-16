@@ -13,22 +13,27 @@
 //=============================================================================
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "game/dynobj/script_mouse.h"
 #include "game/dynobj/script_objects.h"
+#include "game/dynobj/script_system.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/ui/cursor_graphic_state.h"
-#include "game/ui/gui_dialog_defines.h"
+#include "media/audio/audiodefines.h"
 
+struct AGSEvent;
 struct DialogTopic;
+struct ScriptState;
 struct SpeechLipSyncLine;
 struct ViewStruct;
 namespace AGS
 {
 namespace Common
 {
+class Bitmap;
 class GUIButton;
 class GUIInvWindow;
 class GUILabel;
@@ -139,10 +144,6 @@ struct CursorState
 // The legacy built-in dialogs and their controls (game/ui/csci_dialog.cpp, game/ui/my_*.cpp, game/ui/gui_dialog.cpp)
 struct BuiltinDialogState
 {
-    // Colours of the built-in dialogs' windows and push buttons (colour indexes).
-    int WindowBackgroundColor = COL254;
-    int PushButtonDarkColor = COL255;
-    int PushButtonLightColor = COL253;
     // The id of the window on top, -1 when none is open.
     int TopWindowHandle = -1;
     // The fonts of the built-in dialogs' controls and of their labels.
@@ -155,6 +156,43 @@ struct BuiltinDialogState
     int WinY = 0;
 };
 
+// Managed handles of the game entities' script objects, by object index; for the GUI controls, by GUI and then by
+// control index (game/game_init.cpp fills them, the game/dynobj managers and the save code read them). The script
+// system holds the addresses of the elements: a vector is sized once per game or room entity type.
+struct ScriptHandles
+{
+    std::vector<int> Characters;
+    std::vector<int> Objects;
+    std::vector<int> Guis;
+    std::vector<int> Hotspots;
+    std::vector<int> Regions;
+    std::vector<int> WalkableAreas;
+    std::vector<int> WalkBehinds;
+    std::vector<int> InvItems;
+    std::vector<int> Dialogs;
+    std::vector<std::vector<int>> GuiControls;
+};
+
+// The game events waiting to be run and the state of the room transition's script events (game/event.cpp)
+// TODO: replace the transition flags with "current transition state" enum?
+struct EventState
+{
+    // The events scheduled for the next events processing, in order
+    std::vector<AGSEvent> Queue;
+    // Whether the event being run was claimed by a script (EVENT_NONE, EVENT_INPROGRESS, EVENT_CLAIMED)
+    int Claimed = EVENT_NONE;
+    // while running "before fade-in" script event
+    bool InEntersScreen = false;
+    // used to report a mistake in "enter room" event
+    bool DoneAsError = false;
+    // while running "before fade-out" script event, stores a next room number
+    // CHECKME: InLeavesScreen seems to be not used for anything?
+    int InLeavesScreen = -1;
+    // between previous "before fade-out" and next "after fade-in"; used to define a period during which the cursor
+    // and "@overhotspot@" labels should be hidden
+    bool InRoomTransition = false;
+};
+
 // One play-through: what the game file says (the base, GameDef) and everything that changes while the game
 // runs, which is what a save holds. The definitions and the live state are one object until each entity
 // gets a live copy (PLAN.md 5.1a). The game logic reaches it through Game::Current(); a function that uses
@@ -162,6 +200,9 @@ struct BuiltinDialogState
 //     Game &game = Game::Current();
 class Game : public GameDef
 {
+    // Owns Scripts; declared first, so that it exists when Scripts is bound to it
+    std::unique_ptr<ScriptState> _scripts;
+
 public:
     Game();
     ~Game(); // out of line: later members are vectors of types that are incomplete here
@@ -250,6 +291,26 @@ public:
     CursorState Cursor;
     // The legacy built-in dialogs
     BuiltinDialogState BuiltinDialogs;
+
+    // The game's scripts and the script callbacks that run on the non-blocking thread (game/script.h)
+    ScriptState &Scripts;
+    // The values behind the script's System properties (screen size, colour depth, OS...)
+    ScriptSystem ScSystem;
+    // Managed handles of the game entities' script objects
+    ScriptHandles Handles;
+    // The game events waiting to be run, and the room transition's script events
+    EventState Events;
+    // The script objects of the audio channels, by channel index.
+    ScriptAudioChannel ScAudioChannels[MAX_GAME_CHANNELS];
+    // The current palette of an 8-bit game; scripts import it by address, the graphics driver keeps its address.
+    RGB Palette[256] = {};
+    // The light table of an 8-bit game, built from the palette for the region light levels.
+    COLOR_MAP MainColTable = {};
+    // Stores cloned surfaces (see DrawingSurface.CreateCopy)
+    // TODO: hide these behind some kind of an interface
+    std::unique_ptr<AGS::Common::Bitmap> DynamicSurfaces[MAX_DYNAMIC_SURFACES];
+    // The picture of the game frame taken before leaving a room, for the transitions that need the old room's image.
+    std::unique_ptr<AGS::Common::Bitmap> SavedViewportBitmap;
 
 private:
     static Game *_current;

@@ -61,7 +61,7 @@ void DrawingSurface_Release(ScriptDrawingSurface *surface)
     }
     else if (surface->dynamicSurfaceNumber >= 0)
     {
-        dynamicallyCreatedSurfaces[surface->dynamicSurfaceNumber] = nullptr;
+        Game::Current().DynamicSurfaces[surface->dynamicSurfaceNumber] = nullptr;
         surface->dynamicSurfaceNumber = -1;
     }
     surface->modified = false;
@@ -80,6 +80,7 @@ Bitmap *AssertBitmapSurface(Bitmap *bmp, const char *api_name)
 
 ScriptDrawingSurface *DrawingSurface_CreateCopy(ScriptDrawingSurface *surface)
 {
+    Game &game = Game::Current();
     Bitmap *source_bitmap = AssertBitmapSurface(surface->GetBitmapSurface(), "DrawingSurface.CreateCopy");
     if (!source_bitmap)
     {
@@ -88,9 +89,9 @@ ScriptDrawingSurface *DrawingSurface_CreateCopy(ScriptDrawingSurface *surface)
 
     for (int i = 0; i < MAX_DYNAMIC_SURFACES; i++)
     {
-        if (dynamicallyCreatedSurfaces[i] == nullptr)
+        if (game.DynamicSurfaces[i] == nullptr)
         {
-            dynamicallyCreatedSurfaces[i].reset(BitmapHelper::CreateBitmapCopy(source_bitmap));
+            game.DynamicSurfaces[i].reset(BitmapHelper::CreateBitmapCopy(source_bitmap));
             ScriptDrawingSurface *new_surface = new ScriptDrawingSurface();
             new_surface->dynamicSurfaceNumber = i;
             ccRegisterManagedObject(new_surface, new_surface);

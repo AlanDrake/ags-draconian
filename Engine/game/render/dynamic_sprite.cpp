@@ -294,7 +294,7 @@ int DynamicSprite_SaveToFile(ScriptDynamicSprite *dynsprite, const char *name)
     ResolvedPath rp = ResolveWritePathAndCreateDirs(filename);
     if (!rp)
         return 0;
-    return spriteset[dynsprite->slot]->SaveToFile(rp.FullPath, palette) ? 1 : 0;
+    return spriteset[dynsprite->slot]->SaveToFile(rp.FullPath, Game::Current().Palette) ? 1 : 0;
 }
 
 ScriptDynamicSprite *DynamicSprite_CreateFromSaveGame(int save_slot, int width, int height)

@@ -275,5 +275,5 @@ void AGSDeSerializer::UnserializeGUIControl(int index, AGS::Common::Stream *in, 
     int guinum = in->ReadInt32();
     int objnum = in->ReadInt32();
     int handle = RegisterGUIControl(index, guinum, objnum);
-    (StaticGUIControlsHandles[guinum])[objnum] = handle;
+    (Game::Current().Handles.GuiControls[guinum])[objnum] = handle;
 }

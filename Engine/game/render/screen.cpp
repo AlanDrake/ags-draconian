@@ -39,7 +39,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-std::unique_ptr<Bitmap> saved_viewport_bitmap;
 RGB old_palette[256];
 
 
@@ -58,13 +57,14 @@ RGB old_palette[256];
 static std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     // The palette the frame is in: the one on screen for a renderer with an 8-bit back buffer;
     // the others draw an 8-bit game in the game palette and never send it to Allegro
     if (services.GfxDriver->UsesMemoryBackBuffer())
         get_palette(old_palette);
     else
-        std::copy(palette, palette + PAL_SIZE, old_palette);
-    const auto &view = Game::Current().Play.GetMainViewport();
+        std::copy(game.Palette, game.Palette + PAL_SIZE, old_palette);
+    const auto &view = game.Play.GetMainViewport();
     if (for_fadein)
     {
         services.GfxDriver->ClearDrawLists();
@@ -78,25 +78,26 @@ static std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
 
 static IDriverDependantBitmap *get_frame_for_transition_in(bool opaque)
 {
-    assert(saved_viewport_bitmap);
-    if (!saved_viewport_bitmap)
+    Game &game = Game::Current();
+    assert(game.SavedViewportBitmap);
+    if (!game.SavedViewportBitmap)
         quit("Crossfade: buffer is null attempting transition");
 
     // Resize the frame in case main viewport changed;
     // this is mostly for compatibility with old-style letterboxed games
     // which could have viewport changed depending on new room size.
     // TODO: investigate if this is still a case.
-    const Rect &viewport = Game::Current().Play.GetMainViewport();
-    if (saved_viewport_bitmap->GetHeight() != viewport.GetHeight())
+    const Rect &viewport = game.Play.GetMainViewport();
+    if (game.SavedViewportBitmap->GetHeight() != viewport.GetHeight())
     {
-        Bitmap *fix_frame = BitmapHelper::CreateBitmap(saved_viewport_bitmap->GetWidth(), viewport.GetHeight(),
-                                                       saved_viewport_bitmap->GetColorDepth());
-        fix_frame->Blit(saved_viewport_bitmap.get(), 0, 0, 0,
-                        (viewport.GetHeight() - saved_viewport_bitmap->GetHeight()) / 2,
-                        saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
-        saved_viewport_bitmap.reset(fix_frame);
+        Bitmap *fix_frame = BitmapHelper::CreateBitmap(game.SavedViewportBitmap->GetWidth(), viewport.GetHeight(),
+                                                       game.SavedViewportBitmap->GetColorDepth());
+        fix_frame->Blit(game.SavedViewportBitmap.get(), 0, 0, 0,
+                        (viewport.GetHeight() - game.SavedViewportBitmap->GetHeight()) / 2,
+                        game.SavedViewportBitmap->GetWidth(), game.SavedViewportBitmap->GetHeight());
+        game.SavedViewportBitmap.reset(fix_frame);
     }
-    return EngineServices::Current().GfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap.get(),
+    return EngineServices::Current().GfxDriver->CreateDDBFromBitmap(game.SavedViewportBitmap.get(),
                                                                     opaque ? kTxFlags_Opaque : kTxFlags_None);
 }
 
@@ -115,7 +116,7 @@ public:
     {
     }
 
-    ~ScreenTransition() override { saved_viewport_bitmap.reset(); }
+    ~ScreenTransition() override { Game::Current().SavedViewportBitmap.reset(); }
 
     // Update the state during a game tick
     bool Run() override
@@ -474,8 +475,8 @@ public:
         // First of all we render the game once again and get the drawn frame as a bitmap.
         // Then we keep drawing saved image of the game, simulating "box-out".
         // TODO: maybe use screenshot_to_ddb instead?
-        game.Play.screen_is_faded_out = false; // force all game elements to draw
-        set_palette_range(palette, 0, 255, 0); // TODO: investigate and comment the meaning of this
+        game.Play.screen_is_faded_out = false;      // force all game elements to draw
+        set_palette_range(game.Palette, 0, 255, 0); // TODO: investigate and comment the meaning of this
         _bmpFrame = game_frame_to_bmp(_fadein);
 
         _view = game.Play.GetMainViewport();
@@ -562,9 +563,10 @@ public:
     // End the state, release all resources
     void End() override
     {
-        saved_viewport_bitmap.reset();
+        Game &game = Game::Current();
+        game.SavedViewportBitmap.reset();
         invalidate_screen();
-        set_palette_range(palette, 0, 255, 0);
+        set_palette_range(game.Palette, 0, 255, 0);
         EngineServices::Current().GfxDriver->DestroyDDB(_shot_ddb);
     }
     // Draw the state
@@ -616,22 +618,23 @@ public:
         // An 8-bit frame of the room that ends is drawn in the palette of the room that comes:
         // its pixels are remapped to the nearest colours there, so that both rooms show in
         // colours of their own during the dissolve (index 0 stays the transparent one)
-        if (saved_viewport_bitmap && (saved_viewport_bitmap->GetColorDepth() == 8))
+        if (game.SavedViewportBitmap && (game.SavedViewportBitmap->GetColorDepth() == 8))
         {
-            BitmapData bm_data = saved_viewport_bitmap->GetBitmapData();
-            PaletteOp::Remap(bm_data, old_palette, palette);
+            BitmapData bm_data = game.SavedViewportBitmap->GetBitmapData();
+            PaletteOp::Remap(bm_data, old_palette, game.Palette);
         }
         if (game.color_depth == 1)
-            set_palette_range(palette, 0, 255, 0);
+            set_palette_range(game.Palette, 0, 255, 0);
         _shot_ddb = get_frame_for_transition_in(false /* transparent */);
         _step = 0;
     }
     // End the state, release all resources
     void End() override
     {
-        saved_viewport_bitmap.reset();
+        Game &game = Game::Current();
+        game.SavedViewportBitmap.reset();
         invalidate_screen();
-        set_palette_range(palette, 0, 255, 0);
+        set_palette_range(game.Palette, 0, 255, 0);
         EngineServices::Current().GfxDriver->DestroyDDB(_shot_ddb);
     }
     // Draw the state
@@ -648,19 +651,20 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
+        Game &game = Game::Current();
         if (_step >= 16)
             return false;
 
         // do the dissolving
-        int maskCol = saved_viewport_bitmap->GetMaskColor();
+        int maskCol = game.SavedViewportBitmap->GetMaskColor();
         for (int x = 0; x < _view.GetWidth(); x += 4)
         {
             for (int y = 0; y < _view.GetHeight(); y += 4)
             {
-                saved_viewport_bitmap->PutPixel(x + _pattern[_step] / 4, y + _pattern[_step] % 4, maskCol);
+                game.SavedViewportBitmap->PutPixel(x + _pattern[_step] / 4, y + _pattern[_step] % 4, maskCol);
             }
         }
-        EngineServices::Current().GfxDriver->UpdateDDBFromBitmap(_shot_ddb, saved_viewport_bitmap.get());
+        EngineServices::Current().GfxDriver->UpdateDDBFromBitmap(_shot_ddb, game.SavedViewportBitmap.get());
 
         // TODO: implement speed parameter, currently unused
         _step = std::min(_step + 1, 16);
@@ -703,8 +707,9 @@ void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)
     {
     case kScrTran_Fade:
         scrtr.reset(software_mode
-                        ? (ScreenTransition *)new ScreenFadeSoftware(&palette, fade_in, speed, game.Play.fade_to_red,
-                                                                     game.Play.fade_to_green, game.Play.fade_to_blue)
+                        ? (ScreenTransition *)new ScreenFadeSoftware(&game.Palette, fade_in, speed,
+                                                                     game.Play.fade_to_red, game.Play.fade_to_green,
+                                                                     game.Play.fade_to_blue)
                         : (ScreenTransition *)new ScreenFade(fade_in, speed, game.Play.fade_to_red,
                                                              game.Play.fade_to_green, game.Play.fade_to_blue));
         break;
@@ -735,7 +740,7 @@ void run_fade_in_effect(ScreenTransitionStyle style, int speed)
     const bool ignore_transition = (game.Play.screen_tint > 0);
     if ((style == kScrTran_Instant) || ignore_transition)
     {
-        set_palette_range(palette, 0, 255, 0);
+        set_palette_range(game.Palette, 0, 255, 0);
     }
     else
     {
@@ -755,7 +760,7 @@ void run_fade_out_effect(ScreenTransitionStyle style, int speed)
     }
     else if (style == kScrTran_Crossfade || style == kScrTran_Dissolve)
     {
-        saved_viewport_bitmap = game_frame_to_bmp(false /* fade out */);
+        game.SavedViewportBitmap = game_frame_to_bmp(false /* fade out */);
     }
     else
     {
@@ -794,7 +799,7 @@ void current_fade_in_effect()
 
     const bool ignore_transition = (game.Play.screen_tint > 0);
     if (((trans_style == kScrTran_Crossfade) || (trans_style == kScrTran_Dissolve)) &&
-        (saved_viewport_bitmap == nullptr) && !ignore_transition)
+        (game.SavedViewportBitmap == nullptr) && !ignore_transition)
     {
         // transition type was not crossfade/dissolve when the screen faded out,
         // but it is now when the screen fades in (Eg. a save game was restored

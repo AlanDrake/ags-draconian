@@ -43,6 +43,7 @@ void CCObject::Serialize(const void *address, Stream *out)
 
 void CCObject::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
+    Game &game = Game::Current();
     int num = in->ReadInt32();
-    StaticObjectArray[num] = ccRegisterUnserializedPersistentObject(index, &Game::Current().ScObjects[num], this);
+    game.Handles.Objects[num] = ccRegisterUnserializedPersistentObject(index, &game.ScObjects[num], this);
 }

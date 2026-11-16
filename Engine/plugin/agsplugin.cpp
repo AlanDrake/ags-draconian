@@ -241,7 +241,7 @@ void IAGSEngine::GetScreenDimensions(int32 *width, int32 *height, int32 *coldept
     if (height)
         *height = game.Play.GetMainViewport().GetHeight();
     if (coldepth)
-        *coldepth = scsystem.coldepth;
+        *coldepth = game.ScSystem.coldepth;
 }
 
 unsigned char **IAGSEngine::GetRawBitmapSurface(BITMAP *bmp)
@@ -430,7 +430,7 @@ AGSGameOptions *IAGSEngine::GetGameOptions()
 }
 AGSColor *IAGSEngine::GetPalette()
 {
-    return (AGSColor *)&palette[0];
+    return (AGSColor *)&Game::Current().Palette[0];
 }
 void IAGSEngine::SetPalette(int32 start, int32 finish, AGSColor *cpl)
 {

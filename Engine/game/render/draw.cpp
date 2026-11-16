@@ -126,8 +126,6 @@ struct DrawState
 };
 
 DrawState drawstate;
-RGB palette[256];
-COLOR_MAP maincoltable;
 
 IDriverDependantBitmap *blankImage = nullptr;
 IDriverDependantBitmap *blankSidebarImage = nullptr;
@@ -507,13 +505,11 @@ std::vector<SpriteListEntry> sprlist;
 
 // For raw drawing
 std::unique_ptr<Bitmap> raw_saved_screen;
-// Stores cloned surfaces (see DrawingSurface.CreateCopy)
-std::unique_ptr<Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 
 void setpal()
 {
-    set_palette_range(palette, 0, 255, 0);
+    set_palette_range(Game::Current().Palette, 0, 255, 0);
 }
 
 Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
@@ -543,15 +539,16 @@ static Bitmap *PrepareSpriteForUseImpl(Bitmap *bitmap, bool conv_to_gamedepth, b
                                        const RGB *bm_palette)
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     // sprite must be converted to game's color depth;
     // this behavior is hardcoded in the current engine version
     const int bmp_col_depth = bitmap->GetColorDepth();
-    const int game_col_depth = Game::Current().GetColorDepth();
+    const int game_col_depth = game.GetColorDepth();
 
     // Palette must be selected if we convert a 8-bit bitmap for a 32-bit game
     const bool must_switch_palette = conv_to_gamedepth && (bitmap->GetColorDepth() == 8) && (game_col_depth > 8);
     if (must_switch_palette)
-        select_palette(bm_palette != nullptr ? bm_palette : palette);
+        select_palette(bm_palette != nullptr ? bm_palette : game.Palette);
 
     Bitmap *new_bitmap = bitmap;
 
@@ -1424,8 +1421,8 @@ void render_to_screen()
     }
     else
     {
-        bool new_vsync = services.GfxDriver->SetVsync(scsystem.vsync > 0);
-        if (new_vsync != (scsystem.vsync != 0))
+        bool new_vsync = services.GfxDriver->SetVsync(game.ScSystem.vsync > 0);
+        if (new_vsync != (game.ScSystem.vsync != 0))
             System_SetVSyncInternal(new_vsync);
     }
 
@@ -1989,7 +1986,7 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst, std::
         const bool do_select_palette = (game.RoomChange.InNewRoom != kEnterRoom_None) && game.Play.ShouldAASprites() &&
                                        (src->GetColorDepth() == 1);
         if (do_select_palette)
-            select_palette(palette);
+            select_palette(game.Palette);
 
         if (flip != kFlip_None)
         {
@@ -3445,7 +3442,7 @@ void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extr
         services.GfxDriver->DrawSprite(extra_x, extra_y, extra_bitmap);
         services.GfxDriver->EndSpriteBatch();
     }
-    construct_game_screen_overlay(!in_room_transition);
+    construct_game_screen_overlay(!game.Events.InRoomTransition);
     render_to_screen();
 
     spriteset.EnableAutoFreeMem(true);
@@ -3464,10 +3461,11 @@ void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extr
 
 void CyclePalette(int strt, int eend)
 {
+    Game &game = Game::Current();
     // Any non-8-bit game must invalidate screen since the palette changes
     // the effect of the drawing operations
     // FIXME: this is likely wrong, it should also/instead test the graphic driver capabilities?
-    if (Game::Current().color_depth > 1)
+    if (game.color_depth > 1)
         invalidate_screen();
 
     if ((strt < 0) || (strt > 255) || (eend < 0) || (eend > 255))
@@ -3476,23 +3474,24 @@ void CyclePalette(int strt, int eend)
     if (eend > strt)
     {
         // forwards
-        PaletteOp::Rotate(palette, strt, eend, true);
-        set_palette_range(palette, strt, eend, 0);
+        PaletteOp::Rotate(game.Palette, strt, eend, true);
+        set_palette_range(game.Palette, strt, eend, 0);
     }
     else
     {
         // backwards
-        PaletteOp::Rotate(palette, eend, strt, false);
-        set_palette_range(palette, eend, strt, 0);
+        PaletteOp::Rotate(game.Palette, eend, strt, false);
+        set_palette_range(game.Palette, eend, strt, 0);
     }
 }
 void SetPalRGB(int inndx, int rr, int gg, int bb)
 {
-    if (Game::Current().color_depth > 1)
+    Game &game = Game::Current();
+    if (game.color_depth > 1)
         invalidate_screen();
 
-    PaletteOp::SetRGB(palette, inndx, rr, gg, bb);
-    set_palette_range(palette, inndx, inndx, 0);
+    PaletteOp::SetRGB(game.Palette, inndx, rr, gg, bb);
+    set_palette_range(game.Palette, inndx, inndx, 0);
 }
 
 void UpdatePalette()

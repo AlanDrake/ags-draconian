@@ -381,12 +381,12 @@ void unload_old_room()
     if (game.DisplayedRoom < 0)
         return;
 
-    // Set "in_room_transition" right prior to the transition effect,
+    // Set Game::Events.InRoomTransition right prior to the transition effect,
     // this will prevent a cursor and @overhotspot@ texts from displaying.
     // The flag will be unset right prior to "after fade-in" event, if it's a
     // normal room change, or immediately on room load if it's a save game
     // getting restored.
-    in_room_transition = true;
+    game.Events.InRoomTransition = true;
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 
     current_fade_out_effect();
@@ -407,7 +407,7 @@ void unload_old_room()
     // Invalidate and detach any active DrawingSurfaces connected to this room
     detach_room_bg_surfaces();
 
-    events.clear(); // cancel any pending room events
+    game.Events.Queue.clear(); // cancel any pending room events
 
     if (roomBackgroundBmp != nullptr)
     {
@@ -610,7 +610,7 @@ void load_new_room(int room_id, CharacterInfo *ch)
     debug_script_log("Loading room %d", room_id);
 
     String room_filename;
-    done_as_error = false;
+    game.Events.DoneAsError = false;
     game.Play.room_changes++;
     game.DisplayedRoom = room_id;
 
@@ -666,12 +666,12 @@ void load_new_room(int room_id, CharacterInfo *ch)
     for (size_t pal_index = 0; pal_index < 256; pal_index++)
     {
         if (game.paluses[pal_index] == PAL_BACKGROUND)
-            palette[pal_index] = room.Palette[pal_index];
+            game.Palette[pal_index] = room.Palette[pal_index];
         else
         {
             // copy the game-wide colours into the room palette
             for (size_t i = 0; i < room.BgFrameCount; ++i)
-                room.BgFrames[i].Palette[pal_index] = palette[pal_index];
+                room.BgFrames[i].Palette[pal_index] = game.Palette[pal_index];
         }
     }
 
@@ -782,37 +782,37 @@ void load_new_room(int room_id, CharacterInfo *ch)
     for (uint32_t i = 0; i < room.Objects.size(); ++i)
     {
         if (!room.Objects[i].ScriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(room.Objects[i].ScriptName, &StaticObjectArray[i]);
+            ccAddExternalScriptObjectHandle(room.Objects[i].ScriptName, &game.Handles.Objects[i]);
     }
 
     for (uint32_t i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
         if (!room.Hotspots[i].ScriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(room.Hotspots[i].ScriptName, &StaticHotspotArray[i]);
+            ccAddExternalScriptObjectHandle(room.Hotspots[i].ScriptName, &game.Handles.Hotspots[i]);
     }
 
     for (uint32_t i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
         if (!room.Regions[i].ScriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(room.Regions[i].ScriptName, &StaticRegionArray[i]);
+            ccAddExternalScriptObjectHandle(room.Regions[i].ScriptName, &game.Handles.Regions[i]);
     }
 
     for (uint32_t i = 0; i < MAX_WALK_AREAS; ++i)
     {
         if (!room.WalkAreas[i].ScriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(room.WalkAreas[i].ScriptName, &StaticWalkareaArray[i]);
+            ccAddExternalScriptObjectHandle(room.WalkAreas[i].ScriptName, &game.Handles.WalkableAreas[i]);
     }
 
     for (uint32_t i = 0; i < MAX_WALK_BEHINDS; ++i)
     {
         if (!room.WalkBehinds[i].ScriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(room.WalkBehinds[i].ScriptName, &StaticWalkbehindArray[i]);
+            ccAddExternalScriptObjectHandle(room.WalkBehinds[i].ScriptName, &game.Handles.WalkBehinds[i]);
     }
 
     set_our_eip(210);
     if (game.Play.ShouldAASprites())
     {
-        create_rgb_table(&rgb_table, palette, nullptr);
+        create_rgb_table(&rgb_table, game.Palette, nullptr);
         rgb_map = &rgb_table;
     }
     set_our_eip(211);
@@ -1089,7 +1089,7 @@ void new_room(int room_id, CharacterInfo *ch)
     debug_script_log("Room change requested to room %d", room_id);
 
     // we are currently running Leaves Screen scripts
-    in_leaves_screen = room_id;
+    game.Events.InLeavesScreen = room_id;
 
     // player leaves screen event
     run_room_event(kRoomEvent_BeforeFadeout);
@@ -1099,8 +1099,8 @@ void new_room(int room_id, CharacterInfo *ch)
     pl_run_plugin_hooks(kPluginEvt_LeaveRoom, game.DisplayedRoom);
 
     // update the new room number if it has been altered by OnLeave scripts
-    room_id = in_leaves_screen;
-    in_leaves_screen = -1;
+    room_id = game.Events.InLeavesScreen;
+    game.Events.InLeavesScreen = -1;
 
     CharacterExtras *player_chex = &game.CharExtras[game.PlayerChar->index_id];
     if ((player_chex->following >= 0) && (game.chars[player_chex->following].room != room_id))
@@ -1146,7 +1146,7 @@ void set_room_placeholder()
 void first_room_initialization()
 {
     Game &game = Game::Current();
-    in_room_transition = true;
+    game.Events.InRoomTransition = true;
     game.PlayerChar->prevroom = -1;
     set_loop_counter(0);
     // Reset background frame state
@@ -1176,6 +1176,7 @@ void check_new_room()
 
 void compile_room_script()
 {
+    Game &game = Game::Current();
     Room &room = Room::Current();
     cc_clear_error();
 
@@ -1189,9 +1190,9 @@ void compile_room_script()
     if (!room.Script->ResolveImports(simp))
         quitprintf("Unable to resolve imports in room script:\n%s", cc_get_error().ErrorString.GetCStr());
 
-    repExecAlways.RoomHasFunction = true;
-    lateRepExecAlways.RoomHasFunction = true;
-    getDialogOptionsDimensionsFunc.RoomHasFunction = true;
+    game.Scripts.RepExecAlways.RoomHasFunction = true;
+    game.Scripts.LateRepExecAlways.RoomHasFunction = true;
+    game.Scripts.GetDialogOptionsDimensions.RoomHasFunction = true;
 }
 
 void on_background_frame_change()
@@ -1202,14 +1203,14 @@ void on_background_frame_change()
     mark_current_background_dirty();
 
     // get the new frame's palette
-    memcpy(palette, room.BgFrames[game.Play.bg_frame].Palette, sizeof(RGB) * 256);
+    memcpy(game.Palette, room.BgFrames[game.Play.bg_frame].Palette, sizeof(RGB) * 256);
 
     // hi-colour, update the palette. It won't have an immediate effect
     // but will be drawn properly when the screen fades in
     if (game.color_depth > 1)
         setpal();
 
-    if (in_enters_screen)
+    if (game.Events.InEntersScreen)
         return;
 
     // Don't update the palette if it hasn't changed
@@ -1409,13 +1410,13 @@ void NewRoom(int nrnum)
     if (handle_state_change_in_dialog_request("NewRoom", DIALOG_NEWROOM + nrnum))
         return; // handled
 
-    if (in_leaves_screen >= 0)
+    if (game.Events.InLeavesScreen >= 0)
     {
         // NewRoom called from the Player Leaves Screen event -- just
         // change which room it will go to
-        in_leaves_screen = nrnum;
+        game.Events.InLeavesScreen = nrnum;
     }
-    else if (in_enters_screen)
+    else if (game.Events.InEntersScreen)
     {
         setevent(AGSEvent_NewRoom(nrnum));
         return;

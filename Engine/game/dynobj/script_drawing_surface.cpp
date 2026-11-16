@@ -14,6 +14,7 @@
 #include "game/dynobj/script_drawing_surface.h"
 
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/render/draw.h"
@@ -46,7 +47,7 @@ Bitmap *ScriptDrawingSurface::GetBitmapSurface()
     else if (dynamicSpriteNumber >= 0)
         return spriteset[dynamicSpriteNumber];
     else if (dynamicSurfaceNumber >= 0)
-        return dynamicallyCreatedSurfaces[dynamicSurfaceNumber].get();
+        return Game::Current().DynamicSurfaces[dynamicSurfaceNumber].get();
     else if (linkedBitmapOnly != nullptr)
         return linkedBitmapOnly;
     else if (roomMaskType > kRoomAreaNone)

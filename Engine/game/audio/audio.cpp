@@ -86,7 +86,6 @@ void AudioChans::DeleteClipOnChannel(int index)
     _channels[index].reset();
 }
 
-ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 int reserved_channel_count = 0;
 
 void calculate_reserved_channel_count()
@@ -148,7 +147,7 @@ static void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpe
 void stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel, const AudioPlayback &newSound)
 {
     Game &game = Game::Current();
-    int play_atype = AudioChannel_GetPlayingType(&scrAudioChannel[fadeOutChannel]);
+    int play_atype = AudioChannel_GetPlayingType(&game.ScAudioChannels[fadeOutChannel]);
     if ((game.Play.fast_forward == 0) && // don't crossfade if skipping a cutscene
         (play_atype >= 0) && (game.audioClipTypes[play_atype].crossfadeSpeed > 0))
     {
@@ -452,7 +451,7 @@ ScriptAudioChannel *play_audio_clip_direct(const AudioPlayback &aplay, int chann
         apply_volume_drop_to_clip(soundfx.get());
 
     AudioChans::SetChannel(channel, std::move(soundfx));
-    return &scrAudioChannel[channel];
+    return &game.ScAudioChannels[channel];
 }
 
 ScriptAudioChannel *play_sound_on_channel(std::unique_ptr<SoundClip> &&sound, int channel, int priority, int repeat,
@@ -467,7 +466,7 @@ ScriptAudioChannel *play_sound_on_channel(std::unique_ptr<SoundClip> &&sound, in
     sound->repeat = repeat;
     sound->priority = priority;
     AudioChans::SetChannel(channel, std::move(sound));
-    return &scrAudioChannel[channel];
+    return &Game::Current().ScAudioChannels[channel];
 }
 
 void remove_clips_of_type_from_queue(int audioType)

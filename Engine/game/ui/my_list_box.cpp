@@ -59,7 +59,7 @@ MyListBox::~MyListBox()
 void MyListBox::draw(Bitmap *ds)
 {
     Game &game = Game::Current();
-    color_t draw_color = GUI::GetStandardColorForBitmap(game.BuiltinDialogs.WindowBackgroundColor);
+    color_t draw_color = GUI::GetStandardColorForBitmap(kWindowBackgroundColor);
     ds->FillRect(Rect(x, y, x + wid, y + hit), draw_color);
     draw_color = GUI::GetStandardColorForBitmap(0);
     ds->DrawRect(Rect(x, y, x + wid, y + hit), draw_color);

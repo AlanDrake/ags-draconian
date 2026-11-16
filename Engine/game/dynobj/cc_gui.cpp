@@ -43,6 +43,7 @@ void CCGUI::Serialize(const void *address, Stream *out)
 
 void CCGUI::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
+    Game &game = Game::Current();
     int num = in->ReadInt32();
-    StaticGUIArray[num] = ccRegisterUnserializedPersistentObject(index, &Game::Current().ScGuis[num], this);
+    game.Handles.Guis[num] = ccRegisterUnserializedPersistentObject(index, &game.ScGuis[num], this);
 }

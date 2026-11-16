@@ -673,7 +673,7 @@ void engine_init_game_settings()
     for (i = 0; i < 256; i++)
     {
         if (game.paluses[i] != PAL_BACKGROUND)
-            palette[i] = game.defpal[i];
+            game.Palette[i] = game.defpal[i];
     }
     // Allegro's palette starts all black; colours are matched against it (makecol8)
     setpal();
@@ -911,13 +911,14 @@ void engine_init_game_settings()
 void engine_setup_scsystem_auxiliary()
 {
     EngineServices &services = EngineServices::Current();
+    Game &game = Game::Current();
     if (services.Config.Override.ScriptOS > eOS_Unknown)
     {
-        scsystem.os = services.Config.Override.ScriptOS;
+        game.ScSystem.os = services.Config.Override.ScriptOS;
     }
     else
     {
-        scsystem.os = services.Platform->GetSystemOSID();
+        game.ScSystem.os = services.Platform->GetSystemOSID();
     }
 }
 

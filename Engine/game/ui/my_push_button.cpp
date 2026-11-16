@@ -48,15 +48,15 @@ void MyPushButton::draw(Bitmap *ds)
     color_t draw_color = GUI::GetStandardColorForBitmap(COL254);
     ds->FillRect(Rect(x, y, x + wid, y + hit), draw_color);
     if (state == 0)
-        draw_color = GUI::GetStandardColorForBitmap(game.BuiltinDialogs.PushButtonDarkColor);
+        draw_color = GUI::GetStandardColorForBitmap(kPushButtonDarkColor);
     else
-        draw_color = GUI::GetStandardColorForBitmap(game.BuiltinDialogs.PushButtonLightColor);
+        draw_color = GUI::GetStandardColorForBitmap(kPushButtonLightColor);
 
     ds->DrawRect(Rect(x, y, x + wid, y + hit), draw_color);
     if (state == 0)
-        draw_color = GUI::GetStandardColorForBitmap(game.BuiltinDialogs.PushButtonLightColor);
+        draw_color = GUI::GetStandardColorForBitmap(kPushButtonLightColor);
     else
-        draw_color = GUI::GetStandardColorForBitmap(game.BuiltinDialogs.PushButtonDarkColor);
+        draw_color = GUI::GetStandardColorForBitmap(kPushButtonDarkColor);
 
     ds->DrawLine(Line(x, y, x + wid - 1, y), draw_color);
     ds->DrawLine(Line(x, y, x, y + hit - 1), draw_color);
@@ -65,7 +65,7 @@ void MyPushButton::draw(Bitmap *ds)
     if (typeandflags & CNF_DEFAULT)
         draw_color = GUI::GetStandardColorForBitmap(0);
     else
-        draw_color = GUI::GetStandardColorForBitmap(game.BuiltinDialogs.WindowBackgroundColor);
+        draw_color = GUI::GetStandardColorForBitmap(kWindowBackgroundColor);
 
     ds->DrawRect(Rect(x - 1, y - 1, x + wid + 1, y + hit + 1), draw_color);
 }

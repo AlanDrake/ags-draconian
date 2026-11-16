@@ -19,28 +19,15 @@
 
 #pragma once
 
-#include <vector>
 
 #include "game/main_game_file.h"
 #include "util/error.h"
 #include "util/string.h"
 
+class Game;
 struct GameDef;
 struct GamePlayState;
 struct EngineConfig;
-
-// Static arrays of managed handles for individual game objects, by object index; for the GUI controls, by GUI
-// and then by control index.
-extern std::vector<int> StaticCharacterArray;
-extern std::vector<int> StaticObjectArray;
-extern std::vector<int> StaticGUIArray;
-extern std::vector<int> StaticHotspotArray;
-extern std::vector<int> StaticRegionArray;
-extern std::vector<int> StaticWalkareaArray;
-extern std::vector<int> StaticWalkbehindArray;
-extern std::vector<int> StaticInventoryArray;
-extern std::vector<int> StaticDialogArray;
-extern std::vector<std::vector<int>> StaticGUIControlsHandles;
 
 namespace AGS
 {
@@ -80,7 +67,7 @@ void PrintBehaviorOptions(const GameDef &game, const GamePlayState &play);
 
 // Registers any persistent script objects that are missing from the managed pool,
 // e.g. if restoring a save made before they were added to the game.
-void RegisterMissingManagedObjects(GameDef &game);
+void RegisterMissingManagedObjects(Game &game);
 
 } // namespace Engine
 } // namespace AGS

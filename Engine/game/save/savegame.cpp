@@ -421,13 +421,13 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     clear_drawobj_cache(false /* reset everything */);
 
     // preserve script data sizes and cleanup scripts
-    pp.GlScDataSize = gamescript->GetGlobalData().size();
-    pp.ScriptModuleNames.resize(numScriptModules);
-    pp.ScMdDataSize.resize(numScriptModules);
-    for (size_t i = 0; i < numScriptModules; ++i)
+    pp.GlScDataSize = game.Scripts.Global->GetGlobalData().size();
+    pp.ScriptModuleNames.resize(game.Scripts.NumModules);
+    pp.ScMdDataSize.resize(game.Scripts.NumModules);
+    for (size_t i = 0; i < game.Scripts.NumModules; ++i)
     {
-        pp.ScriptModuleNames[i] = scriptModules[i]->GetScriptName();
-        pp.ScMdDataSize[i] = scriptModules[i]->GetGlobalData().size();
+        pp.ScriptModuleNames[i] = game.Scripts.Modules[i]->GetScriptName();
+        pp.ScMdDataSize[i] = game.Scripts.Modules[i]->GetGlobalData().size();
     }
 
     // TODO: investigate if we actually have to do this when restoring a save
@@ -459,14 +459,15 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
 
 void FillPreservedParams(PreservedParams &pp)
 {
+    Game &game = Game::Current();
     // preserve script data sizes
-    pp.GlScDataSize = gamescript->GetGlobalData().size();
-    pp.ScriptModuleNames.resize(numScriptModules);
-    pp.ScMdDataSize.resize(numScriptModules);
-    for (size_t i = 0; i < numScriptModules; ++i)
+    pp.GlScDataSize = game.Scripts.Global->GetGlobalData().size();
+    pp.ScriptModuleNames.resize(game.Scripts.NumModules);
+    pp.ScMdDataSize.resize(game.Scripts.NumModules);
+    for (size_t i = 0; i < game.Scripts.NumModules; ++i)
     {
-        pp.ScriptModuleNames[i] = scriptModules[i]->GetScriptName();
-        pp.ScMdDataSize[i] = scriptModules[i]->GetGlobalData().size();
+        pp.ScriptModuleNames[i] = game.Scripts.Modules[i]->GetScriptName();
+        pp.ScMdDataSize[i] = game.Scripts.Modules[i]->GetGlobalData().size();
     }
 }
 
@@ -674,7 +675,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     const size_t dynamic_surface_count = std::min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());
     for (size_t i = 0; i < dynamic_surface_count; ++i)
     {
-        dynamicallyCreatedSurfaces[i] = std::move(r_data.DynamicSurfaces[i]);
+        game.DynamicSurfaces[i] = std::move(r_data.DynamicSurfaces[i]);
     }
 
     // Rebuild GUI links to child controls
@@ -695,7 +696,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // copy the saved global data into the global script
     if (!r_data.GlobalScript.Data.empty())
     {
-        gamescript->CopyGlobalData(r_data.GlobalScript.Data);
+        game.Scripts.Global->CopyGlobalData(r_data.GlobalScript.Data);
     }
 
     // copy the saved data into the script modules, which are found by name
@@ -705,7 +706,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         auto &script_data = script_entry.second;
         if (script_data.Data.empty())
             continue;
-        for (auto &script_module : scriptModules)
+        for (auto &script_module : game.Scripts.Modules)
         {
             if (name.Compare(script_module->GetScriptName()) == 0)
             {

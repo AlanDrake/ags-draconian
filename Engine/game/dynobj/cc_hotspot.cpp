@@ -43,6 +43,7 @@ void CCHotspot::Serialize(const void *address, Stream *out)
 
 void CCHotspot::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
+    Game &game = Game::Current();
     int num = in->ReadInt32();
-    StaticHotspotArray[num] = ccRegisterUnserializedPersistentObject(index, &Game::Current().ScHotspots[num], this);
+    game.Handles.Hotspots[num] = ccRegisterUnserializedPersistentObject(index, &game.ScHotspots[num], this);
 }

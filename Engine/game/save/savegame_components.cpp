@@ -729,7 +729,7 @@ HSaveError WriteGameState(Stream *out)
     WriteGameSetupStruct(game, out);
     // Game palette
     // TODO: probably no need to save this for hi/true-res game
-    out->WriteArray(palette, sizeof(RGB), 256);
+    out->WriteArray(game.Palette, sizeof(RGB), 256);
 
     // Game state
     game.Play.WriteForSavegame(out);
@@ -816,7 +816,7 @@ HSaveError ReadGameState(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
     // Game base
     ReadGameSetupStruct(game, in, svg_ver);
     // Game palette
-    in->ReadArray(palette, sizeof(RGB), 256);
+    in->ReadArray(game.Palette, sizeof(RGB), 256);
 
     // Game state
     game.Play.ReadFromSavegame(in, game.LoadedDataVersion, svg_ver, r_data);
@@ -1845,17 +1845,18 @@ HSaveError ReadAnimOverlays(Stream *in, int32_t cmp_ver, soff_t cmp_size, const 
 
 HSaveError WriteDynamicSurfaces(Stream *out)
 {
+    Game &game = Game::Current();
     out->WriteInt32(MAX_DYNAMIC_SURFACES);
     for (int i = 0; i < MAX_DYNAMIC_SURFACES; ++i)
     {
-        if (dynamicallyCreatedSurfaces[i] == nullptr)
+        if (game.DynamicSurfaces[i] == nullptr)
         {
             out->WriteInt8(0);
         }
         else
         {
             out->WriteInt8(1);
-            WriteBitmap(dynamicallyCreatedSurfaces[i].get(), out,
+            WriteBitmap(game.DynamicSurfaces[i].get(), out,
                         false /* not compressed (expect component is compressed) */);
         }
     }
@@ -1889,20 +1890,21 @@ enum ScriptModulesSvgVersion
 
 HSaveError WriteScriptModules(Stream *out)
 {
+    Game &game = Game::Current();
     // write the data segment of the global script
-    int data_len = gamescript->GetGlobalData().size();
+    int data_len = game.Scripts.Global->GetGlobalData().size();
     out->WriteInt32(data_len);
     if (data_len > 0)
-        out->Write(gamescript->GetGlobalData().data(), data_len);
+        out->Write(game.Scripts.Global->GetGlobalData().data(), data_len);
     // write the script modules data segments
-    out->WriteInt32(numScriptModules);
-    for (size_t i = 0; i < numScriptModules; ++i)
+    out->WriteInt32(game.Scripts.NumModules);
+    for (size_t i = 0; i < game.Scripts.NumModules; ++i)
     {
-        StrUtil::WriteString(scriptModules[i]->GetScriptName(), out);
-        data_len = scriptModules[i]->GetGlobalData().size();
+        StrUtil::WriteString(game.Scripts.Modules[i]->GetScriptName(), out);
+        data_len = game.Scripts.Modules[i]->GetGlobalData().size();
         out->WriteInt32(data_len);
         if (data_len > 0)
-            out->Write(scriptModules[i]->GetGlobalData().data(), data_len);
+            out->Write(game.Scripts.Modules[i]->GetGlobalData().data(), data_len);
     }
     return HSaveError::None();
 }

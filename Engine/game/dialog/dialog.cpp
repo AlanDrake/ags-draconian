@@ -482,7 +482,7 @@ static int run_dialog_request(int param)
     Game &game = Game::Current();
     game.Play.stop_dialog_at_end = DIALOG_RUNNING;
     RuntimeScriptValue params[]{param};
-    RunScriptFunction(gamescript.get(), "dialog_request", 1, params);
+    RunScriptFunction(game.Scripts.Global.get(), "dialog_request", 1, params);
 
     if (game.Play.stop_dialog_at_end == DIALOG_STOP)
     {
@@ -515,12 +515,12 @@ int run_dialog_script(int dialog_id, int /*entry_point*/, int option_index)
     game.Speech.SaidSpeechLine = 0;
     int result = RUN_DIALOG_STAY;
 
-    if (dialogScriptsScript)
+    if (game.Scripts.Dialog)
     {
         char func_name[100];
         snprintf(func_name, sizeof(func_name), "_run_dialog%d", dialog_id);
         RuntimeScriptValue params[]{option_index};
-        RunScriptFunction(dialogScriptsScript.get(), func_name, 1, params);
+        RunScriptFunction(game.Scripts.Dialog.get(), func_name, 1, params);
         result = scriptExecutor->GetReturnValue();
     }
 
@@ -716,11 +716,12 @@ void draw_gui_for_dialog_options(Bitmap *dst, GUIMain *gui, int x, int y)
 // which means the custom options rendering is used
 bool get_custom_dialog_options_dimensions(ScriptDialogOptionsRendering *opt_render, int dialog_id)
 {
+    Game &game = Game::Current();
     opt_render->Reset();
     opt_render->dialogID = dialog_id;
 
-    getDialogOptionsDimensionsFunc.Params[0].SetScriptObject(opt_render, opt_render);
-    run_function_on_non_blocking_thread(&getDialogOptionsDimensionsFunc);
+    game.Scripts.GetDialogOptionsDimensions.Params[0].SetScriptObject(opt_render, opt_render);
+    run_function_on_non_blocking_thread(&game.Scripts.GetDialogOptionsDimensions);
     return ((opt_render->width > 0) && (opt_render->height > 0));
 }
 
@@ -1138,8 +1139,8 @@ void DialogOptions::Draw()
         ccDialogOptionsRendering->surfaceAccessed = false;
         ccDialogOptionsRendering->isInDraw = true;
 
-        renderDialogOptionsFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
-        run_function_on_non_blocking_thread(&renderDialogOptionsFunc);
+        game.Scripts.RenderDialogOptions.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
+        run_function_on_non_blocking_thread(&game.Scripts.RenderDialogOptions);
 
         if (!ccDialogOptionsRendering->surfaceAccessed)
             debug_script_warn("dialog_options_get_dimensions was implemented, but no dialog_options_render function "
@@ -1295,8 +1296,9 @@ bool DialogOptions::Run()
     // For the newer custom options rendering API: run "dialog_options_repexec"
     if (newCustomRender)
     {
-        runDialogOptionRepExecFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
-        run_function_on_non_blocking_thread(&runDialogOptionRepExecFunc);
+        game.Scripts.RunDialogOptionRepExec.Params[0].SetScriptObject(ccDialogOptionsRendering,
+                                                                      ccDialogOptionsRendering);
+        run_function_on_non_blocking_thread(&game.Scripts.RunDialogOptionRepExec);
 
         // Stop the dialog options if requested from script
         if (doStop)
@@ -1316,11 +1318,11 @@ bool DialogOptions::Run()
         if (game.Play.mouse_input_enabled && position.IsInside(mousex, mousey))
         {
             // Run "dialog_options_get_active"
-            getDialogOptionUnderCursorFunc.Params[0].SetScriptObject(ccDialogOptionsRendering,
-                                                                     ccDialogOptionsRendering);
-            run_function_on_non_blocking_thread(&getDialogOptionUnderCursorFunc);
+            game.Scripts.GetDialogOptionUnderCursor.Params[0].SetScriptObject(ccDialogOptionsRendering,
+                                                                              ccDialogOptionsRendering);
+            run_function_on_non_blocking_thread(&game.Scripts.GetDialogOptionUnderCursor);
 
-            if (!getDialogOptionUnderCursorFunc.AtLeastOneImplementationExists)
+            if (!game.Scripts.GetDialogOptionUnderCursor.AtLeastOneImplementationExists)
                 quit("!The script function dialog_options_get_active is not implemented. It must be present to use a "
                      "custom dialogue system.");
 
@@ -1509,18 +1511,18 @@ bool DialogOptions::RunKey(const KeyInput &key_input)
     {
         if (key_input.UChar == 0)
         { // "dialog_options_key_press"
-            runDialogOptionKeyPressHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering,
-                                                                         ccDialogOptionsRendering);
-            runDialogOptionKeyPressHandlerFunc.Params[1].SetInt32(AGSKeyToScriptKey(key_input.Key));
-            runDialogOptionKeyPressHandlerFunc.Params[2].SetInt32(key_input.Mod);
-            run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
+            game.Scripts.RunDialogOptionKeyPress.Params[0].SetScriptObject(ccDialogOptionsRendering,
+                                                                           ccDialogOptionsRendering);
+            game.Scripts.RunDialogOptionKeyPress.Params[1].SetInt32(AGSKeyToScriptKey(key_input.Key));
+            game.Scripts.RunDialogOptionKeyPress.Params[2].SetInt32(key_input.Mod);
+            run_function_on_non_blocking_thread(&game.Scripts.RunDialogOptionKeyPress);
         }
         if (key_input.UChar > 0)
         { // "dialog_options_text_input"
-            runDialogOptionTextInputHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering,
-                                                                          ccDialogOptionsRendering);
-            runDialogOptionTextInputHandlerFunc.Params[1].SetInt32(key_input.UChar);
-            run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
+            game.Scripts.RunDialogOptionTextInput.Params[0].SetScriptObject(ccDialogOptionsRendering,
+                                                                            ccDialogOptionsRendering);
+            game.Scripts.RunDialogOptionTextInput.Params[1].SetInt32(key_input.UChar);
+            run_function_on_non_blocking_thread(&game.Scripts.RunDialogOptionKeyPress);
         }
         return key_input.UChar >= 0;
     }
@@ -1539,17 +1541,18 @@ bool DialogOptions::RunKey(const KeyInput &key_input)
 
 bool DialogOptions::RunMouse(eAGSMouseButton button, int x, int y)
 {
+    Game &game = Game::Current();
     if (button > kMouseNone)
     {
         if (mouseison < 0 && !newCustomRender)
         {
             if (usingCustomRendering)
             {
-                runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering,
-                                                                               ccDialogOptionsRendering);
-                runDialogOptionMouseClickHandlerFunc.Params[1].SetInt32(button);
-                run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
-                needRedraw = runDialogOptionMouseClickHandlerFunc.AtLeastOneImplementationExists;
+                game.Scripts.RunDialogOptionMouseClick.Params[0].SetScriptObject(ccDialogOptionsRendering,
+                                                                                 ccDialogOptionsRendering);
+                game.Scripts.RunDialogOptionMouseClick.Params[1].SetInt32(button);
+                run_function_on_non_blocking_thread(&game.Scripts.RunDialogOptionMouseClick);
+                needRedraw = game.Scripts.RunDialogOptionMouseClick.AtLeastOneImplementationExists;
             }
         }
         else if (mouseison == DLG_OPTION_PARSER)
@@ -1559,12 +1562,12 @@ bool DialogOptions::RunMouse(eAGSMouseButton button, int x, int y)
         }
         else if (newCustomRender)
         {
-            runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering,
-                                                                           ccDialogOptionsRendering);
-            runDialogOptionMouseClickHandlerFunc.Params[1].SetInt32(button);
-            runDialogOptionMouseClickHandlerFunc.Params[2].SetInt32(x);
-            runDialogOptionMouseClickHandlerFunc.Params[3].SetInt32(y);
-            run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
+            game.Scripts.RunDialogOptionMouseClick.Params[0].SetScriptObject(ccDialogOptionsRendering,
+                                                                             ccDialogOptionsRendering);
+            game.Scripts.RunDialogOptionMouseClick.Params[1].SetInt32(button);
+            game.Scripts.RunDialogOptionMouseClick.Params[2].SetInt32(x);
+            game.Scripts.RunDialogOptionMouseClick.Params[3].SetInt32(y);
+            run_function_on_non_blocking_thread(&game.Scripts.RunDialogOptionMouseClick);
         }
         else if (usingCustomRendering)
         {
@@ -1581,13 +1584,14 @@ bool DialogOptions::RunMouse(eAGSMouseButton button, int x, int y)
 
 bool DialogOptions::RunMouseWheel(int wheel)
 {
+    Game &game = Game::Current();
     if ((wheel != 0) && usingCustomRendering)
     {
-        runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering,
-                                                                       ccDialogOptionsRendering);
-        runDialogOptionMouseClickHandlerFunc.Params[1].SetInt32((wheel < 0) ? 9 : 8);
-        run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
-        needRedraw = !newCustomRender && runDialogOptionMouseClickHandlerFunc.AtLeastOneImplementationExists;
+        game.Scripts.RunDialogOptionMouseClick.Params[0].SetScriptObject(ccDialogOptionsRendering,
+                                                                         ccDialogOptionsRendering);
+        game.Scripts.RunDialogOptionMouseClick.Params[1].SetInt32((wheel < 0) ? 9 : 8);
+        run_function_on_non_blocking_thread(&game.Scripts.RunDialogOptionMouseClick);
+        needRedraw = !newCustomRender && game.Scripts.RunDialogOptionMouseClick.AtLeastOneImplementationExists;
         return true; // handled
     }
     return false; // not handled
@@ -1599,8 +1603,8 @@ void DialogOptions::End()
     // Close custom dialog options
     if (usingCustomRendering)
     {
-        runDialogOptionCloseFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
-        run_function_on_non_blocking_thread(&runDialogOptionCloseFunc);
+        game.Scripts.RunDialogOptionClose.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
+        run_function_on_non_blocking_thread(&game.Scripts.RunDialogOptionClose);
     }
 
     // Invalidate DialogOptionsRendering and DrawingSurface objects in case they saved its reference in script

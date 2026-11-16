@@ -45,24 +45,12 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-// FIXME: refactor further to stop using saved_viewport_bitmap (screen.h) here, maybe move part of the code to
+// FIXME: refactor further to stop using Game::SavedViewportBitmap here, maybe move part of the code to
 // screen.cpp?
 
-// FIXME: change these from global variables into e.g. GamePlayState members
-// TODO: replace these with "current transition state" enum?
-bool in_enters_screen = false;   // while running "before fade-in" script event
-bool done_as_error = false;      // used to report a mistake in "enter room" event
-int in_leaves_screen = -1;       // while running "before fade-out" script event, stores a next room number
-                                 // CHECKME: in_leaves_screen seems to be not used for anything?
-bool in_room_transition = false; // between previous "before fade-out" and next "after fade-in";
-    // used to define a period during which the cursor and "@overhotspot@" labels should be hidden
-
-std::vector<AGSEvent> events;
-
 int inside_processevent = 0;
-int eventClaimed = EVENT_NONE;
 
-std::array<ScriptEventCallback, kTS_Num> ScriptEventCb = {{
+const std::array<ScriptEventCallback, kTS_Num> ScriptEventCb = {{
     {nullptr, 0u, kScCallback_Direct},
     {REP_EXEC_NAME, 0u, kScCallback_CommonUnClaimable},
     {"on_key_press", 2u, kScCallback_CommonClaimable},
@@ -78,37 +66,38 @@ std::array<ScriptEventCallback, kTS_Num> ScriptEventCb = {{
 void run_claimable_event(const String &tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params,
                          bool *eventWasClaimed)
 {
+    Game &game = Game::Current();
     Room &room = Room::Current();
     *eventWasClaimed = true;
     // Run the room script function, and if it is not claimed,
     // then run the main one
-    // We need to remember the eventClaimed variable's state, in case
+    // We need to remember the Game::Events.Claimed's state, in case
     // this is a nested event
-    int eventClaimedOldValue = eventClaimed;
-    eventClaimed = EVENT_INPROGRESS;
+    int eventClaimedOldValue = game.Events.Claimed;
+    game.Events.Claimed = EVENT_INPROGRESS;
 
     if (includeRoom && room.Script)
     {
         RunScriptFunction(room.Script.get(), tsname, numParams, params);
-        if (eventClaimed == EVENT_CLAIMED)
+        if (game.Events.Claimed == EVENT_CLAIMED)
         {
-            eventClaimed = eventClaimedOldValue;
+            game.Events.Claimed = eventClaimedOldValue;
             return;
         }
     }
 
     // run script modules
-    for (auto &module_script : scriptModules)
+    for (auto &module_script : game.Scripts.Modules)
     {
         RunScriptFunction(module_script.get(), tsname, numParams, params);
-        if (eventClaimed == EVENT_CLAIMED)
+        if (game.Events.Claimed == EVENT_CLAIMED)
         {
-            eventClaimed = eventClaimedOldValue;
+            game.Events.Claimed = eventClaimedOldValue;
             return;
         }
     }
 
-    eventClaimed = eventClaimedOldValue;
+    game.Events.Claimed = eventClaimedOldValue;
     *eventWasClaimed = false;
 }
 
@@ -128,7 +117,7 @@ void run_room_event(int id)
 // event list functions
 void setevent(const AGSEvent &evt)
 {
-    events.push_back(evt);
+    Game::Current().Events.Queue.push_back(evt);
 }
 
 void force_event(const AGSEvent &evt)
@@ -194,17 +183,17 @@ void process_event(const AGSEvent *evp)
             obj_evt = ObjectEvent(kScTypeRoom);
             if (obj.ObjEvent == kRoomEvent_BeforeFadein)
             {
-                in_enters_screen = true;
+                game.Events.InEntersScreen = true;
                 run_on_event(kScriptEvent_RoomEnter, game.DisplayedRoom);
             }
             else if (obj.ObjEvent == kRoomEvent_FirstEnter)
             {
-                in_room_transition = false;
+                game.Events.InRoomTransition = false;
                 GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
             }
             else if (obj.ObjEvent == kRoomEvent_AfterFadein)
             {
-                in_room_transition = false;
+                game.Events.InRoomTransition = false;
                 GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
                 run_on_event(kScriptEvent_RoomAfterFadein, game.DisplayedRoom);
             }
@@ -222,7 +211,7 @@ void process_event(const AGSEvent *evp)
         if (room_was != game.Play.room_changes)
         {
             if ((obj.ObjEvType == kObjEventType_Room) && (obj.ObjEvent == kRoomEvent_BeforeFadein))
-                in_enters_screen = false;
+                game.Events.InEntersScreen = false;
             return;
         }
 
@@ -233,7 +222,7 @@ void process_event(const AGSEvent *evp)
         }
 
         if ((obj.ObjEvType == kObjEventType_Room) && (obj.ObjEvent == kRoomEvent_BeforeFadein))
-            in_enters_screen = false;
+            game.Events.InEntersScreen = false;
     }
     else if (evp->Type == kAGSEvent_FadeIn)
     {
@@ -255,16 +244,16 @@ void processallevents()
     Game &game = Game::Current();
     if (inside_processevent)
     {
-        events.clear(); // flush queued events
+        game.Events.Queue.clear(); // flush queued events
         return;
     }
 
     // Make a copy of the events to process them safely.
-    // WARNING: engine may actually add more events to the global events array,
+    // WARNING: engine may actually add more events to Game::Events.Queue,
     // and they must NOT be processed here, but instead discarded at the end
     // of this function; otherwise game may glitch.
     // TODO: need to redesign engine events system?
-    std::vector<AGSEvent> evtcopy = events;
+    std::vector<AGSEvent> evtcopy = game.Events.Queue;
 
     const int room_was = game.Play.room_changes;
 
@@ -278,7 +267,7 @@ void processallevents()
             break; // changed room, so discard other events
     }
 
-    events.clear();
+    game.Events.Queue.clear();
     inside_processevent--;
 }
 
@@ -287,10 +276,11 @@ void processallevents()
 
 void ClaimEvent()
 {
-    if (eventClaimed == EVENT_NONE)
+    Game &game = Game::Current();
+    if (game.Events.Claimed == EVENT_NONE)
         quit("!ClaimEvent: no event to claim");
 
-    eventClaimed = EVENT_CLAIMED;
+    game.Events.Claimed = EVENT_CLAIMED;
 }
 
 bool AssertCursorValidForEvent(const char *api_name, int mode)

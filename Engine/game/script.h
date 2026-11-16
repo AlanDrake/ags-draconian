@@ -16,7 +16,6 @@
 #include <memory>
 #include <vector>
 
-#include "game/dynobj/script_system.h"
 #include "game/runtime_defines.h"
 #include "game/scripteventtable.h"
 #include "script/executingscript.h"
@@ -225,26 +224,27 @@ bool is_inside_script();
 // Gets current ExecutingScript object (null if no script function is running)
 ExecutingScript *get_executingscript();
 
-// The script callbacks that run on the non-blocking thread
-extern NonBlockingScriptFunction repExecAlways;
-extern NonBlockingScriptFunction lateRepExecAlways;
-extern NonBlockingScriptFunction getDialogOptionsDimensionsFunc;
-extern NonBlockingScriptFunction renderDialogOptionsFunc;
-extern NonBlockingScriptFunction getDialogOptionUnderCursorFunc;
-extern NonBlockingScriptFunction runDialogOptionMouseClickHandlerFunc;
-extern NonBlockingScriptFunction runDialogOptionKeyPressHandlerFunc;
-extern NonBlockingScriptFunction runDialogOptionTextInputHandlerFunc;
-extern NonBlockingScriptFunction runDialogOptionRepExecFunc;
-extern NonBlockingScriptFunction runDialogOptionCloseFunc;
+// The game's scripts and the script callbacks that run on the non-blocking thread (Game::Scripts)
+struct ScriptState
+{
+    AGS::Engine::PRuntimeScript Global;
+    AGS::Engine::PRuntimeScript Dialog;
+    std::vector<AGS::Engine::PRuntimeScript> Modules;
+    std::vector<RuntimeScriptValue> ModuleRepExecAddr;
+    size_t NumModules = 0;
 
-extern AGS::Engine::PRuntimeScript gamescript;
-extern AGS::Engine::PRuntimeScript dialogScriptsScript;
-extern std::vector<AGS::Engine::PRuntimeScript> scriptModules;
-extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
-extern size_t numScriptModules;
-
-// The script object "System".
-extern ScriptSystem scsystem;
+    // The script callbacks that run on the non-blocking thread
+    NonBlockingScriptFunction RepExecAlways{REP_EXEC_ALWAYS_NAME, 0};
+    NonBlockingScriptFunction LateRepExecAlways{LATE_REP_EXEC_ALWAYS_NAME, 0};
+    NonBlockingScriptFunction GetDialogOptionsDimensions{"dialog_options_get_dimensions", 1};
+    NonBlockingScriptFunction RenderDialogOptions{"dialog_options_render", 1};
+    NonBlockingScriptFunction GetDialogOptionUnderCursor{"dialog_options_get_active", 1};
+    NonBlockingScriptFunction RunDialogOptionMouseClick{"dialog_options_mouse_click", 4};
+    NonBlockingScriptFunction RunDialogOptionKeyPress{"dialog_options_key_press", 3};
+    NonBlockingScriptFunction RunDialogOptionTextInput{"dialog_options_text_input", 2};
+    NonBlockingScriptFunction RunDialogOptionRepExec{"dialog_options_repexec", 1};
+    NonBlockingScriptFunction RunDialogOptionClose{"dialog_options_close", 1};
+};
 
 // Stops all running scripts at their next step.
 void AbortGame();

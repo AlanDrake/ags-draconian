@@ -743,6 +743,7 @@
     <ClInclude Include="..\..\Engine\game\world\properties.h" />
     <ClInclude Include="..\..\Engine\game\world\region.h" />
     <ClInclude Include="..\..\Engine\game\world\room.h" />
+    <ClInclude Include="..\..\Engine\game\world\room_context.h" />
     <ClInclude Include="..\..\Engine\game\world\room_object.h" />
     <ClInclude Include="..\..\Engine\game\world\room_status.h" />
     <ClInclude Include="..\..\Engine\game\world\view_frame.h" />

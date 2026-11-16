@@ -50,11 +50,11 @@ void CCInventory::Unserialize(int index, Stream *in, size_t /*data_sz*/)
     int num = in->ReadInt32();
     if (num >= 0 && static_cast<uint32_t>(num) < game.ScInvItems.size())
     {
-        StaticInventoryArray[num] = ccRegisterUnserializedPersistentObject(index, &game.ScInvItems[num], this);
+        game.Handles.InvItems[num] = ccRegisterUnserializedPersistentObject(index, &game.ScInvItems[num], this);
     }
     else
     {
-        // WARNING: we must not reallocate StaticInventoryArray or Game::ScInvItems, because that will break script array
+        // WARNING: we must not reallocate Game::Handles.InvItems or Game::ScInvItems, because that will break script array
         // and script objects registration respectively.
         ccRegisterUnserializedPersistentObject(index, &_dummy, this);
     }

@@ -69,10 +69,11 @@ void GamePlayState::SetAutoRoomViewport(bool on)
 
 void GamePlayState::SetMainViewport(const Rect &viewport)
 {
+    Game &game = Game::Current();
     _mainViewport = viewport;
     Mouse::UpdateGraphicArea();
-    scsystem.viewport_width = _mainViewport.GetWidth();
-    scsystem.viewport_height = _mainViewport.GetHeight();
+    game.ScSystem.viewport_width = _mainViewport.GetWidth();
+    game.ScSystem.viewport_height = _mainViewport.GetHeight();
     _mainViewportHasChanged = true;
 }
 

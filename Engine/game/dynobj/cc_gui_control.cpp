@@ -41,8 +41,9 @@ void CCGUIControl::Serialize(const void *address, Stream *out)
 
 void CCGUIControl::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
+    Game &game = Game::Current();
     int guinum = in->ReadInt32();
     int objnum = in->ReadInt32();
-    int handle = ccRegisterUnserializedPersistentObject(index, Game::Current().Guis[guinum].GetControl(objnum), this);
-    (StaticGUIControlsHandles[guinum])[objnum] = handle;
+    int handle = ccRegisterUnserializedPersistentObject(index, game.Guis[guinum].GetControl(objnum), this);
+    (game.Handles.GuiControls[guinum])[objnum] = handle;
 }

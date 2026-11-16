@@ -20,6 +20,11 @@
 #include "game/ui/gui_dialog_defines.h"
 #include "platform/types.h"
 
+// Colours of the built-in dialogs' windows and push buttons (colour indexes).
+constexpr int kWindowBackgroundColor = COL254;
+constexpr int kPushButtonDarkColor = COL255;
+constexpr int kPushButtonLightColor = COL253;
+
 // Opens a window on the GUI screen and returns its id; the area drawn is 2 pixels larger than
 // the given one on each side. Quits if 5 windows are already open. Pair with CSCIEraseWindow.
 int CSCIDrawWindow(int x, int y, int width, int height);

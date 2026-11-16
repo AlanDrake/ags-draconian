@@ -469,7 +469,8 @@ void FaceDirectionalLoop(CharacterInfo *ch, int direction, int blocking_style)
     // Change facing only if the desired direction is different
     if (direction != ch->loop)
     {
-        if ((game.options[OPT_CHARTURNWHENFACE] != 0) && ((ch->flags & CHF_TURNWHENFACE) != 0) && (!in_enters_screen))
+        if ((game.options[OPT_CHARTURNWHENFACE] != 0) && ((ch->flags & CHF_TURNWHENFACE) != 0) &&
+            (!game.Events.InEntersScreen))
         {
             const bool use_diagloops = should_use_diagloops(ch, false /* allow 1 frame in loops */);
             const int highest_loop = use_diagloops ? kDirLoop_Last : kDirLoop_LastOrthogonal;

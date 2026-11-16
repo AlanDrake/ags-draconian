@@ -205,10 +205,10 @@ static void GameUpdateCheckProblems()
         quit("!A blocking function was called before the first room has been loaded");
     }
 
-    if ((in_enters_screen) && (!done_as_error))
+    if ((game.Events.InEntersScreen) && (!game.Events.DoneAsError))
     {
         debug_script_warn("Wait() was used in \"Before Fadein\" event; use \"After Fadein\" instead");
-        done_as_error = true;
+        game.Events.DoneAsError = true;
     }
 
     if (!get_can_run_delayed_command())
@@ -227,10 +227,11 @@ static void GameUpdateCheckProblems()
 // schedules global and room's rep-exec events to be run during script event processing.
 static void GameUpdateEarlyRepExec()
 {
-    if (Game::Current().RoomChange.InNewRoom == kEnterRoom_None)
+    Game &game = Game::Current();
+    if (game.RoomChange.InNewRoom == kEnterRoom_None)
     {
         // Run the room and game script repeatedly_execute
-        run_function_on_non_blocking_thread(&repExecAlways);
+        run_function_on_non_blocking_thread(&game.Scripts.RepExecAlways);
         setevent(AGSEvent_Script(kTS_RepeatedlyExecute));
         setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_Repexec));
     }
@@ -239,13 +240,14 @@ static void GameUpdateEarlyRepExec()
 // Runs late-rep-exec-always
 static void GameUpdateLateRepExec()
 {
-    if (Game::Current().RoomChange.InNewRoom == kEnterRoom_None)
+    Game &game = Game::Current();
+    if (game.RoomChange.InNewRoom == kEnterRoom_None)
     {
         // sync drawable object states before running event
         // in case they access these properties in a script callback
         SyncDrawablesState();
         // Run the room and game script late_repeatedly_execute
-        run_function_on_non_blocking_thread(&lateRepExecAlways);
+        run_function_on_non_blocking_thread(&game.Scripts.LateRepExecAlways);
     }
 }
 
@@ -316,14 +318,14 @@ static void GameUpdateCheckGroundInteractions()
 static void lock_mouse_on_click()
 {
     // Only update when in windowed mode, as always locked in fullscreen
-    if (EngineServices::Current().Config.MouseAutoLock && scsystem.windowed != 0)
+    if (EngineServices::Current().Config.MouseAutoLock && Game::Current().ScSystem.windowed != 0)
         Mouse::TryLockToWindow();
 }
 
 static void toggle_mouse_lock()
 {
     // Only update when in windowed mode, as always locked in fullscreen
-    if (scsystem.windowed)
+    if (Game::Current().ScSystem.windowed)
     {
         if (Mouse::IsLockedToWindow())
             Mouse::UnlockFromWindow();
@@ -1172,7 +1174,7 @@ static void UpdateGUIContext()
     // on game object positions, and game state changes, and we cannot track all of that here.
     //
     // While game is in Wait mode, or in room transition: set empty overhotspot text.
-    if (!IsInterfaceEnabled() || in_room_transition || !game.Play.mouse_input_enabled)
+    if (!IsInterfaceEnabled() || game.Events.InRoomTransition || !game.Play.mouse_input_enabled)
         GUI::Context.Overhotspot = "";
     else
         GUI::Context.Overhotspot = GetLocationName(mousex, mousey, kHit_Interactable);
@@ -1265,7 +1267,7 @@ static void GameUpdateProcessEvents()
             setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_AfterFadein));
             break;
         case kEnterRoom_RestoredSave:
-            in_room_transition = false; // room transition ends here
+            game.Events.InRoomTransition = false; // room transition ends here
             break;
         }
 

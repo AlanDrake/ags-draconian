@@ -300,6 +300,7 @@ target_sources(engine
     game/world/region.h
     game/world/room.cpp
     game/world/room.h
+    game/world/room_context.h
     game/world/room_object.cpp
     game/world/room_object.h
     game/world/room_status.cpp

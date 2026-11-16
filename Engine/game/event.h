@@ -205,15 +205,6 @@ void ClaimEvent();
 // Tests that a given interaction mode is valid and has a event associated with it
 bool AssertCursorValidForEvent(const char *api_name, int mode);
 
-extern bool in_enters_screen;
-extern bool done_as_error;
-extern int in_leaves_screen;
-extern bool in_room_transition;
-
-extern std::vector<AGSEvent> events;
-
-extern int eventClaimed;
-
 enum ScriptCallbackPropagation
 {
     kScCallback_Direct,
@@ -237,4 +228,5 @@ struct ScriptEventCallback
     }
 };
 
-extern std::array<ScriptEventCallback, kTS_Num> ScriptEventCb;
+// The predefined script callbacks, by kTS_* type; constant
+extern const std::array<ScriptEventCallback, kTS_Num> ScriptEventCb;

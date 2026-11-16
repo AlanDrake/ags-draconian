@@ -52,7 +52,7 @@ bool System_GetHasInputFocus()
 
 int System_GetColorDepth()
 {
-    return scsystem.coldepth;
+    return Game::Current().ScSystem.coldepth;
 }
 
 int System_GetFPS()
@@ -63,7 +63,7 @@ int System_GetFPS()
 
 int System_GetOS()
 {
-    return scsystem.os;
+    return Game::Current().ScSystem.os;
 }
 
 const char *System_GetVersion()
@@ -101,7 +101,7 @@ int System_GetScrollLock()
 
 int System_GetVsync()
 {
-    return scsystem.vsync;
+    return Game::Current().ScSystem.vsync;
 }
 
 void System_SetVsync(int newValue)
@@ -114,18 +114,18 @@ void System_SetVsync(int newValue)
 
 void System_SetVSyncInternal(bool vsync)
 {
-    scsystem.vsync = vsync;
+    Game::Current().ScSystem.vsync = vsync;
     EngineServices::Current().Config.Display.VSync = vsync;
 }
 
 int System_GetWindowed()
 {
-    return scsystem.windowed;
+    return Game::Current().ScSystem.windowed;
 }
 
 void System_SetWindowed(int windowed)
 {
-    if (windowed != scsystem.windowed)
+    if (windowed != Game::Current().ScSystem.windowed)
         engine_try_switch_windowed_gfxmode();
 }
 
@@ -168,7 +168,7 @@ ScriptAudioChannel *System_GetAudioChannels(int index)
         quitprintf("!System.AudioChannels: invalid sound channel index %d, supported %d - %d", index, 0,
                    game.numGameChannels - 1);
 
-    return &scrAudioChannel[index];
+    return &game.ScAudioChannels[index];
 }
 
 int System_GetVolume()

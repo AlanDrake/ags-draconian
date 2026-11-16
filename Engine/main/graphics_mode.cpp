@@ -25,6 +25,7 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "game/game.h"
+#include "game/game_context.h"
 #include "game/render/draw.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/bitmap.h"
@@ -97,7 +98,7 @@ bool create_gfx_driver(const String &gfx_driver_id)
         Debug::Printf(kDbgMsg_Error, "Failed to create graphics driver. Error: %s", SDL_GetError());
         return false;
     }
-    services.GfxDriver->SetIndexedPalette(palette); // the game's palette, changed in place
+    services.GfxDriver->SetIndexedPalette(Game::Current().Palette); // the game's palette, changed in place
     Debug::Printf("Created graphics driver: %s", services.GfxDriver->GetDriverName());
     return true;
 }

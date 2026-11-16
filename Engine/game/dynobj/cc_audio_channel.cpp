@@ -15,6 +15,7 @@
 
 #include "game/audio/audio.h"
 #include "game/dynobj/script_objects.h"
+#include "game/game_context.h"
 #include "media/audio/audio_system.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
@@ -40,5 +41,5 @@ void CCAudioChannel::Serialize(const void *address, Stream *out)
 void CCAudioChannel::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     int id = in->ReadInt32();
-    ccRegisterUnserializedPersistentObject(index, &scrAudioChannel[id], this);
+    ccRegisterUnserializedPersistentObject(index, &Game::Current().ScAudioChannels[id], this);
 }

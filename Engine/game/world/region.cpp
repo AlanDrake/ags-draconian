@@ -295,10 +295,11 @@ void EnableGroundLevelAreas()
 
 void generate_light_table()
 {
-    if (Game::Current().color_depth == 1 && color_map == nullptr)
+    Game &game = Game::Current();
+    if (game.color_depth == 1 && color_map == nullptr)
     {
-        create_light_table(&maincoltable, palette, 0, 0, 0, nullptr);
-        color_map = &maincoltable;
+        create_light_table(&game.MainColTable, game.Palette, 0, 0, 0, nullptr);
+        color_map = &game.MainColTable;
     }
 }
 

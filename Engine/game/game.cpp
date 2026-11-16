@@ -107,7 +107,7 @@ Game engineGame;
 // initialization, as the globals game and play that the instance replaces were
 Game *Game::_current = &engineGame;
 
-Game::Game() = default;
+Game::Game() : _scripts(std::make_unique<ScriptState>()), Scripts(*_scripts) {}
 
 Game::~Game() = default;
 
@@ -185,7 +185,7 @@ void Game_StopAudio(int audio_type)
         }
         else
         {
-            int playing_type = AudioChannel_GetPlayingType(&scrAudioChannel[chan_id]);
+            int playing_type = AudioChannel_GetPlayingType(&game.ScAudioChannels[chan_id]);
             if (playing_type == audio_type)
                 stop_or_fade_out_channel(chan_id);
         }
@@ -205,7 +205,7 @@ int Game_IsAudioPlaying(int audio_type)
 
     for (int chan_id = 0; chan_id < game.numGameChannels; chan_id++)
     {
-        int playing_type = AudioChannel_GetPlayingType(&scrAudioChannel[chan_id]);
+        int playing_type = AudioChannel_GetPlayingType(&game.ScAudioChannels[chan_id]);
         if (playing_type >= 0)
         {
             if ((playing_type == audio_type) || (audio_type == SCR_NO_VALUE))
@@ -282,7 +282,7 @@ void Game_SetAudioTypeVolume(int audio_type, int volume, int change_type)
     {
         for (int i = 0; i < game.numGameChannels; ++i)
         {
-            int playing_type = AudioChannel_GetPlayingType(&scrAudioChannel[i]);
+            int playing_type = AudioChannel_GetPlayingType(&game.ScAudioChannels[i]);
             if (playing_type == audio_type)
             {
                 auto *playback = AudioChans::GetChannel(i);
@@ -1220,7 +1220,7 @@ ScriptAudioChannel *Game_PlayVoiceClip(CharacterInfo *ch, int sound_id, bool as_
 {
     if (!play_voice_nonblocking(ch ? ch->index_id : -1 /* narrator */, sound_id, as_speech))
         return nullptr;
-    return &scrAudioChannel[SCHAN_SPEECH];
+    return &Game::Current().ScAudioChannels[SCHAN_SPEECH];
 }
 
 ScriptAudioChannel *Game_PlayVoiceClipAsType(CharacterInfo *ch, int sound_id, int audio_type, int chan_id, int priority,
@@ -1239,7 +1239,7 @@ ScriptAudioChannel *Game_PlayVoiceClipAsType(CharacterInfo *ch, int sound_id, in
     if (!play_voice_clip_as_type(ch ? ch->index_id : -1 /* narrator */, sound_id, audio_type, chan_id, priority,
                                  repeat))
         return nullptr;
-    return &scrAudioChannel[SCHAN_SPEECH];
+    return &game.ScAudioChannels[SCHAN_SPEECH];
 }
 
 void Game_PrecacheSprite(int sprite_num)
@@ -1904,7 +1904,7 @@ void display_switch_in()
     Debug::Printf("Switching back into the game");
     ags_clear_input_state();
     // If fullscreen, or auto lock option is set, lock mouse to the game window
-    if ((scsystem.windowed == 0) || services.Config.MouseAutoLock)
+    if ((Game::Current().ScSystem.windowed == 0) || services.Config.MouseAutoLock)
         Mouse::TryLockToWindow();
     services.SwitchedAway = false;
 }
@@ -2915,7 +2915,10 @@ int SaveScreenShot4(const char *filename, int width, int height, int layers)
     std::unique_ptr<Bitmap> shot = create_game_screenshot(width, height, layers);
     if (!shot)
         return 0; // out of mem or invalid parameters
-    return BitmapHelper::SaveBitmap(shot.get(), true /* screenshots are opaque */, palette, out.get(), ext) ? 1 : 0;
+    return BitmapHelper::SaveBitmap(shot.get(), true /* screenshots are opaque */, Game::Current().Palette, out.get(),
+                                    ext)
+               ? 1
+               : 0;
 }
 
 int SaveScreenShot1(const char *filename)

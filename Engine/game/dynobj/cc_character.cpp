@@ -44,8 +44,9 @@ void CCCharacter::Serialize(const void *address, Stream *out)
 
 void CCCharacter::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
+    Game &game = Game::Current();
     int num = in->ReadInt32();
-    StaticCharacterArray[num] = ccRegisterUnserializedPersistentObject(index, &Game::Current().chars[num], this);
+    game.Handles.Characters[num] = ccRegisterUnserializedPersistentObject(index, &game.chars[num], this);
 }
 
 uint8_t CCCharacter::ReadInt8(const void *address, intptr_t offset)

@@ -24,8 +24,6 @@
 #include "util/string.h"
 #include "util/time_util.h"
 
-// The script objects of the audio channels, by channel index.
-extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
 class AudioChans
 {

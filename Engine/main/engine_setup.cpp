@@ -145,7 +145,7 @@ void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
     on_coordinates_scaling_changed();
 
     // If fullscreen, or auto lock option is set, lock mouse to the game window
-    if ((scsystem.windowed == 0) || services.Config.MouseAutoLock)
+    if ((Game::Current().ScSystem.windowed == 0) || services.Config.MouseAutoLock)
         Mouse::TryLockToWindow();
 }
 
@@ -157,11 +157,12 @@ void engine_pre_gfxmode_mouse_cleanup()
     Mouse::UnlockFromWindow();
 }
 
-// Fill in scsystem struct with display mode parameters
+// Fill in Game::ScSystem with display mode parameters
 void engine_setup_scsystem_screen(const DisplayMode &dm)
 {
-    scsystem.windowed = dm.IsWindowed();
-    scsystem.vsync = dm.Vsync;
+    Game &game = Game::Current();
+    game.ScSystem.windowed = dm.IsWindowed();
+    game.ScSystem.vsync = dm.Vsync;
 }
 
 void engine_post_gfxmode_setup(const Size &init_desktop, const DisplayMode &old_dm)

@@ -505,8 +505,9 @@ void Mouse_SimulateClick(int button_id)
 void Mouse_EnableControl(bool on)
 {
     EngineServices &services = EngineServices::Current();
-    bool should_control_mouse = services.Config.MouseCtrlWhen == kMouseCtrl_Always ||
-                                (services.Config.MouseCtrlWhen == kMouseCtrl_Fullscreen && (scsystem.windowed == 0));
+    bool should_control_mouse =
+        services.Config.MouseCtrlWhen == kMouseCtrl_Always ||
+        (services.Config.MouseCtrlWhen == kMouseCtrl_Fullscreen && (Game::Current().ScSystem.windowed == 0));
     Mouse::SetMovementControl(should_control_mouse & on);
     services.Config.MouseCtrlEnabled = on; // remember setting in config
 }
@@ -521,7 +522,7 @@ void Mouse_SetAutoLock(bool on)
     EngineServices &services = EngineServices::Current();
     services.Config.MouseAutoLock = on;
     // Only update when in windowed mode, as always locked in fullscreen
-    if (scsystem.windowed)
+    if (Game::Current().ScSystem.windowed)
     {
         if (services.Config.MouseAutoLock)
             Mouse::TryLockToWindow();

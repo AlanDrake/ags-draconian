@@ -42,6 +42,7 @@ void CCDialog::Serialize(const void *address, Stream *out)
 
 void CCDialog::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
+    Game &game = Game::Current();
     int num = in->ReadInt32();
-    StaticDialogArray[num] = ccRegisterUnserializedPersistentObject(index, &Game::Current().ScDialogs[num], this);
+    game.Handles.Dialogs[num] = ccRegisterUnserializedPersistentObject(index, &game.ScDialogs[num], this);
 }

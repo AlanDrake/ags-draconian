@@ -1067,6 +1067,9 @@
     <ClInclude Include="..\..\Engine\game\world\room.h">
       <Filter>Header Files\game\world</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\game\world\room_context.h">
+      <Filter>Header Files\game\world</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Engine\game\world\room_object.h">
       <Filter>Header Files\game\world</Filter>
     </ClInclude>

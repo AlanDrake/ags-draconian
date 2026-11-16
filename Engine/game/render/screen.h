@@ -36,9 +36,6 @@ class IDriverDependantBitmap;
 }
 } // namespace AGS
 
-// The picture of the game frame taken before leaving a room, for the transitions that need the old room's image.
-extern std::unique_ptr<AGS::Common::Bitmap> saved_viewport_bitmap;
-
 // Runs fade-in effect using explicit settings
 void run_fade_in_effect(ScreenTransitionStyle style, int speed);
 // Runs fade-out effect using explicit settings

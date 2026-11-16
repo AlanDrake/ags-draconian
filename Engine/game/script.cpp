@@ -52,30 +52,10 @@ using namespace AGS::Engine;
 std::stack<std::unique_ptr<ExecutingScript>> executingScripts;
 ExecutingScript *curExecScript = nullptr; // non-owning ptr
 
-PRuntimeScript gamescript;
-PRuntimeScript dialogScriptsScript;
-
 int inside_script = 0;
 // Counts the script functions being run on the non-blocking thread (see DoRunScriptFuncCantBlock), which
 // may nest; the commands that block are not allowed while it is above 0
 int no_blocking_functions = 0;
-
-NonBlockingScriptFunction repExecAlways(REP_EXEC_ALWAYS_NAME, 0);
-NonBlockingScriptFunction lateRepExecAlways(LATE_REP_EXEC_ALWAYS_NAME, 0);
-NonBlockingScriptFunction getDialogOptionsDimensionsFunc("dialog_options_get_dimensions", 1);
-NonBlockingScriptFunction renderDialogOptionsFunc("dialog_options_render", 1);
-NonBlockingScriptFunction getDialogOptionUnderCursorFunc("dialog_options_get_active", 1);
-NonBlockingScriptFunction runDialogOptionMouseClickHandlerFunc("dialog_options_mouse_click", 4);
-NonBlockingScriptFunction runDialogOptionKeyPressHandlerFunc("dialog_options_key_press", 3);
-NonBlockingScriptFunction runDialogOptionTextInputHandlerFunc("dialog_options_text_input", 2);
-NonBlockingScriptFunction runDialogOptionRepExecFunc("dialog_options_repexec", 1);
-NonBlockingScriptFunction runDialogOptionCloseFunc("dialog_options_close", 1);
-
-ScriptSystem scsystem;
-
-std::vector<AGS::Engine::PRuntimeScript> scriptModules;
-std::vector<RuntimeScriptValue> moduleRepExecAddr;
-size_t numScriptModules = 0;
 
 std::unique_ptr<ScriptThread> scriptThreadMain;
 std::unique_ptr<ScriptThread> scriptThreadNonBlocking;
@@ -97,17 +77,17 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction *func_to_run)
     func_to_run->AtLeastOneImplementationExists = false;
 
     // run modules
-    for (size_t i = 0; i < numScriptModules; ++i)
+    for (size_t i = 0; i < game.Scripts.NumModules; ++i)
     {
         func_to_run->ModuleHasFunction[i] =
-            DoRunScriptFuncCantBlock(scriptModules[i].get(), func_to_run, func_to_run->ModuleHasFunction[i]);
+            DoRunScriptFuncCantBlock(game.Scripts.Modules[i].get(), func_to_run, func_to_run->ModuleHasFunction[i]);
 
         if (room_changes_was != game.Play.room_changes)
             return;
     }
 
     func_to_run->GlobalScriptHasFunction =
-        DoRunScriptFuncCantBlock(gamescript.get(), func_to_run, func_to_run->GlobalScriptHasFunction);
+        DoRunScriptFuncCantBlock(game.Scripts.Global.get(), func_to_run, func_to_run->GlobalScriptHasFunction);
 
     if (room_changes_was != game.Play.room_changes)
         return;
@@ -229,20 +209,21 @@ int run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handle
 
 static void AllocScriptFuncRefs()
 {
+    Game &game = Game::Current();
     // Size the per-module arrays to the module count; until a function is known to be missing from a module
     // ("has function" is true), it is tried there
-    moduleRepExecAddr.resize(numScriptModules);
-    repExecAlways.ModuleHasFunction.resize(numScriptModules, true);
-    lateRepExecAlways.ModuleHasFunction.resize(numScriptModules, true);
-    getDialogOptionsDimensionsFunc.ModuleHasFunction.resize(numScriptModules, true);
-    renderDialogOptionsFunc.ModuleHasFunction.resize(numScriptModules, true);
-    getDialogOptionUnderCursorFunc.ModuleHasFunction.resize(numScriptModules, true);
-    runDialogOptionMouseClickHandlerFunc.ModuleHasFunction.resize(numScriptModules, true);
-    runDialogOptionKeyPressHandlerFunc.ModuleHasFunction.resize(numScriptModules, true);
-    runDialogOptionTextInputHandlerFunc.ModuleHasFunction.resize(numScriptModules, true);
-    runDialogOptionRepExecFunc.ModuleHasFunction.resize(numScriptModules, true);
-    runDialogOptionCloseFunc.ModuleHasFunction.resize(numScriptModules, true);
-    for (auto &val : moduleRepExecAddr)
+    game.Scripts.ModuleRepExecAddr.resize(game.Scripts.NumModules);
+    game.Scripts.RepExecAlways.ModuleHasFunction.resize(game.Scripts.NumModules, true);
+    game.Scripts.LateRepExecAlways.ModuleHasFunction.resize(game.Scripts.NumModules, true);
+    game.Scripts.GetDialogOptionsDimensions.ModuleHasFunction.resize(game.Scripts.NumModules, true);
+    game.Scripts.RenderDialogOptions.ModuleHasFunction.resize(game.Scripts.NumModules, true);
+    game.Scripts.GetDialogOptionUnderCursor.ModuleHasFunction.resize(game.Scripts.NumModules, true);
+    game.Scripts.RunDialogOptionMouseClick.ModuleHasFunction.resize(game.Scripts.NumModules, true);
+    game.Scripts.RunDialogOptionKeyPress.ModuleHasFunction.resize(game.Scripts.NumModules, true);
+    game.Scripts.RunDialogOptionTextInput.ModuleHasFunction.resize(game.Scripts.NumModules, true);
+    game.Scripts.RunDialogOptionRepExec.ModuleHasFunction.resize(game.Scripts.NumModules, true);
+    game.Scripts.RunDialogOptionClose.ModuleHasFunction.resize(game.Scripts.NumModules, true);
+    for (auto &val : game.Scripts.ModuleRepExecAddr)
     {
         val.Invalidate();
     }
@@ -253,16 +234,17 @@ static void AllocScriptFuncRefs()
 HError CreateRuntimeScripts(const ccScript *global_script, const std::vector<ccScript *> &script_modules,
                             const std::vector<String> &script_module_names, const ccScript *dialog_script)
 {
+    Game &game = Game::Current();
     assert(script_module_names.size() == script_modules.size());
 
     if (!global_script)
         return new Error("Global script was not loaded");
-    gamescript = std::move(RuntimeScript::Create(global_script));
-    if (!gamescript)
+    game.Scripts.Global = std::move(RuntimeScript::Create(global_script));
+    if (!game.Scripts.Global)
         return new Error("Failed to create the global script:\n%s", cc_get_error().ErrorString.GetCStr());
     Debug::Printf("Created global script");
 
-    numScriptModules = script_modules.size();
+    game.Scripts.NumModules = script_modules.size();
     for (uint32_t i = 0; i < script_modules.size(); ++i)
     {
         if (!script_modules[i])
@@ -273,14 +255,14 @@ HError CreateRuntimeScripts(const ccScript *global_script, const std::vector<ccS
             return new Error(String::FromFormat("Failed to create the script module (%u) '%s':\n%s", i,
                                                 script_modules[i]->GetScriptName().c_str(),
                                                 cc_get_error().ErrorString.GetCStr()));
-        scriptModules.push_back(runtime_module);
+        game.Scripts.Modules.push_back(runtime_module);
     }
 
     // Dialog script is optional
     if (dialog_script)
     {
-        dialogScriptsScript = std::move(RuntimeScript::Create(dialog_script));
-        if (!dialogScriptsScript)
+        game.Scripts.Dialog = std::move(RuntimeScript::Create(dialog_script));
+        if (!game.Scripts.Dialog)
             return new Error("Failed to create the dialog script:\n%s", cc_get_error().ErrorString.GetCStr());
         Debug::Printf("Created dialog script");
     }
@@ -304,22 +286,23 @@ void SetupBuiltinTypeAliases()
 
 HError LinkGlobalScripts()
 {
+    Game &game = Game::Current();
     ccSetOption(SCOPT_AUTOIMPORT, 1);
 
     // NOTE: this function assumes that the module lists have their elements preallocated
     // (see CreateRuntimeScripts)
 
     std::vector<RuntimeScript *> all_insts; // gather all to resolve exports below
-    for (size_t i = 0; i < numScriptModules; ++i)
+    for (size_t i = 0; i < game.Scripts.NumModules; ++i)
     {
-        all_insts.push_back(scriptModules[i].get());
+        all_insts.push_back(game.Scripts.Modules[i].get());
     }
 
-    all_insts.push_back(gamescript.get());
+    all_insts.push_back(game.Scripts.Global.get());
 
-    if (dialogScriptsScript)
+    if (game.Scripts.Dialog)
     {
-        all_insts.push_back(dialogScriptsScript.get());
+        all_insts.push_back(game.Scripts.Dialog.get());
     }
 
     //
@@ -338,10 +321,10 @@ HError LinkGlobalScripts()
     }
 
     // Record addresses for 'repeatedly_execute'
-    // TODO: nothing reads moduleRepExecAddr any more, delete it together with this loop
-    for (size_t i = 0; i < numScriptModules; ++i)
+    // TODO: nothing reads ScriptState::ModuleRepExecAddr any more, delete it together with this loop
+    for (size_t i = 0; i < game.Scripts.NumModules; ++i)
     {
-        moduleRepExecAddr[i] = scriptModules[i]->GetSymbolAddress(REP_EXEC_NAME);
+        game.Scripts.ModuleRepExecAddr[i] = game.Scripts.Modules[i]->GetSymbolAddress(REP_EXEC_NAME);
     }
 
     ccSetOption(SCOPT_AUTOIMPORT, 0);
@@ -373,16 +356,17 @@ void AbortAllScripts()
 // script if the name is empty or its own. Returns null if there is no such module (or no room script).
 RuntimeScript *GetScriptInstance(ScriptType sc_type, const String &script_module)
 {
+    Game &game = Game::Current();
     if (sc_type == kScTypeRoom)
         return Room::Current().Script.get();
 
-    if (script_module.IsEmpty() || script_module == gamescript->GetScriptName())
-        return gamescript.get();
+    if (script_module.IsEmpty() || script_module == game.Scripts.Global->GetScriptName())
+        return game.Scripts.Global.get();
 
-    for (size_t i = 0; i < numScriptModules; ++i)
+    for (size_t i = 0; i < game.Scripts.NumModules; ++i)
     {
-        if (script_module == scriptModules[i]->GetScriptName())
-            return scriptModules[i].get();
+        if (script_module == game.Scripts.Modules[i]->GetScriptName())
+            return game.Scripts.Modules[i].get();
     }
     return nullptr;
 }
@@ -394,23 +378,25 @@ bool DoesScriptFunctionExist(const RuntimeScript *script, const String &fn_name)
 
 bool DoesScriptFunctionExistInModules(const String &fn_name)
 {
-    for (size_t i = 0; i < numScriptModules; ++i)
+    Game &game = Game::Current();
+    for (size_t i = 0; i < game.Scripts.NumModules; ++i)
     {
-        if (DoesScriptFunctionExist(scriptModules[i].get(), fn_name))
+        if (DoesScriptFunctionExist(game.Scripts.Modules[i].get(), fn_name))
             return true;
     }
-    return DoesScriptFunctionExist(gamescript.get(), fn_name);
+    return DoesScriptFunctionExist(game.Scripts.Global.get(), fn_name);
 }
 
 bool DoesScriptFunctionExistInModule(const String &script_module, const String &fn_name)
 {
-    if (script_module.IsEmpty() || script_module == gamescript->GetScriptName())
-        return DoesScriptFunctionExist(gamescript.get(), fn_name);
+    Game &game = Game::Current();
+    if (script_module.IsEmpty() || script_module == game.Scripts.Global->GetScriptName())
+        return DoesScriptFunctionExist(game.Scripts.Global.get(), fn_name);
 
-    for (size_t i = 0; i < numScriptModules; ++i)
+    for (size_t i = 0; i < game.Scripts.NumModules; ++i)
     {
-        if (script_module == scriptModules[i]->GetScriptName())
-            return DoesScriptFunctionExist(scriptModules[i].get(), fn_name);
+        if (script_module == game.Scripts.Modules[i]->GetScriptName())
+            return DoesScriptFunctionExist(game.Scripts.Modules[i].get(), fn_name);
     }
     return false;
 }
@@ -500,6 +486,7 @@ void FreeDynamicScriptThread(ScriptThread *script_thread)
 RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &fn_name, size_t param_count,
                                   const RuntimeScriptValue *params)
 {
+    Game &game = Game::Current();
     assert(script);
     int old_restore_count = gameHasBeenRestored;
     // TODO: research why this is really necessary, and refactor to avoid such hacks!
@@ -555,8 +542,8 @@ RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &fn_
     cc_error(cached_error);
 
     // if the game has been restored, ensure that any further scripts are not run
-    if ((old_restore_count != gameHasBeenRestored) && (eventClaimed == EVENT_INPROGRESS))
-        eventClaimed = EVENT_CLAIMED;
+    if ((old_restore_count != gameHasBeenRestored) && (game.Events.Claimed == EVENT_INPROGRESS))
+        game.Events.Claimed = EVENT_CLAIMED;
 
     // Convert any instance exec error into RunScriptFunction result;
     // NOTE: only kScExecErr_FuncNotFound and kScExecErr_Aborted can reach here
@@ -567,10 +554,11 @@ RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &fn_
 
 bool RunScriptFunctionInModules(const String &fn_name, size_t param_count, const RuntimeScriptValue *params)
 {
+    Game &game = Game::Current();
     bool result = false;
-    for (size_t i = 0; i < numScriptModules; ++i)
-        result |= RunScriptFunction(scriptModules[i].get(), fn_name, param_count, params) == kScFnRes_Done;
-    result |= RunScriptFunction(gamescript.get(), fn_name, param_count, params) == kScFnRes_Done;
+    for (size_t i = 0; i < game.Scripts.NumModules; ++i)
+        result |= RunScriptFunction(game.Scripts.Modules[i].get(), fn_name, param_count, params) == kScFnRes_Done;
+    result |= RunScriptFunction(game.Scripts.Global.get(), fn_name, param_count, params) == kScFnRes_Done;
     return result;
 }
 
@@ -593,9 +581,9 @@ static bool RunEventInModules(const String &fn_name, size_t param_count, const R
     Game &game = Game::Current();
     const int room_changes_was = game.Play.room_changes;
     const int restore_game_count_was = gameHasBeenRestored;
-    for (size_t i = 0; i < numScriptModules; ++i)
+    for (size_t i = 0; i < game.Scripts.NumModules; ++i)
     {
-        const RunScFuncResult ret = RunScriptFunction(scriptModules[i].get(), fn_name, param_count, params);
+        const RunScFuncResult ret = RunScriptFunction(game.Scripts.Modules[i].get(), fn_name, param_count, params);
         if (ret != kScFnRes_NotFound)
         {
             // Break on room change or save restoration,
@@ -607,7 +595,7 @@ static bool RunEventInModules(const String &fn_name, size_t param_count, const R
         }
     }
     // Try global script last
-    return RunScriptFunction(gamescript.get(), fn_name, param_count, params) == kScFnRes_Done;
+    return RunScriptFunction(game.Scripts.Global.get(), fn_name, param_count, params) == kScFnRes_Done;
 }
 
 // Run non-claimable event (without parameters) in all script modules, *excluding* room;
@@ -621,18 +609,20 @@ static bool RunUnclaimableEvent(const String &fn_name)
 // if the name is not provided, then tries to run it in global script.
 static bool RunEventInModule(const ScriptFunctionRef &fn_ref, size_t param_count, const RuntimeScriptValue *params)
 {
+    Game &game = Game::Current();
     if (!fn_ref.ModuleName.IsEmpty())
     {
-        for (size_t i = 0; i < numScriptModules; ++i)
+        for (size_t i = 0; i < game.Scripts.NumModules; ++i)
         {
-            if (fn_ref.ModuleName.Compare(scriptModules[i]->GetScriptName()) == 0)
+            if (fn_ref.ModuleName.Compare(game.Scripts.Modules[i]->GetScriptName()) == 0)
             {
-                return RunScriptFunction(scriptModules[i].get(), fn_ref.FuncName, param_count, params) == kScFnRes_Done;
+                return RunScriptFunction(game.Scripts.Modules[i].get(), fn_ref.FuncName, param_count, params) ==
+                       kScFnRes_Done;
             }
         }
     }
     // Try global script last, for backwards compatibility
-    return RunScriptFunction(gamescript.get(), fn_ref.FuncName, param_count, params) == kScFnRes_Done;
+    return RunScriptFunction(game.Scripts.Global.get(), fn_ref.FuncName, param_count, params) == kScFnRes_Done;
 }
 
 // Run claimable event in the room script, all script modules, and then the global script;
@@ -647,7 +637,7 @@ static bool RunClaimableEvent(const String &fn_name, size_t param_count, const R
     // Break on event claim
     if (was_claimed)
         return true; // suppose if claimed then some function ran successfully
-    return RunScriptFunction(gamescript.get(), fn_name, param_count, params) == kScFnRes_Done;
+    return RunScriptFunction(Game::Current().Scripts.Global.get(), fn_name, param_count, params) == kScFnRes_Done;
 }
 
 bool RunScriptFunctionAuto(ScriptType sc_type, const String &fn_name, size_t param_count,
@@ -708,14 +698,15 @@ void ShutdownScriptExec()
 
 void UnlinkAllScripts()
 {
+    Game &game = Game::Current();
     Room &room = Room::Current();
     if (room.Script)
         room.Script->UnRegisterExports(simp);
-    if (gamescript)
-        gamescript->UnRegisterExports(simp);
-    if (dialogScriptsScript)
-        dialogScriptsScript->UnRegisterExports(simp);
-    for (auto &module : scriptModules)
+    if (game.Scripts.Global)
+        game.Scripts.Global->UnRegisterExports(simp);
+    if (game.Scripts.Dialog)
+        game.Scripts.Dialog->UnRegisterExports(simp);
+    for (auto &module : game.Scripts.Modules)
         module->UnRegisterExports(simp);
 }
 
@@ -729,24 +720,25 @@ void FreeRoomScript()
 
 void FreeAllScripts()
 {
+    Game &game = Game::Current();
     UnlinkAllScripts();
 
     Room::Current().Script = nullptr;
-    gamescript = nullptr;
-    dialogScriptsScript = nullptr;
-    scriptModules.clear();
-    numScriptModules = 0;
+    game.Scripts.Global = nullptr;
+    game.Scripts.Dialog = nullptr;
+    game.Scripts.Modules.clear();
+    game.Scripts.NumModules = 0;
 
-    repExecAlways.ModuleHasFunction.clear();
-    lateRepExecAlways.ModuleHasFunction.clear();
-    getDialogOptionsDimensionsFunc.ModuleHasFunction.clear();
-    renderDialogOptionsFunc.ModuleHasFunction.clear();
-    getDialogOptionUnderCursorFunc.ModuleHasFunction.clear();
-    runDialogOptionMouseClickHandlerFunc.ModuleHasFunction.clear();
-    runDialogOptionKeyPressHandlerFunc.ModuleHasFunction.clear();
-    runDialogOptionTextInputHandlerFunc.ModuleHasFunction.clear();
-    runDialogOptionRepExecFunc.ModuleHasFunction.clear();
-    runDialogOptionCloseFunc.ModuleHasFunction.clear();
+    game.Scripts.RepExecAlways.ModuleHasFunction.clear();
+    game.Scripts.LateRepExecAlways.ModuleHasFunction.clear();
+    game.Scripts.GetDialogOptionsDimensions.ModuleHasFunction.clear();
+    game.Scripts.RenderDialogOptions.ModuleHasFunction.clear();
+    game.Scripts.GetDialogOptionUnderCursor.ModuleHasFunction.clear();
+    game.Scripts.RunDialogOptionMouseClick.ModuleHasFunction.clear();
+    game.Scripts.RunDialogOptionKeyPress.ModuleHasFunction.clear();
+    game.Scripts.RunDialogOptionTextInput.ModuleHasFunction.clear();
+    game.Scripts.RunDialogOptionRepExec.ModuleHasFunction.clear();
+    game.Scripts.RunDialogOptionClose.ModuleHasFunction.clear();
 }
 
 //=============================================================================
