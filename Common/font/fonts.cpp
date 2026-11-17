@@ -561,7 +561,7 @@ String get_font_file(int font_number)
 
 bool load_font_size(int font_number, const FontDef &font_info)
 {
-    return load_font_size(font_number, font_info.FileName, font_info);
+    return load_font_size(font_number, font_info.AssetFileName, font_info);
 }
 
 bool load_font_size(int font_number, const String &filename, const FontDef &font_info)
@@ -570,7 +570,7 @@ bool load_font_size(int font_number, const String &filename, const FontDef &font
         return false;
 
     freefont(font_number);
-    if (font_info.Filename.IsEmpty())
+    if (font_info.SourceFileName.IsEmpty())
     {
         Debug::Printf(kDbgMsg_Error, "Font %d does not have any source filename assigned, can't be loaded.",
                       font_number);
@@ -590,13 +590,13 @@ bool load_font_size(int font_number, const String &filename, const FontDef &font
     Font &font = fonts[font_number];
     // TODO: make a font renderer factory which can iterate over a list of font renderers,
     // trying them in a sequnce, prioritizing one that matches file extension.
-    if (ttfRenderer->LoadFromDiskEx(font_number, font_info.Size, font_info.Filename, &params, &metrics))
+    if (ttfRenderer->LoadFromDiskEx(font_number, font_info.Size, font_info.SourceFileName, &params, &metrics))
     {
         font.Renderer = ttfRenderer.get();
         font.Renderer2 = ttfRenderer.get();
         font.RendererInt = ttfRenderer.get();
     }
-    else if (wfnRenderer->LoadFromDiskEx(font_number, font_info.Size, font_info.Filename, &params, &metrics))
+    else if (wfnRenderer->LoadFromDiskEx(font_number, font_info.Size, font_info.SourceFileName, &params, &metrics))
     {
         font.Renderer = wfnRenderer.get();
         font.Renderer2 = wfnRenderer.get();
@@ -608,7 +608,7 @@ bool load_font_size(int font_number, const String &filename, const FontDef &font
         Debug::Printf(
             kDbgMsg_Error,
             "Failed to load font %d with source filename %s: no font renderer was able to load or recognize font data.",
-            font_number, font_info.Filename.GetCStr());
+            font_number, font_info.SourceFileName.GetCStr());
         return false;
     }
 
@@ -618,7 +618,7 @@ bool load_font_size(int font_number, const String &filename, const FontDef &font
     font_post_init(font_number);
 
     Debug::Printf("Loaded font %d: %s, req size: %d; nominal h: %d, real h: %d, vextent: %d,%d, aabb: %d,%d - %d,%d",
-                  font_number, font_info.Filename.GetCStr(), font_info.Size, font.Metrics.NominalHeight,
+                  font_number, font_info.SourceFileName.GetCStr(), font_info.Size, font.Metrics.NominalHeight,
                   font.Metrics.RealHeight, font.Metrics.VExtent.first, font.Metrics.VExtent.second,
                   font.Metrics.BBox.Left, font.Metrics.BBox.Top, font.Metrics.BBox.Right, font.Metrics.BBox.Bottom);
     return true;
@@ -688,7 +688,7 @@ void wouttextxy(Bitmap *ds, int x, int y, int font_number, color_t text_color, B
         return;
 
     auto &font = fonts[font_number];
-    y += font.Info.YOffset;
+    y += font.Info.OffsetY;
     if (y > ds->GetClip().Bottom)
         return; // each char is clipped but this speeds it up
 

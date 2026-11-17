@@ -130,16 +130,16 @@ void RoomObject::UpdateCyclingView(Game &game, int ref_id)
         Anim = ViewAnimateParams();
     }
 
-    ViewFrame *vfptr = &game.Views[View].loops[Loop].frames[Frame];
-    if (vfptr->pic > UINT16_MAX)
+    ViewFrame *vfptr = &game.Views[View].Loops[Loop].Frames[Frame];
+    if (vfptr->Sprite > UINT16_MAX)
         debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", ref_id,
-                          vfptr->pic, UINT16_MAX);
-    Sprite = Math::InRangeOrDef<uint16_t>(vfptr->pic, 0);
+                          vfptr->Sprite, UINT16_MAX);
+    Sprite = Math::InRangeOrDef<uint16_t>(vfptr->Sprite, 0);
 
     if (!is_animating())
         return;
 
-    AnimWait = static_cast<int16_t>(Anim.Delay + vfptr->speed); // 16 bits: the legacy save format
+    AnimWait = static_cast<int16_t>(Anim.Delay + vfptr->Delay); // 16 bits: the legacy save format
     CheckViewFrame();
 }
 

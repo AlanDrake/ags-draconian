@@ -276,7 +276,7 @@ protected:
     // The game's definition (or another one, to compare with): of each entity two or more, with values of their own
     static void MakeDefinition(GameDef &def)
     {
-        def.numcharacters = kCharacterCount;
+        def.CharacterCount = kCharacterCount;
         def.Characters.clear();
         def.Characters.resize(kCharacterCount);
         for (int i = 0; i < kCharacterCount; ++i)
@@ -287,22 +287,22 @@ protected:
         }
         def.PlayerCharacterID = 1;
 
-        def.numinvitems = kItemCount;
+        def.InventoryItemCount = kItemCount;
         def.InventoryItems.clear();
         def.InventoryItems.resize(kItemCount);
         const FrameAlignment item_aligns[kItemCount] = {kAlignNone, kAlignBottomRight, kAlignMiddleCenter};
         for (int i = 0; i < kItemCount; ++i)
         {
             auto &item = def.InventoryItems[i];
-            item.name = String::FromFormat("Item %d", i);
-            item.pic = 20 + i;
-            item.cursorPic = 40 + i;
-            item.hotx = 3 + i;
-            item.hoty = 5 + i;
-            item.hotAlign = item_aligns[i];
+            item.Name = String::FromFormat("Item %d", i);
+            item.Sprite = 20 + i;
+            item.CursorSprite = 40 + i;
+            item.CursorHotspotX = 3 + i;
+            item.CursorHotspotY = 5 + i;
+            item.CursorHotspotAlignment = item_aligns[i];
         }
 
-        def.numcursors = kCursorCount;
+        def.MouseCursorCount = kCursorCount;
         def.MouseCursors.clear();
         def.MouseCursors.resize(kCursorCount);
         const CursorRole roles[kCursorCount] = {kCursorRole_Pointer, kCursorRole_Look, kCursorRole_UseInv,
@@ -311,18 +311,18 @@ protected:
         for (int i = 0; i < kCursorCount; ++i)
         {
             auto &cur = def.MouseCursors[i];
-            cur.role = roles[i];
-            cur.pic = 30 + i;
-            cur.hotx = static_cast<short>(1 + i);
-            cur.hoty = static_cast<short>(2 + i);
-            cur.view = views[i];
-            cur.animdelay = 5 + i;
-            cur.flags = static_cast<uint8_t>(MCF_STANDARD | (i == kLookCursor ? MCF_EVENT : 0));
+            cur.Role = roles[i];
+            cur.Sprite = 30 + i;
+            cur.HotspotX = static_cast<short>(1 + i);
+            cur.HotspotY = static_cast<short>(2 + i);
+            cur.View = views[i];
+            cur.AnimationDelay = 5 + i;
+            cur.Flags = static_cast<uint8_t>(MCF_STANDARD | (i == kLookCursor ? MCF_EVENT : 0));
         }
 
         MakeViews(def);
 
-        def.numdialog = kDialogCount;
+        def.DialogCount = kDialogCount;
         def.Dialogs.clear();
         def.Dialogs.resize(kDialogCount);
         for (int d = 0; d < kDialogCount; ++d)
@@ -346,19 +346,19 @@ protected:
         for (int i = 0; i < kAudioTypeCount; ++i)
         {
             auto &type = def.AudioClipTypes[i];
-            type.id = i;
-            type.reservedChannels = 1;
-            type.volume_reduction_while_speech_playing = 20 + i;
-            type.crossfadeSpeed = 10 + i;
+            type.ID = i;
+            type.ReservedChannels = 1;
+            type.VolumeReductionWhileSpeechPlaying = 20 + i;
+            type.CrossfadeSpeed = 10 + i;
         }
         def.AudioClips.clear();
         def.AudioClips.resize(kAudioClipCount);
         for (int i = 0; i < kAudioClipCount; ++i)
         {
             auto &clip = def.AudioClips[i];
-            clip.id = i; // the loader makes a clip's id its index (GameLoader.AudioClipIdIsItsIndex)
-            clip.fileName = String::FromFormat("clip%d.ogg", i);
-            clip.type = static_cast<uint8_t>(i);
+            clip.ID = i; // the loader makes a clip's id its index (GameLoader.AudioClipIdIsItsIndex)
+            clip.FileName = String::FromFormat("clip%d.ogg", i);
+            clip.Type = static_cast<uint8_t>(i);
         }
 
         std::fill(std::begin(def.Options), std::end(def.Options), 0);
@@ -382,28 +382,28 @@ protected:
     // The views of MakeDefinition: in the framed view, frame n of FramePic(n)... with an event name "step<n>"
     static void MakeViews(GameDef &def)
     {
-        def.numviews = kViewCount;
+        def.ViewCount = kViewCount;
         def.Views.clear();
         def.Views.resize(kViewCount);
         def.Views[kFramedView].Initialize(kLoopCount);
         for (int loop = 0; loop < kLoopCount; ++loop)
         {
-            def.Views[kFramedView].loops[loop].Initialize(kFrameCount);
+            def.Views[kFramedView].Loops[loop].Initialize(kFrameCount);
             for (int frame = 0; frame < kFrameCount; ++frame)
             {
                 const int n = loop * kFrameCount + frame;
-                auto &vf = def.Views[kFramedView].loops[loop].frames[frame];
-                vf.pic = FramePic(n);
-                vf.xoffs = static_cast<int16_t>(FrameXOffset(n));
-                vf.yoffs = static_cast<int16_t>(FrameYOffset(n));
-                vf.speed = static_cast<int16_t>(FrameSpeed(n));
-                vf.flags = FrameFlags(n);
-                vf.sound = FrameSound(n);
-                vf.event_name = String::FromFormat("step%d", n);
+                auto &vf = def.Views[kFramedView].Loops[loop].Frames[frame];
+                vf.Sprite = FramePic(n);
+                vf.OffsetX = static_cast<int16_t>(FrameXOffset(n));
+                vf.OffsetY = static_cast<int16_t>(FrameYOffset(n));
+                vf.Delay = static_cast<int16_t>(FrameSpeed(n));
+                vf.Flags = FrameFlags(n);
+                vf.LinkedAudio = FrameSound(n);
+                vf.EventName = String::FromFormat("step%d", n);
             }
         }
         def.Views[kEmptyView].Initialize(1);
-        def.Views[kEmptyView].loops[0].Initialize(0);
+        def.Views[kEmptyView].Loops[0].Initialize(0);
     }
 
     // Does what InitGameState does for these entities that a test can run without fonts, plugins, scripts and a
@@ -413,14 +413,14 @@ protected:
     {
         Game &game = *_game;
         StartFromDefinitions(game);
-        for (int i = 0; i < game.numcharacters; ++i)
+        for (int i = 0; i < game.CharacterCount; ++i)
             game.Characters[i].ID = i;
         game.Play.charProps.clear();
-        game.Play.charProps.resize(game.numcharacters);
+        game.Play.charProps.resize(game.CharacterCount);
         game.Play.invProps.clear();
-        game.Play.invProps.resize(game.numinvitems);
+        game.Play.invProps.resize(game.InventoryItemCount);
         game.Play.dialogProps.clear();
-        game.Play.dialogProps.resize(game.numdialog);
+        game.Play.dialogProps.resize(game.DialogCount);
         game.Play.audioclipProps.clear();
         game.Play.audioclipProps.resize(game.AudioClips.size());
         game.Play.default_audio_type_volumes.assign(game.AudioClipTypes.size(), -1);
@@ -553,12 +553,12 @@ protected:
         SCOPED_TRACE(testing::Message() << "item " << i);
         const InventoryItemDef &def = Game::Current().Def().InventoryItems[i];
         ScriptInvItem item = ItemObject(i);
-        EXPECT_EQ(def.pic, InventoryItem_GetGraphic(&item));
-        EXPECT_EQ(def.cursorPic, InventoryItem_GetCursorGraphic(&item));
-        EXPECT_EQ(def.hotx, InventoryItem_GetCursorHotspotX(&item));
-        EXPECT_EQ(def.hoty, InventoryItem_GetCursorHotspotY(&item));
-        EXPECT_EQ(static_cast<int>(def.hotAlign), InventoryItem_GetCursorHotspotAlignment(&item));
-        EXPECT_STREQ(def.name.GetCStr(), InventoryItem_GetName_New(&item));
+        EXPECT_EQ(def.Sprite, InventoryItem_GetGraphic(&item));
+        EXPECT_EQ(def.CursorSprite, InventoryItem_GetCursorGraphic(&item));
+        EXPECT_EQ(def.CursorHotspotX, InventoryItem_GetCursorHotspotX(&item));
+        EXPECT_EQ(def.CursorHotspotY, InventoryItem_GetCursorHotspotY(&item));
+        EXPECT_EQ(static_cast<int>(def.CursorHotspotAlignment), InventoryItem_GetCursorHotspotAlignment(&item));
+        EXPECT_STREQ(def.Name.GetCStr(), InventoryItem_GetName_New(&item));
     }
 
     // Cursor i against its definition: the graphic through its getter, the fields without one directly
@@ -567,27 +567,27 @@ protected:
         SCOPED_TRACE(testing::Message() << "cursor " << i);
         Game &game = Game::Current();
         const MouseCursorDef &def = game.Def().MouseCursors[i];
-        EXPECT_EQ(def.pic, Mouse_GetModeGraphic(i));
-        EXPECT_EQ(def.hotx, game.MouseCursors[i].hotx);
-        EXPECT_EQ(def.hoty, game.MouseCursors[i].hoty);
-        EXPECT_EQ(def.view, game.MouseCursors[i].view);
-        EXPECT_EQ(def.animdelay, game.MouseCursors[i].animdelay);
-        EXPECT_EQ(def.flags, game.MouseCursors[i].flags);
+        EXPECT_EQ(def.Sprite, Mouse_GetModeGraphic(i));
+        EXPECT_EQ(def.HotspotX, game.MouseCursors[i].HotspotX);
+        EXPECT_EQ(def.HotspotY, game.MouseCursors[i].HotspotY);
+        EXPECT_EQ(def.View, game.MouseCursors[i].View);
+        EXPECT_EQ(def.AnimationDelay, game.MouseCursors[i].AnimationDelay);
+        EXPECT_EQ(def.Flags, game.MouseCursors[i].Flags);
     }
 
     // Frame of the framed view against its definition, through the getters
     static void ExpectFrameTakesTheDefinition(int loop, int frame)
     {
         SCOPED_TRACE(testing::Message() << "loop " << loop << " frame " << frame);
-        const ViewFrameDef &def = Game::Current().Def().Views[kFramedView].loops[loop].frames[frame];
+        const ViewFrameDef &def = Game::Current().Def().Views[kFramedView].Loops[loop].Frames[frame];
         ScriptViewFrame svf(kFramedView, loop, frame);
-        EXPECT_EQ(def.pic, ViewFrame_GetGraphic(&svf));
-        EXPECT_EQ(def.xoffs, ViewFrame_GetXOffset(&svf));
-        EXPECT_EQ(def.yoffs, ViewFrame_GetYOffset(&svf));
-        EXPECT_EQ(def.speed, ViewFrame_GetSpeed(&svf));
-        EXPECT_EQ(static_cast<int>(GfxDef::GetFlipFromFlags(def.flags)), ViewFrame_GetFlipped(&svf));
-        EXPECT_EQ(def.sound < 0 ? nullptr : Game_GetAudioClip(def.sound), ViewFrame_GetLinkedAudio(&svf));
-        EXPECT_STREQ(def.event_name.GetCStr(), ViewFrame_GetEventName(&svf));
+        EXPECT_EQ(def.Sprite, ViewFrame_GetGraphic(&svf));
+        EXPECT_EQ(def.OffsetX, ViewFrame_GetXOffset(&svf));
+        EXPECT_EQ(def.OffsetY, ViewFrame_GetYOffset(&svf));
+        EXPECT_EQ(def.Delay, ViewFrame_GetSpeed(&svf));
+        EXPECT_EQ(static_cast<int>(GfxDef::GetFlipFromFlags(def.Flags)), ViewFrame_GetFlipped(&svf));
+        EXPECT_EQ(def.LinkedAudio < 0 ? nullptr : Game_GetAudioClip(def.LinkedAudio), ViewFrame_GetLinkedAudio(&svf));
+        EXPECT_STREQ(def.EventName.GetCStr(), ViewFrame_GetEventName(&svf));
     }
 
     // Option o (0-based) of dialog d against its definition, through the getters, and its flags
@@ -609,8 +609,8 @@ protected:
     {
         SCOPED_TRACE(testing::Message() << "audio type " << i);
         const AudioClipTypeDef &def = Game::Current().Def().AudioClipTypes[i];
-        EXPECT_EQ(def.crossfadeSpeed, Game_GetAudioTypeCrossfadeSpeed(i));
-        EXPECT_EQ(def.volume_reduction_while_speech_playing, Game_GetAudioTypeSpeechVolumeDrop(i));
+        EXPECT_EQ(def.CrossfadeSpeed, Game_GetAudioTypeCrossfadeSpeed(i));
+        EXPECT_EQ(def.VolumeReductionWhileSpeechPlaying, Game_GetAudioTypeSpeechVolumeDrop(i));
     }
 
     // The game's definition (Game::Def()) is still the one MakeDefinition made: what the game changes, setters and
@@ -624,43 +624,43 @@ protected:
         for (size_t i = 0; i < made.InventoryItems.size(); ++i)
         {
             SCOPED_TRACE(testing::Message() << "item " << i);
-            EXPECT_STREQ(made.InventoryItems[i].name.GetCStr(), def.InventoryItems[i].name.GetCStr());
-            EXPECT_EQ(made.InventoryItems[i].pic, def.InventoryItems[i].pic);
-            EXPECT_EQ(made.InventoryItems[i].cursorPic, def.InventoryItems[i].cursorPic);
-            EXPECT_EQ(made.InventoryItems[i].hotx, def.InventoryItems[i].hotx);
-            EXPECT_EQ(made.InventoryItems[i].hoty, def.InventoryItems[i].hoty);
-            EXPECT_EQ(made.InventoryItems[i].hotAlign, def.InventoryItems[i].hotAlign);
+            EXPECT_STREQ(made.InventoryItems[i].Name.GetCStr(), def.InventoryItems[i].Name.GetCStr());
+            EXPECT_EQ(made.InventoryItems[i].Sprite, def.InventoryItems[i].Sprite);
+            EXPECT_EQ(made.InventoryItems[i].CursorSprite, def.InventoryItems[i].CursorSprite);
+            EXPECT_EQ(made.InventoryItems[i].CursorHotspotX, def.InventoryItems[i].CursorHotspotX);
+            EXPECT_EQ(made.InventoryItems[i].CursorHotspotY, def.InventoryItems[i].CursorHotspotY);
+            EXPECT_EQ(made.InventoryItems[i].CursorHotspotAlignment, def.InventoryItems[i].CursorHotspotAlignment);
         }
         ASSERT_EQ(made.MouseCursors.size(), def.MouseCursors.size());
         for (size_t i = 0; i < made.MouseCursors.size(); ++i)
         {
             SCOPED_TRACE(testing::Message() << "cursor " << i);
-            EXPECT_EQ(made.MouseCursors[i].pic, def.MouseCursors[i].pic);
-            EXPECT_EQ(made.MouseCursors[i].hotx, def.MouseCursors[i].hotx);
-            EXPECT_EQ(made.MouseCursors[i].hoty, def.MouseCursors[i].hoty);
-            EXPECT_EQ(made.MouseCursors[i].view, def.MouseCursors[i].view);
-            EXPECT_EQ(made.MouseCursors[i].animdelay, def.MouseCursors[i].animdelay);
-            EXPECT_EQ(made.MouseCursors[i].flags, def.MouseCursors[i].flags);
+            EXPECT_EQ(made.MouseCursors[i].Sprite, def.MouseCursors[i].Sprite);
+            EXPECT_EQ(made.MouseCursors[i].HotspotX, def.MouseCursors[i].HotspotX);
+            EXPECT_EQ(made.MouseCursors[i].HotspotY, def.MouseCursors[i].HotspotY);
+            EXPECT_EQ(made.MouseCursors[i].View, def.MouseCursors[i].View);
+            EXPECT_EQ(made.MouseCursors[i].AnimationDelay, def.MouseCursors[i].AnimationDelay);
+            EXPECT_EQ(made.MouseCursors[i].Flags, def.MouseCursors[i].Flags);
         }
         ASSERT_EQ(made.Views.size(), def.Views.size());
         for (size_t v = 0; v < made.Views.size(); ++v)
         {
-            ASSERT_EQ(made.Views[v].numLoops, def.Views[v].numLoops);
-            for (int loop = 0; loop < made.Views[v].numLoops; ++loop)
+            ASSERT_EQ(made.Views[v].LoopCount, def.Views[v].LoopCount);
+            for (int loop = 0; loop < made.Views[v].LoopCount; ++loop)
             {
-                ASSERT_EQ(made.Views[v].loops[loop].numFrames, def.Views[v].loops[loop].numFrames);
-                for (int frame = 0; frame < made.Views[v].loops[loop].numFrames; ++frame)
+                ASSERT_EQ(made.Views[v].Loops[loop].FrameCount, def.Views[v].Loops[loop].FrameCount);
+                for (int frame = 0; frame < made.Views[v].Loops[loop].FrameCount; ++frame)
                 {
                     SCOPED_TRACE(testing::Message() << "view " << v << " loop " << loop << " frame " << frame);
-                    const ViewFrameDef &made_vf = made.Views[v].loops[loop].frames[frame];
-                    const ViewFrameDef &vf = def.Views[v].loops[loop].frames[frame];
-                    EXPECT_EQ(made_vf.pic, vf.pic);
-                    EXPECT_EQ(made_vf.xoffs, vf.xoffs);
-                    EXPECT_EQ(made_vf.yoffs, vf.yoffs);
-                    EXPECT_EQ(made_vf.speed, vf.speed);
-                    EXPECT_EQ(made_vf.flags, vf.flags);
-                    EXPECT_EQ(made_vf.sound, vf.sound);
-                    EXPECT_STREQ(made_vf.event_name.GetCStr(), vf.event_name.GetCStr());
+                    const ViewFrameDef &made_vf = made.Views[v].Loops[loop].Frames[frame];
+                    const ViewFrameDef &vf = def.Views[v].Loops[loop].Frames[frame];
+                    EXPECT_EQ(made_vf.Sprite, vf.Sprite);
+                    EXPECT_EQ(made_vf.OffsetX, vf.OffsetX);
+                    EXPECT_EQ(made_vf.OffsetY, vf.OffsetY);
+                    EXPECT_EQ(made_vf.Delay, vf.Delay);
+                    EXPECT_EQ(made_vf.Flags, vf.Flags);
+                    EXPECT_EQ(made_vf.LinkedAudio, vf.LinkedAudio);
+                    EXPECT_STREQ(made_vf.EventName.GetCStr(), vf.EventName.GetCStr());
                 }
             }
         }
@@ -679,13 +679,13 @@ protected:
         for (size_t i = 0; i < made.AudioClipTypes.size(); ++i)
         {
             SCOPED_TRACE(testing::Message() << "audio type " << i);
-            EXPECT_EQ(made.AudioClipTypes[i].crossfadeSpeed, def.AudioClipTypes[i].crossfadeSpeed);
-            EXPECT_EQ(made.AudioClipTypes[i].volume_reduction_while_speech_playing,
-                      def.AudioClipTypes[i].volume_reduction_while_speech_playing);
+            EXPECT_EQ(made.AudioClipTypes[i].CrossfadeSpeed, def.AudioClipTypes[i].CrossfadeSpeed);
+            EXPECT_EQ(made.AudioClipTypes[i].VolumeReductionWhileSpeechPlaying,
+                      def.AudioClipTypes[i].VolumeReductionWhileSpeechPlaying);
         }
         ASSERT_EQ(made.AudioClips.size(), def.AudioClips.size());
         for (size_t i = 0; i < made.AudioClips.size(); ++i)
-            EXPECT_EQ(made.AudioClips[i].id, def.AudioClips[i].id) << "clip " << i;
+            EXPECT_EQ(made.AudioClips[i].ID, def.AudioClips[i].ID) << "clip " << i;
         for (int opt = 0; opt < GameDef::MAX_OPTIONS; ++opt)
             EXPECT_EQ(made.Options[opt], def.Options[opt]) << "option " << opt;
         EXPECT_EQ(made.PlayerCharacterID, def.PlayerCharacterID);
@@ -712,8 +712,8 @@ protected:
             for (int frame = 0; frame < kFrameCount; ++frame)
                 ExpectFrameTakesTheDefinition(loop, frame);
         }
-        EXPECT_EQ(def.Views[kEmptyView].numLoops, game.Views[kEmptyView].numLoops);
-        EXPECT_EQ(def.Views[kEmptyView].loops[0].numFrames, game.Views[kEmptyView].loops[0].numFrames);
+        EXPECT_EQ(def.Views[kEmptyView].LoopCount, game.Views[kEmptyView].LoopCount);
+        EXPECT_EQ(def.Views[kEmptyView].Loops[0].FrameCount, game.Views[kEmptyView].Loops[0].FrameCount);
         for (int d = 0; d < kDialogCount; ++d)
         {
             for (int o = 0; o < kOptionCount; ++o)
@@ -724,8 +724,8 @@ protected:
         for (int i = 0; i < kAudioClipCount; ++i)
         {
             SCOPED_TRACE(testing::Message() << "clip " << i);
-            EXPECT_STREQ(def.AudioClips[i].fileName.GetCStr(), Game_GetAudioClip(i)->fileName.GetCStr());
-            EXPECT_EQ(def.AudioClips[i].type, Game_GetAudioClip(i)->type);
+            EXPECT_STREQ(def.AudioClips[i].FileName.GetCStr(), Game_GetAudioClip(i)->FileName.GetCStr());
+            EXPECT_EQ(def.AudioClips[i].Type, Game_GetAudioClip(i)->Type);
         }
         for (int opt = OPT_DEBUGMODE; opt <= OPT_HIGHESTOPTION; ++opt)
             EXPECT_EQ(def.Options[opt], GetGameOption(opt)) << "option " << opt;
@@ -793,22 +793,22 @@ TEST_F(GameEntities, MouseCursorSettersWriteTheCursor)
     EXPECT_EQ(72, Mouse_GetModeGraphic(kPointerCursor));
 
     Mouse_ChangeCursorHotspot(kLookCursor, 8, 9);
-    EXPECT_EQ(8, game.MouseCursors[kLookCursor].hotx);
-    EXPECT_EQ(9, game.MouseCursors[kLookCursor].hoty);
+    EXPECT_EQ(8, game.MouseCursors[kLookCursor].HotspotX);
+    EXPECT_EQ(9, game.MouseCursors[kLookCursor].HotspotY);
 
     Mouse_ChangeModeView(kLookCursor, 0, 11);
-    EXPECT_EQ(-1, game.MouseCursors[kLookCursor].view);
-    EXPECT_EQ(11, game.MouseCursors[kLookCursor].animdelay);
+    EXPECT_EQ(-1, game.MouseCursors[kLookCursor].View);
+    EXPECT_EQ(11, game.MouseCursors[kLookCursor].AnimationDelay);
     Mouse_ChangeModeView(kLookCursor, kEmptyView + 1, SCR_NO_VALUE);
-    EXPECT_EQ(kEmptyView, game.MouseCursors[kLookCursor].view);
-    EXPECT_EQ(11, game.MouseCursors[kLookCursor].animdelay);
+    EXPECT_EQ(kEmptyView, game.MouseCursors[kLookCursor].View);
+    EXPECT_EQ(11, game.MouseCursors[kLookCursor].AnimationDelay);
 
     Mouse_DisableCursorMode(kLookCursor);
     EXPECT_EQ(0, Mouse_IsModeEnabled(kLookCursor));
-    EXPECT_EQ(MCF_STANDARD | MCF_EVENT | MCF_DISABLED, game.MouseCursors[kLookCursor].flags);
+    EXPECT_EQ(MCF_STANDARD | MCF_EVENT | MCF_DISABLED, game.MouseCursors[kLookCursor].Flags);
     Mouse_EnableCursorMode(kLookCursor);
     EXPECT_EQ(1, Mouse_IsModeEnabled(kLookCursor));
-    EXPECT_EQ(MCF_STANDARD | MCF_EVENT, game.MouseCursors[kLookCursor].flags);
+    EXPECT_EQ(MCF_STANDARD | MCF_EVENT, game.MouseCursors[kLookCursor].Flags);
 
     ExpectCursorTakesTheDefinition(kUseInvCursor);
     ExpectCursorTakesTheDefinition(kBadViewCursor);
@@ -830,12 +830,12 @@ TEST_F(GameEntities, UseInvCursorTakesTheActiveItemsGraphicAndHotspot)
     InventoryItem_SetCursorGraphic(&item1, kCursorSprite);
     EXPECT_EQ(kCursorSprite, Mouse_GetModeGraphic(kUseInvCursor));
     // item 1's hotspot (4, 6), aligned to the bottom right of the sprite
-    EXPECT_EQ(4 + kCursorSpriteWidth, game.MouseCursors[kUseInvCursor].hotx);
-    EXPECT_EQ(6 + kCursorSpriteHeight, game.MouseCursors[kUseInvCursor].hoty);
+    EXPECT_EQ(4 + kCursorSpriteWidth, game.MouseCursors[kUseInvCursor].HotspotX);
+    EXPECT_EQ(6 + kCursorSpriteHeight, game.MouseCursors[kUseInvCursor].HotspotY);
 
     InventoryItem_SetCursorHotspotX(&item1, 2);
-    EXPECT_EQ(2 + kCursorSpriteWidth, game.MouseCursors[kUseInvCursor].hotx);
-    EXPECT_EQ(6 + kCursorSpriteHeight, game.MouseCursors[kUseInvCursor].hoty);
+    EXPECT_EQ(2 + kCursorSpriteWidth, game.MouseCursors[kUseInvCursor].HotspotX);
+    EXPECT_EQ(6 + kCursorSpriteHeight, game.MouseCursors[kUseInvCursor].HotspotY);
     ExpectCursorTakesTheDefinition(kLookCursor);
     ExpectDefinitionAsMade();
 }
@@ -1004,7 +1004,7 @@ TEST_F(GameEntities, AudioClipsAreScriptObjectsAtTheirElements)
     {
         SCOPED_TRACE(testing::Message() << "clip " << i);
         AudioClip *clip = &game.AudioClips[i];
-        EXPECT_EQ(i, clip->id);
+        EXPECT_EQ(i, clip->ID);
         EXPECT_EQ(clip, Game_GetAudioClip(i));
         handles[i] = ccGetObjectHandleFromAddress(clip);
         EXPECT_GT(handles[i], 0);
@@ -1122,10 +1122,10 @@ TEST_F(GameEntities, MouseCursorsComeBackFromASave)
     HSaveError err = Restore(saved, kSaveCmp_Cursors);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
     EXPECT_EQ(81, Mouse_GetModeGraphic(kLookCursor));
-    EXPECT_EQ(6, game.MouseCursors[kLookCursor].hotx);
-    EXPECT_EQ(7, game.MouseCursors[kLookCursor].hoty);
-    EXPECT_EQ(-1, game.MouseCursors[kLookCursor].view);
-    EXPECT_EQ(12, game.MouseCursors[kLookCursor].animdelay);
+    EXPECT_EQ(6, game.MouseCursors[kLookCursor].HotspotX);
+    EXPECT_EQ(7, game.MouseCursors[kLookCursor].HotspotY);
+    EXPECT_EQ(-1, game.MouseCursors[kLookCursor].View);
+    EXPECT_EQ(12, game.MouseCursors[kLookCursor].AnimationDelay);
     EXPECT_EQ(0, Mouse_IsModeEnabled(kBadViewCursor));
     ExpectCursorTakesTheDefinition(kPointerCursor);
     ExpectCursorTakesTheDefinition(kUseInvCursor);

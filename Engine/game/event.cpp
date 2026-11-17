@@ -286,9 +286,10 @@ void ClaimEvent()
 bool AssertCursorValidForEvent(const char *api_name, int mode)
 {
     Game &game = Game::Current();
-    if (mode < 0 || mode >= game.numcursors)
+    if (mode < 0 || mode >= game.MouseCursorCount)
     {
-        debug_script_warn("%s: invalid mode number %d, valid range is 0..%d", api_name, mode, game.numcursors - 1);
+        debug_script_warn("%s: invalid mode number %d, valid range is 0..%d", api_name, mode,
+                          game.MouseCursorCount - 1);
         return false;
     }
     return true;

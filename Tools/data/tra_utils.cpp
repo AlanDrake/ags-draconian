@@ -100,17 +100,17 @@ static bool ParseFontOverride(const String &line, FontOverride &fover)
 
         if (key == "Font")
         {
-            finfo.FontID = StrUtil::StringToInt(value);
+            finfo.ID = StrUtil::StringToInt(value);
         }
         else if (key.StartsWith("Font"))
         {
             int re_font_number = ParseFontN(key);
             if (re_font_number >= 0)
-                finfo.FontID = re_font_number;
+                finfo.ID = re_font_number;
         }
         else if (key == "File")
         {
-            finfo.FileName = value;
+            finfo.AssetFileName = value;
         }
         else if (key == "Size")
         {
@@ -182,7 +182,7 @@ static bool ParseFontOverride(const String &line, FontOverride &fover)
         }
         else if (key == "VerticalOffset")
         {
-            finfo.YOffset = StrUtil::StringToInt(value);
+            finfo.OffsetY = StrUtil::StringToInt(value);
             fields |= kFontField_VerticalOffset;
         }
         else if (key == "LineSpacing")
@@ -293,10 +293,10 @@ static void WriteFontOverrides(const TranslationOptions &tra, TextStreamWriter &
         const int fields = fover.Fields;
         font_line.AppendFmt("# $Font%d=", fontIndex);
         // The font override's source is defined either as another font's index, or font file
-        if (finfo.FontID >= 0)
-            font_line.AppendFmt("Font%d;", finfo.FontID);
-        else if (!finfo.FileName.IsEmpty())
-            font_line.AppendFmt("File=%s;", finfo.FileName.GetCStr());
+        if (finfo.ID >= 0)
+            font_line.AppendFmt("Font%d;", finfo.ID);
+        else if (!finfo.AssetFileName.IsEmpty())
+            font_line.AppendFmt("File=%s;", finfo.AssetFileName.GetCStr());
 
         //
         // Use fields value to know which properties have been specified
@@ -343,8 +343,8 @@ static void WriteFontOverrides(const TranslationOptions &tra, TextStreamWriter &
             }
         }
 
-        if ((fields & kFontField_VerticalOffset) && finfo.YOffset != 0)
-            font_line.AppendFmt("VerticalOffset=%d;", finfo.YOffset);
+        if ((fields & kFontField_VerticalOffset) && finfo.OffsetY != 0)
+            font_line.AppendFmt("VerticalOffset=%d;", finfo.OffsetY);
         if ((fields & kFontField_LineSpacing) && finfo.LineSpacing != 0)
             font_line.AppendFmt("LineSpacing=%d;", finfo.LineSpacing);
         if ((fields & kFontField_CharacterSpacing) && finfo.CharacterSpacing != 0)
@@ -803,8 +803,8 @@ HError WriteTRA(const TranslationSource &src, std::unique_ptr<Stream> &&out)
                 {
                     const FontOverride &fover = tra.FontOverrides.at(font_id);
                     const FontDef &finfo = fover.Finfo;
-                    out->WriteInt32(font_id);      // font to override
-                    out->WriteInt32(finfo.FontID); // replacement font ID (or -1 if determined by its filename)
+                    out->WriteInt32(font_id);  // font to override
+                    out->WriteInt32(finfo.ID); // replacement font ID (or -1 if determined by its filename)
                     out->WriteInt32(static_cast<uint32_t>(fover.Fields)); // which font fields are valid
                     out->WriteInt32(0);                                   // reserved
                     // The font info format of the game data, as in Common/data/tra_file.cpp
@@ -814,7 +814,7 @@ HError WriteTRA(const TranslationSource &src, std::unique_ptr<Stream> &&out)
                     else
                         out->WriteInt32(finfo.SizeMultiplier);
                     out->WriteInt32(finfo.Outline);
-                    out->WriteInt32(finfo.YOffset);
+                    out->WriteInt32(finfo.OffsetY);
                     out->WriteInt32(finfo.LineSpacing);
                     out->WriteInt32(finfo.AutoOutlineThickness);
                     out->WriteInt32(finfo.AutoOutlineStyle);
@@ -822,7 +822,7 @@ HError WriteTRA(const TranslationSource &src, std::unique_ptr<Stream> &&out)
                     out->WriteInt32(finfo.CustomHeight);
                     out->WriteInt32(0); // reserved
                     out->WriteInt32(0);
-                    StrUtil::WriteString(finfo.FileName, out);
+                    StrUtil::WriteString(finfo.AssetFileName, out);
                 }
             },
             flags, s);

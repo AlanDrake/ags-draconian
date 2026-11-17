@@ -28,14 +28,14 @@ class Stream;
 
 struct ViewFrameDef
 {
-    int pic = 0;
-    int16_t xoffs = 0;
-    int16_t yoffs = 0;
-    int16_t speed = 0;
-    AGS::Common::SpriteTransformFlags flags = AGS::Common::kSprTf_None;
-    int sound = -1;                   // play sound when this frame comes round
-    int reserved_for_future[2] = {0}; // kept only for plugin api // CLNUP: may remove in ags4?
-    AGS::Common::String event_name;
+    int Sprite = 0;
+    int16_t OffsetX = 0;
+    int16_t OffsetY = 0;
+    int16_t Delay = 0; // script: ViewFrame.Speed; added to the animation's delay
+    AGS::Common::SpriteTransformFlags Flags = AGS::Common::kSprTf_None;
+    int LinkedAudio = -1;           // play sound when this frame comes round
+    int ReservedForFuture[2] = {0}; // kept only for plugin api // CLNUP: may remove in ags4?
+    AGS::Common::String EventName;
 
     ViewFrameDef() = default;
 
@@ -49,12 +49,12 @@ struct ViewLoopDef
     // NOTE: we still need numFrames:
     // as we always allocate at least 1 frame for safety, to avoid crashes,
     // but have to report "logical" number of frames for the engine API.
-    int numFrames;
-    int flags;
-    std::vector<ViewFrameDef> frames;
+    int FrameCount;
+    int Flags;
+    std::vector<ViewFrameDef> Frames;
 
     // Returns last frame, or 0 if there's no frames in this loop
-    int GetLastFrame() const { return numFrames > 0 ? numFrames - 1 : 0; }
+    int GetLastFrame() const { return FrameCount > 0 ? FrameCount - 1 : 0; }
 
     ViewLoopDef();
     void Initialize(int frame_count);
@@ -66,11 +66,11 @@ struct ViewLoopDef
 
 struct ViewDef
 {
-    int numLoops;
-    std::vector<ViewLoopDef> loops;
+    int LoopCount;
+    std::vector<ViewLoopDef> Loops;
 
     // Returns last loop, or 0 if there's no loops in this view
-    int GetLastLoop() const { return numLoops > 0 ? numLoops - 1 : 0; }
+    int GetLastLoop() const { return LoopCount > 0 ? LoopCount - 1 : 0; }
 
     ViewDef();
     void Initialize(int loop_count);

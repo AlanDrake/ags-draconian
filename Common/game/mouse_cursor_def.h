@@ -41,14 +41,14 @@ enum CursorRole
 
 struct MouseCursorDef
 {
-    uint8_t flags = 0;
-    CursorRole role = kCursorRole_None;
-    int pic = 0;
-    short hotx = 0, hoty = 0;
-    short view = -1;
-    int animdelay = 5;
+    uint8_t Flags = 0;
+    CursorRole Role = kCursorRole_None;
+    int Sprite = 0;
+    short HotspotX = 0, HotspotY = 0;
+    short View = -1;
+    int AnimationDelay = 5;
 
-    AGS::Common::String name; // script name
+    AGS::Common::String ScriptName; // script name
 
     MouseCursorDef() = default;
 

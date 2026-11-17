@@ -519,8 +519,8 @@ bool load_template_file(const AGSString &fileName, AGSString &description,
 }
 
 void wputblock_stretch(Common::Bitmap *g, int xpt,int ypt,Common::Bitmap *tblock,int nsx,int nsy) {
-  if (tblock->GetBPP() != thisgame.color_depth) {
-    Common::Bitmap *tempst=Common::BitmapHelper::CreateBitmapCopy(tblock, thisgame.color_depth*8);
+  if (tblock->GetBPP() != thisgame.BytesPerPixel) {
+    Common::Bitmap *tempst=Common::BitmapHelper::CreateBitmapCopy(tblock, thisgame.BytesPerPixel*8);
     int ww,vv;
     for (ww=0;ww<tblock->GetWidth();ww++) {
       for (vv=0;vv<tblock->GetHeight();vv++) {
@@ -540,7 +540,7 @@ void wputblock_stretch(Common::Bitmap *g, int xpt,int ypt,Common::Bitmap *tblock
 void draw_gui_sprite_impl(Common::Bitmap *g, int sprnum, Common::Bitmap *blptr, int atxp, int atyp)
 {
   Common::Bitmap *towrite=blptr;
-  int needtofree=0, main_color_depth = thisgame.color_depth * 8;
+  int needtofree=0, main_color_depth = thisgame.BytesPerPixel * 8;
 
   if ((blptr->GetBPP() > 1) & (main_color_depth==8)) {
 
@@ -611,8 +611,8 @@ void DrawFontAt(HDC hdc, int fontnum, bool only_valid_chars,
     int col_count, int row_count, int first_cell,
     float scaling)
 {
-    assert(fontnum < thisgame.numfonts);
-    if (fontnum >= thisgame.numfonts)
+    assert(fontnum < thisgame.FontCount);
+    if (fontnum >= thisgame.FontCount)
         return;
 
     assert(cell_w > 0 && cell_h > 0 && col_count > 0 && row_count > 0);
@@ -638,7 +638,7 @@ void DrawFontAt(HDC hdc, int fontnum, bool only_valid_chars,
     }
 
     const Rect bbox = get_font_glyph_bbox(fontnum);
-    const int font_y_offset = thisgame.Fonts[fontnum].YOffset; // hack to avoid YOffset in the preview table
+    const int font_y_offset = thisgame.Fonts[fontnum].OffsetY; // hack to avoid OffsetY in the preview table
     const ::Point char_off = ::Point(std::max(0, -bbox.Left), std::max(0, -bbox.Top) - font_y_offset);
     int char_count = 0;
     if (only_valid_chars)
@@ -774,7 +774,7 @@ static void doDrawViewLoop(HDC hdc, const std::vector<::ViewFrameDef> &frames,
     int x, int y, int size, const std::vector<int> &cursel)
 {
     int wtoDraw = size * frames.size();
-    if ((frames.size() > 0) && (frames.back().pic == -1))
+    if ((frames.size() > 0) && (frames.back().Sprite == -1))
         wtoDraw -= size;
 
     std::unique_ptr<AGSBitmap> todraw(Common::BitmapHelper::CreateTransparentBitmap(wtoDraw, size, thisgame.GetColorDepth()));
@@ -787,12 +787,12 @@ static void doDrawViewLoop(HDC hdc, const std::vector<::ViewFrameDef> &frames,
     for (size_t i = 0; i < frames.size(); ++i)
     {
         // don't draw the Go-To-Next-Frame jibble
-        if (frames[i].pic == -1)
+        if (frames[i].Sprite == -1)
             break;
         // work out the dimensions to stretch to
         int neww, newh;
-        proportionalDraw (size, frames[i].pic, &neww, &newh);
-        AGSBitmap *toblt = get_sprite(frames[i].pic);
+        proportionalDraw (size, frames[i].Sprite, &neww, &newh);
+        AGSBitmap *toblt = get_sprite(frames[i].Sprite);
         if (toblt->GetColorDepth () != todraw->GetColorDepth ())
         {
             // Different color depth? make a copy
@@ -800,12 +800,12 @@ static void doDrawViewLoop(HDC hdc, const std::vector<::ViewFrameDef> &frames,
             bmpbuf->Blit (toblt, 0, 0, 0, 0, toblt->GetWidth(), toblt->GetHeight());
             toblt = bmpbuf.get();
         }
-        if (Common::GfxDef::FlagsHaveFlip(frames[i].flags))
+        if (Common::GfxDef::FlagsHaveFlip(frames[i].Flags))
         {
             // Flipped bitmap? mirror the sprite
             AGSBitmap *flipped = Common::BitmapHelper::CreateBitmap (toblt->GetWidth(), toblt->GetHeight(), todraw->GetColorDepth ());
             flipped->Clear (flipped->GetMaskColor ());
-            flipped->FlipBlt(toblt, 0, 0, Common::GfxDef::GetFlipFromFlags(frames[i].flags));
+            flipped->FlipBlt(toblt, 0, 0, Common::GfxDef::GetFlipFromFlags(frames[i].Flags));
             bmpbuf.reset(flipped);
             toblt = flipped;
         }
@@ -866,9 +866,9 @@ bool initialize_native()
     AssetMgr.reset(new AssetManager());
     AssetMgr->AddLibrary("."); // TODO: this is for search in editor program folder, but maybe don't use implicit cwd?
 
-	palette = &thisgame.defpal[0];
-	thisgame.color_depth = 2;
-	thisgame.numfonts = 0;
+	palette = &thisgame.DefaultPalette[0];
+	thisgame.BytesPerPixel = 2;
+	thisgame.FontCount = 0;
 
     HAGSError err = reset_sprite_file();
 	if (!err)
@@ -960,21 +960,21 @@ void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolu
         NDrawState->guiCtrl32.reset(new AGSBitmap(gui_size.Width, gui_size.Height, 32));
         NDrawState->guiPreview32.reset(new AGSBitmap(gui_size.Width, gui_size.Height, 32));
     }
-    if (thisgame.color_depth != 4 && ((NDrawState->guiMainBmp == nullptr) || (NDrawState->guiMainBmp->GetSize() != gui_size)))
+    if (thisgame.BytesPerPixel != 4 && ((NDrawState->guiMainBmp == nullptr) || (NDrawState->guiMainBmp->GetSize() != gui_size)))
     {
-        NDrawState->guiMainBmp.reset(new AGSBitmap(gui_size.Width, gui_size.Height, thisgame.color_depth * 8));
-        NDrawState->guiCtrlBmp.reset(new AGSBitmap(gui_size.Width, gui_size.Height, thisgame.color_depth * 8));
+        NDrawState->guiMainBmp.reset(new AGSBitmap(gui_size.Width, gui_size.Height, thisgame.BytesPerPixel * 8));
+        NDrawState->guiCtrlBmp.reset(new AGSBitmap(gui_size.Width, gui_size.Height, thisgame.BytesPerPixel * 8));
     }
-    if (thisgame.color_depth == 1)
+    if (thisgame.BytesPerPixel == 1)
         set_palette(palette);
 
     // Draw parent GUI
-    AGSBitmap *guimain_bmp = (thisgame.color_depth == 4) ? NDrawState->guiSurf32.get() : NDrawState->guiMainBmp.get();
+    AGSBitmap *guimain_bmp = (thisgame.BytesPerPixel == 4) ? NDrawState->guiSurf32.get() : NDrawState->guiMainBmp.get();
     guimain_bmp->ResetClip();
     guimain_bmp->Clear(guimain_bmp->GetMaskColor());
     tempgui.DrawSelf(guimain_bmp);
     // Draw controls
-    AGSBitmap *guictrl_bmp = (thisgame.color_depth == 4) ? NDrawState->guiCtrl32.get() : NDrawState->guiCtrlBmp.get();
+    AGSBitmap *guictrl_bmp = (thisgame.BytesPerPixel == 4) ? NDrawState->guiCtrl32.get() : NDrawState->guiCtrlBmp.get();
     guictrl_bmp->ResetClip();
     guictrl_bmp->Clear(guictrl_bmp->GetMaskColor());
     tempgui.DrawControls(guictrl_bmp);
@@ -982,7 +982,7 @@ void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolu
     // Merge drawn parts
     AGSBitmap *final_gui = NDrawState->guiSurf32.get();
     AGSBitmap *final_ctrl = NDrawState->guiCtrl32.get();
-    if (thisgame.color_depth != 4)
+    if (thisgame.BytesPerPixel != 4)
     {
         const int old_conv = get_color_conversion();
         set_color_conversion(old_conv | COLORCONV_KEEP_TRANS);
@@ -1127,7 +1127,7 @@ void sort_out_transparency(AGSBitmap *toimp, int sprite_import_method, int trans
 void sort_out_palette(Common::Bitmap *toimp, RGB*itspal, bool useBgSlots, int transcol)
 {
   set_palette_range(palette, 0, 255, 0);
-  if ((thisgame.color_depth == 1) && (itspal != NULL)) { 
+  if ((thisgame.BytesPerPixel == 1) && (itspal != NULL)) { 
     // 256-colour mode only
     if (transcol!=0)
       itspal[transcol] = itspal[0];
@@ -1136,7 +1136,7 @@ void sort_out_palette(Common::Bitmap *toimp, RGB*itspal, bool useBgSlots, int tr
     for (int uu=0;uu<PAL_SIZE;uu++) {
       if (useBgSlots)  //  use background scene palette
         oldpale[uu]=palette[uu];
-      else if (thisgame.paluses[uu]==PAL_BACKGROUND)
+      else if (thisgame.PaletteUses[uu]==PAL_BACKGROUND)
           PaletteOp::SetRGB(oldpale, uu,0,0,0);
       else 
         oldpale[uu]=palette[uu];
@@ -1223,7 +1223,7 @@ void copy_room_palette_to_global_palette(const RoomStruct &rs)
 {
   for (int ww = 0; ww < 256; ww++) 
   {
-    if (thisgame.paluses[ww] == PAL_BACKGROUND)
+    if (thisgame.PaletteUses[ww] == PAL_BACKGROUND)
     {
       palette[ww] = rs.Palette[ww];
     }
@@ -1236,7 +1236,7 @@ void copy_global_palette_to_room_palette(RoomStruct &rs)
     {
         for (int ww = 0; ww < 256; ww++) 
         {
-            if (thisgame.paluses[ww] != PAL_BACKGROUND)
+            if (thisgame.PaletteUses[ww] != PAL_BACKGROUND)
             {
                 rs.Palette[ww] = palette[ww];
                 rs.BgFrames[0].Palette[ww] = palette[ww];
@@ -1541,7 +1541,7 @@ void GameUpdated(Game ^game, bool forceUpdate)
   set_uformat(U_UTF8);
   // TODO: this function may get called when only one item is added/removed or edited;
   // probably it would be best to split it up into several callbacks at some point.
-  thisgame.color_depth = (int)game->Settings->ColorDepth;
+  thisgame.BytesPerPixel = (int)game->Settings->ColorDepth;
   SetGameResolution(game);
 
   thisgame.Options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
@@ -1553,18 +1553,18 @@ void GameUpdated(Game ^game, bool forceUpdate)
   for (int i = 0; i < 256; i++) {
 	if (game->Palette[i]->ColourType == PaletteColourType::Background)
 	{
-	  thisgame.paluses[i] = PAL_BACKGROUND;
+	  thisgame.PaletteUses[i] = PAL_BACKGROUND;
 	}
 	else 
 	{
-  	  thisgame.paluses[i] = PAL_GAMEWIDE;
+  	  thisgame.PaletteUses[i] = PAL_GAMEWIDE;
     }
   }
 
   // Reload native fonts and update font information in the managed component
-  thisgame.numfonts = game->Fonts->Count;
-  thisgame.Fonts.resize(thisgame.numfonts);
-  for (int i = 0; i < thisgame.numfonts; i++) 
+  thisgame.FontCount = game->Fonts->Count;
+  thisgame.Fonts.resize(thisgame.FontCount);
+  for (int i = 0; i < thisgame.FontCount; i++) 
   {
       GameFontUpdated(game, i, forceUpdate);
   }
@@ -1572,9 +1572,9 @@ void GameUpdated(Game ^game, bool forceUpdate)
 
 void GameFontAdded(Game ^game, int fontNumber)
 {
-    thisgame.numfonts = game->Fonts->Count;
-    thisgame.Fonts.resize(thisgame.numfonts);
-    for (int i = fontNumber; i < thisgame.numfonts; i++) 
+    thisgame.FontCount = game->Fonts->Count;
+    thisgame.Fonts.resize(thisgame.FontCount);
+    for (int i = fontNumber; i < thisgame.FontCount; i++) 
     {
         GameFontUpdated(game, i, true);
     }
@@ -1582,10 +1582,10 @@ void GameFontAdded(Game ^game, int fontNumber)
 
 void GameFontDeleted(Game ^game, int fontNumber)
 {
-    thisgame.numfonts = game->Fonts->Count;
-    thisgame.Fonts.resize(thisgame.numfonts);
+    thisgame.FontCount = game->Fonts->Count;
+    thisgame.Fonts.resize(thisgame.FontCount);
     freefont(fontNumber);
-    for (int i = fontNumber; i < thisgame.numfonts; i++) 
+    for (int i = fontNumber; i < thisgame.FontCount; i++) 
     {
         GameFontUpdated(game, i, true);
     }
@@ -1593,22 +1593,22 @@ void GameFontDeleted(Game ^game, int fontNumber)
 
 void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
 {
-    assert(fontNumber >= 0 && fontNumber < thisgame.numfonts);
-    if (fontNumber < 0 || fontNumber >= thisgame.numfonts)
+    assert(fontNumber >= 0 && fontNumber < thisgame.FontCount);
+    if (fontNumber < 0 || fontNumber >= thisgame.FontCount)
         return;
 
     FontDef &font_info = thisgame.Fonts[fontNumber];
     AGS::Types::Font ^font = game->Fonts[fontNumber];
 
-    AGSString old_filename = font_info.Filename;
+    AGSString old_filename = font_info.SourceFileName;
     int old_size = font_info.Size;
     int old_scaling = font_info.SizeMultiplier;
     int old_flags = font_info.Flags;
 
-    font_info.Filename = TextHelper::ConvertUTF8(font->FontFileName);
+    font_info.SourceFileName = TextHelper::ConvertUTF8(font->FontFileName);
     font_info.Size = font->PointSize;
     font_info.SizeMultiplier = font->SizeMultiplier;
-    font_info.YOffset = font->VerticalOffset;
+    font_info.OffsetY = font->VerticalOffset;
     font_info.LineSpacing = font->LineSpacing;
     font_info.CharacterSpacing = font->CharacterSpacing;
     int flags = 0;
@@ -1635,7 +1635,7 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     font_info.AutoOutlineThickness = font->AutoOutlineThickness;
 
     forceUpdate |=
-        font_info.Filename != old_filename ||
+        font_info.SourceFileName != old_filename ||
         font_info.Size != old_size ||
         font_info.SizeMultiplier != old_scaling ||
         font_info.Flags != old_flags;
@@ -1657,8 +1657,8 @@ void DrawTextUsingFontAt(HDC hdc, String ^text, int fontnum, bool right_to_left,
     int dc_atx, int dc_aty, int dc_width, int dc_height,
     int text_atx, int text_aty, int max_width, float scaling)
 {
-    assert(fontnum < thisgame.numfonts);
-    if (fontnum >= thisgame.numfonts)
+    assert(fontnum < thisgame.FontCount);
+    if (fontnum >= thisgame.FontCount)
         return;
 
     // split_lines does not understand '\r' so replace them here
@@ -1674,8 +1674,8 @@ void drawViewLoop (HDC hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<i
     std::vector<::ViewFrameDef> frames(loopToDraw->Frames->Count);
     for (int i = 0; i < loopToDraw->Frames->Count; ++i) 
     {
-	    frames[i].pic = loopToDraw->Frames[i]->Image;
-	    frames[i].flags = Common::GfxDef::GetFlagsFromFlip((Common::GraphicFlip)loopToDraw->Frames[i]->Flip);
+	    frames[i].Sprite = loopToDraw->Frames[i]->Image;
+	    frames[i].Flags = Common::GfxDef::GetFlagsFromFlip((Common::GraphicFlip)loopToDraw->Frames[i]->Flip);
     }
     std::vector<int> selected(cursel->Count);
     for (int i = 0; i < cursel->Count; ++i)
@@ -1851,7 +1851,7 @@ AGSBitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, int 
         throw gcnew AGSEditorException(System::String::Format("Unsupported pixel format: \"{0}\"", bmp->PixelFormat.ToString()));
     }
 
-    if ((thisgame.color_depth == 1) && (src_depth > 8))
+    if ((thisgame.BytesPerPixel == 1) && (src_depth > 8))
     {
         throw gcnew AGSEditorException("You cannot import a hi-colour or true-colour image into a 256-colour game.");
     }
@@ -2056,7 +2056,7 @@ AGSBitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int destColorDepth, 
     bool remapColours, bool useRoomBackgroundColours, bool alphaChannel, int *out_flags)
 {
     // Safety check: if requested alpha channel, test if bitmap contains one
-    alphaChannel = alphaChannel && (thisgame.color_depth == 4) && DoesBitmapHaveAlpha(bmp);
+    alphaChannel = alphaChannel && (thisgame.BytesPerPixel == 4) && DoesBitmapHaveAlpha(bmp);
 
     RGB imgPalBuf[256];
     int importedColourDepth = 0;

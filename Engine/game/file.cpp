@@ -631,7 +631,7 @@ FSLocation GetGameUserConfigDir()
         return FSLocation(services.ResPaths.DataDir).Concat(dir.FullDir);
     // For absolute dir, we assume it's a special directory prepared for AGS engine
     // and therefore append a game's own subdir
-    return dir.Concat(Game::Current().saveGameFolderName);
+    return dir.Concat(Game::Current().SaveGameFolderName);
 }
 
 // Constructs data dir using rules for default system location
@@ -642,7 +642,7 @@ inline FSLocation MakeDefaultDataDir(const FSLocation &def_dir)
         return FSLocation(EngineServices::Current().ResPaths.DataDir).Concat(def_dir.FullDir);
     // For absolute dir, we assume it's a special directory prepared for AGS engine
     // and therefore amend it with a game's own subdir (to separate files from different games)
-    return def_dir.Concat(Game::Current().saveGameFolderName);
+    return def_dir.Concat(Game::Current().SaveGameFolderName);
 }
 
 // Constructs data dir using rules for the user-specified location

@@ -462,7 +462,7 @@ void unload_old_room()
         room.MaskModified[i] = false;
 
     // ensure that any half-moves (eg. with scaled movement) are stopped
-    for (int i = 0; i < game.numcharacters; i++)
+    for (int i = 0; i < game.CharacterCount; i++)
     {
         game.Characters[i].FullStepX = INVALID_X;
     }
@@ -722,7 +722,7 @@ void load_new_room(int room_id, Character *ch)
                    err->FullMessage().GetCStr());
     }
 
-    if ((room.GameID != NO_GAME_ID_IN_ROOM_FILE) && (room.GameID != game.uniqueid))
+    if ((room.GameID != NO_GAME_ID_IN_ROOM_FILE) && (room.GameID != game.UniqueID))
     {
         quitprintf("!Unable to load '%s'. This room file is assigned to a different game.", room_filename.GetCStr());
     }
@@ -761,7 +761,7 @@ void load_new_room(int room_id, Character *ch)
     // for every other color the game-wide one is copied into each background frame's palette
     for (size_t pal_index = 0; pal_index < 256; pal_index++)
     {
-        if (game.paluses[pal_index] == PAL_BACKGROUND)
+        if (game.PaletteUses[pal_index] == PAL_BACKGROUND)
             game.Palette[pal_index] = room.Palette[pal_index];
         else
         {
@@ -865,7 +865,7 @@ void load_new_room(int room_id, Character *ch)
 
         // if a following character is still waiting to come into the
         // previous room, force it out so that the timer resets
-        for (int i = 0; i < game.numcharacters; i++)
+        for (int i = 0; i < game.CharacterCount; i++)
         {
             if ((game.Characters[i].Following >= 0) && (game.Characters[i].Room < 0))
             {
@@ -881,7 +881,7 @@ void load_new_room(int room_id, Character *ch)
         ch->PreviousRoom = ch->Room;
         ch->Room = room_id;
         // only stop moving if it's a new room, not a restore game
-        for (int i = 0; i < game.numcharacters; i++)
+        for (int i = 0; i < game.CharacterCount; i++)
             Character_StopMoving(&game.Characters[i]);
     }
 
@@ -1113,7 +1113,7 @@ void load_new_room(int room_id, Character *ch)
     // drop any input which they might have done while it was loading
     ags_clear_input_queue();
     // no fade in, so set the palette immediately in case of 256-col sprites
-    if (game.color_depth > 1)
+    if (game.BytesPerPixel > 1)
         setpal();
 
     set_our_eip(220);
@@ -1255,7 +1255,7 @@ void on_background_frame_change()
 
     // hi-colour, update the palette. It won't have an immediate effect
     // but will be drawn properly when the screen fades in
-    if (game.color_depth > 1)
+    if (game.BytesPerPixel > 1)
         setpal();
 
     if (game.Events.InEntersScreen)
@@ -1267,7 +1267,7 @@ void on_background_frame_change()
 
     // 256-colours, tell it to update the palette (will actually be done as
     // close as possible to the screen update to prevent flicker problem)
-    if (game.color_depth == 1)
+    if (game.BytesPerPixel == 1)
         room.BgJustChanged = 1;
 }
 

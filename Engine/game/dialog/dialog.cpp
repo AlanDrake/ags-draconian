@@ -65,7 +65,7 @@ std::unique_ptr<DialogOptionsState> dialogOpts; // current running dialog option
 
 void RunDialogOption(int dialog_id, int option)
 {
-    if ((dialog_id < 0) || (dialog_id >= Game::Current().numdialog))
+    if ((dialog_id < 0) || (dialog_id >= Game::Current().DialogCount))
         quit("!Dialog.Start: invalid topic number specified");
 
     can_run_delayed_command();
@@ -105,7 +105,7 @@ void StopDialog()
 void SetDialogOption(int dialog_id, int option, int state, bool dlg_script = false)
 {
     Game &game = Game::Current();
-    if ((dialog_id < 0) || (dialog_id >= game.numdialog))
+    if ((dialog_id < 0) || (dialog_id >= game.DialogCount))
         quit("!SetDialogOption: Invalid topic number specified");
     if ((option < 1) || (option > game.Dialogs[dialog_id].GetOptionCount()))
     {
@@ -132,7 +132,7 @@ void SetDialogOption(int dialog_id, int option, int state, bool dlg_script = fal
 int GetDialogOption(int dialog_id, int option)
 {
     Game &game = Game::Current();
-    if ((dialog_id < 0) || (dialog_id >= game.numdialog))
+    if ((dialog_id < 0) || (dialog_id >= game.DialogCount))
         quit("!GetDialogOption: Invalid topic number specified");
     if ((option < 1) || (option > game.Dialogs[dialog_id].GetOptionCount()))
         quit("!GetDialogOption: Invalid option number specified");
@@ -367,7 +367,7 @@ ScriptGUI *DialogOptions_GetTemplateGUI()
 {
     Game &game = Game::Current();
     // NOTE: historically 0 meant "no gui", so gui id 0 cannot be used here
-    if (game.Options[OPT_DIALOGIFACE] <= 0 || game.Options[OPT_DIALOGIFACE] >= game.numgui)
+    if (game.Options[OPT_DIALOGIFACE] <= 0 || game.Options[OPT_DIALOGIFACE] >= game.GuiCount)
         return nullptr;
     return &game.ScGuis[game.Options[OPT_DIALOGIFACE]];
 }
@@ -1688,7 +1688,7 @@ int run_dialog_option(int dialog_id, int dialog_choice, int say_chosen_option, b
 int show_dialog_options(int dialog_id, bool run_game_loops_in_background)
 {
     Game &game = Game::Current();
-    if ((dialog_id < 0) || (dialog_id >= game.numdialog))
+    if ((dialog_id < 0) || (dialog_id >= game.DialogCount))
     {
         quit("!RunDialog: invalid dialog number specified");
     }
@@ -1833,7 +1833,7 @@ void DialogExec::Run()
 
     while (_dlgNum >= 0)
     {
-        if (_dlgNum < 0 || _dlgNum >= game.numdialog)
+        if (_dlgNum < 0 || _dlgNum >= game.DialogCount)
             quitprintf("!RunDialog: invalid dialog number specified: %d", _dlgNum);
 
         // current dialog object

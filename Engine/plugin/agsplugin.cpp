@@ -417,7 +417,7 @@ void IAGSEngine::PollSystem()
 AGSCharacter *IAGSEngine::GetCharacter(int32 charnum)
 {
     Game &game = Game::Current();
-    if (charnum >= game.numcharacters)
+    if (charnum >= game.CharacterCount)
         quit("!AGSEngine::GetCharacter: invalid character request");
     // AGSCharacter is opaque to plugins: the pointer is the Character that the script functions take, and a
     // plugin passes it back to them. If their argument type changes, this return value changes with it.
@@ -439,7 +439,7 @@ void IAGSEngine::SetPalette(int32 start, int32 finish, AGSColor *cpl)
 }
 int IAGSEngine::GetNumCharacters()
 {
-    return Game::Current().numcharacters;
+    return Game::Current().CharacterCount;
 }
 int IAGSEngine::GetPlayerCharacter()
 {
@@ -553,7 +553,7 @@ int IAGSEngine::GetSpriteHeight(int32 slot)
 }
 void IAGSEngine::GetTextExtent(int32 font, const char *text, int32 *width, int32 *height)
 {
-    if ((font < 0) || (font >= Game::Current().numfonts))
+    if ((font < 0) || (font >= Game::Current().FontCount))
     {
         if (width != nullptr)
             width[0] = 0;
@@ -637,7 +637,7 @@ int IAGSEngine::MakeRawColorPixel(int32 coldepth, int32 red, int32 green, int32 
 }
 int IAGSEngine::GetFontType(int32 font_id)
 {
-    if ((font_id < 0) || (font_id >= Game::Current().numfonts))
+    if ((font_id < 0) || (font_id >= Game::Current().FontCount))
         return FNT_INVALID;
 
     if (is_bitmap_font(font_id))
@@ -837,9 +837,9 @@ void IAGSEngine::GetGameInfo(AGSGameInfo *ginfo)
     Game &game = Game::Current();
     if (ginfo->Version >= 26)
     {
-        snprintf(ginfo->GameName, sizeof(ginfo->GameName), "%s", game.gamename.GetCStr());
-        snprintf(ginfo->Guid, sizeof(ginfo->Guid), "%s", game.guid);
-        ginfo->UniqueId = game.uniqueid;
+        snprintf(ginfo->GameName, sizeof(ginfo->GameName), "%s", game.Name.GetCStr());
+        snprintf(ginfo->Guid, sizeof(ginfo->Guid), "%s", game.Guid);
+        ginfo->UniqueId = game.UniqueID;
     }
 }
 

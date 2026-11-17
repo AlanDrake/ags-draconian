@@ -130,7 +130,7 @@ void update_character_move_and_anim(std::vector<int> &following_as_sheep)
     Game &game = Game::Current();
     Room &room = Room::Current();
     // move & animate characters
-    for (int aa = 0; aa < game.numcharacters; aa++)
+    for (int aa = 0; aa < game.CharacterCount; aa++)
     {
         if (!game.Characters[aa].is_enabled())
             continue;
@@ -262,7 +262,7 @@ int update_voice_lipsync(int frame)
             else
                 frame = game.LipSync.Lines[game.LipSync.CurLine].frame[game.LipSync.CurLinePhoneme];
 
-            if (frame >= game.Views[game.Speech.FaceTalkView].loops[game.Speech.FaceTalkLoop].numFrames)
+            if (frame >= game.Views[game.Speech.FaceTalkView].Loops[game.Speech.FaceTalkLoop].FrameCount)
                 frame = 0;
         }
         return frame;
@@ -294,16 +294,16 @@ void update_sierra_speech()
             {
                 // currently playing blink anim
                 if (game.Speech.FaceTalkChar->BlinkTimer < ((0 - 6) - game.Views[game.Speech.FaceTalkChar->BlinkView]
-                                                                          .loops[game.Speech.FaceTalkBlinkLoop]
-                                                                          .frames[game.Speech.FaceTalkChar->BlinkFrame]
-                                                                          .speed))
+                                                                          .Loops[game.Speech.FaceTalkBlinkLoop]
+                                                                          .Frames[game.Speech.FaceTalkChar->BlinkFrame]
+                                                                          .Delay))
                 {
                     // time to advance to next frame
                     game.Speech.FaceTalkChar->BlinkTimer = -1;
                     game.Speech.FaceTalkChar->BlinkFrame++;
                     updatedFrame = 2;
                     if (game.Speech.FaceTalkChar->BlinkFrame >=
-                        game.Views[game.Speech.FaceTalkChar->BlinkView].loops[game.Speech.FaceTalkBlinkLoop].numFrames)
+                        game.Views[game.Speech.FaceTalkChar->BlinkView].Loops[game.Speech.FaceTalkBlinkLoop].FrameCount)
                     {
                         game.Speech.FaceTalkChar->BlinkFrame = 0;
                         game.Speech.FaceTalkChar->BlinkTimer = game.Speech.FaceTalkChar->BlinkInterval;
@@ -357,13 +357,13 @@ void update_sierra_speech()
                 // normal non-lip-sync
                 game.Speech.FaceTalkFrame++;
                 if ((game.Speech.FaceTalkFrame >=
-                     game.Views[game.Speech.FaceTalkView].loops[game.Speech.FaceTalkLoop].numFrames) ||
+                     game.Views[game.Speech.FaceTalkView].Loops[game.Speech.FaceTalkLoop].FrameCount) ||
                     (!game.Play.speech_voice_blocking && (game.Play.messagetime < 1) &&
                      (game.Play.close_mouth_speech_time > 0)))
                 {
                     if ((game.Speech.FaceTalkFrame >=
-                         game.Views[game.Speech.FaceTalkView].loops[game.Speech.FaceTalkLoop].numFrames) &&
-                        (game.Views[game.Speech.FaceTalkView].loops[game.Speech.FaceTalkLoop].RunNextLoop()))
+                         game.Views[game.Speech.FaceTalkView].Loops[game.Speech.FaceTalkLoop].FrameCount) &&
+                        (game.Views[game.Speech.FaceTalkView].Loops[game.Speech.FaceTalkLoop].RunNextLoop()))
                     {
                         game.Speech.FaceTalkLoop++;
                     }
@@ -377,9 +377,9 @@ void update_sierra_speech()
                 }
                 if ((game.Speech.FaceTalkFrame != 0) || (game.Speech.FaceTalkRepeat == 1))
                     game.Speech.FaceTalkWait = game.Views[game.Speech.FaceTalkView]
-                                                   .loops[game.Speech.FaceTalkLoop]
-                                                   .frames[game.Speech.FaceTalkFrame]
-                                                   .speed +
+                                                   .Loops[game.Speech.FaceTalkLoop]
+                                                   .Frames[game.Speech.FaceTalkFrame]
+                                                   .Delay +
                                                Character_GetSpeechAnimationDelay(game.Speech.FaceTalkChar);
             }
         }
@@ -401,9 +401,9 @@ void update_sierra_speech()
                                game.Speech.FaceTalkChar->BlinkFrame, frame_vol);
 
             int this_pic = game.Views[game.Speech.FaceTalkView]
-                               .loops[game.Speech.FaceTalkLoop]
-                               .frames[game.Speech.FaceTalkFrame]
-                               .pic;
+                               .Loops[game.Speech.FaceTalkLoop]
+                               .Frames[game.Speech.FaceTalkFrame]
+                               .Sprite;
             int view_frame_x = 0;
             int view_frame_y = 0;
 
@@ -433,14 +433,14 @@ void update_sierra_speech()
             }
 
             const ViewFrame *face_vf =
-                &game.Views[game.Speech.FaceTalkView].loops[game.Speech.FaceTalkLoop].frames[game.Speech.FaceTalkFrame];
+                &game.Views[game.Speech.FaceTalkView].Loops[game.Speech.FaceTalkLoop].Frames[game.Speech.FaceTalkFrame];
             DrawViewFrame(frame_pic, face_vf, view_frame_x, view_frame_y);
 
             if ((game.Speech.FaceTalkChar->BlinkView > 0) && (game.Speech.FaceTalkChar->BlinkTimer < 0))
             {
                 ViewFrame *blink_vf = &game.Views[game.Speech.FaceTalkChar->BlinkView]
-                                           .loops[game.Speech.FaceTalkBlinkLoop]
-                                           .frames[game.Speech.FaceTalkChar->BlinkFrame];
+                                           .Loops[game.Speech.FaceTalkBlinkLoop]
+                                           .Frames[game.Speech.FaceTalkChar->BlinkFrame];
                 // draw the blinking sprite on top
                 DrawViewFrame(frame_pic, blink_vf, view_frame_x, view_frame_y);
             }

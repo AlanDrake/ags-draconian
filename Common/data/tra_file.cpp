@@ -79,7 +79,7 @@ static HError ReadFontOverrides(Translation &tra, Stream *in)
         const int override_index = in->ReadInt32();
         // ID >= 0 means a replacement is based on another game font
         // ID < 0 means a replacement is based on a font file
-        finfo.FontID = in->ReadInt32();
+        finfo.ID = in->ReadInt32();
         FontFieldFlags fields = static_cast<FontFieldFlags>(in->ReadInt32());
         in->ReadInt32(); // reserved
 
@@ -87,7 +87,7 @@ static HError ReadFontOverrides(Translation &tra, Stream *in)
         uint32_t flags = in->ReadInt32();
         finfo.Size = in->ReadInt32();
         finfo.Outline = in->ReadInt32();
-        finfo.YOffset = in->ReadInt32();
+        finfo.OffsetY = in->ReadInt32();
         finfo.LineSpacing = std::max(0, in->ReadInt32());
         finfo.SetFlags(flags);
         // This corresponds to the "v360_fonts" extension in game data
@@ -98,7 +98,7 @@ static HError ReadFontOverrides(Translation &tra, Stream *in)
         in->ReadInt32(); // reserved
         in->ReadInt32();
         // This is matching the 4.* font extension ("v400_fontfiles" ext)
-        finfo.FileName = StrUtil::ReadString(in);
+        finfo.AssetFileName = StrUtil::ReadString(in);
 
         tra.FontOverrides[override_index] = FontOverride(finfo, fields);
     }

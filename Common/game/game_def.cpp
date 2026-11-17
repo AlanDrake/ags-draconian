@@ -50,29 +50,29 @@ void GameDef::ReadFromFile(Stream *in, GameDataVersion game_ver, SerializeInfo &
     // NOTE: historically the struct was saved by dumping whole memory
     // into the file stream, which added padding from memory alignment;
     // here we mark the padding bytes, as they do not belong to actual data.
-    gamename.ReadCount(in, LEGACY_GAME_NAME_LENGTH);
+    Name.ReadCount(in, LEGACY_GAME_NAME_LENGTH);
     in->ReadInt16(); // alignment padding to int32 (gamename: 50 -> 52 bytes)
     in->ReadArrayOfInt32(Options, MAX_OPTIONS);
-    in->Read(&paluses[0], sizeof(paluses));
+    in->Read(&PaletteUses[0], sizeof(PaletteUses));
     // colors are an array of chars
-    in->Read(&defpal[0], sizeof(defpal));
-    numviews = in->ReadInt32();
-    numcharacters = in->ReadInt32();
+    in->Read(&DefaultPalette[0], sizeof(DefaultPalette));
+    ViewCount = in->ReadInt32();
+    CharacterCount = in->ReadInt32();
     PlayerCharacterID = in->ReadInt32();
     in->ReadInt32(); // [DEPRECATED]
-    numinvitems = static_cast<uint16_t>(in->ReadInt16());
+    InventoryItemCount = static_cast<uint16_t>(in->ReadInt16());
     in->ReadInt16(); // alignment padding to int32
-    numdialog = in->ReadInt32();
-    numdlgmessage = in->ReadInt32();
-    numfonts = in->ReadInt32();
-    color_depth = in->ReadInt32();
-    target_win = in->ReadInt32();
+    DialogCount = in->ReadInt32();
+    DialogMessageCount = in->ReadInt32();
+    FontCount = in->ReadInt32();
+    BytesPerPixel = in->ReadInt32();
+    TargetWindows = in->ReadInt32();
     DialogBulletSprite = in->ReadInt32();
     in->ReadInt16(); // [DEPRECATED] uint16 value of a inv cursor hotdot color
     in->ReadInt16(); // [DEPRECATED] uint16 value of a inv cursor hot cross color
-    uniqueid = in->ReadInt32();
-    numgui = in->ReadInt32();
-    numcursors = in->ReadInt32();
+    UniqueID = in->ReadInt32();
+    GuiCount = in->ReadInt32();
+    MouseCursorCount = in->ReadInt32();
     [[maybe_unused]] GameResolutionType resolution_type = (GameResolutionType)in->ReadInt32();
     assert(resolution_type == kGameResolution_Custom);
     Size game_size;
@@ -84,7 +84,7 @@ void GameDef::ReadFromFile(Stream *in, GameDataVersion game_ver, SerializeInfo &
     InventoryCursorHotspotSprite = in->ReadInt32();
     InventoryCursorHotspotColor = in->ReadInt32();
     InventoryCursorHotspotCrossColor = in->ReadInt32();
-    in->ReadArrayOfInt32(reserved, NUM_INTS_RESERVED);
+    in->ReadArrayOfInt32(Reserved, NUM_INTS_RESERVED);
     info.ExtensionOffset = static_cast<uint32_t>(in->ReadInt32());
 
     if (game_ver < kGameVersion_400_33)
@@ -131,9 +131,9 @@ void GameDef::ResolveStandardModes()
 {
     for (int role = 0; role < kNumCursorRoles; ++role)
     {
-        for (int i = 0; i < numcursors; ++i)
+        for (int i = 0; i < MouseCursorCount; ++i)
         {
-            if (MouseCursors[i].role == role)
+            if (MouseCursors[i].Role == role)
             {
                 _roleCursors[role] = i;
                 break;
@@ -147,21 +147,21 @@ void GameDef::ResolveStandardModes()
 
 void GameDef::read_savegame_info(Common::Stream *in, GameDataVersion /*data_ver*/)
 {
-    StrUtil::ReadCStrCount(guid, in, MAX_GUID_LENGTH);
-    StrUtil::ReadCStrCount(saveGameFileExtension, in, MAX_SG_EXT_LENGTH);
-    saveGameFolderName.ReadCount(in, LEGACY_MAX_SG_FOLDER_LEN);
+    StrUtil::ReadCStrCount(Guid, in, MAX_GUID_LENGTH);
+    StrUtil::ReadCStrCount(SaveGameFileExtension, in, MAX_SG_EXT_LENGTH);
+    SaveGameFolderName.ReadCount(in, LEGACY_MAX_SG_FOLDER_LEN);
 }
 
 void GameDef::read_font_infos(Common::Stream *in, GameDataVersion /*data_ver*/)
 {
-    Fonts.resize(numfonts);
-    for (int i = 0; i < numfonts; ++i)
+    Fonts.resize(FontCount);
+    for (int i = 0; i < FontCount; ++i)
     {
-        Fonts[i].FontID = i;
+        Fonts[i].ID = i;
         uint32_t flags = in->ReadInt32();
         Fonts[i].Size = in->ReadInt32();
         Fonts[i].Outline = in->ReadInt32();
-        Fonts[i].YOffset = in->ReadInt32();
+        Fonts[i].OffsetY = in->ReadInt32();
         Fonts[i].LineSpacing = std::max(0, in->ReadInt32());
         Fonts[i].SetFlags(flags);
     }
@@ -169,8 +169,8 @@ void GameDef::read_font_infos(Common::Stream *in, GameDataVersion /*data_ver*/)
 
 void GameDef::ReadInvInfo(Stream *in, GameDataVersion data_ver)
 {
-    InventoryItems.resize(numinvitems);
-    for (int i = 0; i < numinvitems; ++i)
+    InventoryItems.resize(InventoryItemCount);
+    for (int i = 0; i < InventoryItemCount; ++i)
     {
         InventoryItems[i].ReadFromFile(in, data_ver);
     }
@@ -178,26 +178,26 @@ void GameDef::ReadInvInfo(Stream *in, GameDataVersion data_ver)
 
 HGameFileError GameDef::read_cursors(Common::Stream *in)
 {
-    MouseCursors.resize(numcursors);
+    MouseCursors.resize(MouseCursorCount);
     ReadMouseCursors(in);
     return HGameFileError::None();
 }
 
 HError GameDef::read_interaction_scripts(Common::Stream *in, GameDataVersion /*data_ver*/)
 {
-    Characters.resize(numcharacters); // safety precaution, because chars may be read later
+    Characters.resize(CharacterCount); // safety precaution, because chars may be read later
     HError err;
-    for (size_t i = 0; i < (size_t)numcharacters; ++i)
+    for (size_t i = 0; i < (size_t)CharacterCount; ++i)
     {
         err = Characters[i].Interactions.Read_v361(in);
         if (!err)
             return err;
     }
     // NOTE: inventory item events are loaded starting from index 1, because index 0 is an unused item
-    InventoryItems.resize(numinvitems); // safety precaution
-    for (size_t i = 1; i < (size_t)numinvitems; ++i)
+    InventoryItems.resize(InventoryItemCount); // safety precaution
+    for (size_t i = 1; i < (size_t)InventoryItemCount; ++i)
     {
-        err = InventoryItems[i].interactions.Read_v361(in);
+        err = InventoryItems[i].Interactions.Read_v361(in);
         if (!err)
             return err;
     }
@@ -206,13 +206,13 @@ HError GameDef::read_interaction_scripts(Common::Stream *in, GameDataVersion /*d
 
 void GameDef::read_words_dictionary(Common::Stream *in)
 {
-    dict.reset(new WordsDictionary());
-    dict->ReadFromFile(in);
+    ParserDictionary.reset(new WordsDictionary());
+    ParserDictionary->ReadFromFile(in);
 }
 
 void GameDef::ReadMouseCursors(Stream *in)
 {
-    for (int i = 0; i < numcursors; ++i)
+    for (int i = 0; i < MouseCursorCount; ++i)
     {
         MouseCursors[i].ReadFromFile(in);
     }
@@ -223,7 +223,7 @@ void GameDef::ReadMouseCursors(Stream *in)
 
 void GameDef::read_characters(Common::Stream *in, GameDataVersion data_ver)
 {
-    Characters.resize(numcharacters);
+    Characters.resize(CharacterCount);
     ReadCharacters(in, data_ver);
 }
 
@@ -245,7 +245,7 @@ void GameDef::skip_messages(Common::Stream *in, const std::array<int, NUM_LEGACY
 
 void GameDef::ReadCharacters(Stream *in, GameDataVersion data_ver)
 {
-    for (int i = 0; i < numcharacters; ++i)
+    for (int i = 0; i < CharacterCount; ++i)
     {
         Characters[i].ReadFromFile(in, data_ver);
     }
@@ -256,18 +256,18 @@ void GameDef::ReadCharacters(Stream *in, GameDataVersion data_ver)
 
 HGameFileError GameDef::read_customprops(Common::Stream *in, GameDataVersion /*data_ver*/)
 {
-    if (Properties::ReadSchema(propSchema, in) != kPropertyErr_NoError)
+    if (Properties::ReadSchema(CustomPropertySchema, in) != kPropertyErr_NoError)
         return new MainGameFileError(kMGFErr_InvalidPropertySchema);
 
     int errors = 0;
 
-    charProps.resize(numcharacters);
-    for (int i = 0; i < numcharacters; ++i)
+    charProps.resize(CharacterCount);
+    for (int i = 0; i < CharacterCount; ++i)
     {
         errors += Properties::ReadValues(charProps[i], in);
     }
-    invProps.resize(numinvitems);
-    for (int i = 0; i < numinvitems; ++i)
+    invProps.resize(InventoryItemCount);
+    for (int i = 0; i < InventoryItemCount; ++i)
     {
         errors += Properties::ReadValues(invProps[i], in);
     }
@@ -275,17 +275,17 @@ HGameFileError GameDef::read_customprops(Common::Stream *in, GameDataVersion /*d
     if (errors > 0)
         return new MainGameFileError(kMGFErr_InvalidPropertyValues);
 
-    viewNames.resize(numviews);
-    for (int i = 0; i < numviews; ++i)
-        viewNames[i] = String::FromStream(in);
+    ViewNames.resize(ViewCount);
+    for (int i = 0; i < ViewCount; ++i)
+        ViewNames[i] = String::FromStream(in);
 
-    invScriptNames.resize(numinvitems);
-    for (int i = 0; i < numinvitems; ++i)
-        invScriptNames[i] = String::FromStream(in);
+    InventoryItemScriptNames.resize(InventoryItemCount);
+    for (int i = 0; i < InventoryItemCount; ++i)
+        InventoryItemScriptNames[i] = String::FromStream(in);
 
-    dialogScriptNames.resize(numdialog);
-    for (int i = 0; i < numdialog; ++i)
-        dialogScriptNames[i] = String::FromStream(in);
+    DialogScriptNames.resize(DialogCount);
+    for (int i = 0; i < DialogCount; ++i)
+        DialogScriptNames[i] = String::FromStream(in);
     return HGameFileError::None();
 }
 
@@ -311,13 +311,13 @@ void GameDef::read_room_names(Stream *in, GameDataVersion data_ver)
     if ((data_ver >= kGameVersion_400_13) || (Options[OPT_DEBUGMODE] != 0))
     {
         uint32_t room_count = in->ReadInt32();
-        roomNumbers.resize(room_count);
+        RoomNumbers.resize(room_count);
         for (uint32_t i = 0; i < room_count; ++i)
         {
             int room_number = in->ReadInt32();
             String room_name = String::FromStream(in);
-            roomNumbers[i] = room_number;
-            roomNames.insert(std::make_pair(room_number, room_name));
+            RoomNumbers[i] = room_number;
+            RoomNames.insert(std::make_pair(room_number, room_name));
         }
     }
 }
@@ -328,6 +328,6 @@ void GameDef::ReadAudioClips(Common::Stream *in, size_t count)
     {
         AudioClips[i].ReadFromFile(in);
         // a clip's id is its index in the list; the id that the file holds is not used
-        AudioClips[i].id = static_cast<int>(i);
+        AudioClips[i].ID = static_cast<int>(i);
     }
 }

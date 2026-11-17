@@ -25,10 +25,10 @@ class Stream;
 
 struct AudioClipTypeDef
 {
-    int id = 0;
-    int reservedChannels = 0;
-    int volume_reduction_while_speech_playing = 0;
-    int crossfadeSpeed = 0;
+    int ID = 0;
+    int ReservedChannels = 0;
+    int VolumeReductionWhileSpeechPlaying = 0;
+    int CrossfadeSpeed = 0;
 
     void ReadFromFile(AGS::Common::Stream *in);
 };

@@ -1172,7 +1172,7 @@ ScriptUserObject *GUI_GUIToScreenPoint(ScriptGUI *sgui, int gui_x, int gui_y, bo
 int FindGUIID(const char *GUIName)
 {
     Game &game = Game::Current();
-    for (int ii = 0; ii < game.numgui; ii++)
+    for (int ii = 0; ii < game.GuiCount; ii++)
     {
         if (game.Guis[ii].GetName().IsEmpty())
             continue;
@@ -1189,7 +1189,7 @@ void InterfaceOn(int ifn)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    if ((ifn < 0) | (ifn >= game.numgui))
+    if ((ifn < 0) | (ifn >= game.GuiCount))
         quit("!GUIOn: invalid GUI specified");
 
     EndSkippingUntilCharStops();
@@ -1211,7 +1211,7 @@ void InterfaceOn(int ifn)
 void InterfaceOff(int ifn)
 {
     Game &game = Game::Current();
-    if ((ifn < 0) | (ifn >= game.numgui))
+    if ((ifn < 0) | (ifn >= game.GuiCount))
         quit("!GUIOff: invalid GUI specified");
     if (!game.Guis[ifn].IsVisible())
     {
@@ -1282,7 +1282,7 @@ int IsInterfaceEnabled()
 void SetTextWindowGUI(int guinum)
 {
     Game &game = Game::Current();
-    if ((guinum < -1) | (guinum >= game.numgui))
+    if ((guinum < -1) | (guinum >= game.GuiCount))
         quit("!SetTextWindowGUI: invalid GUI number");
 
     if (guinum < 0)

@@ -113,8 +113,8 @@ void InitAndRegisterAudioObjects(Game &game)
         // a clip's id is its index in the list (the loader gives it, GameDef::ReadAudioClips)
         int handle = ccRegisterPersistentObject(&game.AudioClips[i], &ccDynamicAudioClip); // add internal ref
         StaticAudioClipArray[i] = handle;
-        if (!game.AudioClips[i].scriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(game.AudioClips[i].scriptName, &StaticAudioClipArray[i]);
+        if (!game.AudioClips[i].ScriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(game.AudioClips[i].ScriptName, &StaticAudioClipArray[i]);
     }
 }
 
@@ -122,9 +122,9 @@ void InitAndRegisterAudioObjects(Game &game)
 void InitAndRegisterCharacters(Game &game)
 {
     // ensure at least 1 element, we must register buffer
-    game.Handles.Characters.resize(std::max(1, game.numcharacters));
+    game.Handles.Characters.resize(std::max(1, game.CharacterCount));
 
-    for (int i = 0; i < game.numcharacters; ++i)
+    for (int i = 0; i < game.CharacterCount; ++i)
     {
         // TODO: move this to Character's "init" method
         game.Characters[i].MoveListID = MoveState::kNoMoveList;
@@ -144,7 +144,7 @@ void InitAndRegisterCharacters(Game &game)
     }
 
     // the blend mode, graphic anchor and offset came with the definitions; the effective values follow from them
-    for (int i = 0; i < game.numcharacters; ++i)
+    for (int i = 0; i < game.CharacterCount; ++i)
     {
         // TODO: move this to Character's "init" method
         game.Characters[i].UpdateEffectiveValues();
@@ -154,11 +154,11 @@ void InitAndRegisterCharacters(Game &game)
 // Initializes dialogs and registers them in the script system
 void InitAndRegisterDialogs(Game &game)
 {
-    game.ScDialogs.resize(game.numdialog);
+    game.ScDialogs.resize(game.DialogCount);
     // ensure at least 1 element, we must register buffer
-    game.Handles.Dialogs.resize(std::max(1, game.numdialog));
+    game.Handles.Dialogs.resize(std::max(1, game.DialogCount));
 
-    for (int i = 0; i < game.numdialog; ++i)
+    for (int i = 0; i < game.DialogCount; ++i)
     {
         game.ScDialogs[i].id = i;
         // register and save handle
@@ -173,15 +173,15 @@ void InitAndRegisterDialogs(Game &game)
 // their handles are stored in Game::Handles.GuiControls
 void RegisterAllGUIControls(Game &game)
 {
-    game.Handles.GuiControls.resize(game.numgui);
-    for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
+    game.Handles.GuiControls.resize(game.GuiCount);
+    for (int gui_id = 0; gui_id < game.GuiCount; ++gui_id)
     {
         auto const &gui = game.Guis[gui_id];
         game.Handles.GuiControls[gui_id] = std::vector<int>();
         game.Handles.GuiControls[gui_id].resize(gui.GetControlCount());
     }
 
-    for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
+    for (int gui_id = 0; gui_id < game.GuiCount; ++gui_id)
     {
         auto const &gui = game.Guis[gui_id];
         for (int ctrl_id = 0; ctrl_id < gui.GetControlCount(); ctrl_id++)
@@ -214,18 +214,18 @@ void RegisterAllGUIControls(Game &game)
 // Initializes GUIs (including their controls) and registers them in the script system
 HError InitAndRegisterGUI(Game &game)
 {
-    game.ScGuis.resize(game.numgui);
+    game.ScGuis.resize(game.GuiCount);
     // ensure at least 1 element, we must register buffer
-    game.Handles.Guis.resize(std::max(1, game.numgui));
+    game.Handles.Guis.resize(std::max(1, game.GuiCount));
 
-    for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
+    for (int gui_id = 0; gui_id < game.GuiCount; ++gui_id)
     {
         game.ScGuis[gui_id].id = -1;
     }
 
     GUIRefCollection gui_control_refs(game.GuiButtons, game.GuiInvWindows, game.GuiLabels, game.GuiListBoxes,
                                       game.GuiSliders, game.GuiTextBoxes);
-    for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
+    for (int gui_id = 0; gui_id < game.GuiCount; ++gui_id)
     {
         // link controls to their parent guis
         HError err = game.Guis[gui_id].RebuildArray(gui_control_refs);
@@ -249,18 +249,18 @@ HError InitAndRegisterGUI(Game &game)
 // Initializes inventory items and registers them in the script system
 void InitAndRegisterInvItems(Game &game)
 {
-    game.ScInvItems.resize(game.numinvitems);
+    game.ScInvItems.resize(game.InventoryItemCount);
     // ensure at least 1 element, we must register buffer
-    game.Handles.InvItems.resize(std::max<uint16_t>(1, game.numinvitems));
+    game.Handles.InvItems.resize(std::max<uint16_t>(1, game.InventoryItemCount));
 
-    for (int i = 0; i < game.numinvitems; ++i)
+    for (int i = 0; i < game.InventoryItemCount; ++i)
     {
         game.ScInvItems[i].id = i;
         // register and save handle
         game.Handles.InvItems[i] = ccRegisterPersistentObject(&game.ScInvItems[i], &ccDynamicInv);
 
-        if (!game.invScriptNames[i].IsEmpty())
-            ccAddExternalScriptObjectHandle(game.invScriptNames[i], &game.Handles.InvItems[i]);
+        if (!game.InventoryItemScriptNames[i].IsEmpty())
+            ccAddExternalScriptObjectHandle(game.InventoryItemScriptNames[i], &game.Handles.InvItems[i]);
     }
 }
 
@@ -269,7 +269,7 @@ void InitAndRegisterInvItems(Game &game)
 // so we only need to fill missing elements.
 static void RegisterMissingGUIControls(Game &game)
 {
-    for (int gui_id = 0; gui_id < game.numgui; ++gui_id)
+    for (int gui_id = 0; gui_id < game.GuiCount; ++gui_id)
     {
         auto const &gui = game.Guis[gui_id];
         for (int ctrl_id = 0; ctrl_id < gui.GetControlCount(); ctrl_id++)
@@ -310,19 +310,19 @@ void RegisterMissingManagedObjects(Game &game)
     {
         StaticAudioClipArray[i] = ccRegisterPersistentObjectIfMissing(&game.AudioClips[i], &ccDynamicAudioClip);
     }
-    for (int i = 0; i < game.numcharacters; ++i)
+    for (int i = 0; i < game.CharacterCount; ++i)
     {
         game.Handles.Characters[i] = ccRegisterPersistentObjectIfMissing(&game.Characters[i], &ccDynamicCharacter);
     }
-    for (int i = 0; i < game.numdialog; ++i)
+    for (int i = 0; i < game.DialogCount; ++i)
     {
         game.Handles.Dialogs[i] = ccRegisterPersistentObjectIfMissing(&game.ScDialogs[i], &ccDynamicDialog);
     }
-    for (int i = 0; i < game.numinvitems; ++i)
+    for (int i = 0; i < game.InventoryItemCount; ++i)
     {
         game.Handles.InvItems[i] = ccRegisterPersistentObjectIfMissing(&game.ScInvItems[i], &ccDynamicInv);
     }
-    for (int i = 0; i < game.numgui; ++i)
+    for (int i = 0; i < game.GuiCount; ++i)
     {
         game.Handles.Guis[i] = ccRegisterPersistentObjectIfMissing(&game.ScGuis[i], &ccDynamicGUI);
     }
@@ -401,11 +401,11 @@ void LoadFonts(GameDef &game, GameDataVersion data_ver)
     std::array<bool, 256> wfn_palette_eligible = {};
 
     for (int i = 0; i < 256; ++i)
-        wfn_palette_eligible[i] = (game.paluses[i] == PAL_GAMEWIDE);
+        wfn_palette_eligible[i] = (game.PaletteUses[i] == PAL_GAMEWIDE);
 
     set_wfn_palette_eligibility(wfn_palette_eligible);
 
-    for (int i = 0; i < game.numfonts; ++i)
+    for (int i = 0; i < game.FontCount; ++i)
     {
         load_game_font(i, game.Fonts[i], data_ver);
     }
@@ -470,7 +470,7 @@ void InitGameResolution(Game &game, GameDataVersion /*data_ver*/)
 {
     const Size game_size = game.GetGameRes();
     Debug::Printf(kDbgMsg_Info, "Game native resolution: %d x %d (%d bit)", game_size.Width, game_size.Height,
-                  game.color_depth * 8);
+                  game.BytesPerPixel * 8);
 
     // Assign general game viewports
     Rect viewport = RectWH(game_size);
@@ -537,7 +537,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // 1. Check that the loaded data is valid and compatible with the current
     // engine capabilities.
     //
-    if (game.numfonts == 0)
+    if (game.FontCount == 0)
         return new GameInitError(kGameInitErr_NoFonts);
 
     //
@@ -551,16 +551,16 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
                                       game.GuiSliders, game.GuiTextBoxes);
     GUI::RebuildGUI(game.Guis, gui_control_refs);
     game.Play.audioclipProps.resize(game.AudioClips.size());
-    game.Play.charProps.resize(game.numcharacters);
-    game.Play.dialogProps.resize(game.numdialog);
-    game.Play.guiProps.resize(game.numgui);
+    game.Play.charProps.resize(game.CharacterCount);
+    game.Play.dialogProps.resize(game.DialogCount);
+    game.Play.guiProps.resize(game.GuiCount);
     game.Play.guicontrolProps[kGUIButton].resize(game.GuiButtons.size());
     game.Play.guicontrolProps[kGUILabel].resize(game.GuiLabels.size());
     game.Play.guicontrolProps[kGUIInvWindow].resize(game.GuiInvWindows.size());
     game.Play.guicontrolProps[kGUISlider].resize(game.GuiSliders.size());
     game.Play.guicontrolProps[kGUITextBox].resize(game.GuiTextBoxes.size());
     game.Play.guicontrolProps[kGUIListBox].resize(game.GuiListBoxes.size());
-    game.Play.invProps.resize(game.numinvitems);
+    game.Play.invProps.resize(game.InventoryItemCount);
     HError err = InitAndRegisterGameEntities(game, ents);
     if (!err)
         return new GameInitError(err, kGameInitErr_EntityInitFail);
@@ -575,8 +575,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     game.IfacePopped = -1;
 
     String svg_suffix;
-    if (game.saveGameFileExtension[0] != 0)
-        svg_suffix.Format(".%s", game.saveGameFileExtension);
+    if (game.SaveGameFileExtension[0] != 0)
+        svg_suffix.Format(".%s", game.SaveGameFileExtension);
     set_save_game_suffix(svg_suffix);
 
     game.Play.fade_effect = game.Options[OPT_FADETYPE];
@@ -584,8 +584,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     SetGameTextLanguage(game.GameTextLanguage);
     if (game.GameInfo.count("dev_error_text") > 0)
         game.Play.SetGameErrorText(game.GameInfo.at("dev_error_text"));
-    SetBaseTextParser(CreateTextParser(game.dict.get(), true, services.TextLocaleName));
-    SetTranslationTextParser(CreateTextParser(game.dict.get(), true, services.TextLocaleName));
+    SetBaseTextParser(CreateTextParser(game.ParserDictionary.get(), true, services.TextLocaleName));
+    SetTranslationTextParser(CreateTextParser(game.ParserDictionary.get(), true, services.TextLocaleName));
 
     //
     // 4. Initialize runtime state of certain game objects

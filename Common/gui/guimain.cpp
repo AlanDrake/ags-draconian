@@ -898,8 +898,8 @@ Line CalcFontGraphicalVExtent(int font)
     // * custom vertical offset set by user (if non-zero),
     const auto finfo = get_fontinfo(font);
     const auto fextent = get_font_surface_vextent(font);
-    int top = fextent.first + std::min(0, finfo.YOffset);     // apply YOffset only if negative
-    int bottom = fextent.second + std::max(0, finfo.YOffset); // apply YOffset only if positive
+    int top = fextent.first + std::min(0, finfo.OffsetY);     // apply YOffset only if negative
+    int bottom = fextent.second + std::max(0, finfo.OffsetY); // apply YOffset only if positive
     return Line(0, top, 0, bottom);
 }
 

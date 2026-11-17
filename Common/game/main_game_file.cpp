@@ -230,8 +230,8 @@ HGameFileError ReadScriptModules(std::vector<UScript> &sc_mods, Stream *in, Game
 
 void ReadViews(GameDef &game, std::vector<ViewDef> &views, Stream *in, GameDataVersion /*data_ver*/)
 {
-    views.resize(game.numviews);
-    for (int i = 0; i < game.numviews; ++i)
+    views.resize(game.ViewCount);
+    for (int i = 0; i < game.ViewCount; ++i)
     {
         views[i].ReadFromFile(in);
     }
@@ -304,7 +304,7 @@ static const uint8_t RGBScale6[64]{0,   4,   8,   12,  16,  20,  24,  28,  32,  
 // * encoded 32-bit A8R8G8B8 in 32-bit game.
 int RemapFromLegacyColourNumber(const GameDef &game, int color, bool is_bg)
 {
-    if (game.color_depth == 1)
+    if (game.BytesPerPixel == 1)
         return color; // keep palette index
 
     // Special color number 0 is treated depending on its purpose:
@@ -319,7 +319,7 @@ int RemapFromLegacyColourNumber(const GameDef &game, int color, bool is_bg)
     // for them we compose a 32-bit ARGB from the palette entry
     if (color >= 0 && color < 32)
     {
-        const RGB &rgb = game.defpal[color];
+        const RGB &rgb = game.DefaultPalette[color];
         return rgb.b | (rgb.g << 8) | (rgb.r << 16) | (0xFF << 24);
     }
 
@@ -356,11 +356,11 @@ void UpgradeDialogs(GameDef &game, GameDataVersion data_ver)
 {
     if (data_ver < kGameVersion_400_26)
     {
-        for (int i = 0; i < game.numdialog; ++i)
+        for (int i = 0; i < game.DialogCount; ++i)
         {
-            game.Dialogs[i].ScriptName = game.dialogScriptNames[i];
+            game.Dialogs[i].ScriptName = game.DialogScriptNames[i];
         }
-        game.dialogScriptNames = std::vector<String>();
+        game.DialogScriptNames = std::vector<String>();
     }
 }
 
@@ -373,9 +373,9 @@ void UpgradeFonts(GameDef &game, GameDataVersion data_ver)
             // TODO: find a better way than relying on valid size?
             auto &fi = game.Fonts[i];
             if (fi.Size > 0)
-                fi.Filename.Format("agsfnt%u.ttf", i);
+                fi.SourceFileName.Format("agsfnt%u.ttf", i);
             else
-                fi.Filename.Format("agsfnt%u.wfn", i);
+                fi.SourceFileName.Format("agsfnt%u.wfn", i);
         }
     }
 }
@@ -386,7 +386,7 @@ void UpgradeAudio(GameDef &game, LoadedGameEntities &ents, GameDataVersion data_
 // Convert character data to the current version
 void UpgradeCharacters(GameDef &game, GameDataVersion data_ver)
 {
-    const int char_count = game.numcharacters;
+    const int char_count = game.CharacterCount;
     auto &chars = game.Characters;
     // For characters loaded from an older game, mark everything as
     // Enabled, because there's no good way to distinct if it was
@@ -428,7 +428,7 @@ void UpgradeCharacters(GameDef &game, GameDataVersion data_ver)
 
 void UpgradeInventoryItems(GameDef &game, GameDataVersion data_ver)
 {
-    const int inv_count = game.numinvitems;
+    const int inv_count = game.InventoryItemCount;
     auto &inv = game.InventoryItems;
 
     if (data_ver < kGameVersion_400_24)
@@ -546,10 +546,10 @@ void UpgradeMouseCursors(GameDef &game, GameDataVersion data_ver)
             true /* pickup */, false /* pointer */, false /* wait */,    true /* mode8 */, true /* mode9 */
         };
 
-        for (int i = 0; i < game.numcursors && i < cursor_event.size(); ++i)
+        for (int i = 0; i < game.MouseCursorCount && i < cursor_event.size(); ++i)
         {
-            game.MouseCursors[i].role = cursor_role[i];
-            game.MouseCursors[i].flags |= MCF_EVENT * cursor_event[i];
+            game.MouseCursors[i].Role = cursor_role[i];
+            game.MouseCursors[i].Flags |= MCF_EVENT * cursor_event[i];
         }
     }
 }
@@ -558,10 +558,10 @@ void UpgradeMouseCursors(GameDef &game, GameDataVersion data_ver)
 // any version
 static void FixupMouseCursorViews(GameDef &game)
 {
-    for (int i = 0; i < game.numcursors; ++i)
+    for (int i = 0; i < game.MouseCursorCount; ++i)
     {
-        if (game.MouseCursors[i].view >= game.numviews)
-            game.MouseCursors[i].view = -1;
+        if (game.MouseCursors[i].View >= game.ViewCount)
+            game.MouseCursors[i].View = -1;
     }
 }
 
@@ -569,17 +569,17 @@ void FixupSaveDirectory(GameDef &game)
 {
     // If the save game folder was not specified by game author, create one of
     // the game name, game GUID, or uniqueid, as a last resort
-    if (game.saveGameFolderName.IsEmpty())
+    if (game.SaveGameFolderName.IsEmpty())
     {
-        if (!game.gamename.IsEmpty())
-            game.saveGameFolderName = game.gamename;
-        else if (game.guid[0])
-            game.saveGameFolderName = game.guid;
+        if (!game.Name.IsEmpty())
+            game.SaveGameFolderName = game.Name;
+        else if (game.Guid[0])
+            game.SaveGameFolderName = game.Guid;
         else
-            game.saveGameFolderName.Format("AGS-Game-%d", game.uniqueid);
+            game.SaveGameFolderName.Format("AGS-Game-%d", game.UniqueID);
     }
     // Lastly, fixup folder name by removing any illegal characters
-    game.saveGameFolderName = Path::FixupSharedFilename(game.saveGameFolderName);
+    game.SaveGameFolderName = Path::FixupSharedFilename(game.SaveGameFolderName);
 }
 
 HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
@@ -628,25 +628,25 @@ HError GameDataExtReader::ReadInteractionScriptModules(Stream *in, LoadedGameEnt
     // for object interaction events
     if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(ents.Game.Characters.size()), err))
         return err;
-    for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
+    for (size_t i = 0; i < (size_t)ents.Game.CharacterCount; ++i)
     {
         err = ents.Game.Characters[i].Interactions.Read(in);
         if (!err)
             return err;
     }
-    if (!ReadAndAssertCount(in, "inventory items", static_cast<uint32_t>(ents.Game.numinvitems), err))
+    if (!ReadAndAssertCount(in, "inventory items", static_cast<uint32_t>(ents.Game.InventoryItemCount), err))
         return err;
-    for (uint32_t i = 0; i < (uint32_t)ents.Game.numinvitems; ++i)
+    for (uint32_t i = 0; i < (uint32_t)ents.Game.InventoryItemCount; ++i)
     {
-        err = ents.Game.InventoryItems[i].interactions.Read(in);
+        err = ents.Game.InventoryItems[i].Interactions.Read(in);
         if (!err)
             return err;
     }
 
     // Script module specification for GUI events
-    if (!ReadAndAssertCount(in, "GUI", static_cast<uint32_t>(ents.Game.numgui), err))
+    if (!ReadAndAssertCount(in, "GUI", static_cast<uint32_t>(ents.Game.GuiCount), err))
         return err;
-    for (size_t i = 0; i < (size_t)ents.Game.numgui; ++i)
+    for (size_t i = 0; i < (size_t)ents.Game.GuiCount; ++i)
         ents.Game.Guis[i].SetScriptModule(StrUtil::ReadString(in));
     return HError::None();
 }
@@ -764,7 +764,7 @@ HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntitie
         return err;
     for (MouseCursorDef &mcur : _ents.Game.MouseCursors)
     {
-        mcur.role = static_cast<CursorRole>(in->ReadInt32());
+        mcur.Role = static_cast<CursorRole>(in->ReadInt32());
         // reserved
         in->ReadInt32();
         in->ReadInt32();
@@ -817,7 +817,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         // NOTE: cursor number assertion was missed in this extension
         for (MouseCursorDef &mcur : _ents.Game.MouseCursors)
         {
-            mcur.animdelay = in->ReadInt32();
+            mcur.AnimationDelay = in->ReadInt32();
             // reserved
             in->ReadInt32();
             in->ReadInt32();
@@ -828,34 +828,34 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     {
         // Extended object names and script names:
         // for object types that had hard name length limits
-        _ents.Game.gamename = StrUtil::ReadString(in);
-        _ents.Game.saveGameFolderName = StrUtil::ReadString(in);
+        _ents.Game.Name = StrUtil::ReadString(in);
+        _ents.Game.SaveGameFolderName = StrUtil::ReadString(in);
         if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(_ents.Game.Characters.size()), err))
             return err;
-        for (int i = 0; i < _ents.Game.numcharacters; ++i)
+        for (int i = 0; i < _ents.Game.CharacterCount; ++i)
         {
             auto &ch = _ents.Game.Characters[i];
             ch.ScriptName = StrUtil::ReadString(in);
             ch.Name = StrUtil::ReadString(in);
         }
-        if (!ReadAndAssertCount(in, "inventory items", static_cast<uint32_t>(_ents.Game.numinvitems), err))
+        if (!ReadAndAssertCount(in, "inventory items", static_cast<uint32_t>(_ents.Game.InventoryItemCount), err))
             return err;
-        for (int i = 0; i < _ents.Game.numinvitems; ++i)
+        for (int i = 0; i < _ents.Game.InventoryItemCount; ++i)
         {
-            _ents.Game.InventoryItems[i].name = StrUtil::ReadString(in);
+            _ents.Game.InventoryItems[i].Name = StrUtil::ReadString(in);
         }
         if (!ReadAndAssertCount(in, "cursors", static_cast<uint32_t>(_ents.Game.MouseCursors.size()), err))
             return err;
         for (MouseCursorDef &mcur : _ents.Game.MouseCursors)
         {
-            mcur.name = StrUtil::ReadString(in);
+            mcur.ScriptName = StrUtil::ReadString(in);
         }
         if (!ReadAndAssertCount(in, "audio clips", static_cast<uint32_t>(_ents.Game.AudioClips.size()), err))
             return err;
         for (AudioClipDef &clip : _ents.Game.AudioClips)
         {
-            clip.scriptName = StrUtil::ReadString(in);
-            clip.fileName = StrUtil::ReadString(in);
+            clip.ScriptName = StrUtil::ReadString(in);
+            clip.FileName = StrUtil::ReadString(in);
         }
     }
     else if (ext_id.CompareNoCase("v362_interevents") == 0)
@@ -913,7 +913,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         // NOTE: we do not assert dialog count here, but override,
         // because the older dialog data format should be skipped completely.
         uint32_t dialog_count = in->ReadInt32();
-        _ents.Game.numdialog = dialog_count;
+        _ents.Game.DialogCount = dialog_count;
         _ents.Game.Dialogs.resize(dialog_count);
         for (auto &dlg : _ents.Game.Dialogs)
             dlg.ReadFromFile_v363(in);
@@ -966,7 +966,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     else if (ext_id.CompareNoCase("ext_ags399") == 0)
     {
         // new character properties
-        for (size_t i = 0; i < (size_t)_ents.Game.numcharacters; ++i)
+        for (size_t i = 0; i < (size_t)_ents.Game.CharacterCount; ++i)
         {
             _ents.Game.Characters[i].BlendMode = (BlendMode)_in->ReadInt32();
             // Reserved for colour options
@@ -987,7 +987,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     }
     else if (ext_id.CompareNoCase("v400_gameopts") == 0)
     {
-        _ents.Game.faceDirectionRatio = _in->ReadFloat32();
+        _ents.Game.FaceDirectionRatio = _in->ReadFloat32();
         // reserve few more 32-bit values (for a total of 10)
         _in->Seek(sizeof(int32_t) * 9);
     }
@@ -995,16 +995,16 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     {
         auto &game = _ents.Game;
         game.audioclipProps.resize(game.AudioClips.size());
-        game.dialogProps.resize(game.numdialog);
-        game.guiProps.resize(game.numgui);
+        game.dialogProps.resize(game.DialogCount);
+        game.guiProps.resize(game.GuiCount);
 
         err = ReadCustomProperties(in, "audio clips", _ents.Game.AudioClips.size(), game.audioclipProps);
         if (!err)
             return err;
-        err = ReadCustomProperties(in, "dialogs", game.numdialog, game.dialogProps);
+        err = ReadCustomProperties(in, "dialogs", game.DialogCount, game.dialogProps);
         if (!err)
             return err;
-        err = ReadCustomProperties(in, "guis", game.numgui, game.guiProps);
+        err = ReadCustomProperties(in, "guis", game.GuiCount, game.guiProps);
         if (!err)
             return err;
 
@@ -1030,7 +1030,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
             return err;
         for (FontDef &finfo : _ents.Game.Fonts)
         {
-            finfo.Filename = StrUtil::ReadString(in);
+            finfo.SourceFileName = StrUtil::ReadString(in);
         }
     }
     else if (ext_id.CompareNoCase("v400_guictrlgfx") == 0)
@@ -1047,32 +1047,32 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     }
     else if (ext_id.CompareNoCase("v400_viewevents") == 0)
     {
-        if (!ReadAndAssertCount(in, "views", static_cast<uint32_t>(_ents.Game.numviews), err))
+        if (!ReadAndAssertCount(in, "views", static_cast<uint32_t>(_ents.Game.ViewCount), err))
             return err;
-        for (uint32_t view = 0; view < _ents.Game.numviews; ++view)
+        for (uint32_t view = 0; view < _ents.Game.ViewCount; ++view)
         {
             auto &view_s = _ents.Game.Views[view];
             uint32_t loop_count = in->ReadInt32();
-            if (loop_count != view_s.numLoops)
+            if (loop_count != view_s.LoopCount)
                 return new Error(String::FromFormat("Mismatching number of loops for view %u: read %u expected %u",
-                                                    view, loop_count, (uint32_t)view_s.numLoops));
+                                                    view, loop_count, (uint32_t)view_s.LoopCount));
             for (uint32_t loop = 0; loop < loop_count; ++loop)
             {
                 uint32_t frame_count = in->ReadInt32();
-                if (frame_count != view_s.loops[loop].numFrames)
+                if (frame_count != view_s.Loops[loop].FrameCount)
                     return new Error(
                         String::FromFormat("Mismatching number of frames for view %u loop %u: read %u expected %u",
-                                           view, loop, frame_count, (uint32_t)view_s.loops[loop].numFrames));
+                                           view, loop, frame_count, (uint32_t)view_s.Loops[loop].FrameCount));
                 for (uint32_t frame = 0; frame < frame_count; ++frame)
                 {
-                    view_s.loops[loop].frames[frame].event_name = StrUtil::ReadCStr(in);
+                    view_s.Loops[loop].Frames[frame].EventName = StrUtil::ReadCStr(in);
                 }
             }
         }
     }
     else if (ext_id.CompareNoCase("v400_charopts2") == 0)
     {
-        if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(_ents.Game.numcharacters), err))
+        if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(_ents.Game.CharacterCount), err))
             return err;
         for (auto &c : _ents.Game.Characters)
         {
@@ -1120,8 +1120,8 @@ HError GameDataExtPreloader::ReadBlock(Stream *in, int /*block_id*/, const Strin
     read_next = true;
     if (ext_id.CompareNoCase("v361_objnames") == 0)
     {
-        _ents.Game.gamename = StrUtil::ReadString(in);
-        _ents.Game.saveGameFolderName = StrUtil::ReadString(in);
+        _ents.Game.Name = StrUtil::ReadString(in);
+        _ents.Game.SaveGameFolderName = StrUtil::ReadString(in);
         read_next = false; // we're done
     }
     SkipBlock(); // prevent assertion trigger
@@ -1133,8 +1133,8 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
                             const String &compiled_with)
 {
     GameDef &game = ents.Game;
-    game.gamedataver = data_ver;
-    game.compiled_with = compiled_with;
+    game.DataVersion = data_ver;
+    game.CompiledWith = compiled_with;
     Stream *in = s_in.get(); // for convenience
 
     //-------------------------------------------------------------------------
@@ -1144,9 +1144,9 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     game.ReadFromFile(in, data_ver, sinfo);
     game.read_savegame_info(in, data_ver); // the game GUID, save file extension and save folder name
 
-    Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename.GetCStr());
-    Debug::Printf(kDbgMsg_Info, "Game uid (old format): `%d`", game.uniqueid);
-    Debug::Printf(kDbgMsg_Info, "Game guid: '%s'", game.guid);
+    Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.Name.GetCStr());
+    Debug::Printf(kDbgMsg_Info, "Game uid (old format): `%d`", game.UniqueID);
+    Debug::Printf(kDbgMsg_Info, "Game guid: '%s'", game.Guid);
 
     if (game.GetGameRes().IsNull())
         return new MainGameFileError(kMGFErr_InvalidNativeResolution);
@@ -1188,13 +1188,13 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
         game.skip_messages(in, sinfo.HasMessages, data_ver);
     }
 
-    ReadDialogs(game.Dialogs, in, data_ver, game.numdialog);
+    ReadDialogs(game.Dialogs, in, data_ver, game.DialogCount);
     GUIRefCollection guictrl_refs(game.GuiButtons, game.GuiInvWindows, game.GuiLabels, game.GuiListBoxes,
                                   game.GuiSliders, game.GuiTextBoxes);
     HError err2 = GUI::ReadGUI(game.Guis, data_ver, ents.LoadedGuiVersion, guictrl_refs, in);
     if (!err2)
         return new MainGameFileError(err2, kMGFErr_GameEntityFailed);
-    game.numgui = game.Guis.size();
+    game.GuiCount = game.Guis.size();
 
     err = ReadPlugins(ents.PluginInfos, in);
     if (!err)
@@ -1245,8 +1245,8 @@ void PreReadGameData(GameDef &game, std::unique_ptr<Stream> &&s_in, GameDataVers
     GameDef::SerializeInfo sinfo;
     game.ReadFromFile(in, data_ver, sinfo);
     game.read_savegame_info(in, data_ver); // the game GUID, save file extension and save folder name
-    game.gamedataver = data_ver;
-    game.compiled_with = compiled_with;
+    game.DataVersion = data_ver;
+    game.CompiledWith = compiled_with;
 
     // Check for particular expansions that might have data necessary
     // for "preload" purposes

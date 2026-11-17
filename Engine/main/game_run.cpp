@@ -585,7 +585,7 @@ bool run_service_key_controls(KeyInput &out_key)
         DisplayMB(buffer.GetCStr());
         int listed_char_id = game.PlayerCharacterID;
         buffer = "CHARACTERS IN THIS ROOM:\n";
-        for (int char_id = 0; char_id < game.numcharacters; char_id++)
+        for (int char_id = 0; char_id < game.CharacterCount; char_id++)
         {
             if (game.Characters[char_id].Room != game.DisplayedRoom)
                 continue;
@@ -1046,7 +1046,7 @@ static void update_objects_scale()
         update_object_scale(game, room, obj_id);
     }
 
-    for (int char_id = 0; char_id < game.numcharacters; ++char_id)
+    for (int char_id = 0; char_id < game.CharacterCount; ++char_id)
     {
         update_character_scale(game, room, char_id);
     }
@@ -1094,28 +1094,29 @@ static void update_cursor_view()
     // NOTE: we are still doing this even if the in-game mouse input is disabled,
     // or mouse cursor is hidden, the animation logic keeps running in the background.
     const auto &mcur = game.MouseCursors[game.Cursor.Look];
-    if (mcur.view >= 0 && mcur.view < game.numviews)
+    if (mcur.View >= 0 && mcur.View < game.ViewCount)
     {
         // only on mousemove, and it's not moving
-        if (((mcur.flags & MCF_ANIMMOVE) != 0) && (services.Input.MouseX == game.Cursor.LastX) &&
+        if (((mcur.Flags & MCF_ANIMMOVE) != 0) && (services.Input.MouseX == game.Cursor.LastX) &&
             (services.Input.MouseY == game.Cursor.LastY))
             ;
         // only on hotspot, and it's not on one
-        else if (((mcur.flags & MCF_HOTSPOT) != 0) &&
+        else if (((mcur.Flags & MCF_HOTSPOT) != 0) &&
                  (GetLocationType(services.Input.MouseX, services.Input.MouseY, kHit_Interactable) == 0))
-            set_new_cursor_graphic(mcur.pic);
+            set_new_cursor_graphic(mcur.Sprite);
         else if (game.Cursor.Delay > 0)
             game.Cursor.Delay--;
         // only animate if the loop 0 exists and has frames
-        else if (game.Views[mcur.view].numLoops > 0 && game.Views[mcur.view].loops[0].numFrames > 0)
+        else if (game.Views[mcur.View].LoopCount > 0 && game.Views[mcur.View].Loops[0].FrameCount > 0)
         {
-            const int viewnum = mcur.view;
+            const int viewnum = mcur.View;
             const int loopnum = 0;
             game.Cursor.Frame++;
-            if (game.Cursor.Frame >= game.Views[viewnum].loops[loopnum].numFrames)
+            if (game.Cursor.Frame >= game.Views[viewnum].Loops[loopnum].FrameCount)
                 game.Cursor.Frame = 0;
-            set_new_cursor_graphic(game.Views[viewnum].loops[loopnum].frames[game.Cursor.Frame].pic);
-            game.Cursor.Delay = game.Views[viewnum].loops[loopnum].frames[game.Cursor.Frame].speed + mcur.animdelay;
+            set_new_cursor_graphic(game.Views[viewnum].Loops[loopnum].Frames[game.Cursor.Frame].Sprite);
+            game.Cursor.Delay =
+                game.Views[viewnum].Loops[loopnum].Frames[game.Cursor.Frame].Delay + mcur.AnimationDelay;
             CheckViewFrame(viewnum, loopnum, game.Cursor.Frame);
         }
         game.Cursor.LastX = services.Input.MouseX;
@@ -1172,10 +1173,10 @@ static void UpdateGUIContext()
     // OTOH it may be inconvenient to have this in every place where this data changes.
     GUI::Context.GameTitle = game.Play.game_name;
 
-    if (game.PlayerChar->ActiveInventory < 0 || game.PlayerChar->ActiveInventory >= game.numinvitems)
+    if (game.PlayerChar->ActiveInventory < 0 || game.PlayerChar->ActiveInventory >= game.InventoryItemCount)
         GUI::Context.InventoryPic = -1;
     else
-        GUI::Context.InventoryPic = game.InventoryItems[game.PlayerChar->ActiveInventory].pic;
+        GUI::Context.InventoryPic = game.InventoryItems[game.PlayerChar->ActiveInventory].Sprite;
 
     // Update a location name for the GUI labels. We do this every game
     // tick, because this does not depend only on cursor position, but also

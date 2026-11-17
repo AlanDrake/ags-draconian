@@ -32,13 +32,13 @@ enum InventoryEventID
 
 struct InventoryItemDef
 {
-    AGS::Common::String name = {};
-    int pic = 0;
-    int cursorPic = 0, hotx = 0, hoty = 0;
-    FrameAlignment hotAlign = kAlignNone;
-    uint8_t flags = 0u; // IFLG_STARTWITH
+    AGS::Common::String Name = {};
+    int Sprite = 0;                                               // script: Graphic
+    int CursorSprite = 0, CursorHotspotX = 0, CursorHotspotY = 0; // script: CursorGraphic
+    FrameAlignment CursorHotspotAlignment = kAlignNone;
+    uint8_t Flags = 0u; // IFLG_STARTWITH
     // Interaction events (cursor-based)
-    AGS::Common::ScriptEventHandlers interactions = {};
+    AGS::Common::ScriptEventHandlers Interactions = {};
 
     // Gets a events schema corresponding to this object's type
     static const AGS::Common::ScriptEventSchema &GetEventSchema() { return InventoryItemDef::_eventSchema; }

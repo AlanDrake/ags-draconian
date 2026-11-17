@@ -131,7 +131,7 @@ Bitmap *prepare_walkable_areas(int source_char_id)
         return room.WalkableAreasTemp;
 
     // for each character in the current room, make the area under them unwalkable
-    for (int char_id = 0; char_id < game.numcharacters; char_id++)
+    for (int char_id = 0; char_id < game.CharacterCount; char_id++)
     {
         if (!game.Characters[char_id].is_enabled())
             continue;

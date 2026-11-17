@@ -64,7 +64,7 @@ int Character::get_blocking_bottom() const
 // (or if there's less than 2 frames in the current loop).
 static void ResetFrameIfAtEnd(Game &game, Character *ch)
 {
-    const int frames_in_loop = game.Views[ch->View].loops[ch->Loop].numFrames;
+    const int frames_in_loop = game.Views[ch->View].Loops[ch->Loop].FrameCount;
     if (ch->Frame >= frames_in_loop)
     {
         ch->Frame = (ch->IsMoving() && frames_in_loop > 1) ? 1 : 0;
@@ -82,23 +82,23 @@ static void FixupCharacterLoopAndFrame(Game &game, Character *ch, bool switch_fr
     if (view < 0 || view >= game.Views.size())
     {
         quitprintf("!Character %s is assigned a invalid view %d (valid range 1..%d)", ch->ScriptName.GetCStr(), view,
-                   game.numviews);
+                   game.ViewCount);
     }
-    if (!switch_from_bad_loop && (ch->Loop < 0 || ch->Loop >= game.Views[view].numLoops))
+    if (!switch_from_bad_loop && (ch->Loop < 0 || ch->Loop >= game.Views[view].LoopCount))
     {
         quitprintf("!Character %s is assigned a invalid loop %d in view %d (valid range 0..%d)",
                    ch->ScriptName.GetCStr(), ch->Loop, view, game.Views[view].GetLastLoop());
     }
 
-    if (switch_from_bad_loop &&
-        ((ch->Loop < 0 || ch->Loop >= game.Views[view].numLoops) || (game.Views[view].loops[ch->Loop].numFrames == 0)))
+    if (switch_from_bad_loop && ((ch->Loop < 0 || ch->Loop >= game.Views[view].LoopCount) ||
+                                 (game.Views[view].Loops[ch->Loop].FrameCount == 0)))
     {
         int loop = ch->Loop;
-        for (loop = 0; (loop < game.Views[view].numLoops) && (game.Views[view].loops[loop].numFrames == 0); ++loop)
+        for (loop = 0; (loop < game.Views[view].LoopCount) && (game.Views[view].Loops[loop].FrameCount == 0); ++loop)
         {
             ;
         }
-        if (loop == game.Views[view].numLoops) // view has no frames?!
+        if (loop == game.Views[view].LoopCount) // view has no frames?!
         {
             quitprintf("!Character %s is assigned view %d that has no frames!", ch->ScriptName.GetCStr(), view);
             loop = 0;
@@ -192,8 +192,8 @@ bool UpdateCharacterTurning(Game &game, Character *ch)
                     want_loop = 7;
                 }
 
-                if ((turnlooporder[want_loop] >= game.Views[view].numLoops) ||
-                    (game.Views[view].loops[turnlooporder[want_loop]].numFrames < 1) ||
+                if ((turnlooporder[want_loop] >= game.Views[view].LoopCount) ||
+                    (game.Views[view].Loops[turnlooporder[want_loop]].FrameCount < 1) ||
                     ((turnlooporder[want_loop] >= NUM_BASE_DIRECTIONS) && ((ch->Flags & CHF_NODIAGONAL) != 0)))
                 {
                     if (ch->IsTurningCounterClockwise())
@@ -333,7 +333,7 @@ void UpdateCharacterMoving(Game &game, Character *ch, int &doing_nothing)
                 ch->Frame++;
                 ResetFrameIfAtEnd(game, ch); // roll back if exceeded loop
 
-                ch->WalkAnimWait = game.Views[view].loops[loop].frames[ch->Frame].speed + ch->AnimationDelay;
+                ch->WalkAnimWait = game.Views[view].Loops[loop].Frames[ch->Frame].Delay + ch->AnimationDelay;
 
                 if (ch->Flags & CHF_ANTIGLIDE)
                 {
@@ -437,7 +437,7 @@ bool UpdateCharacterAnimating(Game &game, Character *ch, int &doing_nothing)
                 }
             }
 
-            ch->AnimWait = game.Views[view].loops[ch->Loop].frames[ch->Frame].speed;
+            ch->AnimWait = game.Views[view].Loops[ch->Loop].Frames[ch->Frame].Delay;
             // An idle animation has no animation parameters in ch->Anim (they are cleared when it starts, see
             // UpdateCharacterIdle), so its delay comes from IdleAnimationDelay instead of GetAnimDelay()
             if (ch->is_idling())
@@ -597,7 +597,7 @@ void UpdateCharacterIdle(Game &game, Character *ch, int &doing_nothing)
             Character_LockView(ch, ch->IdleView + 1);
             // Character_LockView stops the idling (IdleTimeLeft is -1 here) and resets IdleTimeLeft: mark it as idling again
             ch->IdleTimeLeft = -2;
-            int max_loops = game.Views[ch->IdleView].numLoops;
+            int max_loops = game.Views[ch->IdleView].LoopCount;
             // if the char is set to "no diagonal loops", don't try
             // to use diagonal idle loops either
             if ((max_loops > 4) && (!should_use_diagloops(ch, false /* allow 1-frame loops */)))
@@ -612,7 +612,7 @@ void UpdateCharacterIdle(Game &game, Character *ch, int &doing_nothing)
                 {
                     use_loop = rand() % max_loops;
                     // don't select a loop which is a continuation of a previous one
-                } while ((use_loop > 0) && (game.Views[ch->IdleView].loops[use_loop - 1].RunNextLoop()));
+                } while ((use_loop > 0) && (game.Views[ch->IdleView].Loops[use_loop - 1].RunNextLoop()));
             }
             // Normal idle anim - just reset to loop 0 if not enough to
             // use the current one

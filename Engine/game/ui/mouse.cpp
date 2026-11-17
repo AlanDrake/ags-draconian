@@ -113,13 +113,13 @@ void Mouse_SetBounds(int x1, int y1, int x2, int y2)
 void set_cursor_look(int newcurs, bool force_update)
 {
     Game &game = Game::Current();
-    if (newcurs < 0 || newcurs >= game.numcursors)
+    if (newcurs < 0 || newcurs >= game.MouseCursorCount)
         return;
 
-    const int hotspotx = game.MouseCursors[newcurs].hotx, hotspoty = game.MouseCursors[newcurs].hoty;
+    const int hotspotx = game.MouseCursors[newcurs].HotspotX, hotspoty = game.MouseCursors[newcurs].HotspotY;
 
     // if it's same cursor and there's animation in progress, then don't assign a new pic just yet
-    if (!force_update && newcurs == game.Cursor.Look && game.MouseCursors[newcurs].view >= 0 &&
+    if (!force_update && newcurs == game.Cursor.Look && game.MouseCursors[newcurs].View >= 0 &&
         (game.Cursor.Frame > 0 || game.Cursor.Delay > 0))
     {
         return;
@@ -134,7 +134,7 @@ void set_cursor_look(int newcurs, bool force_update)
     }
 
     // Assign new pic
-    const int cur_pic = game.MouseCursors[newcurs].pic;
+    const int cur_pic = game.MouseCursors[newcurs].Sprite;
     set_new_cursor_graphic(cur_pic);
     game.Cursor.HotX = hotspotx, game.Cursor.HotY = hotspoty;
 
@@ -212,16 +212,16 @@ void Mouse_SetDefaultCursor()
 void Mouse_ChangeCursorGraphic(int curs, int newslot)
 {
     Game &game = Game::Current();
-    if ((curs < 0) || (curs >= game.numcursors))
+    if ((curs < 0) || (curs >= game.MouseCursorCount))
         quit("!ChangeCursorGraphic: invalid mouse cursor");
 
     if (game.HasCursorRole(curs, kCursorRole_UseInv) && (game.Options[OPT_FIXEDINVCURSOR] == 0))
         debug_script_warn("Mouse.ChangeModeGraphic should not be used on the Inventory cursor when the cursor is "
                           "linked to the active inventory item");
 
-    if (game.MouseCursors[curs].pic != newslot)
+    if (game.MouseCursors[curs].Sprite != newslot)
     {
-        game.MouseCursors[curs].pic = newslot;
+        game.MouseCursors[curs].Sprite = newslot;
         EngineServices::Current().Sprites.PrecacheSprite(newslot);
     }
 
@@ -232,19 +232,19 @@ void Mouse_ChangeCursorGraphic(int curs, int newslot)
 int Mouse_GetModeGraphic(int curs)
 {
     Game &game = Game::Current();
-    if ((curs < 0) || (curs >= game.numcursors))
+    if ((curs < 0) || (curs >= game.MouseCursorCount))
         quit("!Mouse.GetModeGraphic: invalid mouse cursor");
 
-    return game.MouseCursors[curs].pic;
+    return game.MouseCursors[curs].Sprite;
 }
 
 void Mouse_ChangeCursorHotspot(int curs, int x, int y)
 {
     Game &game = Game::Current();
-    if ((curs < 0) || (curs >= game.numcursors))
+    if ((curs < 0) || (curs >= game.MouseCursorCount))
         quit("!ChangeCursorHotspot: invalid mouse cursor");
-    game.MouseCursors[curs].hotx = x;
-    game.MouseCursors[curs].hoty = y;
+    game.MouseCursors[curs].HotspotX = x;
+    game.MouseCursors[curs].HotspotY = y;
     if (curs == game.Cursor.Look)
         set_cursor_look(game.Cursor.Look);
 }
@@ -252,24 +252,24 @@ void Mouse_ChangeCursorHotspot(int curs, int x, int y)
 ScriptUserObject *Mouse_GetModeHotspot(int curs)
 {
     Game &game = Game::Current();
-    if ((curs < 0) || (curs >= game.numcursors))
+    if ((curs < 0) || (curs >= game.MouseCursorCount))
         quit("!GetModeHotspot: invalid mouse cursor");
-    int x = game.MouseCursors[curs].hotx;
-    int y = game.MouseCursors[curs].hoty;
+    int x = game.MouseCursors[curs].HotspotX;
+    int y = game.MouseCursors[curs].HotspotY;
     return ScriptStructHelpers::CreatePoint(x, y);
 }
 
 void Mouse_ChangeModeView(int curs, int newview, int delay)
 {
     Game &game = Game::Current();
-    if ((curs < 0) || (curs >= game.numcursors))
+    if ((curs < 0) || (curs >= game.MouseCursorCount))
         quit("!Mouse.ChangeModeView: invalid mouse cursor");
 
     newview--; // convert to 0-based view index
 
-    if (newview != game.MouseCursors[curs].view)
+    if (newview != game.MouseCursors[curs].View)
     {
-        game.MouseCursors[curs].view = newview;
+        game.MouseCursors[curs].View = newview;
         if (newview >= 0)
         {
             precache_view(newview);
@@ -277,7 +277,7 @@ void Mouse_ChangeModeView(int curs, int newview, int delay)
     }
 
     if (delay != SCR_NO_VALUE)
-        game.MouseCursors[curs].animdelay = delay;
+        game.MouseCursors[curs].AnimationDelay = delay;
 
     // If it's a current cursor, then force view update
     if (curs == game.Cursor.Look)
@@ -302,10 +302,10 @@ void Mouse_SetPreviousCursor()
 void set_cursor_mode(int newmode)
 {
     Game &game = Game::Current();
-    if ((newmode < 0) || (newmode >= game.numcursors))
+    if ((newmode < 0) || (newmode >= game.MouseCursorCount))
         return;
 
-    if (game.MouseCursors[newmode].flags & MCF_DISABLED)
+    if (game.MouseCursors[newmode].Flags & MCF_DISABLED)
     {
         find_next_enabled_cursor(newmode);
         return;
@@ -331,9 +331,9 @@ void set_cursor_mode(int newmode)
 void set_cursor_mode_with_role(CursorRole role, int fallback_mode)
 {
     Game &game = Game::Current();
-    for (int i = 0; i < game.numcursors; ++i)
+    for (int i = 0; i < game.MouseCursorCount; ++i)
     {
-        if (game.MouseCursors[i].role == role)
+        if (game.MouseCursors[i].Role == role)
         {
             set_cursor_mode(i);
             return;
@@ -346,13 +346,13 @@ void set_cursor_mode_with_role(CursorRole role, int fallback_mode)
 bool is_current_cursor_mode(CursorRole role)
 {
     Game &game = Game::Current();
-    return game.MouseCursors[game.Cursor.Mode].role == role;
+    return game.MouseCursors[game.Cursor.Mode].Role == role;
 }
 
 bool is_current_cursor_look(CursorRole role)
 {
     Game &game = Game::Current();
-    return game.MouseCursors[game.Cursor.Look].role == role;
+    return game.MouseCursors[game.Cursor.Look].Role == role;
 }
 
 void Mouse_SetCursorMode(int newmode)
@@ -363,14 +363,14 @@ void Mouse_SetCursorMode(int newmode)
 void enable_cursor_mode(int modd)
 {
     Game &game = Game::Current();
-    if (modd < 0 || modd >= game.numcursors)
+    if (modd < 0 || modd >= game.MouseCursorCount)
         return;
 
-    game.MouseCursors[modd].flags &= ~MCF_DISABLED;
+    game.MouseCursors[modd].Flags &= ~MCF_DISABLED;
     // now search the interfaces for related buttons to re-enable
     int uu, ww;
 
-    for (uu = 0; uu < game.numgui; uu++)
+    for (uu = 0; uu < game.GuiCount; uu++)
     {
         for (ww = 0; ww < game.Guis[uu].GetControlCount(); ww++)
         {
@@ -389,14 +389,14 @@ void enable_cursor_mode(int modd)
 void disable_cursor_mode(int modd)
 {
     Game &game = Game::Current();
-    if (modd < 0 || modd >= game.numcursors)
+    if (modd < 0 || modd >= game.MouseCursorCount)
         return;
 
-    game.MouseCursors[modd].flags |= MCF_DISABLED;
+    game.MouseCursors[modd].Flags |= MCF_DISABLED;
     // now search the interfaces for related buttons to kill
     int uu, ww;
 
-    for (uu = 0; uu < game.numgui; uu++)
+    for (uu = 0; uu < game.GuiCount; uu++)
     {
         for (ww = 0; ww < game.Guis[uu].GetControlCount(); ww++)
         {
@@ -472,9 +472,9 @@ bool IsAnyButtonDown()
 int Mouse_IsModeEnabled(int which)
 {
     Game &game = Game::Current();
-    return (which < 0) || (which >= game.numcursors)       ? 0
+    return (which < 0) || (which >= game.MouseCursorCount) ? 0
            : game.HasCursorRole(which, kCursorRole_UseInv) ? game.PlayerChar->ActiveInventory > 0
-                                                           : (game.MouseCursors[which].flags & MCF_DISABLED) == 0;
+                                                           : (game.MouseCursors[which].Flags & MCF_DISABLED) == 0;
 }
 
 void Mouse_SaveCursorForLocationChange()
@@ -578,26 +578,27 @@ void update_inv_cursor(int invnum)
     Game &game = Game::Current();
     if ((game.Options[OPT_FIXEDINVCURSOR] == 0) && (invnum > 0))
     {
-        int cursor_sprite = game.InventoryItems[invnum].cursorPic;
+        int cursor_sprite = game.InventoryItems[invnum].CursorSprite;
 
         // Fall back to the inventory pic if no cursor pic is defined.
         if (cursor_sprite == 0)
-            cursor_sprite = game.InventoryItems[invnum].pic;
+            cursor_sprite = game.InventoryItems[invnum].Sprite;
 
         const int useinv_cursor = game.GetModeUseInv();
         if (useinv_cursor < 0)
             return; // game has no "use inv" cursor
 
         auto &mcur = game.MouseCursors[useinv_cursor];
-        mcur.pic = cursor_sprite;
+        mcur.Sprite = cursor_sprite;
         // all cursor images must be pre-cached
         EngineServices::Current().Sprites.PrecacheSprite(cursor_sprite);
 
         Rect spr_rc = RectWH(Size(game.SpriteInfos[cursor_sprite].Width, game.SpriteInfos[cursor_sprite].Height));
-        Point pt = AlignInRect(spr_rc, Point(game.InventoryItems[invnum].hotx, game.InventoryItems[invnum].hoty),
-                               game.InventoryItems[invnum].hotAlign);
-        mcur.hotx = pt.X;
-        mcur.hoty = pt.Y;
+        Point pt = AlignInRect(
+            spr_rc, Point(game.InventoryItems[invnum].CursorHotspotX, game.InventoryItems[invnum].CursorHotspotY),
+            game.InventoryItems[invnum].CursorHotspotAlignment);
+        mcur.HotspotX = pt.X;
+        mcur.HotspotY = pt.Y;
     }
 }
 
@@ -618,7 +619,7 @@ void set_new_cursor_graphic(int spriteslot)
 bool is_standard_cursor_enabled(int curs)
 {
     Game &game = Game::Current();
-    if ((game.MouseCursors[curs].flags & MCF_DISABLED) == 0)
+    if ((game.MouseCursors[curs].Flags & MCF_DISABLED) == 0)
     {
         // inventory cursor, and they have an active item
         if (game.HasCursorRole(curs, kCursorRole_UseInv))
@@ -627,7 +628,7 @@ bool is_standard_cursor_enabled(int curs)
                 return true;
         }
         // standard cursor that's not disabled, go with it
-        else if (game.MouseCursors[curs].flags & MCF_STANDARD)
+        else if (game.MouseCursors[curs].Flags & MCF_STANDARD)
             return true;
     }
     return false;
@@ -636,7 +637,7 @@ bool is_standard_cursor_enabled(int curs)
 int find_next_enabled_cursor(int startwith)
 {
     Game &game = Game::Current();
-    if (startwith >= game.numcursors)
+    if (startwith >= game.MouseCursorCount)
         startwith = 0;
     int testing = startwith;
     do
@@ -644,7 +645,7 @@ int find_next_enabled_cursor(int startwith)
         if (is_standard_cursor_enabled(testing))
             break;
         testing++;
-        if (testing >= game.numcursors)
+        if (testing >= game.MouseCursorCount)
             testing = 0;
     } while (testing != startwith);
 
@@ -658,7 +659,7 @@ int find_previous_enabled_cursor(int startwith)
 {
     Game &game = Game::Current();
     if (startwith < 0)
-        startwith = game.numcursors - 1;
+        startwith = game.MouseCursorCount - 1;
     int testing = startwith;
     do
     {
@@ -666,7 +667,7 @@ int find_previous_enabled_cursor(int startwith)
             break;
         testing--;
         if (testing < 0)
-            testing = game.numcursors - 1;
+            testing = game.MouseCursorCount - 1;
     } while (testing != startwith);
 
     if (testing != startwith)

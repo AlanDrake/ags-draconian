@@ -142,17 +142,17 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     GameDef::SerializeInfo info;
     loaded.ReadFromFile(in.get(), kGameVersion_Current, info);
 
-    EXPECT_STREQ("Round-trip \"game\"", loaded.gamename.GetCStr());
-    EXPECT_EQ(2, loaded.numviews);
-    EXPECT_EQ(2, loaded.numcharacters);
+    EXPECT_STREQ("Round-trip \"game\"", loaded.Name.GetCStr());
+    EXPECT_EQ(2, loaded.ViewCount);
+    EXPECT_EQ(2, loaded.CharacterCount);
     EXPECT_EQ(1, loaded.PlayerCharacterID);
-    EXPECT_EQ(1, loaded.numinvitems); // the list has item 0 already, as in the editor
-    EXPECT_EQ(1, loaded.numfonts);
-    EXPECT_EQ(1, loaded.numgui);
-    EXPECT_EQ(2, loaded.numcursors);
-    EXPECT_EQ(4, loaded.color_depth);
+    EXPECT_EQ(1, loaded.InventoryItemCount); // the list has item 0 already, as in the editor
+    EXPECT_EQ(1, loaded.FontCount);
+    EXPECT_EQ(1, loaded.GuiCount);
+    EXPECT_EQ(2, loaded.MouseCursorCount);
+    EXPECT_EQ(4, loaded.BytesPerPixel);
     EXPECT_EQ(17, loaded.DialogBulletSprite);
-    EXPECT_EQ(123456, loaded.uniqueid);
+    EXPECT_EQ(123456, loaded.UniqueID);
     EXPECT_EQ(640, loaded.GetGameRes().Width);
     EXPECT_EQ(360, loaded.GetGameRes().Height);
     EXPECT_EQ(3, loaded.DefaultLipSyncFrame);
@@ -243,12 +243,12 @@ TEST(DataFileWriter, RoundTripInventoryItem)
     InventoryItemDef loaded{};
     loaded.ReadFromFile(in.get(), kGameVersion_Current);
 
-    EXPECT_STREQ("Key that unlocks the \"doo", loaded.name.GetCStr()); // limited by LEGACY_MAX_INVENTORY_NAME_LENGTH
-    EXPECT_EQ(10, loaded.pic);
-    EXPECT_EQ(11, loaded.cursorPic);
-    EXPECT_EQ(3, loaded.hotx);
-    EXPECT_EQ(4, loaded.hoty);
-    EXPECT_NE(0, loaded.flags & IFLG_STARTWITH);
+    EXPECT_STREQ("Key that unlocks the \"doo", loaded.Name.GetCStr()); // limited by LEGACY_MAX_INVENTORY_NAME_LENGTH
+    EXPECT_EQ(10, loaded.Sprite);
+    EXPECT_EQ(11, loaded.CursorSprite);
+    EXPECT_EQ(3, loaded.CursorHotspotX);
+    EXPECT_EQ(4, loaded.CursorHotspotY);
+    EXPECT_NE(0, loaded.Flags & IFLG_STARTWITH);
 }
 
 TEST(DataFileWriter, RoundTripInventoryBlock)
@@ -271,10 +271,10 @@ TEST(DataFileWriter, RoundTripInventoryBlock)
     InventoryItemDef loaded[2]{};
     for (auto &item : loaded)
         item.ReadFromFile(in.get(), kGameVersion_Current);
-    EXPECT_STREQ("Key", loaded[0].name.GetCStr());
-    EXPECT_EQ(10, loaded[0].pic);
-    EXPECT_STREQ("Coin", loaded[1].name.GetCStr());
-    EXPECT_EQ(20, loaded[1].pic);
+    EXPECT_STREQ("Key", loaded[0].Name.GetCStr());
+    EXPECT_EQ(10, loaded[0].Sprite);
+    EXPECT_STREQ("Coin", loaded[1].Name.GetCStr());
+    EXPECT_EQ(20, loaded[1].Sprite);
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
 
@@ -300,14 +300,14 @@ TEST(DataFileWriter, RoundTripCursor)
     MouseCursorDef loaded;
     loaded.ReadFromFile(in.get());
 
-    EXPECT_STREQ("Interact", loaded.name.GetCStr());
-    EXPECT_EQ(20, loaded.pic);
-    EXPECT_EQ(5, loaded.hotx);
-    EXPECT_EQ(6, loaded.hoty);
-    EXPECT_EQ(3, loaded.view);
-    EXPECT_NE(0, loaded.flags & MCF_HOTSPOT);
-    EXPECT_NE(0, loaded.flags & MCF_ANIMMOVE);
-    EXPECT_NE(0, loaded.flags & MCF_STANDARD);
+    EXPECT_STREQ("Interact", loaded.ScriptName.GetCStr());
+    EXPECT_EQ(20, loaded.Sprite);
+    EXPECT_EQ(5, loaded.HotspotX);
+    EXPECT_EQ(6, loaded.HotspotY);
+    EXPECT_EQ(3, loaded.View);
+    EXPECT_NE(0, loaded.Flags & MCF_HOTSPOT);
+    EXPECT_NE(0, loaded.Flags & MCF_ANIMMOVE);
+    EXPECT_NE(0, loaded.Flags & MCF_STANDARD);
 }
 
 TEST(DataFileWriter, RoundTripCursorBlock)
@@ -330,10 +330,10 @@ TEST(DataFileWriter, RoundTripCursorBlock)
     MouseCursorDef loaded[2];
     for (auto &cursor : loaded)
         cursor.ReadFromFile(in.get());
-    EXPECT_STREQ("Walk", loaded[0].name.GetCStr());
-    EXPECT_EQ(1, loaded[0].pic);
-    EXPECT_STREQ("Look", loaded[1].name.GetCStr());
-    EXPECT_EQ(2, loaded[1].pic);
+    EXPECT_STREQ("Walk", loaded[0].ScriptName.GetCStr());
+    EXPECT_EQ(1, loaded[0].Sprite);
+    EXPECT_STREQ("Look", loaded[1].ScriptName.GetCStr());
+    EXPECT_EQ(2, loaded[1].Sprite);
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
 
@@ -386,14 +386,14 @@ TEST(DataFileWriter, RoundTripView)
     ViewDef loaded;
     loaded.ReadFromFile(in.get());
 
-    ASSERT_EQ(1, loaded.numLoops);
-    ASSERT_EQ(1, loaded.loops[0].numFrames);
-    ASSERT_EQ(1u, loaded.loops[0].frames.size());
-    EXPECT_TRUE(loaded.loops[0].RunNextLoop());
-    EXPECT_EQ(12, loaded.loops[0].frames[0].pic);
-    EXPECT_EQ(3, loaded.loops[0].frames[0].speed);
-    EXPECT_NE(0, loaded.loops[0].frames[0].flags & kSprTf_FlipX);
-    EXPECT_EQ(99, loaded.loops[0].frames[0].sound);
+    ASSERT_EQ(1, loaded.LoopCount);
+    ASSERT_EQ(1, loaded.Loops[0].FrameCount);
+    ASSERT_EQ(1u, loaded.Loops[0].Frames.size());
+    EXPECT_TRUE(loaded.Loops[0].RunNextLoop());
+    EXPECT_EQ(12, loaded.Loops[0].Frames[0].Sprite);
+    EXPECT_EQ(3, loaded.Loops[0].Frames[0].Delay);
+    EXPECT_NE(0, loaded.Loops[0].Frames[0].Flags & kSprTf_FlipX);
+    EXPECT_EQ(99, loaded.Loops[0].Frames[0].LinkedAudio);
 }
 
 TEST(DataFileWriter, RoundTripViewsBlock)
@@ -421,12 +421,12 @@ TEST(DataFileWriter, RoundTripViewsBlock)
     ViewDef loaded[3];
     for (auto &view : loaded)
         view.ReadFromFile(in.get());
-    ASSERT_EQ(1u, loaded[0].loops[0].frames.size());
-    EXPECT_EQ(0, loaded[1].numLoops); // no view 2
-    ASSERT_EQ(1u, loaded[2].loops[0].frames.size());
-    EXPECT_EQ(20, loaded[0].loops[0].frames[0].pic);
-    EXPECT_NE(0, loaded[0].loops[0].frames[0].flags & kSprTf_FlipX);
-    EXPECT_EQ(10, loaded[2].loops[0].frames[0].pic);
+    ASSERT_EQ(1u, loaded[0].Loops[0].Frames.size());
+    EXPECT_EQ(0, loaded[1].LoopCount); // no view 2
+    ASSERT_EQ(1u, loaded[2].Loops[0].Frames.size());
+    EXPECT_EQ(20, loaded[0].Loops[0].Frames[0].Sprite);
+    EXPECT_NE(0, loaded[0].Loops[0].Frames[0].Flags & kSprTf_FlipX);
+    EXPECT_EQ(10, loaded[2].Loops[0].Frames[0].Sprite);
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
 
@@ -474,10 +474,10 @@ TEST(DataFileWriter, RoundTripAudioType)
     AudioClipTypeDef loaded;
     loaded.ReadFromFile(in.get());
 
-    EXPECT_EQ(4, loaded.id);
-    EXPECT_EQ(2, loaded.reservedChannels);
-    EXPECT_EQ(30, loaded.volume_reduction_while_speech_playing);
-    EXPECT_EQ(DataUtil::kCrossfade_Medium, loaded.crossfadeSpeed);
+    EXPECT_EQ(4, loaded.ID);
+    EXPECT_EQ(2, loaded.ReservedChannels);
+    EXPECT_EQ(30, loaded.VolumeReductionWhileSpeechPlaying);
+    EXPECT_EQ(DataUtil::kCrossfade_Medium, loaded.CrossfadeSpeed);
 }
 
 TEST(DataFileWriter, RoundTripAudioClip)
@@ -502,15 +502,15 @@ TEST(DataFileWriter, RoundTripAudioClip)
     AudioClipDef loaded;
     loaded.ReadFromFile(in.get());
 
-    EXPECT_EQ(8, loaded.id);
-    EXPECT_STREQ("aMusic", loaded.scriptName.GetCStr());
-    EXPECT_STREQ("music.ogg", loaded.fileName.GetCStr());
-    EXPECT_EQ(DataUtil::kAudioBundling_InSeparateVOX, loaded.bundlingType);
-    EXPECT_EQ(3, loaded.type);
-    EXPECT_EQ(eAudioFileOGG, loaded.fileType);
-    EXPECT_EQ(1, loaded.defaultRepeat);
-    EXPECT_EQ(75, loaded.defaultPriority);
-    EXPECT_EQ(80, loaded.defaultVolume);
+    EXPECT_EQ(8, loaded.ID);
+    EXPECT_STREQ("aMusic", loaded.ScriptName.GetCStr());
+    EXPECT_STREQ("music.ogg", loaded.FileName.GetCStr());
+    EXPECT_EQ(DataUtil::kAudioBundling_InSeparateVOX, loaded.BundlingType);
+    EXPECT_EQ(3, loaded.Type);
+    EXPECT_EQ(eAudioFileOGG, loaded.FileType);
+    EXPECT_EQ(1, loaded.IsRepeatingByDefault);
+    EXPECT_EQ(75, loaded.DefaultPriority);
+    EXPECT_EQ(80, loaded.DefaultVolume);
 }
 
 TEST(DataFileWriter, RoundTripAudioBlock)
@@ -539,17 +539,17 @@ TEST(DataFileWriter, RoundTripAudioBlock)
 
     LoadedAudioBlock loaded = RoundTripAudioBlock(game);
     ASSERT_EQ(3u, loaded.Types.size());
-    EXPECT_EQ(0, loaded.Types[0].id); // synthetic reserved type 0
-    EXPECT_EQ(1, loaded.Types[0].reservedChannels);
+    EXPECT_EQ(0, loaded.Types[0].ID); // synthetic reserved type 0
+    EXPECT_EQ(1, loaded.Types[0].ReservedChannels);
     // DataFileWriter.cs serializes audio type IDs from collection positions,
     // rather than from AudioClipType.TypeID.
-    EXPECT_EQ(1, loaded.Types[1].id);
-    EXPECT_EQ(2, loaded.Types[2].id);
+    EXPECT_EQ(1, loaded.Types[1].ID);
+    EXPECT_EQ(2, loaded.Types[2].ID);
     ASSERT_EQ(2u, loaded.Clips.size());
-    EXPECT_EQ(101, loaded.Clips[0].id);
-    EXPECT_STREQ("aTheme", loaded.Clips[0].scriptName.GetCStr());
-    EXPECT_EQ(202, loaded.Clips[1].id);
-    EXPECT_STREQ("aClick", loaded.Clips[1].scriptName.GetCStr());
+    EXPECT_EQ(101, loaded.Clips[0].ID);
+    EXPECT_STREQ("aTheme", loaded.Clips[0].ScriptName.GetCStr());
+    EXPECT_EQ(202, loaded.Clips[1].ID);
+    EXPECT_STREQ("aClick", loaded.Clips[1].ScriptName.GetCStr());
     EXPECT_EQ(0, loaded.ScoreClipID); // [DEPRECATED]: the editor writes 0
 }
 
@@ -742,11 +742,11 @@ TEST(DataFileWriter, RoundTripFontBlock)
     FontDef loaded[2];
     for (int i = 0; i < 2; ++i)
     {
-        loaded[i].FontID = i;
+        loaded[i].ID = i;
         const uint32_t flags = in->ReadInt32();
         loaded[i].Size = in->ReadInt32();
         loaded[i].Outline = in->ReadInt32();
-        loaded[i].YOffset = in->ReadInt32();
+        loaded[i].OffsetY = in->ReadInt32();
         loaded[i].LineSpacing = in->ReadInt32();
         loaded[i].SetFlags(flags);
     }
@@ -757,7 +757,7 @@ TEST(DataFileWriter, RoundTripFontBlock)
     EXPECT_NE(0u, loaded[0].Flags & FFLG_LOGICALNOMINALHEIGHT);
     EXPECT_NE(0u, loaded[0].Flags & FFLG_ASCENDERFIXUP);
     EXPECT_EQ(FONT_OUTLINE_AUTO, loaded[0].Outline);
-    EXPECT_EQ(7, loaded[0].YOffset);
+    EXPECT_EQ(7, loaded[0].OffsetY);
     EXPECT_EQ(9, loaded[0].LineSpacing);
     EXPECT_EQ(24, loaded[1].Size);
     EXPECT_NE(0u, loaded[1].Flags & FFLG_LOGICALCUSTOMHEIGHT);

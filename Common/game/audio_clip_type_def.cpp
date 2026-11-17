@@ -23,9 +23,9 @@ using AGS::Common::Stream;
 
 void AudioClipTypeDef::ReadFromFile(Stream *in)
 {
-    id = in->ReadInt32();
-    reservedChannels = in->ReadInt32();
-    volume_reduction_while_speech_playing = in->ReadInt32();
-    crossfadeSpeed = in->ReadInt32();
+    ID = in->ReadInt32();
+    ReservedChannels = in->ReadInt32();
+    VolumeReductionWhileSpeechPlaying = in->ReadInt32();
+    CrossfadeSpeed = in->ReadInt32();
     in->ReadInt32(); // reserved
 }

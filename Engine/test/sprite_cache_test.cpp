@@ -58,7 +58,7 @@ color_t SpriteColor(int index)
 //   attached, as in the engine), opens a sprite file made in memory, with sprites 0..9, each filled with its own
 //   colour; the cache limit is changed by the tests
 // - game.SpriteInfos: filled from the sprite file
-// - game.color_depth: 32-bit, so the engine's sprite initialization keeps the sprites as they are
+// - game.BytesPerPixel: 32-bit, so the engine's sprite initialization keeps the sprites as they are
 // - EngineServices::GfxDriver: a software driver, not initialized: sprite initialization only asks it for the
 //   bitmap format it can use
 class EngineSpriteCache : public ::testing::Test
@@ -68,7 +68,7 @@ protected:
     {
         EngineServices &services = EngineServices::Current();
         init_sprite_cache();
-        Game::Current().color_depth = 4;
+        Game::Current().BytesPerPixel = 4;
         _driver = std::make_unique<ALSW::SDLRendererGraphicsDriver>();
         services.GfxDriver = _driver.get();
         {
@@ -102,7 +102,7 @@ protected:
         services.Sprites.Reset();
         services.Sprites.SetMaxCacheSize(DEFAULTCACHESIZE_KB * 1024u);
         game.SpriteInfos.clear();
-        game.color_depth = 0;
+        game.BytesPerPixel = 0;
         services.GfxDriver = nullptr;
         _driver.reset();
     }

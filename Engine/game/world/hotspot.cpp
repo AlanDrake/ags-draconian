@@ -161,7 +161,7 @@ void RunHotspotInteraction(int hotspothere, int mood)
         return;
 
     // Cursor mode must match the event index in "Interactions" table
-    const int evnt = (game.MouseCursors[mood].flags & MCF_EVENT) != 0 ? mood : -1;
+    const int evnt = (game.MouseCursors[mood].Flags & MCF_EVENT) != 0 ? mood : -1;
     const int anyclick_evt = kHotspotEvent_AnyClick;
 
     // For USE verb: remember active inventory

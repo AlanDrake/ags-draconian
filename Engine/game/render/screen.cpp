@@ -235,7 +235,7 @@ public:
             _speed = 16;
 
         // TODO: scan these functions and double check the palette manipulations
-        if (game.color_depth > 1)
+        if (game.BytesPerPixel > 1)
         {
             set_palette(*_fadeInPal);
         }
@@ -243,7 +243,7 @@ public:
         game.Play.screen_is_faded_out = false; // force all game elements to draw
         _alpha = 0;
 
-        if (game.color_depth > 1)
+        if (game.BytesPerPixel > 1)
         {
             _speed *= 4; // speed things up for high-color games
             _view = game.Viewports.GetMainViewport();
@@ -285,7 +285,7 @@ public:
     // End the state, release all resources
     void End() override
     {
-        if (Game::Current().color_depth > 1)
+        if (Game::Current().BytesPerPixel > 1)
         {
             invalidate_screen();
         }
@@ -297,7 +297,7 @@ public:
     // Draw the state
     void Draw() override
     {
-        if (_game.color_depth > 1)
+        if (_game.BytesPerPixel > 1)
         {
             _bmpBuff->Fill(_clearCol);
             set_trans_blender(0, 0, 0, _fadein ? _alpha : 255 - _alpha);
@@ -312,7 +312,7 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
-        if (_game.color_depth > 1)
+        if (_game.BytesPerPixel > 1)
         {
             if (_alpha >= 255)
                 return false;
@@ -548,7 +548,7 @@ public:
     void Begin() override
     {
         Game &game = Game::Current();
-        if (game.color_depth == 1)
+        if (game.BytesPerPixel == 1)
             quit("!Cannot use crossfade screen transition in 256-colour games");
 
         game.Play.screen_is_faded_out = false; // force all game elements to draw
@@ -625,7 +625,7 @@ public:
             BitmapData bm_data = game.SavedViewportBitmap->GetBitmapData();
             PaletteOp::Remap(bm_data, old_palette, game.Palette);
         }
-        if (game.color_depth == 1)
+        if (game.BytesPerPixel == 1)
             set_palette_range(game.Palette, 0, 255, 0);
         _shot_ddb = get_frame_for_transition_in(false /* transparent */);
         _step = 0;

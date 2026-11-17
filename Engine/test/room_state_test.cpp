@@ -1165,7 +1165,7 @@ TEST_F(LoadedRoom, WalkBehindBaselineWrapsAt16Bits)
 }
 
 // Fixture: LoadedRoom with one view for the objects to animate in: one loop of two frames, of speeds 3 and 5. The engine
-// globals it touches besides LoadedRoom's, reset in TearDown: Game::Views and game.numviews.
+// globals it touches besides LoadedRoom's, reset in TearDown: Game::Views and game.ViewCount.
 class LoadedRoomWithView : public LoadedRoom
 {
 protected:
@@ -1173,21 +1173,21 @@ protected:
     {
         LoadedRoom::SetUp();
         Game &game = Game::Current();
-        _wasNumViews = game.numviews;
+        _wasNumViews = game.ViewCount;
         _wasViews.swap(game.Views);
         game.Views.resize(1);
         game.Views[0].Initialize(1);
-        game.Views[0].loops[0].Initialize(2);
-        game.Views[0].loops[0].frames[0].speed = 3;
-        game.Views[0].loops[0].frames[1].speed = 5;
-        game.numviews = 1;
+        game.Views[0].Loops[0].Initialize(2);
+        game.Views[0].Loops[0].Frames[0].Delay = 3;
+        game.Views[0].Loops[0].Frames[1].Delay = 5;
+        game.ViewCount = 1;
     }
 
     void TearDown() override
     {
         Game &game = Game::Current();
         game.Views.swap(_wasViews);
-        game.numviews = _wasNumViews;
+        game.ViewCount = _wasNumViews;
         LoadedRoom::TearDown();
     }
 

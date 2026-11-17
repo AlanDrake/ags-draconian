@@ -280,27 +280,28 @@ void WriteCharacterDef(const Character &ch, Stream *out)
 
 void ReadInventoryItemDef(InventoryItem &item, Stream *in, InvitemSvgVersion svg_ver)
 {
-    item.name = StrUtil::ReadString(in);
-    item.pic = in->ReadInt32();
-    item.cursorPic = in->ReadInt32();
+    item.Name = StrUtil::ReadString(in);
+    item.Sprite = in->ReadInt32();
+    item.CursorSprite = in->ReadInt32();
     if (svg_ver >= kInvitemSvgVersion_36304)
     {
-        item.hotx = in->ReadInt16();
-        item.hoty = in->ReadInt16();
+        item.CursorHotspotX = in->ReadInt16();
+        item.CursorHotspotY = in->ReadInt16();
     }
 
     if (svg_ver < kInvitemSvgVersion_36304)
     {
-        item.hotAlign = ((item.hotx == 0) && (item.hoty == 0)) ? kAlignMiddleCenter : kAlignTopLeft;
+        item.CursorHotspotAlignment =
+            ((item.CursorHotspotX == 0) && (item.CursorHotspotY == 0)) ? kAlignMiddleCenter : kAlignTopLeft;
     }
     else
     {
-        item.hotAlign = kAlignTopLeft;
+        item.CursorHotspotAlignment = kAlignTopLeft;
     }
 
     if (svg_ver >= kInvitemSvgVersion_36314)
     {
-        item.hotAlign = static_cast<FrameAlignment>(in->ReadInt32());
+        item.CursorHotspotAlignment = static_cast<FrameAlignment>(in->ReadInt32());
         in->ReadInt32(); // reserved
         in->ReadInt32();
         in->ReadInt32();
@@ -309,14 +310,14 @@ void ReadInventoryItemDef(InventoryItem &item, Stream *in, InvitemSvgVersion svg
 
 void WriteInventoryItemDef(const InventoryItem &item, Stream *out)
 {
-    StrUtil::WriteString(item.name, out);
-    out->WriteInt32(item.pic);
-    out->WriteInt32(item.cursorPic);
+    StrUtil::WriteString(item.Name, out);
+    out->WriteInt32(item.Sprite);
+    out->WriteInt32(item.CursorSprite);
     // kInvitemSvgVersion_36304
-    out->WriteInt16(item.hotx);
-    out->WriteInt16(item.hoty);
+    out->WriteInt16(item.CursorHotspotX);
+    out->WriteInt16(item.CursorHotspotY);
     // kInvitemSvgVersion_36314
-    out->WriteInt32(item.hotAlign);
+    out->WriteInt32(item.CursorHotspotAlignment);
     out->WriteInt32(0); // reserved
     out->WriteInt32(0);
     out->WriteInt32(0);
@@ -324,22 +325,22 @@ void WriteInventoryItemDef(const InventoryItem &item, Stream *out)
 
 void ReadMouseCursor(MouseCursor &cursor, Stream *in)
 {
-    cursor.pic = in->ReadInt32();
-    cursor.hotx = static_cast<int16_t>(in->ReadInt32());
-    cursor.hoty = static_cast<int16_t>(in->ReadInt32());
-    cursor.view = static_cast<int16_t>(in->ReadInt32());
-    cursor.flags = static_cast<int8_t>(in->ReadInt32());
-    cursor.animdelay = in->ReadInt32();
+    cursor.Sprite = in->ReadInt32();
+    cursor.HotspotX = static_cast<int16_t>(in->ReadInt32());
+    cursor.HotspotY = static_cast<int16_t>(in->ReadInt32());
+    cursor.View = static_cast<int16_t>(in->ReadInt32());
+    cursor.Flags = static_cast<int8_t>(in->ReadInt32());
+    cursor.AnimationDelay = in->ReadInt32();
 }
 
 void WriteMouseCursor(const MouseCursor &cursor, Stream *out)
 {
-    out->WriteInt32(cursor.pic);
-    out->WriteInt32(cursor.hotx);
-    out->WriteInt32(cursor.hoty);
-    out->WriteInt32(cursor.view);
-    out->WriteInt32(cursor.flags);
-    out->WriteInt32(cursor.animdelay);
+    out->WriteInt32(cursor.Sprite);
+    out->WriteInt32(cursor.HotspotX);
+    out->WriteInt32(cursor.HotspotY);
+    out->WriteInt32(cursor.View);
+    out->WriteInt32(cursor.Flags);
+    out->WriteInt32(cursor.AnimationDelay);
 }
 
 void ReadDialogOption(DialogOption &opt, Stream *in)
@@ -395,14 +396,14 @@ void WriteDialogTopic(const Dialog &topic, Stream *out)
 
 void ReadAudioClipType(AudioClipType &type, Stream *in)
 {
-    type.volume_reduction_while_speech_playing = in->ReadInt32();
-    type.crossfadeSpeed = in->ReadInt32();
+    type.VolumeReductionWhileSpeechPlaying = in->ReadInt32();
+    type.CrossfadeSpeed = in->ReadInt32();
 }
 
 void WriteAudioClipType(const AudioClipType &type, Stream *out)
 {
-    out->WriteInt32(type.volume_reduction_while_speech_playing);
-    out->WriteInt32(type.crossfadeSpeed);
+    out->WriteInt32(type.VolumeReductionWhileSpeechPlaying);
+    out->WriteInt32(type.CrossfadeSpeed);
 }
 
 void ReadGameSetupStruct(Game &setup, Stream *in, GameStateSvgVersion svg_ver)
@@ -1053,8 +1054,8 @@ HSaveError PrescanAudio(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, co
 HSaveError WriteCharacters(Stream *out)
 {
     Game &game = Game::Current();
-    out->WriteInt32(game.numcharacters);
-    for (int i = 0; i < game.numcharacters; ++i)
+    out->WriteInt32(game.CharacterCount);
+    for (int i = 0; i < game.CharacterCount; ++i)
     {
         WriteCharacterDef(game.Characters[i], out);
         game.Characters[i].WriteToSavegame(out);
@@ -1069,7 +1070,7 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
     Game &game = Game::Current();
     HSaveError err;
     const uint32_t characters_read = in->ReadInt32();
-    if (!AssertGameContent(err, characters_read, game.numcharacters, "Characters", r_data.Result,
+    if (!AssertGameContent(err, characters_read, game.CharacterCount, "Characters", r_data.Result,
                            r_data.DataCounts.Characters))
         return err;
 
@@ -1119,7 +1120,7 @@ HSaveError PrescanCharacters(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*
 {
     HSaveError err;
     const uint32_t characters_read = in->ReadInt32();
-    if (!AssertGameContent(err, characters_read, Game::Current().numcharacters, "Characters", r_data.Result,
+    if (!AssertGameContent(err, characters_read, Game::Current().CharacterCount, "Characters", r_data.Result,
                            r_data.DataCounts.Characters))
         return err;
     return HSaveError::None();
@@ -1128,8 +1129,8 @@ HSaveError PrescanCharacters(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*
 HSaveError WriteDialogs(Stream *out)
 {
     Game &game = Game::Current();
-    out->WriteInt32(game.numdialog);
-    for (int i = 0; i < game.numdialog; ++i)
+    out->WriteInt32(game.DialogCount);
+    for (int i = 0; i < game.DialogCount; ++i)
     {
         WriteDialogTopic(game.Dialogs[i], out);
         Properties::WriteValues(game.Play.dialogProps[i], out);
@@ -1143,7 +1144,7 @@ HSaveError ReadDialogs(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Prese
     Game &game = Game::Current();
     HSaveError err;
     const uint32_t dialogs_read = in->ReadInt32();
-    if (!AssertGameContent(err, dialogs_read, game.numdialog, "Dialogs", r_data.Result, r_data.DataCounts.Dialogs))
+    if (!AssertGameContent(err, dialogs_read, game.DialogCount, "Dialogs", r_data.Result, r_data.DataCounts.Dialogs))
         return err;
 
     const DialogTopicSvgVersion svg_ver = static_cast<DialogTopicSvgVersion>(cmp_ver);
@@ -1167,7 +1168,7 @@ HSaveError PrescanDialogs(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, cons
     Game &game = Game::Current();
     HSaveError err;
     const uint32_t dialogs_read = in->ReadInt32();
-    if (!AssertGameContent(err, dialogs_read, game.numdialog, "Dialogs", r_data.Result, r_data.DataCounts.Dialogs))
+    if (!AssertGameContent(err, dialogs_read, game.DialogCount, "Dialogs", r_data.Result, r_data.DataCounts.Dialogs))
         return err;
 
     r_data.DataCounts.DialogOptions.resize(dialogs_read);
@@ -1188,8 +1189,8 @@ HSaveError WriteGUI(Stream *out)
     Game &game = Game::Current();
     // GUI state
     WriteFormatTag(out, "GUIs");
-    out->WriteInt32(game.numgui);
-    for (int i = 0; i < game.numgui; ++i)
+    out->WriteInt32(game.GuiCount);
+    for (int i = 0; i < game.GuiCount; ++i)
     {
         game.Guis[i].WriteToSavegame(out);
         Properties::WriteValues(game.Play.guiProps[i], out);
@@ -1354,7 +1355,7 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
     if (!AssertFormatTagStrict(in, err, "GUIs"))
         return err;
     const uint32_t guis_read = in->ReadInt32();
-    if (!AssertGameContent(err, guis_read, game.numgui, "GUIs", r_data.Result, r_data.DataCounts.GUIs))
+    if (!AssertGameContent(err, guis_read, game.GuiCount, "GUIs", r_data.Result, r_data.DataCounts.GUIs))
         return err;
     std::vector<std::vector<GUIMain::ControlRef>> guictrl_refs_old(guis_read);
     for (uint32_t i = 0; i < guis_read; ++i)
@@ -1428,7 +1429,7 @@ HSaveError PrescanGUI(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pr
     if (!AssertFormatTagStrict(in, err, "GUIs"))
         return err;
     const uint32_t guis_read = in->ReadInt32();
-    if (!AssertGameContent(err, guis_read, game.numgui, "GUIs", r_data.Result, r_data.DataCounts.GUIs))
+    if (!AssertGameContent(err, guis_read, game.GuiCount, "GUIs", r_data.Result, r_data.DataCounts.GUIs))
         return err;
 
     r_data.DataCounts.GUIControls.resize(guis_read);
@@ -1473,8 +1474,8 @@ HSaveError PrescanGUI(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pr
 HSaveError WriteInventory(Stream *out)
 {
     Game &game = Game::Current();
-    out->WriteInt32(game.numinvitems);
-    for (int i = 0; i < game.numinvitems; ++i)
+    out->WriteInt32(game.InventoryItemCount);
+    for (int i = 0; i < game.InventoryItemCount; ++i)
     {
         WriteInventoryItemDef(game.InventoryItems[i], out);
         Properties::WriteValues(game.Play.invProps[i], out);
@@ -1488,7 +1489,7 @@ HSaveError ReadInventory(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
     Game &game = Game::Current();
     HSaveError err;
     const uint32_t invitems_read = in->ReadInt32();
-    if (!AssertGameContent(err, invitems_read, game.numinvitems, "Inventory Items", r_data.Result,
+    if (!AssertGameContent(err, invitems_read, game.InventoryItemCount, "Inventory Items", r_data.Result,
                            r_data.DataCounts.InventoryItems))
         return err;
     for (uint32_t i = 0; i < invitems_read; ++i)
@@ -1504,7 +1505,7 @@ HSaveError PrescanInventory(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/
 {
     HSaveError err;
     const uint32_t invitems_read = in->ReadInt32();
-    if (!AssertGameContent(err, invitems_read, Game::Current().numinvitems, "Inventory Items", r_data.Result,
+    if (!AssertGameContent(err, invitems_read, Game::Current().InventoryItemCount, "Inventory Items", r_data.Result,
                            r_data.DataCounts.InventoryItems))
         return err;
     return HSaveError::None();
@@ -1513,8 +1514,8 @@ HSaveError PrescanInventory(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/
 HSaveError WriteMouseCursors(Stream *out)
 {
     Game &game = Game::Current();
-    out->WriteInt32(game.numcursors);
-    for (int i = 0; i < game.numcursors; ++i)
+    out->WriteInt32(game.MouseCursorCount);
+    for (int i = 0; i < game.MouseCursorCount; ++i)
     {
         WriteMouseCursor(game.MouseCursors[i], out);
     }
@@ -1527,7 +1528,7 @@ HSaveError ReadMouseCursors(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/
     Game &game = Game::Current();
     HSaveError err;
     const uint32_t cursors_read = in->ReadInt32();
-    if (!AssertGameContent(err, cursors_read, game.numcursors, "Mouse Cursors", r_data.Result,
+    if (!AssertGameContent(err, cursors_read, game.MouseCursorCount, "Mouse Cursors", r_data.Result,
                            r_data.DataCounts.Cursors))
         return err;
     for (uint32_t i = 0; i < cursors_read; ++i)
@@ -1542,7 +1543,7 @@ HSaveError PrescanMouseCursors(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_siz
 {
     HSaveError err;
     const uint32_t cursors_read = in->ReadInt32();
-    if (!AssertGameContent(err, cursors_read, Game::Current().numcursors, "Mouse Cursors", r_data.Result,
+    if (!AssertGameContent(err, cursors_read, Game::Current().MouseCursorCount, "Mouse Cursors", r_data.Result,
                            r_data.DataCounts.Cursors))
         return err;
     return HSaveError::None();
@@ -1558,29 +1559,29 @@ enum ViewSvgVersion
 HSaveError WriteViews(Stream *out)
 {
     Game &game = Game::Current();
-    out->WriteInt32(game.numviews);
-    for (int view = 0; view < game.numviews; ++view)
+    out->WriteInt32(game.ViewCount);
+    for (int view = 0; view < game.ViewCount; ++view)
     {
-        out->WriteInt32(game.Views[view].numLoops);
-        for (int loop = 0; loop < game.Views[view].numLoops; ++loop)
+        out->WriteInt32(game.Views[view].LoopCount);
+        for (int loop = 0; loop < game.Views[view].LoopCount; ++loop)
         {
-            out->WriteInt32(game.Views[view].loops[loop].numFrames);
-            for (int frame = 0; frame < game.Views[view].loops[loop].numFrames; ++frame)
+            out->WriteInt32(game.Views[view].Loops[loop].FrameCount);
+            for (int frame = 0; frame < game.Views[view].Loops[loop].FrameCount; ++frame)
             {
-                auto &vf = game.Views[view].loops[loop].frames[frame];
-                out->WriteInt32(vf.sound);
-                out->WriteInt32(vf.pic);
+                auto &vf = game.Views[view].Loops[loop].Frames[frame];
+                out->WriteInt32(vf.LinkedAudio);
+                out->WriteInt32(vf.Sprite);
                 // ---- kViewSvgVersion_4000018
-                out->WriteInt32(vf.flags);
-                out->WriteInt16(vf.speed);
-                out->WriteInt16(vf.xoffs);
-                out->WriteInt16(vf.yoffs);
+                out->WriteInt32(vf.Flags);
+                out->WriteInt16(vf.Delay);
+                out->WriteInt16(vf.OffsetX);
+                out->WriteInt16(vf.OffsetY);
             }
 
             // ---- kViewSvgVersion_4000024
-            for (int frame = 0; frame < game.Views[view].loops[loop].numFrames; ++frame)
+            for (int frame = 0; frame < game.Views[view].Loops[loop].FrameCount; ++frame)
             {
-                StrUtil::WriteCStr(game.Views[view].loops[loop].frames[frame].event_name, out);
+                StrUtil::WriteCStr(game.Views[view].Loops[loop].Frames[frame].EventName, out);
             }
         }
     }
@@ -1593,7 +1594,7 @@ HSaveError ReadViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pre
     Game &game = Game::Current();
     HSaveError err;
     const uint32_t views_read = in->ReadInt32();
-    if (!AssertGameContent(err, views_read, game.numviews, "Views", r_data.Result, r_data.DataCounts.Views))
+    if (!AssertGameContent(err, views_read, game.ViewCount, "Views", r_data.Result, r_data.DataCounts.Views))
         return err;
 
     r_data.DataCounts.ViewLoops.resize(views_read);
@@ -1601,30 +1602,30 @@ HSaveError ReadViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pre
     for (uint32_t view = 0; view < views_read; ++view)
     {
         const uint32_t loops_read = in->ReadInt32();
-        if (!AssertGameObjectContent(err, loops_read, game.Views[view].numLoops, "Loops", "View", view, r_data.Result,
+        if (!AssertGameObjectContent(err, loops_read, game.Views[view].LoopCount, "Loops", "View", view, r_data.Result,
                                      r_data.DataCounts.ViewLoops[view]))
             return err;
 
         for (uint32_t loop = 0; loop < loops_read; ++loop)
         {
             const uint32_t frames_read = in->ReadInt32();
-            if (!AssertGameObjectContent2(err, frames_read, game.Views[view].loops[loop].numFrames, "Frame", "View",
+            if (!AssertGameObjectContent2(err, frames_read, game.Views[view].Loops[loop].FrameCount, "Frame", "View",
                                           view, "Loop", loop, r_data.Result, r_data.DataCounts.Dummy))
                 return err;
 
             r_data.DataCounts.ViewFrames[view] += frames_read;
             for (uint32_t frame = 0; frame < frames_read; ++frame)
             {
-                auto &vf = game.Views[view].loops[loop].frames[frame];
-                vf.sound = in->ReadInt32();
-                vf.pic = in->ReadInt32();
+                auto &vf = game.Views[view].Loops[loop].Frames[frame];
+                vf.LinkedAudio = in->ReadInt32();
+                vf.Sprite = in->ReadInt32();
 
                 if (cmp_ver >= kViewSvgVersion_4000018)
                 {
-                    vf.flags = (SpriteTransformFlags)in->ReadInt32();
-                    vf.speed = in->ReadInt16();
-                    vf.xoffs = in->ReadInt16();
-                    vf.yoffs = in->ReadInt16();
+                    vf.Flags = (SpriteTransformFlags)in->ReadInt32();
+                    vf.Delay = in->ReadInt16();
+                    vf.OffsetX = in->ReadInt16();
+                    vf.OffsetY = in->ReadInt16();
                 }
             }
 
@@ -1632,7 +1633,7 @@ HSaveError ReadViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pre
             {
                 for (uint32_t frame = 0; frame < frames_read; ++frame)
                 {
-                    game.Views[view].loops[loop].frames[frame].event_name = StrUtil::ReadCStr(in);
+                    game.Views[view].Loops[loop].Frames[frame].EventName = StrUtil::ReadCStr(in);
                 }
             }
         }
@@ -1650,7 +1651,7 @@ HSaveError PrescanViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
                                   : sizeof(int32_t) * 2;
     HSaveError err;
     const uint32_t views_read = in->ReadInt32();
-    if (!AssertGameContent(err, views_read, game.numviews, "Views", r_data.Result, r_data.DataCounts.Views))
+    if (!AssertGameContent(err, views_read, game.ViewCount, "Views", r_data.Result, r_data.DataCounts.Views))
         return err;
 
     r_data.DataCounts.ViewLoops.resize(views_read);
@@ -1658,14 +1659,14 @@ HSaveError PrescanViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
     for (uint32_t view = 0; view < views_read; ++view)
     {
         const uint32_t loops_read = in->ReadInt32();
-        if (!AssertGameObjectContent(err, loops_read, game.Views[view].numLoops, "Loops", "View", view, r_data.Result,
+        if (!AssertGameObjectContent(err, loops_read, game.Views[view].LoopCount, "Loops", "View", view, r_data.Result,
                                      r_data.DataCounts.ViewLoops[view]))
             return err;
 
         for (uint32_t loop = 0; loop < loops_read; ++loop)
         {
             const uint32_t frames_read = in->ReadInt32();
-            if (!AssertGameObjectContent2(err, frames_read, game.Views[view].loops[loop].numFrames, "Frame", "View",
+            if (!AssertGameObjectContent2(err, frames_read, game.Views[view].Loops[loop].FrameCount, "Frame", "View",
                                           view, "Loop", loop, r_data.Result, r_data.DataCounts.Dummy))
                 return err;
 

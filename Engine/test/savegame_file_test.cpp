@@ -82,7 +82,7 @@ void WriteAllBytes(const String &path, const std::vector<uint8_t> &bytes)
 } // namespace
 
 // Fixture for the savegame file. The engine globals it touches, all reset in TearDown:
-// - game.guid, game.gamename, game.uniqueid, game.color_depth: the game identity in the description
+// - game.Guid, game.Name, game.UniqueID, game.BytesPerPixel: the game identity in the description
 // - EngineServices::ResPaths.GamePak.Name, Game::LoadedDataVersion: the game data identity in the description
 // - game.Play.messagetime: a value of the game state, to see the components restored
 // It writes save files to a directory of its own under the system's temporary directory.
@@ -101,10 +101,10 @@ protected:
                                                     static_cast<unsigned long long>(
                                                         std::chrono::steady_clock::now().time_since_epoch().count())));
         ASSERT_TRUE(Directory::CreateDirectory(_dir)) << _dir.GetCStr();
-        snprintf(game.guid, sizeof(game.guid), "%s", "{01234567-89AB-CDEF-0123-456789ABCDEF}");
-        game.gamename = "Savegame Test";
-        game.uniqueid = 0x5A5A1234;
-        game.color_depth = 4;
+        snprintf(game.Guid, sizeof(game.Guid), "%s", "{01234567-89AB-CDEF-0123-456789ABCDEF}");
+        game.Name = "Savegame Test";
+        game.UniqueID = 0x5A5A1234;
+        game.BytesPerPixel = 4;
         EngineServices::Current().ResPaths.GamePak.Name = "test.ags";
         game.LoadedDataVersion = kGameVersion_Current;
     }
@@ -115,10 +115,10 @@ protected:
         for (const String &file : _files)
             File::DeleteFile(file);
         Directory::DeleteDirectory(_dir);
-        game.guid[0] = 0;
-        game.gamename = {};
-        game.uniqueid = 0;
-        game.color_depth = 0;
+        game.Guid[0] = 0;
+        game.Name = {};
+        game.UniqueID = 0;
+        game.BytesPerPixel = 0;
         EngineServices::Current().ResPaths.GamePak.Name = {};
         game.LoadedDataVersion = kGameVersion_Undefined;
         game.Play.messagetime = 0;

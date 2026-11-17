@@ -56,16 +56,16 @@ using namespace AGS::Common;
 
 void AudioClipDef::ReadFromFile(Stream *in)
 {
-    id = in->ReadInt32();
-    scriptName.ReadCount(in, LEGACY_AUDIOCLIP_SCRIPTNAMELENGTH);
-    fileName.ReadCount(in, LEGACY_AUDIOCLIP_FILENAMELENGTH);
-    bundlingType = static_cast<uint8_t>(in->ReadInt8());
-    type = static_cast<uint8_t>(in->ReadInt8());
-    fileType = static_cast<AudioFileType>(in->ReadInt8());
-    defaultRepeat = in->ReadInt8();
+    ID = in->ReadInt32();
+    ScriptName.ReadCount(in, LEGACY_AUDIOCLIP_SCRIPTNAMELENGTH);
+    FileName.ReadCount(in, LEGACY_AUDIOCLIP_FILENAMELENGTH);
+    BundlingType = static_cast<uint8_t>(in->ReadInt8());
+    Type = static_cast<uint8_t>(in->ReadInt8());
+    FileType = static_cast<AudioFileType>(in->ReadInt8());
+    IsRepeatingByDefault = in->ReadInt8();
     in->ReadInt8(); // alignment padding to int16
-    defaultPriority = in->ReadInt16();
-    defaultVolume = in->ReadInt16();
+    DefaultPriority = in->ReadInt16();
+    DefaultVolume = in->ReadInt16();
     in->ReadInt16(); // alignment padding to int32
     in->ReadInt32(); // reserved
 }

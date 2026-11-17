@@ -107,21 +107,21 @@ TEST_P(GameCompat, MainGameData)
     err = UpdateGameData(ents, src.DataVersion);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
 
-    EXPECT_STREQ(game.gamename.GetCStr(), "Sierra-style");
-    ASSERT_EQ(game.numcharacters, 1);
+    EXPECT_STREQ(game.Name.GetCStr(), "Sierra-style");
+    ASSERT_EQ(game.CharacterCount, 1);
     EXPECT_STREQ(game.Characters[0].ScriptName.GetCStr(), "cEgo");
-    ASSERT_EQ(game.numinvitems, 3); // item 0 is reserved
-    EXPECT_STREQ(game.invScriptNames[1].GetCStr(), "iBlueCup");
-    EXPECT_STREQ(game.invScriptNames[2].GetCStr(), "iKey");
-    ASSERT_EQ(game.numgui, 9);
+    ASSERT_EQ(game.InventoryItemCount, 3); // item 0 is reserved
+    EXPECT_STREQ(game.InventoryItemScriptNames[1].GetCStr(), "iBlueCup");
+    EXPECT_STREQ(game.InventoryItemScriptNames[2].GetCStr(), "iKey");
+    ASSERT_EQ(game.GuiCount, 9);
     ASSERT_EQ(game.Guis.size(), 9u);
     EXPECT_STREQ(game.Guis[0].GetName().GetCStr(), "gStatusline");
     EXPECT_STREQ(game.Guis[8].GetName().GetCStr(), "gExitGame");
-    EXPECT_EQ(game.numviews, 1);
+    EXPECT_EQ(game.ViewCount, 1);
     EXPECT_EQ(game.Views.size(), 1u);
-    EXPECT_EQ(game.numdialog, 0);
-    EXPECT_EQ(game.numfonts, 3);
-    EXPECT_EQ(game.numcursors, 10);
+    EXPECT_EQ(game.DialogCount, 0);
+    EXPECT_EQ(game.FontCount, 3);
+    EXPECT_EQ(game.MouseCursorCount, 10);
     ASSERT_TRUE(game.GlobalScript);
     EXPECT_TRUE(game.DialogScript);
     ASSERT_EQ(game.ScriptModules.size(), 1u); // KeyboardMovement
@@ -174,19 +174,19 @@ INSTANTIATE_TEST_SUITE_P(Releases, GameCompat, ::testing::ValuesIn(CompatFixture
 TEST(GameLoader, CursorViewPastTheViewsBecomesNone)
 {
     GameDef game;
-    game.numviews = 2;
+    game.ViewCount = 2;
     const short views[] = {-1, 1, 2, 7};
-    game.numcursors = static_cast<int>(std::size(views));
+    game.MouseCursorCount = static_cast<int>(std::size(views));
     game.MouseCursors.resize(std::size(views));
     for (size_t i = 0; i < std::size(views); ++i)
-        game.MouseCursors[i].view = views[i];
+        game.MouseCursors[i].View = views[i];
     LoadedGameEntities ents(game);
     HGameFileError err = UpdateGameData(ents, kGameVersion_Current);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
-    EXPECT_EQ(-1, game.MouseCursors[0].view);
-    EXPECT_EQ(1, game.MouseCursors[1].view);
-    EXPECT_EQ(-1, game.MouseCursors[2].view);
-    EXPECT_EQ(-1, game.MouseCursors[3].view);
+    EXPECT_EQ(-1, game.MouseCursors[0].View);
+    EXPECT_EQ(1, game.MouseCursors[1].View);
+    EXPECT_EQ(-1, game.MouseCursors[2].View);
+    EXPECT_EQ(-1, game.MouseCursors[3].View);
 }
 
 // The loader makes a clip's id its index in the game's list, whatever id the game file holds (GameDef::read_audio,
@@ -224,8 +224,8 @@ TEST(GameLoader, AudioClipIdIsItsIndex)
     ASSERT_EQ(static_cast<size_t>(clip_count), game.AudioClips.size());
     for (int i = 0; i < clip_count; ++i)
     {
-        EXPECT_EQ(i, game.AudioClips[i].id) << "clip " << i;
-        EXPECT_EQ(i, game.AudioClips[i].type) << "clip " << i;
+        EXPECT_EQ(i, game.AudioClips[i].ID) << "clip " << i;
+        EXPECT_EQ(i, game.AudioClips[i].Type) << "clip " << i;
     }
 }
 

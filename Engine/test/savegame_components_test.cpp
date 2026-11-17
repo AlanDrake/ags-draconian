@@ -76,11 +76,11 @@ const SaveCmpSelection kCharactersAndItems = static_cast<SaveCmpSelection>(kSave
 } // namespace
 
 // Fixture for the savegame components with game content. The engine globals it touches, all reset in TearDown:
-// - Game::Characters, game.numcharacters, game.Play.charProps: the characters
-// - game.InventoryItems, game.numinvitems, game.Play.invProps: the inventory items
-// - Game::Views, game.numviews: the views
-// - Game::Dialogs, game.numdialog, game.Play.dialogProps: the dialogs
-// - game.MouseCursors, game.numcursors: the mouse cursors
+// - Game::Characters, game.CharacterCount, game.Play.charProps: the characters
+// - game.InventoryItems, game.InventoryItemCount, game.Play.invProps: the inventory items
+// - Game::Views, game.ViewCount: the views
+// - Game::Dialogs, game.DialogCount, game.Play.dialogProps: the dialogs
+// - game.MouseCursors, game.MouseCursorCount: the mouse cursors
 // - game.AudioClipTypes, game.Play.default_audio_type_volumes: the audio types
 // - the game's live options and values that the game state saves (GameSetupFields)
 // - EngineServices::Current().SeparateMusicLib
@@ -151,7 +151,7 @@ protected:
         Game &game = Game::Current();
         game.Dialogs.clear();
         game.Dialogs.resize(dialog_count);
-        game.numdialog = dialog_count;
+        game.DialogCount = dialog_count;
         game.Play.dialogProps.clear();
         game.Play.dialogProps.resize(dialog_count);
         for (int d = 0; d < dialog_count; ++d)
@@ -172,7 +172,7 @@ protected:
         Game &game = Game::Current();
         game.MouseCursors.clear();
         game.MouseCursors.resize(count);
-        game.numcursors = count;
+        game.MouseCursorCount = count;
     }
 
     // Resizes the game's audio types, all in their default state with a default volume of 0
@@ -192,17 +192,17 @@ protected:
         Game &game = Game::Current();
         game.Views.clear();
         game.Views.resize(view_count);
-        game.numviews = view_count;
+        game.ViewCount = view_count;
         for (auto &view : game.Views)
         {
             view.Initialize(loop_count);
-            for (auto &loop : view.loops)
+            for (auto &loop : view.Loops)
             {
                 loop.Initialize(frame_count);
                 for (int frame = 0; frame < frame_count; ++frame)
                 {
-                    loop.frames[frame].pic = 10 + frame;
-                    loop.frames[frame].event_name = String::FromFormat("step%d", frame);
+                    loop.Frames[frame].Sprite = 10 + frame;
+                    loop.Frames[frame].EventName = String::FromFormat("step%d", frame);
                 }
             }
         }
@@ -214,12 +214,12 @@ protected:
         Game &game = Game::Current();
         game.Characters.clear();
         game.Characters.resize(characters);
-        game.numcharacters = characters;
+        game.CharacterCount = characters;
         game.Play.charProps.clear();
         game.Play.charProps.resize(characters);
         game.InventoryItems.clear();
         game.InventoryItems.resize(items);
-        game.numinvitems = static_cast<uint16_t>(items);
+        game.InventoryItemCount = static_cast<uint16_t>(items);
         game.Play.invProps.clear();
         game.Play.invProps.resize(items);
     }
@@ -228,7 +228,7 @@ protected:
     static void SetState()
     {
         Game &game = Game::Current();
-        for (int i = 0; i < game.numcharacters; ++i)
+        for (int i = 0; i < game.CharacterCount; ++i)
         {
             auto &ch = game.Characters[i];
             ch.X = 100 + i;
@@ -254,13 +254,13 @@ protected:
             ch.Following = 0;
             game.Play.charProps[i]["Mood"] = "angry";
         }
-        for (int i = 0; i < game.numinvitems; ++i)
+        for (int i = 0; i < game.InventoryItemCount; ++i)
         {
-            game.InventoryItems[i].name = String::FromFormat("Item %d", i);
-            game.InventoryItems[i].pic = 20 + i;
-            game.InventoryItems[i].cursorPic = 40 + i;
-            game.InventoryItems[i].hotx = 3;
-            game.InventoryItems[i].hoty = 4;
+            game.InventoryItems[i].Name = String::FromFormat("Item %d", i);
+            game.InventoryItems[i].Sprite = 20 + i;
+            game.InventoryItems[i].CursorSprite = 40 + i;
+            game.InventoryItems[i].CursorHotspotX = 3;
+            game.InventoryItems[i].CursorHotspotY = 4;
             game.Play.invProps[i]["Weight"] = "12";
         }
     }
@@ -324,11 +324,11 @@ TEST_F(SavegameContent, CharactersAndItemsAreRestored)
     }
     for (int i = 0; i < 2; ++i)
     {
-        EXPECT_STREQ(String::FromFormat("Item %d", i).GetCStr(), game.InventoryItems[i].name.GetCStr());
-        EXPECT_EQ(20 + i, game.InventoryItems[i].pic);
-        EXPECT_EQ(40 + i, game.InventoryItems[i].cursorPic);
-        EXPECT_EQ(3, game.InventoryItems[i].hotx);
-        EXPECT_EQ(4, game.InventoryItems[i].hoty);
+        EXPECT_STREQ(String::FromFormat("Item %d", i).GetCStr(), game.InventoryItems[i].Name.GetCStr());
+        EXPECT_EQ(20 + i, game.InventoryItems[i].Sprite);
+        EXPECT_EQ(40 + i, game.InventoryItems[i].CursorSprite);
+        EXPECT_EQ(3, game.InventoryItems[i].CursorHotspotX);
+        EXPECT_EQ(4, game.InventoryItems[i].CursorHotspotY);
         EXPECT_STREQ("12", game.Play.invProps[i]["Weight"].GetCStr());
     }
     EXPECT_EQ(3u, r_data.DataCounts.Characters);
@@ -489,7 +489,7 @@ TEST_F(SavegameContent, PrescanCountsWithoutRestoring)
     EXPECT_EQ(2u, r_data.DataCounts.InventoryItems);
     // the game is untouched
     EXPECT_EQ(0, game.Characters[0].X);
-    EXPECT_TRUE(game.InventoryItems[0].name.IsEmpty());
+    EXPECT_TRUE(game.InventoryItems[0].Name.IsEmpty());
 }
 
 TEST_F(SavegameContent, PrescanStepsOverViewFrames)
@@ -528,7 +528,7 @@ TEST_F(SavegameContent, UnselectedComponentsAreSkipped)
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
     EXPECT_EQ(4321, game.Play.messagetime);
     EXPECT_EQ(0, game.Characters[0].X);
-    EXPECT_TRUE(game.InventoryItems[0].name.IsEmpty());
+    EXPECT_TRUE(game.InventoryItems[0].Name.IsEmpty());
     game.Play.messagetime = 0;
 }
 
@@ -645,12 +645,12 @@ TEST_F(SavegameContent, MouseCursorsAreRestored)
     for (int i = 0; i < 2; ++i)
     {
         auto &cur = game.MouseCursors[i];
-        cur.pic = 30 + i;
-        cur.hotx = static_cast<short>(5 + i);
-        cur.hoty = static_cast<short>(7 + i);
-        cur.view = static_cast<short>(2 + i);
-        cur.flags = static_cast<uint8_t>(0x11 + i);
-        cur.animdelay = 9 + i;
+        cur.Sprite = 30 + i;
+        cur.HotspotX = static_cast<short>(5 + i);
+        cur.HotspotY = static_cast<short>(7 + i);
+        cur.View = static_cast<short>(2 + i);
+        cur.Flags = static_cast<uint8_t>(0x11 + i);
+        cur.AnimationDelay = 9 + i;
     }
     std::vector<uint8_t> saved;
     std::string error;
@@ -663,12 +663,12 @@ TEST_F(SavegameContent, MouseCursorsAreRestored)
     for (int i = 0; i < 2; ++i)
     {
         const auto &cur = game.MouseCursors[i];
-        EXPECT_EQ(30 + i, cur.pic);
-        EXPECT_EQ(5 + i, cur.hotx);
-        EXPECT_EQ(7 + i, cur.hoty);
-        EXPECT_EQ(2 + i, cur.view);
-        EXPECT_EQ(0x11 + i, cur.flags);
-        EXPECT_EQ(9 + i, cur.animdelay);
+        EXPECT_EQ(30 + i, cur.Sprite);
+        EXPECT_EQ(5 + i, cur.HotspotX);
+        EXPECT_EQ(7 + i, cur.HotspotY);
+        EXPECT_EQ(2 + i, cur.View);
+        EXPECT_EQ(0x11 + i, cur.Flags);
+        EXPECT_EQ(9 + i, cur.AnimationDelay);
     }
     EXPECT_EQ(2u, r_data.DataCounts.Cursors);
 }
@@ -680,9 +680,9 @@ TEST_F(SavegameContent, AudioTypesAreRestored)
     SetAudioTypes(2);
     for (int i = 0; i < 2; ++i)
     {
-        game.AudioClipTypes[i].reservedChannels = 1;
-        game.AudioClipTypes[i].volume_reduction_while_speech_playing = 25 + i;
-        game.AudioClipTypes[i].crossfadeSpeed = 3 + i;
+        game.AudioClipTypes[i].ReservedChannels = 1;
+        game.AudioClipTypes[i].VolumeReductionWhileSpeechPlaying = 25 + i;
+        game.AudioClipTypes[i].CrossfadeSpeed = 3 + i;
         game.Play.default_audio_type_volumes[i] = 60 + i;
     }
     std::vector<uint8_t> saved;
@@ -695,9 +695,9 @@ TEST_F(SavegameContent, AudioTypesAreRestored)
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
     for (int i = 0; i < 2; ++i)
     {
-        EXPECT_EQ(0, game.AudioClipTypes[i].reservedChannels);
-        EXPECT_EQ(25 + i, game.AudioClipTypes[i].volume_reduction_while_speech_playing);
-        EXPECT_EQ(3 + i, game.AudioClipTypes[i].crossfadeSpeed);
+        EXPECT_EQ(0, game.AudioClipTypes[i].ReservedChannels);
+        EXPECT_EQ(25 + i, game.AudioClipTypes[i].VolumeReductionWhileSpeechPlaying);
+        EXPECT_EQ(3 + i, game.AudioClipTypes[i].CrossfadeSpeed);
         EXPECT_EQ(60 + i, game.Play.default_audio_type_volumes[i]);
     }
     EXPECT_EQ(2u, r_data.DataCounts.AudioClipTypes);

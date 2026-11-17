@@ -43,8 +43,8 @@ void UpdateButtonState(const AnimatingGUIButton &abtn)
 {
     Game &game = Game::Current();
     // Assign view frame as normal image and reset all the rest
-    const auto &vf = game.Views[abtn.view].loops[abtn.loop].frames[abtn.frame];
-    game.GuiButtons[abtn.buttonid].SetImages(vf.pic, 0, 0, vf.flags, vf.xoffs, vf.yoffs);
+    const auto &vf = game.Views[abtn.view].Loops[abtn.loop].Frames[abtn.frame];
+    game.GuiButtons[abtn.buttonid].SetImages(vf.Sprite, 0, 0, vf.Flags, vf.OffsetX, vf.OffsetY);
 }
 
 void ABut_CheckViewFrame(AnimatingGUIButton &abtn)
@@ -89,7 +89,7 @@ void Button_Animate(GUIButton *btn, int view, int loop, int speed, int repeat, i
     abtn.anim =
         ViewAnimateParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction), speed, volume);
     abtn.frame = SetFirstAnimFrame(view, loop, sframe, static_cast<AnimFlowDirection>(direction));
-    abtn.wait = abtn.anim.Delay + game.Views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
+    abtn.wait = abtn.anim.Delay + game.Views[abtn.view].Loops[abtn.loop].Frames[abtn.frame].Delay;
     // launch into the first frame, and play the first frame's sound
     ABut_CheckViewFrame(abtn);
     animbuts.push_back(std::move(abtn));
@@ -426,7 +426,7 @@ bool UpdateAnimatingButton(Game &game, int bu)
         return false;
 
     ABut_CheckViewFrame(abtn);
-    abtn.wait = abtn.anim.Delay + game.Views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
+    abtn.wait = abtn.anim.Delay + game.Views[abtn.view].Loops[abtn.loop].Frames[abtn.frame].Delay;
     return true;
 }
 

@@ -199,9 +199,9 @@ int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
         if (room.Objects[obj_id].View != RoomObject::NoView)
         {
             sprite_flags = game.Views[room.Objects[obj_id].View]
-                               .loops[room.Objects[obj_id].Loop]
-                               .frames[room.Objects[obj_id].Frame]
-                               .flags;
+                               .Loops[room.Objects[obj_id].Loop]
+                               .Frames[room.Objects[obj_id].Frame]
+                               .Flags;
         }
 
         Bitmap *image = GetObjectSourceImage(room, services, obj_id);
@@ -353,16 +353,16 @@ bool SetObjectFrameSimple(int obj_id, int view, int loop, int frame)
 
     auto &room_obj = room.Objects[obj_id];
     // Fixup invalid loop & frame numbers by using default 0 value
-    if (loop < 0 || loop >= game.Views[view].numLoops)
+    if (loop < 0 || loop >= game.Views[view].LoopCount)
     {
         debug_script_warn("SetObjectFrame: invalid loop number used for view %d (%d, range is 0 - %d)", view, loop,
                           game.Views[view].GetLastLoop());
         loop = 0;
     }
-    if (frame < 0 || frame >= game.Views[view].loops[loop].numFrames)
+    if (frame < 0 || frame >= game.Views[view].Loops[loop].FrameCount)
     {
         debug_script_warn("SetObjectFrame: frame index out of range (%d, must be 0 - %d)", frame,
-                          game.Views[view].loops[loop].GetLastFrame());
+                          game.Views[view].Loops[loop].GetLastFrame());
         frame = 0; // NOTE: we have 1 dummy frame allocated for empty loops
     }
 
@@ -380,7 +380,7 @@ bool SetObjectFrameSimple(int obj_id, int view, int loop, int frame)
     room_obj.Loop = static_cast<uint16_t>(loop);
     room_obj.Frame = static_cast<uint16_t>(frame);
     room_obj.Anim = ViewAnimateParams(); // reset anim
-    int pic = game.Views[view].loops[loop].frames[frame].pic;
+    int pic = game.Views[view].Loops[loop].Frames[frame].Sprite;
     room_obj.Sprite = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
         debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obj_id, pic,
@@ -575,8 +575,8 @@ void AnimateObjectImpl(int obj_id, int loop, int spdd, int rept, int direction, 
     room_obj.Frame =
         (uint16_t)SetFirstAnimFrame(room_obj.View, loop, sframe, static_cast<AnimFlowDirection>(direction));
     // 16 bits: the legacy save format
-    room_obj.AnimWait = static_cast<int16_t>(spdd + game.Views[room_obj.View].loops[loop].frames[room_obj.Frame].speed);
-    int pic = game.Views[room_obj.View].loops[loop].frames[room_obj.Frame].pic;
+    room_obj.AnimWait = static_cast<int16_t>(spdd + game.Views[room_obj.View].Loops[loop].Frames[room_obj.Frame].Delay);
+    int pic = game.Views[room_obj.View].Loops[loop].Frames[room_obj.Frame].Sprite;
     room_obj.Sprite = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
         debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obj_id, pic,
@@ -942,7 +942,7 @@ void RunObjectInteraction(int obj_id, int mood)
         return;
 
     // Cursor mode must match the event index in "Interactions" table
-    const int evnt = (game.MouseCursors[mood].flags & MCF_EVENT) != 0 ? mood : -1;
+    const int evnt = (game.MouseCursors[mood].Flags & MCF_EVENT) != 0 ? mood : -1;
     const int anyclick_evt = kRoomObjectEvent_AnyClick;
 
     // For USE verb: remember active inventory
@@ -1597,8 +1597,8 @@ void update_object_scale(Game &game, Room &room, int obj_id)
     room_obj.SpriteHeight = game.SpriteInfos[room_obj.Sprite].Height;
     if (room_obj.is_animating())
     {
-        room_obj.FrameOffsetX = game.Views[room_obj.View].loops[room_obj.Loop].frames[room_obj.Frame].xoffs;
-        room_obj.FrameOffsetY = game.Views[room_obj.View].loops[room_obj.Loop].frames[room_obj.Frame].yoffs;
+        room_obj.FrameOffsetX = game.Views[room_obj.View].Loops[room_obj.Loop].Frames[room_obj.Frame].OffsetX;
+        room_obj.FrameOffsetY = game.Views[room_obj.View].Loops[room_obj.Loop].Frames[room_obj.Frame].OffsetY;
     }
     room_obj.Width = scale_width;
     room_obj.Height = scale_height;
@@ -1735,27 +1735,27 @@ void ValidateViewAnimVLF(const char *apiname, const char *objname, int view, int
     // but when printing an error we will use (view + 1) for compliance with the script API.
     AssertLoop(apiname, objname, view, loop);
 
-    if (game.Views[view].loops[loop].numFrames < 1)
+    if (game.Views[view].Loops[loop].FrameCount < 1)
         debug_script_warn("%s (%s): view %d loop %d does not have any frames, will use a frame placeholder.", apiname,
                           objname, view + 1, loop);
-    else if (sframe < 0 || sframe >= game.Views[view].loops[loop].numFrames)
+    else if (sframe < 0 || sframe >= game.Views[view].Loops[loop].FrameCount)
         debug_script_warn("%s (%s): invalid starting frame number %d for view %d loop %d (range is 0..%d)", apiname,
-                          objname, sframe, view + 1, loop, game.Views[view].loops[loop].GetLastFrame());
+                          objname, sframe, view + 1, loop, game.Views[view].Loops[loop].GetLastFrame());
     // NOTE: there's always frame 0 allocated for safety
-    sframe = std::max(0, std::min(sframe, game.Views[view].loops[loop].GetLastFrame()));
+    sframe = std::max(0, std::min(sframe, game.Views[view].Loops[loop].GetLastFrame()));
 }
 
 int SetFirstAnimFrame(int view, int loop, int sframe, AnimFlowDirection dir)
 {
     Game &game = Game::Current();
-    if (game.Views[view].loops[loop].numFrames <= 1)
+    if (game.Views[view].Loops[loop].FrameCount <= 1)
         return 0;
     // reverse animation starts at the *previous frame*
     if (dir == kAnimDirBackward)
     {
         sframe--;
         if (sframe < 0)
-            sframe = game.Views[view].loops[loop].numFrames - (-sframe);
+            sframe = game.Views[view].Loops[loop].FrameCount - (-sframe);
     }
     return sframe;
 }
@@ -1766,7 +1766,7 @@ static void CycleResetToBegin(const View *view, uint16_t &loop, uint16_t &frame,
     {
         if (multi_loop_reset)
         {
-            while ((loop > 0) && view->loops[loop - 1].RunNextLoop())
+            while ((loop > 0) && view->Loops[loop - 1].RunNextLoop())
                 loop--;
         }
         frame = 0;
@@ -1775,10 +1775,10 @@ static void CycleResetToBegin(const View *view, uint16_t &loop, uint16_t &frame,
     {
         if (multi_loop_reset)
         {
-            while ((loop + 1 < view->numLoops) && view->loops[loop].RunNextLoop())
+            while ((loop + 1 < view->LoopCount) && view->Loops[loop].RunNextLoop())
                 loop++;
         }
-        frame = view->loops[loop].GetLastFrame();
+        frame = view->Loops[loop].GetLastFrame();
     }
 }
 
@@ -1787,7 +1787,7 @@ static bool CycleNextFrame(const View *view, uint16_t &loop, uint16_t &frame, bo
     if (forward)
     {
         // If there are still frames available after on current loop, then move 1 frame forward
-        if (frame + 1 < view->loops[loop].numFrames)
+        if (frame + 1 < view->Loops[loop].FrameCount)
         {
             frame++;
             return true;
@@ -1795,9 +1795,9 @@ static bool CycleNextFrame(const View *view, uint16_t &loop, uint16_t &frame, bo
 
         // If no more frames here, try if this is a multi-loop sequence,
         // and find next valid loop (with frames)
-        for (int try_loop = loop; (try_loop + 1 < view->numLoops) && view->loops[try_loop].RunNextLoop();)
+        for (int try_loop = loop; (try_loop + 1 < view->LoopCount) && view->Loops[try_loop].RunNextLoop();)
         {
-            if (view->loops[++try_loop].numFrames > 0)
+            if (view->Loops[++try_loop].FrameCount > 0)
             {
                 loop = try_loop;
                 frame = 0;
@@ -1818,12 +1818,12 @@ static bool CycleNextFrame(const View *view, uint16_t &loop, uint16_t &frame, bo
 
         // If no more frames here, try if this is a multi-loop sequence,
         // and find *previous* valid loop (with frames)
-        for (int try_loop = loop; (try_loop > 0) && view->loops[try_loop - 1].RunNextLoop();)
+        for (int try_loop = loop; (try_loop > 0) && view->Loops[try_loop - 1].RunNextLoop();)
         {
-            if (view->loops[--try_loop].numFrames > 0)
+            if (view->Loops[--try_loop].FrameCount > 0)
             {
                 loop = try_loop;
-                frame = view->loops[try_loop].GetLastFrame();
+                frame = view->Loops[try_loop].GetLastFrame();
                 return true;
             }
         }

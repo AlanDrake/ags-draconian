@@ -498,16 +498,16 @@ void reset_character_idling_time(Character *ch)
 
 bool IsValidCharacter(int char_id)
 {
-    return ((char_id >= 0) && (char_id < Game::Current().numcharacters));
+    return ((char_id >= 0) && (char_id < Game::Current().CharacterCount));
 }
 
 bool AssertCharacter(const char *apiname, int char_id)
 {
     Game &game = Game::Current();
-    if ((char_id >= 0) && (char_id < game.numcharacters))
+    if ((char_id >= 0) && (char_id < game.CharacterCount))
         return true;
     debug_script_error("%s: invalid character id %d (range is 0..%d)", apiname, char_id,
-                       game.numcharacters > 0 ? game.numcharacters - 1 : 0);
+                       game.CharacterCount > 0 ? game.CharacterCount - 1 : 0);
     return false;
 }
 
@@ -527,7 +527,7 @@ void Character_AddInventory(Character *ch, ScriptInvItem *item, int at_index)
     if (quant == INT32_MAX)
     {
         debug_script_warn("Character.AddInventory: char %s, item %s: cannot carry more than %d of one inventory item",
-                          ch->ScriptName.GetCStr(), game.invScriptNames[inum].GetCStr(), INT32_MAX);
+                          ch->ScriptName.GetCStr(), game.InventoryItemScriptNames[inum].GetCStr(), INT32_MAX);
         return;
     }
 
@@ -554,7 +554,7 @@ void Character_AddInventory(Character *ch, ScriptInvItem *item, int at_index)
     {
         debug_script_warn(
             "Character.AddInventory: char %s, item %s: too many inventory items added, max %d can be stored at once",
-            ch->ScriptName.GetCStr(), game.invScriptNames[inum].GetCStr(), MAX_CHAR_INVENTORY);
+            ch->ScriptName.GetCStr(), game.InventoryItemScriptNames[inum].GetCStr(), MAX_CHAR_INVENTORY);
         return;
     }
 
@@ -742,7 +742,7 @@ void Character_ChangeView(Character *ch, int view)
 {
     view--;
 
-    if ((view < 0) || (view >= Game::Current().numviews))
+    if ((view < 0) || (view >= Game::Current().ViewCount))
     {
         quit("!ChangeCharacterView: invalid view number specified");
     }
@@ -812,8 +812,8 @@ DirectionalLoop GetDirectionalLoop(Character *ch, float x_diff, float y_diff, bo
     y_diff *= dir_ratio; // dir ratio is a y/x relation
 
     const View &chview = Game::Current().Views[ch->View];
-    const bool has_down_loop = ((chview.numLoops > kDirLoop_Down) && (chview.loops[kDirLoop_Down].numFrames > 0));
-    const bool has_up_loop = ((chview.numLoops > kDirLoop_Up) && (chview.loops[kDirLoop_Up].numFrames > 0));
+    const bool has_down_loop = ((chview.LoopCount > kDirLoop_Down) && (chview.Loops[kDirLoop_Down].FrameCount > 0));
+    const bool has_up_loop = ((chview.LoopCount > kDirLoop_Up) && (chview.Loops[kDirLoop_Up].FrameCount > 0));
     // NOTE: left and right loops are required to be present at all times (as 3.+ games did)
     const bool has_left_loop = true;
     const bool has_right_loop = true;
@@ -1011,15 +1011,15 @@ int GetCharacterWidth(Game &game, int char_id)
 
     if (ch->Width < 1)
     {
-        if ((ch->View < 0) || (ch->Loop >= game.Views[ch->View].numLoops) ||
-            (ch->Frame >= game.Views[ch->View].loops[ch->Loop].numFrames))
+        if ((ch->View < 0) || (ch->Loop >= game.Views[ch->View].LoopCount) ||
+            (ch->Frame >= game.Views[ch->View].Loops[ch->Loop].FrameCount))
         {
             debug_script_warn("GetCharacterWidth: Character %s has invalid frame: view %d, loop %d, frame %d",
                               ch->ScriptName.GetCStr(), ch->View + 1, ch->Loop, ch->Frame);
             return 4;
         }
 
-        return game.SpriteInfos[game.Views[ch->View].loops[ch->Loop].frames[ch->Frame].pic].Width;
+        return game.SpriteInfos[game.Views[ch->View].Loops[ch->Loop].Frames[ch->Frame].Sprite].Width;
     }
     else
         return ch->Width;
@@ -1031,15 +1031,15 @@ int GetCharacterHeight(Game &game, int char_id)
 
     if (ch->Height < 1)
     {
-        if ((ch->View < 0) || (ch->Loop >= game.Views[ch->View].numLoops) ||
-            (ch->Frame >= game.Views[ch->View].loops[ch->Loop].numFrames))
+        if ((ch->View < 0) || (ch->Loop >= game.Views[ch->View].LoopCount) ||
+            (ch->Frame >= game.Views[ch->View].Loops[ch->Loop].FrameCount))
         {
             debug_script_warn("GetCharacterHeight: Character %s has invalid frame: view %d, loop %d, frame %d",
                               ch->ScriptName.GetCStr(), ch->View + 1, ch->Loop, ch->Frame);
             return 2;
         }
 
-        return game.SpriteInfos[game.Views[ch->View].loops[ch->Loop].frames[ch->Frame].pic].Height;
+        return game.SpriteInfos[game.Views[ch->View].Loops[ch->Loop].Frames[ch->Frame].Sprite].Height;
     }
     else
         return ch->Height;
@@ -1269,7 +1269,7 @@ void Character_LoseInventory(Character *ch, ScriptInvItem *item)
     if (!ch->has_any_of_item(item_id))
     {
         debug_script_warn("Character.LoseInventory: char %s, item %s: no such item in inventory",
-                          ch->ScriptName.GetCStr(), Game::Current().invScriptNames[item_id].GetCStr());
+                          ch->ScriptName.GetCStr(), Game::Current().InventoryItemScriptNames[item_id].GetCStr());
         return;
     }
 
@@ -1732,7 +1732,7 @@ void Character_RunInteraction(Character *ch, int mood)
     // Cursor mode must match the event index in "Interactions" table,
     // except when it does not have a "event" flag
     // TODO: do we need extra flag telling if to trigger "any click" for this mode?
-    const int evnt = (game.MouseCursors[mood].flags & MCF_EVENT) != 0 ? mood : -1;
+    const int evnt = (game.MouseCursors[mood].Flags & MCF_EVENT) != 0 ? mood : -1;
     const int anyclick_evt = kCharacterEvent_AnyClick;
 
     // For USE verb: remember active inventory
@@ -1945,7 +1945,7 @@ int Character_GetBlinkView(Character *ch)
 
 void Character_SetBlinkView(Character *ch, int view)
 {
-    if (((view < 2) || (view > Game::Current().numviews)) && (view != -1))
+    if (((view < 2) || (view > Game::Current().ViewCount)) && (view != -1))
     {
         quit("!SetCharacterBlinkView: invalid view number");
     }
@@ -2123,7 +2123,7 @@ void Character_SetIInventoryQuantity(Character *ch, int index, int quant)
     if ((quant < 0) || (quant > INT16_MAX))
     {
         debug_script_warn("Character.InventoryQuantity: char %s, item %s: invalid quantity %d, valid range is 0..%d",
-                          ch->ScriptName.GetCStr(), game.invScriptNames[index].GetCStr(), quant, INT16_MAX);
+                          ch->ScriptName.GetCStr(), game.InventoryItemScriptNames[index].GetCStr(), quant, INT16_MAX);
         quant = Math::Clamp<int>(quant, 0, INT16_MAX);
     }
 
@@ -2250,7 +2250,7 @@ void Character_SetLoop(Character *ch, int new_value)
     AssertLoop("Character.Loop", ch->ScriptName.GetCStr(), ch->View, new_value);
 
     ch->Loop = new_value;
-    if (ch->Frame >= Game::Current().Views[ch->View].loops[ch->Loop].numFrames)
+    if (ch->Frame >= Game::Current().Views[ch->View].Loops[ch->Loop].FrameCount)
     {
         ch->Frame = 0;
     }
@@ -2456,7 +2456,7 @@ void Character_SetSpeechView(Character *ch, int view)
         return;
     }
 
-    if ((view < 1) || (view > Game::Current().numviews))
+    if ((view < 1) || (view > Game::Current().ViewCount))
     {
         quit("!SetCharacterSpeechView: invalid view number");
     }
@@ -2487,7 +2487,7 @@ int Character_GetThinkView(Character *ch)
 
 void Character_SetThinkView(Character *ch, int view)
 {
-    if (((view < 2) || (view > Game::Current().numviews)) && (view != -1))
+    if (((view < 2) || (view > Game::Current().ViewCount)) && (view != -1))
     {
         quit("!SetCharacterThinkView: invalid view number");
     }
@@ -2967,13 +2967,13 @@ int find_looporder_index(int curloop)
 bool should_use_diagloops(Character *ch, bool require_animation)
 {
     Game &game = Game::Current();
-    if ((game.Views[ch->View].numLoops < 8) || ((ch->Flags & CHF_NODIAGONAL) != 0))
+    if ((game.Views[ch->View].LoopCount < 8) || ((ch->Flags & CHF_NODIAGONAL) != 0))
     {
         return false;
     }
     // Optionally test if they have just provided standing frames for loops 4-7, to
     // provide smoother turning
-    if (require_animation && (game.Views[ch->View].loops[4].numFrames < 2))
+    if (require_animation && (game.Views[ch->View].Loops[4].FrameCount < 2))
     {
         return false;
     }
@@ -2986,8 +2986,8 @@ bool has_updown_loops(Character *ch)
     Game &game = Game::Current();
     // if no loops in the Down animation
     // or no loops in the Up animation
-    if ((game.Views[ch->View].loops[0].numFrames < 1) || (game.Views[ch->View].numLoops < 4) ||
-        (game.Views[ch->View].loops[3].numFrames < 1))
+    if ((game.Views[ch->View].Loops[0].FrameCount < 1) || (game.Views[ch->View].LoopCount < 4) ||
+        (game.Views[ch->View].Loops[3].FrameCount < 1))
     {
         return false;
     }
@@ -3051,11 +3051,11 @@ void start_character_turning(Character *ch, int use_loop, bool use_diagloops)
         }
         if ((turnlooporder[ii] >= NUM_BASE_DIRECTIONS) && (!use_diagloops))
             continue; // there are no diagonal loops
-        if (turnlooporder[ii] >= game.Views[ch->View].numLoops)
+        if (turnlooporder[ii] >= game.Views[ch->View].LoopCount)
         {
             continue; // no such loop
         }
-        if (game.Views[ch->View].loops[turnlooporder[ii]].numFrames < 1)
+        if (game.Views[ch->View].Loops[turnlooporder[ii]].FrameCount < 1)
         {
             continue; // no frames in such loop
         }
@@ -3091,7 +3091,7 @@ void fix_player_sprite(Character *ch, const MoveList &cmls)
         ch->Loop = use_loop;
         return;
     }
-    if ((ch->Loop >= game.Views[ch->View].numLoops) || (game.Views[ch->View].loops[ch->Loop].numFrames < 1) ||
+    if ((ch->Loop >= game.Views[ch->View].LoopCount) || (game.Views[ch->View].Loops[ch->Loop].FrameCount < 1) ||
         (!has_updown_loops(ch)))
     {
         // Character is not currently on a valid loop, so don't try to rotate
@@ -3111,7 +3111,7 @@ int has_hit_another_character(Game &game, int source_char)
         return -1;
     }
 
-    for (int ww = 0; ww < game.numcharacters; ww++)
+    for (int ww = 0; ww < game.CharacterCount; ww++)
     {
         if (!game.Characters[ww].is_enabled())
             continue;
@@ -3258,7 +3258,7 @@ bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
 void FindReasonableLoopForCharacter(Character *ch, bool is_walk_view)
 {
     Game &game = Game::Current();
-    int loop_limit = game.Views[ch->View].numLoops;
+    int loop_limit = game.Views[ch->View].LoopCount;
     // If it's a standard purpose walking view, then limit the loop to
     // walking directions (depending on "use diagonal loops" character option)
     if (is_walk_view)
@@ -3270,17 +3270,17 @@ void FindReasonableLoopForCharacter(Character *ch, bool is_walk_view)
     {
         ch->Loop = kDirLoop_Default;
     }
-    if (game.Views[ch->View].numLoops < 1)
+    if (game.Views[ch->View].LoopCount < 1)
     {
         quitprintf("!View %d does not have any loops", ch->View + 1);
     }
 
     // if the current loop has no frames, find one that does
-    if (game.Views[ch->View].loops[ch->Loop].numFrames < 1)
+    if (game.Views[ch->View].Loops[ch->Loop].FrameCount < 1)
     {
         for (int i = 0; i < loop_limit; i++)
         {
-            if (game.Views[ch->View].loops[i].numFrames > 0)
+            if (game.Views[ch->View].Loops[i].FrameCount > 0)
             {
                 ch->Loop = i;
                 break;
@@ -3456,14 +3456,14 @@ void setup_player_character(int char_id)
 void animate_character(Character *ch, int loop, int sppd, int rept, int direction, int sframe, int volume)
 {
     Game &game = Game::Current();
-    if ((ch->View < 0) || (ch->View > game.numviews) || (loop < 0) || (loop >= game.Views[ch->View].numLoops))
+    if ((ch->View < 0) || (ch->View > game.ViewCount) || (loop < 0) || (loop >= game.Views[ch->View].LoopCount))
     {
         quitprintf("!AnimateCharacter: invalid view and/or loop\n"
                    "(trying to animate '%s' using view %d (range is 1..%d) and loop %d (view has %d loops)).",
-                   ch->ScriptName.GetCStr(), ch->View + 1, game.numviews, loop, game.Views[ch->View].numLoops);
+                   ch->ScriptName.GetCStr(), ch->View + 1, game.ViewCount, loop, game.Views[ch->View].LoopCount);
     }
     // NOTE: there's always frame 0 allocated for safety
-    sframe = std::max(0, std::min(sframe, game.Views[ch->View].loops[loop].GetLastFrame()));
+    sframe = std::max(0, std::min(sframe, game.Views[ch->View].Loops[loop].GetLastFrame()));
     debug_script_log("%s: Start anim view %d loop %d, spd %d, repeat %d, frame: %d", ch->ScriptName.GetCStr(),
                      ch->View + 1, loop, sppd, rept, sframe);
 
@@ -3473,7 +3473,7 @@ void animate_character(Character *ch, int loop, int sppd, int rept, int directio
                      Math::Clamp(volume, 0, 100));
     ch->Loop = loop;
     ch->Frame = SetFirstAnimFrame(ch->View, loop, sframe, static_cast<AnimFlowDirection>(direction));
-    ch->AnimWait = sppd + game.Views[ch->View].loops[loop].frames[ch->Frame].speed;
+    ch->AnimWait = sppd + game.Views[ch->View].Loops[loop].Frames[ch->Frame].Delay;
 
     ch->CheckViewFrame();
 }
@@ -3502,7 +3502,7 @@ Bitmap *GetCharacterImage(int char_id, bool always_original, bool *is_original)
 Bitmap *GetCharacterSourceImage(Game &game, EngineServices &services, int char_id)
 {
     const Character &ch = game.Characters[char_id];
-    int sppic = game.Views[ch.View].loops[ch.Loop].frames[ch.Frame].pic;
+    int sppic = game.Views[ch.View].Loops[ch.Loop].Frames[ch.Frame].Sprite;
     return services.Sprites[sppic];
 }
 
@@ -3553,7 +3553,7 @@ void update_character_scale(Game &game, Room &room, int char_id)
             "!The character '%s' was turned on in the current room (room %d) but has not been assigned a view number.",
             ch.ScriptName.GetCStr(), game.DisplayedRoom);
     }
-    if (ch.Loop >= game.Views[ch.View].numLoops)
+    if (ch.Loop >= game.Views[ch.View].LoopCount)
     {
         // a stale loop can survive a view change, re-select a valid loop
         debug_script_warn("The character '%s' was to be displayed with loop %d of view %d, which does not exist; "
@@ -3563,13 +3563,13 @@ void update_character_scale(Game &game, Room &room, int char_id)
     }
     // If frame is too high -- fallback to the frame 0;
     // there's always at least 1 dummy frame at index 0
-    if (ch.Frame >= game.Views[ch.View].loops[ch.Loop].numFrames)
+    if (ch.Frame >= game.Views[ch.View].Loops[ch.Loop].FrameCount)
     {
         ch.Frame = 0;
     }
 
-    const ViewFrame &vf = game.Views[ch.View].loops[ch.Loop].frames[ch.Frame];
-    const int pic = vf.pic;
+    const ViewFrame &vf = game.Views[ch.View].Loops[ch.Loop].Frames[ch.Frame];
+    const int pic = vf.Sprite;
     int zoom, zoom_offs, scale_width, scale_height;
     update_object_scale(game, room, zoom, scale_width, scale_height, ch.X, ch.Y, pic, ch.Zoom,
                         (ch.Flags & CHF_MANUALSCALING) == 0);
@@ -3579,8 +3579,8 @@ void update_character_scale(Game &game, Room &room, int char_id)
     ch.Zoom = zoom;
     ch.SpriteWidth = game.SpriteInfos[pic].Width;
     ch.SpriteHeight = game.SpriteInfos[pic].Height;
-    ch.FrameOffsetX = vf.xoffs;
-    ch.FrameOffsetY = vf.yoffs;
+    ch.FrameOffsetX = vf.OffsetX;
+    ch.FrameOffsetY = vf.OffsetY;
     ch.Width = scale_width;
     ch.Height = scale_height;
     ch.OffsetZoom = zoom_offs;
@@ -3594,7 +3594,7 @@ int GetCharIDAtRoom(int x, int y, int hit_options)
     const bool only_clickable = (hit_options & kHit_Interactable) != 0;
 
     int cc, sppic, lowestyp = 0, lowestwas = -1;
-    for (cc = 0; cc < game.numcharacters; cc++)
+    for (cc = 0; cc < game.CharacterCount; cc++)
     {
         if (game.Characters[cc].Room != game.DisplayedRoom)
             continue;
@@ -3606,17 +3606,17 @@ int GetCharIDAtRoom(int x, int y, int hit_options)
             continue;
         Character *ch = &game.Characters[cc];
 
-        if ((ch->View < 0) || (ch->Loop >= game.Views[ch->View].numLoops) ||
-            (ch->Frame >= game.Views[ch->View].loops[ch->Loop].numFrames))
+        if ((ch->View < 0) || (ch->Loop >= game.Views[ch->View].LoopCount) ||
+            (ch->Frame >= game.Views[ch->View].Loops[ch->Loop].FrameCount))
         {
             continue;
         }
 
-        sppic = game.Views[ch->View].loops[ch->Loop].frames[ch->Frame].pic;
+        sppic = game.Views[ch->View].Loops[ch->Loop].Frames[ch->Frame].Sprite;
         int use_width = game.SpriteInfos[sppic].Width;
         int use_height = game.SpriteInfos[sppic].Height;
         // TODO: support mirrored transformation in GraphicSpace
-        SpriteTransformFlags sprite_flags = game.Views[ch->View].loops[ch->Loop].frames[ch->Frame].flags;
+        SpriteTransformFlags sprite_flags = game.Views[ch->View].Loops[ch->Loop].Frames[ch->Frame].Flags;
         Bitmap *image = GetCharacterSourceImage(game, services, cc);
         // Convert to local object coordinates
         Point local = ch->GetGraphicSpace().WorldToLocal(x, y);
@@ -3715,7 +3715,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
     }
 
     Character *speaking_char = &game.Characters[char_id];
-    if ((speaking_char->View < 0) || (speaking_char->View >= game.numviews))
+    if ((speaking_char->View < 0) || (speaking_char->View >= game.ViewCount))
     {
         quit("!DisplaySpeech: character has invalid view");
     }
@@ -3810,7 +3810,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
         allow_shrink = kDisplayTextShrink_Left;
     }
 
-    if (use_view >= game.numviews)
+    if (use_view >= game.ViewCount)
     {
         quitprintf("!Character.Say: attempted to use view %d for animation, but it does not exist", use_view + 1);
     }
@@ -3863,13 +3863,13 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
         if (view_was_locked)
             char_frame_was = speaking_char->Frame;
 
-        if ((speaking_char->View < 0) || game.Views[speaking_char->View].numLoops == 0)
+        if ((speaking_char->View < 0) || game.Views[speaking_char->View].LoopCount == 0)
         {
             quitprintf("!Character %s current view %d is invalid, or has no loops.",
                        speaking_char->ScriptName.GetCStr(), speaking_char->View + 1);
         }
         // If current view is missing a loop - use loop 0
-        if (speaking_char->Loop >= game.Views[speaking_char->View].numLoops)
+        if (speaking_char->Loop >= game.Views[speaking_char->View].LoopCount)
         {
             debug_script_warn("Character %s current view %d does not have necessary loop %d; switching to loop 0.",
                               speaking_char->ScriptName.GetCStr(), speaking_char->View + 1, speaking_char->Loop);
@@ -3890,7 +3890,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
 
         if (tdyp < 0)
         {
-            int sppic = game.Views[speaking_char->View].loops[speaking_char->Loop].frames[0].pic;
+            int sppic = game.Views[speaking_char->View].Loops[speaking_char->Loop].Frames[0].Sprite;
             int height = (speaking_char->Height < 1) ? game.SpriteInfos[sppic].Height : speaking_char->Height;
             tdyp = view->RoomToScreen(0, speaking_char->GetEffectiveY() - height).first.Y - 5;
             if (is_thought) // if it's a thought, lift it a bit further up
@@ -3902,7 +3902,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
         set_our_eip(152);
 
         if ((game.Options[OPT_SPEECHTYPE] > kSpeechStyle_LucasArts) && (use_view >= 0) &&
-            (game.Views[use_view].numLoops > 0))
+            (game.Views[use_view].LoopCount > 0))
         {
             // Sierra-style close-up portrait
             disp_pos = kDisplayTextPos_Normal;
@@ -3938,7 +3938,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                         {
                             // The player's not here. Find another character in this room
                             // that it could be
-                            for (int ce = 0; ce < game.numcharacters; ce++)
+                            for (int ce = 0; ce < game.CharacterCount; ce++)
                             {
                                 if ((game.Characters[ce].Room == speaking_char->Room) &&
                                     (game.Characters[ce].is_enabled()) && (ce != char_id))
@@ -3991,12 +3991,12 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
 
             int bigx = 0, bigy = 0, kk;
             View *viptr = &game.Views[use_view];
-            for (kk = 0; kk < viptr->loops[0].numFrames; kk++)
+            for (kk = 0; kk < viptr->Loops[0].FrameCount; kk++)
             {
-                int tw = game.SpriteInfos[viptr->loops[0].frames[kk].pic].Width;
+                int tw = game.SpriteInfos[viptr->Loops[0].Frames[kk].Sprite].Width;
                 if (tw > bigx)
                     bigx = tw;
-                tw = game.SpriteInfos[viptr->loops[0].frames[kk].pic].Height;
+                tw = game.SpriteInfos[viptr->Loops[0].Frames[kk].Sprite].Height;
                 if (tw > bigy)
                     bigy = tw;
             }
@@ -4035,7 +4035,8 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                 }
                 else
                 {
-                    view_frame_y = ui_view.GetHeight() / 2 - game.SpriteInfos[viptr->loops[0].frames[0].pic].Height / 2;
+                    view_frame_y =
+                        ui_view.GetHeight() / 2 - game.SpriteInfos[viptr->Loops[0].Frames[0].Sprite].Height / 2;
                 }
                 bigx = ui_view.GetWidth() / 2 - 20;
                 ovr_type = OVER_COMPLETE;
@@ -4064,7 +4065,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                     tdyp = ovr_yp + get_textwindow_top_border_height(game.Play.speech_textwindow_gui);
                 }
             }
-            const ViewFrame *vf = &viptr->loops[0].frames[0];
+            const ViewFrame *vf = &viptr->Loops[0].Frames[0];
             DrawViewFrame(closeupface.get(), vf, view_frame_x, view_frame_y);
 
             int overlay_x = 10;
@@ -4134,7 +4135,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
             game.Speech.FaceTalkLoop = 0;
             game.Speech.FaceTalkFrame = 0;
             game.Speech.FaceTalkWait =
-                viptr->loops[0].frames[0].speed + Character_GetSpeechAnimationDelay(speaking_char);
+                viptr->Loops[0].Frames[0].Delay + Character_GetSpeechAnimationDelay(speaking_char);
             game.Speech.FaceTalkRepeat = (is_thought) ? 0 : 1;
             game.Speech.FaceTalkBlinkLoop = 0;
             game.Speech.FaceTalkAllowBlink = 1;
@@ -4167,13 +4168,13 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
             speaking_char->Frame = 0;
             speaking_char->Flags |= CHF_FIXVIEW;
 
-            if ((speaking_char->View < 0) || game.Views[speaking_char->View].numLoops == 0)
+            if ((speaking_char->View < 0) || game.Views[speaking_char->View].LoopCount == 0)
             {
                 quitprintf("!Character %s speech view %d is invalid, or has no loops.",
                            speaking_char->ScriptName.GetCStr(), speaking_char->View + 1);
             }
             // If speech view is missing a loop - use loop 0
-            if (speaking_char->Loop >= game.Views[speaking_char->View].numLoops)
+            if (speaking_char->Loop >= game.Views[speaking_char->View].LoopCount)
             {
                 debug_script_warn("Character %s speech view %d does not have necessary loop %d; switching to loop 0.",
                                   speaking_char->ScriptName.GetCStr(), speaking_char->View + 1, speaking_char->Loop);
@@ -4184,7 +4185,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
 
             // set up the speed of the first frame
             speaking_char->AnimWait = Character_GetSpeechAnimationDelay(speaking_char) +
-                                      game.Views[speaking_char->View].loops[speaking_char->Loop].frames[0].speed;
+                                      game.Views[speaking_char->View].Loops[speaking_char->Loop].Frames[0].Delay;
 
             if (width < 0)
             {
@@ -4323,11 +4324,11 @@ int update_lip_sync(int talkview, int talkloop, int *talkframeptr)
     else
     {
         talkframe = GetLipSyncFrame(now_saying, &text_lips_offset);
-        if (talkframe >= game.Views[talkview].loops[talkloop].numFrames)
+        if (talkframe >= game.Views[talkview].Loops[talkloop].FrameCount)
             talkframe = 0;
     }
 
-    talkwait = game.LipSync.LoopsPerCharacter + game.Views[talkview].loops[talkloop].frames[talkframe].speed;
+    talkwait = game.LipSync.LoopsPerCharacter + game.Views[talkview].Loops[talkloop].Frames[talkframe].Delay;
 
     talkframeptr[0] = talkframe;
     return talkwait;
@@ -4336,7 +4337,7 @@ int update_lip_sync(int talkview, int talkloop, int *talkframeptr)
 void restore_characters()
 {
     Game &game = Game::Current();
-    for (int i = 0; i < game.numcharacters; ++i)
+    for (int i = 0; i < game.CharacterCount; ++i)
     {
         game.Characters[i].OffsetZoom = (game.Options[OPT_SCALECHAROFFSETS] != 0) ? game.Characters[i].Zoom : 100;
     }
@@ -4348,7 +4349,7 @@ Rect GetCharacterRoomBBox(int char_id, bool use_frame_0)
     int width, height;
     const Character &ch = game.Characters[char_id];
     int frame = use_frame_0 ? 0 : ch.Frame;
-    int pic = game.Views[ch.View].loops[ch.Loop].frames[frame].pic;
+    int pic = game.Views[ch.View].Loops[ch.Loop].Frames[frame].Sprite;
     scale_sprite_size(game, pic, ch.Zoom, &width, &height);
     return RectWH(ch.X - width / 2, ch.Y - height, width, height);
 }
@@ -4383,13 +4384,13 @@ PViewport FindNearestViewport(int char_id)
 void UpdateInventory()
 {
     Game &game = Game::Current();
-    for (int cc = 0; cc < game.numcharacters; cc++)
+    for (int cc = 0; cc < game.CharacterCount; cc++)
     {
         auto &ch = game.Characters[cc];
         ch.Inventory.clear();
         // Iterate through all inv items, adding them once
         // (or multiple times if requested) to the list.
-        for (int item = 0; (item < game.numinvitems) && (ch.Inventory.size() != MAX_CHAR_INVENTORY); ++item)
+        for (int item = 0; (item < game.InventoryItemCount) && (ch.Inventory.size() != MAX_CHAR_INVENTORY); ++item)
         {
             int item_count = ch.get_item_quantity(item);
             if ((game.Options[OPT_DUPLICATEINV] == 0) && (item_count > 1))

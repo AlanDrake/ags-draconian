@@ -21,61 +21,61 @@ using namespace AGS::Common;
 
 void ViewFrameDef::ReadFromFile(Stream *in)
 {
-    pic = in->ReadInt32();
-    xoffs = in->ReadInt16();
-    yoffs = in->ReadInt16();
-    speed = in->ReadInt16();
+    Sprite = in->ReadInt32();
+    OffsetX = in->ReadInt16();
+    OffsetY = in->ReadInt16();
+    Delay = in->ReadInt16();
     in->ReadInt16(); // alignment padding to int32
-    flags = (SpriteTransformFlags)in->ReadInt32();
-    sound = in->ReadInt32();
+    Flags = (SpriteTransformFlags)in->ReadInt32();
+    LinkedAudio = in->ReadInt32();
     in->ReadInt32(); // reserved 1
     in->ReadInt32(); // reserved 1
 }
 
-ViewLoopDef::ViewLoopDef() : numFrames(0), flags(0) {}
+ViewLoopDef::ViewLoopDef() : FrameCount(0), Flags(0) {}
 
 bool ViewLoopDef::RunNextLoop() const
 {
-    return (flags & LOOPFLAG_RUNNEXTLOOP);
+    return (Flags & LOOPFLAG_RUNNEXTLOOP);
 }
 
 void ViewLoopDef::Initialize(int frame_count)
 {
-    numFrames = frame_count;
-    flags = 0;
+    FrameCount = frame_count;
+    Flags = 0;
     // an extra frame is allocated to prevent crashes with empty loops
-    frames.resize(numFrames > 0 ? numFrames : 1);
+    Frames.resize(FrameCount > 0 ? FrameCount : 1);
 }
 
 void ViewLoopDef::ReadFromFile(Stream *in)
 {
     Initialize(static_cast<uint16_t>(in->ReadInt16()));
-    flags = in->ReadInt32();
+    Flags = in->ReadInt32();
     ReadFrames(in);
 }
 
 void ViewLoopDef::ReadFrames(Stream *in)
 {
-    for (int i = 0; i < numFrames; ++i)
+    for (int i = 0; i < FrameCount; ++i)
     {
-        frames[i].ReadFromFile(in);
+        Frames[i].ReadFromFile(in);
     }
 }
 
-ViewDef::ViewDef() : numLoops(0) {}
+ViewDef::ViewDef() : LoopCount(0) {}
 
 void ViewDef::Initialize(int loop_count)
 {
-    numLoops = loop_count;
-    loops.resize(numLoops);
+    LoopCount = loop_count;
+    Loops.resize(LoopCount);
 }
 
 void ViewDef::ReadFromFile(Stream *in)
 {
     Initialize(static_cast<uint16_t>(in->ReadInt16()));
 
-    for (int i = 0; i < numLoops; i++)
+    for (int i = 0; i < LoopCount; i++)
     {
-        loops[i].ReadFromFile(in);
+        Loops[i].ReadFromFile(in);
     }
 }

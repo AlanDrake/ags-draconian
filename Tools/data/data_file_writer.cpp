@@ -262,13 +262,13 @@ void WriteCharacter(Stream *out, const DataUtil::GameData &game, const DataUtil:
 void WriteInventoryItem(Stream *out, const DataUtil::InventoryItemData &ref)
 {
     InventoryItemDef item{};
-    item.name = TextProperty(ref.Description);
-    item.pic = ref.Image;
-    item.cursorPic = ref.CursorImage;
-    item.hotx = ref.HotspotX;
-    item.hoty = ref.HotspotY;
-    item.hotAlign = ref.HotspotAlignment;
-    item.flags = ref.PlayerStartsWith ? IFLG_STARTWITH : 0;
+    item.Name = TextProperty(ref.Description);
+    item.Sprite = ref.Image;
+    item.CursorSprite = ref.CursorImage;
+    item.CursorHotspotX = ref.HotspotX;
+    item.CursorHotspotY = ref.HotspotY;
+    item.CursorHotspotAlignment = ref.HotspotAlignment;
+    item.Flags = ref.PlayerStartsWith ? IFLG_STARTWITH : 0;
     item.WriteToFile(out);
 }
 
@@ -276,20 +276,20 @@ void WriteInventoryItem(Stream *out, const DataUtil::InventoryItemData &ref)
 void WriteCursor(Stream *out, const DataUtil::CursorData &ref)
 {
     MouseCursorDef cur;
-    cur.name = ref.Name;
-    cur.pic = ref.Image;
-    cur.hotx = static_cast<short>(ref.HotspotX);
-    cur.hoty = static_cast<short>(ref.HotspotY);
-    cur.view = static_cast<short>(ref.Animate && ref.View > 0 ? ref.View - 1 : -1);
-    cur.flags = 0;
+    cur.ScriptName = ref.Name;
+    cur.Sprite = ref.Image;
+    cur.HotspotX = static_cast<short>(ref.HotspotX);
+    cur.HotspotY = static_cast<short>(ref.HotspotY);
+    cur.View = static_cast<short>(ref.Animate && ref.View > 0 ? ref.View - 1 : -1);
+    cur.Flags = 0;
     if (ref.Animate && ref.AnimateOnlyOnHotspots)
-        cur.flags |= MCF_HOTSPOT;
+        cur.Flags |= MCF_HOTSPOT;
     if (ref.Animate && ref.AnimateOnlyWhenMoving)
-        cur.flags |= MCF_ANIMMOVE;
+        cur.Flags |= MCF_ANIMMOVE;
     if (ref.StandardMode)
-        cur.flags |= MCF_STANDARD;
+        cur.Flags |= MCF_STANDARD;
     if (ref.CreateEvent)
-        cur.flags |= MCF_EVENT;
+        cur.Flags |= MCF_EVENT;
     cur.WriteToFile(out);
 }
 
@@ -951,7 +951,7 @@ void WriteRoomNamesBlock(const DataUtil::GameData &game, Stream *out)
 }
 
 // Read by ScriptEventHandlers::Read() in Common/game/scripteventtable.cpp, called through the
-// `interactions` member of characters and inventory items by ReadInteractionScriptModules().
+// `Interactions` member of characters and inventory items by ReadInteractionScriptModules().
 void WriteInteractionEvents(Stream *out, const String &module, const std::vector<String> &events)
 {
     out->WriteInt32(kEventsTable_v362);

@@ -739,7 +739,7 @@ void init_game_drawdata()
 {
     Game &game = Game::Current();
     // character and object caches
-    charcache.resize(game.numcharacters);
+    charcache.resize(game.CharacterCount);
     for (size_t i = 0; i < (size_t)MAX_ROOM_OBJECTS; ++i)
         objcache[i] = ObjectCache();
 #if (AGS_PLATFORM_DEBUG)
@@ -747,15 +747,15 @@ void init_game_drawdata()
         charcache[ch.ID].tag.Format("CHAR%d:%s", ch.ID, ch.ScriptName.GetCStr());
 #endif
 
-    size_t actsps_num = game.numcharacters + MAX_ROOM_OBJECTS;
+    size_t actsps_num = game.CharacterCount + MAX_ROOM_OBJECTS;
     actsps.resize(actsps_num);
 
-    guihelpbg.resize(game.numgui);
-    guibg.resize(game.numgui);
-    gui_render_tex.resize(game.numgui);
+    guihelpbg.resize(game.GuiCount);
+    guibg.resize(game.GuiCount);
+    gui_render_tex.resize(game.GuiCount);
     int guio_num = 0;
     // Prepare GUI cache lists and build the quick reference for controls cache
-    guiobjddbref.resize(game.numgui);
+    guiobjddbref.resize(game.GuiCount);
     for (const auto &gui : game.Guis)
     {
         guiobjddbref[gui.GetID()] = guio_num;
@@ -1810,7 +1810,7 @@ void get_local_tint(Game &game, Room &room, int xpp, int ypp, bool use_region_ti
         }
 
         int tint_sat = (tint_level >> 24) & 0xFF;
-        if ((game.color_depth == 1) || (tint_sat == 0))
+        if ((game.BytesPerPixel == 1) || (tint_sat == 0))
             tint_level = 0;
 
         if (tint_level)
@@ -1882,7 +1882,7 @@ static void apply_tint_or_light(Game &game, ObjTexture &actsp, int light_level, 
 {
     // In a 256-colour game, we cannot do tinting or lightening
     // (but we can do darkening, if light_level < 0)
-    if (game.color_depth == 1)
+    if (game.BytesPerPixel == 1)
     {
         if ((light_level > 0) || (tint_amount != 0))
             return;
@@ -1918,7 +1918,7 @@ static void apply_tint_or_light(Game &game, ObjTexture &actsp, int light_level, 
             int lit_amnt;
             active_spr->FillTransparent();
             // It's a light level, not a tint
-            if (game.color_depth == 1)
+            if (game.BytesPerPixel == 1)
             {
                 // 256-col
                 lit_amnt = 255 + light_level;
@@ -2085,9 +2085,9 @@ static bool construct_object_gfx(Game &game, Room &room, EngineServices &service
     // check whether the image should be flipped
     GraphicFlip use_flip = kFlip_None;
     int specialpic = pic;
-    if (vf && (vf->pic == pic) && GfxDef::FlagsHaveFlip(vf->flags))
+    if (vf && (vf->Sprite == pic) && GfxDef::FlagsHaveFlip(vf->Flags))
     {
-        use_flip = GfxDef::GetFlipFromFlags(vf->flags);
+        use_flip = GfxDef::GetFlipFromFlags(vf->Flags);
         specialpic = -pic;
     }
 
@@ -2276,7 +2276,7 @@ bool construct_object_gfx(Game &game, Room &room, EngineServices &services, int 
     objsrc.pivoty = obj.Pivot.Y + (static_cast<float>(obj.PivotOffset.Y) / obj.Height);
 
     return construct_object_gfx(game, room, services,
-                                (obj.View != UINT16_MAX) ? &game.Views[obj.View].loops[obj.Loop].frames[obj.Frame]
+                                (obj.View != UINT16_MAX) ? &game.Views[obj.View].Loops[obj.Loop].Frames[obj.Frame]
                                                          : nullptr,
                                 sprite_id, Size(obj.Width, obj.Height), obj.Flags & OBJF_TINTLIGHTMASK, objsrc,
                                 objcache[obj_id], actsps[obj_id], true, force_software);
@@ -2379,8 +2379,8 @@ void tint_image(Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int light
 bool construct_char_gfx(Game &game, Room &room, EngineServices &services, int char_id, bool force_software)
 {
     const Character &ch = game.Characters[char_id];
-    const ViewFrame *vf = &game.Views[ch.View].loops[ch.Loop].frames[ch.Frame];
-    const int pic = services.Sprites.DoesSpriteExist(vf->pic) ? vf->pic : 0;
+    const ViewFrame *vf = &game.Views[ch.View].Loops[ch.Loop].Frames[ch.Frame];
+    const int pic = services.Sprites.DoesSpriteExist(vf->Sprite) ? vf->Sprite : 0;
 
     ObjectCache chsrc(pic, ch.TintRed, ch.TintGreen, ch.TintBlue, ch.TintLevel, ch.TintLight, 0 /* skip */, ch.Zoom,
                       ch.Rotation, kFlip_None /* skip */, ch.X, ch.Y);
@@ -2403,7 +2403,7 @@ void prepare_characters_for_drawing()
     const bool hw_accel = !drawstate.SoftwareRender;
 
     // draw characters
-    for (int char_id = 0; char_id < game.numcharacters; ++char_id)
+    for (int char_id = 0; char_id < game.CharacterCount; ++char_id)
     {
         const Character &ch = game.Characters[char_id];
         if (!ch.is_displayed())
@@ -2784,7 +2784,7 @@ void draw_gui_and_overlays()
         set_our_eip(37);
         // Prepare and update GUI textures
         {
-            for (int index = 0; index < game.numgui; ++index)
+            for (int index = 0; index < game.GuiCount; ++index)
             {
                 auto &gui = game.Guis[index];
                 if (!gui.IsDisplayed())
@@ -2860,7 +2860,7 @@ void draw_gui_and_overlays()
         }
         set_our_eip(38);
         // Draw the GUIs
-        for (int index = 0; index < game.numgui; ++index)
+        for (int index = 0; index < game.GuiCount; ++index)
         {
             GUIMain &gui = game.Guis[index];
             // Don't draw GUI if it's not on, or it's a "GUIs Turn Off When Disabled" state
@@ -3479,7 +3479,7 @@ void CyclePalette(int strt, int eend)
     // Any non-8-bit game must invalidate screen since the palette changes
     // the effect of the drawing operations
     // FIXME: this is likely wrong, it should also/instead test the graphic driver capabilities?
-    if (game.color_depth > 1)
+    if (game.BytesPerPixel > 1)
         invalidate_screen();
 
     if ((strt < 0) || (strt > 255) || (eend < 0) || (eend > 255))
@@ -3501,7 +3501,7 @@ void CyclePalette(int strt, int eend)
 void SetPalRGB(int inndx, int rr, int gg, int bb)
 {
     Game &game = Game::Current();
-    if (game.color_depth > 1)
+    if (game.BytesPerPixel > 1)
         invalidate_screen();
 
     PaletteOp::SetRGB(game.Palette, inndx, rr, gg, bb);
@@ -3511,7 +3511,7 @@ void SetPalRGB(int inndx, int rr, int gg, int bb)
 void UpdatePalette()
 {
     Game &game = Game::Current();
-    if (game.color_depth > 1)
+    if (game.BytesPerPixel > 1)
         invalidate_screen();
 
     if (!game.Play.fast_forward)

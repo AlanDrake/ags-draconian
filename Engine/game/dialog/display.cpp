@@ -940,7 +940,7 @@ int get_textwindow_padding(int gui_id)
 
     if (gui_id < 0)
         gui_id = game.Options[OPT_TWCUSTOM];
-    if (gui_id > 0 && gui_id < game.numgui)
+    if (gui_id > 0 && gui_id < game.GuiCount)
         result = game.Guis[gui_id].GetPadding();
     else
         result = TEXTWINDOW_PADDING_DEFAULT;
@@ -960,9 +960,9 @@ std::unique_ptr<Bitmap> draw_text_window(int *text_x, int *text_y, int *x, int *
     // Assertions
     if (gui_id > 0)
     {
-        if (gui_id >= game.numgui)
+        if (gui_id >= game.GuiCount)
         {
-            debug_script_warn("Invalid GUI %d specified as text window (valid range: 1..%d)", gui_id, game.numgui);
+            debug_script_warn("Invalid GUI %d specified as text window (valid range: 1..%d)", gui_id, game.GuiCount);
             gui_id = 0;
         }
         else if (!game.Guis[gui_id].IsTextWindow())

@@ -289,11 +289,11 @@ struct FontDef
     };
 
     // Font's numeric ID
-    int FontID = -1;
+    int ID = -1;
     // Font's source filename
-    AGS::Common::String Filename;
+    AGS::Common::String SourceFileName;
     // Font's asset filename, optional (added for consistency with 4.*)
-    AGS::Common::String FileName;
+    AGS::Common::String AssetFileName;
     // General font's loading and rendering flags (FFLG_*)
     uint32_t Flags = 0u;
     // Nominal font import size (in pixels)
@@ -306,7 +306,7 @@ struct FontDef
     // used mainly for handling broken fonts
     int CustomHeight = 0;
     // Custom vertical render offset, used mainly for handling broken fonts
-    int YOffset = 0;
+    int OffsetY = 0;
     // Custom line spacing between two lines of text (0 = use font height)
     int LineSpacing = 0;
     // Horizontal spacing between individual characters, in pixels

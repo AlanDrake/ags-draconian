@@ -555,9 +555,9 @@ const ScriptAudioChannel *play_voice_clip_as_type(int char_id, int cue_id, int t
         return nullptr;
 
     AudioClip sc_clip; // pass temp dummy clip
-    sc_clip.fileName = apath.Name;
-    sc_clip.fileType = AudioClip::GetAudioFileTypeFromExt(Path::GetFileExtension(apath.Name).GetCStr());
-    sc_clip.bundlingType = kAudioBundle_SpeechVox;
+    sc_clip.FileName = apath.Name;
+    sc_clip.FileType = AudioClip::GetAudioFileTypeFromExt(Path::GetFileExtension(apath.Name).GetCStr());
+    sc_clip.BundlingType = kAudioBundle_SpeechVox;
     return play_audio_clip(AudioPlayback(&sc_clip, type), chan, priority, repeat, 0, false);
 }
 

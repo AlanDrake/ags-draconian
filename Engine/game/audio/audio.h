@@ -62,7 +62,7 @@ struct AudioPlayback
     int AudioType = AUDIOTYPE_UNDEFINED;
 
     AudioPlayback() = default;
-    AudioPlayback(const AudioClip *clip) : Clip(clip), AudioType(clip->type) {}
+    AudioPlayback(const AudioClip *clip) : Clip(clip), AudioType(clip->Type) {}
     AudioPlayback(const AudioClip *clip, int audio_type) : Clip(clip), AudioType(audio_type) {}
 };
 

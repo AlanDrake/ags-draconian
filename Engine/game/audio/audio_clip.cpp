@@ -32,43 +32,43 @@ using namespace AGS::Common;
 
 int AudioClip_GetID(AudioClip *clip)
 {
-    return clip->id;
+    return clip->ID;
 }
 
 const char *AudioClip_GetScriptName(AudioClip *clip)
 {
-    return CreateNewScriptString(clip->scriptName);
+    return CreateNewScriptString(clip->ScriptName);
 }
 
 int AudioClip_GetDefaultPriority(AudioClip *clip)
 {
-    return clip->defaultPriority;
+    return clip->DefaultPriority;
 }
 
 int AudioClip_GetDefaultRepeat(AudioClip *clip)
 {
-    return clip->defaultRepeat;
+    return clip->IsRepeatingByDefault;
 }
 
 int AudioClip_GetDefaultVolume(AudioClip *clip)
 {
-    return clip->defaultVolume;
+    return clip->DefaultVolume;
 }
 
 int AudioClip_GetFileType(AudioClip *clip)
 {
-    return clip->fileType;
+    return clip->FileType;
 }
 
 int AudioClip_GetType(AudioClip *clip)
 {
-    return clip->type;
+    return clip->Type;
 }
 
 int AudioClip_GetIsAvailable(AudioClip *clip)
 {
     return EngineServices::Current().Assets->DoesAssetExist(
-               get_audio_clip_assetpath(clip->bundlingType, clip->fileName))
+               get_audio_clip_assetpath(clip->BundlingType, clip->FileName))
                ? 1
                : 0;
 }
@@ -79,7 +79,7 @@ void AudioClip_Stop(AudioClip *clip)
     for (int i = NUM_SPEECH_CHANS; i < game.GameChannelCount; i++)
     {
         auto *playback = AudioChans::GetChannelIfPlaying(i);
-        if ((playback != nullptr) && (playback->sourceClipID == clip->id))
+        if ((playback != nullptr) && (playback->sourceClipID == clip->ID))
         {
             AudioChannel_Stop(&game.ScAudioChannels[i]);
         }
@@ -108,9 +108,9 @@ ScriptAudioChannel *AudioClip_PlayOnChannel(AudioClip *clip, int chan, int prior
         quitprintf("!AudioClip.PlayOnChannel: invalid channel %d, the range is %d - %d", chan, NUM_SPEECH_CHANS,
                    game.GameChannelCount - 1);
     if (priority == SCR_NO_VALUE)
-        priority = clip->defaultPriority;
+        priority = clip->DefaultPriority;
     if (repeat == SCR_NO_VALUE)
-        repeat = clip->defaultRepeat;
+        repeat = clip->IsRepeatingByDefault;
     return play_audio_clip_on_channel(clip, chan, priority, repeat);
 }
 
@@ -126,33 +126,33 @@ ScriptAudioChannel *AudioClip_PlayAsType(AudioClip *clip, int type, int chan, in
     if (chan == SCR_NO_VALUE)
         chan = -1;
     if (priority == SCR_NO_VALUE)
-        priority = clip->defaultPriority;
+        priority = clip->DefaultPriority;
     if (repeat == SCR_NO_VALUE)
-        repeat = clip->defaultRepeat;
+        repeat = clip->IsRepeatingByDefault;
     return play_audio_clip(AudioPlayback(clip, type), chan, priority, repeat);
 }
 
 int AudioClip_GetProperty(AudioClip *clip, const char *property)
 {
     Game &game = Game::Current();
-    return get_int_property(game.audioclipProps[clip->id], game.Play.audioclipProps[clip->id], property);
+    return get_int_property(game.audioclipProps[clip->ID], game.Play.audioclipProps[clip->ID], property);
 }
 
 const char *AudioClip_GetTextProperty(AudioClip *clip, const char *property)
 {
     Game &game = Game::Current();
-    return get_text_property_dynamic_string(game.audioclipProps[clip->id], game.Play.audioclipProps[clip->id],
+    return get_text_property_dynamic_string(game.audioclipProps[clip->ID], game.Play.audioclipProps[clip->ID],
                                             property);
 }
 
 bool AudioClip_SetProperty(AudioClip *clip, const char *property, int value)
 {
-    return set_int_property(Game::Current().Play.audioclipProps[clip->id], property, value);
+    return set_int_property(Game::Current().Play.audioclipProps[clip->ID], property, value);
 }
 
 bool AudioClip_SetTextProperty(AudioClip *clip, const char *property, const char *value)
 {
-    return set_text_property(Game::Current().Play.audioclipProps[clip->id], property, value);
+    return set_text_property(Game::Current().Play.audioclipProps[clip->ID], property, value);
 }
 
 //=============================================================================

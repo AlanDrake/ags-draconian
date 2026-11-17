@@ -55,15 +55,15 @@ enum AudioClipBundle
 struct AudioClipDef
 {
 public:
-    int id = -1;
-    AGS::Common::String scriptName;
-    AGS::Common::String fileName;
-    uint8_t bundlingType = kAudioBundle_Undefined;
-    uint8_t type = AUDIOTYPE_UNDEFINED;
-    AudioFileType fileType = eAudioFileUndefined;
-    char defaultRepeat = 0;
-    short defaultPriority = 50;
-    short defaultVolume = 100;
+    int ID = -1;
+    AGS::Common::String ScriptName;
+    AGS::Common::String FileName;
+    uint8_t BundlingType = kAudioBundle_Undefined;
+    uint8_t Type = AUDIOTYPE_UNDEFINED;
+    AudioFileType FileType = eAudioFileUndefined;
+    char IsRepeatingByDefault = 0; // script: AudioClip.DefaultRepeat
+    short DefaultPriority = 50;
+    short DefaultVolume = 100;
 
     static AudioFileType GetAudioFileTypeFromExt(const char *ext);
     static const char *GetExtFromAudioFileType(AudioFileType filetype);

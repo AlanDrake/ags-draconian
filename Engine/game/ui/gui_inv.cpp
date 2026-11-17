@@ -67,7 +67,7 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
     for (int item = _topItem; item < lastItem; ++item)
     {
         // draw inv graphic
-        draw_gui_sprite(ds, game.InventoryItems[ch.Inventory[item]].pic, at_x, at_y);
+        draw_gui_sprite(ds, game.InventoryItems[ch.Inventory[item]].Sprite, at_x, at_y);
         at_x += _itemWidth;
 
         // go to next row when appropriate

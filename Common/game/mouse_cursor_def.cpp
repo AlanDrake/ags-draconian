@@ -20,22 +20,22 @@ using namespace AGS::Common;
 
 void MouseCursorDef::ReadFromFile(Stream *in)
 {
-    pic = in->ReadInt32();
-    hotx = in->ReadInt16();
-    hoty = in->ReadInt16();
-    view = in->ReadInt16();
-    name.ReadCount(in, LEGACY_MAX_CURSOR_NAME_LENGTH);
-    flags = in->ReadInt8();
+    Sprite = in->ReadInt32();
+    HotspotX = in->ReadInt16();
+    HotspotY = in->ReadInt16();
+    View = in->ReadInt16();
+    ScriptName.ReadCount(in, LEGACY_MAX_CURSOR_NAME_LENGTH);
+    Flags = in->ReadInt8();
     in->Seek(3); // alignment padding to int32
 }
 
 void MouseCursorDef::WriteToFile(Stream *out)
 {
-    out->WriteInt32(pic);
-    out->WriteInt16(hotx);
-    out->WriteInt16(hoty);
-    out->WriteInt16(view);
-    name.WriteCount(out, LEGACY_MAX_CURSOR_NAME_LENGTH);
-    out->WriteInt8(flags);
+    out->WriteInt32(Sprite);
+    out->WriteInt16(HotspotX);
+    out->WriteInt16(HotspotY);
+    out->WriteInt16(View);
+    ScriptName.WriteCount(out, LEGACY_MAX_CURSOR_NAME_LENGTH);
+    out->WriteInt8(Flags);
     out->WriteByteCount(0, 3); // alignment padding to int32
 }

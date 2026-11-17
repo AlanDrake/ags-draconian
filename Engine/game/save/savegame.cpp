@@ -513,7 +513,7 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
             }
 
             int audio_type = chan_info.AudioType != AUDIOTYPE_UNDEFINED ? chan_info.AudioType
-                                                                        : game.AudioClips[chan_info.ClipID].type;
+                                                                        : game.AudioClips[chan_info.ClipID].Type;
             // TODO: queueIfNoChannel is set here only because play_audio_clip then does not remove the clips of
             // this audio type from the queue, which was just restored; a parameter of its own would say it
             play_audio_clip(AudioPlayback(&game.AudioClips[chan_info.ClipID], audio_type), i, chan_info.Priority,
@@ -749,7 +749,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     if (game.HasCursorRole(r_data.CursorID, kCursorRole_UseInv))
         SetActiveInventory(game.PlayerChar->ActiveInventory);
     // precache current cursor
-    services.Sprites.PrecacheSprite(game.MouseCursors[r_data.CursorID].pic);
+    services.Sprites.PrecacheSprite(game.MouseCursors[r_data.CursorID].Sprite);
 
     services.Platform->SetWindowTitle(game.Play.game_name);
 
@@ -984,12 +984,12 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     // pass it as arguments instead
     StrUtil::WriteString(get_engine_name(), out);
     StrUtil::WriteString(services.Version.LongString, out);
-    StrUtil::WriteString(game.guid, out);
-    StrUtil::WriteString(game.gamename, out);
+    StrUtil::WriteString(game.Guid, out);
+    StrUtil::WriteString(game.Name, out);
     StrUtil::WriteString(services.ResPaths.GamePak.Name, out);
     out->WriteInt32(game.LoadedDataVersion);
     out->WriteInt32(game.GetColorDepth());
-    out->WriteInt32(game.uniqueid);
+    out->WriteInt32(game.UniqueID);
     // Write the size of the environment info block into its placeholder
     soff_t env_info_end_pos = out->GetPosition();
     out->Seek(env_info_pos, kSeekBegin);

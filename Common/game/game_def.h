@@ -58,33 +58,33 @@ struct GameDef
     static const int NUM_LEGACY_GLOBALMES = 500;
 
 
-    AGS::Common::String gamename;
-    GameDataVersion gamedataver = kGameVersion_Undefined;
-    AGS::Common::String compiled_with; // version of AGS this data was created by
+    AGS::Common::String Name; // script: Game.Name
+    GameDataVersion DataVersion = kGameVersion_Undefined;
+    AGS::Common::String CompiledWith; // version of AGS this data was created by
     int Options[MAX_OPTIONS] = {0};
-    uint8_t paluses[256] = {0};
-    RGB defpal[256] = {};
-    int numviews = 0;
-    int numcharacters = 0;
+    uint8_t PaletteUses[256] = {0};
+    RGB DefaultPalette[256] = {};
+    int ViewCount = 0;
+    int CharacterCount = 0;
     int PlayerCharacterID = -1;
-    uint16_t numinvitems = 0u;
-    int numdialog = 0;
-    int numdlgmessage = 0; // [DEPRECATED]
-    int numfonts = 0;
-    int color_depth = 0; // in bytes per pixel (ie. 1, 2, 4)
-    int target_win = 0;
+    uint16_t InventoryItemCount = 0u;
+    int DialogCount = 0;
+    int DialogMessageCount = 0; // [DEPRECATED]
+    int FontCount = 0;
+    int BytesPerPixel = 0; // in bytes per pixel (ie. 1, 2, 4)
+    int TargetWindows = 0;
     int DialogBulletSprite = 0;               // 0 for none, otherwise slot num of bullet point
     int InventoryCursorHotspotColor = 0;      // inv cursor hotspot dot color
     int InventoryCursorHotspotCrossColor = 0; // inv cursor hotspot cross color
-    int uniqueid = 0;                         // random key identifying the game
-    int numgui = 0;
-    int numcursors = 0;
+    int UniqueID = 0;                         // random key identifying the game
+    int GuiCount = 0;
+    int MouseCursorCount = 0;
     int DefaultLipSyncFrame = 0; // used for unknown chars
     int InventoryCursorHotspotSprite = 0;
-    int reserved[NUM_INTS_RESERVED] = {0};
+    int Reserved[NUM_INTS_RESERVED] = {0};
     // Base text parser dictionary, contains parser words in the original game language.
     // This may be overridden by the parser dictionary read from translation, if one is applied.
-    std::unique_ptr<AGS::Common::WordsDictionary> dict;
+    std::unique_ptr<AGS::Common::WordsDictionary> ParserDictionary;
     std::vector<CharacterDef> Characters;
 
 
@@ -102,7 +102,7 @@ public:
     std::vector<InventoryItemDef> InventoryItems;
     std::vector<MouseCursorDef> MouseCursors;
     char lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{0}};
-    AGS::Common::PropertySchema propSchema;
+    AGS::Common::PropertySchema CustomPropertySchema;
     std::vector<AGS::Common::StringIMap> charProps;
     std::vector<AGS::Common::StringIMap> invProps;
     std::vector<AGS::Common::StringIMap> audioclipProps;
@@ -112,26 +112,26 @@ public:
     // NOTE: although the view names are stored in game data, they are never
     // used, nor registered as script exports; numeric IDs are used to
     // reference views instead.
-    std::vector<AGS::Common::String> viewNames;
-    std::vector<AGS::Common::String> invScriptNames; // TODO: move to InventoryItemDef
+    std::vector<AGS::Common::String> ViewNames;
+    std::vector<AGS::Common::String> InventoryItemScriptNames; // TODO: move to InventoryItemDef
     // TODO: move this array out of Game struct, but need to read legacy data
     // into some sort of a temporary container for post-load upgrading.
-    std::vector<AGS::Common::String> dialogScriptNames;
-    char guid[MAX_GUID_LENGTH] = {0};
-    char saveGameFileExtension[MAX_SG_EXT_LENGTH] = {0};
+    std::vector<AGS::Common::String> DialogScriptNames;
+    char Guid[MAX_GUID_LENGTH] = {0};
+    char SaveGameFileExtension[MAX_SG_EXT_LENGTH] = {0};
     // NOTE: saveGameFolderName is generally used to create game subdirs in common user directories
-    AGS::Common::String saveGameFolderName;
+    AGS::Common::String SaveGameFolderName;
     // Existing room numbers
-    std::vector<int> roomNumbers;
+    std::vector<int> RoomNumbers;
     // Saved room names, known during the game compilation;
     // may be used to learn the total number of registered rooms
-    std::map<int, AGS::Common::String> roomNames;
+    std::map<int, AGS::Common::String> RoomNames;
     std::vector<AudioClipDef> AudioClips;
     std::vector<AudioClipTypeDef> AudioClipTypes;
 
     // Extended global game properties
     // Character face direction ratio (y/x)
-    float faceDirectionRatio = 1.f;
+    float FaceDirectionRatio = 1.f;
 
     // A dictionary of semi-arbitrary game info properties: title, developer's name, etc
     // Following keys are currently supported:
@@ -181,7 +181,7 @@ public:
     // Returns a cursor index with standard Wait mode, or -1 if there's none
     int GetModeWait() const { return _roleCursors[kCursorRole_Wait]; }
     // Tells if the given cursor has the specific role
-    bool HasCursorRole(int curs, CursorRole role) const { return MouseCursors[curs].role == role; }
+    bool HasCursorRole(int curs, CursorRole role) const { return MouseCursors[curs].Role == role; }
 
     // The game's entities as loaded from the game file (ReadGameData reads into them). The engine's Game inherits
     // them and keeps a live copy of the views and dialogs, which hides these; it still changes the GUIs here until
@@ -237,7 +237,7 @@ public:
     void SetGameResolution(Size game_res);
     const Size &GetGameRes() const { return _gameResolution; }
     // Get game's native color depth (bits per pixel)
-    inline int GetColorDepth() const { return color_depth * 8; }
+    inline int GetColorDepth() const { return BytesPerPixel * 8; }
 
     // Returns the expected filename of a digital audio package
     inline AGS::Common::String GetAudioVOXName() const { return "audio.vox"; }

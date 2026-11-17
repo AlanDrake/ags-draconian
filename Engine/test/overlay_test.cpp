@@ -61,7 +61,7 @@ const int kRoom = 7;
 //   (init_sprite_cache), which stays attached, as in the engine
 // - game.Play: the main and UI viewports (320x200), one room viewport and its camera
 // - Room::Current(): the room size (640x400, so the camera can scroll)
-// - Game::Characters, game.numcharacters, Game::Views: one character standing in room kRoom,
+// - Game::Characters, game.CharacterCount, Game::Views: one character standing in room kRoom,
 //   with a one-frame view
 // - Game::DisplayedRoom: kRoom
 class OverlayLayout : public ::testing::Test
@@ -89,10 +89,10 @@ protected:
 
         game.Views.resize(1);
         game.Views[0].Initialize(1);
-        game.Views[0].loops[0].Initialize(1);
-        game.Views[0].loops[0].frames[0].pic = kCharacterSprite;
+        game.Views[0].Loops[0].Initialize(1);
+        game.Views[0].Loops[0].Frames[0].Sprite = kCharacterSprite;
         game.Characters.resize(1);
-        game.numcharacters = 1;
+        game.CharacterCount = 1;
         game.Characters[0].View = 0;
         game.Characters[0].Loop = 0;
         game.Characters[0].Room = kRoom;
@@ -106,7 +106,7 @@ protected:
         Room &room = Room::Current();
         game.DisplayedRoom = -10;
         game.Characters.clear();
-        game.numcharacters = 0;
+        game.CharacterCount = 0;
         game.Views.clear();
         game.Viewports.FreeViewportsAndCameras();
         game.Viewports.SetUIViewport(Rect());

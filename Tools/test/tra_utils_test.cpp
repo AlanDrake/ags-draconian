@@ -257,8 +257,8 @@ TEST(TraUtils, WritePOCompilesToTheSameTranslation)
         const FontOverride &a = fover.second;
         const FontOverride &b = again.FontOverrides.at(fover.first);
         EXPECT_EQ(a.Fields, b.Fields);
-        EXPECT_EQ(a.Finfo.FontID, b.Finfo.FontID);
-        EXPECT_STREQ(a.Finfo.FileName.GetCStr(), b.Finfo.FileName.GetCStr());
+        EXPECT_EQ(a.Finfo.ID, b.Finfo.ID);
+        EXPECT_STREQ(a.Finfo.AssetFileName.GetCStr(), b.Finfo.AssetFileName.GetCStr());
         EXPECT_EQ(a.Finfo.Flags, b.Finfo.Flags);
         EXPECT_EQ(a.Finfo.Size, b.Finfo.Size);
         EXPECT_EQ(a.Finfo.SizeMultiplier, b.Finfo.SizeMultiplier);
@@ -266,7 +266,7 @@ TEST(TraUtils, WritePOCompilesToTheSameTranslation)
         EXPECT_EQ(a.Finfo.AutoOutlineStyle, b.Finfo.AutoOutlineStyle);
         EXPECT_EQ(a.Finfo.AutoOutlineThickness, b.Finfo.AutoOutlineThickness);
         EXPECT_EQ(a.Finfo.CustomHeight, b.Finfo.CustomHeight);
-        EXPECT_EQ(a.Finfo.YOffset, b.Finfo.YOffset);
+        EXPECT_EQ(a.Finfo.OffsetY, b.Finfo.OffsetY);
         EXPECT_EQ(a.Finfo.LineSpacing, b.Finfo.LineSpacing);
         EXPECT_EQ(a.Finfo.CharacterSpacing, b.Finfo.CharacterSpacing);
     }

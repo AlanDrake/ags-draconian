@@ -38,9 +38,9 @@ protected:
         game.Views.resize(1);
         game.Views[0].Initialize(MAX_FACE_DIRECTIONS);
         for (int i = 0; i < MAX_FACE_DIRECTIONS; ++i)
-            game.Views[0].loops[i].Initialize(1);
+            game.Views[0].Loops[i].Initialize(1);
         game.Characters.resize(1);
-        game.numcharacters = 1;
+        game.CharacterCount = 1;
         game.Characters[0].View = 0;
         game.Characters[0].ID = 0;
         _savedPriority = game.Options[OPT_TURNORDERPRIORITY];
@@ -51,7 +51,7 @@ protected:
         Game &game = Game::Current();
         game.Options[OPT_TURNORDERPRIORITY] = _savedPriority;
         game.Characters.clear();
-        game.numcharacters = 0;
+        game.CharacterCount = 0;
         game.Views.clear();
     }
 

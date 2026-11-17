@@ -905,7 +905,7 @@ void autoposition_overlay(ScreenOverlay &over)
 
     auto view = FindNearestViewport(char_id);
     const int char_sprite =
-        game.Views[game.Characters[char_id].View].loops[game.Characters[char_id].Loop].frames[0].pic;
+        game.Views[game.Characters[char_id].View].Loops[game.Characters[char_id].Loop].Frames[0].Sprite;
     const int height =
         (game.Characters[char_id].Height < 1) ? game.SpriteInfos[char_sprite].Height : game.Characters[char_id].Height;
     const Point screen_pt =
@@ -964,8 +964,8 @@ static void UpdateOverlayState(Game &game, const AnimatedOverlay &aover)
     const ViewFrame *view_frame = aover.GetViewFrame(game);
     if (view_frame)
     {
-        over.SetSpriteNum(view_frame->pic, view_frame->xoffs, view_frame->yoffs);
-        over.SetFlip(GfxDef::GetFlipFromFlags(view_frame->flags));
+        over.SetSpriteNum(view_frame->Sprite, view_frame->OffsetX, view_frame->OffsetY);
+        over.SetFlip(GfxDef::GetFlipFromFlags(view_frame->Flags));
     }
 }
 

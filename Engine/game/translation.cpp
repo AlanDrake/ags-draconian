@@ -58,7 +58,7 @@ FontDef construct_font_override(FontDef *base_finfo, const FontDef &finfo, int f
         if (fields & kFontField_AutoOutlineThickness)
             out_info.AutoOutlineThickness = finfo.AutoOutlineThickness;
         if (fields & kFontField_VerticalOffset)
-            out_info.YOffset = finfo.YOffset;
+            out_info.OffsetY = finfo.OffsetY;
         if (fields & kFontField_LineSpacing)
             out_info.LineSpacing = finfo.LineSpacing;
         if (fields & kFontField_CharacterSpacing)
@@ -91,7 +91,7 @@ void init_font_overrides(const Translation &trans)
         const auto &fields = fover.Fields;
         // If FontID is available, this means we should copy another existing font,
         // otherwise use FontDef properties to load a new font
-        const int use_font_id = finfo.FontID;
+        const int use_font_id = finfo.ID;
         if (use_font_id >= 0)
         {
             if (static_cast<uint32_t>(use_font_id) < game.Fonts.size())
@@ -107,10 +107,10 @@ void init_font_overrides(const Translation &trans)
                               font_id, use_font_id);
             }
         }
-        else if (!finfo.FileName.IsEmpty())
+        else if (!finfo.AssetFileName.IsEmpty())
         {
             Debug::Printf("Init font's %d override using file %s and provided parameters", font_id,
-                          finfo.FileName.GetCStr());
+                          finfo.AssetFileName.GetCStr());
             FontDef use_finfo = construct_font_override(nullptr, finfo, fields);
             load_game_font(font_id, use_finfo, game.LoadedDataVersion);
         }
@@ -154,7 +154,8 @@ void close_translation()
     trans_filename = "";
 
     SetGameTextLanguage(game.GameTextLanguage);
-    SetTranslationTextParser(CreateTextParser(game.dict.get(), true, EngineServices::Current().TextLocaleName));
+    SetTranslationTextParser(
+        CreateTextParser(game.ParserDictionary.get(), true, EngineServices::Current().TextLocaleName));
 }
 
 void SetGameTextLanguage(const String &language)
@@ -186,7 +187,7 @@ bool init_translation(const String &lang, const String &fallback_lang)
     trans = Translation();
 
     // First test if the translation is meant for this game
-    HError err = TestTraGameID(game.uniqueid, game.gamename, std::move(in));
+    HError err = TestTraGameID(game.UniqueID, game.Name, std::move(in));
     if (err)
     {
         // If successful, then read translation data fully
@@ -247,13 +248,13 @@ bool init_translation(const String &lang, const String &fallback_lang)
     {
         // The parser dictionary must contain all expected word groups, so if any are not
         // found in the translated dict, then add base ones directly there.
-        if (game.dict.get())
-            MergeParserDictionary(&trans.ParserDict, game.dict.get());
+        if (game.ParserDictionary.get())
+            MergeParserDictionary(&trans.ParserDict, game.ParserDictionary.get());
         SetTranslationTextParser(CreateTextParser(&trans.ParserDict, true, services.TextLocaleName));
     }
     else
     {
-        SetTranslationTextParser(CreateTextParser(game.dict.get(), true, services.TextLocaleName));
+        SetTranslationTextParser(CreateTextParser(game.ParserDictionary.get(), true, services.TextLocaleName));
     }
 
     Debug::Printf(kDbgMsg_Info, "Translation initialized: %s (format: %s)", trans_name.GetCStr(),

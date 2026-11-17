@@ -133,7 +133,7 @@ void engine_setup_window()
     Debug::Printf(kDbgMsg_Info, "Setting up window");
 
     set_our_eip(-198);
-    services.Platform->SetWindowTitle(Game::Current().gamename);
+    services.Platform->SetWindowTitle(Game::Current().Name);
     sys_window_set_icon();
 
     SystemConfig sys_cfg;
@@ -150,9 +150,9 @@ void engine_setup_window()
 static void fill_game_properties(StringOrderMap &map)
 {
     Game &game = Game::Current();
-    map["title"] = game.gamename;
-    map["guid"] = game.guid;
-    map["legacy_uniqueid"] = StrUtil::IntToString(game.uniqueid);
+    map["title"] = game.Name;
+    map["guid"] = game.Guid;
+    map["legacy_uniqueid"] = StrUtil::IntToString(game.UniqueID);
     map["resolution_width"] = StrUtil::IntToString(game.GetGameRes().Width);
     map["resolution_height"] = StrUtil::IntToString(game.GetGameRes().Height);
     map["resolution_bpp"] = StrUtil::IntToString(game.GetColorDepth());
@@ -486,7 +486,7 @@ int engine_load_game_data()
 // Replace special tokens inside a user path option
 static void resolve_configured_path(String &option)
 {
-    option.Replace("$GAMENAME$", Game::Current().gamename);
+    option.Replace("$GAMENAME$", Game::Current().Name);
 }
 
 // Setup paths and directories that may be affected by user configuration
@@ -674,22 +674,22 @@ void engine_init_game_settings()
 
     for (i = 0; i < 256; i++)
     {
-        if (game.paluses[i] != PAL_BACKGROUND)
-            game.Palette[i] = game.defpal[i];
+        if (game.PaletteUses[i] != PAL_BACKGROUND)
+            game.Palette[i] = game.DefaultPalette[i];
     }
     // Allegro's palette starts all black; colours are matched against it (makecol8)
     setpal();
 
-    for (i = 0; i < game.numcursors; i++)
+    for (i = 0; i < game.MouseCursorCount; i++)
     {
         // The cursor graphics are assigned to mousecurs[] and so cannot
         // be removed from memory
-        if (game.MouseCursors[i].pic >= 0)
-            services.Sprites.PrecacheSprite(game.MouseCursors[i].pic);
+        if (game.MouseCursors[i].Sprite >= 0)
+            services.Sprites.PrecacheSprite(game.MouseCursors[i].Sprite);
 
         // a view number past the game's views is none already (the loader, UpdateGameData)
-        if (game.MouseCursors[i].view >= 0)
-            precache_view(game.MouseCursors[i].view);
+        if (game.MouseCursors[i].View >= 0)
+            precache_view(game.MouseCursors[i].View);
     }
     // may as well preload the character gfx
     if (game.PlayerChar->View >= 0)
@@ -702,7 +702,7 @@ void engine_init_game_settings()
         game.ScObjects[i].id = i;
     }
 
-    for (i = 0; i < game.numcharacters; i++)
+    for (i = 0; i < game.CharacterCount; i++)
     {
         game.Characters[i].ActiveInventory = -1;
         game.Characters[i].IdleTimeLeft = game.Characters[i].IdleDelay;
@@ -715,7 +715,7 @@ void engine_init_game_settings()
             // set initial loop to 0
             game.Characters[i].Loop = 0;
             // or to 1 if they don't have up/down frames
-            if (game.Views[game.Characters[i].View].loops[0].numFrames < 1)
+            if (game.Views[game.Characters[i].View].Loops[0].FrameCount < 1)
                 game.Characters[i].Loop = 1;
         }
         game.Characters[i].ProcessIdleThisTime = false;
@@ -725,9 +725,9 @@ void engine_init_game_settings()
 
     set_our_eip(-5);
     // Add all inventory items with "starts with" flag to the player character
-    for (i = 0; i < game.numinvitems; i++)
+    for (i = 0; i < game.InventoryItemCount; i++)
     {
-        if (game.InventoryItems[i].flags & IFLG_STARTWITH)
+        if (game.InventoryItems[i].Flags & IFLG_STARTWITH)
             game.PlayerChar->set_item_quantity(i, 1);
     }
 
@@ -864,14 +864,14 @@ void engine_init_game_settings()
     game.Play.speech_textwindow_gui = game.Options[OPT_TWCUSTOM];
     if (game.Play.speech_textwindow_gui == 0)
         game.Play.speech_textwindow_gui = -1;
-    game.Play.game_name = game.gamename;
+    game.Play.game_name = game.Name;
     game.Play.lastParserEntry[0] = 0;
     game.Play.follow_change_room_timer = 150;
     game.Play.game_speed_modifier = 0;
     if (services.Debug.Flags & DBG_DEBUGMODE)
         game.Play.debug_mode = 1;
     game.Play.shake_screen_yoff = 0;
-    game.Play.face_dir_ratio = game.faceDirectionRatio;
+    game.Play.face_dir_ratio = game.FaceDirectionRatio;
 
     GUI::DataVersion = game.LoadedDataVersion;
     GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.Options[OPT_DISABLEOFF]);
@@ -1188,9 +1188,9 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
     }
     if (all || keys.count("data") > 0)
     {
-        data["data"]["gamename"] = game.gamename;
+        data["data"]["gamename"] = game.Name;
         data["data"]["version"] = StrUtil::IntToString(game.LoadedDataVersion);
-        data["data"]["compiledwith"] = game.compiled_with;
+        data["data"]["compiledwith"] = game.CompiledWith;
         data["data"]["basepack"] = services.ResPaths.GamePak.Path;
     }
     if (all || keys.count("gameproperties") > 0)
@@ -1398,7 +1398,7 @@ bool engine_try_set_gfxmode_any(const DisplayModeSetup &setup)
     sys_renderer_set_output(services.Config.SoftwareRenderDriver);
 
     Size init_desktop;
-    bool res = graphics_mode_init_any(GraphicResolution(game.GetGameRes(), game.color_depth * 8), setup,
+    bool res = graphics_mode_init_any(GraphicResolution(game.GetGameRes(), game.BytesPerPixel * 8), setup,
                                       ColorDepthOption(game.GetColorDepth()), &init_desktop);
 
     if (res)

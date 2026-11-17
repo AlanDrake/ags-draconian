@@ -228,7 +228,7 @@ int Game_GetAudioTypeCrossfadeSpeed(int audio_type)
     if (!AssertAudioType("Game.GetAudioTypeCrossfadeSpeed", audio_type))
         return 0;
 
-    return Game::Current().AudioClipTypes[audio_type].crossfadeSpeed;
+    return Game::Current().AudioClipTypes[audio_type].CrossfadeSpeed;
 }
 
 void Game_SetAudioTypeCrossfadeSpeed(int audio_type, int crossfade_speed)
@@ -242,7 +242,7 @@ void Game_SetAudioTypeCrossfadeSpeed(int audio_type, int crossfade_speed)
     }
 
     Debug::Printf("Game.SetAudioTypeCrossfadeSpeed: type: %d, speed: %d", audio_type, crossfade_speed);
-    Game::Current().AudioClipTypes[audio_type].crossfadeSpeed = crossfade_speed;
+    Game::Current().AudioClipTypes[audio_type].CrossfadeSpeed = crossfade_speed;
 }
 
 int Game_GetAudioTypeSpeechVolumeDrop(int audio_type)
@@ -250,7 +250,7 @@ int Game_GetAudioTypeSpeechVolumeDrop(int audio_type)
     if (!AssertAudioType("Game.GetAudioTypeSpeechVolumeDrop", audio_type))
         return 0;
 
-    return Game::Current().AudioClipTypes[audio_type].volume_reduction_while_speech_playing;
+    return Game::Current().AudioClipTypes[audio_type].VolumeReductionWhileSpeechPlaying;
 }
 
 void Game_SetAudioTypeSpeechVolumeDrop(int audio_type, int volume_drop)
@@ -259,7 +259,7 @@ void Game_SetAudioTypeSpeechVolumeDrop(int audio_type, int volume_drop)
         return;
 
     Debug::Printf("Game.SetAudioTypeSpeechVolumeDrop: type: %d, drop: %d", audio_type, volume_drop);
-    Game::Current().AudioClipTypes[audio_type].volume_reduction_while_speech_playing = volume_drop;
+    Game::Current().AudioClipTypes[audio_type].VolumeReductionWhileSpeechPlaying = volume_drop;
     update_volume_drop_if_voiceover();
 }
 
@@ -315,7 +315,7 @@ void Game_SetAudioTypeVolume(int audio_type, int volume, int change_type)
 
 int Game_GetDialogCount()
 {
-    return Game::Current().numdialog;
+    return Game::Current().DialogCount;
 }
 
 void set_debug_mode(bool on)
@@ -694,7 +694,7 @@ void Game_SetInventoryCursorHotspotCrossColor(int color)
 
 int Game_GetInventoryItemCount()
 {
-    return Game::Current().numinvitems;
+    return Game::Current().InventoryItemCount;
 }
 
 bool Game_GetIsPaused()
@@ -704,27 +704,27 @@ bool Game_GetIsPaused()
 
 int Game_GetFontCount()
 {
-    return Game::Current().numfonts;
+    return Game::Current().FontCount;
 }
 
 int Game_GetMouseCursorCount()
 {
-    return Game::Current().numcursors;
+    return Game::Current().MouseCursorCount;
 }
 
 int Game_GetCharacterCount()
 {
-    return Game::Current().numcharacters;
+    return Game::Current().CharacterCount;
 }
 
 int Game_GetGUICount()
 {
-    return Game::Current().numgui;
+    return Game::Current().GuiCount;
 }
 
 int Game_GetViewCount()
 {
-    return Game::Current().numviews;
+    return Game::Current().ViewCount;
 }
 
 bool Game_GetUseActiveInventoryGraphicForCursor()
@@ -866,14 +866,14 @@ void AssertView(const char *api_name, const char *obj_name, int view)
     Game &game = Game::Current();
     // NOTE: we assume (here and below) that the view is already in an internal 0-based range.
     // but when printing an error we will use (view + 1) for compliance with the script API.
-    if ((view < 0) || (view >= game.numviews))
-        quitprintf("!%s (%s): invalid view %d (range is 1..%d)", api_name, obj_name, view + 1, game.numviews);
+    if ((view < 0) || (view >= game.ViewCount))
+        quitprintf("!%s (%s): invalid view %d (range is 1..%d)", api_name, obj_name, view + 1, game.ViewCount);
 }
 
 void AssertViewHasLoops(const char *api_name, const char *obj_name, int view)
 {
     AssertView(api_name, obj_name, view);
-    if (Game::Current().Views[view].numLoops == 0)
+    if (Game::Current().Views[view].LoopCount == 0)
         quitprintf("!%s (%s): view %d does not have any loops.", api_name, obj_name, view + 1);
 }
 
@@ -881,7 +881,7 @@ void AssertLoop(const char *api_name, const char *obj_name, int view, int loop)
 {
     Game &game = Game::Current();
     AssertViewHasLoops(api_name, obj_name, view);
-    if ((loop < 0) || (loop >= game.Views[view].numLoops))
+    if ((loop < 0) || (loop >= game.Views[view].LoopCount))
         quitprintf("!%s (%s): invalid loop number %d for view %d (range is 0..%d).", api_name, obj_name, loop, view + 1,
                    game.Views[view].GetLastLoop());
 }
@@ -890,32 +890,32 @@ void AssertFrame(const char *api_name, const char *obj_name, int view, int loop,
 {
     Game &game = Game::Current();
     AssertLoop(api_name, obj_name, view, loop);
-    if (game.Views[view].loops[loop].numFrames == 0)
+    if (game.Views[view].Loops[loop].FrameCount == 0)
         quitprintf("!%s (%s): view %d loop %d does not have any frames", api_name, obj_name, view + 1, loop);
-    if ((frame < 0) || (frame >= game.Views[view].loops[loop].numFrames))
+    if ((frame < 0) || (frame >= game.Views[view].Loops[loop].FrameCount))
         quitprintf("!%s (%s): invalid frame number %d for view %d loop %d (range is 0..%d)", api_name, obj_name, frame,
-                   view + 1, loop, game.Views[view].loops[loop].GetLastFrame());
+                   view + 1, loop, game.Views[view].Loops[loop].GetLastFrame());
 }
 
 int Game_GetLoopCountForView(int view)
 {
     view--; // convert to 0-based
     AssertView("Game.GetLoopCountForView", "", view);
-    return Game::Current().Views[view].numLoops;
+    return Game::Current().Views[view].LoopCount;
 }
 
 int Game_GetRunNextSettingForLoop(int view, int loop)
 {
     view--; // convert to 0-based
     AssertLoop("Game.GetRunNextSettingForLoop", "", view, loop);
-    return (Game::Current().Views[view].loops[loop].RunNextLoop()) ? 1 : 0;
+    return (Game::Current().Views[view].Loops[loop].RunNextLoop()) ? 1 : 0;
 }
 
 int Game_GetFrameCountForLoop(int view, int loop)
 {
     view--; // convert to 0-based
     AssertLoop("Game.GetFrameCountForLoop", "", view, loop);
-    return Game::Current().Views[view].loops[loop].numFrames;
+    return Game::Current().Views[view].Loops[loop].FrameCount;
 }
 
 ScriptViewFrame *Game_GetViewFrame(int view, int loop, int frame)
@@ -1033,7 +1033,7 @@ int Game_GetColorFromRGBA(int red, int green, int blue, int alpha)
         alpha = Math::Clamp(alpha, 0, 255);
     }
 
-    if (Game::Current().color_depth == 1)
+    if (Game::Current().BytesPerPixel == 1)
     {
         return makecol8(red, green, blue);
     }
@@ -1300,22 +1300,22 @@ void Game_SetFaceDirectionRatio(float ratio)
 
 int Game_GetRoomCount()
 {
-    return Game::Current().roomNumbers.size();
+    return Game::Current().RoomNumbers.size();
 }
 
 int Game_GetRoomNumber(int index)
 {
     Game &game = Game::Current();
-    if (index < 0 || static_cast<uint32_t>(index) >= game.roomNumbers.size())
+    if (index < 0 || static_cast<uint32_t>(index) >= game.RoomNumbers.size())
         return -1;
-    return game.roomNumbers[index];
+    return game.RoomNumbers[index];
 }
 
 const char *Game_GetRoomName(int room_number)
 {
     Game &game = Game::Current();
-    auto it_room = game.roomNames.find(room_number);
-    if (it_room == game.roomNames.end())
+    auto it_room = game.RoomNames.find(room_number);
+    if (it_room == game.RoomNames.end())
         return nullptr;
 
     return CreateNewScriptString(it_room->second);
@@ -1502,8 +1502,8 @@ bool test_game_guid(const String &filepath, const String &guid, int legacy_id)
     GameDef loaded_game;
     PreReadGameData(loaded_game, std::move(src.InputStream), src.DataVersion, src.CompiledWith);
     if (!guid.IsEmpty())
-        return guid.CompareNoCase(loaded_game.guid) == 0;
-    return legacy_id == loaded_game.uniqueid;
+        return guid.CompareNoCase(loaded_game.Guid) == 0;
+    return legacy_id == loaded_game.UniqueID;
 }
 
 // Restores the game from the save file. If the save belongs to another game (by GUID, or by the main file name when
@@ -1535,7 +1535,7 @@ HSaveError load_game(const String &path, int slot, bool startup, bool &data_over
     // Match game GUIDs and test whether save was made for the different game
     if (!desc.GameGuid.IsEmpty() || desc.LegacyID != 0)
     {
-        if (desc.GameGuid.Compare(game.guid) != 0 && desc.LegacyID != game.uniqueid)
+        if (desc.GameGuid.Compare(game.Guid) != 0 && desc.LegacyID != game.UniqueID)
         {
             // Try to find wanted game's data using game id
             String game_file = FindGameData(services.ResPaths.DataDir, [&desc](const String &filepath)
@@ -1990,19 +1990,19 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
     int64_t dur_sprite_load = 0, dur_texture_make = 0, dur_sound_load = 0;
     for (int i = first_loop; i <= last_loop; ++i)
     {
-        for (int j = 0; j < game.Views[view].loops[i].numFrames; ++j, ++total_frames)
+        for (int j = 0; j < game.Views[view].Loops[i].FrameCount; ++j, ++total_frames)
         {
-            const auto &frame = game.Views[view].loops[i].frames[j];
+            const auto &frame = game.Views[view].Loops[i].Frames[j];
             const auto tp_detail1 = FastClock::now();
-            services.Sprites.PrecacheSprite(frame.pic);
+            services.Sprites.PrecacheSprite(frame.Sprite);
             const auto tp_detail2 = FastClock::now();
-            texturecache_precache(frame.pic);
+            texturecache_precache(frame.Sprite);
             const auto tp_detail3 = FastClock::now();
 
-            if (with_sounds && frame.sound >= 0)
+            if (with_sounds && frame.LinkedAudio >= 0)
             {
-                AudioClip *clip = &game.AudioClips[frame.sound];
-                auto asset_path = get_audio_clip_assetpath(clip->bundlingType, clip->fileName);
+                AudioClip *clip = &game.AudioClips[frame.LinkedAudio];
+                auto asset_path = get_audio_clip_assetpath(clip->BundlingType, clip->FileName);
                 soundcache_precache(asset_path);
                 dur_sound_load += ToMilliseconds(FastClock::now() - tp_detail3);
                 total_sounds++;
@@ -2033,7 +2033,7 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
 
 bool load_game_font(int at_index, const FontDef &font_info, GameDataVersion /*data_ver*/)
 {
-    if (font_info.Filename.IsEmpty())
+    if (font_info.SourceFileName.IsEmpty())
     {
         Debug::Printf(kDbgMsg_Warn, "ERROR: Unable to load font %d, because no source filename is assigned", at_index);
         return false;
@@ -2044,7 +2044,7 @@ bool load_game_font(int at_index, const FontDef &font_info, GameDataVersion /*da
         Debug::Printf(
             kDbgMsg_Error,
             "ERROR: Unable to load font %d using %s, file does not exist or no renderer could load a matching file.",
-            at_index, font_info.FileName.IsEmpty() ? "available asset(s)" : font_info.FileName.GetCStr());
+            at_index, font_info.AssetFileName.IsEmpty() ? "available asset(s)" : font_info.AssetFileName.GetCStr());
         // Replace this font using the font 0's file to let display the text at least
         bool result = false;
         if (at_index != 0 && is_font_loaded(0))
@@ -2060,7 +2060,7 @@ void fixup_game_fonts()
     Game &game = Game::Current();
     // TODO: this workaround may not be needed any more with the FreeType the engine is built with; test with the
     // LucasFan font before removing it
-    for (int i = 0; i < game.numfonts; ++i)
+    for (int i = 0; i < game.FontCount; ++i)
     {
         if (!is_bitmap_font(i))
         {
@@ -2281,7 +2281,7 @@ void script_debug(int cmdd, int dataa)
 
     if (cmdd == 0)
     {
-        for (int i = 0; i < game.numinvitems; ++i)
+        for (int i = 0; i < game.InventoryItemCount; ++i)
             game.PlayerChar->set_item_quantity(i, std::max<int16_t>(1, game.PlayerChar->get_item_quantity(i)));
         UpdateInventory();
     }
@@ -2304,7 +2304,7 @@ void script_debug(int cmdd, int dataa)
     else if (cmdd == 3)
     {
         int goToRoom = -1;
-        if (game.roomNames.size() == 0)
+        if (game.RoomNames.size() == 0)
         {
             String inroomtex = String::FromFormat("!Enter new room: (in room %d)", game.DisplayedRoom);
             setup_for_dialog(game.Play.normal_font);
@@ -2314,7 +2314,7 @@ void script_debug(int cmdd, int dataa)
         else
         {
             setup_for_dialog(game.Play.normal_font);
-            goToRoom = roomSelectorWindow(game.DisplayedRoom, game.roomNames);
+            goToRoom = roomSelectorWindow(game.DisplayedRoom, game.RoomNames);
             restore_after_dialog();
         }
         if (goToRoom >= 0)
@@ -2713,7 +2713,7 @@ int SetGameOption(int opt, int new_value)
     switch (opt)
     {
     case OPT_ANTIGLIDE:
-        for (int i = 0; i < game.numcharacters; i++)
+        for (int i = 0; i < game.CharacterCount; i++)
         {
             if (new_value)
                 game.Characters[i].Flags |= CHF_ANTIGLIDE;
@@ -2907,7 +2907,7 @@ static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y
     }
     else if (loc_type == LOCTYPE_INVITEM)
     {
-        return game.InventoryItems[loc_id].name.GetCStr();
+        return game.InventoryItems[loc_id].Name.GetCStr();
     }
     return "";
 }

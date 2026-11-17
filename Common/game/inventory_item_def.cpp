@@ -22,7 +22,7 @@ using namespace AGS::Common;
 
 void InventoryItemDef::RemapOldInteractions()
 {
-    std::vector<ScriptEventHandler> old_interactions = interactions.GetHandlers();
+    std::vector<ScriptEventHandler> old_interactions = Interactions.GetHandlers();
     std::vector<ScriptEventHandler> new_interactions;
     // this is just for safety, it's supposed to be that large
     old_interactions.resize(NUM_STANDARD_VERBS);
@@ -37,34 +37,34 @@ void InventoryItemDef::RemapOldInteractions()
     new_interactions[STD_MODE_CUSTOM1] = old_interactions[4];
     new_interactions[STD_MODE_CUSTOM2] = old_interactions[4];
 
-    interactions.SetScriptModule(_events.GetScriptModule());
-    interactions.SetHandlers(std::move(new_interactions));
+    Interactions.SetScriptModule(_events.GetScriptModule());
+    Interactions.SetHandlers(std::move(new_interactions));
 }
 
 void InventoryItemDef::ReadFromFile(Stream *in, GameDataVersion /*game_ver*/)
 {
-    name.ReadCount(in, LEGACY_MAX_INVENTORY_NAME_LENGTH);
+    Name.ReadCount(in, LEGACY_MAX_INVENTORY_NAME_LENGTH);
     in->Seek(3); // alignment padding to int32
-    pic = in->ReadInt32();
-    cursorPic = in->ReadInt32();
-    hotx = in->ReadInt32();
-    hoty = in->ReadInt32();
-    hotAlign = static_cast<FrameAlignment>(in->ReadInt32()); // since 3.6.3.14
-    in->Seek(sizeof(int32_t) * 4);                           // reserved
-    flags = in->ReadInt8();
+    Sprite = in->ReadInt32();
+    CursorSprite = in->ReadInt32();
+    CursorHotspotX = in->ReadInt32();
+    CursorHotspotY = in->ReadInt32();
+    CursorHotspotAlignment = static_cast<FrameAlignment>(in->ReadInt32()); // since 3.6.3.14
+    in->Seek(sizeof(int32_t) * 4);                                         // reserved
+    Flags = in->ReadInt8();
     in->Seek(3); // alignment padding to int32
 }
 
 void InventoryItemDef::WriteToFile(Stream *out) const
 {
-    name.WriteCount(out, LEGACY_MAX_INVENTORY_NAME_LENGTH);
+    Name.WriteCount(out, LEGACY_MAX_INVENTORY_NAME_LENGTH);
     out->WriteByteCount(0, 3); // alignment padding to int32
-    out->WriteInt32(pic);
-    out->WriteInt32(cursorPic);
-    out->WriteInt32(hotx);
-    out->WriteInt32(hoty);
-    out->WriteInt32(hotAlign);                   // since 3.6.3.14
+    out->WriteInt32(Sprite);
+    out->WriteInt32(CursorSprite);
+    out->WriteInt32(CursorHotspotX);
+    out->WriteInt32(CursorHotspotY);
+    out->WriteInt32(CursorHotspotAlignment);     // since 3.6.3.14
     out->WriteByteCount(0, sizeof(int32_t) * 4); // reserved
-    out->WriteInt8(flags);
+    out->WriteInt8(Flags);
     out->WriteByteCount(0, 3); // alignment padding to int32
 }
